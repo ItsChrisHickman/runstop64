@@ -1,4 +1,4 @@
-import { COL, isNumbers, isRecord, isRecordOf, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
+import { COL, foundCodec, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { CORE_ROOM, MAP_H, MAP_W, rom } from './data';
 import type { Game } from './game';
 
@@ -9,14 +9,11 @@ import type { Game } from './game';
  * marked. Places to go back to: the rooms visited, arriving where BLOB first
  * stood in each (kept with the saves).
  */
-type Spot = [col: number, row: number];
-const isSpot = (v: unknown): v is Spot => isNumbers(v) && v.length === 2;
+const spot = S.tuple(S.number, S.number); // column, row
 /** What the map keeps of the player's progress: where BLOB first stood in each room. */
-export interface StarquakeFound { entry: Record<string, Spot> }
-const FOUND: FoundCodec<StarquakeFound> = {
-  empty: () => ({ entry: {} }),
-  parse: (kept) => ({ entry: isRecord(kept) && isRecordOf(kept.entry, isSpot) ? kept.entry : {} }),
-};
+const found = S.object({ entry: S.record(spot) });
+export type StarquakeFound = S.Infer<typeof found>;
+const FOUND = foundCodec(found, () => ({ entry: {} }));
 
 const visited = (g: Game, room: number) => !!(g.lo[room >> 3] & (0x80 >> (room & 7)));
 const ROWS_PER_PAGE = 16;

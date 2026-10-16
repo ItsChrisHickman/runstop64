@@ -1,8 +1,8 @@
 import type { SaveCodec } from '../../shared/continue';
-import { isNumber, isNumbers, isRecord, readJson, isArray } from '../../shared/guards';
+import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
 import { isExtensionRoom } from './data';
 import type { Game } from './game';
-import { C5_START, c5Arrive, type C5State } from './mechanisms';
+import { C5_START, c5Arrive } from './mechanisms';
 
 /**
  * Monty's save: what's needed to carry on from the start of a room (taken as
@@ -10,15 +10,16 @@ import { C5_START, c5Arrive, type C5State } from './mechanisms';
  * ContinueFlow's (games/shared/continue.ts, games/shared/saves.ts); this is what goes into a save and
  * how a game is started again from one.
  */
-export interface MontySave {
-  v: 1;
-  roomId: number;
-  x2: number; y: number; mapRow: number; exitCol: number; facing: number;
-  lives: number; score: number;
-  coins: number[]; items: number[]; exitGrid: number[]; c5FallStage: number;
+export const MontySave = S.object({
+  v: S.literal(1),
+  roomId: S.number,
+  x2: S.number, y: S.number, mapRow: S.number, exitCol: S.number, facing: S.number,
+  lives: S.number, score: S.number,
+  coins: S.numbers, items: S.numbers, exitGrid: S.numbers, c5FallStage: S.number,
   /** The C5 as it came into the room (saves from before this have only the stage). */
-  c5?: C5State;
-}
+  c5: S.optional(S.object({ fallStage: S.number, speed: S.number, dir: S.number, bounce: S.number })),
+});
+export type MontySave = S.Infer<typeof MontySave>;
 
 export function snapshot(g: Game): MontySave {
   return {
@@ -53,17 +54,8 @@ export function restore(g: Game, data: MontySave) {
   g.roomExit = 1; // the first frame loads the saved room
 }
 
-const isC5State = (v: unknown): v is C5State => isRecord(v) && isNumber(v.fallStage) && isNumber(v.speed) && isNumber(v.dir) && isNumber(v.bounce);
-
 /** A save read back (from JSON in storage), checked: null if it isn't one. */
-export function parseSave(v: unknown): MontySave | null {
-  if (!isRecord(v) || v.v !== 1) return null;
-  const { roomId, x2, y, mapRow, exitCol, facing, lives, score, coins, items, exitGrid, c5FallStage, c5 } = v;
-  if (!isNumber(roomId) || !isNumber(x2) || !isNumber(y) || !isNumber(mapRow) || !isNumber(exitCol) || !isNumber(facing)) return null;
-  if (!isNumber(lives) || !isNumber(score) || !isNumbers(coins) || !isNumbers(items) || !isNumbers(exitGrid) || !isNumber(c5FallStage)) return null;
-  if (c5 !== undefined && !isC5State(c5)) return null;
-  return { v: 1, roomId, x2, y, mapRow, exitCol, facing, lives, score, coins, items, exitGrid, c5FallStage, ...(c5 ? { c5 } : {}) };
-}
+export const parseSave = (v: unknown): MontySave | null => (MontySave(v) ? v : null);
 
 /** Saves as bytes: their JSON. */
 export const CODEC: SaveCodec<MontySave> = {

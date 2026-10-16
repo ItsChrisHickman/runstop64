@@ -1,4 +1,4 @@
-import { COL, isNumbers, isRecord, isRecordOf, shimmerColour, type Box, type FoundCodec, type MapPlace, type PauseMap } from '../../shared/native/pause';
+import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
 import { isTrap } from './items';
@@ -18,14 +18,11 @@ import { State } from './tiles';
  */
 
 /** Where he came into a room. */
-type Seen = [x: number, y: number, state: number, step: number];
-const isSeen = (v: unknown): v is Seen => isNumbers(v) && v.length === 4;
+const seen = S.tuple(S.number, S.number, S.number, S.number); // x, y, state, step
 /** What the map keeps of the player's progress: the rooms he has come into, and where. */
-export interface AwmFound { rooms: Record<string, Seen> }
-const FOUND: FoundCodec<AwmFound> = {
-  empty: () => ({ rooms: {} }),
-  parse: (kept) => ({ rooms: isRecord(kept) && isRecordOf(kept.rooms, isSeen) ? kept.rooms : {} }),
-};
+const found = S.object({ rooms: S.record(seen) });
+export type AwmFound = S.Infer<typeof found>;
+const FOUND = foundCodec(found, () => ({ rooms: {} }));
 
 /** The room he first came into, from what has been found. */
 export function entryOf(found: AwmFound, room: number): Entry | null {

@@ -1,4 +1,4 @@
-import { COL, isNumbers, isRecord, isRecordOf, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
+import { COL, foundCodec, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { cellCount } from './cells';
 import { EXITS, ROOMS } from './data';
 import type { Game } from './game';
@@ -17,23 +17,13 @@ import { V } from './vars';
  * drawn dark, so it's plain which can be picked; while he's dying or dead, or the
  * game is over, they all are (Game.canTravel).
  */
-export interface Entry { x: number; y: number; high: number }
-
-const isEntry = (v: unknown): v is Entry => isRecord(v) && typeof v.x === 'number' && typeof v.y === 'number' && typeof v.high === 'number';
+const entry = S.object({ x: S.number, y: S.number, high: S.number });
+export type Entry = S.Infer<typeof entry>;
 
 /** What the map keeps of the player's progress: the rooms seen, and where Tal came into each room on foot (`entry`), or the armour did (`suitEntry`). */
-export interface AntiriadFound { rooms: number[]; entry: Record<string, Entry>; suitEntry: Record<string, Entry> }
-const FOUND: FoundCodec<AntiriadFound> = {
-  empty: () => ({ rooms: [], entry: {}, suitEntry: {} }),
-  parse: (kept) => {
-    const k = isRecord(kept) ? kept : {};
-    return {
-      rooms: isNumbers(k.rooms) ? k.rooms : [],
-      entry: isRecordOf(k.entry, isEntry) ? k.entry : {},
-      suitEntry: isRecordOf(k.suitEntry, isEntry) ? k.suitEntry : {},
-    };
-  },
-};
+const found = S.object({ rooms: S.numbers, entry: S.record(entry), suitEntry: S.record(entry) });
+export type AntiriadFound = S.Infer<typeof found>;
+const FOUND = foundCodec(found, () => ({ rooms: [], entry: {}, suitEntry: {} }));
 
 /** Where Tal came into each room on foot, or the armour did. */
 export const entriesOf = (f: AntiriadFound, inArmour: boolean): Record<string, Entry> => (inArmour ? f.suitEntry : f.entry);

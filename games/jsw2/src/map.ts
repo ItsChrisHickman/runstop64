@@ -1,5 +1,4 @@
-import { isNumber, isRecord } from '../../shared/guards';
-import { COL, MAP_BOX, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
+import { COL, foundCodec, MAP_BOX, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
 import { MANSION, MANSION_SIZE } from './mansion';
 
@@ -13,12 +12,10 @@ import { MANSION, MANSION_SIZE } from './mansion';
 const roomOf = (ram: Uint8Array) => ram[0x13];
 const livesOf = (ram: Uint8Array) => { let n = 0; for (let b = ram[0x8096]; b; b >>= 1) n += b & 1; return n; };
 
-type Spot = [number, number, number];
-const isSpot = (v: unknown): v is Spot => Array.isArray(v) && v.length === 3 && v.every(isNumber);
-const isSpots = (v: unknown): v is Record<string, Spot> => isRecord(v) && Object.values(v).every(isSpot);
+const spot = S.tuple(S.number, S.number, S.number);
+type Spot = S.Infer<typeof spot>;
 /** A place picked on the map to go to, still to be put right once he is in the room. */
-interface Destination { room: number; at: Spot }
-const isTo = (v: unknown): v is Destination => isRecord(v) && isNumber(v.room) && isSpot(v.at);
+const destination = S.object({ room: S.number, at: spot });
 
 /**
  * Coming into a room (kept in what's been found while he's there): the spot to travel back to,
@@ -26,9 +23,8 @@ const isTo = (v: unknown): v is Destination => isRecord(v) && isNumber(v.room) &
  * `air`: he's been off his feet since he came in; `feet`: his steps on his feet in a row (on the
  * level or on stairs); `y`: his height as last seen; `count`: his step countdown ($8207) as last seen.
  */
-interface Arrival { room: number; at: Spot | null; n: number; air: boolean; feet: number; y: number; lives: number; count: number }
-const isArrival = (v: unknown): v is Arrival => isRecord(v) && isNumber(v.room) && (v.at === null || isSpot(v.at)) && isNumber(v.n)
-  && typeof v.air === 'boolean' && isNumber(v.feet) && isNumber(v.y) && isNumber(v.lives) && isNumber(v.count);
+const arrival = S.object({ room: S.number, at: S.nullable(spot), n: S.number, air: S.boolean, feet: S.number, y: S.number, lives: S.number, count: S.number });
+type Arrival = S.Infer<typeof arrival>;
 
 /**
  * What the map keeps of the player's progress: the rooms visited; travel: where Willy came into
@@ -38,19 +34,9 @@ const isArrival = (v: unknown): v is Arrival => isRecord(v) && isNumber(v.room) 
  * its high bit). The game notes where he came into a room ($4C3A: $82A8 x, $82AC its high bit,
  * $82A9 y) and starts him there again after he loses a life.
  */
-export interface Jsw2Found { rooms: number[]; stand: Record<string, Spot>; arrival: Arrival | null; to: Destination | null }
-const FOUND: FoundCodec<Jsw2Found> = {
-  empty: () => ({ rooms: [], stand: {}, arrival: null, to: null }),
-  parse: (kept) => {
-    const f = isRecord(kept) ? kept : {};
-    return {
-      rooms: Array.isArray(f.rooms) && f.rooms.every(isNumber) ? f.rooms : [],
-      stand: isSpots(f.stand) ? f.stand : {},
-      arrival: isArrival(f.arrival) ? f.arrival : null,
-      to: isTo(f.to) ? f.to : null,
-    };
-  },
-};
+const found = S.object({ rooms: S.numbers, stand: S.record(spot), arrival: S.nullable(arrival), to: S.nullable(destination) });
+export type Jsw2Found = S.Infer<typeof found>;
+const FOUND = foundCodec(found, () => ({ rooms: [], stand: {}, arrival: null, to: null }));
 /** On his feet: not jumping ($82E4), not in a jump's rise ($8292), not on a rope ($835D), not falling ($82D7). */
 const standing = (ram: Uint8Array) => !ram[0x82e4] && !ram[0x8292] && !ram[0x835d] && !ram[0x82d7];
 const here = (ram: Uint8Array): Spot => [ram[0x8062], ram[0x8072] & 1, ram[0x8063]];

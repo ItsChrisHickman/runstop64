@@ -7,40 +7,42 @@
  * the items taken and carried, the counters, the random numbers and the animation clock are.
  */
 import type { SaveCodec } from '../../shared/continue';
-import { isBoolean, isNumber, isNumbers, isRecord, readJson } from '../../shared/guards';
+import { readJson, S } from '../../shared/guards';
 import { ROOMS } from './data';
 import { Game, NEW_GAME_LIVES } from './game';
 import type { Hand } from './picture';
 
-export interface AwmSave {
-  v: 1;
-  room: number;
+const hand = S.nullable(S.object({ type: S.number, colours: S.numbers }));
+export const AwmSave = S.refine(S.object({
+  v: S.literal(1),
+  room: S.number,
   /** Where he came in: $4040-$4044. */
-  entry: { x: number; y: number; state: number; step: number };
-  faceLeft: boolean;
-  frame: number;
-  counters: { walkPhase: number; walkFrame: number; walkToggle: number; climbPhase: number; slowToggle: number };
-  burnPicture: number[];
-  rng: { index: number; sum: number };
-  clock: { phase: number; frame: number; flip: number; toggle: number };
+  entry: S.object({ x: S.number, y: S.number, state: S.number, step: S.number }),
+  faceLeft: S.boolean,
+  frame: S.number,
+  counters: S.object({ walkPhase: S.number, walkFrame: S.number, walkToggle: S.number, climbPhase: S.number, slowToggle: S.number }),
+  burnPicture: S.numbers,
+  rng: S.object({ index: S.number, sum: S.number }),
+  clock: S.object({ phase: S.number, frame: S.number, flip: S.number, toggle: S.number }),
   /** The list entries taken ($6D7B, bit 7 of the room byte), and the four hands ($6947). */
-  taken: number[];
-  carried: number[];
+  taken: S.numbers,
+  carried: S.numbers,
   /** The boxes as they were drawn: the item's type and colours, or null for an empty hand. */
-  hands: (Hand | null)[];
-  score: number[];
-  money: number[];
-  lives: number;
-  progress: number;
-  shield: number;
-  bonus: number;
-  bonusFlag: number;
-  helped: number;
-  quest: number;
+  hands: S.array(hand),
+  score: S.numbers,
+  money: S.numbers,
+  lives: S.number,
+  progress: S.number,
+  shield: S.number,
+  bonus: S.number,
+  bonusFlag: S.number,
+  helped: S.number,
+  quest: S.number,
   /** The title's choice ($4066) and the room tune playing ($4064). */
-  soundFlag: number;
-  tune: number;
-}
+  soundFlag: S.number,
+  tune: S.number,
+}), (s) => !!ROOMS[s.room] && s.burnPicture.length === 8 && s.carried.length === 4 && s.hands.length === 4 && s.score.length === 5 && s.money.length === 5);
+export type AwmSave = S.Infer<typeof AwmSave>;
 
 export function snapshot(game: Game, hands: readonly (Hand | null)[]): AwmSave {
   const m = game.monty;
@@ -103,24 +105,8 @@ export function restore(save: AwmSave, lost = false): Game {
   return game;
 }
 
-const isEntry = (v: unknown): v is AwmSave['entry'] => isRecord(v) && isNumber(v.x) && isNumber(v.y) && isNumber(v.state) && isNumber(v.step);
-const isCounters = (v: unknown): v is AwmSave['counters'] =>
-  isRecord(v) && isNumber(v.walkPhase) && isNumber(v.walkFrame) && isNumber(v.walkToggle) && isNumber(v.climbPhase) && isNumber(v.slowToggle);
-const isClock = (v: unknown): v is AwmSave['clock'] => isRecord(v) && isNumber(v.phase) && isNumber(v.frame) && isNumber(v.flip) && isNumber(v.toggle);
-const isHand = (v: unknown): v is Hand | null => v === null || (isRecord(v) && isNumber(v.type) && isNumbers(v.colours));
-
 /** A save read back (from JSON in storage), checked: null if it isn't one. */
-export function parseSave(v: unknown): AwmSave | null {
-  if (!isRecord(v) || v.v !== 1) return null;
-  const { room, entry, faceLeft, frame, counters, burnPicture, rng, clock, taken, carried, hands, score, money } = v;
-  const { lives, progress, shield, bonus, bonusFlag, helped, quest, soundFlag, tune } = v;
-  if (!isNumber(room) || !isEntry(entry) || !isBoolean(faceLeft) || !isNumber(frame) || !isCounters(counters) || !isNumbers(burnPicture)) return null;
-  if (!isRecord(rng) || !isNumber(rng.index) || !isNumber(rng.sum) || !isClock(clock)) return null;
-  if (!isNumbers(taken) || !isNumbers(carried) || !Array.isArray(hands) || !hands.every(isHand) || !isNumbers(score) || !isNumbers(money)) return null;
-  if (!isNumber(lives) || !isNumber(progress) || !isNumber(shield) || !isNumber(bonus) || !isNumber(bonusFlag) || !isNumber(helped) || !isNumber(quest) || !isNumber(soundFlag) || !isNumber(tune)) return null;
-  if (!ROOMS[room] || burnPicture.length !== 8 || carried.length !== 4 || hands.length !== 4 || score.length !== 5 || money.length !== 5) return null;
-  return { v: 1, room, entry, faceLeft, frame, counters, burnPicture, rng: { index: rng.index, sum: rng.sum }, clock, taken, carried, hands, score, money, lives, progress, shield, bonus, bonusFlag, helped, quest, soundFlag, tune };
-}
+export const parseSave = (v: unknown): AwmSave | null => (AwmSave(v) ? v : null);
 
 /** Saves as bytes: their JSON. */
 export const CODEC: SaveCodec<AwmSave> = {

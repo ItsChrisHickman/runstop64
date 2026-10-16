@@ -1,6 +1,7 @@
 // c64kit for headless front-end tests: the real input, fonts, surfaces and VIC model,
 // with a renderer that draws nowhere and a SID player that remembers what it was asked.
 export * from '../../../packages/c64kit/src/json';
+export * as S from '../../../packages/c64kit/src/schema';
 export * from '../../../packages/c64kit/src/palette';
 export * from '../../../packages/c64kit/src/font';
 export * from '../../../packages/c64kit/src/input';

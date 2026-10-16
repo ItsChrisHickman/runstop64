@@ -1,4 +1,5 @@
 import type { BitmapFont, Surface } from 'c64kit';
+import { isRecord, S } from '../guards';
 
 /**
  * The pause screen for native ports, in the spirit of the Monty remake's: the
@@ -25,6 +26,23 @@ export interface FoundCodec<F> {
    * the map never checks it again.
    */
   parse(kept: unknown): F;
+}
+
+/**
+ * A `FoundCodec` from what is found (an `S.object` schema) and what a new game starts with: a
+ * part of what was kept that doesn't check starts as `empty` has it, the others are kept. The type of
+ * what is found is the shape's (`S.ObjectOf`).
+ */
+export function foundCodec<G extends { readonly [key: string]: S.Schema<unknown> }>(whole: S.ObjectSchema<G>, empty: () => S.ObjectOf<G>): FoundCodec<S.ObjectOf<G>> {
+  const parts = Object.entries(whole.shape);
+  return {
+    empty,
+    parse(kept) {
+      const k = isRecord(kept) ? kept : {};
+      const merged = { ...empty(), ...Object.fromEntries(parts.filter(([key, part]) => k[key] !== undefined && part(k[key])).map(([key]) => [key, k[key]])) };
+      return whole(merged) ? merged : empty();
+    },
+  };
 }
 
 /** A place on the map to go back to, where it's drawn (`r`: the picked box's half-height, to fit round its mark, 6 if not given; `rx`: its half-width, `r` if not given, for a place drawn wide); `here`: where the player is. */
@@ -144,7 +162,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
 }
 
 // What's been found is plain JSON kept in the browser: maps read their part back through these checks.
-export { isNumber, isNumbers, isRecord, isRecordOf, isString, isStrings } from '../guards';
+export { isNumber, isNumbers, isRecord, isRecordOf, isString, isStrings, S } from '../guards';
 
 /**
  * A map drawn as strips, for games that keep their places as long sideways-scrolling strips

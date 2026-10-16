@@ -1,4 +1,5 @@
 export * from './json';
+export * as S from './schema';
 export * from './palette';
 export * from './surface';
 export * from './loop';

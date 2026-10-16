@@ -1,5 +1,5 @@
 import type { Surface } from 'c64kit';
-import { COL, isNumbers, shimmerColour, isRecord, isRecordOf, type Box, type FoundCodec, type MapPlace, type PauseMap } from '../../shared/native/pause';
+import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { isExtensionRoom, sectorIndex, sectorName, SFX, specialItems, teleporterCfg, teleporterDests } from './data';
 import type { Game } from './game';
 import { roomProgress } from './items';
@@ -27,17 +27,13 @@ import type { MontySave } from './save';
  * colour (RUNSTOP64 in the legend), and travel goes to them like any other; they aren't
  * counted in the original's rooms.
  */
-type Entry = [x2: number, y: number, mapRow: number, exitCol: number];
-/** A C5 room's entry: Monty's, and the C5's as it came in (C5State, in order). */
-type C5Entry = [...Entry, fallStage: number, speed: number, dir: number, bounce: number];
-type Rooms = Record<string, Entry | C5Entry>;
-const isEntry = (v: unknown): v is Entry | C5Entry => isNumbers(v) && (v.length === 4 || v.length === 8);
+/** Where Monty came into a room: x2, y, mapRow, exitCol; a C5 room's entry also has the C5's as it came in (C5State, in order: fallStage, speed, dir, bounce). */
+const entry = S.union(S.tuple(S.number, S.number, S.number, S.number), S.tuple(S.number, S.number, S.number, S.number, S.number, S.number, S.number, S.number));
+type Entry = S.Infer<typeof entry>;
 /** What the map keeps of the player's progress: where Monty came into each room. */
-export interface MontyFound { rooms: Rooms }
-const FOUND: FoundCodec<MontyFound> = {
-  empty: () => ({ rooms: {} }),
-  parse: (kept) => ({ rooms: isRecord(kept) && isRecordOf(kept.rooms, isEntry) ? kept.rooms : {} }),
-};
+const found = S.object({ rooms: S.record(entry) });
+export type MontyFound = S.Infer<typeof found>;
+const FOUND = foundCodec(found, () => ({ rooms: {} }));
 
 /** The kit Monty carries (freedom kit icons, by item). */
 const KIT = [1, 3, 11, 12, 15];
@@ -90,7 +86,7 @@ function reachable(at: (row: number, col: number) => number, from: [row: number,
 const afterStreet = (g: Game) => reachable((row, col) => roomIn(g, row, col, true), [C5_LAST.row, C5_LAST.col - 1]);
 
 /** Whether travel goes to a room visited (its entry's cell): any on the map but the ending. */
-const canGo = (g: Game, id: number, e: Entry | C5Entry) => !NO_TRAVEL(id) && roomIn(g, e[2], e[3]) === id;
+const canGo = (g: Game, id: number, e: Entry) => !NO_TRAVEL(id) && roomIn(g, e[2], e[3]) === id;
 
 /**
  * A room Monty has just come into (Game.onRoomLoaded): where he came in, for travel.
