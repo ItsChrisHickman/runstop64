@@ -1,7 +1,7 @@
 import { FixedLoop, Input, PixelRenderer } from 'c64kit';
 import * as Loader from './loader';
 import * as Saves from './saves';
-import { exportSaves, readSaves } from './shared/saves';
+import { exportSaves, readSaves, watchWrites } from './shared/saves';
 import { TouchLayer, type TouchLayout } from './shared/touch';
 import { ViewSwitch, VIEW_KEY, type HdView } from './shared/view';
 
@@ -50,6 +50,9 @@ const settings = $('#settings', HTMLButtonElement);
 // (and the C64/HD switch, in a game with an HD view)
 const viewButton = $('#view', HTMLButtonElement);
 const leave = $('#leave', HTMLElement);
+// (a line in the overlay while progress is not being kept: the browser's storage is full or blocked)
+const saveWarning = $('#save-warning', HTMLElement);
+watchWrites((ok) => { saveWarning.hidden = ok; });
 const leaveText = $('#leave-text', HTMLElement);
 let current: GameInfo | null = null;
 /** The running game's id (its saves' id), or null on the directory and the saved games. */

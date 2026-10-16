@@ -73,11 +73,26 @@ const FOUND = (id: string) => `${id}.found.v1`;
 
 // ---- storage (it can be missing, full or blocked: reads give nothing, writes say they failed) ----
 
+/** Who is told how each write went (the shell's notice: `watchWrites`). */
+let writeWatcher: ((ok: boolean) => void) | null = null;
+
+/**
+ * Be told how every write to storage goes (`ok`: it was kept): the shell shows a line in its overlay while the
+ * last one failed. A full or blocked storage never stops the game, but progress is not being kept, and the
+ * player should know (all ten games' saves together take about a quarter of the room a browser gives).
+ */
+export function watchWrites(fn: (ok: boolean) => void) {
+  writeWatcher = fn;
+}
+
 function get(key: string): string | null {
   try { return localStorage.getItem(key); } catch { return null; }
 }
 function set(key: string, value: string): boolean {
-  try { localStorage.setItem(key, value); return true; } catch { return false; }
+  let ok = true;
+  try { localStorage.setItem(key, value); } catch { ok = false; }
+  writeWatcher?.(ok);
+  return ok;
 }
 function remove(key: string) {
   try { localStorage.removeItem(key); } catch { /* storage unavailable */ }

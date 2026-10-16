@@ -20,7 +20,7 @@ import { ContinueFlow, readsFormat, type SaveCodec } from '../continue';
 import { FrontEnd } from '../frontend';
 import { isNumber, isRecord, readJson } from '../guards';
 import type { PauseMap } from '../native/pause';
-import { readFound, readSaves, toBase64 } from '../saves';
+import { readFound, readSaves, toBase64, watchWrites } from '../saves';
 import { GAMES, run as runLoader } from '../../loader';
 import { run as runSaves } from '../../saves';
 import { nowhere, useMemoryStorage } from './browser';
@@ -290,5 +290,21 @@ check(`a new game straight from play: the game before (${was.summary[0]}) is the
 g.fe.newGame(); // (said again for the same new game, nothing of it worth keeping: nothing changes)
 ticks(g, 2);
 check('  said again at once: the previous save is still that game', readSaves('test').previous?.data === was.data);
+
+// ---- storage that is full: the write that fails is reported (the shell shows a line), the game goes on ----
+{
+  const results: boolean[] = [];
+  watchWrites((ok) => results.push(ok));
+  const used = [...store].reduce((n, [k, v]) => n + k.length + v.length, 0);
+  useMemoryStorage(store, used - 50); // (less room than there is in use: nothing more fits)
+  const room = g.game.room;
+  nextRoom(g);
+  check('storage full: the autosave of the next room fails, and is reported as failed', g.game.room === room + 1 && results.length > 0 && results.at(-1) === false);
+  check('  the game goes on, the save before it still there', readSaves('test').current?.summary[0] !== `ROOM ${room + 1}` && readSaves('test').current !== null);
+  useMemoryStorage(store); // (room again)
+  nextRoom(g);
+  check('room again: the next autosave is kept, and reported as kept', results.at(-1) === true && readSaves('test').current?.summary[0] === `ROOM ${room + 2}`);
+  watchWrites(() => {});
+}
 
 finish();
