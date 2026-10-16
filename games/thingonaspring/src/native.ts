@@ -1,6 +1,5 @@
-import type { MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { cpu } from '../../shared/native/cpu';
-import { NativeHost, routineAt, type PortConfig } from '../../shared/native/host';
+import { routineAt, type PortConfig } from '../../shared/native/host';
 import * as engine from './gen/engine';
 
 /**
@@ -31,9 +30,3 @@ export const port: PortConfig = {
   },
   overlays: [],
 };
-
-export class NativeThing extends NativeHost {
-  constructor(state: MachineState, from: 'title' | 'mainLoop' = 'title') {
-    super(port, state, from);
-  }
-}

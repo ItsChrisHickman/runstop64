@@ -71,15 +71,6 @@ export interface RoomPictures {
   overhang?: number;
 }
 
-/** Where a piece puts a pixel's middle (picture x + 0.5, y + 0.5) in the room: its depth and height (`bottom`: the picture's ground line, y). */
-export function placeOn(piece: RoomPiece, x: number, y: number, bottom: number): { z: number; height: number } {
-  const sy = bottom - y;
-  switch (piece.kind) {
-    case 'floor': return { z: sy - piece.height, height: piece.height };
-    case 'side': { const z = piece.slope * x - piece.at; return { z, height: sy - z }; }
-    default: return { z: piece.depth, height: sy - piece.depth };
-  }
-}
 
 /**
  * The piece of each pixel of a picture (cols × 8 wide, rows × 8 high, row-major): its cell's, or

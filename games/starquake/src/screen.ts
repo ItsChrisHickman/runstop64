@@ -9,15 +9,6 @@
 export const COLS = 40;
 export const ROWS = 25;
 
-/** Cell attribute bits (colour RAM). */
-export const ATTR = {
-  /** Something (an item, a platform) is here. */
-  object: 0x01,
-  /** Sparkles (the room flickers these cells' paper). */
-  sparkle: 0x02,
-  deadly: 0x04,
-  solid: 0x08,
-} as const;
 
 export class Screen {
   /** VIC bank 1 ($4000-$7FFF): sprite graphics at $1000-$1BFF, cell colours at $1C00, bitmap at $2000. */

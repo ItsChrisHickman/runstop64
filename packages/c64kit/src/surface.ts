@@ -59,58 +59,6 @@ export class Surface {
   }
 }
 
-/**
- * Decode a 64-byte hi-res C64 sprite (24×21, 3 bytes per row) into a Surface
- * in the given colour.
- */
-export function decodeHiresSprite(bytes: ArrayLike<number>, colour: number): Surface {
-  const s = new Surface(24, 21);
-  for (let row = 0; row < 21; row++) {
-    for (let b = 0; b < 3; b++) {
-      const v = bytes[row * 3 + b];
-      for (let bit = 0; bit < 8; bit++) if (v & (0x80 >> bit)) s.pixels[row * 24 + b * 8 + bit] = colour;
-    }
-  }
-  return s;
-}
-
-/**
- * Decode a 64-byte multicolour C64 sprite (12×21 double-wide pixels, drawn
- * here as 24×21). Bit pairs: 01 → mc1, 10 → sprite colour, 11 → mc2.
- */
-export function decodeMulticolourSprite(bytes: ArrayLike<number>, colour: number, mc1: number, mc2: number): Surface {
-  const s = new Surface(24, 21);
-  const map = [TRANSPARENT, mc1, colour, mc2];
-  for (let row = 0; row < 21; row++) {
-    for (let b = 0; b < 3; b++) {
-      const v = bytes[row * 3 + b];
-      for (let pair = 0; pair < 4; pair++) {
-        const c = map[(v >> (6 - pair * 2)) & 3];
-        const x = b * 8 + pair * 2;
-        s.pixels[row * 24 + x] = c;
-        s.pixels[row * 24 + x + 1] = c;
-      }
-    }
-  }
-  return s;
-}
-
-/**
- * Pixel-perfect overlap test between two surfaces at integer positions, like
- * the VIC-II's hardware sprite-sprite collision.
- */
-export function surfacesOverlap(a: Surface, ax: number, ay: number, b: Surface, bx: number, by: number): boolean {
-  ax = Math.round(ax); ay = Math.round(ay); bx = Math.round(bx); by = Math.round(by);
-  const x0 = Math.max(ax, bx), x1 = Math.min(ax + a.width, bx + b.width);
-  const y0 = Math.max(ay, by), y1 = Math.min(ay + a.height, by + b.height);
-  for (let y = y0; y < y1; y++) {
-    for (let x = x0; x < x1; x++) {
-      if (a.pixels[(y - ay) * a.width + (x - ax)] !== TRANSPARENT && b.pixels[(y - by) * b.width + (x - bx)] !== TRANSPARENT) return true;
-    }
-  }
-  return false;
-}
-
 export function hexBytes(hex: string): Uint8Array {
   const out = new Uint8Array(hex.length / 2);
   for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);

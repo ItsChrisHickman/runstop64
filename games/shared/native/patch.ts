@@ -3,41 +3,6 @@ import { bind, cpu, flags, setFlags } from './cpu';
 import type { Routine } from './host';
 
 /**
- * Patch translated routines into a running original (c64kit's C64 machine):
- * when the CPU reaches one, the native function runs instead. Registers move
- * between the emulated CPU and `cpu` at the boundaries, so emulated and native
- * routines can call each other.
- */
-export function patchInto(m: C64Machine, routines: Record<string, Routine>, only?: (addr: number) => boolean) {
-  const enter = () => {
-    const c = m.cpu;
-    cpu.a = c.a; cpu.x = c.x; cpu.y = c.y; cpu.sp = c.sp;
-    setFlags(c.p);
-  };
-  const leave = () => {
-    const c = m.cpu;
-    c.a = cpu.a; c.x = cpu.x; c.y = cpu.y; c.sp = cpu.sp;
-    c.p = (c.p & 0x3c) | (flags() & 0xc3);
-  };
-  bind({
-    ram: m.ram,
-    read: (a) => m.cpu.read(a),
-    write: (a, v) => m.cpu.write(a, v),
-    call: (a) => { leave(); m.call(a); enter(); },
-  });
-  let n = 0;
-  for (const [name, fn] of Object.entries(routines)) {
-    const addr = name.match(/^r_([0-9a-f]{4})$/)?.[1];
-    if (!addr || fn.constructor.name === 'GeneratorFunction') continue;
-    const a = parseInt(addr, 16);
-    if (only && !only(a)) continue;
-    m.patches.set(a, () => { enter(); fn(); leave(); });
-    n++;
-  }
-  return n;
-}
-
-/**
  * Differential check of translated routines: each time the CPU reaches one, the
  * native version runs on the current state, then the state is rolled back and
  * the original runs. Any difference in memory, colour RAM, VIC registers or

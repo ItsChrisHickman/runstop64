@@ -1,6 +1,5 @@
-import type { MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { cpu } from '../../shared/native/cpu';
-import { NativeHost, routineAt, type PortConfig } from '../../shared/native/host';
+import { routineAt, type PortConfig } from '../../shared/native/host';
 import * as engine from './gen/engine';
 
 /**
@@ -41,9 +40,3 @@ export const port: PortConfig = {
     0xe518: () => {}, 0xe5a0: () => {}, 0xfd15: () => {}, 0xfda3: () => {}, // screen and I/O set-up
   },
 };
-
-export class NativeJsw2 extends NativeHost {
-  constructor(state: MachineState, from: 'title' | 'mainLoop' = 'title') {
-    super(port, state, from);
-  }
-}

@@ -12,8 +12,6 @@ export const CELLS = COLS * ROWS;
 /** Screen column of the play area's first character. */
 export const SCREEN_COL = 4;
 export const ROOM_COUNT = 80;
-/** The special room ($63: the title/ending picture the game draws before play). */
-export const SPECIAL_ROOM = 0x63;
 
 /** The 15 tiles' names (header bytes 0-14) and attributes (15-29), then the RLE of the 576 cells. */
 export interface Room {

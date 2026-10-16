@@ -1,5 +1,4 @@
-import { NativeHost, type PortConfig } from '../../shared/native/host';
-import type { MachineState } from '../../../packages/c64kit/src/c64/machine';
+import type { PortConfig } from '../../shared/native/host';
 import * as engine from './gen/engine';
 import { HIGH_SLOTS, LOW_SLOT } from './rooms';
 
@@ -25,9 +24,3 @@ export const port: PortConfig = {
     0xfebc: () => {},
   },
 };
-
-export class NativeKarnath extends NativeHost {
-  constructor(state: MachineState, from: 'title' | 'mainLoop' = 'title') {
-    super(port, state, from);
-  }
-}

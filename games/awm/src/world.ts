@@ -18,7 +18,6 @@ export interface Look {
 const EMPTY: Look = { name: 0, code: 0 };
 
 export const GRID_COLS = 16;
-export const GRID_ROWS = 15;
 
 export class World {
   /** The room number ($402B). */

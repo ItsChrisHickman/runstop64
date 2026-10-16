@@ -276,8 +276,6 @@ export function* teleport(g: Game, here: number): Generator<void, number, void> 
   return found;
 }
 
-/** The teleports' names (as the game knows them, at $3E8F). */
-export const teleportName = (t: number) => Array.from({ length: 5 }, (_, i) => String.fromCharCode(rom(0x3e8f + t * 9 + i))).join('');
 
 /**
  * $38D0: five letters typed at (x, y), the cursor blinking; Del rubs out,

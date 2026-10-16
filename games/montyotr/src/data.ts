@@ -32,7 +32,6 @@ export const greyPulse = hexBytes(raw.greyPulse);
 export const cloudFrames = hexBytes(raw.cloudFrames);
 export const arrestedText = hexBytes(raw.arrestedText);
 export const gameOverPtrs = hexBytes(raw.gameOverPtrs);
-export const BANNER_TEXT = raw.bannerText;
 
 export const PLAY_COLS = 32;
 export const PLAY_ROWS = 20;
@@ -88,21 +87,11 @@ export function enemyCopyFlag(type: number) {
   return enemyCopyFlags[type - 8];
 }
 
-/** Freedom kit item names, by original index. */
-export const FK_NAMES = [
-  'COMPASS', 'JET PACK', 'DISGUISE', 'ROPE', 'GENERATOR', 'LASER GUN', 'WATCH', 'LADDER', 'HAND GRENADE', 'GUN',
-  'FLOPPY DISK', 'PASSPORT', 'GAS MASK', 'TELESCOPE', 'TANK', 'BARREL OF RUM', 'AXE', 'KIT BAG', 'MAP', 'HAMMER', 'TORCH',
-];
 /** The five items that actually get Monty to France (jet pack, rope, passport, gas mask, rum). */
 export const CORRECT_KIT = [1, 3, 11, 12, 15];
 
 /** The cupcake's frame base in si_spawn_tbl (sprite pointer $91). */
 export const CUPCAKE_FRAME = 3;
-/** Special item names, by si_spawn_tbl index. */
-export const ITEM_NAMES = [
-  'CUPCAKE', 'VASE', 'CUPCAKE', 'FLY SPRAY', 'CUPCAKE', 'JOYSTICK', 'CUPCAKE', 'CUPCAKE', 'JERRY CAN', 'CUPCAKE',
-  'KEY', 'FIRST AID KIT', 'MILK JUG', 'TEDDY BEAR', 'CUPCAKE', 'CUPCAKE', 'SMOKE STACK', 'CUPCAKE', 'CUPCAKE', 'CAKE',
-];
 
 /** Original SFX numbers (Music.PlaySFX). */
 export const SFX = {
