@@ -1,4 +1,4 @@
-import { C64Machine, PAL_FRAME_CYCLES } from 'c64kit';
+import { C64Machine, PAL_FRAME_CYCLES, type MachineState } from 'c64kit';
 import { cellsFrame, CELLS, writeCells } from './cells';
 import { backgroundHits, sound1, spriteHits } from './collisions';
 import { Core } from './core';
@@ -134,6 +134,13 @@ export class Game extends Core {
   flushShapes() {
     for (const w of this.shapeWrites) this.ram[w & 0xffff] = w >>> 16;
     this.shapeWrites.length = 0;
+  }
+
+  /** The machine as a save: with the interrupt's pending shape writes applied to the copy, not to the running game. */
+  snapshot(): MachineState {
+    const s = this.m.saveState();
+    for (const w of this.shapeWrites) s.ram[w & 0xffff] = w >>> 16;
+    return s;
   }
 
   /** A pass of the main program (to its next wait). */

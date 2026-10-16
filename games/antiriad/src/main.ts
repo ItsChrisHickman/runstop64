@@ -1,10 +1,7 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
-import { AudioKeys } from '../../shared/audio';
-import { ContinueFlow, MACHINE_CODEC } from '../../shared/continue';
-import { FireLatch } from '../../shared/fire-latch';
-import { FrontEnd, type PauseRequest } from '../../shared/frontend';
+import { MACHINE_CODEC } from '../../shared/continue';
+import { runPort } from '../../shared/port';
 import { playEvents } from '../../shared/native/combat';
-import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { writeCells } from './cells';
 import { intoArmour } from './fades';
@@ -137,23 +134,11 @@ export const info = {
 };
 
 export function run(host: Host) {
-  const { renderer, input, canvas } = host;
+  const { renderer, input } = host;
   renderer.frame = { x: 32, y: 36 };
   let g = new Game();
   let view = new C64View(renderer, g.m);
   const sound = new SidPlayer();
-
-  // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
-  const flow = new ContinueFlow<MachineState, AntiriadFound>({ id: 'antiriad', renderer, input, font: 'kit', codec: MACHINE_CODEC, found: antiriadMap.found, strip: { y: 183 }, describe: (s) => describeSave(s.ram) }); // (on the black under the title's floor)
-  const latch = new FireLatch(true);
-  const fe = new FrontEnd<Game, AntiriadFound>({
-    id: 'antiriad', input, renderer, map: antiriadMap,
-    // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
-    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
-    font: () => flow.getFont(),
-    saves: flow,
-    onClose: () => latch.hold(),
-  });
 
   /**
    * Each room entered (a new number: autosave); and the Implosion Mine set off, which saves that
@@ -163,8 +148,43 @@ export function run(host: Host) {
    * into the last room entered, the power centre with the mine, and round to the end again; and
    * the original's fire goes straight on into a new game.)
    */
-  const rooms = new RoomSaves<MachineState>();
   let won = false;
+
+  // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
+  const port = runPort<MachineState, AntiriadFound, Game>(host, {
+    id: 'antiriad', font: 'kit', codec: MACHINE_CODEC, map: antiriadMap, describe: (s) => describeSave(s.ram),
+    strip: { y: 183 }, // (on the black under the title's floor)
+    // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
+    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
+    launchHeld: true,
+  }, () => ({
+    state: () => g,
+    phase: () => (g.playing ? 'play' : g.onTitle ? 'title' : 'other'),
+    machine: () => g.m,
+    // (no room to save inside a room change, or on the way to a place picked on the map)
+    roomOpen: () => !(g.ram[V.roomChange] & 0x80) && !g.travelTo,
+    takeSave: () => g.snapshot(),
+    // Travel: picked on the map; the game takes Tal there between frames.
+    travel(id) {
+      const room = Number(id), at = entryOf(g, fe.found, room);
+      if (!at) return false;
+      g.travelTo = { room, ...at };
+      return true;
+    },
+    resume(s, afterGameOver) {
+      // continuing after the game is over: Tal comes back with full life and his rejuvenations
+      if (afterGameOver) newLives(s.ram);
+      resume(s);
+    },
+    toTitle,
+    frame,
+    updateView: () => view.update(),
+    renderView: (alpha) => view.render(alpha),
+    prepareRender(covered) { renderer.effects.enabled = g.playing && !covered && !flow.holding; },
+    audio: { player: sound, started: () => sound.startStream() },
+  }));
+  const { flow, fe, rooms } = port;
+
   const hook = (game: Game) => {
     game.onRoom = () => rooms.enter();
     game.graceActive = () => flow.grace.active;
@@ -182,13 +202,16 @@ export function run(host: Host) {
     view.dispose();
     view = new C64View(renderer, g.m);
     renderer.effects.model.clear();
-    latch.hold();
-    fe.wentBack();
   }
 
-  // ---- sound -------------------------------------------------------------------------------------
-
-  const audio = new AudioKeys({ canvas, input, renderer, player: sound, started: () => sound.startStream() });
+  /** Back to the title: the game as it starts (a fresh machine); the save stays. */
+  function toTitle() {
+    g = new Game();
+    hook(g);
+    view.dispose();
+    view = new C64View(renderer, g.m);
+    renderer.effects.model.clear();
+  }
 
   /** The joystick (port 2) and keyboard, for this frame. */
   function controls() {
@@ -201,7 +224,7 @@ export function run(host: Host) {
     // ENHANCED: fire and jump apart (Z is the jump; the other fire keys and the pad fire)
     const two = fe.assist.enhanced;
     const fire = two ? FIRE_KEYS.some((k) => input.down.has(k)) || (input.held.fire && !input.down.has(JUMP_KEY)) : input.held.fire;
-    if (latch.filter(fire)) joy &= ~16;
+    if (port.latch.filter(fire)) joy &= ~16;
     g.enhanced = two;
     g.cellAsked = two && (g.cellAsked || input.typed.includes('KeyC')); // (ENHANCED: C fills the armour from a stored cell)
     g.jumpButton = two ? (input.down.has(JUMP_KEY) ? 1 : 0) | (g.jumpButton & 2) | (input.typed.includes(JUMP_KEY) ? 2 : 0) : 0;
@@ -221,12 +244,21 @@ export function run(host: Host) {
     playEvents(placeFeel(sprites, notes, ++frames), renderer.effects.model, (n) => sound.sfx(n), performance.now(), { player: heroAt(sprites) });
   }
 
-  const status = () => ({
-    machine: g.m,
-    onTitle: g.onTitle,
-    room: g.playing && !fe.holding && !(g.ram[V.roomChange] & 0x80) && !g.travelTo ? rooms.count : null,
-    save: () => { g.flushShapes(); return g.m.saveState(); },
-  });
+  /** One frame of the game (not while a screen of the flow's is up); whether it was a frame of play (the grace counts it). */
+  function frame(holding: boolean) {
+    if (holding) return false;
+    controls();
+    const wasPlaying = g.playing;
+    g.tick();
+    felt();
+    const counted = g.playing;
+    if (!wasPlaying && g.playing && !flow.state.playing) fe.newGame();
+    if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; rooms.enter(); }
+    if (won && g.onTitle) { port.backToTitle(); return counted; }
+    if (g.playing && !(g.ram[V.roomChange] & 0x80)) antiriadMap.observe(g, fe.found, new Uint8Array(0));
+    sound.pushFrame(g.m.sidWrites);
+    return counted;
+  }
 
   return {
     touch: TOUCH,
@@ -235,78 +267,8 @@ export function run(host: Host) {
     /** For tests: the moment's grace. */
     get grace() { return flow.grace; },
     get state() { return { paused: fe.paused, going: fe.going, found: fe.found, enhanced: !!fe.assist.enhanced, grace: flow.grace.left, ...flow.state }; },
-    tick() {
-      audio.tick();
-
-      if (g.playing) {
-        fe.pauseKey(g, !flow.holding);
-        if (fe.paused) {
-          asked(fe.pausedTick(g, () => view.update()));
-          return;
-        }
-        // Travel: picked on the map; the game takes Tal there between frames.
-        if (fe.going !== null) {
-          const room = Number(fe.going), at = entryOf(g, fe.found, room);
-          fe.going = null;
-          if (at) { g.travelTo = { room, ...at }; flow.grace.start(); }
-        }
-      }
-      const resumeFrom = flow.before(status());
-      if (resumeFrom) {
-        // continuing after the game is over: Tal comes back with full life and his rejuvenations
-        if (flow.lastAnswer === 'continue') newLives(resumeFrom.ram);
-        resume(resumeFrom);
-        flow.resumed(resumeFrom, rooms.count);
-        return;
-      }
-      if (!flow.holding) {
-        controls();
-        const wasPlaying = g.playing;
-        g.tick();
-        felt();
-        if (g.playing) flow.grace.tick();
-        if (!wasPlaying && g.playing && !flow.state.playing) fe.newGame();
-        if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; rooms.enter(); }
-        if (won && g.onTitle) { backToTitle(); return; }
-        if (g.playing && !(g.ram[V.roomChange] & 0x80)) antiriadMap.observe(g, fe.found, new Uint8Array(0));
-        sound.pushFrame(g.m.sidWrites);
-      }
-      view.update();
-      if (flow.after(status())) latch.hold();
-      flow.draw();
-    },
-    render(alpha: number) {
-      renderer.effects.enabled = g.playing && !flow.covering && !fe.holding && !flow.holding;
-      sound.hold(flow.covering || fe.holding);
-      view.render(alpha);
-      if (flow.covering || fe.holding) { renderer.hideSprites(); renderer.render(); }
-    },
-    /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
-    menu() {
-      if (g.playing) fe.menu(g, !flow.holding);
-    },
+    tick: port.tick,
+    render: port.render,
+    menu: port.menu,
   };
-
-  /** What the pause screen asked for: back to the room's start, or to the title (the save stays: ENTER CONTINUE). */
-  function asked(r: PauseRequest) {
-    if (r === 'roomStart') backToRoomStart();
-    else if (r === 'title') backToTitle();
-  }
-
-  /** Back to the title: the game as it starts (a fresh machine); the save stays. */
-  function backToTitle() {
-    g = new Game();
-    hook(g);
-    view.dispose();
-    view = new C64View(renderer, g.m);
-    renderer.effects.model.clear();
-    latch.hold();
-    fe.wentBack();
-    flow.toTitle();
-  }
-
-  /** Back to how things were on coming into this room. */
-  function backToRoomStart() {
-    rooms.backToRoomStart(flow, g.playing, resume);
-  }
 }
