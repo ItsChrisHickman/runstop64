@@ -31,6 +31,7 @@ import { run as runEntombed } from '../../entombed/src/main';
 import { run as runMonty } from '../../montyotr/src/main';
 import { CODEC as MONTY_CODEC, migrateOldSave, type MontySave } from '../../montyotr/src/save';
 import { run as runStarquake } from '../../starquake/src/main';
+import { CODEC as STARQUAKE_CODEC } from '../../starquake/src/save';
 import { nowhere, stubFetch, useMemoryStorage } from './browser';
 import { check, finish } from './check';
 import { must } from './must';
@@ -72,8 +73,6 @@ interface Kind {
   /** The export file's current save, loaded as test helpers do (`loadSave`). */
   loads(file: string): boolean;
 }
-/** The fields of a save whose bytes are JSON (Starquake's start with the length of it). */
-const jsonRoom = (text: string) => { const v: unknown = readJson(text); return isRecord(v) && typeof v.room === 'number' ? v.room : -1; };
 function boot<P extends { tick(): void; render(a: number): void }>(make: (input: Input) => P) {
   const input = new Input(nowhere);
   const p = make(input);
@@ -117,9 +116,9 @@ const KINDS: Kind[] = [
       const b = boot((input) => runStarquake({ renderer: new PixelRenderer(), input, canvas: nowhere }));
       return { tick: b.tick, playing: () => b.p.state.mode === 'play', room: () => b.p.game.room };
     },
-    roomOf: (bytes) => jsonRoom(new TextDecoder().decode(bytes.subarray(4, 4 + new DataView(bytes.buffer, bytes.byteOffset).getUint32(0, true)))),
-    reads: () => true,
-    loads: () => true,
+    roomOf: (bytes) => STARQUAKE_CODEC.unpack(bytes, 1).fields.room ?? -1,
+    reads: (bytes, format) => { try { STARQUAKE_CODEC.unpack(bytes, format); return true; } catch { return false; } },
+    loads: (file) => loadSave(file, STARQUAKE_CODEC).fields.room === STARQUAKE_CODEC.unpack(fromBase64(must(readExport(file).current, 'current').data), 1).fields.room,
   },
 ];
 
@@ -150,7 +149,7 @@ for (const kind of KINDS) {
   check(`${id}: reading changed nothing in storage`, store.get(`${id}.save.v2`) === rawCurrent);
   const bytes = fromBase64(current.data);
   check(`${id}: the bytes unpack in format 1 (the game's own check)`, kind.reads(bytes, 1));
-  check(`${id}: ...and are refused as a format nobody here reads (not guessed at)`, id === 'starquake' || !kind.reads(bytes, 2));
+  check(`${id}: ...and are refused as a format nobody here reads (not guessed at)`, !kind.reads(bytes, 2));
 
   // ---- the game launched on them goes straight back into play ------------------------------------------
   const g = await launched(kind);

@@ -1,6 +1,5 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
-import { readsFormat } from '../../shared/continue';
 import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
@@ -11,7 +10,7 @@ import * as Heroes from './heroes';
 import { Game } from './game';
 import { entryOf, starquakeMap, type StarquakeFound } from './map';
 import * as Panel from './panel';
-import { describeSave, restore, snapshot } from './save';
+import { CODEC, describeSave, restore, snapshot, type StarquakeSave } from './save';
 import * as Screens from './screens';
 import * as Specials from './specials';
 
@@ -80,8 +79,8 @@ export function run(host: Host) {
   let script: Flow.Script | null = null;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
-  const port = runPort<Uint8Array, StarquakeFound, Game>(host, {
-    id: 'starquake', font, codec: { format: 1, pack: (s) => s, unpack: (b, format) => { readsFormat('Starquake', format, 1); return b; } }, map: starquakeMap, describe: describeSave,
+  const port = runPort<StarquakeSave, StarquakeFound, Game>(host, {
+    id: 'starquake', font, codec: CODEC, map: starquakeMap, describe: describeSave,
     // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
     strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
     assists: [
@@ -185,7 +184,7 @@ export function run(host: Host) {
   /** Carry on from a save (a room's start): the room is drawn again from there. */
   g.graceActive = () => flow.grace.active && mode === 'play';
 
-  function resumeGame(s: Uint8Array, from: ResumeFrom) {
+  function resumeGame(s: StarquakeSave, from: ResumeFrom) {
     restore(g, s);
     playSong(SOUND.songs.game);
     g.sound.silence();

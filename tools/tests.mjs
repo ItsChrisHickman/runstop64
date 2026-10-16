@@ -121,6 +121,7 @@ export const TESTS = [
   // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },
   { file: 'games/starquake/test/grace.ts', set: 'fast' },
+  { file: 'games/starquake/test/save.ts', set: 'fast' },
 
   // ---- Thing on a Spring
   { file: 'games/thingonaspring/test/assists.ts', set: 'slow', limitSeconds: 580 },
