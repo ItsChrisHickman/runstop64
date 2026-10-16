@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { C64, packState, unpackState } from '../../packages/c64kit/src/c64/machine';
-import { isRecord, isString } from '../../games/shared/guards';
+import { isRecord, isString, readJson } from '../../games/shared/guards';
 import { renderPng } from './render';
 import { C64_KEYS } from '../../packages/c64kit/src/c64/keyboard';
 
@@ -113,7 +113,7 @@ m.hooks.set(0xffd5, () => {
 });
 const applyPatches = (now = false) => {
   if (!PATCH || (PATCH_FRAME >= 0 && !now)) return;
-  const p: unknown = JSON.parse(fs.readFileSync(PATCH, 'utf8'));
+  const p: unknown = readJson(fs.readFileSync(PATCH, 'utf8'));
   if (!isRecord(p)) throw new Error(`${PATCH}: not a patch (address: text, or { hex })`);
   for (const [addr, v] of Object.entries(p)) {
     const bytes = isString(v) ? Buffer.from(v, 'latin1') : isRecord(v) && isString(v.hex) ? Buffer.from(v.hex.replace(/\s+/g, ''), 'hex') : null;

@@ -40,6 +40,8 @@ import { montyMap } from '../src/map';
 import { CODEC } from '../src/save';
 import { fromBase64, readSaves } from '../../shared/saves';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
+import { getProp } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
 /** Each arrival of the drive: its room, its stage, the frame parity it came in on, the frames to the next one and fire's presses in them. */
 const DRIVE = [
@@ -64,8 +66,6 @@ const hex = (n: number) => n.toString(16);
 // a browser's storage, in memory (cleared for each game below)
 const store = useMemoryStorage();
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** What a C5 room's arrival is: Monty, the C5, the ramp sprite, the exit grid. */
 function arrival(g: Game) {
@@ -190,7 +190,7 @@ type Harness = ReturnType<typeof boot>;
 function noted(h: Harness, room: number) {
   const rooms = h.found().rooms;
   if (typeof rooms !== 'object' || rooms === null || !(String(room) in rooms)) return null;
-  const e: unknown = Object.entries(rooms).find(([id]) => id === String(room))?.[1];
+  const e = getProp(rooms, String(room));
   return Array.isArray(e) && e.every((v) => typeof v === 'number') ? e : null;
 }
 
@@ -425,5 +425,4 @@ function noted(h: Harness, room: number) {
 /** Two street states the same. */
 function sameStreet(a: object, b: object) { return JSON.stringify(a) === JSON.stringify(b); }
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

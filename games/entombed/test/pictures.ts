@@ -26,12 +26,11 @@ import { decodePicture } from '../../../packages/c64kit/src/c64/picture';
 import { placePictures } from '../../../packages/c64kit/src/hd/placed';
 import { pixelPieces } from '../../../packages/c64kit/src/pendragon/room';
 import { renderPng } from '../../../tools/probe/render';
+import { check, finish } from '../../shared/test/check';
 
 const title = new Uint8Array(fs.readFileSync('games/entombed/assets/entombed-title.state'));
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const { band } = entombedHd, W = 320;
 /** The pages of the corridors' pictures (the maze tables hold them). */
@@ -201,5 +200,4 @@ console.log(`     seen (frames): ${[...seen.entries()].map(([k, v]) => `${k} ${v
 console.log(`     scrolled: ${[...shifts.entries()].map(([id, s]) => `${label(id)} from ${Math.min(...s)} to ${Math.max(...s)}`).join(', ')}`);
 const singles = new Set([...seen.keys()].flatMap((k) => k.split('|')));
 check(`every picture is seen in play (${all.filter((k) => !singles.has(k)).join(', ') || 'none missing'}), ${seen.size} windows, ${PICTURES.beside.length} pairs listed`, all.every((k) => singles.has(k)));
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

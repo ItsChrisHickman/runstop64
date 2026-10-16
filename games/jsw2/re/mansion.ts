@@ -6,7 +6,7 @@
  * $8169-$816C. The rooms are the ones reachable from the start (the Bathroom) through
  * exits, and from the places the game sends Willy to directly.
  *
- *   npx tsx games/jsw2/re/mansion.ts
+ *   nice -n 15 node tools/test.mjs games/jsw2/re/mansion.ts
  */
 import fs from 'node:fs';
 import { C64, unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';

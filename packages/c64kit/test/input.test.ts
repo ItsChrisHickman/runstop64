@@ -5,6 +5,7 @@
  *   node tools/test.mjs packages/c64kit/test/input.test.ts
  */
 import { Input, type KeyEventLike, type KeyTarget } from '../src/input';
+import { check, finish } from '../../../games/shared/test/check';
 
 type Listener = (e: KeyEventLike) => void;
 const listeners = new Map<string, Listener[]>();
@@ -16,8 +17,6 @@ const fire = (type: 'keydown' | 'keyup', code: string, meta = false) => {
   for (const fn of listeners.get(type) ?? []) fn(e);
 };
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const input = new Input(target);
 const gamepads = () => [];
 Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: gamepads }, configurable: true });
@@ -51,5 +50,4 @@ fire('keydown', 'ControlLeft');
 input.poll();
 check('Ctrl alone: typed', input.typed.includes('ControlLeft'));
 
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

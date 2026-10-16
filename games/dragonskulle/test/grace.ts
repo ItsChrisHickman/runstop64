@@ -14,16 +14,15 @@ import { port } from '../src/native';
 import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { checkFightFrom, type Launch, type Session } from '../../shared/test/grace';
+import { readRoute } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state');
 stubFetch(titleBytes);
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** A save from about 50 frames before the first hurt along a recorded route through the caves (walked, kept alive as it was found). */
 function cavesSave() {
-  const routes: unknown = JSON.parse(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
-  const route = Array.isArray(routes) && Array.isArray(routes[0]) ? routes[0].filter((n): n is number => typeof n === 'number') : [];
+  const route = readRoute('games/dragonskulle/re/routes.json');
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
   const taken: string[] = [];
   let frame = 0;
@@ -56,5 +55,4 @@ const launch: Launch = async (save) => {
 
 await checkFightFrom('dragonskulle', launch, check, ['Space', 'KeyX'], cavesSave());
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

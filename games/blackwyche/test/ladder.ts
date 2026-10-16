@@ -21,11 +21,11 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { must } from '../../shared/test/must';
 import { blackwycheMap } from '../src/map';
 import { run } from '../src/main';
+import { readRoute } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/blackwyche/assets/blackwyche-title.state');
 stubFetch(titleBytes);
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /**
  * The state at the foot of the ladder from deck 2's cabin $18 (C2.0.7) to deck 3's: a recorded route's end, travel to the
@@ -33,9 +33,7 @@ const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAI
  */
 function atLadderFoot() {
   const game = GAMES.blackwyche;
-  const routes: unknown = JSON.parse(fs.readFileSync('games/blackwyche/re/routes.json', 'utf8'));
-  if (!Array.isArray(routes) || !Array.isArray(routes[0])) throw new Error('routes');
-  const route: number[] = routes[0].filter((n): n is number => typeof n === 'number');
+  const route = readRoute('games/blackwyche/re/routes.json');
   const g = new NativeHost(game.port, unpackState(new Uint8Array(titleBytes)));
   const found: Found = {};
   let frame = 0;
@@ -110,5 +108,4 @@ for (const enhanced of [false, true]) for (const shift of [false, true]) {
   if (up < 0 || (enhanced && end !== deck0 - 1)) console.log(trace.join(' '));
 }
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

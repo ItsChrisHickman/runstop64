@@ -286,6 +286,48 @@ const RESERVED = new Set(('attribute varying coherent volatile restrict readonly
   + 'isampler2DMS usampler2DMS sampler2DMSArray isampler2DMSArray usampler2DMSArray sizeof cast namespace using '
   + 'break continue do for while switch case default if else discard return struct void true false').split(/\s+/));
 
+/**
+ * A preprocessor `#if` expression (numbers, parentheses, `! - * / + -`, comparisons, `&&`, `||`)
+ * worked out; null when it isn't one of those.
+ */
+export function evalPreprocessor(text: string): number | null {
+  const tokens = text.match(/\d+\.?\d*|&&|\|\||[<>=!]=|[()!<>+\-*/]|\S/g) ?? [];
+  let i = 0;
+  const fail = (): never => { throw new SyntaxError(text); };
+  const next = () => tokens[i++];
+  const binary = (ops: readonly (readonly string[])[], level: number): number => {
+    const level0 = ops[level];
+    if (!level0) return unary();
+    let left = binary(ops, level + 1);
+    while (i < tokens.length && level0.includes(tokens[i] ?? '')) {
+      const op = next();
+      const right = binary(ops, level + 1);
+      left = op === '||' ? Number(left !== 0 || right !== 0) : op === '&&' ? Number(left !== 0 && right !== 0)
+        : op === '==' ? Number(left === right) : op === '!=' ? Number(left !== right)
+        : op === '<' ? Number(left < right) : op === '>' ? Number(left > right) : op === '<=' ? Number(left <= right) : op === '>=' ? Number(left >= right)
+        : op === '+' ? left + right : op === '-' ? left - right : op === '*' ? left * right : right === 0 ? fail() : Math.trunc(left / right);
+    }
+    return left;
+  };
+  const unary = (): number => {
+    const t = next();
+    if (t === undefined) return fail();
+    if (t === '!') return Number(unary() === 0);
+    if (t === '-') return -unary();
+    if (t === '(') { const v = expr(); if (next() !== ')') fail(); return v; }
+    return /^\d/.test(t) ? Number(t) : fail();
+  };
+  const levels = [['||'], ['&&'], ['==', '!='], ['<', '>', '<=', '>='], ['+', '-'], ['*', '/']] as const;
+  const expr = () => binary(levels, 0);
+  try {
+    const v = expr();
+    return i === tokens.length ? v : null;
+  } catch (e) {
+    if (e instanceof SyntaxError) return null;
+    throw e;
+  }
+}
+
 /** Preprocess and check a shader as a GLSL ES 3.00 compiler would (as far as this goes: see the top). */
 export function compile(source: string, vertex: boolean): { errors: string[]; decls: Decls; code: string } {
   const errors: string[] = [], decls = emptyDecls();
@@ -302,8 +344,9 @@ export function compile(source: string, vertex: boolean): { errors: string[]; de
   const test = (expr: string) => {
     const e = expr.replace(/defined\s*\(\s*(\w+)\s*\)|defined\s+(\w+)/g, (_m, a: string | undefined, b: string | undefined) => (defines.has(a ?? b ?? '') ? '1' : '0'));
     const v = expand(e).replace(/\b[A-Za-z_]\w*\b/g, '0');
-    if (!/^[\s\d.()!&|<>=+\-*/]*$/.test(v)) { errors.push(`can't evaluate #if ${expr}`); return false; }
-    return Boolean(Function(`return (${v});`)());
+    const result = evalPreprocessor(v);
+    if (result === null) { errors.push(`can't evaluate #if ${expr}`); return false; }
+    return result !== 0;
   };
   const out: string[] = [];
   for (const raw of lines.slice(1)) {

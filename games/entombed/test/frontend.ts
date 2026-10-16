@@ -26,13 +26,13 @@ import { C64_PALETTE } from '../../../packages/c64kit/src/palette';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { readSaves } from '../../shared/saves';
+import { parseOptions } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // a save in the corridors of floor 1 (the whip in hand), as the autosave keeps one
 {
@@ -82,9 +82,9 @@ shot('pause');
 press('KeyE');
 check('E: ORIGINAL (the play changes off, effects still on)', !p.frontEnd.enhanced && combatOff() && !!p.options.effects);
 tapAt(260, 133); // (the switch's line on the right: the first of four, bottom up from y=166)
-check('a tap on its line: ENHANCED again, and kept', p.frontEnd.enhanced && combatOn() && JSON.parse(store.get('entombed.assist') ?? '{}').enhanced === true);
+check('a tap on its line: ENHANCED again, and kept', p.frontEnd.enhanced && combatOn() && parseOptions(store.get('entombed.assist')).enhanced === true);
 press('KeyE');
-check('E: ORIGINAL, kept', !p.frontEnd.enhanced && JSON.parse(store.get('entombed.assist') ?? '{}').enhanced === false);
+check('E: ORIGINAL, kept', !p.frontEnd.enhanced && parseOptions(store.get('entombed.assist')).enhanced === false);
 press('KeyP');
 check('P: back to the game', !p.frontEnd.paused);
 
@@ -196,5 +196,4 @@ for (const wait of [120, 3]) {
   input.keyUp('ArrowRight'); tick(2);
 }
 
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

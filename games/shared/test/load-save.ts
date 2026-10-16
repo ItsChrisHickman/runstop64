@@ -11,11 +11,12 @@
 import fs from 'node:fs';
 import type { SaveCodec } from '../continue';
 import { fromBase64, parseExport, putSaves, type SavesExport } from '../saves';
+import { readJson } from '../guards';
 
 /** The export file, checked (a clear error if it isn't one). */
 export function readExport(file: string): SavesExport {
   let v: unknown;
-  try { v = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { throw new Error(`${file}: not JSON (${e instanceof Error ? e.message : String(e)})`); }
+  try { v = readJson(fs.readFileSync(file, 'utf8')); } catch (e) { throw new Error(`${file}: not JSON (${e instanceof Error ? e.message : String(e)})`); }
   const saves = parseExport(v);
   if (!saves) throw new Error(`${file}: not a runstop64 saves export (or another save version)`);
   return saves;

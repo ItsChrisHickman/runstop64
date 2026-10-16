@@ -2,7 +2,7 @@ import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
 import { ContinueFlow } from '../../shared/continue';
 import { FrontEnd, type PauseRequest } from '../../shared/frontend';
-import { isNumbers } from '../../shared/guards';
+import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
 import { Stick } from './input';
@@ -60,7 +60,7 @@ const HIGH_KEY = 'awm.high.v1';
 
 function readHigh(): number[] | null {
   try {
-    const kept: unknown = JSON.parse(localStorage.getItem(HIGH_KEY) ?? 'null');
+    const kept: unknown = readJson(localStorage.getItem(HIGH_KEY) ?? 'null');
     return isNumbers(kept) && kept.length === 5 && kept.every((d) => d >= 0 && d <= 255) ? kept : null;
   } catch { return null; }
 }

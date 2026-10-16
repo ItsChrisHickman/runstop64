@@ -30,11 +30,10 @@ import { isRecord } from '../../shared/guards';
 import { MAP_BOX } from '../../shared/native/pause';
 import { readSaves } from '../../shared/saves';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** A launch of the game with its own storage (`store`: seeded, e.g. ORIGINAL chosen) and a keyboard to press real keys on. */
 async function launch(store = new Map<string, string>()) {
@@ -239,5 +238,4 @@ fast.tick(150);
 check(`at speed: travel on the map took him to room ${goal} (in ${fast.room()}), alive 150 frames on`, !fast.p.state.paused && fast.room() === goal && fast.lives() === livesThen);
 fast.shift(false);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

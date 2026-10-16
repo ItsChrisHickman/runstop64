@@ -17,6 +17,8 @@ import { run } from '../src/main';
 import { makeMap } from '../src/map';
 import { hintSpots } from '../src/hint-spots';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { parseOptions } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 // a browser's storage, in memory; the title snapshot from disk
 const store = useMemoryStorage();
@@ -26,8 +28,6 @@ stubFetch(titleBytes);
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };
@@ -41,7 +41,7 @@ function screensFound(found: Found): Record<string, string[]> {
   for (const [k, v] of Object.entries(s)) if (Array.isArray(v)) out[k] = v.filter((x): x is string => typeof x === 'string');
   return out;
 }
-const options = (): Record<string, unknown> => { const v: unknown = JSON.parse(store.get('thingonaspring.assist') ?? '{}'); return typeof v === 'object' && v !== null ? { ...v } : {}; };
+const options = (): Record<string, unknown> => parseOptions(store.get('thingonaspring.assist'));
 
 const outDir = process.argv[2];
 function shot(name: string) {
@@ -123,5 +123,4 @@ until(() => p.state.playing && ram()[0x63] === 0, 300);
 tick(5);
 check(`Enter: back in ${where()} with the oil at least half (${ram()[0x8f]})`, p.state.playing && ram()[0x8f] >= 0x7c);
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

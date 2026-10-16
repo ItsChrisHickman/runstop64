@@ -14,11 +14,10 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { must } from '../../shared/test/must';
 import * as engine from '../src/gen/engine';
 import { run } from '../src/main';
+import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/thingonaspring/assets/toas-title.state'));
 useMemoryStorage();
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const input = new Input(nowhere);
 const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
@@ -53,5 +52,4 @@ ram()[0x90] = 0;
 for (let i = 0; i < 10; i++) { touch(); tick(); }
 check(`after it the same touches take oil again (${o1} -> ${oil()})`, oil() < o1);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

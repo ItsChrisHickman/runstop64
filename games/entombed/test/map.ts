@@ -23,13 +23,12 @@ import { rgbPng } from '../../../tools/probe/render';
 import { C64_PALETTE } from '../../../packages/c64kit/src/palette';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
 /** A floor's junctions ("x,y"), as the map has them. */
@@ -123,5 +122,4 @@ check(`headed with his floor again: ${entombedMap.title(m().ram)}`, entombedMap.
 shot('back-on-6');
 press('KeyP');
 
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

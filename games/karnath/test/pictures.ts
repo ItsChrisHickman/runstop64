@@ -21,12 +21,11 @@ import { decodePicture } from '../../../packages/c64kit/src/c64/picture';
 import { placePictures } from '../../../packages/c64kit/src/hd/placed';
 import { pixelPieces } from '../../../packages/c64kit/src/pendragon/room';
 import { renderPng } from '../../../tools/probe/render';
+import { check, finish } from '../../shared/test/check';
 
 const title = new Uint8Array(fs.readFileSync('games/karnath/assets/karnath-title.state'));
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const { band } = karnathHd, W = 320;
 const label = (id: number) => STRIPS[id].label;
@@ -143,5 +142,4 @@ check(`each strip is the game's mode's (but just after the mode changes): ${plac
 const all = PICTURES.pictures.map((p) => p.id);
 console.log(`     strips seen (frames): ${all.map((k) => `${label(k)} ${seen.get(k) ?? 0}`).join(', ')}`);
 check(`every strip the routes reach is decoded (${[...seen.keys()].filter((k) => !all.includes(k)).length} not), ${all.filter((k) => seen.has(k)).length} of the ${all.length} seen`, [...seen.keys()].every((k) => all.includes(k)));
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

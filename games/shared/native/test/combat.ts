@@ -25,6 +25,7 @@ import { karnathCombat } from '../../../karnath/src/combat';
 import { blackwycheCombat } from '../../../blackwyche/src/combat';
 import { dragonskulleCombat } from '../../../dragonskulle/src/combat';
 import { must } from '../../test/must';
+import { readRoutes } from '../../test/data';
 
 interface Truth {
   spec: CombatSpec;
@@ -78,7 +79,7 @@ let failures = 0;
 const fail = (msg: string) => { failures++; if (failures <= 25) console.log('FAIL', msg); };
 
 // states along the routes
-const routes: number[][] = JSON.parse(fs.readFileSync(`games/${gameId}/re/routes.json`, 'utf8'));
+const routes = readRoutes(`games/${gameId}/re/routes.json`);
 const title = unpackState(new Uint8Array(fs.readFileSync(game.title)));
 const states: MachineState[] = [];
 const every = Math.max(100, Math.floor(routes.reduce((n, r) => n + r.filter((_, i) => i % 2).reduce((a, b) => a + b, 0), 0) / Number(statesArg)));

@@ -31,6 +31,8 @@ import { Game, type Input as Stick } from '../src/game';
 import { montyMap, noteRoom } from '../src/map';
 import { PixelRenderer, VicView } from 'c64kit';
 import type { Found } from '../../shared/native/pause';
+import { getProp } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
 // the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
 {
@@ -38,8 +40,6 @@ import type { Found } from '../../shared/native/pause';
   Math.random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };
 }
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const hex = (n: number) => `$${n.toString(16).padStart(2, '0')}`;
 const NONE: Stick = { left: false, right: false, up: false, down: false, fire: false };
 
@@ -60,12 +60,12 @@ function copy(src: Play): Play {
   const g = new Game();
   for (const k of Object.keys(src.g)) {
     if (k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
-    Reflect.set(g, k, structuredClone(Reflect.get(src.g, k)));
+    Reflect.set(g, k, structuredClone(getProp(src.g, k)));
   }
   g.assist = { ...src.g.assist };
   g.vic.bank.set(src.g.vic.bank);
   g.vic.colour.set(src.g.vic.colour);
-  for (const k of Object.keys(src.g.vic)) if (k !== 'bank' && k !== 'colour') Reflect.set(g.vic, k, structuredClone(Reflect.get(src.g.vic, k)));
+  for (const k of Object.keys(src.g.vic)) if (k !== 'bank' && k !== 'colour') Reflect.set(g.vic, k, structuredClone(getProp(src.g.vic, k)));
   return { g, col: src.col };
 }
 
@@ -156,5 +156,4 @@ for (const guard of [true, false]) {
   }
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

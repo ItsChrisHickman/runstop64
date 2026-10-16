@@ -22,6 +22,7 @@ import { CELLS } from '../src/cells';
 import { Game } from '../src/game';
 import { antiriadMap } from '../src/map';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 const ARMOUR = 'games/antiriad/test/armour.state';
 const machine = () => {
@@ -34,8 +35,6 @@ const machine = () => {
 const load = (enhanced: boolean) => { const g = new Game(machine(), true); g.enhanced = enhanced; return g; };
 const stick = (s: string) => 0x1f & ~((s.includes('U') ? 1 : 0) | (s.includes('D') ? 2 : 0) | (s.includes('L') ? 4 : 0) | (s.includes('R') ? 8 : 0) | (s.includes('F') ? 16 : 0));
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** Anything that runs frames with a joystick: the port, or the original on the 6502. */
 interface Player { ram: Uint8Array; frame(j: string): void }
@@ -149,5 +148,4 @@ function interlocked(enhanced: boolean) {
   check(`ORIGINAL: ... and he never gets out, as in the original (${about(p)}; ${turned > 300 ? 'never' : 'out'})`, inArmour(p) && p.ram[V.room] === 0x09);
 }
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

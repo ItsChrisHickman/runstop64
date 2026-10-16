@@ -20,10 +20,10 @@ import { cpu } from '../../shared/native/cpu';
 import { port } from '../src/native';
 import { ROOMS } from '../src/rooms';
 import * as engine from '../src/gen/engine';
+import { check, finish } from '../../shared/test/check';
 
 const [titleArg = 'games/blackwyche/assets/blackwyche-title.state'] = process.argv.slice(2);
-let failures = 0;
-const check = (what: string, ok: boolean) => { if (!ok || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
+const quiet = (what: string, ok: boolean) => check(what, ok, true);
 const keep = (r: Uint8Array) => { r[0x9d77] = 100; r[0x3417] = 0; };
 
 // a game begun (fire on the title), on the main deck
@@ -62,7 +62,7 @@ for (let room = 1; room <= 0x21; room++) {
   const fb = [...g.fallbacks.keys()].map((a) => `$${a.toString(16)}`);
   const ok = entered && translated && !error && !fb.length;
   if (ok) fine++;
-  check(`room $${room.toString(16)}: its block translated, played natively${error ? ` (stopped: ${error})` : ''}${fb.length ? ` (6502 safety net at ${fb.join(' ')})` : ''}${translated ? '' : ' (no translation of the block)'}`, ok);
+  quiet(`room $${room.toString(16)}: its block translated, played natively${error ? ` (stopped: ${error})` : ''}${fb.length ? ` (6502 safety net at ${fb.join(' ')})` : ''}${translated ? '' : ' (no translation of the block)'}`, ok);
 }
-console.log(`${fine} of ${0x21} rooms; ${failures ? `${failures} failures` : 'all passed'}`);
-if (failures) process.exit(1);
+console.log(`${fine} of ${0x21} rooms`);
+finish();

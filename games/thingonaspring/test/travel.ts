@@ -21,15 +21,25 @@
  *
  *   nice -n 15 node tools/test.mjs games/thingonaspring/test/travel.ts
  */
-import fs from 'node:fs';
 import type { MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { cpu } from '../../shared/native/cpu';
 import { NativeHost } from '../../shared/native/host';
 import { port } from '../src/native';
 import { canTravel, go } from '../src/travel';
 import { allOn, frames, INPUTS, joyOf, makeStarts, newGame, replayFrom, resumeSnap, snapper, step, type Snap } from '../re/play';
+import { isArray, isArrayOf, isNumber, isRecord, isRecordOf, isString } from '../../shared/guards';
+import { readJsonFile } from '../../shared/test/data';
 
-const ways: Record<string, { start: string; path: [number, number][] }> = JSON.parse(fs.readFileSync('games/thingonaspring/re/ways.json', 'utf8')).ways;
+interface Way { start: string; path: [number, number][] }
+const isStep = (v: unknown): v is [number, number] => isArray(v) && v.length === 2 && isNumber(v[0]) && isNumber(v[1]);
+const isWay = (v: unknown): v is Way => isRecord(v) && isString(v.start) && isArrayOf(v.path, isStep);
+/** re/ways.json, checked: the ways between screens, each a start and the steps (joystick, frames). */
+function readWays(file: string): Record<string, Way> {
+  const v = readJsonFile(file);
+  if (!isRecord(v) || !isRecordOf(v.ways, isWay)) throw new Error(`${file}: not { ways: { name: { start, path } } }`);
+  return v.ways;
+}
+const ways = readWays('games/thingonaspring/re/ways.json');
 let failures = 0;
 const kinds = new Map<string, number>();
 const fail = (msg: string) => {

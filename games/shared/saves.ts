@@ -1,4 +1,4 @@
-import { isNumber, isRecord, isString, isStrings } from './guards';
+import { isNumber, isRecord, isString, isStrings, readJson } from './guards';
 
 /**
  * Where every game's saves are kept (the browser's localStorage), for the games (through
@@ -61,7 +61,7 @@ function remove(key: string) {
 }
 function json(text: string | null): unknown {
   if (text === null) return null;
-  try { return JSON.parse(text); } catch { return null; }
+  try { return readJson(text); } catch { return null; }
 }
 
 // ---- checks of what's read back ----------------------------------------------------------------

@@ -18,14 +18,14 @@ import { NativeHost } from '../../../shared/native/host';
 import { port } from '../../src/native';
 import { HINTS, type Hint } from '../../src/hints';
 import { hintSpots } from '../../src/hint-spots';
+import { readJson } from '../../../shared/guards';
+import { check, finish } from '../../../shared/test/check';
 
 const outDir = process.argv[2] ?? '';
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const keep = (r: Uint8Array) => { r[0x1248] = 0; r[0x123e] = 0x14; r[0x3432] = 0; };
 
 // states on each hint's screen, along the routes (the first frames of play there)
-const routes: unknown = JSON.parse(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
+const routes: unknown = readJson(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
 const title = unpackState(new Uint8Array(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state')));
 const onScreen = new Map<number, MachineState[]>(); // room block -> states there (a few, along the way)
 if (Array.isArray(routes)) for (const route of routes) {
@@ -130,5 +130,4 @@ for (const h of HINTS) {
   check(`  replayed, the game's own code does it ($${h.until[0].toString(16)} = ${g.m.ram[h.until[0]]})`, done);
   check(`  a second later the hint has gone (${after.length} left)`, after.length === 0);
 }
-console.log(failures ? `${failures} failures` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

@@ -19,9 +19,9 @@ import { fromBase64, readFound, readSaves } from '../../shared/saves';
 import { exitGridImage, MUSIC } from '../src/data';
 import { run } from '../src/main';
 import { CODEC } from '../src/save';
+import { readJson } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const store = useMemoryStorage();
 
 const input = new Input(nowhere), renderer = new PixelRenderer(), p = run({ renderer, input, canvas: nowhere });
@@ -87,7 +87,7 @@ g.siCollected[8] = 0;
 const ordinary = travel(DOCK) && travel(first);
 tick(30);
 const fromPlay = state();
-const fields = (s: string): Record<string, unknown> => { const v: unknown = JSON.parse(s); return v && typeof v === 'object' ? Object.fromEntries(Object.entries(v)) : {}; };
+const fields = (s: string): Record<string, unknown> => { const v: unknown = readJson(s); return v && typeof v === 'object' ? Object.fromEntries(Object.entries(v)) : {}; };
 const a = fields(afterEnding), b = fields(fromPlay), differ = Object.keys(a).filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
 check(`arriving from the ending is arriving from play (the first room both ways${ordinary ? '' : ', travel from play failed'}; ${differ.length ? `differing: ${differ.join(', ')}` : 'the same memory, colours, sprites, registers, enemies and music'})`, ordinary && differ.length === 0);
 
@@ -114,5 +114,5 @@ check(`yes: back in the dock room ($${g.roomId.toString(16)}), the jerry can sti
   back && g.siCollected[8] === 0x81 && g.lives === s.lives && g.score === s.score && s.coins.every((c, i) => g.coinCollected[i] === c) && !g.won && lastSong() === 0);
 check('the treasure still there: the ending plays again', toTreasure() && g.roomId === 0x30 && lastSong() === 2);
 
-if (failures) { console.log(`${failures} FAILED`); process.exit(1); }
+finish();
 console.log('all passed');

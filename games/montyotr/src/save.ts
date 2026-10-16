@@ -1,5 +1,5 @@
 import type { SaveCodec } from '../../shared/continue';
-import { isNumber, isNumbers, isRecord } from '../../shared/guards';
+import { isNumber, isNumbers, isRecord, readJson, isArray } from '../../shared/guards';
 import { isExtensionRoom } from './data';
 import type { Game } from './game';
 import { C5_START, c5Arrive, type C5State } from './mechanisms';
@@ -69,14 +69,14 @@ export function parseSave(v: unknown): MontySave | null {
 export const CODEC: SaveCodec<MontySave> = {
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
   unpack: (b) => {
-    const s = parseSave(JSON.parse(String.fromCharCode(...b)));
+    const s = parseSave(readJson(String.fromCharCode(...b)));
     if (!s) throw new Error('not a Monty save');
     return s;
   },
 };
 
 type Visit = [number, { x2: number; y: number; mapRow: number; exitCol: number }];
-const isVisit = (v: unknown): v is Visit => Array.isArray(v) && v.length === 2 && isNumber(v[0]) && isRecord(v[1]) && isNumber(v[1].x2) && isNumber(v[1].y) && isNumber(v[1].mapRow) && isNumber(v[1].exitCol);
+const isVisit = (v: unknown): v is Visit => isArray(v) && v.length === 2 && isNumber(v[0]) && isRecord(v[1]) && isNumber(v[1].x2) && isNumber(v[1].y) && isNumber(v[1].mapRow) && isNumber(v[1].exitCol);
 
 /**
  * Saves from before the shared front end (plain JSON under the same key, with the
@@ -88,7 +88,7 @@ export function migrateOldSave() {
   try {
     const raw = localStorage.getItem('montyotr.save.v1');
     if (!raw?.startsWith('{')) return;
-    const old: unknown = JSON.parse(raw);
+    const old: unknown = readJson(raw);
     const save = parseSave(old);
     if (!save) return;
     const visited = isRecord(old) && Array.isArray(old.visited) ? old.visited.filter(isVisit) : [];

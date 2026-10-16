@@ -12,12 +12,11 @@ import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { spriteHits } from '../src/collisions';
 import { run } from '../src/main';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
 const input = new Input(nowhere);
 const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(3); input.keyUp(code); tick(2); };
 const g = () => p.game;
@@ -72,5 +71,4 @@ tick(10);
 touch();
 check(`after it the armour loses energy (${suit} -> ${g().ram[V.suitEnergy]})`, g().ram[V.suitEnergy] < suit);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

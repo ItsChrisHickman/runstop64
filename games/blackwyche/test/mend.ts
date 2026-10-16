@@ -16,9 +16,8 @@ import { MENDS } from '../src/mends';
 import { cpu } from '../../shared/native/cpu';
 import { port } from '../src/native';
 import * as engine from '../src/gen/engine';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const keep = (r: Uint8Array) => { r[0x9d77] = 100; r[0x3417] = 0; };
 
 const title = unpackState(new Uint8Array(fs.readFileSync('games/blackwyche/assets/blackwyche-title.state')));
@@ -62,5 +61,4 @@ check(`and room $C runs from it${(() => { const e = enterC(written); return e ? 
 const other = copy(start); other.ram[0xf800] ^= 1; const before = other.ram.slice(0xf800, 0xfc00);
 applyMends(other.ram, title.ram, MENDS);
 check('a save holding anything else there is left as it is', other.ram.subarray(0xf800, 0xfc00).every((b, i) => b === before[i]));
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

@@ -39,13 +39,12 @@ import { replay } from '../re/hints/play';
 import { readSolved } from '../re/hints/solved';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 function gameStart(): MachineState {
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
@@ -288,5 +287,4 @@ for (const n of GUARDED) {
   check(`ENHANCED: up+left and up+right held just before the stairs go through (${ok} of ${tried}; the other ${edge}, beside what the puzzle moved, meet it)`, tried > 0 && ok + edge === tried && edge <= 3);
 }
 
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

@@ -16,9 +16,8 @@ import { C64_PALETTE, Input, PixelRenderer } from 'c64kit';
 import { rgbPng } from '../../../tools/probe/render';
 import { GAMES, Picker, run, type GameEntry, type PointerAt } from '../../loader';
 import { nowhere } from './browser';
+import { check, finish } from './check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const outDir = process.argv[2];
 
 const p = new Picker();
@@ -110,5 +109,4 @@ for (const count of [GAMES.length, 11, 16, 30]) {
   check('  a tap on the saved games line: the saved games', saves === 1);
 }
 
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

@@ -10,10 +10,9 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { checkFightGrace, type Launch, type Session } from '../../shared/test/grace';
+import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/blackwyche/assets/blackwyche-title.state'));
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** Launched with a save: straight back into play (the grace begins). Without: a new game, a few seconds in. */
 const launch: Launch = async (save) => {
@@ -33,5 +32,4 @@ const launch: Launch = async (save) => {
 
 await checkFightGrace('blackwyche', launch, check, ['Space', 'KeyX']);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

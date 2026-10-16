@@ -26,9 +26,9 @@ import { must } from '../../shared/test/must';
 import { port } from '../src/native';
 import { dragonskulleMap } from '../src/map';
 import { playing } from '../src/travel';
+import { cloneRecord, readRoutes } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const ROOM = 18, CELL = '4,2', BELOW = '4,1';
 /** Kept alive along the way, as the routes were found. */
@@ -83,15 +83,14 @@ function take(start: () => Player, seed = 3): number {
 }
 
 // ---- walk the route into the shovel's room ----------------------------------------------------------
-const routes: unknown = JSON.parse(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
+const routes = readRoutes('games/dragonskulle/re/routes.json');
 const title = unpackState(new Uint8Array(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state')));
 let walked: MachineState | null = null, end: MachineState | null = null;
 let belowX = -1; // where he went up out of the screen below into the shovel's room
 const found: Found = {};
 const walkedAt = new Map<string, MachineState>(); // each place as walking came onto it
-if (Array.isArray(routes)) for (const route of routes) {
-  if (!Array.isArray(route) || walked) continue;
-  const rle = route.filter((n): n is number => typeof n === 'number');
+for (const rle of routes) {
+  if (walked) continue;
   const g = new NativeHost(port, title);
   const noted: Found = {};
   let frame = 0;
@@ -122,7 +121,7 @@ function travel(s: MachineState, id: string): MachineState {
     if (done || site !== port.mainLoopWait) return;
     done = true;
     const regs = { ...cpu };
-    ok = dragonskulleMap.go?.(id, g.m.ram, JSON.parse(JSON.stringify(found))) ?? false;
+    ok = dragonskulleMap.go?.(id, g.m.ram, cloneRecord(found)) ?? false;
     Object.assign(cpu, regs);
   };
   g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); keep(g.m.ram);
@@ -209,5 +208,4 @@ check(`the original from ${some.length} travelled arrivals: a stone takes it in 
   check(`the original: out (down, ${left}) and back in by walking (${back}, at ${cell(p.ram)}): the shovel's there (${shovel(p)})`, back && shovel(p).split('; ')[1] === want.split('; ')[1] && !shovel(p).includes('off the screen'));
 }
 
-console.log(failures ? `${failures} failures` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

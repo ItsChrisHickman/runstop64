@@ -8,7 +8,7 @@
  * handlers are checked by irqcycles.ts.
  *
  *   TRACE=1 node tools/re/to-ts.mjs games/<game>/re/engine.json   (then translate again without)
- *   npx tsx games/shared/native/test/trace.ts <game> [frames]
+ *   nice -n 15 node tools/test.mjs games/shared/native/test/trace.ts <game> [frames]
  */
 import fs from 'node:fs';
 import { C64, unpackState } from '../../../../packages/c64kit/src/c64/machine';

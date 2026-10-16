@@ -16,10 +16,9 @@ import { NativeHost } from '../../shared/native/host';
 import { must } from '../../shared/test/must';
 import { port } from '../src/native';
 import { entombedMap } from '../src/map';
+import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/entombed/assets/entombed-title.state'));
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
 /** A save in the corridors of floor 1 (the whip in hand), as the autosave keeps one: where the monsters are. */
@@ -57,5 +56,4 @@ const launch: Launch = async (save) => {
 
 await checkFightGrace('entombed', launch, check, ['Space', 'KeyX'], 40, corridorSave());
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

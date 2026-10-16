@@ -31,12 +31,12 @@ import { THINGS } from '../src/guided';
 import { placeName } from '../src/names';
 import { CABINS, HALLS } from '../src/ship';
 import { keepFound, type Found } from '../../shared/saves';
+import { readRoutes } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const outDir = process.argv[2];
 const game = GAMES.blackwyche;
 if (!game) throw new Error('no blackwyche in games.ts');
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const titleBytes = fs.readFileSync(game.title);
 const g0 = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
@@ -74,7 +74,7 @@ const g0 = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
 }
 
 // ---- 3. played: the route that takes the gunpowder and the skull ----
-const routes: number[][] = JSON.parse(fs.readFileSync('games/blackwyche/re/routes.json', 'utf8'));
+const routes = readRoutes('games/blackwyche/re/routes.json');
 const route = routes[3];
 if (!route) throw new Error('no route 3');
 const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
@@ -184,5 +184,4 @@ check(`picked: ${p.frontEnd.picked}, the line names it and says ALL FOUND (light
 press('KeyP');
 check('P: back to the game', !p.frontEnd.paused);
 
-console.log(failures ? `${failures} FAILURES` : 'all good');
-process.exit(failures ? 1 : 0);
+finish();

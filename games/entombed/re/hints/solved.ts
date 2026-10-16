@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { isNumber, isNumbers, isRecord, isRecordOf, isString } from '../../../shared/guards';
+import { isNumber, isNumbers, isRecord, isRecordOf, isString, readJson } from '../../../shared/guards';
 
 type Pair = [number, number];
 /** A chamber solved by solve.ts (solved/chamber-NN.json): the steps done by playing, where, and how. */
@@ -15,7 +15,7 @@ const isStep = (v: unknown): v is Solved['steps'][number] =>
 
 /** Read a solved chamber's file, checked. */
 export function readSolved(file: URL): Solved {
-  const j: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const j: unknown = readJson(fs.readFileSync(file, 'utf8'));
   if (!isRecord(j) || !isNumber(j.chamber) || !isRecordOf(j.given, isNumber) || !Array.isArray(j.steps) || !j.steps.every(isStep)) {
     throw new Error(`${file.pathname}: not a solved chamber`);
   }

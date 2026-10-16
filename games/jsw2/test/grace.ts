@@ -17,10 +17,9 @@ import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { GRACE_FRAMES } from '../../shared/grace';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const HADES = 7, BINS = 60;
 const FLOOR: [number, number, number] = [150, 0, 158];
@@ -94,5 +93,4 @@ c.input.keyUp('ArrowLeft');
 c.tap('Enter');
 check(`CONTINUE?: reached, and the grace starts (${c.grace()})`, over && c.grace() > GRACE_FRAMES - 12);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

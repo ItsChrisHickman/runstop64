@@ -20,17 +20,16 @@ import { run } from '../src/main';
 import { MANSION } from '../src/mansion';
 import { jsw2Map } from '../src/map';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
-import { isNumbers, isRecord } from '../../shared/guards';
+import { isNumbers, isRecord, readJson } from '../../shared/guards';
 import { MAP_BOX } from '../../shared/native/pause';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
-const routeJson: unknown = JSON.parse(fs.readFileSync('games/jsw2/re/routes.json', 'utf8'));
+const routeJson: unknown = readJson(fs.readFileSync('games/jsw2/re/routes.json', 'utf8'));
 if (!isRecord(routeJson) || !isNumbers(routeJson.rooms) || !isNumbers(routeJson.joystick)) throw new Error('re/routes.json: { rooms, joystick } expected');
 const route = { rooms: routeJson.rooms, joystick: routeJson.joystick };
 
@@ -152,5 +151,4 @@ for (const r of goals) {
 }
 check(`travel to every room offered lands where he was on the walk, on his feet (no fall), alive 200 frames later (${safe} of ${goals.length})`, safe === goals.length);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

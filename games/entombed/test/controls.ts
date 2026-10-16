@@ -27,13 +27,12 @@ import { run } from '../src/main';
 import { chamberState } from '../re/hints/chambers';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 function gameStart(): MachineState {
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
@@ -228,5 +227,4 @@ for (const place of places) {
   const t = turned.seq.split(',').slice(1), w = walked.seq.split(',').slice(1, t.length + 1);
   check(`  the same strike as after walking left (whip ${walked.seq})`, t.length >= 10 && t.join() === w.join());
 }
-console.log(failures ? `${failures} failures` : 'all passed');
-if (failures) process.exit(1);
+finish();

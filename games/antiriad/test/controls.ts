@@ -14,6 +14,7 @@ import { C64Machine, unpackState } from 'c64kit';
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
 import { Game } from '../src/game';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 const load = (file: string, two: boolean) => {
   const m = new C64Machine();
@@ -43,8 +44,6 @@ function play(g: Game, plan: string) {
   return trace;
 }
 const firstDiff = (a: string[], b: string[]) => a.findIndex((v, i) => v !== b[i]);
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const jumped = (t: string[]) => t.some((s) => / j128 /.test(s));
 const thrown = (t: string[]) => t.some((s) => / sbc$/.test(s));
 
@@ -191,5 +190,4 @@ for (let walk = 1; walk <= 16; walk++) {
 check(`ENHANCED: walking, fire with his stone still out: every frame shown its animation's own (${stoneOk}/${stoneRuns})`, stoneOk === stoneRuns);
 check(`ENHANCED: walking, fire with his stone still out: no throw, he walks on (${walkedOn}/${stoneRuns})`, walkedOn === stoneRuns);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

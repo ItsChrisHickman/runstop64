@@ -11,7 +11,7 @@
  * Renders each chamber with its hints ringed as they show on going in, and each step's moment
  * (<outdir>/chamber-NN.png, chamber-NN-step-K.png) to look at.
  *
- *   npx tsx games/entombed/re/hints/check.ts <outdir> [chamber...]
+ *   nice -n 15 node tools/test.mjs games/entombed/re/hints/check.ts <outdir> [chamber...]
  */
 import fs from 'node:fs';
 import { renderPng } from '../../../../tools/probe/render';

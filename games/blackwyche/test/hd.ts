@@ -13,6 +13,7 @@ import { blackwycheHd } from '../src/hd';
 import { run } from '../src/main';
 import { checkHdFrames, checkHdLockstep, checkHdRoom, checkHdSwitch, inFront, routeWalker } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const title = new Uint8Array(fs.readFileSync('games/blackwyche/assets/blackwyche-title.state'));
@@ -20,8 +21,6 @@ stubFetch(title);
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // (his energy kept up along the route, as the travel check does)
 const walk = () => routeWalker({ port, title, routes: 'games/blackwyche/re/routes.json', cheat: (ram) => { ram[0x9d77] = 100; ram[0x3417] = 0; } });
@@ -70,5 +69,4 @@ for (const refresher of [false, true]) {
   await checkHdLockstep(check, `along the deck${refresher ? ', rooms built off the main thread' : ''}`, blackwycheHd, l.host.m, () => !!l.next(), 400, { refresher });
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

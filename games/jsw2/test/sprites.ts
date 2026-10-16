@@ -21,10 +21,9 @@ import { C64View } from '../../../packages/c64kit/src/c64/view';
 import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import { NativeHost } from '../../shared/native/host';
 import { port } from '../src/native';
+import { check, finish } from '../../shared/test/check';
 
 const title = unpackState(new Uint8Array(fs.readFileSync('games/jsw2/assets/jsw2-title.state')));
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const MACARONI_TED = 63;
 /** A new game (fire to start), then left from the bathroom through room 64 into Macaroni Ted (the route's way), where he stops. */
@@ -119,5 +118,4 @@ check(`Willy walking: his figure only goes the way he walks (back ${willy.back} 
   check(`a sprite moving every frame (3 px, a new image each frame) glides: 1.5 px each half frame (${steps.map((s) => s.toFixed(1)).join(' ')})`, steps.every((s) => Math.abs(s - 1.5) < 0.01));
 }
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

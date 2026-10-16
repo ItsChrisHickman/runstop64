@@ -44,7 +44,7 @@ export class C64View {
 
     // Sprites: one handle per occurrence; smoothing follows each sprite number's k-th use.
     this.frame++;
-    const count = new Array(8).fill(0);
+    const count = new Array<number>(8).fill(0);
     this.keys = [];
     cap.sprites.forEach((s, i) => {
       while (this.handles.length <= i) {

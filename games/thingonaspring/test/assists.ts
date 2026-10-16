@@ -23,9 +23,8 @@ import { NativeHost } from '../../shared/native/host';
 import { port } from '../src/native';
 import { makeEnhanced, PARTS, type Part } from '../src/assists';
 import { allOn, INPUTS, joyOf, makeStarts, step } from '../re/play';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const J = joyOf;
 const NONE = 0x1f;
 
@@ -258,5 +257,4 @@ for (const on of [[], ...ALL.map((x) => [x]), ALL] satisfies (readonly Part[])[]
   else check(line, inWall <= originalInside * 1.02 && hangs === 0 && fallbacks === 0 && moves > 0);
 }
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

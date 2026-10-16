@@ -35,6 +35,7 @@ import { readSolved } from '../re/hints/solved';
 import { checkHdCharacters, checkHdFrames, checkHdRoom, checkHdSwitch } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
@@ -42,8 +43,6 @@ stubFetch(titleBytes);
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** The start of a game (fire on the title: he's in chamber 1). */
 function gameStart(): MachineState {
@@ -207,5 +206,4 @@ for (const { name, state, light, behindMost, carried = true } of rooms) {
     return h.m;
   });
 }
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

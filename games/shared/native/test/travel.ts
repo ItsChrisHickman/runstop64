@@ -45,6 +45,7 @@ import { cellKey as dragonskulleKey, dragonskulleMap } from '../../../dragonskul
 import { LOCATION as DRAGONSKULLE_LOCATION, playing as dragonskullePlaying } from '../../../dragonskulle/src/travel';
 import { ROOMS as DRAGONSKULLE_ROOMS } from '../../../dragonskulle/src/rooms';
 import * as dragonskulleEngine from '../../../dragonskulle/src/gen/engine';
+import { cloneRecord, readRoutes } from '../../test/data';
 
 interface TravelSpec {
   map: PauseMap;
@@ -202,7 +203,7 @@ const gameId = process.argv[2] ?? 'karnath';
 const game = GAMES[gameId], spec = SPECS[gameId];
 const port = game?.port;
 if (!game || !port || !spec) throw new Error(`no travel test for ${gameId}`);
-const routes: number[][] = JSON.parse(fs.readFileSync(spec.routes, 'utf8'));
+const routes = readRoutes(spec.routes);
 const title = unpackState(new Uint8Array(fs.readFileSync(game.title)));
 // ROUTES=1,3: travel only from those routes' states (all are walked, for the places and arrivals)
 const only = process.env.ROUTES ? process.env.ROUTES.split(',').map(Number) : null;
@@ -217,7 +218,7 @@ const fail = (msg: string) => {
 };
 const hex = (n: number) => n.toString(16);
 const inRegions = (a: number, rs: [number, number][]) => rs.some(([lo, hi]) => a >= lo && a <= hi);
-const clone = (x: Found): Found => JSON.parse(JSON.stringify(x));
+const clone = (x: Found): Found => cloneRecord(x);
 const saved = (g: NativeHost): MachineState => { const s = g.save(); if (!s) throw new Error('not at the main loop wait'); return s; };
 
 /** Run a host's next main loop wait with `act` (registers kept, as play.ts does), then `frames` more frames. */

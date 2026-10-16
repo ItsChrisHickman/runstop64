@@ -7,7 +7,7 @@
  * the items taken and carried, the counters, the random numbers and the animation clock are.
  */
 import type { SaveCodec } from '../../shared/continue';
-import { isBoolean, isNumber, isNumbers, isRecord } from '../../shared/guards';
+import { isBoolean, isNumber, isNumbers, isRecord, readJson } from '../../shared/guards';
 import { ROOMS } from './data';
 import { Game, NEW_GAME_LIVES } from './game';
 import type { Hand } from './picture';
@@ -126,7 +126,7 @@ export function parseSave(v: unknown): AwmSave | null {
 export const CODEC: SaveCodec<AwmSave> = {
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
   unpack: (b) => {
-    const s = parseSave(JSON.parse(String.fromCharCode(...b)));
+    const s = parseSave(readJson(String.fromCharCode(...b)));
     if (!s) throw new Error('not an Auf Wiedersehen Monty save');
     return s;
   },

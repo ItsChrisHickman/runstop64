@@ -15,14 +15,13 @@ import { V } from '../src/vars';
 import { antiriadMap, entriesOf, roomAt, roomName, roomsSeen } from '../src/map';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(3); input.keyUp(code); tick(2); };
 const g = () => p.game;
@@ -141,5 +140,4 @@ for (const wait of [300, 2]) {
   check(`  Space ${wait > 25 ? 'on the title' : 'straight away'}: a new game saving as the current save, the game before it (${was?.rooms} rooms) the previous`, was !== null && now.previous?.data === was.data && now.current !== null && now.current.data !== was.data);
   tick(30);
 }
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

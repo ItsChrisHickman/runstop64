@@ -10,9 +10,8 @@ import { must } from '../../shared/test/must';
 import { CABINS } from '../src/ship';
 import { TRAPS } from '../src/trapdoors';
 import { saveAt, Session } from './guided-kit';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const cabinId = (ram: Uint8Array) => `C${ram[0x9d78]}.${ram[0x1ecd]}.${ram[0x1ee5]}`;
 const traps = (ram: Uint8Array) => must(TRAPS[ram[0x341c]], 'a trapdoor room');
@@ -89,5 +88,4 @@ for (const room of rooms) for (let t = 0; t < must(TRAPS[room], 'traps').length;
   check('ORIGINAL: the boards are back', fell && back && !trap.isOpen(s.ram));
 }
 
-console.log(failures ? `${failures} failed` : 'all good');
-process.exit(failures ? 1 : 0);
+finish();

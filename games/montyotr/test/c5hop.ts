@@ -34,6 +34,7 @@
 import { PixelRenderer, VicView } from 'c64kit';
 import { Game } from '../src/game';
 import { C5_HOLD, c5Arrive } from '../src/mechanisms';
+import { check, finish } from '../../shared/test/check';
 
 /** Each pass from where it starts: the tree; the foot of each drop (the C5 still going the old way at full speed). */
 const PASSES = [
@@ -45,8 +46,6 @@ type Pass = typeof PASSES[number];
 const SPEEDS = [1, 2, 3, 4];
 const hex = (n: number) => n.toString(16);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** A hole under the wheels, as the C5's crash check sees it. */
 const overHole = (g: Game) => { const b = g.montyChr; return g.chr(b + 0x50) === 2 || g.chr(b + 0x54) === 2; };
@@ -289,5 +288,4 @@ function enemies(r: Room, toggle: number, enhanced: boolean, t: number, k: numbe
   check('a held hop is hit by an enemy only where a tapped one is, but for a hop in the first frames from the tree (none needed there)', noNew);
 }
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

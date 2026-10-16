@@ -39,18 +39,17 @@ import { LOCATION } from '../src/travel';
 import { ACTION, BAR, BAR_AT, ENERGY, ICON_AT, PLAY, dragonskulleLayout, energyFace, run } from '../src/main';
 import { dragonskulleCombat } from '../src/combat';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { readRoute, parseOptions } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 // a browser's storage, in memory; the title snapshot from disk
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // ---- a save deep in the caves, and the map as walking there noted it ---------------------------------
-const routes: unknown = JSON.parse(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
-const route = Array.isArray(routes) && Array.isArray(routes[0]) ? routes[0].filter((n): n is number => typeof n === 'number') : [];
+const route = readRoute('games/dragonskulle/re/routes.json');
 const walkedFound: Found = {};
 const arrivals = new Map<string, number[]>(); // cell -> the location bytes as he came onto it
 let deepSave = '';
@@ -97,7 +96,7 @@ const ram = () => machine().ram;
 const cell = () => `${ram()[0x20a8]},${ram()[0x20a9]}`;
 const lives = () => 5 - Math.floor(ram()[0x1248] / 3);
 const text = (at: number, n: number) => String.fromCharCode(...ram().subarray(at, at + n));
-const options = (): Record<string, unknown> => { const v: unknown = JSON.parse(store.get('dragonskulle.assist') ?? '{}'); return typeof v === 'object' && v !== null ? { ...v } : {}; };
+const options = (): Record<string, unknown> => parseOptions(store.get('dragonskulle.assist'));
 
 const outDir = process.argv[2];
 /** A picture as the browser shows it: the game's (laid out as the front end has it) with the front end's panels over it. */
@@ -462,5 +461,4 @@ shot('7-beach');
   tap('KeyP'); tap('KeyE'); tap('KeyP');
 }
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

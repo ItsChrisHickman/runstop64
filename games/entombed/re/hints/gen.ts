@@ -5,7 +5,7 @@
  * and value that mark it done, and what it needs (its `when`, and the global flags the chamber
  * was solved with).
  *
- *   npx tsx games/entombed/re/hints/gen.ts > games/entombed/src/hints.ts
+ *   nice -n 15 node tools/test.mjs games/entombed/re/hints/gen.ts > games/entombed/src/hints.ts
  */
 import fs from 'node:fs';
 import { ACTIVATORS } from './activators';

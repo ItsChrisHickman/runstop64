@@ -20,6 +20,8 @@ import { run as runKarnath } from '../../../karnath/src/main';
 import { blackwycheMap } from '../../../blackwyche/src/map';
 import { karnathMap } from '../../../karnath/src/map';
 import { nowhere, stubFetch, useMemoryStorage } from '../../test/browser';
+import { readRoutes } from '../../test/data';
+import { check, finish } from '../../test/check';
 
 const gameId = process.argv[2] ?? 'blackwyche', outDir = process.argv[3];
 const SPECS: Record<string, { run: typeof runBlackwyche; map: PauseMap; cheat(ram: Uint8Array): void }> = {
@@ -29,12 +31,10 @@ const SPECS: Record<string, { run: typeof runBlackwyche; map: PauseMap; cheat(ra
 const spec = SPECS[gameId], game = GAMES[gameId], port = game?.port;
 if (!spec || !game || !port) throw new Error(`no pause map test for ${gameId}`);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // ---- play the routes, the map noting what's found; the last route's end is the save ----
 const titleBytes = fs.readFileSync(game.title);
-const routes: number[][] = JSON.parse(fs.readFileSync(`games/${gameId}/re/routes.json`, 'utf8'));
+const routes = readRoutes(`games/${gameId}/re/routes.json`);
 const found: Found = {};
 let save: Uint8Array | null = null;
 for (const route of routes) {
@@ -105,5 +105,4 @@ for (const target of places) {
 check(`went to ${went} of ${places.length} places through the pause map, and played on from each (${played})`, went === places.length);
 press('KeyP');
 shot('after');
-console.log(failures ? `${failures} FAILURES` : 'all good');
-process.exit(failures ? 1 : 0);
+finish();

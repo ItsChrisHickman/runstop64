@@ -26,6 +26,8 @@ import type { Game } from '../src/game';
 import { montyMap } from '../src/map';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
+import { parseOptions } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 // a browser's storage, in memory
 const store = useMemoryStorage();
@@ -34,8 +36,6 @@ const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
 const g = p.game;
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };
@@ -129,7 +129,7 @@ tick(20);
 check('the game waits while paused', g.x2 === x && p.state.paused);
 check('ENHANCED by default: the cloud help on', g.assist.cloud === true);
 tap('KeyE');
-check('E: ORIGINAL, the cloud help off (and kept)', g.assist.cloud === false && JSON.parse(store.get('montyotr.assist') ?? '{}').enhanced === false);
+check('E: ORIGINAL, the cloud help off (and kept)', g.assist.cloud === false && parseOptions(store.get('montyotr.assist')).enhanced === false);
 tap('KeyE');
 check('E again: ENHANCED', g.assist.cloud === true);
 // the first room is to the right on the map
@@ -221,5 +221,4 @@ tap('Space'); // (again: yes)
 tick(10);
 check('Space again: a new game', p.state.mode === 'play');
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

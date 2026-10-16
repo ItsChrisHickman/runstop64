@@ -34,7 +34,6 @@
  * same screen in either view); where the GL can't draw it, C64 and no switch; and the view only: the
  * same play in each view leaves the game's memory the same, byte for byte.
  */
-import fs from 'node:fs';
 import { Input, PixelRenderer, packState, unpackState, type Host, type MachineState } from 'c64kit';
 import { NativeHost, type PortConfig } from '../native/host';
 import { ViewSwitch } from '../view';
@@ -55,6 +54,7 @@ import { rasteriseHd } from '../../../packages/c64kit/test/hd-raster';
 import { checkHdGl, checkHdSprites, frameTimes } from '../../../packages/c64kit/test/hd-gl';
 import { joinLayers, renderPixels, rgbPng, shownLayers, type Picture } from '../../../tools/probe/render';
 import { must } from './must';
+import { readRoute } from './data';
 
 type Check = (what: string, ok: boolean) => void;
 
@@ -577,10 +577,7 @@ function checkRemastered(check: Check, name: string, pic: Uint8Array, band: { y:
  * at the route's end), `frame` the frames played.
  */
 export function routeWalker(o: { port: PortConfig; title: Uint8Array; routes: string; route?: number; cheat(ram: Uint8Array): void }) {
-  const routes: unknown = JSON.parse(fs.readFileSync(o.routes, 'utf8'));
-  const route: unknown = Array.isArray(routes) ? routes[o.route ?? 0] : undefined;
-  if (!Array.isArray(route)) throw new Error(`no route in ${o.routes}`);
-  const steps = route.map(Number);
+  const steps = readRoute(o.routes, o.route ?? 0);
   const g = new NativeHost(o.port, unpackState(o.title));
   let i = 0, left = steps[1] ?? 0;
   const walker = {

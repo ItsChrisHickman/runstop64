@@ -33,12 +33,11 @@ import { intoArmour } from '../src/fades';
 import { antiriadMap, describeSave } from '../src/map';
 import { PLUS_MESSAGE } from '../src/plus';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 const out = process.argv[2] ?? '/tmp';
 const MINE_SET_OFF = 0xb1, MINE = 0x0681, PARTS = [0x067e, 0x067f, 0x0680, 0x0681];
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // a save in the armour (the snapshot): the game launches straight into play from it
 const store = useMemoryStorage();
@@ -195,5 +194,4 @@ tap('Enter');
 tick(5);
 plusStarts('ENTER CONTINUE again');
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

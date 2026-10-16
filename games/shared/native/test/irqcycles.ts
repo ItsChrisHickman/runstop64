@@ -3,7 +3,7 @@
  * plays, each interrupt it takes is also run natively (the port's irq, on a copy
  * of the machine as it was) and the cycles must match, from the interrupt to its RTI.
  *
- *   npx tsx games/shared/native/test/irqcycles.ts <game> [frames]
+ *   nice -n 15 node tools/test.mjs games/shared/native/test/irqcycles.ts <game> [frames]
  *   (with the engine translated with TRACE=1: the first difference, instruction by instruction)
  */
 import fs from 'node:fs';

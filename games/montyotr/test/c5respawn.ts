@@ -19,9 +19,9 @@
  */
 import { Game, type Input as Stick } from '../src/game';
 import { c5Arrive, type C5State } from '../src/mechanisms';
+import { getProp } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const hex = (n: number) => n.toString(16);
 const NONE: Stick = { left: false, right: false, up: false, down: false, fire: false };
 
@@ -49,7 +49,7 @@ function copy(src: Game): Game {
   const g = new Game();
   for (const k of Object.keys(src)) {
     if (k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
-    Reflect.set(g, k, structuredClone(Reflect.get(src, k)));
+    Reflect.set(g, k, structuredClone(getProp(src, k)));
   }
   g.assist = { ...src.assist };
   g.vic.bank.set(src.vic.bank);
@@ -156,5 +156,4 @@ for (const a of arrivals) {
   }
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

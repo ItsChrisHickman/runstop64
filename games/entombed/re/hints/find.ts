@@ -8,7 +8,7 @@
  * check.ts). Bytes that take only a few values are the chamber's state: the archive's cells are
  * told apart by them (and where he is), so the exploration goes on from each step of a puzzle.
  *
- *   npx tsx games/entombed/re/hints/find.ts <chamber.state> <out.json> [iterations] [seed]
+ *   nice -n 15 node tools/test.mjs games/entombed/re/hints/find.ts <chamber.state> <out.json> [iterations] [seed]
  */
 import fs from 'node:fs';
 import { unpackState, type MachineState } from '../../../../packages/c64kit/src/c64/machine';

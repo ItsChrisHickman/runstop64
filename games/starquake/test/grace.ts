@@ -10,12 +10,11 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { GRACE_FRAMES } from '../../shared/grace';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage(new Map([['starquake.assist', JSON.stringify({ enhanced: false })]]));
 const input = new Input(nowhere);
 const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 const g = p.game;
@@ -45,5 +44,4 @@ tick(10);
 for (let i = 0; i < 60 && lives() === l1; i++) { deadly(); tick(); }
 check(`after it the same cells kill (${l1} -> ${lives()})`, lives() < l1);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

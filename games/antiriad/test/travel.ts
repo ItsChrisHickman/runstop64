@@ -22,6 +22,7 @@ import { Game } from '../src/game';
 import { repairSave } from '../src/main';
 import { antiriadMap, entryOf } from '../src/map';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 const load = (state: string) => {
   const m = new C64Machine();
@@ -54,8 +55,6 @@ const travel = (room: number) => {
 const y = () => g.ram[0x0201];
 const x = () => g.ram[0x0200] + ((g.ram[V.spriteXHigh] & 1) << 8);
 const inSuit = () => !!(g.ram[V.inSuit] & 0x80);
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // ---- flying: travel mid-flight, then up and down ---------------------------------------------
 
@@ -190,5 +189,4 @@ const repaired = resume(fallen(), true), afterRepair = outcome(repaired);
 check(`... put right on loading: never in the armour with the jump on (${afterRepair} frames)`, afterRepair === 0);
 check('... and up lifts the armour', lifts(repaired));
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

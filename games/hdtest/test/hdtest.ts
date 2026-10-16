@@ -25,9 +25,8 @@ import { rasteriseHd } from '../../../packages/c64kit/test/hd-raster';
 import { stubCanvas, useBrowser } from '../../../packages/c64kit/test/hd-gl';
 import { GlStub, type StubOptions } from '../../../packages/c64kit/test/gl-stub';
 import { joinLayers, rgbPng } from '../../../tools/probe/render';
+import { check, finish } from '../../shared/test/check';
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const dir = 'games/blackwyche/test/fixtures', tmp = `/tmp/hdtest-${Date.now()}`;
 fs.mkdirSync(tmp, { recursive: true });
 const same = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((v, i) => v === b[i]);
@@ -107,5 +106,4 @@ for (const name of ['cabin', 'deck']) {
   check(`${name} GL with a shader that won't compile: the failure reported ("${why?.split('\n')[0]}")`, why !== null && why.includes('did not compile'));
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

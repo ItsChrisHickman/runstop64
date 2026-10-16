@@ -24,24 +24,23 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { port } from '../src/native';
 import { dragonskulleMap } from '../src/map';
 import { run } from '../src/main';
+import { readRoutes } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const outDir = process.argv[2];
 
 const ROOM = 18, CELL = '4,2', BELOW = '4,1';
 
 // ---- a save just inside the shovel's room, and the map as walking there noted it ------------------------
-const routes: unknown = JSON.parse(fs.readFileSync('games/dragonskulle/re/routes.json', 'utf8'));
+const routes = readRoutes('games/dragonskulle/re/routes.json');
 let inRoom = '';
 const walkedFound: Found = {};
-if (Array.isArray(routes)) for (const route of routes) {
-  if (!Array.isArray(route) || inRoom) continue;
-  const rle = route.filter((n): n is number => typeof n === 'number');
+for (const rle of routes) {
+  if (inRoom) continue;
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
   const noted: Found = {};
   let frame = 0;
@@ -198,5 +197,4 @@ check('ORIGINAL again from the save just inside the room', await launch(false, i
   check(`a stone thrown facing up from below and to its left takes it (${f} frames): the SHOVEL his, gone (${panel()})`, has() && !shown());
 }
 
-console.log(failures ? `${failures} failures` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

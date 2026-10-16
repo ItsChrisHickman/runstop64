@@ -17,7 +17,7 @@ import { Input, PixelRenderer } from 'c64kit';
 import { unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { indicesPng } from '../../../tools/probe/render';
 import { NativeHost } from '../../shared/native/host';
-import { isNumber, isRecord } from '../../shared/guards';
+import { isNumber, isRecord, readJson, isArray } from '../../shared/guards';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { COL } from '../../shared/native/pause';
@@ -26,21 +26,20 @@ import { BEDROOM, itemBits, itemsFound, itemsLeft, NEED, TOTAL } from '../src/it
 import { ITEM_COUNTS } from '../src/itemcounts';
 import { jsw2Map, roomSpot } from '../src/map';
 import { port } from '../src/native';
+import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/jsw2/assets/jsw2-title.state');
 stubFetch(titleBytes);
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** re/items.json read back through checks: room -> item cells (row, column). */
 function readItems(): Record<number, [number, number][]> {
-  const raw: unknown = JSON.parse(fs.readFileSync('games/jsw2/re/items.json', 'utf8'));
+  const raw: unknown = readJson(fs.readFileSync('games/jsw2/re/items.json', 'utf8'));
   const out: Record<number, [number, number][]> = {};
   if (!isRecord(raw)) throw new Error('items.json');
   for (const [room, v] of Object.entries(raw)) {
-    if (!isRecord(v) || !Array.isArray(v.cells)) throw new Error('items.json room');
+    if (!isRecord(v) || !isArray(v.cells)) throw new Error('items.json room');
     out[Number(room)] = v.cells.map((c): [number, number] => {
-      if (!Array.isArray(c) || !isNumber(c[0]) || !isNumber(c[1])) throw new Error('items.json cell');
+      if (!isArray(c) || !isNumber(c[0]) || !isNumber(c[1])) throw new Error('items.json cell');
       return [c[0], c[1]];
     });
   }
@@ -221,5 +220,4 @@ for (let i = 0; i < 60; i++) { tick(); quiet.add(renderer.screen.pixels[spot.y *
 check(`159 items: NEED 160 and the Masters Bedroom does not blink (${[...quiet].join(', ')})`, panel()[3] === 'NEED    160' && quiet.size === 1);
 void store;
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

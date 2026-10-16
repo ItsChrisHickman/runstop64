@@ -89,17 +89,26 @@ export class FixtureView {
   }
 }
 
+/**
+ * A GL parameter as text. The DOM lib types `getParameter` as `any` (what it gives depends on the
+ * parameter): this is the one untyped call, turned into a string here.
+ */
+function glText(ctx: WebGLRenderingContext | WebGL2RenderingContext, pname: number): string {
+  const v: unknown = ctx.getParameter(pname); // strict-ok: untyped API (getParameter returns any; unknown here, once)
+  return typeof v === 'string' ? v : String(v);
+}
+
 /** What the GL says it is: the renderer and vendor (unmasked where the browser tells), its version, limits, and the float extensions. */
 export function glInfo(r: PixelRenderer) {
-  const ctx = r.gl.getContext(), str = (v: unknown) => (typeof v === 'string' ? v : String(v));
+  const ctx = r.gl.getContext();
   const debug = ctx.getExtension('WEBGL_debug_renderer_info');
   const highp = ctx.getShaderPrecisionFormat(ctx.FRAGMENT_SHADER, ctx.HIGH_FLOAT);
   return {
-    renderer: str(debug ? ctx.getParameter(debug.UNMASKED_RENDERER_WEBGL) : ctx.getParameter(ctx.RENDERER)),
-    vendor: str(debug ? ctx.getParameter(debug.UNMASKED_VENDOR_WEBGL) : ctx.getParameter(ctx.VENDOR)),
+    renderer: glText(ctx, debug ? debug.UNMASKED_RENDERER_WEBGL : ctx.RENDERER),
+    vendor: glText(ctx, debug ? debug.UNMASKED_VENDOR_WEBGL : ctx.VENDOR),
     unmasked: !!debug,
-    version: str(ctx.getParameter(ctx.VERSION)),
-    glsl: str(ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION)),
+    version: glText(ctx, ctx.VERSION),
+    glsl: glText(ctx, ctx.SHADING_LANGUAGE_VERSION),
     webgl2: r.gl.capabilities.isWebGL2,
     maxTexture: r.gl.capabilities.maxTextureSize,
     highp: highp ? highp.precision : 0,

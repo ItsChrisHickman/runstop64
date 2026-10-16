@@ -84,7 +84,7 @@ export class EffectsModel {
    * thrown outward from where the blow came from (`from`, optional: else from its middle).
    */
   destroy(t: number, image: SpriteImage, from?: { x: number; y: number }) {
-    const lit: number[] = [], count = new Array(16).fill(0);
+    const lit: number[] = [], count = new Array<number>(16).fill(0);
     for (let i = 0; i < image.pixels.length; i++) if (image.pixels[i] >= 0) { lit.push(i); count[image.pixels[i] & 15]++; }
     // a pale sprite (white, light grey, yellow) flashes yellow, else white; the ring takes its
     // most colourful colour (or yellow)

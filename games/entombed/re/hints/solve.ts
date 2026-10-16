@@ -5,7 +5,7 @@
  * step. For each step it keeps the inputs that got there from the chamber's state and where
  * Pendragon was when it happened: the hint's spot (and check.ts replays it).
  *
- *   npx tsx games/entombed/re/hints/solve.ts <chamber> <out.json> [iterations per step] [seed]
+ *   nice -n 15 node tools/test.mjs games/entombed/re/hints/solve.ts <chamber> <out.json> [iterations per step] [seed]
  */
 import fs from 'node:fs';
 import type { MachineState } from '../../../../packages/c64kit/src/c64/machine';

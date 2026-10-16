@@ -11,13 +11,12 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { GRACE_FRAMES } from '../../shared/grace';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
 const input = new Input(nowhere);
 const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
 const g = p.game;
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 
@@ -61,5 +60,4 @@ g.actionCounter = 6;
 tick(3);
 check('the treasure (event 6) is not a death: its sequence starts in the grace', !!g.script || g.completionActive !== 0);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

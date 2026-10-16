@@ -42,6 +42,8 @@ import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { MAP_BOX } from '../../shared/native/pause';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { getProp } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
 // the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
 {
@@ -51,8 +53,6 @@ import { must } from '../../shared/test/must';
 
 const outDir = process.argv[2];
 const hex = (n: number) => `$${n.toString(16).padStart(2, '0')}`;
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 function picture(file: string, px: Uint8Array, W = 320, H = 200) {
   if (!outDir) return;
@@ -78,15 +78,14 @@ function copy(src: Game): Game {
   const g = new Game();
   for (const k of Object.keys(src)) {
     if (k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
-    const v: unknown = Reflect.get(src, k);
-    Reflect.set(g, k, structuredClone(v));
+    Reflect.set(g, k, structuredClone(getProp(src, k)));
   }
   g.assist = { ...src.assist };
   g.vic.bank.set(src.vic.bank);
   g.vic.colour.set(src.vic.colour);
   for (const k of Object.keys(src.vic)) {
     if (k === 'bank' || k === 'colour') continue;
-    Reflect.set(g.vic, k, structuredClone(Reflect.get(src.vic, k)));
+    Reflect.set(g.vic, k, structuredClone(getProp(src.vic, k)));
   }
   return g;
 }
@@ -522,5 +521,4 @@ if (outDir) {
   picture('rooms.png', sheet, W, H);
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

@@ -26,10 +26,9 @@ import { FLAG, IDLE_FRAMES, STATUS, THINGS, deckOf, guidedSpots, hereNow, nextTh
 import { LINES, type Say } from '../src/guided-lines';
 import { HALLS } from '../src/ship';
 import { SEARCHING, Session, saveAt, type Where } from './guided-kit';
+import { check, finish } from '../../shared/test/check';
 
 const outDir = process.argv[2];
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 /** A check made of parts: when it fails, which parts did, and what the status line said (the last of it). */
 const verdict = (what: string, parts: Record<string, boolean>, ...sessions: Session[]) => {
   const bad = Object.entries(parts).filter(([, ok]) => !ok).map(([k]) => k);
@@ -466,5 +465,4 @@ const OWN: Record<string, number> = {
   if (outDir) { const r = await Session.launch(saveAt({ room: 2 })); r.until('A BLADE GLEAMS IN THE DARK', 900); r.shot(still('status-line')); }
 }
 
-console.log(failures ? `${failures} FAILURES` : 'all good');
-process.exit(failures ? 1 : 0);
+finish();

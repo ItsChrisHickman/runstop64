@@ -2,6 +2,7 @@ import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
 import { drawPause, MAP_BOX, PAUSE_TAP, type Found, type PauseMap } from './native/pause';
 import { keepFound, readFound } from './saves';
+import { readJson } from './guards';
 
 /**
  * The parts of a game's front end that don't depend on how the game runs (a
@@ -76,7 +77,7 @@ export class FrontEnd<T> {
   constructor(private readonly o: FrontEndOptions<T>) {
     this.assistKey = `${o.id}.assist`;
     try {
-      const kept: unknown = JSON.parse(localStorage.getItem(this.assistKey) ?? '{}');
+      const kept: unknown = readJson(localStorage.getItem(this.assistKey) ?? '{}');
       if (typeof kept === 'object' && kept !== null && 'enhanced' in kept && typeof kept.enhanced === 'boolean') this.enhanced = kept.enhanced;
     } catch { /* ENHANCED */ }
     this.apply();

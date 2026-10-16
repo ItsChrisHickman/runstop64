@@ -29,6 +29,7 @@ import fs from 'node:fs';
 import { PixelRenderer, VicView } from 'c64kit';
 import { C64 } from '../../../packages/c64kit/src/c64/machine';
 import { Game, type Input } from '../src/game';
+import { check, finish } from '../../shared/test/check';
 
 const prgPath = process.argv[2];
 /** The corridor's column (x2 of Monty against its left wall) and the row it starts (y below it). */
@@ -103,8 +104,6 @@ function original(side: Side, k: number): Outcome {
   return 'x';
 }
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const KS = Array.from({ length: 80 }, (_, i) => i * 2);
 const runs = (f: (k: number) => Outcome) => KS.map(f).join('');
 const through = (s: string) => [...s].filter((c) => c === 'O').length;
@@ -134,5 +133,4 @@ if (prgPath) {
     check(`ORIGINAL from the ${side} ends as the original does (${sample.length - differ}/${sample.length} the same, at most 2 at a window's edge differing)`, differ <= 2);
   }
 }
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

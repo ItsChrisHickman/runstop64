@@ -22,12 +22,11 @@ import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
 import { must } from '../../shared/test/must';
+import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/jsw2/assets/jsw2-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const HADES = 7, BINS = 60, DRAIN = 138;
 /** Where he stands on room 60's floor, right of the hole down to Hades (x, its high bit, y). */
@@ -144,5 +143,4 @@ const cLives = c.lives();
 c.tick(300);
 check(`CONTINUE?: back in room 60 (${c.room()}), alive 300 frames on (lives ${cLives} -> ${c.lives()})`, c.p.state.playing && c.room() === BINS && c.lives() === cLives && cLives === 8);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

@@ -1,5 +1,5 @@
 import type { HdLight, HdRoom, HdSprite, HdSurface } from '../../packages/c64kit/src/hd/scene';
-import { isNumber, isNumbers, isRecord, isString } from '../shared/guards';
+import { isNumber, isNumbers, isRecord, isString, readJson } from '../shared/guards';
 
 /**
  * A frame of the HD view as the drawing layer is given it, kept in a file: for the HD GPU test page
@@ -77,7 +77,7 @@ export async function inflateFixture(bytes: Uint8Array): Promise<Uint8Array> {
 export function decodeFixture(bytes: Uint8Array): HdFixture {
   if (new TextDecoder().decode(bytes.subarray(0, 4)) !== MAGIC) throw new Error('not an HD fixture');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), n = view.getUint32(4, true);
-  const header: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(8, 8 + n)));
+  const header: unknown = readJson(new TextDecoder().decode(bytes.subarray(8, 8 + n)));
   if (!isRecord(header) || !Array.isArray(header.arrays)) throw new Error('an HD fixture without its header');
   const arrays: Arrays = new Map();
   let at = pad4(8 + n);

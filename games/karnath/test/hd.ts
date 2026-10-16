@@ -15,6 +15,7 @@ import { karnathHd } from '../src/hd';
 import { run } from '../src/main';
 import { checkHdFrames, checkHdRoom, checkHdSwitch, inFront, routeWalker } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const title = new Uint8Array(fs.readFileSync('games/karnath/assets/karnath-title.state'));
@@ -22,8 +23,6 @@ stubFetch(title);
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // (his energy kept up along the route, as the travel check does)
 const walk = (route = 0) => routeWalker({ port, title, route, routes: 'games/karnath/re/routes.json', cheat: (ram) => { ram[0x6ffe] = 100; ram[0x322e] = 0; } });
@@ -50,5 +49,4 @@ for (const [name, state] of rooms) {
 const v = walk();
 checkHdFrames(check, 'walking the lower floor', karnathHd, () => (v.frame < 3500 ? v.next() : null));
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

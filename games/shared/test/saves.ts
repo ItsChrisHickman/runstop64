@@ -18,19 +18,18 @@ import { C64_PALETTE, Input, PixelRenderer } from 'c64kit';
 import { rgbPng } from '../../../tools/probe/render';
 import { ContinueFlow, type SaveCodec } from '../continue';
 import { FrontEnd } from '../frontend';
-import { isNumber, isRecord } from '../guards';
+import { isNumber, isRecord, readJson } from '../guards';
 import type { PauseMap } from '../native/pause';
 import { readFound, readSaves, toBase64 } from '../saves';
 import { GAMES, run as runLoader } from '../../loader';
 import { run as runSaves } from '../../saves';
 import { nowhere, useMemoryStorage } from './browser';
 import { must } from './must';
+import { check, finish } from './check';
 
 const store = useMemoryStorage();
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const outDir = process.argv[2];
 const shot = (name: string) => {
   if (!outDir) return;
@@ -46,7 +45,7 @@ interface Save { room: number; lives: number }
 const CODEC: SaveCodec<Save> = {
   pack: (s) => new TextEncoder().encode(JSON.stringify(s)),
   unpack: (b) => {
-    const v: unknown = JSON.parse(new TextDecoder().decode(b));
+    const v: unknown = readJson(new TextDecoder().decode(b));
     if (!isRecord(v) || !isNumber(v.room) || !isNumber(v.lives)) throw new Error('not a test save');
     return { room: v.room, lives: v.lives };
   },
@@ -283,5 +282,4 @@ g.fe.newGame(); // (said again for the same new game, nothing of it worth keepin
 ticks(g, 2);
 check('  said again at once: the previous save is still that game', readSaves('test').previous?.data === was.data);
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

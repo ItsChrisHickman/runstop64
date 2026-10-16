@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
 import { packState, unpackState } from '../../../packages/c64kit/src/c64/machine';
 import { MACHINE_CODEC } from '../continue';
-import { isRecord } from '../guards';
+import { isRecord, readJson } from '../guards';
 import { NativeHost } from '../native/host';
 import { exportSaves, keepFound, parseExport, readFound, readSaves, startNewGame, toBase64, writeCurrent } from '../saves';
 import { port } from '../../entombed/src/native';
@@ -24,12 +24,11 @@ import { CODEC, snapshot } from '../../montyotr/src/save';
 import { nowhere, useMemoryStorage } from './browser';
 import { loadIntoStorage, loadSave, readExport } from './load-save';
 import { must } from './must';
+import { check, finish } from './check';
 
 const store = useMemoryStorage();
 const outDir = process.argv[2] ?? '/tmp/runstop64-export-test';
 fs.mkdirSync(outDir, { recursive: true });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const same = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i]);
 const json = (v: unknown) => JSON.stringify(v);
 
@@ -111,7 +110,7 @@ function monty() {
 // ---- not an export ---------------------------------------------------------------------------
 
 {
-  const parsed: unknown = JSON.parse(exportSaves('montyotr', 'b').text);
+  const parsed: unknown = readJson(exportSaves('montyotr', 'b').text);
   const good = isRecord(parsed) ? parsed : {};
   check('an export reads back', parseExport(good) !== null);
   check('another save version is refused', parseExport({ ...good, v: 1 }) === null);
@@ -119,5 +118,4 @@ function monty() {
   check('something else is refused', parseExport({ game: 'montyotr' }) === null && parseExport(null) === null);
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-if (failures) process.exit(1);
+finish();

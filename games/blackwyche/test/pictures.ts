@@ -17,12 +17,11 @@ import { decodePicture } from '../../../packages/c64kit/src/c64/picture';
 import { placePictures } from '../../../packages/c64kit/src/hd/placed';
 import { pixelPieces } from '../../../packages/c64kit/src/pendragon/room';
 import { renderPng } from '../../../tools/probe/render';
+import { check, finish } from '../../shared/test/check';
 
 const title = new Uint8Array(fs.readFileSync('games/blackwyche/assets/blackwyche-title.state'));
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const { band } = blackwycheHd, W = 320;
 
@@ -133,5 +132,4 @@ check(`the cells the game draws differently from its picture: ${(cellsDiffering 
 const all = PICTURES.pictures.map((p) => name(p.id, p.variant));
 console.log(`     pictures seen (frames): ${all.map((k) => `${k} ${seen.get(k) ?? 0}`).join(', ')}`);
 check(`every picture the routes reach is decoded (${[...seen.keys()].filter((k) => !all.includes(k)).length} not), ${all.filter((k) => seen.has(k)).length} of the ${all.length} seen`, [...seen.keys()].every((k) => all.includes(k)));
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

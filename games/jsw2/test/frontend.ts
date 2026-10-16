@@ -12,13 +12,12 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
 const titleBytes = fs.readFileSync('games/jsw2/assets/jsw2-title.state');
 stubFetch(titleBytes);
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
@@ -101,5 +100,4 @@ tick(200);
 const after = readSaves('jsw2');
 check(`Space again: a new game, in the bathroom (room ${room()}), the save before it kept as the previous`, p.state.playing && room() === 32 && after.previous?.data === mid?.data);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

@@ -6,7 +6,7 @@
  * which picks the chamber by floor and place) sends to which chamber, and go in as the game does
  * (see `enter`). Each state is checked to still be in its chamber a second later.
  *
- *   npx tsx games/entombed/re/hints/chambers.ts <outdir>     (writes chamber-NN.state)
+ *   nice -n 15 node tools/test.mjs games/entombed/re/hints/chambers.ts <outdir>     (writes chamber-NN.state)
  */
 import fs from 'node:fs';
 import { packState, unpackState, type MachineState } from '../../../../packages/c64kit/src/c64/machine';

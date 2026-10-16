@@ -17,10 +17,9 @@ import { Game } from '../src/game';
 import { heroAt, placeFeel } from '../src/feel';
 import { run } from '../src/main';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const CREATURES = 0xc618, CREATURE_HURT = 0xc64a, TOUGH = 0xc608;
 const STONE = 0xbc, BEAM = 0xbe;
 const machine = () => {
@@ -160,5 +159,4 @@ for (const [name, weapon] of [['a stone', STONE], ['the Pulsar Beam', BEAM]] as 
   check(`a creature noted destroyed shows if it is drawn (sprite 7 ${drawn ? 'is' : 'is not'})`, !drawn || renderer.effects.model.busy(performance.now()));
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-if (failures) throw new Error(`${failures} checks failed`);
+finish();

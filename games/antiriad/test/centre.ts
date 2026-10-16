@@ -39,6 +39,7 @@ import { Game } from '../src/game';
 import { repairSave } from '../src/main';
 import { antiriadMap, entriesOf } from '../src/map';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 const ARMOUR = 'games/antiriad/test/armour.state';
 const machine = () => {
@@ -49,8 +50,6 @@ const machine = () => {
 };
 const stick = (s: string) => 0x1f & ~((s.includes('U') ? 1 : 0) | (s.includes('D') ? 2 : 0) | (s.includes('L') ? 4 : 0) | (s.includes('R') ? 8 : 0) | (s.includes('F') ? 16 : 0));
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 const NEGATOR = 0x067f, MINE = 0x0681;
 
@@ -295,5 +294,4 @@ const state = (r: Uint8Array, colour: Uint8Array) => `y ${r[0x0201]} anim ${r[V.
   check('  ... and fire goes back to the title', p.hold('F', 600, () => p.g.onTitle));
 }
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

@@ -27,6 +27,8 @@ import { CODEC, parseSave, snapshot } from '../src/save';
 import { SOUND } from '../src/sound';
 import { START_ROOM } from '../src/program';
 import { State } from '../src/tiles';
+import { readJson } from '../../shared/guards';
+import { check, finish } from '../../shared/test/check';
 
 // a browser's storage, in memory
 const store = useMemoryStorage();
@@ -34,8 +36,6 @@ const store = useMemoryStorage();
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };
@@ -149,7 +149,7 @@ tick(10);
 const slot = readSaves('awm').current;
 const saved = must(slot ? CODEC.unpack(Uint8Array.from(atob(slot.data), (c) => c.charCodeAt(0))) : null, 'no save');
 check(`the autosave is for the room he is in (${saved.room.toString(16)})`, saved.room === second || saved.room === START_ROOM);
-check('a save read back through the checks', parseSave(JSON.parse(JSON.stringify(saved))) !== null && parseSave({ v: 1, room: 3 }) === null);
+check('a save read back through the checks', parseSave(readJson(JSON.stringify(saved))) !== null && parseSave({ v: 1, room: 3 }) === null);
 check('the save is described for the save manager', (slot?.summary.length ?? 0) >= 3);
 check('the save keeps the map\'s rooms', Object.keys(p.state.found.rooms ?? {}).length === 2);
 
@@ -170,7 +170,7 @@ tap('KeyP');
   tap('KeyB');
   tick(2);
   check(`B: back to how things were on coming into the room (x ${game().monty.x.toString(16)})`, !p.state.paused && game().monty.x === game().monty.entryX);
-  const again = parseSave(JSON.parse(JSON.stringify(snapshot(game(), must(program.picture, 'no picture').hands))));
+  const again = parseSave(readJson(JSON.stringify(snapshot(game(), must(program.picture, 'no picture').hands))));
   check('the game put back from the save is the game saved', JSON.stringify(again) === JSON.stringify(snapshot(game(), must(program.picture, 'no picture').hands)));
 }
 
@@ -289,5 +289,4 @@ tick(40);
 shot('2-title-continue');
 check('T on the pause screen: the title, ENTER CONTINUE offered', p.state.kind === 'title' && p.state.prompt === 'title');
 check(`ENTER CONTINUE sits in the title's black lower part (y ${STRIP_Y})`, STRIP_Y >= 144);
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

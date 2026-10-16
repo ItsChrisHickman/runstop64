@@ -1,4 +1,4 @@
-import { isNumbers, isRecord } from '../../shared/guards';
+import { isNumbers, isRecord, readJson, getProp } from '../../shared/guards';
 import type { Game } from './game';
 
 /**
@@ -28,7 +28,7 @@ export function snapshot(g: Game): Uint8Array {
 
 export function restore(g: Game, b: Uint8Array) {
   const n = new DataView(b.buffer, b.byteOffset).getUint32(0, true);
-  const fields: unknown = JSON.parse(new TextDecoder().decode(b.subarray(4, 4 + n)));
+  const fields: unknown = readJson(new TextDecoder().decode(b.subarray(4, 4 + n)));
   if (!isRecord(fields)) throw new Error('not a Starquake save');
   for (const [k, v] of Object.entries(fields)) put(g, k, v);
   let o = 4 + n;
@@ -55,7 +55,7 @@ function plain(v: unknown): unknown {
  * The game's fields are set by name, as they were saved (Reflect: the object's own keys).
  */
 function put(target: object, k: string, v: unknown) {
-  const cur: unknown = Reflect.get(target, k);
+  const cur = getProp(target, k);
   if (isNumberArray(cur)) {
     if (!isNumbers(v)) throw new Error(`Starquake save: ${k} isn't numbers`);
     cur.set(v);
@@ -71,7 +71,7 @@ function put(target: object, k: string, v: unknown) {
  */
 export function describeSave(b: Uint8Array): string[] {
   const n = new DataView(b.buffer, b.byteOffset).getUint32(0, true);
-  const f: unknown = JSON.parse(new TextDecoder().decode(b.subarray(4, 4 + n)));
+  const f: unknown = readJson(new TextDecoder().decode(b.subarray(4, 4 + n)));
   if (!isRecord(f)) return [];
   const digits = (v: unknown) => (isNumbers(v) ? Number(v.join('')) : 0);
   const room = typeof f.room === 'number' ? f.room : 0;

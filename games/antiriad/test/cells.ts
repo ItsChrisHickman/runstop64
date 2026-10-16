@@ -22,10 +22,9 @@ import { antiriadMap } from '../src/map';
 import { messageAt } from '../src/plus';
 import { repairSave, run } from '../src/main';
 import { V } from '../src/vars';
+import { check, finish } from '../../shared/test/check';
 
 useMemoryStorage();
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const stick = (s: string) => 0x1f & ~((s.includes('U') ? 1 : 0) | (s.includes('D') ? 2 : 0) | (s.includes('L') ? 4 : 0) | (s.includes('R') ? 8 : 0));
 const machine = (file: string) => {
   const m = new C64Machine();
@@ -183,5 +182,4 @@ const pause = (g: Game) => antiriadMap.info(g, {} satisfies Found);
   check('the touch layer has a CELL button on that key', p.touch.buttons.some((b) => b.label === 'CELL' && b.key === 'KeyC'));
 }
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-if (failures) throw new Error(`${failures} checks failed`);
+finish();

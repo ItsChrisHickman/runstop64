@@ -16,6 +16,7 @@ import { dragonskulleLayout, PLAY, run } from '../src/main';
 import { obliqueRoom } from '../../../packages/c64kit/src/hd/oblique';
 import { checkHdFrames, checkHdRoom, checkHdSwitch, routeWalker } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 const title = new Uint8Array(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state'));
@@ -23,8 +24,6 @@ stubFetch(title);
 const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
 
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 // (kept alive along the route, as the travel check does)
 const walk = () => routeWalker({ port, title, routes: 'games/dragonskulle/re/routes.json', cheat: (ram) => { ram[0x1248] = 0; ram[0x123e] = 0x14; ram[0x3432] = 0; } });
@@ -53,5 +52,4 @@ for (const [name, state] of rooms) {
 const v = walk();
 checkHdFrames(check, 'walking the island', dragonskulleHd, () => (v.frame < 3000 ? v.next() : null), dragonskulleLayout);
 
-console.log(failures ? `${failures} FAILED` : 'all ok');
-process.exit(failures ? 1 : 0);
+finish();

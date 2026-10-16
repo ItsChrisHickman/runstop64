@@ -17,12 +17,11 @@ import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { touchPad } from '../../shared/test/touchpad';
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
+import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
 stubFetch(fs.readFileSync('games/thingonaspring/assets/toas-title.state'));
 const outDir = process.argv[2];
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 
 /** The table's names ($77AA + 16 × rank: ten letters, screen codes or PETSCII), as text. */
 const tableName = (ram: Uint8Array, rank: number) => Array.from(ram.subarray(0x77aa + rank * 16, 0x77aa + rank * 16 + 10), (b) => { const c = b & 0x3f; return String.fromCharCode(c < 0x20 ? c + 0x40 : c); }).join('');
@@ -86,5 +85,4 @@ async function game(score: number[]) {
     && t.renderer.screen.pixels.subarray(177 * 320, 185 * 320).filter((v) => v === 7).length === 0);
 }
 
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

@@ -19,6 +19,7 @@ import { entryOf, starquakeMap } from '../src/map';
 import { isRecord } from '../../shared/guards';
 import { drawRoom } from '../src/room';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
+import { check, finish } from '../../shared/test/check';
 
 // a browser's storage, in memory
 const store = useMemoryStorage();
@@ -28,8 +29,6 @@ const renderer = new (await import('c64kit')).PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
 /** The line naming the touch controls (yellow, rows 176-183): how much of it is drawn. */
 const hintPixels = () => renderer.screen.pixels.subarray(176 * 320, 184 * 320).filter((v) => v === 7).length;
-let failures = 0;
-const check = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 // pictures of the screens (no sprites), if an output folder is given
 const outDir = process.argv[2];
@@ -140,5 +139,4 @@ check('after game over, the title asks CONTINUE?', p.state.mode === 'title' && p
 tap('Enter');
 tick(5);
 check(`Enter: back in play in the last room entered (room ${g.room}), with four lives again (${g.lives[1]})`, p.state.mode === 'play' && g.room === lastRoom && g.lives[0] === 0 && g.lives[1] === 4);
-console.log(failures ? `${failures} FAILED` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

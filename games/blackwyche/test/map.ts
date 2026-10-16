@@ -28,22 +28,19 @@ import { must } from '../../shared/test/must';
 import { run } from '../src/main';
 import { blackwycheMap, travelPlaces } from '../src/map';
 import { placeId, settled, where } from '../src/travel';
+import { readRoutes } from '../../shared/test/data';
+import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/blackwyche/assets/blackwyche-title.state');
 stubFetch(titleBytes);
-let failures = 0;
-const check = (what: string, ok: boolean) => { if (!ok) { console.log(`FAIL ${what}`); failures++; } };
-const say = (what: string, ok: boolean) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
+const quiet = (what: string, ok: boolean) => check(what, ok, true);
 
 // ---- the routes: the places they find, and a state to start from ----
 const game = GAMES.blackwyche;
-const routes: unknown = JSON.parse(fs.readFileSync('games/blackwyche/re/routes.json', 'utf8'));
-if (!Array.isArray(routes)) throw new Error('routes');
+const routes = readRoutes('games/blackwyche/re/routes.json');
 /** States caught in the middle of something (a jump, a strike, a climb, a fall), from the first route. */
 const midway: { state: MachineState; found: Found }[] = [];
-const walked = routes.map((route, ri): { state: MachineState; found: Found } => {
-  if (!Array.isArray(route)) throw new Error('route');
-  const steps: number[] = route.filter((n): n is number => typeof n === 'number');
+const walked = routes.map((steps, ri): { state: MachineState; found: Found } => {
   const g = new NativeHost(game.port, unpackState(new Uint8Array(titleBytes)));
   const found: Found = {};
   let frame = 0;
@@ -119,7 +116,7 @@ for (const si of STARTS) {
       const to = new Map<string, string>();
       for (const k of ARROWS) {
         if (session.picked() !== n.id) { session.tap(n.x, n.y); session.tick(1); }
-        check(`start ${si}: a tap picks ${n.id} (cursor on ${session.picked()})`, session.picked() === n.id);
+        quiet(`start ${si}: a tap picks ${n.id} (cursor on ${session.picked()})`, session.picked() === n.id);
         session.press(k);
         const next = session.picked();
         if (next !== null) to.set(k, next);
@@ -134,7 +131,7 @@ for (const si of STARTS) {
   }
   if (!midMove) {
     const unreachable = offered.filter((id) => !ways.has(id));
-    say(`start ${si} (${hereAtStart}): the arrows reach all ${offered.length} places the map offers (not reached: ${unreachable.join(' ') || 'none'})`, unreachable.length === 0);
+    check(`start ${si} (${hereAtStart}): the arrows reach all ${offered.length} places the map offers (not reached: ${unreachable.join(' ') || 'none'})`, unreachable.length === 0);
   } else console.log(`start ${si} (${hereAtStart}): by taps`);
 
   // ---- touch: a tap on any square of a part or hall picks it (the cursor's box goes round them all) ----
@@ -150,7 +147,7 @@ for (const si of STARTS) {
       if (s.picked() !== pl.id) { console.log(`FAIL a tap at ${Math.round(pl.x + dx)},${pl.y} picks ${s.picked()}, not ${pl.id}`); wrong++; }
     }
   }
-  say(`a tap on the ends of each part and hall picks it (${taps} taps, ${wrong} wrong)`, wrong === 0);
+  check(`a tap on the ends of each part and hall picks it (${taps} taps, ${wrong} wrong)`, wrong === 0);
 }
 
 // ---- 2. Enter: he is there, and stays ----
@@ -178,7 +175,6 @@ for (const si of STARTS) {
     if (!ok || b !== id || (s.p.state.paused && from !== id)) { console.log(`FAIL start ${si} ${id}: from ${from}: after a second ${a}${settled(s.ram()) ? '' : ' (not settled)'}, after two ${b}, paused ${s.p.state.paused}`); bad++; }
   }
 }
-say(`Enter takes him to each place offered, where he stays (${bad} of ${travels} not)`, bad === 0);
+check(`Enter takes him to each place offered, where he stays (${bad} of ${travels} not)`, bad === 0);
 
-console.log(failures ? `${failures} failed` : 'all passed');
-process.exit(failures ? 1 : 0);
+finish();

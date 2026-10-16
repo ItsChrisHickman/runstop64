@@ -25,6 +25,8 @@ import { GAMES, setJoy } from './games';
 import { karnathControls } from '../../../karnath/src/combat';
 import { blackwycheControls } from '../../../blackwyche/src/combat';
 import { dragonskulleControls } from '../../../dragonskulle/src/combat';
+import { readRoutes } from '../../test/data';
+import { check, finish } from '../../test/check';
 
 interface Spec {
   controls: ControlsSpec;
@@ -54,15 +56,14 @@ const SPECS: Record<string, Spec> = {
 const [gameId, statesArg = '24'] = process.argv.slice(2);
 const game = GAMES[gameId], S = SPECS[gameId], port = game.port;
 if (!port) throw new Error(`${gameId}: no native port`);
-let failures = 0;
-const check = (what: string, ok: boolean) => { if (!ok || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++; };
+const quiet = (what: string, ok: boolean) => check(what, ok, true);
 
 const title = unpackState(new Uint8Array(fs.readFileSync(game.title)));
 const states: MachineState[] = [];
 /** States where the floor check, faced up or down, would act on what's there (a door, stairs, a corner): one each per place and code. */
 const doors: { state: MachineState; up: boolean; what: string }[] = [];
 const doorsSeen = new Set<string>();
-const routes: number[][] = JSON.parse(fs.readFileSync(`games/${gameId}/re/routes.json`, 'utf8'));
+const routes = readRoutes(`games/${gameId}/re/routes.json`);
 const total = routes.reduce((n, r) => n + r.filter((_, i) => i % 2).reduce((a, b) => a + b, 0), 0), every = Math.max(150, Math.floor(total / Number(statesArg)));
 for (const route of routes) {
   const g = new NativeHost(port, title);
@@ -146,10 +147,10 @@ states.forEach((st) => {
   for (let k = 0; k < 100 && S.controls.state(t.g.m.ram) !== 'walk'; k++) t.run(8, 1); // (not in the middle of a jump or a stroke)
   if (t.g.m.ram[f.addr] === f.right && S.controls.state(t.g.m.ram) === 'walk') { turnOf++; t.run(4 | 16, 3); if (t.g.m.ram[f.addr] === f.left) turned++; }
 });
-check(`the original: each diagonal goes as one of the four ways (${same} of ${sameOf})`, same === sameOf);
-check(`8-way: diagonals move both ways at once (${both} of ${bothOf}, the rest against a wall or out of the room)`, both >= bothOf / 2);
-check(`8-way: each of ${steps} steps into or out of the picture is one straight up or down takes too (${past} not)`, steps > 50 && past === 0);
-check(`fire+left facing right turns him left (${turned} of ${turnOf})`, turnOf > 0 && turned >= turnOf * 0.8);
+quiet(`the original: each diagonal goes as one of the four ways (${same} of ${sameOf})`, same === sameOf);
+quiet(`8-way: diagonals move both ways at once (${both} of ${bothOf}, the rest against a wall or out of the room)`, both >= bothOf / 2);
+quiet(`8-way: each of ${steps} steps into or out of the picture is one straight up or down takes too (${past} not)`, steps > 50 && past === 0);
+quiet(`fire+left facing right turns him left (${turned} of ${turnOf})`, turnOf > 0 && turned >= turnOf * 0.8);
 // doors, stairs, corners: a diagonal towards one does what straight that way does
 let doorsSame = 0, through = 0;
 const crashes: string[] = [];
@@ -170,7 +171,7 @@ for (const d of doors) for (const h of [4, 8]) {
   if (process.env.VERBOSE) console.log(`   ${d.what} ${h === 4 ? 'left' : 'right'}: straight ${straight}`);
 }
 for (const c of crashes.slice(0, 5)) console.log(`   ${c}`);
-check(`doors, stairs, corners: a diagonal towards each of ${doors.length} goes where straight that way goes (${doorsSame} of ${doors.length * 2}; ${through} through to another place), no crash (${crashes.length})`, doors.length > 0 && through > 0 && crashes.length === 0 && doorsSame === doors.length * 2);
-check(`no 6502 fallbacks (${fallbacks} walks with them)`, fallbacks === 0);
-console.log(`${gameId}: ${states.length} states; ${failures ? `${failures} failures` : 'all passed'}`);
-if (failures) process.exit(1);
+quiet(`doors, stairs, corners: a diagonal towards each of ${doors.length} goes where straight that way goes (${doorsSame} of ${doors.length * 2}; ${through} through to another place), no crash (${crashes.length})`, doors.length > 0 && through > 0 && crashes.length === 0 && doorsSame === doors.length * 2);
+quiet(`no 6502 fallbacks (${fallbacks} walks with them)`, fallbacks === 0);
+console.log(`${gameId}: ${states.length} states`);
+finish();
