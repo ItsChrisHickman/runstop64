@@ -82,8 +82,9 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | Touch controls: stick and buttons in the gutters, landscape even with rotation locked | `games/shared/touch` (`npm run test:touch`) | a `TouchLayout` (`touch:` in the run options) |
 | SID music and sound effects that sound like the machine | `packages/c64kit/src/sid` (`SidPlayer.sfx(name)` in `sfx.ts`) | the .sid or the writes; a name (`kill`, `hit`, `hurt`) |
 | The C64 model, and how its picture is decoded (`decodePicture`) | `packages/c64kit/src/c64`, `vic.ts` | |
-| Autosave per room, CONTINUE?, NEW GAME?, ENTER CONTINUE, back to the title | `games/shared/continue.ts` (`ContinueFlow<S>`) | room id, a save, where the strip goes, `describe(save, found)` |
+| Autosave per room, CONTINUE?, NEW GAME?, ENTER CONTINUE, back to the title (the state machine is pure: `step`, `readIntent`, `FLOW_LAYOUT` in `continue-step.ts`, tested headless) | `games/shared/continue.ts` (`ContinueFlow<S>`) | room id, a save, where the strip goes, `describe(save, found)` |
 | A moment's grace: 150 frames (`GRACE_FRAMES`) of invulnerability after our front end puts the player back into play, in both modes, no visual cue | `games/shared/grace.ts` (`Grace`), `ContinueFlow.grace` | what it refuses while `grace.active` (`grace:` in `runNative`, or a `graceActive` check) |
+| The small pieces every port's tick loop needs: the spent press (`FireLatch`), audio unlock and the M / V keys (`AudioKeys`), the room-save bookkeeping (`RoomSaves`) | `games/shared/fire-latch.ts`, `audio.ts`, `room-saves.ts` | the sound it starts, what resumes |
 | Save storage: typed, versioned, the current and the previous save per game, the debug export | `games/shared/saves.ts` | nothing |
 | Saved-games screen (F1, the line under the banner, the gear) | `games/saves.ts` | its `describe` |
 | Front end for any port: pause screen, map, travel, assists, the options panel | `games/shared/frontend.ts` (`FrontEnd<T>`), `native/pause.ts` (`PauseMap<T>`) | a `PauseMap<T>` and assists; native ports carry out `going` and "back to room start" themselves |

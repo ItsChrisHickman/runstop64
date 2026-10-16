@@ -1,5 +1,6 @@
 import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
+import { FLOW_LAYOUT, panelTop } from './continue-step';
 import { drawPause, MAP_BOX, PAUSE_TAP, type Found, type PauseMap } from './native/pause';
 import { keepFound, readFound } from './saves';
 import { readJson } from './guards';
@@ -63,8 +64,12 @@ export class FrontEnd<T> {
   enhanced = true;
   /** What the player has found (for the map), kept with the saves. */
   found: Found = {};
-  paused = false;
-  optionsOpen = false;
+  /** Which screen of the front end's is up: none (the game), the pause screen (games with a map) or the options panel (games without). */
+  private screen: 'game' | 'pause' | 'options' = 'game';
+  /** The pause screen is up. */
+  get paused() { return this.screen === 'pause'; }
+  /** The options panel is up. */
+  get optionsOpen() { return this.screen === 'options'; }
   /** A place picked on the map to go to (the game takes the player there, then clears it). */
   going: string | null = null;
   private pauseTicks = 0;
@@ -97,7 +102,7 @@ export class FrontEnd<T> {
     }
   }
   /** The game waits (the pause screen or the options are up). */
-  get holding() { return this.paused || this.optionsOpen; }
+  get holding() { return this.screen !== 'game'; }
 
   /** ORIGINAL <-> ENHANCED. */
   toggleEnhanced() {
@@ -125,13 +130,13 @@ export class FrontEnd<T> {
   }
 
   openPause(state: T) {
-    this.paused = true; this.pauseTicks = 0;
+    this.screen = 'pause'; this.pauseTicks = 0;
     this.page = this.o.map?.pages?.(state, this.found).current;
     this.pickId = null;
   }
 
   private close() {
-    this.paused = false;
+    this.screen = 'game';
     this.o.onClose();
     this.keepFound();
   }
@@ -222,13 +227,13 @@ export class FrontEnd<T> {
   optionsTick(update: () => void): PauseRequest {
     const { input } = this.o;
     const lines = this.optionLines();
-    // (the panel's lines are 12 apart in the middle of the screen: continue.ts `panel`)
-    const top = Math.floor((200 - lines.length * 12) / 2);
-    const tapped = input.points.map((t) => lines[Math.floor((t.y - top + 2) / 12)]?.id).filter((id) => id !== undefined && id !== '');
+    // (the panel's lines are where continue.ts `panel` puts them)
+    const top = panelTop(lines.length);
+    const tapped = input.points.map((t) => lines[Math.floor((t.y - top + 2) / FLOW_LAYOUT.lineStep)]?.id).filter((id) => id !== undefined && id !== '');
     if (this.hasSwitch && (['Enter', 'Space', 'KeyE'].some((k) => input.typed.includes(k)) || tapped.includes('E'))) this.toggleEnhanced();
     if (input.typed.includes('KeyB') || tapped.includes('B')) return 'roomStart';
     if (input.typed.includes('KeyT') || tapped.includes('T')) return 'title';
-    if (input.typed.includes('Escape') || input.typed.includes('KeyP') || input.typed.includes('PadStart') || tapped.includes('X')) this.optionsOpen = false;
+    if (input.typed.includes('Escape') || input.typed.includes('KeyP') || input.typed.includes('PadStart') || tapped.includes('X')) this.screen = 'game';
     update();
     this.o.panel(this.optionLines().map((l) => l.text));
     if (!this.optionsOpen) this.o.onClose();
@@ -252,9 +257,9 @@ export class FrontEnd<T> {
       else if (canPause) this.openPause(state);
       return;
     }
-    this.optionsOpen = !this.optionsOpen;
+    this.screen = this.screen === 'options' ? 'game' : 'options';
   }
 
   /** "Back to room start" was carried out: the screens close. */
-  wentBack() { this.paused = false; this.optionsOpen = false; }
+  wentBack() { this.screen = 'game'; }
 }

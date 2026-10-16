@@ -1,4 +1,5 @@
 import { BitmapFont, KIT_GLYPHS, packState, unpackState, type C64Machine, type Input, type MachineState, type Renderer } from 'c64kit';
+import { FLOW_LAYOUT, initialState, panelTop, readIntent, step, stripText, type FlowState, type TitleStrip } from './continue-step';
 import { Grace } from './grace';
 import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent, type Found } from './saves';
 
@@ -68,28 +69,7 @@ export interface SaveHistory {
   watchFound(get: () => Found): void;
 }
 
-/**
- * Where the title's ENTER CONTINUE line goes: letters only, no box behind them, so it has to be
- * a place the title leaves empty (each game declares one: its title rendered, the row looked at).
- */
-export interface TitleStrip {
-  /** The letters' top line. */
-  y: number;
-  /** Their colour (default white): one that reads on the title's background there. */
-  colour?: number;
-  /** The middle of the line (default 160: the screen's). */
-  x?: number;
-  /** Only ENTER CONTINUE (where there's no room for the whole line, and the title says what starts a game). */
-  short?: boolean;
-  /** Shown only while this holds (a title of several pages: the one with room); Enter continues on any. */
-  when?(): boolean;
-}
-
-/** The title's line, for a keyboard or a touch screen. */
-function stripText(strip: TitleStrip, touch: boolean) {
-  if (strip.short) return touch ? 'TAP  CONTINUE' : 'ENTER  CONTINUE';
-  return touch ? 'TAP: CONTINUE    FIRE: NEW GAME' : 'ENTER  CONTINUE    SPACE  NEW GAME';
-}
+export type { TitleStrip };
 
 /** What the game is doing this tick, as the caller sees it. */
 export interface GameStatus<S = MachineState> {
@@ -103,50 +83,38 @@ export interface GameStatus<S = MachineState> {
   save(): S | null;
 }
 
-/** How long a launch waits for the game's title before giving up on going straight back into play. */
-const LAUNCH_TICKS = 10 * 50;
-
 export class ContinueFlow<S = MachineState> implements SaveHistory {
-  private prompt: { kind: 'title' | 'continue' | 'newGame'; ticks: number } | null = null;
-  private playing = false;
-  private lastRoom = -1;
-  private hasSave: boolean;
-  private restartAsked = 1000;
-  private fireWasDown = true;
-  private titleTicks = 0;
-  /** NEW GAME? answered yes: the press goes to the game's title (until it's let go). */
-  private startOk = false;
+  /** What the flow knows, changed only by whole new values (`step` for the tick before the game's, the methods below for the rest). */
+  private st: FlowState;
   private font: BitmapFont | null = null;
+  /** Which question the last save came back from. */
   private answer: 'title' | 'continue' | null = null;
-  /** Launched with a save: going straight back into play once the game is up (ticks waited). */
-  private launch: number | null;
-  /** A new game has begun (its saves start a new history entry); cleared when play ends. */
-  private fresh = false;
-  /** Play has just ended (the title came back): CONTINUE? is offered once the title has been up a moment. */
-  private over = false;
-  /** Rooms entered in this game (kept with each save), and the last save read's. */
-  private rooms = 0;
+  /** The rooms entered in the game the last save read was from. */
   private loadedRooms = 0;
   private foundNow: () => Found;
 
   /** A moment's grace after every resume (grace.ts); the game ticks it each frame of play. */
   readonly grace = new Grace();
   private readonly codec: SaveCodec<S>;
+  private readonly restartKeys: readonly string[];
 
   constructor(private readonly opts: ContinueOptions<S>) {
     this.codec = opts.codec;
+    this.restartKeys = opts.restartKeys ?? ['F1', 'KeyR'];
     this.foundNow = () => readFound(opts.id);
-    this.hasSave = this.load() !== null;
-    this.launch = this.hasSave && opts.continueOnLaunch !== false ? 0 : null;
+    this.st = initialState(this.load() !== null, opts.continueOnLaunch !== false);
     this.describeOld();
   }
 
   /** For tests. */
-  get state() { return { prompt: this.prompt?.kind ?? null, playing: this.playing, hasSave: this.hasSave, launching: this.launching }; }
+  get state() {
+    const { kind } = this.st.screen;
+    return { prompt: kind === 'title' || kind === 'continue' || kind === 'newGame' ? kind : null, playing: this.st.playing, hasSave: this.st.hasSave, launching: this.launching };
+  }
   /** A question is up (CONTINUE?, NEW GAME?): the game waits, and its sprites are hidden. */
-  get holding() { return this.prompt?.kind === 'continue' || this.prompt?.kind === 'newGame'; }
+  get holding() { return this.st.screen.kind === 'continue' || this.st.screen.kind === 'newGame'; }
   /** Launched with a save, on the way back into play: the screen is kept black and keys don't reach the title. */
-  get launching() { return this.launch !== null; }
+  get launching() { return this.st.screen.kind === 'launching'; }
   /** A screen of the flow's covers the game's picture (CONTINUE?, or a launch on its way back into play): sprites hidden, music held. */
   get covering() { return this.holding || this.launching; }
   /** Which question the last save came back from: ENTER CONTINUE on the title (or a launch), or CONTINUE? after losing. */
@@ -159,84 +127,15 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
    * to continue (the caller restarts the game from it, then calls `resumed`).
    */
   before(g: GameStatus<S>): S | null {
-    const { input } = this.opts;
-    if ((this.opts.restartKeys ?? ['F1', 'KeyR']).some((k) => input.typed.includes(k))) this.restartAsked = 0;
-    this.restartAsked++;
-    // Prompts wait until the title has been up a moment (it's drawn over a few frames).
-    this.titleTicks = g.onTitle ? this.titleTicks + 1 : 0;
-    if (this.titleTicks === 25 && !this.font) this.font = this.opts.font instanceof BitmapFont ? this.opts.font : this.opts.font === 'kit' || !g.machine ? kitFont() : gameFont(g.machine);
-    // Launched with a save: back into play as soon as the game is up (for games whose panels use
-    // the font of their title, once it has been taken: half a second later, the screen kept black).
-    if (this.launch !== null) {
-      this.launch++;
-      const wait = this.opts.font instanceof BitmapFont || this.opts.font === 'kit' || !g.machine ? 1 : 26;
-      if (this.launch > LAUNCH_TICKS) this.launch = null;
-      else if (this.titleTicks < wait) return null;
-      else {
-        this.launch = null;
-        const s = this.load();
-        if (s) { this.answer = 'title'; return s; }
-      }
-    }
-    // The title is back: play is over there and then (a new game started straight away is a new
-    // game, whatever brought the title back: the last life lost, R or F1, the game won). CONTINUE?
-    // waits until the title has been up a moment, and isn't asked after a restart on purpose.
-    if (g.onTitle && this.playing) { this.endPlay(); this.over = true; }
-    if (this.titleTicks > 25) {
-      if (this.over) {
-        this.over = false;
-        if (this.hasSave && this.restartAsked > 100) this.prompt = { kind: 'continue', ticks: 0 };
-      }
-      if (!this.prompt && this.hasSave) this.prompt = { kind: 'title', ticks: 0 };
-    } else if (this.prompt?.kind === 'title') this.prompt = null;
-
-    // A new game over a save (Space or fire on the title) is asked first, NEW GAME?, and so is one
-    // started before CONTINUE? is up (a jump still held as the last life went): the press is kept
-    // from the game (the question holds it), and only a press again (yes) starts it, the title having
-    // that one till it's let go.
-    if (this.startOk && !input.held.fire) this.startOk = false;
-    if (g.onTitle && this.hasSave && this.launch === null && (!this.prompt || this.prompt.kind === 'title') && input.held.fire && !this.startOk) {
-      this.prompt = this.over && this.restartAsked > 100 ? { kind: 'continue', ticks: 0 } : { kind: 'newGame', ticks: 0 };
-      this.over = false;
-      this.fireWasDown = true;
-      return null;
-    }
-    const p = this.prompt;
-    if (!p) return null;
-    p.ticks++;
-    const fire = input.held.fire;
-    // Taps (touch): the words. On the title, its CONTINUE (the line's left half, or all of a short
-    // one, and round it); on the CONTINUE? screen, its left half says yes and its right half no.
-    const strip = this.stripAt, mid = strip.x ?? 160, half = (stripText(strip, true).length * 8) / 2;
-    const onStrip = (t: { x: number; y: number }) => t.y >= strip.y - 12 && t.y < strip.y + 20 && (strip.short ? Math.abs(t.x - mid) < half + 16 : t.x < mid);
-    const tapYes = input.points.some((t) => (p.kind === 'title' ? onStrip(t) : t.y >= 60 && t.y < 140 && t.x < 160));
-    const tapNo = p.kind === 'continue' && input.points.some((t) => t.y >= 60 && t.y < 140 && t.x >= 160);
-    const yes = tapYes || input.typed.includes('Enter') || input.typed.includes('NumpadEnter') || (p.kind === 'continue' && fire && !this.fireWasDown);
-    // (CONTINUE? waits for its answer: no countdown answers for the player)
-    const no = p.kind === 'continue' && (tapNo || input.typed.includes('Escape'));
-    this.fireWasDown = fire;
-    if (no) this.prompt = null;
-    if (p.kind === 'newGame') {
-      // fire (or Space) again: the title has it and starts the game; Esc or a tap: back to the title; Enter continues
-      if (input.pressed.fire) { this.prompt = null; this.startOk = true; return null; }
-      if (input.typed.includes('Escape') || (input.points.length && !input.held.fire)) { this.prompt = null; return null; }
-      if (!input.typed.includes('Enter') && !input.typed.includes('NumpadEnter')) return null;
-      this.prompt = null;
-      this.answer = 'title';
-      return this.load();
-    }
-    if (!yes) return null;
-    this.prompt = null;
-    this.answer = p.kind;
-    return this.load();
-  }
-
-  /** Play is over (the title is back): the next game the title starts is a new one. */
-  private endPlay() {
-    this.playing = false;
-    this.fresh = false;
-    this.over = false;
-    this.lastRoom = -1;
+    const kitOnly = this.opts.font instanceof BitmapFont || this.opts.font === 'kit' || !g.machine;
+    // (for games whose panels use the font of their title, once it has been taken: half a second later, the screen kept black)
+    const { state, resume } = step(this.st, readIntent(this.opts.input, this.stripAt, this.restartKeys), { onTitle: g.onTitle, launchWait: kitOnly ? 1 : 26 });
+    this.st = state;
+    if (state.titleTicks === 25 && !this.font) this.font = this.opts.font instanceof BitmapFont ? this.opts.font : this.opts.font === 'kit' || !g.machine ? kitFont() : gameFont(g.machine);
+    if (!resume) return null;
+    const s = this.load();
+    if (s) this.answer = resume;
+    return s;
   }
 
   /**
@@ -248,15 +147,9 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
    * kept even if play never seemed to end (a new game started from a title still busy).
    */
   beginNewGame(found: Found) {
-    if (this.fresh && this.rooms === 0) return;
-    this.fresh = true;
-    this.over = false;
-    this.rooms = 0;
-    this.lastRoom = -1;
-    this.launch = null;
-    this.prompt = null;
+    if (this.st.fresh && this.st.rooms === 0) return;
     startNewGame(this.opts.id, found);
-    this.hasSave = false;
+    this.st = { ...this.st, fresh: true, over: false, rooms: 0, lastRoom: -1, screen: { kind: 'open' }, hasSave: false };
   }
 
   /**
@@ -264,10 +157,8 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
    * offers ENTER CONTINUE, and only a new game started there begins a new history entry.
    */
   toTitle() {
-    this.endPlay();
-    this.prompt = null;
-    this.titleTicks = 0; // (play has ended already: no CONTINUE?, this was on purpose)
-    this.launch = null;
+    // (play has ended already: no CONTINUE?, this was on purpose)
+    this.st = { ...this.st, playing: false, fresh: false, over: false, lastRoom: -1, screen: { kind: 'open' }, titleTicks: 0 };
   }
 
   /** The latest save (taken on coming into the room the player is in). */
@@ -275,13 +166,7 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
 
   /** The game was restarted from a save. */
   resumed(s: S, room: number) {
-    this.lastRoom = room;
-    this.playing = true;
-    this.fresh = false;
-    this.over = false;
-    this.rooms = this.loadedRooms;
-    this.titleTicks = 0;
-    this.launch = null;
+    this.st = { ...this.st, lastRoom: room, playing: true, fresh: false, over: false, rooms: this.loadedRooms, titleTicks: 0, screen: { kind: 'open' } };
     this.grace.start();
     void s;
   }
@@ -289,25 +174,25 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
   /** After the game's tick: autosave on entering a new room. Returns true when play has just begun. */
   after(g: GameStatus<S>): boolean {
     if (g.onTitle || g.room === null) return false;
-    const started = !this.playing;
-    this.playing = true;
+    const started = !this.st.playing;
+    this.st = { ...this.st, playing: true };
     if (started) this.beginNewGame(this.foundNow());
-    if (g.room !== this.lastRoom) {
+    if (g.room !== this.st.lastRoom) {
       const s = g.save();
-      if (s) { this.write(s); this.hasSave = true; this.lastRoom = g.room; }
+      if (s) { this.write(s); this.st = { ...this.st, hasSave: true, lastRoom: g.room }; }
     }
     return started;
   }
 
   /** Draw the panels (after the picture is drawn into the renderer's screen). */
   draw() {
-    if (this.launch !== null) { this.opts.renderer.screen.clear(0); return; } // (the title, on the way back into play: not shown)
-    const p = this.prompt;
-    if (!p || !this.font) return;
+    const { kind } = this.st.screen;
+    if (kind === 'launching') { this.opts.renderer.screen.clear(0); return; } // (the title, on the way back into play: not shown)
+    if (!this.font) return;
     const touch = this.opts.input.touch;
-    if (p.kind === 'title') this.strip(touch);
-    else if (p.kind === 'newGame') this.panel(touch ? ['NEW GAME?', '', 'FIRE YES        TAP NO'] : ['NEW GAME?', '', 'SPACE YES     ESC NO', '', 'ENTER CONTINUE']);
-    else this.panel(['CONTINUE?', '', touch ? 'YES              NO' : 'ENTER YES     ESC NO']);
+    if (kind === 'title') this.strip(touch);
+    else if (kind === 'newGame') this.panel(touch ? ['NEW GAME?', '', 'FIRE YES        TAP NO'] : ['NEW GAME?', '', 'SPACE YES     ESC NO', '', 'ENTER CONTINUE']);
+    else if (kind === 'continue') this.panel(['CONTINUE?', '', touch ? 'YES              NO' : 'ENTER YES     ESC NO']);
   }
 
   private load(): S | null {
@@ -322,9 +207,9 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
 
   private write(s: S) {
     try {
-      this.rooms++;
+      this.st = { ...this.st, rooms: this.st.rooms + 1 };
       const found = this.foundNow();
-      writeCurrent(this.opts.id, { data: toBase64(this.codec.pack(s)), at: Date.now(), summary: this.summary(s, found), rooms: this.rooms });
+      writeCurrent(this.opts.id, { data: toBase64(this.codec.pack(s)), at: Date.now(), summary: this.summary(s, found), rooms: this.st.rooms });
       // what's been found goes with it (the map's progress: rooms, places to travel to), so the
       // game continued later has the map as it was, not as it was when the pause screen last closed
       keepFound(this.opts.id, found);
@@ -346,14 +231,14 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
     } catch { /* not one this game reads */ }
   }
 
-  private get stripAt(): TitleStrip { return this.opts.strip ?? { y: 172 }; }
+  private get stripAt(): TitleStrip { return this.opts.strip ?? { y: FLOW_LAYOUT.strip.y }; }
 
   /** The title's line: the letters alone, where the game says. */
   private strip(touch: boolean) {
     const strip = this.stripAt;
     if (strip.when && !strip.when()) return;
     const text = stripText(strip, touch);
-    this.getFont().draw(this.opts.renderer.screen, text, Math.floor((strip.x ?? 160) - (text.length * 8) / 2), strip.y, strip.colour ?? 1);
+    this.getFont().draw(this.opts.renderer.screen, text, Math.floor((strip.x ?? FLOW_LAYOUT.strip.mid) - (text.length * FLOW_LAYOUT.glyph) / 2), strip.y, strip.colour ?? 1);
   }
 
   /** The font panels use (the game's own once its title has shown, else the kit's). */
@@ -367,8 +252,8 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
     const font = (this.font ??= this.opts.font instanceof BitmapFont ? this.opts.font : kitFont());
     const s = this.opts.renderer.screen;
     s.clear(0);
-    const y = Math.floor((200 - lines.length * 12) / 2);
-    lines.forEach((l, i) => font.draw(s, l, Math.floor((320 - l.length * 8) / 2), y + i * 12, i === 0 ? 7 : 1));
+    const y = panelTop(lines.length), { screen, lineStep, glyph } = FLOW_LAYOUT;
+    lines.forEach((l, i) => font.draw(s, l, Math.floor((screen.w - l.length * glyph) / 2), y + i * lineStep, i === 0 ? 7 : 1));
   }
 }
 
