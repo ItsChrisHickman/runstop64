@@ -25,29 +25,7 @@ import * as Specials from './specials';
 export const NAME: NameSpec = { alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', max: 5, button: { label: 'FIRE', key: 'Space' } };
 const TOUCH: TouchLayout = { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }] };
 
-export const info = {
-  title: 'Starquake',
-  progress: 'Your progress is saved each time BLOB comes into a room: coming back to the game carries on where you were, and the save from before your last new game is kept too (the saved games: F1 on the directory).',
-  html: `
-    <p><a href="https://en.wikipedia.org/wiki/Starquake_(video_game)">Starquake</a> (1985): BLOB must rebuild the
-    core of an unstable planet before it explodes. All credit for the game belongs to its creators:</p>
-    <ul>
-      <li>Original game and design: Stephen Crow</li>
-      <li>Commodore 64 version: Nick Strange</li>
-      <li>Music: Stephen Crow, played by the C64 version's own player code</li>
-      <li>Published by <a href="https://en.wikipedia.org/wiki/Bubble_Bus_Software">Bubble Bus Software</a>, 1985</li>
-    </ul>
-    <p>Controls: arrows or WASD move (up picks things up, down builds a platform) &middot; Space fires
-    (also Z, X, gamepad A) &middot; P or Esc pauses: a map of the planet; pick a room you've been in and press
-    Enter to go back there &middot; M sound on or off &middot; V authentic pixel steps</p>
-    <p>Changes from the original (the
-    <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/starquake/QOL.md">full log</a>):
-    pause screen with map and travel &middot; autosave on every room and Continue (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
-    refresh rate &middot; ENHANCED (on unless switched to ORIGINAL): full energy in each room and unlimited lives.</p>
-    <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; ported from the C64
-    original's own code and data</p>
-  `,
-};
+export { info } from './info';
 
 const SOUND = raw.sound;
 const TITLE_PAGE_TICKS = 6 * 50;

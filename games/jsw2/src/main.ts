@@ -11,32 +11,7 @@ import stateUrl from '../assets/jsw2-title.state?url';
  * runtime. It starts from the game's memory as it stands at the title screen (see
  * build/README.md), so there's no loading.
  */
-export const info = {
-  title: 'Jet Set Willy II',
-  progress: 'Your progress is saved each time Willy enters a room: coming back to the game carries on where you were, and the save from before your last new game is kept too (the saved games: F1 on the directory).',
-  html: `
-    <p><a href="https://en.wikipedia.org/wiki/Jet_Set_Willy_II">Jet Set Willy II: The Final Frontier</a> (1985): Miner Willy's
-    mansion, bigger than ever, from the cellars to the rocket on the roof. Collect every item. All credit belongs to its creators:</p>
-    <ul>
-      <li><a href="https://en.wikipedia.org/wiki/Jet_Set_Willy">Jet Set Willy</a> created by <a href="https://en.wikipedia.org/wiki/Matthew_Smith_(games_programmer)">Matthew Smith</a></li>
-      <li>Jet Set Willy II (ZX Spectrum): Derrick P. Rowson and Steve Wetherill</li>
-      <li>Commodore 64 version: John Darnell and Steve Birtles</li>
-      <li>Published by <a href="https://en.wikipedia.org/wiki/Software_Projects">Software Projects</a>, 1985</li>
-    </ul>
-    <p>This is a translated port, not a rewrite: every routine of the original was translated, instruction for instruction, to
-    TypeScript and checked against the original running on an emulated C64, cycle for cycle (the game times
-    itself by counting, and draws its screen in raster interrupts).</p>
-    <p>Controls: arrows (or WASD) move &middot; Space (or Z, X, pad A) jumps &middot; joysticks and gamepads work &middot;
-    P or Esc pauses (with a map) &middot; F3 music on or off &middot; M mutes &middot; in ENHANCED, hold Shift (on a phone: RUN) to run</p>
-    <p>ENHANCED (on unless you switch to ORIGINAL with E on the pause screen): hold Shift and Willy runs: his own steps come
-    twice as often (his jumps the same jumps, only quicker), while the guardians, ropes and music keep their pace;
-    a death never starts Willy again into the same death; and a long fall ends in an ordinary landing (guardians and nasties still hurt).</p>
-    <p>Added for runstop64: progress is saved each time you enter a room (coming back carries on where you were; T on the pause screen goes to the title), and
-    after losing you can continue from the last room you entered, with all your lives. The pause screen has a map
-    of the whole mansion, lit as you explore it, and travel back to rooms you've been in.</p>
-    <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>
-  `,
-};
+export { info } from './info';
 
 /**
  * Running (ENHANCED, Shift held): Willy alone goes faster. He takes a step (walks, jumps, falls, looks

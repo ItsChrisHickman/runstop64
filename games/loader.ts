@@ -1,4 +1,5 @@
 import { BitmapFont, C64, KIT_GLYPHS, type Host } from 'c64kit';
+import { GAMES, type GameEntry } from './registry';
 import type { TouchLayout } from './shared/touch';
 
 /** Touch: tap a game (then tap it again), or move the choice with the stick and press LOAD. */
@@ -11,25 +12,6 @@ const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'LOAD', key: 'Space'
  * (F1, or a click or tap on it: games/saves.ts). The banner and that line stay put
  * however long the directory gets: the screen scrolls under them (PINNED).
  */
-export interface GameEntry { id: string; name: string; blocks: number }
-
-export const GAMES: GameEntry[] = [
-  // In series order, like a compilation disk (no headings): the Monty games (Auf Wiedersehen Monty under its disk file's name,
-  // the 16 letters a name has), then Gremlin's
-  // others (Thing on a Spring), the four Pendragon games in release order,
-  // Jet Set Willy II, Starquake, Antiriad. A new game goes next to its series.
-  { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165 },
-  { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172 },
-  { id: 'thingonaspring', name: 'THING ON A SPRING', blocks: 187 },
-  { id: 'karnath', name: 'STAFF OF KARNATH', blocks: 117 },
-  { id: 'entombed', name: 'ENTOMBED', blocks: 229 },
-  { id: 'blackwyche', name: 'BLACKWYCHE', blocks: 161 },
-  { id: 'dragonskulle', name: 'DRAGONSKULLE', blocks: 195 },
-  { id: 'jsw2', name: 'JET SET WILLY II', blocks: 196 },
-  { id: 'starquake', name: 'STARQUAKE', blocks: 179 },
-  { id: 'antiriad', name: 'ANTIRIAD', blocks: 184 },
-];
-
 export const info = {
   title: 'runstop64',
   html: `
@@ -66,7 +48,7 @@ export interface LoaderOptions {
   saves(): void;
   /** Straight to the directory (coming back from the saved games). */
   skipIntro?: boolean;
-  /** The directory's games (default GAMES; tests list more). */
+  /** The directory's games (default the registry's GAMES; tests list more). */
   games?: readonly GameEntry[];
 }
 

@@ -1,9 +1,10 @@
 import { FixedLoop, Input, PixelRenderer } from 'c64kit';
 import * as Loader from './loader';
 import * as Saves from './saves';
+import { GAMES, type GameInfo, type Program } from './registry';
 import { exportSaves, readSaves, watchWrites } from './shared/saves';
-import { TouchLayer, type TouchLayout } from './shared/touch';
-import { ViewSwitch, VIEW_KEY, type HdView } from './shared/view';
+import { TouchLayer } from './shared/touch';
+import { ViewSwitch, VIEW_KEY } from './shared/view';
 
 /**
  * The runstop64 shell: one framed C64 screen (with a full-screen button) that
@@ -12,25 +13,6 @@ import { ViewSwitch, VIEW_KEY, type HdView } from './shared/view';
  * gear is the game's pause screen, or (on the directory) the saved games; C64/HD
  * is the view, in a game with an HD view (a system setting: games/shared/view.ts).
  */
-interface Program {
-  tick(): void;
-  render(alpha: number): void;
-  /** Open the game's own options/pause menu (if it has one, and it can open now). */
-  menu?(): void;
-  /** Its touch controls (games/shared/touch): the stick and buttons it wants on a phone. */
-  touch?: TouchLayout;
-  /** Its HD view (the C64/HD switch's: this shell's, games/shared/view.ts). */
-  hd?: HdView;
-}
-
-/** What a game says about itself to the shell. */
-interface GameInfo {
-  title: string;
-  html: string;
-  /** Shown when leaving for the menu: whether progress is kept. */
-  progress?: string;
-}
-
 /** An element the page must have (games/index.html), of the type the shell uses it as. */
 function $<T extends Element>(selector: string, type: new () => T): T {
   const e = document.querySelector(selector);
@@ -70,25 +52,12 @@ function showInfo(info: GameInfo) {
   document.title = info.title === 'runstop64' ? 'runstop64' : `${info.title} · runstop64`;
 }
 
-const PROGRAMS: Record<string, () => Promise<{ run(h: typeof host): Program; info: GameInfo }>> = {
-  montyotr: () => import('./montyotr/src/main'),
-  awm: () => import('./awm/src/main'),
-  thingonaspring: () => import('./thingonaspring/src/main'),
-  karnath: () => import('./karnath/src/main'),
-  entombed: () => import('./entombed/src/main'),
-  blackwyche: () => import('./blackwyche/src/main'),
-  dragonskulle: () => import('./dragonskulle/src/main'),
-  jsw2: () => import('./jsw2/src/main'),
-  starquake: () => import('./starquake/src/main'),
-  antiriad: () => import('./antiriad/src/main'),
-};
-
 let launched = false;
 async function launch(id: string, push: boolean, replace = false) {
-  const load = PROGRAMS[id];
-  if (!load || launched) return; // (one game per page: going back reloads it)
+  const entry = GAMES.find((g) => g.id === id);
+  if (!entry || launched) return; // (one game per page: going back reloads it)
   launched = true;
-  const game = await load();
+  const game = await entry.load();
   program = game.run(host);
   showInfo(game.info);
   current = game.info;
@@ -260,8 +229,7 @@ $('#fullscreen', HTMLButtonElement).addEventListener('click', () => {
 });
 
 const initial = location.hash.slice(1);
-// (any program the shell has, listed in the loader or not)
-if (Object.hasOwn(PROGRAMS, initial)) void launch(initial, false);
+if (GAMES.some((g) => g.id === initial)) void launch(initial, false);
 else if (initial === 'saves') startSaves(false);
 else startLoader();
 

@@ -14,7 +14,8 @@
 import fs from 'node:fs';
 import { C64_PALETTE, Input, PixelRenderer } from 'c64kit';
 import { rgbPng } from '../../../tools/probe/render';
-import { GAMES, Picker, run, type GameEntry, type PointerAt } from '../../loader';
+import { Picker, run, type PointerAt } from '../../loader';
+import { GAMES, type GameEntry } from '../../registry';
 import { nowhere } from './browser';
 import { check, finish } from './check';
 

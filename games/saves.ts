@@ -1,5 +1,5 @@
 import { BitmapFont, C64, KIT_GLYPHS, type Host } from 'c64kit';
-import { GAMES, type GameEntry } from './loader';
+import { GAMES, type GameEntry } from './registry';
 import { deleteSave, readSaves, restorePrevious, type GameSaves, type SaveSlot } from './shared/saves';
 import type { TouchLayout } from './shared/touch';
 
