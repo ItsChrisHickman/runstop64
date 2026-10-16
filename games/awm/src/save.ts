@@ -6,7 +6,7 @@
  * What the room itself holds (the cells, the enemies, the lift) is not kept: entering a room sets them, as the game does;
  * the items taken and carried, the counters, the random numbers and the animation clock are.
  */
-import type { SaveCodec } from '../../shared/continue';
+import { readsFormat, type SaveCodec } from '../../shared/continue';
 import { readJson, S } from '../../shared/guards';
 import { ROOMS } from './data';
 import { Game, NEW_GAME_LIVES } from './game';
@@ -110,8 +110,10 @@ export const parseSave = (v: unknown): AwmSave | null => (AwmSave(v) ? v : null)
 
 /** Saves as bytes: their JSON. */
 export const CODEC: SaveCodec<AwmSave> = {
+  format: 1,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
-  unpack: (b) => {
+  unpack: (b, format) => {
+    readsFormat('Auf Wiedersehen Monty', format, 1);
     const s = parseSave(readJson(String.fromCharCode(...b)));
     if (!s) throw new Error('not an Auf Wiedersehen Monty save');
     return s;

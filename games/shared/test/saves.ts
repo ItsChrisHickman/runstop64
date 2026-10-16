@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import { C64_PALETTE, Input, PixelRenderer } from 'c64kit';
 import { rgbPng } from '../../../tools/probe/render';
-import { ContinueFlow, type SaveCodec } from '../continue';
+import { ContinueFlow, readsFormat, type SaveCodec } from '../continue';
 import { FrontEnd } from '../frontend';
 import { isNumber, isRecord, readJson } from '../guards';
 import type { PauseMap } from '../native/pause';
@@ -43,8 +43,10 @@ const shot = (name: string) => {
 
 interface Save { room: number; lives: number }
 const CODEC: SaveCodec<Save> = {
+  format: 1,
   pack: (s) => new TextEncoder().encode(JSON.stringify(s)),
-  unpack: (b) => {
+  unpack: (b, format) => {
+    readsFormat('test', format, 1);
     const v: unknown = readJson(new TextDecoder().decode(b));
     if (!isRecord(v) || !isNumber(v.room) || !isNumber(v.lives)) throw new Error('not a test save');
     return { room: v.room, lives: v.lives };
@@ -164,8 +166,10 @@ const mpress = (code: string) => { input.keyDown(code); mtick(); input.keyUp(cod
 mtick();
 check(`the manager lists every game (${m.state.choices.length})`, m.state.page === 'list' && m.state.choices.length >= GAMES.length);
 // (its own game list is the loader's: the stand-in's saves are under 'test'; look at Monty's, kept as a test would)
-store.set('montyotr.save.v2', must(store.get('test.save.v2'), 'the current save'));
-store.set('montyotr.save.v2.previous', must(store.get('test.save.v2.previous'), 'the previous save'));
+for (const key of ['save.v2', 'save.v2.previous']) {
+  const slot = readJson(must(store.get(`test.${key}`), `the ${key}`));
+  store.set(`montyotr.${key}`, JSON.stringify({ ...(isRecord(slot) ? slot : {}), game: 'montyotr' })); // (a slot says whose it is)
+}
 m = runSaves({ renderer, input, canvas: nowhere }, mgrOpts);
 mtick();
 shot('3-saves-list');

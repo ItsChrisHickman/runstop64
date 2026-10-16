@@ -1,4 +1,4 @@
-import { isNumber, isRecord, isString, isStrings, readJson } from './guards';
+import { isRecord, readJson, S } from './guards';
 
 /**
  * Where every game's saves are kept (the browser's localStorage), for the games (through
@@ -18,13 +18,26 @@ import { isNumber, isRecord, isString, isStrings, readJson } from './guards';
  * Keys (per game id): `<id>.save.v2` (current), `<id>.save.v2.previous`, and `<id>.found.v1`
  * (what has been found in the game being played, which FrontEnd keeps up to date). Saves from
  * before the history (`<id>.save.v1`, the bytes alone) become `current` on first read.
+ *
+ * Every save sits in an envelope that says what it is: the game (`game`), the format of its bytes
+ * (`format`, a number its codec bumps whenever the bytes change; `unpack` is given it, so it can
+ * read or migrate an older format and refuse a newer one instead of guessing) and, for a machine
+ * save, which game image it was made on (`image`). A slot is stored as JSON with `v` (the
+ * envelope's own version): 3 has `game`, `format` and `image`; 2, what every save made before the
+ * envelope looks like, reads as `format` 1 of this game (the bytes were never changed), and is
+ * written as 3 the next time it's written. The key names keep their `v2`: they are where players'
+ * saves already are.
  */
 export type Found = Record<string, unknown>;
 // (Found is what is kept: a record of plain JSON. A game's map reads it into its own type, its
 // `FoundCodec` in native/pause.ts, once when the front end starts; and the front end keeps that
 // type as it is with JSON.stringify, so the kept record is the parsed one's own keys.)
 
-export interface SaveSlot {
+export interface SaveBody {
+  /** The format of `data`'s bytes (the game's codec: `SaveCodec.format`). */
+  format: number;
+  /** For a machine save: which game image it was made on (a hash of the image the game was loaded from). */
+  image?: string;
   /** The save, as the game's codec packs it, in base64. */
   data: string;
   /** When it was made (ms since 1970); 0: before saves were dated. */
@@ -33,6 +46,11 @@ export interface SaveSlot {
   summary: string[];
   /** Rooms entered since this game began (1: just started). */
   rooms: number;
+}
+
+/** A save as read back: its body in the envelope that says whose it is. */
+export interface SaveSlot extends SaveBody {
+  game: string;
 }
 
 /** The previous save also keeps what had been found by then (the current one's is the game's own). */
@@ -45,7 +63,9 @@ export interface GameSaves {
   previous: PreviousSlot | null;
 }
 
-const VERSION = 2;
+/** The envelope's version (a slot's `v`); 2 is what was stored before it, read as format 1. */
+const VERSION = 3;
+const BEFORE_ENVELOPE = 2;
 const CURRENT = (id: string) => `${id}.save.v2`;
 const PREVIOUS = (id: string) => `${id}.save.v2.previous`;
 const OLD = (id: string) => `${id}.save.v1`;
@@ -69,16 +89,24 @@ function json(text: string | null): unknown {
 
 // ---- checks of what's read back ----------------------------------------------------------------
 
-function asSlot(v: unknown): SaveSlot | null {
-  return isRecord(v) && v.v === VERSION ? slotOf(v) : null;
-}
-function slotOf(v: unknown): SaveSlot | null {
-  if (!isRecord(v)) return null;
+const body = S.object({ data: S.string, at: S.number, summary: S.strings, rooms: S.number });
+const envelope = S.object({ game: S.string, format: S.number, image: S.optional(S.string) });
+
+/**
+ * A slot of `game` as written by envelope version `version`, checked and in the current shape
+ * (before the envelope, a slot is format 1 of this game); null if it isn't one.
+ */
+function slotAs(v: unknown, game: string, version: unknown): SaveSlot | null {
+  if (!body(v)) return null;
   const { data, at, summary, rooms } = v;
-  if (!isString(data) || !isNumber(at) || !isStrings(summary) || !isNumber(rooms)) return null;
-  return { data, at, summary, rooms };
+  if (version === BEFORE_ENVELOPE) return { game, format: 1, data, at, summary, rooms };
+  if (version !== VERSION || !envelope(v) || v.game !== game) return null;
+  return { game, format: v.format, ...(v.image === undefined ? {} : { image: v.image }), data, at, summary, rooms };
 }
-function asPrevious(v: unknown, slot = asSlot(v)): PreviousSlot | null {
+/** A slot as stored under a game's key (its own `v` says which version wrote it). */
+const slotOf = (v: unknown, game: string) => (isRecord(v) ? slotAs(v, game, v.v) : null);
+function previousOf(v: unknown, game: string, version: unknown = isRecord(v) ? v.v : undefined): PreviousSlot | null {
+  const slot = slotAs(v, game, version);
   if (!slot || !isRecord(v)) return null;
   return { ...slot, found: isRecord(v.found) ? v.found : {} };
 }
@@ -88,7 +116,7 @@ function asPrevious(v: unknown, slot = asSlot(v)): PreviousSlot | null {
 /** A game's saves (moving a save from before the history into `current` first). */
 export function readSaves(id: string): GameSaves {
   migrate(id);
-  return { current: asSlot(json(get(CURRENT(id)))), previous: asPrevious(json(get(PREVIOUS(id)))) };
+  return { current: slotOf(json(get(CURRENT(id))), id), previous: previousOf(json(get(PREVIOUS(id))), id) };
 }
 
 /** The save from before the history (the bytes alone, in base64) becomes `current`, undated. */
@@ -97,16 +125,16 @@ function migrate(id: string) {
   if (old === null) return;
   if (get(CURRENT(id)) === null && old.length > 0) {
     // (its time isn't known; its progress is described once the game has read it: ContinueFlow)
-    if (!writeCurrent(id, { data: old, at: 0, summary: [], rooms: 2 })) return; // (kept as it was)
+    if (!writeCurrent(id, { format: 1, data: old, at: 0, summary: [], rooms: 2 })) return; // (kept as it was)
   }
   remove(OLD(id));
 }
 
-export function writeCurrent(id: string, slot: SaveSlot): boolean {
-  return set(CURRENT(id), JSON.stringify({ v: VERSION, ...slot }));
+export function writeCurrent(id: string, slot: SaveBody): boolean {
+  return set(CURRENT(id), JSON.stringify({ v: VERSION, game: id, ...slot }));
 }
-function writePrevious(id: string, slot: SaveSlot & { found: unknown }): boolean {
-  return set(PREVIOUS(id), JSON.stringify({ v: VERSION, ...slot }));
+function writePrevious(id: string, slot: SaveBody & { found: unknown }): boolean {
+  return set(PREVIOUS(id), JSON.stringify({ v: VERSION, game: id, ...slot }));
 }
 
 /** What has been found in the game being played (the map's progress). */
@@ -174,7 +202,7 @@ export function tidySummary(parts: string[]): string[] {
  */
 export interface SavesExport {
   runstop64: 'saves';
-  /** This module's save version (the slots' `v`). */
+  /** This module's save version (the slots' `v`); an export of an older one reads, as the current. */
   v: number;
   game: string;
   /** The app build it came from (when the site was built), if known. */
@@ -194,13 +222,13 @@ export function exportSaves(id: string, build: string, now = new Date()): { name
   return { name: `runstop64-${id}-${date}.json`, text: JSON.stringify(file, null, 1) };
 }
 
-/** An export file's JSON, checked: null if it isn't one (or is another version). */
+/** An export file's JSON, checked: null if it isn't one (or is another version). Exports from before the envelope read as the current ones. */
 export function parseExport(v: unknown): SavesExport | null {
-  if (!isRecord(v) || v.runstop64 !== 'saves' || v.v !== VERSION) return null;
+  if (!isRecord(v) || v.runstop64 !== 'saves' || (v.v !== VERSION && v.v !== BEFORE_ENVELOPE)) return null;
   const { game, build, exported, current, previous, found } = v;
-  if (!isString(game) || !isString(build) || !isString(exported) || !isRecord(found)) return null;
-  const now = current === null ? null : slotOf(current);
-  const before = previous === null ? null : asPrevious(previous, slotOf(previous));
+  if (!S.string(game) || !S.string(build) || !S.string(exported) || !isRecord(found)) return null;
+  const now = current === null ? null : slotAs(current, game, v.v);
+  const before = previous === null ? null : previousOf(previous, game, v.v);
   if ((current !== null && !now) || (previous !== null && !before)) return null;
   return { runstop64: 'saves', v: VERSION, game, build, exported, current: now, previous: before, found };
 }

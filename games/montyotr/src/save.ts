@@ -1,4 +1,4 @@
-import type { SaveCodec } from '../../shared/continue';
+import { readsFormat, type SaveCodec } from '../../shared/continue';
 import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
 import { isExtensionRoom } from './data';
 import type { Game } from './game';
@@ -59,8 +59,10 @@ export const parseSave = (v: unknown): MontySave | null => (MontySave(v) ? v : n
 
 /** Saves as bytes: their JSON. */
 export const CODEC: SaveCodec<MontySave> = {
+  format: 1,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
-  unpack: (b) => {
+  unpack: (b, format) => {
+    readsFormat('Monty', format, 1);
     const s = parseSave(readJson(String.fromCharCode(...b)));
     if (!s) throw new Error('not a Monty save');
     return s;
@@ -81,9 +83,11 @@ export function migrateOldSave() {
     const raw = localStorage.getItem('montyotr.save.v1');
     if (!raw?.startsWith('{')) return;
     const old: unknown = readJson(raw);
-    const save = parseSave(old);
+    if (!isRecord(old)) return;
+    const { visited: rooms, ...rest } = old; // (the rooms visited went into the map's progress; the save is the rest)
+    const save = parseSave(rest);
     if (!save) return;
-    const visited = isRecord(old) && Array.isArray(old.visited) ? old.visited.filter(isVisit) : [];
+    const visited = Array.isArray(rooms) ? rooms.filter(isVisit) : [];
     let bin = '';
     for (const b of CODEC.pack(save)) bin += String.fromCharCode(b);
     localStorage.setItem('montyotr.save.v1', btoa(bin));

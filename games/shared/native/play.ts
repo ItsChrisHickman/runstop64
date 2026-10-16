@@ -171,6 +171,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let game: NativeHost | null = null;
   /** The title snapshot (back to the title starts from it again). */
   let titleState: Uint8Array | null = null;
+  /** Which game image this is: a hash of the title snapshot it was loaded from (stored with each save). */
+  let image: string | undefined;
   let view: C64View | null = null;
   /** A resume has begun: the room it comes into is not a new game's. */
   let resuming = false;
@@ -185,7 +187,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen, with this machine as its game ---
   const port = runPort<MachineState, F, Uint8Array>(host, {
-    id: opts.id, font: opts.font, codec: MACHINE_CODEC, map, strip: opts.strip,
+    id: opts.id, font: opts.font, codec: { ...MACHINE_CODEC, image: () => image }, map, strip: opts.strip,
     describe: (s, found) => (opts.describe ? opts.describe(s.ram, found) : mapSummary(map, s.ram, found)),
     assists: nativeAssists(opts),
   }, () => ({
@@ -238,6 +240,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     .then((r) => r.arrayBuffer())
     .then((b) => {
       titleState = new Uint8Array(b);
+      image = fnv1a(titleState).toString(16).padStart(8, '0');
       start(new NativeHost(opts.port, withText(unpackState(titleState))));
     });
 

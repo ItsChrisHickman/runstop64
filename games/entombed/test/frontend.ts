@@ -191,6 +191,7 @@ for (const wait of [120, 3]) {
   for (let f = 0; f < 600 && !(p.state.playing && readSaves('entombed').current?.data !== was.data); f++) tick(1);
   const now = readSaves('entombed');
   check(`  Space ${wait > 25 ? 'on the title' : 'straight away'}: a new game saving as the current save, the game before it the previous (${was.rooms} rooms)`, now.previous?.data === was.data && now.current !== null && now.current.data !== was.data);
+  check('  the new save is in the envelope: this game, format 1, and which game image it was made on (a hash of the title snapshot)', now.current?.game === 'entombed' && now.current.format === 1 && /^[0-9a-f]{8}$/.test(now.current.image ?? ''));
   // (on to another screen: a new game worth keeping over the one before)
   for (let f = 0; f < 600 && must(readSaves('entombed').current, 'the save').rooms < 2; f++) { input.keyDown('ArrowRight'); tick(1); }
   input.keyUp('ArrowRight'); tick(2);

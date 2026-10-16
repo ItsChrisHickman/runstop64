@@ -15,7 +15,8 @@ import { Input, PixelRenderer } from 'c64kit';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { sidLog } from '../../shared/test/kit';
 import { must } from '../../shared/test/must';
-import { fromBase64, readFound, readSaves } from '../../shared/saves';
+import { unpackSlot } from '../../shared/continue';
+import { readFound, readSaves } from '../../shared/saves';
 import { exitGridImage, MUSIC } from '../src/data';
 import { run } from '../src/main';
 import { CODEC } from '../src/save';
@@ -103,7 +104,7 @@ const finished = until(() => p.state.mode === 'title', 4000);
 check(`the finale to the end: France (${g.won ? 'won' : 'not won'}), the title`, finished && g.won);
 
 // after the finale: everything kept, and on into the game again
-const s = CODEC.unpack(fromBase64(saved.data)), found = Object.keys(readFound('montyotr').rooms ?? {});
+const s = unpackSlot(CODEC, saved), found = Object.keys(readFound('montyotr').rooms ?? {});
 check(`the save after finishing is the dock room's, everything collected in it (${saved.summary.join(' / ')})`,
   s.roomId === DOCK && s.items[8] === 0x81 && s.score === 1230 && s.lives === 3 && s.coins[0] === 1 && store.has('montyotr.save.v2') && readSaves('montyotr').current?.data === saved.data && p.state.hasSave);
 check(`the map's progress kept (${found.length} rooms seen, the first and the dock among them)`, found.includes(String(first)) && found.includes(String(DOCK)));

@@ -9,8 +9,8 @@
  *   after it (`run(host)`) goes straight back into play from it, as it did for Chris.
  */
 import fs from 'node:fs';
-import type { SaveCodec } from '../continue';
-import { fromBase64, parseExport, putSaves, type SavesExport } from '../saves';
+import { unpackSlot, type SaveCodec } from '../continue';
+import { parseExport, putSaves, type SavesExport } from '../saves';
 import { readJson } from '../guards';
 
 /** The export file, checked (a clear error if it isn't one). */
@@ -26,7 +26,7 @@ export function readExport(file: string): SavesExport {
 export function loadSave<S>(file: string, codec: SaveCodec<S>, which: 'current' | 'previous' = 'current'): S {
   const slot = readExport(file)[which];
   if (!slot) throw new Error(`${file}: no ${which} save`);
-  return codec.unpack(fromBase64(slot.data));
+  return unpackSlot(codec, slot);
 }
 
 /** Its saves (and what had been found) in storage in place of the game's own; the export. */

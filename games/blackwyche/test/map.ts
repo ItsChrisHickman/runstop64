@@ -17,11 +17,11 @@
 import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
 import { unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
-import { MACHINE_CODEC } from '../../shared/continue';
+import { MACHINE_CODEC, packSlot } from '../../shared/continue';
 import { NativeHost } from '../../shared/native/host';
 import { MAP_BOX } from '../../shared/native/pause';
 import { setJoy, GAMES } from '../../shared/native/test/games';
-import { keepFound, toBase64, writeCurrent } from '../../shared/saves';
+import { keepFound, writeCurrent } from '../../shared/saves';
 import type { BlackwycheFound } from '../src/map';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
@@ -72,7 +72,7 @@ console.log(`${offered.length} places to travel to: ${offered.join(' ')}`);
 async function launch() {
   const store = new Map<string, string>();
   useMemoryStorage(store);
-  writeCurrent('blackwyche', { data: toBase64(MACHINE_CODEC.pack(start)), at: 1, summary: ['MAP'], rooms: 1 });
+  writeCurrent('blackwyche', packSlot(MACHINE_CODEC, start, { at: 1, summary: ['MAP'], rooms: 1 }));
   keepFound('blackwyche', structuredClone(found));
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });

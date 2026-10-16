@@ -11,11 +11,11 @@
 import fs from 'node:fs';
 import { Input, PixelRenderer, type KeyEventLike, type KeyTarget } from 'c64kit';
 import { unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
-import { MACHINE_CODEC } from '../../shared/continue';
+import { MACHINE_CODEC, packSlot } from '../../shared/continue';
 import { NativeHost } from '../../shared/native/host';
 import { setJoy, GAMES } from '../../shared/native/test/games';
 import { cpu, wr } from '../../shared/native/cpu';
-import { keepFound, toBase64, writeCurrent } from '../../shared/saves';
+import { keepFound, writeCurrent } from '../../shared/saves';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { blackwycheMap } from '../src/map';
@@ -67,7 +67,7 @@ async function launch(enhanced: boolean) {
   const store = new Map<string, string>();
   useMemoryStorage(store);
   store.set('blackwyche.assist', JSON.stringify({ enhanced }));
-  writeCurrent('blackwyche', { data: toBase64(MACHINE_CODEC.pack(foot.state)), at: 1, summary: ['LADDER'], rooms: 1 });
+  writeCurrent('blackwyche', packSlot(MACHINE_CODEC, foot.state, { at: 1, summary: ['LADDER'], rooms: 1 }));
   keepFound('blackwyche', foot.found);
   const listeners = new Map<string, ((e: KeyEventLike) => void)[]>();
   const target: KeyTarget = { addEventListener(type: string, fn: (e: KeyEventLike) => void) { listeners.set(type, [...(listeners.get(type) ?? []), fn]); } };

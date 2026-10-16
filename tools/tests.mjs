@@ -24,6 +24,7 @@ export const TESTS = [
   { file: 'games/shared/test/found.ts', set: 'fast' },
   { file: 'games/shared/test/loader.ts', set: 'fast' },
   { file: 'games/shared/test/export.ts', set: 'fast' },
+  { file: 'games/shared/test/old-saves.ts', set: 'fast' },
   { file: 'packages/c64kit/test/effects.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/input.test.ts', set: 'fast' },
   { name: 'touch layer (npm run test:touch)', cmd: ['npm', 'run', '--silent', 'test:touch'], set: 'fast' },

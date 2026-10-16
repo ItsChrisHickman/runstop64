@@ -23,6 +23,7 @@
  */
 import fs from 'node:fs';
 import { Input, PixelRenderer, unpackState } from 'c64kit';
+import { MACHINE_CODEC } from '../../shared/continue';
 import { fromBase64, readSaves, toBase64, writeCurrent } from '../../shared/saves';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { run } from '../src/main';
@@ -41,7 +42,7 @@ const MINE_SET_OFF = 0xb1, MINE = 0x0681, PARTS = [0x067e, 0x067f, 0x0680, 0x068
 
 // a save in the armour (the snapshot): the game launches straight into play from it
 const store = useMemoryStorage();
-writeCurrent('antiriad', { data: toBase64(new Uint8Array(fs.readFileSync('games/antiriad/test/armour.state'))), at: 0, summary: [], rooms: 5 });
+writeCurrent('antiriad', { format: MACHINE_CODEC.format, data: toBase64(new Uint8Array(fs.readFileSync('games/antiriad/test/armour.state'))), at: 0, summary: [], rooms: 5 });
 
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();

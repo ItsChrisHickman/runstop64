@@ -17,6 +17,7 @@ import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { sidLog } from '../../shared/test/kit';
 import { MAP_BOX } from '../../shared/native/pause';
+import { unpackSlot } from '../../shared/continue';
 import { readSaves } from '../../shared/saves';
 import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import { TABLES } from '../src/data';
@@ -147,7 +148,7 @@ tick(10);
 
 // ---- autosave, and the save a faithful copy ------------------------------------------------------------------
 const slot = readSaves('awm').current;
-const saved = must(slot ? CODEC.unpack(Uint8Array.from(atob(slot.data), (c) => c.charCodeAt(0))) : null, 'no save');
+const saved = must(slot ? unpackSlot(CODEC, slot) : null, 'no save');
 check(`the autosave is for the room he is in (${saved.room.toString(16)})`, saved.room === second || saved.room === START_ROOM);
 check('a save read back through the checks', parseSave(readJson(JSON.stringify(saved))) !== null && parseSave({ v: 1, room: 3 }) === null);
 check('the save is described for the save manager', (slot?.summary.length ?? 0) >= 3);
@@ -243,7 +244,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   const q = run({ renderer: r2, input: input2, canvas: nowhere });
   for (let i = 0; i < 8; i++) { input2.poll(); q.tick(); q.render(0); }
   const slot2 = readSaves('awm').current;
-  const latest = must(slot2 ? CODEC.unpack(Uint8Array.from(atob(slot2.data), (c) => c.charCodeAt(0))) : null, 'no save');
+  const latest = must(slot2 ? unpackSlot(CODEC, slot2) : null, 'no save');
   check('launched with a save: straight back into play, in its room, as saved', q.state.kind === 'play' && q.program.game?.world.room === latest.room && q.program.game?.lives === latest.lives);
 }
 

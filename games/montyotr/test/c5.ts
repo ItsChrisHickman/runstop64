@@ -38,7 +38,8 @@ import { run } from '../src/main';
 import { c5Arrive } from '../src/mechanisms';
 import { montyMap } from '../src/map';
 import { CODEC } from '../src/save';
-import { fromBase64, readSaves } from '../../shared/saves';
+import { unpackSlot } from '../../shared/continue';
+import { readSaves } from '../../shared/saves';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { getProp } from '../../shared/guards';
 import { check, finish } from '../../shared/test/check';
@@ -179,7 +180,7 @@ function boot(enhanced: boolean) {
   /** The room's save (the autosave), unpacked. */
   function save() {
     const slot = readSaves('montyotr').current;
-    return slot ? CODEC.unpack(fromBase64(slot.data)) : null;
+    return slot ? unpackSlot(CODEC, slot) : null;
   }
 
   return { p, g, input, tick, tap, until, first, found, places, settled, intoSection, travel, drive, again, press, roomStart, save };

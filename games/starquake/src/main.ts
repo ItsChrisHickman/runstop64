@@ -1,5 +1,6 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
+import { readsFormat } from '../../shared/continue';
 import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
@@ -80,7 +81,7 @@ export function run(host: Host) {
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<Uint8Array, StarquakeFound, Game>(host, {
-    id: 'starquake', font, codec: { pack: (s) => s, unpack: (b) => b }, map: starquakeMap, describe: describeSave,
+    id: 'starquake', font, codec: { format: 1, pack: (s) => s, unpack: (b, format) => { readsFormat('Starquake', format, 1); return b; } }, map: starquakeMap, describe: describeSave,
     // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
     strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
     assists: [

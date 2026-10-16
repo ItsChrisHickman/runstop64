@@ -14,10 +14,10 @@
 import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
 import { packState, unpackState } from '../../../packages/c64kit/src/c64/machine';
-import { MACHINE_CODEC } from '../continue';
+import { MACHINE_CODEC, packSlot } from '../continue';
 import { isRecord, readJson } from '../guards';
 import { NativeHost } from '../native/host';
-import { exportSaves, keepFound, parseExport, readFound, readSaves, startNewGame, toBase64, writeCurrent } from '../saves';
+import { exportSaves, keepFound, parseExport, readFound, readSaves, startNewGame, writeCurrent } from '../saves';
 import { port } from '../../entombed/src/native';
 import { run as runMonty } from '../../montyotr/src/main';
 import { CODEC, snapshot } from '../../montyotr/src/save';
@@ -49,18 +49,18 @@ function exported(id: string, when: Date) {
   const save = () => must(g.save(), 'a save');
   for (let f = 0; f < 200; f++) { g.m.joy1 = g.m.joy2 = f > 50 && f < 60 ? 0x0f : 0x1f; g.tick(); }
   const first = save();
-  writeCurrent('entombed', { data: toBase64(MACHINE_CODEC.pack(first)), at: 1, summary: ['FIRST'], rooms: 4 });
+  writeCurrent('entombed', packSlot(MACHINE_CODEC, first, { at: 1, summary: ['FIRST'], rooms: 4 }));
   keepFound('entombed', { rooms: [1, 2] });
   startNewGame('entombed', readFound('entombed'));
   for (let f = 0; f < 100; f++) { g.m.joy1 = g.m.joy2 = 0x1b; g.tick(); }
   const second = save();
-  writeCurrent('entombed', { data: toBase64(MACHINE_CODEC.pack(second)), at: 2, summary: ['SECOND'], rooms: 2 });
+  writeCurrent('entombed', packSlot(MACHINE_CODEC, second, { at: 2, summary: ['SECOND'], rooms: 2 }));
   keepFound('entombed', { rooms: [3] });
   const before = readSaves('entombed');
 
   const file = exported('entombed', new Date(2026, 9, 14, 12));
   const e = readExport(file);
-  check('entombed: game, save version, build', e.game === 'entombed' && e.v === 2 && e.build === 'test-build');
+  check('entombed: game, save version, build', e.game === 'entombed' && e.v === 3 && e.build === 'test-build');
   check('entombed: both slots exactly as stored, and what has been found', json(e.current) === json(before.current) && json(e.previous) === json(before.previous) && json(e.found) === json({ rooms: [3] }));
   const now = loadSave(file, MACHINE_CODEC), then = loadSave(file, MACHINE_CODEC, 'previous');
   check('entombed: the current save, byte for byte', same(packState(now), packState(second)));
@@ -92,7 +92,7 @@ function monty() {
   input.keyDown('Space'); tick(2); input.keyUp('Space'); tick(20);
   g.score = 4321; g.lives = 7; g.coinCollected[5] = 1;
   const s = snapshot(g);
-  writeCurrent('montyotr', { data: toBase64(CODEC.pack(s)), at: Date.now(), summary: ['TEST'], rooms: 3 });
+  writeCurrent('montyotr', packSlot(CODEC, s, { at: Date.now(), summary: ['TEST'], rooms: 3 }));
 
   const file = exported('montyotr', new Date(2026, 9, 14, 23, 59));
   const loaded = loadSave(file, CODEC);

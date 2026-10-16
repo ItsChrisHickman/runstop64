@@ -2,7 +2,7 @@ import { BitmapFont, KIT_GLYPHS, packState, unpackState, type C64Machine, type I
 import { FLOW_LAYOUT, initialState, panelTop, readIntent, step, stripText, type FlowState, type TitleStrip } from './continue-step';
 import { Grace } from './grace';
 import type { FoundCodec } from './native/pause';
-import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent } from './saves';
+import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent, type SaveBody, type SaveSlot } from './saves';
 
 /**
  * Autosave and continue for every game here (native rewrites, native ports, the original code),
@@ -32,12 +32,41 @@ import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary,
  * rewrite) gives a `codec` to turn its saves into bytes and back.
  */
 export interface SaveCodec<S> {
+  /**
+   * The format `pack` writes: a number that goes up whenever the bytes change. Every stored save
+   * says which format it is in (saves.ts), and `unpack` is told, so it reads or migrates the formats
+   * players already have and refuses (throws on) one it doesn't know, rather than guessing.
+   */
+  readonly format: number;
+  /** For machine saves: which game image this is (stored with each save; not checked on reading). */
+  image?(): string | undefined;
   pack(s: S): Uint8Array;
-  unpack(b: Uint8Array): S;
+  /** The save in the bytes of `format` (the one it was stored in); throws if they're not a save of that format. */
+  unpack(b: Uint8Array, format: number): S;
+}
+
+/** Throws unless a save is in a format its codec reads (`formats`: the ones it does); for `unpack` to begin with. */
+export function readsFormat(game: string, format: number, ...formats: number[]) {
+  if (!formats.includes(format)) throw new Error(`${game}: no save of format ${format} here (reads ${formats.join(', ')})`);
 }
 
 /** Saves as c64kit machine states (games running on the C64 machine). */
-export const MACHINE_CODEC: SaveCodec<MachineState> = { pack: packState, unpack: unpackState };
+export const MACHINE_CODEC: SaveCodec<MachineState> = {
+  format: 1,
+  pack: packState,
+  unpack(b, format) { readsFormat('machine save', format, 1); return unpackState(b); },
+};
+
+/** A save in its envelope's body (saves.ts `writeCurrent`): packed by the codec, with its format and image, and what the caller says about it. */
+export function packSlot<S>(codec: SaveCodec<S>, s: S, rest: Pick<SaveBody, 'at' | 'summary' | 'rooms'>): SaveBody {
+  const image = codec.image?.();
+  return { format: codec.format, ...(image === undefined ? {} : { image }), data: toBase64(codec.pack(s)), ...rest };
+}
+
+/** A stored save, unpacked by the codec in the format it was stored in. */
+export function unpackSlot<S>(codec: SaveCodec<S>, slot: SaveSlot): S {
+  return codec.unpack(fromBase64(slot.data), slot.format);
+}
 
 export interface ContinueOptions<S, F> {
   /** Storage key prefix, e.g. 'entombed'. */
@@ -202,7 +231,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     const slot = readSaves(this.opts.id).current;
     if (!slot) return null;
     try {
-      const s = this.codec.unpack(fromBase64(slot.data));
+      const s = unpackSlot(this.codec, slot);
       this.loadedRooms = slot.rooms;
       return s;
     } catch { return null; }
@@ -212,7 +241,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     try {
       this.st = { ...this.st, rooms: this.st.rooms + 1 };
       const found = this.foundNow();
-      writeCurrent(this.opts.id, { data: toBase64(this.codec.pack(s)), at: Date.now(), summary: this.summary(s, found), rooms: this.st.rooms });
+      writeCurrent(this.opts.id, packSlot(this.codec, s, { at: Date.now(), summary: this.summary(s, found), rooms: this.st.rooms }));
       // what's been found goes with it (the map's progress: rooms, places to travel to), so the
       // game continued later has the map as it was, not as it was when the pause screen last closed
       keepFound(this.opts.id, found);
@@ -229,7 +258,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     const slot = readSaves(this.opts.id).current;
     if (!slot || slot.summary.length || !this.opts.describe) return;
     try {
-      const summary = this.summary(this.codec.unpack(fromBase64(slot.data)), this.opts.found.parse(readFound(this.opts.id)));
+      const summary = this.summary(unpackSlot(this.codec, slot), this.opts.found.parse(readFound(this.opts.id)));
       if (summary.length) writeCurrent(this.opts.id, { ...slot, summary });
     } catch { /* not one this game reads */ }
   }
