@@ -1,7 +1,6 @@
 import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
-import { FLOW_LAYOUT, panelTop } from './continue-step';
-import { drawPause, MAP_BOX, PAUSE_TAP, type Found, type PauseMap } from './native/pause';
+import { drawPause, MAP_BOX, PAUSE_TAP, type PauseMap } from './native/pause';
 import { keepFound, readFound } from './saves';
 import { readJson } from './guards';
 
@@ -9,11 +8,13 @@ import { readJson } from './guards';
  * The parts of a game's front end that don't depend on how the game runs (a
  * translated port on a C64 model, or a native rewrite): the pause screen with
  * its map and travel, the ORIGINAL/ENHANCED switch (one per game, ENHANCED unless
- * switched off, remembered: AGENTS.md), and the options panel for games without a map. (The C64/HD
- * switch is a system setting, not the game's: the shell's, games/shared/view.ts.)
+ * switched off, remembered: AGENTS.md). (The C64/HD switch is a system setting, not the game's: the
+ * shell's, games/shared/view.ts.)
  *
  * `T` is what the game's PauseMap reads: a C64's RAM for translated ports, the
- * game's own state for native ones. The game says when the pause screen may
+ * game's own state for native ones; `F` is what the map keeps of the player's progress (its
+ * `found` codec reads what was kept once, when the front end starts, and a new game starts it
+ * empty). The game says when the pause screen may
  * open and takes the player to a place picked on the map (`going`) at a safe
  * point of its own; "back to room start" and "back to the title" are requests it carries out.
  */
@@ -34,42 +35,35 @@ export interface AssistSpec {
   default?: boolean;
 }
 
-export interface FrontEndOptions<T> {
+export interface FrontEndOptions<T, F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   input: Input;
   renderer: Renderer;
-  map?: PauseMap<T>;
+  map: PauseMap<T, F>;
   assists: AssistSpec[];
-  /** The panels' font and box (the continue flow's). */
+  /** The pause screen's font (the continue flow's). */
   font(): BitmapFont;
-  panel(lines: string[]): void;
-  /** Whether there's a room start to go back to (play under way, with a save). */
-  canGoBack(): boolean;
   /** The saves (the game's ContinueFlow): told when a new game begins, and where what's been found is. */
-  saves: SaveHistory;
+  saves: SaveHistory<F>;
   /** A screen closed: the press that closed it shouldn't carry into play. */
   onClose(): void;
 }
 
 export const PAUSE_KEYS = ['KeyP', 'Escape', 'PadStart'];
 
-/** What the player asked for on the pause screen (or the options), for the game to carry out. */
+/** What the player asked for on the pause screen, for the game to carry out. */
 export type PauseRequest = 'roomStart' | 'title' | null;
 
-export class FrontEnd<T> {
+export class FrontEnd<T, F> {
   /** Each assist on or off (by id), as the ENHANCED switch and its role decide. */
   readonly assist: Record<string, boolean> = { health: false, lives: false, hints: false };
   /** The ENHANCED switch (on unless switched to ORIGINAL), remembered. */
   enhanced = true;
   /** What the player has found (for the map), kept with the saves. */
-  found: Found = {};
-  /** Which screen of the front end's is up: none (the game), the pause screen (games with a map) or the options panel (games without). */
-  private screen: 'game' | 'pause' | 'options' = 'game';
-  /** The pause screen is up. */
-  get paused() { return this.screen === 'pause'; }
-  /** The options panel is up. */
-  get optionsOpen() { return this.screen === 'options'; }
+  found: F;
+  /** The pause screen is up (the game waits). */
+  paused = false;
   /** A place picked on the map to go to (the game takes the player there, then clears it). */
   going: string | null = null;
   private pauseTicks = 0;
@@ -79,14 +73,14 @@ export class FrontEnd<T> {
   get picked() { return this.pickId; }
   private readonly assistKey: string;
 
-  constructor(private readonly o: FrontEndOptions<T>) {
+  constructor(private readonly o: FrontEndOptions<T, F>) {
     this.assistKey = `${o.id}.assist`;
     try {
       const kept: unknown = readJson(localStorage.getItem(this.assistKey) ?? '{}');
       if (typeof kept === 'object' && kept !== null && 'enhanced' in kept && typeof kept.enhanced === 'boolean') this.enhanced = kept.enhanced;
     } catch { /* ENHANCED */ }
     this.apply();
-    this.found = readFound(o.id);
+    this.found = o.map.found.parse(readFound(o.id));
     o.saves.watchFound(() => this.found);
   }
 
@@ -101,8 +95,8 @@ export class FrontEnd<T> {
       this.assist[a.id] = role === 'always' ? true : role === 'never' ? false : this.enhanced;
     }
   }
-  /** The game waits (the pause screen or the options are up). */
-  get holding() { return this.screen !== 'game'; }
+  /** The game waits (the pause screen is up). */
+  get holding() { return this.paused; }
 
   /** ORIGINAL <-> ENHANCED. */
   toggleEnhanced() {
@@ -118,25 +112,25 @@ export class FrontEnd<T> {
   keepFound() { keepFound(this.o.id, this.found); }
 
   /** A new game: the save so far is kept as the previous one (with what had been found), and nothing is found yet. */
-  newGame() { this.o.saves.beginNewGame(this.found); this.found = {}; this.keepFound(); }
+  newGame() { this.o.saves.beginNewGame(this.found); this.found = this.o.map.found.empty(); this.keepFound(); }
 
-  /** Whether a pause key was pressed now (in play, with a map): if so the pause screen opens. */
+  /** Whether a pause key was pressed now (in play): if so the pause screen opens. */
   pauseKey(state: T, canPause: boolean) {
     const { input } = this.o;
-    if (!this.o.map || this.paused || !canPause || !input.typed.some((c) => PAUSE_KEYS.includes(c))) return false;
+    if (this.paused || !canPause || !input.typed.some((c) => PAUSE_KEYS.includes(c))) return false;
     this.openPause(state);
     input.typed.length = 0;
     return true;
   }
 
   openPause(state: T) {
-    this.screen = 'pause'; this.pauseTicks = 0;
-    this.page = this.o.map?.pages?.(state, this.found).current;
+    this.paused = true; this.pauseTicks = 0;
+    this.page = this.o.map.pages?.(state, this.found).current;
     this.pickId = null;
   }
 
   private close() {
-    this.screen = 'game';
+    this.paused = false;
     this.o.onClose();
     this.keepFound();
   }
@@ -163,9 +157,9 @@ export class FrontEnd<T> {
     const footTap = input.points.some((t) => t.y >= PAUSE_TAP.footY);
     if (this.pauseTicks > 1 && (footTap || input.typed.some((c) => PAUSE_KEYS.includes(c)))) this.close();
     const map = this.o.map;
-    const pick = this.paused && map ? this.mapControls(state, map) : null;
+    const pick = this.paused ? this.mapControls(state, map) : null;
     update();
-    if (this.paused && map) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch });
+    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch });
     return null;
   }
 
@@ -173,7 +167,7 @@ export class FrontEnd<T> {
    * The pause map's controls, for maps with places to go back to: < and > (or [ and ]) turn
    * the pages, the arrows pick a place, Enter (or fire) goes there. Returns the pick.
    */
-  private mapControls(state: T, map: PauseMap<T>) {
+  private mapControls(state: T, map: PauseMap<T, F>) {
     const { input } = this.o;
     if (!map.places || !map.go) return null;
     const pages = map.pages?.(state, this.found);
@@ -223,43 +217,12 @@ export class FrontEnd<T> {
     return { x: pick.x, y: pick.y, r: pick.r, rx: pick.rx, id: pick.id };
   }
 
-  /** A frame of the options panel (games without a map). Returns 'roomStart' or 'title' when asked for (keys, or a tap on its line). */
-  optionsTick(update: () => void): PauseRequest {
-    const { input } = this.o;
-    const lines = this.optionLines();
-    // (the panel's lines are where continue.ts `panel` puts them)
-    const top = panelTop(lines.length);
-    const tapped = input.points.map((t) => lines[Math.floor((t.y - top + 2) / FLOW_LAYOUT.lineStep)]?.id).filter((id) => id !== undefined && id !== '');
-    if (this.hasSwitch && (['Enter', 'Space', 'KeyE'].some((k) => input.typed.includes(k)) || tapped.includes('E'))) this.toggleEnhanced();
-    if (input.typed.includes('KeyB') || tapped.includes('B')) return 'roomStart';
-    if (input.typed.includes('KeyT') || tapped.includes('T')) return 'title';
-    if (input.typed.includes('Escape') || input.typed.includes('KeyP') || input.typed.includes('PadStart') || tapped.includes('X')) this.screen = 'game';
-    update();
-    this.o.panel(this.optionLines().map((l) => l.text));
-    if (!this.optionsOpen) this.o.onClose();
-    return null;
-  }
-
-  /** The options panel's lines, each with what a tap on it does ('' nothing). */
-  private optionLines() {
-    const touch = this.o.input.touch;
-    const back = this.o.canGoBack() ? [{ text: 'B  BACK TO ROOM START', id: 'B' }] : [];
-    const title = { text: 'T  BACK TO THE TITLE', id: 'T' };
-    const blank = { text: '', id: '' };
-    if (!this.hasSwitch) return [{ text: 'OPTIONS', id: '' }, blank, ...back, title, blank, { text: touch ? 'TAP HERE: BACK' : 'ESC BACK', id: 'X' }];
-    return [{ text: 'OPTIONS', id: '' }, blank, { text: `E  ${this.enhanced ? 'ENHANCED' : 'ORIGINAL'}`, id: 'E' }, ...back, title, blank, { text: touch ? 'TAP ONE    TAP HERE: BACK' : 'ENTER CHANGE    ESC BACK', id: 'X' }];
-  }
-
-  /** The gear (or the touch PAUSE button): the pause screen (or back from it), or the options. */
+  /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
   menu(state: T, canPause: boolean) {
-    if (this.o.map) {
-      if (this.paused) this.close();
-      else if (canPause) this.openPause(state);
-      return;
-    }
-    this.screen = this.screen === 'options' ? 'game' : 'options';
+    if (this.paused) this.close();
+    else if (canPause) this.openPause(state);
   }
 
-  /** "Back to room start" was carried out: the screens close. */
-  wentBack() { this.screen = 'game'; }
+  /** "Back to room start" was carried out: the pause screen closes. */
+  wentBack() { this.paused = false; }
 }

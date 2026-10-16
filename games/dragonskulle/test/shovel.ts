@@ -21,12 +21,11 @@ import fs from 'node:fs';
 import { C64, unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { NativeHost } from '../../shared/native/host';
 import { cpu } from '../../shared/native/cpu';
-import { isNumbers, isRecordOf, type Found } from '../../shared/native/pause';
 import { must } from '../../shared/test/must';
 import { port } from '../src/native';
 import { dragonskulleMap } from '../src/map';
 import { playing } from '../src/travel';
-import { cloneRecord, readRoutes } from '../../shared/test/data';
+import { readRoutes } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
 
 
@@ -87,27 +86,27 @@ const routes = readRoutes('games/dragonskulle/re/routes.json');
 const title = unpackState(new Uint8Array(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state')));
 let walked: MachineState | null = null, end: MachineState | null = null;
 let belowX = -1; // where he went up out of the screen below into the shovel's room
-const found: Found = {};
+const found = dragonskulleMap.found.empty();
 const walkedAt = new Map<string, MachineState>(); // each place as walking came onto it
 for (const rle of routes) {
   if (walked) continue;
   const g = new NativeHost(port, title);
-  const noted: Found = {};
+  const noted = dragonskulleMap.found.empty();
   let frame = 0;
   for (let i = 0; i < rle.length; i += 2) for (let k = 0; k < rle[i + 1]; k++) {
     g.m.joy1 = g.m.joy2 = rle[i] & 0x1f; g.m.keys = rle[i] & 32 ? [[1, 2]] : [];
     g.tick(); keep(g.m.ram); frame++;
     if (frame <= 300 || g.lastWait !== port.mainLoopWait) continue;
-    const before = Object.keys(isRecordOf(noted.at, isNumbers) ? noted.at : {}).length;
+    const before = Object.keys(noted.at).length;
     dragonskulleMap.observe(g.m.ram, noted, g.m.vic);
-    if (!walked && Object.keys(isRecordOf(noted.at, isNumbers) ? noted.at : {}).length > before) walkedAt.set(cell(g.m.ram), saved(g));
+    if (!walked && Object.keys(noted.at).length > before) walkedAt.set(cell(g.m.ram), saved(g));
     if (cell(g.m.ram) === BELOW && g.m.ram[0x341c] !== ROOM) belowX = g.m.ram[0x341d] + (g.m.vic[0x10] & 4 ? 256 : 0);
     if (!walked && g.m.ram[0x341c] === ROOM) walked = saved(g);
   }
   if (walked) { end = saved(g); Object.assign(found, noted); }
 }
 const W = must(walked, `a route into the shovel's room (${CELL})`), E = must(end, 'the route\'s end');
-const at = isRecordOf(found.at, isNumbers) ? found.at : {};
+const at = found.at;
 const places = Object.keys(at).filter((k) => k !== CELL);
 check(`walked into its room (${CELL}, block ${W.ram[0x341c]}); places noted on the way: ${Object.keys(at).join(' ')}`, !!at[CELL] && places.includes(BELOW));
 const want = shovel(native(W));
@@ -121,7 +120,7 @@ function travel(s: MachineState, id: string): MachineState {
     if (done || site !== port.mainLoopWait) return;
     done = true;
     const regs = { ...cpu };
-    ok = dragonskulleMap.go?.(id, g.m.ram, cloneRecord(found)) ?? false;
+    ok = dragonskulleMap.go?.(id, g.m.ram, structuredClone(found)) ?? false;
     Object.assign(cpu, regs);
   };
   g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); keep(g.m.ram);

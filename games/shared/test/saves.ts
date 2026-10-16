@@ -50,7 +50,13 @@ const CODEC: SaveCodec<Save> = {
     return { room: v.room, lives: v.lives };
   },
 };
-const MAP: PauseMap<Save> = {
+/** What the stand-in map finds: the rooms been in. */
+type Seen = Record<string, true>;
+const MAP: PauseMap<Save, Seen> = {
+  found: {
+    empty: () => ({}),
+    parse: (kept) => Object.fromEntries(Object.entries(isRecord(kept) ? kept : {}).filter(([, v]) => v === true).map(([k]) => [k, true as const])),
+  },
   observe(s, found) { found[String(s.room)] = true; },
   title: (s) => `ROOM ${s.room}`,
   draw() {},
@@ -60,11 +66,10 @@ const MAP: PauseMap<Save> = {
 /** The game as launched (a page load): its front end and saves, from what's in storage. */
 function launch(id = 'test') {
   const game = { onTitle: true, room: 0, lives: 3 };
-  const flow = new ContinueFlow<Save>({ id, renderer, input, font: 'kit', codec: CODEC, describe: (s, found) => [MAP.title(s), ...MAP.info(s, found)] });
-  const fe: FrontEnd<Save> = new FrontEnd<Save>({
+  const flow = new ContinueFlow<Save, Seen>({ id, renderer, input, font: 'kit', codec: CODEC, found: MAP.found, describe: (s, found) => [MAP.title(s), ...MAP.info(s, found)] });
+  const fe: FrontEnd<Save, Seen> = new FrontEnd<Save, Seen>({
     id, input, renderer, map: MAP, assists: [],
-    font: () => flow.getFont(), panel: (l) => flow.panel(l),
-    canGoBack: () => !game.onTitle && flow.state.hasSave, saves: flow, onClose() {},
+    font: () => flow.getFont(), saves: flow, onClose() {},
   });
   const status = () => ({ onTitle: game.onTitle, room: game.onTitle || fe.holding ? null : game.room, save: () => ({ room: game.room, lives: game.lives }) });
   return {

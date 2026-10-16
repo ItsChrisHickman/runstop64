@@ -121,10 +121,10 @@ const start = gameStart();
 // the corridors: a junction on each floor
 for (let floor = 1; floor <= 7; floor++) {
   const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
-  const places = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, start.ram, { cells: { [floor]: all } });
+  const places = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, start.ram, entombedMap.found.parse({ cells: { [floor]: all } }));
   for (let r = 0; r < RUNS && places.length; r++) {
     const to = places[(r * 7) % places.length].id;
-    const g = host(start, (ram) => { entombedMap.go(to, ram, {}); });
+    const g = host(start, (ram) => { entombedMap.go(to, ram, entombedMap.found.empty()); });
     for (let f = 0; f < 3; f++) g.tick();
     fight(must(g.save(), 'a save'), floor * 100 + r, `floor ${floor} ${to}`);
   }

@@ -52,7 +52,7 @@ async function launch(store = new Map<string, string>()) {
   };
   s.tick(80); s.tap('Space'); s.tick(230);
   // (as travel goes: a spot there, picked)
-  p.state.found.stand = { ...(p.state.found.stand ?? {}), [BINS]: FLOOR };
+  p.state.found.stand = { ...p.state.found.stand, [BINS]: FLOOR };
   p.frontEnd.going = String(BINS);
   s.tick(200);
   return s;
@@ -122,7 +122,7 @@ check(`B in Hades: back to room 60's save (${b.room()}), alive 300 frames on (li
 
 // ---- travel from Hades, in the fall, to the drain ----
 const t = await launch();
-t.p.state.found.stand = { ...(t.p.state.found.stand ?? {}), [DRAIN]: [52, 1, 70] }; // (where he lands from the toilet)
+t.p.state.found.stand = { ...t.p.state.found.stand, [DRAIN]: [52, 1, 70] }; // (where he lands from the toilet)
 intoHades(t);
 t.tick(10);
 const tLives = t.lives();

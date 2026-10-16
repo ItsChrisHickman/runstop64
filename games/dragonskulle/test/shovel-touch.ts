@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer, TRANSPARENT, packState, unpackState } from 'c64kit';
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
-import { MAP_BOX, isNumbers, isRecordOf, mapSummary, type Found } from '../../shared/native/pause';
+import { MAP_BOX, mapSummary } from '../../shared/native/pause';
 import { NativeHost } from '../../shared/native/host';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { port } from '../src/native';
@@ -38,11 +38,11 @@ const ROOM = 18, CELL = '4,2', BELOW = '4,1';
 // ---- a save just inside the shovel's room, and the map as walking there noted it ------------------------
 const routes = readRoutes('games/dragonskulle/re/routes.json');
 let inRoom = '';
-const walkedFound: Found = {};
+const walkedFound = dragonskulleMap.found.empty();
 for (const rle of routes) {
   if (inRoom) continue;
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
-  const noted: Found = {};
+  const noted = dragonskulleMap.found.empty();
   let frame = 0;
   walk: for (let i = 0; i < rle.length; i += 2) for (let k = 0; k < rle[i + 1]; k++) {
     g.m.joy1 = g.m.joy2 = rle[i] & 0x1f; g.m.keys = rle[i] & 32 ? [[1, 2]] : [];
@@ -57,7 +57,7 @@ for (const rle of routes) {
     }
   }
 }
-const at = isRecordOf(walkedFound.at, isNumbers) ? walkedFound.at : {};
+const at = walkedFound.at;
 check(`a save just inside the shovel's room (${CELL}), the screens before it noted (${Object.keys(at).join(' ')})`, !!inRoom && !!at[CELL] && !!at[BELOW]);
 
 // ---- the front end, launched with a save (as a reload does) ---------------------------------------------

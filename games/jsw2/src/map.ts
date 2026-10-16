@@ -1,5 +1,5 @@
 import { isNumber, isRecord } from '../../shared/guards';
-import { COL, MAP_BOX, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, MAP_BOX, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
 import { MANSION, MANSION_SIZE } from './mansion';
 
@@ -13,37 +13,12 @@ import { MANSION, MANSION_SIZE } from './mansion';
 const roomOf = (ram: Uint8Array) => ram[0x13];
 const livesOf = (ram: Uint8Array) => { let n = 0; for (let b = ram[0x8096]; b; b >>= 1) n += b & 1; return n; };
 
-// What's been found is plain JSON kept in the browser: read back through these checks.
 type Spot = [number, number, number];
 const isSpot = (v: unknown): v is Spot => Array.isArray(v) && v.length === 3 && v.every(isNumber);
 const isSpots = (v: unknown): v is Record<string, Spot> => isRecord(v) && Object.values(v).every(isSpot);
-const isTo = (v: unknown): v is { room: number; at: Spot } => isRecord(v) && isNumber(v.room) && isSpot(v.at);
-
-function visitedOf(f: Found): number[] {
-  const v = f.rooms;
-  if (Array.isArray(v) && v.every(isNumber)) return v;
-  const rooms: number[] = [];
-  f.rooms = rooms;
-  return rooms;
-}
-
-/**
- * Travel: where Willy came into each room (x, its high bit, y), to put him back there. Willy is at
- * ($8062 + 256 * bit 0 of $8072, $8063) (the game keeps copies: $82C0/$82D9 of x, $82C8/$82DA of
- * its high bit). The game notes where he came into a room ($4C3A: $82A8 x, $82AC its high bit,
- * $82A9 y) and starts him there again after he loses a life.
- */
-function standOf(f: Found): Record<string, Spot> {
-  const v = f.stand;
-  if (isSpots(v)) return v;
-  const stand: Record<string, Spot> = {};
-  f.stand = stand;
-  return stand;
-}
-/** On his feet: not jumping ($82E4), not in a jump's rise ($8292), not on a rope ($835D), not falling ($82D7). */
-const standing = (ram: Uint8Array) => !ram[0x82e4] && !ram[0x8292] && !ram[0x835d] && !ram[0x82d7];
-const here = (ram: Uint8Array): Spot => [ram[0x8062], ram[0x8072] & 1, ram[0x8063]];
-const entry = (ram: Uint8Array): Spot => [ram[0x82a8], ram[0x82ac] & 1, ram[0x82a9]];
+/** A place picked on the map to go to, still to be put right once he is in the room. */
+interface Destination { room: number; at: Spot }
+const isTo = (v: unknown): v is Destination => isRecord(v) && isNumber(v.room) && isSpot(v.at);
 
 /**
  * Coming into a room (kept in what's been found while he's there): the spot to travel back to,
@@ -54,6 +29,33 @@ const entry = (ram: Uint8Array): Spot => [ram[0x82a8], ram[0x82ac] & 1, ram[0x82
 interface Arrival { room: number; at: Spot | null; n: number; air: boolean; feet: number; y: number; lives: number; count: number }
 const isArrival = (v: unknown): v is Arrival => isRecord(v) && isNumber(v.room) && (v.at === null || isSpot(v.at)) && isNumber(v.n)
   && typeof v.air === 'boolean' && isNumber(v.feet) && isNumber(v.y) && isNumber(v.lives) && isNumber(v.count);
+
+/**
+ * What the map keeps of the player's progress: the rooms visited; travel: where Willy came into
+ * each room (x, its high bit, y), to put him back there; the arrival being noted in the room he is
+ * in; and the place picked to go to. Willy is at
+ * ($8062 + 256 * bit 0 of $8072, $8063) (the game keeps copies: $82C0/$82D9 of x, $82C8/$82DA of
+ * its high bit). The game notes where he came into a room ($4C3A: $82A8 x, $82AC its high bit,
+ * $82A9 y) and starts him there again after he loses a life.
+ */
+export interface Jsw2Found { rooms: number[]; stand: Record<string, Spot>; arrival: Arrival | null; to: Destination | null }
+const FOUND: FoundCodec<Jsw2Found> = {
+  empty: () => ({ rooms: [], stand: {}, arrival: null, to: null }),
+  parse: (kept) => {
+    const f = isRecord(kept) ? kept : {};
+    return {
+      rooms: Array.isArray(f.rooms) && f.rooms.every(isNumber) ? f.rooms : [],
+      stand: isSpots(f.stand) ? f.stand : {},
+      arrival: isArrival(f.arrival) ? f.arrival : null,
+      to: isTo(f.to) ? f.to : null,
+    };
+  },
+};
+/** On his feet: not jumping ($82E4), not in a jump's rise ($8292), not on a rope ($835D), not falling ($82D7). */
+const standing = (ram: Uint8Array) => !ram[0x82e4] && !ram[0x8292] && !ram[0x835d] && !ram[0x82d7];
+const here = (ram: Uint8Array): Spot => [ram[0x8062], ram[0x8072] & 1, ram[0x8063]];
+const entry = (ram: Uint8Array): Spot => [ram[0x82a8], ram[0x82ac] & 1, ram[0x82a9]];
+
 /**
  * His steps on his feet that make sure of it. Willy moves every few passes of the main loop (the
  * countdown at $8207, set again from the room's speed when it runs out), and only then does the game look
@@ -73,8 +75,8 @@ const LIVED = 50;
  * can't start a fall. Kept once he has lived a second after it in the room (or left it alive): a
  * spot where something kills him at once isn't kept, and the room's spot is looked for again.
  */
-function noteArrival(ram: Uint8Array, found: Found, room: number) {
-  const lives = livesOf(ram), was = found.arrival, last = isArrival(was) ? was : null;
+function noteArrival(ram: Uint8Array, found: Jsw2Found, room: number) {
+  const lives = livesOf(ram), last = found.arrival;
   let a: Arrival;
   if (last && last.room === room) a = last;
   else {
@@ -102,18 +104,18 @@ function noteArrival(ram: Uint8Array, found: Found, room: number) {
  * Whether he's found his feet in the room he's in (FEET steps with floor under him, as travel's spot
  * needs): the autosave waits for it (main.ts `safe`), so a save is never in mid-air.
  */
-export const footing = (ram: Uint8Array, found: Found) => isArrival(found.arrival) && found.arrival.room === roomOf(ram) && found.arrival.at !== null;
-function keep(found: Found, room: number, at: Spot) {
-  const stand = standOf(found);
+export const footing = (ram: Uint8Array, found: Jsw2Found) => found.arrival !== null && found.arrival.room === roomOf(ram) && found.arrival.at !== null;
+function keep({ stand }: Jsw2Found, room: number, at: Spot) {
   if (!stand[room] && MANSION[room]) stand[room] = at;
 }
 
-export const jsw2Map: PauseMap = {
+export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
+  found: FOUND,
   observe(ram, found) {
-    const room = roomOf(ram), seen = visitedOf(found), to = found.to;
+    const room = roomOf(ram), seen = found.rooms, to = found.to;
     if (MANSION[room] && !seen.includes(room)) seen.push(room);
     // arriving somewhere picked on the map: put him where he came in before (the game's own restart spot too)
-    if (isTo(to) && to.room === room) {
+    if (to && to.room === room) {
       const [x, hi, y] = to.at;
       ram[0x8062] = ram[0x82a8] = ram[0x82c0] = ram[0x82d9] = x; ram[0x8063] = ram[0x82a9] = y;
       ram[0x8072] = (ram[0x8072] & 0xfe) | hi; ram[0x82c8] = ram[0x82ac] = ram[0x82da] = hi;
@@ -121,15 +123,14 @@ export const jsw2Map: PauseMap = {
       // and a fall begun before travel is forgotten: the game starts him again where a fall from another
       // room began ($5236, the spot and room at $7ABA-$7ABD), which would be the room left
       ram[0x7aba] = x; ram[0x7abb] = hi; ram[0x7abc] = y; ram[0x7abd] = room;
-      delete found.to;
+      found.to = null;
       return;
     }
-    delete found.still; // (kept by the stand-still rule before)
     noteArrival(ram, found, room);
   },
   title: (ram) => (MANSION[roomOf(ram)]?.name ?? 'THE MANSION').slice(0, 26),
   draw(s, box, ram, found, blink) {
-    const seen = new Set(visitedOf(found)), here = roomOf(ram);
+    const seen = new Set(found.rooms), here = roomOf(ram);
     const { cell, cx, cy } = layout(box);
     const size = Math.max(3, cell - 2), done = itemsFound(ram) >= NEED;
     // exits between rooms side by side on the map (right and down: each pair once)
@@ -145,7 +146,7 @@ export const jsw2Map: PauseMap = {
     for (const [n, r] of Object.entries(MANSION)) {
       const room = Number(n);
       // been in and can travel back to (he found his feet there): yellow; only passed through: brown
-      const stood = !!standOf(found)[room];
+      const stood = !!found.stand[room];
       const colour = room === here ? (blink ? COL.white : COL.yellow) : !seen.has(room) ? COL.dgrey : stood ? COL.yellow : COL.brown;
       const lit = room === BEDROOM && done && !blink && room !== here ? COL.white : colour;
       s.fillRect(cx(r.x) - (size >> 1), cy(r.y) - (size >> 1), size, size, lit);
@@ -155,13 +156,13 @@ export const jsw2Map: PauseMap = {
   },
   // Places to go back to: the rooms he's found his feet in.
   places(box, ram, found) {
-    const { cx, cy } = layout(box), stand = standOf(found);
+    const { cx, cy } = layout(box), { stand } = found;
     return Object.keys(stand).map(Number).filter((n) => MANSION[n]).map((n) => ({ id: String(n), x: cx(MANSION[n].x), y: cy(MANSION[n].y), here: n === roomOf(ram) }));
   },
   // Going: the game's own way into a room, as if he'd dropped out of the bottom of this one
   // into it (the room left is kept as it is, the new one set up); then he's where he came in (noteArrival).
   go(id, ram, found) {
-    const room = Number(id), at = standOf(found)[room];
+    const room = Number(id), at = found.stand[room];
     if (!at || !MANSION[room]) return false;
     ram[0x816c] = room; // the way down leads there
     ram[0x8063] = 0xa2; // and he's at the bottom
@@ -174,7 +175,7 @@ export const jsw2Map: PauseMap = {
   legend: [{ colour: COL.yellow, text: 'TRAVEL' }, { colour: COL.brown, text: 'NO TRAVEL' }, { colour: COL.cyan, text: 'ITEMS' }],
   info(ram, found) {
     const n = itemsFound(ram);
-    return [`ROOMS   ${String(visitedOf(found).length).padStart(3)}`, `ITEMS   ${String(n).padStart(3)}`, `   OF ${TOTAL}`, n >= NEED ? 'GO TO BED' : `NEED    ${NEED}`, `LIVES     ${livesOf(ram)}`];
+    return [`ROOMS   ${String(found.rooms.length).padStart(3)}`, `ITEMS   ${String(n).padStart(3)}`, `   OF ${TOTAL}`, n >= NEED ? 'GO TO BED' : `NEED    ${NEED}`, `LIVES     ${livesOf(ram)}`];
   },
 };
 

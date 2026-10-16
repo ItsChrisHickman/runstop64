@@ -9,7 +9,7 @@ import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
 import { Stick } from './input';
-import { awmMap, describeSave, noteRoom } from './map';
+import { awmMap, describeSave, noteRoom, type AwmFound } from './map';
 import { Program, type Controls } from './program';
 import { CODEC, snapshot, type AwmSave } from './save';
 import { SOUND } from './sound';
@@ -103,14 +103,12 @@ export function run(host: Host) {
   // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
   const font = awmFont();
   // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
-  const flow = new ContinueFlow<AwmSave>({ id: 'awm', renderer, input, font, codec: CODEC, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
+  const flow = new ContinueFlow<AwmSave, AwmFound>({ id: 'awm', renderer, input, font, codec: CODEC, found: awmMap.found, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
   const latch = new FireLatch();
-  const fe = new FrontEnd<Program>({
+  const fe = new FrontEnd<Program, AwmFound>({
     id: 'awm', input, renderer, map: awmMap,
     assists: [{ id: 'safe', long: 'SAFE RESPAWN' }],
     font: () => font,
-    panel: (lines) => flow.panel(lines),
-    canGoBack: () => program.kind === 'play' && flow.state.hasSave,
     saves: flow,
     onClose: () => latch.hold(),
   });

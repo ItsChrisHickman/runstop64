@@ -43,7 +43,7 @@ stubFetch(titleBytes);
     if (done || site !== port.mainLoopWait) return;
     done = true; const r = { ...cpu };
     const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
-    entombedMap.go(entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, { cells: { 1: all } })[0].id, g.m.ram, {});
+    entombedMap.go(entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, entombedMap.found.parse({ cells: { 1: all } }))[0].id, g.m.ram, entombedMap.found.empty());
     g.m.ram[0x322e] = 1; g.m.ram[0x3215] = 2; // (the whip, chosen)
     Object.assign(cpu, r);
   };

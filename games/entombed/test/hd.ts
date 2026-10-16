@@ -60,7 +60,7 @@ function corridor(): MachineState {
     if (done || site !== port.mainLoopWait) return;
     done = true; const r = { ...cpu };
     const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
-    entombedMap.go(entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, { cells: { 1: all } })[3].id, g.m.ram, {});
+    entombedMap.go(entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, entombedMap.found.parse({ cells: { 1: all } }))[3].id, g.m.ram, entombedMap.found.empty());
     Object.assign(cpu, r);
   };
   for (let f = 0; f < 30; f++) { g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); }
@@ -129,7 +129,7 @@ for (const { name, state, light, behindMost, carried = true } of rooms) {
     g.onWait = (site) => {
       if (done || site !== port.mainLoopWait) return;
       done = true; const r = { ...cpu };
-      entombedMap.go(id, g.m.ram, {});
+      entombedMap.go(id, g.m.ram, entombedMap.found.empty());
       Object.assign(cpu, r);
     };
     for (let f = 0; f < 6; f++) { g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); }

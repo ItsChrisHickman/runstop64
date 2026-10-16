@@ -27,7 +27,7 @@ import fs from 'node:fs';
 import { unpackState, type MachineState } from '../../../../packages/c64kit/src/c64/machine';
 import { cpu } from '../cpu';
 import { NativeHost } from '../host';
-import { isNumbers, isRecordOf, type Found, type PauseMap } from '../pause';
+import type { PauseMap } from '../pause';
 import { GAMES, setJoy } from './games';
 import { karnathMap, travelPlaces as karnathPlaces } from '../../../karnath/src/map';
 import { LOCATION as KARNATH_LOCATION, toMode as karnathToMode } from '../../../karnath/src/travel';
@@ -41,19 +41,35 @@ import { blackwycheMap, travelPlaces as blackwychePlaces } from '../../../blackw
 import { DECK as BLACKWYCHE_DECK, canTravel as blackwycheCanTravel, placeId as blackwychePlaceId, toDeck as blackwycheToDeck, where as blackwycheWhere } from '../../../blackwyche/src/travel';
 import { ROOMS as BLACKWYCHE_ROOMS } from '../../../blackwyche/src/rooms';
 import * as blackwycheEngine from '../../../blackwyche/src/gen/engine';
-import { cellKey as dragonskulleKey, dragonskulleMap } from '../../../dragonskulle/src/map';
+import { cellKey as dragonskulleKey, dragonskulleMap, type DragonskulleFound } from '../../../dragonskulle/src/map';
 import { LOCATION as DRAGONSKULLE_LOCATION, playing as dragonskullePlaying } from '../../../dragonskulle/src/travel';
 import { ROOMS as DRAGONSKULLE_ROOMS } from '../../../dragonskulle/src/rooms';
 import * as dragonskulleEngine from '../../../dragonskulle/src/gen/engine';
-import { cloneRecord, readRoutes } from '../../test/data';
+import { readRoutes } from '../../test/data';
+
+/** What this test does with a game's progress record (each game's has its own type): note places, say which are noted, go to one, copy. */
+interface Progress {
+  observe(ram: Uint8Array, vic: Uint8Array): void;
+  /** The places noted: where he first stood in each (the record's own container, so changes to it are the record's). */
+  noted(): Record<string, number[]>;
+  go(key: string, ram: Uint8Array): boolean | void;
+  clone(): Progress;
+}
+function progress<F>(map: PauseMap<Uint8Array, F>, noted: (found: F) => Record<string, number[]>, found: F = map.found.empty()): Progress {
+  return {
+    observe: (ram, vic) => map.observe(ram, found, vic),
+    noted: () => noted(found),
+    go: (key, ram) => map.go?.(key, ram, found),
+    clone: () => progress(map, noted, structuredClone(found)),
+  };
+}
 
 interface TravelSpec {
-  map: PauseMap;
+  /** A game's progress record, empty. */
+  newFound(): Progress;
   routes: string;
   /** The place he's in, as the map names its places. */
   room(ram: Uint8Array): string;
-  /** The places noted in what's been found (by name: where he first stood there). */
-  noted(found: Found): Record<string, number[]>;
   /** Keeps him alive along the routes (as when they were found). */
   cheat(ram: Uint8Array): void;
   /** Whether a frame is play (the map is noted then). */
@@ -102,10 +118,9 @@ const karnathMapAddr = (ram: Uint8Array, row: number, col: number) => {
   return (page << 8) + row * 40 + (off % 40);
 };
 const karnath: TravelSpec = {
-  map: karnathMap,
+  newFound: () => progress(karnathMap, karnathPlaces),
   routes: 'games/karnath/re/routes.json',
   room: (ram) => String(ram[0x3235]),
-  noted: karnathPlaces,
   cheat: (ram) => { ram[0x6ffe] = 100; ram[0x322e] = 0; },
   playing: (ram, frame) => frame > 200 && ram[0x3235] >= 1 && ram[0x3235] <= 0x19,
   canon: (ram) => karnathToMode(ram, 0),
@@ -138,10 +153,9 @@ const blackwycheBlocks = BLACKWYCHE_ROOMS.map((v, i) => {
   return { code: v.code, shift: (home ?? 0x6000) - 0x6000, end: 0x66ff };
 });
 const blackwyche: TravelSpec = {
-  map: blackwycheMap,
+  newFound: () => progress(blackwycheMap, blackwychePlaces),
   routes: 'games/blackwyche/re/routes.json',
   room: (ram) => { const p = blackwycheWhere(ram); return p ? blackwychePlaceId(p) : '-'; },
-  noted: blackwychePlaces,
   cheat: (ram) => { ram[0x9d77] = 100; ram[0x3417] = 0; },
   playing: (_ram, frame) => frame > 200,
   // the decks' own block in, the cabins and halls left as the game leaves them; deck 1's pictures ($131F swaps them for the other decks')
@@ -167,18 +181,11 @@ const blackwyche: TravelSpec = {
 const DRAGONSKULLE_HOMES: [number, number][] = [[0x6000, 0xc00], [0xff00, 0x100], [0xc000, 0x400], [0xc400, 0xa00], [0xcd50, 0xc00], [0xd870, 0x900],
   [0xe010, 0x500], [0xe460, 0x500], [0xe900, 0x700], [0xef20, 0x400], [0xf220, 0x300], [0xf470, 0x300], [0xf6e0, 0x900]];
 /** The places Dragonskulle's map notes (found.at, by "x,y"). */
-const dragonskullePlaces = (found: Found): Record<string, number[]> => {
-  const v = found.at;
-  if (isRecordOf(v, isNumbers)) return v;
-  const at: Record<string, number[]> = {};
-  found.at = at;
-  return at;
-};
+const dragonskullePlaces = (found: DragonskulleFound): Record<string, number[]> => found.at;
 const dragonskulle: TravelSpec = {
-  map: dragonskulleMap,
+  newFound: () => progress(dragonskulleMap, dragonskullePlaces),
   routes: 'games/dragonskulle/re/routes.json',
   room: dragonskulleKey,
-  noted: dragonskullePlaces,
   cheat: (ram) => { ram[0x1248] = 0; ram[0x123e] = 0x14; ram[0x3432] = 0; },
   playing: (_ram, frame) => frame > 300,
   // the block in swapped back out, as every change of screen does first ($0DAB maps the RAM in, $1137 swaps)
@@ -218,7 +225,6 @@ const fail = (msg: string) => {
 };
 const hex = (n: number) => n.toString(16);
 const inRegions = (a: number, rs: [number, number][]) => rs.some(([lo, hi]) => a >= lo && a <= hi);
-const clone = (x: Found): Found => cloneRecord(x);
 const saved = (g: NativeHost): MachineState => { const s = g.save(); if (!s) throw new Error('not at the main loop wait'); return s; };
 
 /** Run a host's next main loop wait with `act` (registers kept, as play.ts does), then `frames` more frames. */
@@ -241,11 +247,11 @@ function canonical(s: MachineState) { const g = NativeHost.resume(port, s); spec
 // ---- 1. walk the routes ----
 interface Arrival { route: number; key: string; state: MachineState; after: MachineState }
 const arrivals: Arrival[] = [];
-const ends: { state: MachineState; found: Found }[] = [];
+const ends: { state: MachineState; found: Progress }[] = [];
 const t0 = performance.now();
 routes.forEach((route, ri) => {
   const g = new NativeHost(port, title);
-  const found: Found = {};
+  const found = spec.newFound();
   let frame = 0;
   for (let i = 0; i < route.length; i += 2) for (let k = 0; k < route[i + 1]; k++) {
     const v = route[i];
@@ -253,17 +259,17 @@ routes.forEach((route, ri) => {
     g.m.keys = v & 32 ? [[1, 2]] : [];
     g.tick(); spec.cheat(g.m.ram); frame++;
     if (g.lastWait !== port.mainLoopWait || !spec.playing(g.m.ram, frame)) continue;
-    const before = new Set(Object.keys(spec.noted(found)));
-    spec.map.observe(g.m.ram, found, g.m.vic);
-    for (const key of Object.keys(spec.noted(found))) {
+    const before = new Set(Object.keys(found.noted()));
+    found.observe(g.m.ram, g.m.vic);
+    for (const key of Object.keys(found.noted())) {
       if (before.has(key)) continue;
       const state = saved(g);
       const a = host(state); tick(a); // (a frame of play from there, standing still)
       arrivals.push({ route: ri, key, state, after: saved(a) });
     }
   }
-  ends.push({ state: saved(g), found: clone(found) });
-  console.log(`route ${ri + 1}: ${frame} frames, places noted ${Object.keys(spec.noted(found)).join(' ')}`);
+  ends.push({ state: saved(g), found: found.clone() });
+  console.log(`route ${ri + 1}: ${frame} frames, places noted ${Object.keys(found.noted()).join(' ')}`);
 });
 console.log(`${arrivals.length} arrivals in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
 
@@ -286,9 +292,9 @@ let spritesSame = 0, followSame = 0, followDiffer = 0, codeBytes = 0, travels = 
 const row0 = 0x400 + spec.firstRow * 40, cells = spec.rows * 40;
 
 /** Travel from a state to a place (by the map, with what was found); memory just before and after `go`, the state after its frame, and the host a frame later. */
-function travel(from: MachineState, key: string, found: Found) {
+function travel(from: MachineState, key: string, found: Progress) {
   const went: { ok: boolean | void; now: Uint8Array; before: Uint8Array } = { ok: undefined, now: new Uint8Array(0), before: new Uint8Array(0) }; // (set as it goes)
-  const g = host(from, (ram) => { went.before = ram.slice(); went.ok = spec.map.go?.(key, ram, found); went.now = ram.slice(); });
+  const g = host(from, (ram) => { went.before = ram.slice(); went.ok = found.go(key, ram); went.now = ram.slice(); });
   tick(g); // (the frame in which it goes, at its end)
   const at = saved(g);
   tick(g); // a frame there
@@ -359,12 +365,12 @@ let seed = 7;
 const rnd = () => ((seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff);
 const allNoted: Record<string, number[]> = {};
 // (the first route's record of each place, as its walked arrival is the first route's)
-if (spec.shareRecords) for (const e of ends) for (const [k, v] of Object.entries(spec.noted(e.found))) allNoted[k] ??= v;
+if (spec.shareRecords) for (const e of ends) for (const [k, v] of Object.entries(e.found.noted())) allNoted[k] ??= v;
 for (let ri = 0; ri < routes.length; ri++) {
   if (only && !only.includes(ri + 1)) continue;
-  const found = clone(ends[ri].found);
-  if (spec.shareRecords) Object.assign(spec.noted(found), allNoted);
-  const keys = Object.keys(spec.noted(found));
+  const found = ends[ri].found.clone();
+  if (spec.shareRecords) Object.assign(found.noted(), allNoted);
+  const keys = Object.keys(found.noted());
   // sources: where the route ends, each place's arrival along it, and a few seconds' wandering on from each
   // (with `sources` set, that many of the arrivals, spread along the route)
   const all = arrivals.filter((a) => a.route === ri).map((a) => a.state), n = spec.sources ?? all.length;
@@ -382,7 +388,7 @@ for (let ri = 0; ri < routes.length; ri++) {
     if (!canonOk(S)) {
       // travel isn't offered from here: go must refuse and change nothing
       for (const key of keys) {
-        const T = travel(S, key, clone(found));
+        const T = travel(S, key, found.clone());
         if (T.ok) fail(`${from} -> ${key}: went where travel isn't offered`);
         else if (T.before.some((v, i) => v !== T.now[i])) fail(`${from} -> ${key}: refused but changed memory`);
         else refused++;
@@ -395,14 +401,14 @@ for (let ri = 0; ri < routes.length; ri++) {
       const A = arrivalFor(ri, key);
       if (!A) { fail(`${from} -> ${key}: no walked arrival`); continue; }
       const label = `${from} -> ${key}`;
-      const T = travel(S, key, clone(found));
+      const T = travel(S, key, found.clone());
       check(label, T, A, cS);
       if (!T.ok) continue;
       // a round trip: on from there to another place
       if (si % 3 === 0) {
         const other = keys[Math.floor(rnd() * keys.length)], B = arrivalFor(ri, other);
         if (other !== key && B) {
-          const T2 = travel(T.at, other, clone(found));
+          const T2 = travel(T.at, other, found.clone());
           // (refused where he's arrived somewhere that moves him on at once, a trapdoor: memory untouched)
           check(`${label} -> ${other}`, T2, B, canonical(T.at)); roundTrips++;
         }

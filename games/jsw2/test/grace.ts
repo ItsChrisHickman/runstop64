@@ -43,7 +43,7 @@ async function launch(store = new Map<string, string>()) {
     force() { s.ram()[0x8304] |= 1; s.ram()[0x8173] = 0; },
   };
   s.tick(80); s.tap('Space'); s.tick(230);
-  p.state.found.stand = { ...(p.state.found.stand ?? {}), [BINS]: FLOOR };
+  p.state.found.stand = { ...p.state.found.stand, [BINS]: FLOOR };
   p.frontEnd.going = String(BINS);
   return s;
 }

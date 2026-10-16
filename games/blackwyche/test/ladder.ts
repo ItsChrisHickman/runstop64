@@ -15,7 +15,6 @@ import { MACHINE_CODEC } from '../../shared/continue';
 import { NativeHost } from '../../shared/native/host';
 import { setJoy, GAMES } from '../../shared/native/test/games';
 import { cpu, wr } from '../../shared/native/cpu';
-import type { Found } from '../../shared/saves';
 import { keepFound, toBase64, writeCurrent } from '../../shared/saves';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
@@ -35,7 +34,7 @@ function atLadderFoot() {
   const game = GAMES.blackwyche;
   const route = readRoute('games/blackwyche/re/routes.json');
   const g = new NativeHost(game.port, unpackState(new Uint8Array(titleBytes)));
-  const found: Found = {};
+  const found = blackwycheMap.found.empty();
   let frame = 0;
   for (let i = 0; i < route.length; i += 2) for (let k = 0; k < route[i + 1]; k++) {
     const v = route[i];

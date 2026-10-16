@@ -22,7 +22,7 @@ import { NativeHost } from '../../shared/native/host';
 import { MAP_BOX } from '../../shared/native/pause';
 import { setJoy, GAMES } from '../../shared/native/test/games';
 import { keepFound, toBase64, writeCurrent } from '../../shared/saves';
-import type { Found } from '../../shared/saves';
+import type { BlackwycheFound } from '../src/map';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { run } from '../src/main';
@@ -39,10 +39,10 @@ const quiet = (what: string, ok: boolean) => check(what, ok, true);
 const game = GAMES.blackwyche;
 const routes = readRoutes('games/blackwyche/re/routes.json');
 /** States caught in the middle of something (a jump, a strike, a climb, a fall), from the first route. */
-const midway: { state: MachineState; found: Found }[] = [];
-const walked = routes.map((steps, ri): { state: MachineState; found: Found } => {
+const midway: { state: MachineState; found: BlackwycheFound }[] = [];
+const walked = routes.map((steps, ri): { state: MachineState; found: BlackwycheFound } => {
   const g = new NativeHost(game.port, unpackState(new Uint8Array(titleBytes)));
-  const found: Found = {};
+  const found = blackwycheMap.found.empty();
   let frame = 0;
   for (let i = 0; i < steps.length; i += 2) for (let k = 0; k < steps[i + 1]; k++) {
     const v = steps[i];
@@ -58,8 +58,8 @@ const walked = routes.map((steps, ri): { state: MachineState; found: Found } => 
   return { state: must(g.save(), 'a save'), found };
 });
 /** Everything the routes found, as one record (the first place noted for each id wins; the rest of what the map keeps starts empty). */
-function merged(): Found {
-  const all: Found = {};
+function merged(): BlackwycheFound {
+  const all = blackwycheMap.found.empty();
   const at = travelPlaces(all);
   for (const w of walked) for (const [id, v] of Object.entries(travelPlaces(structuredClone(w.found)))) at[id] ??= v;
   return all;

@@ -1,4 +1,4 @@
-import { COL, isNumbers, isRecordOf, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, isNumbers, isRecord, isRecordOf, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { CORE_ROOM, MAP_H, MAP_W, rom } from './data';
 import type { Game } from './game';
 
@@ -11,8 +11,12 @@ import type { Game } from './game';
  */
 type Spot = [col: number, row: number];
 const isSpot = (v: unknown): v is Spot => isNumbers(v) && v.length === 2;
-/** Where BLOB first stood in each room (`found.entry`, as kept: checked, as read back from storage). */
-const entriesOf = (f: Found): Record<string, Spot> | undefined => (isRecordOf(f.entry, isSpot) ? f.entry : undefined);
+/** What the map keeps of the player's progress: where BLOB first stood in each room. */
+export interface StarquakeFound { entry: Record<string, Spot> }
+const FOUND: FoundCodec<StarquakeFound> = {
+  empty: () => ({ entry: {} }),
+  parse: (kept) => ({ entry: isRecord(kept) && isRecordOf(kept.entry, isSpot) ? kept.entry : {} }),
+};
 
 const visited = (g: Game, room: number) => !!(g.lo[room >> 3] & (0x80 >> (room & 7)));
 const ROWS_PER_PAGE = 16;
@@ -27,9 +31,8 @@ function layout(box: Box) {
 }
 
 export const starquakeMap = {
-  observe(g, found) {
-    let entry = entriesOf(found);
-    if (!entry) found.entry = entry = {};
+  found: FOUND,
+  observe(g, { entry }) {
     const key = String(g.room);
     // where BLOB first stood in each room (his place as he arrived)
     if (!entry[key]) entry[key] = [g.col, g.row];
@@ -53,20 +56,19 @@ export const starquakeMap = {
   legend: [{ colour: COL.cyan, text: 'TELEPORT' }, { colour: COL.red, text: 'THE CORE' }],
   places(box, g, found, page = 0) {
     const { cw, ch, at } = layout(box);
-    const entry = entriesOf(found) ?? {};
-    return Object.keys(entry).map(Number)
+    return Object.keys(found.entry).map(Number)
       .filter((r) => r >> 8 === page && visited(g, r))
       .map((r) => { const p = at(r); return { id: String(r), x: p.x + (cw >> 1), y: p.y + (ch >> 1), here: r === g.room }; });
   },
   // The front end takes BLOB there (flow.travel) between frames; nothing to do in the game here.
-  go: (id: string, g: Game, found: Found) => !!entriesOf(found)?.[id] && visited(g, Number(id)),
+  go: (id: string, g: Game, found: StarquakeFound) => !!found.entry[id] && visited(g, Number(id)),
   info(g) {
     let rooms = 0;
     for (let r = 0; r < MAP_W * MAP_H; r++) if (visited(g, r)) rooms++;
     const lives = g.lives[0] * 10 + g.lives[1];
     return [`ROOMS   ${String(rooms).padStart(3)}`, `LIVES    ${String(lives).padStart(2)}`];
   },
-} satisfies PauseMap<Game>;
+} satisfies PauseMap<Game, StarquakeFound>;
 
 /** Where BLOB first stood in a room (for travel), if he's been there. */
-export const entryOf = (found: Found, room: number) => entriesOf(found)?.[String(room)];
+export const entryOf = (found: StarquakeFound, room: number) => found.entry[String(room)];

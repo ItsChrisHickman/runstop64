@@ -1,5 +1,5 @@
 import { isRecord } from '../../shared/guards';
-import { COL, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { roomOf } from './factory';
 import { canTravel, go } from './travel';
 
@@ -45,17 +45,21 @@ export const switchesOn = (ram: Uint8Array) => [0, 1, 2, 3, 4].filter((i) => ram
 type Side = 'L' | 'R';
 const isSide = (x: unknown): x is Side => x === 'L' || x === 'R';
 /**
- * What the map keeps in what's found (plain JSON, kept with the saves; read back checked):
- * the screens been in ("level.screen") with the ends come in by (to go back to), the things
- * seen ("piece.3": room 3's piece), and the screen he was last on.
+ * What the map keeps of the player's progress: the screens been in ("level.screen") with the ends
+ * come in by (to go back to), the things seen ("piece.3": room 3's piece), and the screen he was
+ * last on.
  */
-function seen(f: Found) {
-  const screens: Record<string, Side[]> = {}, things: Record<string, true> = {};
-  if (isRecord(f.screens)) for (const [k, v] of Object.entries(f.screens)) if (Array.isArray(v)) screens[k] = v.filter(isSide);
-  if (isRecord(f.things)) for (const [k, v] of Object.entries(f.things)) if (v) things[k] = true;
-  f.screens = screens; f.things = things;
-  return { screens, things, last: typeof f.last === 'string' ? f.last : undefined, setLast: (k: string) => { f.last = k; } };
-}
+export interface ThingFound { screens: Record<string, Side[]>; things: Record<string, true>; last: string | null }
+const FOUND: FoundCodec<ThingFound> = {
+  empty: () => ({ screens: {}, things: {}, last: null }),
+  parse: (kept) => {
+    const f = isRecord(kept) ? kept : {};
+    const screens: Record<string, Side[]> = {}, things: Record<string, true> = {};
+    if (isRecord(f.screens)) for (const [k, v] of Object.entries(f.screens)) if (Array.isArray(v)) screens[k] = v.filter(isSide);
+    if (isRecord(f.things)) for (const [k, v] of Object.entries(f.things)) if (v) things[k] = true;
+    return { screens, things, last: typeof f.last === 'string' ? f.last : null };
+  },
+};
 /** Sprite 7's picture when it's one of the things in a room. */
 const KIND_OF = new Map<number, 'piece' | 'oil' | 'switch'>([[0xd3, 'piece'], [0xd4, 'oil'], [0xd5, 'switch']]);
 const KIND_COL = { piece: COL.yellow, oil: COL.orange, switch: COL.cyan, goblin: COL.red } as const;
@@ -77,10 +81,11 @@ function layout(ram: Uint8Array, box: Box) {
   return { at, band, scale };
 }
 
-export function makeMap(): PauseMap {
+export function makeMap(): PauseMap<Uint8Array, ThingFound> {
   return {
-    observe(ram, found, vic) {
-      const s = seen(found), level = ram[0x5f], screen = ram[0x5e];
+    found: FOUND,
+    observe(ram, s, vic) {
+      const level = ram[0x5f], screen = ram[0x5e];
       if (screen < 1 || screen > SCREENS || level > 3 || ram[0x63] || ram[0x5d]) return;
       const key = `${level}.${screen}`;
       if (s.last !== key) {
@@ -88,7 +93,7 @@ export function makeMap(): PauseMap {
         const side = ram[0x19] === 0 ? 'L' : 'R';
         const ends = (s.screens[key] ??= []);
         if (!ends.includes(side) && canTravel(ram)) ends.push(side);
-        s.setLast(key);
+        s.last = key;
       }
       // the thing the room shows, once it's on screen (sprite 7, with its picture: $D3 piece, $D4 oil, $D5 switch)
       const room = roomOf(level, screen);
@@ -99,8 +104,8 @@ export function makeMap(): PauseMap {
       }
     },
     title: (ram) => (ram[0x5f] <= 3 ? `LEVEL ${ROMAN[ram[0x5f]]}` : 'THE FACTORY'),
-    draw(s, box, ram, found, blink, _page, font) {
-      const v = seen(found), { at } = layout(ram, box);
+    draw(s, box, ram, v, blink, _page, font) {
+      const { at } = layout(ram, box);
       const here = { level: ram[0x5f], screen: ram[0x5e] };
       for (let level = 0; level < 4; level++) {
         const a0 = at(level, 0);
@@ -138,12 +143,12 @@ export function makeMap(): PauseMap {
       `PIECES ${piecesTaken(ram)}/9`,
       `SWITCH ${switchesOn(ram)}/5`,
       `OIL    ${String(Math.round((ram[0x8f] * 100) / 255)).padStart(3)}%`,
-      `SCREENS ${String(Object.keys(seen(found).screens).length).padStart(2)}`,
+      `SCREENS ${String(Object.keys(found.screens).length).padStart(2)}`,
     ],
     legend: [{ colour: COL.yellow, text: 'PIECE' }, { colour: COL.orange, text: 'OIL' }, { colour: COL.cyan, text: 'SWITCH' }, { colour: COL.red, text: 'GOBLIN' }],
     // Places to go back to: each screen's ends he's come in by.
-    places(box, ram, found) {
-      const v = seen(found), { at } = layout(ram, box), out: { id: string; x: number; y: number; here?: boolean }[] = [];
+    places(box, ram, v) {
+      const { at } = layout(ram, box), out: { id: string; x: number; y: number; here?: boolean }[] = [];
       if (!canTravel(ram)) return out;
       for (const [key, ends] of Object.entries(v.screens)) {
         const [level, screen] = key.split('.').map(Number), b = at(level, screen);
@@ -153,7 +158,7 @@ export function makeMap(): PauseMap {
     },
     go(id, ram, found) {
       const m = id.match(/^(\d)\.(\d)([LR])$/), side = m?.[3];
-      if (!m || !isSide(side) || !seen(found).screens[`${m[1]}.${m[2]}`]?.includes(side)) return false;
+      if (!m || !isSide(side) || !found.screens[`${m[1]}.${m[2]}`]?.includes(side)) return false;
       return go(ram, Number(m[1]), Number(m[2]), side);
     },
   };

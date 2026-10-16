@@ -1,6 +1,7 @@
 import type { BitmapFont, Surface } from 'c64kit';
-import { COL, drawPickName, isNumbers, isRecordOf, isStrings, shimmerColour, statusNumber, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, drawPickName, isNumbers, isRecord, isRecordOf, isStrings, shimmerColour, statusNumber, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { held, ITEMS, itemsFound, roomThings, shortName, type Held } from './items';
+import { parseSprung } from './trapdoors';
 import { placeName } from './names';
 import { CABINS, HALLS, PANELS, WAYS } from './ship';
 import { followChain, go as travel, location, placeId, where } from './travel';
@@ -19,7 +20,7 @@ import { followChain, go as travel, location, placeId, where } from './travel';
  * he's been to with everything in it found shimmers, and the picked one's name says what's left there.
  */
 
-/** What's been found (plain JSON in the browser, checked as it's read back). */
+/** Where he has been aboard. */
 interface Seen {
   /** Panels he's been on: "deck.part" (parts 2 and 3: the halls) -> panel numbers. */
   panels: Record<string, number[]>;
@@ -39,19 +40,23 @@ interface Seen {
 function isStanding(v: unknown): v is Seen['standing'] {
   return typeof v === 'object' && v !== null && 'key' in v && 'n' in v && typeof v.key === 'string' && typeof v.n === 'number';
 }
-function seen(found: Found): Seen {
-  const v = found.ship;
-  let s: Seen = { panels: {}, cabins: [], at: {}, chain: [], ways: [], last: '', standing: { key: '', n: 0 } };
-  if (typeof v === 'object' && v !== null && 'panels' in v && 'cabins' in v && 'at' in v && 'chain' in v && 'ways' in v && 'last' in v) {
-    const { panels, cabins, at, chain, ways, last } = v;
-    if (isRecordOf(panels, isNumbers) && isStrings(cabins) && isRecordOf(at, isNumbers) && isNumbers(chain) && isStrings(ways) && typeof last === 'string') {
-      const standing = 'standing' in v && isStanding(v.standing) ? v.standing : s.standing;
-      s = { panels, cabins, at, chain, ways, last, standing };
-    }
-  }
-  found.ship = s; // (the same lists, in an object of the checked type)
-  return s;
+const emptyShip = (): Seen => ({ panels: {}, cabins: [], at: {}, chain: [], ways: [], last: '', standing: { key: '', n: 0 } });
+function parseShip(v: unknown): Seen {
+  if (!isRecord(v)) return emptyShip();
+  const { panels, cabins, at, chain, ways, last, standing } = v;
+  if (!isRecordOf(panels, isNumbers) || !isStrings(cabins) || !isRecordOf(at, isNumbers) || !isNumbers(chain) || !isStrings(ways) || typeof last !== 'string') return emptyShip();
+  return { panels, cabins, at, chain, ways, last, standing: isStanding(standing) ? standing : { key: '', n: 0 } };
 }
+
+/**
+ * What the map keeps of the player's progress (`ship`), and the trapdoors that have given way
+ * (`trapdoors`, src/trapdoors.ts: the TRAPDOORS STAY OPEN assist keeps them here, and so with the saves).
+ */
+export interface BlackwycheFound { ship: Seen; trapdoors: string[] }
+const FOUND: FoundCodec<BlackwycheFound> = {
+  empty: () => ({ ship: emptyShip(), trapdoors: [] }),
+  parse: (kept) => ({ ship: parseShip(isRecord(kept) ? kept.ship : undefined), trapdoors: parseSprung(isRecord(kept) ? kept.trapdoors : undefined) }),
+};
 
 const TOTAL = PANELS.length * 2 + HALLS.length + CABINS.length;
 
@@ -129,11 +134,11 @@ function pickNote(ram: Uint8Array, id: string) {
 let tick = 0;
 
 /** The places he can be taken back to, by id, and where he first stood in each (for tests). */
-export const travelPlaces = (found: Found) => seen(found).at;
+export const travelPlaces = (found: BlackwycheFound) => found.ship.at;
 
-export const blackwycheMap: PauseMap = {
-  observe(ram, found, vic) {
-    const s = seen(found);
+export const blackwycheMap: PauseMap<Uint8Array, BlackwycheFound> = {
+  found: FOUND,
+  observe(ram, { ship: s }, vic) {
     followChain(ram, s.chain);
     const p = where(ram);
     if (!p) return;
@@ -166,7 +171,7 @@ export const blackwycheMap: PauseMap = {
   pages: () => ({ list: [0, ITEMS_PAGE], current: 0 }),
   draw(sf, box, ram, found, blink, page, font, pick) {
     if (page === ITEMS_PAGE) { if (font) drawItems(sf, box, font, ram); return; }
-    const s = seen(found), L = layout(box), here = where(ram), t = tick++;
+    const s = found.ship, L = layout(box), here = where(ram), t = tick++;
     const lit = (deck: number, part: number, panel: number) => (s.panels[`${deck}.${part}`] ?? []).includes(panel);
     // the ways down between cabins (drawn first, under the decks)
     for (const w of WAYS) {
@@ -221,7 +226,7 @@ export const blackwycheMap: PauseMap = {
     drawPickName(sf, box, font, pick ? placeName(pick) : null, pick ? pickNote(ram, pick) : undefined);
   },
   info(ram, found) {
-    const s = seen(found);
+    const s = found.ship;
     const parts = Object.entries(s.panels).filter(([, l]) => l.length).length, cabins = s.cabins.filter((id) => DATA_CABINS.has(id)).length;
     return [`ENERGY ${String(statusNumber(ram, 0x07a2)).padStart(3)}%`, '', `ITEMS ${String(itemsFound(ram)).padStart(2)}/${ITEMS.length}`, `SEEN ${String(parts + cabins).padStart(2)}/${TOTAL}`];
   },
@@ -229,11 +234,11 @@ export const blackwycheMap: PauseMap = {
   // Places to go back to: every part, hall and cabin he's stood in (yellow, cyan and blue, the picked box round the whole part; brown ones he has only passed), where he first stood.
   places(box, ram, found, page) {
     if (page === ITEMS_PAGE) return [];
-    const s = seen(found), L = layout(box), here = where(ram), hereId = here ? placeId(here) : '';
+    const s = found.ship, L = layout(box), here = where(ram), hereId = here ? placeId(here) : '';
     return Object.entries(s.at).map(([id, at]) => ({ id, ...spot(L, at), here: id === hereId }));
   },
   go(id, ram, found) {
-    const s = seen(found), to = s.at[id];
+    const s = found.ship, to = s.at[id];
     if (!to || !travel(ram, to, s.chain)) return false;
     s.chain = [];
     s.last = ''; // (not walked: no way between the two to draw)

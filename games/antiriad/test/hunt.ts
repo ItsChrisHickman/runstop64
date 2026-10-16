@@ -13,7 +13,7 @@
  */
 import fs from 'node:fs';
 import { C64Machine, packState, unpackState, type MachineState } from 'c64kit';
-import type { Found } from '../../shared/native/pause';
+import type { AntiriadFound } from '../src/map';
 import { Game } from '../src/game';
 import { repairSave } from '../src/main';
 import { antiriadMap, entriesOf } from '../src/map';
@@ -27,8 +27,8 @@ fs.mkdirSync(out, { recursive: true });
 const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
 const pick = <T>(a: T[]) => a[Math.floor(rnd() * a.length)];
 
-interface Snap { s: MachineState; found: Found; auto: MachineState | null; jump: number; how: string }
-const clone = (f: Found): Found => structuredClone(f);
+interface Snap { s: MachineState; found: AntiriadFound; auto: MachineState | null; jump: number; how: string }
+const clone = (f: AntiriadFound): AntiriadFound => structuredClone(f);
 
 function load(s: MachineState, repair: boolean) {
   const m = new C64Machine();
@@ -102,12 +102,12 @@ const archive = new Map<string, { snap: Snap; visits: number; room: number }>();
 const seeds: Snap[] = [];
 for (const [file, how] of [['games/antiriad/test/armour.state', 'armour'], ['games/antiriad/test/original.state', 'foot']]) {
   const s = unpackState(new Uint8Array(fs.readFileSync(file)));
-  seeds.push({ s, found: {}, auto: s, jump: 0, how });
+  seeds.push({ s, found: antiriadMap.found.empty(), auto: s, jump: 0, how });
 }
 // the armour without energy too (hits drain it; the power centre does)
 {
   const g = load(seeds[0].s, false); g.ram[V.suitEnergy] = 0;
-  seeds.push({ s: take(g), found: {}, auto: null, jump: 0, how: 'armour, no energy' });
+  seeds.push({ s: take(g), found: antiriadMap.found.empty(), auto: null, jump: 0, how: 'armour, no energy' });
 }
 // the armour placed in other rooms (as travel puts it), with and without energy
 if (process.env.ROOMS) {
@@ -118,7 +118,7 @@ if (process.env.ROOMS) {
         g.travelTo = { room, x, y, high: 0 };
         for (let f = 0; f < 40; f++) frame(g, '', false);
         g.ram[V.suitEnergy] = energy;
-        seeds.push({ s: take(g), found: {}, auto: null, jump: 0, how: `placed ${room.toString(16)} ${x},${y} energy ${energy}` });
+        seeds.push({ s: take(g), found: antiriadMap.found.empty(), auto: null, jump: 0, how: `placed ${room.toString(16)} ${x},${y} energy ${energy}` });
       }
     }
   }

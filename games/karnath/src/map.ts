@@ -1,4 +1,4 @@
-import { COL, drawPickName, isNumbers, isRecordOf, isStrings, screenText, statusNumber, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, drawPickName, isNumbers, isRecord, isRecordOf, isStrings, screenText, statusNumber, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { STRIPS } from './strips';
 import { LOCATION, go as travel, location } from './travel';
 
@@ -36,7 +36,7 @@ const at = (loc: number[]) => {
   return placeOf(v(0x3219), v(0xb3e1), v(0x7fe7), v(0x7fe6), v(0x7ff4) | (loc[LOCATION.length] ? 256 : 0));
 };
 
-/** What's been found (plain JSON in the browser, checked as it's read back). */
+/** What's been found in the castle. */
 interface Seen {
   /** Columns walked, in eighths ("strip" -> cells of 8 columns). */
   cells: Record<string, number[]>;
@@ -49,19 +49,21 @@ interface Seen {
   /** Where he was last settled (strip, column, frames since), or none after travel. */
   last: number[];
 }
-function seen(found: Found): Seen {
-  const v = found.castle;
-  let s: Seen = { cells: {}, rooms: [], at: {}, ways: [], last: [] };
-  if (typeof v === 'object' && v !== null && 'cells' in v && 'rooms' in v && 'at' in v && 'ways' in v && 'last' in v) {
+/** What the map keeps of the player's progress. */
+export interface KarnathFound { castle: Seen }
+const FOUND: FoundCodec<KarnathFound> = {
+  empty: () => ({ castle: { cells: {}, rooms: [], at: {}, ways: [], last: [] } }),
+  parse: (kept) => {
+    const empty = FOUND.empty();
+    const v = isRecord(kept) ? kept.castle : undefined;
+    if (!isRecord(v)) return empty;
     const { cells, rooms, at, ways, last } = v;
-    if (isRecordOf(cells, isNumbers) && isNumbers(rooms) && isRecordOf(at, isNumbers) && isStrings(ways) && isNumbers(last)) s = { cells, rooms, at, ways, last };
-  }
-  found.castle = s; // (the same lists, in an object of the checked type)
-  return s;
-}
+    return isRecordOf(cells, isNumbers) && isNumbers(rooms) && isRecordOf(at, isNumbers) && isStrings(ways) && isNumbers(last) ? { castle: { cells, rooms, at, ways, last } } : empty;
+  },
+};
 
 /** The places he can be taken back to (rooms), and where he came into each (for tests). */
-export const travelPlaces = (found: Found) => seen(found).at;
+export const travelPlaces = (found: KarnathFound) => found.castle.at;
 
 function layout(box: Box) {
   const x0 = box.x + 20, scale = (box.w - 22) / COLUMNS, rowH = 16;
@@ -91,9 +93,10 @@ const roomName = (ram: Uint8Array, room: number) => {
   return t.trim().replace(/\s+/g, ' ');
 };
 
-export const karnathMap: PauseMap = {
-  observe(ram, found, vic) {
-    const s = seen(found), room = ram[0x3235], p = here(ram, vic), loc = location(ram, vic);
+export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
+  found: FOUND,
+  observe(ram, { castle: s }, vic) {
+    const room = ram[0x3235], p = here(ram, vic), loc = location(ram, vic);
     if (room >= 1 && room <= ROOMS && !s.rooms.includes(room)) s.rooms.push(room);
     if (loc && room >= 1 && room <= ROOMS && !s.at[room]) s.at[room] = loc;
     if (s.last.length === 3) s.last[2]++;
@@ -109,8 +112,8 @@ export const karnathMap: PauseMap = {
     s.last = [p.strip, p.col, 0];
   },
   title: (ram) => screenText(ram, 21, 4, 30) || 'THE CASTLE',
-  draw(sf, box, ram, found, blink, _page, font, pick) {
-    const s = seen(found), L = layout(box);
+  draw(sf, box, ram, { castle: s }, blink, _page, font, pick) {
+    const L = layout(box);
     STRIPS.forEach((st, i) => {
       const y = L.y(i), cells = new Set(s.cells[st.label] ?? []);
       font?.draw(sf, st.label, box.x, y, COL.grey);
@@ -134,14 +137,14 @@ export const karnathMap: PauseMap = {
     `ENERGY ${String(statusNumber(ram, 0x07dc)).padStart(3)}%`,
     `${screenText(ram, 24, 5, 5)} ${screenText(ram, 24, 11, 2)}`, // the castle clock
     '',
-    `ROOMS ${String(seen(found).rooms.length).padStart(2)}/${ROOMS}`,
+    `ROOMS ${String(found.castle.rooms.length).padStart(2)}/${ROOMS}`,
   ],
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.green, text: 'STAIRS' }, { colour: COL.purple, text: 'FLOORS' }],
   places(box, ram, found) {
-    return marks(seen(found), layout(box)).map((m) => ({ id: String(m.room), x: m.x, y: m.y, here: m.room === ram[0x3235] }));
+    return marks(found.castle, layout(box)).map((m) => ({ id: String(m.room), x: m.x, y: m.y, here: m.room === ram[0x3235] }));
   },
   go(id, ram, found) {
-    const s = seen(found), to = s.at[id];
+    const s = found.castle, to = s.at[id];
     if (!to || !travel(ram, to)) return false;
     s.last = []; // (not walked: no way between the two to draw)
     return true;

@@ -30,7 +30,6 @@
 import { Game, type Input as Stick } from '../src/game';
 import { montyMap, noteRoom } from '../src/map';
 import { PixelRenderer, VicView } from 'c64kit';
-import type { Found } from '../../shared/native/pause';
 import { getProp } from '../../shared/guards';
 import { check, finish } from '../../shared/test/check';
 
@@ -109,7 +108,7 @@ const WARPS = [
   { name: 'the C5 street', from: 0x38, cell: { mapRow: 4, exitCol: 20 }, col: 14, to: 0x24 },
   { name: 'Pie Are Square', from: 0x39, cell: { mapRow: 4, exitCol: 19 }, col: 10, to: 0x08 },
 ];
-const found: Found = {};
+const found = montyMap.found.empty();
 for (const w of WARPS) {
   // (standing on the platform the beam is over: its top at screen row 13, Monty's rows 11-12)
   const s = into({ ...w.cell, x2: w.col * 4 + 0x0c, y: 0x32 + 11 * 8 });

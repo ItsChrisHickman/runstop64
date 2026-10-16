@@ -12,7 +12,7 @@ import { titlePicture } from './data';
 import * as Flow from './flow';
 import * as Heroes from './heroes';
 import { Game } from './game';
-import { entryOf, starquakeMap } from './map';
+import { entryOf, starquakeMap, type StarquakeFound } from './map';
 import * as Panel from './panel';
 import { describeSave, restore, snapshot } from './save';
 import * as Screens from './screens';
@@ -78,21 +78,19 @@ export function run(host: Host) {
 
   // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
   // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
-  const flow = new ContinueFlow<Uint8Array>({
-    id: 'starquake', renderer, input, font, codec: { pack: (s) => s, unpack: (b) => b },
+  const flow = new ContinueFlow<Uint8Array, StarquakeFound>({
+    id: 'starquake', renderer, input, font, codec: { pack: (s) => s, unpack: (b) => b }, found: starquakeMap.found,
     strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
     describe: describeSave,
   });
   const latch = new FireLatch();
-  const fe = new FrontEnd<Game>({
+  const fe = new FrontEnd<Game, StarquakeFound>({
     id: 'starquake', input, renderer, map: starquakeMap,
     assists: [
       { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
       { id: 'lives', long: 'INFINITE LIVES' },
     ],
     font: () => font,
-    panel: (lines) => flow.panel(lines),
-    canGoBack: () => mode === 'play' && flow.state.hasSave,
     saves: flow,
     onClose: () => latch.hold(),
   });
@@ -313,7 +311,6 @@ export function run(host: Host) {
       audio.tick(typing);
 
       if (mode === 'play') {
-        if (fe.optionsOpen) { asked(fe.optionsTick(() => view.update())); return; }
         fe.pauseKey(g, !flow.holding && !typing);
         if (fe.paused) {
           asked(fe.pausedTick(g, () => view.update()));

@@ -91,7 +91,7 @@ export function run(host: Host) {
     hd: obliqueRooms(blackwycheHd),
     assists: [
       { id: 'guided', long: 'GUIDED (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) },
-      { id: 'trapdoors', long: 'TRAPDOORS STAY OPEN', apply: (ram, on, found) => trapdoors.frame(ram, on, found) },
+      { id: 'trapdoors', long: 'TRAPDOORS STAY OPEN', apply: (ram, on, found) => trapdoors.frame(ram, on, found.trapdoors) },
     ],
     hints: guidedSpots,
     hintsWith: 'guided',

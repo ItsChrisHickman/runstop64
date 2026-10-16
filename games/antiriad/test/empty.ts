@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { BitmapFont, C64Machine, KIT_GLYPHS, Surface, unpackState } from 'c64kit';
-import { drawPause, type Found } from '../../shared/native/pause';
+import { drawPause } from '../../shared/native/pause';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { CELLS } from '../src/cells';
 import { Game } from '../src/game';
@@ -56,7 +56,7 @@ function drainInFlight(p: Player) {
   hold(p, 'U', 30); hold(p, 'L', 30);
   p.ram[V.suitEnergy] = 0;
 }
-const hint = (g: Game) => antiriadMap.info(g, {} satisfies Found).slice(3).filter((l) => !l.startsWith('CELLS')).join(' ');
+const hint = (g: Game) => antiriadMap.info(g, antiriadMap.found.empty()).slice(3).filter((l) => !l.startsWith('CELLS')).join(' ');
 
 /** With an out-dir: the pause screen as it is now, to look at (the hint fits its column). */
 const outDir = process.argv[2];
@@ -65,7 +65,7 @@ function pauseShot(g: Game, name: string) {
   fs.mkdirSync(outDir, { recursive: true });
   const s = new Surface(320, 200, 0);
   const options = [g.enhanced ? 'E ENHANCED' : 'E ORIGINAL', 'B BACK TO', ' ROOM START', 'T TITLE']; // (as FrontEnd's)
-  drawPause(s, new BitmapFont().addDrawn(KIT_GLYPHS), antiriadMap, g, { rooms: [g.ram[V.room]] }, 0, options);
+  drawPause(s, new BitmapFont().addDrawn(KIT_GLYPHS), antiriadMap, g, { ...antiriadMap.found.empty(), rooms: [g.ram[V.room]] }, 0, options);
   rgbPng(path.join(outDir, `${name}.png`), indicesToRgb(s.pixels), 320, 200);
 }
 

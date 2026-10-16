@@ -86,7 +86,7 @@ const rooms = [...new Set(passed)].filter((r) => MANSION[r]);
 check(`the route as found: ${passed.length} arrivals through ${rooms.length} rooms (${passed.join(' ')})`, passed.join(' ') === route.rooms.join(' '));
 
 // ---- the map ----
-const stand = () => { const s = p.state.found.stand; return isRecord(s) ? s : {}; };
+const stand = () => p.state.found.stand;
 const offered = () => rooms.filter((r) => r !== room() && String(r) in stand());
 const before = rooms.filter((r) => stoodBefore.has(r));
 console.log(`     rooms passed through (not counting the one he's in): ${rooms.length - 1}; offered for travel: ${offered().length}; by the rule before: ${before.filter((r) => r !== room()).length}`);
@@ -140,7 +140,7 @@ for (const r of goals) {
   tapAt(xy.x, xy.y);
   const was = lives();
   // (the game draws the room over some frames; then the map puts him where he came in)
-  for (let n = 0; n < 100 && 'to' in p.state.found; n++) tick();
+  for (let n = 0; n < 100 && p.state.found.to !== null; n++) tick();
   const arrived = room(), where = spot();
   let fell = 0; // (how far he fell after arriving: the fall byte, $82D7)
   for (let n = 0; n < 200; n++) { tick(); fell = Math.max(fell, ram()[0x82d7]); }

@@ -60,7 +60,7 @@ function cell(id: string): MachineState {
   g.onWait = (site) => {
     if (done || site !== port.mainLoopWait) return;
     done = true; const r = { ...cpu };
-    entombedMap.go(id, g.m.ram, {});
+    entombedMap.go(id, g.m.ram, entombedMap.found.empty());
     Object.assign(cpu, r);
   };
   for (let f = 0; f < 6; f++) { g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); }
@@ -143,7 +143,7 @@ const hasStairs = (state: MachineState) => {
 };
 const downs: Way[] = [], gates: Way[] = [];
 for (let floor = 1; floor <= 7; floor++) {
-  for (const p of entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, start.ram, { cells: { [floor]: all } })) {
+  for (const p of entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, start.ram, entombedMap.found.parse({ cells: { [floor]: all } }))) {
     const state = cell(p.id);
     if (!hasStairs(state)) continue;
     const way = through(`floor ${floor} cell ${p.id.split(':')[1]}`, state);

@@ -12,9 +12,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
 import { indicesPng } from '../../../tools/probe/render';
-import { MAP_BOX, type Found } from '../../shared/native/pause';
+import { MAP_BOX } from '../../shared/native/pause';
 import { run } from '../src/main';
-import { makeMap } from '../src/map';
+import { makeMap, type ThingFound } from '../src/map';
 import { hintSpots } from '../src/hint-spots';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { parseOptions } from '../../shared/test/data';
@@ -35,11 +35,8 @@ const machine = () => { const m = p.machine; if (!m) throw new Error('no game ye
 const ram = () => machine().ram;
 const where = () => `${ram()[0x5f]}.${ram()[0x5e]}`;
 /** What the map has noted: the screens been in, with the ends come in by. */
-function screensFound(found: Found): Record<string, string[]> {
-  const s = found.screens, out: Record<string, string[]> = {};
-  if (typeof s !== 'object' || s === null) return out;
-  for (const [k, v] of Object.entries(s)) if (Array.isArray(v)) out[k] = v.filter((x): x is string => typeof x === 'string');
-  return out;
+function screensFound(found: ThingFound): Record<string, string[]> {
+  return Object.fromEntries(Object.entries(found.screens).map(([k, v]) => [k, [...v]]));
 }
 const options = (): Record<string, unknown> => parseOptions(store.get('thingonaspring.assist'));
 

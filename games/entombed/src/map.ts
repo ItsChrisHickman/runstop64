@@ -1,6 +1,6 @@
 import type { Surface } from 'c64kit';
 import { isNumber, isNumbers, isRecord, isRecordOf, isString, isStrings } from '../../shared/guards';
-import { COL, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import * as engine from './gen/engine';
 import { rd, wr } from '../../shared/native/cpu';
 
@@ -37,7 +37,8 @@ const realCols = (f: number) => Math.min(FLOORS[f].w, Math.floor((TABLE_END[f] -
 const END_AFTER = 0x7c, END_BEFORE = 0x7f;
 const CORRIDORS = 0x60f8; // the corridor code's block is loaded at $6000 (else Pendragon is in a chamber)
 
-interface Seen {
+/** What the map keeps of the player's progress. */
+export interface EntombedFound {
   cells: Record<string, string[]>; // floor -> ["x,y"]
   chambers: Record<string, Record<string, number>>; // floor -> "x,y" -> chamber number
   /** Where each chamber's door is along its corridor (floor -> chamber -> [x, y, axis]), from where he went in. */
@@ -55,24 +56,25 @@ interface Seen {
 type Door = [x: number, y: number, axis: number];
 const isDoor = (v: unknown): v is Door => isNumbers(v) && v.length === 3;
 const isWay = (v: unknown): v is 'up' | 'down' => v === 'up' || v === 'down';
-const isPlace = (v: unknown): v is NonNullable<Seen['lastPlace']> => isRecord(v) && isNumber(v.floor) && isNumber(v.x) && isNumber(v.y) && isNumber(v.axis);
-const isLast = (v: unknown): v is NonNullable<Seen['last']> => isRecord(v) && isNumber(v.floor) && isString(v.at);
+const isPlace = (v: unknown): v is NonNullable<EntombedFound['lastPlace']> => isRecord(v) && isNumber(v.floor) && isNumber(v.x) && isNumber(v.y) && isNumber(v.axis);
+const isLast = (v: unknown): v is NonNullable<EntombedFound['last']> => isRecord(v) && isNumber(v.floor) && isString(v.at);
 const recordsOf = <T>(item: (x: unknown) => x is T) => (v: unknown): v is Record<string, T> => isRecordOf(v, item);
-/**
- * What's been found, read back (it's JSON kept in the browser: each part checked). The containers
- * are found's own (changes to them are kept); a change of a whole part is kept by writing it back
- * into found (observe does, with all of it).
- */
-const seen = (f: Found): Seen => ({
-  cells: isRecordOf(f.cells, isStrings) ? f.cells : {},
-  chambers: isRecordOf(f.chambers, recordsOf(isNumber)) ? f.chambers : {},
-  doors: isRecordOf(f.doors, recordsOf(isDoor)) ? f.doors : undefined,
-  lastPlace: isPlace(f.lastPlace) ? f.lastPlace : undefined,
-  stairs: isRecordOf(f.stairs, recordsOf(isWay)) ? f.stairs : {},
-  last: isLast(f.last) ? f.last : undefined,
-  warped: typeof f.warped === 'boolean' ? f.warped : undefined,
-  chain: isNumbers(f.chain) ? f.chain : undefined,
-});
+const FOUND: FoundCodec<EntombedFound> = {
+  empty: () => ({ cells: {}, chambers: {}, stairs: {} }),
+  parse: (kept) => {
+    const f = isRecord(kept) ? kept : {};
+    return {
+      cells: isRecordOf(f.cells, isStrings) ? f.cells : {},
+      chambers: isRecordOf(f.chambers, recordsOf(isNumber)) ? f.chambers : {},
+      doors: isRecordOf(f.doors, recordsOf(isDoor)) ? f.doors : undefined,
+      lastPlace: isPlace(f.lastPlace) ? f.lastPlace : undefined,
+      stairs: isRecordOf(f.stairs, recordsOf(isWay)) ? f.stairs : {},
+      last: isLast(f.last) ? f.last : undefined,
+      warped: typeof f.warped === 'boolean' ? f.warped : undefined,
+      chain: isNumbers(f.chain) ? f.chain : undefined,
+    };
+  },
+};
 const floorOf = (ram: Uint8Array) => ram[0x37f7];
 const inCorridor = (ram: Uint8Array) => (ram[0x6001] | (ram[0x6002] << 8)) === CORRIDORS;
 /** Where Pendragon is, in cells (fractional along the corridor he's in). */
@@ -100,8 +102,9 @@ export function maze(ram: Uint8Array, f: number) {
 }
 
 export const entombedMap = {
-  observe(ram, found) {
-    const s = seen(found), floor = floorOf(ram);
+  found: FOUND,
+  observe(ram, s) {
+    const floor = floorOf(ram);
     if (!FLOORS[floor]) return;
     const corridor = inCorridor(ram), at = corridor ? here(ram) : `${ram[0x217e]},${ram[0x217f]}`;
     // came onto a new floor by stairs (they're in chambers): marked where he left and where he came
@@ -127,21 +130,20 @@ export const entombedMap = {
       // in a chamber: its door is where the map has him (the game's own place, as it chose the chamber by)
       (s.chambers[floor] ??= {})[`${ram[0x217e]},${ram[0x217f]}`] = ram[0x321c];
     }
-    Object.assign(found, s);
   },
   title: (ram) => `FLOOR ${floorOf(ram)} OF 7`,
   // All seven floors at once, each by its number (his in yellow; one he's not been on dark)
   draw(sf, box, ram, found, blink, _page, font) {
-    const T = tomb(box, ram), s = seen(found);
+    const T = tomb(box, ram), s = found;
     for (const [f, at] of T.floors) {
       const been = f === floorOf(ram) || !!(s.cells[f]?.length || s.chambers[f] || s.stairs[f]);
       font?.draw(sf, String(f), at.ox - LABEL, at.oy, f === floorOf(ram) ? COL.yellow : been ? COL.lgrey : COL.dgrey);
-      drawFloor(sf, at, T.u, ram, found, blink, f);
+      drawFloor(sf, at, T.u, ram, s, blink, f);
     }
   },
   // Places to go back to: the junctions he's been to, on any floor.
   places(box, ram, found) {
-    const s = seen(found), T = tomb(box, ram), at = here(ram), r = (sizes(T.u).dot >> 1) + 2;
+    const s = found, T = tomb(box, ram), at = here(ram), r = (sizes(T.u).dot >> 1) + 2;
     return [...T.floors].flatMap(([floor, L]) => {
       const M = maze(ram, floor);
       return (s.cells[floor] ?? []).filter((k) => { const [x, y] = k.split(',').map(Number); return M.junction(x, y); }).map((k) => {
@@ -156,8 +158,8 @@ export const entombedMap = {
     if (!F) return false;
     const M = maze(ram, floor);
     if (!M.junction(x, y)) return false; // (a wall at a corridor's end, from an older map)
-    if (!inCorridor(ram) && !leaveChambers(ram, seen(found).chain)) return false;
-    Object.assign(found, { chain: [], warped: true });
+    if (!inCorridor(ram) && !leaveChambers(ram, found.chain)) return false;
+    found.chain = []; found.warped = true;
     // The sprites shown, as the corridors' setup ($6003, run by leaving a chamber) left them: the
     // game's own ways back into the corridors don't turn the screen off after it, so the whip
     // (sprite 3) stays on; $C1A1 below turns them all off and $C1C9 only Pendragon back on.
@@ -173,8 +175,7 @@ export const entombedMap = {
     engine.r_c1c9(); // (screen on)
     wr(0xd015, rd(0xd015) | shown);
   },
-  info(ram, found) {
-    const s = seen(found);
+  info(ram, s) {
     const air = 100 - ram[0x37f6], ankhs = 5 - ram[0x323d];
     const chambers = Object.values(s.chambers).reduce((n, c) => n + Object.keys(c).length, 0);
     // how much of the tomb he's seen: junctions, of all on the seven floors
@@ -186,7 +187,7 @@ export const entombedMap = {
     return [`AIR    ${String(air).padStart(3)}%`, `ANKHS    ${ankhs}`, `CHAMBERS ${chambers}`, `SEEN ${been}/${all}`];
   },
   legend: [{ colour: COL.lblue, text: 'CHAMBER' }, { colour: COL.green, text: 'STAIRS' }],
-} satisfies PauseMap;
+} satisfies PauseMap<Uint8Array, EntombedFound>;
 
 /**
  * Out of the chambers, as the game would have left them: each chamber's code is swapped
@@ -238,8 +239,8 @@ const BLOCK_HOMES: Record<number, number> = {
 const GFX_PRINT: [number, number][] = [[0x4a, 0xa0], [0x6f, 0x5f], [0x94, 0xaa], [0x128, 0xa1], [0x172, 0xaa], [0x197, 0x15], [0x1e1, 0xae], [0x206, 0xd5]];
 
 /** One floor's map, where `tomb` put it: its corridors (lit where he's been), chambers and stairs found, and where he is. */
-function drawFloor(sf: Surface, L: FloorAt, u: number, ram: Uint8Array, found: Found, blink: boolean, floor: number) {
-  const s = seen(found), { cx, cy } = L;
+function drawFloor(sf: Surface, L: FloorAt, u: number, ram: Uint8Array, s: EntombedFound, blink: boolean, floor: number) {
+  const { cx, cy } = L;
   const { F, row, col, end, junction } = maze(ram, floor);
   const visited = new Set(s.cells[floor] ?? []);
   const lit = (x: number, y: number) => visited.has(`${x},${y}`);

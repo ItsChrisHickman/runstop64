@@ -1,5 +1,4 @@
 import type { BitmapFont, Surface } from 'c64kit';
-import type { Found } from '../saves';
 
 /**
  * The pause screen for native ports, in the spirit of the Monty remake's: the
@@ -7,34 +6,49 @@ import type { Found } from '../saves';
  * they've found), how they're doing, and the game's options.
  *
  * Each game supplies a `PauseMap`: what to note as the player goes (`observe`,
- * every frame of play) and how to draw it. What's been found is kept with the
- * autosave and starts empty with a new game.
+ * every frame of play) and how to draw it. What's been found is the map's own type `F`, kept
+ * with the autosave and empty with a new game; the map's `FoundCodec` reads it back from what
+ * was kept.
  */
 export interface Box { x: number; y: number; w: number; h: number }
 
-/** What the player has found, kept between sessions (plain JSON; games/shared/saves.ts keeps it). */
-export type { Found };
+/**
+ * What the player has found, as a game's map has it (`F`: plain JSON, so it is kept as it is,
+ * with JSON.stringify, by games/shared/saves.ts). The map says how to make one.
+ */
+export interface FoundCodec<F> {
+  /** Nothing found yet (a new game). */
+  empty(): F;
+  /**
+   * What was kept, read back: anything at all (storage holds what it holds, old saves included).
+   * A part that doesn't check is empty, the rest is kept. Read once, when the front end starts;
+   * the map never checks it again.
+   */
+  parse(kept: unknown): F;
+}
 
 /** A place on the map to go back to, where it's drawn (`r`: the picked box's half-height, to fit round its mark, 6 if not given; `rx`: its half-width, `r` if not given, for a place drawn wide); `here`: where the player is. */
 export interface MapPlace { id: string; x: number; y: number; r?: number; rx?: number; here?: boolean }
 
-export interface PauseMap<T = Uint8Array> {
+export interface PauseMap<T, F> {
+  /** How what the player has found is read back, and what a new game starts with. */
+  readonly found: FoundCodec<F>;
   /** Every frame of play: note what the player has found (`vic`: the VIC-II registers). */
-  observe(ram: T, found: Found, vic: Uint8Array): void;
+  observe(ram: T, found: F, vic: Uint8Array): void;
   /** The heading over the map, e.g. "FLOOR 3" (`page`: which page is shown, for maps with pages). */
   title(ram: T, page?: number): string;
   /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it). */
-  draw(s: Surface, box: Box, ram: T, found: Found, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null): void;
+  draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null): void;
   /** Lines for the side panel (how the player is doing). */
-  info(ram: T, found: Found): string[];
+  info(ram: T, found: F): string[];
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now. */
   legend?: { colour: number; text: string }[] | ((ram: T) => { colour: number; text: string }[]);
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
-  pages?(ram: T, found: Found): { list: number[]; current: number };
+  pages?(ram: T, found: F): { list: number[]; current: number };
   /** Places on the shown page the player can go back to, where they're drawn in `box`; `here` is where the player is. */
-  places?(box: Box, ram: T, found: Found, page?: number): MapPlace[];
+  places?(box: Box, ram: T, found: F, page?: number): MapPlace[];
   /** Go to a place (called in the game's main loop, between its frames). Returns false if it can't from here. */
-  go?(id: string, ram: T, found: Found): boolean | void;
+  go?(id: string, ram: T, found: F): boolean | void;
 }
 
 /**
@@ -42,7 +56,7 @@ export interface PauseMap<T = Uint8Array> {
  * (a room, a floor, a level), then its side panel's lines for how the player is doing. For games
  * whose saves are the state the map reads (a machine's RAM); others describe their own saves.
  */
-export function mapSummary<T>(map: PauseMap<T>, state: T, found: Found): string[] {
+export function mapSummary<T, F>(map: PauseMap<T, F>, state: T, found: F): string[] {
   return [map.title(state), ...map.info(state, found)];
 }
 
@@ -88,7 +102,7 @@ export const MAP_BOX: Box = { x: 10, y: 22, w: 196, h: 150 };
 export const COL = { black: 0, white: 1, red: 2, cyan: 3, purple: 4, green: 5, blue: 6, yellow: 7, orange: 8, brown: 9, pink: 10, dgrey: 11, grey: 12, lgreen: 13, lblue: 14, lgrey: 15 };
 
 /** Draws the whole pause screen. */
-export function drawPause<T>(s: Surface, font: BitmapFont, map: PauseMap<T>, ram: T, found: Found, tick: number, options: string[], ui: PauseUi = {}) {
+export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F>, ram: T, found: F, tick: number, options: string[], ui: PauseUi = {}) {
   s.fillRect(0, 0, 320, 200, COL.black);
   // frame, in the style of the Pendragon status lines
   s.fillRect(0, 0, 320, 2, COL.yellow); s.fillRect(0, 198, 320, 2, COL.yellow);
@@ -130,7 +144,7 @@ export function drawPause<T>(s: Surface, font: BitmapFont, map: PauseMap<T>, ram
 }
 
 // What's been found is plain JSON kept in the browser: maps read their part back through these checks.
-export { isNumbers, isRecordOf, isStrings } from '../guards';
+export { isNumber, isNumbers, isRecord, isRecordOf, isString, isStrings } from '../guards';
 
 /**
  * A map drawn as strips, for games that keep their places as long sideways-scrolling strips

@@ -9,9 +9,9 @@
  *   nice -n 15 node tools/test.mjs games/shared/native/test/pausemap.ts blackwyche [out-dir]
  */
 import fs from 'node:fs';
-import { Input, PixelRenderer, packState, unpackState } from 'c64kit';
+import { Input, PixelRenderer, packState, unpackState, type C64Machine, type Host } from 'c64kit';
 import { NativeHost } from '../host';
-import { MAP_BOX, type Found, type PauseMap } from '../pause';
+import { MAP_BOX, type PauseMap } from '../pause';
 import { GAMES, setJoy } from './games';
 import { rgbPng } from '../../../../tools/probe/render';
 import { C64_PALETTE } from '../../../../packages/c64kit/src/palette';
@@ -24,7 +24,15 @@ import { readRoutes } from '../../test/data';
 import { check, finish } from '../../test/check';
 
 const gameId = process.argv[2] ?? 'blackwyche', outDir = process.argv[3];
-const SPECS: Record<string, { run: typeof runBlackwyche; map: PauseMap; cheat(ram: Uint8Array): void }> = {
+/** What this test uses of a running game (each game's own kind of progress is `unknown` here). */
+interface Running {
+  machine: C64Machine | undefined;
+  state: { playing: boolean };
+  frontEnd: { paused: boolean; picked: string | null; found: unknown };
+  tick(): void;
+  render(alpha: number): void;
+}
+const SPECS: Record<string, { run(host: Host): Running; map: PauseMap<Uint8Array, unknown>; cheat(ram: Uint8Array): void }> = {
   blackwyche: { run: runBlackwyche, map: blackwycheMap, cheat: (ram) => { ram[0x9d77] = 100; ram[0x3417] = 0; } },
   karnath: { run: runKarnath, map: karnathMap, cheat: (ram) => { ram[0x6ffe] = 100; ram[0x322e] = 0; } },
 };
@@ -35,7 +43,7 @@ if (!spec || !game || !port) throw new Error(`no pause map test for ${gameId}`);
 // ---- play the routes, the map noting what's found; the last route's end is the save ----
 const titleBytes = fs.readFileSync(game.title);
 const routes = readRoutes(`games/${gameId}/re/routes.json`);
-const found: Found = {};
+const found = spec.map.found.empty();
 let save: Uint8Array | null = null;
 for (const route of routes) {
   const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));

@@ -7,8 +7,8 @@
  * hole's shape ($5280: copied over the boards, or room $0B's sprite pointer set to its copy) and
  * sets $342A. Coming back in, the block draws the boards again; this puts the hole back.
  */
+import { isString } from '../../shared/guards';
 import { findOverlayRoutine, type OverlayVersion } from '../../shared/native/host';
-import type { Found } from '../../shared/saves';
 import * as room_ca60 from './gen/rooms/room-ca60';
 import * as room_e570 from './gen/rooms/room-e570';
 import * as room_e760 from './gen/rooms/room-e760';
@@ -61,26 +61,23 @@ function cabin(ram: Uint8Array) {
   return { id: `C${ram[0x9d78]}.${ram[0x1ecd]}.${ram[0x1ee5]}`, room: ram[0x341c] };
 }
 
-/** The trapdoors that have given way ("C deck.part.door:sprite"), kept with what's been found (and so with the saves). */
-function sprung(found: Found): string[] {
-  const v = found.trapdoors;
-  const list = Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : [];
-  found.trapdoors = list;
-  return list;
-}
+/**
+ * The trapdoors that have given way ("C deck.part.door:sprite"), kept with what's been found
+ * (`found.trapdoors`, and so with the saves): read back from what was kept.
+ */
+export const parseSprung = (kept: unknown): string[] => (Array.isArray(kept) ? kept.filter(isString) : []);
 
 export class TrapDoors {
   private falling = false;
 
-  /** One frame of play (after the game's): `on` while the assist is on and the game is being played. */
-  frame(ram: Uint8Array, on: boolean, found: Found) {
+  /** One frame of play (after the game's): `on` while the assist is on and the game is being played; `list`: the trapdoors that have given way (kept with the saves). */
+  frame(ram: Uint8Array, on: boolean, list: string[]) {
     const fell = ram[0x342a] !== 0 && !this.falling;
     this.falling = ram[0x342a] !== 0;
     if (!on) return;
     const here = cabin(ram);
     const traps = here ? TRAPS[here.room] : undefined;
     if (!here || !traps) return;
-    const list = sprung(found);
     for (const t of traps) {
       if (!findOverlayRoutine([t.block], ram, t.routine)) continue;
       const id = `${here.id}:${t.sprite}`;

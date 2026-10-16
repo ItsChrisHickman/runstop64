@@ -11,7 +11,7 @@ import { intoArmour } from './fades';
 import { heroAt, placeFeel } from './feel';
 import { Game } from './game';
 import { takeOff } from './hero';
-import { antiriadMap, describeSave, entryOf } from './map';
+import { antiriadMap, describeSave, entryOf, type AntiriadFound } from './map';
 import { stopMessage } from './panel';
 import { loadPlus, startPlus } from './plus';
 import { heroAnim, restartHeroAnim } from './sprites';
@@ -144,15 +144,13 @@ export function run(host: Host) {
   const sound = new SidPlayer();
 
   // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
-  const flow = new ContinueFlow<MachineState>({ id: 'antiriad', renderer, input, font: 'kit', codec: MACHINE_CODEC, strip: { y: 183 }, describe: (s) => describeSave(s.ram) }); // (on the black under the title's floor)
+  const flow = new ContinueFlow<MachineState, AntiriadFound>({ id: 'antiriad', renderer, input, font: 'kit', codec: MACHINE_CODEC, found: antiriadMap.found, strip: { y: 183 }, describe: (s) => describeSave(s.ram) }); // (on the black under the title's floor)
   const latch = new FireLatch(true);
-  const fe = new FrontEnd<Game>({
+  const fe = new FrontEnd<Game, AntiriadFound>({
     id: 'antiriad', input, renderer, map: antiriadMap,
     // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
     assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
     font: () => flow.getFont(),
-    panel: (lines) => flow.panel(lines),
-    canGoBack: () => g.playing && flow.state.hasSave,
     saves: flow,
     onClose: () => latch.hold(),
   });
@@ -241,7 +239,6 @@ export function run(host: Host) {
       audio.tick();
 
       if (g.playing) {
-        if (fe.optionsOpen) { asked(fe.optionsTick(() => view.update())); return; }
         fe.pauseKey(g, !flow.holding);
         if (fe.paused) {
           asked(fe.pausedTick(g, () => view.update()));

@@ -1,5 +1,5 @@
-import { isNumbers } from '../../shared/guards';
-import { COL, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { isNumbers, isRecord, isString } from '../../shared/guards';
+import { COL, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { go, location } from './travel';
 
 /**
@@ -31,18 +31,22 @@ const joined = (ram: Uint8Array, x: number, y: number) => {
   return !!a && !!b && a.right && b.left;
 };
 
-/** What's been found, as kept with the saves (plain JSON: checked as it's read). */
-interface Seen { cells: string[]; at: Record<string, number[]>; last: string | null; links: string[] }
-function seen(found: Found): Seen {
-  const cells = Array.isArray(found.cells) ? found.cells.filter((c): c is string => typeof c === 'string') : [];
-  const at: Record<string, number[]> = {};
-  const kept = found.at;
-  if (typeof kept === 'object' && kept !== null) for (const [k, v] of Object.entries(kept)) if (isNumbers(v)) at[k] = v;
-  const last = typeof found.last === 'string' ? found.last : null;
-  const links = Array.isArray(found.links) ? found.links.filter((c): c is string => typeof c === 'string') : [];
-  found.cells = cells; found.at = at; found.links = links;
-  return { cells, at, last, links };
-}
+/** What the map keeps of the player's progress: the screens been on, where he came onto each (to go back to), the last one, and the ways walked between them. */
+export interface DragonskulleFound { cells: string[]; at: Record<string, number[]>; last: string | null; links: string[] }
+const FOUND: FoundCodec<DragonskulleFound> = {
+  empty: () => ({ cells: [], at: {}, last: null, links: [] }),
+  parse: (kept) => {
+    const f = isRecord(kept) ? kept : {};
+    const at: Record<string, number[]> = {};
+    if (isRecord(f.at)) for (const [k, v] of Object.entries(f.at)) if (isNumbers(v)) at[k] = v;
+    return {
+      cells: Array.isArray(f.cells) ? f.cells.filter(isString) : [],
+      at,
+      last: typeof f.last === 'string' ? f.last : null,
+      links: Array.isArray(f.links) ? f.links.filter(isString) : [],
+    };
+  },
+};
 
 /**
  * Where the screens are drawn: the part of the island found so far (and where he is), as big as
@@ -60,9 +64,10 @@ function layout(box: Box, cells: string[], here: string) {
   return { w, h, left: (x: number) => ox + (x - x0) * w, top: (y: number) => oy + (y1 - y) * h };
 }
 
-export const dragonskulleMap: PauseMap = {
-  observe(ram, found, vic) {
-    const s = seen(found), key = cellKey(ram), { x, y } = cellOf(ram);
+export const dragonskulleMap: PauseMap<Uint8Array, DragonskulleFound> = {
+  found: FOUND,
+  observe(ram, s, vic) {
+    const key = cellKey(ram), { x, y } = cellOf(ram);
     if (!picture(ram, x, y)) return; // (not a screen: the title, a change of screen)
     if (!s.cells.includes(key)) s.cells.push(key);
     // Where he came onto a screen by a change of screen (off an edge, through a way up or
@@ -77,11 +82,11 @@ export const dragonskulleMap: PauseMap = {
       const link = [s.last, key].sort().join('|');
       if (!s.links.includes(link)) s.links.push(link);
     }
-    if (s.last !== key && (s.last === null || along || s.at[key] || location(ram, vic))) found.last = key;
+    if (s.last !== key && (s.last === null || along || s.at[key] || location(ram, vic))) s.last = key;
   },
   title: () => 'THE ISLAND OF THE SKULL',
-  draw(sf, box, ram, found, blink) {
-    const s = seen(found), here = cellKey(ram), { w, h, left, top } = layout(box, s.cells, here), been = new Set(s.cells);
+  draw(sf, box, ram, s, blink) {
+    const here = cellKey(ram), { w, h, left, top } = layout(box, s.cells, here), been = new Set(s.cells);
     for (const link of s.links) {
       const [[ax, ay], [bx, by]] = link.split('|').map((k) => k.split(',').map(Number));
       const cx = (x: number) => left(x) + (w >> 1), cy = (y: number) => top(y) + (h >> 1);
@@ -98,8 +103,7 @@ export const dragonskulleMap: PauseMap = {
       sf.fillRect(left(x) + (jl ? 0 : 2), top(y) + 2, w - (jl ? 0 : 2) - (jr ? 0 : 2), Math.max(1, h - 4), colour);
     }
   },
-  info(ram, found) {
-    const s = seen(found);
+  info(ram, s) {
     const lives = 5 - Math.floor(ram[0x1248] / 3), energy = Math.round((ram[0x123e] * 100) / 20);
     return [
       `LIVES     ${lives}`,
@@ -111,15 +115,15 @@ export const dragonskulleMap: PauseMap = {
   },
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.grey, text: 'PASSAGE' }],
   // Places to go back to: the screens he's come onto (where he came onto them).
-  places(box, ram, found) {
-    const s = seen(found), here = cellKey(ram), { w, h, left, top } = layout(box, s.cells, here);
+  places(box, ram, s) {
+    const here = cellKey(ram), { w, h, left, top } = layout(box, s.cells, here);
     return Object.keys(s.at).map((k) => {
       const [x, y] = k.split(',').map(Number);
       return { id: k, x: left(x) + (w >> 1), y: top(y) + (h >> 1), here: k === here };
     });
   },
   go(id, ram, found) {
-    const to = seen(found).at[id];
+    const to = found.at[id];
     if (!to || !go(ram, to)) return false;
     found.last = id;
     return true;

@@ -31,10 +31,10 @@ import path from 'node:path';
 import { Input, PixelRenderer, TRANSPARENT, backgroundAt, emptiedLines, labelFont, packState, placeBox, placeDrawable, placePoint, unpackState } from 'c64kit';
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
 import { sidLog } from '../../shared/test/kit';
-import { MAP_BOX, type Found } from '../../shared/native/pause';
+import { MAP_BOX } from '../../shared/native/pause';
 import { NativeHost } from '../../shared/native/host';
 import { port } from '../src/native';
-import { dragonskulleMap } from '../src/map';
+import { dragonskulleMap, type DragonskulleFound } from '../src/map';
 import { LOCATION } from '../src/travel';
 import { ACTION, BAR, BAR_AT, ENERGY, ICON_AT, PLAY, dragonskulleLayout, energyFace, run } from '../src/main';
 import { dragonskulleCombat } from '../src/combat';
@@ -50,7 +50,7 @@ stubFetch(titleBytes);
 
 // ---- a save deep in the caves, and the map as walking there noted it ---------------------------------
 const route = readRoute('games/dragonskulle/re/routes.json');
-const walkedFound: Found = {};
+const walkedFound = dragonskulleMap.found.empty();
 const arrivals = new Map<string, number[]>(); // cell -> the location bytes as he came onto it
 let deepSave = '';
 {
@@ -69,9 +69,8 @@ let deepSave = '';
   const s = g.save();
   if (s) { s.ram[0x1248] = 6; deepSave = Buffer.from(packState(s)).toString('base64'); } // (two lives lost: continuing gives them back)
 }
-function atOf(found: Found): Record<string, unknown> {
-  const at = found.at;
-  return typeof at === 'object' && at !== null ? { ...at } : {};
+function atOf(found: DragonskulleFound): Record<string, unknown> {
+  return { ...found.at };
 }
 
 store.set('dragonskulle.save.v1', deepSave);

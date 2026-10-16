@@ -30,7 +30,7 @@ import { gameName, held, ITEMS, itemsFound, roomThings, shortName } from '../src
 import { THINGS } from '../src/guided';
 import { placeName } from '../src/names';
 import { CABINS, HALLS } from '../src/ship';
-import { keepFound, type Found } from '../../shared/saves';
+import { keepFound } from '../../shared/saves';
 import { readRoutes } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
 
@@ -80,7 +80,7 @@ if (!route) throw new Error('no route 3');
 const g = new NativeHost(port, unpackState(new Uint8Array(titleBytes)));
 const taken = new Map<number, string>(); // flag -> the status line some frames after it was set
 let frame = 0, watching: { flag: number; left: number } | null = null;
-const routeFound: Found = {}; // (where the map has him been, as the front end notes it)
+const routeFound = blackwycheMap.found.empty(); // (where the map has him been, as the front end notes it)
 const frameOf = () => {
   g.tick(); g.m.ram[0x9d77] = 100; g.m.ram[0x3417] = 0; frame++;
   if (g.lastWait === game.mainLoopWait && frame > 200) blackwycheMap.observe(g.m.ram, routeFound, g.m.vic);

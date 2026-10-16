@@ -1,4 +1,10 @@
-import type { ContinueFlow, GameStatus } from './continue';
+import type { GameStatus } from './continue';
+
+/** What the room saves ask of the continue flow. */
+interface SavedFlow<S> {
+  saved(): S | null;
+  resumed(s: S, room: number): void;
+}
 
 /**
  * The room-save bookkeeping of a port that saves each room's start: the save of the room the
@@ -27,7 +33,7 @@ export class RoomSaves<S> {
   }
 
   /** Back to how things were on coming into this room (out of a trap the game has no way out of): `resume` carries the game on from the save. */
-  backToRoomStart(flow: ContinueFlow<S>, playing: boolean, resume: (s: S) => void) {
+  backToRoomStart(flow: SavedFlow<S>, playing: boolean, resume: (s: S) => void) {
     const s = flow.saved();
     if (!s || !playing) return;
     resume(s);

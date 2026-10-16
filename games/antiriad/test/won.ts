@@ -27,7 +27,7 @@ import { fromBase64, readSaves, toBase64, writeCurrent } from '../../shared/save
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { run } from '../src/main';
 import { renderPng } from '../../../tools/probe/render';
-import type { Found } from '../../shared/native/pause';
+import type { AntiriadFound } from '../src/map';
 import { must } from '../../shared/test/must';
 import { intoArmour } from '../src/fades';
 import { antiriadMap, describeSave } from '../src/map';
@@ -164,7 +164,7 @@ hold([], 60);
 check(`  ... and back in the armour (${about()})`, !!(g().ram[V.inSuit] & 0x80) && g().ram[V.room] === outIn);
 
 // travel: in the armour, anywhere he's been (a room he only walked into: the armour goes there too)
-const f: Found = { rooms: [START, 20], entry: { 20: { x: 120, y: 88, high: 0 } }, suitEntry: { [START]: { x: 96, y: 64, high: 0 } } };
+const f: AntiriadFound = { rooms: [START, 20], entry: { 20: { x: 120, y: 88, high: 0 } }, suitEntry: { [START]: { x: 96, y: 64, high: 0 } } };
 const ids = must(antiriadMap.places, 'the map lists places')({ x: 0, y: 0, w: 150, h: 140 }, g(), f).map((p) => p.id);
 check(`New Game+: travel in the armour to a room only walked into (${ids.join(' ')})`, !!(g().ram[V.inSuit] & 0x80) && ids.includes('20') && ids.includes(String(START)));
 

@@ -8,7 +8,7 @@ import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
 import { Game } from './game';
-import { describeSave, montyMap, NO_TRAVEL, noteRoom } from './map';
+import { describeSave, montyMap, NO_TRAVEL, noteRoom, type MontyFound } from './map';
 import { CODEC, migrateOldSave, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore } from './title';
 
@@ -77,9 +77,9 @@ export function run(host: Host) {
   migrateOldSave();
   // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
   // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
-  const flow = new ContinueFlow<MontySave>({ id: 'montyotr', renderer, input, font, codec: CODEC, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
+  const flow = new ContinueFlow<MontySave, MontyFound>({ id: 'montyotr', renderer, input, font, codec: CODEC, found: montyMap.found, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
   const latch = new FireLatch();
-  const fe = new FrontEnd<Game>({
+  const fe = new FrontEnd<Game, MontyFound>({
     id: 'montyotr', input, renderer, map: montyMap,
     assists: [
       { id: 'cloud', long: 'RIDE THE RISING CLOUD' },
@@ -89,8 +89,6 @@ export function run(host: Host) {
       { id: 'respawn', long: 'SAFE RESPAWN' },
     ],
     font: () => font,
-    panel: (lines) => flow.panel(lines),
-    canGoBack: () => mode === 'play' && flow.state.hasSave,
     saves: flow,
     onClose: () => latch.hold(),
   });

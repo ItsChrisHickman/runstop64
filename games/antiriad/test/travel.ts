@@ -17,7 +17,6 @@
  */
 import fs from 'node:fs';
 import { C64Machine, unpackState } from 'c64kit';
-import type { Found } from '../../shared/native/pause';
 import { Game } from '../src/game';
 import { repairSave } from '../src/main';
 import { antiriadMap, entryOf } from '../src/map';
@@ -31,7 +30,7 @@ const load = (state: string) => {
   return new Game(m, true);
 };
 let g = load('games/antiriad/test/armour.state');
-let found: Found = {};
+let found = antiriadMap.found.empty();
 
 const UP = 0x1f & ~1, DOWN = 0x1f & ~2, LEFT = 0x1f & ~4, NONE = 0x1f;
 /** A frame, the map noting rooms as the front end does (main.ts), and `each` after it. */
@@ -83,7 +82,7 @@ check(`then holding down lowers it again (y down to ${bottom})`, bottom > top + 
 // ---- standing: travel to where the armour flew into a room -----------------------------------
 
 g = load('games/antiriad/test/armour.state');
-found = {};
+found = antiriadMap.found.empty();
 run(NONE, 20);
 const home = g.ram[V.room];
 // take off and fly up into the room above (the armour comes in at its bottom edge, in the air)
@@ -120,7 +119,7 @@ check(`up still lifts the armour (y ${before} -> ${y()})`, inSuit() && y() < bef
 // ---- on foot: travel, then walk -----------------------------------------------------------------
 
 g = load('games/antiriad/test/original.state');
-found = {};
+found = antiriadMap.found.empty();
 each = () => { g.ram[V.life] = 0x1f; }; // (the first room's radiation off, for the check)
 run(NONE, 20);
 const walkFrom = x();

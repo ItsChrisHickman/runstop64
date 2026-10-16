@@ -32,7 +32,7 @@ stubFetch(titleBytes);
 
 const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
 /** A floor's junctions ("x,y"), as the map has them. */
-const junctions = (ram: Uint8Array, floor: number) => entombedMap.places(MAP_BOX, ram, { cells: { [floor]: all } }).map((p) => p.id.split(':')[1]);
+const junctions = (ram: Uint8Array, floor: number) => entombedMap.places(MAP_BOX, ram, entombedMap.found.parse({ cells: { [floor]: all } })).map((p) => p.id.split(':')[1]);
 
 // a save in the corridors of floor 6, as the autosave keeps one; found: floors 1, 2 and 5 in part, the west of floor 6
 let start = '';
@@ -46,7 +46,7 @@ let start = '';
     const seen6 = junctions(g.m.ram, 6).filter((k) => Number(k.split(',')[0]) < 8);
     start = seen6[Math.floor(seen6.length / 2)];
     cells = { 1: junctions(g.m.ram, 1).slice(0, 12), 2: junctions(g.m.ram, 2).slice(0, 8), 5: junctions(g.m.ram, 5), 6: seen6 };
-    entombedMap.go(`6:${start}`, g.m.ram, {});
+    entombedMap.go(`6:${start}`, g.m.ram, entombedMap.found.empty());
     Object.assign(cpu, r);
   };
   for (let f = 0; f < 5; f++) g.tick();

@@ -1,7 +1,8 @@
 import { BitmapFont, KIT_GLYPHS, packState, unpackState, type C64Machine, type Input, type MachineState, type Renderer } from 'c64kit';
 import { FLOW_LAYOUT, initialState, panelTop, readIntent, step, stripText, type FlowState, type TitleStrip } from './continue-step';
 import { Grace } from './grace';
-import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent, type Found } from './saves';
+import type { FoundCodec } from './native/pause';
+import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent } from './saves';
 
 /**
  * Autosave and continue for every game here (native rewrites, native ports, the original code),
@@ -38,7 +39,7 @@ export interface SaveCodec<S> {
 /** Saves as c64kit machine states (games running on the C64 machine). */
 export const MACHINE_CODEC: SaveCodec<MachineState> = { pack: packState, unpack: unpackState };
 
-export interface ContinueOptions<S = MachineState> {
+export interface ContinueOptions<S, F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   renderer: Renderer;
@@ -51,22 +52,24 @@ export interface ContinueOptions<S = MachineState> {
   restartKeys?: string[];
   /** Where the title's ENTER CONTINUE line goes: a row the title leaves empty (TitleStrip). */
   strip?: TitleStrip;
+  /** How what the player has found (the map's progress, kept with each save) is read back: the map's `found`. */
+  found: FoundCodec<F>;
   /**
    * What a save says about the game's progress, for the save manager: where (a room or place
    * name) first, then how it's doing (lives, items found); short parts, tidied by `tidySummary`.
    * `found`: what had been found then (the map's progress).
    */
-  describe?(save: S, found: Found): string[];
+  describe?(save: S, found: F): string[];
   /** Launched with a save, straight back into play (default true). */
   continueOnLaunch?: boolean;
 }
 
 /** The part of the save history the front end drives (FrontEnd's `saves`): a new game, and what's been found. */
-export interface SaveHistory {
+export interface SaveHistory<F> {
   /** A new game begins: the current save is kept as the previous one, with what had been found. */
-  beginNewGame(found: Found): void;
+  beginNewGame(found: F): void;
   /** Where what's been found (the map's progress) is, for describing saves. */
-  watchFound(get: () => Found): void;
+  watchFound(get: () => F): void;
 }
 
 export type { TitleStrip };
@@ -83,7 +86,7 @@ export interface GameStatus<S = MachineState> {
   save(): S | null;
 }
 
-export class ContinueFlow<S = MachineState> implements SaveHistory {
+export class ContinueFlow<S, F> implements SaveHistory<F> {
   /** What the flow knows, changed only by whole new values (`step` for the tick before the game's, the methods below for the rest). */
   private st: FlowState;
   private font: BitmapFont | null = null;
@@ -91,17 +94,17 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
   private answer: 'title' | 'continue' | null = null;
   /** The rooms entered in the game the last save read was from. */
   private loadedRooms = 0;
-  private foundNow: () => Found;
+  private foundNow: () => F;
 
   /** A moment's grace after every resume (grace.ts); the game ticks it each frame of play. */
   readonly grace = new Grace();
   private readonly codec: SaveCodec<S>;
   private readonly restartKeys: readonly string[];
 
-  constructor(private readonly opts: ContinueOptions<S>) {
+  constructor(private readonly opts: ContinueOptions<S, F>) {
     this.codec = opts.codec;
     this.restartKeys = opts.restartKeys ?? ['F1', 'KeyR'];
-    this.foundNow = () => readFound(opts.id);
+    this.foundNow = () => opts.found.parse(readFound(opts.id));
     this.st = initialState(this.load() !== null, opts.continueOnLaunch !== false);
     this.describeOld();
   }
@@ -120,7 +123,7 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
   /** Which question the last save came back from: ENTER CONTINUE on the title (or a launch), or CONTINUE? after losing. */
   get lastAnswer() { return this.answer; }
 
-  watchFound(get: () => Found) { this.foundNow = get; }
+  watchFound(get: () => F) { this.foundNow = get; }
 
   /**
    * Before the game's tick. Returns a save to resume from when the player chose
@@ -146,7 +149,7 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
    * new game (nothing of it saved yet), the second time changes nothing; a game that has saved is
    * kept even if play never seemed to end (a new game started from a title still busy).
    */
-  beginNewGame(found: Found) {
+  beginNewGame(found: F) {
     if (this.st.fresh && this.st.rooms === 0) return;
     startNewGame(this.opts.id, found);
     this.st = { ...this.st, fresh: true, over: false, rooms: 0, lastRoom: -1, screen: { kind: 'open' }, hasSave: false };
@@ -217,7 +220,7 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
   }
 
   /** What the game says about a save (nothing if it says nothing, or can't). */
-  private summary(s: S, found: Found): string[] {
+  private summary(s: S, found: F): string[] {
     try { return tidySummary(this.opts.describe?.(s, found) ?? []); } catch { return []; }
   }
 
@@ -226,7 +229,7 @@ export class ContinueFlow<S = MachineState> implements SaveHistory {
     const slot = readSaves(this.opts.id).current;
     if (!slot || slot.summary.length || !this.opts.describe) return;
     try {
-      const summary = this.summary(this.codec.unpack(fromBase64(slot.data)), readFound(this.opts.id));
+      const summary = this.summary(this.codec.unpack(fromBase64(slot.data)), this.opts.found.parse(readFound(this.opts.id)));
       if (summary.length) writeCurrent(this.opts.id, { ...slot, summary });
     } catch { /* not one this game reads */ }
   }

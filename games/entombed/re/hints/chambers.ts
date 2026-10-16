@@ -47,7 +47,7 @@ function host(start: MachineState, act: (ram: Uint8Array) => void, frames: numbe
 /** A junction on the floor to travel to (the floor's first). */
 function junctionOn(ram: Uint8Array, floor: number) {
   const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
-  for (const id of entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, ram, { cells: { [floor]: all } })) return id.id;
+  for (const id of entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, ram, entombedMap.found.parse({ cells: { [floor]: all } }))) return id.id;
   return null;
 }
 
@@ -63,7 +63,7 @@ const enter = (start: MachineState, e: Entry, given: Record<number, number>) => 
   const floor = 'stairsFrom' in e ? e.stairsFrom : e.floor, to = junctionOn(unpackState(packState(start)).ram, floor);
   if (to === null) throw new Error(`no junction on floor ${floor}`);
   for (const [a, v] of Object.entries(given)) ram[Number(a)] = v; // (things done before, elsewhere)
-  entombedMap.go(to, ram, {});
+  entombedMap.go(to, ram, entombedMap.found.empty());
   if ('stairsFrom' in e) {
     ram[0x37f7]--; ram[0x3231] = 1;
     engine.r_c1a1(); engine.r_1496(); engine.r_c1c9();

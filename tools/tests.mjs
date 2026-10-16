@@ -21,6 +21,7 @@ export const TESTS = [
   { file: 'games/shared/test/machine-state.ts', set: 'fast' },
   { file: 'games/shared/test/saves.ts', set: 'fast' },
   { file: 'games/shared/test/continue-step.ts', set: 'fast' },
+  { file: 'games/shared/test/found.ts', set: 'fast' },
   { file: 'games/shared/test/loader.ts', set: 'fast' },
   { file: 'games/shared/test/export.ts', set: 'fast' },
   { file: 'packages/c64kit/test/effects.test.ts', set: 'fast' },

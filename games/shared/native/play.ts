@@ -9,7 +9,7 @@ import { Combat, COMBAT_TIMING, type CombatSpec } from './combat';
 import { EightWay, type ControlsSpec, type Runner } from './controls';
 import { FrontEnd, PAUSE_KEYS, type PauseRequest } from '../frontend';
 import type { HdView } from '../view';
-import { mapSummary, type Found, type PauseMap } from './pause';
+import { mapSummary, type PauseMap } from './pause';
 import type { TouchLayout } from '../touch';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameKey, type NameSpec } from '../letters';
 
@@ -19,7 +19,7 @@ import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameKey, type Name
  * Each game's QOL.md lists them: autosave and continue (games/shared/continue.ts),
  * keys as taps, and the start button not carrying into play.
  */
-export interface NativeGameOptions {
+export interface NativeGameOptions<F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   /** URL of the title-screen snapshot. */
@@ -59,7 +59,7 @@ export interface NativeGameOptions {
    * whether it's on (and play under way), and what the player has found (kept with the saves).
    * `default`: on unless chosen off.
    */
-  assists?: { id: string; long: string; default?: boolean; apply?(ram: Uint8Array, on: boolean, found: Found): void }[];
+  assists?: { id: string; long: string; default?: boolean; apply?(ram: Uint8Array, on: boolean, found: F): void }[];
   /** The game's own moments (`hooks` in its translation's config: host.ts `onHook`), as its code reaches them. */
   onHook?(pc: number, ram: Uint8Array): void;
   /** After each frame, once the assists have had it (play under way or not). */
@@ -76,7 +76,7 @@ export interface NativeGameOptions {
    * ENHANCED, a life lost before that starts him again from the last save kept (with the lives as
    * they are now), not where the game would.
    */
-  safe?: { steady(ram: Uint8Array, found: Found): boolean; lives: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number): void } };
+  safe?: { steady(ram: Uint8Array, found: F): boolean; lives: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number): void } };
   /**
    * A moment's grace (grace.ts) for what combat doesn't cover (all of it, where there is no `combat`
    * spec): `skip`: routines of the game's code that take a life or health (listed under "skips" in
@@ -119,13 +119,13 @@ export interface NativeGameOptions {
    * the game's keyboard. `RunSpec` says how.
    */
   run?: RunSpec;
-  /** A map for the pause screen (P, Esc, pad Start, or the gear, during play). */
-  map?: PauseMap;
+  /** The map for the pause screen (P, Esc, pad Start, or the gear, during play), and so what the game keeps of the player's progress (`F`). */
+  map: PauseMap<Uint8Array, F>;
   /**
    * What a save says about the game's progress (the save manager shows it): where first, then how
    * it's doing. Default: the map's heading and its side panel (`mapSummary`).
    */
-  describe?(ram: Uint8Array, found: Found): string[];
+  describe?(ram: Uint8Array, found: F): string[];
   /** The font for panels: the game's own (from its title screen's charset, the default) or the kit's. */
   font?: 'game' | 'kit';
   /** Where the title has room for ENTER CONTINUE (letters only, no box: continue.ts's TitleStrip). */
@@ -186,7 +186,7 @@ const OURS = ['KeyM'];
 /** Passes of the main loop (about a second) the player must live through after coming into a room for its save to be kept (`safe`). */
 const SAFE_PASSES = 50;
 
-export function runNative(host: Host, opts: NativeGameOptions) {
+export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const { renderer, input, canvas } = host;
   renderer.frame = { x: 32, y: 36 };
   const sound = new SidPlayer();
@@ -194,9 +194,9 @@ export function runNative(host: Host, opts: NativeGameOptions) {
   /** Running: the player's routine once more a frame. */
   const runPlayer = opts.run?.player ?? null;
   const map = opts.map;
-  const flow = new ContinueFlow({
-    id: opts.id, renderer, input, font: opts.font, codec: MACHINE_CODEC, strip: opts.strip,
-    describe: (s, found) => (opts.describe ? opts.describe(s.ram, found) : map ? mapSummary(map, s.ram, found) : []),
+  const flow = new ContinueFlow<MachineState, F>({
+    id: opts.id, renderer, input, font: opts.font, codec: MACHINE_CODEC, found: map.found, strip: opts.strip,
+    describe: (s, found) => (opts.describe ? opts.describe(s.ram, found) : mapSummary(map, s.ram, found)),
   });
   let game: NativeHost | null = null;
   /** The title snapshot (back to the title starts from it again). */
@@ -227,9 +227,9 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     g.onWait = (site) => {
       if (site !== opts.port.mainLoopWait) return;
       // Going to a place picked on the pause map: the game's own code takes the player there.
-      const travel = fe.going !== null && !!opts.map?.go;
-      const map = opts.map, to = fe.going;
-      if (to !== null && map?.go) { flow.grace.start(); runner.call(() => map.go?.(to, g.m.ram, fe.found)); fe.going = null; }
+      const travel = fe.going !== null && !!map.go;
+      const to = fe.going;
+      if (to !== null && map.go) { flow.grace.start(); runner.call(() => map.go?.(to, g.m.ram, fe.found)); fe.going = null; }
       latchEnded(g);
       // Running: the player's own handling goes once more, in the main loop's pass as the game's
       // own does (at the frame's start, its scroll register writes would land on the header's split).
@@ -245,7 +245,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       if (!flow.state.playing && !resuming && !st.onTitle && st.room !== null) fe.newGame();
       // the map notes what's been found (and puts the player where a place picked on it says)
       // before the autosave: the save on coming into a room has him where he is, and the map with it
-      if (opts.map && st.room !== null) opts.map.observe(g.m.ram, fe.found, g.m.vic);
+      if (st.room !== null) map.observe(g.m.ram, fe.found, g.m.vic);
       // (`safe`: the room's save as it was when he found his feet there, once he's lived a moment after
       // it; a life lost just as he goes somewhere picked on the map: he goes there)
       if (opts.safe && st.room !== null) st.save = arrival(g, st.room, travel);
@@ -275,8 +275,8 @@ export function runNative(host: Host, opts: NativeGameOptions) {
   const audio = new AudioKeys({ canvas, input, renderer, player: sound, snapKey: false, started: () => sound.startStream() });
 
   // Options (the gear) and the pause screen: games/shared/frontend.ts.
-  const fe: FrontEnd<Uint8Array> = new FrontEnd<Uint8Array>({
-    id: opts.id, input, renderer, map: opts.map,
+  const fe: FrontEnd<Uint8Array, F> = new FrontEnd<Uint8Array, F>({
+    id: opts.id, input, renderer, map,
     assists: [
       ...(opts.health ? [{ id: 'health', long: 'FULL HEALTH/ROOM' }] : []),
       ...(opts.lives ? [{ id: 'lives', long: 'INFINITE LIVES', role: 'never' as const }] : []),
@@ -295,8 +295,6 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       ...(opts.run?.enhanced ? [{ id: 'run', long: 'RUN (SHIFT)' }] : []),
     ],
     font: () => flow.getFont(),
-    panel: (lines) => flow.panel(lines),
-    canGoBack: () => flow.state.playing && flow.state.hasSave,
     saves: flow,
     onClose: () => fireLatch.hold(),
   });
@@ -376,7 +374,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
   /** The action a key picked, still to be selected (a key pressed in a frame the game waited: hit-stop). */
   let picked: number | null = null;
   /** Whether a key reaches the game's keyboard as itself (not remapped, not kept from it). */
-  const toKeyboard = (code: string) => !opts.remap?.[code] && !reserved.has(code) && !(opts.map && PAUSE_KEYS.includes(code)) && !!C64_KEYS[code];
+  const toKeyboard = (code: string) => !opts.remap?.[code] && !reserved.has(code) && !PAUSE_KEYS.includes(code) && !!C64_KEYS[code];
   /** The keys pressed since the last frame that pick an action: straight to one, or the next one along. */
   function pickActions(g: NativeHost) {
     const a = opts.actions;
@@ -417,7 +415,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       const key = pacer.next();
       const kk = key === null ? undefined : C64_KEYS[nameKeyCode(key)];
       if (kk) m.keys.push(kk);
-      for (const code of typed) if (!(opts.map && PAUSE_KEYS.includes(code)) && !(handKeys && toKeyboard(code))) taps.set(code, TAP_FRAMES);
+      for (const code of typed) if (!PAUSE_KEYS.includes(code) && !(handKeys && toKeyboard(code))) taps.set(code, TAP_FRAMES);
       for (const [code, left] of taps) {
         if (left <= 0) { taps.delete(code); continue; }
         taps.set(code, left - 1);
@@ -535,10 +533,6 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       audio.tick();
       const g = game, v = view;
       if (!g || !v) return;
-      if (fe.optionsOpen) {
-        asked(fe.optionsTick(() => show(g, v)));
-        return;
-      }
       // The pause screen: the game waits; P, Esc or Start go back; E switches.
       const st0 = status(g);
       // (not while a name is typed: the game's screen asking for it is between play and the title)
@@ -637,7 +631,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
 }
 
 /** The game's touch controls, plus RUN for games that can run (Shift, on or off). */
-function touchLayout(opts: NativeGameOptions): TouchLayout {
+function touchLayout(opts: Pick<NativeGameOptions<unknown>, 'touch' | 'run'>): TouchLayout {
   const t = opts.touch ?? { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big' }] };
   return opts.run ? { ...t, buttons: [...t.buttons, { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' }] } : t;
 }

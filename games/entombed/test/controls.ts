@@ -47,8 +47,8 @@ function corridor(floor: number, i: number): MachineState {
     if (done || site !== port.mainLoopWait) return;
     done = true; const r = { ...cpu };
     const all = [...Array(256).keys()].map((k) => `${k & 15},${k >> 4}`);
-    const ps = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, { cells: { [floor]: all } });
-    entombedMap.go(ps[i % ps.length].id, g.m.ram, {});
+    const ps = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, entombedMap.found.parse({ cells: { [floor]: all } }));
+    entombedMap.go(ps[i % ps.length].id, g.m.ram, entombedMap.found.empty());
     Object.assign(cpu, r);
   };
   for (let f = 0; f < 5; f++) g.tick();

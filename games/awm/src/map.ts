@@ -1,4 +1,4 @@
-import { COL, isNumbers, isRecordOf, shimmerColour, type Box, type Found, type MapPlace, type PauseMap } from '../../shared/native/pause';
+import { COL, isNumbers, isRecord, isRecordOf, shimmerColour, type Box, type FoundCodec, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
 import { isTrap } from './items';
@@ -17,21 +17,24 @@ import { State } from './tiles';
  * (`Program.travel`: the game's own room entry).
  */
 
-/** Where he came into a room (`found.rooms`, as kept: checked, as anything read back from storage). */
+/** Where he came into a room. */
 type Seen = [x: number, y: number, state: number, step: number];
 const isSeen = (v: unknown): v is Seen => isNumbers(v) && v.length === 4;
-const roomsOf = (f: Found): Record<string, Seen> | undefined => (isRecordOf(f.rooms, isSeen) ? f.rooms : undefined);
+/** What the map keeps of the player's progress: the rooms he has come into, and where. */
+export interface AwmFound { rooms: Record<string, Seen> }
+const FOUND: FoundCodec<AwmFound> = {
+  empty: () => ({ rooms: {} }),
+  parse: (kept) => ({ rooms: isRecord(kept) && isRecordOf(kept.rooms, isSeen) ? kept.rooms : {} }),
+};
 
 /** The room he first came into, from what has been found. */
-export function entryOf(found: Found, room: number): Entry | null {
-  const e = roomsOf(found)?.[room];
+export function entryOf(found: AwmFound, room: number): Entry | null {
+  const e = found.rooms[room];
   return e ? { room, x: e[0], y: e[1], state: e[2], step: e[3] } : null;
 }
 
 /** A room Monty is in (the front end looks every frame): its first time is noted. True if that is new. */
-export function noteRoom(game: { readonly world: { readonly room: number }; readonly entry: Entry }, found: Found): boolean {
-  let rooms = roomsOf(found);
-  if (!rooms) found.rooms = rooms = {};
+export function noteRoom(game: { readonly world: { readonly room: number }; readonly entry: Entry }, { rooms }: AwmFound): boolean {
   const room = game.world.room;
   if (rooms[room]) return false;
   const e = game.entry;
@@ -93,6 +96,7 @@ function roomAt(row: number, col: number): number | null {
 let shimmer = 0;
 
 export const awmMap = {
+  found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
   title: () => 'THE WORLD',
@@ -101,7 +105,7 @@ export const awmMap = {
     if (!game) return;
     const { at } = layout(box);
     const tick = shimmer++;
-    const seen = roomsOf(found) ?? {};
+    const seen = found.rooms;
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const room = roomAt(r, c);
@@ -126,18 +130,18 @@ export const awmMap = {
   info(program, found) {
     const game = program.game;
     if (!game) return [];
-    const seen = Object.keys(roomsOf(found) ?? {}).length;
+    const seen = Object.keys(found.rooms).length;
     const taken = game.items.collected.filter((c, i) => c && PRIZES.get(TABLES.items[i]?.room ?? NO_ROOM)?.includes(i)).length;
     const goal = Math.min(100, Math.floor((game.progress * 100) / 0xc3));
     return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
   },
   legend: [{ colour: COL.dgrey, text: 'NOT SEEN' }, { colour: COL.yellow, text: 'ALL TAKEN' }],
-  places(box: Box, program: Program, found: Found): MapPlace[] {
+  places(box: Box, program: Program, found: AwmFound): MapPlace[] {
     const game = program.game;
     if (!game) return [];
     const { at } = layout(box);
     const out: MapPlace[] = [];
-    const seen = roomsOf(found) ?? {};
+    const seen = found.rooms;
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const room = roomAt(r, c);
@@ -155,11 +159,11 @@ export const awmMap = {
     if (!at || !game || SCRIPTED.includes(game.monty.state) || game.ended) return false;
     return program.travel(at);
   },
-} satisfies PauseMap<Program>;
+} satisfies PauseMap<Program, AwmFound>;
 
 /** A save described for the save manager (ContinueFlow `describe`): the place, then lives, how far he has got and the score. */
-export function describeSave(save: AwmSave, found: Found): string[] {
-  const seen = Object.keys(roomsOf(found) ?? {}).length;
+export function describeSave(save: AwmSave, found: AwmFound): string[] {
+  const seen = Object.keys(found.rooms).length;
   const goal = Math.min(100, Math.floor((save.progress * 100) / 0xc3));
   const score = save.score.reduceRight((n, d) => n * 10 + d, 0);
   return [roomName(save.room) || country(save.room), `LIVES ${save.lives & 0x7f}`, `GOAL ${goal}%`, `ROOMS ${seen}`, `SCORE ${score}`];

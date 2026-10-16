@@ -20,6 +20,9 @@ import { isNumber, isRecord, isString, isStrings, readJson } from './guards';
  * before the history (`<id>.save.v1`, the bytes alone) become `current` on first read.
  */
 export type Found = Record<string, unknown>;
+// (Found is what is kept: a record of plain JSON. A game's map reads it into its own type, its
+// `FoundCodec` in native/pause.ts, once when the front end starts; and the front end keeps that
+// type as it is with JSON.stringify, so the kept record is the parsed one's own keys.)
 
 export interface SaveSlot {
   /** The save, as the game's codec packs it, in base64. */
@@ -102,7 +105,7 @@ function migrate(id: string) {
 export function writeCurrent(id: string, slot: SaveSlot): boolean {
   return set(CURRENT(id), JSON.stringify({ v: VERSION, ...slot }));
 }
-function writePrevious(id: string, slot: PreviousSlot): boolean {
+function writePrevious(id: string, slot: SaveSlot & { found: unknown }): boolean {
   return set(PREVIOUS(id), JSON.stringify({ v: VERSION, ...slot }));
 }
 
@@ -111,7 +114,7 @@ export function readFound(id: string): Found {
   const v = json(get(FOUND(id)));
   return isRecord(v) ? v : {};
 }
-export function keepFound(id: string, found: Found) {
+export function keepFound(id: string, found: unknown) {
   set(FOUND(id), JSON.stringify(found));
 }
 
@@ -122,7 +125,7 @@ export function keepFound(id: string, found: Found) {
  * with what had been found (`found`, as it stood), unless it's a game that never got past its
  * first room and there's an older save to keep. Either way there's no current save now.
  */
-export function startNewGame(id: string, found: Found) {
+export function startNewGame(id: string, found: unknown) {
   const { current, previous } = readSaves(id);
   if (!current) return;
   if (current.rooms > 1 || !previous) {

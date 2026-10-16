@@ -113,8 +113,8 @@ function junction(floor: number, k: number): MachineState | null {
     if (done || site !== port.mainLoopWait) return;
     done = true; const r = { ...cpu };
     const all = [...Array(256).keys()].map((n) => `${n & 15},${n >> 4}`);
-    const places = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, { cells: { [floor]: all } });
-    if (k < places.length) entombedMap.go(places[k].id, g.m.ram, {}); else found = false;
+    const places = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, g.m.ram, entombedMap.found.parse({ cells: { [floor]: all } }));
+    if (k < places.length) entombedMap.go(places[k].id, g.m.ram, entombedMap.found.empty()); else found = false;
     Object.assign(cpu, r);
   };
   for (let f = 0; f < 30; f++) { g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); }
@@ -160,7 +160,7 @@ for (let floor = 1; floor <= 7; floor++) {
     if (!s) break;
     // (a cell whose byte in the maze tables is no corridor picture is none: floor 2's (0, 1) holds $80, a byte of
     // the tables' own layout, drawn from the middle of two pictures: no way to it, nor along it)
-    const m = maze(s.ram, floor), at = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, s.ram, { cells: { [floor]: [...Array(256).keys()].map((n) => `${n & 15},${n >> 4}`) } })[k].id.split(/[:,]/).map(Number);
+    const m = maze(s.ram, floor), at = entombedMap.places({ x: 0, y: 0, w: 196, h: 150 }, s.ram, entombedMap.found.parse({ cells: { [floor]: [...Array(256).keys()].map((n) => `${n & 15},${n >> 4}`) } }))[k].id.split(/[:,]/).map(Number);
     if (!CORRIDORS.includes(m.row(at[1], at[2])) && !CORRIDORS.includes(m.col(at[1], at[2]))) { stray++; continue; }
     junctions++;
     // (only along the corridors the cell has: pressing a way it hasn't turns him into no corridor, and the game draws the table's next bytes as one)

@@ -12,7 +12,7 @@ import { COL, MAP_BOX } from '../../shared/native/pause';
 import { sidLog } from '../../shared/test/kit';
 import { run } from '../src/main';
 import { V } from '../src/vars';
-import { antiriadMap, entriesOf, roomAt, roomName, roomsSeen } from '../src/map';
+import { antiriadMap, entriesOf, roomAt, roomName } from '../src/map';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
 import { check, finish } from '../../shared/test/check';
@@ -45,7 +45,7 @@ input.keyUp('ArrowLeft');
 tick(30);
 const second = g().ram[V.room];
 check(`walking left leaves the first room (now ${roomName(second)})`, second !== first);
-const found = p.state.found, rooms = roomsSeen(found), onFoot = entriesOf(found, false);
+const found = p.state.found, rooms = found.rooms, onFoot = entriesOf(found, false);
 check('the map noted both rooms and where Tal came into them', rooms.includes(first) && rooms.includes(second) && !!onFoot[String(first)] && !!onFoot[String(second)]);
 // a room seen only in the armour (as if flown through): not one to travel to on foot
 const flown = 0x3f;

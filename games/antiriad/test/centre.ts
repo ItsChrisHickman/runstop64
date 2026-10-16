@@ -33,7 +33,7 @@
  */
 import fs from 'node:fs';
 import { C64Machine, unpackState } from 'c64kit';
-import { MAP_BOX, type Found } from '../../shared/native/pause';
+import { MAP_BOX } from '../../shared/native/pause';
 import { must } from '../../shared/test/must';
 import { Game } from '../src/game';
 import { repairSave } from '../src/main';
@@ -56,7 +56,7 @@ const NEGATOR = 0x067f, MINE = 0x0681;
 /** The port, ENHANCED, with the map noting rooms as the front end does (main.ts). */
 class Play {
   readonly g: Game;
-  readonly found: Found = {};
+  readonly found = antiriadMap.found.empty();
   constructor(g = new Game(machine(), true)) { this.g = g; g.enhanced = true; }
   get ram() { return this.g.ram; }
   frame(j: string) {

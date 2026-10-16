@@ -1,4 +1,4 @@
-import { COL, type Box, type Found, type PauseMap } from '../../shared/native/pause';
+import { COL, isNumbers, isRecord, isRecordOf, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { cellCount } from './cells';
 import { EXITS, ROOMS } from './data';
 import type { Game } from './game';
@@ -19,28 +19,24 @@ import { V } from './vars';
  */
 export interface Entry { x: number; y: number; high: number }
 
-// what's been found, kept as plain JSON (checked as it's read back)
-const isEntry = (v: unknown): v is Entry =>
-  typeof v === 'object' && v !== null && 'x' in v && 'y' in v && 'high' in v && typeof v.x === 'number' && typeof v.y === 'number' && typeof v.high === 'number';
-const isEntries = (v: unknown): v is Record<string, Entry> => typeof v === 'object' && v !== null && !Array.isArray(v) && Object.values(v).every(isEntry);
+const isEntry = (v: unknown): v is Entry => isRecord(v) && typeof v.x === 'number' && typeof v.y === 'number' && typeof v.high === 'number';
 
-/** The rooms seen. */
-export function roomsSeen(f: Found): number[] {
-  const v = f.rooms;
-  if (Array.isArray(v) && v.every((n): n is number => typeof n === 'number')) return v;
-  const rooms: number[] = [];
-  f.rooms = rooms;
-  return rooms;
-}
+/** What the map keeps of the player's progress: the rooms seen, and where Tal came into each room on foot (`entry`), or the armour did (`suitEntry`). */
+export interface AntiriadFound { rooms: number[]; entry: Record<string, Entry>; suitEntry: Record<string, Entry> }
+const FOUND: FoundCodec<AntiriadFound> = {
+  empty: () => ({ rooms: [], entry: {}, suitEntry: {} }),
+  parse: (kept) => {
+    const k = isRecord(kept) ? kept : {};
+    return {
+      rooms: isNumbers(k.rooms) ? k.rooms : [],
+      entry: isRecordOf(k.entry, isEntry) ? k.entry : {},
+      suitEntry: isRecordOf(k.suitEntry, isEntry) ? k.suitEntry : {},
+    };
+  },
+};
 
-/** Where Tal came into each room on foot (`entry`), or the armour did (`suitEntry`). */
-export function entriesOf(f: Found, inArmour: boolean): Record<string, Entry> {
-  const key = inArmour ? 'suitEntry' : 'entry', v = f[key];
-  if (isEntries(v)) return v;
-  const e: Record<string, Entry> = {};
-  f[key] = e;
-  return e;
-}
+/** Where Tal came into each room on foot, or the armour did. */
+export const entriesOf = (f: AntiriadFound, inArmour: boolean): Record<string, Entry> => (inArmour ? f.suitEntry : f.entry);
 
 /** Each room's place on the grid (by its exits from the power centre). */
 export const GRID: { x: number; y: number }[] = (() => {
@@ -73,19 +69,20 @@ function layout(box: Box) {
 export const roomAt = (box: Box, room: number) => layout(box).at(room);
 
 const inSuit = (g: Game) => !!(g.ram[V.inSuit] & 0x80);
-const entries = (g: Game, f: Found) => entriesOf(f, inSuit(g));
+const entries = (g: Game, f: AntiriadFound) => entriesOf(f, inSuit(g));
 /**
  * The places to travel to now: none while Tal can't travel (dying, dead, the game over: Game.canTravel).
  * In New Game+ the armour goes anywhere he's been (plus.ts): where it came in, else where he did.
  */
-function goable(g: Game, f: Found): Record<string, Entry> {
+function goable(g: Game, f: AntiriadFound): Record<string, Entry> {
   if (!g.canTravel) return {};
   return g.plus && inSuit(g) ? { ...entriesOf(f, false), ...entriesOf(f, true) } : entries(g, f);
 }
 
-export const antiriadMap: PauseMap<Game> = {
+export const antiriadMap: PauseMap<Game, AntiriadFound> = {
+  found: FOUND,
   observe(g, found) {
-    const rooms = roomsSeen(found), room = g.ram[V.room];
+    const { rooms } = found, room = g.ram[V.room];
     if (!rooms.includes(room)) rooms.push(room);
     // where Tal (or the armour) came into the room
     const e = entries(g, found), key = String(room);
@@ -94,7 +91,7 @@ export const antiriadMap: PauseMap<Game> = {
   title: (g) => placeOf(g.ram),
   draw(s, box, g, found, blink) {
     const { cw, ch, at } = layout(box);
-    const seen = new Set(roomsSeen(found)), canGo = goable(g, found);
+    const seen = new Set(found.rooms), canGo = goable(g, found);
     const here = g.ram[V.room], armour = inSuit(g) ? -1 : g.ram[V.suitRoom];
     for (let r = 0; r < ROOMS; r++) {
       if (!GRID[r]) continue;
@@ -125,7 +122,7 @@ export const antiriadMap: PauseMap<Game> = {
 };
 
 /** Where Tal (or the armour, as he is now) first came into a room. */
-export const entryOf = (g: Game, found: Found, room: number) => goable(g, found)[String(room)];
+export const entryOf = (g: Game, found: AntiriadFound, room: number) => goable(g, found)[String(room)];
 
 /** Where Tal is (the map's heading). */
 const placeOf = (ram: Uint8Array) => `ROOM ${roomName(ram[V.room])}`;

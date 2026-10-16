@@ -1,5 +1,5 @@
 import type { Surface } from 'c64kit';
-import { COL, isNumbers, shimmerColour, isRecordOf, type Box, type Found, type MapPlace, type PauseMap } from '../../shared/native/pause';
+import { COL, isNumbers, shimmerColour, isRecord, isRecordOf, type Box, type FoundCodec, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { isExtensionRoom, sectorIndex, sectorName, SFX, specialItems, teleporterCfg, teleporterDests } from './data';
 import type { Game } from './game';
 import { roomProgress } from './items';
@@ -32,8 +32,12 @@ type Entry = [x2: number, y: number, mapRow: number, exitCol: number];
 type C5Entry = [...Entry, fallStage: number, speed: number, dir: number, bounce: number];
 type Rooms = Record<string, Entry | C5Entry>;
 const isEntry = (v: unknown): v is Entry | C5Entry => isNumbers(v) && (v.length === 4 || v.length === 8);
-/** Where Monty came into each room (`found.rooms`, as kept: checked, as anything read back from storage). */
-const roomsOf = (f: Found): Rooms | undefined => (isRecordOf(f.rooms, isEntry) ? f.rooms : undefined);
+/** What the map keeps of the player's progress: where Monty came into each room. */
+export interface MontyFound { rooms: Rooms }
+const FOUND: FoundCodec<MontyFound> = {
+  empty: () => ({ rooms: {} }),
+  parse: (kept) => ({ rooms: isRecord(kept) && isRecordOf(kept.rooms, isEntry) ? kept.rooms : {} }),
+};
 
 /** The kit Monty carries (freedom kit icons, by item). */
 const KIT = [1, 3, 11, 12, 15];
@@ -92,9 +96,7 @@ const canGo = (g: Game, id: number, e: Entry | C5Entry) => !NO_TRAVEL(id) && roo
  * A room Monty has just come into (Game.onRoomLoaded): where he came in, for travel.
  * True if that's new: a room's first time, or a C5 room reached further along the drive.
  */
-export function noteRoom(g: Game, found: Found) {
-  let rooms = roomsOf(found);
-  if (!rooms) found.rooms = rooms = {};
+export function noteRoom(g: Game, { rooms }: MontyFound) {
   const was = rooms[g.roomId];
   if (!g.c5.active) {
     if (was) return false;
@@ -107,7 +109,7 @@ export function noteRoom(g: Game, found: Found) {
   return true;
 }
 
-const visited = (found: Found, id: number) => !!roomsOf(found)?.[id];
+const visited = (found: MontyFound, id: number) => !!found.rooms[id];
 
 function layout(box: Box) {
   const ox = box.x + Math.floor((box.w - COLS * CELL) / 2);
@@ -115,7 +117,7 @@ function layout(box: Box) {
 }
 
 /** The rooms on the map, and how many of them Monty has been in. */
-function count(g: Game, found: Found) {
+function count(g: Game, found: MontyFound) {
   let all = 0, seen = 0;
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const id = roomIn(g, r, c);
@@ -129,6 +131,7 @@ function count(g: Game, found: Found) {
 let shimmer = 0;
 
 export const montyMap = {
+  found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
   title: () => 'THE WORLD',
@@ -178,10 +181,9 @@ export const montyMap = {
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
-  places(box: Box, g: Game, found: Found): MapPlace[] {
+  places(box: Box, g: Game, found: MontyFound): MapPlace[] {
     const { at } = layout(box);
-    const rooms = roomsOf(found) ?? {};
-    const list = Object.entries(rooms)
+    const list = Object.entries(found.rooms)
       .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId)
       .map(([id, e]) => { const p = at(e[2], e[3]); return { id, x: p.x + 3, y: p.y + 3 }; });
     const p = at(g.mapRow, g.exitCol);
@@ -198,7 +200,7 @@ export const montyMap = {
    * room until he's had one here.
    */
   go(id, g, found) {
-    const e = roomsOf(found)?.[id];
+    const e = found.rooms[id];
     if (!e || !canGo(g, Number(id), e)) return false;
     const driven = afterStreet(g).has(Number(id));
     // (the side he's on: the street as the game has it now, $33's cell off the grid only after it)
@@ -219,7 +221,7 @@ export const montyMap = {
     g.sfx(SFX.warp);
     return true;
   },
-} satisfies PauseMap<Game>;
+} satisfies PauseMap<Game, MontyFound>;
 
 /** A 16×16 icon from 32 bytes (top-left, top-right, bottom-left, bottom-right characters). */
 function icon(s: Surface, bytes: ArrayLike<number>, x: number, y: number, colour: number) {
@@ -262,8 +264,8 @@ function wrap(text: string, width: number) {
  * A save described for the save manager (ContinueFlow `describe`): the area Monty is in (the
  * map's names for them), then his lives, the key items and cupcakes found, the rooms seen, the score.
  */
-export function describeSave(save: MontySave, found: Found): string[] {
+export function describeSave(save: MontySave, found: MontyFound): string[] {
   const items = KEY_ITEMS.filter((i) => save.items[i]).length, cakes = CUPCAKES.filter((i) => save.items[i]).length;
-  const rooms = Object.keys(roomsOf(found) ?? {}).filter((id) => !isExtensionRoom(Number(id))).length;
+  const rooms = Object.keys(found.rooms).filter((id) => !isExtensionRoom(Number(id))).length;
   return [sectorName(save.roomId).text, `LIVES ${save.lives}`, `ITEMS ${items}/${KEY_ITEMS.length}`, `CAKES ${cakes}/${CUPCAKES.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
 }

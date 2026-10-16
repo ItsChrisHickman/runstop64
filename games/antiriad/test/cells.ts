@@ -12,7 +12,6 @@
  */
 import fs from 'node:fs';
 import { C64Machine, Input, PixelRenderer, unpackState } from 'c64kit';
-import type { Found } from '../../shared/native/pause';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { CELLS, cellCount } from '../src/cells';
 import { spriteHits } from '../src/collisions';
@@ -66,7 +65,7 @@ function armour(enhanced: boolean) {
   return g;
 }
 const ask = (g: Game) => { g.cellAsked = true; frames(g, 1); };
-const pause = (g: Game) => antiriadMap.info(g, {} satisfies Found);
+const pause = (g: Game) => antiriadMap.info(g, antiriadMap.found.empty());
 
 // ---- ENHANCED: every cell is kept ----------------------------------------------------------------
 {
