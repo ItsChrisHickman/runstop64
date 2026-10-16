@@ -202,7 +202,6 @@ export function run(host: Host) {
           if (musicOn) g.sound.song(0);
           else g.sound.stop();
         },
-        padUnlocks: true,
       },
     };
   });

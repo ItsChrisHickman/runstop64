@@ -18,13 +18,12 @@ export interface AudioKeysOptions {
   mute?(): void;
   /** V (authentic pixel steps): on unless the game's keyboard uses V (the translated games, where it is a game key). */
   snapKey?: boolean;
-  /** A pad's fire also tries to unlock the audio (Monty and AWM did from the start; a pad is no user gesture, so a browser lets it do nothing). */
-  padUnlocks?: boolean;
 }
 
 /**
  * The sound's browser side, the same in every game: the audio is unlocked by the first tap on the
- * picture or key, M mutes and V toggles authentic pixel steps. Call `tick()` each frame.
+ * picture or key (not a gamepad press: that is no gesture to a browser, and a context made without one
+ * stays suspended, with `unlocked` already true), M mutes and V toggles authentic pixel steps. Call `tick()` each frame.
  */
 export class AudioKeys {
   constructor(private readonly o: AudioKeysOptions) {
@@ -40,8 +39,8 @@ export class AudioKeys {
 
   /** `typing`: the game is asking for letters (a name): M and V are letters then. */
   tick(typing = false) {
-    const { input, renderer, player, mute, snapKey, padUnlocks } = this.o;
-    if (input.typed.length || (padUnlocks && input.held.fire)) this.unlock();
+    const { input, renderer, player, mute, snapKey } = this.o;
+    if (input.typed.length) this.unlock();
     if (typing) return;
     if (input.typed.includes('KeyM')) {
       if (mute) mute();

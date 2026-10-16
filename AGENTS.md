@@ -84,11 +84,12 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | The C64 model, and how its picture is decoded (`decodePicture`) | `packages/c64kit/src/c64`, `vic.ts` | |
 | Autosave per room, CONTINUE?, NEW GAME?, ENTER CONTINUE, back to the title (the state machine is pure: `step`, `readIntent`, `FLOW_LAYOUT` in `continue-step.ts`, tested headless) | `games/shared/continue.ts` (`ContinueFlow<S>`) | room id, a save, where the strip goes, `describe(save, found)` |
 | A moment's grace: 150 frames (`GRACE_FRAMES`) of invulnerability after our front end puts the player back into play, in both modes, no visual cue | `games/shared/grace.ts` (`Grace`), `ContinueFlow.grace` | what it refuses while `grace.active` (`grace:` in `runNative`, or a `graceActive` check) |
+| The port session, written once: ContinueFlow, FrontEnd, the spent press, audio keys, room saves, the tick order (pause key, paused tick, travel, flow.before, game frame, grace, flow.after, view, panels) and the render tail. The four native rebuilds give a `PortAdapter` by hand; `runNative` builds one over a translated machine | `games/shared/port.ts` (`runPort`, `Port`, `PortSetup`, `PortAdapter`) | `phase`, `frame`, `resume(s, from)`, `travel`, `toTitle`, `updateView`, `renderView`, `audio` (and optional `status`, `canPause`, `typing`, `afterFrame`, `afterView`) |
 | The small pieces every port's tick loop needs: the spent press (`FireLatch`), audio unlock and the M / V keys (`AudioKeys`), the room-save bookkeeping (`RoomSaves`) | `games/shared/fire-latch.ts`, `audio.ts`, `room-saves.ts` | the sound it starts, what resumes |
 | Save storage: typed, versioned, the current and the previous save per game, the debug export | `games/shared/saves.ts` | nothing |
 | Saved-games screen (F1, the line under the banner, the gear) | `games/saves.ts` | its `describe` |
 | Front end for any port: pause screen, map, travel, assists | `games/shared/frontend.ts` (`FrontEnd<T, F>`), `native/pause.ts` (`PauseMap<T, F>`, `FoundCodec<F>`) | a `PauseMap<T, F>`: its progress type `F` and the `found` codec that reads what was kept (once, at launch; the saved record is `F` as JSON), and assists; native ports carry out `going` and "back to room start" themselves |
-| Runtime for translated games: front end, running (Shift), action keys, no death loops (`safe`), hints | `games/shared/native/play.ts` (`runNative`), `host.ts` (`NativeHost`) | options in `runNative(...)` |
+| Runtime for translated games: `runNative` on `runPort`, its parts as small feature objects with their own state (running, knockback, 8-way, latch, action keys, name picking, safe arrival, health and lives), composed in the order it declares | `games/shared/native/play.ts` (`runNative`), `features.ts`, `host.ts` (`NativeHost`) | options in `runNative(...)` (`vitals`, `run`, `latch`, `actions`, `names`, `safe`...) |
 | Hooks in translated code (`"hooks"` in a translation's config report reaching an instruction; `"skips"` return a routine at once) | `tools/re/to-ts.mjs`, `native/host.ts` (`onHook`, `onSkip`) | addresses in its `re/*.json` |
 | Combat for translated games: kills, blows, hurts, swings to effects and sounds, and assists (safe after a hit, knockback, hit-stop) | `games/shared/native/combat.ts` (`CombatSpec`) | `combat:` (the game's `src/combat.ts`) |
 | 8-way controls for the Pendragon games | `games/shared/native/controls.ts` (`pendragonControls`) | `controls:` |
@@ -98,8 +99,8 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | The Pendragon games' rooms as data | `games/shared/pendragon/decode.ts`, `packages/c64kit/src/pendragon/room.ts` | its pictures and `DecodeRules` |
 | Loader, shell (home, gear, the C64/HD switch, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` |
 
-All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run their front end through `FrontEnd` and
-`ContinueFlow`; each game's `src/map.ts` is its `PauseMap`, and `games/*/test/frontend.ts` checks it headless.
+All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run their session through `runPort`
+(`FrontEnd` and `ContinueFlow` inside it); each game's `src/map.ts` is its `PauseMap`, and `games/*/test/frontend.ts` checks it headless.
 
 ## Tools
 

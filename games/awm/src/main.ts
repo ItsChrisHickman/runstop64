@@ -177,7 +177,6 @@ export function run(host: Host) {
       audio: {
         player: music,
         started: async () => { await music.play(SOUND.effectsSong); if (tune !== null) music.call(SOUND.tune, tune); },
-        padUnlocks: true,
       },
     };
   });
