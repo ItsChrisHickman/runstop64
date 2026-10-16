@@ -1,10 +1,6 @@
 import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
-import { AudioKeys } from '../../shared/audio';
-import { ContinueFlow } from '../../shared/continue';
-import { FireLatch } from '../../shared/fire-latch';
-import { FrontEnd, type PauseRequest } from '../../shared/frontend';
-import { RoomSaves } from '../../shared/room-saves';
+import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
 import { Game } from './game';
@@ -55,7 +51,7 @@ export const info = {
 export const STRIP_Y = 148;
 
 export function run(host: Host) {
-  const { renderer, input, canvas } = host;
+  const { renderer, input } = host;
   renderer.frame = { x: 32, y: 36 };
   const g = new Game();
   const view = new VicView(renderer, g.vic);
@@ -72,15 +68,19 @@ export function run(host: Host) {
   };
   const title = new Title(g, { song: (n) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn });
 
-  // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
-  const font = montyFont();
   migrateOldSave();
-  // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
-  // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
-  const flow = new ContinueFlow<MontySave, MontyFound>({ id: 'montyotr', renderer, input, font, codec: CODEC, found: montyMap.found, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
-  const latch = new FireLatch();
-  const fe = new FrontEnd<Game, MontyFound>({
-    id: 'montyotr', input, renderer, map: montyMap,
+  type Mode = 'title' | 'play';
+  let mode: Mode = 'title';
+  let collisions = 0;
+  /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too). */
+  let won = false;
+
+  // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
+  const port = runPort<MontySave, MontyFound, Game>(host, {
+    id: 'montyotr', font: montyFont(), codec: CODEC, map: montyMap, describe: describeSave,
+    // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
+    // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
+    restartKeys: [], strip: { y: STRIP_Y },
     assists: [
       { id: 'cloud', long: 'RIDE THE RISING CLOUD' },
       { id: 'jetpack', long: 'JETPACK NOT HIT' },
@@ -88,188 +88,137 @@ export function run(host: Host) {
       { id: 'rooms', long: 'RUNSTOP64 ROOMS', role: 'enhanced' },
       { id: 'respawn', long: 'SAFE RESPAWN' },
     ],
-    font: () => font,
-    saves: flow,
-    onClose: () => latch.hold(),
-  });
-  // the game reads ENHANCED's assists as the switch has them now
-  g.assist = { get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
+  }, ({ flow, fe, latch, rooms }) => {
+    // the game reads ENHANCED's assists as the switch has them now
+    g.assist = { get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
+    g.graceActive = () => flow.grace.active;
 
-  g.graceActive = () => flow.grace.active;
+    g.onRoomLoaded = (game) => {
+      if (noteRoom(game, fe.found)) fe.keepFound();
+      // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
+      if (!NO_TRAVEL(game.roomId) && !game.completionActive) {
+        rooms.enter(snapshot(game));
+      }
+    };
 
-  type Mode = 'title' | 'play';
-  let mode: Mode = 'title';
-  /** Each room's start, as a save, and a number that's new for each room entered. */
-  const rooms = new RoomSaves<MontySave>();
-  let collisions = 0;
-  /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too). */
-  let won = false;
-
-  g.onRoomLoaded = (game) => {
-    if (noteRoom(game, fe.found)) fe.keepFound();
-    // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
-    if (!NO_TRAVEL(game.roomId) && !game.completionActive) {
-      rooms.enter(snapshot(game));
+    function toTitle() {
+      mode = 'title';
+      latch.hold();
+      title.start();
+      view.resetSmoothing();
     }
-  };
 
-  function toTitle() {
-    mode = 'title';
-    latch.hold();
-    title.start();
-    view.resetSmoothing();
-  }
+    function startGame() {
+      g.start();
+      won = false;
+      g.vic.border = g.vic.background = 0;
+      g.hiScore = Math.max(g.hiScore, topScore(title.table)); // (the best score this visit, or the table's top)
+      fe.newGame();
+      rooms.clear();
+      mode = 'play';
+      latch.hold();
+      view.resetSmoothing();
+      // (the title's tune plays on into the game, as in the original)
+    }
 
-  function startGame() {
-    g.start();
-    won = false;
-    g.vic.border = g.vic.background = 0;
-    g.hiScore = Math.max(g.hiScore, topScore(title.table)); // (the best score this visit, or the table's top)
-    fe.newGame();
-    rooms.clear();
-    mode = 'play';
-    latch.hold();
-    view.resetSmoothing();
-    // (the title's tune plays on into the game, as in the original)
-  }
-
-  /**
-   * Carry on from a save (a room's start). After CONTINUE? from the last life lost, as before: five
-   * lives, the score from nothing; after the ending (France), everything as saved: the treasure's
-   * room as he came into it, the treasure still there to play the ending again.
-   */
-  function resume(s: MontySave, afterGameOver: boolean) {
-    const ending = !!g.completionActive;
-    restore(g, s);
-    if (ending) playOn();
-    if (afterGameOver && !won) { g.lives = 5; g.score = 0; }
-    won = false;
-    g.vic.border = g.vic.background = 0;
-    g.hiScore = Math.max(g.hiScore, topScore(title.table), g.score);
-    g.drawHudData();
-    mode = 'play';
-    latch.hold();
-    fe.wentBack();
-    view.resetSmoothing();
-  }
-
-  /**
-   * Away from the ending (travel, or back to the room's start, before he's aboard): the game's tune
-   * again in place of the ending's (Music.Init 0, which the title starts and play keeps), or nothing
-   * if the music was switched off for the sound effects.
-   */
-  function playOn() {
-    if (musicOn) g.sound.song(0);
-    else g.sound.stop();
-  }
-
-  /** What the pause screen asked for: back to the room's start, or to the title (the save stays: ENTER CONTINUE). */
-  function asked(r: PauseRequest) {
-    if (r === 'roomStart') backToRoomStart();
-    else if (r === 'title') { fe.wentBack(); flow.toTitle(); toTitle(); }
-  }
-
-  /** Back to how things were on coming into this room. */
-  function backToRoomStart() {
-    rooms.backToRoomStart(flow, mode === 'play', (s) => resume(s, false));
-  }
-
-  // ---- sound ------------------------------------------------------------------------
-
-  const audio = new AudioKeys({
-    canvas, input, renderer, player: music, padUnlocks: true,
-    started: async () => { await music.play(1); if (!musicOn) g.sound.stop(); },
-    // the original's choice (the C= key on its title): Hubbard's music, or sound effects
-    mute: () => {
-      musicOn = !musicOn;
+    /**
+     * Away from the ending (travel, or back to the room's start, before he's aboard): the game's tune
+     * again in place of the ending's (Music.Init 0, which the title starts and play keeps), or nothing
+     * if the music was switched off for the sound effects.
+     */
+    function playOn() {
       if (musicOn) g.sound.song(0);
       else g.sound.stop();
-    },
-  });
+    }
 
-  const status = () => rooms.status(mode === 'title', mode === 'play' && !fe.holding);
+    /** The keys and pad, with fire held over from a screen that closed left out until it's let go. */
+    function stick() {
+      return { ...input.held, fire: latch.filter(input.held.fire) };
+    }
 
-  /** The keys and pad, with fire held over from a screen that closed left out until it's let go. */
-  function stick() {
-    return { ...input.held, fire: latch.filter(input.held.fire) };
-  }
-
-  /**
-   * Whether the pause screen may open now: in play, not in a sequence (a death, a teleport, the C5's);
-   * but in the ending, until Monty walks aboard (travel can take him back to any room visited).
-   */
-  const canPause = () => !flow.holding && ((!g.freeze && !g.script) || g.endingLeavable);
-
-  toTitle();
-  return {
-    touch: TOUCH,
-    /** For tests: the game, the title and the front end's state. */
-    get game() { return g; },
-    get title() { return title; },
-    get frontEnd() { return fe; },
-    /** For tests: the moment's grace. */
-    get grace() { return flow.grace; },
-    get state() { return { mode, paused: fe.paused, going: fe.going, found: fe.found, grace: flow.grace.left, ...flow.state }; },
-    tick() {
-      audio.tick();
-
-      if (mode === 'play') {
-        fe.pauseKey(g, canPause());
-        if (fe.paused) {
-          asked(fe.pausedTick(g, () => view.update()));
-          return;
+    toTitle();
+    return {
+      state: () => g,
+      phase: () => mode,
+      /** In a sequence (a death, a teleport, the C5's) no; but in the ending, until Monty walks aboard (travel can take him back to any room visited). */
+      canPause: () => (!g.freeze && !g.script) || g.endingLeavable,
+      travel(to) {
+        // (from the ending, before he's aboard: what it set undone first, as if he'd never begun it)
+        const ending = g.endingLeavable;
+        if (!montyMap.go(to, g, fe.found)) return false;
+        if (ending) { g.leaveEnding(); playOn(); }
+        view.resetSmoothing();
+        return true;
+      },
+      /**
+       * Carry on from a save (a room's start). After CONTINUE? from the last life lost, as before: five
+       * lives, the score from nothing; after the ending (France), everything as saved: the treasure's
+       * room as he came into it, the treasure still there to play the ending again.
+       */
+      resume(s, afterGameOver) {
+        const ending = !!g.completionActive;
+        restore(g, s);
+        if (ending) playOn();
+        if (afterGameOver && !won) { g.lives = 5; g.score = 0; }
+        won = false;
+        g.vic.border = g.vic.background = 0;
+        g.hiScore = Math.max(g.hiScore, topScore(title.table), g.score);
+        g.drawHudData();
+        mode = 'play';
+        view.resetSmoothing();
+      },
+      toTitle,
+      frame(holding) {
+        if (mode === 'title') {
+          const j = stick();
+          if (holding) j.fire = false;
+          if (title.frame(j) === 'start') startGame();
+          return false;
         }
-        // travel: picked on the map, carried out between frames
-        if (fe.going !== null) {
-          const to = fe.going;
-          fe.going = null;
-          // (from the ending, before he's aboard: what it set undone first, as if he'd never begun it)
-          const ending = g.endingLeavable;
-          if (montyMap.go(to, g, fe.found)) {
-            flow.grace.start();
-            if (ending) { g.leaveEnding(); playOn(); }
-            view.resetSmoothing();
-          }
-        }
-      }
-      const answered = flow.before(status());
-      if (answered) {
-        resume(answered, flow.lastAnswer === 'continue');
-        flow.resumed(answered, rooms.count);
-        return;
-      }
-
-      if (mode === 'title') {
-        const j = stick();
-        if (flow.holding) j.fire = false;
-        if (title.frame(j) === 'start') startGame();
-      } else if (!flow.holding) {
+        if (holding) return false;
         g.input = stick();
         g.inputFire = g.input.fire;
         g.frame(collisions);
-        flow.grace.tick();
         if (g.finished) {
           // the last life lost, or the ending played out (France): the title, and CONTINUE? over it (no
           // high-score table or name entry: the original's, gone); the save is kept either way
           won = g.finished === 'won';
           toTitle();
         }
-      }
-      if (flow.after(status())) latch.hold();
-      view.update();
-      if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
-      flow.draw();
-      collisions = mode === 'play' ? view.collisions(g.uncounted) : 0;
-    },
-    render(alpha: number) {
-      music.hold(flow.covering || fe.holding);
-      view.render(alpha);
-      if (flow.covering || fe.holding) { renderer.hideSprites(); renderer.render(); }
-    },
-    /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
-    menu() {
-      if (mode === 'play') fe.menu(g, canPause());
-    },
+        return true;
+      },
+      updateView() {
+        view.update();
+        if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
+      },
+      renderView: (alpha) => view.render(alpha),
+      afterTick() { collisions = mode === 'play' ? view.collisions(g.uncounted) : 0; },
+      audio: {
+        player: music,
+        started: async () => { await music.play(1); if (!musicOn) g.sound.stop(); },
+        // the original's choice (the C= key on its title): Hubbard's music, or sound effects
+        mute: () => {
+          musicOn = !musicOn;
+          if (musicOn) g.sound.song(0);
+          else g.sound.stop();
+        },
+        padUnlocks: true,
+      },
+    };
+  });
+
+  return {
+    touch: TOUCH,
+    /** For tests: the game, the title and the front end's state. */
+    get game() { return g; },
+    get title() { return title; },
+    get frontEnd() { return port.fe; },
+    /** For tests: the moment's grace. */
+    get grace() { return port.flow.grace; },
+    get state() { return { mode, paused: port.fe.paused, going: port.fe.going, found: port.fe.found, grace: port.flow.grace.left, ...port.flow.state }; },
+    tick: port.tick,
+    render: port.render,
+    menu: port.menu,
   };
 }
 
