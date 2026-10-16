@@ -182,7 +182,7 @@ interface PortAdapter<S, F> {
 
 **Cost.** S. **Risk.** Very low.
 
-### 10. Size and shape of the hand-written code
+### 10. Size and shape of the hand-written code (AGENTS.md: done, cut from 45 KB to 19 KB in the doc cleanup)
 
 **What.** The biggest hand-written files are `games/shared/test/hd.ts` 848, `c64kit/src/hd/scene.ts` 812, `montyotr/src/game.ts` 802, `hd/oblique.ts` 757, `awm/src/monty.ts` 718, `c64/machine.ts` 711, `play.ts` 676, `hd/layer.ts` 650. None is unreasonable for what it does. The Monty games are a rewrite from data and are in good shape. The real hot spots are structural, covered in findings 1-3, not "too many lines in one file". `AGENTS.md` is 45 KB and one table row (the HD view) runs to a single line of thousands of characters; it is useful as a log of decisions, but nobody (human or agent) can find the shared-module list in it. Moving each row to the module's header comment, or `docs/`, and keeping AGENTS.md as the short "rules and where things are" would help the agents that depend on it.
 
