@@ -19,9 +19,12 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
 
 ## Next
 
-- **Architecture work,** from `docs/architecture-review.md` (2026-10-16): Chris picks which findings to do. Suggested order:
-  strictness holes + a `node:test` runner; generated code out of git + dead code; one shared port session (`runPort`);
-  an explicit continue-flow state and typed `Found`; one save envelope. No state libraries (the review says why).
+- **Architecture work,** from `docs/architecture-review.md` (2026-10-16). Done: strictness holes + the `node:test` runner
+  (`npm run verify`); generated code out of git (`tools/gen.mjs`) + dead code. Left, if Chris wants them: one shared port
+  session (`runPort`); an explicit continue-flow state and typed `Found`; one save envelope. No state libraries.
+- **JSW2 `test/route.ts` fails** (a `todo` in `tools/tests.mjs`, failed before the runner too): travel offers 5 of the 7
+  rooms passed through, and reopening lands in another room. Find the root cause.
+- **The HD tests in the slow set** (`*/test/hd.ts`) have not been run under the new runner; Blackwyche's grew past 980 MB.
 - **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
   From here: fewer, larger commits with plain messages.
 
