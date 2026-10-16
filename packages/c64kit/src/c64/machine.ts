@@ -1,4 +1,5 @@
 import { Cpu6502 } from '../sid/cpu6502';
+import { isArrayOf, isBoolean, isNumber, isNumbers, isRecord, isRecordOf, isString, readJson } from '../json';
 
 /**
  * A small C64: the kit's 6502 core plus the parts of the machine a game
@@ -509,7 +510,7 @@ export class C64 {
     }
     if (this.collisionsPerLine) this.collideLine(l);
   }
-  private lastSpriteY = new Array(8).fill(0);
+  private lastSpriteY = new Array<number>(8).fill(0);
 
   /**
    * Sprite collisions line by line, as the VIC finds them while it draws (and raises its
@@ -702,9 +703,50 @@ export function packState(s: MachineState): Uint8Array {
   return out;
 }
 
+/** Every key of `v` named in `keys` holds a number. */
+const numbersAt = (v: Record<string, unknown>, keys: readonly string[]) => keys.every((k) => isNumber(v[k]));
+/** An optional number: absent, or a number. */
+const optionalNumber = (v: unknown) => v === undefined || isNumber(v);
+
+const isCpuState = (v: unknown): v is MachineState['cpu'] => isRecord(v) && numbersAt(v, ['a', 'x', 'y', 'sp', 'p', 'pc']);
+const isCia1State = (v: unknown): v is MachineState['cia1'] =>
+  isRecord(v) && numbersAt(v, ['ta', 'latch', 'cra', 'icr', 'mask', 'pra', 'tb', 'latchB', 'crb'])
+  && optionalNumber(v.ddra) && optionalNumber(v.prb) && optionalNumber(v.ddrb);
+const isCia2State = (v: unknown): v is MachineState['cia2'] => isRecord(v) && isNumber(v.pra);
+const isBackgrounds = (v: unknown): v is RowCapture['bg'] => isNumbers(v) && v.length === 4;
+const isFrameRow = (v: unknown): v is NonNullable<FrameSoFar['rows'][number]> =>
+  isRecord(v) && isString(v.codes) && isString(v.colours) && numbersAt(v, ['d011', 'd016', 'd018', 'bank'])
+  && isBackgrounds(v.bg) && optionalNumber(v.line);
+const isFrameSprite = (v: unknown): v is FrameSoFar['sprites'][number] =>
+  isRecord(v) && numbersAt(v, ['n', 'x', 'y', 'colour', 'mc1', 'mc2']) && isString(v.data)
+  && isBoolean(v.multicolour) && isBoolean(v.expandX) && isBoolean(v.expandY) && isBoolean(v.behind);
+const isFrameSoFar = (v: unknown): v is FrameSoFar =>
+  isRecord(v) && Array.isArray(v.rows) && v.rows.every((r) => r === null || isFrameRow(r))
+  && isArrayOf(v.sprites, isFrameSprite) && isNumber(v.border) && isString(v.borderLines)
+  && isNumber(v.spriteStarted) && isNumbers(v.lastSpriteY);
+
+/** The part of a machine save stored as JSON, checked: what `packState` writes besides the four byte blocks. */
+type MachineMeta = Omit<MachineState, 'ram' | 'colour' | 'vic' | 'sid'>;
+function parseMeta(v: unknown): MachineMeta {
+  if (!isRecord(v)) throw new Error('machine save: header is not an object');
+  const { cpu, cia1, cia2, rasterCompare, cycleInFrame, collisions, native, frame } = v;
+  if (!isCpuState(cpu)) throw new Error('machine save: bad cpu');
+  if (!isCia1State(cia1)) throw new Error('machine save: bad cia1');
+  if (!isCia2State(cia2)) throw new Error('machine save: bad cia2');
+  if (!isNumber(rasterCompare) || !isNumber(cycleInFrame)) throw new Error('machine save: bad raster or cycle');
+  if (collisions !== undefined && !isNumbers(collisions)) throw new Error('machine save: bad collisions');
+  if (native !== undefined && !isRecordOf(native, isNumber)) throw new Error('machine save: bad native state');
+  if (frame !== undefined && !isFrameSoFar(frame)) throw new Error('machine save: bad frame');
+  return { cpu, cia1, cia2, rasterCompare, cycleInFrame, collisions, native, frame };
+}
+
+/** Unpack what `packState` wrote, throwing a clear error if the bytes are not a machine save. */
 export function unpackState(b: Uint8Array): MachineState {
-  const n = new DataView(b.buffer, b.byteOffset).getUint32(0, true);
-  const meta = JSON.parse(new TextDecoder().decode(b.subarray(4, 4 + n)));
+  if (b.length < 4) throw new Error('machine save: too short');
+  const n = new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(0, true);
+  const blocks = 0x10000 + 1024 + 0x40 + 0x20;
+  if (b.length !== 4 + n + blocks) throw new Error(`machine save: ${b.length} bytes, expected ${4 + n + blocks}`);
+  const meta = parseMeta(readJson(new TextDecoder().decode(b.subarray(4, 4 + n))));
   let o = 4 + n;
   const take = (len: number) => { const v = b.slice(o, o + len); o += len; return v; };
   return { ...meta, ram: take(0x10000), colour: take(1024), vic: take(0x40), sid: take(0x20) };

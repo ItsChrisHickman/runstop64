@@ -1,3 +1,4 @@
+export * from './json';
 export * from './palette';
 export * from './surface';
 export * from './loop';
