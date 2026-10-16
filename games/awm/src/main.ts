@@ -1,11 +1,7 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
-import { AudioKeys } from '../../shared/audio';
-import { ContinueFlow } from '../../shared/continue';
-import { FireLatch } from '../../shared/fire-latch';
-import { FrontEnd, type PauseRequest } from '../../shared/frontend';
+import { runPort } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
-import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
 import { Stick } from './input';
@@ -76,7 +72,7 @@ function awmFont() {
 }
 
 export function run(host: Host) {
-  const { renderer, input, canvas } = host;
+  const { renderer, input } = host;
   renderer.frame = { x: 32, y: 36 };
   const program = new Program();
   const kept = readHigh();
@@ -95,155 +91,108 @@ export function run(host: Host) {
       case 'stop': tune = null; return music.call(SOUND.stop);
     }
   };
-  const audio = new AudioKeys({
-    canvas, input, renderer, player: music, padUnlocks: true,
-    started: async () => { await music.play(SOUND.effectsSong); if (tune !== null) music.call(SOUND.tune, tune); },
-  });
 
-  // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
-  const font = awmFont();
-  // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
-  const flow = new ContinueFlow<AwmSave, AwmFound>({ id: 'awm', renderer, input, font, codec: CODEC, found: awmMap.found, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
-  const latch = new FireLatch();
-  const fe = new FrontEnd<Program, AwmFound>({
-    id: 'awm', input, renderer, map: awmMap,
-    assists: [{ id: 'safe', long: 'SAFE RESPAWN' }],
-    font: () => font,
-    saves: flow,
-    onClose: () => latch.hold(),
-  });
-  // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
-  program.safeRespawn = () => fe.assist.safe === true;
-  program.graceActive = () => flow.grace.active;
-
-  /** Each room's start, as a save, and a number that's new for each room entered. */
-  const rooms = new RoomSaves<AwmSave>();
   /** The room the front end has noted, and whether it is in a game (the title or the closing screen: not). */
   let seenRoom = -1;
   let inGame = false;
   let lastKind = program.kind;
-
-  /** Monty has come into a room (or a game has begun in one): noted for the map, and a save to carry on from. */
-  function enteredRoom() {
-    const game = program.game;
-    const picture = program.picture;
-    if (!game || !picture) return;
-    seenRoom = game.world.room;
-    if (noteRoom(game, fe.found)) fe.keepFound();
-    rooms.enter(snapshot(game, picture.hands));
-  }
-
-  /** A new game has begun from the title. */
-  function newGame() {
-    fe.newGame();
-    rooms.clear();
-    seenRoom = -1;
-    latch.hold();
-  }
-
-  /** Carry on from a save (a room's start); after CONTINUE? from the last life lost, a new game's lives and score from nothing. */
-  function resume(s: AwmSave, afterGameOver: boolean) {
-    program.resume(s, afterGameOver && program.lastEnd !== 'ending');
-    inGame = true;
-    latch.hold();
-    fe.wentBack();
-    enteredRoom();
-  }
-
-  /** What the pause screen asked for: back to the room's start, or to the title (the save stays: ENTER CONTINUE). */
-  function asked(r: PauseRequest) {
-    if (r === 'roomStart') backToRoomStart();
-    else if (r === 'title') { fe.wentBack(); flow.toTitle(); program.toTitle(); inGame = false; latch.hold(); }
-  }
-
-  /** Back to how things were on coming into this room. */
-  function backToRoomStart() {
-    rooms.backToRoomStart(flow, program.kind === 'play', (s) => resume(s, false));
-  }
-
-  const status = () => rooms.status(program.kind === 'title', program.kind === 'play' && !fe.holding);
-
   /** A tap on the title's menu line, held as the key it stands for for a few frames (the title looks at its keys in one of its two phases). */
   let menuTap = { key: 'F1', frames: 0 };
 
-  /** The keys and pad as the joystick the game reads, with fire held over from a screen that closed left out until it's let go. */
-  function controls(): Controls {
-    const h = input.held;
-    const stick = (h.up ? Stick.Up : 0) | (h.down ? Stick.Down : 0) | (h.left ? Stick.Left : 0) | (h.right ? Stick.Right : 0) | (latch.filter(h.fire) ? Stick.Fire : 0);
-    // the title's keys: F1 music, F7 effects (a tap on the menu line chooses the other)
-    if (input.points.some((t) => t.x >= MENU_TAP.x0 && t.x < MENU_TAP.x1 && t.y >= MENU_TAP.y0 && t.y < MENU_TAP.y1)) menuTap = { key: program.effectsChosen ? 'F1' : 'F7', frames: MENU_TAP.frames };
-    const held = menuTap.frames > 0 ? menuTap.key : null;
-    if (menuTap.frames > 0) menuTap.frames--;
-    return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7' };
-  }
+  // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
+  const port = runPort<AwmSave, AwmFound, Program>(host, {
+    id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
+    // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
+    restartKeys: [], strip: { y: STRIP_Y },
+    assists: [{ id: 'safe', long: 'SAFE RESPAWN' }],
+  }, ({ flow, fe, latch, rooms }) => {
+    // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
+    program.safeRespawn = () => fe.assist.safe === true;
+    program.graceActive = () => flow.grace.active;
 
-  /** Whether the pause screen may open now: in play, nothing of the front end's up, and not in the closing screen. */
-  const canPause = () => program.kind === 'play' && !flow.holding;
+    /** Monty has come into a room (or a game has begun in one): noted for the map, and a save to carry on from. */
+    function enteredRoom() {
+      const game = program.game;
+      const picture = program.picture;
+      if (!game || !picture) return;
+      seenRoom = game.world.room;
+      if (noteRoom(game, fe.found)) fe.keepFound();
+      rooms.enter(snapshot(game, picture.hands));
+    }
 
-  // the game, as launched: the title (a save goes straight back into play, ContinueFlow)
+    /** A new game has begun from the title. */
+    function newGame() {
+      fe.newGame();
+      rooms.clear();
+      seenRoom = -1;
+      latch.hold();
+    }
+
+    /** The keys and pad as the joystick the game reads, with fire held over from a screen that closed left out until it's let go. */
+    function controls(): Controls {
+      const h = input.held;
+      const stick = (h.up ? Stick.Up : 0) | (h.down ? Stick.Down : 0) | (h.left ? Stick.Left : 0) | (h.right ? Stick.Right : 0) | (latch.filter(h.fire) ? Stick.Fire : 0);
+      // the title's keys: F1 music, F7 effects (a tap on the menu line chooses the other)
+      if (input.points.some((t) => t.x >= MENU_TAP.x0 && t.x < MENU_TAP.x1 && t.y >= MENU_TAP.y0 && t.y < MENU_TAP.y1)) menuTap = { key: program.effectsChosen ? 'F1' : 'F7', frames: MENU_TAP.frames };
+      const held = menuTap.frames > 0 ? menuTap.key : null;
+      if (menuTap.frames > 0) menuTap.frames--;
+      return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7' };
+    }
+
+    // the game, as launched: the title (a save goes straight back into play, ContinueFlow)
+    return {
+      state: () => program,
+      phase: () => (program.kind === 'closing' ? 'other' : program.kind),
+      travel: (to) => awmMap.go(to, program, fe.found),
+      /** Carry on from a save (a room's start); after CONTINUE? from the last life lost, a new game's lives and score from nothing. */
+      resume(s, afterGameOver) {
+        program.resume(s, afterGameOver && program.lastEnd !== 'ending');
+        inGame = true;
+        enteredRoom();
+      },
+      toTitle() { program.toTitle(); inGame = false; },
+      frame(holding) {
+        let counted = false;
+        if (program.kind === 'title') {
+          const c = controls();
+          program.frame(holding ? { ...c, stick: c.stick & ~Stick.Fire } : c);
+        } else if (!holding) {
+          program.frame(controls());
+          counted = true;
+        }
+        for (const call of program.takeSound()) play(call);
+        // a game has begun from the title / a room has been entered / the game has ended (GAME OVER, the title again)
+        if (program.kind === 'play') {
+          if (!inGame) { inGame = true; newGame(); }
+          if (program.game && program.game.world.room !== seenRoom) enteredRoom();
+        } else {
+          inGame = false;
+          if (program.kind === 'title' && lastKind === 'closing') keepHigh();
+        }
+        lastKind = program.kind;
+        return counted;
+      },
+      updateView: () => view.update(),
+      renderView: (alpha) => view.render(alpha),
+      audio: {
+        player: music,
+        started: async () => { await music.play(SOUND.effectsSong); if (tune !== null) music.call(SOUND.tune, tune); },
+        padUnlocks: true,
+      },
+    };
+  });
+
   return {
     touch: TOUCH,
     /** For tests: the game and the front end's state. */
     get program() { return program; },
-    get frontEnd() { return fe; },
+    get frontEnd() { return port.fe; },
     /** For tests: the moment's grace. */
-    get grace() { return flow.grace; },
-    get state() { return { kind: program.kind, paused: fe.paused, enhanced: fe.enhanced, going: fe.going, found: fe.found, grace: flow.grace.left, roomCount: rooms.count, ...flow.state }; },
-    tick() {
-      audio.tick();
-
-      if (program.kind === 'play') {
-        fe.pauseKey(program, canPause());
-        if (fe.paused) {
-          asked(fe.pausedTick(program, () => view.update()));
-          return;
-        }
-        // travel: picked on the map, carried out between frames
-        if (fe.going !== null) {
-          const to = fe.going;
-          fe.going = null;
-          if (awmMap.go(to, program, fe.found)) {
-            flow.grace.start();
-                  }
-        }
-      }
-      const answered = flow.before(status());
-      if (answered) {
-        resume(answered, flow.lastAnswer === 'continue');
-        flow.resumed(answered, rooms.count);
-        return;
-      }
-
-      if (program.kind === 'title') {
-        const c = controls();
-        program.frame(flow.holding ? { ...c, stick: c.stick & ~Stick.Fire } : c);
-      } else if (!flow.holding) {
-        program.frame(controls());
-        flow.grace.tick();
-      }
-      for (const call of program.takeSound()) play(call);
-      // a game has begun from the title / a room has been entered / the game has ended (GAME OVER, the title again)
-      if (program.kind === 'play') {
-        if (!inGame) { inGame = true; newGame(); }
-        if (program.game && program.game.world.room !== seenRoom) enteredRoom();
-      } else {
-        inGame = false;
-        if (program.kind === 'title' && lastKind === 'closing') keepHigh();
-      }
-      lastKind = program.kind;
-      if (flow.after(status())) latch.hold();
-      view.update();
-      flow.draw();
-    },
-    render(alpha: number) {
-      music.hold(flow.covering || fe.holding);
-      view.render(alpha);
-      if (flow.covering || fe.holding) { renderer.hideSprites(); renderer.render(); }
-    },
-    /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
-    menu() {
-      if (program.kind === 'play') fe.menu(program, canPause());
-    },
+    get grace() { return port.flow.grace; },
+    get state() { return { kind: program.kind, paused: port.fe.paused, enhanced: port.fe.enhanced, going: port.fe.going, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state }; },
+    tick: port.tick,
+    render: port.render,
+    menu: port.menu,
   };
 
   function keepHigh() {
