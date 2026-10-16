@@ -16,10 +16,13 @@
     "extract:motr": "node tools/extract-motr.mjs",
     "deploy": "tools/deploy-goshowme.sh",
     "check:strict": "node tools/strict.mjs",
+    "test": "node tools/test-all.mjs",
+    "verify": "npm run typecheck && npm run check:strict && npm test",
     "test:input": "node tools/test.mjs packages/c64kit/test/input.test.ts"
   },
   "devDependencies": {
     "@types/three": "0.170.0",
+    "esbuild": "0.21.5",
     "typescript": "5.6.3",
     "vite": "5.4.11"
   },

@@ -19,4 +19,4 @@ node /tmp/probe.mjs out/JET_SET_WILLY_2.prg /tmp/jsw2 --disk game.d64 --frames 1
 ```
 
 Then translate again (`node tools/re/to-ts.mjs games/jsw2/re/engine.json`) and rebuild
-the map (`npx tsx games/jsw2/re/mansion.ts`) if the code or rooms could have changed.
+the map (`nice -n 15 node tools/test.mjs games/jsw2/re/mansion.ts`) if the code or rooms could have changed.

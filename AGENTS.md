@@ -44,18 +44,26 @@ T`, `as unknown as T`, `<T>x`; `as const` is fine), no non-null assertions (`x!`
 `@ts-ignore`/`@ts-expect-error`/`@ts-nocheck`. Model the types so they follow: type guards, discriminated unions, generics,
 `satisfies`, validation at the boundaries (JSON, storage, DOM queries, worker messages). A genuinely untyped outside API gets
 one small, commented adapter, and you say so. `npm run check:strict` (`tools/strict.mjs`) must report 0; generated
-translations (`*/gen/`) are the generator's responsibility.
+translations (`*/gen/`) are the generator's responsibility. It also finds the `any` nobody writes: with the TypeScript
+checker over both tsconfigs it reports every expression whose type is `any` (`JSON.parse`, `Reflect.get`, `Array.isArray`
+narrowing an `unknown`, `new Array(n)`, a lib typed `any`), and any call of `JSON.parse` itself. Parse JSON with
+`readJson(text)` (returns `unknown`; `games/shared/guards.ts`, from `packages/c64kit/src/json.ts`) and narrow it with the
+guards (`isRecord`, `isArray`, `isNumbers`, `isArrayOf`...); read a property reflectively with `getProp`. The allowed
+untyped adapters are marked `// strict-ok: untyped API (why)` on the line (or the one above) that makes the `any`: today
+`readJson`, `getProp` and the WebGL `getParameter` in `games/hdtest/gl.ts`; add one only for a genuinely untyped API.
 
 `tsconfig.json` checks what runs in the browser, `tsconfig.test.json` everything that runs under Node (tests, `re/` scripts,
 tools, `vite.config.ts`) with c64kit stood in by `games/shared/test/kit.ts` and Node's APIs from `types/node.d.ts` (by hand;
 `@types/node` is not installed). `npm run typecheck` runs both; `npm run build` runs them and check:strict. Tests use
 `games/shared/test/browser.ts` (storage, fetch, listener targets) and `must()` (`games/shared/test/must.ts`) instead of casts
-and `!`; JSON read back goes through `games/shared/guards.ts`.
+and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `games/shared/test/data.ts`, `readRoutes`...).
 
 ## Workflow and the machine
 
 - **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
   process with `nice -n 15`, one heavy process at a time, runs under about 10 minutes.
+- **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests, a few minutes). There is no
+  CI (Actions minutes are scarce), so this is the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
   session merges, pushes and deploys (`npm run deploy`).
@@ -97,6 +105,12 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run 
 - `tools/test.mjs`: runs a headless check written in TypeScript (bundles it with c64kit stood in by
   `games/shared/test/kit.ts`, `?url` imports stubbed): `nice -n 15 node tools/test.mjs games/montyotr/test/frontend.ts [out-dir]`.
   Also `npm run test:touch`, `test:effects`, `test:input`.
+- `tools/test-all.mjs` (`npm test`): every headless test on `node:test`, one at a time under `nice -n 15`, from the list in
+  `tools/tests.mjs` (file, arguments, the set `fast` or `slow`, and `needs`: the files a test wants; one missing, such as
+  AWM's gitignored originals in `games/awm/build/`, is a skip with a message, not a failure). `--slow` adds the slow set,
+  `--list` shows what would run, a word filters by name. **A new test goes in `tests.mjs`.** Tests report with
+  `check(what, ok)` and end with `finish()` (`games/shared/test/check.ts`: the exit code is what the runner goes by).
+  `npm run verify` = typecheck + check:strict + the fast tests.
 - `tools/probe`: a C64 in TypeScript (boot a .prg/.d64, run frames, patch memory, save a state, render PNGs). It makes title
   snapshots and runs the originals the ports are checked against (`games/*/build/README.md`).
 - `tools/re/to-ts.mjs`: the 6502 to TypeScript translator (structured flow, cycle counting, `TRACE=1` adds a per-instruction

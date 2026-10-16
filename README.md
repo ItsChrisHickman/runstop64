@@ -63,6 +63,7 @@ games/
   <game>/                            src/, re/ (notes on the original), test/, QOL.md
 tools/
   test.mjs             runs a headless check written in TypeScript
+  test-all.mjs         runs them all (the list is tests.mjs): fast set by default, --slow adds the rest
   probe/               a C64 in TypeScript, to run the originals and compare against them
   re/                  a 6502 disassembler and the 6502-to-TypeScript translator
   extract-*.mjs        pull a game's original data out of its disassembly or an image
@@ -88,7 +89,9 @@ tools/
 npm install
 npm run dev            # Vite, on http://127.0.0.1:5173
 npm run typecheck      # browser code, and Node code (tests, tools)
-npm run check:strict   # no as-casts, no !, no any, no ts-ignore
+npm run check:strict   # no as-casts, no !, no any (written or inferred), no ts-ignore
+npm run verify         # typecheck + strict + the fast tests: run it before every push
+npm test               # the fast tests alone (node tools/test-all.mjs --slow adds the slow ones)
 npm run build          # typecheck + strict check + build into dist/
 node tools/test.mjs games/montyotr/test/frontend.ts    # one headless check
 ```
