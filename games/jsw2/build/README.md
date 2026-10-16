@@ -18,5 +18,5 @@ node /tmp/probe.mjs out/JET_SET_WILLY_2.prg /tmp/jsw2 --disk game.d64 --frames 1
   --patch games/jsw2/build/patch.json --patch-frame 900 --save-state 1650:games/jsw2/assets/jsw2-title.state
 ```
 
-Then translate again (`node tools/re/to-ts.mjs games/jsw2/re/engine.json`) and rebuild
+Then translate again (`npm run gen -- --force`) and rebuild
 the map (`nice -n 15 node tools/test.mjs games/jsw2/re/mansion.ts`) if the code or rooms could have changed.

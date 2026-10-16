@@ -20,7 +20,7 @@ Each line keeps the original instruction as a comment.
 - The wait for raster line $D7 (`$2098`) becomes `yield`: one frame. Loops that
   poll hardware or interrupt-updated RAM (`volatile`) yield too.
 
-Regenerate with `node tools/re/to-ts.mjs games/entombed/re/<file>.json`.
+Regenerate with `npm run gen` (`tools/gen.mjs`; `src/gen/` is not committed and is rebuilt when a config or `.state` changes).
 
 ## 2. Native runtime
 

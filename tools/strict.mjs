@@ -13,6 +13,9 @@ import ts from 'typescript';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureGen } from './gen.mjs';
+
+ensureGen(); // the type checker reads the generated translations (games/*/src/gen/, not committed)
 
 const list = process.argv.includes('--list');
 const files = [];

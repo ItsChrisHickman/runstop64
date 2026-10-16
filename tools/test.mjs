@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
+import { ensureGen } from './gen.mjs';
 
 const [, , entry, ...args] = process.argv;
 if (!entry) {
@@ -17,6 +18,7 @@ if (!entry) {
   process.exit(1);
 }
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+ensureGen(); // games/*/src/gen/ is not committed
 const out = path.join(os.tmpdir(), `runstop64-test-${path.basename(entry, '.ts')}-${process.pid}.mjs`);
 await build({
   entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', outfile: out, logLevel: 'warning',

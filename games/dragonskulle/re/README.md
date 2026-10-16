@@ -27,7 +27,7 @@ translated (a native Pendragon engine for all four may come later).
   ran: the final room's code silently didn't run at all (lockstep from the final room showed
   it; no fallback did). Such a call is now noted with `NativeHost.fallbacks`.
 
-Regenerate with `node tools/re/to-ts.mjs games/dragonskulle/re/<file>.json` (engine first).
+Regenerate with `npm run gen` (`tools/gen.mjs`, engine first; `src/gen/` is not committed and is rebuilt when a config or `.state` changes).
 
 ## 2. The island
 

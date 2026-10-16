@@ -44,7 +44,7 @@ T`, `as unknown as T`, `<T>x`; `as const` is fine), no non-null assertions (`x!`
 `@ts-ignore`/`@ts-expect-error`/`@ts-nocheck`. Model the types so they follow: type guards, discriminated unions, generics,
 `satisfies`, validation at the boundaries (JSON, storage, DOM queries, worker messages). A genuinely untyped outside API gets
 one small, commented adapter, and you say so. `npm run check:strict` (`tools/strict.mjs`) must report 0; generated
-translations (`*/gen/`) are the generator's responsibility. It also finds the `any` nobody writes: with the TypeScript
+translations (`*/gen/`, not committed: `tools/gen.mjs` makes them) are the generator's responsibility. It also finds the `any` nobody writes: with the TypeScript
 checker over both tsconfigs it reports every expression whose type is `any` (`JSON.parse`, `Reflect.get`, `Array.isArray`
 narrowing an `unknown`, `new Array(n)`, a lib typed `any`), and any call of `JSON.parse` itself. Parse JSON with
 `readJson(text)` (returns `unknown`; `games/shared/guards.ts`, from `packages/c64kit/src/json.ts`) and narrow it with the
@@ -113,6 +113,7 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run 
   `npm run verify` = typecheck + check:strict + the fast tests.
 - `tools/probe`: a C64 in TypeScript (boot a .prg/.d64, run frames, patch memory, save a state, render PNGs). It makes title
   snapshots and runs the originals the ports are checked against (`games/*/build/README.md`).
+- `tools/gen.mjs` (`npm run gen`): runs `tools/re/to-ts.mjs` over every `games/*/re/*.json` that names an `out`, engine first, into the gitignored `games/*/src/gen/`; skips a game while a stamp (`src/gen/.stamp`) matches the hash of its configs, `.state` snapshots and the translator (`--force` redoes all). `typecheck`, `check:strict`, `build`, `deploy`, `test`, `dev` and `tools/test.mjs` run it first, so a fresh clone needs no step.
 - `tools/re/to-ts.mjs`: the 6502 to TypeScript translator (structured flow, cycle counting, `TRACE=1` adds a per-instruction
   hook); `tools/re/disasm.mjs`; `tools/re/test`: an opcode fuzz test.
 - `games/shared/native/test`: headless checks for the translated games (`verify`, `lockstep`, `trace`, `irqcycles`, `resume`,
