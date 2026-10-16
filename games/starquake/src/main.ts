@@ -1,11 +1,7 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
-import { AudioKeys } from '../../shared/audio';
-import { ContinueFlow } from '../../shared/continue';
-import { FireLatch } from '../../shared/fire-latch';
-import { FrontEnd, type PauseRequest } from '../../shared/frontend';
+import { runPort } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
-import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
@@ -57,7 +53,7 @@ const SOUND = raw.sound;
 const TITLE_PAGE_TICKS = 6 * 50;
 
 export function run(host: Host) {
-  const { renderer, input, canvas } = host;
+  const { renderer, input } = host;
   renderer.frame = { x: 32, y: 36 };
   const vic = new Vic();
   vic.bitmap = true;
@@ -76,32 +72,39 @@ export function run(host: Host) {
   };
   const font = Screens.gameFont();
 
-  // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
-  // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
-  const flow = new ContinueFlow<Uint8Array, StarquakeFound>({
-    id: 'starquake', renderer, input, font, codec: { pack: (s) => s, unpack: (b) => b }, found: starquakeMap.found,
-    strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
-    describe: describeSave,
-  });
-  const latch = new FireLatch();
-  const fe = new FrontEnd<Game, StarquakeFound>({
-    id: 'starquake', input, renderer, map: starquakeMap,
-    assists: [
-      { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
-      { id: 'lives', long: 'INFINITE LIVES' },
-    ],
-    font: () => font,
-    saves: flow,
-    onClose: () => latch.hold(),
-  });
-
   type Mode = 'title' | 'intro' | 'play' | 'ending' | 'final' | 'over' | 'hero' | 'heroes';
   let mode: Mode = 'title';
   let creditsShown = false; // (the title's page: the picture, or the credits and keys)
   let ticks = 0;
   let script: Flow.Script | null = null;
-  /** Each room's start, as a save, and a number that's new for each room entered. */
-  const rooms = new RoomSaves<Uint8Array>();
+
+  // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
+  const port = runPort<Uint8Array, StarquakeFound, Game>(host, {
+    id: 'starquake', font, codec: { pack: (s) => s, unpack: (b) => b }, map: starquakeMap, describe: describeSave,
+    // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
+    strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
+    assists: [
+      { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
+      { id: 'lives', long: 'INFINITE LIVES' },
+    ],
+  }, () => ({
+    state: () => g,
+    phase: () => (mode === 'title' || mode === 'play' ? mode : 'other'),
+    // (letters are for the screens that ask for them: M, V and P mean nothing else there)
+    typing: () => !!g.asking && (mode === 'play' || mode === 'hero'),
+    travel,
+    resume: resumeGame,
+    toTitle() { g.sound.silence(); title(); },
+    frame,
+    updateView,
+    afterView: touchKeys,
+    renderView: (alpha) => view.render(alpha),
+    audio: {
+      player: music,
+      started: () => { const n = song; song = 0; playSong(n || SOUND.songs.title); },
+    },
+  }));
+  const { flow, fe, latch, rooms } = port;
 
   const hooks: Flow.Hooks = {
     roomStart(game) {
@@ -179,14 +182,15 @@ export function run(host: Host) {
   /** Carry on from a save (a room's start): the room is drawn again from there. */
   g.graceActive = () => flow.grace.active && mode === 'play';
 
-  function resume(s: Uint8Array) {
+  function resumeGame(s: Uint8Array, afterGameOver: boolean) {
     restore(g, s);
     playSong(SOUND.songs.game);
     g.sound.silence();
     script = Flow.play(g, hooks);
     mode = 'play';
-    latch.hold();
-    fe.wentBack();
+    // continuing after the game is over: BLOB comes back with a new game's four lives (the
+    // save is the last room's start, with however few were left then)
+    if (afterGameOver) { g.lives = [0, 4]; g.livesRoll = 0; g.livesSteps = 0; g.livesDir = 0; g.panelDirty = 7; }
   }
 
   let over = { score: '', adventure: '' };
@@ -226,13 +230,6 @@ export function run(host: Host) {
     Heroes.show(g, heroes);
     playSong(SOUND.songs.hiScore);
   }
-
-  // ---- sound -------------------------------------------------------------------------------------
-
-  const audio = new AudioKeys({
-    canvas, input, renderer, player: music,
-    started: () => { const n = song; song = 0; playSong(n || SOUND.songs.title); },
-  });
 
   /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch. */
   function joy() {
@@ -295,7 +292,56 @@ export function run(host: Host) {
     }
   }
 
-  const status = () => rooms.status(mode === 'title', mode === 'play' && !fe.holding);
+  /** Travel: picked on the map; BLOB leaves this room as by an exit and comes into that one. */
+  function travel(id: string) {
+    const room = Number(id), at = entryOf(fe.found, room);
+    if (!at || !starquakeMap.go(String(room), g, fe.found)) return false;
+    script = Flow.travel(g, hooks, room, { col: at[0], row: at[1] });
+    return true;
+  }
+
+  /** One frame of whatever the game is doing; whether it was a frame of play (the grace counts it). */
+  function frame(holding: boolean) {
+    let counted = false;
+    if (mode === 'title') tickTitle();
+    else if (mode === 'intro') {
+      ticks++;
+      if (ticks > 25 && (input.pressed.fire || input.typed.some((c) => c === 'Enter' || c === 'Space'))) startGame();
+    } else if (mode === 'over') {
+      ticks++;
+      if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) afterGameOver();
+    } else if (mode === 'heroes') {
+      ticks++;
+      if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) title();
+    } else if (mode === 'ending') {
+      // the core is complete: the end, until a key (or its tune has had time to end); then the final count ($4E2D) and game over
+      ticks++;
+      if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) { mode = 'final'; script = Flow.finalScore(g); }
+    } else if (script && !holding) {
+      g.joy = joy();
+      g.key = keyNow();
+      counted = mode === 'play' && !g.inScreen;
+      if (script.next().done) {
+        if (mode === 'play' && g.won) { mode = 'ending'; ticks = 0; script = null; Specials.ending(g); playSong(SOUND.songs.ending); }
+        else if (mode === 'hero') { keepHeroes(); showHeroes(); }
+        else gameOver();
+      } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
+    }
+    return counted;
+  }
+
+  /** The sprites: the registers as the game last wrote them (sprites 0-2 are BLOB, at sprite 0's place). */
+  function updateView() {
+    for (let n = 0; n < 8; n++) {
+      const r = vic.sprites[n];
+      r.x = g.vic.x[n] | (g.vic.msb & (1 << n) ? 0x100 : 0);
+      r.y = g.vic.y[n];
+      r.ptr = g.sprites.ptr[n];
+      r.colour = g.sprites.colour[n];
+    }
+    vic.enable = mode === 'play' ? g.vic.enable : 0;
+    view.update();
+  }
 
   title();
   return {
@@ -305,92 +351,8 @@ export function run(host: Host) {
     /** For tests: the moment's grace. */
     get grace() { return flow.grace; },
     get state() { return { mode, paused: fe.paused, enhanced: fe.enhanced, going: fe.going, found: fe.found, grace: flow.grace.left, ...flow.state }; },
-    tick() {
-      // (letters are for the screens that ask for them: M, V and P mean nothing else there)
-      const typing = !!g.asking && (mode === 'play' || mode === 'hero');
-      audio.tick(typing);
-
-      if (mode === 'play') {
-        fe.pauseKey(g, !flow.holding && !typing);
-        if (fe.paused) {
-          asked(fe.pausedTick(g, () => view.update()));
-          return;
-        }
-        // Travel: picked on the map; BLOB leaves this room as by an exit and comes into that one.
-        if (fe.going !== null) {
-          const room = Number(fe.going), at = entryOf(fe.found, room);
-          fe.going = null;
-          if (at && starquakeMap.go(String(room), g, fe.found)) { script = Flow.travel(g, hooks, room, { col: at[0], row: at[1] }); flow.grace.start(); }
-        }
-      }
-      const resumeFrom = flow.before(status());
-      if (resumeFrom) {
-        resume(resumeFrom);
-        // continuing after the game is over: BLOB comes back with a new game's four lives (the
-        // save is the last room's start, with however few were left then)
-        if (flow.lastAnswer === 'continue') { g.lives = [0, 4]; g.livesRoll = 0; g.livesSteps = 0; g.livesDir = 0; g.panelDirty = 7; }
-        flow.resumed(resumeFrom, rooms.count);
-        return;
-      }
-
-      if (mode === 'title') tickTitle();
-      else if (mode === 'intro') {
-        ticks++;
-        if (ticks > 25 && (input.pressed.fire || input.typed.some((c) => c === 'Enter' || c === 'Space'))) startGame();
-      } else if (mode === 'over') {
-        ticks++;
-        if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) afterGameOver();
-      } else if (mode === 'heroes') {
-        ticks++;
-        if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) title();
-      } else if (mode === 'ending') {
-        // the core is complete: the end, until a key (or its tune has had time to end); then the final count ($4E2D) and game over
-        ticks++;
-        if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) { mode = 'final'; script = Flow.finalScore(g); }
-      } else if (script && !flow.holding) {
-        g.joy = joy();
-        g.key = keyNow();
-        if (mode === 'play' && !g.inScreen) flow.grace.tick();
-        if (script.next().done) {
-          if (mode === 'play' && g.won) { mode = 'ending'; ticks = 0; script = null; Specials.ending(g); playSong(SOUND.songs.ending); }
-          else if (mode === 'hero') { keepHeroes(); showHeroes(); }
-          else gameOver();
-        } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
-      }
-      const playing = mode === 'play';
-      if (flow.after(status())) latch.hold();
-      // The sprites: the registers as the game last wrote them (sprites 0-2 are BLOB, at sprite 0's place).
-      for (let n = 0; n < 8; n++) {
-        const r = vic.sprites[n];
-        r.x = g.vic.x[n] | (g.vic.msb & (1 << n) ? 0x100 : 0);
-        r.y = g.vic.y[n];
-        r.ptr = g.sprites.ptr[n];
-        r.colour = g.sprites.colour[n];
-      }
-      vic.enable = playing ? g.vic.enable : 0;
-      view.update();
-      touchKeys();
-      flow.draw();
-    },
-    render(alpha: number) {
-      music.hold(flow.covering || fe.holding);
-      view.render(alpha);
-      if (flow.covering || fe.holding) { renderer.hideSprites(); renderer.render(); }
-    },
-    /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
-    menu() {
-      if (mode === 'play') fe.menu(g, !flow.holding);
-    },
+    tick: port.tick,
+    render: port.render,
+    menu: port.menu,
   };
-
-  /** What the pause screen asked for: back to the room's start, or to the title (the save stays: ENTER CONTINUE). */
-  function asked(r: PauseRequest) {
-    if (r === 'roomStart') backToRoomStart();
-    else if (r === 'title') { fe.wentBack(); flow.toTitle(); g.sound.silence(); title(); }
-  }
-
-  /** Back to how things were on coming into this room. */
-  function backToRoomStart() {
-    rooms.backToRoomStart(flow, mode === 'play', resume);
-  }
 }

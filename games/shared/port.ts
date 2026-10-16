@@ -68,8 +68,8 @@ export interface PortAdapter<S, T> {
   /** The game's picture into the renderer (also drawn behind the pause screen). */
   updateView(): void;
   renderView(alpha: number): void;
-  /** After the panels were drawn. */
-  afterTick?(): void;
+  /** After the picture is up to date, before the flow draws its panels (not on the pause screen). */
+  afterView?(): void;
   /** Before the picture is rendered (`covered`: a screen of ours is over the game). */
   prepareRender?(covered: boolean): void;
   audio: Omit<AudioKeysOptions, 'canvas' | 'input' | 'renderer' | 'player'> & { player: PortSound };
@@ -172,8 +172,8 @@ export class Port<S, F, T> {
     if (a.frame(flow.holding)) flow.grace.tick();
     if (flow.after(this.status())) latch.hold();
     a.updateView();
+    a.afterView?.();
     flow.draw();
-    a.afterTick?.();
   };
 
   readonly render = (alpha: number) => {

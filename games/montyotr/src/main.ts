@@ -192,7 +192,7 @@ export function run(host: Host) {
         if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
       },
       renderView: (alpha) => view.render(alpha),
-      afterTick() { collisions = mode === 'play' ? view.collisions(g.uncounted) : 0; },
+      afterView() { collisions = mode === 'play' ? view.collisions(g.uncounted) : 0; },
       audio: {
         player: music,
         started: async () => { await music.play(1); if (!musicOn) g.sound.stop(); },
