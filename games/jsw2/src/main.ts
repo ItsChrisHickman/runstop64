@@ -84,9 +84,11 @@ export function run(host: Host) {
     titleWaits: (ram) => TITLE_IRQS.includes(ram[0x314] | (ram[0x315] << 8)),
     // The game reads the joystick in port 2: port 1's lines are F1 (its pause) and F3 (music) to it.
     joyPort: 2,
-    // Lives are the bits of $8096 (eight Willies in the HUD; each loss shifts one out).
-    fullHealth: (ram) => { ram[0x8096] = 0xff; },
-    lives: (ram) => { ram[0x8096] = 0xff; },
+    vitals: {
+      // Lives are the bits of $8096 (eight Willies in the HUD; each loss shifts one out).
+      fullHealth: (ram) => { ram[0x8096] = 0xff; },
+      lives: (ram) => { ram[0x8096] = 0xff; },
+    },
     // No death loops: Willy comes into rooms in mid-air (falling into Hades from the dustbins' floor), and
     // a death in a fall from another room starts him again where the fall began (over the hole, where he
     // dies again at once): saves wait for his feet (as travel's spots do) and a second lived; ENHANCED starts him from the last one.

@@ -91,7 +91,7 @@ export function run(host: Host) {
     // A moment's grace after a resume: no oil is taken ($56E0, where the game is about to take some: as the slow drain
     // leaves it, A the oil as it is, carry set), so a creature, a live wire or a ceiling costs nothing for its 3 seconds.
     grace: { hook: (pc, ram) => { if (pc === 0x56e0) { cpu.a = ram[0x8f]; cpu.c = 1; } } },
-    fullHealth: (ram, _colour, on) => enhanced.onContinue(ram, on.enhanced ? all : none),
+    vitals: { fullHealth: (ram, _colour, on) => enhanced.onContinue(ram, on.enhanced ? all : none) },
     // (R would open the original's key-redefining screen, which lists C64 keys: not on this keyboard.)
     reserved: ['KeyR', ...JOYSTICK_KEYS],
     // Touch: the stick (Thing goes up and down too), and fire: his jump (with a direction, the big one).

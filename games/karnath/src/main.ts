@@ -53,16 +53,18 @@ export function run(host: Host) {
     port,
     room: (ram) => ram[0x3235],
     titleWaits: [0x6c85],
-    fullHealth: (ram) => {
-      ram[0x6ffe] = 100; ram[0x322e] = 0; // energy, and damage still to take
-      ram.set([0x31, 0x3a, 0x3a], 0x07dc); // "100" on the status line
-    },
-    health: {
-      max: 100,
-      get: (ram) => ram[0x6ffe],
-      set: (ram, _colour, v) => {
-        ram[0x6ffe] = v;
-        ram.set([...String(v).padStart(3, '0')].map((d) => (d === '0' ? 0x3a : 0x30 + Number(d))), 0x07dc);
+    vitals: {
+      fullHealth: (ram) => {
+        ram[0x6ffe] = 100; ram[0x322e] = 0; // energy, and damage still to take
+        ram.set([0x31, 0x3a, 0x3a], 0x07dc); // "100" on the status line
+      },
+      health: {
+        max: 100,
+        get: (ram) => ram[0x6ffe],
+        set: (ram, _colour, v) => {
+          ram[0x6ffe] = v;
+          ram.set([...String(v).padStart(3, '0')].map((d) => (d === '0' ? 0x3a : 0x30 + Number(d))), 0x07dc);
+        },
       },
     },
     map: karnathMap,
