@@ -1,7 +1,10 @@
 import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
+import { AudioKeys } from '../../shared/audio';
 import { ContinueFlow } from '../../shared/continue';
+import { FireLatch } from '../../shared/fire-latch';
 import { FrontEnd, type PauseRequest } from '../../shared/frontend';
+import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
 import { Game } from './game';
@@ -75,7 +78,7 @@ export function run(host: Host) {
   // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
   // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
   const flow = new ContinueFlow<MontySave>({ id: 'montyotr', renderer, input, font, codec: CODEC, restartKeys: [], strip: { y: STRIP_Y }, describe: describeSave });
-  let fireHeldOver = false;
+  const latch = new FireLatch();
   const fe = new FrontEnd<Game>({
     id: 'montyotr', input, renderer, map: montyMap,
     assists: [
@@ -89,7 +92,7 @@ export function run(host: Host) {
     panel: (lines) => flow.panel(lines),
     canGoBack: () => mode === 'play' && flow.state.hasSave,
     saves: flow,
-    onClose: () => { fireHeldOver = true; },
+    onClose: () => latch.hold(),
   });
   // the game reads ENHANCED's assists as the switch has them now
   g.assist = { get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
@@ -99,8 +102,7 @@ export function run(host: Host) {
   type Mode = 'title' | 'play';
   let mode: Mode = 'title';
   /** Each room's start, as a save, and a number that's new for each room entered. */
-  let roomSave: MontySave | null = null;
-  let roomCount = 0;
+  const rooms = new RoomSaves<MontySave>();
   let collisions = 0;
   /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too). */
   let won = false;
@@ -109,14 +111,13 @@ export function run(host: Host) {
     if (noteRoom(game, fe.found)) fe.keepFound();
     // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
     if (!NO_TRAVEL(game.roomId) && !game.completionActive) {
-      roomSave = snapshot(game);
-      roomCount++;
+      rooms.enter(snapshot(game));
     }
   };
 
   function toTitle() {
     mode = 'title';
-    fireHeldOver = true;
+    latch.hold();
     title.start();
     view.resetSmoothing();
   }
@@ -127,9 +128,9 @@ export function run(host: Host) {
     g.vic.border = g.vic.background = 0;
     g.hiScore = Math.max(g.hiScore, topScore(title.table)); // (the best score this visit, or the table's top)
     fe.newGame();
-    roomSave = null;
+    rooms.clear();
     mode = 'play';
-    fireHeldOver = true;
+    latch.hold();
     view.resetSmoothing();
     // (the title's tune plays on into the game, as in the original)
   }
@@ -149,7 +150,7 @@ export function run(host: Host) {
     g.hiScore = Math.max(g.hiScore, topScore(title.table), g.score);
     g.drawHudData();
     mode = 'play';
-    fireHeldOver = true;
+    latch.hold();
     fe.wentBack();
     view.resetSmoothing();
   }
@@ -172,30 +173,27 @@ export function run(host: Host) {
 
   /** Back to how things were on coming into this room. */
   function backToRoomStart() {
-    const s = flow.saved();
-    if (!s || mode !== 'play') return;
-    resume(s, false);
-    flow.resumed(s, roomCount);
+    rooms.backToRoomStart(flow, mode === 'play', (s) => resume(s, false));
   }
 
   // ---- sound ------------------------------------------------------------------------
 
-  const unlock = () => {
-    if (music.unlocked) return;
-    void music.unlock().then(() => music.play(1)).then(() => { if (!musicOn) g.sound.stop(); });
-  };
-  canvas.addEventListener('pointerdown', unlock);
-
-  const status = () => ({
-    onTitle: mode === 'title',
-    room: mode === 'play' && !fe.holding && roomSave ? roomCount : null,
-    save: () => roomSave,
+  const audio = new AudioKeys({
+    canvas, input, renderer, player: music, padUnlocks: true,
+    started: async () => { await music.play(1); if (!musicOn) g.sound.stop(); },
+    // the original's choice (the C= key on its title): Hubbard's music, or sound effects
+    mute: () => {
+      musicOn = !musicOn;
+      if (musicOn) g.sound.song(0);
+      else g.sound.stop();
+    },
   });
+
+  const status = () => rooms.status(mode === 'title', mode === 'play' && !fe.holding);
 
   /** The keys and pad, with fire held over from a screen that closed left out until it's let go. */
   function stick() {
-    if (fireHeldOver && !input.held.fire) fireHeldOver = false;
-    return { ...input.held, fire: input.held.fire && !fireHeldOver };
+    return { ...input.held, fire: latch.filter(input.held.fire) };
   }
 
   /**
@@ -215,14 +213,7 @@ export function run(host: Host) {
     get grace() { return flow.grace; },
     get state() { return { mode, paused: fe.paused, going: fe.going, found: fe.found, grace: flow.grace.left, ...flow.state }; },
     tick() {
-      if (input.typed.length || input.held.fire) unlock();
-      if (input.typed.includes('KeyM')) {
-        // the original's choice (the C= key on its title): Hubbard's music, or sound effects
-        musicOn = !musicOn;
-        if (musicOn) g.sound.song(0);
-        else g.sound.stop();
-      }
-      if (input.typed.includes('KeyV')) renderer.snap = !renderer.snap;
+      audio.tick();
 
       if (mode === 'play') {
         fe.pauseKey(g, canPause());
@@ -246,7 +237,7 @@ export function run(host: Host) {
       const answered = flow.before(status());
       if (answered) {
         resume(answered, flow.lastAnswer === 'continue');
-        flow.resumed(answered, roomCount);
+        flow.resumed(answered, rooms.count);
         return;
       }
 
@@ -266,7 +257,7 @@ export function run(host: Host) {
           toTitle();
         }
       }
-      if (flow.after(status())) fireHeldOver = true;
+      if (flow.after(status())) latch.hold();
       view.update();
       if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
       flow.draw();

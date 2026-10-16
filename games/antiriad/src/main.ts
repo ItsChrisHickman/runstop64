@@ -1,7 +1,10 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
+import { AudioKeys } from '../../shared/audio';
 import { ContinueFlow, MACHINE_CODEC } from '../../shared/continue';
+import { FireLatch } from '../../shared/fire-latch';
 import { FrontEnd, type PauseRequest } from '../../shared/frontend';
 import { playEvents } from '../../shared/native/combat';
+import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import { writeCells } from './cells';
 import { intoArmour } from './fades';
@@ -142,7 +145,7 @@ export function run(host: Host) {
 
   // ---- saves, continue, the pause screen (games/shared) ---------------------------------------
   const flow = new ContinueFlow<MachineState>({ id: 'antiriad', renderer, input, font: 'kit', codec: MACHINE_CODEC, strip: { y: 183 }, describe: (s) => describeSave(s.ram) }); // (on the black under the title's floor)
-  let fireHeldOver = true;
+  const latch = new FireLatch(true);
   const fe = new FrontEnd<Game>({
     id: 'antiriad', input, renderer, map: antiriadMap,
     // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
@@ -151,7 +154,7 @@ export function run(host: Host) {
     panel: (lines) => flow.panel(lines),
     canGoBack: () => g.playing && flow.state.hasSave,
     saves: flow,
-    onClose: () => { fireHeldOver = true; },
+    onClose: () => latch.hold(),
   });
 
   /**
@@ -162,9 +165,10 @@ export function run(host: Host) {
    * into the last room entered, the power centre with the mine, and round to the end again; and
    * the original's fire goes straight on into a new game.)
    */
-  let roomCount = 0, won = false;
+  const rooms = new RoomSaves<MachineState>();
+  let won = false;
   const hook = (game: Game) => {
-    game.onRoom = () => { roomCount++; };
+    game.onRoom = () => rooms.enter();
     game.graceActive = () => flow.grace.active;
     won = false;
   };
@@ -180,18 +184,13 @@ export function run(host: Host) {
     view.dispose();
     view = new C64View(renderer, g.m);
     renderer.effects.model.clear();
-    fireHeldOver = true;
+    latch.hold();
     fe.wentBack();
   }
 
   // ---- sound -------------------------------------------------------------------------------------
 
-  let muted = false;
-  const unlock = () => {
-    if (sound.unlocked) return;
-    void sound.unlock().then(() => sound.startStream());
-  };
-  canvas.addEventListener('pointerdown', unlock);
+  const audio = new AudioKeys({ canvas, input, renderer, player: sound, started: () => sound.startStream() });
 
   /** The joystick (port 2) and keyboard, for this frame. */
   function controls() {
@@ -204,8 +203,7 @@ export function run(host: Host) {
     // ENHANCED: fire and jump apart (Z is the jump; the other fire keys and the pad fire)
     const two = fe.assist.enhanced;
     const fire = two ? FIRE_KEYS.some((k) => input.down.has(k)) || (input.held.fire && !input.down.has(JUMP_KEY)) : input.held.fire;
-    if (fireHeldOver && !fire) fireHeldOver = false;
-    if (fire && !fireHeldOver) joy &= ~16;
+    if (latch.filter(fire)) joy &= ~16;
     g.enhanced = two;
     g.cellAsked = two && (g.cellAsked || input.typed.includes('KeyC')); // (ENHANCED: C fills the armour from a stored cell)
     g.jumpButton = two ? (input.down.has(JUMP_KEY) ? 1 : 0) | (g.jumpButton & 2) | (input.typed.includes(JUMP_KEY) ? 2 : 0) : 0;
@@ -228,7 +226,7 @@ export function run(host: Host) {
   const status = () => ({
     machine: g.m,
     onTitle: g.onTitle,
-    room: g.playing && !fe.holding && !(g.ram[V.roomChange] & 0x80) && !g.travelTo ? roomCount : null,
+    room: g.playing && !fe.holding && !(g.ram[V.roomChange] & 0x80) && !g.travelTo ? rooms.count : null,
     save: () => { g.flushShapes(); return g.m.saveState(); },
   });
 
@@ -240,9 +238,7 @@ export function run(host: Host) {
     get grace() { return flow.grace; },
     get state() { return { paused: fe.paused, going: fe.going, found: fe.found, enhanced: !!fe.assist.enhanced, grace: flow.grace.left, ...flow.state }; },
     tick() {
-      if (input.typed.length) unlock();
-      if (input.typed.includes('KeyM')) { muted = !muted; if (sound.muted !== muted) sound.toggleMute(); }
-      if (input.typed.includes('KeyV')) renderer.snap = !renderer.snap;
+      audio.tick();
 
       if (g.playing) {
         if (fe.optionsOpen) { asked(fe.optionsTick(() => view.update())); return; }
@@ -263,7 +259,7 @@ export function run(host: Host) {
         // continuing after the game is over: Tal comes back with full life and his rejuvenations
         if (flow.lastAnswer === 'continue') newLives(resumeFrom.ram);
         resume(resumeFrom);
-        flow.resumed(resumeFrom, roomCount);
+        flow.resumed(resumeFrom, rooms.count);
         return;
       }
       if (!flow.holding) {
@@ -273,13 +269,13 @@ export function run(host: Host) {
         felt();
         if (g.playing) flow.grace.tick();
         if (!wasPlaying && g.playing && !flow.state.playing) fe.newGame();
-        if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; roomCount++; }
+        if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; rooms.enter(); }
         if (won && g.onTitle) { backToTitle(); return; }
         if (g.playing && !(g.ram[V.roomChange] & 0x80)) antiriadMap.observe(g, fe.found, new Uint8Array(0));
         sound.pushFrame(g.m.sidWrites);
       }
       view.update();
-      if (flow.after(status())) fireHeldOver = true;
+      if (flow.after(status())) latch.hold();
       flow.draw();
     },
     render(alpha: number) {
@@ -307,16 +303,13 @@ export function run(host: Host) {
     view.dispose();
     view = new C64View(renderer, g.m);
     renderer.effects.model.clear();
-    fireHeldOver = true;
+    latch.hold();
     fe.wentBack();
     flow.toTitle();
   }
 
   /** Back to how things were on coming into this room. */
   function backToRoomStart() {
-    const s = flow.saved();
-    if (!s || !g.playing) return;
-    resume(s);
-    flow.resumed(s, roomCount);
+    rooms.backToRoomStart(flow, g.playing, resume);
   }
 }

@@ -1,5 +1,7 @@
 import { C64View, C64_KEYS, HdRooms, SidPlayer, hdRefresher, unpackState, type HdBuilder } from 'c64kit';
+import { AudioKeys } from '../audio';
 import { ContinueFlow, MACHINE_CODEC, type TitleStrip } from '../continue';
+import { FireLatch } from '../fire-latch';
 import type { FrameCapture, Host, MachineState, PictureLayout } from 'c64kit';
 import { cpu } from './cpu';
 import { NativeHost, type PortConfig } from './host';
@@ -200,7 +202,6 @@ export function runNative(host: Host, opts: NativeGameOptions) {
   /** The title snapshot (back to the title starts from it again). */
   let titleState: Uint8Array | null = null;
   let view: C64View | null = null;
-  let muted = false;
 
   const start = (g: NativeHost) => {
     view?.dispose();
@@ -227,13 +228,14 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       if (site !== opts.port.mainLoopWait) return;
       // Going to a place picked on the pause map: the game's own code takes the player there.
       const travel = fe.going !== null && !!opts.map?.go;
-      if (fe.going !== null && opts.map?.go) { flow.grace.start(); const regs = { ...cpu }; opts.map.go(fe.going, g.m.ram, fe.found); Object.assign(cpu, regs); fe.going = null; }
+      const map = opts.map, to = fe.going;
+      if (to !== null && map?.go) { flow.grace.start(); runner.call(() => map.go?.(to, g.m.ram, fe.found)); fe.going = null; }
       latchEnded(g);
       // Running: the player's own handling goes once more, in the main loop's pass as the game's
       // own does (at the frame's start, its scroll register writes would land on the header's split).
-      if (running && runPlayer) { const regs = { ...cpu }; runPlayer(); Object.assign(cpu, regs); }
+      if (running && runPlayer) runner.call(runPlayer);
       // Knockback (an assist): his own movement, pushed away from what hit him, a step or two more.
-      if (knock && runPlayer) for (let i = 0; i < COMBAT_TIMING.knockSteps; i++) { const regs = { ...cpu }; runPlayer(); Object.assign(cpu, regs); }
+      if (knock && runPlayer) for (let i = 0; i < COMBAT_TIMING.knockSteps; i++) runner.call(runPlayer);
       // 8-way controls (an assist): his own step into the picture for a diagonal (controls.ts).
       if (eightWay && assist.eightWay && flow.state.playing) {
         eightWay.beforeFrame(g.m.ram, stick, runner);
@@ -247,7 +249,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
       // (`safe`: the room's save as it was when he found his feet there, once he's lived a moment after
       // it; a life lost just as he goes somewhere picked on the map: he goes there)
       if (opts.safe && st.room !== null) st.save = arrival(g, st.room, travel);
-      if (flow.after(st)) fireHeldOver = true; // play just began: the start button isn't a jump
+      if (flow.after(st)) fireLatch.hold(); // play just began: the start button isn't a jump
       resuming = false;
     };
   };
@@ -269,11 +271,8 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     return state;
   }
 
-  const unlock = () => {
-    if (sound.unlocked) return;
-    void sound.unlock().then(() => sound.startStream());
-  };
-  canvas.addEventListener('pointerdown', unlock);
+  // (V is a key of the game's own keyboard here, not the authentic-pixel-steps switch)
+  const audio = new AudioKeys({ canvas, input, renderer, player: sound, snapKey: false, started: () => sound.startStream() });
 
   // Options (the gear) and the pause screen: games/shared/frontend.ts.
   const fe: FrontEnd<Uint8Array> = new FrontEnd<Uint8Array>({
@@ -299,7 +298,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     panel: (lines) => flow.panel(lines),
     canGoBack: () => flow.state.playing && flow.state.hasSave,
     saves: flow,
-    onClose: () => { fireHeldOver = true; },
+    onClose: () => fireLatch.hold(),
   });
   /** The HD view's rooms (built again only when the room's part of the picture changes). */
   const rooms = opts.hd ? new HdRooms(opts.hd, hdRefresher()) : null;
@@ -344,7 +343,8 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     return () => (a.n >= SAFE_PASSES ? a.save : null);
   }
   let running = false; // Shift is held in play
-  let fireHeldOver = false; // the press that started (or continued) the game: ignored until it's released
+  /** The press that started (or continued) the game: ignored until it's released. */
+  const fireLatch = new FireLatch();
   /** A name picked on a touch screen (`names`), and its keys, one at a time. */
   const picker = opts.names ? new NamePicker(opts.names.spec) : null;
   const pacer = new KeyPacer(3, 4);
@@ -426,15 +426,14 @@ export function runNative(host: Host, opts: NativeGameOptions) {
         const k = C64_KEYS[mapped ?? code];
         if (k) m.keys.push(k);
       }
-      if (picking) fireHeldOver = true; // (the stick and the button are the picker's)
+      if (picking) fireLatch.hold(); // (the stick and the button are the picker's)
       else {
         if (input.held.up) joy &= ~1;
         if (input.held.down) joy &= ~2;
         if (input.held.left) joy &= ~4;
         if (input.held.right) joy &= ~8;
       }
-      if (fireHeldOver && !input.held.fire) fireHeldOver = false;
-      if (input.held.fire && !fireHeldOver) joy &= ~16;
+      if (fireLatch.filter(input.held.fire)) joy &= ~16;
     }
     stick = ~joy & 0x1f;
     let bits = stick;
@@ -533,11 +532,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     get options() { return assist; },
     get frontEnd() { return fe; },
     tick() {
-      if (input.typed.length) unlock();
-      if (input.typed.includes('KeyM')) {
-        muted = !muted;
-        if (sound.muted !== muted) sound.toggleMute();
-      }
+      audio.tick();
       const g = game, v = view;
       if (!g || !v) return;
       if (fe.optionsOpen) {
@@ -559,7 +554,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
         start(r);
         flow.resumed(resume, opts.room(resume.ram) * 4096 + (screens & 0xfff));
         resuming = true;
-        fireHeldOver = true;
+        fireLatch.hold();
         return;
       }
       // (a life lost before he'd lived a moment in the room, in ENHANCED: back to the last save kept)
@@ -609,7 +604,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     start(new NativeHost(opts.port, withText(unpackState(titleState))));
     flow.toTitle();
     fe.wentBack();
-    fireHeldOver = true;
+    fireLatch.hold();
   }
 
   /** Back to how things were on coming into this room (out of a trap the game has no way out of). */
@@ -617,7 +612,7 @@ export function runNative(host: Host, opts: NativeGameOptions) {
     const s = flow.saved();
     if (!s || !flow.state.playing) return;
     resumeFrom(s);
-    fireHeldOver = true;
+    fireLatch.hold();
     fe.wentBack();
   }
 

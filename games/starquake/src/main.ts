@@ -1,8 +1,11 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
+import { AudioKeys } from '../../shared/audio';
 import { ContinueFlow } from '../../shared/continue';
+import { FireLatch } from '../../shared/fire-latch';
 import { FrontEnd, type PauseRequest } from '../../shared/frontend';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
+import { RoomSaves } from '../../shared/room-saves';
 import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
@@ -80,7 +83,7 @@ export function run(host: Host) {
     strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
     describe: describeSave,
   });
-  let fireHeldOver = false;
+  const latch = new FireLatch();
   const fe = new FrontEnd<Game>({
     id: 'starquake', input, renderer, map: starquakeMap,
     assists: [
@@ -91,7 +94,7 @@ export function run(host: Host) {
     panel: (lines) => flow.panel(lines),
     canGoBack: () => mode === 'play' && flow.state.hasSave,
     saves: flow,
-    onClose: () => { fireHeldOver = true; },
+    onClose: () => latch.hold(),
   });
 
   type Mode = 'title' | 'intro' | 'play' | 'ending' | 'final' | 'over' | 'hero' | 'heroes';
@@ -100,14 +103,12 @@ export function run(host: Host) {
   let ticks = 0;
   let script: Flow.Script | null = null;
   /** Each room's start, as a save, and a number that's new for each room entered. */
-  let roomSave: Uint8Array | null = null;
-  let roomCount = 0;
+  const rooms = new RoomSaves<Uint8Array>();
 
   const hooks: Flow.Hooks = {
     roomStart(game) {
       if (fe.assist.health && game.energy < 0x78) { game.energy = 0x78; game.panelDirty |= 1; }
-      roomSave = snapshot(game);
-      roomCount++;
+      rooms.enter(snapshot(game));
     },
     died(game) {
       if (fe.assist.lives) Panel.extraLife(game);
@@ -162,18 +163,19 @@ export function run(host: Host) {
     ticks = 0;
     Screens.intro(g);
     playSong(SOUND.songs.intro);
-    fireHeldOver = true;
+    latch.hold();
   }
 
   function startGame() {
     Screens.clear(g);
     Flow.newGame(g, (Math.random() * 0x100000000) >>> 0);
     fe.newGame();
+    rooms.clear();
     playSong(SOUND.songs.game);
     g.sound.silence();
     script = Flow.play(g, hooks);
     mode = 'play';
-    fireHeldOver = true;
+    latch.hold();
   }
 
   /** Carry on from a save (a room's start): the room is drawn again from there. */
@@ -185,7 +187,7 @@ export function run(host: Host) {
     g.sound.silence();
     script = Flow.play(g, hooks);
     mode = 'play';
-    fireHeldOver = true;
+    latch.hold();
     fe.wentBack();
   }
 
@@ -229,12 +231,10 @@ export function run(host: Host) {
 
   // ---- sound -------------------------------------------------------------------------------------
 
-  let muted = false;
-  const unlock = () => {
-    if (music.unlocked) return;
-    void music.unlock().then(() => { const n = song; song = 0; playSong(n || SOUND.songs.title); });
-  };
-  canvas.addEventListener('pointerdown', unlock);
+  const audio = new AudioKeys({
+    canvas, input, renderer, player: music,
+    started: () => { const n = song; song = 0; playSong(n || SOUND.songs.title); },
+  });
 
   /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch. */
   function joy() {
@@ -243,8 +243,7 @@ export function run(host: Host) {
     if (input.held.down) j &= ~2;
     if (input.held.left) j &= ~4;
     if (input.held.right) j &= ~8;
-    if (fireHeldOver && !input.held.fire) fireHeldOver = false;
-    if (input.held.fire && !fireHeldOver) j &= ~0x10;
+    if (latch.filter(input.held.fire)) j &= ~0x10;
     return j;
   }
 
@@ -298,11 +297,7 @@ export function run(host: Host) {
     }
   }
 
-  const status = () => ({
-    onTitle: mode === 'title',
-    room: mode === 'play' && !fe.holding ? roomCount : null,
-    save: () => roomSave,
-  });
+  const status = () => rooms.status(mode === 'title', mode === 'play' && !fe.holding);
 
   title();
   return {
@@ -313,11 +308,9 @@ export function run(host: Host) {
     get grace() { return flow.grace; },
     get state() { return { mode, paused: fe.paused, enhanced: fe.enhanced, going: fe.going, found: fe.found, grace: flow.grace.left, ...flow.state }; },
     tick() {
-      if (input.typed.length) unlock();
       // (letters are for the screens that ask for them: M, V and P mean nothing else there)
       const typing = !!g.asking && (mode === 'play' || mode === 'hero');
-      if (!typing && input.typed.includes('KeyM')) { muted = !muted; if (music.muted !== muted) music.toggleMute(); }
-      if (!typing && input.typed.includes('KeyV')) renderer.snap = !renderer.snap;
+      audio.tick(typing);
 
       if (mode === 'play') {
         if (fe.optionsOpen) { asked(fe.optionsTick(() => view.update())); return; }
@@ -339,7 +332,7 @@ export function run(host: Host) {
         // continuing after the game is over: BLOB comes back with a new game's four lives (the
         // save is the last room's start, with however few were left then)
         if (flow.lastAnswer === 'continue') { g.lives = [0, 4]; g.livesRoll = 0; g.livesSteps = 0; g.livesDir = 0; g.panelDirty = 7; }
-        flow.resumed(resumeFrom, roomCount);
+        flow.resumed(resumeFrom, rooms.count);
         return;
       }
 
@@ -368,7 +361,7 @@ export function run(host: Host) {
         } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
       }
       const playing = mode === 'play';
-      if (flow.after(status())) fireHeldOver = true;
+      if (flow.after(status())) latch.hold();
       // The sprites: the registers as the game last wrote them (sprites 0-2 are BLOB, at sprite 0's place).
       for (let n = 0; n < 8; n++) {
         const r = vic.sprites[n];
@@ -401,9 +394,6 @@ export function run(host: Host) {
 
   /** Back to how things were on coming into this room. */
   function backToRoomStart() {
-    const s = flow.saved();
-    if (!s || mode !== 'play') return;
-    resume(s);
-    flow.resumed(s, roomCount);
+    rooms.backToRoomStart(flow, mode === 'play', resume);
   }
 }
