@@ -1,6 +1,6 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
-import { runPort } from '../../shared/port';
+import { runPort, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
@@ -91,7 +91,9 @@ export function run(host: Host) {
     state: () => g,
     phase: () => (mode === 'title' || mode === 'play' ? mode : 'other'),
     // (letters are for the screens that ask for them: M, V and P mean nothing else there)
-    typing: () => !!g.asking && (mode === 'play' || mode === 'hero'),
+    typing,
+    // (the pause key is a letter on a screen asking for letters; the gear is not)
+    canPause: (byKey) => !(byKey && typing()),
     travel,
     resume: resumeGame,
     toTitle() { g.sound.silence(); title(); },
@@ -182,7 +184,7 @@ export function run(host: Host) {
   /** Carry on from a save (a room's start): the room is drawn again from there. */
   g.graceActive = () => flow.grace.active && mode === 'play';
 
-  function resumeGame(s: Uint8Array, afterGameOver: boolean) {
+  function resumeGame(s: Uint8Array, from: ResumeFrom) {
     restore(g, s);
     playSong(SOUND.songs.game);
     g.sound.silence();
@@ -190,7 +192,7 @@ export function run(host: Host) {
     mode = 'play';
     // continuing after the game is over: BLOB comes back with a new game's four lives (the
     // save is the last room's start, with however few were left then)
-    if (afterGameOver) { g.lives = [0, 4]; g.livesRoll = 0; g.livesSteps = 0; g.livesDir = 0; g.panelDirty = 7; }
+    if (from === 'continue') { g.lives = [0, 4]; g.livesRoll = 0; g.livesSteps = 0; g.livesDir = 0; g.panelDirty = 7; }
   }
 
   let over = { score: '', adventure: '' };
@@ -291,6 +293,9 @@ export function run(host: Host) {
       }
     }
   }
+
+  /** The game is asking for letters (a teleport's code, a hero's initials). */
+  function typing() { return !!g.asking && (mode === 'play' || mode === 'hero'); }
 
   /** Travel: picked on the map; BLOB leaves this room as by an exit and comes into that one. */
   function travel(id: string) {

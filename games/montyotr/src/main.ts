@@ -155,11 +155,11 @@ export function run(host: Host) {
        * lives, the score from nothing; after the ending (France), everything as saved: the treasure's
        * room as he came into it, the treasure still there to play the ending again.
        */
-      resume(s, afterGameOver) {
+      resume(s, from) {
         const ending = !!g.completionActive;
         restore(g, s);
         if (ending) playOn();
-        if (afterGameOver && !won) { g.lives = 5; g.score = 0; }
+        if (from === 'continue' && !won) { g.lives = 5; g.score = 0; }
         won = false;
         g.vic.border = g.vic.background = 0;
         g.hiScore = Math.max(g.hiScore, topScore(title.table), g.score);

@@ -1,16 +1,10 @@
 import type { GameStatus } from './continue';
 
-/** What the room saves ask of the continue flow. */
-interface SavedFlow<S> {
-  saved(): S | null;
-  resumed(s: S, room: number): void;
-}
-
 /**
  * The room-save bookkeeping of a port that saves each room's start: the save of the room the
  * player came into, and a number that is new for each room (ContinueFlow autosaves when it
  * changes). `enter` when a room begins; `clear` when a new game does (nothing is saved of it
- * yet); `status` for the flow; `backToRoomStart` for the pause screen's B.
+ * yet); `status` for the flow. (Back to room start, the pause screen's B, is the port's: port.ts.)
  */
 export class RoomSaves<S> {
   /** The start of the room the player is in, as a save. */
@@ -30,13 +24,5 @@ export class RoomSaves<S> {
   /** The flow's view of the game: a room to save once there is one, and no save point while a screen holds the game (`inPlay` false). */
   status(onTitle: boolean, inPlay: boolean): GameStatus<S> {
     return { onTitle, room: inPlay && this.save ? this.count : null, save: () => this.save };
-  }
-
-  /** Back to how things were on coming into this room (out of a trap the game has no way out of): `resume` carries the game on from the save. */
-  backToRoomStart(flow: SavedFlow<S>, playing: boolean, resume: (s: S) => void) {
-    const s = flow.saved();
-    if (!s || !playing) return;
-    resume(s);
-    flow.resumed(s, this.count);
   }
 }

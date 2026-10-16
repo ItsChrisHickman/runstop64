@@ -1,5 +1,5 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
-import { MACHINE_CODEC } from '../../shared/continue';
+import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
 import { runPort } from '../../shared/port';
 import { playEvents } from '../../shared/native/combat';
 import type { TouchLayout } from '../../shared/touch';
@@ -160,10 +160,13 @@ export function run(host: Host) {
   }, () => ({
     state: () => g,
     phase: () => (g.playing ? 'play' : g.onTitle ? 'title' : 'other'),
-    machine: () => g.m,
-    // (no room to save inside a room change, or on the way to a place picked on the map)
-    roomOpen: () => !(g.ram[V.roomChange] & 0x80) && !g.travelTo,
-    takeSave: () => g.snapshot(),
+    // (the save is taken when the flow asks; none inside a room change, or on the way to a place picked on the map)
+    status: (): GameStatus<MachineState> => ({
+      machine: g.m,
+      onTitle: g.onTitle,
+      room: g.playing && !fe.holding && !(g.ram[V.roomChange] & 0x80) && !g.travelTo ? rooms.count : null,
+      save: () => g.snapshot(),
+    }),
     // Travel: picked on the map; the game takes Tal there between frames.
     travel(id) {
       const room = Number(id), at = entryOf(g, fe.found, room);
@@ -171,9 +174,9 @@ export function run(host: Host) {
       g.travelTo = { room, ...at };
       return true;
     },
-    resume(s, afterGameOver) {
+    resume(s, from) {
       // continuing after the game is over: Tal comes back with full life and his rejuvenations
-      if (afterGameOver) newLives(s.ram);
+      if (from === 'continue') newLives(s.ram);
       resume(s);
     },
     toTitle,

@@ -145,8 +145,8 @@ export function run(host: Host) {
       phase: () => (program.kind === 'closing' ? 'other' : program.kind),
       travel: (to) => awmMap.go(to, program, fe.found),
       /** Carry on from a save (a room's start); after CONTINUE? from the last life lost, a new game's lives and score from nothing. */
-      resume(s, afterGameOver) {
-        program.resume(s, afterGameOver && program.lastEnd !== 'ending');
+      resume(s, from) {
+        program.resume(s, from === 'continue' && program.lastEnd !== 'ending');
         inGame = true;
         enteredRoom();
       },
