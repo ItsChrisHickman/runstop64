@@ -1,0 +1,37 @@
+{
+  "state": "../assets/blackwyche-title.state",
+  "base": "6000",
+  "load": "f1d0",
+  "len": "700",
+  "entries": [
+    "6000",
+    "6003"
+  ],
+  "waits": [
+    "1e8b"
+  ],
+  "waitEffects": {
+    "1e8b": "cpu.a = 0xd7; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "range": [
+    "6000",
+    "66ff"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "emitCode": true,
+  "out": "../src/gen/rooms/room-f1d0.ts",
+  "runtime": "../../../../shared/native/cpu",
+  "hooks": {
+    "6126": "strike: the sword on sprite 4"
+  }
+}

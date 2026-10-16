@@ -1,0 +1,48 @@
+{
+  "state": "../assets/entombed-title.state",
+  "entries": [
+    "0a00",
+    "24a8",
+    "1814",
+    "9961",
+    "c000",
+    "35ac",
+    "6701",
+    "671d",
+    "671e",
+    "682c",
+    "6916",
+    "6bde"
+  ],
+  "waits": [
+    "2098"
+  ],
+  "range": [
+    "0800",
+    "cfff"
+  ],
+  "exclude": [
+    [
+      "6000",
+      "66ff"
+    ]
+  ],
+  "out": "../src/gen/engine.ts",
+  "runtime": "../../../shared/native/cpu",
+  "waitEffects": {
+    "2098": "cpu.a = 0xd7; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "hooks": {
+    "291f": "swing: the whip",
+    "6c4b": "hurt: the corridors' hurt flag ($6C8C)",
+    "6c5d": "hurt: the corridors' hurt flag ($6C8C)",
+    "6c6f": "hurt: the corridors' hurt flag ($6C8C)"
+  }
+}

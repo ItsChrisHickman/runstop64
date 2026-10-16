@@ -1,0 +1,49 @@
+{
+  "state": "../assets/toas-title.state",
+  "entries": [
+    "735e",
+    "4371",
+    "42b0",
+    "7254"
+  ],
+  "waits": [
+    "41bb",
+    "41b9"
+  ],
+  "waitCycles": {
+    "41bb": "(cpu.x || 256) * 3332",
+    "41b9": "128 * 3332 + 2"
+  },
+  "waitEffects": {
+    "41bb": "cpu.x = 0; cpu.y = 0; cpu.nz = 0;",
+    "41b9": "cpu.x = 0; cpu.y = 0; cpu.nz = 0;"
+  },
+  "countCycles": true,
+  "smcOperand": [
+    "4cc8",
+    "5bde",
+    "5aea",
+    "4133",
+    "5148",
+    "5179"
+  ],
+  "smcOpcode": {
+    "c35f": [
+      "ce",
+      "ee"
+    ]
+  },
+  "range": [
+    "0800",
+    "cfff"
+  ],
+  "out": "../src/gen/engine.ts",
+  "runtime": "../../../shared/native/cpu",
+  "hooks": {
+    "4a9b": "a wall (or a doorway) stops Thing going left: from here he's thrown back the other way ($5C)",
+    "4abb": "a wall (or a doorway) stops Thing going right: from here he's thrown back the other way ($5B)",
+    "56e0": "oil about to be taken ($56B4): A is what will be left, carry clear if it's run out",
+    "7aae": "the high score name entry waits for a key (its loop): a name is being asked for",
+    "7b04": "RETURN put the name in (the entry is over)"
+  }
+}

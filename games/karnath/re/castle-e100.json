@@ -1,0 +1,51 @@
+{
+  "state": "../assets/karnath-title.state",
+  "waits": [
+    "219c"
+  ],
+  "waitEffects": {
+    "219c": "cpu.a = 0xd1; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "emitCode": true,
+  "runtime": "../../../../shared/native/cpu",
+  "base": "c000",
+  "load": "e100",
+  "len": "1000",
+  "entries": [
+    "c000",
+    "c003",
+    "c800",
+    "c803"
+  ],
+  "range": [
+    "c000",
+    "cfff"
+  ],
+  "out": "../src/gen/rooms/castle-e100.ts",
+  "hooks": {
+    "c30d": "hurt: damage to come ($322E)",
+    "c312": "also: the hurt's flash",
+    "c63e": "strike: the spell on sprite 0",
+    "c661": "strike: the spell on sprite 5",
+    "c684": "strike: the spell on sprite 1",
+    "c6a0": "strike: the spell on sprite 7",
+    "c6bf": "strike: the spell on sprite 6",
+    "cbb5": "hurt: damage to come ($322E)",
+    "cbba": "also: the hurt's flash",
+    "cda7": "strike: the spell on sprite 0",
+    "cdc7": "strike: the spell on sprite 6",
+    "ce05": "strike: the spell on sprite 7",
+    "ce1e": "strike: the spell on sprite 4"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  // Everything that runs under Node: the headless tests (tools/test.mjs), the re/ scripts, the
+  // tools and the Vite config. Type-checked as they run: c64kit is the stand-in the tests are
+  // bundled with (games/shared/test/kit.ts: the games they import are checked against it too),
+  // Node's APIs from types/node.d.ts. `npm run typecheck` checks this and tsconfig.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "c64kit": ["games/shared/test/kit.ts"]
+    }
+  },
+  "include": [
+    "types",
+    "games/**/test",
+    "games/*/re/**/*.ts",
+    "packages/*/test",
+    "tools/**/*.ts",
+    "vite.config.ts"
+  ],
+  "exclude": []
+}

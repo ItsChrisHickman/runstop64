@@ -1,0 +1,35 @@
+# Thing on a Spring: changes from the original
+
+This is a translated port of the 1985 Commodore 64 game: every routine of the original translated to TypeScript and
+checked against the original running on an emulated C64 (`re/README.md`). **ORIGINAL or ENHANCED:** one switch, E on the
+pause screen; ENHANCED is the default and turns on the rows marked ENHANCED, quality-of-life changes for a modern
+playthrough: he goes where you steer him, a near miss isn't a fall back to the bottom, and the oil gives you time to
+explore. ORIGINAL is the game as it was. Rows marked Always are in both modes.
+
+| Feature | The original | In this port | Default |
+|---|---|---|---|
+| **Pause screen with a map of the factory** | Nothing tells you where you are, where you've been, or how far you've got. | P, Esc or the gear: the four levels (I-IV), each a row of its screens as the game strings them (the lift, then corridor, room, corridor... to the eighth), each as long as it is. Screens you've been in are lit; the one you're in blinks, with where you are along it. The jigsaw pieces, oil cans and switches you've seen are marked until taken, and the goblin's room is marked. Beside it: pieces found (of 9), switches on (of 5), oil, screens been in. | Always |
+| **Travel** | Walking back means every corridor and room on the way. | On the map, pick a screen you've been in, at an end you came in by (arrows and Enter, or two taps) and Thing goes there the game's own way in (as walking through its doorway would put him there), on his feet; everything the game keeps (oil, score, pieces, cans, switches, the lift) stays as it is. Not offered in the lift, in a tube or on a spring. | Always |
+| **Back to room start** | A trap with no way out means starting again. | B on the pause screen: back to how things were on coming into this screen (the latest autosave). | Always |
+| **Back to the title** | None (only by losing, or a restart). | T on the pause screen (or a tap on it): the title, with the save kept; ENTER CONTINUE goes back to it, and only a new game started there begins a new one (keeping the save as the previous one). A new game over a save asks first: NEW GAME? (Space or fire again yes, Esc or a tap no, Enter continues); a jump or fire still held as the last life goes brings CONTINUE? up instead of starting one. | Always |
+| **Autosave** | None. | Progress is saved in your browser each time Thing enters a new screen. The title screen offers ENTER CONTINUE (or Space / fire for a new game, as in the original). Launched with a save, the game goes straight back into play where it was (the title only without one, or with T on the pause screen). Starting a new game keeps the save from before it as the previous one: the saved games (F1 on the directory, or the gear there) bring it back, or delete a save (they ask first). | Always |
+| **Continue** | When the oil runs out, back to the title. | "CONTINUE?" (Enter yes, Esc no; it waits for an answer): back to the last screen entered. | Always |
+| **Title screen text** | The surviving copies' scroller and high scores carry crackers' names; the scroller lists the C64's keys. | Credits to the original team instead, and this keyboard's keys (Space to start, arrows and Space to play). R (the original's key-redefining screen, which lists C64 keys) is left out. | Always |
+| **Smooth movement** | Locked to a 50 Hz PAL television; multiplexed sprites flicker. | Game logic still runs at the original pace; sprites glide between frames on 60/120/144 Hz screens, and every sprite shows every frame. | Always |
+| **Controls** | Keyboard (Z X ; / Space) or joystick. | Arrows/WASD, Space (or Z, X, pad A) for fire; gamepads. M mutes. | Always |
+| **Touch controls** (phones, tablets) | None. | 8-way stick, JUMP (fire; with a direction, the big jump); PAUSE for the pause screen; RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | Always |
+| **High score name** | Typed (ten letters, RETURN puts it in, DEL rubs out). | Typed as ever; on a phone entered with the touch controls: the stick (up and down) changes the letter under the cursor, JUMP puts it in, left rubs out, RET puts the name in, a line under the table says so. The name comes before CONTINUE? (its RETURN is the name's, not ENTER CONTINUE's: before, a RETURN there carried on the save instead and the name was lost). | Always |
+| **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play, no oil is taken (a creature, a live wire or a ceiling costs nothing): continuing a save (ENTER CONTINUE, a launch going straight back into play, CONTINUE? after losing), back to room start, arriving from the map. Quality of life for a modern playthrough, so a resume never starts in the middle of a fight; no sign on screen. Both modes. | Always |
+| **ENHANCED: Steer in the air** | Once off the ground the joystick does nothing: he keeps the way he left it, and a wall in the way throws him back the other way. | Left or right in the air turns him that way (let go: he keeps going as he was); a wall stops him instead of throwing him back. | ENHANCED |
+| **ENHANCED: Jump grace** | A bounce is only taken from his feet, at the moment it's asked for. | A bounce asked for up to 6 frames after walking off an edge still goes; one asked for up to 8 frames before landing goes on landing. | ENHANCED |
+| **ENHANCED: Landing help** | Catching a ledge's edge in a bounce throws him back down. | If only his lowest row catches it (by up to a character), and there's room on top, he's carried up onto it. | ENHANCED |
+| **ENHANCED: Gentler falls** | Falls speed up to 8 pixels a frame. | No faster than 4 pixels a frame: longer to steer, the same floors. | ENHANCED |
+| **ENHANCED: Oil lasts twice as long** | The oil drains steadily (and on every knock), and when it's gone the game is over. | Every other time the game takes oil, it doesn't. | ENHANCED |
+| **ENHANCED: Cheaper deaths** | (Continue, above, goes back to the screen with the oil as it was on coming in.) | Continuing starts with the oil at least half full. | ENHANCED |
+| **ENHANCED: Hints** | Nothing says what to do. | Sparkles on what moves the game on in the room you're in: its jigsaw piece or switch (or, with all nine pieces, the goblin's stop); at the screen's edge when it's along the room out of sight. Oil cans get none. | ENHANCED |
+
+## Not changed
+
+Everything else is the original: the four levels, every screen and creature, the oil, the puzzle of the nine jigsaw pieces
+and the five switches, and the music. ENHANCED's assists are checked against the original by playing (`test/assists.ts`).
+A much higher big jump was tried and dropped: it skipped most of each room's puzzle rather than making it more enjoyable.

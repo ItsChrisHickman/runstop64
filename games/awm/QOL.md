@@ -1,0 +1,32 @@
+# Auf Wiedersehen Monty: changes from the original
+
+This remake plays the 1987 Commodore 64 game as it was, rebuilt natively from the original's own data and rules and checked
+against the original running, step by step and frame by frame (`games/awm/re/README.md`). On top of that sit a few modern
+quality-of-life additions, listed here. Anything that changes how the game *plays* is in ENHANCED, one switch (ENHANCED by
+default; ORIGINAL is the game exactly as it was); the rest is in both.
+
+| Feature | The original | In this remake | Default |
+|---|---|---|---|
+| **Title screen** | The moles walking in and out between the pillars, the menu between them (F1 music, F7 sound effects), the credits scrolling in big letters under it, the music. | The same screen, rebuilt from the original's code and checked frame for frame against it. F1 and F7 are the same keys; on a touch screen a tap on the menu line chooses the other of the two. ENTER CONTINUE (and SPACE NEW GAME) is in the black part under the pillars, above the scroller. | Always |
+| **Music or sound effects** | The title's choice: F1 plays the tune, F7 the sound effects (and each room's own tune). It stays for the game. | Same choice, with the original's own music and effect drivers (the game's code, played from a .sid built from it, never committed). M mutes everything. | Music |
+| **High score** | Kept until the C64 is switched off. | Kept in your browser. | Always |
+| **Pause screen** (P, Esc, pad Start, the touch PAUSE button) | None. | The runstop64 pause screen: a map of the world, how you're doing (lives, rooms, items, how far to the goal), the options. | Always |
+| **World map** | None. | The world as the game lays it out (80 rooms in a grid 16 wide): dark grey until Monty has stood in a room, then its country's colour; your room flashes; rooms with everything in them taken shimmer in the colours of the coins on Monty on the Run's map. The picked room's name (the banner the game prints over it) and what's left to take there ("2 of 5 left to take"). Room 2's death trap isn't counted as something to take. | Always |
+| **Travel** | None. | From the map, travel to any room you've stood in: arrows pick, Enter (or fire) goes; on a touch screen tap a room, tap it again to go. Monty arrives where he first came in, as through an exit, the game's own way (the room loaded, its tune, an item handed over if he carries what the room wants); a death in that room starts him there again. | Always |
+| **Back to room start** | None. | B on the pause screen: back to how things were when Monty came into this room (the things taken and carried, the score, the lives as then). | Always |
+| **Back to the title** | None (only by losing). | T on the pause screen (or a tap on it): the title, with the save kept; ENTER CONTINUE goes back to it, and only a new game started there begins a new one (keeping the save as the previous one). A new game over a save asks first: NEW GAME? (Space or fire again yes, Esc or a tap no, Enter continues). | Always |
+| **Continue** | Lose your last life: GAME OVER, the title, the next game starts from nothing. | GAME OVER plays as it did; then the title asks "CONTINUE?" straight away (Enter yes, Esc no, or a tap; it waits for an answer): Monty is back in the last room he entered, with six lives and the score from nothing; the things he carries, the money and how far he'd got are kept. | Always |
+| **After the ending** | The ending, GAME OVER, the title; the next game starts from nothing. | The ending plays as it did; then CONTINUE?, and the save is kept: yes takes Monty back to the room he came into last, with everything he had (lives, score and all), to collect what's left. | Always |
+| **Autosave** | None. | Progress is saved in your browser every time Monty enters a room; the title offers ENTER CONTINUE. Launched with a save, the game goes straight back into play where it was (the title only without one, or with T on the pause screen). Starting a new game keeps the save from before it as the previous one: the saved games (F1 on the directory, or the gear there) bring it back, or delete a save (they ask first). | Always |
+| **Smooth movement** | Locked to a 50 Hz PAL television. | The game's logic still runs as the original's, one step in two frames; the sprites glide between frames on 60/120/144 Hz screens. V switches to whole-pixel steps. | Smooth |
+| **Controls** | Joystick, or the keyboard. | Arrows/WASD (up climbs), Space (or Z, X, Ctrl) to jump and to start, Enter to confirm, gamepads. The keys are fixed. | Always |
+| **Touch controls** (phones, tablets) | None. | 4-way stick, JUMP; PAUSE opens the map (tap a room to pick it, tap it again to travel; tap an option to change it); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
+| **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play, nothing hurts Monty (an enemy, a deadly tile, the lift): continuing a save (ENTER CONTINUE, a launch going straight back into play, CONTINUE? after losing), back to room start, arriving from the map. Quality of life for a modern playthrough, so a resume never starts in the middle of a fight; no sign on screen. Both modes. | Always |
+| **ENHANCED: no death loops** | A death starts Monty again where he came into the room: if that's in a fall into something deadly, or on an enemy's path, every life goes the same way. | With ENHANCED on, a death before he's had two seconds on his feet in the room starts him instead where he last came into a room and had them (the room before, usually): a life lost once, not every one. (A room's way in he has had two seconds after counts as somewhere safe; the story's own loss to room $1B isn't spared.) The same as Monty on the Run's ENHANCED "no death loops"; the other ENHANCED features there (the cloud, the jetpack, the C5, runstop64's rooms) have nothing here to apply to. Checked by `test/frontend.ts`. | ENHANCED |
+
+## Not changed
+
+Everything else is the original: all 80 rooms and their decorations, every enemy's path and speed, Monty's walk, jump and fall,
+the lifts, the items and what they do, the four deliveries and the way to Gibraltar, the shield and the scrambled-controls
+bonuses, the title screen's look and scroller, GAME OVER, the ending and the music. (Not built yet: the shop's screen, which
+the original opens with a key.)

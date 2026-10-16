@@ -1,0 +1,44 @@
+{
+  "state": "../assets/dragonskulle-title.state",
+  "base": "6000",
+  "load": "f470",
+  "len": "300",
+  "entries": [
+    "6000",
+    "6003"
+  ],
+  "waits": [
+    "1fa5"
+  ],
+  "waitEffects": {
+    "1fa5": "cpu.a = 0xd7; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "range": [
+    "6000",
+    "6bff"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "emitCode": true,
+  "out": "../src/gen/rooms/room-f470.ts",
+  "runtime": "../../../../shared/native/cpu",
+  "hooks": {
+    "6149": "hurt: the block's hurt flag ($6254)",
+    "6438": "hurt: the block's hurt flag ($6B74)",
+    "648e": "hurt: the block's hurt flag ($6B74)",
+    "64fa": "hurt: the block's hurt flag ($6B74)",
+    "6536": "hurt: the block's hurt flag ($6B74)",
+    "6548": "strike: the stone on sprite 4",
+    "6592": "strike: the stone on sprite 5",
+    "65d8": "strike: the stone on sprite 1"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "state": "../assets/entombed-title.state",
+  "base": "6000",
+  "load": "c940",
+  "len": "700",
+  "entries": [
+    "6000",
+    "6003"
+  ],
+  "waits": [
+    "2098"
+  ],
+  "range": [
+    "6000",
+    "66ff"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "prefix": "r_",
+  "out": "../src/gen/rooms/room-c940.ts",
+  "runtime": "../../../../shared/native/cpu",
+  "waitEffects": {
+    "2098": "cpu.a = 0xd7; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "emitCode": true,
+  "hooks": {
+    "620b": "hurt: the chamber's hurt flag"
+  }
+}

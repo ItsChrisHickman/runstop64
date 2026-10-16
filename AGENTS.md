@@ -1,0 +1,142 @@
+# AGENTS.md: working on runstop64
+
+runstop64 brings Commodore 64 games to the browser as tributes with full credits (live at https://goshow.me/runstop64/).
+Read `README.md` (layout, commands), `GAMES.md` (the ten games and how each was made) and `HANDOFF.md` (what is next and what
+is waiting on Chris). Each game's `re/README.md` records what was learned about its original; its `QOL.md` lists every change
+from the original.
+
+## The rules
+
+- **Rebuild, don't emulate.** New games are native rebuilds in TypeScript with the original's data (graphics, rooms, music)
+  and behaviour, like Monty on the Run. The translated games (6502 converted to TS on `games/shared/native`) play exactly
+  right, but every feature first needs reverse-engineering; translation is a tool for understanding a game and checking a
+  rebuild. **Never call a translation native.** No native rewrite of a translated game unless Chris asks.
+- **One switch per game: ORIGINAL or ENHANCED**, ENHANCED by default, on the pause screen (E), remembered. Be opinionated: no
+  menus of options, no per-feature toggles. ORIGINAL is the game exactly as it was. ENHANCED is one curated set of
+  quality-of-life changes for a modern playthrough (better controls, combat that makes sense, help). Describe it that way,
+  never as "fixing what was unfair". Unlimited lives only where Chris asks (Starquake's ENHANCED has it).
+- **Standard in every game, both modes**, never behind ENHANCED: the pause screen, the map (with progress) and travel,
+  autosave, continue, back to room start, touch controls, phone scaling, the info sheet. Finishing or dying never wipes
+  progress; a new game over a save asks NEW GAME? first.
+- **The C64 experience goes in the picture; meta goes in the HTML overlay.** The game, its pause screen and map, and
+  ORIGINAL/ENHANCED are C64-style (C64 palette, the game's own lettering the right way round). System settings (the C64/HD
+  switch), saves, export and debug live in the shell's overlay and info card.
+- **No boxes behind text drawn over the game's picture.** Put our text in a part the game leaves empty (each title declares
+  where ENTER CONTINUE goes: `TitleStrip` in `continue.ts`), in a colour that reads there, or on a screen of its own.
+- **Rewrite the game's on-screen key instructions** to our keys, in every game.
+- **Keep it simple.** No bells and whistles; design before adding screens.
+- **Full credits** in each game's `info` (with Wikipedia links) and on its title screen. The loader is one plain disk
+  directory (no headings or folders); a new game goes next to its series (see `games/loader.ts`).
+- **Mobile matters.** Touch controls per game (`docs/mobile.md`); every new screen that asks for a key also takes a tap.
+- **QOL.md format** is the same in every game: an intro, a table (Feature | The original | In this port | Default) with the
+  Always rows first and the `ENHANCED:` rows after, then "Not changed". In ENHANCED rows say what it is for, not that the
+  original was unfair.
+- **Root causes, not defensive patches.** **Verify automatically**: headless tests, renders you look at yourself, and
+  comparisons against the original running. Chris does not check by eye.
+- **DRY: one shared module per feature**; games only declare their specifics. Before writing something for one game, look for
+  the shared version; if a game needs more, extend the shared module and its other users rather than copying. Say so when a
+  design is drifting.
+
+## Strict TypeScript, no loopholes
+
+`strict` is on and nothing is excluded from type-checking to dodge errors, tests and tools included. No type assertions (`x as
+T`, `as unknown as T`, `<T>x`; `as const` is fine), no non-null assertions (`x!`), no `any`, no
+`@ts-ignore`/`@ts-expect-error`/`@ts-nocheck`. Model the types so they follow: type guards, discriminated unions, generics,
+`satisfies`, validation at the boundaries (JSON, storage, DOM queries, worker messages). A genuinely untyped outside API gets
+one small, commented adapter, and you say so. `npm run check:strict` (`tools/strict.mjs`) must report 0; generated
+translations (`*/gen/`) are the generator's responsibility.
+
+`tsconfig.json` checks what runs in the browser, `tsconfig.test.json` everything that runs under Node (tests, `re/` scripts,
+tools, `vite.config.ts`) with c64kit stood in by `games/shared/test/kit.ts` and Node's APIs from `types/node.d.ts` (by hand;
+`@types/node` is not installed). `npm run typecheck` runs both; `npm run build` runs them and check:strict. Tests use
+`games/shared/test/browser.ts` (storage, fetch, listener targets) and `must()` (`games/shared/test/must.ts`) instead of casts
+and `!`; JSON read back goes through `games/shared/guards.ts`.
+
+## Workflow and the machine
+
+- **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
+  process with `nice -n 15`, one heavy process at a time, runs under about 10 minutes.
+- Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
+  `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
+  session merges, pushes and deploys (`npm run deploy`).
+- Commit messages end with the Co-Authored-By and Claude-Session trailers the session gives.
+- Never commit secrets, traced (`TRACE=1`) translations or scratch output (keep scratch in `/tmp`). `.claude/` is ignored.
+- Keep reports short and plain.
+
+## Shared modules
+
+| Feature | Where | A game provides |
+|---|---|---|
+| Renderer: Three.js, the 320x200 picture, smooth sprites, phone scaling | `packages/c64kit/src/renderer.ts` | a `Surface` per frame, sprites |
+| Picture layout: the picture shown laid out differently from how the machine draws it (parts moved, labels in the picture's own letters, gauges), presentation only | `packages/c64kit/src/layout.ts` (`renderer.layout`) | a `PictureLayout` (`layout:` in `runNative`) |
+| Overlays (sparkles); combat effects over the picture (an enemy destroyed, a blow, a trail, a hurt) | `overlay.ts`, `effects.ts`, `effects-layer.ts` in the same folder | places in screen pixels; events with sprite images |
+| Input: keyboard, gamepads, touch (virtual keys, taps as `input.points`) | `packages/c64kit/src/input.ts` | its keys |
+| Touch controls: stick and buttons in the gutters, landscape even with rotation locked | `games/shared/touch` (`npm run test:touch`) | a `TouchLayout` (`touch:` in the run options) |
+| SID music and sound effects that sound like the machine | `packages/c64kit/src/sid` (`SidPlayer.sfx(name)` in `sfx.ts`) | the .sid or the writes; a name (`kill`, `hit`, `hurt`) |
+| The C64 model, and how its picture is decoded (`decodePicture`) | `packages/c64kit/src/c64`, `vic.ts` | |
+| Autosave per room, CONTINUE?, NEW GAME?, ENTER CONTINUE, back to the title | `games/shared/continue.ts` (`ContinueFlow<S>`) | room id, a save, where the strip goes, `describe(save, found)` |
+| A moment's grace: 150 frames (`GRACE_FRAMES`) of invulnerability after our front end puts the player back into play, in both modes, no visual cue | `games/shared/grace.ts` (`Grace`), `ContinueFlow.grace` | what it refuses while `grace.active` (`grace:` in `runNative`, or a `graceActive` check) |
+| Save storage: typed, versioned, the current and the previous save per game, the debug export | `games/shared/saves.ts` | nothing |
+| Saved-games screen (F1, the line under the banner, the gear) | `games/saves.ts` | its `describe` |
+| Front end for any port: pause screen, map, travel, assists, the options panel | `games/shared/frontend.ts` (`FrontEnd<T>`), `native/pause.ts` (`PauseMap<T>`) | a `PauseMap<T>` and assists; native ports carry out `going` and "back to room start" themselves |
+| Runtime for translated games: front end, running (Shift), action keys, no death loops (`safe`), hints | `games/shared/native/play.ts` (`runNative`), `host.ts` (`NativeHost`) | options in `runNative(...)` |
+| Hooks in translated code (`"hooks"` in a translation's config report reaching an instruction; `"skips"` return a routine at once) | `tools/re/to-ts.mjs`, `native/host.ts` (`onHook`, `onSkip`) | addresses in its `re/*.json` |
+| Combat for translated games: kills, blows, hurts, swings to effects and sounds, and assists (safe after a hit, knockback, hit-stop) | `games/shared/native/combat.ts` (`CombatSpec`) | `combat:` (the game's `src/combat.ts`) |
+| 8-way controls for the Pendragon games | `games/shared/native/controls.ts` (`pendragonControls`) | `controls:` |
+| Narration on a game's status line (Blackwyche's GUIDED) | `games/shared/native/narrate.ts` (`Narrator`) | the line and what to say |
+| Names and codes on a touch screen | `games/shared/letters.ts` (`NamePicker`, `KeyPacer`) | its letters, `names:` |
+| The HD view | `games/shared/view.ts`, `packages/c64kit/src/hd`, `docs/hd-view.md` | an `HdView` and its rooms' builder |
+| The Pendragon games' rooms as data | `games/shared/pendragon/decode.ts`, `packages/c64kit/src/pendragon/room.ts` | its pictures and `DecodeRules` |
+| Loader, shell (home, gear, the C64/HD switch, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` |
+
+All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run their front end through `FrontEnd` and
+`ContinueFlow`; each game's `src/map.ts` is its `PauseMap`, and `games/*/test/frontend.ts` checks it headless.
+
+## Tools
+
+- `tools/test.mjs`: runs a headless check written in TypeScript (bundles it with c64kit stood in by
+  `games/shared/test/kit.ts`, `?url` imports stubbed): `nice -n 15 node tools/test.mjs games/montyotr/test/frontend.ts [out-dir]`.
+  Also `npm run test:touch`, `test:effects`, `test:input`.
+- `tools/probe`: a C64 in TypeScript (boot a .prg/.d64, run frames, patch memory, save a state, render PNGs). It makes title
+  snapshots and runs the originals the ports are checked against (`games/*/build/README.md`).
+- `tools/re/to-ts.mjs`: the 6502 to TypeScript translator (structured flow, cycle counting, `TRACE=1` adds a per-instruction
+  hook); `tools/re/disasm.mjs`; `tools/re/test`: an opcode fuzz test.
+- `games/shared/native/test`: headless checks for the translated games (`verify`, `lockstep`, `trace`, `irqcycles`, `resume`,
+  `shots`, `explore` Go-Explore, `travel`, `combat`, `controls`). Go-Explore (play automatically, archive new places, restart
+  from rare ones) finds what a game can do without a human.
+- A save Chris sends (the info sheet's "Export save (debug)": `runstop64-<game>-<date>.json`, the current and previous saves
+  exactly as stored): reproduce it with `games/shared/test/load-save.ts` (`loadSave(file, MACHINE_CODEC)` gives the machine
+  state; `loadIntoStorage(file)` before `run(host)` launches straight back into play).
+- Deploy: `npm run deploy` (builds, rsyncs to goshow.me/runstop64).
+
+## Lessons
+
+- **Our C64 model has gaps, and a port checked only against it inherits them.** Found so far: VIC-II extended colour mode,
+  its invalid modes (ECM + bitmap draws black), sprite-background collisions reading ECM characters and not raising the
+  VIC's interrupt, the CPU's interrupt-disable flag not restored on resume, and native-mode time counted twice. When
+  something looks wrong, suspect the model; fix it in `packages/c64kit/src/c64` for everyone.
+- **Check data against the game, not a guess or a tidy copy.** A reconstruction's refactored source is not the original's
+  bytes; two releases of one game can differ; an image can lack a block (Blackwyche's missing kilobyte was found by a
+  room-by-room check). Saves are machine snapshots, so a mend to the image does not reach them: declare it (`mends`).
+- **Do things the game's own way.** Travel calls the game's own routines (leave a chamber as the game does, enter a room
+  through an exit pointed at it), and undoes swapped-in blocks in the game's order. Hook the code, don't guess from the
+  picture.
+- **A port that takes no time sees the original's moments differently.** The original's interrupts and main loop take time;
+  where it shows, model it from measured cycles, compare allowing a frame either way, and sample the original when its logic
+  is done. Extra work (running) goes at the point the game runs the routine, and collision reads stay fresh.
+- **Smoothing glides a box, not the figure in it.** Judge motion by the figure drawn: a step that moves a sprite's box with a
+  new image is drawn where the game puts it.
+- **A translation can have holes nothing shows.** Routines only an engine calls through `call()` are not found by following
+  calls; look at `NativeHost.fallbacks` after playing in each kind of place and add them as entries. A call into swapped-in
+  code that waits needs `callsMayWait`. `verify` cannot see interrupts inside a call; lockstep is the check for those.
+- **The Pendragon engines' floor checks also act.** They test the way ahead and carry out doors, stairs and corners there and
+  then; an extra step must run the floor check for the way he faces, look the tile up the game's way, and hand the rest to the
+  game.
+- **A sentinel a real value can take hides bugs.** Check decoded data against invariants of the room (every part of a thing on
+  its own foot, every side wall on the floor), not only that it reproduces the picture.
+- **"Can't be reached" is a claim about the floor, not about the code.** Before suspecting a port, run the translation against
+  the original in lockstep from a state there, then work out where the pixels can overlap.
+- **A layer that has never run can still be checked.** There is no GPU here: the HD layer runs on a recording stand-in for
+  WebGL 2 (`packages/c64kit/test/gl-stub.ts`) under the real Three.js.
+- **Phones are different.** Slow loading exposed a launch-every-frame bug; whole-number scaling left the picture tiny; taps
+  need big targets and a confirm step.

@@ -1,0 +1,7 @@
+{
+  "name": "c64kit",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "Shared engine for runstop64 C64 remakes: fixed-tick loop, input, C64 palette and charset/sprite decoding, Three.js pixel renderer, SID player."
+}

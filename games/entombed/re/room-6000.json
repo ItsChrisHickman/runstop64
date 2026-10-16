@@ -1,0 +1,43 @@
+{
+  "state": "../assets/entombed-title.state",
+  "base": "6000",
+  "load": "6000",
+  "len": "700",
+  "entries": [
+    "6000",
+    "6003",
+    "6601",
+    "667a",
+    "6697"
+  ],
+  "waits": [
+    "2098"
+  ],
+  "range": [
+    "6000",
+    "66ff"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "prefix": "r_",
+  "out": "../src/gen/rooms/room-6000.ts",
+  "runtime": "../../../../shared/native/cpu",
+  "waitEffects": {
+    "2098": "cpu.a = 0xd7; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "emitCode": true,
+  "hooks": {
+    "661b": "kill: monster 0 whipped ($6C8B)",
+    "6691": "kill: monster 1 or 6 whipped ($6C98)",
+    "66a6": "kill: monster 7 whipped ($6C9F)"
+  }
+}

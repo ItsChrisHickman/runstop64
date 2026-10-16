@@ -1,0 +1,58 @@
+{
+  "state": "../assets/jsw2-title.state",
+  "entries": [
+    "4bae",
+    "4af2",
+    "466a",
+    "8409",
+    "4ace",
+    "4a18",
+    "78cd",
+    "7940"
+  ],
+  "countCycles": true,
+  "skips": [
+    "51c7"
+  ],
+  "volatile": [
+    "c5",
+    "cb",
+    "c6",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "smcOperand": [
+    "510b",
+    "7692",
+    "4a54",
+    "78b4",
+    "77eb",
+    "5465"
+  ],
+  "range": [
+    "0800",
+    "cfff"
+  ],
+  "out": "../src/gen/engine.ts",
+  "runtime": "../../../shared/native/cpu",
+  "markers": [
+    "4bae"
+  ],
+  "constVectors": {
+    "01e2": "7387",
+    "01e4": "5727",
+    "01e6": "549b",
+    "01e8": "72d5",
+    "01ea": "5739",
+    "01ec": "5557",
+    "01ee": "5605",
+    "01f0": "555a",
+    "01f2": "50eb",
+    "01f4": "5095",
+    "01f8": "4b07",
+    "01fa": "4af2",
+    "01fc": "466a",
+    "01fe": "8409"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "runstop64",
+  "private": true,
+  "type": "module",
+  "description": "RUN/STOP on the C64 classics: browser remakes of Commodore 64 games on a shared kit.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run typecheck && node tools/strict.mjs && node tools/extract-awm-sid.mjs --ensure && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.test.json",
+    "test:touch": "esbuild games/shared/touch/test/touch.test.ts --bundle --platform=node --format=esm --alias:c64kit=./games/shared/touch/test/kit.ts --log-level=warning | node --input-type=module",
+    "test:effects": "node tools/test.mjs packages/c64kit/test/effects.test.ts",
+    "extract:motr": "node tools/extract-motr.mjs",
+    "deploy": "tools/deploy-goshowme.sh",
+    "check:strict": "node tools/strict.mjs",
+    "test:input": "node tools/test.mjs packages/c64kit/test/input.test.ts"
+  },
+  "devDependencies": {
+    "@types/three": "0.170.0",
+    "typescript": "5.6.3",
+    "vite": "5.4.11"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}

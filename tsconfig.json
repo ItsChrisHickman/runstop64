@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [
+      "vite/client"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "c64kit": [
+        "packages/c64kit/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/*/src",
+    "games"
+  ],
+  // (tests and re/ scripts run under Node: tsconfig.test.json checks them)
+  "exclude": [
+    "games/**/test",
+    "games/*/re/**/*.ts"
+  ]
+}

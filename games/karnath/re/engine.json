@@ -1,0 +1,46 @@
+{
+  "state": "../assets/karnath-title.state",
+  "entries": [
+    "0a00",
+    "18cf",
+    "272b",
+    "3653",
+    "6f46"
+  ],
+  "waits": [
+    "219c"
+  ],
+  "waitEffects": {
+    "219c": "cpu.a = 0xd1; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "range": [
+    "0800",
+    "dfff"
+  ],
+  "exclude": [
+    [
+      "6000",
+      "68ff"
+    ],
+    [
+      "c000",
+      "cfff"
+    ]
+  ],
+  "stop": [
+    "ea31",
+    "febc"
+  ],
+  "out": "../src/gen/engine.ts",
+  "runtime": "../../../shared/native/cpu",
+  "hooks": {
+    "1988": "swing: a spell cast ($3216: one in flight)"
+  }
+}

@@ -1,0 +1,51 @@
+# Jet Set Willy II: changes from the original
+
+This is a translated port of the 1985 Commodore 64 game: every routine of the original translated to TypeScript and checked
+against the original running on an emulated C64, cycle for cycle (`re/README.md`). **ORIGINAL or ENHANCED:** one switch, E
+on the pause screen; ENHANCED is the default and turns on the rows marked ENHANCED, quality-of-life changes for a modern
+playthrough. ORIGINAL is the game as it was. Rows marked Always are in both modes.
+
+| Feature | The original | In this port | Default |
+|---|---|---|---|
+| **Back to room start** | A trap with no way out means starting again. | B on the pause screen: back to how things were on coming into this room (the latest autosave). | Always |
+| **Back to the title** | None (only by losing, or a restart). | T on the pause screen (or a tap on it): the title, with the save kept; ENTER CONTINUE goes back to it, and only a new game started there begins a new one (keeping the save as the previous one). A new game over a save asks first: NEW GAME? (Space or fire again yes, Esc or a tap no, Enter continues); a jump or fire still held as the last life goes brings CONTINUE? up instead of starting one. | Always |
+| **Autosave** | None. | Progress is saved in your browser each time Willy enters a room: once he has found his feet there (as travel's spots, below) and lived a second, so a save is never in mid-air or where he dies at once (falling into Hades, the save stays the room he fell from). The title screen offers ENTER CONTINUE (or Space / fire for a new game). Launched with a save, the game goes straight back into play where it was (the title only without one, or with T on the pause screen). Starting a new game keeps the save from before it as the previous one: the saved games (F1 on the directory, or the gear there) bring it back, or delete a save (they ask first). | Always |
+| **Continue** | When the last life goes, back to the title. | "CONTINUE?" (Enter yes, Esc no; it waits for an answer): back to the last room entered, with all eight lives. | Always |
+| **Pause screen with a map** | F1 pauses on a blank wait. | P, Esc, pad Start or the gear: a map of the whole mansion (136 rooms, laid out from the game's own room data), lit as Willy explores, with the room he's in; rooms found, items and lives. Items (the game's own count and per-room bits, read only): the side panel reads ITEMS n / OF 178 and NEED 160 (the Masters Bedroom ends the game once 160 are taken), then GO TO BED from 160 on, when the Masters Bedroom blinks on the map; a room he has been in that still has items shows a cyan dot (ITEMS in the legend), a room with none left is plain, rooms he has not been in show nothing. F1 is left out. | Always |
+| **Running** | One speed. | ENHANCED: hold Shift (touch: RUN, on or off) and Willy runs: his own steps come twice as often (walking; a jump half as fast again), the game's own steps, so a jump is the same jump, a fall the same fall, only quicker. The guardians, ropes, conveyors, clock and music keep their pace. Not on a rope (his climb goes with its swing), and not in the pass or two after coming into a room while the game still holds the last room's collisions. Let go and he walks at the game's own pace again. Pause, the map, travel and autosave work as ever. Shift reaches nothing else (not the C64's keyboard). ORIGINAL: Shift does nothing. | ENHANCED, while held |
+| **No death loops** | A death in a fall from another room starts Willy again where the fall began: from the hole in Attack of the Mutant Dustybins' floor he falls into Hades onto the skull, is put back at the hole's edge and dies again at once (two lives for one fall; held left, every life goes that way). | ENHANCED: a life lost before he's lived a second on his feet in a room starts him again from the last autosave (where he had), with the lives he has left: one life for the fall into Hades. Checked by `test/deathloop.ts` (with the original's own two lives, on its 6502 code). ORIGINAL keeps the original's rule (the autosave is safe in both). | ENHANCED |
+| **Safe landings** | A fall of 40 pixels or more (five character rows: the fall counter $82D7, two a step, against `cmp #$28` at $5465) kills Willy on landing. | ENHANCED: no fall kills; a long fall ends in an ordinary landing and he walks on (the code's own compare, its operand read from the game's memory and set to $FF: the counter only ever counts in twos, so it never gets there). Quality of life for a modern playthrough. What he lands on is the game's own business as ever: a guardian, a nasty or Hades' skull still hurts, and the fall into Hades still costs its life (the skull). Checked by `test/falls.ts`. ORIGINAL: 40, as it was. | ENHANCED |
+| **Smooth movement** | Locked to a 50 Hz PAL television. | The game at its own pace; sprites glide between its frames on 60/120/144 Hz screens, except a step taken with a new image after standing still: the game walks its figures inside their sprites (a new image every four frames, each drawn 2 pixels on, then the sprite 8 pixels on with the first image again), and those steps are drawn where the game puts them (glided, the new image went back, then forward: Macaroni Ted, the spaceman, Willy). | Always |
+| **Travel back** | None. | On the pause screen: the arrows (or a tap) pick any room he's been in on his feet, Enter (or a second tap) takes him there: the game's own way into a room, arriving where he came in (where the game itself starts him again after a lost life), or, if he came in in the air (dropping in, jumping in), where he landed. A spot is kept once he has lived a second after it (or left the room alive); rooms he never found his feet in, or only died in, are dark brown, NO TRAVEL. What's been found is kept with each autosave. Travel in the middle of a fall (from Hades, say) arrives with the fall forgotten: he drops in above the spot, and a death later starts him there, not in the room the fall began in. | Always |
+| **Title screen text** | The scroller credits the original team only in part, and lists the C64's keys (Q/O, W/P, F1). | Credits to the whole team, and this keyboard's keys (Shift to run, in ENHANCED); "PRESS SPACE TO START" (Enter continues). | Always |
+| **Controls** | Keyboard (Q/O left, W/P right, Space jump) or a joystick in port 2. | Arrows/WASD, Space (or Z, X, pad A) to jump; gamepads; Shift runs (ENHANCED). F3 music on or off, M mutes. | Always |
+| **Touch controls** (phones, tablets) | None. | Left/right stick, JUMP, RUN (on/off: running, in ENHANCED); PAUSE opens the map (tap a room, tap again to go; tap an option to change it); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
+| **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play, Willy can't lose a life (the death routine does nothing; nothing else is taken from him): continuing a save (ENTER CONTINUE, a launch going straight back into play, CONTINUE? after losing), back to room start, arriving from the map, and ENHANCED's no-death-loops restart. Quality of life for a modern playthrough, so a resume never starts in the middle of a fight; no sign on screen. Both modes. | Always |
+
+## Not changed
+
+Everything else is the original: its 136 rooms, items, guardians, ropes, the clock and the music. Not built: the original's
+practice mode (P on the title, then a room's name to start in) types on the KERNAL's screen editor, which isn't modelled;
+P is the pause key instead.
+
+## Proposed, waiting on a decision (ENHANCED only)
+
+None of these is built. Each would be a single ENHANCED behaviour, not a new option.
+
+- **Gentler collisions.** Any overlapping pixel of a guardian or nasty kills. Judge them by boxes one pixel smaller each
+  side (ropes unchanged). The costliest: collisions are the VIC's, so ENHANCED would re-judge $8304 from sprite positions in
+  software, with a risk of drifting from the game's feel. Check: ORIGINAL untouched in lockstep, and scripted grazes (1
+  pixel overlap survives, 2 kills) in 5 rooms.
+- **Rope grip.** Ropes are sticky to get on and off. Let go in either direction without waiting for the swing, and keep a
+  jump's direction off a rope. Needs a look at $835D first. Check: Go-Explore restricted to rope rooms, count frames to
+  escape before and after.
+- **Room-entry grace.** Some arrivals (dropping in beside a guardian) cost a life before any input. The 3-second grace
+  already covers resumes and travel; this would extend it (about a second) to ordinary room changes. It is a design call.
+  Check: enter every room from every neighbouring exit and stand 150 frames, counting lives lost (ORIGINAL baseline, then 0).
+  That sweep is also the missing hazard count; run it in chunks under 10 minutes.
+- **The bedroom question.** Should the Masters Bedroom blink on the map before it has been visited (it blinks once 160
+  items are taken)?
+- **Reachability sweep** (not a change): Go-Explore per room from each room's entry, to prove every item cell can be touched
+  and find which of the 178 need the Secret Passage trick.
+
+Not proposed: air control, more lives, a shorter game. They change the game rather than the playthrough.

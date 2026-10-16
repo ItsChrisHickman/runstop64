@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>runstop64</title>
+  <meta name="description" content="Commodore 64 classics rebuilt for the browser from the original games' data. Tributes, with full credit to the original creators." />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="stylesheet" href="./site.css" />
+</head>
+<body>
+  <main>
+    <div id="frame" class="frame">
+      <canvas id="screen" aria-label="runstop64"></canvas>
+      <button id="more" class="more" type="button">Credits &amp; source &uarr;</button>
+      <button id="view" class="fs view" type="button" title="C64 or HD view (H)" aria-label="C64 or HD view" aria-pressed="false" hidden>C64</button>
+      <button id="settings" class="fs settings" type="button" title="Game options" aria-label="Game options" hidden>
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15M3 3l1.6 1.6M11.4 11.4 13 13M13 3l-1.6 1.6M4.6 11.4 3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button id="menu" class="fs menu" type="button" title="Back to the runstop64 menu" aria-label="Back to the runstop64 menu" hidden>
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.5 8 8 2l6.5 6M3.5 6.5V14h3.5v-4h2v4h3.5V6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="fullscreen" class="fs" type="button" title="Full screen" aria-label="Full screen">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+      <div id="leave" class="leave" role="alertdialog" aria-labelledby="leave-title" aria-describedby="leave-text" hidden>
+        <div class="leave-box">
+          <p id="leave-title" class="leave-title">BACK TO THE RUNSTOP64 MENU?</p>
+          <p id="leave-text" class="leave-text"></p>
+          <div class="leave-buttons">
+            <button id="leave-no" type="button">STAY <kbd>ESC</kbd></button>
+            <button id="leave-yes" type="button">LEAVE <kbd>ENTER</kbd></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <section id="info" class="info" role="dialog" aria-labelledby="info-title" aria-hidden="true">
+      <button id="close" class="close" type="button" aria-label="Close">&times;</button>
+      <h1><a id="back" href="./" hidden>&larr;</a> <span id="info-title">runstop64</span></h1>
+      <div id="info-body"></div>
+      <p id="export" class="small" hidden><a id="export-save" href="#">Export save (debug)</a></p>
+      <p class="small">Non-commercial fan tributes. If you hold rights to one of these games and would like it removed,
+      please <a href="https://github.com/ItsChrisHickman/runstop64/issues">open an issue</a> and it will be taken down.</p>
+    </section>
+  </main>
+  <noscript><p>runstop64 needs JavaScript.</p></noscript>
+  <script type="module" src="./shell.ts"></script>
+</body>
+</html>

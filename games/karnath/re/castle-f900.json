@@ -1,0 +1,46 @@
+{
+  "state": "../assets/karnath-title.state",
+  "waits": [
+    "219c"
+  ],
+  "waitEffects": {
+    "219c": "cpu.a = 0xd1; cpu.y = 0x04; cpu.nz = 0; cpu.c = 1;"
+  },
+  "volatile": [
+    "c5",
+    "cb",
+    "a0",
+    "a1",
+    "a2"
+  ],
+  "extern": {
+    "file": "../src/gen/engine.ts",
+    "module": "../engine"
+  },
+  "emitCode": true,
+  "runtime": "../../../../shared/native/cpu",
+  "base": "6000",
+  "load": "f900",
+  "len": "900",
+  "entries": [
+    "6000",
+    "6003"
+  ],
+  "range": [
+    "6000",
+    "68ff"
+  ],
+  "out": "../src/gen/rooms/castle-f900.ts",
+  "hooks": {
+    "63f9": "hurt: the hurt's flash, then damage to come",
+    "63fc": "also: damage to come ($322E)",
+    "65e6": "hurt: the hurt's flash, then damage to come",
+    "65e9": "also: damage to come ($322E)",
+    "6605": "hurt: the hurt's flash, then damage to come",
+    "6608": "also",
+    "660b": "also: damage to come ($322E)",
+    "662c": "hurt: the hurt's flash, then damage to come",
+    "662f": "also",
+    "6632": "also: damage to come ($322E)"
+  }
+}
