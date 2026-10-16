@@ -1,6 +1,6 @@
 import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
-import { runPort, type ResumeFrom } from '../../shared/port';
+import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
@@ -306,8 +306,8 @@ export function run(host: Host) {
   }
 
   /** One frame of whatever the game is doing; whether it was a frame of play (the grace counts it). */
-  function frame(holding: boolean) {
-    let counted = false;
+  function frame(holding: boolean): FrameResult {
+    let result: FrameResult = 'idle';
     if (mode === 'title') tickTitle();
     else if (mode === 'intro') {
       ticks++;
@@ -325,14 +325,14 @@ export function run(host: Host) {
     } else if (script && !holding) {
       g.joy = joy();
       g.key = keyNow();
-      counted = mode === 'play' && !g.inScreen;
+      if (mode === 'play' && !g.inScreen) result = 'played';
       if (script.next().done) {
         if (mode === 'play' && g.won) { mode = 'ending'; ticks = 0; script = null; Specials.ending(g); playSong(SOUND.songs.ending); }
         else if (mode === 'hero') { keepHeroes(); showHeroes(); }
         else gameOver();
       } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
     }
-    return counted;
+    return result;
   }
 
   /** The sprites: the registers as the game last wrote them (sprites 0-2 are BLOB, at sprite 0's place). */

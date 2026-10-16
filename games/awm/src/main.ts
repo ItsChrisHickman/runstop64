@@ -1,6 +1,6 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
-import { runPort } from '../../shared/port';
+import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
@@ -152,13 +152,13 @@ export function run(host: Host) {
       },
       toTitle() { program.toTitle(); inGame = false; },
       frame(holding) {
-        let counted = false;
+        let result: FrameResult = 'idle';
         if (program.kind === 'title') {
           const c = controls();
           program.frame(holding ? { ...c, stick: c.stick & ~Stick.Fire } : c);
         } else if (!holding) {
           program.frame(controls());
-          counted = true;
+          result = 'played';
         }
         for (const call of program.takeSound()) play(call);
         // a game has begun from the title / a room has been entered / the game has ended (GAME OVER, the title again)
@@ -170,7 +170,7 @@ export function run(host: Host) {
           if (program.kind === 'title' && lastKind === 'closing') keepHigh();
         }
         lastKind = program.kind;
-        return counted;
+        return result;
       },
       updateView: () => view.update(),
       renderView: (alpha) => view.render(alpha),

@@ -173,9 +173,9 @@ export function run(host: Host) {
           const j = stick();
           if (holding) j.fire = false;
           if (title.frame(j) === 'start') startGame();
-          return false;
+          return 'idle';
         }
-        if (holding) return false;
+        if (holding) return 'idle';
         g.input = stick();
         g.inputFire = g.input.fire;
         g.frame(collisions);
@@ -185,7 +185,7 @@ export function run(host: Host) {
           won = g.finished === 'won';
           toTitle();
         }
-        return true;
+        return 'played';
       },
       updateView() {
         view.update();

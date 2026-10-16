@@ -1,6 +1,6 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
 import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
-import { runPort } from '../../shared/port';
+import { runPort, type FrameResult } from '../../shared/port';
 import { playEvents } from '../../shared/native/combat';
 import type { TouchLayout } from '../../shared/touch';
 import { writeCells } from './cells';
@@ -248,19 +248,19 @@ export function run(host: Host) {
   }
 
   /** One frame of the game (not while a screen of the flow's is up); whether it was a frame of play (the grace counts it). */
-  function frame(holding: boolean) {
-    if (holding) return false;
+  function frame(holding: boolean): FrameResult {
+    if (holding) return 'idle';
     controls();
     const wasPlaying = g.playing;
     g.tick();
     felt();
-    const counted = g.playing;
+    const result = g.playing ? 'played' : 'idle';
     if (!wasPlaying && g.playing && !flow.state.playing) fe.newGame();
     if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; rooms.enter(); }
-    if (won && g.onTitle) { port.backToTitle(); return counted; }
+    if (won && g.onTitle) { port.backToTitle(); return result; }
     if (g.playing && !(g.ram[V.roomChange] & 0x80)) antiriadMap.observe(g, fe.found, new Uint8Array(0));
     sound.pushFrame(g.m.sidWrites);
-    return counted;
+    return result;
   }
 
   return {

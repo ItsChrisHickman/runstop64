@@ -16,7 +16,7 @@ import { RoomSaves } from './room-saves';
  * The tick order, the same for every game:
  *   audio keys; in play: the pause key, a paused tick (and back), travel picked on the map
  *   (`fe.going`); the flow's `before` (CONTINUE? / launch: resume and end the tick); the game's
- *   frame; the grace counted; the game's own bookkeeping after it (`afterFrame`); the flow's
+ *   frame; the grace counted (a frame that ends the tick skips the rest); the game's own bookkeeping after it (`afterFrame`); the flow's
  *   `after` (autosave; a game that saves at its own point inside the frame says so: `savesInFrame`);
  *   the view; the game's overlay on it (`afterView`); the flow's panels.
  *
@@ -25,6 +25,13 @@ import { RoomSaves } from './room-saves';
 
 /** Where the game is, as the front end needs to know it. */
 export type PortPhase = 'title' | 'play' | 'other';
+
+/**
+ * What a frame of the game was: a frame of `played` (the grace counts it), `idle` (the title, a screen
+ * of the game's, a screen of ours holding it), or one that `ended` the tick (the game was replaced
+ * under the view: nothing more is drawn, as after a resume).
+ */
+export type FrameResult = 'played' | 'idle' | 'ended';
 
 /** How a game is carried on from a save: ENTER CONTINUE (or a launch), CONTINUE? after the game is over, or B on the pause screen. */
 export type ResumeFrom = 'title' | 'continue' | 'roomStart';
@@ -77,8 +84,8 @@ export interface PortAdapter<S, T> {
   roomOf?(s: S): number;
   /** The game's part of going back to the title (the session's part is done by `Port.backToTitle`). */
   toTitle(): void;
-  /** One frame of the game (`holding`: a screen of the flow's is up); whether it was a frame of play, for the grace. */
-  frame(holding: boolean): boolean;
+  /** One frame of the game (`holding`: a screen of the flow's is up). */
+  frame(holding: boolean): FrameResult;
   /** After the grace is counted: the game's own bookkeeping of the frame. */
   afterFrame?(): void;
   /** The flow's view of the game (default: from the room saves). */
@@ -194,7 +201,9 @@ export class Port<S, F, T> {
       return;
     }
 
-    if (a.frame(flow.holding)) flow.grace.tick();
+    const result = a.frame(flow.holding);
+    if (result === 'ended') return;
+    if (result === 'played') flow.grace.tick();
     a.afterFrame?.();
     if (!a.savesInFrame) this.autosave();
     a.updateView();
