@@ -19,9 +19,14 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
 
 ## Next
 
-- **Architecture work,** from `docs/architecture-review.md` (2026-10-16). Done: strictness holes + the `node:test` runner
-  (`npm run verify`); generated code out of git (`tools/gen.mjs`) + dead code. Left, if Chris wants them: one shared port
-  session (`runPort`); an explicit continue-flow state and typed `Found`; one save envelope. No state libraries.
+- **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
+  `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
+  typed `Found`; the save envelope and the registry). Left from it: only finding 10 (AGENTS.md is long; split it into rules
+  and an index linking to the modules' headers) if Chris wants it. No state libraries; schemas are in-house (`S`).
+- **Saves:** every stored save has `{ game, format }` (`games/shared/saves.ts`). The day a game's save bytes change, bump its
+  codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
+  (`games/shared/test/fixtures/saves`) keep proving players' saves load. Storage measured at ~1.4 M of the ~5.2 M characters
+  a browser gives for all ten games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
 - **JSW2 `test/route.ts` fails** (a `todo` in `tools/tests.mjs`, failed before the runner too): travel offers 5 of the 7
   rooms passed through, and reopening lands in another room. Find the root cause.
 - **The HD tests in the slow set** (`*/test/hd.ts`) have not been run under the new runner; Blackwyche's grew past 980 MB.

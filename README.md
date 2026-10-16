@@ -57,6 +57,7 @@ packages/c64kit/       the shared engine
   src/layout.ts, effects*.ts, overlay.ts, input.ts, font.ts, palette.ts, surface.ts
 games/
   index.html, loader.ts, shell.ts    the C64-style READY. loader and the page around each game
+  registry.ts                        every game once: id, directory name, size, load()
   saves.ts                           the saved-games screen
   shared/                            one module per feature: pause screen and map, saves, touch, name entry,
                                      the translated games' runtime (native/), the Pendragon games' room decoder

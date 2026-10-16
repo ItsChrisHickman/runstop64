@@ -26,7 +26,7 @@ from the original.
 - **Rewrite the game's on-screen key instructions** to our keys, in every game.
 - **Keep it simple.** No bells and whistles; design before adding screens.
 - **Full credits** in each game's `info` (with Wikipedia links) and on its title screen. The loader is one plain disk
-  directory (no headings or folders); a new game goes next to its series (see `games/loader.ts`).
+  directory (no headings or folders); a new game is one entry in `games/registry.ts`, next to its series.
 - **Mobile matters.** Touch controls per game (`docs/mobile.md`); every new screen that asks for a key also takes a tap.
 - **QOL.md format** is the same in every game: an intro, a table (Feature | The original | In this port | Default) with the
   Always rows first and the `ENHANCED:` rows after, then "Not changed". In ENHANCED rows say what it is for, not that the
@@ -48,14 +48,16 @@ translations (`*/gen/`, not committed: `tools/gen.mjs` makes them) are the gener
 checker over both tsconfigs it reports every expression whose type is `any` (`JSON.parse`, `Reflect.get`, `Array.isArray`
 narrowing an `unknown`, `new Array(n)`, a lib typed `any`), and any call of `JSON.parse` itself. Parse JSON with
 `readJson(text)` (returns `unknown`; `games/shared/guards.ts`, from `packages/c64kit/src/json.ts`) and narrow it with the
-guards (`isRecord`, `isArray`, `isNumbers`, `isArrayOf`...); read a property reflectively with `getProp`. The allowed
+guards (`isRecord`, `isArray`, `isNumbers`, `isArrayOf`...) or write the shape once as a schema (`S.object({ room: S.number, hands: S.array(hand) })`,
+`S.Infer<typeof schema>` is its type, `packages/c64kit/src/schema.ts`; a schema is a type guard, so it mixes with the guards); read a property
+reflectively with `getProp`. The allowed
 untyped adapters are marked `// strict-ok: untyped API (why)` on the line (or the one above) that makes the `any`: today
 `readJson`, `getProp` and the WebGL `getParameter` in `games/hdtest/gl.ts`; add one only for a genuinely untyped API.
 
 `tsconfig.json` checks what runs in the browser, `tsconfig.test.json` everything that runs under Node (tests, `re/` scripts,
 tools, `vite.config.ts`) with c64kit stood in by `games/shared/test/kit.ts` and Node's APIs from `types/node.d.ts` (by hand;
 `@types/node` is not installed). `npm run typecheck` runs both; `npm run build` runs them and check:strict. Tests use
-`games/shared/test/browser.ts` (storage, fetch, listener targets) and `must()` (`games/shared/test/must.ts`) instead of casts
+`games/shared/test/browser.ts` (storage, also one with little room, fetch, listener targets) and `must()` (`games/shared/test/must.ts`) instead of casts
 and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `games/shared/test/data.ts`, `readRoutes`...).
 
 ## Workflow and the machine
@@ -86,8 +88,10 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | A moment's grace: 150 frames (`GRACE_FRAMES`) of invulnerability after our front end puts the player back into play, in both modes, no visual cue | `games/shared/grace.ts` (`Grace`), `ContinueFlow.grace` | what it refuses while `grace.active` (`grace:` in `runNative`, or a `graceActive` check) |
 | The port session, written once: ContinueFlow, FrontEnd, the spent press, audio keys, room saves, the tick order (pause key, paused tick, travel, flow.before, game frame, grace, flow.after, view, panels) and the render tail. The four native rebuilds give a `PortAdapter` by hand; `runNative` builds one over a translated machine | `games/shared/port.ts` (`runPort`, `Port`, `PortSetup`, `PortAdapter`) | `phase`, `frame`, `resume(s, from)`, `travel`, `toTitle`, `updateView`, `renderView`, `audio` (and optional `status`, `canPause`, `typing`, `afterFrame`, `afterView`) |
 | The small pieces every port's tick loop needs: the spent press (`FireLatch`), audio unlock and the M / V keys (`AudioKeys`), the room-save bookkeeping (`RoomSaves`) | `games/shared/fire-latch.ts`, `audio.ts`, `room-saves.ts` | the sound it starts, what resumes |
-| Save storage: typed, versioned, the current and the previous save per game, the debug export | `games/shared/saves.ts` | nothing |
+| Save storage: typed, the current and the previous save per game, the debug export. Every stored save is in an envelope `{ v: 3, game, format, image?, data... }`: `format` is the number its `SaveCodec` bumps whenever its bytes change (`unpack(bytes, format)` reads or migrates the formats players have and throws on one it does not know), `image` for a machine save is a hash of the game image. Saves from before the envelope (`v: 2`, `<id>.save.v1`, old exports) read as format 1 and are rewritten in the envelope the next time they are written; their fixtures are in `games/shared/test/fixtures/saves` (never regenerate them: they are what players have). A write that fails (storage full or blocked) is reported (`watchWrites`) and the shell shows a line in its overlay while it does | `games/shared/saves.ts`, `SaveCodec` in `continue.ts` | a codec: `format`, `pack`, `unpack(bytes, format)` |
 | Saved-games screen (F1, the line under the banner, the gear) | `games/saves.ts` | its `describe` |
+| Which games there are: id, directory name and size, `load()` of its `src/main.ts` (`run`, `info`), once. The loader, the saved-games screen and the shell read it; each game's info prose is its `src/info.ts` | `games/registry.ts` (`GAMES`; `games/shared/test/registry.ts` checks it against the game folders) | one entry, and `src/info.ts` |
+| Schemas for data from outside the code (saves, what a map kept): a shape written once gives the type and the check; `foundCodec` makes a map's `FoundCodec` from one | `packages/c64kit/src/schema.ts` (`S`), `foundCodec` in `native/pause.ts` | the shape |
 | Front end for any port: pause screen, map, travel, assists | `games/shared/frontend.ts` (`FrontEnd<T, F>`), `native/pause.ts` (`PauseMap<T, F>`, `FoundCodec<F>`) | a `PauseMap<T, F>`: its progress type `F` and the `found` codec that reads what was kept (once, at launch; the saved record is `F` as JSON), and assists; native ports carry out `going` and "back to room start" themselves |
 | Runtime for translated games: `runNative` on `runPort`, its parts as small feature objects with their own state (running, knockback, 8-way, latch, action keys, name picking, safe arrival, health and lives), composed in the order it declares | `games/shared/native/play.ts` (`runNative`), `features.ts`, `host.ts` (`NativeHost`) | options in `runNative(...)` (`vitals`, `run`, `latch`, `actions`, `names`, `safe`...) |
 | Hooks in translated code (`"hooks"` in a translation's config report reaching an instruction; `"skips"` return a routine at once) | `tools/re/to-ts.mjs`, `native/host.ts` (`onHook`, `onSkip`) | addresses in its `re/*.json` |
@@ -97,7 +101,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | Names and codes on a touch screen | `games/shared/letters.ts` (`NamePicker`, `KeyPacer`) | its letters, `names:` |
 | The HD view | `games/shared/view.ts`, `packages/c64kit/src/hd`, `docs/hd-view.md` | an `HdView` and its rooms' builder |
 | The Pendragon games' rooms as data | `games/shared/pendragon/decode.ts`, `packages/c64kit/src/pendragon/room.ts` | its pictures and `DecodeRules` |
-| Loader, shell (home, gear, the C64/HD switch, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` |
+| Loader, shell (home, gear, the C64/HD switch, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` (registry entry) |
 
 All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run their session through `runPort`
 (`FrontEnd` and `ContinueFlow` inside it); each game's `src/map.ts` is its `PauseMap`, and `games/*/test/frontend.ts` checks it headless.

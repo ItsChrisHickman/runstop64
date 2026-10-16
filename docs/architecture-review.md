@@ -107,7 +107,7 @@ interface PortAdapter<S, F> {
 
 **Cost.** S-M. **Risk.** Low.
 
-### 5. Four different save formats, one reflective, none versioned at the game-image level
+### 5. Four different save formats, one reflective, none versioned at the game-image level (done: envelope `{ game, format, image? }` with old formats read as format 1, explicit `StarquakeSave`, `S` schemas, a visible failed write; saves were measured at ~1.4 M of ~5.2 M characters, so no compression)
 
 **What.**
 - Translated games and antiriad: `packState` (JSON header plus raw RAM) via `MACHINE_CODEC`. Monty: a JSON `MontySave` with `v: 1`, hand-listed `parseSave` (save.ts:62-70, every field named twice in the interface and in the guard). AWM: `AwmSave`, also hand-validated. Starquake: `snapshot` loops `Object.entries(g)` (save.ts:14) over every field of the `Game` object, minus a `SKIP` set, and restores with `Reflect.set`.
@@ -159,7 +159,7 @@ interface PortAdapter<S, F> {
 
 **Cost.** S (runner and `check.ts`), S (docs), M (item 5). **Risk.** Low.
 
-### 8. Duplicated registry, and per-game boilerplate that wants a manifest
+### 8. Duplicated registry, and per-game boilerplate that wants a manifest (done: `games/registry.ts`, each game's info prose in `src/info.ts`, a test that the registry and the game folders agree)
 
 **What.** A game is registered in three places: `GAMES` in `games/loader.ts:13-24` (id, name, blocks), `PROGRAMS` in `games/shell.ts` (id to dynamic import), and each game's `info` object inside its own `main.ts`. `games/saves.ts` and `shared/test/loader.ts` read `GAMES`. Nothing checks that the two lists agree, but adding a game means editing both plus the `info`. Each `main.ts` also embeds 20-30 lines of HTML prose as a template string inside the code (entombed main.ts:14-40), next to wiring.
 
@@ -200,7 +200,7 @@ Dependencies are three, vite and typescript. Nothing here needs a runtime librar
 |---|---|---|
 | **Zustand** | **No** | It solves sharing UI state across React components with subscriptions and selectors. There is no React and no UI tree. The state is a 50 Hz mutable simulation (C64 RAM, a `Game` object) plus a front-end flow, and saves need a full snapshot (bytes), which a store would not give. The front-end flow's real problem is that its states are implicit. A discriminated union and a pure `step()` (finding 3) fixes that in about 60 lines with no dependency. |
 | **XState** | **No** | Same need as above, much heavier than the problem (the flow has about 5 real states). A hand reducer in the type system you already enforce is better. Revisit only if the number of screens grows well beyond the current set. |
-| **Valibot (or Zod)** | **Yes, small and optional** | Where it earns its place: boundary validation of saves and `Found`. Today `MontySave`, `AwmSave` and the maps' progress records each write the shape twice (interface and guard), by hand. A schema gives the type via inference and one validator. Valibot is tree-shakeable and a few KB; Zod is larger. If you'd rather add no dependency, extend `guards.ts` with 60 lines of combinators (`object`, `array`, `optional`) and an inferred `Infer<…>` type. Either way, needs sign-off before any install on this server. |
+| **Valibot (or Zod)** | **Decided: in-house combinators (`packages/c64kit/src/schema.ts`), no install.** Was: yes, small and optional | Where it earns its place: boundary validation of saves and `Found`. Today `MontySave`, `AwmSave` and the maps' progress records each write the shape twice (interface and guard), by hand. A schema gives the type via inference and one validator. Valibot is tree-shakeable and a few KB; Zod is larger. If you'd rather add no dependency, extend `guards.ts` with 60 lines of combinators (`object`, `array`, `optional`) and an inferred `Infer<…>` type. Either way, needs sign-off before any install on this server. |
 | **Vitest** | **No** | Needs an install, and the suite is 125 imperative scenario scripts with their own pass/fail print and a custom esbuild alias to a stand-in kit. Vitest would work but gives little (watch mode, snapshots) and wants the tests rewritten into `describe/it`. |
 | **node:test** | **Yes (as the runner only)** | Built into Node 24, zero installs. Use it as the orchestrator in `tools/test-all.mjs` (serial, one subprocess per script, TAP output, an exit code), not as a rewrite of the tests. See finding 7. |
 | **esbuild** | **Yes, declare it** | Already used by `tools/test.mjs` but only present because vite depends on it. Add it to `devDependencies` pinned to the installed 0.21.5; a one-line change that stops a vite upgrade from breaking the tests. |
@@ -216,4 +216,4 @@ Dependencies are three, vite and typescript. Nothing here needs a runtime librar
 2. **Stop committing generated code (finding 6) and delete the dead code (finding 9).** `tools/gen.mjs` plus gitignore, and a `gen:hash` file for review. Delete `runOriginal`, `patchInto`, the six `Native*` classes and the small unused exports. Repo shrinks by about 5.5 MB and 109 k lines of diff noise disappears.
 3. **Extract the small shared pieces from the five tick loops (finding 1, step 1).** `FireLatch`, audio unlock and mute, and the room-save bookkeeping. Replace the raw `{...cpu}` copies in `play.ts` with `runner.call` (finding 2, S). This is the safe on-ramp to the big change.
 4. **Make the front-end state explicit and `Found` typed (finding 3), then do `runPort` (finding 1, step 2).** Reducer for `ContinueFlow` first (it is the thing `runPort` will own), typed `Found` per map, then port the four native games onto `runPort` one at a time with their frontend tests as the guard. Decompose `runNative` into feature objects (finding 2) at the same time.
-5. **Save format envelope (finding 5), plus the registry (finding 8).** Do the envelope with the schema decision (valibot or in-house combinators). Migrate old saves on read. Then one registry file and the AGENTS.md split.
+5. **(Done.) Save format envelope (finding 5), plus the registry (finding 8).** Do the envelope with the schema decision (valibot or in-house combinators). Migrate old saves on read. Then one registry file and the AGENTS.md split.
