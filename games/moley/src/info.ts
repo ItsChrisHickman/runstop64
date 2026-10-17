@@ -19,8 +19,9 @@ export const info = {
       <li>Developed by Teque Software Development for <a href="https://en.wikipedia.org/wiki/Gremlin_Graphics">Gremlin Graphics</a>;
         <a href="https://en.wikipedia.org/wiki/Your_Sinclair">Your Sinclair</a> cover game, 1987</li>
     </ul>
-    <p>This is a custom edition of a ZX Spectrum game. The 48K game is rebuilt from the original program and checked against it
-    frame for frame, in the Spectrum's own colours, with the 128K version's music, plus the shared front end.</p>
+    <p>This is a custom edition of a ZX Spectrum-only game. The 48K game is rebuilt from the original program and checked
+    against it frame for frame, with the 128K version's music added. ENHANCED gives it C64 colours with no colour clash;
+    ORIGINAL keeps the Spectrum's own look.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

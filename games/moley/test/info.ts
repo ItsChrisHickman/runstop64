@@ -16,7 +16,7 @@ for (const name of ['Paul Jackson', 'Hollingworth', 'Harrap', 'Ben Daglish', 'Ch
 const description = /<p>This is a custom edition[^<]*<\/p>/.exec(info.html);
 const sentences = description === null ? [] : description[0].replace(/<[^>]+>/g, '').split(/(?<=\.)\s+/).filter((s) => s.length > 0);
 check(`the description is two or three short sentences (${sentences.length})`, sentences.length >= 2 && sentences.length <= 3 && sentences.every((s) => s.length < 220));
-check('it says: ZX Spectrum only, rebuilt from the original program, checked frame for frame, the Spectrum\'s own colours, the 128K version\'s music, the shared front end',
-  description !== null && ['ZX Spectrum', 'rebuilt from the original program', 'frame for frame', 'own colours', '128K version\'s music', 'shared front end'].every((s) => description[0].includes(s)));
+check('it says: ZX Spectrum only, rebuilt from the original program, the 128K music, the two looks',
+  description !== null && ['ZX Spectrum', 'rebuilt from the original program', '128K', 'C64 colours', 'ORIGINAL'].every((s) => description[0].includes(s)));
 check('it is not in the registry yet', !GAMES.some((g) => g.id === 'moley'));
 finish();
