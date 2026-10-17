@@ -31,6 +31,9 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `test/boot.ts` | the tape loads through the ROM, the credits page comes up, a jump key starts play, 5 lives, the 2-frame main loop, 2 px steps, Monty's jump equals the table at `$8E12`, determinism, the saved states | passes |
 | `test/rooms.ts` | all seven rooms drawn by the game's own routine (`$854A`) against a picture made from the data alone (map, attributes, tiles), byte for byte | 7 of 7 identical |
 | `test/music.ts` | the 128K mode: the game finds the RAM, the player writes AY registers 0-10 every 2nd frame, none on a 48K | passes |
+| `test/music-data.ts` | the committed music (`src/data/music-data.ts`) made again from the tape on the 128K model over two whole passes (the original's second pass equals its first, in registers and frames), replayed through c64kit's AY synthesiser (registers equal after every step, the loop, 6 min 9 s), and what the player uses (no envelope, volumes below 16) | 13 of 13 |
+| `test/effects.ts` | the five beeper effects as audio (c64kit `renderToggles`, `src/beeper.ts`) against a reference made another way from the model's own speaker log, at 22050, 44100 and 48000 Hz; the log against the committed gaps | 30 of 30, worst difference 3e-8 |
+| `test/sound.ts` | `MoleySound` (src/sound.ts) on a stand-in player: the effects queued and muted, once per pass, the death's sound waits for its held step; in a real flow the time-out death sounds 55 frames after the pass | 22 of 22 |
 | `test/title.ts` | the credits picture the game unpacks (`$A500`) against one made from its data; the scroller's text | identical |
 | `test/data.ts` | the committed data (`src/data/`) made again from the tape, the ROM and the game in play; every block against the original's memory at the credits page and in each room's state (maps differ only in item cells and room 2); the 66 glyphs against the characters the game's character routine draws (credits scroller, ending, game over); every one of the 192 sprite frames, both ways round, at 8 shifts and near the right edge, drawn by the game's own routine `$8931` (rooms 0 and 5) against `src/sprite.ts` | 31 of 31 |
 | `test/lockstep.ts` (+ `lockstep-core.ts`, `shake.ts`, `random-player.ts`) | the whole rebuilt game (`src/game.ts`: Monty, the six room scripts, items, score, lives, gauge) against the original running, **every pass**: Monty, the whole entity table (7 records), score and high score, lives, gauge, pass counter, the scripts' animation (cycle, counter), the items (records and count), the room's map (6 rooms; room 2 rewrites its own) and attributes (item ink, room 1's lights), every variable the six scripts keep, the picture in the HUD's pocket box, the beeper effects asked for, the outcome (playing, game over, ending) and the random bytes asked for (the original's R reads are fed in) | random players in every room, the scripts' state shaken, players at each exit, and placements round all 302 tile kinds: 0 differences (numbers in `docs/moley-plan.md`, stage 3) |
@@ -359,6 +362,15 @@ and is what `src/flow.ts` uses. "The screen" is the Spectrum's screen memory, co
   (tone, noise period, mixer = `$B8`, volumes), never the envelope, and the register image repeats after 9217 steps, about
   **6 minutes 9 seconds**; nothing selects another tune. The beeper effects are played over it on a 128K, and on a 48K the
   music is simply not there (the same game, `$8112` = 0).
+- **The music as data** (`re/record-music.ts` → `src/data/music-data.ts`; `test/music-data.ts` proves it): the player's register image
+  after each step, 14 registers, two whole passes recorded. Details found by recording: the writes come on every 2nd frame
+  (22,491 of 22,493 gaps) except the step that restarts the tune, which comes **4 frames** after the one before it (frames 18,574 and
+  18,578 after LOAD; 160 ms), and the tune loops from its first step, not from a later point: images 9217 steps apart are equal
+  in registers 0-10 over the whole second pass and exactly 18,436 frames apart. The first step comes 142 frames after LOAD.
+  The mixer is `$B8` (tone A/B/C on, noise off) or `$AA` (noise on B), volumes 0-14, noise period (register 6) is used, the
+  envelope (11-13) never. The rebuild's step rate is the 128K's: 3,546,900 Hz / 70,908 T-states a frame / 2 = 25.0105 Hz.
+- **The effects as audio** (`test/effects.ts`): the speaker starts down in every effect and each write flips it; the committed
+  gaps equal the model's log; the lengths are 44.5 ms (0), 265.1 ms (1), 30.0 ms (2), 1.9 ms (3) and 3.9 ms (5).
 
 ## Not understood, and what to look at next
 

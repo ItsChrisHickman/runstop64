@@ -59,7 +59,7 @@ Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone), 3
 6. **Front end.** The shared one (`runPort`, `FrontEnd`): pause screen with a map of the six screens and progress (items taken,
    screens done), travel to any screen reached, autosave per screen, continue, back to screen start, touch controls (stick:
    left, right, up, down; one jump button), info sheet, credits. ORIGINAL / ENHANCED on the pause screen.
-7. **Sound.** Beeper effects first (below); the 128K music last, only if wanted.
+7. **Sound (done; the front end hooks it up in stage 6).** `src/sound.ts` (`MoleySound`, API in its doc comment) over `src/beeper.ts` (the five effects), `src/music.ts` and `src/data/music-data.ts` (the music); c64kit got `src/ay/` (the AY-3-8912 synthesiser `Ay`, the stream coding and `AyTune`, the worklet and `AyPlayer`, mirroring `sid/`) and `src/beeper.ts` (`renderToggles`). Checks: `packages/c64kit/test/ay.test.ts` (68: tone and noise periods, the noise register's sequence and period 131071, mixer, all 16 envelope shapes, a rendered tone's pitch, the stream's coding, a tune's timing and loop), `test/effects.ts` (30: each effect rendered from the model's own beeper log a different way, at 22050, 44100 and 48000 Hz, equals what the game plays, worst difference 3e-8), `test/music-data.ts` (13: recorded again from the tape in two whole passes, identical; replayed, the synthesiser's registers equal the original's after every step; the loop), `test/sound.ts` (22). `re/record-music.ts` makes the data, `re/render-sound.ts` writes WAV files to listen to.
 
 ## The picture
 
@@ -88,10 +88,27 @@ The 48K game has **no music**, only blocking beeper effects (seven routines, fiv
 `re/sounds.ts` already measures them), commit that as data, and at start-up turn each into an `AudioBuffer` by integrating the
 1-bit signal over each output sample (a box filter; some half-periods are 44 T-states, far above the sample rate). That is the
 original's sound exactly, with no ROM and no Z80 in the browser. The original also has AY music for 128K machines (Benn Daglish; one
-tune of about 6 minutes; a 25 Hz player the tape carries at `$E000`). **Recommend** adding it last: the model already has a 128K
-mode with AY port logging (`re/music.ts` runs the player and keeps the register stream: 9217 steps of registers 0-10, no
-envelope); keep that as data (delta-coded, a few tens of KB) and play it through a small
-AY synthesiser (3 tone channels, noise, envelope; about 200 lines, new to c64kit), on in both modes with the M key to mute.
+tune of about 6 minutes; a 25 Hz player the tape carries at `$E000`).
+
+**Done (stage 7).**
+- **Effects:** `renderToggles` (c64kit `beeper.ts`) integrates the toggles exactly (the fraction of each sample the speaker was up,
+  at the context's sample rate, then the speaker's AC coupling: a 20 Hz high pass), made for the five effects when the audio unlocks.
+  Lengths: death 44.5 ms, time-out noise 265 ms, pickup 30 ms, energy hit 1.9 ms, mechanism 3.9 ms. Checked against the model's
+  log at three sample rates (`test/effects.ts`, difference 3e-8, float32 rounding), and the log equals the committed gaps. The
+  clock is the 48K's 3.5 MHz (on a real 128K the effects run 1.3 % higher, 3.5469 MHz; not modelled).
+- **Music:** `re/record-music.ts` runs the tape on the 128K model for two whole passes and commits one pass of the player's 25 Hz
+  steps (`src/data/music-data.ts`, 9218 steps, **52,580 bytes** delta-coded, 70 KB as base64 in the source). Found on the way: the
+  step that restarts the tune takes four frames, not two (a 160 ms gap in the original), and the loop is the whole stream from
+  its first step (the register images of the second pass equal the first, 9217 images, and the frames between them, 18,436), so
+  the last step is stored held for two and the loop is exactly the original's. A pass is 9218 steps at the 128K's 25.0105 Hz
+  (3.5469 MHz / 70,908 T a frame / 2) = **368.6 s**. The player never touches the envelope (registers 11-13) and the volumes are 0-14.
+- **Synthesiser:** `packages/c64kit/src/ay/ay.ts`, 150 lines: tones flip every period ticks of clock / 8, noise is a 17-bit shift register
+  (bit 0 xor bit 3, period 131071) shifted every 2 x period ticks, the mixer, the measured logarithmic volume table, the 16-step
+  envelope with all 16 shapes (unused by this tune), 1.7734 MHz; output is a box filter over the ticks. `ay/tune.ts` codes the
+  stream (a mask byte and the changed registers; the first step in full) and plays it (`AyTune`); `ay/worklet.ts` runs it on the
+  audio thread and `ay/player.ts` (`AyPlayer`) is the main-thread handle, as `SidPlayer` is for the SID. `AyPlayer` also holds the
+  effects' `AudioBuffer`s and plays them through the same master gain, so M and the pause hold cover both.
+- **Both modes:** the music and the effects are the same in ORIGINAL and ENHANCED, and the music plays on what was the 48K game too.
 
 ## ENHANCED (few, for a modern playthrough)
 
@@ -122,5 +139,5 @@ Decide after playing the rebuild; none of these changes a room.
 ## Size
 
 About 3000 lines of game code (AWM's is 4500 for 80 rooms), 1500 of tests, a few hundred of data scripts, and
-under 100 KB of data (maps and attributes 8.5 KB, tile sets 4 KB, sprites 6 KB, picture 3.4 KB, panel 2.3 KB, effects 8 KB, and the music's register stream, a few tens of KB). Stages 1-5
+under 100 KB of data (maps and attributes 8.5 KB, tile sets 4 KB, sprites 6 KB, picture 3.4 KB, panel 2.3 KB, effects 8 KB, and the music's register stream, 52.6 KB). Stages 1-5
 are the bulk; the front end and sound reuse shared modules.

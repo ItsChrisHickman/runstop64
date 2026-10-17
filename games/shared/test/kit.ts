@@ -27,6 +27,7 @@ import { decodePicture, emptyPicture } from '../../../packages/c64kit/src/c64/pi
 import type { HdRoom } from '../../../packages/c64kit/src/hd/scene';
 import type { Renderer, SpriteHandle } from '../../../packages/c64kit/src/renderer';
 import type { SidPlayer as RealSidPlayer } from '../../../packages/c64kit/src/sid/player';
+import type { AyPlayer as RealAyPlayer } from '../../../packages/c64kit/src/ay/player';
 import type { SfxName } from '../../../packages/c64kit/src/sid/sfx';
 import { Surface, TRANSPARENT } from '../../../packages/c64kit/src/surface';
 export { EVERY_FRAME, type ViewStep } from '../../../packages/c64kit/src/c64/view';
@@ -102,6 +103,25 @@ export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'un
   startStream() { return Promise.resolve(); }
   pushFrame(w: SidWrite[] = []) { sidLog.frames++; sidLog.writes += w.length; sidLog.last = w; }
   sfx(name: SfxName) { sidLog.sfx.push(name); }
+}
+
+export * from '../../../packages/c64kit/src/ay/ay';
+export * from '../../../packages/c64kit/src/ay/tune';
+export * from '../../../packages/c64kit/src/beeper';
+/** What the AY player was asked: the tune given and whether it plays, the samples made and when each was played (audio seconds). */
+export const ayLog: { tune: { bytes: number; rate: number } | null; playing: boolean; samples: Float32Array[]; played: { sample: number; at: number }[]; held: boolean } = { tune: null, playing: false, samples: [], played: [], held: false };
+/** The AY player, remembering what it was asked (ayLog) and playing nothing; its audio clock is `ayClock.now`. */
+export const ayClock = { now: 0 };
+export class AyPlayer implements Pick<RealAyPlayer, 'unlocked' | 'muted' | 'unlock' | 'toggleMute' | 'hold' | 'sampleRate' | 'now' | 'tune' | 'play' | 'addSample' | 'playSample'> {
+  unlocked = false; muted = false; readonly sampleRate = 48000;
+  get now() { return ayClock.now; }
+  unlock() { this.unlocked = true; return Promise.resolve(); }
+  toggleMute() { this.muted = !this.muted; return this.muted; }
+  hold(on: boolean) { ayLog.held = on; }
+  tune(data: Uint8Array, stepRate: number) { ayLog.tune = { bytes: data.length, rate: stepRate }; }
+  play(on: boolean) { ayLog.playing = on; }
+  addSample(samples: Float32Array, _gain: number) { ayLog.samples.push(samples); return ayLog.samples.length - 1; }
+  playSample(sample: number, at: number) { if (!this.muted) ayLog.played.push({ sample, at }); }
 }
 
 /**

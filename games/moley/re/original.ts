@@ -5,7 +5,8 @@
  */
 import { FRAME_T, Spectrum } from '../../../tools/zx/spectrum';
 import { unpackState } from '../../../tools/zx/snapshot';
-import { headerOf, parseTap } from '../../../tools/zx/tape';
+import { headerOf, parseTap, type TapeBlock } from '../../../tools/zx/tape';
+import { bootedSpectrum, typeLoad } from '../../../tools/zx/boot';
 
 /** The tape's code block as the game's 64K image (zeros below it). */
 export function imageFromTape(tap: Uint8Array): Uint8Array {
@@ -88,4 +89,68 @@ export function recordEffects(rom: Uint8Array, state: Uint8Array): Effect[] {
     if (times.length === 0) throw new Error(`effect ${id} made no sound`);
     return { id, lead: times[0] - start, gaps: times.slice(1).map((t, i) => t - times[i]), tail: end - times[times.length - 1] };
   });
+}
+
+// ---- the 128K music ---------------------------------------------------------------------------------------------
+
+/** The AY registers' image after a frame in which the game's player wrote some. */
+export interface MusicImage { readonly frame: number; readonly regs: number[] }
+
+/**
+ * The tape in a 128K model (the game finds the RAM, copies its player and tune into bank 1 and plays from the interrupt), run
+ * for `frames` frames after LOAD: the register image (0-13) after each frame in which the player wrote.
+ */
+export function recordMusic(rom: Uint8Array, tape: TapeBlock[], frames: number): MusicImage[] {
+  const m = bootedSpectrum(rom, true);
+  m.tape = tape;
+  typeLoad(m);
+  m.ay.length = 0;
+  const images: MusicImage[] = [];
+  for (let f = 0; f < frames; f++) {
+    m.runFrame();
+    if (m.ay.length > 0) {
+      images.push({ frame: m.frame, regs: [...m.ayRegs.subarray(0, 14)] });
+      m.ay.length = 0;
+    }
+  }
+  return images;
+}
+
+function at<T>(items: readonly T[], i: number): T {
+  const item = items[i];
+  if (item === undefined) throw new Error(`nothing at ${i}`);
+  return item;
+}
+
+/**
+ * The tune as steps of the player's 25 Hz (2 frames) with the register image after each, and how it loops. The player writes
+ * every second frame, but the step at the end of the tune takes four (it starts the tune again): that step is held for the extra
+ * two frames, so one pass of the steps is the whole loop and the frames a loop takes is `steps * 2`. Throws unless the
+ * images repeat exactly, in registers (0-10, the ones the player writes) and in frames, over the whole of a second pass.
+ */
+export function musicSteps(images: readonly MusicImage[]): number[][] {
+  const same = (a: MusicImage, b: MusicImage) => a.regs.slice(0, 11).join() === b.regs.slice(0, 11).join();
+  // the period: the first image after the start that begins a run equal to the start's
+  let period = 0;
+  for (let p = 100; p + 200 < images.length && period === 0; p++) {
+    let match = true;
+    for (let i = 0; i < 200 && match; i++) if (!same(at(images, i), at(images, p + i))) match = false;
+    if (match) period = p;
+  }
+  if (period === 0) throw new Error('the tune does not repeat in the frames run');
+  if (images.length < 2 * period) throw new Error('run a second pass to prove the loop');
+  const loopFrames = at(images, period).frame - at(images, 0).frame;
+  for (let i = 0; i + period < images.length; i++) {
+    const a = at(images, i), b = at(images, i + period);
+    if (!same(a, b) || b.frame - a.frame !== loopFrames) throw new Error(`the tune differs on its second pass at step ${i}`);
+  }
+  const steps: number[][] = [];
+  for (let i = 0; i < period; i++) {
+    const im = at(images, i);
+    const frames = at(images, i + 1).frame - im.frame;
+    const held = frames / 2;
+    if (!Number.isInteger(held) || held < 1) throw new Error(`step ${i} lasts ${frames} frames`);
+    for (let h = 0; h < held; h++) steps.push(im.regs);
+  }
+  return steps;
 }
