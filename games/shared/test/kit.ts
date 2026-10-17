@@ -18,7 +18,7 @@ export * from '../../../packages/c64kit/src/pendragon/room';
 export function hdRefresher(): null { return null; }
 export * from '../../../packages/c64kit/src/layout';
 import type { PictureLayout } from '../../../packages/c64kit/src/layout';
-import type { C64View as RealC64View } from '../../../packages/c64kit/src/c64/view';
+import type { C64View as RealC64View, ViewStep } from '../../../packages/c64kit/src/c64/view';
 import type { C64, SidWrite } from '../../../packages/c64kit/src/c64/machine';
 import { EffectsModel } from '../../../packages/c64kit/src/effects';
 import type { Marker } from '../../../packages/c64kit/src/overlay';
@@ -28,6 +28,7 @@ import type { Renderer, SpriteHandle } from '../../../packages/c64kit/src/render
 import type { SidPlayer as RealSidPlayer } from '../../../packages/c64kit/src/sid/player';
 import type { SfxName } from '../../../packages/c64kit/src/sid/sfx';
 import { Surface, TRANSPARENT } from '../../../packages/c64kit/src/surface';
+export { EVERY_FRAME, type ViewStep } from '../../../packages/c64kit/src/c64/view';
 export type { Renderer, SpriteHandle } from '../../../packages/c64kit/src/renderer';
 export type { Host, PointerTarget } from '../../../packages/c64kit/src/host';
 export type { Marker } from '../../../packages/c64kit/src/overlay';
@@ -111,7 +112,7 @@ export class C64View implements Pick<RealC64View, 'backdrop' | 'picture' | 'upda
   /** (The picture decoded as the real one has it, when asked for: the HD view's rooms are built from it.) */
   get picture() { return decodePicture(this.m.ram, this.m.capture, this.decoded); }
   constructor(readonly renderer: Renderer, readonly m: Pick<C64, 'ram' | 'capture'>) {}
-  update() { this.renderer.screen.pixels.fill(TRANSPARENT); this.renderer.screen.version++; }
+  update(_step?: ViewStep) { this.renderer.screen.pixels.fill(TRANSPARENT); this.renderer.screen.version++; }
   render(_alpha: number) {}
   dispose() {}
 }

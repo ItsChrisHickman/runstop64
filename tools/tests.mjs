@@ -33,6 +33,7 @@ export const TESTS = [
 
   // ---- Auf Wiedersehen Monty (its originals are gitignored: games/awm/build/README.md)
   { file: 'games/awm/test/frontend.ts', set: 'fast' },
+  { file: 'games/awm/test/smooth.ts', set: 'fast' },
   { file: 'games/awm/test/closing.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/flow.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/lockstep.ts', args: [AWM, 'R:100,UR:30,F:1'], set: 'slow', needs: [AWM] },

@@ -11,7 +11,7 @@ export { SidPlayer } from './sid/player';
 export * from './vic';
 export { C64 as C64Machine, packState, unpackState, PAL_FRAME_CYCLES } from './c64/machine';
 export type { FrameCapture, MachineState, SidWrite } from './c64/machine';
-export { C64View } from './c64/view';
+export { C64View, EVERY_FRAME, type ViewStep } from './c64/view';
 export { C64_KEYS } from './c64/keyboard';
 export type { Marker } from './overlay';
 export * from './effects';

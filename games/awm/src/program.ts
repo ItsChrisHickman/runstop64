@@ -12,7 +12,7 @@
  * picture filling in; the title set-up too), the rebuild goes straight on: the call that starts a game also runs the game's
  * first pass, the call after the last of the closing screen the title's first.
  */
-import type { FrameCapture } from 'c64kit';
+import { EVERY_FRAME, type FrameCapture, type ViewStep } from 'c64kit';
 import { Closing } from './closing';
 import { endOf, updateHigh, type Ending } from './flow';
 import { type Entry, FIRST_GAME, Game, type GameCarry } from './game';
@@ -52,6 +52,13 @@ export class Program {
   private readonly sound = new SoundLog();
   private part: Part;
   capture: FrameCapture;
+  /**
+   * What the frame just made was, for the view's smoothing: play steps once in two frames (the logic phase moves the
+   * sprites, the drawing phase after it leaves them), so a sprite glides across both; the title and the closing screen
+   * move theirs every frame. A game begun or put back starts with a step of its own: the sprites are all new.
+   */
+  viewStep: ViewStep = EVERY_FRAME;
+  private beginning = false;
   /** How the last game ended (the CONTINUE? that follows treats the ending differently from the last life lost). */
   lastEnd: Ending | null = null;
   /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`): the original's are off. */
@@ -124,6 +131,7 @@ export class Program {
   // ---- the title ---------------------------------------------------------------------------------
 
   private titleFrame(title: Title, controls: Controls): void {
+    this.viewStep = EVERY_FRAME;
     const result = title.frame({ fire: (controls.stick & Stick.Fire) !== 0, f1: controls.f1, f7: controls.f7 });
     this.soundFlag = title.soundFlag;
     if (result === null) {
@@ -144,6 +152,7 @@ export class Program {
     const picture = this.begin(game, carry, tuneForRoom(START_ROOM, this.soundFlag, game.tune));
     const part: Part = { kind: 'play', game, picture };
     this.part = part;
+    this.beginning = true;
     // (the interrupt has set the main loop's flag while the room was drawn: its first two passes, the drawing and the
     // logic phase in the order the loop's toggle has them, run one straight after the other in the frame it is done in)
     this.playFrame(part, NO_CONTROLS);
@@ -180,6 +189,7 @@ export class Program {
     picture.restorePanel(save.hands);
     this.part = { kind: 'play', game, picture };
     this.capture = picture.capture;
+    this.beginning = true;
   }
 
   /** Travel (the map's): he comes into a room he has stood in, where he came in, as through an exit. Only in play. */
@@ -194,6 +204,8 @@ export class Program {
   /** The main loop's pass: the drawing phase (A) or the logic phase (B), as the loop's toggle has it. */
   private playFrame(part: { readonly game: Game; readonly picture: Picture }, controls: Controls): void {
     const { game, picture } = part;
+    this.viewStep = { fresh: this.beginning || !picture.nextIsA, frames: 2 };
+    this.beginning = false;
     if (picture.nextIsA) {
       this.capture = picture.frameA(game.lift.tick(game.rng));
       return;
@@ -213,6 +225,7 @@ export class Program {
   // ---- GAME OVER ---------------------------------------------------------------------------------
 
   private closingFrame(part: { readonly game: Game; readonly picture: Picture; readonly closing: Closing }): void {
+    this.viewStep = EVERY_FRAME;
     const cap = part.closing.next();
     if (cap) {
       this.capture = cap;

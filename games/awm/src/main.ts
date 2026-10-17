@@ -145,7 +145,7 @@ export function run(host: Host) {
         lastKind = program.kind;
         return result;
       },
-      updateView: () => view.update(),
+      updateView: () => view.update(program.viewStep),
       renderView: (alpha) => view.render(alpha),
       audio: {
         player: music,
