@@ -19,9 +19,13 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
 
 ## Next
 
-- **Moley Christmas** (ZX Spectrum only): stage 1 is done in a worktree commit (the headless Spectrum `tools/zx`, the notes
-  `games/moley/re/README.md`, the plan `docs/moley-plan.md`). Its originals (tape, 48K ROM, exercisers, states) are gitignored
-  in `games/moley/build/` of the main checkout (`games/moley/build/README.md` remakes them). Next is stage 2 of the plan.
+- **Moley Christmas** (ZX Spectrum only): plan stages 1 and 2 are done in a worktree commit (`docs/moley-plan.md`). Data: `games/moley/re/extract.ts`
+  writes the committed `src/data/*.ts`; `test/data.ts` proves it (and sprites, drawn by the game's own routine). Monty alone: `src/monty.ts`,
+  `player.ts`, `gauge.ts`, `input.ts`, `cycle.ts`, `sprite.ts`, compared with the original every pass by `test/lockstep.ts` (fast and slow set in
+  `tools/tests.mjs`); `src/info.ts` is written for the finished build and the game is not in `games/registry.ts` yet. The originals (tape, 48K ROM,
+  exercisers, states) are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md` remakes them). Next is stage 3 (room
+  scripts, enemies, items; feed the R register in lockstep). Chris's additions for stage 4: no-clash sprites and a C64-style palette, both ENHANCED
+  items (ORIGINAL keeps Spectrum colours and the clash; no separate toggle), in the plan, neither built.
 
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and

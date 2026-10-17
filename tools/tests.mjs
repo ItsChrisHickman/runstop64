@@ -17,6 +17,7 @@ const MOTR = '/tmp/motr.prg'; // the original Monty on the Run (npm run extract:
 const MOLEY_TAP = 'games/moley/build/moley.tap'; // the original Moley Christmas tape, and what the Spectrum model needs
 const MOLEY_ROM = 'games/moley/build/48.rom'; // the 48K ROM (Amstrad's: fetched, never committed)
 const MOLEY_PLAY = 'games/moley/build/play.state'; // the original in play, room 0
+const MOLEY_STATES = ['title', 'play', 'room0', 'room1', 'room2', 'room3', 'room4', 'room5', 'room5-arrive', 'room6'].map((n) => `games/moley/build/${n}.state`); // the original at the credits page, in play and in each room
 const ZEXDOC = 'games/moley/build/zexdoc.com'; // Z80 instruction exercisers
 const ZEXALL = 'games/moley/build/zexall.com';
 
@@ -62,6 +63,10 @@ export const TESTS = [
   { file: 'games/moley/test/title.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
   { file: 'games/moley/test/music.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
   { file: 'games/moley/test/rooms.ts', args: [MOLEY_PLAY], set: 'fast', needs: [MOLEY_PLAY, MOLEY_ROM] },
+  { file: 'games/moley/test/data.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM, ...MOLEY_STATES] },
+  { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '40'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 15000 passes)' },
+  { file: 'games/moley/test/lockstep.ts', args: ['20000', '8', '100'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/lockstep.ts (about 360000 passes)' },
+  { file: 'games/moley/test/info.ts', set: 'fast' },
 
   // ---- Antiriad
   { file: 'games/antiriad/test/cells.ts', set: 'fast' },

@@ -32,6 +32,9 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `test/rooms.ts` | all seven rooms drawn by the game's own routine (`$854A`) against a picture made from the data alone (map, attributes, tiles), byte for byte | 7 of 7 identical |
 | `test/music.ts` | the 128K mode: the game finds the RAM, the player writes AY registers 0-10 every 2nd frame, none on a 48K | passes |
 | `test/title.ts` | the credits picture the game unpacks (`$A500`) against one made from its data; the scroller's text | identical |
+| `test/data.ts` | the committed data (`src/data/`) made again from the tape, the ROM and the game in play; every block against the original's memory at the credits page and in each room's state (maps differ only in item cells and room 2); the 66 glyphs against the characters the game's character routine draws (credits scroller, ending, game over); every one of the 192 sprite frames, both ways round, at 8 shifts and near the right edge, drawn by the game's own routine `$8931` (rooms 0 and 5) against `src/sprite.ts` | 31 of 31 |
+| `test/lockstep.ts` | Monty's rebuilt logic (`src/monty.ts`, `player.ts`, `gauge.ts`, `input.ts`) against the original running, every pass: x, y, frame, flags, state, phase, jump keys, ropes, walking cycle, room, lives, gauge, pass counter, the scripts' animation, and the keys read | no differences (numbers in `docs/moley-plan.md`, stage 2) |
+| `test/info.ts` | the info card's credits and description; not in the registry yet | passes |
 
 ## How it runs (proved: boot.ts)
 
@@ -133,13 +136,20 @@ random numbers are the Z80's **R register** (`$9ECE`: `LD A,R`), so they depend 
   frames 0-9 (walk 0-3 (`$9125` table, toggled each pass by `$90A3`), jump, climb), deaths `$B0-$B2`, passers-by and cars
   `$0A-$1F`, cassettes `$20`, a reel `$6F`, vehicles `$53-$5F`; see the sheet from `re/sheets.ts`.
 - **Colour**: a sprite is one colour; it takes the attribute of the cell it is over. Sprites never change attributes.
+- **Where they are drawn (proved: `test/data.ts`)**: not on the screen but into a copy of its bitmap 0xA000 higher, **`$E000-$F7FF`**
+  (the 128K music's bytes, dead weight on a 48K). Each pass `$87C4` redraws the tiles of the 3 x 3 cells round every entity into that copy,
+  `$8931` ORs the sprites in, and `$889C` copies the cells whose counter is 2 to the screen (a counter reaching 0 draws the tile map's tile
+  on the screen instead). The routine starts a sprite in the wrong third for y $80 and over (the third bit of y is dropped), which no entity reaches.
 - **Drawing (`$87C4`, per entity `$8931`)**: the 16-bit row is shifted by `x AND 7` (self-modified `JR` into a chain of `ADD HL,HL / ADC A,A`
   at `$897A`, one for each of the three screen bytes). The art is stored facing left: it is drawn as stored when bit 7 of the flags is set
   (he moved left) and mirrored otherwise, by swapping the two bytes of each row and bit-reversing them with the table at **`$FE00`**
-  (checked: entry n is n with its bits reversed). It is put on the screen as `(screen AND mask(b)) OR b` per byte, `mask` the table at
-  **`$FF00`**, which is `NOT (b OR b << 1 OR b >> 1)` within the byte (checked for all 256): every sprite pixel clears itself and its neighbours
-  to the left and right in the background first, so a figure has a thin outline of the cell's paper colour and no mask data is stored. Room
-  5 draws with OR only (`$8A38`).
+  (checked: entry n is n with its bits reversed). It is put on the buffer as `buffer OR (b AND mask(buffer))` per byte, `mask` the table at
+  **`$FF00`**, which is `NOT (v OR v << 1 OR v >> 1)` within the byte (checked for all 256) and is indexed by the byte *already there*, not by
+  the sprite byte (found by `test/data.ts`; this file had it the other way round): a sprite pixel shows only where the background has no ink
+  and none beside it, so figures go behind the scenery's ink and keep a one-pixel margin from it, and no mask data is stored. Room
+  5 draws with OR only (`$8A38`). `src/sprite.ts` is this, as pure functions.
+- **Animated tiles**: each pass (not in room 5, `$8279`) the main loop turns one row of the two conveyor tiles: `RRC ($DAA0)`, `RLC ($DAA2)`,
+  `RRC ($DBD0)`, `RLC ($DBD2)`: tiles $55 and $7B, rows 0 and 2. Their pictures in the data are the first position of that cycle.
 - **Erasing**: no save-under. Every cell an entity covers (3 x 3) gets a counter of 2 in a table of 18 x 32 bytes at
   `$8A9C` (end marker `$8CDC`); each pass counters are decremented and a cell reaching 0 is redrawn from the tile map
   (`$889C-$8900`, blank for tile 0). So a sprite leaves for two passes the cells it has left; for a rebuild this is just
@@ -173,6 +183,28 @@ random numbers are the Z80's **R register** (`$9ECE`: `LD A,R`), so they depend 
 - **Game over** (`$8292`): lives negative; "GAME OVER !!!" at the top of the room, its colour cycling for 100 frames, then `$81BC` (the credits page again).
   Nothing is kept except the high score.
 
+### The rebuild of this section (proved: `test/lockstep.ts`; `src/monty.ts`)
+
+Details the rebuild had to get right, all now checked pass by pass against the original:
+
+- A pass in any state but walking runs its own routine and **ends there, with no new picture** (`$8FD2` pops the return address): falling
+  (state 1, `$8FBA`: y + 3, then the floor check), the jump (state 2, `$8D77`), the pose (3, `$9141`: frame `$9ECC` + $12, flags from where entity 2
+  is) and hidden (4, `$9156`: frame `$BF`). So a jump shows frame 6 (chosen on its first pass) for its whole length; the table `$9129` (frames 6, 7,
+  6, then 9 9 9 1 1 past the 19th) is only read at phase 0. Room 5 runs the flying routine and then the picture.
+- **The floor check `$8F26`** has side effects and three results: floor (a tile of the floor set at his two feet points, x + 4 and x + 10, y + 16:
+  a conveyor, $55 or $7B, also pushes him 2 right; he lands, y to a multiple of 8 unless a rope is at his top), rope (no floor; a rope at his top or his
+  feet: nothing happens) or air (state 1). It is called from walking, from the rope code (which sets `$810B` unless floor), from falling and from the
+  downward half of a jump. A floor found returns through `$8FA9` (the landing), which a `PUSH` at the start put on the stack.
+- Walking sideways looks for walls at x - 2 (left) and x + 10 (right) over 2 rows (3 when y is not a multiple of 8); x 1 and 2 cannot move left,
+  x + 2 of $EF and over cannot move right. The jump moves sideways with the keys held at take-off and a refused move puts nothing back, but **a ceiling
+  hit puts x and y back to where the pass began** (the sideways move too) and the phase to 23 minus itself.
+- The facing (flags bit 7) and the walking picture (`$90A3`: a toggle and a counter, 0 1 2 1) change only on passes that reach the picture; the cycle
+  advances on every second pass in which he moved.
+- Death (`$9592`) does not touch his position: the room's restart routine (`$926E`: rooms 0 and 1 at x 4 y $78, room 2 x 4 y $68, room 3 x $18 y 8, room 4
+  x $EE y $78, room 5 x $28 y $70) sets it and jumps back into the script runner (`$9238`), which steps the scripts' animation (`$9EA0`) a second
+  time; his frame is `$BF` until the next pass. A new game starts him at x 4, y $64 and he falls to the floor.
+- Monty's logic uses no random numbers (no R register): none is fed in. Stage 3 (items' colours, traffic) needs R.
+
 ## Score, lives, gauge, HUD (read)
 
 - Score is 32 bit at `$8113`, added by `$9EE5` (DE = amount), shown as up to 4 digits at the HUD by subtracting the weights at
@@ -181,7 +213,9 @@ random numbers are the Z80's **R register** (`$9ECE`: `LD A,R`), so they depend 
   is updated at the start of the next game (`$9F43`), compared from the top byte down.
 - Lives: five faces at the HUD (`$8740`, 3 cells apart from `$50A1`), `$810C` counts down; no extra lives.
 - The gauge (E to F dial, drawn by `$876D` from `$D200`) is the time left in the room: `$7F` at entry, one step every 8 passes
-  (every 32 in room 2) = about 40 seconds (about 160 in room 2), 8 drawn levels. At empty the game kills Monty as above.
+  (the pass counter `$A2A0` ANDed with 7 is 0) = about 40 seconds. **Room 2** is different (found by writing the rebuild: `$822F`-`$8243`):
+  a step on every second pass unless `$9904` is set by its script, so the time depends on the puzzle. (`$A2A2 + room` holds the masks 7, 7, $1F, 7, 7, 7;
+  room 2's $1F is never used.) 8 drawn levels (`value AND $F0`). At empty the game kills Monty as above.
   Hazards that use `$956D` take one step from it.
 - HUD (`$B500`, `$BD40`): a yellow panel with SCORE, HIGH, the faces, a box for the carried item (`$50B3`) and the dial.
 
