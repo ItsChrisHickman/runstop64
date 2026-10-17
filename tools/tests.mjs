@@ -67,6 +67,7 @@ export const TESTS = [
   { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '40'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 15000 passes)' },
   { file: 'games/moley/test/lockstep.ts', args: ['20000', '8', '100'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/lockstep.ts (about 360000 passes)' },
   { file: 'games/moley/test/info.ts', set: 'fast' },
+  { file: 'games/moley/test/palette.ts', set: 'fast' },
 
   // ---- Antiriad
   { file: 'games/antiriad/test/cells.ts', set: 'fast' },
