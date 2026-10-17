@@ -14,6 +14,11 @@
 const AWM = 'games/awm/build/play.state'; // the machine in play, from the original
 const AWM_T = 'games/awm/build/t807.state'; // the original at its title's set-up
 const MOTR = '/tmp/motr.prg'; // the original Monty on the Run (npm run extract:motr)
+const MOLEY_TAP = 'games/moley/build/moley.tap'; // the original Moley Christmas tape, and what the Spectrum model needs
+const MOLEY_ROM = 'games/moley/build/48.rom'; // the 48K ROM (Amstrad's: fetched, never committed)
+const MOLEY_PLAY = 'games/moley/build/play.state'; // the original in play, room 0
+const ZEXDOC = 'games/moley/build/zexdoc.com'; // Z80 instruction exercisers
+const ZEXALL = 'games/moley/build/zexall.com';
 
 /** @type {{ file?: string, cmd?: string[], args?: string[], set: 'fast' | 'slow', needs?: string[], name?: string, todo?: string, limitSeconds?: number }[]} */
 export const TESTS = [
@@ -43,6 +48,17 @@ export const TESTS = [
   { file: 'games/awm/test/sound.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/sprites.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/title.ts', args: [AWM_T, '400'], set: 'slow', needs: [AWM_T] },
+
+  // ---- Moley Christmas and the headless ZX Spectrum (tools/zx). The original's files are gitignored (games/moley/build/README.md)
+  { file: 'tools/zx/test/cpu.ts', set: 'fast' },
+  { file: 'tools/zx/test/machine.ts', set: 'fast' },
+  { file: 'tools/zx/test/rom.ts', set: 'fast', needs: [MOLEY_ROM] },
+  { file: 'tools/zx/test/zex.ts', args: [ZEXDOC, '560'], set: 'slow', needs: [ZEXDOC], limitSeconds: 590 },
+  { file: 'tools/zx/test/zex.ts', args: [ZEXALL, '560'], set: 'slow', needs: [ZEXALL], limitSeconds: 590 },
+  { file: 'games/moley/test/boot.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
+  { file: 'games/moley/test/title.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
+  { file: 'games/moley/test/music.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
+  { file: 'games/moley/test/rooms.ts', args: [MOLEY_PLAY], set: 'fast', needs: [MOLEY_PLAY, MOLEY_ROM] },
 
   // ---- Antiriad
   { file: 'games/antiriad/test/cells.ts', set: 'fast' },

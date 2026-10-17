@@ -19,6 +19,10 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
 
 ## Next
 
+- **Moley Christmas** (ZX Spectrum only): stage 1 is done in a worktree commit (the headless Spectrum `tools/zx`, the notes
+  `games/moley/re/README.md`, the plan `docs/moley-plan.md`). Its originals (tape, 48K ROM, exercisers, states) are gitignored
+  in `games/moley/build/` of the main checkout (`games/moley/build/README.md` remakes them). Next is stage 2 of the plan.
+
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
   typed `Found`; the save envelope and the registry). Finding 10 (AGENTS.md too long) was settled by the doc cleanup

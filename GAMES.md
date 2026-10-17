@@ -32,8 +32,9 @@ They are translations, not native ports, and are never called native.
 
 ## Maybe later
 
-- Moley Christmas (Gremlin, 1987): more Monty Mole. No disassembly or source is published, so it would be studied the way
-  Auf Wiedersehen Monty was.
+- Moley Christmas (Gremlin / Your Sinclair, 1987): the fifth Monty Mole game, ZX Spectrum only. Stage 1 is done (a headless
+  Spectrum in `tools/zx`, the original's structure in `games/moley/re/README.md`, the plan in `docs/moley-plan.md`); no game
+  is registered yet. No disassembly or source is published, so it is studied the way Auf Wiedersehen Monty was.
 - A native engine for all four Pendragon games (Karnath, Entombed, Blackwyche, Dragonskulle).
 
 ## Not on the list, on purpose

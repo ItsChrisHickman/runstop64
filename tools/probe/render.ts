@@ -1,5 +1,4 @@
-import fs from 'node:fs';
-import zlib from 'node:zlib';
+import { writePng } from '../png';
 import type { C64 } from '../../packages/c64kit/src/c64/machine';
 
 /** What drawing a picture needs of a machine: its memory and the last frame's capture (a port can give these too). */
@@ -102,12 +101,3 @@ export function indicesPng(file: string, px: ArrayLike<number>, W: number, H: nu
   }
   writePng(file, raw, w, h);
 }
-
-/** Filtered scanlines (a 0 filter byte, then RGB, per row) as an 8-bit RGB PNG (the CRC is PNG's CRC-32). */
-function writePng(file: string, raw: Buffer, w: number, h: number) {
-  const crc = (b: Buffer) => { let c = ~0; for (const x of b) { c ^= x; for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (0xedb88320 & -(c & 1)); } return ~c >>> 0; };
-  const chunk = (t: string, d: Buffer) => { const l = Buffer.alloc(4); l.writeUInt32BE(d.length); const td = Buffer.concat([Buffer.from(t), d]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(td)); return Buffer.concat([l, td, c]); };
-  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
-  fs.writeFileSync(file, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
-}
-

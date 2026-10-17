@@ -119,6 +119,9 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Starquake, Antiriad) run 
   `npm run verify` = typecheck + check:strict + the fast tests.
 - `tools/probe`: a C64 in TypeScript (boot a .prg/.d64, run frames, patch memory, save a state, render PNGs). It makes title
   snapshots and runs the originals the ports are checked against (`games/*/build/README.md`).
+- `tools/zx`: a headless ZX Spectrum 48K in TypeScript (Z80, ULA, tape loader trap, snapshots, PNGs, a Z80 disassembler), the
+  Spectrum counterpart of `tools/probe`: test and study only, never imported by the browser bundle (`tools/zx/README.md`). The
+  original Moley Christmas, the 48K ROM and the exercisers it is checked with live in the gitignored `games/moley/build/`.
 - `tools/gen.mjs` (`npm run gen`): runs `tools/re/to-ts.mjs` over every `games/*/re/*.json` that names an `out`, engine first, into the gitignored `games/*/src/gen/`; skips a game while a stamp (`src/gen/.stamp`) matches the hash of its configs, `.state` snapshots and the translator (`--force` redoes all). `typecheck`, `check:strict`, `build`, `deploy`, `test`, `dev` and `tools/test.mjs` run it first, so a fresh clone needs no step.
 - `tools/re/to-ts.mjs`: the 6502 to TypeScript translator (structured flow, cycle counting, `TRACE=1` adds a per-instruction
   hook); `tools/re/disasm.mjs`; `tools/re/test`: an opcode fuzz test.
