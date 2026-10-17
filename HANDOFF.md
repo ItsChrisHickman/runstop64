@@ -27,8 +27,6 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
   codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
   (`games/shared/test/fixtures/saves`) keep proving players' saves load. Storage measured at ~1.4 M of the ~5.2 M characters
   a browser gives for all ten games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
-- **JSW2 `test/route.ts` fails** (a `todo` in `tools/tests.mjs`, failed before the runner too): travel offers 5 of the 7
-  rooms passed through, and reopening lands in another room. Find the root cause.
 - **The HD tests in the slow set** (`*/test/hd.ts`) have not been run under the new runner; Blackwyche's grew past 980 MB.
 - **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
   From here: fewer, larger commits with plain messages.
@@ -40,5 +38,4 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
   (`games/jsw2/QOL.md`, "Proposed").
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
-- **Older:** Monty warp to the Ultimate Experience; Starquake hints; Entombed, Karnath and Dragonskulle not checked for
-  Blackwyche's ladder loop (Up held as a climb ends walks him back down).
+- **Older:** Monty warp to the Ultimate Experience; Starquake hints.

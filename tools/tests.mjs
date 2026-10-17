@@ -100,7 +100,7 @@ export const TESTS = [
   { file: 'games/jsw2/test/items.ts', set: 'fast' },
   { file: 'games/jsw2/test/run.ts', set: 'fast' },
   { file: 'games/jsw2/test/sprites.ts', set: 'fast' },
-  { file: 'games/jsw2/test/route.ts', set: 'fast', todo: 'fails on main too: travel offers 5 of 7 rooms passed through, and reopening lands in another room' },
+  { file: 'games/jsw2/test/route.ts', set: 'fast' },
 
   // ---- Karnath
   { file: 'games/karnath/test/grace.ts', set: 'fast' },

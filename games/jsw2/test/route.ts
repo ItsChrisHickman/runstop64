@@ -12,6 +12,10 @@
  * - travel to every room offered: he's in that room, where he was on the walk there (a spot he
  *   walked through: where he came in, or landed), and alive 200 frames later, standing still.
  *
+ * Played in ORIGINAL: the route was found under the game's own rules (a long fall kills, and he
+ * starts the room again where he came in), and ENHANCED's safe landings would take it elsewhere.
+ * The map, travel and autosave are the same in both modes.
+ *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/route.ts
  */
 import fs from 'node:fs';
@@ -25,7 +29,7 @@ import { MAP_BOX } from '../../shared/native/pause';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
 
-useMemoryStorage();
+useMemoryStorage(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]])); // (the switch as the page remembers it)
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
 
