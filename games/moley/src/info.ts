@@ -20,8 +20,8 @@ export const info = {
         <a href="https://en.wikipedia.org/wiki/Your_Sinclair">Your Sinclair</a> cover game, 1987</li>
     </ul>
     <p>This is a custom edition of a ZX Spectrum-only game. The 48K game is rebuilt from the original program and checked
-    against it frame for frame, with the 128K version's music added. ENHANCED gives it C64 colours with no colour clash;
-    ORIGINAL keeps the Spectrum's own look.</p>
+    against it frame for frame, in the Spectrum's own colours, with the 128K version's music added. ENHANCED removes the
+    colour clash: Monty and the other sprites keep their own colours.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

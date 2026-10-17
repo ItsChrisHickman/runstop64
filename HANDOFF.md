@@ -24,8 +24,8 @@ is next and what is waiting on Chris. Last updated 2026-10-16.
   `player.ts`, `gauge.ts`, `input.ts`, `cycle.ts`, `sprite.ts`, compared with the original every pass by `test/lockstep.ts` (fast and slow set in
   `tools/tests.mjs`); `src/info.ts` is written for the finished build and the game is not in `games/registry.ts` yet. The originals (tape, 48K ROM,
   exercisers, states) are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md` remakes them). Next is stage 3 (room
-  scripts, enemies, items; feed the R register in lockstep). Chris's additions for stage 4: no-clash sprites and a C64-style palette, both ENHANCED
-  items (ORIGINAL keeps Spectrum colours and the clash; no separate toggle), in the plan, neither built.
+  scripts, enemies, items; feed the R register in lockstep). Chris's additions for stage 4: no-clash sprites as an ENHANCED
+  item (both modes keep the Spectrum's own colours; a C64 or softened palette was tried and dropped), in the plan, not built.
 
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and

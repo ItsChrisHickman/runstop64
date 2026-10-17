@@ -6,7 +6,6 @@
  *   A  the Spectrum's colours with the clash (ORIGINAL): a sprite pixel takes the ink of the cell under it.
  *   B  the Spectrum's colours without the clash: each sprite keeps the colour the original gives it in its usual spot, drawn
  *      over the cells like a C64 sprite.
- *   C  no clash, C64 colours: B through the mapping in src/palette.ts.
  *
  * The sprites are composed the original's way (README: "Entities, sprites and drawing"): bitmap bytes
  * `buffer OR (b AND mask(buffer))` (room 5 ORs only), so a sprite shows only where the background has no ink beside it; the
@@ -17,10 +16,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { C64_PALETTE } from 'c64kit';
 import { writePng } from '../../../tools/png';
 import { ENDING_ROOM } from '../src/data';
-import { SPECTRUM_PALETTE, SPECTRUM_TO_C64 } from '../src/palette';
+import { SPECTRUM_PALETTE } from '../src/palette';
 import { PICTURE_HEIGHT as HEIGHT, PICTURE_WIDTH as WIDTH, cellInk as ink, cellPaper as paper, roomPicture, type Picture } from '../src/picture';
 import { drawByte, spriteRows } from '../src/sprite';
 
@@ -40,7 +38,7 @@ interface Placement {
 }
 
 /** A palette index for each of the picture's pixels, 256 x 192, in a look. */
-type Look = 'A' | 'B' | 'C';
+type Look = 'A' | 'B';
 
 /** The colour the original gives a sprite in its usual spot: the ink most of its pixels fall on there. */
 function homeColour(base: Picture, p: Placement): number {
@@ -86,8 +84,7 @@ function compose(base: Picture, placements: readonly Placement[], orOnly: boolea
       pixels[y * WIDTH + x] = set ? (look !== 'A' && own >= 0 ? own : ink(attr)) : paper(attr);
     }
   }
-  const palette = look === 'C' ? SPECTRUM_TO_C64.map((c) => C64_PALETTE[c]) : SPECTRUM_PALETTE;
-  return { pixels, palette };
+  return { pixels, palette: SPECTRUM_PALETTE };
 }
 
 /** The picture in the middle of the 320 x 200 surface in the border colour, each pixel `scale` times. */
@@ -151,10 +148,9 @@ const SCENES: readonly { readonly name: string; readonly room: number; readonly 
 fs.mkdirSync(outDir, { recursive: true });
 for (const scene of SCENES) {
   const base = roomPicture(scene.room);
-  for (const look of ['A', 'B', 'C'] as const) {
+  for (const look of ['A', 'B'] as const) {
     const { pixels, palette } = compose(base, scene.placements, scene.orOnly, look);
-    const border = look === 'C' ? SPECTRUM_TO_C64[BORDER] : BORDER;
-    for (const scale of [1, 3]) writeLook(path.join(outDir, `${scene.name}-${look}-${scale}x.png`), pixels, palette, border, scale);
+    for (const scale of [1, 3]) writeLook(path.join(outDir, `${scene.name}-${look}-${scale}x.png`), pixels, palette, BORDER, scale);
   }
 }
 console.log(`looks in ${outDir}`);

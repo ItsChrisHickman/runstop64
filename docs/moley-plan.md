@@ -28,7 +28,7 @@ Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data) and 2 (Monty alone)
 
 ## The picture
 
-*Stage 4 notes from Chris:* the Spectrum palette is the default and the clash is the original's; two looks-only ENHANCED items are planned, described below (no colour clash; C64 colours); ORIGINAL keeps the Spectrum's colours and the clash. Neither is implemented.
+*Stage 4 notes from Chris:* the Spectrum palette is the default and the clash is the original's; one looks-only ENHANCED item is planned (no colour clash, below); both modes keep the Spectrum's own colours. Not implemented yet.
 
 Sprites are drawn the original's way (found in stage 1): into a copy of the screen bitmap, `buffer OR (b AND mask(buffer))`, so a sprite shows only where the background has no ink beside it (`src/sprite.ts`, proved), then each cell is copied to the screen; the two conveyor tiles ($55, $7B) turn one row each pass.
 
@@ -40,8 +40,8 @@ put it in the middle of the 320 x 200 surface (32 pixels left and right, 4 above
 square pixels, no stretching. (2) Use the Spectrum's own palette: it has exactly 16 entries (8 normal, 8 bright), so
 the surface needs no new pixel format, only a **palette on the surface and renderer** (default C64). Five places in
 c64kit read the C64 palette directly (`surface.ts`, `renderer.ts`, `effects.ts`, the HD layer; no HD view for this game) and would take it
-from the renderer; that change helps any later non-C64 game. (3) Mapping Spectrum colours onto C64 ones changes the
-look of every cell, so it is an ENHANCED item (below), not the default. The pause screen and map are Spectrum-style (Spectrum palette, a Spectrum-like
+from the renderer; that change helps any later non-C64 game. (3) Mapping Spectrum colours onto C64 ones (or softening them) was tried with `re/looks.ts` and dropped: Chris
+found it dull, and the Spectrum's own colours are the real ones. The pause screen and map are Spectrum-style (Spectrum palette, a Spectrum-like
 8 x 8 font drawn by us); the shell's overlay stays as it is. Sprites are drawn into the buffer, not as separate quads, so
 the cell colours work; ENHANCED's smoothing (below) draws the buffer at every display frame with sprites at in-between
 positions.
@@ -69,7 +69,7 @@ AY synthesiser (3 tone channels, noise, envelope; about 200 lines, new to c64kit
 
 Decide after playing the rebuild; none of these changes a room.
 
-5. **C64-style palette:** each of the Spectrum's 15 colours mapped to a C64 colour, chosen by perceptual distance (CIELAB), with a check that no two colours used together in any room's attribute table merge and that ink/paper contrast stays readable in every cell the game uses. A look only. ORIGINAL keeps the Spectrum's colours with the clash; ENHANCED has no clash and the C64 colours. No separate toggle (Chris: fewer knobs). (Stage 4.)
+5. ~~C64-style palette~~: tried and dropped 2026-10-17 (it made the game dull; the real colours stay in both modes).
 
 ## Risks
 
