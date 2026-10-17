@@ -34,8 +34,10 @@ const DEATH_FRAMES = [0xb0, 0xb1, 0xb2] as const;
  * the 25 HALTs that follow its draw (`$95BA`).
  */
 const DEATH_HOLD = 2, DEATH_LAST_HOLD = 25;
-/** The death's sound (`$A06B`, 44 ms) holds the picture for two frames. */
-const SOUND_FRAMES = 2;
+/** The death's sound (`$A06B`, 44 ms) holds the screen for three frames (measured: test/flow.ts) before the first picture. */
+const SOUND_FRAMES = 3;
+/** The time-out noise (`$A04E`, 1139 toggles, 265 ms) holds the screen for 13 frames. */
+const NOISE_FRAMES = 13;
 /** The dial's cells that flash when time runs out (`$A2D1`): 6 rows of 8 from row 18, column 24, 56 steps. */
 const DIAL_ROW = 18, DIAL_COLUMN = 24, DIAL_STEPS = 56;
 /** The gauge's two pictures sit at columns 26 and 28 of cell row 20, the item box at column 19 and the faces from column 1 every 3 in row 21. */
@@ -90,6 +92,8 @@ export class Display implements Observer {
   private gaugeLevel = 7;
   /** the high score the panel shows now (it is printed when it changes) */
   highShown = 0;
+  /** how many times a room has been entered (a front end or a test can see that a pass entered one) */
+  entries = 0;
 
   constructor(readonly game: Game) {
     game.observer = this;
@@ -119,10 +123,18 @@ export class Display implements Observer {
 
   roomEntered(): void {
     const game = this.game;
+    this.entries++;
     if (game.room >= ROOM_COUNT_PLAY) return; // (the card: stage 5)
     for (let y = 0; y < PANEL_TOP; y++) this.bits.fill(0, rowOffset(y), rowOffset(y) + 32);
     for (let cell = 0; cell < ROOM_SIZE; cell++) this.drawTile(this.bits, cell, game.tiles.memory[game.tiles.base + cell]);
+    // (the full gauge goes up with the room; the pass that follows would draw it anyway, but GAME OVER follows a room entered with no pass)
     this.gaugeLevel = 7;
+    this.blit(GAUGE_FRAMES, this.gaugeLevel * 64, GAUGE_ROW, GAUGE_COLUMN);
+    this.blit(GAUGE_FRAMES, this.gaugeLevel * 64 + 32, GAUGE_ROW, GAUGE_COLUMN + 2);
+  }
+
+  pocketShown(): void {
+    this.blit(SPRITE_FRAMES, this.game.pocket * 32, HUD_ROW, POCKET_COLUMN);
   }
 
   timedOut(): void {
@@ -134,17 +146,21 @@ export class Display implements Observer {
         }
       }
       this.hud();
-      // (the last stays for the two frames the death's sound takes before the death pictures start)
+      // (the last stays for the frames the death's sound takes before the death pictures start)
       this.shots.push(this.snapshot(step === DIAL_STEPS - 1 ? 1 + SOUND_FRAMES : 1));
     }
   }
 
   died(kind: Death): void {
     if (kind !== 'normal') {
+      // (the face goes, then the time-out noise plays over the screen as it is, 265 ms: `$95C8`)
       this.hud();
+      this.shots.push(this.snapshot(NOISE_FRAMES));
       return;
     }
     const monty = this.game.monty;
+    // (the death's sound plays first over the screen as it was, unless running out of time has just shown the dial: its last step holds it)
+    if (this.shots.length === 0) this.shots.push(this.snapshot(SOUND_FRAMES));
     this.hud(); // (the face goes first, before the first picture is drawn)
     for (const frame of DEATH_FRAMES) {
       monty.frame = frame;
@@ -172,7 +188,14 @@ export class Display implements Observer {
 
   // ---- drawing -------------------------------------------------------------------------------------------
 
-  private snapshot(frames: number): Shot {
+  /** The screen as it is, nothing else drawn on it: no sprites (a room just entered, before the first pass), for `frames` frames. */
+  still(frames: number): Shot {
+    const bits = this.bits.slice();
+    return { bits, attrs: this.attributes(), plain: bits, sprites: [], frames };
+  }
+
+  /** The screen as it is with its sprites, for `frames` frames (a death picture, a pass held while a sound plays). */
+  snapshot(frames: number): Shot {
     return { bits: this.bits.slice(), attrs: this.attributes(), plain: this.plain(), sprites: this.sprites(), frames };
   }
 

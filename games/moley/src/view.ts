@@ -10,6 +10,7 @@
  */
 import { EVERY_FRAME, Smoothed, Surface, TRANSPARENT, makePalette, type Renderer, type SpriteHandle, type ViewStep } from 'c64kit';
 import { Display, pixelsOf, type Shot, type SpritePlace } from './display';
+import type { FlowStep } from './flow';
 import { SPRITE_INK, spriteImage, spritePixel, type Look } from './look';
 import { PICTURE_HEIGHT, PICTURE_WIDTH } from './picture';
 import { SPECTRUM_PALETTE } from './palette';
@@ -88,6 +89,18 @@ export class MoleyView {
       if (reset) slot.glide.reset(place.x, place.y); else slot.glide.push(place.x, place.y);
       slot.x = place.x; slot.y = place.y; slot.seen = this.step;
     });
+  }
+
+  /**
+   * What a step of the flow (flow.ts) shows, on the frame `into` of its `step.frames` (0 the first): a held picture is drawn on the
+   * first frame, the display as it is with its sprites gliding across a pass (ENHANCED) on each.
+   */
+  present(step: FlowStep, into: number): void {
+    if (step.shot !== null) {
+      if (into === 0) this.show(step.shot);
+      return;
+    }
+    this.update({ fresh: into === 0 && step.fresh, frames: step.frames });
   }
 
   /** A picture held for some frames (a death picture): drawn as it is, the sprites exactly where they are. */

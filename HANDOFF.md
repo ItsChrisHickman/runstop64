@@ -19,12 +19,15 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
 
 ## Next
 
-- **Moley Christmas** (ZX Spectrum only): plan stages 1-4 are done in worktree commits (`docs/moley-plan.md`); the game logic and the picture are complete and checked against the original.
+- **Moley Christmas** (ZX Spectrum only): plan stages 1-5 are done in worktree commits (`docs/moley-plan.md`); the game logic, the picture and the whole flow are complete and checked against the original.
   Data: `games/moley/re/extract.ts` writes the committed `src/data/*.ts`. The logic: `src/game.ts` (`Game.pass` is the original's main loop, 25 a second; `Observer` tells the picture what happens). The picture:
   `src/display.ts` (the Spectrum's screen memory changed by the original's own steps; `takeShots` gives the death and time-out pictures), `src/look.ts` (ORIGINAL exact, ENHANCED no colour clash), `src/view.ts` (`MoleyView` on c64kit's renderer:
-  Spectrum palette, black border, 256 x 192 centred in 320 x 200; `look` is the flag for the front end; smooth motion through `ViewStep` and `render(alpha)`). c64kit got `Palette` (default C64, every other game unchanged).
-  Tests: `test/picture.ts` (every pass and frame against the original: 0 differ), `test/view.ts`, plus stage 3's lockstep and playthrough; `re/frames.ts` writes PNGs, `re/colours.ts` measures the sprite colour (white).
-  Room 2's wrong-address jump: Chris decided, fixed in both modes (the room restarts). The game is not in `games/registry.ts`. Next is stage 5 (credits page, game over, the ending: not drawn yet, a pass that ends or loses the game is not drawn) and stage 6 (front end).
+  Spectrum palette, black border, 256 x 192 centred in 320 x 200; `look` is the flag for the front end; smooth motion through `ViewStep` and `render(alpha)`; `present(step, frame)` puts a flow step on it). c64kit got `Palette` (default C64, every other game unchanged).
+  **The flow (stage 5):** `src/flow.ts` `MoleyFlow.step({ keys, any })` is the whole game: credits page (`src/screens.ts`: the picture, scroller, GAME OVER, the card), play, GAME OVER, the Christmas card, back to the credits page. A step is a pass in play
+  (2 frames) and a frame or a held picture elsewhere; it says how many 50 Hz frames to hold the picture. `flow.highScore` is the one number to save; `new MoleyFlow(rng, { game, display })` starts in play (continue).
+  Tests: `test/flow.ts` (every frame against the original: credits page, starts, the card, game overs, second games: 0 different), `test/flow-steps.ts`, `test/picture.ts` (every pass and frame against the original: 0 differ), `test/view.ts`, plus stage 3's lockstep and playthrough (now with a game over); `re/frames.ts` and `re/screens.ts` write PNGs, `re/colours.ts` measures the sprite colour (white).
+  Room 2's wrong-address jump: Chris decided, fixed in both modes (the room restarts). The game is not in `games/registry.ts`. **Next is stage 6** (the shared front end: `runPort`, `FrontEnd`, a `PauseMap` of the six screens, autosave per screen, continue,
+  touch, ENTER or a tap for the jump key on the credits page and for "any key" on the card, saving `flow.highScore`) and stage 7 (the beeper effects, then the 128K music). The flow's `sounds` are `game.sounds` after each pass; the death's sound frames are in the steps.
   The originals are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md`).
 
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the

@@ -42,6 +42,8 @@ export class PictureTally {
   shots = 0;
   shotsEqual = 0;
   windowsExact = 0;
+  /** passes that fit but for one frame: the death's sound is 2.2 frames long and holds the screen for 2 or 3 (the model says 3, the more usual) */
+  windowsSlack = 0;
   /** passes in which Monty died or time ran out */
   windows = 0;
   readonly oddShots: string[] = [];
@@ -208,7 +210,7 @@ export function watchPicture(run: Run, tally: PictureTally, label: string, inks?
   hooks.passEnd = (outcome, mem) => {
     const d = display;
     if (d === null || before === null) return;
-    if (outcome !== 'playing') { // (the ending and game over draw their own screens: stage 5)
+    if (outcome !== 'playing') { // (the ending and game over draw their own screens: test/flow.ts compares those)
       frames = [];
       middles = [];
       transition = false;
@@ -275,6 +277,7 @@ export function watchPicture(run: Run, tally: PictureTally, label: string, inks?
       tally.shotsEqual += best;
       tally.windows++;
       if (best === expected.length) tally.windowsExact++;
+      else if (best === expected.length - 1) tally.windowsSlack++;
       else if (tally.oddShots.length < 6) tally.oddShots.push(`${label} pass ${run.passes}: ${best} of ${expected.length} frames of ${shots.length} pictures`);
     }
     before = sameBytes(original, after) ? after : original;

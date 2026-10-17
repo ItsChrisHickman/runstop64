@@ -327,6 +327,8 @@ export class Run {
   passes = 0;
   /** the last pass's outcome as the rebuilt game gave it */
   last: Outcome = 'playing';
+  /** the keys of the pass compared last (the byte `readKeys` made) */
+  passKeys = 0;
 
   constructor(readonly tally: Tally, stateFile: string, readonly label: string, kempston: boolean, private readonly prepare?: (mem: Uint8Array) => void) {
     unpackState(this.m, new Uint8Array(fs.readFileSync(stateFile)));
@@ -381,6 +383,7 @@ export class Run {
     const p = this.pending;
     if (p === null) return;
     if (this.stray) { this.done = true; this.pending = null; return; }
+    this.passKeys = p.keys;
     const g = this.game;
     const before = { room: g.room, lives: g.lives, x: g.monty.x, y: g.monty.y, state: g.monty.state, phase: g.monty.phase };
     const result = g.pass(p.keys);

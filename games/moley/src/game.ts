@@ -79,6 +79,8 @@ export interface Observer {
   newGame(): void;
   /** a room has just been entered (`$854A`): its tiles are drawn, the gauge is full */
   roomEntered(): void;
+  /** the arrival routine puts the item box up at once (`$878A`: rooms 2, 3 and 4) */
+  pocketShown(): void;
   /** the gauge ran out: the panel flashes before the death (`$A2D1`) */
   timedOut(): void;
   /** Monty died, a life is gone (`$9592`, `$95C8`) */
@@ -123,8 +125,9 @@ export class Game implements Stage, Outside {
   /** the last delivery has been made: the ending follows this pass (`$A2A1`) */
   ended = false;
 
-  constructor(readonly rng: Random) {
-    this.newGame();
+  /** `start` false leaves the game unstarted, for a flow that starts it (`newGame`) when the credits page is left. */
+  constructor(readonly rng: Random, start = true) {
+    if (start) this.newGame();
   }
 
   // ---- what Monty and the scripts ask of the world -----------------------------------------------
@@ -191,7 +194,10 @@ export class Game implements Stage, Outside {
   private arrive(room: number): void {
     const a = ARRIVALS[room];
     if (a === undefined) throw new Error(`room ${room} has no arrival`);
-    if (a.pocket !== undefined) this.setPocket(a.pocket);
+    if (a.pocket !== undefined) {
+      this.setPocket(a.pocket);
+      this.observer?.pocketShown();
+    }
     if (a.clearState === true) this.setMontyState(State.walking);
     this.monty.x = a.x;
     this.monty.y = a.y;

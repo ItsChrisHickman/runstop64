@@ -34,12 +34,14 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `test/title.ts` | the credits picture the game unpacks (`$A500`) against one made from its data; the scroller's text | identical |
 | `test/data.ts` | the committed data (`src/data/`) made again from the tape, the ROM and the game in play; every block against the original's memory at the credits page and in each room's state (maps differ only in item cells and room 2); the 66 glyphs against the characters the game's character routine draws (credits scroller, ending, game over); every one of the 192 sprite frames, both ways round, at 8 shifts and near the right edge, drawn by the game's own routine `$8931` (rooms 0 and 5) against `src/sprite.ts` | 31 of 31 |
 | `test/lockstep.ts` (+ `lockstep-core.ts`, `shake.ts`, `random-player.ts`) | the whole rebuilt game (`src/game.ts`: Monty, the six room scripts, items, score, lives, gauge) against the original running, **every pass**: Monty, the whole entity table (7 records), score and high score, lives, gauge, pass counter, the scripts' animation (cycle, counter), the items (records and count), the room's map (6 rooms; room 2 rewrites its own) and attributes (item ink, room 1's lights), every variable the six scripts keep, the picture in the HUD's pocket box, the beeper effects asked for, the outcome (playing, game over, ending) and the random bytes asked for (the original's R reads are fed in) | random players in every room, the scripts' state shaken, players at each exit, and placements round all 302 tile kinds: 0 differences (numbers in `docs/moley-plan.md`, stage 3) |
-| `test/playthrough.ts` (+ `players.ts`, `bot.ts`) | a bot plays on the original and the rebuilt game is compared every pass: room 2 from its start to its exit (the puzzle, the prize, +400), room 5 from its start to the ending (four deliveries, +1000), and the whole game from room 0 to the ending (score 3490) | 926, 606 and 3963 passes, 0 differences |
+| `test/playthrough.ts` (+ `players.ts`, `bot.ts`) | a bot plays on the original and the rebuilt game is compared every pass: room 2 from its start to its exit (the puzzle, the prize, +400), room 5 from its start to the ending (four deliveries, +1000), and the whole game from room 0 to the ending (score 3490), and the whole game with no life to spare (killed in room 2: the game over) | 926, 606, 3963 and 1172 passes, 0 differences |
 | `test/newgame.ts` | the first state of a game from the credits page, and of a second game after a first has been played to its ending (high score kept, maps and script variables as the first game left them) | no differences |
 | `test/stray.ts` | the original's death in room 2 jumps to `$9904` or to the restart by the puzzle's counter (the one place the rebuild differs); the rebuilt game restarts the room | rule holds in 13 of 13 cases |
 | `test/picture.ts` (+ `picture-core.ts`) | the rebuilt picture (`src/display.ts`: the Spectrum's screen memory changed by the original's own steps) against the original's screen memory, bitmap and attributes, in lockstep: every pass, and every frame the original shows (new, old, torn between, or different), the death and time-out pictures in order. Random players, shaken states, exits, Monty round every kind of tile, the bot in rooms 2, 5 and the whole game | slow set: see "The picture" in `docs/moley-plan.md`; 0 passes and 0 frames differ |
 | `test/view.ts` | the picture on c64kit's renderer: Spectrum palette, black border, centred 256 x 192; ORIGINAL equals the screen; ENHANCED (no clash) equals ORIGINAL outside the sprites' boxes and shows every sprite pixel; the glide is even at every half frame, whole pixels when `snap`; no original needed | passes |
 | `test/game.ts` | the rebuilt game alone: `snapshot()` and `restore()` bring it back exactly (38 snapshots, 60 passes played twice each), the seeded generator | passes |
+| `test/flow.ts` (+ `flow-core.ts`) | the whole flow (`src/flow.ts`, `src/screens.ts`) against the original, every frame (same / a frame apart / torn / a screen being drawn / different): the credits page from boot (the jump key held through the wait, then pressed), a game started, the pass in which the last delivery is made, the card (a key held, and not), any key to the credits page, a second game; the passes in which the last life is lost (time out, hazards in rooms 0, 1, 3 and 4, the bot in room 2) with the death pictures, GAME OVER and the credits page; the rebuilt last pass is the original's, the R bytes are the ones it read | 2,847 frames: 1,774 same, 474 a frame apart, 443 torn, 156 in a screen being drawn, 0 different (a frame apart and torn are mostly the passes of the second game: the draw lands late; the credits page, the card and every death picture are the same, except that a game over's text and the credits scroller after it are a frame apart in 2 of 6) |
+| `test/flow-steps.ts` | the flow and screens alone (no original): the scrollers' cadence and their text going round, who starts a game, GAME OVER's length and colours, the card's wait for keys, the high score kept, determinism, the view | 29 checks pass |
 | `test/info.ts` | the info card's credits and description; not in the registry yet | passes |
 
 ## How it runs (proved: boot.ts)
@@ -297,21 +299,51 @@ Details the rebuild had to get right, all now checked pass by pass against the o
   Hazards that use `$956D` take one step from it.
 - HUD (`$B500`, `$BD40`): a yellow panel with SCORE, HIGH, the faces, a box for the carried item (`$50B3`) and the dial.
 
-## Title (the credits page), game over and ending (read)
+## Title (the credits page), game over and ending (proved: `test/flow.ts`; `src/screens.ts`, `src/flow.ts`)
 
-- **Credits page** (`$A0CE`): the Gremlin logo picture and the credits text, in the picture. It is unpacked by `$A500` from `$A564`:
-  768 attribute bytes, where bit 7 means "this cell has a bitmap" and 8 bytes of bitmap follow in a second stream after the
-  attribute stream. Below it a one-line scroller (`$A277`, text `$A111`, 8 pixels shifted per call by `$8367`) says "Welcome Your
-  Sinclair readers to the Monty game given with the magazine... Pre-defined keys are Z-left, X right, O up, K down, SPACE jump...
-  Sinclair and Kempston JOYSTICKS don't have to be selected, just pick 'em up and use 'em... Press a JUMP key/button to start".
-  A jump key (`$A106` loop on `$915F` bit 4) ends it and starts the game. Black border (`$A0CF`).
-- **Ending** (`$82DA`): room 6 over a cleared screen (the card), the Gremlin releases scroller (`$8391`, "Coconut Capers - Featuring
-  Jack The Nipper ... Samurai Trilogy ... Compendium ... Gary Linekers Superstar Soccer ... Mask II ... Basil the Great Mouse
-  Detective ... Blood Valley ... Alternative World Games ... Night Raider ... Deflektor ... Masters of the Universe - The Movie
-  ... Tour de Force ... Gary Linekers Soccer Super Skills ... Hill 19") at `$481F` and attribute cycling on the HUD rows
-  (`$835C`), until any key is pressed (`$82F4`-`$8357`: wait for all keys up, then for a key), then `$81BC`.
-- Text on screen is drawn with the ROM's character set (`$A2B5`: `$3C00 + char * 8`): only the characters the game prints would
-  need to come with a rebuild (the ROM cannot be shipped).
+Frames below are 50 Hz frames counted from the one in which the routine is reached ("+n"); every number was measured on the original
+and is what `src/flow.ts` uses. "The screen" is the Spectrum's screen memory, compared after every frame.
+
+- **Credits page** (`$A0CE`). `$A500` first clears the whole screen (`LDIR`, 2 frames) and then unpacks the picture from `$A564`: 768
+  attribute bytes, where bit 7 means "this cell has a bitmap" and 8 bytes of bitmap follow in a second stream after the attribute
+  stream; it is whole at **+4**. The last three attributes (`$5AFD`-`$5AFF`) are then set to black (`$A0DA`), and the page looks for a
+  Kempston joystick by reading port `$1F` 65,536 times (`$A0E9`, 46 T-states a read, 43.1 frames; `$8105` = 1 if bits 5-7 never came
+  up): **the keys are not read for 43 or 44 frames** (from the unpacking, +48 after the trigger; after boot +47: the program enters the
+  page at another point of the frame). Then the loop `$A106`: each frame after the HALT the scroller shifts its row, `$915F` reads the keys
+  (bit 4 of the pass's key byte is the jump key: SPACE, Kempston fire if found, Sinclair 0), and if none is down the scroller counts
+  and, every 8th frame, draws the next character. The first frame of the loop does not shift (the HALT comes after it), so the first
+  character is drawn whole at the right edge. The scroller is cell row 23, 32 bytes of each of the 8 lines shifted left one pixel
+  (`$8367`, a clear pixel comes in), the character is drawn in the last column from the ROM font (`$A2B5`); its text (`$A111`, 357
+  characters) "Welcome Your Sinclair readers to the Monty game given with the magazine... Pre-defined keys are Z-left, X right, O up, K
+  down, SPACE jump... Sinclair and Kempston JOYSTICKS don't have to be selected, just pick 'em up and use 'em... Press a JUMP key/button
+  to start" goes round: the terminator is read as the first character and the pointer goes on from the second, so the stream is the
+  text again and again. Black border (`$A0CF`). Only the jump key leaves it (Z, X, O, K do not).
+- **Starting a game** (`$81BC` after `$A0CE` returns): the screen is cleared (`$A2A8`, 2 frames), the panel copied in, the score zeroed,
+  room 0 entered (`$854A`, drawing over about 7 frames, the gauge put up full with it), faces drawn: the first pass begins **+10** after
+  the frame in which the jump key was read. The pictures in between are the credits screen (its scroller one pixel further, as the
+  frame shifts before it reads the keys), a cleared screen, the panel as copied (a gauge image that is not the full one) and the room
+  with its attributes from the room's table (the items' colours are drawn later), piece by piece.
+- **Death** (`$9592`): the sound (`$A06B`, 44 ms) holds the screen as it was for **3 frames** (2.2 frames: one death in 108 had 2),
+  then Monty's three pictures 2 frames each and the empty one 25 (`$95BA`). The time-out first flashes the dial (`$A2D1`, 56 frames, the
+  last for the sound's 3). The short-circuit death (`$95C8`, room 3) removes the face and plays the noise (`$A04E`, 265 ms) over the screen
+  for **13 frames**. The restart routines (`$926E`) draw the item box at once for rooms 2, 3 and 4 (`$878A`), and `$854A` puts the full gauge up
+  with the room. Total of a pass with a death: 41-44 frames (98-99 with a time-out).
+- **Game over** (`$8292`, lives negative after a death): the room is entered again (**5 frames** after the last picture) and "GAME OVER !!"
+  (12 characters, `$82AB`) is written at cell row 9, column 10 with attribute `$10 | (frame & 7)`, paper red and the ink going round
+  the 8 colours, one step a frame, for **100 frames** (`$8297` loop: draw, HALT). The keys are not read. Then `$81BC`: the credits
+  page, **+100 frames after the first text, or +101** (2 of 6 game overs; read as the first draw falling late in its frame; the flow
+  uses 100, and the credits scroller is then a frame apart for as long as it runs, counted as "a frame apart"). Nothing is kept but the
+  high score (which is compared and kept when the next game starts, `$9F43`).
+- **The last delivery** (`$9CE0`): the script draws the pass once more (`$87C4`: the NEWS shop gets its last paper), adds +1000 (`$9EE5`)
+  and waits 50 HALTs (`$9CE9`), then sets the end flag (`$A2A1`): the card comes **+51** after the pass began.
+- **Ending, the Christmas card** (`$82DA`): the screen is cleared (2 frames), room 6 entered (32 x 24 cells, its own tile set: `$854A`,
+  drawn over 4 frames), the cell `$591F` (row 8, column 31) set to black ink on black paper, the scroller (`$8391`, row 8, the text from
+  "Coconut Capers - Featuring Jack The Nipper" to "Hill 19" and round) is started at `$838E`/`$838F`. First it waits until **every key is up**
+  (`IN A,($FE)` with every half-row, `$82F4`; no joystick), then each frame: a character every 8th frame as on the credits page (the
+  first in the frame the wait ends), and after the HALT the row shifts, **seven cells' attributes take a random step of paper**
+  (`$835C`: `((R AND $38) + attr) AND $3F OR $40`, the cells `$59CF`, `$5A0F`, `$5A2E`, `$5A6F`, `$5A70`, `$5A8E`, `$5AB1`, 7 reads of R a
+  frame), and any key at all goes to `$81BC` (the credits page again).
+- Text on screen is drawn with the ROM's character set (`$A2B5`: `$3C00 + char * 8`): the 66 characters the game prints are in `src/data`.
 
 ## Sound (proved the structure, read the sources)
 
@@ -333,7 +365,8 @@ Details the rebuild had to get right, all now checked pass by pass against the o
 - The effect of the original's wrong jump in room 2 ("Where the rebuild differs"): which entities and variables the stray run of room 3's script changes is read, not followed.
 - Which tiles are lethal: none are; rooms 0 and 4 have floor and wall tests only and the lethal things are entities (proved by the scripts).
 - Whether any key (other than SPACE) is read by the credits page; the key-scan routine at `$A341` and its tables at `$A3A0-$A4A0` are not called.
-- The credits page's and the ending's own code, and the picture of the ending and game over (stage 5).
+- Why GAME OVER sometimes lasts 101 frames and not 100 (read as the first draw straddling a frame boundary, not followed), and why the credits page after the program starts waits one frame less than after a restart (the T-state at which it is entered).
+- Whether the credits page's `$A341` key scan is ever reached (`$A2F5` is the only caller and nothing calls it).
 
 ## Tools
 
