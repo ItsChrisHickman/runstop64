@@ -22,6 +22,8 @@ import { fromHex } from './data';
 
 export const SCREEN_COLS = 40;
 export const SCREEN_ROWS = 25;
+/** The play area's first screen column (the side columns of sprites and item boxes are either side of it). */
+export const FIRST_COL = 4;
 /** Where the VIC finds things in the bank the game uses (bank 0). */
 export const SCREEN_AT = 0x400;
 export const CHARSET_AT = 0x3800;

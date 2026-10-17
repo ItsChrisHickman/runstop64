@@ -30,7 +30,7 @@ import { Monty, type MontyHost } from './monty';
 import { Random } from './rng';
 import { COLS, drawCells, ROWS, type Room, unpackCells } from './room';
 import { Scroller, SCROLLER_SPRITES, bigLetter } from './scroller';
-import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
+import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, FIRST_COL, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
 import { putSpriteImage } from './sprites';
 import { SoundLog } from './soundlog';
 import { TITLE_ROOM } from './sound';
@@ -61,7 +61,6 @@ export const SETUP_FRAMES_AFTER_GAME = 6;
 /** A fresh program's: the file's own values. */
 export const FRESH_CARRY: TitleCarry = { toggle: 0, beat: 0, buildAt: 0x0200, pointerBase: 0x08 };
 
-const FIRST_COL = 4;
 /** The second sprite buffer ($3A00, in the character set's memory). */
 const SPRITE_BUFFER = 0x3a00;
 /** The menu: ten characters from $2F on row 14 from column 15 ($063F: its colours are the cells' in colour RAM). */

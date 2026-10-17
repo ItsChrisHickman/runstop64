@@ -8,7 +8,7 @@
  *   ROOMS=0-19 nice -n 15 node tools/test.mjs games/awm/test/picture.ts games/awm/build/play.state sweep:300:1 [out-dir]
  *
  * The plans are the lockstep's (`sweep:N:seed`, `kinds:N:seed`, `deliver:N:seed`, `rand:N:seed`, scripted
- * `R:100,F:1`); ROOM=n or ROOMS=a-b limits the sweep and kinds plans. Each frame the original shows is
+ * `R:100,F:1`); ROOM=n or ROOMS=a-b limits the sweep and kinds plans, RUN=n or RUN=a-b plays only those runs (counted from 0) of the plan. Each frame the original shows is
  * either the same as the rebuild's, or torn (see `isTorn`), or a frame apart (it equals the rebuild's frame before or after), or
  * different. The original draws at 50 Hz and thinks at 25: the frames of a logic step are the drawing phase
  * ($5473) and the logic phase ($54AE); the frames of a room being drawn (the original takes about six, filling
@@ -22,9 +22,7 @@ import path from 'node:path';
 import { C64Machine, unpackState, type FrameCapture } from 'c64kit';
 import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { decodeStick } from '../src/input';
-import { BOXES } from '../src/panel';
-import { Picture } from '../src/picture';
-import { applyOriginal, makeGame, plannedRuns, startOriginal, type Mark, type PlannedRun } from './harness';
+import { applyOriginal, makeGame, makePicture, plannedRuns, startOriginal, type Mark, type PlannedRun } from './harness';
 
 const [stateFile, planArg = 'rand:600:1', outDir] = process.argv.slice(2);
 if (!stateFile) throw new Error('usage: picture.ts <play.state> [plan] [out-dir]');
@@ -109,18 +107,7 @@ function runPicture(p: PlannedRun): { tally: Tally; first: string; steps: number
   for (let i = 0; i < 20; i++) now = orig.next(0);
   const game = makeGame(now.snap.room);
   applyOriginal(game, now);
-  const pic = new Picture(game);
-  pic.resume(now.ram[0x4037] ?? 0);
-  // (the animated tiles have turned or scrolled for as many steps as the original has been in its room: the rebuild takes up where they are)
-  pic.ram.set(now.ram.subarray(0x3808, 0x3880), 0x3808);
-  // (the boxes of what he carried when the snapshot was taken, or picked up while the original drew its first frames: as they are)
-  pic.ram.set(now.ram.subarray(0x3880, 0x3900), 0x3880);
-  for (const [col, row] of BOXES) {
-    for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
-      const at = (row + dr) * 40 + col + dc;
-      pic.screen.put(col + dc, row + dr, now.ram[0x400 + at] ?? 0, orig.o.colour[at] ?? 0);
-    }
-  }
+  const pic = makePicture(game, now, orig.o);
 
   const tally: Tally = { same: 0, torn: 0, apart: 0, different: 0, transition: 0 };
   const torn = new Set<number>();
@@ -215,7 +202,11 @@ const probe = new C64Machine();
 probe.loadState(state);
 const start = { room: probe.ram[0x402b] ?? 0, x: probe.ram[0x5c3f] ?? 0x80, y: probe.ram[0x5c40] ?? 0x68 };
 let runs = 0, clean = 0, steps = 0;
+const [runFrom, runTo = runFrom] = (process.env.RUN ?? '').split('-').filter(Boolean).map(Number);
+let index = -1;
 for (const p of plannedRuns(planArg, start)) {
+  index++;
+  if (runFrom !== undefined && (index < runFrom || index > (runTo ?? runFrom))) continue;
   const r = runPicture(p);
   runs++; steps += r.steps;
   const { same, torn, apart, different, transition } = r.tally;

@@ -44,8 +44,14 @@ deliveries, the shield, the scrambled controls, states $E-$13, the lift's kill a
 `picture.ts` classes a frame as *same*; *torn* (the original's logic wrote to the screen while the beam was drawing
 it); *a frame apart*; or *different*. `sweep:300:1`: of 47782 frames, 47752 same, 21 torn, 7 a frame apart, 2
 different (rooms 39 and 67: two writes at different moments plus a counter). `kinds:40:1`: of 103682, 103517 same, 114
-torn, 46 a frame apart, 5 different. `deliver:60:2`: of 20252, 20084 same, 159 different, all in one run (into room 37
-carrying items 3, 19, 10 at progress $40: a difference in the panel's row 6, column 29 colour; not looked into). Frames
+torn, 46 a frame apart, 5 different. `deliver:60:2`: of 20252, 20243 same, 4 torn, 5 a frame apart, none different. (It
+once had 159 different, all in one run, "into room 37 carrying items 3, 19, 10 at progress $40", a difference in the panel's colour at
+row 6, column 29. That run begins in room 36, standing on an item, which the original takes in its first step: progress $41, the
+first part of the way out drawn on the panel, and the item's colour left in its cells. The harness starts its rebuild after those
+steps, so its picture never saw them: 801 pixels of the way out, and a colour that shows on no pixel. `makePicture` now takes both
+from the original. The rebuild had one real difference behind the colour: it drew a room after the step that entered it, so an item
+taken at his way in was never drawn, where the original draws the room at once (`$5581`) and the step then takes the item, which
+keeps its colour; the game now tells the picture when a room is entered (`onRoom`), and `frontend.ts` checks it.) Frames
 of a room being drawn are not compared: the original takes about six frames filling it in row by row, the rebuild
 draws at once.
 

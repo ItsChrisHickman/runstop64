@@ -9,6 +9,10 @@ import { Enemies } from '../src/enemies';
 import { Game } from '../src/game';
 import { LIFT_SITES, Lift } from '../src/lifts';
 import { Stick } from '../src/input';
+import { BOXES } from '../src/panel';
+import { Picture } from '../src/picture';
+import { COLS, ROWS } from '../src/room';
+import { FIRST_COL } from '../src/screen';
 import { callText } from '../src/soundlog';
 import { World } from '../src/world';
 
@@ -120,6 +124,38 @@ export function applyOriginal(g: Game, { snap: s, ram }: Moment): void {
   g.tune = r(0x4064); g.soundFlag = r(0x4066);
   g.progress = r(0x405d); g.progressSeen = r(0x402d); g.shield = r(0x405e); g.bonus = r(0x405b); g.bonusFlag = r(0x405c);
   g.helped = r(0x4062); g.quest = r(0x4060); g.monty.slide = r(0x405f); g.ended = r(0x402a) !== 0; g.contact80 = r(0x5df6) !== 0;
+}
+
+/**
+ * The rebuild's picture put where the original's is (the game already is: `applyOriginal`): the room's cells and animated tiles,
+ * the boxes, the parts of the way out and the colours an item taken leaves, which a picture made now never saw happen.
+ */
+export function makePicture(g: Game, { ram }: Moment, o: C64Machine): Picture {
+  const pic = new Picture(g);
+  pic.resume(ram[0x4037] ?? 0);
+  // (the animated tiles have turned or scrolled for as many steps as the original has been in its room: the rebuild takes up where they are)
+  pic.ram.set(ram.subarray(0x3808, 0x3880), 0x3808);
+  // (the boxes of what he carried when the snapshot was taken, or picked up while the original drew its first frames: as they are)
+  pic.ram.set(ram.subarray(0x3880, 0x3900), 0x3880);
+  for (const [col, row] of BOXES) {
+    for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+      const at = (row + dr) * 40 + col + dc;
+      pic.screen.put(col + dc, row + dr, ram[0x400 + at] ?? 0, o.colour[at] ?? 0);
+    }
+  }
+  // (what the steps before the snapshot left that the rebuild's picture never saw, as the original has it: the parts of the way out it
+  // drew for the progress it made (a progress poked in drew none), and the colour an item taken leaves in its cells, which the cells of
+  // a room drawn afterwards do not have)
+  for (let row = 21; row < 24; row++) {
+    for (let col = 10; col < 30; col++) pic.screen.put(col, row, ram[0x400 + row * 40 + col] ?? 0, o.colour[row * 40 + col] ?? 0);
+  }
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = FIRST_COL; col < FIRST_COL + COLS; col++) {
+      const at = row * 40 + col;
+      if ((ram[0x400 + at] ?? 0) === 0) pic.screen.colour[at] = o.colour[at] ?? 0;
+    }
+  }
+  return pic;
 }
 
 /** Which groups are taken out of both (NEUTRAL=enemies,items,lifts). */

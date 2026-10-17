@@ -7,8 +7,9 @@
  *
  *   phase B (logic, `beginB` then the game's `logic` then `endB`): the lift is drawn ($83EE), the sprite
  *     registers are set from the entity records as the last logic step left them ($5C81), then the logic
- *     runs and the places it changed on the screen (an item taken, a tile burnt, the score, the lives, a
- *     whole new room) follow;
+ *     runs and the places it changed on the screen (an item taken, a tile burnt, the score, the lives) follow
+ *     (a new room is drawn when the game enters it, `onRoom`, as $5581 does: before the rest of that step, in
+ *     which he may take an item at his way in, which then keeps its colour in the cells);
  *   phase A (`frameA`): the lift again, the animated tiles ($5818) and the five sprite pictures from the
  *     records the logic made ($66CA), into the buffer that is not shown (two buffers, swapped every step).
  *
@@ -25,13 +26,12 @@ import type { BoxEvent } from './items';
 import type { Lift } from './lifts';
 import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, itemGlyphs, printHigh, printMoney, printScore } from './panel';
 import { COLS, drawCells, ROWS } from './room';
-import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, SPRITE_BUFFERS, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
+import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, FIRST_COL, SPRITE_BUFFERS, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
 import { putSpriteImage } from './sprites';
 import type { TitleCarry } from './title';
 import { BURNING_CODE } from './tiles';
 
-/** The play area's first screen column, and the item characters. */
-const FIRST_COL = 4;
+/** The item characters. */
 const ITEM_CHARS = 0x2f;
 /** What a counter at zero is: nothing is printed for it until it changes (the screen starts with the digits' places blank). */
 const ZERO = '0,0,0,0,0';
@@ -102,6 +102,7 @@ export class Picture {
     if (high) printHigh(this.screen, high);
     game.items.onBox = (e) => this.box(e);
     game.onProgress = (stage) => drawProgress(this.screen, 2 - stage);
+    game.onRoom = () => this.enterRoom();
   }
 
   // ---- the game starts ($5B39 on) ----------------------------------------------------------------
@@ -335,8 +336,7 @@ export class Picture {
   /** The end of phase B: what the logic step changed on the screen, and the frame the VIC makes. */
   endB(): FrameCapture {
     const { game, screen } = this;
-    if (game.world.room !== this.room) this.enterRoom();
-    else this.changedCells();
+    this.changedCells();
     this.counters();
     this.lives();
     screen.ram.set(game.monty.burnPicture, CHARSET_AT + BURN_CHAR * 8);

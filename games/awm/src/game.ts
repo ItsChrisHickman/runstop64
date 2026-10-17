@@ -133,6 +133,8 @@ export class Game implements MontyHost {
   ended = false;
   /** Told when the progress reaches a part of the picture (0, 1, 2: $41, $82, $C3), for the panel (stage 4). */
   onProgress: ((stage: number) => void) | null = null;
+  /** Told when a room has been entered and loaded, for the picture, which draws it as $5581 does: before what the rest of the step does in it (an item taken on arrival). */
+  onRoom: (() => void) | null = null;
   /**
    * The front end's, not the original's (both off for the original's rules, as the lockstep has them):
    * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is ENHANCED's
@@ -213,6 +215,7 @@ export class Game implements MontyHost {
       this.sound.effect(0x4a);
     }
     this.load(room);
+    this.onRoom?.();
   }
 
   // ---- states the scripts drive ($4BA5, $4ACA, $4A6F) ----------------------------------------

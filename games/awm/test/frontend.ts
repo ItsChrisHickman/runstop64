@@ -283,6 +283,22 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
 }
 
+// ---- an item taken at his way in: drawn first, then taken, so its colour stays; the way out grows with the progress -------------------
+{
+  // (what `picture.ts deliver:60:2` once showed as a difference in the panel's colours: room 36's item at column 25, row 6, with the
+  // progress at $40, where a run began that the picture's harness started late; the rebuild itself must do as the original does)
+  const g = game();
+  p.grace.clear();
+  g.progress = g.progressSeen = 0x40;
+  g.placeAt({ room: 36, x: 200, y: 48, state: State.Free, step: 0 });
+  const screen = must(program.picture, 'no picture').screen;
+  check('a room entered shows its items at once (the item at column 25, row 6)', screen.code(29, 6) >= 0x2f);
+  const colour = screen.colour[6 * 40 + 29] ?? 0;
+  tick(4);
+  check('taken at his way in, it is gone from the cells but keeps its colour there ($6CEF)', screen.code(29, 6) === 0 && colour !== 0 && screen.colour[6 * 40 + 29] === colour);
+  check('and the way out grows its first part when the progress reaches $41', g.progress === 0x41 && screen.code(11, 23) !== 0);
+}
+
 // ---- T: the title, the save kept ---------------------------------------------------------------------------------------------
 tap('KeyP');
 tap('KeyT');
