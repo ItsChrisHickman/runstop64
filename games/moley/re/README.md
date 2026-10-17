@@ -33,7 +33,11 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `test/music.ts` | the 128K mode: the game finds the RAM, the player writes AY registers 0-10 every 2nd frame, none on a 48K | passes |
 | `test/title.ts` | the credits picture the game unpacks (`$A500`) against one made from its data; the scroller's text | identical |
 | `test/data.ts` | the committed data (`src/data/`) made again from the tape, the ROM and the game in play; every block against the original's memory at the credits page and in each room's state (maps differ only in item cells and room 2); the 66 glyphs against the characters the game's character routine draws (credits scroller, ending, game over); every one of the 192 sprite frames, both ways round, at 8 shifts and near the right edge, drawn by the game's own routine `$8931` (rooms 0 and 5) against `src/sprite.ts` | 31 of 31 |
-| `test/lockstep.ts` | Monty's rebuilt logic (`src/monty.ts`, `player.ts`, `gauge.ts`, `input.ts`) against the original running, every pass: x, y, frame, flags, state, phase, jump keys, ropes, walking cycle, room, lives, gauge, pass counter, the scripts' animation, and the keys read | no differences (numbers in `docs/moley-plan.md`, stage 2) |
+| `test/lockstep.ts` (+ `lockstep-core.ts`, `shake.ts`, `random-player.ts`) | the whole rebuilt game (`src/game.ts`: Monty, the six room scripts, items, score, lives, gauge) against the original running, **every pass**: Monty, the whole entity table (7 records), score and high score, lives, gauge, pass counter, the scripts' animation (cycle, counter), the items (records and count), the room's map (6 rooms; room 2 rewrites its own) and attributes (item ink, room 1's lights), every variable the six scripts keep, the picture in the HUD's pocket box, the beeper effects asked for, the outcome (playing, game over, ending) and the random bytes asked for (the original's R reads are fed in) | random players in every room, the scripts' state shaken, players at each exit, and placements round all 302 tile kinds: 0 differences (numbers in `docs/moley-plan.md`, stage 3) |
+| `test/playthrough.ts` (+ `players.ts`, `bot.ts`) | a bot plays on the original and the rebuilt game is compared every pass: room 2 from its start to its exit (the puzzle, the prize, +400), room 5 from its start to the ending (four deliveries, +1000), and the whole game from room 0 to the ending (score 3490) | 926, 606 and 3963 passes, 0 differences |
+| `test/newgame.ts` | the first state of a game from the credits page, and of a second game after a first has been played to its ending (high score kept, maps and script variables as the first game left them) | no differences |
+| `test/stray.ts` | the original's death in room 2 jumps to `$9904` or to the restart by the puzzle's counter (the one place the rebuild differs); the rebuilt game restarts the room | rule holds in 13 of 13 cases |
+| `test/game.ts` | the rebuilt game alone: `snapshot()` and `restore()` bring it back exactly (38 snapshots, 60 passes played twice each), the seeded generator | passes |
 | `test/info.ts` | the info card's credits and description; not in the registry yet | passes |
 
 ## How it runs (proved: boot.ts)
@@ -92,7 +96,7 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `$811D` | the jump's phase 0-23; `$811E` the direction pressed when the jump started |
 | `$8121-$8140` | eight entity records of 4 bytes: x, y (pixels), frame, flags. Entity 0 is Monty; bit 7 of the flags = faces left |
 
-## Rooms (proved: rooms.ts)
+## Rooms (proved: rooms.ts; the scripts: lockstep.ts)
 
 A room is a 32 x 18 map of tile numbers, an attribute table, and a script.
 
@@ -110,24 +114,90 @@ A room is a 32 x 18 map of tile numbers, an attribute table, and a script.
   any of `$01 $05 $06 $07 $3F $13 $18 $19 $1A $40 $41 $42 $55 $7B $73 $9B` (`$8F79`), and `$55`, `$7B` are special
   (`$8F47`); ropes are `$08`, `$45` (`$8EBF`); `$01 $3F` end a move up (`$8DDA`). Items are `$EC-$EF`.
 
-The six rooms (their scripts are a jump table at `$927A`; a second table at `$926E` says where to restart each room after a
-death or a time-out). Read, not proved:
+The six rooms (their scripts are a jump table at `$927A`; a second table at `$926E` is each room's restart routine, see "How a pass ends"). Proved by `test/lockstep.ts`, `test/playthrough.ts` (all six played to the end) and `test/newgame.ts`:
 
 | Room | Picture | Script | Items | Leaves by |
 |---|---|---|---|---|
-| 0 | Gremlin Graphics office, rope lifts, cassettes, monitors | `$9286`: entities 1-5 are a lethal and four draining or lethal walkers and bobbers, entity 6 is the exit (the hanging cassette, frame `$1C` from x `$64`, y `$10`, which drifts right) | 7 | touching the exit entity: with items left it kills, with none left +200 and room 1 (`$934C`) |
-| 1 | recording studio: ABLEX tape machines, a big reel-to-reel | `$9378`, helpers `$94C3-$94E4` (bulbs and machines light in sequence) and the exit object that comes down at `$9526` (it kills if it gets to y `$50`) | 3 | touching the exit object: items left kills, none left +300 and room 2 (`$9549`); `$936A` is room 0's restart |
-| 2 | a cassette duplicating deck with hanging cassettes; a puzzle with a rising and falling platform built by rewriting the map (`$97FC`, `$9800-$98FF`) | `$95E4` | 0 | a prize (+400) and room 3 at `$96E5` |
-| 3 | the M1: three lanes of cones and cars, a street lamp; the lanes wrap (leaving right on one lane enters the next at the left, `$9AC7`) | `$9906` | 0 | bottom lane right edge: +500, room 4 (`$9ADD`) |
-| 4 | an office with a staircase of cassettes, a desk, a ghost | `$9B22` | 4 | exit object, items all taken: +600, room 5 (`$9BBA`) |
-| 5 | a street with traffic and the NEWS shop | `$9C49` with the traffic `$9CF4` | 0 | **Monty flies** (`$8D0E`: all four directions, 2 px a pass, x 4-$ED, y $1A-$70, no jumping): picks up from the pile at the left (`$9C8C`), carries it to the shop at the right (`$9CB1`; the HUD shows it); the shop's picture grows over frames `$25-$28`; the fourth delivery gives +1000 and ends the game (`$9CDC`, `$A2A1` = $FF) |
+| 0 | Gremlin Graphics office, rope lifts, cassettes, monitors | `$9286`: entity 1 a lamp that kills, 2 and 3 walkers that drain, 4 a walker that kills, 5 a bobbing walker that drains, 6 the exit (a cassette) | 7 | the cassette hangs at x $64, y $10 and drifts right (1 pixel a pass, or one in 16 while items are left); at x $D8 it falls to the floor, shows 4 pictures, then is gone and the room kills; touched on the floor: items left kills, none left +200 and room 1 (`$934C`) |
+| 1 | recording studio: ABLEX tape machines, a big reel-to-reel | `$9378` | 3 | a reel walks to and fro and kills; the machines light in sequence (below), two of the steps kill in front of the machine; then two reels spin for 100 passes and the exit object comes in along the top, sinks and kills at y $50; touched from y $38: items left kills, none left +300 and room 2 (`$9549`) |
+| 2 | a cassette duplicating deck with hanging cassettes; a puzzle with pistons built by rewriting the map | `$95E4`, pistons `$97FC`, `$97B5`, puzzle `$9706` | 0 | stand on the one spot (x $2E, y $38) to start the puzzle; the prize at the right; +400 and room 3 (`$96E5`) |
+| 3 | the M1: three lanes of cones and cars, a street lamp | `$9906` | 0 | the lanes wrap (`$9AC7`); bottom lane right edge: +500, room 4 |
+| 4 | an office with a staircase of cassettes, a desk, a ghost | `$9B22` | 4 | the staircase collapses in steps; the exit opens for 100 passes (then Monty is killed); items all taken: +600, room 5 (`$9BBA`) |
+| 5 | a street with traffic and the NEWS shop | `$9C49` with the traffic `$9CF4` | 0 | **Monty flies** (`$8D0E`: all four directions, 2 px a pass, x 4-$ED, y $1A-$70, no jumping): picks up from the pile at the left (`$9C8C`), carries it to the shop at the right (`$9CB1`; the HUD pocket shows it); the shop's picture grows over frames `$25-$28`; the fourth delivery gives +1000 and ends the game (`$9CDC`, `$A2A1` = $FF) |
 | 6 | the Christmas card: "MERRY CHRISTMAS FROM MOLE" with a tree and Santa, "WATCH OUT FOR GREMLINS AMAZING RELEASES" | drawn by `$82DA` | | key to the credits page (`$81BC`) |
 
-Per-room scripts are 100-300 bytes each and use a handful of shared primitives (read): `$9E5B` and `$9E32` (a walker: step 2 pixels
-and turn at a wall, flipping bit 7 of the flags), `$9DF3` (bob up and down by the table at `$9E1A`, the same numbers as the
-jump), `$9E84/$9E92` (place an entity and set its frame from the animation phase `$9ECC`, which flips between two frames every
-pass: `$9EA0`), `$9586` (touching Monty kills), `$956D` (touching Monty drains one gauge step and plays sound 3). The
-random numbers are the Z80's **R register** (`$9ECE`: `LD A,R`), so they depend on the exact instruction timing.
+### The scripts (proved: `test/lockstep.ts`, `test/playthrough.ts`; `src/rooms/`, `src/primitives.ts`)
+
+**A pass** (`$822B`): count (`$A2A0`), drain the gauge if due (room 2: every second pass unless the puzzle has started), Monty's move,
+the scripts' animation step and the time-out check (`$9238`), the room's script, then (if the game is not over) the items (`$8643`) and
+the picture; the first pass of a room is flagged (`$8108`, cleared at the end of the pass). **How a pass ends**: a death or a way out does
+not return: it resets the stack (`LD SP,($95E2)`) and jumps to the room's restart routine, which enters the room again, puts Monty
+at the arrival place (below) and jumps back to `$9238`, so **the new room's script runs from its start in the same pass**, with the
+animation stepped a second time. `$9592` is the full death (sound 0, a life less, Monty's three death pictures, ending on none),
+`$95C8` the short one (sound 1, no pictures; only the street lamp uses it); both clear Monty's state and phase and end with `JP (HL)`,
+HL being the restart address the caller loaded. The arrival places (the restart routines, which an exit also uses after its score):
+
+| Room | Monty at | also |
+|---|---|---|
+| 0, 1 | x 4, y $78 | |
+| 2 | x 4, y $68 | the pocket box shows frame `$6F` |
+| 3 | x $18, y 8 | pocket frame `$24`, Monty's state cleared |
+| 4 | x $EE, y $78 | pocket empty, state cleared |
+| 5 | x $28, y $70 | state cleared |
+
+**Shared primitives**: the touch test `$87A7` (both distances under 16); `$9586` kills on touch; `$956D` drains one gauge step and sounds 3;
+`$9E84` / `$9E92` put a thing at x, y with a picture from the cycle `$9ECC` (0 1 2 1, stepping every second pass) or the counter `$9ECD`
+(0 1 2 3); a **walker** (`$9E5B`, `$9E32`: the same with the counter) is placed on the first pass, steps 2 pixels the way flags bit 7 says
+with Monty's own wall and edge rules (`$8E65`, `$8E7C`) and turns round when the step is refused; the **bobber** (`$9DF3`) adds the
+jump table's numbers to y from one counter (`$9E19`) shared by the whole game. Scripts keep their variables in the code's own bytes, set up
+on the room's first pass **except** room 2's pistons, which keep their place and the map they have rewritten across lives and games
+(the original does not reload its maps), and room 0's drift counter (`$9377`), which is never reset.
+
+**Random numbers** are the Z80's R register and are read in two places only: `LD A,R` at `$861A` (the ink of each item as the room is
+entered, `AND 7`, in the order the cells are met) and `$9ECE` (everything else: piston 1's wait, the cars' and the lamp's waits in room 3,
+the traffic's waits, pictures and lanes in room 5). Every use masks the byte, so the rebuild asks a `Random` for a byte (`src/random.ts`).
+
+**Items**: a record of 4 bytes at `$86D5` (x, y, attribute address, 0 when taken), count at `$86F5`; each pass (`$8643`, after the script) each item's ink
+goes up one (`AND 7`), and one within 8 pixels of any of Monty's four corners (x, y; x + 8, y; x, y + 8; x + 8, y + 8) is taken: +35 (`$23`), sound 2, its attribute cell
+$47, its map cell +4. Everything is back, in a new random ink, when the room is entered.
+
+**Room 1** (`$93C2`-`$94E5`): six counters (`$94DF`, `$94E0`, `$94E3`, `$94E1`, `$94E4`, `$94E2`, filled to `$68`, `$18`, `$58`, `$18`, `$58`, `$28` in that order) each
+cycle a block of attribute cells (bulbs and machines) one pass at a time; the steps that fill to `$58` also kill in a box in front of the machine
+(x `$23`-`$4F` and `$52`-`$7D`, y `$3B`-`$48`) from the counter's 8th pass; sound 5 when the last is full (`$94DE` = 1). Then (`$94E5`) two reels
+spin at x `$80` and `$70`, y `$18` (the first kills once the counter has reached 5, the second once it has reached 4), for 100 passes (`$94DE` counts to `$64`), then the exit object.
+
+**Room 2** (`$95E4`, helpers `$97FC`-`$98CE`, puzzle `$9706`, prize `$965C`):
+- **Piston 1** (`$97FC`; `$9900` its head's place in the map, `$98FE` direction, `$98FF` wait): a column of tiles starting under the ledge (row 10, column 4): each pass
+  (when the wait, a byte counting down through zero, is over) the head `$F7 $F8 $F9` moves one row down and the row it left becomes shaft `$F4 $F5 $F6`, until the cell
+  below the head is not empty; then (`$98FE` = $FF) the head goes back up a row a pass, clearing the row below, until the cell above is not shaft, and the wait is a
+  random `R AND $7F OR $10` passes. It kills Monty if his columns (x / 8 + 2 minus the head's column, 0-4) cover it and his row is the head's or the one above.
+- **The spot**: when Monty is at x $2E, y $38 (and the puzzle has not started) a reel appears at (`$38`, `$38`), the pocket empties and `$9904` (the puzzle's counter and, while it
+  is not 0, the hold on the gauge) goes to 1. Each pass the counter goes up; from 10 (sound 5 once) the two reels (`$38`, `$38` and `$B8`, `$39`) spin and kill; at `$3C` a cassette
+  rises from y `$80` to `$70` at x `$9A`, goes right 2 pixels a pass to x `$DC` and goes (`$9730`), the counter is 1 again, and the **prize** steps on: its first half (x `$DC`, y `$70`) shows `$21`, `$22`, `$23`, `$24` one
+  round after another, then the second (y `$60`) the same, and one round after that `$97B4` is set.
+- **The prize** (`$965C`): while a half shows `$21`-`$23` (or the first shows `$24` while the second is not there yet) touching it kills; when the second half shows `$24`,
+  touching either half is the way out (+400). When `$97B4` is set **piston 2** (`$97B5`, `$9902`, column 27 from row 10) grows a row a pass and **kills Monty when it meets the
+  floor** (6 passes): the prize must be taken before (it shows `$24` one round before `$97B4` is set, so there is time).
+- Two walkers kill (`$969D`: entity 6 at y `$28`, x `$18`-`$52`, moving twice a pass; entity 7 at y `$70`, x `$80`-`$CC`); the gap in the floor (x `$5E`-`$A7`, y `$70` and below) kills.
+
+**Room 3** (`$9906`, timers `$9B1C`-`$9B21`): a lorry (`$9930`) after its first 64 passes takes Monty as he walks on the top lane in x `$38`-`$57`, `$90`-`$AF` or from `$C8` (state 3, a pose; it
+carries three pictures along the lane for 200 passes, then he is free and it waits 127 passes); a car crosses the middle lane to the right 4 pixels a pass and one to the
+left 1 a pass, each draining the gauge, then waits a random `R AND $7F OR $14` / `OR $28`; the lamp (`$9A3E`) flashes (14 steps) when he is at x `$8C`-`$9B`, y `$60` or more, and if he is at x `$92`-`$97` during the flash he is hidden (state 4) and
+at its end dies the short death. Lanes: `$9AC7`.
+
+**Room 4** (`$9B22`): the walkers; the staircase animation (`$9BCE`): a pause of 100 passes, then rounds of 8 passes (the ghost's picture `$0A`-`$11`, the top cassette's `$24` down to blank, the exit's `$25` up) with 40 passes between; when the top cassette is gone the exit is open
+for 100 passes (`$9C1A`), killing on the last.
+
+**Room 5** (`$9C49`, `$9CF4`): five slots at `$9DDC` (4 bytes: lane and direction, picture base, wait) drive entities 1-5: a vehicle waits off the road (the byte counts down), is put at x 0 (y `$28 + 8 * lane`) or x `$EE`
+(y `$60 - 8 * lane`) and drives across at lane + 1 pixels a pass, killing; past the far edge it parks at 0, 0 and gets a new wait, picture and lane. The pile (entity 6) and the shop (entity 7) are as the table says.
+
+### Where the rebuild differs from the original
+
+- **A death in room 2 can jump to the wrong place** (`test/stray.ts`). The kill by the prize's second half (`$9667`) calls the death routine with whatever HL holds; the puzzle's routine leaves it at `$9904`
+  (the puzzle's counter) when the counter is 0 to 8 or `$3C`, and at the restart `$9556` otherwise. The death routine ends with `JP (HL)`, so in the first case the room is **not** restarted: the
+  original runs the bytes at `$9904` (two counters, then room 3's script, with IX at the second half of the prize), Monty stays where he is and loses a life on every pass he still touches it. The rebuild restarts the room in every case; the lockstep runs stop at such a death. Whether ORIGINAL should repeat the bug is for Chris.
+- **An entity at x `$F0` or more on the bottom rows overruns the original's redraw table** (`$8A9C`, 576 bytes, end marker at `$8CDC`): its third cell column is the next row's first, the last row's is the marker, and the redraw loop then runs on through the
+  code at `$8CDD` (found by shaking room 0's cassette to x `$F5`). No entity gets there in play (Monty stops at `$EE`, the traffic at `$EE`, the cassette at `$D8`); the lockstep shaking keeps entities out of it.
 
 ## Entities, sprites and drawing (read)
 
@@ -203,14 +273,14 @@ Details the rebuild had to get right, all now checked pass by pass against the o
 - Death (`$9592`) does not touch his position: the room's restart routine (`$926E`: rooms 0 and 1 at x 4 y $78, room 2 x 4 y $68, room 3 x $18 y 8, room 4
   x $EE y $78, room 5 x $28 y $70) sets it and jumps back into the script runner (`$9238`), which steps the scripts' animation (`$9EA0`) a second
   time; his frame is `$BF` until the next pass. A new game starts him at x 4, y $64 and he falls to the floor.
-- Monty's logic uses no random numbers (no R register): none is fed in. Stage 3 (items' colours, traffic) needs R.
+- Monty's logic uses no random numbers (no R register); the room scripts and the room entry do ("Random numbers" above).
 
 ## Score, lives, gauge, HUD (read)
 
 - Score is 32 bit at `$8113`, added by `$9EE5` (DE = amount), shown as up to 4 digits at the HUD by subtracting the weights at
   `$A00B` (1000, 100, 10, 1). The values seen: **35 for an item** (`$868B`), exits **200, 300, 400, 500, 600** and the final **1000**
-  (`$9356`, `$9550`, `$96E5`, `$9ADD`, `$9BBA`, `$9CE3`): the largest score the code read so far can give is 14 x 35 + 3000 = 3490. The high score
-  is updated at the start of the next game (`$9F43`), compared from the top byte down.
+  (`$9356`, `$9550`, `$96E5`, `$9ADD`, `$9BBA`, `$9CE3`): all six rooms played through give 14 x 35 + 3000 = 3490, the most there is (`test/playthrough.ts`). The high score
+  is updated at the start of the next game (`$9F43`), compared from the top byte down (proved: `test/newgame.ts`, a second game after the ending).
 - Lives: five faces at the HUD (`$8740`, 3 cells apart from `$50A1`), `$810C` counts down; no extra lives.
 - The gauge (E to F dial, drawn by `$876D` from `$D200`) is the time left in the room: `$7F` at entry, one step every 8 passes
   (the pass counter `$A2A0` ANDed with 7 is 0) = about 40 seconds. **Room 2** is different (found by writing the rebuild: `$822F`-`$8243`):
@@ -252,11 +322,10 @@ Details the rebuild had to get right, all now checked pass by pass against the o
 
 ## Not understood, and what to look at next
 
-- The exact scripts of rooms 1 and 2 (the cassette lifts, the rising platform and its map rewriting at `$97B5`, `$9800-$98FF`) and
-  who kills in each room: stage 3's job, with the entity table watched over time (`re/watch.ts --mem 8121:32`).
-- Which tiles are lethal (rooms 0 and 4 have floor and wall tests only; the lethal things are entities).
-- The random events (cars in room 3 and the traffic in room 5) use the R register, so lockstep needs R fed from the original.
+- The effect of the original's wrong jump in room 2 ("Where the rebuild differs"): which entities and variables the stray run of room 3's script changes is read, not followed.
+- Which tiles are lethal: none are; rooms 0 and 4 have floor and wall tests only and the lethal things are entities (proved by the scripts).
 - Whether any key (other than SPACE) is read by the credits page; the key-scan routine at `$A341` and its tables at `$A3A0-$A4A0` are not called.
+- The HUD's faces, the dial's drawing and the picture generally (stage 4); the credits page's and the ending's own code (stage 5).
 
 ## Tools
 

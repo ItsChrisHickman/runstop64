@@ -64,8 +64,12 @@ export const TESTS = [
   { file: 'games/moley/test/music.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM] },
   { file: 'games/moley/test/rooms.ts', args: [MOLEY_PLAY], set: 'fast', needs: [MOLEY_PLAY, MOLEY_ROM] },
   { file: 'games/moley/test/data.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM, ...MOLEY_STATES] },
-  { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '40'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 15000 passes)' },
-  { file: 'games/moley/test/lockstep.ts', args: ['20000', '8', '100'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/lockstep.ts (about 360000 passes)' },
+  { file: 'games/moley/test/game.ts', set: 'fast' },
+  { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '40', '4', '300'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 26000 passes)' },
+  { file: 'games/moley/test/lockstep.ts', args: ['16000', '8', '80', '40', '400'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/lockstep.ts (about 350000 passes)' },
+  { file: 'games/moley/test/playthrough.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/playthrough.ts (rooms 2 and 5, then the whole game, played by a bot)' },
+  { file: 'games/moley/test/newgame.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/newgame.ts (a new game, and a second after the ending)' },
+  { file: 'games/moley/test/stray.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES] },
   { file: 'games/moley/test/info.ts', set: 'fast' },
 
   // ---- Antiriad

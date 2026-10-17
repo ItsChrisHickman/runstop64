@@ -3,12 +3,13 @@
  * room's mask on the pass counter, `$A2A2 + room`: every 8th pass; room 2 every 2nd unless its script holds it, `$9904`) and when
  * a hazard drains it (`$956D`). Below zero the game kills Monty. Eight pictures: `value AND $F0`.
  */
+import type { StateReader, StateWriter, Stateful } from './state';
 export const GAUGE_FULL = 0x7f;
 
 /** The mask of the pass counter for rooms 0-5: the gauge drains when the counter ANDed with it is 0 (`$A2A2`). */
 const MASKS = [7, 7, 0x1f, 7, 7, 7] as const;
 
-export class Gauge {
+export class Gauge implements Stateful {
   value = GAUGE_FULL;
 
   refill(): void { this.value = GAUGE_FULL; }
@@ -21,6 +22,9 @@ export class Gauge {
 
   /** Which of the 8 pictures to show, 0 (empty) to 7 (full). */
   get level(): number { return (this.value & 0xf0) >> 4; }
+
+  save(w: StateWriter): void { w.put(this.value); }
+  load(r: StateReader): void { this.value = r.get(); }
 }
 
 /**

@@ -13,6 +13,10 @@
  */
 import { BLANK_FRAME, JUMP_FRAMES, JUMP_STEPS } from './data';
 import { FrameCycle } from './cycle';
+import { stepLeft, stepRight, type Tiles } from './walking';
+import type { StateReader, StateWriter, Stateful } from './state';
+
+export type { Tiles };
 
 /** The keys of a pass: the same bits whatever the device (`$915F`). */
 export const Key = { right: 1, left: 2, down: 4, up: 8, jump: 16 } as const;
@@ -21,35 +25,31 @@ export const Key = { right: 1, left: 2, down: 4, up: 8, jump: 16 } as const;
 export const State = { walking: 0, falling: 1, jumping: 2, posed: 3, hidden: 4 } as const;
 
 /** The tiles the physics knows by number (the rest are scenery). Read from the code at the addresses given. */
-const SOLID_SIDE: readonly number[] = [0x01, 0x3f, 0x73]; // walking sideways is stopped by these ($8EFC)
 const FLOORS: readonly number[] = [0x01, 0x05, 0x06, 0x07, 0x3f, 0x13, 0x18, 0x19, 0x1a, 0x40, 0x41, 0x42, 0x55, 0x7b, 0x73, 0x9b]; // $8F79
 const CONVEYORS: readonly number[] = [0x55, 0x7b]; // a floor that carries him to the right ($8F47)
+/** Whether a tile is a floor (`$8F79`): a thing is standing on it. */
+export const isFloor = (tile: number): boolean => FLOORS.includes(tile);
 const ROPES: readonly number[] = [0x08, 0x45]; // $8EBF
 const CEILINGS: readonly number[] = [0x01, 0x3f]; // end a move up ($8DDA)
-
-/** Where the room's tiles are looked up: a pixel to the tile under it. */
-export interface Tiles {
-  at(x: number, y: number): number;
-}
 
 /** What a pass takes from outside Monty (room scripts and the animation they share). */
 export interface Outside {
   readonly tiles: Tiles;
   /** the room, 0-6 (room 5 flies) */
-  room: number;
+  readonly room: number;
   /** the scripts' animation frame (`$9ECC`), for the pose of state 3 */
-  scriptFrame: number;
+  readonly scriptFrame: number;
   /** entity 2's x (`$8129`), which the pose of state 3 faces */
-  partnerX: number;
+  readonly partnerX: number;
 }
 
 const wrap = (n: number): number => n & 0xff;
 
-export class Monty {
+export class Monty implements Stateful {
   x = 0;
   y = 0;
   /** the sprite frame (`$8123`) and the flags (`$8124`; bit 7: faces left) */
-  frame = BLANK_FRAME;
+  frame = 0; // (the original's memory is zero until the first pass picks a picture)
   flags = 0;
   state: number = State.walking;
   /** how far the jump is, 0-23 (`$811D`), and the keys held when it started (`$811E`) */
@@ -94,29 +94,11 @@ export class Monty {
 
   // ---- walking ($8E62, $8E79) ----------------------------------------------------------------------
 
-  /** Whether a wall is in the way at pixel column `px`, for the rows Monty covers from his top (`$8EFC`: 2 cells, 3 if he is not on a row). */
-  private blockedAt(px: number): boolean {
-    const rows = (this.y & 7) === 0 ? 2 : 3;
-    for (let r = 0; r < rows; r++) {
-      const tile = this.world.tiles.at(px, wrap(this.y + r * 8));
-      if (SOLID_SIDE.includes(tile)) return true;
-    }
-    return false;
-  }
+  /** Two pixels left, unless a wall is there or he is at the left edge (`$8E65`, shared with the walkers: walking.ts). */
+  private walkLeft(): void { stepLeft(this.world.tiles, this); }
 
-  /** Two pixels left, unless a wall is there or he is at the left edge: x 1 and 2 cannot move (`$8E65`). */
-  private walkLeft(): void {
-    const next = wrap(this.x - 2);
-    if (this.x === 1 || this.x === 2) return;
-    if (!this.blockedAt(next)) this.x = next;
-  }
-
-  /** Two pixels right: the wall is looked for 8 pixels further on, and x $EF and beyond cannot move (`$8E7C`). */
-  private walkRight(): void {
-    const next = wrap(this.x + 2);
-    if (next >= 0xef) return;
-    if (!this.blockedAt(wrap(next + 8))) this.x = next;
-  }
+  /** Two pixels right (`$8E7C`). */
+  private walkRight(): void { stepRight(this.world.tiles, this); }
 
   // ---- ropes ($8E99, $8EE3) ------------------------------------------------------------------------
 
@@ -157,7 +139,7 @@ export class Monty {
     const feet = wrap(this.y + 16);
     for (let probe = 0; probe < 2; probe++) {
       const tile = this.world.tiles.at(wrap(this.x + 4 + probe * 6), feet);
-      if (!FLOORS.includes(tile)) continue;
+      if (!isFloor(tile)) continue;
       if (CONVEYORS.includes(tile)) this.walkRight();
       this.land();
       return 'floor';
@@ -260,5 +242,16 @@ export class Monty {
     const moved = this.x !== this.prevX || this.y !== this.prevY;
     const step = moved ? this.walk.step() : this.walk.frame;
     this.frame = wrap(base + step);
+  }
+
+  save(w: StateWriter): void {
+    w.put(this.x, this.y, this.frame, this.flags, this.state, this.phase, this.jumpKeys, this.ropeUp, this.ropeDown, this.prevX, this.prevY);
+    this.walk.save(w);
+  }
+
+  load(r: StateReader): void {
+    this.x = r.get(); this.y = r.get(); this.frame = r.get(); this.flags = r.get(); this.state = r.get(); this.phase = r.get();
+    this.jumpKeys = r.get(); this.ropeUp = r.get(); this.ropeDown = r.get(); this.prevX = r.get(); this.prevY = r.get();
+    this.walk.load(r);
   }
 }
