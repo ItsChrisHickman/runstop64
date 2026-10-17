@@ -22,6 +22,7 @@ import type { FrameCapture } from 'c64kit';
 import { SLOT_COLOURS_HEX } from './data/awm-data';
 import { fromHex, ROOMS, SPRITE_FRAMES, TABLES } from './data';
 import { PROGRESS_STAGES, type Game } from './game';
+import { FLIGHT_ROOM, type Flight } from './flight';
 import type { BoxEvent } from './items';
 import type { Lift } from './lifts';
 import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, itemGlyphs, printHigh, printMoney, printScore } from './panel';
@@ -203,6 +204,19 @@ export class Picture {
     const colours = drawnIn ? [...drawnIn] : Array.from(this.slotColours.subarray(e.colourSlot * 4, e.colourSlot * 4 + 4));
     this.hands[e.hand] = { type: e.type, colours };
     drawBox(this.screen, e.hand, e.type, colours);
+  }
+
+  // ---- the flight ($758F) ------------------------------------------------------------------------
+
+  /** He boards: the banner says where he is ($65A3, with the number of room $4F: IN FLIGHT) over the room's. */
+  takeOff(): void {
+    drawBanner(this.screen, FLIGHT_ROOM);
+  }
+
+  /** A frame of the flight: the panel as it stands (a plane shot down is points), under the sky. */
+  flightCapture(flight: Flight): FrameCapture {
+    this.counters();
+    return flight.capture(this.screen);
   }
 
   /** A game put back from a save: the boxes as they were, and the parts of the way out's picture its progress has grown. */

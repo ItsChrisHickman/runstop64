@@ -32,7 +32,7 @@ function walk(told: boolean, snap: boolean, from: number, frames: number) {
   renderer.snap = snap;
   const view = new C64View(renderer, program);
   const frame = (stick: number) => {
-    program.frame({ stick, f1: false, f7: false });
+    program.frame({ stick, f1: false, f7: false, fly: false });
     view.update(told ? program.viewStep : EVERY_FRAME);
   };
   for (let i = 0; i < 120; i++) frame(0);

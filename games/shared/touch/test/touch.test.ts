@@ -25,7 +25,7 @@ const RUN = { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' } as
 const GAMES: Record<string, TouchLayout> = {
   loader: { stick: 'none', buttons: [] },
   montyotr: { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
-  awm: { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
+  awm: { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, { label: 'FLY', key: 'KeyC', size: 'small' }] },
   thingonaspring: { stick: '8', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
   jsw2: { stick: 'lr', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, RUN] },
   entombed: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'WHIP', key: 'KeyX' }, { label: 'TORCH', key: 'KeyC' }, RUN] },

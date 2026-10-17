@@ -38,10 +38,13 @@ export const TESTS = [
 
   // ---- Auf Wiedersehen Monty (its originals are gitignored: games/awm/build/README.md)
   { file: 'games/awm/test/frontend.ts', set: 'fast' },
+  { file: 'games/awm/test/flight.ts', args: [AWM, 'idle:100:1'], set: 'slow', needs: [AWM] }, // a whole flight, the clock to its end
+  { file: 'games/awm/test/flight.ts', args: [AWM, 'mix:900:1'], set: 'slow', needs: [AWM] }, // shooting the other plane down, being shot down, random sticks
   { file: 'games/awm/test/smooth.ts', set: 'fast' },
   { file: 'games/awm/test/closing.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/flow.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/lockstep.ts', args: [AWM, 'R:100,UR:30,F:1'], set: 'slow', needs: [AWM] },
+  { file: 'games/awm/test/lockstep.ts', args: [AWM, 'fly:20:1:0-1'], set: 'slow', needs: [AWM] }, // boarding the planes of rooms 0 and 1 eight ways, then landing
   { file: 'games/awm/test/picture.ts', args: [AWM, 'rand:600:7'], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/program.ts', args: [AWM_T], set: 'slow', needs: [AWM_T] },
   { file: 'games/awm/test/rooms.ts', args: [AWM], set: 'slow', needs: [AWM] },

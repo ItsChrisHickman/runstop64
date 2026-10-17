@@ -45,6 +45,8 @@ nice -n 15 node tools/test.mjs games/awm/test/title.ts games/awm/build/t807.stat
 nice -n 15 node tools/test.mjs games/awm/test/closing.ts games/awm/build/play.state over 72     # or ending, walk (room 77)
 nice -n 15 node tools/test.mjs games/awm/test/program.ts games/awm/build/t807.state over        # or ending
 nice -n 15 node tools/test.mjs games/awm/test/sound.ts games/awm/build/play.state games/awm/build/awm.sid 1500
+nice -n 15 node tools/test.mjs games/awm/test/flight.ts games/awm/build/play.state kill:600:2     # a flight frame by frame: idle, rand, kill, crash or mix
+nice -n 15 node tools/test.mjs games/awm/test/lockstep.ts games/awm/build/play.state fly:20:1:0-14  # boarding the planes of rooms 0 to 14
 nice -n 15 node tools/test.mjs games/awm/test/frontend.ts [out-dir]   # needs no original; stills of the title, play and pause map
 ```
 

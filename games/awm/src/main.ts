@@ -11,8 +11,11 @@ import { CODEC, snapshot, type AwmSave } from './save';
 import { SOUND } from './sound';
 import type { SoundCall } from './soundlog';
 
-/** Touch: Monty walks and climbs (four directions) and jumps (the joystick's fire button). */
-const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] };
+/** The key that boards a plane: the Commodore key in the original, C here (a PC keyboard has no such key). */
+const FLY_KEY = 'KeyC';
+
+/** Touch: Monty walks and climbs (four directions) and jumps (the joystick's fire button); FLY is the key that boards a plane. */
+const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, { label: 'FLY', key: FLY_KEY, size: 'small' }] };
 
 /**
  * Auf Wiedersehen Monty: the runstop64 front end for the rebuilt game (Program is the game as the original runs it, title,
@@ -71,6 +74,8 @@ export function run(host: Host) {
   let lastKind = program.kind;
   /** A tap on the title's menu line, held as the key it stands for for a few frames (the title looks at its keys in one of its two phases). */
   let menuTap = { key: 'F1', frames: 0 };
+  /** A tap on FLY is held a couple of frames: the game looks at the key in the logic phase, every other frame. */
+  let flyFrames = 0;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<AwmSave, AwmFound, Program>(host, {
@@ -109,7 +114,10 @@ export function run(host: Host) {
       if (input.points.some((t) => t.x >= MENU_TAP.x0 && t.x < MENU_TAP.x1 && t.y >= MENU_TAP.y0 && t.y < MENU_TAP.y1)) menuTap = { key: program.effectsChosen ? 'F1' : 'F7', frames: MENU_TAP.frames };
       const held = menuTap.frames > 0 ? menuTap.key : null;
       if (menuTap.frames > 0) menuTap.frames--;
-      return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7' };
+      if (input.typed.includes(FLY_KEY)) flyFrames = 2;
+      const fly = input.down.has(FLY_KEY) || flyFrames > 0;
+      if (flyFrames > 0) flyFrames--;
+      return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7', fly };
     }
 
     // the game, as launched: the title (a save goes straight back into play, ContinueFlow)

@@ -12,6 +12,9 @@ import type { Game } from './game';
 import { COLS } from './room';
 import { State } from './tiles';
 
+/** The item type of a plane ticket: the flight takes one ($758F, `Game.boarding`). */
+export const TICKET = 0;
+
 /** The characters the four slots' top left corners are ($2F + 4 x slot). */
 const SLOT_CODES = [0x2f, 0x33, 0x37, 0x3b] as const;
 const SLOTS = 4;

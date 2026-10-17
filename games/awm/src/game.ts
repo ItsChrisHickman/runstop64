@@ -3,7 +3,7 @@
  * the score, with the main loop's logic step round them ($54AE on):
  *
  *   the lift moves twice (the main loop draws in both its phases: $83EE),
- *   Monty ($46AD), [the shop, $758F: entered with a key, not rebuilt], the enemies ($5ED0), the pickup
+ *   Monty ($46AD), the flight ($758F: boarded with a key, flight.ts), the enemies ($5ED0), the pickup
  *   ($6A65), enemies touching him ($5D00), the lift ($8558), the room scripts ($7682), the progress bar
  *   ($54E1), then the lives and deaths ($5510).
  *
@@ -11,8 +11,9 @@
  */
 import { NO_ROOM, RANDOM, ROOMS, TABLES, WORLD_GRID } from './data';
 import { Digits } from './digits';
-import { type AnimClock, Enemies, HIDDEN } from './enemies';
-import { Items } from './items';
+import { type AnimClock, Enemies, HIDDEN, isPlane, PLANE_FRAMES } from './enemies';
+import { copySky, destination, FRESH_SKY, Flight, type SkyState } from './flight';
+import { Items, TICKET } from './items';
 import { Lift } from './lifts';
 import { type Counters, Monty, type MontyHost } from './monty';
 import { Random } from './rng';
@@ -88,6 +89,8 @@ export interface GameCarry {
   readonly rngSum: number;
   readonly clock: AnimClock;
   readonly counters: Counters;
+  /** What the flights leave in the machine (a new game clears only the explosion and the hit's sound). */
+  readonly sky: SkyState;
 }
 
 /** The program's own values for the first game ($5224 = $DF, $5225 = 4, the clock's toggle clear, as the file has them). */
@@ -95,7 +98,11 @@ export const FIRST_GAME: GameCarry = {
   rngIndex: 0xdf, rngSum: 0x04,
   clock: { phase: 0, frame: 0, flip: 0, toggle: 0 },
   counters: { walkPhase: 0, walkFrame: 0, walkToggle: 0, climbPhase: 5, slowToggle: 0 },
+  sky: FRESH_SKY,
 };
+
+/** The states a plane's boarding is refused in: dying, knocked, and the walk-in ($7598). */
+const NO_BOARDING: readonly number[] = [State.Dying, State.Knocked, State.Intro];
 
 export class Game implements MontyHost {
   readonly world: World;
@@ -104,6 +111,11 @@ export class Game implements MontyHost {
   readonly enemies: Enemies;
   readonly lift: Lift;
   readonly items = new Items();
+  /** What the flights leave in the machine ($784D-$785F, $3B, $7860-$7861, $809C-$809E, $4063, $4065, $C3FA-$C3FD). */
+  readonly sky: SkyState;
+  /** The room he is flying to, from the step he boarded in until `land` (the rest of that step waits for the flight, as in the original). */
+  boarded: number | null = null;
+  private pending: { readonly state: number; readonly step: number; readonly entered: number | null } | null = null;
   readonly score = new Digits();
   readonly money = new Digits();
   /** $4061: lives in the low 7 bits, bit 7 set while he plays; clear when the last one is gone. */
@@ -157,6 +169,7 @@ export class Game implements MontyHost {
     this.rng = new Random(RANDOM);
     this.monty = new Monty(this.world, this.rng, TABLES.tileGfx, this);
     const { carry } = parts;
+    this.sky = copySky(carry ? carry.sky : FRESH_SKY);
     if (carry) {
       this.rng.index = carry.rngIndex;
       this.rng.sum = carry.rngSum;
@@ -168,7 +181,11 @@ export class Game implements MontyHost {
 
   /** What a game leaves for the next one: the variables a new game does not clear ($5B39 clears $402A-$4065 and little else). */
   carryOver(): GameCarry {
-    return { rngIndex: this.rng.index, rngSum: this.rng.sum, clock: { ...this.enemies.clock }, counters: { ...this.monty.counters } };
+    // ($5B39: a new game clears $402A-$4065, the flights' explosion and hit sound among them)
+    return {
+      rngIndex: this.rng.index, rngSum: this.rng.sum, clock: { ...this.enemies.clock }, counters: { ...this.monty.counters },
+      sky: { ...copySky(this.sky), explosion: 0, hit: 0 },
+    };
   }
 
   get gameOver(): boolean {
@@ -281,26 +298,104 @@ export class Game implements MontyHost {
   // ---- one logic step ($54AE) -------------------------------------------------------------------
 
   /**
-   * One logic step with the controls in `input` (`Dir` bits): the lift moves in the drawing phase before and in the
-   * logic phase ($83EE runs in both), then the logic. Returns the room he entered, if he did.
+   * One logic step with the controls in `input` (`Dir` bits; `key`: the key that boards a plane is down): the lift moves in the
+   * drawing phase before and in the logic phase ($83EE runs in both), then the logic. Returns the room he entered, if he did.
    */
-  step(input: number): number | null {
+  step(input: number, key = false): number | null {
     this.lift.tick(this.rng);
     this.lift.tick(this.rng);
-    return this.logic(input);
+    return this.logic(input, key);
   }
 
-  /** The logic phase after its lift's move ($54B1 on). Returns the room he entered, if he did. */
-  logic(input: number): number | null {
-    // $61DA: while a bonus lasts, the controls are scrambled by it (the random number is XORed into them)
-    let controls = input;
-    if (this.bonusFlag !== 0) {
-      this.bonusFlag = (this.bonusFlag - 1) & 0xff;
-      controls ^= this.bonus;
-    }
+  /** $61DA: while a bonus lasts, the controls are scrambled by it (the random number is XORed into them; each look at them counts it down). */
+  scramble(input: number): number {
+    if (this.bonusFlag === 0) return input;
+    this.bonusFlag = (this.bonusFlag - 1) & 0xff;
+    return input ^ this.bonus;
+  }
+
+  /**
+   * The logic phase after its lift's move ($54B1 on). Returns the room he entered, if he did. If he boards a plane in it
+   * (`boarded`) the step stops there, as the original's does for the whole of the flight, and goes on when `land` is called.
+   */
+  logic(input: number, key = false): number | null {
     const m = this.monty;
     const { state, step } = m;
-    const entered = m.advance(controls);
+    const entered = m.advance(this.scramble(input));
+    const to = this.boarding(key);
+    if (to !== null) {
+      this.boarded = to;
+      this.pending = { state, step, entered };
+      return null;
+    }
+    return this.after(state, step, entered);
+  }
+
+  /**
+   * $758F: standing at a plane (the two enemy records showing $D0 and $D1, which touching harms nothing) with the Commodore key
+   * down and a ticket in his hands, the ticket is taken and he flies to where the table says. A room with no such place takes
+   * the ticket all the same. Returns the room he flies to.
+   */
+  private boarding(key: boolean): number | null {
+    const m = this.monty, e = this.enemies;
+    const touching = [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
+    if (!touching || NO_BOARDING.includes(m.state) || !key || !this.items.take(TICKET)) return null;
+    return destination(this.world.room);
+  }
+
+  /** The flight he has boarded, to be flown a frame at a time over `play`, the 16K the play screen's VIC bank holds (the panel stays as it is). */
+  startFlight(play: Uint8Array): Flight {
+    return new Flight(this.sky, {
+      random: () => this.rng.next(),
+      effectsOn: () => this.soundFlag !== 0,
+      effect: (n) => this.sound.effect(n),
+      silence: (voice) => this.sound.silence(voice),
+      kill: (points) => this.score.add(points),
+    }, play);
+  }
+
+  /**
+   * The flight is over: he comes down at the plane of the place it flew to, or, shot down, goes back to where he boarded, hurt
+   * (the death is handled as any other, at the end of the step), as $75F5 on does; then the step he boarded in goes on, in the room
+   * he is in now. Returns the room he entered, as `logic` does.
+   */
+  land(flight: Flight): number | null {
+    const { pending, boarded } = this;
+    if (pending === null || boarded === null) throw new Error('no flight to come down from');
+    this.pending = null;
+    this.boarded = null;
+    const m = this.monty;
+    const crashed = flight.crashed;
+    m.input = flight.input; // ($7E79 stores the controls where Monty's own are kept: they stay there)
+    if (crashed) m.dead = 1;
+    else this.world.room = boarded;
+    this.world.locate();
+    this.enterRoom(this.world.room);
+    // (a crash is the flight's, not a death the safe start is to spare him)
+    if (crashed) this.stepsFree = SAFE_STEPS;
+    // ($7610: he stands at the first plane the room shows, and a death starts him there again)
+    const plane = [0, 1, 2, 3].find((slot) => this.enemies.frame(slot) === PLANE_FRAMES[0]);
+    if (plane !== undefined) {
+      m.x = m.entryX = this.enemies.x(plane);
+      m.y = m.entryY = this.enemies.y(plane);
+    }
+    return this.after(pending.state, pending.step, pending.entered);
+  }
+
+  /** What he is doing, if he is flying: the rest of the step is waiting. */
+  get flying(): boolean {
+    return this.boarded !== null;
+  }
+
+  /** Leave a flight behind without landing (the map's travel, back to room start): the step it stopped is dropped. */
+  abandonFlight(): void {
+    this.boarded = null;
+    this.pending = null;
+  }
+
+  /** The rest of the logic step, after Monty ($5ED0 on) and, if he boarded, the flight. */
+  private after(state: number, step: number, entered: number | null): number | null {
+    const m = this.monty;
     this.enemies.step(this.rng);
     this.items.pickup(this);
     this.touch();
@@ -369,7 +464,7 @@ export class Game implements MontyHost {
     for (let slot = 0; slot < 4; slot++) {
       if (Math.abs(m.x - e.x(slot)) >= 12 || Math.abs(m.y - e.y(slot)) >= 12) continue;
       const frame = e.frame(slot);
-      if (frame === HIDDEN || frame === 0xd0 || frame === 0xd1) return;
+      if (frame === HIDDEN || isPlane(frame)) return;
       if (frame === 0x80) {
         this.contact80 = true;
         return;

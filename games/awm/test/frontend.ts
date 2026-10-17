@@ -283,6 +283,47 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
 }
 
+// ---- a flight: the key (or a tap on FLY), a ticket, a plane -----------------------------------------------------------------
+{
+  const g = game();
+  p.grace.clear();
+  g.lives = 0x8c;
+  g.shield = 0;
+  const AIRPORT = 0; // (Byorn: a plane at $C0, $68, which flies to room 1)
+  g.placeAt({ room: AIRPORT, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
+  g.items.carried.fill(0xff);
+  tick(8);
+  tap('KeyC');
+  tick(4);
+  check('the key at a plane without a ticket does nothing', !program.flying && g.world.room === AIRPORT);
+  g.items.give(0);
+  const hands = g.items.carried.filter((t) => t === 0).length;
+  // (a tap on FLY is a key pressed for a single frame: the logic step looks at the key in every other frame, and is not to miss it)
+  input.keyDown('KeyC'); tick(1); input.keyUp('KeyC');
+  tick(3);
+  check(`C at a plane with a ticket (a tap on FLY on a touch screen): he takes off, the ticket is taken (${hands} before)`, program.flying && !g.items.carried.includes(0));
+  shot('8-flight');
+  const x0 = g.sky.player[0] ?? 0;
+  input.keyDown('ArrowRight'); tick(6); input.keyUp('ArrowRight');
+  check(`the stick steers his plane (${x0} to ${g.sky.player[0]})`, (g.sky.player[0] ?? 0) > x0 && program.flying);
+  tap('KeyP');
+  check('P in the air: the pause screen', p.state.paused && program.flying);
+  tap('KeyP');
+  const before = g.lives;
+  const outcome = until(() => !program.flying, 2300);
+  check('the flight ends by itself', outcome);
+  tick(2);
+  const crashed = g.lives < before;
+  const planeAt = (room: number): { x: number; y: number } | undefined => {
+    const slot = [0, 1, 2, 3].find((s) => g.enemies.frame(s) === 0xd0);
+    return room === g.world.room && slot !== undefined ? { x: g.enemies.x(slot), y: g.enemies.y(slot) } : undefined;
+  };
+  if (crashed) check('shot down: back in the room he took off from, a life lost, at the plane', g.world.room === AIRPORT && g.lives === before - 1 && game().monty.x === planeAt(AIRPORT)?.x);
+  else check('he comes down in room 1, at its plane', g.world.room === 1 && game().monty.x === planeAt(1)?.x && game().monty.y === planeAt(1)?.y);
+  const saved2 = must(unpackSlot(CODEC, must(readSaves('awm').current, 'no save')), 'no save');
+  check('the autosave keeps what the flight left in the machine (the clouds, the planes)', JSON.stringify(saved2.flight) === JSON.stringify(g.sky) || crashed);
+}
+
 // ---- an item taken at his way in: drawn first, then taken, so its colour stays; the way out grows with the progress -------------------
 {
   // (what `picture.ts deliver:60:2` once showed as a difference in the panel's colours: room 36's item at column 25, row 6, with the

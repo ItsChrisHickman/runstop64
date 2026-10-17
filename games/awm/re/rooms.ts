@@ -98,6 +98,11 @@ str('HUD_MONEY', 'The label of the money ($8660).', text(0x8660));
 str('HUD_HIGH', 'The label of the high score ($8666).', text(0x8666));
 str('PROGRESS_HEX', 'The progress picture ($6656): the characters of its three parts (20, 20 and 18) then their colours ($6690).', hex(0x6656, 58) + hex(0x6690, 58));
 str('DECOR_HEX', 'The three sprite pictures of the side columns ($3240, $3280, $32C0: pointers $C9, $CA, $CB), 64 bytes each.', hex(0x3240, 0xc0));
+// ---- the flight (the shop's key, $758F: re/README.md) -------------------------------------------
+
+str('FLIGHT_HEX', 'The flight\'s memory, which the VIC reads from the bank at $C000 ($D000-$DFCF, under the I/O area): the character set ($D000, 256 characters), the pictures of the sprites (64 bytes each, pointer $60 at $D800: the player\'s planes, the enemy\'s, an explosion, the clouds) and the sky\'s map ($DD00, 18 rows of 40 characters).', hex(0xd000, 0xfd0));
+str('FLIGHT_TO_HEX', 'Where a plane flies to ($753F, a byte a room): the room it comes down in, $FF for a room with none.', hex(0x753f, ROOM_COUNT));
+str('FLIGHT_PATHS_HEX', 'The enemy plane\'s four paths ($7709): a table of four pointers, then each path: where it starts (x, y) and segments of (kind, speed, count) up to a kind of 0.', hex(0x7709, 0x77e3 - 0x7709));
 str('SLOT_COLOURS_HEX', 'The colours of the carried item boxes and the room\'s item slots as they stand at the start ($6D6B, 4 a slot).', hex(0x6d6b, 16));
 fs.writeFileSync(outFile, lines.join('\n'));
 console.log(`wrote ${outFile}: ${rooms.length} rooms (${rooms.reduce((a, r) => a + r.length / 2, 0)} bytes), special room ${special.length / 2} bytes`);

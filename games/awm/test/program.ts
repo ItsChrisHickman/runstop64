@@ -129,11 +129,11 @@ const lead = runTo(TITLE_LOOP);
 console.log(`the original's title loop starts ${lead} frames in`);
 program.frame(NO_CONTROLS);
 takeSounds();
-together('title', 99, (n) => ({ stick: 0, f1: false, f7: n >= 30 && n < 34 }));
+together('title', 99, (n) => ({ stick: 0, f1: false, f7: n >= 30 && n < 34, fly: false }));
 still('1-title');
 
 // 2. fire: the original reads it at the top of the next frame and sets up the game; its first pass of the main loop is some frames on
-const fire: Controls = { stick: Stick.Fire, f1: false, f7: false };
+const fire: Controls = { stick: Stick.Fire, f1: false, f7: false, fly: false };
 press(fire);
 const fired = o.runFrame();
 if (!fired) throw new Error('the CPU stopped');
@@ -204,7 +204,7 @@ if (now() !== "title") throw new Error(`the closing screen did not end in the ti
 const highOk = program.high.join(',') === digits.join(',') && [0, 1, 2, 3, 4].every((i) => o.ram[0x4067 + i] === digits[i]);
 console.log(`high score: original ${Array.from(o.ram.subarray(0x4067, 0x406c)).join(',')}, rebuild ${program.high.join(',')}`);
 // (its first frame: the original's first pass runs late in the frame after the set-up, so that frame is a mixture of two)
-together('title2', 60, (n) => ({ stick: 0, f1: n >= 10 && n < 13, f7: false }), 1);
+together('title2', 60, (n) => ({ stick: 0, f1: n >= 10 && n < 13, f7: false, fly: false }), 1);
 still('4-title-again');
 
 // 5. a second game: the panel prints the high score

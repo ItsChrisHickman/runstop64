@@ -8,12 +8,14 @@
  *   nice -n 15 node tools/test.mjs games/awm/test/lockstep.ts games/awm/build/play.state sweep:300:1
  *   ROOMS=0-19 nice -n 15 node tools/test.mjs games/awm/test/lockstep.ts games/awm/build/play.state kinds:120:1
  *   nice -n 15 node tools/test.mjs games/awm/test/lockstep.ts games/awm/build/play.state deliver:200:2
+ *   ROOMS=0-1 nice -n 15 node tools/test.mjs games/awm/test/lockstep.ts games/awm/build/play.state fly:40:1
  *
  * A plan is `joystick:logic steps` pieces, joystick any of U D L R F or - for nothing. `rand:N:seed` is N steps
  * of a random player. `sweep:N:seed` starts Monty in each of the 80 rooms (on the first free spot with floor
  * under it the room has, picked by the seed) and plays N random steps in each; it reports how many steps match
  * before the two part. `kinds:N:seed` starts next to each kind of tile, item, enemy and lift of every room and at each edge;
- * `deliver:N:seed` walks into the rooms that want an item (or have a script) from every side, carrying what they want.
+ * `deliver:N:seed` walks into the rooms that want an item (or have a script) from every side, carrying what they want;
+ * `fly:N:seed` boards the plane of each room that has one (with a ticket, holding the stick four ways, and without), then plays N random steps.
  * ROOM=n or ROOMS=a-b limits the sweep and kinds plans to some rooms (kinds takes about 4 minutes per 25 rooms). At the
  * end of a run the entry points of the stage-3 code that the original reached are listed. RESYNC=1 carries on after a difference (the rebuild is set to the original's state) and
  * counts every one, for finding more than one cause in a run. ROOM=n runs one room of a sweep.
@@ -23,7 +25,8 @@
  * original reads (the 80 rooms' enemy records become empty ones, every item is marked collected, the lift
  * table points at no room) and out of the rebuild alike, to find which group a difference belongs to. The
  * music and the rest of the main loop run as they do. A step is the main loop's logic step ($54AE-$5510 and
- * the death handling after it), seen at $551A. Not rebuilt: the shop ($758F), which is entered by a key.
+ * the death handling after it), seen at $551A. A step that boards a plane ($758F: the Commodore key, `C` in a plan) is the whole flight
+ * and the landing: the stick of that step is held through it (test/flight.ts compares the flight frame by frame).
  *
  * CARRY=11,12 puts those item types into Monty's hands at the start (in both), for the rooms that want them.
  */
@@ -32,7 +35,7 @@ import { C64Machine, unpackState } from 'c64kit';
 import { DROP, SEQUENCES, WOBBLE } from '../src/enemies';
 import { LIFT_SITES } from '../src/lifts';
 import { decodeStick } from '../src/input';
-import { applyOriginal, CARRY, diffOf, makeGame, plannedRuns, readPort, startOriginal } from './harness';
+import { applyOriginal, CARRY, diffOf, flyThrough, KEY, makeGame, plannedRuns, readPort, startOriginal } from './harness';
 
 const [stateFile, planArg = 'R:100'] = process.argv.slice(2);
 if (!stateFile) throw new Error('usage: lockstep.ts <play.state> [plan | rand:N:seed | sweep:N:seed]');
@@ -55,6 +58,8 @@ const POINTS: ReadonlyMap<number, string> = new Map([
   [0x4aaf, 'state E'], [0x4b91, 'state F'], [0x4ba5, 'state 10'], [0x4aca, 'state 11'], [0x4a68, 'state 12'], [0x4a6f, 'state 13'],
   [0x4bc7, 'state 10 ends (room 1B)'], [0x5594, 'room 4D ending entered'], [0x846a, 'lift rests'], [0x8477, 'lift sinks'], [0x847e, 'lift grows'],
   [0x61e5, 'controls scrambled'],
+  [0x75d0, 'flight boarded'], [0x7f11, 'flight: his nose at the other plane'], [0x7f55, 'flight: the other plane at his tail'],
+  [0x7f19, 'flight: the other plane shot down'], [0x7f5d, 'flight: shot down'], [0x7610, 'lands at the plane'],
 ]);
 
 /** Entry points reached in the original over all the runs of this process. */
@@ -88,7 +93,8 @@ function run(room: number, x: number, y: number, joys: readonly number[], resync
     if (now.snap.state === 0x13 && now.snap.step === 0xff) break;
     now = orig.next(joy);
     const theirs = now.snap;
-    game.step(decodeStick(joy));
+    game.step(decodeStick(joy), (joy & KEY) !== 0);
+    if (game.flying) flyThrough(game, joy);
     result.steps++;
     const diffs = diffOf(theirs, readPort(game));
     if (diffs.length === 0) {
@@ -159,7 +165,7 @@ const verbose = !!process.env.VERBOSE;
 const probe = new C64Machine();
 probe.loadState(state);
 const start = { room: probe.ram[0x402b] ?? 0, x: probe.ram[0x5c3f] ?? 0x80, y: probe.ram[0x5c40] ?? 0x68 };
-const single = !/^(sweep|kinds|deliver)/.test(planArg);
+const single = !/^(sweep|kinds|deliver|fly)/.test(planArg);
 let all = 0, total = 0, runs = 0, clean = 0;
 const states = new Map<number, number>();
 const fields = new Map<string, number>();

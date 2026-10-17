@@ -15,6 +15,7 @@ export const info = {
       <li>Published by <a href="https://en.wikipedia.org/wiki/Gremlin_Graphics">Gremlin Graphics</a>, 1987</li>
     </ul>
     <p>Controls: arrows or WASD move (up climbs) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the title &middot;
+    C boards a plane (stand at one with a ticket; on a touch screen the FLY button) &middot;
     on the title, F1 chooses the music and F7 the sound effects (on a touch screen, tap the line between the pillars) &middot;
     P or Esc pauses: items taken and a map; pick a room you've stood in and press Enter to travel there &middot;
     M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>

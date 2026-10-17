@@ -5,10 +5,11 @@
  */
 import { C64Machine, type MachineState } from 'c64kit';
 import { ENEMY_ROOMS, NO_ROOM, ROOMS, TABLES, WORLD_GRID } from '../src/data';
-import { Enemies } from '../src/enemies';
+import { Enemies, PLANE_FRAMES } from '../src/enemies';
 import { Game } from '../src/game';
 import { LIFT_SITES, Lift } from '../src/lifts';
-import { Stick } from '../src/input';
+import { Stick, decodeStick } from '../src/input';
+import type { SkyState } from '../src/flight';
 import { BOXES } from '../src/panel';
 import { Picture } from '../src/picture';
 import { COLS, ROWS } from '../src/room';
@@ -31,13 +32,26 @@ export interface Snap {
   enemies: string; clock: string; lift: string; hands: string; collected: string; score: string; money: string; flags: string;
   // stage 5: what he asked of the sound drivers in the step, and the room tune playing
   sounds: string; tune: number;
+  // the flight: what it leaves in the machine
+  sky: string;
 }
 export const KEYS: readonly (keyof Snap)[] = [
   'room', 'x', 'y', 'state', 'step', 'lives', 'gridIndex', 'blocked', 'jumpDir', 'input', 'prevX', 'prevY',
   'entryX', 'entryY', 'entryState', 'entryStep', 'burn', 'dead', 'frame', 'faceLeft',
   'walkPhase', 'walkFrame', 'walkToggle', 'climbPhase', 'slowToggle', 'rngIndex', 'rngSum', 'cells', 'burnPicture',
-  'enemies', 'clock', 'lift', 'hands', 'collected', 'score', 'money', 'flags', 'sounds', 'tune',
+  'enemies', 'clock', 'lift', 'hands', 'collected', 'score', 'money', 'flags', 'sounds', 'tune', 'sky',
 ];
+
+/** What the flights leave in the machine, from the original's bytes ($784D-$785F, $3B, $7860-$7861, $809C-$809E, $4063, $4065, $C3FA-$C3FD). */
+export function readSky(ram: Uint8Array): SkyState {
+  const r = (a: number): number => ram[a] ?? 0;
+  return {
+    clouds: [0x784d, 0x784f, 0x7851, 0x7853, 0x7855, 0x7857, 0x7859, 0x785b].map((a) => r(a) | (r(a + 1) << 8)),
+    slow: [r(0x785d), r(0x785e)], tick: r(0x785f), scrollB: r(0x3b), enemy: [r(0x7860), r(0x7861)], player: [r(0x809c), r(0x809d)],
+    lean: r(0x809e), explosion: r(0x4063), hit: r(0x4065), pointers: [0xc3fa, 0xc3fb, 0xc3fc, 0xc3fd].map(r),
+  };
+}
+const skyText = (s: SkyState): string => JSON.stringify(s);
 
 export const hex = (b: ArrayLike<number>): string => Array.from({ length: b.length }, (_, i) => (b[i] ?? 0).toString(16).padStart(2, '0')).join('');
 export const CELLS = 576;
@@ -65,7 +79,7 @@ export function readOriginal(ram: Uint8Array): Snap {
     hands: `${list(0x6947, 4)}|${list(0x693b, 4)}|${[0, 1, 2, 3].map(entry).join(',')}`,
     collected: bits(Array.from({ length: ITEMS }, (_, i) => (r(0x6d7b + 3 * i) & 0x80) !== 0)),
     score: list(0x404a, 5), money: list(0x4051, 5),
-    sounds: '', tune: r(0x4064),
+    sounds: '', tune: r(0x4064), sky: skyText(readSky(ram)),
     flags: list(0x405d, 1) + ',' + [0x402d, 0x405e, 0x405b, 0x405c, 0x4062, 0x4060, 0x405f, 0x402a, 0x5df6].map(r).join(','),
   };
 }
@@ -85,7 +99,7 @@ export function readPort(g: Game): Snap {
     hands: `${it.carried.join(',')}|${it.slotType.join(',')}|${it.slotEntry.join(',')}`,
     collected: bits(it.collected),
     score: g.score.digits.join(','), money: g.money.digits.join(','),
-    sounds: g.sound.take().map(callText).join(','), tune: g.tune,
+    sounds: g.sound.take().map(callText).join(','), tune: g.tune, sky: skyText(g.sky),
     flags: [g.progress, g.progressSeen, g.shield, g.bonus, g.bonusFlag, g.helped, g.quest, g.monty.slide, g.ended ? 1 : 0, g.contact80 ? 1 : 0].join(','),
   };
 }
@@ -123,6 +137,7 @@ export function applyOriginal(g: Game, { snap: s, ram }: Moment): void {
   for (let i = 0; i < 5; i++) { g.score.digits[i] = r(0x404a + i); g.money.digits[i] = r(0x4051 + i); }
   g.tune = r(0x4064); g.soundFlag = r(0x4066);
   g.progress = r(0x405d); g.progressSeen = r(0x402d); g.shield = r(0x405e); g.bonus = r(0x405b); g.bonusFlag = r(0x405c);
+  Object.assign(g.sky, readSky(ram));
   g.helped = r(0x4062); g.quest = r(0x4060); g.monty.slide = r(0x405f); g.ended = r(0x402a) !== 0; g.contact80 = r(0x5df6) !== 0;
 }
 
@@ -186,6 +201,9 @@ export interface StartOptions {
   onFrame?: (o: C64Machine, marks: readonly Mark[]) => void;
 }
 
+/** The Commodore key in the keyboard matrix: [CIA1 port A bit, port B bit] ($6319 reads it as $26). */
+const COMMODORE: [number, number] = [7, 5];
+
 /** Something the original's main loop did in a frame, and on which raster line: the drawing phase began ($5473), the logic phase ($54AE), a logic step ended ($551A), a room was entered ($5581). */
 export interface Mark { readonly at: 'draw' | 'logic' | 'end' | 'room'; readonly line: number }
 const MARKS: ReadonlyMap<number, Mark['at']> = new Map([[0x5473, 'draw'], [0x54ae, 'logic'], [0x551a, 'end'], [0x5581, 'room']]);
@@ -215,6 +233,8 @@ export function startOriginal(state: MachineState, room: number, x: number, y: n
   if (progress) { ram[0x405d] = progress; ram[0x402d] = progress; }
 
   let inLogic = false, done: Moment | null = null;
+  // (a flight takes the original some 2000 frames, in the middle of a logic step: they do not count towards the limit below)
+  let flying = false;
   let sounds: string[] = [];
   let lastPc = 0;
   const marks: Mark[] = [];
@@ -233,14 +253,17 @@ export function startOriginal(state: MachineState, room: number, x: number, y: n
       else if (pc === 0xc7e3) sounds.push(`v${o.cpu.a.toString(16)}`);
     }
     lastPc = pc;
+    if (pc === 0x77e3) flying = true;
+    else if (pc === 0x7610) flying = false;
     if (pc === 0x54ae) { inLogic = true; sounds = []; }
     else if (pc === 0x551a && inLogic) { inLogic = false; done = { snap: { ...readOriginal(o.ram), sounds: sounds.join(',') }, ram: o.ram.slice() }; }
     return step();
   };
   const next = (joy: number): Moment => {
-    o.joy1 = o.joy2 = 0x1f & ~joy;
+    o.keys = joy & KEY ? [COMMODORE] : [];
     done = null;
-    for (let f = 0; f < 600 && !done; f++) {
+    for (let f = 0; f < 600 && !done; f += flying ? 0 : 1) {
+      o.joy1 = o.joy2 = 0x1f & ~(flying ? flightStick(joy, readSky(o.ram)) : joy);
       marks.length = 0;
       if (!o.runFrame()) throw new Error('the CPU stopped');
       onFrame?.(o, marks);
@@ -251,6 +274,13 @@ export function startOriginal(state: MachineState, room: number, x: number, y: n
   return { o, hits, next };
 }
 
+
+/** The flight he boarded in the step just run, flown to the end with the stick as `flightStick` has it (the original's lockstep holds the same through the flight), and landed from. */
+export function flyThrough(g: Game, joy: number): void {
+  const flight = g.startFlight(new Uint8Array(0x4000));
+  while (!flight.over) flight.step(g.scramble(decodeStick(flightStick(joy, g.sky))));
+  g.land(flight);
+}
 
 export function diffOf(a: Snap, b: Snap): string[] {
   return KEYS.filter((k) => a[k] !== b[k]).map((k) => {
@@ -266,7 +296,27 @@ export function diffOf(a: Snap, b: Snap): string[] {
 
 // ---- plans -----------------------------------------------------------------------------------
 
-export const STICK: Record<string, number> = { U: Stick.Up, D: Stick.Down, L: Stick.Left, R: Stick.Right, F: Stick.Fire };
+/**
+ * Beside the joystick's five bits, a plan's step can hold the Commodore key (C), the key that boards a plane, and say how the stick
+ * is held through the flight it starts: as it is, or (K) steered to shoot the other plane down, or (X) to be shot down by it.
+ */
+export const KEY = 32;
+export const KILL = 64;
+export const CRASH = 128;
+export const STICK: Record<string, number> = { U: Stick.Up, D: Stick.Down, L: Stick.Left, R: Stick.Right, F: Stick.Fire, C: KEY, K: KILL, X: CRASH };
+
+/** The stick for one frame of a flight (`Stick` bits): `joy` as held, unless the step says to chase (from where the planes are). */
+export function flightStick(joy: number, sky: SkyState): number {
+  const [px = 0, py = 0] = sky.player, [ex = 0, ey = 0] = sky.enemy;
+  const nose = joy & KILL ? px + 0x1e : joy & CRASH ? px : null;
+  if (nose === null) return joy & 0x1f;
+  // (his nose onto the other's, or his tail under its nose: where the game counts a hit)
+  const toX = joy & KILL ? ex : ex + 0x1e;
+  let stick = 0;
+  if (nose + 2 < toX) stick |= Stick.Right; else if (nose > toX + 2) stick |= Stick.Left;
+  if (py + 2 < ey) stick |= Stick.Down; else if (py > ey + 2) stick |= Stick.Up;
+  return stick;
+}
 export const stickOf = (j: string): number => Array.from(j).reduce((m, c) => m | (STICK[c] ?? 0), 0);
 
 export function random(seed: number): () => number {
@@ -275,6 +325,19 @@ export function random(seed: number): () => number {
 }
 
 export const MOVES = ['', 'L', 'R', 'U', 'D', 'F', 'LF', 'RF', 'UL', 'UR', 'DL', 'DR', 'R', 'L', 'R', 'L', 'UF', 'DF', 'LF', 'RF', 'ULF', 'URF'];
+
+/** The rooms with a plane in them ($D0 and $D1 enemy records), and where the first stands. */
+export function airports(): { room: number; x: number; y: number }[] {
+  const out: { room: number; x: number; y: number }[] = [];
+  for (let room = 0; room < ROOMS.length; room++) {
+    for (let e = 0; e < 4; e++) {
+      if ((ENEMY_ROOMS[room * 16 + e * 4 + 3] ?? 0) !== PLANE_FRAMES[0]) continue;
+      const at = ENEMY_ROOMS[room * 16 + e * 4] ?? 0;
+      out.push({ room, x: at & 0xf0, y: (at & 15) << 3 });
+    }
+  }
+  return out;
+}
 
 /** A plan as one joystick per logic step. */
 export function expand(plan: string, seed = 1, count = 0): number[] {
@@ -411,11 +474,11 @@ const WANTED: readonly { room: number; carry: number[]; progress: number }[] = [
 /**
  * The runs of a plan: `sweep:N:seed` (one random player in each room), `kinds:N:seed` (next to every kind of tile,
  * item, enemy and lift, and at each edge), `deliver:N:seed` (into the rooms that want an item, from every side),
- * `rand:N:seed` (N random steps from `start`), or a scripted `joystick:steps` list from `start`.
+ * `rand:N:seed` (N random steps from `start`), `fly:N:seed[:a-b]` (each plane's room, boarding it in eight ways), or a scripted `joystick:steps` list from `start`.
  */
 export function* plannedRuns(plan: string, start: { room: number; x: number; y: number }): Generator<PlannedRun> {
   const { from, to } = roomRange();
-  const [kind, n = '120', seedArg = '1'] = plan.split(':');
+  const [kind, n = '120', seedArg = '1', roomsArg] = plan.split(':');
   const seed = Number(seedArg);
   if (kind === 'sweep') {
     for (let room = from; room <= Math.min(to, ROOMS.length - 1); room++) {
@@ -440,6 +503,20 @@ export function* plannedRuns(plan: string, start: { room: number; x: number; y: 
           runs++;
           yield { label: `into room ${w.room} from ${enter} (${hold}) carrying ${w.carry.join(',') || 'nothing'}, progress ${w.progress}`, kind: 'deliver', room: enter, ...spot, joys, progress: w.progress, carry: w.carry };
         }
+      }
+    }
+  } else if (kind === 'fly') {
+    // each room with a plane: standing at it, the Commodore key down (the stick held in four ways through the flight) with a ticket, and without
+    let runs = 0;
+    // (`fly:N:seed:a-b` limits it to the rooms a to b, as ROOMS does)
+    const [lo = from, hi = to] = roomsArg ? roomsArg.split('-').map(Number) : [];
+    for (const a of airports()) {
+      if (a.room < lo || a.room > hi) continue;
+      for (const [hold, carry] of [['', [0]], ['R', [0]], ['L', [0]], ['U', [0]], ['K', [0]], ['X', [0]], ['', []], ['', [0, 4]]] as const) {
+        const joys = [...expand('-:2'), stickOf(`C${hold}`), ...expand('rand', seed * 1000 + runs, Number(n))];
+        runs++;
+        const how = hold === 'K' ? ' shooting the other plane down' : hold === 'X' ? ' shot down' : hold ? ` holding ${hold}` : '';
+        yield { label: `flight from room ${a.room}${how}${carry.length ? ` with ticket${carry.length > 1 ? ' and more' : ''}` : ', no ticket'}`, kind: 'fly', room: a.room, x: a.x, y: a.y, joys, progress: 0, carry };
       }
     }
   } else if (kind === 'kinds') {

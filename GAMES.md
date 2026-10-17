@@ -20,7 +20,7 @@ They are translations, not native ports, and are never called native.
 | Game | Made as | Notes |
 |---|---|---|
 | Monty on the Run (Gremlin, 1985) | Native rebuild, from an annotated reconstruction's data | The model for the rebuilds. Its title is the original's attract screen, checked frame for frame; a game ends on CONTINUE?; a map with travel. ENHANCED adds ten rooms of our own. |
-| Auf Wiedersehen Monty (Gremlin, 1987) | Native rebuild, from the original's data and code read in the running game | All 80 rooms, Monty, 17 enemy types, lifts, items, deliveries, title, GAME OVER and the ending, music and effects, all checked against the original. Not built: the shop's screen. Its music is built from the original at build time and never committed. |
+| Auf Wiedersehen Monty (Gremlin, 1987) | Native rebuild, from the original's data and code read in the running game | All 80 rooms, Monty, 17 enemy types, lifts, items, deliveries, title, GAME OVER and the ending, music and effects, the flights between airports, all checked against the original. Its music is built from the original at build time and never committed. |
 | Thing on a Spring (Gremlin, 1985) | Translation | Cycle-timed. Map of the factory with travel, ENHANCED steering and jump help. |
 | The Staff of Karnath (Ultimate, 1984) | Translation | Map with travel, spells on number keys, HD view. |
 | Entombed (Ultimate, 1985) | Translation | Map of all seven floors with travel, hints for 20 of the 25 chambers, HD view. |

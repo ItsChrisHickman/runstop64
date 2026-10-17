@@ -16,6 +16,7 @@ import { EVERY_FRAME, type FrameCapture, type ViewStep } from 'c64kit';
 import { Closing } from './closing';
 import { endOf, updateHigh, type Ending } from './flow';
 import { type Entry, FIRST_GAME, Game, type GameCarry } from './game';
+import type { Flight } from './flight';
 import { decodeStick, Stick } from './input';
 import { Picture } from './picture';
 import { restore, type AwmSave } from './save';
@@ -27,18 +28,27 @@ import { SETUP_FRAMES_AFTER_GAME, Title, type TitleCarry } from './title';
 /** The room a new game starts in ($5457). */
 export const START_ROOM = 0x48;
 
-/** What the player holds this frame: the joystick (`Stick` bits) and the title's two keys. */
+/** What the player holds this frame: the joystick (`Stick` bits), the title's two keys and the key that boards a plane (the Commodore key in the original). */
 export interface Controls {
   readonly stick: number;
   readonly f1: boolean;
   readonly f7: boolean;
+  readonly fly: boolean;
 }
 
-export const NO_CONTROLS: Controls = { stick: 0, f1: false, f7: false };
+export const NO_CONTROLS: Controls = { stick: 0, f1: false, f7: false, fly: false };
+
+/** Play: the game, its picture, and the flight he is on, if he has boarded a plane (the main loop's logic step waits for it). */
+interface Play {
+  readonly kind: 'play';
+  readonly game: Game;
+  readonly picture: Picture;
+  flight: Flight | null;
+}
 
 type Part =
   | { readonly kind: 'title'; readonly title: Title }
-  | { readonly kind: 'play'; readonly game: Game; readonly picture: Picture }
+  | Play
   | { readonly kind: 'closing'; readonly game: Game; readonly picture: Picture; readonly closing: Closing };
 
 export class Program {
@@ -77,6 +87,11 @@ export class Program {
     return this.part.kind;
   }
 
+  /** He is on a flight: the picture is the sky, and the logic step he boarded in waits for him to come down. */
+  get flying(): boolean {
+    return this.part.kind === 'play' && this.part.flight !== null;
+  }
+
   /** The title's choice of sound effects (F7) over music (F1). */
   get effectsChosen(): boolean {
     return this.soundFlag !== 0;
@@ -106,7 +121,7 @@ export class Program {
   get ram(): Uint8Array {
     switch (this.part.kind) {
       case 'title': return this.part.title.ram;
-      case 'play': return this.part.picture.ram;
+      case 'play': return this.part.flight ? this.part.flight.ram : this.part.picture.ram;
       case 'closing': return this.part.closing.ram;
     }
   }
@@ -150,7 +165,7 @@ export class Program {
     game.monty.faceLeft = look.faceLeft;
     this.lastEnd = null;
     const picture = this.begin(game, carry, tuneForRoom(START_ROOM, this.soundFlag, game.tune));
-    const part: Part = { kind: 'play', game, picture };
+    const part: Play = { kind: 'play', game, picture, flight: null };
     this.part = part;
     this.beginning = true;
     // (the interrupt has set the main loop's flag while the room was drawn: its first two passes, the drawing and the
@@ -187,7 +202,7 @@ export class Program {
     // (the tune the save says was playing, if any: the music's choice plays the title's tune on)
     const picture = this.begin(game, carry, game.soundFlag !== 0 && game.tune !== 0 ? game.tune : null);
     picture.restorePanel(save.hands);
-    this.part = { kind: 'play', game, picture };
+    this.part = { kind: 'play', game, picture, flight: null };
     this.capture = picture.capture;
     this.beginning = true;
   }
@@ -195,6 +210,9 @@ export class Program {
   /** Travel (the map's): he comes into a room he has stood in, where he came in, as through an exit. Only in play. */
   travel(to: Entry): boolean {
     if (this.part.kind !== 'play') return false;
+    // (a flight on is left behind: he comes into the room by the map as he would have by an exit)
+    this.part.flight = null;
+    this.part.game.abandonFlight();
     this.part.game.placeAt(to);
     return true;
   }
@@ -202,8 +220,9 @@ export class Program {
   // ---- play --------------------------------------------------------------------------------------
 
   /** The main loop's pass: the drawing phase (A) or the logic phase (B), as the loop's toggle has it. */
-  private playFrame(part: { readonly game: Game; readonly picture: Picture }, controls: Controls): void {
+  private playFrame(part: Play, controls: Controls): void {
     const { game, picture } = part;
+    if (part.flight) return this.flightFrame(part, controls);
     this.viewStep = { fresh: this.beginning || !picture.nextIsA, frames: 2 };
     this.beginning = false;
     if (picture.nextIsA) {
@@ -211,7 +230,19 @@ export class Program {
       return;
     }
     picture.beginB(game.lift.tick(game.rng));
-    game.logic(decodeStick(controls.stick));
+    game.logic(decodeStick(controls.stick), controls.fly);
+    if (game.boarded !== null) {
+      // (he has boarded: the flight begins in this frame, as the screen of the play's picture is, its panel kept; the original takes a couple of frames to set it up)
+      picture.takeOff();
+      part.flight = game.startFlight(picture.ram);
+      return this.flightFrame(part, controls);
+    }
+    this.finishLogic(part);
+  }
+
+  /** The end of a logic step: what it changed on the screen, and whether it was the game's end. */
+  private finishLogic(part: Play): void {
+    const { game, picture } = part;
     this.capture = picture.endB();
     const end = endOf(game);
     if (end === null) return;
@@ -220,6 +251,26 @@ export class Program {
     const closing = new Closing(picture.screen, picture.spriteColours);
     this.part = { kind: 'closing', game, picture, closing };
     this.capture = closing.next() ?? this.capture;
+  }
+
+  // ---- the flight ($758F) ------------------------------------------------------------------------
+
+  /**
+   * One frame of the flight (flight.ts), a fiftieth of a second with the stick as stage 6 reads it; the frame after the last one
+   * he comes down and the logic step he boarded in goes on, in the room he is in then.
+   */
+  private flightFrame(part: Play, controls: Controls): void {
+    const { game, picture, flight } = part;
+    if (!flight) return;
+    this.viewStep = EVERY_FRAME;
+    if (flight.over) {
+      part.flight = null;
+      game.land(flight);
+      this.viewStep = { fresh: true, frames: 2 };
+      return this.finishLogic(part);
+    }
+    flight.step(game.scramble(decodeStick(controls.stick)));
+    this.capture = picture.flightCapture(flight);
   }
 
   // ---- GAME OVER ---------------------------------------------------------------------------------

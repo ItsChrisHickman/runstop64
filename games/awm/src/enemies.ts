@@ -51,6 +51,10 @@ export const SEQUENCES: readonly (readonly number[])[] = [
 /** A frame that is hidden: touching it does nothing. */
 export const HIDDEN = 0xdf;
 
+/** The two frames of a plane ($D0, $D1: two records side by side, which are scenery to touch): the ones the flight begins at. */
+export const PLANE_FRAMES: readonly number[] = [0xd0, 0xd1];
+export const isPlane = (frame: number): boolean => PLANE_FRAMES.includes(frame);
+
 const add = (a: number, b: number): number => (a + b) & 0xff;
 const neg = (a: number): number => (-a) & 0xff;
 

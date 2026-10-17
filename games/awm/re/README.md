@@ -11,7 +11,7 @@ variable names are ours.
 was followed and the address and purpose are known, but no check covers it.
 
 The rebuild is native TypeScript, not a translation: typed state shaped like the original's variables, one module
-per concern (`monty.ts`, `enemies.ts`, `items.ts`, `lifts.ts`, `world.ts`, `rng.ts`, `game.ts` for the logic;
+per concern (`monty.ts`, `enemies.ts`, `items.ts`, `lifts.ts`, `world.ts`, `rng.ts`, `game.ts`, `flight.ts` for the logic;
 `picture.ts`, `screen.ts`, `panel.ts` for the picture; `title.ts`, `scroller.ts`, `closing.ts`, `program.ts` for
 the flow; `main.ts`, `map.ts`, `save.ts` for the front end). The original stays the reference.
 
@@ -23,6 +23,7 @@ header). All compare the rebuild with the original on c64kit's model, step by st
 | Check | Compares | Result |
 |---|---|---|
 | `rooms.ts` | all 80 rooms drawn from the data against the original entering each (its own routine $5581) | 80 of 80 identical |
+| `flight.ts` | the flight (the key at a plane, the sky, the other plane) frame by frame: the picture, the variables the interrupts keep, the sky's rows, the sound requests | identical, see the flight's section |
 | `sprites.ts` | the 256 sprite frames (straight or mirrored) against every entity image the VIC drew in 10 rooms | 16234 of 16234 |
 | `lockstep.ts` | every logic step ($551A): Monty, the four enemy records, lift, items and collected bits, score, money, lives, progress, flags, random generator, the 576 cells, the sound requests (`SOUND=1`) | clean, see below |
 | `picture.ts` | the 320 x 200 picture at every frame the original shows, both phases | see below |
@@ -35,7 +36,7 @@ header). All compare the rebuild with the original on c64kit's model, step by st
 
 `lockstep.ts` plans: `rand:N:seed` (a random player), `sweep:N:seed` (one random player in each of the 80 rooms),
 `kinds:N:seed` (starts next to each kind of tile, item, enemy and lift, and at each edge), `deliver:N:seed` (walks into
-the delivery, ending and script rooms from every side carrying what they want); `ROOM=n` / `ROOMS=a-b` limit them. Last
+the delivery, ending and script rooms from every side carrying what they want), `fly:N:seed[:a-b]` (boards the plane of each room, eight ways); `ROOM=n` / `ROOMS=a-b` limit them. Last
 full results: `sweep:800:2` 64000 of 64000 steps; `kinds:120:1` 1316 of 1316 runs (157920 steps); `deliver:200:2` 128 of
 128 runs (34040 steps); targeted runs of the toll, frames $55-$57, room 5 and the $1B-$1D scripts, all clean. The run
 lists which of the original's entry points it reached: every enemy type except 5, every item effect, all four
@@ -141,8 +142,8 @@ Two phases alternate each frame ($4007 toggled), so the **logic runs at 25 Hz** 
 - Phase A, drawing ($5473): lifts ($83EE); animated tiles ($5818); $66CA once per entity builds the sprite images
   (frame `$5C46 + 13k`, mirrored if the flag byte `$5C48 + 13k` bit 7 is set).
 - Phase B, logic ($54AE): $5C81 puts positions into the VIC (x + $38, y + $32; 9th bits in $D010); then in order $46AD
-  Monty (input $61DA, move $46BC, classify $50D5, edge/exits $4E66, tiles $5005, $5312 the "$77" burn), $758F (the shop,
-  not rebuilt), $5ED0 enemies, $6A65 item pickup, $5D00 enemy collisions, $8558 lifts, $7682 (room events: the
+  Monty (input $61DA, move $46BC, classify $50D5, edge/exits $4E66, tiles $5005, $5312 the "$77" burn), $758F (the flight,
+  below), $5ED0 enemies, $6A65 item pickup, $5D00 enemy collisions, $8558 lifts, $7682 (room events: the
   deliveries and scripts). Then the room-music check ($405D changes), lives and death ($5510-$5578).
 - Input ($61DA): joystick port 1 or 2 ($DC01/$DC00, mapped through the table at $6283), else a scan of the keyboard
   matrix, as a direction/fire mask in bits 0-4 (1 up, 2 down, 4 left, 8 right, 16 fire); $403E remembers the direction
@@ -216,7 +217,7 @@ Walk cycle 0,1,2,1 on every second moving step; the per-state frames are in `upd
 
 ## Enemies, lifts, items, scripts (`src/enemies.ts`, `lifts.ts`, `items.ts`, `digits.ts`, `game.ts`)
 
-Order of the logic step: the lift twice (the main loop draws in both phases), Monty, [the shop], enemies, pickup,
+Order of the logic step: the lift twice (the main loop draws in both phases), Monty, the flight, enemies, pickup,
 enemies touching him, the lift's kill, the room scripts, the progress bar, then the lives.
 
 **Enemies** ($5E03 loads, $5ED0 moves). The table gives per room 4 x 4 bytes: x high nibble / y low nibble x 8; type
@@ -320,7 +321,74 @@ What the game asks, and when (`soundlog.ts`, compared with the original's calls 
 dying and the slide of room $1C, $43 a bounce and the spring landing, $45 a zap, $46 points and a carried item, $47
 knocked and fire, $48 the push in room $1B, $4A a delivery, a bonus, the lucky item and a life, $4B a slip; tune 6 for the
 walk-in item, tune 0 when the walk-in is over, the room's tune on entering it; voices 0 and 1 cut at the end of the push
-scenes. Not asked for in the logic step: the shop's ($7F11, $7F55) and $40, $41, $44, $49, $4C.
+scenes; the flight's: $48 once at the start of a hit, and voices 0 and 1 cut every frame that is no hit (with the effects chosen). Not asked for: $40, $41, $44, $49, $4C.
+
+## The flight ($758F; `src/flight.ts`, `Game.boarding` / `land`, `Program.flightFrame`)
+
+What the first notes called the shop is a **flight**: air travel between the airports, in a dogfight screen of its own. All of it
+is *proved* by the checks at the end of this section.
+
+**Boarding** ($758F, every logic step after Monty's). In order: Monty is within 12 pixels (x and y) of an enemy record showing
+frame $D0 or $D1 ($7637; the two records side by side are a plane, type 0, scenery: $5D00 skips them); his state is not 7
+(dying), $E (knocked) or $11 (the walk-in); the Commodore key is down (CIA1 port B bit 5 low, port A bit 7: `$6319` with A = $26;
+the original has no text for it); a ticket (an item of type 0, 20 of them in the game) is in his hands, and is taken ($6CB9) *before* the
+table is looked at: the table at $753F (a byte a room, $FF none) gives the room he flies to, so a plane in room $16 or $39,
+which have none, takes the ticket for nothing. The table: 0 and 1 to each other, 5 > $28 > $11 > $A > $13 > 5, $D > $E > $31 >
+$3D > $4B > $1A > $39, $14 > $D, $40 > 1. Then the banner is printed for room $4F (IN / FLIGHT: `$65A3`), and `$77E3` sets the
+screen up: interrupts off, the item boxes' colour RAM saved ($80B8), the sky's map copied from $DD00 to the screen at $C000
+(720 bytes, over code of an older driver nothing calls), colour RAM $09 for the 18 rows, the sprite registers, $7862 = $3C,
+the clock $80A0/$80A1 = $08CA, and the IRQ vector at $77FC; then it waits for $809F.
+
+**The screen** (a bank-3 text screen of its own: multicolour characters, 38 columns, `$D018 = $04`: screen $C000, characters $D000,
+sprite pictures $D800 on, pointer $60 = his plane). Seven IRQ stages a frame, like the play chain's (`screen.ts`), at lines 0, $20,
+$6A, $90, $96, $B4, $C1:
+
+| Stage | Line | Does |
+|---|---|---|
+| 0 $7865 | 0 | colours ($D020/$D021 $0E, $D022 $0F, $D023 $0C), bank 3, mode, `$D016 = $10 or $3A` (scroll of the top band); the clouds: sprites 0 and 1 move 1 pixel, 6 and 7 two frames in three (counter $785D), x mod 504; the first places of sprites 0, 1, 6, 7 (y $46, $46, $4E, $32), the other plane (4, 5), his (2, 3); every fourth frame the planes' pictures (the other's by how his leans, or its explosion's) and his lean 0, 1, 2, 1 |
+| 1 $7A02 | $20 | $3A steps 2 (6, 4, 2, 0); at 4 rows 0-6 shift a character left (the first round to the end) |
+| 2 $7D50 | $6A | `$D016 = $10 or $3B`; the second pair of clouds (sprites 0, 1 two pixels a frame, 6, 7 as above) and their lower places (y $A0, $A0, $7F, $8C) |
+| 3 $7D46 | $90 | `$D016 = $10` |
+| 4 $7B1F | $96 | $3B steps 3, +8 and rows 7-11 shift when it goes negative |
+| 5 $7C3A | $B4 | rows 12-18 shift a character every frame (8 pixels) |
+| 6 $7E25 | $C1 | bank 0, `$D018 = $1F`, colours black, `$D016 = 8`; his controls, the other plane's path, the planes touching, the clock, the music ($E40F, $C7F2) |
+
+The first IRQ of a flight is stage 0 alone: the set-up (`$8075`) writes $D012 = 0 after the IRQ it enabled has already run stage 0,
+so the next frame begins with stage 1. That frame is the first with the sky in its bands; stage 0 alone makes the one before it, a frame of
+sky and the leftovers of RAM, which the rebuild skips (as it skips the two frames of set-up). The picture of a frame: rows 0-17 from the
+sky with the scroll of their band (row 7 is still the top band's: the IRQ writes `$D016` after the VIC has the row), row 18 on from the
+play screen with the panel's mode, the border black from line $C2 (a cycle of timing in the original makes it $C3 in a third of the
+frames: one picture line of the 38-column border, counted apart by the check).
+
+**The game** (stage 6, with his controls from `$61DA`: the bonus scrambles them, and each look counts it down). His plane
+($809C, $809D): right 3, left 2, up 2, down 2, left 1 more when neither left nor right, x 8 to $7F and y 8 to $76. The other
+plane ($7860, $7861) flies one of four paths ($7709: a start in a corner, then legs of kind 1 (x and y by the speed), 2 (x), 3
+(x, and y the other way) and 4 (y), a speed (signed) and a count; a kind of 0 ends the path and the next frame starts another, picked by
+the random number, with its life $14 again). Touching, as the game measures it (a byte's difference taken as signed, then without its
+sign): his nose ($809C + $1E) within 4 of its x and his y within 12 of its y is *his* hit (the effect $48 once, $4065 saying so;
+$7863 down: at 0 it explodes: pictures $70 and $72 for four frames each, then a new path; 100 points, printed); its nose (its x + $1E) within 4 of
+his x with the same y is *its* hit ($7862 down from $3C: at 0 he is shot down, $7864 and $809F). In no hit the voices 0 and 1 are cut
+(`$C7E3`, every frame) when the effects are the sound chosen. While it explodes nothing touches. The clock ends the flight when $80A1 counts
+down, 1995 frames.
+
+**Coming down** (`$75D3` on, in the main loop after stage 6 set $809F): the boxes' colours back ($81BA), bank 0, sprites' priority and
+expansion cleared, the play IRQ put back on line 0 ($64CD, the vectors and `$651E`), then if $7864 `$4048 = 1` (a death like any
+other, at the end of the step), else `$402B = $402C`; `$5B1F` and `$5581` (the room drawn: about six frames); then Monty is put at the first
+enemy record showing $D0 (`$5C3F/40` and his entry place `$4040/41`: a death in either room starts him at the plane). The rest of the step
+goes on in the room he is in. `$4033` (his controls) keeps the last the flight read. A crash is not a death the safe start spares.
+
+**What stays in the machine** between flights (nothing sets it when a flight begins; `SkyState`, kept by the game,
+carried to the next game, kept by a save at format 2): the clouds' x ($784D-$785C) and their counters ($785D, $785E, $785F), $3B, the
+two planes' places ($7860/1, $809C/D: the next flight starts his plane where the last left it), the lean $809E, the explosion $4063 and
+the hit's sound $4065 (a new game clears those two, $5B39), the pointers $C3FA-$C3FD (his plane's, for the first four frames, are what
+the last flight left: zero in a fresh machine, which shows a sprite made of the screen's bytes). `$3A`, the lives, the clock and the
+path are set each time.
+
+**Checks.** `test/flight.ts` flies the rebuild beside the original (the game boards at the same step: `Game`, `Picture.takeOff`, the
+panel as `makePicture` has it) with the same stick each frame, and compares the 320 x 200 picture, the clouds, scrolls, planes, path,
+life, clock, pointers, the 720 characters of the sky and the sound requests: idle (a whole flight, the clock to its end) 1995 of 1995 frames; random sticks with the effects chosen 900 of 900; steering to shoot the other plane down 600 of 600 (six planes) in room 5; being shot down after 348 and after 479 frames; three flights in a row from what each left in the machine 839 of 839: every frame the same picture but, in about a third of them, one line of the border (the narrower screen's 7 and 9 pixels, picture line 146) black in one and the sky's colour in the other, by a cycle of the interrupt's timing. `lockstep.ts fly:N:seed[:a-b]` boards the
+plane of each room (with a ticket, holding the stick four ways, steering to shoot the other plane down or to be shot down, without a
+ticket, with others as well) and plays on: `fly:20:1` over all 17 rooms with a plane: 136 of 136 runs, 3128 steps, 91 boardings and landings, 315 planes shot down, 13 crashes, the score, lives, rooms, Monty's place and entry, hands, the random generator, the sound requests (also with `SOUND=1`) and the machine's memory the same at every step. (Rooms $E and $11 have their plane in the air: Monty falls from it before the key is down, so no run boards there; $16 and $39 have no place to fly to, and take the ticket for nothing.)
 
 ## The title, GAME OVER and the flow (`src/title.ts`, `scroller.ts`, `closing.ts`, `program.ts`, `flow.ts`)
 
@@ -378,12 +446,9 @@ the title at any time) is not part of the rebuild; the front end has its own bac
 
 ## Not built, and open
 
-- The shop ($758F, $77E3-$8100): opened with a key while touching a frame $D0/$D1 enemy and carrying item type 0, with
-  its own screen and interrupt handler. Nothing happens here when that key would open it.
 - Enemy type 5 (no room holds one): read, not run.
-- The room-37 panel colour difference in the `deliver` run (above).
 - Saves keep no `slotColours` (the colours the item boxes were drawn in).
-- The original's room drawing (about six frames) is not modelled.
+- The original's room drawing (about six frames) is not modelled; nor are the frames either end of a flight (the set-up's two, the frame of stage 0 alone, and the one the play interrupts come back in).
 
 ## How the notes were made
 
