@@ -26,7 +26,7 @@ export interface Span { readonly name: string; readonly at: number; readonly len
 export const SPANS = {
   maps: { name: 'tile maps of rooms 0-5 (576 each) and the card, room 6 (768)', at: 0x6000, length: 6 * 576 + 768 },
   attrs: { name: 'attribute tables, the same layout', at: 0x7080, length: 6 * 576 + 768 },
-  tiles: { name: 'room tile set, 244 tiles', at: 0xd800, length: 244 * 8 },
+  tiles: { name: 'room tile set, 250 tiles (the pistons use up to $F9)', at: 0xd800, length: 250 * 8 },
   endingTiles: { name: 'ending tile set, 192 tiles', at: 0xf800, length: 192 * 8 },
   sprites: { name: 'sprite frames, 192 of 32 bytes', at: 0xc000, length: 192 * 32 },
   gauge: { name: 'energy gauge images, 8 levels of 2 frames', at: 0xd200, length: 512 },

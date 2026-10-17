@@ -296,6 +296,19 @@ export const mulberry = (seed: number): (() => number) => {
 
 const rom = readRom();
 
+/**
+ * What a test can watch of a run without changing it: the first pass's start (after the rebuilt game took the original's state),
+ * each frame's end, each pass's end (after the comparison; the pass before the next one starts), and chosen addresses reached.
+ */
+export interface Hooks {
+  start?(mem: Uint8Array): void;
+  frame?(mem: Uint8Array): void;
+  passEnd?(outcome: Outcome, mem: Uint8Array): void;
+  /** the addresses to report (a 64K table: non-zero = report) and the report */
+  pcs?: Uint8Array;
+  pc?(pc: number, mem: Uint8Array): void;
+}
+
 /** One run: the original from a state, the rebuilt game beside it. */
 export class Run {
   readonly m = new Spectrum(rom);
@@ -309,6 +322,7 @@ export class Run {
   /** a death this pass jumped to an address that is no restart routine: the rebuilt game restarts the room (README: the stray restart), so the run stops here uncompared */
   private stray = false;
   private driver: Driver | null = null;
+  readonly hooks: Hooks = {};
   /** passes compared in this run */
   passes = 0;
   /** the last pass's outcome as the rebuilt game gave it */
@@ -320,12 +334,14 @@ export class Run {
     this.m.kempstonPlugged = kempston;
     let started = false;
     this.m.onStep = (pc) => {
+      if (this.hooks.pcs !== undefined && this.hooks.pcs[pc] !== 0) this.hooks.pc?.(pc, this.m.mem);
       if (this.awaitR) { this.fed.queue.push(this.m.cpu.regs[7]); this.awaitR = false; }
       if (pc === PASS_START || pc === ENDING || pc === GAME_OVER) {
         if (!started) {
           started = true;
           this.prepare?.(this.m.mem);
           take(this.game, this.m.mem);
+          this.hooks.start?.(this.m.mem);
         } else this.finishPass(pc === ENDING ? 'ended' : pc === GAME_OVER ? 'over' : 'playing');
         if (pc === PASS_START && !this.done) {
           this.driver?.choose(this.m, this.game);
@@ -387,6 +403,7 @@ export class Run {
       take(g, mem);
     }
     this.pending = null;
+    this.hooks.passEnd?.(result, mem);
     if (outcome !== 'playing') {
       this.done = true;
       if (outcome === 'ended') this.tally.endings++;
@@ -414,6 +431,9 @@ export class Run {
   play(driver: Driver, limit: number, stop: (g: Game) => boolean = () => false): void {
     this.driver = driver;
     const frames = limit * 6 + 600;
-    for (let f = 0; f < frames && this.passes < limit && !this.done && (this.passes === 0 || !stop(this.game)); f++) this.m.runFrame();
+    for (let f = 0; f < frames && this.passes < limit && !this.done && (this.passes === 0 || !stop(this.game)); f++) {
+      this.m.runFrame();
+      this.hooks.frame?.(this.m.mem);
+    }
   }
 }

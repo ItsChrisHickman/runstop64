@@ -1,4 +1,4 @@
-import { C64_RGBA } from './palette';
+import { C64_COLOURS, type Palette } from './palette';
 
 /**
  * An indexed-colour pixel buffer (one byte per pixel, C64 colour 0-15, or
@@ -11,6 +11,8 @@ export class Surface {
   readonly pixels: Uint8Array;
   /** Bumped on every change so renderers know when to re-upload. */
   version = 0;
+  /** What the colour indexes mean (the C64's unless a game on another machine says otherwise); change `version` with it. */
+  palette: Palette = C64_COLOURS;
 
   constructor(readonly width: number, readonly height: number, fill = TRANSPARENT) {
     this.pixels = new Uint8Array(width * height).fill(fill);
@@ -54,8 +56,8 @@ export class Surface {
   /** Write the surface into an RGBA byte array (transparent pixels → alpha 0). */
   toRGBA(out: Uint8Array) {
     const out32 = new Uint32Array(out.buffer, out.byteOffset, this.width * this.height);
-    const px = this.pixels;
-    for (let i = 0; i < px.length; i++) out32[i] = px[i] === TRANSPARENT ? 0 : C64_RGBA[px[i] & 15];
+    const px = this.pixels, rgba = this.palette.rgba;
+    for (let i = 0; i < px.length; i++) out32[i] = px[i] === TRANSPARENT ? 0 : rgba[px[i] & 15];
   }
 }
 

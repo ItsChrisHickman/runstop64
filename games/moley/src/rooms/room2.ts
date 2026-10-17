@@ -25,6 +25,8 @@ export const ROOM2_EXIT_SCORE = 400;
 const SHAFT = [0xf4, 0xf5, 0xf6] as const;
 const HEAD = [0xf7, 0xf8, 0xf9] as const;
 const ROW = 32;
+/** The cells drawn again every pass: 9 along row 16 from column 22 (`$8CB2`), and, when the room is set up, rows 10-15 (`$8BDC`). */
+const DECK_CELL = 16 * 32 + 22, DECK_CELLS = 9, PISTON2_AREA = 10 * 32, PISTON2_AREA_CELLS = 192;
 
 /** The head of piston 1 starts under the ledge, at row 10, column 4 of the room's map ($65C4); piston 2 at row 10, column 27 ($65DB). */
 const PISTON1_START = 0x65c4 - 0x6000;
@@ -52,6 +54,7 @@ export class Room2 implements RoomScript {
   run(s: Stage): void {
     const e = s.entities;
     this.piston1(s);
+    s.redraw(DECK_CELL, DECK_CELLS); // (`$95EC`)
     if (s.monty.x >= 0x5e && s.monty.x < 0xa8 && s.monty.y >= 0x70) s.die('normal');
     if (s.first) {
       this.puzzle = 0;
@@ -82,7 +85,15 @@ export class Room2 implements RoomScript {
     const next = head + ROW;
     this.put(s, next, HEAD);
     this.put(s, head, SHAFT);
+    this.redrawRows(s, head); // (`$9868`, `$97E1`)
     return next;
+  }
+
+  /** The two rows of cells a piston has just changed, from the cell `head` (an offset in the map memory) down, are drawn again. */
+  private redrawRows(s: Stage, head: number): void {
+    const cell = head - s.tiles.base;
+    s.redraw(cell, 3);
+    s.redraw(cell + ROW, 3);
   }
 
   /** Piston 1 (`$97FC`). */
@@ -113,6 +124,7 @@ export class Room2 implements RoomScript {
       this.head1 = above;
       this.put(s, above, HEAD);
       this.put(s, above + ROW, [0, 0, 0]);
+      this.redrawRows(s, above); // (`$98AA`)
       return;
     }
     this.wait = (s.rng.byte() & 0x7f) | 0x10;
@@ -125,6 +137,7 @@ export class Room2 implements RoomScript {
     this.head2 = PISTON2_START;
     for (let r = 0; r < 6; r++) this.put(s, this.head2 + r * ROW, [0, 0, 0]);
     this.put(s, this.head2, HEAD);
+    s.redraw(PISTON2_AREA, PISTON2_AREA_CELLS); // (`$98F9`: rows 10 to 15 all over)
   }
 
   /** Piston 2 grows a row a pass once the prize is complete, and kills Monty when it meets something (`$97B5`). */

@@ -70,6 +70,27 @@ export interface GameSnapshot {
   readonly attrs: Uint8Array;
 }
 
+/**
+ * What the picture needs to hear as the game goes, at the moment it happens (the original draws as it goes, and what it draws
+ * depends on the state then: the map as the room is entered, Monty's place as he dies). The display (display.ts) is the one listener.
+ */
+export interface Observer {
+  /** a new game begins: the screen is cleared and the panel put up, before room 0 is entered (`$81BC`) */
+  newGame(): void;
+  /** a room has just been entered (`$854A`): its tiles are drawn, the gauge is full */
+  roomEntered(): void;
+  /** the gauge ran out: the panel flashes before the death (`$A2D1`) */
+  timedOut(): void;
+  /** Monty died, a life is gone (`$9592`, `$95C8`) */
+  died(kind: Death): void;
+  /** cells are to be drawn again from the map (a script's `SET 0` on their counters: the conveyors, the pistons) */
+  redraw(first: number, count: number): void;
+  /** an item's cell is cleared (`$86AB`) */
+  itemTaken(cell: number): void;
+  /** the pass's picture is drawn (`$87C4`, then the conveyors turn) */
+  drawn(): void;
+}
+
 /** How a pass ended: the game goes on, lives ran out (game over), or the last delivery was made (the ending). */
 export type Outcome = 'playing' | 'over' | 'ended';
 
@@ -96,6 +117,8 @@ export class Game implements Stage, Outside {
   readonly sounds: number[] = [];
   /** the room was entered during this pass (`$8108`) */
   first = false;
+  /** who hears of the picture's moments (the display), if anyone */
+  observer: Observer | null = null;
   private current = 0;
   /** the last delivery has been made: the ending follows this pass (`$A2A1`) */
   ended = false;
@@ -113,6 +136,7 @@ export class Game implements Stage, Outside {
 
   sound(effect: number): void { this.sounds.push(effect); }
   drain(): void { this.gauge.drain(); }
+  redraw(first: number, count: number): void { this.observer?.redraw(first, count); }
   addScore(points: number): void { this.score = (this.score + points) >>> 0; }
   setPocket(frame: number): void { this.pocket = frame; }
   finish(): void { this.ended = true; }
@@ -143,6 +167,7 @@ export class Game implements Stage, Outside {
     this.gauge.refill();
     this.attrs.set(roomAttrs(room));
     this.items.scan(this.tiles, this.attrs, this.rng);
+    this.observer?.roomEntered();
   }
 
   /** A new game (`$81BC`): the high score is kept, the score cleared, five lives, room 0, Monty above the floor. */
@@ -152,6 +177,7 @@ export class Game implements Stage, Outside {
     this.lives = START_LIVES;
     this.pocket = BLANK_FRAME;
     this.ended = false;
+    this.observer?.newGame();
     this.monty.state = State.walking;
     this.monty.phase = 0;
     this.monty.jumpKeys = 0;
@@ -179,6 +205,7 @@ export class Game implements Stage, Outside {
     if (kind === 'normal') this.monty.frame = BLANK_FRAME;
     this.monty.state = State.walking;
     this.monty.phase = 0;
+    this.observer?.died(kind);
   }
 
   // ---- saving ----------------------------------------------------------------------------------------------
@@ -235,7 +262,10 @@ export class Game implements Stage, Outside {
     for (;;) {
       try {
         this.clock.step();
-        if (this.gauge.empty) this.die('normal');
+        if (this.gauge.empty) {
+          this.observer?.timedOut();
+          this.die('normal');
+        }
         this.script(this.current).run(this);
         return;
       } catch (e) {
@@ -255,10 +285,12 @@ export class Game implements Stage, Outside {
     this.runScripts();
     if (this.ended) return 'ended';
     if (this.lives < 0) return 'over';
-    this.items.collect(this.monty, this.tiles, this.attrs, () => {
+    this.items.collect(this.monty, this.tiles, this.attrs, (cell) => {
       this.addScore(ITEM_SCORE);
       this.sound(2);
+      this.observer?.itemTaken(cell);
     });
+    this.observer?.drawn();
     this.first = false;
     return 'playing';
   }

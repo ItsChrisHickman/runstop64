@@ -5,6 +5,7 @@ export * as S from '../../../packages/c64kit/src/schema';
 export * from '../../../packages/c64kit/src/palette';
 export * from '../../../packages/c64kit/src/font';
 export * from '../../../packages/c64kit/src/input';
+export * from '../../../packages/c64kit/src/loop';
 export * from '../../../packages/c64kit/src/surface';
 export * from '../../../packages/c64kit/src/vic';
 export { C64 as C64Machine, packState, unpackState, PAL_FRAME_CYCLES } from '../../../packages/c64kit/src/c64/machine';
@@ -40,6 +41,8 @@ export type { SfxName } from '../../../packages/c64kit/src/sid/sfx';
  */
 export class PixelRenderer implements Renderer {
   readonly screen = new Surface(320, 200, 0);
+  get palette() { return this.screen.palette; }
+  set palette(p) { this.screen.palette = p; }
   border = 0; background = 0; snap = false; frame = { x: 0, y: 0 };
   backdrop: Surface | null = null;
   layout: PictureLayout | null = null;

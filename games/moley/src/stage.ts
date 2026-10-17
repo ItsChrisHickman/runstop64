@@ -67,6 +67,8 @@ export interface Stage {
   readonly rng: Random;
   /** items still lying in the room (`$86F5`) */
   readonly itemsLeft: number;
+  /** cells `first` to `first + count - 1` (row * 32 + column) are drawn again from the map this pass, though nothing covers them (`SET 0` on their redraw counters) */
+  redraw(first: number, count: number): void;
   /** a beeper effect (`$A017`) */
   sound(effect: number): void;
   /** one step of the gauge down (`$8542`) */

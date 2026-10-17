@@ -34,3 +34,20 @@ export const C64_RGBA = new Uint32Array(
 export function cssColour(index: number): string {
   return '#' + C64_PALETTE[index & 15].toString(16).padStart(6, '0');
 }
+
+/**
+ * A palette a surface and the renderer draw with: 16 colours as 0xRRGGBB and packed RGBA. The default is the C64's; a game on
+ * another machine (Moley Christmas, the ZX Spectrum) gives its own to the renderer and to the surfaces it makes.
+ */
+export interface Palette {
+  readonly rgb: readonly number[];
+  readonly rgba: Uint32Array;
+}
+
+export function makePalette(rgb: readonly number[]): Palette {
+  if (rgb.length !== 16) throw new Error(`a palette has 16 colours, not ${rgb.length}`);
+  return { rgb, rgba: new Uint32Array(rgb.map((c) => 0xff000000 | ((c & 0xff) << 16) | (c & 0xff00) | ((c >> 16) & 0xff))) };
+}
+
+/** The C64's colours as a palette: what every surface and renderer uses unless told otherwise. */
+export const C64_COLOURS: Palette = { rgb: C64_PALETTE, rgba: C64_RGBA };

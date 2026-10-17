@@ -55,10 +55,10 @@ export class Items implements Stateful {
   }
 
   /**
-   * Each pass, after the script (`$8643`): every item's ink moves on one, and one within reach of Monty is taken. `taken` is told
-   * (the score and the sound belong to the game).
+   * Each pass, after the script (`$8643`): every item's ink moves on one, and one within reach of Monty is taken. `taken` is told which cell
+   * (the score, the sound and the picture belong to the game).
    */
-  collect(monty: Sprite, tiles: WritableTiles, attrs: Uint8Array, taken: () => void): void {
+  collect(monty: Sprite, tiles: WritableTiles, attrs: Uint8Array, taken: (cell: number) => void): void {
     for (const r of this.records) {
       if (r.cell < 0) continue;
       attrs[r.cell] = (attrs[r.cell] + 1) & 7;
@@ -66,7 +66,7 @@ export class Items implements Stateful {
       const reached = near(r.x, r.y, x, y) || near(r.x, r.y, (x + 8) & 0xff, y)
         || near(r.x, r.y, x, (y + 8) & 0xff) || near(r.x, r.y, (x + 8) & 0xff, (y + 8) & 0xff);
       if (!reached) continue;
-      taken();
+      taken(r.cell);
       attrs[r.cell] = TAKEN_ATTR;
       tiles.memory[tiles.base + r.cell] += 4;
       r.cell = -1;

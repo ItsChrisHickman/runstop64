@@ -37,6 +37,8 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 | `test/playthrough.ts` (+ `players.ts`, `bot.ts`) | a bot plays on the original and the rebuilt game is compared every pass: room 2 from its start to its exit (the puzzle, the prize, +400), room 5 from its start to the ending (four deliveries, +1000), and the whole game from room 0 to the ending (score 3490) | 926, 606 and 3963 passes, 0 differences |
 | `test/newgame.ts` | the first state of a game from the credits page, and of a second game after a first has been played to its ending (high score kept, maps and script variables as the first game left them) | no differences |
 | `test/stray.ts` | the original's death in room 2 jumps to `$9904` or to the restart by the puzzle's counter (the one place the rebuild differs); the rebuilt game restarts the room | rule holds in 13 of 13 cases |
+| `test/picture.ts` (+ `picture-core.ts`) | the rebuilt picture (`src/display.ts`: the Spectrum's screen memory changed by the original's own steps) against the original's screen memory, bitmap and attributes, in lockstep: every pass, and every frame the original shows (new, old, torn between, or different), the death and time-out pictures in order. Random players, shaken states, exits, Monty round every kind of tile, the bot in rooms 2, 5 and the whole game | slow set: see "The picture" in `docs/moley-plan.md`; 0 passes and 0 frames differ |
+| `test/view.ts` | the picture on c64kit's renderer: Spectrum palette, black border, centred 256 x 192; ORIGINAL equals the screen; ENHANCED (no clash) equals ORIGINAL outside the sprites' boxes and shows every sprite pixel; the glide is even at every half frame, whole pixels when `snap`; no original needed | passes |
 | `test/game.ts` | the rebuilt game alone: `snapshot()` and `restore()` bring it back exactly (38 snapshots, 60 passes played twice each), the seeded generator | passes |
 | `test/info.ts` | the info card's credits and description; not in the registry yet | passes |
 
@@ -195,8 +197,8 @@ for 100 passes (`$9C1A`), killing on the last.
 
 - **A death in room 2 can jump to the wrong place** (`test/stray.ts`). The kill by the prize's second half (`$9667`) calls the death routine with whatever HL holds; the puzzle's routine leaves it at `$9904`
   (the puzzle's counter) when the counter is 0 to 8 or `$3C`, and at the restart `$9556` otherwise. The death routine ends with `JP (HL)`, so in the first case the room is **not** restarted: the
-  original runs the bytes at `$9904` (two counters, then room 3's script, with IX at the second half of the prize), Monty stays where he is and loses a life on every pass he still touches it. The rebuild restarts the room in every case; the lockstep runs stop at such a death. Whether ORIGINAL should repeat the bug is for Chris.
-- **An entity at x `$F0` or more on the bottom rows overruns the original's redraw table** (`$8A9C`, 576 bytes, end marker at `$8CDC`): its third cell column is the next row's first, the last row's is the marker, and the redraw loop then runs on through the
+  original runs the bytes at `$9904` (two counters, then room 3's script, with IX at the second half of the prize), Monty stays where he is and loses a life on every pass he still touches it. The rebuild restarts the room in every case; the lockstep runs stop at such a death. Chris decided (2026-10-17): fixed in both modes, ORIGINAL included; the room restarts as the authors meant.
+- **An entity at x `$F0` or more on the bottom rows overruns the original's redraw table** (the picture does the sprite's spill into the next row, not the counters') (`$8A9C`, 576 bytes, end marker at `$8CDC`): its third cell column is the next row's first, the last row's is the marker, and the redraw loop then runs on through the
   code at `$8CDD` (found by shaking room 0's cassette to x `$F5`). No entity gets there in play (Monty stops at `$EE`, the traffic at `$EE`, the cassette at `$D8`); the lockstep shaking keeps entities out of it.
 
 ## Entities, sprites and drawing (read)
@@ -220,10 +222,16 @@ for 100 passes (`$9C1A`), killing on the last.
   5 draws with OR only (`$8A38`). `src/sprite.ts` is this, as pure functions.
 - **Animated tiles**: each pass (not in room 5, `$8279`) the main loop turns one row of the two conveyor tiles: `RRC ($DAA0)`, `RLC ($DAA2)`,
   `RRC ($DBD0)`, `RLC ($DBD2)`: tiles $55 and $7B, rows 0 and 2. Their pictures in the data are the first position of that cycle.
-- **Erasing**: no save-under. Every cell an entity covers (3 x 3) gets a counter of 2 in a table of 18 x 32 bytes at
-  `$8A9C` (end marker `$8CDC`); each pass counters are decremented and a cell reaching 0 is redrawn from the tile map
-  (`$889C-$8900`, blank for tile 0). So a sprite leaves for two passes the cells it has left; for a rebuild this is just
-  "tiles first, then sprites, every frame".
+- **Erasing** (proved: `test/picture.ts`): no save-under. Each pass every cell an entity covers (3 x 3 from its top left cell, y without its bit 7) gets a counter of 2 in a table of 18 x 32 bytes at
+  `$8A9C` (end marker `$8CDC`) and its tile is drawn from the map into the copy; the sprites are drawn into the copy; then the counters are walked: a 2 copies that cell of the copy to the screen and
+  becomes 1, a 1 draws the cell's map tile on the screen (an empty cell for tile 0) and becomes 0. So after a pass 1 means "covered this pass" and a sprite leaves a cell at once, in the next pass. Nothing
+  else touches the screen's play area but room entry (clears it, draws every tile) and an item being taken (its cell cleared). **The room scripts force redraws** by setting bit 0 of counters (`SET 0`, so the cell is drawn from the map
+  that pass): room 1's conveyor (10 cells at `$8B4F`, every pass), room 2's deck (9 cells at `$8CB2`, every pass), the two pistons' old and new rows when they move (`$9868`, `$98AA`, `$97E1`), and rows 10-15 whole when room 2 is set up (`$98F9`). A rebuild that leaves these out
+  shows the conveyor and the pistons frozen. The tile set has **250 tiles** at `$D800` (the pistons are `$F4`-`$F9`; the first extraction took 244). Sprite frames `$80`-`$88` are where the interrupt table sits (`$D000`-`$D100`, all `$5F`):
+  no play shows them. A sprite at x `$F0` or more spills its third byte into the next row of the screen (`INC C`), which the rebuild does as the original does.
+- **The HUD** is drawn when it changes and the rebuild makes it from the state every time, which gives the same picture: faces from `$50A1` (cell row 21, column 1, every 3 columns; blank faces first, then `lives` of frame 0; none drawn when lives is negative), the dial from `$509A` and `$509C` (row 20, columns 26 and 28; level `value AND $F0`, a negative value keeps level 0), the item box `$50B3` (row 21, column 19), the score at `$5067` (row 19, column 7: four blanks, then the digits without leading zeros, the last place always) and the high score at `$5072` (column 18, printed only when a game ends above it).
+- **Dying** (`$9592`): the face goes, then Monty's pictures `$B0`, `$B1`, `$B2` each last 2 frames (a draw and a HALT take more than a frame), the empty one 25, and the room is entered. Before it the sound holds the picture for 2 frames. Running out of gauge first cycles the ink of the dial's cells (rows 18-23, columns 24-31, `$A2D1`) for 56 frames, one a frame, and leaves their paper cleared until a new game. Entering a room draws its tiles progressively, about 7 frames; the rebuild draws it at once (counted apart in the test).
+- **Colour**: measured in `re/colours.ts`: 94 % of the pixels a sprite adds to the screen are in bright white, and it is the dominant colour of all 81 pictures seen in play; the rest is the clash with coloured cells. The border is black in play.
 - **Collision** between entities is a box test (`$87A7`): |dx| < 16 and |dy| < 16. Items are tested against Monty's four corners (`$8643`: within 8).
 
 ## Monty (read, with the jump proved)
@@ -325,7 +333,7 @@ Details the rebuild had to get right, all now checked pass by pass against the o
 - The effect of the original's wrong jump in room 2 ("Where the rebuild differs"): which entities and variables the stray run of room 3's script changes is read, not followed.
 - Which tiles are lethal: none are; rooms 0 and 4 have floor and wall tests only and the lethal things are entities (proved by the scripts).
 - Whether any key (other than SPACE) is read by the credits page; the key-scan routine at `$A341` and its tables at `$A3A0-$A4A0` are not called.
-- The HUD's faces, the dial's drawing and the picture generally (stage 4); the credits page's and the ending's own code (stage 5).
+- The credits page's and the ending's own code, and the picture of the ending and game over (stage 5).
 
 ## Tools
 

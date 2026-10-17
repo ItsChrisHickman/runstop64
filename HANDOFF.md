@@ -19,17 +19,13 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
 
 ## Next
 
-- **Moley Christmas** (ZX Spectrum only): plan stages 1-3 are done in worktree commits (`docs/moley-plan.md`); the game logic is complete and the picture is next.
-  Data: `games/moley/re/extract.ts` writes the committed `src/data/*.ts`; `test/data.ts` proves it. The logic: `src/game.ts` (`Game`: one `pass` is the
-  original's main loop, 25 a second; lives, score, items, gauge, `snapshot()`/`restore()` for saves), Monty in `src/monty.ts`, the six room scripts in `src/rooms/`
-  over the shared primitives in `src/primitives.ts`, random numbers behind `src/random.ts` (`SeededRandom` in the game; the test feeds the original's R reads).
-  `test/lockstep.ts` compares the whole game with the original every pass (entity table, score, lives, items, map, attributes, script variables, pocket, effects) and
-  `test/playthrough.ts` plays rooms 2 and 5 and the whole game to the ending with a bot, all in lockstep with 0 differences; `test/newgame.ts` and `test/stray.ts`
-  complete it (all in the fast set; the heavy lockstep is in the slow set). `src/info.ts` is written for the finished build and the game is not in `games/registry.ts` yet.
-  The originals (tape, 48K ROM, exercisers, states) are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md` remakes them).
-  **For Chris:** the original has a bug in room 2 (a kill by the prize's second half can jump to the wrong address; `re/README.md`, "Where the rebuild differs") that the
-  rebuild does not copy: the room restarts as the authors meant. Say if ORIGINAL should repeat it (it costs a life a pass until Monty moves away). Next is stage 4 (the
-  picture, compared with the original frame by frame; Chris's addition: no-clash sprites as an ENHANCED item, not built; both modes keep the Spectrum's own colours, a C64 or softened palette was tried and dropped).
+- **Moley Christmas** (ZX Spectrum only): plan stages 1-4 are done in worktree commits (`docs/moley-plan.md`); the game logic and the picture are complete and checked against the original.
+  Data: `games/moley/re/extract.ts` writes the committed `src/data/*.ts`. The logic: `src/game.ts` (`Game.pass` is the original's main loop, 25 a second; `Observer` tells the picture what happens). The picture:
+  `src/display.ts` (the Spectrum's screen memory changed by the original's own steps; `takeShots` gives the death and time-out pictures), `src/look.ts` (ORIGINAL exact, ENHANCED no colour clash), `src/view.ts` (`MoleyView` on c64kit's renderer:
+  Spectrum palette, black border, 256 x 192 centred in 320 x 200; `look` is the flag for the front end; smooth motion through `ViewStep` and `render(alpha)`). c64kit got `Palette` (default C64, every other game unchanged).
+  Tests: `test/picture.ts` (every pass and frame against the original: 0 differ), `test/view.ts`, plus stage 3's lockstep and playthrough; `re/frames.ts` writes PNGs, `re/colours.ts` measures the sprite colour (white).
+  Room 2's wrong-address jump: Chris decided, fixed in both modes (the room restarts). The game is not in `games/registry.ts`. Next is stage 5 (credits page, game over, the ending: not drawn yet, a pass that ends or loses the game is not drawn) and stage 6 (front end).
+  The originals are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md`).
 
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
@@ -45,7 +41,6 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
 
 ## Waiting on Chris
 
-- **Moley Christmas:** whether ORIGINAL repeats the original's room 2 bug (killed by the prize's second half early in a puzzle round, Monty is not sent back and loses a life a pass; `games/moley/re/README.md`, "Where the rebuild differs"). The rebuild restarts the room.
 - **Blackwyche GUIDED:** his notes on the draft lines (he wanted the prose less clumsy; `games/blackwyche/src/guided-lines.ts`).
 - **JSW2:** gentler collisions, rope grip, room-entry grace, and whether the bedroom should blink before it is visited
   (`games/jsw2/QOL.md`, "Proposed").

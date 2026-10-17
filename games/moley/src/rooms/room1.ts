@@ -10,6 +10,8 @@ import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
 export const ROOM1_EXIT_SCORE = 300;
+/** The conveyor along row 5 from column 19: 10 cells (`$8B4F`). */
+const CONVEYOR_CELL = 5 * 32 + 19, CONVEYOR_CELLS = 10;
 
 /** The attribute cell at a screen address ($5800 + n) is cycled through the 8 inks, bright (`$94D6`). */
 function cycleLight(s: Stage, address: number): void {
@@ -40,6 +42,7 @@ export class Room1 implements RoomScript {
 
   run(s: Stage): void {
     const e = s.entities;
+    s.redraw(CONVEYOR_CELL, CONVEYOR_CELLS); // the conveyor tiles turn, so their cells are drawn again every pass (`$937D`)
     // the reel: flags are kept the other way round from how it walks (`$938B`, `$9396`)
     e[1].flags ^= 0x80;
     walkerQuad(s, e[1], { flags: 0x80, base: 0x6f, x: 0xb4, y: 0x78 });

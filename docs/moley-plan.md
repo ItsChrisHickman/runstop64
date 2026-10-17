@@ -3,7 +3,7 @@
 A native rebuild of the 1987 Your Sinclair cover game (ZX Spectrum only), made the way Auf Wiedersehen Monty was: data
 extracted from the original, behaviour rebuilt in TypeScript, everything checked against the original running. What the
 original is and where its parts live: `games/moley/re/README.md`. Stage 1 (done) is the base: the tape, a headless
-Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone) and 3 (the whole game's logic) below are done. The game is small: six screens, a Christmas card, 14 items, 5 lives.
+Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone), 3 (the whole game's logic) and 4 (rooms and picture) below are done. The game is small: six screens, a Christmas card, 14 items, 5 lives.
 
 ## Stages
 
@@ -26,10 +26,12 @@ Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone) an
    room 2 from its start to the prize and room 3 (926 passes), room 5 from its start through four deliveries to the ending (606), and the whole game from room 0 to the ending
    (3,963 passes, score 3490, the most there is), all 0 differences; `test/newgame.ts`: a new game from the credits page, and a second game after the first, equal to the original's.
    **One difference, with its root cause** (`test/stray.ts`, `re/README.md`): a kill by the prize's second half in room 2 early in a puzzle round makes the original jump to the wrong
-   address (not the room's restart), so Monty is not sent back and loses a life a pass; the rebuild restarts the room (waiting for Chris's word on ORIGINAL). Not reached by play:
+   address (not the room's restart), so Monty is not sent back and loses a life a pass; the rebuild restarts the room (Chris decided 2026-10-17: fixed in both modes, ORIGINAL included). Not reached by play:
    an entity at x `$F0` or more on the bottom rows overruns the original's redraw table.
-4. **Rooms and picture.** Draw the 256 x 192 picture (below) and compare it with the original frame by frame, the AWM way
-   (same / torn / a frame apart / different). The original draws in place with no double buffer, so some frames are torn.
+4. **Rooms and picture (done).** `src/display.ts` is the Spectrum's screen memory (bitmap in the ULA's layout, attributes) changed by the original's own steps: entering a room, the per-pass redraw with the counters (a covered cell is drawn from the map into a copy, the sprites into the copy, then copied; a cell covered last pass is drawn from the map), the room scripts' forced redraws (conveyor, pistons), the conveyor tiles turning, the HUD (faces, dial, item box, score), the death and time-out pictures (`takeShots`). `Game` tells it what happens through an `Observer` (the logic is untouched). `src/look.ts` makes the two looks, `src/view.ts` puts them on c64kit's renderer.
+   **Checked against the original** (`test/picture.ts`, slow set, 133,016 passes: random players, shaken states, exits, Monty round every tile kind, the bot in rooms 2 and 5 and the whole game): **0 passes differ** (the whole 6912 bytes of screen memory equal after every pass), and of the 305,130 frames the original showed **0 are different**: 132,771 are the pass's new picture, 59,469 the one before (the draw had not landed in that frame), 73,605 torn between the two (the original draws in place), 39,285 are in a pass that entered a room or lost a life (compared apart: all 570 deaths and time-outs show the original's pictures in order, Monty's three at 2 frames each, the empty one 25, the dial's 56 steps; entering a room the original draws over about 7 frames, the rebuild at once). The fast set runs about 12,000 passes. **Root causes found on the way:** the room scripts force cells to be drawn again (`SET 0` on the redraw counters: room 1's conveyor, room 2's deck and pistons); the tile set has 250 tiles, not 244 (the pistons); the gauge is in cell row 20; a pass in which the ending or game over comes is not drawn. **Not proved:** the ending, game over and credits pictures (stage 5); a shaken entity on frames `$80`-`$88` (the original draws its interrupt table; skipped, 9 passes); an entity whose cells run off the 18 rows (the original's counter table overruns); the browser itself (`view.ts` runs on the headless renderer stand-in, no GPU here).
+   **Palette:** `Palette`, `makePalette` and `C64_COLOURS` in c64kit; `Surface.palette` and `PixelRenderer.palette` default to the C64's, so every other game is unchanged (`packages/c64kit/test/palette.test.ts`: the RGBA of a default surface equals the old conversion; the whole fast set passes). The effects layer and the HD layer still read the C64 palette (no Spectrum game uses them).
+   **ENHANCED look (a flag, `MoleyView.look`, for the front end to switch later):** no colour clash. The scenery is drawn without the sprites, each sprite whole over it (not hidden behind ink) in one colour, and the sprites glide between the 25 Hz passes (`ViewStep`, like AWM). The colour rule is "the colour the original usually shows it in", measured (`re/colours.ts`): 94 % of the pixels a sprite adds to the screen are bright white and white is the dominant colour of all 81 pictures seen in play, so every sprite is bright white (`SPRITE_INK`); the clash only shows where a sprite crosses a coloured cell. ORIGINAL is the exact picture. `re/frames.ts` writes PNGs of both looks beside the original's screen.
 5. **Title, game over, ending, flow.** The credits page and its scroller, GAME OVER, the Christmas card and its scroller,
    the restart, the high score. Compared frame by frame.
 6. **Front end.** The shared one (`runPort`, `FrontEnd`): pause screen with a map of the six screens and progress (items taken,
@@ -39,7 +41,7 @@ Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone) an
 
 ## The picture
 
-*Stage 4 notes from Chris:* the Spectrum palette is the default and the clash is the original's; one looks-only ENHANCED item is planned (no colour clash, below); both modes keep the Spectrum's own colours. Not implemented yet.
+*Stage 4 (done), from Chris:* the Spectrum palette is the default and the clash is the original's; one looks-only ENHANCED item (no colour clash, below); both modes keep the Spectrum's own colours. Built as described in stage 4 above. The room 2 bug (the original's wrong-address jump) is fixed in both modes.
 
 Sprites are drawn the original's way (found in stage 1): into a copy of the screen bitmap, `buffer OR (b AND mask(buffer))`, so a sprite shows only where the background has no ink beside it (`src/sprite.ts`, proved), then each cell is copied to the screen; the two conveyor tiles ($55, $7B) turn one row each pass.
 
@@ -76,7 +78,7 @@ AY synthesiser (3 tone channels, noise, envelope; about 200 lines, new to c64kit
 2. **Items left:** a count in the HUD pocket box, because touching an exit while items are left costs a life and the original gives no sign.
 3. **Steer in the air:** left and right keep working during a jump (the original fixes the direction at take-off).
 
-4. **No colour clash:** sprites keep their own colour and are drawn over the cells like C64 sprites (ORIGINAL keeps the clash). A look only.
+4. **No colour clash (built, behind `MoleyView.look`):** sprites keep their own colour (bright white, measured) and are drawn whole over the cells like C64 sprites (ORIGINAL keeps the clash). A look only. Smooth motion (item 1) is built with it.
 
 Decide after playing the rebuild; none of these changes a room.
 

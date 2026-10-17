@@ -6,7 +6,7 @@ import type { EffectsModel } from './effects';
 import type { ScreenPoint } from './input';
 import type { PictureLayout } from './layout';
 import { Sparkles, type Marker } from './overlay';
-import { C64_PALETTE } from './palette';
+import type { Palette } from './palette';
 import { Surface } from './surface';
 
 /**
@@ -39,6 +39,8 @@ export interface SpriteHandle {
  */
 export interface Renderer {
   readonly screen: Surface;
+  /** What the colour indexes (screen, border, background) mean: the C64's unless set. */
+  palette: Palette;
   border: number;
   background: number;
   snap: boolean;
@@ -71,6 +73,9 @@ export class PixelRenderer implements Renderer {
   readonly overlay = new THREE.Scene();
   readonly camera: THREE.OrthographicCamera;
   readonly screen: Surface;
+  /** What the colour indexes mean (the screen surface follows it; a sprite's surface has its own `palette`). */
+  get palette(): Palette { return this.screen.palette; }
+  set palette(p: Palette) { this.screen.palette = p; this.screen.version++; }
   border = 0;
   /** Colour shown wherever the screen surface is transparent ($D021). */
   background = 0;
@@ -256,9 +261,9 @@ export class PixelRenderer implements Renderer {
       }
     } else {
       if (this.bgMaterial.map) { this.bgMaterial.map = null; this.bgMaterial.needsUpdate = true; }
-      this.bgMaterial.color.set(C64_PALETTE[this.background & 15]);
+      this.bgMaterial.color.set(this.palette.rgb[this.background & 15]);
     }
-    const border = new THREE.Color(C64_PALETTE[this.border & 15]); // hex is sRGB; three converts
+    const border = new THREE.Color(this.palette.rgb[this.border & 15]); // hex is sRGB; three converts
     this.gl.setScissorTest(false);
     this.gl.setClearColor(border, 1);
     this.gl.clear();
@@ -268,7 +273,7 @@ export class PixelRenderer implements Renderer {
       for (let i = 0; i < bands.length; i++) {
         const y0 = Math.floor((i * ch) / bands.length), y1 = Math.floor(((i + 1) * ch) / bands.length);
         this.gl.setScissor(0, ch - y1, cw, y1 - y0);
-        this.gl.setClearColor(new THREE.Color(C64_PALETTE[bands[i] & 15]), 1);
+        this.gl.setClearColor(new THREE.Color(this.palette.rgb[bands[i] & 15]), 1);
         this.gl.clear();
       }
       this.gl.setScissorTest(false);
