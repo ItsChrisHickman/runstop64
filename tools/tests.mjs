@@ -155,6 +155,7 @@ export const TESTS = [
   { file: 'games/jsw2/test/route.ts', set: 'fast' },
 
   // ---- Karnath
+  { file: 'games/karnath/test/ending.ts', set: 'slow' },
   { file: 'games/karnath/re/hints/check.ts', set: 'fast' },
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },

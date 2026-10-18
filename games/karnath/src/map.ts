@@ -20,7 +20,7 @@ import { PIECES, carrying, deposited } from './hints';
 /** Columns in a strip: three blocks of 40. */
 const COLUMNS = 120;
 /** Rooms the game names ($2F8E: 25 of them, $3235 1-$19). */
-const ROOMS = 0x19;
+export const ROOMS = 0x19;
 
 const stripIndex = (mode: number, level: number) => STRIPS.findIndex((s) => s.mode === mode && (s.level === level || s.level < 0));
 /** Where he is: the strip, and the column along it (the view's left edge, $7FE6/$7FE7, and his sprite on screen). */

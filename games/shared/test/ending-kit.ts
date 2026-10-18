@@ -1,5 +1,7 @@
 import { BitmapFont, Input, KIT_GLYPHS, type MachineState } from 'c64kit';
 import { CREDIT, Ending, creditAt, type EndingSpec } from '../native/ending';
+import { clean, type StatusLine } from '../native/narrate';
+import { screenText } from '../native/pause';
 import type { PortConfig } from '../native/host';
 import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import type { C64 } from '../../../packages/c64kit/src/c64/machine';
@@ -34,7 +36,7 @@ export interface ShowRun {
   title: MachineState;
   /** The lines under THE END. */
   stats: readonly string[];
-  /** The rows the credits stand in, with a little room round them (picture pixels). */
+  /** The rows the credits stand in, with a little room round them (picture pixels); unused where they are typed into a panel's line (`spec.creditLine`). */
   band: { top: number; bottom: number };
   /** PNGs of scenes, credits, the parade and THE END go here (the folder is made by the caller), if given. */
   out?: string;
@@ -63,6 +65,12 @@ export interface ShowResult {
 }
 
 const SAMPLE = 25;
+
+/** What a panel's line says now, read back from the screen (the Pendragon lettering: letters, digits, spaces folded). */
+function lineText(ram: Uint8Array, line: StatusLine): string {
+  const at = line.at - 0x400;
+  return screenText(ram, Math.floor(at / 40), at % 40, line.width);
+}
 
 /** Run the show to its end (or 12,000 frames) and note what is to be checked. */
 export function playShow(o: ShowRun): ShowResult {
@@ -102,7 +110,7 @@ export function playShow(o: ShowRun): ShowResult {
       const scene = o.spec.scenes[p.scene];
       o.onMontage?.(p.scene, p.frames, m);
       // (the game's own picture in the band: both layers, every pixel, before our text goes over it)
-      if (p.frames % SAMPLE === 1) {
+      if (!o.spec.creditLine && p.frames % SAMPLE === 1) {
         const pic = shownLayers(m, renderer.layout);
         let drawn = 0;
         for (let y = top; y <= bottom; y++) for (let x = 0; x < 320; x++) { const i = y * 320 + x; if (pic.back[i] !== 0 || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== 0)) drawn++; }
@@ -110,17 +118,28 @@ export function playShow(o: ShowRun): ShowResult {
         r.gameBand.drawn += drawn;
       }
       const px = shown(renderer, m);
+      const line = o.spec.creditLine;
       if (p.frames === 1 && scene.credits?.length) {
-        const b = bandOf(px);
         r.scenes++;
-        if (b.credit === 0 && b.other === 0) r.bandEmptyBefore++; else r.stray.push(`scene ${p.scene} band before text: ${b.credit} credit-coloured, ${b.other} other`);
+        if (line) {
+          const text = lineText(m.ram, line);
+          if (text === '') r.bandEmptyBefore++; else r.stray.push(`scene ${p.scene} line before text: '${text}'`);
+        } else {
+          const b = bandOf(px);
+          if (b.credit === 0 && b.other === 0) r.bandEmptyBefore++; else r.stray.push(`scene ${p.scene} band before text: ${b.credit} credit-coloured, ${b.other} other`);
+        }
       }
       const now = creditAt(scene, p.frames - 1);
       if (now && now.shown.length === scene.credits?.[now.line]?.length && !r.shownLines.has(`${p.scene}.${now.line}`)) {
-        const b = bandOf(px);
         r.shownLines.add(`${p.scene}.${now.line}`);
-        if (b.credit === 0) r.stray.push(`scene ${p.scene} line ${now.line} not drawn`);
-        if (b.other !== 0) r.stray.push(`scene ${p.scene} line ${now.line}: ${b.other} pixels of another colour in the band`);
+        if (line) {
+          const want = clean(now.shown, line), text = lineText(m.ram, line);
+          if (text !== want) r.stray.push(`scene ${p.scene} line ${now.line}: the panel says '${text}', not '${want}'`);
+        } else {
+          const b = bandOf(px);
+          if (b.credit === 0) r.stray.push(`scene ${p.scene} line ${now.line} not drawn`);
+          if (b.other !== 0) r.stray.push(`scene ${p.scene} line ${now.line}: ${b.other} pixels of another colour in the band`);
+        }
         if (o.out) indicesPng(`${o.out}/credit-scene${p.scene}-line${now.line}.png`, px, 320, 200);
       }
       if (o.out && p.frames % 70 === 5) indicesPng(`${o.out}/montage-scene${p.scene}-${String(p.frames).padStart(3, '0')}.png`, px, 320, 200);
@@ -145,10 +164,16 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   check(`every figure of the cast was recorded (${r.figures.length} of ${spec.cast.length})`, r.figures.length === spec.cast.length);
   check('the title tune played all the way (writes in most frames)', r.tuneFrames.of > 0 && r.tuneFrames.played > r.tuneFrames.of / 4);
   check(`every credit line was shown in full (${r.shownLines.size} of ${lines.length})`, r.shownLines.size === lines.length && lines.length >= 25);
-  check(`the game leaves the band for the credits (rows ${o.band.top} to ${o.band.bottom}) black: ${r.gameBand.drawn} of ${r.gameBand.pixels} pixels drawn, over every scene`, r.gameBand.pixels > 0 && r.gameBand.drawn === 0);
-  check('the band was empty before the text in every scene with credits, and only the credit colour is drawn in it', r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
+  const line = spec.creditLine;
+  if (line) {
+    check(`the line the credits are typed into is blank before the text in every scene with credits, and says each line as given (${r.bandEmptyBefore} of ${r.scenes})`, r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
+    check(`every line fits the panel's line and its lettering (at most ${line.width} letters: A to Z, digits, a colon)`, lines.every((l) => l.length <= line.width && clean(l, line) === l));
+  } else {
+    check(`the game leaves the band for the credits (rows ${o.band.top} to ${o.band.bottom}) black: ${r.gameBand.drawn} of ${r.gameBand.pixels} pixels drawn, over every scene`, r.gameBand.pixels > 0 && r.gameBand.drawn === 0);
+    check('the band was empty before the text in every scene with credits, and only the credit colour is drawn in it', r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
+    check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, lines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
+  }
   if (r.stray.length) console.log(r.stray.join('\n'));
-  check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, lines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
   check('the credits are in order: the game first, the port and thanks last', lines[0] === opening && portLines.every((l) => lines.includes(l)) && lines[lines.length - 1] === 'THANKS FOR PLAYING');
-  check('the port is credited to Christopher Hickman, with Claude', lines.includes('CHRISTOPHER HICKMAN') && lines.includes('WITH CLAUDE (ANTHROPIC)'));
+  check('the port is credited to Christopher Hickman, with Claude', portLines.some((l) => l.includes('HICKMAN')) && portLines.some((l) => l.includes('CLAUDE')) && lines.some((l) => l.includes('HICKMAN')) && lines.some((l) => l.includes('CLAUDE')));
 }

@@ -77,7 +77,7 @@ const result = playShow({
 });
 const lines = spec.scenes.flatMap((sc) => sc.credits ?? []);
 checkShow({ spec, port, title, stats: [], band: BAND }, result, lines, PORT_CREDITS, 'DRAGONSKULLE');
-const names = spec.scenes.map((sc) => sc.caption);
+const names = spec.scenes.map((sc) => sc.caption ?? '');
 check('the places are named on the status panel, in the lettering it has (no more than its 23 letters)', names.every((n) => n.length > 0 && n.length <= 23 && /^[A-Z ]+$/.test(n)));
 check(`no scene left its screen (${seen.left.size} did)`, seen.left.size === 0);
 check('the show never won the game it shows (the skull is stopped short of its last hit)', !seen.won && seen.boss < 6);

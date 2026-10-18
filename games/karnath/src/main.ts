@@ -1,6 +1,8 @@
 import { obliqueRooms, type Host } from 'c64kit';
 import { runNative } from '../../shared/native/play';
 import { port } from './native';
+import { ACTIONS } from './actions';
+import { endingStats, karnathEnding, won } from './ending';
 import * as engine from './gen/engine';
 import { karnathMap } from './map';
 import { repairStripX } from './travel';
@@ -49,7 +51,7 @@ export function run(host: Host) {
     actions: {
       keys: { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8, Digit9: 9, Digit0: 10 },
       also: 'select',
-      set: (ram, n, call) => { ram[0x322c] = n; call(engine.r_150e); }, // $150E shows the spell's name
+      set: ACTIONS.set,
       // Enter (or any other key) moves on to the next spell, a press a spell: the original changes it only once a key has been
       // down for 16 frames in all ($236F, $1BFB), which a tap is not (it took five or six)
       next: { order: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], get: (ram) => ram[0x322c] },
@@ -57,6 +59,8 @@ export function run(host: Host) {
     // Touch: the stick, CAST, SPELL (the next one, as Enter does), and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'CAST', key: 'Space', size: 'big' }, { label: 'SPELL', key: 'Enter' }] },
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
+    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    ending: { spec: karnathEnding, won, stats: endingStats },
     // the HD view (the shell's C64/HD switch): the room rebuilt in 3D from its characters, lit (src/hd.ts)
     hd: obliqueRooms(karnathHd),
     reserved: [...JOYSTICK_KEYS, ...['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0']],

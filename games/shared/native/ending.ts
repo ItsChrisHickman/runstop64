@@ -17,7 +17,7 @@ import { clean, type StatusLine } from './narrate';
  *     (the sprites it shows in a place), walking across one at a time at double size with a name under each.
  *  3. THE END and the player's numbers, then back to the title.
  *
- * Music: the game's title tune, run on a title machine of its own, through the player the game uses.
+ * Music: the game's tune (its title's, or where there is none the one it plays in play), run on a machine of its own, through the player the game uses.
  * Any key or tap skips, after a couple of seconds. Everything is drawn in the 320x200 picture in the
  * game's own font and the C64's colours; letters stand on the picture's empty parts, never on a box.
  *
@@ -51,7 +51,7 @@ export type EndingStep =
 /** A place to revisit. */
 export interface EndingScene {
   /** On the status line (the game's lettering: A-Z, 0-9, a colon; at most 32 letters, or it goes in parts). */
-  caption: string;
+  caption?: string;
   /** Put him there, the game's own way (called at the main loop's wait of a new game); false if it can't. */
   enter(ram: Uint8Array): boolean;
   steps: readonly EndingStep[];
@@ -60,7 +60,8 @@ export interface EndingScene {
   /**
    * Credit lines over this place, one after another (a line types on, is held, and goes): upper case, at most 38
    * letters. They stand in the black band between the picture and the status panel (`EndingSpec.creditRow`),
-   * which the Pendragon games leave empty, in the title's yellow, never on a box.
+   * which Blackwyche's picture leaves empty, in the title's yellow, never on a box (or, where there is none, in the
+   * panel's message line: `EndingSpec.creditLine`).
    */
   credits?: readonly string[];
 }
@@ -81,7 +82,8 @@ export interface EndingCharacter {
 export interface EndingActions {
   get(ram: Uint8Array): number;
   set(ram: Uint8Array, n: number, call: (fn: () => void) => void): void;
-  jump: number;
+  /** The action that jumps, if the game has one (a `jump` step needs it). */
+  jump?: number;
   strike: number;
   /** Whether he can take another press of the action now (nothing of the last still under way: a stone in flight, a dig); default always. */
   ready?(ram: Uint8Array): boolean;
@@ -92,13 +94,21 @@ export interface EndingSpec {
   title: string;
   scenes: readonly EndingScene[];
   cast: readonly EndingCharacter[];
-  /** The status line the caption goes on. */
+  /** The status line the captions go on. */
   status: StatusLine;
+  /**
+   * For a game whose picture has no empty band to put the credits in: the line of its panel they are typed into instead, in the game's own
+   * lettering (a line is cut to `width` and to the letters it has, so the lines of a scene are written for it; blank between lines). Karnath's
+   * message line. Without it the credits are drawn in yellow in the empty band (`creditRow`).
+   */
+  creditLine?: StatusLine;
   /** Where the credit lines are drawn (picture pixels): the row of eight pixels in the empty band, and the column they start at (default 166 in the black band under the picture, and 8: Blackwyche's and Karnath's). */
   creditRow?: number;
   creditX?: number;
   /** The engine takes one of the four ways for a diagonal (Dragonskulle's): he walks one way at a time. */
   fourWays?: boolean;
+  /** Where the game's own tune is heard: on its title (default), or in play (a game with no title tune: Karnath's). */
+  tune?: 'title' | 'game';
   /** The picture laid out as the game's front end shows it in play (the montage is drawn so; the parade and THE END are not). */
   layout?: PictureLayout;
   /** Each frame, after the game's: what its own panel shows that means nothing in the show (a new game's score, its lives) put away, so the band stays empty. */
@@ -198,6 +208,8 @@ class Director {
     if ('use' in step) return this.use(g, step);
     if ('go' in step) { if (this.spent > step.frames) { this.next(); return IDLE; } return IDLE & ~WAY[step.go]; }
     if ('jump' in step) {
+      // (a game with no jump has no use for the step)
+      if (this.spec.action.jump === undefined) { this.next(); return IDLE; }
       this.choose(g, this.spec.action.jump);
       // fire for a frame now and then: each press is a jump, and he lands before the next
       const phase = this.spent % 40;
@@ -475,10 +487,11 @@ export class Ending {
     else this.end();
   }
 
-  /** The title tune, a frame of it. */
+  /** The tune, a frame of it. */
   private tune() {
     const m = this.music;
     if (!m) return;
+    if (this.o.spec.tune === 'game') { joy(m.m, this.o.spec.joyPort, IDLE); this.o.spec.keepAlive(m.m.ram); }
     m.tick();
     this.o.sound.pushFrame(m.m.sidWrites);
   }
@@ -489,9 +502,10 @@ export class Ending {
     const title = this.o.title();
     if (!title) { this.finish(); return; }
     this.base = bootGame(port, title, spec);
-    this.music = new NativeHost(port, unpackState(packState(title)));
     const base = this.base;
     if (!base) { this.finish(); return; }
+    // (the game's own tune: the title's, or where the game has none there, the one it plays in the castle, from a new game standing by)
+    this.music = spec.tune === 'game' ? NativeHost.resume(port, unpackState(packState(base))) : new NativeHost(port, unpackState(packState(title)));
     this.figures = spec.cast.flatMap((c) => { const f = record(port, base, spec, c); return f ? [f] : []; });
     this.next();
   }
@@ -522,18 +536,19 @@ export class Ending {
     this.o.spec.keepAlive(g.m.ram);
     g.tick();
     this.o.spec.tidy?.(g.m.ram);
-    caption(g.m.ram, this.o.spec.status, scene.caption);
+    if (scene.caption !== undefined) caption(g.m.ram, this.o.spec.status, scene.caption);
+    const now = creditAt(scene, this.frames - 1);
+    if (this.o.spec.creditLine && scene.credits?.length) caption(g.m.ram, this.o.spec.creditLine, now?.shown ?? '');
     repaint(g.m);
     // (the picture as the game's front end lays it out in play, if it does)
     this.o.host.renderer.layout = this.o.spec.layout ?? null;
     view.update();
-    this.credits(scene);
+    if (!this.o.spec.creditLine) this.credits(now);
     if (this.frames >= sceneLength(scene)) this.next();
   }
 
   /** The credit line of this moment, over the picture's empty band (after the view has drawn the picture, so it stays on top). */
-  private credits(scene: EndingScene) {
-    const now = creditAt(scene, this.frames - 1);
+  private credits(now: ReturnType<typeof creditAt>) {
     if (!now) return;
     const { screen } = this.o.host.renderer;
     this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, CREDIT.colour);
