@@ -53,7 +53,7 @@ export class MoleyView {
   private span = 1;
   private into = 0;
 
-  constructor(readonly renderer: Renderer, readonly display: Display, look: Look = 'enhanced') {
+  constructor(readonly renderer: Renderer, public display: Display, look: Look = 'enhanced') {
     this.look = look;
     renderer.palette = SPECTRUM_COLOURS;
     this.slots = Array.from({ length: display.game.entities.length }, (_, i) => {
@@ -63,6 +63,12 @@ export class MoleyView {
       handle.surface = image;
       return { handle, image, glide: new Smoothed(), shown: '', x: 0, y: 0, seen: -1 };
     });
+  }
+
+  /** Show another game's display (a game continued, or a new one at the credits page): the sprites start afresh. */
+  setDisplay(display: Display): void {
+    this.display = display;
+    this.hide();
   }
 
   /** The surface and the sprites for the display as it is now. `step`: see the top of the file. */
@@ -93,11 +99,12 @@ export class MoleyView {
 
   /**
    * What a step of the flow (flow.ts) shows, on the frame `into` of its `step.frames` (0 the first): a held picture is drawn on the
-   * first frame, the display as it is with its sprites gliding across a pass (ENHANCED) on each.
+   * first frame, the display as it is with its sprites gliding across a pass (ENHANCED) on each. `repaint`: a held picture is drawn on every
+   * frame (a front end that draws over the surface, as the pause screen does, needs the picture back).
    */
-  present(step: FlowStep, into: number): void {
+  present(step: FlowStep, into: number, repaint = false): void {
     if (step.shot !== null) {
-      if (into === 0) this.show(step.shot);
+      if (into === 0 || repaint) this.show(step.shot);
       return;
     }
     this.update({ fresh: into === 0 && step.fresh, frames: step.frames });

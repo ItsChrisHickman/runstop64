@@ -3,7 +3,7 @@ import { AudioKeys, type AudioKeysOptions, type Unlockable } from './audio';
 import { ContinueFlow, type GameStatus, type SaveCodec, type TitleStrip } from './continue';
 import { FireLatch } from './fire-latch';
 import { FrontEnd, type AssistSpec, type PauseRequest } from './frontend';
-import type { PauseMap } from './native/pause';
+import type { PauseColours, PauseMap } from './native/pause';
 import { RoomSaves } from './room-saves';
 
 /**
@@ -53,6 +53,8 @@ export interface PortSetup<S, F, T> {
   describe?(save: S, found: F): string[];
   /** A press is spent from the start: a launch straight into play must not also fire. */
   launchHeld?: boolean;
+  /** The colours of the pause screen and the flow's panels, where the game's palette is not the C64's. */
+  colours?: PauseColours;
 }
 
 /** The sound: what the audio keys and the render tail need of the game's player. */
@@ -115,12 +117,12 @@ export class Port<S, F, T> {
     const { renderer, input } = host;
     this.flow = new ContinueFlow<S, F>({
       id: setup.id, renderer, input, font: setup.font, codec: setup.codec, found: setup.map.found,
-      restartKeys: setup.restartKeys, strip: setup.strip, describe: setup.describe,
+      restartKeys: setup.restartKeys, strip: setup.strip, describe: setup.describe, colours: setup.colours,
     });
     this.latch = new FireLatch(setup.launchHeld);
     this.fe = new FrontEnd<T, F>({
       id: setup.id, input, renderer, map: setup.map, assists: setup.assists,
-      font: () => this.flow.getFont(), saves: this.flow, onClose: () => this.latch.hold(),
+      font: () => this.flow.getFont(), saves: this.flow, onClose: () => this.latch.hold(), colours: setup.colours,
     });
     this.adapter = build(this);
     this.audio = new AudioKeys({ ...this.adapter.audio, canvas: host.canvas, input, renderer });

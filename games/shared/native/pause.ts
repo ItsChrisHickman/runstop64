@@ -119,46 +119,65 @@ export const MAP_BOX: Box = { x: 10, y: 22, w: 196, h: 150 };
 /** C64 colours used by maps. */
 export const COL = { black: 0, white: 1, red: 2, cyan: 3, purple: 4, green: 5, blue: 6, yellow: 7, orange: 8, brown: 9, pink: 10, dgrey: 11, grey: 12, lgreen: 13, lblue: 14, lgrey: 15 };
 
+/**
+ * The colours of the pause screen's furniture (and of the continue flow's panels), as colour indexes of the picture's palette: a game
+ * whose palette is not the C64's (the Spectrum game) names its own. What a map draws in its box is the map's own business.
+ */
+export interface PauseColours {
+  readonly black: number;
+  /** the heading line's tone: the frame, the title and the panels' first line */
+  readonly yellow: number;
+  readonly white: number;
+  readonly lgrey: number;
+  readonly dgrey: number;
+  readonly grey: number;
+  readonly cyan: number;
+  readonly lgreen: number;
+}
+
+/** The C64's (every game but Moley Christmas). */
+export const C64_PAUSE_COLOURS: PauseColours = { black: COL.black, yellow: COL.yellow, white: COL.white, lgrey: COL.lgrey, dgrey: COL.dgrey, grey: COL.grey, cyan: COL.cyan, lgreen: COL.lgreen };
+
 /** Draws the whole pause screen. */
-export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F>, ram: T, found: F, tick: number, options: string[], ui: PauseUi = {}) {
-  s.fillRect(0, 0, 320, 200, COL.black);
+export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F>, ram: T, found: F, tick: number, options: string[], ui: PauseUi = {}, colours: PauseColours = C64_PAUSE_COLOURS) {
+  s.fillRect(0, 0, 320, 200, colours.black);
   // frame, in the style of the Pendragon status lines
-  s.fillRect(0, 0, 320, 2, COL.yellow); s.fillRect(0, 198, 320, 2, COL.yellow);
-  s.fillRect(0, 0, 2, 200, COL.yellow); s.fillRect(318, 0, 2, 200, COL.yellow);
-  s.fillRect(214, 2, 2, 178, COL.dgrey);
-  s.fillRect(2, 178, 316, 2, COL.dgrey);
+  s.fillRect(0, 0, 320, 2, colours.yellow); s.fillRect(0, 198, 320, 2, colours.yellow);
+  s.fillRect(0, 0, 2, 200, colours.yellow); s.fillRect(318, 0, 2, 200, colours.yellow);
+  s.fillRect(214, 2, 2, 178, colours.dgrey);
+  s.fillRect(2, 178, 316, 2, colours.dgrey);
   const title = ui.list ? 'OPTIONS' : map.title(ram, ui.page);
-  font.draw(s, title, Math.floor((214 - title.length * 8) / 2), 8, COL.yellow);
+  font.draw(s, title, Math.floor((214 - title.length * 8) / 2), 8, colours.yellow);
   if (ui.list) {
     // the options page: each line's key, name, and whether it's on
     ui.list.forEach((line, i) => {
       const y = PAUSE_TAP.listY + i * PAUSE_TAP.listStep, on = line.endsWith(' ON');
-      font.draw(s, line.slice(0, 2), 10, y, COL.white);
-      font.draw(s, line.slice(2, 19), 26, y, COL.lgrey);
-      font.draw(s, on ? 'ON' : 'OFF', 178, y, on ? COL.lgreen : COL.grey);
+      font.draw(s, line.slice(0, 2), 10, y, colours.white);
+      font.draw(s, line.slice(2, 19), 26, y, colours.lgrey);
+      font.draw(s, on ? 'ON' : 'OFF', 178, y, on ? colours.lgreen : colours.grey);
     });
   } else {
-    if (ui.touch && ui.page !== undefined) { font.draw(s, '<', 8, 8, COL.white); font.draw(s, '>', 198, 8, COL.white); }
+    if (ui.touch && ui.page !== undefined) { font.draw(s, '<', 8, 8, colours.white); font.draw(s, '>', 198, 8, colours.white); }
     map.draw(s, MAP_BOX, ram, found, Math.floor(tick / 12) % 2 === 0, ui.page, font, ui.pick?.id ?? null);
   }
   if (ui.pick) { // the place picked to go to
-    const { x, y } = ui.pick, r = ui.pick.r ?? 6, rx = ui.pick.rx ?? r, c = Math.floor(tick / 6) % 2 ? COL.cyan : COL.white;
+    const { x, y } = ui.pick, r = ui.pick.r ?? 6, rx = ui.pick.rx ?? r, c = Math.floor(tick / 6) % 2 ? colours.cyan : colours.white;
     const x0 = Math.floor(x - rx), w = Math.ceil(2 * rx) + 1;
     s.fillRect(x0, y - r, w, 1, c); s.fillRect(x0, y + r, w, 1, c);
     s.fillRect(x0, y - r, 1, 2 * r + 1, c); s.fillRect(x0 + w - 1, y - r, 1, 2 * r + 1, c);
   }
-  font.draw(s, 'PAUSED', 222, 8, COL.white);
+  font.draw(s, 'PAUSED', 222, 8, colours.white);
   const info = map.info(ram, found);
-  info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, COL.lgrey));
+  info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, colours.lgrey));
   const legend = typeof map.legend === 'function' ? map.legend(ram) : map.legend ?? [];
   legend.forEach((l, i) => {
     const y = 26 + (info.length + i) * 12;
     s.fillRect(222, y + 1, 6, 6, l.colour);
-    font.draw(s, l.text.slice(0, 9), 232, y, COL.lgrey);
+    font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
-  options.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 166 - (options.length - 1 - i) * 12, COL.cyan));
+  options.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 166 - (options.length - 1 - i) * 12, colours.cyan));
   const foot = ui.list ? (ui.touch ? 'TAP AN OPTION TO CHANGE IT' : 'ITS KEY CHANGES IT  O MAP  P BACK') : ui.touch ? (ui.pick ? 'TAP A PLACE, TAP AGAIN TO GO THERE' : 'TAP HERE TO GO BACK TO THE GAME') : ui.pick ? (ui.page !== undefined ? 'ARROWS PICK ENTER GO  < > PAGES  P BACK' : 'ARROWS PICK  ENTER GO  P BACK') : ui.page !== undefined ? '< >  OTHER PAGES    P  BACK' : 'P OR ESC  BACK TO THE GAME';
-  font.draw(s, foot, Math.floor((320 - foot.length * 8) / 2), 186, COL.white);
+  font.draw(s, foot, Math.floor((320 - foot.length * 8) / 2), 186, colours.white);
 }
 
 // What's been found is plain JSON kept in the browser: maps read their part back through these checks.

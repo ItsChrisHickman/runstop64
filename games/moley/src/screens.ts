@@ -111,8 +111,9 @@ export function creditsScreen(): Screen {
   return screen;
 }
 
-export function creditsScroller(): Scroller {
-  return new Scroller(CREDITS_TEXT, CREDITS_ROW);
+/** The credits page's scroller; `text` is the original's unless a front end rewrites the page's key instructions (main.ts). */
+export function creditsScroller(text: string = CREDITS_TEXT): Scroller {
+  return new Scroller(text, CREDITS_ROW);
 }
 
 /** The Christmas card: room 6 over a cleared screen, the one cell the scroller comes out of black (`$82DA`). */

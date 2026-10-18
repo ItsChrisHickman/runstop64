@@ -41,6 +41,8 @@ export interface Outside {
   readonly scriptFrame: number;
   /** entity 2's x (`$8129`), which the pose of state 3 faces */
   readonly partnerX: number;
+  /** ENHANCED: left and right steer him in the air (the original does not) */
+  readonly airSteering: boolean;
 }
 
 const wrap = (n: number): number => n & 0xff;
@@ -76,8 +78,8 @@ export class Monty implements Stateful {
     // $8FD2: a state other than walking runs its own routine and the pass ends there, with no new picture
     switch (this.state) {
       case State.walking: break;
-      case State.falling: this.fall(); return;
-      case State.jumping: this.jump(); return;
+      case State.falling: this.fall(keys); return;
+      case State.jumping: this.jump(keys); return;
       case State.posed: this.pose(); return;
       case State.hidden: this.frame = BLANK_FRAME; return;
       default: throw new Error(`Monty's state ${this.state} has no routine`); // ($8FD2 would jump into the table that follows it)
@@ -158,8 +160,22 @@ export class Monty implements Stateful {
 
   // ---- falling ($8FBA), jumping ($8D66, $8D77) -------------------------------------------------------------
 
-  /** Falling: 3 pixels a pass until floor or a rope. */
-  private fall(): void {
+  /**
+   * ENHANCED's air steering: the sideways step of the keys held now (the walking steps, so walls and edges stop him as on the ground), and
+   * he faces the way he went. Not in the original.
+   */
+  private steer(keys: number): void {
+    if (keys & Key.left) this.walkLeft();
+    if (keys & Key.right) this.walkRight();
+    if (this.x !== this.prevX) {
+      if (this.prevX < this.x) this.flags &= 0x7f;
+      else this.flags |= 0x80;
+    }
+  }
+
+  /** Falling: 3 pixels a pass until floor or a rope (ENHANCED: he can steer). */
+  private fall(keys: number): void {
+    if (this.world.airSteering) this.steer(keys);
     this.y = wrap(this.y + 3);
     if (this.underFoot() !== 'air') this.state = State.walking;
   }
@@ -178,11 +194,14 @@ export class Monty implements Stateful {
   /**
    * One pass of the jump. He moves sideways the way he was pressing at take-off, then up or down by the table. Going down
    * (or level) he lands on a floor or rope; going up, a ceiling stops him: his position goes back to where the pass began
-   * and the phase to 23 minus itself, so he starts down.
+   * and the phase to 23 minus itself, so he starts down. ENHANCED: the sideways move is of the keys held now, not those of take-off.
    */
-  private jump(): void {
-    if (this.jumpKeys & Key.right) this.walkRight();
-    if (this.jumpKeys & Key.left) this.walkLeft();
+  private jump(keys: number): void {
+    if (this.world.airSteering) this.steer(keys);
+    else {
+      if (this.jumpKeys & Key.right) this.walkRight();
+      if (this.jumpKeys & Key.left) this.walkLeft();
+    }
     if (this.state === State.falling) this.state = State.jumping; // ($8D8A: never true here, a falling state does not come this way)
     const step = JUMP_STEPS[this.phase];
     this.y = wrap(this.y + step);

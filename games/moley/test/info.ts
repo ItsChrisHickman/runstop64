@@ -1,6 +1,6 @@
 /**
  * The info card (src/info.ts): it has what the shell needs, credits the people the original's credits page and World of
- * Spectrum name (and nobody else), says what was done in two or three short sentences, and the game is not in the registry yet.
+ * Spectrum name (and nobody else), says what was done in two or three short sentences, gives the controls and the changes, and the game is in the registry.
  *
  *   nice -n 15 node tools/test.mjs games/moley/test/info.ts
  */
@@ -18,5 +18,7 @@ const sentences = description === null ? [] : description[0].replace(/<[^>]+>/g,
 check(`the description is two or three short sentences (${sentences.length})`, sentences.length >= 2 && sentences.length <= 3 && sentences.every((s) => s.length < 220));
 check('it says: ZX Spectrum only, rebuilt from the original program, the 128K music, no clash',
   description !== null && ['ZX Spectrum', 'rebuilt from the original program', '128K', 'own colours', 'colour clash'].every((s) => description[0].includes(s)));
-check('it is not in the registry yet', !GAMES.some((g) => g.id === 'moley'));
+check('it is in the registry, as the directory lists it', GAMES.some((g) => g.id === 'moley' && g.name === 'MOLEY CHRISTMAS'));
+check('it gives the controls (arrows, WASD, Space, Z, X, gamepad, touch where it matters, pause, mute) and the changes, with the log', ['arrows or WASD', 'Space jumps', 'Z, X', 'gamepad', 'P or Esc pauses', 'M mutes', 'Changes from the original', 'QOL.md', 'ENHANCED'].every((s) => info.html.includes(s)));
+check('it names no original key', !/Kempston|O up|K down/.test(text));
 finish();

@@ -1,6 +1,6 @@
 # runstop64
 
-**RUN/STOP on the C64 classics.** Ten Commodore 64 games, rebuilt for the browser from their original data and code: the
+**RUN/STOP on the C64 classics.** Ten Commodore 64 games and one ZX Spectrum game, rebuilt for the browser from their original data and code: the
 same rooms, graphics, physics and SID music, without the loading, the flicker or the 50 Hz judder. Then added to: a map of
 each game with travel to any place you have been, autosave, touch controls for phones, and an ENHANCED mode with
 quality-of-life changes for a modern playthrough.
@@ -15,6 +15,7 @@ These are tributes. All credit for the originals belongs to their creators (belo
 |---|---|---|
 | **Monty on the Run** (Gremlin Graphics, 1985) | Native rebuild | [#montyotr](https://goshow.me/runstop64/#montyotr) |
 | **Auf Wiedersehen Monty** (Gremlin Graphics, 1987) | Native rebuild | [#awm](https://goshow.me/runstop64/#awm) |
+| **Moley Christmas** (Gremlin Graphics / Your Sinclair, 1987; ZX Spectrum only) | Native rebuild | [#moley](https://goshow.me/runstop64/#moley) |
 | **Thing on a Spring** (Gremlin Graphics, 1985) | Translation | [#thingonaspring](https://goshow.me/runstop64/#thingonaspring) |
 | **The Staff of Karnath** (Ultimate, 1984) | Translation | [#karnath](https://goshow.me/runstop64/#karnath) |
 | **Entombed** (Ultimate, 1985) | Translation | [#entombed](https://goshow.me/runstop64/#entombed) |
@@ -105,6 +106,8 @@ Contributors and coding agents: read [AGENTS.md](AGENTS.md) for the rules and th
   music Rob Hubbard.
 - **Auf Wiedersehen Monty:** Pete Harrap, Shaun Hollingworth, Chris Kerry, Colin Dooley, Greg Holmes; graphics Steve Kerry and
   T. Lloyd; music Rob Hubbard and Ben Daglish.
+- **Moley Christmas:** concept Paul Jackson; code S. Hollingworth and P. Harrap (with Chris Kerry); graphics P. Harrap; music (128K) Ben Daglish;
+  developed by Teque Software Development for Gremlin Graphics; a Your Sinclair cover game.
 - **Thing on a Spring:** Jason Perkins and Anthony Clarke; graphics Mark Rogers; music Rob Hubbard.
 - **The Staff of Karnath, Entombed, Blackwyche, Dragonskulle:** created and designed by Dave Thomas and Bob Thomas, published
   by Ultimate Play the Game.

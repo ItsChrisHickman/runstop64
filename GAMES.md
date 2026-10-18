@@ -1,6 +1,6 @@
 # Games
 
-The ten games runstop64 brings to the browser, how each was made, and what is on the list for later. Each is a tribute, with
+The eleven games (ten for the C64, one for the ZX Spectrum) runstop64 brings to the browser, how each was made, and what is on the list for later. Each is a tribute, with
 full credits on its info sheet and title screen. Each game's `QOL.md` lists every change from the original, and its
 `re/README.md` records what was learned about the original and how the port is checked.
 
@@ -21,6 +21,7 @@ They are translations, not native ports, and are never called native.
 |---|---|---|
 | Monty on the Run (Gremlin, 1985) | Native rebuild, from an annotated reconstruction's data | The model for the rebuilds. Its title is the original's attract screen, checked frame for frame; a game ends on CONTINUE?; a map with travel. ENHANCED adds ten rooms of our own. |
 | Auf Wiedersehen Monty (Gremlin, 1987) | Native rebuild, from the original's data and code read in the running game | All 80 rooms, Monty, 17 enemy types, lifts, items, deliveries, title, GAME OVER and the ending, music and effects, the flights between airports, all checked against the original. Its music is built from the original at build time and never committed. |
+| Moley Christmas (Gremlin / Your Sinclair, 1987; ZX Spectrum only) | Native rebuild, from the original's data and code read in the running game on `tools/zx`, a headless Spectrum | The six screens and the Christmas card, Monty, every room's script, the credits page, GAME OVER and the picture, checked against the original every pass and every frame. The Spectrum's own colours; map of the six screens with items and travel. ENHANCED: no colour clash, smooth motion, the items left in the pocket box, steering in the air. Sound (the beeper effects, the 128K music) is the last stage. |
 | Thing on a Spring (Gremlin, 1985) | Translation | Cycle-timed. Map of the factory with travel, ENHANCED steering and jump help. |
 | The Staff of Karnath (Ultimate, 1984) | Translation | Map with travel, spells on number keys, HD view. |
 | Entombed (Ultimate, 1985) | Translation | Map of all seven floors with travel, hints for 20 of the 25 chambers, HD view. |
@@ -32,9 +33,6 @@ They are translations, not native ports, and are never called native.
 
 ## Maybe later
 
-- Moley Christmas (Gremlin / Your Sinclair, 1987): the fifth Monty Mole game, ZX Spectrum only. Stage 1 is done (a headless
-  Spectrum in `tools/zx`, the original's structure in `games/moley/re/README.md`, the plan in `docs/moley-plan.md`); no game
-  is registered yet. No disassembly or source is published, so it is studied the way Auf Wiedersehen Monty was.
 - A native engine for all four Pendragon games (Karnath, Entombed, Blackwyche, Dragonskulle).
 
 ## Not on the list, on purpose

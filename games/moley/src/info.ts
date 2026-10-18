@@ -1,7 +1,5 @@
-// What the shell's info sheet says about Moley Christmas: the credits and what was done (shown by games/shell.ts, from the registry's `load`).
-// Data only. NOT YET REGISTERED: this text describes the FINISHED build (the Spectrum's colours, the 128K music and the shared
-// front end are stages still to come, docs/moley-plan.md). Check every sentence against the game before it goes in games/registry.ts,
-// and add the controls and the ORIGINAL / ENHANCED line then.
+// What the shell's info sheet says about Moley Christmas: the credits, the controls and what was done (shown by games/shell.ts, from the registry's `load`).
+// Data only; the game's code is main.ts. The description says the 128K music is added: that is stage 7 (docs/moley-plan.md), being built apart.
 // The credits are the original's own credits page (a picture on the tape: concept, program code, graphics, music) plus
 // World of Spectrum's list of the people behind it (software id 3243); nobody is added from memory.
 
@@ -22,6 +20,16 @@ export const info = {
     <p>This is a custom edition of a ZX Spectrum-only game. The 48K game is rebuilt from the original program and checked
     against it frame for frame, in the Spectrum's own colours, with the 128K version's music added. ENHANCED removes the
     colour clash: Monty and the other sprites keep their own colours.</p>
+    <p>Controls: arrows or WASD move (up and down climb the ropes, and fly in the last screen) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the
+    credits page (Enter or a tap too) &middot; any key leaves the Christmas card &middot;
+    P or Esc pauses: items taken and a map of the six screens; pick a screen you've come to and press Enter to go to its start &middot;
+    M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
+    <p>Changes from the original (the
+    <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/moley/QOL.md">full log</a>):
+    the credits page's key text is ours &middot; pause screen with a map of the six screens, items taken and travel &middot; autosave on every screen and
+    Continue after the last life (coming back carries on where you were; T on the pause screen goes to the credits page) &middot; the high score kept in your
+    browser &middot; ENHANCED (switch to ORIGINAL on the pause screen): no colour clash, smooth movement at any refresh rate, the items left in the pocket
+    box, and steering in the air. Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

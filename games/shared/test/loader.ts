@@ -65,7 +65,8 @@ for (const count of [GAMES.length, 11, 16, 30]) {
   const rows = dir.state.rows;
   check(`${count} games: the intro lists them all (${n} ticks), the banner and the saved games line on rows 1 and 2 throughout`, steady && dir.state.row >= 0 && top(rows));
   check(`  the first game chosen and in sight (row ${dir.state.row})`, dir.state.selected === 0 && rows[dir.state.row].includes(games[0].name));
-  if (count === GAMES.length) check(`  the loader's games: as always (READY. on row 3, LOAD"$",8 on row 4, the last READY. on row ${13 + count})`, rows[3] === 'READY.' && rows[4] === 'LOAD"$",8' && rows[13 + count] === 'READY.');
+  // (as many games as fit: eleven and more scroll under the pinned rows, which the other counts check)
+  if (count === GAMES.length && 13 + count <= 23) check(`  the loader's games: as always (READY. on row 3, LOAD"$",8 on row 4, the last READY. on row ${13 + count})`, rows[3] === 'READY.' && rows[4] === 'LOAD"$",8' && rows[13 + count] === 'READY.');
   else if (count <= 17) check(`  the typed lines gone up under the banner, the whole directory in sight (row 3: "${rows[3]}"; READY. on row ${rows.lastIndexOf('READY.')})`, games.every((_, i) => listed(rows, i)) && rows.includes('READY.') && rows[3] !== 'READY.');
   else check(`  too many to show at once: the first ${rows.filter((r) => r.includes('"EXTRA') || r.includes(' PRG')).length} in sight, from the first`, listed(rows, 0) && !listed(rows, count - 1));
   shot(`directory-${count}`);

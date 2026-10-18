@@ -231,7 +231,9 @@ check('L: the game is launched', launched === 'montyotr');
   shot('7-directory');
   // (the screen's 25 rows: the last game, BLOCKS FREE., READY. and the cursor all on it)
   const lit = (row: number) => renderer.screen.pixels.subarray(row * 8 * 320, row * 8 * 320 + 8 * 320).some((v) => v === 14);
-  check(`the directory still fits the screen (rows 2 and ${13 + GAMES.length} have words)`, lit(2) && lit(13 + GAMES.length));
+  // (ten games fit with READY. on row 13 + games; more scroll under the pinned rows, READY. on row 23 and the cursor on 24)
+  const lastRow = Math.min(13 + GAMES.length, 23);
+  check(`the directory still fits the screen (rows 2 and ${lastRow} have words)`, lit(2) && lit(lastRow));
   input.keyDown('F1'); dtick(); input.keyUp('F1'); dtick();
   check('F1 on the directory: the saved games', opened === 1);
 }

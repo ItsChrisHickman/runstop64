@@ -1,0 +1,34 @@
+# Moley Christmas: changes from the original
+
+This remake plays the 1987 ZX Spectrum game (Your Sinclair's Christmas cover game, Monty Mole's outing) as it was, rebuilt natively
+from the original's own data and rules and checked against the original running on a headless Spectrum, pass by pass and frame by
+frame (`games/moley/re/README.md`). The game keeps the Spectrum's own colours in both modes. On top of that sit a few modern
+quality-of-life additions, listed here. Anything that changes how the game *plays* or looks is in ENHANCED, one switch (ENHANCED by
+default; ORIGINAL is the game exactly as it was); the rest is in both.
+
+| Feature | The original | In this remake | Default |
+|---|---|---|---|
+| **Credits page** | The Gremlin picture and the credits, a scroller along the bottom, a joystick looked for (Kempston) for a second, a jump key starts a game. | The same page, rebuilt from the original's code and checked frame for frame against it. Its scroller names our keys instead of the original's (arrows or WASD, Space, Z or X, a gamepad, the touch controls). ENTER CONTINUE (and SPACE NEW GAME) is in the empty rows under YOUR SINCLAIR, in bright yellow; with no save Enter or a tap also starts a game. | Always |
+| **Controls** | Z left, X right, O up, K down, Space jump; Kempston or Sinclair joystick, found by itself. | Arrows or WASD (up and down climb the ropes and, in the last screen, fly), Space, Z or X to jump and to start, Enter to confirm, gamepads. The keys are fixed. | Always |
+| **High score** | Kept until the Spectrum is switched off. | Kept in your browser. | Always |
+| **Pause screen** (P, Esc, pad Start, the touch PAUSE button) | None. | The runstop64 pause screen, in the Spectrum's colours and a Spectrum-like font: a map of the six screens, how you're doing (lives, screens finished, items taken, score), the options. | Always |
+| **Map** | None. | The six screens as small pictures of themselves, dark until you have come to them; where you are flashes; a finished screen has a green frame; under each its items taken (screens 1, 2 and 5 have 7, 3 and 4 items, 14 in all; the others none). The picked screen and how it stands under them. | Always |
+| **Travel** | None. | From the map, go to any screen you have come to: arrows pick, Enter (or jump) goes; on a touch screen tap a screen, tap it again to go. You arrive at the screen's start, as through the exit that leads to it, with a full gauge and its items back. | Always |
+| **Back to screen start** | None. | B on the pause screen: back to how things were when Monty came into this screen (lives and score as then). | Always |
+| **Back to the credits page** | None (only by losing). | T on the pause screen (or a tap on it): the credits page, with the save kept; ENTER CONTINUE goes back to it, and only a new game started there begins a new one (keeping the save as the previous one). A new game over a save asks first: NEW GAME? | Always |
+| **Continue** | Lose your last life: GAME OVER, the credits page, the next game starts from nothing. | GAME OVER plays as it did; then the credits page asks "CONTINUE?" straight away (Enter yes, Esc no, or a tap): Monty is back at the start of the screen he was in, with five lives and the score from nothing. | Always |
+| **After the Christmas card** | The card, then the credits page; the next game starts from nothing. | The card plays as it did, any key leaves it; then CONTINUE?, and the save is kept: yes takes Monty back to the last screen's start with everything he had then. | Always |
+| **Autosave** | None. | Progress is saved in your browser each time Monty enters a screen (after a death too: the lives lost stay lost). Launched with a save, the game goes straight back into play (the credits page only without one, or with T on the pause screen). Starting a new game keeps the save from before it as the previous one: the saved games (F1 on the directory, or the gear there) bring it back. | Always |
+| **Screen 3's wrong jump** | After a kill by the prize's second half early in a puzzle round in screen 3, the original's code jumps to a wrong address: Monty is not sent back to the start, and loses a life a pass. | Monty is sent back to the start of the screen, as the room's other deaths do (`games/moley/re/README.md`, "Where the rebuild differs"). A bug of the original's, mended in both modes. | Always |
+| **Touch controls** (phones, tablets) | None. | 4-way stick and JUMP; PAUSE opens the map (tap a screen to pick it, tap it again to travel; tap an option to change it); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
+| **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play (continuing a save, back to screen start, arriving from the map), a death does not cost a life: Monty is put back at the start of the screen with the life he had, so a resume never starts in the middle of a mishap. No sign on screen. Both modes. | Always |
+| **ENHANCED: no colour clash** | A sprite takes the colour of the 8 x 8 cell it is over, and is hidden behind the scenery's ink: Monty and the others change colour as they cross the screen. | The scenery is drawn without the sprites and each sprite whole over it, in one colour, bright white (the colour the original usually shows it in: 94 % of the pixels a sprite adds, measured over 32,000 passes of the original). Both modes use the Spectrum's own colours. | ENHANCED |
+| **ENHANCED: smooth motion** | One logic step in two frames (25 a second) on a 50 Hz television. | The logic is the original's, one step in two frames; the sprites glide evenly across each step and between frames on 60/120/144 Hz screens. V switches to whole-pixel steps. | ENHANCED |
+| **ENHANCED: items left** | Touching a screen's exit while an item lies about costs a life, and nothing says one is left. | The number of items left in the screen shows in the HUD's pocket box (a large numeral, the game's own, doubled), while any are left; the box is the original's otherwise. | ENHANCED |
+| **ENHANCED: steering in the air** | The direction of a jump is fixed at take-off; a fall off a ledge is straight down. | Left and right keep working in a jump and in a fall, with the walking step (walls and edges still stop him), and he faces the way he goes. With no sideways key at take-off or in the air the game is the original's, to the last number (`test/enhanced.ts`). | ENHANCED |
+
+## Not changed
+
+Everything else is the original: the six screens and the Christmas card, Monty's walk, jump, fall, ropes and flight, every room's
+script and hazard, the items, the exits, the energy gauge, five lives, the score, the graphics and the credits page, GAME OVER and
+the card. The sound is the original's too: the beeper effects, and the 128K version's music (Ben Daglish), M mutes (being built).

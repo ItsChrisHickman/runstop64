@@ -14,7 +14,7 @@
  *
  * test/flow.ts compares every frame with the original running, from the credits page, round a game over and the ending.
  */
-import { ENDING_ROOM } from './data';
+import { CREDITS_TEXT, ENDING_ROOM } from './data';
 import { Display, type Shot } from './display';
 import { Game } from './game';
 import { Key } from './monty';
@@ -67,6 +67,15 @@ export const ENDING_WAIT_FRAMES = 51;
 export const OVER_ENTRY_FRAMES = 5;
 const PASS_FRAMES = 2;
 
+/** What a front end may change of the flow. */
+export interface FlowOptions {
+  /**
+   * The credits page's scrolling text (default the original's, which names the original's keys; a front end gives one with its own: the
+   * page can only print the characters the original's texts have, `GLYPHS`).
+   */
+  readonly creditsText?: string;
+}
+
 export class MoleyFlow {
   phase: Phase = 'credits';
   readonly game: Game;
@@ -74,7 +83,8 @@ export class MoleyFlow {
   /** pictures to show before the phase's own next step: death pictures, the time a screen takes to draw */
   private readonly queue: FlowStep[] = [];
   private screen: Screen = creditsScreen();
-  private scroller: Scroller = creditsScroller();
+  private scroller: Scroller;
+  private readonly creditsText: string;
   /** the frame of GAME OVER (0-99): its colour and when it is over */
   private overFrame = 0;
   /** whether the scroller of the credits page or the card has started (it is not shifted in the frame that starts it) */
@@ -83,7 +93,9 @@ export class MoleyFlow {
   private waiting = false;
 
   /** A flow at the credits page, or (with a game and its display) one in play already, as after a continue or in a test. */
-  constructor(private readonly rng: Random, resume?: { readonly game: Game; readonly display: Display }) {
+  constructor(private readonly rng: Random, resume?: { readonly game: Game; readonly display: Display }, options: FlowOptions = {}) {
+    this.creditsText = options.creditsText ?? CREDITS_TEXT;
+    this.scroller = creditsScroller(this.creditsText);
     if (resume === undefined) {
       this.game = new Game(rng, false);
       this.display = new Display(this.game);
@@ -114,7 +126,7 @@ export class MoleyFlow {
 
   private enterCredits(before: Shot | null = null): FlowStep {
     this.screen = creditsScreen();
-    this.scroller = creditsScroller();
+    this.scroller = creditsScroller(this.creditsText);
     this.started = false;
     return this.held('credits', this.screen, CREDITS_FRAMES, true, before);
   }

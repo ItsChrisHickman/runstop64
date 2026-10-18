@@ -53,6 +53,7 @@ Every game (and the loader) has touch controls, from one shared layer:
 | Loader | 4-way (choose) | LOAD |
 | Monty on the Run | 4-way | JUMP |
 | Auf Wiedersehen Monty | 4-way | JUMP, FLY (boards a plane: stand at one with a ticket) |
+| Moley Christmas | 4-way (up and down climb the ropes, and fly in the last screen) | JUMP |
 | Thing on a Spring | 8-way | JUMP (fire; with a direction, the big jump) |
 | Jet Set Willy II | left/right | JUMP, RUN |
 | Entombed | 8-way | USE (current action), JUMP, WHIP, TORCH, RUN |

@@ -79,6 +79,8 @@ export const TESTS = [
   { file: 'games/moley/test/newgame.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/newgame.ts (a new game, and a second after the ending)' },
   { file: 'games/moley/test/stray.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES] },
   { file: 'games/moley/test/info.ts', set: 'fast' },
+  { file: 'games/moley/test/frontend.ts', set: 'fast' },
+  { file: 'games/moley/test/enhanced.ts', set: 'fast' },
   { file: 'games/moley/test/view.ts', set: 'fast' },
   { file: 'games/moley/test/picture.ts', args: ['300', '1', '100', '1', '1', '30'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/picture.ts (the picture against the original: about 12000 passes, bots included)' },
   { file: 'games/moley/test/picture.ts', args: ['4000', '8', '300', '1', '4', '80'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/picture.ts (the picture against the original: about 70000 passes)' },

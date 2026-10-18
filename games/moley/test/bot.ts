@@ -39,7 +39,7 @@ export interface Goal {
 
 /** Monty alone on the room's tiles: the same physics as in the game, nothing else. */
 function aloneOn(game: Game): Monty {
-  const world: Outside = { tiles: game.tiles, room: game.room, scriptFrame: 0, partnerX: 0 };
+  const world: Outside = { tiles: game.tiles, room: game.room, scriptFrame: 0, partnerX: 0, airSteering: false };
   return new Monty(world);
 }
 

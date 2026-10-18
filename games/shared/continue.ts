@@ -1,7 +1,7 @@
 import { BitmapFont, KIT_GLYPHS, packState, unpackState, type C64Machine, type Input, type MachineState, type Renderer } from 'c64kit';
 import { FLOW_LAYOUT, initialState, panelTop, readIntent, step, stripText, type FlowState, type TitleStrip } from './continue-step';
 import { Grace } from './grace';
-import type { FoundCodec } from './native/pause';
+import { C64_PAUSE_COLOURS, type FoundCodec, type PauseColours } from './native/pause';
 import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent, type SaveBody, type SaveSlot } from './saves';
 
 /**
@@ -91,6 +91,8 @@ export interface ContinueOptions<S, F> {
   describe?(save: S, found: F): string[];
   /** Launched with a save, straight back into play (default true). */
   continueOnLaunch?: boolean;
+  /** The panels' colours where the game's palette is not the C64's (default the C64's). */
+  colours?: PauseColours;
 }
 
 /** The part of the save history the front end drives (FrontEnd's `saves`): a new game, and what's been found. */
@@ -128,10 +130,12 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   /** A moment's grace after every resume (grace.ts); the game ticks it each frame of play. */
   readonly grace = new Grace();
   private readonly codec: SaveCodec<S>;
+  private readonly colours: PauseColours;
   private readonly restartKeys: readonly string[];
 
   constructor(private readonly opts: ContinueOptions<S, F>) {
     this.codec = opts.codec;
+    this.colours = opts.colours ?? C64_PAUSE_COLOURS;
     this.restartKeys = opts.restartKeys ?? ['F1', 'KeyR'];
     this.foundNow = () => opts.found.parse(readFound(opts.id));
     this.st = initialState(this.load() !== null, opts.continueOnLaunch !== false);
@@ -219,7 +223,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   /** Draw the panels (after the picture is drawn into the renderer's screen). */
   draw() {
     const { kind } = this.st.screen;
-    if (kind === 'launching') { this.opts.renderer.screen.clear(0); return; } // (the title, on the way back into play: not shown)
+    if (kind === 'launching') { this.opts.renderer.screen.clear(this.colours.black); return; } // (the title, on the way back into play: not shown)
     if (!this.font) return;
     const touch = this.opts.input.touch;
     if (kind === 'title') this.strip(touch);
@@ -270,7 +274,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     const strip = this.stripAt;
     if (strip.when && !strip.when()) return;
     const text = stripText(strip, touch);
-    this.getFont().draw(this.opts.renderer.screen, text, Math.floor((strip.x ?? FLOW_LAYOUT.strip.mid) - (text.length * FLOW_LAYOUT.glyph) / 2), strip.y, strip.colour ?? 1);
+    this.getFont().draw(this.opts.renderer.screen, text, Math.floor((strip.x ?? FLOW_LAYOUT.strip.mid) - (text.length * FLOW_LAYOUT.glyph) / 2), strip.y, strip.colour ?? this.colours.white);
   }
 
   /** The font panels use (the game's own once its title has shown, else the kit's). */
@@ -283,9 +287,9 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   panel(lines: string[]) {
     const font = (this.font ??= this.opts.font instanceof BitmapFont ? this.opts.font : kitFont());
     const s = this.opts.renderer.screen;
-    s.clear(0);
+    s.clear(this.colours.black);
     const y = panelTop(lines.length), { screen, lineStep, glyph } = FLOW_LAYOUT;
-    lines.forEach((l, i) => font.draw(s, l, Math.floor((screen.w - l.length * glyph) / 2), y + i * lineStep, i === 0 ? 7 : 1));
+    lines.forEach((l, i) => font.draw(s, l, Math.floor((screen.w - l.length * glyph) / 2), y + i * lineStep, i === 0 ? this.colours.yellow : this.colours.white));
   }
 }
 

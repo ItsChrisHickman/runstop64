@@ -309,6 +309,23 @@ export class Display implements Observer {
     for (let line = 0; line < 8; line++) this.bits[rowOffset(row * 8 + line) + column] = glyph === undefined ? 0 : glyph[line];
   }
 
+  /**
+   * ENHANCED: the number of items left in the room, as one large digit in the pocket box (the box is empty then: the items are only in
+   * rooms 0, 1 and 4, which carry nothing). The game's own numeral, each pixel doubled, in the middle of the box's 16 x 16.
+   */
+  private itemCount(count: number): void {
+    const glyph = GLYPHS.get(0x30 + Math.min(count, 9));
+    if (glyph === undefined) return;
+    for (let line = 0; line < 16; line++) {
+      const row = glyph[line >> 1];
+      let wide = 0;
+      for (let bit = 7; bit >= 0; bit--) wide = (wide << 2) | ((row >> bit) & 1) * 3;
+      // (the numeral's 6 columns doubled are 12 of the 16, two clear at each side)
+      this.bits[rowOffset(HUD_ROW * 8 + line) + POCKET_COLUMN] = wide >> 8;
+      this.bits[rowOffset(HUD_ROW * 8 + line) + POCKET_COLUMN + 1] = wide & 0xff;
+    }
+  }
+
   /** The score as `$9F68` prints it: four places, leading zeros left out, the last place always. */
   private number(value: number, row: number, column: number): void {
     for (let i = 0; i < 4; i++) this.glyph(0x20, row, column + i);
@@ -335,6 +352,7 @@ export class Display implements Observer {
     this.blit(GAUGE_FRAMES, this.gaugeLevel * 64, GAUGE_ROW, GAUGE_COLUMN);
     this.blit(GAUGE_FRAMES, this.gaugeLevel * 64 + 32, GAUGE_ROW, GAUGE_COLUMN + 2);
     this.blit(SPRITE_FRAMES, game.pocket * 32, HUD_ROW, POCKET_COLUMN);
+    if (game.enhanced.itemCount && game.pocket === BLANK_FRAME && game.itemsLeft > 0) this.itemCount(game.itemsLeft);
     this.number(game.score, SCORE_ROW, SCORE_COLUMN);
     if (game.highScore !== this.highShown) {
       this.number(game.highScore, SCORE_ROW, HIGH_COLUMN);

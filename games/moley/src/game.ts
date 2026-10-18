@@ -24,6 +24,16 @@ import type { RoomScript } from './rooms/script';
 import { Abandon, Entity, ENTITY_COUNT, type Death, type Sprite, type Stage, type WritableTiles } from './stage';
 
 export const START_LIVES = 5;
+
+/**
+ * What ENHANCED changes in the logic and the picture (the front end sets it from its switch; ORIGINAL is all off, and then nothing here
+ * is looked at, which test/lockstep.ts proves). `airSteering`: left and right keep working in a jump and in a fall (the original fixes
+ * the direction at take-off). `itemCount`: the number of items left shows in the HUD's pocket box (display.ts).
+ */
+export interface Enhancements {
+  airSteering: boolean;
+  itemCount: boolean;
+}
 /** A new game puts Monty in room 0, above the floor (`$8211`), and he falls to it. */
 export const GAME_START = { x: 0x04, y: 0x64 } as const;
 
@@ -121,6 +131,13 @@ export class Game implements Stage, Outside {
   first = false;
   /** who hears of the picture's moments (the display), if anyone */
   observer: Observer | null = null;
+  /** ENHANCED's changes, all off */
+  readonly enhanced: Enhancements = { airSteering: false, itemCount: false };
+  /**
+   * A moment's grace (games/shared/grace.ts): a death while it holds is not suffered but turned into a fresh start of the room with the life
+   * kept (the original's death is a script abandoned and the room started again; this is the same without the loss). Never in a test of the original.
+   */
+  graceActive: () => boolean = () => false;
   private current = 0;
   /** the last delivery has been made: the ending follows this pass (`$A2A1`) */
   ended = false;
@@ -136,6 +153,7 @@ export class Game implements Stage, Outside {
   get scriptFrame(): number { return this.clock.cycle.frame; }
   get partnerX(): number { return this.entities[2].x; }
   get itemsLeft(): number { return this.items.left; }
+  get airSteering(): boolean { return this.enhanced.airSteering; }
 
   sound(effect: number): void { this.sounds.push(effect); }
   drain(): void { this.gauge.drain(); }
@@ -202,6 +220,18 @@ export class Game implements Stage, Outside {
     this.monty.x = a.x;
     this.monty.y = a.y;
     this.enterRoom(room);
+  }
+
+  /**
+   * Go to a room as the player's choice (the pause map's travel): the room's own start, as through the exit that leads to it, the
+   * life and the score as they are. Not the original's; the original has no way to it.
+   */
+  travel(room: number): void {
+    this.monty.jumpKeys = 0;
+    this.monty.ropeUp = 0;
+    this.monty.ropeDown = 0;
+    this.setMontyState(State.walking);
+    this.arrive(room);
   }
 
   /** The death (`$9592`, `$95C8`): a life less and a sound; the full one also shows Monty's three death pictures, ending on none. */
@@ -276,7 +306,7 @@ export class Game implements Stage, Outside {
         return;
       } catch (e) {
         if (!(e instanceof Abandon)) throw e;
-        if (e.death !== null) this.applyDeath(e.death);
+        if (e.death !== null && !this.graceActive()) this.applyDeath(e.death);
         this.arrive(e.room);
       }
     }

@@ -1,6 +1,6 @@
 import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
-import { drawPause, MAP_BOX, PAUSE_TAP, type PauseMap } from './native/pause';
+import { drawPause, MAP_BOX, PAUSE_TAP, type PauseColours, type PauseMap } from './native/pause';
 import { keepFound, readFound } from './saves';
 import { readJson } from './guards';
 
@@ -48,6 +48,8 @@ export interface FrontEndOptions<T, F> {
   saves: SaveHistory<F>;
   /** A screen closed: the press that closed it shouldn't carry into play. */
   onClose(): void;
+  /** The pause screen's colours, where the game's palette is not the C64's (default the C64's). */
+  colours?: PauseColours;
 }
 
 export const PAUSE_KEYS = ['KeyP', 'Escape', 'PadStart'];
@@ -159,7 +161,7 @@ export class FrontEnd<T, F> {
     const map = this.o.map;
     const pick = this.paused ? this.mapControls(state, map) : null;
     update();
-    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch });
+    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch }, this.o.colours);
     return null;
   }
 
