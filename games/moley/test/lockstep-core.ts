@@ -110,8 +110,8 @@ b1('room2.growing', 0x97b4, (g) => g.rooms.r2.growing, (g, v) => { g.rooms.r2.gr
 b1('room3.lorry', 0x9b1c, (g) => g.rooms.r3.lorry, (g, v) => { g.rooms.r3.lorry = v; });
 b1('room3.car1', 0x9b1d, (g) => g.rooms.r3.car1, (g, v) => { g.rooms.r3.car1 = v; });
 b1('room3.car2', 0x9b1e, (g) => g.rooms.r3.car2, (g, v) => { g.rooms.r3.car2 = v; });
-b1('room3.lampWait', 0x9b1f, (g) => g.rooms.r3.lampWait, (g, v) => { g.rooms.r3.lampWait = v; });
-b1('room3.lamp', 0x9b20, (g) => g.rooms.r3.lamp, (g, v) => { g.rooms.r3.lamp = v; });
+b1('room3.sleep', 0x9b1f, (g) => g.rooms.r3.sleep, (g, v) => { g.rooms.r3.sleep = v; });
+b1('room3.waking', 0x9b20, (g) => g.rooms.r3.waking, (g, v) => { g.rooms.r3.waking = v; });
 b1('room3.trapped', 0x9b21, (g) => g.rooms.r3.trapped, (g, v) => { g.rooms.r3.trapped = v; });
 // room 4
 b1('room4.open', 0x9c1a, (g) => g.rooms.r4.open, (g, v) => { g.rooms.r4.open = v; });

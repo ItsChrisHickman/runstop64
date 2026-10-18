@@ -11,6 +11,7 @@
 import { EVERY_FRAME, Smoothed, Surface, TRANSPARENT, makePalette, type Renderer, type SpriteHandle, type ViewStep } from 'c64kit';
 import { Display, pixelsOf, type Shot, type SpritePlace } from './display';
 import type { FlowStep } from './flow';
+import type { Hint } from './hints';
 import { SPRITE_INK, spriteImage, spritePixel, type Look } from './look';
 import { PICTURE_HEIGHT, PICTURE_WIDTH } from './picture';
 import { SPECTRUM_PALETTE } from './palette';
@@ -22,6 +23,8 @@ export const PICTURE_LEFT = (SURFACE_WIDTH - PICTURE_WIDTH) / 2, PICTURE_TOP = (
 /** The border is black in play: the sound effects write `OUT ($FE)` with the border bits clear (`$A017`...) and nothing sets another. */
 export const BORDER = 0;
 const SPRITE_SIZE = 16;
+/** The stardust is wider, its specks bigger and its light stronger than on a C64 picture (c64kit's `Marker.size`, `gain`): the Spectrum's colours are bright and busy, and light added to them shows less. */
+export const SPARKLE_SIZE = 2, SPARKLE_GAIN = 2;
 /** A sprite that moves further than this between two passes is not gliding but placed (a new thing, a jump). */
 const GLIDE_LIMIT = 12;
 
@@ -128,6 +131,11 @@ export class MoleyView {
       slot.handle.x = PICTURE_LEFT + place.x;
       slot.handle.y = PICTURE_TOP + place.y;
     });
+  }
+
+  /** Sparkles on the places of the hints (hints.ts), in the picture's pixels shifted into the surface; none: no sparkles. */
+  sparkle(hints: readonly Hint[]): void {
+    this.renderer.sparkles.set(hints.map((h) => ({ x: PICTURE_LEFT + h.x, y: PICTURE_TOP + h.y, size: SPARKLE_SIZE, gain: SPARKLE_GAIN })));
   }
 
   /** Draw a frame, `alpha` of the way from this pass to the next (0-1) for the sprites. */

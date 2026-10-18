@@ -29,7 +29,7 @@ export const info = {
     the credits page's key text is ours &middot; pause screen with a map of the six screens, items taken and travel &middot; autosave on every screen and
     Continue after the last life (coming back carries on where you were; T on the pause screen goes to the credits page) &middot; the high score kept in your
     browser &middot; ENHANCED (switch to ORIGINAL on the pause screen): no colour clash, smooth movement at any refresh rate, the items left in the pocket
-    box, and steering in the air. Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
+    box, steering in the air, and sparkles on the puzzles and the ways out. Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

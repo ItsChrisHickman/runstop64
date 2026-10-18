@@ -1,6 +1,6 @@
 /**
  * Room 3, the M1 (`$9906`): three lanes (y 8, $40 and $78) that wrap into one another, a lorry that takes hold of Monty on the top
- * lane, two cars on the middle lane that drain the gauge, and a street lamp on the bottom lane that kills whoever stands in it.
+ * lane, two cars on the middle lane that drain the gauge, and a parked car on the bottom lane (frames `$4F`-`$55`, it opens up) that eats whoever is by it when it wakes: the way past is to wake it, wait for it to finish, and go by while it sleeps.
  * The way out is the right end of the bottom lane (+500).
  *
  * The timers are bytes that count down through zero: a value with bit 7 set means "running" (cars) or "ready" (the lorry), and a
@@ -23,10 +23,10 @@ export class Room3 implements RoomScript {
   /** `$9B1D`, `$9B1E`: the cars' waits; running once they are negative */
   car1 = 0;
   car2 = 0;
-  /** `$9B1F`: the lamp's wait */
-  lampWait = 0;
-  /** `$9B20`: how far the lamp's flash has got (0 = idle); `$9B21`: Monty stood in it */
-  lamp = 0;
+  /** `$9B1F`: the parked car's sleep */
+  sleep = 0;
+  /** `$9B20`: how far the parked car's waking has got (0 = asleep); `$9B21`: Monty was by it */
+  waking = 0;
   trapped = 0;
 
   run(s: Stage): void {
@@ -34,13 +34,13 @@ export class Room3 implements RoomScript {
     if (s.first) {
       e[6].x = 0x91; e[6].y = 0x78; e[6].frame = 0x4f;
       this.lorry = 0x40;
-      this.car1 = this.car2 = this.lampWait = this.lamp = this.trapped = 0;
+      this.car1 = this.car2 = this.sleep = this.waking = this.trapped = 0;
     }
     this.wrapLanes(s);
     this.lorryOnTop(s);
     this.carOnMiddleLane(s);
     this.carOnMiddleLaneBack(s);
-    this.lampPost(s);
+    this.parkedCar(s);
   }
 
   /** Leaving a lane at either end (`$9AC7`): the lanes lead into one another, and the bottom lane's right end is the way out. */
@@ -120,36 +120,36 @@ export class Room3 implements RoomScript {
     drains(s, car);
   }
 
-  /** The street lamp (`$9A3E`): it flashes when Monty comes near, and if he is in it when it does, he is held and killed. */
-  private lampPost(s: Stage): void {
-    const m = s.monty, post = s.entities[6];
-    if (this.lampWait !== 0) { this.lampWait = wrap(this.lampWait - 1); return; }
-    if (this.lamp === 0) {
-      if (m.y >= 0x60 && m.x >= 0x8c && m.x < 0x9c) this.lamp = 1;
+  /** The parked car on the bottom lane (`$9A3E`): it wakes when Monty comes near, and if he is by it when it does, he is held and eaten. */
+  private parkedCar(s: Stage): void {
+    const m = s.monty, car = s.entities[6];
+    if (this.sleep !== 0) { this.sleep = wrap(this.sleep - 1); return; }
+    if (this.waking === 0) {
+      if (m.y >= 0x60 && m.x >= 0x8c && m.x < 0x9c) this.waking = 1;
       return;
     }
     if (m.x >= 0x92 && m.x < 0x98 && this.trapped === 0) {
       this.trapped = 4;
       s.setMontyState(4);
-      post.y = m.y;
+      car.y = m.y;
     }
-    if (post.y !== 0x78) post.y = wrap(post.y + 1);
-    const step = this.lamp >> 1;
+    if (car.y !== 0x78) car.y = wrap(car.y + 1);
+    const step = this.waking >> 1;
     if (step < 4) {
-      post.frame = step + 0x4f;
-      this.lamp++;
+      car.frame = step + 0x4f;
+      this.waking++;
       return;
     }
-    post.frame = wrap(0x55 - step);
-    this.lamp++;
-    if (this.lamp !== 0x0e) return;
+    car.frame = wrap(0x55 - step);
+    this.waking++;
+    if (this.waking !== 0x0e) return;
     if (this.trapped !== 0) s.die('short');
-    this.lamp = 0;
-    this.lampWait = (s.rng.byte() & 0x7f) | 0x1e;
+    this.waking = 0;
+    this.sleep = (s.rng.byte() & 0x7f) | 0x1e;
   }
 
-  save(w: StateWriter): void { w.put(this.lorry, this.car1, this.car2, this.lampWait, this.lamp, this.trapped); }
+  save(w: StateWriter): void { w.put(this.lorry, this.car1, this.car2, this.sleep, this.waking, this.trapped); }
   load(r: StateReader): void {
-    this.lorry = r.get(); this.car1 = r.get(); this.car2 = r.get(); this.lampWait = r.get(); this.lamp = r.get(); this.trapped = r.get();
+    this.lorry = r.get(); this.car1 = r.get(); this.car2 = r.get(); this.sleep = r.get(); this.waking = r.get(); this.trapped = r.get();
   }
 }

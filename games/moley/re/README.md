@@ -130,7 +130,7 @@ The six rooms (their scripts are a jump table at `$927A`; a second table at `$92
 | 0 | Gremlin Graphics office, rope lifts, cassettes, monitors | `$9286`: entity 1 a lamp that kills, 2 and 3 walkers that drain, 4 a walker that kills, 5 a bobbing walker that drains, 6 the exit (a cassette) | 7 | the cassette hangs at x $64, y $10 and drifts right (1 pixel a pass, or one in 16 while items are left); at x $D8 it falls to the floor, shows 4 pictures, then is gone and the room kills; touched on the floor: items left kills, none left +200 and room 1 (`$934C`) |
 | 1 | recording studio: ABLEX tape machines, a big reel-to-reel | `$9378` | 3 | a reel walks to and fro and kills; the machines light in sequence (below), two of the steps kill in front of the machine; then two reels spin for 100 passes and the exit object comes in along the top, sinks and kills at y $50; touched from y $38: items left kills, none left +300 and room 2 (`$9549`) |
 | 2 | a cassette duplicating deck with hanging cassettes; a puzzle with pistons built by rewriting the map | `$95E4`, pistons `$97FC`, `$97B5`, puzzle `$9706` | 0 | stand on the one spot (x $2E, y $38) to start the puzzle; the prize at the right; +400 and room 3 (`$96E5`) |
-| 3 | the M1: three lanes of cones and cars, a street lamp | `$9906` | 0 | the lanes wrap (`$9AC7`); bottom lane right edge: +500, room 4 |
+| 3 | the M1: three lanes of cones and cars, a parked car that eats | `$9906` | 0 | the lanes wrap (`$9AC7`); bottom lane right edge: +500, room 4 |
 | 4 | an office with a staircase of cassettes, a desk, a ghost | `$9B22` | 4 | the staircase collapses in steps; the exit opens for 100 passes (then Monty is killed); items all taken: +600, room 5 (`$9BBA`) |
 | 5 | a street with traffic and the NEWS shop | `$9C49` with the traffic `$9CF4` | 0 | **Monty flies** (`$8D0E`: all four directions, 2 px a pass, x 4-$ED, y $1A-$70, no jumping): picks up from the pile at the left (`$9C8C`), carries it to the shop at the right (`$9CB1`; the HUD pocket shows it); the shop's picture grows over frames `$25-$28`; the fourth delivery gives +1000 and ends the game (`$9CDC`, `$A2A1` = $FF) |
 | 6 | the Christmas card: "MERRY CHRISTMAS FROM MOLE" with a tree and Santa, "WATCH OUT FOR GREMLINS AMAZING RELEASES" | drawn by `$82DA` | | key to the credits page (`$81BC`) |
@@ -143,7 +143,7 @@ the picture; the first pass of a room is flagged (`$8108`, cleared at the end of
 not return: it resets the stack (`LD SP,($95E2)`) and jumps to the room's restart routine, which enters the room again, puts Monty
 at the arrival place (below) and jumps back to `$9238`, so **the new room's script runs from its start in the same pass**, with the
 animation stepped a second time. `$9592` is the full death (sound 0, a life less, Monty's three death pictures, ending on none),
-`$95C8` the short one (sound 1, no pictures; only the street lamp uses it); both clear Monty's state and phase and end with `JP (HL)`,
+`$95C8` the short one (sound 1, no pictures; only the parked car uses it); both clear Monty's state and phase and end with `JP (HL)`,
 HL being the restart address the caller loaded. The arrival places (the restart routines, which an exit also uses after its score):
 
 | Room | Monty at | also |
@@ -163,7 +163,7 @@ on the room's first pass **except** room 2's pistons, which keep their place and
 (the original does not reload its maps), and room 0's drift counter (`$9377`), which is never reset.
 
 **Random numbers** are the Z80's R register and are read in two places only: `LD A,R` at `$861A` (the ink of each item as the room is
-entered, `AND 7`, in the order the cells are met) and `$9ECE` (everything else: piston 1's wait, the cars' and the lamp's waits in room 3,
+entered, `AND 7`, in the order the cells are met) and `$9ECE` (everything else: piston 1's wait, the cars' and the parked car's waits in room 3,
 the traffic's waits, pictures and lanes in room 5). Every use masks the byte, so the rebuild asks a `Random` for a byte (`src/random.ts`).
 
 **Items**: a record of 4 bytes at `$86D5` (x, y, attribute address, 0 when taken), count at `$86F5`; each pass (`$8643`, after the script) each item's ink
@@ -191,8 +191,8 @@ spin at x `$80` and `$70`, y `$18` (the first kills once the counter has reached
 
 **Room 3** (`$9906`, timers `$9B1C`-`$9B21`): a lorry (`$9930`) after its first 64 passes takes Monty as he walks on the top lane in x `$38`-`$57`, `$90`-`$AF` or from `$C8` (state 3, a pose; it
 carries three pictures along the lane for 200 passes, then he is free and it waits 127 passes); a car crosses the middle lane to the right 4 pixels a pass and one to the
-left 1 a pass, each draining the gauge, then waits a random `R AND $7F OR $14` / `OR $28`; the lamp (`$9A3E`) flashes (14 steps) when he is at x `$8C`-`$9B`, y `$60` or more, and if he is at x `$92`-`$97` during the flash he is hidden (state 4) and
-at its end dies the short death. Lanes: `$9AC7`.
+left 1 a pass, each draining the gauge, then waits a random `R AND $7F OR $14` / `OR $28`; the parked car (`$9A3E`, entity 6 at x `$91`, y `$78`, pictures `$4F`-`$55`: it opens) wakes (13 steps) when he is on the bottom lane (y `$60` or more) at x `$8C`-`$9B`, and if he is at x `$92`-`$97` during the waking he is hidden (state 4) and
+at its end dies the short death; it then sleeps a random `R AND $7F OR $1E` (30-127) passes and does nothing, so **the way past is to wake it, wait for it to finish, and walk by while it sleeps**. Lanes: `$9AC7`.
 
 **Room 4** (`$9B22`): the walkers; the staircase animation (`$9BCE`): a pause of 100 passes, then rounds of 8 passes (the ghost's picture `$0A`-`$11`, the top cassette's `$24` down to blank, the exit's `$25` up) with 40 passes between; when the top cassette is gone the exit is open
 for 100 passes (`$9C1A`), killing on the last.

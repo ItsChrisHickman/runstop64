@@ -3,7 +3,7 @@
 This remake plays the 1987 ZX Spectrum game (Your Sinclair's Christmas cover game, Monty Mole's outing) as it was, rebuilt natively
 from the original's own data and rules and checked against the original running on a headless Spectrum, pass by pass and frame by
 frame (`games/moley/re/README.md`). The game keeps the Spectrum's own colours in both modes. On top of that sit a few modern
-quality-of-life additions, listed here. Anything that changes how the game *plays* or looks is in ENHANCED, one switch (ENHANCED by
+quality-of-life additions, listed here. Anything that changes how the game *plays* or looks (or helps) is in ENHANCED, one switch (ENHANCED by
 default; ORIGINAL is the game exactly as it was); the rest is in both.
 
 | Feature | The original | In this remake | Default |
@@ -26,6 +26,7 @@ default; ORIGINAL is the game exactly as it was); the rest is in both.
 | **ENHANCED: smooth motion** | One logic step in two frames (25 a second) on a 50 Hz television. | The logic is the original's, one step in two frames; the sprites glide evenly across each step and between frames on 60/120/144 Hz screens. V switches to whole-pixel steps. | ENHANCED |
 | **ENHANCED: items left** | Touching a screen's exit while an item lies about costs a life, and nothing says one is left. | The number of items left in the screen shows in the HUD's pocket box (a large numeral, the game's own, doubled), while any are left; the box is the original's otherwise. | ENHANCED |
 | **ENHANCED: steering in the air** | The direction of a jump is fixed at take-off; a fall off a ledge is straight down. | Left and right keep working in a jump and in a fall, with the walking step (walls and edges still stop him), and he faces the way he goes. With no sideways key at take-off or in the air the game is the original's, to the last number (`test/enhanced.ts`). | ENHANCED |
+| **ENHANCED: sparkles on the puzzles and the ways out** | Nothing says what to do: screen 3's puzzle starts when Monty stands on one exact spot, the prize is safe to touch only in its last picture, the exits want every item taken and are touched at the right moment, the lanes of the street lead into one another, the parked car on the bottom lane catches whoever walks by it unless he wakes it, waits and goes past while it sleeps, and the newspapers must be taken from the pile and carried to the shop. | The game's own state puts stardust (c64kit's sparkles, as in Entombed's hints, over the picture, no text or boxes) on what moves the game on, only while it does: screen 1's exit cassette and screen 2's exit object once no item is left; screen 3's spot until the puzzle starts, and its prize only while its last picture shows (not while it kills); screen 4 the right end of the lane he is on (the bottom lane's is the way out) and, on the bottom lane, the way past the parked car that eats whoever is by it when it wakes, while it sleeps; screen 5's exit while it is open and no item is left; screen 6 the pile when he is empty-handed and the NEWS shop when he carries a paper. Nothing that kills is marked (`games/moley/src/hints.ts` lists each, `test/hints.ts` proves them). | ENHANCED |
 
 ## Not changed
 

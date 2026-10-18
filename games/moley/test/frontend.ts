@@ -24,12 +24,14 @@ import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { PAUSE_COLOURS, SPECTRUM } from '../src/colours';
 import { ARRIVALS, START_LIVES } from '../src/game';
+import { hintsOf } from '../src/hints';
 import { run, STRIP_Y } from '../src/main';
 import { describeSave, ITEMS_IN, ITEMS_TOTAL, itemsTaken, moleyMap } from '../src/map';
 import { Key, State } from '../src/monty';
 import { SPECTRUM_PALETTE } from '../src/palette';
 import { CODEC, MoleySave, restoreGame, snapshotOf } from '../src/save';
 import { SeededRandom } from '../src/random';
+import { PICTURE_LEFT, PICTURE_TOP } from '../src/view';
 
 // a browser's storage, in memory
 const store = useMemoryStorage();
@@ -167,7 +169,7 @@ tick(10);
 }
 
 // ---- ORIGINAL / ENHANCED ------------------------------------------------------------------------------------------------------
-check('ENHANCED by default: the three enhancements are on', p.state.enhanced && game().enhanced.airSteering && game().enhanced.itemCount && p.frontEnd.assist.look === true);
+check('ENHANCED by default: the four enhancements are on', p.state.enhanced && game().enhanced.airSteering && game().enhanced.itemCount && p.frontEnd.assist.look === true && p.frontEnd.assist.hints === true);
 tap('KeyP');
 tap('KeyE');
 tick(2);
@@ -309,4 +311,32 @@ check(`Space again: a new game (${p.state.phase}), the old save kept as the prev
 check('and a new map: only screen 1 come to', p.state.found.reached.join() === '0' && p.state.found.done.length === 0);
 check('the press that began it is not a jump while it is still held', !jumped);
 check(`the keys are as ours: left, right, up, down, jump`, Key.left === 2 && Key.right === 1 && Key.up === 8 && Key.down === 4 && Key.jump === 16);
+// ---- sparkles (hints.ts): ENHANCED, in play, not over our screens ---------------------------------------------------------------------------------------
+{
+  game().items.left = 0; // (the exit cassette is the way out now)
+  tick(4);
+  const want = hintsOf(game());
+  const marks = () => renderer.sparkles.markers;
+  check(`ENHANCED: a sparkle on the exit cassette once no item is left (${marks().map((m) => `${m.x},${m.y}`).join(' ')})`, want.length === 1 && marks().length === 1 && marks()[0].x === PICTURE_LEFT + want[0].x && marks()[0].y === PICTURE_TOP + want[0].y);
+  tap('KeyP');
+  tick(2);
+  check('none on the pause screen', marks().length === 0);
+  tap('KeyP');
+  tick(4);
+  check('and back when play is', marks().length === 1);
+  tap('KeyP');
+  tap('KeyE');
+  tap('KeyP');
+  tick(4);
+  check('ORIGINAL: none, with the game the same', !p.state.enhanced && marks().length === 0 && hintsOf(game()).length === 1);
+  tap('KeyP');
+  tap('KeyE');
+  tap('KeyP');
+  tick(4);
+  check('ENHANCED again: back', p.state.enhanced && marks().length === 1);
+  tap('KeyP');
+  tap('KeyT');
+  tick(30);
+  check('none on the credits page', p.state.phase === 'credits' && marks().length === 0);
+}
 finish();

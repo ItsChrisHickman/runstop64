@@ -123,7 +123,7 @@ function room3(mem: Uint8Array, rnd: Rnd): void {
   mem[car2.x] = pick(rnd, 1, 0xe8); mem[car2.y] = 0x40; mem[car2.flags] = 0;
   mem[post.x] = 0x91; mem[post.y] = 0x78; mem[post.frame] = 0x4f;
   const r = rnd();
-  if (r < 0.3) nearMonty(mem, rnd, 0x94, 0x78, 12); // at the lamp
+  if (r < 0.3) nearMonty(mem, rnd, 0x94, 0x78, 12); // at the parked car
   else if (r < 0.5) putMonty(mem, oneOf(rnd, [0x30, 0x40, 0x60, 0x94, 0xb4, 0xd0]), 8); // on the top lane
   else if (r < 0.65) putMonty(mem, oneOf(rnd, [0x2, 0x3, 0x4, 0xe8, 0xea, 0xec, 0xee]), oneOf(rnd, [8, 0x40, 0x78])); // at a lane's end
   if (mem[0x9b1c] === 0xff && rnd() < 0.5) { // the lorry on its way, with Monty held by it

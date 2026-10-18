@@ -7,7 +7,14 @@ import { placePoint, type PictureLayout } from './layout';
  * of brighter stars bloom now and then, over a barely-there glow. Places are in C64 screen
  * pixels; the effects animate by themselves (time only: no state to keep between frames).
  */
-export interface Marker { x: number; y: number }
+export interface Marker {
+  x: number;
+  y: number;
+  /** How wide the stardust spreads and how big its specks and stars are, 1 (the default) for the C64's dark pictures; more where the art is bright and busy. */
+  size?: number;
+  /** How strong the glow and the specks are, 1 (the default) for dark pictures; more over bright colours, where adding light shows less. */
+  gain?: number;
+}
 
 const SPECKS = 22;
 const STARS = 2;
@@ -40,7 +47,9 @@ export class Sparkles {
     while (this.items.length < this.markers.length) this.items.push(this.make());
     const s = t / 1000;
     this.items.forEach((it, i) => {
-      const m = i < this.markers.length ? placePoint(layout, this.markers[i].x, this.markers[i].y) : undefined;
+      const marker = this.markers[i];
+      const m = marker === undefined ? undefined : placePoint(layout, marker.x, marker.y);
+      const grow = marker?.size ?? 1, gain = marker?.gain ?? 1;
       it.glow.visible = !!m;
       it.specks.forEach((p) => (p.visible = !!m));
       it.stars.forEach((p) => (p.visible = !!m));
@@ -48,20 +57,20 @@ export class Sparkles {
       // the faintest warm glow, breathing slowly
       const breath = 0.5 + 0.5 * Math.sin(s * 1.3 + i);
       it.glow.position.set(m.x, -m.y, -1);
-      it.glow.scale.setScalar(20 + 4 * breath);
-      setOpacity(it.glow, 0.1 + 0.06 * breath);
+      it.glow.scale.setScalar((20 + 4 * breath) * grow);
+      setOpacity(it.glow, Math.min(1, (0.1 + 0.06 * breath) * gain));
       // specks: each lives a while, rising and swaying, then comes back somewhere new nearby
       it.specks.forEach((p, k) => {
         const seed = i * 101 + k * 7.3;
         const life = 1.6 + hash(seed) * 1.4;
         const clock = s + hash(seed + 1) * life;
         const round = Math.floor(clock / life), age = (clock % life) / life;
-        const r = Math.sqrt(hash(seed + round * 3.1)) * 10, a = hash(seed + round * 5.7) * Math.PI * 2;
+        const r = Math.sqrt(hash(seed + round * 3.1)) * 10 * grow, a = hash(seed + round * 5.7) * Math.PI * 2;
         const sway = Math.sin(s * 2 + k) * 1.2;
-        p.position.set(m.x + Math.cos(a) * r + sway, -(m.y + Math.sin(a) * r * 0.7) + age * 7, 0);
+        p.position.set(m.x + Math.cos(a) * r + sway * grow, -(m.y + Math.sin(a) * r * 0.7) + age * 7 * grow, 0);
         const twinkle = 0.55 + 0.45 * Math.sin(s * (7 + hash(seed + 2) * 6) + k);
-        setOpacity(p, Math.sin(Math.PI * age) * twinkle);
-        p.scale.setScalar(1.2 + hash(seed + 3) * 1.4);
+        setOpacity(p, Math.min(1, Math.sin(Math.PI * age) * twinkle * gain));
+        p.scale.setScalar((1.2 + hash(seed + 3) * 1.4) * grow);
       });
       // a couple of brighter stars, each blooming for a moment now and then
       it.stars.forEach((p, k) => {
@@ -70,9 +79,9 @@ export class Sparkles {
         const clock = s + hash(seed + 1) * period;
         const round = Math.floor(clock / period), age = (clock % period) / period;
         const bloom = age < 0.35 ? Math.sin((age / 0.35) * Math.PI) : 0;
-        const r = 3 + hash(seed + round) * 8, a = hash(seed + round * 2.3) * Math.PI * 2;
+        const r = (3 + hash(seed + round) * 8) * grow, a = hash(seed + round * 2.3) * Math.PI * 2;
         p.position.set(m.x + Math.cos(a) * r, -(m.y + Math.sin(a) * r * 0.7), 1);
-        p.scale.setScalar(1 + 6.5 * bloom);
+        p.scale.setScalar((1 + 6.5 * bloom) * grow);
         p.rotation.z = s * 0.8 + k;
         setOpacity(p, bloom);
       });

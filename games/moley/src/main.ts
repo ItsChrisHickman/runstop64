@@ -7,6 +7,7 @@ import { PAUSE_COLOURS, SPECTRUM } from './colours';
 import { CREDITS_TEXT_OURS, keyByte } from './controls';
 import { Display } from './display';
 import { spectrumFont } from './font';
+import { hintsOf } from './hints';
 import { MoleyFlow, type FlowOptions, type FlowStep } from './flow';
 import { describeSave, moleyMap, noteDone, noteReached, SCREENS, type MoleyFound } from './map';
 import { Key } from './monty';
@@ -79,8 +80,8 @@ export function run(host: Host) {
     id: 'moley', font: spectrumFont(), codec: CODEC, map: moleyMap, describe: describeSave, colours: PAUSE_COLOURS,
     // (ENTER CONTINUE goes on the credits page's empty rows; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
-    // ENHANCED is these three, together (the pause screen has the one switch): see QOL.md
-    assists: [{ id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }],
+    // ENHANCED is these four, together (the pause screen has the one switch): see QOL.md
+    assists: [{ id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'hints', long: 'SPARKLES' }],
   }, ({ flow, fe, latch, rooms }) => {
     /** A flow becomes the game being played (a new credits page, a game continued, a travel). */
     function adopt(next: MoleyFlow): void {
@@ -215,6 +216,9 @@ export function run(host: Host) {
       updateView() {
         view.look = fe.enhanced && fe.assist.look === true ? 'enhanced' : 'original';
         if (step !== null) view.present(step, into, true);
+        // sparkles on the puzzles and the ways out (hints.ts): ENHANCED, in play, not over a held picture (a death's) nor a screen of ours
+        const shown = fe.enhanced && fe.assist.hints === true && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.covering;
+        view.sparkle(shown ? hintsOf(current.game) : []);
       },
       renderView: (alpha) => view.render(alpha),
       audio: { player: sound, started: () => {} }, // (unlocking starts the music itself)
