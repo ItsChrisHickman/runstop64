@@ -11,7 +11,7 @@ import { NativeHost } from '../../shared/native/host';
 import { port } from '../src/native';
 import { blackwycheHd } from '../src/hd';
 import { run } from '../src/main';
-import { checkHdFrames, checkHdLockstep, checkHdRoom, checkHdSwitch, inFront, routeWalker } from '../../shared/test/hd';
+import { checkHdEntry, checkHdFrames, checkHdLockstep, checkHdRoom, checkHdSwitch, inFront, routeWalker } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 
@@ -34,13 +34,18 @@ const rooms = [['leap', w.at(300)], ['deck', w.at(1050)], ['wardrobe', w.at(3410
 
 await checkHdSwitch(check, { id: 'blackwyche', run, store, save: rooms[0][1], action: 'Space' }, outDir);
 
+const entered: NativeHost['m'][] = [];
 for (const [name, state] of rooms) {
   const g = NativeHost.resume(port, state);
   g.tick();
+  entered.push(g.m);
   checkHdRoom(check, blackwycheHd, { name, m: g.m, flames: name !== 'deck' && name !== 'leap' }, outDir);
   const f = inFront(blackwycheHd, g.m);
   check(`${name}: of the ${f.shown} sprite pixels the C64 shows, the HD room hides ${f.wrong} behind something standing behind them`, f.wrong === 0);
 }
+
+// coming into each of those rooms in turn: no frame of the main thread's stalls (the room built off it)
+await checkHdEntry(check, 'blackwyche', blackwycheHd, entered);
 
 // along the first route, every 24th frame: what hides a sprite in the HD view stands in front of it
 // (the parts of things on their own feet; things in the air in front of what they're drawn over). A

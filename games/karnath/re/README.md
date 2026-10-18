@@ -139,10 +139,11 @@ abode), and walks the lower floor for 3,500 frames (the strip scrolling: only wh
   A room with many (the east tower's fire and candles) shares their light out (c64kit's
   `LOOK.flames`): lit, not blown out to white.
 - Karnath's strip of rooms scrolls sideways a pixel a frame: the room built before is moved, as in
-  Entombed's wide chambers. Known issue: c64kit's lockstep check, `checkHdLockstep`, isn't in `test/hd.ts` because along
-  the lower floor it fails: the camera moves from the first frame's by about a thousandth once the room built first is
-  replaced by the next, and the room drawn scrolled differs by up to 135 px from the picture's own scroll. It is the same
-  with the rooms inferred as with them as pieces, and has not been looked into.
+  Entombed's wide chambers. `checkHdLockstep` is in `test/hd.ts` (400 frames from frame 1,200 of the first route, where the
+  lower floor's strip scrolls with no other room come into, built here and off the main thread). It failed at first: a few
+  characters animating in the room (a $D0 char twinkling) made the picture no longer the same one moved, so the room was
+  taken for another (its camera and scroll started over, up to 135 px out); c64kit's `keep` (hd/oblique.ts) now allows a few
+  characters (0.4%) to change in a scroll.
 
 ## The rooms as pieces (re/pictures.ts, src/pictures.ts, test/pictures.ts)
 

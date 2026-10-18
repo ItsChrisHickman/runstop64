@@ -32,7 +32,7 @@ import { run } from '../src/main';
 import { chamberState } from '../re/hints/chambers';
 import { replay } from '../re/hints/play';
 import { readSolved } from '../re/hints/solved';
-import { checkHdCharacters, checkHdFrames, checkHdRoom, checkHdSwitch } from '../../shared/test/hd';
+import { checkHdCharacters, checkHdEntry, checkHdFrames, checkHdRoom, checkHdSwitch } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
@@ -109,15 +109,20 @@ const rooms: { name: string; state: MachineState; light: 'lit' | 'dark'; behindM
   // (the flash stands at the depth of the floor under its own box, deeper than he is: nearer things, here a block beside him, hide its far side)
   { name: 'chamber24-torch', state: torchUsed(24), light: 'dark', behindMost: 0.6 },
 ];
+const entered: NativeHost['m'][] = [];
 for (const { name, state, light, behindMost, carried = true } of rooms) {
   const g = NativeHost.resume(port, state);
   for (let f = 0; f < 2; f++) { g.m.joy1 = g.m.joy2 = 0x1f; g.tick(); }
+  entered.push(g.m);
   const { gaps, top } = checkHdRoom(check, entombedHd, { name, m: g.m, light, sideWall: name === 'corridor', behindMost }, outDir);
   // (the walls carried on up past the picture: the dip behind chamber 10's stairs and over chamber 1's back wall is wall; where a
   // chamber's picture shows nothing over its top, as chamber 13's (the dark above), there's nothing to carry on, and the corners
   // the camera opens show the picture behind, dimmed)
   if (name.startsWith('chamber') && light === 'lit' && carried) check(`${name}: the walls carried on up cover the room's top (${gaps} of ${top} columns not)`, gaps <= top / 10);
 }
+
+// coming into each of those rooms in turn: no frame of the main thread's stalls (the room built off it)
+await checkHdEntry(check, 'entombed', entombedHd, entered);
 
 // ---- the stairs: the ways between floors (games/entombed/test/stairs.ts walks through each in the game) ----
 {

@@ -667,8 +667,15 @@ export function shiftRoom(room: HdRoom, d: number): HdRoom {
  */
 export interface HdBuilt { room: HdRoom; moved: number | null }
 
+/**
+ * What a builder can keep of the room before for a frame, with no building (`HdBuilder.keep`): the
+ * room (null: nothing kept), and how far right the picture moved since the room before (null: another
+ * picture; a number with the room null: the same picture moved further than allowed).
+ */
+export interface HdKept { room: HdRoom | null; moved: number | null }
+
 /** How far a room may be moved for a scroll before it's built again: here (`now`), or while it's built off the main thread (`meanwhile`). */
-export const REACH = { now: 8, meanwhile: 48 };
+export const REACH = { now: 8, meanwhile: 96 };
 
 /** How a game's rooms are made for the HD view (`obliqueRooms` for the Pendragon games). */
 export interface HdBuilder {
@@ -679,6 +686,12 @@ export interface HdBuilder {
    * part of the picture.
    */
   build(picture: DecodedPicture, last: HdRoom | null, layout: PictureLayout | null, reach: number): HdBuilt;
+  /**
+   * What of `last` stands for this frame, if anything, with no building (`build` without the building).
+   * With `edited`, a room with a few things changed (a door opened, something taken) stands as it
+   * was, not exact, till it's built again.
+   */
+  keep(picture: DecodedPicture, last: HdRoom | null, layout: PictureLayout | null, reach: number, edited?: boolean): HdKept;
   /** What building this frame's room takes, as plain data (to build it off the main thread: `buildWork`). */
   work(picture: DecodedPicture, layout: PictureLayout | null): HdWork;
   /** The room built from `work` (where it was built: what came back), ready to be kept, moved and painted as the builder's own. */
@@ -688,15 +701,18 @@ export interface HdBuilder {
 /** Something that builds rooms off the main thread (a worker running `buildWork`), each in its turn. */
 export interface HdRefresher { post(work: HdWork): Promise<HdWorked> }
 
+
 /**
  * A game's rooms for the HD view, made by its builder only when the room's part of the picture
  * changes (its character rows: codes, colours, scroll, colours and charset registers; and the
  * charset they're drawn with). A status line counting down outside the room changes nothing.
  *
- * A scroll moves the room it has (the same room, moved: cheap), and it's built again exactly where
- * the picture is now: with a `refresher` off the main thread while the picture goes on scrolling (a
- * frame of the game never waits for a build), the room that comes back moved on by the scroll since;
- * without one, here, once the picture stops or it's moved REACH.now.
+ * With a `refresher` (a worker) a frame of the game never waits for a build: a room come into is
+ * built off the main thread, and until it's back there is no HD room (`room` and `at` give null: the
+ * C64's picture is shown); a scroll moves the room it has (the same room, moved: cheap) while the
+ * room is built again exactly where the picture is now, the room that comes back moved on by the
+ * scroll since. Without one, rooms are built here: a room come into at once, a scroll once the
+ * picture stops or it's moved REACH.now.
  *
  * And the scroll as drawn (`at`): the game moves the picture a whole pixel or more a frame, at 50 a
  * second; the renderer draws the sprites between the game's frames (loop.ts Smoothed: an even glide,
@@ -710,48 +726,77 @@ export class HdRooms {
   /** Which room this is (counted: one built off the main thread for an earlier room is dropped), and its camera's eye. */
   private scene = 0;
   private eye = 0;
-  /** A build off the main thread under way (the scene and scroll of the frame it's of), and one come back. */
-  private pending: { scene: number; total: number } | null = null;
-  private ready: { scene: number; total: number; room: HdRoom } | null = null;
+  /** A build off the main thread under way (the scene, scroll and picture's key of the frame it's of), and one come back. */
+  private pending: { scene: number; total: number; key: number } | null = null;
+  /** The frames a room come into has been waited for (the picture may scroll meanwhile: when it comes, the scroll is smoothed as if it had been followed). */
+  private waited = 0;
+  private ready: { scene: number; total: number; key: number; room: HdRoom } | null = null;
 
   constructor(private readonly builder: HdBuilder, private refresher: HdRefresher | null = null) {}
 
   /**
    * The room in this frame of the game; `picture` the frame's decoded (C64View has it: decoded once a
-   * frame), else decoded here if the room's part of the picture changed.
+   * frame), else decoded here if the room's part of the picture changed. Null while a room come into
+   * is being built off the main thread.
    */
-  room(ram: Uint8Array, cap: FrameCapture, layout: PictureLayout | null = null, picture: DecodedPicture | null = null): HdRoom {
+  room(ram: Uint8Array, cap: FrameCapture, layout: PictureLayout | null = null, picture: DecodedPicture | null = null): HdRoom | null {
     const key = this.key(ram, cap, layout);
     let decoded = picture;
     const pic = () => (decoded ??= decodePicture(ram, cap));
-    // a room built off the main thread since: the picture as it was then, moved on by the scroll since
+    // a room built off the main thread since
     const ready = this.ready;
     this.ready = null;
-    if (ready && this.last && ready.scene === this.scene) {
-      const room = shiftRoom(ready.room, this.total - ready.total);
-      this.last = { key: this.last.key, room: { ...room, exact: room.shift === 0 } };
+    let entered = false;
+    if (ready && ready.scene === this.scene) {
+      if (this.last) {
+        // (the picture as it was then, moved on by the scroll since)
+        const room = shiftRoom(ready.room, this.total - ready.total);
+        this.last = { key: this.last.key, room: { ...room, exact: room.shift === 0 } };
+      } else {
+        // (a room come into: kept or moved to this frame's picture below, as any other)
+        this.last = { key: ready.key, room: ready.room };
+        this.eye = ready.room.eye;
+        entered = true;
+      }
     }
+    const refresher = this.refresher;
     let moved: number | null = 0;
-    if (this.last?.key !== key) {
-      const built = this.builder.build(pic(), this.last?.room ?? null, layout, this.refresher ? REACH.meanwhile : REACH.now);
-      this.last = { key, room: built.room };
-      moved = built.moved;
-    } else if (!this.last.room.exact && !this.refresher) {
+    if (!this.last && this.pending) {
+      // (a room come into, being built: nothing to show yet)
+    } else if (this.last?.key !== key) {
+      if (refresher) {
+        const kept = this.builder.keep(pic(), this.last?.room ?? null, layout, REACH.meanwhile, true);
+        // (the same picture moved further than allowed: the room it has, moved, till the one being built comes)
+        const room = kept.room ?? (this.last && kept.moved !== null ? { ...shiftRoom(this.last.room, kept.moved), exact: false } : null);
+        if (room) { this.last = { key, room }; moved = kept.moved; } else { this.last = null; moved = null; }
+      } else {
+        const built = this.builder.build(pic(), this.last?.room ?? null, layout, REACH.now);
+        this.last = { key, room: built.room };
+        moved = built.moved;
+      }
+    } else if (this.last && !this.last.room.exact && !refresher) {
       // (the scroll stopped: built again, exactly, where it is now)
       this.last = { key, room: this.builder.build(pic(), null, layout, 0).room };
     }
-    if (moved === null) {
-      this.scene++; this.total = 0; this.pending = null;
+    if (!this.last && this.pending) {
+      this.waited++;
+    } else if (moved === null) {
+      // (another room: the view starts again, with no room at all if it's being built off the main thread)
+      this.scene++; this.total = 0; this.pending = null; this.waited = 0;
       this.scroll.reset(0, 0);
-      this.eye = this.last.room.eye;
-    } else {
+      if (this.last) this.eye = this.last.room.eye;
+    } else if (this.last) {
       this.total += moved;
-      this.scroll.push(this.total, 0);
+      if (entered) {
+        // (a room come into that the picture scrolled on from while it was built: smoothed as if the scroll had been followed all along, as the sprites are)
+        const frames = this.waited + 1;
+        for (let t = Math.max(1, frames - 2); t <= frames; t++) this.scroll.push((this.total * t) / frames, 0);
+      } else this.scroll.push(this.total, 0);
       // (the camera stays where it was for the room: the same room built again keeps its eye)
       if (this.last.room.eye !== this.eye) this.last = { key: this.last.key, room: { ...this.last.room, eye: this.eye } };
     }
-    if (!this.last.room.exact && this.refresher && !this.pending) this.refresh(this.refresher, pic(), layout);
-    return this.last.room;
+    if (refresher && !this.pending && !this.last?.room.exact) this.refresh(refresher, pic(), layout, key);
+    return this.last?.room ?? null;
   }
 
   /**
@@ -769,8 +814,8 @@ export class HdRooms {
   scrolled(alpha: number, snap = false) { return this.scroll.at(alpha, snap).x; }
 
   /** This frame's room built off the main thread, one at a time (if that fails: here from then on). */
-  private refresh(refresher: HdRefresher, picture: DecodedPicture, layout: PictureLayout | null) {
-    const at = { scene: this.scene, total: this.total };
+  private refresh(refresher: HdRefresher, picture: DecodedPicture, layout: PictureLayout | null, key: number) {
+    const at = { scene: this.scene, total: this.total, key };
     this.pending = at;
     refresher.post(this.builder.work(picture, layout)).then((done) => {
       if (this.pending === at) this.pending = null;

@@ -14,7 +14,7 @@ import { port } from '../src/native';
 import { dragonskulleHd } from '../src/hd';
 import { dragonskulleLayout, PLAY, run } from '../src/main';
 import { obliqueRoom } from '../../../packages/c64kit/src/hd/oblique';
-import { checkHdFrames, checkHdRoom, checkHdSwitch, routeWalker } from '../../shared/test/hd';
+import { checkHdEntry, checkHdFrames, checkHdRoom, checkHdSwitch, routeWalker } from '../../shared/test/hd';
 import { stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 
@@ -42,11 +42,16 @@ await checkHdSwitch(check, { id: 'dragonskulle', run, store, save: rooms[0][1], 
   check(`the room's band where the layout shows the play area (lines ${band.y}-${band.y + band.h - 1}: the machine's ${dragonskulleHd.band.y}-${dragonskulleHd.band.y + dragonskulleHd.band.h - 1}, moved ${PLAY.from.y - PLAY.y} up)`, band.y === dragonskulleHd.band.y - (PLAY.from.y - PLAY.y) && band.h === dragonskulleHd.band.h);
 }
 
+const entered: NativeHost['m'][] = [];
 for (const [name, state] of rooms) {
   const g = NativeHost.resume(port, state);
   g.tick();
+  entered.push(g.m);
   checkHdRoom(check, dragonskulleHd, { name, m: g.m, layout: dragonskulleLayout }, outDir);
 }
+
+// coming into each of those rooms in turn: no frame of the main thread's stalls (the room built off it)
+await checkHdEntry(check, 'dragonskulle', dragonskulleHd, entered, { layout: dragonskulleLayout });
 
 // the rooms over the route's first 3,000 frames (the island's rows scroll as he walks along them)
 const v = walk();

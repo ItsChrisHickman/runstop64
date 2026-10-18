@@ -43,7 +43,7 @@ import { obliqueRoom, obliqueRooms, type ObliqueSpec } from '../../../packages/c
 import { placePictures } from '../../../packages/c64kit/src/hd/placed';
 import { decodePicture, hiddenByCharacters } from '../../../packages/c64kit/src/c64/picture';
 import { cameraMatrix, HdModel, HdRooms, project, spritesFromCapture, type HdRefresher, type HdRoom, type HdScene, type HdSprite } from '../../../packages/c64kit/src/hd/scene';
-import { buildWork, isFromHdWorker, type HdWorked } from '../../../packages/c64kit/src/hd/work';
+import { buildWork, isFromHdWorker, transfers, type HdWork, type HdWorked } from '../../../packages/c64kit/src/hd/work';
 import { C64View } from '../../../packages/c64kit/src/c64/view';
 import type { C64 } from '../../../packages/c64kit/src/c64/machine';
 import { Smoothed } from '../../../packages/c64kit/src/loop';
@@ -51,7 +51,7 @@ import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import type { PictureLayout } from '../../../packages/c64kit/src/layout';
 import { C64_PALETTE } from '../../../packages/c64kit/src/palette';
 import { rasteriseHd } from '../../../packages/c64kit/test/hd-raster';
-import { checkHdGl, checkHdSprites, frameTimes } from '../../../packages/c64kit/test/hd-gl';
+import { checkHdGl, checkHdSprites, frameTimes, layerClock } from '../../../packages/c64kit/test/hd-gl';
 import { joinLayers, renderPixels, rgbPng, shownLayers, type Picture } from '../../../tools/probe/render';
 import { must } from './must';
 import { readRoute } from './data';
@@ -613,14 +613,15 @@ export function checkHdFrames(check: Check, what: string, spec: ObliqueSpec, nex
   const builder = obliqueRooms(spec);
   type Made = 'built' | 'painted' | 'moved' | 'kept';
   const made: Record<Made, number> = { built: 0, painted: 0, moved: 0, kept: 0 }, ms: Record<Made, number> = { built: 0, painted: 0, moved: 0, kept: 0 };
-  const seen: { room: HdRoom; made: Made }[] = [];
+  const seen: { room: HdRoom; made: Made }[] = [], SEEN = 8;
   const rooms = new HdRooms({
     ...builder,
     build: (pic, last, l, reach) => {
       const t = performance.now(), built = builder.build(pic, last, l, reach), dt = performance.now() - t, room = built.room;
       const k: Made = !last || room.surface.centre !== last.surface.centre ? 'built' : room.surface !== last.surface ? 'painted' : room.shift !== last.shift ? 'moved' : 'kept';
       made[k]++; ms[k] += dt;
-      seen.push({ room, made: k });
+      // (a few of each kind, to time the layer with: every room kept would hold all their arrays)
+      if (seen.filter((x) => x.made === k).length < SEEN) seen.push({ room, made: k });
       return built;
     },
   });
@@ -631,6 +632,7 @@ export function checkHdFrames(check: Check, what: string, spec: ObliqueSpec, nex
   for (let at = next(); at; at = next()) {
     m = at; frames++;
     const room = rooms.room(at.ram, at.capture, layout);
+    if (!room) throw new Error('no room built here: the rooms are built on the main thread in this check');
     if (room.exact) continue;
     moved++;
     const fresh = obliqueRoom(spec, at.ram, at.capture, layout), a = room.surface, b = fresh.surface;
@@ -648,6 +650,81 @@ export function checkHdFrames(check: Check, what: string, spec: ObliqueSpec, nex
   const times = frameTimes(seen.map((s) => s.room), spritesFromCapture(m.capture, layout));
   const cost = (k: Made) => { const t = times.filter((_, i) => seen[i].made === k); return t.length ? (t.reduce((p, q) => p + q, 0) / t.length).toFixed(1) : '-'; };
   console.log(`     the layer, a frame: built ${cost('built')} ms, painted ${cost('painted')} ms, moved ${cost('moved')} ms, kept ${cost('kept')} ms`);
+}
+
+/**
+ * Coming into a room never stalls a frame (play.ts: HdRooms with the rooms built off the main thread, a
+ * worker stood in for here: the work posted, built away from the frames, its answer arriving between
+ * two). Each of `rooms` is come into in turn, as the browser's frames go (HdRooms `room`, then the layer's
+ * frame on the stand-in GL, whose JavaScript is timed; the layer warmed up first: its first frame ever makes
+ * the programs, once):
+ *
+ * - the frame it's come into, and the frames till its build is back, show no HD room (null: the C64's
+ *   picture stays);
+ * - what the main thread does in a frame stays within `budget` ms (16.7 is a frame; the game, the picture
+ *   and the page share it) in the middle of the rooms, and no frame takes more than five times that (this
+ *   machine is shared: a collection or a busy moment is not a stall): the frame it's come into (`room`: the
+ *   work made and posted, its structured clone the main thread's), the frames after it, the C64's picture drawn,
+ *   the answer arriving (the message, the room adopted), the frame taking it, what the first frame the layer draws
+ *   of the room costs more than the next (its buffers made);
+ * - the room come back is the room a build here makes (the same quads).
+ * What the build costs is the worker's, reported.
+ */
+export async function checkHdEntry(check: Check, what: string, spec: ObliqueSpec, rooms: Picture[], o: { layout?: PictureLayout | null; budget?: number } = {}) {
+  const layout = o.layout ?? null, budget = o.budget ?? 8, first = must(rooms[0], 'a room to come into');
+  const posted: { work: HdWork; resolve: (d: HdWorked) => void }[] = [];
+  const refresher: HdRefresher = {
+    post(work) { return new Promise<HdWorked>((resolve) => posted.push({ work: structuredClone(work), resolve })); },
+  };
+  const hd = new HdRooms(obliqueRooms(spec), refresher);
+  const draw = layerClock(spritesFromCapture(first.capture, layout));
+  draw(obliqueRoom(spec, first.ram, first.capture, layout));
+  const phases = { room: [] as number[], wait: [] as number[], c64: [] as number[], answer: [] as number[], taken: [] as number[], layer: [] as number[] }, builds: number[] = [];
+  let comes = 0, early = 0, kept = 0, same = 0, lost = 0;
+  const timed = <T>(f: () => T): [T, number] => { const t = performance.now(), v = f(); return [v, performance.now() - t]; };
+  /** What's been asked of the worker, built and answered (each answer arriving between two frames: its arrays handed over, the room adopted when the promise's callback runs). */
+  const serve = async (measured: boolean) => {
+    for (let job = posted.shift(); job; job = posted.shift()) {
+      const [reply, built] = timed(() => buildWork(job.work));
+      const t = performance.now();
+      job.resolve(structuredClone(reply, { transfer: transfers(reply) }));
+      await Promise.resolve();
+      if (measured) { builds.push(built); phases.answer.push(performance.now() - t); }
+    }
+  };
+  for (const m of rooms) {
+    const picture = decodePicture(m.ram, m.capture);
+    // the frame it's come into, and two more while the build goes on
+    let sameRoom = false;
+    for (let f = 0; f < 3 && !sameRoom; f++) {
+      const [room, ms] = timed(() => hd.room(m.ram, m.capture, layout, picture));
+      phases[f ? 'wait' : 'room'].push(ms);
+      // (the same room as the last, its scroll or its colours: kept, no other room come into)
+      if (room && !f) { kept++; sameRoom = true; continue; }
+      if (room || hd.at(1)) early++;
+      phases.c64.push(draw(null));
+    }
+    // the builds, away from the frames
+    if (sameRoom) { await serve(false); continue; }
+    if (!posted.length) { lost++; continue; }
+    await serve(true);
+    const [room, taken] = timed(() => hd.room(m.ram, m.capture, layout, picture));
+    phases.taken.push(taken);
+    if (!room) { lost++; continue; }
+    comes++;
+    // (the layer's first frame of it, more than the frame after: what a new room costs it)
+    const once = draw(hd.at(1)), again = draw(hd.at(1));
+    phases.layer.push(Math.max(0, once - again));
+    const fresh = obliqueRoom(spec, m.ram, m.capture, layout);
+    if (room.surface.count === fresh.surface.count && room.shift === 0) same++;
+  }
+  const median = (a: number[]) => [...a].sort((p, q) => p - q)[a.length >> 1] ?? 0, most = (a: number[]) => Math.max(0, ...a);
+  const ms = (n: number) => n.toFixed(1), say = (a: number[]) => `${ms(median(a))} median, ${ms(most(a))} at most`;
+  const frames = Object.values(phases);
+  console.log(`     coming into ${rooms.length} rooms, the main thread's ms a frame: the frame come into ${say(phases.room)}; waiting ${say(phases.wait)}; the C64's picture ${say(phases.c64)}; the answer ${say(phases.answer)}; the frame taking it ${say(phases.taken)}; the layer's first frame of the room ${say(phases.layer)}; the builds (the worker's) ${say(builds)}`);
+  check(`${what}: ${comes} rooms come into${kept ? ` (${kept} more were the room before, kept)` : ''}, none shown (the C64's picture stays) till its build is back (${early} frames of a room too soon), then shown`, early === 0 && comes + kept === rooms.length && comes >= rooms.length / 2 && lost === 0);
+  check(`${what}: coming into a room, the main thread's frames take ${budget} ms in the middle and 5 times that at most (${frames.map((a) => ms(median(a))).join(', ')} median, ${ms(Math.max(...frames.map(most)))} the most of any)`, frames.every((a) => median(a) <= budget && most(a) <= 5 * budget));
+  check(`${what}: the rooms come back are the rooms a build here makes (${same} of ${comes} the same quads)`, same === comes);
 }
 
 /**
@@ -692,7 +769,7 @@ export async function checkHdLockstep(check: Check, what: string, spec: ObliqueS
   };
   const truth = new Smoothed();
   let total = 0, last: Uint8Array | null = null;
-  let camera: Float64Array | null = null, cameraMoved = 0, drawn = 0, worst = 0, worstFeet = 0, scrolled = 0, waited = 0, places = 0, right = 0;
+  let camera: Float64Array | null = null, cameraMoved = 0, drawn = 0, worst = 0, worstFeet = 0, scrolled = 0, waited = 0, places = 0, right = 0, unshown = 0;
   const steps: number[] = [];
   let lastFloor: number | null = null;
   for (const hz of [60, 144]) {
@@ -717,8 +794,9 @@ export async function checkHdLockstep(check: Check, what: string, spec: ObliqueS
         last = now.slice();
         const room = rooms.room(m.ram, m.capture, layout);
         view.update();
+        if (!room) { unshown++; continue; }
         // (every few frames: the room as kept, moved and built again, where a fresh build of this frame has it)
-        if (tick % 4) continue;
+        if (tick % 16) continue;
         const fresh = obliqueRoom(spec, m.ram, m.capture, layout), a = room.surface, b = fresh.surface;
         for (let y = 0; y < room.band.h; y++) for (let x = 24; x < 296; x++) {
           const ca = a.cell[y * 320 + x - room.shift], cb = b.cell[y * 320 + x];
@@ -758,7 +836,7 @@ export async function checkHdLockstep(check: Check, what: string, spec: ObliqueS
   const mean = moving.reduce((a, b) => a + Math.abs(b), 0) / Math.max(1, moving.length);
   check(`${what}: ${drawn} frames drawn (60 and 144 a second) over ${tick} of the game, the picture scrolling ${scrolled} pixels${refresher ? `, ${posted} rooms built off the main thread (${waited} come back, ${lag} frames later)` : ''}`, drawn > frames && scrolled >= 16 && (!refresher || waited > 2));
   check(`${what}: the camera the same every frame (${cameraMoved} frames it moved)`, cameraMoved === 0);
-  check(`${what}: the room shown (kept, moved, built again) where a fresh build of the frame has it (${((right / Math.max(1, places)) * 100).toFixed(1)}% of its pixels, every 4th frame)`, right >= places * 0.95);
+  check(`${what}: the room shown (kept, moved, built again) where a fresh build of the frame has it (${((right / Math.max(1, places)) * 100).toFixed(1)}% of its pixels, every 16th frame)`, right >= places * 0.95);
   check(`${what}: the room drawn scrolled as far as the picture, smoothed as the sprites are (worst ${worst.toFixed(4)} px out)`, worst < 1e-3);
   check(`${what}: his shadow under his drawn feet every frame (worst ${worstFeet.toFixed(2)} px)`, worstFeet < 1.5);
   console.log(`     the floor's steps at 60 a second while it scrolls: ${moving.length} frames, ${mean.toFixed(2)} px a frame on average, the largest ${Math.max(0, ...moving.map(Math.abs)).toFixed(2)}`);

@@ -81,18 +81,27 @@ function frame(stub: GlStub, r: PixelRenderer) {
 }
 
 /**
- * How long the renderer takes (ms, its JavaScript: the stand-in GL does nothing) to draw each of these
- * rooms in turn, a frame each: what a room built again, painted again or moved costs the layer.
+ * A clock on the renderer's JavaScript (the stand-in GL does nothing): `draw(room)` draws a frame with this
+ * room (null: the C64's picture) and gives the ms it took on the main thread.
  */
-export function frameTimes(rooms: HdRoom[], sprites: HdSprite[]) {
-  const { stub, r } = setUp(rooms[0] ?? null, sprites, 1000, 700);
+export function layerClock(sprites: HdSprite[], first: HdRoom | null = null) {
+  const { stub, r } = setUp(first, sprites, 1000, 700);
   frame(stub, r);
-  return rooms.map((room) => {
+  return (room: HdRoom | null) => {
     r.hd.room = room;
     const t = performance.now();
     frame(stub, r);
     return performance.now() - t;
-  });
+  };
+}
+
+/**
+ * How long the renderer takes (ms, its JavaScript: the stand-in GL does nothing) to draw each of these
+ * rooms in turn, a frame each: what a room built again, painted again or moved costs the layer.
+ */
+export function frameTimes(rooms: HdRoom[], sprites: HdSprite[]) {
+  const draw = layerClock(sprites, rooms[0] ?? null);
+  return rooms.map(draw);
 }
 
 export function checkHdGl(check: Check, name: string, room: HdRoom, sprites: HdSprite[]) {

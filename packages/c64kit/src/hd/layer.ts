@@ -28,7 +28,8 @@ import { HdModel, MAX_LIGHTS, type HdRoom, type HdScene, type HdSprite } from '.
  *   phone); a room built again costs an upload of its arrays, no building per vertex.
  * - The game's frames (50 a second): the room kept or moved for a scroll, about 0.3 ms here (the
  *   picture compared, already decoded by C64View); a room built again for a scroll off the main thread
- *   (about 11 ms here); only coming into another room builds one on the main thread, once.
+ *   (about 11 ms here); coming into another room too (the C64's picture stays till it's back: games/shared/test/hd.ts
+ *   `checkHdEntry`), the layer's part a few ms.
  * - The GPU: the scene at most INTERNAL lines high (960×600 for a full picture: the band about 960×410),
  *   one draw of the room's 35-50 thousand quads, at most MAX_LIGHTS lights a pixel; at half that size
  *   bloom, the softened copy and the shafts (SHAFTS samples towards each of at most 3 lights); the

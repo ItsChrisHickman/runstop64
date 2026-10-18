@@ -1,7 +1,7 @@
 import type { FrameCapture } from '../c64/machine';
 import { decodePicture, type DecodedPicture } from '../c64/picture';
 import type { PictureLayout } from '../layout';
-import { LOOK, paletteLinear, shiftRoom, type HdBuilder, type HdBuilt, type HdLight, type HdRoom, type HdSurface } from './scene';
+import { LOOK, paletteLinear, shiftRoom, type HdBuilder, type HdBuilt, type HdKept, type HdLight, type HdRoom, type HdSurface } from './scene';
 import type { RoomPictures } from '../pendragon/room';
 import { placePictures } from './placed';
 
@@ -70,6 +70,7 @@ export interface ObliqueSpec {
 export function obliqueRooms(spec: ObliqueSpec): HdBuilder {
   return {
     build: (pic, last, layout, reach) => next(spec, pic, last, layout, reach),
+    keep: (pic, last, layout, reach, edited) => keep(spec, pic, last, layout, reach, edited),
     work: (pic, layout) => ({ kind: 'oblique', spec, band: shown(spec.band, layout), picture: bandOf(pic, spec.band) }),
     adopt: (done) => { bases.set(done.room.surface.centre, done.basis); return done.room; },
   };
@@ -89,6 +90,12 @@ const LEVEL = 8;
 const BEYOND = 16;
 /** Where a scroll is looked for: the picture away from its edges (where new columns come in). */
 const EDGE = 16;
+/** The most a picture scrolls in a frame (pixels): the shifts looked at when something in the room changes meanwhile. */
+const STEP = 8;
+/** The most of a scrolled band's pixels that may differ for it to be the same room moved (a few characters animating). */
+const ANIMATED = 0.004;
+/** The most of a band's pixels that may differ for the room to be the same room with something changed. */
+const EDITED = 0.1;
 /** A pixel's look: its colour (the low 4 bits), whether it glows (a flame), whether it's a light's character. */
 const GLOWS = 0x10, LIGHT = 0x20;
 
@@ -115,32 +122,54 @@ export function obliqueBuild(spec: ObliqueSpec, band: { y: number; h: number }, 
 }
 
 /**
- * The room in this frame of the picture: from `last` where it can be (the same picture moved, no
- * further than `reach`; or the same places in new colours), else built from scratch.
+ * What can be kept of `last` for this frame of the picture, with no building: the same picture where
+ * it was or moved sideways (a scroll: its characters and colours, pixel for pixel, moved; no further
+ * than `reach`), or the same places in new colours. The room null: nothing to keep (`moved` how far
+ * the same picture has moved if it has, past `reach`; null: another picture).
  */
-function next(spec: ObliqueSpec, pic: DecodedPicture, last: HdRoom | null, layout: PictureLayout | null, reach: number): HdBuilt {
+function keep(spec: ObliqueSpec, pic: DecodedPicture, last: HdRoom | null, layout: PictureLayout | null, reach: number, edited = false): HdKept {
   const band = shown(spec.band, layout);
   const was = last && last.band.y === band.y && last.band.h === band.h ? bases.get(last.surface.centre) : undefined;
-  if (last && was) {
-    // the same picture, where it was or moved sideways (a scroll): its characters and colours, pixel
-    // for pixel, moved (further than `reach`: built again, the same picture going on)
-    for (const s of [last.shift, ...shifts(last.shift, reach + BEYOND)]) {
-      if (!moved(was, pic, spec.band.y, s)) continue;
-      const d = s - last.shift;
-      if (Math.abs(s) <= reach) return { room: d ? { ...shiftRoom(last, d), exact: false } : last, moved: d };
-      return { room: build(spec, band, read(spec, bandOf(pic, spec.band))), moved: d };
+  if (!last || !was) return { room: null, moved: null };
+  // (nearest to where it was first: the same picture exactly; else, with a few characters changed, within a frame's scroll
+  // of it, whichever shift leaves the fewest wrong)
+  const tries = [last.shift, ...shifts(last.shift, reach + BEYOND)];
+  let found = tries.find((s) => wrong(was, pic, spec.band.y, s, 0) === 0);
+  if (found === undefined) {
+    let fewest = Infinity;
+    for (const s of tries.filter((t) => Math.abs(t - last.shift) <= STEP)) {
+      const n = wrong(was, pic, spec.band.y, s, Math.min(fewest - 1, allowed(was, s)));
+      if (n < fewest) { fewest = n; found = s; }
     }
-    // the same shapes in new colours (flames animating): the places kept
+  }
+  if (found !== undefined) {
+    const d = found - last.shift;
+    if (Math.abs(found) <= reach) return { room: d ? { ...shiftRoom(last, d), exact: false } : last, moved: d };
+    return { room: null, moved: d };
+  }
+  // the same shapes in new colours (flames animating): the places kept (only if the characters are nearly the same: another room isn't read to find out)
+  if (last.shift === 0 && wrong(was, pic, spec.band.y, 0, allowed(was, 0) * 5, true) !== Infinity) {
     const basis = read(spec, bandOf(pic, spec.band));
-    if (last.shift === 0 && same(was, basis)) {
+    if (same(was, basis)) {
       const surface: HdSurface = { ...last.surface, colour: new Float32Array(last.surface.count * 3), glow: new Float32Array(last.surface.count * 3) };
       bases.set(surface.centre, basis);
       paint(surface, basis);
       return { room: { ...last, surface, exact: true, lights: lightsAt(basis.lights, surface) }, moved: 0 };
     }
-    return { room: build(spec, band, basis), moved: null };
   }
-  return { room: build(spec, band, read(spec, bandOf(pic, spec.band))), moved: null };
+  // a few things changed (a door opened, something taken): the room as it was, till it's built again
+  if (edited && mostly(was, pic, spec.band.y, last.shift)) return { room: { ...last, exact: false }, moved: 0 };
+  return { room: null, moved: null };
+}
+
+/**
+ * The room in this frame of the picture: from `last` where it can be kept (`keep`), else built from
+ * scratch (the same picture going on, where it was only moved further than `reach`).
+ */
+function next(spec: ObliqueSpec, pic: DecodedPicture, last: HdRoom | null, layout: PictureLayout | null, reach: number): HdBuilt {
+  const kept = keep(spec, pic, last, layout, reach);
+  if (kept.room) return { room: kept.room, moved: kept.moved };
+  return { room: build(spec, shown(spec.band, layout), read(spec, bandOf(pic, spec.band))), moved: kept.moved };
 }
 
 /** The band's rows of the picture. */
@@ -166,22 +195,49 @@ function shifts(at: number, most: number) {
 }
 
 /**
- * Whether the band of the picture now (from line `top`) is `was`'s moved right by s: every pixel's
- * character, colour and bit pair, away from the picture's edges, now and where it was (a game draws
- * the columns coming in at an edge as they come: what was there isn't the room yet). A frame's look
- * at a scroll costs a comparison, no more: the first difference ends it.
+ * How many pixels of the band of the picture now (from line `top`) are not `was`'s moved right by s: a
+ * pixel's character, colour or bit pair, away from the picture's edges, now and where it was (a game
+ * draws the columns coming in at an edge as they come: what was there isn't the room yet). It stops
+ * counting past `most` (then `Infinity`): a wrong candidate costs about as many pixels as may be wrong. With
+ * `codesOnly`, only the characters.
  */
-function moved(was: Basis, pic: DecodedPicture, top: number, s: number) {
+function wrong(was: Basis, pic: DecodedPicture, top: number, s: number, most: number, codesOnly = false) {
   const H = was.kind.length / W, { code, colour, pair } = pic;
   const from = Math.max(EDGE, EDGE + s), to = Math.min(W - EDGE, W - EDGE + s);
+  let n = 0;
   for (let y = 0; y < H; y++) {
     const o = (top + y) * W;
     for (let x = from; x < to; x++) {
       const i = o + x, j = y * W + x - s;
-      if (code[i] !== was.code[j] || colour[i] !== was.colour[j] || pair[i] !== was.pair[j]) return false;
+      if ((code[i] !== was.code[j] || (!codesOnly && (colour[i] !== was.colour[j] || pair[i] !== was.pair[j]))) && ++n > most) return Infinity;
     }
   }
-  return true;
+  return n;
+}
+
+/**
+ * The most pixels that may be wrong for the band to be `was` moved right by s (`ANIMATED`: something
+ * burning or glinting in the room changes a few characters a frame to the next while the picture scrolls;
+ * that is no other room).
+ */
+function allowed(was: Basis, s: number) {
+  const H = was.kind.length / W;
+  return Math.floor((Math.min(W - EDGE, W - EDGE + s) - Math.max(EDGE, EDGE + s)) * H * ANIMATED);
+}
+
+/** Whether nearly all of the band of the picture now (from line `top`) is `was`'s moved right by s: some of it changed, not the room. */
+function mostly(was: Basis, pic: DecodedPicture, top: number, s: number) {
+  const H = was.kind.length / W, { code, colour, pair } = pic;
+  const from = Math.max(EDGE, EDGE + s), to = Math.min(W - EDGE, W - EDGE + s);
+  let wrong = 0;
+  for (let y = 0; y < H; y++) {
+    const o = (top + y) * W;
+    for (let x = from; x < to; x++) {
+      const i = o + x, j = y * W + x - s;
+      if (code[i] !== was.code[j] || colour[i] !== was.colour[j] || pair[i] !== was.pair[j]) wrong++;
+    }
+  }
+  return wrong < (to - from) * H * EDITED;
 }
 
 /** Whether `now` is `was` in the same places (each pixel's kind), away from the picture's edges. */
