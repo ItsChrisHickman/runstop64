@@ -33,12 +33,16 @@ const HADES = 7, BINS = 60, DRAIN = 138;
 const FLOOR: [number, number, number] = [150, 0, 158];
 const livesOf = (b: number) => { let n = 0; for (; b; b >>= 1) n += b & 1; return n; };
 
-/** A launch with its own storage (`store`: seeded, e.g. ORIGINAL chosen), a new game, then on room 60's floor (travel's way in). */
-async function launch(store = new Map<string, string>()) {
+/**
+ * A launch with its own storage (`store`: seeded, e.g. ORIGINAL chosen), a new game, then on room 60's floor (travel's way in).
+ * ENHANCED's unlimited lives are off (`unlimited`: on), so the lives show what a fall costs.
+ */
+async function launch(store = new Map<string, string>(), unlimited = false) {
   useMemoryStorage(store);
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 50));
+  p.options.lives = unlimited;
   const ram = () => must(p.machine, 'the machine').ram;
   const s = {
     p, input, ram,
@@ -73,6 +77,12 @@ const before = e.lives();
 e.tick(400);
 check(`ENHANCED: the fall into Hades costs one life (${before} -> ${e.lives()}), back in room 60 (${e.room()}), alive 400 frames on`, e.lives() === before - 1 && e.room() === BINS && e.p.state.playing);
 check(`ENHANCED: the save still room 60's ("${e.saved()}")`, e.saved() === BINS_NAME);
+
+// ---- ENHANCED with its unlimited lives: the same, he is back in room 60 and the lives stay full ----
+const u = await launch(new Map(), true);
+check('unlimited lives: left into the hole: Hades', intoHades(u));
+u.tick(400);
+check(`unlimited lives: back in room 60 (${u.room()}), alive 400 frames on, lives ${u.lives()}`, u.room() === BINS && u.p.state.playing && u.lives() === 8);
 
 // ---- ORIGINAL: the original's own rule ----
 const o = await launch(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]));

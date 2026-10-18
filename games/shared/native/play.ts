@@ -1,13 +1,13 @@
 import { C64View, HdRooms, SidPlayer, hdRefresher, unpackState, type HdBuilder } from 'c64kit';
 import { MACHINE_CODEC, type GameStatus, type TitleStrip } from '../continue';
-import type { FrameCapture, Host, MachineState, PictureLayout } from 'c64kit';
+import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout } from 'c64kit';
 import { cpu } from './cpu';
 import { NativeHost, type PortConfig } from './host';
 import { Combat, type CombatSpec } from './combat';
 import { EightWay, type ControlsSpec, type Runner } from './controls';
 import {
-  ActionKeys, EightWayStage, Keyboard, Knockback, Latch, NamePick, NativeEnv, RUN_KEYS, Running, SafeArrival, ScreenWatch, Vitals, stages,
-  type ActionsSpec, type FrameStage, type LatchSpec, type NamesSpec, type NativeAssistId, type RunSpec, type SafeSpec, type StickStage, type VitalsSpec, type WaitStage,
+  ActionKeys, AirJump, EightWayStage, Keyboard, Knockback, Latch, NamePick, NativeEnv, RUN_KEYS, Running, SafeArrival, ScreenWatch, Vitals, stages,
+  type ActionsSpec, type AirJumpSpec, type FrameStage, type LatchSpec, type NamesSpec, type NativeAssistId, type RunSpec, type SafeSpec, type StickStage, type VitalsSpec, type WaitStage,
 } from './features';
 import { PAUSE_KEYS, type AssistSpec } from '../frontend';
 import { runPort, type FrameResult, type PortPhase, type ResumeFrom } from '../port';
@@ -60,7 +60,7 @@ export interface NativeGameOptions<F> {
    * whether it's on (and play under way), and what the player has found (kept with the saves).
    * `default`: on unless chosen off.
    */
-  assists?: { id: string; long: string; default?: boolean; apply?(ram: Uint8Array, on: boolean, found: F): void }[];
+  assists?: { id: string; long: string; default?: boolean; apply?(ram: Uint8Array, on: boolean, found: F, m: C64Machine): void }[];
   /** The game's own moments (`hooks` in its translation's config: host.ts `onHook`), as its code reaches them. */
   onHook?(pc: number, ram: Uint8Array): void;
   /** After each frame, once the assists have had it (play under way or not). */
@@ -94,6 +94,10 @@ export interface NativeGameOptions<F> {
    * it's for: e.g. its raster split is there, from the frame as the VIC drew it) is shown.
    */
   layout?: { picture: PictureLayout; when(m: { ram: Uint8Array; capture: FrameCapture }): boolean }[];
+  /** ENHANCED: a second jump in the air, once per airtime (features.ts `AirJump`; `airJump` in the assists). */
+  airJump?: AirJumpSpec;
+  /** ENHANCED: a moment's grace (frames) on coming into each room, as the resume's but shorter (grace.ts). */
+  entryGrace?: number;
   /** ENHANCED: a move the game makes of its own ends with the stick still held (features.ts `Latch`). */
   latch?: LatchSpec;
   /**
@@ -147,7 +151,7 @@ function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
   const own = (id: NativeAssistId, long: string, role?: AssistSpec['role']): AssistSpec => ({ id, long, role });
   return [
     ...(opts.vitals?.health ? [own('health', 'FULL HEALTH/ROOM')] : []),
-    ...(opts.vitals?.lives ? [own('lives', 'INFINITE LIVES', 'never')] : []),
+    ...(opts.vitals?.lives ? [own('lives', 'INFINITE LIVES', opts.vitals.infinite ? undefined : 'never')] : []),
     ...(opts.hints && !opts.hintsWith ? [own('hints', 'HINTS (SPARKLES)')] : []),
     ...(opts.assists ?? []).map((a) => ({ id: a.id, long: a.long, default: a.default })),
     ...(opts.combat ? [
@@ -161,6 +165,7 @@ function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
     ...(opts.safe ? [own('respawn', 'NO DEATH LOOPS')] : []),
     // running, where it's part of ENHANCED
     ...(opts.run?.enhanced ? [own('run', 'RUN (SHIFT)')] : []),
+    ...(opts.airJump ? [own('airJump', 'JUMP AGAIN IN THE AIR')] : []),
   ];
 }
 
@@ -178,6 +183,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let view: C64View | null = null;
   /** A resume has begun: the room it comes into is not a new game's. */
   let resuming = false;
+  /** The room the entry grace last began in; and a life has just been lost (the entry grace begins again). */
+  let entryRoom = -1, diedNow = false;
   /** A game began that the player did not ask for, over a save: the save carries on at the next frame (atMainWait). */
   let carryingOn = false;
   /** A place picked on the map, to be carried out at the main loop's wait. */
@@ -218,6 +225,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const knockback = combat ? new Knockback(env, combat, opts.run?.player ?? null) : null;
   const eightWay = opts.controls ? new EightWayStage(env, new EightWay(opts.controls)) : null;
   const latch = opts.latch ? new Latch(env, opts.latch) : null;
+  const airJump = opts.airJump ? new AirJump(env, opts.airJump) : null;
   const keyboard = new Keyboard(opts.remap, new Set([...OURS, ...(opts.run ? RUN_KEYS : []), ...(opts.reserved ?? [])]), PAUSE_KEYS);
   const actions = opts.actions ? new ActionKeys(env, opts.actions, input, (code) => keyboard.reaches(code)) : null;
   const names = opts.names ? new NamePick(opts.names, input) : null;
@@ -226,15 +234,15 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const vitals = opts.vitals ? new Vitals(env, opts.vitals, (g) => g.lastWait === mainWait, (ram) => opts.room(ram)) : null;
 
   /** The stick's way to the game: the 8-way controls first, then what hit him pushes him, then the latch. */
-  const stick: StickStage[] = stages<StickStage>(eightWay, knockback, latch);
+  const stick: StickStage[] = stages<StickStage>(eightWay, knockback, latch, airJump);
   /** At the main loop's wait, the other way round: the latch is let go first, then the extra passes of his handling, then the 8-way step. */
-  const atWait: WaitStage[] = stages<WaitStage>(latch, running, knockback, eightWay);
+  const atWait: WaitStage[] = stages<WaitStage>(latch, airJump, running, knockback, eightWay);
   /** After the game's frame: combat, the screen watched, the assists (lives, the game's own, the grace's), health. */
   const afters: FrameStage[] = stages<FrameStage>(
     combat ? { afterFrame: (g) => combatFrame(g, combat) } : null,
     screens,
     vitals?.lives ?? null,
-    { afterFrame: (g) => { for (const a of opts.assists ?? []) a.apply?.(g.m.ram, !!assist[a.id] && flow.state.playing, fe.found); } },
+    { afterFrame: (g) => { for (const a of opts.assists ?? []) a.apply?.(g.m.ram, !!assist[a.id] && flow.state.playing, fe.found, g.m); } },
     { afterFrame: (g) => { if (flow.grace.active && flow.state.playing) opts.grace?.keep?.(g.m.ram); } },
     { afterFrame: (g) => opts.afterFrame?.(g.m.ram) },
     vitals?.health ?? null,
@@ -312,10 +320,18 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     view = new C64View(renderer, g.m);
     safe?.reset();
     latch?.reset();
+    airJump?.reset();
     combat?.attach(g);
     combat?.reset();
     const skips = opts.grace?.skip;
-    if (skips) g.onSkip = (pc) => flow.grace.active && flow.state.playing && skips.includes(pc);
+    if (skips) {
+      g.onSkip = (pc) => {
+        if (!skips.includes(pc)) return false;
+        if (flow.grace.active && flow.state.playing) return true;
+        diedNow = flow.state.playing; // (a life goes, and the game starts him again: the entry grace, if it has one)
+        return false;
+      };
+    }
     const onHook = opts.onHook, graceHook = opts.grace?.hook;
     if (onHook || graceHook) {
       const h = g.onHook;
@@ -348,9 +364,17 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     // the map notes what's been found (and puts the player where a place picked on it says)
     // before the autosave: the save on coming into a room has him where he is, and the map with it
     if (st.room !== null) map.observe(g.m.ram, fe.found, g.m.vic);
+    // ENHANCED: a short grace on coming into each room (a resume's own is longer: it starts at its own points)
+    if (opts.entryGrace && st.room !== null && fe.enhanced && flow.state.playing) {
+      const room = opts.room(g.m.ram);
+      if (room !== entryRoom || diedNow) { entryRoom = room; flow.grace.start(opts.entryGrace); }
+    }
+    diedNow = false;
     // (`safe`: the room's save as it was when he found his feet there, once he's lived a moment after
     // it; a life lost just as he goes somewhere picked on the map: he goes there)
     if (safe && st.room !== null) st.save = safe.save(g, st.room, travel, fe.found);
+    // unlimited lives: filled again here, once the arrival above has seen a life go (a frame of this game rarely ends at this wait)
+    vitals?.lives.afterFrame(g);
     port.autosave(st); // play just began: the start button isn't a jump
     resuming = false;
   }

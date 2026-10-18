@@ -18,35 +18,24 @@ playthrough. ORIGINAL is the game as it was. Rows marked Always are in both mode
 | **Safe landings** | A fall of 40 pixels or more (five character rows: the fall counter $82D7, two a step, against `cmp #$28` at $5465) kills Willy on landing. | ENHANCED: no fall kills; a long fall ends in an ordinary landing and he walks on (the code's own compare, its operand read from the game's memory and set to $FF: the counter only ever counts in twos, so it never gets there). Quality of life for a modern playthrough. What he lands on is the game's own business as ever: a guardian, a nasty or Hades' skull still hurts, and the fall into Hades still costs its life (the skull). Checked by `test/falls.ts`. ORIGINAL: 40, as it was. | ENHANCED |
 | **Smooth movement** | Locked to a 50 Hz PAL television. | The game at its own pace; sprites glide between its frames on 60/120/144 Hz screens, except a step taken with a new image after standing still: the game walks its figures inside their sprites (a new image every four frames, each drawn 2 pixels on, then the sprite 8 pixels on with the first image again), and those steps are drawn where the game puts them (glided, the new image went back, then forward: Macaroni Ted, the spaceman, Willy). | Always |
 | **Travel back** | None. | On the pause screen: the arrows (or a tap) pick any room he's been in on his feet, Enter (or a second tap) takes him there: the game's own way into a room, arriving where he came in (where the game itself starts him again after a lost life), or, if he came in in the air (dropping in, jumping in), where he landed. A spot is kept once he has lived a second after it (or left the room alive); rooms he never found his feet in, or only died in, are dark brown, NO TRAVEL. What's been found is kept with each autosave. Travel in the middle of a fall (from Hades, say) arrives with the fall forgotten: he drops in above the spot, and a death later starts him there, not in the room the fall began in. | Always |
-| **Title screen text** | The scroller credits the original team only in part, and lists the C64's keys (Q/O, W/P, F1). | Credits to the whole team, and this keyboard's keys (Shift to run, in ENHANCED); "PRESS SPACE TO START" (Enter continues). | Always |
-| **Controls** | Keyboard (Q/O left, W/P right, Space jump) or a joystick in port 2. | Arrows/WASD, Space (or Z, X, pad A) to jump; gamepads; Shift runs (ENHANCED). F3 music on or off, M mutes. | Always |
-| **Touch controls** (phones, tablets) | None. | Left/right stick, JUMP, RUN (on/off: running, in ENHANCED); PAUSE opens the map (tap a room, tap again to go; tap an option to change it); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
+| **Title screen text** | The scroller credits the original team only in part, and lists the C64's keys (Q/O, W/P, F1). | Credits to the whole team, and this keyboard's keys (Shift to run, and Space again in the air, in ENHANCED); "PRESS SPACE TO START" (Enter continues). | Always |
+| **Controls** | Keyboard (Q/O left, W/P right, Space jump) or a joystick in port 2. | Arrows/WASD, Space (or Z, X, pad A) to jump, and again in the air (ENHANCED); gamepads; Shift runs (ENHANCED). F3 music on or off, M mutes. | Always |
+| **Touch controls** (phones, tablets) | None. | Left/right stick, JUMP (tap it again in the air: the second jump, in ENHANCED), RUN (on/off: running, in ENHANCED); PAUSE opens the map (tap a room, tap again to go; tap an option to change it); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
 | **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play, Willy can't lose a life (the death routine does nothing; nothing else is taken from him): continuing a save (ENTER CONTINUE, a launch going straight back into play, CONTINUE? after losing), back to room start, arriving from the map, and ENHANCED's no-death-loops restart. Quality of life for a modern playthrough, so a resume never starts in the middle of a fight; no sign on screen. Both modes. | Always |
+| **A second jump in the air** | None: a jump cannot be changed once begun. | ENHANCED, for a game that is a lot easier: press Space (or Z, X, pad A, JUMP) again while he is in the air, rising or falling, and the jump begins again from the height he is at: the game's own jump (its rise flag and table step put back, no fall), so walls, ceilings and rooms behave as ever. Once per airtime (it comes back on landing, or off a rope). With left or right held he turns that way, as the game does at the start of a jump; with neither he goes on as he was. Checked by `test/easy.ts`. | ENHANCED |
+| **Ropes hold** | A rope is taken hold of only where Willy's sprite touches its one dotted pixel, he falls off if that touch is missing for three steps, and the jump off works only on its lower part. | ENHANCED: he takes hold of a rope as soon as he is in its cells, never falls off it, and the jump off works from anywhere on the rope, the way held (left, right or straight up): the game's own rope code, its contact report ($8305, bit 0) set and the jump-off test's operand ($54E2) read from memory. For 0.9 seconds after he lets go he is left to the VIC's own touch, so a jump off takes him away. The beach (room 28) is crossed with the rope and a second jump (`test/easy.ts`). | ENHANCED |
+| **Lives that never run out** | Eight lives; the last one lost ends the game. | ENHANCED: the eight Willies are always there (the lives byte filled again at the main loop's wait, after the no-death-loops arrival has seen a life go). | ENHANCED |
+| **A grace on coming into a room** | Some arrivals (dropping in beside a guardian, walking in at a nasty) cost a life before any input. | ENHANCED: 2 seconds (100 frames) in which no life can be lost on coming into each room, and again after a life is lost (the room's start); the death routine does nothing, as in the 3-second grace after a resume (above). A hit still there when it ends kills. | ENHANCED |
+| **A gentle touch** | The VIC reports a collision for any one pixel two sprites share, so a graze kills. | ENHANCED: a guardian or nasty must share 14 opaque pixels with Willy's sprite (about a quarter of him) to kill: the model's `spriteOverlap`, set from the front end. Ropes and what he stands on are unchanged. In the bathroom a guardian that kills at a gap of 14 pixels in ORIGINAL must be 11 pixels into him in ENHANCED (`test/easy.ts`). | ENHANCED |
+| **Sparkles on the items left** | Items must be found by looking. | ENHANCED: a sparkle on each item still in the room he is in (the cell of each, from the room's item table and the game's own bits). The pause map's ITEMS n / OF 178 count and the blinking Masters Bedroom (from 160 on, visited or not) are in both modes. | ENHANCED |
 
 ## Not changed
 
-Everything else is the original: its 136 rooms, items, guardians, ropes, the clock and the music. Not built: the original's
+Everything else is the original: its 136 rooms, items, guardians, the clock and the music. Not built: the original's
 practice mode (P on the title, then a room's name to start in) types on the KERNAL's screen editor, which isn't modelled;
 P is the pause key instead.
 
-## Proposed, waiting on a decision (ENHANCED only)
+## Proposed
 
-None of these is built. Each would be a single ENHANCED behaviour, not a new option.
-
-- **Gentler collisions.** Any overlapping pixel of a guardian or nasty kills. Judge them by boxes one pixel smaller each
-  side (ropes unchanged). The costliest: collisions are the VIC's, so ENHANCED would re-judge $8304 from sprite positions in
-  software, with a risk of drifting from the game's feel. Check: ORIGINAL untouched in lockstep, and scripted grazes (1
-  pixel overlap survives, 2 kills) in 5 rooms.
-- **Rope grip.** Ropes are sticky to get on and off. Let go in either direction without waiting for the swing, and keep a
-  jump's direction off a rope. Needs a look at $835D first. Check: Go-Explore restricted to rope rooms, count frames to
-  escape before and after.
-- **Room-entry grace.** Some arrivals (dropping in beside a guardian) cost a life before any input. The 3-second grace
-  already covers resumes and travel; this would extend it (about a second) to ordinary room changes. It is a design call.
-  Check: enter every room from every neighbouring exit and stand 150 frames, counting lives lost (ORIGINAL baseline, then 0).
-  That sweep is also the missing hazard count; run it in chunks under 10 minutes.
-- **The bedroom question.** Should the Masters Bedroom blink on the map before it has been visited (it blinks once 160
-  items are taken)?
 - **Reachability sweep** (not a change): Go-Explore per room from each room's entry, to prove every item cell can be touched
   and find which of the 178 need the Secret Passage trick.
-
-Not proposed: air control, more lives, a shorter game. They change the game rather than the playthrough.

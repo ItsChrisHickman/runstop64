@@ -23,6 +23,7 @@ const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
 await new Promise((r) => setTimeout(r, 50));
+p.options.lives = false; // (ENHANCED's unlimited lives off: the last life is lost below)
 const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
 const tap = (code: string) => { input.keyDown(code); tick(3); input.keyUp(code); tick(3); };
 const ram = () => { const m = p.machine; if (!m) throw new Error('no machine yet'); return m.ram; };

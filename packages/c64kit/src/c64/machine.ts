@@ -518,6 +518,11 @@ export class C64 {
    * checked against the original with frame-end collisions keep them until checked again.
    */
   collisionsPerLine = false;
+  /**
+   * How many opaque pixels two sprites must share to count as touching (the VIC's own rule: one). A game
+   * can ask for more (a gentler ENHANCED); the frame-end collisions only, not `collisionsPerLine`'s.
+   */
+  spriteOverlap = 1;
   /** The sprites being drawn this frame (with their opaque pixels), for collisionsPerLine. */
   private drawing: { s: SpriteCapture; mask: SpriteMask }[] = [];
 
@@ -571,7 +576,7 @@ export class C64 {
       for (let j = i + 1; j < sprites.length; j++) {
         const b = sprites[j];
         if (a.s.n === b.s.n) continue;
-        if (overlaps(a.s, a.mask, b.s, b.mask)) ss |= (1 << a.s.n) | (1 << b.s.n);
+        if (overlaps(a.s, a.mask, b.s, b.mask, this.spriteOverlap)) ss |= (1 << a.s.n) | (1 << b.s.n);
       }
     }
     void W; void H;
@@ -674,11 +679,13 @@ function spriteMask(s: SpriteCapture): SpriteMask {
   return { w, h, bits };
 }
 
-function overlaps(a: SpriteCapture, am: SpriteMask, b: SpriteCapture, bm: SpriteMask) {
+/** Whether two sprites share at least `need` opaque pixels. */
+function overlaps(a: SpriteCapture, am: SpriteMask, b: SpriteCapture, bm: SpriteMask, need = 1) {
   const x0 = Math.max(a.x, b.x), x1 = Math.min(a.x + am.w, b.x + bm.w);
   const y0 = Math.max(a.y, b.y), y1 = Math.min(a.y + am.h, b.y + bm.h);
+  let shared = 0;
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
-    if (am.bits[(y - a.y) * am.w + (x - a.x)] && bm.bits[(y - b.y) * bm.w + (x - b.x)]) return true;
+    if (am.bits[(y - a.y) * am.w + (x - a.x)] && bm.bits[(y - b.y) * bm.w + (x - b.x)] && ++shared >= need) return true;
   }
   return false;
 }

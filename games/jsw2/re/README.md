@@ -95,6 +95,22 @@ and the translator (`tools/re/to-ts.mjs`) makes its entry ask `cpu.sk` whether t
 (`NativeHost.onSkip`, set by `play.ts` from `grace: { skip: [0x51c7] }`). The collision stays in $8304 and is judged again
 each pass, so the moment the grace ends it kills (`test/grace.ts`).
 
+**A lot easier** (`src/easy.ts`, `test/easy.ts`; Chris asked for it: "just make the game a lot easier"). Each is the game's own bytes
+put to a new use. *A second jump in the air* (`AirJump`, `games/shared/native/features.ts`): the jump begun again where he is: $8292
+(non-zero while he rises) set, the step of its table ($8293, $8277 the heights, 19 steps) back to 0, $82E4 (non-zero while he falls)
+and the fall count $82D7 cleared; with left or right held he turns first by the game's own routines ($56AB left, $56E9 right: $82AE
+is 1 left, $FF right, they set his facing too). Once per airtime, on a fresh press with the airtime begun a frame before it.
+*Ropes*: a rope is cells of type 9 and more in the screen RAM ($0400, codes & $3F: three cells wide per row, 36 shapes for each
+swing, the beach's reaches 12 rows and 20 columns); $5E14 calls $6233 for such a cell under him, which takes hold only if $8305 bit 0
+(the VIC's sprite-picture collision, read every other pass) is set, i.e. his sprite meets a rope's one pixel; $53E1 lets him drop after
+three steps without it; and `cmp #$0e` at $54E1 (against his place along the rope, $835C) allows the jump off only on its lower part
+(its operand is read from memory, `smcOperand`; ENHANCED sets it to 0). ENHANCED sets the report and the VIC's latch each frame, except for
+45 frames after he lets go (or he is taken straight back). *Lives*: the byte $8096 filled again at each main loop wait, after the
+arrival has seen a life go (a frame of this game rarely ends at that wait, so the end of a frame is no place for it). *A grace on
+entering a room*: `entryGrace` (100 frames) from the death routine's own entry, which the grace skips at $51C7. *A gentle touch*:
+sprite collisions are the model's frame-end ones (`C64.spriteOverlap`: opaque pixels shared), 14 for a guardian or nasty to kill.
+*Sparkles*: the cells of the room's items (`ITEM_CELLS`, from `re/items.ts`) that the game's own bits say are still there.
+
 ## Not done
 
-Gentler collisions, rope grip and room-entry grace are proposals waiting on a decision: see `../QOL.md`.
+A reachability sweep (every item cell touched, and which need the Secret Passage trick): see `../QOL.md`.

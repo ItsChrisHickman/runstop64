@@ -1,6 +1,7 @@
 import type { Host } from 'c64kit';
 import { ram } from '../../shared/native/cpu';
 import { runNative, type RunSpec } from '../../shared/native/play';
+import { AIR_JUMP, gentleTouch, itemSpots, RopeGrip } from './easy';
 import { footing, jsw2Map } from './map';
 import { port } from './native';
 import stateUrl from '../assets/jsw2-title.state?url';
@@ -41,6 +42,9 @@ export const RUN: RunSpec = {
  * judged by the game's own collisions as ever, so a fall onto a guardian, nasty or Hades' skull
  * still kills (that is the thing, not the fall).
  */
+/** Frames of grace on coming into a room (ENHANCED): two seconds. */
+const ENTRY_GRACE = 100;
+
 const FALL_LIMIT = { address: 0x5466, original: 0x28, enhanced: 0xff } as const;
 
 /** The joystick keys stay the joystick (they'd be C64 keys too otherwise). */
@@ -49,6 +53,7 @@ const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW'
 const TITLE_IRQS = [0x4ace, 0x4a18];
 
 export function run(host: Host) {
+  const ropes = new RopeGrip();
   return runNative(host, {
     id: 'jsw2',
     // ENTER CONTINUE on the black between the scroller's banner and the credits line
@@ -63,6 +68,8 @@ export function run(host: Host) {
       // Lives are the bits of $8096 (eight Willies in the HUD; each loss shifts one out).
       fullHealth: (ram) => { ram[0x8096] = 0xff; },
       lives: (ram) => { ram[0x8096] = 0xff; },
+      // (ENHANCED: eight lives that never run out: the game is a lot easier, QOL.md)
+      infinite: true,
     },
     // No death loops: Willy comes into rooms in mid-air (falling into Hades from the dustbins' floor), and
     // a death in a fall from another room starts him again where the fall began (over the hole, where he
@@ -73,12 +80,24 @@ export function run(host: Host) {
     grace: { skip: [0x51c7] },
     map: jsw2Map,
     // Falls (ENHANCED): landing never kills (FALL_LIMIT).
-    assists: [{ id: 'falls', long: 'LANDINGS SAFE', apply: (ram, on) => { ram[FALL_LIMIT.address] = on ? FALL_LIMIT.enhanced : FALL_LIMIT.original; } }],
+    assists: [
+      { id: 'falls', long: 'LANDINGS SAFE', apply: (ram, on) => { ram[FALL_LIMIT.address] = on ? FALL_LIMIT.enhanced : FALL_LIMIT.original; } },
+      // Ropes (easy.ts): taken hold of at once, never fallen off, the jump off from anywhere on them.
+      { id: 'ropes', long: 'ROPES HOLD', apply: (ram, on, _found, m) => ropes.apply(ram, on, m) },
+      // A guardian or nasty must overlap him a good deal to kill (easy.ts).
+      { id: 'gentle', long: 'GENTLE TOUCH', apply: (_ram, on, _found, m) => gentleTouch(m, on) },
+    ],
+    // A second jump in the air, once per airtime (easy.ts).
+    airJump: AIR_JUMP,
+    // A short grace on coming into a room and after a life is lost (ENHANCED).
+    entryGrace: ENTRY_GRACE,
+    // Sparkles on the items still in the room (ENHANCED).
+    hints: (ram) => itemSpots(ram),
     // Running (ENHANCED, Shift held): Willy alone goes faster (RUN).
     run: RUN,
     // The title scroller's key list, with running (build/patch.json has the same, for a snapshot made again;
     // this puts it in the one made before it: the same length).
-    text: { 0x7d03: 'KEYS  :  ARROWS OR WASD...MOVE.  SPACE...JUMP.  SHIFT...RUN IN ENHANCED.  P OR ESC...PAUSE AND MAP.  F3...MUSIC ON/OFF.  M...MUTE.  JOYSTICKS AND PADS WORK.....' },
+    text: { 0x7d03: 'KEYS  :  ARROWS OR WASD...MOVE.  SPACE...JUMP, AGAIN IN THE AIR.  SHIFT...RUN (THOSE TWO IN ENHANCED).  P OR ESC...PAUSE AND MAP.  F3...MUSIC.  M...MUTE........' },
     // Touch: left and right (Willy has no up or down), a big JUMP, and RUN (added for `run`: on or off).
     touch: { stick: 'lr', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
     font: 'kit', // (the title's charset is the game's own lettering, not a font in C64 order)

@@ -39,6 +39,7 @@ async function gameOver() {
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 50));
+  p.options.lives = false; // (ENHANCED's unlimited lives off: the last life is lost below)
   const ram = () => must(p.machine, 'the machine').ram;
   const s = {
     p, input, ram,

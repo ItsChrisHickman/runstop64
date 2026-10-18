@@ -18,7 +18,7 @@ import { drawPending, KeyPacer, NamePicker, DEL, RETURN, type NameKey, type Name
  */
 
 /** The assists `runNative` itself offers, by id (a game's own `assists` add theirs). */
-export type NativeAssistId = 'health' | 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'eightWay' | 'respawn' | 'run';
+export type NativeAssistId = 'health' | 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'eightWay' | 'respawn' | 'run' | 'airJump';
 
 /** What the features share of the session. */
 export class NativeEnv {
@@ -87,6 +87,56 @@ export class Running implements WaitStage {
 
   // (at the frame's start, its scroll register writes would land on the header's split: so in the main loop's pass, as the game's own)
   atWait() { if (this.on) this.env.runner.call(this.spec.player); }
+}
+
+// ---- a jump in mid-air ----------------------------------------------------------------------------------
+
+/**
+ * A second jump in the air (ENHANCED, once per airtime), the game's own way: `restart` puts its jump
+ * variables back to a jump just begun, at the height he is, so its collisions, rooms and falls work as
+ * ever. `airborne`: he is in the air and the game is not holding him (a rope, a ladder).
+ */
+export interface AirJumpSpec {
+  airborne(ram: Uint8Array): boolean;
+  /** Begin a jump from here; `stick`: the stick bits as the player holds them (4 left, 8 right). */
+  restart(ram: Uint8Array, stick: number): void;
+}
+
+/**
+ * A fresh press of fire while he is in the air (the airtime began at least a frame before the press, so
+ * the press that made the jump is never the second one) and no second jump yet in this airtime.
+ */
+export class AirJump implements StickStage, WaitStage {
+  private fireWas = false;
+  /** A fresh press this frame, not yet seen at the wait; and the stick then. */
+  private press: number | null = null;
+  /** Whether he was in the air at the last wait, and has used his jump since he left the ground. */
+  private airLast = false;
+  private used = false;
+
+  constructor(private readonly env: NativeEnv, private readonly spec: AirJumpSpec) {}
+
+  /** A new game starts. */
+  reset() { this.fireWas = false; this.press = null; this.airLast = false; this.used = false; }
+
+  shape(bits: number, active: boolean) {
+    const fire = (bits & 16) !== 0;
+    // (a press waits for the main loop's next wait: a frame may not reach one)
+    if (!active) this.press = null;
+    else if (fire && !this.fireWas) this.press = bits;
+    this.fireWas = fire;
+    return bits;
+  }
+
+  atWait(g: NativeHost) {
+    const ram = g.m.ram, press = this.press;
+    this.press = null;
+    if (!this.env.playing() || !this.env.on('airJump')) { this.airLast = false; this.used = false; return; }
+    const air = this.spec.airborne(ram);
+    if (!air) this.used = false;
+    else if (press !== null && this.airLast && !this.used) { this.used = true; this.spec.restart(ram, press); }
+    this.airLast = air;
+  }
 }
 
 // ---- knockback ----------------------------------------------------------------------------------------
@@ -382,6 +432,8 @@ export interface VitalsSpec {
   health?: { max: number; get(ram: Uint8Array): number; set(ram: Uint8Array, colour: Uint8Array, v: number): void };
   /** For the "infinite lives" assist: put the lives back to full (each frame of play). */
   lives?(ram: Uint8Array): void;
+  /** The infinite lives are part of ENHANCED (where the game's maker asked for them), not an option off unless chosen. */
+  infinite?: boolean;
 }
 
 export class Vitals {

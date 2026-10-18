@@ -16,7 +16,8 @@ export class Grace {
   /** Frames left. */
   left = 0;
 
-  start() { this.left = GRACE_FRAMES; }
+  /** The grace begins (or, shorter than what is left, leaves what is left). */
+  start(frames = GRACE_FRAMES) { this.left = Math.max(this.left, frames); }
   /** One frame of play has passed. */
   tick() { if (this.left > 0) this.left--; }
   get active() { return this.left > 0; }
