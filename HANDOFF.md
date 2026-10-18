@@ -33,6 +33,8 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
   **Stage 7 (sound) is hooked up:** `main.ts` drives `MoleySound` (`afterStep`, `sync`; the shared audio keys unlock it and M mutes).
   The originals are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md`).
 
+- **Karnath ENHANCED hints** (worktree commit): sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`). Waiting on Chris: his notes on the lines (`src/hint-lines.ts`).
+
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
   typed `Found`; the save envelope and the registry). Finding 10 (AGENTS.md too long) was settled by the doc cleanup

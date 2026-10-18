@@ -292,3 +292,42 @@ the fixture state). The port and the original behave the same at the right end o
 at columns 109-112 above the floor: from the same state, going up and left-then-up end at the same place in both), so that is
 the game's geometry, not a fault of ours. Open: whether L2's right end and the crypt can be entered, and how; the pause map's lit
 cells (walked columns) will show you where you have not been.
+
+## Hints (ENHANCED: src/hints.ts, src/guide.ts, src/hint-lines.ts; checked by `re/hints/check.ts`)
+
+The goal is never told in the game (see "How the game is won"), so ENHANCED says it: the pieces marked, the way a piece carried goes
+marked, the staff marked, and Pendragon's short lines on the status line (`Narrator`, the same as Blackwyche's GUIDED). Everything is
+read from what the game keeps; nothing is written but the status line's characters.
+
+- **The status line.** Row 22 of the panel, 28 characters from $0775, drawn once by $6A21 from the message table ($1044 + $1C * n):
+  `$3231` is the message to draw next frame, `$3232` is 1 while a message of the moment is up ($3233 counting down from $F0: PIECE
+  FOUND, DEPOSITED), `$3234` is the one it goes back to (1 SEARCHING, 3 CARRYING). Ours waits while any of those says the game's is up or
+  coming, and puts the game's back by setting `$3231 = $3234`. The lettering is the Pendragon engine's (`games/shared/pendragon/status.ts`).
+- **Triggers** (a snapshot of `$322F` carrying, `$6FFF` laid, the clock, `$3219` mode each frame): carrying 0 to 1 says the first
+  piece's story (laid 0) or a reminder; `$6FFF` going up says N OF 16, and at 16 the staff's lines; the clock reaching 11 (the panel's own digits,
+  `$07C5` `$07C6`: that is where the game keeps it, and loses at 12, $15B6) says ONE HOUR TO MIDNIGHT once; coming into the abode carrying says
+  the obelisk is at the far left. A line not wanted any more (a piece laid before the reminder's turn) is dropped. After the game is won or lost
+  nothing is said.
+- **Sparkles.** `$322F` clear: every map piece in view (`$D5 $D4`, ten in all, read from the maps) and every sprite showing the piece's picture
+  (`$5800`, which the game copies into the sprite of each piece it keeps in a room, and takes off the screen when it is taken; unchanged all along the
+  routes). Carrying: `$CF` and the DOOR signs (`$A5 $A6 $A6 $A7`) on the floor's front edge (row 19 on the lower floor, 15 on the upper; the same sign
+  is also painted along the top edge of some rooms, row 4, which is not marked) in the castle's two floors, `$B8` in the dungeons, the obelisk (sprite
+  6) in the abode. After the sixteenth: the staff (sprite 6 of the shrine) until the game is won or lost. A cell's place is `8 * column + the fine
+  scroll`: the scroll as the frame leaves it (`$7FEE`), because the game works after it has drawn, so the picture drawn next uses it (the same as
+  the sprites' registers); cells under the 38-column border are not there (`games/shared/native/spots.ts`).
+- **Found on the way.** There are seven pieces lying as sprites, not six: `$321C` (the upper floor's first level, in the $D800 block: `$62A8`
+  takes it on sprites 1, 2 and 5 touching, $26) as well as `$321D` (dungeons), `$321E $321F $3222` (the $E100 block), `$3220 $3221` ($C000). With the
+  ten in the map that is seventeen for sixteen needed. **The kitchen's piece** (level 2, `$3220`) is guarded: it hurts him unless `$C754` is 1, which
+  AEOLUS (spell 6) cast at it ($C5DE, `$321A = $18`) sets for 80 frames; `check.ts` plays it: AEOLUS, then touch. The balcony's piece (`$321C`) hovers
+  above a bed he can't walk onto from where the routes stand; the bot did not take it.
+- **Checked** (`re/hints/check.ts`, about a minute): the cells against the decoded picture of the next frame, 10,296 frames carrying (6,999 with a
+  sign or door in view, 105 the dungeons' far door) and 5,864 not carrying (3,219 with a piece in view), 0 differing; the way down through a front sign
+  (level 3 to 2) and the `$CF` into the dungeons by playing; the kitchen's piece taken by the game's own code on a bot's play (94 frames), the hint on its
+  sprite on all of them, gone after; a map piece on route 0 (level 3); the abode from the obelisk state (the obelisk on every frame it is in view, the
+  staff after the sixteenth, gone on MENHIR, none when the wrong spell kills him); through the front end the status line (the game's FOUND line first,
+  never covered, then the four lines, then the game's CARRYING back; DEPOSITED then N OF 16; the sixteenth's staff lines; 11 PM once), ORIGINAL showing none of
+  it (no sparkle, the game's lines only, no warning), the pause screen's count, and the far door into the abode with its line.
+- **Not done.** The hint of the spell that works on a creature (the README's spell table was read from the code and the kitchen's AEOLUS played, but
+  the table's other rows are not proved by play, so no hint is made from them). Of the seven sprite pieces only the kitchen's was taken by the bot; the
+  others are marked by their picture (the same code path) but unplayed. The line on coming into the dungeons carrying (`LINES.dungeons`) is written and
+  not exercised in the front end.

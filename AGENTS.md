@@ -98,7 +98,8 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | Hooks in translated code (`"hooks"` in a translation's config report reaching an instruction; `"skips"` return a routine at once) | `tools/re/to-ts.mjs`, `native/host.ts` (`onHook`, `onSkip`) | addresses in its `re/*.json` |
 | Combat for translated games: kills, blows, hurts, swings to effects and sounds, and assists (safe after a hit, knockback, hit-stop) | `games/shared/native/combat.ts` (`CombatSpec`) | `combat:` (the game's `src/combat.ts`) |
 | 8-way controls for the Pendragon games | `games/shared/native/controls.ts` (`pendragonControls`) | `controls:` |
-| Narration on a game's status line (Blackwyche's GUIDED) | `games/shared/native/narrate.ts` (`Narrator`) | the line and what to say |
+| Narration on a game's status line (Blackwyche's GUIDED, Karnath's hints) | `games/shared/native/narrate.ts` (`Narrator`), the Pendragon panel's lettering `games/shared/pendragon/status.ts` | the line and what to say |
+| Where a hint's sparkle goes: a sprite's middle, a run of text cells, a sprite showing a given picture | `games/shared/native/spots.ts` (`spriteSpot`, `cellSpots`, `spriteShows`) | what to point at (`src/hints.ts`) |
 | Names and codes on a touch screen | `games/shared/letters.ts` (`NamePicker`, `KeyPacer`) | its letters, `names:` |
 | The HD view | `games/shared/view.ts`, `packages/c64kit/src/hd`, `docs/hd-view.md` | an `HdView` and its rooms' builder |
 | The Pendragon games' rooms as data | `games/shared/pendragon/decode.ts`, `packages/c64kit/src/pendragon/room.ts` | its pictures and `DecodeRules` |

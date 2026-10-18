@@ -1,4 +1,6 @@
 import { Narrator, type StatusLine } from '../../shared/native/narrate';
+import { spriteSpot } from '../../shared/native/spots';
+import { pendragonCode as code } from '../../shared/pendragon/status';
 import { CABINS, HALLS } from './ship';
 import { LINES, type Say } from './guided-lines';
 
@@ -124,26 +126,8 @@ export function nextThing(ram: Uint8Array) {
 
 // ---- where the sparkles go ----
 
-const SPRITE_PTRS = 0x07f8;
-
-/** The middle of a sprite's opaque pixels, in screen pixels (null: not shown, empty, or not on the screen). */
-export function spriteSpot(ram: Uint8Array, vic: Uint8Array, n: number) {
-  const bit = 1 << n;
-  if (!(vic[0x15] & bit)) return null;
-  const sx = vic[0x1d] & bit ? 2 : 1, sy = vic[0x17] & bit ? 2 : 1, multi = (vic[0x1c] & bit) !== 0;
-  const at = ram[SPRITE_PTRS + n] * 64;
-  let x0 = 24, x1 = -1, y0 = 21, y1 = -1;
-  for (let y = 0; y < 21; y++) for (let x = 0; x < 24; x++) {
-    const byte = ram[at + y * 3 + (x >> 3)];
-    const on = multi ? ((byte >> (6 - (x & 6))) & 3) !== 0 : (byte & (0x80 >> (x & 7))) !== 0;
-    if (!on) continue;
-    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
-  }
-  if (x1 < 0) return null;
-  const left = (vic[n * 2] | (vic[0x10] & bit ? 256 : 0)) - 24, top = vic[n * 2 + 1] - 50;
-  const x = left + ((x0 + x1 + 1) / 2) * sx, y = top + ((y0 + y1 + 1) / 2) * sy;
-  return x >= 0 && x < 320 && y >= 0 && y < 200 ? { x: Math.round(x), y: Math.round(y) } : null;
-}
+// (the middle of a sprite's pixels: games/shared/native/spots.ts, shared with The Staff of Karnath's hints)
+export { spriteSpot };
 
 /** The sparkles (play.ts `hints`): on what he can take now in this room, where its sprite is. */
 export function guidedSpots(ram: Uint8Array, vic: Uint8Array): { x: number; y: number }[] {
@@ -158,15 +142,6 @@ export function guidedSpots(ram: Uint8Array, vic: Uint8Array): { x: number; y: n
 }
 
 // ---- the status line ----
-
-/** The game's lettering: letters are screen codes 1-26, the digits 1-9 are $31-$39, 0 is $3A, a colon $3B. */
-function code(ch: string): number | null {
-  if (ch >= 'A' && ch <= 'Z') return ch.charCodeAt(0) - 64;
-  if (ch >= '1' && ch <= '9') return ch.charCodeAt(0);
-  if (ch === '0') return 0x3a;
-  if (ch === ':') return 0x3b;
-  return null;
-}
 
 /**
  * Where the game keeps its own message ($0773, 32 characters: SEARCHING FOR THE CAPTAINS SOUL, drawn

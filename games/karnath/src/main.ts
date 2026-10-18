@@ -6,6 +6,8 @@ import { karnathMap } from './map';
 import { repairStripX } from './travel';
 import { karnathCombat, karnathControls } from './combat';
 import { karnathHd } from './hd';
+import { Guide } from './guide';
+import { hintSpots } from './hints';
 import stateUrl from '../assets/karnath-title.state?url';
 
 /**
@@ -19,6 +21,8 @@ export { info } from './info';
 const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 export function run(host: Host) {
+  // the hints (ENHANCED): the pieces and the way to the obelisk told on the status line and marked with sparkles (src/guide.ts, src/hints.ts)
+  const guide = new Guide();
   return runNative(host, {
     id: 'karnath',
     // ENTER CONTINUE under the title's last line, above its border
@@ -43,6 +47,9 @@ export function run(host: Host) {
     },
     map: karnathMap,
     repair: repairStripX, // (saves made after a travel before it set his place along the strip)
+    assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) }],
+    hints: hintSpots,
+    hintsWith: 'hints',
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: karnathCombat,
     controls: karnathControls,

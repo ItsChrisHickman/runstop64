@@ -1,6 +1,7 @@
 import { COL, drawPickName, isNumbers, isRecord, isRecordOf, isStrings, screenText, statusNumber, type Box, type FoundCodec, type PauseMap } from '../../shared/native/pause';
 import { STRIPS } from './strips';
 import { LOCATION, go as travel, location } from './travel';
+import { PIECES, carrying, deposited } from './hints';
 
 /**
  * The Staff of Karnath's map, for the pause screen: the castle as the game keeps it (see
@@ -133,11 +134,13 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
     drawPickName(sf, box, font, pick ? roomName(ram, Number(pick)) : null);
     if (blink && s.last.length === 3) sf.fillRect(L.x(s.last[1]) - 1, L.y(s.last[0]) + 1, 3, 6, COL.white);
   },
-  info: (ram, found) => [
+  info: (ram, found, assist) => [
     `ENERGY ${String(statusNumber(ram, 0x07dc)).padStart(3)}%`,
     `${screenText(ram, 24, 5, 5)} ${screenText(ram, 24, 11, 2)}`, // the castle clock
     '',
     `ROOMS ${String(found.castle.rooms.length).padStart(2)}/${ROOMS}`,
+    // the pieces of the pentacle laid at the obelisk, and one carried (ENHANCED's hints)
+    ...(assist?.hints ? ['', 'PIECES LAID', `${Math.min(deposited(ram), PIECES)} OF ${PIECES}`, ...(carrying(ram) ? ['1 CARRIED'] : [])] : []),
   ],
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.green, text: 'STAIRS' }, { colour: COL.purple, text: 'FLOORS' }],
   places(box, ram, found) {
