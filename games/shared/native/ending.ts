@@ -11,6 +11,8 @@ import { clean, type StatusLine } from './narrate';
  *     engine moves them and Pendragon running through it by the joystick, as in play, doing one thing
  *     that fits the place (strike at a creature, take what belonged there). A caption on the game's
  *     status line, in its own lettering.
+ *     Over it, credits in the way of Super Mario World's: the game and its makers, facts about it, the
+ *     port, a line or three a place, in the black band between the picture and the status panel.
  *  2. A parade: the game's creatures, their images and animation frames recorded from the engine
  *     (the sprites it shows in a place), walking across one at a time at double size with a name under each.
  *  3. THE END and the player's numbers, then back to the title.
@@ -43,8 +45,14 @@ export interface EndingScene {
   /** Put him there, the game's own way (called at the main loop's wait of a new game); false if it can't. */
   enter(ram: Uint8Array): boolean;
   steps: readonly EndingStep[];
-  /** How long it is shown (frames at 50 a second). */
+  /** How long it is shown (frames at 50 a second); longer if its credits need it (`sceneLength`). */
   frames: number;
+  /**
+   * Credit lines over this place, one after another (a line types on, is held, and goes): upper case, at most 38
+   * letters. They stand in the black band between the picture and the status panel (`EndingSpec.creditRow`),
+   * which the Pendragon games leave empty, in the title's yellow, never on a box.
+   */
+  credits?: readonly string[];
 }
 
 /** One of the game's characters for the parade: the sprites that make it up in a place (top part first). */
@@ -66,6 +74,8 @@ export interface EndingSpec {
   cast: readonly EndingCharacter[];
   /** The status line the caption goes on. */
   status: StatusLine;
+  /** The row (picture pixels) the credit lines are drawn at: eight pixels in the black band under the picture (default 166, the Pendragon games'). */
+  creditRow?: number;
   /** The joystick port the game reads, if only one. */
   joyPort?: 1 | 2;
   /** Pendragon's sprite number (2 in all three games). */
@@ -211,6 +221,30 @@ interface Pose { parts: Part[]; frames: number }
 interface Figure { name: string; poses: Pose[]; width: number; height: number }
 
 const SCALE = 2;
+
+// ---- the credits over the montage ----------------------------------------------------------------
+
+/** The frames each credit line is given (it types on a letter a frame, is held, and goes a moment before the next), and the row it stands at by default. */
+export const CREDIT = { slot: 120, gap: 10, row: 166, colour: 7, x: 8, letters: 38 } as const;
+
+/** The port's own credit lines, the same in every game (his name as he gives it): a game's last scenes spread these. */
+export const PORT_CREDITS: readonly string[] = ['REBUILT FOR THE BROWSER BY', 'CHRISTOPHER HICKMAN', 'WITH CLAUDE (ANTHROPIC)', 'RUNSTOP64'];
+
+/** How long a scene runs: what it declares, or longer if its credit lines need their slots. */
+export function sceneLength(scene: EndingScene): number {
+  return Math.max(scene.frames, (scene.credits?.length ?? 0) * CREDIT.slot);
+}
+
+/** What the credits show `frame` frames into a scene: the line and how much of it has typed on, or null between lines. */
+export function creditAt(scene: EndingScene, frame: number): { line: number; shown: string } | null {
+  const lines = scene.credits;
+  if (!lines || lines.length === 0) return null;
+  const slot = Math.floor(sceneLength(scene) / lines.length);
+  const line = Math.min(lines.length - 1, Math.floor(frame / slot));
+  const into = frame - line * slot;
+  if (into >= slot - CREDIT.gap) return null;
+  return { line, shown: lines[line].slice(0, into) };
+}
 
 /** Record a character's poses: the engine runs on a new game in its place for some frames, and each distinct picture of its sprites is kept. */
 function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter): Figure | null {
@@ -410,7 +444,17 @@ export class Ending {
     g.tick();
     caption(g.m.ram, this.o.spec.status, scene.caption);
     view.update();
-    if (this.frames >= scene.frames) this.next();
+    this.credits(scene);
+    if (this.frames >= sceneLength(scene)) this.next();
+  }
+
+  /** The credit line of this moment, over the picture's empty band (after the view has drawn the picture, so it stays on top). */
+  private credits(scene: EndingScene) {
+    const now = creditAt(scene, this.frames - 1);
+    if (!now) return;
+    const { screen } = this.o.host.renderer;
+    this.o.font().draw(screen, now.shown, CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, CREDIT.colour);
+    screen.version++;
   }
 
   // -- the parade

@@ -6,7 +6,9 @@
  *  2. the whole show runs from the first frame to THE END and calls `done` (back to the title), the title
  *     tune playing all the way, with every figure of the cast recorded with its frames;
  *  3. any key skips it, after the first moment and not before;
- *  4. what a win is: the captain freed (room $0C, $342C 2); and `Won` keeps it.
+ *  4. the credits: every line of every scene types on over the montage, in the black band between the picture
+ *     and the status panel (empty in every scene before the text, only that yellow after it), and all of them are shown;
+ *  5. what a win is: the captain freed (room $0C, $342C 2); and `Won` keeps it.
  *
  *   nice -n 15 node tools/test.mjs games/blackwyche/test/ending.ts [out-dir]
  *
@@ -14,11 +16,13 @@
  */
 import fs from 'node:fs';
 import { Input, PixelRenderer, unpackState } from 'c64kit';
-import { Ending, keepWon, readWon } from '../../shared/native/ending';
+import { CREDIT, Ending, PORT_CREDITS, creditAt, keepWon, readWon } from '../../shared/native/ending';
 import { BitmapFont, KIT_GLYPHS } from 'c64kit';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
+import { decodePicture } from '../../../packages/c64kit/src/c64/picture';
+import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import { indicesPng, renderPng } from '../../../tools/probe/render';
 import { Session, game, saveAt } from './guided-kit';
 import { blackwycheEnding, endingStats, won } from '../src/ending';
@@ -50,7 +54,26 @@ let frames = 0;
 const phases: string[] = [];
 const struck = { shelf: false, captain: false, pearl: false };
 let still = 0;
-while (show.active && frames < 6000) {
+// the credits: the band under the picture, where each line must show (and what it holds before)
+const BAND = { top: 162, bottom: 174 };
+const seen = new Set<string>();
+const stray: string[] = [];
+let emptyBefore = 0, scenesChecked = 0, gameBandPixels = 0, gameBandMarked = 0;
+/** What the game itself draws in the band (its picture, before our text goes over it): both layers, every pixel. */
+function gameBand(m: { ram: Uint8Array; capture: Parameters<typeof decodePicture>[1] }) {
+  const pic = decodePicture(m.ram, m.capture);
+  let marked = 0;
+  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const i = y * 320 + x; if (pic.back[i] !== 0 || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== 0)) marked++; }
+  gameBandPixels += (BAND.bottom - BAND.top + 1) * 320;
+  gameBandMarked += marked;
+}
+function band(): { yellow: number; other: number } {
+  const pic = renderer.picture();
+  let yellow = 0, other = 0;
+  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const c = pic[y * 320 + x]; if (c === CREDIT.colour) yellow++; else if (c !== 0) other++; }
+  return { yellow, other };
+}
+while (show.active && frames < 8000) {
   input.poll();
   show.tick();
   show.render(0);
@@ -62,6 +85,17 @@ while (show.active && frames < 6000) {
     if (p.scene === 0 && m.ram[0x638f] >= 1) struck.shelf = true;
     if (p.scene === 3 && m.ram[0x9d69] !== 0) struck.pearl = true;
     if (p.scene === 4 && m.ram[0x633b] >= 1) struck.captain = true;
+    const sc = blackwycheEnding.scenes[p.scene];
+    if (p.frames % 25 === 1) gameBand(m);
+    if (p.frames === 1) { const b = band(); scenesChecked++; if (b.yellow === 0 && b.other === 0) emptyBefore++; else stray.push(`scene ${p.scene} band before text: ${b.yellow} yellow, ${b.other} other`); }
+    const now = creditAt(sc, p.frames - 1);
+    if (now && now.shown.length === sc.credits?.[now.line]?.length && !seen.has(`${p.scene}.${now.line}`)) {
+      const b = band();
+      seen.add(`${p.scene}.${now.line}`);
+      if (b.yellow === 0) stray.push(`scene ${p.scene} line ${now.line} not drawn`);
+      if (b.other !== 0) stray.push(`scene ${p.scene} line ${now.line}: ${b.other} pixels of another colour in the band`);
+      if (out) indicesPng(`${out}/credit-scene${p.scene}-line${now.line}.png`, renderer.picture(), 320, 200);
+    }
     if (out && p.frames % 70 === 5) renderPng(m, `${out}/ending-scene${p.scene}-${String(p.frames).padStart(3, '0')}.png`);
   } else if (out && (p.phase === 'parade' || p.phase === 'end')) {
     still++;
@@ -72,9 +106,18 @@ const p = show.progress;
 console.log(`phases: ${phases.join(' ')}; ${frames} frames; figures: ${p.figures.map((f) => `${f.name}:${f.poses}`).join(', ')}`);
 check('the show ran to its end and went back to the title (done, once)', !show.active && over === 1);
 check('it went through the montage, the parade and THE END', phases.some((x) => x.startsWith('montage')) && phases.includes('parade5') || phases.some((x) => x.startsWith('parade')) && phases.some((x) => x.startsWith('end')));
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, 30 to 120)`, frames >= 1500 && frames <= 6000);
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, 60 to 150)`, frames >= 3000 && frames <= 7500);
 check('every figure of the cast was recorded, each with more than one picture of its own except the still ones', p.figures.length === blackwycheEnding.cast.length);
 check('the title tune played all the way (a write at most frames)', sung.length > 0 && sung.filter((n) => n > 0).length > sung.length / 4);
+const lineCount = blackwycheEnding.scenes.reduce((n, sc) => n + (sc.credits?.length ?? 0), 0);
+check(`every credit line was shown in full (${seen.size} of ${lineCount})`, seen.size === lineCount && lineCount >= 30);
+check(`the game leaves the band under its picture black (rows ${BAND.top} to ${BAND.bottom}: ${gameBandMarked} of ${gameBandPixels} pixels drawn, over every scene)`, gameBandPixels > 0 && gameBandMarked === 0);
+check('the band was empty before the text in every scene, and only the credit colour is drawn in it', emptyBefore === scenesChecked && scenesChecked === blackwycheEnding.scenes.length && stray.length === 0);
+if (stray.length) console.log(stray.join('\n'));
+const allLines = blackwycheEnding.scenes.flatMap((sc) => sc.credits ?? []);
+check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, allLines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
+check('the credits are in order: the game and its makers first, the port and thanks last', allLines[0] === 'BLACKWYCHE' && allLines.includes('DESIGNED BY DAVE AND BOB THOMAS') && PORT_CREDITS.every((l) => allLines.includes(l)) && allLines[allLines.length - 1] === 'THANKS FOR PLAYING');
+check('the port is credited to Christopher Hickman, with Claude', allLines.includes('CHRISTOPHER HICKMAN') && allLines.includes('WITH CLAUDE (ANTHROPIC)'));
 check('Pendragon struck the piece on the shelf', struck.shelf);
 check('Pendragon struck the captain', struck.captain);
 check('Pendragon took the pearl', struck.pearl);

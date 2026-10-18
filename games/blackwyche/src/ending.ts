@@ -1,4 +1,4 @@
-import type { EndingCharacter, EndingScene, EndingSpec } from '../../shared/native/ending';
+import { PORT_CREDITS, type EndingCharacter, type EndingScene, type EndingSpec } from '../../shared/native/ending';
 import { itemsFound, ITEMS } from './items';
 import { ACTION } from './actions';
 import { STATUS } from './guided';
@@ -26,21 +26,35 @@ function captionOf(room: number): string {
   return '';
 }
 
-/** A scene in a room. */
-const scene = (room: number, steps: EndingScene['steps'], frames = 300): EndingScene => ({ caption: captionOf(room), enter: (ram) => enterRoom(ram, room), steps, frames });
+/** A scene in a room, with the credit lines over it (their sources: games/blackwyche/re/credits.md). */
+const scene = (room: number, credits: readonly string[], steps: EndingScene['steps'], frames = 300): EndingScene => ({ caption: captionOf(room), enter: (ram) => enterRoom(ram, room), steps, frames, credits });
 const room = (n: number) => (ram: Uint8Array) => enterRoom(ram, n);
 
+/** Along a hall, a jump or two on the way. */
+const RUN: EndingScene['steps'] = [{ walk: [80, 164] }, { jump: 2 }, { walk: [250, 164] }];
+/** At a creature, sword out. */
+const strike = (n: number): EndingScene['steps'] => [{ strike: n, from: 'right', reach: 28, frames: 200 }];
+
 const SCENES: readonly EndingScene[] = [
-  // the first piece of the chart, on the shelf: struck, it falls
-  scene(0x04, [{ walk: [150, 146] }, { strike: 6, from: 'right', reach: 24, dy: 19 }]),
-  // the rat on the long table, and a jump along the hall
-  scene(0x13, [{ walk: [60, 164] }, { jump: 2 }, { walk: [300, 164] }]),
-  // the skull hall: what comes at him is struck
-  scene(0x0e, [{ strike: 4, from: 'right', reach: 28 }]),
-  // the pearl in its oyster (with the seaweed in hand it is his for the taking)
-  scene(0x14, [{ walk: [80, 164] }, { jump: 2 }, { walk: [250, 164] }], 260),
+  // the game and its makers (the first piece of the chart, on the shelf: struck, it falls)
+  scene(0x04, ['BLACKWYCHE', 'ULTIMATE PLAY THE GAME, 1985', 'FOR THE COMMODORE 64'], [{ walk: [150, 146] }, { strike: 6, from: 'right', reach: 24, dy: 19 }]),
+  // (the rat on the long table, and a jump along the hall)
+  scene(0x13, ['DESIGNED BY DAVE AND BOB THOMAS', 'CODE BY DAVE THOMAS', 'GRAPHICS BY BOB THOMAS'], [{ walk: [60, 164] }, { jump: 2 }, { walk: [300, 164] }]),
+  // (the skull hall: what comes at him is struck)
+  scene(0x0e, ['A.C.G. ASHBY COMPUTERS AND GRAPHICS', 'PENDRAGON 1: THE STAFF OF KARNATH', 'PENDRAGON 2: ENTOMBED'], [{ strike: 4, from: 'right', reach: 28 }]),
+  // (the pearl in its oyster: with the seaweed in hand it is his for the taking)
+  scene(0x14, ['PENDRAGON 3: BLACKWYCHE', 'PENDRAGON 4: DRAGON SKULLE', 'STARRING SIR ARTHUR PENDRAGON'], RUN, 260),
+  // facts, in the rooms of the creatures
+  scene(0x1b, ['INSPIRED BY HMS VICTORY, PORTSMOUTH', 'THE BROTHERS PHOTOGRAPHED THE SHIP'], strike(0)),
+  scene(0x19, ['BOB WAS A MINISTRY OF DEFENCE', 'TECHNICAL ILLUSTRATOR'], strike(4)),
+  scene(0x1a, ['MADE IN THEIR PARENTS ATTIC', 'ULTIMATE ORDERED A WHOLE SERIES'], RUN),
+  scene(0x12, ['PENDRAGON IS THE BLACK PRINCE', 'FROM JACK THE GIANT KILLER'], strike(4)),
+  scene(0x1e, ['COMMODORE USER: BEST OF THE SERIES', 'SIR ARTHUR AND THE BLACKWYCHE ARE', 'IN SEA OF THIEVES BY RARE'], strike(0)),
+  // this copy, and this port
+  scene(0x0e, ['A KILOBYTE WAS MISSING FROM THIS COPY', 'FOUND BY CHECKING EVERY ROOM', 'TITLE LINE RESTORED: A.C.G. 1985'], [{ walk: [60, 164] }, { jump: 1 }, { walk: [280, 164] }]),
+  scene(0x13, PORT_CREDITS, [{ walk: [300, 164] }, { jump: 2 }, { walk: [60, 164] }]),
   // the captain: the blow that frees him (the game's own end follows it, so the show stops short of it)
-  scene(0x0c, [{ strike: 4, from: 'right', reach: 34, dy: 25 }], 240),
+  scene(0x0c, ['THANKS FOR PLAYING'], [{ strike: 4, from: 'right', reach: 34, dy: 25 }], 240),
 ];
 
 const CAST: readonly EndingCharacter[] = [
