@@ -1,7 +1,7 @@
 # Handoff: start here
 
 For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only what
-is next and what is waiting on Chris. Last updated 2026-10-17.
+is next and what is waiting on Chris. Last updated 2026-10-18.
 
 ## Where things are
 
@@ -33,7 +33,7 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
   **Stage 7 (sound) is hooked up:** `main.ts` drives `MoleySound` (`afterStep`, `sync`; the shared audio keys unlock it and M mutes).
   The originals are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md`).
 
-- **Karnath ENHANCED hints** (worktree commit): sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`). Waiting on Chris: his notes on the lines (`src/hint-lines.ts`).
+- **Karnath ENHANCED hints** (live): sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`). Waiting on Chris: his notes on the lines (`src/hint-lines.ts`).
 
 - **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
   `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
@@ -43,9 +43,40 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
   codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
   (`games/shared/test/fixtures/saves`) keep proving players' saves load. Storage measured at ~1.4 M of the ~5.2 M characters
   a browser gives for all ten games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
-- **The HD tests in the slow set** (`*/test/hd.ts`) have not been run under the new runner; Blackwyche's grew past 980 MB.
+- **The HD tests in the slow set** (`*/test/hd.ts`) pass under the runner (70-212 s, ~510-560 MB each, run alone). Rooms are built in the worker; what is left is in `docs/hd-view.md` (Entombed's big right-edge slants and a thin ribbon between tiers; Karnath's stair hatch).
 - **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
   From here: fewer, larger commits with plain messages.
+
+## Endings (2026-10-18, Chris's top wish)
+
+Chris wants every game to end with a reward, ENHANCED only, after the game's own ending: a montage of the game's places with the
+hero running through and doing something (the game's own engine, driven by input), Super Mario World-style credits during it
+(makers, then sourced fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), a parade of
+the characters with names, THE END with stats, the game's music; won kept apart from the saves, W on the pause screen once won,
+`?ending` on the page. Sources for every fact in each game's `re/credits.md`; never invent a credit. He OK'd doing them all
+without waiting for his review.
+
+- **Done (live):** Blackwyche, Dragonskulle, Staff of Karnath (`games/shared/native/ending.ts`, test kit
+  `games/shared/test/ending-kit.ts`); Monty on the Run (`games/shared/ending/` for the `runPort` rebuilds, test `test/reward.ts`).
+- **In a worktree when this was written:** Entombed and Thing on a Spring (on `native/ending.ts`). If its branch
+  `worktree-agent-a1518ccc3d57f5fc5` is still there, review and merge it; otherwise redo from the Pendragon ones.
+- **To do:** Auf Wiedersehen Monty, Moley Christmas, Starquake, Antiriad (on `games/shared/ending/`, like Monty), JSW2 (on
+  `native/ending.ts`). Then **merge the two ending modules** (they duplicate the credits timing, the figure recording, the parade,
+  THE END and the skip): one shared show, with a translated-machine reel and a native-engine reel.
+- Creature names are ours where the games name none; Chris may want to change them.
+
+## Also done 2026-10-18
+
+- Pendragon games: no full health on entering a room; continues stay unlimited and give full health.
+- Thing on a Spring ENHANCED: no oil boosts; oil out is a lost life back at the room's start with full oil (`vitals.lifeEnds`).
+- Dragonskulle ENHANCED: the dragon flashes on each counted stone (combat `react` event, `native/colour-cycle.ts`).
+
+## Next after the endings
+
+- **Cleanup pass** (Chris OK'd): dead code, drift between shared modules (the two endings first), this file and AGENTS.md
+  trimmed to what is true. The fast test set takes ~11-13 min: move the slowest checks to the slow set or start them from
+  saved states so `verify` stays under 10 minutes.
+- **HD** leftovers above.
 
 ## Waiting on Chris
 
@@ -54,4 +85,5 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
   item sparkles) and the pause map laid out by the exits (every exit side by side or a dotted connector) are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
+- **Playtests:** the endings, Thing on a Spring's lives, the dragon flash, the HD fixes.
 - **Older:** Monty warp to the Ultimate Experience; Starquake hints.
