@@ -49,7 +49,8 @@ for (const count of [GAMES.length, 11, 16, 30]) {
   const tick = () => { input.poll(); dir.tick(); };
   const press = (code: string) => { input.keyDown(code); tick(); input.keyUp(code); tick(); };
   const top = (rows: string[]) => rows[1] === BANNER && rows[2].includes('SAVED GAMES');
-  const listed = (rows: string[], i: number) => rows.some((r) => r.includes(`"${games[i].name.padEnd(16)}"`));
+  const width = Math.max(16, ...games.map((g) => g.name.length));
+  const listed = (rows: string[], i: number) => rows.some((r) => r.includes(`"${games[i].name.padEnd(width)}"`));
   const shot = (name: string) => {
     if (!outDir) return;
     fs.mkdirSync(outDir, { recursive: true });
@@ -62,6 +63,8 @@ for (const count of [GAMES.length, 11, 16, 30]) {
   let steady = true, n = 0;
   for (; n < 2000 && dir.state.row < 0; n++) { tick(); if (n > 5 && !top(dir.state.rows)) steady = false; }
   const rows = dir.state.rows;
+  const quotes = new Set(rows.filter((r) => r.endsWith(' PRG')).map((r) => r.lastIndexOf('"')));
+  check(`${count} games: every game's closing quote in one column`, quotes.size === 1);
   check(`${count} games: the intro lists them all (${n} ticks), the banner and the saved games line on rows 1 and 2 throughout`, steady && dir.state.row >= 0 && top(rows));
   check(`  the first game chosen and in sight (row ${dir.state.row})`, dir.state.selected === 0 && rows[dir.state.row].includes(games[0].name));
   // (the screen is cleared before LIST, so up to sixteen games fit with nothing scrolled; more scroll under the pinned rows)

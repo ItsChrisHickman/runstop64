@@ -97,6 +97,9 @@ export function run(host: Host, opts: LoaderOptions) {
   renderer.background = BG;
   renderer.frame = { x: 32, y: 36 };
 
+  /** The width the names are padded to: a C64's 16, or the longest name (THING ON A SPRING is 17), so every closing quote lines up. */
+  const NAME = Math.max(16, ...games.map((g) => g.name.length));
+  const HEADER = `0 "${'RUNSTOP64'.padEnd(NAME)}" RS 64`;
   // Script typed out on arrival; '>' lines are typed, others appear instantly.
   const SCRIPT = [
     '',
@@ -111,12 +114,12 @@ export function run(host: Host, opts: LoaderOptions) {
     CLEAR,
     '>LIST',
     '',
-    '0 "RUNSTOP64       " RS 64',
-    ...games.map((g) => `${String(g.blocks).padEnd(4)} "${g.name.padEnd(16)}" PRG`),
+    HEADER,
+    ...games.map((g) => `${String(g.blocks).padEnd(4)} "${g.name.padEnd(NAME)}" PRG`),
     `${Math.max(0, 664 - games.reduce((n, g) => n + g.blocks, 0))} BLOCKS FREE.`,
     'READY.',
   ];
-  const FIRST_GAME_LINE = SCRIPT.indexOf('0 "RUNSTOP64       " RS 64') + 1;
+  const FIRST_GAME_LINE = SCRIPT.indexOf(HEADER) + 1;
 
   let lines: string[] = [];
   let scriptPos = 0;
