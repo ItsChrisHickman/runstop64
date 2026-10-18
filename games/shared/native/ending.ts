@@ -17,7 +17,8 @@ import { clean, type StatusLine } from './narrate';
  *     (the sprites it shows in a place), walking across one at a time at double size with a name under each.
  *  3. THE END and the player's numbers, then back to the title.
  *
- * Music: the game's tune (its title's, or where there is none the one it plays in play), run on a machine of its own, through the player the game uses.
+ * Music: the game's tune (its title's, or where there is none the one it plays in play), run on a machine of its own, through the player the game uses (a game with no
+ * music, Entombed: the sound of the places themselves, the whip and the bells).
  * Any key or tap skips, after a couple of seconds. Everything is drawn in the 320x200 picture in the
  * game's own font and the C64's colours; letters stand on the picture's empty parts, never on a box.
  *
@@ -43,6 +44,11 @@ export type EndingStep =
   | { use: number; face?: Way; times?: number; hold?: number; gap?: number }
   /** Hold a way for a number of frames (along a bridge the engine's oblique floor lets him up only on a line). */
   | { go: Way; frames: number }
+  /**
+   * Hold ways (two at once for a diagonal) for a number of frames, with fire held too if `fire`, choosing the action `action` first if given:
+   * what the joystick does, as it is, for a leap along a ledge or a stroke at a place found by playing (the way there, step by step).
+   */
+  | { press: readonly Way[]; frames: number; fire?: boolean; action?: number }
   /** Jump (straight up) a few times. */
   | { jump: number }
   /** Stand a moment. */
@@ -107,8 +113,12 @@ export interface EndingSpec {
   creditX?: number;
   /** The engine takes one of the four ways for a diagonal (Dragonskulle's): he walks one way at a time. */
   fourWays?: boolean;
-  /** Where the game's own tune is heard: on its title (default), or in play (a game with no title tune: Karnath's). */
-  tune?: 'title' | 'game';
+  /**
+   * Where the game's own tune is heard: on its title (default), or in play (a game with no title tune: Karnath's); or, for a game with no
+   * music at all (Entombed's sound is its effects: the whip, the bells), the sound of the places themselves, as each machine of the montage
+   * makes it, with the parade and THE END in silence.
+   */
+  tune?: 'title' | 'game' | 'effects';
   /** The picture laid out as the game's front end shows it in play (the montage is drawn so; the parade and THE END are not). */
   layout?: PictureLayout;
   /** Each frame, after the game's: what its own panel shows that means nothing in the show (a new game's score, its lives) put away, so the band stays empty. */
@@ -149,16 +159,17 @@ export function wantsEnding(): boolean {
 // ---- the machines ---------------------------------------------------------------------------
 
 /** Joystick bits (low = pressed). */
-const UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8, FIRE = 16, IDLE = 0x1f;
+const UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8, FIRE = 16;
+export const IDLE = 0x1f;
 const WAY: Record<Way, number> = { up: UP, down: DOWN, left: LEFT, right: RIGHT };
 
-function joy(m: { joy1: number; joy2: number }, port: 1 | 2 | undefined, bits: number) {
+export function joy(m: { joy1: number; joy2: number }, port: 1 | 2 | undefined, bits: number) {
   m.joy1 = port === 2 ? IDLE : bits;
   m.joy2 = port === 1 ? IDLE : bits;
 }
 
 /** A new game, started from the title and run to its first frames of play (as the title wants it: the fire button held a moment). */
-function bootGame(port: PortConfig, title: MachineState, spec: EndingSpec): MachineState | null {
+export function bootGame(port: PortConfig, title: MachineState, spec: EndingSpec): MachineState | null {
   const g = new NativeHost(port, unpackState(packState(title)));
   const [from, to] = spec.startFire ?? [31, 33];
   for (let f = 0; f < 40; f++) { joy(g.m, spec.joyPort, f >= from && f <= to ? IDLE & ~FIRE : IDLE); g.tick(); }
@@ -173,7 +184,7 @@ function spriteOf(g: NativeHost, n: number) {
 }
 
 /** What Pendragon does, a step at a time, as joystick input on a frame. */
-class Director {
+export class Director {
   private i = 0;
   private spent = 0;
   private strike = { swing: 0, rest: 0 };
@@ -206,6 +217,11 @@ class Director {
     this.spent++;
     if ('wait' in step) { if (this.spent >= step.wait) this.next(); return IDLE; }
     if ('use' in step) return this.use(g, step);
+    if ('press' in step) {
+      if (step.action !== undefined && this.spent === 1) this.choose(g, step.action);
+      if (this.spent >= step.frames) this.next();
+      return step.press.reduce((bits, w) => bits & ~WAY[w], step.fire ? IDLE & ~FIRE : IDLE);
+    }
     if ('go' in step) { if (this.spent > step.frames) { this.next(); return IDLE; } return IDLE & ~WAY[step.go]; }
     if ('jump' in step) {
       // (a game with no jump has no use for the step)
@@ -335,7 +351,7 @@ export function creditAt(scene: EndingScene, frame: number): { line: number; sho
 }
 
 /** Record a character's poses: the engine runs on a new game in its place for some frames, and each distinct picture of its sprites is kept. */
-function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter): Figure | null {
+function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter, scale = SCALE): Figure | null {
   const g = placed(port, base, spec, c.enter);
   if (!g) return null;
   const director = new Director(spec, c.steps ?? []);
@@ -357,12 +373,12 @@ function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: Endin
     if (key === last && prev) { prev.frames++; continue; }
     last = key;
     const parts = here.map((s) => {
-      const surface = new Surface(24 * SCALE * (s.expandX ? 2 : 1), 21 * SCALE * (s.expandY ? 2 : 1));
-      const flat = new Surface(surface.width / SCALE, surface.height / SCALE);
+      const surface = new Surface(24 * scale * (s.expandX ? 2 : 1), 21 * scale * (s.expandY ? 2 : 1));
+      const flat = new Surface(surface.width / scale, surface.height / scale);
       decodeSprite(s.data, s.colour, s.multicolour, s.mc1, s.mc2, s.expandX, s.expandY, flat);
-      for (let y = 0; y < surface.height; y++) for (let x = 0; x < surface.width; x++) surface.pixels[y * surface.width + x] = flat.pixels[Math.floor(y / SCALE) * flat.width + Math.floor(x / SCALE)];
+      for (let y = 0; y < surface.height; y++) for (let x = 0; x < surface.width; x++) surface.pixels[y * surface.width + x] = flat.pixels[Math.floor(y / scale) * flat.width + Math.floor(x / scale)];
       surface.version++;
-      return { surface, dx: (s.x - left) * SCALE, dy: (s.y - top) * SCALE };
+      return { surface, dx: (s.x - left) * scale, dy: (s.y - top) * scale };
     });
     poses.push({ parts, frames: 1 });
     width = Math.max(width, ...parts.map((p) => p.dx + p.surface.width));
@@ -372,7 +388,7 @@ function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: Endin
 }
 
 /** A new game's memory with him in a place (entered at the main loop's wait, as travel does it). */
-function placed(port: PortConfig, base: MachineState, spec: EndingSpec, enter: (ram: Uint8Array) => boolean): NativeHost | null {
+export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, enter: (ram: Uint8Array) => boolean): NativeHost | null {
   const g = NativeHost.resume(port, unpackState(packState(base)));
   let done = false, ok = true;
   g.onWait = (site) => {
@@ -505,8 +521,13 @@ export class Ending {
     const base = this.base;
     if (!base) { this.finish(); return; }
     // (the game's own tune: the title's, or where the game has none there, the one it plays in the castle, from a new game standing by)
-    this.music = spec.tune === 'game' ? NativeHost.resume(port, unpackState(packState(base))) : new NativeHost(port, unpackState(packState(title)));
-    this.figures = spec.cast.flatMap((c) => { const f = record(port, base, spec, c); return f ? [f] : []; });
+    if (spec.tune !== 'effects') this.music = spec.tune === 'game' ? NativeHost.resume(port, unpackState(packState(base))) : new NativeHost(port, unpackState(packState(title)));
+    // (a figure taller than the ground it walks on, at double size, is shown at its own size: Entombed's mummy, two sprites tall and each doubled)
+    this.figures = spec.cast.flatMap((c) => {
+      const f = record(port, base, spec, c);
+      const fit = f && f.height > PARADE.ground - 16 ? record(port, base, spec, c, 1) : f;
+      return fit ? [fit] : [];
+    });
     this.next();
   }
 
@@ -535,6 +556,7 @@ export class Ending {
     joy(g.m, this.o.spec.joyPort, d.frame(g));
     this.o.spec.keepAlive(g.m.ram);
     g.tick();
+    if (this.o.spec.tune === 'effects') this.o.sound.pushFrame(g.m.sidWrites);
     this.o.spec.tidy?.(g.m.ram);
     if (scene.caption !== undefined) caption(g.m.ram, this.o.spec.status, scene.caption);
     const now = creditAt(scene, this.frames - 1);

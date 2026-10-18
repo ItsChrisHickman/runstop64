@@ -352,3 +352,19 @@ against the wall (chambers 2, 4, 10, 13...) moved the same way (the wall behind 
 Open (not built): nothing in the code is broken, but a gate that slides him away with no sign why reads as a bug. Either show a hint sparkle on the thing in the way in 5, 15 and 17
 (15 has none today) with what it needs, or let the gate open in ENHANCED once he has walked into it
 (keeping ORIGINAL as it was).
+
+## The ending's routes (re/ending/route.ts)
+
+The ending (src/ending.ts) has Pendragon do each chamber's puzzle on a new game of its own, so what he presses has to be what the
+puzzle takes. `re/ending/route.ts` finds it: a search over what the show's Director can do (hold a way, leap with a way held, whip
+facing a way; after each he is let to land and come to rest), each tried on the game itself from the state the last left it in, the
+cheapest in frames first (nearer the target first where one is given), until the puzzle's own byte says it is done: the five bells
+($6329 to 5, in order), the statue ($37FC), the pots ($6291), the book ($322C), the cobra ($37FF), the way out (up to the door). The
+steps it prints (rests he need not take out, runs of one way joined, each checked by replaying the whole route as the show plays it)
+are pasted into the scene. Chambers 2, 5, 7 (the third pool), 14, 6 and 11's caught stone were not found by it (the tiers there
+need leaps from places it does not reach in a few thousand states) and are not scenes. Chamber 11 is a scene all the same: he leaps
+up its walkway while the bird drops stones.
+
+The win is `$3230` = 2 (walking out of chamber 1 with the way open, $3230 = 1 and $1609 = $79; the game then shows its "congratulations"
+screen for about 400 frames and goes to the title). The game has no music (the title is silent: its SID is touched once, volume 0),
+so the ending's sound is each place's own (`tune: 'effects'`).

@@ -162,7 +162,8 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   check('it went through every scene of the montage, the parade and THE END', spec.scenes.every((_, i) => r.phases.includes(`montage${i}`)) && r.phases.includes('parade') && r.phases.includes('end'));
   check(`it is a watchable length (${(r.frames / 50).toFixed(0)} seconds, 60 to 150)`, r.frames >= 3000 && r.frames <= 7500);
   check(`every figure of the cast was recorded (${r.figures.length} of ${spec.cast.length})`, r.figures.length === spec.cast.length);
-  check('the title tune played all the way (writes in most frames)', r.tuneFrames.of > 0 && r.tuneFrames.played > r.tuneFrames.of / 4);
+  if (spec.tune === 'effects') check(`the places' own sound is heard (${r.tuneFrames.played} frames with writes: the whip, the bells)`, r.tuneFrames.played >= 100);
+  else check('the title tune played all the way (writes in most frames)', r.tuneFrames.of > 0 && r.tuneFrames.played > r.tuneFrames.of / 4);
   check(`every credit line was shown in full (${r.shownLines.size} of ${lines.length})`, r.shownLines.size === lines.length && lines.length >= 25);
   const line = spec.creditLine;
   if (line) {

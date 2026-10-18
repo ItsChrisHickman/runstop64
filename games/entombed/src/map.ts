@@ -101,6 +101,17 @@ export function maze(ram: Uint8Array, f: number) {
   return { F, row, col, end, junction, extent };
 }
 
+/** How much of the tomb he has seen: the chambers found and the junctions been to, of all on the seven floors. */
+export function progress(ram: Uint8Array, s: EntombedFound) {
+  const chambers = Object.values(s.chambers).reduce((n, c) => n + Object.keys(c).length, 0);
+  let junctions = 0, seen = 0;
+  for (let f = 1; f <= 7; f++) {
+    const M = maze(ram, f), cells = new Set(s.cells[f] ?? []);
+    for (let y = 0; y < M.F.h; y++) for (let x = 0; x < M.F.w; x++) if (M.junction(x, y)) { junctions++; if (cells.has(`${x},${y}`)) seen++; }
+  }
+  return { chambers, seen, junctions };
+}
+
 export const entombedMap = {
   found: FOUND,
   observe(ram, s) {
@@ -177,14 +188,8 @@ export const entombedMap = {
   },
   info(ram, s) {
     const air = 100 - ram[0x37f6], ankhs = 5 - ram[0x323d];
-    const chambers = Object.values(s.chambers).reduce((n, c) => n + Object.keys(c).length, 0);
-    // how much of the tomb he's seen: junctions, of all on the seven floors
-    let all = 0, been = 0;
-    for (let f = 1; f <= 7; f++) {
-      const M = maze(ram, f), cells = new Set(s.cells[f] ?? []);
-      for (let y = 0; y < M.F.h; y++) for (let x = 0; x < M.F.w; x++) if (M.junction(x, y)) { all++; if (cells.has(`${x},${y}`)) been++; }
-    }
-    return [`AIR    ${String(air).padStart(3)}%`, `ANKHS    ${ankhs}`, `CHAMBERS ${chambers}`, `SEEN ${been}/${all}`];
+    const { chambers, seen, junctions } = progress(ram, s);
+    return [`AIR    ${String(air).padStart(3)}%`, `ANKHS    ${ankhs}`, `CHAMBERS ${chambers}`, `SEEN ${seen}/${junctions}`];
   },
   legend: [{ colour: COL.lblue, text: 'CHAMBER' }, { colour: COL.green, text: 'STAIRS' }],
 } satisfies PauseMap<Uint8Array, EntombedFound>;
