@@ -57,8 +57,8 @@ export interface PauseMap<T, F> {
   title(ram: T, page?: number): string;
   /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it). */
   draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null): void;
-  /** Lines for the side panel (how the player is doing). */
-  info(ram: T, found: F): string[];
+  /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (ENHANCED's). */
+  info(ram: T, found: F, assist?: Readonly<Record<string, boolean>>): string[];
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now. */
   legend?: { colour: number; text: string }[] | ((ram: T) => { colour: number; text: string }[]);
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
@@ -84,6 +84,8 @@ export interface PauseUi {
   pick?: { x: number; y: number; r?: number; rx?: number; id?: string } | null;
   /** The touch controls are in use: say "tap" (and show < > for pages) instead of naming keys. */
   touch?: boolean;
+  /** Each assist on or off (by id): the side panel's lines that are help show only with theirs. */
+  assist?: Readonly<Record<string, boolean>>;
   /** The options page: these lines where the map goes (each "KEY NAME ON/OFF"). */
   list?: string[];
 }
@@ -167,7 +169,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(x0, y - r, 1, 2 * r + 1, c); s.fillRect(x0 + w - 1, y - r, 1, 2 * r + 1, c);
   }
   font.draw(s, 'PAUSED', 222, 8, colours.white);
-  const info = map.info(ram, found);
+  const info = map.info(ram, found, ui.assist);
   info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, colours.lgrey));
   const legend = typeof map.legend === 'function' ? map.legend(ram) : map.legend ?? [];
   legend.forEach((l, i) => {

@@ -52,6 +52,10 @@ export function go(ram: Uint8Array, to: number[]): boolean {
   wr(0xd010, to[LOCATION.length] ? 4 : 0);
   // as walking off an edge does (each way but up, which needs it, says the way on is open: $25AA)
   ram[0x3441] = 1;
+  // and as going down does ($26BF: nothing's held against the bridges, $72C0 = 0): the river screens' setups
+  // ($6003) shut theirs again on coming onto them, so only a screen with a bridge of its own, the dragons' (rooms
+  // 6-9), cares, and walking into one from the river screen above it comes down through that exit
+  ram[0x72c0] = 0;
   engine.r_11e5(); engine.r_0eb8(); engine.r_0dab(); engine.r_1137(); engine.r_120d();
   return true;
 }

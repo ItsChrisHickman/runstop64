@@ -161,7 +161,7 @@ export class FrontEnd<T, F> {
     const map = this.o.map;
     const pick = this.paused ? this.mapControls(state, map) : null;
     update();
-    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch }, this.o.colours);
+    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch, assist: this.assist }, this.o.colours);
     return null;
   }
 

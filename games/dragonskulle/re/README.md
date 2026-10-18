@@ -89,6 +89,11 @@ swapped out, the progress bytes and the dragons killed ($72B0-$72B3) are as they
 with the same input for 400 frames ends where walking on from the walked arrival does (398 of
 398); random play after runs with no 6502 fallbacks.
 
+Going also clears $72C0, as the exit down does ($26BF): the river screens' setups shut their bridges again on coming onto them
+($6003), and the dragons' screens (rooms 6-9) have bridges of their own, floor only while it is 0. Walking, rooms 6, 7 and 8 are entered from the
+river screens above them (3, 4 and 5) by that exit; travel from a river screen with the count short had left $72C0 = 1 there (the dragon's bridge
+shut), and `re/rules/check.ts` ("the screen below a bridge") now finds walking and travelling the same.
+
 The other sprites' high x bits ($D010) are cleared on going. The game never clears them: a change
 of screen hides the old screen's sprites (their y at 0, $0FDE) and clears only Pendragon's bit
 ($1002); most blocks' setups then write $D010 themselves, but some place their sprites by the low
@@ -127,20 +132,33 @@ straight goes; fire+left facing right turns him; no fallbacks).
 
 ## 6. Hints (re/hints, src/hints.ts)
 
-The puzzles that move the game on, read from the blocks' code, are the beach's and the
-shovel's (the rest of the way is fights: dragons to kill with ten stones, bridges cleared by
-killing their creatures, and finding the way; the tombs to dig are luck, good or evil):
+What moves the game on, read from the blocks' code: the beach's and the shovel's puzzles, the wizards that open a bridge, the
+dragons, and the cloak's second coming (section 10 has the rules and their proofs; the tombs to dig are not hints: good
+ones give nothing, evil ones hurt, and which is which is fixed per grave):
 
 | Hint | Where | From the code | Done |
 |---|---|---|---|
 | touch a starfish | the beach (block $C000) | sprite 6 touching him with his y under $9A ($625E): $6273 stops the rays at the caves' mouth | $3441 = 1 |
 | walk up to the shovel (or throw a stone at it) | its room (block $EF20) | the stone on sprite 6 within 8 pixels across and high enough ($6235); in ENHANCED also him touching it ($61EA, below) | $342F = 1 (the SHOVEL icon) |
 | dig here for the cloak (with the shovel) | the beach, where he landed | digging (action 0, $3428) touching sprite 7, four times sixteen frames ($6294, $63D2) | $342E = 1, then $63A2 gives the CLOAK icon ($3430) |
+| kill the wizard on the far bank: 10, 15 or 20 open the bridge | the river screens, rooms 3, 4, 5 (blocks $6000, $CD50) | a stone on sprite 5 (the hooded wizard) counts one ($62C0, $6270) in $343A, $343B, $343C; the bridge's tiles ($62) are floor only while $72C0 is 0 ($255B) | the count $FF |
+| the dragon: ten stones thrown facing up | rooms 6-9 (block $D870) | a stone on sprite 1 (its head) while the way he faced was up ($72B7 = 3, $2829) counts in $676F; ten ($6567) start its death | its flag $72B0-$72B3 = 1 |
+| catch the flickering rock: the cloak again | the rooms of the falling rocks (room 17, block $E900) | sprite 5 falls every 240 frames and flickers once it has fallen once ($65F2 = 1, $659E); touching it with the cloak dug up ($342E) gives $3430 ($61F7, $65B1) | $3430 = 1 (shown while he has none, dug up) |
+
+Besides the sparkles (`hintSpots` over `HINTS`), the pause screen's side panel says what is left where he stands (`src/map.ts`,
+the map's `info` is given the assists: BRIDGE / KILL 7 MORE, DRAGON / 6 HITS LEFT, CLOAK 11 SEC) and the CLOAK icon in the bar drains as the
+cloak runs out (`cloakIcon`, a `Gauge` like the face's: its lit pixels dark grey from the top, a line at a time, by the counter
+$124B:$124A out of 3 x 256), both ENHANCED only; both read `src/rules.ts`.
 
 `re/hints/check.ts` solves each by playing from states along the routes (steered at the sprite,
 the shovel first set where a step needs it, as the game would have it), then replays the inputs
 and checks with `src/hint-spots.ts` that the hint shows on that sprite until it's done (every
-frame), that the game's own code does it, and that it's gone a second later; it renders each.
+frame), that the game's own code does it, and that it's gone a second later; it renders each. The hints for the rules (bridges,
+dragons, the second cloak) are played with `re/rules/lab.ts` instead (aimed throws and pokes need more than a recorded
+joystick): the sparkle is looked at in every frame of the whole play against what the game's state says is still to do (0 frames
+wrong, none a second after it's done), and the rock's with no cloak dug up (none at all). `test/rules.ts` checks it all through the
+front end: the sparkles on the wizard and the dragon, none in ORIGINAL over the same play, the panel's lines and that the front end gives
+the map the assists, the icon's lines emptied as the counter says in ENHANCED and as drawn in ORIGINAL.
 
   nice -n 15 node tools/test.mjs games/dragonskulle/re/hints/check.ts /tmp/hints
 
@@ -287,3 +305,103 @@ tilt-shift softens the cliffs above him as the HD-2D remasters soften their back
   in the HD view (c64kit's `patchOfFloor`): it lies on the sand, lit as the sand, no shadow. Shadows
   everywhere now go under the sprite's footprint (the columns whose lowest pixel is within 6 rows of
   its lowest: both feet of a stride), checked on every still (`checkShadows`).
+
+## 10. Rules the game never explains (src/rules.ts; proved by re/rules/check.ts)
+
+Found by reading the blocks (each block's code is in RAM at its home in the title snapshot, the swapped copy at $6000), then proved by
+running them: `re/rules/check.ts` plays each rule on the native port and, where it is cheap, on the original (the 6502 code on
+c64kit's C64, from the same state with the same inputs and pokes: the same 409 frames for a kill, 769 for the cloak, 240 for a
+dragon's death); `re/rules/lab.ts` is its lab (states entered by the game's own change of screen, throws aimed at the wizard, a
+best-first search over where he can stand for "is there a way across"). 86 checks, under a minute:
+
+  nice -n 15 node tools/test.mjs games/dragonskulle/re/rules/check.ts [bridges|dragons|cloak|cloak2|tombs|starfish]
+
+### For the player
+
+- **The three bridges** (the island's river screens, 4,6, 13,6 and 9,11) are drawn but solid. Kill the hooded wizard that walks along the
+  far bank with stones (thrown **facing up**: they fly up and to the right): **10** for the first (4,6), **15** for the second (13,6; the
+  plain river next to the first, 5,6, has no bridge but its wizard counts for this one), **20** for the third (9,11). They come from
+  either side (the next from the side the last left by); each kill is one, from either side; the count is kept for good (from screen to screen,
+  in a save, by travel) and the bridge opens the moment it is reached (everything else on the screen goes). The skull that appears each
+  time he steps onto the bridge is an unseen guard at its foot: it hurts him and sets him back, until the bridge is open. The skull
+  floating across the river and the insect hurt too but count for nothing. The island's four dragons are others, in the screens below
+  the bridges (4,5; 13,5; 9,10) and at 9,22.
+- **A dragon** wants **ten stones thrown facing up** on its head (left or right never count); the count starts again each time he
+  comes in. Then it dies (five seconds) and only then does the way up out of its screen open; it stays dead.
+- **The cloak** (V, once dug up with the shovel on the beach where he landed: four digs) lasts **769 frames, 15.3 seconds** (a little less if
+  he keeps stopping, jumping or digging: the counter takes an extra step each time). While it is on **nothing can hurt him** (no creature,
+  falling rock, dragon or fire, not the beach's skull) but he **cannot throw stones, and cannot dig a grave**; walls, bridges and the way
+  up are as they were (the cloak does not open the caves' mouth: the starfish does). It is used up when it ends; using it again meanwhile
+  does nothing.
+- **A second cloak**, as many as he likes: in the rooms of the falling rocks (cell 3,2 and nine others: block $E900, room 17), one of the
+  three rocks that fall every few seconds, the one whose colour **flickers**, is the cloak once he has dug it up: catch it by standing
+  where it lands (it falls at a random place, about half a second). Without the cloak dug up it is only a rock that hurts.
+- **The starfish** blinks (its colour changes every frame) whenever he is on it, before and after the rays go: that is the game's own. It
+  does something only the first time and only with his sprite above y $9A, behind it: the rays at the caves' mouth go ($3441).
+- **Graves** (block $E010): four digs of sixteen frames while he is on the mound. The graves at 5,4, 4,10 and 7,21 are good (a sprite
+  and a sound, nothing else); 1,2, 13,4 and 15,15 are evil (a ghost rises through him and hurts several times). Which is which is fixed.
+
+### From the code
+
+- **Bridges.** The engine's floor check ($254B, its list of floor characters) takes tile $62 as floor only while $72C0 is 0
+  ($255B-$2562). $72C0 is 0 at the start of a game ($0A10), cleared on every exit down ($26BF), set by each river screen's setup ($60B2 in
+  block $6000, $60BA in $CD50; it runs on coming in, $6003) and cleared by the screen's own code once its count is $FF ($61C5, $6180).
+  The tiles are the diagonal planks (18 of them in each of the three screens). Block $6000 serves rooms 3 and 4 (told by $341C: room 3 is
+  cell 4,6; room 4 is the bridge at 13,6 *and* the plain river at 5,6, which has no $62 at all but keeps the same wizard and the same count),
+  $CD50 room 5. Sprite 5 is the wizard (y $60: starts at one edge, a pixel a frame, turns at random by the timer $DC04, goes off the
+  edge it reaches), sprite 1 the skull floating over the river, sprite 4 the insect, sprite 6 the unseen skull at the foot. A stone
+  (sprite 3) on sprite 5 within 8 pixels across and above y $6A ($65AC) sets the wizard's state to 2, which the frame's wizard code turns
+  into one more in $343A (room 3: `inc $343A` at $62C3), $343B (room 4: $62BD) or $343C (room 5: $626D); at $0A, $0F or $14
+  ($62F2, $62E3, $6286) the count becomes $FF and every sprite's y is cleared ($61B1-$61C5, $616C-$617D). Stones on the skull ($0A: sprites 1 and 3,
+  $65D2) and on the insect ($18: 3 and 4, $6542) take them and count nothing. The unseen skull: sprite 6 at (x $8A, y $95) touching him
+  while his y is under $98 and his x within $82-$B1 ($6442-$6472): hurt ($6B74 = 1), its data from $5540 (a skull), his y set to $99
+  ($64B0). The counts start at 0 for a game ($0A9D-$0AA3) and nothing else writes them; the autosave on coming onto a screen holds them
+  as they were then (so "back to room start" gives the count of the screen's start), travel and saves never change them.
+- **Dragons** (block $D870, rooms 6-9, one dragon each, the flags $72B0-$72B3 read at $60D1-$6119): a stone (sprite 3) on sprite 1 ($0A)
+  counts if $72B7, the way he faced when he threw ($282C copies $2292: 1 right, 2 left, 3 up, 4 down), is 3 and the dragon is not
+  flashing from the last hit ($3435): $6561 `inc $676F`; at ten ($6567) $6763 = 1 and its death animation runs until $6763 is $F0 (240
+  frames, $6251-$6259), then $625C sets the flag, $3441 = 1 and hides it. The setup ($60BA) shuts the way up ($3441 = 0, which the engine's
+  way-up check, $264C, wants) and zeroes $676F; with the flag already set it goes straight to $625C.
+- **The cloak.** Action 1 ($174D: $3417 = 0 starts it; $147E zeroes $124A-$124D and sets $3417 = 1); $149A runs every frame his handling
+  does ($1C9A: some paths run it twice: a jump, a dig, stopping): the sprite's colour from the timer, $D01C bit 2 cleared (hi-res), $124A
+  +1, $124B +1 on its wrap, at $124B = 3 $3417 = 2, and the next call ($14CB) clears $3417 and $3430 and puts the multicolour bit back. A
+  stone is thrown only when $3417 is 0 or 3 ($1706). **Every block's collision code begins `LDA $D01C / AND #$04 / CMP #$04` and goes on
+  only for a multicolour sprite 2** (nine of nine blocks with creatures), so while he is hi-res nothing runs that could hurt him, and a
+  grave's dig ($E010, $6236) is in the same routine; only the beach's gate ($6217) tests $3417 itself (1 or 2: no hurt).
+- **The second cloak** (block $E900): $65FF counts to $F0 each frame, then sprite 5 starts to fall at a random x ($64D5: $65F2 = 1, $6600 = 1;
+  again every 240 frames after it lands, $6519-$6547), accelerating down to his height; $659E: while $65F2 is 1 its colour is the timer's;
+  touched ($61C6-$61F7: sprites 2 and 5, within 8 across and 42 down) with $65F2 = 1 and $342E set, $65F2 becomes 2 and $65B1 puts
+  $3430 = 1 (and flashes the icon for 80 frames), else it is a hurt. $65F2 is zeroed by each setup and by nothing else, so it is 1 from the
+  first fall of a visit on: every fall after is a cloak.
+- **The starfish** ($C000): sprite 6 touching him with his y under $9A and no stone in the air ($6255-$6285): $6273 rubs sprite 4's
+  picture ($0912-$092F: the gate's bars) and sets $3441 = 1; the same touch sets $D02D (its colour) from the timer every frame, with the rays
+  gone or not ($6270); with the touch over, grey ($6285). With his y at $9A or more nothing happens.
+- **Graves** ($E010, rooms 10-15): the dig counts sixteen frames a stage while sprites 2 and 5 touch and his y is in $3409-$10 to $3409-9
+  ($6286), four stages ($62C4); then rooms 10-12 ($6426 = 1: $63B1) show sprite 0 a moment and set $3433 (sound) and $343D-$343F, and 13-15
+  ($6432) send sprite 0 up through him: while sprite 0 touches him ($6254) a hurt starts, again each time one ends.
+
+### Checks (re/rules/check.ts)
+
+bridges (37): per bridge, the tiles and $72C0 = 1 at the setup; stones on the wizard count 1, 2, 3 (native; the original for room 3); the last
+kill makes $FF and a frame later $72C0 = 0 and every creature gone; with the count short *no way across to the cave mouth exists* (the search ran
+out of every place he can stand, 27,492 moves), with $72C0 = 0 forced one does, with the count at $FF one does (61 moves); the foot's skull
+(hurt, put back at $99, its picture the skull's) while the count is short, nothing at $FF; a stone put on the wizard counts, on the skull and the
+insect it takes them and counts nothing; two kills are kept by a save, by the original from it, and by travel to the screen below and back;
+walking down out of room 3 and travelling there leave $72C0 the same; a new game clears the counts (the code's bytes). dragons (19): per
+room, the setup (way up shut, no flag), three stones thrown up count (the original: two), none thrown left or right from four places each, the
+tenth starts the death and 239 or 240 frames later the flag and the way up are set and the dragon is gone, coming in again finds it gone
+with the way open or (without the flag, 6 hits) a new one at no hits; facing up at the way up he leaves only with $3441 = 1. cloak (10): the
+flicker, hi-res, no stone while it is on, 769 frames to its end on both machines, walking steadily the same, stopping and starting or jumping
+and digging less; on the beach the gate hurts him unless cloaked (both machines, the sprites touching all the same), and at the mouth with the
+cloak on the way up still wants $3441; in room 17 three hurts in 700 frames bare, none cloaked; every block with creatures reads $D01C first.
+cloak2 (4): caught three times in a row (native) and twice (original) with the cloak dug up, each time used up in 769 frames before the next;
+with it not dug up only hurts. tombs (12), starfish (4: sprite 6, the bars, $3441, the blinking with $3441 = 0 and 1, none below the line, both machines).
+
+### The sweep: what is learned only by dying, or luck
+
+The bridges' counts (10, 15, 20 wizards, never said), the unseen skull at their foot, that only wizards count and that stones must be thrown
+facing up (the dragons' too); that a dragon must be hit ten times in one visit, and dies slowly; the cloak's 15 seconds and what it does
+and does not do (no stones, no graves, hurts nothing, opens nothing); the second cloak (a falling rock, once the cloak is dug up); that three
+graves are evil; the starfish's colour. Not found to hide anything else: the rocks' timing in room 17 (they fall where he stood, every ~215
+frames), the final room (a boss with six hits, $6795/$672B), the gas and the eyes (rooms 19 and 16: creatures like the rest, their hurts behind the
+same cloak test).

@@ -28,8 +28,10 @@ export const info = {
     losing, continue from the last screen you came onto with all five lives; back to the start of a screen. Fights get
     effects over the picture and sounds of their own. ENHANCED (on unless you switch to ORIGINAL with E on the pause
     screen): 8-way controls, safe for a moment after a hit, knockback, hit-stop, full energy on coming onto each
-    screen, the shovel taken by walking up to it (the original only gave it to a well-aimed stone), and sparkles on
-    what moves the game on. The C64/HD button (bottom right; on a phone beside PAUSE; or H) switches to the HD view (a first version): the same game
+    screen, the shovel taken by walking up to it (the original only gave it to a well-aimed stone), sparkles on
+    what moves the game on (the starfish, the shovel, the grave of the cloak, the wizards that open a bridge, the dragons,
+    the falling rock that gives the cloak again), what is left to do at a bridge or a dragon on the pause screen, and the CLOAK
+    icon draining as the cloak runs out. The C64/HD button (bottom right; on a phone beside PAUSE; or H) switches to the HD view (a first version): the same game
     as a lit 3D scene built from its own picture. The full list is in
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/dragonskulle/QOL.md">QOL.md</a>.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>

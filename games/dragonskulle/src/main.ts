@@ -6,6 +6,7 @@ import * as engine from './gen/engine';
 import { dragonskulleMap, cellOf } from './map';
 import { dragonskulleCombat, dragonskulleControls } from './combat';
 import { hintSpots } from './hint-spots';
+import { cloakLeft } from './rules';
 import { shovelByHand } from './shovel';
 import { dragonskulleHd } from './hd';
 import stateUrl from '../assets/dragonskulle-title.state?url';
@@ -44,6 +45,19 @@ export const energyFace: Gauge = {
     return face < 5 ? { x: (23 + 3 * face) * 8 + PANEL_SCROLL, y: 22 * 8 + 2, w: 24, h: 21 } : null;
   },
   level: (ram) => ENERGY.get(ram) / ENERGY.max,
+  empty: 11,
+};
+
+/** The front end's assists (the record it keeps up to date): what is help rather than presentation shows only with ENHANCED on. */
+let assists: Readonly<Record<string, boolean>> = {};
+/**
+ * ENHANCED: the CLOAK icon drains from the top, to dark grey, as the cloak runs out (its frames counted in
+ * $124B:$124A up to 3 x 256, src/rules.ts), a line at a time, as the face drains with the energy. Full is the
+ * icon as the game draws it, and so it is when no cloak is on.
+ */
+export const cloakIcon: Gauge = {
+  at: (ram) => (assists.enhanced === true && cloakLeft(ram) !== null ? { ...ICON_AT(ACTION.cloak), w: 24 } : null),
+  level: (ram) => cloakLeft(ram) ?? 1,
   empty: 11,
 };
 
@@ -107,7 +121,7 @@ export const dragonskulleLayout: PictureLayout = {
     ];
   }),
   font: 22, // (the status line's letters: SCORE, HIGH SCORE)
-  gauges: [energyFace],
+  gauges: [energyFace, cloakIcon],
 };
 /** The play screen: the panels' charset ($3000) on rows 0-2 and 22-24, the playfield's ($3800) between (the raster split). */
 const playScreen = ({ capture: cap }: { capture: FrameCapture }) => cap.rows[0]?.d018 === 0x1c && cap.rows[3]?.d018 === 0x1e && cap.rows[22]?.d018 === 0x1c;
@@ -146,7 +160,7 @@ export function run(host: Host) {
     // sparkles on what moves the game on (ENHANCED): re/hints
     hints: hintSpots,
     // ENHANCED's own play changes: the shovel taken by walking up to it (src/shovel.ts), at the room's check of the collisions
-    onAssists: (a) => { options = a; },
+    onAssists: (a) => { options = a; assists = a; },
     assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
     onHook: (pc, ram) => { if (options.enhanced) shovelByHand(pc, ram); },
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls

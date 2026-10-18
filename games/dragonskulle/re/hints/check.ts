@@ -20,6 +20,7 @@ import { HINTS, type Hint } from '../../src/hints';
 import { hintSpots } from '../../src/hint-spots';
 import { readJson } from '../../../shared/guards';
 import { check, finish } from '../../../shared/test/check';
+import { ACTION, DRAGON_ROOMS, FIRE, RIVERS, STAND, enter, faceUp, kill, native, sprite, type Player } from '../rules/lab';
 
 const outDir = process.argv[2] ?? '';
 const keep = (r: Uint8Array) => { r[0x1248] = 0; r[0x123e] = 0x14; r[0x3432] = 0; };
@@ -102,7 +103,7 @@ function solve(starts: MachineState[], h: Hint): { start: MachineState; inputs: 
   return null;
 }
 
-for (const h of HINTS) {
+for (const h of HINTS.filter((x) => x.what in ACTIONS)) {
   const starts = onScreen.get(h.room);
   if (!starts) { check(`${h.what}: a state on its screen (block ${h.room})`, false); continue; }
   const solved = solve(starts, h);
@@ -130,4 +131,82 @@ for (const h of HINTS) {
   check(`  replayed, the game's own code does it ($${h.until[0].toString(16)} = ${g.m.ram[h.until[0]]})`, done);
   check(`  a second later the hint has gone (${after.length} left)`, after.length === 0);
 }
+
+// ---- the hints for the rules the game never explains (bridges, dragons, the second cloak) ----------------------------------
+// Played with re/rules/lab.ts (the pokes and the aimed throws need more than a recorded joystick): the hint's sparkles looked at in
+// every frame of the whole play, against what the game's state says is still to do.
+const ruleHints = HINTS.filter((x) => !(x.what in ACTIONS));
+const onSprite = (p: Player, h: Hint) => {
+  const s = sprite(p, h.sprite);
+  return hintSpots(p.ram, p.vic).some((q) => Math.abs(q.x - (s.x - 24 + 12)) < 16 && Math.abs(q.y - (s.y - 50 + 10)) < 16);
+};
+/** A play looked at every frame: how often the hint was on its sprite, how often that disagreed with `says`, and when it was done. */
+function watcher(p: Player, h: Hint, says: (p: Player) => boolean) {
+  const r = { frames: 0, shown: 0, wrong: 0, firstWrong: '', doneAt: -1, shownAfter: 0 };
+  return {
+    r,
+    look() {
+      r.frames++;
+      const on = onSprite(p, h), want = says(p);
+      if (on) r.shown++;
+      if (on !== want) { r.wrong++; if (!r.firstWrong) r.firstWrong = `frame ${r.frames}: shown ${on}, state says ${want}`; }
+      if (r.doneAt < 0 && p.ram[h.until[0]] === h.until[1]) r.doneAt = r.frames;
+      if (r.doneAt >= 0 && r.frames > r.doneAt + 50 && on) r.shownAfter++;
+    },
+  };
+}
+const edge = (p: Player, n: number) => { const s = sprite(p, n); return s.on && s.y > 0 && s.x - 12 >= 0 && s.x - 12 < 320 && s.y - 40 >= 0 && s.y - 40 < 200; };
+const report = (what: string, w: ReturnType<typeof watcher>, wantShown = true) => {
+  check(`${what}: shown ${w.r.shown} of ${w.r.frames} frames, only while the state says (${w.r.wrong} frames wrong${w.r.firstWrong ? `, the first ${w.r.firstWrong}` : ''}), done at frame ${w.r.doneAt}, ${w.r.shownAfter} shown after it`, (!wantShown || w.r.shown > 0) && w.r.wrong === 0 && w.r.doneAt > 0 && w.r.shownAfter === 0);
+};
+for (const h of ruleHints) {
+  const bridge = RIVERS.find((x) => x.room === h.room && h.what.startsWith('kill'));
+  const dragon = DRAGON_ROOMS.find((x) => x.room === h.room && h.what.startsWith('the dragon'));
+  if (bridge) {
+    // a stone on the wizard, over and over, until the bridge is open ($FF): the sparkle on the wizard while he walks the bank
+    const p = native(enter(bridge.cell[0], bridge.cell[1]));
+    faceUp(p, STAND.x, STAND.y);
+    const w = watcher(p, h, (q) => q.ram[0x341c] === bridge.room && q.ram[bridge.counter] !== 0xff && edge(q, 5));
+    while (p.ram[bridge.counter] !== 0xff) if (!kill(p, bridge, 4000, () => w.look())) break;
+    for (let k = 0; k < 120; k++) { p.step(0); w.look(); }
+    report(h.what, w);
+  } else if (dragon) {
+    // stones thrown up at the dragon's head until it is dead (its flag)
+    const p = native(enter(dragon.cell[0], dragon.cell[1]));
+    faceUp(p, 0xb8, STAND.y);
+    const w = watcher(p, h, (q) => q.ram[0x341c] === dragon.room && q.ram[dragon.flag] !== 1 && edge(q, 1));
+    for (let f = 0; f < 6000 && p.ram[dragon.flag] !== 1; f++) { p.ram[0x12eb] = ACTION.stone; p.place(0xb8, STAND.y); p.step(FIRE); w.look(); }
+    for (let k = 0; k < 120; k++) { p.step(0); w.look(); }
+    report(h.what, w);
+  } else {
+    // the room of the falling rocks: dug up already, no cloak in hand; caught when it falls (put under it), used up, and again
+    const p = native(enter(3, 2));
+    p.ram[0x342e] = 1; p.ram[0x3430] = 0; p.step(0);
+    const w = watcher(p, h, (q) => q.ram[0x341c] === 17 && q.ram[0x342e] === 1 && q.ram[0x3430] === 0 && q.ram[0x65f2] === 1 && edge(q, 5));
+    let caught = 0, placed = false, frames = 0;
+    while (caught < 2 && frames++ < 6000) {
+      const s5 = sprite(p, 5);
+      if (!placed && p.ram[0x6600] === 1 && s5.on && s5.y < 100) { p.place(s5.x & 255, 0xa3, s5.x > 255); placed = true; }
+      if (p.ram[0x6600] === 0) placed = false;
+      p.step(0); w.look();
+      if (p.ram[0x3430] === 1) {
+        caught++;
+        // (the hint is gone while he has the cloak: put it on and wait it out, the sparkle looked at all the while)
+        for (let k = 0; k < 3; k++) { p.ram[0x12eb] = ACTION.cloak; p.step(k < 2 ? FIRE : 0); w.look(); }
+        while (p.ram[0x3430] === 1 && frames++ < 6000) { p.step(0); w.look(); }
+        placed = false;
+      }
+    }
+    // (done means it is his: the first catch)
+    const first = w.r.doneAt;
+    check(`${h.what}: caught ${caught} times in ${frames} frames, shown ${w.r.shown} of ${w.r.frames}, only while the state says (${w.r.wrong} wrong${w.r.firstWrong ? `, the first ${w.r.firstWrong}` : ''}); gone once he has it (first at frame ${first})`, caught === 2 && w.r.shown > 0 && w.r.wrong === 0 && first > 0);
+    // and with the cloak not dug up: no hint at all
+    const q = native(enter(3, 2));
+    q.ram[0x342e] = 0; q.ram[0x3430] = 0; q.step(0);
+    let any = 0;
+    for (let k = 0; k < 800; k++) { q.step(0); if (hintSpots(q.ram, q.vic).length) any++; }
+    check(`${h.what}: not dug up yet (the first cloak not found), 800 frames in the room: no sparkle (${any})`, any === 0);
+  }
+}
+
 finish();

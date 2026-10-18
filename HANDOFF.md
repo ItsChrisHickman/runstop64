@@ -16,6 +16,9 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
   `games/shared/test/load-save.ts` (`AGENTS.md`, Tools). He play-tests on his phone and PC and sends photos and saves; those
   find the real bugs.
 - **Known HD issues** are listed in `docs/hd-view.md`.
+- **Dragonskulle's rules the game never explains** (the three bridges' wizards, the dragons, the cloak and its second coming, the
+  graves, the starfish) are read, proved on the translation and the original, and turned into ENHANCED hints:
+  `games/dragonskulle/re/README.md` section 10, `src/rules.ts`, `re/rules/` and `test/rules.ts`.
 
 ## Next
 
