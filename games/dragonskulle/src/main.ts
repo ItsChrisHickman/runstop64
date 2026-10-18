@@ -153,8 +153,6 @@ export function run(host: Host) {
     vitals: {
       // continuing: all five lives back, as the game starts with
       fullHealth: (ram, colour) => allLives(ram, colour),
-      // full energy on coming onto a screen (ENHANCED): the face going ($123E, 20 to a face)
-      health: { ...ENERGY, set: (ram, _colour, v) => { ram[0x123e] = v; } },
     },
     map: dragonskulleMap,
     // sparkles on what moves the game on (ENHANCED): re/hints

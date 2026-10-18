@@ -120,7 +120,7 @@ tick(5);
 shot('0-launched');
 const deep = cell();
 check(`then back in play in the caves at ${deep}, with all five lives (${lives()}), without a key`, p.state.playing && !p.state.launching && deep === '5,4' && lives() === 5);
-check('ENHANCED is on unless chosen off: its play changes on, the effects on', p.frontEnd.enhanced && !!p.options.eightWay && !!p.options.invulnerable && !!p.options.health && !!p.options.effects);
+check('ENHANCED is on unless chosen off: its play changes on, the effects on', p.frontEnd.enhanced && !!p.options.eightWay && !!p.options.invulnerable && !!p.options.effects);
 
 // ---- the pause screen: the map; ENHANCED --------------------------------------------------------------
 tap('KeyP');
@@ -305,13 +305,13 @@ const energyRun = (frames: number, shots: boolean) => {
       x.hurts > 2 && x.levels.size === ENERGY.max && x.wrong.length === 0);
     check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
   }
-  // ENHANCED's full energy on coming onto a screen: a full face (from part of one)
+  // energy carries over onto a new screen, ENHANCED too (only continuing fills it): part of a face stays part of one
   settled();
   ram()[0x123e] = 7;
   const went = goTo(fightAt === '1,1' ? '2,1' : '1,1');
   tick(2);
   const back = energyShown();
-  check(`ENHANCED: travelled (to ${cell()}), full energy (${ENERGY.get(ram())}), a full face (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.enhanced && ENERGY.get(ram()) === ENERGY.max && back.emptied === 0 && back.others === 0);
+  check(`ENHANCED: travelled (to ${cell()}), energy kept (${ENERGY.get(ram())}), the face as low (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.enhanced && ENERGY.get(ram()) === 7 && back.emptied > 0);
 }
 
 // ---- every life lost: CONTINUE?-----------------------------------------------------------------------

@@ -37,14 +37,6 @@ export function run(host: Host) {
         ram[0x9d77] = 100; ram[0x3417] = 0; // energy, and damage still to take
         ram.set([0x31, 0x3a, 0x3a], 0x07a2); // "100" on the status line
       },
-      health: {
-        max: 100,
-        get: (ram) => ram[0x9d77],
-        set: (ram, _colour, v) => {
-          ram[0x9d77] = v;
-          ram.set([...String(v).padStart(3, '0')].map((d) => (d === '0' ? 0x3a : 0x30 + Number(d))), 0x07a2);
-        },
-      },
     },
     map: blackwycheMap,
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls

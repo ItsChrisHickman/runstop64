@@ -23,7 +23,7 @@ export const info = {
     after losing you can continue from the last screen you came onto, with full health. P (or the gear) shows a map of where you've
     been. Fights get effects over the picture and sounds of their own (enemies destroyed burst into pixels, a hurt flashes
     red), and there are optional assists (O on the pause screen): 8-way controls, safe for a moment after a hit,
-    knockback, hit-stop, full health at the start of each room, and hints: sparkles on the pieces of the pentacle and on the way a piece carried goes (down to the dungeons, through their far door, to the obelisk at the far left of Karn's abode), Pendragon saying where on the status line (and the staff to destroy at the end), a count of the pieces laid on the pause screen. The C64/HD button (bottom right; on a phone beside PAUSE; or H) switches to the HD view
+    knockback, hit-stop, and hints: sparkles on the pieces of the pentacle and on the way a piece carried goes (down to the dungeons, through their far door, to the obelisk at the far left of Karn's abode), Pendragon saying where on the status line (and the staff to destroy at the end), a count of the pieces laid on the pause screen. The C64/HD button (bottom right; on a phone beside PAUSE; or H) switches to the HD view
     (a first version): the same game as a lit 3D scene built from its own picture. The full list is in
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/karnath/QOL.md">QOL.md</a>.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>
