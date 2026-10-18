@@ -17,6 +17,8 @@ export { info } from './info';
 
 /** The name entry's loop waiting for a key, and RETURN having put the name in (hooks: re/engine.json). */
 const NAME_LOOP = 0x7aae, NAME_DONE = 0x7b04;
+/** The oil ($8F, 0-255; a refill caps it at $FF) and where the death routine ends, on to the game's end (hook $669F). */
+const OIL = 0x8f, FULL_OIL = 0xff, DEATH_PLAYED_OUT = 0x669f;
 
 /** The joystick keys stay the joystick (the game takes the joystick as well as its keys). */
 const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
@@ -40,7 +42,7 @@ export function run(host: Host) {
     // The pause screen's map of the factory, with travel back to screens been in (map.ts, travel.ts).
     map: makeMap(),
     onAssists: (a) => { options = a; },
-    // ENHANCED (assists.ts): kinder movement, oil that lasts, cheaper deaths, and hints (sparkles).
+    // ENHANCED (assists.ts): kinder movement and hints (sparkles); the oil running out is a life lost (`vitals` below).
     assists: [{
       id: 'enhanced', long: 'ENHANCED', default: true,
       apply: (ram, on) => enhanced.afterFrame(ram, on ? all : none),
@@ -60,10 +62,13 @@ export function run(host: Host) {
       cursor: (ram) => ({ col: ram[0xae], row: ram[0xaf] }), // (where it prints its * cursor: $7AB5)
       hintY: 177,
     },
-    // A moment's grace after a resume: no oil is taken ($56E0, where the game is about to take some: as the slow drain
-    // leaves it, A the oil as it is, carry set), so a creature, a live wire or a ceiling costs nothing for its 3 seconds.
-    grace: { hook: (pc, ram) => { if (pc === 0x56e0) { cpu.a = ram[0x8f]; cpu.c = 1; } } },
-    vitals: { fullHealth: (ram, _colour, on) => enhanced.onContinue(ram, on.enhanced ? all : none) },
+    // A moment's grace after a resume: no oil is taken ($56E0, where the game is about to take some: A the oil as it is,
+    // carry set), so a creature, a live wire or a ceiling costs nothing for its 3 seconds.
+    grace: { hook: (pc, ram) => { if (pc === 0x56e0) { cpu.a = ram[OIL]; cpu.c = 1; } } },
+    // Continuing (CONTINUE? and the rest) starts with the oil full, as the Pendragon games' continue gives full health. In
+    // ENHANCED the oil running out is a life lost, not the end: once the death has played out ($669F, re/engine.json) he is
+    // put back at the start of the room he died in, at full oil (shared/native/play.ts `lifeEnds`), unlimited.
+    vitals: { fullHealth: (ram) => { ram[OIL] = FULL_OIL; }, lifeEnds: DEATH_PLAYED_OUT },
     // (R would open the original's key-redefining screen, which lists C64 keys: not on this keyboard.)
     reserved: ['KeyR', ...JOYSTICK_KEYS],
     // Touch: the stick (Thing goes up and down too), and fire: his jump (with a direction, the big one).

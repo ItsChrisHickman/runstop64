@@ -10,7 +10,6 @@
  * - landing: a bounce that catches a ledge's edge (the wall in his lowest row only, room above)
  *   lands on it; the original throws him back and he falls.
  * - fall: never more than 4 pixels a frame (the original: 8).
- * - drain: the same play takes half the oil.
  * - Safety, with ENHANCED (and each part alone), over long random play from every screen: no
  *   more frames inside a wall or floor than the original's own play has, no 6502 fallbacks, no
  *   hangs, and he still gets from screen to screen. (That ENHANCED still gets everywhere the
@@ -209,23 +208,6 @@ function variant(ev: Ev, on: readonly Part[], then: number[], before = 0) {
   let max = 0;
   for (const [id] of roomStarts.slice(0, 12)) play(id, ['fall'], FRAMES, (r, _f, q) => { if (r[0x53] && r[0x1e] > q[0x1e] && r[0x5e] === q[0x5e] && Math.abs(xOf(r) - xOf(q)) <= 4 && !r[0x63] && !q[0x63]) max = Math.max(max, r[0x1e] - q[0x1e]); });
   check(`gentler falls: up to ${max} pixels a frame (the original: ${maxFall})`, max <= 4 && maxFall === 8);
-}
-
-// ---- slow oil -------------------------------------------------------------------------------------------------
-{
-  // the same play from a room with creatures, oil not topped up: used with and without
-  const used = (on: readonly Part[]) => {
-    let total = 0;
-    for (const [id] of roomStarts.slice(0, 16)) {
-      const p = player(startOf(id), on, false), js = scriptOf(id);
-      p.ram[0x8f] = 200; p.ram[0x90] = 0;
-      for (let f = 0; f < FRAMES; f++) p.frame(js[f]);
-      total += 200 - p.ram[0x8f];
-    }
-    return total;
-  };
-  const off = used([]), on = used(['drain']);
-  check(`slow oil: the same play took ${off} units of oil in the original, ${on} with the assist`, off > 20 && Math.abs(on - off / 2) <= off * 0.1 + 2);
 }
 
 // ---- ENHANCED (and each part alone): long random play from every start ------------------------------------

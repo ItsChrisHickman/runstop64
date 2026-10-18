@@ -1,6 +1,6 @@
 /**
  * Thing on a Spring's high score name ($7A21: ten letters, RETURN puts it in), headless (c64kit
- * stood in by games/shared/test/kit.ts): a game ended with a score for the table (the oil run
+ * stood in by games/shared/test/kit.ts): a game (ORIGINAL) ended with a score for the table (the oil run
  * out with the last life), then the name entered (before CONTINUE?, which follows it)
  *
  *  1. on a phone, through the touch layer (games/shared/test/touchpad.ts: the stick picks each
@@ -38,6 +38,9 @@ async function game(score: number[]) {
   tick(60);
   input.keyDown('Space'); tick(10); input.keyUp('Space');
   until(() => p.state.playing && ram()[0x63] === 0, 400);
+  // (ORIGINAL: in ENHANCED the oil running out is a life lost, not a game over with a score for the table)
+  for (const code of ['KeyP', 'KeyE', 'KeyP']) { input.keyDown(code); tick(2); input.keyUp(code); tick(2); }
+  if (p.options.enhanced !== false || !p.state.playing) throw new Error('names: ORIGINAL not chosen');
   ram().set(score, 0x364); // (the score's digits)
   // (the oil run out with the last life: game over, then the table asks for the name, before CONTINUE?)
   until(() => { ram()[0x8f] = 0; ram()[0x90] = 0; return p.state.lastWait === 0x79aa || p.state.lastWait === 0x7abd; }, 3000);

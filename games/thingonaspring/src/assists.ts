@@ -10,9 +10,10 @@ import * as engine from './gen/engine';
  * - grace: a bounce asked for just after walking off an edge still goes, and one asked for just
  *   before landing goes on landing;
  * - landing: catching a ledge's edge (by up to a character) puts him on it;
- * - fall: falls no faster than 4 pixels a frame (the original: 8);
- * - drain: the oil lasts twice as long;
- * - topup: continuing after the oil ran out starts with at least half.
+ * - fall: falls no faster than 4 pixels a frame (the original: 8).
+ *
+ * (And, in main.ts, through the shared native machinery: the oil running out is a life lost, not the
+ * game's end: back to the start of the room at full oil, without prompt or title, `vitals.lifeEnds`.)
  *
  * They work on the game's own movement, as the game keeps it (see re/README.md): the game moves
  * Thing once a frame, in its raster interrupt ($4613 → $4893), and reads the joystick in the
@@ -29,7 +30,7 @@ import * as engine from './gen/engine';
  * $07/$08/$09/$0A/$0B: the joystick (left, right, up, down, fire), bit 7 when held now (the
  * bits below: the reads before).
  */
-export const PARTS = ['air', 'grace', 'landing', 'fall', 'drain', 'topup'] as const;
+export const PARTS = ['air', 'grace', 'landing', 'fall'] as const;
 export type Part = typeof PARTS[number];
 
 const held = (ram: Uint8Array, a: number) => (ram[a] & 0x80) !== 0;
@@ -103,7 +104,7 @@ function ontoLedge(ram: Uint8Array, right: boolean) {
 export function makeEnhanced() {
   let last = { air: false, standing: false };
   let sinceEdge = 99, asked = 99, askedRight = false;
-  let drains = 0, helped = false;
+  let helped = false;
 
   /** In the air the joystick steers (left or right turns him that way; let go, he keeps going as he was). */
   function air(ram: Uint8Array) {
@@ -152,14 +153,8 @@ export function makeEnhanced() {
    * - $4A9B / $4ABB: a wall stops Thing going left / right, and the game has just turned him round
    *   ($5B/$5C). Landing help takes him up onto a ledge there (once between landings: a ledge too
    *   narrow to stand on doesn't keep him hopping); air control (in the air) stops him instead.
-   * - $56E0: oil is about to be taken, A what will be left (carry clear: none). Slow drain: every
-   *   other time, nothing is taken (A as it was, carry set: not run out).
    */
   function hook(pc: number, ram: Uint8Array, on: (p: Part) => boolean) {
-    if (pc === 0x56e0) {
-      if (on('drain') && (drains++ & 1)) { cpu.a = ram[0x8f]; cpu.c = 1; }
-      return;
-    }
     if (pc !== 0x4a9b && pc !== 0x4abb) return;
     // (in the air, by his own bounce or fall; not a doorway, which takes the same way out)
     if (!airborne(ram) || ram[0x5d] || ram[0x63]) return;
@@ -168,8 +163,5 @@ export function makeEnhanced() {
     if (on('air')) { ram[0x5b] = 0; ram[0x5c] = 0; }
   }
 
-  /** Continuing after the oil ran out (a save from the room's start): at least half full. */
-  function onContinue(ram: Uint8Array, on: (p: Part) => boolean) { if (on('topup') && ram[0x8f] < 0x80) ram[0x8f] = 0x80; }
-
-  return { afterFrame, hook, onContinue };
+  return { afterFrame, hook };
 }

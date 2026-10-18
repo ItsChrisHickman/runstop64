@@ -187,6 +187,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let entryRoom = -1, diedNow = false;
   /** A game began that the player did not ask for, over a save: the save carries on at the next frame (atMainWait). */
   let carryingOn = false;
+  /** The game has reached the moment its life ends (`vitals.lifeEnds`), in ENHANCED: he is put back at the room's autosave after this frame. */
+  let lifeEnded = false;
   /** A place picked on the map, to be carried out at the main loop's wait. */
   let going: string | null = null;
   /** The HD view's rooms (built again only when the room's part of the picture changes). */
@@ -332,11 +334,12 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
         return false;
       };
     }
-    const onHook = opts.onHook, graceHook = opts.grace?.hook;
-    if (onHook || graceHook) {
+    const onHook = opts.onHook, graceHook = opts.grace?.hook, lifeEnds = opts.vitals?.lifeEnds;
+    if (onHook || graceHook || lifeEnds !== undefined) {
       const h = g.onHook;
       g.onHook = (pc) => {
         h?.(pc);
+        if (pc === lifeEnds && fe.enhanced && flow.state.playing) lifeEnded = true;
         onHook?.(pc, g.m.ram);
         if (graceHook && flow.grace.active && flow.state.playing) graceHook(pc, g.m.ram);
       };
@@ -414,6 +417,9 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     feedInput(g, holding || flow.launching);
     let played = false;
     if (!holding) { g.tick(); played = flow.state.playing; }
+    // (ENHANCED, a life ended: back to the room's start with full health, as CONTINUE? would; the rest of the game's end
+    // this frame ran in a machine that is dropped, and its sound with it)
+    if (lifeEnded) { lifeEnded = false; if (port.carryOn('continue')) return 'ended'; }
     sound.pushFrame(g.m.sidWrites);
     return played ? 'played' : 'idle';
   }

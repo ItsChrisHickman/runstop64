@@ -432,6 +432,13 @@ export interface VitalsSpec {
   health?: { max: number; get(ram: Uint8Array): number; set(ram: Uint8Array, colour: Uint8Array, v: number): void };
   /** For the "infinite lives" assist: put the lives back to full (each frame of play). */
   lives?(ram: Uint8Array): void;
+  /**
+   * ENHANCED: unlimited lives for a game that has none (its health running out is the game's end). `lifeEnds`: the address of
+   * the game's moment where that end begins once its death has played out (listed under "hooks" in its translation's config);
+   * in ENHANCED he is put back at the start of the room he died in (the latest autosave) at full health, as CONTINUE? would
+   * without the prompt or the title, in place of the game's end. Without a save, the game's end goes on.
+   */
+  lifeEnds?: number;
   /** The infinite lives are part of ENHANCED (where the game's maker asked for them), not an option off unless chosen. */
   infinite?: boolean;
 }

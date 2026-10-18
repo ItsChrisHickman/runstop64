@@ -70,6 +70,15 @@ touching a creature (sprite collisions, $59FB), live wires and hot pipes ($2E, $
 while $8C), and bumping a ceiling. Running out sets $1C (the end, $65C1). A refill counts $90
 down, a unit a frame ($56A1). $039D = $FF is the game's own cheat (no oil taken): not used.
 
+## Oil out: the game's end, and ENHANCED's life lost
+
+Oil out ($56E2) sets $1C and $63; the main loop ($4396) sees $1C and runs the death ($65C1: the flashing
+and fading, 64 steps with sound), which ends at $669F with $D2 = 0 and on to $6A6B → $7DE1: the high score
+and the title. ($D2 non-zero is the goblin's end, by $6241.) $669F is a hook. In ENHANCED it asks the shared
+`vitals.lifeEnds` (shared/native/play.ts): once the death has played out, the latest autosave (the room as
+he came into it) is carried on as CONTINUE? would, with `fullHealth` (oil $FF), no prompt, no title; the
+shared grace follows. In ORIGINAL the game's end goes on, and CONTINUE? also gives `fullHealth`.
+
 ## ENHANCED (src/assists.ts)
 
 Thing's movement ($4893): $55 a bounce (steps up from $487B, index $56), $53 a fall (steps
@@ -77,8 +86,7 @@ down from $486A, up to 8), $5B/$5C the way he's going (left/right, bit 7), $07-$
 (left, right, up, down, fire; bit 7 held now, shifted down each read), $72 belts, $76 poles,
 $7A slopes, $83 springs, $87 tubes. ENHANCED works between frames on these, and at three
 moments the translation reports (`hooks` in engine.json, `cpu.hk` → `NativeHost.onHook`):
-$4A9B / $4ABB (a wall has just turned him round: landing help, or air control's stop) and
-$56E0 (oil about to be taken: every other time, not). Its checks: test/assists.ts (each part
+$4A9B / $4ABB (a wall has just turned him round: landing help, or air control's stop). Its checks: test/assists.ts (each part
 against the original from the same moment with the same joystick, and 210,000 frames of
 random play from every screen with each part and all of them: no more frames inside a wall
 than the original's own play, no hangs, no fallbacks).

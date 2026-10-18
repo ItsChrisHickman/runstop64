@@ -22,10 +22,9 @@ export const info = {
     <p>Added for runstop64: P (or the gear) pauses with a map of the factory: the screens you've been in, the pieces,
     oil cans and switches you've seen, how many pieces you've found, and travel back to any screen you've been in.
     Progress is saved each time you enter a screen (coming back carries on where you were; T on the pause screen goes to the title), and after the oil runs out
-    you can continue from the last screen you entered.</p>
+    you can continue from the last screen you entered, with full oil.</p>
     <p>ENHANCED (on unless you switch to ORIGINAL with E on the pause screen): steer in the air, a moment's grace for
-    a late or early bounce, help onto ledges you just catch, gentler falls, oil that lasts twice as long (and at least
-    half on continuing), and sparkles on what moves the game on. The full list is in
+    a late or early bounce, help onto ledges you just catch, gentler falls, unlimited lives (when the oil runs out you are back at the start of the room with full oil), and sparkles on what moves the game on. The full list is in
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/thingonaspring/QOL.md">QOL.md</a>.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>
   `,

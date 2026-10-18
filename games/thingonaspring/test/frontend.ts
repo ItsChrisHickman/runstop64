@@ -3,8 +3,9 @@
  * title → play; walking into the next screen (the map notes it, and the end come in by); the
  * pause screen with the factory map, and ENHANCED (on unless chosen off; E changes it); travel
  * back by the map (keys, and taps), arriving where the game's own way in puts Thing; hints
- * (with ENHANCED: a sparkle on the room's piece); continuing after the oil runs out (with
- * ENHANCED, at least half full).
+ * (with ENHANCED: a sparkle on the room's piece); the oil running out: in ENHANCED a life lost
+ * (back at the room's start, full oil, playing, no prompt, no title; unlimited), in ORIGINAL the
+ * game's end, then CONTINUE? with full oil.
  *
  *   nice -n 15 node tools/test.mjs games/thingonaspring/test/frontend.ts [out-dir]
  */
@@ -109,15 +110,43 @@ tick(30);
 const spots = hintSpots(ram(), machine().vic);
 check(`with ENHANCED, a sparkle for room ${room}'s piece (${JSON.stringify(spots)})`, spots.length === 1);
 
-// ---- the oil runs out: CONTINUE? with at least half ------------------------------------------------
+// ---- the oil runs out ---------------------------------------------------------------------------------
+// ENHANCED: a life lost. Back where the room began (its autosave: Thing where he came in, the oil
+// then topped up to full), playing, no prompt, no title; and again (unlimited).
 tick(10);
-// (touching a creature or a live wire takes the last of it; or time: $56B4)
-for (let n = 0; n < 2000 && !(p.state.prompt === 'continue'); n++) { ram()[0x8f] = 0; ram()[0x90] = 0; tick(); }
-check('the oil ran out: CONTINUE?', p.state.prompt === 'continue');
-shot('3-continue');
+const roomHere = where();
+const save = (): { x: number; scroll: number } => ({ x: ram()[0x1d], scroll: ram()[0x19] });
+const runOut = (what: string) => {
+  let sawPrompt = false, sawTitle = false, ended = false;
+  for (let n = 0; n < 3000 && !ended; n++) {
+    ram()[0x8f] = 0; ram()[0x90] = 0; tick();
+    sawPrompt = sawPrompt || p.state.prompt !== null;
+    sawTitle = sawTitle || (ram()[0xfffe] | (ram()[0xffff] << 8)) === 0x7254; // (the title's raster interrupt)
+    ended = ram()[0x8f] === 0xff && p.state.playing && ram()[0x1c] === 0;
+  }
+  check(`${what}: back in ${where()} (${roomHere}) at full oil (${ram()[0x8f]}), playing, no prompt (${sawPrompt}), no title (${sawTitle})`,
+    ended && where() === roomHere && !sawPrompt && !sawTitle && p.state.prompt === null);
+};
+const entry = JSON.stringify(save());
+runOut('ENHANCED, oil out');
+until(() => ram()[0x63] === 0, 300);
+tick(2);
+check(`  ... Thing at the room's start again (${entry} -> ${JSON.stringify(save())}), a moment's grace on`, JSON.stringify(save()) === entry && p.state.grace > 0);
+tick(60);
+check('  ... and still playing a second on', p.state.playing && p.state.prompt === null && where() === roomHere);
+runOut('ENHANCED, oil out again');
+shot('3-after-life');
+
+// ORIGINAL: the game's end as ever, then CONTINUE? and full oil
+tap('KeyP'); tap('KeyE'); tap('KeyP');
+check('ORIGINAL chosen', p.options.enhanced === false && p.state.playing && !p.state.paused);
+tick(10);
+for (let n = 0; n < 3000 && !(p.state.prompt === 'continue'); n++) { ram()[0x8f] = 0; ram()[0x90] = 0; tick(); }
+check('ORIGINAL, oil out: CONTINUE?', p.state.prompt === 'continue');
+shot('4-continue');
 tap('Enter');
 until(() => p.state.playing && ram()[0x63] === 0, 300);
 tick(5);
-check(`Enter: back in ${where()} with the oil at least half (${ram()[0x8f]})`, p.state.playing && ram()[0x8f] >= 0x7c);
+check(`ORIGINAL, Enter: back in ${where()} with the oil full (${ram()[0x8f]})`, p.state.playing && where() === roomHere && ram()[0x8f] >= 0xfa);
 
 finish();
