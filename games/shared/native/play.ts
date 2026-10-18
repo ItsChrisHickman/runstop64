@@ -178,6 +178,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let view: C64View | null = null;
   /** A resume has begun: the room it comes into is not a new game's. */
   let resuming = false;
+  /** A game began that the player did not ask for, over a save: the save carries on at the next frame (atMainWait). */
+  let carryingOn = false;
   /** A place picked on the map, to be carried out at the main loop's wait. */
   let going: string | null = null;
   /** The HD view's rooms (built again only when the room's part of the picture changes). */
@@ -288,7 +290,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const statusOf = (g: NativeHost): GameStatus<MachineState> => ({
     machine: g.m,
     onTitle: onTitle(g),
-    room: g.lastWait === mainWait ? roomIn(g.m.ram) : null,
+    room: g.lastWait === mainWait && !carryingOn ? roomIn(g.m.ram) : null,
     save: () => g.save(),
   });
 
@@ -336,8 +338,13 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     if (to !== null) runner.call(() => map.go?.(to, g.m.ram, fe.found));
     for (const s of atWait) s.atWait(g);
     const st = statusOf(g);
-    // a new game (play beginning, not from a save): the save so far is kept as the previous one, nothing found yet
-    if (!flow.state.playing && !resuming && !st.onTitle && st.room !== null) fe.newGame();
+    // Play beginning, not from a save. A new game the player asked for (or with no save to lose): the save so far is kept as
+    // the previous one, nothing found yet. Any other beginning (the game's title took a key the front end did not see) is not
+    // his say: the save carries on instead, at the next frame, with what had been found.
+    if (!flow.state.playing && !resuming && !st.onTitle && st.room !== null) {
+      if (flow.newGameAsked || !flow.saved()) fe.newGame();
+      else { carryingOn = true; return; }
+    }
     // the map notes what's been found (and puts the player where a place picked on it says)
     // before the autosave: the save on coming into a room has him where he is, and the map with it
     if (st.room !== null) map.observe(g.m.ram, fe.found, g.m.vic);
@@ -370,6 +377,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   /** One frame of the game: the keys and stick in, the machine run, the sound out. */
   function frame(holding: boolean): FrameResult {
     const { g } = live();
+    // (a game began that was not asked for: the save carries on, as CONTINUE? would)
+    if (carryingOn) { carryingOn = false; port.carryOn('continue'); return 'ended'; }
     // (a life lost before he'd lived a moment in the room, in ENHANCED: back to the last save kept)
     if (safe?.takeRespawn()) { respawnAtSave(g); return 'ended'; }
     actions?.beforeFrame(g, holding);

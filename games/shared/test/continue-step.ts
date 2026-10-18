@@ -27,9 +27,9 @@ const TICKS = [0, 24, 25, 100];
 /** Every state the flow can be in: a question or a launch needs a save to offer. */
 function* states(): Generator<FlowState> {
   for (const screen of SCREENS) for (const playing of BOOLS) for (const hasSave of BOOLS) for (const over of BOOLS) for (const startOk of BOOLS)
-    for (const fireWasDown of BOOLS) for (const titleTicks of TICKS) for (const restartAsked of [0, 1000]) {
+    for (const fireWasDown of BOOLS) for (const newGameOk of BOOLS) for (const titleTicks of TICKS) for (const restartAsked of [0, 1000]) {
       if (screen.kind !== 'open' && !hasSave) continue;
-      yield { screen, playing, hasSave, lastRoom: playing ? 7 : -1, rooms: 4, fresh: playing, over, restartAsked, titleTicks, fireWasDown, startOk };
+      yield { screen, playing, hasSave, lastRoom: playing ? 7 : -1, rooms: 4, fresh: playing, over, restartAsked, titleTicks, fireWasDown, startOk, newGameOk };
     }
 }
 
@@ -82,7 +82,7 @@ for (const prev of states()) {
       if ((offers(s.screen) || s.screen.kind === 'launching') && !s.hasSave) fail('a question or a launch needs a save', where);
       if (resume !== null) {
         // (a title up a moment with a save offers ENTER CONTINUE and may be answered in the same tick)
-        const offered = prev.screen.kind === 'launching' || offers(prev.screen) || (status.onTitle && prev.hasSave && prev.titleTicks + 1 > 25);
+        const offered = prev.screen.kind === 'launching' || offers(prev.screen) || (status.onTitle && prev.hasSave && (prev.titleTicks + 1 > 25 || intent.enter));
         if (!offered) fail('resumes only where something is on offer', where);
         if (s.screen.kind !== 'open') fail('after resuming no screen is up', where);
         if (resume === 'continue' && !(prev.screen.kind === 'continue' || prev.over || (prev.playing && status.onTitle))) fail('the continue answer is to CONTINUE? (up, or coming up as play ends)', where);
@@ -99,6 +99,8 @@ for (const prev of states()) {
       if (prev.screen.kind === 'launching' && s.screen.kind === 'launching' && (resume !== null || s.screen.waited !== prev.screen.waited + 1)) fail('a launch waits a tick at a time', where);
       if (prev.screen.kind === 'launching' && s.screen.kind === 'open' && resume === null && prev.screen.waited + 1 <= LAUNCH_TICKS) fail('a launch gives up only after LAUNCH_TICKS', where);
       if (prev.screen.kind === 'open' && s.screen.kind === 'launching') fail('a launch begins only with the flow', where);
+      if (s.newGameOk && !prev.newGameOk && !(prev.screen.kind === 'newGame' && intent.firePressed)) fail('a new game is the player\'s say only by NEW GAME? answered yes', where);
+      if (resume !== null && s.newGameOk) fail('carrying on from a save clears the say', where);
       if (s.startOk && !prev.startOk && !(prev.screen.kind === 'newGame' && intent.firePressed)) fail('a press is passed on to the title only by NEW GAME? answered yes', where);
     }
   }
@@ -127,6 +129,15 @@ check('a flow with a save launches straight back into play; without, or told not
 }
 
 check('the title up a moment, with a save: ENTER CONTINUE is offered', kind(go(idle({ titleTicks: 25 }), {})) === 'title');
+{
+  const early = go(idle({ titleTicks: 3 }), { enter: true });
+  check('Enter on a title only just up, over a save: continues it (the game\'s title would start a new game on Return)', early.resume === 'title' && kind(early) === 'open');
+  const over = go(idle({ playing: true, titleTicks: 0 }), { enter: true });
+  check('...and as the last life goes: the CONTINUE? answer', over.resume === 'continue' && !over.state.over && !over.state.playing);
+  check('...without a save Enter is left to the game', go(idle({ hasSave: false, titleTicks: 3 }), { enter: true }).resume === null);
+  const yes = go(go(idle({ screen: { kind: 'newGame' } }), { fire: true, firePressed: true }).state, { fire: false });
+  check('NEW GAME? answered yes: a game that begins after it is the player\'s say, kept after the press is let go', yes.state.newGameOk);
+}
 check('the title only just up: nothing yet', kind(go(idle({ titleTicks: 10 }), {})) === 'open');
 check('without a save: nothing is offered', kind(go(idle({ hasSave: false }), {})) === 'open');
 check('ENTER CONTINUE: Enter resumes (answer: title)', go(idle({ screen: { kind: 'title' } }), { enter: true }).resume === 'title');

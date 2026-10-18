@@ -94,6 +94,12 @@ export interface FlowState {
   readonly fireWasDown: boolean;
   /** NEW GAME? answered yes: the press goes to the game's title (until it's let go). */
   readonly startOk: boolean;
+  /**
+   * The player has said a new game is what he wants (NEW GAME? answered yes), until a game begins or is
+   * carried on from a save. A game that begins without it, over a save (and not from a restart key
+   * typed a moment ago: `restartAsked`), is not his say: the save carries on instead (`ContinueFlow.newGameAsked`).
+   */
+  readonly newGameOk: boolean;
 }
 
 /** The state of a flow just made: launching back into play if there is a save to go back to. */
@@ -101,7 +107,7 @@ export function initialState(hasSave: boolean, launch: boolean): FlowState {
   return {
     screen: hasSave && launch ? { kind: 'launching', waited: 0 } : OPEN,
     playing: false, hasSave, lastRoom: -1, rooms: 0, fresh: false, over: false,
-    restartAsked: 1000, titleTicks: 0, fireWasDown: true, startOk: false,
+    restartAsked: 1000, titleTicks: 0, fireWasDown: true, startOk: false, newGameOk: false,
   };
 }
 
@@ -164,6 +170,9 @@ export interface StepResult {
   resume: 'title' | 'continue' | null;
 }
 
+/** A game that begins within this many ticks of a restart key was begun on purpose. */
+export const RESTART_TICKS = 500;
+
 /** How long a launch waits for the game's title before giving up on going straight back into play. */
 export const LAUNCH_TICKS = 10 * 50;
 
@@ -173,12 +182,12 @@ export const LAUNCH_TICKS = 10 * 50;
  * a launch; `'continue'`: from CONTINUE? after losing).
  */
 export function step(prev: FlowState, intent: Intent, status: StepStatus): StepResult {
-  let { screen, playing, lastRoom, fresh, over, startOk, fireWasDown } = prev;
+  let { screen, playing, lastRoom, fresh, over, startOk, fireWasDown, newGameOk } = prev;
   const restartAsked = intent.restart ? 1 : prev.restartAsked + 1;
   // Prompts wait until the title has been up a moment (it's drawn over a few frames).
   const titleTicks = status.onTitle ? prev.titleTicks + 1 : 0;
   const done = (resume: StepResult['resume'] = null): StepResult => ({
-    state: { ...prev, screen, playing, lastRoom, fresh, over, startOk, fireWasDown, restartAsked, titleTicks },
+    state: { ...prev, screen, playing, lastRoom, fresh, over, startOk, fireWasDown, newGameOk: resume ? false : newGameOk, restartAsked, titleTicks },
     resume,
   });
 
@@ -193,7 +202,7 @@ export function step(prev: FlowState, intent: Intent, status: StepStatus): StepR
   // The title is back: play is over there and then (a new game started straight away is a new
   // game, whatever brought the title back: the last life lost, R or F1, the game won). CONTINUE?
   // waits until the title has been up a moment, and isn't asked after a restart on purpose.
-  if (status.onTitle && playing) { playing = false; fresh = false; lastRoom = -1; over = true; }
+  if (status.onTitle && playing) { playing = false; fresh = false; lastRoom = -1; over = true; newGameOk = false; }
   if (titleTicks > 25) {
     if (over) {
       over = false;
@@ -214,6 +223,14 @@ export function step(prev: FlowState, intent: Intent, status: StepStatus): StepR
     return done();
   }
 
+  // Enter on the title with a save continues it from the first moment the title is up, before ENTER
+  // CONTINUE is drawn (and CONTINUE? is asked): the game's own title starts on Return, and would begin a new game.
+  if (status.onTitle && prev.hasSave && screen.kind === 'open' && intent.enter) {
+    const how = over ? 'continue' : 'title';
+    over = false;
+    return done(how);
+  }
+
   const kind = screen.kind;
   if (kind === 'open' || kind === 'launching') return done();
   // Taps (touch): the words. On the title, its CONTINUE (the line's left half, or all of a short
@@ -226,7 +243,7 @@ export function step(prev: FlowState, intent: Intent, status: StepStatus): StepR
   if (no) screen = OPEN;
   if (kind === 'newGame') {
     // fire (or Space) again: the title has it and starts the game; Esc or a tap: back to the title; Enter continues
-    if (intent.firePressed) { screen = OPEN; startOk = true; return done(); }
+    if (intent.firePressed) { screen = OPEN; startOk = true; newGameOk = true; return done(); }
     if (intent.escape || (intent.tap.any && !intent.fire)) { screen = OPEN; return done(); }
     if (!intent.enter) return done();
     screen = OPEN;

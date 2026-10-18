@@ -140,6 +140,7 @@ export const TESTS = [
 
   // ---- Jet Set Willy II
   { file: 'games/jsw2/test/deathloop.ts', set: 'fast' },
+  { file: 'games/jsw2/test/wipe.ts', set: 'fast' },
   { file: 'games/jsw2/test/falls.ts', set: 'fast' },
   { file: 'games/jsw2/test/frontend.ts', set: 'fast' },
   { file: 'games/jsw2/test/grace.ts', set: 'fast' },

@@ -164,12 +164,21 @@ export class Port<S, F, T> {
   /** The room number the flow is told a resume is at. */
   private roomAfterResume(s: S) { return this.adapter.roomOf?.(s) ?? this.rooms.count; }
 
+  /**
+   * Carry on from the latest save (`from`: how the player came to it); false if there is none. For the games' own
+   * recovery too: a game that began on its own over a save carries the save on, it does not replace it.
+   */
+  carryOn(from: ResumeFrom): boolean {
+    const s = this.flow.saved();
+    if (!s) return false;
+    this.resume(s, from);
+    this.flow.resumed(s, this.roomAfterResume(s));
+    return true;
+  }
+
   /** Back to how things were on coming into this room (out of a trap the game has no way out of). */
   private backToRoomStart() {
-    const s = this.flow.saved();
-    if (!s || this.adapter.phase() !== 'play') return;
-    this.resume(s, 'roomStart');
-    this.flow.resumed(s, this.roomAfterResume(s));
+    if (this.adapter.phase() === 'play') this.carryOn('roomStart');
   }
 
   private asked(r: PauseRequest) {

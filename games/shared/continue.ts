@@ -1,5 +1,5 @@
 import { BitmapFont, KIT_GLYPHS, packState, unpackState, type C64Machine, type Input, type MachineState, type Renderer } from 'c64kit';
-import { FLOW_LAYOUT, initialState, panelTop, readIntent, step, stripText, type FlowState, type TitleStrip } from './continue-step';
+import { FLOW_LAYOUT, initialState, panelTop, readIntent, RESTART_TICKS, step, stripText, type FlowState, type TitleStrip } from './continue-step';
 import { Grace } from './grace';
 import { C64_PAUSE_COLOURS, type FoundCodec, type PauseColours } from './native/pause';
 import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary, toBase64, writeCurrent, type SaveBody, type SaveSlot } from './saves';
@@ -121,6 +121,12 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   /** What the flow knows, changed only by whole new values (`step` for the tick before the game's, the methods below for the rest). */
   private st: FlowState;
   private font: BitmapFont | null = null;
+  /**
+   * A game beginning now is the player's own say: there is no save to lose, or NEW GAME? was answered yes,
+   * or a restart key was typed a moment ago. A game that begins without it (the game's title took a key the
+   * flow did not see) must not wipe a save and what was found: the caller carries the save on instead.
+   */
+  get newGameAsked() { return !this.st.hasSave || this.st.newGameOk || this.st.restartAsked < RESTART_TICKS; }
   /** Which question the last save came back from. */
   private answer: 'title' | 'continue' | null = null;
   /** The rooms entered in the game the last save read was from. */
@@ -185,7 +191,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   beginNewGame(found: F) {
     if (this.st.fresh && this.st.rooms === 0) return;
     startNewGame(this.opts.id, found);
-    this.st = { ...this.st, fresh: true, over: false, rooms: 0, lastRoom: -1, screen: { kind: 'open' }, hasSave: false };
+    this.st = { ...this.st, fresh: true, over: false, rooms: 0, lastRoom: -1, screen: { kind: 'open' }, hasSave: false, newGameOk: false };
   }
 
   /**
@@ -194,7 +200,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
    */
   toTitle() {
     // (play has ended already: no CONTINUE?, this was on purpose)
-    this.st = { ...this.st, playing: false, fresh: false, over: false, lastRoom: -1, screen: { kind: 'open' }, titleTicks: 0 };
+    this.st = { ...this.st, playing: false, fresh: false, over: false, lastRoom: -1, screen: { kind: 'open' }, titleTicks: 0, newGameOk: false };
   }
 
   /** The latest save (taken on coming into the room the player is in). */
@@ -202,7 +208,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
 
   /** The game was restarted from a save. */
   resumed(s: S, room: number) {
-    this.st = { ...this.st, lastRoom: room, playing: true, fresh: false, over: false, rooms: this.loadedRooms, titleTicks: 0, screen: { kind: 'open' } };
+    this.st = { ...this.st, lastRoom: room, playing: true, fresh: false, over: false, rooms: this.loadedRooms, titleTicks: 0, screen: { kind: 'open' }, newGameOk: false };
     this.grace.start();
     void s;
   }
