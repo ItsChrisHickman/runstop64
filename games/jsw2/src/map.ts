@@ -1,6 +1,7 @@
+import type { Surface } from 'c64kit';
 import { COL, foundCodec, MAP_BOX, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
-import { MANSION, MANSION_SIZE } from './mansion';
+import { LINKS, MANSION, MANSION_SIZE } from './mansion';
 
 /**
  * Jet Set Willy II's map, for the pause screen: the whole mansion (laid out from the
@@ -119,15 +120,27 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
     const seen = new Set(found.rooms), here = roomOf(ram);
     const { cell, cx, cy } = layout(box);
     const size = Math.max(3, cell - 2), done = itemsFound(ram) >= NEED;
-    // exits between rooms side by side on the map (right and down: each pair once)
+    // connectors first (under the rooms): exits to rooms that are not beside the room on the map (the mansion is not a
+    // consistent grid), dotted from room to room
+    for (const [a, , b] of LINKS) {
+      const ra = MANSION[a], rb = MANSION[b];
+      if (!ra || !rb) continue;
+      dotted(s, cx(ra.x), cy(ra.y), cx(rb.x), cy(rb.y), seen.has(a) && seen.has(b) ? COL.lblue : COL.blue);
+    }
+    // exits between rooms side by side on the map, the way they lead (each pair once)
+    const drawn = new Set<string>();
     for (const [n, r] of Object.entries(MANSION)) {
-      for (const [k, dx, dy] of [[1, 1, 0], [3, 0, 1]] as const) {
-        const t = MANSION[r.exits[k]];
-        if (r.exits[k] === Number(n) || !t || t.x !== r.x + dx || t.y !== r.y + dy) continue;
-        const lit = seen.has(Number(n)) && seen.has(r.exits[k]);
-        if (dx) s.fillRect(cx(r.x), cy(r.y), cell, 1, lit ? COL.yellow : COL.dgrey);
-        else s.fillRect(cx(r.x), cy(r.y), 1, cell, lit ? COL.yellow : COL.dgrey);
-      }
+      r.exits.forEach((to, k) => {
+        const t = MANSION[to];
+        if (to === Number(n) || !t || t.x !== r.x + STEP[k][0] || t.y !== r.y + STEP[k][1]) return;
+        const id = Number(n) < to ? `${n},${to}` : `${to},${n}`;
+        if (drawn.has(id)) return;
+        drawn.add(id);
+        const lit = seen.has(Number(n)) && seen.has(to), colour = lit ? COL.yellow : COL.dgrey;
+        const x = Math.min(cx(r.x), cx(t.x)), y = Math.min(cy(r.y), cy(t.y));
+        if (STEP[k][0]) s.fillRect(x, cy(r.y), cell + 1, 1, colour);
+        else s.fillRect(cx(r.x), y, 1, cell + 1, colour);
+      });
     }
     for (const [n, r] of Object.entries(MANSION)) {
       const room = Number(n);
@@ -164,6 +177,15 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
     return [`ROOMS   ${String(found.rooms.length).padStart(3)}`, `ITEMS   ${String(n).padStart(3)}`, `   OF ${TOTAL}`, n >= NEED ? 'GO TO BED' : `NEED    ${NEED}`, `LIVES     ${livesOf(ram)}`];
   },
 };
+
+/** left, right, up, down: where an exit leads on the map. */
+const STEP = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+
+/** A dotted line (two pixels in three) between two places on the picture. */
+function dotted(s: Surface, x0: number, y0: number, x1: number, y1: number, colour: number) {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+  for (let i = 0; i <= n; i++) if (i % 3 !== 2) s.set(Math.round(x0 + ((x1 - x0) * i) / (n || 1)), Math.round(y0 + ((y1 - y0) * i) / (n || 1)), colour);
+}
 
 function layout(box: Box) {
   const cell = Math.floor(Math.min(box.w / MANSION_SIZE.w, box.h / MANSION_SIZE.h));

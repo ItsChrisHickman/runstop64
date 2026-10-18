@@ -10,13 +10,16 @@
  */
 import fs from 'node:fs';
 import { C64, unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
+import { cost, layout, type Exits } from './layout';
 
 const START = 0x20;
+/** How many orders of the exits the layout tries. */
+const SEEDS = 1000;
 /** Rooms the game sends Willy to directly (its code stores them in $13). */
 const SENT_TO = [0x6e, 0x79, 0x61];
 
 const o = new C64();
-o.loadState(unpackState(new Uint8Array(fs.readFileSync(new URL('../assets/jsw2-title.state', import.meta.url)))));
+o.loadState(unpackState(new Uint8Array(fs.readFileSync('games/jsw2/assets/jsw2-title.state'))));
 // a play state: the original at the top of its main loop
 const got: { play: MachineState | null } = { play: null }; // (taken by the step hook)
 let passes = 0;
@@ -38,13 +41,21 @@ const nameAt = (r: Uint8Array) => {
   return s.replace(/\s+/g, ' ').trim();
 };
 interface Room { name: string; exits: [number, number, number, number] }
+/** A room as the game's own loader leaves it: the original's code run (from the play state) with Willy let fall through the way down into room `n`, as travel does. */
 const load = (n: number): Room | null => {
   const m = new C64();
   m.loadState(play);
-  m.ram[0x13] = n;
-  m.cpu.sp = 0xdf;
-  try { m.call(0x62c5, 2_000_000); } catch { return null; }
-  return { name: nameAt(m.ram), exits: [m.ram[0x8169], m.ram[0x816a], m.ram[0x816b], m.ram[0x816c]] };
+  m.ram[0x816c] = n; m.ram[0x8063] = 0xa2;
+  m.ram[0x8096] = 0xff;
+  let name = '';
+  for (let f = 0; f < 80; f++) {
+    m.joy2 = 0x1f;
+    m.runFrame();
+    m.ram[0x8096] = 0xff;
+    if (m.ram[0x13] === n && f > 2) { name = nameAt(m.ram); if (f > 6) break; }
+  }
+  if (m.ram[0x13] !== n) return null;
+  return { name, exits: [m.ram[0x8169], m.ram[0x816a], m.ram[0x816b], m.ram[0x816c]] };
 };
 
 const rooms = new Map<number, Room>();
@@ -57,96 +68,35 @@ for (let n = work.shift(); n !== undefined; n = work.shift()) {
   for (const e of r.exits) if (e !== n && !rooms.has(e)) work.push(e);
 }
 
-// Places. Rooms joined left and right make rows (a link counts from either side); rows are
-// then placed by their up and down links, moved further up or down where they'd overlap
-// (the mansion doesn't always fit a grid). Any room still on top of another goes to the
-// nearest free place.
-const room = (n: number) => { const r = rooms.get(n); if (!r) throw new Error(`room ${n} not loaded`); return r; };
-const left = (n: number) => room(n).exits[0], right = (n: number) => room(n).exits[1];
-const up = (n: number) => room(n).exits[2], down = (n: number) => room(n).exits[3];
-const linked = (n: number, k: 0 | 1 | 2 | 3) => {
-  const back = ([1, 0, 3, 2] as const)[k];
-  const out = new Set<number>();
-  const e = room(n).exits[k];
-  if (e !== n) out.add(e);
-  for (const [m, r] of rooms) if (m !== n && r.exits[back] === n) out.add(m);
-  return [...out];
-};
-void left; void right; void up; void down;
-const rowOf = new Map<number, { row: number; dx: number }>();
-const rows: number[][] = [];
-for (const n of [START, ...[...rooms.keys()].sort((a, b) => a - b)]) {
-  if (rowOf.has(n)) continue;
-  const row: number[] = [];
-  const id = rows.push(row) - 1;
-  const q: [number, number][] = [[n, 0]];
-  for (let next = q.shift(); next; next = q.shift()) {
-    const [m, dx] = next;
-    if (rowOf.has(m)) continue;
-    rowOf.set(m, { row: id, dx });
-    row.push(m);
-    for (const l of linked(m, 0)) if (!rowOf.has(l)) q.push([l, dx - 1]);
-    for (const r of linked(m, 1)) if (!rowOf.has(r)) q.push([r, dx + 1]);
-  }
+// Places: re/layout.ts, a constraint layout over the exits (an exit is drawn as two rooms side by side wherever the exits agree on
+// a place; the rest are links, drawn as connectors). Several orders of the exits are tried: the cheapest links (a way there and back counts for more than a one-way), then the smallest sheet.
+const exitsOf = new Map<number, Exits>([...rooms].map(([n, r]) => [n, r.exits]));
+// (the start, and the rooms it leads to, are where every game begins: their exits count for more)
+const first = new Set([START, ...(exitsOf.get(START) ?? [])]);
+const weight = (a: number, b: number) => (first.has(a) && first.has(b) ? 6 : 1);
+let best = layout(exitsOf);
+for (let seed = 1; seed <= SEEDS; seed++) {
+  const t = layout(exitsOf, seed), c = cost(exitsOf, t.links, weight), cb = cost(exitsOf, best.links, weight);
+  if (c < cb || (c === cb && t.size.w * t.size.h < best.size.w * best.size.h)) best = t;
 }
-const at = new Map<number, [number, number]>();
-const taken = new Map<string, number>();
-const rowAt = (m: number) => { const r = rowOf.get(m); if (!r) throw new Error(`room ${m} in no row`); return r; };
-const placed = (n: number) => { const p = at.get(n); if (!p) throw new Error(`room ${n} not placed`); return p; };
-const fits = (row: number[], x: number, y: number) => row.every((m) => !taken.has(`${x + rowAt(m).dx},${y}`));
-const putRow = (row: number[], x: number, y: number) => {
-  for (const m of row) {
-    let p: [number, number] = [x + rowAt(m).dx, y];
-    if (taken.has(`${p[0]},${p[1]}`)) p = free(p[0], p[1]);
-    at.set(m, p); taken.set(`${p[0]},${p[1]}`, m);
-  }
-};
-const free = (x: number, y: number): [number, number] => {
-  for (let d = 0; d < 20; d++) for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) {
-    if (Math.max(Math.abs(dx), Math.abs(dy)) !== d) continue;
-    if (!taken.has(`${x + dx},${y + dy}`)) return [x + dx, y + dy];
-  }
-  throw new Error('no room on the map');
-};
-const placedRows = new Set<number>();
-const rowQueue: number[] = [rowAt(START).row];
-putRow(rows[rowQueue[0]], 0, 0);
-placedRows.add(rowQueue[0]);
-const placeFrom = (r: number) => {
-  for (const n of rows[r]) for (const [k, dy] of [[2, -1], [3, 1]] as const) for (const m of linked(n, k)) {
-    const target = rowAt(m).row;
-    if (placedRows.has(target)) continue;
-    const [nx, ny] = placed(n);
-    const x = nx - rowAt(m).dx;
-    let y = ny + dy;
-    for (let tries = 0; tries < 12 && !fits(rows[target], x, y); tries++) y += dy;
-    putRow(rows[target], x, y);
-    placedRows.add(target);
-    rowQueue.push(target);
-  }
-};
-for (let i = 0; i < rowQueue.length; i++) placeFrom(rowQueue[i]);
-// rows reached only by the game sending Willy there: below the rest
-for (let r = 0; r < rows.length; r++) {
-  if (placedRows.has(r)) continue;
-  const bottom = Math.max(...[...at.values()].map(([, y]) => y)) + 1;
-  putRow(rows[r], 0, bottom);
-  placedRows.add(r);
-  rowQueue.push(r);
-  for (let i = rowQueue.length - 1; i < rowQueue.length; i++) placeFrom(rowQueue[i]);
-}
-const xs = [...at.values()].map(([x]) => x), ys = [...at.values()].map(([, y]) => y);
-const x0 = Math.min(...xs), y0 = Math.min(...ys);
 const lines = [...rooms].sort(([a], [b]) => a - b).map(([n, r]) => {
-  const [x, y] = placed(n);
-  return `  ${n}: { name: ${JSON.stringify(r.name)}, x: ${x - x0}, y: ${y - y0}, exits: [${r.exits.join(', ')}] },`;
+  const p = best.at.get(n);
+  if (!p) throw new Error(`room ${n} not placed`);
+  return `  ${n}: { name: ${JSON.stringify(r.name)}, x: ${p[0]}, y: ${p[1]}, exits: [${r.exits.join(', ')}] },`;
 });
 const out = `// Generated by games/jsw2/re/mansion.ts from the game's own room data: do not edit by hand.
 /** The mansion: each room's name, place on the map grid, and exits (left, right, up, down; itself where there's none). */
 export const MANSION: Record<number, { name: string; x: number; y: number; exits: [number, number, number, number] }> = {
 ${lines.join('\n')}
 };
-export const MANSION_SIZE = { w: ${Math.max(...xs) - x0 + 1}, h: ${Math.max(...ys) - y0 + 1} };
+export const MANSION_SIZE = { w: ${best.size.w}, h: ${best.size.h} };
+/**
+ * The exits that are not two rooms side by side on the map the way they lead (the mansion is not a consistent grid): the map draws
+ * each as a connector from the room to the one it leads to. [room, way (0 left, 1 right, 2 up, 3 down), the room it leads to].
+ */
+export const LINKS: [number, number, number][] = [
+${best.links.map(([a, k, b]) => `  [${a}, ${k}, ${b}],`).join('\n')}
+];
 `;
-fs.writeFileSync(new URL('../src/mansion.ts', import.meta.url), out);
-console.log(`${rooms.size} rooms, map ${Math.max(...xs) - x0 + 1}×${Math.max(...ys) - y0 + 1}`);
+fs.writeFileSync('games/jsw2/src/mansion.ts', out);
+console.log(`${rooms.size} rooms, map ${best.size.w}x${best.size.h}, ${best.links.length} links, blocks ${best.blocks.map((b) => b.length).join(' ')}`);

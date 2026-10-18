@@ -32,8 +32,19 @@ cycles later).
 
 - **Rooms and the map.** `re/mansion.ts` runs the game's own room loader ($62C5, room number in $13) for every room on a
   copy of the machine, reads each room's name (at the pointer in $73) and exits (left, right, up, down at $8169-$816C),
-  and lays the mansion out (rooms joined left and right make rows; rows are placed by their up and down links) into
-  `src/mansion.ts`: 136 rooms, all joined by exits.
+  and lays the mansion out (`re/layout.ts`, below) into
+  `src/mansion.ts`: 136 rooms, all joined by exits, 26 x 18 places, and `LINKS`, the exits the map draws as connectors.
+- **The map's layout** (`re/layout.ts`, `test/layout.ts`). The mansion is not a consistent grid: of its 320 exits to another room
+  (292 with a way back from there, 28 one-way, such as falls) the layout draws 308 as two rooms side by side the way the exit leads.
+  Rooms start as blocks of one; the exits are taken in an order (those both rooms say first) and each joins its two blocks if the
+  places it asks for are free, the blocks moved to meet (a Kruskal over places); what cannot be joined without two rooms on one place
+  stays a link. Blocks that never join (two of seven rooms) are put where they fit with a free cell all round, the exits to
+  rooms already placed shortest. The generator tries 1000 orders and keeps the cheapest links (a way there and back three, the
+  exits among the start and the rooms next to it six times), then the smallest sheet. The 12 links: two rooms joined on both
+  sides (63/64, 129/130: one side by side, the other a link, which the line between them is for) and one-way exits (31 left to 32,
+  60 left to 44, 60 down to Hades, 24 up to 93, 87 left to 88, 90 down to 28, 109 down to 120, 134 down to 135). (The generator
+  runs the original's code by frames, a room let fall into by the way down as travel does: calling its loader alone waits for the
+  raster interrupts, which a call does not run.)
 - **Items.** 178 items in 80 rooms (`re/items.ts` reads the loader: $8106 a room's count, the pairs at $8108 their cells;
   it writes `re/items.json` and `src/itemcounts.ts`). The game counts them in BCD ($8131/$8132). The ending check (room
   type 6, the Masters Bedroom, $7315) wants 160 or more, so 18 may be left. Per-room taken bits persist at $0A00 +

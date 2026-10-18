@@ -49,7 +49,7 @@ is next and what is waiting on Chris. Last updated 2026-10-17.
 
 - **Blackwyche GUIDED:** his notes on the draft lines (he wanted the prose less clumsy; `games/blackwyche/src/guided-lines.ts`).
 - **JSW2:** the ENHANCED "a lot easier" set (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
-  item sparkles) are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the reachability sweep is not.
+  item sparkles) and the pause map laid out by the exits (every exit side by side or a dotted connector) are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
 - **Older:** Monty warp to the Ultimate Experience; Starquake hints.
