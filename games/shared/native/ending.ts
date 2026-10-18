@@ -1,4 +1,4 @@
-import { C64View, Surface, TRANSPARENT, decodeSprite, packState, unpackState, type BitmapFont, type Host, type MachineState, type SidWrite, type SpriteHandle } from 'c64kit';
+import { C64View, Surface, TRANSPARENT, decodeSprite, packState, unpackState, type BitmapFont, type FrameCapture, type Host, type MachineState, type PictureLayout, type SidWrite, type SpriteHandle } from 'c64kit';
 import { NativeHost, type PortConfig } from './host';
 import { clean, type StatusLine } from './narrate';
 
@@ -27,12 +27,22 @@ import { clean, type StatusLine } from './narrate';
 
 // ---- what a game declares ---------------------------------------------------------------------
 
+/** A way he faces. */
+export type Way = 'left' | 'right' | 'up' | 'down';
+
 /** What Pendragon does in a place, one after the other (sprite coordinates are the VIC's, as `capture.sprites` has them). */
 export type EndingStep =
   /** Walk to a place along the floor (the joystick, as a player would). */
   | { walk: readonly [number, number] }
-  /** Close in on a creature (sprite number) from a side and strike it with the sword for a moment. `dy`: how far below its top he stands (his feet against its). */
-  | { strike: number; from: 'left' | 'right'; reach?: number; dy?: number; frames?: number }
+  /** Close in on a creature (sprite number) from a side and strike it with the sword for a moment. `dy`: how far below its top he stands (his feet against its). `action`: the game's own number for what he strikes with (default `EndingSpec.action.strike`). */
+  | { strike: number; from: 'left' | 'right'; reach?: number; dy?: number; frames?: number; action?: number }
+  /**
+   * Use an action (the game's own number for it) where he stands: turn to face a way (a moment of the stick), then press fire `times`
+   * times, each held `hold` frames with `gap` frames after it (a stone thrown, a dig, the cloak put on).
+   */
+  | { use: number; face?: Way; times?: number; hold?: number; gap?: number }
+  /** Hold a way for a number of frames (along a bridge the engine's oblique floor lets him up only on a line). */
+  | { go: Way; frames: number }
   /** Jump (straight up) a few times. */
   | { jump: number }
   /** Stand a moment. */
@@ -67,6 +77,16 @@ export interface EndingCharacter {
   frames?: number;
 }
 
+/** The game's actions, as the ending's Pendragon uses them. */
+export interface EndingActions {
+  get(ram: Uint8Array): number;
+  set(ram: Uint8Array, n: number, call: (fn: () => void) => void): void;
+  jump: number;
+  strike: number;
+  /** Whether he can take another press of the action now (nothing of the last still under way: a stone in flight, a dig); default always. */
+  ready?(ram: Uint8Array): boolean;
+}
+
 export interface EndingSpec {
   /** The game's title, over the parade. */
   title: string;
@@ -74,16 +94,23 @@ export interface EndingSpec {
   cast: readonly EndingCharacter[];
   /** The status line the caption goes on. */
   status: StatusLine;
-  /** The row (picture pixels) the credit lines are drawn at: eight pixels in the black band under the picture (default 166, the Pendragon games'). */
+  /** Where the credit lines are drawn (picture pixels): the row of eight pixels in the empty band, and the column they start at (default 166 in the black band under the picture, and 8: Blackwyche's and Karnath's). */
   creditRow?: number;
+  creditX?: number;
+  /** The engine takes one of the four ways for a diagonal (Dragonskulle's): he walks one way at a time. */
+  fourWays?: boolean;
+  /** The picture laid out as the game's front end shows it in play (the montage is drawn so; the parade and THE END are not). */
+  layout?: PictureLayout;
+  /** Each frame, after the game's: what its own panel shows that means nothing in the show (a new game's score, its lives) put away, so the band stays empty. */
+  tidy?(ram: Uint8Array): void;
   /** The joystick port the game reads, if only one. */
   joyPort?: 1 | 2;
   /** Pendragon's sprite number (2 in all three games). */
   hero: number;
   /** A new game's memory made ready: what he needs in his hands (the sword). */
   arm(ram: Uint8Array): void;
-  /** The action he is using now (1 jump, 2 sword) and picking one: the game's own, as the front end's action keys do. */
-  action: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number, call: (fn: () => void) => void): void };
+  /** The action he is using now and picking one: the game's own, as the front end's action keys do; and the numbers of the two a scene needs by name (jumping, and what he strikes with). */
+  action: EndingActions;
   /** Each frame: nothing may end it (energy kept up). */
   keepAlive(ram: Uint8Array): void;
   /** Frames the fire button is held on the title to start a game (default 31 to 33), as the title wants. */
@@ -113,6 +140,7 @@ export function wantsEnding(): boolean {
 
 /** Joystick bits (low = pressed). */
 const UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8, FIRE = 16, IDLE = 0x1f;
+const WAY: Record<Way, number> = { up: UP, down: DOWN, left: LEFT, right: RIGHT };
 
 function joy(m: { joy1: number; joy2: number }, port: 1 | 2 | undefined, bits: number) {
   m.joy1 = port === 2 ? IDLE : bits;
@@ -139,11 +167,26 @@ class Director {
   private i = 0;
   private spent = 0;
   private strike = { swing: 0, rest: 0 };
+  /** Where he was last frame and for how long he has not moved, and the frames left of going the other way round (against a wall). */
+  private last = { x: -1, y: -1, still: 0, detour: 0 };
+  /** The presses of an action step: how many, the frames of the one in hand still to hold, and the rest after it. */
+  private presses = { n: 0, held: 0, rest: 0 };
   constructor(private readonly spec: EndingSpec, private readonly steps: readonly EndingStep[]) {}
 
   get done() { return this.i >= this.steps.length; }
 
-  private next() { this.i++; this.spent = 0; this.strike = { swing: 0, rest: 0 }; }
+  private next() { this.i++; this.spent = 0; this.strike = { swing: 0, rest: 0 }; this.last = { x: -1, y: -1, still: 0, detour: 0 }; this.presses = { n: 0, held: 0, rest: 0 }; }
+
+  /** The joystick that closes in on a place, with a way round when he is held up: standing still a few frames against what the engine will not let him through, he tries the other way for a while. */
+  private steer(me: { x: number; y: number }, tx: number, ty: number, near: number): number {
+    const l = this.last;
+    l.still = me.x === l.x && me.y === l.y ? l.still + 1 : 0;
+    l.x = me.x; l.y = me.y;
+    if (l.still >= 8 && l.detour === 0) { l.detour = 24; l.still = 0; }
+    const bits = approach(me.x, me.y, tx, ty, near, this.spec.fourWays, l.detour > 0);
+    if (l.detour > 0) l.detour--;
+    return bits;
+  }
 
   /** The joystick for this frame, with the sword or jump chosen for it. */
   frame(g: NativeHost): number {
@@ -152,8 +195,10 @@ class Director {
     const me = spriteOf(g, this.spec.hero);
     this.spent++;
     if ('wait' in step) { if (this.spent >= step.wait) this.next(); return IDLE; }
+    if ('use' in step) return this.use(g, step);
+    if ('go' in step) { if (this.spent > step.frames) { this.next(); return IDLE; } return IDLE & ~WAY[step.go]; }
     if ('jump' in step) {
-      this.choose(g, 1);
+      this.choose(g, this.spec.action.jump);
       // fire for a frame now and then: each press is a jump, and he lands before the next
       const phase = this.spent % 40;
       if (this.spent >= step.jump * 40) this.next();
@@ -162,12 +207,12 @@ class Director {
     if (!me) return IDLE;
     if ('walk' in step) {
       const [x, y] = step.walk;
-      const bits = approach(me.x, me.y, x, y, 2);
+      const bits = this.steer(me, x, y, 2);
       if (bits === IDLE || this.spent > 400) this.next();
       return bits;
     }
     // strike: close in, face it, swing
-    this.choose(g, 2);
+    this.choose(g, step.action ?? this.spec.action.strike);
     const t = spriteOf(g, step.strike);
     // (not in sight yet: he waits for it)
     if (this.spent > (step.frames ?? 240)) { this.next(); return IDLE; }
@@ -176,7 +221,7 @@ class Director {
     const goalX = step.from === 'left' ? t.x - reach : t.x + reach, goalY = t.y + (step.dy ?? 0);
     const near = Math.abs(me.x - goalX) <= 4 && Math.abs(me.y - goalY) <= 4;
     const face = step.from === 'left' ? RIGHT : LEFT;
-    if (!near && this.strike.swing === 0) return approach(me.x, me.y, goalX, goalY, 3);
+    if (!near && this.strike.swing === 0) return this.steer(me, goalX, goalY, 3);
     // in place: turn to it (a frame of the stick that way), then fire a stroke and rest
     if (this.strike.swing === 0 && this.strike.rest === 0) { this.strike.swing = 1; return IDLE & ~face; }
     if (this.strike.swing > 0) {
@@ -186,6 +231,19 @@ class Director {
     }
     if (--this.strike.rest <= 0) this.strike.rest = 0;
     return IDLE;
+  }
+
+  /** An action used where he stands: turn (a moment of the stick), then press fire `times` times: each when the game can take it (`action.ready`) and `gap` frames after the last. */
+  private use(g: NativeHost, step: Extract<EndingStep, { use: number }>): number {
+    this.choose(g, step.use);
+    const turn = step.face ? 2 : 0, p = this.presses;
+    if (step.face && this.spent <= turn) return IDLE & ~WAY[step.face];
+    if (p.held > 0) { p.held--; return IDLE & ~FIRE; }
+    if (p.rest > 0) { p.rest--; return IDLE; }
+    if (p.n >= (step.times ?? 1)) { this.next(); return IDLE; }
+    if (!(this.spec.action.ready?.(g.m.ram) ?? true)) return IDLE;
+    p.n++; p.held = (step.hold ?? 1) - 1; p.rest = step.gap ?? 24;
+    return IDLE & ~FIRE;
   }
 
   /** The action in hand. */
@@ -204,11 +262,29 @@ function caption(ram: Uint8Array, line: StatusLine, text: string) {
   }
 }
 
-/** The joystick that closes in on a place (a step at a time along each way); IDLE when there. */
-function approach(x: number, y: number, tx: number, ty: number, near: number) {
+/**
+ * What we wrote into the screen after the game's frame (the caption, the panel put away) is in this frame's picture too: the capture
+ * holds the screen as the VIC fetched it during the frame, which is before. Presentation only, in the picture of the show.
+ */
+function repaint(m: { ram: Uint8Array; capture: FrameCapture }) {
+  m.capture.rows.forEach((r, row) => {
+    if (!r) return;
+    const base = r.bank + ((r.d018 >> 4) & 15) * 0x400 + row * 40;
+    for (let c = 0; c < 40; c++) r.codes[c] = m.ram[base + c];
+  });
+}
+
+/**
+ * The joystick that closes in on a place (a step at a time along each way); IDLE when there. With `fourWays` one way at a time, the
+ * one furthest to go (an engine that takes one of the four ways for a diagonal, and might take the blocked one).
+ */
+function approach(x: number, y: number, tx: number, ty: number, near: number, fourWays = false, other = false) {
   let bits = IDLE;
   if (y < ty - near) bits &= ~DOWN; else if (y > ty + near) bits &= ~UP;
   if (x < tx - near) bits &= ~RIGHT; else if (x > tx + near) bits &= ~LEFT;
+  if (fourWays && bits !== IDLE && (bits & (UP | DOWN)) !== (UP | DOWN) && (bits & (LEFT | RIGHT)) !== (LEFT | RIGHT)) {
+    return Math.abs(tx - x) >= Math.abs(ty - y) !== other ? bits | UP | DOWN : bits | LEFT | RIGHT;
+  }
   return bits;
 }
 
@@ -357,6 +433,8 @@ export class Ending {
     this.stats = stats;
     this.figures = [];
     this.scene = -1;
+    // (the HD view's room, if it was up, is the game's: the show is drawn as the C64's picture)
+    this.o.host.renderer.hd.room = null;
   }
 
   /** Over: everything ours put away. */
@@ -365,6 +443,7 @@ export class Ending {
     this.view = null; this.machine = null; this.music = null; this.base = null;
     for (const h of this.handles) h.visible = false;
     this.o.host.renderer.backdrop = null;
+    this.o.host.renderer.layout = null;
     this.active = false;
   }
 
@@ -384,7 +463,7 @@ export class Ending {
     this.frames++;
     if (this.phase === 'loading') {
       // (a black frame first, then the work: the machines are made and the cast recorded in one go)
-      if (this.frames === 1) { renderer.backdrop = this.black; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
+      if (this.frames === 1) { renderer.backdrop = this.black; renderer.layout = null; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
       this.load();
       return;
     }
@@ -442,7 +521,11 @@ export class Ending {
     joy(g.m, this.o.spec.joyPort, d.frame(g));
     this.o.spec.keepAlive(g.m.ram);
     g.tick();
+    this.o.spec.tidy?.(g.m.ram);
     caption(g.m.ram, this.o.spec.status, scene.caption);
+    repaint(g.m);
+    // (the picture as the game's front end lays it out in play, if it does)
+    this.o.host.renderer.layout = this.o.spec.layout ?? null;
     view.update();
     this.credits(scene);
     if (this.frames >= sceneLength(scene)) this.next();
@@ -453,7 +536,7 @@ export class Ending {
     const now = creditAt(scene, this.frames - 1);
     if (!now) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, CREDIT.colour);
+    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, CREDIT.colour);
     screen.version++;
   }
 
@@ -465,6 +548,7 @@ export class Ending {
     this.machine = null;
     const { renderer } = this.o.host;
     renderer.backdrop = this.black;
+    renderer.layout = null;
     renderer.border = 0;
   }
 

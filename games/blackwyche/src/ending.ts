@@ -48,8 +48,9 @@ const SCENES: readonly EndingScene[] = [
   scene(0x1b, ['INSPIRED BY HMS VICTORY, PORTSMOUTH', 'THE BROTHERS PHOTOGRAPHED THE SHIP'], strike(0)),
   scene(0x19, ['BOB WAS A MINISTRY OF DEFENCE', 'TECHNICAL ILLUSTRATOR'], strike(4)),
   scene(0x1a, ['MADE IN THEIR PARENTS ATTIC', 'ULTIMATE ORDERED A WHOLE SERIES'], RUN),
-  scene(0x12, ['PENDRAGON IS THE BLACK PRINCE', 'FROM JACK THE GIANT KILLER'], strike(4)),
-  scene(0x1e, ['COMMODORE USER: BEST OF THE SERIES', 'SIR ARTHUR AND THE BLACKWYCHE ARE', 'IN SEA OF THIEVES BY RARE'], strike(0)),
+  scene(0x12, ['PENDRAGON IS THE BLACK PRINCE', 'FROM JACK THE GIANT KILLER', 'COMMODORE USER: BEST OF THE SERIES', 'SIR ARTHUR AND THE BLACKWYCHE ARE', 'IN SEA OF THIEVES BY RARE'], strike(4)),
+  // (the spider hangs down into the band under the picture, where the credits stand: this scene has none)
+  scene(0x1e, [], strike(0)),
   // this copy, and this port
   scene(0x0e, ['A KILOBYTE WAS MISSING FROM THIS COPY', 'FOUND BY CHECKING EVERY ROOM', 'TITLE LINE RESTORED: A.C.G. 1985'], [{ walk: [60, 164] }, { jump: 1 }, { walk: [280, 164] }]),
   scene(0x13, PORT_CREDITS, [{ walk: [300, 164] }, { jump: 2 }, { walk: [60, 164] }]),

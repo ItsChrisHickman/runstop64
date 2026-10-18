@@ -117,6 +117,7 @@ export const TESTS = [
   { file: 'games/blackwyche/test/hd.ts', set: 'slow' },
 
   // ---- Dragon Skulle
+  { file: 'games/dragonskulle/test/ending.ts', set: 'slow' },
   { file: 'games/dragonskulle/test/frontend.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/grace.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/shovel-touch.ts', set: 'fast' },

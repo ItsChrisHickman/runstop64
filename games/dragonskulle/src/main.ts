@@ -1,7 +1,10 @@
 import { obliqueRooms, type FrameCapture, type Gauge, type Host, type PictureLayout } from 'c64kit';
 import { runNative } from '../../shared/native/play';
-import { cpu, ram as bound } from '../../shared/native/cpu';
+import type { EndingSpec } from '../../shared/native/ending';
+import { ram as bound } from '../../shared/native/cpu';
 import { port } from './native';
+import { dragonskulleEnding, endingStats, won } from './ending';
+import { ACTION, ACTIONS } from './actions';
 import * as engine from './gen/engine';
 import { dragonskulleMap, cellOf } from './map';
 import { dragonskulleCombat, dragonskulleControls } from './combat';
@@ -61,8 +64,7 @@ export const cloakIcon: Gauge = {
   empty: 11,
 };
 
-/** The actions, as the hand points at them ($12EB; the hand's place $12EC, 7 columns each). */
-export const ACTION = { shovel: 0, cloak: 1, pause: 2, stone: 3, jump: 4 };
+export { ACTION };
 
 /**
  * The bar as we show it: the actions in the order of their keys, each labelled with its key (no
@@ -123,6 +125,8 @@ export const dragonskulleLayout: PictureLayout = {
   font: 22, // (the status line's letters: SCORE, HIGH SCORE)
   gauges: [energyFace, cloakIcon],
 };
+/** The ending's show as it is drawn: the montage in the layout above, the status panel's room for the caption and the credits at the top (src/ending.ts). */
+export const dragonskulleShow: EndingSpec = { ...dragonskulleEnding, layout: dragonskulleLayout };
 /** The play screen: the panels' charset ($3000) on rows 0-2 and 22-24, the playfield's ($3800) between (the raster split). */
 const playScreen = ({ capture: cap }: { capture: FrameCapture }) => cap.rows[0]?.d018 === 0x1c && cap.rows[3]?.d018 === 0x1e && cap.rows[22]?.d018 === 0x1c;
 
@@ -175,12 +179,7 @@ export function run(host: Host) {
       keys: { KeyZ: ACTION.jump, KeyX: ACTION.stone, KeyC: ACTION.shovel, KeyV: ACTION.cloak },
       also: 'fire',
       next: { order: BAR.map((b) => b.action), get: (ram) => ram[0x12eb] },
-      set: (ram, n, call) => call(() => {
-        // the hand off the icon it was on, onto the new one ($12CF colours it, as $12A1 does)
-        cpu.x = ram[0x12ec]; cpu.a = 0; engine.r_12cf();
-        ram[0x12eb] = n; ram[0x12ec] = n * 7; ram[0x12ed] = 0;
-        cpu.x = ram[0x12ec]; cpu.a = 0x0a; engine.r_12cf();
-      }),
+      set: ACTIONS.set,
     },
     // Touch: the stick, USE (the action the hand points at), straight to an action, and RUN (added for `run`).
     touch: {
@@ -192,5 +191,7 @@ export function run(host: Host) {
     reserved: [...JOYSTICK_KEYS, 'KeyC', 'KeyV'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1', F1: 'F1' },
     text: TITLE_TEXT,
+    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    ending: { spec: dragonskulleShow, won, stats: endingStats },
   });
 }

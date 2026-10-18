@@ -12,7 +12,7 @@ import { CLOAK_FRAMES, FRAMES_A_SECOND, cloakLeft, hitsLeft, wizardsLeft } from 
  * screen he's been on (travel.ts), the game's own way.
  */
 export const COLUMNS = 17, ROWS = 24;
-const TABLE = 0x6e20;
+export const TABLE = 0x6e20;
 /** The cell he's in: column $20A8 of row $20A9. */
 export const cellOf = (ram: Uint8Array) => ({ x: ram[0x20a8], y: ram[0x20a9] });
 export const cellKey = (ram: Uint8Array) => `${ram[0x20a8]},${ram[0x20a9]}`;
