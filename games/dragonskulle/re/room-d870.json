@@ -34,6 +34,7 @@
   "hooks": {
     "64d1": "hurt: the block's hurt flag ($676C)",
     "6500": "hurt: the block's hurt flag ($676C)",
-    "651f": "strike: the stone on sprite 1"
+    "651f": "strike: the stone on sprite 1",
+    "6561": "react: a stone counted on the dragon ($676F up one)"
   }
 }

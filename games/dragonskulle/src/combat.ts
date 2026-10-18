@@ -2,6 +2,9 @@ import type { CombatHook, CombatSpec } from '../../shared/native/combat';
 import { pendragonControls, type ControlsSpec } from '../../shared/native/controls';
 import * as engine from './gen/engine';
 
+/** The sprites a dragon is drawn with (sprite 0 is its fire). */
+const DRAGON_SPRITES = [1, 4, 5, 6, 7];
+
 /**
  * Dragonskulle's fights, read from its code (re/README.md, "Combat").
  *
@@ -13,6 +16,11 @@ import * as engine from './gen/engine';
  * touching him (or a ray, a drop) sets the block's hurt flag (`hurt`): the block flashes him
  * for six frames with the hurt sound ($37AD), then gives the damage ($3432), which takes energy
  * from the face going ($123E: 20 a face; five faces, the lives, $1248).
+ *
+ * The dragons take ten stones thrown facing up: the game counts each at $6561 (`react`, ENHANCED's
+ * ENEMIES SHOW HITS: the dragon's colours cycle for a few frames; the tenth too, and then its death
+ * is the game's own colour cycle over the body, sprites 4-7, $6763 counting to $F0; the spark and
+ * sound are the `strike`'s).
  */
 const strike = (...n: number[]): CombatHook => ({ kind: 'strike', sprite: () => (n.length === 1 ? n[0] : n) });
 /** What hit him: the other sprite in the collision read (not him, not the stone). */
@@ -32,6 +40,8 @@ export const dragonskulleCombat: CombatSpec = {
     0x63fc: hurt, 0x6430: hurt, 0x6470: hurt, 0x64ac: hurt, 0x64be: strike(4), 0x650b: strike(5), 0x6558: strike(1), // $C400
     0x63cc: hurt, 0x6422: hurt, 0x647c: hurt, 0x64b8: hurt, 0x64ca: strike(4), 0x6514: strike(5), 0x655a: strike(1), // $CD50
     0x64d1: hurt, 0x6500: hurt, 0x651f: strike(1), // $D870
+    // (the dragon, drawn with sprites 1, 4, 5, 6, 7: a stone counted on it, $6561)
+    0x6561: { kind: 'react', sprites: DRAGON_SPRITES },
     0x6255: hurt, // $E010
     0x61d9: hurt, 0x61f0: strike(0), 0x6224: strike(1), // $E460
     0x6177: hurt, 0x61bd: hurt, 0x6214: hurt, 0x6226: strike(5), 0x6273: strike(1), // $E900

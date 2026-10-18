@@ -18,7 +18,7 @@ import { drawPending, KeyPacer, NamePicker, DEL, RETURN, type NameKey, type Name
  */
 
 /** The assists `runNative` itself offers, by id (a game's own `assists` add theirs). */
-export type NativeAssistId = 'health' | 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'eightWay' | 'respawn' | 'run' | 'airJump';
+export type NativeAssistId = 'health' | 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'react' | 'eightWay' | 'respawn' | 'run' | 'airJump';
 
 /** What the features share of the session. */
 export class NativeEnv {

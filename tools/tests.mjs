@@ -122,6 +122,7 @@ export const TESTS = [
   { file: 'games/dragonskulle/test/shovel-touch.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/shovel.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/rules.ts', set: 'fast' },
+  { file: 'games/dragonskulle/test/dragon-react.ts', set: 'fast' },
   { file: 'games/dragonskulle/re/rules/check.ts', set: 'fast' },
   { file: 'games/dragonskulle/re/hints/check.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/hd.ts', set: 'slow' },

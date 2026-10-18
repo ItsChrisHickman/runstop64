@@ -111,7 +111,7 @@ his weapon is the magic stone (the STONE icon, action 3), sprite 3: $27F6 throws
 while he throws, 2 while it flies: it goes the way he faces, up and to the right facing up).
 The collisions read are kept at $3414. Each block checks them for its own creatures: the stone
 on one (sprites 0, 1, 4 or 5, by block) runs the code for that (`strike`, judged destroyed or hit
-from the next frame's picture: the dragons take ten). The shovel room's stone checks on its two
+from the next frame's picture: the dragons take ten; ENHANCED's `react` hook at $6561, the game's `inc $676F`, flashes the dragon's sprites 1, 4-7 by `games/shared/native/colour-cycle.ts`, in the frame's capture only; the game's own death cycles sprites 4-7's colour register for the $6763 count, not the head's). The shovel room's stone checks on its two
 creatures do nothing (they branch to an RTS): no hook. Hurts: a creature, a ray, a drop or the
 gas touching him sets the block's hurt flag (found by the block's routine calling $37AD); then
 six frames of flash ($37AB) and the damage ($3432), taken from the face going ($123E, 20 to a

@@ -2,6 +2,7 @@ import { imageCentre, spriteImage, type EffectsModel, type SpriteImage } from '.
 import type { SfxName } from '../../../packages/c64kit/src/sid/sfx';
 import type { C64 as Machine, SpriteCapture } from '../../../packages/c64kit/src/c64/machine';
 import { cpu } from './cpu';
+import { ColourCycle, HIT_CYCLE } from './colour-cycle';
 
 /**
  * Combat for the translated ports (the Pendragon games): the moments a fight is made of, read
@@ -46,7 +47,14 @@ export type CombatHook =
   /** Another store of the same hurt's start (its flash, its sound): made 0 too when it's cancelled. */
   | { kind: 'also' }
   /** The weapon is swung (or a spell cast). */
-  | { kind: 'swing' };
+  | { kind: 'swing' }
+  /**
+   * A blow the game counts on an enemy it doesn't destroy by it (a creature that takes several): it
+   * shows it, its colours cycling for a few frames (colour-cycle.ts; the `react` assist). `sprites`:
+   * all the sprites it is drawn with.
+   * The spark and sound come from the `strike` or `hit` of the same blow, if the game has one.
+   */
+  | { kind: 'react'; sprites: number[] };
 
 export interface CombatSpec {
   /** Pendragon's sprite. */
@@ -80,6 +88,7 @@ export type CombatEvent = EventPlace & (
   | { kind: 'hit'; image: SpriteImage; sprite: number }
   | { kind: 'hurt'; image?: SpriteImage; sprite?: number }
   | { kind: 'swing'; image?: undefined; sprite?: undefined }
+  | { kind: 'react'; image?: undefined; sprite?: undefined; sprites: number[] }
 );
 
 export interface CombatOptions {
@@ -88,6 +97,8 @@ export interface CombatOptions {
   invulnerable: boolean;
   knockback: boolean;
   hitStop: boolean;
+  /** Enemies show the blows they take (a colour cycle over the picture, not the game's memory). */
+  react?: boolean;
   /** A moment's grace is on (grace.ts): a hurt doesn't start. */
   grace?: boolean;
 }
@@ -103,7 +114,12 @@ export const COMBAT_TIMING = {
   hitStop: 4,
 };
 
-interface Pending { kind: CombatEvent['kind'] | 'strike'; sprites?: { sprite: number; vx: number; vy: number }[] }
+interface Pending { kind: CombatEvent['kind'] | 'strike'; sprites?: { sprite: number; vx: number; vy: number }[]; react?: { sprites: number[] } }
+
+/** Whether a spec has enemies that show their blows (the `react` assist is offered then). */
+export function hasReactions(spec: CombatSpec): boolean {
+  return Object.values(spec.hooks).some((h) => (Array.isArray(h) ? h : [h]).some((x) => x.kind === 'react'));
+}
 
 /**
  * Events as effects and sounds: the shared entry for anything that can say what happened and
@@ -142,6 +158,8 @@ export class Combat {
   private cancelling = false;
   private lastHit = new Map<number, number>();
   private frame = 0;
+  /** The colour cycle of an enemy that was hit (`react`). */
+  readonly cycle = new ColourCycle();
   /** Frames left of: invulnerability, knockback, hit-stop. */
   invulnerable = 0;
   knock = { frames: 0, dir: 0 };
@@ -169,6 +187,7 @@ export class Combat {
       case 'kill': case 'hit': case 'strike': this.pending.push({ kind: hook.kind, ...at(hook.sprite(m.ram)) }); break;
       case 'also': if (this.cancelling) cpu.a = 0; break;
       case 'swing': this.pending.push({ kind: 'swing' }); break;
+      case 'react': this.pending.push({ kind: 'react', react: { sprites: hook.sprites } }); break;
       case 'hurt': {
         if (cpu.a === 0) break; // (the game stores 0 there too: not a hurt)
         const o = this.options();
@@ -209,6 +228,7 @@ export class Combat {
         events.push({ kind: 'hurt', x: player.x, y: player.y, frame: this.frame, image, sprite: hitter?.n });
         continue;
       }
+      if (p.kind === 'react') { if (p.react) events.push({ kind: 'react', x: player.x, y: player.y, frame: this.frame, sprites: p.react.sprites }); continue; }
       if (p.kind === 'swing') { events.push({ kind: 'swing', x: player.x, y: player.y, frame: this.frame }); continue; }
       if (!s) continue; // (not drawn: nothing to show)
       const image = spriteImage(s), c = imageCentre(image);
@@ -236,6 +256,10 @@ export class Combat {
     const o = this.options();
     if (!o.effects) { fx.setGlows([]); return; }
     const cap = m.capture.sprites;
+    if (o.react) {
+      for (const e of events) if (e.kind === 'react') this.cycle.start(e.sprites, HIT_CYCLE);
+      this.cycle.apply(cap);
+    }
     const player = this.nearest(cap, this.spec.player);
     playEvents(events, fx, sfx, now, { player: player ? imageCentre(spriteImage(player)) : undefined, healthBox: this.spec.healthBox });
     const w = this.spec.weapon;
@@ -286,6 +310,7 @@ export class Combat {
 
   /** Forget what was going on (a new game, a resumed save, travel). */
   reset() {
+    this.cycle.reset();
     this.pending = []; this.strikes = []; this.invulnerable = 0; this.knock.frames = 0; this.hitStop = 0; this.tracks.clear();
   }
 

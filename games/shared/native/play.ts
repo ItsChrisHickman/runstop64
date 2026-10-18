@@ -3,7 +3,7 @@ import { MACHINE_CODEC, type GameStatus, type TitleStrip } from '../continue';
 import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout } from 'c64kit';
 import { cpu } from './cpu';
 import { NativeHost, type PortConfig } from './host';
-import { Combat, type CombatSpec } from './combat';
+import { Combat, hasReactions, type CombatSpec } from './combat';
 import { EightWay, type ControlsSpec, type Runner } from './controls';
 import {
   ActionKeys, AirJump, EightWayStage, Keyboard, Knockback, Latch, NamePick, NativeEnv, RUN_KEYS, Running, SafeArrival, ScreenWatch, Vitals, stages,
@@ -167,6 +167,7 @@ function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
       own('invulnerable', 'SAFE AFTER A HIT'),
       own('knockback', 'KNOCKBACK'),
       own('hitStop', 'HIT-STOP'),
+      ...(hasReactions(opts.combat) ? [own('react', 'ENEMIES SHOW HITS')] : []),
     ] : []),
     ...(opts.controls ? [own('eightWay', '8-WAY CONTROLS')] : []),
     ...(opts.safe ? [own('respawn', 'NO DEATH LOOPS')] : []),
@@ -243,7 +244,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const runner: Runner = { call(fn) { const regs = { ...cpu }; fn(); Object.assign(cpu, regs); } };
   const env = new NativeEnv(runner, opts.joyPort, (): boolean => flow.state.playing, (): boolean => fe.enhanced, (id): boolean => assist[id] === true);
   const combat = opts.combat ? new Combat(opts.combat, () => ({
-    effects: !!assist.effects, glow: !!assist.glow, invulnerable: !!assist.invulnerable, knockback: !!assist.knockback, hitStop: !!assist.hitStop, grace: flow.grace.active && flow.state.playing,
+    effects: !!assist.effects, glow: !!assist.glow, invulnerable: !!assist.invulnerable, knockback: !!assist.knockback, hitStop: !!assist.hitStop, react: !!assist.react, grace: flow.grace.active && flow.state.playing,
   })) : null;
   const running = opts.run ? new Running(env, opts.run) : null;
   const knockback = combat ? new Knockback(env, combat, opts.run?.player ?? null) : null;
