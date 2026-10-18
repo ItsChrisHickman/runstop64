@@ -6,13 +6,14 @@
  * with a save going straight back into play; GAME OVER -> CONTINUE? -> the last screen again (a new game's lives and score from nothing; after
  * the card, everything as saved); the Christmas card and any key; back to screen start; the save a faithful copy of the game; the ORIGINAL /
  * ENHANCED switch (sprites on the renderer or not, the enhancements on or off); a moment's grace after a resume; the high score kept; NEW GAME?
- * over a save; ENTER CONTINUE where it sits; touch; the sound hook told what happens. With an out-dir: stills of the screens.
+ * over a save; ENTER CONTINUE where it sits; touch; the sound told what happens. With an out-dir: stills of the screens.
  *
  *   nice -n 15 node tools/test.mjs games/moley/test/frontend.ts [out-dir]
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
+import { ayLog } from '../../shared/test/kit';
 import { palettePng } from '../../../tools/png';
 import { readJson } from '../../shared/guards';
 import { unpackSlot } from '../../shared/continue';
@@ -43,11 +44,6 @@ const game = () => p.flow.game;
 const visibleSprites = () => renderer.sprites.filter((s) => s.visible).length;
 
 // what the sound hook is told
-const effects: number[] = [];
-let musicStarts = 0, musicStops = 0;
-p.sound.effect = (n) => { effects.push(n); };
-p.sound.musicStart = () => { musicStarts++; };
-p.sound.musicStop = () => { musicStops++; };
 
 // stills: the picture as the renderer shows it (the screen with its sprites), the Spectrum's colours
 const outDir = process.argv[2];
@@ -77,11 +73,11 @@ const yellowInStrip = () => [...renderer.screen.pixels.subarray(STRIP_Y * 320, (
 const yellowBefore = yellowInStrip();
 check('touch: the stick has four directions and the one button is JUMP on Space', p.touch.stick === '4' && p.touch.buttons.length === 1 && p.touch.buttons[0]?.label === 'JUMP' && p.touch.buttons[0]?.key === 'Space');
 
-// Enter (with no save) starts a game as the jump key does
+// Enter (with no save) starts a game as the jump key does (and is the first key: the audio unlocks, which is asynchronous)
 tap('Enter');
+await new Promise((resolve) => setTimeout(resolve, 0));
 until(() => p.state.phase === 'play', 120);
 check(`Enter starts a game: screen 1, five lives (${game().room}, ${game().lives})`, p.state.phase === 'play' && game().room === 0 && game().lives === START_LIVES);
-check('the sound is told the game has begun', musicStarts === 1);
 tick(20);
 check('a save on coming into the first screen, and the map has it', savedNow()?.room === 0 && p.state.found.reached.join() === '0' && p.state.found.done.length === 0);
 shot('2-play');
@@ -210,12 +206,13 @@ check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites(
   check(`and with the grace gone it does (${lives} to ${game().lives})`, game().lives === lives - 1);
 }
 
-// ---- the sound hook -------------------------------------------------------------------------------------------------------------------
-check(`the sound hook was told of the death (effect 0): ${effects.join()}`, effects.includes(0));
-
 // ---- autosave after a death: the lives lost stay lost ---------------------------------------------------------------------------------------
 tick(200);
 check(`the save keeps the lives (${savedNow()?.lives} of ${game().lives})`, savedNow()?.lives === game().lives);
+
+// ---- the sound -------------------------------------------------------------------------------------------------------------------
+check(`the sound: the audio unlocked by the first key, the music playing, the effects made, and the death's effect played (${ayLog.played.length} played)`, p.sound.unlocked && ayLog.playing && ayLog.samples.length >= 4 && ayLog.played.length > 0);
+check('and held while the pause screen is up', (() => { tap('KeyP'); const held = ayLog.held; tap('KeyP'); return held && !ayLog.held; })());
 
 // ---- GAME OVER -> CONTINUE? ------------------------------------------------------------------------------------------------------------------
 const lastRoom = game().room;
@@ -226,7 +223,6 @@ game().gauge.value = 0x80;
 until(() => p.state.phase === 'over', 400);
 shot('6-game-over');
 check('the last life lost: GAME OVER', p.state.phase === 'over');
-check('the sound is told the music is over', musicStops >= 1);
 until(() => p.state.phase === 'credits', 400);
 check('and the credits page', p.state.phase === 'credits');
 check(`the high score is kept (${store.get('moley.high.v1')})`, store.get('moley.high.v1') === '135');

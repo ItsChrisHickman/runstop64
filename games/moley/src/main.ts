@@ -1,6 +1,6 @@
 import type { Host } from 'c64kit';
 import { readJson } from '../../shared/guards';
-import { runPort, type PortSound } from '../../shared/port';
+import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import type { TitleStrip } from '../../shared/continue';
 import { PAUSE_COLOURS, SPECTRUM } from './colours';
@@ -11,6 +11,7 @@ import { MoleyFlow, type FlowOptions, type FlowStep } from './flow';
 import { describeSave, moleyMap, noteDone, noteReached, SCREENS, type MoleyFound } from './map';
 import { Key } from './monty';
 import { SeededRandom } from './random';
+import { MoleySound } from './sound';
 import { CODEC, restoreGame, snapshotOf, type MoleySave } from './save';
 import { MoleyView } from './view';
 
@@ -42,42 +43,13 @@ function readHigh(): number {
   } catch { return 0; }
 }
 
-// ==== SOUND HOOK =============================================================================================================
-// Stage 7 (games/moley/src/sound.ts, written apart from this file) plugs in HERE and nowhere else: build the real `MoleySound` in
-// `makeSound`, and the rest of this file already calls it at the right moments (see `afterStep`, `resume`, `toTitle`, and the audio
-// keys in `runPort`'s adapter: M mutes through the shared AudioKeys, which call `toggleMute`).
-
-/**
- * What the game asks of its sound. `PortSound` is what the shared audio keys and the render tail need (`unlocked`, `unlock()`,
- * `toggleMute()`, `hold(on)`: the sound waits while a screen of ours covers the game).
- */
-export interface MoleySound extends PortSound {
-  /**
-   * A beeper effect, by the number the game reports (`Game.sounds` after each pass: the original's own `A` of `$A017`, 0-6): 0 a death, 1 the
-   * street lamp's short death, 2 an item taken (or a paper), 3 a harmless touch that drains the gauge, 5 a puzzle step; 4 and 6 are never asked
-   * for. Called in the step of the pass that made it (a death's sound plays 3 frames before its first picture).
-   */
-  effect(n: number): void;
-  /** A game has begun, or been carried on from a save: the music (128K) starts. */
-  musicStart(): void;
-  /** The game has ended (GAME OVER, the card) or the player went back to the credits page: the music stops. */
-  musicStop(): void;
-  /** The browser has let the audio start (a key or a tap): start what should already be playing. */
-  started(): void | PromiseLike<void>;
-}
-
-/** No sound yet. */
-function makeSound(): MoleySound {
-  return { unlocked: true, unlock: async () => {}, toggleMute: () => false, hold() {}, effect() {}, musicStart() {}, musicStop() {}, started() {} };
-}
-// =============================================================================================================================
-
 /** The jump key is held for this many frames after Enter or a tap on the credits page (it reads none while it looks for a joystick). */
 const START_HOLD = 60;
 
 export function run(host: Host) {
   const { renderer, input } = host;
-  const sound = makeSound();
+  // the sound (sound.ts): the first key or tap unlocks it and starts the music, M mutes both, the render tail holds it behind our screens
+  const sound = new MoleySound();
   const options: FlowOptions = { creditsText: CREDITS_TEXT_OURS };
   let seed = (Date.now() >>> 0) ^ 0x2545f491;
   let high = readHigh();
@@ -94,7 +66,6 @@ export function run(host: Host) {
   /** The step being shown, and the frame of it (0 the first). */
   let step: FlowStep | null = null;
   let into = 0;
-  let lastCounter = current.game.counter;
   let lastPhase = current.phase;
   let seenEntries = current.display.entries;
   /** The screen he is in (-1: none yet in this game), and whether the room just entered was by travel (not an exit). */
@@ -118,7 +89,6 @@ export function run(host: Host) {
       view.setDisplay(next.display);
       step = null;
       into = 0;
-      lastCounter = next.game.counter;
       lastPhase = next.phase;
       seenEntries = next.display.entries;
     }
@@ -158,22 +128,17 @@ export function run(host: Host) {
         rooms.clear();
         latch.hold();
         seenRoom = -1;
-        sound.musicStart();
       } else if (to === 'over' || to === 'ending') {
         lastEnd = to;
         if (to === 'ending' && seenRoom >= 0 && noteDone(fe.found, seenRoom)) fe.keepFound();
         keepHigh();
-        sound.musicStop();
       }
     }
 
     /** What a step has brought: the pass's effects, a change of phase, a screen entered. */
     function afterStep(next: FlowStep): void {
       const game = current.game;
-      if (game.counter !== lastCounter) {
-        lastCounter = game.counter;
-        for (const n of game.sounds) sound.effect(n);
-      }
+      sound.afterStep(game, next);
       if (next.phase !== lastPhase) {
         phaseChanged(lastPhase, next.phase);
         lastPhase = next.phase;
@@ -208,6 +173,7 @@ export function run(host: Host) {
       travel(id) {
         if (!moleyMap.go(id, current, fe.found)) return false;
         adopt(new MoleyFlow(current.game.rng, { game: current.game, display: current.display }, options));
+        sound.sync(current.game);
         travelled = true;
         entered();
         return true;
@@ -221,7 +187,7 @@ export function run(host: Host) {
         adopt(new MoleyFlow(rng, { game, display }, options));
         seenRoom = s.room;
         lastEnd = null;
-        sound.musicStart();
+        sound.sync(game);
         rooms.enter(snapshotOf(game));
         // (the picture at once; the first step is a pass)
         const first: FlowStep = { phase: 'play', frames: 1, shot: display.still(1), fresh: false, redraw: false, before: null };
@@ -232,7 +198,6 @@ export function run(host: Host) {
         adopt(freshFlow());
         seenRoom = -1;
         lastEnd = null;
-        sound.musicStop();
       },
       frame(holding) {
         if (step !== null) into++;
@@ -252,7 +217,7 @@ export function run(host: Host) {
         if (step !== null) view.present(step, into, true);
       },
       renderView: (alpha) => view.render(alpha),
-      audio: { player: sound, started: () => sound.started() },
+      audio: { player: sound, started: () => {} }, // (unlocking starts the music itself)
     };
   });
 

@@ -31,4 +31,4 @@ default; ORIGINAL is the game exactly as it was); the rest is in both.
 
 Everything else is the original: the six screens and the Christmas card, Monty's walk, jump, fall, ropes and flight, every room's
 script and hazard, the items, the exits, the energy gauge, five lives, the score, the graphics and the credits page, GAME OVER and
-the card. The sound is the original's too: the beeper effects, and the 128K version's music (Ben Daglish), M mutes (being built).
+the card. The sound is the original's too: the beeper effects, and the 128K version's music (Ben Daglish), M mutes both.
