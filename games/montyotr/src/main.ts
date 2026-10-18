@@ -1,8 +1,11 @@
 import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
+import { RewardShow } from '../../shared/ending/show';
+import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
+import { endingStats, montyEnding } from './ending';
 import { Game } from './game';
 import { describeSave, montyMap, NO_TRAVEL, noteRoom, type MontyFound } from './map';
 import { CODEC, migrateOldSave, restore, snapshot, type MontySave } from './save';
@@ -45,10 +48,16 @@ export function run(host: Host) {
   let collisions = 0;
   /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too). */
   let won = false;
+  /** The ending's show, once the session is up (made in the session's build). */
+  let rewardShow: RewardShow | null = null;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = () => false;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<MontySave, MontyFound, Game>(host, {
     id: 'montyotr', font: montyFont(), codec: CODEC, map: montyMap, describe: describeSave,
+    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
+    ending: () => enhanced() && readWon('montyotr'),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
     // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
     restartKeys: [], strip: { y: STRIP_Y },
@@ -59,10 +68,29 @@ export function run(host: Host) {
       { id: 'rooms', long: 'RUNSTOP64 ROOMS', role: 'enhanced' },
       { id: 'respawn', long: 'SAFE RESPAWN' },
     ],
-  }, ({ flow, fe, latch, rooms }) => {
+  }, (self) => {
+    const { flow, fe, latch, rooms } = self;
+    enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assists as the switch has them now
     g.assist = { get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
     g.graceActive = () => flow.grace.active;
+
+    // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+    /** The show is on from the finale (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
+    let afterWin = false;
+    const reward = rewardShow = new RewardShow({
+      host,
+      spec: montyEnding(renderer, g.assist),
+      font: () => flow.getFont(),
+      // (the game's tune, from its start, and again as the title's on the way out; nothing in the sound-effects mode)
+      music: {
+        start() { music.hold(false); if (musicOn) g.sound.song(0); },
+        end() { if (musicOn) g.sound.song(0); },
+      },
+      done() {
+        if (afterWin) { afterWin = false; latch.hold(); } else self.backToTitle();
+      },
+    });
 
     g.onRoomLoaded = (game) => {
       if (noteRoom(game, fe.found)) fe.keepFound();
@@ -108,7 +136,11 @@ export function run(host: Host) {
     }
 
     toTitle();
+    // ?ending on the page: the ending at once, for review
+    if (wantsEnding()) reward.start(endingStats(g, fe.found));
     return {
+      takeover: reward,
+      watchEnding() { afterWin = false; reward.start(endingStats(g, fe.found)); },
       state: () => g,
       phase: () => mode,
       /** In a sequence (a death, a teleport, the C5's) no; but in the ending, until Monty walks aboard (travel can take him back to any room visited). */
@@ -154,7 +186,10 @@ export function run(host: Host) {
           // the last life lost, or the ending played out (France): the title, and CONTINUE? over it (no
           // high-score table or name entry: the original's, gone); the save is kept either way
           won = g.finished === 'won';
+          if (won) keepWon('montyotr');
+          const stats = endingStats(g, fe.found);
           toTitle();
+          if (won && fe.enhanced) { afterWin = true; reward.start(stats); }
         }
         return 'played';
       },
@@ -183,6 +218,8 @@ export function run(host: Host) {
     get game() { return g; },
     get title() { return title; },
     get frontEnd() { return port.fe; },
+    /** For tests: the ending's show (src/ending.ts). */
+    get ending() { return rewardShow; },
     /** For tests: the moment's grace. */
     get grace() { return port.flow.grace; },
     get state() { return { mode, paused: port.fe.paused, going: port.fe.going, found: port.fe.found, grace: port.flow.grace.left, ...port.flow.state }; },
@@ -193,7 +230,7 @@ export function run(host: Host) {
 }
 
 /** The game's own lettering (screen codes $40-$7F of its charset), topped up with the kit's. */
-function montyFont() {
+export function montyFont() {
   return new BitmapFont()
     .addFromCharsetMapped(bankImage, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!-:/()', (c) => (c & 0x3f) | 0x40)
     .addDrawn(KIT_GLYPHS);

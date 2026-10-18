@@ -9,6 +9,8 @@
  * kept; yes takes him back into the dock room as he came in, lives and score as saved, and the
  * treasure there plays the ending again.
  *
+ * (In ENHANCED the reward for winning, test/reward.ts, runs after the finale: skipped here by a key.)
+ *
  *   nice -n 15 node tools/test.mjs games/montyotr/test/ending.ts
  */
 import { Input, PixelRenderer } from 'c64kit';
@@ -102,6 +104,13 @@ check('aboard: the pause screen doesn\'t open (the finale plays on)', !p.state.p
 const saved = must(readSaves('montyotr').current, 'the save on coming into the dock room');
 const finished = until(() => p.state.mode === 'title', 4000);
 check(`the finale to the end: France (${g.won ? 'won' : 'not won'}), the title`, finished && g.won);
+
+// after the finale: ENHANCED's reward comes first (test/reward.ts); a key, once it has run two seconds, skips it
+const reward = must(p.ending, 'the ending\'s show');
+check('the reward (ENHANCED) begins from the finale', reward.active);
+tick(110);
+press('Space');
+check('a key skips it, back to the title', !reward.active && p.state.mode === 'title');
 
 // after the finale: everything kept, and on into the game again
 const s = unpackSlot(CODEC, saved), found = Object.keys(readFound('montyotr').rooms ?? {});

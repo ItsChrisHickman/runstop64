@@ -24,7 +24,7 @@ export const info = {
     Continue after the last life, and after the ending (everything collected kept, to find the rest) &middot; autosave on every room (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any refresh rate &middot;
     ENHANCED (switch to ORIGINAL on the title or the pause screen): ride the rising cloud, in the jetpack
     rooms only Monty himself is hit, not his jetpack, and on the C5 street a crash starts the room again and
-    holding fire keeps a hop up longer; a death never starts Monty again into the same death; and walking right from the
+    holding fire keeps a hop up longer; a death never starts Monty again into the same death; winning shows a montage of the journey with the credits, a parade of the creatures and Rob Hubbard's tune (W on the pause screen once won); and walking right from the
     start leads into runstop64's own rooms (a dev room, a playground, warp gates to the jetpack and the C5).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot;
     <a href="https://github.com/Dave-Agent/monty-on-the-run">Dave-Agent's reconstruction</a>, which made reading the

@@ -75,3 +75,20 @@ start room (`save.ts restore`).
 - `test/runstop64-rooms.ts` proves the rooms by play: a breadth-first search over the game's
   own frames (the game copied at each step; enemies and crushers part of the state) from each
   way into each room to every exit.
+
+## The ending's montage (ENHANCED)
+
+`src/ending.ts` runs the game's own engine (`Game`, a second one of ours, never the player's) through twelve rooms, Monty
+driven by a route (`src/pilot.ts`: runs of a stick held, as text) found by `re/routes.ts`: a beam search over the game's own
+frames (the game copied at each step, `src/game-copy.ts`) from where he comes into the room to the thing the scene says (an
+item, coins, the C5 driven, the treasure), the nearest-the-goal states kept at each depth, the crushers' timing seeded. The
+search only finds the routes: the show replays them as input, and `test/reward.ts` replays each in a game with no grace and
+checks it does what the scene says without a death. In the show a moment's grace is on all the same (the crushers' timing is
+random there). Rooms with a way that goes round, or too many creatures, had no route within the search's limits and are not
+in the montage (the sewers' pipe rooms, the dock's way down to the treasure: that scene starts on the ledge beside it).
+Sources of the credits: `re/credits.md`.
+
+Facts found on the way: a standing place is a floor under Monty's 2x2 characters (`blockedBelow` looks at row +2); the dock
+room's treasure is at x2 $40, y $9A and the ending runs 612 frames from his touch to GAME OVER; the enemy table's types 32-34
+are one creature (a plane towing GOOD LUCK!, three sprites moving together in room $23); type 31 is room $30's, which has no
+cell on the exit grid.

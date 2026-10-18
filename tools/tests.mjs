@@ -171,6 +171,7 @@ export const TESTS = [
   { file: 'games/montyotr/test/ending.ts', set: 'fast' },
   { file: 'games/montyotr/test/frontend.ts', set: 'fast' },
   { file: 'games/montyotr/test/grace.ts', set: 'fast' },
+  { file: 'games/montyotr/test/reward.ts', set: 'fast' },
   { file: 'games/montyotr/test/runstop64-rooms.ts', set: 'slow' },
   { file: 'games/montyotr/test/warps.ts', set: 'fast' },
   { file: 'games/montyotr/test/jetpack.ts', args: [MOTR], set: 'slow', needs: [MOTR] },

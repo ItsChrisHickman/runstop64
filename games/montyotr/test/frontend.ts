@@ -211,6 +211,9 @@ check(`Enter: back in play in the last room (${g.roomId.toString(16)}), lives as
 g.finished = 'won';
 tick(2);
 check('the game properly ended: the title, the save kept', p.state.mode === 'title' && p.state.hasSave && store.has('montyotr.save.v2'));
+// (ENHANCED's reward for winning is on, test/reward.ts: a key skips it after two seconds)
+tick(110);
+tap('Space');
 until(() => p.state.prompt === 'continue', 600);
 check('CONTINUE? offered', p.state.prompt === 'continue');
 tap('Escape');
