@@ -50,7 +50,11 @@ softened copy is taken before they are drawn, `checkSpritesCrisp`), dust and emb
 - **Rooms.** A game's `HdBuilder` (`obliqueRooms(spec)` with an `ObliqueSpec`: the room's band, the floor characters, what
   is seen past the room, flames, the player's sprite, its pictures) builds a room; it is made again only when the room's
   part of the picture changes, and then only what changed (the same places in new colours; the same room moved for a
-  scroll). A scroll's rebuild runs in a worker; the room is drawn scrolled as far as the sprites are (`HdRooms.at(alpha)`).
+  scroll). Every build runs in a worker (a frame of the game never waits for one): a room come into is built there while the C64's picture
+  stays (`HdRooms.room` and `at` give null till it's back: the room before is never shown over another room's sprites), a scroll's
+  rebuild likewise while the room it has is moved on; the room is drawn scrolled as far as the sprites are (`HdRooms.at(alpha)`).
+  What of the room before can stand for this frame (`HdBuilder.keep`: the same picture moved, a few characters animating, the same
+  places in new colours, a few things changed) is told without building; where nothing can, it's another room.
 - **Pictures.** The Pendragon games keep each room as a picture of characters. `packages/c64kit/src/pendragon/room.ts` has the
   types and `games/shared/pendragon/decode.ts` (`decodePictures`, `DecodeRules`) decodes each once into pieces: floor (a
   height; `raised` for tops of things, `beyond` for the room seen over a back wall), the back wall (a depth), side walls (a
@@ -71,8 +75,10 @@ softened copy is taken before they are drawn, `checkSpritesCrisp`), dust and emb
 ## Checks
 
 - Each game's `test/hd.ts`, built from `games/shared/test/hd.ts`: `checkHdSwitch` (the shell's switch with the game),
-  `checkHdRoom` (with pictures: each piece one surface, `checkHdPieces`), `checkHdFrames`, `checkHdLockstep` (walking along a
-  scrolling room, every frame drawn, between the game's frames too; Karnath does not pass it, see below), `checkHdSprites`
+  `checkHdRoom` (with pictures: each piece one surface, `checkHdPieces`), `checkHdFrames`, `checkHdEntry` (each of a game's
+  rooms come into in turn with the build off the main thread: the C64's picture stays till it's back, and the main thread's
+  frames at the entry, the answer and the layer's first frame of the room stay within a budget, timed on the gl stub),
+  `checkHdLockstep` (walking along a scrolling room, every frame drawn, between the game's frames too), `checkHdSprites`
   (each billboard's texture is its sprite's pixels), `checkHidden`, `checkBehind`, `checkRemastered`, `checkShadows`,
   `routeWalker` to walk recorded routes.
 - `packages/c64kit/test/`: `hd-raster.ts` is a software renderer for stills; `gl-stub.ts` is a recording stand-in for WebGL 2
@@ -87,10 +93,20 @@ softened copy is taken before they are drawn, `checkSpritesCrisp`), dust and emb
 
 ## Known issues
 
-- Room entry builds on the main thread: an 808 ms `requestAnimationFrame` stall was seen once on a PC (needs measuring on a
-  GPU).
+- Room entry no longer builds on the main thread (it did: an 808 ms `requestAnimationFrame` stall was seen once on a PC); what a
+  frame costs there is measured headless on the gl stub (`checkHdEntry`: a few ms, the build's 20-150 ms the worker's). Not
+  measured, there being no GPU here: the first HD frame of a session (the shaders compiling, the first upload), which may have
+  been that stall.
 - Furniture is upright cut-outs (a table's top stands upright); Dragonskulle's cliffs and caves are inferred.
-- Entombed: slanted side faces at the right edge of some chambers (2, 4, 8, 10) smear, and dither on side walls stretches.
-- Karnath: `checkHdLockstep` fails along the lower floor (the camera moves by about a thousandth when the first room built is
-  replaced, and the scrolled room differs from the picture's scroll by up to 135 px; the same with inferred rooms); the stair
-  hatch is a box.
+- Entombed: walls over tiers that step back a cell a column (an alcove cut at an angle) and the wedges of a stair's end that grow
+  a cell a row are now side walls going back at their angle (decode.ts, `stacked`); before they were stairs of flat walls with faces
+  joining them, whose one pixel of colour per face stretched across each gap (the smear, the stretched dither). Left: the big
+  slanted faces at the right edge of chambers 2, 8 and 10 (the side of a stair mass reaching the picture's bottom, no foot to read
+  a slope from) stand flat at the front, the blue wedge on the face of a block; and a thin ribbon runs between some tiers where the
+  tile's edge face (the game draws it a few pixels wide, at 2:1) falls between two floors.
+- Karnath: `checkHdLockstep` passes along the lower floor (the cause: something in a room animating a few characters during the
+  scroll made the picture no longer "the same, moved", so each time the room was taken for another room, its camera and scroll
+  started over; now a few characters changed are allowed). The stair hatch is still a box: the hatched diagonal wall at a stairwell
+  decodes as a 45 degree side wall (right where the picture puts it) but stands as one slab, and the steps beside it are floor;
+  a flight of steps (treads rising as they go back) is not modelled, and which characters make which stairs was not
+  traced further.
