@@ -679,7 +679,7 @@ export async function checkHdEntry(check: Check, what: string, spec: ObliqueSpec
   const hd = new HdRooms(obliqueRooms(spec), refresher);
   const draw = layerClock(spritesFromCapture(first.capture, layout));
   draw(obliqueRoom(spec, first.ram, first.capture, layout));
-  const phases = { room: [] as number[], wait: [] as number[], c64: [] as number[], answer: [] as number[], taken: [] as number[], layer: [] as number[] }, builds: number[] = [];
+  const phases: Record<'room' | 'wait' | 'c64' | 'answer' | 'taken' | 'layer', number[]> = { room: [], wait: [], c64: [], answer: [], taken: [], layer: [] }, builds: number[] = [];
   let comes = 0, early = 0, kept = 0, same = 0, lost = 0;
   const timed = <T>(f: () => T): [T, number] => { const t = performance.now(), v = f(); return [v, performance.now() - t]; };
   /** What's been asked of the worker, built and answered (each answer arriving between two frames: its arrays handed over, the room adopted when the promise's callback runs). */
