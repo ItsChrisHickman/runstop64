@@ -2,11 +2,10 @@
  * The READY. directory (games/loader.ts), headless (c64kit stood in by games/shared/test/kit.ts):
  *
  * - a click or tap picks a game, a second on the same game loads it (Picker);
- * - however many games there are (the ten today, 11, 16, 30), the banner and the saved games line
+ * - however many games there are (the eleven today, 16, 30), the banner and the saved games line
  *   never leave the top: while the intro types and lists, when it's skipped, with each game chosen
- *   by the keys (every one comes into sight, chosen), and while a game loads; with ten the
- *   screen is as it always was (nothing scrolled), with more the typed LOAD"$",8 lines go up
- *   under the banner first; a click picks the game on its row and a second loads it, a touch
+ *   by the keys (every one comes into sight, chosen), and while a game loads; the screen is
+ *   cleared before LIST, so up to sixteen are all in sight with nothing scrolled; a click picks the game on its row and a second loads it, a touch
  *   drag moves the choice, a tap on the saved games line opens them.
  *
  *   nice -n 15 node tools/test.mjs games/shared/test/loader.ts [out-dir]
@@ -65,9 +64,8 @@ for (const count of [GAMES.length, 11, 16, 30]) {
   const rows = dir.state.rows;
   check(`${count} games: the intro lists them all (${n} ticks), the banner and the saved games line on rows 1 and 2 throughout`, steady && dir.state.row >= 0 && top(rows));
   check(`  the first game chosen and in sight (row ${dir.state.row})`, dir.state.selected === 0 && rows[dir.state.row].includes(games[0].name));
-  // (as many games as fit: eleven and more scroll under the pinned rows, which the other counts check)
-  if (count === GAMES.length && 13 + count <= 23) check(`  the loader's games: as always (READY. on row 3, LOAD"$",8 on row 4, the last READY. on row ${13 + count})`, rows[3] === 'READY.' && rows[4] === 'LOAD"$",8' && rows[13 + count] === 'READY.');
-  else if (count <= 17) check(`  the typed lines gone up under the banner, the whole directory in sight (row 3: "${rows[3]}"; READY. on row ${rows.lastIndexOf('READY.')})`, games.every((_, i) => listed(rows, i)) && rows.includes('READY.') && rows[3] !== 'READY.');
+  // (the screen is cleared before LIST, so up to sixteen games fit with nothing scrolled; more scroll under the pinned rows)
+  if (count <= 16) check(`  the screen cleared before LIST: LIST on row 3, every game in sight, READY. on row ${7 + count}`, rows[3] === 'LIST' && games.every((_, i) => listed(rows, i)) && rows[7 + count] === 'READY.');
   else check(`  too many to show at once: the first ${rows.filter((r) => r.includes('"EXTRA') || r.includes(' PRG')).length} in sight, from the first`, listed(rows, 0) && !listed(rows, count - 1));
   shot(`directory-${count}`);
 

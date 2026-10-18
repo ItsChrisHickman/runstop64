@@ -9,8 +9,9 @@ const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'LOAD', key: 'Space'
  * The runstop64 front door: a C64-style READY screen that "loads" the game
  * directory. Pick a game with the arrows + fire/Enter, or click it. Under the
  * banner, where the C64 says how much memory it has, a line for the saved games
- * (F1, or a click or tap on it: games/saves.ts). The banner and that line stay put
- * however long the directory gets: the screen scrolls under them (PINNED).
+ * (F1, or a click or tap on it: games/saves.ts). The banner and that line stay put:
+ * the screen under them is cleared before LIST (CLEAR), so sixteen games fit with nothing
+ * scrolled, and a longer directory scrolls under them (PINNED).
  */
 export const info = {
   title: 'runstop64',
@@ -81,6 +82,9 @@ export function scrollFor(lines: number, chosen: number | null, was: number): nu
   return at;
 }
 
+/** In the script: the screen is cleared under the pinned rows (SHIFT+CLR/HOME), so the listing starts at the top and the whole directory fits. */
+const CLEAR = '\f';
+
 /** A pointer on the canvas, as the directory reads one (a PointerEvent). */
 export interface PointerAt { clientX: number; clientY: number; pointerType: string; buttons: number }
 
@@ -104,6 +108,7 @@ export function run(host: Host, opts: LoaderOptions) {
     'SEARCHING FOR $',
     'LOADING',
     'READY.',
+    CLEAR,
     '>LIST',
     '',
     '0 "RUNSTOP64       " RS 64',
@@ -127,16 +132,23 @@ export function run(host: Host, opts: LoaderOptions) {
   let follow = true;
   const choose = (game: number) => { selected = game; follow = false; };
   const done = () => scriptPos >= SCRIPT.length;
+  /** The first line shown under the pinned rows: the lines before it were cleared off the screen (CLEAR). */
+  let top = PINNED;
 
   function skipIntro() {
     lines = SCRIPT.map((l) => l.replace(/^>/, ''));
     scriptPos = SCRIPT.length;
+    top = SCRIPT.indexOf(CLEAR) + 1;
   }
 
   function advanceScript() {
     if (done()) return;
     const line = SCRIPT[scriptPos];
-    if (line.startsWith('>')) {
+    if (line === CLEAR) {
+      lines[scriptPos] = '';
+      scriptPos++;
+      top = scriptPos;
+    } else if (line.startsWith('>')) {
       if (tick % 2) return; // type one character every other tick
       typed++;
       lines[scriptPos] = line.slice(1, typed + 1);
@@ -178,15 +190,15 @@ export function run(host: Host, opts: LoaderOptions) {
    * them once the listing is done, as READY. leaves it), the chosen game in sight while choosing.
    */
   function layout() {
-    const below = lines.slice(PINNED);
+    const below = lines.slice(top);
     const count = below.length + (done() ? 1 : 0);
-    scroll = scrollFor(count, choosing() ? FIRST_GAME_LINE + selected - PINNED : null, follow ? count : scroll);
+    scroll = scrollFor(count, choosing() ? FIRST_GAME_LINE + selected - top : null, follow ? count : scroll);
     const rows: string[] = [];
     for (let r = 0; r < ROWS; r++) rows.push((r < PINNED ? lines[r] : below[scroll + r - PINNED]) ?? '');
     return { rows, count };
   }
   /** The line (an index into `lines`) shown on a screen row (past the end: none there). */
-  const lineOn = (row: number) => (row < PINNED ? row : scroll + row);
+  const lineOn = (row: number) => (row < PINNED ? row : top + scroll + row - PINNED);
 
   function draw() {
     const s = renderer.screen;
@@ -201,7 +213,7 @@ export function run(host: Host, opts: LoaderOptions) {
     });
     if ((tick >> 4) & 1) {
       // the cursor: on the line after READY. when done, else after what's being typed
-      const last = PINNED + count - 1 - scroll;
+      const last = PINNED + Math.max(count, 1) - 1 - scroll;
       const x = done() ? 0 : (lines[lines.length - 1]?.length ?? 0) * 8;
       if (lines.length <= PINNED) { const r = Math.max(0, lines.length - 1); s.fillRect((lines[r]?.length ?? 0) * 8, r * 8, 8, 8, FG); }
       else if (last < ROWS) s.fillRect(x, last * 8, 8, 8, FG);
