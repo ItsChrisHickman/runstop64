@@ -231,11 +231,17 @@ chambers (walked right to the edge and back, about, 1400 frames each, stopping o
 looked at, every one a window of the decoded pictures (or two side by side) with at most 8 of 680 cells
 drawn otherwise (a torch's flame, a thing moved: 1.9 a frame), every picture seen; and the pieces
 stand in the room (every wall between the floor's front and its deepest floor, every side wall on a
-floor). What can't be drawn this way: ramps and the big slanted faces at some chambers' right edges
+floor). Two more kinds of side wall are read (decode.ts, `stacked`): walls over tiers whose depth steps
+back a cell a column for three columns or more (an alcove cut at an angle: chambers 2 and 10's recess in the
+back wall, chamber 4's stair), as the back edge's chains are; and a face drawn a cell at a time, each a cell
+deeper or nearer than the last, in rows that grow by a cell each (the wedge at the end of a stair, chamber 4's),
+one side wall through its cells' middles. A face with the same cells in every row is not (a flat wall over
+a stair's steps). Before, both were stairs of flat walls at each cell's depth, with faces joining them
+whose one pixel's colour was stretched across each gap in the HD view (the smear, and the dither of a side wall
+stretched). What still can't be drawn this way: ramps and the big slanted faces at some chambers' right edges
 (the side of a stair mass reaching the picture's bottom: no foot to read a slope from) stand as flat
-faces at their depth, and in a few of the stairs rooms a side wall is hatching stretched along it:
-looked at in the stills (test/hd.ts: the corridor, the corridor scrolling, chambers 1, 3, 4, 8, 10, 13,
-14 and 25, the dark 22 and 24) rather than modelled.
+faces at their depth, looked at in the stills (test/hd.ts: the corridor, the corridor scrolling, chambers
+1, 3, 4, 8, 10, 13, 14 and 25, the dark 22 and 24) rather than modelled.
 
 The pixel-level look is unchanged (below); `obliqueRoom` falls back to guessing depth from the
 characters (the old builder, still in c64kit for Dragonskulle) wherever the band is none of the

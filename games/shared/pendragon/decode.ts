@@ -273,6 +273,21 @@ function layout(src: PictureSource, rules: DecodeRules): Layout {
   }
   // (stacked: the wall above a top stands on the top's back edge, not on the ground's, which is in front of it, under the top's face)
   for (let c = 0; c < C; c++) if (tops[c] >= 0 && surface[c] >= 0 && tops[c] < surface[c]) surface[c] = tops[c];
+  // (stacked: walls over tiers step back a row a column, SIDE columns or more, where the tiers go up a diagonal stair, an alcove
+  // cut at an angle: side walls as well, the way a back edge stepping so makes them)
+  if (rules.stacked) {
+    for (let c = 0; c + 1 < C;) {
+      const s = surface[c + 1] - surface[c];
+      if (inChain[c] >= 0 || surface[c] < 0 || (s !== 1 && s !== -1)) { c++; continue; }
+      let e = c + 1;
+      while (e + 1 < C && inChain[e + 1] < 0 && surface[e + 1] >= 0 && surface[e + 1] - surface[e] === s) e++;
+      if (e - c + 1 >= SIDE) {
+        chains.push({ from: c, to: e, slope: s === -1 ? 1 : -1 });
+        for (let k = c; k <= e; k++) { inChain[k] = chains.length - 1; surface[k] = -1 - inChain[k]; }
+      }
+      c = e;
+    }
+  }
   for (let c = 0; c < C; c++) foot[c] = tier[c] >= 0 ? tier[c] : surface[c] >= 0 ? surface[c] : edge[c];
   // holes in the floor: what's of them in front of the walls is the floor's (drawn black); what's not,
   // nothing standing. So is a pit drawn blank there (characters of nothing but the background, PIT
@@ -356,7 +371,7 @@ function decode(l: Layout, wall: Set<number>, rules: DecodeRules): RoomPicture {
   }
   // stacked: the face holding a top up (upright cells with floor above them in their column) is a wall at its own depth: where
   // the floor under it starts (or, where none is drawn, the front of the top above it), whatever stands behind it
-  const faced = new Uint8Array(C * R);
+  const faced = new Uint8Array(C * R), faceZ = new Float64Array(C * R);
   if (rules.stacked) {
     const levelHeight = (i: number) => (l.level[i] <= 0 ? height : l.raised[l.level[i] - 1]);
     for (let i = 0; i < C * F; i++) {
@@ -365,7 +380,28 @@ function decode(l: Layout, wall: Set<number>, rules: DecodeRules): RoomPicture {
       let z = NaN;
       for (let y = r + 1; y < F && isNaN(z); y++) if (kind[y * C + c] === FLOOR) z = bottom - y * 8 - levelHeight(y * C + c);
       for (let y = r - 1; y >= 0 && isNaN(z); y--) if (kind[y * C + c] === FLOOR) z = bottom - (y + 1) * 8 - levelHeight(y * C + c);
-      if (!isNaN(z)) { cells[i] = wallAt(z); faced[i] = 1; }
+      if (!isNaN(z)) { cells[i] = wallAt(z); faced[i] = 1; faceZ[i] = z; }
+    }
+    // a face drawn a cell at a time, each a cell deeper (or nearer) than the one beside it, in rows that grow by a cell each
+    // (a wedge: the end of a tier or a stair seen from the side, its foot slanting) is a wall going back at an angle, one side
+    // wall through its cells' middles, not stairs of walls (the faces joining them stretched the picture across the gaps). A
+    // face with the same cells in every row is a flat wall over a stair's steps, which are its columns' floors' depths: not.
+    const flanks = new Map<string, { slope: 1 | -1; at: number; runs: { r: number; from: number; to: number }[] }>();
+    for (let r = 0; r < F; r++) for (let c = 0; c + 1 < C;) {
+      const i = r * C + c, d = faced[i] && faced[i + 1] ? faceZ[i + 1] - faceZ[i] : 0;
+      if (Math.abs(d) !== 8 || faceZ[i] < front || faceZ[i + 1] < front) { c++; continue; }
+      let e = c + 1;
+      while (e + 1 < C && faced[r * C + e + 1] && faceZ[r * C + e + 1] - faceZ[r * C + e] === d && faceZ[r * C + e + 1] >= front) e++;
+      const slope = d > 0 ? 1 : -1, at = slope * (c * 8 + 4) - faceZ[i], key = `${slope}:${at}`;
+      const flank = flanks.get(key) ?? { slope, at, runs: [] };
+      flank.runs.push({ r, from: c, to: e });
+      flanks.set(key, flank);
+      c = e + 1;
+    }
+    for (const { slope, at, runs } of flanks.values()) {
+      if (runs.every((run) => run.from === runs[0].from && run.to === runs[0].to)) continue;
+      const side = add({ kind: 'side', slope, at });
+      for (const run of runs) for (let k = run.from; k <= run.to; k++) cells[run.r * C + k] = side;
     }
   }
   // things: upright at or below the foot of what's behind, joined; then up through what isn't the walls' drawing
