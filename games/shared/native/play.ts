@@ -47,6 +47,8 @@ export interface NativeGameOptions<F> {
    * so a part the game swaps elsewhere, or a save from the mended image, is left alone.
    */
   mends?: Mend[];
+  /** Puts right a save's memory as it is resumed (something an earlier version of the port left wrong: it has the machine's memory and the VIC's registers). */
+  repair?: (ram: Uint8Array, vic: Uint8Array) => void;
   /** Health, lives and continuing at full (the assists FULL HEALTH/ROOM and INFINITE LIVES, and CONTINUE?). */
   vitals?: VitalsSpec;
   /** For the "hints" assist: places on the screen (C64 pixels) where something can be done and hasn't been yet (`vic`: its registers, for where sprites are). */
@@ -297,6 +299,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     }
     // (a save from before a mend: the mended bytes from the title snapshot)
     if (opts.mends?.length && titleState) applyMends(state.ram, unpackState(titleState).ram, opts.mends);
+    opts.repair?.(state.ram, state.vic);
     return state;
   }
 

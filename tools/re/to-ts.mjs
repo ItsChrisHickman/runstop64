@@ -58,6 +58,9 @@ if (cfg.load) {
   const img = new Uint8Array(65536);
   img.set(mem);
   img.set(mem.subarray(hex(cfg.load), hex(cfg.load) + hex(cfg.len ?? '700')), hex(cfg.base));
+  // `patch`: pages the game keeps elsewhere and swaps in with the block, laid out as they are while it runs
+  // ([{ from, to, len }]: bytes of the snapshot's memory, as it was, copied to where they sit then)
+  for (const p of cfg.patch ?? []) img.set(mem.subarray(hex(p.from), hex(p.from) + hex(p.len)), hex(p.to));
   mem = img;
 }
 const [RLO, RHI] = (cfg.range ?? ['0000', 'ffff']).map(hex);

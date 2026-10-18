@@ -147,7 +147,10 @@ export const TESTS = [
 
   // ---- Karnath
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
+  { file: 'games/karnath/test/pentacle.ts', set: 'fast' },
   { file: 'games/karnath/test/pictures.ts', set: 'fast' },
+  { file: 'games/karnath/test/spells.ts', set: 'fast' },
+  { file: 'games/karnath/test/travel-creatures.ts', set: 'fast' },
   { file: 'games/karnath/test/hd.ts', set: 'slow' },
 
   // ---- Monty on the Run (title.ts and jetpack.ts compare with the original: /tmp/motr.prg, made by npm run extract:motr)

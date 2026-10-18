@@ -35,6 +35,43 @@ export const LOCATION: number[] = [
 
 export type Location = number[];
 
+/**
+ * His place along the strip, in pixels ($3214/$3215: the game counts it as he walks, and where a creature
+ * starts is worked out from it, $3653), is not kept in a location: it follows from what is. His sprite's x
+ * on the screen plus how far the view has scrolled (the blocks of 40 columns before the view's first one, its
+ * column, less the fine scroll $7FEE) less 57: for every frame of play along the routes
+ * (games/karnath/test/travel-creatures.ts). The strip's first block is where its level's map starts (the
+ * lower floor from $70 a level every $0C pages, the upper floor from $94, the dungeons and the abode over
+ * the first of the lower floor's).
+ */
+const STRIP_BASE = (mode: number, level: number) => (mode === 1 ? 0x94 + 0x0c * (level - 1) : mode === 0 ? 0x70 + 0x0c * (level - 1) : 0x70);
+export function stripX(mode: number, level: number, page: number, column: number, fine: number, spriteX: number) {
+  const block = (page - 4 - STRIP_BASE(mode, level)) >> 2;
+  return block * 320 + column * 8 - (fine & 7) + spriteX - 57;
+}
+/** His place along the strip from the memory as it is (his sprite's x with its high bit from the VIC). */
+export function stripXNow(ram: Uint8Array, vic: Uint8Array) {
+  return stripX(ram[0x3219], ram[0xb3e1], ram[0x7fe7], ram[0x7fe6], ram[0x7fee], vic[4] | ((vic[0x10] & 4) << 6));
+}
+/** His place along the strip for a location (the bytes of `location`, and his sprite's high bit last). */
+export function stripXAt(loc: Location) {
+  const v = (a: number) => loc[LOCATION.indexOf(a)];
+  return stripX(v(0x3219), v(0xb3e1), v(0x7fe7), v(0x7fe6), v(0x7fee), v(0x7ff4) | (loc[LOCATION.length] ? 256 : 0));
+}
+/** The bytes of his place along the strip. */
+export const STRIP_X = [0x3214, 0x3215];
+const putStripX = (ram: Uint8Array, x: number) => { ram[0x3214] = x & 0xff; ram[0x3215] = (x >> 8) & 0xff; };
+
+/**
+ * A save from before travel set his place along the strip (it left the one he had where he'd come from, so the
+ * creatures a level started were placed off the screen): put it as the memory's own place says, where it is far from that.
+ */
+export function repairStripX(ram: Uint8Array, vic: Uint8Array) {
+  if (ram[0x3235] < 1 || ram[0x3235] > 0x19 || ![0, 1, 0xfe, 0xff].includes(ram[0x3219])) return;
+  const want = stripXNow(ram, vic);
+  if (want >= 0 && Math.abs(want - (ram[0x3214] | (ram[0x3215] << 8))) > 48) putStripX(ram, want);
+}
+
 const settled = (ram: Uint8Array) =>
   ram[0x6ffd] === 0 && ram[0x6fff] !== 0x11 && ram[0x6fff] !== 0x12 && // not losing or winning
   ram[0x3216] === 0 && ram[0x2392] === 0 && ram[0x237d] === 0 && // no spell in flight, no door open
@@ -82,6 +119,7 @@ export function go(ram: Uint8Array, to: Location): boolean {
   toMode(ram, mode);
   if (ram[0x3219] !== mode) return false; // (not reached: the transitions set it)
   LOCATION.forEach((a, i) => { ram[a] = to[i]; });
+  putStripX(ram, stripXAt(to)); // (where he is along the strip: the creatures the level starts are placed from it)
   // drawn from the map as it is now, as a change of level does
   ram[0xfc] = (ram[0x7fe7] - 4) & 0xff; ram[0xfb] = ram[0x7fe6]; ram[0x2375] = ram[0x7fe6];
   ram[0x237c] = 1; // (where he stands is his own, not the bottom of the stairs)

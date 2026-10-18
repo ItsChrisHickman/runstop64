@@ -180,3 +180,115 @@ on its own foot (the invariants Blackwyche's test checks).
 
 c64kit's `placePictures` (hd/placed.ts) takes pictures wider than the band: it tries each column the band can
 start at (a window of the strip), where Blackwyche's pairs `beside` each other.
+
+## How the game is won
+
+Found by reading the code, then played in the port **and** in the original (the C64 model running the game's own code)
+from the same state: `games/karnath/test/pentacle.ts` (17 checks, both agree).
+
+**The aim.** Sixteen pieces of the pentacle are carried, one at a time, to Karn's abode, and the staff is destroyed.
+The game's own words are on its status line: `PIECE OF PENTACLE FOUND`, then `CARRYING PIECE OF PENTACLE` the whole time one
+is carried ($1044 + $1C * n: 1 SEARCHING, 2 FOUND, 3 CARRYING, 4 `PIECE OF PENTACLE DEPOSITED`, 5 `YOU HAVE FOUND A CROSS`, 6 GAME NOW
+ON PAUSE), and at the end `THE STAFF OF KARNATH HAS BEEN DESTROYED... CONGRATULATIONS`. Nothing tells you where to take it.
+
+- **Sixteen pieces** ($6E79 compares the count at $6FFF with $10). Ten lie in the map as two characters ($D5 then $D4) at $7089,
+  $72DF, $79E2, $864C, $8DF3, $91FD, $9641, $9D70, $A196 and $AEB7 (put back by the restart, $6CB6); six are sprites in rooms, each
+  with a flag of its own at $321D-$3222 so it comes once: the lower castle's $C000 block ($3220, $3221), the upper floor's $E100 block
+  ($321F, $321E, $3222) and the dungeons ($321D; its piece is sprite 1, taken by touch, $6248). (Read, not played: which rooms they
+  are, and what makes the ones in the $C000 and $E100 blocks come: IBRAHIM, spell 8, on the thing in the room is read as the key for
+  $CFCD in the lower castle, $CD36.)
+- **One at a time.** Walking into a map piece, or touching a sprite one, sets $322F to 1 ($167C, the four directions' floor checks
+  call it: $2895, $28E4, $29D2, $2A0F) and nothing more can be picked up while it is 1 (every pickup tests it). It stays 1 until a piece is
+  deposited (or the game is restarted: $0A59). A piece is never put down anywhere else. There is no way to drop it.
+- **Where it goes: Karn's abode** (the abode strip, AB on the pause map). You enter from the dungeons (DN) through the door $B8 at the
+  right end of the dungeons, so you come into the abode at its **right** end (strip column about 111), and the obelisk is at the
+  **far left** (column 6 to 20): a tall yellow stone with runes, sprite 6, which only comes on to the screen as the view scrolls to it
+  (it is at screen x 114, y 96 with the view at the far left). The abode is a maze of low walls, about 100 columns to cross.
+- **How: cast BARACATA (spell 7) at it while carrying a piece.** $6E40 (called every frame in the abode, from its spell handler at
+  $683C): spell (sprite 3) touching sprite 6 ($321A and $48 = $48), a piece carried ($322F is 1) and $322C is 7: then $322F is 0, the
+  message is 4, the count at $6FFF goes up by one and energy is 100 again ($6E7D). A different spell does nothing; so does
+  BARACATA with nothing carried (both in the test, the port and the original). Cast it facing the obelisk, level with it (the spell
+  flies straight along the floor he stands on: the test goes up the screen to where it flies through the stone).
+- **After the sixteenth** ($6E90): the staff appears in a shrine over a pentagram (sprites 5, 6 and 7, `$D015` = $EC), and for as long as it stays: **MENHIR (spell 5) at the staff wins** ($6F62: spell on sprite 6 or 7 with
+  $322C = 5 sets $6FFF to $11; the main loop then runs the finish at $9FA0 and restarts at $12); **any other spell at it kills
+  him** ($6FFD = 1, the same as running out of energy). So: choose MENHIR before casting at the staff.
+- **The clock** ($1548): the status panel's clock starts at 06:00 PM and a game minute is 2,880 frames (about 58 seconds: $3239 times
+  $323A); at 12:00 ($07C6 reaches the digit 2, $15B6) $6FFD is 1: he is lost. About 5.8 hours of play.
+- **Energy**: running out of it ($6FFD = 1) ends the game too; the pieces carried or deposited are not saved from it (a lost game is
+  a new one: continuing from the last screen, ours, keeps $6FFF, $322F and the map as they were).
+
+### Why it could not be done in the port (fixed)
+
+The abode's code is not all in the block that comes in with it. $12E1 also swaps pages that belong to the rest of the game: $6800 with
+$6700 (all of a page), then $C780 with $6800 (128 bytes): so in the abode $6700 holds what the lower castle keeps at $6800, and **$6800
+holds the abode's spell handler** (the code the lower castle's image keeps at $C780: spell 1 on its sprites 0 and 7, and its
+last act is the call of $6E40). The translation of the abode (`castle-f900.json`) took $6700-$68FF from where the title snapshot has
+them, the lower castle's, so it ran the wrong code for $6640, $6750, $6778, $67C7 and $6807: the obelisk did nothing, and neither did
+anything else the handler does. Now `patch` (a new key of `tools/re/to-ts.mjs`) lays those pages out as the abode has them. The test
+compares every routine of the version loaded with the bytes it runs from (122 versions in 61 states: the routes, and the abode):
+only the abode differed, in those five routines. `$6E40` is a translated entry now too (it was running on the 6502 net).
+
+## Getting into the abode (the right side of the map)
+
+The abode (AB, the last row of the pause map) is the part towards the right of the map that cannot be finished, for two reasons:
+
+1. **The way in is at its right end and the obelisk is at its left**, about 100 columns of low walls away; Go-Explore reached the left
+   end only after thousands of tries (`games/karnath/test/fixtures/abode-obelisk.state` is where it did), and the pause map lights only
+   the columns walked, so it showed one lit cell at the right end and nothing to aim for.
+2. **In the port, the obelisk did nothing** (above).
+
+To get there: take the dungeons' door $B8 at the right end of DN (the way the first route does), then walk left through the abode
+(he goes up and down the screen by going up and down, which also moves him sideways a little); the obelisk is the tall yellow stone
+with runes, the first thing you see as the left end comes into view.
+
+## The spells (read from the code; the look and the change are tested: `test/spells.ts`)
+
+**Every spell looks the same.** Casting ($1988) puts the one spell sprite, 3, flying (image $23, white); $322C (1 to 10, shown by $150E
+from the names at $0FF4) is only what the creature code compares when the spell touches it. A spell does something to a creature only if
+it is the one that works on it, so "the same thing every time" is the original's: what changes is what dies.
+
+| # | Spell | What it works on (the sprite of the creature, in the block that runs the level) |
+|---|---|---|
+| 1 | FORTHRIN | most things: lower castle $6000 block (sprites 5, 7), level 2 $C000 (5, 1), level 3 $C800 (0, 6), upper floor $D800 (0), $E100 (1, and 0 on the top level), the dungeons (0, 5) |
+| 2 | THROBIN | upper floor $D800: sprites 5 and 7 |
+| 3 | KNOSSOS | upper floor $E100: sprites 0 and 5 |
+| 4 | OMPHALOS | upper floor $D800: sprite 7 |
+| 5 | MENHIR | the staff, at the end |
+| 6 | AEOLUS | level 2 ($C000): sprite 4 |
+| 7 | BARACATA | the obelisk in the abode, to deposit a piece |
+| 8 | IBRAHIM | level 3 ($C800): sprite 7; upper floor $D800 sprite 6, $E100 top level sprite 7; the dungeons: sprite 6; and the thing that gives up a piece in level 2 (see above) |
+| 9 | STOLV | upper floor $E100: sprites 6 and 7 |
+| 10 | YEROBAS | upper floor $E100 top level: sprite 4 |
+
+(Which block runs which level: `$B3E1` 1, 2, 3 calls $6000, $C000, $C800 in the lower castle; the upper floor swaps $D800 and $E100 in.
+The dungeons' floating **red skull** (sprite 7, double size, at height 99) has no spell that works on it in the dungeons' block: it
+is a hazard to keep away from, as it flies along its corridor, not a fault: the same in the original and in the port.)
+
+**Changing spell.** The original changes it on "any other key" only after that key has been down for 16 frames **in all**
+(`$236F` counts them, $1BFB, and is cleared only when it reaches 16, so the frames of several quick taps add up): a tap of a few
+frames, which is what a key press or the touch SPELL button gives, took five or six presses. Now the keys that move the hand on
+(Enter, the touch SPELL button, any other key that reaches the game's keyboard) are the front end's: one press, one spell on
+(`actions.next`, as Dragonskulle's bar does), whatever the frame and with a spell flying. 1-9 and 0 pick a spell as before.
+
+## Creatures after travel (fixed)
+
+**His place along the strip** ($3214/$3215, in pixels, counted as he walks) is what the level's creatures are placed from: $3653
+turns a column of the map into a screen x from it and from his sprite's x, and the level's start ($6003 and the others, called by
+$6A9F) uses it. Travel kept it as the one he had where he came from (the travel test even listed it as "progress"), so after a warp the
+knights of the lower guard room, the skull, everything a level starts, were placed off the screen or in the wrong room's place: "all
+the bad guys have gone", until a new game ($0A00 puts it back). It follows from what a location holds: his place along the strip =
+the view's first block (its column of 40) * 320 + the view's column * 8 - the fine scroll ($7FEE and 7) + his sprite's x - 57. This
+holds in all 22,479 settled frames of the routes. `go` now puts it ($3214/5 are in the travel test's place bytes), and a save made after
+a travel is put right when it is resumed (`repair` in `runNative`, `repairStripX`): if it is more than 48 pixels from what the scroll
+and sprite say. `test/travel-creatures.ts`: in six rooms (2, 1, 16, 21, 20, 14) a walked arrival shows creatures and the travelled one
+shows none before the fix; none lost after it, in 120 travels.
+
+**What automatic play has not reached** (Go-Explore on the port, 25,000 tries of 150 frames from the 24 arrivals, keeping states that
+put him in a new column, height or carrying state; the cells are 8 columns of a strip; this is "not found", not "cannot be reached"):
+the crypt ($17, never entered; it is the room above the lower floor's third room, $2E33 adds $0B to the room number); the strips'
+far right ends (columns 112-119) on every floor but L1 and DN; the middle of U3, U2 and L3 (columns 64-87 / 72-87), and **the right
+end of L2 (columns 88-119, where a piece lies at $864C)**; and in the abode all but its right 40 columns (reached by directed search:
+the fixture state). The port and the original behave the same at the right end of L1 (`south tower lower`, the tower door $5E/$67/$63/$23
+at columns 109-112 above the floor: from the same state, going up and left-then-up end at the same place in both), so that is
+the game's geometry, not a fault of ours. Open: whether L2's right end and the crypt can be entered, and how; the pause map's lit
+cells (walked columns) will show you where you have not been.

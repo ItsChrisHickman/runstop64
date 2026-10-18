@@ -3,6 +3,7 @@ import { runNative } from '../../shared/native/play';
 import { port } from './native';
 import * as engine from './gen/engine';
 import { karnathMap } from './map';
+import { repairStripX } from './travel';
 import { karnathCombat, karnathControls } from './combat';
 import { karnathHd } from './hd';
 import stateUrl from '../assets/karnath-title.state?url';
@@ -41,6 +42,7 @@ export function run(host: Host) {
       },
     },
     map: karnathMap,
+    repair: repairStripX, // (saves made after a travel before it set his place along the strip)
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: karnathCombat,
     controls: karnathControls,
@@ -49,6 +51,9 @@ export function run(host: Host) {
       keys: { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8, Digit9: 9, Digit0: 10 },
       also: 'select',
       set: (ram, n, call) => { ram[0x322c] = n; call(engine.r_150e); }, // $150E shows the spell's name
+      // Enter (or any other key) moves on to the next spell, a press a spell: the original changes it only once a key has been
+      // down for 16 frames in all ($236F, $1BFB), which a tap is not (it took five or six)
+      next: { order: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], get: (ram) => ram[0x322c] },
     },
     // Touch: the stick, CAST, SPELL (the next one, as Enter does), and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'CAST', key: 'Space', size: 'big' }, { label: 'SPELL', key: 'Enter' }] },

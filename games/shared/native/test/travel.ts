@@ -30,7 +30,7 @@ import { NativeHost } from '../host';
 import type { PauseMap } from '../pause';
 import { GAMES, setJoy } from './games';
 import { karnathMap, travelPlaces as karnathPlaces } from '../../../karnath/src/map';
-import { LOCATION as KARNATH_LOCATION, toMode as karnathToMode } from '../../../karnath/src/travel';
+import { LOCATION as KARNATH_LOCATION, STRIP_X as KARNATH_STRIP_X, toMode as karnathToMode } from '../../../karnath/src/travel';
 import * as castle_6000 from '../../../karnath/src/gen/rooms/castle-6000';
 import * as castle_c000 from '../../../karnath/src/gen/rooms/castle-c000';
 import * as castle_d800 from '../../../karnath/src/gen/rooms/castle-d800';
@@ -133,8 +133,8 @@ const karnath: TravelSpec = {
     { code: castle_f100.CODE, shift: 0xf100 - 0x6000, end: 0x67ff }, { code: castle_f900.CODE, shift: 0xf900 - 0x6000, end: 0x66ff },
   ],
   graphics: [[0x3800, 0x3fff], [0x5000, 0x5fff], [0xb800, 0xbfff], [0xd000, 0xd7ff]],
-  progress: [0x6ffe, 0x6ffd, 0x6fff, 0x322c, ...range(0x321c, 0x3223), 0x322f, 0x3214, 0x3215, 0x3236, 0x3237, 0x3239, 0x323a, ...range(0x07c5, 0x07c9), ...range(0x07dc, 0x07de)],
-  location: KARNATH_LOCATION,
+  progress: [0x6ffe, 0x6ffd, 0x6fff, 0x322c, ...range(0x321c, 0x3223), 0x322f, 0x3236, 0x3237, 0x3239, 0x323a, ...range(0x07c5, 0x07c9), ...range(0x07dc, 0x07de)],
+  location: [...KARNATH_LOCATION, ...KARNATH_STRIP_X], // (his place along the strip, $3214, follows from the location: where the level starts its creatures from)
   firstRow: 0,
   rows: 20,
   canGoFrom: (ram) => ram[0x6ffd] === 0 && ram[0x6fff] !== 0x11 && ram[0x6fff] !== 0x12,
