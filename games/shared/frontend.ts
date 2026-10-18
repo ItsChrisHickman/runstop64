@@ -50,12 +50,14 @@ export interface FrontEndOptions<T, F> {
   onClose(): void;
   /** The pause screen's colours, where the game's palette is not the C64's (default the C64's). */
   colours?: PauseColours;
+  /** W: the ending can be watched (offered on the pause screen only while this says so). */
+  ending?(): boolean;
 }
 
 export const PAUSE_KEYS = ['KeyP', 'Escape', 'PadStart'];
 
 /** What the player asked for on the pause screen, for the game to carry out. */
-export type PauseRequest = 'roomStart' | 'title' | null;
+export type PauseRequest = 'roomStart' | 'title' | 'ending' | null;
 
 export class FrontEnd<T, F> {
   /** Each assist on or off (by id), as the ENHANCED switch and its role decide. */
@@ -151,11 +153,13 @@ export class FrontEnd<T, F> {
       ...(this.hasSwitch ? [{ text: this.enhanced ? 'E ENHANCED' : 'E ORIGINAL', id: 'E' }] : []),
       { text: 'B BACK TO', id: 'B' }, { text: ' ROOM START', id: 'B' },
       { text: 'T TITLE', id: 'T' },
+      ...(this.o.ending?.() ? [{ text: 'W ENDING', id: 'W' }] : []),
     ];
     const tapped = input.points.map((t) => PAUSE_TAP.option(t.x, t.y, lines.length)).filter((i) => i >= 0).map((i) => lines[i].id);
     if (this.hasSwitch && (input.typed.includes('KeyE') || tapped.includes('E'))) this.toggleEnhanced();
     if (input.typed.includes('KeyB') || tapped.includes('B')) return 'roomStart';
     if (input.typed.includes('KeyT') || tapped.includes('T')) return 'title';
+    if (this.o.ending?.() && (input.typed.includes('KeyW') || tapped.includes('W'))) return 'ending';
     const footTap = input.points.some((t) => t.y >= PAUSE_TAP.footY);
     if (this.pauseTicks > 1 && (footTap || input.typed.some((c) => PAUSE_KEYS.includes(c)))) this.close();
     const map = this.o.map;

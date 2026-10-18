@@ -12,18 +12,13 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { must } from '../../shared/test/must';
 import { renderPng } from '../../../tools/probe/render';
 import { run } from '../src/main';
-import { go } from '../src/travel';
+import { CABIN_AT, DECK_AT, HALL2_AT, HALL3_AT, go } from '../src/travel';
 import { CABINS, HALLS } from '../src/ship';
 
 export const game = must(GAMES.blackwyche, 'blackwyche in games.ts');
 const title = fs.readFileSync(game.title);
 stubFetch(title);
 
-/** How he arrives in a cabin, a hall of part 2 or 3, and on a deck's part 0 (as the map notes them: re/routes.json played to C1.0.3, H1.2, H1.3 and the start). */
-const CABIN_AT = [3, 3, 39, 0, 172, 39, 115, 109, 207, 113, 61, 19, 117, 2, 13, 1, 140, 255, 196, 0, 68, 68, 4, 3, 196, 117, 196, 0, 0, 0, 0, 0, 1, 0, 24, 6, 1, 12, 11, 10, 4, 9, 8, 7, 6, 5, 4, 3, 2, 1, 4, 41, 4, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 4, 41, 4, 10, 11, 12, 10, 12, 0];
-const HALL2_AT = [1, 1, 39, 0, 127, 39, 112, 9, 104, 110, 113, 19, 137, 1, 30, 1, 237, 5, 176, 0, 60, 70, 1, 1, 176, 164, 237, 5, 0, 0, 0, 0, 1, 0, 16, 8, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 4, 39, 4, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 4, 39, 4, 4, 5, 6, 4, 6, 0];
-const HALL3_AT = [2, 2, 39, 0, 130, 39, 118, 207, 44, 109, 175, 19, 66, 5, 30, 2, 115, 251, 127, 0, 0, 64, 2, 4, 127, 164, 115, 251, 0, 0, 0, 0, 1, 0, 24, 8, 2, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 4, 37, 4, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 4, 37, 4, 1, 2, 3, 1, 3, 0];
-const DECK_AT = [4, 4, 39, 0, 112, 39, 112, 160, 0, 112, 0, 19, 117, 3, 34, 1, 144, 0, 144, 0, 0, 64, 3, 0, 144, 156, 144, 0, 0, 0, 0, 0, 1, 1, 16, 8, 2, 15, 16, 17, 18, 19, 20, 21, 22, 23, 18, 24, 25, 26, 18, 43, 18, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 18, 43, 18, 7, 8, 9, 7, 9, 0];
 
 /** A new game, started from the title and played to the main loop's first wait. */
 export function boot() {

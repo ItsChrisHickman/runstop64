@@ -8,6 +8,8 @@ import { blackwycheCombat, blackwycheControls } from './combat';
 import { blackwycheHd } from './hd';
 import { Guide, guidedSpots } from './guided';
 import { TrapDoors } from './trapdoors';
+import { ACTION } from './actions';
+import { blackwycheEnding, endingStats, won } from './ending';
 import stateUrl from '../assets/blackwyche-title.state?url';
 
 /**
@@ -46,7 +48,7 @@ export function run(host: Host) {
     actions: {
       keys: { KeyZ: 1, KeyX: 2 },
       also: 'fire',
-      set: (ram, n, call) => { ram[0x3415] = n; call(engine.r_0f32); }, // $0F32 shows the action's name
+      set: ACTION.set,
     },
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'SWORD', key: 'KeyX' }] },
@@ -61,6 +63,8 @@ export function run(host: Host) {
     ],
     hints: guidedSpots,
     hintsWith: 'guided',
+    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    ending: { spec: blackwycheEnding, won, stats: endingStats },
     reserved: JOYSTICK_KEYS,
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },
     // The title's key instructions, for this keyboard (same lengths as the originals).

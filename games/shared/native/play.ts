@@ -14,6 +14,7 @@ import { runPort, type FrameResult, type PortPhase, type ResumeFrom } from '../p
 import type { HdView } from '../view';
 import { mapSummary, type PauseMap } from './pause';
 import type { TouchLayout } from '../touch';
+import { Ending, keepWon, readWon, wantsEnding, type EndingSpec } from './ending';
 
 export type { RunSpec, NativeAssistId };
 
@@ -141,6 +142,12 @@ export interface NativeGameOptions<F> {
    * is untouched.
    */
   hd?: HdBuilder;
+  /**
+   * The reward for winning (ending.ts), in ENHANCED: `won` says the game's winning moment is under way (it shows the
+   * ending once the game's own end is over and it is back at the title, and keeps that the game has been won), `stats`
+   * the lines under THE END. Offered on the pause screen (W) once won, and at once with `?ending` on the page.
+   */
+  ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[] };
 }
 
 /** Our keys, never the game's: M mutes. */
@@ -197,13 +204,20 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const hdView: HdView = { on: false };
   /** Whether the HD view's room is drawn now (set each frame of the game; drawn between them as the sprites are: `rooms.at`). */
   let hdShown = false;
+  /** The ending (ending.ts), once the session is up; and a win seen (its numbers kept) whose ending waits for the game's own end to be over. */
+  let endingShow: Ending | null = null;
+  let winSeen = false, endingWaits: string[] | null = null;
+  const endingOn = (): boolean => !!opts.ending && fe.enhanced;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen, with this machine as its game ---
   const port = runPort<MachineState, F, Uint8Array>(host, {
     id: opts.id, font: opts.font, codec: { ...MACHINE_CODEC, image: () => image }, map, strip: opts.strip,
     describe: (s, found) => (opts.describe ? opts.describe(s.ram, found) : mapSummary(map, s.ram, found)),
     assists: nativeAssists(opts),
+    ending: (): boolean => endingOn() && readWon(opts.id),
   }, () => ({
+    get takeover() { return endingShow ?? undefined; },
+    watchEnding() { endingShow?.start(opts.ending?.stats(live().g.m.ram, fe.found) ?? []); },
     ready, state, phase, canPause, travel, resume, roomOf: (s) => roomIn(s.ram), toTitle, frame, afterFrame: afterTheFrame,
     status: () => statusOf(live().g),
     // the autosave is taken at the main loop's wait (a clean point to save and resume at)
@@ -215,6 +229,14 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const { flow, fe, latch: fireLatch } = port;
   const assist = fe.assist;
   opts.onAssists?.(assist);
+  if (opts.ending) {
+    endingShow = new Ending({
+      host, spec: opts.ending.spec, port: opts.port, sound,
+      title: () => (titleState ? withText(unpackState(titleState)) : null),
+      font: () => flow.getFont(),
+      done: () => port.backToTitle(),
+    });
+  }
 
   // ---- the features (features.ts), each with its own state --------------------------------------
   /** Running translated code between frames (registers kept). */
@@ -256,6 +278,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
       titleState = new Uint8Array(b);
       image = fnv1a(titleState).toString(16).padStart(8, '0');
       start(new NativeHost(opts.port, withText(unpackState(titleState))));
+      // ?ending on the page: the ending at once, for review
+      if (opts.ending && wantsEnding()) endingShow?.start(opts.ending.stats(live().g.m.ram, fe.found));
     });
 
   // ---- the session's points (named, with their types: they reach the flow and the front end, which come from the session) ----
@@ -274,7 +298,24 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     const t = titleState;
     if (t) start(new NativeHost(opts.port, withText(unpackState(t))));
   }
-  function afterTheFrame() { for (const s of afters) s.afterFrame(live().g); }
+  function afterTheFrame() {
+    const { g } = live();
+    for (const s of afters) s.afterFrame(g);
+    winning(g);
+  }
+  /** The game won: kept (any mode), the numbers noted; once the game's own end is over and the title is up, the ending (ENHANCED). */
+  function winning(g: NativeHost) {
+    const e = opts.ending;
+    if (!e) return;
+    const won = e.won(g.m.ram);
+    if (won && !winSeen) { winSeen = true; keepWon(opts.id); endingWaits = e.stats(g.m.ram, fe.found); }
+    else if (!won && !onTitle(g)) winSeen = false;
+    if (endingWaits && onTitle(g)) {
+      const stats = endingWaits;
+      endingWaits = null;
+      if (endingOn()) endingShow?.start(stats);
+    }
+  }
   function updateView() { const { g, v } = live(); show(g, v); }
   function renderView(alpha: number) {
     // (the HD view's room scrolled as far along as the sprites are drawn: the same alpha, the same smoothing)
@@ -490,6 +531,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     get frontEnd() { return fe; },
     tick: port.tick,
     render: port.render,
+    /** For tests: the ending (native/ending.ts), if the game has one. */
+    get ending() { return endingShow; },
     /** The gear: the game's options. */
     menu: port.menu,
   };

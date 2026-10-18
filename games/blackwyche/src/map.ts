@@ -52,13 +52,18 @@ function parseShip(v: unknown): Seen {
  * What the map keeps of the player's progress (`ship`), and the trapdoors that have given way
  * (`trapdoors`, src/trapdoors.ts: the TRAPDOORS STAY OPEN assist keeps them here, and so with the saves).
  */
-export interface BlackwycheFound { ship: Seen; trapdoors: string[] }
+/** How much of the ship he has seen (the pause screen's SEEN, and the ending's): the parts and halls stood on, and the cabins stood in. */
+export function shipSeen(found: BlackwycheFound): number {
+  const s = found.ship;
+  return Object.entries(s.panels).filter(([, l]) => l.length).length + s.cabins.filter((id) => DATA_CABINS.has(id)).length;
+}
+export interface BlackwycheFound{ ship: Seen; trapdoors: string[] }
 const FOUND: FoundCodec<BlackwycheFound> = {
   empty: () => ({ ship: emptyShip(), trapdoors: [] }),
   parse: (kept) => ({ ship: parseShip(isRecord(kept) ? kept.ship : undefined), trapdoors: parseSprung(isRecord(kept) ? kept.trapdoors : undefined) }),
 };
 
-const TOTAL = PANELS.length * 2 + HALLS.length + CABINS.length;
+export const TOTAL = PANELS.length * 2 + HALLS.length + CABINS.length;
 
 /** The map's second page: what he's collected (src/items.ts), the game's own names in two columns of twelve. */
 const ITEMS_PAGE = 1;
@@ -226,9 +231,7 @@ export const blackwycheMap: PauseMap<Uint8Array, BlackwycheFound> = {
     drawPickName(sf, box, font, pick ? placeName(pick) : null, pick ? pickNote(ram, pick) : undefined);
   },
   info(ram, found) {
-    const s = found.ship;
-    const parts = Object.entries(s.panels).filter(([, l]) => l.length).length, cabins = s.cabins.filter((id) => DATA_CABINS.has(id)).length;
-    return [`ENERGY ${String(statusNumber(ram, 0x07a2)).padStart(3)}%`, '', `ITEMS ${String(itemsFound(ram)).padStart(2)}/${ITEMS.length}`, `SEEN ${String(parts + cabins).padStart(2)}/${TOTAL}`];
+    return [`ENERGY ${String(statusNumber(ram, 0x07a2)).padStart(3)}%`, '', `ITEMS ${String(itemsFound(ram)).padStart(2)}/${ITEMS.length}`, `SEEN ${String(shipSeen(found)).padStart(2)}/${TOTAL}`];
   },
   legend: [{ colour: COL.cyan, text: 'HALL' }, { colour: COL.lblue, text: 'CABIN' }, { colour: COL.green, text: 'LADDER' }, { colour: COL.brown, text: 'NO TRAVEL' }],
   // Places to go back to: every part, hall and cabin he's stood in (yellow, cyan and blue, the picked box round the whole part; brown ones he has only passed), where he first stood.

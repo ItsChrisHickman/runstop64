@@ -55,6 +55,8 @@ export interface PortSetup<S, F, T> {
   launchHeld?: boolean;
   /** The colours of the pause screen and the flow's panels, where the game's palette is not the C64's. */
   colours?: PauseColours;
+  /** The ending can be watched from the pause screen now (the game has been won, in the mode that has one): W (native/ending.ts). */
+  ending?(): boolean;
 }
 
 /** The sound: what the audio keys and the render tail need of the game's player. */
@@ -84,6 +86,13 @@ export interface PortAdapter<S, T> {
   resume(s: S, from: ResumeFrom): void;
   /** The room number a resume from `s` is at, for the flow (default: the room saves' count, as it stands after the resume). */
   roomOf?(s: S): number;
+  /**
+   * A screen of the game's own that takes over the session while it is `active` (the ending: native/ending.ts): it is ticked and
+   * rendered instead of everything else (the audio keys apart), and ends by going back to the title (`Port.backToTitle`).
+   */
+  takeover?: { readonly active: boolean; tick(): void; render(alpha: number): void };
+  /** W on the pause screen: show the ending (the game is in play, the pause screen closes). */
+  watchEnding?(): void;
   /** The game's part of going back to the title (the session's part is done by `Port.backToTitle`). */
   toTitle(): void;
   /** One frame of the game (`holding`: a screen of the flow's is up). */
@@ -122,7 +131,7 @@ export class Port<S, F, T> {
     this.latch = new FireLatch(setup.launchHeld);
     this.fe = new FrontEnd<T, F>({
       id: setup.id, input, renderer, map: setup.map, assists: setup.assists,
-      font: () => this.flow.getFont(), saves: this.flow, onClose: () => this.latch.hold(), colours: setup.colours,
+      font: () => this.flow.getFont(), saves: this.flow, onClose: () => this.latch.hold(), colours: setup.colours, ending: setup.ending,
     });
     this.adapter = build(this);
     this.audio = new AudioKeys({ ...this.adapter.audio, canvas: host.canvas, input, renderer });
@@ -184,12 +193,14 @@ export class Port<S, F, T> {
   private asked(r: PauseRequest) {
     if (r === 'roomStart') this.backToRoomStart();
     else if (r === 'title') this.backToTitle();
+    else if (r === 'ending') { this.fe.wentBack(); this.latch.hold(); this.adapter.watchEnding?.(); }
   }
 
   readonly tick = () => {
     const { adapter: a, fe, flow } = this;
     this.audio.tick(a.typing?.() ?? false);
     if (!(a.ready?.() ?? true)) return;
+    if (a.takeover?.active) { a.takeover.tick(); return; }
 
     if (a.phase() === 'play') {
       const state = a.state();
@@ -225,6 +236,7 @@ export class Port<S, F, T> {
   readonly render = (alpha: number) => {
     const { adapter: a, fe, flow, host } = this;
     if (!(a.ready?.() ?? true)) return;
+    if (a.takeover?.active) { a.takeover.render(alpha); return; }
     const covered = flow.covering || fe.holding;
     a.prepareRender?.(covered);
     a.audio.player.hold(covered);
