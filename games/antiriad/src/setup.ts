@@ -30,6 +30,21 @@ export function stopFades(g: Game) {
   }
 }
 
+/** One of a room's sprites as the room's list has it: the sprite (7 down to 3), where it starts, its movement script ($80 on: the x's high bit) and its animation. */
+export interface RoomSprite { sprite: number; x: number; y: number; move: number; anim: number }
+
+/** The sprites a room's list ($CA16) puts in it, in the order the original takes them. */
+export function roomSpriteList(g: Game, room: number): RoomSprite[] {
+  const { ram } = g;
+  const list = g.word(ROOM_SPRITES + room * 2);
+  const found: RoomSprite[] = [];
+  for (let i = 0; i < ram[list]; i++) {
+    const at = list + 1 + i * 4;
+    found.push({ sprite: 7 - i, x: ram[at], y: ram[at + 1], move: ram[at + 2], anim: ram[at + 3] });
+  }
+  return found;
+}
+
 /** $8716: the room's sprites. */
 export function roomSprites(g: Game) {
   const { ram } = g;
@@ -40,18 +55,15 @@ export function roomSprites(g: Game) {
     ram[V.animPos + x] = 2;
   }
   ram[V.request + 1] = 0xa0;
-  const list = g.word(ROOM_SPRITES + ram[V.room] * 2);
-  let n = ram[list];
-  if (!n) return;
-  let y = 0;
-  for (let x = 7; n; x--, n--) {
-    ram[V.spriteXY + x * 2] = ram[list + ++y]; g.w(0xd000 + x * 2, ram[V.spriteXY + x * 2]);
-    ram[V.spriteXY + x * 2 + 1] = ram[list + ++y]; g.w(0xd001 + x * 2, ram[V.spriteXY + x * 2 + 1]);
-    const m = ram[list + ++y];
+  const sprites = roomSpriteList(g, ram[V.room]);
+  if (!sprites.length) return;
+  for (const { sprite: x, x: sx, y: sy, move: m, anim } of sprites) {
+    ram[V.spriteXY + x * 2] = sx; g.w(0xd000 + x * 2, ram[V.spriteXY + x * 2]);
+    ram[V.spriteXY + x * 2 + 1] = sy; g.w(0xd001 + x * 2, ram[V.spriteXY + x * 2 + 1]);
     ram[V.move + x] = m | 0x80;
     ram[V.spriteXHigh] &= ram[NOT_BIT + x];
     if (m & 0x80) ram[V.spriteXHigh] |= ram[BIT + x];
-    ram[V.appearing + x] = ram[V.anim + x] = ram[list + ++y];
+    ram[V.appearing + x] = ram[V.anim + x] = anim;
     gone(g, x);
     creature(g, x);
   }

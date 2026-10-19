@@ -61,6 +61,8 @@ export interface RewardSpec {
   creditX?: number;
   /** The colours of the credit lines, of the parade's title and THE END, and of the names and numbers: indexes of the renderer's palette (default the C64's yellow and light grey; Moley Christmas's is the Spectrum's). */
   colours?: ShowColours;
+  /** The ground the parade walks on (picture pixels; default `PARADE.ground`): lower where the figures are tall, so none passes over the title. */
+  paradeGround?: number;
 }
 
 /** The show's colours (indexes of the renderer's palette). */
@@ -73,8 +75,11 @@ export interface RewardOptions {
   spec: RewardSpec;
   /** The game's font (its lettering, upper case). */
   font(): BitmapFont;
-  /** The tune: begins as the show does and again on its way out (the title's). */
-  music: { start(): void; end(): void };
+  /**
+   * The tune: begins as the show does and again on its way out (the title's). A game whose tune runs on a machine of its own
+   * (Antiriad's, on a C64 the show ticks) steps it each frame of the show with `frame`.
+   */
+  music: { start(): void; end(): void; frame?(): void };
   /** The show is over (or skipped). */
   done(): void;
 }
@@ -205,6 +210,7 @@ export class RewardShow {
   tick() {
     if (!this.active) return;
     const { renderer, input } = this.o.host;
+    this.o.music.frame?.();
     this.frames++;
     if (this.phase === 'loading') {
       // (a black frame first, then the work: the cast is recorded in one go)
@@ -270,6 +276,7 @@ export class RewardShow {
     const font = this.o.font();
     const t = this.frames - 1;
     const stop = 24;
+    const ground = this.o.spec.paradeGround ?? PARADE.ground;
     if (t >= paradeLength(this.figures, stop)) { this.phase = 'end'; this.frames = 0; return; }
     renderer.screen.clear(TRANSPARENT);
     font.draw(renderer.screen, this.o.spec.title, 8, 12, this.colours.title);
@@ -278,7 +285,7 @@ export class RewardShow {
     this.figures.forEach((fig, i) => {
       const left = lefts[i];
       const pose = poseAt(fig, t);
-      const top = PARADE.ground - fig.height;
+      const top = ground - fig.height;
       // (a figure off the picture is not drawn: one handle per part drawn, shared along the line)
       if (left + fig.width > 0 && left < 320) {
         pose.parts.forEach((part) => {
@@ -288,7 +295,7 @@ export class RewardShow {
         });
       }
       // (its name under it, from its left: nothing is centred)
-      if (left + GLYPH * fig.name.length > 0 && left < 320) font.draw(renderer.screen, fig.name, left, PARADE.ground + PARADE.nameGap, this.colours.text);
+      if (left + GLYPH * fig.name.length > 0 && left < 320) font.draw(renderer.screen, fig.name, left, ground + PARADE.nameGap, this.colours.text);
     });
     for (let k = used; k < this.handles.length; k++) this.handles[k].visible = false;
     renderer.screen.version++;

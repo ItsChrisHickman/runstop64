@@ -1,4 +1,4 @@
-import { Surface, decodeSprite, type Vic } from 'c64kit';
+import { Surface, decodeSprite, type FrameCapture, type Vic } from 'c64kit';
 
 /**
  * The cast of a game's ending, as the engine draws it: a figure is made of the sprites a game shows for a
@@ -26,6 +26,15 @@ export function vicShot(vic: Vic, n: number): SpriteShot | null {
   };
 }
 
+/** A sprite of a C64's frame capture (a native game's picture: C64View draws it), as a shot. */
+export function captureShot(s: FrameCapture['sprites'][number]): SpriteShot {
+  return {
+    x: s.x >= 504 ? s.x - 504 : s.x, y: s.y, colour: s.colour & 15,
+    multicolour: s.multicolour, mc1: s.mc1 & 15, mc2: s.mc2 & 15, expandX: s.expandX, expandY: s.expandY,
+    data: Uint8Array.from(s.data.subarray(0, 63)),
+  };
+}
+
 /** How much bigger the parade draws a figure than the picture shows it. */
 export const FIGURE_SCALE = 3;
 
@@ -35,16 +44,43 @@ export interface Part { surface: Surface; dx: number; dy: number }
 export interface Pose { parts: Part[]; frames: number }
 export interface Figure { name: string; poses: Pose[]; width: number; height: number }
 
-/** A part of a figure, drawn at `FIGURE_SCALE` from the game's sprite. */
-function partOf(s: SpriteShot, left: number, top: number): Part {
-  const flat = new Surface(24 * (s.expandX ? 2 : 1), 21 * (s.expandY ? 2 : 1));
-  decodeSprite(s.data, s.colour, s.multicolour, s.mc1, s.mc2, s.expandX, s.expandY, flat);
+/** A flat picture (the game's pixels, 1:1) as a part of a figure, drawn at `FIGURE_SCALE`, its top left at (dx, dy) in the scaled pixels. */
+export function scaledPart(flat: Surface, dx = 0, dy = 0): Part {
   const surface = new Surface(flat.width * FIGURE_SCALE, flat.height * FIGURE_SCALE);
   for (let y = 0; y < surface.height; y++) {
     for (let x = 0; x < surface.width; x++) surface.pixels[y * surface.width + x] = flat.pixels[Math.floor(y / FIGURE_SCALE) * flat.width + Math.floor(x / FIGURE_SCALE)];
   }
   surface.version++;
-  return { surface, dx: (s.x - left) * FIGURE_SCALE, dy: (s.y - top) * FIGURE_SCALE };
+  return { surface, dx, dy };
+}
+
+/** A part of a figure, drawn at `FIGURE_SCALE` from the game's sprite. */
+function partOf(s: SpriteShot, left: number, top: number): Part {
+  const flat = new Surface(24 * (s.expandX ? 2 : 1), 21 * (s.expandY ? 2 : 1));
+  decodeSprite(s.data, s.colour, s.multicolour, s.mc1, s.mc2, s.expandX, s.expandY, flat);
+  return scaledPart(flat, (s.x - left) * FIGURE_SCALE, (s.y - top) * FIGURE_SCALE);
+}
+
+/**
+ * A figure from pictures of it, a frame at a time (null: not seen that frame): a creature a game draws with characters, which
+ * has no sprite to record, only the pixels it was drawn in. Each distinct picture is a pose, with how long it was held.
+ */
+export function recordPictures(name: string, pictures: Iterable<Surface | null>): Figure | null {
+  const poses: Pose[] = [];
+  let last = '';
+  let width = 0, height = 0;
+  for (const flat of pictures) {
+    if (!flat) continue;
+    const key = `${flat.width}x${flat.height}:${flat.pixels.join('.')}`;
+    const prev = poses[poses.length - 1];
+    if (key === last && prev) { prev.frames++; continue; }
+    last = key;
+    const part = scaledPart(flat);
+    poses.push({ parts: [part], frames: 1 });
+    width = Math.max(width, part.surface.width);
+    height = Math.max(height, part.surface.height);
+  }
+  return poses.length ? { name, poses, width, height } : null;
 }
 
 /** The pictures a figure's sprites made (a moment at a time: its sprites, rearmost first), as a figure. Null if it was never seen. */

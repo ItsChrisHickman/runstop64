@@ -170,6 +170,16 @@ function shotHits(g: Game) {
   g.w(0xd015, ram[V.spriteEnable]);
 }
 
+/** A part of the armour is his (found, the panel to say so and its mark lit: part 0 the Pulsar Beam, 1 the Particle Negator, 2 the Gravity Displacer, 3 the Implosion Mine). */
+export function fitPart(g: Game, part: number) {
+  const { ram } = g;
+  ram[HAVE_PART + part] = 0x80; ram[PART_NEWS + part] = 0x80;
+  const n = ram[0x46];
+  const at = g.word(0xf128 + ram[PART_MARK_ROW + n] * 2) + ram[PART_MARK_COL + n];
+  ram[at] = 0xc1; g.m.colour[(at - 0x4000) & 0x3ff] = 7;
+  ram[0x46]++;
+}
+
 /** $A643: the hero touches sprite x. */
 function heroTouches(g: Game) {
   const { ram } = g;
@@ -181,13 +191,9 @@ function heroTouches(g: Game) {
   if (part >= 0) {
     // a part of the armour: crouch to pick it up (or touch it in the armour)
     if (!(ram[V.panelOn] & 0x80) || (ram[V.appearing + x] | ram[HAVE_PART + part]) & 0x80 || !reaching()) return;
-    ram[HAVE_PART + part] = 0x80; ram[PART_NEWS + part] = 0x80;
+    fitPart(g, part);
     ram[V.anim + x] = 0; ram[V.move + x] = 0;
     addScore(g, ram[V.score + x]);
-    const n = ram[0x46];
-    const at = g.word(0xf128 + ram[PART_MARK_ROW + n] * 2) + ram[PART_MARK_COL + n];
-    ram[at] = 0xc1; g.m.colour[(at - 0x4000) & 0x3ff] = 7;
-    ram[0x46]++;
     ram[V.request + 2] = 0x99;
     return;
   }

@@ -95,6 +95,7 @@ export const TESTS = [
   { file: 'games/antiriad/test/empty.ts', set: 'fast' },
   { file: 'games/antiriad/test/feel.ts', set: 'fast' },
   { file: 'games/antiriad/test/frontend.ts', set: 'fast' },
+  { file: 'games/antiriad/test/reward.ts', set: 'fast' },
   { file: 'games/antiriad/test/grace.ts', set: 'fast' },
   { file: 'games/antiriad/test/logic.ts', set: 'fast' },
   { file: 'games/antiriad/test/travel.ts', set: 'fast' },

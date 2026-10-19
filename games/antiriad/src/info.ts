@@ -10,7 +10,7 @@ export const info = {
     and destroy the alien oppressors' power centre. All credit for the game belongs to its creators:</p>
     <ul>
       <li>Programming: Stanley Schembri</li>
-      <li>Plot, graphics and the comic: <a href="https://en.wikipedia.org/wiki/Dan_Malone">Daniel Malone</a>; graphics also
+      <li>Plot, graphics and the comic: Daniel Malone; graphics also
         Stephen Robertson (as <a href="https://www.c64-wiki.com/wiki/Antiriad">C64-Wiki</a> credits him)</li>
       <li>Sound design and music: <a href="https://en.wikipedia.org/wiki/Richard_Joseph">Richard Joseph</a>,
         played by the game's own music driver</li>
@@ -28,7 +28,9 @@ export const info = {
     and an armour out of energy sets down and lets Tal out with left or right, anywhere, to fetch a recharge cell
     (in the original it bounces on the floor until held backwards, and in the first ten rooms never lets him out);
     Tal keeps every recharge cell he picks up (the original carries one) and C fills the armour from one
-    (the touch CELL button), stepping into the armour does too.
+    (the touch CELL button), stepping into the armour does too; and after the ending, once the game is won, a reward:
+    Tal's places from the quest with the credits over them, the parade of the creatures, and THE END (a key skips it;
+    W on the pause screen shows it again).
     Hits and kills get effects over the picture in both modes.</p>
     <p>Changes from the original (the
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/antiriad/QOL.md">full log</a>):

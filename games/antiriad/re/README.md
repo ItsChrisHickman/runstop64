@@ -201,3 +201,18 @@ showing them; the teleporters; creatures that drop bombs and generators; the Pul
 sequence. (The Implosion Mine, the power centre and the ending are checked: `centre.ts`.) Next: scripted runs to each, from
 fixtures of the original at those places. Possible additions: hint sparkles (where the parts are) as an assist, and the pause
 map marking the parts' rooms once found.
+
+## The ending's reward (ENHANCED)
+
+After the game's own ending (the mine goes off, the screen dissolves, "THE OPPRESSORS ARE DEFEATED") and its fire, ENHANCED shows
+a reward (`src/ending.ts`, the show `games/shared/ending/show.ts`, `test/reward.ts`; credits and their sources `credits.md`). The
+places are the game's own engine on games of its own, resumed from three states made by playing the game itself (`src/stage.ts`
+`Bases`: a new game, the armour worn for the first time with its power-up, Tal out of it again); Tal is driven by a pilot
+(`src/pilot.ts`) that gives the same input as a player's (`src/controls.ts`, shared with `main.ts`): steps of what is held for how
+long or until something is so (Tal at a place, the armour landed, a part found), steering by looking at the game. Where the
+original puts things matters: the armour's ledge in room $3F is closed on its right by a pillar; the dotted chains in rooms
+$3E and $3F are the energy barriers, which the armour can't cross (Tal can); the armour arriving from below comes in at the
+bottom of the room, over the panel, so the montage's flights go sideways; the credits' row is screen row 16 (between the
+playfield and the panel's first row), which the game leaves empty, apart from the ending's flashing of the whole screen.
+`re/play.ts` plays the places headless (where Tal goes, when each is done, a sheet of frames), `re/cast.ts` records the parade's
+cast onto a sheet, `re/messages.ts` dumps the panel's messages.

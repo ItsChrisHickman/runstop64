@@ -203,6 +203,9 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     this.st = { ...this.st, playing: false, fresh: false, over: false, lastRoom: -1, screen: { kind: 'open' }, titleTicks: 0, newGameOk: false };
   }
 
+  /** A fire press still down is spent (a screen of the game's own took it, the ending's skip): the title does not take it for a new game's, till it is let go. */
+  spendPress() { this.st = { ...this.st, startOk: true }; }
+
   /** The latest save (taken on coming into the room the player is in). */
   saved(): S | null { return this.load(); }
 

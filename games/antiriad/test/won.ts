@@ -78,12 +78,21 @@ const land = () => {
   }
   return !!(g().ram[MINE_SET_OFF] & 0x80);
 };
+/** The reward (ENHANCED: reward.ts), over the title after the ending's fire, skipped: a key once it has run its first seconds. */
+const skipReward = () => {
+  const show = p.ending;
+  if (!show?.active) return;
+  tick(110);
+  tap('Space');
+  tick(30);
+};
 /** The ending, then fire: the title (up a moment, for its question). */
 const ending = () => {
   const stops = hold([], 3000, () => !g().playing);
   const words = hold([], 1500, () => g().ram[V.message] === 0x95);
-  const title = hold(['Space'], 600, () => g().onTitle);
+  const title = hold(['Space'], 600, () => g().onTitle || !!p.ending?.active);
   tick(100);
+  skipReward();
   return stops && words && title;
 };
 
