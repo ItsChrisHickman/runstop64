@@ -2,6 +2,7 @@ import type { Host } from 'c64kit';
 import { ram } from '../../shared/native/cpu';
 import { runNative, type RunSpec } from '../../shared/native/play';
 import { AIR_JUMP, gentleTouch, itemSpots, RopeGrip } from './easy';
+import { endingStats, jsw2Ending, won } from './ending';
 import { footing, jsw2Map } from './map';
 import { port } from './native';
 import stateUrl from '../assets/jsw2-title.state?url';
@@ -95,6 +96,9 @@ export function run(host: Host) {
     hints: (ram) => itemSpots(ram),
     // Running (ENHANCED, Shift held): Willy alone goes faster (RUN).
     run: RUN,
+    // The reward for winning (ENHANCED): in the Masters Bedroom with 160 items (the game's own check), at once, as the game's own end never
+    // goes back to the title: a montage of rooms, the parade, THE END (src/ending.ts).
+    ending: { spec: jsw2Ending, won, stats: endingStats, atOnce: true },
     // The title scroller's key list, with running (build/patch.json has the same, for a snapshot made again;
     // this puts it in the one made before it: the same length).
     text: { 0x7d03: 'KEYS  :  ARROWS OR WASD...MOVE.  SPACE...JUMP, AGAIN IN THE AIR.  SHIFT...RUN (THOSE TWO IN ENHANCED).  P OR ESC...PAUSE AND MAP.  F3...MUSIC.  M...MUTE........' },

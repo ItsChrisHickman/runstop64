@@ -22,7 +22,8 @@ export const info = {
     (once each time you leave the ground, in the direction you hold); ropes take hold of you at once, never drop you, and let you
     jump off from anywhere; your eight lives never run out, and no life is lost for two seconds after coming into a room or losing one;
     a guardian has to overlap you well to kill; sparkles show the items left in the room; a long fall ends in an ordinary landing
-    and a death never starts Willy again into the same death. Hold Shift and Willy runs: his own steps come twice as often (his
+    and a death never starts Willy again into the same death; and bed after 160 items earns an ending (a montage of rooms with credits over
+    it, a parade of the guardians, THE END; W on the pause screen shows it again once you've won). Hold Shift and Willy runs: his own steps come twice as often (his
     jumps the same jumps, only quicker), while the guardians, ropes and music keep their pace.</p>
     <p>Added for runstop64: progress is saved each time you enter a room (coming back carries on where you were; T on the pause screen goes to the title), and
     after losing you can continue from the last room you entered, with all your lives. The pause screen has a map

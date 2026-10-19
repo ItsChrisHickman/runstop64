@@ -159,6 +159,7 @@ export const TESTS = [
   { file: 'games/karnath/test/ending.ts', set: 'slow' },
   { file: 'games/entombed/test/ending.ts', set: 'slow' },
   { file: 'games/thingonaspring/test/ending.ts', set: 'slow' },
+  { file: 'games/jsw2/test/ending.ts', set: 'slow' },
   { file: 'games/karnath/re/hints/check.ts', set: 'fast' },
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },

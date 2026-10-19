@@ -125,3 +125,13 @@ sprite collisions are the model's frame-end ones (`C64.spriteOverlap`: opaque pi
 ## Not done
 
 A reachability sweep (every item cell touched, and which need the Secret Passage trick): see `../QOL.md`.
+
+## The ending
+
+The game's own end (checked by running it, `$7315`): in the Masters Bedroom (room 34, room type 6, dispatched at `$6E94`) with 160 or more
+items (`$8131/$8132`, BCD) the handler does `JMP ($01E0)` and never comes back to its own code below. `$01E0` is not one of the vectors
+`constVectors` makes direct: in this image (a TCS crack) it points at `$023A`, `LDA $0201 / CMP #$B5 / BEQ / JMP $0205 / JMP ($01E2)`,
+and `$0201` is `$B5`, so it goes on through `$01E2` to `$7387`: Willy's y is set to `$8E`, `$8073` to 1 and he is dropped again and again, a
+round of about 340 frames, with no message or end screen (the code at `$0205` it skips fills memory with `$EA`: the crack's own self-destruct,
+never run). Below 160 the handler goes on to the room's own events, chosen by Willy's x (`$A8` and over). The ENHANCED reward ending (`src/ending.ts`,
+`games/jsw2/re/credits.md`) is therefore begun when he comes into the bedroom with 160 (`won`), not when the game's own end is over: it never is.

@@ -146,8 +146,9 @@ export interface NativeGameOptions<F> {
    * The reward for winning (ending.ts), in ENHANCED: `won` says the game's winning moment is under way (it shows the
    * ending once the game's own end is over and it is back at the title, and keeps that the game has been won), `stats`
    * the lines under THE END. Offered on the pause screen (W) once won, and at once with `?ending` on the page.
+   * `atOnce`: the game's own end is no way back to the title (Jet Set Willy II's goes on in the bedroom, over and over), so the ending begins as it is won.
    */
-  ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[] };
+  ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[]; atOnce?: boolean };
 }
 
 /** Our keys, never the game's: M mutes. */
@@ -207,7 +208,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let hdShown = false;
   /** The ending (ending.ts), once the session is up; and a win seen (its numbers kept) whose ending waits for the game's own end to be over. */
   let endingShow: Ending | null = null;
-  let winSeen = false, endingWaits: string[] | null = null;
+  let winSeen = false, beforeWin = false, endingWaits: string[] | null = null;
   const endingOn = (): boolean => !!opts.ending && fe.enhanced;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen, with this machine as its game ---
@@ -309,8 +310,13 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     const e = opts.ending;
     if (!e) return;
     const won = e.won(g.m.ram);
-    if (won && !winSeen) { winSeen = true; keepWon(opts.id); endingWaits = e.stats(g.m.ram, fe.found); }
-    else if (!won && !onTitle(g)) winSeen = false;
+    if (won && !winSeen) {
+      winSeen = true; keepWon(opts.id);
+      // (`atOnce`: only a win played into, not a save that is already in it: continuing from the bedroom is no ending again)
+      if (e.atOnce) { if (endingOn() && beforeWin) endingShow?.start(e.stats(g.m.ram, fe.found)); } else endingWaits = e.stats(g.m.ram, fe.found);
+      beforeWin = false;
+    }
+    else if (!won && !onTitle(g)) { winSeen = false; beforeWin = true; }
     if (endingWaits && onTitle(g)) {
       const stats = endingWaits;
       endingWaits = null;

@@ -60,6 +60,8 @@ export interface EndingScene {
   caption?: string;
   /** Put him there, the game's own way (called at the main loop's wait of a new game); false if it can't. */
   enter(ram: Uint8Array): boolean;
+  /** Once the place is there (a few frames after `enter`, before the first frame shown): put him on his spot, where the game's own way in does not (Jet Set Willy II's rooms are come into from above). */
+  settle?(ram: Uint8Array): void;
   steps: readonly EndingStep[];
   /** How long it is shown (frames at 50 a second); longer if its credits need it (`sceneLength`). */
   frames: number;
@@ -78,6 +80,7 @@ export interface EndingScene {
 export interface EndingCharacter {
   name: string;
   enter(ram: Uint8Array): boolean;
+  settle?(ram: Uint8Array): void;
   /** The sprite numbers of its parts (a figure made of two sprites, one under the other, gives both). */
   sprites: readonly number[];
   /** What he does while its frames are recorded (Pendragon walking: `walk`); the others do as the engine does. */
@@ -181,8 +184,12 @@ export function bootGame(port: PortConfig, title: MachineState, spec: EndingSpec
   const [from, to] = spec.startFire ?? [31, 33];
   for (let f = 0; f < 40; f++) { joy(g.m, spec.joyPort, f >= from && f <= to ? IDLE & ~FIRE : IDLE); g.tick(); }
   for (let f = 0; f < 400 && (g.lastWait !== port.mainLoopWait || f < 60); f++) { joy(g.m, spec.joyPort, IDLE); g.tick(); }
+  // (a game whose frame does not end at the main loop's wait, Jet Set Willy II's, is saved at the last wait it came to)
+  const lastWait: { state: MachineState | null } = { state: null };
+  g.onWait = (site) => { if (site === port.mainLoopWait) lastWait.state = g.save(); };
   for (let f = 0; f < 30; f++) { joy(g.m, spec.joyPort, IDLE); g.tick(); }
-  return g.save();
+  g.onWait = undefined;
+  return g.save() ?? lastWait.state;
 }
 
 /** A sprite as the last frame drew it (the first time it appears). */
@@ -370,7 +377,7 @@ export function creditAt(scene: EndingScene, frame: number): { line: number; sho
 
 /** Record a character's poses: the engine runs on a new game in its place for some frames, and each distinct picture of its sprites is kept. */
 function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter, scale = SCALE): Figure | null {
-  const g = placed(port, base, spec, c.enter);
+  const g = placed(port, base, spec, c.enter, c.settle);
   if (!g) return null;
   const director = new Director(spec, c.steps ?? []);
   const poses: Pose[] = [];
@@ -406,7 +413,7 @@ function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: Endin
 }
 
 /** A new game's memory with him in a place (entered at the main loop's wait, as travel does it). */
-export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, enter: (ram: Uint8Array) => boolean): NativeHost | null {
+export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, enter: (ram: Uint8Array) => boolean, settle?: (ram: Uint8Array) => void): NativeHost | null {
   const g = NativeHost.resume(port, unpackState(packState(base)));
   let done = false, ok = true;
   g.onWait = (site) => {
@@ -417,6 +424,7 @@ export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, e
   };
   // (a few frames for the place to be there)
   for (let f = 0; f < 6; f++) { joy(g.m, spec.joyPort, IDLE); spec.keepAlive(g.m.ram); g.tick(); }
+  if (done && ok) settle?.(g.m.ram);
   return done && ok ? g : null;
 }
 
@@ -560,7 +568,7 @@ export class Ending {
     this.view = null;
     if (!base || this.scene >= spec.scenes.length) { this.beginParade(); return; }
     const scene = spec.scenes[this.scene];
-    const g = placed(port, base, spec, scene.enter);
+    const g = placed(port, base, spec, scene.enter, scene.settle);
     if (!g) { this.next(); return; }
     this.machine = g;
     this.view = new C64View(this.o.host.renderer, g.m);
