@@ -41,6 +41,7 @@ export const TESTS = [
 
   // ---- Auf Wiedersehen Monty (its originals are gitignored: games/awm/build/README.md)
   { file: 'games/awm/test/frontend.ts', set: 'fast' },
+  { file: 'games/awm/test/reward.ts', set: 'slow' },
   { file: 'games/awm/test/flight.ts', args: [AWM, 'idle:100:1'], set: 'slow', needs: [AWM] }, // a whole flight, the clock to its end
   { file: 'games/awm/test/flight.ts', args: [AWM, 'mix:900:1'], set: 'slow', needs: [AWM] }, // shooting the other plane down, being shot down, random sticks
   { file: 'games/awm/test/smooth.ts', set: 'fast' },

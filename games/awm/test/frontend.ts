@@ -230,6 +230,9 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   until(() => program.kind === 'closing', 400);
   check('the ending flag: the closing screen', program.kind === 'closing' && program.lastEnd === 'ending');
   until(() => program.kind === 'title', 1500);
+  // (ENHANCED shows its reward after the ending: test/reward.ts; a key skips it, after two seconds)
+  tick(110);
+  tap('Space');
   tick(60);
   check(`CONTINUE? after the ending (${p.state.prompt})`, p.state.prompt === 'continue');
   tap('Enter');

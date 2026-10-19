@@ -55,6 +55,8 @@ export interface RewardSpec {
   creditRow: number;
   /** Frames a credit line is given (default `CREDIT.slot`). */
   creditSlot?: number;
+  /** The column (picture pixels) a credit line starts at, if the row is not free the whole width (default `CREDIT.x`); lines are then shorter. */
+  creditX?: number;
 }
 
 /** What the show needs of the game running it. */
@@ -240,7 +242,7 @@ export class RewardShow {
     const now = creditAt(place, this.frames - 1, this.o.spec.creditSlot);
     if (!now) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, CREDIT.x, place.creditRow ?? this.o.spec.creditRow, CREDIT.colour);
+    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, CREDIT.colour);
     screen.version++;
   }
 

@@ -2,7 +2,7 @@ import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseM
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
 import { isTrap } from './items';
-import type { Entry } from './game';
+import type { Entry, Game } from './game';
 import type { Program } from './program';
 import type { AwmSave } from './save';
 import { State } from './tiles';
@@ -89,6 +89,14 @@ function roomAt(row: number, col: number): number | null {
   return r === undefined || r === NO_ROOM ? null : r;
 }
 
+/** How he is doing, as the pause screen shows it (and THE END, ending.ts): lives, rooms seen, items taken, how far to the goal. */
+export function progressLines(game: Game, found: AwmFound): string[] {
+  const seen = Object.keys(found.rooms).length;
+  const taken = game.items.collected.filter((c, i) => c && PRIZES.get(TABLES.items[i]?.room ?? NO_ROOM)?.includes(i)).length;
+  const goal = Math.min(100, Math.floor((game.progress * 100) / 0xc3));
+  return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
+}
+
 /** Frames the map has been drawn (the shimmer's step). */
 let shimmer = 0;
 
@@ -124,14 +132,7 @@ export const awmMap = {
     const state = l.total === 0 ? 'NOTHING TO TAKE' : l.open === 0 ? 'ALL TAKEN' : `${l.open} OF ${l.total} LEFT TO TAKE`;
     font.draw(s, state, box.x, y + 10, l.open ? COL.lgrey : COL.lgreen);
   },
-  info(program, found) {
-    const game = program.game;
-    if (!game) return [];
-    const seen = Object.keys(found.rooms).length;
-    const taken = game.items.collected.filter((c, i) => c && PRIZES.get(TABLES.items[i]?.room ?? NO_ROOM)?.includes(i)).length;
-    const goal = Math.min(100, Math.floor((game.progress * 100) / 0xc3));
-    return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
-  },
+  info: (program, found) => (program.game ? progressLines(program.game, found) : []),
   legend: [{ colour: COL.dgrey, text: 'NOT SEEN' }, { colour: COL.yellow, text: 'ALL TAKEN' }],
   places(box: Box, program: Program, found: AwmFound): MapPlace[] {
     const game = program.game;

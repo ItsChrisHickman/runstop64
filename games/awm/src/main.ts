@@ -1,9 +1,13 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
+import { RewardShow } from '../../shared/ending/show';
+import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
+import { awmEnding, endingStats } from './ending';
+import type { Game } from './game';
 import { Stick } from './input';
 import { awmMap, describeSave, noteRoom, type AwmFound } from './map';
 import { Program, type Controls } from './program';
@@ -41,9 +45,9 @@ function readHigh(): number[] | null {
 }
 
 /** The game's lettering (the letters, digits and signs of its character set), topped up with the kit's. */
-function awmFont() {
+export function awmFont() {
   return new BitmapFont()
-    .addFromCharsetMapped(TABLES.charset, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!-:/()?', (ascii) => (ascii + 0x60) & 0xff)
+    .addFromCharsetMapped(TABLES.charset, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!-:/)?', (ascii) => (ascii + 0x60) & 0xff)
     .addDrawn(KIT_GLYPHS);
 }
 
@@ -72,6 +76,12 @@ export function run(host: Host) {
   let seenRoom = -1;
   let inGame = false;
   let lastKind = program.kind;
+  /** The ending's show, once the session is up (made in the session's build). */
+  let rewardShow: RewardShow | null = null;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = () => false;
+  /** The game last in play (its numbers are THE END's, when it has ended: the program has none on the title). */
+  let lastGame: Game | null = null;
   /** A tap on the title's menu line, held as the key it stands for for a few frames (the title looks at its keys in one of its two phases). */
   let menuTap = { key: 'F1', frames: 0 };
   /** A tap on FLY is held a couple of frames: the game looks at the key in the logic phase, every other frame. */
@@ -83,7 +93,11 @@ export function run(host: Host) {
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
     assists: [{ id: 'safe', long: 'SAFE RESPAWN' }],
-  }, ({ flow, fe, latch, rooms }) => {
+    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
+    ending: () => enhanced() && readWon('awm'),
+  }, (self) => {
+    const { flow, fe, latch, rooms } = self;
+    enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
     program.safeRespawn = () => fe.assist.safe === true;
     program.graceActive = () => flow.grace.active;
@@ -120,8 +134,31 @@ export function run(host: Host) {
       return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7', fly };
     }
 
+    // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+    /** The show is on from the ending (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
+    let afterWin = false;
+    const reward = rewardShow = new RewardShow({
+      host,
+      spec: awmEnding(renderer),
+      font: () => flow.getFont(),
+      // (the game's tune, from its start (nothing in the sound-effects mode), and again as the title's on the way out)
+      music: {
+        start() { play(program.effectsChosen ? { kind: 'stop' } : { kind: 'tune', n: 0 }); },
+        end() { play({ kind: 'tune', n: 0 }); },
+      },
+      done() {
+        // (the montage's engine drew on the renderer's backdrop: the game's view takes it back)
+        renderer.backdrop = view.backdrop;
+        if (afterWin) { afterWin = false; latch.hold(); } else self.backToTitle();
+      },
+    });
+    // ?ending on the page: the ending at once, for review
+    if (wantsEnding()) reward.start(endingStats(null, fe.found));
+
     // the game, as launched: the title (a save goes straight back into play, ContinueFlow)
     return {
+      takeover: reward,
+      watchEnding() { afterWin = false; reward.start(endingStats(program.game, fe.found)); },
       state: () => program,
       phase: () => (program.kind === 'closing' ? 'other' : program.kind),
       travel: (to) => awmMap.go(to, program, fe.found),
@@ -150,6 +187,12 @@ export function run(host: Host) {
           inGame = false;
           if (program.kind === 'title' && lastKind === 'closing') keepHigh();
         }
+        // the ending played out (GAME OVER, the title): the win is kept, and ENHANCED shows the reward
+        if (program.kind === 'title' && lastKind === 'closing' && program.lastEnd === 'ending') {
+          keepWon('awm');
+          if (fe.enhanced) { afterWin = true; reward.start(endingStats(lastGame, fe.found)); }
+        }
+        if (program.game) lastGame = program.game;
         lastKind = program.kind;
         return result;
       },
@@ -166,6 +209,8 @@ export function run(host: Host) {
     touch: TOUCH,
     /** For tests: the game and the front end's state. */
     get program() { return program; },
+    /** For tests: the ending's show (src/ending.ts). */
+    get ending() { return rewardShow; },
     get frontEnd() { return port.fe; },
     /** For tests: the moment's grace. */
     get grace() { return port.flow.grace; },
