@@ -60,9 +60,11 @@ without waiting for his review.
   test kit `games/shared/test/ending-kit.ts`; Entombed has no music, so `tune: 'effects'`); Monty on the Run
   (`games/shared/ending/` for the `runPort` rebuilds, test `test/reward.ts`). Weak spots: some Entombed and Thing scenes have
   the hero mostly standing or bouncing while credits run (routes not found by search: `re/ending/route.ts`, `re/ways.json`).
-- **To do:** Auf Wiedersehen Monty, Moley Christmas, Starquake, Antiriad (on `games/shared/ending/`, like Monty), JSW2 (on
-  `native/ending.ts`). Then **merge the two ending modules** (they duplicate the credits timing, the figure recording, the parade,
-  THE END and the skip): one shared show, with a translated-machine reel and a native-engine reel.
+- **Also done (live):** Auf Wiedersehen Monty, Starquake, Moley Christmas, Antiriad (on `games/shared/ending/`), JSW2 (on
+  `native/ending.ts`; this crack has no end screen, so the show begins on entering the Masters Bedroom with 160 items). Every game
+  has its ending.
+- **Next: merge the two ending modules** (they duplicate the credits timing, the figure recording, the parade, THE END and the
+  skip): one shared show, with a translated-machine reel and a native-engine reel.
 - Creature names are ours where the games name none; Chris may want to change them.
 
 ## Also done 2026-10-18
