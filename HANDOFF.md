@@ -56,10 +56,10 @@ the characters with names, THE END with stats, the game's music; won kept apart 
 `?ending` on the page. Sources for every fact in each game's `re/credits.md`; never invent a credit. He OK'd doing them all
 without waiting for his review.
 
-- **Done (live):** Blackwyche, Dragonskulle, Staff of Karnath (`games/shared/native/ending.ts`, test kit
-  `games/shared/test/ending-kit.ts`); Monty on the Run (`games/shared/ending/` for the `runPort` rebuilds, test `test/reward.ts`).
-- **In a worktree when this was written:** Entombed and Thing on a Spring (on `native/ending.ts`). If its branch
-  `worktree-agent-a1518ccc3d57f5fc5` is still there, review and merge it; otherwise redo from the Pendragon ones.
+- **Done (live):** Blackwyche, Dragonskulle, Staff of Karnath, Entombed, Thing on a Spring (`games/shared/native/ending.ts`,
+  test kit `games/shared/test/ending-kit.ts`; Entombed has no music, so `tune: 'effects'`); Monty on the Run
+  (`games/shared/ending/` for the `runPort` rebuilds, test `test/reward.ts`). Weak spots: some Entombed and Thing scenes have
+  the hero mostly standing or bouncing while credits run (routes not found by search: `re/ending/route.ts`, `re/ways.json`).
 - **To do:** Auf Wiedersehen Monty, Moley Christmas, Starquake, Antiriad (on `games/shared/ending/`, like Monty), JSW2 (on
   `native/ending.ts`). Then **merge the two ending modules** (they duplicate the credits timing, the figure recording, the parade,
   THE END and the skip): one shared show, with a translated-machine reel and a native-engine reel.
