@@ -29,6 +29,7 @@ default; ORIGINAL is the game exactly as it was); the rest is in both.
 ## Not changed
 
 Everything else is the original: all 80 rooms and their decorations, every enemy's path and speed, Monty's walk, jump and fall,
-the lifts, the items and what they do, the four deliveries and the way to Gibraltar, the shield and the scrambled-controls
-bonuses, the flight (the sky, the other plane's four paths, how a hit counts, the clock, where each plane comes down), the title
+the lifts, the items and what they do, the four deliveries and the way to Gibraltar, the shield (the first thing of the first
+room, a few steps left of where Monty starts: once touched, nothing but a lift hurts him for the rest of the game, as in the
+original; `test/shield.ts`) and the scrambled-controls bonuses, the flight (the sky, the other plane's four paths, how a hit counts, the clock, where each plane comes down), the title
 screen's look and scroller, GAME OVER, the ending and the music.
