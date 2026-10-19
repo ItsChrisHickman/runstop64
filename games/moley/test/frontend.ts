@@ -258,6 +258,11 @@ check('the picture is up at once (the sprites on the renderer)', visibleSprites(
   input.keyDown('KeyQ'); tick(2); input.keyUp('KeyQ');
   until(() => p.state.phase === 'credits', 100);
   check('a key leaves the card for the credits page', p.state.phase === 'credits');
+  // (ENHANCED: the ending's show follows the card, over the credits page: test/reward.ts; a key after two seconds skips it)
+  check('the ending\'s show follows the card in ENHANCED', p.ending?.active === true);
+  tick(110);
+  tap('Space');
+  check('a key skips it', p.ending?.active !== true);
   tick(60);
   check(`CONTINUE? after the card (${p.state.prompt})`, p.state.prompt === 'continue');
   const saved = must(savedNow(), 'no save');

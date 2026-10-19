@@ -79,6 +79,13 @@ export class MoleySound {
     if (this.out.unlocked) this.out.play(on);
   }
 
+  /** The music from its start again (the ending's: the tune begins with the show). */
+  restartMusic(): void {
+    if (!this.out.unlocked) return;
+    this.out.tune(musicBytes(), MUSIC_STEP_HZ);
+    this.out.play(this.wantMusic);
+  }
+
   /** One effect (0 death, 1 time-out noise, 2 pickup, 3 energy hit, 5 mechanism), after any that is still sounding. */
   effect(id: number): void {
     const sample = this.samples.get(id);

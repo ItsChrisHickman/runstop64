@@ -1,11 +1,14 @@
 import type { Host } from 'c64kit';
 import { readJson } from '../../shared/guards';
+import { RewardShow } from '../../shared/ending/show';
+import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import type { TitleStrip } from '../../shared/continue';
 import { PAUSE_COLOURS, SPECTRUM } from './colours';
 import { CREDITS_TEXT_OURS, keyByte } from './controls';
 import { Display } from './display';
+import { endingStats, moleyEnding } from './ending';
 import { spectrumFont } from './font';
 import { hintsOf } from './hints';
 import { MoleyFlow, type FlowOptions, type FlowStep } from './flow';
@@ -74,15 +77,36 @@ export function run(host: Host) {
   let travelled = false;
   /** How the last game ended: GAME OVER, or the Christmas card. */
   let lastEnd: 'over' | 'ending' | null = null;
+  /** The ending's show (src/ending.ts, shared/ending/show.ts), once the session is up; and whether it is on from the Christmas card (over the credits page it leaves) or from W or `?ending` (which end on the credits page by going back to the title). */
+  let reward: RewardShow | null = null;
+  let afterCard = false;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = (): boolean => false;
   let startFrames = 0;
 
   const port = runPort<MoleySave, MoleyFound, MoleyFlow>(host, {
     id: 'moley', font: spectrumFont(), codec: CODEC, map: moleyMap, describe: describeSave, colours: PAUSE_COLOURS,
     // (ENTER CONTINUE goes on the credits page's empty rows; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
+    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
+    ending: (): boolean => enhanced() && readWon('moley'),
     // ENHANCED is these four, together (the pause screen has the one switch): see QOL.md
     assists: [{ id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'hints', long: 'SPARKLES' }],
-  }, ({ flow, fe, latch, rooms }) => {
+  }, (self) => {
+    const { flow, fe, latch, rooms } = self;
+    enhanced = (): boolean => fe.enhanced;
+    // ---- the reward for winning (ENHANCED): the montage of the six screens, the parade, THE END (src/ending.ts) ----
+    const show = reward = new RewardShow({
+      host,
+      spec: moleyEnding(renderer, sound),
+      font: () => flow.getFont(),
+      // (the game's tune from its start; it goes on as it did when the show is over)
+      music: { start: () => sound.restartMusic(), end: () => sound.restartMusic() },
+      done: () => {
+        sound.sync(current.game);
+        if (afterCard) { afterCard = false; latch.hold(); } else self.backToTitle();
+      },
+    });
     /** A flow becomes the game being played (a new credits page, a game continued, a travel). */
     function adopt(next: MoleyFlow): void {
       current = next;
@@ -131,8 +155,13 @@ export function run(host: Host) {
         seenRoom = -1;
       } else if (to === 'over' || to === 'ending') {
         lastEnd = to;
+        if (to === 'ending') keepWon('moley');
         if (to === 'ending' && seenRoom >= 0 && noteDone(fe.found, seenRoom)) fe.keepFound();
         keepHigh();
+      } else if (from === 'ending' && to === 'credits' && fe.enhanced) {
+        // the card is over: the show, over the credits page it has gone back to (the game's own end is as it was)
+        afterCard = true;
+        show.start(endingStats(current, fe.found));
       }
     }
 
@@ -167,7 +196,12 @@ export function run(host: Host) {
     /** Whether any key, button or tap at all is down (the Christmas card waits for one). */
     const anyKey = (): boolean => input.down.size > 0 || input.typed.length > 0 || input.points.length > 0 || Object.values(input.held).some((held) => held);
 
+    // ?ending on the page: the ending at once, for review
+    if (wantsEnding()) show.start(endingStats(current, fe.found));
+
     return {
+      takeover: show,
+      watchEnding() { afterCard = false; show.start(endingStats(current, fe.found)); },
       state: () => current,
       phase: () => (current.phase === 'credits' ? 'title' : current.phase === 'play' ? 'play' : 'other'),
       /** The pause map's travel: to the start of a screen he has come to, on a fresh flow (nothing queued from the one he was in). */
@@ -227,8 +261,9 @@ export function run(host: Host) {
 
   return {
     touch: TOUCH,
-    /** For tests: the flow being played, the front end, the grace and the state. */
+    /** For tests: the flow being played, the front end, the grace and the state, and the ending's show. */
     get flow() { return current; },
+    get ending() { return reward; },
     get frontEnd() { return port.fe; },
     get grace() { return port.flow.grace; },
     get sound() { return sound; },

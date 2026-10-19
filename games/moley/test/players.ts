@@ -11,7 +11,7 @@
 import type { Spectrum } from '../../../tools/zx/spectrum';
 import type { Game } from '../src/game';
 import { touching } from '../src/primitives';
-import { type Goal, Walker } from './bot';
+import { type Goal, pressKeys, Walker } from './bot';
 import type { Driver } from './lockstep-core';
 
 /** The pit in room 2's floor kills whoever falls into it (`$95F1`). */
@@ -30,9 +30,13 @@ const box = (x0: number, x1: number, y0: number, y1: number, hold: boolean, extr
 });
 
 export class Player implements Driver {
+  constructor(sim?: Game) {
+    this.walker = new Walker(() => this.goal(), 400, true, 50, 14, sim);
+  }
+
   /** what happened, in words, for the report */
   readonly log: string[] = [];
-  private readonly walker = new Walker(() => this.goal(), 400, true, 50);
+  private readonly walker: Walker;
   private g: Game | null = null;
   private readonly cache = new Map<string, Goal>();
   private lives = 5;
@@ -91,7 +95,8 @@ export class Player implements Driver {
     }
   }
 
-  choose(m: Spectrum, g: Game): void {
+  /** The keys of the next pass (`choose` presses them on the original). */
+  keys(g: Game): number {
     this.g = g;
     this.passesIn.set(g.room, (this.passesIn.get(g.room) ?? 0) + 1);
     if (g.lives < this.lives) this.log.push(`pass ${g.counter}: died in room ${g.room} (lives ${g.lives}); before: ${this.previous}`);
@@ -100,8 +105,10 @@ export class Player implements Driver {
     if (g.room !== this.room) { this.log.push(`entered room ${g.room} (score ${g.score}, lives ${g.lives})`); this.room = g.room; this.items = -1; }
     if (g.items.left !== this.items) { if (this.items >= 0) this.log.push(`  items left ${g.items.left}`); this.items = g.items.left; }
     if (g.room === 5 && g.rooms.r5.carrying !== this.carrying) { this.log.push(`  ${g.rooms.r5.carrying !== 0 ? 'took a paper' : 'delivered'}`); this.carrying = g.rooms.r5.carrying; }
-    this.walker.choose(m, g);
+    return this.walker.keys(g);
   }
+
+  choose(m: Spectrum, g: Game): void { pressKeys(m, this.keys(g)); }
 
   get stats(): string { return `searches ${this.walker.plans}, waited ${this.walker.waited}, no way found ${this.walker.stuck}`; }
 }

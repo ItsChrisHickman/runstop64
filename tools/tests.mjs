@@ -77,6 +77,7 @@ export const TESTS = [
   { file: 'games/moley/test/flow-steps.ts', set: 'fast' },
   { file: 'games/moley/test/flow.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/flow.ts (the credits page, a start, the card, game overs: every frame against the original)' },
   { file: 'games/moley/test/flow.ts', args: ['game'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/flow.ts game (the whole game played by the bot to the ending and the card)' },
+  { file: 'games/moley/test/reward.ts', set: 'fast' },
   { file: 'games/moley/test/newgame.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/newgame.ts (a new game, and a second after the ending)' },
   { file: 'games/moley/test/stray.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES] },
   { file: 'games/moley/test/info.ts', set: 'fast' },

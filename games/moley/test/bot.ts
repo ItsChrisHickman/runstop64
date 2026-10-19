@@ -181,7 +181,7 @@ interface Expect { x: number; y: number; state: number }
 export class Walker implements Driver {
   private queue: number[] = [];
   private expect: Expect | null = null;
-  private readonly sim = makeSim();
+  private readonly sim: Game;
   private dist: Distances | null = null;
   private lastGoal: Goal | null = null;
   /** for the report: searches made, passes spent waiting, times no way was found */
@@ -195,42 +195,49 @@ export class Walker implements Driver {
     private readonly mayLeave = false,
     private readonly beam = 120,
     private readonly lookahead = 14,
-  ) {}
+    /** the copy to try moves on: another kind of game (the ending's, whose random numbers are those of the game it plays: src/steady.ts) makes plans that hold */
+    sim: Game = makeSim(),
+  ) {
+    this.sim = sim;
+  }
 
   /** Already there: stand still if that is safe, otherwise the move that is. */
-  private hold(m: Spectrum, snap: GameSnapshot): void {
+  private hold(snap: GameSnapshot): number {
     this.queue = [];
     const rest = Array<number>(this.lookahead).fill(0);
     const choices = [0, ...MOVES.filter((k) => k !== 0)];
-    for (const key of choices) {
-      if (survives(this.sim, snap, [key, ...rest], this.mayLeave)) { pressKeys(m, key); this.expect = null; return; }
-    }
-    pressKeys(m, 0);
     this.expect = null;
+    for (const key of choices) {
+      if (survives(this.sim, snap, [key, ...rest], this.mayLeave)) return key;
+    }
+    return 0;
   }
 
-  choose(m: Spectrum, g: Game): void {
+  /** The keys of the next pass (`choose` presses them on the original; the ending's route finder plays them on the rebuilt game alone). */
+  keys(g: Game): number {
     const goal = this.goal();
-    if (goal === null) { pressKeys(m, 0); this.queue = []; this.expect = null; return; }
+    if (goal === null) { this.queue = []; this.expect = null; return 0; }
     const mon = g.monty;
     if (goal !== this.lastGoal) { this.lastGoal = goal; this.dist = null; this.queue = []; }
     if (this.expect !== null && (this.expect.x !== mon.x || this.expect.y !== mon.y || this.expect.state !== mon.state)) this.queue = [];
     const snap = g.snapshot();
     if (this.queue.length > 0 && !survives(this.sim, snap, this.queue.slice(0, this.lookahead), this.mayLeave)) this.queue = [];
-    if (goal.hold === true && goal.region(mon.x, mon.y, mon.state)) { this.hold(m, snap); return; }
+    if (goal.hold === true && goal.region(mon.x, mon.y, mon.state)) return this.hold(snap);
     if (this.queue.length === 0) {
       if (this.dist === null || this.dist.from(mon) === Infinity) this.dist = new Distances(g, goal);
       this.plans++;
       const found = search(this.sim, snap, goal, this.dist, this.horizon, this.beam, this.mayLeave);
-      if (found === null) { this.stuck++; pressKeys(m, 0); this.expect = null; return; }
+      if (found === null) { this.stuck++; this.expect = null; return 0; }
       this.queue = found;
     }
     const key = this.queue[0] ?? 0;
     this.queue.shift();
     if (key === 0) this.waited++;
-    pressKeys(m, key);
     this.sim.restore(snap);
     this.sim.pass(key);
     this.expect = { x: this.sim.monty.x, y: this.sim.monty.y, state: this.sim.monty.state };
+    return key;
   }
+
+  choose(m: Spectrum, g: Game): void { pressKeys(m, this.keys(g)); }
 }

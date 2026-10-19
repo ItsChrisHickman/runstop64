@@ -41,7 +41,7 @@ export interface Place {
   frames: number;
   /** The row its credits go on, if not the show's (a place where the game's creatures are in the show's row). */
   creditRow?: number;
-  /** The column its credits start at, if not the show's (where the empty part is not the whole width). */
+  /** The column its credits start at, if not the show's (a place whose empty part is not the picture's left). */
   creditX?: number;
   /** The place running, or null if it can't be made. */
   open(): Reel | null;
@@ -57,9 +57,15 @@ export interface RewardSpec {
   creditRow: number;
   /** Frames a credit line is given (default `CREDIT.slot`). */
   creditSlot?: number;
-  /** The column (picture pixels) a credit line starts at, if the row is not free the whole width (default `CREDIT.x`); lines are then shorter. */
+  /** The column the credit lines start at (default `CREDIT.x`). */
   creditX?: number;
+  /** The colours of the credit lines, of the parade's title and THE END, and of the names and numbers: indexes of the renderer's palette (default the C64's yellow and light grey; Moley Christmas's is the Spectrum's). */
+  colours?: ShowColours;
 }
+
+/** The show's colours (indexes of the renderer's palette). */
+export interface ShowColours { credit: number; title: number; text: number }
+const C64_COLOURS: ShowColours = { credit: CREDIT.colour, title: 7, text: 15 };
 
 /** What the show needs of the game running it. */
 export interface RewardOptions {
@@ -95,8 +101,6 @@ export function creditAt(place: Pick<Place, 'credits' | 'frames'>, frame: number
 
 /** The parade: how fast the line walks (pixels a frame), the ground it walks on, the gap between neighbours and where a name goes. */
 export const PARADE = { speed: 2, ground: 128, gap: 14, nameGap: 10, hold: 150 } as const;
-/** The names and numbers: the title's yellow, light grey. */
-const YELLOW = 7, GREY = 15;
 /** The glyph's width. */
 const GLYPH = 8;
 
@@ -154,6 +158,8 @@ export class RewardShow {
   private readonly black = new Surface(320, 200, 0);
 
   constructor(private readonly o: RewardOptions) {}
+
+  private get colours(): ShowColours { return this.o.spec.colours ?? C64_COLOURS; }
 
   /** The show is on (the game is ours, not the player's). */
   active = false;
@@ -244,7 +250,7 @@ export class RewardShow {
     const now = creditAt(place, this.frames - 1, this.o.spec.creditSlot);
     if (!now) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, place.creditX ?? this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, CREDIT.colour);
+    this.o.font().draw(screen, now.shown, place.creditX ?? this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, this.colours.credit);
     screen.version++;
   }
 
@@ -266,7 +272,7 @@ export class RewardShow {
     const stop = 24;
     if (t >= paradeLength(this.figures, stop)) { this.phase = 'end'; this.frames = 0; return; }
     renderer.screen.clear(TRANSPARENT);
-    font.draw(renderer.screen, this.o.spec.title, 8, 12, YELLOW);
+    font.draw(renderer.screen, this.o.spec.title, 8, 12, this.colours.title);
     const lefts = paradeLefts(this.figures, t, stop);
     let used = 0;
     this.figures.forEach((fig, i) => {
@@ -282,7 +288,7 @@ export class RewardShow {
         });
       }
       // (its name under it, from its left: nothing is centred)
-      if (left + GLYPH * fig.name.length > 0 && left < 320) font.draw(renderer.screen, fig.name, left, PARADE.ground + PARADE.nameGap, GREY);
+      if (left + GLYPH * fig.name.length > 0 && left < 320) font.draw(renderer.screen, fig.name, left, PARADE.ground + PARADE.nameGap, this.colours.text);
     });
     for (let k = used; k < this.handles.length; k++) this.handles[k].visible = false;
     renderer.screen.version++;
@@ -295,8 +301,8 @@ export class RewardShow {
     const font = this.o.font();
     renderer.screen.clear(TRANSPARENT);
     for (const h of this.handles) h.visible = false;
-    bigText(renderer.screen, font, 'THE END', 24, 50, YELLOW);
-    this.stats.forEach((line, i) => font.draw(renderer.screen, line, 24, 100 + i * 14, GREY));
+    bigText(renderer.screen, font, 'THE END', 24, 50, this.colours.title);
+    this.stats.forEach((line, i) => font.draw(renderer.screen, line, 24, 100 + i * 14, this.colours.text));
     renderer.screen.version++;
     if (this.frames > END_HOLD) this.finish();
   }
