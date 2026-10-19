@@ -41,6 +41,8 @@ export interface Place {
   frames: number;
   /** The row its credits go on, if not the show's (a place where the game's creatures are in the show's row). */
   creditRow?: number;
+  /** The column its credits start at, if not the show's (where the empty part is not the whole width). */
+  creditX?: number;
   /** The place running, or null if it can't be made. */
   open(): Reel | null;
 }
@@ -242,7 +244,7 @@ export class RewardShow {
     const now = creditAt(place, this.frames - 1, this.o.spec.creditSlot);
     if (!now) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, CREDIT.colour);
+    this.o.font().draw(screen, now.shown, place.creditX ?? this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, CREDIT.colour);
     screen.version++;
   }
 

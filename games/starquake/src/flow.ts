@@ -107,27 +107,37 @@ export function* travel(g: Game, hooks: Hooks, room: number, entry: { col: numbe
   yield* play(g, hooks);
 }
 
-/** $0C6E onwards: draw the room, then BLOB's frames until he leaves it or dies. */
-export function* rooms(g: Game, hooks: Hooks): Generator<void, 'over' | 'again', void> {
-  g.sprites.ptr[0] = 0x45;
+/**
+ * $0C6E onwards: draw the room, then BLOB's frames until he leaves it or dies. `mid`: a game copied between frames (the ending's
+ * route search copies a game to look ahead): the room is already drawn and BLOB in it, and what goes on is the rest of the frame
+ * the copy was made in.
+ */
+export function* rooms(g: Game, hooks: Hooks, mid = false): Generator<void, 'over' | 'again', void> {
+  if (!mid) g.sprites.ptr[0] = 0x45;
   for (;;) {
-    hooks.roomStart?.(g);
-    drawRoom(g);
-    if (g.room === CORE_ROOM) {
-      // $0C80: the core's sequence; then out to the room on the left (or, complete, the end).
-      g.inScreen = true;
-      const complete = yield* Specials.core(g);
-      g.inScreen = false;
-      if (complete) { g.won = true; return 'over'; }
-      g.room = (g.room - 1) & 0x1ff;
-      g.exitCol = 0x23;
-      g.sprites.ptr[0] = 0x45;
-      continue;
+    if (mid) {
+      mid = false;
+      Panel.frame(g);
+      Frame.scenery(g);
+    } else {
+      hooks.roomStart?.(g);
+      drawRoom(g);
+      if (g.room === CORE_ROOM) {
+        // $0C80: the core's sequence; then out to the room on the left (or, complete, the end).
+        g.inScreen = true;
+        const complete = yield* Specials.core(g);
+        g.inScreen = false;
+        if (complete) { g.won = true; return 'over'; }
+        g.room = (g.room - 1) & 0x1ff;
+        g.exitCol = 0x23;
+        g.sprites.ptr[0] = 0x45;
+        continue;
+      }
+      g.restart = { riding: g.riding, exit: g.exit, col: g.exitCol, row: g.exitRow };
+      Blob.place(g, g.exit, g.exitCol, g.exitRow);
+      Blob.placePad(g);
+      if (!hooks.noEnemies) Enemies.enter(g);
     }
-    g.restart = { riding: g.riding, exit: g.exit, col: g.exitCol, row: g.exitRow };
-    Blob.place(g, g.exit, g.exitCol, g.exitRow);
-    Blob.placePad(g);
-    if (!hooks.noEnemies) Enemies.enter(g);
     for (;;) {
       const r = Blob.tick(g, g.joy);
       g.exit = r.code; g.exitCol = r.col; g.exitRow = r.row;

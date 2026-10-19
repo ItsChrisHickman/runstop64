@@ -1,17 +1,21 @@
-import { C64_KEYS, SidPlayer, Vic, VicView, type Host } from 'c64kit';
+import { C64_KEYS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../assets/starquake.sid?url';
+import { RewardShow } from '../../shared/ending/show';
+import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
+import { endingStats, starquakeEnding } from './ending';
 import * as Flow from './flow';
 import * as Heroes from './heroes';
-import { Game } from './game';
+import type { Game } from './game';
 import { entryOf, starquakeMap, type StarquakeFound } from './map';
 import * as Panel from './panel';
 import { CODEC, describeSave, restore, snapshot, type StarquakeSave } from './save';
 import * as Screens from './screens';
+import { Stage } from './stage';
 import * as Specials from './specials';
 
 /**
@@ -33,13 +37,8 @@ const TITLE_PAGE_TICKS = 6 * 50;
 export function run(host: Host) {
   const { renderer, input } = host;
   renderer.frame = { x: 32, y: 36 };
-  const vic = new Vic();
-  vic.bitmap = true;
-  vic.screenOffset = 0x1c00;
-  vic.bitmapOffset = 0x2000;
-  vic.priority = 0xff; // all sprites behind the bitmap's pixels ($D01B)
-  const g = new Game(vic.bank);
-  const view = new VicView(renderer, vic);
+  const stage = new Stage(renderer);
+  const { game: g, view } = stage;
   const music = new SidPlayer(sidUrl);
   let song = 0;
   const playSong = (n: number) => { if (song !== n) { song = n; void music.play(n); } };
@@ -55,17 +54,28 @@ export function run(host: Host) {
   let creditsShown = false; // (the title's page: the picture, or the credits and keys)
   let ticks = 0;
   let script: Flow.Script | null = null;
+  /** The ending's show (the reward for winning, ENHANCED: ending.ts on shared/ending/show.ts), once the session is up. */
+  let rewardShow: RewardShow | null = null;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = () => false;
+  /** The show is on from the game's own ending (the final count follows it), not from W or ?ending (which end on the title). */
+  let afterWin = false;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<StarquakeSave, StarquakeFound, Game>(host, {
     id: 'starquake', font, codec: CODEC, map: starquakeMap, describe: describeSave,
     // (ENTER CONTINUE on the credits page, under its SPACE: NEW GAME: the picture page has no empty row)
     strip: { y: 15 * 8, short: true, when: () => mode === 'title' && creditsShown },
+    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
+    ending: () => enhanced() && readWon('starquake'),
     assists: [
       { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
       { id: 'lives', long: 'INFINITE LIVES' },
     ],
   }, () => ({
+    // (the show takes the session over while it is on)
+    takeover: { get active() { return rewardShow?.active ?? false; }, tick() { rewardShow?.tick(); }, render(alpha: number) { rewardShow?.render(alpha); } },
+    watchEnding() { afterWin = false; rewardShow?.start(endingStats(g)); },
     state: () => g,
     phase: () => (mode === 'title' || mode === 'play' ? mode : 'other'),
     // (letters are for the screens that ask for them: M, V and P mean nothing else there)
@@ -85,6 +95,25 @@ export function run(host: Host) {
     },
   }));
   const { flow, fe, latch, rooms } = port;
+  enhanced = () => fe.enhanced;
+
+  // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+  const reward = rewardShow = new RewardShow({
+    host,
+    spec: starquakeEnding(renderer),
+    font: () => font,
+    // (the title's tune, from its start)
+    music: { start() { song = 0; playSong(SOUND.songs.title); }, end() {} },
+    done() {
+      if (afterWin) {
+        // (the game's own end goes on: the final count, then game over)
+        afterWin = false;
+        mode = 'final'; script = Flow.finalScore(g);
+        song = 0; playSong(SOUND.songs.ending);
+        latch.hold();
+      } else port.backToTitle();
+    },
+  });
 
   const hooks: Flow.Hooks = {
     roomStart(game) {
@@ -299,13 +328,16 @@ export function run(host: Host) {
     } else if (mode === 'ending') {
       // the core is complete: the end, until a key (or its tune has had time to end); then the final count ($4E2D) and game over
       ticks++;
-      if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) { mode = 'final'; script = Flow.finalScore(g); }
+      if ((ticks > 100 && (input.pressed.fire || input.typed.length)) || ticks > 60 * 50) {
+        if (fe.enhanced) { afterWin = true; reward.start(endingStats(g)); }
+        else { mode = 'final'; script = Flow.finalScore(g); }
+      }
     } else if (script && !holding) {
       g.joy = joy();
       g.key = keyNow();
       if (mode === 'play' && !g.inScreen) result = 'played';
       if (script.next().done) {
-        if (mode === 'play' && g.won) { mode = 'ending'; ticks = 0; script = null; Specials.ending(g); playSong(SOUND.songs.ending); }
+        if (mode === 'play' && g.won) { mode = 'ending'; ticks = 0; script = null; keepWon('starquake'); Specials.ending(g); playSong(SOUND.songs.ending); }
         else if (mode === 'hero') { keepHeroes(); showHeroes(); }
         else gameOver();
       } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
@@ -313,22 +345,16 @@ export function run(host: Host) {
     return result;
   }
 
-  /** The sprites: the registers as the game last wrote them (sprites 0-2 are BLOB, at sprite 0's place). */
-  function updateView() {
-    for (let n = 0; n < 8; n++) {
-      const r = vic.sprites[n];
-      r.x = g.vic.x[n] | (g.vic.msb & (1 << n) ? 0x100 : 0);
-      r.y = g.vic.y[n];
-      r.ptr = g.sprites.ptr[n];
-      r.colour = g.sprites.colour[n];
-    }
-    vic.enable = mode === 'play' ? g.vic.enable : 0;
-    view.update();
-  }
+  /** The picture: the sprites are shown in play only. */
+  function updateView() { stage.update(mode === 'play'); }
 
   title();
+  // ?ending on the page: the ending at once, for review
+  if (wantsEnding()) reward.start(endingStats(g));
   return {
     touch: TOUCH,
+    /** For tests: the ending's show (src/ending.ts). */
+    get ending() { return reward; },
     /** For tests: the game and the front end's state. */
     get game() { return g; },
     /** For tests: the moment's grace. */

@@ -184,6 +184,7 @@ export const TESTS = [
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },
   { file: 'games/starquake/test/grace.ts', set: 'fast' },
   { file: 'games/starquake/test/save.ts', set: 'fast' },
+  { file: 'games/starquake/test/reward.ts', set: 'slow' },
 
   // ---- Thing on a Spring
   { file: 'games/thingonaspring/test/assists.ts', set: 'slow', limitSeconds: 580 },
