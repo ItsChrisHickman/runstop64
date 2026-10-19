@@ -97,3 +97,14 @@ in put him, the room's map the same, nothing the game keeps changed, refused whe
 offered with memory untouched, 264,600 frames of play after with no fallbacks);
 test/frontend.ts (the pause screen, the map noting screens, travel by keys and taps, ENHANCED's
 switch, hints, continue).
+
+## The ending (src/ending.ts)
+
+The win is `$CD` = 2 (the goblin's stop touched with all nine pieces taken: `$59EB`, which also sets `$D1` to `$FF`): the game shows
+"CONGRATULATIONS YOU HAVE KILLED THE EVIL GOBLIN AND SET FREE ALL THE TOYS" and waits for Q (quit: the high score, then the title) or C
+(continue). The ending follows at the title. Each scene is a screen entered with `travel.ts`'s `enter` on a new game of the show's own, and
+what Thing does in it is a way from `re/ways.json` (the Go-Explore of `re/ways.ts`: inputs that take him from a screen's end into the
+next), replayed by the shared Director (`press` steps), stopped short of the crossing where the credits are to stand over a room: the
+rooms leave the picture's last text row plain (their own background colour), the corridors have pipe fixtures there. The test replays
+every scene from the show's own start and checks the corridor runs reach their next screen and that the oil can and the jigsaw piece are
+taken (`$3B0`, `$3A5`, bit 7). The ways are those found with the original's rules (no ENHANCED assists: the show's machine has none).

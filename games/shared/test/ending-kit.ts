@@ -1,5 +1,5 @@
 import { BitmapFont, Input, KIT_GLYPHS, type MachineState } from 'c64kit';
-import { CREDIT, Ending, creditAt, type EndingSpec } from '../native/ending';
+import { CREDIT, Ending, bandBackground, creditAt, creditColourOn, type EndingSpec } from '../native/ending';
 import { clean, type StatusLine } from '../native/narrate';
 import { screenText } from '../native/pause';
 import type { PortConfig } from '../native/host';
@@ -62,6 +62,8 @@ export interface ShowResult {
   stray: string[];
   /** The game's own picture in the band, every sample, over every scene: pixels in all, and pixels drawn. */
   gameBand: { pixels: number; drawn: number };
+  /** With a plain band (`EndingSpec.plainBand`): the frames a credit line was shown in which what lay under its span was checked. */
+  spanFrames: number;
 }
 
 const SAMPLE = 25;
@@ -89,11 +91,14 @@ export function playShow(o: ShowRun): ShowResult {
     done: () => { over++; },
   });
   show.start(o.stats);
-  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 } };
+  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, spanFrames: 0 };
   const { top, bottom } = o.band;
-  const bandOf = (px: Uint8Array) => {
+  // (the band's own colour: black, or the room's plain background where the picture fills the screen)
+  const backOf = (m: C64) => (o.spec.plainBand ? bandBackground(m) : 0);
+  const bandOf = (px: Uint8Array, m: C64) => {
+    const bg = backOf(m), ink = o.spec.plainBand ? creditColourOn(bg) : CREDIT.colour;
     let credit = 0, other = 0;
-    for (let y = top; y <= bottom; y++) for (let x = 0; x < 320; x++) { const c = px[y * 320 + x]; if (c === CREDIT.colour) credit++; else if (c !== 0) other++; }
+    for (let y = top; y <= bottom; y++) for (let x = 0; x < 320; x++) { const c = px[y * 320 + x]; if (c === ink) credit++; else if (c !== bg) other++; }
     return { credit, other };
   };
   let still = 0;
@@ -110,22 +115,34 @@ export function playShow(o: ShowRun): ShowResult {
       const scene = o.spec.scenes[p.scene];
       o.onMontage?.(p.scene, p.frames, m);
       // (the game's own picture in the band: both layers, every pixel, before our text goes over it)
-      if (!o.spec.creditLine && p.frames % SAMPLE === 1) {
+      if (!o.spec.creditLine && !o.spec.plainBand && p.frames % SAMPLE === 1) {
         const pic = shownLayers(m, renderer.layout);
         let drawn = 0;
-        for (let y = top; y <= bottom; y++) for (let x = 0; x < 320; x++) { const i = y * 320 + x; if (pic.back[i] !== 0 || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== 0)) drawn++; }
+        for (let y = top; y <= bottom; y++) for (let x = 0; x < 320; x++) { const i = y * 320 + x; if (pic.back[i] !== backOf(m) || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== backOf(m))) drawn++; }
         r.gameBand.pixels += (bottom - top + 1) * 320;
         r.gameBand.drawn += drawn;
       }
       const px = shown(renderer, m);
       const line = o.spec.creditLine;
+      // (a plain band: nothing the game draws lies under the line, in any frame it is shown: its span of the rows, in the background colour or the line's own)
+      const shownNow = creditAt(scene, p.frames - 1);
+      if (o.spec.plainBand && shownNow && scene.credits) {
+        const len = scene.credits[shownNow.line].length, x0 = o.spec.creditX ?? CREDIT.x, bg = backOf(m), pic = shownLayers(m, renderer.layout);
+        let other = 0;
+        for (let y = top; y <= bottom; y++) for (let x = x0; x < Math.min(320, x0 + 8 * len); x++) { const i = y * 320 + x; if (pic.back[i] !== bg || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== bg)) other++; }
+        r.spanFrames++;
+        const tag = `scene ${p.scene} line ${shownNow.line}: ${other} pixels of the game's under the text`;
+        if (other > 0 && !r.stray.includes(tag)) r.stray.push(tag);
+      }
       if (p.frames === 1 && scene.credits?.length) {
         r.scenes++;
+        if (o.spec.plainBand) r.bandEmptyBefore++;
+        else
         if (line) {
           const text = lineText(m.ram, line);
           if (text === '') r.bandEmptyBefore++; else r.stray.push(`scene ${p.scene} line before text: '${text}'`);
         } else {
-          const b = bandOf(px);
+          const b = bandOf(px, m);
           if (b.credit === 0 && b.other === 0) r.bandEmptyBefore++; else r.stray.push(`scene ${p.scene} band before text: ${b.credit} credit-coloured, ${b.other} other`);
         }
       }
@@ -136,8 +153,9 @@ export function playShow(o: ShowRun): ShowResult {
           const want = clean(now.shown, line), text = lineText(m.ram, line);
           if (text !== want) r.stray.push(`scene ${p.scene} line ${now.line}: the panel says '${text}', not '${want}'`);
         } else {
-          const b = bandOf(px);
+          const b = bandOf(px, m);
           if (b.credit === 0) r.stray.push(`scene ${p.scene} line ${now.line} not drawn`);
+          if (o.spec.plainBand) { /* (what lies under the line was checked every frame above) */ } else
           if (b.other !== 0) r.stray.push(`scene ${p.scene} line ${now.line}: ${b.other} pixels of another colour in the band`);
         }
         if (o.out) indicesPng(`${o.out}/credit-scene${p.scene}-line${now.line}.png`, px, 320, 200);
@@ -169,8 +187,11 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   if (line) {
     check(`the line the credits are typed into is blank before the text in every scene with credits, and says each line as given (${r.bandEmptyBefore} of ${r.scenes})`, r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
     check(`every line fits the panel's line and its lettering (at most ${line.width} letters: A to Z, digits, a colon)`, lines.every((l) => l.length <= line.width && clean(l, line) === l));
+  } else if (spec.plainBand) {
+    check(`no credit line stands over anything the game draws (${r.spanFrames} frames of lines, each over its own span of rows ${o.band.top} to ${o.band.bottom}: the room's plain background only)`, r.spanFrames > 1000 && r.stray.length === 0);
+    check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, lines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
   } else {
-    check(`the game leaves the band for the credits (rows ${o.band.top} to ${o.band.bottom}) black: ${r.gameBand.drawn} of ${r.gameBand.pixels} pixels drawn, over every scene`, r.gameBand.pixels > 0 && r.gameBand.drawn === 0);
+    check(`the game leaves the band for the credits (rows ${o.band.top} to ${o.band.bottom}) ${spec.plainBand ? 'its plain background colour' : 'black'}: ${r.gameBand.drawn} of ${r.gameBand.pixels} pixels drawn, over every scene`, r.gameBand.pixels > 0 && r.gameBand.drawn === 0);
     check('the band was empty before the text in every scene with credits, and only the credit colour is drawn in it', r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
     check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, lines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
   }

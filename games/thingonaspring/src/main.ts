@@ -4,6 +4,7 @@ import { runNative } from '../../shared/native/play';
 import { port } from './native';
 import { makeEnhanced } from './assists';
 import { hintSpots } from './hint-spots';
+import { endingStats, thingEnding, won } from './ending';
 import { makeMap } from './map';
 import stateUrl from '../assets/toas-title.state?url';
 
@@ -49,6 +50,8 @@ export function run(host: Host) {
     }],
     hints: hintSpots,
     hintsWith: 'enhanced',
+    // the reward for winning (ENHANCED): a montage of the factory's rooms, the parade, THE END (src/ending.ts)
+    ending: { spec: thingEnding, won, stats: endingStats },
     onHook: (pc, ram) => {
       if (pc === NAME_LOOP) naming = true;
       else if (pc === NAME_DONE) naming = false;

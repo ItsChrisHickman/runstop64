@@ -70,6 +70,8 @@ export interface EndingScene {
    * panel's message line: `EndingSpec.creditLine`).
    */
   credits?: readonly string[];
+  /** The frame the credit lines begin at (default 0): where the first part of the scene has the band occupied (Thing's corridors have pipe fixtures at their foot). */
+  creditsFrom?: number;
 }
 
 /** One of the game's characters for the parade: the sprites that make it up in a place (top part first). */
@@ -100,14 +102,19 @@ export interface EndingSpec {
   title: string;
   scenes: readonly EndingScene[];
   cast: readonly EndingCharacter[];
-  /** The status line the captions go on. */
-  status: StatusLine;
+  /** The status line the captions go on (none: a game with no such line has no captions). */
+  status?: StatusLine;
   /**
    * For a game whose picture has no empty band to put the credits in: the line of its panel they are typed into instead, in the game's own
    * lettering (a line is cut to `width` and to the letters it has, so the lines of a scene are written for it; blank between lines). Karnath's
    * message line. Without it the credits are drawn in yellow in the empty band (`creditRow`).
    */
   creditLine?: StatusLine;
+  /**
+   * The empty band the credits stand in is not black but the picture's own plain background colour (Thing on a Spring's rooms fill the
+   * screen to its foot), so they are drawn in the colour that reads on it (`creditColourOn`) and the band is checked to hold nothing else.
+   */
+  plainBand?: boolean;
   /** Where the credit lines are drawn (picture pixels): the row of eight pixels in the empty band, and the column they start at (default 166 in the black band under the picture, and 8: Blackwyche's and Karnath's). */
   creditRow?: number;
   creditX?: number;
@@ -129,8 +136,8 @@ export interface EndingSpec {
   hero: number;
   /** A new game's memory made ready: what he needs in his hands (the sword). */
   arm(ram: Uint8Array): void;
-  /** The action he is using now and picking one: the game's own, as the front end's action keys do; and the numbers of the two a scene needs by name (jumping, and what he strikes with). */
-  action: EndingActions;
+  /** The action he is using now and picking one: the game's own, as the front end's action keys do; and the numbers of the two a scene needs by name (jumping, and what he strikes with); none for a game whose fire is one thing (Thing on a Spring's). */
+  action?: EndingActions;
   /** Each frame: nothing may end it (energy kept up). */
   keepAlive(ram: Uint8Array): void;
   /** Frames the fire button is held on the title to start a game (default 31 to 33), as the title wants. */
@@ -225,7 +232,7 @@ export class Director {
     if ('go' in step) { if (this.spent > step.frames) { this.next(); return IDLE; } return IDLE & ~WAY[step.go]; }
     if ('jump' in step) {
       // (a game with no jump has no use for the step)
-      if (this.spec.action.jump === undefined) { this.next(); return IDLE; }
+      if (this.spec.action?.jump === undefined) { this.next(); return IDLE; }
       this.choose(g, this.spec.action.jump);
       // fire for a frame now and then: each press is a jump, and he lands before the next
       const phase = this.spent % 40;
@@ -240,7 +247,7 @@ export class Director {
       return bits;
     }
     // strike: close in, face it, swing
-    this.choose(g, step.action ?? this.spec.action.strike);
+    this.choose(g, step.action ?? this.spec.action?.strike);
     const t = spriteOf(g, step.strike);
     // (not in sight yet: he waits for it)
     if (this.spent > (step.frames ?? 240)) { this.next(); return IDLE; }
@@ -269,14 +276,15 @@ export class Director {
     if (p.held > 0) { p.held--; return IDLE & ~FIRE; }
     if (p.rest > 0) { p.rest--; return IDLE; }
     if (p.n >= (step.times ?? 1)) { this.next(); return IDLE; }
-    if (!(this.spec.action.ready?.(g.m.ram) ?? true)) return IDLE;
+    if (!(this.spec.action?.ready?.(g.m.ram) ?? true)) return IDLE;
     p.n++; p.held = (step.hold ?? 1) - 1; p.rest = step.gap ?? 24;
     return IDLE & ~FIRE;
   }
 
   /** The action in hand. */
-  private choose(g: NativeHost, n: number) {
+  private choose(g: NativeHost, n: number | undefined) {
     const a = this.spec.action;
+    if (!a || n === undefined) return;
     if (a.get(g.m.ram) !== n) a.set(g.m.ram, n, (fn) => g.callNative(fn));
   }
 }
@@ -334,18 +342,28 @@ export const CREDIT = { slot: 120, gap: 10, row: 166, colour: 7, x: 8, letters: 
 /** The port's own credit lines, the same in every game (his name as he gives it): a game's last scenes spread these. */
 export const PORT_CREDITS: readonly string[] = ['REBUILT FOR THE BROWSER BY', 'CHRISTOPHER HICKMAN', 'WITH CLAUDE (ANTHROPIC)', 'RUNSTOP64'];
 
+/** The background colour of the picture's last text row (y 192 to 199), as the VIC drew it: what a plain band (`EndingSpec.plainBand`) is. */
+export const bandBackground = (m: { capture: FrameCapture }): number => (m.capture.rows[24]?.bg[0] ?? 0) & 15;
+
+/** The credit colour on a plain background colour: black on the light ones (yellow, light green, light grey, cyan), white on the rest. */
+export function creditColourOn(bg: number): number {
+  return [3, 7, 13, 15].includes(bg & 15) ? 0 : 1;
+}
+
 /** How long a scene runs: what it declares, or longer if its credit lines need their slots. */
 export function sceneLength(scene: EndingScene): number {
-  return Math.max(scene.frames, (scene.credits?.length ?? 0) * CREDIT.slot);
+  return Math.max(scene.frames, (scene.creditsFrom ?? 0) + (scene.credits?.length ?? 0) * CREDIT.slot);
 }
 
 /** What the credits show `frame` frames into a scene: the line and how much of it has typed on, or null between lines. */
 export function creditAt(scene: EndingScene, frame: number): { line: number; shown: string } | null {
   const lines = scene.credits;
   if (!lines || lines.length === 0) return null;
-  const slot = Math.floor(sceneLength(scene) / lines.length);
-  const line = Math.min(lines.length - 1, Math.floor(frame / slot));
-  const into = frame - line * slot;
+  const from = scene.creditsFrom ?? 0;
+  if (frame < from) return null;
+  const slot = Math.floor((sceneLength(scene) - from) / lines.length);
+  const line = Math.min(lines.length - 1, Math.floor((frame - from) / slot));
+  const into = frame - from - line * slot;
   if (into >= slot - CREDIT.gap) return null;
   return { line, shown: lines[line].slice(0, into) };
 }
@@ -558,7 +576,7 @@ export class Ending {
     g.tick();
     if (this.o.spec.tune === 'effects') this.o.sound.pushFrame(g.m.sidWrites);
     this.o.spec.tidy?.(g.m.ram);
-    if (scene.caption !== undefined) caption(g.m.ram, this.o.spec.status, scene.caption);
+    if (scene.caption !== undefined && this.o.spec.status) caption(g.m.ram, this.o.spec.status, scene.caption);
     const now = creditAt(scene, this.frames - 1);
     if (this.o.spec.creditLine && scene.credits?.length) caption(g.m.ram, this.o.spec.creditLine, now?.shown ?? '');
     repaint(g.m);
@@ -573,7 +591,8 @@ export class Ending {
   private credits(now: ReturnType<typeof creditAt>) {
     if (!now) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, CREDIT.colour);
+    const colour = this.o.spec.plainBand && this.machine ? creditColourOn(bandBackground(this.machine.m)) : CREDIT.colour;
+    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, colour);
     screen.version++;
   }
 
