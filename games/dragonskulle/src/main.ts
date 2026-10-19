@@ -193,5 +193,7 @@ export function run(host: Host) {
     text: TITLE_TEXT,
     // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
     ending: { spec: dragonskulleShow, won, stats: endingStats },
+    // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
+    titleTune: true,
   });
 }

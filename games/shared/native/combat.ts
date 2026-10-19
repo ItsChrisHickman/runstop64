@@ -103,6 +103,9 @@ export interface CombatOptions {
   grace?: boolean;
 }
 
+/** Frames a blow that goes on landing on one sprite is still the one blow. */
+const BLOW_FRAMES = 12;
+
 /** How long the assists last (frames, 50 a second). */
 export const COMBAT_TIMING = {
   /** After a hurt starts, no new one for this long (the game's own flash is 16 frames of it). */
@@ -157,6 +160,8 @@ export class Combat {
   /** A hurt was cancelled (invulnerable) in the frame running: its other stores are too. */
   private cancelling = false;
   private lastHit = new Map<number, number>();
+  /** The frame each sprite last had an enemy destroyed on it. */
+  private lastKill = new Map<number, number>();
   private frame = 0;
   /** The colour cycle of an enemy that was hit (`react`). */
   readonly cycle = new ColourCycle();
@@ -213,8 +218,10 @@ export class Combat {
     for (const st of this.strikes) {
       const still = cap.some((x) => x.n === st.sprite && Math.abs(x.x - 24 - st.image.x) + Math.abs(x.y - 50 - st.image.y) <= 8);
       // (a blow that goes on landing on the same thing frame after frame is one hit)
-      if (still && this.frame - (this.lastHit.get(st.sprite) ?? -99) < 12) { this.lastHit.set(st.sprite, this.frame); continue; }
-      if (still) this.lastHit.set(st.sprite, this.frame);
+      if (still && this.frame - (this.lastHit.get(st.sprite) ?? -99) < BLOW_FRAMES) { this.lastHit.set(st.sprite, this.frame); continue; }
+      // (an enemy destroyed here, and the one brought in its place struck by the same spell the frame after, is one blow: a kill, not a kill and a hit)
+      if (still && this.frame - (this.lastKill.get(st.sprite) ?? -99) < BLOW_FRAMES) { this.lastHit.set(st.sprite, this.frame); continue; }
+      if (still) this.lastHit.set(st.sprite, this.frame); else this.lastKill.set(st.sprite, this.frame);
       events.push({ kind: still ? 'hit' : 'kill', x: st.x, y: st.y, image: st.image, sprite: st.sprite, frame: this.frame });
     }
     this.strikes = [];

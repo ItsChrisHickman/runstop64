@@ -104,6 +104,8 @@ states.forEach((st, si) => {
   const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   let joy = 0x1f;
   let lastStrikes: { sprite: number; x: number; y: number }[] = [];
+  /** The frame each sprite last had an enemy destroyed on it (the replacement struck by the same blow is not a second one). */
+  const killedAt = new Map<number, number>();
   const hurtEvents: number[] = [];
   for (let f = 0; f < Number(framesArg); f++) {
     if (f % 14 === 0) { joy = 0x1f & ~[0, 1, 2, 4, 8, 5, 9, 6, 10][Math.floor(rnd() * 9)]; if (rnd() < 0.5) joy &= ~16; }
@@ -153,6 +155,8 @@ states.forEach((st, si) => {
     const judged = events.filter((e) => e.kind === 'kill' || e.kind === 'hit').filter((e) => !(e.kind === 'kill' && direct.some((ns) => ns.includes(e.sprite))));
     for (const e of judged) if (!lastStrikes.some((x) => x.sprite === e.sprite && x.x === e.x && x.y === e.y)) fail(`${at}: ${e.kind} of sprite ${e.sprite} without a blow last frame`);
     for (const e of judged) {
+      if (e.kind === 'kill') killedAt.set(e.sprite, f);
+      else if (f - (killedAt.get(e.sprite) ?? -99) < 12) fail(`${at}: a hit on sprite ${e.sprite} ${f - (killedAt.get(e.sprite) ?? -99)} frames after it was destroyed: the same blow reported twice`);
       if (e.kind === 'kill' && g.m.capture.sprites.some((x) => x.n === e.sprite && Math.abs(x.x - 24 - e.image.x) + Math.abs(x.y - 50 - e.image.y) <= 8)) fail(`${at}: destroyed sprite ${e.sprite} still drawn there`);
       counts[e.kind]++;
     }

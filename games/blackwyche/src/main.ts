@@ -65,6 +65,8 @@ export function run(host: Host) {
     hintsWith: 'guided',
     // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
     ending: { spec: blackwycheEnding, won, stats: endingStats },
+    // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
+    titleTune: true,
     reserved: JOYSTICK_KEYS,
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },
     // The title's key instructions, for this keyboard (same lengths as the originals).

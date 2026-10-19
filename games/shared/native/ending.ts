@@ -1,6 +1,7 @@
 import { C64View, Surface, TRANSPARENT, decodeSprite, packState, unpackState, type BitmapFont, type FrameCapture, type Host, type MachineState, type PictureLayout, type SidWrite, type SpriteHandle } from 'c64kit';
 import { NativeHost, type PortConfig } from './host';
 import { clean, type StatusLine } from './narrate';
+import { TitleTune } from './title-tune';
 
 /**
  * The reward for beating a game (ENHANCED's addition: the game's own winning moment stays as it is, and
@@ -439,6 +440,8 @@ export interface EndingOptions {
   title(): MachineState | null;
   /** The sound: the title tune's writes go in a frame at a time. */
   sound: { pushFrame(w: SidWrite[]): void };
+  /** The title's tune is the original's own code running (title-tune.ts), not the translation's: the game says so (play.ts `titleTune`). */
+  titleTune?: boolean;
   /** The game's font (the panels'). */
   font(): BitmapFont;
   /** The show is over (or skipped): back to the title. */
@@ -459,7 +462,8 @@ export class Ending {
   private frames = 0;
   private stats: readonly string[] = [];
   private base: MachineState | null = null;
-  private music: NativeHost | null = null;
+  /** The tune: a frame of it at a time (a machine of its own). */
+  private music: { frame(): SidWrite[] } | null = null;
   private figures: Figure[] = [];
   // the montage
   private scene = -1;
@@ -476,7 +480,7 @@ export class Ending {
   active = false;
 
   /** For tests: where the show is (the montage's machine is the game being shown), and the figures recorded. */
-  get progress() { return { phase: this.phase, scene: this.scene, frames: this.frames, machine: this.machine?.m, music: this.music?.m, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })) }; }
+  get progress() { return { phase: this.phase, scene: this.scene, frames: this.frames, machine: this.machine?.m, music: this.music !== null, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })) }; }
 
   /** Begin: `stats` are the lines under THE END. */
   start(stats: readonly string[]) {
@@ -533,9 +537,7 @@ export class Ending {
   private tune() {
     const m = this.music;
     if (!m) return;
-    if (this.o.spec.tune === 'game') { joy(m.m, this.o.spec.joyPort, IDLE); this.o.spec.keepAlive(m.m.ram); }
-    m.tick();
-    this.o.sound.pushFrame(m.m.sidWrites);
+    this.o.sound.pushFrame(m.frame());
   }
 
   /** The machines and the cast. */
@@ -547,7 +549,13 @@ export class Ending {
     const base = this.base;
     if (!base) { this.finish(); return; }
     // (the game's own tune: the title's, or where the game has none there, the one it plays in the castle, from a new game standing by)
-    if (spec.tune !== 'effects') this.music = spec.tune === 'game' ? NativeHost.resume(port, unpackState(packState(base))) : new NativeHost(port, unpackState(packState(title)));
+    if (spec.tune === 'game') {
+      const host = NativeHost.resume(port, unpackState(packState(base)));
+      this.music = { frame: () => { joy(host.m, spec.joyPort, IDLE); spec.keepAlive(host.m.ram); host.tick(); return host.m.sidWrites; } };
+    } else if (spec.tune !== 'effects') {
+      if (this.o.titleTune) this.music = new TitleTune(unpackState(packState(title)));
+      else { const host = new NativeHost(port, unpackState(packState(title))); this.music = { frame: () => { host.tick(); return host.m.sidWrites; } }; }
+    }
     // (a figure taller than the ground it walks on, at double size, is shown at its own size: Entombed's mummy, two sprites tall and each doubled)
     this.figures = spec.cast.flatMap((c) => {
       const f = record(port, base, spec, c);

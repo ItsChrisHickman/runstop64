@@ -89,7 +89,8 @@ export class PixelRenderer implements Renderer {
   toScreenLocal(_x: number, _y: number) { return { x: 0, y: 0 }; }
 }
 
-export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[] } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [] };
+/** `record`: where every frame pushed is kept (a copy), while it is set. */
+export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[]; record: SidWrite[][] | null } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [], record: null };
 /** The SID player, remembering what it was asked (sidLog) and playing nothing. */
 export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'unlock' | 'play' | 'call' | 'stop' | 'toggleMute' | 'hold' | 'startStream' | 'pushFrame' | 'sfx'> {
   readonly unlocked = true; muted = false;
@@ -101,7 +102,7 @@ export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'un
   toggleMute() { this.muted = !this.muted; return this.muted; }
   hold(_on: boolean) {}
   startStream() { return Promise.resolve(); }
-  pushFrame(w: SidWrite[] = []) { sidLog.frames++; sidLog.writes += w.length; sidLog.last = w; }
+  pushFrame(w: SidWrite[] = []) { sidLog.frames++; sidLog.writes += w.length; sidLog.last = w; sidLog.record?.push(w.map((q) => ({ ...q }))); }
   sfx(name: SfxName) { sidLog.sfx.push(name); }
 }
 

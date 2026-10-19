@@ -1,6 +1,6 @@
 import { C64View, HdRooms, SidPlayer, hdRefresher, unpackState, type HdBuilder } from 'c64kit';
 import { MACHINE_CODEC, type GameStatus, type TitleStrip } from '../continue';
-import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout } from 'c64kit';
+import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout, SidWrite } from 'c64kit';
 import { cpu } from './cpu';
 import { NativeHost, type PortConfig } from './host';
 import { Combat, hasReactions, type CombatSpec } from './combat';
@@ -15,6 +15,7 @@ import type { HdView } from '../view';
 import { mapSummary, type PauseMap } from './pause';
 import type { TouchLayout } from '../touch';
 import { Ending, keepWon, readWon, wantsEnding, type EndingSpec } from './ending';
+import { TitleTune } from './title-tune';
 
 export type { RunSpec, NativeAssistId };
 
@@ -149,6 +150,11 @@ export interface NativeGameOptions<F> {
    * `atOnce`: the game's own end is no way back to the title (Jet Set Willy II's goes on in the bedroom, over and over), so the ending begins as it is won.
    */
   ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[]; atOnce?: boolean };
+  /**
+   * The title's tune is the original's own code running (title-tune.ts) while the title is up, not the translation's sound: for the
+   * games whose title tune times itself by counting cycles, which a translation takes no time for (Blackwyche's, Dragonskulle's).
+   */
+  titleTune?: boolean;
 }
 
 /** Our keys, never the game's: M mutes. */
@@ -187,6 +193,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let game: NativeHost | null = null;
   /** The title snapshot (back to the title starts from it again). */
   let titleState: Uint8Array | null = null;
+  /** The title's tune as the original plays it, while the title is up (`titleTune`). */
+  let titleTune: TitleTune | null = null;
   /** Which game image this is: a hash of the title snapshot it was loaded from (stored with each save). */
   let image: string | undefined;
   let view: C64View | null = null;
@@ -233,7 +241,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   opts.onAssists?.(assist);
   if (opts.ending) {
     endingShow = new Ending({
-      host, spec: opts.ending.spec, port: opts.port, sound,
+      host, spec: opts.ending.spec, port: opts.port, sound, titleTune: !!opts.titleTune,
       title: () => (titleState ? withText(unpackState(titleState)) : null),
       font: () => flow.getFont(),
       done: () => port.backToTitle(),
@@ -298,6 +306,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   }
   function toTitle() {
     const t = titleState;
+    titleTune = null;
     if (t) start(new NativeHost(opts.port, withText(unpackState(t))));
   }
   function afterTheFrame() {
@@ -468,8 +477,15 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     // (ENHANCED, a life ended: back to the room's start with full health, as CONTINUE? would; the rest of the game's end
     // this frame ran in a machine that is dropped, and its sound with it)
     if (lifeEnded) { lifeEnded = false; if (port.carryOn('continue')) return 'ended'; }
-    sound.pushFrame(g.m.sidWrites);
+    sound.pushFrame(titleSound(g));
     return played ? 'played' : 'idle';
+  }
+
+  /** The frame's sound: the game's own writes, but the title's tune from the original's own code where the game says so (`titleTune`). */
+  function titleSound(g: NativeHost): SidWrite[] {
+    if (!opts.titleTune || !titleState || !onTitle(g)) { titleTune = null; return g.m.sidWrites; }
+    titleTune ??= new TitleTune(unpackState(titleState));
+    return titleTune.frame();
   }
 
   /** The keys and stick into the machine for a frame of the game. */

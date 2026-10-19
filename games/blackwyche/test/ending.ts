@@ -41,7 +41,7 @@ const struck = { shelf: false, captain: false, pearl: false };
 // the credits stand in the black band between the picture and the status panel (rows 166 to 173)
 const BAND = { top: 166, bottom: 173 };
 const show = {
-  spec: blackwycheEnding, port: game.port, title,
+  spec: blackwycheEnding, port: game.port, title, titleTune: true,
   stats: endingStats(title.ram, blackwycheMap.found.empty()),
   band: BAND,
   out,

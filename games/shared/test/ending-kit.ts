@@ -36,6 +36,8 @@ export interface ShowRun {
   title: MachineState;
   /** The lines under THE END. */
   stats: readonly string[];
+  /** The title tune is the original's own code (the game's `titleTune`). */
+  titleTune?: boolean;
   /** The rows the credits stand in, with a little room round them (picture pixels); unused where they are typed into a panel's line (`spec.creditLine`). */
   band: { top: number; bottom: number };
   /** PNGs of scenes, credits, the parade and THE END go here (the folder is made by the caller), if given. */
@@ -87,6 +89,7 @@ export function playShow(o: ShowRun): ShowResult {
     port: o.port,
     title: () => o.title,
     sound: { pushFrame: (w) => { tune.of++; if (w.length > 0) tune.played++; } },
+    titleTune: o.titleTune,
     font: () => font,
     done: () => { over++; },
   });

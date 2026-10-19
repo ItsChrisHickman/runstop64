@@ -50,7 +50,7 @@ const seen = {
 };
 let lastThrow = 0, lastAir = 0;
 const result = playShow({
-  spec, port, title,
+  spec, port, title, titleTune: true,
   stats: endingStats(title.ram, dragonskulleMap.found.empty()),
   // (the credits at y 12 to 19 in the two blank rows of the status panel at the top, with a pixel of room round them)
   band: BAND,
