@@ -4,7 +4,7 @@
  * The item list ($6D7B, 236 entries) says which room holds what and in which cell; a room shows the first
  * four of its entries not yet collected, each as 2 x 2 characters ($694F). Touching the top left of one
  * ($6A65) does what its *type* says ($6AB1): most types are score, money or progress, a few have other
- * effects (a shield, a life, a random bonus, death), and the rest are carried: up to four at a time,
+ * effects (a life, a random bonus, death), and the rest are carried: up to four at a time,
  * handed over later in the rooms that want them (`take`, from the room scripts and the enemies).
  */
 import { TABLES } from './data';
@@ -21,12 +21,12 @@ const SLOTS = 4;
 
 /** What a type does when touched ($6AB1). */
 const Effect = {
-  Carry: 0, Shield: 1, Points: 2, MoneyByType: 3, ScoreByType: 4, Life: 5, Bonus: 6, ForceEnemy: 7, Intro: 8, Lucky: 9, Death: 10,
+  Carry: 0, Removed: 1, Points: 2, MoneyByType: 3, ScoreByType: 4, Life: 5, Bonus: 6, ForceEnemy: 7, Intro: 8, Lucky: 9, Death: 10,
 } as const;
 type Effect = (typeof Effect)[keyof typeof Effect];
 
 const EFFECT_OF_TYPE: readonly Effect[] = [
-  Effect.Carry, Effect.Shield, Effect.Points, Effect.Carry, Effect.Carry, Effect.Carry, Effect.ScoreByType, Effect.Carry,
+  Effect.Carry, Effect.Removed, Effect.Points, Effect.Carry, Effect.Carry, Effect.Carry, Effect.ScoreByType, Effect.Carry,
   Effect.Intro, Effect.Lucky, Effect.Carry, Effect.Carry, Effect.Carry, Effect.Life, Effect.MoneyByType, Effect.ForceEnemy,
   Effect.Bonus, Effect.Life, Effect.Carry, Effect.Carry, Effect.MoneyByType, Effect.Death, Effect.Carry, Effect.MoneyByType,
   Effect.MoneyByType, Effect.MoneyByType, Effect.ScoreByType, Effect.Life, Effect.ScoreByType, Effect.ScoreByType, Effect.ScoreByType, Effect.ScoreByType,
@@ -35,8 +35,12 @@ const EFFECT_OF_TYPE: readonly Effect[] = [
 /** An item that is no prize: room 2's death trap ($6B2D), which a map's count of what is left leaves out. */
 export const isTrap = (e: { readonly room: number; readonly type: number }): boolean => e.room === 2 && EFFECT_OF_TYPE[e.type] === Effect.Death;
 
-/** The shield's value: the game copies the byte at $0143 (the stack page, never overwritten in play) into $405E. */
-export const SHIELD = 0x85;
+/**
+ * Item type 1, the yellow leaf of the first room, is the original's shield ($6B22: it copied the byte at $0143, the stack page,
+ * into $405E and nothing hurt him again): taken out of the game, in both modes. It is never placed in a room; its list entry
+ * stays so the entries after it keep their numbers (saves keep what was taken by number).
+ */
+export const isRemoved = (type: number): boolean => EFFECT_OF_TYPE[type] === Effect.Removed;
 
 /**
  * A change of the boxes the carried items are shown in (stage 4: the panel draws them as the game does, when it
@@ -70,7 +74,7 @@ export class Items {
     let slot = 0;
     for (let i = 0; i < TABLES.items.length && slot < SLOTS; i++) {
       const e = TABLES.items[i];
-      if (!e || e.room !== room || this.collected[i]) continue;
+      if (!e || e.room !== room || this.collected[i] || isRemoved(e.type)) continue;
       this.slotType[slot] = e.type;
       this.slotEntry[slot] = i;
       const c = SLOT_CODES[slot] ?? 0;
@@ -109,10 +113,8 @@ export class Items {
     const type = this.slotType[slot] ?? 0;
     switch (EFFECT_OF_TYPE[type]) {
       case Effect.Carry: return this.carry(g, slot, cell, type);
-      case Effect.Shield: // $6B22
-        g.shield = SHIELD;
-        g.score.add(0x4b);
-        break;
+      case Effect.Removed: // (never placed: `place`)
+        return;
       case Effect.Points: // $6AF1
         g.score.add(0x23);
         g.progress = (g.progress + 1) & 0xff;

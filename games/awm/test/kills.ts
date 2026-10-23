@@ -1,10 +1,9 @@
 /**
  * Auf Wiedersehen Monty: an enemy touching Monty hurts him, in every way he comes to be in play, as the browser runs it (the
  * front end over the game): a new game; back to the room's start (the moment's grace, 150 frames, then as ever); arriving by the
- * map; after a flight; a save continued. Reported as "enemies don't kill me, all of them": the cause is the shield, the first
- * thing of the first room ($6B22: item 1, the yellow leaf a few steps left of where he starts), which the original never
- * switches off ($405E is written there and nowhere else, cleared only by a new game), so with it nothing hurts him for good
- * (test/shield.ts compares it with the original running); without it every enemy does.
+ * map; after a flight; a save continued. (Reported once as "enemies don't kill me, all of them": the cause was the original's shield,
+ * the first thing of the first room, which the original never switched off. That item is gone from the game, in both modes:
+ * test/shield.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/kills.ts
  */
@@ -50,7 +49,7 @@ function touch(n = 100) {
 tick(120);
 tap('Space');
 tick(60);
-check(`a new game: six lives, no shield, no grace (${game().lives}, ${game().shield}, ${p.state.grace})`, game().lives === NEW_GAME_LIVES && game().shield === 0 && p.state.grace === 0);
+check(`a new game: six lives, no grace (${game().lives}, ${p.state.grace})`, game().lives === NEW_GAME_LIVES && p.state.grace === 0);
 // ---- arriving by the map -------------------------------------------------------------------------------------
 // (out through the top edge into the next room, then the map's travel back to where he first came in)
 game().lives = 0x8c;

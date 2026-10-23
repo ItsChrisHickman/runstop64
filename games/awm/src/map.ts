@@ -1,7 +1,7 @@
 import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
-import { isTrap } from './items';
+import { isRemoved, isTrap } from './items';
 import type { Entry, Game } from './game';
 import type { Program } from './program';
 import type { AwmSave } from './save';
@@ -62,7 +62,7 @@ export function roomName(room: number): string {
 }
 
 /** What a room holds to take (the list's entries there, the death trap left out), and how many of them are taken. */
-const prizes = (room: number) => TABLES.items.flatMap((e, i) => (e.room === room && !isTrap(e) ? [i] : []));
+const prizes = (room: number) => TABLES.items.flatMap((e, i) => (e.room === room && !isTrap(e) && !isRemoved(e.type) ? [i] : []));
 const PRIZES: ReadonlyMap<number, readonly number[]> = new Map(rooms.map((r) => [r, prizes(r)]));
 
 function left(program: Program, room: number) {

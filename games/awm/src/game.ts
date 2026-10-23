@@ -124,8 +124,6 @@ export class Game implements MontyHost {
   progress = 0;
   /** $402D: the progress last looked at by the main loop. */
   progressSeen = 0;
-  /** $405E: not zero while the shield lasts (enemies cannot hurt him). */
-  shield = 0;
   /** $405B, $405C: the last random bonus, and how many steps are left in which the controls are scrambled by it ($61DA). */
   bonus = 0;
   bonusFlag = 0;
@@ -407,12 +405,12 @@ export class Game implements MontyHost {
       m.state = state;
       m.step = step;
     }
-    // $5510: a finished death takes a life (a shield saves it) and puts him back where he came into the room ($5538)
+    // $5510: a finished death takes a life and puts him back where he came into the room ($5538)
     if (m.dead !== 0) {
       const safe = this.safeEntry;
       if (this.safeRespawn() && this.stepsFree < SAFE_STEPS && safe !== null) this.placeAt(safe);
       else m.respawn();
-      if (this.shield === 0) this.lives = (this.lives - 1) & 0xff;
+      this.lives = (this.lives - 1) & 0xff;
     } else if (m.state === State.Free && ++this.stepsFree === SAFE_STEPS) {
       this.safeEntry = { room: this.world.room, x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep };
     }
@@ -501,9 +499,9 @@ export class Game implements MontyHost {
     for (let i = 0; i < times; i++) this.money.add(0x64);
   }
 
-  /** $5D61: an enemy hurts him, unless the shield is up. */
+  /** $5D61: an enemy hurts him (the original's shield item is gone, items.ts). */
   private hurt(): void {
-    if (this.shield === 0) this.knock();
+    this.knock();
   }
 
   /** $7682: the three rooms of the pushing scene. */

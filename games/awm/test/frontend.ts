@@ -213,7 +213,6 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   check('grace on: an enemy on top of him does nothing', p.state.grace > 0 && touchOf() !== State.Knocked && g.monty.state !== State.Dying);
   p.grace.clear();
   g.monty.state = State.Free;
-  g.shield = 0;
   check('grace over: the same enemy knocks him', touchOf() === State.Knocked);
 }
 
@@ -291,7 +290,6 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   const g = game();
   p.grace.clear();
   g.lives = 0x8c;
-  g.shield = 0;
   const AIRPORT = 0; // (Byorn: a plane at $C0, $68, which flies to room 1)
   g.placeAt({ room: AIRPORT, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   g.items.carried.fill(0xff);

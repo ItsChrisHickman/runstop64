@@ -80,7 +80,7 @@ export function readOriginal(ram: Uint8Array): Snap {
     collected: bits(Array.from({ length: ITEMS }, (_, i) => (r(0x6d7b + 3 * i) & 0x80) !== 0)),
     score: list(0x404a, 5), money: list(0x4051, 5),
     sounds: '', tune: r(0x4064), sky: skyText(readSky(ram)),
-    flags: list(0x405d, 1) + ',' + [0x402d, 0x405e, 0x405b, 0x405c, 0x4062, 0x4060, 0x405f, 0x402a, 0x5df6].map(r).join(','),
+    flags: list(0x405d, 1) + ',' + [0x402d, 0x405b, 0x405c, 0x4062, 0x4060, 0x405f, 0x402a, 0x5df6].map(r).join(','),
   };
 }
 
@@ -100,7 +100,7 @@ export function readPort(g: Game): Snap {
     collected: bits(it.collected),
     score: g.score.digits.join(','), money: g.money.digits.join(','),
     sounds: g.sound.take().map(callText).join(','), tune: g.tune, sky: skyText(g.sky),
-    flags: [g.progress, g.progressSeen, g.shield, g.bonus, g.bonusFlag, g.helped, g.quest, g.monty.slide, g.ended ? 1 : 0, g.contact80 ? 1 : 0].join(','),
+    flags: [g.progress, g.progressSeen, g.bonus, g.bonusFlag, g.helped, g.quest, g.monty.slide, g.ended ? 1 : 0, g.contact80 ? 1 : 0].join(','),
   };
 }
 
@@ -136,7 +136,7 @@ export function applyOriginal(g: Game, { snap: s, ram }: Moment): void {
   }
   for (let i = 0; i < 5; i++) { g.score.digits[i] = r(0x404a + i); g.money.digits[i] = r(0x4051 + i); }
   g.tune = r(0x4064); g.soundFlag = r(0x4066);
-  g.progress = r(0x405d); g.progressSeen = r(0x402d); g.shield = r(0x405e); g.bonus = r(0x405b); g.bonusFlag = r(0x405c);
+  g.progress = r(0x405d); g.progressSeen = r(0x402d); g.bonus = r(0x405b); g.bonusFlag = r(0x405c);
   Object.assign(g.sky, readSky(ram));
   g.helped = r(0x4062); g.quest = r(0x4060); g.monty.slide = r(0x405f); g.ended = r(0x402a) !== 0; g.contact80 = r(0x5df6) !== 0;
 }

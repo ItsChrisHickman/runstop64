@@ -40,7 +40,7 @@ the delivery, ending and script rooms from every side carrying what they want), 
 full results: `sweep:800:2` 64000 of 64000 steps; `kinds:120:1` 1316 of 1316 runs (157920 steps); `deliver:200:2` 128 of
 128 runs (34040 steps); targeted runs of the toll, frames $55-$57, room 5 and the $1B-$1D scripts, all clean. The run
 lists which of the original's entry points it reached: every enemy type except 5, every item effect, all four
-deliveries, the shield, the scrambled controls, states $E-$13, the lift's kill and the progress gifts.
+deliveries, the scrambled controls, states $E-$13, the lift's kill and the progress gifts.
 
 `picture.ts` classes a frame as *same*; *torn* (the original's logic wrote to the screen while the beam was drawing
 it); *a frame apart*; or *different*. `sweep:300:1`: of 47782 frames, 47752 same, 21 torn, 7 a frame apart, 2
@@ -171,7 +171,7 @@ Two phases alternate each frame ($4007 toggled), so the **logic runs at 25 Hz** 
 | $4051-$4055 | Money, same, $820A; row 24 |
 | $4067-$406B | High score; $4059/5A scratch |
 | $405D | Progress: counts jobs done (items delivered, tickets); at $41/$82/$C3 the "LEAVE GIBRALTAR" bar grows and lives +1 (max 12) |
-| $405E | Shield flag set by one item type ($6B22 copies $0143); $5D61 skips enemy hits while it is set |
+| $405E | Shield flag set by one item type ($6B22 copies $0143); $5D61 skips enemy hits while it is set. **Removed from the port** (item type 1 is never placed, no `shield`; QOL.md) |
 | $4062 | Count of one pickup (type $1C, $5DDA) that stops a door/enemy |
 | $4066 | The title's sound choice (F1 / F7) |
 | $4064 | Current music track |
@@ -247,7 +247,7 @@ the next move). Its tick runs twice per logic step.
 
 **Items** ($694F places, $6A65 picks up). Touching the top-left cell at (x+3, y+2) does the type's effect: types 0 3 4 5 7
 10 11 12 18 19 22 are carried (the first empty of 4 hands; with all four full the item stays); 1 shield ($85, from the
-byte at $0143; score $4B); 2 points (score $23, money $32, progress+1); 6 26 28-31 score 4 x type + progress; 14 20
+byte at $0143; score $4B; **removed from the port**, QOL.md); 2 points (score $23, money $32, progress+1); 6 26 28-31 score 4 x type + progress; 14 20
 23-25 money 8 x type + progress; 13 17 27 a life (no limit); 15 the third enemy's picture becomes $A3; 8 progress,
 score $BF and the walk-in state $11; 9 a random 1-31 and six helpings of $AD score; 16 a random 1-15 and four of $67; 21
 score $B1 and progress (in room 2 only death). The two random bonuses also set $405B to the number and $405C to
@@ -262,7 +262,7 @@ with x >= $80, state $F and $4060 = 0 he slides (state $10: down to y $70, 24 st
 a life lost); room $1D lands him at (24, 32).
 
 Oddities kept: the first enemy that touches him ends the check when it shows a harmless frame; the lift kills through
-the shield; a shield from item 1 is never switched off; lives from items 13/17/27 have no limit; the toll is waived for
+the shield (gone from the port); a shield from item 1 was never switched off; lives from items 13/17/27 have no limit; the toll is waived for
 good after one payment; state $10 costs a life; the third enemy's picture is set by item 15 whatever it was doing.
 
 ## The picture (`src/picture.ts`, `screen.ts`, `panel.ts`)

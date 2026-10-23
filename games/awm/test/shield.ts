@@ -1,29 +1,32 @@
 /**
- * Auf Wiedersehen Monty's shield, against the original running ("enemies don't kill me, all of them"). The first thing of the
- * first room, a few steps left of where he starts, is a shield ($6B22: item 1 sets $405E from the byte at $0143); $405E is
- * written there and nowhere else, so once he has touched it nothing hurts him for the rest of the game, through any number of
- * deaths, until a new game clears it. The port does exactly what the original does:
+ * Auf Wiedersehen Monty's shield is gone, in both modes ("that shield item is confusing and it breaks the game"). The original's
+ * first thing of the first room, a few steps left of where he starts, is a shield ($6B22: item 1 sets $405E from the byte at
+ * $0143, and nothing hurts him for the rest of the game, through any number of deaths). Checked against the original running:
  *
- * - Monty on the shield's top left cell (the game looks at x + 3, y + 2): the original's $405E is $85 and so is the port's;
- * - Monty on an enemy again and again for 600 frames: hurt without the shield, never with it (both), and the shield stays;
- * - the room's start: Monty stands where the original has him (128, 104).
+ * - the original has the leaf in the start room, Monty on its top left cell (the game looks at x + 3, y + 2) sets $405E to $85;
+ * - the port does not place it: no leaf in the room's cells, Monty on that cell takes nothing, and the map does not count it;
+ * - Monty on an enemy again and again: always hurt, in a new game and in a game loaded from a save that has the old flag set
+ *   (formats 1 and 2 kept the flag; it loads cleared).
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/shield.ts games/awm/build/play.state
  */
 import fs from 'node:fs';
+import { isRecord, readJson } from '../../shared/guards';
 import { C64, unpackState } from '../../../packages/c64kit/src/c64/machine';
 import { check, finish } from '../../shared/test/check';
 import { TABLES } from '../src/data';
 import { HIDDEN, isPlane } from '../src/enemies';
 import { Game } from '../src/game';
-import { SHIELD } from '../src/items';
+import { isRemoved } from '../src/items';
+import { CODEC, restore, snapshot } from '../src/save';
 import { START_ROOM } from '../src/program';
 import { COLS } from '../src/room';
 import { State } from '../src/tiles';
 
 const [file = 'games/awm/build/play.state'] = process.argv.slice(2);
 const item = TABLES.items[0];
-if (!item || item.type !== 1 || item.room !== START_ROOM) throw new Error('the first item is not the start room\'s shield');
+if (!item || item.type !== 1 || item.room !== START_ROOM || !isRemoved(item.type)) throw new Error('the first item is not the start room\'s shield');
+const SHIELD = 0x85;
 const col = item.cell % COLS, row = Math.floor(item.cell / COLS);
 const onShield = { x: (col * 8 - 3) & 0xff, y: (row * 8 - 2) & 0xff };
 
@@ -49,10 +52,8 @@ function original() {
   return { r, frame, hurts };
 }
 
-/** The port's game in the start room: hurt (his state a hit's) times, standing on an enemy for `n` logic steps. */
-function port(shield: number) {
-  const g = new Game(START_ROOM);
-  g.shield = shield;
+/** A game in the start room: hurt (his state a hit's) times, standing on an enemy for 300 logic steps. */
+function port(g: Game) {
   const hurt: readonly number[] = [State.Zap, State.Fire, State.Dying, State.Knocked];
   let times = 0, last: number = g.monty.state;
   for (let f = 0; f < 300; f++) {
@@ -67,27 +68,31 @@ function port(shield: number) {
 
 {
   const o = original();
-  check(`the original: Monty stands at (${o.r[0x5c3f]}, ${o.r[0x5c40]}) in the start room, ${o.r[0x405e] === 0 ? 'no shield' : 'a shield'}`, o.r[0x5c3f] === 128 && o.r[0x5c40] === 104 && o.r[0x405e] === 0);
-  const g = new Game(START_ROOM);
-  check(`the port's new game: Monty at (${g.monty.x}, ${g.monty.y}), as the original has him`, g.monty.x === 128 && g.monty.y === 104 && g.shield === 0);
-}
-{
-  const o = original();
+  check(`the original: Monty stands at (${o.r[0x5c3f]}, ${o.r[0x5c40]}) in the start room, no shield yet`, o.r[0x5c3f] === 128 && o.r[0x5c40] === 104 && o.r[0x405e] === 0);
   o.r[0x5c3f] = onShield.x; o.r[0x5c40] = onShield.y;
   for (let f = 0; f < 8; f++) o.frame();
-  const g = new Game(START_ROOM);
-  g.monty.x = onShield.x; g.monty.y = onShield.y;
-  for (let f = 0; f < 4; f++) g.step(0);
-  check(`Monty on the shield (cell ${col}, ${row}): the original's $405E is $${o.r[0x405e].toString(16)}, the port's ${g.shield.toString(16)}`, o.r[0x405e] === SHIELD && g.shield === SHIELD);
+  check(`the original: Monty on the leaf (cell ${col}, ${row}) has $405E = $${o.r[0x405e].toString(16)}`, o.r[0x405e] === SHIELD);
 }
 {
-  const o = original();
-  const without = o.hurts(600);
-  o.r[0x405e] = SHIELD;
-  const withShield = o.hurts(600);
-  check(`the original standing on enemies for 600 frames: hurt ${without} times without the shield, ${withShield} with it, which stays ($${o.r[0x405e].toString(16)})`, without > 0 && withShield === 0 && o.r[0x405e] === SHIELD);
-  const a = port(0), b = port(SHIELD);
-  check(`the port, 300 logic steps: hurt ${a} times without the shield, ${b} with it`, a > 0 && b === 0);
+  const g = new Game(START_ROOM);
+  check(`the port's new game: Monty at (${g.monty.x}, ${g.monty.y}), as the original has him`, g.monty.x === 128 && g.monty.y === 104);
+  check('no leaf in the start room: its top left cell is empty', ![0x2f, 0x33, 0x37, 0x3b].includes(g.world.cells[item.cell] ?? 0));
+  const score = g.score.digits.join(''), before = g.progress;
+  g.monty.x = onShield.x; g.monty.y = onShield.y;
+  for (let f = 0; f < 8; f++) g.step(0);
+  check('Monty on the leaf\'s place takes nothing (no score, no progress)', g.score.digits.join('') === score && g.progress === before && !g.items.collected[0]);
+  check(`the port, 300 logic steps on enemies: hurt ${port(new Game(START_ROOM))} times`, port(new Game(START_ROOM)) > 0);
+}
+{
+  // a save of format 2 that has the shield set: loads without it, enemies hurt
+  const g = new Game(START_ROOM);
+  const saved = { ...snapshot(g, [null, null, null, null]), v: 2, shield: SHIELD };
+  const bytes = Uint8Array.from(JSON.stringify(saved), (c) => c.charCodeAt(0));
+  const loaded = CODEC.unpack(bytes, 2);
+  check('a format 2 save with the shield set reads (as the current format, no flag)', loaded.v === 3 && !('shield' in loaded));
+  check(`and plays with enemies hurting him (${port(restore(loaded))} hits)`, port(restore(loaded)) > 0);
+  const packed = readJson(String.fromCharCode(...CODEC.pack(loaded)));
+  check('the codec is format 3 and packs no shield', CODEC.format === 3 && isRecord(packed) && !("shield" in packed));
 }
 
 finish();

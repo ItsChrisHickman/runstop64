@@ -226,18 +226,18 @@ for (const kind of KINDS) {
   check('awm: ...and the game does not resume from it (the title, no save), nor fail', !g.playing());
 }
 
-// ---- Auf Wiedersehen Monty at format 2 (what the flights keep in the machine) reads the format 1 saves players have ------------------------
+// ---- Auf Wiedersehen Monty at format 3 (what the flights keep in the machine; no shield flag) reads the format 1 and 2 saves players have ------------------------
 {
   const f = fixture('awm');
   const bytes = fromBase64(must(readSaves0(f).current, 'current').data);
   const old = AWM_CODEC.unpack(bytes, 1);
-  check('awm: a format 1 save reads as a game that has not flown (the clouds, the planes as the program file has them)', JSON.stringify(old.flight) === JSON.stringify(FRESH_SKY) && old.v === 2);
-  const again = AWM_CODEC.unpack(AWM_CODEC.pack(old), 2);
-  check('awm: ...written in format 2 it reads back the same', JSON.stringify(again) === JSON.stringify(old) && AWM_CODEC.format === 2);
-  check('awm: a format 2 save without what the flights keep is refused', (() => { try { AWM_CODEC.unpack(bytes, 2); return false; } catch { return true; } })());
+  check('awm: a format 1 save reads as a game that has not flown (the clouds, the planes as the program file has them)', JSON.stringify(old.flight) === JSON.stringify(FRESH_SKY) && old.v === 3 && !('shield' in old));
+  const again = AWM_CODEC.unpack(AWM_CODEC.pack(old), 3);
+  check('awm: ...written in format 3 it reads back the same', JSON.stringify(again) === JSON.stringify(old) && AWM_CODEC.format === 3);
+  check('awm: a format 2 save without what the flights keep is refused (it is a format 1 body)', (() => { try { AWM_CODEC.unpack(bytes, 2); return false; } catch { return true; } })());
   const flown = { ...old, flight: { ...old.flight, player: [0x20, 0x30], explosion: 2 } };
-  check('awm: what the flights left is kept by a save', AWM_CODEC.unpack(AWM_CODEC.pack(flown), 2).flight.player[0] === 0x20);
-  check('awm: a state a flight cannot leave is not a save (a cloud off the 504 places of the VIC)', (() => { try { AWM_CODEC.unpack(AWM_CODEC.pack({ ...old, flight: { ...old.flight, clouds: [600, 0, 0, 0, 0, 0, 0, 0] } }), 2); return false; } catch { return true; } })());
+  check('awm: what the flights left is kept by a save', AWM_CODEC.unpack(AWM_CODEC.pack(flown), 3).flight.player[0] === 0x20);
+  check('awm: a state a flight cannot leave is not a save (a cloud off the 504 places of the VIC)', (() => { try { AWM_CODEC.unpack(AWM_CODEC.pack({ ...old, flight: { ...old.flight, clouds: [600, 0, 0, 0, 0, 0, 0, 0] } }), 3); return false; } catch { return true; } })());
 }
 
 // ---- a codec that has moved on reads the old format by migration ------------------------------------------------

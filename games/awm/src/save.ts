@@ -39,7 +39,6 @@ const fields = {
   money: S.numbers,
   lives: S.number,
   progress: S.number,
-  shield: S.number,
   bonus: S.number,
   bonusFlag: S.number,
   helped: S.number,
@@ -50,15 +49,18 @@ const fields = {
 };
 const sound = (s: { room: number; burnPicture: number[]; carried: number[]; hands: unknown[]; score: number[]; money: number[] }): boolean =>
   !!ROOMS[s.room] && s.burnPicture.length === 8 && s.carried.length === 4 && s.hands.length === 4 && s.score.length === 5 && s.money.length === 5;
+/** Saves up to format 2 kept the shield item's flag ($405E); the item is gone and so is the flag. */
+const shield = { shield: S.number };
 /** Format 1, as players have it: before the flight (a plane with a ticket) kept anything. */
-const AwmSaveV1 = S.refine(S.object({ v: S.literal(1), ...fields }), sound);
-export const AwmSave = S.refine(S.object({ v: S.literal(2), ...fields, flight: sky }), sound);
+const AwmSaveV1 = S.refine(S.object({ v: S.literal(1), ...fields, ...shield }), sound);
+const AwmSaveV2 = S.refine(S.object({ v: S.literal(2), ...fields, ...shield, flight: sky }), sound);
+export const AwmSave = S.refine(S.object({ v: S.literal(3), ...fields, flight: sky }), sound);
 export type AwmSave = S.Infer<typeof AwmSave>;
 
 export function snapshot(game: Game, hands: readonly (Hand | null)[]): AwmSave {
   const m = game.monty;
   return {
-    v: 2,
+    v: 3,
     room: game.world.room,
     entry: { x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep },
     faceLeft: m.faceLeft,
@@ -74,7 +76,6 @@ export function snapshot(game: Game, hands: readonly (Hand | null)[]): AwmSave {
     money: [...game.money.digits],
     lives: game.lives,
     progress: game.progress,
-    shield: game.shield,
     bonus: game.bonus,
     bonusFlag: game.bonusFlag,
     helped: game.helped,
@@ -102,7 +103,6 @@ export function restore(save: AwmSave, lost = false): Game {
   game.money.digits.splice(0, 5, ...save.money);
   game.lives = save.lives;
   game.progress = game.progressSeen = save.progress;
-  game.shield = save.shield;
   game.bonus = save.bonus;
   game.bonusFlag = save.bonusFlag;
   game.helped = save.helped;
@@ -120,18 +120,23 @@ export function restore(save: AwmSave, lost = false): Game {
 /** A save read back (from JSON in storage), checked: null if it isn't one. */
 export const parseSave = (v: unknown): AwmSave | null => (AwmSave(v) ? v : null);
 
-/** A format 1 save in the latest: the flights had left nothing in the machine (the program's own values). */
-const upgrade = (old: S.Infer<typeof AwmSaveV1>): AwmSave => ({ ...old, v: 2, flight: copySky(FRESH_SKY) });
+/** An old save in the latest: the shield flag dropped (the item is gone, so a game that had it loads without), the flights as they left it or, in format 1, nothing in the machine (the program's own values). */
+const upgrade = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV2>): AwmSave => ({ ...rest, v: 3 });
+const upgradeV1 = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV1>): AwmSave => ({ ...rest, v: 3, flight: copySky(FRESH_SKY) });
 
-/** Saves as bytes: their JSON (format 2: with what the flights keep; format 1 is read, as a game that has not flown). */
+/** Saves as bytes: their JSON (format 3: no shield flag; formats 1 and 2 are read: 1 as a game that has not flown). */
 export const CODEC: SaveCodec<AwmSave> = {
-  format: 2,
+  format: 3,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
   unpack: (b, format) => {
-    readsFormat('Auf Wiedersehen Monty', format, 1, 2);
+    readsFormat('Auf Wiedersehen Monty', format, 1, 2, 3);
     const v = readJson(String.fromCharCode(...b));
     if (format === 1) {
       if (!AwmSaveV1(v)) throw new Error('not an Auf Wiedersehen Monty save');
+      return upgradeV1(v);
+    }
+    if (format === 2) {
+      if (!AwmSaveV2(v)) throw new Error('not an Auf Wiedersehen Monty save');
       return upgrade(v);
     }
     const s = parseSave(v);
