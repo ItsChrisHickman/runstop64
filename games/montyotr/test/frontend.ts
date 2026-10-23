@@ -149,7 +149,19 @@ until(() => g.roomId === second && !g.freeze, 300);
 check(`touch: two taps on the second room on the map travel there (${g.roomId.toString(16)})`, !p.state.paused && g.roomId === second);
 input.touch = false;
 tick(20);
-const lastRoom = g.roomId;
+let lastRoom = g.roomId;
+
+// ---- ENHANCED: unlimited lives and continues (shared/lives.ts): a death takes no life, there is no game over ----------------------------
+{
+  p.grace.clear(); // (the travel above gave a moment's grace)
+  g.lives = 1;
+  g.actionCounter = 2; // (an enemy: the death the original plays for it)
+  tick(400);
+  check(`ENHANCED: the last life lost takes nothing, no game over (lives ${g.lives}, ${p.state.mode})`, g.lives === 1 && p.state.mode === 'play' && g.assist.lives === true);
+  tap('KeyP'); tap('KeyE'); tap('KeyP');
+  check('ORIGINAL: no unlimited lives', g.assist.lives === false && !p.state.paused);
+  lastRoom = g.roomId; // (the death put him back where he came into the room)
+}
 
 // ---- game over with a high score: no name entry, CONTINUE? -----------------------------------------
 g.addScore(777 - g.score); // (00777 beats the table's top, 00500)
@@ -169,6 +181,7 @@ tap('Enter');
 tick(20);
 check(`Enter: back in play in the last room entered (${g.roomId.toString(16)}), five lives, the score from nothing`, p.state.mode === 'play' && g.roomId === lastRoom && g.lives === 5 && g.score === 0);
 check(`the HUD hi-score is the best this visit (${g.hiScore})`, g.hiScore === 777);
+// (ORIGINAL stays on while the checks below lose the last life)
 
 // ---- ENTER CONTINUE on the title ------------------------------------------------------------------
 g.lives = 2;
@@ -188,6 +201,8 @@ kitChecks('with ENTER CONTINUE', g);
 tap('Enter');
 tick(20);
 check(`Enter: back in play in the last room (${g.roomId.toString(16)}), lives as saved`, p.state.mode === 'play' && g.roomId === lastRoom && g.lives === 5);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
+check('and ENHANCED again', g.assist.lives === true && !p.state.paused);
 
 // ---- a page load with the save: straight back into play; T on the pause screen: the title, the save kept ----
 {

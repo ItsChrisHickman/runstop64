@@ -53,7 +53,7 @@ const overHole = (g: Game) => { const b = g.montyChr; return g.chr(b + 0x50) ===
 /** A new game, the C5 at a pass's start (the game's own way into a room: an exit pointed at it). */
 function street(p: Pass | { stage: number; room: number; x2: number; y: number; speed: number; dir: number }, enhanced: boolean, cheat: boolean) {
   const g = new Game();
-  g.assist = { cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: false };
+  g.assist = { lives: false, cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: false };
   g.start();
   g.cheatMode = cheat ? 0x80 : 0;
   const col = [...Array(23).keys()].find((c) => g.roomAt(2, c) === p.room);

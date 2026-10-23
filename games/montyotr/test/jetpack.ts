@@ -53,7 +53,7 @@ type Outcome = string;
 
 function port(side: Side, k: number, enhanced: boolean): Outcome {
   const g = new Game();
-  g.assist = { cloud: false, jetpack: enhanced, c5: false, rooms: false, respawn: false };
+  g.assist = { lives: false, cloud: false, jetpack: enhanced, c5: false, rooms: false, respawn: false };
   const view = new VicView(new PixelRenderer(), g.vic);
   g.start();
   // into $1D near its top (its exit up leads to $1E), the way the game enters a room

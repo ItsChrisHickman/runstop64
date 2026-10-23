@@ -71,7 +71,7 @@ function copy(src: Play): Play {
 /** A new game, ENHANCED (or with the respawn guard off), Monty brought into a room (an exit pointed at it). */
 function into(cell: { mapRow: number; exitCol: number; x2: number; y: number }, respawn = true): Play {
   const g = new Game();
-  g.assist = { cloud: true, jetpack: true, c5: true, rooms: true, respawn };
+  g.assist = { lives: false, cloud: true, jetpack: true, c5: true, rooms: true, respawn };
   g.start();
   Object.assign(g, cell);
   g.roomExit = 1;

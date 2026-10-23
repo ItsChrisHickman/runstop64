@@ -46,7 +46,7 @@ const png = (name: string, renderer: PixelRenderer) => { if (out) rgbPng(path.jo
 const hex = (n: number) => `$${n.toString(16)}`;
 
 const store = useMemoryStorage();
-const ENHANCED: Assists = { cloud: true, jetpack: true, c5: true, rooms: false, respawn: true };
+const ENHANCED: Assists = { lives: false, cloud: true, jetpack: true, c5: true, rooms: false, respawn: true };
 
 // ---- 1. the routes, played as the game plays ----------------------------------------------------------------------
 

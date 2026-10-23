@@ -83,7 +83,7 @@ function distance(scene: Scene, g: Game, stage: number): number {
 function search(scene: Scene): Move[] | null {
   const g = new Game();
   g.start();
-  g.assist = { cloud: true, jetpack: true, c5: true, rooms: false, respawn: true };
+  g.assist = { lives: false, cloud: true, jetpack: true, c5: true, rooms: false, respawn: true };
   scene.prepare(g);
   if (!arrive(g, scene.room, scene.spot.x2, scene.spot.y, scene.spot.facing)) return null;
   g.score = 0;

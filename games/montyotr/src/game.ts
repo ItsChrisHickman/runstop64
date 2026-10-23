@@ -4,6 +4,7 @@ import {
   enemyRecords, EVENT_SFX, exitGridImage, extensionGrid, greyPulse, isExtensionRoom, MUSIC, PLAY_COLS, PLAY_ROWS, roomDef, roomMeta, sectorName,
   specialItems, tileLibrary, tileProperty,
 } from './data';
+import { afterLoss } from '../../shared/lives';
 import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
 import * as Items from './items';
@@ -33,6 +34,8 @@ export interface Sound {
 
 /** ENHANCED's changes to how the game plays (QOL.md). */
 export interface Assists {
+  /** Unlimited lives and continues (shared/lives.ts): a death takes no life. */
+  lives: boolean;
   /** Monty stands on the rising cloud and rides it to the top. */
   cloud: boolean;
   /** Only Monty himself is hit in the jetpack rooms: his jetpack touching an enemy doesn't count. */
@@ -89,7 +92,7 @@ export class Game {
   readonly col = this.vic.colour;
   sound: Sound = { sfx() {}, song() {}, stop() {} };
   /** ENHANCED's assists (off by default so the original stays the original). */
-  assist: Assists = { cloud: false, jetpack: false, c5: false, rooms: false, respawn: false };
+  assist: Assists = { lives: false, cloud: false, jetpack: false, c5: false, rooms: false, respawn: false };
   /** Optional hook for QOL features (map, warp) to learn where rooms are entered. */
   onRoomLoaded: (g: Game) => void = () => {};
 
@@ -737,7 +740,7 @@ export class Game {
 
   /** Returns true if the game is over (no lives left). */
   lifeLost(): boolean {
-    this.lives--;
+    this.lives = afterLoss(this.lives, this.assist.lives);
     this.drawHudData();
     if (this.lives > 0) {
       this.respawn();

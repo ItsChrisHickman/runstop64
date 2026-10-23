@@ -30,7 +30,7 @@ interface Arrival { room: number; stage: number; x2: number; y: number; c5: C5St
 /** A new game with the C5 brought into a room as the drive brings it (an exit pointed at it). */
 function at(a: Arrival, enhanced: boolean) {
   const g = new Game();
-  g.assist = { cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: enhanced };
+  g.assist = { lives: false, cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: enhanced };
   g.start();
   const col = [...Array(23).keys()].find((c) => g.roomAt(2, c) === a.room);
   if (col === undefined) throw new Error(`room ${hex(a.room)} isn't on the grid`);

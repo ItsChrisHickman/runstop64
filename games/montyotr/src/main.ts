@@ -2,6 +2,7 @@ import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
+import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
@@ -62,6 +63,7 @@ export function run(host: Host) {
     // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
     restartKeys: [], strip: { y: STRIP_Y },
     assists: [
+      LIVES_ASSIST,
       { id: 'cloud', long: 'RIDE THE RISING CLOUD' },
       { id: 'jetpack', long: 'JETPACK NOT HIT' },
       { id: 'c5', long: 'C5 HOP AND RETRY' },
@@ -72,7 +74,7 @@ export function run(host: Host) {
     const { flow, fe, latch, rooms } = self;
     enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assists as the switch has them now
-    g.assist = { get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
+    g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
     g.graceActive = () => flow.grace.active;
 
     // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----

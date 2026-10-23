@@ -71,7 +71,7 @@ const WARPS = new Map([[0x37, 0x1d], [0x38, 0x24], [0x39, 0x08]]);
 // ---- the game, played and copied ----------------------------------------------------------------
 
 /** ENHANCED's assists, all on (as the switch has them). */
-const ENHANCED = { cloud: true, jetpack: true, c5: true, rooms: true, respawn: true };
+const ENHANCED = { lives: false, cloud: true, jetpack: true, c5: true, rooms: true, respawn: true };
 
 const STEP = 8;
 const ACTIONS: [string, Stick][] = [
