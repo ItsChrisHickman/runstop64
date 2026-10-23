@@ -474,10 +474,11 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     feedInput(g, holding || flow.launching);
     let played = false;
     if (!holding) { g.tick(); played = flow.state.playing; }
+    const ticked = !holding;
     // (ENHANCED, a life ended: back to the room's start with full health, as CONTINUE? would; the rest of the game's end
     // this frame ran in a machine that is dropped, and its sound with it)
     if (lifeEnded) { lifeEnded = false; if (port.carryOn('continue')) return 'ended'; }
-    sound.pushFrame(titleSound(g));
+    sound.pushFrame(ticked ? titleSound(g) : []); // (a frame the game did not run has no writes: the last frame's are not sent again)
     return played ? 'played' : 'idle';
   }
 

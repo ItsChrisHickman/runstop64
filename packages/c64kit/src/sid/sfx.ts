@@ -43,11 +43,11 @@ const NOISE = 0x80, PULSE = 0x40, SAW = 0x20, TRI = 0x10;
 export const SFX: Record<SfxName, VoiceProgram[]> = {
   // An enemy destroyed: a crunch of noise falling in pitch, and a square "pop" dropping under it.
   kill: [
-    sweep({ wave: NOISE, from: 3200, to: 420, frames: 14, ad: 0x08, sr: 0x05, release: 3 }),
+    sweep({ wave: NOISE, from: 1400, to: 300, frames: 14, ad: 0x08, sr: 0x05, release: 3 }),
     sweep({ wave: PULSE, from: 900, to: 70, frames: 10, ad: 0x06, sr: 0x04, pw: 0x600, release: 2 }),
   ],
   // A blow that lands: a short, bright click.
-  hit: [sweep({ wave: NOISE, from: 5200, to: 1800, frames: 6, ad: 0x06, sr: 0x03, release: 2 })],
+  hit: [sweep({ wave: NOISE, from: 1800, to: 700, frames: 6, ad: 0x06, sr: 0x03, release: 2 })],
   // The player hurt: a low, wobbling buzz sliding down.
   hurt: [
     sweep({ wave: SAW, from: 300, to: 110, frames: 14, ad: 0x08, sr: 0x06, release: 5, wobble: 0.06 }),

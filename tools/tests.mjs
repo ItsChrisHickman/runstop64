@@ -212,6 +212,7 @@ export const TESTS = [
   { file: 'games/shared/native/test/pausemap.ts', args: ['blackwyche'], set: 'slow' },
   // (the title tunes against the original's: Blackwyche's and Dragonskulle's loops time themselves by counting cycles)
   { file: 'games/shared/native/test/tune.ts', set: 'fast' },
+  { file: 'games/shared/native/test/sfx.ts', set: 'fast' },
   { file: 'games/shared/native/test/resume.ts', args: ['entombed'], set: 'slow' },
   { file: 'games/shared/native/test/verify.ts', args: ['entombed', '600'], set: 'slow' },
   // (lockstep does not apply to Karnath and JSW II, which time themselves; irqcycles.ts and trace.ts are their checks, not listed yet)
