@@ -137,10 +137,9 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
   info: (ram, found, assist) => [
     `ENERGY ${String(statusNumber(ram, 0x07dc)).padStart(3)}%`,
     `${screenText(ram, 24, 5, 5)} ${screenText(ram, 24, 11, 2)}`, // the castle clock
-    '',
     `ROOMS ${String(found.castle.rooms.length).padStart(2)}/${ROOMS}`,
-    // the pieces of the pentacle laid at the obelisk, and one carried (ENHANCED's hints)
-    ...(assist?.hints ? ['', 'PIECES LAID', `${Math.min(deposited(ram), PIECES)} OF ${PIECES}`, ...(carrying(ram) ? ['1 CARRIED'] : [])] : []),
+    // the pieces of the pentacle laid at the obelisk, and one carried (ENHANCED's hints): short, the legend and the options stand under the lines
+    ...(assist?.hints ? [`PIECES ${Math.min(deposited(ram), PIECES)}/${PIECES}`, ...(carrying(ram) ? ['CARRYING 1'] : [])] : []),
   ],
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.green, text: 'STAIRS' }, { colour: COL.purple, text: 'FLOORS' }],
   places(box, ram, found) {

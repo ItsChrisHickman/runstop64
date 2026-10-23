@@ -466,7 +466,8 @@ const saysInOrder = (trace: string[], say: string | readonly string[], from = 0)
   // the pause screen's count
   const counted = karnathMap.info(unpackState(packState(start)).ram, karnathMap.found.empty(), { hints: true });
   const plain = karnathMap.info(unpackState(packState(start)).ram, karnathMap.found.empty(), { hints: false });
-  check(`the pause screen counts the pieces laid with the hints (${counted.slice(-2).join(' / ')}), and not in ORIGINAL (${plain.length} lines against ${counted.length})`, counted.includes('PIECES LAID') && counted.includes('0 OF 16') && !plain.includes('PIECES LAID'));
+  const lines = counted.length + karnathMap.legend.length;
+  check(`the pause screen counts the pieces laid with the hints (${counted.slice(-2).join(' / ')}), and not in ORIGINAL (${plain.length} lines against ${counted.length}); its lines and the legend are at most 8, so none reaches the options under them (${lines})`, counted.includes('PIECES 0/16') && !plain.some((l) => l.startsWith('PIECES')) && lines <= 8);
 }
 
 {
