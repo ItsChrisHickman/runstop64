@@ -48,6 +48,9 @@ export const TESTS = [
   { file: 'games/awm/test/flight.ts', args: [AWM, 'idle:100:1'], set: 'slow', needs: [AWM] }, // a whole flight, the clock to its end
   { file: 'games/awm/test/flight.ts', args: [AWM, 'mix:900:1'], set: 'slow', needs: [AWM] }, // shooting the other plane down, being shot down, random sticks
   { file: 'games/awm/test/smooth.ts', set: 'fast' },
+  { file: 'games/awm/test/feet.ts', args: [AWM, 'standing:12:1'], set: 'slow', needs: [AWM] }, // standing, his feet and the floor under them are the original's, rows and all
+  { file: 'games/shared/test/still-sprites.ts', args: [AWM, '150'], set: 'fast', needs: [AWM] }, // a sprite standing still is drawn as the VIC draws it (the view's composite)
+  { file: 'games/shared/test/still-sprites.ts', args: ['games/antiriad/test/original.state', '150'], set: 'fast' },
   { file: 'games/awm/test/closing.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/flow.ts', args: [AWM], set: 'slow', needs: [AWM] },
   { file: 'games/awm/test/lockstep.ts', args: [AWM, 'R:100,UR:30,F:1'], set: 'slow', needs: [AWM] },

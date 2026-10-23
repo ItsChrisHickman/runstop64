@@ -62,7 +62,9 @@ export class PixelRenderer implements Renderer {
    */
   picture(): Uint8Array {
     const W = 320, H = 200, s = this.screen.pixels, out = new Uint8Array(W * H);
-    for (let i = 0; i < W * H; i++) out[i] = s[i] === TRANSPARENT ? this.background & 15 : s[i];
+    // (clear pixels show the backdrop where the view keeps one, as the real renderer's background plane does)
+    const back = this.backdrop?.pixels;
+    for (let i = 0; i < W * H; i++) out[i] = s[i] === TRANSPARENT ? (back ? back[i] & 15 : this.background & 15) : s[i];
     for (const h of [...this.sprites].sort((a, b) => a.z - b.z)) {
       const sp = h.surface;
       if (!h.visible || !sp) continue;
