@@ -2,7 +2,7 @@
 
 The ENHANCED ending (`src/ending.ts`, `src/ending-scenes.ts`, the show in `games/shared/ending/show.ts`) follows the game's own
 ending (the core drawn and its framed message, which stays as it was) with a montage whose credits type on in the order of Super
-Mario World's: the makers, then true facts about the game, then the port (`PORT_CREDITS` in `games/shared/native/ending.ts`).
+Mario World's: the makers, then true facts about the game, then the port (`PORT_CREDITS` in `games/shared/ending/credits.ts`).
 Every line below was checked against the source next to it (read 2026-10-18). Nothing is invented. Lines are upper case and at most
 38 letters, in the game's own lettering, in the screen's last text row (y 192 to 199), which the game never draws in.
 
@@ -41,10 +41,10 @@ passages (Wikipedia); the game's own ending text, which stays as it was.
 
 ## The port
 
-`PORT_CREDITS` (`games/shared/native/ending.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
+`PORT_CREDITS` (`games/shared/ending/credits.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
 WITH CLAUDE (ANTHROPIC) / RUNSTOP64.
 
-## The creatures' names (the parade)
+## The creatures' names (the visitors)
 
 The game names none of its creatures (it draws a kind's frames into an enemy's sprite: kinds 0-14). The names under them
 (`CAST` in `src/ending-scenes.ts`) are plain descriptions of the pictures. Each is the game's own sprite and its own frames,

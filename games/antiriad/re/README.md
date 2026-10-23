@@ -214,5 +214,5 @@ original puts things matters: the armour's ledge in room $3F is closed on its ri
 $3E and $3F are the energy barriers, which the armour can't cross (Tal can); the armour arriving from below comes in at the
 bottom of the room, over the panel, so the montage's flights go sideways; the credits' row is screen row 16 (between the
 playfield and the panel's first row), which the game leaves empty, apart from the ending's flashing of the whole screen.
-`re/play.ts` plays the places headless (where Tal goes, when each is done, a sheet of frames), `re/cast.ts` records the parade's
+`re/play.ts` plays the places headless (where Tal goes, when each is done, a sheet of frames), `re/cast.ts` records the visitors'
 cast onto a sheet, `re/messages.ts` dumps the panel's messages.

@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`). Lemon64 and the ZZAP!64 site answered 403 to a script, so
 nothing here rests on them; archive.org's text for Commodore User 30 has the contents page (Dragon Skulle, page 22) but not the review's
 text, so its opinions are not quoted. The main source is the Retro Gamer 56 article that first named the makers (Martyn Carroll, "The
@@ -36,13 +36,13 @@ page numbers are the magazine's own).
 | Credit lines | Fact | Where |
 |---|---|---|
 | THIS COPY SAID A.C.G. 1001 / THE CRACKERS NAME IN THE YEAR / A.C.G. 1985 IS PUT BACK | The copy that runs on the probe is the "1001" crack; its title said "COPYRIGHT A.C.G. 1001" and the original line "COPYRIGHT A.C.G. 1985" is put back | `build/README.md`, `re/README.md` section 8 |
-| REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (`PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (`PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## The captions and the names
 
 The game and its map name no place; the captions are plain names for what `re/README.md` calls the places (the beach, the shovel's room,
 the caves, the river, the dragons' screens, the graves, the room of the falling rocks, the eyes, the lake, the gas, the skull). The
-parade's names (the ant, the wizard, the floating skull, the dragon, the eye, the gas, the skull of souls) are ours too: no manual or
+visitors' names (the ant, the wizard, the floating skull, the dragon, the eye, the gas, the skull of souls) are ours too: no manual or
 other source with names for the creatures was found. "Skull of Souls" is the Wikipedia article's name for what must be destroyed
 (the info sheet's "Crystal Skull of Souls" is this repo's own).

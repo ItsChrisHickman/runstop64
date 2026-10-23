@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`); the ZZAP!64 issue 4 scan's text was read from archive.org
 (the OCR of its page 18-19 review). Lemon64 and the ZZAP!64 site were not used. The Your Commodore and Your 64 scores and quotes are as
 Wikipedia gives them (their scans were not read). The composer is Rob Hubbard: the Wikipedia article's infobox and text say so (the
@@ -33,13 +33,13 @@ category list also names Ben Daglish, which no text supports, so he is not credi
 | Credit lines | Fact | Where |
 |---|---|---|
 | THE ONLY COPIES HAD CRACKERS NAMES / IN THE SCROLLER AND HIGH SCORES | The surviving copies' title scroller and high scores carry crackers' names; the team's credits are put in their place | `build/README.md`, `src/info.ts`, `QOL.md` ("Title screen text") |
-| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## The places and the cast
 
 The game names no room, so no scene is captioned (its panel has no message line). The scenes are screens of the factory entered the game's
 own way; what Thing does in each is a way found by Go-Explore (`re/ways.json`, `re/ways.ts`) checked to replay from the show's own start.
-The parade's names are plain and ours (THE SAUCER, THE PROPELLER, THE CRYSTAL, THE ROBOT, THE OIL CAN, THE JIGSAW PIECE, THING): the game
+The visitors' names are plain and ours (THE SAUCER, THE PROPELLER, THE CRYSTAL, THE ROBOT, THE OIL CAN, THE JIGSAW PIECE): the game
 names none of its creatures; "Thing" is the game's title and its name for him (ZZAP!64: "a brand new computer star who goes by the name of
 Thing").

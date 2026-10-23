@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`. They
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`. They
 are typed into the panel's message line in the game's own lettering, so each is at most 28 letters of A to Z, digits and a colon (no stops,
 commas or brackets: the line of the port that has brackets loses them).
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`); the ZZAP!64 site answered 403 to a script, so the one fact
@@ -39,12 +39,12 @@ are the magazine's own).
 
 | Credit lines | Fact | Where |
 |---|---|---|
-| REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE ANTHROPIC / RUNSTOP64 | As Chris asked; his name as he gives it (`PORT_CREDITS`, the brackets of the second line left out by the panel's lettering) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE ANTHROPIC / RUNSTOP64 | As Chris asked; his name as he gives it (`PORT_CREDITS`, the brackets of the second line left out by the panel's lettering) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## The places, the names and the music
 
 The game names each room itself, on the line above its message (its own list at $0E2E, the names the pause map shows), so the show adds
-no caption. The parade's names (the knight, the ghoul, the ghost, the spider, the hooded figure, the goblin) are ours: no manual or other
+no caption. The visitors' names (the knight, the ghoul, the ghost, the spider, the hooded figure, the goblin) are ours: no manual or other
 source with names for the creatures was found. The places are where the recorded routes first came into each room (`src/places.ts`), and
 the abode's obelisk is where `test/fixtures/abode-obelisk.state` has him. The title is silent, so the tune is the one the castle plays.

@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (`PLAN`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (`PLAN`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`); World of Spectrum's Your Sinclair text file for the game
 was read in full; Spectrum Computing's entry was read. The Your Sinclair issue 25 and 27 scans were not available (archive.org holds
 issue 25 as a dark item), so what Wikipedia says they say is credited to Wikipedia. The credits page's own names are the game's
@@ -33,7 +33,7 @@ issue 25 as a dark item), so what Wikipedia says they say is credited to Wikiped
 
 | Credit lines | Fact | Where |
 |---|---|---|
-| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## The places and the cast
@@ -41,6 +41,6 @@ issue 25 as a dark item), so what Wikipedia says they say is credited to Wikiped
 The six screens are the game's own rooms 0-5 in order (the Gremlin office, then the plants, the M1 and the offices, ending at the newsagent: the
 descriptions in `hints.ts` and Wikipedia's table). Each plays the keys found for it (`re/ending/route.ts`, `src/ending-routes.ts`) by the
 test suite's own player (`test/players.ts`: the goals of each screen) on a `SteadyGame`; `test/reward.ts` plays each again and checks it leaves
-by its way out alive. The parade's names are plain and ours (THE LAMP, THE WALKER, THE BLOB, THE TAPE REEL, THE CASSETTE, THE CAR, THE GHOST,
+by its way out alive. The visitors' names are plain and ours (THE LAMP, THE WALKER, THE BLOB, THE TAPE REEL, THE CASSETTE, THE CAR, THE GHOST,
 THE CHOMPER: what each looks like; `room0.ts` itself calls the first a lamp); the game names none of its creatures. MONTY is the game's own name for him.
 The credit lines are drawn where the panel is, which is put away during the show, so nothing is ever under a line.

@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`). Steve Wetherill's and Derrick P. Rowson's comments are on
 J. D. A. Wiseman's JSW2 pages (read in full). The ZZAP!64 review was read as a scan (archive.org, the issue's PDF: page 92, looked at, not
 only its OCR text). The Sinclair User and Home Computing Weekly lines are as Wikipedia gives them (their scans were not read). Nothing is
@@ -44,7 +44,7 @@ screenshots show (the Nightmare Room in C64 graphics).
 
 | Credit lines | Fact | Where |
 |---|---|---|
-| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## What the game's own end is (and is not)
@@ -62,5 +62,5 @@ the game is also different"; JSW2.TXT: "there's a surprise new ending too!"), bu
 
 Rooms are entered the game's own way (`$816C`, `$8063`: the way down) on a new game's memory and Willy is put on a spot where he stands and
 lives (`stand`), then steered by the joystick alone along a way found by Go-Explore (`re/ending/route.ts`; `src/ending-ways.ts`), checked by
-`test/ending.ts` to take items and lose no life from the show's own start. The room names are the game's own; the parade's names are plain
+`test/ending.ts` to take items and lose no life from the show's own start. The room names are the game's own; the visitors' names are plain
 and ours (the game names none of its guardians) except THE CAMEL (Wetherill's own word), THE RABBIT (ZZAP!64: "poisonous hopping rabbits") and MARIA (the housekeeper of the game's story, stood by the bed in the Masters Bedroom: Wikipedia, Jet Set Willy, Plot; ZZAP!64: "his housekeeper Maria won't let him go to bed").

@@ -2,7 +2,7 @@
 
 The ENHANCED ending (`src/ending.ts`, `src/ending-scenes.ts`, the show in `games/shared/ending/show.ts`) types credits on over its
 montage, in the order of Super Mario World's: the makers, then true facts about the game, then the port (`PORT_CREDITS` in
-`games/shared/native/ending.ts`). Every line below was checked against the source next to it (read 2026-10-18). Nothing is
+`games/shared/ending/credits.ts`). Every line below was checked against the source next to it (read 2026-10-18). Nothing is
 invented. Lines are upper case and at most 38 letters, in the game's own lettering (which has no apostrophe, percent sign or
 bracket: 90% is written 90 PER CENT, Devil's Galop DEVILS GALOP). The lines are in `SCENES` (`src/ending-scenes.ts`), a few to a
 room, in this order.
@@ -42,10 +42,10 @@ Spectrum's kit, which differs from the C64's).
 
 ## The port
 
-`PORT_CREDITS` (`games/shared/native/ending.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
+`PORT_CREDITS` (`games/shared/ending/credits.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
 WITH CLAUDE (ANTHROPIC) / RUNSTOP64.
 
-## The creatures' names (the parade)
+## The creatures' names (the visitors)
 
 Almost none of the game's creatures has a documented name (the C64 code numbers them, 8 to 34). The names under them are plain
 descriptions of the sprite (`CAST` in `src/ending-scenes.ts`, in the order the journey meets them), but for:
@@ -57,4 +57,4 @@ descriptions of the sprite (`CAST` in `src/ending-scenes.ts`, in the order the j
   Dave-Agent/monty-on-the-run, here `items.ts` `applyRoomEffects`); it is the white insect of that room's fourth slot.
 - BUBBLE: the same, where taking the teddy bear wakes "the bubble" in room $08 (`items.ts`): the green ball of that room's fourth slot.
 - BANNER PLANE: three of the game's sprites that move together in room $23 (types 32-34), a plane towing GOOD LUCK!; parts of one
-  creature in the parade.
+  creature that walks through the montage.

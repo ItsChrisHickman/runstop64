@@ -2,7 +2,7 @@
 
 The ENHANCED ending (`src/ending.ts`, `src/ending-scenes.ts`, the show in `games/shared/ending/show.ts`) types credits on over its
 montage, in the order of Super Mario World's: the makers, then true facts about the game, then the port (`PORT_CREDITS` in
-`games/shared/native/ending.ts`). Every line below was checked against the source next to it (read 2026-10-19). Nothing is
+`games/shared/ending/credits.ts`). Every line below was checked against the source next to it (read 2026-10-19). Nothing is
 invented. Lines are upper case and at most 38 letters, in the font the show draws them in (the kit's: no percent sign, so 98% is
 written 98 PERCENT). They are in `SCENES` (`src/ending-scenes.ts`), a few to a place, in this order; the last place's first two
 slots are empty on purpose (the game's own ending flashes the screen white there, and nothing is typed over that: the test checks).
@@ -49,9 +49,9 @@ The same credits are in the game's `src/info.ts` (and the title's credits page i
 
 ## The port
 
-`PORT_CREDITS` (`games/shared/native/ending.ts`), the same in every game: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64.
+`PORT_CREDITS` (`games/shared/ending/credits.ts`), the same in every game: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64.
 
-## The parade's names
+## The visitors' names
 
 The names the C64-Wiki gives: DRAGON ("fire-breathing dragon"), MONKEY ("aggressive monkey"; "purple monkeys hanging from the trees"), GUNMAN ("the gunman ... shaken by the recoil of his machine gun"; "machine gunners"), ACID DROP, ENERGY BARRIER, TELEPORTER, RECHARGE CELL, and the four parts: PULSAR BEAM, PARTICLE NEGATOR, GRAVITY DISPLACER, IMPLOSION MINE (C64-Wiki, Screen Layout and Hints; Wikipedia, Plot, calls the boots "anti-gravity boots" and names the other three). TAL and ARMOUR (the Sacred Armour of Antiriad) are the game's own. The rest are ours, plain, for what they look like: SAUCER, BROWN MUTANT, PURPLE MUTANT, BLUE ORB, BAT, SPIDER, GREEN BUG (none of the sources names them; the manual was not checked). Chris may want to change them. ZZAP!64 calls them "mutant creatures, deformed by radiation, as well as alien guards" and the dragons "fire breathing dragons"; CRASH "mutant guardians" and "an enemy alien robot".
 

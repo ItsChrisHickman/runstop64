@@ -19,7 +19,7 @@ export const info = {
     <p>Changes from the original (the
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/starquake/QOL.md">full log</a>):
     pause screen with map and travel &middot; autosave on every room and Continue (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
-    refresh rate &middot; ENHANCED (on unless switched to ORIGINAL): full energy in each room, unlimited lives and continues, and a reward for winning (after the game's own ending: a montage of the planet's places with BLOB running through them, the credits and some true facts, a parade of the creatures and THE END; W on the pause screen shows it again once you've won).</p>
+    refresh rate &middot; ENHANCED (on unless switched to ORIGINAL): full energy in each room, unlimited lives and continues, and a reward for winning (after the game's own ending: a montage of the planet's places with BLOB running through them, the credits and some true facts, the creatures walking through the places and THE END; W on the pause screen shows it again once you've won).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; ported from the C64
     original's own code and data</p>
   `,

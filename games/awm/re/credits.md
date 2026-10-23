@@ -2,7 +2,7 @@
 
 The ENHANCED ending (`src/ending.ts`, `src/ending-scenes.ts`, the show in `games/shared/ending/show.ts`) types credits on over its
 montage, in the order of Super Mario World's: the makers, then true facts about the game, then the port (`PORT_CREDITS` in
-`games/shared/native/ending.ts`). Every line below was checked against the source next to it (read 2026-10-18). Nothing is
+`games/shared/ending/credits.ts`). Every line below was checked against the source next to it (read 2026-10-18). Nothing is
 invented. Lines are upper case and at most 31 letters, in the game's own lettering (no apostrophes, no percent signs; a line
 of text goes in the empty row under the room, between the side columns, and in the flight's sky screen one row lower). The lines
 are in `SCENES` (`src/ending-scenes.ts`), a few to a place, in this order.
@@ -49,10 +49,10 @@ The Hubbard/Daglish split of the in-game tunes is not documented beyond what C64
 
 ## The port
 
-`PORT_CREDITS` (`games/shared/native/ending.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
+`PORT_CREDITS` (`games/shared/ending/credits.ts`), the same in every game, last: REBUILT FOR THE BROWSER BY / CHRISTOPHER HICKMAN /
 WITH CLAUDE (ANTHROPIC) / RUNSTOP64.
 
-## The creatures' names (the parade)
+## The creatures' names (the visitors)
 
 None of the game's creatures has a documented name (the original's code numbers their pictures). The names under them (`CAST` in
 `src/ending-scenes.ts`) are plain descriptions of what each looks like, but BULL: Wikipedia names the bull's head that attacks in

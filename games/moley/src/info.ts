@@ -29,7 +29,7 @@ export const info = {
     the credits page's key text is ours &middot; pause screen with a map of the six screens, items taken and travel &middot; autosave on every screen and
     Continue after the last life (coming back carries on where you were; T on the pause screen goes to the credits page) &middot; the high score kept in your
     browser &middot; ENHANCED (switch to ORIGINAL on the pause screen): unlimited lives and continues, no colour clash, smooth movement at any refresh rate, the items left in the pocket
-    box, steering in the air, sparkles on the puzzles and the ways out, and an ending after the card (a montage of the six screens with credits over it, a parade of the creatures, THE END; W on the pause screen shows it again once you've won). Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
+    box, steering in the air, sparkles on the puzzles and the ways out, and an ending after the card (a montage of the six screens with credits over it, the creatures walking through them, THE END; W on the pause screen shows it again once you've won). Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

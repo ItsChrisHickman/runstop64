@@ -29,7 +29,7 @@ export const info = {
     (in the original it bounces on the floor until held backwards, and in the first ten rooms never lets him out);
     Tal keeps every recharge cell he picks up (the original carries one) and C fills the armour from one
     (the touch CELL button), stepping into the armour does too; and after the ending, once the game is won, a reward:
-    Tal's places from the quest with the credits over them, the parade of the creatures, and THE END (a key skips it;
+    Tal's places from the quest with the credits over them, the creatures walking through them, and THE END (a key skips it;
     W on the pause screen shows it again).
     Hits and kills get effects over the picture in both modes.</p>
     <p>Changes from the original (the

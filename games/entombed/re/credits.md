@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly (`action=raw`); the ZZAP!64 issue 3 scan's text was read from archive.org
 (the OCR of its page 22). Lemon64 and the ZZAP!64 site were not used. Retro Gamer 56 (the Dave Thomas interview Wikipedia cites) is
 only reachable through a dead scan link, so those facts are as Wikipedia gives them. Nothing is stated that none of these say: no music
@@ -37,12 +37,12 @@ credit is given, because the game has no music (see below).
 | Credit lines | Fact | Where |
 |---|---|---|
 | THE ONLY COPIES HAD A CRACKERS NAME / IN THE TITLE: A.C.G. 1985 IS BACK | The surviving copies (the "Vanilia & Florasoft" crack) had a cracker's name in the title's copyright line; the original line is put back | `build/README.md`, `src/info.ts` |
-| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked; his name as he gives it (the lines are `PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
 
 ## The captions and the cast
 
 Captions name the place with our own plain names (the game names no chamber): "CHAMBER 16: THE FIVE BELLS" and so on, the numbers
-being those `re/README.md` and `re/hints` use. The parade's names are plain too (THE MUMMY, THE COBRA, THE SPIDER, THE BIRD, THE
+being those `re/README.md` and `re/hints` use. The visitors' names are plain too (THE MUMMY, THE COBRA, THE SPIDER, THE BIRD, THE
 SCORPION, THE LIZARD, THE SPIRIT, THE BOULDER): the game names none of its creatures (the fact line about crows is Wikipedia's; which
 sprite is the crow it describes was not established, so the bird of chamber 11 is just the bird).

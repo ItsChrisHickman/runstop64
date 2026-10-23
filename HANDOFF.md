@@ -45,24 +45,32 @@ is next and what is waiting on Chris. Last updated 2026-10-18.
 - **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
   From here: fewer, larger commits with plain messages.
 
-## Endings (2026-10-18, Chris's top wish)
+## Endings (2026-10-18; one show for all eleven since 2026-10-23)
 
-Chris wants every game to end with a reward, ENHANCED only, after the game's own ending: a montage of the game's places with the
-hero running through and doing something (the game's own engine, driven by input), Super Mario World-style credits during it
-(makers, then sourced fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), a parade of
-the characters with names, THE END with stats, the game's music; won kept apart from the saves, W on the pause screen once won,
-`?ending` on the page. Sources for every fact in each game's `re/credits.md`; never invent a credit. He OK'd doing them all
-without waiting for his review.
+Every game ends with a reward, ENHANCED only, after the game's own ending: a montage of the game's places with the hero running
+through and doing something (the game's own engine, driven by input), Super Mario World-style credits over it (makers, then sourced
+fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), THE END with stats, the game's music; won
+kept apart from the saves, W on the pause screen once won, `?ending` on the page. Sources for every fact in each game's
+`re/credits.md`; never invent a credit.
 
-- **Done (live):** Blackwyche, Dragonskulle, Staff of Karnath, Entombed, Thing on a Spring (`games/shared/native/ending.ts`,
-  test kit `games/shared/test/ending-kit.ts`; Entombed has no music, so `tune: 'effects'`); Monty on the Run
-  (`games/shared/ending/` for the `runPort` rebuilds, test `test/reward.ts`). Weak spots: some Entombed and Thing scenes have
-  the hero mostly standing or bouncing while credits run (routes not found by search: `re/ending/route.ts`, `re/ways.json`).
-- **Also done (live):** Auf Wiedersehen Monty, Starquake, Moley Christmas, Antiriad (on `games/shared/ending/`), JSW2 (on
-  `native/ending.ts`; this crack has no end screen, so the show begins on entering the Masters Bedroom with 160 items). Every game
-  has its ending.
-- **Next: merge the two ending modules** (they duplicate the credits timing, the figure recording, the parade, THE END and the
-  skip): one shared show, with a translated-machine reel and a native-engine reel.
+**The shape (2026-10-23, after Chris watched Blackwyche's: "a little bit tedious... roll the parades into the montage"):** no separate
+parade. The cast (the game's creatures, recorded from the engine, the hero not among them) walks across the montage's places, in
+places it is never in, drawn as overlay sprites at the hero's floor (presentation only: nothing in the engine changes). The one
+empty band the credits use is shared in time: a credit line types on and goes, then the name of a visitor passing the middle of the
+picture (kept under it), then a line, a name... (`timeline.ts`; a line is `CREDIT.slot` 90 frames, a name `NAME.slot` 40), so every
+cast member is seen and named once, then THE END (250 frames). The whole show is about 60 to 75 seconds (3000 to 3900 frames; each
+game's test checks it). Fewer, denser credit lines and fewer places per game to fit (what was dropped is in the commit messages).
+
+- **One module, two reels:** `games/shared/ending/`: `show.ts` (`RewardShow`: credit timing, visitors, THE END, skip, music hooks),
+  `timeline.ts` (pure clock), `figures.ts`, `pilot.ts`, `credits.ts` (`CREDIT`, `PORT_CREDITS`, the won flag), and `machine-reel.ts`
+  (the translated-machine reel: `Ending`, `EndingSpec`, `Director`; Blackwyche, Dragonskulle, Karnath, Entombed, Thing on a Spring,
+  JSW2). The native rebuilds (Monty, AWM, Starquake, Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
+  Test kit: `games/shared/test/ending-kit.ts` (`playShow`/`checkShow` for the machines, `CastWatch` and `BandWatch` for all).
+- **Lengths (frames at 50 a second):** see the table in each game's test output (`phases ...; N frames`): Blackwyche about 3400,
+  Dragonskulle 3620, Karnath 3330, Entombed 3360, Thing 3210, JSW2 3090, Monty 3640, AWM 3520, Starquake 3540, Moley 3180, Antiriad 3580.
+- Weak spots: Entombed and Thing scenes with the hero mostly standing or bouncing (routes not found by search: `re/ending/route.ts`,
+  `re/ways.json`); visitors stand at the hero's feet at the moment they enter, so on a stair or in a jump they may float a little.
+  JSW2's scenes are cut short of their found ways (never longer: the test checks). Moley plays the first part of each screen's puzzle.
 - Creature names are ours where the games name none; Chris may want to change them.
 
 ## Also done 2026-10-18
@@ -73,7 +81,7 @@ without waiting for his review.
 
 ## Next after the endings
 
-- **Cleanup pass** (Chris OK'd): dead code, drift between shared modules (the two endings first), this file and AGENTS.md
+- **Cleanup pass** (Chris OK'd): dead code, drift between shared modules (the endings are one module now), this file and AGENTS.md
   trimmed to what is true. The fast test set takes ~11-13 min: move the slowest checks to the slow set or start them from
   saved states so `verify` stays under 10 minutes.
 

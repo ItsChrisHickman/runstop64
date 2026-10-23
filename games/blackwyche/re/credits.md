@@ -1,6 +1,6 @@
 # Sources for the ending's credits
 
-The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/native/ending.ts`.
+The lines are in `src/ending.ts` (the scenes' `credits`); the shared port lines (`PORT_CREDITS`) are in `games/shared/ending/credits.ts`.
 Researched 2026-10-18. Wikipedia's wikitext was read directly; Lemon64 and the ZZAP!64 site answered 403 to a script, so nothing here
 rests on them (the ZZAP!64 and other magazine scores are as Wikipedia cites them).
 
@@ -35,5 +35,5 @@ rests on them (the ZZAP!64 and other magazine scores are as Wikipedia cites them
 |---|---|---|
 | A KILOBYTE WAS MISSING FROM THIS COPY / FOUND BY CHECKING EVERY ROOM | The image lacked $F800-$FBFF (rooms $C, the captain's cabin, and $D, the sextant's, and the end of room $17's code); found by a room-by-room check and put back from the CCGG copy | `build/README.md`, `src/mends.ts`, `AGENTS.md` (Lessons) |
 | TITLE LINE RESTORED: A.C.G. 1985 | That copy's title said "COPYRIGHT ARMATI 1985"; the original line "COPYRIGHT A.C.G. 1985" is put back | `build/README.md`, `src/info.ts` |
-| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked ("I'll take your credit where due"); his name as he gives it (the two lines are `PORT_CREDITS`) | `games/shared/native/ending.ts` |
+| REBUILT FOR THE BROWSER BY CHRISTOPHER HICKMAN / WITH CLAUDE (ANTHROPIC) / RUNSTOP64 | As Chris asked ("I'll take your credit where due"); his name as he gives it (the two lines are `PORT_CREDITS`) | `games/shared/ending/credits.ts` |
 | THANKS FOR PLAYING | | |
