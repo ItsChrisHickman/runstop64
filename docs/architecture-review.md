@@ -91,8 +91,7 @@ interface PortAdapter<S, F> {
   - `packages/c64kit/src/c64/machine.ts:707`: `unpackState` does `const meta = JSON.parse(…)` and returns `{ ...meta, ram: …}` as `MachineState`. That is an unchecked `any` spread into the central save type, so every machine save (all 6 translated games and Antiriad) gets no validation at all on load beyond "JSON parses".
   - `games/montyotr/src/save.ts:72`, `awm/src/save.ts:129`, `starquake/src/save.ts:31/74`: `JSON.parse` is fed straight into a type guard. These are fine (the guard narrows), but only because every call happens to be wrapped; nothing enforces it.
   - `games/starquake/src/save.ts:58`: `Reflect.get(target, k)` in the reflective restore.
-  - Three.js uniforms (`layer.ts:385-438`, `effects-layer.ts:144`): `IUniform<any>` from three's types. That is a genuine untyped third-party API; the rule says to isolate it in one commented adapter, and these are 8 scattered call sites.
-  - `hdtest/gl.ts`: `getParameter` returns `any` (6 sites).
+  - Three.js uniforms (`effects-layer.ts:144`): `IUniform<any>` from three's types. That is a genuine untyped third-party API; the rule says to isolate it in one commented adapter, and these are 8 scattered call sites.
 - Tests (41 more).
   - About 20 are `const routes: number[][] = JSON.parse(…)` in tests. That is an `any` assigned to a precise type with no check, which is exactly the loophole the rule is meant to close (a typo in `routes.json` becomes a confusing runtime failure).
   - `structuredClone(Reflect.get(...))` in several montyotr tests.
