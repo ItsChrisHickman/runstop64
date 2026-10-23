@@ -24,7 +24,7 @@ export const info = {
     pause screen with a map of the world and travel &middot; autosave on every room and Continue after the last life
     (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
     refresh rate &middot; the high score kept in your browser &middot; ENHANCED (switch to ORIGINAL on the pause screen):
-    a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life
+    unlimited lives and continues; a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life
     is lost once, not on every try &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
     with Monty running through them, the credits and some true facts, a parade of the creatures and THE END (W on the pause
     screen shows it again once you've won).</p>

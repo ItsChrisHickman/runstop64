@@ -23,7 +23,7 @@ export const info = {
     left or right while standing steps out &middot; P or Esc pauses: a map of the rooms; pick one you can go back to
     (the dark ones you can't, as you are now: in the armour, only rooms it has been in) and press Enter &middot;
     R restarts &middot; C fills the armour from a stored recharge cell (ENHANCED) &middot; M sound on or off &middot; V authentic pixel steps</p>
-    <p>ENHANCED (on unless you switch to ORIGINAL with E on the pause screen): fire and jump on buttons of their own
+    <p>ENHANCED (on unless you switch to ORIGINAL with E on the pause screen): unlimited lives and continues, fire and jump on buttons of their own
     (the original has one button, which throws standing still and jumps walking, and up only jumps from standing);
     and an armour out of energy sets down and lets Tal out with left or right, anywhere, to fetch a recharge cell
     (in the original it bounces on the floor until held backwards, and in the first ten rooms never lets him out);

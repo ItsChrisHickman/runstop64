@@ -5,7 +5,7 @@ against the original running on an emulated C64 (`re/README.md`). **ORIGINAL or 
 screen (on the right; tap it on a phone); ENHANCED is the default and turns on the rows marked ENHANCED, quality-of-life
 changes for a modern playthrough. ORIGINAL is the game as it was. Rows marked Always are in both modes.
 
-In Dragonskulle ENHANCED is: 8-way controls; safe for a moment after a hit; knockback; hit-stop; the dragons flashing when hit; the shovel taken by walking up to it; hints (sparkles on the starfish, the shovel, the place to dig for the
+In Dragonskulle ENHANCED is: unlimited lives and continues; 8-way controls; safe for a moment after a hit; knockback; hit-stop; the dragons flashing when hit; the shovel taken by walking up to it; hints (sparkles on the starfish, the shovel, the place to dig for the
 cloak, the wizards that open the bridges, the dragons and the rock that gives the cloak again, and what is left to do at a
 bridge or a dragon on the pause screen); the CLOAK icon draining as the cloak runs out; an ending after the game's own.
 
@@ -28,6 +28,7 @@ bridge or a dragon on the pause screen); the CLOAK icon draining as the cloak ru
 | **Controls** | Joystick in port 2; F7 pauses, F1 restarts, any other key moves the hand. | Arrows/WASD, Space (or pad A) for fire, Z/X/C/V straight to an action, P or Esc for the pause screen, R (or F1) to restart, Enter (or any other key) moves the hand along the bar; gamepads. M mutes. | Always |
 | **Touch controls** (phones, tablets) | None. | 8-way stick, USE (the icon the hand points at), JUMP, STONE, DIG, CLOAK, RUN (on/off); PAUSE opens the map (tap a place, tap again to go; tap E to switch ORIGINAL/ENHANCED); RETURN key, HOME. Landscape with the controls beside the picture (even with rotation locked), or upright. See docs/mobile.md. | On a touch screen |
 | **A moment's grace** | None. | For 3 seconds (150 frames) after the game puts you back into play, no hurt starts (the game's own hurt is cancelled where it begins, as SAFE AFTER A HIT does): continuing a save (ENTER CONTINUE, a launch going straight back into play, CONTINUE? after losing), back to room start, arriving from the map. Quality of life for a modern playthrough, so a resume never starts in the middle of a fight; no sign on screen. Both modes. | Always |
+| **ENHANCED: unlimited lives and continues** | Five faces are the lives: each one lost becomes a skull, and the last is the end of the game. | A death takes no life: the lives stay as they are, so the game never ends and never asks CONTINUE?. He is still put back as the game puts him, and nothing makes him invincible. For a modern playthrough of a classic; the same in every game. | ENHANCED |
 | **ENHANCED: safe after a hit** | Each hurt starts as soon as the last one's flash ends: a creature (or the gas) still on him hurts him again. | For 1.5 seconds after a hurt starts, no new one does (the game's own start of it is stopped). | ENHANCED |
 | **ENHANCED: knockback** | What touches him stays on him. | When hurt he's pushed away from what hit him: his own walk for a few frames (walls stop him as ever; not at the screen's edge). | ENHANCED |
 | **ENHANCED: hit-stop** | None. | The game waits 4 frames when an enemy is destroyed (the effects go on), so the blow lands. | ENHANCED |
