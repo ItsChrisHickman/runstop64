@@ -1,5 +1,6 @@
 import { rom } from './data';
 import type { Game } from './game';
+import type { Rng } from './rng';
 import * as Panel from './panel';
 import { cellAt, Screen } from './screen';
 
@@ -96,11 +97,9 @@ export function newGame(g: Game) {
   // Five different pieces ($08E2) and five different core places ($08FD).
   const pick = new Uint8Array(5); // $08E2-$08E6
   for (let x = 0; x < 5; x++) {
-    let a: number;
-    do a = rom(0x2f68 + (R.next() & 15)); while (seen(pick, x, a));
+    const a = draw(R, (v) => rom(0x2f68 + (v & 15)), (v) => seen(pick, x, v));
     pick[x] = a;
-    let s: number;
-    do { s = R.next() & 7; if (s >= 4) s++; } while (seen(g.coreSlots, x, s));
+    const s = draw(R, (v) => { const k = v & 7; return k >= 4 ? k + 1 : k; }, (v) => seen(g.coreSlots, x, v));
     g.coreSlots[x] = s;
   }
   for (let x = 8; x >= 0; x--) { g.core[x] = x; g.items[7 + x].graphic = x; }
@@ -110,19 +109,34 @@ export function newGame(g: Game) {
     g.items[2 + x].graphic = a;
   }
   for (let x = 0; x < 4; x++) {
-    let a: number;
-    do a = rom(0x2f0a + (R.next() & 15)); while (seen16(g, x, a));
+    const a = draw(R, (v) => rom(0x2f0a + (v & 15)), (v) => seen16(g, x, v));
     g.items[16 + x].graphic = a;
   }
   for (let x = 2; x < 20; x++) {
-    let a: number;
-    do a = R.next(); while (seenRoom(g, x, a));
+    const a = draw(R, (v) => v, (v) => seenRoom(g, x, v));
     g.items[x].roomLo = a;
   }
   for (const it of g.items) {
     it.roomHi = it.roomLo >> 7;
     it.roomLo = (it.roomLo << 1) & 0xff;
   }
+}
+
+/** A seed whose random numbers cycle through too few values to scatter the items (see `draw`). */
+export class StuckScatter extends Error {}
+
+/**
+ * The original's `do a = f(random); while (taken(a))`: draw until a value not yet taken. The generator
+ * is two bytes of state, so it repeats after at most 65536 draws; if nothing new came by then, nothing
+ * ever will (some seeds land in a short cycle: the original's loop would run for ever, so the new game
+ * must pick another seed, `Flow.newGame`).
+ */
+function draw(R: Rng, value: (v: number) => number, taken: (a: number) => boolean): number {
+  for (let n = 0; n <= 0x10000; n++) {
+    const a = value(R.next());
+    if (!taken(a)) return a;
+  }
+  throw new StuckScatter();
 }
 
 /** Whether `a` is among t[0..x] (the original compares the slot being filled too: it starts at 0). */

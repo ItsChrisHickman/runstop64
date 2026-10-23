@@ -33,10 +33,19 @@ export interface Hooks {
  */
 export function newGame(g: Game, seed: number) {
   const R = g.rng;
-  R.a = seed & 0xff; R.b = (seed >> 8) & 0xff; R.c = (seed >> 16) & 0xff; R.d = (seed >> 24) & 0xff;
-  R.s1 = R.both();
-  R.s2 = R.both();
-  setUp(g);
+  // About one seed in 500 gives random numbers that cycle through too few values to find free places
+  // for the items (the original's loops would never end): that game takes the next seed instead.
+  for (let tries = 0; ; tries++, seed = (seed + 1) >>> 0) {
+    R.a = seed & 0xff; R.b = (seed >> 8) & 0xff; R.c = (seed >> 16) & 0xff; R.d = (seed >> 24) & 0xff;
+    R.s1 = R.both();
+    R.s2 = R.both();
+    try {
+      setUp(g);
+      return;
+    } catch (e) {
+      if (!(e instanceof Items.StuckScatter) || tries >= 64) throw e;
+    }
+  }
 }
 
 /** $0C3C-$0C6C: a new game's setup, once the seeds are drawn (and the title has been). */
