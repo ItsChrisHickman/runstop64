@@ -2,6 +2,7 @@ import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
+import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
@@ -92,7 +93,7 @@ export function run(host: Host) {
     id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
-    assists: [{ id: 'safe', long: 'SAFE RESPAWN' }],
+    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }],
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('awm'),
   }, (self) => {
@@ -100,6 +101,7 @@ export function run(host: Host) {
     enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
     program.safeRespawn = () => fe.assist.safe === true;
+    program.unlimitedLives = () => fe.assist.lives === true;
     program.graceActive = () => flow.grace.active;
 
     /** Monty has come into a room (or a game has begun in one): noted for the map, and a save to carry on from. */

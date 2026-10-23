@@ -179,6 +179,9 @@ tap('KeyP');
 tick(200);
 const lastRoom = game().world.room;
 game().score.add(0x64);
+// (ORIGINAL: ENHANCED's unlimited lives never reach GAME OVER, test/kills.ts)
+tap('KeyP'); tap('KeyE'); tap('KeyP');
+check('ORIGINAL: no unlimited lives', !p.state.enhanced && p.frontEnd.assist.lives === false);
 game().lives = 0x80; // (the last life)
 game().monty.state = State.Dying;
 game().monty.step = 0;
@@ -198,6 +201,8 @@ check(`Enter: back in play in the last room entered ($${game().world.room.toStri
   p.state.kind === 'play' && game().world.room === lastRoom && game().lives === NEW_GAME_LIVES && game().score.value === 0);
 check('with what Monty had (the rooms on the map)', Object.keys(p.state.found.rooms ?? {}).length === 2);
 check('and a moment of grace', p.state.grace > 0);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
+check('and ENHANCED again', p.state.enhanced && p.frontEnd.assist.lives === true);
 check('the high score kept', store.get('awm.high.v1') !== undefined);
 
 // ---- a moment's grace: nothing hurts him; once it is over, an enemy does -----------------------------------------------
@@ -270,8 +275,8 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   const lives = g.lives;
   g.monty.state = State.Dying;
   g.monty.step = 0;
-  until(() => g.lives !== lives, 200);
-  check(`ENHANCED: a death before two seconds starts him in the room he last had them in ($${g.world.room.toString(16)}), a life lost once`, g.world.room === room && g.lives === lives - 1);
+  until(() => g.world.room === room, 200);
+  check(`ENHANCED: a death before two seconds starts him in the room he last had them in ($${g.world.room.toString(16)}), and takes no life (unlimited)`, g.world.room === room && g.lives === lives);
   // ORIGINAL: where he came in
   tap('KeyP'); tap('KeyE'); tap('KeyP');
   p.grace.clear();

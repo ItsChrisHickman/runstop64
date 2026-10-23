@@ -71,9 +71,10 @@ export class Program {
   private beginning = false;
   /** How the last game ended (the CONTINUE? that follows treats the ending differently from the last life lost). */
   lastEnd: Ending | null = null;
-  /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`): the original's are off. */
+  /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`, `unlimitedLives`): the original's are off. */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
+  unlimitedLives: () => boolean = () => false;
 
   constructor() {
     const title = new Title(this.scroller, this.soundFlag);
@@ -185,6 +186,7 @@ export class Program {
     }
     game.graceActive = () => this.graceActive();
     game.safeRespawn = () => this.safeRespawn();
+    game.unlimitedLives = () => this.unlimitedLives();
     return new Picture(game, carry, this.high);
   }
 

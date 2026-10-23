@@ -10,6 +10,7 @@
  * What the original keeps at fixed addresses is kept here as fields with those addresses in the comments.
  */
 import { NO_ROOM, RANDOM, ROOMS, TABLES, WORLD_GRID } from './data';
+import { afterLoss } from '../../shared/lives';
 import { Digits } from './digits';
 import { type AnimClock, Enemies, HIDDEN, isPlane, PLANE_FRAMES } from './enemies';
 import { copySky, destination, FRESH_SKY, Flight, type SkyState } from './flight';
@@ -148,10 +149,11 @@ export class Game implements MontyHost {
   /**
    * The front end's, not the original's (both off for the original's rules, as the lockstep has them):
    * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is ENHANCED's
-   * "no death loops".
+   * "no death loops", `unlimitedLives` ENHANCED's (shared/lives.ts: a death takes no life).
    */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
+  unlimitedLives: () => boolean = () => false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
   private stepsFree = 0;
   safeEntry: Entry | null = null;
@@ -410,7 +412,7 @@ export class Game implements MontyHost {
       const safe = this.safeEntry;
       if (this.safeRespawn() && this.stepsFree < SAFE_STEPS && safe !== null) this.placeAt(safe);
       else m.respawn();
-      this.lives = (this.lives - 1) & 0xff;
+      this.lives = afterLoss(this.lives, this.unlimitedLives()) & 0xff;
     } else if (m.state === State.Free && ++this.stepsFree === SAFE_STEPS) {
       this.safeEntry = { room: this.world.room, x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep };
     }

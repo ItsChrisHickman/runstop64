@@ -50,6 +50,9 @@ tick(120);
 tap('Space');
 tick(60);
 check(`a new game: six lives, no grace (${game().lives}, ${p.state.grace})`, game().lives === NEW_GAME_LIVES && p.state.grace === 0);
+// (ORIGINAL: these lose lives; ENHANCED's unlimited lives are checked at the end)
+tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
+check('E: ORIGINAL, no unlimited lives', !p.frontEnd.enhanced && !p.frontEnd.assist.lives);
 // ---- arriving by the map -------------------------------------------------------------------------------------
 // (out through the top edge into the next room, then the map's travel back to where he first came in)
 game().lives = 0x8c;
@@ -106,6 +109,16 @@ check('and then an enemy hurts him again, a life lost', after.hurt && after.now 
   tick(200);
   const continued = touch();
   check(`a save continued: enemies hurt him once the grace is over (${continued.lives.toString(16)} to ${continued.now.toString(16)})`, continued.hurt && continued.now !== continued.lives);
+}
+
+// ---- ENHANCED: unlimited lives and continues --------------------------------------------------------------------
+{
+  tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
+  check('E: ENHANCED, unlimited lives on', p.frontEnd.enhanced && p.frontEnd.assist.lives === true);
+  p.grace.clear();
+  game().lives = 0x81; // (the last life)
+  const last = touch(400);
+  check(`ENHANCED: hurt and put back, the lives stay (${last.lives.toString(16)} to ${last.now.toString(16)}), no game over (${p.state.kind})`, last.hurt && last.now === last.lives && p.state.kind === 'play' && !game().gameOver);
 }
 
 finish();
