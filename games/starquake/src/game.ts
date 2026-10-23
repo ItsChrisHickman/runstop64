@@ -4,7 +4,7 @@ import { Rng } from './rng';
 export interface CachedEnemies {
   enemies: Enemy[]; colour: number[]; ptr: number[]; x: number[]; y: number[]; enable: number; msb: number;
 }
-import { Screen } from './screen';
+import { Screen, installSprites } from './screen';
 
 /**
  * Starquake's state: what the original keeps in zero page and its tables,
@@ -52,6 +52,7 @@ export class Game {
   /** `bank`: the 16K the VIC shows (the front end passes its Vic's). */
   constructor(bank?: Uint8Array) {
     this.scr = new Screen(bank);
+    installSprites(this.scr.bank); // (the original has them with its program: BLOB, the pad and the creatures are drawn from them)
   }
   /**
    * $0400-$07FF: rooms visited ($0400-$043F, a bit per room), rooms whose

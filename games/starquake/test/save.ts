@@ -22,6 +22,7 @@ import { must } from '../../shared/test/must';
 import { Game } from '../src/game';
 import { run } from '../src/main';
 import { CODEC, describeSave, restore, snapshot } from '../src/save';
+import { installSprites } from '../src/screen';
 import { legacyDescribeSave, legacyRestore, legacySnapshot } from './legacy-save';
 
 const same = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i]);
@@ -35,10 +36,19 @@ function everything(v: unknown): unknown {
 }
 const state = (g: Game) => JSON.stringify(everything(g));
 
+/** A save's bytes with the sprite pictures in the bank, as the new code writes it back. */
+function withSprites(bytes: Uint8Array) {
+  const out = bytes.slice();
+  const n = new DataView(out.buffer).getUint32(0, true);
+  installSprites(out.subarray(4 + n, 4 + n + 0x4000), true);
+  return out;
+}
+
 /** A game restored by the old code and one by the new, from the same bytes. */
 function bothWays(bytes: Uint8Array) {
   const old = new Game();
   legacyRestore(old, bytes);
+  installSprites(old.scr.bank, true); // (the one thing the new code does that the old did not: a save without the sprite pictures gets them)
   const now = new Game();
   restore(now, CODEC.unpack(bytes, 1));
   return { old, now };
@@ -57,8 +67,8 @@ for (const which of ['current', 'previous'] as const) {
   const bytes = fromBase64(slot.data);
   const { old, now } = bothWays(bytes);
   check(`${which}: restored by the old code and the new, the whole game is the same (${state(now).length} characters of state)`, state(old) === state(now));
-  check(`${which}: the new code writes the very bytes back (the old format, field for field)`, same(CODEC.pack(snapshot(now)), bytes));
-  check(`${which}: ...and so does the old code's snapshot of the restored game`, same(legacySnapshot(old), bytes));
+  check(`${which}: the new code writes the very bytes back (the old format, field for field), the sprite pictures put in`, same(CODEC.pack(snapshot(now)), withSprites(bytes)));
+  check(`${which}: ...and so does the old code's snapshot of the restored game`, same(legacySnapshot(old), withSprites(bytes)));
   check(`${which}: described the same (${describeSave(CODEC.unpack(bytes, 1)).join(' / ')})`, describeSave(CODEC.unpack(bytes, 1)).join('|') === legacyDescribeSave(bytes).join('|'));
 }
 
