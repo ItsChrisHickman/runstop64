@@ -28,9 +28,9 @@ const start = g.save();
 if (!start) throw new Error('no save');
 
 const found = karnathMap.found.empty();
-check('before he has been in the abode the map has no obelisk', !karnathMap.places(MAP_BOX, start.ram, found).some((p) => p.id === 'obelisk'));
+check('before he has been in the abode the map has no obelisk', !(karnathMap.places?.(MAP_BOX, start.ram, found) ?? []).some((p) => p.id === 'obelisk'));
 found.castle.at['25'] = [...PLACES['254/25']];
-const places = karnathMap.places(MAP_BOX, start.ram, found);
+const places = karnathMap.places?.(MAP_BOX, start.ram, found) ?? [];
 check(`once he has, it has (${places.map((p) => p.id).join(' ')})`, places.some((p) => p.id === 'obelisk'));
 
 const h = NativeHost.resume(game.port, start);
