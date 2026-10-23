@@ -96,6 +96,7 @@ function boot(enhanced: boolean) {
   tick(400);
   tap('Space');
   tick(20);
+  p.frontEnd.assist.lives = false; // (a crash is told by the life it takes: unlimited lives are checked in test/frontend.ts)
   const first = g.roomId;
   g.lives = 9;
   g.drawHudData();

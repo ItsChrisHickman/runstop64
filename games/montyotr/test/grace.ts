@@ -24,6 +24,7 @@ tick(5);
 tap('Space');
 tick(60);
 check('in play, no grace in a new game', p.state.mode === 'play' && p.state.grace === 0);
+p.frontEnd.assist.lives = false; // (the lives lost are counted below: unlimited lives are checked in test/frontend.ts)
 
 // ---- an enemy's touch in an ordinary game kills ----
 const lives0 = g.lives;
