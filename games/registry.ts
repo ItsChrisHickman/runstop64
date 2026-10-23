@@ -1,6 +1,5 @@
 import type { Host } from 'c64kit';
 import type { TouchLayout } from './shared/touch';
-import type { HdView } from './shared/view';
 
 /**
  * Every game, once: its place in the directory (name and size as the C64's directory lists them) and how
@@ -21,8 +20,6 @@ export interface Program {
   menu?(): void;
   /** Its touch controls (games/shared/touch): the stick and buttons it wants on a phone. */
   touch?: TouchLayout;
-  /** Its HD view (the C64/HD switch's: the shell's, games/shared/view.ts). */
-  hd?: HdView;
 }
 
 /** What a game says about itself to the shell. */

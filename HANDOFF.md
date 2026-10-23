@@ -15,10 +15,9 @@ is next and what is waiting on Chris. Last updated 2026-10-18.
 - **Chris's saves.** He exports them from the info card ("Export save (debug)"); load one with
   `games/shared/test/load-save.ts` (`AGENTS.md`, Tools). He play-tests on his phone and PC and sends photos and saves; those
   find the real bugs.
-- **Known HD issues** are listed in `docs/hd-view.md`.
 - **Dragonskulle's rules the game never explains** (the three bridges' wizards, the dragons, the cloak and its second coming, the
   graves, the starfish) are read, proved on the translation and the original, and turned into ENHANCED hints:
-  `games/dragonskulle/re/README.md` section 10, `src/rules.ts`, `re/rules/` and `test/rules.ts`.
+  `games/dragonskulle/re/README.md` section 9, `src/rules.ts`, `re/rules/` and `test/rules.ts`.
 
 ## Next
 
@@ -43,7 +42,6 @@ is next and what is waiting on Chris. Last updated 2026-10-18.
   codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
   (`games/shared/test/fixtures/saves`) keep proving players' saves load. Storage measured at ~1.4 M of the ~5.2 M characters
   a browser gives for all ten games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
-- **The HD tests in the slow set** (`*/test/hd.ts`) pass under the runner (70-212 s, ~510-560 MB each, run alone). Rooms are built in the worker; what is left is in `docs/hd-view.md` (Entombed's big right-edge slants and a thin ribbon between tiers; Karnath's stair hatch).
 - **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
   From here: fewer, larger commits with plain messages.
 
@@ -78,7 +76,6 @@ without waiting for his review.
 - **Cleanup pass** (Chris OK'd): dead code, drift between shared modules (the two endings first), this file and AGENTS.md
   trimmed to what is true. The fast test set takes ~11-13 min: move the slowest checks to the slow set or start them from
   saved states so `verify` stays under 10 minutes.
-- **HD** leftovers above.
 
 ## Waiting on Chris
 
@@ -87,5 +84,5 @@ without waiting for his review.
   item sparkles) and the pause map laid out by the exits (every exit side by side or a dotted connector) are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
-- **Playtests:** the endings, Thing on a Spring's lives, the dragon flash, the HD fixes.
+- **Playtests:** the endings, Thing on a Spring's lives, the dragon flash.
 - **Older:** Monty warp to the Ultimate Experience; Starquake hints.

@@ -34,7 +34,7 @@ export interface TouchLayout {
 export const NO_CONTROLS: TouchLayout = { stick: 'none', buttons: [] };
 
 /** The small buttons every game gets, by id. */
-export type SystemId = 'pause' | 'enter' | 'home' | 'layout' | 'view';
+export type SystemId = 'pause' | 'enter' | 'home' | 'layout';
 /** A small button: it presses `key` while touched, or (without one) acts when tapped. */
 export interface SystemSpec { id: SystemId; label: string; key?: string }
 

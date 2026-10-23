@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import { decodePicture } from '../../../../packages/c64kit/src/c64/picture';
 import { Input, PixelRenderer, packState } from 'c64kit';
 import { NativeHost } from '../../../shared/native/host';
-import { routeWalker } from '../../../shared/test/hd';
+import { routeWalker } from '../../../shared/test/route-walker';
 import { check, finish } from '../../../shared/test/check';
 import { unpackState, type C64, type MachineState } from '../../../../packages/c64kit/src/c64/machine';
 import { port } from '../../src/native';

@@ -36,7 +36,7 @@ export class C64View {
   /** The step the last update was in: its length in frames, and the frames of it gone. */
   private span = 1;
   private into = 0;
-  /** The picture as decoded at the last update (the HD view builds its rooms from it: decoded once a frame). */
+  /** The picture as decoded at the last update (decoded once a frame). */
   readonly picture = emptyPicture();
   readonly backdrop = new Surface(320, 200, 0);
 

@@ -23,7 +23,7 @@ const wrap = (n: number): number => n & 0xff;
  * Whether a wall is in the way at pixel column `px` for the rows the thing covers from its top: 2 cells, and 3 when it is not on a
  * row of cells (`$8EFC`).
  */
-export function wallAt(tiles: Tiles, px: number, y: number): boolean {
+function wallAt(tiles: Tiles, px: number, y: number): boolean {
   const rows = (y & 7) === 0 ? 2 : 3;
   for (let r = 0; r < rows; r++) {
     if (SOLID_SIDE.includes(tiles.at(px, wrap(y + r * 8)))) return true;

@@ -133,7 +133,7 @@ straight goes; fire+left facing right turns him; no fallbacks).
 ## 6. Hints (re/hints, src/hints.ts)
 
 What moves the game on, read from the blocks' code: the beach's and the shovel's puzzles, the wizards that open a bridge, the
-dragons, and the cloak's second coming (section 10 has the rules and their proofs; the tombs to dig are not hints: good
+dragons, and the cloak's second coming (section 9 has the rules and their proofs; the tombs to dig are not hints: good
 ones give nothing, evil ones hurt, and which is which is fixed per grave):
 
 | Hint | Where | From the code | Done |
@@ -253,60 +253,7 @@ game drew it, the skull and a full next face when a life goes; full again on com
 - The panels' font: Dragonskulle's title charset keeps its 0 at $3A (as the siblings' status
   lines do) with a picture at $30: `games/shared/continue.ts` tells that by the digits' rows.
 
-## 9. The HD view (src/hd.ts, c64kit's hd/)
-
-The HD view draws the same game as a lit 3D scene made from its own picture, as Entombed's does
-(`../../entombed/re/README.md`, "The HD view"; `docs/hd-view.md`); `test/hd.ts` plays 400 frames in both
-views and compares memory, looks at the beach, the skull rock, the cliffs further on, a cave and the
-cave over the river along the first recorded route, and walks 3,000 frames of it (the island's rows
-scroll: the room built before is moved, 649 frames of them). The beach shows the sky and the sea:
-out of doors, in daylight (Entombed's "The look"); the caves are night, his light the only one. The
-tilt-shift softens the cliffs above him as the HD-2D remasters soften their backdrops.
-
-- **The play area** is character rows 4-20 (y 32-167) as the machine draws them. The front end's
-  layout (`dragonskulleLayout`) shows them 4 lines higher, under the status line it moves to the
-  top: the HD view takes the room's band from the layout's move (c64kit's `obliqueRoom` is given
-  `renderer.layout`), and the sprites where C64View puts them, so the room is drawn where the picture
-  shows the play area, with the status line above it and the action bar below as in the C64 view.
-- **Floor:** the sand the floor check ($24BB, its list at $254B) stands him on: $3F (a solid block
-  in the sand's colour), $12, $21, $62, $16, $29; and the pieces round the sand's edges and under the
-  rocks lying on it, whose sand is the colour RAM's yellow (pair 3, `floorPair`). Marks smaller than
-  a character lying on the sand (a starfish) are part of it.
-- **Open:** the sky and the sea past the beach are the same $3F, in cyan and blue: nothing of the
-  island (the picture shows there as it is, in its own colours, unlit, behind it).
-- **Lights:** none in the picture; his own, in the caves a warm pool round him.
-- **More sand:** the sand at the cliffs' foot, round the rocks and the starfish is drawn in
-  characters the floor check doesn't list (26 of them, found by a scan along the first route: drawn
-  with the sand nearly everywhere they're used, or beside the floor in most); they're edges now, so
-  the sand there is floor: no more blocks of sand standing up at the cliffs or by him.
-- **The cliffs' tops against the sea.** The sand's edge characters ($49, $4A, $5D, ...) are drawn at
-  the cliffs' tops too, with their sand's pair in the sea's blue: read as floor, they made small level
-  patches up on the cliffs, a staircase silhouette with dark lines along its steps. What's seen past
-  the room now goes on from its own $3F blocks into whatever is drawn against it in its colour (c64kit's
-  builder: the open part spread through pixels of its colour), so the sea comes down clean to the rock.
-  The river under the river cave ($3F and its wave characters in the same blue) is now all seen as
-  drawn, not half of it standing in blocks.
-- **The cliffs as one face** (`ragged: 8`). The sand's back edge is drawn ragged, a pixel or two up and
-  down and a character at a time, and every column of a cliff stood on it where it was: slabs a column
-  wide at their own depths, with seams of the picture between them, and the cliffs coming forward along
-  the right of the beach a stair of slabs. The builder now takes each column's faces (its upright
-  pixels by depth: a cliff above the sand, rocks in front of it) and puts each where the same face goes
-  on average over 8 columns either side: one face along the edge, upright. It's Dragonskulle's
-  (`ragged` in its spec): the Pendragon rooms' walls stand on straight edges whose steps are real
-  corners, and smoothing those bent them; Entombed, Karnath and Blackwyche don't set
-  it, so their rooms are as they were (their stills the same but for the sprites). test/hd.ts looks at
-  two more outdoor screens (under the skull rock, frame 800; the cliffs further on, frame 1200); a
-  scrolled room moved is where a fresh build has it for 97.5% of its pixels (99.5% before: the face's
-  average reaches 8 columns, so new columns coming in at an edge move the face near it).
-- **The dig spot lies on the sand.** The shadow beside him on the beach wasn't his: it was sprite 7's,
-  the spot to dig for the cloak, a solid 24×21 block in the sand's yellow over the sand's marks (on the
-  C64 only the marks it covers missing show it). Standing up as a billboard it showed as a pale card
-  with a shadow. A sprite drawn all in the floor's colour where it stands is now a patch of the floor
-  in the HD view (c64kit's `patchOfFloor`): it lies on the sand, lit as the sand, no shadow. Shadows
-  everywhere now go under the sprite's footprint (the columns whose lowest pixel is within 6 rows of
-  its lowest: both feet of a stride), checked on every still (`checkShadows`).
-
-## 10. Rules the game never explains (src/rules.ts; proved by re/rules/check.ts)
+## 9. Rules the game never explains (src/rules.ts; proved by re/rules/check.ts)
 
 Found by reading the blocks (each block's code is in RAM at its home in the title snapshot, the swapped copy at $6000), then proved by
 running them: `re/rules/check.ts` plays each rule on the native port and, where it is cheap, on the original (the 6502 code on
@@ -390,7 +337,7 @@ insect it takes them and counts nothing; two kills are kept by a save, by the or
 walking down out of room 3 and travelling there leave $72C0 the same; a new game clears the counts (the code's bytes). dragons (19): per
 room, the setup (way up shut, no flag), three stones thrown up count (the original: two), none thrown left or right from four places each, the
 tenth starts the death and 239 or 240 frames later the flag and the way up are set and the dragon is gone, coming in again finds it gone
-with the way open or (without the flag, 6 hits) a new one at no hits; facing up at the way up he leaves only with $3441 = 1. cloak (10): the
+with the way open or (without the flag, 6 hits) a new one at no hits; facing up at the way up he leaves only with $3441 = 1. cloak (9): the
 flicker, hi-res, no stone while it is on, 769 frames to its end on both machines, walking steadily the same, stopping and starting or jumping
 and digging less; on the beach the gate hurts him unless cloaked (both machines, the sprites touching all the same), and at the mouth with the
 cloak on the way up still wants $3441; in room 17 three hurts in 700 frames bare, none cloaked; every block with creatures reads $D01C first.

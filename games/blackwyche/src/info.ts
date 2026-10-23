@@ -24,8 +24,7 @@ export const info = {
     after losing you can continue from the last screen you came onto, with full health. P (or the gear) shows a map of where you've
     been. Fights get effects over the picture and sounds of their own (enemies destroyed burst into pixels, a hurt flashes
     red), and there are optional assists (O on the pause screen): 8-way controls, safe for a moment after a hit,
-    knockback, hit-stop, and GUIDED (Pendragon says what he makes of things on the status line, in the game's own lettering, and sparkles mark what he can take now), and trapdoors that stay open once they've given way. Beating the game earns an ending after the game's own (a montage of places aboard, a parade of the ship's creatures, THE END; W on the pause screen shows it again once you've won). The C64/HD button (bottom right; on a phone beside PAUSE; or H) switches to the HD view
-    (a first version): the same game as a lit 3D scene built from its own picture. The full list is in
+    knockback, hit-stop, and GUIDED (Pendragon says what he makes of things on the status line, in the game's own lettering, and sparkles mark what he can take now), and trapdoors that stay open once they've given way. Beating the game earns an ending after the game's own (a montage of places aboard, a parade of the ship's creatures, THE END; W on the pause screen shows it again once you've won). The full list is in
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/blackwyche/QOL.md">QOL.md</a>.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>
   `,

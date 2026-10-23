@@ -34,8 +34,7 @@ Every game (and the loader) has touch controls, from one shared layer:
 - **Small keys** (top of the gutters, brown like C64 keys): the shell's buttons on a phone (its
   bottom-right buttons are hidden there) and RETURN. HOME (back to the menu, asks first), TURN
   (landscape / other way round / upright), PAUSE (the pause screen or options; again to go back),
-  C64/HD beside it in games with an HD view (the shell's C64/HD switch at any time, in play too,
-  showing the view now: C64 or HD), RET (the RETURN key: continue on title screens, and so on). Where the gutter is too narrow for a row of them, a second row under it (the
+  RET (the RETURN key: continue on title screens, and so on). Where the gutter is too narrow for a row of them, a second row under it (the
   stick and the buttons below).
 - **Taps on the picture**: on pause maps, tap a place to pick it and tap it again to go there;
   tap an option (right-hand column) to change it; tap the foot line to go back; tap the ends of
@@ -94,7 +93,7 @@ Android with rotation locked to portrait, then an iPhone.
 3. In a game: move in every direction the stick offers, hold a button while walking, slide a thumb between buttons, toggle
    RUN. Nothing covers the picture; the page never scrolls, zooms or selects text; a long press brings up no menu.
 4. PAUSE shows the map: tap a place (it is boxed), tap it again (you go there); tap the option line to switch ORIGINAL and
-   ENHANCED; tap the bottom line to go back. In games with an HD view the C64/HD key beside PAUSE switches the view at once.
+   ENHANCED; tap the bottom line to go back.
 5. Lose the last life: in CONTINUE? tap YES. On a title with a save, tap CONTINUE.
 6. Leave full screen (swipe back): TURN YOUR PHONE returns and the game waits; a tap carries on where you were.
 7. TURN: upright (picture on top, controls below) and back. On an iPhone, after the first tap the game is drawn sideways in

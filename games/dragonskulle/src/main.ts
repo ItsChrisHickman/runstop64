@@ -1,4 +1,4 @@
-import { obliqueRooms, type FrameCapture, type Gauge, type Host, type PictureLayout } from 'c64kit';
+import { type FrameCapture, type Gauge, type Host, type PictureLayout } from 'c64kit';
 import { runNative } from '../../shared/native/play';
 import type { EndingSpec } from '../../shared/native/ending';
 import { ram as bound } from '../../shared/native/cpu';
@@ -11,7 +11,6 @@ import { dragonskulleCombat, dragonskulleControls } from './combat';
 import { hintSpots } from './hint-spots';
 import { cloakLeft } from './rules';
 import { shovelByHand } from './shovel';
-import { dragonskulleHd } from './hd';
 import stateUrl from '../assets/dragonskulle-title.state?url';
 
 /**
@@ -185,9 +184,6 @@ export function run(host: Host) {
     controls: dragonskulleControls,
     // the status line at the top, the bar (in the keys' order, labelled) at the bottom: both modes
     layout: [{ picture: dragonskulleLayout, when: playScreen }],
-    // the HD view (the shell's C64/HD switch): the room rebuilt in 3D from its characters, lit (src/hd.ts),
-    // where the layout shows the play area
-    hd: obliqueRooms(dragonskulleHd),
     // straight to an action (the original only moves the hand on with "any other key", one icon each 5 frames held);
     // Enter (or any other key) moves it to the next one along the bar, one a press
     actions: {

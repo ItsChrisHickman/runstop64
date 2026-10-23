@@ -1,4 +1,4 @@
-import { C64View, HdRooms, SidPlayer, hdRefresher, unpackState, type HdBuilder } from 'c64kit';
+import { C64View, SidPlayer, unpackState } from 'c64kit';
 import { LIVES_ASSIST } from '../lives';
 import { MACHINE_CODEC, type GameStatus, type TitleStrip } from '../continue';
 import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout, SidWrite } from 'c64kit';
@@ -12,7 +12,6 @@ import {
 } from './features';
 import { PAUSE_KEYS, type AssistSpec } from '../frontend';
 import { runPort, type FrameResult, type PortPhase, type ResumeFrom } from '../port';
-import type { HdView } from '../view';
 import { mapSummary, type PauseMap } from './pause';
 import type { TouchLayout } from '../touch';
 import { Ending, keepWon, readWon, wantsEnding, type EndingSpec } from './ending';
@@ -139,12 +138,6 @@ export interface NativeGameOptions<F> {
   /** The 8-way controls assist (controls.ts): the game's facing byte and its own steps into the picture. */
   controls?: ControlsSpec;
   /**
-   * The HD view (c64kit's hd/; the C64/HD switch is the shell's, games/shared/view.ts): how the rooms
-   * are made from the game's frames (`obliqueRooms` for the Pendragon games). The view only: the game
-   * is untouched.
-   */
-  hd?: HdBuilder;
-  /**
    * The reward for winning (ending.ts), in ENHANCED: `won` says the game's winning moment is under way (it shows the
    * ending once the game's own end is over and it is back at the title, and keeps that the game has been won), `stats`
    * the lines under THE END. Offered on the pause screen (W) once won, and at once with `?ending` on the page.
@@ -209,12 +202,6 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let lifeEnded = false;
   /** A place picked on the map, to be carried out at the main loop's wait. */
   let going: string | null = null;
-  /** The HD view's rooms (built again only when the room's part of the picture changes). */
-  const hdRooms = opts.hd ? new HdRooms(opts.hd, hdRefresher()) : null;
-  /** The HD view, as the shell's C64/HD switch sets it. */
-  const hdView: HdView = { on: false };
-  /** Whether the HD view's room is drawn now (set each frame of the game; drawn between them as the sprites are: `rooms.at`). */
-  let hdShown = false;
   /** The ending (ending.ts), once the session is up; and a win seen (its numbers kept) whose ending waits for the game's own end to be over. */
   let endingShow: Ending | null = null;
   let winSeen = false, beforeWin = false, endingWaits: string[] | null = null;
@@ -334,11 +321,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     }
   }
   function updateView() { const { g, v } = live(); show(g, v); }
-  function renderView(alpha: number) {
-    // (the HD view's room scrolled as far along as the sprites are drawn: the same alpha, the same smoothing)
-    renderer.hd.room = hdRooms && hdShown ? hdRooms.at(alpha, renderer.snap) : null;
-    live().v.render(alpha);
-  }
+  function renderView(alpha: number) { live().v.render(alpha); }
   function prepareRender() {
     // Hints: sparkles where something can be done (only in play)
     const hints = opts.hints, showHints = assist[opts.hintsWith ?? 'hints'] && flow.state.playing && !flow.holding && !fe.holding;
@@ -532,17 +515,11 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   function show(g: NativeHost, v: C64View) {
     renderer.layout = opts.layout?.find((l) => l.when(g.m))?.picture ?? null;
     v.update();
-    // the HD view: the room lit in 3D while play shows (not on the title, a pause screen or CONTINUE?)
-    hdShown = !!hdRooms && hdView.on && flow.state.playing && !flow.covering && !fe.holding;
-    if (hdRooms && hdShown) hdRooms.room(g.m.ram, g.m.capture, renderer.layout, v.picture);
-    renderer.hd.room = hdRooms && hdShown ? hdRooms.at(1, renderer.snap) : null;
     names?.overlay(g, renderer.screen, flow.getFont());
   }
 
   return {
     touch: touchLayout(opts),
-    /** Its HD view, for the shell's C64/HD switch. */
-    hd: opts.hd ? hdView : undefined,
     get machine() { return game?.m; },
     /** For tests: where the game waits, and the front end's state. */
     get state() { return { lastWait: game?.lastWait, paused: fe.paused, enhanced: fe.enhanced, found: fe.found, grace: flow.grace.left, ...flow.state }; },

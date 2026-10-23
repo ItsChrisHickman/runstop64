@@ -1,11 +1,10 @@
-import { obliqueRooms, type Host } from 'c64kit';
+import type { Host } from 'c64kit';
 import { MENDS } from './mends';
 import { runNative } from '../../shared/native/play';
 import { port } from './native';
 import * as engine from './gen/engine';
 import { blackwycheMap } from './map';
 import { blackwycheCombat, blackwycheControls } from './combat';
-import { blackwycheHd } from './hd';
 import { Guide, guidedSpots } from './guided';
 import { TrapDoors } from './trapdoors';
 import { ACTION } from './actions';
@@ -55,8 +54,6 @@ export function run(host: Host) {
     // up a ladder with Up still held: the cabin above has its hole behind him, and the stick walks him back down it
     latch: { busy: (ram) => ram[0x1ec7] !== 0, bits: 3 },
     run: { player: engine.r_163b }, // hold Shift to run: player control runs twice a frame
-    // the HD view (the shell's C64/HD switch): the room rebuilt in 3D from its characters, lit (src/hd.ts)
-    hd: obliqueRooms(blackwycheHd),
     assists: [
       { id: 'guided', long: 'GUIDED (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) },
       { id: 'trapdoors', long: 'TRAPDOORS STAY OPEN', apply: (ram, on, found) => trapdoors.frame(ram, on, found.trapdoors) },

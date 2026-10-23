@@ -24,10 +24,9 @@ export interface TouchHost {
   stage: HTMLElement;
   renderer: Renderer;
   input: Input;
-  /** The small buttons' actions (the shell's buttons, on a phone: its gear, home and C64/HD switch). */
+  /** The small buttons' actions (the shell's buttons, on a phone: its gear and home). */
   onPause(): void;
   onHome(): void;
-  onView(): void;
 }
 
 const PREF_KEY = 'runstop64.touch.view';
@@ -46,8 +45,6 @@ export class TouchLayer {
   private layout: TouchLayout = NO_CONTROLS;
   private system: SystemSpec[] = [];
   private keys: { pause: boolean; home: boolean } = { pause: false, home: false };
-  /** The C64/HD switch's key: what it shows (C64 or HD), or null where there's no switch. */
-  private viewLabel: string | null = null;
   private ctl: TouchController;
   private ui: HTMLDivElement;
   private nudge: HTMLCanvasElement;
@@ -83,7 +80,6 @@ export class TouchLayer {
       if (id === 'pause') host.onPause();
       else if (id === 'home') host.onHome();
       else if (id === 'layout') this.cycleView();
-      else if (id === 'view') host.onView();
     };
 
     // Touches anywhere on the stage (the canvas stays the target, so games' own listeners still see them).
@@ -148,24 +144,12 @@ export class TouchLayer {
     this.placeKeys();
   }
 
-  /**
-   * The shell's C64/HD switch (games/shared/view.ts): its key beside PAUSE showing the view now (`label`:
-   * C64 or HD; a tap is the shell's `onView`), or null for none (no HD view, or the GL can't draw it).
-   */
-  showView(label: string | null) {
-    const had = this.viewLabel !== null;
-    this.viewLabel = label;
-    if (had !== (label !== null)) this.placeKeys();
-    else { const key = this.els?.system.find((d) => d.classList.contains('key-view')); if (key) key.innerHTML = viewIcon(label); }
-  }
-
-  /** The small keys, as the game and the switch have them. */
+  /** The small keys, as the game has them. */
   private placeKeys() {
     const { pause, home } = this.keys, sys: SystemSpec[] = [];
     if (home) sys.push({ id: 'home', label: 'HOME' });
     sys.push({ id: 'layout', label: 'TURN' });
     if (pause) sys.push({ id: 'pause', label: 'PAUSE' });
-    if (this.viewLabel !== null) sys.push({ id: 'view', label: 'C64/HD VIEW' });
     if (home) sys.push({ id: 'enter', label: 'RETURN', key: 'Enter' });
     this.system = sys;
     this.relayout();
@@ -305,7 +289,7 @@ export class TouchLayer {
     const system = geo.system.map((s) => {
       const d = el('div', `touch-key key-${s.spec.id}`);
       place(d, s.x, s.y, s.r);
-      d.innerHTML = s.spec.id === 'view' ? viewIcon(this.viewLabel) : ICONS[s.spec.id] ?? '';
+      d.innerHTML = ICONS[s.spec.id] ?? '';
       d.title = s.spec.label;
       return d;
     });
@@ -359,5 +343,3 @@ const ICONS: Record<string, string> = {
   enter: '<span>RET</span>',
 };
 
-/** The C64/HD switch's key: the view now, in letters. */
-const viewIcon = (label: string | null) => `<span>${label ?? ''}</span>`;

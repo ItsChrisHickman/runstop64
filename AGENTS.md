@@ -19,8 +19,8 @@ from the original.
   autosave, continue, back to room start, touch controls, phone scaling, the info sheet. Finishing or dying never wipes
   progress; a new game over a save asks NEW GAME? first.
 - **The C64 experience goes in the picture; meta goes in the HTML overlay.** The game, its pause screen and map, and
-  ORIGINAL/ENHANCED are C64-style (C64 palette, the game's own lettering the right way round). System settings (the C64/HD
-  switch), saves, export and debug live in the shell's overlay and info card.
+  ORIGINAL/ENHANCED are C64-style (C64 palette, the game's own lettering the right way round). Saves, export and debug live in
+  the shell's overlay and info card.
 - **No boxes behind text drawn over the game's picture.** Put our text in a part the game leaves empty (each title declares
   where ENTER CONTINUE goes: `TitleStrip` in `continue.ts`), in a colour that reads there, or on a screen of its own.
 - **Rewrite the game's on-screen key instructions** to our keys, in every game.
@@ -52,7 +52,7 @@ guards (`isRecord`, `isArray`, `isNumbers`, `isArrayOf`...) or write the shape o
 `S.Infer<typeof schema>` is its type, `packages/c64kit/src/schema.ts`; a schema is a type guard, so it mixes with the guards); read a property
 reflectively with `getProp`. The allowed
 untyped adapters are marked `// strict-ok: untyped API (why)` on the line (or the one above) that makes the `any`: today
-`readJson`, `getProp` and the WebGL `getParameter` in `games/hdtest/gl.ts`; add one only for a genuinely untyped API.
+`readJson` and `getProp`; add one only for a genuinely untyped API.
 
 `tsconfig.json` checks what runs in the browser, `tsconfig.test.json` everything that runs under Node (tests, `re/` scripts,
 tools, `vite.config.ts`) with c64kit stood in by `games/shared/test/kit.ts` and Node's APIs from `types/node.d.ts` (by hand;
@@ -105,9 +105,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | The same reward for the native rebuilds on `runPort` (the game's own engine on a game of ours, Monty driven by a route found by search, the parade from the engine's sprites, credits in a row the game leaves empty, THE END; `takeover`, W and `?ending` as above) | `games/shared/ending/` (`RewardShow` in `show.ts`, `Reel`, `Place`, `RewardSpec`; `figures.ts`: `recordFigure`, `vicShot`), `games/montyotr/test/reward.ts`; `readWon`, `keepWon`, `wantsEnding`, `PORT_CREDITS` come from `native/ending.ts` | places (a room, a route, credit lines), the cast (a recorded figure and a name), `creditRow`, `music`, `endingStats` (`src/ending.ts`, `src/ending-scenes.ts`; `re/routes.ts` finds the routes) |
 | Where a hint's sparkle goes: a sprite's middle, a run of text cells, a sprite showing a given picture | `games/shared/native/spots.ts` (`spriteSpot`, `cellSpots`, `spriteShows`) | what to point at (`src/hints.ts`) |
 | Names and codes on a touch screen | `games/shared/letters.ts` (`NamePicker`, `KeyPacer`) | its letters, `names:` |
-| The HD view | `games/shared/view.ts`, `packages/c64kit/src/hd`, `docs/hd-view.md` | an `HdView` and its rooms' builder |
-| The Pendragon games' rooms as data | `games/shared/pendragon/decode.ts`, `packages/c64kit/src/pendragon/room.ts` | its pictures and `DecodeRules` |
-| Loader, shell (home, gear, the C64/HD switch, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` (registry entry) |
+| Loader, shell (home, gear, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` (registry entry) |
 
 All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Starquake, Antiriad) run their session through `runPort`
 (`FrontEnd` and `ContinueFlow` inside it); each game's `src/map.ts` is its `PauseMap`, and `games/*/test/frontend.ts` checks it headless.
@@ -163,11 +161,7 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Starquak
 - **The Pendragon engines' floor checks also act.** They test the way ahead and carry out doors, stairs and corners there and
   then; an extra step must run the floor check for the way he faces, look the tile up the game's way, and hand the rest to the
   game.
-- **A sentinel a real value can take hides bugs.** Check decoded data against invariants of the room (every part of a thing on
-  its own foot, every side wall on the floor), not only that it reproduces the picture.
 - **"Can't be reached" is a claim about the floor, not about the code.** Before suspecting a port, run the translation against
   the original in lockstep from a state there, then work out where the pixels can overlap.
-- **A layer that has never run can still be checked.** There is no GPU here: the HD layer runs on a recording stand-in for
-  WebGL 2 (`packages/c64kit/test/gl-stub.ts`) under the real Three.js.
 - **Phones are different.** Slow loading exposed a launch-every-frame bug; whole-number scaling left the picture tiny; taps
   need big targets and a confirm step.

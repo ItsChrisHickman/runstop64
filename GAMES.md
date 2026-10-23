@@ -23,10 +23,10 @@ They are translations, not native ports, and are never called native.
 | Auf Wiedersehen Monty (Gremlin, 1987) | Native rebuild, from the original's data and code read in the running game | All 80 rooms, Monty, 17 enemy types, lifts, items, deliveries, title, GAME OVER and the ending, music and effects, the flights between airports, all checked against the original. Its music is built from the original at build time and never committed. |
 | Moley Christmas (Gremlin / Your Sinclair, 1987; ZX Spectrum only) | Native rebuild, from the original's data and code read in the running game on `tools/zx`, a headless Spectrum | The six screens and the Christmas card, Monty, every room's script, the credits page, GAME OVER and the picture, checked against the original every pass and every frame. The Spectrum's own colours; map of the six screens with items and travel. ENHANCED: no colour clash, smooth motion, the items left in the pocket box, steering in the air, sparkles on the puzzles and the ways out. The beeper effects and the 128K music (Ben Daglish), M mutes. |
 | Thing on a Spring (Gremlin, 1985) | Translation | Cycle-timed. Map of the factory with travel, ENHANCED steering and jump help. |
-| The Staff of Karnath (Ultimate, 1984) | Translation | Map with travel, spells on number keys, HD view. |
-| Entombed (Ultimate, 1985) | Translation | Map of all seven floors with travel, hints for 20 of the 25 chambers, HD view. |
-| Blackwyche (Ultimate, 1985) | Translation | Map of the galleon with travel, GUIDED narration and hints, HD view. |
-| Dragonskulle (Ultimate, 1986) | Translation | The fourth Pendragon game: the island map with travel, hints, an action bar, HD view. |
+| The Staff of Karnath (Ultimate, 1984) | Translation | Map with travel, spells on number keys. |
+| Entombed (Ultimate, 1985) | Translation | Map of all seven floors with travel, hints for 20 of the 25 chambers. |
+| Blackwyche (Ultimate, 1985) | Translation | Map of the galleon with travel, GUIDED narration and hints. |
+| Dragonskulle (Ultimate, 1986) | Translation | The fourth Pendragon game: the island map with travel, hints, an action bar. |
 | Jet Set Willy II (Software Projects, 1985) | Translation | Map of the mansion with travel and an item count, running, safe landings. |
 | Starquake (Bubble Bus, 1985) | Native rebuild, from the C64 game's data and code read in a disassembly | All 512 rooms and the whole game checked frame for frame; map with travel; touch answers for its typed screens. |
 | The Sacred Armour of Antiriad (Palace, 1986) | Native rebuild, from the game's data and code read in a disassembly of the running game | All 69 rooms byte for byte, Tal in and out of the armour, creatures, the panel and Richard Joseph's music from the game's own driver. Map with travel, New Game+. Some parts and the title sequence are not yet checked by scripted runs (`games/antiriad/re/README.md`). |

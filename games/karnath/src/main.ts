@@ -1,4 +1,4 @@
-import { obliqueRooms, type Host } from 'c64kit';
+import type { Host } from 'c64kit';
 import { runNative } from '../../shared/native/play';
 import { port } from './native';
 import { ACTIONS } from './actions';
@@ -7,7 +7,6 @@ import * as engine from './gen/engine';
 import { karnathMap } from './map';
 import { repairStripX } from './travel';
 import { karnathCombat, karnathControls } from './combat';
-import { karnathHd } from './hd';
 import { Guide } from './guide';
 import { hintSpots } from './hints';
 import stateUrl from '../assets/karnath-title.state?url';
@@ -61,8 +60,6 @@ export function run(host: Host) {
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
     // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
     ending: { spec: karnathEnding, won, stats: endingStats },
-    // the HD view (the shell's C64/HD switch): the room rebuilt in 3D from its characters, lit (src/hd.ts)
-    hd: obliqueRooms(karnathHd),
     reserved: [...JOYSTICK_KEYS, ...['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0']],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },
     // The title's key instructions, for this keyboard (same lengths as the originals).

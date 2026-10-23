@@ -120,68 +120,6 @@ or a way to another level the diagonal is straight that way until the room or le
 Checked by `games/shared/native/test/combat.ts karnath` and `controls.ts karnath` (from states
 along re/routes.json).
 
-## The HD view (src/hd.ts, c64kit's hd/)
-
-The C64/HD switch's HD view draws the same game as a lit 3D diorama made from its own picture, as
-Entombed's does (`../../entombed/re/README.md`, "The HD view"). Its rooms are built from the game's own
-rooms as pieces (below), not guessed from the picture's characters: depth inferred from the characters (c64kit's
-`infer`: which characters are floor, steps in a wall joined by faces, `slopes` for the dividers) bent every wall at every
-post and smeared the doors' boxes across the floor. `test/hd.ts` plays 400 frames in both views and compares memory, looks at
-seven rooms along the first two recorded routes (the lower guard room, the west tower's lower room, the east
-tower's with its fireplace; the upper floor's treasury and a hall with a long dais; the dungeons; Karn's
-abode), and walks the lower floor for 3,500 frames (the strip scrolling: only what changed made again).
-
-- **The play area** is character rows 0-19 (y 0-159): the status panel is under it.
-- **Floor:** the planks the floor check ($27BA, its list at $2835) stands him on: $4F, $16, $17,
-  $18. The planks are brown (pair 1), orange (pair 2) and yellow (pair 3) with black (pair 0) lines.
-- **Lights:** the candelabras ($58/$59, the candles, over their stands $6A/$6B) and the fires in the
-  fireplaces ($B4/$B5): their yellow (pair 3) glows, with a light at each candelabra and along each fire.
-  A room with many (the east tower's fire and candles) shares their light out (c64kit's
-  `LOOK.flames`): lit, not blown out to white.
-- Karnath's strip of rooms scrolls sideways a pixel a frame: the room built before is moved, as in
-  Entombed's wide chambers. `checkHdLockstep` is in `test/hd.ts` (400 frames from frame 1,200 of the first route, where the
-  lower floor's strip scrolls with no other room come into, built here and off the main thread). It failed at first: a few
-  characters animating in the room (a $D0 char twinkling) made the picture no longer the same one moved, so the room was
-  taken for another (its camera and scroll started over, up to 135 px out); c64kit's `keep` (hd/oblique.ts) now allows a few
-  characters (0.4%) to change in a scroll.
-
-## The rooms as pieces (re/pictures.ts, src/pictures.ts, test/pictures.ts)
-
-Karnath's rooms are not one picture each but **strips of rooms**: each level of the char map (see "Travel
-back") is three blocks of 40 columns × 20 rows, $400 apart, and the screen shows 40 columns of the strip
-scrolling along it (38 while it scrolls: the last two columns the screen doesn't show), a room 31 columns wide
-with a diagonal divider (chars $55/$56/$54/$66/$53, a side wall) between it and the next. So a picture here
-is a whole strip, 120 × 20 characters, eight of them (`src/strips.ts`, also the pause map's): the upper
-floor's three ($9400, $A000, $AC00), the lower floor's three ($7000, $7C00, $8800), the dungeons' and Karn's
-abode's (both swapped in over the first of the lower floor's at $7000). `re/pictures.ts` gets each from the
-title's snapshot by the game's own changes of mode ($2E33, $1199, $12E1: `toMode` in src/travel.ts), so
-nothing taken or opened is in them; the dungeons and the abode keep their characters in their own set.
-
-What the pictures show (`decodePictures` with `karnathRules`, games/shared/pendragon/decode.ts):
-
-- **Lower floor and dungeons:** a room is 16 rows, a top edge ($45/$33 bricks), the back wall, the floor and
-  its front edge. The lower floor's rows 0-3 are the floor of the room beyond the back wall, seen over its top
-  (`beyond`: floor joined to the picture's top); the dungeons' rows 0-3 are wall.
-- **Upper floor:** a room is the first 16 rows (a top edge in row 0, the floor's front edge in row 15,
-  `front`); rows 16-19 show the first rows of another room's wall. They're drawn, so they're one face under the
-  floor's front edge (the floor stands 40 pixels up, as the rows under it make it).
-- **The tops of boxes:** a door in a block standing against the wall, a bed, the long dais, the abode's maze
-  of low walls are drawn with their tops in the floor's characters ($4F/$16/$17/$18): floor joined but not
-  reaching the floor's front is a top (`raised`), a floor piece at the height of the face under it (rows of
-  upright characters between it and the floor below, 8 pixels a row).
-- 8 strips: 170 pieces in all (walls, side walls, tops, things). The routes never reach U3 and reach the abode
-  (AB) for one frame, so those two are checked only against the game's own memory in their mode.
-
-`test/pictures.ts` checks against the running game, along all five recorded routes (every 6th frame): every
-frame in play (4,210) is a window of one of the strips, the cells the game draws otherwise (a spell, a door
-opened, a piece taken) 4.5 a frame on average and 60 at most (of 800), and the strip is the game's mode's
-(except in the 50 frames after the mode changes, while the room it came from is drawn); and the pieces stand
-in the room: every wall between the floor's front and back, every side wall on a floor, every part of a thing
-on its own foot (the invariants Blackwyche's test checks).
-
-c64kit's `placePictures` (hd/placed.ts) takes pictures wider than the band: it tries each column the band can
-start at (a window of the strip), where Blackwyche's pairs `beside` each other.
-
 ## How the game is won
 
 Found by reading the code, then played in the port **and** in the original (the C64 model running the game's own code)

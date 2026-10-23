@@ -12,19 +12,13 @@ export { C64 as C64Machine, packState, unpackState, PAL_FRAME_CYCLES } from '../
 export type { MachineState, FrameCapture, SidWrite } from '../../../packages/c64kit/src/c64/machine';
 export { C64_KEYS } from '../../../packages/c64kit/src/c64/keyboard';
 export * from '../../../packages/c64kit/src/effects';
-export * from '../../../packages/c64kit/src/hd/scene';
-export * from '../../../packages/c64kit/src/hd/oblique';
-export * from '../../../packages/c64kit/src/pendragon/room';
-/** (No worker under Node: rooms are built on the main thread, as the browser does without one.) */
-export function hdRefresher(): null { return null; }
 export * from '../../../packages/c64kit/src/layout';
 import type { PictureLayout } from '../../../packages/c64kit/src/layout';
 import type { C64View as RealC64View, ViewStep } from '../../../packages/c64kit/src/c64/view';
 import type { C64, SidWrite } from '../../../packages/c64kit/src/c64/machine';
+import { decodePicture, emptyPicture } from '../../../packages/c64kit/src/c64/picture';
 import { EffectsModel } from '../../../packages/c64kit/src/effects';
 import type { Marker } from '../../../packages/c64kit/src/overlay';
-import { decodePicture, emptyPicture } from '../../../packages/c64kit/src/c64/picture';
-import type { HdRoom } from '../../../packages/c64kit/src/hd/scene';
 import type { Renderer, SpriteHandle } from '../../../packages/c64kit/src/renderer';
 import type { SidPlayer as RealSidPlayer } from '../../../packages/c64kit/src/sid/player';
 import type { AyPlayer as RealAyPlayer } from '../../../packages/c64kit/src/ay/player';
@@ -53,8 +47,6 @@ export class PixelRenderer implements Renderer {
   sparkles: { markers: Marker[]; set(markers: Marker[]): void; update(): void } = { markers: [], set(markers) { this.markers = markers; }, update() {} };
   /** The effects' model is the real one (tests can read what's showing); nothing is drawn. */
   effects = { model: new EffectsModel(), enabled: true, update() { return { x: 0, y: 0 }; } };
-  /** The HD view's room as the game set it (tests draw it with packages/c64kit/test/hd-raster.ts); nothing is drawn. */
-  hd: { room: HdRoom | null; available: boolean } = { room: null, available: true };
   borderBands: number[] | null = null;
   /** The sprites made (VicView makes one per VIC sprite). */
   readonly sprites: SpriteHandle[] = [];
@@ -133,7 +125,7 @@ export class AyPlayer implements Pick<RealAyPlayer, 'unlocked' | 'muted' | 'unlo
 export class C64View implements Pick<RealC64View, 'backdrop' | 'picture' | 'update' | 'render' | 'dispose'> {
   readonly backdrop = new Surface(320, 200, 0);
   private readonly decoded = emptyPicture();
-  /** (The picture decoded as the real one has it, when asked for: the HD view's rooms are built from it.) */
+  /** (The picture decoded as the real one has it, when asked for.) */
   get picture() { return decodePicture(this.m.ram, this.m.capture, this.decoded); }
   constructor(readonly renderer: Renderer, readonly m: Pick<C64, 'ram' | 'capture'>) {}
   update(_step?: ViewStep) { this.renderer.screen.pixels.fill(TRANSPARENT); this.renderer.screen.version++; }

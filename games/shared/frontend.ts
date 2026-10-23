@@ -8,8 +8,7 @@ import { readJson } from './guards';
  * The parts of a game's front end that don't depend on how the game runs (a
  * translated port on a C64 model, or a native rewrite): the pause screen with
  * its map and travel, the ORIGINAL/ENHANCED switch (one per game, ENHANCED unless
- * switched off, remembered: AGENTS.md). (The C64/HD switch is a system setting, not the game's: the
- * shell's, games/shared/view.ts.)
+ * switched off, remembered: AGENTS.md).
  *
  * `T` is what the game's PauseMap reads: a C64's RAM for translated ports, the
  * game's own state for native ones; `F` is what the map keeps of the player's progress (its

@@ -14,9 +14,7 @@ import { decodeSprite } from '../vic';
  * cell's off pixels). `colour` is the two together, as the picture shows.
  *
  * c64/view.ts (C64View) draws the screen from this, tools/probe's `renderPixels` the pictures tests
- * look at (with the sprites over it as the VIC orders them: `drawSprites`), and the HD view (hd/)
- * reads which characters make up the room from it (and which sprite pixels they hide:
- * `hiddenByCharacters`).
+ * look at (with the sprites over it as the VIC orders them: `drawSprites`).
  */
 export interface DecodedPicture {
   /** 320×200 colour indexes: the picture. */
@@ -145,19 +143,4 @@ export function drawSprites(px: Uint8Array, fore: Uint8Array, sprites: readonly 
     }
   }
   for (let i = 0; i < W * H; i++) if (colour[i] !== TRANSPARENT && !(behind[i] && fore[i] !== TRANSPARENT)) px[i] = colour[i];
-}
-
-/**
- * Which of a sprite's pixels the characters hide (1), as the VIC draws it: those of a sprite set behind
- * them where they have a pixel (`fore`, 320×200, TRANSPARENT where they haven't); none of one in front.
- */
-export function hiddenByCharacters(s: Omit<DrawnSprite, 'n'>, fore: Uint8Array, into = new Uint8Array(s.w * s.h)) {
-  into.fill(0);
-  if (!s.behind) return into;
-  const sx = Math.round(s.x), sy = Math.round(s.y);
-  for (let y = 0; y < s.h; y++) for (let x = 0; x < s.w; x++) {
-    const X = sx + x, Y = sy + y;
-    if (s.pixels[y * s.w + x] !== TRANSPARENT && X >= 0 && Y >= 0 && X < W && Y < H && fore[Y * W + X] !== TRANSPARENT) into[y * s.w + x] = 1;
-  }
-  return into;
 }

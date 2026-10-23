@@ -18,9 +18,7 @@
  *   floor after it;
  * - through the front end as the browser runs it (play.ts), by keyboard, ORIGINAL and ENHANCED:
  *   he gets through every one (a walk does), and the guarded gates stay shut until the puzzle;
- * - the same through the front end with the HD view on (`hdView.on`, the view only): he goes through
- *   every one at the same frame, to the same floor, as with it off, ORIGINAL and ENHANCED;
- * - ENHANCED's 8-way controls: from just before the stairs, up+left and up+right go through too.
+  * - ENHANCED's 8-way controls: from just before the stairs, up+left and up+right go through too.
  *
  *   nice -n 15 node tools/test.mjs games/entombed/test/stairs.ts
  */
@@ -186,8 +184,8 @@ for (const n of GUARDED) {
   check(`  and keeps the guarded gates shut (${closed} of ${GUARDED.length}): it is the original's`, closed === GUARDED.length);
 }
 
-/** The front end, continued from a state, ORIGINAL or ENHANCED, the HD view on or not (the view only). */
-async function session(state: MachineState, enhanced: boolean, hd = false) {
+/** The front end, continued from a state, ORIGINAL or ENHANCED. */
+async function session(state: MachineState, enhanced: boolean) {
   store.clear();
   state.ram[0x322e] = 1; // (the whip)
   store.set('entombed.save.v1', Buffer.from(packState(state)).toString('base64'));
@@ -196,19 +194,18 @@ async function session(state: MachineState, enhanced: boolean, hd = false) {
   const renderer = new PixelRenderer();
   const p = run({ renderer, input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 0));
-  if (hd) must(p.hd, 'the HD view').on = true;
   const ram = () => must(p.machine, 'the machine').ram;
   const tick = () => { input.poll(); p.tick(); p.render(0); const r = ram(); r[0x37f6] = 0; r[0x323d] = 0; };
   for (let i = 0; i < 141; i++) tick(); // (launched with a save: straight back into play, no key)
-  return { ram, tick, input, room: () => renderer.hd.room !== null };
+  return { ram, tick, input };
 }
 /** Hold a walk's keys through the front end; the floor he comes to and the frame (null: he stays on his floor). */
-async function through2(state: MachineState, walk: Step[], enhanced: boolean, hd = false): Promise<{ floor: number; frame: number; shown: boolean } | null> {
-  const s = await session(state, enhanced, hd), from = s.ram()[FLOOR];
-  let n = 0, shown = false;
+async function through2(state: MachineState, walk: Step[], enhanced: boolean): Promise<{ floor: number; frame: number } | null> {
+  const s = await session(state, enhanced), from = s.ram()[FLOOR];
+  let n = 0;
   for (const step of walk) {
     for (const k of step.keys) s.input.keyDown(k);
-    for (let f = 0; f < step.frames; f++, n++) { s.tick(); shown ||= s.room(); if (s.ram()[FLOOR] !== from) return { floor: s.ram()[FLOOR], frame: n, shown }; }
+    for (let f = 0; f < step.frames; f++, n++) { s.tick(); if (s.ram()[FLOOR] !== from) return { floor: s.ram()[FLOOR], frame: n }; }
     for (const k of step.keys) s.input.keyUp(k);
     s.tick(); s.tick(); n += 2;
   }
@@ -229,17 +226,6 @@ async function anyWalk(way: Way, enhanced: boolean) {
 for (const way of [...downs, ...gates]) {
   const orig = await anyWalk(way, false), enh = await anyWalk(way, true);
   check(`${way.name}: by keyboard, ORIGINAL goes to floor ${way.to} (${orig}), ENHANCED too (${enh})`, orig === way.to && enh === way.to);
-}
-// the HD view on (the view only): the same walk takes him through at the same frame to the same floor, in both modes
-for (const way of [...downs, ...gates]) {
-  const got: string[] = [];
-  let same = true;
-  for (const enhanced of [false, true]) {
-    const off = await through2(way.state, way.walk, enhanced), on = await through2(way.state, way.walk, enhanced, true);
-    got.push(`${enhanced ? 'ENHANCED' : 'ORIGINAL'} ${off ? `frame ${off.frame} -> ${off.floor}` : 'stays'} | HD ${on ? `frame ${on.frame} -> ${on.floor}${on.shown ? '' : ' (no room drawn!)'}` : 'stays'}`);
-    same &&= !!off && !!on && on.shown && on.floor === off.floor && on.frame === off.frame && off.floor === way.to;
-  }
-  check(`${way.name}: with the HD view on he goes through exactly as with it off (${got.join('; ')})`, same);
 }
 for (const n of GUARDED) {
   let got = 0;

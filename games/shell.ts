@@ -4,14 +4,12 @@ import * as Saves from './saves';
 import { GAMES, type GameInfo, type Program } from './registry';
 import { exportSaves, readSaves, watchWrites } from './shared/saves';
 import { TouchLayer } from './shared/touch';
-import { ViewSwitch, VIEW_KEY } from './shared/view';
 
 /**
  * The runstop64 shell: one framed C64 screen (with a full-screen button) that
  * runs the loader, then whichever game it loads, in place, like a real load.
  * The panel under the screen shows credits and source for what's running. The
- * gear is the game's pause screen, or (on the directory) the saved games; C64/HD
- * is the view, in a game with an HD view (a system setting: games/shared/view.ts).
+ * gear is the game's pause screen, or (on the directory) the saved games.
  */
 /** An element the page must have (games/index.html), of the type the shell uses it as. */
 function $<T extends Element>(selector: string, type: new () => T): T {
@@ -29,8 +27,6 @@ const back = $('#back', HTMLAnchorElement);
 // confirmation saying whether progress is kept), and the game's own options menu.
 const menu = $('#menu', HTMLButtonElement);
 const settings = $('#settings', HTMLButtonElement);
-// (and the C64/HD switch, in a game with an HD view)
-const viewButton = $('#view', HTMLButtonElement);
 const leave = $('#leave', HTMLElement);
 // (a line in the overlay while progress is not being kept: the browser's storage is full or blocked)
 const saveWarning = $('#save-warning', HTMLElement);
@@ -42,7 +38,6 @@ let currentId: string | null = null;
 const renderer = new PixelRenderer(canvas);
 const input = new Input();
 const host = { renderer, input, canvas };
-const view = new ViewSwitch(renderer);
 
 let program: Program;
 
@@ -67,27 +62,8 @@ async function launch(id: string, push: boolean, replace = false) {
   else settings.hidden = true;
   frame.classList.add('playing');
   touch.setGame(program.touch, { pause: !!program.menu, home: true });
-  view.attach(program.hd);
-  showView();
   if (push) history.pushState(null, '', `#${id}`);
   if (replace) history.replaceState(null, '', `#${id}`);
-}
-
-/** What the C64/HD switch shows (its button, and the touch layer's key): null while there's none. */
-let viewShown: string | null = null;
-/** The switch's button and key as the switch is now (the renderer may give up on the HD view: no switch then). */
-function showView() {
-  const now = view.offered ? view.label : null;
-  if (now === viewShown) return;
-  viewShown = now;
-  viewButton.hidden = now === null;
-  viewButton.textContent = now ?? '';
-  viewButton.setAttribute('aria-pressed', String(now === 'HD'));
-  touch.showView(now);
-}
-function toggleView() {
-  view.toggle();
-  showView();
 }
 
 /** The gear: what it does here (a game's options, or the saved games). */
@@ -104,8 +80,6 @@ function startLoader(skipIntro = false) {
   back.hidden = menu.hidden = true;
   gear('Saved games');
   touch.setGame(program.touch, { pause: false, home: false });
-  view.attach(undefined);
-  showView();
 }
 
 /** The saved games (games/saves.ts): from the directory (F1, its line, the gear), or #saves. */
@@ -119,8 +93,6 @@ function startSaves(push: boolean) {
   back.hidden = menu.hidden = true;
   gear('Back to the directory');
   touch.setGame(program.touch, { pause: false, home: false });
-  view.attach(undefined);
-  showView();
   if (push) history.pushState(null, '', '#saves');
 }
 
@@ -158,20 +130,9 @@ const touch = new TouchLayer({
   input,
   onPause: () => program?.menu?.(),
   onHome: () => askLeave(true),
-  onView: toggleView,
 });
 
 settings.addEventListener('click', () => { program?.menu?.(); canvas.focus?.(); });
-viewButton.addEventListener('click', () => { toggleView(); canvas.focus?.(); });
-// H: the C64/HD switch at any time, taken before the game sees it (so it's never the game's key then).
-for (const type of ['keydown', 'keyup'] as const) {
-  window.addEventListener(type, (e) => {
-    if (e.code !== VIEW_KEY || !view.offered || e.ctrlKey || e.metaKey || e.altKey) return;
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    if (type === 'keydown' && !e.repeat) toggleView();
-  }, true);
-}
 
 // Credits and source: a sheet that slides up over the screen. The URL is left
 // alone (the hash names the running game).
@@ -235,9 +196,6 @@ else startLoader();
 
 new FixedLoop({
   tick() {
-    // (the game told which view to draw, as the switch has it now)
-    view.sync();
-    showView();
     input.poll();
     // the game waits while "back to the menu?" is asked, and on a phone until it's been turned and tapped
     if (leave.hidden && !touch.holding) program?.tick();

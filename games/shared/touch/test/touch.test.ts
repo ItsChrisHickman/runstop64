@@ -35,11 +35,6 @@ const GAMES: Record<string, TouchLayout> = {
   antiriad: { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }] },
 };
 const SYSTEM: SystemSpec[] = [{ id: 'home', label: 'HOME' }, { id: 'layout', label: 'TURN' }, { id: 'pause', label: 'PAUSE' }, { id: 'enter', label: 'RETURN', key: 'Enter' }];
-/** The games with an HD view: the small C64/HD key too (the shell's C64/HD switch on a phone: index.ts showView). */
-const VIEW: SystemSpec = { id: 'view', label: 'C64/HD VIEW' };
-const HD_GAMES = new Set(['entombed', 'karnath', 'blackwyche', 'dragonskulle']);
-/** The small keys as the touch layer lists them for a game with an HD view (index.ts placeKeys). */
-const withView: SystemSpec[] = [...SYSTEM.filter((s) => s.id !== 'enter'), VIEW, ...SYSTEM.filter((s) => s.id === 'enter')];
 const PHONES = [[360, 780], [412, 915], [390, 844]] as const;
 
 const inside = (r: Rect, o: Rect, slack = 0.5) => r.x >= o.x - slack && r.y >= o.y - slack && r.x + r.w <= o.x + o.w + slack && r.y + r.h <= o.y + o.h + slack;
@@ -82,17 +77,8 @@ function checkGeometry(name: string, g: Geometry, w: number, h: number, game: To
 
 for (const [pw, ph] of PHONES) {
   for (const [name, game] of Object.entries(GAMES)) {
-    const sys = name === 'loader' ? SYSTEM.filter((s) => s.id === 'layout') : HD_GAMES.has(name) ? withView : SYSTEM;
+    const sys = name === 'loader' ? SYSTEM.filter((s) => s.id === 'layout') : SYSTEM;
     checkGeometry(name, layoutStage(ph, pw, 'landscape', game, sys), ph, pw, game);
-    if (HD_GAMES.has(name)) for (const [w, h, mode] of [[ph, pw, 'landscape'], [pw, ph, 'portrait']] as const) {
-      // the HD key: in PAUSE's gutter, beside it (RET one further along); HOME, TURN and PAUSE where they are without it
-      const g = layoutStage(w, h, mode, game, sys), without = layoutStage(w, h, mode, game, SYSTEM);
-      const at = (geo: Geometry, id: string) => must(geo.system.find((s) => s.spec.id === id), id);
-      const hd = at(g, 'view'), pause = at(g, 'pause');
-      ok(Math.hypot(hd.x - pause.x, hd.y - pause.y) < (hd.r + pause.r) * 1.4 && (hd.x > g.picture.x + g.picture.w) === (pause.x > g.picture.x + g.picture.w),
-        `${name} ${mode} ${w}x${h}: HD beside PAUSE`);
-      ok(SYSTEM.filter((s) => s.id !== 'enter').every((s) => { const a = at(g, s.id), b = at(without, s.id); return a.x === b.x && a.y === b.y; }), `${name} ${mode} ${w}x${h}: HOME, TURN, PAUSE where they are without HD`);
-    }
     checkGeometry(name, layoutStage(pw, ph, 'portrait', game, sys), pw, ph, game);
     // with an iPhone's notch (left in landscape) and home bar
     checkGeometry(`${name} notch`, layoutStage(ph, pw, 'landscape', game, sys, { top: 0, right: 0, bottom: 21, left: 47 }), ph, pw, game, { top: 0, bottom: 21 });
@@ -215,17 +201,6 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ctl.down(4, geo.picture.x + geo.picture.w / 2, geo.picture.y + 10); ctl.up(4);
   ok(taps.length === 1 && Math.abs(taps[0].y - (geo.picture.y + 10)) < 1e-6, 'picture: a tap is a point');
   ok(!input.held.fire && heldDirs(input) === 'none', 'picture: a tap presses nothing');
-}
-{
-  // the C64/HD key (games with an HD view): the shell's switch when lifted (TouchHost.onView), no key for the game
-  const input = new Input(nowhere), geo = layoutStage(915, 412, 'landscape', GAMES.blackwyche, withView), sysCalls: string[] = [];
-  const ctl = new TouchController({ keyDown: (c) => input.keyDown(c), keyUp: (c) => input.keyUp(c), tap: () => {} }, geo, GAMES.blackwyche.stick);
-  ctl.onSystem = (id) => sysCalls.push(id);
-  const hd = must(geo.system.find((s) => s.spec.id === 'view'), 'the C64/HD key');
-  ctl.down(1, hd.x, hd.y); input.poll();
-  ok(!input.typed.length && !sysCalls.length, 'C64/HD: nothing until lifted, no key for the game');
-  ctl.up(1, hd.x, hd.y); input.poll();
-  ok(sysCalls.join() === 'view' && !input.typed.length && !input.down.size, 'C64/HD: the switch when lifted, once');
 }
 {
   // portrait (upright): the stick under the picture on the left, buttons on the right

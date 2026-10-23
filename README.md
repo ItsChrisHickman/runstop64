@@ -43,8 +43,6 @@ There are two kinds of game here, and they are different things.
   loader) that can bring back the save from before a new game.
 - **Touch controls** on phones: a stick and buttons beside the picture, in landscape ([docs/mobile.md](docs/mobile.md)).
 - **Keyboard and gamepads**, with each game's on-screen key instructions rewritten to match.
-- **An HD view** in Blackwyche, Karnath, Entombed and Dragonskulle: the same game as a lit 3D scene built from its own
-  picture (H, or the C64/HD button; [docs/hd-view.md](docs/hd-view.md)).
 
 ## How it is built
 
@@ -54,7 +52,6 @@ packages/c64kit/       the shared engine
   src/loop.ts          fixed 50 Hz game logic, drawn at the display's refresh rate
   src/sid/             a 6502 and SID emulation for the original music, and SID sound effects
   src/c64/, vic.ts     the C64 model the translated games run on (VIC-II, CIA, memory) and how its picture is decoded
-  src/hd/              the HD view
   src/layout.ts, effects*.ts, overlay.ts, input.ts, font.ts, palette.ts, surface.ts
 games/
   index.html, loader.ts, shell.ts    the C64-style READY. loader and the page around each game

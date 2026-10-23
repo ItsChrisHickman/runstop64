@@ -58,7 +58,7 @@ interface PortAdapter<S, F> {
 ### 2. `runNative`: a 490-line closure with 23 `let`s and a 30-hook options bag
 
 **What.**
-- `NativeGameOptions` (play.ts:20-150) has about 28 optional members (`fullHealth`, `health`, `hints`, `hintsWith`, `assists`, `onHook`, `afterFrame`, `onAssists`, `lives`, `safe`, `grace`, `joyPort`, `actions`, `layout`, `latch`, `run`, `map`, `describe`, `font`, `strip`, `names`, `remap`, `reserved`, `touch`, `combat`, `controls`, `hd`, …).
+- `NativeGameOptions` (play.ts:20-150) has about 28 optional members (`fullHealth`, `health`, `hints`, `hintsWith`, `assists`, `onHook`, `afterFrame`, `onAssists`, `lives`, `safe`, `grace`, `joyPort`, `actions`, `layout`, `latch`, `run`, `map`, `describe`, `font`, `strip`, `names`, `remap`, `reserved`, `touch`, `combat`, `controls`, …).
 - Features are tangled through the one function. Examples: `latch`, `knock`, `running`, `eightWay` and `picked`/`actionFire` all feed `putStick` through `feedInput` (play.ts:403) and `onWait` (play.ts:~222), which mutate shared closure variables (`stick`, `knock`, `latched`, `wanted`, `latchBusy`, `fireHeldOver`, `arrived`, `respawn`, `resuming`, …).
 - The translated CPU's registers are saved around every injected call by hand: `const regs = { ...cpu }; fn(); Object.assign(cpu, regs);` appears at play.ts:230, 234, 236 and 317. The one correct helper is the `runner` at line 317, and the other three copies bypass it.
 
@@ -95,7 +95,7 @@ interface PortAdapter<S, F> {
   - `hdtest/gl.ts`: `getParameter` returns `any` (6 sites).
 - Tests (41 more).
   - About 20 are `const routes: number[][] = JSON.parse(…)` in tests. That is an `any` assigned to a precise type with no check, which is exactly the loophole the rule is meant to close (a typo in `routes.json` becomes a confusing runtime failure).
-  - `Function(...)()` in `gl-stub.ts:306`, `structuredClone(Reflect.get(...))` in several montyotr tests.
+  - `structuredClone(Reflect.get(...))` in several montyotr tests.
 
 **Why it matters.** It matters most for saves: a corrupted or old-format machine save passes `unpackState` and then crashes or misbehaves inside the game.
 
@@ -144,7 +144,7 @@ interface PortAdapter<S, F> {
 
 **What.**
 - 125 files under `test/` directories (about 20 k lines, roughly a third of hand-written code), run one at a time through `node tools/test.mjs <file>`. 66 of them define the identical `const check = (what, ok) => {...}` helper, then `process.exit(failures ? 1 : 0)` at the end. Others use slightly different variants (`controls.ts` and `rooms.ts` print only failures; `map.ts` is silent on pass).
-- Only 3 scripts exist in `package.json` (`test:touch`, `test:effects`, `test:input`). There is no way to say "run everything". About half the files take arguments or an output directory (screenshots), or need originals that are not committed (`.d64`/`.prg` under `build/`: awm, blackwyche mend and rooms, montyotr title and jetpack, starquake ref), so a naive loop would not work. `explore.ts` and `blackwyche/test/hd-fixtures.ts` write committed files, so they are not tests at all.
+- Only 3 scripts exist in `package.json` (`test:touch`, `test:effects`, `test:input`). There is no way to say "run everything". About half the files take arguments or an output directory (screenshots), or need originals that are not committed (`.d64`/`.prg` under `build/`: awm, blackwyche mend and rooms, montyotr title and jetpack, starquake ref), so a naive loop would not work. `explore.ts` writes committed files, so they are not tests at all.
 - There is no CI (Actions minutes are scarce), so nothing runs the tests on push.
 - The ones I ran (the front-end and grace tests of every game, `saves`, `loader`) pass and take 0.1-0.6 s each. The whole non-original suite is probably a few minutes.
 - `tools/test.mjs` imports `esbuild`, which is not in `package.json`; it only works because vite 5.4.11 depends on it (version 0.21.5 in `node_modules`). Twelve places (README, re/README.md, test headers) say `npx tsx …`; `tsx` is not installed, so on this server `npx` would fetch it from the network.
@@ -184,7 +184,7 @@ interface PortAdapter<S, F> {
 
 ### 10. Size and shape of the hand-written code (AGENTS.md: done, cut from 45 KB to 19 KB in the doc cleanup)
 
-**What.** The biggest hand-written files are `games/shared/test/hd.ts` 848, `c64kit/src/hd/scene.ts` 812, `montyotr/src/game.ts` 802, `hd/oblique.ts` 757, `awm/src/monty.ts` 718, `c64/machine.ts` 711, `play.ts` 676, `hd/layer.ts` 650. None is unreasonable for what it does. The Monty games are a rewrite from data and are in good shape. The real hot spots are structural, covered in findings 1-3, not "too many lines in one file". `AGENTS.md` is 45 KB and one table row (the HD view) runs to a single line of thousands of characters; it is useful as a log of decisions, but nobody (human or agent) can find the shared-module list in it. Moving each row to the module's header comment, or `docs/`, and keeping AGENTS.md as the short "rules and where things are" would help the agents that depend on it.
+**What.** The biggest hand-written files are `montyotr/src/game.ts` 802, `awm/src/monty.ts` 718, `c64/machine.ts` 711 and `play.ts` 676. None is unreasonable for what it does. The Monty games are a rewrite from data and are in good shape. The real hot spots are structural, covered in findings 1-3, not "too many lines in one file". `AGENTS.md` is 45 KB and one table row runs to a single line of thousands of characters; it is useful as a log of decisions, but nobody (human or agent) can find the shared-module list in it. Moving each row to the module's header comment, or `docs/`, and keeping AGENTS.md as the short "rules and where things are" would help the agents that depend on it.
 
 **Fix.** Split AGENTS.md: rules (strict TS, DRY, two modes), then a one-line-per-feature index linking to `docs/<feature>.md` or the module header.
 

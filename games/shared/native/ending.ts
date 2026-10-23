@@ -491,8 +491,6 @@ export class Ending {
     this.stats = stats;
     this.figures = [];
     this.scene = -1;
-    // (the HD view's room, if it was up, is the game's: the show is drawn as the C64's picture)
-    this.o.host.renderer.hd.room = null;
   }
 
   /** Over: everything ours put away. */

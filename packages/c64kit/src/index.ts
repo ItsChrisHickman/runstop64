@@ -21,7 +21,3 @@ export type { Marker } from './overlay';
 export * from './effects';
 export * from './layout';
 export type { SfxName } from './sid/sfx';
-export * from './hd/scene';
-export * from './hd/oblique';
-export * from './pendragon/room';
-export { hdRefresher } from './hd/refresher';

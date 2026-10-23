@@ -39,7 +39,7 @@ the raster interrupt (the original's handler, translated) splits the screen.
   the same input, memory compared after every pass of the main loop (title, play, restart, running out of air, explored
   rooms).
 - `games/shared/native/test/explore.ts entombed`: Go-Explore style automatic play, to reach rooms to test from.
-- `games/entombed/test`: `combat.ts`, `controls.ts`, `frontend.ts`, `grace.ts`, `hd.ts`, `map.ts`, `pictures.ts`, `stairs.ts`
+- `games/entombed/test`: `combat.ts`, `controls.ts`, `frontend.ts`, `grace.ts`, `map.ts`, `stairs.ts`
   (below).
 
 ## 4. Hints (`re/hints/`)
@@ -169,135 +169,19 @@ effects and sounds, hit-stop, invulnerability gaps, knockback, EFFECTS off) and
 four ways, both ways at once with the assist, every step one straight up or down takes too,
 jumps, turning to strike).
 
-## 6. The HD view (src/hd.ts, c64kit's hd/)
-
-The C64/HD switch's HD view draws the same game as a lit 3D diorama made from its own picture:
-nothing drawn by hand, the game's memory untouched (games/entombed/test/hd.ts plays the same
-400 frames in both views and compares memory).
-
-**Rooms as pieces (src/pictures.ts, re/pictures.ts).** Depth guessed from which characters are floor bent walls at
-every step and smeared tiers into one flat floor, so the rooms are decoded instead. They are data, and it is Blackwyche's
-engine (the chambers' blocks do not draw their rooms in code of their own): each room is a picture of 40 × 17
-characters (rows 4-20 of the screen; the 16 rows of the room and the floor's front edge) at a page of its
-own, laid out 768 bytes apart from $7000 in the game's memory, copied to the screen. Found by searching
-the machine's memory for the screen's rows in each room (a corridor, then each of the 25 chambers), and
-along the way:
-
-- **the corridors' nine pictures** ($70, $73, $76, $79, $7C, $7F, $82, $85, $88) are what the maze
-  tables hold: the byte a cell is the page of the picture drawn there ($7C and $7F the ends: a wall where
-  the corridor stops). Walking along a corridor the picture of the cell he's at scrolls out and the next
-  cell's in (two pictures side by side, either way round: `beside`, 56 pairs, read from the seven
-  floors' tables); a corridor's end beyond the last cell shows a few columns of nothing (`overhang`).
-  (Floor 2's cell (0, 1) holds $80, a byte of the tables' own layout, and floor 2's (1, 3) has no
-  east-west corridor: pressing a way a cell hasn't draws the tables' next bytes as a picture. The map
-  lists the one as a place; the checks skip it and don't press such ways.)
-- **the chambers' thirteen**, one picture each, shared by twins: $8B (1), $8E (2, 10, 23), $91 (the
-  stairs room: 3, 5, 7, 12, 15, 17), $9A (8), $9D (9), $A0 (4, 21), $A3 (11), $A6 (13, 24), $A9 (14),
-  $AC (16), $AF (6, 18, 22), $B2 (19, 20), $B5 (25). The wider chambers scroll the screen along their
-  picture a few columns either way, a column every 8 pixels he walks ($3212; seen: chamber 1 nine to the
-  right, the stairs rooms three, 13 and 24 five to the left; at most nine is allowed, `overhang`), the
-  engine drawing what's beyond the room's end itself, the picture
-  otherwise as it is.
-- the character set is the one at $3800 in every room, the picture the game draws it from.
-
-games/shared/pendragon/decode.ts decodes each picture once (the same decoder as Blackwyche's and
-Karnath's, which come out byte for byte as before): floor from the characters ($01 $0B $14 $1E $27 $31
-$37 $3E $BE), the back wall one plane across the room, side walls along their slope, things at their
-front, and each pixel on its piece's plane. What Entombed's pictures needed that theirs didn't
-(`DecodeRules`, all off by default):
-
-- `stacked`: the rooms have tiers and stairs, drawn as floor cells (a stair's steps, a raised walk
-  joined to the floor below by a ramp of floor characters): a floor cell's height is the height of the
-  face under *its own column* (rows of face, 8 pixels each, down to the next floor), not of the
-  stretch it's joined to; before, a stairs room's tiers joined through their steps into one flat
-  floor at the ground's height ("floating planks" in the HD view). Cells of the same height make a
-  floor piece; a column with no ground floor has its back edge at its deepest top. A column with
-  ground *and* a top above the ground's back edge (the stairs room's steps in the corridors, the
-  chambers' tiers against the back wall) has the back wall stand on the top's back edge (the row it
-  would be on at the ground's height), not on the ground's, which is in front of the top, under its
-  face: with the wall at the ground's depth it hung over the stairs, a stair's depth in front of
-  their gate (the arch 18 px from where the game takes him in: `checkHdCharacters`).
-- the face under a floor cell (upright cells with floor above them in their column: what holds a
-  tier up) is a wall at the depth of the floor under it (or, drawn down to the front, of the top above
-  it), and not the back wall's own drawing: a frieze is drawn with the same characters in both, and
-  claiming them for the back wall as it does for what stands in front of it interleaved two depths
-  across the band.
-- `holes` [$20] with `skyAbove`: $20 is both the void beyond a face and the blank over a room's top:
-  a hole only under something drawn above it.
-
-The pictures are checked against the running game (test/pictures.ts): along every junction of the seven
-floors (82 walked the four ways, 360 frames each, travelling as the pause map does) and in all 25
-chambers (walked right to the edge and back, about, 1400 frames each, stopping on a door), 12,802 frames
-looked at, every one a window of the decoded pictures (or two side by side) with at most 8 of 680 cells
-drawn otherwise (a torch's flame, a thing moved: 1.9 a frame), every picture seen; and the pieces
-stand in the room (every wall between the floor's front and its deepest floor, every side wall on a
-floor). Two more kinds of side wall are read (decode.ts, `stacked`): walls over tiers whose depth steps
-back a cell a column for three columns or more (an alcove cut at an angle: chambers 2 and 10's recess in the
-back wall, chamber 4's stair), as the back edge's chains are; and a face drawn a cell at a time, each a cell
-deeper or nearer than the last, in rows that grow by a cell each (the wedge at the end of a stair, chamber 4's),
-one side wall through its cells' middles. A face with the same cells in every row is not (a flat wall over
-a stair's steps). Before, both were stairs of flat walls at each cell's depth, with faces joining them
-whose one pixel's colour was stretched across each gap in the HD view (the smear, and the dither of a side wall
-stretched). What still can't be drawn this way: ramps and the big slanted faces at some chambers' right edges
-(the side of a stair mass reaching the picture's bottom: no foot to read a slope from) stand as flat
-faces at their depth, looked at in the stills (test/hd.ts: the corridor, the corridor scrolling, chambers
-1, 3, 4, 8, 10, 13, 14 and 25, the dark 22 and 24) rather than modelled.
-
-The pixel-level look is unchanged (below); `obliqueRoom` falls back to guessing depth from the
-characters (the old builder, still in c64kit for Dragonskulle) wherever the band is none of the
-pictures; none of Entombed's rooms is one.
-
-**Lights.** The torches on the walls are 3×3 characters ($C3 and $B8 the sides, $4E, $2D, $1B the
-middle column: the bracket in black, the flame round it in pair 2). Their flame pixels glow, a light
-is put out from the wall at each $4E (the flame's top), flickering, with embers rising. Pendragon
-(sprite 2) carries a soft light; the whip (sprite 3) is drawn with him. Sprites stand on the floor
-found under their feet (a statue of several sprites as one), with a soft shadow.
-
-**The look** is c64kit's `LOOK`, the same in every game (`docs/hd-view.md`). Here: indoors it is night, with warm
-pools round the torches and him; all of it spreads only over what's drawn in a colour, so black stays black (the dark
-chambers below).
-
-**Steps in a wall** (a room not decoded, or the picture behind it). Where upright pixels side by side (or one above the other) stand at different
-depths, a face joins them (`steps`), along the way the picture looks into the room: at rest the camera
-sees none of it, moved it's the side of what stands nearer, so a step reads as a corner, never a seam
-showing what's behind.
-
-**Above the room.** The band is the picture's rows 4-20 (the room's own; the blank row 3 under the header is
-no part of it). Where a chamber's picture shows nothing over its top (13's: the dark above its walls) that's
-nothing, not a black wall, and what the camera opens there shows the C64's own picture, dimmed. The walls the picture cuts off (level along the top of
-what's drawn) go on up past it, darkening, so where the tilt shows a little above a wall standing
-further back (chamber 10's alcove behind the stairs, chamber 1's back wall) there's wall, not a black
-dip. A wall's own top drawn lower down (a corridor's slanting side wall) is where it ends; a notch of
-a few columns between walls carried on is carried on too (the lower camera sees over it: chamber 1).
+## 6. The dark chambers
 
 **The dark chambers** (19, 22, 24). Their block's setup ($6003) blacks the room out: $D022/$D023 and
 the colour RAM's pair-3 colour all 0 (colour RAM 8), the sprites' colours and multicolours too, and
 $3240 = 0 (the room is dark). Using the torch there ($322F; the action at $18CB, refused where $3240
 isn't 0) doesn't light it: it's a flash (`$2C5D`: sprite 7, a white ball, set behind the characters,
-for about 30 frames), and the room stays black; $3240 only goes back to 1 on leaving (`$27DE`). The HD
-view takes every colour as the game draws it now (live multicolours and colour RAM), so a dark
-chamber is black in it too, with the torch or without; its wall torches, drawn black, neither glow
-nor give light, and the dust shows only against something drawn. `test/hd.ts` checks chambers 22 and 24 dark and during the flash, and in every still that the HD picture is
-black wherever the C64's is (games/shared/test/hd.ts, `checkHidden`).
+for about 30 frames), and the room stays black; $3240 only goes back to 1 on leaving (`$27DE`).
 
 **The flash is behind the room.** Being set behind the characters ($D01B), the flash shows only where
 the room's characters have no pixel of their own (their background pairs): in the black room it
 shows the room's shapes cut out of it, and Pendragon (sprite 2, before sprite 7 to the VIC) over it.
-The tests' C64 pictures (tools/probe's `renderPixels`) first drew every sprite over everything, the
-flash over him; the HD view stood it in the air in front of the room, a whole white ball. Both now
-take the machine's order (c64kit's `drawSprites`; the HD view hides the flash's pixels the characters
-hide wherever the camera puts it, `hiddenByCharacters`): checked on every still against the VIC's
-rule worked out pixel by pixel (`checkC64Priority`: 572 of the flash's pixels behind the characters
-in chamber 22) and that the HD picture shows none of them and most of the rest (`checkBehind`).
-
-**From frame to frame** only what changed is made again (c64kit's `obliqueRooms`): the torches'
-flames animate by changing their characters every few frames (the same places, new colours: about 2
-ms), and a wide chamber's scroll (a pixel a frame) moves the room built before (0.2 ms: the picture
-C64View decoded, compared) and builds it again off the main thread, in a worker (about 17 ms here),
-the room coming back moved on by the scroll since. The room is drawn scrolled as far as the sprites
-are drawn, between the game's frames too, and the camera never moves after him: room and sprites
-locked together (games/blackwyche/test/hd.ts, `checkHdLockstep`). test/hd.ts walks chamber 3 to its
-edges and back: 4 builds, 18 moves and 65 repaints in 600 frames.
+The tests' C64 pictures (tools/probe's `renderPixels`) take the machine's order (c64kit's `drawSprites`),
+checked against the VIC's rule worked out pixel by pixel.
 
 ## The pause map
 
@@ -336,18 +220,7 @@ chamber's state holding up: 298 passes identical, 3 climbs to the next floor, 5,
 test/stairs.ts walks every stairs cell and gate in the translated game, the original's 6502 and the
 front end (keyboard, ORIGINAL and ENHANCED, and the 8-way diagonals just before the stairs): all
 seven corridor stairs and gates 3, 7 and 12 go through in every way; 5, 15 and 17 stay shut by any
-walk until their puzzle is done and go through after it, and (the HD view on, `hdView.on`: the view only) at the
-same frame to the same floor as with it off.
-
-**HD.** The game's logic is the same in both views and the test above says so with the HD view on; what differed once
-was the picture. In the corridors' stairs picture
-($88) the back wall was decoded at the depth of the ground in front of the steps (z 32), so in HD the arch hung in
-front of the steps' far end, 18 px above the gate it leads to, and he stood a stair's depth in front of it when the
-game took him through. The wall now stands behind the steps (z 64, the left and right blocks' tops 48): the arch is a
-doorway he walks up into. test/hd.ts: every stairway cell and gate (arriving and standing where walking up takes him
-through) shows in HD where the C64 draws it, the arch against it. The pieces of the other pictures with tiers
-against the wall (chambers 2, 4, 10, 13...) moved the same way (the wall behind the tiers). The chambers' left-hand
-"ramp" (chamber 3) is a block with a step beside it, as the picture encodes it, not a slope.
+walk until their puzzle is done and go through after it.
 
 Open (not built): nothing in the code is broken, but a gate that slides him away with no sign why reads as a bug. Either show a hint sparkle on the thing in the way in 5, 15 and 17
 (15 has none today) with what it needs, or let the gate open in ENHANCED once he has walked into it

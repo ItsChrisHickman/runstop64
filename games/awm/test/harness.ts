@@ -346,7 +346,7 @@ export function airports(): { room: number; x: number; y: number }[] {
 }
 
 /** A plan as one joystick per logic step. */
-export function expand(plan: string, seed = 1, count = 0): number[] {
+function expand(plan: string, seed = 1, count = 0): number[] {
   const out: number[] = [];
   if (plan === 'rand') {
     const rnd = random(seed);
@@ -388,7 +388,7 @@ export function freeSpot(room: number, seed: number): { x: number; y: number } {
 }
 
 /** What a tile name does to him, for finding places near each kind. */
-export function kindOf(name: number, code: number): string | null {
+function kindOf(name: number, code: number): string | null {
   if (code >= 0x6d && code < 0x76) return 'animated';
   if (name === 0) return null;
   if (name < 6) return 'slip';

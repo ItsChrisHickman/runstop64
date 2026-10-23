@@ -6,7 +6,7 @@
 //   todo    a known failure: it runs and is reported, but does not fail the run
 //   name    how it is listed (default: file and args)
 // Not listed, on purpose: scripts that write committed files or pictures rather than check anything
-// (games/blackwyche/test/hd-fixtures.ts, antiriad/test/fixtures.ts, native/test/explore.ts, shots.ts,
+// (antiriad/test/fixtures.ts, native/test/explore.ts, shots.ts,
 // effects-shots.ts), helper modules, and Starquake's comparisons against its original (they need snapshots
 // made by hand from the original; see games/starquake/build/README.md).
 // A new test goes here. Games whose originals are gitignored (AWM) are listed with `needs`.
@@ -116,10 +116,8 @@ export const TESTS = [
   { file: 'games/blackwyche/test/ladder.ts', set: 'fast' },
   { file: 'games/blackwyche/test/map.ts', set: 'fast' },
   { file: 'games/blackwyche/test/mend.ts', set: 'fast' },
-  { file: 'games/blackwyche/test/pictures.ts', set: 'slow' },
   { file: 'games/blackwyche/test/rooms.ts', set: 'fast' },
   { file: 'games/blackwyche/test/trapdoors.ts', set: 'fast' },
-  { file: 'games/blackwyche/test/hd.ts', set: 'slow' },
 
   // ---- Dragon Skulle
   { file: 'games/dragonskulle/test/ending.ts', set: 'slow' },
@@ -131,7 +129,6 @@ export const TESTS = [
   { file: 'games/dragonskulle/test/dragon-react.ts', set: 'fast' },
   { file: 'games/dragonskulle/re/rules/check.ts', set: 'fast' },
   { file: 'games/dragonskulle/re/hints/check.ts', set: 'fast' },
-  { file: 'games/dragonskulle/test/hd.ts', set: 'slow' },
 
   // ---- Entombed
   { file: 'games/entombed/test/combat.ts', set: 'fast' },
@@ -139,12 +136,7 @@ export const TESTS = [
   { file: 'games/entombed/test/frontend.ts', set: 'fast' },
   { file: 'games/entombed/test/grace.ts', set: 'fast' },
   { file: 'games/entombed/test/map.ts', set: 'fast' },
-  { file: 'games/entombed/test/pictures.ts', set: 'slow' },
   { file: 'games/entombed/test/stairs.ts', set: 'fast' },
-  { file: 'games/entombed/test/hd.ts', set: 'slow' },
-
-  // ---- HD view on the stand-in GL
-  { file: 'games/hdtest/test/hdtest.ts', set: 'fast' },
 
   // ---- Jet Set Willy II
   { file: 'games/jsw2/test/deathloop.ts', set: 'fast' },
@@ -168,10 +160,8 @@ export const TESTS = [
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },
   { file: 'games/karnath/test/obelisk.ts', set: 'fast' },
-  { file: 'games/karnath/test/pictures.ts', set: 'fast' },
   { file: 'games/karnath/test/spells.ts', set: 'fast' },
   { file: 'games/karnath/test/travel-creatures.ts', set: 'fast' },
-  { file: 'games/karnath/test/hd.ts', set: 'slow' },
 
   // ---- Monty on the Run (title.ts and jetpack.ts compare with the original: /tmp/motr.prg, made by npm run extract:motr)
   { file: 'games/montyotr/test/c5.ts', set: 'fast' },

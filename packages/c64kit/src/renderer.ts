@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import { EffectsLayer } from './effects-layer';
-import { bandRows, HdLayer } from './hd/layer';
-import type { HdRoom, HdSprite } from './hd/scene';
 import type { EffectsModel } from './effects';
 import type { ScreenPoint } from './input';
 import type { PictureLayout } from './layout';
@@ -28,7 +26,7 @@ export interface SpriteHandle {
   visible: boolean;
   /** Draw order; higher is in front. */
   z: number;
-  /** The machine's sprite number it shows, if it shows one (the HD view tells the player's apart). */
+  /** The machine's sprite number it shows, if it shows one (tests tell sprites apart by it). */
   n?: number;
 }
 
@@ -52,11 +50,6 @@ export interface Renderer {
   layout: PictureLayout | null;
   readonly sparkles: { set(markers: Marker[]): void };
   readonly effects: { readonly model: EffectsModel; enabled: boolean };
-  /**
-   * The HD view (hd/): the room to draw lit in 3D, set each frame by the game while it's on; null draws
-   * the picture as the C64 did. Not `available` (for the rest of the session) where the GL can't draw it.
-   */
-  readonly hd: { room: HdRoom | null; readonly available: boolean };
   hideSprites(): void;
   createSprite(z?: number): SpriteHandle;
   toScreen(clientX: number, clientY: number): ScreenPoint;
@@ -69,7 +62,7 @@ interface TexEntry { tex: THREE.DataTexture; version: number; data: Uint8Array }
 export class PixelRenderer implements Renderer {
   readonly gl: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
-  /** What's drawn over the picture (sparkles, effects): over the HD view too. */
+  /** What's drawn over the picture (sparkles, effects). */
   readonly overlay = new THREE.Scene();
   readonly camera: THREE.OrthographicCamera;
   readonly screen: Surface;
@@ -120,10 +113,6 @@ export class PixelRenderer implements Renderer {
   readonly sparkles: Sparkles;
   /** Combat effects over the picture (bursts, flashes, trails, the hurt flash and shake: effects.ts). */
   readonly effects: EffectsLayer;
-  /** The HD view: the room lit in 3D (hd/), drawn in its band of the picture instead of the C64's while `hd.room` is set. */
-  readonly hd = new HdLayer();
-  /** The time (ms) a frame is drawn at (the HD view's flicker, dust, embers; sparkles, effects): the page's clock; the HD test page fixes it. */
-  clock: () => number = () => performance.now();
 
   constructor(readonly canvas: HTMLCanvasElement, readonly width = 320, readonly height = 200) {
     this.gl = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
@@ -215,7 +204,7 @@ export class PixelRenderer implements Renderer {
 
   render() {
     this.entryFor(this.screen);
-    const now = this.clock();
+    const now = performance.now();
     this.sparkles.update(now, this.layout);
     // (a hurt shakes the picture a pixel or two: the camera moves the other way)
     const shake = this.effects.update(now, this.layout);
@@ -281,50 +270,9 @@ export class PixelRenderer implements Renderer {
     this.gl.setViewport(vx, vy, vw, vh);
     this.gl.setScissor(vx, vy, vw, vh);
     this.gl.setScissorTest(true);
-    const room = this.hd.available ? this.hd.room : null;
-    if (room) {
-      // the HD view: the C64's picture first, in the room's band without the sprites (the room is drawn
-      // over it, showing it dimmed where it leaves a gap), above and below it as it is (a header, a
-      // status line); then the room
-      const { top, bottom } = bandRows(room.band, vh);
-      const shown = this.sprites.filter(({ mesh }) => mesh.visible);
-      for (const { mesh } of shown) mesh.visible = false;
-      this.gl.setScissor(vx, vy + vh - bottom, vw, bottom - top);
-      this.gl.render(this.scene, this.camera);
-      for (const { mesh } of shown) mesh.visible = true;
-      this.gl.autoClear = false;
-      for (const [y0, y1] of [[0, top], [bottom, vh]]) {
-        if (y1 <= y0) continue;
-        this.gl.setScissor(vx, vy + vh - y1, vw, y1 - y0);
-        this.gl.render(this.scene, this.camera);
-      }
-      this.gl.setScissor(vx, vy, vw, vh);
-      const picture = { front: this.screen.pixels, back: this.backdrop?.pixels ?? null, background: this.background, version: this.screen.version + (this.backdrop?.version ?? 0) };
-      if (!this.hd.render(this.gl, now, this.hdSprites(), picture, { x: vx, y: vy, w: vw, h: vh }, shake)) {
-        // (where the HD view couldn't be drawn: the C64's picture)
-        this.gl.setViewport(vx, vy, vw, vh);
-        this.gl.setScissor(vx, vy, vw, vh);
-        this.gl.setScissorTest(true);
-        this.gl.autoClear = true;
-        this.gl.render(this.scene, this.camera);
-        this.gl.autoClear = false;
-      }
-    } else {
-      this.gl.render(this.scene, this.camera);
-      this.gl.autoClear = false;
-    }
+    this.gl.render(this.scene, this.camera);
+    this.gl.autoClear = false;
     this.gl.render(this.overlay, this.camera);
     this.gl.autoClear = true;
-  }
-
-  /** The sprites as shown (moving smoothly; those drawn under the screen set behind the characters), for the HD view. */
-  private hdSprites(): HdSprite[] {
-    const sprites: HdSprite[] = [];
-    for (const { handle: h } of this.sprites) {
-      if (!h.visible || !h.surface) continue;
-      const s = h.surface;
-      sprites.push({ n: h.n ?? -1, x: this.snap ? Math.round(h.x) : h.x, y: this.snap ? Math.round(h.y) : h.y, w: s.width, h: s.height, pixels: s.pixels, version: s.version, behind: h.z < 0 });
-    }
-    return sprites;
   }
 }

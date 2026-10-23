@@ -40,8 +40,8 @@ export function renderPixels(m: Picture, layout: PictureLayout | null = null) {
   return px;
 }
 
-/** The two layers as one picture without the sprites (the renderer's screen over its backdrop: what the HD view keeps behind its room). */
-export function joinLayers(fore: Uint8Array, back: Uint8Array) {
+/** The two layers as one picture without the sprites (the renderer's screen over its backdrop). */
+function joinLayers(fore: Uint8Array, back: Uint8Array) {
   return Uint8Array.from(fore, (c, i) => (c === TRANSPARENT ? back[i] : c));
 }
 

@@ -91,8 +91,6 @@ a { color: var(--link); }
 .fs:hover, .fs:focus-visible { opacity: 1; }
 .fs.menu { right: 48px; }
 .fs.settings { right: 88px; }
-/* The C64/HD switch: the view now, in letters. */
-.fs.view { right: 128px; font: 700 11px/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: 0.02em; }
 
 /* "Back to the menu?": a C64-looking box over the screen; the game waits meanwhile. */
 .leave {

@@ -20,8 +20,6 @@ export default defineConfig({
       input: {
         loader: r('./games/index.html'),
         montyotr: r('./games/montyotr/index.html'),
-        // (the HD view's GPU test page: not linked from the loader)
-        hdtest: r('./games/hdtest.html'),
       },
     },
   },
