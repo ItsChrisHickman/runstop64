@@ -53,7 +53,7 @@ function original() {
 function port(shield: number) {
   const g = new Game(START_ROOM);
   g.shield = shield;
-  const hurt = [State.Zap, State.Fire, State.Dying, State.Knocked];
+  const hurt: readonly number[] = [State.Zap, State.Fire, State.Dying, State.Knocked];
   let times = 0, last: number = g.monty.state;
   for (let f = 0; f < 300; f++) {
     const s = [0, 1, 2, 3].find((q) => { const fr = g.enemies.frame(q); return fr !== HIDDEN && fr < 0x80 && !isPlane(fr); });
