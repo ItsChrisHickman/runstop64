@@ -26,13 +26,25 @@ const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW'
 
 /** The five faces (lives) in the status line, from the left: the game draws a skull over each one lost ($1501) and a face back ($9CBD). */
 const FACE = { chars: [0x7b, 0x7c, 0x7d, 0x7e, 0x7f, 0x1b, 0x1c, 0x1d, 0x1e], colours: [9, 9, 9, 10, 10, 10, 10, 10, 10] };
-/** All five lives, a full face of energy, nothing still to take: as a game starts. */
-export function allLives(ram: Uint8Array, colour: Uint8Array) {
-  ram[0x1248] = 0; ram[0x123e] = 0x14; ram[0x3432] = 0; ram[0x125f] = 0; ram[0x1249] = 0;
+/** The five faces in the status line as the game starts with them (none lost: $1248 counts three a face). */
+function drawFaces(ram: Uint8Array, colour: Uint8Array) {
+  ram[0x1248] = 0;
   for (let face = 0; face < 5; face++) for (let i = 0; i < 9; i++) {
     const at = 0x387 + face * 3 + (i % 3) + Math.floor(i / 3) * 40;
     ram[0x400 + at] = FACE.chars[i]; colour[at] = FACE.colours[i];
   }
+}
+/** All five lives, a full face of energy, nothing still to take: as a game starts. */
+export function allLives(ram: Uint8Array, colour: Uint8Array) {
+  ram[0x123e] = 0x14; ram[0x3432] = 0; ram[0x125f] = 0; ram[0x1249] = 0;
+  drawFaces(ram, colour);
+}
+/**
+ * ENHANCED's unlimited lives (shared/lives.ts, `vitals.lives`): a face gone is back at once, the lives as the game starts with
+ * them. (The energy of the life under way is the game's: the next face comes full as it does when one goes.)
+ */
+export function livesBack(ram: Uint8Array, colour: Uint8Array) {
+  if (ram[0x1248] !== 0) drawFaces(ram, colour);
 }
 /** The energy of the life under way: $123E, 20 at full (a face, the lives' column in the status line, goes when it's gone). */
 export const ENERGY = { max: 0x14, get: (ram: Uint8Array) => ram[0x123e] };
@@ -157,6 +169,9 @@ export function run(host: Host) {
     vitals: {
       // continuing: all five lives back, as the game starts with
       fullHealth: (ram, colour) => allLives(ram, colour),
+      // ENHANCED: unlimited lives and continues (shared/lives.ts): a lost life comes back
+      lives: livesBack,
+      infinite: true,
     },
     map: dragonskulleMap,
     // sparkles on what moves the game on (ENHANCED): re/hints

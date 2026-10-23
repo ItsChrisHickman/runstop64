@@ -115,6 +115,14 @@ check('picking room 8 on the map and Enter: back in play, in room 8', !p.state.p
 }
 // ENHANCED (the default): a life lost comes back
 check('ENHANCED by default: unlimited lives and full energy on', p.state.enhanced === true);
+{
+  // (the last life, out of energy: BLOB dies, the lives stay as they are and nothing rolls, no game over)
+  g.lives = [0, 1];
+  g.energy = 0;
+  let died = false;
+  for (let i = 0; i < 400; i++) { tick(); if (g.dead || g.energy > 0) died = true; } // (a death refills the energy: Panel.died)
+  check(`ENHANCED: out of energy on the last life: he dies, the lives stay (${g.lives.join('')}) and none rolls away (${g.livesSteps}), no game over (${p.state.mode})`, died && g.lives[0] === 0 && g.lives[1] === 1 && g.livesSteps === 0 && p.state.mode === 'play');
+}
 // game over (in ORIGINAL): run out of energy with the last life
 tap('KeyP'); tap('KeyE'); tap('KeyP');
 check('E: ORIGINAL', p.state.enhanced === false);

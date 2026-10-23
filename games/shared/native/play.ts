@@ -1,4 +1,5 @@
 import { C64View, HdRooms, SidPlayer, hdRefresher, unpackState, type HdBuilder } from 'c64kit';
+import { LIVES_ASSIST } from '../lives';
 import { MACHINE_CODEC, type GameStatus, type TitleStrip } from '../continue';
 import type { C64Machine, FrameCapture, Host, MachineState, PictureLayout, SidWrite } from 'c64kit';
 import { cpu } from './cpu';
@@ -51,7 +52,7 @@ export interface NativeGameOptions<F> {
   mends?: Mend[];
   /** Puts right a save's memory as it is resumed (something an earlier version of the port left wrong: it has the machine's memory and the VIC's registers). */
   repair?: (ram: Uint8Array, vic: Uint8Array) => void;
-  /** Health, lives and continuing at full (the assists FULL HEALTH/ROOM and INFINITE LIVES, and CONTINUE?). */
+  /** Health, lives and continuing at full (the assists FULL HEALTH/ROOM and UNLIMITED LIVES, and CONTINUE?). */
   vitals?: VitalsSpec;
   /** For the "hints" assist: places on the screen (C64 pixels) where something can be done and hasn't been yet (`vic`: its registers, for where sprites are). */
   hints?(ram: Uint8Array, vic: Uint8Array): { x: number; y: number }[];
@@ -165,7 +166,7 @@ function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
   const own = (id: NativeAssistId, long: string, role?: AssistSpec['role']): AssistSpec => ({ id, long, role });
   return [
     ...(opts.vitals?.health ? [own('health', 'FULL HEALTH/ROOM')] : []),
-    ...(opts.vitals?.lives ? [own('lives', 'INFINITE LIVES', opts.vitals.infinite ? undefined : 'never')] : []),
+    ...(opts.vitals?.lives ? [own('lives', LIVES_ASSIST.long, opts.vitals.infinite ? undefined : 'never')] : []),
     ...(opts.hints && !opts.hintsWith ? [own('hints', 'HINTS (SPARKLES)')] : []),
     ...(opts.assists ?? []).map((a) => ({ id: a.id, long: a.long, default: a.default })),
     ...(opts.combat ? [

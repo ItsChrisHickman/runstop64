@@ -23,8 +23,8 @@ export interface Hooks {
   noPickup?: boolean;
   /** Each room's start, before it's drawn (where saves are taken). */
   roomStart?(g: Game): void;
-  /** BLOB died (the infinite lives assist gives one back). */
-  died?(g: Game): void;
+  /** ENHANCED's unlimited lives (shared/lives.ts): a death takes no life, and the panel's count stays as it is. */
+  unlimitedLives?(): boolean;
 }
 
 /**
@@ -225,8 +225,7 @@ export function* rooms(g: Game, hooks: Hooks, mid = false): Generator<void, 'ove
  */
 function* death(g: Game, hooks: Hooks, here = false): Generator<void, 'over' | 'again', void> {
   if (here) g.restart = { riding: g.riding, exit: 0, col: g.col, row: g.row };
-  Panel.died(g);
-  hooks.died?.(g);
+  Panel.died(g, hooks.unlimitedLives?.() === true);
   Enemies.fragments(g);
   for (let i = 0; i < 100; i++) {
     if (!hooks.noEnemies) Enemies.tick(g);

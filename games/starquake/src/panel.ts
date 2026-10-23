@@ -44,12 +44,13 @@ export function reset(g: Game) {
   g.platformsLeft = g.charge = g.energy = 0x78;
 }
 
-/** $2FB7: BLOB died: energy refilled, at least a few platforms, and a life rolls away. */
-export function died(g: Game) {
+/** $2FB7: BLOB died: energy refilled, at least a few platforms, and a life rolls away (`unlimited`: ENHANCED's, it stays: shared/lives.ts). */
+export function died(g: Game, unlimited = false) {
   g.energy = 0x78;
   let dirty = 1;
   if (((g.platformsLeft - 0x0c) & 0x80) !== 0) { g.platformsLeft = 0x0c; dirty |= 2; }
   g.panelDirty |= dirty;
+  if (unlimited) return;
   if (!(g.livesDir & 0x80) && g.livesSteps === 1) { g.livesDir = 0xff; return; }
   g.livesSteps = (g.livesSteps - 1) & 0xff;
   if (g.livesDir) return;

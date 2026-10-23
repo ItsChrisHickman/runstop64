@@ -421,7 +421,7 @@ export class SafeArrival<F> {
 
 // ---- health and lives ---------------------------------------------------------------------------------
 
-/** The game's health and lives, for the assists (FULL HEALTH/ROOM, INFINITE LIVES) and for continuing. */
+/** The game's health and lives, for the assists (FULL HEALTH/ROOM, UNLIMITED LIVES: shared/lives.ts) and for continuing. */
 export interface VitalsSpec {
   /** Put Pendragon back to full health (and air) in a save, for continuing (`assist`: the options on, for games where that's one). */
   fullHealth?(ram: Uint8Array, colour: Uint8Array, assist: Record<string, boolean>): void;
@@ -430,8 +430,8 @@ export interface VitalsSpec {
    * `max`, and how to set it.
    */
   health?: { max: number; get(ram: Uint8Array): number; set(ram: Uint8Array, colour: Uint8Array, v: number): void };
-  /** For the "infinite lives" assist: put the lives back to full (each frame of play). */
-  lives?(ram: Uint8Array): void;
+  /** For the unlimited lives assist (shared/lives.ts): put the lives back to full (each frame of play). */
+  lives?(ram: Uint8Array, colour: Uint8Array): void;
   /**
    * ENHANCED: unlimited lives for a game that has none (its health running out is the game's end). `lifeEnds`: the address of
    * the game's moment where that end begins once its death has played out (listed under "hooks" in its translation's config);
@@ -439,7 +439,7 @@ export interface VitalsSpec {
    * without the prompt or the title, in place of the game's end. Without a save, the game's end goes on.
    */
   lifeEnds?: number;
-  /** The infinite lives are part of ENHANCED (where the game's maker asked for them), not an option off unless chosen. */
+  /** The unlimited lives are part of ENHANCED (every game: AGENTS.md), not an option off unless chosen. */
   infinite?: boolean;
 }
 
@@ -453,7 +453,7 @@ export class Vitals {
   /** Lives stay full. */
   readonly lives: FrameStage = {
     afterFrame: (g) => {
-      if (this.env.on('lives') && this.spec.lives && this.atMainWait(g) && this.env.playing()) this.spec.lives(g.m.ram);
+      if (this.env.on('lives') && this.spec.lives && this.atMainWait(g) && this.env.playing()) this.spec.lives(g.m.ram, g.m.colour);
     },
   };
 

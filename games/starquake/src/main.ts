@@ -1,4 +1,5 @@
 import { C64_KEYS, SidPlayer, type Host } from 'c64kit';
+import { LIVES_ASSIST } from '../../shared/lives';
 import sidUrl from '../assets/starquake.sid?url';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
@@ -12,7 +13,6 @@ import * as Flow from './flow';
 import * as Heroes from './heroes';
 import type { Game } from './game';
 import { entryOf, starquakeMap, type StarquakeFound } from './map';
-import * as Panel from './panel';
 import { CODEC, describeSave, restore, snapshot, type StarquakeSave } from './save';
 import * as Screens from './screens';
 import { Stage } from './stage';
@@ -70,7 +70,7 @@ export function run(host: Host) {
     ending: () => enhanced() && readWon('starquake'),
     assists: [
       { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
-      { id: 'lives', long: 'INFINITE LIVES' },
+      LIVES_ASSIST,
     ],
   }, () => ({
     // (the show takes the session over while it is on)
@@ -120,9 +120,7 @@ export function run(host: Host) {
       if (fe.assist.health && game.energy < 0x78) { game.energy = 0x78; game.panelDirty |= 1; }
       rooms.enter(snapshot(game));
     },
-    died(game) {
-      if (fe.assist.lives) Panel.extraLife(game);
-    },
+    unlimitedLives: () => fe.assist.lives === true,
   };
 
   // ---- title -------------------------------------------------------------------------------------

@@ -303,7 +303,9 @@ const energyRun = (frames: number, shots: boolean) => {
     const mode = x.enhanced ? 'ENHANCED' : 'ORIGINAL';
     check(`${mode}: the face drained as the energy fell, over ${x.hurts} hurts and a life's end: ${x.checked} frames looked at, ${x.levels.size} levels (${[...x.levels].sort((a, b) => a - b).join(' ')}), ${x.wrong.length} wrong${x.wrong.length ? `: ${x.wrong.slice(0, 3).join('; ')}` : ''}`,
       x.hurts > 2 && x.levels.size === ENERGY.max && x.wrong.length === 0);
-    check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
+    // (ENHANCED's unlimited lives bring a face back at once, so no skull stays: ORIGINAL only)
+    if (!x.enhanced) check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
+    else check(`${mode}: no face stays lost (${lives()} lives now)`, lives() === 5);
   }
   // energy carries over onto a new screen, ENHANCED too (only continuing fills it): part of a face stays part of one
   settled();
@@ -312,6 +314,16 @@ const energyRun = (frames: number, shots: boolean) => {
   tick(2);
   const back = energyShown();
   check(`ENHANCED: travelled (to ${cell()}), energy kept (${ENERGY.get(ram())}), the face as low (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.enhanced && ENERGY.get(ram()) === 7 && back.emptied > 0);
+}
+
+// ---- ENHANCED: unlimited lives and continues: lives lost come back, never CONTINUE? --------------------------------
+{
+  settled();
+  let lost = 0;
+  for (let n = 0; n < 3000; n++) { ram()[0x123e] = 1; ram()[0x3432] = 2; tick(); if (ram()[0x1249] !== 0) lost++; }
+  check(`ENHANCED: life after life taken for 3000 frames (the life-lost sound ran ${lost} frames): still five lives (${lives()}), never CONTINUE? (${p.state.prompt})`, lost > 0 && lives() === 5 && p.state.prompt !== 'continue' && p.state.playing && p.frontEnd.enhanced);
+  tap('KeyP'); tap('KeyE'); tap('KeyP');
+  check('ORIGINAL: no unlimited lives', !p.frontEnd.enhanced && p.frontEnd.assist.lives === false);
 }
 
 // ---- every life lost: CONTINUE?-----------------------------------------------------------------------
@@ -335,6 +347,8 @@ check(`Space: a new game, on the beach (${cell()})`, until(() => p.state.playing
 tick(20);
 check('a save on coming onto the beach', store.has('dragonskulle.save.v2'));
 shot('7-beach');
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2); // (back to ENHANCED, the default)
+check('and ENHANCED again', p.frontEnd.enhanced && p.frontEnd.assist.lives === true);
 // ---- the bar: the status line at the top, the actions at the bottom, in the keys' order -------------------
 // (read off the picture as shown: renderPixels with the front end's layout; `ref`: as the machine drew it)
 {
