@@ -1,13 +1,14 @@
 /**
- * Entombed's ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * Entombed's ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. the whole show runs from the first frame to THE END and back to the title, every scene of the montage the game itself running on a
  *     new game of its own, Pendragon driven by the joystick alone: along the first chamber and a corridor, the five bells whipped in
- *     order (the torch comes down), the statue and the pot whipped, the creatures at the bowl of fruit and the book of the dead taken,
- *     the cobra touched with the book, the torch used in a dark chamber, the leap up the bird's chamber, and the way out run for and
+ *     order (the torch comes down), the statue whipped, the creatures at the bowl of fruit and the book of the dead taken,
+ *     the cobra touched with the book, the leap up the bird's chamber, and the way out run for and
  *     stopped short of (walking out is the game's own end: it never happens in the show);
  *  2. the credits: every line typed over the montage in the empty band under the picture (the game leaves rows 20 and 21 black),
- *     in the credit colour and nothing else, the band empty before the text in every scene; the cast recorded, Pendragon last;
+ *     in the credit colour and nothing else, the band empty before the text in every scene; the cast recorded and walking through
+ *     the montage, each named in the band in turn, on pixels the game leaves empty;
  *  3. what a win is ($3230 is 2: he walked out of chamber 1 with the way open), and through the front end as the browser runs it:
  *     a save in chamber 1 with the way open, up to the door and out: the win kept, the game's own end over before the ending, the
  *     ending run to the title; W on the pause screen once won; none in ORIGINAL; the numbers under THE END;
@@ -15,11 +16,12 @@
  *
  *   nice -n 15 node tools/test.mjs games/entombed/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState } from 'c64kit';
-import { Ending, PORT_CREDITS, bootGame, keepWon, placed, readWon } from '../../shared/native/ending';
+import { PORT_CREDITS, keepWon, readWon } from '../../shared/ending/credits';
+import { Ending, bootGame, placed } from '../../shared/ending/machine-reel';
 import { GAMES } from '../../shared/native/test/games';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
@@ -46,7 +48,7 @@ const keep = (ram: Uint8Array) => { ram[0x37f6] = 0; ram[0x323d] = 0; };
 
 // ---- the show, from the start to the end
 const seen = {
-  bells: 0, torch: false, statue: 0, pot: false, book: false, cobra: false, flash: 0, birdLow: 999, outFurthest: 999, won: false,
+  bells: 0, statue: 0, book: false, cobra: false, birdLow: 999, outFurthest: 999, won: false,
   firstLeft: 999, corridorRight: 0, whipped: 0, scenes: new Set<number>(),
 };
 const result = playShow({
@@ -60,14 +62,12 @@ const result = playShow({
     if (r[0x3230] === 2) seen.won = true;
     if (scene === 0 && me) seen.firstLeft = Math.min(seen.firstLeft, me.x);
     if (scene === 1) { if (me) seen.corridorRight = Math.max(seen.corridorRight, me.x); if (r[0x20cf] === 1) seen.whipped++; }
-    if (scene === 2) { seen.bells = Math.max(seen.bells, r[0x6329]); if (r[0x322f] === 1) seen.torch = true; }
+    if (scene === 2) seen.bells = Math.max(seen.bells, r[0x6329]);
     if (scene === 3) seen.statue = Math.max(seen.statue, r[0x37fc]);
-    if (scene === 4 && r[0x6291] === 0x1a) seen.pot = true;
-    if (scene === 5 && r[0x322c] === 1) seen.book = true;
-    if (scene === 6 && r[0x37ff] === 1) seen.cobra = true;
-    if (scene === 7 && m.vic[0x15] & 0x80) seen.flash++;
-    if (scene === 8 && me) seen.birdLow = Math.min(seen.birdLow, me.y);
-    if (scene === 9 && me) seen.outFurthest = Math.min(seen.outFurthest, me.x);
+    if (scene === 4 && r[0x322c] === 1) seen.book = true;
+    if (scene === 5 && r[0x37ff] === 1) seen.cobra = true;
+    if (scene === 6 && me) seen.birdLow = Math.min(seen.birdLow, me.y);
+    if (scene === 7 && me) seen.outFurthest = Math.min(seen.outFurthest, me.x);
   },
 });
 const lines = spec.scenes.flatMap((sc) => sc.credits ?? []);
@@ -75,15 +75,13 @@ checkShow({ spec, port, title, stats: [], band: { top: 166, bottom: 175 } }, res
 check('the montage is eight to twelve places', spec.scenes.length >= 8 && spec.scenes.length <= 12 && spec.scenes.every((sc) => sc.caption !== undefined));
 check(`the first chamber: he ran along it to the left (x ${seen.firstLeft})`, seen.firstLeft < 110);
 check(`the corridors: he ran along and used the whip (${seen.whipped} frames of it, x ${seen.corridorRight})`, seen.corridorRight > 220 && seen.whipped > 20);
-check(`the bells: all five whipped in order (${seen.bells}) and the torch came down`, seen.bells === 5 && seen.torch);
+check(`the bells: all five whipped in order (${seen.bells})`, seen.bells === 5);
 check(`the statue: whipped until it gives ($37FC ${seen.statue})`, seen.statue >= 6);
-check('the pots: the right pot gives ($6291 $1A)', seen.pot);
 check('the book of the dead: the creatures came for the fruit and it is his ($322C)', seen.book);
 check('the cobra: touched with the book, it goes ($37FF)', seen.cobra);
-check(`the torch used in the dark chamber (sprite 7's flash shown ${seen.flash} frames)`, seen.flash > 20);
 check(`the bird's chamber: he climbed it (his y ${seen.birdLow})`, seen.birdLow < 140);
 check(`the way out: he ran for it (x ${seen.outFurthest}) and stopped short: the show never walked out ($3230 not 2)`, seen.outFurthest <= 70 && seen.outFurthest > 50 && !seen.won);
-check('the cast has plain names, Pendragon last, and the creatures move', result.figures.length === spec.cast.length && result.figures[result.figures.length - 1].name === 'SIR ARTHUR PENDRAGON' && result.figures.every((f) => f.poses >= 1) && result.figures.filter((f) => f.poses > 1).length >= 4);
+check('the cast has plain names (the hero is in every scene, not among them), and the creatures move', result.figures.length === spec.cast.length && result.figures.every((f) => f.poses >= 1) && result.figures.filter((f) => f.poses > 1).length >= 4);
 
 // ---- THE END's numbers
 {

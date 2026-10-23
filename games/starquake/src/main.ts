@@ -2,7 +2,7 @@ import { C64_KEYS, SidPlayer, type Host } from 'c64kit';
 import { LIVES_ASSIST } from '../../shared/lives';
 import sidUrl from '../assets/starquake.sid?url';
 import { RewardShow } from '../../shared/ending/show';
-import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import type { TouchLayout } from '../../shared/touch';
@@ -97,7 +97,7 @@ export function run(host: Host) {
   const { flow, fe, latch, rooms } = port;
   enhanced = () => fe.enhanced;
 
-  // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+  // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
   const reward = rewardShow = new RewardShow({
     host,
     spec: starquakeEnding(renderer),

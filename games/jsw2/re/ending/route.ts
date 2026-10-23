@@ -14,7 +14,7 @@
  */
 import fs from 'node:fs';
 import { unpackState, type MachineState } from '../../../../packages/c64kit/src/c64/machine';
-import { IDLE, bootGame, joy, placed } from '../../../shared/native/ending';
+import { IDLE, bootGame, joy, placed } from '../../../shared/ending/machine-reel';
 import { NativeHost } from '../../../shared/native/host';
 import { must } from '../../../shared/test/must';
 import { ITEM_COUNTS } from '../../src/itemcounts';

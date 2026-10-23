@@ -1,5 +1,6 @@
 import { rd } from '../../shared/native/cpu';
-import { PORT_CREDITS, type EndingCharacter, type EndingScene, type EndingSpec, type EndingStep } from '../../shared/native/ending';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { type EndingCharacter, type EndingScene, type EndingSpec, type EndingStep } from '../../shared/ending/machine-reel';
 import type { StatusLine } from '../../shared/native/narrate';
 import { pendragonCode } from '../../shared/pendragon/status';
 import { ACTION, ACTIONS } from './actions';
@@ -8,7 +9,7 @@ import { BRIDGE_OPEN, BRIDGES, DRAGONS } from './rules';
 import { LOCATION, go } from './travel';
 
 /**
- * The ending's places and cast for Dragonskulle (games/shared/native/ending.ts has the show). Every place is a screen of the
+ * The ending's places and cast for Dragonskulle (games/shared/ending/ has the show). Every place is a screen of the
  * island, entered the game's own way (src/travel.ts) on a new game's memory, so what the game keeps there is where it belongs and its
  * creatures move as they always did; Pendragon is told only where to go and what to use. The captions are plain names for the
  * places (the game and its map name none; they are what re/README.md calls them).
@@ -47,31 +48,31 @@ const SHOVEL = 0x342f, CLOAK = 0x3430;
 /** Things he has in hand for a scene. */
 const have = (...addresses: number[]) => (ram: Uint8Array) => { for (const a of addresses) ram[a] = 1; };
 
-const scene = (caption: string, credits: readonly string[], enter: EndingScene['enter'], steps: readonly EndingStep[], frames = 360): EndingScene => ({ caption, credits, enter, steps, frames });
+const scene = (caption: string, credits: readonly string[], enter: EndingScene['enter'], steps: readonly EndingStep[], frames = 260): EndingScene => ({ caption, credits, enter, steps, frames });
 
 const SCENES: readonly EndingScene[] = [
   // where he lands: the spot in the sand he digs four times for the cloak (his y above $9A, touching the spot, the game's own count)
-  scene('THE BEACH', ['DRAGONSKULLE', 'ULTIMATE PLAY THE GAME, JANUARY 1986', 'FOR THE COMMODORE 64'], cell(1, 0, (ram) => { ram[SHOVEL] = 1; ram[0x342b] = 0; }), [{ walk: [160, 152] }, { use: ACTION.shovel, times: 6, gap: 20 }, { wait: 40 }]),
+  scene('THE BEACH', ['DRAGONSKULLE', 'ULTIMATE PLAY THE GAME, JANUARY 1986'], cell(1, 0, (ram) => { ram[SHOVEL] = 1; ram[0x342b] = 0; }), [{ walk: [160, 152] }, { use: ACTION.shovel, times: 6, gap: 20 }, { wait: 40 }]),
   // the shovel in its room, between the ants: a stone thrown facing up from below it (the stone must meet it, re/README.md "The shovel")
-  scene('THE SHOVEL', ['CREATED BY DAVE AND BOB THOMAS', 'CODE BY DAVE THOMAS', 'GRAPHICS BY BOB THOMAS'], cell(4, 2), [{ walk: [132, 138] }, { use: ACTION.stone, face: 'up', gap: 60 }, { wait: 200 }]),
+  scene('THE SHOVEL', ['CREATED BY DAVE AND BOB THOMAS', 'CODE BY DAVE, GRAPHICS BY BOB THOMAS'], cell(4, 2), [{ walk: [132, 138] }, { use: ACTION.stone, face: 'up', gap: 60 }, { wait: 200 }]),
   // a stretch of the caves: along it, a jump over what is in the way
   scene('THE CAVES', ['A.C.G. ASHBY COMPUTERS AND GRAPHICS', 'THE FOURTH AND LAST PENDRAGON GAME', 'STARRING SIR ARTHUR PENDRAGON'], cell(1, 3), [{ walk: [240, 150] }, { jump: 2 }, { walk: [100, 150] }]),
   // the river, its bridge open (the count of wizards killed made $FF), crossed
   scene('THE RIVER', ['AN ISLAND LOOSELY BASED ON', 'SKULL ISLAND FROM KING KONG'], cell(4, 6, (ram) => { ram[0x343a] = BRIDGE_OPEN; }), [{ go: 'up', frames: 10 }, { walk: [149, 154] }, { go: 'up', frames: 95 }, { jump: 1 }, { go: 'down', frames: 95 }]),
   // the dragon: ten stones thrown facing up on its head
-  scene('THE DRAGON', ['THE KARNATH ENGINE WAS RECODED FOR', 'ENTOMBED THEN USED IN THIS GAME TOO'], cell(4, 5), [{ walk: [150, 163] }, { use: ACTION.stone, face: 'up', times: 9, gap: 4 }], 800),
+  scene('THE DRAGON', ['THE KARNATH ENGINE WAS RECODED FOR', 'ENTOMBED THEN USED IN THIS GAME TOO'], cell(4, 5), [{ walk: [150, 163] }, { use: ACTION.stone, face: 'up', times: 9, gap: 4 }], 450),
   // a grave, dug on
-  scene('THE GRAVES', ['ULTIMATE ALLOWED NO CREDITS SO', 'DAVE SNEAKED THEIR INITIALS IN', 'THE LAST SCREEN IS SIGNED', 'DT AND RET 1985'], cell(5, 4, have(SHOVEL)), [{ walk: [97, 116] }, { use: ACTION.shovel, times: 6, gap: 20 }]),
+  scene('THE GRAVES', ['ULTIMATE ALLOWED NO CREDITS SO', 'DAVE SNEAKED THEIR INITIALS IN', 'THE LAST SCREEN: DT AND RET 1985'], cell(5, 4, have(SHOVEL)), [{ walk: [97, 116] }, { use: ACTION.shovel, times: 6, gap: 20 }], 370),
   // the falling rocks, under the cloak
   scene('THE FALLING ROCKS', ['THE THEME TUNE SOUNDS LIKE BUGGY BOY', 'ON C64 WHICH DAVE AND BOB ALSO MADE'], cell(3, 2, have(CLOAK)), [{ use: ACTION.cloak }, { go: 'up', frames: 30 }, { go: 'right', frames: 60 }, { go: 'left', frames: 120 }, { go: 'right', frames: 60 }]),
   // the eyes, stones thrown at each side
   scene('THE EYES', ['IT GOT DREADFUL REVIEWS BUT', 'THE STAMPERS AND THE BROTHERS BOTH', 'THOUGHT IT THE BEST OF THE FOUR'], cell(12, 8), [{ use: ACTION.stone, face: 'left', times: 2, gap: 50 }, { use: ACTION.stone, face: 'right', times: 2, gap: 50 }]),
   // the plank over the water
-  scene('THE LAKE', ['IT REACHED NUMBER 10 IN THE UK CHART', 'IN FEBRUARY 1986', 'THIS COPY SAID A.C.G. 1001', 'THE CRACKERS NAME IN THE YEAR', 'A.C.G. 1985 IS PUT BACK'], cell(2, 1), [{ go: 'right', frames: 40 }, { jump: 1 }, { go: 'left', frames: 80 }, { jump: 1 }]),
+  scene('THE LAKE', ['NUMBER 10 IN THE UK, FEBRUARY 1986', ...PORT_CREDITS], cell(2, 1), [{ go: 'right', frames: 40 }, { jump: 1 }, { go: 'left', frames: 80 }, { jump: 1 }]),
   // the gas
-  scene('THE GAS', PORT_CREDITS, cell(5, 14, have(CLOAK)), [{ use: ACTION.cloak }, { go: 'right', frames: 40 }, { go: 'left', frames: 90 }, { go: 'right', frames: 40 }]),
+  scene('THE GAS', [], cell(5, 14, have(CLOAK)), [{ use: ACTION.cloak }, { go: 'right', frames: 40 }, { go: 'left', frames: 90 }, { go: 'right', frames: 40 }]),
   // the skull, stopped short of its last hit (the game's own end follows that)
-  scene('THE SKULL', ['THANKS FOR PLAYING'], cell(9, 23), [{ use: ACTION.stone, face: 'up', times: 4, gap: 4 }], 300),
+  scene('THE SKULL', ['THANKS FOR PLAYING'], cell(9, 23), [{ use: ACTION.stone, face: 'up', times: 4, gap: 4 }], 260),
 ];
 
 const CAST: readonly EndingCharacter[] = [
@@ -82,7 +83,6 @@ const CAST: readonly EndingCharacter[] = [
   { name: 'THE EYE', enter: cell(12, 8), sprites: [0] },
   { name: 'THE GAS', enter: cell(5, 14), sprites: [0] },
   { name: 'THE SKULL OF SOULS', enter: cell(9, 23), sprites: [5] },
-  { name: 'SIR ARTHUR PENDRAGON', enter: cell(1, 3), sprites: [2], steps: [{ go: 'right', frames: 150 }] },
 ];
 
 export const dragonskulleEnding: EndingSpec = {

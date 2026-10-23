@@ -3,7 +3,7 @@ import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { antiriadCast } from '../src/ending-cast';
 import { Bases } from '../src/stage';
 
-/** The parade's cast: each figure's frames in a row on a sheet, with how many poses and how long (frames) each takes round. */
+/** The visitors' cast: each figure's frames in a row on a sheet, with how many poses and how long (frames) each takes round. */
 const out = process.argv[2] ?? '/tmp';
 const t0 = performance.now();
 const figures = antiriadCast(new PixelRenderer(), new Bases()).map((record) => record());

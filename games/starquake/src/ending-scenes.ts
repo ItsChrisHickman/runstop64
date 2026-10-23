@@ -45,7 +45,7 @@ export interface Scene {
 /**
  * The montage: BLOB's own start on the surface, then places down the planet (a hover pad over the surface, a teleport booth with
  * the thing it asks for typed, the cave's pad, the core). The credits are in three parts, as Super Mario World's: the makers, true
- * facts, then the port (shared/native/ending.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every line:
+ * facts, then the port (shared/ending/credits.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every line:
  * re/credits.md. A line is at most 38 letters of the game's own lettering (the last text row, under the room, is empty in every place).
  */
 export const SCENES: readonly Scene[] = [
@@ -84,13 +84,13 @@ export const SCENES: readonly Scene[] = [
   },
   {
     // (the core's last pieces in his hands: the core's sequence puts them in, and the game's own ending follows)
-    room: 199, spot: { col: 21, row: 16 }, complete: true, goals: [{ won: true }], route: '', frames: 900,
-    credits: ['THE SPECTRUM GAME WON A CRASH SMASH', 'AT 96 PER CENT', 'YOUR SINCLAIR RANKED IT 27TH IN ITS', 'TOP 100 GAMES OF ALL TIME', 'RETRO GAMER PUT IT 10TH IN ITS TOP 25', 'SPECTRUM GAMES'],
+    room: 199, spot: { col: 21, row: 16 }, complete: true, goals: [{ won: true }], route: '', frames: 640,
+    credits: ['THE SPECTRUM GAME WON A CRASH SMASH', 'AT 96 PER CENT'],
   },
 ];
 
 /**
- * A creature of the parade: its kind (what the game draws into an enemy's sprite: 0-14), a room where one of that kind is about
+ * A creature that walks through the montage: its kind (what the game draws into an enemy's sprite: 0-14), a room where one of that kind is about
  * with BLOB standing in his own start of it (under the montage's seed), and a name. The game names none of them: the names are plain
  * descriptions of the pictures.
  */

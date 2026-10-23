@@ -1,5 +1,5 @@
 /**
- * Dragonskulle's ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * Dragonskulle's ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. the whole show runs from the first frame to THE END and back to the title, each scene of the montage the game itself running
  *     on a new game of its own, Pendragon driven by the joystick alone: the cloak dug up, the shovel taken by a stone, the bridge
@@ -14,11 +14,12 @@
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState } from 'c64kit';
-import { Ending, PORT_CREDITS, keepWon, readWon } from '../../shared/native/ending';
+import { PORT_CREDITS, keepWon, readWon } from '../../shared/ending/credits';
+import { Ending } from '../../shared/ending/machine-reel';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { checkShow, playShow } from '../../shared/test/ending-kit';
@@ -84,13 +85,13 @@ check('the show never won the game it shows (the skull is stopped short of its l
 check('the beach: he dug up the cloak (four digs on the spot, the game\'s own count)', seen.dug);
 check('the shovel room: a stone thrown facing up took the shovel', seen.shovel);
 check('the river: he crossed the bridge (its wizards counted, the way across open)', seen.crossed);
-check(`the dragon: stones thrown (${seen.throws.get(4) ?? 0}), and one counted on its head (${seen.highestHit})`, (seen.throws.get(4) ?? 0) >= 6 && seen.highestHit >= 1);
+check(`the dragon: stones thrown (${seen.throws.get(4) ?? 0}), and one counted on its head (${seen.highestHit})`, (seen.throws.get(4) ?? 0) >= 5 && seen.highestHit >= 1);
 check('the graves: a good grave dug (its sprite and sound)', seen.grave);
-check(`the cloak on under the falling rocks (${seen.cloak.get(6) ?? 0} frames) and in the gas (${seen.cloak.get(9) ?? 0})`, (seen.cloak.get(6) ?? 0) > 300 && (seen.cloak.get(9) ?? 0) > 200);
+check(`the cloak on under the falling rocks (${seen.cloak.get(6) ?? 0} frames) and in the gas (${seen.cloak.get(9) ?? 0})`, (seen.cloak.get(6) ?? 0) > 200 && (seen.cloak.get(9) ?? 0) > 200);
 check(`the eyes: stones thrown both ways (${seen.throws.get(7) ?? 0})`, (seen.throws.get(7) ?? 0) >= 3);
 check(`jumps along the caves (${seen.jumps.get(2) ?? 0}) and the lake (${seen.jumps.get(8) ?? 0})`, (seen.jumps.get(2) ?? 0) >= 1 && (seen.jumps.get(8) ?? 0) >= 1);
 check(`the skull: stones thrown at it (${seen.throws.get(10) ?? 0})`, (seen.throws.get(10) ?? 0) >= 3);
-check('the cast is the island\'s creatures with plain names, Pendragon last', result.figures.length === spec.cast.length && result.figures[result.figures.length - 1].name === 'SIR ARTHUR PENDRAGON' && result.figures.every((f) => f.poses >= 1));
+check('the cast is the island\'s creatures with plain names (the hero is in every scene, not among them)', result.figures.length === spec.cast.length && result.figures.every((f) => f.poses >= 1));
 check('the creatures move: the dragon and the wizard have more than one picture', result.figures.filter((f) => f.poses > 1).length >= 4);
 
 // ---- THE END's numbers

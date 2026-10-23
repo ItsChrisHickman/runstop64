@@ -14,7 +14,8 @@ import { PAUSE_KEYS, type AssistSpec } from '../frontend';
 import { runPort, type FrameResult, type PortPhase, type ResumeFrom } from '../port';
 import { mapSummary, type PauseMap } from './pause';
 import type { TouchLayout } from '../touch';
-import { Ending, keepWon, readWon, wantsEnding, type EndingSpec } from './ending';
+import { keepWon, readWon, wantsEnding } from '../ending/credits';
+import { Ending, type EndingSpec } from '../ending/machine-reel';
 import { TitleTune } from './title-tune';
 
 export type { RunSpec, NativeAssistId };
@@ -533,7 +534,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     get frontEnd() { return fe; },
     tick: port.tick,
     render: port.render,
-    /** For tests: the ending (native/ending.ts), if the game has one. */
+    /** For tests: the ending (ending/machine-reel.ts), if the game has one. */
     get ending() { return endingShow; },
     /** The gear: the game's options. */
     menu: port.menu,

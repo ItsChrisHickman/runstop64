@@ -1,6 +1,6 @@
 import { C64_KEYS, type Renderer } from 'c64kit';
-import { PORT_CREDITS } from '../../shared/native/ending';
-import { recordFigure, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import { RoutePilot, type Stick } from '../../shared/ending/pilot';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
 import { rom } from './data';
@@ -16,7 +16,7 @@ import { CAST, SCENES, type Goal, type Scene } from './ending-scenes';
  * The reward for beating Starquake (ENHANCED; shared/ending/show.ts is the show, this is what is BLOB's): a montage of places on
  * the planet, each one the game's own engine (a game of its own over its own picture, Flow.play) on a new game of ours with BLOB
  * driven by a route (shared/ending/pilot.ts: input like a player's) doing something there (picking things up, riding a hover pad,
- * a teleport booth, the core), the credits typing on in a part of the picture the place leaves empty; then the parade of the
+ * a teleport booth, the core), the credits typing on in a part of the picture the place leaves empty, and the
  * game's creatures and BLOB; then THE END with the numbers the pause screen keeps.
  */
 
@@ -24,8 +24,6 @@ import { CAST, SCENES, type Goal, type Scene } from './ending-scenes';
 const SEED = 0x51a7e;
 /** The row the credits go on: the screen's last text row (y 192 to 199), which the game leaves empty in every place (and its panel's and rooms' screens). */
 export const CREDIT_ROW = 192;
-/** Frames a credit line is given (a line types on a letter a frame and is held for the rest). */
-const CREDIT_SLOT = 110;
 /** Frames after what BLOB does in a place before the next (a moment to take it in). */
 const TAIL = 50;
 /** The game's joystick idle ($7F: nothing pressed; low bits = pressed) and no key ($40). */
@@ -131,6 +129,12 @@ export class SqReel implements Reel {
   draw() { this.stage.update(!this.ended); }
   render(alpha: number) { this.stage.view.render(alpha); }
 
+  /** The row BLOB's feet are on (his body, sprite 0). */
+  get ground() {
+    const shot = vicShot(this.stage.vic, 0);
+    return shot ? shotFeet(shot) : undefined;
+  }
+
   /** (the picture is the stage's, drawn again by the next place; the show puts the sprites away when it is over) */
   dispose() {}
 }
@@ -144,7 +148,7 @@ export const routeFrames = (scene: Scene) => Math.max(scene.frames ?? 0, new Rou
 const RECORDED = 1500;
 
 /**
- * A creature as the engine shows it (going right, as the parade walks): the game runs in a room with BLOB standing, and the first
+ * A creature as the engine shows it (going right, as the visitors walk): the game runs in a room with BLOB standing, and the first
  * enemy of the kind that comes about is followed (one enemy: it keeps its colour) while it goes right.
  */
 function recordCreature(stage: Stage, c: (typeof CAST)[number]): Figure | null {
@@ -165,22 +169,6 @@ function recordCreature(stage: Stage, c: (typeof CAST)[number]): Figure | null {
     if (shot) moments.push([shot]);
   }
   return recordFigure(c.name, moments);
-}
-
-/** BLOB, walking right as he does in play: his three sprites (body, the yellow layer, eyes), the body behind. */
-function recordBlob(stage: Stage): Figure | null {
-  const g = stage.fresh();
-  const script = openScene(g, { room: 8, spot: { col: 0x08, row: 0x10 } });
-  const pilot = new RoutePilot('>96');
-  const moments: SpriteShot[][] = [];
-  while (!pilot.done) {
-    g.joy = joyOf(pilot.next());
-    script.next();
-    stage.update(true);
-    const shots = [0, 1, 2].flatMap((n) => { const s = vicShot(stage.vic, n); return s ? [s] : []; });
-    if (shots.length === 3) moments.push(shots);
-  }
-  return recordFigure('BLOB', moments);
 }
 
 // ---- the show ------------------------------------------------------------------------------------------------------------
@@ -211,9 +199,8 @@ export function starquakeEnding(renderer: Renderer): RewardSpec {
   return {
     title: 'STARQUAKE',
     places,
-    cast: [...CAST.map((c) => () => recordCreature(stage(), c)), () => recordBlob(stage())],
+    cast: CAST.map((c) => () => recordCreature(stage(), c)),
     creditRow: CREDIT_ROW,
-    creditSlot: CREDIT_SLOT,
   };
 }
 

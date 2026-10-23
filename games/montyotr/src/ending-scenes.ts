@@ -37,7 +37,7 @@ const nothing = () => {};
 /**
  * The montage, in the order of the journey west (the house, the escape tunnel, the sewerage works, the Ultimate Experience, the
  * tree stump, the C5 street, the boat, the dock). The credits are in three parts, as Super Mario World's: the makers, true facts,
- * then the port (shared/native/ending.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every line:
+ * then the port (shared/ending/credits.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every line:
  * re/credits.md. A line is at most 38 letters of the game's lettering (no apostrophes, percent signs or brackets: its font has none).
  */
 export const SCENES: readonly Scene[] = [
@@ -82,22 +82,7 @@ export const SCENES: readonly Scene[] = [
     // (the C5 drives on by itself after the route, through the street)
     room: 0x24, spot: { x2: 0x9b, y: 0x7a, facing: LEFT }, prepare: nothing, take: { drive: 0x20 }, frames: 260,
     route: '<64',
-    credits: ['ROB HUBBARD SAID THE MAIN TUNE WAS', 'INSPIRED BY DEVILS GALOP, THE DICK'],
-  },
-  {
-    room: 0x29, spot: { x2: 0x14, y: 0xa2, facing: RIGHT }, prepare: nothing, take: { item: 9 },
-    route: '>40 <16 >16 <8 >8 J>8 .32 v>16',
-    credits: ['BARTON RADIO SERIAL THEME', 'HARDCORE GAMING 101 READERS RATED IT'],
-  },
-  {
-    room: 0x2d, spot: { x2: 0x94, y: 0xb2, facing: LEFT }, prepare: nothing, take: { item: 18 },
-    route: '<72 .40 ^<8 J>8 .24 ^<8 ^24 ^<16 J<8',
-    credits: ['NUMBER 2 IN WESTERN GAME MUSIC, 2011', 'ZZAP!64 GAVE IT 90 PER CENT IN 1985:'],
-  },
-  {
-    room: 0x2b, spot: { x2: 0x94, y: 0xb2, facing: LEFT }, prepare: nothing, take: { item: 10 },
-    route: 'J<8 .40 J<8 .32 >8 .8 J>8',
-    credits: ['MOLING ABOUT HAS NEVER BEEN SUCH FUN'],
+    credits: ['ROB HUBBARD SAID THE MAIN TUNE WAS', 'INSPIRED BY DEVILS GALOP, THE DICK', 'BARTON RADIO SERIAL THEME'],
   },
   {
     room: 0x2f, spot: { x2: 0x48, y: 0x9a, facing: LEFT }, prepare: (g) => { g.siCollected[8] = 0x81; }, take: { treasure: true },
@@ -108,7 +93,7 @@ export const SCENES: readonly Scene[] = [
 ];
 
 /**
- * The creatures of the parade, in the order the journey meets them (the room each first appears in): the game's enemy types
+ * The creatures that walk through the montage, in the order the journey meets them (the room each first appears in): the game's enemy types
  * (more than one for a creature made of several sprites moving together) and the name under it. No names are documented for
  * most (the C64 code numbers them): they are plain descriptions of the sprite, but for the ones ZZAP!64 names (mugs, hands,
  * blobbies, jellyfish: issue 6, p. 16) and the ones the reconstruction's comments name (the wasp that fly spray sees off, the

@@ -3,8 +3,9 @@
  *
  *  1. every screen's route (re/ending/route.ts: the test suite's player's keys, found on a `SteadyGame`) played again does what the screen
  *     asks, alive: each leaves by its way out and the last delivers the papers and ends the game; played twice it is the same game;
- *  2. the whole show runs from the first frame to THE END and calls `done`: the six screens in order each with its credits, the parade (every
- *     creature recorded, Monty last), THE END and its numbers, the tune from its start and again on the way out;
+ *  2. the whole show runs from the first frame to THE END and calls `done`: the six screens in order each with its credits, the creatures
+ *     (recorded; Monty is in every screen, not among them) walking through them, each named in the credits' rows in turn on pixels the game leaves
+ *     empty, no parade, about a minute and THE END and its numbers, the tune from its start and again on the way out;
  *  3. the credits: the rows they stand in (where the panel was, put away) are black in every frame of every screen, before the text goes
  *     over them, every line types on there letter by letter in bright yellow, is held and goes, the port's lines last;
  *  4. a key skips it, after two seconds and not before;
@@ -13,15 +14,16 @@
  *
  *   nice -n 15 node tools/test.mjs games/moley/test/reward.ts [out-dir]
  *
- * With an out-dir: PNG frames of each screen, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each screen, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
-import { CREDIT, PORT_CREDITS, readWon } from '../../shared/native/ending';
-import { creditAt, RewardShow, type Place, type Reel } from '../../shared/ending/show';
+import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
+import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
+import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
 import { palettePng } from '../../../tools/png';
 import { SPECTRUM } from '../src/colours';
 import { CREDIT_ROW, LINES, SCENE_ROOMS, endingStats, moleyEnding, newScreen } from '../src/ending';
@@ -78,7 +80,7 @@ function band() {
   return { credit, other };
 }
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
-let gameBand = 0, gameFrames = 0;
+let gameBand = 0, gameFrames = 0, gameBandEmpty = true;
 const watched: Place[] = spec.places.map((place) => ({
   ...place,
   open() {
@@ -86,7 +88,7 @@ const watched: Place[] = spec.places.map((place) => ({
     if (!reel) return null;
     const watch: Reel = {
       tick: () => reel.tick(),
-      draw() { reel.draw(); const b = band(); gameBand += b.credit + b.other; gameFrames++; },
+      draw() { reel.draw(); const b = band(); gameBand += b.credit + b.other; gameBandEmpty = b.credit + b.other === 0; gameFrames++; },
       render: (a) => reel.render(a),
       dispose: () => reel.dispose(),
     };
@@ -104,9 +106,9 @@ const show = new RewardShow({
 show.start(['SCORE 1234', 'HIGH SCORE 5678', 'ITEMS 20 OF 20', 'LIVES 5']);
 let frames = 0;
 const phases: string[] = [];
-const typed = new Set<string>();
-let creditsWrong = 0, creditFrames = 0, emptyFrames = 0, lastPlace = -1, placeFrame = 0, nameGrey = 0, endYellow = 0, endFrames = 0, parades = 0, sawPortLast = false;
-const wrongAt: string[] = [];
+let lastPlace = -1, placeFrame = 0, endYellow = 0, endFrames = 0;
+const bandWatch = new BandWatch(), castWatch = new CastWatch();
+const sceneFrames: number[] = [];
 while (show.active && frames < 14000) {
   input.poll();
   show.tick();
@@ -117,26 +119,15 @@ while (show.active && frames < 14000) {
   if (p.phase === 'montage') {
     if (p.place !== lastPlace) { lastPlace = p.place; placeFrame = 0; }
     placeFrame = p.frames;
+    sceneFrames[p.place] = p.frames;
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
-    const now = creditAt(place, p.frames - 1);
     const b = band();
-    if (now) {
-      creditFrames++;
-      // (a line in full is all credit-coloured pixels in the band, never another colour; while it types on the same)
-      if (b.other > 0 || (now.shown.trim().length > 0 && b.credit === 0)) { creditsWrong++; if (wrongAt.length < 6) wrongAt.push(`place ${p.place} frame ${p.frames}: ${b.credit} credit, ${b.other} other`); }
-      if (now.shown === place.credits?.[now.line]) typed.add(`${p.place}.${now.line}`);
-      if (p.place === spec.places.length - 1 && place.credits && now.line === place.credits.length - 1 && now.shown === place.credits[now.line]) sawPortLast = true;
-    } else {
-      emptyFrames++;
-      if (b.credit > 0 || b.other > 0) { creditsWrong++; if (wrongAt.length < 6) wrongAt.push(`place ${p.place} frame ${p.frames}: pixels in the band with no line`); }
-    }
+    // (a line in full is all credit-coloured pixels in the band, never another colour; while it types on the same)
+    bandWatch.frame(p, place.credits, { ink: b.credit, other: b.other });
+    castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([100, 400, 700, 1000].includes(placeFrame)) png(`place${p.place}-f${placeFrame}.png`, renderer);
-  } else if (p.phase === 'parade') {
-    parades++;
-    const pic = renderer.picture();
-    for (let y = 136; y < 146; y++) for (let x = 0; x < SURFACE_WIDTH; x++) if (pic[y * SURFACE_WIDTH + x] === SPECTRUM.text) nameGrey++;
-    if (parades % 100 === 1) png(`parade-${String(parades).padStart(4, '0')}.png`, renderer);
+    if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
   } else if (p.phase === 'end') {
     endFrames++;
     if (endFrames === 5) {
@@ -146,20 +137,19 @@ while (show.active && frames < 14000) {
     }
   }
 }
-console.log(`phases: ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); figures: ${show.cast.map((f) => `${f.name}:${f.poses.length}`).join(', ')}`);
-if (wrongAt.length) console.log(wrongAt.join('\n'));
+console.log(`phases: ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}; figures: ${show.cast.map((f) => `${f.name}:${f.poses.length}`).join(', ')}`);
 check('the show ran to its end and called done, once', !show.active && over === 1);
-check('every screen of the montage in order, the parade and THE END', phases.join() === 'loading,montage,parade,end');
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, 60 to 150)`, frames >= 3000 && frames <= 7500);
-check(`the screens' lengths are their routes' (${spec.places.map((pl) => pl.frames).join(', ')} frames) with the quick waits`, spec.places.every((pl, i) => pl.frames === Pilot.frames(ROUTES[SCENE_ROOMS[i]])) && spec.places.every((pl) => pl.frames < 1400));
+check('every screen of the montage in order, then THE END, no parade', phases.join() === 'loading,montage,end');
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
+check(`each screen is as long as its credits and visitors take (${sceneFrames.join(', ')} frames), a part of its route played (never more than the route has)`, sceneFrames.every((n, i) => n > 0 && n <= Pilot.frames(ROUTES[SCENE_ROOMS[i]])));
 check('the tune is begun with the show and again on the way out', tuneStarts === 1 && tuneEnds === 1);
-check(`every creature of the cast was recorded, Monty last (${show.cast.length}), and most of them move`, show.cast.length === spec.cast.length && show.cast[show.cast.length - 1].name === 'MONTY' && show.cast.filter((f) => f.poses.length > 1).length >= 6);
-check(`the rows of the credits (${BAND.top} to ${BAND.bottom}) are black in every frame of every screen: ${gameBand} pixels drawn in ${gameFrames} frames`, gameBand === 0 && gameFrames > 3000);
-check(`every credit line types on in bright yellow in those rows, alone in them (${typed.size} of ${LINES.length} lines in full; ${creditFrames} frames with a line, ${emptyFrames} without, ${creditsWrong} wrong)`, typed.size === LINES.length && creditsWrong === 0 && creditFrames > 2000);
+check(`every creature of the cast was recorded (${show.cast.length}), Monty not among them (he is in every screen), and most of them move`, show.cast.length === spec.cast.length && !show.cast.some((f) => f.name === 'MONTY') && show.cast.filter((f) => f.poses.length > 1).length >= 6);
+castWatch.check(show.cast);
+bandWatch.check(LINES.length, gameFrames, gameBand, []);
 check('every line fits the screen (at most 38 letters, upper case, in the lettering of our font)', LINES.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase() && /^[A-Z0-9 ,.:!?()-]+$/.test(l)));
-check('the credits are in order: the game first, the port and thanks last', LINES[0] === 'MOLEY CHRISTMAS, 1987' && PORT_CREDITS.every((l) => LINES.includes(l)) && LINES[LINES.length - 1] === 'THANKS FOR PLAYING' && sawPortLast);
+check('the credits are in order: the game first, the port and thanks last', LINES[0] === 'MOLEY CHRISTMAS, 1987' && PORT_CREDITS.every((l) => LINES.includes(l)) && LINES[LINES.length - 1] === 'THANKS FOR PLAYING' && bandWatch.typed.has(`${spec.places.length - 1}.${(spec.places[spec.places.length - 1]?.credits?.length ?? 0) - 1}`));
 check('the port is credited to Christopher Hickman, with Claude', LINES.some((l) => l.includes('HICKMAN')) && LINES.some((l) => l.includes('CLAUDE')));
-check('the parade has the creatures\' names under them and THE END its title and numbers', nameGrey > 200 && endYellow > 100);
+check('THE END has its title and numbers', endYellow > 100);
 check('the numbers under THE END: score, high score, items, lives', endingStats(new MoleyFlow(new SeededRandom(1)), { reached: [0], done: [0] }).length === 4);
 
 // ---- 4. skipping --------------------------------------------------------------------------------------------------
@@ -210,7 +200,7 @@ function win(s: Awaited<ReturnType<typeof session>>) {
   let n = 0;
   while (s.p.ending?.active && n++ < 9000) s.tick();
   s.tick(30);
-  check(`the show ran (${n} frames) and the credits page is back`, n > 3000 && !s.p.ending?.active && s.p.state.phase === 'credits');
+  check(`the show ran (${n} frames) and the credits page is back`, n > 2500 && !s.p.ending?.active && s.p.state.phase === 'credits');
 
   // W on the pause screen once won (in a game started again)
   s.tap('Enter');

@@ -1,7 +1,7 @@
 /**
- * The creatures of the planet, to choose the parade's: rooms run for a while with BLOB standing (as ending.ts records them), every
+ * The creatures of the planet, to choose the visitors': rooms run for a while with BLOB standing (as ending.ts records them), every
  * enemy about (state 3) noted by its kind ($034A: the game draws the kind's frames into the enemy's sprite), the room that showed
- * the most of each kind's frames, and a sheet of them as the figures the parade would show.
+ * the most of each kind's frames, and a sheet of them as the figures the montage would show.
  *
  *   nice -n 15 node tools/test.mjs games/starquake/re/cast.ts <out.png> [room ...]
  */

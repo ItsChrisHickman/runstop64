@@ -60,7 +60,7 @@ export function run(host: Host) {
     ],
     hints: guidedSpots,
     hintsWith: 'guided',
-    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: blackwycheEnding, won, stats: endingStats },
     // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
     titleTune: true,

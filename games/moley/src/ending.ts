@@ -1,6 +1,6 @@
 import { Surface, TRANSPARENT, type Renderer } from 'c64kit';
-import { PORT_CREDITS } from '../../shared/native/ending';
-import { FIGURE_SCALE, type Figure, type Pose } from '../../shared/ending/figures';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { footOf, type Figure, type Pose } from '../../shared/ending/figures';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
 import { SPECTRUM } from './colours';
 import { Display, type SpritePlace } from './display';
@@ -18,7 +18,7 @@ import { MoleyView, PICTURE_TOP, SPECTRUM_COLOURS, SURFACE_HEIGHT, SURFACE_WIDTH
  * The reward for beating Moley Christmas (ENHANCED; shared/ending/show.ts is the show, this is what is Moley's): a montage of the six
  * screens, each the game's own engine on a game of its own (`SteadyGame`, whose random numbers make a route found by a search the
  * same game when it is played again) with Monty driven by the route found for the screen (re/ending/route.ts: the test suite's player
- * doing the screen's puzzle, as keys), the credits typing on in the rows where the panel was; then the parade of the creatures and Monty;
+ * doing the screen's puzzle, as keys), the credits typing on in the rows where the panel was, and the creatures walking through the screens;
  * then THE END with the numbers the pause screen keeps. The panel (score, lives, the dial) means nothing in a show: its place is left
  * black, which is where the credits stand, so nothing is ever under a line. The music is the game's, from its start.
  */
@@ -104,14 +104,20 @@ class ScreenReel implements Reel {
   render(alpha: number): void { this.view.render(alpha); }
 
   dispose(): void { this.stage.renderer.hideSprites(); }
+
+  /** The row Monty's feet are on (entity 0, a sprite 16 rows tall). */
+  get ground() {
+    const monty = this.game.entities[0];
+    return monty === undefined ? undefined : PICTURE_TOP + monty.y + 16;
+  }
 }
 
 // ---- the cast ---------------------------------------------------------------------------------------
 
-/** Frames a pass is shown for in the parade (the game's own pace). */
+/** Frames a pass is shown for (the game's own pace). */
 const PASS_FRAMES = 2;
 
-/** What entity `entity` shows in each pass of a screen's route (from `from` to `to`), as a figure facing right, the way the parade goes. */
+/** What entity `entity` shows in each pass of a screen's route (from `from` to `to`), as a figure facing right, the way the visitors walk. */
 function recordFigure(name: string, room: number, entity: number, from = 0, to = Infinity): Figure | null {
   const { game, display } = newScreen(room);
   const poses: Pose[] = [];
@@ -128,23 +134,22 @@ function recordFigure(name: string, room: number, entity: number, from = 0, to =
       poses.push({ parts: [{ surface: surfaceOf(shown.frame), dx: 0, dy: 0 }], frames: PASS_FRAMES });
     }
   }
-  const side = 16 * FIGURE_SCALE;
-  return poses.length > 0 ? { name, poses, width: side, height: side } : null;
+  return poses.length > 0 ? { name, poses, width: 16, height: 16, foot: footOf(poses) } : null;
 }
 
-/** A sprite's picture facing right, at the parade's size, in the colour ENHANCED shows sprites in. */
+/** A sprite's picture facing right, in the colour ENHANCED shows sprites in. */
 function surfaceOf(frame: number): Surface {
   const image = spriteImage(frame, false);
-  const s = new Surface(16 * FIGURE_SCALE, 16 * FIGURE_SCALE, TRANSPARENT);
+  const s = new Surface(16, 16, TRANSPARENT);
   s.palette = SPECTRUM_COLOURS;
-  for (let y = 0; y < 16 * FIGURE_SCALE; y++) {
-    for (let x = 0; x < 16 * FIGURE_SCALE; x++) if (spritePixel(image, Math.floor(x / FIGURE_SCALE), Math.floor(y / FIGURE_SCALE))) s.pixels[y * s.width + x] = SPRITE_INK;
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) if (spritePixel(image, x, y)) s.pixels[y * s.width + x] = SPRITE_INK;
   }
   s.version++;
   return s;
 }
 
-/** The creatures of the parade, by what they look like (the game names none; the lamp is the code's own word for entity 1 of the first screen): screen and entity. */
+/** The creatures that visit the places, by what they look like (the game names none; the lamp is the code's own word for entity 1 of the first screen): screen and entity. */
 const CAST: readonly (readonly [string, number, number])[] = [
   ['THE LAMP', 0, 1],
   ['THE WALKER', 0, 2],
@@ -162,17 +167,14 @@ export function moleyEnding(renderer: Renderer, sound: MoleySound | null): Rewar
   const stage = new Stage(renderer, sound);
   const places: Place[] = PLAN.map(([room, credits]): Place => ({
     credits,
-    frames: Pilot.frames(routeOf(room)),
+    // (a screen lasts as long as its credits and visitors take: the route's first part is played, the rest is not needed)
+    frames: 0,
     open: () => new ScreenReel(stage, room),
   }));
   return {
     title: 'MOLEY CHRISTMAS',
     places,
-    cast: [
-      ...CAST.map(([name, room, entity]) => () => recordFigure(name, room, entity)),
-      // (Monty walking right: the first passes of the M1's route)
-      () => recordFigure('MONTY', 3, 0, 0, 60),
-    ],
+    cast: CAST.map(([name, room, entity]) => () => recordFigure(name, room, entity)),
     creditRow: CREDIT_ROW,
     colours: { credit: SPECTRUM.yellow, title: SPECTRUM.yellow, text: SPECTRUM.text },
   };

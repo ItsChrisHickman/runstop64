@@ -1,8 +1,8 @@
-import { Surface, decodeSprite, type FrameCapture, type Vic } from 'c64kit';
+import { Surface, TRANSPARENT, decodeSprite, type FrameCapture, type Vic } from 'c64kit';
 
 /**
  * The cast of a game's ending, as the engine draws it: a figure is made of the sprites a game shows for a
- * creature, recorded a frame at a time (every distinct picture, with how long it was held), so the parade shows
+ * creature, recorded a frame at a time (every distinct picture, with how long it was held), so the montage shows
  * the game's own frames at the pace it showed them.
  */
 
@@ -35,30 +35,38 @@ export function captureShot(s: FrameCapture['sprites'][number]): SpriteShot {
   };
 }
 
-/** How much bigger the parade draws a figure than the picture shows it. */
-export const FIGURE_SCALE = 3;
-
-/** One part of a figure at one moment: its image at `FIGURE_SCALE`, and where it stands against the figure's top left (in the scaled pixels). */
+/** One part of a figure at one moment: its image (the game's own pixels), and where it stands against the figure's top left. */
 export interface Part { surface: Surface; dx: number; dy: number }
 /** A figure at one moment, and how long (frames) it was so. */
 export interface Pose { parts: Part[]; frames: number }
-export interface Figure { name: string; poses: Pose[]; width: number; height: number }
+/** A figure: its poses, the box it fits in, and `foot`, the row (from its top) where its lowest pixels end in any pose (the floor it stands on; a sprite may leave rows empty at the bottom). */
+export interface Figure { name: string; poses: Pose[]; width: number; height: number; foot: number }
 
-/** A flat picture (the game's pixels, 1:1) as a part of a figure, drawn at `FIGURE_SCALE`, its top left at (dx, dy) in the scaled pixels. */
-export function scaledPart(flat: Surface, dx = 0, dy = 0): Part {
-  const surface = new Surface(flat.width * FIGURE_SCALE, flat.height * FIGURE_SCALE);
-  for (let y = 0; y < surface.height; y++) {
-    for (let x = 0; x < surface.width; x++) surface.pixels[y * surface.width + x] = flat.pixels[Math.floor(y / FIGURE_SCALE) * flat.width + Math.floor(x / FIGURE_SCALE)];
+/** Where the lowest pixels of any pose end, from the figure's top. */
+export function footOf(poses: readonly Pose[]): number {
+  let foot = 0;
+  for (const pose of poses) {
+    for (const { surface: s, dy } of pose.parts) {
+      for (let row = s.height - 1; row >= 0; row--) {
+        let any = false;
+        for (let x = 0; x < s.width && !any; x++) any = s.pixels[row * s.width + x] !== TRANSPARENT;
+        if (any) { foot = Math.max(foot, dy + row + 1); break; }
+      }
+    }
   }
-  surface.version++;
-  return { surface, dx, dy };
+  return foot;
 }
 
-/** A part of a figure, drawn at `FIGURE_SCALE` from the game's sprite. */
+/** A flat picture (the game's pixels, 1:1) as a part of a figure, its top left at (dx, dy). */
+export function flatPart(flat: Surface, dx = 0, dy = 0): Part {
+  return { surface: flat, dx, dy };
+}
+
+/** A part of a figure, from the game's sprite. */
 function partOf(s: SpriteShot, left: number, top: number): Part {
   const flat = new Surface(24 * (s.expandX ? 2 : 1), 21 * (s.expandY ? 2 : 1));
   decodeSprite(s.data, s.colour, s.multicolour, s.mc1, s.mc2, s.expandX, s.expandY, flat);
-  return scaledPart(flat, (s.x - left) * FIGURE_SCALE, (s.y - top) * FIGURE_SCALE);
+  return flatPart(flat, s.x - left, s.y - top);
 }
 
 /**
@@ -75,12 +83,19 @@ export function recordPictures(name: string, pictures: Iterable<Surface | null>)
     const prev = poses[poses.length - 1];
     if (key === last && prev) { prev.frames++; continue; }
     last = key;
-    const part = scaledPart(flat);
+    const part = flatPart(flat);
     poses.push({ parts: [part], frames: 1 });
     width = Math.max(width, part.surface.width);
     height = Math.max(height, part.surface.height);
   }
-  return poses.length ? { name, poses, width, height } : null;
+  return poses.length ? { name, poses, width, height, foot: footOf(poses) } : null;
+}
+
+/** The picture row a sprite's lowest pixels end on (the VIC's sprite coordinates are 50 down; a sprite may leave rows empty at its foot). */
+export function shotFeet(s: SpriteShot): number {
+  let rows = 0;
+  for (let row = 20; row >= 0 && rows === 0; row--) if (s.data[row * 3] !== 0 || s.data[row * 3 + 1] !== 0 || s.data[row * 3 + 2] !== 0) rows = row + 1;
+  return s.y - 50 + rows * (s.expandY ? 2 : 1);
 }
 
 /** The pictures a figure's sprites made (a moment at a time: its sprites, rearmost first), as a figure. Null if it was never seen. */
@@ -100,7 +115,7 @@ export function recordFigure(name: string, moments: Iterable<readonly SpriteShot
     width = Math.max(width, ...parts.map((p) => p.dx + p.surface.width));
     height = Math.max(height, ...parts.map((p) => p.dy + p.surface.height));
   }
-  return poses.length ? { name, poses, width, height } : null;
+  return poses.length ? { name, poses, width, height, foot: footOf(poses) } : null;
 }
 
 /** The pose a figure is in `t` frames into its cycle (it goes round again after the last). */

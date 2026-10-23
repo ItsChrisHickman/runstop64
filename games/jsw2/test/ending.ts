@@ -1,11 +1,11 @@
 /**
- * Jet Set Willy II's ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * Jet Set Willy II's ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. the whole show runs from the first frame to THE END and back to the title, every scene of the montage the game itself running on a
  *     new game of its own, Willy steered by the joystick alone along a way found by playing (re/ending/route.ts): he runs about each room
  *     and takes what the way took, without losing a life, and the scenes of rooms with items take them;
  *  2. the credits: every line typed over the montage in the rows between the room's name and the panel (the time and rooms lines put away),
- *     in the credit colour and nothing else, the band empty before the text in every scene; the cast recorded, Willy last; the title tune;
+ *     in the credit colour and nothing else, the band empty before the text in every scene; the cast recorded; the title tune;
  *  3. what a win is (the Masters Bedroom with 160 items: the game's own check at $7315), through the front end as the browser runs it: a game
  *     played into it begins the ending at once (the game's own end goes on and on there); one continued in it does not; W on the pause
  *     screen once won; none in ORIGINAL;
@@ -13,11 +13,12 @@
  *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState, type MachineState } from 'c64kit';
-import { Ending, PORT_CREDITS, bootGame, keepWon, placed, readWon } from '../../shared/native/ending';
+import { PORT_CREDITS, keepWon, readWon } from '../../shared/ending/credits';
+import { Ending, bootGame, placed } from '../../shared/ending/machine-reel';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { checkShow, playShow } from '../../shared/test/ending-kit';
@@ -61,18 +62,20 @@ const result = playShow({
   },
 });
 const lines = spec.scenes.flatMap((sc) => sc.credits ?? []);
-checkShow({ spec, port, title, stats: [], band: BAND }, result, lines, PORT_CREDITS, 'JET SET WILLY II');
+checkShow({ spec, port, title, stats: [], band: BAND }, result, lines, PORT_CREDITS, 'JET SET WILLY II: THE FINAL FRONTIER');
+const wayLength = (n: number) => must(WAYS[n], `a way in room ${n}`).path.reduce((t, [, f]) => t + f, 0);
+check(`no scene outlasts its way (Willy is never left standing at the guardians' mercy): ${result.sceneFrames.join(' ')}`, SCENE_ROOMS.every((n, i) => (result.sceneFrames[i] ?? 0) <= wayLength(n)));
 check('the montage is eight to twelve places, one for each room of the plan', spec.scenes.length >= 8 && spec.scenes.length <= 12 && spec.scenes.length === SCENE_ROOMS.length);
 check('every scene has a way found for it, from a spot of its own', SCENE_ROOMS.every((n) => WAYS[n] !== undefined));
 const itemScenes = SCENE_ROOMS.map((_, i) => i).filter((i) => (ITEM_COUNTS[SCENE_ROOMS[i]] ?? 0) > 0);
 console.log(SCENE_ROOMS.map((n, i) => `${i}: room ${n} ${seen[i].took}/${ITEM_COUNTS[n] ?? 0} items, ran ${seen[i].ran.join('-')}${seen[i].left ? ', LEFT' : ''}${seen[i].lost ? ', LOST A LIFE' : ''}`).join('\n'));
 check(`the rooms with items have them taken (${itemScenes.map((i) => `${SCENE_ROOMS[i]}:${seen[i].took}/${ITEM_COUNTS[SCENE_ROOMS[i]]}`).join(' ')})`, itemScenes.length >= 6 && itemScenes.every((i) => seen[i].took >= 1));
 const total = seen.reduce((n, s) => n + s.took, 0);
-check(`a good many items taken in all (${total})`, total >= 40);
+check(`a good many items taken in all (${total})`, total >= 25);
 check('every scene stays in its room', seen.every((s) => !s.left));
 check('no life lost in any scene (the lives byte is never short of full)', seen.every((s) => !s.lost));
 check('he runs about the rooms (his place moves on in every scene)', seen.every((s) => s.ran[1] - s.ran[0] >= 20));
-check('the cast is the mansion\'s creatures with plain names, Willy last, and they move', result.figures.length === spec.cast.length && result.figures[result.figures.length - 1].name === 'WILLY' && result.figures.filter((f) => f.poses > 1).length >= 4);
+check('the cast is the mansion\'s creatures with plain names (the hero is in every scene, not among them), and they move', result.figures.length === spec.cast.length && result.figures.filter((f) => f.poses > 1).length >= 4);
 
 // ---- THE END's numbers
 {

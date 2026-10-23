@@ -1,5 +1,5 @@
 /**
- * The Staff of Karnath's ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * The Staff of Karnath's ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. the whole show runs from the first frame to THE END and back to the title, each scene of the montage the game itself running
  *     on a new game of its own, Pendragon driven by the joystick alone: FORTHRIN at the knights and the ghost (each struck one put
@@ -15,11 +15,12 @@
  *
  *   nice -n 15 node tools/test.mjs games/karnath/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState } from 'c64kit';
-import { Ending, keepWon, readWon } from '../../shared/native/ending';
+import { keepWon, readWon } from '../../shared/ending/credits';
+import { Ending } from '../../shared/ending/machine-reel';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { checkShow, playShow } from '../../shared/test/ending-kit';
@@ -81,7 +82,7 @@ check(`the lower guard room: FORTHRIN cast at the knights (${seen.casts.get(0) ?
 check(`the servants' quarters: FORTHRIN cast at the ghost (${seen.casts.get(2) ?? 0}), and it struck (${seen.struck.get(2) ?? 0})`, (seen.casts.get(2) ?? 0) >= 5 && (seen.struck.get(2) ?? 0) >= 1);
 check(`the obelisk: BARACATA laid the tenth piece (${seen.laid})`, seen.laid === 10);
 check('the sixteenth: laid, the staff in its shrine (sprites 5 to 7), MENHIR in hand', seen.staff && seen.menhir);
-check('the cast is the castle\'s creatures with plain names, Pendragon last', result.figures.length === spec.cast.length && result.figures[result.figures.length - 1].name === 'SIR ARTHUR PENDRAGON' && result.figures.every((f) => f.poses >= 1));
+check('the cast is the castle\'s creatures with plain names (the hero is in every scene, not among them)', result.figures.length === spec.cast.length && result.figures.every((f) => f.poses >= 1));
 check('the creatures move: most of them have more than one picture', result.figures.filter((f) => f.poses > 1).length >= 4);
 
 // ---- THE END's numbers

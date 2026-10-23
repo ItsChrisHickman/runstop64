@@ -1,31 +1,19 @@
-import { C64View, Surface, TRANSPARENT, decodeSprite, packState, unpackState, type BitmapFont, type FrameCapture, type Host, type MachineState, type PictureLayout, type SidWrite, type SpriteHandle } from 'c64kit';
-import { NativeHost, type PortConfig } from './host';
-import { clean, type StatusLine } from './narrate';
-import { TitleTune } from './title-tune';
-
 /**
- * The reward for beating a game (ENHANCED's addition: the game's own winning moment stays as it is, and
- * what follows it is ours), written once for the Pendragon games; a game declares its places and its cast.
- *
- *  1. A montage: places aboard revisited, each drawn by the game's own engine on a game of its own
- *     (a new game started on a machine of ours, never the player's), with its creatures moving as the
- *     engine moves them and Pendragon running through it by the joystick, as in play, doing one thing
- *     that fits the place (strike at a creature, take what belonged there). A caption on the game's
- *     status line, in its own lettering.
- *     Over it, credits in the way of Super Mario World's: the game and its makers, facts about it, the
- *     port, a line or three a place, in the black band between the picture and the status panel.
- *  2. A parade: the game's creatures, their images and animation frames recorded from the engine
- *     (the sprites it shows in a place), walking across one at a time at double size with a name under each.
- *  3. THE END and the player's numbers, then back to the title.
- *
- * Music: the game's tune (its title's, or where there is none the one it plays in play), run on a machine of its own, through the player the game uses (a game with no
- * music, Entombed: the sound of the places themselves, the whip and the bells).
- * Any key or tap skips, after a couple of seconds. Everything is drawn in the 320x200 picture in the
- * game's own font and the C64's colours; letters stand on the picture's empty parts, never on a box.
- *
- * Watching it again: `Won` keeps that the game has been won (never wiped by a new game); the pause
- * screen offers the ending once it has, and `?ending` on the page shows it at once.
+ * The reward's reel for a translated machine (the Pendragon games, Thing on a Spring, Jet Set Willy II): a place is a room of
+ * the game, entered the game's own way on a new game of ours (a machine started from the title, never the player's), the hero
+ * driven by the joystick as in play, doing one thing that fits the place, a caption on the game's status line in its own lettering.
+ * The show itself (credits, visitors, THE END, skip) is `show.ts`, the same for every game; this file makes its places and its
+ * cast from the game's scenes and characters, and plays the game's tune on a machine of its own, through the player the game uses
+ * (a game with no music, Entombed: the sound of the places themselves, the whip and the bells).
  */
+
+import { C64View, packState, unpackState, type BitmapFont, type FrameCapture, type Host, type MachineState, type PictureLayout, type SidWrite } from 'c64kit';
+import { NativeHost, type PortConfig } from '../native/host';
+import { clean, type StatusLine } from '../native/narrate';
+import { TitleTune } from '../native/title-tune';
+import { CREDIT } from './credits';
+import { captureShot, recordFigure, shotFeet, type Figure, type SpriteShot } from './figures';
+import { RewardShow, type Place, type Reel, type RewardSpec } from './show';
 
 // ---- what a game declares ---------------------------------------------------------------------
 
@@ -64,7 +52,7 @@ export interface EndingScene {
   /** Once the place is there (a few frames after `enter`, before the first frame shown): put him on his spot, where the game's own way in does not (Jet Set Willy II's rooms are come into from above). */
   settle?(ram: Uint8Array): void;
   steps: readonly EndingStep[];
-  /** How long it is shown (frames at 50 a second); longer if its credits need it (`sceneLength`). */
+  /** How long it is shown (frames at 50 a second); longer if its credits and visitors need it (`timelineOf`). */
   frames: number;
   /**
    * Credit lines over this place, one after another (a line types on, is held, and goes): upper case, at most 38
@@ -75,9 +63,11 @@ export interface EndingScene {
   credits?: readonly string[];
   /** The frame the credit lines begin at (default 0): where the first part of the scene has the band occupied (Thing's corridors have pipe fixtures at their foot). */
   creditsFrom?: number;
+  /** The row the visitors' feet stand on in this place, if not where the hero stands as it begins (picture pixels). */
+  ground?: number;
 }
 
-/** One of the game's characters for the parade: the sprites that make it up in a place (top part first). */
+/** One of the game's characters, a visitor of the montage: the sprites that make it up in a place (top part first). The hero is not one: he is in every place. */
 export interface EndingCharacter {
   name: string;
   enter(ram: Uint8Array): boolean;
@@ -102,7 +92,7 @@ export interface EndingActions {
 }
 
 export interface EndingSpec {
-  /** The game's title, over the parade. */
+  /** The game's title, over THE END. */
   title: string;
   scenes: readonly EndingScene[];
   cast: readonly EndingCharacter[];
@@ -122,15 +112,17 @@ export interface EndingSpec {
   /** Where the credit lines are drawn (picture pixels): the row of eight pixels in the empty band, and the column they start at (default 166 in the black band under the picture, and 8: Blackwyche's and Karnath's). */
   creditRow?: number;
   creditX?: number;
+  /** The letters the band can have, if not `CREDIT.letters` (a panel's line: its width). */
+  creditLetters?: number;
   /** The engine takes one of the four ways for a diagonal (Dragonskulle's): he walks one way at a time. */
   fourWays?: boolean;
   /**
    * Where the game's own tune is heard: on its title (default), or in play (a game with no title tune: Karnath's); or, for a game with no
    * music at all (Entombed's sound is its effects: the whip, the bells), the sound of the places themselves, as each machine of the montage
-   * makes it, with the parade and THE END in silence.
+   * makes it, with THE END in silence.
    */
   tune?: 'title' | 'game' | 'effects';
-  /** The picture laid out as the game's front end shows it in play (the montage is drawn so; the parade and THE END are not). */
+  /** The picture laid out as the game's front end shows it in play (the montage is drawn so; THE END is not). */
   layout?: PictureLayout;
   /** Each frame, after the game's: what its own panel shows that means nothing in the show (a new game's score, its lives) put away, so the band stays empty. */
   tidy?(ram: Uint8Array): void;
@@ -146,25 +138,6 @@ export interface EndingSpec {
   keepAlive(ram: Uint8Array): void;
   /** Frames the fire button is held on the title to start a game (default 31 to 33), as the title wants. */
   startFire?: readonly [number, number];
-}
-
-// ---- won: kept apart from the saves (a new game never wipes it) --------------------------------
-
-const wonKey = (id: string) => `${id}.won`;
-
-/** Whether this game has been won here before. */
-export function readWon(id: string): boolean {
-  try { return localStorage.getItem(wonKey(id)) === '1'; } catch { return false; }
-}
-
-/** The game has been won: kept. */
-export function keepWon(id: string) {
-  try { localStorage.setItem(wonKey(id), '1'); } catch { /* not kept: the ending is still shown this time */ }
-}
-
-/** `?ending` on the page: the ending at once (for review). */
-export function wantsEnding(): boolean {
-  try { return new URLSearchParams(location.search).has('ending'); } catch { return false; }
 }
 
 // ---- the machines ---------------------------------------------------------------------------
@@ -332,85 +305,12 @@ function approach(x: number, y: number, tx: number, ty: number, near: number, fo
   return bits;
 }
 
-// ---- the cast, recorded ----------------------------------------------------------------------
-
-/** One part of a figure at one moment: its image drawn at double size, and where it stands against the figure's top left (screen pixels at double size). */
-interface Part { surface: Surface; dx: number; dy: number }
-/** A figure at one moment, and how long (frames) it was so. */
-interface Pose { parts: Part[]; frames: number }
-interface Figure { name: string; poses: Pose[]; width: number; height: number }
-
-const SCALE = 2;
-
-// ---- the credits over the montage ----------------------------------------------------------------
-
-/** The frames each credit line is given (it types on a letter a frame, is held, and goes a moment before the next), and the row it stands at by default. */
-export const CREDIT = { slot: 120, gap: 10, row: 166, colour: 7, x: 8, letters: 38 } as const;
-
-/** The port's own credit lines, the same in every game (his name as he gives it): a game's last scenes spread these. */
-export const PORT_CREDITS: readonly string[] = ['REBUILT FOR THE BROWSER BY', 'CHRISTOPHER HICKMAN', 'WITH CLAUDE (ANTHROPIC)', 'RUNSTOP64'];
-
 /** The background colour of the picture's last text row (y 192 to 199), as the VIC drew it: what a plain band (`EndingSpec.plainBand`) is. */
 export const bandBackground = (m: { capture: FrameCapture }): number => (m.capture.rows[24]?.bg[0] ?? 0) & 15;
 
 /** The credit colour on a plain background colour: black on the light ones (yellow, light green, light grey, cyan), white on the rest. */
 export function creditColourOn(bg: number): number {
   return [3, 7, 13, 15].includes(bg & 15) ? 0 : 1;
-}
-
-/** How long a scene runs: what it declares, or longer if its credit lines need their slots. */
-export function sceneLength(scene: EndingScene): number {
-  return Math.max(scene.frames, (scene.creditsFrom ?? 0) + (scene.credits?.length ?? 0) * CREDIT.slot);
-}
-
-/** What the credits show `frame` frames into a scene: the line and how much of it has typed on, or null between lines. */
-export function creditAt(scene: EndingScene, frame: number): { line: number; shown: string } | null {
-  const lines = scene.credits;
-  if (!lines || lines.length === 0) return null;
-  const from = scene.creditsFrom ?? 0;
-  if (frame < from) return null;
-  const slot = Math.floor((sceneLength(scene) - from) / lines.length);
-  const line = Math.min(lines.length - 1, Math.floor((frame - from) / slot));
-  const into = frame - from - line * slot;
-  if (into >= slot - CREDIT.gap) return null;
-  return { line, shown: lines[line].slice(0, into) };
-}
-
-/** Record a character's poses: the engine runs on a new game in its place for some frames, and each distinct picture of its sprites is kept. */
-function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter, scale = SCALE): Figure | null {
-  const g = placed(port, base, spec, c.enter, c.settle);
-  if (!g) return null;
-  const director = new Director(spec, c.steps ?? []);
-  const poses: Pose[] = [];
-  let last = '';
-  let width = 0, height = 0;
-  for (let f = 0; f < (c.frames ?? 150); f++) {
-    joy(g.m, spec.joyPort, director.frame(g));
-    spec.keepAlive(g.m.ram);
-    g.tick();
-    const seen = c.sprites.map((n) => spriteOf(g, n));
-    if (seen.some((s) => s === undefined)) continue;
-    // (the highest numbers first: the lower the number, the nearer the front, as the VIC has it)
-    const here = seen.flatMap((s) => (s ? [s] : [])).sort((a, b) => b.n - a.n);
-    const left = Math.min(...here.map((s) => s.x)), top = Math.min(...here.map((s) => s.y));
-    // (shape: the sprites' images and where they stand against each other)
-    const key = here.map((s) => `${s.x - left},${s.y - top},${s.colour},${s.multicolour ? 1 : 0},${s.mc1},${s.mc2},${s.expandX ? 1 : 0},${s.expandY ? 1 : 0},${Array.from(s.data.subarray(0, 63)).join('.')}`).join('|');
-    const prev = poses[poses.length - 1];
-    if (key === last && prev) { prev.frames++; continue; }
-    last = key;
-    const parts = here.map((s) => {
-      const surface = new Surface(24 * scale * (s.expandX ? 2 : 1), 21 * scale * (s.expandY ? 2 : 1));
-      const flat = new Surface(surface.width / scale, surface.height / scale);
-      decodeSprite(s.data, s.colour, s.multicolour, s.mc1, s.mc2, s.expandX, s.expandY, flat);
-      for (let y = 0; y < surface.height; y++) for (let x = 0; x < surface.width; x++) surface.pixels[y * surface.width + x] = flat.pixels[Math.floor(y / scale) * flat.width + Math.floor(x / scale)];
-      surface.version++;
-      return { surface, dx: (s.x - left) * scale, dy: (s.y - top) * scale };
-    });
-    poses.push({ parts, frames: 1 });
-    width = Math.max(width, ...parts.map((p) => p.dx + p.surface.width));
-    height = Math.max(height, ...parts.map((p) => p.dy + p.surface.height));
-  }
-  return poses.length ? { name: c.name, poses, width, height } : null;
 }
 
 /** A new game's memory with him in a place (entered at the main loop's wait, as travel does it). */
@@ -429,6 +329,79 @@ export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, e
   return done && ok ? g : null;
 }
 
+// ---- a place running --------------------------------------------------------------------------
+
+/** A scene running: the game's own frames, the hero driven by a director, the picture the game's machine draws. */
+export class MachineReel implements Reel {
+  private text = '';
+  /** Only where the band is a line of the game's panel (`EndingSpec.creditLine`): the show draws the text otherwise. */
+  readonly say: ((text: string) => void) | undefined;
+  constructor(
+    private readonly g: NativeHost,
+    private readonly view: C64View,
+    private readonly director: Director,
+    private readonly scene: EndingScene,
+    private readonly o: EndingOptions,
+  ) {
+    if (o.spec.creditLine) this.say = (text) => { this.text = text; };
+  }
+
+  /** The machine, for tests. */
+  get machine() { return this.g.m; }
+
+  tick() {
+    const { spec } = this.o;
+    joy(this.g.m, spec.joyPort, this.director.frame(this.g));
+    spec.keepAlive(this.g.m.ram);
+    this.g.tick();
+    if (spec.tune === 'effects') this.o.sound.pushFrame(this.g.m.sidWrites);
+  }
+
+  draw() {
+    const { spec, host } = this.o, { ram } = this.g.m;
+    spec.tidy?.(ram);
+    if (this.scene.caption !== undefined && spec.status) caption(ram, spec.status, this.scene.caption);
+    if (spec.creditLine && this.scene.credits?.length) caption(ram, spec.creditLine, this.text);
+    repaint(this.g.m);
+    // (the picture as the game's front end lays it out in play, if it does)
+    host.renderer.layout = spec.layout ?? null;
+    this.view.update();
+  }
+
+  render(alpha: number) { this.view.render(alpha); }
+
+  dispose() { this.view.dispose(); }
+
+  get ground() {
+    // (a sprite number may be used again lower down the picture, for the panel's icons: the hero is the highest)
+    const mine = this.g.m.capture.sprites.filter((s) => s.n === this.o.spec.hero && s.x < 504);
+    const me = mine.reduce<(typeof mine)[number] | undefined>((top, s) => (top === undefined || s.y < top.y ? s : top), undefined);
+    return me ? shotFeet(captureShot(me)) : undefined;
+  }
+
+  get ink() { return this.o.spec.plainBand ? creditColourOn(bandBackground(this.g.m)) : undefined; }
+}
+
+// ---- the cast, recorded ----------------------------------------------------------------------
+
+/** Record a character: the engine runs on a new game in its place for some frames, and each distinct picture of its sprites is kept. */
+function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: EndingCharacter): Figure | null {
+  const g = placed(port, base, spec, c.enter, c.settle);
+  if (!g) return null;
+  const director = new Director(spec, c.steps ?? []);
+  const moments: SpriteShot[][] = [];
+  for (let f = 0; f < (c.frames ?? 150); f++) {
+    joy(g.m, spec.joyPort, director.frame(g));
+    spec.keepAlive(g.m.ram);
+    g.tick();
+    const seen = c.sprites.map((n) => spriteOf(g, n));
+    if (seen.some((s) => s === undefined)) continue;
+    // (the highest numbers first: the lower the number, the nearer the front, as the VIC has it)
+    moments.push(seen.flatMap((s) => (s ? [s] : [])).sort((a, b) => b.n - a.n).map(captureShot));
+  }
+  return recordFigure(c.name, moments);
+}
+
 // ---- the show -------------------------------------------------------------------------------
 
 /** What the show needs of the game running it. */
@@ -442,246 +415,95 @@ export interface EndingOptions {
   sound: { pushFrame(w: SidWrite[]): void };
   /** The title's tune is the original's own code running (title-tune.ts), not the translation's: the game says so (play.ts `titleTune`). */
   titleTune?: boolean;
+  /** The title's tune is the original's own code running (title-tune.ts), not the translation's: the game says so (play.ts `titleTune`). */
+  titleTune?: boolean;
   /** The game's font (the panels'). */
   font(): BitmapFont;
   /** The show is over (or skipped): back to the title. */
   done(): void;
 }
 
-type Phase = 'loading' | 'montage' | 'parade' | 'end';
-
-/** The frames before a key or a tap skips it. */
-const SKIP_AFTER = 100;
-/** The parade: how fast a figure crosses (pixels a frame), and the ground it walks on and where its name goes. */
-const PARADE = { speed: 3, ground: 128, nameGap: 10 };
-/** The names and numbers: the colours (the title's yellow, light grey). */
-const YELLOW = 7, GREY = 15;
-
+/** The show for a translated game: `RewardShow` over places made of the game's scenes. */
 export class Ending {
-  private phase: Phase = 'loading';
-  private frames = 0;
-  private stats: readonly string[] = [];
-  private base: MachineState | null = null;
+  private readonly show: RewardShow;
+  private base: MachineState | null | undefined;
   /** The tune: a frame of it at a time (a machine of its own). */
   private music: { frame(): SidWrite[] } | null = null;
-  private figures: Figure[] = [];
-  // the montage
-  private scene = -1;
-  private machine: NativeHost | null = null;
-  private view: C64View | null = null;
-  private director: Director | null = null;
-  // the parade and the end
-  private handles: SpriteHandle[] = [];
-  private black = new Surface(320, 200, 0);
 
-  constructor(private readonly o: EndingOptions) {}
+  constructor(private readonly o: EndingOptions) {
+    const { spec, port } = o;
+    const places = spec.scenes.map((scene): Place => ({
+      ...(scene.credits ? { credits: scene.credits } : {}),
+      ...(scene.creditsFrom === undefined ? {} : { bandFrom: scene.creditsFrom }),
+      ...(scene.ground === undefined ? {} : { ground: scene.ground }),
+      frames: scene.frames,
+      open: () => {
+        const base = this.boot();
+        const g = base && placed(port, base, spec, scene.enter, scene.settle);
+        return g ? new MachineReel(g, new C64View(o.host.renderer, g.m), new Director(spec, scene.steps), scene, o) : null;
+      },
+    }));
+    const rewardSpec: RewardSpec = {
+      title: spec.title,
+      places,
+      cast: spec.cast.map((c) => () => { const base = this.boot(); return base && record(port, base, spec, c); }),
+      creditRow: spec.creditRow ?? CREDIT.row,
+      // (a panel's line starts at its own column 0 and has its width in letters)
+      ...(spec.creditLine ? { creditX: 0, creditLetters: spec.creditLine.width } : { ...(spec.creditX === undefined ? {} : { creditX: spec.creditX }), ...(spec.creditLetters === undefined ? {} : { creditLetters: spec.creditLetters }) }),
+      ready: () => this.boot() !== null,
+    };
+    this.show = new RewardShow({
+      host: o.host,
+      spec: rewardSpec,
+      font: o.font,
+      music: { start: () => { this.base = undefined; this.music = null; }, end: () => { this.music = null; }, frame: () => this.tune() },
+      done: o.done,
+    });
+  }
+
+  /** The title's memory as a new game starts, run to its first frames of play (once a show). */
+  private boot(): MachineState | null {
+    if (this.base === undefined) {
+      const title = this.o.title();
+      this.base = title ? bootGame(this.o.port, title, this.o.spec) : null;
+    }
+    return this.base;
+  }
+
+  /** The game's own tune, a frame of it (the title's, or where the game has none there, the one it plays in the castle, from a new game standing by). */
+  private tune() {
+    const { spec, port } = this.o;
+    if (spec.tune === 'effects') return;
+    if (!this.music) {
+      if (spec.tune === 'game') {
+        if (!this.base) return;
+        const host = NativeHost.resume(port, unpackState(packState(this.base)));
+        this.music = { frame: () => { joy(host.m, spec.joyPort, IDLE); spec.keepAlive(host.m.ram); host.tick(); return host.m.sidWrites; } };
+      } else {
+        const title = this.o.title();
+        if (!title) return;
+        if (this.o.titleTune) this.music = new TitleTune(unpackState(packState(title)));
+        else { const host = new NativeHost(port, unpackState(packState(title))); this.music = { frame: () => { host.tick(); return host.m.sidWrites; } }; }
+      }
+    }
+    this.o.sound.pushFrame(this.music.frame());
+  }
 
   /** The show is on (the game is ours, not the player's). */
-  active = false;
-
-  /** For tests: where the show is (the montage's machine is the game being shown), and the figures recorded. */
-  get progress() { return { phase: this.phase, scene: this.scene, frames: this.frames, machine: this.machine?.m, music: this.music !== null, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })) }; }
+  get active() { return this.show.active; }
 
   /** Begin: `stats` are the lines under THE END. */
   start(stats: readonly string[]) {
-    this.stop();
-    this.active = true;
-    this.phase = 'loading';
-    this.frames = 0;
-    this.stats = stats;
-    this.figures = [];
-    this.scene = -1;
+    this.show.start(stats);
   }
 
-  /** Over: everything ours put away. */
-  private stop() {
-    this.view?.dispose();
-    this.view = null; this.machine = null; this.music = null; this.base = null;
-    for (const h of this.handles) h.visible = false;
-    this.o.host.renderer.backdrop = null;
-    this.o.host.renderer.layout = null;
-    this.active = false;
-  }
-
-  private finish() { this.stop(); this.o.done(); }
-
-  /** A key or a tap, after a moment (M and V are the sound's). */
-  private skipped() {
-    const { input } = this.o.host;
-    const pressed = input.typed.some((c) => c !== 'KeyM' && c !== 'KeyV') || input.points.length > 0 || input.pressed.fire;
-    return pressed && this.frames > SKIP_AFTER;
-  }
-
-  /** One frame of the show. */
   tick() {
-    if (!this.active) return;
-    const { renderer } = this.o.host;
-    this.frames++;
-    if (this.phase === 'loading') {
-      // (a black frame first, then the work: the machines are made and the cast recorded in one go)
-      if (this.frames === 1) { renderer.backdrop = this.black; renderer.layout = null; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
-      this.load();
-      return;
-    }
-    if (this.skipped()) { this.o.host.input.typed.length = 0; this.finish(); return; }
-    this.o.host.input.typed.length = 0;
-    this.tune();
-    if (this.phase === 'montage') this.montage();
-    else if (this.phase === 'parade') this.parade();
-    else this.end();
+    this.show.tick();
+    if (!this.show.active) this.base = undefined;
   }
 
-  /** The tune, a frame of it. */
-  private tune() {
-    const m = this.music;
-    if (!m) return;
-    this.o.sound.pushFrame(m.frame());
-  }
+  render(alpha: number) { this.show.render(alpha); }
 
-  /** The machines and the cast. */
-  private load() {
-    const { spec, port } = this.o;
-    const title = this.o.title();
-    if (!title) { this.finish(); return; }
-    this.base = bootGame(port, title, spec);
-    const base = this.base;
-    if (!base) { this.finish(); return; }
-    // (the game's own tune: the title's, or where the game has none there, the one it plays in the castle, from a new game standing by)
-    if (spec.tune === 'game') {
-      const host = NativeHost.resume(port, unpackState(packState(base)));
-      this.music = { frame: () => { joy(host.m, spec.joyPort, IDLE); spec.keepAlive(host.m.ram); host.tick(); return host.m.sidWrites; } };
-    } else if (spec.tune !== 'effects') {
-      if (this.o.titleTune) this.music = new TitleTune(unpackState(packState(title)));
-      else { const host = new NativeHost(port, unpackState(packState(title))); this.music = { frame: () => { host.tick(); return host.m.sidWrites; } }; }
-    }
-    // (a figure taller than the ground it walks on, at double size, is shown at its own size: Entombed's mummy, two sprites tall and each doubled)
-    this.figures = spec.cast.flatMap((c) => {
-      const f = record(port, base, spec, c);
-      const fit = f && f.height > PARADE.ground - 16 ? record(port, base, spec, c, 1) : f;
-      return fit ? [fit] : [];
-    });
-    this.next();
-  }
-
-  // -- the montage
-
-  private next() {
-    const { spec, port } = this.o;
-    const base = this.base;
-    this.scene++;
-    this.frames = 0;
-    this.view?.dispose();
-    this.view = null;
-    if (!base || this.scene >= spec.scenes.length) { this.beginParade(); return; }
-    const scene = spec.scenes[this.scene];
-    const g = placed(port, base, spec, scene.enter, scene.settle);
-    if (!g) { this.next(); return; }
-    this.machine = g;
-    this.view = new C64View(this.o.host.renderer, g.m);
-    this.director = new Director(spec, scene.steps);
-    this.phase = 'montage';
-  }
-
-  private montage() {
-    const g = this.machine, view = this.view, d = this.director, scene = this.o.spec.scenes[this.scene];
-    if (!g || !view || !d) return;
-    joy(g.m, this.o.spec.joyPort, d.frame(g));
-    this.o.spec.keepAlive(g.m.ram);
-    g.tick();
-    if (this.o.spec.tune === 'effects') this.o.sound.pushFrame(g.m.sidWrites);
-    this.o.spec.tidy?.(g.m.ram);
-    if (scene.caption !== undefined && this.o.spec.status) caption(g.m.ram, this.o.spec.status, scene.caption);
-    const now = creditAt(scene, this.frames - 1);
-    if (this.o.spec.creditLine && scene.credits?.length) caption(g.m.ram, this.o.spec.creditLine, now?.shown ?? '');
-    repaint(g.m);
-    // (the picture as the game's front end lays it out in play, if it does)
-    this.o.host.renderer.layout = this.o.spec.layout ?? null;
-    view.update();
-    if (!this.o.spec.creditLine) this.credits(now);
-    if (this.frames >= sceneLength(scene)) this.next();
-  }
-
-  /** The credit line of this moment, over the picture's empty band (after the view has drawn the picture, so it stays on top). */
-  private credits(now: ReturnType<typeof creditAt>) {
-    if (!now) return;
-    const { screen } = this.o.host.renderer;
-    const colour = this.o.spec.plainBand && this.machine ? creditColourOn(bandBackground(this.machine.m)) : CREDIT.colour;
-    this.o.font().draw(screen, now.shown, this.o.spec.creditX ?? CREDIT.x, this.o.spec.creditRow ?? CREDIT.row, colour);
-    screen.version++;
-  }
-
-  // -- the parade
-
-  private beginParade() {
-    this.phase = 'parade';
-    this.frames = 0;
-    this.machine = null;
-    const { renderer } = this.o.host;
-    renderer.backdrop = this.black;
-    renderer.layout = null;
-    renderer.border = 0;
-  }
-
-  /** How long each figure takes to cross, with a moment before the next. */
-  private crossing(f: Figure) { return Math.ceil((320 + f.width) / PARADE.speed) + 10; }
-
-  private parade() {
-    const { renderer } = this.o.host;
-    const font = this.o.font();
-    let t = this.frames - 1, i = 0;
-    while (i < this.figures.length && t >= this.crossing(this.figures[i])) { t -= this.crossing(this.figures[i]); i++; }
-    const fig = this.figures[i];
-    renderer.screen.clear(TRANSPARENT);
-    font.draw(renderer.screen, this.o.spec.title, 8, 12, YELLOW);
-    if (!fig) { this.phase = 'end'; this.frames = 0; for (const h of this.handles) h.visible = false; return; }
-    const x = Math.round(-fig.width + t * PARADE.speed);
-    // its own animation, at the pace it had in the engine
-    const cycle = fig.poses.reduce((n, p) => n + p.frames, 0);
-    let at = t % cycle, pose = fig.poses[0];
-    for (const p of fig.poses) { pose = p; if (at < p.frames) break; at -= p.frames; }
-    const top = PARADE.ground - fig.height;
-    pose.parts.forEach((part, k) => {
-      while (this.handles.length <= k) this.handles.push(renderer.createSprite(1 + this.handles.length * 0.01));
-      const h = this.handles[k];
-      h.surface = part.surface;
-      h.x = x + part.dx; h.y = top + part.dy;
-      h.visible = true;
-    });
-    for (let k = pose.parts.length; k < this.handles.length; k++) this.handles[k].visible = false;
-    // the name under it, from its left (nothing centred), kept on the picture
-    const nameX = Math.max(8, Math.min(x, 320 - 8 * fig.name.length - 8));
-    font.draw(renderer.screen, fig.name, nameX, PARADE.ground + PARADE.nameGap, GREY);
-    renderer.screen.version++;
-  }
-
-  // -- THE END
-
-  private end() {
-    const { renderer } = this.o.host;
-    const font = this.o.font();
-    renderer.screen.clear(TRANSPARENT);
-    for (const h of this.handles) h.visible = false;
-    bigText(renderer.screen, font, 'THE END', 24, 50, YELLOW);
-    this.stats.forEach((line, i) => font.draw(renderer.screen, line, 24, 100 + i * 14, GREY));
-    renderer.screen.version++;
-    if (this.frames > 500) this.finish();
-  }
-
-  render(alpha: number) {
-    if (!this.active) return;
-    if (this.phase === 'montage' && this.view) this.view.render(alpha);
-    else this.o.host.renderer.render();
-  }
-}
-
-/** Text at double size (each pixel of the glyph a 2 x 2 block): for THE END. */
-function bigText(s: Surface, font: BitmapFont, text: string, x: number, y: number, colour: number) {
-  let px = x;
-  for (const ch of text) {
-    const g = font.glyph(ch);
-    if (g) {
-      for (let row = 0; row < 8; row++) for (let col = 0; col < 8; col++) if (g[row] & (0x80 >> col)) s.fillRect(px + col * 2, y + row * 2, 2, 2, colour);
-    }
-    px += 16;
-  }
+  /** For tests: where the show is. */
+  get progress() { return this.show.progress; }
 }

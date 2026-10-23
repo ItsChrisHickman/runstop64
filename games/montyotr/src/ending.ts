@@ -1,6 +1,6 @@
 import { VicView, type Renderer } from 'c64kit';
-import { PORT_CREDITS } from '../../shared/native/ending';
-import { recordFigure, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
 import { enemyRecords, exitGridImage, sectorName } from './data';
 import { Game, type Assists } from './game';
@@ -13,13 +13,11 @@ import { CAST, SCENES, type Scene } from './ending-scenes';
  * The reward for beating Monty on the Run (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's):
  * a montage of rooms from the journey, each one the game's own engine on a new game of ours with Monty driven by a route
  * (pilot.ts: input like a player's) doing something there, the credits typing on in the empty row under the playfield;
- * then the parade of the game's creatures and Monty; then THE END with the numbers the pause screen keeps.
+ * and the game's creatures walking through the places; then THE END with the numbers the pause screen keeps.
  */
 
 /** The row under the playfield (screen row 23, between the room and its name), which the game leaves empty. */
 export const CREDIT_ROW = 184;
-/** Frames a credit line is given (a line of 38 letters types on in 38 frames and is held for the rest: over a second and a half). */
-const CREDIT_SLOT = 130;
 /** Frames after what Monty does in a room before the next place (a moment to take it in). */
 const TAIL = 40;
 
@@ -91,6 +89,12 @@ class MontyReel implements Reel {
 
   render(alpha: number) { this.stage.view.render(alpha); }
 
+  /** The row Monty's feet are on (sprite 3). */
+  get ground() {
+    const shot = vicShot(this.stage.game.vic, 3);
+    return shot ? shotFeet(shot) : undefined;
+  }
+
   dispose() { this.stage.score = this.stage.game.score; }
 }
 
@@ -117,7 +121,7 @@ function firstSeen(types: readonly number[]): { room: number; slots: number[] } 
 /** Frames of a creature recorded: more than any of its patrols takes to go there and back. */
 const RECORDED = 600;
 
-/** A creature as the engine shows it going its way (right, as the parade walks): the game runs in the room it first appears in, Monty held out of the way. */
+/** A creature as the engine shows it going its way (right, as the visitors walk): the game runs in the room it first appears in, Monty held out of the way. */
 function recordCreature(stage: Stage, name: string, types: readonly number[]): Figure | null {
   const at = firstSeen(types);
   if (!at) return null;
@@ -134,25 +138,6 @@ function recordCreature(stage: Stage, name: string, types: readonly number[]): F
     if (lead && shots.length === at.slots.length && !(lead.flags & 0x80)) moments.push(shots);
   }
   return recordFigure(name, moments);
-}
-
-/** Monty, running right as he does in play. */
-function recordMonty(stage: Stage): Figure | null {
-  const g = stage.game;
-  copyInto(g, (pristine ??= new Game()));
-  g.start();
-  if (!enterRoom(g, 0x00, 0x14, 0xb2)) return null;
-  const pilot = new Pilot('>96');
-  const moments: SpriteShot[][] = [];
-  while (!pilot.done) {
-    const stick = pilot.next();
-    g.input = stick;
-    g.inputFire = false;
-    g.frame(0);
-    const shot = vicShot(g.vic, 3);
-    if (shot) moments.push([shot]);
-  }
-  return recordFigure('MONTY', moments);
 }
 
 // ---- the show ------------------------------------------------------------------------------------------
@@ -178,9 +163,8 @@ export function montyEnding(renderer: Renderer, assist: Assists): RewardSpec {
   return {
     title: 'MONTY ON THE RUN',
     places,
-    cast: [...CAST.map((c) => () => recordCreature(stage(), c.name, c.types)), () => recordMonty(stage())],
+    cast: CAST.map((c) => () => recordCreature(stage(), c.name, c.types)),
     creditRow: CREDIT_ROW,
-    creditSlot: CREDIT_SLOT,
   };
 }
 

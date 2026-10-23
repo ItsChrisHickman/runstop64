@@ -97,7 +97,7 @@ export function run(host: Host) {
     // Running (ENHANCED, Shift held): Willy alone goes faster (RUN).
     run: RUN,
     // The reward for winning (ENHANCED): in the Masters Bedroom with 160 items (the game's own check), at once, as the game's own end never
-    // goes back to the title: a montage of rooms, the parade, THE END (src/ending.ts).
+    // goes back to the title: a montage of rooms, the creatures walking through it, THE END (src/ending.ts).
     ending: { spec: jsw2Ending, won, stats: endingStats, atOnce: true },
     // The title scroller's key list, with running (build/patch.json has the same, for a snapshot made again;
     // this puts it in the one made before it: the same length).

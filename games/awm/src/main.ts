@@ -1,8 +1,12 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
 import { RewardShow } from '../../shared/ending/show';
+<<<<<<< HEAD
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { LIVES_ASSIST } from '../../shared/lives';
+=======
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
+>>>>>>> e1b86f4 (Endings: one shared show; the creature parade is folded into the montage for all eleven games)
 import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
@@ -136,7 +140,7 @@ export function run(host: Host) {
       return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7', fly };
     }
 
-    // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the ending (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     const reward = rewardShow = new RewardShow({

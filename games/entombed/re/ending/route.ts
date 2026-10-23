@@ -11,7 +11,7 @@
  */
 import fs from 'node:fs';
 import { unpackState, type MachineState } from 'c64kit';
-import { Director, bootGame, joy, placed, type EndingStep, type Way } from '../../../shared/native/ending';
+import { Director, bootGame, joy, placed, type EndingStep, type Way } from '../../../shared/ending/machine-reel';
 import { NativeHost } from '../../../shared/native/host';
 import { renderPng } from '../../../../tools/probe/render';
 import { ACTION } from '../../src/actions';

@@ -1,6 +1,6 @@
 import { type FrameCapture, type Gauge, type Host, type PictureLayout } from 'c64kit';
 import { runNative } from '../../shared/native/play';
-import type { EndingSpec } from '../../shared/native/ending';
+import type { EndingSpec } from '../../shared/ending/machine-reel';
 import { ram as bound } from '../../shared/native/cpu';
 import { port } from './native';
 import { dragonskulleEnding, endingStats, won } from './ending';
@@ -202,7 +202,7 @@ export function run(host: Host) {
     reserved: [...JOYSTICK_KEYS, 'KeyC', 'KeyV'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1', F1: 'F1' },
     text: TITLE_TEXT,
-    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: dragonskulleShow, won, stats: endingStats },
     // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
     titleTune: true,

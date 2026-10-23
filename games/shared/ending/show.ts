@@ -1,23 +1,25 @@
 import { Surface, TRANSPARENT, type BitmapFont, type Host, type SpriteHandle } from 'c64kit';
-import { CREDIT } from '../native/ending';
+import { CREDIT } from './credits';
 import { poseAt, type Figure } from './figures';
+import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timeline, type Walk } from './timeline';
 
 /**
- * The reward for beating a game (ENHANCED's addition: the game's own winning moment stays as it was, and what follows
- * it is ours), written once for the native rebuilds on `runPort` (games/shared/port.ts). A game declares what is its own:
+ * The reward for beating a game (ENHANCED's addition: the game's own winning moment stays as it was, and what follows it is
+ * ours), written once for every game. A game declares what is its own, as places running on its own engine (a `Reel`):
  *
- *  1. A montage of places: each one the game's own engine running (a new game of ours, never the player's), its
- *     creatures and crushers moving as the engine moves them, the hero driven by input as in play doing something that
- *     fits the place. Over it the credits (the makers, true facts, the port) type on one line at a time in a part of the
- *     picture the game leaves empty, and are held; never on a box.
- *  2. A parade of the creatures: the game's own sprites and their frames, a name under each, the hero last.
- *  3. THE END and the player's numbers, then back to the title.
+ *  1. A montage of places: each one the game's own engine running (a new game of ours, never the player's), its creatures
+ *     moving as the engine moves them, the hero driven by input as in play doing something that fits the place. Over it, in a
+ *     part of the picture the game leaves empty (never on a box), the credits type on one line at a time, and between the
+ *     lines the show names the cast: the game's creatures walk across the place, each one named for a moment as it passes
+ *     the middle, so every one has been seen by the end, in places it never is in the game.
+ *  2. THE END and the player's numbers, then back to the title.
+ *
+ * Two kinds of reel exist, both in this folder's neighbours: a translated machine (`machine-reel.ts`, the Pendragon games, Thing
+ * on a Spring, Jet Set Willy II) and a native engine (each rebuild's own: Monty, Auf Wiedersehen Monty, Starquake, Moley
+ * Christmas, Antiriad). The show does the rest: the credits' timing, the visitors' recording and drawing, THE END, the skip.
  *
  * The game's tune plays all through (the game starts it: `music`). Any key or tap skips, after a couple of seconds.
- * Everything is drawn in the 320x200 picture in the game's own font and the C64's colours.
- *
- * (games/shared/native/ending.ts is the same show for the Pendragon games, whose engine is a translated machine:
- * the two overlap in the credits' timing, the parade, THE END and the won flag, and merge later.)
+ * Everything is drawn in the 320x200 picture in the game's own font and colours.
  */
 
 // ---- what a game declares -------------------------------------------------------------------------
@@ -26,48 +28,66 @@ import { poseAt, type Figure } from './figures';
 export interface Reel {
   /** One frame of the game's logic. */
   tick(): void;
-  /** The picture into the renderer (the credits go over it after). */
+  /** The picture into the renderer (the band's text goes over it after, unless `say` puts it in the picture itself). */
   draw(): void;
   render(alpha: number): void;
   /** Put away (the engine's sprites hidden). */
   dispose(): void;
+  /** For a picture whose band is a line of the game's own panel: the text for the band this frame (blank: none), taken before `draw`. Without it the show draws the text. */
+  readonly say?: ((text: string) => void) | undefined;
+  /** The row (picture pixels) the hero's feet are on now: where the visitors' feet go (the lowest of the last moments, as his jumps do not count). Without it the place's `ground`, else the show's. */
+  readonly ground?: number | undefined;
+  /** The colour the text of the band reads in here, if not the show's (a plain band of another colour). */
+  readonly ink?: number | undefined;
 }
 
 /** A place to revisit. */
 export interface Place {
-  /** Credit lines over it, one after another (a line types on, is held, and goes): upper case, at most `CREDIT.letters` letters. */
+  /** Credit lines over it, one after another (a line types on, is held, and goes): upper case, at most `CREDIT.letters` letters. No credits: no empty band, so no visitors either. */
   credits?: readonly string[];
-  /** How long it is shown at least (frames at 50 a second); longer if its credits need it. */
+  /** How long it is shown at least (frames at 50 a second); longer if its credits and visitors need it. */
   frames: number;
-  /** The row its credits go on, if not the show's (a place where the game's creatures are in the show's row). */
+  /** `false`: none of the cast walks through this place (something the game does here wants the picture to itself). */
+  visitors?: false;
+  /** The frame the band is empty from (default 0): where the first part of the place has it occupied. */
+  bandFrom?: number;
+  /** The row its text goes on, if not the show's (a place where the game's creatures are in the show's row). */
   creditRow?: number;
-  /** The column its credits start at, if not the show's (a place whose empty part is not the picture's left). */
+  /** The column its text starts at, if not the show's (a place whose empty part is not the picture's left). */
   creditX?: number;
+  /** The row the visitors stand on in this place, if the reel does not say. */
+  ground?: number;
   /** The place running, or null if it can't be made. */
   open(): Reel | null;
 }
 
 export interface RewardSpec {
-  /** Over the parade. */
+  /** Over THE END. */
   title: string;
   places: readonly Place[];
-  /** The creatures, recorded once the show begins (one that can't be is left out), the hero last. */
+  /** The cast, recorded once the show begins (one that can't be is left out): the creatures that visit the places. The hero is not here: he is in every place. */
   cast: readonly (() => Figure | null)[];
-  /** The row (picture pixels) the credit lines are drawn at: eight pixels the game leaves empty. */
+  /** The row (picture pixels) the text is drawn at: eight pixels the game leaves empty. */
   creditRow: number;
   /** Frames a credit line is given (default `CREDIT.slot`). */
   creditSlot?: number;
-  /** The column the credit lines start at (default `CREDIT.x`). */
+  /** The column the text starts at (default `CREDIT.x`), and the most letters it can have (default `CREDIT.letters`): the span of the band the game leaves empty. */
   creditX?: number;
-  /** The colours of the credit lines, of the parade's title and THE END, and of the names and numbers: indexes of the renderer's palette (default the C64's yellow and light grey; Moley Christmas's is the Spectrum's). */
+  creditLetters?: number;
+  /** The colours of the text, of the title and THE END, and of the numbers: indexes of the renderer's palette (default the C64's yellow and light grey; Moley Christmas's is the Spectrum's). */
   colours?: ShowColours;
-  /** The ground the parade walks on (picture pixels; default `PARADE.ground`): lower where the figures are tall, so none passes over the title. */
-  paradeGround?: number;
+  /** The row visitors stand on where neither the place nor the reel says (default `GROUND`). */
+  ground?: number;
+  /** Whether the show can run at all (the machines it needs are there); default yes. Checked once, as the show begins. */
+  ready?(): boolean;
 }
 
 /** The show's colours (indexes of the renderer's palette). */
 export interface ShowColours { credit: number; title: number; text: number }
 const C64_COLOURS: ShowColours = { credit: CREDIT.colour, title: 7, text: 15 };
+
+/** Where a visitor's feet go when nothing says: the lower middle of the picture. */
+export const GROUND = 150;
 
 /** What the show needs of the game running it. */
 export interface RewardOptions {
@@ -84,52 +104,7 @@ export interface RewardOptions {
   done(): void;
 }
 
-// ---- the credits over the montage ---------------------------------------------------------------
-
-/** How long a place runs: what it declares, or longer if its credit lines need their slots. */
-export function placeLength(place: Pick<Place, 'credits' | 'frames'>, slot: number = CREDIT.slot): number {
-  return Math.max(place.frames, (place.credits?.length ?? 0) * slot);
-}
-
-/** What the credits show `frame` frames into a place: the line and how much of it has typed on, or null between lines. */
-export function creditAt(place: Pick<Place, 'credits' | 'frames'>, frame: number, slot: number = CREDIT.slot): { line: number; shown: string } | null {
-  const lines = place.credits;
-  if (!lines || lines.length === 0) return null;
-  const each = Math.floor(placeLength(place, slot) / lines.length);
-  const line = Math.min(lines.length - 1, Math.floor(frame / each));
-  const into = frame - line * each;
-  if (into >= each - CREDIT.gap) return null;
-  return { line, shown: lines[line].slice(0, into) };
-}
-
-// ---- the parade ------------------------------------------------------------------------------------
-
-/** The parade: how fast the line walks (pixels a frame), the ground it walks on, the gap between neighbours and where a name goes. */
-export const PARADE = { speed: 2, ground: 128, gap: 14, nameGap: 10, hold: 150 } as const;
-/** The glyph's width. */
-const GLYPH = 8;
-
-/** The width of the block a figure takes in the line: the figure, or its name if that is wider. */
-const blockWidth = (f: Figure) => Math.max(f.width, GLYPH * f.name.length);
-
-/**
- * Where each figure of the line stands `t` frames in: its left edge (its name goes under it from there). The line walks
- * right, the first figure leading, a gap between neighbours' blocks; the last parks at `stop`.
- */
-export function paradeLefts(figures: readonly Figure[], t: number, stop: number): number[] {
-  let behind = 0;
-  return figures.map((f, i) => {
-    behind += blockWidth(f) + PARADE.gap;
-    const left = Math.round(t * PARADE.speed - behind);
-    return i === figures.length - 1 ? Math.min(left, stop) : left;
-  });
-}
-
-/** How many frames the line takes: the last figure reaching `stop`, and a moment. */
-export function paradeLength(figures: readonly Figure[], stop: number): number {
-  const total = figures.reduce((n, f) => n + blockWidth(f) + PARADE.gap, 0);
-  return Math.ceil((total + stop) / PARADE.speed) + PARADE.hold;
-}
+// ---- THE END ---------------------------------------------------------------------------------------
 
 /** Text at double size (each pixel of the glyph a 2 x 2 block): for THE END. */
 function bigText(s: Surface, font: BitmapFont, text: string, x: number, y: number, colour: number) {
@@ -145,12 +120,20 @@ function bigText(s: Surface, font: BitmapFont, text: string, x: number, y: numbe
 
 // ---- the show -------------------------------------------------------------------------------------------
 
-type Phase = 'loading' | 'montage' | 'parade' | 'end';
+type Phase = 'loading' | 'montage' | 'end';
 
 /** The frames before a key or a tap skips it. */
 const SKIP_AFTER = 100;
+/** The frames the hero's feet are watched for the floor a visitor walks on (the lowest: he may be in a jump). */
+const FLOOR_FRAMES = 50;
 /** Frames THE END is held. */
-const END_HOLD = 500;
+const END_HOLD = 250;
+
+/** A visitor at one moment, for tests: whose, where it stands (its left edge and the row of its feet) and its size. */
+export interface Seen { name: string; left: number; feet: number; width: number; height: number }
+
+/** The band's text now, for tests: what and where, and whether it is a credit line or a name (the place's `index`th). */
+export interface Said { text: string; kind: 'credit' | 'name'; index: number; x: number; row: number }
 
 export class RewardShow {
   private phase: Phase = 'loading';
@@ -159,8 +142,24 @@ export class RewardShow {
   private figures: Figure[] = [];
   private place = -1;
   private reel: Reel | null = null;
+  private tl: Timeline = { length: 0, beats: [] };
+  /** The visitors of the place being shown (indexes into `figures`), the frames each walks, and the row their feet stand on. */
+  private visitors: number[] = [];
+  private walks: Walk[] = [];
+  private ground = GROUND;
+  /** The hero's feet over the last moments (the floor under a jump is the lowest), and where each visitor of the place stands (the floor at the frame its walk began). */
+  private feet: number[] = [];
+  private stands: (number | undefined)[] = [];
+  /** How many of the cast each place takes, how many are placed, and how many a place that did not open left over. */
+  private shares: number[] = [];
+  private placed = 0;
+  private owed = 0;
+  /** A place's own floor, if it says (else the hero's). */
+  private fixed: number | undefined;
   private handles: SpriteHandle[] = [];
   private readonly black = new Surface(320, 200, 0);
+  private seen: Seen[] = [];
+  private said: Said | null = null;
 
   constructor(private readonly o: RewardOptions) {}
 
@@ -172,8 +171,10 @@ export class RewardShow {
   /** For tests: the figures recorded. */
   get cast(): readonly Figure[] { return this.figures; }
 
-  /** For tests: where the show is. */
-  get progress() { return { phase: this.phase, place: this.place, frames: this.frames, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })) }; }
+  /** For tests: where the show is, the place's reel, who is walking now and what the band says. */
+  get progress() {
+    return { phase: this.phase, place: this.place, frames: this.frames, reel: this.reel, visitors: this.seen, said: this.said, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })), length: this.tl.length };
+  }
 
   /** Begin: `stats` are the lines under THE END. */
   start(stats: readonly string[]) {
@@ -184,6 +185,10 @@ export class RewardShow {
     this.stats = stats;
     this.figures = [];
     this.place = -1;
+    this.placed = 0;
+    this.owed = 0;
+    this.seen = [];
+    this.said = null;
     this.o.music.start();
   }
 
@@ -194,6 +199,7 @@ export class RewardShow {
     // (the game's sprites and ours: the game's own view puts back what it shows on its next frame)
     this.o.host.renderer.hideSprites();
     this.o.host.renderer.backdrop = null;
+    this.o.host.renderer.layout = null;
     this.active = false;
   }
 
@@ -214,15 +220,17 @@ export class RewardShow {
     this.frames++;
     if (this.phase === 'loading') {
       // (a black frame first, then the work: the cast is recorded in one go)
-      if (this.frames === 1) { renderer.hideSprites(); renderer.backdrop = this.black; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
+      if (this.frames === 1) { renderer.hideSprites(); renderer.backdrop = this.black; renderer.layout = null; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
+      if (this.o.spec.ready && !this.o.spec.ready()) { this.finish(); return; }
       this.figures = this.o.spec.cast.flatMap((record) => { const f = record(); return f ? [f] : []; });
+      const { spec } = this.o;
+      this.shares = sharesOf(spec.places, this.figures.length, spec.creditSlot ?? CREDIT.slot);
       this.nextPlace();
       return;
     }
     if (this.skipped()) { this.finish(); return; }
     input.typed.length = 0;
     if (this.phase === 'montage') this.montage();
-    else if (this.phase === 'parade') this.parade();
     else this.end();
   }
 
@@ -233,81 +241,133 @@ export class RewardShow {
     this.reel?.dispose();
     this.reel = null;
     this.frames = 0;
+    this.seen = [];
+    this.said = null;
     for (;;) {
       this.place++;
       const place = spec.places[this.place];
-      if (!place) { this.beginParade(); return; }
+      if (!place) { this.beginEnd(); return; }
       const reel = place.open();
-      if (reel) { this.reel = reel; this.o.host.renderer.backdrop = null; this.phase = 'montage'; return; }
+      const share = this.shares[this.place] ?? 0;
+      if (!reel) { this.owed += share; continue; }
+      // (the cast it takes: its share, and what places that did not open left; the last place takes whoever is left)
+      const left = this.figures.length - this.placed;
+      const take = this.place === spec.places.length - 1 ? left : Math.min(left, share + this.owed);
+      this.owed = 0;
+      this.visitors = this.figures.slice(this.placed, this.placed + take).map((_, k) => this.placed + k);
+      this.placed += take;
+      const slot = spec.creditSlot ?? CREDIT.slot;
+      this.tl = timelineOf(place, this.visitors.length, slot);
+      this.walks = this.tl.beats.filter((b) => b.kind === 'name').map((b) => walkOf(b, this.tl.length));
+      this.reel = reel;
+      this.ground = spec.ground ?? GROUND;
+      this.feet = [];
+      this.stands = [];
+      this.fixed = place.ground;
+      this.o.host.renderer.backdrop = null;
+      this.phase = 'montage';
+      return;
     }
   }
 
   private montage() {
     const reel = this.reel, place = this.o.spec.places[this.place];
     if (!reel || !place) return;
+    const t = this.frames - 1;
+    const names = this.visitors.map((i) => this.figures[i]?.name ?? '');
+    const now = bandAt(this.tl, t, place.credits ?? [], names);
     reel.tick();
+    reel.say?.(this.padded(now, place, reel));
     reel.draw();
-    this.credits(place);
-    if (this.frames >= placeLength(place, this.o.spec.creditSlot)) this.nextPlace();
+    // (feet lower than a band at the foot of the picture are a panel's icon, not the hero)
+    const feet = reel.ground, row = place.creditRow ?? this.o.spec.creditRow;
+    if (feet !== undefined && (row <= 96 || feet <= row)) { this.feet.push(feet); if (this.feet.length > FLOOR_FRAMES) this.feet.shift(); }
+    this.drawVisitors(t, place);
+    this.band(now, place, reel);
+    if (this.frames >= this.tl.length) this.nextPlace();
   }
 
-  /** The credit line of this moment, over the picture's empty band (after the picture is drawn, so it stays on top). */
-  private credits(place: Place) {
-    const now = creditAt(place, this.frames - 1, this.o.spec.creditSlot);
-    if (!now) return;
+  /** The columns the band's text may use: where it starts and how many letters. */
+  private span(place: Place) { return { x: place.creditX ?? this.o.spec.creditX ?? CREDIT.x, letters: this.o.spec.creditLetters ?? CREDIT.letters }; }
+
+  /** The band's text where it stands: a name under its visitor, a credit line from the start. */
+  private whereIs(now: NonNullable<ReturnType<typeof bandAt>>, place: Place): number {
+    const { x, letters } = this.span(place);
+    if (now.beat.kind === 'credit') return x;
+    const walk = this.walks[now.beat.index], index = this.visitors[now.beat.index], fig = index === undefined ? undefined : this.figures[index];
+    const left = walk && fig ? visitorLeft(walk, this.frames - 1, fig.width) : null;
+    return nameLeft(left ?? x, now.text.length, x, letters);
+  }
+
+  /** The text for a reel whose band is a line of its panel: spaces to the column, then the text. */
+  private padded(now: ReturnType<typeof bandAt>, place: Place, reel: Reel): string {
+    if (!now || !reel.say) return '';
+    const { x } = this.span(place);
+    return ' '.repeat(Math.max(0, Math.floor((this.whereIs(now, place) - x) / 8))) + now.text;
+  }
+
+  /** The band's text, over the picture (after the reel has drawn it, so it stays on top). */
+  private band(now: ReturnType<typeof bandAt>, place: Place, reel: Reel) {
+    this.said = null;
+    if (!now || now.text === '') return;
+    const x = this.whereIs(now, place), row = place.creditRow ?? this.o.spec.creditRow;
+    this.said = { text: now.text, kind: now.beat.kind, index: now.beat.index, x, row };
+    if (reel.say) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.shown, place.creditX ?? this.o.spec.creditX ?? CREDIT.x, place.creditRow ?? this.o.spec.creditRow, this.colours.credit);
+    this.o.font().draw(screen, now.text, x, row, reel.ink ?? this.colours.credit);
     screen.version++;
   }
 
-  // -- the parade
-
-  private beginParade() {
-    this.phase = 'parade';
-    this.frames = 0;
-    const { renderer } = this.o.host;
-    renderer.hideSprites();
-    renderer.backdrop = this.black;
-    renderer.border = 0;
+  /** The row a visitor's feet stand on: the place's own, else where the hero's feet are (the lowest of the last moments); a band at the foot of the picture is never stood on. */
+  private floor(place: Place): number {
+    const row = place.creditRow ?? this.o.spec.creditRow;
+    const stand = this.fixed ?? (this.feet.length > 0 ? Math.max(...this.feet) : this.ground);
+    return row > 96 ? Math.min(stand, row) : stand;
   }
 
-  private parade() {
+  /** The visitors on their way, over the picture: one handle per part drawn, shared along the line. */
+  private drawVisitors(t: number, place: Place) {
     const { renderer } = this.o.host;
-    const font = this.o.font();
-    const t = this.frames - 1;
-    const stop = 24;
-    const ground = this.o.spec.paradeGround ?? PARADE.ground;
-    if (t >= paradeLength(this.figures, stop)) { this.phase = 'end'; this.frames = 0; return; }
-    renderer.screen.clear(TRANSPARENT);
-    font.draw(renderer.screen, this.o.spec.title, 8, 12, this.colours.title);
-    const lefts = paradeLefts(this.figures, t, stop);
+    this.seen = [];
     let used = 0;
-    this.figures.forEach((fig, i) => {
-      const left = lefts[i];
-      const pose = poseAt(fig, t);
-      const top = ground - fig.height;
-      // (a figure off the picture is not drawn: one handle per part drawn, shared along the line)
-      if (left + fig.width > 0 && left < 320) {
-        pose.parts.forEach((part) => {
-          while (this.handles.length <= used) this.handles.push(renderer.createSprite(1 + this.handles.length * 0.001));
-          const h = this.handles[used++];
-          h.surface = part.surface; h.x = left + part.dx; h.y = top + part.dy; h.visible = true;
-        });
-      }
-      // (its name under it, from its left: nothing is centred)
-      if (left + GLYPH * fig.name.length > 0 && left < 320) font.draw(renderer.screen, fig.name, left, ground + PARADE.nameGap, this.colours.text);
+    this.walks.forEach((walk, k) => {
+      const index = this.visitors[k], fig = index === undefined ? undefined : this.figures[index];
+      if (!fig) return;
+      const left = visitorLeft(walk, t, fig.width);
+      if (left === null) return;
+      const stand = (this.stands[k] ??= this.floor(place));
+      const top = stand - fig.foot;
+      this.seen.push({ name: fig.name, left, feet: stand, width: fig.width, height: fig.foot });
+      poseAt(fig, t - walk.from).parts.forEach((part) => {
+        while (this.handles.length <= used) this.handles.push(renderer.createSprite(20 + this.handles.length * 0.001));
+        const h = this.handles[used++];
+        if (!h) return;
+        h.surface = part.surface; h.x = left + part.dx; h.y = top + part.dy; h.visible = true;
+      });
     });
-    for (let k = used; k < this.handles.length; k++) this.handles[k].visible = false;
-    renderer.screen.version++;
+    for (let k = used; k < this.handles.length; k++) { const h = this.handles[k]; if (h) h.visible = false; }
   }
 
   // -- THE END
+
+  private beginEnd() {
+    this.phase = 'end';
+    this.frames = 0;
+    this.seen = [];
+    this.said = null;
+    const { renderer } = this.o.host;
+    renderer.hideSprites();
+    renderer.backdrop = this.black;
+    // (THE END is drawn as it is, not in the layout a place was drawn in)
+    renderer.layout = null;
+    renderer.border = 0;
+  }
 
   private end() {
     const { renderer } = this.o.host;
     const font = this.o.font();
     renderer.screen.clear(TRANSPARENT);
-    for (const h of this.handles) h.visible = false;
+    font.draw(renderer.screen, this.o.spec.title, 8, 12, this.colours.title);
     bigText(renderer.screen, font, 'THE END', 24, 50, this.colours.title);
     this.stats.forEach((line, i) => font.draw(renderer.screen, line, 24, 100 + i * 14, this.colours.text));
     renderer.screen.version++;

@@ -1,6 +1,6 @@
 import { C64View, type Renderer } from 'c64kit';
-import { PORT_CREDITS } from '../../shared/native/ending';
-import { recordFigure, type Figure, type SpriteShot } from '../../shared/ending/figures';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { recordFigure, shotFeet, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import { RoutePilot, type Stick as PilotStick } from '../../shared/ending/pilot';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
 import { SLOT_COLOURS_HEX } from './data/awm-data';
@@ -19,7 +19,7 @@ import { CAST, SCENES, type Goal, type Scene } from './ending-scenes';
  * The reward for beating Auf Wiedersehen Monty (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's): a
  * montage of places across Europe, each one the game's own engine (a `Program` of its own: the game, its picture, the flight
  * over the clouds) on a new game of ours with Monty driven by a route (shared/ending/pilot.ts: input like a player's)
- * doing something there, the credits typing on in the empty row under the room; then the parade of the game's creatures
+ * doing something there, the credits typing on in the empty row under the room, and the game's creatures walking through
  * and Monty; then THE END with the numbers the pause screen keeps.
  */
 
@@ -28,8 +28,6 @@ export const CREDIT_ROW = 144;
 /** Where a line starts and how long it can be: the room's width, between the side columns' sprites (x 40 to 288). */
 export const CREDIT_X = 40;
 export const CREDIT_LETTERS = 31;
-/** Frames a credit line is given (a line of 31 letters types on in 31 frames and is held for the rest). */
-const CREDIT_SLOT = 110;
 /** Frames after what Monty does in a place before the next (a moment to take it in). */
 const TAIL = 50;
 
@@ -175,6 +173,12 @@ export class AwmReel implements Reel {
 
   render(alpha: number) { this.stage.view.render(alpha); }
 
+  /** The row Monty's feet are on (his sprite, 1). */
+  get ground() {
+    const s = this.program.capture.sprites.find((sp) => sp.n === 1);
+    return s ? shotFeet(shotOf(s)) : undefined;
+  }
+
   dispose() {
     const g = this.program.game;
     if (g) this.stage.carry = { score: [...g.score.digits], money: [...g.money.digits] };
@@ -198,7 +202,7 @@ function shotOf(s: Program['capture']['sprites'][number]): SpriteShot {
   };
 }
 
-/** A creature as the engine shows it going its way (right, as the parade walks): the game runs in a room with it, Monty held up out of the way. */
+/** A creature as the engine shows it going its way (right, as the visitors walk): the game runs in a room with it, Monty held up out of the way. */
 function recordCreature(stage: Stage, c: (typeof CAST)[number]): Figure | null {
   const p = stage.begin({ room: c.room, spot: { x: 0x80, y: 0x30 } });
   const g = p?.game;
@@ -215,22 +219,6 @@ function recordCreature(stage: Stage, c: (typeof CAST)[number]): Figure | null {
     if (!g.enemies.facesLeft(c.slot)) right.push([shotOf(s)]);
   }
   return recordFigure(c.name, right.length >= 8 ? right : any);
-}
-
-/** Monty, running right as he does in play: his two sprites (the outline behind), a stretch of a walk. */
-function recordMonty(stage: Stage): Figure | null {
-  const p = stage.begin({ room: START_ROOM, spot: { x: 0x20, y: 0x68 } });
-  const g = p?.game;
-  if (!p || !g) return null;
-  const pilot = new RoutePilot('>40');
-  const moments: SpriteShot[][] = [];
-  for (let f = 0; f < 200 && !pilot.done; f++) {
-    const b = !p.picture?.nextIsA;
-    p.frame(b ? { ...NO_CONTROLS, stick: stickBits(pilot.next()) } : NO_CONTROLS);
-    const shots = [1, 0].flatMap((n) => { const s = p.capture.sprites.find((sp) => sp.n === n); return s ? [shotOf(s)] : []; });
-    if (shots.length === 2) moments.push(shots);
-  }
-  return recordFigure('MONTY', moments);
 }
 
 // ---- the show ----------------------------------------------------------------------------------------------------------
@@ -259,10 +247,10 @@ export function awmEnding(renderer: Renderer): RewardSpec {
   return {
     title: 'AUF WIEDERSEHEN MONTY',
     places,
-    cast: [...CAST.map((c) => () => recordCreature(stage(), c)), () => recordMonty(stage())],
+    cast: CAST.map((c) => () => recordCreature(stage(), c)),
     creditRow: CREDIT_ROW,
     creditX: CREDIT_X,
-    creditSlot: CREDIT_SLOT,
+    creditLetters: CREDIT_LETTERS,
   };
 }
 

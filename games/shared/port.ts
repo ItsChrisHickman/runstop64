@@ -55,7 +55,7 @@ export interface PortSetup<S, F, T> {
   launchHeld?: boolean;
   /** The colours of the pause screen and the flow's panels, where the game's palette is not the C64's. */
   colours?: PauseColours;
-  /** The ending can be watched from the pause screen now (the game has been won, in the mode that has one): W (native/ending.ts). */
+  /** The ending can be watched from the pause screen now (the game has been won, in the mode that has one): W (ending/machine-reel.ts). */
   ending?(): boolean;
 }
 
@@ -87,7 +87,7 @@ export interface PortAdapter<S, T> {
   /** The room number a resume from `s` is at, for the flow (default: the room saves' count, as it stands after the resume). */
   roomOf?(s: S): number;
   /**
-   * A screen of the game's own that takes over the session while it is `active` (the ending: native/ending.ts): it is ticked and
+   * A screen of the game's own that takes over the session while it is `active` (the ending: ending/show.ts): it is ticked and
    * rendered instead of everything else (the audio keys apart), and ends by going back to the title (`Port.backToTitle`).
    */
   takeover?: { readonly active: boolean; tick(): void; render(alpha: number): void };

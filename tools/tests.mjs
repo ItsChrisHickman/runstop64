@@ -25,6 +25,7 @@ const ZEXALL = 'games/moley/build/zexall.com';
 export const TESTS = [
   // ---- shared modules and the kit
   { file: 'games/shared/test/machine-state.ts', set: 'fast' },
+  { file: 'games/shared/test/ending-timeline.ts', set: 'fast' },
   { file: 'games/shared/test/saves.ts', set: 'fast' },
   { file: 'games/shared/test/continue-step.ts', set: 'fast' },
   { file: 'games/shared/test/found.ts', set: 'fast' },

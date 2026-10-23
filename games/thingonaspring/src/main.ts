@@ -50,7 +50,7 @@ export function run(host: Host) {
     }],
     hints: hintSpots,
     hintsWith: 'enhanced',
-    // the reward for winning (ENHANCED): a montage of the factory's rooms, the parade, THE END (src/ending.ts)
+    // the reward for winning (ENHANCED): a montage of the factory's rooms, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: thingEnding, won, stats: endingStats },
     onHook: (pc, ram) => {
       if (pc === NAME_LOOP) naming = true;

@@ -1,7 +1,7 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
-import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
 import { runPort, type FrameResult } from '../../shared/port';
 import { playEvents } from '../../shared/native/combat';
@@ -135,7 +135,7 @@ export function run(host: Host) {
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('antiriad'),
   }, (self) => {
-    // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the ending's fire (the title is up under it, ENTER CONTINUE comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     /** The tune: the title sequence's own, on a C64 of its own, its writes going into the sound as the game's would. */

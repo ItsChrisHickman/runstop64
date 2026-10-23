@@ -1,11 +1,12 @@
-import { PORT_CREDITS, type EndingCharacter, type EndingScene, type EndingSpec, type EndingStep, type Way as Dir } from '../../shared/native/ending';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { type EndingCharacter, type EndingScene, type EndingSpec, type EndingStep, type Way as Dir } from '../../shared/ending/machine-reel';
 import { BEDROOM, itemsFound, NEED, TOTAL } from './items';
 import { MANSION } from './mansion';
 import type { Jsw2Found } from './map';
 import { WAYS, type Input } from './ending-ways';
 
 /**
- * The ending's places and cast for Jet Set Willy II (games/shared/native/ending.ts has the show). Every place is a room of the mansion
+ * The ending's places and cast for Jet Set Willy II (games/shared/ending/ has the show). Every place is a room of the mansion
  * on a new game's memory, entered the game's own way (the way down from the room before: `$816C`, `$8063` as map travel does it), so its
  * guardians, ropes and conveyors are where the game has them, and Willy is steered by the joystick alone along a way found by playing
  * (re/ending/route.ts: Go-Explore from where he lands in the room, for the way that takes the room's items and runs about it without a
@@ -57,30 +58,28 @@ const tidy = (ram: Uint8Array): void => {
 };
 
 /**
- * A scene: a room, the way found for it, its credit lines. It lasts as long as the way, or as its credits do: ways are found to last as
- * long as the scene's credits (route.ts `frames`), for Willy left standing at the end of a shorter one is at the guardians' mercy.
+ * A scene: a room, the way found for it, its credit lines. It lasts as long as its credit lines and visitors take (the show's
+ * timeline), never longer than the way: a way found for the room is safe over every frame of it, so one cut short is too, but Willy left
+ * standing at the end of a shorter one is at the guardians' mercy (the test checks each scene is no longer than its way).
  */
 const scene = (n: number, credits: readonly string[]): EndingScene => {
   const way = WAYS[n];
-  const frames = way ? way.path.reduce((total, [, f]) => total + f, 0) : 520;
-  return { enter: room(n), ...(way ? { settle: stand(n, way.spot) } : {}), steps: way ? stepsOf(way.path) : [], frames, credits };
+  return { enter: room(n), ...(way ? { settle: stand(n, way.spot) } : {}), steps: way ? stepsOf(way.path) : [], frames: 0, credits };
 };
 
 /*
- * The credits are in three parts, as Super Mario World's: the makers, true facts, then the port (shared/native/ending.ts `PORT_CREDITS`, in the
+ * The credits are in three parts, as Super Mario World's: the makers, true facts, then the port (shared/ending/credits.ts `PORT_CREDITS`, in the
  * last scene). Sources of every line: re/credits.md. A line is at most 38 letters, upper case, in the game's own lettering (no apostrophes).
  */
 const PLAN: readonly (readonly [number, readonly string[]])[] = [
   // Butlers Pantry: fifteen jars taken
-  [68, ['JET SET WILLY II', 'THE FINAL FRONTIER', 'SOFTWARE PROJECTS, 1985', 'COMMODORE 64 VERSION BY', 'JOHN DARNELL AND STEVE BIRTLES']],
+  [68, ['JET SET WILLY II: THE FINAL FRONTIER', 'SOFTWARE PROJECTS, 1985', 'C64 VERSION BY JOHN DARNELL', 'AND STEVE BIRTLES']],
   // The Off Licence: thirteen bottles
-  [1, ['AFTER JET SET WILLY, BY MATTHEW SMITH', 'THE BEST SELLING HOME GAME OF 1984', 'WILLY TIDIES UP AFTER A HUGE PARTY', 'SO MARIA WILL LET HIM GO TO BED']],
-  [20, ['IT BEGAN AS THE AMSTRAD VERSION', 'OF JET SET WILLY, WRITTEN BY', 'DERRICK P ROWSON AND STEVE WETHERILL', 'ROWSONS SCREEN COMPRESSION LEFT', 'ENOUGH MEMORY FOR NEW ROOMS']],
-  [42, ['WE WERE HAVING A BLAST DOING IT', 'SAID STEVE WETHERILL OF THE NEW ROOMS', 'EFFECTIVELY, WE WERE THE FIRST', 'JET SET WILLY MODDERS, HE SAID']],
+  [1, ['AFTER JET SET WILLY, BY MATTHEW SMITH', 'THE BEST SELLING HOME GAME OF 1984', 'WILLY TIDIES UP AFTER A HUGE PARTY']],
+  [20, ['IT BEGAN AS THE AMSTRAD JET SET WILLY', 'BY DERRICK ROWSON AND STEVE WETHERILL', 'ROWSONS SCREEN COMPRESSION LEFT', 'ENOUGH MEMORY FOR NEW ROOMS']],
   [85, ['THE ZOO WAS WHAT PEOPLE CALLED THE', 'PROGRAMMING OFFICES AT SOFTWARE', 'PROJECTS, IN THE BEAR BRAND COMPLEX', 'AND THE CAMEL IS WETHERILLS OWN']],
   [82, ['THE BIRDS ARE WONGA THE BUDGIE,', 'MARC WILDINGS CODING ALTER EGO']],
   [104, ['FOOT ROOM: A NOD TO MANIC MINER', 'LOONY JET SET: A NOD TO JET PAC', 'EGGOIDS: A NOD TO LUNAR JET MAN', 'MACARONI TED: A NOD TO TECHNICIAN TED']],
-  [49, ['SINCLAIR USER CALLED IT THE BIGGEST', 'RIP OFF OF THEM ALL', 'ZZAP 64, FEBRUARY 1989: 63 PERCENT', 'GARGOYLES, FLYING PIGS AND POISONOUS', 'HOPPING RABBITS, IT SAID']],
   [136, ['THE SPECTRUM HAS 175 ITEMS, NEEDS 150', 'THIS VERSION HAS 178 AND NEEDS 160']],
   [34, [...PORT_CREDITS, 'THANKS FOR PLAYING']],
 ];
@@ -92,7 +91,7 @@ const at = (name: string, n: number, sprites: readonly number[], frames = 200): 
   const way = WAYS[n];
   return { name, enter: room(n), ...(way ? { settle: stand(n, way.spot) } : {}), sprites, steps: way ? stepsOf(way.path) : [], frames };
 };
-/** The parade: the mansion's guardians (the game names none but Maria, in its story, and the camel, which its author names: the others are named for what they look like), Willy last. */
+/** The visitors: the mansion's guardians (the game names none but Maria, in its story, and the camel, which its author names: the others are named for what they look like), Willy last. */
 const CAST: readonly EndingCharacter[] = [
   at('THE TOP HAT MAN', 68, [1]),
   at('THE MOON', 1, [1]),
@@ -102,7 +101,6 @@ const CAST: readonly EndingCharacter[] = [
   at('THE WINDMILL', 42, [2]),
   at('THE CAMEL', 85, [3]),
   at('MARIA', 34, [1]),
-  at('WILLY', 68, [0], 300),
 ];
 
 export const jsw2Ending: EndingSpec = {

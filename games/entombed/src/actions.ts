@@ -1,4 +1,4 @@
-import type { EndingActions } from '../../shared/native/ending';
+import type { EndingActions } from '../../shared/ending/machine-reel';
 import * as engine from './gen/engine';
 
 /** The actions ($3215): which one fire does. */

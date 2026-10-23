@@ -1,8 +1,12 @@
 import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
 import { RewardShow } from '../../shared/ending/show';
+<<<<<<< HEAD
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { LIVES_ASSIST } from '../../shared/lives';
+=======
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
+>>>>>>> e1b86f4 (Endings: one shared show; the creature parade is folded into the montage for all eleven games)
 import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
@@ -77,7 +81,7 @@ export function run(host: Host) {
     g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
     g.graceActive = () => flow.grace.active;
 
-    // ---- the reward for winning (ENHANCED): the montage, the parade, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the finale (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     const reward = rewardShow = new RewardShow({

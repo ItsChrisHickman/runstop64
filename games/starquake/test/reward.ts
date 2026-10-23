@@ -5,7 +5,8 @@
  *  1. every scene's route does what the scene says in the game as the montage runs it (a game of its own, frame by frame):
  *     its goals in order, in the room, a teleport's name typed and BLOB arrived where it goes, the core's ending;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way out,
- *     every creature of the cast recorded with its frames and BLOB last, the parade's names and THE END and its numbers on
+ *     every creature of the cast recorded with its frames and walking through the montage, each named in the credits' row in turn on
+ *     pixels the game leaves empty (BLOB is in every place, not among them), no parade, about a minute and a quarter, THE END and its numbers on
  *     the picture;
  *  3. the credits: the screen's last text row (y 192 to 199) is empty in the game's own picture in every frame of every place
  *     (sprites included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
@@ -16,16 +17,17 @@
  *
  *   nice -n 15 node tools/test.mjs games/starquake/test/reward.ts [out-dir]
  *
- * With an out-dir: PNG frames of each place, of the parade and of THE END.
+ * With an out-dir: PNG frames of each place, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer, TRANSPARENT } from 'c64kit';
-import { CREDIT, PORT_CREDITS, readWon } from '../../shared/native/ending';
-import { creditAt, paradeLefts, paradeLength, placeLength, RewardShow, type Place, type Reel } from '../../shared/ending/show';
+import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
+import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { RoutePilot } from '../../shared/ending/pilot';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
+import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { CREDIT_ROW, endingStats, isDone, openScene, routeFrames, SqReel, starquakeEnding } from '../src/ending';
@@ -77,7 +79,7 @@ const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const spec = starquakeEnding(renderer);
 /** What the game's own picture has in the credits' row, and what the show has put there in yellow and in any other colour. */
-let gameBand = 0, gameFrames = 0;
+let gameBand = 0, gameFrames = 0, gameBandEmpty = true;
 const badPlaces = new Map<number, string>();
 function band(pic: ArrayLike<number>) {
   let other = 0, yellow = 0;
@@ -96,6 +98,7 @@ const watched: Place[] = spec.places.map((place) => ({
         reel.render(0);
         const b = band(renderer.picture());
         gameBand += b.yellow + b.other;
+        gameBandEmpty = b.yellow + b.other === 0;
         gameFrames++;
         if (b.yellow + b.other > 0 && !badPlaces.has(show.progress.place)) badPlaces.set(show.progress.place, `place ${show.progress.place} frame ${show.progress.frames}`);
       },
@@ -120,12 +123,9 @@ show.start(stats);
 let frames = 0;
 const phases: string[] = [];
 let lastPlace = -1, placesSeen = 0;
-const typedLines = new Set<string>();
-const wrongAt: string[] = [];
-let creditsWrong = 0, creditFrames = 0, emptyFrames = 0;
-let maxVisible = 0, parades = 0, endFrames = 0, endYellow = 0, nameGrey = 0;
-let sawPortLast = false;
-const snaps = new Set<string>();
+const bandWatch = new BandWatch(), castWatch = new CastWatch();
+let endFrames = 0, endYellow = 0;
+const sceneFrames: number[] = [];
 while (show.active && frames < 20000) {
   input.poll();
   show.tick();
@@ -138,26 +138,14 @@ while (show.active && frames < 20000) {
       if (lastPlace >= 0) png(`place-${lastPlace}-end.png`, renderer);
       lastPlace = p.place; placesSeen++;
     }
+    sceneFrames[p.place] = p.frames;
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
-    const now = creditAt(place, p.frames - 1, spec.creditSlot);
     const b = band(renderer.screen.pixels);
-    if (now) {
-      creditFrames++;
-      if (now.shown.trim().length > 0 && (b.yellow === 0 || b.other > 0)) { creditsWrong++; if (wrongAt.length < 8) wrongAt.push(`place ${p.place} frame ${p.frames}`); }
-      if (now.shown === place.credits?.[now.line]) typedLines.add(now.shown);
-    } else {
-      emptyFrames++;
-      if (b.yellow > 0 || b.other > 0) creditsWrong++;
-    }
+    bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
+    castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([60, 150, 250, 350, 500, 700].includes(p.frames)) png(`place-${p.place}-f${p.frames}.png`, renderer);
-    if (p.place === spec.places.length - 1 && now && place.credits && now.line === place.credits.length - 1 && now.shown === place.credits[now.line]) sawPortLast = true;
-  } else if (p.phase === 'parade') {
-    parades++;
-    maxVisible = Math.max(maxVisible, renderer.sprites.filter((h) => h.visible).length);
-    const pic = renderer.picture();
-    for (let y = 130; y < 140; y++) for (let x = 0; x < 320; x++) if (pic[y * 320 + x] === 15) nameGrey++;
-    for (const at of [60, 300, 600, 900, 1200]) if (parades === at && !snaps.has(`p${at}`)) { snaps.add(`p${at}`); png(`parade-${at}.png`, renderer); }
+    if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
   } else if (p.phase === 'end') {
     endFrames++;
     if (endFrames === 5) {
@@ -168,45 +156,24 @@ while (show.active && frames < 20000) {
   }
 }
 const progress = show.progress;
-if (out) {
-  // the cast on a sheet (each creature's first frames in a row), to see what to call them
-  const cast = show.cast, W = 6 * 70, H = cast.length * 60;
-  const sheet = new Uint8Array(W * H);
-  cast.forEach((fig, row) => fig.poses.slice(0, 6).forEach((pose, col) => pose.parts.forEach((part) => {
-    const s = part.surface;
-    for (let y = 0; y < s.height && y + part.dy < 58; y++) for (let x = 0; x < s.width && x + part.dx < 68; x++) { const v = s.pixels[y * s.width + x]; if (v !== TRANSPARENT) sheet[(row * 60 + y + part.dy) * W + col * 70 + x + part.dx] = v; }
-  })));
-  rgbPng(path.join(out, 'cast.png'), indicesToRgb(sheet), W, H, 1);
-}
-check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over`, phases.join() === 'loading,montage,parade,end' && !show.active && over === 1);
+console.log(`phases ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}`);
+check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END, no parade`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 
 const figures = progress.figures;
-check(`the cast: ${CAST.length} creatures and BLOB last, each with frames (${figures.length} recorded)`, figures.length === CAST.length + 1 && figures[figures.length - 1]?.name === 'BLOB' && figures.every((f) => f.poses >= 1));
+check(`the cast: ${CAST.length} creatures, each with frames (${figures.length} recorded), BLOB not among them (he is in every place)`, figures.length === CAST.length && figures.every((f) => f.poses >= 1) && !figures.some((f) => f.name === 'BLOB'));
 check('creatures are named as the cast says, in order', CAST.every((c, i) => figures[i]?.name === c.name));
 check(`the cast moves (${figures.filter((f) => f.poses >= 3).length} have 3 frames or more)`, figures.filter((f) => f.poses >= 3).length >= CAST.length - 2);
-check(`the parade: ${maxVisible} sprites at most on at once, names under them (${nameGrey} pixels)`, maxVisible >= 3 && nameGrey > 500);
-{
-  const cast = show.cast, W = (i: number) => Math.max(must(cast[i], 'figure').width, 8 * must(cast[i], 'figure').name.length);
-  let overlap = 0;
-  const end = paradeLength(cast, 24);
-  for (let t = 0; t <= end; t += 5) {
-    const lefts = paradeLefts(cast, t, 24);
-    for (let i = 0; i < cast.length; i++) for (let j = i + 1; j < cast.length; j++) if (must(lefts[i], 'left') < must(lefts[j], 'left') + W(j) && must(lefts[j], 'left') < must(lefts[i], 'left') + W(i)) overlap++;
-  }
-  check(`the parade's names and figures never overlap (${cast.length} of them, ${end} frames, ${overlap} overlaps), BLOB last and parked at the left`, overlap === 0 && paradeLefts(cast, end, 24)[cast.length - 1] === 24);
-}
+castWatch.check(figures);
 check(`THE END is on the picture in yellow (${endYellow} pixels)`, endYellow > 100);
 
-check(`the game's own picture is empty in the credits' row (y ${BAND.top} to ${BAND.bottom}) in all ${gameFrames} frames of the montage${badPlaces.size ? ` (${[...badPlaces.values()].join('; ')})` : ''}`, gameFrames > 1000 && gameBand === 0);
-check(`credits land in empty pixels only: yellow when a line is up, nothing between lines (${creditFrames} frames with a line, ${emptyFrames} between; ${creditsWrong} wrong${wrongAt.length ? `: ${wrongAt.join('; ')}` : ''})`, creditFrames > 1000 && creditsWrong === 0);
 const lines = spec.places.flatMap((p) => p.credits ?? []);
-check(`every credit line was typed on in full and held (${typedLines.size} of ${new Set(lines).size} lines)`, lines.every((l) => typedLines.has(l)) && lines.length >= 20);
+bandWatch.check(lines.length, gameFrames, gameBand, [...badPlaces.values()]);
 const bad = lines.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the game's own lettering${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
-check('the port is credited last, as PORT_CREDITS has it', sawPortLast && PORT_CREDITS.every((l, i) => lines[lines.length - PORT_CREDITS.length + i] === l));
-check('places are long enough for their credits', spec.places.every((pl) => placeLength(pl, spec.creditSlot) >= (pl.credits?.length ?? 0) * (spec.creditSlot ?? CREDIT.slot)));
+check('the port is credited last, as PORT_CREDITS has it', PORT_CREDITS.every((l, i) => lines[lines.length - PORT_CREDITS.length + i] === l) && bandWatch.typed.has(`${spec.places.length - 1}.${(spec.places[spec.places.length - 1]?.credits?.length ?? 0) - 1}`));
 
 // ---- 4. skipping ----------------------------------------------------------------------------------------------------------
 

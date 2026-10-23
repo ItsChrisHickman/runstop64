@@ -1,4 +1,5 @@
-import { PORT_CREDITS, type EndingCharacter, type EndingScene, type EndingSpec } from '../../shared/native/ending';
+import { PORT_CREDITS } from '../../shared/ending/credits';
+import { type EndingCharacter, type EndingScene, type EndingSpec } from '../../shared/ending/machine-reel';
 import { itemsFound, ITEMS } from './items';
 import { ACTION } from './actions';
 import { STATUS } from './guided';
@@ -9,7 +10,7 @@ import { shipSeen, TOTAL, type BlackwycheFound } from './map';
 import { screenText } from '../../shared/native/pause';
 
 /**
- * The ending's places and cast for Blackwyche (games/shared/native/ending.ts has the show). Every place
+ * The ending's places and cast for Blackwyche (games/shared/ending/ has the show). Every place
  * is a room of the game, entered the game's own way on a new game's memory, so the things the game keeps
  * there are where they belong and its creatures move as they always did. Pendragon is told only where
  * to go and what to strike; the captions are the map's own names for the places (names.ts).
@@ -27,7 +28,7 @@ function captionOf(room: number): string {
 }
 
 /** A scene in a room, with the credit lines over it (their sources: games/blackwyche/re/credits.md). */
-const scene = (room: number, credits: readonly string[], steps: EndingScene['steps'], frames = 300): EndingScene => ({ caption: captionOf(room), enter: (ram) => enterRoom(ram, room), steps, frames, credits });
+const scene = (room: number, credits: readonly string[], steps: EndingScene['steps'], frames = 250): EndingScene => ({ caption: captionOf(room), enter: (ram) => enterRoom(ram, room), steps, frames, credits });
 const room = (n: number) => (ram: Uint8Array) => enterRoom(ram, n);
 
 /** Along a hall, a jump or two on the way. */
@@ -37,22 +38,22 @@ const strike = (n: number): EndingScene['steps'] => [{ strike: n, from: 'right',
 
 const SCENES: readonly EndingScene[] = [
   // the game and its makers (the first piece of the chart, on the shelf: struck, it falls)
-  scene(0x04, ['BLACKWYCHE', 'ULTIMATE PLAY THE GAME, 1985', 'FOR THE COMMODORE 64'], [{ walk: [150, 146] }, { strike: 6, from: 'right', reach: 24, dy: 19 }]),
+  scene(0x04, ['BLACKWYCHE', 'ULTIMATE PLAY THE GAME, 1985'], [{ walk: [150, 146] }, { strike: 6, from: 'right', reach: 24, dy: 19 }]),
   // (the rat on the long table, and a jump along the hall)
-  scene(0x13, ['DESIGNED BY DAVE AND BOB THOMAS', 'CODE BY DAVE THOMAS', 'GRAPHICS BY BOB THOMAS'], [{ walk: [60, 164] }, { jump: 2 }, { walk: [300, 164] }]),
+  scene(0x13, ['DESIGNED BY DAVE AND BOB THOMAS', 'CODE BY DAVE, GRAPHICS BY BOB THOMAS'], [{ walk: [60, 164] }, { jump: 2 }, { walk: [300, 164] }]),
   // (the skull hall: what comes at him is struck)
-  scene(0x0e, ['A.C.G. ASHBY COMPUTERS AND GRAPHICS', 'PENDRAGON 1: THE STAFF OF KARNATH', 'PENDRAGON 2: ENTOMBED'], [{ strike: 4, from: 'right', reach: 28 }]),
+  scene(0x0e, ['A.C.G. ASHBY COMPUTERS AND GRAPHICS', 'PENDRAGON 1 KARNATH, 2 ENTOMBED'], [{ strike: 4, from: 'right', reach: 28 }]),
   // (the pearl in its oyster: with the seaweed in hand it is his for the taking)
-  scene(0x14, ['PENDRAGON 3: BLACKWYCHE', 'PENDRAGON 4: DRAGON SKULLE', 'STARRING SIR ARTHUR PENDRAGON'], RUN, 260),
+  scene(0x14, ['PENDRAGON 3 BLACKWYCHE, 4 DRAGONSKULLE', 'STARRING SIR ARTHUR PENDRAGON'], RUN, 260),
   // facts, in the rooms of the creatures
   scene(0x1b, ['INSPIRED BY HMS VICTORY, PORTSMOUTH', 'THE BROTHERS PHOTOGRAPHED THE SHIP'], strike(0)),
   scene(0x19, ['BOB WAS A MINISTRY OF DEFENCE', 'TECHNICAL ILLUSTRATOR'], strike(4)),
   scene(0x1a, ['MADE IN THEIR PARENTS ATTIC', 'ULTIMATE ORDERED A WHOLE SERIES'], RUN),
-  scene(0x12, ['PENDRAGON IS THE BLACK PRINCE', 'FROM JACK THE GIANT KILLER', 'COMMODORE USER: BEST OF THE SERIES', 'SIR ARTHUR AND THE BLACKWYCHE ARE', 'IN SEA OF THIEVES BY RARE'], strike(4)),
+  scene(0x12, ['PENDRAGON IS THE BLACK PRINCE', 'FROM JACK THE GIANT KILLER', 'COMMODORE USER: BEST OF THE SERIES'], strike(4)),
   // (the spider hangs down into the band under the picture, where the credits stand: this scene has none)
   scene(0x1e, [], strike(0)),
   // this copy, and this port
-  scene(0x0e, ['A KILOBYTE WAS MISSING FROM THIS COPY', 'FOUND BY CHECKING EVERY ROOM', 'TITLE LINE RESTORED: A.C.G. 1985'], [{ walk: [60, 164] }, { jump: 1 }, { walk: [280, 164] }]),
+  scene(0x0e, ['A KILOBYTE WAS MISSING FROM THIS COPY', 'FOUND BY CHECKING EVERY ROOM'], [{ walk: [60, 164] }, { jump: 1 }, { walk: [280, 164] }]),
   scene(0x13, PORT_CREDITS, [{ walk: [300, 164] }, { jump: 2 }, { walk: [60, 164] }]),
   // the captain: the blow that frees him (the game's own end follows it, so the show stops short of it)
   scene(0x0c, ['THANKS FOR PLAYING'], [{ strike: 4, from: 'right', reach: 34, dy: 25 }], 240),
@@ -67,7 +68,6 @@ const CAST: readonly EndingCharacter[] = [
   { name: 'THE GUARD', enter: room(0x12), sprites: [4] },
   { name: 'THE OYSTER', enter: room(0x14), sprites: [6] },
   { name: 'THE SPIDER', enter: room(0x1e), sprites: [0] },
-  { name: 'SIR ARTHUR PENDRAGON', enter: room(0x13), sprites: [2], steps: [{ walk: [300, 164] }] },
 ];
 
 export const blackwycheEnding: EndingSpec = {

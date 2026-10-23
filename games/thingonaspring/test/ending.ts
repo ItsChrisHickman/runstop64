@@ -1,22 +1,23 @@
 /**
- * Thing on a Spring's ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * Thing on a Spring's ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. the whole show runs from the first frame to THE END and back to the title, every scene of the montage the game itself running on a
  *     new game of its own, Thing steered by the joystick alone along a way found by playing (re/ways.json): each takes him through its
  *     room into the next screen as the game's own travel would; one takes a jigsaw piece, one an oil can; the last is the goblin's room;
  *  2. the credits: every line typed over the montage in the black band at the foot of the picture, in the credit colour and nothing
- *     else, the band empty before the text in every scene; the cast recorded, Thing last; the title tune (Rob Hubbard's) all the way;
+ *     else, the band empty before the text in every scene; the cast recorded; the title tune (Rob Hubbard's) all the way;
  *  3. what a win is ($CD is 2: the goblin touched), and through the front end as the browser runs it: a save with the goblin touched,
  *     the game's own end over before the ending, the ending run to the title; W on the pause screen once won; none in ORIGINAL;
  *  4. any key skips it, after the first moment and not before.
  *
  *   nice -n 15 node tools/test.mjs games/thingonaspring/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the credits, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of the credits, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState, type MachineState } from 'c64kit';
-import { Ending, PORT_CREDITS, bootGame, keepWon, placed, readWon } from '../../shared/native/ending';
+import { PORT_CREDITS, keepWon, readWon } from '../../shared/ending/credits';
+import { Ending, bootGame, placed } from '../../shared/ending/machine-reel';
 import { GAMES } from '../../shared/native/test/games';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
@@ -42,7 +43,7 @@ const map = makeMap();
 
 // ---- the show, from the start to the end
 /** The screen each scene's way ends in ("level.screen"), and the places the show had him come to. */
-const GOES: Record<number, string> = { 0: '0.6', 2: '0.4', 5: '3.4' };
+const GOES: Record<number, string> = { 0: '0.6' };
 const seen = { reached: new Set<number>(), piece: false, can: false, won: false, scenes: new Set<number>(), travelled: new Map<number, number[]>() };
 const result = playShow({
   spec, port, title,
@@ -53,7 +54,7 @@ const result = playShow({
     const r = m.ram;
     seen.scenes.add(scene);
     if (`${r[0x5f]}.${r[0x5e]}` === GOES[scene]) seen.reached.add(scene);
-    if (scene === 3 && r[0x3a5] & 0x80) seen.piece = true;
+    if (scene === 2 && r[0x3a5] & 0x80) seen.piece = true;
     if (scene === 1 && r[0x3b0] & 0x80) seen.can = true;
     const me = m.capture.sprites.find((sp) => sp.n === 0), t = seen.travelled.get(scene) ?? [999, 0];
     if (me) seen.travelled.set(scene, [Math.min(t[0], me.x + r[0x19] * 8), Math.max(t[1], me.x + r[0x19] * 8)]);
@@ -62,13 +63,13 @@ const result = playShow({
 });
 const lines = spec.scenes.flatMap((sc) => sc.credits ?? []);
 checkShow({ spec, port, title, stats: [], band: { top: 192, bottom: 199 } }, result, lines, PORT_CREDITS, 'THING ON A SPRING');
-check('the montage is eight to twelve places', spec.scenes.length >= 8 && spec.scenes.length <= 12);
+check('the montage is six to twelve places', spec.scenes.length >= 6 && spec.scenes.length <= 12);
 check(`each corridor run takes him through into the next screen (${[...seen.reached].sort().join(' ')} of ${Object.keys(GOES).join(' ')})`, Object.keys(GOES).every((k) => seen.reached.has(Number(k))));
-check('he runs through the rooms with a way (the scroll and his place move on)', [1, 3, 4, 6].every((i) => { const t = seen.travelled.get(i); return !!t && t[1] - t[0] > 40; }));
+check('he runs through the rooms with a way (the scroll and his place move on)', [1, 2, 3, 4].every((i) => { const t = seen.travelled.get(i); return !!t && t[1] - t[0] > 40; }));
 check('the jigsaw piece is taken ($3A5 bit 7)', seen.piece);
 check('the oil can is taken ($3B0 bit 7)', seen.can);
 check('the show never ended the game it shows (the goblin is not touched)', !seen.won);
-check('the cast is the factory\'s creatures with plain names, Thing last, and they move', result.figures.length === spec.cast.length && result.figures[result.figures.length - 1].name === 'THING' && result.figures.filter((f) => f.poses > 1).length >= 3);
+check('the cast is the factory\'s creatures with plain names (the hero is in every scene, not among them), and they move', result.figures.length === spec.cast.length && result.figures.filter((f) => f.poses > 1).length >= 3);
 
 // ---- THE END's numbers
 {

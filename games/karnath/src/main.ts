@@ -58,7 +58,7 @@ export function run(host: Host) {
     // Touch: the stick, CAST, SPELL (the next one, as Enter does), and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'CAST', key: 'Space', size: 'big' }, { label: 'SPELL', key: 'Enter' }] },
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
-    // the reward for winning (ENHANCED): a montage, the parade, THE END (src/ending.ts)
+    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: karnathEnding, won, stats: endingStats },
     reserved: [...JOYSTICK_KEYS, ...['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0']],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },

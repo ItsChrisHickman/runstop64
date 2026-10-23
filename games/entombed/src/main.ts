@@ -63,7 +63,7 @@ export function run(host: Host) {
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'WHIP', key: 'KeyX' }, { label: 'TORCH', key: 'KeyC' }] },
     run: { player: engine.r_1864 }, // hold Shift to run: player control runs twice a frame
-    // the reward for winning (ENHANCED): a montage of the tomb's chambers, the parade, THE END (src/ending.ts)
+    // the reward for winning (ENHANCED): a montage of the tomb's chambers, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: entombedEnding, won, stats: endingStats },
     reserved: [...JOYSTICK_KEYS, ...['KeyC']],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },

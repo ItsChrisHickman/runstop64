@@ -43,7 +43,7 @@ export interface Scene {
 
 /**
  * The montage: Gibraltar where the game begins, then places across Europe, to Montos. The credits are in three parts, as Super
- * Mario World's: the makers, true facts, then the port (shared/native/ending.ts `PORT_CREDITS`, put after the last place's by
+ * Mario World's: the makers, true facts, then the port (shared/ending/credits.ts `PORT_CREDITS`, put after the last place's by
  * ending.ts). Sources of every line: re/credits.md. A line is at most 38 letters of the game's lettering (no apostrophes,
  * percent signs or brackets: its font has none).
  */
@@ -66,49 +66,32 @@ export const SCENES: readonly Scene[] = [
     credits: ['MUSIC BY ROB HUBBARD', 'AND BEN DAGLISH', 'THE FOURTH MONTY MOLE GAME'],
   },
   {
-    // (the beret, France's own item)
-    room: 0x09, spot: { x: 40, y: 120 }, goals: [{ take: 53 }, { take: 55 }],
-    route: 'J>40 >16 ^16 ^>32 J>44 J<75',
-    credits: ['MONTY TRAVELS EUROPE FOR MONEY', 'TO BUY MONTOS, A GREEK ISLAND', 'ITEMS SUIT EACH COUNTRY, LIKE', 'BERETS IN FRANCE'],
-  },
-  {
     // (the record: he breakdances to the title tune, the game's walk-in, which plays on by itself after the route)
     room: 0x13, spot: { x: 32, y: 96 }, goals: [{ dance: true }],
-    route: '^>4 ^4 ^>4 J>12 ^8 ^>16 J>8 >4 J>8 >8 J>40', frames: 760,
-    credits: ['A RECORD IN LUXEMBOURG MAKES', 'MONTY BREAKDANCE TO THE TITLE', 'MUSIC. HUBBARD VISITED GREMLIN', 'FOR TWO DAYS TO WORK ON THE', 'TITLE TUNE WITH BEN DAGLISH'],
-  },
-  {
-    room: 0x0c, spot: { x: 112, y: 120 }, goals: [{ take: 115 }, { take: 116 }, { take: 114 }],
-    route: '<8 ^4 ^<4 J<12 J>24 ^<4 J<4 <4 >16 <16 v20 J>79',
-    credits: ['A CAR DROPS INTO ONE OF TWO', 'PLACES AS HE ENTERS DUSSELDORF', 'HUBBARD ALSO WROTE A DOZEN', 'ANTHEMS FOR THE BORDERS'],
+    route: '^>4 ^4 ^>4 J>12 ^8 ^>16 J>8 >4 J>8 >8 J>40', frames: 450,
+    credits: ['MONTY TRAVELS EUROPE FOR MONEY', 'TO BUY MONTOS, A GREEK ISLAND', 'A RECORD IN LUXEMBOURG MAKES', 'MONTY BREAKDANCE TO THE TUNE'],
   },
   {
     // (the chef's hat, then the ticket, and to the plane)
     room: 0x00, spot: { x: 40, y: 104 }, goals: [{ take: 131 }, { take: 134 }, { board: true }],
     route: 'J>20 >8 J>12 ^4 >24 J>12 >4 J>16 <4 J<12 <4 J<8 <28 J<12 <8 >54',
-    credits: ['A CHEFS HAT IN SWEDEN NODS TO', 'THE SWEDISH CHEF OF THE MUPPETS', 'WINE AND BEER MAKE MONTY DRUNK', 'AUF WIEDERSEHEN IS GERMAN FOR', 'GOODBYE'],
-  },
-  {
-    // (the plane boarded at once, as he stands at it with the ticket: the flight, the other plane chased)
-    room: 0x00, spot: { x: 176, y: 104 }, carry: [0], goals: [{ board: true }], fly: true, creditRow: 152,
-    route: '', frames: 450,
-    credits: ['IN THE SKY HE CHASES A PLANE', 'FLOWN BY AN INTERMOLE AGENT:', 'TOUCHING ITS BACK WITH THE', 'PROPELLER DESTROYS IT (ZZAP!64)'],
+    credits: ['A CHEFS HAT IN SWEDEN NODS TO', 'THE SWEDISH CHEF OF THE MUPPETS', 'WINE AND BEER MAKE MONTY DRUNK'],
   },
   {
     // (a steering wheel handed over in Monaco pays: he comes into the room with it)
     room: 0x2b, spot: { x: 40, y: 120 }, carry: [12], goals: [{ enter: 0x2c }, { take: 79 }],
     route: '>4 J>40 >24 v>4 J>8 v>8 ^<4 J>48 >6',
-    credits: ['DROP ITEMS OFF IN THE RIGHT', 'PLACES FOR MONEY: A CAR ENTERED', 'IN A GRAND PRIX (ZZAP!64)', 'CRASH READERS VOTED IT BEST', 'PLATFORM GAME OF THE YEAR'],
+    credits: ['DROP ITEMS OFF IN THE RIGHT', 'PLACES FOR MONEY', 'CRASH READERS VOTED IT BEST', 'PLATFORM GAME OF THE YEAR'],
   },
   {
     // (everything delivered: into Montos, and the game's own ending, two figures coming to stand beside him)
     room: 0x4b, spot: { x: 40, y: 88 }, progress: 0xc3, goals: [{ ending: true }],
     route: 'v>8 J12 v>16', frames: 600,
-    credits: ['YOUR SINCLAIR READERS PUT IT AT', 'NUMBER 57 IN THEIR TOP 100', 'MOLEY CHRISTMAS CAME LATER', 'IN THE SAME YEAR'],
+    credits: ['YOUR SINCLAIR READERS PUT IT AT', 'NUMBER 57 IN THEIR TOP 100'],
   },
 ];
 
-/** A creature of the parade: where its frames are recorded (the room and the slot of its record there) and its name. */
+/** A creature that walks through the montage: where its frames are recorded (the room and the slot of its record there) and its name. */
 export interface Creature { readonly name: string; readonly room: number; readonly slot: number }
 export const CAST: readonly Creature[] = [
   { name: 'GREEN MASK', room: 0x00, slot: 3 },

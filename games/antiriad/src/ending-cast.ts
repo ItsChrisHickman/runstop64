@@ -1,17 +1,15 @@
 import { C64View, Surface, TRANSPARENT, type Renderer } from 'c64kit';
 import { captureShot, recordFigure, recordPictures, type Figure, type SpriteShot } from '../../shared/ending/figures';
-import { arrive, fromState, frameOf, type Bases } from './stage';
+import { arrive, fromState, type Bases } from './stage';
 import type { Game } from './game';
-import { Pilot, type Step } from './pilot';
 import { rowAt } from './rooms';
 import { roomSpriteList } from './setup';
 import { V } from './vars';
-import { fitPart } from './collisions';
 import type { Base } from './ending-scenes';
 
 /**
- * The cast of the parade, as the engine draws it: each creature as the game shows it going its way, recorded in the first room it
- * appears in (Tal not there to be met: his sprites off), frame by frame, so the parade shows the game's own frames at the pace
+ * The cast that walks through the montage, as the engine draws it: each creature as the game shows it going its way, recorded in the first room it
+ * appears in (Tal not there to be met: his sprites off), frame by frame, so the visitors show the game's own frames at the pace
  * it showed them. Most are sprites ($C0-$DB: the list at $CA16 of each room); three (the monkeys in the trees, the dragons'
  * heads, the machine gunners) the game draws with characters, animated by changing the characters' shapes ($06BC), so they are
  * recorded from the picture, cell by cell.
@@ -20,11 +18,10 @@ import type { Base } from './ending-scenes';
 /** Frames a creature is recorded for (after a moment for it to appear): more than its animation takes round. */
 const RECORDED = 80, SETTLE = 40;
 
-/** What is in the parade, in order: sprites by animation number ($C0-$DB), pictures by the animation of characters ($06BC), then Tal. */
+/** The cast, in order: sprites by animation number ($C0-$DB), pictures by the animation of characters ($06BC). Tal is not in it: he is in every place, on foot or in the armour. */
 export type Member =
   | { name: string; sprites: readonly number[] }
-  | { name: string; chars: number; room: number }
-  | { name: string; tal: 'on foot' | 'in the armour' };
+  | { name: string; chars: number; room: number };
 
 /** Names the C64-Wiki gives (the monkey, the dragon, the gunman, the acid drop, the energy barrier, the teleporter, the recharge cell, the four parts); where it gives none, ours, plain: what it is or looks like. */
 export const CAST: readonly Member[] = [
@@ -46,8 +43,6 @@ export const CAST: readonly Member[] = [
   { name: 'PARTICLE NEGATOR', sprites: [0xc3] },
   { name: 'GRAVITY DISPLACER', sprites: [0xc4] },
   { name: 'IMPLOSION MINE', sprites: [0xc5] },
-  { name: 'ARMOUR', tal: 'in the armour' },
-  { name: 'TAL', tal: 'on foot' },
 ];
 
 /** The states the places begin from. */
@@ -138,33 +133,14 @@ function recordChars(renderer: Renderer, bases: Bases, name: string, anim: numbe
   return recordPictures(name, pictures);
 }
 
-/** Tal as the game shows him: his two sprites (head and body, legs), walking right as he does in play; or in the armour, flying right. */
-function recordTal(bases: Bases, name: string, how: 'on foot' | 'in the armour'): Figure | null {
-  const armour = how === 'in the armour';
-  const g = fromState(bases.get(armour ? 'suited' : 'new'));
-  if (armour) fitPart(g, 2);
-  const run: Step[] = armour ? [{ hold: '^', frames: 30 }, { hold: '>', frames: 100 }] : [{ hold: '.', until: (gg) => !(gg.ram[V.appearing] & 0x80), max: 60 }, { hold: '>', frames: 100 }];
-  const pilot = new Pilot(run);
-  const moments: SpriteShot[][] = [];
-  for (let f = 0; f < 200; f++) {
-    frameOf(g, pilot);
-    // (walking right, or flying right: the animations that face the way the parade goes)
-    if (g.ram[V.anim] !== (armour ? 0xb6 : 0x82)) continue;
-    const shots = g.m.capture.sprites.filter((s) => s.n < 2).map(captureShot);
-    if (shots.length === 2) moments.push(shots);
-  }
-  return recordFigure(name, moments);
-}
-
 /**
- * The parade's figures, each made when asked for (the show makes them in one go as it begins, in its black first moment: the
+ * The cast's figures, each made when asked for (the show makes them in one go as it begins, in its black first moment: the
  * states the places begin from are made then too, so no place has to make one as it opens).
  */
 export function antiriadCast(renderer: Renderer, bases: Bases): (() => Figure | null)[] {
   return CAST.map((m, i) => (): Figure | null => {
     if (i === 0) for (const base of BASES) bases.get(base);
     if ('sprites' in m) return recordSprites(bases, m.name, m.sprites);
-    if ('chars' in m) return recordChars(renderer, bases, m.name, m.chars, m.room);
-    return recordTal(bases, m.name, m.tal);
+    return recordChars(renderer, bases, m.name, m.chars, m.room);
   });
 }

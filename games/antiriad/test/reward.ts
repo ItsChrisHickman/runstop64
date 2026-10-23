@@ -5,7 +5,8 @@
  *  1. every place of the montage does what it says, in the game's own engine driven by the pilot's input (pilot.ts), in the
  *     frames the place runs, Tal never out of life, the same each time;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune stepped every frame and put back on the way
- *     out, every figure of the cast recorded (the creatures' frames, the armour and Tal last), the parade's names, THE END and its numbers;
+ *     out, every figure of the cast recorded (the creatures' frames; Tal is in every place, not among them) walking through the montage, each named in the credits' row
+ *     in turn on pixels the game leaves empty, no parade, about a minute and a quarter, THE END and its numbers;
  *  3. the credits: the row between the playfield and the panel is empty in the game's own picture in every frame of every place
  *     (sprites included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before;
@@ -15,20 +16,21 @@
  *
  *   nice -n 15 node tools/test.mjs games/antiriad/test/reward.ts [out-dir]
  *
- * With an out-dir: PNG frames of each place, of the parade and of THE END, and the cast on a sheet.
+ * With an out-dir: PNG frames of each place, of each name in turn and of THE END, and the cast on a sheet.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, Surface, TRANSPARENT, decodeSprite } from 'c64kit';
 import { MACHINE_CODEC } from '../../shared/continue';
-import { CREDIT, PORT_CREDITS, readWon } from '../../shared/native/ending';
-import { placeLength, creditAt, paradeLefts, paradeLength, RewardShow, type Place, type Reel } from '../../shared/ending/show';
+import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
+import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { toBase64, writeCurrent } from '../../shared/saves';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
+import { BandWatch, CastWatch, SHOW_FRAMES, drawVisitors } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
-import { CREDIT_ROW, PARADE_GROUND, SceneReel, antiriadEnding, endingStats } from '../src/ending';
+import { CREDIT_ROW, SceneReel, antiriadEnding, endingStats } from '../src/ending';
 import { CAST } from '../src/ending-cast';
 import { SCENES } from '../src/ending-scenes';
 import { Game } from '../src/game';
@@ -71,7 +73,7 @@ SCENES.forEach((scene, i) => {
   check(`place ${i}, ${scene.name}: done at frame ${r.doneAt} of ${scene.frames} (rooms ${[...r.rooms].map(hex).join(' ')}), Tal never out of life`, r.doneAt >= 0 && r.doneAt <= scene.frames - 20 && r.dead === 0);
 });
 // (the same each time: the places are made of the game's frames and the pilot's input, nothing random)
-check('the places are the same each time they are played', [0, 4, 8].every((i) => playPlace(i).end === playPlace(i).end));
+check('the places are the same each time they are played', [0, 3, SCENES.length - 1].every((i) => playPlace(i).end === playPlace(i).end));
 check('the montage has 8 to 12 places', SCENES.length >= 8 && SCENES.length <= 12);
 
 // ---- 2 and 3. the show, from the first frame to THE END -----------------------------------------------------------------
@@ -125,7 +127,7 @@ function bandOfShow() {
 }
 
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
-let gameBand = 0, gameFrames = 0, disagree = 0;
+let gameBand = 0, gameFrames = 0, disagree = 0, gameBandEmpty = true;
 const badPlaces = new Map<number, number>();
 const watched: Place[] = spec.places.map((place) => ({
   ...place,
@@ -139,9 +141,11 @@ const watched: Place[] = spec.places.map((place) => ({
         reelNow = reel;
         const n = bandOfGame(reel.g);
         gameBand += n;
+        gameBandEmpty = n === 0;
         gameFrames++;
         // (every so often by the whole picture too: the quick way and the slow agree)
-        if (gameFrames % 60 === 0 && bandOfPicture(reel.g) !== n) disagree++;
+        // (not while the game's ending flashes the screen: its background is no longer the band's black, and no line is typed then)
+        if (gameFrames % 60 === 0 && (reel.g.m.capture.rows[16]?.bg[0] ?? 0) === 0 && bandOfPicture(reel.g) !== n) disagree++;
         if (n > 0 && !badPlaces.has(show.progress.place)) badPlaces.set(show.progress.place, gameFrames);
       },
       render: (a) => reel.render(a),
@@ -164,12 +168,10 @@ show.start(stats);
 let frames = 0;
 const phases: string[] = [];
 let lastPlace = -1, placesSeen = 0;
-const typed = new Set<string>();
-const wrongAt: string[] = [];
-let creditsWrong = 0, creditFrames = 0, emptyFrames = 0;
-let maxVisible = 0, parades = 0, endFrames = 0, endYellow = 0, nameGrey = 0, titleYellow = 0;
-let sawPortLast = false, flashed = 0;
-const snaps = new Set<string>();
+const bandWatch = new BandWatch(), castWatch = new CastWatch();
+let endFrames = 0, endYellow = 0;
+let flashed = 0, visitedLast = 0;
+const sceneFrames: number[] = [];
 const t0 = Date.now();
 while (show.active && frames < 20000) {
   input.poll();
@@ -180,34 +182,18 @@ while (show.active && frames < 20000) {
   if (phases[phases.length - 1] !== p.phase) phases.push(p.phase);
   if (p.phase === 'montage') {
     if (p.place !== lastPlace) { lastPlace = p.place; placesSeen++; }
+    sceneFrames[p.place] = p.frames;
     const place = spec.places[p.place];
     // (the tick that moves on to a place draws nothing of it yet)
     if (p.frames === 0) continue;
-    const now = creditAt(place, p.frames - 1, spec.creditSlot);
     const b = bandOfShow();
     // (the game's ending flashes the whole screen: nothing is typed over a background that is not black)
     if ((current()?.g.m.capture.rows[16]?.bg[0] ?? 0) !== 0 && b.yellow > 0) flashed++;
-    if (now) {
-      creditFrames++;
-      if (now.shown.trim().length > 0 && (b.yellow === 0 || b.other > 0)) { creditsWrong++; if (wrongAt.length < 8) wrongAt.push(`place ${p.place} frame ${p.frames} yellow ${b.yellow} other ${b.other}`); }
-      if (now.shown === place.credits?.[now.line]) typed.add(now.shown);
-    } else {
-      emptyFrames++;
-      if (b.yellow > 0 || b.other > 0) creditsWrong++;
-    }
+    bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
+    castWatch.frame(p, BAND, () => gameBandEmpty);
+    if (p.place === spec.places.length - 1 && p.visitors.length > 0) visitedLast++;
     if (out && [60, 200, 400, 600].includes(p.frames)) png(`place-${p.place}-f${p.frames}.png`, compose());
-    if (p.place === spec.places.length - 1 && now && place.credits && now.line === place.credits.length - 1 && now.shown === place.credits[now.line]) sawPortLast = true;
-  } else if (p.phase === 'parade') {
-    parades++;
-    const visible = renderer.sprites.filter((h) => h.visible).length;
-    maxVisible = Math.max(maxVisible, visible);
-    // (the picture is put together only now and then: it is the slow part)
-    if (parades % 40 === 0 || [60, 300, 600, 900, 1200].includes(parades)) {
-      const pic = renderer.picture();
-      for (let y = PARADE_GROUND + 10; y < PARADE_GROUND + 20; y++) for (let x = 0; x < 320; x++) if (pic[y * 320 + x] === 15) nameGrey++;
-      if (parades === 40) for (let y = 12; y < 20; y++) for (let x = 0; x < 320; x++) if (pic[y * 320 + x] === 7) titleYellow++;
-      for (const at of [60, 300, 600, 900, 1200]) if (parades === at && !snaps.has(`p${at}`)) { snaps.add(`p${at}`); png(`parade-${at}.png`, pic); }
-    }
+    if (out && p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, compose()); }
   } else if (p.phase === 'end') {
     endFrames++;
     const pic = renderer.picture();
@@ -217,57 +203,35 @@ while (show.active && frames < 20000) {
     }
   }
 }
-console.log(`  the show took ${Date.now() - t0} ms for ${frames} frames`);
+console.log(`  the show took ${Date.now() - t0} ms for ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}`);
 
-/** The picture of the place running now: the game's, with the credits over it. */
+/** The picture of the place running now: the game's, with the credits and the visitors over it. */
 function compose() {
   const px = renderPixels(must(current(), 'a place running').g.m);
   renderer.screen.pixels.forEach((c, i) => { if (c !== TRANSPARENT) px[i] = c; });
+  drawVisitors(renderer, px);
   return px;
 }
 
 const progress = show.progress;
-// the cast on a sheet (each figure's frames in a row)
-if (out) {
-  const cast = show.cast, W = 8 * 112, H = cast.length * 100;
-  const sheet = new Uint8Array(W * H);
-  cast.forEach((fig, row) => fig.poses.slice(0, 8).forEach((pose, col) => pose.parts.forEach((part) => {
-    const s = part.surface;
-    for (let y = 0; y < s.height && y + part.dy < 98; y++) for (let x = 0; x < s.width && x + part.dx < 110; x++) { const v = s.pixels[y * s.width + x]; if (v !== TRANSPARENT) sheet[(row * 100 + y + part.dy) * W + col * 112 + x + part.dx] = v; }
-  })));
-  rgbPng(path.join(out, 'cast.png'), indicesToRgb(sheet), W, H, 1);
-}
-check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over`, phases.join() === 'loading,montage,parade,end' && !show.active && over === 1);
+check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END, no parade`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
 check(`the tune began with it, was stepped every frame (${tuneFrames}) and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1 && tuneFrames === frames);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 
 const figures = progress.figures;
-check(`the cast: ${CAST.length} figures, each with frames, in order, the armour and Tal last (${figures.length} recorded)`, figures.length === CAST.length && CAST.every((c, i) => figures[i]?.name === c.name && figures[i].poses >= 1) && figures[figures.length - 1].name === 'TAL' && figures[figures.length - 2].name === 'ARMOUR');
-check(`the creatures move (${figures.filter((f) => f.poses >= 4).length} of them have 4 frames or more)`, figures.filter((f) => f.poses >= 4).length >= 12);
-check(`the parade: ${maxVisible} sprites at most on at once, names under them (${nameGrey} pixels), the title above (${titleYellow})`, maxVisible >= 3 && nameGrey > 300 && titleYellow > 100);
-{
-  // the line: no block (a figure or its name, whichever is wider) over another, at any moment, and Tal parked at the left at the end
-  const cast = show.cast, W = (i: number) => Math.max(cast[i].width, 8 * cast[i].name.length);
-  let overlap = 0;
-  const end = paradeLength(cast, 24);
-  for (let t = 0; t <= end; t += 5) {
-    const lefts = paradeLefts(cast, t, 24);
-    for (let i = 0; i < cast.length; i++) for (let j = i + 1; j < cast.length; j++) if (lefts[i] < lefts[j] + W(j) && lefts[j] < lefts[i] + W(i)) overlap++;
-  }
-  check(`the parade's names and figures never overlap (${cast.length} of them, ${end} frames, ${overlap} overlaps), Tal last and parked at the left`, overlap === 0 && paradeLefts(cast, end, 24)[cast.length - 1] === 24);
-  check(`the tallest figure stands clear of the title (${Math.max(...cast.map((f) => f.height))} pixels on a ground of ${PARADE_GROUND}: top at ${PARADE_GROUND - Math.max(...cast.map((f) => f.height))}, the title ends at 20)`, PARADE_GROUND - Math.max(...cast.map((f) => f.height)) > 20);
-}
+check(`the cast: ${CAST.length} creatures and things, each with frames, in order (${figures.length} recorded), Tal not among them (he is in every place)`, figures.length === CAST.length && CAST.every((c, i) => figures[i]?.name === c.name && figures[i].poses >= 1) && !figures.some((f) => f.name === 'TAL'));
+check(`the creatures move (${figures.filter((f) => f.poses >= 4).length} of them have 4 frames or more)`, figures.filter((f) => f.poses >= 4).length >= 10);
+castWatch.check(figures);
 check(`THE END is on the picture in yellow (${endYellow} pixels), with the numbers: ${stats.join(' / ')}`, endYellow > 100 && stats.length === 4);
 
-check(`the game's own picture is empty in the credits' row (rows ${BAND.top}-${BAND.bottom}, sprites included) in all ${gameFrames} frames of the montage${badPlaces.size ? ` (not in place ${[...badPlaces.keys()].join(', ')}, from frame ${[...badPlaces.values()].join(', ')})` : ''}`, gameFrames > 3000 && gameBand === 0 && disagree === 0);
-check(`credits land in empty pixels only: yellow when a line is up, nothing between lines (${creditFrames} frames with a line, ${emptyFrames} between; ${creditsWrong} wrong${wrongAt.length ? `: ${wrongAt.join('; ')}` : ''})`, creditFrames > 1500 && creditsWrong === 0);
 const lines = spec.places.flatMap((p) => p.credits ?? []);
-check(`every credit line was typed on in full and held (${typed.size} of ${lines.length} lines)`, lines.every((l) => typed.has(l)) && lines.length >= 20);
+bandWatch.check(lines.filter((l) => l !== '').length, gameFrames, gameBand + disagree, [...badPlaces.keys()].map((n) => `place ${n} from frame ${badPlaces.get(n)}`));
 const bad = lines.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the font the show draws them in${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
 check(`no line is typed over the ending's flashing screen (${flashed} frames)`, flashed === 0);
-check('the port is credited last, as PORT_CREDITS has it', sawPortLast && PORT_CREDITS.every((l, i) => lines[lines.length - PORT_CREDITS.length + i] === l));
-check('places are long enough for their credits', spec.places.every((pl) => placeLength(pl, spec.creditSlot) >= (pl.credits?.length ?? 0) * (spec.creditSlot ?? CREDIT.slot)));
+check('the port is credited last, as PORT_CREDITS has it', PORT_CREDITS.every((l, i) => lines[lines.length - PORT_CREDITS.length + i] === l) && bandWatch.typed.has(`${spec.places.length - 1}.${(spec.places[spec.places.length - 1]?.credits?.length ?? 0) - 1}`));
+check(`the last place, the game's own ending, has no visitors walking through it (${visitedLast} frames with one)`, visitedLast === 0);
 // each place shows what the credits near it say? the makers come first, the facts after, the port last
 check('the makers come first (the title and Palace Software on the first place)', spec.places[0].credits?.[0] === 'THE SACRED ARMOUR OF ANTIRIAD' && lines.slice(0, 8).some((l) => l.includes('SCHEMBRI')) && lines.slice(0, 8).some((l) => l.includes('MALONE')) && lines.slice(0, 8).some((l) => l.includes('JOSEPH')));
 

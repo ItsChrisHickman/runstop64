@@ -1,13 +1,13 @@
 import { fitPart } from './collisions';
 import type { Game } from './game';
-import { alive, cruise, flyTo, inArmour, ready, shootAt, talX, type Step } from './pilot';
+import { cruise, flyTo, inArmour, ready, talX, type Step } from './pilot';
 import { V } from './vars';
 
 /**
  * The montage of The Sacred Armour of Antiriad's reward (ending.ts): places of the game, in the order of the quest, each one the
  * game's own engine on a new game of ours with Tal driven by a pilot (pilot.ts) doing there what the place is for. The credits
  * go over them in the empty row between the playfield and the panel (three parts, as Super Mario World's: the makers, true
- * facts, then the port: shared/native/ending.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every
+ * facts, then the port: shared/ending/credits.ts `PORT_CREDITS`, put after the last place's by ending.ts). Sources of every
  * line: re/credits.md. A line is at most 38 letters of the C64's own lettering.
  */
 
@@ -26,8 +26,10 @@ export interface Scene {
   steps: readonly Step[];
   /** What he does there is done (the test checks it, in the frames the place runs). */
   done(g: Game): boolean;
-  /** Frames the place is shown at least. */
+  /** The frames its action has to be done in (the test checks it, in the frames the place runs). */
   frames: number;
+  /** Frames the place is shown at least, if what it does is to be seen through (the armour's power-up); otherwise as long as its credits and visitors take. */
+  shown?: number;
   /** Credit lines over it (upper case, at most 38 letters). */
   credits: readonly string[];
 }
@@ -105,7 +107,7 @@ export const SCENES: readonly Scene[] = [
     base: 'new', arrive: ARMOUR_ARRIVAL, prepare: nothing,
     // (and he tries to fly: "GRAVITY PREVENTS TAKEOFF", the game's own message, until the boots are found)
     steps: [...WEARING, { hold: '^', frames: 20 }],
-    done: poweredUp, frames: 700,
+    done: poweredUp, frames: 700, shown: 660,
     credits: ['PROGRAMMING BY STANLEY SCHEMBRI', 'GRAPHICS BY DANIEL MALONE', 'AND STEPHEN ROBERTSON'],
   },
   {
@@ -137,23 +139,6 @@ export const SCENES: readonly Scene[] = [
     ],
     done: (g) => g.ram[V.room] >= 0x3c, frames: 560,
     credits: ['RICHARD JOSEPH ALSO SCORED', 'SENSIBLE SOCCER AND CANNON FODDER', 'A 16 PAGE COMIC CAME IN THE BOX'],
-  },
-  {
-    name: 'the Pulsar Beam: fetched from under the guns, then fired',
-    base: 'suited', arrive: { room: 0x21, x: 0x50, y: 0x40 }, prepare: parts(DISPLACER),
-    steps: [
-      { hold: '.', until: (g) => g.ram[V.room] === 0x21 && ready(g), max: 60 },
-      flyTo(176, 60, 10, 100),
-      flyTo(176, 140, 10, 100),
-      flyTo(150, 149, 8, 100),
-      { hold: '.', frames: 40 },
-      // out of the room to the right, where creatures wait to be shot
-      { hold: '>', until: (g) => g.ram[V.room] === 0x22 && ready(g), max: 200 },
-      shootAt(6, 200),
-      shootAt(5, 200),
-    ],
-    done: (g) => hasPart(g, PULSAR) && g.ram[V.room] === 0x22 && !alive(g, 6) && !alive(g, 5), frames: 700,
-    credits: ['AN EARLY METROIDVANIA, MADE ALONGSIDE', 'METROID WITHOUT KNOWING OF IT', 'PALACE MADE CAULDRON AND BARBARIAN'],
   },
   {
     name: 'the Implosion Mine: out of the armour, crouch over it',
@@ -206,10 +191,10 @@ export const SCENES: readonly Scene[] = [
       ...landing(6),
       { hold: '.', frames: 600 },
     ],
-    done: (g) => mineSetOff(g), frames: 780,
-    // (two slots with no line: the armour comes down and the mine goes off, and the game's ending flashes the screen white for
+    done: (g) => mineSetOff(g), frames: 780, shown: 600,
+    // (three slots with no line: the armour comes down and the mine goes off, and the game's ending flashes the screen white for
     // a second and more, which nothing may be typed over; the port's lines follow, over the last message)
-    credits: ['', ''],
+    credits: ['', '', ''],
   },
 ];
 

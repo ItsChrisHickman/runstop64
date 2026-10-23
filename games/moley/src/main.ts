@@ -2,7 +2,7 @@ import type { Host } from 'c64kit';
 import { readJson } from '../../shared/guards';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
-import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { runPort } from '../../shared/port';
 import type { TouchLayout } from '../../shared/touch';
 import type { TitleStrip } from '../../shared/continue';
@@ -96,7 +96,7 @@ export function run(host: Host) {
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
     enhanced = (): boolean => fe.enhanced;
-    // ---- the reward for winning (ENHANCED): the montage of the six screens, the parade, THE END (src/ending.ts) ----
+    // ---- the reward for winning (ENHANCED): the montage of the six screens, the creatures walking through it, THE END (src/ending.ts) ----
     const show = reward = new RewardShow({
       host,
       spec: moleyEnding(renderer, sound),

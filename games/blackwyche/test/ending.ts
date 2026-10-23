@@ -1,5 +1,5 @@
 /**
- * The ending (games/shared/native/ending.ts, src/ending.ts), headless, with the real game under it:
+ * The ending (games/shared/ending/, src/ending.ts), headless, with the real game under it:
  *
  *  1. every place of the montage can be entered on a new game, and Pendragon, driven by the joystick
  *     alone, does what the scene says (the shelf's piece struck, the captain struck, ...);
@@ -12,11 +12,12 @@
  *
  *   nice -n 15 node tools/test.mjs games/blackwyche/test/ending.ts [out-dir]
  *
- * With an out-dir: PNG frames of each scene, of the parade and of THE END.
+ * With an out-dir: PNG frames of each scene, of each name in turn and of THE END.
  */
 import fs from 'node:fs';
 import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState } from 'c64kit';
-import { Ending, PORT_CREDITS, keepWon, readWon } from '../../shared/native/ending';
+import { PORT_CREDITS, keepWon, readWon } from '../../shared/ending/credits';
+import { Ending } from '../../shared/ending/machine-reel';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { checkShow, playShow } from '../../shared/test/ending-kit';
