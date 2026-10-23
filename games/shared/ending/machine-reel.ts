@@ -415,8 +415,6 @@ export interface EndingOptions {
   sound: { pushFrame(w: SidWrite[]): void };
   /** The title's tune is the original's own code running (title-tune.ts), not the translation's: the game says so (play.ts `titleTune`). */
   titleTune?: boolean;
-  /** The title's tune is the original's own code running (title-tune.ts), not the translation's: the game says so (play.ts `titleTune`). */
-  titleTune?: boolean;
   /** The game's font (the panels'). */
   font(): BitmapFont;
   /** The show is over (or skipped): back to the title. */

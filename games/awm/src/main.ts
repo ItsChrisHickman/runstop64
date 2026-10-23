@@ -1,12 +1,8 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
 import sidUrl from '../build/awm.sid?url';
 import { RewardShow } from '../../shared/ending/show';
-<<<<<<< HEAD
-import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
-import { LIVES_ASSIST } from '../../shared/lives';
-=======
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
->>>>>>> e1b86f4 (Endings: one shared show; the creature parade is folded into the montage for all eleven games)
+import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
 import type { TouchLayout } from '../../shared/touch';
