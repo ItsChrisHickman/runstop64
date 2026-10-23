@@ -1,4 +1,5 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
+import { LIVES_ASSIST } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
@@ -129,7 +130,7 @@ export function run(host: Host) {
     id: 'antiriad', font: 'kit', codec: MACHINE_CODEC, map: antiriadMap, describe: (s) => describeSave(s.ram),
     strip: { y: 183 }, // (on the black under the title's floor)
     // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
-    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
+    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }, LIVES_ASSIST],
     launchHeld: true,
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('antiriad'),
@@ -202,6 +203,7 @@ export function run(host: Host) {
   const hook = (game: Game) => {
     game.onRoom = () => rooms.enter();
     game.graceActive = () => flow.grace.active;
+    game.unlimitedLives = () => fe.assist.lives === true;
     won = false;
   };
   hook(g);

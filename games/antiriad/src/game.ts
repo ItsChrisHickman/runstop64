@@ -303,6 +303,8 @@ export class Game extends Core {
   enhanced = false;
   /** Whether a moment's grace is on (the front end's, main.ts; grace.ts): nothing hurts Tal or the armour, and the radiation and the armour's drain wait. */
   graceActive: () => boolean = () => false;
+  /** ENHANCED's unlimited lives and continues (shared/lives.ts): a fall out of life is no rejuvenation used, so the fifth never comes. */
+  unlimitedLives: () => boolean = () => false;
   /** ENHANCED: C was pressed (main.ts): fill the armour from a stored recharge cell (cells.ts). */
   cellAsked = false;
   /** What Tal and the creatures felt since the front end last collected it (feel.ts; presentation only). */
@@ -646,6 +648,7 @@ export class Game extends Core {
     if (ram[V.anim] === 0xa6 || (ram[V.jumping] | ram[V.inSuit] | ram[V.gameOver]) & 0x80 || ram[V.life]) return;
     ram[V.anim] = 0xa6; ram[V.anim + 1] = 0xa7;
     restartHeroAnim(this);
+    if (this.unlimitedLives()) return;
     if (++ram[V.deaths] < 5) return;
     ram[V.gameOver] = 0x90;
     this.say(0x90);

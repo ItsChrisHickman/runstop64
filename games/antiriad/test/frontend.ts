@@ -101,6 +101,14 @@ tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
 const zO = jumps('KeyZ');
 check(`ORIGINAL: Z is the original's one button (fire: ${JSON.stringify(zO)})`, zO.fired);
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
+// ENHANCED: unlimited lives and continues: out of life he is rejuvenated, with none used, never game over
+g().ram[V.deaths] = 4;
+g().ram[V.life] = 0;
+n = 0;
+while (g().ram[V.life] < 0x1f && n++ < 1500) tick();
+check(`ENHANCED: out of life with the last rejuvenation used: he is rejuvenated, none used up, no game over (deaths ${g().ram[V.deaths]}, life ${g().ram[V.life]})`, g().ram[V.deaths] === 4 && !(g().ram[V.gameOver] & 0x80) && g().ram[V.life] >= 0x1f);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
+check('ORIGINAL: no unlimited lives', !p.state.enhanced && !g().unlimitedLives());
 // the game over: the last rejuvenation used, then no life left
 g().ram[V.deaths] = 4;
 g().ram[V.life] = 0;
@@ -115,6 +123,8 @@ check('fire: back to the title, which asks CONTINUE?', g().onTitle && p.state.pr
 tap('Enter');
 tick(5);
 check(`Enter: back in play in the last room entered (${roomName(g().ram[V.room])}), full life, all rejuvenations`, g().playing && g().ram[V.room] === first && g().ram[V.life] === 0x1f && g().ram[V.deaths] === 0);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10); // (back to ENHANCED, the default)
+check('and ENHANCED again', p.state.enhanced && g().unlimitedLives());
 // R restarts (the original's Q): the game so far is kept as the previous save, as a new game from
 // the title keeps it; once after the title has been up a while, once with a new game straight away
 for (const wait of [300, 2]) {
