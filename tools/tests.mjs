@@ -167,6 +167,7 @@ export const TESTS = [
   { file: 'games/karnath/re/hints/check.ts', set: 'fast' },
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },
+  { file: 'games/karnath/test/obelisk.ts', set: 'fast' },
   { file: 'games/karnath/test/pictures.ts', set: 'fast' },
   { file: 'games/karnath/test/spells.ts', set: 'fast' },
   { file: 'games/karnath/test/travel-creatures.ts', set: 'fast' },

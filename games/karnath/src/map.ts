@@ -2,6 +2,7 @@ import { COL, drawPickName, isNumbers, isRecord, isRecordOf, isStrings, screenTe
 import { STRIPS } from './strips';
 import { LOCATION, go as travel, location } from './travel';
 import { PIECES, carrying, deposited } from './hints';
+import { PLACES } from './places';
 
 /**
  * The Staff of Karnath's map, for the pause screen: the castle as the game keeps it (see
@@ -78,14 +79,21 @@ function layout(box: Box) {
  * Where each room he can go back to is marked: where he came in; rooms the game counted at the
  * same place (a door held open moves its count on, see re/README.md) side by side, 4 pixels apart.
  */
+/** The place far left of Karn's abode where the pieces are laid (the obelisk), reached the game's own way from the abode as noted (places.ts); on the map once he has been in the abode. */
+const OBELISK = 'obelisk';
+const obeliskAt = (s: Seen) => (s.at[ABODE_ROOM] ? [...PLACES['254/obelisk']] : undefined);
+const ABODE_ROOM = '25';
+
 function marks(s: Seen, L: ReturnType<typeof layout>) {
   const taken = new Map<string, number>();
-  return Object.entries(s.at).flatMap(([room, loc]) => {
+  const wanted = obeliskAt(s);
+  const where = Object.entries(s.at).concat(wanted ? [[OBELISK, wanted]] : []);
+  return where.flatMap(([room, loc]) => {
     const p = at(loc);
     if (!p) return [];
     const x = L.x(p.col), y = L.y(p.strip) + 4, key = `${p.strip}:${x >> 2}`, n = taken.get(key) ?? 0;
     taken.set(key, n + 1);
-    return [{ room: Number(room), x: x + 4 * n, y }];
+    return [{ room, x: x + 4 * n, y }];
   });
 }
 const roomName = (ram: Uint8Array, room: number) => {
@@ -131,7 +139,7 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
     }
     // the rooms, where he came in (dark: been in, but no place to come back to)
     for (const m of marks(s, L)) sf.fillRect(m.x - 1, m.y - 4, 3, 8, COL.lblue);
-    drawPickName(sf, box, font, pick ? roomName(ram, Number(pick)) : null);
+    drawPickName(sf, box, font, pick ? (pick === OBELISK ? 'THE OBELISK' : roomName(ram, Number(pick))) : null);
     if (blink && s.last.length === 3) sf.fillRect(L.x(s.last[1]) - 1, L.y(s.last[0]) + 1, 3, 6, COL.white);
   },
   info: (ram, found, assist) => [
@@ -143,10 +151,10 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
   ],
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.green, text: 'STAIRS' }, { colour: COL.purple, text: 'FLOORS' }],
   places(box, ram, found) {
-    return marks(found.castle, layout(box)).map((m) => ({ id: String(m.room), x: m.x, y: m.y, here: m.room === ram[0x3235] }));
+    return marks(found.castle, layout(box)).map((m) => ({ id: m.room, x: m.x, y: m.y, here: m.room === String(ram[0x3235]) }));
   },
   go(id, ram, found) {
-    const s = found.castle, to = s.at[id];
+    const s = found.castle, to = id === OBELISK ? obeliskAt(s) : s.at[id];
     if (!to || !travel(ram, to)) return false;
     s.last = []; // (not walked: no way between the two to draw)
     return true;
