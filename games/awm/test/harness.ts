@@ -7,6 +7,7 @@ import { C64Machine, type MachineState } from 'c64kit';
 import { ENEMY_ROOMS, NO_ROOM, ROOMS, TABLES, WORLD_GRID } from '../src/data';
 import { Enemies, PLANE_FRAMES } from '../src/enemies';
 import { Game } from '../src/game';
+import { isRemoved } from '../src/items';
 import { LIFT_SITES, Lift } from '../src/lifts';
 import { Stick, decodeStick } from '../src/input';
 import type { SkyState } from '../src/flight';
@@ -57,6 +58,11 @@ export const hex = (b: ArrayLike<number>): string => Array.from({ length: b.leng
 export const CELLS = 576;
 
 export const ITEMS = TABLES.items.length;
+
+/** The original's list with what the port removed (the shield leaf: items.ts) taken, as a game of ours has it: its rooms then show what ours do. */
+export function withoutRemovedItems(ram: Uint8Array): void {
+  TABLES.items.forEach((e, i) => { if (isRemoved(e.type)) ram[0x6d7b + 3 * i] = (ram[0x6d7b + 3 * i] ?? 0) | 0x80; });
+}
 const bits = (flags: readonly boolean[]): string => flags.map((f) => (f ? '1' : '0')).join('');
 
 export function readOriginal(ram: Uint8Array): Snap {

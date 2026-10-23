@@ -16,6 +16,7 @@ import path from 'node:path';
 import { C64Machine, unpackState, type FrameCapture } from 'c64kit';
 import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { WORD_FRAMES } from '../src/closing';
+import { withoutRemovedItems } from './harness';
 import { Stick } from '../src/input';
 import { NO_CONTROLS, Program, type Controls } from '../src/program';
 import { callText } from '../src/soundlog';
@@ -35,6 +36,8 @@ const step = o.cpu.step.bind(o.cpu);
 o.cpu.step = () => {
   const pc = o.cpu.pc;
   hit.add(pc);
+  // ($694F places a room's items: the original's list with the shield taken, as ours has it, whenever it does)
+  if (pc === 0x694f) withoutRemovedItems(o.ram);
   if (lastPc !== 0xe4b8) {
     // (the music's own end-of-tune stop, $E4B8, comes from the interrupt: not the game's)
     if (pc === 0x85a6) originalSounds.push(`e${o.cpu.a.toString(16)}`);
@@ -84,8 +87,8 @@ const firsts: string[] = [];
 const compare = (label: string): void => {
   const a = renderPixels({ ram: o.ram, capture: masked(o.capture) });
   const b = renderPixels({ ram: program.ram, capture: masked(program.capture) });
-  let count = 0;
-  for (let i = 0; i < W * H; i++) if (a[i] !== b[i]) count++;
+  let count = 0, x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let i = 0; i < W * H; i++) if (a[i] !== b[i]) { count++; x0 = Math.min(x0, i % W); x1 = Math.max(x1, i % W); y0 = Math.min(y0, Math.floor(i / W)); y1 = Math.max(y1, Math.floor(i / W)); }
   if (count === 0) { tally.same++; return; }
   tally.different++;
   { const [stretch = "", n = "0"] = label.split(" "); differing.set(stretch, [...(differing.get(stretch) ?? []), Number(n)]); }
@@ -94,7 +97,7 @@ const compare = (label: string): void => {
     console.log(`${label}: original sprites ${o.capture.sprites.filter((s) => s.n < 6).map(key).join(' | ')}\n  rebuild sprites ${program.capture.sprites.filter((s) => s.n < 6).map(key).join(' | ')}`);
   }
   if (firsts.length < 6 && !firsts.some((f) => f.startsWith(label.split(' ')[0] ?? ''))) {
-    firsts.push(`${label}: ${count} pixels differ`);
+    firsts.push(`${label}: ${count} pixels differ (x ${x0}-${x1}, y ${y0}-${y1})`);
     if (outDir) {
       fs.mkdirSync(outDir, { recursive: true });
       const name = label.replace(/[^a-z0-9]+/gi, '-');
