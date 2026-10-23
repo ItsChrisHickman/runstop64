@@ -208,7 +208,7 @@ export function restore(g: Game, save: StarquakeSave) {
   replace(g.objects, f.objects); replace(g.barriers, f.barriers); replace(g.sparks, f.sparks); replace(g.items, f.items); replace(g.shown, f.shown);
   replace(g.platforms, f.platforms); replace(g.enemies, f.enemies); replace(g.spawnSpots, f.spawnSpots); replace(g.cache, f.cache);
   g.scr.bank.set(save.bank);
-  installSprites(g.scr.bank, true); // (a save made before the pictures were installed has them empty)
+  installSprites(g.scr.bank); // (a save made before the pictures were installed has them empty)
   g.scr.attr.set(save.attr);
   g.lo.set(save.lo);
 }

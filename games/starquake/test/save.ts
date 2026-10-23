@@ -40,7 +40,7 @@ const state = (g: Game) => JSON.stringify(everything(g));
 function withSprites(bytes: Uint8Array) {
   const out = bytes.slice();
   const n = new DataView(out.buffer).getUint32(0, true);
-  installSprites(out.subarray(4 + n, 4 + n + 0x4000), true);
+  installSprites(out.subarray(4 + n, 4 + n + 0x4000));
   return out;
 }
 
@@ -48,7 +48,7 @@ function withSprites(bytes: Uint8Array) {
 function bothWays(bytes: Uint8Array) {
   const old = new Game();
   legacyRestore(old, bytes);
-  installSprites(old.scr.bank, true); // (the one thing the new code does that the old did not: a save without the sprite pictures gets them)
+  installSprites(old.scr.bank); // (the one thing the new code does that the old did not: a save without the sprite pictures gets them)
   const now = new Game();
   restore(now, CODEC.unpack(bytes, 1));
   return { old, now };

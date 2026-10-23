@@ -34,15 +34,15 @@ export class Screen {
 
 /**
  * The sprite graphics the original keeps with its program ($5000-$5BFF, in the VIC's bank 1: sprite pointers $40-$6F): BLOB's
- * body and eyes, the hover pad, the things the game draws its creatures over. The VIC's bank has them from the start; a save made
- * without them (before this was done) gets them back where it has none (`onlyEmpty`: a picture the game has drawn itself since, such
- * as the pad's turning flame, is kept).
+ * body and eyes, the hover pad, the things the game draws its creatures over. The ones the game never draws into itself
+ * ($40-$54, $56-$69; it builds $55, BLOB's yellow layer, and $6A-$6F, the creatures' frames) are the program's, so the bank
+ * has them from the start and every restore puts them there: a save made before this had them empty, one since has them
+ * as they are.
  */
-export function installSprites(bank: Uint8Array, onlyEmpty = false) {
-  for (let ptr = 0x40; ptr < 0x70; ptr++) {
-    const at = ptr * 64;
-    if (onlyEmpty && bank.subarray(at, at + 64).some((b) => b !== 0)) continue;
-    bank.set(ROM.subarray(0x4000 + at, 0x4000 + at + 64), at);
+export function installSprites(bank: Uint8Array) {
+  for (let ptr = 0x40; ptr < 0x6a; ptr++) {
+    if (ptr === 0x55) continue;
+    bank.set(ROM.subarray(0x4000 + ptr * 64, 0x4000 + ptr * 64 + 64), ptr * 64);
   }
 }
 
