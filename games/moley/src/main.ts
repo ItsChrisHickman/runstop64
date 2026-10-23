@@ -1,5 +1,6 @@
 import type { Host } from 'c64kit';
 import { readJson } from '../../shared/guards';
+import { LIVES_ASSIST } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/native/ending';
 import { runPort } from '../../shared/port';
@@ -91,7 +92,7 @@ export function run(host: Host) {
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: (): boolean => enhanced() && readWon('moley'),
     // ENHANCED is these four, together (the pause screen has the one switch): see QOL.md
-    assists: [{ id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'hints', long: 'SPARKLES' }],
+    assists: [LIVES_ASSIST, { id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
     enhanced = (): boolean => fe.enhanced;
@@ -123,6 +124,7 @@ export function run(host: Host) {
       const { enhanced } = current.game;
       enhanced.airSteering = fe.assist.steer === true;
       enhanced.itemCount = fe.assist.count === true;
+      enhanced.unlimitedLives = fe.assist.lives === true;
     }
 
     function keepHigh(): void {

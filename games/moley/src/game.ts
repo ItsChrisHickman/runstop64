@@ -21,6 +21,7 @@ import { Room3 } from './rooms/room3';
 import { Room4 } from './rooms/room4';
 import { Room5 } from './rooms/room5';
 import type { RoomScript } from './rooms/script';
+import { afterLoss } from '../../shared/lives';
 import { Abandon, Entity, ENTITY_COUNT, type Death, type Sprite, type Stage, type WritableTiles } from './stage';
 
 export const START_LIVES = 5;
@@ -31,6 +32,8 @@ export const START_LIVES = 5;
  * the direction at take-off). `itemCount`: the number of items left shows in the HUD's pocket box (display.ts).
  */
 export interface Enhancements {
+  /** A death takes no life, so the lives stay and there is no GAME OVER (shared/lives.ts). */
+  unlimitedLives: boolean;
   airSteering: boolean;
   itemCount: boolean;
 }
@@ -132,7 +135,7 @@ export class Game implements Stage, Outside {
   /** who hears of the picture's moments (the display), if anyone */
   observer: Observer | null = null;
   /** ENHANCED's changes, all off */
-  readonly enhanced: Enhancements = { airSteering: false, itemCount: false };
+  readonly enhanced: Enhancements = { airSteering: false, itemCount: false, unlimitedLives: false };
   /**
    * A moment's grace (games/shared/grace.ts): a death while it holds is not suffered but turned into a fresh start of the room with the life
    * kept (the original's death is a script abandoned and the room started again; this is the same without the loss). Never in a test of the original.
@@ -154,6 +157,7 @@ export class Game implements Stage, Outside {
   get partnerX(): number { return this.entities[2].x; }
   get itemsLeft(): number { return this.items.left; }
   get airSteering(): boolean { return this.enhanced.airSteering; }
+  get unlimitedLives(): boolean { return this.enhanced.unlimitedLives; }
 
   sound(effect: number): void { this.sounds.push(effect); }
   drain(): void { this.gauge.drain(); }
@@ -237,7 +241,7 @@ export class Game implements Stage, Outside {
   /** The death (`$9592`, `$95C8`): a life less and a sound; the full one also shows Monty's three death pictures, ending on none. */
   private applyDeath(kind: Death): void {
     this.sound(kind === 'normal' ? 0 : 1);
-    this.lives--;
+    this.lives = afterLoss(this.lives, this.enhanced.unlimitedLives);
     if (kind === 'normal') this.monty.frame = BLANK_FRAME;
     this.monty.state = State.walking;
     this.monty.phase = 0;

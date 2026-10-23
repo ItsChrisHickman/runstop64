@@ -205,7 +205,14 @@ check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites(
   p.grace.clear();
   g.gauge.value = 0x80;
   tick(120);
-  check(`and with the grace gone it does (${lives} to ${game().lives})`, game().lives === lives - 1);
+  check(`ENHANCED (unlimited lives): with the grace gone the death takes no life (${lives} to ${game().lives})`, game().unlimitedLives && game().lives === lives);
+  // ORIGINAL: the game's own lives
+  tap('KeyP'); tap('KeyE'); tap('KeyP');
+  check('ORIGINAL: no unlimited lives', !p.state.enhanced && !game().enhanced.unlimitedLives);
+  p.grace.clear();
+  g.gauge.value = 0x80;
+  tick(120);
+  check(`and in ORIGINAL it does (${lives} to ${game().lives})`, game().lives === lives - 1);
 }
 
 // ---- autosave after a death: the lives lost stay lost ---------------------------------------------------------------------------------------
@@ -237,6 +244,8 @@ check(`Enter: back in play in the last screen (${game().room}), five lives again
 check('with what he had (the map)', p.state.found.reached.join() === '0,1' && p.state.found.done.join() === '0');
 check('a moment of grace, and the high score is the best', p.state.grace > 0 && game().highScore === 135);
 check('the picture is up at once (the sprites on the renderer)', visibleSprites() > 0 || p.state.phase === 'play');
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
+check('and ENHANCED again', p.state.enhanced && game().enhanced.unlimitedLives);
 
 // ---- the Christmas card, and everything kept after it -------------------------------------------------------------------------------------------
 {
