@@ -27,7 +27,7 @@ export type { RunSpec, NativeAssistId };
  * Each game's QOL.md lists them: autosave and continue (games/shared/continue.ts),
  * keys as taps, and the start button not carrying into play.
  */
-export interface NativeGameOptions<F> {
+interface NativeGameOptions<F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   /** URL of the title-screen snapshot. */
@@ -53,7 +53,7 @@ export interface NativeGameOptions<F> {
   mends?: Mend[];
   /** Puts right a save's memory as it is resumed (something an earlier version of the port left wrong: it has the machine's memory and the VIC's registers). */
   repair?: (ram: Uint8Array, vic: Uint8Array) => void;
-  /** Health, lives and continuing at full (the assists FULL HEALTH/ROOM and UNLIMITED LIVES, and CONTINUE?). */
+  /** Health, lives and continuing at full (the assist UNLIMITED LIVES, and CONTINUE?). */
   vitals?: VitalsSpec;
   /** For the "hints" assist: places on the screen (C64 pixels) where something can be done and hasn't been yet (`vic`: its registers, for where sprites are). */
   hints?(ram: Uint8Array, vic: Uint8Array): { x: number; y: number }[];
@@ -164,7 +164,6 @@ const OURS = ['KeyM'];
 function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
   const own = (id: NativeAssistId, long: string, role?: AssistSpec['role']): AssistSpec => ({ id, long, role });
   return [
-    ...(opts.vitals?.health ? [own('health', 'FULL HEALTH/ROOM')] : []),
     ...(opts.vitals?.lives ? [own('lives', LIVES_ASSIST.long, opts.vitals.infinite ? undefined : 'never')] : []),
     ...(opts.hints && !opts.hintsWith ? [own('hints', 'HINTS (SPARKLES)')] : []),
     ...(opts.assists ?? []).map((a) => ({ id: a.id, long: a.long, default: a.default })),
@@ -260,13 +259,13 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const names = opts.names ? new NamePick(opts.names, input) : null;
   const safe = opts.safe ? new SafeArrival(env, opts.safe) : null;
   const screens = new ScreenWatch((): boolean => flow.holding);
-  const vitals = opts.vitals ? new Vitals(env, opts.vitals, (g) => g.lastWait === mainWait, (ram) => opts.room(ram)) : null;
+  const vitals = opts.vitals ? new Vitals(env, opts.vitals, (g) => g.lastWait === mainWait) : null;
 
   /** The stick's way to the game: the 8-way controls first, then what hit him pushes him, then the latch. */
   const stick: StickStage[] = stages<StickStage>(eightWay, knockback, latch, airJump);
   /** At the main loop's wait, the other way round: the latch is let go first, then the extra passes of his handling, then the 8-way step. */
   const atWait: WaitStage[] = stages<WaitStage>(latch, airJump, running, knockback, eightWay);
-  /** After the game's frame: combat, the screen watched, the assists (lives, the game's own, the grace's), health. */
+  /** After the game's frame: combat, the screen watched, the assists (lives, the game's own, the grace's). */
   const afters: FrameStage[] = stages<FrameStage>(
     combat ? { afterFrame: (g) => combatFrame(g, combat) } : null,
     // (after combat, which places its effects by the figure the game drew)
@@ -276,7 +275,6 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     { afterFrame: (g) => { for (const a of opts.assists ?? []) a.apply?.(g.m.ram, !!assist[a.id] && flow.state.playing, fe.found, g.m); } },
     { afterFrame: (g) => { if (flow.grace.active && flow.state.playing) opts.grace?.keep?.(g.m.ram); } },
     { afterFrame: (g) => opts.afterFrame?.(g.m.ram) },
-    vitals?.health ?? null,
   );
 
   void fetch(opts.state)
@@ -298,7 +296,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   function travel(id: string): boolean { going = id; return !!map.go; }
   function resume(s: MachineState, from: ResumeFrom) {
     // continuing: back to full health
-    if (from !== 'roomStart') opts.vitals?.fullHealth?.(s.ram, s.colour, assist);
+    if (from !== 'roomStart') opts.vitals?.fullHealth?.(s.ram, s.colour);
     resumeFrom(s);
   }
   function toTitle() {
@@ -569,7 +567,7 @@ export function applyMends(ram: Uint8Array, title: Uint8Array, mends: Mend[]) {
 }
 
 /** FNV-1a (32-bit) of some bytes: how a mend recognises the part as the old image had it. */
-export function fnv1a(bytes: Uint8Array) {
+function fnv1a(bytes: Uint8Array) {
   let h = 0x811c9dc5;
   for (const b of bytes) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }
   return h;

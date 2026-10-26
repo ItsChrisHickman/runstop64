@@ -6,7 +6,7 @@ import { drawPending, KeyPacer, NamePicker, DEL, RETURN, type NameKey, type Name
 
 /**
  * The parts of a translated game's session that each do one thing (running, knockback, the latch,
- * action keys, a name picked on a touch screen, safe arrival, health and lives), as small objects
+ * action keys, a name picked on a touch screen, safe arrival, lives), as small objects
  * with their own state, composed in `runNative` (play.ts) in the order it declares. A feature
  * takes part at the points it has a method for:
  *
@@ -18,7 +18,7 @@ import { drawPending, KeyPacer, NamePicker, DEL, RETURN, type NameKey, type Name
  */
 
 /** The assists `runNative` itself offers, by id (a game's own `assists` add theirs). */
-export type NativeAssistId = 'health' | 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'react' | 'eightWay' | 'respawn' | 'run' | 'airJump';
+export type NativeAssistId = 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'react' | 'eightWay' | 'respawn' | 'run' | 'airJump';
 
 /** What the features share of the session. */
 export class NativeEnv {
@@ -421,15 +421,10 @@ export class SafeArrival<F> {
 
 // ---- health and lives ---------------------------------------------------------------------------------
 
-/** The game's health and lives, for the assists (FULL HEALTH/ROOM, UNLIMITED LIVES: shared/lives.ts) and for continuing. */
+/** The game's health and lives, for the assist (UNLIMITED LIVES: shared/lives.ts) and for continuing. */
 export interface VitalsSpec {
-  /** Put Pendragon back to full health (and air) in a save, for continuing (`assist`: the options on, for games where that's one). */
-  fullHealth?(ram: Uint8Array, colour: Uint8Array, assist: Record<string, boolean>): void;
-  /**
-   * For the "full health at room start" assist: Pendragon's health, as a number from 0 to
-   * `max`, and how to set it.
-   */
-  health?: { max: number; get(ram: Uint8Array): number; set(ram: Uint8Array, colour: Uint8Array, v: number): void };
+  /** Put Pendragon back to full health (and air) in a save, for continuing. */
+  fullHealth?(ram: Uint8Array, colour: Uint8Array): void;
   /** For the unlimited lives assist (shared/lives.ts): put the lives back to full (each frame of play). */
   lives?(ram: Uint8Array, colour: Uint8Array): void;
   /**
@@ -444,30 +439,13 @@ export interface VitalsSpec {
 }
 
 export class Vitals {
-  /** The room the health assist last filled up in. */
-  private healthRoom = -1;
-
-  /** `atMainWait`: the game is at its main loop's wait now. `room`: the room he is in. */
-  constructor(private readonly env: NativeEnv, private readonly spec: VitalsSpec, private readonly atMainWait: (g: NativeHost) => boolean, private readonly room: (ram: Uint8Array) => number) {}
+  /** `atMainWait`: the game is at its main loop's wait now. */
+  constructor(private readonly env: NativeEnv, private readonly spec: VitalsSpec, private readonly atMainWait: (g: NativeHost) => boolean) {}
 
   /** Lives stay full. */
   readonly lives: FrameStage = {
     afterFrame: (g) => {
       if (this.env.on('lives') && this.spec.lives && this.atMainWait(g) && this.env.playing()) this.spec.lives(g.m.ram, g.m.colour);
-    },
-  };
-
-  /** Full health on coming into each room. */
-  readonly health: FrameStage = {
-    afterFrame: (g) => {
-      const h = this.spec.health;
-      if (!this.env.on('health') || !h || !this.atMainWait(g) || !this.env.playing()) return;
-      const room = this.room(g.m.ram);
-      if (room !== this.healthRoom) {
-        this.healthRoom = room;
-        const now = h.get(g.m.ram);
-        if (now > 0 && now < h.max) h.set(g.m.ram, g.m.colour, h.max);
-      }
     },
   };
 }

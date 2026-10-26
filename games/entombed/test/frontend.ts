@@ -71,8 +71,8 @@ await new Promise((r) => setTimeout(r, 0));
 tick(132);
 const m = () => must(p.machine, 'the machine');
 check('continued into the corridors', p.state.playing && (m().ram[0x6001] | (m().ram[0x6002] << 8)) === 0x60f8);
-const combatOn = () => !!p.options.invulnerable && !!p.options.knockback && !!p.options.hitStop && !!p.options.eightWay && !!p.options.health && !!p.options.hints;
-const combatOff = () => !p.options.invulnerable && !p.options.knockback && !p.options.hitStop && !p.options.eightWay && !p.options.health && !p.options.hints;
+const combatOn = () => !!p.options.invulnerable && !!p.options.knockback && !!p.options.hitStop && !!p.options.eightWay && !!p.options.hints;
+const combatOff = () => !p.options.invulnerable && !p.options.knockback && !p.options.hitStop && !p.options.eightWay && !p.options.hints;
 check('ENHANCED by default: its play changes on, effects on, no glow, no infinite lives', p.frontEnd.enhanced && combatOn() && !!p.options.effects && !p.options.glow && !p.options.lives);
 
 // ---- the switch ----

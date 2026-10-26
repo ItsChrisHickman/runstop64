@@ -38,16 +38,6 @@ export function run(host: Host) {
         ram[0x37f6] = 0; ram[0x37b3] = 0;
         ram.set([0x31, 0x3a, 0x3a], 0x077f);
       },
-      health: {
-        max: 5,
-        get: (ram) => 5 - ram[0x323d],
-        set: (ram, colour, v) => {
-          const lost = 5 - v; // ankhs fade from the left
-          ram[0x323d] = lost; ram[0x323f] = 1; ram[0x6d2b] = 0;
-          colour.fill(0, 0x385, 0x385 + lost);
-          colour.fill(1, 0x385 + lost, 0x38a);
-        },
-      },
     },
     map: entombedMap,
     // Z jump, X whip, C torch: straight to the action (the original only cycles through them)
