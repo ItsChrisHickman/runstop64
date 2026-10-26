@@ -37,7 +37,9 @@ There are two kinds of game here, and they are different things.
 ## In every game
 
 - **ORIGINAL / ENHANCED:** one switch (E on the pause screen). ORIGINAL is the game exactly as it was. ENHANCED, the default,
-  adds changes chosen for that game to make it more enjoyable to play today: better steering, a gentler fight, hints.
+  is quality-of-life for a modern playthrough, chosen for each game: better steering, a gentler fight, hints, and unlimited
+  lives and continues. Winning in ENHANCED earns a show after the game's own ending: a montage of the game's places with
+  credits over it, its creatures walking through, THE END.
 - **A pause screen with a map** of where you have been and what you have found, and travel back to any place you have been.
 - **Autosave** on entering each room, CONTINUE from the title, back to the start of a room, and a saved-games screen (F1 in the
   loader) that can bring back the save from before a new game.
@@ -48,8 +50,8 @@ There are two kinds of game here, and they are different things.
 
 ```
 packages/c64kit/       the shared engine
-  src/renderer.ts      Three.js renderer: the 320x200 picture pixel-perfect, sprites gliding between frames, phone scaling
-  src/loop.ts          fixed 50 Hz game logic, drawn at the display's refresh rate
+  src/renderer.ts      Three.js renderer: the 320x200 picture pixel-perfect, sprites gliding sideways between ticks, phone scaling
+  src/loop.ts          fixed 50 Hz game logic, drawn at the display's refresh rate (`Smoothed`)
   src/sid/             a 6502 and SID emulation for the original music, and SID sound effects
   src/c64/, vic.ts     the C64 model the translated games run on (VIC-II, CIA, memory) and how its picture is decoded
   src/layout.ts, effects*.ts, overlay.ts, input.ts, font.ts, palette.ts, surface.ts
@@ -58,20 +60,24 @@ games/
   registry.ts                        every game once: id, directory name, size, load()
   saves.ts                           the saved-games screen
   shared/                            one module per feature: pause screen and map, saves, touch, name entry,
-                                     the translated games' runtime (native/), the Pendragon games' room decoder
+                                     the reward show (ending/), the translated games' runtime (native/), the
+                                     Pendragon games' room decoder and figure
   <game>/                            src/, re/ (notes on the original), test/, QOL.md
 tools/
   test.mjs             runs a headless check written in TypeScript
   test-all.mjs         runs them all (the list is tests.mjs): fast set by default, --slow adds the rest
   probe/               a C64 in TypeScript, to run the originals and compare against them
+  zx/                  a ZX Spectrum 48K in TypeScript, the same for Moley Christmas
   re/                  a 6502 disassembler and the 6502-to-TypeScript translator
+  gen.mjs              runs the translator over every game's configs into the (uncommitted) src/gen/
   extract-*.mjs        pull a game's original data out of its disassembly or an image
   strict.mjs           the strict-TypeScript check
   deploy-goshowme.sh   publish to goshow.me/runstop64
 ```
 
 - **Logic** runs at a fixed 50 ticks a second, like a PAL C64, so the original timing tables (jump arcs, animation rates)
-  work unchanged. **Rendering** runs at the display's refresh rate with sprites gliding between ticks.
+  work unchanged. **Rendering** runs at the display's refresh rate with sprites gliding sideways between ticks; up and down
+  they are drawn where the game puts them, so a figure stands on its floor (V switches to whole-pixel steps).
 - **Music** is the original SID data played by the original composers' own player code, run by a 6502 emulator on the audio
   thread.
 - **Tested against the originals.** Each game's original is run on the emulated C64 in `tools/probe`, and the TypeScript

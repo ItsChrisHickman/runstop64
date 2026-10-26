@@ -1,7 +1,7 @@
 # AGENTS.md: working on runstop64
 
 runstop64 brings Commodore 64 games to the browser as tributes with full credits (live at https://goshow.me/runstop64/).
-Read `README.md` (layout, commands), `GAMES.md` (the ten games and how each was made) and `HANDOFF.md` (what is next and what
+Read `README.md` (layout, commands), `GAMES.md` (the eleven games and how each was made) and `HANDOFF.md` (what is next and what
 is waiting on Chris). Each game's `re/README.md` records what was learned about its original; its `QOL.md` lists every change
 from the original.
 
@@ -14,7 +14,7 @@ from the original.
 - **One switch per game: ORIGINAL or ENHANCED**, ENHANCED by default, on the pause screen (E), remembered. Be opinionated: no
   menus of options, no per-feature toggles. ORIGINAL is the game exactly as it was. ENHANCED is one curated set of
   quality-of-life changes for a modern playthrough (better controls, combat that makes sense, help). Describe it that way,
-  never as "fixing what was unfair". ENHANCED has unlimited lives and continues in every game (`games/shared/lives.ts`: a death takes no life, so there is no game over; the translated games use `vitals.lives` with `infinite`); no invincibility, ever.
+  never as "fixing what was unfair". ENHANCED has unlimited lives and continues (`games/shared/lives.ts`: a death takes no life, so there is no game over; the translated games with lives use `vitals.lives` with `infinite`, Thing on a Spring `vitals.lifeEnds`); no invincibility, ever. Blackwyche, Karnath and Entombed have energy, not lives: they still end in CONTINUE? (both modes), not yet unlimited (`HANDOFF.md`).
 - **Standard in every game, both modes**, never behind ENHANCED: the pause screen, the map (with progress) and travel,
   autosave, continue, back to room start, touch controls, phone scaling, the info sheet. Finishing or dying never wipes
   progress; a new game over a save asks NEW GAME? first.
@@ -64,7 +64,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 
 - **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
   process with `nice -n 15`, one heavy process at a time, runs under about 10 minutes.
-- **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests, a few minutes). There is no
+- **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests). There is no
   CI (Actions minutes are scarce), so this is the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
@@ -77,7 +77,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 
 | Feature | Where | A game provides |
 |---|---|---|
-| Renderer: Three.js, the 320x200 picture, smooth sprites, phone scaling | `packages/c64kit/src/renderer.ts` | a `Surface` per frame, sprites |
+| Renderer: Three.js, the 320x200 picture, sprites that glide sideways between ticks (vertical is drawn at the latest tick: `Smoothed`, `loop.ts`), phone scaling | `packages/c64kit/src/renderer.ts` | a `Surface` per frame, sprites |
 | Picture layout: the picture shown laid out differently from how the machine draws it (parts moved, labels in the picture's own letters, gauges), presentation only | `packages/c64kit/src/layout.ts` (`renderer.layout`) | a `PictureLayout` (`layout:` in `runNative`) |
 | Overlays (sparkles); combat effects over the picture (an enemy destroyed, a blow, a trail, a hurt) | `overlay.ts`, `effects.ts`, `effects-layer.ts` in the same folder | places in screen pixels; events with sprite images |
 | Input: keyboard, gamepads, touch (virtual keys, taps as `input.points`) | `packages/c64kit/src/input.ts` | its keys |
@@ -95,7 +95,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 | Which games there are: id, directory name and size, `load()` of its `src/main.ts` (`run`, `info`), once. The loader, the saved-games screen and the shell read it; each game's info prose is its `src/info.ts` | `games/registry.ts` (`GAMES`; `games/shared/test/registry.ts` checks it against the game folders) | one entry, and `src/info.ts` |
 | Schemas for data from outside the code (saves, what a map kept): a shape written once gives the type and the check; `foundCodec` makes a map's `FoundCodec` from one | `packages/c64kit/src/schema.ts` (`S`), `foundCodec` in `native/pause.ts` | the shape |
 | Front end for any port: pause screen, map, travel, assists | `games/shared/frontend.ts` (`FrontEnd<T, F>`), `native/pause.ts` (`PauseMap<T, F>`, `FoundCodec<F>`) | a `PauseMap<T, F>`: its progress type `F` and the `found` codec that reads what was kept (once, at launch; the saved record is `F` as JSON), and assists; native ports carry out `going` and "back to room start" themselves |
-| Runtime for translated games: `runNative` on `runPort`, its parts as small feature objects with their own state (running, knockback, 8-way, latch, action keys, name picking, safe arrival, health and lives), composed in the order it declares | `games/shared/native/play.ts` (`runNative`), `features.ts`, `host.ts` (`NativeHost`) | options in `runNative(...)` (`vitals`, `run`, `latch`, `actions`, `names`, `safe`...) |
+| Runtime for translated games: `runNative` on `runPort`, its parts as small feature objects with their own state (running, knockback, 8-way, latch, action keys, name picking, safe arrival, lives), composed in the order it declares | `games/shared/native/play.ts` (`runNative`), `features.ts`, `host.ts` (`NativeHost`) | options in `runNative(...)` (`vitals`, `run`, `latch`, `actions`, `names`, `safe`, `reserved`: the joystick's keys are `JOYSTICK_KEYS` in `features.ts`...) |
 | Hooks in translated code (`"hooks"` in a translation's config report reaching an instruction; `"skips"` return a routine at once) | `tools/re/to-ts.mjs`, `native/host.ts` (`onHook`, `onSkip`) | addresses in its `re/*.json` |
 | Combat for translated games: kills, blows, hurts, swings, enemies showing a counted hit (`react`: `colour-cycle.ts`, in the frame's capture only) to effects and sounds, and assists (safe after a hit, knockback, hit-stop) | `games/shared/native/combat.ts` (`CombatSpec`) | `combat:` (the game's `src/combat.ts`) |
 | 8-way controls for the Pendragon games | `games/shared/native/controls.ts` (`pendragonControls`) | `controls:` |
@@ -154,7 +154,8 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Starquak
   where it shows, model it from measured cycles, compare allowing a frame either way, and sample the original when its logic
   is done. Extra work (running) goes at the point the game runs the routine, and collision reads stay fresh.
 - **Smoothing glides a box, not the figure in it.** Judge motion by the figure drawn: a step that moves a sprite's box with a
-  new image is drawn where the game puts it.
+  new image is drawn where the game puts it. Smoothing is sideways only: a trailing average up and down drew a figure 2 to 6 px
+  off the floor on stairs, slopes and landings, so vertical is the latest tick's (`games/awm/test/ground-vertical.ts`).
 - **A translation can have holes nothing shows.** Routines only an engine calls through `call()` are not found by following
   calls; look at `NativeHost.fallbacks` after playing in each kind of place and add them as entries. A call into swapped-in
   code that waits needs `callsMayWait`. `verify` cannot see interrupts inside a call; lockstep is the check for those.

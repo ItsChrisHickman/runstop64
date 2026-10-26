@@ -1,96 +1,99 @@
 # Handoff: start here
 
-For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only what
-is next and what is waiting on Chris. Last updated 2026-10-18.
+For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only the
+state of things and what is waiting on Chris. Last updated 2026-10-26, after the cleanup pass.
+
+## State
+
+All eleven games are live, built and checked, and the project is near finished. What is left is Chris playing it and the few
+open questions below; nothing big is under construction.
+
+- **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
+  /root/projects/runstop64. The games and how each was made are in `GAMES.md`; every change from the original is in the game's
+  `QOL.md`.
+- **ENHANCED in every game** is quality-of-life for a modern playthrough, one switch (E on the pause screen), on by default.
+  It has unlimited lives and continues (except the three Pendragon games without lives: see below), and a reward show on
+  winning. No invincibility. The Pendragon games draw him as Dragonskulle does (`games/shared/pendragon/figure.ts`).
+- **Gone on purpose:** Auf Wiedersehen Monty's shield item (the original's confusing "nothing hurts me" leaf; old
+  saves load with the flag dropped), the Pendragon games' full health on entering a room, Bounder.
+- **Smoothing** is sideways only: a sprite glides between ticks horizontally and is drawn at the latest tick vertically, so a
+  figure stands on its floor (`Smoothed` in `packages/c64kit/src/loop.ts`, `games/awm/test/ground-vertical.ts`). V shows whole-pixel steps.
+- **Saves:** every stored save has `{ game, format }` (`games/shared/saves.ts`). The day a game's save bytes change, bump its
+  codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
+  (`games/shared/test/fixtures/saves`) keep proving players' saves load. About 1.4 M of the ~5.2 M characters a browser gives are
+  used by all eleven games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
+- **No state libraries;** schemas are in-house (`S`). The architecture review's work (`docs/architecture-review.md`, a record
+  of 2026-10-16) is done.
+- **History** was squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in
+  `/root/projects/runstop64-history-2026-10-16.bundle`.
 
 ## Where things are
 
-- **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
-  /root/projects/runstop64. The ten games and how each was made are in `GAMES.md`.
 - **Auf Wiedersehen Monty's originals** (disk image, program, snapshots) are gitignored in `games/awm/build/` of the main
   checkout, and `npm run build` makes its .sid from `play.ram` there. A fresh clone or worktree needs them rebuilt first
-  (`games/awm/build/README.md`).
-- **Monty's title test** needs the original program laid out from the reconstruction (`games/montyotr/re/README.md`, "Where
-  the data comes from"); the last copy was in a scratchpad that is gone.
+  (`games/awm/build/README.md`); its tests that need them are skipped without them.
+- **Monty on the Run's title test** needs the original program laid out from the reconstruction
+  (`games/montyotr/re/README.md`, "Where the data comes from").
+- **Moley Christmas's originals** (tape, 48K ROM, exercisers) are gitignored in `games/moley/build/`
+  (`games/moley/build/README.md`). Its build history is `docs/moley-plan.md`; its logic is `src/game.ts` (`Game.pass` is the
+  original's main loop), the picture `src/display.ts`, `src/look.ts`, `src/view.ts`, the flow `src/flow.ts`.
 - **Chris's saves.** He exports them from the info card ("Export save (debug)"); load one with
   `games/shared/test/load-save.ts` (`AGENTS.md`, Tools). He play-tests on his phone and PC and sends photos and saves; those
   find the real bugs.
 - **Dragonskulle's rules the game never explains** (the three bridges' wizards, the dragons, the cloak and its second coming, the
   graves, the starfish) are read, proved on the translation and the original, and turned into ENHANCED hints:
   `games/dragonskulle/re/README.md` section 9, `src/rules.ts`, `re/rules/` and `test/rules.ts`.
+- **Karnath's hints** are live: sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the
+  pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`).
+- **The fast test set is slow** (it was ~11-13 minutes). It is being cut so `npm run verify` stays under 10 minutes; until
+  then run the typecheck, `check:strict` and the tests for the code you touch (`tools/tests.mjs` lists them all).
 
-## Next
+## The reward show (one for all eleven games)
 
-- **Moley Christmas** (ZX Spectrum only): plan stages 1-6 are done in worktree commits (`docs/moley-plan.md`); the game logic, the picture, the whole flow and the front end are complete, the game is in `games/registry.ts` and playable with its sound.
-  Data: `games/moley/re/extract.ts` writes the committed `src/data/*.ts`. The logic: `src/game.ts` (`Game.pass` is the original's main loop, 25 a second; `Observer` tells the picture what happens). The picture:
-  `src/display.ts` (the Spectrum's screen memory changed by the original's own steps; `takeShots` gives the death and time-out pictures), `src/look.ts` (ORIGINAL exact, ENHANCED no colour clash), `src/view.ts` (`MoleyView` on c64kit's renderer:
-  Spectrum palette, black border, 256 x 192 centred in 320 x 200; `look` is the flag for the front end; smooth motion through `ViewStep` and `render(alpha)`; `present(step, frame)` puts a flow step on it). c64kit got `Palette` (default C64, every other game unchanged).
-  **The flow (stage 5):** `src/flow.ts` `MoleyFlow.step({ keys, any })` is the whole game: credits page (`src/screens.ts`: the picture, scroller, GAME OVER, the card), play, GAME OVER, the Christmas card, back to the credits page. A step is a pass in play
-  (2 frames) and a frame or a held picture elsewhere; it says how many 50 Hz frames to hold the picture. `flow.highScore` is the one number to save; `new MoleyFlow(rng, { game, display })` starts in play (continue).
-  Tests: `test/flow.ts` (every frame against the original: credits page, starts, the card, game overs, second games: 0 different), `test/flow-steps.ts`, `test/picture.ts` (every pass and frame against the original: 0 differ), `test/view.ts`, plus stage 3's lockstep and playthrough (now with a game over); `re/frames.ts` and `re/screens.ts` write PNGs, `re/colours.ts` measures the sprite colour (white).
-  Room 2's wrong-address jump: Chris decided, fixed in both modes (the room restarts). **Stage 6 (the front end) is done:** `src/main.ts` runs `MoleyFlow` and `MoleyView` through `runPort` (pause screen with `src/map.ts`'s map of the six screens, travel, autosave per screen in `src/save.ts`, continue, back to screen start, the ORIGINAL/ENHANCED switch, touch: stick + JUMP), in the Spectrum's colours with our own font (`src/font.ts`, `src/colours.ts`; `PauseColours` in `games/shared/native/pause.ts` is the shared hook for a non-C64 palette). ENHANCED = no clash, smooth motion, items-left count in the pocket box, steering in the air (`Game.enhanced`), sparkles on the puzzles and ways out (`src/hints.ts`, `test/hints.ts`; Chris could not find room 2's spot). Docs: `games/moley/QOL.md`, `docs/moley-plan.md` stage 6.
-  **Stage 7 (sound) is hooked up:** `main.ts` drives `MoleySound` (`afterStep`, `sync`; the shared audio keys unlock it and M mutes).
-  The originals are gitignored in `games/moley/build/` of the main checkout (`games/moley/build/README.md`).
+Every game ends ENHANCED with a reward after the game's own ending: a montage of the game's places with the hero running
+through and doing something that fits (the game's own engine, driven by input), Super Mario World-style credits over it (the
+makers, then sourced fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), the game's
+creatures walking across the places and named once each, THE END with stats, the game's music. Won is kept apart from the saves,
+W on the pause screen once won, `?ending` on the page. Sources for every fact are in each game's `re/credits.md`; never invent
+a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks it).
 
-- **Karnath ENHANCED hints** (live): sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`). Waiting on Chris: his notes on the lines (`src/hint-lines.ts`).
-
-- **Architecture work,** from `docs/architecture-review.md` (2026-10-16): its order of work is done (strictness holes + the
-  `node:test` runner; generated code out of git + dead code; the small shared pieces; `runPort`, the continue-flow reducer and
-  typed `Found`; the save envelope and the registry). Finding 10 (AGENTS.md too long) was settled by the doc cleanup
-  (45 KB to 19 KB). No state libraries; schemas are in-house (`S`).
-- **Saves:** every stored save has `{ game, format }` (`games/shared/saves.ts`). The day a game's save bytes change, bump its
-  codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
-  (`games/shared/test/fixtures/saves`) keep proving players' saves load. Storage measured at ~1.4 M of the ~5.2 M characters
-  a browser gives for all ten games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
-- **History:** squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in `/root/projects/runstop64-history-2026-10-16.bundle`.
-  From here: fewer, larger commits with plain messages.
-
-## Endings (2026-10-18; one show for all eleven since 2026-10-23)
-
-Every game ends with a reward, ENHANCED only, after the game's own ending: a montage of the game's places with the hero running
-through and doing something (the game's own engine, driven by input), Super Mario World-style credits over it (makers, then sourced
-fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), THE END with stats, the game's music; won
-kept apart from the saves, W on the pause screen once won, `?ending` on the page. Sources for every fact in each game's
-`re/credits.md`; never invent a credit.
-
-**The shape (2026-10-23, after Chris watched Blackwyche's: "a little bit tedious... roll the parades into the montage"):** no separate
-parade. The cast (the game's creatures, recorded from the engine, the hero not among them) walks across the montage's places, in
-places it is never in, drawn as overlay sprites at the hero's floor (presentation only: nothing in the engine changes). The one
-empty band the credits use is shared in time: a credit line types on and goes, then the name of a visitor passing the middle of the
-picture (kept under it), then a line, a name... (`timeline.ts`; a line is `CREDIT.slot` 90 frames, a name `NAME.slot` 40), so every
-cast member is seen and named once, then THE END (250 frames). The whole show is about 60 to 75 seconds (3000 to 3900 frames; each
-game's test checks it). Fewer, denser credit lines and fewer places per game to fit (what was dropped is in the commit messages).
-
-- **One module, two reels:** `games/shared/ending/`: `show.ts` (`RewardShow`: credit timing, visitors, THE END, skip, music hooks),
-  `timeline.ts` (pure clock), `figures.ts`, `pilot.ts`, `credits.ts` (`CREDIT`, `PORT_CREDITS`, the won flag), and `machine-reel.ts`
-  (the translated-machine reel: `Ending`, `EndingSpec`, `Director`; Blackwyche, Dragonskulle, Karnath, Entombed, Thing on a Spring,
-  JSW2). The native rebuilds (Monty, AWM, Starquake, Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
+- **One module, two reels:** `games/shared/ending/`: `show.ts` (`RewardShow`), `timeline.ts` (the pure clock: a credit line is
+  `CREDIT.slot` 90 frames, a name `NAME.slot` 40, THE END 250), `figures.ts`, `pilot.ts`, `credits.ts`, and `machine-reel.ts` (the
+  translated-machine reel: Blackwyche, Dragonskulle, Karnath, Entombed, Thing on a Spring, JSW2). The native rebuilds (Monty, AWM,
+  Starquake, Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
   Test kit: `games/shared/test/ending-kit.ts` (`playShow`/`checkShow` for the machines, `CastWatch` and `BandWatch` for all).
-- **Lengths (frames at 50 a second):** see the table in each game's test output (`phases ...; N frames`): Blackwyche about 3400,
-  Dragonskulle 3620, Karnath 3330, Entombed 3360, Thing 3210, JSW2 3090, Monty 3640, AWM 3520, Starquake 3540, Moley 3180, Antiriad 3580.
-- Weak spots: Entombed and Thing scenes with the hero mostly standing or bouncing (routes not found by search: `re/ending/route.ts`,
-  `re/ways.json`); visitors stand at the hero's feet at the moment they enter, so on a stair or in a jump they may float a little.
-  JSW2's scenes are cut short of their found ways (never longer: the test checks). Moley plays the first part of each screen's puzzle.
+- Weak spots: Entombed and Thing scenes with the hero mostly standing or bouncing (routes not found by search:
+  `re/ending/route.ts`, `re/ways.json`); visitors stand at the hero's feet at the moment they enter, so on a stair or in a jump they
+  may float a little. JSW2's scenes are cut short of their found ways (never longer: the test checks). Moley plays the first
+  part of each screen's puzzle.
 - Creature names are ours where the games name none; Chris may want to change them.
 
-## Also done 2026-10-18
+## Open questions (found in the cleanup pass)
 
-- Pendragon games: no full health on entering a room; continues stay unlimited and give full health.
-- Thing on a Spring ENHANCED: no oil boosts; oil out is a lost life back at the room's start with full oil (`vitals.lifeEnds`).
-- Dragonskulle ENHANCED: the dragon flashes on each counted stone (combat `react` event, `native/colour-cycle.ts`).
-
-## Next after the endings
-
-- **Cleanup pass** (Chris OK'd): dead code, drift between shared modules (the endings are one module now), this file and AGENTS.md
-  trimmed to what is true. The fast test set takes ~11-13 min: move the slowest checks to the slow set or start them from
-  saved states so `verify` stays under 10 minutes.
+- **Blackwyche, Karnath and Entombed have energy, not lives**, so ENHANCED's unlimited lives have nothing to refill there: dying
+  still ends in the game's end and CONTINUE? (both modes). Making it "back to the start of the room at full energy, no
+  prompt" is Thing on a Spring's `vitals.lifeEnds` (needs the hook address of each game's end, found in its translation). Chris
+  to say if he wants it.
+- **Starquake** still has its own ENHANCED assist FULL ENERGY IN EACH ROOM (the Pendragon games' room-entry refill is gone).
+  Keep or drop is a product call.
+- **Thing on a Spring** oil out is a lost life back at the room's start with full oil (`vitals.lifeEnds`); the dragon flashes on
+  each counted stone in Dragonskulle (`native/colour-cycle.ts`). Both are waiting on a playtest.
 
 ## Waiting on Chris
 
+- **Playtests:** the endings, the Dragonskulle figure in Karnath/Entombed/Blackwyche, Thing on a Spring's lives, the dragon flash,
+  vertical position without smoothing on a phone.
 - **Blackwyche GUIDED:** his notes on the draft lines (he wanted the prose less clumsy; `games/blackwyche/src/guided-lines.ts`).
+- **Karnath hints:** his notes on the lines (`games/karnath/src/hint-lines.ts`).
 - **JSW2:** the ENHANCED "a lot easier" set (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
-  item sparkles) and the pause map laid out by the exits (every exit side by side or a dotted connector) are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the reachability sweep is not.
+  item sparkles) and the pause map laid out by the exits are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the
+  reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
-- **Playtests:** the endings, Thing on a Spring's lives, the dragon flash.
 - **Older:** Monty warp to the Ultimate Experience; Starquake hints.
+
+## Next
+
+1. Chris plays; fix what he finds (photos and saves).
+2. The faster test suite lands, then `npm run verify`, then the coordinating session merges, pushes and deploys.
+3. Decide the open questions above, then call it finished.
