@@ -3,15 +3,11 @@
  * composes a sprite's 63 bytes from a frame when it draws ($66CA): straight, or mirrored for an
  * entity facing left (each row's two bytes swapped and bit-reversed).
  */
+import { reverseBits } from 'c64kit';
+
 const FRAME_BYTES = 32;
 export const FRAME_COUNT = 256;
 export const SPRITE_BYTES = 63;
-
-export function reverseBits(b: number): number {
-  let r = 0;
-  for (let i = 0; i < 8; i++) if (b & (1 << i)) r |= 0x80 >> i;
-  return r;
-}
 
 /** $66CA: a frame's picture into a sprite buffer at `at`: the game writes the two bytes of each of the 16 rows; the third byte and the last rows are never touched. */
 export function putSpriteImage(ram: Uint8Array, at: number, frames: Uint8Array, frame: number, mirrored: boolean): void {

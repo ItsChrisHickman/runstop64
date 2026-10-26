@@ -6,17 +6,11 @@
  * ink and keeps a one-pixel margin from it (the README had this the other way round). Room 5 draws with OR only.
  * test/data.ts proves these against the original's own routine for every frame.
  */
+import { reverseBits } from 'c64kit';
 import { SPRITE_FRAMES } from './data';
 
 export const SPRITE_BYTES = 32;
 export const SPRITE_ROWS = 16;
-
-/** A byte with its bits the other way round (the table at `$FE00`). */
-export function reverseBits(b: number): number {
-  let out = 0;
-  for (let i = 0; i < 8; i++) if (b & (0x80 >> i)) out |= 1 << i;
-  return out;
-}
 
 /** The table at `$FF00`: 1 where the byte `b` has no pixel and no neighbour to its left or right within the byte. */
 export function sideMask(b: number): number {

@@ -61,6 +61,13 @@ export class Surface {
   }
 }
 
+/** A byte with its bits the other way round (a sprite turned to face the other way). */
+export function reverseBits(b: number): number {
+  let out = 0;
+  for (let i = 0; i < 8; i++) if (b & (0x80 >> i)) out |= 1 << i;
+  return out;
+}
+
 /** Bytes from their hex digits (the games' generated data tables). */
 export function hexBytes(hex: string): Uint8Array {
   const out = new Uint8Array(hex.length >> 1);
