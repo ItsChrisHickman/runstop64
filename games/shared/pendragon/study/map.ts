@@ -4,8 +4,8 @@
  * frames; `atlas.ts` draws them numbered). Facings: R, L, U (up the screen), D.
  */
 
-export type Dir = 'R' | 'L' | 'U' | 'D';
-export const DIRS: readonly Dir[] = ['R', 'L', 'U', 'D'];
+import { DIRS, type Dir } from '../figure';
+export { DIRS, type Dir };
 export type ByDir = Record<Dir, number[]>;
 
 export interface PendragonSet {

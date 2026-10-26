@@ -32,6 +32,7 @@
   // (tests and re/ scripts run under Node: tsconfig.test.json checks them)
   "exclude": [
     "games/**/test",
-    "games/*/re/**/*.ts"
+    "games/*/re/**/*.ts",
+    "games/shared/pendragon/study"
   ]
 }

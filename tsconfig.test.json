@@ -13,6 +13,7 @@
     "types",
     "games/**/test",
     "games/*/re/**/*.ts",
+    "games/shared/pendragon/study",
     "packages/*/test",
     "tools/**/*.ts",
     "vite.config.ts"

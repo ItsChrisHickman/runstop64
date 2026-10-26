@@ -115,6 +115,7 @@ export const TESTS = [
 
   // ---- Blackwyche
   { file: 'games/blackwyche/test/ending.ts', set: 'fast' },
+  { file: 'games/blackwyche/test/figure.ts', set: 'fast' },
   { file: 'games/blackwyche/test/grace.ts', set: 'fast' },
   { file: 'games/blackwyche/test/guided.ts', set: 'fast' },
   { file: 'games/blackwyche/test/items.ts', set: 'fast' },
@@ -137,6 +138,7 @@ export const TESTS = [
 
   // ---- Entombed
   { file: 'games/entombed/test/combat.ts', set: 'fast' },
+  { file: 'games/entombed/test/figure.ts', set: 'fast' },
   { file: 'games/entombed/test/controls.ts', set: 'fast' },
   { file: 'games/entombed/test/frontend.ts', set: 'fast' },
   { file: 'games/entombed/test/grace.ts', set: 'fast' },
@@ -163,6 +165,7 @@ export const TESTS = [
   { file: 'games/jsw2/test/ending.ts', set: 'slow' },
   { file: 'games/karnath/re/hints/check.ts', set: 'fast' },
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
+  { file: 'games/karnath/test/figure.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },
   { file: 'games/karnath/test/obelisk.ts', set: 'fast' },
   { file: 'games/karnath/test/spells.ts', set: 'fast' },

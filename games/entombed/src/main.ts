@@ -7,6 +7,7 @@ import { endingStats, entombedEnding, won } from './ending';
 import { entombedMap } from './map';
 import { hintSpots } from './hint-spots';
 import { entombedCombat, entombedControls } from './combat';
+import { entombedFigure } from './figure';
 import stateUrl from '../assets/entombed-title.state?url';
 
 /**
@@ -60,6 +61,8 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: entombedCombat,
     controls: entombedControls,
+    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    figure: entombedFigure,
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
     touch: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'WHIP', key: 'KeyX' }, { label: 'TORCH', key: 'KeyC' }] },
     run: { player: engine.r_1864 }, // hold Shift to run: player control runs twice a frame

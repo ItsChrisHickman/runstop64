@@ -9,6 +9,7 @@ import { repairStripX } from './travel';
 import { karnathCombat, karnathControls } from './combat';
 import { Guide } from './guide';
 import { hintSpots } from './hints';
+import { karnathFigure } from './figure';
 import stateUrl from '../assets/karnath-title.state?url';
 
 /**
@@ -46,6 +47,8 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: karnathCombat,
     controls: karnathControls,
+    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    figure: karnathFigure,
     // 1-9 and 0: straight to that spell (the original only cycles through its ten); Space casts
     actions: {
       keys: { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8, Digit9: 9, Digit0: 10 },

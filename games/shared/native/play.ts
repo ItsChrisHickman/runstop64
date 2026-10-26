@@ -17,6 +17,7 @@ import type { TouchLayout } from '../touch';
 import { keepWon, readWon, wantsEnding } from '../ending/credits';
 import { Ending, type EndingSpec } from '../ending/machine-reel';
 import { TitleTune } from './title-tune';
+import { FigureSwap, type FigureSpec } from '../pendragon/figure';
 
 export type { RunSpec, NativeAssistId };
 
@@ -136,6 +137,8 @@ export interface NativeGameOptions<F> {
    * for a moment after a hit, knockback, hit-stop.
    */
   combat?: CombatSpec;
+  /** ENHANCED: Pendragon drawn as Dragonskulle draws him, in the frame's capture only (pendragon/figure.ts). */
+  figure?: FigureSpec;
   /** The 8-way controls assist (controls.ts): the game's facing byte and its own steps into the picture. */
   controls?: ControlsSpec;
   /**
@@ -246,6 +249,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   })) : null;
   const running = opts.run ? new Running(env, opts.run) : null;
   const knockback = combat ? new Knockback(env, combat, opts.run?.player ?? null) : null;
+  const figure = opts.figure ? new FigureSwap(opts.figure) : null;
   const eightWay = opts.controls ? new EightWayStage(env, new EightWay(opts.controls)) : null;
   const latch = opts.latch ? new Latch(env, opts.latch) : null;
   const airJump = opts.airJump ? new AirJump(env, opts.airJump) : null;
@@ -263,6 +267,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   /** After the game's frame: combat, the screen watched, the assists (lives, the game's own, the grace's), health. */
   const afters: FrameStage[] = stages<FrameStage>(
     combat ? { afterFrame: (g) => combatFrame(g, combat) } : null,
+    // (after combat, which places its effects by the figure the game drew)
+    figure ? { afterFrame: (g) => { if (fe.enhanced && flow.state.playing) figure.apply(g.m.capture.sprites, g.m.ram); } } : null,
     screens,
     vitals?.lives ?? null,
     { afterFrame: (g) => { for (const a of opts.assists ?? []) a.apply?.(g.m.ram, !!assist[a.id] && flow.state.playing, fe.found, g.m); } },

@@ -9,6 +9,7 @@ import { Guide, guidedSpots } from './guided';
 import { TrapDoors } from './trapdoors';
 import { ACTION } from './actions';
 import { blackwycheEnding, endingStats, won } from './ending';
+import { blackwycheFigure } from './figure';
 import stateUrl from '../assets/blackwyche-title.state?url';
 
 /**
@@ -43,6 +44,8 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: blackwycheCombat,
     controls: blackwycheControls,
+    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    figure: blackwycheFigure,
     // Z jump, X sword: straight to the action (the original only cycles through them)
     actions: {
       keys: { KeyZ: 1, KeyX: 2 },
