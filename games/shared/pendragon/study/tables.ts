@@ -6,7 +6,7 @@
  */
 import fs from 'node:fs';
 import { type FrameId } from '../figure';
-import { DIRS, DRAGONSKULLE, SETS, swapsFor, type Dir } from './map';
+import { DIRS, DRAGONSKULLE, SETS, swapsFor } from './map';
 import { readPoses, type PoseRecord } from './draw';
 import { must } from '../../test/must';
 
@@ -24,8 +24,8 @@ for (const d of DIRS) {
 }
 const hex = (n: number) => must(ds.get(n), `Dragonskulle picture ${n}`).data;
 
-/** Which of the stone throw's frames stands in for each of a game's strike pictures: [way][k of n] -> index. The default spreads them over it. */
-const STRIKE_PICK: Record<string, Partial<Record<Dir, number[]>>> = {};
+/** The pose a game's strike pictures become (frames drawn in \`figure-drawn.ts\`); none for Blackwyche, whose sword pictures are already his figure's. */
+const STRIKE_POSE: Record<string, 'cast' | 'whip' | undefined> = { karnath: 'cast', entombed: 'whip' };
 
 let frames = '/** Dragonskulle\'s pictures of Pendragon (the games\' own pictures of him are mapped to these): stand, walk, jump and the stone throw, as `study/tables.ts` made them from his game. */\n';
 frames += "import type { FrameId } from './figure';\n\nexport const DRAGONSKULLE_FRAMES: readonly (readonly [FrameId, string])[] = [\n";
@@ -50,20 +50,26 @@ for (const [game, to] of Object.entries(GAME_DIRS)) {
   const dsHex = new Set([...frameOf.keys()].map(hex));
   const wanted = new Map<number, PoseRecord>();
   for (const [id] of swaps) wanted.set(id, must(from.get(id), `${game} picture ${id}`));
-  const lines: string[] = [];
+  const lines: string[] = [], already: string[] = [];
   for (const [id, sw] of [...swaps].sort((a, b) => a[0] - b[0])) {
     const p = must(wanted.get(id), 'picture');
-    let target = sw.ds;
+    const target = sw.ds;
+    let frame: FrameId;
     if (sw.role.startsWith('strike')) {
-      const pick = STRIKE_PICK[game]?.[sw.dir];
-      const k = Number(sw.role.split(' ')[1].split('/')[0]) - 1;
-      if (pick) target = must(must(DRAGONSKULLE.strike, 'strike').frames[sw.dir][must(pick[k], 'pick')], 'throw frame');
+      // the pose Dragonskulle has no picture of: the frame drawn for it (figure-drawn.ts), the first and second of the game's own pictures of it
+      // a way. Blackwyche's sword pictures are already drawn in his figure: no entry, they stay (the swap leaves a picture it does not know
+      // alone but for its colours)
+      const pose = STRIKE_POSE[game];
+      if (!pose) { already.push(`  '${p.data}', // ${id} ${sw.role} ${sw.dir}`); continue; }
+      frame = `${pose}.${sw.dir}.${Math.min(Number(sw.role.split(' ')[1].split('/')[0]) - 1, 1)}`;
+    } else {
+      frame = must(frameOf.get(target), `no frame for Dragonskulle ${target}`);
+      if (game === 'blackwyche' && dsHex.has(p.data) && hex(target) === p.data) continue;
     }
-    const frame = must(frameOf.get(target), `no frame for Dragonskulle ${target}`);
-    if (game === 'blackwyche' && dsHex.has(p.data) && hex(target) === p.data) continue;
     lines.push(`  ['${p.data}', '${frame}'], // ${id} ${sw.role} ${sw.dir}`);
   }
   out += lines.join('\n') + '\n];\n';
+  if (already.length) out += `\n/** His pictures already drawn in Dragonskulle's figure (the sword): kept, only recoloured. */\nexport const ${to.name.replace('_FIGURE', '_OWN')}: readonly string[] = [\n${already.join('\n')}\n];\n`;
   const keep = KEEP[game];
   if (keep) {
     out += `\n/** Pictures that stay as the game draws them (the ghost that rises when he dies). */\nexport const ${to.name.replace('_FIGURE', '_KEEP')}: readonly string[] = [\n`;

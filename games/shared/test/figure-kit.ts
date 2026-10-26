@@ -96,6 +96,16 @@ export function checkFigure(g: FigureGame) {
   const feet = [...seen.values()].map((v) => Math.abs(v.bottomShift));
   const worst = Math.max(0, ...feet);
   check(`${g.id}: the feet stay on the original's feet line within a row (worst ${worst} rows)`, worst <= 1);
+  // the drawn arms (cast, whip) reach about as far as the game's own picture of the pose: the arm's end within three pixels each way
+  const drawnPictures = new Set(g.spec.table.filter(([, id]) => id.startsWith('cast.') || id.startsWith('whip.')).map(([picture]) => picture));
+  let reach = 0;
+  for (const v of seen.values()) {
+    if (!drawnPictures.has(v.picture)) continue;
+    const o = must(boundsOf(Buffer.from(v.picture, 'hex')), 'bounds'), n = must(boundsOf(Buffer.from(v.shown, 'hex')), 'bounds');
+    const d = v.dx / 2;
+    reach = Math.max(reach, Math.abs(o.left - (n.left + d)), Math.abs(o.right - (n.right + d)));
+  }
+  if (drawnPictures.size) check(`${g.id}: the drawn frames reach as far as the game's pictures of the pose (worst ${reach} pixels off)`, reach <= 3);
   check(`${g.id}: the game's memory and collisions are the same with the swap running or not${firstDiff ? ` (differ: ${firstDiff})` : ''}`, same);
   return seen;
 }

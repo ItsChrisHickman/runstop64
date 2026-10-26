@@ -157,3 +157,7 @@ same routes as `collect.ts`): about a day for the three games with the stand-ins
 death slit and Entombed's ghost keep the game's own pictures. Preview PNGs (all four were looked at): `karnath-poses.png`, `-rooms.png`,
 `entombed-poses.png`, `-rooms.png`, `blackwyche-poses.png`, `-rooms.png`, `dragonskulle-library.png`, `atlas-<game>.png` (every
 picture, numbered).
+
+## Built (ENHANCED)
+
+The swap is in `figure.ts` (see AGENTS.md); `study/tables.ts` makes the tables from this study. Karnath's cast and Entombed's whip are drawn in `figure-drawn.ts` (his stand with the arm painted in, pixel by pixel). Blackwyche's sword is not redrawn: its pictures are already this figure (same body and line), so they stay and only the tunic takes his green. Karnath's death slit and Entombed's ghost stay as the game draws them.

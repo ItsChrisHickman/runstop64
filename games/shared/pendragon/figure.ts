@@ -1,4 +1,5 @@
 import type { SpriteCapture } from '../../../packages/c64kit/src/c64/machine';
+import { unhex } from './figure-bits';
 import { DRAWN_FRAMES } from './figure-drawn';
 import { DRAGONSKULLE_FRAMES } from './figure-frames';
 
@@ -33,6 +34,8 @@ export interface FigureSpec {
   /** Sprite 2 in every Pendragon game. */
   sprite: number;
   table: FigureTable;
+  /** Pictures of his that are already drawn in this figure (Blackwyche's sword: the same body and line): kept, only recoloured. */
+  already?: readonly string[];
   /** Pictures that stay as the game draws them (Entombed's ghost: he is not Pendragon then). */
   keep?: readonly string[];
   /**
@@ -52,12 +55,6 @@ export interface FigureSpec {
 export const DRAGONSKULLE_COLOURS: Regs = { own: 10, mc1: 5, mc2: 0 };
 
 const FRAMES: ReadonlyMap<FrameId, Uint8Array> = new Map([...DRAGONSKULLE_FRAMES, ...DRAWN_FRAMES].map(([id, hex]) => [id, unhex(hex)]));
-
-export function unhex(hex: string): Uint8Array {
-  const out = new Uint8Array(64);
-  for (let i = 0; i < 63; i++) out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  return out;
-}
 
 /** The frame's picture: throws on an id the library does not have. */
 export function frameData(id: FrameId): Uint8Array {
@@ -128,6 +125,11 @@ export class FigureSwap {
       this.frames.add(key);
       if (!this.byPicture.has(key)) this.byPicture.set(key, { data, dx: 0, dy: 0 });
       if (id.startsWith('stand.')) this.stands.set(dirOf(id), { data, ...move(dirOf(id)) });
+    }
+    for (const picture of spec.already ?? []) {
+      const data = unhex(picture), key = pictureHash(data);
+      this.byPicture.set(key, { data, dx: 0, dy: 0 });
+      this.frames.add(key);
     }
     for (const picture of spec.keep ?? []) this.keep.add(pictureHash(unhex(picture)));
   }
