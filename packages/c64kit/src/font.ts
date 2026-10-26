@@ -7,15 +7,6 @@ import { Surface } from './surface';
 export class BitmapFont {
   readonly glyphs = new Map<number, Uint8Array>();
 
-  /** Take glyphs for the given ASCII codes from a C64 charset (char N at N*8). */
-  addFromCharset(charset: Uint8Array, codes: Iterable<number>) {
-    for (const c of codes) {
-      const g = charset.subarray(c * 8, c * 8 + 8);
-      if (g.some((b) => b)) this.glyphs.set(c, Uint8Array.from(g));
-    }
-    return this;
-  }
-
   /** Take glyphs for the given characters from a charset via a game-specific char→code mapping. */
   addFromCharsetMapped(charset: Uint8Array, chars: string, toCode: (ascii: number) => number) {
     for (const ch of chars) {

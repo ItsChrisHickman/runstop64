@@ -1,9 +1,11 @@
 # Moley Christmas: the plan
 
+*All stages are done; this is the record of how the rebuild was made. The state of the code is in `games/moley/re/README.md` and `games/moley/QOL.md`.*
+
 A native rebuild of the 1987 Your Sinclair cover game (ZX Spectrum only), made the way Auf Wiedersehen Monty was: data
 extracted from the original, behaviour rebuilt in TypeScript, everything checked against the original running. What the
 original is and where its parts live: `games/moley/re/README.md`. Stage 1 (done) is the base: the tape, a headless
-Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone), 3 (the whole game's logic), 4 (rooms and picture), 5 (title, game over, ending, flow) and 6 (the front end: the game is registered and playable) below are done; stage 7 (sound) is being built apart. The game is small: six screens, a Christmas card, 14 items, 5 lives.
+Spectrum (`tools/zx`), the notes, this plan. Stages 1 (data), 2 (Monty alone), 3 (the whole game's logic), 4 (rooms and picture), 5 (title, game over, ending, flow) 6 (the front end: the game is registered and playable), 7 (sound) and 8 (hints) below are done. The game is small: six screens, a Christmas card, 14 items, 5 lives.
 
 ## Stages
 

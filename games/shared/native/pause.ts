@@ -107,12 +107,6 @@ export const PAUSE_TAP = {
   /** The options page's lines: in the map's box, from its top, 14 apart. */
   listY: 30,
   listStep: 14,
-  /** Which line of the options page a tap is on, or -1. */
-  listLine(x: number, y: number, count: number) {
-    if (x < 6 || x >= 210) return -1;
-    const i = Math.floor((y - this.listY + 4) / this.listStep);
-    return i >= 0 && i < count ? i : -1;
-  },
 };
 
 /** The box the map is drawn in. */

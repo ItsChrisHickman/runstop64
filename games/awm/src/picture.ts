@@ -231,11 +231,6 @@ export class Picture {
     this.capture = this.finish();
   }
 
-  /** The high score is shown by the game over routine ($82FD): not part of play; here for the panel's completeness. */
-  showHigh(digits: readonly number[]): void {
-    printHigh(this.screen, digits);
-  }
-
   // ---- the lift ($83EE) --------------------------------------------------------------------------
 
   /** The lift drawn after it moved: its room's characters cleared, then the body down from its hook and the end. */

@@ -1,5 +1,7 @@
 # runstop64: architecture review
 
+*A record of the review of 2026-10-16. Its order of work was carried out; names and paths below are as they were then, and some no longer exist.*
+
 Read-only. Nothing in the repo was edited. What I ran, all with `nice -n 15` and one at a time: `tsc --noEmit` (clean, 7.7 s), `tools/strict.mjs` (0 violations), 21 of the headless tests (all pass, 30 s in total), a translator re-run into scratch (see finding 6), and a few throwaway analysis scripts kept in the scratchpad.
 
 ## Verdict
