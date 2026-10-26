@@ -20,11 +20,16 @@ export const BRIDGES: readonly Bridge[] = [
 /** The count a finished bridge holds. */
 export const BRIDGE_OPEN = 0xff;
 
+/** This room's bridge while it is shut, or null (not a river screen, or its bridge is open). */
+function bridgeShut(ram: Uint8Array): Bridge | null {
+  const b = BRIDGES.find((x) => x.room === ram[0x341c]);
+  return b && ram[b.counter] !== BRIDGE_OPEN ? b : null;
+}
+
 /** How many kills a bridge still wants in this room, or null (not a river screen, or its bridge is open). */
 export function wizardsLeft(ram: Uint8Array): number | null {
-  const b = BRIDGES.find((x) => x.room === ram[0x341c]);
-  if (!b || ram[b.counter] === BRIDGE_OPEN) return null;
-  return Math.max(0, b.need - ram[b.counter]);
+  const b = bridgeShut(ram);
+  return b ? Math.max(0, b.need - ram[b.counter]) : null;
 }
 
 /**
@@ -43,6 +48,15 @@ export function hitsLeft(ram: Uint8Array): number | null {
   const d = DRAGONS.find((x) => x.room === ram[0x341c]);
   if (!d || ram[d.flag] === 1) return null;
   return Math.max(0, DRAGON_HITS - ram[HITS]);
+}
+
+/** What this screen asks to be done so many times, and how far along it is (ENHANCED's tally in the status line), or null. */
+export interface Tally { readonly what: 'WIZARDS' | 'DRAGON HITS'; readonly done: number; readonly need: number }
+export function tally(ram: Uint8Array): Tally | null {
+  const b = bridgeShut(ram);
+  if (b) return { what: 'WIZARDS', done: Math.min(b.need, ram[b.counter]), need: b.need };
+  const hits = hitsLeft(ram);
+  return hits === null ? null : { what: 'DRAGON HITS', done: DRAGON_HITS - hits, need: DRAGON_HITS };
 }
 
 /**

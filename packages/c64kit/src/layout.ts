@@ -28,13 +28,15 @@ export interface PictureLayout {
   clear?: (Rect & { colour: number })[];
   /**
    * Text drawn last, in the letters of the charset the picture's character row `font` uses (A-Z its
-   * characters 1-26, a cut-out one the right way round; anything else a gap), 8 pixels a letter: x and
+   * characters 1-26, or as `code` says; a cut-out one the right way round; anything else a gap), 8 pixels a letter: x and
    * y (pixels) are the first letter's cell, the row's fine scroll is added to x (so a label on a
    * multiple of 8 lines up with that row's characters).
    */
   labels?: { text: string; x: number; y: number; colour: number }[];
   /** The character row of the picture (0-24, as the machine draws it) whose charset gives the labels' letters. */
   font?: number;
+  /** Which of that charset's characters a label's character is, where it is not A-Z as 1-26 (digits, say; null: a gap). */
+  code?: (ch: string) => number | null;
   /** Gauges drawn on what the game draws (before the moves: they go with the part they're in). */
   gauges?: Gauge[];
 }
@@ -156,6 +158,12 @@ export function layOut(layout: PictureLayout, fore: Uint8Array, back: Uint8Array
   if (font) drawLabels(layout, fore, font);
 }
 
+/** A-Z as characters 1-26 (the C64's screen codes), anything else none. */
+function letterCode(ch: string): number | null {
+  const c = ch.toUpperCase().charCodeAt(0);
+  return c >= 0x41 && c <= 0x5a ? c - 0x40 : null;
+}
+
 /** The labels' lettering: the charset the capture's row `layout.font` was drawn with, and that row's fine scroll (none if the row wasn't drawn). */
 export interface LabelFont { glyph(ch: string): Uint8Array | null; scrollX: number }
 
@@ -167,9 +175,9 @@ export function labelFont(layout: PictureLayout, ram: Uint8Array, cap: FrameCapt
   return {
     scrollX: r.d016 & 7,
     glyph: (ch) => {
-      const c = ch.toUpperCase().charCodeAt(0);
-      if (c < 0x41 || c > 0x5a) return null;
-      const g = ram.subarray(charAt + (c - 0x40) * 8, charAt + (c - 0x40) * 8 + 8);
+      const c = layout.code ? layout.code(ch.toUpperCase()) : letterCode(ch);
+      if (c === null) return null;
+      const g = ram.subarray(charAt + c * 8, charAt + c * 8 + 8);
       // (a letter kept cut out of a solid cell, its top row all lit, is drawn the right way round)
       return g[0] === 0xff ? g.map((b) => ~b & 0xff) : g;
     },

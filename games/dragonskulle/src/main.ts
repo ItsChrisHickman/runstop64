@@ -9,7 +9,8 @@ import * as engine from './gen/engine';
 import { dragonskulleMap, cellOf } from './map';
 import { dragonskulleCombat, dragonskulleControls } from './combat';
 import { hintSpots } from './hint-spots';
-import { cloakLeft } from './rules';
+import { cloakLeft, tally, type Tally } from './rules';
+import { pendragonCode } from '../../shared/pendragon/status';
 import { shovelByHand } from './shovel';
 import stateUrl from '../assets/dragonskulle-title.state?url';
 
@@ -113,13 +114,17 @@ export const PLAY = { from: { x: 0, y: 28, w: 320, h: 140 }, y: 24 };
 export const BAR_AT = { icon: (k: number) => 28 + 76 * k, icons: 166, labels: 191 };
 /** Where a label starts for its text to be centred under slot k's icon (drawLabels adds the panel's scroll). */
 const labelX = (k: number, text: string) => BAR_AT.icon(k) + 12 - (text.length * 8) / 2 - PANEL_SCROLL;
+/** The status line (rows 22-24: SCORE, HIGH SCORE, the faces), shown at the top. */
+const STATUS = { from: { x: 0, y: 22 * 8, w: 320, h: 24 }, to: { x: 0, y: 0 } };
+/** Where the faces begin in the status line: column 23 (its scroll added). */
+const FACES_X = 23 * 8 + PANEL_SCROLL;
 export const dragonskulleLayout: PictureLayout = {
   moves: [
     // the play area up under the status line, with what's drawn over it (sprites reach up over the
     // panel, and down onto row 21, as in the original)
     { from: PLAY.from, to: { x: 0, y: PLAY.y }, over: { x: 0, y: 0, w: 320, h: 176 } },
     // the status line (rows 22-24) to the top
-    { from: { x: 0, y: 22 * 8, w: 320, h: 24 }, to: { x: 0, y: 0 } },
+    STATUS,
     // each icon with its hand, from the game's order at the top to the bar's at the bottom
     ...BAR.map((b, k) => ({ from: ICON_AT(b.action), to: { x: BAR_AT.icon(k), y: BAR_AT.icons } })),
   ],
@@ -136,10 +141,44 @@ export const dragonskulleLayout: PictureLayout = {
   font: 22, // (the status line's letters: SCORE, HIGH SCORE)
   gauges: [energyFace, cloakIcon],
 };
+/**
+ * ENHANCED: on a screen that wants a thing done so many times (a river's wizards for its bridge, a dragon's hits:
+ * src/rules.ts `tally`), how far along it is, in the status line where HIGH SCORE is: WIZARDS 3 OF 10. One layout a
+ * count, made once.
+ */
+const tallies = new Map<string, PictureLayout>();
+function tallyLayout(t: Tally): PictureLayout {
+  const text = `${t.what} ${t.done} OF ${t.need}`;
+  const known = tallies.get(text);
+  if (known) return known;
+  const made: PictureLayout = {
+    ...dragonskulleLayout,
+    // the status line but HIGH SCORE's row left of the faces, which is cleared for the tally
+    moves: dragonskulleLayout.moves.flatMap((m) => m !== STATUS ? [m] : [
+      { from: { x: 0, y: 22 * 8, w: 320, h: 16 }, to: { x: 0, y: 0 } },
+      { from: { x: FACES_X, y: 24 * 8, w: 320 - FACES_X, h: 8 }, to: { x: FACES_X, y: 16 } },
+    ]),
+    clear: [...(dragonskulleLayout.clear ?? []), { x: 0, y: 16, w: FACES_X, h: 8, colour: 0 }],
+    labels: [...(dragonskulleLayout.labels ?? []), { text, x: 0, y: 16, colour: 7 }],
+    // (the panel's digits are the Pendragon engines': 1-9 at $31-$39, 0 at $3A)
+    code: pendragonCode,
+  };
+  tallies.set(text, made);
+  return made;
+}
+/** The play screen's layout: with the tally while there is one (ENHANCED). */
+const withTally = (ram: Uint8Array) => { const t = tally(ram); return t ? tallyLayout(t) : dragonskulleLayout; };
+
 /** The ending's show as it is drawn: the montage in the layout above, the status panel's room for the caption and the credits at the top (src/ending.ts). */
 export const dragonskulleShow: EndingSpec = { ...dragonskulleEnding, layout: dragonskulleLayout };
 /** The play screen: the panels' charset ($3000) on rows 0-2 and 22-24, the playfield's ($3800) between (the raster split). */
 const playScreen = ({ capture: cap }: { capture: FrameCapture }) => cap.rows[0]?.d018 === 0x1c && cap.rows[3]?.d018 === 0x1e && cap.rows[22]?.d018 === 0x1c;
+
+/** The play screen's layouts (`layout` in runNative): in ENHANCED with the tally, else as it is. */
+export const PLAY_LAYOUTS = [
+  { picture: withTally, when: (m: { capture: FrameCapture }, enhanced: boolean) => enhanced && playScreen(m) },
+  { picture: dragonskulleLayout, when: playScreen },
+];
 
 /**
  * The title's key instructions, for this keyboard (same lengths as the originals'). The action keys
@@ -182,8 +221,8 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: dragonskulleCombat,
     controls: dragonskulleControls,
-    // the status line at the top, the bar (in the keys' order, labelled) at the bottom: both modes
-    layout: [{ picture: dragonskulleLayout, when: playScreen }],
+    // the status line at the top, the bar (in the keys' order, labelled) at the bottom: both modes; in ENHANCED, the tally (WIZARDS 3 OF 10) in it
+    layout: PLAY_LAYOUTS,
     // straight to an action (the original only moves the hand on with "any other key", one icon each 5 frames held);
     // Enter (or any other key) moves it to the next one along the bar, one a press
     actions: {

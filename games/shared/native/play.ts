@@ -95,9 +95,11 @@ export interface NativeGameOptions<F> {
   /**
    * The picture laid out differently (c64kit's layout.ts: parts moved, labels added), in both modes;
    * the game's memory and logic are untouched. The first whose `when` holds (the picture is the one
-   * it's for: e.g. its raster split is there, from the frame as the VIC drew it) is shown.
+   * it's for: e.g. its raster split is there, from the frame as the VIC drew it) is shown. `enhanced`:
+   * whether ENHANCED is on and play under way (a layout for ENHANCED's help). `picture` can be read from
+   * the game's memory (a label with a number the game keeps: the game keeps one layout per value, not one a frame).
    */
-  layout?: { picture: PictureLayout; when(m: { ram: Uint8Array; capture: FrameCapture }): boolean }[];
+  layout?: { picture: PictureLayout | ((ram: Uint8Array) => PictureLayout); when(m: { ram: Uint8Array; capture: FrameCapture }, enhanced: boolean): boolean }[];
   /** ENHANCED: a second jump in the air, once per airtime (features.ts `AirJump`; `airJump` in the assists). */
   airJump?: AirJumpSpec;
   /** ENHANCED: a moment's grace (frames) on coming into each room, as the resume's but shorter (grace.ts). */
@@ -520,7 +522,9 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
 
   /** The machine's picture into the renderer: laid out as the game declares (`layout`) while it's the picture that's for. */
   function show(g: NativeHost, v: C64View) {
-    renderer.layout = opts.layout?.find((l) => l.when(g.m))?.picture ?? null;
+    const enhanced = fe.enhanced && flow.state.playing;
+    const shown = opts.layout?.find((l) => l.when(g.m, enhanced))?.picture ?? null;
+    renderer.layout = typeof shown === 'function' ? shown(g.m.ram) : shown;
     v.update();
     names?.overlay(g, renderer.screen, flow.getFont());
   }

@@ -130,6 +130,7 @@ export const TESTS = [
   { file: 'games/dragonskulle/test/ending.ts', set: 'slow' },
   { file: 'games/dragonskulle/test/frontend.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/grace.ts', set: 'fast' },
+  { file: 'games/dragonskulle/test/tally.ts', set: 'fast' }, // ENHANCED's tally in the status line: WIZARDS 3 OF 10, DRAGON HITS 4 OF 10
   { file: 'games/dragonskulle/test/shovel-touch.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/shovel.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/rules.ts', set: 'fast' },
