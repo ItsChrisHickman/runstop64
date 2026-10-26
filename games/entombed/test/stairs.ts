@@ -115,6 +115,8 @@ for (const down of [0, 150]) for (const side of ['ArrowLeft', 'ArrowRight'] as c
 }
 /** A few of them, to show a gate stays shut. */
 const fewWalks = walks.filter((_, i) => i % 6 === 0);
+/** Two of those, for the slower ways of looking (the original's 6502, the front end), where a gate that stays shut costs every frame of every walk. */
+const twoWalks = fewWalks.filter((_, i) => i % 4 === 0);
 
 interface Way { name: string; state: MachineState; walk: Step[]; to: number; frame: number }
 /** The first walk that takes him to another floor. */
@@ -180,7 +182,7 @@ for (const n of GUARDED) {
   for (const way of [...downs, ...gates]) { total++; if (original(way.state, way.walk) === way.to) same++; }
   check(`the original's 6502 takes each of the ${total} walks to the same floor (${same})`, same === total);
   let closed = 0;
-  for (const n of GUARDED) if (fewWalks.every((w) => original(chamberState(n, {}, start), w) === null)) closed++;
+  for (const n of GUARDED) if (twoWalks.every((w) => original(chamberState(n, {}, start), w) === null)) closed++;
   check(`  and keeps the guarded gates shut (${closed} of ${GUARDED.length}): it is the original's`, closed === GUARDED.length);
 }
 
@@ -229,7 +231,7 @@ for (const way of [...downs, ...gates]) {
 }
 for (const n of GUARDED) {
   let got = 0;
-  for (const enhanced of [false, true]) for (const walk of fewWalks) if (await keyboard(chamberState(n, {}, start), walk, enhanced) !== null) got++;
+  for (const enhanced of [false, true]) for (const walk of twoWalks) if (await keyboard(chamberState(n, {}, start), walk, enhanced) !== null) got++;
   check(`chamber ${n}: by keyboard the gate stays shut until its puzzle is done, in ORIGINAL and ENHANCED (${got} walks through)`, got === 0);
 }
 

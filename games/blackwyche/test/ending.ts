@@ -96,9 +96,12 @@ const atTitle = (s: Session) => [0x9931, 0x993b, 0x9940].includes(s.p.state.last
   check('the pause screen is up', w.p.frontEnd.paused);
   w.input.keyDown('KeyW'); w.tick(2); w.input.keyUp('KeyW'); w.tick(2);
   check('W watches the ending (the flag kept above)', !!w.p.ending?.active);
-  for (let f = 0; f < 9000 && w.p.ending?.active; f++) w.tick();
+  // (it runs: the whole show was run to its end above, from the win; here a key after the first moment skips it, back to the title)
+  w.tick(200);
+  check('the ending runs from the pause screen', !!w.p.ending?.active);
+  w.input.keyDown('Space'); w.tick(2); w.input.keyUp('Space');
   w.tick(30);
-  check('and back at the title', !w.p.ending?.active && atTitle(w));
+  check('and a key takes it back to the title', !w.p.ending?.active && atTitle(w));
 
   // ORIGINAL: the game as it was, no ending (and none offered)
   useMemoryStorage(new Map());

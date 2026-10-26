@@ -4,7 +4,10 @@
  * read from the blocks' code and then played: on the native port, and on the original (the 6502 code on
  * c64kit's C64, from the same state with the same inputs and pokes) where that is cheap.
  *
- *   nice -n 15 node tools/test.mjs games/dragonskulle/re/rules/check.ts [bridges|dragons|cloak|cloak2|starfish]
+ *   nice -n 15 node tools/test.mjs games/dragonskulle/re/rules/check.ts [bridges|dragons|cloak|cloak2|starfish] [full]
+ *
+ * The three bridges share one piece of code; the search of every place he can stand on a closed bridge (6 s each) is run on the
+ * first (room 3) and, with `full` (the slow set), on the other two.
  */
 import { must } from '../../../shared/test/must';
 import { check, finish } from '../../../shared/test/check';
@@ -14,7 +17,9 @@ import {
   type Player, type River,
 } from './lab';
 
-const only = process.argv[2] ?? '';
+const args = process.argv.slice(2);
+const full = args.includes('full');
+const only = args.find((a) => a !== 'full') ?? '';
 const wanted = (name: string) => !only || only === name;
 
 // ---- the bridges --------------------------------------------------------------------------------------
@@ -69,8 +74,10 @@ if (wanted('bridges')) {
     const up = (r: Uint8Array) => r[0x20a8] === river.cell[0] && r[0x20a9] === river.cell[1] + 1;
     const stay = (r: Uint8Array) => r[0x20a8] === river.cell[0] && r[0x20a9] === river.cell[1] && r[0x341c] === river.room;
     const score = (r: Uint8Array) => r[0x341e];
-    const closed = walkTo(start, up, park(river), { stay, score, maxNodes: 60000 });
-    check(`${name}: with the count short, no way across the bridge to the cave mouth, the unseen skull set aside (${closed.exhausted ? 'every place he can stand' : 'not all places'} tried: ${closed.nodes} moves)`, closed.path === null && closed.exhausted);
+    if (full || river === RIVERS[0]) {
+      const closed = walkTo(start, up, park(river), { stay, score, maxNodes: 60000 });
+      check(`${name}: with the count short, no way across the bridge to the cave mouth, the unseen skull set aside (${closed.exhausted ? 'every place he can stand' : 'not all places'} tried: ${closed.nodes} moves)`, closed.path === null && closed.exhausted);
+    }
     const switched = walkTo(start, up, (p) => { park(river)(p); p.ram[0x72c0] = 0; }, { stay, score, maxNodes: 60000 });
     check(`${name}: with $72C0 = 0 held and the count still short there is one (${switched.path ? switched.path.length : 0} moves of 3 frames): the tiles are what is shut`, switched.path !== null);
     const solved = native(start);

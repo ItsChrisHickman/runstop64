@@ -2,7 +2,10 @@
  * The rebuilt picture (src/display.ts) against the original's screen, in lockstep (test/picture-core.ts says how): random players in
  * every room, with the scripts shaken, at the exits, and the bot (test/players.ts) playing room 2, room 5 and the whole game.
  *
- *   nice -n 15 node tools/test.mjs games/moley/test/picture.ts [random-passes-per-room] [shaken-runs-per-room] [passes-per-shaken-run] [bots 0|1] [placements-per-tile-kind] [passes-per-placement]
+ * Bots: 0 none; 1 the whole game, from the recorded keys (test/demos.ts: it passes through rooms 2 and 5 too); 2 the bot planning
+ * live, in room 2, in room 5 and through the whole game (the slow set).
+ *
+ *   nice -n 15 node tools/test.mjs games/moley/test/picture.ts [random-passes-per-room] [shaken-runs-per-room] [passes-per-shaken-run] [bots 0|1|2] [placements-per-tile-kind] [passes-per-placement]
  */
 import fs from 'node:fs';
 import { check, finish } from '../../../games/shared/test/check';
@@ -13,6 +16,7 @@ import { ROOM_SIZE } from '../src/data';
 import { A, MAP_START, mulberry, Run, Tally } from './lockstep-core';
 import { PictureTally, SpriteInks, watchPicture } from './picture-core';
 import { SPRITE_INK } from '../src/look';
+import { replayOf } from './demos';
 import { Player } from './players';
 import { RandomPlayer } from './random-player';
 import { shake, shakeExit } from './shake';
@@ -91,20 +95,23 @@ for (let room = 0; room <= 5; room++) {
 part('Monty placed round every kind of tile');
 
 if (botsArg !== '0') {
+  const live = botsArg === '2';
   const atStart = (x: number, y: number) => (mem: Uint8Array): void => {
     mem[A.x] = x; mem[A.y] = y; mem[A.state] = 0; mem[A.phase] = 0; mem[A.gauge] = 0x7f; mem[A.lives] = 5;
   };
-  const r2 = new Run(tally, `${STATES}/room2.state`, 'bot room 2', false, atStart(0x04, 0x68));
-  watchPicture(r2, pictures, r2.label, inks);
-  r2.play(new Player(), 6000, (g) => g.room !== 2);
-  part('the bot in room 2');
-  const r5 = new Run(tally, `${STATES}/room5.state`, 'bot room 5', false, atStart(0x28, 0x70));
-  watchPicture(r5, pictures, r5.label, inks);
-  r5.play(new Player(), 8000);
-  part('the bot in room 5');
+  if (live) {
+    const r2 = new Run(tally, `${STATES}/room2.state`, 'bot room 2', false, atStart(0x04, 0x68));
+    watchPicture(r2, pictures, r2.label, inks);
+    r2.play(new Player(), 6000, (g) => g.room !== 2);
+    part('the bot in room 2');
+    const r5 = new Run(tally, `${STATES}/room5.state`, 'bot room 5', false, atStart(0x28, 0x70));
+    watchPicture(r5, pictures, r5.label, inks);
+    r5.play(new Player(), 8000);
+    part('the bot in room 5');
+  }
   const all = new Run(tally, `${STATES}/play.state`, 'bot whole game', false, atStart(0x04, 0x64));
   watchPicture(all, pictures, all.label, inks);
-  all.play(new Player(), 14000);
+  all.play(live ? new Player() : replayOf('game'), 14000);
   part('the bot, the whole game');
 }
 

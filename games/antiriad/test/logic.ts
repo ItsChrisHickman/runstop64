@@ -12,7 +12,8 @@
  * the joystick each one read, and the port's logic frames get the same, in turn. Then the hero's
  * place, direction, animation and speeds must be the same after every frame of logic.
  *
- *   nice -n 15 node tools/test.mjs games/antiriad/test/logic.ts            (the checks)
+ *   nice -n 15 node tools/test.mjs games/antiriad/test/logic.ts            (the checks; each room one of its two plans, two of the wall plans left to `all`)
+ *   nice -n 15 node tools/test.mjs games/antiriad/test/logic.ts all        (the checks, both plans in every room: the slow set)
  *   nice -n 15 node tools/test.mjs games/antiriad/test/logic.ts armour "U:40,R:300,L:300" [room]
  *
  * Plans: joystick:frames (U D L R F, - for nothing), or rand:frames:seed. A room (hex) puts the
@@ -100,23 +101,26 @@ export function compare(state: string, plan: string, at?: { room: number; x: num
   return { frames: n, hit, same: first < 0 ? n : first, first: first < 0 ? null : { at: first, original: A[first], port: B[first], before: A[first - 1] ?? '' } };
 }
 
+const everything = process.argv[2] === 'all';
+const args = process.argv.slice(2).filter((a) => a !== 'all');
+
 // Scripted: flying into walls left and right (and the plans a playtest's "through a wall" report
 // was checked with), on foot, and in rooms of every level.
-const CASES: { state: string; plan: string; room?: number; x?: number; y?: number }[] = [
+const CASES: { state: string; plan: string; room?: number; x?: number; y?: number; slow?: boolean }[] = [
   { state: 'armour', plan: 'U:40,R:300,L:300' },
   { state: 'armour', plan: 'U:20,RU:200,LU:200,R:200' },
-  { state: 'armour', plan: 'U:60,R:120,-:30,R:200,L:400' },
-  { state: 'armour', plan: 'U:30,L:250,R:250,L:250' },
+  { state: 'armour', plan: 'U:60,R:120,-:30,R:200,L:400', slow: true },
+  { state: 'armour', plan: 'U:30,L:250,R:250,L:250', slow: true },
   { state: 'armour', plan: 'U:25,LU:120,RD:120,LD:120,RU:120,L:150' },
   { state: 'foot', plan: 'L:300,R:300,LF:60,RF:60,U:40' },
   { state: 'foot', plan: 'R:200,UR:60,L:200,UL:60' },
-  ...[0x0c, 0x15, 0x20, 0x2b, 0x30, 0x39].flatMap((room) => [
+  ...[0x0c, 0x15, 0x20, 0x2b, 0x30, 0x39].flatMap((room, i) => [
     { state: 'armour', plan: 'U:20,L:200,R:200,UL:80,DR:80', room, x: 160, y: 0x60 },
     { state: 'armour', plan: 'U:20,R:200,L:200,UR:80,DL:80', room, x: 240, y: 0x40 },
-  ]),
+  ].filter((_, k) => everything || k === i % 2)), // (the fast set: each room one of its two plans, alternating; `all` plays both)
 ];
 
-const [stateArg, planArg, roomArg] = process.argv.slice(2);
+const [stateArg, planArg, roomArg] = args;
 if (stateArg) {
   // one plan, from a state (in a room, at four places)
   const ats = roomArg ? [[80, 0x50], [160, 0x60], [240, 0x40], [300, 0x70]].map(([x, y]) => ({ room: parseInt(roomArg, 16), x, y })) : [undefined];
@@ -126,7 +130,7 @@ if (stateArg) {
   }
 } else {
   let failures = 0, total = 0, same = 0;
-  for (const c of CASES) {
+  for (const c of CASES.filter((k) => everything || !k.slow)) {
     const r = compare(c.state, c.plan, c.room === undefined ? undefined : { room: c.room, x: c.x ?? 160, y: c.y ?? 0x60 });
     total += r.frames; same += r.same;
     const ok = !r.first && r.frames > 150;

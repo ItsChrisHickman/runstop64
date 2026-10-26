@@ -31,12 +31,13 @@ try {
 check(`the original's two passes of the tune are the same, in registers 0-10 and in frames${error ? ` (${error})` : ''}`, error === '');
 check(`one pass is ${MUSIC_STEPS} steps of 2 frames (18436 frames: the last step is held for four), as committed`, steps.length === MUSIC_STEPS && steps.length === 9218);
 const bytes = packAyStream(steps);
-check(`recorded again, the stream is the committed one (${MUSIC_BYTES} bytes)`, bytes.length === MUSIC_BYTES && bytes.every((b, i) => b === musicBytes()[i]) && MUSIC_BASE64.length === Math.ceil(MUSIC_BYTES / 3) * 4);
+const committed = musicBytes(); // (once: it decodes the stream each time it is asked)
+check(`recorded again, the stream is the committed one (${MUSIC_BYTES} bytes)`, bytes.length === MUSIC_BYTES && bytes.every((b, i) => b === committed[i]) && MUSIC_BASE64.length === Math.ceil(MUSIC_BYTES / 3) * 4);
 
 // ---- the stream replays -------------------------------------------------------------------------------------------------
-const images = unpackAyStream(musicBytes());
+const images = unpackAyStream(committed);
 check('the stream unpacks to the original\'s register image after every step', images.length === steps.length && images.every((im, i) => im.join() === steps[i]?.join()));
-const tune = new AyTune(musicBytes(), MUSIC_STEP_HZ, 48000);
+const tune = new AyTune(committed, MUSIC_STEP_HZ, 48000);
 check('the tune player finds the same number of steps', tune.steps === MUSIC_STEPS);
 let wrong = -1;
 for (let i = 0; i < 2 * MUSIC_STEPS && wrong < 0; i++) {
@@ -55,7 +56,7 @@ check('the mixer is always one of two values (tones on, noise off / on)', new Se
 
 // ---- what it sounds like -------------------------------------------------------------------------------------------------------------
 {
-  const player = new AyTune(musicBytes(), MUSIC_STEP_HZ, 48000);
+  const player = new AyTune(committed, MUSIC_STEP_HZ, 48000);
   const out = new Float32Array(48000 * 20);
   player.render(out, 0, out.length);
   let peak = 0;

@@ -14,7 +14,7 @@
  *     first, never covered, then the story, then the game's line back), the sparkles the renderer has, ORIGINAL showing
  *     none, 11 PM, the pause screen's count, the far door and the abode's line.
  *
- *   nice -n 15 node tools/test.mjs games/karnath/re/hints/check.ts
+ *   nice -n 15 node tools/test.mjs games/karnath/re/hints/check.ts [full]
  */
 import fs from 'node:fs';
 import { decodePicture } from '../../../../packages/c64kit/src/c64/picture';
@@ -88,22 +88,35 @@ function drawn(m: ReturnType<typeof routeWalker>['host']['m'], codes: readonly n
 const same = (a: Spot[], b: Spot[]) => a.length === b.length && a.every((p, i) => p.x === b[i].x && p.y === b[i].y);
 const key = (a: Spot[]) => [...a].sort((p, q) => p.y - q.y || p.x - q.x);
 
+const ALL_ROUTES = [0, 1, 2, 3, 4];
+/** Every how-manyth frame of the routes is looked at (each look decodes the next picture, 1.7 ms): the fast set every sixth, `full` every third. */
+const LOOK_EVERY = process.argv.includes('full') ? 3 : 6;
+/** Carrying forced replays the routes again (11 s for route 0 alone, its 11000 frames): the fast set takes the other four, `full` all five. */
+const FORCED_ROUTES = process.argv.includes('full') ? ALL_ROUTES : [1, 2, 3, 4];
 const FRONT = { 0: 19, 1: 15 } as const;
 type Machine = C64;
 /**
- * Over every third frame of the five routes: `ours` is what the hints say after the game's frame (for the picture drawn next:
+ * Over every third (sixth, in the fast set) frame of the five routes: `ours` is what the hints say after the game's frame (for the picture drawn next:
  * the game works after it has drawn, so the screen's memory and the scroll as the frame leaves them are what the next frame
  * draws), `want` what the next frame's picture has. Each pair goes to `compare`.
  */
-function lagged(cheat: (ram: Uint8Array) => void, now: (m: Machine) => { ours: Spot[]; want: (next: Machine) => Spot[] } | null, compare: (ours: Spot[], want: Spot[], route: number, frame: number) => void) {
-  for (let route = 0; route < 5; route++) {
+interface Lag { ours: Spot[]; want: (next: Machine) => Spot[] }
+interface Probe {
+  now(m: Machine): Lag | null;
+  compare(ours: Spot[], want: Spot[], route: number, frame: number): void;
+}
+/** Probes share one replay of the routes (a replay is most of the cost); a frame is looked at by the first that has something to say about it, so they must not overlap. */
+function lagged(routes: readonly number[], cheat: (ram: Uint8Array) => void, probes: readonly Probe[]) {
+  for (const route of routes) {
     const w = routeWalker({ port, title, routes: ROUTES, route, cheat });
-    let held: { ours: Spot[]; want: (next: Machine) => Spot[]; frame: number } | null = null;
+    let held: (Lag & { frame: number; probe: Probe }) | null = null;
     for (let m = w.next(); m; m = w.next()) {
-      if (held) { compare(key(held.ours), key(held.want(w.host.m)), route, held.frame); held = null; continue; }
-      if (w.frame % 3 || w.host.lastWait !== port.mainLoopWait) continue;
-      const f = now(w.host.m);
-      if (f) held = { ...f, frame: w.frame };
+      if (held) { held.probe.compare(key(held.ours), key(held.want(w.host.m)), route, held.frame); held = null; continue; }
+      if (w.frame % LOOK_EVERY || w.host.lastWait !== port.mainLoopWait) continue;
+      for (const probe of probes) {
+        const f = probe.now(w.host.m);
+        if (f) { held = { ...f, frame: w.frame, probe }; break; }
+      }
     }
   }
 }
@@ -121,21 +134,23 @@ const tally = (ours: Spot[], want: Spot[], route: number, frame: number) => {
   if (!same(ours, want)) { wrong++; if (wrong < 4) console.log(`     route ${route} frame ${frame}: ours ${JSON.stringify(ours)} picture ${JSON.stringify(want)}`); }
 };
 // (carrying forced, in the castle's two floors, where the routes would not carry; and the routes' own carrying, in every mode)
-lagged((ram) => { alive(ram); ram[KEPT.carrying] = 1; }, (m) => ways(m.ram[KEPT.mode], m, [MODE.lower, MODE.upper]), tally);
-lagged(alive, (m) => (m.ram[KEPT.carrying] === 1 ? ways(m.ram[KEPT.mode], m, [MODE.lower, MODE.upper, MODE.dungeons]) : null), tally);
+const piece = { frames: 0, shown: 0, wrong: 0 };
+lagged(FORCED_ROUTES, (ram) => { alive(ram); ram[KEPT.carrying] = 1; }, [{ now: (m) => ways(m.ram[KEPT.mode], m, [MODE.lower, MODE.upper]), compare: tally }]);
+// (the routes' own carrying and the map's pieces, not carrying, are never in the same frame: one replay for both)
+lagged(ALL_ROUTES, alive, [
+  { now: (m) => (m.ram[KEPT.carrying] === 1 ? ways(m.ram[KEPT.mode], m, [MODE.lower, MODE.upper, MODE.dungeons]) : null), compare: tally },
+  {
+    now: (m) => (m.ram[KEPT.carrying] === 1 ? null : { ours: mapPieceSpots(m.ram), want: (n) => drawn(n, [0xd5, 0xd4], [0, 20]) }),
+    compare: (ours, want, route, frame) => {
+      piece.frames++;
+      if (want.length) piece.shown++;
+      if (!same(ours, want)) { piece.wrong++; if (piece.wrong < 4) console.log(`     route ${route} frame ${frame}: ours ${JSON.stringify(ours)} picture ${JSON.stringify(want)}`); }
+    },
+  },
+]);
 check(`carrying, the ways down (the $CF and the DOOR signs on the floor's front edge) and the dungeons' far door are marked on the cells the picture draws them in: ${frames} frames of the routes (${shown} with one in view, ${doorsShown} the dungeons' far door; ${wrong} differ)`, wrong === 0 && shown > 100 && doorsShown > 10);
 
-frames = 0; shown = 0; wrong = 0;
-lagged(
-  alive,
-  (m) => (m.ram[KEPT.carrying] === 1 ? null : { ours: mapPieceSpots(m.ram), want: (n) => drawn(n, [0xd5, 0xd4], [0, 20]) }),
-  (ours, want, route, frame) => {
-    frames++;
-    if (want.length) shown++;
-    if (!same(ours, want)) { wrong++; if (wrong < 4) console.log(`     route ${route} frame ${frame}: ours ${JSON.stringify(ours)} picture ${JSON.stringify(want)}`); }
-  },
-);
-check(`not carrying, the pieces in the map are marked on the cells the picture draws them in: ${frames} frames of the routes (${shown} with one in view; ${wrong} differ)`, wrong === 0 && shown > 20);
+check(`not carrying, the pieces in the map are marked on the cells the picture draws them in: ${piece.frames} frames of the routes (${piece.shown} with one in view; ${piece.wrong} differ)`, piece.wrong === 0 && piece.shown > 20);
 
 // ---- 2. the ways, gone through by playing: the sign on the floor's front edge down a level, $CF into the dungeons ----
 const UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8, FIRE = 16;

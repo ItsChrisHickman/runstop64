@@ -91,6 +91,21 @@ export function findOverlayRoutine(versions: OverlayVersion[], ram: Uint8Array, 
 
 const BOOTED = new Error('reached the main loop');
 
+/** The plain (non-generator) translated routines of an engine, by address: the same for every host of that port, so found once. */
+const PLAIN_ROUTINES = new WeakMap<PortConfig['engine'], ReadonlyMap<number, () => void>>();
+function plainRoutines(engine: PortConfig['engine']): ReadonlyMap<number, () => void> {
+  const known = PLAIN_ROUTINES.get(engine);
+  if (known) return known;
+  const found = new Map<number, () => void>();
+  for (const [name, fn] of Object.entries(engine)) {
+    const addr = name.match(/^r_([0-9a-f]{4})$/)?.[1];
+    if (!addr || !isRoutine(fn) || fn.constructor.name === 'GeneratorFunction') continue;
+    found.set(parseInt(addr, 16), fn);
+  }
+  PLAIN_ROUTINES.set(engine, found);
+  return found;
+}
+
 export class NativeHost {
   readonly m = new Machine();
   private main: Gen;
@@ -118,7 +133,7 @@ export class NativeHost {
    * version that waits for frames from where nothing can wait (they didn't run).
    */
   readonly fallbacks = new Map<number, number>();
-  private readonly patched = new Map<number, () => void>();
+  private readonly patched: ReadonlyMap<number, () => void>;
   /** Time owed to the main program (cycles it has run, or a delay it's in), not yet let pass (cycle-timed games). */
   private readonly mainTime = { pending: 0 };
   private readonly bus: Parameters<typeof bind>[0];
@@ -139,11 +154,7 @@ export class NativeHost {
     };
     bind(this.bus);
     // For the safety net: the 6502 calls native routines where they exist.
-    for (const [name, fn] of Object.entries(port.engine)) {
-      const addr = name.match(/^r_([0-9a-f]{4})$/)?.[1];
-      if (!addr || !isRoutine(fn) || fn.constructor.name === 'GeneratorFunction') continue;
-      this.patched.set(parseInt(addr, 16), fn);
-    }
+    this.patched = plainRoutines(port.engine);
     if (from === 'mainLoop' && m.cpu.pc !== port.mainLoopWait) {
       // A snapshot of the original, inside the main loop's wait: drop the wait call's return address.
       const sp = m.cpu.sp, ret = m.ram[0x100 | ((sp + 1) & 0xff)] | (m.ram[0x100 | ((sp + 2) & 0xff)] << 8);

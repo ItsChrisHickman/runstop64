@@ -42,7 +42,10 @@ export function renderPixels(m: Picture, layout: PictureLayout | null = null) {
 
 /** The two layers as one picture without the sprites (the renderer's screen over its backdrop). */
 function joinLayers(fore: Uint8Array, back: Uint8Array) {
-  return Uint8Array.from(fore, (c, i) => (c === TRANSPARENT ? back[i] : c));
+  // (a plain loop: Uint8Array.from with a map function goes through the iterator protocol, which was most of a frame's cost)
+  const px = new Uint8Array(fore.length);
+  for (let i = 0; i < px.length; i++) px[i] = fore[i] === TRANSPARENT ? back[i] : fore[i];
+  return px;
 }
 
 /**

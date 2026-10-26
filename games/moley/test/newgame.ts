@@ -15,7 +15,7 @@ import { press, Spectrum } from '../../../tools/zx/spectrum';
 import { Game } from '../src/game';
 import type { Random } from '../src/random';
 import { A, differences, PASS_START, Run, Tally } from './lockstep-core';
-import { Player } from './players';
+import { replayOf } from './demos';
 
 const STATES = 'games/moley/build';
 
@@ -75,7 +75,7 @@ const rom = readRom();
   const run = new Run(tally, `${STATES}/play.state`, 'the first game', false, (mem) => {
     mem[A.x] = 0x04; mem[A.y] = 0x64; mem[A.state] = 0; mem[A.phase] = 0; mem[A.gauge] = 0x7f; mem[A.lives] = 5;
   });
-  run.play(new Player(), 14000);
+  run.play(replayOf('game'), 14000); // (the bot's recorded game: test/demos.ts)
   check(`the first game played to its ending (${tally.passes} passes, ${tally.mismatches} differences), score ${run.game.score}`, run.last === 'ended' && tally.mismatches === 0);
   const read = startGame(run.m);
   const game = run.game;

@@ -9,12 +9,18 @@
 
 let passed = 0;
 let failed = 0;
+/** `TIMING=1`: each check line says how long the work since the last check took (to see where a slow test spends its time). */
+const timing = process.env.TIMING !== undefined;
+let lastAt = performance.now();
 
 /** Report one check. `VERBOSE` unset: `quiet` checks print only when they fail. */
 export function check(what: string, ok: boolean, quiet = false): void {
   if (ok) passed++;
   else failed++;
-  if (!ok || !quiet || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`);
+  const now = performance.now();
+  const took = timing ? `[${((now - lastAt) / 1000).toFixed(1)}s] ` : '';
+  lastAt = now;
+  if (!ok || !quiet || process.env.VERBOSE) console.log(`${ok ? 'ok  ' : 'FAIL'} ${took}${what}`);
 }
 
 /** Count a failure found some other way (a comparison loop with its own report). */

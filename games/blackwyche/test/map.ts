@@ -12,7 +12,10 @@
  * - for every place: P, the arrows to it, Enter: after a second of play he is in that place (not
  *   bounced back to where he was), settled on his feet, and a second more on he is still there.
  *
- *   nice -n 15 node tools/test.mjs games/blackwyche/test/map.ts
+ * The Enter walk is the slow part (a fresh launch per place per start): the fast set takes each place from every fourth start (each
+ * place is still gone to from several different starts, midway ones included); `all` goes to every place from every start.
+ *
+ *   nice -n 15 node tools/test.mjs games/blackwyche/test/map.ts [all]
  */
 import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
@@ -69,10 +72,20 @@ let start = walked[0].state;
 const offered = Object.keys(travelPlaces(structuredClone(found)));
 console.log(`${offered.length} places to travel to: ${offered.join(' ')}`);
 
+/** The start's save, packed once (packing a machine is most of what a launch costs besides the game). */
+const packed = new Map<MachineState, ReturnType<typeof packSlot>>();
+function savedStart() {
+  const known = packed.get(start);
+  if (known) return known;
+  const slot = packSlot(MACHINE_CODEC, start, { at: 1, summary: ['MAP'], rooms: 1 });
+  packed.set(start, slot);
+  return slot;
+}
+
 async function launch() {
   const store = new Map<string, string>();
   useMemoryStorage(store);
-  writeCurrent('blackwyche', packSlot(MACHINE_CODEC, start, { at: 1, summary: ['MAP'], rooms: 1 }));
+  writeCurrent('blackwyche', savedStart());
   keepFound('blackwyche', structuredClone(found));
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
@@ -151,7 +164,8 @@ for (const si of STARTS) {
 }
 
 // ---- 2. Enter: he is there, and stays ----
-  for (const id of offered) {
+  for (const [at, id] of offered.entries()) {
+    if (!process.argv.includes('all') && (at + si) % 4 !== 0) continue;
     const way = ways.get(id);
     if (!way && !midMove) continue;
     const s = await launch();

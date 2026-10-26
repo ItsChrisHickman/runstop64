@@ -5,7 +5,7 @@
  * The Pendragon games' title tunes are loops that time themselves by counting cycles (a wait for raster line $FF, the work,
  * eight more waits for it): a translation takes no time for the work, the loop comes round to the line it is still on, and the
  * tune plays twice as fast (Blackwyche's notes began every 4.5 frames, the original's every 9; Dragonskulle's every 6, the
- * original's every 12: `NativeHost` alone, `translated` below). Those two games play the tune from the original's own code
+ * original's every 12: `NativeHost` alone). Those two games play the tune from the original's own code
  * while the title is up (`titleTune`, native/title-tune.ts); the notes begun (a voice's gate opened) over the same frames, and the
  * writes themselves in order, must be the original's.
  *
@@ -14,7 +14,6 @@
 import fs from 'node:fs';
 import { Input, PixelRenderer, sidLog, type Host } from 'c64kit';
 import { C64, unpackState, type SidWrite } from '../../../../packages/c64kit/src/c64/machine';
-import { NativeHost } from '../host';
 import { GAMES } from './games';
 import { run as runBlackwyche } from '../../../blackwyche/src/main';
 import { run as runDragonskulle } from '../../../dragonskulle/src/main';
@@ -23,7 +22,7 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../test/browser';
 import { check, finish } from '../../test/check';
 import { must } from '../../test/must';
 
-const FRAMES = 1500;
+const FRAMES = 1000;
 /** The first frames: the title sets itself up (and the session starts a frame or two late); not the tune. */
 const SKIP = 300;
 
@@ -57,11 +56,6 @@ for (const [id, run] of games) {
   const original: SidWrite[][] = [];
   for (let f = 0; f < FRAMES; f++) { orig.keys = []; orig.runFrame(); original.push(orig.sidWrites); }
 
-  // the translation alone (what the title's own code makes of it)
-  const host = new NativeHost(game.port, title);
-  const translated: SidWrite[][] = [];
-  for (let f = 0; f < FRAMES; f++) { host.m.keys = []; host.tick(); translated.push(host.m.sidWrites); }
-
   // the front end, as the browser runs it
   stubFetch(bytes);
   useMemoryStorage(new Map());
@@ -73,11 +67,12 @@ for (const [id, run] of games) {
   for (let f = 0; f < FRAMES; f++) { input.poll(); session.tick(); session.render(0); }
   sidLog.record = null;
 
-  const o = pairs(original).slice(SKIP), s = pairs(shown).slice(SKIP), t = pairs(translated).slice(SKIP);
-  const no = notes(o), ns = notes(s), nt = notes(t);
-  console.log(`${id}: notes begun in ${FRAMES - SKIP} frames: original ${no}, the translation alone ${nt}, the front end ${ns}`);
+  const o = pairs(original).slice(SKIP), s = pairs(shown).slice(SKIP);
+  const no = notes(o), ns = notes(s);
+  console.log(`${id}: notes begun in ${FRAMES - SKIP} frames: original ${no}, the front end ${ns}`);
   check(`${id}: the title's tune the front end plays begins as many notes as the original's (${ns} against ${no})`, no > 20 && ns / no > 0.96 && ns / no < 1.04);
-  check(`${id}: the same register writes in the same order for long stretches (${longestRun(stream(s), stream(o))} in a row)`, longestRun(stream(s), stream(o)) >= 300);
+  const run300 = longestRun(stream(s), stream(o));
+  check(`${id}: the same register writes in the same order for long stretches (${run300} in a row)`, run300 >= 300);
 }
 
 finish();

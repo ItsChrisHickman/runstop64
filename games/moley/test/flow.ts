@@ -12,6 +12,7 @@ import { check, finish } from '../../../games/shared/test/check';
 import { bootedSpectrum, readRom, readTape, typeLoad } from '../../../tools/zx/boot';
 import { MoleyFlow } from '../src/flow';
 import { mulberry } from './lockstep-core';
+import { replayOf } from './demos';
 import { Player } from './players';
 import { RandomPlayer } from './random-player';
 import { atStart, compare, Counts, drive, either, type End, follow, holding, idle, noKeys, Queue, reach, Recorder, type Script, type Span } from './flow-core';
@@ -68,7 +69,7 @@ function after(label: string, e: End, script: Script, frames: number): void {
 }
 
 if (want('ending')) {
-  const e = reach('room 5 to the ending', `${STATES}/room5.state`, atStart(0x28, 0x70), new Player(), 8000);
+  const e = reach('room 5 to the ending', `${STATES}/room5.state`, atStart(0x28, 0x70), replayOf('room5'), 8000);
   check('a bot played room 5 to the ending', e !== null && e.outcome === 'ended');
   if (e !== null) {
     const t = e.end;
@@ -78,7 +79,7 @@ if (want('ending')) {
 }
 
 if (want('ending-held')) {
-  const e = reach('room 5 to the ending (a key held)', `${STATES}/room5.state`, atStart(0x28, 0x70), new Player(), 8000);
+  const e = reach('room 5 to the ending (a key held)', `${STATES}/room5.state`, atStart(0x28, 0x70), replayOf('room5'), 8000);
   check('a bot played room 5 to the ending, a key held through the card', e !== null && e.outcome === 'ended');
   if (e !== null) {
     const t = e.end;
@@ -121,7 +122,7 @@ if (want('over-hazard')) {
 
 if (want('over-bot')) {
   // the bot plays rooms 0 and 1 and into room 2 with no life to spare, and falls into the pit
-  const e = reach('the bot with no life to spare', `${STATES}/play.state`, atStart(0x04, 0x64, 0), new Player(), 14000);
+  const e = reach('the bot with no life to spare', `${STATES}/play.state`, atStart(0x04, 0x64, 0), replayOf('over'), 14000);
   check('the bot with no life to spare ended the game', e !== null && e.outcome === 'over');
   if (e !== null) {
     const t = e.end;

@@ -15,7 +15,9 @@
  * - the view puts them on the renderer's sparkles in the surface's pixels (`MoleyView.sparkle`); the front end shows them in ENHANCED
  *   only (test/frontend.ts).
  *
- *   nice -n 15 node tools/test.mjs games/moley/test/hints.ts
+ *   nice -n 15 node tools/test.mjs games/moley/test/hints.ts [live|record] [out-dir]
+ *
+ * The bot's game is replayed from test/demos/hints.keys (test/demos.ts); `live` plans it again, `record` plans it and writes the demo.
  */
 import { PixelRenderer } from 'c64kit';
 import { check, finish } from '../../../games/shared/test/check';
@@ -29,6 +31,7 @@ import { Key } from '../src/monty';
 import { SeededRandom } from '../src/random';
 import { MoleyView, PICTURE_LEFT, PICTURE_TOP, SPARKLE_GAIN, SPARKLE_SIZE } from '../src/view';
 import { writeStills } from './hints-shots';
+import { Recording, replayOf, writeDemo } from './demos';
 import { Player } from './players';
 
 // ---- helpers ------------------------------------------------------------------------------------------------------
@@ -362,7 +365,10 @@ const keysOf = (m: Spectrum): number => {
 {
   const g = new Game(new SeededRandom(7));
   const m = new Spectrum(new Uint8Array(0x4000));
-  const player = new Player();
+  // (the bot's keys are replayed from test/demos: planning them is most of this test's time; `live` plans them, `record` plans and writes them)
+  const mode = process.argv.slice(2).includes('record') ? 'record' : process.argv.slice(2).includes('live') ? 'live' : 'replay';
+  const recording = new Recording(new Player());
+  const player = mode === 'replay' ? replayOf('hints') : mode === 'record' ? recording : new Player();
   const seen = new Map<string, number>();
   const needed = new Map<string, number>();
   const missing: string[] = [];
@@ -396,6 +402,7 @@ const keysOf = (m: Spectrum): number => {
     else if (before.room === 5 && g.room === 5 && before.carrying === 1 && g.rooms.r5.carrying === 0) need('delivering a paper', hints, 'shop');
     if (outcome === 'ended') ended = true;
   }
+  if (mode === 'record') writeDemo('hints', recording.keys);
   console.log(`   the bot's game: ${compared} passes, the game ${ended ? 'ended' : 'did not end'}; hints seen ${[...seen].map(([k, v]) => `${k} x${v}`).join(', ')}`);
   console.log(`   needed and marked: ${[...needed].map(([k, v]) => `${k} x${v}`).join(', ')}`);
   check(`the bot's whole game (${compared} passes, ${over - 1} lives topped up): the hints equal the oracle on every pass${first === '' ? '' : ` (${first})`}`, ended && differing === 0);
@@ -473,6 +480,7 @@ const keysOf = (m: Spectrum): number => {
 }
 
 // ---- stills (with an out-dir) -----------------------------------------------------------------------------------------------------
-if (process.argv[2] !== undefined) console.log(`   ${writeStills(process.argv[2])} stills in ${process.argv[2]}`);
+const outDir = process.argv.slice(2).find((a) => a !== 'live' && a !== 'record');
+if (outDir !== undefined) console.log(`   ${writeStills(outDir)} stills in ${outDir}`);
 
 finish();

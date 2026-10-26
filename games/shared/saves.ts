@@ -265,5 +265,8 @@ export function toBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 export function fromBase64(text: string): Uint8Array {
-  return Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
+  const bin = atob(text);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < out.length; i++) out[i] = bin.charCodeAt(i); // (a plain loop: Uint8Array.from with a map function is several times slower on a state's 100 KB)
+  return out;
 }

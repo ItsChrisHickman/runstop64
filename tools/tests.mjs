@@ -79,9 +79,10 @@ export const TESTS = [
   { file: 'games/moley/test/rooms.ts', args: [MOLEY_PLAY], set: 'fast', needs: [MOLEY_PLAY, MOLEY_ROM] },
   { file: 'games/moley/test/data.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM, ...MOLEY_STATES] },
   { file: 'games/moley/test/game.ts', set: 'fast' },
-  { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '40', '4', '300'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 26000 passes)' },
+  { file: 'games/moley/test/lockstep.ts', args: ['400', '1', '16', '4', '200'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/lockstep.ts (about 17000 passes)' },
   { file: 'games/moley/test/lockstep.ts', args: ['16000', '8', '80', '40', '400'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/lockstep.ts (about 350000 passes)' },
-  { file: 'games/moley/test/playthrough.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/playthrough.ts (rooms 2 and 5, then the whole game, played by a bot, and a game over)' },
+  { file: 'games/moley/test/playthrough.ts', set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/playthrough.ts (rooms 2 and 5, then the whole game, played by the bot\'s recorded keys, and a game over)' },
+  { file: 'games/moley/test/playthrough.ts', args: ['live'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/playthrough.ts live (the bot plans rooms 2 and 5, the whole game and a game over again, not replayed from test/demos)' },
   { file: 'games/moley/test/flow-steps.ts', set: 'fast' },
   { file: 'games/moley/test/flow.ts', set: 'fast', needs: [MOLEY_TAP, MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/flow.ts (the credits page, a start, the card, game overs: every frame against the original)' },
   { file: 'games/moley/test/flow.ts', args: ['game'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/flow.ts game (the whole game played by the bot to the ending and the card)' },
@@ -92,9 +93,10 @@ export const TESTS = [
   { file: 'games/moley/test/frontend.ts', set: 'fast' },
   { file: 'games/moley/test/enhanced.ts', set: 'fast' },
   { file: 'games/moley/test/hints.ts', set: 'fast', name: "games/moley/test/hints.ts (ENHANCED's sparkles: each room's hints at their edges, the bot's whole game, random play)" },
+  { file: 'games/moley/test/hints.ts', args: ['live'], set: 'slow', limitSeconds: 590, name: "games/moley/test/hints.ts live (the bot's whole game planned again, not replayed from test/demos)" },
   { file: 'games/moley/test/view.ts', set: 'fast' },
-  { file: 'games/moley/test/picture.ts', args: ['300', '1', '100', '1', '1', '30'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/picture.ts (the picture against the original: about 12000 passes, bots included)' },
-  { file: 'games/moley/test/picture.ts', args: ['4000', '8', '300', '1', '4', '80'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/picture.ts (the picture against the original: about 70000 passes)' },
+  { file: 'games/moley/test/picture.ts', args: ['300', '1', '100', '1', '1', '12'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/picture.ts (the picture against the original: about 11000 passes, the whole game played by the bot included)' },
+  { file: 'games/moley/test/picture.ts', args: ['4000', '8', '300', '2', '4', '80'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/picture.ts (the picture against the original: about 70000 passes)' },
 
   // ---- Antiriad
   { file: 'games/antiriad/test/cells.ts', set: 'fast' },
@@ -105,7 +107,8 @@ export const TESTS = [
   { file: 'games/antiriad/test/frontend.ts', set: 'fast' },
   { file: 'games/antiriad/test/reward.ts', set: 'fast' },
   { file: 'games/antiriad/test/grace.ts', set: 'fast' },
-  { file: 'games/antiriad/test/logic.ts', set: 'fast' },
+  { file: 'games/antiriad/test/logic.ts', set: 'fast' }, // each room one of its two plans
+  { file: 'games/antiriad/test/logic.ts', args: ['all'], set: 'slow' }, // both plans in every room
   { file: 'games/antiriad/test/travel.ts', set: 'fast' },
   { file: 'games/antiriad/test/won.ts', set: 'fast' },
   { file: 'games/antiriad/test/transitions.ts', args: ['games/antiriad/test/original.state'], set: 'fast' },
@@ -121,7 +124,8 @@ export const TESTS = [
   { file: 'games/blackwyche/test/guided.ts', set: 'fast' },
   { file: 'games/blackwyche/test/items.ts', set: 'fast' },
   { file: 'games/blackwyche/test/ladder.ts', set: 'fast' },
-  { file: 'games/blackwyche/test/map.ts', set: 'fast' },
+  { file: 'games/blackwyche/test/map.ts', set: 'fast' }, // Enter to a quarter of the places from each start
+  { file: 'games/blackwyche/test/map.ts', args: ['all'], set: 'slow' }, // ...and to every place from every start
   { file: 'games/blackwyche/test/mend.ts', set: 'fast' },
   { file: 'games/blackwyche/test/rooms.ts', set: 'fast' },
   { file: 'games/blackwyche/test/trapdoors.ts', set: 'fast' },
@@ -135,7 +139,8 @@ export const TESTS = [
   { file: 'games/dragonskulle/test/shovel.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/rules.ts', set: 'fast' },
   { file: 'games/dragonskulle/test/dragon-react.ts', set: 'fast' },
-  { file: 'games/dragonskulle/re/rules/check.ts', set: 'fast' },
+  { file: 'games/dragonskulle/re/rules/check.ts', set: 'fast' }, // the closed-bridge search on room 3 only
+  { file: 'games/dragonskulle/re/rules/check.ts', args: ['bridges', 'full'], set: 'slow' }, // ...and on all three bridges
   { file: 'games/dragonskulle/re/hints/check.ts', set: 'fast' },
 
   // ---- Entombed
@@ -165,7 +170,8 @@ export const TESTS = [
   { file: 'games/entombed/test/ending.ts', set: 'slow' },
   { file: 'games/thingonaspring/test/ending.ts', set: 'slow' },
   { file: 'games/jsw2/test/ending.ts', set: 'slow' },
-  { file: 'games/karnath/re/hints/check.ts', set: 'fast' },
+  { file: 'games/karnath/re/hints/check.ts', set: 'fast' }, // the forced-carrying pass over routes 1-4
+  { file: 'games/karnath/re/hints/check.ts', args: ['full'], set: 'slow' }, // ...and route 0 too
   { file: 'games/karnath/test/grace.ts', set: 'fast' },
   { file: 'games/karnath/test/figure.ts', set: 'fast' },
   { file: 'games/karnath/test/pentacle.ts', set: 'fast' },
