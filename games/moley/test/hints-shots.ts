@@ -58,6 +58,7 @@ export function stillWithSparkles(display: Display, ms: number): Buffer {
   const scene = new THREE.Scene();
   const sparkles = new Sparkles(scene);
   sparkles.set(renderer.sparkles.markers);
+  sparkles.settle();
   sparkles.update(brightest(sparkles, scene, ms));
   scene.traverse((object) => {
     if (!(object instanceof THREE.Mesh) || !object.visible) return;

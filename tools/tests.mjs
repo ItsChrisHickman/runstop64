@@ -48,6 +48,7 @@ export const TESTS = [
   { file: 'games/awm/test/flight.ts', args: [AWM, 'idle:100:1'], set: 'slow', needs: [AWM] }, // a whole flight, the clock to its end
   { file: 'games/awm/test/flight.ts', args: [AWM, 'mix:900:1'], set: 'slow', needs: [AWM] }, // shooting the other plane down, being shot down, random sticks
   { file: 'games/awm/test/smooth.ts', set: 'fast' },
+  { file: 'games/shared/test/sparkle-flight.ts', set: 'fast' }, // the hint sparkles fly to a new place like a fairy, then are the stardust they always were
   { file: 'games/awm/test/ground-vertical.ts', set: 'fast' }, // Monty on the ground while his height changes (jumps landing, stairs, slopes, falls): his feet are on the row the game puts them in, in every drawn frame
   { file: 'games/awm/test/feet.ts', args: [AWM, 'standing:12:1'], set: 'slow', needs: [AWM] }, // standing, his feet and the floor under them are the original's, rows and all
   { file: 'games/shared/test/still-sprites.ts', args: [AWM, '150'], set: 'fast', needs: [AWM] }, // a sprite standing still is drawn as the VIC draws it (the view's composite)
