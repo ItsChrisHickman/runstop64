@@ -1,4 +1,5 @@
 import { Cpu6502 } from '../sid/cpu6502';
+import { hexBytes } from '../surface';
 import { isArrayOf, isBoolean, isNumber, isNumbers, isRecord, isRecordOf, isString, readJson } from '../json';
 
 /**
@@ -68,7 +69,6 @@ interface FrameSoFar {
   spriteStarted: number; lastSpriteY: number[];
 }
 const toHex = (b: Uint8Array) => Array.from(b, (v) => v.toString(16).padStart(2, '0')).join('');
-const fromHex = (h: string) => Uint8Array.from({ length: h.length >> 1 }, (_, i) => parseInt(h.slice(i * 2, i * 2 + 2), 16));
 
 /** Shift, Ctrl and C= keys: the KERNAL scan doesn't report them as the pressed key. */
 const MODIFIERS = [15, 52, 58, 61];
@@ -650,11 +650,11 @@ export class C64 {
     if (s.frame) {
       const f = s.frame;
       const rows: RowCapture[] = new Array(25);
-      f.rows.forEach((r, i) => { if (r) rows[i] = { ...r, codes: fromHex(r.codes), colours: fromHex(r.colours), bg: [r.bg[0], r.bg[1], r.bg[2], r.bg[3]] }; });
+      f.rows.forEach((r, i) => { if (r) rows[i] = { ...r, codes: hexBytes(r.codes), colours: hexBytes(r.colours), bg: [r.bg[0], r.bg[1], r.bg[2], r.bg[3]] }; });
       this.building = {
         rows,
-        sprites: f.sprites.map((sp) => ({ ...sp, data: fromHex(sp.data) })),
-        border: f.border, borderLines: fromHex(f.borderLines),
+        sprites: f.sprites.map((sp) => ({ ...sp, data: hexBytes(sp.data) })),
+        border: f.border, borderLines: hexBytes(f.borderLines),
       };
       this.spriteStarted = f.spriteStarted;
       this.lastSpriteY = [...f.lastSpriteY];

@@ -1,6 +1,7 @@
 import type { Host } from 'c64kit';
 import { ram } from '../../shared/native/cpu';
 import { runNative, type RunSpec } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { AIR_JUMP, gentleTouch, itemSpots, RopeGrip } from './easy';
 import { endingStats, jsw2Ending, won } from './ending';
 import { footing, jsw2Map } from './map';
@@ -49,7 +50,6 @@ const ENTRY_GRACE = 100;
 const FALL_LIMIT = { address: 0x5466, original: 0x28, enhanced: 0xff } as const;
 
 /** The joystick keys stay the joystick (they'd be C64 keys too otherwise). */
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 /** The title screen's raster interrupts (in play they're $78CD and $7940). */
 const TITLE_IRQS = [0x4ace, 0x4a18];
 

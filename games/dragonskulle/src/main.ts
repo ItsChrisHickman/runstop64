@@ -1,5 +1,6 @@
 import { type FrameCapture, type Gauge, type Host, type PictureLayout } from 'c64kit';
 import { runNative } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import type { EndingSpec } from '../../shared/ending/machine-reel';
 import { ram as bound } from '../../shared/native/cpu';
 import { port } from './native';
@@ -21,8 +22,6 @@ import stateUrl from '../assets/dragonskulle-title.state?url';
  * (see build/README.md), so there's no loading.
  */
 export { info } from './info';
-
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 /** The five faces (lives) in the status line, from the left: the game draws a skull over each one lost ($1501) and a face back ($9CBD). */
 const FACE = { chars: [0x7b, 0x7c, 0x7d, 0x7e, 0x7f, 0x1b, 0x1c, 0x1d, 0x1e], colours: [9, 9, 9, 10, 10, 10, 10, 10, 10] };

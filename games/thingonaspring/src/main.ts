@@ -1,6 +1,7 @@
 import type { Host } from 'c64kit';
 import { cpu } from '../../shared/native/cpu';
 import { runNative } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { port } from './native';
 import { makeEnhanced } from './assists';
 import { hintSpots } from './hint-spots';
@@ -22,7 +23,6 @@ const NAME_LOOP = 0x7aae, NAME_DONE = 0x7b04;
 const OIL = 0x8f, FULL_OIL = 0xff, DEATH_PLAYED_OUT = 0x669f;
 
 /** The joystick keys stay the joystick (the game takes the joystick as well as its keys). */
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 export function run(host: Host) {
   const enhanced = makeEnhanced();

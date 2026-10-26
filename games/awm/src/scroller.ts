@@ -6,7 +6,8 @@
  *
  * It keeps its place between visits to the title: the original does not start it again when a game ends.
  */
-import { ARCS, fromHex } from './data';
+import { hexBytes } from 'c64kit';
+import { ARCS } from './data';
 import { BIG_LETTERS_HEX, SCROLL_START_HEX, SCROLL_TEXT_HEX } from './data/title-data';
 
 export const SCROLLER_SPRITES = 8;
@@ -16,9 +17,9 @@ const WAVE_LENGTH = 24;
 /** Where a sprite that has gone off at the left starts again ($0190 less the lower byte's $90 is all the game sets: the high bit stays). */
 const WRAP_LOW = 0x90;
 
-const TEXT = fromHex(SCROLL_TEXT_HEX);
-const START = fromHex(SCROLL_START_HEX);
-const LETTERS = fromHex(BIG_LETTERS_HEX);
+const TEXT = hexBytes(SCROLL_TEXT_HEX);
+const START = hexBytes(SCROLL_START_HEX);
+const LETTERS = hexBytes(BIG_LETTERS_HEX);
 
 /** The big letters' sprite pointers: a character's picture is at pointer = character + $A4 in the VIC's bank 3; $E2 is the first kept ($3E, '>'). */
 const POINTER_OFFSET = 0xa4;

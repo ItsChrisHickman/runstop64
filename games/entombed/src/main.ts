@@ -1,5 +1,6 @@
 import type { Host } from 'c64kit';
 import { runNative } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { port } from './native';
 import * as engine from './gen/engine';
 import { ACTION, ACTIONS } from './actions';
@@ -17,9 +18,6 @@ import stateUrl from '../assets/entombed-title.state?url';
  * as it stands at the title screen (see build/README.md), so there's no loading.
  */
 export { info } from './info';
-
-/** The joystick keys stay the joystick; P and Esc pause, as in the other games here. */
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 export function run(host: Host) {
   return runNative(host, {
@@ -58,7 +56,7 @@ export function run(host: Host) {
     run: { player: engine.r_1864 }, // hold Shift to run: player control runs twice a frame
     // the reward for winning (ENHANCED): a montage of the tomb's chambers, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: entombedEnding, won, stats: endingStats },
-    reserved: [...JOYSTICK_KEYS, ...['KeyC']],
+    reserved: [...JOYSTICK_KEYS, 'KeyC'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },
     // The title's key instructions, for this keyboard (same lengths as the originals).
     text: {

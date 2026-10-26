@@ -1,6 +1,7 @@
 import type { Host } from 'c64kit';
 import { MENDS } from './mends';
 import { runNative } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { port } from './native';
 import * as engine from './gen/engine';
 import { blackwycheMap } from './map';
@@ -19,8 +20,6 @@ import stateUrl from '../assets/blackwyche-title.state?url';
  * (see build/README.md), so there's no loading.
  */
 export { info } from './info';
-
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 export function run(host: Host) {
   // GUIDED (ENHANCED): the puzzles told on the status line and marked with sparkles (src/guided.ts)

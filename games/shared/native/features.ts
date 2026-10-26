@@ -61,6 +61,11 @@ export interface FrameStage {
   afterFrame(g: NativeHost): void;
 }
 
+// ---- keys ---------------------------------------------------------------------------------------------
+
+/** The keys of the C64 joystick (arrows and WASD, Space, Z, X, Ctrl): a game that gives other keys a job lists them in `reserved` after these. */
+export const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
+
 // ---- running ------------------------------------------------------------------------------------------
 
 /** The keys that run (the touch RUN key is ShiftLeft). */

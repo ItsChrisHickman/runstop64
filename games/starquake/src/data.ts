@@ -1,11 +1,6 @@
+import { hexBytes } from 'c64kit';
 import { isRecord, isString } from '../../shared/guards';
 import raw from './data/starquake.json';
-
-function hexBytes(hex: string): Uint8Array {
-  const out = new Uint8Array(hex.length >> 1);
-  for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
-  return out;
-}
 
 /**
  * The original C64 Starquake's data (see tools/extract-starquake.mjs), at the

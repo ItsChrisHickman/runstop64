@@ -1,5 +1,6 @@
 import type { Host } from 'c64kit';
 import { runNative } from '../../shared/native/play';
+import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { port } from './native';
 import { ACTIONS } from './actions';
 import { endingStats, karnathEnding, won } from './ending';
@@ -19,8 +20,6 @@ import stateUrl from '../assets/karnath-title.state?url';
  * screen (see build/README.md), so there's no loading.
  */
 export { info } from './info';
-
-const JOYSTICK_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyZ', 'KeyX', 'ControlLeft', 'ControlRight'];
 
 export function run(host: Host) {
   // the hints (ENHANCED): the pieces and the way to the obelisk told on the status line and marked with sparkles (src/guide.ts, src/hints.ts)
@@ -63,7 +62,7 @@ export function run(host: Host) {
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
     // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: karnathEnding, won, stats: endingStats },
-    reserved: [...JOYSTICK_KEYS, ...['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0']],
+    reserved: [...JOYSTICK_KEYS, 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },
     // The title's key instructions, for this keyboard (same lengths as the originals).
     text: {

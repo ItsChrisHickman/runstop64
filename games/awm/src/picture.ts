@@ -18,9 +18,10 @@
  * cell on the screen) the picture finds by comparing its own copy; the panel's routines are called when
  * what they draw changes (the counters, the lives), or told by the game (the boxes, the progress picture).
  */
+import { hexBytes } from 'c64kit';
 import type { FrameCapture } from 'c64kit';
 import { SLOT_COLOURS_HEX } from './data/awm-data';
-import { fromHex, ROOMS, SPRITE_FRAMES, TABLES } from './data';
+import { ROOMS, SPRITE_FRAMES, TABLES } from './data';
 import { PROGRESS_STAGES, type Game } from './game';
 import { FLIGHT_ROOM, type Flight } from './flight';
 import type { BoxEvent } from './items';
@@ -86,7 +87,7 @@ export class Picture {
   private shownMoney = ZERO;
   private shownLives = -1;
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
-  private readonly slotColours = fromHex(SLOT_COLOURS_HEX);
+  private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);
 
   /**
    * `carry` is what a title left: the loop's toggle and sprite buffers go on (the new game clears the beat, $5B39 clears

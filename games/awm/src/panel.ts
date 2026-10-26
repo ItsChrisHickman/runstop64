@@ -7,8 +7,9 @@
  * Text is kept as the game keeps it, ASCII; a character's screen code is its ASCII value plus $60
  * (so letters, digits and the space come out in the $80-$FF half of the character set: $651F).
  */
+import { hexBytes } from 'c64kit';
 import { BANNERS, HUD_BAR, HUD_HIGH, HUD_MONEY, HUD_SCORE, PROGRESS_HEX } from './data/awm-data';
-import { fromHex, TABLES } from './data';
+import { TABLES } from './data';
 import { COLOUR_OF } from './room';
 import { CHARSET_AT, SCREEN_COLS, type Screen } from './screen';
 
@@ -101,7 +102,7 @@ export function drawLives(screen: Screen, lives: number): void {
   }
 }
 
-const PROGRESS = fromHex(PROGRESS_HEX);
+const PROGRESS = hexBytes(PROGRESS_HEX);
 /** Where the three parts of the progress picture start: a cell offset from row 21 column 10, the offset in the table, the length ($6618). */
 const PROGRESS_PARTS = [
   { offset: 0, from: 0, length: 20 },

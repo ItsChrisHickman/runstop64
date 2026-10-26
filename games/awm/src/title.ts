@@ -21,8 +21,9 @@
  * (the sprite pictures and the sound data, since bank 3's memory at $C000 holds them), seen between the big letters; a real
  * C64 shows the letters over black.
  */
+import { hexBytes } from 'c64kit';
 import type { FrameCapture } from 'c64kit';
-import { NO_ROOM, RANDOM, SPECIAL, SPRITE_FRAMES, TABLES, WORLD_GRID, fromHex } from './data';
+import { NO_ROOM, RANDOM, SPECIAL, SPRITE_FRAMES, TABLES, WORLD_GRID } from './data';
 import { TITLE_FONT_HEX } from './data/title-data';
 import { walkInStep } from './game';
 import { menuText } from './flow';
@@ -94,7 +95,7 @@ const BIG_COLOUR = 15;
 const BIG_MC1 = 11;
 const BIG_MC2 = 1;
 
-const FONT = fromHex(TITLE_FONT_HEX);
+const FONT = hexBytes(TITLE_FONT_HEX);
 
 /** Room $63 as the only room the title's Monty knows. */
 const TITLE_ROOMS: readonly Room[] = (() => {

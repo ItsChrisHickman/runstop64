@@ -1,10 +1,9 @@
-import { C64View, type Renderer } from 'c64kit';
+import { C64View, hexBytes, type Renderer } from 'c64kit';
 import { PORT_CREDITS } from '../../shared/ending/credits';
 import { recordFigure, shotFeet, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import { RoutePilot, type Stick as PilotStick } from '../../shared/ending/pilot';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
 import { SLOT_COLOURS_HEX } from './data/awm-data';
-import { fromHex } from './data';
 import { HIDDEN, isPlane } from './enemies';
 import type { SkyState } from './flight';
 import { Game, NEW_GAME_LIVES } from './game';
@@ -38,7 +37,7 @@ interface Carry { score: number[]; money: number[] }
 const NOTHING: Carry = { score: [0, 0, 0, 0, 0], money: [0, 0, 0, 0, 0] };
 
 /** The colours the boxes are drawn in ($6D6B: the box's own number picks them). */
-const SLOT_COLOURS = fromHex(SLOT_COLOURS_HEX);
+const SLOT_COLOURS = hexBytes(SLOT_COLOURS_HEX);
 
 /** What a place begins with: the room, where Monty comes in, and what the game has by then. */
 export type Start = Pick<Scene, 'room' | 'spot' | 'taken' | 'carry' | 'progress'>;

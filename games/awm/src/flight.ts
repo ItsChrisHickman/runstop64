@@ -20,9 +20,9 @@
  * What stays in the machine from one flight to the next, because nothing sets it when a flight begins (the clouds, where
  * the planes were, the last pictures), is `SkyState`; the game keeps it between flights (and a save keeps it).
  */
+import { hexBytes } from 'c64kit';
 import type { FrameCapture } from 'c64kit';
 import { FLIGHT_HEX, FLIGHT_PATHS_HEX, FLIGHT_TO_HEX } from './data/awm-data';
-import { fromHex } from './data';
 import { Dir } from './input';
 import { SCREEN_AT, SCREEN_COLS, type Screen } from './screen';
 
@@ -104,7 +104,7 @@ interface Path {
 
 /** The four paths, from the table of pointers and the bytes it points into. */
 const PATHS: readonly Path[] = (() => {
-  const bytes = fromHex(FLIGHT_PATHS_HEX);
+  const bytes = hexBytes(FLIGHT_PATHS_HEX);
   const base = 0x7709;
   return [0, 1, 2, 3].map((i): Path => {
     let at = (bytes[2 * i] ?? 0) + ((bytes[2 * i + 1] ?? 0) << 8) - base;
@@ -123,7 +123,7 @@ const PATHS: readonly Path[] = (() => {
 export const FLIGHT_ROOM = 0x4f;
 
 /** Where a plane flies to, from each room ($753F): the room it comes down in, or $FF. */
-const FLIGHT_TO = fromHex(FLIGHT_TO_HEX);
+const FLIGHT_TO = hexBytes(FLIGHT_TO_HEX);
 
 /** The room a plane in `room` flies to, if it flies anywhere. */
 export function destination(room: number): number | null {
@@ -132,7 +132,7 @@ export function destination(room: number): number | null {
 }
 
 /** The memory the VIC reads of the flight: the character set, the sprite pictures and the map of the sky ($D000-$DFCF). */
-const DATA = fromHex(FLIGHT_HEX);
+const DATA = hexBytes(FLIGHT_HEX);
 
 // ---- what stays between flights -----------------------------------------------------------------------------------------------
 

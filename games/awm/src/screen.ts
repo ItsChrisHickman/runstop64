@@ -16,9 +16,9 @@
  * in line L is seen from line L + 1 on (the VIC's line has been captured when the interrupt is taken).
  * Nothing of the game is in this module: it is the picture's hardware.
  */
+import { hexBytes } from 'c64kit';
 import type { FrameCapture } from 'c64kit';
 import { DECOR_HEX } from './data/awm-data';
-import { fromHex } from './data';
 
 export const SCREEN_COLS = 40;
 const SCREEN_ROWS = 25;
@@ -166,7 +166,7 @@ export class Screen {
   readonly colour = new Uint8Array(SCREEN_COLS * SCREEN_ROWS);
 
   constructor() {
-    this.ram.set(fromHex(DECOR_HEX), 0x3240);
+    this.ram.set(hexBytes(DECOR_HEX), 0x3240);
   }
 
   /** The cell's screen code. */
