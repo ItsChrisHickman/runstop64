@@ -28,7 +28,7 @@ export function scenery(g: Game) {
 }
 
 /** $4C30: the sprite registers, from the game's copies (BLOB's three sprites share sprite 0's place). */
-export function latchSprites(g: Game) {
+function latchSprites(g: Game) {
   const sp = g.sprites, v = g.vic;
   v.x.set(sp.x); v.y.set(sp.y);
   v.x[1] = v.x[2] = sp.x[0];

@@ -65,7 +65,7 @@ export function withoutRemovedItems(ram: Uint8Array): void {
 }
 const bits = (flags: readonly boolean[]): string => flags.map((f) => (f ? '1' : '0')).join('');
 
-export function readOriginal(ram: Uint8Array): Snap {
+function readOriginal(ram: Uint8Array): Snap {
   const r = (a: number): number => ram[a] ?? 0;
   const list = (a: number, n: number): string => Array.from({ length: n }, (_, i) => r(a + i)).join(',');
   const entry = (i: number): number => {
@@ -182,7 +182,7 @@ export function makePicture(g: Game, { ram }: Moment, o: C64Machine): Picture {
 /** Which groups are taken out of both (NEUTRAL=enemies,items,lifts). */
 export const NEUTRAL = new Set((process.env.NEUTRAL ?? '').split(',').filter(Boolean));
 /** The enemy table with every record empty (what the neutralised original reads). */
-export const EMPTY_ENEMIES = new Uint8Array(ENEMY_ROOMS.length).map((_, i) => (i % 4 === 3 ? 0xdf : 0));
+const EMPTY_ENEMIES = new Uint8Array(ENEMY_ROOMS.length).map((_, i) => (i % 4 === 3 ? 0xdf : 0));
 
 /** A rebuild of the game in `room`, with the same groups taken out as the original has. */
 export function makeGame(room: number): Game {
@@ -198,7 +198,7 @@ export function makeGame(room: number): Game {
 export const CARRY = (process.env.CARRY ?? '').split(',').filter(Boolean).map(Number);
 
 /** What `startOriginal` can be asked for beyond the place: the progress and hands to start with, the entry points to count, a look at every frame. */
-export interface StartOptions {
+interface StartOptions {
   progress?: number;
   carry?: readonly number[];
   /** Entry points of the original's code to count (the lockstep's list of what it reached). */
@@ -365,7 +365,7 @@ function expand(plan: string, seed = 1, count = 0): number[] {
 
 
 /** Places in the room with room for his 16 x 16 box and floor under his feet. */
-export function freeSpots(w: World): { x: number; y: number }[] {
+function freeSpots(w: World): { x: number; y: number }[] {
   const spots: { x: number; y: number }[] = [];
   for (let y = 8; y <= 0x70; y += 8) {
     for (let x = 16; x <= 224; x += 8) {
@@ -406,7 +406,7 @@ function kindOf(name: number, code: number): string | null {
   return null;
 }
 
-export interface Target { kind: string; x: number; y: number; hold?: string }
+interface Target { kind: string; x: number; y: number; hold?: string }
 
 /** Per room: the free spot nearest to a cell of each kind it has (a few cells of the kind, one of the nearest spots each), and one at each edge, holding the way out. */
 export function targets(room: number, seed: number): Target[] {
@@ -450,7 +450,7 @@ export function targets(room: number, seed: number): Target[] {
 // ---- the runs of a plan -----------------------------------------------------------------------
 
 /** ROOM=n runs one room, ROOMS=a-b a range (of the sweep and kinds plans). */
-export function roomRange(): { from: number; to: number } {
+function roomRange(): { from: number; to: number } {
   if (process.env.ROOM !== undefined) return { from: Number(process.env.ROOM), to: Number(process.env.ROOM) };
   const [a, b] = (process.env.ROOMS ?? '').split('-').map(Number);
   return { from: a ?? 0, to: b ?? ROOMS.length - 1 };

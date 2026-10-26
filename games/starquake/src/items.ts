@@ -335,7 +335,7 @@ export function show(g: Game, graphic: number, col: number, row: number): number
 }
 
 /** $2BC1: take a shown thing away. */
-export function unshow(g: Game, slot: number) {
+function unshow(g: Game, slot: number) {
   const s = g.shown[slot];
   const graphic = s.graphic;
   s.graphic = 0xff;

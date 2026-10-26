@@ -35,7 +35,7 @@ function drawFaces(ram: Uint8Array, colour: Uint8Array) {
   }
 }
 /** All five lives, a full face of energy, nothing still to take: as a game starts. */
-export function allLives(ram: Uint8Array, colour: Uint8Array) {
+function allLives(ram: Uint8Array, colour: Uint8Array) {
   ram[0x123e] = 0x14; ram[0x3432] = 0; ram[0x125f] = 0; ram[0x1249] = 0;
   drawFaces(ram, colour);
 }
@@ -43,7 +43,7 @@ export function allLives(ram: Uint8Array, colour: Uint8Array) {
  * ENHANCED's unlimited lives (shared/lives.ts, `vitals.lives`): a face gone is back at once, the lives as the game starts with
  * them. (The energy of the life under way is the game's: the next face comes full as it does when one goes.)
  */
-export function livesBack(ram: Uint8Array, colour: Uint8Array) {
+function livesBack(ram: Uint8Array, colour: Uint8Array) {
   if (ram[0x1248] !== 0) drawFaces(ram, colour);
 }
 /** The energy of the life under way: $123E, 20 at full (a face, the lives' column in the status line, goes when it's gone). */
@@ -100,7 +100,7 @@ export const BAR = [
   { action: ACTION.cloak, key: 'V', name: 'CLOAK' },
 ];
 /** The panels' rows are drawn 7 pixels to the right (their $D016 is 7): a character column c is at 8c + 7. */
-export const PANEL_SCROLL = 7;
+const PANEL_SCROLL = 7;
 /** Where action n's icon (then its hand) is in the game's panel: columns 7n+2 to 7n+7 of rows 0-2. */
 export const ICON_AT = (n: number) => ({ x: (7 * n + 2) * 8 + PANEL_SCROLL, y: 0, w: 6 * 8, h: 24 });
 /** The play area as the game draws it (rows 3-20), less the lines left out at its top; and where it's shown (under the status line). */

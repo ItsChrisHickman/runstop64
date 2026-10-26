@@ -5,7 +5,7 @@ import data from './data/antiriad.json';
  * original addresses. The port reads the same tables the original did, so its
  * routines index them exactly as the 6502 code did.
  */
-export interface Section { at: number; about: string; data: string }
+interface Section { at: number; about: string; data: string }
 
 export const ROOMS: number = data.rooms;
 /** Each room's exits: right, left, down, up (-1: none). */

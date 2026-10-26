@@ -13,8 +13,8 @@ import { COLOUR_OF } from './room';
 import { CHARSET_AT, SCREEN_COLS, type Screen } from './screen';
 
 /** The rows of the panel: the band under the play area is row 19, the banner row 20, and so on. */
-export const ROW_BAND = 19;
-export const ROW_BANNER = 20;
+const ROW_BAND = 19;
+const ROW_BANNER = 20;
 const ROW_SCORE = 23;
 const ROW_MONEY = 24;
 const COL_COUNTER = 6;
@@ -49,7 +49,7 @@ export function drawLabels(screen: Screen): void {
  * A counter's digits ($82A3): five, the most significant first, a leading zero left blank. The last digit
  * can have passed 9 (the game never reduces it): it is printed as the character that comes after '9'.
  */
-export function printDigits(screen: Screen, digits: readonly number[], col: number, row: number, colour: number): void {
+function printDigits(screen: Screen, digits: readonly number[], col: number, row: number, colour: number): void {
   let started = false;
   for (let i = 4; i >= 0; i--) {
     const d = digits[i] ?? 0;

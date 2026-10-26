@@ -60,7 +60,7 @@ export function romGlyph(rom: Uint8Array, c: number): Uint8Array {
 }
 
 /** The beeper effects the game calls (the others, 4 and 6, are never called). */
-export const EFFECTS_USED = [0, 1, 2, 3, 5] as const;
+const EFFECTS_USED = [0, 1, 2, 3, 5] as const;
 
 /** One beeper effect as the speaker did it: T-states before the first toggle, the gaps between toggles, and T-states from the last toggle to the end. */
 export interface Effect { readonly id: number; readonly lead: number; readonly gaps: number[]; readonly tail: number }
@@ -94,7 +94,7 @@ export function recordEffects(rom: Uint8Array, state: Uint8Array): Effect[] {
 // ---- the 128K music ---------------------------------------------------------------------------------------------
 
 /** The AY registers' image after a frame in which the game's player wrote some. */
-export interface MusicImage { readonly frame: number; readonly regs: number[] }
+interface MusicImage { readonly frame: number; readonly regs: number[] }
 
 /**
  * The tape in a 128K model (the game finds the RAM, copies its player and tune into bank 1 and plays from the interrupt), run

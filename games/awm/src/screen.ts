@@ -21,7 +21,7 @@ import { DECOR_HEX } from './data/awm-data';
 import { fromHex } from './data';
 
 export const SCREEN_COLS = 40;
-export const SCREEN_ROWS = 25;
+const SCREEN_ROWS = 25;
 /** The play area's first screen column (the side columns of sprites and item boxes are either side of it). */
 export const FIRST_COL = 4;
 /** Where the VIC finds things in the bank the game uses (bank 0). */
@@ -36,7 +36,7 @@ type Row = FrameCapture['rows'][number];
 type Sprite = FrameCapture['sprites'][number];
 
 /** The five hardware sprites of Monty (0 and 1, his outline) and the enemies (2-5) as the main loop puts them into the VIC ($5C81). */
-export interface EntitySprites {
+interface EntitySprites {
   /** The VIC's X register of sprites 0-5 and the ninth bits. */
   readonly x: readonly number[];
   readonly xHigh: readonly boolean[];
@@ -90,7 +90,7 @@ const BACKGROUNDS: [number, number, number, number] = [0, 2, 5, 1];
 const SPRITE_HEIGHT = 21;
 
 /** Which of the entity sprites 0-5 are multicolour ($D01C) and expanded sideways ($D01D), a bit each: play has neither. */
-export interface EntityLook { readonly multicolour: number; readonly expandX: number }
+interface EntityLook { readonly multicolour: number; readonly expandX: number }
 const PLAIN: EntityLook = { multicolour: 0, expandX: 0 };
 
 /** One entity record as $5C81 reads it: where, and the colour of its sprite. */

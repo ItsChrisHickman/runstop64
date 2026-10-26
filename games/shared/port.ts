@@ -37,7 +37,7 @@ export type FrameResult = 'played' | 'idle' | 'ended';
 export type ResumeFrom = 'title' | 'continue' | 'roomStart';
 
 /** What a game says about itself before the session exists (static: nothing here needs the flow or the front end). */
-export interface PortSetup<S, F, T> {
+interface PortSetup<S, F, T> {
   /** Storage key prefix. */
   id: string;
   /** The font of the flow's panels and the pause screen. */
@@ -60,13 +60,13 @@ export interface PortSetup<S, F, T> {
 }
 
 /** The sound: what the audio keys and the render tail need of the game's player. */
-export interface PortSound extends Unlockable {
+interface PortSound extends Unlockable {
   /** The sound waits while a screen of ours covers the game. */
   hold(on: boolean): void;
 }
 
 /** What a game does at each point of the session. */
-export interface PortAdapter<S, T> {
+interface PortAdapter<S, T> {
   /** What the pause screen's map reads (the game; read each time: it may be replaced). */
   state(): T;
   phase(): PortPhase;

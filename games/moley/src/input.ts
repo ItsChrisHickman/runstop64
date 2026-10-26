@@ -6,7 +6,7 @@
 import { Key } from './monty';
 
 /** Each device's keys as the bits of `Key`. */
-export interface KeySources {
+interface KeySources {
   readonly keyboard: number;
   /** the joystick port's low 5 bits (the same bits as `Key`), or null when no Kempston interface was found */
   readonly kempston: number | null;

@@ -71,10 +71,10 @@ const ledge = (c: number) => !open(c) && c !== 0x32 && c !== 0x33 && c !== 0x2e 
 
 /** The fall, a step a frame ($486A, from the fall's start): the original's (up to 8), and a gentler one (up to 4). */
 export const FALL = [1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8];
-export const GENTLE_FALL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4];
+const GENTLE_FALL = [1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4];
 
 /** How long after walking off an edge a bounce still goes from it, and how early one can be asked for before landing (frames). */
-export const GRACE = { after: 6, before: 8 };
+const GRACE = { after: 6, before: 8 };
 
 /**
  * Landing help, at the moment a wall stops him in the air (going right, or left): if the wall is

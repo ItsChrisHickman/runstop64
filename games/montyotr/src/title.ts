@@ -68,9 +68,9 @@ const NAMES = 0xff; // name N at NAMES + N*16
 const at = (row: number, col: number) => SCREEN + row * ROW + col;
 
 /** The title's stick: up rolls the table faster, fire starts a game. */
-export interface TitleInput { up: boolean; fire: boolean }
+interface TitleInput { up: boolean; fire: boolean }
 
-export interface TitleSound {
+interface TitleSound {
   /** Music.Init(n), or Music.Stop in sound-effects mode (the original's InitialiseMusic for song 0). */
   song(n: number): void;
   /** The player's choice: Hubbard's music, or effects. */

@@ -63,7 +63,7 @@ export function emptiedLines(level: number, h: number) {
 }
 
 /** Draw the layout's gauges into a layer (320×200 colour values, as the machine drew it): pixels that aren't `background(y)` are lit. */
-export function drawGauges(layout: PictureLayout, px: Uint8Array, ram: Uint8Array, background: (y: number) => number) {
+function drawGauges(layout: PictureLayout, px: Uint8Array, ram: Uint8Array, background: (y: number) => number) {
   for (const g of layout.gauges ?? []) {
     const r = g.at(ram);
     if (!r) continue;
@@ -126,7 +126,7 @@ export function placeDrawable(layout: PictureLayout | null, d: Drawable): Drawab
  * Lay out one layer of a composed picture (320×200 values, in place): the clears, then the moves.
  * `cleared` gives the value a cleared pixel takes in this layer (a colour, or transparent).
  */
-export function arrange(layout: PictureLayout, px: Uint8Array, cleared: (colour: number) => number) {
+function arrange(layout: PictureLayout, px: Uint8Array, cleared: (colour: number) => number) {
   const src = px.slice();
   for (const c of layout.clear ?? []) {
     const v = cleared(c.colour);
@@ -165,7 +165,7 @@ function letterCode(ch: string): number | null {
 }
 
 /** The labels' lettering: the charset the capture's row `layout.font` was drawn with, and that row's fine scroll (none if the row wasn't drawn). */
-export interface LabelFont { glyph(ch: string): Uint8Array | null; scrollX: number }
+interface LabelFont { glyph(ch: string): Uint8Array | null; scrollX: number }
 
 /** The labels' lettering, from the frame as the VIC drew it. */
 export function labelFont(layout: PictureLayout, ram: Uint8Array, cap: FrameCapture): LabelFont | null {

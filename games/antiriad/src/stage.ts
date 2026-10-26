@@ -10,7 +10,7 @@ import { Pilot, inArmour, ready, type Step } from './pilot';
  */
 
 /** A game of ours running on a machine of its own, as the montage has it: ENHANCED, and nothing in it can hurt Tal. */
-export function stageGame(m: C64Machine): Game {
+function stageGame(m: C64Machine): Game {
   const g = new Game(m, true);
   g.enhanced = true;
   g.graceActive = () => true;
@@ -37,7 +37,7 @@ export function arrive(g: Game, to: { room: number; x: number; y: number }) {
 }
 
 /** Run a game under `steps` until they are done (or `max` frames); the frames it took. */
-export function playSteps(g: Game, steps: readonly Step[], max: number): number {
+function playSteps(g: Game, steps: readonly Step[], max: number): number {
   const pilot = new Pilot(steps);
   let f = 0;
   for (; f < max && !pilot.done; f++) frameOf(g, pilot);

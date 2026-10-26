@@ -58,7 +58,7 @@ export function footOf(poses: readonly Pose[]): number {
 }
 
 /** A flat picture (the game's pixels, 1:1) as a part of a figure, its top left at (dx, dy). */
-export function flatPart(flat: Surface, dx = 0, dy = 0): Part {
+function flatPart(flat: Surface, dx = 0, dy = 0): Part {
   return { surface: flat, dx, dy };
 }
 

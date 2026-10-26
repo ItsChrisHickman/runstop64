@@ -11,10 +11,10 @@ import { CREDIT } from './credits';
 export const NAME = { slot: 40, gap: 6, lead: 40 } as const;
 
 /** One turn of the band: a credit line (its index) or a visitor's name (its index among this place's visitors). */
-export interface Beat { kind: 'credit' | 'name'; index: number; from: number; len: number }
+interface Beat { kind: 'credit' | 'name'; index: number; from: number; len: number }
 
 /** What a place declares of its time: its lines, how long it runs at least and the frame its band is empty from. */
-export interface PlaceShape { credits?: readonly string[]; frames: number; bandFrom?: number; visitors?: false }
+interface PlaceShape { credits?: readonly string[]; frames: number; bandFrom?: number; visitors?: false }
 
 export interface Timeline { length: number; beats: readonly Beat[] }
 

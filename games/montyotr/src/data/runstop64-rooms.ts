@@ -22,7 +22,7 @@
  */
 
 /** An enemy: where it starts (screen column, row) and the original's record fields. */
-export interface ExtEnemy {
+interface ExtEnemy {
   col: number; row: number;
   /** Index into the game's enemy colour table (0 black, 1 blue, 2 red, 3 purple, 4 green, 5 cyan, 6 yellow, 7 white, 8-15 the colours 8-15). */
   colour: number;
@@ -35,7 +35,7 @@ export interface ExtEnemy {
 export interface Sign { text: string; colour: number }
 
 /** A decoration: one of the original's types (a number), or a sign. */
-export interface ExtDecor { col: number; row: number; type: number | Sign }
+interface ExtDecor { col: number; row: number; type: number | Sign }
 
 export interface ExtRoom {
   id: number;

@@ -28,7 +28,7 @@ import { isRecord, readJson, S } from './guards';
  * written as 3 the next time it's written. The key names keep their `v2`: they are where players'
  * saves already are.
  */
-export type Found = Record<string, unknown>;
+type Found = Record<string, unknown>;
 // (Found is what is kept: a record of plain JSON. A game's map reads it into its own type, its
 // `FoundCodec` in native/pause.ts, once when the front end starts; and the front end keeps that
 // type as it is with JSON.stringify, so the kept record is the parsed one's own keys.)
@@ -54,7 +54,7 @@ export interface SaveSlot extends SaveBody {
 }
 
 /** The previous save also keeps what had been found by then (the current one's is the game's own). */
-export interface PreviousSlot extends SaveSlot {
+interface PreviousSlot extends SaveSlot {
   found: Found;
 }
 

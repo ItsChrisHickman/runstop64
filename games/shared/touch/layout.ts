@@ -40,7 +40,7 @@ export interface SystemSpec { id: SystemId; label: string; key?: string }
 
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface Insets { top: number; right: number; bottom: number; left: number }
-export const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
+const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
 
 export interface PlacedButton { index: number; spec: ButtonSpec; x: number; y: number; r: number }
 export interface PlacedSystem { spec: SystemSpec; x: number; y: number; r: number }
@@ -178,7 +178,7 @@ function placeButtons(g: Geometry, specs: ButtonSpec[], z: Rect, zone: Rect = z)
  */
 export type StageMode = 'landscape' | 'rotated' | 'portrait';
 
-export interface ModeInput {
+interface ModeInput {
   /** Viewport size (CSS px). */
   vw: number;
   vh: number;

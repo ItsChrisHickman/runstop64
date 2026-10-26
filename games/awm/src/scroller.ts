@@ -32,7 +32,7 @@ export function bigLetter(pointer: number): Uint8Array {
 }
 
 /** What the VIC's registers hold for the scroller's sprites after $4478: each one's X (nine bits) and Y. */
-export interface ScrollerRegisters {
+interface ScrollerRegisters {
   readonly x: readonly number[];
   readonly y: readonly number[];
 }

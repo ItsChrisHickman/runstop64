@@ -36,7 +36,7 @@ function brightest(sparkles: Sparkles, scene: THREE.Scene, from: number): number
 }
 
 /** The picture of the game (ENHANCED's look), with the sparkles as they are at `ms`, as RGB at SCALE times the size. */
-export function stillWithSparkles(display: Display, ms: number): Buffer {
+function stillWithSparkles(display: Display, ms: number): Buffer {
   const game = display.game;
   const renderer = new PixelRenderer();
   const view = new MoleyView(renderer, display, 'enhanced');
@@ -89,7 +89,7 @@ export function stillWithSparkles(display: Display, ms: number): Buffer {
 }
 
 /** Write a still to `dir/name.png`. */
-export function writeStill(dir: string, name: string, display: Display, ms = 2300): void {
+function writeStill(dir: string, name: string, display: Display, ms = 2300): void {
   fs.mkdirSync(dir, { recursive: true });
   writePng(path.join(dir, `${name}.png`), stillWithSparkles(display, ms), SURFACE_WIDTH * SCALE, SURFACE_HEIGHT * SCALE);
 }

@@ -10,12 +10,12 @@ import { V } from './vars';
  * character set (and so do those neighbours, for their columns), and each
  * character its colour.
  */
-export const ROOM_LAYOUTS = 0x0b00; // 32 bytes per room
+const ROOM_LAYOUTS = 0x0b00; // 32 bytes per room
 export const BLOCKS = 0x1400; // 16 bytes per block
 export const EXIT_TABLE = 0xf25a; // 4 per room: right, left, down, up
-export const ROW_ADDRESSES = 0xf128; // the screen address of each text row
-export const ROOM_CHARSET = 0x7800;
-export const CHAR_COLOURS = 0x0561; // a colour for each character of the room's set
+const ROW_ADDRESSES = 0xf128; // the screen address of each text row
+const ROOM_CHARSET = 0x7800;
+const CHAR_COLOURS = 0x0561; // a colour for each character of the room's set
 const SOURCE_GRAPHICS = 0x2400, SOURCE_COLOURS = 0x3c00, GRAPHICS_SETS = 0x3f00, ROOM_GRAPHICS_SET = 0xf761;
 const ROOM_MULTICOLOUR = 0xf71c;
 
@@ -72,7 +72,7 @@ function drawColumn(g: Game, room: number, from: number, col: number) {
  * $85E8: copy a room's characters into the character set ($7800) and their
  * colours into the colour table, from the ranges its graphics set lists.
  */
-export function loadGraphicsSet(g: Game, room: number) {
+function loadGraphicsSet(g: Game, room: number) {
   const { ram } = g;
   const list = g.word(GRAPHICS_SETS + ram[ROOM_GRAPHICS_SET + room] * 2);
   let count = ram[list], at = list;

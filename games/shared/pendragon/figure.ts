@@ -26,8 +26,8 @@ export type FrameId = `${Pose}.${Dir}.${number}`;
 /** The pictures a game shows for sprite 2 (as the 126 hex digits of their 63 bytes) and the frame each becomes. */
 export type FigureTable = readonly (readonly [picture: string, frame: FrameId])[];
 /** One of the VIC's three sprite colours: its own ($D027+n), or the two all sprites share ($D025, $D026). */
-export type Reg = 'own' | 'mc1' | 'mc2';
-export type Regs = Readonly<Record<Reg, number>>;
+type Reg = 'own' | 'mc1' | 'mc2';
+type Regs = Readonly<Record<Reg, number>>;
 
 /** What a game declares. */
 export interface FigureSpec {
@@ -52,26 +52,26 @@ export interface FigureSpec {
 }
 
 /** Dragonskulle's colours: his face and arms, his tunic, his cape. */
-export const DRAGONSKULLE_COLOURS: Regs = { own: 10, mc1: 5, mc2: 0 };
+const DRAGONSKULLE_COLOURS: Regs = { own: 10, mc1: 5, mc2: 0 };
 
 const FRAMES: ReadonlyMap<FrameId, Uint8Array> = new Map([...DRAGONSKULLE_FRAMES, ...DRAWN_FRAMES].map(([id, hex]) => [id, unhex(hex)]));
 
 /** The frame's picture: throws on an id the library does not have. */
-export function frameData(id: FrameId): Uint8Array {
+function frameData(id: FrameId): Uint8Array {
   const d = FRAMES.get(id);
   if (!d) throw new Error(`no figure frame ${id}`);
   return d;
 }
 
 /** FNV-1a over a picture's 63 bytes (the 64th is padding). */
-export function pictureHash(data: ArrayLike<number>): number {
+function pictureHash(data: ArrayLike<number>): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < 63; i++) h = Math.imul(h ^ data[i], 0x01000193) >>> 0;
   return h;
 }
 
 /** Where a picture's pixels are in its grid: rows 0-20 (each two screen pixels tall) and multicolour pixels 0-11 (each two wide). */
-export interface Bounds { top: number; bottom: number; left: number; right: number }
+interface Bounds { top: number; bottom: number; left: number; right: number }
 export function boundsOf(data: ArrayLike<number>): Bounds | null {
   let top = 99, bottom = -1, left = 99, right = -1;
   for (let row = 0; row < 21; row++) for (let b = 0; b < 3; b++) {
@@ -84,7 +84,7 @@ export function boundsOf(data: ArrayLike<number>): Bounds | null {
 }
 
 /** A replacement picture and how far (screen pixels) the sprite is moved to show it. */
-export interface Placed { data: Uint8Array; dx: number; dy: number }
+interface Placed { data: Uint8Array; dx: number; dy: number }
 
 /** The movement that puts `frame` where `from` stood: the same feet line, the same middle (whole multicolour pixels sideways). */
 function placeLike(from: Uint8Array, frame: Uint8Array): { dx: number; dy: number } {
@@ -183,7 +183,7 @@ export class FigureSwap {
 }
 
 /** The way a frame faces. */
-export function dirOf(id: FrameId): Dir {
+function dirOf(id: FrameId): Dir {
   const d = id.split('.')[1];
   if (d === 'R' || d === 'L' || d === 'U' || d === 'D') return d;
   throw new Error(`frame ${id} has no way`);

@@ -89,7 +89,7 @@ function keyOfLetter(ch: string): number {
 }
 
 /** The name of the teleport (0-14) that is in a room, five letters ($3E8F, 9 bytes each; the table of their rooms $112A/$1139). */
-export function teleportName(room: number): string {
+function teleportName(room: number): string {
   const t = Array.from({ length: 15 }, (_, i) => i).find((i) => Specials.teleportRoom(i) === room);
   if (t === undefined) throw new Error(`no teleport in room ${room}`);
   return String.fromCharCode(...Array.from({ length: 5 }, (_, i) => rom(0x3e8f + t * 9 + i)));

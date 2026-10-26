@@ -12,7 +12,7 @@
  */
 
 /** Where the game keeps its table of the things' names, and how long each is. */
-export const NAMES_AT = 0x9c38, NAME_LENGTH = 14;
+const NAMES_AT = 0x9c38, NAME_LENGTH = 14;
 
 /** A thing to find: which of the game's names it has (0-based), where its found flag is, and the room that gives it ($341C). */
 export interface Item { name: number; flag: number; room: number }

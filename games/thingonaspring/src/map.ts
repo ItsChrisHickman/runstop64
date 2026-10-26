@@ -20,7 +20,7 @@ const ROMAN = ['I', 'II', 'III', 'IV'];
 export const SCREENS = 8;
 const CORRIDOR = 0x78;
 /** A screen's length (characters): a corridor's, or its room's ($4C95). */
-export const widthOf = (ram: Uint8Array, level: number, screen: number) => { const r = roomOf(level, screen); return r === null ? CORRIDOR : ram[0x4c95 + r]; };
+const widthOf = (ram: Uint8Array, level: number, screen: number) => { const r = roomOf(level, screen); return r === null ? CORRIDOR : ram[0x4c95 + r]; };
 
 /** The things in a room, where they are (column along the room, sprite y), and whether they're still there. */
 export function things(ram: Uint8Array, room: number) {
@@ -40,7 +40,7 @@ export function shown(ram: Uint8Array, room: number) {
 }
 
 export const piecesTaken = (ram: Uint8Array) => { let n = 0; for (let r = 0; r < 15; r++) if (ram[0x39f + r] !== 0xff && ram[0x39f + r] & 0x80) n++; return n; };
-export const switchesOn = (ram: Uint8Array) => [0, 1, 2, 3, 4].filter((i) => ram[0x370 + i]).length;
+const switchesOn = (ram: Uint8Array) => [0, 1, 2, 3, 4].filter((i) => ram[0x370 + i]).length;
 
 type Side = 'L' | 'R';
 const isSide = (x: unknown): x is Side => x === 'L' || x === 'R';

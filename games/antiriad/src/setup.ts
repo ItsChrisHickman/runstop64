@@ -31,7 +31,7 @@ export function stopFades(g: Game) {
 }
 
 /** One of a room's sprites as the room's list has it: the sprite (7 down to 3), where it starts, its movement script ($80 on: the x's high bit) and its animation. */
-export interface RoomSprite { sprite: number; x: number; y: number; move: number; anim: number }
+interface RoomSprite { sprite: number; x: number; y: number; move: number; anim: number }
 
 /** The sprites a room's list ($CA16) puts in it, in the order the original takes them. */
 export function roomSpriteList(g: Game, room: number): RoomSprite[] {

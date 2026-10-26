@@ -14,7 +14,7 @@ import { r_6269 } from './gen/rooms/room-ef20';
  * after its stone check passes ($6269: the shovel gone, the SHOVEL icon his, $342F, and its flash and
  * sound), as if the stone had met it. Ants or not: whatever's on him still does what it does after.
  */
-export const SHOVEL_CHECK = 0x61ea;
+const SHOVEL_CHECK = 0x61ea;
 
 /** At the room's check of the collisions (hook $61EA): in ENHANCED, the shovel taken on touching it. */
 export function shovelByHand(pc: number, ram: Uint8Array) {

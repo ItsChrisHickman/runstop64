@@ -7,7 +7,7 @@
  * the previous tick and the next, so movement can be drawn smoothly at
  * 60/120/144 Hz.
  */
-export interface LoopHandlers {
+interface LoopHandlers {
   tick(): void;
   render(alpha: number): void;
 }

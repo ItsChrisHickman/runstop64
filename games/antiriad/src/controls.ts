@@ -18,7 +18,7 @@ export interface Pad {
 export const NO_PAD: Pad = { up: false, down: false, left: false, right: false, fire: false, jump: false, jumpTap: false, cell: false };
 
 /** The CIA's joystick byte for a pad: a pushed direction or FIRE is a clear bit (port 2, bits 0-4). */
-export function joystickByte(p: Pad): number {
+function joystickByte(p: Pad): number {
   let joy = 0x1f;
   if (p.up) joy &= ~1;
   if (p.down) joy &= ~2;

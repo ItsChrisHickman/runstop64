@@ -8,7 +8,7 @@ import type { Random } from './random';
  * generator of `SeededRandom` (one stream, spent by every try) a plan found on a copy is not what the game then does; with this, it is.
  * (The numbers repeat every 256 passes, ten seconds: nothing in the game notices.)
  */
-export class SteadyRandom implements Random {
+class SteadyRandom implements Random {
   private pass = 0;
   private asked = 0;
   constructor(private readonly seed: number) {}

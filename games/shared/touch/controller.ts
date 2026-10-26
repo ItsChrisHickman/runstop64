@@ -6,18 +6,18 @@ import type { Geometry, PlacedButton, PlacedSystem, StickKind, SystemId } from '
  * buttons press the keys they stand for, the small buttons call back. No DOM
  * here, so it can be tested headless.
  */
-export interface KeySink {
+interface KeySink {
   keyDown(code: string): void;
   keyUp(code: string): void;
   /** A tap on the picture, in stage px (not on a control). */
   tap?(x: number, y: number): void;
 }
 
-export const DIR_KEYS = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' } as const;
+const DIR_KEYS = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' } as const;
 type Dir = keyof typeof DIR_KEYS;
 
 /** The stick's state, for drawing it. */
-export interface StickState { active: boolean; cx: number; cy: number; x: number; y: number; dirs: Dir[] }
+interface StickState { active: boolean; cx: number; cy: number; x: number; y: number; dirs: Dir[] }
 
 type Owner =
   | { kind: 'stick' }

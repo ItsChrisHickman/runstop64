@@ -50,9 +50,9 @@ export const AIR_JUMP: AirJumpSpec = {
  * straight back.
  */
 const ROPE_TOUCH = 0x8305;
-export const ROPE_JUMP_FROM = { address: 0x54e2, original: 0x0e, enhanced: 0x00 } as const;
+const ROPE_JUMP_FROM = { address: 0x54e2, original: 0x0e, enhanced: 0x00 } as const;
 /** Frames after he lets go of a rope (jumps off, falls) in which he is not drawn back to it: the jump off must get him away. */
-export const ROPE_LET_GO = 45;
+const ROPE_LET_GO = 45;
 
 export class RopeGrip {
   private onRope = false;

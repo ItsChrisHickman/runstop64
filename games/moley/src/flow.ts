@@ -58,8 +58,8 @@ export interface FlowStep {
  */
 export const CREDITS_FRAMES = 48;
 export const START_FRAMES = 10;
-export const ENTRY_FRAMES = 6;
-export const DEATH_TAIL_FRAMES = 9;
+const ENTRY_FRAMES = 6;
+const DEATH_TAIL_FRAMES = 9;
 export const CARD_FRAMES = 5;
 /** The last delivery's pass until the card: it draws once more (`$9CE0`), adds its 1000 points (`$9CE3`) and waits 50 frames (`$9CE9`), the screen as it was. */
 export const ENDING_WAIT_FRAMES = 51;

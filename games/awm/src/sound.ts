@@ -19,7 +19,7 @@ export const SOUND = {
 } as const;
 
 /** $85EA: the tune of each room (0: the one playing goes on). */
-export const ROOM_TUNES: readonly number[] = [
+const ROOM_TUNES: readonly number[] = [
   12, 0, 12, 0, 0, 11, 3, 4, 4, 2, 0, 3, 3, 4, 4, 2, 2, 2, 2, 0, 3, 5, 4, 2, 2, 0, 0, 5, 5, 5, 2, 2, 2, 9, 9, 9, 5, 4, 10, 10, 10, 10, 2, 2, 0, 9, 9, 9, 9,
   4, 10, 10, 10, 10, 9, 9, 4, 4, 10, 10, 10, 9, 9, 7, 7, 10, 10, 10, 9, 9, 8, 8, 1, 9, 9, 8, 8, 1, 8, 0,
 ];

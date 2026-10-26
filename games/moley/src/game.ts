@@ -31,14 +31,14 @@ export const START_LIVES = 5;
  * is looked at, which test/lockstep.ts proves). `airSteering`: left and right keep working in a jump and in a fall (the original fixes
  * the direction at take-off). `itemCount`: the number of items left shows in the HUD's pocket box (display.ts).
  */
-export interface Enhancements {
+interface Enhancements {
   /** A death takes no life, so the lives stay and there is no GAME OVER (shared/lives.ts). */
   unlimitedLives: boolean;
   airSteering: boolean;
   itemCount: boolean;
 }
 /** A new game puts Monty in room 0, above the floor (`$8211`), and he falls to it. */
-export const GAME_START = { x: 0x04, y: 0x64 } as const;
+const GAME_START = { x: 0x04, y: 0x64 } as const;
 
 /** What the room's restart routine does (`$926E` points at them): where Monty goes, what the pocket box shows, whether his state is cleared. */
 interface Arrival {
@@ -58,7 +58,7 @@ export const ARRIVALS: readonly Arrival[] = [
 ];
 
 /** The room's tile map in the original's memory layout (`$8103`): a lookup is `memory[base + (y >> 3) * 32 + (x >> 3)]`. */
-export class RoomTiles implements WritableTiles {
+class RoomTiles implements WritableTiles {
   /** the maps then the attribute tables ($6000-$80FF); room 2 rewrites its map as it plays */
   readonly memory = mapMemory();
   base = 0;

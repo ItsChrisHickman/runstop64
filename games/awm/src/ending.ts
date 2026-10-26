@@ -44,7 +44,7 @@ const SLOT_COLOURS = fromHex(SLOT_COLOURS_HEX);
 export type Start = Pick<Scene, 'room' | 'spot' | 'taken' | 'carry' | 'progress'>;
 
 /** A place's game as a save has it (a room's start, Monty where he comes in): `restore` and `Program.resume` put it back. */
-export function sceneSave(scene: Start, carry: Carry = NOTHING): AwmSave {
+function sceneSave(scene: Start, carry: Carry = NOTHING): AwmSave {
   const g = new Game(scene.room);
   for (const i of scene.taken ?? []) g.items.collected[i] = true;
   g.reload();

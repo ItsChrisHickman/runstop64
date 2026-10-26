@@ -20,7 +20,7 @@ import type { Sprite, Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM2_EXIT_SCORE = 400;
+const ROOM2_EXIT_SCORE = 400;
 /** The tile numbers a piston is made of: the shaft (`$F4`-`$F6`) and the head (`$F7`-`$F9`). */
 const SHAFT = [0xf4, 0xf5, 0xf6] as const;
 const HEAD = [0xf7, 0xf8, 0xf9] as const;

@@ -16,7 +16,7 @@ export const STEP = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
 export type Exits = readonly [number, number, number, number];
 export type Place = readonly [number, number];
 
-export interface Layout {
+interface Layout {
   /** Where each room is on the sheet (cells). */
   at: Map<number, Place>;
   /** The exits that are not drawn as two rooms side by side in the way they lead: [from, direction 0-3, to]. */

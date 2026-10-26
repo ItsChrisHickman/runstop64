@@ -2,7 +2,7 @@ import { VicView, type Renderer } from 'c64kit';
 import { PORT_CREDITS } from '../../shared/ending/credits';
 import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
-import { enemyRecords, exitGridImage, sectorName } from './data';
+import { enemyRecords, exitGridImage } from './data';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
 import { montyMap, type MontyFound } from './map';
@@ -100,9 +100,6 @@ class MontyReel implements Reel {
 
 /** How long a scene runs: its route, and a moment. */
 const routeFrames = (scene: Scene) => Math.max(scene.frames ?? 0, new Pilot(scene.route).length + TAIL);
-
-/** The room's name as the game shows it. */
-export const sceneName = (scene: Scene) => sectorName(scene.room).text.toUpperCase();
 
 // ---- the cast ----------------------------------------------------------------------------------------
 

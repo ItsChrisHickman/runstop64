@@ -91,7 +91,7 @@ export type CombatEvent = EventPlace & (
   | { kind: 'react'; image?: undefined; sprite?: undefined; sprites: number[] }
 );
 
-export interface CombatOptions {
+interface CombatOptions {
   effects: boolean;
   glow: boolean;
   invulnerable: boolean;

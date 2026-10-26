@@ -21,7 +21,7 @@ const FULL = 0x1f;
 const MOST = 99;
 
 /** The message the panel scrolls on picking one up (a number after the original's run to $15 and plus.ts's $16), and its words. */
-export const CELL_MESSAGE = 0x17;
+const CELL_MESSAGE = 0x17;
 const TEXT = 0x81c8;
 const WORDS = 'RECHARGE CELL STORED           ';
 

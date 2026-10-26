@@ -90,7 +90,7 @@ export function spritePieceSpots(ram: Uint8Array, vic: Uint8Array): Spot[] {
 }
 
 /** The pieces left to take in the room. */
-export const pieceSpots = (ram: Uint8Array, vic: Uint8Array) => [...mapPieceSpots(ram), ...spritePieceSpots(ram, vic)];
+const pieceSpots = (ram: Uint8Array, vic: Uint8Array) => [...mapPieceSpots(ram), ...spritePieceSpots(ram, vic)];
 
 /** Where a piece carried goes: down to the dungeons, through their far door, to the obelisk. */
 export function wayToObelisk(ram: Uint8Array, vic: Uint8Array): Spot[] {
@@ -102,7 +102,7 @@ export function wayToObelisk(ram: Uint8Array, vic: Uint8Array): Spot[] {
 }
 
 /** The staff in its shrine, once sixteen are laid (in the abode: the shrine's sprites are on only there). */
-export function staffSpots(ram: Uint8Array, vic: Uint8Array): Spot[] {
+function staffSpots(ram: Uint8Array, vic: Uint8Array): Spot[] {
   if (ram[KEPT.mode] !== MODE.abode) return [];
   const s = spriteSpot(ram, vic, STAFF);
   return s ? [s] : [];

@@ -10,9 +10,9 @@ import type { Sprite, Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM5_FINAL_SCORE = 1000;
+const ROOM5_FINAL_SCORE = 1000;
 /** The pocket picture of a paper (`$C4A0`). */
-export const PAPER_FRAME = 0x25;
+const PAPER_FRAME = 0x25;
 
 const wrap = (n: number): number => n & 0xff;
 

@@ -26,7 +26,7 @@ const TRANSITIONS = [0x9592, 0x95c8, 0x854a, 0xa2d1] as const;
 const UNUSED_FRAMES = [0x80, 0x88] as const;
 const COUNTERS = 0x8a9c, TILE_SET = 0xd800, TILE_SET_BYTES = 250 * 8, BUFFER = 0xe000, PANEL_ATTRS = 0x5a40;
 
-export interface FrameCounts { new: number; old: number; torn: number; different: number; transition: number }
+interface FrameCounts { new: number; old: number; torn: number; different: number; transition: number }
 
 export class PictureTally {
   passes = 0;

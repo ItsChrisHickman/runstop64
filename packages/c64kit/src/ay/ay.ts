@@ -28,7 +28,7 @@ export const AY_LEVELS: readonly number[] = [
 ];
 
 /** The register numbers by name. */
-export const AyReg = { mixer: 7, noise: 6, envelopeLow: 11, envelopeHigh: 12, shape: 13 } as const;
+const AyReg = { mixer: 7, noise: 6, envelopeLow: 11, envelopeHigh: 12, shape: 13 } as const;
 export const AY_REGISTERS = 14;
 /** The bits each register keeps (the high byte of a period is 4 bits, the noise period 5, a volume 5). */
 const KEEP: readonly number[] = [255, 15, 255, 15, 255, 15, 31, 255, 31, 31, 31, 255, 255, 15];

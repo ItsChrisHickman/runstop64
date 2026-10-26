@@ -68,7 +68,7 @@ export function unpackSlot<S>(codec: SaveCodec<S>, slot: SaveSlot): S {
   return codec.unpack(fromBase64(slot.data), slot.format);
 }
 
-export interface ContinueOptions<S, F> {
+interface ContinueOptions<S, F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   renderer: Renderer;

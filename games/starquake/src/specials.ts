@@ -391,7 +391,7 @@ export function* core(g: Game): Generator<void, boolean, void> {
 }
 
 /** $28C5/$28CB: the core's nine places, at an offset. */
-export function coreDraw(g: Game, dx: number, dy: number) {
+function coreDraw(g: Game, dx: number, dy: number) {
   for (let x = 8; x >= 0; x--) Items.drawThing(g, g.core[x], rom(0x2f22 + x) + dx, rom(0x2f2b + x) + dy, true);
 }
 

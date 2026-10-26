@@ -11,7 +11,7 @@ import { cellAt, Screen } from './screen';
  */
 
 /** $39B1: where a character's 8 bytes are. */
-export function glyphAt(c: number) {
+function glyphAt(c: number) {
   if (c === 0x20) return 0xc9cc;
   if (c === 0x2d) return 0xc9cc + 8;
   if (c === 0x2e) return 0xc9cc + 0x10;

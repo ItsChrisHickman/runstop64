@@ -55,7 +55,7 @@ export function placeQuad(s: Stage, e: Sprite, x: number, y: number, base: numbe
 type Picture = 'cycle' | 'quad';
 
 /** Where a walker starts: its flags (bit 7 = walking left), the base of its picture and its place. */
-export interface WalkerStart {
+interface WalkerStart {
   readonly flags: number;
   readonly base: number;
   readonly x: number;

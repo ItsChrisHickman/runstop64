@@ -45,7 +45,7 @@ export function when(at: number, long = false): string {
 }
 
 /** A save's summary, as lines no wider than `width`: its first part (where) alone, the rest run on. */
-export function summaryLines(slot: SaveSlot, width: number, max: number): string[] {
+function summaryLines(slot: SaveSlot, width: number, max: number): string[] {
   const [first, ...rest] = slot.summary;
   if (first === undefined) return ['NO DETAILS (MADE BEFORE THEY WERE KEPT)'.slice(0, width)];
   const lines = [first.slice(0, width)];
@@ -58,7 +58,7 @@ export function summaryLines(slot: SaveSlot, width: number, max: number): string
   return lines.slice(0, max);
 }
 
-export interface SavesOptions {
+interface SavesOptions {
   /** Back to the directory. */
   back(): void;
   /** Play a game (it goes straight back into play from its save). */

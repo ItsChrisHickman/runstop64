@@ -59,7 +59,7 @@ export const SETUP_FRAMES = 5;
 export const SETUP_FRAMES_AFTER_GAME = 6;
 
 /** A fresh program's: the file's own values. */
-export const FRESH_CARRY: TitleCarry = { toggle: 0, beat: 0, buildAt: 0x0200, pointerBase: 0x08 };
+const FRESH_CARRY: TitleCarry = { toggle: 0, beat: 0, buildAt: 0x0200, pointerBase: 0x08 };
 
 /** The second sprite buffer ($3A00, in the character set's memory). */
 const SPRITE_BUFFER = 0x3a00;

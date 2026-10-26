@@ -165,7 +165,7 @@ export interface StepStatus {
 }
 
 /** What a tick did: the new state, and the save to resume from if the player chose to continue (the question answered, or the launch). */
-export interface StepResult {
+interface StepResult {
   state: FlowState;
   resume: 'title' | 'continue' | null;
 }

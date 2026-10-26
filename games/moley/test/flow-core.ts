@@ -120,7 +120,7 @@ export function either(...scripts: Script[]): Script {
   return (f) => scripts.flatMap((s) => s(f));
 }
 
-export function inputOf(names: readonly string[]): FlowInput {
+function inputOf(names: readonly string[]): FlowInput {
   return { keys: bitsOf(KEYBOARD_KEYS, (k) => names.includes(k)), any: names.length > 0 };
 }
 
@@ -342,7 +342,7 @@ export function resumed(saved: Saved, bytes: number[]): { flow: MoleyFlow; queue
 // ---- playing the original to the end of a game ---------------------------------------------------------------------------
 
 /** The addresses the scenarios look for: the card, GAME OVER, the restart, the credits page unpacked, its wait over, a pass, a room entered. */
-export const MOMENTS = [0x82da, 0x8292, 0x81bc, 0xa0da, 0xa0fb, 0x822f, 0x854a];
+const MOMENTS = [0x82da, 0x8292, 0x81bc, 0xa0da, 0xa0fb, 0x822f, 0x854a];
 
 /** Monty put at a place with a full gauge (or `gauge`) and `lives` lives. */
 export const atStart = (x: number, y: number, lives = 5, gauge = 0x7f) => (mem: Uint8Array): void => {

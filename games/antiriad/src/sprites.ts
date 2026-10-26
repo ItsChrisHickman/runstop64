@@ -126,7 +126,7 @@ export function heroAnim(g: Game, top: number) {
 // ---- movement ($98A5) ------------------------------------------------------------------------
 
 /** The hero's shot goes away. */
-export function endShot(g: Game) {
+function endShot(g: Game) {
   g.ram[V.anim + 2] = 0; g.ram[V.move + 2] = 0; g.ram[V.shot] = 0;
 }
 

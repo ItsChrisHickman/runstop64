@@ -2,7 +2,7 @@ import { Cpu6502 } from './cpu6502';
 import { Sid, PAL_CLOCK } from './sid';
 
 /** Parsed PSID/RSID header plus the C64 program it carries. */
-export interface PsidFile {
+interface PsidFile {
   name: string;
   author: string;
   released: string;

@@ -3,7 +3,7 @@ import { isNumber, isNumbers, isRecord, isRecordOf, isString, readJson } from '.
 
 type Pair = [number, number];
 /** A chamber solved by solve.ts (solved/chamber-NN.json): the steps done by playing, where, and how. */
-export interface Solved {
+interface Solved {
   chamber: number;
   given: Record<string, number>;
   steps: { name: string; at: Pair; path: Pair[] }[];

@@ -42,7 +42,7 @@ export class Picker {
   drag(game: number) { this.armed = game; return game; }
 }
 
-export interface LoaderOptions {
+interface LoaderOptions {
   /** Load a game. */
   launch(g: GameEntry): void;
   /** Show the saved games (games/saves.ts). */
@@ -73,7 +73,7 @@ const AREA = ROWS - PINNED;
  * after READY.), and once there's a choice it keeps the chosen line in sight, moving no more
  * than it has to.
  */
-export function scrollFor(lines: number, chosen: number | null, was: number): number {
+function scrollFor(lines: number, chosen: number | null, was: number): number {
   const end = Math.max(0, lines - AREA);
   if (chosen === null) return end;
   const at = Math.min(Math.max(was, 0), end);

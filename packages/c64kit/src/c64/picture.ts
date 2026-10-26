@@ -16,7 +16,7 @@ import { decodeSprite } from '../vic';
  * c64/view.ts (C64View) draws the screen from this, tools/probe's `renderPixels` the pictures tests
  * look at (with the sprites over it as the VIC orders them: `drawSprites`).
  */
-export interface DecodedPicture {
+interface DecodedPicture {
   /** 320×200 colour indexes: the picture. */
   colour: Uint8Array;
   /** 320×200: what's in front of sprites set behind (TRANSPARENT where nothing), and the background behind. */
@@ -113,7 +113,7 @@ export function decodePicture(ram: Uint8Array, cap: FrameCapture, into: DecodedP
 }
 
 /** A sprite as drawn: its pixels (C64 colour indexes, TRANSPARENT where clear) where it is on the picture, and its priority. */
-export interface DrawnSprite { n: number; x: number; y: number; w: number; h: number; pixels: Uint8Array; behind: boolean }
+interface DrawnSprite { n: number; x: number; y: number; w: number; h: number; pixels: Uint8Array; behind: boolean }
 
 /** A frame capture's sprites decoded, where the machine puts them on the 320×200 picture. */
 export function capturedSprites(cap: FrameCapture): DrawnSprite[] {

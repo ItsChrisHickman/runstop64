@@ -44,8 +44,8 @@ const PRIZE = { x: 0xdc, y: 0x68 } as const;
 /** The picture on which the prize's second half is the way out (`$965C`). */
 export const PRIZE_LAST = 0x24;
 /** Room 1's exit object is on its way once the stage has counted to this (`$94E5`), and it kills from this row (`$9516`). */
-export const ROOM1_EXIT_STAGE = 0x64;
-export const ROOM1_EXIT_KILLS = 0x50;
+const ROOM1_EXIT_STAGE = 0x64;
+const ROOM1_EXIT_KILLS = 0x50;
 /** Room 3: Monty leaves a lane to the right from this x on (`$9AC7`). */
 export const LANE_END = 0xec;
 /** Room 3's parked car (entity 6, x `$91`, y `$78`) wakes when Monty is at x `$8C`-`$9B` on the bottom lane; from x `$9C` on he is past it. */

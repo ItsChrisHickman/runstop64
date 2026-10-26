@@ -14,7 +14,7 @@ import { musicSteps, recordMusic } from './original';
 const [tapeFile = 'games/moley/build/moley.tap', romFile = 'games/moley/build/48.rom'] = process.argv.slice(2);
 const OUT = 'games/moley/src/data/music-data.ts';
 /** Two passes of the tune (18,436 frames each, after the 142 the game takes to start it) and a few steps. */
-export const FRAMES_FOR_TWO_PASSES = 37_100;
+const FRAMES_FOR_TWO_PASSES = 37_100;
 
 const steps = musicSteps(recordMusic(readRom(romFile), readTape(tapeFile), FRAMES_FOR_TWO_PASSES));
 const bytes = packAyStream(steps);

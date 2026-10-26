@@ -241,7 +241,7 @@ class Fed implements Random {
 }
 
 /** One thing seen going wrong, for the report. */
-export interface Mismatch {
+interface Mismatch {
   readonly label: string;
   readonly pass: number;
   readonly room: number;

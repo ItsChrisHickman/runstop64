@@ -13,7 +13,7 @@ export type SfxName = (typeof SFX_NAMES)[number];
 export const isSfxName = (v: unknown): v is SfxName => SFX_NAMES.some((n) => n === v);
 
 /** One voice's program: per frame, [register, value] writes. */
-export type VoiceProgram = [number, number][][];
+type VoiceProgram = [number, number][][];
 
 /** SID frequency register value for a pitch in Hz (PAL clock). */
 const f = (hz: number) => Math.max(0, Math.min(0xffff, Math.round((hz * 16777216) / 985248)));

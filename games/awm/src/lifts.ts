@@ -10,7 +10,7 @@
 import type { Random } from './rng';
 
 /** One entry of the table at $852C. */
-export interface LiftSite {
+interface LiftSite {
   readonly room: number;
   /** Characters tall when fully out ($8389). */
   readonly height: number;
@@ -27,7 +27,7 @@ export const LIFT_SITES: readonly LiftSite[] = [
 ];
 
 /** What `hit` needs from Monty: the lift is the one thing that can put him in the state an enemy would. */
-export interface LiftTarget {
+interface LiftTarget {
   x: number;
   y: number;
 }

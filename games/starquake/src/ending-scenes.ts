@@ -18,7 +18,7 @@ export type Goal =
   | { readonly won: true };
 
 /** A thing lying in the room when he comes in (a graphic, where). */
-export interface Lying { readonly graphic: number; readonly col: number; readonly row: number }
+interface Lying { readonly graphic: number; readonly col: number; readonly row: number }
 
 export interface Scene {
   room: number;

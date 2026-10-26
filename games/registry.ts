@@ -31,12 +31,12 @@ export interface GameInfo {
 }
 
 /** What a game's `src/main.ts` gives. */
-export interface GameModule {
+interface GameModule {
   run(host: Host): Program;
   info: GameInfo;
 }
 
-export interface RegisteredGame extends GameEntry {
+interface RegisteredGame extends GameEntry {
   /** The game's code, fetched when it is wanted (one game per page load). */
   load(): Promise<GameModule>;
 }

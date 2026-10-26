@@ -46,7 +46,7 @@ function aloneOn(game: Game): Monty {
 const encode = (m: Monty): number => m.x | (m.y << 8) | (m.state << 16) | (m.phase << 19) | (m.jumpKeys << 24);
 
 /** Every place Monty can be (and what he is doing there), reached from where he is, with the passes each is from a goal. */
-export class Distances {
+class Distances {
   private readonly index = new Map<number, number>();
   private readonly toGoal: Int32Array;
 
@@ -109,7 +109,7 @@ export class Distances {
 }
 
 /** A game to try moves on: its own random numbers (see above). */
-export function makeSim(seed = 1): Game { return new Game(new SeededRandom(seed)); }
+function makeSim(seed = 1): Game { return new Game(new SeededRandom(seed)); }
 
 /** One pass on the copy: whether Monty is alive and (unless he may leave) still in the room. */
 function step(sim: Game, key: number, lives: number, room: number, mayLeave: boolean): boolean {

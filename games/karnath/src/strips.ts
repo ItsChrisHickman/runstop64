@@ -1,5 +1,5 @@
 /** A level's strip of rooms: mode ($3219), level ($B3E1), and the page its first block of the char map starts at (three blocks of 40 columns, $400 apart). */
-export interface Strip { label: string; mode: number; level: number; base: number }
+interface Strip { label: string; mode: number; level: number; base: number }
 /**
  * The castle's eight strips (re/README.md, "Travel back"): the upper floor's three levels from $9400, the
  * lower floor's from $7000, the dungeons and Karn's abode swapped in over the first of the lower floor's.

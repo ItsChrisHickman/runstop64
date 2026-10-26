@@ -121,7 +121,7 @@ export class BandWatch {
 }
 
 /** A show to run: the machines it needs and where the credits stand. */
-export interface ShowRun {
+interface ShowRun {
   spec: EndingSpec;
   port: PortConfig;
   title: MachineState;
@@ -138,7 +138,7 @@ export interface ShowRun {
 }
 
 /** What the run saw. */
-export interface ShowResult {
+interface ShowResult {
   frames: number;
   /** The phases in order, a montage's scene by its number (`montage3`). */
   phases: string[];

@@ -76,7 +76,7 @@ const StarquakeFields = S.object({
   shot: S.optional(S.object({ faceX: S.number, faceY: S.number, dx: S.number, dy: S.number, cell: S.number, anim: S.number, base: S.number, bounced: S.number })),
   pendingScore: n,
 });
-export type StarquakeFields = S.Infer<typeof StarquakeFields>;
+type StarquakeFields = S.Infer<typeof StarquakeFields>;
 
 /** What is kept of a game: its fields, and the screen memory they draw (the VIC's 16K, the cell attributes, the cell table). */
 export interface StarquakeSave {

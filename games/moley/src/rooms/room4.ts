@@ -9,7 +9,7 @@ import type { Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM4_EXIT_SCORE = 600;
+const ROOM4_EXIT_SCORE = 600;
 
 export class Room4 implements RoomScript {
   /** `$9C1A`: the passes the exit has been open (counts down from 100; 0 = not open yet) */

@@ -30,7 +30,7 @@ export interface StatusLine {
 }
 
 /** How long a part is shown (frames at the game's 50 a second): a moment to start, then the time to read it. */
-export const holdFrames = (text: string) => 90 + 4 * text.length;
+const holdFrames = (text: string) => 90 + 4 * text.length;
 
 /** Text as a status line can show it: upper case, one space between words, nothing the lettering lacks. */
 export function clean(text: string, line: Pick<StatusLine, 'code'>) {

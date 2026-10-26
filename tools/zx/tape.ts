@@ -11,7 +11,7 @@ export interface DataBlock {
 }
 
 /** A block with its own timings (a turbo or pure-data block): the ROM loader cannot load it; its bytes are kept. */
-export interface TurboBlock {
+interface TurboBlock {
   readonly kind: 'turbo';
   readonly bytes: Uint8Array;
   /** T-states per pulse of a zero bit and of a one bit */
@@ -20,7 +20,7 @@ export interface TurboBlock {
 }
 
 /** Any other block (tone, pauses, texts...): kept by its TZX id, since only the data matter for loading. */
-export interface OtherBlock {
+interface OtherBlock {
   readonly kind: 'other';
   readonly id: number;
 }
@@ -28,7 +28,7 @@ export interface OtherBlock {
 export type TapeBlock = DataBlock | TurboBlock | OtherBlock;
 
 /** The 17-byte header block's fields (flag 0, 19 bytes with flag and parity). */
-export interface TapeHeader {
+interface TapeHeader {
   /** 0 program, 1 number array, 2 character array, 3 code */
   readonly type: number;
   readonly name: string;

@@ -8,7 +8,7 @@ import { KIT_GLYPHS, cssColour, C64 } from 'c64kit';
  */
 export const NUDGE_W = 160; // C64-ish pixels across (20 characters)
 
-export interface NudgeLayout { h: number; uprightFrom: number }
+interface NudgeLayout { h: number; uprightFrom: number }
 
 /** Height in nudge pixels for a viewport, and where the "play upright" lines start. */
 export function nudgeLayout(vw: number, vh: number): NudgeLayout {

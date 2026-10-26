@@ -25,18 +25,18 @@ import { effectSamples, EFFECT_IDS, effectSeconds } from './beeper';
 import { musicBytes, MUSIC_STEP_HZ } from './music';
 
 /** What of a `Game` the sound reads: the pass counter, which changes with every pass, and the effects that pass asked for. */
-export interface PassSource {
+interface PassSource {
   readonly counter: number;
   readonly sounds: readonly number[];
 }
 
 /** The part of a flow step the sound reads: how long the step's picture is held. */
-export interface HeldStep {
+interface HeldStep {
   readonly frames: number;
 }
 
 /** What of the player the sound uses (c64kit's `AyPlayer`; a test gives one that remembers). */
-export type SoundOutput = Pick<AyPlayer, 'unlocked' | 'unlock' | 'muted' | 'toggleMute' | 'hold' | 'sampleRate' | 'now' | 'tune' | 'play' | 'addSample' | 'playSample'>;
+type SoundOutput = Pick<AyPlayer, 'unlocked' | 'unlock' | 'muted' | 'toggleMute' | 'hold' | 'sampleRate' | 'now' | 'tune' | 'play' | 'addSample' | 'playSample'>;
 
 /** The loudness of the effects against the music (the speaker's square wave is far louder than the chip's three quiet voices). */
 const EFFECT_GAIN = 0.3;

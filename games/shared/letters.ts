@@ -43,7 +43,7 @@ const REPEAT_AFTER = 14, REPEAT_EVERY = 4;
 const UP = 'ArrowUp', DOWN = 'ArrowDown', LEFT = 'ArrowLeft', RIGHT = 'ArrowRight';
 
 /** What NamePicker reads of c64kit's Input. */
-export interface NameInput { readonly typed: readonly string[]; readonly touchTyped: readonly string[]; readonly down: ReadonlySet<string> }
+interface NameInput { readonly typed: readonly string[]; readonly touchTyped: readonly string[]; readonly down: ReadonlySet<string> }
 
 export class NamePicker {
   /** The letters put in (indexes into the alphabet), and the one under the cursor (-1: none, the name is full). */

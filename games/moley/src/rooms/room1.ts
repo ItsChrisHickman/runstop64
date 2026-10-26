@@ -9,7 +9,7 @@ import type { Sprite, Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM1_EXIT_SCORE = 300;
+const ROOM1_EXIT_SCORE = 300;
 /** The conveyor along row 5 from column 19: 10 cells (`$8B4F`). */
 const CONVEYOR_CELL = 5 * 32 + 19, CONVEYOR_CELLS = 10;
 

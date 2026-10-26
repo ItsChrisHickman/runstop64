@@ -17,7 +17,7 @@ export const INPUTS = [
   { name: 'none', joy: 0x1f }, { name: 'left', joy: 0x1b }, { name: 'right', joy: 0x17 }, { name: 'up', joy: 0x1e }, { name: 'down', joy: 0x1d },
   { name: 'fire', joy: 0x0f }, { name: 'fire+left', joy: 0x0b }, { name: 'fire+right', joy: 0x07 }, { name: 'fire+up', joy: 0x0e },
 ] as const;
-export type InputName = typeof INPUTS[number]['name'];
+type InputName = typeof INPUTS[number]['name'];
 /** An input's joystick bits, by name. */
 export const joyOf = (name: InputName) => INPUTS.find((i) => i.name === name)?.joy ?? 0x1f;
 /** An input's place in INPUTS (as paths have them), by name. */

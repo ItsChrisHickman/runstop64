@@ -23,7 +23,7 @@ export const INT_T = 32;
 const LD_BYTES = 0x0556, LD_RETURN = 0x053f;
 
 /** One write to an AY register: when it happened and what. */
-export interface AyWrite {
+interface AyWrite {
   readonly frame: number;
   readonly t: number;
   readonly reg: number;
@@ -31,7 +31,7 @@ export interface AyWrite {
 }
 
 /** One write to the ULA port that changed the speaker (bit 4), when it happened. */
-export interface BeeperWrite {
+interface BeeperWrite {
   /** frames run before this one (the machine's `frame` when the write happened) */
   readonly frame: number;
   /** T-states into that frame */
@@ -41,7 +41,7 @@ export interface BeeperWrite {
 }
 
 /** The keyboard: eight half-rows of five keys, in the order of the address lines A8 to A15, key 0 first. */
-export const KEY_ROWS: readonly (readonly string[])[] = [
+const KEY_ROWS: readonly (readonly string[])[] = [
   ['CAPS', 'Z', 'X', 'C', 'V'],
   ['A', 'S', 'D', 'F', 'G'],
   ['Q', 'W', 'E', 'R', 'T'],
@@ -56,7 +56,7 @@ export const KEY_ROWS: readonly (readonly string[])[] = [
 export const KEMPSTON = { right: 1, left: 2, down: 4, up: 8, fire: 16 } as const;
 
 /** The Kempston bit for a direction name (right, left, down, up, fire). */
-export function joystickBit(name: string): number {
+function joystickBit(name: string): number {
   switch (name) {
     case 'right': return KEMPSTON.right;
     case 'left': return KEMPSTON.left;

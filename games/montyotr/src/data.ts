@@ -18,7 +18,7 @@ export const enemyColours = hexBytes(raw.enemyColours);
 export const enemyDirFlags = hexBytes(raw.enemyDirFlags);
 export const exitGridImage = hexBytes(raw.exitGrid);
 export const fkLayout = hexBytes(raw.fkLayout);
-export interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array }
+interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array }
 const originalDecorTypes: DecorType[] = raw.decorTypes.map((t) => ({
   w: t.w,
   h: t.h,
@@ -36,7 +36,7 @@ export const gameOverPtrs = hexBytes(raw.gameOverPtrs);
 export const PLAY_COLS = 32;
 export const PLAY_ROWS = 20;
 
-export interface RoomDef {
+interface RoomDef {
   id: number;
   tiles: number[]; // tile library index for room char codes 1-8
   colours: number[]; // C64 colour for room char codes 1-8
@@ -91,7 +91,7 @@ export function enemyCopyFlag(type: number) {
 export const CORRECT_KIT = [1, 3, 11, 12, 15];
 
 /** The cupcake's frame base in si_spawn_tbl (sprite pointer $91). */
-export const CUPCAKE_FRAME = 3;
+const CUPCAKE_FRAME = 3;
 
 /** Original SFX numbers (Music.PlaySFX). */
 export const SFX = {

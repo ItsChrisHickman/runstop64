@@ -36,9 +36,6 @@ export function mapMemory(): Uint8Array {
   mem.set(ATTRS, MAPS.length);
   return mem;
 }
-/** Where the attribute tables start in `mapMemory()` ($7080 - $6000). */
-export const ATTRS_OFFSET = MAPS.length;
-
 /** One room's tile numbers, row by row (a copy). */
 export function roomMap(room: number): Uint8Array {
   const at = room * ROOM_SIZE;

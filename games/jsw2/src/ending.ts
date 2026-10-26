@@ -48,7 +48,7 @@ export const stand = (n: number, [x, hi, y]: readonly [number, number, number]) 
 
 const WAY: Record<Input, readonly Dir[]> = { none: [], left: ['left'], right: ['right'], fire: [], 'fire+left': ['left'], 'fire+right': ['right'] };
 /** A way as the show's steps: each input held for its frames. */
-export const stepsOf = (path: readonly (readonly [Input, number])[]): EndingStep[] =>
+const stepsOf = (path: readonly (readonly [Input, number])[]): EndingStep[] =>
   path.map(([input, frames]) => ({ press: WAY[input], frames, ...(input.startsWith('fire') ? { fire: true } : {}) }));
 
 /** The panel's lines for time and rooms visited are put away (the band for the credits, rows 20 and 21 of the screen; the room's name and the items count stay). */

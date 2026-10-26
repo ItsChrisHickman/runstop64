@@ -46,7 +46,7 @@ export interface ControlsSpec {
 }
 
 /** Under his feet one step that way: `open` floor, a `wall`, or something the game `acts` on (it takes him through, or starts something, there and then). */
-export type Ahead = 'open' | 'wall' | 'acts';
+type Ahead = 'open' | 'wall' | 'acts';
 
 /** Runs translated code between frames (the registers kept). */
 export interface Runner {
@@ -109,7 +109,7 @@ export class EightWay {
 }
 
 /** Where a Pendragon game keeps what a step into the picture uses (each game's engine has the same routines at its own addresses). */
-export interface PendragonSteps {
+interface PendragonSteps {
   /** The way he faces, and its values. */
   facing: { addr: number; right: number; left: number; up: number; down: number };
   /** The offsets from his sprite to the point under his feet the floor check looks at, and their values facing up and down (as his handling sets them). */
@@ -147,7 +147,7 @@ export interface PendragonSteps {
 }
 
 /** The screen code under his feet one step up or down, as the engine's floor check looks it up (the screen is at $0400 in all three). */
-export function pendragonTile(ram: Uint8Array, d: PendragonSteps, up: boolean): number {
+function pendragonTile(ram: Uint8Array, d: PendragonSteps, up: boolean): number {
   const o = up ? d.up : d.down;
   const y = d.jump && ram[d.jump.flag] === 1 ? ram[d.jump.base] : ram[d.y];
   const row = ((y - o[1]) & 0xff) >> 3, col = ((ram[d.x] - o[0]) & 0xff) >> 3;

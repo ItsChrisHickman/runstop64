@@ -12,7 +12,7 @@ import type { Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM3_EXIT_SCORE = 500;
+const ROOM3_EXIT_SCORE = 500;
 
 const wrap = (n: number): number => n & 0xff;
 const running = (timer: number): boolean => (timer & 0x80) !== 0;

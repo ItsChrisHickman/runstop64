@@ -1,7 +1,7 @@
 import { newEnemy, type Enemy } from './enemies';
 import { Rng } from './rng';
 
-export interface CachedEnemies {
+interface CachedEnemies {
   enemies: Enemy[]; colour: number[]; ptr: number[]; x: number[]; y: number[]; enable: number; msb: number;
 }
 import { Screen, installSprites } from './screen';
@@ -20,7 +20,7 @@ export interface Item { col: number; row: number; roomLo: number; roomHi: number
 export interface Shown { graphic: number; col: number; row: number }
 
 /** A sparking cell pair ($0990, 9 bytes each). */
-export interface Spark { on: number; period: number; onTime: number; bitmap: number; cell: number; timer: number; phase: number }
+interface Spark { on: number; period: number; onTime: number; bitmap: number; cell: number; timer: number; phase: number }
 
 /** The hardware sprites as the game keeps them ($9B-$AC, $5FF8, $D027). */
 export class Sprites {

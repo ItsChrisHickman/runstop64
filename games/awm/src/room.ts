@@ -31,8 +31,8 @@ export const COLOUR_OF = [0, 6, 2, 4, 5, 3, 7, 1] as const;
 export const BACKGROUNDS = [0, 0, 2, 5, 1] as const;
 
 /** Names from here to $DA mark animated tiles (the unpacker keeps them as codes $6D-$75). */
-export const ANIMATED_FIRST = 0xd2;
-export const ANIMATED_END = 0xdb;
+const ANIMATED_FIRST = 0xd2;
+const ANIMATED_END = 0xdb;
 
 /** Parse a room from its bytes (30-byte header, RLE until it has made 576 cells, the last run may run past the end; whatever follows). */
 export function parseRoom(bytes: Uint8Array): Room {
@@ -72,7 +72,7 @@ export function unpackCells(room: Room): Uint8Array {
 }
 
 /** An item the room holds ($6D7B table: 3 bytes each: room; type | cell low bits << 5; cell high bits). */
-export interface ItemEntry { readonly room: number; readonly type: number; readonly cell: number }
+interface ItemEntry { readonly room: number; readonly type: number; readonly cell: number }
 
 /** The item list's entries ($6D7B, 236 of 3 bytes: room, type (bits 0-4) with the cell's low 3 bits in 5-7, the cell's high bits). */
 export function itemEntries(bytes: Uint8Array): ItemEntry[] {
@@ -84,7 +84,7 @@ export function itemEntries(bytes: Uint8Array): ItemEntry[] {
 }
 
 /** The first four items of a room put into its cells ($694F), as 2 × 2 characters from $2F + 4 × slot. */
-export function itemsOf(entries: readonly ItemEntry[], room: number): ItemEntry[] {
+function itemsOf(entries: readonly ItemEntry[], room: number): ItemEntry[] {
   return entries.filter((e) => e.room === room).slice(0, 4);
 }
 
@@ -102,7 +102,7 @@ export interface RoomTables {
 }
 
 /** What a room puts on the screen: per cell the screen code (with the ECM background in bits 6-7) and colour RAM, and the 64 characters it uses. */
-export interface RoomScreen {
+interface RoomScreen {
   readonly codes: Uint8Array;
   readonly colours: Uint8Array;
   readonly chars: Uint8Array;

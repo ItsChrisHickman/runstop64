@@ -405,7 +405,7 @@ function record(port: PortConfig, base: MachineState, spec: EndingSpec, c: Endin
 // ---- the show -------------------------------------------------------------------------------
 
 /** What the show needs of the game running it. */
-export interface EndingOptions {
+interface EndingOptions {
   host: Host;
   spec: EndingSpec;
   port: PortConfig;

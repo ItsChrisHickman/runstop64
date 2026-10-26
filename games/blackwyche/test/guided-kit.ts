@@ -73,7 +73,7 @@ export function saveAt(at: Where): MachineState {
 export const SEARCHING = 'SEARCHING FOR THE CAPTAINS SOUL';
 
 /** The status line's text as the screen has it (the game's lettering read back, spaces folded). */
-export const lineOf = (ram: Uint8Array) => screenText(ram, 22, 3, 32);
+const lineOf = (ram: Uint8Array) => screenText(ram, 22, 3, 32);
 
 /** A launched game: the front end as the browser runs it. */
 export class Session {

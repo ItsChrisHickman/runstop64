@@ -29,10 +29,3 @@ export function parseOptions(text: string | null | undefined): Record<string, un
   const v = readJson(text ?? '{}');
   return isRecord(v) ? { ...v } : {};
 }
-
-/** A deep copy of a plain record (what survives JSON), to keep a test's own copy of a game's data apart from the game's. */
-export function cloneRecord(x: Record<string, unknown>): Record<string, unknown> {
-  const v = readJson(JSON.stringify(x));
-  if (!isRecord(v)) throw new Error('not an object');
-  return v;
-}

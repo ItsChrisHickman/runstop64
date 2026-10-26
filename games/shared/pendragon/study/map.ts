@@ -6,9 +6,9 @@
 
 import { DIRS, type Dir } from '../figure';
 export { DIRS, type Dir };
-export type ByDir = Record<Dir, number[]>;
+type ByDir = Record<Dir, number[]>;
 
-export interface PendragonSet {
+interface PendragonSet {
   game: string;
   /** His own colour and the two he shares (colour registers) as the game sets them. */
   colours: [number, number, number];
@@ -87,7 +87,7 @@ export const DRAGONSKULLE: PendragonSet = {
 export const SETS: Record<string, PendragonSet> = { karnath: KARNATH, entombed: ENTOMBED, blackwyche: BLACKWYCHE, dragonskulle: DRAGONSKULLE };
 
 /** One picture of the original and what stands in for it: a Dragonskulle picture, and whether that is a new picture still to draw (the stand-in is the nearest he has). */
-export interface Swap { dir: Dir; role: string; ds: number; newFrame: boolean }
+interface Swap { dir: Dir; role: string; ds: number; newFrame: boolean }
 
 /** The walk's pictures cut at its stand pictures: runs of steps. */
 function runs(cycle: readonly number[], stand: number): number[][] {

@@ -33,7 +33,7 @@ export const LOCATION: number[] = [
   0x2378, 0x2379, 0x2393, 0x238f, 0x2390, 0x2370, 0x237c, // (frames' graphics; doors' places)
 ];
 
-export type Location = number[];
+type Location = number[];
 
 /**
  * His place along the strip, in pixels ($3214/$3215: the game counts it as he walks, and where a creature
@@ -45,7 +45,7 @@ export type Location = number[];
  * the first of the lower floor's).
  */
 const STRIP_BASE = (mode: number, level: number) => (mode === 1 ? 0x94 + 0x0c * (level - 1) : mode === 0 ? 0x70 + 0x0c * (level - 1) : 0x70);
-export function stripX(mode: number, level: number, page: number, column: number, fine: number, spriteX: number) {
+function stripX(mode: number, level: number, page: number, column: number, fine: number, spriteX: number) {
   const block = (page - 4 - STRIP_BASE(mode, level)) >> 2;
   return block * 320 + column * 8 - (fine & 7) + spriteX - 57;
 }
@@ -54,7 +54,7 @@ export function stripXNow(ram: Uint8Array, vic: Uint8Array) {
   return stripX(ram[0x3219], ram[0xb3e1], ram[0x7fe7], ram[0x7fe6], ram[0x7fee], vic[4] | ((vic[0x10] & 4) << 6));
 }
 /** His place along the strip for a location (the bytes of `location`, and his sprite's high bit last). */
-export function stripXAt(loc: Location) {
+function stripXAt(loc: Location) {
   const v = (a: number) => loc[LOCATION.indexOf(a)];
   return stripX(v(0x3219), v(0xb3e1), v(0x7fe7), v(0x7fe6), v(0x7fee), v(0x7ff4) | (loc[LOCATION.length] ? 256 : 0));
 }

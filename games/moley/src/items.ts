@@ -17,7 +17,7 @@ const TAKEN_ATTR = 0x47;
 const MAX_ITEMS = 8;
 
 /** One item: where it is in pixels, and its cell (an index into the room's map and attributes), or -1 once it is taken. */
-export interface ItemRecord {
+interface ItemRecord {
   x: number;
   y: number;
   cell: number;

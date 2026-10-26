@@ -6,7 +6,7 @@ import type { Route } from './ending-routes';
  * and last few, so the picture is not a still one for half a minute. The game plays the same passes either way: only how many go in a
  * frame changes, and the route found for it is the same game.
  */
-export const FAST = 6;
+const FAST = 6;
 const LONG_WAIT = 50;
 /** The passes at either end of a long wait that are played at the game's own pace. */
 const EDGE = 8;

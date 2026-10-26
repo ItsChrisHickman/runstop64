@@ -85,7 +85,7 @@ const ENEMY_LIFE = 0x14;
 /** $80A0/$80A1: the clock's start; its high byte counting down to 0 ends the flight, 1995 frames on. */
 const FLIGHT_FRAMES = 0x08ca;
 /** What a plane shot down is worth ($81FA: 100). */
-export const KILL_POINTS = 0x64;
+const KILL_POINTS = 0x64;
 /** The sound of a hit ($48). */
 const HIT_SOUND = 0x48;
 
@@ -193,7 +193,7 @@ export function isSky(s: SkyState): boolean {
 // ---- the flight ------------------------------------------------------------------------------------------------------------
 
 /** What a flight asks of the game around it. */
-export interface FlightHost {
+interface FlightHost {
   /** The game's random number ($51F7). */
   random(): number;
   /** The title's sound choice ($4066 is set): the hits' sound is asked for, and the voices cut, only then. */

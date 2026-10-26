@@ -79,7 +79,7 @@ export function mapSummary<T, F>(map: PauseMap<T, F>, state: T, found: F): strin
 }
 
 /** The pause screen's map controls: which page is shown and which place is picked. */
-export interface PauseUi {
+interface PauseUi {
   page?: number;
   pick?: { x: number; y: number; r?: number; rx?: number; id?: string } | null;
   /** The touch controls are in use: say "tap" (and show < > for pages) instead of naming keys. */

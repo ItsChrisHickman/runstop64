@@ -12,7 +12,7 @@ import { cellAt, Screen } from './screen';
 const SFX = { step: 0x0a, fall: 0x0c, land: 0x0a, lift: 0x0e, platform: 0x30 } as const;
 
 /** $43F6: sprite position of a cell: X = (column + 3) × 8 (carry = bit 8), Y = row × 8 + $32. */
-export function spritePos(col: number, row: number) {
+function spritePos(col: number, row: number) {
   const x = ((col + 3) & 0xff) * 8;
   return { x: x & 0xff, msb: x > 0xff, y: ((row * 8) & 0xff) + 0x32 & 0xff };
 }
@@ -366,7 +366,7 @@ export function deadlyCheck(g: Game) {
  * $4928: rebuild BLOB's yellow layer (sprite 1, at $5540) for his frame, and
  * point his eyes (sprite 2) at theirs.
  */
-export function buildSprite(g: Game) {
+function buildSprite(g: Game) {
   const sp = g.sprites;
   const b = g.scr.bank;
   let y = rom(0x4972 + (sp.ptr[0] & 15));
@@ -385,7 +385,7 @@ export function buildSprite(g: Game) {
 // ---- platforms ------------------------------------------------------------------------------
 
 /** $4AD9: a platform under BLOB (at his row + 2), if he has any left: solid, crumbling in a while. */
-export function buildPlatform(g: Game, col: number, row: number) {
+function buildPlatform(g: Game, col: number, row: number) {
   if (g.platformsLeft === 0) return;
   g.platformsLeft = (g.platformsLeft - 2) & 0xff;
   g.panelDirty |= 2;

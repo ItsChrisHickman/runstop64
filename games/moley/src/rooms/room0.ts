@@ -10,7 +10,7 @@ import type { Stage } from '../stage';
 import type { RoomScript } from './script';
 import type { StateReader, StateWriter } from '../state';
 
-export const ROOM0_EXIT_SCORE = 200;
+const ROOM0_EXIT_SCORE = 200;
 
 export class Room0 implements RoomScript {
   readonly bobber = new Bobber();

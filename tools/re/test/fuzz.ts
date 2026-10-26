@@ -10,7 +10,7 @@ import { Cpu6502 } from '../../../packages/c64kit/src/sid/cpu6502';
 import { bind, cpu, flags, setFlags } from '../../../games/shared/native/cpu';
 
 /** What run-fuzz.mjs generates: the translated routines (by name), which is which, and the memory image. */
-export interface FuzzCases {
+interface FuzzCases {
   CASES: { addr: number; name: string }[];
   DESC: Record<string, string>;
   IMAGE: Uint8Array;

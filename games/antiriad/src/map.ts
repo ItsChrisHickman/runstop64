@@ -29,7 +29,7 @@ const FOUND = foundCodec(found, () => ({ rooms: [], entry: {}, suitEntry: {} }))
 export const entriesOf = (f: AntiriadFound, inArmour: boolean): Record<string, Entry> => (inArmour ? f.suitEntry : f.entry);
 
 /** Each room's place on the grid (by its exits from the power centre). */
-export const GRID: { x: number; y: number }[] = (() => {
+const GRID: { x: number; y: number }[] = (() => {
   const at: { x: number; y: number }[] = [];
   at[0] = { x: 7, y: 0 };
   const way = [[1, 0], [-1, 0], [0, 1], [0, -1]];

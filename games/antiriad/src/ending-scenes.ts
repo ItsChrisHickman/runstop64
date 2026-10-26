@@ -37,7 +37,7 @@ export interface Scene {
 const nothing = () => {};
 /** The parts of the armour (collisions.ts `fitPart`). */
 export const PULSAR = 0, NEGATOR = 1, DISPLACER = 2, MINE = 3;
-export const hasPart = (g: Game, part: number) => !!(g.ram[0x067e + part] & 0x80);
+const hasPart = (g: Game, part: number) => !!(g.ram[0x067e + part] & 0x80);
 /** Per part: bit 7 = to show in the panel (collisions.ts). */
 const PART_NEWS = 0x067a;
 /** The game as it is after some parts are found some time ago (the panel has told him so). */
@@ -46,7 +46,7 @@ const parts = (...which: number[]) => (g: Game) => { for (const p of which) { fi
 const justFound = (found: number, ...before: number[]) => (g: Game) => { parts(...before)(g); fitPart(g, found); };
 
 /** The armour's room, and where it stands in it (the original's own: $3F, x $80, y $40). */
-export const ARMOUR_ROOM = 0x3f;
+const ARMOUR_ROOM = 0x3f;
 
 /** Tal comes to the armour on its ledge, steps in (faces front over it), and it powers up: the first time he wears it. */
 const TO_THE_ARMOUR: readonly Step[] = [

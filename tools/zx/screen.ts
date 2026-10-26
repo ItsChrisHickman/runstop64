@@ -5,11 +5,11 @@
  */
 import { palettePng } from '../png';
 
-export const SCREEN_W = 256;
+const SCREEN_W = 256;
 export const SCREEN_H = 192;
 
 /** The Spectrum's colours: black, blue, red, magenta, green, cyan, yellow, white; then the same, bright. */
-export const ZX_PALETTE: readonly number[] = [
+const ZX_PALETTE: readonly number[] = [
   0x000000, 0x0000d7, 0xd70000, 0xd700d7, 0x00d700, 0x00d7d7, 0xd7d700, 0xd7d7d7,
   0x000000, 0x0000ff, 0xff0000, 0xff00ff, 0x00ff00, 0x00ffff, 0xffff00, 0xffffff,
 ];

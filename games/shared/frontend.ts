@@ -34,7 +34,7 @@ export interface AssistSpec {
   default?: boolean;
 }
 
-export interface FrontEndOptions<T, F> {
+interface FrontEndOptions<T, F> {
   /** Storage key prefix, e.g. 'entombed'. */
   id: string;
   input: Input;

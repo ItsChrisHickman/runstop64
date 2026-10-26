@@ -70,7 +70,7 @@ export const MACHINES = [{ name: 'native', make: native }, { name: 'original', m
 const title = () => unpackState(new Uint8Array(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state')));
 let deep: MachineState | null = null;
 /** A state well into the game (the end of a recorded route, in the caves), standing still. */
-export function deepState(): MachineState {
+function deepState(): MachineState {
   if (deep) return deep;
   const route = readRoute('games/dragonskulle/re/routes.json', 5);
   const g = new NativeHost(port, title());
@@ -151,9 +151,6 @@ export const RIVERS: readonly River[] = [
   { ...bridge(4), cell: [13, 6], wizard: 0x6b69, skull: 0x6b88, insect: 0x6b90, hurt: 0x6b74, side: 0x6b6b },
   { ...bridge(5), cell: [9, 11], wizard: 0x6add, skull: 0x6afa, insect: 0x6b02, hurt: 0x6ae6, side: 0x6adf },
 ];
-/** The river screen without a bridge (cell 5,6) runs room 4's code and counts for room 4. */
-export const PLAIN_RIVER = { room: 4, cell: [5, 6] as const };
-
 /** The four dragons' screens (block $D870, rooms 6-9): the flag that the dragon is dead, kept for good. */
 export interface DragonRoom { readonly room: number; readonly cell: readonly [number, number]; readonly flag: number }
 const DRAGON_CELLS: Record<number, readonly [number, number]> = { 6: [4, 5], 7: [13, 5], 8: [9, 10], 9: [9, 22] };

@@ -22,7 +22,7 @@ export type Step =
 const MAX = 600;
 
 /** The pad for what is held (`first`: the first frame of the step, when a jump is a fresh press). */
-export function padOf(hold: Held, first: boolean): Pad {
+function padOf(hold: Held, first: boolean): Pad {
   const has = (c: string) => hold.includes(c);
   return { up: has('^'), down: has('v'), left: has('<'), right: has('>'), fire: has('F'), jump: has('J'), jumpTap: has('J') && first, cell: has('C') && first };
 }
@@ -89,18 +89,3 @@ export const spriteAt = (g: Game, n: number) => ({ x: g.ram[0x0200 + n * 2] | ((
 /** Sprite `n` is a creature that is there to be shot: showing, and not blowing up. */
 export const alive = (g: Game, n: number) => !!(g.ram[V.anim + n] & 0x80) && !(g.ram[V.dying + n] & 0x80);
 
-/**
- * Chase a creature in the armour and fire the Pulsar Beam at it: keep level with it and a few steps off, facing it (the armour
- * faces the way it last went), firing while it is there to be hit.
- */
-export function shootAt(n: number, max = 300): Step {
-  const hold = (g: Game): Held => {
-    const at = spriteAt(g, n), me = spriteAt(g, 0);
-    const dx = at.x - me.x, dy = at.y - me.y;
-    const level = Math.abs(dy) <= 12;
-    const vertical = dy < -8 ? '^' : dy > 8 ? 'v' : '';
-    const sideways = dx > 60 ? '>' : dx < -60 ? '<' : dx > 0 ? '>' : '<';
-    return `${sideways}${vertical}${level ? 'F' : ''}`;
-  };
-  return { hold, until: (g) => !alive(g, n), max };
-}

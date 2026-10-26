@@ -36,7 +36,7 @@ export interface Step {
    */
   sprite?: [number, number, number];
 }
-export interface Chamber {
+interface Chamber {
   /** Global flags set before going in (the items it needs, from elsewhere): the hints need them too. */
   given?: Record<number, number>;
   steps: Step[];

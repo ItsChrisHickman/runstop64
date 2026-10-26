@@ -12,8 +12,8 @@ import { isArrayOf, isBoolean, isNumber, isNumbers, isRecord, isRecordOf, isStri
  * line, what the VIC would draw (FrameCapture) so a native renderer can show it.
  */
 
-export const PAL_CYCLES_PER_LINE = 63;
-export const PAL_LINES = 312;
+const PAL_CYCLES_PER_LINE = 63;
+const PAL_LINES = 312;
 export const PAL_FRAME_CYCLES = PAL_CYCLES_PER_LINE * PAL_LINES; // 19656
 
 /** One text row as the VIC fetched it (codes and colours at the row's bad line). */
@@ -61,7 +61,7 @@ export interface MachineState {
 }
 
 /** The frame under way, as plain JSON (bytes as hex). */
-export interface FrameSoFar {
+interface FrameSoFar {
   rows: ({ codes: string; colours: string; d011: number; d016: number; d018: number; bank: number; bg: RowCapture['bg']; line?: number } | null)[];
   sprites: (Omit<SpriteCapture, 'data'> & { data: string })[];
   border: number; borderLines: string;

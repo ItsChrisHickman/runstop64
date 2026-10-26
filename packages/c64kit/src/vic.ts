@@ -11,7 +11,7 @@ import { Surface, TRANSPARENT } from './surface';
  * `bank` models the 16K the VIC sees. Character and screen RAM live inside it
  * at configurable offsets; sprite pointer P reads 64 bytes at P*64.
  */
-export interface SpriteRegs {
+interface SpriteRegs {
   x: number; // VIC X (0-511)
   y: number; // VIC Y
   ptr: number;

@@ -83,14 +83,14 @@ export interface RewardSpec {
 }
 
 /** The show's colours (indexes of the renderer's palette). */
-export interface ShowColours { credit: number; title: number; text: number }
+interface ShowColours { credit: number; title: number; text: number }
 const C64_COLOURS: ShowColours = { credit: CREDIT.colour, title: 7, text: 15 };
 
 /** Where a visitor's feet go when nothing says: the lower middle of the picture. */
 export const GROUND = 150;
 
 /** What the show needs of the game running it. */
-export interface RewardOptions {
+interface RewardOptions {
   host: Host;
   spec: RewardSpec;
   /** The game's font (its lettering, upper case). */

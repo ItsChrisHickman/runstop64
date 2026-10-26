@@ -45,7 +45,7 @@ function blockedAbove(g: Game) {
 }
 
 /** CheckTileBelow; also starts a hazard death when both feet are on water/lava. */
-export function blockedBelow(g: Game) {
+function blockedBelow(g: Game) {
   if (!yAligned(g)) return false;
   const cols = xAligned(g) ? 2 : 3;
   const base = g.rowAddr(g.montyRow + 2) + g.montyCol;

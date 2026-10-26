@@ -19,7 +19,7 @@ import type { Base } from './ending-scenes';
 const RECORDED = 80, SETTLE = 40;
 
 /** The cast, in order: sprites by animation number ($C0-$DB), pictures by the animation of characters ($06BC). Tal is not in it: he is in every place, on foot or in the armour. */
-export type Member =
+type Member =
   | { name: string; sprites: readonly number[] }
   | { name: string; chars: number; room: number };
 

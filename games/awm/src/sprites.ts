@@ -3,7 +3,7 @@
  * composes a sprite's 63 bytes from a frame when it draws ($66CA): straight, or mirrored for an
  * entity facing left (each row's two bytes swapped and bit-reversed).
  */
-export const FRAME_BYTES = 32;
+const FRAME_BYTES = 32;
 export const FRAME_COUNT = 256;
 export const SPRITE_BYTES = 63;
 
