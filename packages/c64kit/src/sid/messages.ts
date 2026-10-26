@@ -1,3 +1,4 @@
+import { isRecord } from '../json';
 import { isSfxName, type SfxName } from './sfx';
 
 /** What SidPlayer (main thread) tells the SID worklet (sid-worklet.ts). */
@@ -14,7 +15,6 @@ export type ToWorklet =
 /** What the worklet tells SidPlayer. */
 export type FromWorklet = { type: 'error'; message: string };
 
-const isRecord = (d: unknown): d is Record<string, unknown> => typeof d === 'object' && d !== null;
 const isOptNumber = (v: unknown) => v === undefined || typeof v === 'number';
 
 /** Checks a message arriving at the worklet (a MessageEvent's data is untyped). */

@@ -1,3 +1,4 @@
+import { isRecord } from '../json';
 /** What AyPlayer (main thread) tells the AY worklet (worklet.ts). */
 export type ToAyWorklet =
   | { type: 'tune'; data: ArrayBuffer; stepRate: number }
@@ -7,7 +8,6 @@ export type ToAyWorklet =
 /** What the worklet tells AyPlayer. */
 export type FromAyWorklet = { type: 'error'; message: string };
 
-const isRecord = (d: unknown): d is Record<string, unknown> => typeof d === 'object' && d !== null;
 
 /** Checks a message arriving at the worklet (a MessageEvent's data is untyped). */
 export function isToAyWorklet(d: unknown): d is ToAyWorklet {
