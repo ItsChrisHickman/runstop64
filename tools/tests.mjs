@@ -204,6 +204,7 @@ export const TESTS = [
   { file: 'games/thingonaspring/test/assists.ts', set: 'slow', limitSeconds: 580 },
   { file: 'games/thingonaspring/test/frontend.ts', set: 'fast' },
   { file: 'games/thingonaspring/test/grace.ts', set: 'fast' },
+  { file: 'games/thingonaspring/test/poles.ts', set: 'fast' },
   { file: 'games/thingonaspring/test/names.ts', set: 'fast' },
   { file: 'games/thingonaspring/test/travel.ts', set: 'slow' },
 

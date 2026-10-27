@@ -51,6 +51,24 @@ function bounce(ram: Uint8Array, right: boolean) {
   Object.assign(cpu, regs);
 }
 
+// ---- the poles ------------------------------------------------------------------------------
+
+/** The hook where the game has just copied this frame's animated characters 0-9 into the charset ($5124 → $0800; re/engine.json). */
+export const ANIMATED_DRAWN = 0x5151;
+
+/**
+ * ENHANCED: the poles (characters 0-2, which carry Thing up: $51DC) stand still until switch 3 ($0373)
+ * powers them. The game animates them whether they work or not, and a dead one only stops his bounce,
+ * so a moving pole that won't lift him looks like a glitch. Called at `ANIMATED_DRAWN`: the poles' three
+ * characters go back to the first of the eight frames ($5183, a pointer per frame), the other seven
+ * animated characters are left as the game drew them.
+ */
+export function stillPoles(ram: Uint8Array) {
+  if (ram[0x0373]) return;
+  const first = ram[0x5183] | (ram[0x5184] << 8);
+  ram.copyWithin(0x0800, first, first + 3 * 8);
+}
+
 // ---- the map, as the movement code reads it ----------------------------------------------------
 
 /**

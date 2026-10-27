@@ -86,7 +86,9 @@ down from $486A, up to 8), $5B/$5C the way he's going (left/right, bit 7), $07-$
 (left, right, up, down, fire; bit 7 held now, shifted down each read), $72 belts, $76 poles,
 $7A slopes, $83 springs, $87 tubes. ENHANCED works between frames on these, and at three
 moments the translation reports (`hooks` in engine.json, `cpu.hk` → `NativeHost.onHook`):
-$4A9B / $4ABB (a wall has just turned him round: landing help, or air control's stop). Its checks: test/assists.ts (each part
+$4A9B / $4ABB (a wall has just turned him round: landing help, or air control's stop), and $5151 (the animated
+characters 0-9 just copied in by $5124, from the table at $5183: with switch 3 off, ENHANCED puts the poles, 0-2, back to
+their first frame, so a dead pole stands still; test/poles.ts). Its checks: test/assists.ts (each part
 against the original from the same moment with the same joystick, and 210,000 frames of
 random play from every screen with each part and all of them: no more frames inside a wall
 than the original's own play, no hangs, no fallbacks).

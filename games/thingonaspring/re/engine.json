@@ -42,6 +42,7 @@
   "hooks": {
     "4a9b": "a wall (or a doorway) stops Thing going left: from here he's thrown back the other way ($5C)",
     "4abb": "a wall (or a doorway) stops Thing going right: from here he's thrown back the other way ($5B)",
+    "5151": "the animated characters 0-9 (the poles are 0-2) have just been copied in for this frame ($5124: frame $6E of eight, from the table at $5183)",
     "56e0": "oil about to be taken ($56B4): A is what will be left, carry clear if it's run out",
     "669f": "the death (the oil ran out) has played out: on to the game's end ($6A6B → $7DE1, the high score and the title)",
     "7aae": "the high score name entry waits for a key (its loop): a name is being asked for",

@@ -3,7 +3,7 @@ import { cpu } from '../../shared/native/cpu';
 import { runNative } from '../../shared/native/play';
 import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { port } from './native';
-import { makeEnhanced } from './assists';
+import { ANIMATED_DRAWN, makeEnhanced, stillPoles } from './assists';
 import { hintSpots } from './hint-spots';
 import { endingStats, thingEnding, won } from './ending';
 import { makeMap } from './map';
@@ -55,6 +55,7 @@ export function run(host: Host) {
     onHook: (pc, ram) => {
       if (pc === NAME_LOOP) naming = true;
       else if (pc === NAME_DONE) naming = false;
+      else if (pc === ANIMATED_DRAWN) { if (options.enhanced) stillPoles(ram); }
       enhanced.hook(pc, ram, options.enhanced ? all : none);
     },
     // A high score's name ($7A21: ten letters, RETURN puts it in, DEL rubs out) on a touch screen:
