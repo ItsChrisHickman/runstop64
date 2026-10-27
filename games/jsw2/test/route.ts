@@ -23,6 +23,7 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { MANSION } from '../src/mansion';
 import { jsw2Map } from '../src/map';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { isNumbers, isRecord, readJson } from '../../shared/guards';
 import { MAP_BOX } from '../../shared/native/pause';
@@ -97,10 +98,10 @@ console.log(`     rooms passed through (not counting the one he's in): ${rooms.l
 check('most rooms passed through are offered for travel (at least 3 in 4)', offered().length * 4 >= (rooms.length - 1) * 3);
 for (const r of rooms) if (!(String(r) in stand()) && r !== room()) console.log(`     not offered: ${r} ${MANSION[r].name}`);
 
-// the page opened again: straight back into play, the map as it was
+// the page opened again: its title, Enter back into play, the map as it was
 const offeredThen = offered().join(' ');
 p = await launch();
-tick(120);
+continueFromTitle(p, input, tick);
 check(`opened again: back in play in the same room (${room()})`, p.state.playing && room() === passed[passed.length - 1]);
 check('opened again: the same rooms offered (what was found is kept with the autosave)', offered().join(' ') === offeredThen);
 

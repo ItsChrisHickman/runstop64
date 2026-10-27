@@ -14,6 +14,7 @@ import { renderPng } from '../../../tools/probe/render';
 import { run } from '../src/main';
 import { CABIN_AT, DECK_AT, HALL2_AT, HALL3_AT, go } from '../src/travel';
 import { CABINS, HALLS } from '../src/ship';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 export const game = must(GAMES.blackwyche, 'blackwyche in games.ts');
 const title = fs.readFileSync(game.title);
@@ -94,8 +95,7 @@ export class Session {
     useMemoryStorage(kept);
     const s = new Session();
     await new Promise((r) => setTimeout(r, 0));
-    for (let i = 0; i < 900 && !s.p.state.playing; i++) s.tick();
-    if (!s.p.state.playing) throw new Error('did not continue the save');
+    continueFromTitle(s.p, s.input, (n) => s.tick(n)); // (the title, ENTER CONTINUE, Enter)
     s.trace.length = 0;
     return s;
   }

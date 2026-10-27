@@ -25,6 +25,7 @@ import { entombedControls } from '../src/combat';
 import { EightWay } from '../../shared/native/controls';
 import { run } from '../src/main';
 import { chamberState } from '../re/hints/chambers';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
@@ -65,7 +66,7 @@ async function session(state: MachineState, eightWay: boolean) {
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 0));
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); const r = must(p.machine, 'the machine').ram; r[0x37f6] = 0; r[0x323d] = 0; } };
-  tick(141); // (launched with a save: straight back into play, no key)
+  continueFromTitle(p, input, tick); // (launched with a save: the title, then Enter)
   const hold = (keys: string[], n: number, each?: () => void) => { for (const k of keys) input.keyDown(k); for (let i = 0; i < n; i++) { tick(1); each?.(); } for (const k of keys) input.keyUp(k); tick(2); };
   return { p, tick, hold, ram: () => must(p.machine, 'the machine').ram, input };
 }

@@ -33,6 +33,7 @@ import { CABINS, HALLS } from '../src/ship';
 import { keepFound } from '../../shared/saves';
 import { readRoutes } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 const outDir = process.argv[2];
 const game = GAMES.blackwyche;
@@ -135,7 +136,7 @@ const nameColour = (i: number) => {
 const expectColour = (i: number) => { const h = held(ram(), ITEMS[i]); return String(h === 'no' ? COL.dgrey : h === 'used' ? COL.lgreen : COL.white); };
 
 await new Promise((r) => setTimeout(r, 0));
-tick(150);
+continueFromTitle(p, input, tick); // (the title, ENTER CONTINUE, Enter)
 check('continued the save', p.state.playing);
 check(`the side panel counts them: ${blackwycheMap.info(ram(), p.frontEnd.found).join(' | ')}`, blackwycheMap.info(ram(), p.frontEnd.found).includes('ITEMS  2/24'));
 press('KeyP');

@@ -15,7 +15,7 @@ import { RoomSaves } from './room-saves';
  *
  * The tick order, the same for every game:
  *   audio keys; in play: the pause key, a paused tick (and back), travel picked on the map
- *   (`fe.going`); the flow's `before` (CONTINUE? / launch: resume and end the tick); the game's
+ *   (`fe.going`); the flow's `before` (ENTER CONTINUE / CONTINUE?: resume and end the tick); the game's
  *   frame; the grace counted (a frame that ends the tick skips the rest); the game's own bookkeeping after it (`afterFrame`); the flow's
  *   `after` (autosave; a game that saves at its own point inside the frame says so: `savesInFrame`);
  *   the view; the game's overlay on it (`afterView`); the flow's panels.
@@ -33,7 +33,7 @@ export type PortPhase = 'title' | 'play' | 'other';
  */
 export type FrameResult = 'played' | 'idle' | 'ended';
 
-/** How a game is carried on from a save: ENTER CONTINUE (or a launch), CONTINUE? after the game is over, or B on the pause screen. */
+/** How a game is carried on from a save: ENTER CONTINUE, CONTINUE? after the game is over, or B on the pause screen. */
 export type ResumeFrom = 'title' | 'continue' | 'roomStart';
 
 /** What a game says about itself before the session exists (static: nothing here needs the flow or the front end). */
@@ -51,8 +51,6 @@ interface PortSetup<S, F, T> {
   /** Keys that restart a game on purpose (default F1 and R; none where the game types or uses them). */
   restartKeys?: string[];
   describe?(save: S, found: F): string[];
-  /** A press is spent from the start: a launch straight into play must not also fire. */
-  launchHeld?: boolean;
   /** The colours of the pause screen and the flow's panels, where the game's palette is not the C64's. */
   colours?: PauseColours;
   /** The ending can be watched from the pause screen now (the game has been won, in the mode that has one): W (ending/machine-reel.ts). */
@@ -128,7 +126,7 @@ export class Port<S, F, T> {
       id: setup.id, renderer, input, font: setup.font, codec: setup.codec, found: setup.map.found,
       restartKeys: setup.restartKeys, strip: setup.strip, describe: setup.describe, colours: setup.colours,
     });
-    this.latch = new FireLatch(setup.launchHeld);
+    this.latch = new FireLatch();
     this.fe = new FrontEnd<T, F>({
       id: setup.id, input, renderer, map: setup.map, assists: setup.assists,
       font: () => this.flow.getFont(), saves: this.flow, onClose: () => this.latch.hold(), colours: setup.colours, ending: setup.ending,
@@ -237,7 +235,7 @@ export class Port<S, F, T> {
     const { adapter: a, fe, flow, host } = this;
     if (!(a.ready?.() ?? true)) return;
     if (a.takeover?.active) { a.takeover.render(alpha); return; }
-    const covered = flow.covering || fe.holding;
+    const covered = flow.holding || fe.holding;
     a.prepareRender?.(covered);
     a.audio.player.hold(covered);
     a.renderView(alpha);

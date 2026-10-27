@@ -11,7 +11,7 @@
  *   starquake  its own save (the game's fields as JSON, then the screen's memory)
  *
  * For each: the slots read as format 1 of the game (the previous one with what had been found),
- * the game launched on the fixture goes straight back into play from it, and the saves are
+ * the game launched on the fixture opens on its title and Enter goes back into play from it, and the saves are
  * written in the envelope (`v: 3`, game, format) the next time they're written, bytes untouched.
  * Also: the save before the history (`<game>.save.v1`, the bytes alone), Monty's save from before
  * the shared front end (plain JSON), and the old export file; a save of a format nobody here
@@ -63,10 +63,10 @@ function readSaves0(f: { id: string; storage: Record<string, string> }) {
 
 stubFetch(new Uint8Array(fs.readFileSync('games/entombed/assets/entombed-title.state')));
 
-/** What each kind of game needs here: launch it (a page load), say whether it is in play and in which room, and read the room out of a save's bytes. */
+/** What each kind of game needs here: launch it (a page load), say whether its title offers ENTER CONTINUE, press Enter, say whether it is in play and in which room, and read the room out of a save's bytes. */
 interface Kind {
   id: string;
-  launch(): { tick(): void; playing(): boolean; room(): number };
+  launch(): { tick(): void; /** ENTER CONTINUE is up on the title. */ titled(): boolean; /** Enter, typed. */ enter(): void; playing(): boolean; room(): number };
   /** The room a save's bytes are of. */
   roomOf(bytes: Uint8Array): number;
   /** The save's bytes unpack by the game's own codec (or checks for a machine save). */
@@ -77,7 +77,8 @@ interface Kind {
 function boot<P extends { tick(): void; render(a: number): void }>(make: (input: Input) => P) {
   const input = new Input(nowhere);
   const p = make(input);
-  return { p, tick() { input.poll(); p.tick(); p.render(0); } };
+  const tick = () => { input.poll(); p.tick(); p.render(0); };
+  return { p, tick, enter() { input.keyDown('Enter'); tick(); input.keyUp('Enter'); tick(); } };
 }
 
 const KINDS: Kind[] = [
@@ -85,7 +86,7 @@ const KINDS: Kind[] = [
     id: 'entombed',
     launch() {
       const b = boot((input) => runEntombed({ renderer: new PixelRenderer(), input, canvas: nowhere }));
-      return { tick: b.tick, playing: () => b.p.state.playing, room: () => 0 };
+      return { tick: b.tick, enter: b.enter, titled: () => b.p.state.prompt === 'title', playing: () => b.p.state.playing, room: () => 0 };
     },
     roomOf: () => 0,
     reads: (bytes, format) => { try { MACHINE_CODEC.unpack(bytes, format); return true; } catch { return false; } },
@@ -95,7 +96,7 @@ const KINDS: Kind[] = [
     id: 'montyotr',
     launch() {
       const b = boot((input) => runMonty({ renderer: new PixelRenderer(), input, canvas: nowhere }));
-      return { tick: b.tick, playing: () => b.p.state.mode === 'play', room: () => b.p.game.roomId };
+      return { tick: b.tick, enter: b.enter, titled: () => b.p.state.prompt === 'title', playing: () => b.p.state.mode === 'play', room: () => b.p.game.roomId };
     },
     roomOf: (bytes) => MONTY_CODEC.unpack(bytes, 1).roomId,
     reads: (bytes, format) => { try { MONTY_CODEC.unpack(bytes, format); return true; } catch { return false; } },
@@ -105,7 +106,7 @@ const KINDS: Kind[] = [
     id: 'awm',
     launch() {
       const b = boot((input) => runAwm({ renderer: new PixelRenderer(), input, canvas: nowhere }));
-      return { tick: b.tick, playing: () => b.p.state.kind === 'play', room: () => b.p.program.game?.world.room ?? -1 };
+      return { tick: b.tick, enter: b.enter, titled: () => b.p.state.prompt === 'title', playing: () => b.p.state.kind === 'play', room: () => b.p.program.game?.world.room ?? -1 };
     },
     roomOf: (bytes) => AWM_CODEC.unpack(bytes, 1).room,
     reads: (bytes, format) => { try { AWM_CODEC.unpack(bytes, format); return true; } catch { return false; } },
@@ -115,7 +116,7 @@ const KINDS: Kind[] = [
     id: 'starquake',
     launch() {
       const b = boot((input) => runStarquake({ renderer: new PixelRenderer(), input, canvas: nowhere }));
-      return { tick: b.tick, playing: () => b.p.state.mode === 'play', room: () => b.p.game.room };
+      return { tick: b.tick, enter: b.enter, titled: () => b.p.state.prompt === 'title', playing: () => b.p.state.mode === 'play', room: () => b.p.game.room };
     },
     roomOf: (bytes) => STARQUAKE_CODEC.unpack(bytes, 1).fields.room ?? -1,
     reads: (bytes, format) => { try { STARQUAKE_CODEC.unpack(bytes, format); return true; } catch { return false; } },
@@ -123,13 +124,18 @@ const KINDS: Kind[] = [
   },
 ];
 
-/** Launch on what is in storage and run until it is in play (or give up). */
+/**
+ * Launch on what is in storage: the title comes first (`titled`: ENTER CONTINUE is up, `playing` not yet), and Enter
+ * goes back into play, as a player does it. With no save to offer, `titled` stays false and Enter is not pressed.
+ */
 async function launched(kind: Kind) {
   const g = kind.launch();
   await new Promise((done) => setTimeout(done, 0)); // (a game loads its title snapshot with fetch)
-  for (let n = 0; n < 400 && !g.playing(); n++) g.tick();
+  for (let n = 0; n < 400 && !g.titled(); n++) g.tick();
+  const titled = g.titled(), playingAtTitle = g.playing();
+  if (titled) { g.enter(); for (let n = 0; n < 400 && !g.playing(); n++) g.tick(); }
   for (let n = 0; n < 20; n++) g.tick();
-  return g;
+  return { ...g, titled, playingAtTitle };
 }
 
 for (const kind of KINDS) {
@@ -152,9 +158,10 @@ for (const kind of KINDS) {
   check(`${id}: the bytes unpack in format 1 (the game's own check)`, kind.reads(bytes, 1));
   check(`${id}: ...and are refused as a format nobody here reads (not guessed at)`, !kind.reads(bytes, 99));
 
-  // ---- the game launched on them goes straight back into play ------------------------------------------
+  // ---- the game launched on them opens on its title, and Enter goes back into play ------------------------------------------
   const g = await launched(kind);
-  check(`${id}: launched on the fixture, straight back into play`, g.playing());
+  check(`${id}: launched on the fixture, the title with ENTER CONTINUE (not play)`, g.titled && !g.playingAtTitle);
+  check(`${id}: Enter goes back into play`, g.playing());
   if (id !== 'entombed') check(`${id}: in the saved room (${kind.roomOf(bytes)})`, g.room() === kind.roomOf(bytes));
 
   // ---- written again, it is in the envelope, with the same bytes ---------------------------------------------

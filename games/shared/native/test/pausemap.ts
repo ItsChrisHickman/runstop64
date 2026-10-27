@@ -19,6 +19,7 @@ import { run as runBlackwyche } from '../../../blackwyche/src/main';
 import { run as runKarnath } from '../../../karnath/src/main';
 import { blackwycheMap } from '../../../blackwyche/src/map';
 import { karnathMap } from '../../../karnath/src/map';
+import { continueFromTitle } from '../../test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../test/browser';
 import { readRoutes } from '../../test/data';
 import { check, finish } from '../../test/check';
@@ -27,7 +28,7 @@ const gameId = process.argv[2] ?? 'blackwyche', outDir = process.argv[3];
 /** What this test uses of a running game (each game's own kind of progress is `unknown` here). */
 interface Running {
   machine: C64Machine | undefined;
-  state: { playing: boolean };
+  state: { playing: boolean; prompt: string | null };
   frontEnd: { paused: boolean; picked: string | null; found: unknown };
   tick(): void;
   render(alpha: number): void;
@@ -75,7 +76,7 @@ const shot = (name: string) => {
 };
 
 await new Promise((r) => setTimeout(r, 0));
-tick(150); // (launched with a save: straight back into play, no key)
+continueFromTitle(p, input, tick); // (launched with a save: the title, then Enter)
 const ram = () => { const m = p.machine; if (!m) throw new Error('no machine'); return m.ram; };
 check('continued the save', p.state.playing);
 press('KeyP');

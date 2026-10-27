@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { checkFightGrace, type Launch, type Session } from '../../shared/test/grace';
 import { packState, unpackState } from 'c64kit';
 import { cpu } from '../../shared/native/cpu';
@@ -38,7 +39,7 @@ function corridorSave() {
   return Buffer.from(packState(must(g.save(), 'a save'))).toString('base64');
 }
 
-/** Launched with a save: straight back into play (the grace begins). Without: a new game, a few seconds in. */
+/** Launched with a save: the title, ENTER CONTINUE and Enter, back into play (the grace begins). Without: a new game, a few seconds in. */
 const launch: Launch = async (save) => {
   useMemoryStorage(save ? new Map([['entombed.save.v1', save]]) : new Map());
   const input = new Input(nowhere);
@@ -49,7 +50,7 @@ const launch: Launch = async (save) => {
     tick(n = 1) { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } },
     press(code: string) { input.keyDown(code); s.tick(3); input.keyUp(code); s.tick(3); },
   };
-  if (save) { for (let i = 0; i < 900 && !p.state.playing; i++) s.tick(1); return s; }
+  if (save) { continueFromTitle(p, input, s.tick); return s; }
   s.tick(80); s.press('Space'); s.tick(300);
   return s;
 };

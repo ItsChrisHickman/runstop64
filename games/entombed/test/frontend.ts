@@ -66,10 +66,12 @@ const shot = (name: string) => {
   rgbPng(`${outDir}/${name}.png`, rgb, 320, 200, 2);
 };
 
-// ---- launched with a save: straight back into play, in the corridors ----
+// ---- launched with a save: the title with ENTER CONTINUE, and Enter goes back into play, in the corridors ----
 await new Promise((r) => setTimeout(r, 0));
 tick(132);
 const m = () => must(p.machine, 'the machine');
+check('launched with a save: the title with ENTER CONTINUE, not play', !p.state.playing && p.state.prompt === 'title');
+press('Enter');
 check('continued into the corridors', p.state.playing && (m().ram[0x6001] | (m().ram[0x6002] << 8)) === 0x60f8);
 const combatOn = () => !!p.options.invulnerable && !!p.options.knockback && !!p.options.hitStop && !!p.options.eightWay && !!p.options.hints;
 const combatOff = () => !p.options.invulnerable && !p.options.knockback && !p.options.hitStop && !p.options.eightWay && !p.options.hints;

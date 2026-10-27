@@ -4,10 +4,7 @@
  * spent; `filter(fire)` gives the fire the game should see.
  */
 export class FireLatch {
-  private over: boolean;
-
-  /** `over`: a press is already spent at the start (a launch straight into play). */
-  constructor(over = false) { this.over = over; }
+  private over = false;
 
   /** A press has been spent: its fire is ignored until it is let go. */
   hold() { this.over = true; }

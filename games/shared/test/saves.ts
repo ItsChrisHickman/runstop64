@@ -4,7 +4,7 @@
  * manager (games/saves.ts):
  *
  * - the single save from before the history (`<id>.save.v1`) moves into it, nothing lost;
- * - a launch with a save goes straight back into play;
+ * - a launch with a save shows the title with ENTER CONTINUE, and Enter goes back into play where it was;
  * - T on the pause screen goes back to the title, the save kept;
  * - a new game keeps the save as the previous one, and restoring it brings it back (and undoes);
  * - a second new game that never got past its first room doesn't push the older save out;
@@ -105,6 +105,8 @@ const ticks = (g: Game, n: number) => { for (let i = 0; i < n; i++) g.tick(); };
 const press = (g: Game, code: string) => { input.keyDown(code); g.tick(); input.keyUp(code); g.tick(); };
 /** Space on the title over a save: NEW GAME? first, and Space again starts it. */
 const newGame = (g: Game) => { press(g, 'Space'); const asked = g.flow.state.prompt === 'newGame' && g.game.onTitle; press(g, 'Space'); return asked; };
+/** A launch with a save: the title, ENTER CONTINUE up after a moment, and Enter (as a player does). */
+const continueFromTitle = (g: Game) => { ticks(g, 30); press(g, 'Enter'); };
 /** The player walks into the next room. */
 const nextRoom = (g: Game) => { g.game.room++; ticks(g, 2); };
 /** The last life lost: back to the title. */
@@ -117,10 +119,14 @@ let g = launch();
 check('the old single save (test.save.v1) is the current save now, its key gone', !store.has('test.save.v1') && readSaves('test').current !== null && readSaves('test').previous === null);
 check(`  described once the game has read it ("${readSaves('test').current?.summary.join(' / ')}")`, readSaves('test').current?.summary.join(' / ') === 'ROOM 7 / LIVES 2 / SEEN 3');
 
-// ---- a launch with a save: straight back into play ----------------------------------------------
-check('launched with a save: on the way back into play', g.flow.launching);
+// ---- a launch with a save: the title, ENTER CONTINUE, and Enter goes back where it was -------------
 g.tick();
-check('the first tick: back in play where it was (room 7, two lives), no title', !g.game.onTitle && g.game.room === 7 && g.game.lives === 2 && g.flow.state.playing && !g.flow.launching);
+check('launched with a save: the title (not play), nothing resumed by itself', g.game.onTitle && !g.flow.state.playing);
+ticks(g, 60);
+check('  still the title a second on, with ENTER CONTINUE up', g.game.onTitle && !g.flow.state.playing && g.flow.state.prompt === 'title');
+press(g, 'Enter');
+check('Enter: back in play where it was (room 7, two lives)', !g.game.onTitle && g.game.room === 7 && g.game.lives === 2 && g.flow.state.playing);
+check('  and the grace begins on that continue', g.flow.grace.active);
 nextRoom(g);
 nextRoom(g);
 check('entering rooms autosaves (room 9, dated, described)', readSaves('test').current?.summary[0] === 'ROOM 9' && (readSaves('test').current?.at ?? 0) > 0);
@@ -156,7 +162,9 @@ nextRoom(g);
 // a page load later: the launch continues the new game (room 3)
 g = launch();
 g.tick();
-check('launched again: straight back into the new game (room 3)', !g.game.onTitle && g.game.room === 3);
+check('launched again: the title first', g.game.onTitle);
+continueFromTitle(g);
+check('Enter: back into the new game (room 3)', !g.game.onTitle && g.game.room === 3);
 
 // ---- the save manager: the list, restore (both ways), delete with a confirm --------------------------
 let launched = '', back = 0;
@@ -240,7 +248,7 @@ check('L: the game is launched', launched === 'montyotr');
 
 // ---- a new game that never got past its first room doesn't push the older save out -----------------
 g = launch();
-g.tick(); // (room 3: the second game)
+continueFromTitle(g); // (room 3: the second game)
 press(g, 'KeyP'); press(g, 'KeyT'); ticks(g, 40);
 newGame(g); // a new game (by accident): the second game (room 3) becomes the previous
 check('another new game: the game it replaced (room 3) is the previous', readSaves('test').previous?.summary[0] === 'ROOM 3');

@@ -157,7 +157,7 @@ export function run(host: Host) {
     // ?ending on the page: the ending at once, for review
     if (wantsEnding()) reward.start(endingStats(null, fe.found));
 
-    // the game, as launched: the title (a save goes straight back into play, ContinueFlow)
+    // the game, as launched: the title (with a save, ENTER CONTINUE, ContinueFlow)
     return {
       takeover: reward,
       watchEnding() { afterWin = false; reward.start(endingStats(program.game, fe.found)); },

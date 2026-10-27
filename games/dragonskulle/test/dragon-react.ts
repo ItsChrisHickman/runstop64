@@ -17,6 +17,7 @@ import { HITS } from '../src/rules';
 import { ACTION, STAND, enter } from '../re/rules/lab';
 import { HIT_CYCLE } from '../../shared/native/colour-cycle';
 import type { MachineState } from 'c64kit';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 stubFetch(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state'));
 const outDir = process.argv[2];
@@ -32,7 +33,7 @@ async function launch(state: MachineState, enhanced: boolean) {
   await new Promise((r) => setTimeout(r, 0));
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
-  for (let i = 0; i < 900 && !p.state.playing; i++) tick(1);
+  continueFromTitle(p, input, tick); // (the title, ENTER CONTINUE, Enter)
   tick(160); // (the grace)
   if (p.frontEnd.enhanced !== enhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
   const m = () => must(p.machine, 'a game');

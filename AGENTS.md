@@ -134,7 +134,7 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Starquak
   from rare ones) finds what a game can do without a human.
 - A save Chris sends (the info sheet's "Export save (debug)": `runstop64-<game>-<date>.json`, the current and previous saves
   exactly as stored): reproduce it with `games/shared/test/load-save.ts` (`loadSave(file, MACHINE_CODEC)` gives the machine
-  state; `loadIntoStorage(file)` before `run(host)` launches straight back into play).
+  state; `loadIntoStorage(file)` before `run(host)` opens the game on its title with ENTER CONTINUE from that save; `continueFromTitle` in `games/shared/test/continue-from-title.ts` presses Enter as a player does).
 - Deploy: `npm run deploy` (builds, rsyncs to goshow.me/runstop64).
 
 ## Lessons

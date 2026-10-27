@@ -25,6 +25,7 @@ import { nowhere, useMemoryStorage } from './browser';
 import { loadIntoStorage, loadSave, readExport } from './load-save';
 import { must } from './must';
 import { check, finish } from './check';
+import { continueFromTitle } from './continue-from-title';
 
 const store = useMemoryStorage();
 const outDir = process.argv[2] ?? '/tmp/runstop64-export-test';
@@ -102,8 +103,8 @@ function monty() {
   useMemoryStorage();
   loadIntoStorage(file);
   const m = monty();
-  m.tick(60);
-  check(`monty: launched with the file in storage, he carries on from it (room ${m.g.roomId}, score ${m.g.score}, lives ${m.g.lives}, a coin)`,
+  continueFromTitle(m.p, m.input, m.tick); // (the title, ENTER CONTINUE, Enter)
+  check(`monty: launched with the file in storage, ENTER CONTINUE, he carries on from it (room ${m.g.roomId}, score ${m.g.score}, lives ${m.g.lives}, a coin)`,
     m.p.state.mode === 'play' && m.g.roomId === s.roomId && m.g.score === 4321 && m.g.lives === 7 && m.g.coinCollected[5] === 1);
 }
 

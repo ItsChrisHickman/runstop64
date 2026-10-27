@@ -3,7 +3,7 @@
  * started by Enter (no save) or the jump key; the latch on the press that started it; walking; the exit to the next screen, noted on the map
  * (screens come to, finished); the pause screen with the map (Spectrum colours, our font), picked with the arrows and with taps, and travel to
  * the start of a screen he has come to; items taken and screens finished in its side panel; autosave on every screen (a death too) and a launch
- * with a save going straight back into play; GAME OVER -> CONTINUE? -> the last screen again (a new game's lives and score from nothing; after
+ * with a save (the credits page, ENTER CONTINUE, Enter goes back into play); GAME OVER -> CONTINUE? -> the last screen again (a new game's lives and score from nothing; after
  * the card, everything as saved); the Christmas card and any key; back to screen start; the save a faithful copy of the game; the ORIGINAL /
  * ENHANCED switch (sprites on the renderer or not, the enhancements on or off); a moment's grace after a resume; the high score kept; NEW GAME?
  * over a save; ENTER CONTINUE where it sits; touch; the sound told what happens. With an out-dir: stills of the screens.
@@ -285,9 +285,13 @@ check('and ENHANCED again', p.state.enhanced && game().enhanced.unlimitedLives);
   const input2 = new Input(nowhere);
   const r2 = new PixelRenderer();
   const q = run({ renderer: r2, input: input2, canvas: nowhere });
-  for (let i = 0; i < 8; i++) { input2.poll(); q.tick(); q.render(0); }
+  const tick2 = (n: number) => { for (let i = 0; i < n; i++) { input2.poll(); q.tick(); q.render(0); } };
+  tick2(60);
   const latest = must(savedNow(), 'no save');
-  check('launched with a save: straight back into play, in its screen, as saved', q.state.phase === 'play' && q.flow.game.room === latest.room && q.flow.game.lives === latest.lives);
+  check('launched with a save: the credits page with ENTER CONTINUE, not play', q.state.phase === 'credits' && q.state.prompt === 'title');
+  input2.keyDown('Enter'); tick2(2); input2.keyUp('Enter'); tick2(4);
+  check('Enter: back in play, in its screen, as saved', q.state.phase === 'play' && q.flow.game.room === latest.room && q.flow.game.lives === latest.lives);
+  check('  and the grace begins on that continue', q.state.grace > 0);
   check(`and the high score is there (${q.flow.game.highScore}, kept ${store.get('moley.high.v1')})`, q.flow.game.highScore === Number(store.get('moley.high.v1')) && q.flow.game.highScore >= 700);
 }
 

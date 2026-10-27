@@ -204,13 +204,15 @@ check(`Enter: back in play in the last room (${g.roomId.toString(16)}), lives as
 tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
 check('and ENHANCED again', g.assist.lives === true && !p.state.paused);
 
-// ---- a page load with the save: straight back into play; T on the pause screen: the title, the save kept ----
+// ---- a page load with the save: the title, ENTER CONTINUE, Enter back into play; T on the pause screen: the title, the save kept ----
 {
   const saved = readSaves('montyotr').current;
   const p2 = run({ renderer, input, canvas: nowhere });
   const tick2 = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p2.tick(); p2.render(0); } };
-  tick2(2); // (the first tick continues, the next loads the room)
-  check(`launched again: straight back into play in the saved room (${p2.game.roomId.toString(16)}), no title`, p2.state.mode === 'play' && p2.game.roomId === lastRoom);
+  tick2(60);
+  check('launched again: the title with ENTER CONTINUE, not play', p2.state.mode === 'title' && p2.state.prompt === 'title');
+  input.keyDown('Enter'); tick2(2); input.keyUp('Enter'); tick2(4); // (the first tick continues, the next loads the room)
+  check(`Enter: back in play in the saved room (${p2.game.roomId.toString(16)})`, p2.state.mode === 'play' && p2.game.roomId === lastRoom);
   tick2(20);
   shot('8-launched');
   input.keyDown('KeyP'); tick2(2); input.keyUp('KeyP'); tick2(2);

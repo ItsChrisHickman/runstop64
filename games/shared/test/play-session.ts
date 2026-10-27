@@ -2,6 +2,7 @@ import { Input, PixelRenderer, packState, type Host, type MachineState } from 'c
 import type { runNative } from '../native/play';
 import { nowhere, useMemoryStorage } from './browser';
 import { must } from './must';
+import { continueFromTitle } from './continue-from-title';
 
 /** A native game run through the front end, as the browser runs it (what `run(host)` of a game's main.ts gives). */
 export type NativeRun = ReturnType<typeof runNative>;
@@ -30,8 +31,7 @@ export class PlaySession {
     useMemoryStorage(kept);
     const s = new PlaySession(run, keep);
     await new Promise((r) => setTimeout(r, 0));
-    for (let i = 0; i < 900 && !s.p.state.playing; i++) s.tick();
-    if (!s.p.state.playing) throw new Error('did not continue the save');
+    continueFromTitle(s.p, s.input, (n) => s.tick(n)); // (the title, ENTER CONTINUE, Enter)
     return s;
   }
 

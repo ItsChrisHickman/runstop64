@@ -35,6 +35,7 @@ import { run } from '../src/main';
 import { chamberState } from '../re/hints/chambers';
 import { replay } from '../re/hints/play';
 import { readSolved } from '../re/hints/solved';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
@@ -198,7 +199,7 @@ async function session(state: MachineState, enhanced: boolean) {
   await new Promise((r) => setTimeout(r, 0));
   const ram = () => must(p.machine, 'the machine').ram;
   const tick = () => { input.poll(); p.tick(); p.render(0); const r = ram(); r[0x37f6] = 0; r[0x323d] = 0; };
-  for (let i = 0; i < 141; i++) tick(); // (launched with a save: straight back into play, no key)
+  continueFromTitle(p, input, (n) => { for (let i = 0; i < n; i++) tick(); }); // (launched with a save: the title, then Enter)
   return { ram, tick, input };
 }
 /** Hold a walk's keys through the front end; the floor he comes to and the frame (null: he stays on his floor). */

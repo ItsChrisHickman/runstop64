@@ -10,7 +10,7 @@ import type { TouchLayout } from './shared/touch';
  *
  * - The list: each game with the date of its save; under it, the picked game's saves (current and
  *   previous: when, and what the game said about its progress then: games/shared/saves.ts).
- * - A game's page: CONTINUE (the game, straight back into play), RESTORE PREVIOUS (the previous
+ * - A game's page: CONTINUE (opens the game on its title, which offers ENTER CONTINUE from this save), RESTORE PREVIOUS (the previous
  *   save and the current one change places: the same again undoes it), DELETE (each save; a page
  *   of its own asks first, NO picked).
  *
@@ -26,7 +26,7 @@ export const info = {
   html: `
     <p>Every game here saves your progress as you play, in this browser, and keeps the save from before
     your last new game too. Here you can see them all: when each was made and how far you'd got.</p>
-    <p>Pick a game (arrows and Enter, or tap it twice): CONTINUE plays on from its save, RESTORE PREVIOUS
+    <p>Pick a game (arrows and Enter, or tap it twice): CONTINUE opens the game, and its title offers ENTER CONTINUE from the save, RESTORE PREVIOUS
     brings back the save from before the last new game (the two change places, so doing it again undoes it),
     and DELETE removes a save for good (it asks first). Esc goes back to the directory.</p>
   `,
@@ -61,7 +61,7 @@ function summaryLines(slot: SaveSlot, width: number, max: number): string[] {
 interface SavesOptions {
   /** Back to the directory. */
   back(): void;
-  /** Play a game (it goes straight back into play from its save). */
+  /** Open a game (on its title, which offers ENTER CONTINUE from its save). */
   launch(game: GameEntry): void;
 }
 

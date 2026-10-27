@@ -131,7 +131,6 @@ export function run(host: Host) {
     strip: { y: 183 }, // (on the black under the title's floor)
     // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
     assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }, LIVES_ASSIST],
-    launchHeld: true,
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('antiriad'),
   }, (self) => {

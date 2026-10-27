@@ -33,6 +33,7 @@ import { blackwycheMap, travelPlaces } from '../src/map';
 import { placeId, settled, where } from '../src/travel';
 import { readRoutes } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 const titleBytes = fs.readFileSync('games/blackwyche/assets/blackwyche-title.state');
 stubFetch(titleBytes);
@@ -99,7 +100,7 @@ async function launch() {
     picked: () => p.frontEnd.picked,
     here: () => { const w = where(s.ram()); return w ? placeId(w) : '-'; },
   };
-  for (let i = 0; i < 900 && !p.state.playing; i++) s.tick(1);
+  continueFromTitle(p, input, s.tick); // (the title, ENTER CONTINUE, Enter)
   s.tick(1);
   s.press('KeyP');
   return s;

@@ -2,7 +2,7 @@
  * Auf Wiedersehen Monty's front end, headless (c64kit stood in by games/shared/test/kit.ts): the title (F1 music, F7
  * effects, a tap on the menu), fire starts a game in room $48; walking into the next room; the pause screen with the map
  * (rooms seen, where Monty is, the shimmer of a room with everything taken, the picked room's name and what's left);
- * travel back by the map (keys, and taps); autosave and a launch with a save going straight back into play; GAME OVER ->
+ * travel back by the map (keys, and taps); autosave and a launch with a save (the title, ENTER CONTINUE, Enter goes back into play); GAME OVER ->
  * CONTINUE? -> back in the last room (a new game's lives, the score from nothing; after the ending, everything as saved);
  * back to room start; the save a faithful copy of the game (what the room start was); the ORIGINAL/ENHANCED switch and
  * ENHANCED's safe respawn; a moment's grace after a resume; the high score kept; the sound requests reaching the .sid.
@@ -244,15 +244,19 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   check(`Enter: Monty is back with the lives and score he had (${game().lives.toString(16)}, ${game().score.value})`, p.state.kind === 'play' && game().lives === 0x8a && game().score.value === 100);
 }
 
-// ---- launching with a save -----------------------------------------------------------------------------------------
+// ---- launching with a save: the title, then Enter -----------------------------------------------------------------------------------------
 {
   const input2 = new Input(nowhere);
   const r2 = new PixelRenderer();
   const q = run({ renderer: r2, input: input2, canvas: nowhere });
-  for (let i = 0; i < 8; i++) { input2.poll(); q.tick(); q.render(0); }
+  const tick2 = (n: number) => { for (let i = 0; i < n; i++) { input2.poll(); q.tick(); q.render(0); } };
+  tick2(60);
   const slot2 = readSaves('awm').current;
   const latest = must(slot2 ? unpackSlot(CODEC, slot2) : null, 'no save');
-  check('launched with a save: straight back into play, in its room, as saved', q.state.kind === 'play' && q.program.game?.world.room === latest.room && q.program.game?.lives === latest.lives);
+  check('launched with a save: the title with ENTER CONTINUE, not play', q.state.kind === 'title' && q.state.prompt === 'title');
+  input2.keyDown('Enter'); tick2(2); input2.keyUp('Enter'); tick2(4);
+  check('Enter: back in play, in its room, as saved', q.state.kind === 'play' && q.program.game?.world.room === latest.room && q.program.game?.lives === latest.lives);
+  check('  and the grace begins on that continue', q.grace.active);
 }
 
 // ---- ENHANCED's safe respawn -------------------------------------------------------------------------------------------

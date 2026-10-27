@@ -37,6 +37,7 @@ import { Game } from '../src/game';
 import { run } from '../src/main';
 import { Bases } from '../src/stage';
 import { V } from '../src/vars';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 const out = process.argv[2];
 if (out) fs.mkdirSync(out, { recursive: true });
@@ -268,6 +269,7 @@ function boot(enhanced: boolean) {
   writeCurrent('antiriad', { format: MACHINE_CODEC.format, data: toBase64(new Uint8Array(fs.readFileSync('games/antiriad/test/armour.state'))), at: 0, summary: [], rooms: 5 });
   const inp = new Input(nowhere), rend = new PixelRenderer(), p = run({ renderer: rend, input: inp, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
+  continueFromTitle(p, inp, tick); // (launched with a save: the title, ENTER CONTINUE, Enter)
   const press = (code: string) => { inp.keyDown(code); tick(3); inp.keyUp(code); tick(2); };
   const hold = (keys: string[], n: number, until: () => boolean = () => false) => {
     for (const k of keys) inp.keyDown(k);

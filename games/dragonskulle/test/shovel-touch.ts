@@ -20,6 +20,7 @@ import { Input, PixelRenderer, TRANSPARENT, packState, unpackState } from 'c64ki
 import { indicesToRgb, renderPixels, rgbPng } from '../../../tools/probe/render';
 import { MAP_BOX, mapSummary } from '../../shared/native/pause';
 import { NativeHost } from '../../shared/native/host';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { port } from '../src/native';
 import { dragonskulleMap } from '../src/map';
@@ -86,7 +87,8 @@ async function launch(enhanced: boolean, save: string | null) {
   const input = new Input(nowhere), renderer = new PixelRenderer();
   s = { p: run({ renderer, input, canvas: nowhere }), input, renderer };
   await new Promise((r) => setTimeout(r, 10));
-  return until(() => S().p.state.playing, 400) && S().p.frontEnd.enhanced === enhanced;
+  continueFromTitle(S().p, S().input, tick); // (the title, ENTER CONTINUE, Enter)
+  return S().p.state.playing && S().p.frontEnd.enhanced === enhanced;
 }
 /** Travel by the map: P, then two taps on the place. */
 const goTo = (id: string) => {

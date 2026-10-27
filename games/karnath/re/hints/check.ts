@@ -38,6 +38,7 @@ import { renderPng } from '../../../../tools/probe/render';
 import { spriteSpot } from '../../../shared/native/spots';
 import { KEPT, MODE, hintSpots, hourOn, mapPieceSpots, spritePieceSpots, wayToObelisk } from '../../src/hints';
 import type { Spot } from '../../../shared/native/spots';
+import { continueFromTitle } from '../../../shared/test/continue-from-title';
 
 const TITLE = 'games/karnath/assets/karnath-title.state';
 const ROUTES = 'games/karnath/re/routes.json';
@@ -375,8 +376,7 @@ class Session {
     useMemoryStorage(kept);
     const s = new Session();
     await new Promise((r) => setTimeout(r, 0));
-    for (let i = 0; i < 900 && !s.p.state.playing; i++) s.tick();
-    if (!s.p.state.playing) throw new Error('did not continue the save');
+    continueFromTitle(s.p, s.input, (n) => s.tick(n)); // (the title, ENTER CONTINUE, Enter)
     s.trace.length = 0;
     return s;
   }

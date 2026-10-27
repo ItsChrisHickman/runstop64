@@ -54,13 +54,12 @@ export function stripText(strip: TitleStrip, touch: boolean): string {
 }
 
 /**
- * Which screen of the flow's is up: exactly one. A launch with a save is on its way back into
- * play (the screen kept black, `waited` ticks so far); on the game's own title or in play none
- * of the flow's is up (`open`); then ENTER CONTINUE on the title, or one of the questions that
+ * Which screen of the flow's is up: exactly one. On the game's own title or in play none
+ * of the flow's is up (`open`); then ENTER CONTINUE on the title (what a launch with a save
+ * shows: the game never goes back into play without a key), or one of the questions that
  * hold the game (CONTINUE? after losing, NEW GAME? over a save).
  */
 export type Screen =
-  | { readonly kind: 'launching'; readonly waited: number }
   | { readonly kind: 'open' }
   | { readonly kind: 'title' }
   | { readonly kind: 'continue' }
@@ -102,10 +101,10 @@ export interface FlowState {
   readonly newGameOk: boolean;
 }
 
-/** The state of a flow just made: launching back into play if there is a save to go back to. */
-export function initialState(hasSave: boolean, launch: boolean): FlowState {
+/** The state of a flow just made: the game's own title comes first, and offers ENTER CONTINUE once it is up if there is a save. */
+export function initialState(hasSave: boolean): FlowState {
   return {
-    screen: hasSave && launch ? { kind: 'launching', waited: 0 } : OPEN,
+    screen: OPEN,
     playing: false, hasSave, lastRoom: -1, rooms: 0, fresh: false, over: false,
     restartAsked: 1000, titleTicks: 0, fireWasDown: true, startOk: false, newGameOk: false,
   };
@@ -160,11 +159,9 @@ export function readIntent(input: FlowInput, strip: TitleStrip, restartKeys: rea
 export interface StepStatus {
   /** The game's title screen is up. */
   onTitle: boolean;
-  /** Ticks the title must have been up before a launch goes back into play (the font of the title is taken first, for games whose panels use it). */
-  launchWait: number;
 }
 
-/** What a tick did: the new state, and the save to resume from if the player chose to continue (the question answered, or the launch). */
+/** What a tick did: the new state, and the save to resume from if the player chose to continue (the question answered). */
 interface StepResult {
   state: FlowState;
   resume: 'title' | 'continue' | null;
@@ -173,13 +170,10 @@ interface StepResult {
 /** A game that begins within this many ticks of a restart key was begun on purpose. */
 export const RESTART_TICKS = 500;
 
-/** How long a launch waits for the game's title before giving up on going straight back into play. */
-export const LAUNCH_TICKS = 10 * 50;
-
 /**
  * A tick of the flow before the game's (pure). `resume`: the player chose to continue: the save is
- * to be loaded and the game restarted from it (`'title'`: from ENTER CONTINUE, NEW GAME?'s Enter or
- * a launch; `'continue'`: from CONTINUE? after losing).
+ * to be loaded and the game restarted from it (`'title'`: from ENTER CONTINUE, NEW GAME?'s Enter;
+ * `'continue'`: from CONTINUE? after losing).
  */
 export function step(prev: FlowState, intent: Intent, status: StepStatus): StepResult {
   let { screen, playing, lastRoom, fresh, over, startOk, fireWasDown, newGameOk } = prev;
@@ -190,14 +184,6 @@ export function step(prev: FlowState, intent: Intent, status: StepStatus): StepR
     state: { ...prev, screen, playing, lastRoom, fresh, over, startOk, fireWasDown, newGameOk: resume ? false : newGameOk, restartAsked, titleTicks },
     resume,
   });
-
-  // Launched with a save: back into play as soon as the game is up.
-  if (screen.kind === 'launching') {
-    const waited = screen.waited + 1;
-    if (waited > LAUNCH_TICKS) screen = OPEN;
-    else if (titleTicks < status.launchWait) { screen = { kind: 'launching', waited }; return done(); }
-    else { screen = OPEN; return done('title'); }
-  }
 
   // The title is back: play is over there and then (a new game started straight away is a new
   // game, whatever brought the title back: the last life lost, R or F1, the game won). CONTINUE?
@@ -232,7 +218,7 @@ export function step(prev: FlowState, intent: Intent, status: StepStatus): StepR
   }
 
   const kind = screen.kind;
-  if (kind === 'open' || kind === 'launching') return done();
+  if (kind === 'open') return done();
   // Taps (touch): the words. On the title, its CONTINUE (the line's left half, or all of a short
   // one, and round it); on the CONTINUE? screen, its left half says yes and its right half no.
   const tapYes = kind === 'title' ? intent.tap.strip : intent.tap.left;

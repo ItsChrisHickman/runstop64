@@ -253,7 +253,7 @@ export function run(host: Host) {
         view.look = fe.enhanced && fe.assist.look === true ? 'enhanced' : 'original';
         if (step !== null) view.present(step, into, true);
         // sparkles on the puzzles and the ways out (hints.ts): ENHANCED, in play, not over a held picture (a death's) nor a screen of ours
-        const shown = fe.enhanced && fe.assist.hints === true && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.covering;
+        const shown = fe.enhanced && fe.assist.hints === true && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
         view.sparkle(shown ? hintsOf(current.game) : []);
       },
       renderView: (alpha) => view.render(alpha),

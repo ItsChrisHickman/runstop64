@@ -462,7 +462,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     // Running (Shift held, or the touch RUN key on, in play; in ENHANCED for some): the player's own
     // handling once more a frame (see atWait).
     running?.beforeFrame(input, holding);
-    feedInput(g, holding || flow.launching);
+    feedInput(g, holding);
     let played = false;
     if (!holding) { g.tick(); played = flow.state.playing; }
     const ticked = !holding;

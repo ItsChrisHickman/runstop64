@@ -24,6 +24,7 @@ import { C64_PALETTE } from '../../../packages/c64kit/src/palette';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 const store = useMemoryStorage();
 const titleBytes = fs.readFileSync('games/entombed/assets/entombed-title.state');
@@ -74,7 +75,7 @@ const m = () => must(p.machine, 'the machine');
 const at = (id: string) => { const [f, x, y] = id.split(/[:,]/).map(Number); return !p.frontEnd.paused && m().ram[0x37f7] === f && m().ram[0x217e] === x && m().ram[0x217f] === y; };
 
 await new Promise((r) => setTimeout(r, 0));
-tick(132);
+continueFromTitle(p, input, tick); // (the title, ENTER CONTINUE, Enter)
 check('continued into the corridors of floor 6', p.state.playing && m().ram[0x37f7] === 6);
 
 press('KeyP');

@@ -11,9 +11,8 @@ import { fromBase64, keepFound, readFound, readSaves, startNewGame, tidySummary,
  * - progress is saved in the browser each time the player enters a new room, through the one
  *   storage module (games/shared/saves.ts), which also keeps the save as it stood before the
  *   last new game began (the save manager, games/saves.ts, can swap it back);
- * - games always continue: launched with a save, the game goes straight back into play where it
- *   was (the title is only shown without a save, or when asked for: T on the pause screen);
- * - the title offers ENTER CONTINUE (Space or fire start a new game, which keeps the save as the
+ * - the game always opens on its title, with or without a save (a launch never goes straight back
+ *   into play); with a save the title offers ENTER CONTINUE (Space or fire start a new game, which keeps the save as the
  *   previous one), and a new game over a save asks first: NEW GAME? (Space or fire again yes, Esc or
  *   a tap no, Enter continues). A press (or a jump still held) as the last life goes, before
  *   CONTINUE? is up, brings CONTINUE? up rather than starting a game;
@@ -89,8 +88,6 @@ interface ContinueOptions<S, F> {
    * `found`: what had been found then (the map's progress).
    */
   describe?(save: S, found: F): string[];
-  /** Launched with a save, straight back into play (default true). */
-  continueOnLaunch?: boolean;
   /** The panels' colours where the game's palette is not the C64's (default the C64's). */
   colours?: PauseColours;
 }
@@ -144,22 +141,18 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     this.colours = opts.colours ?? C64_PAUSE_COLOURS;
     this.restartKeys = opts.restartKeys ?? ['F1', 'KeyR'];
     this.foundNow = () => opts.found.parse(readFound(opts.id));
-    this.st = initialState(this.load() !== null, opts.continueOnLaunch !== false);
+    this.st = initialState(this.load() !== null);
     this.describeOld();
   }
 
   /** For tests. */
   get state() {
     const { kind } = this.st.screen;
-    return { prompt: kind === 'title' || kind === 'continue' || kind === 'newGame' ? kind : null, playing: this.st.playing, hasSave: this.st.hasSave, launching: this.launching };
+    return { prompt: kind === 'title' || kind === 'continue' || kind === 'newGame' ? kind : null, playing: this.st.playing, hasSave: this.st.hasSave };
   }
   /** A question is up (CONTINUE?, NEW GAME?): the game waits, and its sprites are hidden. */
   get holding() { return this.st.screen.kind === 'continue' || this.st.screen.kind === 'newGame'; }
-  /** Launched with a save, on the way back into play: the screen is kept black and keys don't reach the title. */
-  get launching() { return this.st.screen.kind === 'launching'; }
-  /** A screen of the flow's covers the game's picture (CONTINUE?, or a launch on its way back into play): sprites hidden, music held. */
-  get covering() { return this.holding || this.launching; }
-  /** Which question the last save came back from: ENTER CONTINUE on the title (or a launch), or CONTINUE? after losing. */
+  /** Which question the last save came back from: ENTER CONTINUE on the title, or CONTINUE? after losing. */
   get lastAnswer() { return this.answer; }
 
   watchFound(get: () => F) { this.foundNow = get; }
@@ -169,9 +162,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
    * to continue (the caller restarts the game from it, then calls `resumed`).
    */
   before(g: GameStatus<S>): S | null {
-    const kitOnly = this.opts.font instanceof BitmapFont || this.opts.font === 'kit' || !g.machine;
-    // (for games whose panels use the font of their title, once it has been taken: half a second later, the screen kept black)
-    const { state, resume } = step(this.st, readIntent(this.opts.input, this.stripAt, this.restartKeys), { onTitle: g.onTitle, launchWait: kitOnly ? 1 : 26 });
+    const { state, resume } = step(this.st, readIntent(this.opts.input, this.stripAt, this.restartKeys), { onTitle: g.onTitle });
     this.st = state;
     if (state.titleTicks === 25 && !this.font) this.font = this.opts.font instanceof BitmapFont ? this.opts.font : this.opts.font === 'kit' || !g.machine ? kitFont() : gameFont(g.machine);
     if (!resume) return null;
@@ -232,7 +223,6 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   /** Draw the panels (after the picture is drawn into the renderer's screen). */
   draw() {
     const { kind } = this.st.screen;
-    if (kind === 'launching') { this.opts.renderer.screen.clear(this.colours.black); return; } // (the title, on the way back into play: not shown)
     if (!this.font) return;
     const touch = this.opts.input.touch;
     if (kind === 'title') this.strip(touch);

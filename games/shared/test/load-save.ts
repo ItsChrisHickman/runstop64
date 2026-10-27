@@ -6,7 +6,7 @@
  *   `MACHINE_CODEC`, e.g. `NativeHost.resume(port, s)`; Monty's `CODEC` gives a `MontySave`, for
  *   `restore(game, s)`); `'previous'` for the one kept from before the last new game;
  * - `loadIntoStorage(file)`: everything in it put in the (test's) storage, so a game launched
- *   after it (`run(host)`) goes straight back into play from it, as it did for Chris.
+ *   after it (`run(host)`) opens on its title with ENTER CONTINUE from it (`continueFromTitle`: Enter)
  */
 import fs from 'node:fs';
 import { unpackSlot, type SaveCodec } from '../continue';

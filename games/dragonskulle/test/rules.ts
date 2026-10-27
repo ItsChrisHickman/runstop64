@@ -23,6 +23,7 @@ import { cloakLeft } from '../src/rules';
 import { run } from '../src/main';
 import { enter, sprite } from '../re/rules/lab';
 import type { MachineState } from 'c64kit';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 stubFetch(fs.readFileSync('games/dragonskulle/assets/dragonskulle-title.state'));
 
@@ -40,7 +41,7 @@ async function launch(state: MachineState) {
   await new Promise((r) => setTimeout(r, 0));
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
-  for (let i = 0; i < 900 && !p.state.playing; i++) tick(1);
+  continueFromTitle(p, input, tick); // (the title, ENTER CONTINUE, Enter)
   tick(160); // (the grace: the game's own hurts are kept off a moment after a launch)
   const machine = () => must(p.machine, 'a game');
   const ram = () => machine().ram;

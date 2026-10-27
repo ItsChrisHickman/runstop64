@@ -4,7 +4,7 @@
  * Shift, which runs) takes him up into the cabin above, where he stays.
  *
  * The start is a save made on a recorded route (re/routes.json) the moment he has come down that
- * ladder, so a launch goes straight back into play there.
+ * ladder, so continuing it from the title (ENTER CONTINUE) puts him there.
  *
  *   nice -n 15 node tools/test.mjs games/blackwyche/test/ladder.ts
  */
@@ -16,6 +16,7 @@ import { NativeHost } from '../../shared/native/host';
 import { setJoy, GAMES } from '../../shared/native/test/games';
 import { cpu, wr } from '../../shared/native/cpu';
 import { keepFound, writeCurrent } from '../../shared/saves';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { blackwycheMap } from '../src/map';
@@ -83,7 +84,7 @@ async function launch(enhanced: boolean) {
     where: () => { const r = s.ram(); return `deck ${r[0x9d78]} room ${r[0x341c]}`; },
     deck: () => s.ram()[0x9d78],
   };
-  for (let i = 0; i < 900 && !p.state.playing; i++) s.tick(1);
+  continueFromTitle(p, input, s.tick);
   s.tick(10);
   return s;
 }

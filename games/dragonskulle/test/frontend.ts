@@ -110,16 +110,18 @@ function shot(name: string) {
   rgbPng(path.join(outDir, `${name}.png`), indicesToRgb(picture()), 320, 200, 2);
 }
 
-// ---- launched with a save deep in the caves: straight back into play ----------------------------------
+// ---- launched with a save deep in the caves: the title, ENTER CONTINUE, Enter ----------------------------------
 await new Promise((r) => setTimeout(r, 10));
-tick(10);
-check('launched with a save: the title not shown (the screen kept black) on the way back into play', !!p.machine && !p.state.playing && p.state.launching && renderer.screen.pixels.every((v) => v === 0));
+until(() => p.state.prompt === 'title', 300);
+check('launched with a save: the game\'s title with ENTER CONTINUE, not play', !!p.machine && !p.state.playing && p.state.prompt === 'title');
 check(`its key lines for this keyboard ("${text(0x9327, 23)}" / "${text(0x9373, 30)}"), no action keys (the bar labels them)`, text(0x9327, 23) === 'PRESS P   TO PAUSE GAME' && text(0x9373, 30) === ' PRESS SPACE OR FIRE TO START ' && text(0x9355, 30).trim() === '');
+shot('0-title-continue');
+tap('Enter');
 until(() => p.state.playing, 200);
 tick(5);
 shot('0-launched');
 const deep = cell();
-check(`then back in play in the caves at ${deep}, with all five lives (${lives()}), without a key`, p.state.playing && !p.state.launching && deep === '5,4' && lives() === 5);
+check(`Enter: back in play in the caves at ${deep}, with all five lives (${lives()})`, p.state.playing && deep === '5,4' && lives() === 5);
 check('ENHANCED is on unless chosen off: its play changes on, the effects on', p.frontEnd.enhanced && !!p.options.eightWay && !!p.options.invulnerable && !!p.options.effects);
 
 // ---- the pause screen: the map; ENHANCED --------------------------------------------------------------

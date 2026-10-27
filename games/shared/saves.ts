@@ -248,7 +248,7 @@ export function parseExport(v: unknown): SavesExport | null {
   return { runstop64: 'saves', v: VERSION, game, build, exported, current: now, previous: before, found };
 }
 
-/** Put an export's saves in place of the game's own (tests only: a launch then continues from it). */
+/** Put an export's saves in place of the game's own (tests only: a launch then offers ENTER CONTINUE from it). */
 export function putSaves(e: SavesExport) {
   deleteSave(e.game, 'previous');
   deleteSave(e.game, 'current');

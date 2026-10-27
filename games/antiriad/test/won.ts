@@ -15,7 +15,7 @@
  * - flying about, the armour's energy never goes down; in one of the first ten rooms it sets down
  *   and Tal steps out (no interlock), the room's radiation nothing; travel in the armour lists a
  *   room he only walked into;
- * - the game launched again (the next visit) goes straight back into New Game+;
+ * - the game launched again (the next visit) offers ENTER CONTINUE, and Enter goes back into New Game+;
  * - landing on the pedestal again ends the game again; NEW GAME? there asks first; ENTER CONTINUE
  *   starts New Game+ again.
  *
@@ -25,6 +25,7 @@ import fs from 'node:fs';
 import { Input, PixelRenderer, unpackState } from 'c64kit';
 import { MACHINE_CODEC } from '../../shared/continue';
 import { fromBase64, readSaves, toBase64, writeCurrent } from '../../shared/saves';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { run } from '../src/main';
 import { renderPng } from '../../../tools/probe/render';
@@ -40,7 +41,7 @@ const out = process.argv[2] ?? '/tmp';
 const MINE_SET_OFF = 0xb1, MINE = 0x0681, PARTS = [0x067e, 0x067f, 0x0680, 0x0681];
 
 
-// a save in the armour (the snapshot): the game launches straight into play from it
+// a save in the armour (the snapshot): the game opens on its title and Enter puts it into play from it
 const store = useMemoryStorage();
 writeCurrent('antiriad', { format: MACHINE_CODEC.format, data: toBase64(new Uint8Array(fs.readFileSync('games/antiriad/test/armour.state'))), at: 0, summary: [], rooms: 5 });
 
@@ -96,8 +97,9 @@ const ending = () => {
   return stops && words && title;
 };
 
-hold([], 100, () => g().playing);
-check(`launched with a save: in play in the armour (${about()})`, g().playing && !!(g().ram[V.inSuit] & 0x80));
+continueFromTitle(p, input, tick);
+hold([], 100, () => g().playing); // (the game's own start, once the flow has put it back into play)
+check(`launched with a save, ENTER CONTINUE: in play in the armour (${about()})`, g().playing && !!(g().ram[V.inSuit] & 0x80));
 hold([], 600, () => g().ram[0x92] >= 0x20 && g().ram[V.suitEnergy] >= 0x1f);
 for (const at of PARTS) g().ram[at] = 0x80; // (all four parts: the Implosion Mine among them)
 g().travelTo = { room: 0, x: 168, y: 64, high: 0 };
@@ -178,9 +180,10 @@ const f: AntiriadFound = { rooms: [START, 20], entry: { 20: { x: 120, y: 88, hig
 const ids = must(antiriadMap.places, 'the map lists places')({ x: 0, y: 0, w: 150, h: 140 }, g(), f).map((p) => p.id);
 check(`New Game+: travel in the armour to a room only walked into (${ids.join(' ')})`, !!(g().ram[V.inSuit] & 0x80) && ids.includes('20') && ids.includes(String(START)));
 
-// the game launched again (the next visit): straight back into New Game+, where it was
+// the game launched again (the next visit): its title, then Enter back into New Game+, where it was
 const roomNow = g().ram[V.room];
 p = run({ renderer, input, canvas: nowhere });
+continueFromTitle(p, input, tick);
 hold([], 100, () => g().playing);
 tick(5);
 check(`launched again: New Game+, in play (${about()}, plus ${g().plus}, "${label()}")`, g().playing && g().plus && label() === 'NEW GAME+' && g().ram[V.room] === roomNow);
