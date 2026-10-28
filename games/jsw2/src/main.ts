@@ -3,7 +3,7 @@ import { ram } from '../../shared/native/cpu';
 import { runNative, type RunSpec } from '../../shared/native/play';
 import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { AIR_JUMP, gentleTouch, itemSpots, RopeGrip } from './easy';
-import { endingStats, jsw2Ending, won } from './ending';
+import { END_HOLD, endingStats, jsw2Ending, won } from './ending';
 import { footing, jsw2Map } from './map';
 import { port } from './native';
 import stateUrl from '../assets/jsw2-title.state?url';
@@ -96,9 +96,11 @@ export function run(host: Host) {
     hints: (ram) => itemSpots(ram),
     // Running (ENHANCED, Shift held): Willy alone goes faster (RUN).
     run: RUN,
-    // The reward for winning (ENHANCED): in the Masters Bedroom with 160 items (the game's own check), at once, as the game's own end never
-    // goes back to the title: a montage of rooms, the creatures walking through it, THE END (src/ending.ts).
-    ending: { spec: jsw2Ending, won, stats: endingStats, atOnce: true },
+    // The reward for winning (ENHANCED): once the game's own end (to bed with 160 items, then the sleepwalk to room 136) has played and
+    // sat in its last room a while, as it never goes back to the title: a montage of rooms, the creatures walking through it, THE END (src/ending.ts).
+    ending: { spec: jsw2Ending, won, stats: endingStats, after: END_HOLD },
+    // The crack's vector for the room handler's end ($01E0, JMP ($01E0) at $7323) goes by its own check to $7387: the game's own end.
+    repair: (ram) => { ram[0x1e0] = 0x87; ram[0x1e1] = 0x73; },
     // The title scroller's key list, with running (build/patch.json has the same, for a snapshot made again;
     // this puts it in the one made before it: the same length).
     text: { 0x7d03: 'KEYS  :  ARROWS OR WASD...MOVE.  SPACE...JUMP, AGAIN IN THE AIR.  SHIFT...RUN (THOSE TWO IN ENHANCED).  P OR ESC...PAUSE AND MAP.  F3...MUSIC.  M...MUTE........' },

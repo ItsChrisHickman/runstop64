@@ -146,10 +146,36 @@ A reachability sweep (every item cell touched, and which need the Secret Passage
 
 ## The ending
 
-The game's own end (checked by running it, `$7315`): in the Masters Bedroom (room 34, room type 6, dispatched at `$6E94`) with 160 or more
-items (`$8131/$8132`, BCD) the handler does `JMP ($01E0)` and never comes back to its own code below. `$01E0` is not one of the vectors
-`constVectors` makes direct: in this image (a TCS crack) it points at `$023A`, `LDA $0201 / CMP #$B5 / BEQ / JMP $0205 / JMP ($01E2)`,
-and `$0201` is `$B5`, so it goes on through `$01E2` to `$7387`: Willy's y is set to `$8E`, `$8073` to 1 and he is dropped again and again, a
-round of about 340 frames, with no message or end screen (the code at `$0205` it skips fills memory with `$EA`: the crack's own self-destruct,
-never run). Below 160 the handler goes on to the room's own events, chosen by Willy's x (`$A8` and over). The ENHANCED reward ending (`src/ending.ts`,
-`games/jsw2/re/credits.md`) is therefore begun when he comes into the bedroom with 160 (`won`), not when the game's own end is over: it never is.
+The game's own end (checked by running it): in the Masters Bedroom (room 34, room type 6, handler `$7315`, dispatched at `$6E94`) with 160 or
+more items (`$8131/$8132`, BCD) the handler does `JMP ($01E0)`. That is not a vector `constVectors` makes direct, and in this image (a TCS crack)
+`$01E0` holds `$023A`: `LDA $0201 / CMP #$B5 / BEQ / JMP $0205 / JMP ($01E2)`, where `$0201` is `$B5` (the check passes; the code at `$0205` it
+skips fills memory with `$EA`: the crack's own self-destruct, never run), so it goes on through `$01E2`, which holds `$7387`. `$7387` is the
+game's real end and nothing else in the game reaches it (`$01E2` is used only by the crack; the other vectors are the game's own). The crack
+did not break the ending: the same routine runs, only through its trampoline. What broke was our translation: `$7387` was not an entry,
+so it ran on the 6502 fallback, which cannot wait for a frame (a run of it froze the page).
+
+What `$7387` does: it sets `$8073` and `$8217` to 1 (Willy's frame), and **returns at once unless he is standing on the bed** (`$82F6`, the
+tile type under his feet, is 3, a conveyor: the bed is cells 2 to 5 of row 12, a block up from the floor, reached by a jump) or the end is
+already under way (`$7EC4` is non-zero: set to `$FF` at the start of the sequence and by nothing else). So coming into the bedroom with 160
+does nothing; he has to jump onto the bed. Then a loop of 2,048 steps (`$7EC6/$7EC7`, one game frame each: `$5B20` moves him on his own,
+`$530B` draws) puts him to bed and sleepwalks him: out of the bedroom to the Top Landing (33), the rooms 63 and 64, the Bathroom (32), and out
+of its right exit (a wall blocks it for a player: nothing else leads there) into **room 136, "THE BEGINNING OF THE END"**, about 1,890 frames
+(38 seconds) from the bed. The room test at `$73BF` sets his frame for each stage (34: 1, 33: 7, 32: 9), and at `$88` (136) it puts him at x
+`$30` and loops for good (`$7410`: `DEC $8292 / JSR $5767 / JSR $4E9A`): he bounces up and down on the spot and nothing returns to the main
+loop, so the game's own end never reaches the title. There is no text; the end is that walk and the last room.
+
+Sources on the ending (none describes the C64 sequence, which is from running the image): [JSW2.TXT](https://sunsite.icm.edu.pl/packages/sinclair/docs/game-database/J/JSW2.TXT)
+(the Spectrum game: collect the flashing objects, "then make your way back to The Master Bedroom", 150 of 175 needed, "a surprise new ending
+too"); the [BBC Micro JSW II page](https://jdawiseman.com/papers/games/jsw2/bbc/jsw2_bbc.html) (guide Willy to collect the items "before
+midnight so that Maria will let him go to bed"); [SkoolKit's JSW notes](https://skoolkit.ca/disassemblies/jet_set_willy/reference/facts.html)
+(the bed in the Master Bedroom is a conveyor); the [TASVideos JSW II run](https://tasvideos.org/8625S) (finishes by touching the bed).
+
+Where the repeated drop seen on warping in came from: not the end at all. A warp into the bedroom enters by "the way down", the top of the
+room, and the floor is 88 pixels below: a fall of 40 or more kills on landing, so ORIGINAL repeats the death and ENHANCED (with `falls`)
+lands safe.
+
+The port runs it natively: `$7387` is an entry in `engine.json`, and `repair` in `src/main.ts` sets `$01E0` to `$7387` (the vector the game's
+own check evidently had before the crack put its trampoline there; an inference, no uncracked copy to hand), in the title and every save. The
+ENHANCED reward ending (`src/ending.ts`, `games/jsw2/re/credits.md`) begins 300 frames after he has come to room 136 (`won` is "in room 136":
+only this sequence leads there; `after` in `runNative`'s `ending`), so the game's own end is seen first. Saves cannot be made during the
+sequence (the main loop's wait is never reached), so a save is never in room 136.

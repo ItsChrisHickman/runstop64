@@ -6,9 +6,11 @@
  *     and takes what the way took, without losing a life, and the scenes of rooms with items take them;
  *  2. the credits: every line typed over the montage in the rows between the room's name and the panel (the time and rooms lines put away),
  *     in the credit colour and nothing else, the band empty before the text in every scene; the cast recorded; the title tune;
- *  3. what a win is (the Masters Bedroom with 160 items: the game's own check at $7315), through the front end as the browser runs it: a game
- *     played into it begins the ending at once (the game's own end goes on and on there); one continued in it does not; W on the pause
- *     screen once won; none in ORIGINAL;
+ *  3. what a win is (the game's own end: on the bed in the Masters Bedroom with 160 items it puts Willy to bed and sleepwalks him through the
+ *     Top Landing and the Bathroom to room 136, where it stops for good, $7315 / $7387), through the front end as the browser runs it: coming
+ *     into the bedroom with 160 begins nothing; on the bed, walked in or travelled to, the game's own end is seen for its length (the rooms in
+ *     order, about 1,900 frames) and only after it has stopped in room 136 for a while does the reward begin; one continued in the bedroom
+ *     does not; W on the pause screen once won; none in ORIGINAL (the game's own end plays to its last room and stays there);
  *  4. any key skips it, after the first moment and not before.
  *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/ending.ts [out-dir]
@@ -25,10 +27,11 @@ import { checkShow, playShow } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { PlaySession } from '../../shared/test/play-session';
 import { ITEM_COUNTS } from '../src/itemcounts';
-import { SCENE_ROOMS, endingStats, jsw2Ending, room, stand, won } from '../src/ending';
+import { END_HOLD, END_ROOM, SCENE_ROOMS, endingStats, jsw2Ending, room, stand, won } from '../src/ending';
 import { WAYS } from '../src/ending-ways';
 import { itemsLeft, BEDROOM } from '../src/items';
 import { run } from '../src/main';
+import { jsw2Map, type Jsw2Found } from '../src/map';
 import { port } from '../src/native';
 
 const out = process.argv[2];
@@ -103,13 +106,12 @@ check('the cast is the mansion\'s creatures with plain names (the hero is in eve
 {
   const ram = new Uint8Array(65536);
   ram[0x13] = BEDROOM;
-  check('not won in the Masters Bedroom with none taken', !won(ram));
-  ram[0x8131] = 0x01; ram[0x8132] = 0x59;
-  check('not won with 159', !won(ram));
-  ram[0x8132] = 0x60;
-  check('won with 160 in the Masters Bedroom ($7315)', won(ram));
-  ram[0x13] = 33;
-  check('not won in another room', !won(ram));
+  ram[0x8131] = 0x01; ram[0x8132] = 0x60;
+  check('not won in the Masters Bedroom with 160 (the game has not ended yet: it wants him on the bed)', !won(ram));
+  ram[0x13] = 32;
+  check('not won in the Bathroom', !won(ram));
+  ram[0x13] = END_ROOM;
+  check('won in room 136, where the game\'s own end stops', won(ram));
 }
 
 // ---- through the front end, as the browser runs it
@@ -132,36 +134,86 @@ const atTitle = (s: PlaySession) => [0x4ace, 0x4a18].includes(s.ram[0x314] | (s.
 /** Frames of the front end until the ending is on (-1: not within `limit`), and until it is over. */
 const untilOn = (s: PlaySession, limit: number) => { for (let f = 0; f < limit; f++) { s.tick(); if (s.p.ending?.active) return f; } return -1; };
 const untilOver = (s: PlaySession) => { for (let f = 0; f < 9000; f++) { s.tick(); if (!s.p.ending?.active) return f; } return -1; };
+/** The bed (the conveyor, tile type 3), where Willy stands once he has jumped onto it: the game's end wants him on it. */
+const BED: readonly [number, number, number] = [48, 0, 0x86];
+/** The rooms the game's own end passes through, in order, from the bed. */
+const SLEEPWALK = [34, 33, 63, 64, 32, END_ROOM];
+/** Willy put on the bed as his feet would (the game reads the tile under him, $82F6, in its next frames). */
+const ontoBed = (s: PlaySession) => { s.ram[0x8062] = BED[0]; s.ram[0x8072] = (s.ram[0x8072] & 0xfe) | BED[1]; s.ram[0x8063] = BED[2] - 6; s.ram[0x8292] = 0; s.ram[0x82d7] = 0; };
+/**
+ * Frames of the front end from now until the game's own end has stopped in room 136, the rooms it passed through in order and whether the
+ * reward began meanwhile; then the frames until the reward begins (-1: not within `limit`).
+ */
+function sleepwalk(s: PlaySession, limit = 4000) {
+  const rooms: number[] = [];
+  let f = 0, arrived = -1;
+  for (; f < limit; f++) {
+    s.tick();
+    const r = s.ram[0x13];
+    if (rooms[rooms.length - 1] !== r) rooms.push(r);
+    if (r === END_ROOM && arrived < 0) arrived = f;
+    if (s.p.ending?.active) break;
+  }
+  return { rooms, arrived, began: s.p.ending?.active ? f : -1, early: arrived < 0 && s.p.ending?.active === true };
+}
 {
   check('ENHANCED: not won yet, the flag is not kept', !readWon('jsw2'));
   const s = await PlaySession.launch(run, 'jsw2', savedIn(96, 160), keep);
   s.tick(20);
   check('160 items in Downstairs: no win yet', !readWon('jsw2') && !s.p.ending?.active);
   intoBedroom(s);
-  check('walking into the Masters Bedroom with 160 items keeps the win and begins the ending at once', untilOn(s, 400) >= 0 && readWon('jsw2') && s.ram[0x13] === BEDROOM);
+  check('walking into the Masters Bedroom with 160 items begins nothing (not the ending, not the win)', untilOn(s, 600) < 0 && !readWon('jsw2') && s.ram[0x13] === BEDROOM);
+  check('$01E0 is the game\'s own end ($7387), not the crack\'s trampoline', s.ram[0x1e0] === 0x87 && s.ram[0x1e1] === 0x73);
+  ontoBed(s);
+  const w = sleepwalk(s);
+  console.log(`the game's own end from the bed: ${w.rooms.join(' > ')}; in room ${END_ROOM} after ${w.arrived} frames, the reward after ${w.began}`);
+  check(`on the bed the game's own end plays: ${SLEEPWALK.join(' > ')}`, SLEEPWALK.every((r, i) => w.rooms[i] === r) && !w.early);
+  check(`the game's own end is seen for its length before the reward (room 136 after ${w.arrived} frames, 1,800 or more)`, w.arrived >= 1800);
+  check(`the reward begins ${END_HOLD} frames after the game has come to room 136 (${w.began - w.arrived})`, w.began - w.arrived >= END_HOLD && w.began - w.arrived <= END_HOLD + 5 && readWon('jsw2'));
   const ended = untilOver(s);
   s.tick(30);
   check('the ending ran and the game is at the title again', ended > 0 && atTitle(s));
 
+  // travel to the bedroom (the map's own way in, above the bed's spot): the same end, the same length, a little later (he drops in from the top)
+  const t = await PlaySession.launch(run, 'jsw2', savedIn(96, 160), keep);
+  t.tick(20);
+  const found: Jsw2Found = { rooms: [], stand: { [BEDROOM]: [BED[0], BED[1], BED[2] - 6] }, arrival: null, to: null };
+  must(jsw2Map.go, 'travel').call(jsw2Map, String(BEDROOM), t.ram, found);
+  const v = sleepwalk(t);
+  check(`travel into the bedroom: the same end (${v.rooms.join(' > ')}), in room 136 after ${v.arrived} frames, the reward ${v.began - v.arrived} frames on`, SLEEPWALK.every((r, i) => v.rooms[i] === r) && v.arrived >= w.arrived - 30 && v.arrived <= w.arrived + 150 && // (travel drops him in from the top of the room, onto the bed)
+     v.began - v.arrived === w.began - w.arrived);
+
+  // travel with fewer than 160: nothing
+  const few = await PlaySession.launch(run, 'jsw2', savedIn(96, 159), keep);
+  few.tick(20);
+  intoBedroom(few);
+  few.tick(10);
+  ontoBed(few);
+  few.tick(300);
+  check('159 items on the bed: no end, no ending', few.ram[0x13] === BEDROOM && !few.p.ending?.active);
+
   // W on the pause screen, once won
-  const w = await PlaySession.launch(run, 'jsw2', savedIn(96, 10), keep);
+  const k = await PlaySession.launch(run, 'jsw2', savedIn(96, 10), keep);
   keepWon('jsw2');
-  w.press('KeyP');
-  check('the pause screen is up', w.p.frontEnd.paused);
-  w.press('KeyW');
-  check('W watches the ending (the flag kept above)', !!w.p.ending?.active);
-  untilOver(w);
-  w.tick(30);
-  check('and back at the title', !w.p.ending?.active && atTitle(w));
+  k.press('KeyP');
+  check('the pause screen is up', k.p.frontEnd.paused);
+  k.press('KeyW');
+  check('W watches the ending (the flag kept above)', !!k.p.ending?.active);
+  untilOver(k);
+  k.tick(30);
+  check('and back at the title', !k.p.ending?.active && atTitle(k));
 
   // continued already in the Masters Bedroom with 160 (what the game saves on coming into it): no ending again
   const here = await PlaySession.launch(run, 'jsw2', savedIn(34, 160), keep);
   check('continued in the Masters Bedroom with 160: no ending again', untilOn(here, 400) < 0 && here.ram[0x13] === BEDROOM);
 
-  // ORIGINAL: the game as it was, no ending (and none offered)
+  // ORIGINAL: the game as it was: its own end plays to room 136 and stays there, no reward (and none offered)
   useMemoryStorage(new Map());
   const o = await PlaySession.launch(run, 'jsw2', savedIn(96, 160), keep, false);
   intoBedroom(o);
-  check('ORIGINAL: no ending in the bedroom (the game goes on as it did)', untilOn(o, 600) < 0 && o.ram[0x13] === BEDROOM);
+  o.tick(20);
+  ontoBed(o);
+  o.tick(w.arrived + END_HOLD + 200);
+  check('ORIGINAL: the game\'s own end reaches room 136 and no ending follows', o.ram[0x13] === END_ROOM && !o.p.ending?.active);
 }
 finish();

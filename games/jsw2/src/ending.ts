@@ -1,6 +1,6 @@
 import { PORT_CREDITS } from '../../shared/ending/credits';
 import { type EndingCharacter, type EndingScene, type EndingSpec, type EndingStep, type Way as Dir } from '../../shared/ending/machine-reel';
-import { BEDROOM, itemsFound, NEED, TOTAL } from './items';
+import { itemsFound, TOTAL } from './items';
 import { MANSION } from './mansion';
 import type { Jsw2Found } from './map';
 import { WAYS, type Input } from './ending-ways';
@@ -18,11 +18,22 @@ import { WAYS, type Input } from './ending-ways';
 const LIVES = 0x8096;
 
 /**
- * What the game itself treats as the end: in the Masters Bedroom (room type 6, the handler at $7315) with NEED items taken ($8131/$8132,
- * BCD: 160), it jumps through $01E0, which in this copy comes back to the bedroom's own routine ($023A, then $7387) and Willy drops in again
- * and again (there is no end screen in it: re/README.md, "The ending"). So the game is won when he is in the Masters Bedroom with that many.
+ * The room the game's own end comes to: room 136, "THE BEGINNING OF THE END", off the Bathroom's right exit, which nothing else leads to.
+ * (re/README.md, "The ending".)
  */
-export const won = (ram: Uint8Array): boolean => ram[0x13] === BEDROOM && itemsFound(ram) >= NEED;
+export const END_ROOM = 136;
+
+/** Frames of the game's own end shown in its last room before the reward begins (it stops there for good: its last screen is a loop). */
+export const END_HOLD = 300;
+
+/**
+ * What the game itself treats as the end: Willy on the bed (the conveyor, tile type 3) in the Masters Bedroom with NEED items taken
+ * ($8131/$8132, BCD: 160) makes the room's handler ($7315) jump through $01E0 to $7387, which puts him to bed and sleepwalks him through the
+ * Top Landing and on to the Bathroom and room 136 (about 1,900 frames), where it loops for good. So the game is won when it has brought
+ * him to that room: the reward begins END_HOLD frames after (`after` in main.ts), the game's own end seen first, not on coming into the
+ * bedroom. Only that sequence leads to room 136.
+ */
+export const won = (ram: Uint8Array): boolean => ram[0x13] === END_ROOM;
 
 /** Into a room the game's own way: the way down from the room he is in leads there, and he is at the bottom of it (what map travel does). */
 export const room = (n: number) => (ram: Uint8Array): boolean => {

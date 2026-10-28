@@ -147,9 +147,10 @@ interface NativeGameOptions<F> {
    * The reward for winning (ending.ts), in ENHANCED: `won` says the game's winning moment is under way (it shows the
    * ending once the game's own end is over and it is back at the title, and keeps that the game has been won), `stats`
    * the lines under THE END. Offered on the pause screen (W) once won, and at once with `?ending` on the page.
-   * `atOnce`: the game's own end is no way back to the title (Jet Set Willy II's goes on in the bedroom, over and over), so the ending begins as it is won.
+   * `after`: the game's own end is no way back to the title (Jet Set Willy II's plays out and stops on its last screen for good), so the ending
+   * begins that many frames after it is won, the last screen of the game's own end shown meanwhile.
    */
-  ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[]; atOnce?: boolean };
+  ending?: { spec: EndingSpec; won(ram: Uint8Array): boolean; stats(ram: Uint8Array, found: F): string[]; after?: number };
   /**
    * The title's tune is the original's own code running (title-tune.ts) while the title is up, not the translation's sound: for the
    * games whose title tune times itself by counting cycles, which a translation takes no time for (Blackwyche's, Dragonskulle's).
@@ -209,7 +210,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let going: string | null = null;
   /** The ending (ending.ts), once the session is up; and a win seen (its numbers kept) whose ending waits for the game's own end to be over. */
   let endingShow: Ending | null = null;
-  let winSeen = false, beforeWin = false, endingWaits: string[] | null = null;
+  let winSeen = false, beforeWin = false, endingWaits: string[] | null = null, endingIn = -1;
   const endingOn = (): boolean => !!opts.ending && fe.enhanced;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen, with this machine as its game ---
@@ -316,11 +317,13 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     const won = e.won(g.m.ram);
     if (won && !winSeen) {
       winSeen = true; keepWon(opts.id);
-      // (`atOnce`: only a win played into, not a save that is already in it: continuing from the bedroom is no ending again)
-      if (e.atOnce) { if (endingOn() && beforeWin) endingShow?.start(e.stats(g.m.ram, fe.found)); } else endingWaits = e.stats(g.m.ram, fe.found);
+      // (`after`: only a win played into, not a save that is already in it)
+      if (e.after !== undefined) { if (endingOn() && beforeWin) endingIn = e.after; } else endingWaits = e.stats(g.m.ram, fe.found);
       beforeWin = false;
     }
-    else if (!won && !onTitle(g)) { winSeen = false; beforeWin = true; }
+    else if (!won && !onTitle(g)) { winSeen = false; beforeWin = true; endingIn = -1; }
+    if (endingIn === 0) { endingIn = -1; endingShow?.start(e.stats(g.m.ram, fe.found)); }
+    else if (endingIn > 0) endingIn--;
     if (endingWaits && onTitle(g)) {
       const stats = endingWaits;
       endingWaits = null;

@@ -50,12 +50,12 @@ screenshots show (the Nightmare Room in C64 graphics).
 ## What the game's own end is (and is not)
 
 The game ends, by its own code, in the Masters Bedroom (room 34, room type 6, the handler at `$7315`) once `$8131/$8132` (the items
-taken, BCD) show 160 or more: it then does `JMP ($01E0)`. In the copy this port is made from (a TCS crack, `build/README.md`) the vector at
-`$01E0` points at `$023A`, three instructions that, with `$0201` = `$B5`, jump on through `$01E2` to `$7387`, the bedroom's own routine: Willy
-is put at the top of the room again and again (a fall of 54 to 158 and back, 340 frames a round) for ever. There is no end screen or
-message in this image (a different release, or the original's loader, may set `$01E0` to something else; none was available to read).
-So the win here is what the game's code treats as complete: in the Masters Bedroom with 160 items (`src/ending.ts` `won`), and the ending
-begins at once, since the game's own end never goes back to the title. The Spectrum version's ending is different (Wikipedia: "The ending of
+taken, BCD) show 160 or more and Willy stands on the bed: it does `JMP ($01E0)`. In the copy this port is made from (a TCS crack,
+`build/README.md`) the vector at `$01E0` points at `$023A`, three instructions that, with `$0201` = `$B5`, jump on through `$01E2` to `$7387`,
+the game's own end routine (the port sets `$01E0` to it directly). It puts him to bed and sleepwalks him through the Top Landing, rooms 63 and
+64 and the Bathroom to room 136, THE BEGINNING OF THE END, where he bounces on the spot for good: no text, and it never returns to the title
+(re/README.md, "The ending"). So the win here is the game's own end having come to its last room (`src/ending.ts` `won`), and the ending
+begins a few seconds after, since that end never goes back to the title. The Spectrum version's ending is different (Wikipedia: "The ending of
 the game is also different"; JSW2.TXT: "there's a surprise new ending too!"), but this port does not claim to know what it shows.
 
 ## The places and the cast
