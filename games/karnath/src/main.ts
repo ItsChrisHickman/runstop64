@@ -9,6 +9,7 @@ import { karnathMap } from './map';
 import { repairStripX } from './travel';
 import { karnathCombat, karnathControls } from './combat';
 import { Guide } from './guide';
+import { MIDNIGHT_CHECK, holdBeforeMidnight } from './clock';
 import { hintSpots } from './hints';
 import { karnathFigure } from './figure';
 import stateUrl from '../assets/karnath-title.state?url';
@@ -24,6 +25,7 @@ export { info } from './info';
 export function run(host: Host) {
   // the hints (ENHANCED): the pieces and the way to the obelisk told on the status line and marked with sparkles (src/guide.ts, src/hints.ts)
   const guide = new Guide();
+  let assist: Readonly<Record<string, boolean>> = {};
   return runNative(host, {
     id: 'karnath',
     // ENTER CONTINUE under the title's last line, above its border
@@ -40,7 +42,10 @@ export function run(host: Host) {
     },
     map: karnathMap,
     repair: repairStripX, // (saves made after a travel before it set his place along the strip)
-    assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) }],
+    // ENHANCED: the castle's clock stops at 11:59 PM, so midnight never loses the game (src/clock.ts)
+    assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) }, { id: 'clock', long: 'NO MIDNIGHT' }],
+    onAssists: (a) => { assist = a; },
+    onHook: (pc, ram) => { if (pc === MIDNIGHT_CHECK && assist.clock) holdBeforeMidnight(ram); },
     hints: hintSpots,
     hintsWith: 'hints',
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls

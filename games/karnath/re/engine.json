@@ -42,6 +42,7 @@
   "out": "../src/gen/engine.ts",
   "runtime": "../../../shared/native/cpu",
   "hooks": {
-    "1988": "swing: a spell cast ($3216: one in flight)"
+    "1988": "swing: a spell cast ($3216: one in flight)",
+    "15b6": "the clock ($1548) has counted its minute: next, an hour of 12 on the panel ($07C6 the digit 2) is midnight, and he is lost ($6FFD)"
   }
 }

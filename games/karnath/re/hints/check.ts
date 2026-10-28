@@ -12,7 +12,7 @@
  *  5. the abode from the state by the obelisk: the obelisk, the sixteenth, the staff, MENHIR, any other spell;
  *  6. through the front end as the browser runs it (run(host), the keyboard): the status line (the game's own message
  *     first, never covered, then the story, then the game's line back), the sparkles the renderer has, ORIGINAL showing
- *     none, 11 PM, the pause screen's count, the far door and the abode's line.
+ *     none, midnight (lost in ORIGINAL, held at 11:59 in ENHANCED), the pause screen's count, the far door and the abode's line.
  *
  *   nice -n 15 node tools/test.mjs games/karnath/re/hints/check.ts [full]
  */
@@ -36,7 +36,7 @@ import { toMode } from '../../src/travel';
 import { STRIPS } from '../../src/strips';
 import { renderPng } from '../../../../tools/probe/render';
 import { spriteSpot } from '../../../shared/native/spots';
-import { KEPT, MODE, hintSpots, hourOn, mapPieceSpots, spritePieceSpots, wayToObelisk } from '../../src/hints';
+import { KEPT, MODE, hintSpots, mapPieceSpots, spritePieceSpots, wayToObelisk } from '../../src/hints';
 import type { Spot } from '../../../shared/native/spots';
 import { continueFromTitle } from '../../../shared/test/continue-from-title';
 
@@ -461,22 +461,24 @@ const saysInOrder = (trace: string[], say: string | readonly string[], from = 0)
     if (f === 3) last.input.keyUp('Space');
     if (last.ram[KEPT.count] === 0x11) { won = true; shownWon += last.renderer.sparkles.markers.length; }
   }
-  const after = last.texts().slice(mark).filter((t) => partsOf2(LINES.staff).includes(t) || partsOf2(LINES.late(0)).includes(t));
+  const after = last.texts().slice(mark).filter((t) => partsOf2(LINES.staff).includes(t));
   check(`MENHIR at the staff: the game is won (seen: ${won}); no sparkle shows then (${shownWon}) and the story says nothing more of it (${after.join(' | ') || 'nothing'})`, won && shownWon === 0 && after.length === 0);
 }
 
 {
-  // 11 PM: one warning, from the game's clock (the status panel's digits $07C5 $07C6), with the pieces laid
+  // midnight (src/clock.ts): a save at 11:59 PM with its minute all but counted. ORIGINAL: at 12 he is lost, as the game has it.
+  // ENHANCED: the clock stops at 11:59 and play goes on; a save already at 12:00 plays on too, the clock back at 11:59.
   const start = routeWalker({ port, title, routes: ROUTES, route: 0, cheat: alive }).at(3000);
-  for (const enhanced of [true, false]) {
-    const s = await Session.launch(saved((r) => { r[KEPT.count] = 4; r[0x07c5] = 0x31; r[0x07c6] = 0x3a; }, start), enhanced); // 10 PM
-    s.tick(60);
-    const hourBefore = hourOn(s.ram);
-    s.ram[0x07c6] = 0x31; // the game's clock reaches 11
-    s.tick(1500);
-    const hits = s.texts().filter((t) => partsOf2(LINES.late(4)).includes(t));
-    if (enhanced) check(`at 11 PM (the clock went from ${hourBefore} to ${hourOn(s.ram)}): the warning "${partsOf2(LINES.late(4)).join(' | ')}" once (${hits.length} lines seen)`, hourBefore === 10 && hourOn(s.ram) === 11 && hits.length === 2);
-    else check(`ORIGINAL: nothing is said at 11 PM (${hits.length} lines)`, hits.length === 0);
+  const clock = (r: Uint8Array) => [...r.subarray(0x07c5, 0x07ca)].map((c) => (c === 0x3a ? '0' : c === 0x3b ? ':' : String.fromCharCode(c))).join('');
+  const atClock = (digits: number[]) => saved((r) => { r.set(digits, 0x07c5); r[0x3236] = r[0x3239] - 2; r[0x3237] = r[0x323a] - 1; }, start);
+  for (const [name, digits] of [['11:59', [0x31, 0x31, 0x3b, 0x35, 0x39]], ['12:00', [0x31, 0x32, 0x3b, 0x3a, 0x3a]]] as const) {
+    for (const enhanced of [true, false]) {
+      const s = await Session.launch(atClock([...digits]), enhanced);
+      let lost = false;
+      for (let f = 0; f < 600 && !lost; f++) { s.tick(); lost = s.ram[0x6ffd] !== 0 || !s.p.state.playing; }
+      if (enhanced) check(`ENHANCED, continued at ${name}: not lost at midnight, the clock at ${clock(s.ram)}`, !lost && clock(s.ram) === '11:59');
+      else check(`ORIGINAL, continued at ${name}: lost at midnight, as the game has it`, lost);
+    }
   }
   // the pause screen's count
   const counted = karnathMap.info(unpackState(packState(start)).ram, karnathMap.found.empty(), { hints: true });

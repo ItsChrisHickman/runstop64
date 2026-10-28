@@ -35,16 +35,6 @@ export const over = (ram: Uint8Array) => ram[KEPT.count] >= DESTROYED || ram[KEP
 /** Sixteen pieces are laid and the staff stands in its shrine ($6E90): only MENHIR at it ends the game well. */
 export const staffUp = (ram: Uint8Array) => ram[KEPT.count] === PIECES && !over(ram);
 
-/**
- * The castle's clock is the status panel's own digits ($07C5, $07C6: the hour; the game counts it there and is
- * lost when the second reaches 2, $15B6). A digit is its screen code: 1-9 are $31-$39, 0 is $3A.
- */
-const digit = (code: number) => (code === 0x3a ? 0 : code >= 0x31 && code <= 0x39 ? code - 0x30 : NaN);
-/** The hour on the clock (NaN while the panel is not showing one: the screen is being drawn, or it is the game's end). */
-export const hourOn = (ram: Uint8Array) => digit(ram[0x07c5]) * 10 + digit(ram[0x07c6]);
-/** The last hour: 11 PM. */
-export const LAST_HOUR = 11;
-
 // ---- the sparkles ----
 
 /** The play area's rows of the screen ($0400, 40 columns): the panel's are 21 and under. */

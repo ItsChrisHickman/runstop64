@@ -27,8 +27,6 @@ export interface Lines {
   /** Coming into the dungeons or the abode with a piece. */
   dungeons: string;
   abode: string;
-  /** The castle's clock at 11 PM: `n` pieces laid. */
-  late(n: number): Say;
 }
 
 export const LINES: Lines = {
@@ -38,5 +36,4 @@ export const LINES: Lines = {
   staff: ['THE STAFF IS IN ITS SHRINE', 'CAST MENHIR AT IT: KEY 5', 'ANY OTHER SPELL IS DEATH'],
   dungeons: 'FAR DOOR AT THE RIGHT END',
   abode: 'THE OBELISK IS FAR LEFT',
-  late: (n) => ['ONE HOUR TO MIDNIGHT', `${n} OF 16 PIECES LAID`],
 };

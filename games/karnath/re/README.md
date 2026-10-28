@@ -152,7 +152,9 @@ ON PAUSE), and at the end `THE STAFF OF KARNATH HAS BEEN DESTROYED... CONGRATULA
   $322C = 5 sets $6FFF to $11; the main loop then runs the finish at $9FA0 and restarts at $12); **any other spell at it kills
   him** ($6FFD = 1, the same as running out of energy). So: choose MENHIR before casting at the staff.
 - **The clock** ($1548): the status panel's clock starts at 06:00 PM and a game minute is 2,880 frames (about 58 seconds: $3239 times
-  $323A); at 12:00 ($07C6 reaches the digit 2, $15B6) $6FFD is 1: he is lost. About 5.8 hours of play.
+  $323A); at 12:00 ($07C6 reaches the digit 2, $15B6) $6FFD is 1: he is lost. About 5.8 hours of play. ENHANCED (src/clock.ts):
+  the hook at $15B6 puts an hour of 12 back to 11:59 (and $3236/$3237 to 0) before the check, so midnight never comes and a save
+  already past it plays on (re/hints/check.ts: lost in ORIGINAL, held in ENHANCED, from 11:59 and from 12:00).
 - **Energy**: running out of it ($6FFD = 1) ends the game too; the pieces carried or deposited are not saved from it (a lost game is
   a new one: continuing from the last screen, ours, keeps $6FFF, $322F and the map as they were).
 
@@ -242,9 +244,9 @@ read from what the game keeps; nothing is written but the status line's characte
   `$3231` is the message to draw next frame, `$3232` is 1 while a message of the moment is up ($3233 counting down from $F0: PIECE
   FOUND, DEPOSITED), `$3234` is the one it goes back to (1 SEARCHING, 3 CARRYING). Ours waits while any of those says the game's is up or
   coming, and puts the game's back by setting `$3231 = $3234`. The lettering is the Pendragon engine's (`games/shared/pendragon/status.ts`).
-- **Triggers** (a snapshot of `$322F` carrying, `$6FFF` laid, the clock, `$3219` mode each frame): carrying 0 to 1 says the first
-  piece's story (laid 0) or a reminder; `$6FFF` going up says N OF 16, and at 16 the staff's lines; the clock reaching 11 (the panel's own digits,
-  `$07C5` `$07C6`: that is where the game keeps it, and loses at 12, $15B6) says ONE HOUR TO MIDNIGHT once; coming into the abode carrying says
+- **Triggers** (a snapshot of `$322F` carrying, `$6FFF` laid, `$3219` mode each frame): carrying 0 to 1 says the first
+  piece's story (laid 0) or a reminder; `$6FFF` going up says N OF 16, and at 16 the staff's lines (no warning of midnight: ENHANCED's clock stops
+  at 11:59); coming into the abode carrying says
   the obelisk is at the far left. A line not wanted any more (a piece laid before the reminder's turn) is dropped. After the game is won or lost
   nothing is said.
 - **Sparkles.** `$322F` clear: every map piece in view (`$D5 $D4`, ten in all, read from the maps) and every sprite showing the piece's picture
@@ -264,8 +266,8 @@ read from what the game keeps; nothing is written but the status line's characte
   (level 3 to 2) and the `$CF` into the dungeons by playing; the kitchen's piece taken by the game's own code on a bot's play (94 frames), the hint on its
   sprite on all of them, gone after; a map piece on route 0 (level 3); the abode from the obelisk state (the obelisk on every frame it is in view, the
   staff after the sixteenth, gone on MENHIR, none when the wrong spell kills him); through the front end the status line (the game's FOUND line first,
-  never covered, then the four lines, then the game's CARRYING back; DEPOSITED then N OF 16; the sixteenth's staff lines; 11 PM once), ORIGINAL showing none of
-  it (no sparkle, the game's lines only, no warning), the pause screen's count, and the far door into the abode with its line.
+  never covered, then the four lines, then the game's CARRYING back; DEPOSITED then N OF 16; the sixteenth's staff lines), ORIGINAL showing none of
+  it (no sparkle, the game's lines only); midnight lost in ORIGINAL and held at 11:59 in ENHANCED, the pause screen's count, and the far door into the abode with its line.
 - **Not done.** The hint of the spell that works on a creature (the README's spell table was read from the code and the kitchen's AEOLUS played, but
   the table's other rows are not proved by play, so no hint is made from them). Of the seven sprite pieces only the kitchen's was taken by the bot; the
   others are marked by their picture (the same code path) but unplayed. The line on coming into the dungeons carrying (`LINES.dungeons`) is written and

@@ -1,13 +1,13 @@
 import { Narrator, type StatusLine } from '../../shared/native/narrate';
 import { pendragonCode } from '../../shared/pendragon/status';
 import { LINES, type Say } from './hint-lines';
-import { LAST_HOUR, MODE, PIECES, KEPT, carrying, deposited, hourOn, over, staffUp } from './hints';
+import { MODE, PIECES, KEPT, carrying, deposited, over, staffUp } from './hints';
 
 /**
  * The hints' story (ENHANCED): Pendragon says on the status line what to do with what he has found, in the
  * game's own lettering and place (games/shared/native/narrate.ts; the words are in src/hint-lines.ts), and
  * the sparkles (src/hints.ts) point. All from what the game keeps (src/hints.ts `KEPT`): a piece taken, a
- * piece laid, the sixteenth, the clock. Nothing here touches what the game does: it reads memory and writes the
+ * piece laid, the sixteenth. Nothing here touches what the game does: it reads memory and writes the
  * status line's text.
  */
 
@@ -28,16 +28,14 @@ export const STATUS: StatusLine = {
 };
 
 /** What is noted of the game each frame, to see what changed. */
-interface Snap { carrying: boolean; count: number; hour: number; mode: number }
+interface Snap { carrying: boolean; count: number; mode: number }
 
-const snapshot = (ram: Uint8Array): Snap => ({ carrying: carrying(ram), count: deposited(ram), hour: hourOn(ram), mode: ram[KEPT.mode] });
+const snapshot = (ram: Uint8Array): Snap => ({ carrying: carrying(ram), count: deposited(ram), mode: ram[KEPT.mode] });
 
 export class Guide {
   readonly narrator = new Narrator(STATUS);
   private ram: Uint8Array | null = null;
   private prev: Snap | null = null;
-  /** The hour's warning said (until the clock is back before it: a new game). */
-  private late = false;
 
   /** One frame of play (call after the game's frame): `on` while the hints are on and the game is being played. */
   frame(ram: Uint8Array, on: boolean) {
@@ -58,16 +56,8 @@ export class Guide {
 
   /** Where he is in the story, said as it stands (the first frame seen). */
   private begin(ram: Uint8Array, now: Snap) {
-    if (now.hour >= LAST_HOUR) this.warn(ram, now);
-    else if (now.hour < LAST_HOUR) this.late = false; // (not NaN: the panel being drawn)
     if (staffUp(ram)) this.say(LINES.staff, () => staffUp(ram));
     else if (now.carrying) this.say(now.count === 0 ? LINES.first : LINES.later, () => carrying(ram));
-  }
-
-  private warn(ram: Uint8Array, now: Snap) {
-    if (this.late) return;
-    this.late = true;
-    this.say(LINES.late(Math.min(now.count, PIECES)), () => !over(ram));
   }
 
   /** What changed since the last frame. */
@@ -81,6 +71,5 @@ export class Guide {
       if (now.mode === MODE.dungeons) this.say(LINES.dungeons, () => carrying(ram) && ram[KEPT.mode] === MODE.dungeons);
       if (now.mode === MODE.abode) this.say(LINES.abode, () => carrying(ram) && ram[KEPT.mode] === MODE.abode);
     }
-    if (now.hour >= LAST_HOUR && prev.hour < LAST_HOUR) this.warn(ram, now);
   }
 }
