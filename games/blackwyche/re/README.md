@@ -206,6 +206,14 @@ Checked by `games/shared/native/test/combat.ts blackwyche` and `controls.ts blac
   cabin's block; on giving way the block copies the hole's shape ($5280) over the boards (or sets room $0B's sprite pointer
   to its copy) and sets $342A. Coming back in, the block draws the boards again; the assist puts the hole back. Remembered
   with the saves. Room $21's two cabins have theirs where he comes in, so those still drop him at once.
+- **The captain's blow counts once** (`src/captain.ts`, `test/captain.ts`, ENHANCED): the soul in the skull's eye (room $C, block
+  $FB20) needs one blow: $622B stores 1 in $633B (the end: 1 the soul flashes and a note rises, 2 it floats up, 3 it is gone, then
+  $342C = 2). $620C reads the sword's touch every frame and runs that store whatever the state is, so a sword still touching as 1
+  gives way to 2 puts it back to 1; and 1 only leaves for 2 when its note's counter $633E is exactly $20 (the counter drives both
+  voices' high byte, $D408/$D40F, 7 up to $20 is 106-480 Hz), which the extra frames of contact have gone past: it counts on to $FF
+  (3.8 kHz) and wraps, half a minute. Swinging on freed nothing in 100 swings in the original. The hook at $622B (a no-op once
+  $633B is not 0: the first blow counts) is the whole change; the game's own sound is untouched, and no sound of ours is added
+  (the `hit` effect on the second SID is a short noise sweep, 1800 to 700 Hz).
 - **Up a ladder, stay up** (`test/ladder.ts`, ENHANCED): Up held as the climb ends is ignored until released.
 - **Mends** (`src/mends.ts`, `test/mend.ts`): saves are machine snapshots, so putting the missing kilobyte back in the game
   image (`build/README.md`) did not reach saves made before it, which still held the hole and crashed at the same door. A

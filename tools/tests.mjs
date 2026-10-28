@@ -118,6 +118,7 @@ export const TESTS = [
   { file: 'games/antiriad/test/lockstep.ts', args: ['games/antiriad/test/original.state', 'R:100,-:20,UR:30'], set: 'slow' },
 
   // ---- Blackwyche
+  { file: 'games/blackwyche/test/captain.ts', set: 'fast' },
   { file: 'games/blackwyche/test/ending.ts', set: 'fast' },
   { file: 'games/blackwyche/test/figure.ts', set: 'fast' },
   { file: 'games/blackwyche/test/grace.ts', set: 'fast' },

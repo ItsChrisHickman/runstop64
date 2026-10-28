@@ -8,6 +8,7 @@ import { blackwycheMap } from './map';
 import { blackwycheCombat, blackwycheControls } from './combat';
 import { Guide, guidedSpots } from './guided';
 import { TrapDoors } from './trapdoors';
+import { captainsBlow } from './captain';
 import { ACTION } from './actions';
 import { blackwycheEnding, endingStats, won } from './ending';
 import { blackwycheFigure } from './figure';
@@ -25,6 +26,7 @@ export function run(host: Host) {
   // GUIDED (ENHANCED): the puzzles told on the status line and marked with sparkles (src/guided.ts)
   const guide = new Guide();
   const trapdoors = new TrapDoors();
+  let options: Readonly<Record<string, boolean>> = {};
   return runNative(host, {
     id: 'blackwyche',
     // ENTER CONTINUE between the title's last two lines, in its yellow
@@ -59,7 +61,11 @@ export function run(host: Host) {
     assists: [
       { id: 'guided', long: 'GUIDED (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) },
       { id: 'trapdoors', long: 'TRAPDOORS STAY OPEN', apply: (ram, on, found) => trapdoors.frame(ram, on, found.trapdoors) },
+      { id: 'captain', long: 'CAPTAIN FREED BY ONE BLOW' },
     ],
+    // the captain's blow counts once (src/captain.ts), at the block's store of it
+    onAssists: (a) => { options = a; },
+    onHook: (pc, ram) => { if (options.captain) captainsBlow(pc, ram); },
     hints: guidedSpots,
     hintsWith: 'guided',
     // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
