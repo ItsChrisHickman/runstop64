@@ -53,8 +53,11 @@ export interface PauseMap<T, F> {
   readonly found: FoundCodec<F>;
   /** Every frame of play: note what the player has found (`vic`: the VIC-II registers). */
   observe(ram: T, found: F, vic: Uint8Array): void;
-  /** The heading over the map, e.g. "FLOOR 3" (`page`: which page is shown, for maps with pages). */
-  title(ram: T, page?: number): string;
+  /**
+   * The heading over the map, e.g. "FLOOR 3" (`page`: which page is shown, for maps with pages). `pick`: the place picked
+   * to go to, while one is (maps whose places have names say the picked one's here, so a pick says where it goes).
+   */
+  title(ram: T, page?: number, pick?: string | null): string;
   /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it). */
   draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null): void;
   /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (ENHANCED's). */
@@ -142,7 +145,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
   s.fillRect(0, 0, 2, 200, colours.yellow); s.fillRect(318, 0, 2, 200, colours.yellow);
   s.fillRect(214, 2, 2, 178, colours.dgrey);
   s.fillRect(2, 178, 316, 2, colours.dgrey);
-  const title = ui.list ? 'OPTIONS' : map.title(ram, ui.page);
+  const title = ui.list ? 'OPTIONS' : map.title(ram, ui.page, ui.pick?.id ?? null);
   font.draw(s, title, Math.floor((214 - title.length * 8) / 2), 8, colours.yellow);
   if (ui.list) {
     // the options page: each line's key, name, and whether it's on

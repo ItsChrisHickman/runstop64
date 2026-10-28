@@ -115,7 +115,8 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
     }
     noteArrival(ram, found, room);
   },
-  title: (ram) => (MANSION[roomOf(ram)]?.name ?? 'THE MANSION').slice(0, 26),
+  // the room he's in; while picking a room to go to, that room's name
+  title: (ram, _page, pick) => (MANSION[pick ? Number(pick) : roomOf(ram)]?.name ?? 'THE MANSION').slice(0, 26),
   draw(s, box, ram, found, blink) {
     const seen = new Set(found.rooms), here = roomOf(ram);
     const { cell, cx, cy } = layout(box);

@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
 import { layout, STEP, type Exits } from '../re/layout';
 import { LINKS, MANSION, MANSION_SIZE } from '../src/mansion';
-import { roomSpot } from '../src/map';
+import { jsw2Map, roomSpot } from '../src/map';
 import { run } from '../src/main';
 import { COL } from '../../shared/native/pause';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
@@ -111,6 +111,14 @@ const along = (a: number, b: number) => {
   tick(2);
   const [la, , lb] = LINKS[0];
   check(`a connector is dark while its rooms have not been in (${LINKS[0].join(' ')}): none lit`, along(la, lb).every(([x, y]) => pixel(x, y) !== COL.lblue));
+}
+
+// the heading: the room he's in, and while picking a room to go to, the picked room's name
+{
+  const ram = new Uint8Array(0x10000);
+  const picked = Object.entries(MANSION).find(([, r]) => r.name)?.[0] ?? '';
+  const name = MANSION[Number(picked)]?.name ?? '';
+  check(`picking a room: the heading names it ("${jsw2Map.title(ram, undefined, picked)}", want "${name.slice(0, 26)}")`, picked !== '' && jsw2Map.title(ram, undefined, picked) === name.slice(0, 26));
 }
 
 finish();
