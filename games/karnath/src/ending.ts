@@ -5,7 +5,7 @@ import { screenText, statusNumber } from '../../shared/native/pause';
 import { ACTIONS, SPELL } from './actions';
 import { STATUS } from './guide';
 import { DESTROYED, KEPT, PIECES } from './hints';
-import { ROOMS, type KarnathFound } from './map';
+import { ROOMS, roomsSeen, type KarnathFound } from './map';
 import { PLACES } from './places';
 import { go } from './travel';
 
@@ -85,5 +85,5 @@ export const karnathEnding: EndingSpec = {
 /** The lines under THE END: the pieces laid, the rooms he came into, the energy left and the castle's clock (the panel's own digits). */
 export function endingStats(ram: Uint8Array, found: KarnathFound): string[] {
   const clock = `${screenText(ram, 24, 5, 5)} ${screenText(ram, 24, 11, 2)}`.trim();
-  return [`PIECES LAID ${Math.min(ram[KEPT.count], PIECES)} OF ${PIECES}`, `ROOMS SEEN ${found.castle.rooms.length} OF ${ROOMS}`, `ENERGY LEFT ${statusNumber(ram, 0x07dc)} PERCENT`, ...(clock.length > 3 ? [`CLOCK ${clock}`] : [])];
+  return [`PIECES LAID ${Math.min(ram[KEPT.count], PIECES)} OF ${PIECES}`, `ROOMS SEEN ${roomsSeen(found.castle.rooms)} OF ${ROOMS}`, `ENERGY LEFT ${statusNumber(ram, 0x07dc)} PERCENT`, ...(clock.length > 3 ? [`CLOCK ${clock}`] : [])];
 }

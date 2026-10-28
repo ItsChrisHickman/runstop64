@@ -79,8 +79,44 @@ export function spritePieceSpots(ram: Uint8Array, vic: Uint8Array): Spot[] {
   return out;
 }
 
-/** The pieces left to take in the room. */
-const pieceSpots = (ram: Uint8Array, vic: Uint8Array) => [...mapPieceSpots(ram), ...spritePieceSpots(ram, vic)];
+/**
+ * The piece in the spider's web (re/README.md, "The web piece"): level 3 of the lower castle (the $C800 block) holds one in sprite 4,
+ * up in the web in the level's last room, and lets it fall to the floor only when IBRAHIM (spell 8) touches the spider, sprite 7,
+ * which hangs on its thread at the far left of the level, two rooms away ($CD2F; $CD4C drops it while none is carried). Nothing in
+ * the game says so.
+ */
+export const WEB = {
+  /** Where the game keeps the level of the castle he is on (1 to 3). */
+  level: 0xb3e1,
+  /** 1 once the piece is taken ($CAC8). */
+  taken: 0x3221,
+  /** Not 0 while the piece is falling after the spider is hit ($CD4C starts it, $CD89 goes on with it and ends it). */
+  freed: 0xcfa1,
+  piece: 4,
+  spider: 7,
+  /** Sprite 4's height ($D009) while the piece hangs in the web; the spider's hit drops it to $B0 ($CD7A). */
+  hung: 0x60,
+} as const;
+
+/** The piece is still up in the web: level 3 of the lower castle, not taken, sprite 4 still where the web holds it. */
+export const webHeld = (ram: Uint8Array, vic: Uint8Array) => ram[KEPT.mode] === MODE.lower && ram[WEB.level] === 3 && ram[WEB.taken] === 0 && vic[0x09] === WEB.hung;
+
+/** What of the web's story is in view: the piece itself, or the spider that holds it. */
+export type WebView = 'none' | 'piece' | 'spider';
+export function webView(ram: Uint8Array, vic: Uint8Array): WebView {
+  if (!webHeld(ram, vic)) return 'none';
+  if (spriteShows(ram, WEB.piece, PIECE_PICTURE) && spriteSpot(ram, vic, WEB.piece)) return 'piece';
+  return spriteSpot(ram, vic, WEB.spider) ? 'spider' : 'none';
+}
+
+/** The spider, while it holds the piece: where the spell is to be cast. */
+const spiderSpots = (ram: Uint8Array, vic: Uint8Array): Spot[] => {
+  const spot = webHeld(ram, vic) ? spriteSpot(ram, vic, WEB.spider) : null;
+  return spot ? [spot] : [];
+};
+
+/** The pieces left to take in the room, and the spider that holds one. */
+const pieceSpots = (ram: Uint8Array, vic: Uint8Array) => [...mapPieceSpots(ram), ...spritePieceSpots(ram, vic), ...spiderSpots(ram, vic)];
 
 /** Where a piece carried goes: down to the dungeons, through their far door, to the obelisk. */
 export function wayToObelisk(ram: Uint8Array, vic: Uint8Array): Spot[] {

@@ -91,7 +91,7 @@ check('the creatures move: most of them have more than one picture', result.figu
   ram[0x6fff] = 0x11;
   ram.set([0x3a, 0x39, 0x38], 0x07dc);
   const stats = endingStats(ram, { castle: { cells: {}, rooms: [1, 2, 3], at: {}, ways: [], last: [] } });
-  check(`the numbers under THE END: pieces, rooms, energy (${stats.join(' | ')})`, stats[0] === 'PIECES LAID 16 OF 16' && stats[1] === 'ROOMS SEEN 3 OF 25' && stats[2] === 'ENERGY LEFT 98 PERCENT');
+  check(`the numbers under THE END: pieces, rooms, energy (${stats.join(' | ')})`, stats[0] === 'PIECES LAID 16 OF 16' && stats[1] === 'ROOMS SEEN 3 OF 23' && stats[2] === 'ENERGY LEFT 98 PERCENT');
 }
 
 // ---- skipping

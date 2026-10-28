@@ -18,18 +18,13 @@
  */
 import fs from 'node:fs';
 import { decodePicture } from '../../../../packages/c64kit/src/c64/picture';
-import { Input, PixelRenderer, packState } from 'c64kit';
+import { packState } from 'c64kit';
 import { NativeHost } from '../../../shared/native/host';
 import { routeWalker } from '../../../shared/test/route-walker';
 import { check, finish } from '../../../shared/test/check';
 import { unpackState, type C64, type MachineState } from '../../../../packages/c64kit/src/c64/machine';
 import { port } from '../../src/native';
-import { run } from '../../src/main';
-import { screenText } from '../../../shared/native/pause';
-import { nowhere, stubFetch, useMemoryStorage } from '../../../shared/test/browser';
-import { must } from '../../../shared/test/must';
-import { partsOf } from '../../../shared/native/narrate';
-import { STATUS } from '../../src/guide';
+import { stubFetch } from '../../../shared/test/browser';
 import { LINES } from '../../src/hint-lines';
 import { karnathMap } from '../../src/map';
 import { toMode } from '../../src/travel';
@@ -38,12 +33,11 @@ import { renderPng } from '../../../../tools/probe/render';
 import { spriteSpot } from '../../../shared/native/spots';
 import { KEPT, MODE, hintSpots, mapPieceSpots, spritePieceSpots, wayToObelisk } from '../../src/hints';
 import type { Spot } from '../../../shared/native/spots';
-import { continueFromTitle } from '../../../shared/test/continue-from-title';
+import { Session, alive, partsOf2, saved, saysInOrder } from '../../test/session';
 
 const TITLE = 'games/karnath/assets/karnath-title.state';
 const ROUTES = 'games/karnath/re/routes.json';
 const title = new Uint8Array(fs.readFileSync(TITLE));
-const alive = (ram: Uint8Array) => { ram[0x6ffe] = 100; ram[0x322e] = 0; };
 
 // ---- what the maps hold: ten pieces of the pentacle ($D5 then $D4), each in the map once ----
 {
@@ -359,59 +353,6 @@ for (const t of solved.values()) {
 
 // ---- 6. through the front end, as the browser runs it: the status line, the sparkles, ORIGINAL, the pause screen's count ----
 stubFetch(title);
-const LINE = (ram: Uint8Array) => screenText(ram, 22, 5, 28);
-class Session {
-  readonly input = new Input(nowhere);
-  readonly renderer = new PixelRenderer();
-  readonly p = run({ renderer: this.renderer, input: this.input, canvas: nowhere });
-  /** Each different status line seen, with the frame it first showed. */
-  readonly trace: { at: number; text: string }[] = [];
-  frames = 0;
-  /** Frames the game's own message (the one of the moment: $3232) was up and the line was not its own. */
-  covered = 0;
-  private constructor() { /* use launch() */ }
-  static async launch(save: MachineState, enhanced = true) {
-    const kept = new Map([['karnath.save.v1', Buffer.from(packState(save)).toString('base64')]]);
-    if (!enhanced) kept.set('karnath.assist', JSON.stringify({ enhanced: false }));
-    useMemoryStorage(kept);
-    const s = new Session();
-    await new Promise((r) => setTimeout(r, 0));
-    continueFromTitle(s.p, s.input, (n) => s.tick(n)); // (the title, ENTER CONTINUE, Enter)
-    s.trace.length = 0;
-    return s;
-  }
-  get ram() { return must(this.p.machine, 'the machine').ram; }
-  get vic() { return must(this.p.machine, 'the machine').vic; }
-  tick(n = 1) {
-    for (let i = 0; i < n; i++) {
-      this.input.poll(); this.p.tick(); this.p.render(0);
-      this.frames++;
-      const m = this.p.machine;
-      if (!m) continue;
-      alive(m.ram);
-      const text = LINE(m.ram);
-      if (this.trace[this.trace.length - 1]?.text !== text) this.trace.push({ at: this.frames, text });
-    }
-  }
-  /** Hold keys until `done()` (or `max` frames), then let go. */
-  hold(keys: string[], done: () => boolean, max = 400) {
-    for (const k of keys) this.input.keyDown(k);
-    for (let i = 0; i < max && !done(); i++) this.tick();
-    for (const k of keys) this.input.keyUp(k);
-    return done();
-  }
-  /** The lines the status line showed, in order, as far as they are not the game's own. */
-  texts() { return this.trace.map((t) => t.text); }
-}
-/** A copy of a state with its memory edited. */
-const saved = (edit: (r: Uint8Array) => void, from: MachineState) => { const st = unpackState(packState(from)); edit(st.ram); return st; };
-const partsOf2 = (say: string | readonly string[]) => (typeof say === 'string' ? [say] : [...say]).flatMap((t) => partsOf(t, STATUS));
-/** The parts of `say` appear on the status line in order, after `after` (an index into the trace). */
-const saysInOrder = (trace: string[], say: string | readonly string[], from = 0) => {
-  let at = from;
-  for (const part of partsOf2(say)) { const k = trace.indexOf(part, at); if (k < 0) return false; at = k + 1; }
-  return true;
-};
 
 {
   // the piece in level 3 (route 0): walk into it with the arrows

@@ -43,7 +43,7 @@ export function run(host: Host) {
     map: karnathMap,
     repair: repairStripX, // (saves made after a travel before it set his place along the strip)
     // ENHANCED: the castle's clock stops at 11:59 PM, so midnight never loses the game (src/clock.ts)
-    assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on) => guide.frame(ram, on) }, { id: 'clock', long: 'NO MIDNIGHT' }],
+    assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on, _found, m) => guide.frame(ram, m.vic, on) }, { id: 'clock', long: 'NO MIDNIGHT' }],
     onAssists: (a) => { assist = a; },
     onHook: (pc, ram) => { if (pc === MIDNIGHT_CHECK && assist.clock) holdBeforeMidnight(ram); },
     hints: hintSpots,

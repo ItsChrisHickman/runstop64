@@ -21,7 +21,19 @@ import { PLACES } from './places';
 /** Columns in a strip: three blocks of 40. */
 const COLUMNS = 120;
 /** Rooms the game names ($2F8E: 25 of them, $3235 1-$19). */
-export const ROOMS = 0x19;
+const NAMED = 0x19;
+/** THE CRYPT: the 23rd name. */
+export const CRYPT = 0x17;
+/**
+ * The two names no walk shows (test/reach.ts, re/README.md "Reach"): THE LAUNDRY ROOM ($07), the second level's right chamber behind the
+ * guard at the first level's right tower door, and THE CRYPT ($17), which is no chamber at all. The room count ($3235) is moved by the doors
+ * as they close and can put either on the status line, but neither is a room to be found: not counted, so the pause screen can say all.
+ */
+export const NO_WAY: readonly number[] = [0x07, CRYPT];
+/** The rooms the pause screen counts. */
+export const ROOMS = NAMED - NO_WAY.length;
+/** How many of a list of rooms are among them (a save may hold the others, from a count that drifted). */
+export const roomsSeen = (rooms: readonly number[]) => rooms.filter((n) => n >= 1 && n <= NAMED && !NO_WAY.includes(n)).length;
 
 const stripIndex = (mode: number, level: number) => STRIPS.findIndex((s) => s.mode === mode && (s.level === level || s.level < 0));
 /** Where he is: the strip, and the column along it (the view's left edge, $7FE6/$7FE7, and his sprite on screen). */
@@ -106,8 +118,8 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
   found: FOUND,
   observe(ram, { castle: s }, vic) {
     const room = ram[0x3235], p = here(ram, vic), loc = location(ram, vic);
-    if (room >= 1 && room <= ROOMS && !s.rooms.includes(room)) s.rooms.push(room);
-    if (loc && room >= 1 && room <= ROOMS && !s.at[room]) s.at[room] = loc;
+    if (room >= 1 && room <= NAMED && !s.rooms.includes(room)) s.rooms.push(room);
+    if (loc && room >= 1 && room <= NAMED && !s.at[room]) s.at[room] = loc;
     if (s.last.length === 3) s.last[2]++;
     if (!p || !loc) return; // (only where he's settled: a change of level draws for frames, and a door open drifts the room)
     const list = (s.cells[STRIPS[p.strip].label] ??= []), c = p.col >> 3;
@@ -126,7 +138,11 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
     STRIPS.forEach((st, i) => {
       const y = L.y(i), cells = new Set(s.cells[st.label] ?? []);
       font?.draw(sf, st.label, box.x, y, COL.grey);
-      for (let c = 0; c < COLUMNS / 8; c++) sf.fillRect(L.x(c * 8), y + 2, L.cell - 1, 4, cells.has(c) ? COL.yellow : COL.dgrey);
+      // (a stretch no way leads into, st.closed, is a thin line, not a to-do: lit, if ever walked)
+      for (let c = 0; c < COLUMNS / 8; c++) {
+        const lit = cells.has(c), shut = !lit && st.closed.includes(c);
+        sf.fillRect(L.x(c * 8), shut ? y + 4 : y + 2, L.cell - 1, shut ? 1 : 4, lit ? COL.yellow : COL.dgrey);
+      }
       // where one block of the char map ends and the next starts (a screen's width)
       for (const b of [1, 2]) sf.fillRect(L.x(b * 40), y + 6, 1, 2, COL.dgrey);
     });
@@ -145,7 +161,7 @@ export const karnathMap: PauseMap<Uint8Array, KarnathFound> = {
   info: (ram, found, assist) => [
     `ENERGY ${String(statusNumber(ram, 0x07dc)).padStart(3)}%`,
     `${screenText(ram, 24, 5, 5)} ${screenText(ram, 24, 11, 2)}`, // the castle clock
-    `ROOMS ${String(found.castle.rooms.length).padStart(2)}/${ROOMS}`,
+    `ROOMS ${String(roomsSeen(found.castle.rooms)).padStart(2)}/${ROOMS}`,
     // the pieces of the pentacle laid at the obelisk, and one carried (ENHANCED's hints): short, the legend and the options stand under the lines
     ...(assist?.hints ? [`PIECES ${Math.min(deposited(ram), PIECES)}/${PIECES}`, ...(carrying(ram) ? ['CARRYING 1'] : [])] : []),
   ],

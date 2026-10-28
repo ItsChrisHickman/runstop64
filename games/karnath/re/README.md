@@ -55,7 +55,7 @@ carry the map and the blocks' contents with them.
 
 **Checked** (`games/shared/native/test/travel.ts karnath`): five routes from the title, found by automatic play
 (`re/routes.json`: Go-Explore on the native port, recording the input) walk into 24 of the
-25 rooms (all but the crypt), in all four modes, taking pieces of the pentacle on the way.
+25 rooms (all but the crypt, which no walk shows: see "Reach"), in all four modes, taking pieces of the pentacle on the way.
 From states along them (arrivals, the routes' ends, and a few seconds' random walking on from
 each) the test travels to every room noted, with round trips: 1,286 travels. After a frame
 his place is the walked arrival's, byte for byte; the playfield is drawn from the map, and
@@ -68,7 +68,7 @@ arrival does (979 of 979); and random play after runs on with no 6502 fallbacks.
 the creatures start as on a change of level (they can start on top of him, as there): 29% of
 438 travels lost energy in the first two seconds, against 24% of walked arrivals.
 
-The crypt ($17) wasn't reached by the automatic play; travel there works the same way.
+The crypt ($17) is no place ("Reach"): there is nothing to travel to.
 
 ## The map (the pause screen)
 
@@ -82,6 +82,9 @@ strips, one under another (upper floor U3-U1, lower floor L3-L1, dungeons DN, ab
 columns, with a tick where one block ends and the next begins. Where he is along a strip: the
 view's left edge (($7FE7 - 4 - the level's first page) / 4 * 40 + $7FE6) plus his sprite's column.
 
+A stretch no way leads into (`closed` in `src/strips.ts`: found by `test/reach.ts`, see "Reach") is drawn as a thin line, not as ground still to walk, and `ROOMS n/23`
+counts the rooms the game can be made to show by walking: not the laundry room ($07, the chamber behind the guard) nor the crypt ($17).
+
 Lit: the columns he's walked (in eighths), noted only where he's settled. Rooms: marked where he
 came into each (where travel takes him), and picked, the room's name shows under the map (from
 the game's own list at $0E2E, as $2F8E shows it). The room number is a count the game keeps
@@ -91,7 +94,8 @@ The ways between levels he's taken are drawn where he took them: green the stair
 down, the same floor), purple between floors, the dungeons and the abode. They're noted from
 play (two settled moments on different strips, close in time and place), not from the char map:
 the chars the stairs and doors are made of ($5E/$67/$63/$23 up, $A5-$A7 down, $6D, $CF, $B8,
-$53/$66, read under his feet by $27BA) are also used in the pictures' walls.
+$53/$66, read under his feet by $27BA) are also used in the pictures' walls. (Of the four tower door chars only $67 takes him up: $2A2C draws
+the open door so that the cell under the probe is floor only for $67 and $63, and a way up through $63 runs on into $23's wall.)
 
 ## Combat and controls (src/combat.ts)
 
@@ -135,7 +139,7 @@ ON PAUSE), and at the end `THE STAFF OF KARNATH HAS BEEN DESTROYED... CONGRATULA
   with a flag of its own at $321D-$3222 so it comes once: the lower castle's $C000 block ($3220, $3221), the upper floor's $E100 block
   ($321F, $321E, $3222) and the dungeons ($321D; its piece is sprite 1, taken by touch, $6248). (Read, not played: which rooms they
   are, and what makes the ones in the $C000 and $E100 blocks come: IBRAHIM, spell 8, on the thing in the room is read as the key for
-  $CFCD in the lower castle, $CD36.)
+  $CFCD in the lower castle, $CD36: the spider in level 3, "The web piece".)
 - **One at a time.** Walking into a map piece, or touching a sprite one, sets $322F to 1 ($167C, the four directions' floor checks
   call it: $2895, $28E4, $29D2, $2A0F) and nothing more can be picked up while it is 1 (every pickup tests it). It stays 1 until a piece is
   deposited (or the game is restarted: $0A59). A piece is never put down anywhere else. There is no way to drop it.
@@ -197,7 +201,7 @@ it is the one that works on it, so "the same thing every time" is the original's
 | 5 | MENHIR | the staff, at the end |
 | 6 | AEOLUS | level 2 ($C000): sprite 4 |
 | 7 | BARACATA | the obelisk in the abode, to deposit a piece |
-| 8 | IBRAHIM | level 3 ($C800): sprite 7; upper floor $D800 sprite 6, $E100 top level sprite 7; the dungeons: sprite 6; and the thing that gives up a piece in level 2 (see above) |
+| 8 | IBRAHIM | level 3 ($C800): sprite 7; upper floor $D800 sprite 6, $E100 top level sprite 7; the dungeons: sprite 6; and in level 3 the spider that holds the web's piece (see "The web piece") |
 | 9 | STOLV | upper floor $E100: sprites 6 and 7 |
 | 10 | YEROBAS | upper floor $E100 top level: sprite 4 |
 
@@ -224,15 +228,61 @@ a travel is put right when it is resumed (`repair` in `runNative`, `repairStripX
 and sprite say. `test/travel-creatures.ts`: in six rooms (2, 1, 16, 21, 20, 14) a walked arrival shows creatures and the travelled one
 shows none before the fix; none lost after it, in 120 travels.
 
-**What automatic play has not reached** (Go-Explore on the port, 25,000 tries of 150 frames from the 24 arrivals, keeping states that
-put him in a new column, height or carrying state; the cells are 8 columns of a strip; this is "not found", not "cannot be reached"):
-the crypt ($17, never entered; it is the room above the lower floor's third room, $2E33 adds $0B to the room number); the strips'
-far right ends (columns 112-119) on every floor but L1 and DN; the middle of U3, U2 and L3 (columns 64-87 / 72-87), and **the right
-end of L2 (columns 88-119, where a piece lies at $864C)**; and in the abode all but its right 40 columns (reached by directed search:
-the fixture state). The port and the original behave the same at the right end of L1 (`south tower lower`, the tower door $5E/$67/$63/$23
-at columns 109-112 above the floor: from the same state, going up and left-then-up end at the same place in both), so that is
-the game's geometry, not a fault of ours. Open: whether L2's right end and the crypt can be entered, and how; the pause map's lit
-cells (walked columns) will show you where you have not been.
+**What automatic play has not reached** is answered by "Reach", below: the strips' far ends and middles were walkable but not found,
+except two stretches no walk enters.
+
+## The web piece (level 3 of the lower castle: the $C800 block)
+
+Found by reading the code, then played in the port **and** in the original from the same state: `test/web.ts`.
+
+- **Where things are.** The level's last room hangs a piece in a web: sprite 4 (the piece's picture, copied from $5800) at y $60, sprite 1 the
+  web (image $21). The spider is sprite 7, on a thread at screen x 88, bobbing between y 97 and 159, at the **far left of the level** (the
+  strip's start, the first room: two rooms from the piece). It is not on the screen ($D015 bit 7) until the view scrolls there, so it is
+  not "never shown": it was in another room.
+- **What frees the piece.** $CD2F: the collisions $321A are exactly $88 (the spell, sprite 3, and sprite 7, nothing else touching it: not
+  Pendragon) with $322C = 8 (IBRAHIM) makes $CFCD 1 for that frame. $CD4C then, if no piece is carried ($322F not 1), this piece not taken
+  ($3221) and not already let go ($CFA1 0), drops sprite 4 to y $B0, the floor, and sets $CFA1 to $A1 + 4. $CD89 ends it when $A1, the second
+  byte of the jiffy clock (a turn of 256 ticks, one in about 0.83 frames: the CIA's timer is 16421 cycles, not the PAL frame's 19656), reaches
+  $CFA1: the piece goes back up to $60. So the piece is down for 3 to 4 turns, **654 frames in the checks (13 seconds)**, and it is let go
+  again only while none is carried (with one carried the spell is wasted: $CFCD is set, nothing falls). $CAC8, Pendragon on the piece
+  ($321A $14), takes it: $3221, $322F. The level's start ($C803) puts it back in the web if it was not taken.
+- **The hit.** The spell flies along his height + 10, and its drawn rows are 5 to 9 of 21; the spider's are 0 to 16. Standing at the floor's
+  front (y 158) a spell reaches it only when it hangs lowest (its y 152 to 160, a few frames in 126); from y 153, y 148 to 160; from higher up
+  the screen it touches Pendragon too (or misses). The spell takes two frames to reach it from there. In the checks: IBRAHIM cast at the
+  frame the spider's y is 152, at the floor's front, touches it (frame 43), the piece falls ($B0), and walking on (right, 570 pixels) takes it
+  (frame 595); the port and the original agree on that, on KNOSSOS at the spider (nothing), and on IBRAHIM with a piece carried (touched,
+  nothing falls). The original from a save of the port has no CIA interrupts, so how long the piece is down is read from the port, whose
+  clock is the original's from the title (the same $A0-$A2 for 1,500 frames of a route).
+- **So** the piece can be taken in the original, but nothing says how: the spider is not in the room with the piece, the spell is only a
+  matter of timing, and the piece is down for 13 seconds. ENHANCED says it (below, "Hints"): nothing about the game changes.
+
+## Reach (what can be entered: `test/reach.ts`, `test/reach-model.ts`)
+
+The castle, walked from a new game by the game's own code (the port): a plan inside each level from its map, carried out with the joystick
+(`test/reach-model.ts`: the game's floor check $27BA, which looks only at the cell in front of his feet, and steps up and down the screen
+that also take him one right or left; doors $55 and $53 open a floor two rows deep when walked into low enough, $2AC9; the stairs, the
+tower door $67 and the sign down are what he walks into to go elsewhere), and every way to another place taken to see where the game puts
+him and what the room count ($3235) says there. The plan's blocked cells and the game's agree on 99.4 per cent of 61,679 steps. From
+a new game it finds 27 parts of floors at room counts, the dungeons and the abode, the whole castle but:
+
+- **The lower floor's second level, right chamber (columns 96-119): THE LAUNDRY ROOM ($07).** A piece of the pentacle lies there ($864C).
+  Its way in is the first level's right tower door (columns 109-112, row 11), and a guard stands in the doorway: **sprite 1 in the first
+  level's $6000 block** (a green figure; $62A8: sprite 1 and Pendragon touching set $6762, and $6735 puts him at the floor, y $9C, and he
+  takes 5 energy), still, at the door's mouth, where the standing place that opens the door is. The walk is thrown back 298 times in 4
+  tries, and all ten spells cast at it from beside it touch it ($321A $0A) and leave it. So the chamber is closed, and so is the 17th piece
+  (ten in the maps, seven as sprites): the sixteen needed are all the others. The pause map shows columns 96-119 of that strip as no way in.
+- **The upper floor's second level, columns 88-95.** A wall and a staircase picture between the left part (the floor ends at column
+  77, a walkway at 82 with a tower door above it) and the right chamber (from column 96, the tower door at 111 up to the east tower).
+- **THE CRYPT ($17, 23)** is no place: no stair, door or tower door goes to a 23rd, and the count is not 23 in any frame of the walk, nor in
+  1.3 million frames of random play from every place found (`WANDER=24`). The count is made at the stairs from a table ($2B7B: from 1 to 5, 7 to
+  11, 13 to 17, 18 to 22, 17 to 21, else + 3; $2CE4 the other way; $0B between floors, $2E33/$2EF6) and by the doors as they close
+  ($1CA4 and $1DC0 add one for a door opened going right when the right or up key is held, $1E4D takes one for one opened going left when the left key
+  is: the down key and the others change nothing). So the count can be moved on a step or two by how a door is left
+  (a door held open: the route 0 of `routes.json` has the count at 7 in level 2, where the places have 5 and 6), and the status line can
+  say either name; neither is a place, and neither is counted by the pause screen (ROOMS n of 23).
+- **The east tower** (rooms 11 and 22) is the one chamber at the right end of the third level of each floor: EAST TOWER UPPER by the tower
+  doors up the upper floor (room 18, the waiting room, up to 22), EAST TOWER LOWER by $CF down from it ($2EF6, 22 to 11). The strips' far
+  right ends and middles that Go-Explore did not find are walkable (the walk is at 27 places).
 
 ## Hints (ENHANCED: src/hints.ts, src/guide.ts, src/hint-lines.ts; checked by `re/hints/check.ts`)
 
@@ -268,6 +318,12 @@ read from what the game keeps; nothing is written but the status line's characte
   staff after the sixteenth, gone on MENHIR, none when the wrong spell kills him); through the front end the status line (the game's FOUND line first,
   never covered, then the four lines, then the game's CARRYING back; DEPOSITED then N OF 16; the sixteenth's staff lines), ORIGINAL showing none of
   it (no sparkle, the game's lines only); midnight lost in ORIGINAL and held at 11:59 in ENHANCED, the pause screen's count, and the far door into the abode with its line.
+- **The web piece** (see "The web piece"; `test/web.ts`, through the front end): the piece in the web in view with none carried says the spider is at
+  the far left of the level, IBRAHIM at it (key 8), that it falls for 12 seconds and to run back (Shift); the spider in view, none carried,
+  says it holds a piece, IBRAHIM, when it hangs low, 12 seconds, run; a piece already carried: another is in the web, lay yours first. A line
+  is said as the piece or the spider comes into view (or at once when a game is continued with it in view), not again for 30 seconds, and
+  not once the piece is let go; the narrator keeps four texts waiting, so a line is at most four. The spider has a sparkle while the piece
+  is held up (sprite 4 still at y $60, $3221 not 1), and the piece, as every piece, from its picture.
 - **Not done.** The hint of the spell that works on a creature (the README's spell table was read from the code and the kitchen's AEOLUS played, but
   the table's other rows are not proved by play, so no hint is made from them). Of the seven sprite pieces only the kitchen's was taken by the bot; the
   others are marked by their picture (the same code path) but unplayed. The line on coming into the dungeons carrying (`LINES.dungeons`) is written and

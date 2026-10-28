@@ -12,7 +12,7 @@
  * phone the SPELL button moves on to the next, and the name shows on the panel as the game shows it.
  */
 
-/** A line, or lines said one after the other. */
+/** A line, or lines said one after the other (at most four: the narrator keeps that many waiting, narrate.ts `QUEUE`). */
 export type Say = string | readonly string[];
 
 export interface Lines {
@@ -27,6 +27,12 @@ export interface Lines {
   /** Coming into the dungeons or the abode with a piece. */
   dungeons: string;
   abode: string;
+  /** The piece in the spider's web in view, none carried: where the spider is and how to free it. */
+  web: Say;
+  /** ...a piece already carried (the spell would be wasted: it is let go only while none is carried). */
+  webCarrying: Say;
+  /** The spider that holds it in view, none carried. */
+  spider: Say;
 }
 
 export const LINES: Lines = {
@@ -36,4 +42,7 @@ export const LINES: Lines = {
   staff: ['THE STAFF IS IN ITS SHRINE', 'CAST MENHIR AT IT: KEY 5', 'ANY OTHER SPELL IS DEATH'],
   dungeons: 'FAR DOOR AT THE RIGHT END',
   abode: 'THE OBELISK IS FAR LEFT',
+  web: ['THE WEB HOLDS A PIECE. THE SPIDER IS FAR LEFT', 'CAST IBRAHIM AT IT: KEY 8', 'IT FALLS FOR 12 SECONDS', 'THEN RUN BACK: HOLD SHIFT'],
+  webCarrying: ['ANOTHER PIECE IS IN THE WEB', 'LAY YOURS FIRST'],
+  spider: ['THE SPIDER HOLDS A PIECE', 'CAST IBRAHIM AT IT: KEY 8. WHEN IT HANGS LOW', 'IT FALLS FOR 12 SECONDS', 'THEN RUN TO THE WEB: SHIFT'],
 };
