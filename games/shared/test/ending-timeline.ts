@@ -32,6 +32,7 @@ const names = ['THE RAT', 'THE IMP'];
   check('a credit line types on a letter a frame', bandAt(tl, credit.from + 2, lines, names)?.text === 'ON' && bandAt(tl, credit.from, lines, names)?.text === '');
   check('and goes a moment before the next turn', bandAt(tl, credit.from + credit.len - 1, lines, names) === null);
   check('a name is whole from its first frame, and goes a moment before its turn ends', bandAt(tl, name.from, lines, names)?.text === 'THE RAT' && bandAt(tl, name.from + name.len - 1, lines, names) === null);
+  check('a name and a credit line are never up together: the turns never overlap, and a moment of nothing is between a line and a name', tl.beats.every((x, i) => { const next = tl.beats[i + 1]; return !next || (x.from + x.len <= next.from && (x.kind === next.kind || bandAt(tl, x.from + x.len - 1, lines, names) === null)); }));
   check('every frame of a place is one turn\'s or between turns', Array.from({ length: tl.length }, (_, t) => bandAt(tl, t, lines, names)).every((x) => x === null || x.beat.len > 0));
 }
 

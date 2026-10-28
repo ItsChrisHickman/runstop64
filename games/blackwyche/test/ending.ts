@@ -41,10 +41,13 @@ let over = 0;
 const struck = { shelf: false, captain: false, pearl: false };
 // the credits stand in the black band between the picture and the status panel (rows 166 to 173)
 const BAND = { top: 166, bottom: 173 };
+// the room is shown in rows 32 to 161 and columns 7 to 310 (the VIC's border covers the rest of the sides; the frame's art is above, the band and the panel below)
+const STAGE = { x: 7, y: 32, w: 304, h: 130 };
 const show = {
   spec: blackwycheEnding, port: game.port, title, titleTune: true,
   stats: endingStats(title.ram, blackwycheMap.found.empty()),
   band: BAND,
+  stage: STAGE,
   out,
   onMontage(scene: number, _frame: number, m: C64) {
     if (scene === 0 && m.ram[0x638f] >= 1) struck.shelf = true;

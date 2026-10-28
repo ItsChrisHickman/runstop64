@@ -1,6 +1,7 @@
 import { Surface, TRANSPARENT, type BitmapFont, type Host, type SpriteHandle } from 'c64kit';
 import { CREDIT } from './credits';
 import { poseAt, type Figure } from './figures';
+import { WHOLE, cutTo, type Stage } from './stage';
 import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timeline, type Walk } from './timeline';
 
 /**
@@ -39,6 +40,8 @@ export interface Reel {
   readonly ground?: number | undefined;
   /** The colour the text of the band reads in here, if not the show's (a plain band of another colour). */
   readonly ink?: number | undefined;
+  /** The part of the picture the room really shows (the VIC's border and the game's frame left out): the cast is seen only on it, cut off where it leaves it. Without it, the whole picture. */
+  readonly shownArea?: Stage | undefined;
 }
 
 /** A place to revisit. */
@@ -69,6 +72,12 @@ export interface RewardSpec {
   cast: readonly (() => Figure | null)[];
   /** The row (picture pixels) the text is drawn at: eight pixels the game leaves empty. */
   creditRow: number;
+  /**
+   * Where the creatures' names go, if not in the credits' row between the lines: another row the game leaves empty (eight pixels), in
+   * its own colour (`nameInk`), so a name is never read as part of the credits. A name is up only while no credit line is, as ever.
+   */
+  nameRow?: number;
+  nameInk?: number;
   /** Frames a credit line is given (default `CREDIT.slot`). */
   creditSlot?: number;
   /** The column the text starts at (default `CREDIT.x`), and the most letters it can have (default `CREDIT.letters`): the span of the band the game leaves empty. */
@@ -157,6 +166,8 @@ export class RewardShow {
   /** A place's own floor, if it says (else the hero's). */
   private fixed: number | undefined;
   private handles: SpriteHandle[] = [];
+  /** The visitors' parts cut to the stage where they are half out (one spare surface for each handle). */
+  private cuts: (Surface | null)[] = [];
   private readonly black = new Surface(320, 200, 0);
   private seen: Seen[] = [];
   private said: Said | null = null;
@@ -299,9 +310,12 @@ export class RewardShow {
     return nameLeft(left ?? x, now.text.length, x, letters);
   }
 
+  /** Whether this turn's text goes in a row of its own, not the credits' (a name, where the game gives names a row). */
+  private apart(now: NonNullable<ReturnType<typeof bandAt>>): boolean { return now.beat.kind === 'name' && this.o.spec.nameRow !== undefined; }
+
   /** The text for a reel whose band is a line of its panel: spaces to the column, then the text. */
   private padded(now: ReturnType<typeof bandAt>, place: Place, reel: Reel): string {
-    if (!now || !reel.say) return '';
+    if (!now || !reel.say || this.apart(now)) return '';
     const { x } = this.span(place);
     return ' '.repeat(Math.max(0, Math.floor((this.whereIs(now, place) - x) / 8))) + now.text;
   }
@@ -310,11 +324,12 @@ export class RewardShow {
   private band(now: ReturnType<typeof bandAt>, place: Place, reel: Reel) {
     this.said = null;
     if (!now || now.text === '') return;
-    const x = this.whereIs(now, place), row = place.creditRow ?? this.o.spec.creditRow;
+    const { spec } = this.o, apart = this.apart(now);
+    const x = this.whereIs(now, place), row = apart && spec.nameRow !== undefined ? spec.nameRow : place.creditRow ?? spec.creditRow;
     this.said = { text: now.text, kind: now.beat.kind, index: now.beat.index, x, row };
-    if (reel.say) return;
+    if (reel.say && !apart) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.text, x, row, reel.ink ?? this.colours.credit);
+    this.o.font().draw(screen, now.text, x, row, apart ? spec.nameInk ?? this.colours.credit : reel.ink ?? this.colours.credit);
     screen.version++;
   }
 
@@ -328,6 +343,7 @@ export class RewardShow {
   /** The visitors on their way, over the picture: one handle per part drawn, shared along the line. */
   private drawVisitors(t: number, place: Place) {
     const { renderer } = this.o.host;
+    const stage = this.reel?.shownArea ?? WHOLE;
     this.seen = [];
     let used = 0;
     this.walks.forEach((walk, k) => {
@@ -339,10 +355,14 @@ export class RewardShow {
       const top = stand - fig.foot;
       this.seen.push({ name: fig.name, left, feet: stand, width: fig.width, height: fig.foot });
       poseAt(fig, t - walk.from).parts.forEach((part) => {
-        while (this.handles.length <= used) this.handles.push(renderer.createSprite(20 + this.handles.length * 0.001));
-        const h = this.handles[used++];
-        if (!h) return;
-        h.surface = part.surface; h.x = left + part.dx; h.y = top + part.dy; h.visible = true;
+        while (this.handles.length <= used) { this.handles.push(renderer.createSprite(20 + this.handles.length * 0.001)); this.cuts.push(null); }
+        // (only what is on the stage: a part half out is cut, one wholly out is not drawn)
+        const { cut, spare } = cutTo(part.surface, left + part.dx, top + part.dy, stage, this.cuts[used] ?? null);
+        const h = this.handles[used];
+        this.cuts[used] = spare;
+        used++;
+        if (!h || !cut) { if (h) h.visible = false; return; }
+        h.surface = cut.surface; h.x = cut.x; h.y = cut.y; h.visible = true;
       });
     });
     for (let k = used; k < this.handles.length; k++) { const h = this.handles[k]; if (h) h.visible = false; }

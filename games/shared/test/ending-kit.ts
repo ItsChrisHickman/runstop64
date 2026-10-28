@@ -1,4 +1,4 @@
-import { BitmapFont, Input, KIT_GLYPHS, type MachineState } from 'c64kit';
+import { BitmapFont, Input, KIT_GLYPHS, type MachineState, type Rect } from 'c64kit';
 import { CREDIT } from '../ending/credits';
 import { Ending, MachineReel, bandBackground, creditColourOn, type EndingSpec } from '../ending/machine-reel';
 import type { Said, Seen } from '../ending/show';
@@ -58,6 +58,20 @@ export class CastWatch {
   readonly problems = new Set<string>();
   /** Names a picture was made of (for a test run with an out folder). */
   readonly pictured = new Set<string>();
+  /** With a stage: the frames a visitor was cut by its edge, and what was drawn outside it (`place: who, where`). */
+  cutFrames = 0;
+  readonly outside = new Set<string>();
+
+  /**
+   * One frame, with a stage: every part of a visitor drawn (`drawn`: the box of each, as the renderer has it) lies inside the stage, and
+   * where a visitor's own box went beyond it, the part outside was cut off (`cutFrames`).
+   */
+  onStage(p: { place: number; visitors: readonly Seen[] }, stage: Rect, drawn: readonly Rect[]) {
+    for (const v of p.visitors) if (v.left < stage.x || v.left + v.width > stage.x + stage.w) this.cutFrames++;
+    for (const b of drawn) {
+      if (b.x < stage.x || b.y < stage.y || b.x + b.w > stage.x + stage.w || b.y + b.h > stage.y + stage.h) this.outside.add(`place ${p.place}: a part at ${b.x},${b.y} (${b.w} x ${b.h}) is outside the stage ${stage.x},${stage.y} ${stage.w} x ${stage.h}`);
+    }
+  }
 
   /**
    * One frame: the show's progress, the rows the band takes (picture pixels), and whether the game's own picture under what the band
@@ -131,6 +145,8 @@ interface ShowRun {
   titleTune?: boolean;
   /** The rows the credits stand in, with a little room round them (picture pixels); unused where they are typed into a panel's line (`spec.creditLine`). */
   band: { top: number; bottom: number };
+  /** The part of the picture the room is shown in: the creatures are seen only on it. Checked if given. */
+  stage?: Rect;
   /** PNGs of scenes, credits, names and THE END go here (the folder is made by the caller), if given. */
   out?: string;
   /** Every frame of the montage (the scene's index, frames into it, the game being shown). */
@@ -149,6 +165,8 @@ interface ShowResult {
   active: boolean;
   /** The credit lines shown in full (`scene.line`). */
   shownLines: Set<string>;
+  /** With names in a row of their own (`spec.nameRow`): the frames each kind of turn was up, and what stood in the wrong row (a name's colour in the credits' band, a credit's in the name's row, either between turns). */
+  apart: { credit: number; name: number; mixed: string[] };
   /** The band in each scene with credit lines before its text came (and how many of those), and what stood in it when a line was in full (anything but the credit colour). */
   bandEmptyBefore: number;
   scenes: number;
@@ -189,7 +207,7 @@ export function playShow(o: ShowRun): ShowResult {
   });
   show.start(o.stats);
   const cast = new CastWatch();
-  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, spanFrames: 0, cast, sceneFrames: [] };
+  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, apart: { credit: 0, name: 0, mixed: [] }, spanFrames: 0, cast, sceneFrames: [] };
   const { top, bottom } = o.band;
   // (the band's own colour: black, or the room's plain background where the picture fills the screen)
   const backOf = (m: C64) => (o.spec.plainBand ? bandBackground(m) : 0);
@@ -200,9 +218,11 @@ export function playShow(o: ShowRun): ShowResult {
     return { credit, other };
   };
   /** Whether the game's own picture (both layers) under a span of the band holds nothing but the background. */
-  const emptyUnder = (m: C64, x0: number, len: number) => {
+  const emptyUnder = (m: C64, x0: number, len: number, row?: number) => {
     const bg = backOf(m), pic = shownLayers(m, renderer.layout);
-    for (let y = top; y <= bottom; y++) for (let x = x0; x < Math.min(320, x0 + 8 * len); x++) { const i = y * 320 + x; if (pic.back[i] !== bg || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== bg)) return false; }
+    // (a name in a row of its own: that row's eight lines)
+    const [y0, y1] = row === undefined || (row >= top && row <= bottom) ? [top, bottom] : [row, row + 7];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x < Math.min(320, x0 + 8 * len); x++) { const i = y * 320 + x; if (pic.back[i] !== bg || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== bg)) return false; }
     return true;
   };
   let still = 0;
@@ -232,12 +252,28 @@ export function playShow(o: ShowRun): ShowResult {
       }
       const px = shown(renderer, m);
       const said = p.said;
+      if (o.stage) cast.onStage(p, o.stage, renderer.sprites.filter((h) => h.visible && h.surface && h.z >= 20).map((h) => ({ x: Math.round(h.x), y: Math.round(h.y), w: h.surface?.width ?? 0, h: h.surface?.height ?? 0 })));
+      if (o.spec.nameRow !== undefined && o.spec.nameInk !== undefined) {
+        // (a name and a credit line are never up together: what the show wrote, its own layer of the picture, has one kind of text in its row
+        // and the other kind's row bare, in every frame)
+        const row = o.spec.nameRow, own = renderer.screen.pixels;
+        let nameInk = 0, creditInk = 0, otherInName = 0, otherInBand = 0;
+        for (let x = 0; x < 320; x++) {
+          for (let y = row; y < row + 8; y++) { const c = own[y * 320 + x]; if (c === o.spec.nameInk) nameInk++; else if (c !== TRANSPARENT) otherInName++; }
+          for (let y = top; y <= bottom; y++) { const c = own[y * 320 + x]; if (c === CREDIT.colour) creditInk++; else if (c !== TRANSPARENT) otherInBand++; }
+        }
+        const kind = said && said.text.trim() !== '' ? said.kind : 'none';
+        if (kind === 'credit') r.apart.credit++;
+        if (kind === 'name') r.apart.name++;
+        const wrong = (kind !== 'name' && nameInk > 0) || (kind !== 'credit' && creditInk > 0) || otherInName > 0 || otherInBand > 0 || (kind === 'name' && nameInk === 0) || (kind === 'credit' && creditInk === 0);
+        if (wrong && r.apart.mixed.length < 8) r.apart.mixed.push(`place ${p.place} frame ${p.frames} ${kind}: ${nameInk} name-coloured and ${otherInName} other pixels in the name row, ${creditInk} credit-coloured and ${otherInBand} other in the band`);
+      }
       // (a plain band: nothing the game draws lies under the text, in any frame it is shown: its span of the rows, in the background colour)
       if (o.spec.plainBand && said) {
         r.spanFrames++;
         if (!emptyUnder(m, said.x, said.text.length)) { const tag = `scene ${p.place} ${said.kind} ${said.index}: pixels of the game's under the text`; if (!r.stray.includes(tag)) r.stray.push(tag); }
       }
-      cast.frame(p, o.band, (s) => (line ? lineText(m.ram, line).trim() === clean(s.text, line).trim() : emptyUnder(m, s.x, s.text.length)));
+      cast.frame(p, o.band, (s) => (line ? lineText(m.ram, line).trim() === clean(s.text, line).trim() : emptyUnder(m, s.x, s.text.length, s.row)));
       if (p.frames === 1 && scene.credits?.length) {
         r.scenes++;
         if (o.spec.plainBand) r.bandEmptyBefore++;
@@ -284,6 +320,14 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   check(`every figure of the cast was recorded (${r.figures.length} of ${spec.cast.length})`, r.figures.length === spec.cast.length);
   check('the hero is in every scene and not among the visitors', !r.figures.some((f) => /PENDRAGON|WILLY|^THING$/.test(f.name)));
   r.cast.check(r.figures, spec.creditLine?.width ?? spec.creditLetters ?? CREDIT.letters);
+  if (o.stage) {
+    check(`the creatures are seen only on the stage (${r.cast.cutFrames} frames of one cut by its edge, ${r.cast.outside.size} parts drawn outside it)`, r.cast.cutFrames > 100 && r.cast.outside.size === 0);
+    if (r.cast.outside.size) console.log([...r.cast.outside].slice(0, 8).join('\n'));
+  }
+  if (spec.nameRow !== undefined) {
+    check(`a name and a credit line are never up together: names in the row of their own, in their colour, credits in the band, in theirs (${r.apart.name} frames of names, ${r.apart.credit} of credits)`, r.apart.name > 200 && r.apart.credit > 1000 && r.apart.mixed.length === 0);
+    if (r.apart.mixed.length) console.log(r.apart.mixed.join('\n'));
+  }
   if (spec.tune === 'effects') check(`the places' own sound is heard (${r.tuneFrames.played} frames with writes: the whip, the bells)`, r.tuneFrames.played >= 100);
   else check('the title tune played all the way (writes in most frames)', r.tuneFrames.of > 0 && r.tuneFrames.played > r.tuneFrames.of / 4);
   check(`every credit line was shown in full (${r.shownLines.size} of ${lines.length})`, r.shownLines.size === lines.length && lines.length >= 12);

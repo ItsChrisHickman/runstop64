@@ -120,6 +120,7 @@ export const TESTS = [
   // ---- Blackwyche
   { file: 'games/blackwyche/test/captain.ts', set: 'fast' },
   { file: 'games/blackwyche/test/ending.ts', set: 'fast' },
+  { file: 'games/blackwyche/test/ending-scroll.ts', set: 'fast' },
   { file: 'games/blackwyche/test/figure.ts', set: 'fast' },
   { file: 'games/blackwyche/test/grace.ts', set: 'fast' },
   { file: 'games/blackwyche/test/guided.ts', set: 'fast' },

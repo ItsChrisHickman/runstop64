@@ -14,6 +14,7 @@ import { TitleTune } from '../native/title-tune';
 import { CREDIT } from './credits';
 import { captureShot, recordFigure, shotFeet, type Figure, type SpriteShot } from './figures';
 import { RewardShow, type Place, type Reel, type RewardSpec } from './show';
+import { WHOLE, type Stage } from './stage';
 
 // ---- what a game declares ---------------------------------------------------------------------
 
@@ -114,6 +115,17 @@ export interface EndingSpec {
   creditX?: number;
   /** The letters the band can have, if not `CREDIT.letters` (a panel's line: its width). */
   creditLetters?: number;
+  /**
+   * The rows of the picture the room is shown in (the game's frame above, its panel below, are not the room): the cast walks only there,
+   * and in the columns the VIC's border leaves (38-column mode: pixels 7 to 310). Default: every row.
+   */
+  stage?: { top: number; bottom: number };
+  /**
+   * Where the creatures' names go: a row of eight pixels the game leaves empty other than the credits' (`creditRow`), in its own
+   * colour (a palette index), so the names are never mixed with the credit lines. Default: the credits' row, between the lines.
+   */
+  nameRow?: number;
+  nameInk?: number;
   /** The engine takes one of the four ways for a diagonal (Dragonskulle's): he walks one way at a time. */
   fourWays?: boolean;
   /**
@@ -279,15 +291,30 @@ function caption(ram: Uint8Array, line: StatusLine, text: string) {
   }
 }
 
-/**
- * What we wrote into the screen after the game's frame (the caption, the panel put away) is in this frame's picture too: the capture
- * holds the screen as the VIC fetched it during the frame, which is before. Presentation only, in the picture of the show.
- */
-function repaint(m: { ram: Uint8Array; capture: FrameCapture }) {
+/** The screen memory of every captured text row, cell by cell (rows the frame did not capture are zeros). */
+function screenCells(m: { ram: Uint8Array; capture: FrameCapture }, into: Uint8Array): Uint8Array {
   m.capture.rows.forEach((r, row) => {
     if (!r) return;
     const base = r.bank + ((r.d018 >> 4) & 15) * 0x400 + row * 40;
-    for (let c = 0; c < 40; c++) r.codes[c] = m.ram[base + c];
+    for (let c = 0; c < 40; c++) into[row * 40 + c] = m.ram[base + c];
+  });
+  return into;
+}
+
+/**
+ * What we wrote into the screen after the game's frame (the caption, the panel put away) is in this frame's picture too: the capture
+ * holds the screen as the VIC fetched it during the frame, which is before. Presentation only, in the picture of the show.
+ *
+ * Only the cells we changed (`before`: the screen as the game's frame left it) are taken from the memory. The rest stays as the VIC
+ * fetched it, as the fine scroll of the same frame has it: a scrolling room moves its screen a whole character on at the frame the
+ * fine scroll wraps, after the fetch, so the memory is a character ahead of the scroll the picture is drawn with (the room would jump
+ * 8 pixels for a frame, every 8 frames of its scroll).
+ */
+function repaint(m: { ram: Uint8Array; capture: FrameCapture }, before: Uint8Array) {
+  m.capture.rows.forEach((r, row) => {
+    if (!r) return;
+    const base = r.bank + ((r.d018 >> 4) & 15) * 0x400 + row * 40;
+    for (let c = 0; c < 40; c++) if (m.ram[base + c] !== before[row * 40 + c]) r.codes[c] = m.ram[base + c];
   });
 }
 
@@ -334,6 +361,8 @@ export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, e
 /** A scene running: the game's own frames, the hero driven by a director, the picture the game's machine draws. */
 export class MachineReel implements Reel {
   private text = '';
+  /** The screen as the game's frame left it, before our writes (`repaint`). */
+  private readonly before = new Uint8Array(25 * 40);
   /** Only where the band is a line of the game's panel (`EndingSpec.creditLine`): the show draws the text otherwise. */
   readonly say: ((text: string) => void) | undefined;
   constructor(
@@ -359,10 +388,11 @@ export class MachineReel implements Reel {
 
   draw() {
     const { spec, host } = this.o, { ram } = this.g.m;
+    screenCells(this.g.m, this.before);
     spec.tidy?.(ram);
     if (this.scene.caption !== undefined && spec.status) caption(ram, spec.status, this.scene.caption);
     if (spec.creditLine && this.scene.credits?.length) caption(ram, spec.creditLine, this.text);
-    repaint(this.g.m);
+    repaint(this.g.m, this.before);
     // (the picture as the game's front end lays it out in play, if it does)
     host.renderer.layout = spec.layout ?? null;
     this.view.update();
@@ -377,6 +407,16 @@ export class MachineReel implements Reel {
     const mine = this.g.m.capture.sprites.filter((s) => s.n === this.o.spec.hero && s.x < 504);
     const me = mine.reduce<(typeof mine)[number] | undefined>((top, s) => (top === undefined || s.y < top.y ? s : top), undefined);
     return me ? shotFeet(captureShot(me)) : undefined;
+  }
+
+  /** Where the cast may be seen: the rows the game declares, and the columns the VIC does not cover with its border where the hero stands. */
+  get shownArea(): Stage {
+    const { stage } = this.o.spec;
+    const row = this.g.m.capture.rows[Math.max(0, Math.min(24, Math.floor((this.ground ?? 100) / 8)))];
+    // (38-column mode: the border covers pixels 0 to 6 and 311 to 319)
+    const narrow = row !== undefined && !(row.d016 & 8);
+    const x = narrow ? 7 : WHOLE.x, w = narrow ? 304 : WHOLE.w;
+    return stage ? { x, y: stage.top, w, h: stage.bottom - stage.top } : { x, y: WHOLE.y, w, h: WHOLE.h };
   }
 
   get ink() { return this.o.spec.plainBand ? creditColourOn(bandBackground(this.g.m)) : undefined; }
@@ -446,6 +486,8 @@ export class Ending {
       places,
       cast: spec.cast.map((c) => () => { const base = this.boot(); return base && record(port, base, spec, c); }),
       creditRow: spec.creditRow ?? CREDIT.row,
+      ...(spec.nameRow === undefined ? {} : { nameRow: spec.nameRow }),
+      ...(spec.nameInk === undefined ? {} : { nameInk: spec.nameInk }),
       // (a panel's line starts at its own column 0 and has its width in letters)
       ...(spec.creditLine ? { creditX: 0, creditLetters: spec.creditLine.width } : { ...(spec.creditX === undefined ? {} : { creditX: spec.creditX }), ...(spec.creditLetters === undefined ? {} : { creditLetters: spec.creditLetters }) }),
       ready: () => this.boot() !== null,
