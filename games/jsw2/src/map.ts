@@ -1,7 +1,7 @@
 import type { Surface } from 'c64kit';
 import { COL, foundCodec, MAP_BOX, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
-import { LINKS, MANSION, MANSION_SIZE } from './mansion';
+import { LINKS, MANSION, MANSION_SIZE, UNENTERABLE } from './mansion';
 
 /**
  * Jet Set Willy II's map, for the pause screen: the whole mansion (laid out from the
@@ -117,23 +117,19 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
   },
   // the room he's in; while picking a room to go to, that room's name
   title: (ram, _page, pick) => (MANSION[pick ? Number(pick) : roomOf(ram)]?.name ?? 'THE MANSION').slice(0, 26),
-  draw(s, box, ram, found, blink) {
+  draw(s, box, ram, found, blink, _page, _font, pick) {
     const seen = new Set(found.rooms), here = roomOf(ram);
     const { cell, cx, cy } = layout(box);
     const size = Math.max(3, cell - 2), done = itemsFound(ram) >= NEED;
-    // connectors first (under the rooms): exits to rooms that are not beside the room on the map (the mansion is not a
-    // consistent grid), dotted from room to room
-    for (const [a, , b] of LINKS) {
-      const ra = MANSION[a], rb = MANSION[b];
-      if (!ra || !rb) continue;
-      dotted(s, cx(ra.x), cy(ra.y), cx(rb.x), cy(rb.y), seen.has(a) && seen.has(b) ? COL.lblue : COL.blue);
-    }
+    // a room no play can enter is not on the map until he has been in it
+    const shown = (room: number) => seen.has(room) || room === here || !UNENTERABLE.includes(room);
+    const half = size >> 1, tint = (a: number, b: number) => (seen.has(a) && seen.has(b) ? COL.lblue : COL.blue);
     // exits between rooms side by side on the map, the way they lead (each pair once)
     const drawn = new Set<string>();
     for (const [n, r] of Object.entries(MANSION)) {
       r.exits.forEach((to, k) => {
         const t = MANSION[to];
-        if (to === Number(n) || !t || t.x !== r.x + STEP[k][0] || t.y !== r.y + STEP[k][1]) return;
+        if (to === Number(n) || !t || !shown(Number(n)) || !shown(to) || t.x !== r.x + STEP[k][0] || t.y !== r.y + STEP[k][1]) return;
         const id = Number(n) < to ? `${n},${to}` : `${to},${n}`;
         if (drawn.has(id)) return;
         drawn.add(id);
@@ -143,8 +139,16 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
         else s.fillRect(cx(r.x), y, 1, cell + 1, colour);
       });
     }
+    // a link (an exit to a room that is not beside the room on the map: the mansion is not a consistent grid) is a short stub
+    // on its room's edge, the way the exit leads; the line to where it leads is drawn for the picked room's links only (below)
+    for (const [a, k, b] of LINKS) {
+      const ra = MANSION[a], rb = MANSION[b];
+      if (!ra || !rb || !shown(a) || !shown(b)) continue;
+      stub(s, cx(ra.x), cy(ra.y), size, k, tint(a, b));
+    }
     for (const [n, r] of Object.entries(MANSION)) {
       const room = Number(n);
+      if (!shown(room)) continue;
       // been in and can travel back to (he found his feet there): yellow; only passed through: brown
       const stood = !!found.stand[room];
       const colour = room === here ? (blink ? COL.white : COL.yellow) : !seen.has(room) ? COL.dgrey : stood ? COL.yellow : COL.brown;
@@ -152,6 +156,16 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
       s.fillRect(cx(r.x) - (size >> 1), cy(r.y) - (size >> 1), size, size, lit);
       // items left, only in rooms he's been in
       if (seen.has(room) && itemsLeft(ram, room) > 0) s.fillRect(cx(r.x) - 1, cy(r.y) - 1, 2, 2, COL.cyan);
+    }
+    // the picked room's links, and the links that lead to it: the dotted line from room to room, the room at the other end lit
+    const picked = pick ? Number(pick) : -1;
+    for (const [a, , b] of LINKS) {
+      if (a !== picked && b !== picked) continue;
+      const ra = MANSION[a], rb = MANSION[b];
+      if (!ra || !rb || !shown(a) || !shown(b)) continue;
+      const colour = tint(a, b), other = MANSION[a === picked ? b : a];
+      dotted(s, cx(ra.x), cy(ra.y), cx(rb.x), cy(rb.y), colour);
+      s.fillRect(cx(other.x) - half, cy(other.y) - half, size, size, colour);
     }
   },
   // Places to go back to: the rooms he's found his feet in.
@@ -182,6 +196,16 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
 /** left, right, up, down: where an exit leads on the map. */
 const STEP = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
 
+/** A stub on the edge of a room's mark (`size` its width, centred on x, y), the way an exit leads: left, right, up, down. */
+const STUB = 3;
+function stub(s: Surface, x: number, y: number, size: number, k: number, colour: number) {
+  const x0 = x - (size >> 1), y0 = y - (size >> 1);
+  if (k === 0) s.fillRect(x0 - STUB, y, STUB, 1, colour);
+  else if (k === 1) s.fillRect(x0 + size, y, STUB, 1, colour);
+  else if (k === 2) s.fillRect(x, y0 - STUB, 1, STUB, colour);
+  else s.fillRect(x, y0 + size, 1, STUB, colour);
+}
+
 /** A dotted line (two pixels in three) between two places on the picture. */
 function dotted(s: Surface, x0: number, y0: number, x1: number, y1: number, colour: number) {
   const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
@@ -193,6 +217,9 @@ function layout(box: Box) {
   const ox = box.x + Math.floor((box.w - cell * MANSION_SIZE.w) / 2), oy = box.y + Math.floor((box.h - cell * MANSION_SIZE.h) / 2);
   return { cell, cx: (x: number) => ox + x * cell + (cell >> 1), cy: (y: number) => oy + y * cell + (cell >> 1) };
 }
+
+/** How wide a room's mark is on the pause screen (C64 pixels), for checks. */
+export const markSize = () => Math.max(3, layout(MAP_BOX).cell - 2);
 
 /** Where a room's mark is on the pause screen (C64 pixels, its middle), for checks. */
 export function roomSpot(room: number) {

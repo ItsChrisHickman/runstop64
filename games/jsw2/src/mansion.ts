@@ -7,7 +7,7 @@ export const MANSION: Record<number, { name: string; x: number; y: number; exits
   4: { name: "AT THE FOOT OF THE MEGATREE", x: 21, y: 11, exits: [5, 3, 9, 4] },
   5: { name: "THE DRIVE", x: 20, y: 11, exits: [6, 4, 10, 44] },
   6: { name: "THE SECURITY GUARDS", x: 19, y: 11, exits: [79, 5, 11, 60] },
-  7: { name: "ENTRANCE TO HADES", x: 21, y: 6, exits: [138, 7, 7, 7] },
+  7: { name: "ENTRANCE TO HADES", x: 19, y: 13, exits: [138, 7, 7, 7] },
   8: { name: "CUCKOO'S NEST", x: 22, y: 10, exits: [9, 8, 8, 3] },
   9: { name: "INSIDE THE MEGATREE", x: 21, y: 10, exits: [10, 8, 13, 4] },
   10: { name: "ON A BRANCH OVER THE DRIVE", x: 20, y: 10, exits: [11, 9, 14, 5] },
@@ -32,7 +32,7 @@ export const MANSION: Record<number, { name: string; x: number; y: number; exits
   29: { name: "NIGHTMARE ROOM", x: 12, y: 9, exits: [30, 27, 29, 29] },
   30: { name: "BANYAN TREE", x: 11, y: 9, exits: [71, 29, 35, 30] },
   31: { name: "HALF WAY UP THE EAST WALL", x: 17, y: 8, exits: [32, 31, 37, 25] },
-  32: { name: "THE BATHROOM (WITH PURPLE BATH)", x: 20, y: 5, exits: [64, 136, 32, 138] },
+  32: { name: "THE BATHROOM (WITH PURPLE BATH)", x: 18, y: 12, exits: [64, 136, 32, 138] },
   33: { name: "TOP LANDING", x: 13, y: 8, exits: [34, 63, 33, 27] },
   34: { name: "MASTERS BEDROOM", x: 12, y: 8, exits: [34, 33, 34, 34] },
   35: { name: "A BIT OF TREE", x: 11, y: 8, exits: [36, 35, 41, 30] },
@@ -64,7 +64,7 @@ export const MANSION: Record<number, { name: string; x: number; y: number; exits
   61: { name: "HERO WORSHIP", x: 13, y: 7, exits: [40, 39, 61, 61] },
   62: { name: "SPIT-THE CAMEL", x: 15, y: 7, exits: [39, 38, 62, 62] },
   63: { name: "MACARONI TED", x: 14, y: 8, exits: [33, 64, 63, 63] },
-  64: { name: "DUMB JETMAN", x: 19, y: 5, exits: [63, 32, 64, 64] },
+  64: { name: "DUMB JETMAN", x: 17, y: 12, exits: [63, 32, 64, 64] },
   65: { name: "STUDY", x: 14, y: 9, exits: [27, 66, 65, 65] },
   66: { name: "THE LIBRARY", x: 15, y: 9, exits: [65, 26, 66, 66] },
   67: { name: "MEGARON", x: 14, y: 10, exits: [21, 68, 65, 75] },
@@ -133,12 +133,14 @@ export const MANSION: Record<number, { name: string; x: number; y: number; exits
   132: { name: "WELL", x: 17, y: 15, exits: [132, 132, 132, 133] },
   133: { name: "WELL", x: 17, y: 16, exits: [133, 133, 133, 134] },
   134: { name: "WELL", x: 17, y: 17, exits: [134, 134, 134, 135] },
-  135: { name: "DINKING VATER ?", x: 21, y: 7, exits: [139, 135, 135, 135] },
-  136: { name: "THE BEGINNING OF THE END", x: 21, y: 5, exits: [136, 136, 136, 136] },
-  138: { name: "NOW YOUR IN IT !!!!!", x: 20, y: 6, exits: [138, 7, 32, 139] },
-  139: { name: "TO THY GRAVE", x: 20, y: 7, exits: [139, 135, 138, 139] },
+  135: { name: "DINKING VATER ?", x: 19, y: 14, exits: [139, 135, 135, 135] },
+  136: { name: "THE BEGINNING OF THE END", x: 22, y: 0, exits: [136, 136, 136, 136] },
+  138: { name: "NOW YOUR IN IT !!!!!", x: 18, y: 13, exits: [138, 7, 32, 139] },
+  139: { name: "TO THY GRAVE", x: 18, y: 14, exits: [139, 135, 138, 139] },
 };
 export const MANSION_SIZE = { w: 26, h: 18 };
+/** Rooms Willy cannot walk into (re/mansion.ts says how that is known; the game's own end puts him in 136): the map does not show them until he has been in one, and their exits are neither side by side nor links. */
+export const UNENTERABLE: number[] = [136];
 /**
  * The exits that are not two rooms side by side on the map the way they lead (the mansion is not a consistent grid): the map draws
  * each as a connector from the room to the one it leads to. [room, way (0 left, 1 right, 2 up, 3 down), the room it leads to].
@@ -154,6 +156,5 @@ export const LINKS: [number, number, number][] = [
   [87, 0, 88],
   [90, 3, 28],
   [60, 0, 44],
-  [60, 3, 7],
   [134, 3, 135],
 ];

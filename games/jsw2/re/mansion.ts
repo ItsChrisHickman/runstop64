@@ -11,10 +11,21 @@
 import fs from 'node:fs';
 import { C64, unpackState, type MachineState } from '../../../packages/c64kit/src/c64/machine';
 import { cost, layout, type Exits } from './layout';
+import { exactMinimum, improve, lowerBound } from './search';
 
 const START = 0x20;
 /** How many orders of the exits the layout tries. */
 const SEEDS = 1000;
+/** Annealing: how many moves a run makes, how many runs (seeds), and the largest sheet taken (cells). */
+const MOVES = 20_000_000, RUNS = 8, MAX_W = 28, MAX_H = 20;
+/**
+ * Rooms Willy cannot walk into, which the map does not show until he has been in one, and whose exits cost the layout nothing:
+ * 136, The Beginning of the End, is only the bathroom's right exit, and the bathroom's right side is a solid wall from floor to ceiling
+ * (the room drawn; 120 random walks of 3000 frames through the room reached x 326 at most, while a room with a way out on the right
+ * lets Willy out at x 328, and left only through the drain); only the game's own end, which walks him there (put to bed, he sleepwalks
+ * through 33, 63, 64 and the bathroom into 136), enters it.
+ */
+const UNENTERABLE = [136];
 /** Rooms the game sends Willy to directly (its code stores them in $13). */
 const SENT_TO = [0x6e, 0x79, 0x61];
 
@@ -69,9 +80,12 @@ for (let n = work.shift(); n !== undefined; n = work.shift()) {
 }
 
 // Places: re/layout.ts, a constraint layout over the exits (an exit is drawn as two rooms side by side wherever the exits agree on
-// a place; the rest are links, drawn as connectors). Several orders of the exits are tried: the cheapest links (a way there and back counts for more than a one-way), then the smallest sheet.
-const exitsOf = new Map<number, Exits>([...rooms].map(([n, r]) => [n, r.exits]));
-// (the start, and the rooms it leads to, are where every game begins: their exits count for more)
+// a place; the rest are links, drawn as connectors). Several orders of the exits are tried (the cheapest links: a way there and
+// back counts for more than a one-way, then the smallest sheet), then re/search.ts's annealing improves on the best.
+// Rooms no play can enter have no exits here, and no exit leads to one (an exit to or from one costs nothing, is no link).
+const entry = (n: number, to: number) => (UNENTERABLE.includes(to) ? n : to);
+const exitsOf = new Map<number, Exits>([...rooms].map(([n, r]): [number, Exits] => [n, UNENTERABLE.includes(n) ? [n, n, n, n] : [entry(n, r.exits[0]), entry(n, r.exits[1]), entry(n, r.exits[2]), entry(n, r.exits[3])]]));
+// (the start, and the rooms it leads to, are where every game begins: their exits count for more, and are never given up)
 const first = new Set([START, ...(exitsOf.get(START) ?? [])]);
 const weight = (a: number, b: number) => (first.has(a) && first.has(b) ? 6 : 1);
 let best = layout(exitsOf);
@@ -79,6 +93,13 @@ for (let seed = 1; seed <= SEEDS; seed++) {
   const t = layout(exitsOf, seed), c = cost(exitsOf, t.links, weight), cb = cost(exitsOf, best.links, weight);
   if (c < cb || (c === cb && t.size.w * t.size.h < best.size.w * best.size.h)) best = t;
 }
+const kruskal = { links: best.links.length, cost: cost(exitsOf, best.links, weight), w: best.size.w, h: best.size.h };
+let bestCost = kruskal.cost;
+for (let seed = 1; seed <= RUNS; seed++) {
+  const t = improve(exitsOf, best.at, weight, { seed, steps: MOVES, maxW: MAX_W, maxH: MAX_H, held: (a, b) => first.has(a) && first.has(b) });
+  if (t.cost < bestCost || (t.cost === bestCost && t.size.w * t.size.h < best.size.w * best.size.h)) { best = { ...best, at: t.at, links: t.links, size: t.size }; bestCost = t.cost; }
+}
+const bound = lowerBound(exitsOf, weight), exact = exactMinimum(exitsOf, weight);
 const lines = [...rooms].sort(([a], [b]) => a - b).map(([n, r]) => {
   const p = best.at.get(n);
   if (!p) throw new Error(`room ${n} not placed`);
@@ -90,6 +111,8 @@ export const MANSION: Record<number, { name: string; x: number; y: number; exits
 ${lines.join('\n')}
 };
 export const MANSION_SIZE = { w: ${best.size.w}, h: ${best.size.h} };
+/** Rooms Willy cannot walk into (re/mansion.ts says how that is known; the game's own end puts him in 136): the map does not show them until he has been in one, and their exits are neither side by side nor links. */
+export const UNENTERABLE: number[] = [${UNENTERABLE.join(', ')}];
 /**
  * The exits that are not two rooms side by side on the map the way they lead (the mansion is not a consistent grid): the map draws
  * each as a connector from the room to the one it leads to. [room, way (0 left, 1 right, 2 up, 3 down), the room it leads to].
@@ -99,4 +122,6 @@ ${best.links.map(([a, k, b]) => `  [${a}, ${k}, ${b}],`).join('\n')}
 ];
 `;
 fs.writeFileSync('games/jsw2/src/mansion.ts', out);
-console.log(`${rooms.size} rooms, map ${best.size.w}x${best.size.h}, ${best.links.length} links, blocks ${best.blocks.map((b) => b.length).join(' ')}`);
+console.log(`${rooms.size} rooms; Kruskal: ${kruskal.links} links, cost ${kruskal.cost}, sheet ${kruskal.w}x${kruskal.h}`);
+console.log(`annealed: map ${best.size.w}x${best.size.h}, ${best.links.length} links, cost ${bestCost}`);
+console.log(`lower bound: loops ${bound.bound}, exact (rooms may share a place) ${exact.cost}${exact.complete ? '' : ' (not complete)'}`);

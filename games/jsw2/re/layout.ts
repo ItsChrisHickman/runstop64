@@ -16,7 +16,7 @@ export const STEP = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
 export type Exits = readonly [number, number, number, number];
 export type Place = readonly [number, number];
 
-interface Layout {
+export interface Layout {
   /** Where each room is on the sheet (cells). */
   at: Map<number, Place>;
   /** The exits that are not drawn as two rooms side by side in the way they lead: [from, direction 0-3, to]. */
@@ -51,10 +51,15 @@ export function cost(rooms: ReadonlyMap<number, Exits>, links: readonly [number,
   return links.reduce((sum, [a, k, b]) => sum + (rooms.get(b)?.[[1, 0, 3, 2][k]] === a ? 3 : 1) * weight(a, b), 0);
 }
 
-/** A shuffle by `seed` (a small deterministic generator), the exits in the order the layout takes them. */
-function shuffled<T>(items: T[], seed: number): T[] {
+/** A small deterministic random generator (xorshift32) by `seed`: numbers in [0, 1). */
+export function random(seed: number): () => number {
   let s = (seed * 2654435761) >>> 0 || 1;
-  const rnd = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+
+/** A shuffle by `seed`, the exits in the order the layout takes them. */
+function shuffled<T>(items: T[], seed: number): T[] {
+  const rnd = random(seed);
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
   return out;
