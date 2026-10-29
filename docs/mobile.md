@@ -59,7 +59,7 @@ Every game (and the loader) has touch controls, from one shared layer:
 | The Staff of Karnath | 8-way | CAST, SPELL (next spell), RUN |
 | Blackwyche | 8-way | USE (current action), JUMP, SWORD, RUN |
 | Dragonskulle | 8-way | USE (the icon the hand points at), JUMP, STONE, DIG, CLOAK, RUN |
-| Starquake | 8-way (up picks up, down builds a platform) | FIRE |
+| Starquake | 8-way (up picks up, down builds a platform) | FIRE, GET (holds up), PAD (holds down); keyboard G and B |
 | The Sacred Armour of Antiriad | 8-way (up jumps, down crouches to pick up; in the armour, flies) | FIRE (throw, fire the Pulsar Beam), JUMP (jump; in the armour, lift); in ORIGINAL both are the original's one button |
 
 RUN is a toggle (lit green while on); it's Shift held down.

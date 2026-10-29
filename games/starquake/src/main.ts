@@ -5,9 +5,9 @@ import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
-import type { TouchLayout } from '../../shared/touch';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
+import { joyBits, TOUCH } from './controls';
 import { endingStats, starquakeEnding } from './ending';
 import * as Flow from './flow';
 import * as Heroes from './heroes';
@@ -24,10 +24,8 @@ import * as Specials from './specials';
  * credits and keys), the intro, game over, the music and effects, and the
  * shared pause screen, map with travel, assists, autosave and continue.
  */
-/** Touch: BLOB goes all eight ways (diagonals on the hover pad; up picks up, down builds a platform), and fires. */
 /** A teleport's code or a hero's initials on a touch screen (games/shared/letters.ts): five letters, picked with the stick and FIRE. */
 export const NAME: NameSpec = { alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', max: 5, button: { label: 'FIRE', key: 'Space' } };
-const TOUCH: TouchLayout = { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }] };
 
 export { info } from './info';
 
@@ -142,8 +140,8 @@ export function run(host: Host) {
     t(11, '1985 BUBBLE BUS SOFTWARE', 0xc0);
     const touch = input.touch;
     t(14, touch ? 'FIRE: NEW GAME' : 'SPACE: NEW GAME', 0x10);
-    t(17, touch ? 'STICK: MOVE   UP: PICK UP' : 'ARROWS OR WASD: MOVE   SPACE: FIRE', 0xb0);
-    t(18, touch ? 'DOWN: PLATFORM   FIRE: LASER' : 'UP: PICK UP   DOWN: PLATFORM', 0xb0);
+    t(17, touch ? 'STICK: MOVE   GET: PICK UP' : 'ARROWS OR WASD: MOVE   SPACE: FIRE', 0xb0);
+    t(18, touch ? 'PAD: PLATFORM   FIRE: LASER' : 'UP OR G: PICK UP   DOWN OR B: PLATFORM', 0xb0);
     t(19, touch ? 'PAUSE: THE MAP' : 'P OR ESC: THE MAP   M: SOUND', 0xb0);
     Screens.framed(g, 0, 0x60); // (the game's frame of tiles; no text block)
   }
@@ -240,13 +238,7 @@ export function run(host: Host) {
 
   /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch. */
   function joy() {
-    let j = 0x7f;
-    if (input.held.up) j &= ~1;
-    if (input.held.down) j &= ~2;
-    if (input.held.left) j &= ~4;
-    if (input.held.right) j &= ~8;
-    if (latch.filter(input.held.fire)) j &= ~0x10;
-    return j;
+    return joyBits(input.held, input.down, latch.filter(input.held.fire), typing());
   }
 
   /** The key held now, as the C64's keyboard scan would give it ($C5: row × 8 + column, 64 none): teleport names, Cheops trades. `skip`: keys held that aren't the keyboard's here (the touch stick's, while it picks letters). */

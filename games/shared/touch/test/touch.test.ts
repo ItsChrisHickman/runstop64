@@ -14,6 +14,7 @@ import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
 import { decideBack, PLAY_ENTRY } from '../back-guard';
+import { GET_KEY, joyBits, PAD_KEY, TOUCH as STARQUAKE } from '../../../starquake/src/controls';
 
 let failures = 0, checks = 0;
 function ok(cond: unknown, what: string) {
@@ -34,6 +35,7 @@ const GAMES: Record<string, TouchLayout> = {
   blackwyche: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'SWORD', key: 'KeyX' }, RUN] },
   dragonskulle: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'STONE', key: 'KeyX' }, { label: 'DIG', key: 'KeyC' }, { label: 'CLOAK', key: 'KeyV' }, RUN] },
   antiriad: { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }] },
+  starquake: STARQUAKE,
 };
 const SYSTEM: SystemSpec[] = [{ id: 'home', label: 'HOME' }, { id: 'layout', label: 'TURN' }, { id: 'pause', label: 'PAUSE' }, { id: 'enter', label: 'RETURN', key: 'Enter' }];
 const PHONES = [[360, 780], [412, 915], [390, 844]] as const;
@@ -184,6 +186,30 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ctl.down(1, run.x, run.y); ctl.up(1); input.poll();
   ok(!input.down.has('ShiftLeft'), 'RUN: off after another tap');
   ok(geo.buttons.every((b) => b.r > 0), 'Entombed: five buttons placed');
+}
+{
+  // Starquake: GET and PAD hold the game's own up and down (the stick's still do); G and B do the same on a keyboard, except while letters are typed
+  const { input, ctl, geo } = rig(GAMES.starquake, 915, 412);
+  const by = (l: string) => must(geo.buttons.find((b) => b.spec.label === l), `the ${l} button`);
+  ctl.down(1, by('GET').x, by('GET').y); input.poll();
+  ok(input.held.up && !input.held.down && !input.held.fire, 'Starquake: GET holds up');
+  ctl.up(1); input.poll();
+  ok(!input.held.up, 'Starquake: GET lifted');
+  ctl.down(1, by('PAD').x, by('PAD').y); input.poll();
+  ok(input.held.down && !input.held.up && !input.held.fire, 'Starquake: PAD holds down');
+  ok(joyBits(input.held, input.down, false, false) === 0x7d, 'Starquake: PAD gives the joystick down bit');
+  ctl.up(1); input.poll();
+  const { x, y } = geo.stickHome, R = geo.stickRadius;
+  ctl.down(2, x, y); ctl.move(2, x, y - R); input.poll();
+  ok(joyBits(input.held, input.down, false, false) === 0x7e, 'Starquake: the stick\'s up still gives the up bit');
+  ctl.up(2); input.poll();
+  const idle = { left: false, right: false, up: false, down: false, fire: false };
+  const keys = (...k: string[]) => new Set(k);
+  ok(joyBits(idle, keys(GET_KEY), false, false) === 0x7e, 'Starquake: G is up');
+  ok(joyBits(idle, keys(PAD_KEY), false, false) === 0x7d, 'Starquake: B is down');
+  ok(joyBits(idle, keys(GET_KEY, PAD_KEY), true, true) === 0x6f, 'Starquake: G and B are letters while typing (fire still counts)');
+  ok(joyBits({ ...idle, left: true, right: true }, keys(), false, false) === 0x73, 'Starquake: left and right unchanged');
+  ok(by('FIRE') === geo.buttons[0] && geo.buttons.length === 3, 'Starquake: FIRE stays the main button, two more beside it');
 }
 {
   // small buttons: PAUSE acts on lifting the finger; RETURN is the Enter key; a tap on the picture is a point
