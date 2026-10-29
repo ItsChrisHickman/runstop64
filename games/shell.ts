@@ -4,6 +4,7 @@ import * as Saves from './saves';
 import { GAMES, type GameInfo, type Program } from './registry';
 import { exportSaves, readSaves, watchWrites } from './shared/saves';
 import { TouchLayer } from './shared/touch';
+import { decideBack, PLAY_ENTRY } from './shared/touch/back-guard';
 
 /**
  * The runstop64 shell: one framed C64 screen (with a full-screen button) that
@@ -64,6 +65,21 @@ async function launch(id: string, push: boolean, replace = false) {
   touch.setGame(program.touch, { pause: !!program.menu, home: true });
   if (push) history.pushState(null, '', `#${id}`);
   if (replace) history.replaceState(null, '', `#${id}`);
+  armBackGuard(id);
+}
+
+/**
+ * The phone's back gesture lands on the entry before the guard and opens the pause screen instead of leaving. The guard is
+ * pushed on the first tap or key of play: Chrome ignores entries pushed without a user gesture when going back.
+ */
+function armBackGuard(id: string) {
+  const push = () => {
+    window.removeEventListener('pointerdown', push, true);
+    window.removeEventListener('keydown', push, true);
+    if (currentId === id) history.pushState(PLAY_ENTRY, '', `#${id}`);
+  };
+  window.addEventListener('pointerdown', push, true);
+  window.addEventListener('keydown', push, true);
 }
 
 /** The gear: what it does here (a game's options, or the saved games). */
@@ -96,13 +112,24 @@ function startSaves(push: boolean) {
   if (push) history.pushState(null, '', '#saves');
 }
 
-// Going back (or editing the hash) restarts cleanly, like pressing RUN/STOP + RESTORE.
-window.addEventListener('popstate', () => location.reload());
-const toMenu = (e: Event) => {
+// Going back (or editing the hash) restarts cleanly, like pressing RUN/STOP + RESTORE; except in a game, where back (the
+// phone's swipe) first opens the pause screen, and only from there leaves (games/shared/touch/back-guard.ts).
+window.addEventListener('popstate', (e) => {
+  const action = decideBack({ game: currentId, state: e.state, hash: location.hash.slice(1), asking: !leave.hidden, paused: program?.paused?.() ?? false });
+  if (action === 'ignore') return;
+  if (action === 'close-ask') { askLeave(false); history.pushState(PLAY_ENTRY, '', location.hash); return; }
+  if (action === 'pause') {
+    program?.menu?.();
+    if (program?.paused?.()) { history.pushState(PLAY_ENTRY, '', location.hash); return; }
+  }
+  if (action === 'reload') location.reload();
+  else toMenu(e); // (leave: the pause screen was open, or the game can't pause now)
+});
+function toMenu(e: Event) {
   e.preventDefault();
   history.pushState(null, '', location.pathname);
   location.reload();
-};
+}
 back.addEventListener('click', toMenu);
 
 function askLeave(open: boolean) {

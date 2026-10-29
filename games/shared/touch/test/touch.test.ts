@@ -7,12 +7,13 @@
  */
 import { Input } from '../../../../packages/c64kit/src/input';
 import { TouchController } from '../controller';
-import { clientToStage, decideMode, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
+import { clientToStage, decideMode, EDGE_GUARD, edgeGuard, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
 import { drawNudgePixels, nudgeChoice, nudgeLayout } from '../nudge';
 import { PAUSE_TAP } from '../../native/pause';
 import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
+import { decideBack, PLAY_ENTRY } from '../back-guard';
 
 let failures = 0, checks = 0;
 function ok(cond: unknown, what: string) {
@@ -325,6 +326,49 @@ ok(wantsTouch(true, false), 'phone (coarse pointer): touch UI');
   pacer.push(['A', 'A']);
   const seen = Array.from({ length: 7 }, () => pacer.next() ?? '-').join('');
   ok(seen === 'AA-AA--', `pacer: each key held, then let go before the next (${seen})`);
+}
+
+// ---- the edges: the OS back gesture starts there, so no control or touch zone does ----
+{
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  for (const [name, game] of Object.entries(GAMES)) for (const [pw, ph] of PHONES) {
+    const cases = [
+      ['landscape', ph, pw, 0], ['portrait', pw, ph, 0], ['landscape', ph, pw, 90],
+    ] as const;
+    for (const [mode, w, h, turn] of cases) {
+      const g = layoutStage(w, h, mode, game, SYSTEM, inset, edgeGuard(turn));
+      const tag = `edge ${name} ${mode}${turn ? ' turned' : ''} ${w}x${h}`;
+      const sideFree = (r: Rect) => (turn ? r.y >= EDGE_GUARD - 0.5 && r.y + r.h <= h - EDGE_GUARD + 0.5 : r.x >= EDGE_GUARD - 0.5 && r.x + r.w <= w - EDGE_GUARD + 0.5);
+      for (const c of [...g.buttons, ...g.system]) ok(sideFree(circleRect(c)), `${tag}: a control keeps clear of the edge`);
+      if (g.stickZone) {
+        ok(sideFree(g.stickZone), `${tag}: the stick's zone keeps clear of the edge`);
+        ok(sideFree(circleRect({ ...g.stickHome, r: g.stickRadius })), `${tag}: the stick rests clear of the edge`);
+      }
+      if (g.buttonZone) ok(sideFree(g.buttonZone), `${tag}: the buttons' zone keeps clear of the edge`);
+      ok(Math.abs(g.picture.w / g.picture.h - PICTURE_ASPECT) < 0.01, `${tag}: picture keeps its shape`);
+    }
+  }
+  // a floating stick put down in the edge band is not a stick touch
+  const game = must(GAMES.montyotr, 'montyotr');
+  const geo = layoutStage(844, 390, 'landscape', game, SYSTEM, inset, edgeGuard(0));
+  const sink = new Input(nowhere);
+  const ctl = new TouchController({ keyDown: (c) => sink.keyDown(c), keyUp: (c) => sink.keyUp(c) }, geo, game.stick);
+  const z = must(geo.stickZone, 'stick zone');
+  ctl.down(1, 4, z.y + z.h / 2);
+  ok(ctl.hit(4, z.y + z.h / 2).kind === 'none' && !ctl.stick.active, 'edge: a touch in the edge band does not start the stick');
+  ctl.down(2, z.x + 2, z.y + z.h / 2);
+  ok(ctl.stick.active && ctl.stick.cx >= z.x + geo.stickRadius * 0.5 - 0.01, 'edge: a stick put down at the guard\'s inner edge floats clear of it');
+}
+
+// ---- the back gesture's backstop (the shell carries the decisions out) ----
+{
+  const at = (over: Partial<Parameters<typeof decideBack>[0]>) => decideBack({ game: 'karnath', state: null, hash: 'karnath', asking: false, paused: false, ...over });
+  ok(at({}) === 'pause', 'back: in play, back opens the pause screen');
+  ok(at({ paused: true }) === 'leave', 'back: from the pause screen, back leaves');
+  ok(at({ asking: true }) === 'close-ask', 'back: with "back to the menu?" up, back closes it');
+  ok(at({ state: PLAY_ENTRY }) === 'ignore', 'back: forward onto the guard entry does nothing');
+  ok(at({ game: null, hash: '' }) === 'reload', 'back: on the directory, back restarts cleanly');
+  ok(at({ hash: 'saves' }) === 'reload', 'back: an edited address restarts cleanly');
 }
 
 console.log(`${checks - failures}/${checks} touch checks passed`);

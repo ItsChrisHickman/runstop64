@@ -42,6 +42,15 @@ export interface Rect { x: number; y: number; w: number; h: number }
 export interface Insets { top: number; right: number; bottom: number; left: number }
 const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
 
+/**
+ * How far the controls (and the touch zones of the stick and buttons) keep from the screen's side edges, in CSS px
+ * (on top of the safe area). The OS back gesture (Android gesture navigation, iOS's edge swipe) starts at the edge and
+ * can't be blocked by a page, so nothing here begins a touch in that band.
+ */
+export const EDGE_GUARD = 28;
+/** The edge guard as insets for a stage drawn `turn` (0 = upright): it is the viewport's side edges that matter, which are the stage's top and bottom when turned. */
+export const edgeGuard = (turn: Turn | 0): Insets => (turn ? { top: EDGE_GUARD, bottom: EDGE_GUARD, left: 0, right: 0 } : { top: 0, bottom: 0, left: EDGE_GUARD, right: EDGE_GUARD });
+
 export interface PlacedButton { index: number; spec: ButtonSpec; x: number; y: number; r: number }
 export interface PlacedSystem { spec: SystemSpec; x: number; y: number; r: number }
 
@@ -74,7 +83,7 @@ const SIZE: Record<NonNullable<ButtonSpec['size']>, number> = { big: 1, normal: 
  * the right, each side a row from its outer edge (a second row under it where the gutter is narrow:
  * the stick and the buttons go below the rows).
  */
-export function layoutStage(w: number, h: number, mode: 'landscape' | 'portrait', game: TouchLayout, system: SystemSpec[], inset: Insets = NO_INSETS): Geometry {
+export function layoutStage(w: number, h: number, mode: 'landscape' | 'portrait', game: TouchLayout, system: SystemSpec[], inset: Insets = NO_INSETS, edge: Insets = NO_INSETS): Geometry {
   const W = w - inset.left - inset.right, H = h - inset.top - inset.bottom;
   const X0 = inset.left, Y0 = inset.top;
   const controls = game.stick !== 'none' || game.buttons.length > 0;
@@ -85,16 +94,17 @@ export function layoutStage(w: number, h: number, mode: 'landscape' | 'portrait'
     // The picture as tall as the screen, unless that leaves the gutters too narrow for thumbs
     // (the buttons' gutter is wider when there are more of them).
     const n = game.buttons.length;
-    const minLeft = controls ? Math.max(MIN_GUTTER + 14, W * 0.12) : SYSTEM_R * 2 + 12;
-    const minRight = !controls ? SYSTEM_R * 2 + 12 : Math.max(W * 0.12, n >= 4 ? 150 : n === 3 ? 130 : MIN_GUTTER + 14);
+    const minLeft = (controls ? Math.max(MIN_GUTTER + 14, W * 0.12) : SYSTEM_R * 2 + 12) + edge.left;
+    const minRight = (!controls ? SYSTEM_R * 2 + 12 : Math.max(W * 0.12, n >= 4 ? 150 : n === 3 ? 130 : MIN_GUTTER + 14)) + edge.right;
     let ph = H, pw = ph * PICTURE_ASPECT;
     if (pw > W - minLeft - minRight) { pw = Math.max(0, W - minLeft - minRight); ph = pw / PICTURE_ASPECT; }
     const spare = W - minLeft - minRight - pw;
     const px = X0 + minLeft + spare / 2, py = Y0 + (H - ph) / 2;
     g.picture = { x: px, y: py, w: pw, h: ph };
     const gw = px - X0;
-    const left: Rect = { x: X0, y: Y0, w: gw, h: H };
-    const right: Rect = { x: px + pw, y: Y0, w: X0 + W - (px + pw), h: H };
+    // (the controls keep clear of the screen's edges: the gutters they use start inside the guard)
+    const left: Rect = { x: X0 + edge.left, y: Y0 + edge.top, w: gw - edge.left, h: H - edge.top - edge.bottom };
+    const right: Rect = { x: px + pw, y: Y0 + edge.top, w: X0 + W - (px + pw) - edge.right, h: H - edge.top - edge.bottom };
     g.system = [...rowOf(leftSys, left, 'start'), ...rowOf(rightSys, right, 'end')];
     const below = (r: Rect, list: SystemSpec[]): Rect => { const top = rowsHeight(list, r); return { x: r.x, y: r.y + top, w: r.w, h: r.h - top }; };
     if (game.stick !== 'none') placeStick(g, below(left, leftSys));
@@ -103,15 +113,16 @@ export function layoutStage(w: number, h: number, mode: 'landscape' | 'portrait'
     // The picture across the top, the controls underneath.
     const pw = W, ph = pw / PICTURE_ASPECT;
     g.picture = { x: X0, y: Y0, w: pw, h: ph };
-    const under: Rect = { x: X0, y: Y0 + ph, w: W, h: H - ph };
-    g.system = [...rowOf(leftSys, { ...under, w: W / 2 }, 'start'), ...rowOf(rightSys, { ...under, x: X0 + W / 2, w: W / 2 }, 'end')];
-    const top = Math.max(rowsHeight(leftSys, { ...under, w: W / 2 }), rowsHeight(rightSys, { ...under, w: W / 2 }));
-    const rest: Rect = { x: X0, y: under.y + top, w: W, h: under.h - top };
+    const EX = X0 + edge.left, EW = W - edge.left - edge.right; // (the controls' width: inside the edge guard)
+    const under: Rect = { x: EX, y: Y0 + ph, w: EW, h: H - ph };
+    g.system = [...rowOf(leftSys, { ...under, w: EW / 2 }, 'start'), ...rowOf(rightSys, { ...under, x: EX + EW / 2, w: EW / 2 }, 'end')];
+    const top = Math.max(rowsHeight(leftSys, { ...under, w: EW / 2 }), rowsHeight(rightSys, { ...under, w: EW / 2 }));
+    const rest: Rect = { x: EX, y: under.y + top, w: EW, h: under.h - top };
     // (on a tall phone the controls sit low, where thumbs are, rather than spread up to the picture)
     const tall = Math.max(0, rest.h - Math.min(rest.h, W * 0.9));
     const low: Rect = { ...rest, y: rest.y + tall, h: rest.h - tall };
-    if (game.stick !== 'none') placeStick(g, { ...low, w: game.buttons.length ? W / 2 : W }, { ...rest, w: game.buttons.length ? W / 2 : W });
-    if (game.buttons.length) placeButtons(g, game.buttons, { ...low, x: X0 + (game.stick !== 'none' ? W / 2 : 0), w: game.stick !== 'none' ? W / 2 : W }, { ...rest, x: X0 + (game.stick !== 'none' ? W / 2 : 0), w: game.stick !== 'none' ? W / 2 : W });
+    if (game.stick !== 'none') placeStick(g, { ...low, w: game.buttons.length ? EW / 2 : EW }, { ...rest, w: game.buttons.length ? EW / 2 : EW });
+    if (game.buttons.length) placeButtons(g, game.buttons, { ...low, x: EX + (game.stick !== 'none' ? EW / 2 : 0), w: game.stick !== 'none' ? EW / 2 : EW }, { ...rest, x: EX + (game.stick !== 'none' ? EW / 2 : 0), w: game.stick !== 'none' ? EW / 2 : EW });
   }
   return g;
 }

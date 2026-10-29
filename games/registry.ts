@@ -18,6 +18,8 @@ export interface Program {
   render(alpha: number): void;
   /** Open the game's own options/pause menu (if it has one, and it can open now). */
   menu?(): void;
+  /** The pause screen is open (the phone's back gesture opens it, and leaves only from there). */
+  paused?(): boolean;
   /** Its touch controls (games/shared/touch): the stick and buttons it wants on a phone. */
   touch?: TouchLayout;
 }

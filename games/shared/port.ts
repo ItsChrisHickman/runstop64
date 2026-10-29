@@ -242,6 +242,9 @@ export class Port<S, F, T> {
     if (covered) { host.renderer.hideSprites(); host.renderer.render(); }
   };
 
+  /** The pause screen is open. */
+  readonly paused = () => this.fe.paused;
+
   /** The gear (or the touch PAUSE button): the pause screen, or back from it. */
   readonly menu = () => {
     if ((this.adapter.ready?.() ?? true) && this.adapter.phase() === 'play') this.fe.menu(this.adapter.state(), this.canPause(false));

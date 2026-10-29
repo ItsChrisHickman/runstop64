@@ -1,6 +1,6 @@
 import type { Input, Renderer } from 'c64kit';
 import { TouchController } from './controller';
-import { clientToStage, decideMode, layoutStage, NO_CONTROLS, stageTransform, wantsTouch, type Geometry, type Insets, type StageMode, type SystemSpec, type TouchLayout, type Turn } from './layout';
+import { clientToStage, decideMode, edgeGuard, layoutStage, NO_CONTROLS, stageTransform, wantsTouch, type Geometry, type Insets, type StageMode, type SystemSpec, type TouchLayout, type Turn } from './layout';
 import { nudgeChoice, nudgeLayout, paintNudge, NUDGE_W } from './nudge';
 
 export type { TouchLayout, ButtonSpec, StickKind } from './layout';
@@ -235,7 +235,7 @@ export class TouchLayer {
     const inset: Insets = this.turn === 90 ? { left: vi.top, right: vi.bottom, top: vi.right, bottom: vi.left }
       : this.turn === -90 ? { left: vi.bottom, right: vi.top, top: vi.left, bottom: vi.right } : vi;
     const mode = this.mode === 'portrait' ? 'portrait' : 'landscape';
-    return layoutStage(w, h, mode, this.active ? this.layout : NO_CONTROLS, this.active ? this.system : [], inset);
+    return layoutStage(w, h, mode, this.active ? this.layout : NO_CONTROLS, this.active ? this.system : [], inset, edgeGuard(this.turn));
   }
 
   /** Work out the mode, turn the stage if need be, and place everything again. */

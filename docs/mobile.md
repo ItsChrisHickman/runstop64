@@ -72,6 +72,15 @@ Declare a `TouchLayout` and hand it to your front end: `touch:` in `runNative(..
 for (`Space` is fire), so the game sees a touch exactly as that key. Screens that can be
 tapped read `input.points` (C64 pixels) and say "tap" when `input.touch` is set.
 
+## The back gesture
+
+Android's gesture navigation (and iOS's edge swipe) starts at either side edge and a page can't block it. So: the controls and
+the stick's and buttons' touch zones keep `EDGE_GUARD` (28 px, on top of the safe area) clear of both side edges (the stage's top
+and bottom when it is drawn turned), so a thumb never starts a touch there; the page has `overscroll-behavior: none` and
+`touch-action: none` on the stage, so a drag is never a browser swipe. As a backstop, the first tap or key of play pushes a
+history entry (Chrome ignores entries made without a gesture), and a back landing before it opens the pause screen and puts the
+entry back; back from the pause screen leaves for the directory (`games/shared/touch/back-guard.ts`, used by `games/shell.ts`).
+
 ## Checks
 
 `npm run test:touch` (headless, no browser): layouts on 360×780, 412×915 and 390×844 in
@@ -81,7 +90,7 @@ synthetic touches through to `Input` (8-way/4-way/left-right stick, dead zone, t
 following the thumb, quick taps, multi-touch, sliding between buttons, the RUN toggle, PAUSE on
 release, RETURN, taps on the picture), the same through a stage turned either way inside a
 portrait page, the mode decisions, that a desktop gets no touch UI, the nudge screen, and the
-pause screen's tap places.
+pause screen's tap places, the edge guard on every game's layout, and the back gesture's decisions.
 
 ## What to try on a phone
 

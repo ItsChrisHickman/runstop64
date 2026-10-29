@@ -549,6 +549,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     get ending() { return endingShow; },
     /** The gear: the game's options. */
     menu: port.menu,
+    paused: port.paused,
   };
 }
 

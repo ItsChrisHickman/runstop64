@@ -228,6 +228,7 @@ export function run(host: Host) {
     tick: port.tick,
     render: port.render,
     menu: port.menu,
+    paused: port.paused,
   };
 }
 
