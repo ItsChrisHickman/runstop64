@@ -157,7 +157,7 @@ so it ran on the 6502 fallback, which cannot wait for a frame (a run of it froze
 What `$7387` does: it sets `$8073` and `$8217` to 1 (Willy's frame), and **returns at once unless he is standing on the bed** (`$82F6`, the
 tile type under his feet, is 3, a conveyor: the bed is cells 2 to 5 of row 12, a block up from the floor, reached by a jump) or the end is
 already under way (`$7EC4` is non-zero: set to `$FF` at the start of the sequence and by nothing else). So coming into the bedroom with 160
-does nothing; he has to jump onto the bed. Then a loop of 2,048 steps (`$7EC6/$7EC7`, one game frame each: `$5B20` moves him on his own,
+does nothing; he has to jump onto the bed. (ENHANCED hints put a sparkle on the bed from 160 on, `src/easy.ts` `hintSpots`.) Then a loop of 2,048 steps (`$7EC6/$7EC7`, one game frame each: `$5B20` moves him on his own,
 `$530B` draws) puts him to bed and sleepwalks him: out of the bedroom to the Top Landing (33), the rooms 63 and 64, the Bathroom (32), and out
 of its right exit (a wall blocks it for a player: nothing else leads there) into **room 136, "THE BEGINNING OF THE END"**, about 1,890 frames
 (38 seconds) from the bed. The room test at `$73BF` sets his frame for each stage (34: 1, 33: 7, 32: 9), and at `$88` (136) it puts him at x

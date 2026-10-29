@@ -2,7 +2,7 @@ import type { Host } from 'c64kit';
 import { ram } from '../../shared/native/cpu';
 import { runNative, type RunSpec } from '../../shared/native/play';
 import { JOYSTICK_KEYS } from '../../shared/native/features';
-import { AIR_JUMP, gentleTouch, itemSpots, RopeGrip } from './easy';
+import { AIR_JUMP, gentleTouch, hintSpots, RopeGrip } from './easy';
 import { END_HOLD, endingStats, jsw2Ending, won } from './ending';
 import { footing, jsw2Map } from './map';
 import { port } from './native';
@@ -92,8 +92,8 @@ export function run(host: Host) {
     airJump: AIR_JUMP,
     // A short grace on coming into a room and after a life is lost (ENHANCED).
     entryGrace: ENTRY_GRACE,
-    // Sparkles on the items still in the room (ENHANCED).
-    hints: (ram) => itemSpots(ram),
+    // Sparkles on the items still in the room and, with 160 taken, on the bed (ENHANCED).
+    hints: (ram) => hintSpots(ram),
     // Running (ENHANCED, Shift held): Willy alone goes faster (RUN).
     run: RUN,
     // The reward for winning (ENHANCED): once the game's own end (to bed with 160 items, then the sleepwalk to room 136) has played and

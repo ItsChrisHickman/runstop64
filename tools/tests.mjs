@@ -163,6 +163,7 @@ export const TESTS = [
   { file: 'games/jsw2/test/frontend.ts', set: 'fast' },
   { file: 'games/jsw2/test/grace.ts', set: 'fast' },
   { file: 'games/jsw2/test/items.ts', set: 'fast' },
+  { file: 'games/jsw2/test/bed-hint.ts', set: 'fast' },
   { file: 'games/jsw2/test/run.ts', set: 'fast' },
   { file: 'games/jsw2/test/sprites.ts', set: 'fast' },
   { file: 'games/jsw2/test/route.ts', set: 'fast' },

@@ -3,7 +3,7 @@ import type { Gen } from '../../shared/native/cpu';
 import type { AirJumpSpec } from '../../shared/native/features';
 import * as engine from './gen/engine';
 import { ITEM_CELLS } from './itemcounts';
-import { itemBits } from './items';
+import { BEDROOM, itemBits, itemsFound, NEED } from './items';
 
 /**
  * Jet Set Willy II's ENHANCED, the part that makes the game a lot easier (QOL.md): a second jump in the
@@ -92,4 +92,19 @@ export function itemSpots(ram: Uint8Array): { x: number; y: number }[] {
   if (!cells) return [];
   const bits = itemBits(ram, room);
   return cells.filter((_, i) => (bits & (1 << i)) !== 0).map(([row, col]) => ({ x: col * 8 + 4, y: row * 8 + 4 }));
+}
+
+/** The bed (re/README.md, "The ending"): cells 2 to 5 of row 12 in the Masters Bedroom, a conveyor; $7EC4 is non-zero once the game's own end is under way. */
+const BED = { row: 12, first: 2, last: 5 } as const, END_UNDER_WAY = 0x7ec4;
+
+/**
+ * The sparkles (ENHANCED): on the items still in the room and, once the game's own count has the NEED items, on the bed in the Masters
+ * Bedroom until he is on it and the end begins (nothing in the game says to jump on the bed).
+ */
+export function hintSpots(ram: Uint8Array): { x: number; y: number }[] {
+  const spots = itemSpots(ram);
+  if (ram[0x13] === BEDROOM && itemsFound(ram) >= NEED && ram[END_UNDER_WAY] === 0) {
+    spots.push({ x: ((BED.first + BED.last + 1) * 8) / 2, y: BED.row * 8 + 4 });
+  }
+  return spots;
 }
