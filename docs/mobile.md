@@ -78,8 +78,10 @@ Android's gesture navigation (and iOS's edge swipe) starts at either side edge a
 the stick's and buttons' touch zones keep `EDGE_GUARD` (28 px, on top of the safe area) clear of both side edges (the stage's top
 and bottom when it is drawn turned), so a thumb never starts a touch there; the page has `overscroll-behavior: none` and
 `touch-action: none` on the stage, so a drag is never a browser swipe. As a backstop, the first tap or key of play pushes a
-history entry (Chrome ignores entries made without a gesture), and a back landing before it opens the pause screen and puts the
-entry back; back from the pause screen leaves for the directory (`games/shared/touch/back-guard.ts`, used by `games/shell.ts`).
+history entry, and a back landing before it opens the pause screen and puts the entry back on the next tap or key. The push
+waits for the user's activation (a finger lifted, `pointerup`/`touchend`, or a key; a touch's `pointerdown` and a `popstate`
+give none): Chrome skips, going back, the entry a page was on when it pushed without one, so a guard pushed on `pointerdown`
+sent the back gesture straight out of the game; back from the pause screen leaves for the directory (`games/shared/touch/back-guard.ts`, used by `games/shell.ts`).
 
 ## Checks
 

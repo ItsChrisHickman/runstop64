@@ -2,8 +2,9 @@
  * The backstop for the phone's back gesture. A page can't block the OS gesture when it begins at the screen edge
  * (the touch layer keeps its controls clear of both side edges, `EDGE_GUARD`), so when a back navigation still happens
  * during play it must not throw the player out of the game: the first tap or key of play pushes a guard history entry
- * (Chrome only counts entries made after a user gesture), and going back from it lands here. Back once opens the pause
- * screen (the guard goes in again); back again, from the pause screen, leaves for the directory. Pure decisions, so they
+ * (only with the user's activation, a finger lifted or a key: Chrome skips, going back, the entry a page pushed from without
+ * one, which threw the player out of the game), and going back from it lands here. Back once opens the pause screen (the
+ * guard goes in again on the next tap or key); back again, from the pause screen, leaves for the directory. Pure decisions, so they
  * can be tested headless; the shell carries them out.
  */
 

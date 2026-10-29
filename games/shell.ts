@@ -4,7 +4,7 @@ import * as Saves from './saves';
 import { GAMES, type GameInfo, type Program } from './registry';
 import { exportSaves, readSaves, watchWrites } from './shared/saves';
 import { TouchLayer } from './shared/touch';
-import { decideBack, PLAY_ENTRY } from './shared/touch/back-guard';
+import { decideBack, isPlayEntry, PLAY_ENTRY } from './shared/touch/back-guard';
 
 /**
  * The runstop64 shell: one framed C64 screen (with a full-screen button) that
@@ -69,17 +69,22 @@ async function launch(id: string, push: boolean, replace = false) {
 }
 
 /**
- * The phone's back gesture lands on the entry before the guard and opens the pause screen instead of leaving. The guard is
- * pushed on the first tap or key of play: Chrome ignores entries pushed without a user gesture when going back.
+ * The phone's back gesture lands on the entry before the guard and opens the pause screen instead of leaving. Chrome skips,
+ * going back, an entry the page was on when it pushed another without the user's activation, so the guard waits for one: a
+ * touch only gives it on lifting the finger (pointerup, touchend), a key on keydown; never on a touch's pointerdown or in a popstate.
  */
+const ACTIVATING = ['pointerup', 'touchend', 'keydown', 'click'] as const;
+let guardArmed = false;
 function armBackGuard(id: string) {
+  if (guardArmed) return;
+  guardArmed = true;
   const push = () => {
-    window.removeEventListener('pointerdown', push, true);
-    window.removeEventListener('keydown', push, true);
-    if (currentId === id) history.pushState(PLAY_ENTRY, '', `#${id}`);
+    if (navigator.userActivation && !navigator.userActivation.isActive) return; // (not yet: wait for an event that gives it)
+    for (const t of ACTIVATING) window.removeEventListener(t, push, true);
+    guardArmed = false;
+    if (currentId === id && !isPlayEntry(history.state)) history.pushState(PLAY_ENTRY, '', `#${id}`);
   };
-  window.addEventListener('pointerdown', push, true);
-  window.addEventListener('keydown', push, true);
+  for (const t of ACTIVATING) window.addEventListener(t, push, true);
 }
 
 /** The gear: what it does here (a game's options, or the saved games). */
@@ -117,10 +122,11 @@ function startSaves(push: boolean) {
 window.addEventListener('popstate', (e) => {
   const action = decideBack({ game: currentId, state: e.state, hash: location.hash.slice(1), asking: !leave.hidden, paused: program?.paused?.() ?? false });
   if (action === 'ignore') return;
-  if (action === 'close-ask') { askLeave(false); history.pushState(PLAY_ENTRY, '', location.hash); return; }
+  // (the guard goes in again on the next tap or key: pushed here, in a popstate, Chrome would skip this entry going back)
+  if (action === 'close-ask') { askLeave(false); if (currentId) armBackGuard(currentId); return; }
   if (action === 'pause') {
     program?.menu?.();
-    if (program?.paused?.()) { history.pushState(PLAY_ENTRY, '', location.hash); return; }
+    if (program?.paused?.()) { if (currentId) armBackGuard(currentId); return; }
   }
   if (action === 'reload') location.reload();
   else toMenu(e); // (leave: the pause screen was open, or the game can't pause now)
