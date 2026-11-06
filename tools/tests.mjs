@@ -37,6 +37,7 @@ export const TESTS = [
   { file: 'packages/c64kit/test/effects.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/input.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/palette.test.ts', set: 'fast' },
+  { file: 'packages/c64kit/test/surface.test.ts', set: 'fast' },
   { name: 'touch layer (npm run test:touch)', cmd: ['npm', 'run', '--silent', 'test:touch'], set: 'fast' },
   { name: 'translator fuzz (tools/re/test/run-fuzz.mjs)', cmd: [process.execPath, 'tools/re/test/run-fuzz.mjs'], set: 'slow' },
 
