@@ -139,11 +139,12 @@ check('the volume table is logarithmic, not linear (the middle is a tenth of the
   const ay = chip({ 11: 1, 8: 0x10, 7: 0b00111111, 13: 12 });
   ay.write(7, 0b00111110);
   for (let i = 0; i < 2 * 5; i++) ay.tick();
-  const withEnvelope = (): number => ay.channelLevel(0);
   ay.write(0, 1);
-  ay.tick(); // (the tone is high)
-  check('a volume with bit 4 set takes the envelope\'s level (a rising shape, step 5 of the ramp)', ay.toneOut(0) ? withEnvelope() === AY_LEVELS[ay.envLevel] : true);
-  check('writing the shape register starts the envelope over', (() => { ay.write(13, 4); return ay.envLevel === 0; })());
+  ay.tick();
+  check('a period-1 tone is high after one tick', ay.toneOut(0));
+  check('a volume with bit 4 set takes the envelope\'s level (a rising shape, step 5 of the ramp)', ay.envLevel > 0 && ay.channelLevel(0) === AY_LEVELS[ay.envLevel]);
+  ay.write(13, 4);
+  check('writing the shape register starts the envelope over', ay.envLevel === 0);
 }
 
 // ---- rendering ---------------------------------------------------------------------------------------------------------
