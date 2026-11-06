@@ -10,7 +10,6 @@ import { Input } from '../../../../packages/c64kit/src/input';
 import { TouchController } from '../controller';
 import { clientToStage, decideMode, touchLayout, EDGE_GUARD, edgeGuard, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
 import { drawNudgePixels, NUDGE_W, nudgeChoice, nudgeLayout } from '../nudge';
-import { PAUSE_TAP } from '../../native/pause';
 import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
@@ -355,14 +354,6 @@ for (const [coarse, touched, want] of TOUCH_WANTED) ok(wantsTouch(coarse, touche
   ok(text.h >= 8 && text.h <= 20 && Math.abs(text.mid - NUDGE_W / 2) <= 4, `nudge: TURN YOUR PHONE is drawn centred in two text rows (${text.w}x${text.h})`);
   const turned = box(drawNudgePixels(l, 50, true), 15);
   ok(turned.w === 38 && turned.h === 22, `nudge: the phone lies on its side half way through the turn (${turned.w}x${turned.h})`);
-}
-
-// ---- the pause screen's tap places (games/shared/native/pause.ts): option lines bottom up from y=166 ----
-{
-  const n = 6; // e.g. H FULL LIFE / ON, I HINTS / OFF, B BACK TO / ROOM START
-  for (let i = 0; i < n; i++) ok(PAUSE_TAP.option(250, 166 - (n - 1 - i) * 12 + 4, n) === i, `pause: option line ${i} tapped`);
-  ok(PAUSE_TAP.option(100, 166, n) === -1, 'pause: a tap on the map is not an option');
-  ok(PAUSE_TAP.option(250, 20, n) === -1, 'pause: a tap above the options is not one');
 }
 
 // ---- a name with the touch controls (games/shared/letters.ts NamePicker), through the controller ----

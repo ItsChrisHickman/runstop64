@@ -229,6 +229,7 @@ export const TESTS = [
   { file: 'games/shared/native/test/combat.ts', args: ['dragonskulle'], set: 'slow' },
   { file: 'games/shared/native/test/controls.ts', args: ['dragonskulle'], set: 'slow' },
   { file: 'games/shared/native/test/travel.ts', args: ['dragonskulle'], set: 'slow' },
+  { file: 'games/shared/native/test/pause-tap.ts', set: 'fast' },
   { file: 'games/shared/native/test/pausemap.ts', args: ['blackwyche'], set: 'slow' },
   // (the title tunes against the original's: Blackwyche's and Dragonskulle's loops time themselves by counting cycles)
   { file: 'games/shared/native/test/tune.ts', set: 'fast' },
