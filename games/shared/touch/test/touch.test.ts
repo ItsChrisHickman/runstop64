@@ -54,14 +54,14 @@ const inside = (r: Rect, o: Rect, slack = 0.5) => r.x >= o.x - slack && r.y >= o
 const circleRect = (c: { x: number; y: number; r: number }): Rect => ({ x: c.x - c.r, y: c.y - c.r, w: 2 * c.r, h: 2 * c.r });
 const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
 
-function checkGeometry(name: string, g: Geometry, w: number, h: number, game: TouchLayout, inset = { top: 0, bottom: 0 }) {
+function checkGeometry(name: string, g: Geometry, w: number, h: number, game: TouchLayout, inset = { top: 0, bottom: 0 }, minShare = game.buttons.length ? 0.8 : 0.99) {
   const stage = { x: 0, y: 0, w, h };
   const tag = `${name} ${g.mode} ${w}x${h}`;
   ok(inside(g.picture, stage), `${tag}: picture inside the stage`);
   ok(Math.abs(g.picture.w / g.picture.h - PICTURE_ASPECT) < 0.01, `${tag}: picture keeps the C64 shape`);
   // the picture is as big as it can be: in landscape at least 75% of the height, in portrait the full width
   const avail = h - inset.top - inset.bottom;
-  if (g.mode === 'landscape') ok(g.picture.h >= avail * (game.buttons.length ? 0.8 : 0.99), `${tag}: picture tall enough (${g.picture.h.toFixed(0)} of ${avail})`);
+  if (g.mode === 'landscape') ok(g.picture.h >= avail * minShare, `${tag}: picture tall enough (${g.picture.h.toFixed(0)} of ${avail})`);
   else ok(Math.abs(g.picture.w - w) < 1, `${tag}: picture full width`);
   const controls = [...g.buttons.map(circleRect), ...g.system.map(circleRect)];
   if (g.stickZone) controls.push({ x: g.stickHome.x - g.stickRadius, y: g.stickHome.y - g.stickRadius, w: 2 * g.stickRadius, h: 2 * g.stickRadius });
@@ -94,8 +94,52 @@ for (const [pw, ph] of PHONES) {
     checkGeometry(name, layoutStage(ph, pw, 'landscape', game, sys), ph, pw, game);
     checkGeometry(name, layoutStage(pw, ph, 'portrait', game, sys), pw, ph, game);
     // with an iPhone's notch (left in landscape) and home bar
-    checkGeometry(`${name} notch`, layoutStage(ph, pw, 'landscape', game, sys, { top: 0, right: 0, bottom: 21, left: 47 }), ph, pw, game, { top: 0, bottom: 21 });
+    const notch = layoutStage(ph, pw, 'landscape', game, sys, { top: 0, right: 0, bottom: 21, left: 47 });
+    checkGeometry(`${name} notch`, notch, ph, pw, game, { top: 0, bottom: 21 });
+    for (const c of [...notch.buttons, ...notch.system].map(circleRect)) ok(c.x >= 47 - 0.5, `${name} notch ${ph}x${pw}: a control is clear of the notch`);
+    const narrower = layoutStage(ph - 47, pw - 21, 'landscape', game, sys);
+    ok(Math.abs(notch.picture.x - (narrower.picture.x + 47)) < 1e-6 && Math.abs(notch.picture.w - narrower.picture.w) < 1e-6, `${name} notch ${ph}x${pw}: laid out as the space beside the notch and above the home bar`);
   }
+}
+
+// small and short phones (an iPhone SE held sideways: the gutters take their share, the picture at least 60% of the height), and an upright phone with the notch and home bar
+for (const [w, h] of [[568, 320], [667, 375]] as const) {
+  for (const [name, game] of Object.entries(GAMES)) {
+    const sys = name === 'loader' ? SYSTEM.filter((s) => s.id === 'layout') : SYSTEM;
+    checkGeometry(`${name} small`, layoutStage(w, h, 'landscape', game, sys), w, h, game, undefined, 0.6);
+  }
+}
+{
+  const inset = { top: 47, right: 0, bottom: 34, left: 0 };
+  for (const [pw, ph] of PHONES) for (const [name, game] of Object.entries(GAMES)) {
+    const sys = name === 'loader' ? SYSTEM.filter((s) => s.id === 'layout') : SYSTEM;
+    const g = layoutStage(pw, ph, 'portrait', game, sys, inset);
+    const stage = { x: 0, y: inset.top, w: pw, h: ph - inset.top - inset.bottom };
+    const tag = `${name} portrait ${pw}x${ph} with insets`;
+    ok(g.picture.y >= inset.top - 0.5, `${tag}: the picture starts below the notch`);
+    for (const c of [...g.buttons, ...g.system].map(circleRect)) { ok(inside(c, stage), `${tag}: a control is between the notch and the home bar`); ok(!overlaps(c, g.picture), `${tag}: a control is off the picture`); }
+    if (g.stickZone) ok(inside(g.stickZone, stage), `${tag}: the stick zone is above the home bar`);
+    if (g.buttonZone) ok(inside(g.buttonZone, stage), `${tag}: the buttons' zone is above the home bar`);
+  }
+}
+{
+  // more small buttons than a gutter has room for in one row: a second row, and the stick and buttons start below it
+  const extra: SystemSpec[] = [...SYSTEM, { id: 'enter', label: 'A', key: 'KeyA' }, { id: 'enter', label: 'B', key: 'KeyB' }];
+  const game = GAMES.entombed;
+  const g = layoutStage(568, 320, 'landscape', game, extra);
+  const rows = new Set(g.system.map((s) => Math.round(s.y)));
+  ok(rows.size > 1, `small buttons: ${g.system.length} of them need more than one row (${rows.size})`);
+  for (let i = 0; i < g.system.length; i++) for (let j = i + 1; j < g.system.length; j++) {
+    const a = g.system[i], b = g.system[j];
+    ok(Math.hypot(a.x - b.x, a.y - b.y) >= a.r + b.r - 0.5, `small buttons: ${a.spec.label} and ${b.spec.label} apart`);
+  }
+  const leftRows = new Set(g.system.filter((s) => s.x < g.picture.x).map((s) => Math.round(s.y)));
+  ok(leftRows.size === 1, 'small buttons: the two on the left stay in one row');
+  const rightBottom = Math.max(...g.system.filter((s) => s.x > g.picture.x + g.picture.w).map((s) => s.y + s.r));
+  const first = must(g.buttons[0], 'the first button');
+  ok(g.buttons.every((b) => b.y - b.r >= rightBottom - 0.5), 'small buttons: the buttons start below the right gutter\'s rows');
+  ok(first.y + first.r <= 320 + 0.5, 'small buttons: and still fit the stage');
+  for (const s of g.system) ok(inside(circleRect(s), { x: 0, y: 0, w: 568, h: 320 }), `small buttons: ${s.spec.label} inside the stage`);
 }
 
 // ---- touches → Input --------------------------------------------------------------------
