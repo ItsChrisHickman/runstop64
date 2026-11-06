@@ -9,6 +9,7 @@ import { entombedMap } from './map';
 import { hintSpots } from './hint-spots';
 import { entombedCombat, entombedControls } from './combat';
 import { entombedFigure } from './figure';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/entombed-title.state?url';
 
 /**
@@ -52,7 +53,7 @@ export function run(host: Host) {
     // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
     figure: entombedFigure,
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
-    touch: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'WHIP', key: 'KeyX' }, { label: 'TORCH', key: 'KeyC' }] },
+    touch: TOUCH,
     run: { player: engine.r_1864 }, // hold Shift to run: player control runs twice a frame
     // the reward for winning (ENHANCED): a montage of the tomb's chambers, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: entombedEnding, won, stats: endingStats },

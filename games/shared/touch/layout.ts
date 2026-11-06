@@ -33,6 +33,12 @@ export interface TouchLayout {
 /** No controls (the loader: tap a game in its list). */
 export const NO_CONTROLS: TouchLayout = { stick: 'none', buttons: [] };
 
+/** A game's touch controls, plus RUN for games that can run (Shift, on or off). */
+export function touchLayout(touch: TouchLayout | undefined, run: boolean): TouchLayout {
+  const t = touch ?? { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big' }] };
+  return run ? { ...t, buttons: [...t.buttons, { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' }] } : t;
+}
+
 /** The small buttons every game gets, by id. */
 export type SystemId = 'pause' | 'enter' | 'home' | 'layout';
 /** A small button: it presses `key` while touched, or (without one) acts when tapped. */

@@ -5,7 +5,6 @@ import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort, type FrameResult } from '../../shared/port';
 import { isNumbers, readJson } from '../../shared/guards';
-import type { TouchLayout } from '../../shared/touch';
 import { TABLES } from './data';
 import { awmEnding, endingStats } from './ending';
 import type { Game } from './game';
@@ -15,12 +14,7 @@ import { Program, type Controls } from './program';
 import { CODEC, snapshot, type AwmSave } from './save';
 import { SOUND } from './sound';
 import type { SoundCall } from './soundlog';
-
-/** The key that boards a plane: the Commodore key in the original, C here (a PC keyboard has no such key). */
-const FLY_KEY = 'KeyC';
-
-/** Touch: Monty walks and climbs (four directions) and jumps (the joystick's fire button); FLY is the key that boards a plane. */
-const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, { label: 'FLY', key: FLY_KEY, size: 'small' }] };
+import { FLY_KEY, TOUCH } from './touch';
 
 /**
  * Auf Wiedersehen Monty: the runstop64 front end for the rebuilt game (Program is the game as the original runs it, title,

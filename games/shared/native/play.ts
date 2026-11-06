@@ -13,7 +13,7 @@ import {
 import { PAUSE_KEYS, type AssistSpec } from '../frontend';
 import { runPort, type FrameResult, type PortPhase, type ResumeFrom } from '../port';
 import { mapSummary, type PauseMap } from './pause';
-import type { TouchLayout } from '../touch';
+import { touchLayout, type TouchLayout } from '../touch/layout';
 import { keepWon, readWon, wantsEnding } from '../ending/credits';
 import { Ending, type EndingSpec } from '../ending/machine-reel';
 import { TitleTune } from './title-tune';
@@ -531,7 +531,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   }
 
   return {
-    touch: touchLayout(opts),
+    touch: touchLayout(opts.touch, !!opts.run),
     get machine() { return game?.m; },
     /** For tests: where the game waits, and the front end's state. */
     get state() { return { lastWait: game?.lastWait, paused: fe.paused, enhanced: fe.enhanced, found: fe.found, grace: flow.grace.left, ...flow.state }; },
@@ -551,12 +551,6 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     menu: port.menu,
     paused: port.paused,
   };
-}
-
-/** The game's touch controls, plus RUN for games that can run (Shift, on or off). */
-function touchLayout(opts: Pick<NativeGameOptions<unknown>, 'touch' | 'run'>): TouchLayout {
-  const t = opts.touch ?? { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big' }] };
-  return opts.run ? { ...t, buttons: [...t.buttons, { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' }] } : t;
 }
 
 /** A part of the game image mended since saves were first made (`NativeGameOptions.mends`). */

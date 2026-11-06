@@ -13,6 +13,7 @@ import { hintSpots } from './hint-spots';
 import { cloakLeft, tally, type Tally } from './rules';
 import { pendragonCode } from '../../shared/pendragon/status';
 import { shovelByHand } from './shovel';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/dragonskulle-title.state?url';
 
 /**
@@ -231,10 +232,7 @@ export function run(host: Host) {
       set: ACTIONS.set,
     },
     // Touch: the stick, USE (the action the hand points at), straight to an action, and RUN (added for `run`).
-    touch: {
-      stick: '8',
-      buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'STONE', key: 'KeyX' }, { label: 'DIG', key: 'KeyC' }, { label: 'CLOAK', key: 'KeyV' }],
-    },
+    touch: TOUCH,
     // hold Shift to run: his handling ($16C1) runs twice a frame (not while the hand is on PAUSE: that waits)
     run: { player: () => { if (bound[0x12eb] !== ACTION.pause) for (const _ of engine.r_16c1()) break; } },
     reserved: [...JOYSTICK_KEYS, 'KeyC', 'KeyV'],

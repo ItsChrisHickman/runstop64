@@ -4,7 +4,6 @@ import { LIVES_ASSIST } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { runPort } from '../../shared/port';
-import type { TouchLayout } from '../../shared/touch';
 import type { TitleStrip } from '../../shared/continue';
 import { PAUSE_COLOURS, SPECTRUM } from './colours';
 import { CREDITS_TEXT_OURS, keyByte } from './controls';
@@ -19,6 +18,7 @@ import { SeededRandom } from './random';
 import { MoleySound } from './sound';
 import { CODEC, restoreGame, snapshotOf, type MoleySave } from './save';
 import { MoleyView } from './view';
+import { TOUCH } from './touch';
 
 /**
  * Moley Christmas: the runstop64 front end for the rebuilt game. `MoleyFlow` is the whole game (the credits page, play, GAME OVER, the
@@ -35,8 +35,6 @@ export { info } from './info';
 export const STRIP_Y = 164;
 const STRIP: TitleStrip = { y: STRIP_Y, colour: SPECTRUM.yellow };
 
-/** Touch: the stick walks, climbs and flies (four directions), the one button jumps. */
-const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] };
 
 /** The high score is kept in the browser (the original's is lost when the Spectrum is switched off). */
 const HIGH_KEY = 'moley.high.v1';

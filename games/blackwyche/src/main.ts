@@ -12,6 +12,7 @@ import { captainsBlow } from './captain';
 import { ACTION } from './actions';
 import { blackwycheEnding, endingStats, won } from './ending';
 import { blackwycheFigure } from './figure';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/blackwyche-title.state?url';
 
 /**
@@ -54,7 +55,7 @@ export function run(host: Host) {
       set: ACTION.set,
     },
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
-    touch: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'SWORD', key: 'KeyX' }] },
+    touch: TOUCH,
     // up a ladder with Up still held: the cabin above has its hole behind him, and the stick walks him back down it
     latch: { busy: (ram) => ram[0x1ec7] !== 0, bits: 3 },
     run: { player: engine.r_163b }, // hold Shift to run: player control runs twice a frame

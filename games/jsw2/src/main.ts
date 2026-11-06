@@ -6,6 +6,7 @@ import { AIR_JUMP, gentleTouch, hintSpots, RopeGrip } from './easy';
 import { END_HOLD, endingStats, jsw2Ending, won } from './ending';
 import { footing, jsw2Map } from './map';
 import { port } from './native';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/jsw2-title.state?url';
 
 /**
@@ -105,7 +106,7 @@ export function run(host: Host) {
     // this puts it in the one made before it: the same length).
     text: { 0x7d03: 'KEYS  :  ARROWS OR WASD...MOVE.  SPACE...JUMP, AGAIN IN THE AIR.  SHIFT...RUN (THOSE TWO IN ENHANCED).  P OR ESC...PAUSE AND MAP.  F3...MUSIC.  M...MUTE........' },
     // Touch: left and right (Willy has no up or down), a big JUMP, and RUN (added for `run`: on or off).
-    touch: { stick: 'lr', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
+    touch: TOUCH,
     font: 'kit', // (the title's charset is the game's own lettering, not a font in C64 order)
     // F1 is the original's pause (a blank wait): the pause screen replaces it.
     reserved: ['F1', ...JOYSTICK_KEYS],

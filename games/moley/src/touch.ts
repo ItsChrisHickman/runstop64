@@ -1,0 +1,4 @@
+import type { TouchLayout } from '../../shared/touch';
+
+/** Touch: the stick walks, climbs and flies (four directions), the one button jumps. */
+export const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] };

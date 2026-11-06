@@ -5,7 +5,6 @@ import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
 import { runPort, type FrameResult } from '../../shared/port';
 import { playEvents } from '../../shared/native/combat';
-import type { TouchLayout } from '../../shared/touch';
 import { writeCells } from './cells';
 import { giveControls } from './controls';
 import { intoArmour } from './fades';
@@ -18,6 +17,7 @@ import { stopMessage } from './panel';
 import { loadPlus, startPlus } from './plus';
 import { heroAnim, restartHeroAnim } from './sprites';
 import { V } from './vars';
+import { TOUCH } from './touch';
 
 /**
  * The Sacred Armour of Antiriad: the runstop64 front end for the ported game
@@ -29,7 +29,6 @@ import { V } from './vars';
  * JUMP jumps (lifts the armour), CELL fills the armour from a stored recharge cell (ENHANCED; cells.ts).
  * In ORIGINAL FIRE and JUMP are the original's one button, and CELL does nothing.
  */
-const TOUCH: TouchLayout = { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'CELL', key: 'KeyC', size: 'small' }] };
 
 /** ENHANCED's buttons (main.ts controls()): Z jumps; Space, X, Ctrl and the pad's buttons fire. */
 const JUMP_KEY = 'KeyZ';

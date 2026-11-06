@@ -4,16 +4,14 @@ import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort } from '../../shared/port';
-import type { TouchLayout } from '../../shared/touch';
 import { bankImage, MUSIC } from './data';
 import { endingStats, montyEnding } from './ending';
 import { Game } from './game';
 import { describeSave, montyMap, NO_TRAVEL, noteRoom, type MontyFound } from './map';
 import { CODEC, migrateOldSave, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore } from './title';
+import { TOUCH } from './touch';
 
-/** Touch: Monty runs and climbs (four directions) and jumps. */
-const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] };
 
 /**
  * Monty on the Run: the runstop64 front end for the ported game (Game is the

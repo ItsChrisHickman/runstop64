@@ -1,9 +1,6 @@
 import { BitmapFont, C64, KIT_GLYPHS, type Host } from 'c64kit';
 import { GAMES, type GameEntry } from './registry';
-import type { TouchLayout } from './shared/touch';
-
-/** Touch: tap a game (then tap it again), or move the choice with the stick and press LOAD. */
-const TOUCH: TouchLayout = { stick: '4', buttons: [{ label: 'LOAD', key: 'Space', size: 'big' }] };
+import { TOUCH } from './loader-touch';
 
 /**
  * The runstop64 front door: a C64-style READY screen that "loads" the game

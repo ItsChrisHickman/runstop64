@@ -12,6 +12,7 @@ import { Guide } from './guide';
 import { MIDNIGHT_CHECK, holdBeforeMidnight } from './clock';
 import { hintSpots } from './hints';
 import { karnathFigure } from './figure';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/karnath-title.state?url';
 
 /**
@@ -63,7 +64,7 @@ export function run(host: Host) {
       next: { order: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], get: (ram) => ram[0x322c] },
     },
     // Touch: the stick, CAST, SPELL (the next one, as Enter does), and RUN (added for `run`).
-    touch: { stick: '8', buttons: [{ label: 'CAST', key: 'Space', size: 'big' }, { label: 'SPELL', key: 'Enter' }] },
+    touch: TOUCH,
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
     // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: karnathEnding, won, stats: endingStats },

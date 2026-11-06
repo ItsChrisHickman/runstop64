@@ -7,6 +7,7 @@ import { ANIMATED_DRAWN, makeEnhanced, stillPoles } from './assists';
 import { hintSpots } from './hint-spots';
 import { endingStats, thingEnding, won } from './ending';
 import { makeMap } from './map';
+import { TOUCH } from './touch';
 import stateUrl from '../assets/toas-title.state?url';
 
 /**
@@ -76,6 +77,6 @@ export function run(host: Host) {
     // (R would open the original's key-redefining screen, which lists C64 keys: not on this keyboard.)
     reserved: ['KeyR', ...JOYSTICK_KEYS],
     // Touch: the stick (Thing goes up and down too), and fire: his jump (with a direction, the big one).
-    touch: { stick: '8', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
+    touch: TOUCH,
   });
 }
