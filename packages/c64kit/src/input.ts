@@ -37,6 +37,14 @@ export interface KeyTarget {
   readonly document?: { addEventListener(type: 'visibilitychange' | 'fullscreenchange', listener: () => void): void };
 }
 
+/** What Input reads of a gamepad (a `Gamepad` is one). */
+export interface GamepadLike { readonly connected: boolean; readonly axes: readonly number[]; readonly buttons: readonly { readonly pressed: boolean }[] }
+
+/** The gamepads to read, as `navigator.getGamepads` lists them. */
+export type GamepadSource = () => readonly (GamepadLike | null)[];
+
+const browserGamepads: GamepadSource = () => (typeof navigator !== 'undefined' ? navigator.getGamepads?.() : undefined) ?? [];
+
 export class Input {
   readonly held: Stick = { left: false, right: false, up: false, down: false, fire: false };
   readonly pressed: Stick = { left: false, right: false, up: false, down: false, fire: false };
@@ -65,7 +73,7 @@ export class Input {
   /** The touch controls are in use: games may say "tap" instead of naming keys. */
   touch = false;
 
-  constructor(target: KeyTarget = window) {
+  constructor(target: KeyTarget = window, private readonly gamepads: GamepadSource = browserGamepads) {
     target.addEventListener('keydown', (e) => {
       // Cmd (Windows: the Windows key) belongs to the system's shortcuts (screenshots, switching
       // windows): no key counts while it's held, and what was held before it is let go, since
@@ -132,7 +140,7 @@ export class Input {
     const keys = new Set<keyof Stick>();
     for (const c of this.down) { const k = KEYMAP[c]; if (k) keys.add(k); }
 
-    const pad = (typeof navigator !== 'undefined' && navigator.getGamepads?.().find((p) => p && p.connected)) || null;
+    const pad = this.gamepads().find((p) => p && p.connected) ?? null;
     const axis = (i: number) => (pad ? pad.axes[i] ?? 0 : 0);
     const btn = (i: number) => !!pad?.buttons[i]?.pressed;
 
