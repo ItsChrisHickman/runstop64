@@ -14,7 +14,7 @@ import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
 import { decideBack, PLAY_ENTRY } from '../back-guard';
-import { GET_KEY, joyBits, PAD_KEY, TOUCH as STARQUAKE } from '../../../starquake/src/controls';
+import { fireHeld, GET_KEY, joyBits, PAD_KEY, TOUCH as STARQUAKE } from '../../../starquake/src/controls';
 
 let failures = 0, checks = 0;
 function ok(cond: unknown, what: string) {
@@ -188,7 +188,7 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ok(geo.buttons.every((b) => b.r > 0), 'Entombed: five buttons placed');
 }
 {
-  // Starquake: GET and PAD hold the game's own up and down (the stick's still do); G and B do the same on a keyboard, except while letters are typed
+  // Starquake: GET and PAD hold the game's own up and down (the stick's still do); Z and X do the same on a keyboard (and don't fire), except while letters are typed
   const { input, ctl, geo } = rig(GAMES.starquake, 915, 412);
   const by = (l: string) => must(geo.buttons.find((b) => b.spec.label === l), `the ${l} button`);
   ctl.down(1, by('GET').x, by('GET').y); input.poll();
@@ -205,9 +205,14 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ctl.up(2); input.poll();
   const idle = { left: false, right: false, up: false, down: false, fire: false };
   const keys = (...k: string[]) => new Set(k);
-  ok(joyBits(idle, keys(GET_KEY), false, false) === 0x7e, 'Starquake: G is up');
-  ok(joyBits(idle, keys(PAD_KEY), false, false) === 0x7d, 'Starquake: B is down');
-  ok(joyBits(idle, keys(GET_KEY, PAD_KEY), true, true) === 0x6f, 'Starquake: G and B are letters while typing (fire still counts)');
+  ok(joyBits(idle, keys(GET_KEY), false, false) === 0x7e, 'Starquake: Z is up');
+  ok(joyBits(idle, keys(PAD_KEY), false, false) === 0x7d, 'Starquake: X is down');
+  ok(joyBits(idle, keys(GET_KEY, PAD_KEY), true, true) === 0x6f, 'Starquake: Z and X are letters while typing (fire still counts)');
+  const fire = { ...idle, fire: true };
+  ok(!fireHeld(fire, keys(GET_KEY), false) && !fireHeld(fire, keys(PAD_KEY), false), 'Starquake: Z and X don\'t fire in play');
+  ok(fireHeld(fire, keys('Space'), false) && fireHeld(fire, keys('ControlLeft', GET_KEY), false), 'Starquake: Space and Ctrl fire (also with Z held)');
+  ok(fireHeld(fire, keys(), false), 'Starquake: fire from the pad or the FIRE button');
+  ok(fireHeld(fire, keys(GET_KEY), true), 'Starquake: Z still counts as fire while letters are typed');
   ok(joyBits({ ...idle, left: true, right: true }, keys(), false, false) === 0x73, 'Starquake: left and right unchanged');
   ok(by('FIRE') === geo.buttons[0] && geo.buttons.length === 3, 'Starquake: FIRE stays the main button, two more beside it');
 }

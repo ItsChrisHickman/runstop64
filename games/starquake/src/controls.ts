@@ -6,10 +6,18 @@ import type { TouchLayout } from '../../shared/touch';
  * lift tubes and the hover pad), down builds a hover platform under him (and lowers the pad he rides).
  * Touch has the stick for them and, on the right beside FIRE, a GET and a PAD button that hold the
  * game's own up and down (they stand for the arrow keys, so the letter-picking screens see them as
- * the stick's). The keyboard has G and B for the same two; they mean nothing while letters are typed.
+ * the stick's). The keyboard has Z and X for the same two (so they don't fire here: Space and Ctrl do); they mean nothing
+ * while letters are typed.
  */
-export const GET_KEY = 'KeyG';
-export const PAD_KEY = 'KeyB';
+export const GET_KEY = 'KeyZ';
+export const PAD_KEY = 'KeyX';
+const FIRE_KEYS = ['Space', 'ControlLeft', 'ControlRight'];
+
+/** Fire held: the input's fire, except where it is only Z or X (GET and PAD here; still fire while letters are typed). */
+export function fireHeld(held: Stick, down: ReadonlySet<string>, typing: boolean): boolean {
+  if (typing || FIRE_KEYS.some((k) => down.has(k))) return held.fire;
+  return held.fire && !down.has(GET_KEY) && !down.has(PAD_KEY);
+}
 
 export const TOUCH: TouchLayout = {
   stick: '8',
@@ -20,7 +28,7 @@ export const TOUCH: TouchLayout = {
   ],
 };
 
-/** The joystick bits BLOB reads ($76: low = pressed): the stick's own directions, and G / B for up / down unless letters are being typed. */
+/** The joystick bits BLOB reads ($76: low = pressed): the stick's own directions, and Z / X for up / down unless letters are being typed. */
 export function joyBits(held: Stick, down: ReadonlySet<string>, fire: boolean, typing: boolean): number {
   const up = held.up || (!typing && down.has(GET_KEY));
   const dn = held.down || (!typing && down.has(PAD_KEY));

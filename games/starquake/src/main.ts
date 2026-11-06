@@ -7,7 +7,7 @@ import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
-import { joyBits, TOUCH } from './controls';
+import { fireHeld, joyBits, TOUCH } from './controls';
 import { endingStats, starquakeEnding } from './ending';
 import * as Flow from './flow';
 import * as Heroes from './heroes';
@@ -141,7 +141,7 @@ export function run(host: Host) {
     const touch = input.touch;
     t(14, touch ? 'FIRE: NEW GAME' : 'SPACE: NEW GAME', 0x10);
     t(17, touch ? 'STICK: MOVE   GET: PICK UP' : 'ARROWS OR WASD: MOVE   SPACE: FIRE', 0xb0);
-    t(18, touch ? 'PAD: PLATFORM   FIRE: LASER' : 'UP OR G: PICK UP   DOWN OR B: PLATFORM', 0xb0);
+    t(18, touch ? 'PAD: PLATFORM   FIRE: LASER' : 'UP OR Z: PICK UP   DOWN OR X: PLATFORM', 0xb0);
     t(19, touch ? 'PAUSE: THE MAP' : 'P OR ESC: THE MAP   M: SOUND', 0xb0);
     Screens.framed(g, 0, 0x60); // (the game's frame of tiles; no text block)
   }
@@ -238,7 +238,7 @@ export function run(host: Host) {
 
   /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch. */
   function joy() {
-    return joyBits(input.held, input.down, latch.filter(input.held.fire), typing());
+    return joyBits(input.held, input.down, latch.filter(fireHeld(input.held, input.down, typing())), typing());
   }
 
   /** The key held now, as the C64's keyboard scan would give it ($C5: row × 8 + column, 64 none): teleport names, Cheops trades. `skip`: keys held that aren't the keyboard's here (the touch stick's, while it picks letters). */
