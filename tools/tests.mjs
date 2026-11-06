@@ -26,6 +26,7 @@ export const TESTS = [
   // ---- shared modules and the kit
   { file: 'games/shared/test/machine-state.ts', set: 'fast' },
   { file: 'games/shared/test/small.ts', set: 'fast' },
+  { file: 'games/shared/test/audio-keys.ts', set: 'fast' },
   { file: 'games/shared/test/letters.ts', set: 'fast' },
   { file: 'games/shared/test/ending-timeline.ts', set: 'fast' },
   { file: 'games/shared/test/saves.ts', set: 'fast' },
