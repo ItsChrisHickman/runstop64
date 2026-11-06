@@ -12,6 +12,19 @@ interface LoopHandlers {
   render(alpha: number): void;
 }
 
+/** The time source and frame scheduler a loop runs on (the browser's by default). */
+export interface LoopClock {
+  now(): number;
+  request(callback: (now: number) => void): number;
+  cancel(id: number): void;
+}
+
+const browserClock: LoopClock = {
+  now: () => performance.now(),
+  request: (callback) => requestAnimationFrame(callback),
+  cancel: (id) => cancelAnimationFrame(id),
+};
+
 export class FixedLoop {
   private acc = 0;
   private last = 0;
@@ -19,14 +32,14 @@ export class FixedLoop {
   private running = false;
   readonly step: number;
 
-  constructor(private handlers: LoopHandlers, readonly hz = 50) {
+  constructor(private handlers: LoopHandlers, readonly hz = 50, private readonly clock: LoopClock = browserClock) {
     this.step = 1000 / hz;
   }
 
   start() {
     if (this.running) return;
     this.running = true;
-    this.last = performance.now();
+    this.last = this.clock.now();
     const frame = (now: number) => {
       if (!this.running) return;
       // Clamp long gaps (tab switch, debugger) so we don't spiral.
@@ -37,14 +50,14 @@ export class FixedLoop {
         this.acc -= this.step;
       }
       this.handlers.render(this.acc / this.step);
-      this.raf = requestAnimationFrame(frame);
+      this.raf = this.clock.request(frame);
     };
-    this.raf = requestAnimationFrame(frame);
+    this.raf = this.clock.request(frame);
   }
 
   stop() {
     this.running = false;
-    cancelAnimationFrame(this.raf);
+    this.clock.cancel(this.raf);
   }
 }
 
