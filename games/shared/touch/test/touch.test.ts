@@ -415,4 +415,199 @@ for (const [coarse, touched, want] of TOUCH_WANTED) ok(wantsTouch(coarse, touche
   for (const [what, over, want] of BACKS) ok(at(over) === want, `back: ${what} -> ${want}`);
 }
 
+// ---- the controller's finer points ----------------------------------------------------------
+
+/** Polar offsets from the stick's home, as a touch point: `deg` 0 = right, 90 = down. */
+const polar = (geo: Geometry, deg: number, reach: number) => ({
+  x: geo.stickHome.x + Math.cos((deg * Math.PI) / 180) * geo.stickRadius * reach,
+  y: geo.stickHome.y + Math.sin((deg * Math.PI) / 180) * geo.stickRadius * reach,
+});
+const pushTo = (t: ReturnType<typeof rig>, deg: number, reach = 0.8) => {
+  const p = polar(t.geo, deg, reach);
+  t.ctl.move(1, p.x, p.y);
+  t.input.poll();
+  return heldDirs(t.input);
+};
+const startStick = (t: ReturnType<typeof rig>) => t.ctl.down(1, t.geo.stickHome.x, t.geo.stickHome.y);
+const buttonOf = (geo: Geometry, label: string) => must(geo.buttons.find((b) => b.spec.label === label), `the ${label} button`);
+const systemOf = (geo: Geometry, id: string) => must(geo.system.find((s) => s.spec.id === id), `the ${id} button`);
+
+{
+  // one finger owns the stick: a second one in the stick zone does nothing
+  const t = rig(GAMES.entombed, 780, 360);
+  const z = must(t.geo.stickZone, 'the stick zone');
+  startStick(t);
+  pushTo(t, 0);
+  const before = { ...t.ctl.stick, dirs: [...t.ctl.stick.dirs] };
+  t.ctl.down(2, z.x + 6, z.y + 6);
+  t.ctl.move(2, z.x + z.w - 6, z.y + z.h - 6);
+  t.input.poll();
+  ok(t.ctl.stick.cx === before.cx && t.ctl.stick.x === before.x && heldDirs(t.input) === 'right', 'stick: a second finger in the zone neither moves the stick nor changes its directions');
+  t.ctl.up(2);
+  t.input.poll();
+  ok(t.ctl.stick.active && heldDirs(t.input) === 'right', 'stick: the second finger lifting leaves the first one steering');
+}
+
+{
+  // two fingers on one button hold it until both lift
+  const t = rig(GAMES.entombed, 780, 360);
+  const jump = buttonOf(t.geo, 'JUMP');
+  t.ctl.down(1, jump.x, jump.y);
+  t.ctl.down(2, jump.x, jump.y);
+  t.ctl.up(1);
+  t.input.poll();
+  ok(t.input.down.has('KeyZ') && t.ctl.isLit(jump.index), 'button: one of two fingers lifted, still held and lit');
+  t.ctl.up(2);
+  t.input.poll();
+  ok(!t.input.down.has('KeyZ') && !t.ctl.isLit(jump.index), 'button: both lifted, let go and not lit');
+}
+
+{
+  // a resize or turn lets go of what is held but keeps RUN on; a layout without RUN drops it
+  const withRun = GAMES['entombed+RUN'];
+  const t = rig(withRun, 780, 360);
+  const run = buttonOf(t.geo, 'RUN'), jump = buttonOf(t.geo, 'JUMP');
+  t.ctl.down(1, run.x, run.y); t.ctl.up(1);
+  t.ctl.down(2, jump.x, jump.y);
+  startStick(t); pushTo(t, 0);
+  t.ctl.setGeometry(layoutStage(844, 390, 'landscape', withRun, SYSTEM), withRun.stick);
+  t.input.poll();
+  ok(t.input.down.has('ShiftLeft') && t.ctl.toggled.has(run.index), 'resize: RUN stays on across the new geometry');
+  ok(!t.input.down.has('KeyZ') && heldDirs(t.input) === 'none' && !t.ctl.stick.active, 'resize: held buttons and the stick are let go');
+  t.ctl.setGeometry(layoutStage(844, 390, 'landscape', GAMES.entombed, SYSTEM), GAMES.entombed.stick);
+  t.input.poll();
+  ok(!t.input.down.has('ShiftLeft') && t.ctl.toggled.size === 0, 'another layout without RUN: RUN is let go');
+}
+
+{
+  // sliding from one button to the next: only between plain buttons, and only inside the buttons' zone
+  const t = rig(GAMES['entombed+RUN'], 780, 360);
+  const zone = must(t.geo.buttonZone, 'the button zone');
+  const jump = buttonOf(t.geo, 'JUMP'), run = buttonOf(t.geo, 'RUN');
+  t.ctl.down(1, jump.x, jump.y);
+  t.ctl.move(1, run.x, run.y);
+  t.input.poll();
+  ok(t.input.down.has('KeyZ') && !t.input.down.has('ShiftLeft') && !t.ctl.toggled.has(run.index), 'slide: onto a toggle button changes nothing');
+  t.ctl.up(1);
+  t.ctl.down(2, run.x, run.y);
+  t.ctl.move(2, jump.x, jump.y);
+  t.input.poll();
+  ok(t.input.down.has('ShiftLeft') && !t.input.down.has('KeyZ'), 'slide: off a toggle button presses nothing');
+  t.ctl.up(2);
+  t.ctl.down(3, jump.x, jump.y);
+  // a point just outside the zone that is closer to another plain button than to JUMP
+  const rel = (b: { x: number; y: number; r: number }, p: { x: number; y: number }) => Math.hypot(p.x - b.x, p.y - b.y) / b.r;
+  const others = t.geo.buttons.filter((b) => b !== jump && b.spec.mode !== 'toggle');
+  const outside = others.flatMap((b) => [{ x: zone.x - 3, y: b.y }, { x: zone.x + zone.w + 3, y: b.y }, { x: b.x, y: zone.y - 3 }, { x: b.x, y: zone.y + zone.h + 3 }].map((p) => ({ p, b })))
+    .find(({ p, b }) => rel(b, p) < rel(jump, p) && !t.geo.buttons.some((o) => o !== b && rel(o, p) <= rel(b, p)));
+  const away = must(outside, 'a point outside the zone nearer another button than JUMP');
+  ok(t.ctl.hit(away.p.x, away.p.y).kind !== 'button', 'slide: the test point is outside the buttons\' zone');
+  t.ctl.move(3, away.p.x, away.p.y);
+  t.input.poll();
+  ok(t.input.down.has('KeyZ') && !t.input.down.has(away.b.spec.key), 'slide: outside the zone onto another button changes nothing');
+  t.ctl.move(3, away.b.x, away.b.y);
+  t.input.poll();
+  ok(t.input.down.has(away.b.spec.key) && !t.input.down.has('KeyZ'), 'slide: inside the zone onto another button moves the press');
+  t.ctl.up(3);
+}
+
+{
+  // system buttons: a cancelled touch does not act; reach is the radius plus 6, and a lift counts up to the radius plus 16
+  const t = rig(GAMES.karnath, 915, 412);
+  const pause = systemOf(t.geo, 'pause');
+  t.ctl.down(1, pause.x, pause.y);
+  t.ctl.cancel(1);
+  ok(t.sysCalls.length === 0, 'PAUSE: a cancelled touch does not act');
+  const at = (d: number) => ({ x: pause.x + pause.r + d, y: pause.y });
+  ok(t.ctl.hit(at(5).x, at(5).y).kind === 'system', 'PAUSE: a touch 5px outside its edge still hits it');
+  ok(t.ctl.hit(at(7).x, at(7).y).kind !== 'system', 'PAUSE: a touch 7px outside its edge misses it');
+  t.ctl.down(2, pause.x, pause.y);
+  t.ctl.up(2, at(15).x, at(15).y);
+  ok(t.sysCalls.join() === 'pause', 'PAUSE: lifted 15px outside its edge, it acts');
+  t.ctl.down(3, pause.x, pause.y);
+  t.ctl.up(3, at(17).x, at(17).y);
+  ok(t.sysCalls.join() === 'pause', 'PAUSE: lifted 17px outside its edge, it does not act');
+  t.ctl.down(4, pause.x, pause.y);
+  t.ctl.up(4);
+  ok(t.sysCalls.join() === 'pause,pause', 'PAUSE: lifted with no position, it acts');
+}
+
+{
+  // left/right stick: a held direction survives a little way back toward the middle, a fresh one does not start there
+  const t = rig(GAMES.jsw2, 844, 390);
+  const dead = t.geo.stickRadius * 0.28;
+  for (const sign of [1, -1]) {
+    const name = sign > 0 ? 'right' : 'left';
+    startStick(t);
+    const at = (k: number) => t.ctl.move(1, t.geo.stickHome.x + sign * dead * k, t.geo.stickHome.y);
+    at(0.85); t.input.poll();
+    ok(heldDirs(t.input) === 'none', `lr: ${name} just inside the dead zone is not yet held`);
+    at(1.2); t.input.poll();
+    ok(heldDirs(t.input) === name, `lr: ${name} past the dead zone is held`);
+    at(0.85); t.input.poll();
+    ok(heldDirs(t.input) === name, `lr: ${name} stays held a little way back`);
+    at(0.5); t.input.poll();
+    ok(heldDirs(t.input) === 'none', `lr: ${name} lets go well inside the dead zone`);
+    t.ctl.up(1);
+  }
+}
+
+{
+  // 4-way and 8-way sticks keep their direction a little past the sector edge, in every direction
+  const FOUR: [number, string][] = [[0, 'right'], [90, 'down'], [180, 'left'], [-90, 'up']];
+  const four = rig(GAMES.montyotr, 780, 360);
+  for (const [centre, name] of FOUR) for (const sign of [1, -1]) {
+    startStick(four);
+    pushTo(four, centre);
+    const sticky = pushTo(four, centre + sign * 52), past = pushTo(four, centre + sign * 56);
+    four.ctl.up(1);
+    ok(sticky === name && past !== name && past !== 'none', `4-way: ${name} holds at ${sign * 52} degrees and changes by ${sign * 56} (${sticky}, ${past})`);
+  }
+  const EIGHT: [number, string][] = [[0, 'right'], [45, 'down+right'], [90, 'down'], [135, 'down+left'], [180, 'left'], [-135, 'up+left'], [-90, 'up'], [-45, 'up+right']];
+  const eight = rig(GAMES.entombed, 780, 360);
+  for (const [centre, name] of EIGHT) for (const sign of [1, -1]) {
+    startStick(eight);
+    const first = pushTo(eight, centre);
+    const sticky = pushTo(eight, centre + sign * 26), past = pushTo(eight, centre + sign * 31);
+    eight.ctl.up(1);
+    ok(first === name && sticky === name && past !== name, `8-way: ${name} holds at ${sign * 26} degrees and changes by ${sign * 31} (${first}, ${sticky}, ${past})`);
+  }
+}
+
+{
+  // letting go of everything, the haptic tick, lit buttons and the activity clock
+  const t = rig(GAMES['entombed+RUN'], 780, 360);
+  const ticks: number[] = [];
+  t.ctl.onPress = () => ticks.push(ticks.length);
+  const jump = buttonOf(t.geo, 'JUMP'), run = buttonOf(t.geo, 'RUN');
+  t.ctl.down(5, jump.x, jump.y, 100);
+  ok(ticks.length === 1 && t.ctl.lastActivity === 100, 'a button press ticks once and stamps the activity clock');
+  t.ctl.move(5, jump.x + 1, jump.y, 200);
+  ok(t.ctl.lastActivity === 200, 'a move stamps the activity clock');
+  t.ctl.up(5, undefined, undefined, 300);
+  ok(ticks.length === 1 && t.ctl.lastActivity === 300, 'lifting a button does not tick, and stamps the clock');
+  t.ctl.down(6, run.x, run.y);
+  ok(ticks.length === 2 && t.ctl.isLit(run.index), 'RUN on: ticks and is lit');
+  t.ctl.up(6);
+  ok(t.ctl.isLit(run.index), 'RUN stays lit after the finger lifts');
+  t.ctl.down(7, run.x, run.y);
+  ok(ticks.length === 2 && !t.ctl.isLit(run.index), 'RUN off: no tick, no longer lit');
+  t.ctl.up(7);
+  startStick(t); pushTo(t, 0);
+  ok(ticks.length === 3, 'a stick direction ticks once');
+  pushTo(t, 0, 0.9);
+  ok(ticks.length === 3, 'the same direction again does not tick');
+  pushTo(t, 45);
+  ok(ticks.length === 4, 'a further direction ticks');
+  t.ctl.down(8, jump.x, jump.y);
+  t.input.poll();
+  t.ctl.releaseAll();
+  t.input.poll();
+    ok(heldDirs(t.input) === 'none' && !t.input.down.has('KeyZ') && !t.ctl.stick.active && !t.ctl.isLit(jump.index), 'releaseAll lets go of the stick and the buttons');
+  const enter = systemOf(t.geo, 'enter');
+  t.ctl.down(9, enter.x, enter.y);
+  ok(ticks.length === 6, 'a system key press ticks');
+  t.ctl.up(9);
+}
+
 finish();
