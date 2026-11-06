@@ -199,6 +199,7 @@ export const TESTS = [
 
   // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },
+  { file: 'games/starquake/test/controls.ts', set: 'fast' },
   { file: 'games/starquake/test/grace.ts', set: 'fast' },
   { file: 'games/starquake/test/newgame-seeds.ts', set: 'fast' },
   { file: 'games/starquake/test/save.ts', set: 'fast' },

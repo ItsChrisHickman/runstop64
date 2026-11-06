@@ -8,19 +8,17 @@
 import { Input } from '../../../../packages/c64kit/src/input';
 import { TouchController } from '../controller';
 import { clientToStage, decideMode, EDGE_GUARD, edgeGuard, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
-import { drawNudgePixels, nudgeChoice, nudgeLayout } from '../nudge';
+import { drawNudgePixels, NUDGE_W, nudgeChoice, nudgeLayout } from '../nudge';
 import { PAUSE_TAP } from '../../native/pause';
 import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
 import { decideBack, PLAY_ENTRY } from '../back-guard';
-import { fireHeld, GET_KEY, joyBits, PAD_KEY, TOUCH as STARQUAKE } from '../../../starquake/src/controls';
+import { TOUCH as STARQUAKE } from '../../../starquake/src/controls';
+import { check, finish } from '../../test/check';
 
-let failures = 0, checks = 0;
-function ok(cond: unknown, what: string) {
-  checks++;
-  if (!cond) { failures++; console.log(`FAIL ${what}`); }
-}
+/** One check, printed only when it fails (the geometry loops run thousands). */
+const ok = (cond: unknown, what: string) => check(what, !!cond, true);
 
 // ---- every game's layout, as declared (RUN added by the native front end for games that run) ----
 const RUN = { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' } as const;
@@ -65,7 +63,7 @@ function checkGeometry(name: string, g: Geometry, w: number, h: number, game: To
   }
   for (const b of g.buttons) ok(b.r * 2 >= 32, `${tag}: ${b.spec.label} at least 32px across (${(b.r * 2).toFixed(0)})`);
   if (g.buttons.length) ok(g.buttons[0].r * 2 >= 56, `${tag}: main button big (${(g.buttons[0].r * 2).toFixed(0)})`);
-  if (game.stick !== 'none') ok(g.stickRadius >= 30 && g.stickZone, `${tag}: a stick with reach`);
+  if (game.stick !== 'none') ok(g.stickRadius >= 30 && !!g.stickZone, `${tag}: a stick with reach`);
   else ok(!g.stickZone, `${tag}: no stick`);
   if (g.stickZone) ok(!overlaps(g.stickZone, g.picture), `${tag}: stick zone off the picture`);
   if (g.buttonZone) ok(!overlaps(g.buttonZone, g.picture), `${tag}: button zone off the picture`);
@@ -185,7 +183,6 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ok(input.down.has('ShiftLeft'), 'RUN: on after a tap, stays on');
   ctl.down(1, run.x, run.y); ctl.up(1); input.poll();
   ok(!input.down.has('ShiftLeft'), 'RUN: off after another tap');
-  ok(geo.buttons.every((b) => b.r > 0), 'Entombed: five buttons placed');
 }
 {
   // Starquake: GET and PAD hold the game's own up and down (the stick's still do); Z and X do the same on a keyboard (and don't fire), except while letters are typed
@@ -197,23 +194,11 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ok(!input.held.up, 'Starquake: GET lifted');
   ctl.down(1, by('PAD').x, by('PAD').y); input.poll();
   ok(input.held.down && !input.held.up && !input.held.fire, 'Starquake: PAD holds down');
-  ok(joyBits(input.held, input.down, false, false) === 0x7d, 'Starquake: PAD gives the joystick down bit');
   ctl.up(1); input.poll();
   const { x, y } = geo.stickHome, R = geo.stickRadius;
   ctl.down(2, x, y); ctl.move(2, x, y - R); input.poll();
-  ok(joyBits(input.held, input.down, false, false) === 0x7e, 'Starquake: the stick\'s up still gives the up bit');
+  ok(input.held.up, 'Starquake: the stick still holds up');
   ctl.up(2); input.poll();
-  const idle = { left: false, right: false, up: false, down: false, fire: false };
-  const keys = (...k: string[]) => new Set(k);
-  ok(joyBits(idle, keys(GET_KEY), false, false) === 0x7e, 'Starquake: Z is up');
-  ok(joyBits(idle, keys(PAD_KEY), false, false) === 0x7d, 'Starquake: X is down');
-  ok(joyBits(idle, keys(GET_KEY, PAD_KEY), true, true) === 0x6f, 'Starquake: Z and X are letters while typing (fire still counts)');
-  const fire = { ...idle, fire: true };
-  ok(!fireHeld(fire, keys(GET_KEY), false) && !fireHeld(fire, keys(PAD_KEY), false), 'Starquake: Z and X don\'t fire in play');
-  ok(fireHeld(fire, keys('Space'), false) && fireHeld(fire, keys('ControlLeft', GET_KEY), false), 'Starquake: Space and Ctrl fire (also with Z held)');
-  ok(fireHeld(fire, keys(), false), 'Starquake: fire from the pad or the FIRE button');
-  ok(fireHeld(fire, keys(GET_KEY), true), 'Starquake: Z still counts as fire while letters are typed');
-  ok(joyBits({ ...idle, left: true, right: true }, keys(), false, false) === 0x73, 'Starquake: left and right unchanged');
   ok(by('FIRE') === geo.buttons[0] && geo.buttons.length === 3, 'Starquake: FIRE stays the main button, two more beside it');
 }
 {
@@ -280,19 +265,19 @@ for (const [vw, vh] of PHONES) {
 }
 
 // ---- which mode, and desktop ----
-ok(decideMode({ vw: 915, vh: 412, preferPortrait: false, started: true, lockPending: false }) === 'landscape', 'mode: landscape viewport → landscape');
-ok(decideMode({ vw: 915, vh: 412, preferPortrait: true, started: true, lockPending: false }) === 'landscape', 'mode: a landscape viewport stays landscape even if upright is preferred');
-ok(decideMode({ vw: 412, vh: 915, preferPortrait: false, started: false, lockPending: false }) === 'portrait', 'mode: before the first tap, portrait (with the nudge)');
-ok(decideMode({ vw: 412, vh: 915, preferPortrait: false, started: true, lockPending: true }) === 'portrait', 'mode: waiting for the lock, not turned yet');
-ok(decideMode({ vw: 412, vh: 915, preferPortrait: false, started: true, lockPending: false }) === 'rotated', 'mode: lock refused/unavailable → drawn turned');
-ok(decideMode({ vw: 412, vh: 915, preferPortrait: true, started: true, lockPending: false }) === 'portrait', 'mode: upright chosen → portrait');
-ok(!wantsTouch(false, false), 'desktop (fine pointer, no touch): no touch UI');
-ok(wantsTouch(false, true), 'a touch on a desktop: touch UI');
-ok(wantsTouch(true, false), 'phone (coarse pointer): touch UI');
+const MODES: [string, Parameters<typeof decideMode>[0], ReturnType<typeof decideMode>][] = [
+  ['landscape viewport', { vw: 915, vh: 412, preferPortrait: false, started: true, lockPending: false }, 'landscape'],
+  ['a landscape viewport stays landscape even if upright is preferred', { vw: 915, vh: 412, preferPortrait: true, started: true, lockPending: false }, 'landscape'],
+  ['a square viewport is landscape', { vw: 600, vh: 600, preferPortrait: false, started: true, lockPending: false }, 'landscape'],
+  ['before the first tap: portrait (with the nudge)', { vw: 412, vh: 915, preferPortrait: false, started: false, lockPending: false }, 'portrait'],
+  ['waiting for the lock: not turned yet', { vw: 412, vh: 915, preferPortrait: false, started: true, lockPending: true }, 'portrait'],
+  ['lock refused or unavailable: drawn turned', { vw: 412, vh: 915, preferPortrait: false, started: true, lockPending: false }, 'rotated'],
+  ['upright chosen: portrait', { vw: 412, vh: 915, preferPortrait: true, started: true, lockPending: false }, 'portrait'],
+];
+for (const [what, input, want] of MODES) ok(decideMode(input) === want, `mode: ${what} -> ${want}`);
+const TOUCH_WANTED: [boolean, boolean, boolean][] = [[false, false, false], [false, true, true], [true, false, true], [true, true, true]];
+for (const [coarse, touched, want] of TOUCH_WANTED) ok(wantsTouch(coarse, touched) === want, `touch UI: coarse pointer ${coarse}, touched ${touched} -> ${want}`);
 {
-  const input = new Input(nowhere);
-  input.poll();
-  ok(!input.touch && input.points.length === 0 && input.down.size === 0, 'desktop: Input untouched by the touch layer');
   // a desktop with no controls laid out: the picture gets the whole stage
   const g = layoutStage(1280, 800, 'landscape', { stick: 'none', buttons: [] }, []);
   ok(g.buttons.length === 0 && g.system.length === 0 && !g.stickZone, 'no controls: nothing placed');
@@ -303,9 +288,17 @@ ok(wantsTouch(true, false), 'phone (coarse pointer): touch UI');
   const l = nudgeLayout(412, 915);
   ok(nudgeChoice(l.h - 5, l, true) === 'upright' && nudgeChoice(l.h / 3, l, true) === 'turn', 'nudge: the bottom lines choose upright, elsewhere turn');
   ok(nudgeChoice(l.h - 5, l, false) === 'turn', 'nudge: in a landscape viewport, any tap plays');
-  const f0 = drawNudgePixels(l, 0, true), f40 = drawNudgePixels(l, 40, true);
-  ok(f0.some((c) => c === 15) && f0.some((c) => c === 1), 'nudge: phone and text drawn');
-  ok(f0.some((c, i) => c !== f40[i]), 'nudge: the phone turns');
+  const f0 = drawNudgePixels(l, 0, true);
+  const box = (px: Uint8Array, colour: number, rows: (y: number) => boolean = () => true) => {
+    let x0 = Infinity, x1 = -1, y0 = Infinity, y1 = -1;
+    px.forEach((c, i) => { const x = i % NUDGE_W, y = Math.floor(i / NUDGE_W); if (c === colour && rows(y)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } });
+    return { w: x1 - x0 + 1, h: y1 - y0 + 1, mid: (x0 + x1 + 1) / 2 };
+  };
+  const phone = box(f0, 15), text = box(f0, 1);
+  ok(phone.w === 22 && phone.h === 38 && phone.mid === NUDGE_W / 2, `nudge: the phone is 22x38, upright, centred (${phone.w}x${phone.h})`);
+  ok(text.h >= 8 && text.h <= 20 && Math.abs(text.mid - NUDGE_W / 2) <= 4, `nudge: TURN YOUR PHONE is drawn centred in two text rows (${text.w}x${text.h})`);
+  const turned = box(drawNudgePixels(l, 50, true), 15);
+  ok(turned.w === 38 && turned.h === 22, `nudge: the phone lies on its side half way through the turn (${turned.w}x${turned.h})`);
 }
 
 // ---- the pause screen's tap places (games/shared/native/pause.ts): option lines bottom up from y=166 ----
@@ -394,13 +387,20 @@ ok(wantsTouch(true, false), 'phone (coarse pointer): touch UI');
 // ---- the back gesture's backstop (the shell carries the decisions out) ----
 {
   const at = (over: Partial<Parameters<typeof decideBack>[0]>) => decideBack({ game: 'karnath', state: null, hash: 'karnath', asking: false, paused: false, ...over });
-  ok(at({}) === 'pause', 'back: in play, back opens the pause screen');
-  ok(at({ paused: true }) === 'leave', 'back: from the pause screen, back leaves');
-  ok(at({ asking: true }) === 'close-ask', 'back: with "back to the menu?" up, back closes it');
-  ok(at({ state: PLAY_ENTRY }) === 'ignore', 'back: forward onto the guard entry does nothing');
-  ok(at({ game: null, hash: '' }) === 'reload', 'back: on the directory, back restarts cleanly');
-  ok(at({ hash: 'saves' }) === 'reload', 'back: an edited address restarts cleanly');
+  const BACKS: [string, Partial<Parameters<typeof decideBack>[0]>, ReturnType<typeof decideBack>][] = [
+    ['in play, back opens the pause screen', {}, 'pause'],
+    ['from the pause screen, back leaves', { paused: true }, 'leave'],
+    ['with "back to the menu?" up, back closes it', { asking: true }, 'close-ask'],
+    ['"back to the menu?" beats the pause screen', { asking: true, paused: true }, 'close-ask'],
+    ['forward onto the guard entry does nothing', { state: PLAY_ENTRY }, 'ignore'],
+    ['the guard entry beats "back to the menu?"', { state: PLAY_ENTRY, asking: true }, 'ignore'],
+    ['on the directory, back restarts cleanly', { game: null, hash: '' }, 'reload'],
+    ['an edited address restarts cleanly', { hash: 'saves' }, 'reload'],
+    ['a foreign history entry is not the guard entry', { state: { runstop64: 'other' } }, 'pause'],
+    ['a non-object state is not the guard entry', { state: 'play' }, 'pause'],
+    ['an empty state object is not the guard entry', { state: {} }, 'pause'],
+  ];
+  for (const [what, over, want] of BACKS) ok(at(over) === want, `back: ${what} -> ${want}`);
 }
 
-console.log(`${checks - failures}/${checks} touch checks passed`);
-if (failures) process.exit(1);
+finish();
