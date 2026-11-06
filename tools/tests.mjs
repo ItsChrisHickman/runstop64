@@ -37,6 +37,7 @@ export const TESTS = [
   { file: 'packages/c64kit/test/ay.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/effects.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/input.test.ts', set: 'fast' },
+  { file: 'packages/c64kit/test/font.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/loop.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/palette.test.ts', set: 'fast' },
   { file: 'packages/c64kit/test/surface.test.ts', set: 'fast' },
