@@ -122,6 +122,26 @@ for (const [w, h] of [[568, 320], [667, 375]] as const) {
   }
 }
 {
+  // side insets (a notch on the right, or on both sides): laid out as the space between them
+  const sides = [{ left: 0, right: 47 }, { left: 47, right: 47 }, { left: 30, right: 44 }];
+  for (const side of sides) for (const [pw, ph] of PHONES) for (const [name, game] of Object.entries(GAMES)) {
+    const sys = name === 'loader' ? SYSTEM.filter((s) => s.id === 'layout') : SYSTEM;
+    const inset = { top: 0, bottom: 21, ...side };
+    for (const [mode, w, h] of [['landscape', ph, pw], ['portrait', pw, ph]] as const) {
+      const g = layoutStage(w, h, mode, game, sys, inset);
+      const tag = `${name} ${mode} ${w}x${h} insets L${side.left} R${side.right}`;
+      const area = { x: side.left, y: 0, w: w - side.left - side.right, h: h - 21 };
+      ok(inside(g.picture, area), `${tag}: the picture is between the insets`);
+      for (const c of [...g.buttons, ...g.system].map(circleRect)) ok(inside(c, area), `${tag}: a control is between the insets`);
+      if (g.stickZone) ok(inside(g.stickZone, area), `${tag}: the stick zone is between the insets`);
+      if (g.buttonZone) ok(inside(g.buttonZone, area), `${tag}: the buttons' zone is between the insets`);
+      const narrower = layoutStage(w - side.left - side.right, h - 21, mode, game, sys);
+      const shifted = Math.abs(g.picture.x - (narrower.picture.x + side.left)) < 1e-6 && Math.abs(g.picture.w - narrower.picture.w) < 1e-6 && Math.abs(g.picture.h - narrower.picture.h) < 1e-6;
+      ok(shifted, `${tag}: laid out as the space between the insets`);
+    }
+  }
+}
+{
   // more small buttons than a gutter has room for in one row: a second row, and the stick and buttons start below it
   const extra: SystemSpec[] = [...SYSTEM, { id: 'enter', label: 'A', key: 'KeyA' }, { id: 'enter', label: 'B', key: 'KeyB' }];
   const game = GAMES.entombed;
