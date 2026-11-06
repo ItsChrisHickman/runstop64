@@ -5,9 +5,10 @@
  *
  *   npm run test:touch
  */
+import fs from 'node:fs';
 import { Input } from '../../../../packages/c64kit/src/input';
 import { TouchController } from '../controller';
-import { clientToStage, decideMode, EDGE_GUARD, edgeGuard, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
+import { clientToStage, decideMode, touchLayout, EDGE_GUARD, edgeGuard, layoutStage, PICTURE_ASPECT, stageTransform, wantsTouch, type Geometry, type Rect, type SystemSpec, type TouchLayout, type Turn } from '../layout';
 import { drawNudgePixels, NUDGE_W, nudgeChoice, nudgeLayout } from '../nudge';
 import { PAUSE_TAP } from '../../native/pause';
 import { nowhere } from '../../test/browser';
@@ -15,26 +16,37 @@ import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
 import { decideBack, PLAY_ENTRY } from '../back-guard';
 import { TOUCH as STARQUAKE } from '../../../starquake/src/controls';
+import { TOUCH as LOADER } from '../../../loader-touch';
+import { TOUCH as ANTIRIAD } from '../../../antiriad/src/touch';
+import { TOUCH as AWM } from '../../../awm/src/touch';
+import { TOUCH as BLACKWYCHE } from '../../../blackwyche/src/touch';
+import { TOUCH as DRAGONSKULLE } from '../../../dragonskulle/src/touch';
+import { TOUCH as ENTOMBED } from '../../../entombed/src/touch';
+import { TOUCH as JSW2 } from '../../../jsw2/src/touch';
+import { TOUCH as KARNATH } from '../../../karnath/src/touch';
+import { TOUCH as MOLEY } from '../../../moley/src/touch';
+import { TOUCH as MONTYOTR } from '../../../montyotr/src/touch';
+import { TOUCH as THINGONASPRING } from '../../../thingonaspring/src/touch';
 import { check, finish } from '../../test/check';
 
 /** One check, printed only when it fails (the geometry loops run thousands). */
 const ok = (cond: unknown, what: string) => check(what, !!cond, true);
 
-// ---- every game's layout, as declared (RUN added by the native front end for games that run) ----
-const RUN = { label: 'RUN', key: 'ShiftLeft', size: 'small', mode: 'toggle' } as const;
-const GAMES: Record<string, TouchLayout> = {
-  loader: { stick: 'none', buttons: [] },
-  montyotr: { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
-  awm: { stick: '4', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, { label: 'FLY', key: 'KeyC', size: 'small' }] },
-  thingonaspring: { stick: '8', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }] },
-  jsw2: { stick: 'lr', buttons: [{ label: 'JUMP', key: 'Space', size: 'big' }, RUN] },
-  entombed: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'WHIP', key: 'KeyX' }, { label: 'TORCH', key: 'KeyC' }, RUN] },
-  karnath: { stick: '8', buttons: [{ label: 'CAST', key: 'Space', size: 'big' }, { label: 'SPELL', key: 'Enter' }, RUN] },
-  blackwyche: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'SWORD', key: 'KeyX' }, RUN] },
-  dragonskulle: { stick: '8', buttons: [{ label: 'USE', key: 'Space', size: 'big' }, { label: 'JUMP', key: 'KeyZ' }, { label: 'STONE', key: 'KeyX' }, { label: 'DIG', key: 'KeyC' }, { label: 'CLOAK', key: 'KeyV' }, RUN] },
-  antiriad: { stick: '8', buttons: [{ label: 'FIRE', key: 'Space', size: 'big', colour: 'red' }] },
-  starquake: STARQUAKE,
+// ---- every game's layout, as the game declares it (the front end adds RUN for games that can run: both are checked) ----
+const LAYOUTS: Record<string, TouchLayout | undefined> = {
+  loader: LOADER, antiriad: ANTIRIAD, awm: AWM, blackwyche: BLACKWYCHE, dragonskulle: DRAGONSKULLE, entombed: ENTOMBED,
+  jsw2: JSW2, karnath: KARNATH, moley: MOLEY, montyotr: MONTYOTR, starquake: STARQUAKE, thingonaspring: THINGONASPRING,
 };
+const folders = fs.readdirSync('games').filter((name) => fs.existsSync(`games/${name}/src/main.ts`)).sort();
+ok(JSON.stringify(Object.keys(LAYOUTS).filter((n) => n !== 'loader').sort()) === JSON.stringify(folders), `every game folder has a layout here (${folders.join(', ')})`);
+const FALLBACK = touchLayout(undefined, false);
+ok(FALLBACK.stick === '8' && FALLBACK.buttons.map((b) => b.label).join() === 'FIRE', 'a game with no layout gets the 8-way stick and FIRE');
+const GAMES: Record<string, TouchLayout> = {};
+for (const [name, layout] of Object.entries(LAYOUTS)) {
+  if (!layout) continue;
+  GAMES[name] = layout;
+  if (name !== 'loader') GAMES[`${name}+RUN`] = touchLayout(layout, true);
+}
 const SYSTEM: SystemSpec[] = [{ id: 'home', label: 'HOME' }, { id: 'layout', label: 'TURN' }, { id: 'pause', label: 'PAUSE' }, { id: 'enter', label: 'RETURN', key: 'Enter' }];
 const PHONES = [[360, 780], [412, 915], [390, 844]] as const;
 
@@ -170,7 +182,7 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
 }
 {
   // Entombed: action keys, sliding between buttons, RUN toggle
-  const { input, ctl, geo } = rig(GAMES.entombed, 780, 360);
+  const { input, ctl, geo } = rig(GAMES['entombed+RUN'], 780, 360);
   const by = (l: string) => must(geo.buttons.find((b) => b.spec.label === l), `the ${l} button`);
   ctl.down(1, by('WHIP').x, by('WHIP').y); input.poll();
   ok(input.down.has('KeyX') && input.typed.includes('KeyX'), 'Entombed: WHIP presses X');
