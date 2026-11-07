@@ -64,7 +64,7 @@ function pauseShot(g: Game, name: string) {
   if (!outDir) return;
   fs.mkdirSync(outDir, { recursive: true });
   const s = new Surface(320, 200, 0);
-  const options = [g.enhanced ? 'E ENHANCED' : 'E ORIGINAL', 'B BACK TO', ' ROOM START', 'T TITLE']; // (as FrontEnd's)
+  const options = [{ text: 'E ENHANCED', check: g.enhanced }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }]; // (as FrontEnd's)
   drawPause(s, new BitmapFont().addDrawn(KIT_GLYPHS), antiriadMap, g, { ...antiriadMap.found.empty(), rooms: [g.ram[V.room]] }, 0, options);
   rgbPng(path.join(outDir, `${name}.png`), indicesToRgb(s.pixels), 320, 200);
 }

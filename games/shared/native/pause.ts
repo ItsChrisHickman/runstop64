@@ -138,7 +138,10 @@ export interface PauseColours {
 export const C64_PAUSE_COLOURS: PauseColours = { black: COL.black, yellow: COL.yellow, white: COL.white, lgrey: COL.lgrey, dgrey: COL.dgrey, grey: COL.grey, cyan: COL.cyan, lgreen: COL.lgreen };
 
 /** Draws the whole pause screen. */
-export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F>, ram: T, found: F, tick: number, options: string[], ui: PauseUi = {}, colours: PauseColours = C64_PAUSE_COLOURS) {
+/** A line of the pause screen's options: its key and name, and a checkbox after it where the line is a switch (ticked when on). */
+export interface PauseOption { text: string; check?: boolean }
+
+export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F>, ram: T, found: F, tick: number, options: readonly PauseOption[], ui: PauseUi = {}, colours: PauseColours = C64_PAUSE_COLOURS) {
   s.fillRect(0, 0, 320, 200, colours.black);
   // frame, in the style of the Pendragon status lines
   s.fillRect(0, 0, 320, 2, colours.yellow); s.fillRect(0, 198, 320, 2, colours.yellow);
@@ -174,7 +177,16 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(222, y + 1, 6, 6, l.colour);
     font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
-  options.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 166 - (options.length - 1 - i) * 12, colours.cyan));
+  options.forEach((line, i) => {
+    const y = 166 - (options.length - 1 - i) * 12;
+    font.draw(s, line.text.slice(0, line.check === undefined ? 11 : 10), 222, y, colours.cyan);
+    if (line.check === undefined) return;
+    // the box (7 x 7, after the name): an outline, filled when on, so the line names the thing and the box says whether it is on
+    const bx = 306;
+    s.fillRect(bx, y, 7, 1, colours.cyan); s.fillRect(bx, y + 6, 7, 1, colours.cyan);
+    s.fillRect(bx, y, 1, 7, colours.cyan); s.fillRect(bx + 6, y, 1, 7, colours.cyan);
+    if (line.check) s.fillRect(bx + 1, y + 1, 5, 5, colours.lgreen);
+  });
   const foot = ui.list ? (ui.touch ? 'TAP AN OPTION TO CHANGE IT' : 'ITS KEY CHANGES IT  O MAP  P BACK') : ui.touch ? (ui.pick ? 'TAP A PLACE, TAP AGAIN TO GO THERE' : 'TAP HERE TO GO BACK TO THE GAME') : ui.pick ? (ui.page !== undefined ? 'ARROWS PICK ENTER GO  < > PAGES  P BACK' : 'ARROWS PICK  ENTER GO  P BACK') : ui.page !== undefined ? '< >  OTHER PAGES    P  BACK' : 'P OR ESC  BACK TO THE GAME';
   font.draw(s, foot, Math.floor((320 - foot.length * 8) / 2), 186, colours.white);
 }

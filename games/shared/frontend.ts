@@ -1,6 +1,6 @@
 import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
-import { drawPause, MAP_BOX, PAUSE_TAP, type PauseColours, type PauseMap } from './native/pause';
+import { drawPause, MAP_BOX, PAUSE_TAP, type PauseColours, type PauseMap, type PauseOption } from './native/pause';
 import { keepFound, readFound } from './saves';
 import { readJson } from './guards';
 
@@ -146,10 +146,10 @@ export class FrontEnd<T, F> {
   pausedTick(state: T, update: () => void): PauseRequest {
     const { input } = this.o;
     this.pauseTicks++;
-    // the lines on the right (each one a tap target): the switch (as it is: E ENHANCED or E ORIGINAL),
-    // back to room start, the title
-    const lines = [
-      ...(this.hasSwitch ? [{ text: this.enhanced ? 'E ENHANCED' : 'E ORIGINAL', id: 'E' }] : []),
+    // the lines on the right (each one a tap target): the switch (E ENHANCED and a box, ticked when on: the line names the
+    // thing and the box says whether it is on, so it never reads as "press E for ORIGINAL"), back to room start, the title
+    const lines: (PauseOption & { id: string })[] = [
+      ...(this.hasSwitch ? [{ text: 'E ENHANCED', check: this.enhanced, id: 'E' }] : []),
       { text: 'B BACK TO', id: 'B' }, { text: ' ROOM START', id: 'B' },
       { text: 'T TITLE', id: 'T' },
       ...(this.o.ending?.() ? [{ text: 'W ENDING', id: 'W' }] : []),
@@ -164,7 +164,7 @@ export class FrontEnd<T, F> {
     const map = this.o.map;
     const pick = this.paused ? this.mapControls(state, map) : null;
     update();
-    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines.map((l) => l.text), { page: this.page, pick, touch: input.touch, assist: this.assist }, this.o.colours);
+    if (this.paused) drawPause(this.o.renderer.screen, this.o.font(), map, state, this.found, this.pauseTicks, lines, { page: this.page, pick, touch: input.touch, assist: this.assist }, this.o.colours);
     return null;
   }
 
