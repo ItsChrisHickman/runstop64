@@ -6,8 +6,8 @@ import fs from 'node:fs';
 import { Spectrum } from './spectrum';
 import { parseTap, parseTzx, type TapeBlock } from './tape';
 
-/** Where the 48K ROM is kept (fetched at build time, not committed: games/moley/build/README.md). */
-export const ROM_FILE = 'games/moley/build/48.rom';
+/** Where the 48K ROM is kept (fetched at build time, not committed: games/moley/build/README.md); `ZX_ROM` names another copy (a game's own `build/48.rom`). */
+export const ROM_FILE = process.env.ZX_ROM ?? 'games/moley/build/48.rom';
 
 /** The 48K ROM from a file. */
 export function readRom(file = ROM_FILE): Uint8Array {

@@ -18,6 +18,10 @@ const MOLEY_TAP = 'games/moley/build/moley.tap'; // the original Moley Christmas
 const MOLEY_ROM = 'games/moley/build/48.rom'; // the 48K ROM (Amstrad's: fetched, never committed)
 const MOLEY_PLAY = 'games/moley/build/play.state'; // the original in play, room 0
 const MOLEY_STATES = ['title', 'play', 'room0', 'room1', 'room2', 'room3', 'room4', 'room5', 'room5-arrive', 'room6'].map((n) => `games/moley/build/${n}.state`); // the original at the credits page, in play and in each room
+const MM_TAP = 'games/montymole/build/montymole.tap'; // the original Wanted: Monty Mole tape (games/montymole/build/README.md)
+const MM_ROM = 'games/montymole/build/48.rom'; // its own copy of the 48K ROM
+const MM_STATES = ['play', 'room0'].map((n) => `games/montymole/build/${n}.state`); // the original in the opening scene and in room 0
+const MM_CODE = 'games/montymole/build/code.ram'; // the tape's game block as a 64K image (re/image.ts)
 const ZEXDOC = 'games/moley/build/zexdoc.com'; // Z80 instruction exercisers
 const ZEXALL = 'games/moley/build/zexall.com';
 
@@ -104,6 +108,11 @@ export const TESTS = [
   { file: 'games/moley/test/view.ts', set: 'fast' },
   { file: 'games/moley/test/picture.ts', args: ['300', '1', '100', '1', '1', '12'], set: 'fast', needs: [MOLEY_ROM, ...MOLEY_STATES], name: 'games/moley/test/picture.ts (the picture against the original: about 11000 passes, the whole game played by the bot included)' },
   { file: 'games/moley/test/picture.ts', args: ['4000', '8', '300', '2', '4', '80'], set: 'slow', needs: [MOLEY_ROM, ...MOLEY_STATES], limitSeconds: 590, name: 'games/moley/test/picture.ts (the picture against the original: about 70000 passes)' },
+
+  // ---- Wanted: Monty Mole (ZX Spectrum, on tools/zx). The original's files are gitignored (games/montymole/build/README.md)
+  { file: 'games/montymole/test/boot.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES] },
+  { file: 'games/montymole/test/rooms.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/rooms.ts (all 21 rooms: the game\'s drawing against the data)' },
+  { file: 'games/montymole/test/mechanics.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/mechanics.ts (the 64 coal pieces, deaths, game over, edges, the ending)' },
 
   // ---- Antiriad
   { file: 'games/antiriad/test/cells.ts', set: 'fast' },
