@@ -28,6 +28,7 @@ Run `nice -n 15 node tools/test.mjs <file> ...`. They compare our model and our 
 |---|---|---|
 | `test/boot.ts` | the tape loads through the ROM's loader (five calls), the title picture is the game block's first 6912 bytes, the game starts at `$D290`, the options menu text, key 1 then key 0 start a game in pseudo-room `$2C` (3 lives, score 0, Monty at x `$D8`, y `$4F`), and in room 0 the interrupt routine runs every frame and the main loop every second frame (25 passes a second) | passes |
 | `test/rooms.ts` | all **21 rooms** drawn by the game's own routines (`$94C3` copies a record to `$C42A`, `$FDD5` draws it) against a picture made from the data alone (`src/room.ts` over `src/data/rooms-data.ts`): the room's 20 pixel-row groups of the picture buffer (`$D260`) and its attribute buffer (`$CF54`), byte for byte; the committed data against what `re/rooms-parse.ts` takes from the tape; the 512 bytes the game copies against the tape's record (play changes only enemy state bytes) | 43 of 43, 21 of 21 rooms identical |
+| `test/data.ts` | the committed data (`src/data/`, made by `re/extract.ts`) against the tape (sprites, Monty's frames, title picture, font, jump arc, coal flags, both tunes, the texts re-encoded, the row table as a formula, the effects' operands) and against the original in memory (loading, title, play, room 0); the title picture is the screen at the title; the options menu, score and lives lines drawn from the font are the original's screen; every glyph is what `$80D1` and `$CB35` draw, and the original prints the texts' glyphs in order (menu, game over, ending); every sprite frame and Monty's 16 through `$EBE0` at 8 shifts, the edges and `$8452` against `src/sprite.ts`; `src/beeper.ts` against the model's speaker log; the title tune is played in the table's order | 38 of 38 |
 | `test/mechanics.ts` | the rules tried on the original by poking (room, Monty's place, lives) and running with its own interrupt: **all 64 coal pieces** score the low 7 bits of their flag byte (`$964D + id`) and clear its bit 7; a death takes one life; the last life goes to game over (`$F817`); ten edges lead to the room the exit table says (7 right, 8 left, 2/4/11/19 up, 6 down, 16 right, 18 left) and room 20's right edge to the ending (`$F858`); room 16 below y `$41` runs the scene that puts Monty in room 17 at x `$C0`, y `$A1` | 15 of 15 |
 | `re/poke.ts` | not a check: a probe to try things on the original (poke, jump to an address, hold keys, watch bytes, count visits, picture, save a state); the facts below marked "(probe)" were found with it | |
 
@@ -47,7 +48,7 @@ go on if `$5C6B` (DF_SZ, which the BASIC line has just set to 0) is not 0, and c
 `$D290` is thirteen `NOP`s then the title: the picture is simply the screen as loaded (`MONTY MOLE`, a miner Monty with a bucket, a picket
 and a Gremlin "GREMLIN GRAPHICS", `P.M.HARRAP`), and a tune plays while it waits for any key: `$D29D` walks a table at `$D5B9` of
 4-byte records (duration, pitch) and calls the ROM's `BEEPER` (`$03B5`) with them, resting where the pitch is 0, until the byte after a record is
-`$FF`; a key press between two notes ends it (`IN A,($FE)` at `$D2C5`). The tune is 201 notes, a slow Colonel Bogey in D (read:
+`$FF`; a key press between two notes ends it (`IN A,($FE)` at `$D2C5`). The tune is **273 records, 56 of them rests, 217 notes** (proved: the table ends at the first record whose second byte is `$FF`, `$D9FD`; the first reading, 201 notes to `$D8DD`, stopped early), a slow Colonel Bogey in D (read:
 decoded with the ROM's own pitch formula, `437500 / (pitch + 30.125)` Hz). Then the screen is cleared, `$F7D6` is pushed as the return address and
 `JP $D254` (the screen copy) leads to the options. After a game over, or the ending, a key brings the game back to `$F7D6`, not to the tune.
 
@@ -99,10 +100,10 @@ a sprite from `$6F80` beside him) and puts him in room 17 at `$A1C0` (x `$C0`, y
 | `$5C7B-$5C7C` | **Monty's x and y** (the system variable UDG's two bytes). x 0-`$FF` pixels left to right; **y counts up from the bottom of the screen** (y 0 is the bottom line of row 23) | proved (rooms.ts uses the table; boot.ts the start place) |
 | `$5C7D-$5CDD` | the death tune: 24 notes of 4 bytes (duration, pitch) for `BEEPER`: "Abide with Me" | read (decoded, not heard) |
 | `$5CE1-` | the ending verse (the game's own letters, `$FF` ends a line, `$FE` the text) | read |
-| `$6000-$7FFF` | **256 sprite frames**, 16 x 16 pixels, 32 bytes each (2 bytes a row, top row first, no attributes: a sprite takes its colour from the cells it is over, or its record's byte): enemies, hazards, Monty's frames for some rooms, objects (`$7A00` on: pickaxes, torch, tools...), the bucket at `$7780`, the crusher | read (`re/sprites.ts` planned) |
+| `$6000-$7FFF` | **256 sprite frames**, 16 x 16 pixels, 32 bytes each (2 bytes a row, top row first, no attributes: a sprite takes its colour from the cells it is over, or its record's byte): enemies, hazards, Monty's frames for some rooms, objects (`$7A00` on: pickaxes, torch, tools...), the bucket at `$7780`, the crusher | proved (data.ts: the bytes; every frame through the blitter) |
 | `$7800-$787F`... | Monty's frames in the castle rooms 12-17 (a second set: `spriteBase` `$7800`) | read |
 | `$8000-$8140` | the options menu | proved text |
-| `$813B-` | the font, 8 bytes a glyph | proved by use |
+| `$813B-$826A` | **the font**: 38 glyphs of 8 bytes (0 space, 1-26 A-Z with glyph 17 an apostrophe where a Q would be, 27-36 the digits, 37 the colon); the text routine `$809D` takes a 5-byte record (column, pixel row from the bottom, length, colour, attribute row) and a string whose last glyph has bit 7; `$80D1` draws a glyph as 5 rows in a cell and 3 in the cell below (8 consecutive pixel rows when the row is 3 into a cell, as all are); the verse printer `$CB35` draws 8 rows in a column | proved (data.ts: every glyph through both routines) |
 | `$826B-$82A5` | menu texts; `$82A3` the control (1 keyboard, 2 Kempston, 3 Sinclair) | read |
 | `$832E` | the input byte (above) | read |
 | `$8400-$8500` | Monty's drawing helpers: `$8395` (frame address: base + 32 x frame + `$80` x direction), `$8452` (restore the background under his feet) | read |
@@ -132,9 +133,9 @@ a sprite from `$6F80` beside him) and puts him in room 17 at `$A1C0` (x `$C0`, y
 | `$CF54-$D253` | the attribute buffer (768 bytes; the room's rows at `$CF94`) | proved |
 | `$D254` | copy the screen to the picture buffer | read |
 | `$D260-$EA5F` | **the picture buffer**: the screen as it is without sprites; the room is drawn here, collisions read it, sprites are drawn on the screen from it | proved |
-| `$D290-$D2E6` | the title: the tune loop; `$D5B9-$D8DD` the title tune (201 notes) | read |
+| `$D290-$D2E6` | the title: the tune loop; `$D5B9-$D9FC` the title tune (273 records) | proved (data.ts) |
 | `$EA60-$EB5F` | **the row table**: 192 words, one for each pixel row y (y up from the bottom): the address of that row's byte 0 in the picture buffer, minus `$9260` (add `$9260` + x/8; the screen is the same minus `$9000`) | proved |
-| `$EBE0-$ECDB` | the **sprite blitter**: x `$ECDE`, y `$ECDF`, image `$ECE0`: shifts a 16 x 16 image across three bytes into a 48-byte buffer (`$ECE4`) and ORs it onto the screen over the picture buffer | read |
+| `$EBE0-$ECDB` | the **sprite blitter**: x `$ECDE`, y `$ECDF`, image `$ECE0`: shifts a 16 x 16 image across three bytes into a 48-byte buffer (`$ECE4`) and writes `sprite OR picture buffer` on the 16 pixel rows from y down (y is the top row); three bytes from column `(x - 1) >> 3`, so at a shift of 0 the first byte is empty and restores the picture's. `$8452` puts the picture's 3 bytes back on two rows (y and y - 1) from column x >> 3 | proved (data.ts: `src/sprite.ts` `blit`, `restoreRows`: 2176 draws, edges) |
 | `$EF2E`-`$EFC4`, `$F040-`, `$F64D-$F6FD`, `$F7C7`, `$FBED-$FC3B`, `$FD9B`, `$FDD5-$FE85`, `$FEA2` | the screen routines of the room-end effects, the random byte (`$FD9B`: an LCG on `$5C76`), **the room drawing (`$FDD5`)** and the "attribute under Monty's feet" test | read |
 | `$F04B-$F0FA` | the game-over verse | proved text |
 | `$F7D6` | start a new game | read |
@@ -242,10 +243,10 @@ with cyan pipes (these use Monty's second frame set, `spriteBase` `$7800`, and s
 
 ## Sound (read)
 
-All sound is the ROM's `BEEPER` (`$03B5`, `$03B6` = the same with DE and HL as parameters): the title tune (201 notes), the death tune (24 notes),
+All sound is the ROM's `BEEPER` (`$03B5`, `$03B6` = the same with DE and HL as parameters): the title tune (273 records, 217 notes), the death tune (24 notes),
 a footstep or jump tick (`$8B06`), the crusher's thud (`$8E28`: DE 2, HL `$066A`), the "touched while carrying a tool", coal and object beeps (`$92F4`, `$93D5`,
 `$956E`: DE `$31`, HL `$0376`). **There is no AY or 128K music** (`credits.md`). The rebuild plays them as beeper effects the way Moley Christmas does (`renderToggles`);
-the recording (`re/sounds.ts`) is a planned phase: run each routine on the model and keep the speaker's toggles.
+every sound is a call of `BEEPER` with DE and HL, so there is no recording to keep: `src/beeper.ts` computes the speaker's flips from the routine's own timing (proved against the model for every note of both tunes, the three effects and all 256 footstep pitches); the footstep is DE 1 at pitch `$8494` (starts `$FA`, up one a rising pass, down one a falling pass, 8 bits), the thud DE 2 HL `$066A`, the pick-up (coal, object, a tool touch) DE `$31` HL `$0376`.
 
 ## Title, game over, ending (read)
 

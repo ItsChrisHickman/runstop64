@@ -20,7 +20,7 @@ const MOLEY_PLAY = 'games/moley/build/play.state'; // the original in play, room
 const MOLEY_STATES = ['title', 'play', 'room0', 'room1', 'room2', 'room3', 'room4', 'room5', 'room5-arrive', 'room6'].map((n) => `games/moley/build/${n}.state`); // the original at the credits page, in play and in each room
 const MM_TAP = 'games/montymole/build/montymole.tap'; // the original Wanted: Monty Mole tape (games/montymole/build/README.md)
 const MM_ROM = 'games/montymole/build/48.rom'; // its own copy of the 48K ROM
-const MM_STATES = ['play', 'room0'].map((n) => `games/montymole/build/${n}.state`); // the original in the opening scene and in room 0
+const MM_STATES = ['loading', 'title', 'play', 'room0'].map((n) => `games/montymole/build/${n}.state`); // the original in the opening scene and in room 0
 const MM_CODE = 'games/montymole/build/code.ram'; // the tape's game block as a 64K image (re/image.ts)
 const ZEXDOC = 'games/moley/build/zexdoc.com'; // Z80 instruction exercisers
 const ZEXALL = 'games/moley/build/zexall.com';
@@ -112,6 +112,7 @@ export const TESTS = [
   // ---- Wanted: Monty Mole (ZX Spectrum, on tools/zx). The original's files are gitignored (games/montymole/build/README.md)
   { file: 'games/montymole/test/boot.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES] },
   { file: 'games/montymole/test/rooms.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/rooms.ts (all 21 rooms: the game\'s drawing against the data)' },
+  { file: 'games/montymole/test/data.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES], name: 'games/montymole/test/data.ts (the data against the tape and the running original: sprites, font, texts, tunes, the blitter, BEEPER)' },
   { file: 'games/montymole/test/mechanics.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/mechanics.ts (the 64 coal pieces, deaths, game over, edges, the ending)' },
 
   // ---- Antiriad
