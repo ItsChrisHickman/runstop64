@@ -35,6 +35,15 @@ interface LiftTarget {
 export class Lift {
   constructor(private readonly sites: readonly LiftSite[] = LIFT_SITES) {}
 
+  /**
+   * The front end's, not the original's (off for the original's rules, as the lockstep has them): ENHANCED's "a lift waits until
+   * you are out from under it when you arrive". `waits` says it is on; `under` is whom it waits for (Monty).
+   */
+  waits: () => boolean = () => false;
+  under: LiftTarget | null = null;
+  /** Held at rest since he came in, until he is first out of its catch column. */
+  private held = false;
+
   /** The site of the room, or null (the pointer at $3F/$40 is zero). */
   site: LiftSite | null = null;
   /** $8385: how far out it is; bit 7 set while it sinks back. */
@@ -52,6 +61,8 @@ export class Lift {
     if (!site) return;
     this.phase = 0;
     this.delay = 1;
+    this.held = true;
+    this.drawnHeld = false;
     // the foot's address in the screen: $0400 + 40 x row + column + 4 ($83A7-$83EB, done with the 6502's carries)
     const lo = site.cell & 0xff, hi = site.cell >> 8;
     let a = lo & 0xe0, z25 = hi, carry = 0;
@@ -83,6 +94,15 @@ export class Lift {
   tick(rng: Random): boolean {
     const site = this.site;
     if (!site || this.pointer === 0) return false;
+    if (this.held) {
+      // (ENHANCED: it rests, drawn retracted, and draws no random number, while he stands in its column from the moment he came in)
+      if (this.waits() && this.under !== null && this.inColumn(this.under)) {
+        const first = !this.drawnHeld;
+        this.drawnHeld = true;
+        return first;
+      }
+      this.held = false;
+    }
     this.delay = (this.delay - 1) & 0xff;
     if (this.delay !== 0) return false;
     this.delay = 1;
@@ -105,12 +125,33 @@ export class Lift {
     return this.phase === 0 ? 1 : this.phase & 0x7f;
   }
 
+  /**
+   * ENHANCED: he is put back where he came into the room after a death ($5538), and that is usually under the lift again: it
+   * rests at its foot as it did when he arrived, until he is out from under it.
+   */
+  rearm(): void {
+    if (!this.site || this.pointer === 0 || !this.waits()) return;
+    this.phase = 0;
+    this.delay = 1;
+    this.held = true;
+    this.drawnHeld = false;
+  }
+
+  /** Whether the held lift has been drawn at rest yet (once, so the picture shows it retracted). */
+  private drawnHeld = false;
+
+  /** $8558's test across: is he within the lift's catch column (|dx| < $1E of its middle)? */
+  inColumn(t: LiftTarget): boolean {
+    const site = this.site;
+    if (!site) return false;
+    return ((((site.cell & 0x1f) << 3) - t.x + 0x12) & 0xff) < 0x1e;
+  }
+
   /** $8558: does the growing lift catch Monty? Only while it grows (bit 7 clear). */
   catches(t: LiftTarget): boolean {
     const site = this.site;
     if (!site || (this.phase & 0x80) !== 0 || this.pointer === 0) return false;
-    const dx = (((site.cell & 0x1f) << 3) - t.x + 0x12) & 0xff;
-    if (dx >= 0x1e) return false;
+    if (!this.inColumn(t)) return false;
     // (the foot's y is the cell number / 4: the row x 8 plus the column / 4)
     const foot = (site.cell >> 2) & 0xff;
     let reach = this.phase;

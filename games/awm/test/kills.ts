@@ -1,9 +1,8 @@
 /**
  * Auf Wiedersehen Monty: an enemy touching Monty hurts him, in every way he comes to be in play, as the browser runs it (the
  * front end over the game): a new game; back to the room's start (the moment's grace, 150 frames, then as ever); arriving by the
- * map; after a flight; a save continued. (Reported once as "enemies don't kill me, all of them": the cause was the original's shield,
- * the first thing of the first room, which the original never switched off. That item is gone from the game, in both modes:
- * test/shield.ts.)
+ * map; after a flight; a save continued. (Reported once as "enemies don't kill me, all of them": the cause was the yellow leaf of the first
+ * room, which in this cracked copy is an always-on shield. The leaf is a plain points item here, in both modes: test/shield.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/kills.ts
  */

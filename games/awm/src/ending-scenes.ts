@@ -49,7 +49,7 @@ export interface Scene {
  */
 export const SCENES: readonly Scene[] = [
   {
-    // (the game's own start room, with its springs, then the coins above; the original's shield leaf there is gone)
+    // (the game's own start room, with its springs, then the coins above)
     room: 0x48, spot: { x: 128, y: 104 }, goals: [{ take: 1 }],
     route: '>12 ^>4 ^8 J<12 ^8 J>12 >5',
     credits: ['A GREMLIN GRAPHICS GAME, 1987', 'WRITTEN BY PETE HARRAP'],

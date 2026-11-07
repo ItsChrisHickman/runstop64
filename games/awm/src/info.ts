@@ -25,7 +25,7 @@ export const info = {
     (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
     refresh rate &middot; the high score kept in your browser &middot; ENHANCED (switch to ORIGINAL on the pause screen):
     unlimited lives and continues; a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life
-    is lost once, not on every try &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
+    is lost once, not on every try; a lift waits at rest until you are out from under it when you arrive &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
     with Monty running through them, the credits and some true facts, the creatures walking through the places and THE END (W on the pause
     screen shows it again once you've won).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; the game's own graphics,

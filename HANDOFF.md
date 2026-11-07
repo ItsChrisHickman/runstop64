@@ -14,7 +14,7 @@ open questions below; nothing big is under construction.
 - **ENHANCED in every game** is quality-of-life for a modern playthrough, one switch (E on the pause screen), on by default.
   It has unlimited lives and continues (except the three Pendragon games without lives: see below), and a reward show on
   winning. No invincibility. The Pendragon games draw him as Dragonskulle does (`games/shared/pendragon/figure.ts`).
-- **Gone on purpose:** Auf Wiedersehen Monty's shield item (the original's confusing "nothing hurts me" leaf; old
+- **Gone on purpose:** Auf Wiedersehen Monty's shield (the cracked copy's always-on "nothing hurts me" leaf, the commercial game's MONTY cheat; the leaf itself is back as a 75-point item; old
   saves load with the flag dropped), the Pendragon games' full health on entering a room, Bounder.
 - **Smoothing** is sideways only: a sprite glides between ticks horizontally and is drawn at the latest tick vertically, so a
   figure stands on its floor (`Smoothed` in `packages/c64kit/src/loop.ts`, `games/awm/test/ground-vertical.ts`). V shows whole-pixel steps.

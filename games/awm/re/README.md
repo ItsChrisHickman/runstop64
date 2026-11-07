@@ -171,7 +171,7 @@ Two phases alternate each frame ($4007 toggled), so the **logic runs at 25 Hz** 
 | $4051-$4055 | Money, same, $820A; row 24 |
 | $4067-$406B | High score; $4059/5A scratch |
 | $405D | Progress: counts jobs done (items delivered, tickets); at $41/$82/$C3 the "LEAVE GIBRALTAR" bar grows and lives +1 (max 12) |
-| $405E | Shield flag set by one item type ($6B22 copies $0143); $5D61 skips enemy hits while it is set. **Removed from the port** (item type 1 is never placed, no `shield`; QOL.md) |
+| $405E | Shield flag, set only by the leaf (item type 1, $6B22 copies a byte into it); $5D61 skips enemy hits while it is set. In this crack the byte it copies is a decruncher leftover ($0143 = $85), so the flag is always on after the leaf; the commercial game has it on only after the MONTY cheat. **Not in the port**: the leaf is a plain 75-point item (see Items; QOL.md) |
 | $4062 | Count of one pickup (type $1C, $5DDA) that stops a door/enemy |
 | $4066 | The title's sound choice (F1 / F7) |
 | $4064 | Current music track |
@@ -236,8 +236,8 @@ write into the code after the table: no room has one.
 **Touching him** ($5D00): |dx|, |dy| both under 12, by the enemy's frame: $DF/$D0/$D1 harmless and the whole check ends
 (the first enemy decides), $80 sets $5DF6, $58/$59 in room 5 with item $0A in his hands gives item $13 and 6700 money,
 $55-$57 with item $13 paid 600 and the check ends, $1C is the toll (item 3: 5500 money, else the forced walk, state $12,
-until he has paid once), anything else hurts: nothing while the shield is up, states 8, 1, 3 and $C become Dying, 7
-and $E stay, others become Knocked with the step cleared. The lift's kill ($8558 into $5D67) is the same without the
+until he has paid once), anything else hurts (the original crack's leaf shield, not in the port, made it nothing): states 8, 1, 3 and $C become Dying, 7
+and $E stay, others become Knocked with the step cleared. The lift's kill ($8558 into $5D67) never had the
 shield test.
 
 **Lifts** ($838A, $83EE, $8558). Not in the cells (only drawn into the screen); a lift does not carry him. It grows one
@@ -246,13 +246,28 @@ character per step, rests at the top by a count, sinks, then rests a random 1-12
 the next move). Its tick runs twice per logic step.
 
 **Items** ($694F places, $6A65 picks up). Touching the top-left cell at (x+3, y+2) does the type's effect: types 0 3 4 5 7
-10 11 12 18 19 22 are carried (the first empty of 4 hands; with all four full the item stays); 1 shield ($85, from the
-byte at $0143; score $4B; **removed from the port**, QOL.md); 2 points (score $23, money $32, progress+1); 6 26 28-31 score 4 x type + progress; 14 20
+10 11 12 18 19 22 are carried (the first empty of 4 hands; with all four full the item stays); 1 the yellow leaf of the first room (score $4B, 75 points, nothing else: no progress, money or sound; the code before that,
+`lda $0143 / sta $405E`, is the shield, see the next paragraph); 2 points (score $23, money $32, progress+1); 6 26 28-31 score 4 x type + progress; 14 20
 23-25 money 8 x type + progress; 13 17 27 a life (no limit); 15 the third enemy's picture becomes $A3; 8 progress,
 score $BF and the walk-in state $11; 9 a random 1-31 and six helpings of $AD score; 16 a random 1-15 and four of $67; 21
 score $B1 and progress (in room 2 only death). The two random bonuses also set $405B to the number and $405C to
 $FF/$AA: for that many steps the controls are scrambled by the number (XORed into the input byte). Score and money are 5
 decimal digits ($81FA/$820A add 0-255; the last digit is never reduced).
+
+**The leaf's shield is the loader's hidden cheat.** In the commercial game the shield only comes on if MONTY was typed before
+loading (the Spectrum version has the same cheat, a REM MONTY line; the MSX one is in Generation MSX's cheat list; Lemon64
+thread t=69287 discusses the C64's). $6B22 copies the byte at $0143 into $405E; the cheat's loader leaves a value there, and
+without it that byte is 0. In our cracked copy $0143 holds $85, a leftover of the decruncher's stack, so the shield is always
+on once the leaf is touched. The port is the game without the cheat: the leaf is the plain points item (75, $4B via $81FA) in
+both modes, and `test/harness.ts` `uncheated` clears $0143 in the original when it reaches $6B22 so the lockstep compares like
+with like. (Sources: Lemon64 t=69287; the Spectrum REM MONTY cheat; Generation MSX cheats.)
+
+**Lift on arrival.** Entering a room sets its lift to phase 0, delay 1 ($838A), so it grows on the first step. Climbing the
+ladder up from the start room comes into room $41 at (128, $78) right under its lift (cell $150, column 16, foot y 84): the lift
+catches him ($8558: |dx| < $1E and the vertical range) five logic steps after he comes in if he keeps climbing; the original does
+exactly this (lockstep). ENHANCED only (QOL.md): `Lift.waits`, a lift rests at phase 0, with no tick and no random number, while his x is in
+that same catch column from the moment he came in; the first step he is out of it, it runs as the original's for the rest of the
+visit (a death puts him back at the foot and it rests again). `test/lift-entry.ts`.
 
 **Deliveries** at room entry ($5581): rooms $16 (item $0B, money 18), $2C ($0C, 4 x 250), $3E (7, 3 x 250), $0B (4, 3 x
 100) each take the item, add 1 to progress and pay. Progress $41, $82 and $C3 give a life (up to 12). Entering room $4D
@@ -262,7 +277,7 @@ with x >= $80, state $F and $4060 = 0 he slides (state $10: down to y $70, 24 st
 a life lost); room $1D lands him at (24, 32).
 
 Oddities kept: the first enemy that touches him ends the check when it shows a harmless frame; the lift kills through
-the shield (gone from the port); a shield from item 1 was never switched off; lives from items 13/17/27 have no limit; the toll is waived for
+a shield from item 1 (the crack's, not in the port) was never switched off; lives from items 13/17/27 have no limit; the toll is waived for
 good after one payment; state $10 costs a life; the third enemy's picture is set by item 15 whatever it was doing.
 
 ## The picture (`src/picture.ts`, `screen.ts`, `panel.ts`)

@@ -12,5 +12,6 @@ export function copyGame(src: Game): Game {
   copyState(g, src, new Set(['sound']));
   g.graceActive = src.graceActive;
   g.safeRespawn = src.safeRespawn;
+  g.liftWaits = src.liftWaits;
   return g;
 }

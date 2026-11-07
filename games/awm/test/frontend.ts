@@ -155,10 +155,10 @@ check('the save is described for the save manager', (slot?.summary.length ?? 0) 
 check('the save keeps the map\'s rooms', Object.keys(p.state.found.rooms ?? {}).length === 2);
 
 // ---- ORIGINAL / ENHANCED ---------------------------------------------------------------------------------------
-check('ENHANCED by default: the safe respawn is on', p.state.enhanced === true && p.frontEnd.assist.safe === true);
+check('ENHANCED by default: the safe respawn is on', p.state.enhanced === true && p.frontEnd.assist.safe === true && p.frontEnd.assist.lift === true);
 tap('KeyP');
 tap('KeyE');
-check('E: ORIGINAL (the switch kept)', p.state.enhanced === false && p.frontEnd.assist.safe === false && store.get('awm.assist') === '{"enhanced":false}');
+check('E: ORIGINAL (the switch kept)', p.state.enhanced === false && p.frontEnd.assist.safe === false && p.frontEnd.assist.lift === false && store.get('awm.assist') === '{"enhanced":false}');
 tap('KeyE');
 check('E again: ENHANCED', p.state.enhanced === true);
 tap('KeyP');

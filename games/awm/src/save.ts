@@ -49,7 +49,7 @@ const fields = {
 };
 const sound = (s: { room: number; burnPicture: number[]; carried: number[]; hands: unknown[]; score: number[]; money: number[] }): boolean =>
   !!ROOMS[s.room] && s.burnPicture.length === 8 && s.carried.length === 4 && s.hands.length === 4 && s.score.length === 5 && s.money.length === 5;
-/** Saves up to format 2 kept the shield item's flag ($405E); the item is gone and so is the flag. */
+/** Saves up to format 2 kept the shield's flag ($405E); the shield is not in the port and so the flag is dropped (the leaf is a plain item). */
 const shield = { shield: S.number };
 /** Format 1, as players have it: before the flight (a plane with a ticket) kept anything. */
 const AwmSaveV1 = S.refine(S.object({ v: S.literal(1), ...fields, ...shield }), sound);
@@ -120,7 +120,7 @@ export function restore(save: AwmSave, lost = false): Game {
 /** A save read back (from JSON in storage), checked: null if it isn't one. */
 export const parseSave = (v: unknown): AwmSave | null => (AwmSave(v) ? v : null);
 
-/** An old save in the latest: the shield flag dropped (the item is gone, so a game that had it loads without), the flights as they left it or, in format 1, nothing in the machine (the program's own values). */
+/** An old save in the latest: the shield flag dropped (a game that had it loads without), the flights as they left it or, in format 1, nothing in the machine (the program's own values). */
 const upgrade = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV2>): AwmSave => ({ ...rest, v: 3 });
 const upgradeV1 = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV1>): AwmSave => ({ ...rest, v: 3, flight: copySky(FRESH_SKY) });
 

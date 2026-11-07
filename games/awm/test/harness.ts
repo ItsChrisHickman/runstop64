@@ -7,7 +7,6 @@ import { C64Machine, type MachineState } from 'c64kit';
 import { ENEMY_ROOMS, NO_ROOM, ROOMS, TABLES, WORLD_GRID } from '../src/data';
 import { Enemies, PLANE_FRAMES } from '../src/enemies';
 import { Game } from '../src/game';
-import { isRemoved } from '../src/items';
 import { LIFT_SITES, Lift } from '../src/lifts';
 import { Stick, decodeStick } from '../src/input';
 import type { SkyState } from '../src/flight';
@@ -59,9 +58,14 @@ export const CELLS = 576;
 
 export const ITEMS = TABLES.items.length;
 
-/** The original's list with what the port removed (the shield leaf: items.ts) taken, as a game of ours has it: its rooms then show what ours do. */
-export function withoutRemovedItems(ram: Uint8Array): void {
-  TABLES.items.forEach((e, i) => { if (isRemoved(e.type)) ram[0x6d7b + 3 * i] = (ram[0x6d7b + 3 * i] ?? 0) | 0x80; });
+/**
+ * The original is this copy, a crack, whose yellow leaf ($6B22) copies the stray byte at $0143 into the shield flag $405E: always
+ * on. The commercial game has it on only after the MONTY cheat, so the leaf is a plain 75 points ($4B): the original as the port
+ * plays it has that byte clear when the leaf is touched.
+ */
+export const LEAF = 0x6b22;
+export function uncheated(pc: number, ram: Uint8Array): void {
+  if (pc === LEAF) ram[0x143] = 0;
 }
 const bits = (flags: readonly boolean[]): string => flags.map((f) => (f ? '1' : '0')).join('');
 
@@ -248,6 +252,7 @@ export function startOriginal(state: MachineState, room: number, x: number, y: n
   const hits = new Map<number, number>();
   o.cpu.step = () => {
     const pc = o.cpu.pc;
+    uncheated(pc, o.ram);
     const mark = onFrame ? MARKS.get(pc) : undefined;
     if (mark) marks.push({ at: mark, line: o.line });
     if (inLogic && points?.has(pc)) hits.set(pc, (hits.get(pc) ?? 0) + 1);

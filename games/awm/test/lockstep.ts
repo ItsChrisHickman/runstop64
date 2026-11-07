@@ -50,7 +50,7 @@ const POINTS: ReadonlyMap<number, string> = new Map([
   [0x607b, 'enemy type 17'], [0x60b3, 'shooter fires'], [0x612c, 'thrower throws'], [0x611c, 'thrower turns'],
   [0x5d86, 'Monty hit by enemy or lift'], [0x85a3, 'lift catches him'], [0x5d8f, 'touches frame $80'], [0x5da7, 'room 5 quest done'],
   [0x5dd0, 'frames $55-$57 paid'], [0x5ddf, 'toll paid'], [0x5df0, 'toll refused (forced walk)'],
-  [0x6af1, 'item: points'], [0x6b03, 'item: money by type'], [0x6b13, 'item: score by type'], [0x6b22, 'item: shield'],
+  [0x6af1, 'item: points'], [0x6b03, 'item: money by type'], [0x6b13, 'item: score by type'], [0x6b22, 'item: leaf'],
   [0x6b2d, 'item: type 21'], [0x6b42, 'item: bonus'], [0x6b64, 'item: lucky'], [0x6b86, 'item: enemy picture'],
   [0x6b8c, 'item: walk-in'], [0x6b9f, 'item: life'], [0x6baa, 'item: carry'], [0x6bd7, 'item: carried'],
   [0x55cd, 'delivery room 16'], [0x55e3, 'delivery room 2C'], [0x5601, 'delivery room 3E'], [0x5613, 'delivery room 0B'],
@@ -154,8 +154,8 @@ function statesOf(r: Result): string {
   SEQUENCES.forEach((seq, i) => same(`frame sequence ${i} ($${(pointers[i] ?? 0).toString(16)})`, seq, pointers[i] ?? 0));
   const lifts = LIFT_SITES.flatMap((l) => [l.room, l.height, l.cell & 0xff, l.cell >> 8]);
   same('lift table $852C', lifts, 0x852c);
-  if (ram[0x143] !== 0x85) { console.log('the byte at $0143 is not the shield value'); process.exit(1); }
-  console.log(`stage 3 tables (wobble, drop, ${SEQUENCES.length} frame sequences, lift table, shield): ${checked} of ${totalBytes} bytes as the original has them`);
+  if (ram[0x143] !== 0x85) { console.log('the byte at $0143 (the crack stray byte the leaf copies) is not $85'); process.exit(1); }
+  console.log(`stage 3 tables (wobble, drop, ${SEQUENCES.length} frame sequences, lift table): ${checked} of ${totalBytes} bytes as the original has them`);
 }
 
 const resync = !!process.env.RESYNC;

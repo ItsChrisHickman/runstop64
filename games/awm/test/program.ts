@@ -16,7 +16,7 @@ import path from 'node:path';
 import { C64Machine, unpackState, type FrameCapture } from 'c64kit';
 import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { WORD_FRAMES } from '../src/closing';
-import { withoutRemovedItems } from './harness';
+import { uncheated } from './harness';
 import { Stick } from '../src/input';
 import { NO_CONTROLS, Program, type Controls } from '../src/program';
 import { callText } from '../src/soundlog';
@@ -36,8 +36,8 @@ const step = o.cpu.step.bind(o.cpu);
 o.cpu.step = () => {
   const pc = o.cpu.pc;
   hit.add(pc);
-  // ($694F places a room's items: the original's list with the shield taken, as ours has it, whenever it does)
-  if (pc === 0x694f) withoutRemovedItems(o.ram);
+  // (the crack's leaf is a shield; the game without the cheat has it plain, as ours does)
+  uncheated(pc, o.ram);
   if (lastPc !== 0xe4b8) {
     // (the music's own end-of-tune stop, $E4B8, comes from the interrupt: not the game's)
     if (pc === 0x85a6) originalSounds.push(`e${o.cpu.a.toString(16)}`);

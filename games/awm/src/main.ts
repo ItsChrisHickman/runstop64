@@ -87,7 +87,7 @@ export function run(host: Host) {
     id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
-    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }],
+    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }],
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('awm'),
   }, (self) => {
@@ -95,6 +95,7 @@ export function run(host: Host) {
     enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
     program.safeRespawn = () => fe.assist.safe === true;
+    program.liftWaits = () => fe.assist.lift === true;
     program.unlimitedLives = () => fe.assist.lives === true;
     program.graceActive = () => flow.grace.active;
 

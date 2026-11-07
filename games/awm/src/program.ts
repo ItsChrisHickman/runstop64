@@ -74,6 +74,7 @@ export class Program {
   /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`, `unlimitedLives`): the original's are off. */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
+  liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
 
   constructor() {
@@ -186,6 +187,7 @@ export class Program {
     }
     game.graceActive = () => this.graceActive();
     game.safeRespawn = () => this.safeRespawn();
+    game.liftWaits = () => this.liftWaits();
     game.unlimitedLives = () => this.unlimitedLives();
     return new Picture(game, carry, this.high);
   }

@@ -1,12 +1,14 @@
 /**
- * Auf Wiedersehen Monty's shield is gone, in both modes ("that shield item is confusing and it breaks the game"). The original's
- * first thing of the first room, a few steps left of where he starts, is a shield ($6B22: item 1 sets $405E from the byte at
- * $0143, and nothing hurts him for the rest of the game, through any number of deaths). Checked against the original running:
+ * Auf Wiedersehen Monty's yellow leaf (item type 1, the first thing of the first room, a few steps left of where he starts) is a
+ * plain 75-point item, and there is no shield, in both modes. The commercial game's $6B22 copies a byte into the shield flag $405E,
+ * and that byte is the MONTY cheat's (typed before loading); this copy is a crack whose $6B22 reads a stray byte ($0143 = $85), so
+ * the flag is always on. Without the cheat the leaf sets nothing and adds $4B to the score ($81FA). Checked against the original
+ * running (with the byte clear, as the uncheated game has it):
  *
- * - the original has the leaf in the start room, Monty on its top left cell (the game looks at x + 3, y + 2) sets $405E to $85;
- * - the port does not place it: no leaf in the room's cells, Monty on that cell takes nothing, and the map does not count it;
- * - Monty on an enemy again and again: always hurt, in a new game and in a game loaded from a save that has the old flag set
- *   (formats 1 and 2 kept the flag; it loads cleared).
+ * - Monty on the leaf's top left cell (the game looks at x + 3, y + 2): the score goes up by 75, progress and money do not, $405E stays 0;
+ * - the port: the leaf is in the room, Monty on its cell takes it (75 points, nothing else) and it is gone and counted by the map;
+ * - Monty on an enemy again and again: hurt, before and after the leaf, in a new game and in a game loaded from a save that has the
+ *   old flag set (formats 1 and 2 kept the flag; it loads cleared).
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/shield.ts games/awm/build/play.state
  */
@@ -17,7 +19,7 @@ import { check, finish } from '../../shared/test/check';
 import { TABLES } from '../src/data';
 import { HIDDEN, isPlane } from '../src/enemies';
 import { Game } from '../src/game';
-import { isRemoved } from '../src/items';
+import { uncheated } from './harness';
 import { CODEC, restore, snapshot } from '../src/save';
 import { START_ROOM } from '../src/program';
 import { COLS } from '../src/room';
@@ -25,16 +27,19 @@ import { State } from '../src/tiles';
 
 const [file = 'games/awm/build/play.state'] = process.argv.slice(2);
 const item = TABLES.items[0];
-if (!item || item.type !== 1 || item.room !== START_ROOM || !isRemoved(item.type)) throw new Error('the first item is not the start room\'s shield');
+if (!item || item.type !== 1 || item.room !== START_ROOM) throw new Error('the first item is not the start room\'s leaf');
 const SHIELD = 0x85;
+const POINTS = 75;
 const col = item.cell % COLS, row = Math.floor(item.cell / COLS);
-const onShield = { x: (col * 8 - 3) & 0xff, y: (row * 8 - 2) & 0xff };
+const onLeaf = { x: (col * 8 - 3) & 0xff, y: (row * 8 - 2) & 0xff };
 
 /** The original in play in the start room ($5C3F, $5C40: Monty's place; $405E the shield; $4F87 his state; $5C4C on: the four enemy records of 13 bytes). */
 function original() {
   const m = new C64();
   m.loadState(unpackState(new Uint8Array(fs.readFileSync(file))));
   const r = m.ram;
+  const step = m.cpu.step.bind(m.cpu);
+  m.cpu.step = () => { uncheated(m.cpu.pc, m.ram); return step(); };
   const frame = () => { m.joy1 = m.joy2 = 0x1f; m.runFrame(); };
   const enemy = () => [0, 1, 2, 3].find((s) => { const f = r[0x5c53 + 13 * s]; return f !== HIDDEN && f < 0x80 && !isPlane(f); });
   /** Hurt (states Zap, Fire, Dying, Knocked: $3-$6, $D, $E in the original's numbering) times, standing on an enemy for `n` frames. */
@@ -66,21 +71,32 @@ function port(g: Game) {
   return times;
 }
 
+/** A counter's value: five digits, ones first. */
+const value = (d: readonly number[]): number => d.reduce((sum, x, i) => sum + x * 10 ** i, 0);
+const digits = (r: Uint8Array, at: number): number => value(Array.from({ length: 5 }, (_, i) => r[at + i] ?? 0));
 {
   const o = original();
   check(`the original: Monty stands at (${o.r[0x5c3f]}, ${o.r[0x5c40]}) in the start room, no shield yet`, o.r[0x5c3f] === 128 && o.r[0x5c40] === 104 && o.r[0x405e] === 0);
-  o.r[0x5c3f] = onShield.x; o.r[0x5c40] = onShield.y;
+  const score = digits(o.r, 0x404a), money = digits(o.r, 0x4051), progress = o.r[0x405d];
+  o.r[0x5c3f] = onLeaf.x; o.r[0x5c40] = onLeaf.y;
   for (let f = 0; f < 8; f++) o.frame();
-  check(`the original: Monty on the leaf (cell ${col}, ${row}) has $405E = $${o.r[0x405e].toString(16)}`, o.r[0x405e] === SHIELD);
+  check(`the original: Monty on the leaf (cell ${col}, ${row}): $405E ${o.r[0x405e]}, ${digits(o.r, 0x404a) - score} points`,
+    o.r[0x405e] === 0 && digits(o.r, 0x404a) - score === POINTS && digits(o.r, 0x4051) === money && o.r[0x405d] === progress);
 }
 {
   const g = new Game(START_ROOM);
   check(`the port's new game: Monty at (${g.monty.x}, ${g.monty.y}), as the original has him`, g.monty.x === 128 && g.monty.y === 104);
-  check('no leaf in the start room: its top left cell is empty', ![0x2f, 0x33, 0x37, 0x3b].includes(g.world.cells[item.cell] ?? 0));
-  const score = g.score.digits.join(''), before = g.progress;
-  g.monty.x = onShield.x; g.monty.y = onShield.y;
+  check('the leaf is in the start room: its top left cell shows an item', [0x2f, 0x33, 0x37, 0x3b].includes(g.world.cells[item.cell] ?? 0));
+  const score = value(g.score.digits), money = g.money.digits.join(''), before = g.progress;
+  g.monty.x = onLeaf.x; g.monty.y = onLeaf.y;
   for (let f = 0; f < 8; f++) g.step(0);
-  check('Monty on the leaf\'s place takes nothing (no score, no progress)', g.score.digits.join('') === score && g.progress === before && !g.items.collected[0]);
+  check(`Monty on the leaf takes it: ${value(g.score.digits) - score} points, no money, no progress`,
+    value(g.score.digits) - score === POINTS && g.money.digits.join('') === money && g.progress === before && g.items.collected[0] === true);
+  check('and it is gone from the room', ![0x2f, 0x33, 0x37, 0x3b].includes(g.world.cells[item.cell] ?? 0));
+  const after = new Game(START_ROOM);
+  after.monty.x = onLeaf.x; after.monty.y = onLeaf.y;
+  for (let f = 0; f < 8; f++) after.step(0);
+  check(`the port, 300 logic steps on enemies after the leaf: hurt ${port(after)} times`, port(after) > 0);
   check(`the port, 300 logic steps on enemies: hurt ${port(new Game(START_ROOM))} times`, port(new Game(START_ROOM)) > 0);
 }
 {

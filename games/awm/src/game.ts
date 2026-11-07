@@ -153,6 +153,8 @@ export class Game implements MontyHost {
    */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
+  /** ENHANCED's "a lift waits until you are out from under it when you arrive" (lifts.ts). */
+  liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
   private stepsFree = 0;
@@ -165,9 +167,11 @@ export class Game implements MontyHost {
   constructor(room: number, parts: { enemies?: Enemies; lift?: Lift; carry?: GameCarry } = {}) {
     this.enemies = parts.enemies ?? new Enemies();
     this.lift = parts.lift ?? new Lift();
+    this.lift.waits = () => this.liftWaits();
     this.world = new World(ROOMS, WORLD_GRID, NO_ROOM, room);
     this.rng = new Random(RANDOM);
     this.monty = new Monty(this.world, this.rng, TABLES.tileGfx, this);
+    this.lift.under = this.monty;
     const { carry } = parts;
     this.sky = copySky(carry ? carry.sky : FRESH_SKY);
     if (carry) {
@@ -411,7 +415,10 @@ export class Game implements MontyHost {
     if (m.dead !== 0) {
       const safe = this.safeEntry;
       if (this.safeRespawn() && this.stepsFree < SAFE_STEPS && safe !== null) this.placeAt(safe);
-      else m.respawn();
+      else {
+        m.respawn();
+        this.lift.rearm();
+      }
       this.lives = afterLoss(this.lives, this.unlimitedLives()) & 0xff;
     } else if (m.state === State.Free && ++this.stepsFree === SAFE_STEPS) {
       this.safeEntry = { room: this.world.room, x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep };
@@ -501,7 +508,7 @@ export class Game implements MontyHost {
     for (let i = 0; i < times; i++) this.money.add(0x64);
   }
 
-  /** $5D61: an enemy hurts him (the original's shield item is gone, items.ts). */
+  /** $5D61: an enemy hurts him (the crack's leaf shield is not in the port, items.ts). */
   private hurt(): void {
     this.knock();
   }
