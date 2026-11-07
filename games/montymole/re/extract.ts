@@ -30,6 +30,8 @@ fs.writeFileSync(`${OUT}/graphics-data.ts`, head('the tape\'s game block')
 fs.writeFileSync(`${OUT}/tables-data.ts`, head('the tape\'s game block')
   + constant('FONT_HEX', SPANS.font) + '\n' + constant('JUMP_ARC_HEX', SPANS.jumpArc) + '\n' + constant('COAL_HEX', SPANS.coal));
 
+fs.writeFileSync(`${OUT}/crusher-data.ts`, head('the tape\'s game block') + constant('CRUSHER_HEX', SPANS.crusher));
+
 fs.writeFileSync(`${OUT}/music-data.ts`, head('the tape\'s game block')
   + constant('TITLE_TUNE_HEX', SPANS.titleTune) + '\n' + constant('DEATH_TUNE_HEX', SPANS.deathTune));
 

@@ -6,7 +6,8 @@
  * next parts of stage 3 (re/README.md, Plan), so no room has them yet.
  */
 import { Coal } from './coal';
-import { DEATH_SPRITE, PICKUP } from './data';
+import { Crusher } from './crusher';
+import { DEATH_SPRITE, PICKUP, THUD } from './data';
 import { BLANK, Enemies, EnemyState } from './enemies';
 import { ROOMS } from './data/rooms-data';
 import { Field } from './field';
@@ -63,6 +64,7 @@ export class Game implements Stateful {
   readonly score = new Score();
   readonly coal = new Coal();
   readonly enemies = new Enemies();
+  readonly crusher = new Crusher();
   /**
    * Each room's six enemy records as the room table (`$9A2A`) has them: a visit copies them (`$94C3`), so a death or a way out puts the room's enemies back. The
    * only writes the game makes to the table are the opening scene's, to the states of room 0's third and fourth (re/README.md).
@@ -81,6 +83,8 @@ export class Game implements Stateful {
   exitedTo: number | null = null;
   /** where the rebuilt game does something other than the original, because the original does something no one wants (set once, for the tests) */
   divergence: string | null = null;
+  /** what the last death was from (for the tests) */
+  lastDeath: 'crusher' | 'touch' | 'cell' | null = null;
   /** the input byte the last pass ran with, as `$82A6` made it (for the tests) */
   inputRead = 0;
 
@@ -119,6 +123,7 @@ export class Game implements Stateful {
       this.field.drawRoom(room); // $9551: $FDD5, $C62A
       this.object.enter(room); // ($94C3 copied the record)
       this.enemies.enter(this.enemySource[this.room] ?? room.enemies);
+      this.crusher.enter(room);
       this.object.draw(this.field); // $952F
       this.coal.draw(this.field, room); // $95B3
       this.field.printScore(this.score.digits); // $91E8
@@ -144,6 +149,7 @@ export class Game implements Stateful {
     this.inputRead = -1;
     this.exitedTo = null;
     const room = this.world.room;
+    if (this.interrupt() === 'dead') { this.lastDeath = 'crusher'; this.die(); return this.outcome; } // the interrupt that ended the HALT
     this.enemies.pass(this.field, this.monty, this.random); // $943D: $8751
     const taken = this.coal.collect(this.field, room, this.monty.x, this.monty.y, this.score); // $9440: $935C
     if (taken !== null) {
@@ -152,10 +158,11 @@ export class Game implements Stateful {
     }
     this.coal.draw(this.field, room); // $9443: $95B3
     if (this.monty.touched()) { // $9446: $9298
-      if (!(this.monty.flags & Flag.tool)) { this.die(); return this.outcome; } // $92DF
+      if (!(this.monty.flags & Flag.tool)) { this.lastDeath = 'touch'; this.die(); return this.outcome; } // $92DF
       this.useTool();
     }
     this.monty.input = this.inputRead = readInput(this.control, ports, this.monty.input); // $9449: $82A6
+    if (this.interrupt() === 'dead') { this.lastDeath = 'crusher'; this.die(); return this.outcome; } // the second interrupt of the pass, here (re/README.md, "The two clocks")
     if (this.enemies.outside) {
       this.divergence = 'an enemy looked at a row off the screen: the original reads memory past its row table';
       this.enemies.outside = false;
@@ -165,7 +172,7 @@ export class Game implements Stateful {
       this.divergence = 'a jump read past the end of its table: the original crashes, the rebuilt game ends the jump';
       this.monty.overrun = false;
     }
-    if (ending === 'dead') { this.die(); return this.outcome; }
+    if (ending === 'dead') { this.lastDeath = 'cell'; this.die(); return this.outcome; }
     if (this.object.isAt(this.monty.x, this.monty.y)) { // $944F: $927E
       this.monty.flags |= Flag.tool;
       this.beeps.push(PICKUP);
@@ -192,6 +199,18 @@ export class Game implements Stateful {
     }
     this.enemies.pass(this.field, m, this.random); // $931D: CALL $8751
     if (touched !== undefined) touched.state = EnemyState.none;
+  }
+
+  /**
+   * The interrupt routine (`$8F9F`, 50 Hz): the crusher, and (stages of Plan 3 to come) the retractable floor, the conveyors, room 17's animation and the gates. The
+   * original runs it twice in a pass, once as the HALT ends and once somewhere inside the pass; the rebuilt game runs it before the pass and before Monty's routine.
+   * A death in it (the crusher on Monty) abandons the pass wherever it is.
+   */
+  private interrupt(): 'alive' | 'dead' {
+    const crushed = this.crusher.step(this.field, this.random);
+    if (crushed.dead) return 'dead';
+    if (crushed.thud) this.beeps.push(THUD);
+    return 'alive';
   }
 
   /** The way out (`$94D9`): a tool is lost, the room beside is where the edge leads, Monty comes in at the far side. */
@@ -232,6 +251,7 @@ export class Game implements Stateful {
     this.coal.save(w);
     this.object.save(w);
     this.enemies.save(w);
+    this.crusher.save(w);
     this.random.save(w);
     this.monty.save(w);
   }
@@ -245,6 +265,7 @@ export class Game implements Stateful {
     this.coal.load(r);
     this.object.load(r);
     this.enemies.load(r);
+    this.crusher.load(r);
     this.random.load(r);
     this.monty.load(r);
   }

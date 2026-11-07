@@ -4,6 +4,7 @@
  */
 import { hexBytes } from 'c64kit';
 import { COAL_HEX, FONT_HEX, JUMP_ARC_HEX } from './data/tables-data';
+import { CRUSHER_HEX } from './data/crusher-data';
 import { DEATH_SPRITE_HEX, MONTY_HEX, SPRITES_HEX, TITLE_HEX } from './data/graphics-data';
 import { bitmapRow } from './room';
 import { DEATH_TUNE_HEX, TITLE_TUNE_HEX } from './data/music-data';
@@ -29,6 +30,13 @@ export const DEATH_SPRITE_BASE = 0xffe0;
 
 /** The title picture: 6144 bytes of bitmap, then 768 of attributes: the screen as the tape loads it. */
 export const TITLE_PICTURE = hexBytes(TITLE_HEX);
+
+/**
+ * The crusher's two pictures (`$8E7A`, `$8E80`): 9 rows of 3 bytes each. The one drawn while it comes down starts at `$8E7A`, the one while it goes up at `$8E80`
+ * (they overlap in the code: the first rows differ, the rest are shared). 33 bytes from `$8E7A`.
+ */
+export const CRUSHER_PICTURES = hexBytes(CRUSHER_HEX);
+export const CRUSHER_DOWN = 0, CRUSHER_UP = 6;
 
 /** The font: 38 glyphs of 8 bytes (font.ts). */
 export const FONT = hexBytes(FONT_HEX);

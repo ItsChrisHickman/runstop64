@@ -22,11 +22,12 @@ import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum } from '../../../tools/zx/spectrum';
 import { beeperToggles } from '../src/beeper';
 import {
-  COAL_FLAGS, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
+  COAL_FLAGS, CRUSHER_PICTURES, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
   SPRITE_COUNT, SPRITE_FRAMES, STEP_CYCLES, STEP_PITCH_START, THUD, TITLE_PICTURE, TITLE_TUNE, screenOffset,
 } from '../src/data';
 import { drawLine, glyphRows, GLYPH_ROWS } from '../src/font';
 import { codeOf, DIGIT_BASE, GLYPH_COUNT } from '../src/letters';
+import { nextSeed } from '../src/random';
 import { bitmapRow } from '../src/room';
 import { blit, restoreRows } from '../src/sprite';
 import {
@@ -52,6 +53,7 @@ const blocks: [string, ArrayLike<number>, Uint8Array][] = [
   ['sprite frames (256 x 32)', SPRITE_FRAMES, bytesOf(image, SPANS.sprites)],
   ['Monty\'s 16 frames', MONTY_FRAMES, bytesOf(image, SPANS.monty)],
   ['the death picture', DEATH_SPRITE, bytesOf(image, SPANS.deathSprite)],
+  ['the crusher\'s pictures', CRUSHER_PICTURES, bytesOf(image, SPANS.crusher)],
   ['title picture (bitmap and attributes)', TITLE_PICTURE, bytesOf(image, SPANS.title)],
   ['font (38 glyphs)', FONT, bytesOf(image, SPANS.font)],
   ['jump arc', JUMP_ARC.map((v) => v & 255), bytesOf(image, SPANS.jumpArc)],
@@ -292,6 +294,25 @@ function drawn(m: Spectrum, entry: number, frames: number): number[] {
     if (!same(m.mem.subarray(0x4000, 0x5800), want)) restoreWrong++;
   }
   check(`$8452 puts the picture's bytes back on two pixel rows, three bytes from column x >> 3: ${restores} cases equal restoreRows (${restoreWrong} differ)`, restoreWrong === 0);
+}
+
+// ---- the random numbers --------------------------------------------------------------------------------------------------
+
+{
+  // `$FD9B`: the seed `$5C76` goes in, the new seed comes out in the same place and in BC (its low byte is the number the game uses)
+  const m = load('play');
+  let wrong = 0, runs = 0;
+  let s = 99;
+  const seeds = [0, 1, 2, 0xff, 0x100, 0x7fff, 0x8000, 0xfffe, 0xffff];
+  for (let i = 0; i < 3000; i++) { s = (Math.imul(s, 1103515245) + 12345) >>> 0; seeds.push(s >>> 16); }
+  for (const seed of seeds) {
+    m.mem[0x5c76] = seed & 255; m.mem[0x5c77] = seed >> 8;
+    runRoutine(m, 0xfd9b, () => undefined);
+    const got = (m.mem[0x5c76] ?? 0) | ((m.mem[0x5c77] ?? 0) << 8);
+    runs++;
+    if (got !== nextSeed(seed) || m.cpu.bc !== got) wrong++;
+  }
+  check(`the random numbers: \`nextSeed\` equals the original's $FD9B for ${runs} seeds, the edges and 3000 others (${wrong} differ); BC holds the new seed`, wrong === 0);
 }
 
 // ---- the beeper ---------------------------------------------------------------------------------------------------------------

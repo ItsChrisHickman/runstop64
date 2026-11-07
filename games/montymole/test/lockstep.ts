@@ -87,12 +87,12 @@ function run(label: string, seed: number, p: Placement | null, passes: number, b
   if (process.env.ONLY !== undefined && !label.includes(process.env.ONLY)) return; // (to look at one run)
   const rnd = mulberry(seed);
   const control = CONTROLS[Math.floor(rnd() * CONTROLS.length)] ?? 1;
-  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true, enemies: true });
+  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true, enemies: true, crusher: true });
   if (process.env.TRACE !== undefined) {
-    r.hooks.start = (mem) => console.log(`   start: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]}`);
+    r.hooks.start = (mem) => console.log(`   start: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]} crusher ${Array.from(mem.subarray(A.crusher, A.crusher + 6)).join(',')}`);
     r.hooks.passEnd = (outcome, mem) => {
       const g = r.game;
-      console.log(`   pass ${r.passes} ${outcome}: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]} input ${g.inputRead.toString(16)}`);
+      console.log(`   pass ${r.passes} ${outcome}: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]} input ${g.inputRead.toString(16)} crusher ${Array.from(mem.subarray(A.crusher, A.crusher + 6)).join(',')}`);
     };
   }
   r.play(new RandomPlayer(rnd, control, 0.15, bias), passes);
@@ -246,7 +246,7 @@ for (const f of tally.first) console.log(`   ${f.label} pass ${f.pass} room ${f.
 if (tally.byField.size > 0) console.log(`   differing: ${[...tally.byField].map(([k, n]) => `${k} ${n}`).join(', ')}`);
 check(`the input byte: the rebuilt readInput equals what $82A6 made on every pass, on all three controls (${tally.inputMismatches} differ)`, tally.inputMismatches === 0);
 check(`every pass: Monty's logic, the room, lives and arrival, the screen and attribute memory, the picture and attribute buffers, the footsteps and the outcome equal (${tally.mismatches} of ${tally.passes} passes differ)`, tally.mismatches === 0);
-const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge', 'coal taken', 'object taken'];
+const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge', 'coal taken', 'object taken', 'tool used on an enemy', 'a chaser about', 'a relay about', 'thud', 'died: crusher', 'died: touch', 'died: cell'];
 const missing = need.filter((n) => (tally.seen.get(n) ?? 0) === 0);
 const ways: string[] = [];
 for (const room of ROOMS) for (const target of [room.exits.up, room.exits.down, room.exits.left, room.exits.right]) if (target !== room.id) ways.push(`left room ${room.id} for ${target}`);
