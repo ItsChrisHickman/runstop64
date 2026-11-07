@@ -33,6 +33,10 @@ interface Placement {
   readonly fallen: number;
   /** which coal pieces are gone: those whose number i has `(13 i + gone) % 7 == 0` (a number above 6 means none) */
   readonly gone?: number;
+  /** make some of the room's enemies chasers (state 1, a strength from the number): the data has none, the code has them */
+  readonly chase?: number;
+  /** he carries a tool (bit 3 of `$8D52`) */
+  readonly tool?: boolean;
 }
 
 /** The footstep's pitch after `at` passes of a jump, as the jump makes it. */
@@ -58,7 +62,17 @@ function place(m: Spectrum, p: Placement): void {
   } else if (p.kind === 2) {
     w(A.flags, 1); w(A.flags2, 0x80); w(A.fallen, p.fallen);
   }
+  if (p.tool === true) mem[A.flags] = (mem[A.flags] ?? 0) | 8;
   if (p.gone !== undefined && p.gone < 7) for (let i = 0; i < 64; i++) if ((13 * i + p.gone) % 7 === 0) mem[A.coal + i] = (mem[A.coal + i] ?? 0) & 0x7f;
+  if (p.chase !== undefined) {
+    const base = 0x9a2a + p.room * 512 + 0x16c;
+    for (let j = 0; j < 6; j++) {
+      const record = ROOMS[p.room]?.enemies[j] ?? [];
+      const sets = [1, 3, 5, 7].map((o) => (record[o] ?? 0) | ((record[o + 1] ?? 0) << 8));
+      const drawable = sets.every((s) => s >= 0x6000 && s <= 0x7fe0); // (a chaser may turn any way: the others' junk pictures are memory the rebuilt game does not have)
+      if (drawable && (j + p.chase) % 3 === 0 && (mem[base + j * 20] ?? 3) !== 3) { mem[base + j * 20] = 1; mem[base + j * 20 + 10] = (p.chase * 37 + j * 91) & 255; }
+    }
+  }
   m.cpu.pc = 0x940c;
   m.cpu.halted = false;
 }
@@ -73,7 +87,7 @@ function run(label: string, seed: number, p: Placement | null, passes: number, b
   if (process.env.ONLY !== undefined && !label.includes(process.env.ONLY)) return; // (to look at one run)
   const rnd = mulberry(seed);
   const control = CONTROLS[Math.floor(rnd() * CONTROLS.length)] ?? 1;
-  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true });
+  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true, enemies: true });
   if (process.env.TRACE !== undefined) {
     r.hooks.start = (mem) => console.log(`   start: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]}`);
     r.hooks.passEnd = (outcome, mem) => {
@@ -104,6 +118,31 @@ for (let room = 0; room < ROOMS.length; room++) {
   }
 }
 phase('random players from random places in the 21 rooms', from);
+
+// chasers: some of each room's enemies made to chase (the data's own never do), from places near them
+from = tally.passes;
+for (const room of ROOMS) {
+  for (let k = 0; k < 6; k++) {
+    const rnd = mulberry(220000 + room.id * 10 + k);
+    run(`chasers in room ${room.id} #${k}`, 220000 + room.id * 10 + k, { ...randomPlacement(room.id, rnd), kind: 0, gone: 7, chase: k }, 150);
+  }
+}
+phase('players among chasers', from);
+
+// a tool in hand, set down beside the things that move: the tool kills what it touches
+from = tally.passes;
+for (const room of ROOMS) {
+  const rnd = mulberry(230000 + room.id);
+  room.enemies.forEach((e, j) => {
+    if ((e[0] ?? 3) === 3 && (e[17] ?? 0) === 0) return;
+    for (let k = 0; k < 3; k++) {
+      const x = Math.max(8, Math.min(0xe0, (e[12] ?? 0) + 2 * Math.floor(rnd() * 13) - 12)) & 0xfe;
+      const y = Math.max(0x25, Math.min(0xa8, (e[13] ?? 0) + 2 * Math.floor(rnd() * 13) - 12)) | 1;
+      run(`tool beside enemy ${j} of room ${room.id} #${k}`, 230000 + room.id * 100 + j * 10 + k, { room: room.id, x, y, kind: 0, dir: 1, at: 0, fallen: 0, gone: 7, tool: true, chase: k === 2 ? j : undefined }, 80);
+    }
+  });
+}
+phase('players with a tool beside the enemies', from);
 
 // round each colour: the room's four classes and the colours of its tiles
 from = tally.passes;
@@ -153,6 +192,11 @@ for (const room of ROOMS) {
   }
 }
 phase('players beside each piece of coal and each object', from);
+
+// out of the top of room 17, where the room 16 scene brings Monty in (x $C0, y $A1): a jump straight up leaves by the gap and comes back through the scene
+from = tally.passes;
+for (let k = 0; k < 12; k++) run(`up out of room 17 #${k}`, 240000 + k, { room: 17, x: 0xc0, y: 0xa1, kind: k < 6 ? 1 : 0, dir: 1, at: k % 3, fallen: 0, gone: 7 }, 40, 'up');
+phase('jumps up out of room 17', from);
 
 // at the edges: starting beside each way out of each room, making for it (a quarter of the runs without a bias)
 from = tally.passes;

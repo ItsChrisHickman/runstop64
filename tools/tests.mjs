@@ -113,8 +113,8 @@ export const TESTS = [
   { file: 'games/montymole/test/boot.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES] },
   { file: 'games/montymole/test/rooms.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/rooms.ts (all 21 rooms: the game\'s drawing against the data)' },
   { file: 'games/montymole/test/data.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES], name: 'games/montymole/test/data.ts (the data against the tape and the running original: sprites, font, texts, tunes, the blitter, BEEPER)' },
-  { file: 'games/montymole/test/lockstep.ts', args: ['300', '1', '40', '3'], set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/lockstep.ts (Monty alone against the original, a short run: about 8000 passes)' },
-  { file: 'games/montymole/test/lockstep.ts', set: 'slow', needs: [MM_ROM, ...MM_STATES], limitSeconds: 590, name: 'games/montymole/test/lockstep.ts (Monty alone against the original, every pass: about 215000 passes, every way out of every room)' },
+  { file: 'games/montymole/test/lockstep.ts', args: ['300', '1', '40', '3'], set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/lockstep.ts (Monty, the coal, the objects and the enemies against the original, a short run: about 100000 passes)' },
+  { file: 'games/montymole/test/lockstep.ts', set: 'slow', needs: [MM_ROM, ...MM_STATES], limitSeconds: 590, name: 'games/montymole/test/lockstep.ts (Monty, the coal, the objects and the enemies against the original, every pass: about 250000 passes, every way out of every room)' },
   { file: 'games/montymole/test/falls.ts', set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/falls.ts (the fatal fall: a counter of 32 or more at the landing, from 1176 drops)' },
   { file: 'games/montymole/test/mechanics.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/mechanics.ts (the 64 coal pieces, deaths, game over, edges, the ending)' },
 

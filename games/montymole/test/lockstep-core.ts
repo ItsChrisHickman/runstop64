@@ -3,9 +3,10 @@
  *
  * The original runs with its world emptied (`neutralise`): no enemy, crusher, retractable floor, object or coal in any room, and the
  * interrupt routine (which only moves those) replaced by one that returns; the death tune is cut to one short note. What is left is
- * what Monty alone does. At the start of each pass (`$9440`, a few instructions after the main loop's `HALT`; the model leaves a halted program counter on the next instruction) the harness compares
+ * what Monty alone does. At the start of each pass (`$943D`, the instruction after the main loop's `HALT`: the model leaves a halted program counter on it and the interrupt returns to it, so
+ * only its first sighting before `$9440` counts) the harness compares
  * everything the rebuilt game keeps with the original's memory, then lets a driver press keys for the pass about to begin; the
- * next time the original gets to `$9440` (or to game over, `$F817`, the ending, `$F858`, or the opening scene, `$CD41`) the pass is
+ * next time the original gets to `$943D` (or to game over, `$F817`, the ending, `$F858`, or the opening scene, `$CD41`) the pass is
  * over: the rebuilt pass runs with the same ports and is compared. The rebuilt game is not touched between passes: it keeps its
  * own state, so one difference that matters shows up as a difference at once and every one after it is a consequence. (After a
  * difference the original's state is put into the rebuilt game, so the count of differences is of causes, not consequences.)
@@ -26,12 +27,13 @@ import { ROOM_COUNT, ROOM_SIZE, ROOM_TABLE } from '../re/rooms-parse';
 export const A = {
   x: 0x5c7b, y: 0x5c7c, input: 0x832e, control: 0x82a3, frameAddr: 0x848c, walkFrame: 0x848e, jumpDir: 0x848f, arc: 0x8492, pitch: 0x8494, jumpCount: 0x8498,
   facing: 0x849b, flags: 0x8d52, flags2: 0x8d53, cells: 0x8d54, fallen: 0x8d58, prevX: 0x8d7d, prevY: 0x8d7e, room: 0x9649, lives: 0x964a, arrival: 0x964b,
-  score: 0x9217, coal: 0x964d, object: 0xc524, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
+  score: 0x9217, coal: 0x964d, object: 0xc524, enemies: 0xc596, seed: 0x5c76, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
 } as const;
-export const PASS_START = 0x9440, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6;
+export const PASS_START = 0x943d, PASS_AFTER = 0x9440, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6;
 /** The calls of BEEPER the rebuilt game makes beeps for, by where they return to: the footstep (`$8B06`), the touch with a tool (`$92F4`), coal (`$93D5`), an object (`$956E`). The death tune's (`$8DB2`) is not modelled yet. */
 const MODELLED_BEEPS: readonly number[] = [0x8b09, 0x92f7, 0x93d8, 0x9571];
 const ARC_START = 0x869c;
+const ENEMY_FIELDS = ['state', 'p0lo', 'p0hi', 'p1lo', 'p1hi', 'p2lo', 'p2hi', 'p3lo', 'p3hi', 'colour', 'link', 'dir', 'x', 'y', 'legs', 'counter', 'left', 'step', 'spare0', 'spare1'];
 /** An interrupt routine that does nothing (`EI`, `RET`) in the code's unused bytes, and where the room loop's start loads the routine's address. */
 const STUB = 0xfe98, LOOP_HANDLER = 0x9424, VECTOR = 0x5b5c;
 const OUTCOMES: Record<number, Outcome> = { [GAME_OVER]: 'gameOver', [ENDING]: 'ending', [OPENING]: 'opening' };
@@ -45,13 +47,13 @@ const put = (mem: Uint8Array, at: number, v: number): void => { mem[at] = v & 25
  * interrupt routine becomes a return; the death tune is one note of one cycle.
  */
 /** What of the world stays in the original: the coal flags (bit 7 set: pieces there) and each room's object. */
-export interface Keep { readonly coal?: boolean; readonly object?: boolean }
+export interface Keep { readonly coal?: boolean; readonly object?: boolean; readonly enemies?: boolean }
 
 export function neutralise(mem: Uint8Array, keep: Keep = {}): void {
   const bases: number[] = [A.current];
   for (let room = 0; room < ROOM_COUNT; room++) bases.push(ROOM_TABLE + room * ROOM_SIZE);
   for (const base of bases) {
-    for (let e = 0; e < 6; e++) mem[base + 0x16c + e * 20] = 3;
+    if (keep.enemies !== true) for (let e = 0; e < 6; e++) mem[base + 0x16c + e * 20] = 3;
     if (keep.object !== true) mem.fill(0, base + 0xfa, base + 0xfd); // the object
     mem.fill(0, base + 0xfd, base + 0x103); // the crusher
     mem.fill(0, base + 0x1f8, base + 0x1ff); // the retractable floor
@@ -84,6 +86,9 @@ export function take(g: Game, mem: Uint8Array): void {
   g.arrivalX = mem[A.arrival] ?? 0; g.arrivalY = mem[A.arrival + 1] ?? 0;
   for (let i = 0; i < 5; i++) g.score.digits[i] = mem[A.score + i] ?? 0;
   for (let i = 0; i < 64; i++) g.coal.flags[i] = mem[A.coal + i] ?? 0;
+  for (let r = 0; r < ROOM_COUNT; r++) g.enemySource[r]?.forEach((rec, e) => rec.splice(0, 20, ...mem.subarray(ROOM_TABLE + r * ROOM_SIZE + 0x16c + e * 20, ROOM_TABLE + r * ROOM_SIZE + 0x16c + e * 20 + 20)));
+  g.enemies.list.forEach((e, i) => e.fromBytes(Array.from(mem.subarray(A.enemies + i * 20, A.enemies + i * 20 + 20))));
+  g.random.seed = word(mem, A.seed);
   g.object.x = mem[A.object] ?? 0; g.object.y = mem[A.object + 1] ?? 0; g.object.frame = mem[A.object + 2] ?? 0;
   g.control = mem[A.control] ?? 1;
   g.outcome = 'playing';
@@ -111,6 +116,8 @@ export function differences(g: Game, mem: Uint8Array): string[] {
   for (let i = 0; i < 64; i++) num(`coal${i}`, mem[A.coal + i] ?? 0, g.coal.flags[i] ?? -1);
   num('objectX', mem[A.object] ?? 0, g.object.x); num('objectY', mem[A.object + 1] ?? 0, g.object.y); num('objectFrame', mem[A.object + 2] ?? 0, g.object.frame);
   num('tool', (mem[A.flags] ?? 0) & 8, m.flags & 8);
+  num('seed', word(mem, A.seed), g.random.seed);
+  g.enemies.list.forEach((e, i) => e.toBytes().forEach((v, k) => num(`enemy${i}.${ENEMY_FIELDS[k] ?? k}`, mem[A.enemies + i * 20 + k] ?? 0, v)));
   const arrays: [string, number, Uint8Array][] = [
     ['screen', A.screen, g.field.screen], ['attrs', A.attrs, g.field.attrs], ['picture', A.picture, g.field.picture], ['coalMask', A.attrBuffer, g.field.coalMask],
   ];
@@ -204,6 +211,7 @@ export class Run {
   private originalInput = -1;
   private started = false;
   private prepared = false;
+  private armed = true;
 
   /**
    * `prepare` changes the original first (a placement, a room: it may point the program counter at `$940C`, a room's start); `control` is the menu's choice (1 keyboard, 2 Kempston, 3 Sinclair),
@@ -217,6 +225,11 @@ export class Run {
     this.m.kempstonPlugged = kempston;
     neutralise(this.m.mem, keep);
     this.m.onStep = (pc) => {
+      if (pc === PASS_AFTER) this.armed = true; // (the pass has begun)
+      else if (pc === PASS_START) { // (the model leaves a halted program counter here, and the interrupt returns here: only the first sighting counts)
+        if (!this.armed) return;
+        this.armed = false;
+      }
       if (pc === PASS_START || pc === GAME_OVER || pc === ENDING || pc === OPENING) {
         if (!this.prepared) {
           this.prepared = true;
@@ -285,6 +298,9 @@ export class Run {
     if (g.exitedTo !== null) { t.roomChanges++; t.see(`left room ${b.room} for ${g.exitedTo}`); }
     if (g.score.value > b.score) t.see('coal taken');
     if ((m.flags & 8) !== 0 && (b.flags & 8) === 0) t.see('object taken');
+    if ((b.flags & 8) !== 0 && (m.flags & 8) === 0 && g.exitedTo === null && g.lives === b.lives) t.see('tool used on an enemy');
+    if (g.enemies.list.some((e) => e.state === 1)) t.see('a chaser about');
+    if (g.enemies.list.some((e) => e.state === 2)) t.see('a relay about');
     if ((b.flags & 8) !== 0 && (m.flags & 8) === 0) t.see('tool lost');
     if ((b.flags & 1) !== 0) t.see('falling');
     if (b.jumpDir !== 0) t.see('jumping');

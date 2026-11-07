@@ -7,11 +7,13 @@
  */
 import { Coal } from './coal';
 import { DEATH_SPRITE, PICKUP } from './data';
+import { BLANK, Enemies, EnemyState } from './enemies';
 import { ROOMS } from './data/rooms-data';
 import { Field } from './field';
 import { KEYBOARD, readInput, type Ports } from './input';
 import { Flag, Monty, type Terrain } from './monty';
 import { RoomObject } from './object';
+import { Random } from './random';
 import type { RoomData } from './room';
 import { Score } from './score';
 import { blit } from './sprite';
@@ -60,6 +62,14 @@ export class Game implements Stateful {
   arrivalY = 0;
   readonly score = new Score();
   readonly coal = new Coal();
+  readonly enemies = new Enemies();
+  /**
+   * Each room's six enemy records as the room table (`$9A2A`) has them: a visit copies them (`$94C3`), so a death or a way out puts the room's enemies back. The
+   * only writes the game makes to the table are the opening scene's, to the states of room 0's third and fourth (re/README.md).
+   */
+  readonly enemySource: number[][][] = ROOMS.map((r) => r.enemies.map((e) => [...e]));
+  /** the generator `$FD9B` (the seed `$5C76`) */
+  readonly random = new Random();
   /** the room's object as this visit found it (`$C524`) */
   readonly object = new RoomObject();
   /** the control chosen on the menu (`$82A3`) */
@@ -108,6 +118,7 @@ export class Game implements Stateful {
       this.world.room = room;
       this.field.drawRoom(room); // $9551: $FDD5, $C62A
       this.object.enter(room); // ($94C3 copied the record)
+      this.enemies.enter(this.enemySource[this.room] ?? room.enemies);
       this.object.draw(this.field); // $952F
       this.coal.draw(this.field, room); // $95B3
       this.field.printScore(this.score.digits); // $91E8
@@ -133,6 +144,7 @@ export class Game implements Stateful {
     this.inputRead = -1;
     this.exitedTo = null;
     const room = this.world.room;
+    this.enemies.pass(this.field, this.monty, this.random); // $943D: $8751
     const taken = this.coal.collect(this.field, room, this.monty.x, this.monty.y, this.score); // $9440: $935C
     if (taken !== null) {
       this.beeps.push(PICKUP);
@@ -140,11 +152,14 @@ export class Game implements Stateful {
     }
     this.coal.draw(this.field, room); // $9443: $95B3
     if (this.monty.touched()) { // $9446: $9298
-      if (this.monty.flags & Flag.tool) throw new Error('touching a thing with a tool in hand is stage 3 of the plan (re/README.md)');
-      this.die();
-      return this.outcome;
+      if (!(this.monty.flags & Flag.tool)) { this.die(); return this.outcome; } // $92DF
+      this.useTool();
     }
     this.monty.input = this.inputRead = readInput(this.control, ports, this.monty.input); // $9449: $82A6
+    if (this.enemies.outside) {
+      this.divergence = 'an enemy looked at a row off the screen: the original reads memory past its row table';
+      this.enemies.outside = false;
+    }
     const ending = this.monty.pass(); // $944C
     if (this.monty.overrun) { // (the original goes on to read past the end of the jump table, draws him off the screen and writes over its own memory)
       this.divergence = 'a jump read past the end of its table: the original crashes, the rebuilt game ends the jump';
@@ -159,6 +174,24 @@ export class Game implements Stateful {
     const { x, y } = this.monty; // $9452
     if (x === LEFT_EDGE || x === RIGHT_EDGE || y < BOTTOM_EDGE || y >= TOP_EDGE) this.leave();
     return this.outcome;
+  }
+
+  /**
+   * `$92DF`: a touch with a tool in hand: the tool is used up (bit 3 of the flags, the beep), the enemy he is touching (`$9327`: the first, in the order of the
+   * records, that is not gone and is within 15 pixels of him both ways) is turned into the blank picture in the room's blank colour and all the enemies move
+   * once more, so that it is drawn over with nothing; then it is gone (state 3).
+   */
+  private useTool(): void {
+    const m = this.monty;
+    m.flags &= ~Flag.tool;
+    this.beeps.push(PICKUP);
+    const touched = this.enemies.list.find((e) => e.state !== EnemyState.none && ((Math.abs(m.x - e.x) & 0xf0) === 0) && ((Math.abs(m.y - e.y) & 0xf0) === 0));
+    if (touched !== undefined) {
+      touched.sets.fill(BLANK);
+      touched.colour = this.world.room.tiles[0]?.attr ?? 0;
+    }
+    this.enemies.pass(this.field, m, this.random); // $931D: CALL $8751
+    if (touched !== undefined) touched.state = EnemyState.none;
   }
 
   /** The way out (`$94D9`): a tool is lost, the room beside is where the edge leads, Monty comes in at the far side. */
@@ -198,6 +231,8 @@ export class Game implements Stateful {
     this.score.save(w);
     this.coal.save(w);
     this.object.save(w);
+    this.enemies.save(w);
+    this.random.save(w);
     this.monty.save(w);
   }
 
@@ -209,6 +244,8 @@ export class Game implements Stateful {
     this.score.load(r);
     this.coal.load(r);
     this.object.load(r);
+    this.enemies.load(r);
+    this.random.load(r);
     this.monty.load(r);
   }
 }
