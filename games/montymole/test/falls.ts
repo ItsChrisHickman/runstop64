@@ -12,14 +12,16 @@ import { check, finish } from '../../../games/shared/test/check';
 import type { Spectrum } from '../../../tools/zx/spectrum';
 import { ROOMS } from '../src/data/rooms-data';
 import { FATAL_FALL } from '../src/monty';
-import { A, Run, Tally } from './lockstep-core';
+import { A, Run, Tally, type Keep } from './lockstep-core';
 
 const STATE = 'games/montymole/build/room0.state';
+/** Everything the rebuilt game has is kept in the original, so every pass can be compared; a death is classed by the rebuilt game's own account of it (proved equal). */
+const KEEP: Keep = { coal: true, object: true, enemies: true, crusher: true, floor: true, conveyors: true, room17: true, gate: true };
 const tally = new Tally();
 /** Landings (the counter the landing pass had) and deaths by falling (the same), over every fall. */
 const landed: number[] = [];
 const died: number[] = [];
-let deadly = 0, falls = 0;
+let deadly = 0, other = 0, falls = 0;
 
 function drop(room: number, x: number, y: number): void {
   const place = (m: Spectrum): void => {
@@ -30,7 +32,7 @@ function drop(room: number, x: number, y: number): void {
     m.cpu.pc = 0x940c;
     m.cpu.halted = false;
   };
-  const run = new Run(tally, STATE, `drop room ${room} x ${x} y ${y}`, 1, false, place);
+  const run = new Run(tally, STATE, `drop room ${room} x ${x} y ${y}`, 1, false, place, KEEP);
   let before = { falling: false, fallen: 0, lives: 3 };
   let fell = false;
   run.hooks.start = (mem) => { before = { falling: ((mem[A.flags] ?? 0) & 1) !== 0, fallen: mem[A.fallen] ?? 0, lives: mem[A.lives] ?? 0 }; };
@@ -40,7 +42,8 @@ function drop(room: number, x: number, y: number): void {
       fell = true;
       const counter = before.fallen + 2;
       if (now.lives < before.lives) {
-        if ([0, 1, 2, 3].some((i) => mem[A.cells + i] === 1)) deadly++;
+        if (run.game.lastDeath !== 'cell') other++; // the crusher, an enemy: not the fall
+        else if ([0, 1, 2, 3].some((i) => mem[A.cells + i] === 1)) deadly++;
         else died.push(counter);
       } else if (!now.falling && now.fallen === 0) landed.push(counter);
     }
@@ -57,7 +60,7 @@ for (const room of ROOMS) {
   }
 }
 
-console.log(`   ${falls} falls from ${ROOMS.length * 14 * 4} places: ${landed.length} landings (counter ${Math.min(...landed)} to ${Math.max(...landed)}), ${died.length} deaths by the fall (counter ${Math.min(...died)} to ${Math.max(...died)}), ${deadly} on deadly cells`);
+console.log(`   ${falls} falls from ${ROOMS.length * 14 * 4} places: ${landed.length} landings (counter ${Math.min(...landed)} to ${Math.max(...landed)}), ${died.length} deaths by the fall (counter ${Math.min(...died)} to ${Math.max(...died)}), ${deadly} on deadly cells, ${other} by something else`);
 check(`the rebuilt game equals the original on every pass of every fall (${tally.mismatches} of ${tally.passes} differ)`, tally.mismatches === 0);
 check(`every landing the original survived had a counter under ${FATAL_FALL} (the most: ${Math.max(...landed)})`, landed.length > 50 && landed.every((c) => c < FATAL_FALL));
 check(`every landing it died in had a counter of ${FATAL_FALL} or more (the least: ${Math.min(...died)})`, died.length > 50 && died.every((c) => c >= FATAL_FALL));
