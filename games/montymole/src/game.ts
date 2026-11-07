@@ -1,15 +1,19 @@
 /**
- * The game's logic so far: the room loop (`$940C`, `$943C`) with Monty alone in it. One `pass` is one trip round the main loop,
- * 25 a second: the input is read (`$82A6`), Monty moves (`$89D4`), and the exits are looked at (`$9452`). A death or an exit
- * enters a room again (`$940C`: the room drawn, the loop restarted), in the same pass. The things that move, the crusher, the
- * floor, the coal and the object are the next stage (re/README.md, Plan 3), so no room has them yet.
+ * The game's logic so far: the room loop (`$940C`, `$943C`) with Monty, the coal and the room's object in it. One `pass` is one trip round
+ * the main loop, 25 a second: the coal is taken or drawn (`$935C`, `$95B3`), a touch is looked for (`$9298`), the input is read (`$82A6`),
+ * Monty moves (`$89D4`), the object is taken (`$927E`) and the exits are looked at (`$9452`). A death or an exit enters a room again
+ * (`$940C`: the room drawn, the loop restarted), in the same pass. The things that move, the enemies, the crusher and the floor, are the
+ * next parts of stage 3 (re/README.md, Plan), so no room has them yet.
  */
-import { DEATH_SPRITE } from './data';
+import { Coal } from './coal';
+import { DEATH_SPRITE, PICKUP } from './data';
 import { ROOMS } from './data/rooms-data';
 import { Field } from './field';
 import { KEYBOARD, readInput, type Ports } from './input';
 import { Flag, Monty, type Terrain } from './monty';
+import { RoomObject } from './object';
 import type { RoomData } from './room';
+import { Score } from './score';
 import { blit } from './sprite';
 import { StateReader, StateWriter, type Stateful } from '../../shared/state';
 
@@ -54,8 +58,10 @@ export class Game implements Stateful {
   lives = START_LIVES;
   arrivalX = 0;
   arrivalY = 0;
-  /** the score's five digits, units first (`$9217`) */
-  readonly score = [0, 0, 0, 0, 0];
+  readonly score = new Score();
+  readonly coal = new Coal();
+  /** the room's object as this visit found it (`$C524`) */
+  readonly object = new RoomObject();
   /** the control chosen on the menu (`$82A3`) */
   control: number = KEYBOARD;
   /** the beeper calls made so far (a front end empties it) */
@@ -98,8 +104,15 @@ export class Game implements Stateful {
     for (;;) {
       if (this.room === ENDING_ROOM) { this.outcome = 'ending'; return; }
       if (this.room === OPENING_ROOM) { this.outcome = 'opening'; return; }
-      this.world.room = roomOf(this.room);
-      this.field.enter(this.world.room, this.score, this.lives);
+      const room = roomOf(this.room);
+      this.world.room = room;
+      this.field.drawRoom(room); // $9551: $FDD5, $C62A
+      this.object.enter(room); // ($94C3 copied the record)
+      this.object.draw(this.field); // $952F
+      this.coal.draw(this.field, room); // $95B3
+      this.field.printScore(this.score.digits); // $91E8
+      this.field.printLives(this.lives); // $949E
+      this.field.keep(); // $D254
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
       // $96E1: the pit: the scene lifts him into the castle (room 17), his jump state as it was but the fall and the jump's count cleared
       this.monty.x = PIT_ARRIVAL.x;
@@ -119,6 +132,13 @@ export class Game implements Stateful {
     if (this.outcome !== 'playing') return this.outcome;
     this.inputRead = -1;
     this.exitedTo = null;
+    const room = this.world.room;
+    const taken = this.coal.collect(this.field, room, this.monty.x, this.monty.y, this.score); // $9440: $935C
+    if (taken !== null) {
+      this.beeps.push(PICKUP);
+      this.field.printScore(this.score.digits);
+    }
+    this.coal.draw(this.field, room); // $9443: $95B3
     if (this.monty.touched()) { // $9446: $9298
       if (this.monty.flags & Flag.tool) throw new Error('touching a thing with a tool in hand is stage 3 of the plan (re/README.md)');
       this.die();
@@ -131,6 +151,11 @@ export class Game implements Stateful {
       this.monty.overrun = false;
     }
     if (ending === 'dead') { this.die(); return this.outcome; }
+    if (this.object.isAt(this.monty.x, this.monty.y)) { // $944F: $927E
+      this.monty.flags |= Flag.tool;
+      this.beeps.push(PICKUP);
+      this.object.take(this.field);
+    }
     const { x, y } = this.monty; // $9452
     if (x === LEFT_EDGE || x === RIGHT_EDGE || y < BOTTOM_EDGE || y >= TOP_EDGE) this.leave();
     return this.outcome;
@@ -169,17 +194,21 @@ export class Game implements Stateful {
   // ---- state ---------------------------------------------------------------------------------------------------------------
 
   save(w: StateWriter): void {
-    w.put(this.room, this.lives, this.arrivalX, this.arrivalY, this.control, ...this.score);
-    w.put(OUTCOMES.indexOf(this.outcome));
+    w.put(this.room, this.lives, this.arrivalX, this.arrivalY, this.control, OUTCOMES.indexOf(this.outcome));
+    this.score.save(w);
+    this.coal.save(w);
+    this.object.save(w);
     this.monty.save(w);
   }
 
   load(r: StateReader): void {
     this.room = r.get(); this.lives = r.get(); this.arrivalX = r.get(); this.arrivalY = r.get(); this.control = r.get();
-    for (let i = 0; i < 5; i++) this.score[i] = r.get();
     const outcome = OUTCOMES[r.get()];
     if (outcome === undefined) throw new Error('the saved outcome is not one');
     this.outcome = outcome;
+    this.score.load(r);
+    this.coal.load(r);
+    this.object.load(r);
     this.monty.load(r);
   }
 }

@@ -5,9 +5,9 @@
  * copied from (`$CF54`). The buffers outlive a room: entering one redraws only the room's 20 rows, so what the two score and two
  * lives rows hold in the buffers is whatever was last printed there.
  *
- * Entering a room is `$9551`: the room is drawn into the buffers (`$FDD5`), the buffers are copied to the screen (`$C62A`), the
- * room's object and coal are drawn on the screen (`$95B3` clears the attribute buffer to the coal mask), the score and the lives are printed, and the screen is copied back to the picture
- * buffer (`$D254`) so that all of it is part of the picture.
+ * Entering a room is `$9551` (game.ts `enter`): the room is drawn into the buffers (`drawRoom`: `$FDD5`, then the buffers are copied to the
+ * screen, `$C62A`), the room's object is drawn and kept (`$952F`), the coal is drawn (`$95B3` clears the attribute buffer to the coal mask), the
+ * score and the lives are printed, and the screen is copied back to the picture buffer (`keep`: `$D254`) so that all of it is part of the picture.
  */
 import { DIGIT_BASE, GLYPH_CHARS } from './letters';
 import { drawLine } from './font';
@@ -34,12 +34,12 @@ export class Field {
   readonly coalMask = new Uint8Array(ATTR_BYTES);
 
   /**
-   * Enter a room (`$9551`): the room's rows drawn into the buffers, the buffers put on the screen, then the score and the lives
-   * printed and the screen kept as the picture. `score` is five digits, units first, as the game keeps it.
+   * `$FDD5` and `$C62A`: the room's rows drawn into the picture buffer and the attribute buffer, and both put on the screen. The two rows above and the two
+   * below the room keep what they held (the picture buffer's; the attribute buffer's are 0, which `$95B3` left).
    */
-  enter(room: RoomData, scoreDigits: readonly number[], lives: number): void {
+  drawRoom(room: RoomData): void {
     const drawn = drawRoom(room);
-    const staged = new Uint8Array(ATTR_BYTES); // (the attribute buffer, as `$FDD5` fills it: the two rows above and below the room are what the buffer held, which `$95B3` left 0)
+    const staged = new Uint8Array(ATTR_BYTES);
     for (let row = ROOM_TOP_ROW; row < ROOM_TOP_ROW + ROOM_ROWS; row++) {
       for (let line = 0; line < 8; line++) {
         const at = bitmapRow(row * 8 + line);
@@ -49,9 +49,11 @@ export class Field {
     }
     this.screen.set(this.picture);
     this.attrs.set(staged);
-    this.coalMask.fill(0); // ($95B3: no coal yet)
-    this.printScore(scoreDigits);
-    this.printLives(lives);
+    this.coalMask.fill(0);
+  }
+
+  /** `$D254`: the screen's bitmap kept as the picture. */
+  keep(): void {
     this.picture.set(this.screen);
   }
 

@@ -26,9 +26,11 @@ import { ROOM_COUNT, ROOM_SIZE, ROOM_TABLE } from '../re/rooms-parse';
 export const A = {
   x: 0x5c7b, y: 0x5c7c, input: 0x832e, control: 0x82a3, frameAddr: 0x848c, walkFrame: 0x848e, jumpDir: 0x848f, arc: 0x8492, pitch: 0x8494, jumpCount: 0x8498,
   facing: 0x849b, flags: 0x8d52, flags2: 0x8d53, cells: 0x8d54, fallen: 0x8d58, prevX: 0x8d7d, prevY: 0x8d7e, room: 0x9649, lives: 0x964a, arrival: 0x964b,
-  score: 0x9217, coal: 0x964d, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
+  score: 0x9217, coal: 0x964d, object: 0xc524, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
 } as const;
-export const PASS_START = 0x9440, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6, STEP_RETURN = 0x8b09;
+export const PASS_START = 0x9440, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6;
+/** The calls of BEEPER the rebuilt game makes beeps for, by where they return to: the footstep (`$8B06`), the touch with a tool (`$92F4`), coal (`$93D5`), an object (`$956E`). The death tune's (`$8DB2`) is not modelled yet. */
+const MODELLED_BEEPS: readonly number[] = [0x8b09, 0x92f7, 0x93d8, 0x9571];
 const ARC_START = 0x869c;
 /** An interrupt routine that does nothing (`EI`, `RET`) in the code's unused bytes, and where the room loop's start loads the routine's address. */
 const STUB = 0xfe98, LOOP_HANDLER = 0x9424, VECTOR = 0x5b5c;
@@ -42,16 +44,20 @@ const put = (mem: Uint8Array, at: number, v: number): void => { mem[at] = v & 25
  * state 3 (none), the crusher, the retractable floor and the object are zeroed; the coal flags lose bit 7 (no piece is drawn); the
  * interrupt routine becomes a return; the death tune is one note of one cycle.
  */
-export function neutralise(mem: Uint8Array): void {
+/** What of the world stays in the original: the coal flags (bit 7 set: pieces there) and each room's object. */
+export interface Keep { readonly coal?: boolean; readonly object?: boolean }
+
+export function neutralise(mem: Uint8Array, keep: Keep = {}): void {
   const bases: number[] = [A.current];
   for (let room = 0; room < ROOM_COUNT; room++) bases.push(ROOM_TABLE + room * ROOM_SIZE);
   for (const base of bases) {
     for (let e = 0; e < 6; e++) mem[base + 0x16c + e * 20] = 3;
-    mem.fill(0, base + 0xfa, base + 0xfd); // the object
+    if (keep.object !== true) mem.fill(0, base + 0xfa, base + 0xfd); // the object
     mem.fill(0, base + 0xfd, base + 0x103); // the crusher
     mem.fill(0, base + 0x1f8, base + 0x1ff); // the retractable floor
   }
-  for (let i = 0; i < 64; i++) mem[A.coal + i] = (mem[A.coal + i] ?? 0) & 0x7f;
+  if (keep.coal === true) for (let i = 0; i < 64; i++) mem[A.coal + i] = (mem[A.coal + i] ?? 0) | 0x80;
+  else for (let i = 0; i < 64; i++) mem[A.coal + i] = (mem[A.coal + i] ?? 0) & 0x7f;
   mem[STUB] = 0xfb;
   mem[STUB + 1] = 0xc9;
   put(mem, LOOP_HANDLER, STUB);
@@ -76,7 +82,9 @@ export function take(g: Game, mem: Uint8Array): void {
   g.adopt(mem[A.room] ?? 0);
   g.lives = mem[A.lives] ?? 0;
   g.arrivalX = mem[A.arrival] ?? 0; g.arrivalY = mem[A.arrival + 1] ?? 0;
-  for (let i = 0; i < 5; i++) g.score[i] = mem[A.score + i] ?? 0;
+  for (let i = 0; i < 5; i++) g.score.digits[i] = mem[A.score + i] ?? 0;
+  for (let i = 0; i < 64; i++) g.coal.flags[i] = mem[A.coal + i] ?? 0;
+  g.object.x = mem[A.object] ?? 0; g.object.y = mem[A.object + 1] ?? 0; g.object.frame = mem[A.object + 2] ?? 0;
   g.control = mem[A.control] ?? 1;
   g.outcome = 'playing';
   g.field.screen.set(mem.subarray(A.screen, A.screen + 6144));
@@ -99,7 +107,10 @@ export function differences(g: Game, mem: Uint8Array): string[] {
   for (let i = 0; i < 4; i++) num(`cell${i}`, mem[A.cells + i] ?? 0, m.cells[i] ?? -1);
   num('room', mem[A.room] ?? 0, g.room); num('lives', mem[A.lives] ?? 0, g.lives);
   num('arrivalX', mem[A.arrival] ?? 0, g.arrivalX); num('arrivalY', mem[A.arrival + 1] ?? 0, g.arrivalY);
-  for (let i = 0; i < 5; i++) num(`score${i}`, mem[A.score + i] ?? 0, g.score[i] ?? -1);
+  for (let i = 0; i < 5; i++) num(`score${i}`, mem[A.score + i] ?? 0, g.score.digits[i] ?? -1);
+  for (let i = 0; i < 64; i++) num(`coal${i}`, mem[A.coal + i] ?? 0, g.coal.flags[i] ?? -1);
+  num('objectX', mem[A.object] ?? 0, g.object.x); num('objectY', mem[A.object + 1] ?? 0, g.object.y); num('objectFrame', mem[A.object + 2] ?? 0, g.object.frame);
+  num('tool', (mem[A.flags] ?? 0) & 8, m.flags & 8);
   const arrays: [string, number, Uint8Array][] = [
     ['screen', A.screen, g.field.screen], ['attrs', A.attrs, g.field.attrs], ['picture', A.picture, g.field.picture], ['coalMask', A.attrBuffer, g.field.coalMask],
   ];
@@ -198,13 +209,13 @@ export class Run {
    * `prepare` changes the original first (a placement, a room: it may point the program counter at `$940C`, a room's start); `control` is the menu's choice (1 keyboard, 2 Kempston, 3 Sinclair),
    * `kempston` whether a Kempston interface is plugged in.
    */
-  constructor(readonly tally: Tally, stateFile: string, readonly label: string, control: Control, kempston: boolean, private readonly prepare?: (m: Spectrum) => void) {
+  constructor(readonly tally: Tally, stateFile: string, readonly label: string, control: Control, kempston: boolean, private readonly prepare?: (m: Spectrum) => void, keep: Keep = {}) {
     unpackState(this.m, new Uint8Array(fs.readFileSync(stateFile)));
     this.m.cpu.iff1 = true; // (the saved state is at the loop's HALT; the original runs with its interrupt on)
     this.m.cpu.iff2 = true;
     this.m.mem[A.control] = control;
     this.m.kempstonPlugged = kempston;
-    neutralise(this.m.mem);
+    neutralise(this.m.mem, keep);
     this.m.onStep = (pc) => {
       if (pc === PASS_START || pc === GAME_OVER || pc === ENDING || pc === OPENING) {
         if (!this.prepared) {
@@ -226,7 +237,7 @@ export class Run {
       } else if (pc === INPUT_READ) this.originalInput = this.m.mem[A.input] ?? 0;
       else if (pc === BEEPER) {
         const sp = this.m.cpu.sp;
-        if (word(this.m.mem, sp) === STEP_RETURN) this.originalBeeps.push({ de: this.m.cpu.de, hl: this.m.cpu.hl });
+        if (MODELLED_BEEPS.includes(word(this.m.mem, sp))) this.originalBeeps.push({ de: this.m.cpu.de, hl: this.m.cpu.hl });
       }
     };
   }
@@ -236,7 +247,7 @@ export class Run {
     if (!this.pending) return;
     this.pending = false;
     const g = this.game;
-    const before = { room: g.room, lives: g.lives, x: g.monty.x, y: g.monty.y, flags: g.monty.flags, flags2: g.monty.flags2, jumpDir: g.monty.jumpDir, fallen: g.monty.fallen };
+    const before = { room: g.room, lives: g.lives, x: g.monty.x, y: g.monty.y, flags: g.monty.flags, flags2: g.monty.flags2, jumpDir: g.monty.jumpDir, fallen: g.monty.fallen, score: g.score.value };
     const context = `before: x ${before.x} y ${before.y} flags ${before.flags.toString(16)} flags2 ${before.flags2.toString(16)} jumpDir ${before.jumpDir} arc ${g.monty.arc} count ${g.monty.jumpCount} fallen ${before.fallen} input ${g.monty.input}`;
     g.beeps.length = 0;
     const result = g.pass(portsOf(this.m));
@@ -266,12 +277,15 @@ export class Run {
     }
   }
 
-  private seen(b: { room: number; lives: number; x: number; y: number; flags: number; flags2: number; jumpDir: number; fallen: number }, g: Game): void {
+  private seen(b: { room: number; lives: number; x: number; y: number; flags: number; flags2: number; jumpDir: number; fallen: number; score: number }, g: Game): void {
     const t = this.tally;
     const m = g.monty;
     t.see(`room ${b.room}`);
     if (g.lives < b.lives || g.outcome === 'gameOver') { t.deaths++; t.see('died'); if (b.fallen >= 0x1e || (b.flags & 1) !== 0) t.see('died falling'); }
     if (g.exitedTo !== null) { t.roomChanges++; t.see(`left room ${b.room} for ${g.exitedTo}`); }
+    if (g.score.value > b.score) t.see('coal taken');
+    if ((m.flags & 8) !== 0 && (b.flags & 8) === 0) t.see('object taken');
+    if ((b.flags & 8) !== 0 && (m.flags & 8) === 0) t.see('tool lost');
     if ((b.flags & 1) !== 0) t.see('falling');
     if (b.jumpDir !== 0) t.see('jumping');
     if ((b.flags & 4) !== 0) t.see('on a rope');

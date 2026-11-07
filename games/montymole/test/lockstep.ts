@@ -31,6 +31,8 @@ interface Placement {
   readonly dir: number;
   readonly at: number;
   readonly fallen: number;
+  /** which coal pieces are gone: those whose number i has `(13 i + gone) % 7 == 0` (a number above 6 means none) */
+  readonly gone?: number;
 }
 
 /** The footstep's pitch after `at` passes of a jump, as the jump makes it. */
@@ -56,6 +58,7 @@ function place(m: Spectrum, p: Placement): void {
   } else if (p.kind === 2) {
     w(A.flags, 1); w(A.flags2, 0x80); w(A.fallen, p.fallen);
   }
+  if (p.gone !== undefined && p.gone < 7) for (let i = 0; i < 64; i++) if ((13 * i + p.gone) % 7 === 0) mem[A.coal + i] = (mem[A.coal + i] ?? 0) & 0x7f;
   m.cpu.pc = 0x940c;
   m.cpu.halted = false;
 }
@@ -70,7 +73,7 @@ function run(label: string, seed: number, p: Placement | null, passes: number, b
   if (process.env.ONLY !== undefined && !label.includes(process.env.ONLY)) return; // (to look at one run)
   const rnd = mulberry(seed);
   const control = CONTROLS[Math.floor(rnd() * CONTROLS.length)] ?? 1;
-  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p));
+  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true });
   if (process.env.TRACE !== undefined) {
     r.hooks.start = (mem) => console.log(`   start: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]}`);
     r.hooks.passEnd = (outcome, mem) => {
@@ -129,6 +132,28 @@ for (const room of ROOMS) {
 }
 phase(`${segments} placements round ${colours} colours of the rooms`, from);
 
+// round each piece of coal and each room's object: Monty set down a few steps from them
+from = tally.passes;
+for (const room of ROOMS) {
+  const rnd = mulberry(40000 + room.id);
+  for (const piece of room.coal) {
+    if (piece.col === 0 && piece.row === 0) continue;
+    for (let k = 0; k < 3; k++) {
+      const x = Math.max(8, Math.min(0xe0, piece.col * 8 + 2 * Math.floor(rnd() * 13) - 12)) & 0xfe;
+      const y = Math.max(0x25, Math.min(0xa8, 8 * (23 - piece.row) + 7 + 2 * Math.floor(rnd() * 17) - 16)) | 1;
+      const kind = rnd();
+      run(`coal ${piece.id} in room ${room.id} #${k}`, 150000 + piece.id * 10 + k, { room: room.id, x, y, kind: kind < 0.6 ? 0 : kind < 0.85 ? 1 : 2, dir: 1 + Math.floor(rnd() * 5), at: Math.floor(rnd() * 31), fallen: 2 * Math.floor(rnd() * 8), gone: 7 }, 60, rnd() < 0.5 ? (['left', 'right', 'up', 'down'] as const)[Math.floor(rnd() * 4)] ?? null : null);
+    }
+  }
+  if (room.object.sprite !== 0) {
+    for (let k = 0; k < 4; k++) {
+      const x = Math.max(8, Math.min(0xe0, room.object.x + 2 * Math.floor(rnd() * 9) - 8)) & 0xfe;
+      run(`object in room ${room.id} #${k}`, 160000 + room.id * 10 + k, { room: room.id, x, y: room.object.y, kind: 0, dir: 1, at: 0, fallen: 0, gone: Math.floor(rnd() * 8) }, 50, k % 2 === 0 ? 'left' : 'right');
+    }
+  }
+}
+phase('players beside each piece of coal and each object', from);
+
 // at the edges: starting beside each way out of each room, making for it (a quarter of the runs without a bias)
 from = tally.passes;
 const EDGES: readonly Move[] = ['left', 'right', 'down', 'up'];
@@ -177,7 +202,7 @@ for (const f of tally.first) console.log(`   ${f.label} pass ${f.pass} room ${f.
 if (tally.byField.size > 0) console.log(`   differing: ${[...tally.byField].map(([k, n]) => `${k} ${n}`).join(', ')}`);
 check(`the input byte: the rebuilt readInput equals what $82A6 made on every pass, on all three controls (${tally.inputMismatches} differ)`, tally.inputMismatches === 0);
 check(`every pass: Monty's logic, the room, lives and arrival, the screen and attribute memory, the picture and attribute buffers, the footsteps and the outcome equal (${tally.mismatches} of ${tally.passes} passes differ)`, tally.mismatches === 0);
-const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge'];
+const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge', 'coal taken', 'object taken'];
 const missing = need.filter((n) => (tally.seen.get(n) ?? 0) === 0);
 const ways: string[] = [];
 for (const room of ROOMS) for (const target of [room.exits.up, room.exits.down, room.exits.left, room.exits.right]) if (target !== room.id) ways.push(`left room ${room.id} for ${target}`);
