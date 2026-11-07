@@ -22,7 +22,7 @@ import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum } from '../../../tools/zx/spectrum';
 import { beeperToggles } from '../src/beeper';
 import {
-  COAL_FLAGS, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
+  COAL_FLAGS, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
   SPRITE_COUNT, SPRITE_FRAMES, STEP_CYCLES, STEP_PITCH_START, THUD, TITLE_PICTURE, TITLE_TUNE, screenOffset,
 } from '../src/data';
 import { drawLine, glyphRows, GLYPH_ROWS } from '../src/font';
@@ -51,6 +51,7 @@ const encode = (text: string): number[] => Array.from(text, codeOf);
 const blocks: [string, ArrayLike<number>, Uint8Array][] = [
   ['sprite frames (256 x 32)', SPRITE_FRAMES, bytesOf(image, SPANS.sprites)],
   ['Monty\'s 16 frames', MONTY_FRAMES, bytesOf(image, SPANS.monty)],
+  ['the death picture', DEATH_SPRITE, bytesOf(image, SPANS.deathSprite)],
   ['title picture (bitmap and attributes)', TITLE_PICTURE, bytesOf(image, SPANS.title)],
   ['font (38 glyphs)', FONT, bytesOf(image, SPANS.font)],
   ['jump arc', JUMP_ARC.map((v) => v & 255), bytesOf(image, SPANS.jumpArc)],
@@ -69,7 +70,7 @@ const word = (at: number) => (image[at] ?? 0) | ((image[at + 1] ?? 0) << 8);
   for (let y = 0; y < 192; y++) if (screenOffset(y) !== word(SPANS.rowTable.at + 2 * y) - 0x4000) ok = false;
   check('the row table ($EA60, 192 words) is the Spectrum\'s screen layout: each word is $4000 + the offset of pixel row 191 - y', ok);
 }
-check('the jump arc: 17 steps up and 17 down (the rise is 17 pixels)', JUMP_ARC.filter((v) => v > 0).reduce((a, v) => a + v, 0) === 17 && JUMP_ARC.filter((v) => v < 0).reduce((a, v) => a + v, 0) === -17);
+check('the jump arc: 17 pixels up and 17 down in its 32 steps (the rise is 17 pixels)', JUMP_ARC.filter((v) => v > 0).reduce((a, v) => a + v, 0) === 17 && JUMP_ARC.filter((v) => v < 0).reduce((a, v) => a + v, 0) === -17);
 check('the effects: the thud ($8E22), the pick-up beeps (the three sites the same) and the footstep ($8496, DE 1) read from the code',
   THUD.de === word(0x8e23) && THUD.hl === word(0x8e26) && PICKUP.de === word(0x9569) && PICKUP.hl === word(0x956c)
   && word(0x92ef) === PICKUP.de && word(0x92f2) === PICKUP.hl && word(0x93d0) === PICKUP.de && word(0x93d3) === PICKUP.hl
@@ -108,6 +109,7 @@ for (const name of ['loading', 'title', 'play', 'room0']) {
   compare('Monty\'s frames', MONTY_FRAMES, MONTY_BASE);
   compare('font', FONT, SPANS.font.at);
   compare('jump arc', JUMP_ARC.map((v) => v & 255), SPANS.jumpArc.at);
+  compare('death picture', DEATH_SPRITE, SPANS.deathSprite.at);
   if (name === 'loading') compare('title tune', bytesOf(image, SPANS.titleTune), SPANS.titleTune.at); // (the picture buffer lies over it once the menu is up)
   compare('death tune', bytesOf(image, SPANS.deathTune), SPANS.deathTune.at);
   compare('row table', bytesOf(image, SPANS.rowTable), SPANS.rowTable.at);

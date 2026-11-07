@@ -4,7 +4,7 @@
  */
 import { hexBytes } from 'c64kit';
 import { COAL_HEX, FONT_HEX, JUMP_ARC_HEX } from './data/tables-data';
-import { MONTY_HEX, SPRITES_HEX, TITLE_HEX } from './data/graphics-data';
+import { DEATH_SPRITE_HEX, MONTY_HEX, SPRITES_HEX, TITLE_HEX } from './data/graphics-data';
 import { bitmapRow } from './room';
 import { DEATH_TUNE_HEX, TITLE_TUNE_HEX } from './data/music-data';
 export { ENDING_VERSE, GAME_OVER_VERSE, LIVES_LINE, MENU_LINES, SCORE_LINE, type TextLine } from './data/texts-data';
@@ -22,6 +22,10 @@ export const SPRITE_BASE = 0x6000;
  */
 export const MONTY_FRAMES = hexBytes(MONTY_HEX);
 export const MONTY_BASE = 0x849c;
+
+/** The picture drawn where Monty dies (`$FFE0`). */
+export const DEATH_SPRITE = hexBytes(DEATH_SPRITE_HEX);
+export const DEATH_SPRITE_BASE = 0xffe0;
 
 /** The title picture: 6144 bytes of bitmap, then 768 of attributes: the screen as the tape loads it. */
 export const TITLE_PICTURE = hexBytes(TITLE_HEX);
@@ -57,10 +61,11 @@ export function screenOffset(y: number): number {
 
 /**
  * The picture of the frame at an address of the original's memory: a sprite from `$6000-$7FFF` or one of Monty's from
- * `$849C-$869B` (the game addresses images by where they are). Returns the 32 bytes.
+ * `$849C-$869B` or the death picture at `$FFE0` (the game addresses images by where they are). Returns the 32 bytes.
  */
 export function imageAt(address: number): Uint8Array {
   if (address >= SPRITE_BASE && address + SPRITE_BYTES <= SPRITE_BASE + SPRITE_FRAMES.length) return SPRITE_FRAMES.subarray(address - SPRITE_BASE, address - SPRITE_BASE + SPRITE_BYTES);
   if (address >= MONTY_BASE && address + SPRITE_BYTES <= MONTY_BASE + MONTY_FRAMES.length) return MONTY_FRAMES.subarray(address - MONTY_BASE, address - MONTY_BASE + SPRITE_BYTES);
+  if (address === DEATH_SPRITE_BASE) return DEATH_SPRITE;
   throw new Error(`no picture at $${address.toString(16)}`);
 }

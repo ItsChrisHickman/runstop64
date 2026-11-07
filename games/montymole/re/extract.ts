@@ -25,7 +25,7 @@ const chars = (codes: readonly number[]): string => codes.map((c) => GLYPH_CHARS
 fs.mkdirSync(OUT, { recursive: true });
 
 fs.writeFileSync(`${OUT}/graphics-data.ts`, head('the tape\'s game block')
-  + constant('SPRITES_HEX', SPANS.sprites) + '\n' + constant('MONTY_HEX', SPANS.monty) + '\n' + constant('TITLE_HEX', SPANS.title));
+  + constant('SPRITES_HEX', SPANS.sprites) + '\n' + constant('MONTY_HEX', SPANS.monty) + '\n' + constant('DEATH_SPRITE_HEX', SPANS.deathSprite) + '\n' + constant('TITLE_HEX', SPANS.title));
 
 fs.writeFileSync(`${OUT}/tables-data.ts`, head('the tape\'s game block')
   + constant('FONT_HEX', SPANS.font) + '\n' + constant('JUMP_ARC_HEX', SPANS.jumpArc) + '\n' + constant('COAL_HEX', SPANS.coal));
