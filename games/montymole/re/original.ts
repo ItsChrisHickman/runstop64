@@ -31,6 +31,7 @@ export const SPANS = {
   titleTune: { name: 'the title tune: 273 records of 4 bytes (duration DE, pitch HL; pitch 0 rests for E frames), to the first record whose second byte is $FF', at: 0xd5b9, length: 273 * 4 },
   deathTune: { name: 'the death tune: 24 notes of 4 bytes', at: 0x5c7d, length: 24 * 4 },
   crusher: { name: 'the crusher: 9 rows of 3 bytes for the way up (from $8E80) and 9 for the way down (from $8E7A)', at: 0x8e7a, length: 33 },
+  chain: { name: 'room 17\'s animation: two pictures of 8 rows of 2 bytes, a ring of 32 bytes that turns by 2 each step, and (after it) the byte that remembers the object', at: 0x910b, length: 33 },
   rowTable: { name: 'the row table: 192 words, the screen address of each pixel row y (y up from the bottom)', at: 0xea60, length: 192 * 2 },
 } as const satisfies Record<string, Span>;
 

@@ -4,3 +4,7 @@
 /** the crusher: 9 rows of 3 bytes for the way up (from $8E80) and 9 for the way down (from $8E7A) ($8E7A-$8E9A, 33 bytes). */
 export const CRUSHER_HEX: string =
   '1fff501fffa81fff501fffa8fffff59152bab75a359716bafffff5000000000000';
+
+/** room 17's animation: two pictures of 8 rows of 2 bytes, a ring of 32 bytes that turns by 2 each step, and (after it) the byte that remembers the object ($910B-$912B, 33 bytes). */
+export const CHAIN_HEX: string =
+  '01b2000001040306028a01ac0000000001a2013000500060000101100018002800';

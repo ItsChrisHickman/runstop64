@@ -27,7 +27,7 @@ import { ROOM_COUNT, ROOM_SIZE, ROOM_TABLE } from '../re/rooms-parse';
 export const A = {
   x: 0x5c7b, y: 0x5c7c, input: 0x832e, control: 0x82a3, frameAddr: 0x848c, walkFrame: 0x848e, jumpDir: 0x848f, arc: 0x8492, pitch: 0x8494, jumpCount: 0x8498,
   facing: 0x849b, flags: 0x8d52, flags2: 0x8d53, cells: 0x8d54, fallen: 0x8d58, prevX: 0x8d7d, prevY: 0x8d7e, room: 0x9649, lives: 0x964a, arrival: 0x964b,
-  score: 0x9217, coal: 0x964d, object: 0xc524, crusher: 0xc527, enemies: 0xc596, seed: 0x5c76, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
+  score: 0x9217, coal: 0x964d, object: 0xc524, crusher: 0xc527, floor: 0xc622, gates: 0xf7d1, gateStep: 0xf7d4, gateCount: 0xf7d5, ring: 0x910b, enemies: 0xc596, seed: 0x5c76, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
 } as const;
 export const PASS_START = 0x943d, PASS_AFTER = 0x9440, ROOM_ENTRY = 0x940c, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6;
 /** The calls of BEEPER the rebuilt game makes beeps for, by where they return to: the footstep (`$8B06`), the touch with a tool (`$92F4`), coal (`$93D5`), an object (`$956E`). The death tune's (`$8DB2`) is not modelled yet. */
@@ -106,6 +106,10 @@ export function take(g: Game, mem: Uint8Array): void {
   g.enemies.list.forEach((e, i) => e.fromBytes(Array.from(mem.subarray(A.enemies + i * 20, A.enemies + i * 20 + 20))));
   g.random.seed = word(mem, A.seed);
   g.crusher.fromBytes(Array.from(mem.subarray(A.crusher, A.crusher + 6)));
+  g.floor.fromBytes(Array.from(mem.subarray(A.floor, A.floor + 7)));
+  g.gates.flags = mem[A.gates] ?? 0; g.gates.step = mem[A.gateStep] ?? 0; g.gates.counted = mem[A.gateCount] ?? 0;
+  for (let i = 0; i < 32; i++) g.chain.ring[i] = mem[A.ring + i] ?? 0;
+  g.chain.seen = mem[A.ring + 32] ?? 0;
   g.object.x = mem[A.object] ?? 0; g.object.y = mem[A.object + 1] ?? 0; g.object.frame = mem[A.object + 2] ?? 0;
   g.control = mem[A.control] ?? 1;
   g.outcome = 'playing';
@@ -134,6 +138,9 @@ export function differences(g: Game, mem: Uint8Array): string[] {
   num('objectX', mem[A.object] ?? 0, g.object.x); num('objectY', mem[A.object + 1] ?? 0, g.object.y); num('objectFrame', mem[A.object + 2] ?? 0, g.object.frame);
   num('tool', (mem[A.flags] ?? 0) & 8, m.flags & 8);
   num('seed', word(mem, A.seed), g.random.seed);
+  g.floor.toBytes().forEach((v, i) => num(`floor.${i}`, mem[A.floor + i] ?? 0, v));
+  num('gates', mem[A.gates] ?? 0, g.gates.flags); num('gateStep', mem[A.gateStep] ?? 0, g.gates.step); num('gateCount', mem[A.gateCount] ?? 0, g.gates.counted);
+  g.chain.ring.forEach((v, i) => num(`ring${i}`, mem[A.ring + i] ?? 0, v)); num('ringSeen', mem[A.ring + 32] ?? 0, g.chain.seen);
   g.crusher.toBytes().forEach((v, i) => num(`crusher.${['column', 'y', 'lowest', 'wait', 'direction', 'highest'][i]}`, mem[A.crusher + i] ?? 0, v));
   g.enemies.list.forEach((e, i) => e.toBytes().forEach((v, k) => num(`enemy${i}.${ENEMY_FIELDS[k] ?? k}`, mem[A.enemies + i * 20 + k] ?? 0, v)));
   const arrays: [string, number, Uint8Array][] = [
@@ -299,7 +306,7 @@ export class Run {
     if (!this.pending) return;
     this.pending = false;
     const g = this.game;
-    const before = { room: g.room, lives: g.lives, x: g.monty.x, y: g.monty.y, flags: g.monty.flags, flags2: g.monty.flags2, jumpDir: g.monty.jumpDir, fallen: g.monty.fallen, score: g.score.value };
+    const before = { room: g.room, lives: g.lives, x: g.monty.x, y: g.monty.y, flags: g.monty.flags, flags2: g.monty.flags2, jumpDir: g.monty.jumpDir, fallen: g.monty.fallen, score: g.score.value, gates: g.gates.flags, gateStep: g.gates.step, floor: g.floor.toBytes().join() };
     const context = `before: x ${before.x} y ${before.y} flags ${before.flags.toString(16)} flags2 ${before.flags2.toString(16)} jumpDir ${before.jumpDir} arc ${g.monty.arc} count ${g.monty.jumpCount} fallen ${before.fallen} input ${g.monty.input}`;
     g.beeps.length = 0;
     const result = g.pass(portsOf(this.m));
@@ -329,7 +336,7 @@ export class Run {
     }
   }
 
-  private seen(b: { room: number; lives: number; x: number; y: number; flags: number; flags2: number; jumpDir: number; fallen: number; score: number }, g: Game): void {
+  private seen(b: { room: number; lives: number; x: number; y: number; flags: number; flags2: number; jumpDir: number; fallen: number; score: number; gates: number; gateStep: number; floor: string }, g: Game): void {
     const t = this.tally;
     const m = g.monty;
     t.see(`room ${b.room}`);
@@ -341,6 +348,11 @@ export class Run {
     if (g.enemies.list.some((e) => e.state === 1)) t.see('a chaser about');
     if (g.enemies.list.some((e) => e.state === 2)) t.see('a relay about');
     if ((b.flags & 8) !== 0 && (m.flags & 8) === 0) t.see('tool lost');
+    if (b.gates !== g.gates.flags && (g.gates.flags & 0x3c) !== (b.gates & 0x3c)) t.see('a gate opened');
+    if (b.gateStep !== g.gates.step) t.see('a gate row cleared');
+    if (g.room >= 8 && g.room <= 11) t.see('a conveyor');
+    if (g.room === 17) t.see('the chain');
+    if (g.floor.toBytes().some((v, i) => v !== 0 && i < 6) && b.floor !== g.floor.toBytes().join()) t.see('the floor moved');
     if (g.lives < b.lives && g.lastDeath !== null) t.see(`died: ${g.lastDeath}`);
     if (g.beeps.some((x) => x.de === 2)) t.see('thud');
     if ((b.flags & 1) !== 0) t.see('falling');

@@ -22,7 +22,7 @@ import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum } from '../../../tools/zx/spectrum';
 import { beeperToggles } from '../src/beeper';
 import {
-  COAL_FLAGS, CRUSHER_PICTURES, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
+  CHAIN, COAL_FLAGS, CRUSHER_PICTURES, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
   SPRITE_COUNT, SPRITE_FRAMES, STEP_CYCLES, STEP_PITCH_START, THUD, TITLE_PICTURE, TITLE_TUNE, screenOffset,
 } from '../src/data';
 import { drawLine, glyphRows, GLYPH_ROWS } from '../src/font';
@@ -54,6 +54,7 @@ const blocks: [string, ArrayLike<number>, Uint8Array][] = [
   ['Monty\'s 16 frames', MONTY_FRAMES, bytesOf(image, SPANS.monty)],
   ['the death picture', DEATH_SPRITE, bytesOf(image, SPANS.deathSprite)],
   ['the crusher\'s pictures', CRUSHER_PICTURES, bytesOf(image, SPANS.crusher)],
+  ['room 17\'s ring', CHAIN, bytesOf(image, SPANS.chain)],
   ['title picture (bitmap and attributes)', TITLE_PICTURE, bytesOf(image, SPANS.title)],
   ['font (38 glyphs)', FONT, bytesOf(image, SPANS.font)],
   ['jump arc', JUMP_ARC.map((v) => v & 255), bytesOf(image, SPANS.jumpArc)],

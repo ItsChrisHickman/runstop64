@@ -37,6 +37,8 @@ interface Placement {
   readonly chase?: number;
   /** he carries a tool (bit 3 of `$8D52`) */
   readonly tool?: boolean;
+  /** exactly `count` pieces taken (the lowest numbers but not `piece`), so that taking `piece` makes the count a gate's */
+  readonly exactly?: { readonly count: number; readonly piece: number };
 }
 
 /** The footstep's pitch after `at` passes of a jump, as the jump makes it. */
@@ -61,6 +63,13 @@ function place(m: Spectrum, p: Placement): void {
     if (JUMP_ARC.slice(0, p.at).some((v) => v < 0)) w(A.flags2, 0x80);
   } else if (p.kind === 2) {
     w(A.flags, 1); w(A.flags2, 0x80); w(A.fallen, p.fallen);
+  }
+  if (p.exactly !== undefined) {
+    let left = p.exactly.count;
+    for (let i = 0; i < 64; i++) {
+      const taken = i !== p.exactly.piece && left > 0 && left-- > 0;
+      mem[A.coal + i] = taken ? (mem[A.coal + i] ?? 0) & 0x7f : (mem[A.coal + i] ?? 0) | 0x80;
+    }
   }
   if (p.tool === true) mem[A.flags] = (mem[A.flags] ?? 0) | 8;
   if (p.gone !== undefined && p.gone < 7) for (let i = 0; i < 64; i++) if ((13 * i + p.gone) % 7 === 0) mem[A.coal + i] = (mem[A.coal + i] ?? 0) & 0x7f;
@@ -87,7 +96,7 @@ function run(label: string, seed: number, p: Placement | null, passes: number, b
   if (process.env.ONLY !== undefined && !label.includes(process.env.ONLY)) return; // (to look at one run)
   const rnd = mulberry(seed);
   const control = CONTROLS[Math.floor(rnd() * CONTROLS.length)] ?? 1;
-  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true, enemies: true, crusher: true });
+  const r = new Run(tally, STATE, label, control, control === 2 || rnd() < 0.3, p === null ? undefined : (m) => place(m, p), { coal: true, object: true, enemies: true, crusher: true, floor: true, conveyors: true, room17: true, gate: true });
   if (process.env.TRACE !== undefined) {
     r.hooks.start = (mem) => console.log(`   start: original x ${mem[A.x]} y ${mem[A.y]} flags ${mem[A.flags]?.toString(16)} flags2 ${mem[A.flags2]?.toString(16)} jumpDir ${mem[A.jumpDir]} count ${mem[A.jumpCount]} fallen ${mem[A.fallen]} room ${mem[A.room]} lives ${mem[A.lives]} crusher ${Array.from(mem.subarray(A.crusher, A.crusher + 6)).join(',')}`);
     r.hooks.passEnd = (outcome, mem) => {
@@ -143,6 +152,23 @@ for (const room of ROOMS) {
   });
 }
 phase('players with a tool beside the enemies', from);
+
+// the gates: exactly one piece short of 16, 32, 48 and 64, set down beside a piece in each gate's room (and in the rooms next to it)
+from = tally.passes;
+for (const [gateRoom, count] of [[6, 16], [11, 32], [15, 48], [20, 64]] as const) {
+  for (const room of [gateRoom, gateRoom, gateRoom - 1, gateRoom + 1]) {
+    const data = ROOMS[room];
+    const piece = data?.coal.find((c) => c.col !== 0 || c.row !== 0);
+    if (data === undefined || piece === undefined) continue;
+    for (let k = 0; k < 4; k++) {
+      const rnd = mulberry(250000 + gateRoom * 100 + room * 10 + k);
+      const x = Math.max(8, Math.min(0xe0, piece.col * 8 + 2 * Math.floor(rnd() * 9) - 8)) & 0xfe;
+      const y = Math.max(0x25, Math.min(0xa8, 8 * (23 - piece.row) + 7 + 2 * Math.floor(rnd() * 9) - 8)) | 1;
+      run(`gate ${count} from room ${room} #${k}`, 250000 + gateRoom * 100 + room * 10 + k, { room, x, y, kind: 0, dir: 1, at: 0, fallen: 0, exactly: { count: count - 1 + (room === gateRoom ? 0 : 0), piece: piece.id } }, 90, k % 2 === 0 ? 'left' : 'right');
+    }
+  }
+}
+phase('players taking the piece that opens a gate', from);
 
 // round each colour: the room's four classes and the colours of its tiles
 from = tally.passes;
@@ -246,7 +272,7 @@ for (const f of tally.first) console.log(`   ${f.label} pass ${f.pass} room ${f.
 if (tally.byField.size > 0) console.log(`   differing: ${[...tally.byField].map(([k, n]) => `${k} ${n}`).join(', ')}`);
 check(`the input byte: the rebuilt readInput equals what $82A6 made on every pass, on all three controls (${tally.inputMismatches} differ)`, tally.inputMismatches === 0);
 check(`every pass: Monty's logic, the room, lives and arrival, the screen and attribute memory, the picture and attribute buffers, the footsteps and the outcome equal (${tally.mismatches} of ${tally.passes} passes differ)`, tally.mismatches === 0);
-const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge', 'coal taken', 'object taken', 'tool used on an enemy', 'a chaser about', 'a relay about', 'thud', 'died: crusher', 'died: touch', 'died: cell'];
+const need = ['falling', 'jumping', 'on a rope', 'landed', 'died', 'died falling', 'jump started', 'jump ended', 'walked off an edge', 'coal taken', 'object taken', 'tool used on an enemy', 'a chaser about', 'a relay about', 'thud', 'died: crusher', 'died: touch', 'died: cell', 'a gate opened', 'a gate row cleared', 'a conveyor', 'the chain', 'the floor moved'];
 const missing = need.filter((n) => (tally.seen.get(n) ?? 0) === 0);
 const ways: string[] = [];
 for (const room of ROOMS) for (const target of [room.exits.up, room.exits.down, room.exits.left, room.exits.right]) if (target !== room.id) ways.push(`left room ${room.id} for ${target}`);

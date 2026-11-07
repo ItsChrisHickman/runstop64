@@ -4,7 +4,7 @@
  */
 import { hexBytes } from 'c64kit';
 import { COAL_HEX, FONT_HEX, JUMP_ARC_HEX } from './data/tables-data';
-import { CRUSHER_HEX } from './data/crusher-data';
+import { CHAIN_HEX, CRUSHER_HEX } from './data/interrupt-data';
 import { DEATH_SPRITE_HEX, MONTY_HEX, SPRITES_HEX, TITLE_HEX } from './data/graphics-data';
 import { bitmapRow } from './room';
 import { DEATH_TUNE_HEX, TITLE_TUNE_HEX } from './data/music-data';
@@ -37,6 +37,9 @@ export const TITLE_PICTURE = hexBytes(TITLE_HEX);
  */
 export const CRUSHER_PICTURES = hexBytes(CRUSHER_HEX);
 export const CRUSHER_DOWN = 0, CRUSHER_UP = 6;
+
+/** Room 17's animation as the tape has it: the ring of 32 bytes (`$910B`) and the byte after it (`$912B`). */
+export const CHAIN = hexBytes(CHAIN_HEX);
 
 /** The font: 38 glyphs of 8 bytes (font.ts). */
 export const FONT = hexBytes(FONT_HEX);

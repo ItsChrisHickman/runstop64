@@ -5,12 +5,16 @@
  * (`$940C`: the room drawn, the loop restarted), in the same pass. The things that move, the enemies, the crusher and the floor, are the
  * next parts of stage 3 (re/README.md, Plan), so no room has them yet.
  */
+import { Chain } from './chain';
 import { Coal } from './coal';
+import { turnConveyors } from './conveyors';
 import { Crusher } from './crusher';
 import { DEATH_SPRITE, PICKUP, THUD } from './data';
 import { BLANK, Enemies, EnemyState } from './enemies';
 import { ROOMS } from './data/rooms-data';
 import { Field } from './field';
+import { Floor } from './floor';
+import { Gates } from './gates';
 import { KEYBOARD, readInput, type Ports } from './input';
 import { Flag, Monty, type Terrain } from './monty';
 import { RoomObject } from './object';
@@ -65,6 +69,9 @@ export class Game implements Stateful {
   readonly coal = new Coal();
   readonly enemies = new Enemies();
   readonly crusher = new Crusher();
+  readonly floor = new Floor();
+  readonly gates = new Gates();
+  readonly chain = new Chain();
   /**
    * Each room's six enemy records as the room table (`$9A2A`) has them: a visit copies them (`$94C3`), so a death or a way out puts the room's enemies back. The
    * only writes the game makes to the table are the opening scene's, to the states of room 0's third and fourth (re/README.md).
@@ -124,6 +131,7 @@ export class Game implements Stateful {
       this.object.enter(room); // ($94C3 copied the record)
       this.enemies.enter(this.enemySource[this.room] ?? room.enemies);
       this.crusher.enter(room);
+      this.floor.enter(room);
       this.object.draw(this.field); // $952F
       this.coal.draw(this.field, room); // $95B3
       this.field.printScore(this.score.digits); // $91E8
@@ -202,14 +210,19 @@ export class Game implements Stateful {
   }
 
   /**
-   * The interrupt routine (`$8F9F`, 50 Hz): the crusher, and (stages of Plan 3 to come) the retractable floor, the conveyors, room 17's animation and the gates. The
+   * The interrupt routine (`$8F9F`, 50 Hz): room 17's animation, the retractable floor, the gates that open with the coal, the crusher and the conveyors. The
    * original runs it twice in a pass, once as the HALT ends and once somewhere inside the pass; the rebuilt game runs it before the pass and before Monty's routine.
    * A death in it (the crusher on Monty) abandons the pass wherever it is.
    */
   private interrupt(): 'alive' | 'dead' {
-    const crushed = this.crusher.step(this.field, this.random);
+    const room = this.world.room;
+    if (this.room === 17) this.chain.step(this.field, this.object.frame); // $8FA7: $90BD
+    this.floor.step(this.field); // $8FC1: $F7C7: $8F31
+    this.gates.run(this.field, room, this.coal.taken); // $F64D, $F6A6
+    const crushed = this.crusher.step(this.field, this.random); // $8FC4: $8DCD
     if (crushed.dead) return 'dead';
     if (crushed.thud) this.beeps.push(THUD);
+    turnConveyors(this.field, this.room); // $8FC7
     return 'alive';
   }
 
@@ -252,6 +265,9 @@ export class Game implements Stateful {
     this.object.save(w);
     this.enemies.save(w);
     this.crusher.save(w);
+    this.floor.save(w);
+    this.gates.save(w);
+    this.chain.save(w);
     this.random.save(w);
     this.monty.save(w);
   }
@@ -266,6 +282,9 @@ export class Game implements Stateful {
     this.object.load(r);
     this.enemies.load(r);
     this.crusher.load(r);
+    this.floor.load(r);
+    this.gates.load(r);
+    this.chain.load(r);
     this.random.load(r);
     this.monty.load(r);
   }
