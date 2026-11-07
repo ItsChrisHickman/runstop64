@@ -1,19 +1,19 @@
 /**
- * The rebuilt game (src/game.ts: Monty alone in the room loop) against the original running on the headless Spectrum, pass by pass.
+ * The rebuilt game (src/game.ts) against the original running on the headless Spectrum, pass by pass.
  *
- * The original runs with its world emptied (`neutralise`): no enemy, crusher, retractable floor, object or coal in any room, and the
- * interrupt routine (which only moves those) replaced by one that returns; the death tune is cut to one short note. What is left is
- * what Monty alone does. At the start of each pass (`$943D`, the instruction after the main loop's `HALT`: the model leaves a halted program counter on it and the interrupt returns to it, so
- * only its first sighting before `$9440` counts) the harness compares
- * everything the rebuilt game keeps with the original's memory, then lets a driver press keys for the pass about to begin; the
- * next time the original gets to `$943D` (or to game over, `$F817`, the ending, `$F858`, or the opening scene, `$CD41`) the pass is
- * over: the rebuilt pass runs with the same ports and is compared. The rebuilt game is not touched between passes: it keeps its
- * own state, so one difference that matters shows up as a difference at once and every one after it is a consequence. (After a
- * difference the original's state is put into the rebuilt game, so the count of differences is of causes, not consequences.)
+ * The original runs with the world it is asked to keep (`Keep`): by default nothing but Monty (no enemy, crusher, retractable floor, object or coal in any room, the
+ * interrupt routine replaced by a return, the death tune cut to one short note), and the lockstep keeps everything the rebuilt game has. The original's interrupt routine
+ * does not run by itself: the harness calls it, as the interrupt would, at the two points of a pass where the rebuilt game runs its own (as the `HALT` ends, `$943D`, and
+ * after the input is read, `$944C`; re/README.md, "The two clocks"). At the start of each pass (`$943D`: the instruction after the main loop's `HALT`, where the model leaves a halted
+ * program counter and the interrupt returns, so only its first sighting before `$9440` counts) the harness compares everything the rebuilt game keeps with the original's
+ * memory, then lets a driver press keys for the pass about to begin; the next time the original gets to `$943D` (or to game over, `$F817`, the ending, `$F858`, or the opening
+ * scene, `$CD41`) the pass is over: the rebuilt pass runs with the same ports and is compared. The rebuilt game is not touched between passes: it keeps its own state, so one
+ * difference that matters shows up as a difference at once and every one after it is a consequence. (After a difference the original's state is put into the rebuilt game,
+ * so the count of differences is of causes, not consequences.)
  *
- * Compared: Monty (his place, the input byte, picture, walk frame, jump direction, arc, count and pitch, facing, both flag bytes,
- * the four cell classes, the fall counter, where the pass began), the room, lives, arrival place and score, the screen's bitmap and
- * attributes, the picture buffer and the attribute buffer; the footstep beeps; the input byte as `$82A6` made it; and the outcome.
+ * Compared: Monty (his place, the input byte, picture, walk frame, jump direction, arc, count and pitch, facing, both flag bytes, the four cell classes, the fall counter,
+ * where the pass began), the room, lives, arrival place, score and the 64 coal flags, the object, the enemy records, the crusher, the floor, the gates, room 17's ring, the
+ * seed, the screen's bitmap and attributes, the picture buffer and the coal mask; the beeps; the input byte as `$82A6` made it; and the outcome.
  */
 import fs from 'node:fs';
 import { readRom } from '../../../tools/zx/boot';
@@ -54,6 +54,8 @@ const put = (mem: Uint8Array, at: number, v: number): void => { mem[at] = v & 25
 export interface Keep {
   readonly coal?: boolean; readonly object?: boolean; readonly enemies?: boolean;
   readonly crusher?: boolean; readonly floor?: boolean; readonly conveyors?: boolean; readonly room17?: boolean; readonly gate?: boolean;
+  /** the original's own interrupt (test/schedule.ts): no stub, nothing patched out */
+  readonly real?: boolean;
 }
 
 /** Whether the interrupt routine has anything to do with what is kept. */
@@ -76,10 +78,12 @@ export function neutralise(mem: Uint8Array, keep: Keep = {}): void {
   if (keep.room17 !== true) mem.fill(0, 0x8fac, 0x8faf);
   if (keep.floor !== true) mem.fill(0, 0xf7c7, 0xf7ca);
   if (keep.gate !== true) mem.fill(0, 0xf7ca, 0xf7d0);
-  mem[STUB] = 0xfb;
-  mem[STUB + 1] = 0xc9;
-  put(mem, LOOP_HANDLER, STUB);
-  put(mem, VECTOR, STUB);
+  if (keep.real !== true) {
+    mem[STUB] = 0xfb;
+    mem[STUB + 1] = 0xc9;
+    put(mem, LOOP_HANDLER, STUB);
+    put(mem, VECTOR, STUB);
+  }
   put(mem, 0x5c7d, 1); // the first note of the death tune, one cycle,
   mem[0x5c81] = 0; // and no second
 }
@@ -264,7 +268,7 @@ export class Run {
         if (!this.prepared) {
           this.prepared = true;
           this.prepare?.(this.m);
-          if (this.m.cpu.pc !== pc) return; // (the placement sent the original back to a room's start: take its state at the next pass)
+          if (this.m.cpu.pc !== pc) { this.armed = true; return; } // (the placement sent the original back to a room's start: take its state at the next pass)
         }
         if (!this.started) {
           this.started = true;

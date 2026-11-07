@@ -1,13 +1,15 @@
 /**
- * Monty alone, rebuilt (src/monty.ts, src/input.ts, src/game.ts, src/field.ts), against the original running on the headless
- * Spectrum with its world emptied of everything else, every pass (test/lockstep-core.ts says what is compared and how).
+ * The rebuilt game (src/game.ts: Monty, the coal, the score, the objects, the six enemies of each room, the crusher, the retractable floor, the gates, the conveyors,
+ * room 17's chain, the room 16 scene, the edges and death) against the original running on the headless Spectrum, every pass (test/lockstep-core.ts says what is
+ * compared and how, and how the original's interrupt routine is called). The opening scene, the flow and the sound are later stages.
  *
- * Players: random ones (keys held for a few passes on the device the menu chose: keyboard, Kempston, Sinclair; with keys of other
- * devices pressed too and contradictory presses) from placements in every one of the 21 rooms: anywhere, in each of the states he can
- * be in (standing, part way through a jump in each direction, falling from each height), and round each kind of cell (each colour the
- * room's tiles have: floor, deadly, rope, the fourth class, and the tiles' own) and at the edges.
+ * Players: random ones (keys held for a few passes on the device the menu chose: keyboard, Kempston, Sinclair; with keys of other devices pressed too and contradictory
+ * presses) from placements in every one of the 21 rooms: anywhere, in each of the states he can be in (standing, part way through a jump in each direction, falling
+ * from each height), round each kind of cell (each colour the room's tiles have: floor, deadly, rope, the fourth class, and the tiles' own), round each piece of coal and
+ * each object, with a tool beside each enemy, with some of the room's enemies made chasers (the data has none), taking the piece that makes 16, 32, 48 and 64 and
+ * so opens a gate, jumping up out of room 17, and beside every way out of every room.
  *
- *   nice -n 15 node tools/test.mjs games/montymole/test/lockstep.ts [random-passes-per-room] [placements-per-colour] [pass-limit-per-placement] [runs-per-room-beside-edges]
+ *   nice -n 15 node tools/test.mjs games/montymole/test/lockstep.ts [random-passes-per-room] [placements-per-colour] [pass-limit-per-placement] [runs-per-way-out]
  */
 import { check, finish } from '../../../games/shared/test/check';
 import { type Spectrum } from '../../../tools/zx/spectrum';
