@@ -12,7 +12,7 @@ import { Crusher } from './crusher';
 import { DEATH_SPRITE, PICKUP, THUD } from './data';
 import { BLANK, Enemies, EnemyState } from './enemies';
 import { ROOMS } from './data/rooms-data';
-import { Field } from './field';
+import { Field, type FieldCopy } from './field';
 import { Floor } from './floor';
 import { Gates } from './gates';
 import { Opening } from './opening';
@@ -26,6 +26,11 @@ import { blit } from './sprite';
 import { StateReader, StateWriter, type Stateful } from '../../shared/state';
 
 export const START_LIVES = 3;
+
+/** A game and its screen as it was (`Game.snapshot`). */
+export interface GameSnapshot extends FieldCopy {
+  readonly numbers: readonly number[];
+}
 /** The room number the game puts in `$9649` for the ending and for the opening scene. */
 export const ENDING_ROOM = 21, OPENING_ROOM = 0x2c;
 /** Where a room's edges lead: x 0 and `$F0`, y below `$21` and from `$AF` (`$9452`). */
@@ -68,6 +73,8 @@ class World implements Terrain {
     this.classesNow = [floor, WATER_CLASS, rope, fourth];
   }
   get isWatery(): boolean { return this.watery; }
+  /** the room whose record is in `$C42A` */
+  get recordId(): number { return this.current.id; }
   get attrs(): Uint8Array { return this.field.attrs; }
   get screen(): Uint8Array { return this.field.screen; }
   get picture(): Uint8Array { return this.field.picture; }
@@ -383,7 +390,20 @@ export class Game implements Stateful {
 
   // ---- state ---------------------------------------------------------------------------------------------------------------
 
+  /** Everything, the screen's buffers too: a copy to go back to (the tests' players try moves ahead). A save keeps only the numbers (the room is drawn again on loading). */
+  snapshot(): GameSnapshot {
+    const w = new StateWriter();
+    this.save(w);
+    return { numbers: w.numbers, ...this.field.copy() };
+  }
+
+  restore(s: GameSnapshot): void {
+    this.load(new StateReader(s.numbers));
+    this.field.paste(s);
+  }
+
   save(w: StateWriter): void {
+    w.put(this.world.recordId, this.world.isWatery ? 1 : 0, ...[2, 3].map((e) => this.enemySource[0]?.[e]?.[0] ?? EnemyState.none));
     w.put(this.room, this.lives, this.arrivalX, this.arrivalY, this.control, OUTCOMES.indexOf(this.outcome));
     this.score.save(w);
     this.coal.save(w);
@@ -399,6 +419,9 @@ export class Game implements Stateful {
   }
 
   load(r: StateReader): void {
+    this.adopt(r.get(), true);
+    if (r.flag()) this.world.makeWatery();
+    for (const e of [2, 3]) { const state = r.get(); const record = this.enemySource[0]?.[e]; if (record !== undefined) record[0] = state; }
     this.room = r.get(); this.lives = r.get(); this.arrivalX = r.get(); this.arrivalY = r.get(); this.control = r.get();
     const outcome = OUTCOMES[r.get()];
     if (outcome === undefined) throw new Error('the saved outcome is not one');

@@ -20,6 +20,14 @@ export const ATTR_BYTES = 768;
 /** The character of a digit 0-9 as the font has it (the digit glyphs follow the letters). */
 const digit = (n: number): string => GLYPH_CHARS.charAt(DIGIT_BASE + n);
 
+/** The four buffers of a `Field` as they were. */
+export interface FieldCopy {
+  readonly picture: Uint8Array;
+  readonly screen: Uint8Array;
+  readonly attrs: Uint8Array;
+  readonly coalMask: Uint8Array;
+}
+
 export class Field {
   /** the picture buffer, `$D260` */
   readonly picture = new Uint8Array(BITMAP_BYTES);
@@ -32,6 +40,17 @@ export class Field {
    * mask of the coal: `$FF` in the cell of each piece still there, 0 elsewhere
    */
   readonly coalMask = new Uint8Array(ATTR_BYTES);
+
+  copy(): FieldCopy {
+    return { picture: this.picture.slice(), screen: this.screen.slice(), attrs: this.attrs.slice(), coalMask: this.coalMask.slice() };
+  }
+
+  paste(from: FieldCopy): void {
+    this.picture.set(from.picture);
+    this.screen.set(from.screen);
+    this.attrs.set(from.attrs);
+    this.coalMask.set(from.coalMask);
+  }
 
   /**
    * `$FDD5` and `$C62A`: the room's rows drawn into the picture buffer and the attribute buffer, and both put on the screen. The two rows above and the two

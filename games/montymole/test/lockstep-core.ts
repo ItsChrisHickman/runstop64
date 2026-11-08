@@ -283,6 +283,8 @@ export class Run {
   private setup = false;
   /** go on into the opening scene when the room loop leaves for it (a run from room 0 walking off its left edge) */
   intoOpening = false;
+  /** and into the room loop when the scene is left for room 0 (a whole game played) */
+  intoRooms = false;
   private diverged = false;
   /** a placement in the scene, made when it has begun (its start puts Monty at the right): the rebuilt game takes the original's state after it */
   afterSetup: ((m: Spectrum) => void) | null = null;
@@ -326,6 +328,13 @@ export class Run {
           this.compareSetup();
         } else {
           this.finishPass(layout.terminals[pc] ?? 'playing', layout.leaving.includes(pc));
+          if (pc === ROOM_ENTRY && layout === OPENING_LAYOUT && this.intoRooms && !this.diverged) { // (the scene is over: room 0 is entered, and both go on in the room loop)
+            this.layout = ROOM_LAYOUT;
+            this.done = false;
+            this.setup = true;
+            this.armed = true;
+            return;
+          }
           if (pc === OPENING && layout === ROOM_LAYOUT && this.intoOpening && !this.diverged) { // (the pass left room 0 for the scene, which the rebuilt game has begun: both go on in its loop)
             this.layout = OPENING_LAYOUT;
             this.done = false;
