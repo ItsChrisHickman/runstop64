@@ -35,6 +35,10 @@ export interface RemixRoom {
   readonly slots: readonly Slot[];
   /** the coal's cells, in playfield coordinates (row 0 is the first row of the room) */
   readonly coal: readonly Coal[];
+  /** the room's theme animation (Monty on the Run's roomMeta byte: bit 7 turns the rows of the tile in slot `flags & 7` upwards): its water */
+  readonly theme: number;
+  /** the code (1-8) of the platform tile the retractable floor is made of; 0 where the room has no floor */
+  readonly floorCode: number;
 }
 
 // ---- colours ---------------------------------------------------------------------------------
@@ -89,7 +93,8 @@ export const LIBRARY = {
   rope: 0x5f,
   chain: 0x60,
   waves: 0x53,
-  water: 0x55,
+  /** Monty on the Run's lava and water: its rooms turn it a row a step */
+  water: 0x4f,
 } as const;
 
 function libraryRows(tile: number): Uint8Array {
@@ -102,7 +107,7 @@ function pick(role: Role, tile: Tile, order: number): number | null {
     case 'solid': return pixels >= 36 && order % 2 === 0 ? LIBRARY.brick : LIBRARY.rock;
     case 'platform': return pixels >= 24 ? LIBRARY.toothed : LIBRARY.ledge;
     case 'rope': return order % 2 === 0 ? LIBRARY.rope : LIBRARY.chain;
-    case 'deadly': return pixels >= 60 ? LIBRARY.water : LIBRARY.waves;
+    case 'deadly': return LIBRARY.water;
     case 'decor': return null;
   }
 }
@@ -121,14 +126,26 @@ export function retile(room: RoomData): RemixRoom {
     code.push(slots.length + 1);
     slots.push({ role, rows, colour: colourOf(tile.attr), prop: PROP[role], tile: lib });
   });
-  if (slots.length > 8) throw new Error(`room ${room.id}: ${slots.length} kinds of cell, Monty on the Run's rooms have eight`);
   const cells = new Uint8Array(ROOM_COLS * ROOM_ROWS);
   for (let r = 0; r < ROOM_ROWS; r++) {
     const line = room.map[r] ?? '';
     for (let c = 0; c < ROOM_COLS; c++) cells[r * ROOM_COLS + c] = code[line.charCodeAt(c) - 48] ?? 0;
   }
+  // the retractable floor is drawn with a platform tile: the room's own, or a thin ledge of its own in the next slot
+  let floorCode = 0;
+  if (room.floor.some((b) => b !== 0)) {
+    const own = slots.findIndex((k) => k.role === 'platform');
+    if (own >= 0) floorCode = own + 1;
+    else {
+      slots.push({ role: 'platform', rows: libraryRows(LIBRARY.ledge), colour: 1, prop: PROP.platform, tile: LIBRARY.ledge });
+      floorCode = slots.length;
+    }
+  }
+  if (slots.length > 8) throw new Error(`room ${room.id}: ${slots.length} kinds of cell, Monty on the Run's rooms have eight`);
+  const water = slots.findIndex((k) => k.role === 'deadly');
+  const theme = water >= 0 ? 0x80 | water : 0;
   const coal = room.coal.filter((k) => k.col !== 0 || k.row !== 0).map((k) => ({ col: k.col, row: k.row - ROOM_TOP_ROW }));
-  return { id: room.id, cells, slots, coal };
+  return { id: room.id, cells, slots, coal, theme, floorCode };
 }
 
 /** The role of the cell at (col, row): what the shared physics will see. */

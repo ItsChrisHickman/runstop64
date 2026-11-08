@@ -7,62 +7,19 @@
  * drawn until it reaches its lowest y; there it turns, with a thud. It is drawn into the picture buffer as well as the screen (a part of the room:
  * Monty stands on it), and its three cells' bright bits are set and cleared.
  */
+import { CrusherRule, type CrusherStep } from './crusher-rules';
 import { CRUSHER_DOWN, CRUSHER_PICTURES, CRUSHER_UP, screenOffset } from './data';
 import type { Field } from './field';
 import type { Random } from './random';
-import type { RoomData } from './room';
-import type { StateReader, StateWriter, Stateful } from '../../shared/state';
 
+export type { CrusherStep };
 const wrap = (n: number): number => n & 0xff;
 
-/** What a step did, for the sound and the death. */
-export interface CrusherStep {
-  readonly dead: boolean;
-  readonly thud: boolean;
-}
-
-export class Crusher implements Stateful {
-  column = 0;
-  y = 0;
-  lowest = 0;
-  wait = 0;
-  /** bit 0: going down */
-  direction = 0;
-  highest = 0;
-
-  /** A new copy of the room's record (`$94C3`). */
-  enter(room: RoomData): void {
-    this.fromBytes(room.crusher);
-  }
-
-  /** The six bytes of the record. */
-  fromBytes(b: readonly number[]): void {
-    this.column = b[0] ?? 0; this.y = b[1] ?? 0; this.lowest = b[2] ?? 0; this.wait = b[3] ?? 0; this.direction = b[4] ?? 0; this.highest = b[5] ?? 0;
-  }
-
-  toBytes(): number[] {
-    return [this.column, this.y, this.lowest, this.wait, this.direction, this.highest];
-  }
-
+/** The crusher as the Spectrum's screen shows it (the record and what a step does with it are src/crusher-rules.ts). */
+export class Crusher extends CrusherRule {
   /** `$8DCD`. */
   step(field: Field, random: Random): CrusherStep {
-    if ((this.column | this.y) === 0) return { dead: false, thud: false };
-    if (this.wait !== 0) { this.wait = wrap(this.wait - 1); return { dead: false, thud: false }; }
-    const down = (this.direction & 1) !== 0;
-    if (down && this.touches(field)) return { dead: true, thud: false };
-    if (!down) {
-      this.y = wrap(this.y + 2);
-      if (this.highest >= this.y) this.draw(field);
-      else { // the top: turn, and wait a random while (`$8E01`: the byte with bit 7 cleared, plus one)
-        this.direction = 1;
-        this.wait = wrap((random.byte() & 0x7f) + 1);
-      }
-      return { dead: false, thud: false };
-    }
-    this.y = wrap(this.y - 2);
-    if (this.lowest < this.y) { this.draw(field); return { dead: false, thud: false }; }
-    this.direction = 0; // the bottom: turn
-    return { dead: false, thud: true };
+    return this.advance({ random, touches: () => this.touches(field), draw: () => this.draw(field) });
   }
 
   /** `$9148`: whether anything is on the screen, but not in the picture, in the three bytes of the row under the base (`y - 9`). */
@@ -93,11 +50,5 @@ export class Crusher implements Stateful {
     } else {
       for (let i = 0; i < 3; i++) field.attrs[cell + 32 + i] = (field.attrs[cell + 32 + i] ?? 0) | 0x40;
     }
-  }
-
-  save(w: StateWriter): void { w.put(this.column, this.y, this.lowest, this.wait, this.direction, this.highest); }
-
-  load(r: StateReader): void {
-    this.column = r.get(); this.y = r.get(); this.lowest = r.get(); this.wait = r.get(); this.direction = r.get(); this.highest = r.get();
   }
 }

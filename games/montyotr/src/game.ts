@@ -5,6 +5,7 @@ import {
   specialItems, tileLibrary, tileProperty,
 } from './data';
 import { afterLoss } from '../../shared/lives';
+import { animateTheme, drawHudData, drawHudFrame, nextRandom, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
 import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body';
 import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
@@ -20,19 +21,13 @@ import { playDissolve } from '../../shared/monty/deaths';
  * Memory model: `mem` is VIC bank 1 ($4000-$7FFF): charset at 0, screen RAM
  * at SCREEN ($4800), sprite data by pointer. `col` is colour RAM ($D800).
  */
-export const SCREEN = 0x800;
+export { ROW, SCREEN } from '../../shared/monty/screen';
 /** Frames on his feet in a room (2 seconds) after which its way in is a place to start again from (ENHANCED's respawn). */
 export const SAFE_FRAMES = 100;
-export const ROW = 40;
 
 export type { MontyInput as Input } from '../../shared/monty/body';
 
-export interface Sound {
-  /** `musicOff` effects only play when music is off, as in the original. */
-  sfx(id: number, musicOff: boolean): void;
-  song(n: number): void; // original Music.Init(n)
-  stop(): void;
-}
+export type { Sound };
 
 /** ENHANCED's changes to how the game plays (QOL.md). */
 export interface Assists {
@@ -179,7 +174,7 @@ export class Game implements MontyBody, MontyWorld {
   // ---- coins / items ------------------------------------------------------------
   coinCollected = new Uint8Array(coinTable.length / 3);
   /** In-room collectibles: screen offset, colour phase, master index (-1 = no coin, e.g. room $1F bases). */
-  entities: { at: number; phase: number; index: number }[] = [];
+  entities: Collectible[] = [];
   siCollected = new Uint8Array(specialItems.length / 4);
   siActiveIdx = -1;
   /** room_item_active[0..4]: jet pack, rope, passport, gas mask, rum — the kit always carries all five. */
@@ -195,7 +190,7 @@ export class Game implements MontyBody, MontyWorld {
   c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
   /** The C5 as it came into this room (with savedX, savedY: where a death in the room starts again). */
   c5Arrival: Mech.C5State = { ...Mech.C5_START };
-  prng = new Uint8Array([0x5a, 0xa5, 0x3c, 0xc3]);
+  prng = Uint8Array.from(PRNG_START);
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry = { mapRow: 2, exitCol: 0x15, x2: 0x86, y: 0xb0, facing: 0x81 };
   feetFrames = 0;
@@ -213,9 +208,7 @@ export class Game implements MontyBody, MontyWorld {
 
   /** Original GenerateRandomNumber: four-byte state; returns one byte. */
   random() {
-    const r = (Math.random() * 256) | 0;
-    for (let i = 0; i < 4; i++) this.prng[i] = (this.prng[i] + 0x29 + (r >> i)) & 0xff;
-    return this.prng[r & 3];
+    return nextRandom(this.prng);
   }
 
   pulseGreyscale() {
@@ -313,34 +306,11 @@ export class Game implements MontyBody, MontyWorld {
   // ---- HUD (original HUD.Init / HUD.Update) --------------------------------------
 
   drawHudFrame() {
-    const text = 'SCORE:           00 HI-SCORE:      ';
-    for (let i = 0; i < 36; i++) {
-      this.mem[SCREEN + 2 + i] = text.charCodeAt(i) === 32 ? 0x60 : (text.charCodeAt(i) & 0x3f) | 0x40;
-      this.col[2 + i] = 1;
-      this.col[ROW + 2 + i] = 1;
-    }
-    for (let x = 15; x >= 0; x--) {
-      if (x < 13) this.mem[SCREEN + ROW + 2 + x] = 0x64;
-      this.mem[SCREEN + ROW + 0x16 + x] = 0x64;
-    }
-    const icon = [0x3d, 0x3e, 0x3f, 0x40];
-    [0, 1, ROW, ROW + 1].forEach((o, i) => {
-      this.mem[SCREEN + 0x10 + o] = icon[i];
-      this.col[0x10 + o] = 8;
-    });
-    this.col[0x13] = 8;
-    this.col[0x14] = 8;
-    this.drawHudData();
+    drawHudFrame(this, this.score, this.hiScore, this.lives);
   }
 
   drawHudData() {
-    const s = String(this.score % 100000).padStart(5, '0');
-    const h = String(this.hiScore % 100000).padStart(5, '0');
-    for (let i = 0; i < 5; i++) {
-      this.mem[SCREEN + 0x0a + i] = (s.charCodeAt(i) & 0x3f) | 0x40;
-      this.mem[SCREEN + 0x21 + i] = (h.charCodeAt(i) & 0x3f) | 0x40;
-    }
-    this.mem[SCREEN + 0x14] = ((Math.min(9, Math.max(0, this.lives)) + 0x30) & 0x3f) | 0x70;
+    drawHudData(this, this.score, this.hiScore, this.lives);
   }
 
   // ---- the frame: original GameFrameUpdate ----------------------------------------
@@ -725,22 +695,7 @@ export class Game implements MontyBody, MontyWorld {
   // ---- theme char animation (water and lava) ----------------------------------------
 
   private animateThemeChar() {
-    const f = this.roomFlags;
-    if (!f) return;
-    const g = this.mem.subarray(8 + (f & 7) * 8, 16 + (f & 7) * 8);
-    if (f & 0x80) {
-      const first = g[0];
-      g.copyWithin(0, 1);
-      g[7] = first;
-    } else if (f & 0x40) {
-      const last = g[7];
-      g.copyWithin(1, 0, 7);
-      g[0] = last;
-    } else if (f & 0x20) {
-      for (let i = 0; i < 3; i++) g[i] = ((g[i] << 1) | (g[i] >> 7)) & 0xff;
-    } else if (f & 0x10) {
-      for (let i = 0; i < 3; i++) g[i] = ((g[i] >> 1) | (g[i] << 7)) & 0xff;
-    }
+    animateTheme(this.mem, this.roomFlags);
   }
 
   // ---- life lost (original Death.LifeLost) -------------------------------------------

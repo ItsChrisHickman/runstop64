@@ -5,24 +5,19 @@
  * (`$95B3` runs every pass: the paper goes one step on, the ink goes black: the piece flickers through the colours). The attribute buffer
  * `$CF54` is cleared by that routine and set to `$FF` in the cell of each piece there: the mask `$935C` looks at.
  */
-import { COAL_COUNT, COAL_FLAGS } from './data';
+import { CoalTally, STILL_THERE } from './coal-rules';
 import type { Field } from './field';
 import { bitmapRow, ROOM_COLS, type RoomData } from './room';
 import { Score } from './score';
-import type { StateReader, StateWriter, Stateful } from '../../shared/state';
 
-export const STILL_THERE = 0x80;
+export { STILL_THERE };
 const wrap = (n: number): number => n & 0xff;
 
 /** What collecting did, for the sound and the tests: the piece's number and its worth. */
 export interface Collected { readonly id: number; readonly points: number }
 
-export class Coal implements Stateful {
-  /** the flag bytes: a new game starts them as the tape has them with every bit 7 set (what the opening scene does) */
-  readonly flags: number[] = Array.from(COAL_FLAGS, (f) => f | STILL_THERE);
-
-  /** How many pieces have been taken (the flags with bit 7 clear). */
-  get taken(): number { return this.flags.filter((f) => (f & STILL_THERE) === 0).length; }
+/** The coal as the Spectrum's screen shows it (the pieces and their count are src/coal-rules.ts). */
+export class Coal extends CoalTally {
 
   /** `$95B3`: clear the mask and, for each of the room's pieces still there, change its cell's attribute, mark the mask and draw the piece. */
   draw(field: Field, room: RoomData): void {
@@ -66,18 +61,11 @@ export class Coal implements Stateful {
       field.attrs[cell] = room.tiles[0]?.attr ?? 0;
       const piece = room.coal.find((p) => p.col === col && p.row === row);
       if (piece === undefined) throw new Error(`room ${room.id}: a piece of coal in cell ${col}, ${row} that its list does not have`);
-      this.flags[piece.id] = (this.flags[piece.id] ?? 0) & ~STILL_THERE;
-      const points = (this.flags[piece.id] ?? 0) & 0x7f;
+      const points = this.take(piece.id);
       score.add(points);
       this.drawPiece(field, room, col, row, true);
       return { id: piece.id, points };
     }
     return null;
-  }
-
-  save(w: StateWriter): void { w.put(...this.flags); }
-
-  load(r: StateReader): void {
-    for (let i = 0; i < COAL_COUNT; i++) this.flags[i] = r.get();
   }
 }

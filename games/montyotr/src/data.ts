@@ -1,5 +1,6 @@
 import raw from './data/motr.json';
 import { hexBytes } from 'c64kit';
+import { PLAY_COLS, PLAY_ROWS } from '../../shared/monty/screen';
 import { ROOMS as EXT_ROOMS, SECTORS as EXT_SECTORS, type ExtRoom, type Sign } from './data/runstop64-rooms';
 
 /**
@@ -33,8 +34,7 @@ export const cloudFrames = hexBytes(raw.cloudFrames);
 export const arrestedText = hexBytes(raw.arrestedText);
 export const gameOverPtrs = hexBytes(raw.gameOverPtrs);
 
-export const PLAY_COLS = 32;
-export const PLAY_ROWS = 20;
+export { PLAY_COLS, PLAY_ROWS };
 
 interface RoomDef {
   id: number;

@@ -1,31 +1,21 @@
 import { cloudFrames, coinTable, SFX, specialItems } from './data';
 import { ROW, SCREEN, type Game } from './game';
+import { shimmer, takeCoin } from '../../shared/monty/screen';
 
 /** Ports of the original SpecialItems subsystem: coins, special items, their room effects. */
 
-const COIN_COLOURS = [2, 4, 4, 10, 7, 1, 1, 7, 10, 4, 4];
-
-/** CollectCoin: a coin char ($34) in Monty's 2×2 footprint is worth 50. */
+/** CollectCoin: a coin char ($34) in Monty's 2x2 footprint is worth 50. */
 export function collectCoin(g: Game) {
-  const base = g.montyChr;
-  for (const o of [ROW + 1, ROW, 1, 0]) {
-    if (g.chr(base + o) !== 0x34) continue;
-    g.setChr(base + o, 0);
-    const e = g.entities.find((x) => x.at === base + o && x.index >= 0);
-    if (!e) return;
-    g.coinCollected[e.index] = 0xff;
-    g.addScore(50);
-    g.sfx(SFX.coin);
-    return;
-  }
+  const taken = takeCoin(g.mem, g.montyChr, g.entities);
+  if (!taken?.item) return;
+  g.coinCollected[taken.item.index] = 0xff;
+  g.addScore(50);
+  g.sfx(SFX.coin);
 }
 
 /** CharacterAnimation: collectibles shimmer through an 11-step colour cycle. */
 export function animateCharacters(g: Game) {
-  for (const e of g.entities) {
-    e.phase = (e.phase + 1) % 11;
-    g.setCol(e.at, COIN_COLOURS[e.phase]);
-  }
+  shimmer(g.entities, (at, colour) => g.setCol(at, colour));
 }
 
 /** SpawnSIForRoom: put this room's special item (if any, and not yet taken) on sprite 0. */
