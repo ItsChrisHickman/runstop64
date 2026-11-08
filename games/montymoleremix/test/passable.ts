@@ -116,7 +116,7 @@ function next(): Arrival | undefined {
   if (room < 0) return undefined;
   for (let row = 0; row < 18; row++) {
     const g = new RemixGame();
-    g.start();
+    g.start(false);
     g.travelTo(room === PIT_ROOM + 1 ? PIT_ROOM : room, ARRIVE_LEFT_X2, 50 + (3 + (room === PIT_ROOM + 1 ? 17 : row)) * 8);
     const p: Play = { g, col: 0 };
     for (let i = 0; i < 20 && (i === 0 || g.freeze || g.script); i++) g.frame(0);

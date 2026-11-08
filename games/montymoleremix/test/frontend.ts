@@ -20,7 +20,7 @@ import { parseOptions } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
 import { SCREEN, ROW } from '../../shared/monty/screen';
 import { hintsOf } from '../src/hints';
-import { START_LIVES } from '../src/game';
+import { OPENING_ROOM, START_LIVES } from '../src/game';
 import { run, STRIP_Y } from '../src/main';
 import { remixMap } from '../src/map';
 
@@ -66,7 +66,11 @@ check(`the box shows Wanted's poster after the scores (WANTED: MONTY MOLE seen i
 // ---- play ----------------------------------------------------------------------------------------------------
 tap('Space');
 tick(20);
-check('Space: the game, in room 0', p.state.mode === 'play' && g.roomId === 0 && !g.freeze);
+check('Space: the game, in the opening scene (no room: nothing saved)', p.state.mode === 'play' && g.roomId === OPENING_ROOM && !g.freeze && !store.has('montymoleremix.save.v2'));
+// (the way out of the scene is walked in test/opening.ts: here he is sent to room 0 as the scene's way out puts him)
+g.travelTo(0, 0x1c + (0x18 >> 1), 0xf9 - 0x27);
+tick(20);
+check('room 0 (the scene\'s way out): in play', p.state.mode === 'play' && g.roomId === 0 && !g.freeze);
 check('a save on coming into the first room', store.has('montymoleremix.save.v2'));
 check(`ENHANCED by default: five lives (${g.lives}), unlimited lives help on`, g.lives === START_LIVES && g.assist.lives === true);
 tick(30);
@@ -172,7 +176,7 @@ check(`Enter: back in play in the last room (${g.roomId}), lives as saved`, p.st
 {
   const q = run({ renderer, input, canvas: nowhere });
   const gg = q.game;
-  gg.start();
+  gg.start(false);
   gg.travelTo(1, 0x44, 0x4c + 8 * 3);
   for (let i = 0; i < 30; i++) gg.frame(0);
   check('a room with a tool: one sparkle on it; none once he carries it', gg.tool !== null && hintsOf(gg).length === 1 && (() => { gg.carrying = true; return hintsOf(gg).length === 0; })());

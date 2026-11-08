@@ -24,7 +24,7 @@ export function snapshot(g: RemixGame): RemixSave {
 
 /** Start a game from a save (instead of a plain `g.start()`): the room loads on the first frame, Monty where he came into it. */
 export function restore(g: RemixGame, data: RemixSave): void {
-  g.start();
+  g.start(false);
   g.lives = Math.max(1, data.lives);
   g.score = data.score;
   g.hiScore = Math.max(g.hiScore, g.score);

@@ -98,7 +98,7 @@ export const LIBRARY = {
   water: 0x4f,
 } as const;
 
-function libraryRows(tile: number): Uint8Array {
+export function libraryRows(tile: number): Uint8Array {
   return tileLibrary.subarray(tile * 8, tile * 8 + 8);
 }
 

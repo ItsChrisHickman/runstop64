@@ -20,7 +20,7 @@ import { check, finish } from '../../shared/test/check';
 import { getProp } from '../../shared/guards';
 import { must } from '../../shared/test/must';
 import { cellRow } from '../src/coords';
-import { COAL_CHAR, HOME_COL, HOME_ROW, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
+import { COAL_CHAR, HOME_COL, HOME_ROW, OPENING_ROOM, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
 import { lookOfSet, NAMED_KINDS } from '../src/kinds';
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { retile, roleAt } from '../src/retile';
@@ -227,10 +227,10 @@ function findFlat(): { id: number; col: number; row: number } | null {
     const g = new RemixGame();
     g.roomId = data.id;
     const to = (r: number, c: number) => g.roomAt(HOME_ROW + r, HOME_COL + c);
-    const want = (n: number) => (n >= 21 ? 0xff : n);
+    const want = (n: number) => (n === OPENING_ROOM ? n : n >= 21 ? 0xff : n);
     for (const [r, c, n] of [[-1, 0, data.exits.up], [1, 0, data.exits.down], [0, -1, data.exits.left], [0, 1, data.exits.right]] as const) { total++; if (to(r, c) === want(n)) ok++; }
   }
-  check(`the graph is Wanted's: every exit of every room leads where the original's does (${ok} of ${total}; the scenes are closed until they are built)`, ok === total);
+  check(`the graph is Wanted's: every exit of every room leads where the original's does (${ok} of ${total}; the way out to the left of room 0 is the opening scene; the ending is closed until it is built)`, ok === total);
   const p = inRoom(1, 2, 2);
   p.g.graceActive = () => true;
   frames(p, 60);

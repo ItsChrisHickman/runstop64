@@ -56,7 +56,7 @@ export interface Play { g: RemixGame; col: number }
 /** A new game at the start of room 0, settled. */
 export function newGame(): Play {
   const g = new RemixGame();
-  g.start();
+  g.start(false);
   const p: Play = { g, col: 0 };
   for (let n = 0; n < 20 && (n === 0 || g.freeze || g.script); n++) g.frame(0);
   return p;

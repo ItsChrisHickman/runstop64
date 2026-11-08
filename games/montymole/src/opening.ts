@@ -29,6 +29,23 @@ const LEFT = 0xff, RIGHT = 1;
 
 const wrap = (n: number): number => n & 0xff;
 
+/**
+ * Where the scene's sprites are drawn: the rules below say *what* is drawn *where* (a picture's address, the pixel x and the top line y), and the
+ * game that runs them says how. Wanted's draws them over the Spectrum's picture (`FieldCanvas`, none erased); the remix puts each on a sprite.
+ */
+export interface OpeningCanvas { draw(address: number, x: number, y: number): void }
+
+/** The scene's pictures and where they are in the original's graphics: the remix tells which sprite a drawing is by the address. */
+export const OPENING_PICTURES = { POT, WIFE_HEAD, WIFE_LEGS, BIRD_RIGHT, BIRD_LEFT, ACORN, FILLED, FRAME } as const;
+/** The pot's place: where the gift is made, and what the remix puts the bucket's picture at. */
+export const OPENING_POT = { x: POT_X, y: POT_Y } as const;
+
+/** Wanted's canvas: a sprite blitted on the screen over the picture buffer. */
+class FieldCanvas implements OpeningCanvas {
+  constructor(readonly field: Field) {}
+  draw(address: number, x: number, y: number): void { blit(this.field.screen, this.field.picture, imageAt(address), x, y); }
+}
+
 export class Opening implements Stateful {
   /** `$CD32`: 1 until Monty has passed x `$40` (the scene's start sets it); while it is, the pot steams and the wife waits */
   potWaits = 1;
@@ -76,36 +93,41 @@ export class Opening implements Stateful {
     this.sunFrame = (this.sunFrame + 1) & 3;
   }
 
-  /** Draw the sprite at `address` with its top left at (x, y) over the picture. */
-  private draw(field: Field, address: number, x: number, y: number): void {
-    blit(field.screen, field.picture, imageAt(address), x, y);
+  /** The canvas of the field the scene is on (made once: a pass is every other frame). */
+  private canvas: FieldCanvas | null = null;
+  private canvasOf(field: Field): FieldCanvas {
+    if (this.canvas === null || this.canvas.field !== field) this.canvas = new FieldCanvas(field);
+    return this.canvas;
   }
 
+  /** `$CB93`: one step of the pot, the wife, the bird and the acorn, drawn over the Spectrum's picture. */
+  animate(field: Field): void { this.step(this.canvasOf(field)); }
+
   /** `$CB93`: one step of the pot, the wife, the bird and the acorn. */
-  animate(field: Field): void {
+  step(canvas: OpeningCanvas): void {
     if (this.potWaits !== 0) { // $CB93
       this.potTick = wrap(this.potTick - 1);
       if (this.potTick === 0) {
         this.potTick = 3;
         this.potFrame = (this.potFrame + 1) & 3;
-        this.draw(field, POT + this.potFrame * FRAME, POT_X, POT_Y);
+        canvas.draw(POT + this.potFrame * FRAME, POT_X, POT_Y);
       }
     } else { // $CBC9
       this.wifeX = wrap(this.wifeX + 1);
-      this.draw(field, WIFE_HEAD + this.wifeFrame * FRAME, this.wifeX, WIFE_TOP);
-      this.draw(field, WIFE_LEGS + this.wifeFrame * FRAME, this.wifeX, WIFE_BOTTOM);
+      canvas.draw(WIFE_HEAD + this.wifeFrame * FRAME, this.wifeX, WIFE_TOP);
+      canvas.draw(WIFE_LEGS + this.wifeFrame * FRAME, this.wifeX, WIFE_BOTTOM);
       this.wifeTick = wrap(this.wifeTick - 1);
       if (this.wifeTick === 0) {
         this.wifeTick = 3;
         this.wifeFrame = (this.wifeFrame + 1) & 3;
       }
     }
-    this.bird(field); // $CC13
-    this.acorn(field); // $CCA9
+    this.bird(canvas); // $CC13
+    this.acorn(canvas); // $CCA9
   }
 
   /** `$CC13`-`$CCA8`: the bird goes left from x `$78` to `$70`, where the acorn starts to fall, then right to `$80` and stays about there until the acorn is done. */
-  private bird(field: Field): void {
+  private bird(canvas: OpeningCanvas): void {
     if (this.birdWay === LEFT) { // $CC6E
       this.birdX = wrap(this.birdX - 1);
       this.birdTick = wrap(this.birdTick - 1);
@@ -117,7 +139,7 @@ export class Opening implements Stateful {
         this.birdWay = RIGHT;
         this.acornOut = RIGHT;
       }
-      this.draw(field, BIRD_LEFT + this.birdFrame * FRAME, this.birdX, BIRD_Y);
+      canvas.draw(BIRD_LEFT + this.birdFrame * FRAME, this.birdX, BIRD_Y);
     } else { // $CC1A
       this.birdX = wrap(this.birdX + 1);
       this.birdTick = wrap(this.birdTick - 1);
@@ -125,7 +147,7 @@ export class Opening implements Stateful {
         this.birdTick = 3;
         this.birdFrame = (this.birdFrame + 1) & 3;
       }
-      this.draw(field, BIRD_RIGHT + this.birdFrame * FRAME, this.birdX, BIRD_Y);
+      canvas.draw(BIRD_RIGHT + this.birdFrame * FRAME, this.birdX, BIRD_Y);
     }
     if (this.birdX === BIRD_TURNS_AT) { // $CC53
       this.birdX = BIRD_TURNS_AT - 1;
@@ -134,11 +156,11 @@ export class Opening implements Stateful {
   }
 
   /** `$CCA9`: the acorn falls a pixel a step from y `$9F` to `$4F`, lies there for four pictures of three steps, and is then the pot's picture, drawn where it lay. */
-  private acorn(field: Field): void {
+  private acorn(canvas: OpeningCanvas): void {
     if (this.acornOut === 0) return;
     if (this.acornLanded === 0) { // $CCB4
       this.acornY = wrap(this.acornY - 1);
-      this.draw(field, ACORN, ACORN_X, this.acornY);
+      canvas.draw(ACORN, ACORN_X, this.acornY);
       if (this.acornY === ACORN_LANDS) this.acornLanded = ACORN_LANDS;
       return;
     }
@@ -149,19 +171,30 @@ export class Opening implements Stateful {
     if (this.acornFrame === 0) { // $CD0A
       this.acornOut = 0;
       this.acornLanded = 0;
-      this.draw(field, FILLED, ACORN_X, ACORN_LANDS);
+      canvas.draw(FILLED, ACORN_X, ACORN_LANDS);
       this.acornY = ACORN_START;
       return;
     }
-    this.draw(field, ACORN + this.acornFrame * FRAME, ACORN_X, this.acornY);
+    canvas.draw(ACORN + this.acornFrame * FRAME, ACORN_X, this.acornY);
   }
 
   /** `$CDC4` (from `$CDDF`): Monty has passed the pot: it is drawn filled, in its place, and does not steam again until the scene starts again. Returns whether this was the time. */
-  passed(field: Field): boolean {
+  passed(field: Field): boolean { return this.gift(this.canvasOf(field)); }
+
+  /** The gift itself, on any canvas (the remix: Monty has touched the bucket at the pot). */
+  gift(canvas: OpeningCanvas): boolean {
     if (this.potWaits === 0) return false;
     this.potWaits = 0;
-    this.draw(field, FILLED, POT_X, POT_Y);
+    canvas.draw(FILLED, POT_X, POT_Y);
     return true;
+  }
+
+  /** This scene in the state of another (the remix's search tries ahead on copies of its game). */
+  copyFrom(o: Opening): void {
+    this.potWaits = o.potWaits; this.potTick = o.potTick; this.potFrame = o.potFrame; this.wifeX = o.wifeX; this.wifeFrame = o.wifeFrame; this.wifeTick = o.wifeTick;
+    this.birdWay = o.birdWay; this.birdX = o.birdX; this.birdTick = o.birdTick; this.birdFrame = o.birdFrame;
+    this.acornOut = o.acornOut; this.acornLanded = o.acornLanded; this.acornY = o.acornY; this.acornTick = o.acornTick; this.acornFrame = o.acornFrame;
+    this.sunTick = o.sunTick; this.sunFrame = o.sunFrame;
   }
 
   save(w: StateWriter): void {

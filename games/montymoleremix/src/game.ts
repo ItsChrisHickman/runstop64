@@ -9,6 +9,7 @@ import { GATES, type Gate } from '../../montymole/src/gates';
 import { Random } from '../../montymole/src/random';
 import { ROOM_COLS, ROOM_ROWS, type RoomData } from '../../montymole/src/room';
 import { OBJECT_FRAMES } from '../../montymole/src/object';
+import { Opening, OPENING_PICTURES, OPENING_POT, type OpeningCanvas } from '../../montymole/src/opening';
 import { bankImage, enemyBank, enemyCopyFlag, EVENT_SFX, jumpArc, SFX } from '../../montyotr/src/data';
 import { afterLoss } from '../../shared/lives';
 import { animateMonty } from '../../shared/monty/anim';
@@ -19,10 +20,11 @@ import {
   animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_COLS, PLAY_ROW, PRNG_START, ROW, SCREEN,
   type Collectible, type Sound,
 } from '../../shared/monty/screen';
-import { cellRow, coalCells, vicX, vicY, wantedMonty } from './coords';
+import { cellRow, coalCells, VIC_LEFT, VIC_TOP, vicX, vicY, wantedMonty } from './coords';
 import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
 import { carries, lookOf, lookOfSet, type Look } from './kinds';
 import { C64_OF, retile, type RemixRoom } from './retile';
+import { GATE, SCENE, SCENE_PATH_ROW, SCENE_ROOM, SCENE_START_X } from './opening-scene';
 
 /**
  * Wanted: Monty Mole Remix: Wanted's rules over Monty on the Run's Monty (docs/montymole-remix-plan.md). The room is Monty on the Run's
@@ -38,6 +40,19 @@ import { C64_OF, retile, type RemixRoom } from './retile';
  */
 
 export const START_LIVES = 5;
+/** The opening scene's room number (Wanted's pseudo-room `$2C`: the exit to the left of room 0 leads back to it). */
+export const OPENING_ROOM = 0x2c;
+/** Where the scene's way out leads, and what it has of exits: the way on is room 0; at the left is the house. */
+const OPENING_EXITS = { up: 0xff, down: 0xff, left: 0xff, right: 0 } as const;
+/** The gift: Monty has passed x `$40`, the original's trigger, and the bucket at the pot is his. */
+const GIFT_X = 0x40;
+/** The scene's sprites, by their pictures: the pot (a creature's slot), the wife (head and legs), the bird, the acorn; their colours. */
+const SCENE_SLOT = { pot: 0, head: 1, legs: 2, bird: 3, acorn: 4 } as const;
+const SCENE_COLOUR = { pot: 7, head: 1, legs: 1, bird: 1, acorn: 2 } as const;
+/** The pot stands this much further right than in the original (Wanted's `$2F`, by the house's wall: Monty comes from the house side here, and starts by the wall, so it is moved out of him). */
+const POT_SHIFT = 0x3c - 0x2f;
+/** Where Monty comes back into the scene from room 0: the original's start, x `$D8`. */
+const SCENE_RETURN_X = 0xd8;
 /** The cell of the room grid every room is entered at: Wanted's rooms lead to one another by number, not by place (`exits`). */
 export const HOME_ROW = 2, HOME_COL = 11;
 /** The first of the room numbers that are not rooms of the game (the ending): no way into them yet. */
@@ -56,6 +71,8 @@ const TOOL_SPRITE = 0;
 const MONTY_SPRITE = 3;
 /** The sprite bit of every creature, to read the collisions. */
 const CREATURES_BITS = CREATURE_SPRITE.reduce((m, n) => m | (1 << n), 0);
+/** In the scene, the sprite bit of the acorn: the only thing there that kills. */
+const SCENE_LETHAL = 1 << (CREATURE_SPRITE[SCENE_SLOT.acorn] ?? 0);
 /** Where each creature's eight frames are in the bank: pointers (a frame is 64 bytes). Monty on the Run keeps four slots at $30; two more are in its free space. */
 const creaturePtr = (slot: number): number => (slot < 4 ? 0x30 + slot * 8 : 0xc8 + (slot - 4) * 8);
 /** The tool's picture is Wanted's own, put in the sprite block Monty on the Run keeps its first item in (pointer $8E; its items are not used here). */
@@ -181,6 +198,17 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private crusherColour = 1;
   /** its picture as the original keeps it */
   readonly crusherPicture = new CrusherPicture();
+
+  // ---- the opening scene ----------------------------------------------------------
+  /** the scene's own rules (Wanted's: the pot, the wife, the bird and the acorn), and whether the bucket at the pot is his (the gate is open) */
+  readonly opening = new Opening();
+  bucketTaken = false;
+  /** the colour of each character the scene draws with (the room's own tiles have theirs in `roomColours`) */
+  readonly decorColour = new Uint8Array(256);
+  /** the gate's opening: the next cell (-1: none going) and the frames to the one after */
+  private sceneGateStep = -1;
+  private sceneGateWait = 0;
+  private readonly sceneCanvas: OpeningCanvas = { draw: (address, x, y) => { this.drawScene(address, x, y); } };
   /** Wanted's generator (`$FD9B`): the crusher's waits, a chaser's aim */
   readonly wanted = new Random(0x2c5a);
   prng = Uint8Array.from(PRNG_START);
@@ -248,6 +276,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.crusherDrawn = o.crusherDrawn.slice();
     this.crusherSteps = o.crusherSteps; this.crusherProp.set(o.crusherProp); this.creatureProp.set(o.creatureProp); this.crusherColour = o.crusherColour;
     this.crusherPicture.copyFrom(o.crusherPicture);
+    this.bucketTaken = o.bucketTaken; this.opening.copyFrom(o.opening); this.decorColour.set(o.decorColour);
+    this.sceneGateStep = o.sceneGateStep; this.sceneGateWait = o.sceneGateWait;
     this.wanted.seed = o.wanted.seed;
     this.prng.set(o.prng);
     this.roomLoads = o.roomLoads; this.enteredBy = o.enteredBy;
@@ -279,9 +309,10 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** The room a way out leads to: Wanted's graph, from the room's four exits ($FF: none yet, or the way is one of the scenes). */
   roomAt(row: number, col: number): number {
     const dr = row - HOME_ROW, dc = col - HOME_COL;
-    const exits = roomData(this.roomId).exits;
+    const exits = exitsOf(this.roomId);
     const to = dr === -1 && dc === 0 ? exits.up : dr === 1 && dc === 0 ? exits.down : dr === 0 && dc === -1 ? exits.left : dr === 0 && dc === 1 ? exits.right : 0xff;
-    return to >= FIRST_SCENE || to === 0xff || to === 0x2c ? 0xff : to;
+    if (to === OPENING_ROOM) return to;
+    return to >= FIRST_SCENE || to === 0xff ? 0xff : to;
   }
 
   private rowAddr(row: number): number { return SCREEN + Math.min(row & 0xff, 25) * ROW; }
@@ -292,8 +323,11 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   // ---- game start ---------------------------------------------------------------
 
-  /** A new game: room 0, as the opening scene leaves him (the scene itself is a later stage). */
-  start(): void {
+  /**
+   * A new game: the opening scene, Monty by the miner's house with the gate shut on the right until he has the bucket at the pot; or, without the
+   * scene (a game carried on from a save: no save is made before the gate), room 0 as the scene leaves him.
+   */
+  start(scene = true): void {
     this.mem.set(bankImage);
     this.mem.fill(0, SCREEN, SCREEN + 1024);
     this.col.fill(3);
@@ -316,11 +350,16 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.stepGate = 0;
     this.animTimer = 1;
     this.ticker = 0xff;
-    this.roomId = 0;
     this.mapRow = HOME_ROW;
     this.exitCol = HOME_COL;
-    this.x2 = 0x1c + (ROOM0_ARRIVAL.x >> 1);
-    this.y = 0xf9 - ROOM0_ARRIVAL.y;
+    this.bucketTaken = !scene;
+    this.opening.copyFrom(new Opening());
+    this.opening.begin();
+    if (!scene) this.opening.gift({ draw() {} });
+    this.sceneGateStep = -1;
+    this.roomId = scene ? OPENING_ROOM : 0;
+    this.x2 = scene ? (SCENE_START_X + VIC_LEFT) >> 1 : 0x1c + (ROOM0_ARRIVAL.x >> 1);
+    this.y = scene ? VIC_TOP + SCENE_PATH_ROW * 8 : 0xf9 - ROOM0_ARRIVAL.y;
     drawHudFrame(this, this.score, this.hiScore, this.lives);
     this.roomExit = 1; // the main thread loads the first room
     this.freeze = 1;
@@ -363,7 +402,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     }
     if ((this.actionCounter & 0x80) || !this.freeze) {
       if (this.frameToggle) {
-        this.creaturesPass();
+        if (this.roomId === OPENING_ROOM) this.scenePass(); else this.creaturesPass();
         this.collectCoal();
         this.flicker();
         animateTheme(this.mem, this.roomFlags);
@@ -397,6 +436,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.stepFloor();
     this.stepGates();
     this.stepCrusher();
+    this.stepSceneGate();
   }
 
   // ---- sprites ---------------------------------------------------------------------
@@ -423,7 +463,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private setCell(col: number, row: number, code: number): void {
     this.cells[row * ROOM_COLS + col] = code;
     const at = SCREEN + (row + PLAY_ROW) * ROW + PLAY_COL + col;
-    const colour = code >= 1 && code <= 8 ? this.roomColours[code - 1] ?? 0 : 0;
+    const colour = code >= 1 && code <= 8 ? this.roomColours[code - 1] ?? 0 : this.decorColour[code] ?? 0;
     const put = (a: number) => { this.mem[a] = code; this.col[a - SCREEN] = colour; };
     put(at);
     if (col === 0) { put(at - 1); put(at - 2); }
@@ -433,19 +473,11 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** LoadRoom, as Monty on the Run's does it: the tiles into characters 1-8, the 32 x 20 cells, their colours, the gutters; then Wanted's things. */
   loadRoom(): void {
     const id = this.roomId;
+    if (id === OPENING_ROOM) { this.loadOpening(); return; }
     const data = roomData(id);
     this.room = retile(data);
     const room = this.room;
-    this.col.fill(0, 0x78);
-    for (let i = 0; i < 8; i++) {
-      const slot = room.slots[i];
-      this.mem.set(slot?.rows ?? new Uint8Array(8), 8 + i * 8);
-      this.tileProps[i] = slot?.prop ?? 0;
-      this.roomColours[i] = slot?.colour ?? 0;
-    }
-    for (let r = 0; r < ROOM_ROWS; r++) for (let c = 0; c < ROOM_COLS; c++) this.setCell(c, r, room.cells[r * ROOM_COLS + c] ?? 0);
-    this.mem.fill(0, SCREEN + 23 * ROW, SCREEN + 25 * ROW); // (Wanted's rooms have no names: the rows under the room are empty)
-    this.roomFlags = room.theme;
+    this.drawCells(room);
     // the coal: Wanted's piece in this room's picture (the castle's are not lumps), the pieces not yet taken
     this.mem.set(data.nugget, COAL_CHAR * 8);
     this.entities = [];
@@ -483,6 +515,36 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.placeSprites();
   }
 
+  /** A room's tiles into characters 1-8 with their classes and colours, its 32 x 20 cells and its theme. */
+  private drawCells(room: RemixRoom): void {
+    this.col.fill(0, 0x78);
+    for (let i = 0; i < 8; i++) {
+      const slot = room.slots[i];
+      this.mem.set(slot?.rows ?? new Uint8Array(8), 8 + i * 8);
+      this.tileProps[i] = slot?.prop ?? 0;
+      this.roomColours[i] = slot?.colour ?? 0;
+    }
+    for (let r = 0; r < ROOM_ROWS; r++) for (let c = 0; c < ROOM_COLS; c++) this.setCell(c, r, room.cells[r * ROOM_COLS + c] ?? 0);
+    this.mem.fill(0, SCREEN + 23 * ROW, SCREEN + 25 * ROW); // (Wanted's rooms have no names: the rows under the room are empty)
+    this.roomFlags = room.theme;
+  }
+
+  /** A creature's own frames in sprite memory: the four of one way (`left`'s set) and the four of the other (`right`'s), 16 x 16 pixels a bit each. */
+  private loadOwnFrames(slot: number, left: number, right: number): void {
+    const base = creaturePtr(slot) * 64;
+    [left, right].forEach((set, half) => {
+      for (let f = 0; f < 4; f++) {
+        const src = imageAt(set + 32 * f);
+        const dst = this.mem.subarray(base + (half * 4 + f) * 64, base + (half * 4 + f) * 64 + 64);
+        dst.fill(0);
+        for (let r = 0; r < 16; r++) {
+          dst[r * 3] = src[r * 2] ?? 0;
+          dst[r * 3 + 1] = src[r * 2 + 1] ?? 0;
+        }
+      }
+    });
+  }
+
   /** Each creature's type and its frames in sprite memory (Monty on the Run's bank, unpacked as its SetupRoom does). */
   private setupCreatures(): void {
     this.creatures.forEach((e, slot) => {
@@ -507,21 +569,101 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
         if (enemyCopyFlag(look.type)) this.mem.copyWithin(base + 0x100, base, base + 0x100);
         return;
       }
-      // Wanted's own frames: its four one way (directions 0 and 2) and four the other (1 and 3), 16 x 16 pixels a bit each
+      // Wanted's own frames: its four one way (directions 0 and 2) and four the other (1 and 3)
       const left = [e.sets[0] ?? 0, e.sets[2] ?? 0].find((a) => lookOfSet(a) !== null) ?? 0;
       const right = [e.sets[1] ?? 0, e.sets[3] ?? 0].find((a) => lookOfSet(a) !== null) ?? left;
-      [left, right].forEach((set, half) => {
-        for (let f = 0; f < 4; f++) {
-          const src = imageAt(set + 32 * f);
-          const dst = this.mem.subarray(base + (half * 4 + f) * 64, base + (half * 4 + f) * 64 + 64);
-          dst.fill(0);
-          for (let r = 0; r < 16; r++) {
-            dst[r * 3] = src[r * 2] ?? 0;
-            dst[r * 3 + 1] = src[r * 2 + 1] ?? 0;
-          }
-        }
-      });
+      this.loadOwnFrames(slot, left, right);
     });
+  }
+
+  // ---- the opening scene -------------------------------------------------------------------
+
+  /**
+   * The opening scene as a room: its tiles, the characters of its own pictures and its cells (the gate open if the bucket is his), its sprites
+   * (the pot, the wife, the bird, the acorn: Wanted's own frames, `opening.step` says where); none of Wanted's other things.
+   */
+  private loadOpening(): void {
+    this.room = SCENE_ROOM;
+    for (const [code, ch] of SCENE.chars) {
+      this.mem.set(ch.rows, code * 8);
+      this.decorColour[code] = ch.colour;
+    }
+    this.drawCells(SCENE_ROOM);
+    this.entities = [];
+    this.creatures.forEach((e, i) => { e.state = EnemyState.none; this.creatureType[i] = null; });
+    this.crusher.fromBytes([0, 0, 0, 0, 0, 0]);
+    this.crusherSteps = 0;
+    this.crusherDrawn = [];
+    this.crusherProp.fill(0);
+    this.crusherPicture.clear();
+    this.floor.fromBytes([0, 0, 0, 0, 0, 0, 0]);
+    this.creatureProp.fill(0);
+    this.tool = null;
+    this.carrying = false;
+    this.carrierBits = 0;
+    if (this.bucketTaken) for (let k = 0; k < GATE.cells; k++) this.openGateCell(k);
+    this.sceneGateStep = -1;
+    const P = OPENING_PICTURES;
+    this.loadOwnFrames(SCENE_SLOT.pot, P.POT, P.POT);
+    this.loadOwnFrames(SCENE_SLOT.head, P.WIFE_HEAD, P.WIFE_HEAD);
+    this.loadOwnFrames(SCENE_SLOT.legs, P.WIFE_LEGS, P.WIFE_LEGS);
+    this.loadOwnFrames(SCENE_SLOT.bird, P.BIRD_LEFT, P.BIRD_RIGHT);
+    this.loadOwnFrames(SCENE_SLOT.acorn, P.ACORN, P.ACORN);
+    this.shown = 0;
+  }
+
+  /** The gate's cell `k` (from the path up) is open: what is behind it in the picture. */
+  private openGateCell(k: number): void {
+    const row = GATE.top + GATE.cells - 1 - k;
+    this.setCell(GATE.col, row, SCENE.behind.get(row * ROOM_COLS + GATE.col) ?? 0);
+  }
+
+  /** The scene's pictures as sprites: the original draws a picture of the pot, the wife, the bird or the acorn at a place; the sprite shows it there. */
+  private drawScene(address: number, x: number, y: number): void {
+    const P = OPENING_PICTURES;
+    const show = (kind: keyof typeof SCENE_SLOT, frame: number): void => {
+      const n = CREATURE_SPRITE[SCENE_SLOT[kind]];
+      const r = n === undefined ? undefined : this.vic.sprites[n];
+      if (n === undefined || r === undefined) return;
+      r.x = vicX(kind === 'pot' ? x + POT_SHIFT : x);
+      r.y = vicY(y);
+      r.ptr = creaturePtr(SCENE_SLOT[kind]) + frame;
+      r.colour = SCENE_COLOUR[kind];
+      this.shown |= 1 << n;
+    };
+    const hide = (kind: keyof typeof SCENE_SLOT): void => {
+      const n = CREATURE_SPRITE[SCENE_SLOT[kind]];
+      if (n !== undefined) this.shown &= ~(1 << n);
+    };
+    const frame = (base: number): number => (address - base) / P.FRAME;
+    if (address === P.FILLED) hide(x === OPENING_POT.x ? 'pot' : 'acorn');
+    else if (address >= P.POT && address < P.POT + 4 * P.FRAME) show('pot', frame(P.POT));
+    else if (address >= P.WIFE_HEAD && address < P.WIFE_HEAD + 4 * P.FRAME) show('head', frame(P.WIFE_HEAD));
+    else if (address >= P.WIFE_LEGS && address < P.WIFE_LEGS + 4 * P.FRAME) show('legs', frame(P.WIFE_LEGS));
+    else if (address >= P.BIRD_RIGHT && address < P.BIRD_RIGHT + 4 * P.FRAME) show('bird', 4 + frame(P.BIRD_RIGHT));
+    else if (address >= P.BIRD_LEFT && address < P.BIRD_LEFT + 4 * P.FRAME) show('bird', frame(P.BIRD_LEFT));
+    else if (address >= P.ACORN && address < P.ACORN + 4 * P.FRAME) show('acorn', frame(P.ACORN));
+  }
+
+  /** The scene's pass (25 a second): Wanted's own animation, and the gift of the bucket when he has passed x `$40` (the original's trigger). */
+  private scenePass(): void {
+    this.opening.step(this.sceneCanvas);
+    if (this.bucketTaken || this.freeze) return;
+    if (wantedMonty(this.x2, this.stepGate, this.y).x < GIFT_X) return;
+    this.bucketTaken = true;
+    this.opening.gift(this.sceneCanvas);
+    this.sfx(SFX.item);
+    this.sceneGateStep = 0;
+    this.sceneGateWait = 0;
+  }
+
+  /** What the interrupt runs in the scene: the gate opening, a cell every few frames from the path up (as the coal's gates do). */
+  private stepSceneGate(): void {
+    if (this.sceneGateStep < 0) return;
+    if (this.sceneGateWait-- > 0) return;
+    this.sceneGateWait = 3;
+    this.openGateCell(this.sceneGateStep);
+    if (++this.sceneGateStep >= GATE.cells) this.sceneGateStep = -1;
   }
 
   // ---- the creatures ----------------------------------------------------------------
@@ -605,7 +747,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   /** A touch with a creature: a death, or with the tool in hand the creature's (`$92DF`). */
   private touchCreature(): void {
-    const vic = (this.collisionStore & 0x08) !== 0 && (this.collisionStore & CREATURES_BITS & ~this.carrierBits) !== 0;
+    // (in the scene only the acorn is a danger)
+    const lethal = this.roomId === OPENING_ROOM ? SCENE_LETHAL : CREATURES_BITS & ~this.carrierBits;
+    const vic = (this.collisionStore & 0x08) !== 0 && (this.collisionStore & lethal) !== 0;
     if (!vic && !this.touchesCarrier()) return;
     if (this.carrying) { this.useTool(); return; }
     if (!this.actionCounter) this.actionCounter = 2;
@@ -830,6 +974,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.vic.enable = 0;
     this.enable = 0;
     this.shown = 0;
+    const from = this.roomId;
     const dr = this.mapRow - HOME_ROW, dc = this.exitCol - HOME_COL;
     this.enteredBy = dr < 0 ? 0 : dr > 0 ? 1 : dc < 0 ? 2 : dc > 0 ? 3 : -1;
     // (a way in at the side is where Wanted puts him, x 2 or $EE, not Monty on the Run's, a gutter's width further out: a ferry starts under him there)
@@ -840,6 +985,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.roomId = this.roomAfterExit();
     this.mapRow = HOME_ROW;
     this.exitCol = HOME_COL;
+    // (the scene and room 0 are put where Wanted puts him: out of the scene at the bottom left of room 0, back from room 0 at the right of the scene)
+    if (from === OPENING_ROOM && this.roomId === 0) { this.x2 = 0x1c + (ROOM0_ARRIVAL.x >> 1); this.y = 0xf9 - ROOM0_ARRIVAL.y; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
+    if (from !== OPENING_ROOM && this.roomId === OPENING_ROOM) { this.x2 = (SCENE_RETURN_X + VIC_LEFT) >> 1; this.y = VIC_TOP + SCENE_PATH_ROW * 8; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
     this.loadRoom();
     // room 16's pit lifts him into room 17 (a short version of the scene: stage 6)
     if (this.roomId === PIT_ROOM && wantedMonty(this.x2, this.stepGate, this.y).y < PIT_Y) {
@@ -865,7 +1013,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   roomAfterExit(): number {
     const dr = this.mapRow - HOME_ROW, dc = this.exitCol - HOME_COL;
     if (dr === 0 && dc === 0) return this.roomId;
-    const exits = roomData(this.roomId).exits;
+    const exits = exitsOf(this.roomId);
     return dr < 0 ? exits.up : dr > 0 ? exits.down : dc < 0 ? exits.left : exits.right;
   }
 
@@ -943,6 +1091,11 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.travelTo(room, x2, y, facing);
     for (let n = 0; n < 20 && (n === 0 || this.freeze || this.script); n++) this.frame(0);
   }
+}
+
+/** A room's four exits: Wanted's table, or the scene's. */
+function exitsOf(id: number): { readonly up: number; readonly down: number; readonly left: number; readonly right: number } {
+  return id === OPENING_ROOM ? OPENING_EXITS : roomData(id).exits;
 }
 
 /** A room's data (Wanted's, from its tape). */

@@ -19,7 +19,8 @@ import { montyCol, montyRow } from '../../shared/monty/body';
 import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { cellRow, coalCells, wantedMonty } from '../src/coords';
-import { HOME_COL, HOME_ROW, PIT_ROOM, PIT_Y, RemixGame } from '../src/game';
+import { GATE } from '../src/opening-scene';
+import { HOME_COL, HOME_ROW, OPENING_ROOM, PIT_ROOM, PIT_Y, RemixGame } from '../src/game';
 import { STILL_THERE } from '../../montymole/src/coal-rules';
 import { portsFor } from '../../montymole/src/controls';
 import { Game as Faithful } from '../../montymole/src/game';
@@ -334,8 +335,8 @@ export class RoomGraph {
 
 /** What the map of a room is made of: the room's cells with the gates open, with no floor, and with the floor wherever it ever is (a room that has one is mapped both ways). */
 export function factsOf(g: RemixGame): RoomFacts {
-  const data = ROOMS[g.roomId];
-  if (data === undefined) throw new Error(`no room ${g.roomId}`);
+  const data = ROOMS[g.roomId]; // (the opening scene has no data of Wanted's room: no tool, no coal)
+  if (data === undefined && g.roomId !== OPENING_ROOM) throw new Error(`no room ${g.roomId}`);
   const props = new Uint8Array(ROOM_COLS * ROOM_ROWS);
   g.room.cells.forEach((code, at) => { props[at] = code >= 1 && code <= 8 ? g.tileProps[code - 1] ?? 0 : 0; });
   // the gates open (the pieces that open them are the room's goals too: the map does not wait for them)
@@ -344,6 +345,8 @@ export function factsOf(g: RemixGame): RoomFacts {
     const top = cellRow(gate.y);
     for (let k = 0; k < gate.cells; k++) props[(top + k) * ROOM_COLS + gate.column] = 0;
   }
+  // (the opening scene's gate is the bucket's: the map has it open as the coal's are)
+  if (g.roomId === OPENING_ROOM) for (let k = 0; k < GATE.cells; k++) props[(GATE.top + k) * ROOM_COLS + GATE.col] = 0;
   // what moves and holds him up (the retractable floor, the ferries that fly along the lakes, the crusher's head), wherever it is in a whole cycle
   let withMovers: Uint8Array | null = null;
   const probe = new RemixGame();
@@ -362,7 +365,7 @@ export function factsOf(g: RemixGame): RoomFacts {
   }
   if (more) withMovers = union;
   const pieces = g.room.coal;
-  const tool = data.object.sprite !== 0 ? { x: data.object.x, y: data.object.y } : null;
+  const tool = data !== undefined && data.object.sprite !== 0 ? { x: data.object.x, y: data.object.y } : null;
   return { room: g.roomId, props, withMovers, pieces, tool };
 }
 
@@ -619,7 +622,7 @@ export function goalsOf(g: RemixGame, facts: RoomFacts): Goal[] {
   // (a way that leads back into the same room is a wall of the room as far as the game goes: the original's table has it for the rooms with no way there)
   for (const d of DIRECTIONS) {
     const dest = g.roomAt(HOME_ROW + to[d][0], HOME_COL + to[d][1]);
-    if (dest !== 0xff && dest !== facts.room) goals.push({ kind: 'exit', direction: d });
+    if (dest !== 0xff && dest !== OPENING_ROOM && dest !== facts.room) goals.push({ kind: 'exit', direction: d });
   }
   return goals;
 }

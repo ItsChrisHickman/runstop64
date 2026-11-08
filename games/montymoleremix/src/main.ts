@@ -5,7 +5,7 @@ import { montyLettering } from '../../shared/monty/font';
 import { runPort } from '../../shared/port';
 import { bankImage, MUSIC } from '../../montyotr/src/data';
 import { fineScroll, topScore } from '../../montyotr/src/title';
-import { RemixGame, START_LIVES } from './game';
+import { OPENING_ROOM, RemixGame, START_LIVES } from './game';
 import { coalCount, hintsOf } from './hints';
 import { describeSave, noteReached, remixMap, type RemixFound } from './map';
 import { CODEC, restore, snapshot, type RemixSave } from './save';
@@ -61,6 +61,7 @@ export function run(host: Host) {
     g.graceActive = () => flow.grace.active;
 
     g.onRoomLoaded = (game) => {
+      if (game.roomId === OPENING_ROOM) return; // (the scene is no room: nothing is noted or saved)
       if (noteReached(fe.found, game.roomId, game.entry.x2, game.entry.y)) fe.keepFound();
       // a save on coming into a room
       rooms.enter(snapshot(game));
