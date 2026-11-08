@@ -16,7 +16,7 @@ export const info = {
     <p>The goal: the planet's core is missing nine pieces. Carry four things at a time (up picks up, and puts down the oldest; ENHANCED carries as many as you like) to the core, room 199,
     and each piece he has goes back in its place. Security doors and Cheops pyramids want the symbols they show (the same symbols carried, or the access card);
     a pyramid then trades the oldest thing carried (ENHANCED: the least useful) for one of five. Teleports take the five-letter name shown in another booth. The pause map says how many places
-    of the core are filled and what each room has.</p>
+    of the core are filled and what each room has; its last page lists what you carry and what each thing is for.</p>
     <p>Controls: arrows or WASD move (up picks things up, down builds a platform) &middot; Space fires
     (also gamepad A) &middot; Z is GET (picks up, also on the hover pad where up rises), X is the platform key &middot; P or Esc pauses: a map of the planet; pick a room you've been in and press
     Enter to go back there &middot; M sound on or off &middot; V authentic pixel steps</p>

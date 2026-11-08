@@ -1,6 +1,7 @@
 import { COL, drawPickName, foundCodec, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { CORE_ROOM, MAP_H, MAP_W } from './data';
 import type { Game } from './game';
+import * as Inventory from './inventory';
 import { CORE_PIECES, DOOR_SYMBOLS, kindsOf, lyingHere, passRooms, pieceRooms, piecesPlaced, PYRAMID_SYMBOLS, pyramidShown, teleportName, TELEPORT_ROOMS } from './places';
 
 /**
@@ -22,6 +23,9 @@ const spot = S.tuple(S.number, S.number); // column, row
 const found = S.object({ entry: S.record(spot), booths: S.array(S.number), pyramids: S.array(S.number) });
 export type StarquakeFound = S.Infer<typeof found>;
 const FOUND = foundCodec(found, () => ({ entry: {}, booths: [], pyramids: [] }));
+
+/** The first page that is not the map: what BLOB carries. */
+export const INVENTORY = 2;
 
 const visited = (g: Game, room: number) => !!(g.lo[room >> 3] & (0x80 >> (room & 7)));
 const ROWS_PER_PAGE = 16;
@@ -78,9 +82,15 @@ export const starquakeMap = {
     if (!entry[key]) entry[key] = [g.col, g.row];
     if (pyramidShown(g) && !pyramids.includes(g.room)) pyramids.push(g.room);
   },
-  pages: (g) => ({ list: [0, 1], current: g.room >> 8 }),
-  title: (_g, page = 0) => (page ? 'THE DEPTHS' : 'THE SURFACE'),
+  // (the map's two pages, then what BLOB carries: one page, more when there are more than it holds)
+  pages: (g) => ({ list: [0, 1, ...Array.from({ length: Inventory.pageCount(g) }, (_, i) => INVENTORY + i)], current: g.room >> 8 }),
+  title(g, page = 0) {
+    if (page < INVENTORY) return page ? 'THE DEPTHS' : 'THE SURFACE';
+    const n = Inventory.pageCount(g);
+    return n > 1 ? `CARRYING ${page - INVENTORY + 1}/${n}` : 'CARRYING';
+  },
   draw(s, box, g, f, blink, page = 0, font, pick, assist) {
+    if (page >= INVENTORY) { Inventory.draw(s, box, g, font, page - INVENTORY); return; }
     const help = assist?.guide === true;
     const { cw, ch, at } = layout(mapBox(box));
     const pieces = help ? pieceRooms(g) : new Set<number>(), passes = help ? passRooms(g) : new Set<number>();
@@ -109,7 +119,7 @@ export const starquakeMap = {
       drawPickName(s, { ...box, h: box.h + 2 }, font, pick === null || pick === undefined ? null : roomLine(g, f, Number(pick), help));
     }
   },
-  legend: (_g, assist) => [
+  legend: (_g, assist, page = 0) => page >= INVENTORY ? [] : [
     { colour: COL.cyan, text: 'TELEPORT' }, { colour: COL.red, text: 'THE CORE' },
     { colour: MARK.door, text: 'DOOR' }, { colour: MARK.pyramid, text: 'PYRAMID' },
     ...(assist?.guide ? [{ colour: MARK.piece, text: 'PIECE' }, { colour: MARK.pass, text: 'CARD, KEY' }] : []),

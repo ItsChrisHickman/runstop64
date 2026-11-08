@@ -62,8 +62,8 @@ export interface PauseMap<T, F> {
   draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null, assist?: Readonly<Record<string, boolean>>): void;
   /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (ENHANCED's). */
   info(ram: T, found: F, assist?: Readonly<Record<string, boolean>>): string[];
-  /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now. */
-  legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>) => { colour: number; text: string }[]);
+  /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now (`page`: the page shown, for maps with pages that are not maps). */
+  legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>, page?: number) => { colour: number; text: string }[]);
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
   pages?(ram: T, found: F): { list: number[]; current: number };
   /** Places on the shown page the player can go back to, where they're drawn in `box`; `here` is where the player is. */
@@ -171,7 +171,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
   font.draw(s, 'PAUSED', 222, 8, colours.white);
   const info = map.info(ram, found, ui.assist);
   info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, colours.lgrey));
-  const legend = typeof map.legend === 'function' ? map.legend(ram, ui.assist) : map.legend ?? [];
+  const legend = typeof map.legend === 'function' ? map.legend(ram, ui.assist, ui.page) : map.legend ?? [];
   legend.forEach((l, i) => {
     const y = 26 + (info.length + i) * 12;
     s.fillRect(222, y + 1, 6, 6, l.colour);
