@@ -8,7 +8,7 @@ import { screenOffset } from './data';
 import type { Field } from './field';
 
 /** A run: the pixel row of its top line (counted up, as the row table `$EA60` is) and the byte it starts at in that row, and how many bytes it has. */
-interface Run {
+export interface Run {
   readonly y: number;
   readonly start: number;
   readonly bytes: number;
@@ -25,14 +25,17 @@ export const CONVEYORS: ReadonlyMap<number, readonly Run[]> = new Map([
   ]],
 ]);
 
+/** `$90A8`: one run turned one bit on its three lines. */
+export function turnRun(field: Field, run: Run): void {
+  for (let line = 0; line < 3; line++) {
+    const at = screenOffset(run.y) + run.start + line * 256;
+    const first = field.screen[at] ?? 0;
+    const turned = ((first << 1) | (first >> 7)) & 0xff;
+    for (let i = 0; i < run.bytes; i++) field.screen[at + i] = turned;
+  }
+}
+
 /** `$8FC7`: every run of room `room` turned one bit. */
 export function turnConveyors(field: Field, room: number): void {
-  for (const run of CONVEYORS.get(room) ?? []) {
-    for (let line = 0; line < 3; line++) {
-      const at = screenOffset(run.y) + run.start + line * 256;
-      const first = field.screen[at] ?? 0;
-      const turned = ((first << 1) | (first >> 7)) & 0xff;
-      for (let i = 0; i < run.bytes; i++) field.screen[at + i] = turned;
-    }
-  }
+  for (const run of CONVEYORS.get(room) ?? []) turnRun(field, run);
 }

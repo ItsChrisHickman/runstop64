@@ -32,6 +32,9 @@ export const SPANS = {
   deathTune: { name: 'the death tune: 24 notes of 4 bytes', at: 0x5c7d, length: 24 * 4 },
   crusher: { name: 'the crusher: 9 rows of 3 bytes for the way up (from $8E80) and 9 for the way down (from $8E7A)', at: 0x8e7a, length: 33 },
   chain: { name: 'room 17\'s animation: two pictures of 8 rows of 2 bytes, a ring of 32 bytes that turns by 2 each step, and (after it) the byte that remembers the object', at: 0x910b, length: 33 },
+  openingScene: { name: 'the opening scene: the charset pointer, 28 x 20 character codes (from $80, a glyph of the scene\'s own) and the colour attribute of each cell', at: 0xf14b, length: 2 + 560 + 560 },
+  openingGlyphs: { name: 'the opening scene\'s own glyphs: 124 of 8 bytes (character codes $80-$FB)', at: 0x7c00, length: 124 * 8 },
+  sun: { name: 'the animation in the opening\'s top right corner: four pictures of 24 rows of 5 bytes', at: 0xed4e, length: 4 * 120 },
   rowTable: { name: 'the row table: 192 words, the screen address of each pixel row y (y up from the bottom)', at: 0xea60, length: 192 * 2 },
 } as const satisfies Record<string, Span>;
 

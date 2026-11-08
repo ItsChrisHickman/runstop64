@@ -20,7 +20,7 @@ const MOLEY_PLAY = 'games/moley/build/play.state'; // the original in play, room
 const MOLEY_STATES = ['title', 'play', 'room0', 'room1', 'room2', 'room3', 'room4', 'room5', 'room5-arrive', 'room6'].map((n) => `games/moley/build/${n}.state`); // the original at the credits page, in play and in each room
 const MM_TAP = 'games/montymole/build/montymole.tap'; // the original Wanted: Monty Mole tape (games/montymole/build/README.md)
 const MM_ROM = 'games/montymole/build/48.rom'; // its own copy of the 48K ROM
-const MM_STATES = ['loading', 'title', 'play', 'room0'].map((n) => `games/montymole/build/${n}.state`); // the original in the opening scene and in room 0
+const MM_STATES = ['loading', 'title', 'play', 'room0', 'opening'].map((n) => `games/montymole/build/${n}.state`); // the original in the opening scene and in room 0
 const MM_CODE = 'games/montymole/build/code.ram'; // the tape's game block as a 64K image (re/image.ts)
 const ZEXDOC = 'games/moley/build/zexdoc.com'; // Z80 instruction exercisers
 const ZEXALL = 'games/moley/build/zexall.com';
@@ -113,7 +113,8 @@ export const TESTS = [
   { file: 'games/montymole/test/boot.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES] },
   { file: 'games/montymole/test/rooms.ts', set: 'fast', needs: [MM_ROM, MM_CODE, ...MM_STATES], name: 'games/montymole/test/rooms.ts (all 21 rooms: the game\'s drawing against the data)' },
   { file: 'games/montymole/test/data.ts', set: 'fast', needs: [MM_TAP, MM_ROM, ...MM_STATES], name: 'games/montymole/test/data.ts (the data against the tape and the running original: sprites, font, texts, tunes, the blitter, BEEPER)' },
-  { file: 'games/montymole/test/lockstep.ts', args: ['300', '1', '40', '3'], set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/lockstep.ts (Monty, the coal, the objects and the enemies against the original, a short run: about 100000 passes)' },
+  { file: 'games/montymole/test/lockstep.ts', args: ['20', '1', '20', '2', '0.1'], set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/lockstep.ts (Monty, the coal, the objects and the enemies against the original, a short run: about 17000 passes, no sweeps)' },
+  { file: 'games/montymole/test/opening.ts', set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/opening.ts (the opening scene against the original: its start, the pot, the wife, the bird, the acorn, the water, the gift, the way out; about 8600 passes)' },
   { file: 'games/montymole/test/lockstep.ts', set: 'slow', needs: [MM_ROM, ...MM_STATES], limitSeconds: 590, name: 'games/montymole/test/lockstep.ts (Monty, the coal, the objects and the enemies against the original, every pass: about 250000 passes, every way out of every room)' },
   { file: 'games/montymole/test/schedule.ts', args: ['40', '40'], set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/schedule.ts (the original with its own interrupts against the rebuilt game\'s schedule of the routine: 40 runs)' },
   { file: 'games/montymole/test/schedule.ts', args: ['600', '60'], set: 'slow', needs: [MM_ROM, ...MM_STATES], limitSeconds: 590, name: 'games/montymole/test/schedule.ts (the same, 600 runs of 60 passes)' },

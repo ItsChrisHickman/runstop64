@@ -20,6 +20,8 @@ import { readRom } from '../../../tools/zx/boot';
 import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum } from '../../../tools/zx/spectrum';
 import { Game, type Beep, type Outcome } from '../src/game';
+import type { Opening } from '../src/opening';
+import { ROOMS } from '../src/data/rooms-data';
 import type { Control, Ports } from '../src/input';
 import { ROOM_COUNT, ROOM_SIZE, ROOM_TABLE } from '../re/rooms-parse';
 
@@ -27,7 +29,7 @@ import { ROOM_COUNT, ROOM_SIZE, ROOM_TABLE } from '../re/rooms-parse';
 export const A = {
   x: 0x5c7b, y: 0x5c7c, input: 0x832e, control: 0x82a3, frameAddr: 0x848c, walkFrame: 0x848e, jumpDir: 0x848f, arc: 0x8492, pitch: 0x8494, jumpCount: 0x8498,
   facing: 0x849b, flags: 0x8d52, flags2: 0x8d53, cells: 0x8d54, fallen: 0x8d58, prevX: 0x8d7d, prevY: 0x8d7e, room: 0x9649, lives: 0x964a, arrival: 0x964b,
-  score: 0x9217, coal: 0x964d, object: 0xc524, crusher: 0xc527, floor: 0xc622, gates: 0xf7d1, gateStep: 0xf7d4, gateCount: 0xf7d5, ring: 0x910b, enemies: 0xc596, seed: 0x5c76, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
+  score: 0x9217, coal: 0x964d, opening: 0xcd32, sunTick: 0xce19, sunPtr: 0xef77, sunFrame: 0xef79, object: 0xc524, crusher: 0xc527, floor: 0xc622, gates: 0xf7d1, gateStep: 0xf7d4, gateCount: 0xf7d5, ring: 0x910b, enemies: 0xc596, seed: 0x5c76, screen: 0x4000, attrs: 0x5800, picture: 0xd260, attrBuffer: 0xcf54, current: 0xc42a,
 } as const;
 export const PASS_START = 0x943d, PASS_AFTER = 0x9440, ROOM_ENTRY = 0x940c, GAME_OVER = 0xf817, ENDING = 0xf858, OPENING = 0xcd41, INPUT_READ = 0x944c, BEEPER = 0x03b6;
 /** The calls of BEEPER the rebuilt game makes beeps for, by where they return to: the footstep (`$8B06`), the touch with a tool (`$92F4`), coal (`$93D5`), an object (`$956E`). The death tune's (`$8DB2`) is not modelled yet. */
@@ -37,6 +39,33 @@ const ENEMY_FIELDS = ['state', 'p0lo', 'p0hi', 'p1lo', 'p1hi', 'p2lo', 'p2hi', '
 /** An interrupt routine that does nothing (`EI`, `RET`) in the code's unused bytes, and where the room loop's start loads the routine's address. */
 const STUB = 0xfe98, LOOP_HANDLER = 0x9424, VECTOR = 0x5b5c;
 const OUTCOMES: Record<number, Outcome> = { [GAME_OVER]: 'gameOver', [ENDING]: 'ending', [OPENING]: 'opening' };
+
+/**
+ * Where a loop's passes begin and end in the original's code: the room loop's (the default) and the opening scene's. A pass begins at `start` (the instruction after the
+ * `HALT`: the model leaves a halted program counter there and the interrupt returns there, so only the first sighting after `after` counts) and ends at the next `start` or
+ * at a terminal: a place the loop is left for. `inputRead` is where the second interrupt of a pass goes (none in the opening, whose loop is about a frame long).
+ */
+export interface Layout {
+  readonly start: number;
+  readonly after: number;
+  readonly arming: readonly number[];
+  readonly inputRead: number;
+  /** whether a second interrupt falls at `inputRead` (the room loop's pass is more than a frame long; the opening's is about one) */
+  readonly secondInterrupt: boolean;
+  /** places the loop is left for, and what the rebuilt pass's outcome should be there */
+  readonly terminals: Readonly<Record<number, Outcome>>;
+  /** terminals where the original is not yet at a comparable state (a room about to be drawn): only the room, the lives and Monty's place are compared */
+  readonly leaving: readonly number[];
+}
+export const ROOM_LAYOUT: Layout = { start: PASS_START, after: PASS_AFTER, arming: [PASS_AFTER, ROOM_ENTRY], inputRead: INPUT_READ, secondInterrupt: true, terminals: OUTCOMES, leaving: [] };
+/** The opening scene's loop (`$CD98`: the `HALT` is `$FF5B` and the animation `$FF5C`; `$CD9B` is the first instruction after it, `$CDA1` is where Monty's routine is called, after the input): left for room 0 (`$940C`) or by dying (`$946E`: its death freezes the scene for the whole death tune). */
+export const OPENING_LAYOUT: Layout = { start: 0xff5c, after: 0xcd9b, arming: [0xcd9b], inputRead: 0xcda1, secondInterrupt: false, terminals: { [ROOM_ENTRY]: 'playing', 0x946e: 'playing' }, leaving: [ROOM_ENTRY] };
+
+/** The opening's variables, `$CD32` on (src/opening.ts), and the interrupt routine's own two (`$CE19`, and the corner's picture `$EF77`/`$EF79`, taken together). */
+const OPENING_VARS = [
+  ['potWaits', 0xcd32], ['potTick', 0xcd33], ['potFrame', 0xcd34], ['wifeX', 0xcd35], ['wifeFrame', 0xcd36], ['wifeTick', 0xcd37], ['birdWay', 0xcd38], ['birdX', 0xcd39],
+  ['birdTick', 0xcd3a], ['birdFrame', 0xcd3b], ['acornOut', 0xcd3c], ['acornLanded', 0xcd3d], ['acornY', 0xcd3e], ['acornTick', 0xcd3f], ['acornFrame', 0xcd40], ['sunTick', 0xce19],
+] as const satisfies readonly (readonly [keyof Opening, number])[];
 
 const word = (mem: Uint8Array, at: number): number => (mem[at] ?? 0) | ((mem[at + 1] ?? 0) << 8);
 const put = (mem: Uint8Array, at: number, v: number): void => { mem[at] = v & 255; mem[at + 1] = v >> 8; };
@@ -56,10 +85,12 @@ export interface Keep {
   readonly crusher?: boolean; readonly floor?: boolean; readonly conveyors?: boolean; readonly room17?: boolean; readonly gate?: boolean;
   /** the original's own interrupt (test/schedule.ts): no stub, nothing patched out */
   readonly real?: boolean;
+  /** the opening scene's loop: its interrupt routine (`$CDEF`, which the scene's start installs) is called by the harness too */
+  readonly opening?: boolean;
 }
 
 /** Whether the interrupt routine has anything to do with what is kept. */
-const interruptsOf = (keep: Keep): boolean => keep.crusher === true || keep.floor === true || keep.conveyors === true || keep.room17 === true || keep.gate === true;
+const interruptsOf = (keep: Keep): boolean => keep.opening === true || keep.crusher === true || keep.floor === true || keep.conveyors === true || keep.room17 === true || keep.gate === true;
 
 export function neutralise(mem: Uint8Array, keep: Keep = {}): void {
   const bases: number[] = [A.current];
@@ -84,6 +115,7 @@ export function neutralise(mem: Uint8Array, keep: Keep = {}): void {
     put(mem, LOOP_HANDLER, STUB);
     put(mem, VECTOR, STUB);
   }
+  if (keep.opening === true) put(mem, 0xcd67, STUB); // (`$CD66`: `LD HL,$CDEF` becomes the stub: the harness calls the routine itself)
   put(mem, 0x5c7d, 1); // the first note of the death tune, one cycle,
   mem[0x5c81] = 0; // and no second
 }
@@ -102,6 +134,8 @@ export function take(g: Game, mem: Uint8Array): void {
   m.prevX = mem[A.prevX] ?? 0; m.prevY = mem[A.prevY] ?? 0;
   for (let i = 0; i < 4; i++) m.cells[i] = mem[A.cells + i] ?? 0;
   g.adopt(mem[A.room] ?? 0);
+  const recorded = (mem[A.room] ?? 0) < ROOMS.length ? undefined : ROOMS.find((r) => r.classes[0] === mem[A.current + 0xf0] && r.classes[2] === mem[A.current + 0xf2] && r.classes[3] === mem[A.current + 0xf3] && r.spriteBase === word(mem, A.current + 0xf4));
+  if (recorded !== undefined) g.adopt(recorded.id, true); // (the scene walks over the record of the last room)
   g.lives = mem[A.lives] ?? 0;
   g.arrivalX = mem[A.arrival] ?? 0; g.arrivalY = mem[A.arrival + 1] ?? 0;
   for (let i = 0; i < 5; i++) g.score.digits[i] = mem[A.score + i] ?? 0;
@@ -114,6 +148,8 @@ export function take(g: Game, mem: Uint8Array): void {
   g.gates.flags = mem[A.gates] ?? 0; g.gates.step = mem[A.gateStep] ?? 0; g.gates.counted = mem[A.gateCount] ?? 0;
   for (let i = 0; i < 32; i++) g.chain.ring[i] = mem[A.ring + i] ?? 0;
   g.chain.seen = mem[A.ring + 32] ?? 0;
+  OPENING_VARS.forEach(([name, at]) => { g.opening[name] = mem[at] ?? 0; });
+  g.opening.sunFrame = Math.round((word(mem, A.sunPtr) - 0xed4e) / 120);
   g.object.x = mem[A.object] ?? 0; g.object.y = mem[A.object + 1] ?? 0; g.object.frame = mem[A.object + 2] ?? 0;
   g.control = mem[A.control] ?? 1;
   g.outcome = 'playing';
@@ -141,6 +177,9 @@ export function differences(g: Game, mem: Uint8Array): string[] {
   for (let i = 0; i < 64; i++) num(`coal${i}`, mem[A.coal + i] ?? 0, g.coal.flags[i] ?? -1);
   num('objectX', mem[A.object] ?? 0, g.object.x); num('objectY', mem[A.object + 1] ?? 0, g.object.y); num('objectFrame', mem[A.object + 2] ?? 0, g.object.frame);
   num('tool', (mem[A.flags] ?? 0) & 8, m.flags & 8);
+  for (const [name, at] of OPENING_VARS) num(`opening.${name}`, mem[at] ?? 0, g.opening[name]);
+  num('opening.sunPtr', word(mem, A.sunPtr), 0xed4e + 120 * g.opening.sunFrame); num('opening.sunCounter', mem[A.sunFrame] ?? 0, g.opening.sunFrame);
+  g.enemySource.forEach((records, r) => records.forEach((rec, e) => num(`table${r}.${e}`, mem[ROOM_TABLE + r * ROOM_SIZE + 0x16c + e * 20] ?? 0, rec[0] ?? -1)));
   num('seed', word(mem, A.seed), g.random.seed);
   g.floor.toBytes().forEach((v, i) => num(`floor.${i}`, mem[A.floor + i] ?? 0, v));
   num('gates', mem[A.gates] ?? 0, g.gates.flags); num('gateStep', mem[A.gateStep] ?? 0, g.gates.step); num('gateCount', mem[A.gateCount] ?? 0, g.gates.counted);
@@ -241,6 +280,12 @@ export class Run {
   private started = false;
   private prepared = false;
   private armed = true;
+  private setup = false;
+  /** go on into the opening scene when the room loop leaves for it (a run from room 0 walking off its left edge) */
+  intoOpening = false;
+  private diverged = false;
+  /** a placement in the scene, made when it has begun (its start puts Monty at the right): the rebuilt game takes the original's state after it */
+  afterSetup: ((m: Spectrum) => void) | null = null;
   private injecting = false;
   /** the address the real interrupt routine, called by the harness, returns to (its return is not a new sighting of that address) */
   private returning = -1;
@@ -249,7 +294,7 @@ export class Run {
    * `prepare` changes the original first (a placement, a room: it may point the program counter at `$940C`, a room's start); `control` is the menu's choice (1 keyboard, 2 Kempston, 3 Sinclair),
    * `kempston` whether a Kempston interface is plugged in.
    */
-  constructor(readonly tally: Tally, stateFile: string, readonly label: string, control: Control, kempston: boolean, private readonly prepare?: (m: Spectrum) => void, keep: Keep = {}) {
+  constructor(readonly tally: Tally, stateFile: string, readonly label: string, control: Control, kempston: boolean, private readonly prepare?: (m: Spectrum) => void, keep: Keep = {}, private layout: Layout = ROOM_LAYOUT) {
     unpackState(this.m, new Uint8Array(fs.readFileSync(stateFile)));
     this.m.cpu.iff1 = true; // (the saved state is at the loop's HALT; the original runs with its interrupt on)
     this.m.cpu.iff2 = true;
@@ -258,13 +303,14 @@ export class Run {
     neutralise(this.m.mem, keep);
     this.injecting = interruptsOf(keep);
     this.m.onStep = (pc) => {
+      const layout = this.layout;
       if (pc === this.returning) { this.returning = -1; return; }
-      if (pc === PASS_AFTER || pc === ROOM_ENTRY) this.armed = true; // (the pass has begun, or a death in the interrupt sent it back to enter the room)
-      else if (pc === PASS_START) { // (the model leaves a halted program counter here, and the interrupt returns here: only the first sighting counts)
+      if (layout.arming.includes(pc)) this.armed = true; // (the pass has begun, or a death in the interrupt sent it back to enter the room)
+      else if (pc === layout.start) { // (the model leaves a halted program counter here, and the interrupt returns here: only the first sighting counts)
         if (!this.armed) return;
         this.armed = false;
       }
-      if (pc === PASS_START || pc === GAME_OVER || pc === ENDING || pc === OPENING) {
+      if (pc === layout.start || pc in layout.terminals || (!this.started && pc === OPENING)) {
         if (!this.prepared) {
           this.prepared = true;
           this.prepare?.(this.m);
@@ -274,18 +320,31 @@ export class Run {
           this.started = true;
           take(this.game, this.m.mem);
           this.hooks.start?.(this.m.mem);
-        } else this.finishPass(OUTCOMES[pc] ?? 'playing');
-        if (pc === PASS_START && !this.done) {
+          if (layout !== ROOM_LAYOUT) { this.game.enter(); this.setup = true; } // (the opening scene's start: what `$CD41` makes of the state taken)
+        } else if (this.setup && pc === layout.start) {
+          this.setup = false;
+          this.compareSetup();
+        } else {
+          this.finishPass(layout.terminals[pc] ?? 'playing', layout.leaving.includes(pc));
+          if (pc === OPENING && layout === ROOM_LAYOUT && this.intoOpening && !this.diverged) { // (the pass left room 0 for the scene, which the rebuilt game has begun: both go on in its loop)
+            this.layout = OPENING_LAYOUT;
+            this.done = false;
+            this.setup = true;
+            this.armed = true;
+            return;
+          }
+        }
+        if (pc === layout.start && !this.done) {
           this.driver?.choose(this.m, this.game);
           this.pending = true;
           this.originalBeeps = [];
           this.originalInput = -1;
           this.returning = -1;
-          if (this.injecting) this.interrupt(PASS_START); // the interrupt that ends the HALT
+          if (this.injecting) this.interrupt(layout.start); // the interrupt that ends the HALT
         }
-      } else if (pc === INPUT_READ) {
+      } else if (pc === layout.inputRead) {
         this.originalInput = this.m.mem[A.input] ?? 0;
-        if (this.injecting) this.interrupt(INPUT_READ); // the one inside the pass, put before Monty's routine
+        if (this.injecting && layout.secondInterrupt) this.interrupt(layout.inputRead); // the one inside the pass, put before Monty's routine
       }
       else if (pc === BEEPER) {
         const sp = this.m.cpu.sp;
@@ -294,19 +353,28 @@ export class Run {
     };
   }
 
-  /** Call the original's interrupt routine (`$8F9F`) as the interrupt would: from here, returning to here. */
+  /** The opening scene has just begun in both: the state its start made equal. */
+  private compareSetup(): void {
+    const bad = differences(this.game, this.m.mem);
+    this.tally.passes++;
+    if (bad.length > 0) this.tally.note({ label: this.label, pass: 0, room: this.game.room, what: ['the scene as it begins', ...bad] });
+    if (this.afterSetup !== null) this.afterSetup(this.m);
+    take(this.game, this.m.mem);
+  }
+
+  /** Call the original's interrupt routine (`$8F9F`, the scene's `$CDEF`) as the interrupt would: from here, returning to here. */
   private interrupt(from: number): void {
     const cpu = this.m.cpu;
     cpu.sp = (cpu.sp - 2) & 0xffff;
     this.m.mem[cpu.sp] = from & 255;
     this.m.mem[cpu.sp + 1] = from >> 8;
-    cpu.pc = 0x8f9f;
+    cpu.pc = this.layout === ROOM_LAYOUT ? 0x8f9f : 0xcdef;
     cpu.halted = false;
     this.returning = from;
   }
 
   /** The original has finished a pass: run the rebuilt one and compare. */
-  private finishPass(outcome: Outcome): void {
+  private finishPass(outcome: Outcome, leaving = false): void {
     if (!this.pending) return;
     this.pending = false;
     const g = this.game;
@@ -318,10 +386,11 @@ export class Run {
     if (g.divergence !== null) { // the rebuilt game left the original on purpose: nothing more to compare
       this.tally.diverged.add(g.divergence);
       this.done = true;
+      this.diverged = true;
       return;
     }
     const mem = this.m.mem;
-    const bad = result === 'gameOver' || result === 'ending' || result === 'opening' ? terminal(g, mem) : differences(g, mem);
+    const bad = leaving ? leavingDifferences(g, mem) : result === 'gameOver' || result === 'ending' || result === 'opening' ? terminal(g, mem) : differences(g, mem);
     if (result !== outcome) bad.push(`outcome original ${outcome} rebuilt ${result}`);
     if (g.inputRead !== this.originalInput) { bad.push(`input read original ${this.originalInput} rebuilt ${g.inputRead}`); this.tally.inputMismatches++; }
     if (JSON.stringify(g.beeps) !== JSON.stringify(this.originalBeeps)) bad.push(`beeps original ${JSON.stringify(this.originalBeeps)} rebuilt ${JSON.stringify(g.beeps)}`);
@@ -334,7 +403,7 @@ export class Run {
       if (outcome === 'playing') take(g, mem);
     }
     this.hooks.passEnd?.(result, mem);
-    if (outcome !== 'playing') {
+    if (outcome !== 'playing' || leaving) {
       this.done = true;
       if (outcome === 'gameOver') this.tally.gameOvers++;
     }
@@ -376,6 +445,11 @@ export class Run {
     const frames = limit * 4 + 600;
     for (let f = 0; f < frames && this.passes < limit && !this.done; f++) this.m.runFrame();
   }
+}
+
+/** Where the original leaves a loop for a room it has not yet drawn: what it keeps while it does (not the screen, the buffers nor the room's own records) against the rebuilt game's. */
+function leavingDifferences(g: Game, mem: Uint8Array): string[] {
+  return differences(g, mem).filter((d) => !/^(screen|attrs|picture|coalMask|enemy|crusher|floor|ring|gate|object|tool)/.test(d));
 }
 
 /** At game over, the ending or the opening the screen is the scene's: only the room, the lives and Monty's logic need to agree. */

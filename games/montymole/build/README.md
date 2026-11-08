@@ -65,6 +65,8 @@ nice -n 15 node /tmp/zxprobe.mjs games/montymole/build/montymole.tap /tmp/montym
 F=$(python3 -c "d=open('games/montymole/build/play.ram','rb').read();print(','.join('%x=%x'%(0x964d+i,d[0x964d+i]|0x80) for i in range(64)))")
 nice -n 15 node tools/test.mjs games/montymole/re/poke.ts games/montymole/build/play.state 60 \
   --poke "9649=0,5c7b=18,5c7c=27,964b=18,964c=27,9bbe=2,9bd2=2,$F" --pc 940c --save games/montymole/build/room0.state
+# opening.state: the original the moment the scene begins ($CD41, the first time), from the options menu with key 0 (play); test/opening.ts starts here
+nice -n 15 node tools/test.mjs games/montymole/re/poke.ts games/montymole/build/title.state 600 --hold 0@2-8 --stop-at cd41 --save games/montymole/build/opening.state
 ```
 
 `*.state` are our own snapshot format (`tools/zx/snapshot.ts`, "ZXS1"); `*.ram` are flat 64K dumps (ROM included) for

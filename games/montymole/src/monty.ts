@@ -49,6 +49,8 @@ const TOUCH_POINTS: readonly number[] = [0x0000, 0x010a, 0xf100, 0xf8ff, 0xf810,
 export type Ending = 'alive' | 'dead';
 
 const wrap = (n: number): number => n & 0xff;
+/** The row table has 192 entries (`$EA60`): y 0 to 191. */
+const TOP_ROW_Y = 191;
 
 /** The address of a frame of Monty (`$8395`): 32 bytes a frame, 128 for each direction (the input's low two bits). */
 export function frameAddress(frame: number, base: number, input: number): number {
@@ -83,6 +85,15 @@ export class Monty implements Stateful {
    * place in the table: it reads the code that follows as steps and crashes. The rebuilt game ends the jump (and its owner says so).
    */
   overrun = false;
+  /**
+   * Set when a row he reads or draws is not on the screen: he has fallen so far that the row under his feet is not (the opening scene has no way out at the bottom: he walks off
+   * its ground at the left or right and falls through y 15) or he has climbed so high that his top is not (the opening's tree trunk is a rope). The original looks the row up
+   * past the end of its row table, in the code that follows, and reads or writes wherever that points; the rebuilt game counts the missing ground as ground (a fall that
+   * long is fatal), leaves the rows off the screen undrawn, and its owner says so.
+   */
+  outside = false;
+  /** ENHANCED: a landing is never fatal (a long drop is a way down); not part of the original, and never set by the lockstep */
+  safeFalls = false;
   /** how far he has fallen (`$8D58`) */
   fallen = 0;
   /** where the pass began (`$8D7D`, `$8D7E`) */
@@ -193,6 +204,7 @@ export class Monty implements Stateful {
     this.walkFrame = (this.walkFrame + 1) & 7;
     this.input = this.jumpDir - 1; // ($832E is set to the jump's direction so the frame address takes its group from it)
     this.frameAddr = frameAddress(this.walkFrame >> 1, MONTY_BASE, this.input);
+    if (this.y > TOP_ROW_Y - 2) this.outside = true; // (`restoreRows` of the row two above his top)
     restoreRows(this.world.screen, this.world.picture, this.x, wrap(this.y + 2));
     restoreRows(this.world.screen, this.world.picture, this.x, wrap(this.y - 16));
     this.beep(1, this.pitch);
@@ -221,6 +233,7 @@ export class Monty implements Stateful {
     if (this.flags & Flag.left && this.prevX >= this.x) this.x = this.prevX;
     else if (this.flags & Flag.right && this.prevX < this.x) this.x = this.prevX;
     // $8B7B: drawn where he is, and the input byte put back to none
+    if (this.y > TOP_ROW_Y) this.outside = true; // (his top row is not on the screen)
     blit(this.world.screen, this.world.picture, imageAt(this.frameAddr), this.x, this.y);
     this.input = Direction.none;
     return 'alive';
@@ -253,7 +266,7 @@ export class Monty implements Stateful {
     if (!(this.flags2 & InAir)) return true; // $8C0D
     this.flags2 &= ~InAir; // landing
     this.flags &= ~(Flag.falling | Flag.jumping);
-    if (this.fallen >= FATAL_FALL) return false; // $8C1E
+    if (this.fallen >= FATAL_FALL && !this.safeFalls) return false; // $8C1E
     this.fallen = 0;
     this.jumpDir = 0;
     this.jumpCount = 0;
@@ -310,7 +323,9 @@ export class Monty implements Stateful {
 
   /** The OR of the screen's bytes in the pixel row below his feet (`$8D5F`: row `y - 16`, from his column). */
   private screenBelow(columns: number): number {
-    const at = screenOffset(wrap(this.y - 16)) + (this.x >> 3);
+    const row = wrap(this.y - 16);
+    if (row > TOP_ROW_Y) { this.outside = true; return 0xff; }
+    const at = screenOffset(row) + (this.x >> 3);
     let bits = 0;
     for (let i = 0; i < columns; i++) bits |= this.world.screen[at + i] ?? 0;
     return bits;

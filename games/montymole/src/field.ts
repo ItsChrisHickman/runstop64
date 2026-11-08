@@ -11,7 +11,7 @@
  */
 import { DIGIT_BASE, GLYPH_CHARS } from './letters';
 import { drawLine } from './font';
-import { LIVES_LINE, SCORE_LINE } from './data';
+import { LIVES_LINE, OPENING_ATTRS, OPENING_COLS, OPENING_GLYPHS, OPENING_MAP, OPENING_ROWS, SCORE_LINE } from './data';
 import { bitmapRow, drawRoom, ROOM_COLS, ROOM_ROWS, ROOM_TOP_ROW, type RoomData } from './room';
 
 export const BITMAP_BYTES = 6144;
@@ -50,6 +50,26 @@ export class Field {
     this.screen.set(this.picture);
     this.attrs.set(staged);
     this.coalMask.fill(0);
+  }
+
+  /**
+   * `$CD73` to `$CD86`: the opening scene. The picture buffer is cleared and the scene's 28 x 20 cells drawn into it (`$EF7E`: columns 2-29 of rows 2-21, each cell a
+   * glyph of the scene's own) with their colours in the attribute buffer, whose other cells keep what they held (the coal mask the last room left), and both are put on the
+   * screen (`$C62A`).
+   */
+  drawOpening(): void {
+    this.picture.fill(0);
+    for (let r = 0; r < OPENING_ROWS; r++) {
+      for (let c = 0; c < OPENING_COLS; c++) {
+        const cell = r * OPENING_COLS + c;
+        const glyph = ((OPENING_MAP[cell] ?? 0x80) - 0x80) * 8;
+        const row = ROOM_TOP_ROW + r, col = 2 + c;
+        for (let line = 0; line < 8; line++) this.picture[bitmapRow(row * 8 + line) + col] = OPENING_GLYPHS[glyph + line] ?? 0;
+        this.coalMask[row * ROOM_COLS + col] = OPENING_ATTRS[cell] ?? 0;
+      }
+    }
+    this.screen.set(this.picture);
+    this.attrs.set(this.coalMask);
   }
 
   /** `$D254`: the screen's bitmap kept as the picture. */

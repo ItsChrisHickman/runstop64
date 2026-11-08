@@ -6,6 +6,7 @@ import { hexBytes } from 'c64kit';
 import { COAL_HEX, FONT_HEX, JUMP_ARC_HEX } from './data/tables-data';
 import { CHAIN_HEX, CRUSHER_HEX } from './data/interrupt-data';
 import { DEATH_SPRITE_HEX, MONTY_HEX, SPRITES_HEX, TITLE_HEX } from './data/graphics-data';
+import { OPENING_GLYPHS_HEX, OPENING_SCENE_HEX, SUN_HEX } from './data/opening-data';
 import { bitmapRow } from './room';
 import { DEATH_TUNE_HEX, TITLE_TUNE_HEX } from './data/music-data';
 export { ENDING_VERSE, GAME_OVER_VERSE, LIVES_LINE, MENU_LINES, SCORE_LINE, type TextLine } from './data/texts-data';
@@ -80,3 +81,18 @@ export function imageAt(address: number): Uint8Array {
   if (address === DEATH_SPRITE_BASE) return DEATH_SPRITE;
   throw new Error(`no picture at $${address.toString(16)}`);
 }
+
+/**
+ * The opening scene's picture (`$F14B`): a pointer to its glyphs (`$7C00`), 20 rows of 28 character codes, and the colour attribute of each of the 560 cells. It is drawn
+ * into columns 2-29 of rows 2-21 (`$EF7E`); a code is `$80` + the glyph's number, the glyphs are 8 bytes each.
+ */
+const OPENING_SCENE = hexBytes(OPENING_SCENE_HEX);
+export const OPENING_COLS = 28;
+export const OPENING_ROWS = 20;
+export const OPENING_MAP = OPENING_SCENE.subarray(2, 2 + OPENING_COLS * OPENING_ROWS);
+export const OPENING_ATTRS = OPENING_SCENE.subarray(2 + OPENING_COLS * OPENING_ROWS, 2 + 2 * OPENING_COLS * OPENING_ROWS);
+export const OPENING_GLYPHS = hexBytes(OPENING_GLYPHS_HEX);
+/** The animation in the opening's top right corner (`$ED4E`): four pictures of 24 rows of 5 bytes. */
+export const SUN_FRAMES = hexBytes(SUN_HEX);
+export const SUN_ROWS = 24;
+export const SUN_WIDTH = 5;

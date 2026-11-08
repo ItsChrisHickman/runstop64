@@ -9,7 +9,9 @@
  * each object, with a tool beside each enemy, with some of the room's enemies made chasers (the data has none), taking the piece that makes 16, 32, 48 and 64 and
  * so opens a gate, jumping up out of room 17, and beside every way out of every room.
  *
- *   nice -n 15 node tools/test.mjs games/montymole/test/lockstep.ts [random-passes-per-room] [placements-per-colour] [pass-limit-per-placement] [runs-per-way-out]
+ *   nice -n 15 node tools/test.mjs games/montymole/test/lockstep.ts [random-passes-per-room] [placements-per-colour] [pass-limit-per-placement] [runs-per-way-out] [share]
+ *
+ * `share` (default 1) is the fraction of the fixed kinds of run kept (the chasers, the tools, the gates, the coal and the objects): the fast set plays a fifth of them, the slow set all.
  */
 import { check, finish } from '../../../games/shared/test/check';
 import { type Spectrum } from '../../../tools/zx/spectrum';
@@ -19,8 +21,11 @@ import { A, mulberry, Run, Tally } from './lockstep-core';
 import { RandomPlayer, type Move } from './random-player';
 import type { Control } from '../src/input';
 
-const [randomArg = '1500', placementsArg = '3', limitArg = '80', edgeArg = '40'] = process.argv.slice(2);
-const RANDOM_PASSES = Number(randomArg), PLACEMENTS = Number(placementsArg), PLACEMENT_PASSES = Number(limitArg), EDGE_RUNS = Number(edgeArg);
+const [randomArg = '1500', placementsArg = '3', limitArg = '80', edgeArg = '40', shareArg = '1'] = process.argv.slice(2);
+const RANDOM_PASSES = Number(randomArg), PLACEMENTS = Number(placementsArg), PLACEMENT_PASSES = Number(limitArg), EDGE_RUNS = Number(edgeArg), SHARE = Number(shareArg);
+/** How many of `n` runs of a fixed kind to play (at least one), and how many passes of `n` each. */
+const some = (n: number): number => Math.max(1, Math.round(n * SHARE));
+const lasting = (passes: number): number => Math.max(40, Math.round(passes * Math.sqrt(SHARE)));
 const STATE = 'games/montymole/build/room0.state';
 
 /** Where and how Monty starts a run: a place in a room, and one of the states he can be in. */
@@ -133,9 +138,9 @@ phase('random players from random places in the 21 rooms', from);
 // chasers: some of each room's enemies made to chase (the data's own never do), from places near them
 from = tally.passes;
 for (const room of ROOMS) {
-  for (let k = 0; k < 6; k++) {
+  for (let k = 0; k < some(6); k++) {
     const rnd = mulberry(220000 + room.id * 10 + k);
-    run(`chasers in room ${room.id} #${k}`, 220000 + room.id * 10 + k, { ...randomPlacement(room.id, rnd), kind: 0, gone: 7, chase: k }, 150);
+    run(`chasers in room ${room.id} #${k}`, 220000 + room.id * 10 + k, { ...randomPlacement(room.id, rnd), kind: 0, gone: 7, chase: k }, lasting(150));
   }
 }
 phase('players among chasers', from);
@@ -146,10 +151,10 @@ for (const room of ROOMS) {
   const rnd = mulberry(230000 + room.id);
   room.enemies.forEach((e, j) => {
     if ((e[0] ?? 3) === 3 && (e[17] ?? 0) === 0) return;
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < some(3); k++) {
       const x = Math.max(8, Math.min(0xe0, (e[12] ?? 0) + 2 * Math.floor(rnd() * 13) - 12)) & 0xfe;
       const y = Math.max(0x25, Math.min(0xa8, (e[13] ?? 0) + 2 * Math.floor(rnd() * 13) - 12)) | 1;
-      run(`tool beside enemy ${j} of room ${room.id} #${k}`, 230000 + room.id * 100 + j * 10 + k, { room: room.id, x, y, kind: 0, dir: 1, at: 0, fallen: 0, gone: 7, tool: true, chase: k === 2 ? j : undefined }, 80);
+      run(`tool beside enemy ${j} of room ${room.id} #${k}`, 230000 + room.id * 100 + j * 10 + k, { room: room.id, x, y, kind: 0, dir: 1, at: 0, fallen: 0, gone: 7, tool: true, chase: k === 2 ? j : undefined }, lasting(80));
     }
   });
 }
@@ -162,11 +167,11 @@ for (const [gateRoom, count] of [[6, 16], [11, 32], [15, 48], [20, 64]] as const
     const data = ROOMS[room];
     const piece = data?.coal.find((c) => c.col !== 0 || c.row !== 0);
     if (data === undefined || piece === undefined) continue;
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < some(4); k++) {
       const rnd = mulberry(250000 + gateRoom * 100 + room * 10 + k);
       const x = Math.max(8, Math.min(0xe0, piece.col * 8 + 2 * Math.floor(rnd() * 9) - 8)) & 0xfe;
       const y = Math.max(0x25, Math.min(0xa8, 8 * (23 - piece.row) + 7 + 2 * Math.floor(rnd() * 9) - 8)) | 1;
-      run(`gate ${count} from room ${room} #${k}`, 250000 + gateRoom * 100 + room * 10 + k, { room, x, y, kind: 0, dir: 1, at: 0, fallen: 0, exactly: { count: count - 1 + (room === gateRoom ? 0 : 0), piece: piece.id } }, 90, k % 2 === 0 ? 'left' : 'right');
+      run(`gate ${count} from room ${room} #${k}`, 250000 + gateRoom * 100 + room * 10 + k, { room, x, y, kind: 0, dir: 1, at: 0, fallen: 0, exactly: { count: count - 1 + (room === gateRoom ? 0 : 0), piece: piece.id } }, lasting(90), k % 2 === 0 ? 'left' : 'right');
     }
   }
 }
@@ -205,17 +210,17 @@ for (const room of ROOMS) {
   const rnd = mulberry(40000 + room.id);
   for (const piece of room.coal) {
     if (piece.col === 0 && piece.row === 0) continue;
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < some(3); k++) {
       const x = Math.max(8, Math.min(0xe0, piece.col * 8 + 2 * Math.floor(rnd() * 13) - 12)) & 0xfe;
       const y = Math.max(0x25, Math.min(0xa8, 8 * (23 - piece.row) + 7 + 2 * Math.floor(rnd() * 17) - 16)) | 1;
       const kind = rnd();
-      run(`coal ${piece.id} in room ${room.id} #${k}`, 150000 + piece.id * 10 + k, { room: room.id, x, y, kind: kind < 0.6 ? 0 : kind < 0.85 ? 1 : 2, dir: 1 + Math.floor(rnd() * 5), at: Math.floor(rnd() * 31), fallen: 2 * Math.floor(rnd() * 8), gone: 7 }, 60, rnd() < 0.5 ? (['left', 'right', 'up', 'down'] as const)[Math.floor(rnd() * 4)] ?? null : null);
+      run(`coal ${piece.id} in room ${room.id} #${k}`, 150000 + piece.id * 10 + k, { room: room.id, x, y, kind: kind < 0.6 ? 0 : kind < 0.85 ? 1 : 2, dir: 1 + Math.floor(rnd() * 5), at: Math.floor(rnd() * 31), fallen: 2 * Math.floor(rnd() * 8), gone: 7 }, lasting(60), rnd() < 0.5 ? (['left', 'right', 'up', 'down'] as const)[Math.floor(rnd() * 4)] ?? null : null);
     }
   }
   if (room.object.sprite !== 0) {
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < some(4); k++) {
       const x = Math.max(8, Math.min(0xe0, room.object.x + 2 * Math.floor(rnd() * 9) - 8)) & 0xfe;
-      run(`object in room ${room.id} #${k}`, 160000 + room.id * 10 + k, { room: room.id, x, y: room.object.y, kind: 0, dir: 1, at: 0, fallen: 0, gone: Math.floor(rnd() * 8) }, 50, k % 2 === 0 ? 'left' : 'right');
+      run(`object in room ${room.id} #${k}`, 160000 + room.id * 10 + k, { room: room.id, x, y: room.object.y, kind: 0, dir: 1, at: 0, fallen: 0, gone: Math.floor(rnd() * 8) }, lasting(50), k % 2 === 0 ? 'left' : 'right');
     }
   }
 }
@@ -247,7 +252,7 @@ phase('players beside each way out of every room', from);
 from = tally.passes;
 {
   const taken = (room: number, target: number): boolean => (tally.seen.get(`left room ${room} for ${target}`) ?? 0) > 0;
-  for (const room of ROOMS) {
+  for (const room of SHARE < 1 ? [] : ROOMS) { // (the sweeps are the slow set's: they are most of its time)
     const edges: [number, number][] = [[0, room.exits.left], [1, room.exits.right], [2, room.exits.down], [3, room.exits.up]];
     for (const [edge, target] of edges) {
       if (target === room.id || taken(room.id, target)) continue;
@@ -279,6 +284,6 @@ const missing = need.filter((n) => (tally.seen.get(n) ?? 0) === 0);
 const ways: string[] = [];
 for (const room of ROOMS) for (const target of [room.exits.up, room.exits.down, room.exits.left, room.exits.right]) if (target !== room.id) ways.push(`left room ${room.id} for ${target}`);
 const notTaken = ways.filter((w) => (tally.seen.get(w) ?? 0) === 0);
-check(`every way out of every room was taken in some run (${ways.length} of them${notTaken.length > 0 ? `; not taken: ${notTaken.join(', ')}` : ''})`, notTaken.length === 0);
+check(`every way out of every room was taken in some run (${ways.length} of them${notTaken.length > 0 ? `; not taken: ${notTaken.join(', ')}` : ''}${SHARE < 1 ? '; a short run leaves the sweeps for the ones the edge runs miss to the full run' : ''})`, notTaken.length === 0 || (SHARE < 1 && ways.length - notTaken.length >= 20));
 check(`every situation was met: ${need.join(', ')}, and every kind of way out (${tally.roomChanges} room changes)${missing.length > 0 ? `; not met: ${missing.join(', ')}` : ''}`, missing.length === 0 && tally.roomChanges > 0);
 finish();

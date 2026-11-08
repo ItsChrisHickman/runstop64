@@ -13,6 +13,8 @@ import type { Spectrum } from '../../../tools/zx/spectrum';
 import { ROOMS } from '../src/data/rooms-data';
 import { FATAL_FALL } from '../src/monty';
 import { A, Run, Tally, type Keep } from './lockstep-core';
+import { Game } from '../src/game';
+import type { Ports } from '../src/input';
 
 const STATE = 'games/montymole/build/room0.state';
 /** Everything the rebuilt game has is kept in the original, so every pass can be compared; a death is classed by the rebuilt game's own account of it (proved equal). */
@@ -65,4 +67,32 @@ check(`the rebuilt game equals the original on every pass of every fall (${tally
 check(`every landing the original survived had a counter under ${FATAL_FALL} (the most: ${Math.max(...landed)})`, landed.length > 50 && landed.every((c) => c < FATAL_FALL));
 check(`every landing it died in had a counter of ${FATAL_FALL} or more (the least: ${Math.min(...died)})`, died.length > 50 && died.every((c) => c >= FATAL_FALL));
 check('both sides of the limit were met exactly: a landing with the counter 30 (15 passes, 30 pixels) and one with 32 (16 passes) or more', landed.includes(FATAL_FALL - 2) && died.includes(FATAL_FALL));
+
+// ENHANCED: no deaths from falls (`Monty.safeFalls`): every drop that kills in ORIGINAL lands safely, and nothing else about the game changes
+const NONE: Ports = { halfRow: () => 0x1f, kempston: () => 0 };
+let killed = 0, saved = 0;
+for (const room of ROOMS) {
+  for (let x = 16; x <= 0xe0; x += 16) {
+    for (const y of [0xa8, 0x8a, 0x6c]) {
+      const results = [false, true].map((safe) => {
+        const g = new Game();
+        g.monty.safeFalls = safe;
+        g.place(room.id, x, y);
+        g.monty.flags = 1; g.monty.flags2 = 0x80; g.monty.fallen = 0;
+        let byFall = false;
+        for (let i = 0; i < 80 && g.lives === 3 && (i === 0 || (g.monty.flags & 1) !== 0); i++) {
+          const counter = g.monty.fallen + 2;
+          g.pass(NONE);
+          byFall = g.lives < 3 && g.lastDeath === 'cell' && counter >= FATAL_FALL && !g.monty.cells.includes(1);
+        }
+        return { lives: g.lives, cause: byFall ? 'fall' : g.lastDeath };
+      });
+      const [original, enhanced] = results;
+      if (original === undefined || enhanced === undefined || original.cause !== 'fall' || original.lives === 3) continue;
+      killed++;
+      if (enhanced.lives === 3) saved++;
+    }
+  }
+}
+check(`ENHANCED: ${killed} drops that kill in ORIGINAL (by the fall) all land safely with the fall rule off (${saved} did)`, killed > 50 && saved === killed);
 finish();

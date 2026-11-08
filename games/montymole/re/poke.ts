@@ -13,6 +13,7 @@
  *   --snap F[,F...]                     a PNG of the screen at those frames (into --out)
  *   --out DIR                           where the PNGs go (default /tmp/montymole-poke)
  *   --save FILE                         a state saved at the end
+ *   --stop-at ADDR                      stop (saving to --save, if given) the first time the program counter reaches ADDR, before it runs
  *   --count ADDR[,ADDR...]              count how often the program counter reaches these addresses (printed at the end)
  *   --watch ADDR[,ADDR...]              say when a byte at these addresses changes, with the PC that wrote it
  */
@@ -70,8 +71,17 @@ let frameNo = 0;
 const hex = (a: number, n: number) => Array.from(m.mem.subarray(a, a + n), (v) => v.toString(16).padStart(2, '0')).join(' ');
 const report = (label: string) => console.log(`${label}: ${shows.map((s) => `${s.addr.toString(16)}[${hex(s.addr, s.len)}]`).join(' ')}`);
 
-if (watched.size > 0 || counted.size > 0) {
+const stopAt = option('stop-at');
+const stopPc = stopAt === null ? -1 : parseInt(stopAt, 16);
+/** Thrown from the step hook to leave the frame the program counter reached `--stop-at` in (the machine is left as it was before the instruction). */
+class Stopped extends Error {}
+if (watched.size > 0 || counted.size > 0 || stopPc >= 0) {
   m.onStep = (at) => {
+    if (at === stopPc) {
+      const file = option('save');
+      if (file !== null) fs.writeFileSync(file, packState(m));
+      throw new Stopped(`stopped at $${at.toString(16)}`);
+    }
     const hits = counted.get(at);
     if (hits !== undefined) counted.set(at, hits + 1);
     for (const [a, old] of watched) {
@@ -84,13 +94,19 @@ if (watched.size > 0 || counted.size > 0) {
 }
 if (snaps.length > 0) fs.mkdirSync(out, { recursive: true });
 report('start');
-for (frameNo = 0; frameNo < Number(framesArg); frameNo++) {
-  m.releaseAll();
-  for (const j of jumps) if (j.frame === frameNo) { m.cpu.pc = j.addr; m.cpu.halted = false; }
-  for (const h of holds) if (frameNo >= h.from && frameNo <= h.to) for (const k of h.keys) press(m, k, true);
-  m.runFrame();
-  if (snaps.includes(frameNo + 1)) screenPng(path.join(out, `f${String(frameNo + 1).padStart(5, '0')}.png`), m.mem, m.border, m.flashPhase);
-  if (every > 0 && (frameNo + 1) % every === 0) report(`frame ${frameNo + 1}`);
+try {
+  for (frameNo = 0; frameNo < Number(framesArg); frameNo++) {
+    m.releaseAll();
+    for (const j of jumps) if (j.frame === frameNo) { m.cpu.pc = j.addr; m.cpu.halted = false; }
+    for (const h of holds) if (frameNo >= h.from && frameNo <= h.to) for (const k of h.keys) press(m, k, true);
+    m.runFrame();
+    if (snaps.includes(frameNo + 1)) screenPng(path.join(out, `f${String(frameNo + 1).padStart(5, '0')}.png`), m.mem, m.border, m.flashPhase);
+    if (every > 0 && (frameNo + 1) % every === 0) report(`frame ${frameNo + 1}`);
+  }
+} catch (e) {
+  if (!(e instanceof Stopped)) throw e;
+  console.log(e.message);
+  process.exit(0); // (the state is saved already)
 }
 report(`end (frame ${frameNo}, PC $${m.cpu.pc.toString(16)})`);
 for (const [a, n] of counted) console.log(`$${a.toString(16)} reached ${n} times in ${frameNo} frames`);
