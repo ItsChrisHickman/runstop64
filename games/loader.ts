@@ -1,5 +1,5 @@
 import { BitmapFont, C64, KIT_GLYPHS, type Host } from 'c64kit';
-import { GAMES, type GameEntry } from './registry';
+import { DIRECTORY, type GameEntry } from './registry';
 import { TOUCH } from './loader-touch';
 
 /**
@@ -46,7 +46,7 @@ interface LoaderOptions {
   saves(): void;
   /** Straight to the directory (coming back from the saved games). */
   skipIntro?: boolean;
-  /** The directory's games (default the registry's GAMES; tests list more). */
+  /** The directory's games (default the registry's DIRECTORY; tests list more). */
   games?: readonly GameEntry[];
 }
 
@@ -87,7 +87,7 @@ export interface PointerAt { clientX: number; clientY: number; pointerType: stri
 
 export function run(host: Host, opts: LoaderOptions) {
   const { renderer, input, canvas } = host;
-  const games = opts.games ?? GAMES;
+  const games = opts.games ?? DIRECTORY;
   const font = new BitmapFont().addDrawn(KIT_GLYPHS);
   const BG = C64.Blue, FG = C64.LightBlue;
   renderer.border = FG;

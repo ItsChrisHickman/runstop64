@@ -2,7 +2,7 @@
  * The READY. directory (games/loader.ts), headless (c64kit stood in by games/shared/test/kit.ts):
  *
  * - a click or tap picks a game, a second on the same game loads it (Picker);
- * - however many games there are (the twelve today, 16, 30), the banner and the saved games line
+ * - however many games there are (the eleven today, 16, 30), the banner and the saved games line
  *   never leave the top: while the intro types and lists, when it's skipped, with each game chosen
  *   by the keys (every one comes into sight, chosen), and while a game loads; the screen is
  *   cleared before LIST, so up to sixteen are all in sight with nothing scrolled; a click picks the game on its row and a second loads it, a touch
@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import { C64_PALETTE, Input, PixelRenderer } from 'c64kit';
 import { rgbPng } from '../../../tools/probe/render';
 import { Picker, run, type PointerAt } from '../../loader';
-import { GAMES, type GameEntry } from '../../registry';
+import { DIRECTORY, type GameEntry } from '../../registry';
 import { nowhere } from './browser';
 import { check, finish } from './check';
 
@@ -37,8 +37,8 @@ class ScreenRenderer extends PixelRenderer {
 const BANNER = '    **** RUNSTOP64 REMAKE SYSTEM ****';
 const at = (row: number, pointerType = 'mouse', buttons = 1): PointerAt => ({ clientX: 100, clientY: row * 8 + 4, pointerType, buttons });
 
-for (const count of [GAMES.length, 16, 30]) {
-  const games: GameEntry[] = [...GAMES];
+for (const count of [DIRECTORY.length, 16, 30]) {
+  const games: GameEntry[] = [...DIRECTORY];
   for (let i = games.length; i < count; i++) games.push({ id: `extra${i}`, name: `EXTRA GAME ${i}`, blocks: 10 });
   const input = new Input(nowhere);
   const renderer = new ScreenRenderer();

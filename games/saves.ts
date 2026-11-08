@@ -1,5 +1,5 @@
 import { BitmapFont, C64, KIT_GLYPHS, type Host } from 'c64kit';
-import { GAMES, type GameEntry } from './registry';
+import { DIRECTORY, type GameEntry } from './registry';
 import { deleteSave, readSaves, restorePrevious, type GameSaves, type SaveSlot } from './shared/saves';
 import type { TouchLayout } from './shared/touch';
 
@@ -80,7 +80,7 @@ export function run(host: Host, opts: SavesOptions) {
   let note = ''; // what was just done, shown for a while
   let noteTicks = 0;
   let left = false;
-  const reload = () => { saves = Object.fromEntries(GAMES.map((g) => [g.id, readSaves(g.id)])); };
+  const reload = () => { saves = Object.fromEntries(DIRECTORY.map((g) => [g.id, readSaves(g.id)])); };
   reload();
 
   const go = (to: Page, pick = 0) => { page = to; picked = pick; };
@@ -97,13 +97,13 @@ export function run(host: Host, opts: SavesOptions) {
     const touch = input.touch;
     if (page.kind === 'list') {
       const out: Line[] = [{ row: 1, text: '   **** RUNSTOP64 SAVED GAMES ****' }];
-      GAMES.forEach((g, i) => {
+      DIRECTORY.forEach((g, i) => {
         const s = saves[g.id];
         const date = s?.current ? when(s.current.at) : s?.previous ? '(PREVIOUS)' : '';
         out.push({ row: 3 + i, text: `${g.name.padEnd(18)}${date}`, act: () => { listPicked = i; go({ kind: 'game', game: g }); } });
       });
-      const g = GAMES[Math.min(listPicked, GAMES.length - 1)], s = saves[g.id];
-      let row = 4 + GAMES.length;
+      const g = DIRECTORY[Math.min(listPicked, DIRECTORY.length - 1)], s = saves[g.id];
+      let row = 4 + DIRECTORY.length;
       for (const [label, slot] of [['NOW', s?.current ?? null], ['BEFORE', s?.previous ?? null]] as const) {
         if (!slot) continue;
         out.push({ row: row++, text: `${label.padEnd(7)}${when(slot.at, true)}`, colour: HI });

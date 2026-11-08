@@ -22,7 +22,7 @@ import { isNumber, isRecord, readJson } from '../guards';
 import type { PauseMap } from '../native/pause';
 import { readFound, readSaves, toBase64, watchWrites } from '../saves';
 import { run as runLoader } from '../../loader';
-import { GAMES } from '../../registry';
+import { DIRECTORY } from '../../registry';
 import { run as runSaves } from '../../saves';
 import { nowhere, useMemoryStorage } from './browser';
 import { must } from './must';
@@ -173,7 +173,7 @@ let m = runSaves({ renderer, input, canvas: nowhere }, mgrOpts);
 const mtick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); m.tick(); } };
 const mpress = (code: string) => { input.keyDown(code); mtick(); input.keyUp(code); mtick(); };
 mtick();
-check(`the manager lists every game (${m.state.choices.length})`, m.state.page === 'list' && m.state.choices.length >= GAMES.length);
+check(`the manager lists every game (${m.state.choices.length})`, m.state.page === 'list' && m.state.choices.length >= DIRECTORY.length);
 // (its own game list is the loader's: the stand-in's saves are under 'test'; look at Monty's, kept as a test would)
 for (const key of ['save.v2', 'save.v2.previous']) {
   const slot = readJson(must(store.get(`test.${key}`), `the ${key}`));
@@ -240,7 +240,7 @@ check('L: the game is launched', launched === 'montyotr');
   // (the screen's 25 rows: the last game, BLOCKS FREE., READY. and the cursor all on it)
   const lit = (row: number) => renderer.screen.pixels.subarray(row * 8 * 320, row * 8 * 320 + 8 * 320).some((v) => v === 14);
   // (the screen is cleared before LIST: sixteen games fit with READY. on row 7 + games; more scroll under the pinned rows, READY. on row 23 and the cursor on 24)
-  const lastRow = Math.min(7 + GAMES.length, 23);
+  const lastRow = Math.min(7 + DIRECTORY.length, 23);
   check(`the directory still fits the screen (rows 2 and ${lastRow} have words)`, lit(2) && lit(lastRow));
   input.keyDown('F1'); dtick(); input.keyUp('F1'); dtick();
   check('F1 on the directory: the saved games', opened === 1);

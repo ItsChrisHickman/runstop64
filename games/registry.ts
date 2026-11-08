@@ -41,6 +41,8 @@ interface GameModule {
 interface RegisteredGame extends GameEntry {
   /** The game's code, fetched when it is wanted (one game per page load). */
   load(): Promise<GameModule>;
+  /** False: kept and loadable by its #id, but not in the directory or the saved games (a game taken off the disk). */
+  listed?: false;
 }
 
 export const GAMES: readonly RegisteredGame[] = [
@@ -52,7 +54,7 @@ export const GAMES: readonly RegisteredGame[] = [
 
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
-  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 193, load: () => import('./montymole/src/main') },
+  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 193, load: () => import('./montymole/src/main'), listed: false },
   { id: 'moley', name: 'MOLEY CHRISTMAS', blocks: 162, load: () => import('./moley/src/main') },
   { id: 'thingonaspring', name: 'THING ON A SPRING', blocks: 187, load: () => import('./thingonaspring/src/main') },
   { id: 'karnath', name: 'STAFF OF KARNATH', blocks: 117, load: () => import('./karnath/src/main') },
@@ -63,3 +65,6 @@ export const GAMES: readonly RegisteredGame[] = [
   { id: 'starquake', name: 'STARQUAKE', blocks: 179, load: () => import('./starquake/src/main') },
   { id: 'antiriad', name: 'ANTIRIAD', blocks: 184, load: () => import('./antiriad/src/main') },
 ];
+
+/** The games the directory and the saved games list: every game but those taken off (`listed: false`). */
+export const DIRECTORY: readonly RegisteredGame[] = GAMES.filter((g) => g.listed !== false);
