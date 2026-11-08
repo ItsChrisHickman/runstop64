@@ -11,6 +11,8 @@
 import { EVERY_FRAME, Smoothed, Surface, TRANSPARENT, makePalette, type Renderer, type SpriteHandle, type ViewStep } from 'c64kit';
 import { centre, PICTURE_HEIGHT, PICTURE_LEFT, PICTURE_TOP, PICTURE_WIDTH, pixelsOf, SPECTRUM_PALETTE } from '../../shared/spectrum';
 import type { FlowStep, Shot } from './flow';
+import { drawLine } from './font';
+import type { TextLine } from './data';
 import type { Game } from './game';
 import { spritePlaces, sceneryBits, SPRITE_SIZE, type SpritePlace } from './scenery';
 
@@ -40,8 +42,19 @@ interface Slot {
 /** Monty, the six things of the room: seven sprites at most. */
 const SLOTS = 7;
 
+/**
+ * Where ENHANCED's count of the coal to the next gate goes: the top row, to the right of the score (the game prints SCORE: and five digits in columns 0 to 11, and leaves
+ * the rest of the two rows empty), in the game's own letters, bright yellow on black like its other lines (colours in the cells: no box), set on the picture the way the
+ * game sets its score line (`drawLine`).
+ */
+export const COUNT_LINE = { column: 14, pixelRow: 188, colour: 0x46, attrRow: 0 } as const satisfies Omit<TextLine, 'text'>;
+
 export class MontyView {
   look: Look;
+  /** ENHANCED's line of text in the status rows (hints.ts `coalCount`), or null for none. It is on the surface only: the game's own screen is not touched. */
+  count: string | null = null;
+  private readonly countAttrs = new Uint8Array(768);
+  private readonly countBits = new Uint8Array(6144);
   private readonly slots: Slot[];
   private readonly scratch = new Uint8Array(PICTURE_WIDTH * PICTURE_HEIGHT);
   private readonly plain = new Uint8Array(6144);
@@ -146,6 +159,15 @@ export class MontyView {
   // ---- parts ---------------------------------------------------------------------------------------------
 
   private paint(bits: Uint8Array, attrs: Uint8Array): void {
+    if (this.look === 'enhanced' && this.count !== null) {
+      this.countBits.set(bits);
+      this.countAttrs.set(attrs);
+      drawLine({ bitmap: this.countBits, attrs: this.countAttrs }, { ...COUNT_LINE, text: this.count });
+      // (drawLine gives the row under a line white, as the game's own lines have it: the glyphs' last rows are in it, so the whole line takes one colour here)
+      for (let i = 0; i < this.count.length; i++) this.countAttrs[(COUNT_LINE.attrRow + 1) * 32 + COUNT_LINE.column + i] = COUNT_LINE.colour;
+      bits = this.countBits;
+      attrs = this.countAttrs;
+    }
     const r = this.renderer;
     r.palette = SPECTRUM_COLOURS;
     r.border = BORDER;

@@ -12,7 +12,7 @@ import type { StateReader, StateWriter, Stateful } from '../../shared/state';
 const wrap = (n: number): number => n & 0xff;
 
 /** A gate: the count that opens it, its room, the bit that says it is done, and its place: the column, the pixel row of the top of the lowest cell and how many cells high. */
-interface Gate {
+export interface Gate {
   readonly count: number;
   readonly room: number;
   readonly done: number;
@@ -28,6 +28,11 @@ export const GATES: readonly Gate[] = [
   { count: 0x40, room: 20, done: 0x04, y: 0x77, column: 0x18, cells: 4 },
 ];
 const OPENING = 0x01;
+
+/** The next gate to open when `taken` pieces are taken (the first whose count is not yet reached), or null once all four count as reached. */
+export function nextGate(taken: number): Gate | null {
+  return GATES.find((g) => g.count > taken) ?? null;
+}
 
 export class Gates implements Stateful {
   /** `$F7D1` */

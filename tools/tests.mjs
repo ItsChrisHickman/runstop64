@@ -120,6 +120,7 @@ export const TESTS = [
   { file: 'games/montymole/test/screens.ts', set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/screens.ts (game over and the ending: the verse typed and scrolled against the original frame by frame)' },
   { file: 'games/montymole/test/frontend.ts', set: 'fast', name: 'games/montymole/test/frontend.ts (the front end headless: title, options, opening, map and travel, saves, continue, grace, the switch)' },
   { file: 'games/montymole/test/sound.ts', set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/sound.ts (the sound: the tunes and beeps played and stopped; the title tune as long as the original\'s)' },
+  { file: 'games/montymole/test/hints.ts', set: 'fast', name: 'games/montymole/test/hints.ts (ENHANCED: the coal count to the next gate, the sparkles on the gate\'s opener and the tool)' },
   { file: 'games/montymole/test/loops.ts', set: 'fast', name: 'games/montymole/test/loops.ts (ENHANCED: no death loops)' },
   { file: 'games/montymole/test/info.ts', set: 'fast', name: 'games/montymole/test/info.ts (the info card: credits, links, description, the registry entry)' },
   { file: 'games/montymole/test/death.ts', set: 'fast', needs: [MM_ROM, ...MM_STATES], name: 'games/montymole/test/death.ts (the death: the picture rising against the original every frame, how long it takes)' },

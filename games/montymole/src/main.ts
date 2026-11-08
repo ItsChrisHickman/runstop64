@@ -5,6 +5,7 @@ import { runPort } from '../../shared/port';
 import type { TitleStrip } from '../../shared/continue';
 import { PAUSE_COLOURS, SPECTRUM } from '../../shared/spectrum';
 import { keyByte, Key } from './controls';
+import { coalCount, hintsOf } from './hints';
 import { MontyFlow, type FlowStep } from './flow';
 import { spectrumFont } from '../../shared/spectrum-font';
 import { Game, OPENING_ROOM } from './game';
@@ -66,7 +67,7 @@ export function run(host: Host) {
     // (ENTER CONTINUE goes on the title's empty row; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
     // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
-    assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }],
+    assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'count', long: 'COAL TO GATE' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
 
@@ -181,6 +182,10 @@ export function run(host: Host) {
       },
       updateView() {
         view.look = fe.enhanced && fe.assist.look === true ? 'enhanced' : 'original';
+        // the coal count and the sparkles (hints.ts): ENHANCED, in play, not over a held picture (a death's) nor a screen of ours
+        const shown = fe.enhanced && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
+        view.count = shown && fe.assist.count === true ? coalCount(current.game) : null;
+        view.sparkle(shown && fe.assist.hints === true ? hintsOf(current.game) : []);
         if (step !== null) view.present(step, into, true);
       },
       renderView: (alpha) => view.render(alpha),
