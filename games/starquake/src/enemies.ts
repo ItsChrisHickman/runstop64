@@ -255,9 +255,13 @@ function spawnAt(g: Game, x: number) {
   sp.msb = xx > 0xff ? sp.msb | BIT[x] : sp.msb & rom(0x1b8e + x);
 }
 
+/** ENHANCED: what a touch costs: a quarter of a full bar ($78), once, with the enemy destroyed. */
+export const BITE = 0x1e;
+
 /**
  * $1591: touching BLOB (energy, or death) and the laser shot (the enemy
- * dies, 5 points). Returns false if the laser got it.
+ * dies, 5 points). Returns false if the laser got it (or, ENHANCED, if
+ * BLOB's touch destroyed it: `Game.bite`).
  */
 function collide(g: Game, x: number): boolean {
   const sp = g.sprites;
@@ -276,7 +280,12 @@ function collide(g: Game, x: number): boolean {
       if (near(bx, ex, 0xf8) && !g.graceActive()) {
         if (e.kind === 0) g.dead = 1;
         else if (e.kind === 0x0f) g.dead = 0x0f;
-        else {
+        else if (g.bite()) {
+          // ENHANCED: the touch destroys it (as the laser's kill does, without its points) and takes one bite
+          g.energy = Math.max(0, g.energy - BITE);
+          g.panelDirty |= 1;
+          return false;
+        } else {
           g.energy = g.energy ? g.energy - 1 : 0;
           g.panelDirty |= 1;
         }

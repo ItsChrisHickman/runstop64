@@ -149,6 +149,8 @@ export class Game {
   fallHeight = 0x72;
   /** ENHANCED: down held in a lift tube lets go of it (blob.ts `letGo`). Set by the front end (main.ts); off, the game is the original's. */
   liftDrop: () => boolean = () => false;
+  /** ENHANCED: an enemy BLOB touches is destroyed, and takes one bite of energy (enemies.ts `collide`) instead of the per-frame drain. Set by the front end (main.ts); off, the game is the original's. */
+  bite: () => boolean = () => false;
   /** $F8: in a lift tube. */
   inLift = 0;
   /** $C1: frames in the room (his sparkle on arrival). */

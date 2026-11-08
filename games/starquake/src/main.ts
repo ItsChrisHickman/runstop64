@@ -70,6 +70,7 @@ export function run(host: Host) {
     assists: [
       { id: 'health', long: 'FULL ENERGY, PLATFORMS, LASER' },
       { id: 'tubes', long: 'DOWN DROPS OUT OF A LIFT' },
+      { id: 'bite', long: 'TOUCH DESTROYS' },
       { id: 'guide', long: 'MAP MARKS PIECES, PASS' },
       LIVES_ASSIST,
     ],
@@ -192,6 +193,7 @@ export function run(host: Host) {
   /** Carry on from a save (a room's start): the room is drawn again from there. */
   g.graceActive = () => flow.grace.active && mode === 'play';
   g.liftDrop = () => fe.assist.tubes === true;
+  g.bite = () => fe.assist.bite === true;
 
   function resumeGame(s: StarquakeSave, from: ResumeFrom) {
     restore(g, s);
