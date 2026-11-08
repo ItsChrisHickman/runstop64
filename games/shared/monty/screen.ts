@@ -78,12 +78,12 @@ export interface Collectible { at: number; phase: number; index: number }
 
 /**
  * CollectCoin: a coin character in Monty's 2 x 2 cells (his top-left cell at `base`, a screen offset) is taken: the character
- * goes. Null when there was none; else the collectible it was (`item` null when it was not one the game counts).
+ * goes. A game whose collectible is another character (the remix's coal) says which. Null when there was none; else the collectible it was (`item` null when it was not one the game counts).
  */
-export function takeCoin(mem: Uint8Array, base: number, items: readonly Collectible[]): { item: Collectible | null } | null {
+export function takeCoin(mem: Uint8Array, base: number, items: readonly Collectible[], char = COIN_CHAR): { item: Collectible | null } | null {
   for (const o of [ROW + 1, ROW, 1, 0]) {
     const at = (base + o) & 0x3fff;
-    if (mem[at] !== COIN_CHAR) continue;
+    if (mem[at] !== char) continue;
     mem[at] = 0;
     return { item: items.find((x) => x.at === base + o && x.index >= 0) ?? null };
   }

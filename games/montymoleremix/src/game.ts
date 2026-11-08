@@ -1,13 +1,14 @@
 import { Vic } from 'c64kit';
 import { CoalTally } from '../../montymole/src/coal-rules';
 import { CrusherRule } from '../../montymole/src/crusher-rules';
-import { CRUSHER_DOWN, CRUSHER_PICTURES, CRUSHER_UP } from '../../montymole/src/data';
+import { imageAt, SPRITE_BYTES } from '../../montymole/src/data';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { Enemy, EnemyState, ENEMY_COUNT, passEnemies } from '../../montymole/src/enemy-rules';
 import { FloorRule } from '../../montymole/src/floor-rules';
 import { GATES, type Gate } from '../../montymole/src/gates';
 import { Random } from '../../montymole/src/random';
 import { ROOM_COLS, ROOM_ROWS, ROOM_TOP_ROW, type RoomData } from '../../montymole/src/room';
+import { OBJECT_FRAMES } from '../../montymole/src/object';
 import { bankImage, enemyBank, enemyCopyFlag, EVENT_SFX, jumpArc, SFX } from '../../montyotr/src/data';
 import { afterLoss } from '../../shared/lives';
 import { animateMonty } from '../../shared/monty/anim';
@@ -15,12 +16,13 @@ import { montyCol, montyRow, type MontyBody, type MontyInput, type MontyWorld } 
 import { dissolveDeath, wait, type DeathKind, type DissolveStage, type Seq } from '../../shared/monty/deaths';
 import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import {
-  animateTheme, COIN_CHAR, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_ROW, PRNG_START, ROW, SCREEN, shimmer, takeCoin,
+  animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_ROW, PRNG_START, ROW, SCREEN, takeCoin,
   type Collectible, type Sound,
 } from '../../shared/monty/screen';
-import { cellRow, vicX, vicY, wantedMonty, WANTED_TOP } from './coords';
-import { typeOfSet } from './kinds';
-import { retile, type RemixRoom } from './retile';
+import { cellRow, vicX, vicY, wantedMonty } from './coords';
+import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
+import { lookOfSet, type Look } from './kinds';
+import { C64_OF, retile, type RemixRoom } from './retile';
 
 /**
  * Wanted: Monty Mole Remix: Wanted's rules over Monty on the Run's Monty (docs/montymole-remix-plan.md). The room is Monty on the Run's
@@ -54,12 +56,12 @@ const MONTY_SPRITE = 3;
 const CREATURES_BITS = CREATURE_SPRITE.reduce((m, n) => m | (1 << n), 0);
 /** Where each creature's eight frames are in the bank: pointers (a frame is 64 bytes). Monty on the Run keeps four slots at $30; two more are in its free space. */
 const creaturePtr = (slot: number): number => (slot < 4 ? 0x30 + slot * 8 : 0xc8 + (slot - 4) * 8);
-/** Monty on the Run's items, drawn for the tool (sprite pointers $8E-$97). */
-const TOOL_PTR = 0x8e;
-/** The crusher is drawn with characters $10-$15 (three columns, two rows: Monty on the Run's crusher glyph space). */
-const CRUSHER_CHAR = 0x10;
-/** Wanted's attribute ink (bits 0-2) to the C64's colour. */
-const C64_INK = [0, 6, 2, 4, 5, 3, 7, 1] as const;
+/** The tool's picture is Wanted's own, put in the sprite block Monty on the Run keeps its first item in (pointer $8E; its items are not used here). */
+export const TOOL_PTR = 0x8e;
+/** The coal's piece: Wanted's own picture of it in this room, one character (free in Monty on the Run's set). */
+export const COAL_CHAR = 0x0a;
+/** The crusher's picture is drawn with characters $10-$2F, as many different cells as it has on the screen at once. */
+const CRUSHER_CHAR = 0x10, CRUSHER_CHARS = 0x20;
 
 export interface Assists {
   /** Unlimited lives and continues (shared/lives.ts): a death takes no life. */
@@ -144,8 +146,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** the coins on the screen (the coal's pieces still there, by piece number) */
   entities: Collectible[] = [];
   readonly creatures: Enemy[] = Array.from({ length: ENEMY_COUNT }, () => new Enemy());
-  /** each creature's Monty on the Run type (null: it is never seen), fixed as the room is loaded */
-  readonly creatureType: (number | null)[] = new Array<number | null>(ENEMY_COUNT).fill(null);
+  /** each creature's look: a Monty on the Run type or Wanted's own frames (null: it is never seen), fixed as the room is loaded */
+  readonly creatureType: (Look | null)[] = new Array<Look | null>(ENEMY_COUNT).fill(null);
   readonly crusher = new CrusherRule();
   readonly floor = new FloorRule();
   /** where the floor's right piece starts (it shrinks back to there) */
@@ -153,12 +155,21 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** the room's tool: where it lies and which, until it is taken; and whether he carries it */
   tool: { x: number; y: number; frame: number } | null = null;
   carrying = false;
+  /** the tool's colour: the ink Wanted draws its place in */
+  private toolColour = 1;
   /** the gates open now (by index of GATES), and the one opening: its next cell */
   readonly gateOpen = [false, false, false, false];
   private gateStep = -1;
   private gateWait = 0;
-  /** the crusher's cells as drawn last (restored before it is drawn again) */
+  /** the crusher's cells as drawn last (restored before it is drawn again), and the class of each (a ledge where its picture has a pixel on the cell's top row) */
   private crusherDrawn: number[] = [];
+  /** the steps the crusher has made since the room was entered (the tests bring the faithful one to the same step) */
+  crusherSteps = 0;
+  readonly crusherProp = new Uint8Array(ROOM_COLS * ROOM_ROWS);
+  /** its colour: the ink of the room's cell under its head at the bottom (a character has one colour: a cell it shares with the room's rock takes it too) */
+  private crusherColour = 1;
+  /** its picture as the original keeps it */
+  readonly crusherPicture = new CrusherPicture();
   /** Wanted's generator (`$FD9B`): the crusher's waits, a chaser's aim */
   readonly wanted = new Random(0x2c5a);
   prng = Uint8Array.from(PRNG_START);
@@ -182,7 +193,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     if (r < 0 || r >= ROOM_ROWS || col < 2 || col > 37) return 0;
     const c = Math.min(ROOM_COLS - 1, Math.max(0, col - PLAY_COL));
     const code = this.cells[r * ROOM_COLS + c] ?? 0;
-    return code >= 1 && code <= 8 ? this.tileProps[code - 1] ?? 0 : 0;
+    const room = code >= 1 && code <= 8 ? this.tileProps[code - 1] ?? 0 : 0;
+    // (the crusher is a picture on the room: where it has a pixel on a cell's top row it holds him from above, as the original's picture does)
+    return room !== 0 ? room : this.crusherProp[r * ROOM_COLS + c] ?? 0;
   }
 
   /** The room a way out leads to: Wanted's graph, from the room's four exits ($FF: none yet, or the way is one of the scenes). */
@@ -260,7 +273,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
       if (this.frameToggle) {
         this.creaturesPass();
         this.collectCoal();
-        shimmer(this.entities, (at, colour) => this.setCol(at, colour));
+        this.flicker();
         animateTheme(this.mem, this.roomFlags);
       }
     }
@@ -338,22 +351,32 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     for (let r = 0; r < ROOM_ROWS; r++) for (let c = 0; c < ROOM_COLS; c++) this.setCell(c, r, room.cells[r * ROOM_COLS + c] ?? 0);
     this.mem.fill(0, SCREEN + 23 * ROW, SCREEN + 25 * ROW); // (Wanted's rooms have no names: the rows under the room are empty)
     this.roomFlags = room.theme;
-    // the coal: Monty on the Run's coins, the pieces not yet taken
+    // the coal: Wanted's piece in this room's picture (the castle's are not lumps), the pieces not yet taken
+    this.mem.set(data.nugget, COAL_CHAR * 8);
     this.entities = [];
     for (const piece of data.coal) {
       if ((piece.col === 0 && piece.row === 0) || !this.coal.isThere(piece.id)) continue;
       const at = SCREEN + (piece.row - ROOM_TOP_ROW + PLAY_ROW) * ROW + PLAY_COL + piece.col;
-      this.mem[at] = COIN_CHAR;
+      this.mem[at] = COAL_CHAR;
       this.entities.push({ at, phase: 0, index: piece.id });
     }
     // the creatures, the crusher, the floor, the tool: a new copy of the room's records (`$94C3`)
     data.enemies.forEach((rec, i) => this.creatures[i]?.fromBytes(rec));
     this.setupCreatures();
     this.crusher.enter(data);
+    this.crusherSteps = 0;
     this.crusherDrawn = [];
+    this.crusherProp.fill(0);
+    if (this.crusher.present) {
+      const tile = data.tiles[(data.map[cellRow(this.crusher.lowest - 4)]?.charCodeAt(this.crusher.column + 1) ?? 48) - 48];
+      const ink = (tile?.attr ?? 7) & 7;
+      this.crusherColour = ink === 0 ? 1 : C64_OF[ink] ?? 1;
+    }
+    this.crusherPicture.clear();
     this.floor.enter(data);
     this.floorStart = this.floor.b[4] ?? 0;
     this.tool = data.object.sprite !== 0 ? { x: data.object.x, y: data.object.y, frame: data.object.sprite } : null;
+    if (this.tool !== null) this.drawTool(data, this.tool.frame);
     this.carrying = false;
     // the gates of this room that the coal has opened are open as it is drawn
     GATES.forEach((gate, i) => {
@@ -369,23 +392,40 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private setupCreatures(): void {
     this.creatures.forEach((e, slot) => {
       const order = e.dir < 2 ? [0, 1, 2, 3] : [2, 3, 0, 1];
-      const type = order.map((k) => typeOfSet(e.sets[k] ?? 0)).find((t) => t !== null) ?? null;
-      this.creatureType[slot] = type;
-      if (type === null) return;
-      const bank = enemyBank(type);
+      const look = order.map((k) => lookOfSet(e.sets[k] ?? 0)).find((t) => t !== null) ?? null;
+      this.creatureType[slot] = look;
+      if (look === null) return;
       const base = creaturePtr(slot) * 64;
-      for (let f = 0; f < 8; f++) {
-        const src = bank.subarray(f * 32, f * 32 + 32);
-        const dst = this.mem.subarray(base + f * 64, base + f * 64 + 64);
-        dst.fill(0);
-        for (let r = 0; r < 8; r++) {
-          dst[r * 3] = src[r] ?? 0;
-          dst[r * 3 + 1] = src[8 + r] ?? 0;
-          dst[(8 + r) * 3] = src[16 + r] ?? 0;
-          dst[(8 + r) * 3 + 1] = src[24 + r] ?? 0;
+      if ('type' in look) {
+        const bank = enemyBank(look.type);
+        for (let f = 0; f < 8; f++) {
+          const src = bank.subarray(f * 32, f * 32 + 32);
+          const dst = this.mem.subarray(base + f * 64, base + f * 64 + 64);
+          dst.fill(0);
+          for (let r = 0; r < 8; r++) {
+            dst[r * 3] = src[r] ?? 0;
+            dst[r * 3 + 1] = src[8 + r] ?? 0;
+            dst[(8 + r) * 3] = src[16 + r] ?? 0;
+            dst[(8 + r) * 3 + 1] = src[24 + r] ?? 0;
+          }
         }
+        if (enemyCopyFlag(look.type)) this.mem.copyWithin(base + 0x100, base, base + 0x100);
+        return;
       }
-      if (enemyCopyFlag(type)) this.mem.copyWithin(base + 0x100, base, base + 0x100);
+      // Wanted's own frames: its four one way (directions 0 and 2) and four the other (1 and 3), 16 x 16 pixels a bit each
+      const left = [e.sets[0] ?? 0, e.sets[2] ?? 0].find((a) => lookOfSet(a) !== null) ?? 0;
+      const right = [e.sets[1] ?? 0, e.sets[3] ?? 0].find((a) => lookOfSet(a) !== null) ?? left;
+      [left, right].forEach((set, half) => {
+        for (let f = 0; f < 4; f++) {
+          const src = imageAt(set + 32 * f);
+          const dst = this.mem.subarray(base + (half * 4 + f) * 64, base + (half * 4 + f) * 64 + 64);
+          dst.fill(0);
+          for (let r = 0; r < 16; r++) {
+            dst[r * 3] = src[r * 2] ?? 0;
+            dst[r * 3 + 1] = src[r * 2 + 1] ?? 0;
+          }
+        }
+      });
     });
   }
 
@@ -394,7 +434,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** A creature is seen: it is not gone, and the frames it is on are not blank. */
   private visible(slot: number): boolean {
     const e = this.creatures[slot];
-    return e !== undefined && this.creatureType[slot] !== null && e.state !== EnemyState.none && typeOfSet(e.sets[e.dir] ?? 0) !== null;
+    return e !== undefined && this.creatureType[slot] !== null && e.state !== EnemyState.none && lookOfSet(e.sets[e.dir] ?? 0) !== null;
   }
 
   /** `$8751`: every record once (25 a second). */
@@ -420,7 +460,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
       r.x = vicX(e.x);
       r.y = vicY(e.y);
       r.ptr = creaturePtr(slot) + (e.dir === 1 || e.dir === 3 ? 4 : 0) + ((e.counter >> 1) & 3);
-      r.colour = C64_INK[e.colour & 7] ?? 1;
+      r.colour = C64_OF[e.colour & 7] ?? 1;
       shown |= 1 << n;
     });
     if (this.tool !== null && !this.carrying) {
@@ -428,8 +468,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
       if (r !== undefined) {
         r.x = vicX(this.tool.x);
         r.y = vicY(this.tool.y);
-        r.ptr = TOOL_PTR + ((this.tool.frame - 1) % 10);
-        r.colour = 1;
+        r.ptr = TOOL_PTR;
+        r.colour = this.toolColour;
         shown |= 1 << TOOL_SPRITE;
       }
     }
@@ -441,6 +481,22 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     if (!(this.collisionStore & 0x08) || !(this.collisionStore & CREATURES_BITS)) return;
     if (this.carrying) { this.useTool(); return; }
     if (!this.actionCounter) this.actionCounter = 2;
+  }
+
+  /** The room's tool, Wanted's own picture of it (`$7A00 + 32 * (frame - 1)`, 16 x 16, one bit a pixel) as the 16 x 16 hires sprite the creatures are drawn as. */
+  private drawTool(data: RoomData, frame: number): void {
+    const from = imageAt(OBJECT_FRAMES + SPRITE_BYTES * (frame - 1));
+    const base = TOOL_PTR * 64;
+    this.mem.fill(0, base, base + 64);
+    for (let r = 0; r < 16; r++) {
+      this.mem[base + r * 3] = from[r * 2] ?? 0;
+      this.mem[base + r * 3 + 1] = from[r * 2 + 1] ?? 0;
+    }
+    // its colour is the ink of the cell it lies in (white where that is black)
+    const at = data.object;
+    const tile = data.tiles[(data.map[cellRow(at.y)]?.charCodeAt(at.x >> 3) ?? 48) - 48];
+    const ink = (tile?.attr ?? 7) & 7;
+    this.toolColour = ink === 0 ? 1 : C64_OF[ink] ?? 1;
   }
 
   /** The tool is used up and the creature he is touching (the first within 15 pixels both ways) is gone. */
@@ -466,9 +522,17 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   // ---- the coal -----------------------------------------------------------------------
 
+  /** `$95E8`, every pass: each piece's cell steps to the next colour (Wanted's paper goes one on, its ink is black): the piece flickers through them. */
+  private flicker(): void {
+    for (const e of this.entities) {
+      e.phase = (e.phase + 1) & 7;
+      this.setCol(e.at, C64_OF[e.phase] ?? 1);
+    }
+  }
+
   /** CollectCoin: the coal is Monty on the Run's coin; its worth is Wanted's. */
   private collectCoal(): void {
-    const taken = takeCoin(this.mem, this.montyChr, this.entities);
+    const taken = takeCoin(this.mem, this.montyChr, this.entities, COAL_CHAR);
     if (taken?.item == null) return;
     const points = this.coal.take(taken.item.index);
     this.entities = this.entities.filter((e) => e !== taken.item);
@@ -531,6 +595,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   private stepCrusher(): void {
     if (!this.crusher.present) return;
+    this.crusherSteps++;
     const monty = wantedMonty(this.x2, this.stepGate, this.y);
     const step = this.crusher.advance({
       random: this.wanted,
@@ -548,36 +613,45 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     return m.x + 16 > c.column * 8 && m.x < c.column * 8 + 24 && m.y >= line && m.y - 15 <= line;
   }
 
-  /** Its nine rows drawn into six characters ($10-$15) over the cells it is in; the cells it was in are the room's again. */
+  /**
+   * The crusher's picture over the room, as the original keeps it (`CrusherPicture`: the shaft it leaves going down, the head, the rows that
+   * wipe the shaft going up) turned into characters: each cell it has written a row of is the room's cell with those rows put over it, in
+   * the ink of the room's cell. The cells it was in are the room's again first.
+   */
   private drawCrusher(): void {
     for (const at of this.crusherDrawn) {
       const r = (at / ROOM_COLS) | 0, c = at % ROOM_COLS;
       this.setCell(c, r, this.cells[at] ?? 0);
+      this.crusherProp[at] = 0;
     }
     this.crusherDrawn = [];
     const cr = this.crusher;
-    if (!cr.present) return;
-    const from = (cr.direction & 1) !== 0 ? CRUSHER_DOWN : CRUSHER_UP;
-    const top = WANTED_TOP - cr.y; // the room's pixel row of the picture's first line
-    const firstRow = top >> 3;
-    const offset = top & 7;
-    for (let c = 0; c < 3; c++) {
-      const upper = new Uint8Array(8), lower = new Uint8Array(8);
-      for (let line = 0; line < 9; line++) {
-        const byte = CRUSHER_PICTURES[from + line * 3 + c] ?? 0;
-        const p = offset + line;
-        if (p < 8) upper[p] = byte; else lower[p - 8] = byte;
-      }
-      for (const [k, rows] of [[0, upper], [1, lower]] as const) {
-        const row = firstRow + k, col = cr.column + c;
-        if (row < 0 || row >= ROOM_ROWS || col >= ROOM_COLS) continue;
-        if (rows.every((b) => b === 0)) continue;
-        const code = CRUSHER_CHAR + c + 3 * k;
-        this.mem.set(rows, code * 8);
+    this.crusherPicture.put(cr.y, (cr.direction & 1) !== 0);
+    const data = roomData(this.roomId);
+    const chars = new Map<string, number>();
+    const { first, last } = this.crusherPicture.rows;
+    for (let row = first; row <= last; row++) {
+      for (let i = 0; i < CRUSHER_COLUMNS; i++) {
+        const col = cr.column + i;
+        if (col >= ROOM_COLS) continue;
+        const code = this.cells[row * ROOM_COLS + col] ?? 0;
+        const under = code >= 1 && code <= 8 ? this.mem.subarray(code * 8, code * 8 + 8) : new Uint8Array(8);
+        const rows = this.crusherPicture.cell(row, i, under);
+        if (rows === null) continue;
+        const key = rows.join(',');
+        let char = chars.get(key);
+        if (char === undefined) {
+          if (chars.size >= CRUSHER_CHARS) throw new Error(`room ${data.id}: the crusher needs more than ${CRUSHER_CHARS} kinds of cell`);
+          char = CRUSHER_CHAR + chars.size;
+          chars.set(key, char);
+          this.mem.set(rows, char * 8);
+        }
         const at = SCREEN + (row + PLAY_ROW) * ROW + PLAY_COL + col;
-        this.mem[at] = code;
-        this.col[at - SCREEN] = 15;
+        this.mem[at] = char;
+        this.col[at - SCREEN] = this.crusherColour;
         this.crusherDrawn.push(row * ROOM_COLS + col);
+        // holds him from above where it has a pixel on the cell's top row
+        if ((rows[0] ?? 0) !== 0) this.crusherProp[row * ROOM_COLS + col] = 2;
       }
     }
   }

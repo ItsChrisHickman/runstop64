@@ -47,7 +47,7 @@ export interface RemixRoom {
  * Spectrum colour (0-7) to C64 colour. A character in hires mode has colours 0-7 (bit 3 of colour RAM makes it multicolour, a
  * different tile format), which is what Monty on the Run's tiles are drawn in, so bright and normal are one colour.
  */
-const C64_OF = [0, 6, 2, 4, 5, 3, 7, 1] as const;
+export const C64_OF = [0, 6, 2, 4, 5, 3, 7, 1] as const;
 
 /** A tile's colour: its paper where it has one (a brick on yellow is a yellow brick), else its ink. */
 function colourOf(attr: number): number {

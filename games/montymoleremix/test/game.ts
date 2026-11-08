@@ -7,7 +7,9 @@
  *
  *   nice -n 15 node tools/test.mjs games/montymoleremix/test/game.ts
  */
-import { COAL_FLAGS } from '../../montymole/src/data';
+import { COAL_FLAGS, imageAt, SPRITE_BYTES, SPRITE_BASE } from '../../montymole/src/data';
+import { Enemy } from '../../montymole/src/enemy-rules';
+import { OBJECT_FRAMES } from '../../montymole/src/object';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { Enemies } from '../../montymole/src/enemies';
 import { Field } from '../../montymole/src/field';
@@ -17,7 +19,9 @@ import { ROOM_COLS } from '../../montymole/src/room';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { cellRow } from '../src/coords';
-import { HOME_COL, HOME_ROW, RemixGame, START_LIVES } from '../src/game';
+import { COAL_CHAR, HOME_COL, HOME_ROW, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
+import { lookOfSet, NAMED_KINDS } from '../src/kinds';
+import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { retile, roleAt } from '../src/retile';
 import { type Play, newGame, NONE, place, settled, step } from './harness';
 
@@ -235,6 +239,36 @@ function findFlat(): { id: number; col: number; row: number } | null {
   const q = newGame();
   q.g.enterAt(16, 0x40, 0xda);
   check(`room 16: entering it low, the pit lifts him into room 17 (${q.g.roomId})`, q.g.roomId === 17);
+}
+
+// ---- Wanted's own coal, tools and creatures ----
+{
+  let coalOk = 0, coalRooms = 0, toolOk = 0, toolRooms = 0;
+  for (const data of ROOMS) {
+    const g = new RemixGame();
+    g.roomId = data.id;
+    g.loadRoom();
+    const pieces = data.coal.filter((k) => k.col !== 0 || k.row !== 0);
+    if (pieces.length > 0) {
+      coalRooms++;
+      const piece = must(pieces[0], 'a piece');
+      const char = g.mem[SCREEN + (piece.row - 2 + PLAY_ROW) * ROW + PLAY_COL + piece.col];
+      if (char === COAL_CHAR && data.nugget.every((b, k) => g.mem[COAL_CHAR * 8 + k] === b)) coalOk++;
+    }
+    if (data.object.sprite !== 0) {
+      toolRooms++;
+      const from = imageAt(OBJECT_FRAMES + SPRITE_BYTES * (data.object.sprite - 1));
+      let same = true;
+      for (let r = 0; r < 16; r++) if (g.mem[TOOL_PTR * 64 + r * 3] !== from[r * 2] || g.mem[TOOL_PTR * 64 + r * 3 + 1] !== from[r * 2 + 1]) same = false;
+      if (same) toolOk++;
+    }
+  }
+  check(`the coal is Wanted's own piece, the room's picture of it (${coalOk} of ${coalRooms} rooms)`, coalOk === coalRooms && coalRooms > 15);
+  check(`each room's tool is Wanted's own picture of it, pixel for pixel (${toolOk} of ${toolRooms} rooms)`, toolOk === toolRooms && toolRooms >= 13);
+  const kinds = new Set<number>();
+  for (const data of ROOMS) for (const rec of data.enemies) { const e = new Enemy(); e.fromBytes(rec); for (const set of e.sets) if (lookOfSet(set) !== null) kinds.add(set); }
+  const unnamed = [...kinds].filter((k) => !NAMED_KINDS.includes(k) && k >= SPRITE_BASE);
+  check(`every kind of creature the rooms use is paired by hand (${kinds.size} kinds, ${unnamed.length} unpaired)`, unnamed.length === 0);
 }
 
 finish();
