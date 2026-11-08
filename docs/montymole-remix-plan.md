@@ -1,6 +1,6 @@
 # Wanted: Monty Mole Remix: the plan
 
-*Status: planned, one prototype made (stage 0). Nothing of the live games changed. The faithful Spectrum rebuild (`games/montymole`, ORIGINAL there, loadable at `#montymole`) stays as it is; the remix is a game of its own, **WANTED MONTY MOLE REMIX** in the directory.*
+*Status: planned and approved by Chris ("Decided" below); stages 0-3 made (prototype, the shared Monty, the 21 rooms, the game). Nothing of the live games changed. The faithful Spectrum rebuild (`games/montymole`, ORIGINAL there, loadable at `#montymole`) stays as it is; the remix is a game of its own, **WANTED MONTY MOLE REMIX** in the directory.*
 
 Chris's brief: Wanted's 21 rooms, coal, creatures and story, played with **Monty on the Run's Monty**: his walk speed, the somersault jump, his animation, the death sequence, the controls, the sound, the smooth motion and the C64 look. A native rebuild like the others: Wanted's own data (rooms, coal, creatures' paths, gates) read from `games/montymole`, Monty and his physics from `games/montyotr`, put together in a folder of its own. Studies of both engines are in each game's `re/README.md`; this plan records only what the remix needs from them.
 
@@ -92,16 +92,7 @@ The fix is always the smallest edit to the room's cells (one ledge cell moved, a
 
 * **Room 16's scene** (a drop lifts Monty from the pit into room 17): a scripted sequence in Monty on the Run's way (a generator, one `yield` a frame, `scripts.ts`), placing him at the same place.
 * **The opening scene** (the house, the pit head, the acorn, the water; pseudo-room `$2C`): its own small game of Wanted's. In the remix it is drawn with the same tiles and run by the same Monty, and it is the last thing built (stage 6): until then, a new game starts in room 0 and the opening is skipped. The ending's verse and the reward come last with it.
-
-### The death
-
-Monty on the Run's, by cause, from the shared `deaths.ts`: a creature: the dissolve into noise; a deadly colour or water: the sink; a crusher: the sink with noise; **no death from falling** (Monty on the Run has none, and the remix keeps it that way: a long drop is a way down). The SID death effect plays; a life is taken; he is put back where he came into the room, the coal and creatures as they were (Wanted's rule and Monty on the Run's: no room resets).
-
-### Sound, controls, front end
-
-* **Sound**: Monty on the Run's SID (`monty_on_the_run.sid`, `SidPlayer`): his jump, step, coin, item and death effects and his tunes. Colonel Bogey on the beeper stays with the faithful game; a SID version of it is an open choice (below).
-* **Controls**: Monty on the Run's: arrows or WASD, Space, Z or X to jump, gamepads, touch, all through `c64kit` input, the shared `touch` layout.
-* **Front end**: the shared `runPort` (pause screen, map and travel of 21 rooms in the layout the faithful game already has, saves, continue, grace, back to room start), as the other native rebuilds. The title is the one open design item (below). **ORIGINAL and ENHANCED**: the one switch, ENHANCED by default. ORIGINAL is the remix played straight (Monty on the Run's Monty over Wanted's rooms, rules and gates; 5 lives). ENHANCED adds the usual assists: unlimited lives and continues (`LIVES_ASSIST`), no death loops (`respawn`), the coal count to the next gate on the status row, and sparkles on the coal that opens a gate and on the tool. The moment's grace is in both (it is standard everywhere). I would do one thing differently from the brief: **5 lives, as Monty on the Run has them, in ORIGINAL**, not Wanted's 3 (his feel), and the gates' fix in both modes, as above.
+  **The rule of the opening scene (Chris's design): Monty cannot walk right until he has the bucket.** A gate stands on the right of the scene, closing the way on; it opens when Monty gets the bucket by the house (the original's gift at the pot). Until then the scene is the house, the pot and the pit head to the left of the gate; once the bucket is his, the way right opens and he goes on to the acorn, the water and the way out as in Wanted. The coal is **always** in the rooms from the start: the bucket gates the way out of the opening scene, not the coal. The gate is a cell rewrite like the coal gates' (the shared `Cells` module), drawn as one of the scene's rock tiles; the passable bot (stage 4) takes the scene's two halves as two rooms: left of the gate with the bucket still to come, right of it with the bucket in hand.
 
 ## Structure
 
@@ -171,14 +162,15 @@ About 19 working days of an agent's time, most of it in stages 3 and 6; stages 0
 * **Hires colours only** (0-7) with Monty on the Run's tiles: Wanted's two shades (bright and normal) of a hue are one colour; a few rooms where the two shades told two things apart (a bright ledge on a normal wall) need a different colour pair, set in the room's table.
 * **Drift.** Two copies of a rule would be the failure: the plan splits the rules out of montymole instead (stage 3). If a split would move the faithful game's behaviour, the remix gets a thin rules module over the same data and says so.
 
-## Decisions for Chris
+## Decided (Chris, 2026-11-08)
 
-1. **Colonel Bogey.** The faithful game has the beeper's Colonel Bogey; the remix as planned has Monty on the Run's SID tunes and effects. A SID rendering of the Bogey (a few hours: the notes are in `montymole/src/data/music-data.ts`) could be the remix's title tune. Keep Monty on the Run's music throughout, or Bogey on the title?
-2. **The title.** Monty on the Run's title is built round its logo and a high-score table. Plan: Wanted's title picture in the C64 palette on the shared title chrome. Say if you want a new logo drawn in Monty on the Run's lettering instead.
-3. **5 lives or 3** in ORIGINAL (the plan: 5, Monty on the Run's).
-4. **The gates' trap** (a gate can be shut for good): the plan removes it in both modes. Say if you want it kept in ORIGINAL.
-5. **Creature art**: Monty on the Run's creatures in Wanted's paths (the plan) against redrawing Wanted's own in the C64's look.
-6. **Order**: the opening scene last (the plan), or first, as it is what a player sees first.
+1. **Music: Monty on the Run's SID throughout**, on the title and in the game, reused from `games/montyotr`, not copied. (No Colonel Bogey.)
+2. **Title: a new WANTED: MONTY MOLE REMIX logo in Monty on the Run's lettering**, on the title chrome Monty on the Run's title has.
+3. **5 lives**, in both modes (ENHANCED's unlimited lives and continues come on top, as everywhere).
+4. **The gate trap is removed in both modes** (a gate opens when its count is reached, wherever he is).
+5. **Creatures: Monty on the Run's, walking Wanted's paths** (the kind table above).
+6. **The opening scene: Monty can't walk right until he has the bucket.** See "The scenes". The coal is always in the rooms.
+7. **Order**: the opening scene last (stage 6), as planned; until then a new game starts in room 0.
 
 ## The prototype
 

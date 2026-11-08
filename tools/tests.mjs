@@ -228,6 +228,7 @@ export const TESTS = [
   { file: 'games/montyotr/test/warps.ts', set: 'fast' },
   { file: 'games/montyotr/test/jetpack.ts', args: [MOTR], set: 'slow', needs: [MOTR] },
   { file: 'games/montyotr/test/title.ts', args: [MOTR], set: 'fast', needs: [MOTR] },
+  { file: 'games/montyotr/test/trace.ts', set: 'fast', name: 'games/montyotr/test/trace.ts (the whole game pinned: random players in every room, deaths forced, a hash of the state every frame; the shared Monty changes nothing)' },
 
   // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },

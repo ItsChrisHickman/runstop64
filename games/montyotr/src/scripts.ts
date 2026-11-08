@@ -1,3 +1,4 @@
+import { dissolve, dissolveDeath, sinkStep, wait, type Seq } from '../../shared/monty/deaths';
 import { gameOverPtrs } from './data';
 import { ROW, SCREEN, type Game } from './game';
 import { C5_START, c5Arrive, c5Restart, c5Road } from './mechanisms';
@@ -7,17 +8,6 @@ import { C5_START, c5Arrive, c5Restart, c5Road } from './mechanisms';
  * generators: every `yield` is one WaitForVSync, so timings match frame for
  * frame while the rest of the frame (IRQ work) keeps running.
  */
-type Seq = Generator<void, void, void>;
-
-const PIXEL = 0x2700; // dissolve buffers: $6700 (sprite ptr $9C), $6740 ($9D), $7000
-const MASK = 0x2740;
-const REF = 0x3000;
-
-/** Original WaitDelay(X): a busy loop of roughly X/5 frames (X=0 means 256). */
-function* wait(x: number): Seq {
-  const frames = Math.round(((x || 256) * 3328) / 16000);
-  for (let i = 0; i < frames; i++) yield;
-}
 
 export function eventScript(g: Game, ev: number): Seq {
   switch (ev) {
@@ -28,50 +18,6 @@ export function eventScript(g: Game, ev: number): Seq {
     case 4: return deathByHazard(g);
     case 5: return completion(g);
     default: return deathByC5(g);
-  }
-}
-
-// ---- dissolve helpers ------------------------------------------------------------------
-
-function dissolve(g: Game) {
-  const src = g.sptr[3] * 64;
-  for (let y = 0x3f; y >= 0; y--) g.mem[PIXEL + y] = g.mem[MASK + y] = g.mem[REF + y] = g.mem[src + y];
-  g.frameIndex = 0x9c;
-  g.sptr[3] = 0x9c;
-  g.mem.fill(0, PIXEL, PIXEL + 3);
-  g.mem.fill(0, MASK, MASK + 3);
-}
-
-function sinkStep(g: Game) {
-  for (let x = 0x27; x >= 0; x -= 3) {
-    g.mem[PIXEL + x + 3] = g.mem[PIXEL + x];
-    g.mem[MASK + x + 3] = g.mem[MASK + x];
-    g.mem[PIXEL + x + 4] = g.mem[PIXEL + x + 1];
-    g.mem[MASK + x + 4] = g.mem[MASK + x + 1];
-  }
-}
-
-function noiseStep(g: Game, a: number) {
-  for (let x = 0x30; x >= 0; x--) {
-    if (a >= 0x10) {
-      g.mem[PIXEL + x] = (g.random() ^ g.mem[PIXEL + x]) & g.mem[MASK + x];
-    } else {
-      const v = g.random() & g.mem[MASK + x];
-      g.mem[PIXEL + x] = g.mem[MASK + x] = v;
-    }
-  }
-}
-
-/** PlayDissolve: Monty materialises after a teleport. */
-export function* playDissolve(g: Game): Seq {
-  g.actionCounter = 0x80;
-  dissolve(g);
-  g.mem.fill(0, REF, REF + 0x64);
-  for (let t = 10; t > 0; t--) {
-    yield;
-    g.mem.copyWithin(PIXEL, REF, REF + 0x40);
-    g.mem.copyWithin(REF, MASK, MASK + 0x40);
-    for (let y = t; y >= 0; y--) for (let x = 0x30; x >= 0; x--) g.mem[REF + x] = g.random() & g.mem[MASK + x];
   }
 }
 
@@ -110,30 +56,17 @@ function* death4Split(g: Game): Seq {
 }
 
 function* deathByEnemy(g: Game): Seq {
-  dissolve(g);
-  for (let a = 0x3c; a >= 0; a--) {
-    noiseStep(g, a);
-    yield;
-  }
+  yield* dissolveDeath(g, 'noise');
   yield* lifeLost(g);
 }
 
 function* deathByPiledriver(g: Game): Seq {
-  dissolve(g);
-  for (let a = 0x30; a >= 0; a--) {
-    if (!(a & 1)) sinkStep(g);
-    noiseStep(g, a);
-    yield;
-  }
+  yield* dissolveDeath(g, 'crusher');
   yield* lifeLost(g);
 }
 
 function* deathByHazard(g: Game): Seq {
-  dissolve(g);
-  for (let a = 0x12; a >= 0; a--) {
-    sinkStep(g);
-    yield;
-  }
+  yield* dissolveDeath(g, 'sink');
   yield* lifeLost(g);
 }
 

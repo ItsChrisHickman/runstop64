@@ -5,10 +5,12 @@ import {
   specialItems, tileLibrary, tileProperty,
 } from './data';
 import { afterLoss } from '../../shared/lives';
+import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body';
 import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
 import * as Items from './items';
 import * as Scripts from './scripts';
+import { playDissolve } from '../../shared/monty/deaths';
 
 /**
  * The game's state and frame loop — a port of the original's zero page,
@@ -23,7 +25,7 @@ export const SCREEN = 0x800;
 export const SAFE_FRAMES = 100;
 export const ROW = 40;
 
-export interface Input { left: boolean; right: boolean; up: boolean; down: boolean; fire: boolean }
+export type { MontyInput as Input } from '../../shared/monty/body';
 
 export interface Sound {
   /** `musicOff` effects only play when music is off, as in the original. */
@@ -86,7 +88,7 @@ export interface Enemy {
   x: number; y: number; colour: number; type: number; flags: number; range: number; step: number; speed: number;
 }
 
-export class Game {
+export class Game implements MontyBody, MontyWorld {
   readonly vic = new Vic();
   readonly mem = this.vic.bank;
   readonly col = this.vic.colour;
@@ -123,7 +125,7 @@ export class Game {
   ending: { aboard: boolean; mc1: number; mc2: number } | null = null;
 
   // ---- input --------------------------------------------------------------------
-  input: Input = { left: false, right: false, up: false, down: false, fire: false };
+  input: MontyInput = { left: false, right: false, up: false, down: false, fire: false };
   inputFire = false;
 
   // ---- world --------------------------------------------------------------------
@@ -233,6 +235,11 @@ export class Game {
   /** Collision class of a screen char (original GetTileFlag). */
   tileFlag(code: number) {
     return code >= 1 && code <= 8 ? this.tileProps[code - 1] : 0;
+  }
+
+  /** The collision class of the cell at a screen row and column (the shared Monty's view of the room). */
+  flagAt(row: number, col: number) {
+    return this.tileFlag(this.chr(this.rowAddr(row) + col));
   }
 
   get montyRow() { return ((this.y - 0x32) & 0xff) >> 3; }
@@ -421,7 +428,7 @@ export class Game {
     this.loadRoom();
     if (this.dissolvePending) {
       this.enable |= 0x08;
-      yield* Scripts.playDissolve(this);
+      yield* playDissolve(this);
     }
     this.freeze = 0;
     this.gameMode = 0;
