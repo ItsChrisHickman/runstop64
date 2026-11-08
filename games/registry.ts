@@ -45,12 +45,12 @@ interface RegisteredGame extends GameEntry {
 
 export const GAMES: readonly RegisteredGame[] = [
   // In series order, like a compilation disk (no headings): the Monty games (Auf Wiedersehen Monty under its disk file's name,
-  // the 16 letters a name has; Moley Christmas, the Spectrum-only one, after them), then Gremlin's
+  // the 16 letters a name has; the Spectrum-only ones, Wanted: Monty Mole and Moley Christmas, after them), then Gremlin's
   // others (Thing on a Spring), the four Pendragon games in release order,
   // Jet Set Willy II, Starquake, Antiriad. A new game goes next to its series.
-  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 158, load: () => import('./montymole/src/main') },
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
+  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 158, load: () => import('./montymole/src/main') },
   { id: 'moley', name: 'MOLEY CHRISTMAS', blocks: 162, load: () => import('./moley/src/main') },
   { id: 'thingonaspring', name: 'THING ON A SPRING', blocks: 187, load: () => import('./thingonaspring/src/main') },
   { id: 'karnath', name: 'STAFF OF KARNATH', blocks: 117, load: () => import('./karnath/src/main') },

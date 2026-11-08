@@ -27,6 +27,8 @@ import { StateReader, StateWriter, type Stateful } from '../../shared/state';
 import { afterLoss } from '../../shared/lives';
 
 export const START_LIVES = 3;
+/** Two seconds of passes (25 a second): what a room's way in must have given him for it to count as somewhere safe. */
+export const FEET_PASSES = 50;
 
 /** A game and its screen as it was (`Game.snapshot`). */
 export interface GameSnapshot extends FieldCopy {
@@ -129,6 +131,11 @@ export class Game implements Stateful {
   death: { readonly field: FieldCopy; readonly x: number; readonly y: number } | null = null;
   /** a moment's grace after the front end puts him back into play (shared/grace.ts): a death in it costs nothing and puts him back where he came into the room */
   graceActive: () => boolean = () => false;
+  /** ENHANCED: a death before he has had `FEET_PASSES` on his feet in a room starts him where he last came into a room and had them (not where he came into this one) */
+  noDeathLoops = false;
+  /** the passes since he came into this room, and the way in (room and place) of the last room he had `FEET_PASSES` in */
+  onFeet = 0;
+  safe: { readonly room: number; readonly x: number; readonly y: number } | null = null;
   /** ENHANCED: a death costs no life (shared/lives.ts) */
   unlimitedLives = false;
   /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
@@ -197,6 +204,7 @@ export class Game implements Stateful {
       this.field.printLives(this.lives); // $949E
       this.field.keep(); // $D254
       this.entries++;
+      this.onFeet = 0;
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
       // $96E1: the pit: the scene lifts him into the castle (room 17), his jump state as it was but the fall and the jump's count cleared
       this.monty.x = PIT_ARRIVAL.x;
@@ -301,6 +309,7 @@ export class Game implements Stateful {
   pass(ports: Ports): Outcome {
     if (this.outcome !== 'playing') return this.outcome;
     if (this.room === OPENING_ROOM) return this.openingPass(ports);
+    if (++this.onFeet === FEET_PASSES) this.safe = { room: this.room, x: this.arrivalX, y: this.arrivalY };
     this.inputRead = -1;
     this.exitedTo = null;
     const room = this.world.room;
@@ -416,6 +425,8 @@ export class Game implements Stateful {
     this.death = { field: this.field.copy(), x: m.x, y: m.y };
     this.lives = afterLoss(this.lives, this.unlimitedLives) & 0xff;
     if (this.lives === 0) { this.outcome = 'gameOver'; return; }
+    const back = this.noDeathLoops && this.onFeet < FEET_PASSES ? this.safe : null;
+    if (back !== null) { this.room = back.room; this.arrivalX = back.x; this.arrivalY = back.y; }
     m.x = this.arrivalX;
     m.y = this.arrivalY;
     m.fallen = 0;

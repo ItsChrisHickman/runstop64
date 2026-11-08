@@ -66,7 +66,7 @@ export function run(host: Host) {
     // (ENTER CONTINUE goes on the title's empty row; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
     // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
-    assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }],
+    assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
 
@@ -85,6 +85,7 @@ export function run(host: Host) {
     function applyEnhancements(): void {
       current.game.unlimitedLives = fe.assist.lives === true;
       current.game.monty.safeFalls = fe.assist.falls === true;
+      current.game.noDeathLoops = fe.assist.loops === true;
     }
 
     function keepHigh(): void {

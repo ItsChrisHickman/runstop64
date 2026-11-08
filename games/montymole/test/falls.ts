@@ -6,7 +6,7 @@
  * the screen. Nothing else counts: the counter is 0 at take-off and at every landing, and a jump does not touch it.
  * The rebuilt game is run beside each fall (the same lockstep as test/lockstep.ts) so the rule is the rebuilt game's too.
  *
- *   nice -n 15 node tools/test.mjs games/montymole/test/falls.ts
+ *   nice -n 15 node tools/test.mjs games/montymole/test/falls.ts [x-step: 16 by default; the fast set drops from every other column]
  */
 import { check, finish } from '../../../games/shared/test/check';
 import type { Spectrum } from '../../../tools/zx/spectrum';
@@ -56,13 +56,14 @@ function drop(room: number, x: number, y: number): void {
   if (fell) falls++;
 }
 
+const STEP = Number(process.argv[2] ?? '16');
 for (const room of ROOMS) {
-  for (let x = 16; x <= 0xe0; x += 16) {
+  for (let x = 16; x <= 0xe0; x += STEP) {
     for (const y of [0xa8, 0x8a, 0x6c, 0x4e]) drop(room.id, x, y);
   }
 }
 
-console.log(`   ${falls} falls from ${ROOMS.length * 14 * 4} places: ${landed.length} landings (counter ${Math.min(...landed)} to ${Math.max(...landed)}), ${died.length} deaths by the fall (counter ${Math.min(...died)} to ${Math.max(...died)}), ${deadly} on deadly cells, ${other} by something else`);
+console.log(`   ${falls} falls from ${ROOMS.length * Math.floor((0xe0 - 16) / STEP + 1) * 4} places: ${landed.length} landings (counter ${Math.min(...landed)} to ${Math.max(...landed)}), ${died.length} deaths by the fall (counter ${Math.min(...died)} to ${Math.max(...died)}), ${deadly} on deadly cells, ${other} by something else`);
 check(`the rebuilt game equals the original on every pass of every fall (${tally.mismatches} of ${tally.passes} differ)`, tally.mismatches === 0);
 check(`every landing the original survived had a counter under ${FATAL_FALL} (the most: ${Math.max(...landed)})`, landed.length > 50 && landed.every((c) => c < FATAL_FALL));
 check(`every landing it died in had a counter of ${FATAL_FALL} or more (the least: ${Math.min(...died)})`, died.length > 50 && died.every((c) => c >= FATAL_FALL));
@@ -72,7 +73,7 @@ check('both sides of the limit were met exactly: a landing with the counter 30 (
 const NONE: Ports = { halfRow: () => 0x1f, kempston: () => 0 };
 let killed = 0, saved = 0;
 for (const room of ROOMS) {
-  for (let x = 16; x <= 0xe0; x += 16) {
+  for (let x = 16; x <= 0xe0; x += STEP) {
     for (const y of [0xa8, 0x8a, 0x6c]) {
       const results = [false, true].map((safe) => {
         const g = new Game();
