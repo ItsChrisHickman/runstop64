@@ -243,6 +243,8 @@ export function touch(g: Game): number {
   if (under) touched(g, under);
   const at = g.scr.attr;
   if ((at[(g.cell + 0x29) & 0x3ff] | at[(g.cell + 0x2a) & 0x3ff] | at[(g.cell + 0x51) & 0x3ff] | at[(g.cell + 0x52) & 0x3ff]) & 2) return 0;
+  // ENHANCED: GET picks up what he is at, riding the hover pad too (where up rises: `Game.getPress`); on nothing it does nothing (it puts nothing down)
+  if (g.getPress) return thingHere(g) ? pickUp(g) : 0;
   if (g.riding) return 0;
   const k = g.input & 15;
   if (k === g.inputPickup) return 0;
@@ -266,11 +268,14 @@ function take(g: Game, slot: number) {
   markBonus(g);
 }
 
+/** The shown thing (slot) in BLOB's cells, or 0. */
+const thingHere = (g: Game) => here(g, 0x29) || here(g, 0x2a) || here(g, 0x51) || here(g, 0x52);
+
 /** $2D41: pick up what BLOB stands on, or put the oldest thing down. */
 function pickUp(g: Game): number {
   let picked: number;
   let col = g.col, row = g.row;
-  const slot = here(g, 0x29) || here(g, 0x2a) || here(g, 0x51) || here(g, 0x52);
+  const slot = thingHere(g);
   if (slot) {
     const s = g.shown[slot];
     const graphic = s.graphic;

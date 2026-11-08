@@ -7,7 +7,7 @@ import { runPort, type FrameResult, type ResumeFrom } from '../../shared/port';
 import { DEL, drawPending, KeyPacer, NamePicker, RETURN, type NameSpec } from '../../shared/letters';
 import raw from './data/starquake.json';
 import { titlePicture } from './data';
-import { fireHeld, joyBits, TOUCH } from './controls';
+import { fireHeld, getHeld, GET_KEY, joyBits, TOUCH } from './controls';
 import { endingStats, starquakeEnding } from './ending';
 import * as Flow from './flow';
 import * as Panel from './panel';
@@ -26,7 +26,7 @@ import * as Specials from './specials';
  * shared pause screen, map with travel, assists, autosave and continue.
  */
 /** A teleport's code or a hero's initials on a touch screen (games/shared/letters.ts): five letters, picked with the stick and FIRE. */
-export const NAME: NameSpec = { alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', max: 5, button: { label: 'FIRE', key: 'Space' } };
+export const NAME: NameSpec = { alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', max: 5, button: { label: 'FIRE', key: 'Space' }, up: GET_KEY };
 
 export { info } from './info';
 
@@ -244,9 +244,15 @@ export function run(host: Host) {
     playSong(SOUND.songs.hiScore);
   }
 
-  /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch. */
+  /** GET was held at the last frame of play (a press is the frame it goes down). */
+  let getWas = false;
+  /** The joystick bits BLOB reads ($76: low = pressed), from the keys, pad or touch; and (ENHANCED) GET's press, which Z is then alone. */
   function joy() {
-    return joyBits(input.held, input.down, latch.filter(fireHeld(input.held, input.down, typing())), typing());
+    const own = fe.assist.get === true;
+    const get = getHeld(input.down, typing());
+    g.getPress = own && get && !getWas;
+    getWas = get;
+    return joyBits(input.held, input.down, latch.filter(fireHeld(input.held, input.down, typing() && !picking())), typing(), own);
   }
 
   /** The key held now, as the C64's keyboard scan would give it ($C5: row × 8 + column, 64 none): teleport names, Cheops trades. `skip`: keys held that aren't the keyboard's here (the touch stick's, while it picks letters). */
@@ -266,7 +272,7 @@ export function run(host: Host) {
   const picker = new NamePicker(NAME);
   /** The picker's keys, one at a time (the routine takes a key when it changes: each is let go before the next). */
   const pacer = new KeyPacer(3, 3);
-  const PICKER_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
+  const PICKER_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', GET_KEY]);
   let tapKey = { code: 64, frames: 0 };
   const keyOf = (ch: string) => {
     const k = C64_KEYS[ch === DEL ? 'Backspace' : ch === RETURN ? 'Enter' : `Key${ch}`];

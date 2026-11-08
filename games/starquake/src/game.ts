@@ -139,6 +139,8 @@ export class Game {
   riding = 0;
   /** $76: the controls this frame (joystick bits, low = pressed: 1 up, 2 down, 4 left, 8 right, $10 fire). */
   input = 0xff;
+  /** ENHANCED: GET (Z, the touch GET button) was newly pressed this frame, a pick-up of its own (items.ts `touch`): it works on the hover pad, where up rises. Set by the front end (main.ts) each frame. */
+  getPress = false;
   /** $79: the controls when a platform was last asked for; $95: when something was last picked up. */
   inputPlatform = 0; inputPickup = 0;
   /** $5C: frames to his next step's animation. */

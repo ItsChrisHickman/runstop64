@@ -33,6 +33,8 @@ export interface NameSpec {
   max: number;
   /** The main touch button's label (JUMP, FIRE) and the key it presses. */
   button: { label: string; key: string };
+  /** A key of the game's touch controls that works as the stick's up too (Starquake's GET button: its own key in play). */
+  up?: string;
 }
 
 /** A key for the game's own entry: a character (one), or RETURN or DEL. */
@@ -75,7 +77,7 @@ export class NamePicker {
    */
   frame(input: NameInput): { keys: NameKey[]; typed: string[] } {
     const keys: NameKey[] = [];
-    const mine = new Set([UP, DOWN, LEFT, RIGHT, this.spec.button.key]);
+    const mine = new Set([UP, DOWN, LEFT, RIGHT, this.spec.button.key, ...(this.spec.up ? [this.spec.up] : [])]);
     const touch = [...input.touchTyped];
     const typed: string[] = [];
     for (const code of input.typed) {
@@ -97,16 +99,19 @@ export class NamePicker {
       this.cur = 0;
     }
     for (const code of presses) {
-      this.press(code, keys);
-      if (code === UP || code === DOWN) { this.held = code; this.heldFor = 0; }
+      this.press(this.stick(code), keys);
+      if (this.stick(code) === UP || code === DOWN) { this.held = code; this.heldFor = 0; }
     }
     // up or down held: the letters run on
     if (this.held && !presses.includes(this.held)) {
       if (!input.down.has(this.held)) this.held = null;
-      else if (++this.heldFor >= REPEAT_AFTER && (this.heldFor - REPEAT_AFTER) % REPEAT_EVERY === 0) this.press(this.held, keys);
+      else if (++this.heldFor >= REPEAT_AFTER && (this.heldFor - REPEAT_AFTER) % REPEAT_EVERY === 0) this.press(this.stick(this.held), keys);
     }
     return { keys, typed };
   }
+
+  /** The stick's key a touch key stands for (the spec's `up` is the stick's up). */
+  private stick(code: string) { return code === this.spec.up ? UP : code; }
 
   private press(code: string, keys: NameKey[]) {
     const n = this.spec.alphabet.length;

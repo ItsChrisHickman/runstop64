@@ -124,4 +124,15 @@ check('the hint names the main button and fits a 40-column screen', new NamePick
   check('KeyPacer: after clear a new key is held for its whole hold', p.next() === 'C' && p.next() === 'C' && p.next() === null);
 }
 
+{
+  // a game's own key for the stick's up (Starquake's GET button)
+  const { picker, down, frame } = makePicker({ ...SPEC, up: 'KeyZ' });
+  check('a spec\'s own up key goes to the next letter, and is not typed', frame('KeyZ').keys.length === 0 && frame('KeyZ').typed.length === 0 && picker.pending === 'C');
+  down.add('KeyZ');
+  frame('KeyZ');
+  const before = picker.pending;
+  for (let i = 0; i < 20; i++) frame();
+  check('...held, it runs on like the stick\'s up', picker.pending !== before);
+}
+
 finish();
