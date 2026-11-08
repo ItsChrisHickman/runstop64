@@ -25,6 +25,7 @@ import { GATES } from '../src/gates';
 import { Game, ENDING_ROOM } from '../src/game';
 import { coalCount, hintsOf, piecesToGate } from '../src/hints';
 import { run } from '../src/main';
+import { piecesOfRoom } from '../src/map';
 import { Flag } from '../src/monty';
 import { COUNT_LINE, MontyView, SPARKLE_GAIN, SPARKLE_SIZE } from '../src/view';
 
@@ -40,8 +41,6 @@ function atRoom(room: number, taken: readonly number[] = []): Game {
 
 const FIRST = must(GATES[0], 'no gate');
 
-/** The ids of the pieces of room `room`. */
-const piecesOf = (room: number): number[] => (ROOMS[room]?.coal ?? []).filter((c) => c.col !== 0 || c.row !== 0).map((c) => c.id);
 /** `n` pieces taken, none from `keep`. */
 const firstTaken = (n: number, keep: readonly number[]): number[] => Array.from({ length: 64 }, (_, i) => i).filter((i) => !keep.includes(i)).slice(0, n);
 
@@ -109,7 +108,7 @@ const firstTaken = (n: number, keep: readonly number[]): number[] => Array.from(
 // ---- the opener -----------------------------------------------------------------------------------------------------------------
 {
   const gateRoom = FIRST.room;
-  const mine = piecesOf(gateRoom);
+  const mine = piecesOfRoom(gateRoom);
   check(`the first gate's room is ${gateRoom} and it has pieces (${mine.join(',')})`, gateRoom === 6 && mine.length > 0);
   const early = atRoom(gateRoom, firstTaken(10, mine));
   check('far from the count: no opener marked', hintsOf(early).every((h) => h.kind !== 'opener'));
@@ -130,7 +129,7 @@ const firstTaken = (n: number, keep: readonly number[]): number[] => Array.from(
   check('the next count is 16 more', coalCount(g) === 'COAL TO GATE: 16');
   // the same count, the piece taken in another room: not marked there, and it shuts the gate for good
   const other = 3;
-  const away = atRoom(other, firstTaken(15, piecesOf(other)));
+  const away = atRoom(other, firstTaken(15, piecesOfRoom(other)));
   check('one left, in another room: nothing marked on its pieces', hintsOf(away).every((h) => h.kind !== 'opener'));
   const there = must(ROOMS[other]?.coal.find((c) => c.col !== 0 || c.row !== 0), 'no piece');
   away.monty.x = there.col * 8;

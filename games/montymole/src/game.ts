@@ -115,7 +115,7 @@ export class Game implements Stateful {
    */
   readonly enemySource: number[][][] = ROOMS.map((r) => r.enemies.map((e) => [...e]));
   /** the generator `$FD9B` (the seed `$5C76`) */
-  readonly random = new Random();
+  readonly random: Random;
   /** the room's object as this visit found it (`$C524`) */
   readonly object = new RoomObject();
   /** the control chosen on the menu (`$82A3`) */
@@ -145,7 +145,9 @@ export class Game implements Stateful {
   /** the input byte the last pass ran with, as `$82A6` made it (for the tests) */
   inputRead = 0;
 
-  constructor() {
+  /** `random`: the generator (a `SteadyGame` gives one whose numbers are a function of the pass: steady.ts). */
+  constructor(random: Random = new Random()) {
+    this.random = random;
     this.monty = new Monty(this.world, (de, hl) => { this.beeps.push({ de, hl }); });
   }
 

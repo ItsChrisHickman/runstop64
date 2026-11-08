@@ -1,10 +1,13 @@
 import type { Host } from 'c64kit';
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
+import { RewardShow } from '../../shared/ending/show';
 import { readJson } from '../../shared/guards';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { runPort } from '../../shared/port';
 import type { TitleStrip } from '../../shared/continue';
 import { PAUSE_COLOURS, SPECTRUM } from '../../shared/spectrum';
 import { keyByte, Key } from './controls';
+import { endingStats, montyEnding } from './ending';
 import { coalCount, hintsOf } from './hints';
 import { MontyFlow, type FlowStep } from './flow';
 import { spectrumFont } from '../../shared/spectrum-font';
@@ -61,15 +64,34 @@ export function run(host: Host) {
   /** How the last game ended, and whether a press was down on the last frame (a start is a new press). */
   let lastEnd: 'over' | 'ending' | null = null;
   let pressed = false;
+  /** The reward show (ENHANCED), once the session is up; and whether it is the one that follows the game's own ending (it ends on the title) or the one asked for (W, ?ending: it ends going back to the title). */
+  let reward: RewardShow | null = null;
+  let afterEnding = false;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = (): boolean => false;
 
   const port = runPort<MontySave, MontyFound, MontyFlow>(host, {
     id: 'montymole', font: spectrumFont(), codec: CODEC, map: montyMap, describe: describeSave, colours: PAUSE_COLOURS,
     // (ENTER CONTINUE goes on the title's empty row; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
+    // (W on the pause screen: the reward, once the game has been won, in ENHANCED)
+    ending: (): boolean => enhanced() && readWon('montymole'),
     // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
     assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'count', long: 'COAL TO GATE' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
+    enhanced = (): boolean => fe.enhanced;
+    // ---- the reward for winning (ENHANCED): the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    const show = reward = new RewardShow({
+      host,
+      spec: montyEnding(renderer),
+      font: () => flow.getFont(),
+      // (the title's Colonel Bogey all through, and on the title after it)
+      music: { start: () => sound.title(false), end: () => sound.title(false), frame: () => sound.title(true) },
+      done: () => {
+        if (afterEnding) { afterEnding = false; latch.hold(); } else self.backToTitle();
+      },
+    });
 
     /** A flow becomes the game being played (a new title, a game continued, a travel). */
     function adopt(next: MontyFlow): void {
@@ -113,7 +135,12 @@ export function run(host: Host) {
         latch.hold();
       } else if (to === 'over' || to === 'ending') {
         lastEnd = to;
+        if (to === 'ending') keepWon('montymole');
         keepHigh();
+      } else if (from === 'ending' && to === 'title' && fe.enhanced) {
+        // the game's own ending is over (the verse, as it was): the show, over the title it has gone back to
+        afterEnding = true;
+        show.start(endingStats(current, fe.found));
       }
     }
 
@@ -139,7 +166,12 @@ export function run(host: Host) {
     /** Whether any key, button or tap at all is down (the verses end with one). */
     const anyKey = (): boolean => input.down.size > 0 || input.typed.length > 0 || input.points.length > 0 || Object.values(input.held).some((held) => held);
 
+    // ?ending on the page: the reward at once, for review
+    if (wantsEnding()) show.start(endingStats(current, fe.found));
+
     return {
+      takeover: show,
+      watchEnding() { afterEnding = false; show.start(endingStats(current, fe.found)); },
       state: () => current,
       phase: () => (current.phase === 'title' ? 'title' : current.phase === 'play' ? 'play' : 'other'),
       /** The pause map's travel: to a room he has come to, at the place he came into it. */
@@ -200,6 +232,8 @@ export function run(host: Host) {
     get frontEnd() { return port.fe; },
     get grace() { return port.flow.grace; },
     get sound() { return sound; },
+    /** For tests: the reward show (src/ending.ts). */
+    get reward() { return reward; },
     get state() {
       return { phase: current.phase, paused: port.fe.paused, enhanced: port.fe.enhanced, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state };
     },

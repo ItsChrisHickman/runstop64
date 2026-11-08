@@ -16,6 +16,7 @@ import { Key, portsFor } from '../src/controls';
 import { KEYBOARD } from '../src/input';
 import { Flag } from '../src/monty';
 import { ROOMS } from '../src/data/rooms-data';
+import { piecesOfRoom } from '../src/map';
 import { STILL_THERE } from '../src/coal';
 
 /** What is tried at a decision: a key set for one pass, or nothing pressed for so many passes. */
@@ -243,12 +244,11 @@ export class Planner {
   /** how many decisions a search may expand before it gives up; how many the map may have */
   limit = 60000;
   graphLimit = 40000;
-  readonly sim = new Game();
   expanded = 0;
   private graph: { room: number; gates: number; graph: Graph } | null = null;
 
-  constructor(seed: number) {
-    this.sim.random.seed = seed;
+  /** `sim`: the game it plays on (a `SteadyGame` for the show's routes, so what is found on a copy is what the game does; the whole game's, with the original's seed). */
+  constructor(readonly sim: Game) {
     this.sim.control = KEYBOARD;
   }
 
@@ -343,8 +343,45 @@ export const NEXT_ROOM: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 
 
 /** The coal pieces of room `id` still there in `g`. */
 export function piecesLeft(g: Game, id: number): number[] {
-  const room = ROOMS[id];
-  if (room === undefined) return [];
-  return room.coal.filter((c) => (c.col !== 0 || c.row !== 0) && ((g.coal.flags[c.id] ?? 0) & STILL_THERE) !== 0).map((c) => c.id);
+  return piecesOfRoom(id).filter((p) => ((g.coal.flags[p] ?? 0) & STILL_THERE) !== 0);
 }
 
+/**
+ * What a bot does with goals, one after another: the keys of everything it has reached so far (`keys`, the whole path), and what to do when a goal has no way: the room's tool
+ * first (it kills what is in the way) and then the goal; or out of the room by another way and back in by one that comes in higher. `say` is told each step.
+ */
+export class Goals {
+  readonly keys: number[] = [];
+  constructor(readonly planner: Planner, private readonly say: (message: string) => void = () => {}) {}
+
+  /** The nearest way to the target, taken; false if there is none within the planner's limit. */
+  reach(what: string, target: Target): boolean {
+    const found = this.planner.find(target);
+    if (found === null) return false;
+    this.planner.take(found);
+    this.keys.push(...found.keys);
+    this.say(`${what}: ${found.keys.length} passes (${this.planner.expanded} decisions looked at), ${this.keys.length} in all`);
+    return true;
+  }
+
+  /** The target, or if there is no way, the room's tool first and then the target, or out of the room and back in higher; none of these: it throws. */
+  must(what: string, target: Target): void {
+    const sim = this.planner.sim;
+    if (this.reach(what, target)) return;
+    const tool = sim.object.frame !== 0 && (sim.monty.flags & Flag.tool) === 0;
+    if (tool && this.reach(`${what}, with the tool: the tool`, { kind: 'tool' }) && this.reach(what, target)) return;
+    // a place the room's own floor does not lead out of (a pit he has fallen into): out by a way into the next room and back in by another
+    const here = sim.room;
+    const exits = ROOMS[here]?.exits;
+    for (const next of exits === undefined ? [] : [exits.left, exits.right, exits.up, exits.down]) {
+      if (next === here || next === 0x2c || next > 20) continue;
+      // (back in at the highest way in there is, then lower: where he comes in is where the room's upper parts are reached from)
+      for (const above of [0xa0, 0x80, 0x60, 0x40, 0]) {
+        if (sim.room === here && !this.reach(`${what}, by room ${next}: out`, { kind: 'room', room: next })) break;
+        if (this.reach(`${what}, by room ${next}: and back in at y ${above}`, { kind: 'room', room: here, above }) && this.reach(what, target)) return;
+      }
+      if (sim.room !== here) break; // (out, and no way back: the end of this way)
+    }
+    throw new Error(`the bot found no way to ${what} in room ${sim.room} at x ${sim.monty.x} y ${sim.monty.y} after ${this.keys.length} passes (${this.planner.expanded} decisions looked at)`);
+  }
+}

@@ -12,10 +12,10 @@ import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum, press } from '../../../tools/zx/spectrum';
 import { readRom } from '../../../tools/zx/boot';
 import { check, finish } from '../../../games/shared/test/check';
+import { Game } from '../src/game';
 import { ROOMS } from '../src/data/rooms-data';
-import { Flag } from '../src/monty';
 import { KEY_NAMES } from '../src/controls';
-import { NEXT_ROOM, piecesLeft, Planner, type Target } from './bot';
+import { Goals, NEXT_ROOM, piecesLeft, Planner, type Target } from './bot';
 import { A, OPENING_LAYOUT, Run, Tally, type Driver, type Keep } from './lockstep-core';
 
 const STATE = 'games/montymole/build/opening.state';
@@ -31,50 +31,23 @@ function startSeed(): number {
 
 /** The keys of the whole game, found by playing it: each target, in order, the nearest way to it. */
 function plan(): number[] {
-  const p = new Planner(startSeed());
-  const all: number[] = [];
-  const reach = (what: string, target: Target): boolean => {
-    const found = p.find(target);
-    if (found === null) return false;
-    p.take(found);
-    all.push(...found.keys);
-    console.log(`   ${what}: ${found.keys.length} passes (${p.expanded} decisions looked at), ${all.length} in all`);
-    return true;
-  };
-  /** The target, or if there is no way, the room's tool first (it kills what is in the way) and then the target. */
-  const must = (what: string, target: Target): void => {
-    if (reach(what, target)) return;
-    const tool = p.sim.object.frame !== 0 && (p.sim.monty.flags & Flag.tool) === 0;
-    if (tool && reach(`${what}, with the tool: the tool`, { kind: 'tool' }) && reach(what, target)) return;
-    // a place the room's own floor does not lead out of (a pit he has fallen into): out by a way into the next room and back in by another
-    const here = p.sim.room;
-    const exits = ROOMS[here]?.exits;
-    for (const next of exits === undefined ? [] : [exits.left, exits.right, exits.up, exits.down]) {
-      if (next === here || next === 0x2c || next > 20) continue;
-      // (back in at the highest way in there is, then lower: where he comes in is where the room's upper parts are reached from)
-      for (const above of [0xa0, 0x80, 0x60, 0x40, 0]) {
-        if (p.sim.room === here && !reach(`${what}, by room ${next}: out`, { kind: 'room', room: next })) break;
-        if (reach(`${what}, by room ${next}: and back in at y ${above}`, { kind: 'room', room: here, above }) && reach(what, target)) return;
-      }
-      if (p.sim.room !== here) break; // (out, and no way back: the end of this way)
-      if (p.sim.room !== here) break; // (out, and no way back: the end of this way)
-    }
-    if (process.env.DUMP !== undefined) { const snap = p.sim.snapshot(); fs.writeFileSync(process.env.DUMP, JSON.stringify({ numbers: snap.numbers, picture: Array.from(snap.picture), screen: Array.from(snap.screen), attrs: Array.from(snap.attrs), coalMask: Array.from(snap.coalMask) })); }
-    throw new Error(`the bot found no way to ${what} in room ${p.sim.room} at x ${p.sim.monty.x} y ${p.sim.monty.y} after ${all.length} passes (${p.expanded} decisions looked at)`);
-  };
-  p.sim.newGame();
+  const game = new Game();
+  game.random.seed = startSeed();
+  const goals = new Goals(new Planner(game), (message) => console.log(`   ${message}`));
+  const must = (what: string, target: Target): void => goals.must(what, target);
+  game.newGame();
   must('pass the pot (x $40)', { kind: 'gift' });
   must('leave the scene for room 0', { kind: 'room', room: 0 });
   for (const room of ROOMS) {
     for (;;) {
-      const left = piecesLeft(p.sim, room.id);
+      const left = piecesLeft(game, room.id);
       if (left.length === 0) break;
       must(`room ${room.id}: a piece of coal (${left.join(', ')} left)`, { kind: 'pieces', ids: left });
     }
     const next = NEXT_ROOM[room.id] ?? 21;
     must(`room ${room.id}: the way on`, next === 21 ? { kind: 'ending' } : { kind: 'room', room: next });
   }
-  return all;
+  return goals.keys;
 }
 
 const readDemo = (): number[] => [...fs.readFileSync(DEMO, 'utf8').trim()].map((c) => parseInt(c, 32));

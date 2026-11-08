@@ -42,14 +42,14 @@ const GRID: readonly (readonly [number, number])[] = [
   [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [4, 6], [5, 6], [6, 6], [7, 6], [8, 6], [8, 7], [9, 7], [9, 6], [9, 5],
 ];
 
-/** The coal pieces each room has, and how many are taken. */
-function pieces(room: number): readonly number[] {
+/** The ids of the coal pieces a room has (the one owner of that list: the map, the bot and the reward use it). */
+export function piecesOfRoom(room: number): readonly number[] {
   return (ROOMS[room]?.coal ?? []).filter((c) => c.col !== 0 || c.row !== 0).map((c) => c.id);
 }
-export const COAL_IN: readonly number[] = ROOMS.map((_, room) => pieces(room).length);
+export const COAL_IN: readonly number[] = ROOMS.map((_, room) => piecesOfRoom(room).length);
 export const COAL_TOTAL = COAL_IN.reduce((a, b) => a + b, 0);
 function coalTaken(game: Game, room: number): number {
-  return pieces(room).filter((id) => ((game.coal.flags[id] ?? 0) & STILL_THERE) === 0).length;
+  return piecesOfRoom(room).filter((id) => ((game.coal.flags[id] ?? 0) & STILL_THERE) === 0).length;
 }
 
 // ---- the thumbnails -----------------------------------------------------------------------------------------------
