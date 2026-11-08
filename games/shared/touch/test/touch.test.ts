@@ -261,13 +261,13 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ok(!input.down.has('ShiftLeft'), 'RUN: off after another tap');
 }
 {
-  // Starquake: GET and PAD hold the game's own up and down (the stick's still do); Z and X do the same on a keyboard (and don't fire), except while letters are typed
+  // Starquake: GET presses Z (its own key, the game's up in ORIGINAL) and PAD holds the game's down (the stick's still does); Z and X do the same on a keyboard (and don't fire), except while letters are typed
   const { input, ctl, geo } = rig(GAMES.starquake, 915, 412);
   const by = (l: string) => must(geo.buttons.find((b) => b.spec.label === l), `the ${l} button`);
   ctl.down(1, by('GET').x, by('GET').y); input.poll();
-  ok(input.held.up && !input.held.down && !input.held.fire, 'Starquake: GET holds up');
+  ok(input.down.has('KeyZ') && !input.held.down, 'Starquake: GET presses Z');
   ctl.up(1); input.poll();
-  ok(!input.held.up, 'Starquake: GET lifted');
+  ok(!input.down.has('KeyZ'), 'Starquake: GET lifted');
   ctl.down(1, by('PAD').x, by('PAD').y); input.poll();
   ok(input.held.down && !input.held.up && !input.held.fire, 'Starquake: PAD holds down');
   ctl.up(1); input.poll();
