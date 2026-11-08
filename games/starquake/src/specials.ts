@@ -1,9 +1,11 @@
 import { rom } from './data';
+import * as Bag from './bag';
 import * as Enemies from './enemies';
 import * as Frame from './frame';
 import type { Game } from './game';
 import * as Items from './items';
 import * as Panel from './panel';
+import { leastUseful } from './places';
 import { clearPlayArea, drawTileGraphics } from './room';
 import { cellAt, Screen } from './screen';
 import * as Screens from './screens';
@@ -36,8 +38,9 @@ function message(g: Game, x: number) {
   Screens.printText(g, rom(at), rom(at + 1), rom(at + 2), text);
 }
 
-/** $35E7: which of his four places BLOB carries this in (-1: he doesn't). */
+/** $35E7: which of his four places BLOB carries this in (-1: he doesn't); ENHANCED: where in everything he carries (the first four are the places). */
 function carrying(g: Game, graphic: number) {
+  if (g.bag()) return Bag.all(g).indexOf(graphic);
   for (let x = 3; x >= 0; x--) if (g.carried[x] === graphic) return x;
   return -1;
 }
@@ -131,8 +134,10 @@ function* shuffle(g: Game, m: Marks): Frames {
 
 /** $380E: mark y and BLOB's carrying place x flash together (they've been matched). */
 function* matched(g: Game, m: Marks, x: number, y: number): Frames {
-  m.row[3] = 1;
-  m.col[3] = rom(0x3f8f + (x & 0xff));
+  // (a thing past the four places is "+n" in the panel: that flashes)
+  const more = x >= 4;
+  m.row[3] = more ? Bag.MORE.row : 1;
+  m.col[3] = more ? Bag.MORE.col : rom(0x3f8f + (x & 0xff));
   for (let n = 6; n >= 0; n--) {
     lightMark(g, m, 3);
     lightMark(g, m, y, 0x24);
@@ -220,8 +225,15 @@ export function* cheops(g: Game): Frames {
   clearPlayArea(g);
   pyramid(g, 0x3c02);
   let slot = 0;
-  while (slot < 0x80 && g.carried[slot & 3] & 0x80) slot++;
-  const item = g.carried[slot & 3];
+  let item: number;
+  if (g.bag()) {
+    // ENHANCED: the least useful thing carried is the one traded
+    item = leastUseful(g, Bag.all(g)) ?? 0x80;
+    slot = Math.max(0, Bag.all(g).indexOf(item));
+  } else {
+    while (slot < 0x80 && g.carried[slot & 3] & 0x80) slot++;
+    item = g.carried[slot & 3];
+  }
   Items.show(g, item, 0x0f, 9);
   const choice: number[] = [];
   let x = 2;
@@ -242,11 +254,12 @@ export function* cheops(g: Game): Frames {
     const k = [0x10, 0x0b, 0x08, 0x3b, 0x38].indexOf(g.key);
     if (k < 0) continue;
     g.asking = null;
-    g.carried[slot & 3] = choice[k];
+    if (g.bag()) Bag.swap(g, item, choice[k]); else g.carried[slot & 3] = choice[k];
     const mm = marks();
     mm.row[0] = 0x0d;
     mm.col[0] = rom(0x3f94 + k);
     yield* matched(g, mm, slot & 0xff, 0);
+    if (g.bag()) Items.drawCarried(g);
     return;
   }
 }
@@ -351,7 +364,7 @@ export function* core(g: Game): Generator<void, boolean, void> {
     const slot = carrying(g, piece);
     if (slot < 0) continue;
     g.addScore(0x32);
-    g.carried[slot] = piece | 0x80;
+    if (g.bag()) Bag.remove(g, piece); else g.carried[slot] = piece | 0x80;
     g.core[x] = piece | 0x80;
     const m = marks();
     m.col[0] = rom(0x2f22 + x);

@@ -9,9 +9,9 @@ import type { Game } from './game';
  * What the game is: the planet's core is missing nine pieces. Four of its places are filled with their own piece
  * (graphics 0-8) lying about the planet; five want something else (each a different thing from the table at $2F0A: a
  * symbol, or one of the nine strange objects), so the five pieces of the same number in the world are decoys. BLOB carries four things at a
- * time, up to the core (room 199), where each piece he has is put in its place. Security doors and Cheops pyramids
+ * time (ENHANCED: any number), up to the core (room 199), where each piece he has is put in its place. Security doors and Cheops pyramids
  * check what he carries: each symbol they show must be matched by the same symbol, one by the wild symbol ($0E), or
- * all by the access card ($0F). A pyramid then trades the first thing he carries for one of five. Teleports take a
+ * all by the access card ($0F). A pyramid then trades the first thing he carries (ENHANCED: the least useful) for one of five. Teleports take a
  * five letter name, the destination's, which a booth shows when BLOB is in it.
  */
 
@@ -90,3 +90,50 @@ export function kindsOf(room: number, pyramids: readonly number[]): RoomKinds {
 
 /** All rooms with a door (for tests). */
 export const doorRooms = () => Array.from({ length: ROOM_COUNT }, (_, r) => r).filter(hasDoor);
+
+
+// ---- what the things carried are for ---------------------------------------------------------------------------------------
+
+/** The symbols doors and pyramids show ($0A-$0D), and the wild one ($0E). */
+const SYMBOLS = [0x0a, 0x0b, 0x0c, 0x0d] as const;
+export const WILD = 0x0e;
+
+/** What a thing carried is for: a piece the core still wants, the access card, the key, a symbol (or the wild one), or a trade good (a pyramid swaps it). */
+export type Role = 'piece' | 'card' | 'key' | 'symbol' | 'wild' | 'trade';
+
+/**
+ * What each thing in a list (newest first) is for, from the game's own state: the core wants each of its empty places' graphics once,
+ * so the first copy is a piece and a spare copy a trade good; a symbol the core does not want is for doors and pyramids.
+ */
+export function rolesOf(g: Game, things: readonly number[]): Role[] {
+  const need = new Map<number, number>();
+  for (const c of g.core) if (!(c & 0x80)) need.set(c, (need.get(c) ?? 0) + 1);
+  return things.map((t) => {
+    const n = need.get(t) ?? 0;
+    if (n > 0) { need.set(t, n - 1); return 'piece'; }
+    if (t === GRAPHIC.card) return 'card';
+    if (t === GRAPHIC.key) return 'key';
+    if (t === WILD) return 'wild';
+    return SYMBOLS.some((s) => s === t) ? 'symbol' : 'trade';
+  });
+}
+
+/** How much each role is worth keeping (a spare symbol is worth less than the first). */
+const WORTH: Record<Role, number> = { trade: 0, symbol: 2, wild: 3, key: 3, card: 4, piece: 5 };
+
+/**
+ * ENHANCED: the thing a Cheops pyramid takes in the trade, the least useful carried: a trade good first (the core, a door and a barrier
+ * want none of them), then a spare symbol, a symbol, the wild symbol or the key, the card, and a piece the core wants last. Among equals the
+ * oldest goes. The trade offers pieces, and he can keep what is offered, so what is given up is what he needs least. Undefined: nothing carried.
+ */
+export function leastUseful(g: Game, things: readonly number[]): number | undefined {
+  const roles = rolesOf(g, things), seen = new Set<number>();
+  const worth = things.map((t, i) => {
+    const spare = seen.has(t) && roles[i] === 'symbol';
+    seen.add(t);
+    return spare ? 1 : WORTH[roles[i]];
+  });
+  let best = -1;
+  worth.forEach((w, i) => { if (best < 0 || w <= worth[best]) best = i; });
+  return best < 0 ? undefined : things[best];
+}

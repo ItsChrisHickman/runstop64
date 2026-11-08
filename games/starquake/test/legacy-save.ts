@@ -12,11 +12,17 @@ import type { Game } from '../src/game';
  * exactly as the game did.
  */
 const SKIP = new Set(['scr', 'sound', 'lo', 'roomStartSave']);
+/** The bag's fields (ENHANCED, after the old save): not in a save of a game without one, which is what this stands for. */
+const BAG = new Set(['stash', 'moreShown', 'moreBehind']);
+/** ENHANCED's GET press (`Game.getPress`): a frame's input, never saved. */
+const NOT_SAVED = new Set(['getPress']);
 
 export function legacySnapshot(g: Game): Uint8Array {
   const fields: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(g)) {
     if (SKIP.has(k) || typeof v === 'function') continue;
+    if (NOT_SAVED.has(k)) continue;
+    if (BAG.has(k) && (v === 0 || (Array.isArray(v) && v.length === 0))) continue;
     fields[k] = plain(v);
   }
   const json = new TextEncoder().encode(JSON.stringify(fields));

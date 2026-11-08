@@ -194,6 +194,7 @@ export function run(host: Host) {
   g.graceActive = () => flow.grace.active && mode === 'play';
   g.liftDrop = () => fe.assist.tubes === true;
   g.bite = () => fe.assist.bite === true;
+  g.bag = () => fe.assist.bag === true;
 
   function resumeGame(s: StarquakeSave, from: ResumeFrom) {
     restore(g, s);

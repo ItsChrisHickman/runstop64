@@ -125,6 +125,13 @@ export class Game {
   shownAt = 0;
   /** $D9-$DC: what BLOB carries ($80+: nothing). */
   readonly carried = [0x80, 0x80, 0x80, 0x80];
+  /** ENHANCED's bag (bag.ts): the things older than the four places hold, newest first; empty in ORIGINAL. */
+  readonly stash: number[] = [];
+  /** ENHANCED: BLOB carries any number of things, and nothing is ever put down (bag.ts). Set by the front end (main.ts); off, the game is the original's. */
+  bag: () => boolean = () => false;
+  /** The panel shows "+n" for the stash (bag.ts `drawMore`): n (0: not shown), and what the cells held before (bitmap and colour, 9 numbers a cell). */
+  moreShown = 0;
+  readonly moreBehind: number[] = [];
   /** $D7: what a Cheops pyramid offers. */
   cheopsOffer = 0;
 

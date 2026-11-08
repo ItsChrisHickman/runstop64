@@ -1,6 +1,7 @@
 import { rom } from './data';
 import type { Game } from './game';
 import type { Rng } from './rng';
+import * as Bag from './bag';
 import * as Panel from './panel';
 import { cellAt, Screen } from './screen';
 
@@ -86,6 +87,7 @@ export function newGame(g: Game) {
   Panel.reset(g);
   g.carried.fill(0x80);
   g.carriedCount = 0;
+  g.stash.length = 0; g.moreBehind.length = 0; g.moreShown = 0;
   for (const it of g.items) Object.assign(it, { col: 0, row: 0, roomLo: 0, roomHi: 0, graphic: 0 });
   g.core.fill(0); g.coreSlots.fill(0);
   g.spawnCol.fill(0); g.spawnRow.fill(0);
@@ -273,6 +275,8 @@ const thingHere = (g: Game) => here(g, 0x29) || here(g, 0x2a) || here(g, 0x51) |
 
 /** $2D41: pick up what BLOB stands on, or put the oldest thing down. */
 function pickUp(g: Game): number {
+  // ENHANCED: on nothing there is nothing to do; nothing is ever put down
+  if (g.bag() && !thingHere(g)) return 0;
   let picked: number;
   let col = g.col, row = g.row;
   const slot = thingHere(g);
@@ -287,6 +291,18 @@ function pickUp(g: Game): number {
     picked = graphic;
   } else {
     picked = 0x80;
+  }
+  if (g.bag()) {
+    // ENHANCED: in at the front; the oldest of the four goes to the stash, never out into the room
+    const i = findItem(g, picked);
+    Bag.add(g, picked);
+    drawCarried(g);
+    if (i >= 0) g.items[i].graphic = 0xff;
+    const y = g.carriedCount;
+    if (y !== 4) g.carriedCount++;
+    g.coreSlots[y % 5] = i & 0xff; // (the original's record of which items are carried, kept as it keeps it)
+    g.sound.effect(picked === 0x0f ? 0x2c : 0x2e, 0);
+    return picked;
   }
   // $2D73: in at the front of the four, out at the back.
   const c = g.carried;
@@ -408,4 +424,5 @@ export function drawCarried(g: Game) {
   g.carried.forEach((c, i) => {
     if (!(c & 0x80)) drawThing(g, c, 0x1d + i * 2, 1, true);
   });
+  if (g.moreShown || g.bag()) Bag.drawMore(g);
 }

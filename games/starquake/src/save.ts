@@ -45,7 +45,7 @@ const StarquakeFields = S.object({
   items: S.optional(S.array(S.object({ col: S.number, row: S.number, roomLo: S.number, roomHi: S.number, graphic: S.number }))),
   shown: S.optional(S.array(S.object({ graphic: S.number, col: S.number, row: S.number }))),
   shownAt: n,
-  carried: list,
+  carried: list, stash: list, moreShown: n, moreBehind: list,
   cheopsOffer: n,
   col: n, row: n, cell: n, sub: n, riding: n, input: n, inputPlatform: n, inputPickup: n, stepTimer: n, falling: n, fallHeight: n, inLift: n, arrived: n, bump: n, beside: n, offRow: n, offCol: n, padX: n,
   exit: n, exitCol: n, exitRow: n,
@@ -77,6 +77,8 @@ const StarquakeFields = S.object({
   pendingScore: n,
 });
 type StarquakeFields = S.Infer<typeof StarquakeFields>;
+/** The fields only ENHANCED's bag writes (bag.ts). */
+type BagFields = 'stash' | 'moreShown' | 'moreBehind';
 
 /** What is kept of a game: its fields, and the screen memory they draw (the VIC's 16K, the cell attributes, the cell table). */
 export interface StarquakeSave {
@@ -87,7 +89,7 @@ export interface StarquakeSave {
 }
 
 /** The parts of `Game` not kept: the screen (kept apart, above), the sound, the grace check and the lift release, the touch bite and GET's press the front end sets, and the methods. */
-type NotSaved = 'scr' | 'lo' | 'sound' | 'graceActive' | 'liftDrop' | 'bite' | 'getPress' | 'addScore' | 'resetRoomLists';
+type NotSaved = 'scr' | 'lo' | 'sound' | 'graceActive' | 'liftDrop' | 'bite' | 'bag' | 'getPress' | 'addScore' | 'resetRoomLists';
 /** Compile-time check: every field of `Game` is in `StarquakeFields` or `NotSaved`, and the other way round. */
 type Mutual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const COMPLETE: Mutual<Exclude<keyof Game, NotSaved>, keyof StarquakeFields> = true;
@@ -98,7 +100,7 @@ const copy = <T extends object>(items: readonly T[]): T[] => items.map((item) =>
 /** The game as it is: every field copied (the save must not change as the game goes on). */
 export function snapshot(g: Game): StarquakeSave {
   const { rng: r, sprites: sp, vic: v, restart: re, exitResult: ex, shot: sh } = g;
-  const fields: Required<StarquakeFields> = {
+  const fields: Required<Omit<StarquakeFields, BagFields>> & Pick<StarquakeFields, BagFields> = {
     rng: { a: r.a, b: r.b, c: r.c, d: r.d, s1: r.s1, s2: r.s2 },
     sprites: { x: [...sp.x], y: [...sp.y], msb: sp.msb, enable: sp.enable, ptr: [...sp.ptr], colour: [...sp.colour] },
     room: g.room, colour: g.colour,
@@ -151,7 +153,9 @@ export function snapshot(g: Game): StarquakeSave {
     shot: { faceX: sh.faceX, faceY: sh.faceY, dx: sh.dx, dy: sh.dy, cell: sh.cell, anim: sh.anim, base: sh.base, bounced: sh.bounced },
     pendingScore: g.pendingScore,
   };
-  return { fields, bank: g.scr.bank.slice(), attr: g.scr.attr.slice(), lo: g.lo.slice() };
+  // (the bag's fields only when there is one: a save of a game without it is the bytes it always was)
+  const bag = g.stash.length || g.moreShown ? { stash: [...g.stash], moreShown: g.moreShown, moreBehind: [...g.moreBehind] } : {};
+  return { fields: { ...fields, ...bag }, bank: g.scr.bank.slice(), attr: g.scr.attr.slice(), lo: g.lo.slice() };
 }
 
 // ---- putting a save back ---------------------------------------------------------------------------
@@ -203,7 +207,10 @@ export function restore(g: Game, save: StarquakeSave) {
   assign(g.shot, f.shot, ['faceX', 'faceY', 'dx', 'dy', 'cell', 'anim', 'base', 'bounced']);
   replace(g.roomColours, f.roomColours); replace(g.barrierGone, f.barrierGone); replace(g.spawnCol, f.spawnCol); replace(g.spawnRow, f.spawnRow);
   replace(g.enemyPlaceX, f.enemyPlaceX); replace(g.enemyPlaceY, f.enemyPlaceY); replace(g.enemyPlaceCell, f.enemyPlaceCell);
-  replace(g.carried, f.carried); replace(g.cacheRoomLo, f.cacheRoomLo); replace(g.cacheRoomHi, f.cacheRoomHi);
+  replace(g.carried, f.carried);
+  // (a save from before the bag has none: what the game holds now is not its)
+  replace(g.stash, f.stash ?? []); replace(g.moreBehind, f.moreBehind ?? []); g.moreShown = f.moreShown ?? 0;
+  replace(g.cacheRoomLo, f.cacheRoomLo); replace(g.cacheRoomHi, f.cacheRoomHi);
   replace(g.score, f.score); replace(g.lives, f.lives); replace(g.core, f.core); replace(g.coreSlots, f.coreSlots);
   replace(g.objects, f.objects); replace(g.barriers, f.barriers); replace(g.sparks, f.sparks); replace(g.items, f.items); replace(g.shown, f.shown);
   replace(g.platforms, f.platforms); replace(g.enemies, f.enemies); replace(g.spawnSpots, f.spawnSpots); replace(g.cache, f.cache);
