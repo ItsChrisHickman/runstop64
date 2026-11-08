@@ -25,6 +25,8 @@ export interface Hooks {
   roomStart?(g: Game): void;
   /** Each frame's end, before the panel is drawn (ENHANCED keeps the platforms and the laser full here). */
   supplies?(g: Game): void;
+  /** ENHANCED's lift release is on (set for the game before BLOB's frame). */
+  liftDrop?(): boolean;
   /** ENHANCED's unlimited lives (shared/lives.ts): a death takes no life, and the panel's count stays as it is. */
   unlimitedLives?(): boolean;
 }
@@ -150,6 +152,7 @@ export function* rooms(g: Game, hooks: Hooks, mid = false): Generator<void, 'ove
       if (!hooks.noEnemies) Enemies.enter(g);
     }
     for (;;) {
+      g.liftDrop = hooks.liftDrop?.() === true;
       const r = Blob.tick(g, g.joy);
       g.exit = r.code; g.exitCol = r.col; g.exitRow = r.row;
       Blob.deadlyCheck(g);

@@ -83,6 +83,11 @@ function atPad(g: Game) {
   return (g.sub & 3) === 0 && (g.sprites.x[0] & 6) === 0 && g.padRow === g.row && g.padCol === g.col;
 }
 
+/** ENHANCED: in a lift tube with down held, BLOB lets go and drops (the original ignores down there, so a tube capped by its walls holds him for good). */
+function letGo(g: Game) {
+  return g.liftDrop && !(g.input & 2) && !!(at(g, 0x51) & 2);
+}
+
 /** $488F: a footstep (on foot, not falling). */
 function stepSound(g: Game) {
   if (!g.riding && !g.falling) g.sound.effect(SFX.step, 0);
@@ -165,7 +170,7 @@ export function tick(g: Game, joy: number): { code: number; col: number; row: nu
       const y = g.input;
       if (!(y & 1)) { moveUp(g); landed(g); break vertical; }
       if (!(y & 2)) { steps = 1; } else { landed(g); break vertical; }
-    } else if (at(g, 0x51) & 2) {
+    } else if ((at(g, 0x51) & 2) && !letGo(g)) {
       // $45B4: in a lift tube: carried up.
       if (!g.inLift) { g.inLift = 1; g.sound.effect(SFX.lift, 1); }
       moveUp(g);
@@ -173,7 +178,9 @@ export function tick(g: Game, joy: number): { code: number; col: number; row: nu
       break vertical;
     } else {
       g.inLift = 0;
-      platformKey(g);
+      // (ENHANCED: down held in a lift lets go of it; that press builds no platform)
+      if (letGo(g)) g.inputPlatform = g.input & 15;
+      else platformKey(g);
       if (g.bump & 0xf0) break vertical;
       if (g.falling === 1) g.sound.effect(SFX.fall, 1);
       if (g.falling !== 8) g.falling++;

@@ -69,6 +69,7 @@ export function run(host: Host) {
     ending: () => enhanced() && readWon('starquake'),
     assists: [
       { id: 'health', long: 'FULL ENERGY, PLATFORMS, LASER' },
+      { id: 'tubes', long: 'DOWN DROPS OUT OF A LIFT' },
       LIVES_ASSIST,
     ],
   }, () => ({
@@ -121,6 +122,7 @@ export function run(host: Host) {
     },
     // (ENHANCED: platforms and laser stay full, their bars too; energy is full each room)
     supplies(game) { if (fe.assist.health) Panel.fillSupplies(game); },
+    liftDrop: () => fe.assist.tubes === true,
     unlimitedLives: () => fe.assist.lives === true,
   };
 
