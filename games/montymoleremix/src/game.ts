@@ -20,7 +20,7 @@ import {
   animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_COLS, PLAY_ROW, PRNG_START, ROW, SCREEN,
   type Collectible, type Sound,
 } from '../../shared/monty/screen';
-import { cellRow, coalCells, VIC_LEFT, VIC_TOP, vicX, vicY, wantedMonty } from './coords';
+import { cellRow, coalCells, VIC_LEFT, VIC_TOP, vicX, vicY, WANTED_TOP, wantedMonty } from './coords';
 import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
 import { carries, lookOf, lookOfSet, type Look } from './kinds';
 import { C64_OF, retile, type RemixRoom } from './retile';
@@ -60,6 +60,8 @@ const FIRST_SCENE = 21;
 /** Where room 0 takes him in (`$CDB8`: the scene leaves him there), and room 16's pit and where it lifts him (`$96D9`). */
 const ROOM0_ARRIVAL = { x: 0x18, y: 0x27 } as const;
 export const PIT_ROOM = 16, PIT_Y = 0x41, PIT_ARRIVAL = { x: 0xc0, y: 0xa1 } as const;
+/** Room 16's scene in Wanted's pixels (x from the left, y up): where he walks from and to along the bottom, and the slope he goes down. */
+const PIT_SCENE = { fromX: 4, walkToX: 130, floorY: 55, slopeX: 152, slopeY: 63, lastY: 32 } as const;
 /** Frames on his feet after which a room's way in is a place to start again from (as Monty on the Run's). */
 export const SAFE_FRAMES = 100;
 /** Where Wanted puts him coming into a room from the left (x 2) and from the right (x $EE): the sprite's x2 for them. */
@@ -989,8 +991,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     if (from === OPENING_ROOM && this.roomId === 0) { this.x2 = 0x1c + (ROOM0_ARRIVAL.x >> 1); this.y = 0xf9 - ROOM0_ARRIVAL.y; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
     if (from !== OPENING_ROOM && this.roomId === OPENING_ROOM) { this.x2 = (SCENE_RETURN_X + VIC_LEFT) >> 1; this.y = VIC_TOP + SCENE_PATH_ROW * 8; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
     this.loadRoom();
-    // room 16's pit lifts him into room 17 (a short version of the scene: stage 6)
+    // room 16 entered low (the pit: its scene) takes him into the castle, room 17
     if (this.roomId === PIT_ROOM && wantedMonty(this.x2, this.stepGate, this.y).y < PIT_Y) {
+      yield* this.pitScene();
       this.roomId = 17;
       this.x2 = 0x1c + (PIT_ARRIVAL.x >> 1);
       this.y = 0xf9 - PIT_ARRIVAL.y;
@@ -1007,6 +1010,31 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.entry = { room: this.roomId, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
     this.onRoomLoaded(this);
+  }
+
+  /**
+   * Room 16's scene (`$96D9`), as the original plays it (measured on the original running, frame by frame, from any way in below y `$41`): Monty is put at
+   * the left of the room on the floor at the bottom (x 4, y 55: over the water, which does not touch him now), walks right two pixels a frame, 126 of them,
+   * steps up onto the head of the slope at x 152, y 63, and goes down it, two pixels right and two down a frame, into the pit; then the castle, room 17, at x
+   * `$C0`, y `$A1`. Nothing of the world runs, nothing can touch him, and he is drawn as he is in play: his walk.
+   */
+  private *pitScene(): Seq {
+    const at = (x: number, y: number): void => {
+      const px = x + VIC_LEFT;
+      this.x2 = px >> 1;
+      this.stepGate = px & 1;
+      this.y = VIC_TOP + WANTED_TOP - y;
+      this.facing = 0x01;
+      this.isMoving = true;
+      this.montyAction = 0;
+      this.falling = 0;
+      this.gameMode = 0;
+      animateMonty(this);
+      this.enable |= 0x08;
+    };
+    for (let x = PIT_SCENE.fromX; x <= PIT_SCENE.walkToX; x += 2) { at(x, PIT_SCENE.floorY); yield; }
+    for (let x = PIT_SCENE.slopeX, y = PIT_SCENE.slopeY; y >= PIT_SCENE.lastY; x += 2, y -= 2) { at(x, y); yield; }
+    this.isMoving = false;
   }
 
   /** The room the exit (or a death: the same room) takes him to. */

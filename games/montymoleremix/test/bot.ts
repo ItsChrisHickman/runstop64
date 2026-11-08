@@ -43,6 +43,8 @@ export const MOVES: readonly Move[] = [
   hold('J<', { left: true }, 1, true), hold('J>', { right: true }, 1, true), hold('J', {}, 1, true),
 ];
 const AIR_CAP = 150;
+/** The longest scene there is, in frames (room 16's is about 85). */
+const SCENE_CAP = 300;
 /** What a state the map does not know costs over the state it came from, in frames of distance. */
 const UNKNOWN = 8;
 /** How much the map's distance counts against the frames so far (a way is a way: not the shortest in frames, the sooner found the better). */
@@ -52,6 +54,8 @@ const WEIGHTS: readonly (readonly [number, number])[] = [[3, 0.15], [1.5, 0.35],
 interface Runner {
   frame(stick: MontyInput): void;
   airborne(): boolean;
+  /** a scene of the game's is playing out (a way into room 16 low: the lift into the castle): it is gone through before the move is over */
+  scene(): boolean;
   /** dead, or out of the room */
   halted(): boolean;
 }
@@ -64,6 +68,7 @@ function runMove(r: Runner, m: Move): number {
     n++;
   }
   for (let i = 0; i < AIR_CAP && !r.halted() && r.airborne(); i++) { r.frame(NONE); n++; }
+  for (let i = 0; i < SCENE_CAP && r.scene(); i++) { r.frame(NONE); n++; }
   return n;
 }
 
@@ -124,6 +129,7 @@ class Walker implements MontyBody, MontyWorld {
   }
 
   airborne(): boolean { return this.falling !== 0 || this.montyAction !== 0; }
+  scene(): boolean { return false; }
   halted(): boolean { return this.actionCounter !== 0 || this.roomExit !== 0; }
   get dead(): boolean { return this.actionCounter !== 0; }
 
@@ -425,6 +431,7 @@ class Running implements Runner {
   constructor(readonly p: Play) { this.loads = p.g.roomLoads; this.lives = p.g.lives; }
   frame(stick: MontyInput): void { step(this.p, stick); }
   airborne(): boolean { return this.p.g.falling !== 0 || this.p.g.montyAction !== 0; }
+  scene(): boolean { return this.p.g.script !== null && this.p.g.roomLoads !== this.loads && this.p.g.actionCounter === 0; }
   halted(): boolean { return this.p.g.actionCounter !== 0 || this.p.g.roomLoads !== this.loads || this.p.g.lives < this.lives || this.p.g.finished !== null; }
 }
 
