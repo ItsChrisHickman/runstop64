@@ -86,8 +86,8 @@ export interface StarquakeSave {
   lo: Uint8Array;
 }
 
-/** The parts of `Game` not kept: the screen (kept apart, above), the sound, the grace check the front end sets, and the methods. */
-type NotSaved = 'scr' | 'lo' | 'sound' | 'graceActive' | 'addScore' | 'resetRoomLists';
+/** The parts of `Game` not kept: the screen (kept apart, above), the sound, the grace check and the lift release the front end sets, and the methods. */
+type NotSaved = 'scr' | 'lo' | 'sound' | 'graceActive' | 'liftDrop' | 'addScore' | 'resetRoomLists';
 /** Compile-time check: every field of `Game` is in `StarquakeFields` or `NotSaved`, and the other way round. */
 type Mutual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const COMPLETE: Mutual<Exclude<keyof Game, NotSaved>, keyof StarquakeFields> = true;

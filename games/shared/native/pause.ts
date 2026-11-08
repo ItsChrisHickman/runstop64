@@ -58,12 +58,12 @@ export interface PauseMap<T, F> {
    * to go to, while one is (maps whose places have names say the picked one's here, so a pick says where it goes).
    */
   title(ram: T, page?: number, pick?: string | null): string;
-  /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it). */
-  draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null): void;
+  /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it; `assist`: each assist on or off (by id), for marks that are help). */
+  draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null, assist?: Readonly<Record<string, boolean>>): void;
   /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (ENHANCED's). */
   info(ram: T, found: F, assist?: Readonly<Record<string, boolean>>): string[];
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now. */
-  legend?: { colour: number; text: string }[] | ((ram: T) => { colour: number; text: string }[]);
+  legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>) => { colour: number; text: string }[]);
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
   pages?(ram: T, found: F): { list: number[]; current: number };
   /** Places on the shown page the player can go back to, where they're drawn in `box`; `here` is where the player is. */
@@ -160,7 +160,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     });
   } else {
     if (ui.touch && ui.page !== undefined) { font.draw(s, '<', 8, 8, colours.white); font.draw(s, '>', 198, 8, colours.white); }
-    map.draw(s, MAP_BOX, ram, found, Math.floor(tick / 12) % 2 === 0, ui.page, font, ui.pick?.id ?? null);
+    map.draw(s, MAP_BOX, ram, found, Math.floor(tick / 12) % 2 === 0, ui.page, font, ui.pick?.id ?? null, ui.assist);
   }
   if (ui.pick) { // the place picked to go to
     const { x, y } = ui.pick, r = ui.pick.r ?? 6, rx = ui.pick.rx ?? r, c = Math.floor(tick / 6) % 2 ? colours.cyan : colours.white;
@@ -171,7 +171,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
   font.draw(s, 'PAUSED', 222, 8, colours.white);
   const info = map.info(ram, found, ui.assist);
   info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, colours.lgrey));
-  const legend = typeof map.legend === 'function' ? map.legend(ram) : map.legend ?? [];
+  const legend = typeof map.legend === 'function' ? map.legend(ram, ui.assist) : map.legend ?? [];
   legend.forEach((l, i) => {
     const y = 26 + (info.length + i) * 12;
     s.fillRect(222, y + 1, 6, 6, l.colour);

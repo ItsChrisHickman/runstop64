@@ -85,7 +85,7 @@ function atPad(g: Game) {
 
 /** ENHANCED: in a lift tube with down held, BLOB lets go and drops (the original ignores down there, so a tube capped by its walls holds him for good). */
 function letGo(g: Game) {
-  return g.liftDrop && !(g.input & 2) && !!(at(g, 0x51) & 2);
+  return g.liftDrop() && !(g.input & 2) && !!(at(g, 0x51) & 2);
 }
 
 /** $488F: a footstep (on foot, not falling). */

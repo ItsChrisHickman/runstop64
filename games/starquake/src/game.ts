@@ -147,8 +147,8 @@ export class Game {
   falling = 0;
   /** $78: fall height ($72 on landing; past $80 he breaks through a barrier). */
   fallHeight = 0x72;
-  /** ENHANCED: down held in a lift tube lets go of it (blob.ts `letGo`). Set by the front end each frame; off, the game is the original's. */
-  liftDrop = false;
+  /** ENHANCED: down held in a lift tube lets go of it (blob.ts `letGo`). Set by the front end (main.ts); off, the game is the original's. */
+  liftDrop: () => boolean = () => false;
   /** $F8: in a lift tube. */
   inLift = 0;
   /** $C1: frames in the room (his sparkle on arrival). */

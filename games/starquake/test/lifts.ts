@@ -21,7 +21,7 @@ const g = new Game();
 Flow.newGame(g, 12345);
 /** BLOB in a room, in the tube's foot, and `frames` of the controls (from a list, in turn); the lowest and highest row he reached. */
 function play(room: number, col: number, controls: number[], frames: number, liftDrop: boolean) {
-  g.room = room; drawRoom(g); g.riding = 0; g.liftDrop = liftDrop; g.platformsLeft = 0x78;
+  g.room = room; drawRoom(g); g.riding = 0; g.liftDrop = () => liftDrop; g.platformsLeft = 0x78;
   Blob.place(g, 0, col, 13);
   let top = 99, bottom = 0;
   for (let f = 0; f < frames; f++) {
@@ -43,7 +43,7 @@ for (const [room, col] of FLOATING) {
 }
 // down on foot, outside a tube, still builds a platform (ENHANCED)
 {
-  g.room = 8; drawRoom(g); g.riding = 0; g.liftDrop = true; g.platformsLeft = 0x78;
+  g.room = 8; drawRoom(g); g.riding = 0; g.liftDrop = () => true; g.platformsLeft = 0x78;
   Blob.place(g, 0, 21, 16);
   for (let f = 0; f < 30; f++) Blob.tick(g, NONE);
   const before = g.platformsLeft;

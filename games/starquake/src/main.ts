@@ -13,7 +13,7 @@ import * as Flow from './flow';
 import * as Panel from './panel';
 import * as Heroes from './heroes';
 import type { Game } from './game';
-import { entryOf, starquakeMap, type StarquakeFound } from './map';
+import { entryOf, noteBooth, starquakeMap, type StarquakeFound } from './map';
 import { CODEC, describeSave, restore, snapshot, type StarquakeSave } from './save';
 import * as Screens from './screens';
 import { Stage } from './stage';
@@ -70,6 +70,7 @@ export function run(host: Host) {
     assists: [
       { id: 'health', long: 'FULL ENERGY, PLATFORMS, LASER' },
       { id: 'tubes', long: 'DOWN DROPS OUT OF A LIFT' },
+      { id: 'guide', long: 'MAP MARKS PIECES, PASS' },
       LIVES_ASSIST,
     ],
   }, () => ({
@@ -122,7 +123,6 @@ export function run(host: Host) {
     },
     // (ENHANCED: platforms and laser stay full, their bars too; energy is full each room)
     supplies(game) { if (fe.assist.health) Panel.fillSupplies(game); },
-    liftDrop: () => fe.assist.tubes === true,
     unlimitedLives: () => fe.assist.lives === true,
   };
 
@@ -191,6 +191,7 @@ export function run(host: Host) {
 
   /** Carry on from a save (a room's start): the room is drawn again from there. */
   g.graceActive = () => flow.grace.active && mode === 'play';
+  g.liftDrop = () => fe.assist.tubes === true;
 
   function resumeGame(s: StarquakeSave, from: ResumeFrom) {
     restore(g, s);
@@ -336,6 +337,8 @@ export function run(host: Host) {
         else if (mode === 'hero') { keepHeroes(); showHeroes(); }
         else gameOver();
       } else if (mode === 'play' && !g.inScreen) starquakeMap.observe(g, fe.found);
+      // (a teleport's booth shows its own name: the map keeps it)
+      if (mode === 'play' && g.inScreen && g.asking === 'code') noteBooth(fe.found, Specials.teleportHere(g));
     }
     return result;
   }

@@ -18,6 +18,7 @@ import { Game } from '../src/game';
 import { entryOf, starquakeMap } from '../src/map';
 import { isRecord } from '../../shared/guards';
 import { drawRoom } from '../src/room';
+import { TELEPORT_ROOMS } from '../src/places';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 
@@ -99,6 +100,7 @@ check('picking room 8 on the map and Enter: back in play, in room 8', !p.state.p
   while (!g.asking && n2++ < 200) tick();
   input.keyUp('ArrowRight');
   check('walking into the teleport: its screen asks for a name', g.asking === 'code');
+  check(`...and the map keeps that booth's name (${p.state.found.booths.join(',')})`, p.state.found.booths.includes(TELEPORT_ROOMS.indexOf(31)));
   tick(10);
   shot('8-teleport-touch');
   // ASTRA: picked with the touch controls (the stick, FIRE; the fifth letter ends it), through the touch layer
