@@ -54,14 +54,15 @@ check('the scroller has drawn into the top rows', g.mem.subarray(SCREEN, SCREEN 
 check('no save yet: no ENTER CONTINUE', !p.state.hasSave && p.state.prompt === null);
 check('no freedom kit under the table: Wanted\'s coal there instead (a row of the lump, redefined as a character)', !rowText(22, 11, 19).includes('FREEDOM') && [0, 2, 4, 6, 8].every((i) => g.mem[SCREEN + 23 * ROW + 11 + i] === 2));
 check('no save: nothing drawn between the box and the table (y 136-167)', !lit(136, 168));
-let poster = 0, posterFirst = 0;
+let poster = 0, posterFirst = 0, shotFull = false;
 for (let i = 1; i <= 50; i++) {
   tick(40);
-  for (let r = 10; r < 16; r++) if (rowText(r, 6, 18) === 'WANTED: MONTY MOLE') { poster++; if (posterFirst === 0) posterFirst = i; }
+  for (let r = 10; r < 16; r++) if (rowText(r, 6, 7) === 'WANTED:' && g.mem[SCREEN + r * ROW + 6 + 12] !== 0x60) { poster++; if (posterFirst === 0) posterFirst = i; }
+  if (rowText(10, 6, 7) === 'WANTED:' && !shotFull) { shotFull = true; shot('title-poster-full'); }
   if (i % 6 === 0) shot(`title-${i * 40}`);
   if (posterFirst !== 0 && i - posterFirst < 8) shot(`title-poster-${i - posterFirst}`);
 }
-check(`the box shows Wanted's poster after the scores (WANTED: MONTY MOLE seen in ${poster} looks)`, poster > 0);
+check(`the box shows Wanted's poster after the scores (WANTED: with its picture seen in ${poster} looks)`, poster > 0);
 
 // ---- play ----------------------------------------------------------------------------------------------------
 tap('Space');

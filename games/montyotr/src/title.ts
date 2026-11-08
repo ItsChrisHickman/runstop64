@@ -76,7 +76,7 @@ const NAMES = 0xff; // name N at NAMES + N*16
 const at = (row: number, col: number) => SCREEN + row * ROW + col;
 
 /** A page of the high-scores box that is not scores: up to six rows of 28 screen codes (final codes, a game's own characters among them) and each row's colour. */
-export interface TitlePage { readonly rows: readonly { readonly codes: readonly number[]; readonly colour: number }[] }
+export interface TitlePage { readonly rows: readonly { readonly codes: readonly number[]; readonly colour: number; /** a colour for each of the 28 (where it is a picture): else the row's */ readonly colours?: readonly number[] }[] }
 
 /** The title's stick: up rolls the table faster, fire starts a game. */
 interface TitleInput { up: boolean; fire: boolean }
@@ -306,7 +306,7 @@ export class Title {
       // (the six empty entries after the fifty: a game with a page of its own shows it there, as the box rolls)
       const line = this.page?.rows[i - 50];
       if (line === undefined) { m.fill(0, at(15, 6), at(15, 6) + 28); return; }
-      for (let x = 0; x < 28; x++) { m[at(15, 6) + x] = line.codes[x] ?? 0x60; col[at(15, 6) + x - SCREEN] = line.colour; }
+      for (let x = 0; x < 28; x++) { m[at(15, 6) + x] = line.codes[x] ?? 0x60; col[at(15, 6) + x - SCREEN] = line.colours?.[x] ?? line.colour; }
       return;
     }
     const row = ROW_TEMPLATE.slice();

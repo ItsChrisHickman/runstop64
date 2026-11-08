@@ -6,6 +6,7 @@ import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { COAL_TOTAL } from '../../montymole/src/coal-rules';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { C64_OF } from './retile';
+import { POSTER_PICTURE, type PictureChar } from './title-picture';
 
 /**
  * The remix's title: Monty on the Run's own title screen (its scroller in the big lettering, the rolling box of high scores, the
@@ -71,17 +72,42 @@ const COAL_CHAR = 0x02;
 const COAL_ROW = 23, COAL_FROM = 11, COAL_COUNT = 10;
 const COAL_WORTH = COAL_FLAGS.reduce((n, f) => n + (f & 0x7f), 0);
 const codeOf = (c: string): number => (c === ' ' ? 0x60 : (c.charCodeAt(0) & 0x3f) | 0x40);
-const line = (text: string, colour: number): { codes: number[]; colour: number } => ({ codes: [...text.padEnd(28)].map(codeOf), colour });
-/** The poster (28 columns, six rows; the coal at the end of the last). */
+/**
+ * The poster (28 columns, six rows): the words at the left, twelve letters wide, and Wanted at the right, a picture of sixteen characters by six (title-picture.ts: the pit
+ * head, the shed, Monty and a bucket with two lumps of coal). The picture's characters are the free ones of Monty on the Run's set (`PICTURE_CHARS`), each in its own colour.
+ */
+const WORDS = 12;
+const WORDS_OF = [
+  { text: 'WANTED:', colour: 7 },
+  { text: 'MONTY MOLE', colour: 7 },
+  { text: 'A COAL RAID', colour: 1 },
+  { text: `${ROOMS.length} ROOMS`, colour: 3 },
+  { text: `${COAL_TOTAL} PIECES`, colour: 5 },
+  { text: `${COAL_WORTH} POINTS`, colour: 7 },
+] as const;
+/** The characters the picture draws with: blank in Monty on the Run's set, and none of them the scroller's ($F0 and over). */
+const PICTURE_CHARS: readonly number[] = Array.from({ length: 0xcc - 0x9b + 1 }, (_, i) => 0x9b + i);
+/** The picture's different characters, by the look they have, and the code of each (made once). */
+const keyOf = (cell: PictureChar): string => `${cell.colour}:${cell.rows.join(',')}`;
+const PICTURE_CODES = new Map<string, { code: number; cell: PictureChar }>();
+for (const cell of POSTER_PICTURE.flat()) {
+  if (cell === 'coal' || PICTURE_CODES.has(keyOf(cell))) continue;
+  const code = PICTURE_CHARS[PICTURE_CODES.size];
+  if (code === undefined) throw new Error('the poster picture needs more characters than Monty on the Run leaves free');
+  PICTURE_CODES.set(keyOf(cell), { code, cell });
+}
+const codeOfCell = (cell: PictureChar): number => {
+  const made = PICTURE_CODES.get(keyOf(cell));
+  if (made === undefined) throw new Error('a character of the poster picture was not made');
+  return made.code;
+};
 const POSTER: TitlePage = {
-  rows: [
-    line('WANTED: MONTY MOLE', 7),
-    line('FOR A COAL SNATCHING RAID', 1),
-    line('ON HIS LOCAL SOUTH YORKSHIRE', 1),
-    line(`PIT: ${ROOMS.length} ROOMS`, 3),
-    line(`${COAL_TOTAL} PIECES OF COAL`, 5),
-    { codes: [...`${COAL_WORTH} POINTS `].map(codeOf).concat([COAL_CHAR, COAL_CHAR, COAL_CHAR]), colour: 7 },
-  ],
+  rows: WORDS_OF.map((w, r) => {
+    const picture = POSTER_PICTURE[r] ?? [];
+    const codes = [...w.text.padEnd(WORDS)].map(codeOf).concat(picture.map((cell) => (cell === 'coal' ? COAL_CHAR : codeOfCell(cell))));
+    const colours = [...Array<number>(WORDS).fill(w.colour), ...picture.map((cell) => (cell === 'coal' ? 7 : cell.colour))];
+    return { codes, colour: w.colour, colours };
+  }),
 };
 
 /** Monty on the Run's title with Wanted's loot in it (above). */
@@ -96,6 +122,7 @@ class RemixTitle extends Title {
     super.start();
     const nugget = ROOMS[0]?.nugget ?? [];
     this.screen.mem.set(nugget, COAL_CHAR * 8);
+    for (const { code, cell } of PICTURE_CODES.values()) this.screen.mem.set(cell.rows, code * 8);
     for (let i = 0; i < COAL_COUNT; i++) this.screen.mem[SCREEN + COAL_ROW * ROW + COAL_FROM + 2 * i] = COAL_CHAR;
     this.tick = 0;
     this.flicker();
