@@ -230,6 +230,10 @@ export const TESTS = [
   { file: 'games/montyotr/test/title.ts', args: [MOTR], set: 'fast', needs: [MOTR] },
   { file: 'games/montyotr/test/trace.ts', set: 'fast', name: 'games/montyotr/test/trace.ts (the whole game pinned: random players in every room, deaths forced, a hash of the state every frame; the shared Monty changes nothing)' },
 
+  // ---- Wanted: Monty Mole Remix (Wanted's rooms and rules over Monty on the Run's Monty)
+  { file: 'games/montymoleremix/test/retile.ts', set: 'fast', name: 'games/montymoleremix/test/retile.ts (the 21 rooms in Monty on the Run\'s tiles: the class of every cell as the physics reads it equals the original\'s, room by room; coal, tool, gates and floors on the right cells)' },
+  { file: 'games/montymoleremix/test/game.ts', set: 'fast', name: 'games/montymoleremix/test/game.ts (the game: Monty\'s speed and jump, the coal as coins, the gates without the trap, the creatures equal the faithful game\'s pass by pass, the floor, the crusher, deaths and lives, the room graph)' },
+
   // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },
   { file: 'games/starquake/test/controls.ts', set: 'fast' },
