@@ -5,7 +5,7 @@ state of things and what is waiting on Chris. Last updated 2026-10-26, after the
 
 ## State
 
-All eleven games are live, built and checked, and the project is near finished. What is left is Chris playing it and the few
+All twelve games are live, built and checked, and the project is near finished. What is left is Chris playing it and the few
 open questions below; nothing big is under construction.
 
 - **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
@@ -21,7 +21,7 @@ open questions below; nothing big is under construction.
 - **Saves:** every stored save has `{ game, format }` (`games/shared/saves.ts`). The day a game's save bytes change, bump its
   codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
   (`games/shared/test/fixtures/saves`) keep proving players' saves load. About 1.4 M of the ~5.2 M characters a browser gives are
-  used by all eleven games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
+  used by all twelve games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
 - **No state libraries;** schemas are in-house (`S`). The architecture review's work (`docs/architecture-review.md`, a record
   of 2026-10-16) is done.
 - **History** was squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in
@@ -48,7 +48,7 @@ open questions below; nothing big is under construction.
 - **The fast test set is slow** (it was ~11-13 minutes). It is being cut so `npm run verify` stays under 10 minutes; until
   then run the typecheck, `check:strict` and the tests for the code you touch (`tools/tests.mjs` lists them all).
 
-## The reward show (one for all eleven games)
+## The reward show (one for all twelve games)
 
 Every game ends ENHANCED with a reward after the game's own ending: a montage of the game's places with the hero running
 through and doing something that fits (the game's own engine, driven by input), Super Mario World-style credits over it (the

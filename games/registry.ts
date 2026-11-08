@@ -47,10 +47,12 @@ export const GAMES: readonly RegisteredGame[] = [
   // In series order, like a compilation disk (no headings): the Monty games (Auf Wiedersehen Monty under its disk file's name,
   // the 16 letters a name has; the Spectrum-only ones, Wanted: Monty Mole and Moley Christmas, after them), then Gremlin's
   // others (Thing on a Spring), the four Pendragon games in release order,
-  // Jet Set Willy II, Starquake, Antiriad. A new game goes next to its series.
+  // Jet Set Willy II, Starquake, Antiriad. A new game goes next to its series. `blocks` is the original's size as a disk lists it: a C64 file's
+  // blocks; for the two Spectrum games the tape file's bytes over 256 (Moley Christmas 41521 = 162, Wanted: Monty Mole 49411 = 193).
+
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
-  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 158, load: () => import('./montymole/src/main') },
+  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 193, load: () => import('./montymole/src/main') },
   { id: 'moley', name: 'MOLEY CHRISTMAS', blocks: 162, load: () => import('./moley/src/main') },
   { id: 'thingonaspring', name: 'THING ON A SPRING', blocks: 187, load: () => import('./thingonaspring/src/main') },
   { id: 'karnath', name: 'STAFF OF KARNATH', blocks: 117, load: () => import('./karnath/src/main') },
