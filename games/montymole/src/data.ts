@@ -25,9 +25,11 @@ export const SPRITE_BASE = 0x6000;
 export const MONTY_FRAMES = hexBytes(MONTY_HEX);
 export const MONTY_BASE = 0x849c;
 
-/** The picture drawn where Monty dies (`$FFE0`). */
-export const DEATH_SPRITE = hexBytes(DEATH_SPRITE_HEX);
+/** The pictures of his death (`$FF60`-`$FFFF`): five frames; the last is drawn where he dies (`$FFE0`), the first four are the ones that rise (`$8F12`). */
+export const DEATH_FRAMES = hexBytes(DEATH_SPRITE_HEX);
+export const DEATH_BASE = 0xff60;
 export const DEATH_SPRITE_BASE = 0xffe0;
+export const DEATH_SPRITE = DEATH_FRAMES.subarray(DEATH_SPRITE_BASE - DEATH_BASE, DEATH_SPRITE_BASE - DEATH_BASE + 32);
 
 /** The title picture: 6144 bytes of bitmap, then 768 of attributes: the screen as the tape loads it. */
 export const TITLE_PICTURE = hexBytes(TITLE_HEX);
@@ -78,7 +80,7 @@ export function screenOffset(y: number): number {
 export function imageAt(address: number): Uint8Array {
   if (address >= SPRITE_BASE && address + SPRITE_BYTES <= SPRITE_BASE + SPRITE_FRAMES.length) return SPRITE_FRAMES.subarray(address - SPRITE_BASE, address - SPRITE_BASE + SPRITE_BYTES);
   if (address >= MONTY_BASE && address + SPRITE_BYTES <= MONTY_BASE + MONTY_FRAMES.length) return MONTY_FRAMES.subarray(address - MONTY_BASE, address - MONTY_BASE + SPRITE_BYTES);
-  if (address === DEATH_SPRITE_BASE) return DEATH_SPRITE;
+  if (address >= DEATH_BASE && address + SPRITE_BYTES <= DEATH_BASE + DEATH_FRAMES.length) return DEATH_FRAMES.subarray(address - DEATH_BASE, address - DEATH_BASE + SPRITE_BYTES);
   throw new Error(`no picture at $${address.toString(16)}`);
 }
 

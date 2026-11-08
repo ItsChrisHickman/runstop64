@@ -22,7 +22,7 @@ import { unpackState } from '../../../tools/zx/snapshot';
 import { Spectrum } from '../../../tools/zx/spectrum';
 import { beeperToggles } from '../src/beeper';
 import {
-  CHAIN, COAL_FLAGS, CRUSHER_PICTURES, DEATH_SPRITE, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
+  CHAIN, COAL_FLAGS, CRUSHER_PICTURES, DEATH_FRAMES, DEATH_TUNE, ENDING_VERSE, FONT, GAME_OVER_VERSE, JUMP_ARC, LIVES_LINE, MENU_LINES, MONTY_FRAMES, MONTY_BASE, PICKUP, SCORE_LINE, SPRITE_BASE, SPRITE_BYTES,
   SPRITE_COUNT, SPRITE_FRAMES, STEP_CYCLES, STEP_PITCH_START, THUD, TITLE_PICTURE, TITLE_TUNE, screenOffset,
 } from '../src/data';
 import { drawLine, glyphRows, GLYPH_ROWS } from '../src/font';
@@ -52,7 +52,7 @@ const encode = (text: string): number[] => Array.from(text, codeOf);
 const blocks: [string, ArrayLike<number>, Uint8Array][] = [
   ['sprite frames (256 x 32)', SPRITE_FRAMES, bytesOf(image, SPANS.sprites)],
   ['Monty\'s 16 frames', MONTY_FRAMES, bytesOf(image, SPANS.monty)],
-  ['the death picture', DEATH_SPRITE, bytesOf(image, SPANS.deathSprite)],
+  ['the death pictures', DEATH_FRAMES, bytesOf(image, SPANS.deathSprite)],
   ['the crusher\'s pictures', CRUSHER_PICTURES, bytesOf(image, SPANS.crusher)],
   ['room 17\'s ring', CHAIN, bytesOf(image, SPANS.chain)],
   ['title picture (bitmap and attributes)', TITLE_PICTURE, bytesOf(image, SPANS.title)],
@@ -112,7 +112,7 @@ for (const name of ['loading', 'title', 'play', 'room0']) {
   compare('Monty\'s frames', MONTY_FRAMES, MONTY_BASE);
   compare('font', FONT, SPANS.font.at);
   compare('jump arc', JUMP_ARC.map((v) => v & 255), SPANS.jumpArc.at);
-  compare('death picture', DEATH_SPRITE, SPANS.deathSprite.at);
+  compare('death pictures', DEATH_FRAMES, SPANS.deathSprite.at);
   if (name === 'loading') compare('title tune', bytesOf(image, SPANS.titleTune), SPANS.titleTune.at); // (the picture buffer lies over it once the menu is up)
   compare('death tune', bytesOf(image, SPANS.deathTune), SPANS.deathTune.at);
   compare('row table', bytesOf(image, SPANS.rowTable), SPANS.rowTable.at);

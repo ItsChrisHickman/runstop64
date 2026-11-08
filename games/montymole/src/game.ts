@@ -124,6 +124,8 @@ export class Game implements Stateful {
   exitedTo: number | null = null;
   /** where the rebuilt game does something other than the original, because the original does something no one wants (set once, for the tests) */
   divergence: string | null = null;
+  /** the screen as the last death left it, for the front end to show the death on (it takes it and clears it) */
+  death: { readonly field: FieldCopy; readonly x: number; readonly y: number } | null = null;
   /** what the last death was from (for the tests) */
   lastDeath: 'crusher' | 'touch' | 'cell' | null = null;
   /** the input byte the last pass ran with, as `$82A6` made it (for the tests) */
@@ -372,9 +374,10 @@ export class Game implements Stateful {
   /** A death (`$946E`): his picture where he died, a life gone; with none left it is game over, else back to where he came into the room. */
   private die(): void {
     const m = this.monty;
-    if (this.room === OPENING_ROOM) this.divergence = 'he died in the opening scene: the original freezes for the whole death tune (the scene\'s interrupt routine does not run the death animation that ends the tune early)';
+    if (this.room === OPENING_ROOM) this.divergence = 'he died in the opening scene: the original freezes for the whole death tune (the scene\'s interrupt routine does not run the death animation that ends the tune early); the rebuilt game shows the death as in a room';
     blit(this.field.screen, this.field.picture, DEATH_SPRITE, m.x, m.y); // $8D7F draws it and `$D254` keeps the screen as the picture
     this.field.picture.set(this.field.screen);
+    this.death = { field: this.field.copy(), x: m.x, y: m.y };
     this.lives = (this.lives - 1) & 0xff;
     if (this.lives === 0) { this.outcome = 'gameOver'; return; }
     m.x = this.arrivalX;

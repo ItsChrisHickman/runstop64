@@ -5,8 +5,8 @@
  */
 import { ENDING_ROOM, ENDING_TILES, MAP_COLUMNS, PANEL_ATTRS, PANEL_BITMAP, TILES, roomAttrs, roomMap } from './data';
 
-export const PICTURE_WIDTH = 256;
-export const PICTURE_HEIGHT = 192;
+import { PICTURE_HEIGHT } from '../../shared/spectrum';
+export { cellInk, cellPaper, PICTURE_HEIGHT, PICTURE_WIDTH } from '../../shared/spectrum';
 /** The first pixel row of the HUD panel (cell row 18). */
 export const PANEL_TOP = 144;
 
@@ -40,7 +40,3 @@ export function roomPicture(room: number): Picture {
   }
   return { bits, attrs };
 }
-
-/** The Spectrum colour index (0-15) of a cell's ink and of its paper, bright included. */
-export function cellInk(attr: number): number { return (attr & 7) | ((attr >> 3) & 8); }
-export function cellPaper(attr: number): number { return ((attr >> 3) & 7) | ((attr >> 3) & 8); }

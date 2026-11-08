@@ -23,7 +23,7 @@ export interface Span { readonly name: string; readonly at: number; readonly len
 export const SPANS = {
   sprites: { name: 'the 256 sprite frames, 16 x 16, 32 bytes each (enemies, objects, the castle set of Monty at $7800, the bucket at $7780)', at: 0x6000, length: 256 * 32 },
   monty: { name: 'Monty: 16 frames of 32 bytes, four each for up, down, left and right (rope, rope, walk, walk)', at: 0x849c, length: 16 * 32 },
-  deathSprite: { name: 'the picture drawn where Monty dies (a 16 x 16 frame at the top of memory)', at: 0xffe0, length: 32 },
+  deathSprite: { name: 'the pictures of Monty\'s death, five 16 x 16 frames at the top of memory: the last (`$FFE0`) is drawn where he dies, the first four (`$FF60`) take turns as it rises', at: 0xff60, length: 5 * 32 },
   title: { name: 'the title picture: the screen as the tape loads it, 6144 bytes of bitmap then 768 of attributes', at: 0x4000, length: 6912 },
   font: { name: 'the font: glyphs 0 to 37 (space, A-Z with 17 an apostrophe, 0-9, colon), 8 bytes each', at: 0x813b, length: 38 * 8 },
   jumpArc: { name: 'the jump arc: 32 signed steps of y', at: 0x869c, length: 32 },

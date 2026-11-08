@@ -9,7 +9,8 @@
  * all of it, at whatever rate `render(alpha)` is called. The logic is not touched; the sprites are only drawn in between.
  */
 import { EVERY_FRAME, Smoothed, Surface, TRANSPARENT, makePalette, type Renderer, type SpriteHandle, type ViewStep } from 'c64kit';
-import { Display, pixelsOf, type Shot, type SpritePlace } from './display';
+import { Display, type Shot, type SpritePlace } from './display';
+import { centre, PICTURE_LEFT, PICTURE_TOP, pixelsOf, SURFACE_HEIGHT, SURFACE_WIDTH } from '../../shared/spectrum';
 import type { FlowStep } from './flow';
 import type { Hint } from './hints';
 import { SPRITE_INK, spriteImage, spritePixel, type Look } from './look';
@@ -17,9 +18,7 @@ import { PICTURE_HEIGHT, PICTURE_WIDTH } from './picture';
 import { SPECTRUM_PALETTE } from './palette';
 
 export const SPECTRUM_COLOURS = makePalette(SPECTRUM_PALETTE);
-export const SURFACE_WIDTH = 320, SURFACE_HEIGHT = 200;
-/** Where the Spectrum's picture sits in the surface. */
-export const PICTURE_LEFT = (SURFACE_WIDTH - PICTURE_WIDTH) / 2, PICTURE_TOP = (SURFACE_HEIGHT - PICTURE_HEIGHT) / 2;
+export { PICTURE_LEFT, PICTURE_TOP, SURFACE_HEIGHT, SURFACE_WIDTH };
 /** The border is black in play: the sound effects write `OUT ($FE)` with the border bits clear (`$A017`...) and nothing sets another. */
 export const BORDER = 0;
 const SPRITE_SIZE = 16;
@@ -28,12 +27,7 @@ export const SPARKLE_SIZE = 2, SPARKLE_GAIN = 2;
 /** A sprite that moves further than this between two passes is not gliding but placed (a new thing, a jump). */
 const GLIDE_LIMIT = 12;
 
-/** The 256 x 192 picture put in the middle of a 320 x 200 surface of border colour. */
-export function centre(picture: Uint8Array, border: number, out: Uint8Array): Uint8Array {
-  out.fill(border);
-  for (let y = 0; y < PICTURE_HEIGHT; y++) out.set(picture.subarray(y * PICTURE_WIDTH, (y + 1) * PICTURE_WIDTH), (y + PICTURE_TOP) * SURFACE_WIDTH + PICTURE_LEFT);
-  return out;
-}
+export { centre };
 
 /** One entity's sprite on the renderer, and what it needs to glide. */
 interface Slot {

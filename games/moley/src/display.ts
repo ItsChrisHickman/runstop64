@@ -22,7 +22,8 @@
 import { BLANK_FRAME, GAUGE_FRAMES, GLYPHS, MAP_COLUMNS, PANEL_ATTRS, PANEL_BITMAP, ROOM_ROWS, ROOM_SIZE, SPRITE_FRAMES, TILES } from './data';
 import type { Game, Observer } from './game';
 import type { Death } from './stage';
-import { cellInk, cellPaper, PANEL_TOP, PICTURE_HEIGHT, PICTURE_WIDTH } from './picture';
+import { PANEL_TOP, PICTURE_HEIGHT, PICTURE_WIDTH } from './picture';
+import { pixelsOf, rowOffset } from '../../shared/spectrum';
 import { drawByte, spriteRows } from './sprite';
 
 export const BITMAP_BYTES = 6144;
@@ -48,10 +49,7 @@ const FIRST_FACE_FRAME = 0;
 const CONVEYORS = [{ tile: 0x55 }, { tile: 0x7b }] as const;
 const ROOM_FIVE = 5;
 
-/** The ULA's address (from $4000) of the first byte of pixel row `y`. */
-export function rowOffset(y: number): number {
-  return ((y & 0xc0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2);
-}
+export { rowOffset };
 
 /** The offset of the top line of cell number `cell` (row * 32 + column). */
 export function cellOffset(cell: number): number {
@@ -377,17 +375,4 @@ export class Display implements Observer {
 }
 
 const ROOM_COUNT_PLAY = 6;
-
-/** A bitmap and its attributes as colour indexes. */
-export function pixelsOf(bits: Uint8Array, attrs: Uint8Array, out: Uint8Array, flash: boolean): Uint8Array {
-  for (let y = 0; y < PICTURE_HEIGHT; y++) {
-    const row = rowOffset(y), attrRow = (y >> 3) * 32;
-    for (let col = 0; col < 32; col++) {
-      const b = bits[row + col], attr = attrs[attrRow + col];
-      let ink = cellInk(attr), paper = cellPaper(attr);
-      if (flash && (attr & 0x80) !== 0) [ink, paper] = [paper, ink];
-      for (let k = 0; k < 8; k++) out[y * PICTURE_WIDTH + col * 8 + k] = (b & (0x80 >> k)) !== 0 ? ink : paper;
-    }
-  }
-  return out;
-}
+export { pixelsOf };
