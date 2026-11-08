@@ -132,7 +132,7 @@ export function run(host: Host) {
       updateView() {
         // ENHANCED's help (hints.ts): in play, not on a screen of ours
         const shown = fe.enhanced && mode === 'play' && !g.freeze && !fe.holding;
-        g.note(shown && fe.assist.count === true ? coalCount(g) : null);
+        if (mode === 'play') g.note(shown && fe.assist.count === true ? coalCount(g) : null);
         renderer.sparkles.set((shown && fe.assist.hints === true ? hintsOf(g) : []).map((h) => ({ x: h.x, y: h.y, size: SPARKLE_SIZE, gain: SPARKLE_GAIN })));
         view.update();
         if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);

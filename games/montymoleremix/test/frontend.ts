@@ -23,7 +23,6 @@ import { hintsOf } from '../src/hints';
 import { START_LIVES } from '../src/game';
 import { run, STRIP_Y } from '../src/main';
 import { remixMap } from '../src/map';
-import { TABLE_ROW } from '../../montyotr/src/title';
 
 const store = useMemoryStorage();
 
@@ -53,9 +52,16 @@ shot('1-title');
 check('starts on the title, with Monty on the Run\'s tune (Music.Init 0)', p.state.mode === 'title' && played(0));
 check('the scroller has drawn into the top rows', g.mem.subarray(SCREEN, SCREEN + 240).some((c) => c >= 0xf0));
 check('no save yet: no ENTER CONTINUE', !p.state.hasSave && p.state.prompt === null);
-check('no kit under the table (no FREEDOM KIT label, no icons: rows 23-24 between the pillars empty)', !rowText(22, 11, 19).includes('FREEDOM') && g.mem.subarray(SCREEN + (TABLE_ROW + 2) * ROW + 9, SCREEN + (TABLE_ROW + 2) * ROW + 31).every((c) => c === 0));
+check('no freedom kit under the table: Wanted\'s coal there instead (a row of the lump, redefined as a character)', !rowText(22, 11, 19).includes('FREEDOM') && [0, 2, 4, 6, 8].every((i) => g.mem[SCREEN + 23 * ROW + 11 + i] === 2));
 check('no save: nothing drawn between the box and the table (y 136-167)', !lit(136, 168));
-for (let i = 1; i <= 6; i++) { tick(250); shot(`title-${i * 250}`); }
+let poster = 0, posterFirst = 0;
+for (let i = 1; i <= 50; i++) {
+  tick(40);
+  for (let r = 10; r < 16; r++) if (rowText(r, 6, 18) === 'WANTED: MONTY MOLE') { poster++; if (posterFirst === 0) posterFirst = i; }
+  if (i % 6 === 0) shot(`title-${i * 40}`);
+  if (posterFirst !== 0 && i - posterFirst < 8) shot(`title-poster-${i - posterFirst}`);
+}
+check(`the box shows Wanted's poster after the scores (WANTED: MONTY MOLE seen in ${poster} looks)`, poster > 0);
 
 // ---- play ----------------------------------------------------------------------------------------------------
 tap('Space');

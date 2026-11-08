@@ -75,6 +75,9 @@ const NAMES = 0xff; // name N at NAMES + N*16
 
 const at = (row: number, col: number) => SCREEN + row * ROW + col;
 
+/** A page of the high-scores box that is not scores: up to six rows of 28 screen codes (final codes, a game's own characters among them) and each row's colour. */
+export interface TitlePage { readonly rows: readonly { readonly codes: readonly number[]; readonly colour: number }[] }
+
 /** The title's stick: up rolls the table faster, fire starts a game. */
 interface TitleInput { up: boolean; fire: boolean }
 
@@ -101,9 +104,11 @@ export class Title {
   // the kit shown
   private readonly contents: number[];
   private readonly message: Uint8Array;
+  private readonly page: TitlePage | null;
 
   /** `kit` and `message` default to ours (the five that work, our credits in the scroller); tests give the original's. A game with no kit gives `[]`: the table stands alone. */
-  constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit?: number[]; message?: Uint8Array } = {}) {
+  constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit?: number[]; message?: Uint8Array; page?: TitlePage } = {}) {
+    this.page = opts.page ?? null;
     this.contents = [...(opts.kit ?? CORRECT_KIT)];
     this.message = opts.message ?? MESSAGE;
   }
@@ -297,7 +302,13 @@ export class Title {
   /** LoadNextScore: rank, score and name into row 15, all one random colour. */
   private loadNextScore(i: number) {
     const m = this.g.mem, col = this.g.col;
-    if (i >= 50) { m.fill(0, at(15, 6), at(15, 6) + 28); return; }
+    if (i >= 50) {
+      // (the six empty entries after the fifty: a game with a page of its own shows it there, as the box rolls)
+      const line = this.page?.rows[i - 50];
+      if (line === undefined) { m.fill(0, at(15, 6), at(15, 6) + 28); return; }
+      for (let x = 0; x < 28; x++) { m[at(15, 6) + x] = line.codes[x] ?? 0x60; col[at(15, 6) + x - SCREEN] = line.colour; }
+      return;
+    }
     const row = ROW_TEMPLATE.slice();
     row[1] = 0x30 + Math.floor((i + 1) / 10);
     row[2] = 0x30 + ((i + 1) % 10);

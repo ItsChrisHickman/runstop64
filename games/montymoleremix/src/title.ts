@@ -1,6 +1,11 @@
 import { hexBytes } from 'c64kit';
 import raw from '../../montyotr/src/data/motr.json';
-import { Title, type TitleGame } from '../../montyotr/src/title';
+import { Title, type TitleGame, type TitlePage } from '../../montyotr/src/title';
+import { COAL_FLAGS } from '../../montymole/src/data';
+import { ROOMS } from '../../montymole/src/data/rooms-data';
+import { COAL_TOTAL } from '../../montymole/src/coal-rules';
+import { ROW, SCREEN } from '../../shared/monty/screen';
+import { C64_OF } from './retile';
 
 /**
  * The remix's title: Monty on the Run's own title screen (its scroller in the big lettering, the rolling box of high scores, the
@@ -55,7 +60,63 @@ export const REMIX_MESSAGE: Uint8Array = (() => {
 /** The title sound: the music and its switch (the game gives them). */
 export interface RemixTitleSound { song(n: number): void; stop(): void; musicOn(): boolean }
 
-/** Monty on the Run's title with the remix's logo and no kit. */
+/**
+ * What the title has of Wanted's own where Monty on the Run's has its freedom kit and a page of its box: the loot. Under the table, where the kit
+ * stood, a row of Wanted's own piece of coal (the lump of room 0, one of Monty on the Run's characters redefined as it) flickering through
+ * the colours as it does in the rooms; and a page after the scores in the box, the poster: WANTED: MONTY MOLE, what for, and how much (the
+ * inlay's own words for the raid, and the game's own numbers: 21 rooms, 64 pieces, their worth added up).
+ */
+const COAL_CHAR = 0x02;
+/** The coal's row (23: under the table, between its pillars, columns 11 to 29 every other one). */
+const COAL_ROW = 23, COAL_FROM = 11, COAL_COUNT = 10;
+const COAL_WORTH = COAL_FLAGS.reduce((n, f) => n + (f & 0x7f), 0);
+const codeOf = (c: string): number => (c === ' ' ? 0x60 : (c.charCodeAt(0) & 0x3f) | 0x40);
+const line = (text: string, colour: number): { codes: number[]; colour: number } => ({ codes: [...text.padEnd(28)].map(codeOf), colour });
+/** The poster (28 columns, six rows; the coal at the end of the last). */
+const POSTER: TitlePage = {
+  rows: [
+    line('WANTED: MONTY MOLE', 7),
+    line('FOR A COAL SNATCHING RAID', 1),
+    line('ON HIS LOCAL SOUTH YORKSHIRE', 1),
+    line(`PIT: ${ROOMS.length} ROOMS`, 3),
+    line(`${COAL_TOTAL} PIECES OF COAL`, 5),
+    { codes: [...`${COAL_WORTH} POINTS `].map(codeOf).concat([COAL_CHAR, COAL_CHAR, COAL_CHAR]), colour: 7 },
+  ],
+};
+
+/** Monty on the Run's title with Wanted's loot in it (above). */
+class RemixTitle extends Title {
+  private tick = 0;
+
+  constructor(private readonly screen: TitleGame, sound: RemixTitleSound) {
+    super(screen, sound, { kit: [], message: REMIX_MESSAGE, page: POSTER });
+  }
+
+  override start(): void {
+    super.start();
+    const nugget = ROOMS[0]?.nugget ?? [];
+    this.screen.mem.set(nugget, COAL_CHAR * 8);
+    for (let i = 0; i < COAL_COUNT; i++) this.screen.mem[SCREEN + COAL_ROW * ROW + COAL_FROM + 2 * i] = COAL_CHAR;
+    this.tick = 0;
+    this.flicker();
+  }
+
+  override frame(input: { up: boolean; fire: boolean }): 'start' | null {
+    this.tick++;
+    this.flicker();
+    return super.frame(input);
+  }
+
+  /** The coal through the colours as in the rooms (`$95E8`: one step a pass, 25 a second), each piece a step on from the one before. */
+  private flicker(): void {
+    const { mem, col } = this.screen;
+    for (let i = 0; i < COAL_COUNT; i++) col[COAL_ROW * ROW + COAL_FROM + 2 * i] = C64_OF[((this.tick >> 1) + i) & 7] ?? 1;
+    // (the poster's coal, in the box, the same)
+    for (let r = 10; r < 16; r++) for (let x = 0; x < 28; x++) if (mem[SCREEN + r * ROW + 6 + x] === COAL_CHAR) col[r * ROW + 6 + x] = C64_OF[((this.tick >> 1) + x) & 7] ?? 1;
+  }
+}
+
+/** Monty on the Run's title with the remix's logo and Wanted's loot. */
 export function remixTitle(g: TitleGame, sound: RemixTitleSound): Title {
-  return new Title(g, sound, { kit: [], message: REMIX_MESSAGE });
+  return new RemixTitle(g, sound);
 }
