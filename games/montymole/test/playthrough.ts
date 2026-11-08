@@ -14,7 +14,8 @@ import { readRom } from '../../../tools/zx/boot';
 import { check, finish } from '../../../games/shared/test/check';
 import { ROOMS } from '../src/data/rooms-data';
 import { Flag } from '../src/monty';
-import { KEY_NAMES, NEXT_ROOM, piecesLeft, Planner, type Target } from './bot';
+import { KEY_NAMES } from '../src/controls';
+import { NEXT_ROOM, piecesLeft, Planner, type Target } from './bot';
 import { A, OPENING_LAYOUT, Run, Tally, type Driver, type Keep } from './lockstep-core';
 
 const STATE = 'games/montymole/build/opening.state';

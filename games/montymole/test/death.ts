@@ -21,17 +21,18 @@ function die(x: number, y: number, counter: number): void {
   m.cpu.iff1 = true; m.cpu.iff2 = true;
   m.mem[A.x] = x; m.mem[A.y] = y; m.mem[0x9179] = counter;
   m.cpu.pc = 0x946e; m.cpu.halted = false;
-  let scene: DeathScene | null = null;
+  const held: { scene: DeathScene | null } = { scene: null };
   let frame = 0, ended = -1, differing = 0, begun = -1;
   m.onStep = (pc) => {
-    if (pc === DRAWN && scene === null) {
+    if (pc === DRAWN && held.scene === null) {
       begun = frame; // the death picture is drawn and kept: the scene starts from this screen
-      scene = new DeathScene({ picture: m.mem.slice(A.picture, A.picture + 6144), screen: m.mem.slice(A.screen, A.screen + 6144), attrs: m.mem.slice(A.attrs, A.attrs + 768), coalMask: m.mem.slice(A.attrBuffer, A.attrBuffer + 768) }, x, y, counter);
+      held.scene = new DeathScene({ picture: m.mem.slice(A.picture, A.picture + 6144), screen: m.mem.slice(A.screen, A.screen + 6144), attrs: m.mem.slice(A.attrs, A.attrs + 768), coalMask: m.mem.slice(A.attrBuffer, A.attrBuffer + 768) }, x, y, counter);
     }
     if (pc === REENTER && ended < 0) ended = frame;
   };
   for (frame = 0; frame < 1500 && ended < 0; frame++) {
     m.runFrame();
+    const scene = held.scene;
     if (scene === null || ended >= 0) continue;
     if (frame > begun) scene.interrupt(); // (the frame the picture is drawn in has had no interrupt since: the next has the first)
     const screen = m.mem.subarray(A.screen, A.screen + 6144);
@@ -42,8 +43,9 @@ function die(x: number, y: number, counter: number): void {
   }
   runs++;
   wrongFrames += differing;
+  const scene = held.scene;
   if (scene === null) { check(`the death at x ${x} y ${y}: the original reached its death picture`, false); return; }
-  const frames = (scene as DeathScene).frames;
+  const frames = scene.frames;
   const original = ended - begun;
   durations.push(`y ${y}: original ${original}, rebuilt ${frames}`);
   check(`the death at x ${x} y ${y} (counter ${counter}): the whole death takes the original ${original} frames and the rebuilt scene ${frames} (within 15: the interrupt routine inside the notes costs what the picture it draws costs, and where the loop ends is at a note)`, Math.abs(original - frames) <= 15);

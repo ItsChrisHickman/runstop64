@@ -48,6 +48,7 @@ export const GAMES: readonly RegisteredGame[] = [
   // the 16 letters a name has; Moley Christmas, the Spectrum-only one, after them), then Gremlin's
   // others (Thing on a Spring), the four Pendragon games in release order,
   // Jet Set Willy II, Starquake, Antiriad. A new game goes next to its series.
+  { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 158, load: () => import('./montymole/src/main') },
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
   { id: 'moley', name: 'MOLEY CHRISTMAS', blocks: 162, load: () => import('./moley/src/main') },

@@ -1,7 +1,7 @@
 # AGENTS.md: working on runstop64
 
 runstop64 brings Commodore 64 games to the browser as tributes with full credits (live at https://goshow.me/runstop64/).
-Read `README.md` (layout, commands), `GAMES.md` (the eleven games and how each was made) and `HANDOFF.md` (what is next and what
+Read `README.md` (layout, commands), `GAMES.md` (the twelve games and how each was made) and `HANDOFF.md` (what is next and what
 is waiting on Chris). Each game's `re/README.md` records what was learned about its original; its `QOL.md` lists every change
 from the original.
 

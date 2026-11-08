@@ -12,13 +12,11 @@
  * by passes so far plus that distance, so that waiting for a crusher or an enemy to be out of the way is part of the path where the map says it must be.
  */
 import { Game, type GameSnapshot } from '../src/game';
-import { KEYBOARD, type Ports } from '../src/input';
+import { Key, portsFor } from '../src/controls';
+import { KEYBOARD } from '../src/input';
 import { Flag } from '../src/monty';
 import { ROOMS } from '../src/data/rooms-data';
 import { STILL_THERE } from '../src/coal';
-
-/** A key set as a number: the five keys. */
-export const Key = { up: 1, down: 2, left: 4, right: 8, jump: 16 } as const;
 
 /** What is tried at a decision: a key set for one pass, or nothing pressed for so many passes. */
 interface Move { readonly keys: number; readonly wait: number }
@@ -26,24 +24,6 @@ const MOVES: readonly Move[] = [
   { keys: 0, wait: 1 }, { keys: 0, wait: 8 }, { keys: Key.left, wait: 1 }, { keys: Key.right, wait: 1 }, { keys: Key.up, wait: 1 }, { keys: Key.down, wait: 1 },
   { keys: Key.jump, wait: 1 }, { keys: Key.jump | Key.left, wait: 1 }, { keys: Key.jump | Key.right, wait: 1 },
 ];
-
-/** The ports of the keyboard control with these keys held (Q A O P and SPACE). */
-export function portsFor(keys: number): Ports {
-  const row = (bits: readonly [number, number][]): number => bits.reduce((v, [key, bit]) => (keys & key ? v & ~(1 << bit) : v), 0x1f);
-  return {
-    halfRow: (high) => {
-      if (high === 0xfb) return row([[Key.up, 0]]);
-      if (high === 0xfd) return row([[Key.down, 0]]);
-      if (high === 0xdf) return row([[Key.left, 1], [Key.right, 0]]);
-      if (high === 0x7f) return row([[Key.jump, 0]]);
-      return 0x1f;
-    },
-    kempston: () => 0,
-  };
-}
-
-/** The names of the keys on the original's keyboard. */
-export const KEY_NAMES: readonly (readonly [number, string])[] = [[Key.up, 'Q'], [Key.down, 'A'], [Key.left, 'O'], [Key.right, 'P'], [Key.jump, 'SPACE']];
 
 /** What a search wants: some coal pieces (any of them), the tool, the way on out of the room, the ending, or the gift of the opening scene. */
 export type Target =
@@ -367,3 +347,4 @@ export function piecesLeft(g: Game, id: number): number[] {
   if (room === undefined) return [];
   return room.coal.filter((c) => (c.col !== 0 || c.row !== 0) && ((g.coal.flags[c.id] ?? 0) & STILL_THERE) !== 0).map((c) => c.id);
 }
+

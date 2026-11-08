@@ -77,14 +77,20 @@ export class AyPlayer {
 
   /** Play a sample from `addSample` at audio time `at` (`now` or later). */
   playSample(sample: number, at: number): void {
+    this.playStoppable(sample, at);
+  }
+
+  /** `playSample`, and what to stop it with (a tune that is cut short): null where nothing was started. */
+  playStoppable(sample: number, at: number): { stop(): void } | null {
     const buffer = this.samples[sample];
     const ctx = this.ctx;
     const master = this.master;
-    if (!buffer || !ctx || !master || this.muted || this.held) return;
+    if (!buffer || !ctx || !master || this.muted || this.held) return null;
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(master);
     source.start(Math.max(at, ctx.currentTime));
+    return { stop: () => { try { source.stop(); } catch { /* already over */ } } };
   }
 
   toggleMute(): boolean {

@@ -16,7 +16,7 @@ import { Field, type FieldCopy } from './field';
 import { Floor } from './floor';
 import { Gates } from './gates';
 import { Opening } from './opening';
-import { KEYBOARD, readInput, type Ports } from './input';
+import { Direction, KEYBOARD, readInput, type Ports } from './input';
 import { Flag, Monty, type Terrain } from './monty';
 import { RoomObject } from './object';
 import { Random } from './random';
@@ -24,6 +24,7 @@ import type { RoomData } from './room';
 import { Score } from './score';
 import { blit } from './sprite';
 import { StateReader, StateWriter, type Stateful } from '../../shared/state';
+import { afterLoss } from '../../shared/lives';
 
 export const START_LIVES = 3;
 
@@ -126,6 +127,12 @@ export class Game implements Stateful {
   divergence: string | null = null;
   /** the screen as the last death left it, for the front end to show the death on (it takes it and clears it) */
   death: { readonly field: FieldCopy; readonly x: number; readonly y: number } | null = null;
+  /** a moment's grace after the front end puts him back into play (shared/grace.ts): a death in it costs nothing and puts him back where he came into the room */
+  graceActive: () => boolean = () => false;
+  /** ENHANCED: a death costs no life (shared/lives.ts) */
+  unlimitedLives = false;
+  /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
+  entries = 0;
   /** what the last death was from (for the tests) */
   lastDeath: 'crusher' | 'touch' | 'cell' | null = null;
   /** the input byte the last pass ran with, as `$82A6` made it (for the tests) */
@@ -156,6 +163,22 @@ export class Game implements Stateful {
     this.enter();
   }
 
+  /**
+   * Go to a room he has been in (the pause map's travel): put at the place he came into it at, as if he had come through the exit, with nothing of a jump or a fall still going
+   * and no tool (it is put down on leaving a room).
+   */
+  travel(room: number, x: number, y: number): void {
+    const m = this.monty;
+    m.jumpDir = 0;
+    m.jumpCount = 0;
+    m.arc = 0;
+    m.fallen = 0;
+    m.flags = 0;
+    m.flags2 = 0;
+    m.input = Direction.none;
+    this.place(room, x, y);
+  }
+
   /** `$940C`: the loop's start for the room in `room`: the ending and the opening are scenes of their own; the others are drawn. */
   enter(): void {
     for (;;) {
@@ -173,6 +196,7 @@ export class Game implements Stateful {
       this.field.printScore(this.score.digits); // $91E8
       this.field.printLives(this.lives); // $949E
       this.field.keep(); // $D254
+      this.entries++;
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
       // $96E1: the pit: the scene lifts him into the castle (room 17), his jump state as it was but the fall and the jump's count cleared
       this.monty.x = PIT_ARRIVAL.x;
@@ -374,11 +398,23 @@ export class Game implements Stateful {
   /** A death (`$946E`): his picture where he died, a life gone; with none left it is game over, else back to where he came into the room. */
   private die(): void {
     const m = this.monty;
+    if (this.graceActive()) { // (the room is entered again as it was: no life lost, nothing shown)
+      m.x = this.arrivalX;
+      m.y = this.arrivalY;
+      m.fallen = 0;
+      m.flags = 0;
+      m.flags2 = 0;
+      m.arc = 0;
+      m.jumpDir = 0;
+      m.jumpCount = 0;
+      this.enter();
+      return;
+    }
     if (this.room === OPENING_ROOM) this.divergence = 'he died in the opening scene: the original freezes for the whole death tune (the scene\'s interrupt routine does not run the death animation that ends the tune early); the rebuilt game shows the death as in a room';
     blit(this.field.screen, this.field.picture, DEATH_SPRITE, m.x, m.y); // $8D7F draws it and `$D254` keeps the screen as the picture
     this.field.picture.set(this.field.screen);
     this.death = { field: this.field.copy(), x: m.x, y: m.y };
-    this.lives = (this.lives - 1) & 0xff;
+    this.lives = afterLoss(this.lives, this.unlimitedLives) & 0xff;
     if (this.lives === 0) { this.outcome = 'gameOver'; return; }
     m.x = this.arrivalX;
     m.y = this.arrivalY;

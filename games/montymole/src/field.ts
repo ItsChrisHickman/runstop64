@@ -18,7 +18,7 @@ export const BITMAP_BYTES = 6144;
 export const ATTR_BYTES = 768;
 
 /** The character of a digit 0-9 as the font has it (the digit glyphs follow the letters). */
-const digit = (n: number): string => GLYPH_CHARS.charAt(DIGIT_BASE + n);
+export const digitChar = (n: number): string => GLYPH_CHARS.charAt(DIGIT_BASE + n);
 
 /** The four buffers of a `Field` as they were. */
 export interface FieldCopy {
@@ -98,12 +98,12 @@ export class Field {
 
   /** `SCORE: ` and the five digits (the game keeps them units first), on the screen. */
   printScore(scoreDigits: readonly number[]): void {
-    const text = SCORE_LINE.text + [...scoreDigits].reverse().map(digit).join('');
+    const text = SCORE_LINE.text + [...scoreDigits].reverse().map(digitChar).join('');
     drawLine({ bitmap: this.screen, attrs: this.attrs }, SCORE_LINE, text);
   }
 
   /** `LIVES: ` and the number left, on the screen (`$949E`). */
   printLives(lives: number): void {
-    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, LIVES_LINE.text + digit(lives));
+    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, LIVES_LINE.text + digitChar(lives));
   }
 }

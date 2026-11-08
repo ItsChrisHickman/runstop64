@@ -104,10 +104,10 @@ export * from '../../../packages/c64kit/src/ay/ay';
 export * from '../../../packages/c64kit/src/ay/tune';
 export * from '../../../packages/c64kit/src/beeper';
 /** What the AY player was asked: the tune given and whether it plays, the samples made and when each was played (audio seconds). */
-export const ayLog: { tune: { bytes: number; rate: number } | null; playing: boolean; samples: Float32Array[]; played: { sample: number; at: number }[]; held: boolean } = { tune: null, playing: false, samples: [], played: [], held: false };
+export const ayLog: { tune: { bytes: number; rate: number } | null; playing: boolean; samples: Float32Array[]; played: { sample: number; at: number }[]; held: boolean; stopped: number } = { tune: null, playing: false, samples: [], played: [], held: false, stopped: 0 };
 /** The AY player, remembering what it was asked (ayLog) and playing nothing; its audio clock is `ayClock.now`. */
 export const ayClock = { now: 0 };
-export class AyPlayer implements Pick<RealAyPlayer, 'unlocked' | 'muted' | 'unlock' | 'toggleMute' | 'hold' | 'sampleRate' | 'now' | 'tune' | 'play' | 'addSample' | 'playSample'> {
+export class AyPlayer implements Pick<RealAyPlayer, 'unlocked' | 'muted' | 'unlock' | 'toggleMute' | 'hold' | 'sampleRate' | 'now' | 'tune' | 'play' | 'addSample' | 'playSample' | 'playStoppable'> {
   unlocked = false; muted = false; readonly sampleRate = 48000;
   get now() { return ayClock.now; }
   unlock() { this.unlocked = true; return Promise.resolve(); }
@@ -117,6 +117,7 @@ export class AyPlayer implements Pick<RealAyPlayer, 'unlocked' | 'muted' | 'unlo
   play(on: boolean) { ayLog.playing = on; }
   addSample(samples: Float32Array, _gain: number) { ayLog.samples.push(samples); return ayLog.samples.length - 1; }
   playSample(sample: number, at: number) { if (!this.muted) ayLog.played.push({ sample, at }); }
+  playStoppable(sample: number, at: number) { if (this.muted) return null; ayLog.played.push({ sample, at }); return { stop: () => { ayLog.stopped++; } }; }
 }
 
 /**
