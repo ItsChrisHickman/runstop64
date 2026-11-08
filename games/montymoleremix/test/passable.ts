@@ -88,11 +88,15 @@ for (let a = next(); a !== undefined; a = next()) {
       if (k === 0) { met++; first = found.frames; setOf(metIn, room).add(name); }
       if (goal.kind === 'exit') { spots.add(spotOf(found.play.g)); enqueue(found.play, room, goal); }
     }
-    // (room 16's pit: a way into it low down puts him into room 17; the first ways in are not low)
+    // (room 16's pit: a way into it low down puts him into room 17, the way into the castle: the gate of room 15 and its ferry; the first ways in are not low.
+    // Only where the map has such a way at all: the search is led to it by its own tag, as the ways out are)
     if (goal.kind === 'exit' && chain === PIT_ROOM) {
-      const lifted = find(play, map, goal, BUDGET, (g) => g.roomId !== PIT_ROOM + 1 || !roomy(g));
-      looked += lifted.expanded;
-      if ('play' in lifted) { met++; enqueue(lifted.play, room, goal); lines.push(`${name}: the pit, ${lifted.frames} frames`); } else notes.push(`${where}: no way into the pit (room ${PIT_ROOM + 1}) in ${lifted.expanded} states`);
+      const low: Goal = { ...goal, lift: true };
+      if (map.reaches(play.g, bitOf(facts, low))) {
+        const lifted = find(play, map, low, BUDGET, (g) => g.roomId !== PIT_ROOM + 1 || !roomy(g));
+        looked += lifted.expanded;
+        if ('play' in lifted) { met++; enqueue(lifted.play, room, goal); lines.push(`${name}: the pit, ${lifted.frames} frames`); } else notes.push(`${where}: no way into the pit (room ${PIT_ROOM + 1}) in ${lifted.expanded} states`);
+      }
     }
     lines.push(first === null ? `${name}: NOT FOUND` : `${name}: ${first} frames${spots.size > 1 ? ` (${spots.size} ways)` : ''}`);
   }

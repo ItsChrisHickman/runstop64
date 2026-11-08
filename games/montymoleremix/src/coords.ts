@@ -29,3 +29,21 @@ export const inRoom = (col: number, row: number): boolean => col >= 0 && col < R
 export function wantedMonty(x2: number, stepGate: number, y: number): { x: number; y: number } {
   return { x: x2 * 2 + stepGate - VIC_LEFT, y: VIC_TOP + WANTED_TOP - y };
 }
+
+/**
+ * The cells of the room that Monty takes coal from, in the order Wanted looks (Wanted's own `Coal.collect`, `$935C`): eight points of his box, his
+ * top corners and middle, the middle of each side, and three on the row below his feet, so that a piece in the cell he stands on is his too. (Not
+ * the two by two cells of Monty on the Run's coins: a piece on the very floor he walks along is in reach.) Cells as `row * ROOM_COLS + col`.
+ */
+export function coalCells(m: { x: number; y: number }): number[] {
+  const feet = m.y - 16;
+  const points: readonly (readonly [number, number])[] = [
+    [m.x, m.y], [m.x + 7, m.y], [m.x + 15, m.y], [m.x, m.y - 8], [m.x + 15, m.y - 8], [m.x, feet], [m.x + 8, feet], [m.x + 15, feet],
+  ];
+  const cells: number[] = [];
+  for (const [px, py] of points) {
+    const col = cellCol(px), row = cellRow(py);
+    if (inRoom(col, row)) cells.push(row * ROOM_COLS + col);
+  }
+  return cells;
+}

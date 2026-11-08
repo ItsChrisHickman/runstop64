@@ -16,12 +16,12 @@ import { montyCol, montyRow, type MontyBody, type MontyInput, type MontyWorld } 
 import { dissolveDeath, wait, type DeathKind, type DissolveStage, type Seq } from '../../shared/monty/deaths';
 import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import {
-  animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_COLS, PLAY_ROW, PRNG_START, ROW, SCREEN, takeCoin,
+  animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COL, PLAY_COLS, PLAY_ROW, PRNG_START, ROW, SCREEN,
   type Collectible, type Sound,
 } from '../../shared/monty/screen';
-import { cellRow, vicX, vicY, wantedMonty } from './coords';
+import { cellRow, coalCells, vicX, vicY, wantedMonty } from './coords';
 import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
-import { isFerry, lookOfSet, type Look } from './kinds';
+import { carries, lookOf, lookOfSet, type Look } from './kinds';
 import { C64_OF, retile, type RemixRoom } from './retile';
 
 /**
@@ -147,6 +147,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   passes = 0;
   /** the sprite bits the creatures and the tool have on now */
   private shown = 0;
+  /** of them, the carriers' (they kill by Wanted's own touch test, not the VIC's pixels: `touchesCarrier`) */
+  private carrierBits = 0;
 
   // ---- Wanted's things ----------------------------------------------------------
   readonly coal = new CoalTally();
@@ -222,7 +224,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.upSteps = o.upSteps; this.downSteps = o.downSteps; this.animTimer = o.animTimer; this.ticker = o.ticker;
     this.stateCur = o.stateCur; this.statePrev = o.statePrev;
     this.score = o.score; this.lives = o.lives; this.hiScore = o.hiScore;
-    this.sptr.set(o.sptr); this.enable = o.enable; this.collisionStore = o.collisionStore; this.passes = o.passes; this.shown = o.shown;
+    this.sptr.set(o.sptr); this.enable = o.enable; this.collisionStore = o.collisionStore; this.passes = o.passes; this.shown = o.shown; this.carrierBits = o.carrierBits;
     o.coal.flags.forEach((f, i) => { this.coal.flags[i] = f; });
     this.entities.length = o.entities.length;
     o.entities.forEach((e, i) => { const mine = this.entities[i]; if (mine === undefined) this.entities[i] = { ...e }; else { mine.at = e.at; mine.phase = e.phase; mine.index = e.index; } });
@@ -485,7 +487,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private setupCreatures(): void {
     this.creatures.forEach((e, slot) => {
       const order = e.dir < 2 ? [0, 1, 2, 3] : [2, 3, 0, 1];
-      const look = order.map((k) => lookOfSet(e.sets[k] ?? 0)).find((t) => t !== null) ?? null;
+      const look = order.map((k) => lookOf(e.sets[k] ?? 0, e.dir >= 2)).find((t) => t !== null) ?? null;
       this.creatureType[slot] = look;
       if (look === null) return;
       const base = creaturePtr(slot) * 64;
@@ -544,7 +546,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   /** The creatures' and the tool's sprites at their places. */
   private placeSprites(): void {
-    let shown = 0;
+    let shown = 0, carriers = 0;
     this.creatureProp.fill(0);
     this.creatures.forEach((e, slot) => {
       const n = CREATURE_SPRITE[slot];
@@ -557,7 +559,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
       r.ptr = creaturePtr(slot) + (e.dir === 1 || e.dir === 3 ? 4 : 0) + ((e.counter >> 1) & 3);
       r.colour = C64_OF[e.colour & 7] ?? 1;
       shown |= 1 << n;
+      if (carries(e.sets[e.dir] ?? 0, e.dir >= 2)) carriers |= 1 << n;
     });
+    this.carrierBits = carriers;
     if (this.tool !== null && !this.carrying) {
       const r = this.vic.sprites[TOOL_SPRITE];
       if (r !== undefined) {
@@ -572,20 +576,23 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   }
 
   /**
-   * A ferry holds him up where its picture has a pixel on its top row (the original reads the bytes of the screen under his feet): the cells
-   * of the row its top line starts, by the bytes the row's 16 pixels fall in at its x. Only where its top line is a cell row's first (all of the
-   * ferries' are: the original's rooms are drawn that way), since the physics holds him on cells.
+   * A carrier (a ferry, the sideways picket: `carries`) holds him up where its picture has a pixel on a line that starts a cell row (the original
+   * reads the bytes of the screen under his feet): the cells of that row, by the bytes the line's 16 pixels fall in at its x. The lines are its
+   * top one and the one 8 below (the physics holds him on cells): the ferries' slab has pixels on both, the picket's wing only on the second.
    */
   private holdFromCreature(e: Enemy): void {
     const set = e.sets[e.dir] ?? 0;
-    if (!isFerry(set) || (e.y & 7) !== 7) return;
-    const row = cellRow(e.y);
-    if (row < 0 || row >= ROOM_ROWS) return;
+    if (!carries(set, e.dir >= 2)) return;
     const img = imageAt(set + 32 * ((e.counter >> 1) & 3));
-    const wide = (((img[0] ?? 0) << 8) | (img[1] ?? 0)) << 8 >> (e.x & 7);
-    for (let k = 0; k < 3; k++) {
-      const col = (e.x >> 3) + k;
-      if (col < ROOM_COLS && ((wide >> (16 - 8 * k)) & 0xff) !== 0) this.creatureProp[row * ROOM_COLS + col] = 2;
+    for (const k of [0, 8]) {
+      if (((e.y - k) & 7) !== 7) continue;
+      const row = cellRow(e.y - k);
+      if (row < 0 || row >= ROOM_ROWS) continue;
+      const wide = (((img[2 * k] ?? 0) << 8) | (img[2 * k + 1] ?? 0)) << 8 >> (e.x & 7);
+      for (let c = 0; c < 3; c++) {
+        const col = (e.x >> 3) + c;
+        if (col < ROOM_COLS && ((wide >> (16 - 8 * c)) & 0xff) !== 0) this.creatureProp[row * ROOM_COLS + col] = 2;
+      }
     }
   }
 
@@ -598,9 +605,30 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   /** A touch with a creature: a death, or with the tool in hand the creature's (`$92DF`). */
   private touchCreature(): void {
-    if (!(this.collisionStore & 0x08) || !(this.collisionStore & CREATURES_BITS)) return;
+    const vic = (this.collisionStore & 0x08) !== 0 && (this.collisionStore & CREATURES_BITS & ~this.carrierBits) !== 0;
+    if (!vic && !this.touchesCarrier()) return;
     if (this.carrying) { this.useTool(); return; }
     if (!this.actionCounter) this.actionCounter = 2;
+  }
+
+  /**
+   * A carrier (a ferry, the sideways picket) kills as Wanted's creatures do (`Monty.touched`, `$9298`): when one of six points of his box is on a
+   * pixel of its picture, not when two sprites' pixels meet. Its wing stands up into the lines he stands on (it holds him from the line 8 below
+   * its top), which the VIC would take for a touch at once.
+   */
+  private touchesCarrier(): boolean {
+    if (this.carrierBits === 0) return false;
+    const m = wantedMonty(this.x2, this.stepGate, this.y);
+    const points: readonly (readonly [number, number])[] = [[m.x, m.y], [m.x + 10, m.y + 1], [m.x, m.y - 15], [m.x - 1, m.y - 7], [m.x + 16, m.y - 8], [m.x + 15, m.y - 15]];
+    return this.creatures.some((e, slot) => {
+      const n = CREATURE_SPRITE[slot];
+      if (n === undefined || (this.carrierBits & (1 << n)) === 0 || !this.visible(slot)) return false;
+      const img = imageAt((e.sets[e.dir] ?? 0) + 32 * ((e.counter >> 1) & 3));
+      return points.some(([px, py]) => {
+        const dx = px - e.x, dy = e.y - py;
+        return dx >= 0 && dx < 16 && dy >= 0 && dy < 16 && (((img[dy * 2 + (dx >> 3)] ?? 0) >> (7 - (dx & 7))) & 1) !== 0;
+      });
+    });
   }
 
   /** The room's tool, Wanted's own picture of it (`$7A00 + 32 * (frame - 1)`, 16 x 16, one bit a pixel) as the 16 x 16 hires sprite the creatures are drawn as. */
@@ -650,14 +678,20 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     }
   }
 
-  /** CollectCoin: the coal is Monty on the Run's coin; its worth is Wanted's. */
+  /** Wanted's own collect: the first piece in the cells he touches (`coalCells`: a point of his box, to the pixel) is his; its worth is Wanted's. */
   private collectCoal(): void {
-    const taken = takeCoin(this.mem, this.montyChr, this.entities, COAL_CHAR);
-    if (taken?.item == null) return;
-    const points = this.coal.take(taken.item.index);
-    this.entities = this.entities.filter((e) => e !== taken.item);
-    this.addScore(points);
-    this.sfx(SFX.coin);
+    const m = wantedMonty(this.x2, this.stepGate, this.y);
+    for (const cell of coalCells(m)) {
+      const at = SCREEN + (Math.floor(cell / ROOM_COLS) + PLAY_ROW) * ROW + PLAY_COL + (cell % ROOM_COLS);
+      const piece = this.entities.find((e) => e.at === at && e.index >= 0);
+      if (piece === undefined) continue;
+      this.mem[at] = 0;
+      const points = this.coal.take(piece.index);
+      this.entities = this.entities.filter((e) => e !== piece);
+      this.addScore(points);
+      this.sfx(SFX.coin);
+      return;
+    }
   }
 
   // ---- the gates -----------------------------------------------------------------------

@@ -18,8 +18,8 @@ import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body'
 import { montyCol, montyRow } from '../../shared/monty/body';
 import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
-import { cellRow, wantedMonty } from '../src/coords';
-import { HOME_COL, HOME_ROW, RemixGame } from '../src/game';
+import { cellRow, coalCells, wantedMonty } from '../src/coords';
+import { HOME_COL, HOME_ROW, PIT_ROOM, PIT_Y, RemixGame } from '../src/game';
 import { STILL_THERE } from '../../montymole/src/coal-rules';
 import { portsFor } from '../../montymole/src/controls';
 import { Game as Faithful } from '../../montymole/src/game';
@@ -70,6 +70,8 @@ function runMove(r: Runner, m: Move): number {
 
 /** What a goal is, as a bit of the tags a move touches: a piece of the room's coal (0-4), the tool (5), a way out (6 + up, down, left, right). */
 const TOOL_BIT = 5, EXIT_BIT = 6;
+/** The way out into room 16 low enough to be lifted into the castle (the pit): a tag of its own, so that the map leads to it and not to the room's other ways out. */
+const LIFT_BIT = 10;
 const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
 export type Direction = (typeof DIRECTIONS)[number];
 const TOOL_REACH = 12;
@@ -124,17 +126,18 @@ class Walker implements MontyBody, MontyWorld {
   halted(): boolean { return this.actionCounter !== 0 || this.roomExit !== 0; }
   get dead(): boolean { return this.actionCounter !== 0; }
 
-  /** The coal and the tool he is touching, as the game takes them (`takeCoin`'s four cells, `takeTool`'s 12 pixels), and the way out he has taken. */
+  /** The coal and the tool he is touching, as the game takes them (`coalCells`, `takeTool`'s 12 pixels), and the way out he has taken. */
   private touch(): void {
-    const mc = montyCol(this) - PLAY_COL, mr = montyRow(this) - PLAY_ROW;
-    this.facts.pieces.forEach((p, i) => { if (p.col >= mc && p.col <= mc + 1 && p.row >= mr && p.row <= mr + 1) this.tags |= 1 << i; });
+    const m = wantedMonty(this.x2, this.stepGate, this.y);
+    const cells = coalCells(m);
+    this.facts.pieces.forEach((p, i) => { if (cells.includes(p.row * ROOM_COLS + p.col)) this.tags |= 1 << i; });
     if (this.facts.tool !== null) {
-      const m = wantedMonty(this.x2, this.stepGate, this.y);
       if (Math.abs(m.x - this.facts.tool.x) < TOOL_REACH && Math.abs(m.y - this.facts.tool.y) < TOOL_REACH) this.tags |= 1 << TOOL_BIT;
     }
     if (this.roomExit !== 0) {
       const dr = this.mapRow - HOME_ROW, dc = this.exitCol - HOME_COL;
       this.tags |= 1 << (EXIT_BIT + (dr < 0 ? 0 : dr > 0 ? 1 : dc < 0 ? 2 : 3));
+      if (this.rooms.roomAt(this.mapRow, this.exitCol) === PIT_ROOM && m.y < PIT_Y) this.tags |= 1 << LIFT_BIT;
     }
   }
 
@@ -401,14 +404,14 @@ export class RoomMap {
 export type Goal =
   | { readonly kind: 'piece'; readonly id: number }
   | { readonly kind: 'tool' }
-  | { readonly kind: 'exit'; readonly direction: Direction };
+  | { readonly kind: 'exit'; readonly direction: Direction; /** into the castle by the pit: room 16 entered low (`PIT_Y`) */ readonly lift?: true };
 
-export const goalName = (goal: Goal): string => goal.kind === 'piece' ? `coal ${goal.id}` : goal.kind === 'tool' ? 'the tool' : `out ${goal.direction}`;
+export const goalName = (goal: Goal): string => goal.kind === 'piece' ? `coal ${goal.id}` : goal.kind === 'tool' ? 'the tool' : `out ${goal.direction}${goal.lift === true ? ' low (the pit)' : ''}`;
 
 /** The bit of the map's tags a goal is. */
 export function bitOf(facts: RoomFacts, goal: Goal): number {
   if (goal.kind === 'tool') return TOOL_BIT;
-  if (goal.kind === 'exit') return EXIT_BIT + DIRECTIONS.indexOf(goal.direction);
+  if (goal.kind === 'exit') return goal.lift === true ? LIFT_BIT : EXIT_BIT + DIRECTIONS.indexOf(goal.direction);
   return facts.pieces.findIndex((p) => p.id === goal.id);
 }
 
@@ -452,7 +455,7 @@ function met(g: RemixGame, goal: Goal, loads: number): boolean {
   switch (goal.kind) {
     case 'piece': return !g.coal.isThere(goal.id);
     case 'tool': return g.carrying;
-    case 'exit': return g.roomLoads > loads && g.enteredBy === DIRECTIONS.indexOf(goal.direction);
+    case 'exit': return g.roomLoads > loads && g.enteredBy === DIRECTIONS.indexOf(goal.direction) && (goal.lift !== true || g.roomId === PIT_ROOM + 1);
   }
 }
 
@@ -554,13 +557,40 @@ function searchWith(start: Play, graph: RoomMap, goal: Goal, budget: number, fra
   return { expanded, why: 'none', deaths, nearest, rejected };
 }
 
-/** `search`, and where the plain way does not come to the goal, by the room's tool first (it lets one touch of a creature kill the creature, so it opens the way past a guard). */
+/** How long Monty stands where he arrived before a search is tried again from there (frames; the world is periodic, and a search that waits for it inside itself cannot tell its time-shifted states apart). */
+const PRE_WAITS: readonly number[] = [24, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288];
+
+/**
+ * `search`, and where it comes to nothing, again from the same place after Monty has stood there for a while (`PRE_WAITS`), each with a share of the
+ * budget. A way that waits for something with a long period (a picket that comes by every 288 frames) is a way the search finds in a few states once
+ * the wait is made, and in none within a budget when it has to find the wait among every place he could be at every time.
+ */
+function searchWaiting(start: Play, graph: RoomMap, goal: Goal, budget = 40000, refuse?: Refuse): Found | Failed {
+  const plain = search(start, graph, goal, budget, undefined, refuse);
+  // (a search that has been through every state there is, and found none, has nothing to wait for: only one that ran out of budget is tried again)
+  if ('play' in plain || plain.why !== 'budget') return plain;
+  let spent = plain.expanded, deaths = plain.deaths, rejected = plain.rejected, nearest = plain.nearest;
+  for (const wait of PRE_WAITS) {
+    const p = clone(start);
+    const run = new Running(p);
+    for (let i = 0; i < wait && !run.halted(); i++) run.frame(NONE);
+    if (run.halted()) { release(p); break; }
+    const r = search(p, graph, goal, Math.floor(budget / PRE_WAITS.length), undefined, refuse);
+    spent += r.expanded;
+    if ('play' in r) return { ...r, frames: r.frames + wait, expanded: spent };
+    deaths += r.deaths; rejected += r.rejected; nearest = Math.min(nearest, r.nearest);
+    release(p);
+  }
+  return { expanded: spent, why: plain.why, deaths, nearest, rejected };
+}
+
+/** `searchWaiting`, and where the plain way does not come to the goal, by the room's tool first (it lets one touch of a creature kill the creature, so it opens the way past a guard). */
 export function find(start: Play, map: RoomMap, goal: Goal, budget?: number, refuse?: Refuse): Found | Failed {
-  const plain = search(start, map, goal, budget, undefined, refuse);
+  const plain = searchWaiting(start, map, goal, budget, refuse);
   if ('play' in plain || map.facts.tool === null || goal.kind === 'tool') return plain;
   const tool = search(start, map, { kind: 'tool' }, budget);
   if (!('play' in tool)) return plain;
-  const then = search(tool.play, map, goal, budget, undefined, refuse);
+  const then = searchWaiting(tool.play, map, goal, budget, refuse);
   return 'play' in then ? { ...then, frames: then.frames + tool.frames, expanded: plain.expanded + tool.expanded + then.expanded } : then;
 }
 

@@ -72,6 +72,16 @@ const LOOKS = new Map<number, Look>([
 const FERRIES: ReadonlySet<number> = new Set([0x6f80]);
 export const isFerry = (set: number): boolean => FERRIES.has(set);
 
+/**
+ * The other thing that holds him up: the picket that flies sideways along room 10 (the one record of its kind on a sideways leg, the others fall),
+ * a bridge to the far side of the room (its piece 26 is only had from it). Its picture is a diagonal wing, not a slab, and it holds him where
+ * it has a pixel on a cell's top line, 8 lines down from its own top (`carries`), so it is drawn as Wanted draws it, as the ferries are.
+ */
+const SIDEWAYS_CARRIERS: ReadonlySet<number> = new Set([0x6f00]);
+
+/** Whether a creature of this kind, on a sideways leg or not, holds Monty up where its picture has a pixel. */
+export const carries = (set: number, sideways: boolean): boolean => isFerry(set) || (sideways && SIDEWAYS_CARRIERS.has(set));
+
 /** The first frame address past Wanted's creatures (`$7780` is the blank frame). */
 const END = 0x7780;
 
@@ -79,6 +89,11 @@ const END = 0x7780;
 export function lookOfSet(set: number): Look | null {
   if (set < SPRITE_BASE || set >= END) return null;
   return LOOKS.get(set) ?? OWN;
+}
+
+/** The same for a creature on a leg that goes sideways or not: a carrier keeps Wanted's own frames, since its picture is what holds him. */
+export function lookOf(set: number, sideways: boolean): Look | null {
+  return carries(set, sideways) && lookOfSet(set) !== null ? OWN : lookOfSet(set);
 }
 
 /** Every kind the table names (the tests check it against the kinds the rooms use). */
