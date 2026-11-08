@@ -54,7 +54,7 @@ function codecCase<F>(game: string, codec: FoundCodec<F>, stored: Record<string,
 
 codecCase('montyotr', montyMap.found, { rooms: { 3: [1, 2, 3, 4], 51: [1, 2, 3, 4, 0, 1, 2, 3] } });
 codecCase('awm', awmMap.found, { rooms: { 72: [1, 2, 3, 4], 73: [5, 6, 7, 8] } });
-codecCase('starquake', starquakeMap.found, { entry: { 8: [3, 4], 31: [1, 2] } });
+codecCase('starquake', starquakeMap.found, { entry: { 8: [3, 4], 31: [1, 2] }, booths: [3, 9], pyramids: [40] });
 codecCase('antiriad', antiriadMap.found, {
   rooms: [0, 1, 20], entry: { 20: { x: 120, y: 88, high: 0 } }, suitEntry: { 0: { x: 96, y: 64, high: 1 } },
 });
