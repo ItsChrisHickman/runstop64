@@ -25,6 +25,7 @@ import { TOUCH as JSW2 } from '../../../jsw2/src/touch';
 import { TOUCH as KARNATH } from '../../../karnath/src/touch';
 import { TOUCH as MOLEY } from '../../../moley/src/touch';
 import { TOUCH as MONTYMOLE } from '../../../montymole/src/touch';
+import { TOUCH as MONTYMOLEREMIX } from '../../../montymoleremix/src/touch';
 import { TOUCH as MONTYOTR } from '../../../montyotr/src/touch';
 import { TOUCH as THINGONASPRING } from '../../../thingonaspring/src/touch';
 import { check, finish } from '../../test/check';
@@ -35,7 +36,7 @@ const ok = (cond: unknown, what: string) => check(what, !!cond, true);
 // ---- every game's layout, as the game declares it (the front end adds RUN for games that can run: both are checked) ----
 const LAYOUTS: Record<string, TouchLayout | undefined> = {
   loader: LOADER, antiriad: ANTIRIAD, awm: AWM, blackwyche: BLACKWYCHE, dragonskulle: DRAGONSKULLE, entombed: ENTOMBED,
-  jsw2: JSW2, karnath: KARNATH, moley: MOLEY, montymole: MONTYMOLE, montyotr: MONTYOTR, starquake: STARQUAKE, thingonaspring: THINGONASPRING,
+  jsw2: JSW2, karnath: KARNATH, moley: MOLEY, montymole: MONTYMOLE, montymoleremix: MONTYMOLEREMIX, montyotr: MONTYOTR, starquake: STARQUAKE, thingonaspring: THINGONASPRING,
 };
 const folders = fs.readdirSync('games').filter((name) => fs.existsSync(`games/${name}/src/main.ts`)).sort();
 ok(JSON.stringify(Object.keys(LAYOUTS).filter((n) => n !== 'loader').sort()) === JSON.stringify(folders), `every game folder has a layout here (${folders.join(', ')})`);

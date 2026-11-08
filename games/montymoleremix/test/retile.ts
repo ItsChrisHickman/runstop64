@@ -41,13 +41,15 @@ for (const data of ROOMS) {
   for (let r = 0; r < ROOM_ROWS; r++) {
     for (let c = 0; c < ROOM_COLS; c++) {
       let code = g.mem[SCREEN + (r + PLAY_ROW) * ROW + PLAY_COL + c] ?? 0;
-      if (code >= 0x10 && code <= 0x15) code = g.cells[r * ROOM_COLS + c] ?? 0; // (the crusher is drawn over the room's cells)
+      if (code >= 0x10 && code <= 0x2f) code = g.cells[r * ROOM_COLS + c] ?? 0; // (the crusher is drawn over the room's cells)
       const read = code >= 1 && code <= 8 ? g.tileProps[code - 1] ?? 0 : 0; // what the shared physics reads from the screen
       // (what is under the water is water: src/fixes.ts)
       let want = wantedClass(data, c, r);
       if (want === 1) for (let k = r - 1; k >= 0; k--) { const above = wantedClass(data, c, k); if (above === 4) { want = 4; break; } if (above !== 1) break; }
       cells++;
-      if (read !== want || g.flagAt(r + PLAY_ROW, c + PLAY_COL) !== want) bad++;
+      // (what holds him up that moves, the crusher and the ferries, is a ledge over a free cell where it is)
+      const held = want === 0 ? g.crusherProp[r * ROOM_COLS + c] || g.creatureProp[r * ROOM_COLS + c] || 0 : want;
+      if (read !== want || g.flagAt(r + PLAY_ROW, c + PLAY_COL) !== held) bad++;
       const tile = data.tiles[tileAt(data, c, r)];
       if (want === 0 && tile !== undefined && tile.rows.some((b) => b !== 0)) decor++;
     }
