@@ -48,7 +48,7 @@ export const PIT_ROOM = 16, PIT_Y = 0x41, PIT_ARRIVAL = { x: 0xc0, y: 0xa1 } as 
 /** Frames on his feet after which a room's way in is a place to start again from (as Monty on the Run's). */
 export const SAFE_FRAMES = 100;
 /** Where Wanted puts him coming into a room from the left (x 2) and from the right (x $EE): the sprite's x2 for them. */
-const ARRIVE_LEFT_X2 = 0x1c + (2 >> 1), ARRIVE_RIGHT_X2 = 0x1c + (0xee >> 1);
+export const ARRIVE_LEFT_X2 = 0x1c + (2 >> 1), ARRIVE_RIGHT_X2 = 0x1c + (0xee >> 1);
 
 /** The sprites of the room's creatures (records 0-5), the tool's, and Monty's. */
 const CREATURE_SPRITE = [1, 2, 4, 5, 6, 7] as const;

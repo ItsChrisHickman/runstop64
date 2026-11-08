@@ -18,7 +18,7 @@
 import { check, finish } from '../../shared/test/check';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { arrive, bitOf, factsOf, faithfulCan, find, goalName, goalsOf, RoomMap, type Goal } from './bot';
-import { HOME_COL, HOME_ROW, PIT_ROOM } from '../src/game';
+import { ARRIVE_LEFT_X2, HOME_COL, HOME_ROW, PIT_ROOM, RemixGame } from '../src/game';
 import { newGame, type Play } from './harness';
 
 const mode = process.argv[2] === 'full' ? 'full' : 'short';
@@ -37,6 +37,10 @@ const queue: Arrival[] = [{ room: 0, via: 'start', play: arrive(newGame(), 0) }]
 /** the maps of the rooms (made as a way into one is looked at), and the rooms a way in has been played from */
 const maps = new Map<number, RoomMap>();
 const reached = new Set<number>();
+/** the rooms no way in could be made for */
+const given = new Set<number>();
+/** the ways out that go back (not the way on): met where they can be, but not asked for */
+const back = new Set<string>();
 /** per room: its goals, those met from some way in, the exits that were checked against the original and found a wall, and those that were not */
 const goalsOfRoom = new Map<number, string[]>();
 const metIn = new Map<number, Set<string>>();
@@ -50,7 +54,7 @@ const started = Date.now();
 
 const setOf = <V>(m: Map<number, Set<V>>, room: number): Set<V> => { let s = m.get(room); if (s === undefined) { s = new Set<V>(); m.set(room, s); } return s; };
 
-for (let a = queue.shift(); a !== undefined; a = queue.shift()) {
+for (let a = next(); a !== undefined; a = next()) {
   const { play, room, via } = a;
   reached.add(room);
   const map = mapOf(play.g);
@@ -68,7 +72,8 @@ for (let a = queue.shift(); a !== undefined; a = queue.shift()) {
       continue;
     }
     played++;
-    const chain = goal.kind === 'exit' ? next(play.g, goal) : -1;
+    const chain = goal.kind === 'exit' ? roomAfter(play.g, goal) : -1;
+    if (goal.kind === 'exit' && chain !== room + 1) back.add(`${room}:${name}`);
     const slots = goal.kind === 'exit' ? CROSSINGS - (ways.get(`${chain}:${room}`) ?? 0) : 0;
     const wanted = Math.max(1, slots);
     const spots = new Set<string>();
@@ -94,6 +99,34 @@ for (let a = queue.shift(); a !== undefined; a = queue.shift()) {
   console.log(`room ${String(room).padStart(2)} in ${via.padEnd(6)} map ${String(map.size).padStart(6)} states: ${lines.join('; ')}`);
 }
 
+/**
+ * The next way into a room to play: from the queue, or, where the world has run out (a way on the bot did not find), a made one for the first room
+ * not reached: Monty put in at the left side where a way in from the room before puts him (in room 17, by the pit), on the first row from which
+ * a thousand states of the map are his; the rooms after it follow from it as from any. Said in the notes.
+ */
+function next(): Arrival | undefined {
+  const queued = queue.shift();
+  if (queued !== undefined) return queued;
+  if (mode === 'short') return undefined;
+  const room = ROOMS.findIndex((r) => !reached.has(r.id) && !given.has(r.id));
+  if (room < 0) return undefined;
+  for (let row = 0; row < 18; row++) {
+    const g = new RemixGame();
+    g.start();
+    g.travelTo(room === PIT_ROOM + 1 ? PIT_ROOM : room, ARRIVE_LEFT_X2, 50 + (3 + (room === PIT_ROOM + 1 ? 17 : row)) * 8);
+    const p: Play = { g, col: 0 };
+    for (let i = 0; i < 20 && (i === 0 || g.freeze || g.script); i++) g.frame(0);
+    if (g.roomId !== room) continue;
+    const seeded = arrive(p, room);
+    if (!roomy(seeded.g)) continue;
+    notes.push(`room ${room} was not reached from the room before: put in at the left, row ${row}`);
+    return { room, via: 'seed', play: seeded };
+  }
+  notes.push(`room ${room} was not reached, and no way in from the left is somewhere to be`);
+  given.add(room); // (so as not to look again)
+  return next();
+}
+
 /** The map of the room a game is in, with where it is as one of its starts. */
 function mapOf(g: Play['g']): RoomMap {
   let map = maps.get(g.roomId);
@@ -109,7 +142,7 @@ function roomy(g: Play['g']): boolean {
 }
 
 /** The room a way out leads to. */
-function next(g: Play['g'], goal: Goal & { kind: 'exit' }): number {
+function roomAfter(g: Play['g'], goal: Goal & { kind: 'exit' }): number {
   const to = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[goal.direction];
   return g.roomAt(HOME_ROW + to[0], HOME_COL + to[1]);
 }
@@ -135,6 +168,7 @@ for (const [room, goals] of goalsOfRoom) {
   for (const name of goals) {
     if (metIn.get(room)?.has(name)) continue;
     if (open.get(room)?.has(name) !== true && wall.get(room)?.has(name) === true) continue; // a wall in the original too
+    if (back.has(`${room}:${name}`)) continue; // (a way back: the game goes on down the world)
     failures.push(`room ${room}: ${name} was met from none of the ways in`);
   }
 }
