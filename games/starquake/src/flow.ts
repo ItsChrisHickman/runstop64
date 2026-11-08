@@ -23,6 +23,8 @@ export interface Hooks {
   noPickup?: boolean;
   /** Each room's start, before it's drawn (where saves are taken). */
   roomStart?(g: Game): void;
+  /** Each frame's end, before the panel is drawn (ENHANCED keeps the platforms and the laser full here). */
+  supplies?(g: Game): void;
   /** ENHANCED's unlimited lives (shared/lives.ts): a death takes no life, and the panel's count stays as it is. */
   unlimitedLives?(): boolean;
 }
@@ -206,6 +208,7 @@ export function* rooms(g: Game, hooks: Hooks, mid = false): Generator<void, 'ove
       }
       if (!hooks.noLaser) Laser.tick(g);
       if (!hooks.noEnemies) Enemies.tick(g);
+      hooks.supplies?.(g);
       yield* Frame.sync(g);
       if (!g.energy) {
         // $0DE9: out of energy: BLOB flashes, the panel's corner too, and he dies where he is.

@@ -10,6 +10,7 @@ import { titlePicture } from './data';
 import { fireHeld, joyBits, TOUCH } from './controls';
 import { endingStats, starquakeEnding } from './ending';
 import * as Flow from './flow';
+import * as Panel from './panel';
 import * as Heroes from './heroes';
 import type { Game } from './game';
 import { entryOf, starquakeMap, type StarquakeFound } from './map';
@@ -67,7 +68,7 @@ export function run(host: Host) {
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('starquake'),
     assists: [
-      { id: 'health', long: 'FULL ENERGY IN EACH ROOM' },
+      { id: 'health', long: 'FULL ENERGY, PLATFORMS, LASER' },
       LIVES_ASSIST,
     ],
   }, () => ({
@@ -118,6 +119,8 @@ export function run(host: Host) {
       if (fe.assist.health && game.energy < 0x78) { game.energy = 0x78; game.panelDirty |= 1; }
       rooms.enter(snapshot(game));
     },
+    // (ENHANCED: platforms and laser stay full, their bars too; energy is full each room)
+    supplies(game) { if (fe.assist.health) Panel.fillSupplies(game); },
     unlimitedLives: () => fe.assist.lives === true,
   };
 

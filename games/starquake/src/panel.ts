@@ -44,6 +44,12 @@ export function reset(g: Game) {
   g.platformsLeft = g.charge = g.energy = 0x78;
 }
 
+/** ENHANCED: the platforms and the laser charge stay full (and their bars are redrawn only when they had gone down). */
+export function fillSupplies(g: Game) {
+  if (g.platformsLeft !== 0x78) { g.platformsLeft = 0x78; g.panelDirty |= 2; }
+  if (g.charge !== 0x78) { g.charge = 0x78; g.panelDirty |= 4; }
+}
+
 /** $2FB7: BLOB died: energy refilled, at least a few platforms, and a life rolls away (`unlimited`: ENHANCED's, it stays: shared/lives.ts). */
 export function died(g: Game, unlimited = false) {
   g.energy = 0x78;

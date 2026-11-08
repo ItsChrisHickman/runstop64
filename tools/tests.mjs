@@ -233,6 +233,7 @@ export const TESTS = [
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },
   { file: 'games/starquake/test/controls.ts', set: 'fast' },
   { file: 'games/starquake/test/grace.ts', set: 'fast' },
+  { file: 'games/starquake/test/supplies.ts', set: 'fast' },
   { file: 'games/starquake/test/newgame-seeds.ts', set: 'fast' },
   { file: 'games/starquake/test/save.ts', set: 'fast' },
   { file: 'games/starquake/test/sprites.ts', set: 'fast' },
