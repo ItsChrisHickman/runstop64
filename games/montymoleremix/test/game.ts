@@ -17,13 +17,14 @@ import { GATES } from '../../montymole/src/gates';
 import { Random } from '../../montymole/src/random';
 import { ROOM_COLS } from '../../montymole/src/room';
 import { check, finish } from '../../shared/test/check';
+import { getProp } from '../../shared/guards';
 import { must } from '../../shared/test/must';
 import { cellRow } from '../src/coords';
 import { COAL_CHAR, HOME_COL, HOME_ROW, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
 import { lookOfSet, NAMED_KINDS } from '../src/kinds';
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { retile, roleAt } from '../src/retile';
-import { type Play, newGame, NONE, place, settled, step } from './harness';
+import { type Play, collisions, collisionsInView, newGame, NONE, place, settled, step } from './harness';
 
 const R = { ...NONE, right: true };
 const JUMP_RIGHT = { ...NONE, right: true, fire: true };
@@ -269,6 +270,56 @@ function findFlat(): { id: number; col: number; row: number } | null {
   for (const data of ROOMS) for (const rec of data.enemies) { const e = new Enemy(); e.fromBytes(rec); for (const set of e.sets) if (lookOfSet(set) !== null) kinds.add(set); }
   const unnamed = [...kinds].filter((k) => !NAMED_KINDS.includes(k) && k >= SPRITE_BASE);
   check(`every kind of creature the rooms use is paired by hand (${kinds.size} kinds, ${unnamed.length} unpaired)`, unnamed.length === 0);
+}
+
+// ---- the sprite collisions the game reads are the VIC's ----
+{
+  let seed = 7, same = 0, total = 0, touching = 0;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };
+  for (const id of [0, 5, 9, 15, 19]) {
+    const p = inRoom(id, 16, 8);
+    p.g.graceActive = () => true;
+    let stick = NONE;
+    for (let i = 0; i < 500; i++) {
+      if (i % 12 === 0) stick = { left: rnd() < 0.3, right: rnd() < 0.3, up: rnd() < 0.1, down: rnd() < 0.1, fire: rnd() < 0.2 };
+      step(p, stick);
+      const mine = collisions(p.g);
+      total++;
+      if (mine !== 0) touching++;
+      if (mine === collisionsInView(p.g)) same++;
+    }
+  }
+  check(`the sprite collisions the game reads (pixel against pixel, from the registers) are the renderer's (${same} of ${total} frames, ${touching} with a touch)`, same === total);
+}
+
+// ---- a copy of the game is the game (the bot searches ahead on copies) ----
+{
+  const dump = (v: unknown): string => JSON.stringify(v, (_k, x: unknown) => (x instanceof Uint8Array || x instanceof Int8Array || x instanceof Int16Array ? Array.from(x).join(',') : typeof x === 'function' ? undefined : x));
+  const skip = new Set(['sound', 'onRoomLoaded', 'graceActive', 'script', 'assist']);
+  let games = 0, wrong: string[] = [];
+  let seed = 11;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };
+  const other = inRoom(11, 10, 8);
+  for (let i = 0; i < 90; i++) step(other, { ...NONE, left: i % 7 < 3, right: i % 7 >= 5, fire: i % 20 === 0 });
+  for (const id of [0, 1, 5, 9, 15, 19]) {
+    const p = inRoom(id, 16, 8);
+    p.g.graceActive = () => true;
+    let stick = NONE;
+    for (let i = 0; i < 160; i++) {
+      if (i % 10 === 0) stick = { left: rnd() < 0.3, right: rnd() < 0.3, up: rnd() < 0.2, down: rnd() < 0.2, fire: rnd() < 0.2 };
+      step(p, stick);
+    }
+    const copy = new RemixGame();
+    copy.copyFrom(other.g); // (a game that is copied into again: what it held before must not show)
+    copy.copyFrom(p.g);
+    games++;
+    wrong = wrong.concat(Object.keys(p.g).filter((k) => !skip.has(k) && dump(getProp(p.g, k)) !== dump(getProp(copy, k))));
+    // and the copy goes on as the game does
+    const q = { g: copy, col: p.col };
+    for (let i = 0; i < 60; i++) { step(p, stick); step(q, stick); }
+    wrong = wrong.concat(Object.keys(p.g).filter((k) => !skip.has(k) && dump(getProp(p.g, k)) !== dump(getProp(copy, k))).map((k) => `${k} after`));
+  }
+  check(`a copy of the game is the game, every field, and goes on as it does (${games} games; differing: ${wrong.join(' ') || 'none'})`, wrong.length === 0);
 }
 
 finish();

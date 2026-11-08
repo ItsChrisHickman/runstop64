@@ -1,8 +1,9 @@
-import { BitmapFont, KIT_GLYPHS, SidPlayer, VicView, type Host } from 'c64kit';
+import { SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../assets/monty_on_the_run.sid?url';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { LIVES_ASSIST } from '../../shared/lives';
+import { montyLettering } from '../../shared/monty/font';
 import { runPort } from '../../shared/port';
 import { bankImage, MUSIC } from './data';
 import { endingStats, montyEnding } from './ending';
@@ -232,7 +233,5 @@ export function run(host: Host) {
 
 /** The game's own lettering (screen codes $40-$7F of its charset), topped up with the kit's. */
 export function montyFont() {
-  return new BitmapFont()
-    .addFromCharsetMapped(bankImage, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!-:/()', (c) => (c & 0x3f) | 0x40)
-    .addDrawn(KIT_GLYPHS);
+  return montyLettering(bankImage);
 }

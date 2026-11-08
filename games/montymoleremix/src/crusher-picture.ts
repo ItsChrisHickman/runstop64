@@ -27,6 +27,14 @@ export class CrusherPicture {
   private first = ROOM_ROWS;
   private last = -1;
 
+  /** In the state of another. */
+  copyFrom(o: CrusherPicture): void {
+    this.bytes.set(o.bytes);
+    this.bright.set(o.bright);
+    this.first = o.first;
+    this.last = o.last;
+  }
+
   clear(): void {
     this.bytes.fill(-1);
     this.bright.fill(-1);

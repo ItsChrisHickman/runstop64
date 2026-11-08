@@ -5,6 +5,7 @@
  * them as coins.
  */
 import { COAL_COUNT, COAL_FLAGS } from './data';
+import { ROOMS } from './data/rooms-data';
 import type { StateReader, StateWriter, Stateful } from '../../shared/state';
 
 export const STILL_THERE = 0x80;
@@ -34,3 +35,10 @@ export class CoalTally implements Stateful {
     for (let i = 0; i < COAL_COUNT; i++) this.flags[i] = r.get();
   }
 }
+
+/** The ids of the coal pieces a room has (the one owner of that list: the map, the bot, the reward and the remix use it). */
+export function piecesOfRoom(room: number): readonly number[] {
+  return (ROOMS[room]?.coal ?? []).filter((c) => c.col !== 0 || c.row !== 0).map((c) => c.id);
+}
+export const COAL_IN: readonly number[] = ROOMS.map((_, room) => piecesOfRoom(room).length);
+export const COAL_TOTAL = COAL_IN.reduce((a, b) => a + b, 0);

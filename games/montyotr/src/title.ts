@@ -1,7 +1,15 @@
-import { hexBytes, TRANSPARENT, type Surface } from 'c64kit';
+import { hexBytes, TRANSPARENT, type Surface, type Vic } from 'c64kit';
 import raw from './data/motr.json';
 import { CORRECT_KIT } from './data';
-import { ROW, SCREEN, type Game } from './game';
+import { ROW, SCREEN } from './game';
+
+/** What the title draws on: a game's picture (its VIC, with the characters and the screen in its bank) and its random numbers. Monty on the Run's game, and the remix's. */
+export interface TitleGame {
+  readonly vic: Vic;
+  readonly mem: Uint8Array;
+  readonly col: Uint8Array;
+  random(): number;
+}
 
 /**
  * The title screen, as the original's attract screen (InitAttractScreen and
@@ -94,8 +102,8 @@ export class Title {
   private readonly contents: number[];
   private readonly message: Uint8Array;
 
-  /** `kit` and `message` default to ours (the five that work, our credits in the scroller); tests give the original's. */
-  constructor(private readonly g: Game, private readonly sound: TitleSound, opts: { kit?: number[]; message?: Uint8Array } = {}) {
+  /** `kit` and `message` default to ours (the five that work, our credits in the scroller); tests give the original's. A game with no kit gives `[]`: the table stands alone. */
+  constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit?: number[]; message?: Uint8Array } = {}) {
     this.contents = [...(opts.kit ?? CORRECT_KIT)];
     this.message = opts.message ?? MESSAGE;
   }
@@ -331,6 +339,7 @@ export class Title {
       m.set(m.slice(0x3800 + item * 32, 0x3800 + item * 32 + 32), 0x90);
     }
     // under the table: the label, then the icons (top left, top right / bottom left, bottom right)
+    if (this.contents.length === 0) return;
     KIT_LABEL.forEach((c, x) => { m[at(KIT_LABEL_ROW, KIT_LABEL_COL) + x] = c; col[at(KIT_LABEL_ROW, KIT_LABEL_COL) + x - SCREEN] = KIT_LABEL_COLOUR; });
     for (let i = 0; i < 5; i++) {
       const c = KIT_COL + i * 4, ch = 2 + i * 4;

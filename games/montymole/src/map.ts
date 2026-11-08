@@ -14,6 +14,8 @@ import { ROOMS } from './data/rooms-data';
 import type { MontyFlow } from './flow';
 import { Game, OPENING_ROOM } from './game';
 import { STILL_THERE } from './coal';
+import { WORLD_GRID } from './world';
+import { COAL_IN, COAL_TOTAL, piecesOfRoom } from './coal-rules';
 import { drawRoom, ROOM_ROWS, ROOM_TOP_ROW } from './room';
 
 export const ROOM_COUNT = ROOMS.length;
@@ -37,17 +39,7 @@ export function arrivalOf(f: MontyFound, room: number): { x: number; y: number }
   return null;
 }
 
-/** The world on a grid (column, row; row 0 at the top), by room number. */
-const GRID: readonly (readonly [number, number])[] = [
-  [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [4, 6], [5, 6], [6, 6], [7, 6], [8, 6], [8, 7], [9, 7], [9, 6], [9, 5],
-];
-
-/** The ids of the coal pieces a room has (the one owner of that list: the map, the bot and the reward use it). */
-export function piecesOfRoom(room: number): readonly number[] {
-  return (ROOMS[room]?.coal ?? []).filter((c) => c.col !== 0 || c.row !== 0).map((c) => c.id);
-}
-export const COAL_IN: readonly number[] = ROOMS.map((_, room) => piecesOfRoom(room).length);
-export const COAL_TOTAL = COAL_IN.reduce((a, b) => a + b, 0);
+export { COAL_IN, COAL_TOTAL, piecesOfRoom };
 function coalTaken(game: Game, room: number): number {
   return piecesOfRoom(room).filter((id) => ((game.coal.flags[id] ?? 0) & STILL_THERE) === 0).length;
 }
@@ -87,7 +79,7 @@ void ROOM_ROWS;
 
 /** Where a room's thumbnail is (its top left), in the box. */
 function placeOf(box: Box, room: number): { x: number; y: number } {
-  const [col, row] = GRID[room] ?? [0, 0];
+  const [col, row] = WORLD_GRID[room] ?? [0, 0];
   return { x: box.x + col * PITCH_X + 1, y: box.y + TOP + row * PITCH_Y + 1 };
 }
 

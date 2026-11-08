@@ -43,7 +43,9 @@ for (const data of ROOMS) {
       let code = g.mem[SCREEN + (r + PLAY_ROW) * ROW + PLAY_COL + c] ?? 0;
       if (code >= 0x10 && code <= 0x15) code = g.cells[r * ROOM_COLS + c] ?? 0; // (the crusher is drawn over the room's cells)
       const read = code >= 1 && code <= 8 ? g.tileProps[code - 1] ?? 0 : 0; // what the shared physics reads from the screen
-      const want = wantedClass(data, c, r);
+      // (what is under the water is water: src/fixes.ts)
+      let want = wantedClass(data, c, r);
+      if (want === 1) for (let k = r - 1; k >= 0; k--) { const above = wantedClass(data, c, k); if (above === 4) { want = 4; break; } if (above !== 1) break; }
       cells++;
       if (read !== want || g.flagAt(r + PLAY_ROW, c + PLAY_COL) !== want) bad++;
       const tile = data.tiles[tileAt(data, c, r)];
@@ -76,6 +78,6 @@ for (const data of ROOMS) {
     check(`room ${data.id}: the retractable floor has blank cells to grow into (${blank} of cells ${lo}-${hi} in row ${row}) and a platform tile (${room.floorCode})`, blank > 0 && room.floorCode > 0);
   }
 }
-check(`${cells} cells in 21 rooms: the class of each as the physics reads it equals the original's (${mismatches} differ)`, mismatches === 0);
+check(`${cells} cells in 21 rooms: the class of each as the physics reads it equals the original's, but for what is under the water, which is water too (${mismatches} differ)`, mismatches === 0);
 console.log(`(${decor} cells are scenery: pixels, no class; the decor census)`);
 finish();

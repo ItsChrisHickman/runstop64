@@ -1,5 +1,6 @@
 import { ROOM_COLS, ROOM_ROWS, ROOM_TOP_ROW, type RoomData, type Tile } from '../../montymole/src/room';
 import { tileLibrary } from '../../montyotr/src/data';
+import { coalOf, waterBeds } from './fixes';
 
 /**
  * Wanted: Monty Mole's rooms redrawn with Monty on the Run's tiles (prototype of docs/montymole-remix-plan.md, "The mapping").
@@ -26,7 +27,7 @@ export interface Slot {
   readonly tile: number | null;
 }
 
-export interface Coal { readonly col: number; readonly row: number }
+export interface Coal { readonly id: number; readonly col: number; readonly row: number }
 
 export interface RemixRoom {
   readonly id: number;
@@ -112,8 +113,19 @@ function pick(role: Role, tile: Tile, order: number): number | null {
   }
 }
 
+/** The rooms already made (a room is made once: the game loads one every time Monty comes into it, and the bot copies the game millions of times). */
+const MADE = new WeakMap<RoomData, RemixRoom>();
+
 /** A Wanted room as Monty on the Run's tiles and codes. */
 export function retile(room: RoomData): RemixRoom {
+  const made = MADE.get(room);
+  if (made !== undefined) return made;
+  const out = build(room);
+  MADE.set(room, out);
+  return out;
+}
+
+function build(room: RoomData): RemixRoom {
   const slots: Slot[] = [];
   const code: (number | null)[] = [];
   const seen: Record<Role, number> = { solid: 0, platform: 0, rope: 0, deadly: 0, decor: 0 };
@@ -131,6 +143,10 @@ export function retile(room: RoomData): RemixRoom {
     const line = room.map[r] ?? '';
     for (let c = 0; c < ROOM_COLS; c++) cells[r * ROOM_COLS + c] = code[line.charCodeAt(c) - 48] ?? 0;
   }
+  // the bed of the water is water (fixes.ts)
+  const classOf = (code: number): number => (code >= 1 && code <= 8 ? slots[code - 1]?.prop ?? 0 : 0);
+  const was = cells.slice();
+  for (const bed of waterBeds(was, classOf)) cells[bed] = deadlyAbove(was, bed, classOf);
   // the retractable floor is drawn with a platform tile: the room's own, or a thin ledge of its own in the next slot
   let floorCode = 0;
   if (room.floor.some((b) => b !== 0)) {
@@ -144,8 +160,14 @@ export function retile(room: RoomData): RemixRoom {
   if (slots.length > 8) throw new Error(`room ${room.id}: ${slots.length} kinds of cell, Monty on the Run's rooms have eight`);
   const water = slots.findIndex((k) => k.role === 'deadly');
   const theme = water >= 0 ? 0x80 | water : 0;
-  const coal = room.coal.filter((k) => k.col !== 0 || k.row !== 0).map((k) => ({ col: k.col, row: k.row - ROOM_TOP_ROW }));
+  const coal = coalOf(room, ROOM_TOP_ROW);
   return { id: room.id, cells, slots, coal, theme, floorCode };
+}
+
+/** The deadly tile over a cell: the code of the first deadly cell up its column. */
+function deadlyAbove(cells: Uint8Array, at: number, classOf: (code: number) => number): number {
+  for (let k = at - ROOM_COLS; k >= 0; k -= ROOM_COLS) if (classOf(cells[k] ?? 0) === 4) return cells[k] ?? 0;
+  return 0;
 }
 
 /** The role of the cell at (col, row): what the shared physics will see. */

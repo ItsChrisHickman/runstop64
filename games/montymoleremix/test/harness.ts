@@ -11,17 +11,40 @@ import { roleAt, type RemixRoom } from '../src/retile';
 
 export const NONE: MontyInput = { left: false, right: false, up: false, down: false, fire: false };
 
-/** Sprite-sprite collisions after a frame, as the front end reads them (VicView), looked at only when two sprites' boxes meet. */
+/**
+ * Sprite-sprite collisions after a frame, as the VIC reports them: a sprite's bit is set where one of its pixels is on a pixel of another
+ * (all the remix's sprites are hires, not expanded). Read from the sprite registers and the bank, a row of 24 pixels at a time; the
+ * renderer's own (`collisionsInView`) is slow and the bot plays millions of frames.
+ */
 export function collisions(g: RemixGame): number {
   const v = g.vic;
-  const box = (n: number) => {
+  const on = [0, 1, 2, 3, 4, 5, 6, 7].filter((n) => v.enable & (1 << n)).map((n) => {
     const r = v.sprites[n];
     if (r === undefined) throw new Error(`no sprite ${n}`);
-    return { x: (r.x >= 504 ? r.x - 504 : r.x) - 24, y: r.y - 50, w: 24, h: 21 };
-  };
-  const on = [0, 1, 2, 3, 4, 5, 6, 7].filter((n) => v.enable & (1 << n)).map(box);
-  const meet = on.some((a, i) => on.slice(i + 1).some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h));
-  if (!meet) return 0;
+    return { n, x: (r.x >= 504 ? r.x - 504 : r.x) - 24, y: r.y - 50, at: (r.ptr & 0xff) * 64 };
+  });
+  let bits = 0;
+  for (let i = 0; i < on.length; i++) {
+    const a = on[i];
+    if (a === undefined) continue;
+    for (let j = i + 1; j < on.length; j++) {
+      const b = on[j];
+      if (b === undefined || Math.abs(a.x - b.x) >= 24 || Math.abs(a.y - b.y) >= 21) continue;
+      const dx = b.x - a.x;
+      for (let y = Math.max(a.y, b.y); y < Math.min(a.y, b.y) + 21; y++) {
+        const ra = a.at + (y - a.y) * 3, rb = b.at + (y - b.y) * 3;
+        const rowA = ((g.mem[ra] ?? 0) << 16) | ((g.mem[ra + 1] ?? 0) << 8) | (g.mem[ra + 2] ?? 0);
+        const rowB = ((g.mem[rb] ?? 0) << 16) | ((g.mem[rb + 1] ?? 0) << 8) | (g.mem[rb + 2] ?? 0);
+        if (((dx >= 0 ? rowA << dx : rowA >> -dx) & rowB & 0xffffff) !== 0) { bits |= (1 << a.n) | (1 << b.n); break; }
+      }
+    }
+  }
+  return bits;
+}
+
+/** The same, from the renderer's picture of the sprites (the check of `collisions`). */
+export function collisionsInView(g: RemixGame): number {
+  const v = g.vic;
   const view = new VicView(new PixelRenderer(), v);
   view.update();
   return view.collisions();

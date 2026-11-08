@@ -48,7 +48,7 @@ const LOOKS = new Map<number, Look>([
   [0x6e00, as(T.oval)], // blobs
   [0x6e80, as(T.spider)], // bugs
   [0x6f00, as(T.wasp)], // what flies: the pickets
-  [0x6f80, as(T.wasp)], // what flies
+  [0x6f80, OWN], // the ferries: flat slabs that fly, the rooms' lakes are crossed by standing on them (`isFerry`), so what is drawn is what holds him
   [0x7000, as(T.plane)], // a pennant: the caverns
   [0x7080, as(T.fish)],
   [0x7100, as(T.fish)],
@@ -63,6 +63,14 @@ const LOOKS = new Map<number, Look>([
   [0x7680, as(T.boot)], // legs: the pit
   [0x7700, as(T.cone)], // a flame: the pit
 ]);
+
+/**
+ * The kinds of creature that hold Monty up. In Wanted anything drawn under his feet holds him (the original reads the screen's bytes under
+ * them), so a creature with pixels on its top row is a place to stand; the one the rooms need is the flat slab that flies along the pipe and
+ * castle caverns' lakes (rooms 12 to 16), which is how a lake is crossed. These are drawn as Wanted draws them, so that the picture is what holds him.
+ */
+const FERRIES: ReadonlySet<number> = new Set([0x6f80]);
+export const isFerry = (set: number): boolean => FERRIES.has(set);
 
 /** The first frame address past Wanted's creatures (`$7780` is the blank frame). */
 const END = 0x7780;
