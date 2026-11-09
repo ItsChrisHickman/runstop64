@@ -1,7 +1,10 @@
 # Handoff: start here
 
 For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only the
-state of things and what is waiting on Chris. Last updated 2026-10-26, after the cleanup pass.
+state of things and what is waiting on Chris. Last updated 2026-11-08.
+
+**Paused, 2026-11-08.** Chris is taking a break ("diminishing returns"; the point was reliving his childhood games). Nothing is
+under construction. Don't start new work unprompted; when he comes back, start from "Waiting on Chris" below.
 
 ## State
 
@@ -91,6 +94,10 @@ a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
 - **Older:** Monty warp to the Ultimate Experience; Starquake hints.
+- **Wanted: Monty Mole Remix** (`games/montymoleremix`, in the directory): done and bot-proved; Chris finds the game itself not one of his,
+  so it is left as is. Offered, not built: in ENHANCED the tool kept across rooms and deaths until used, and a picture of it by the lives
+  while held (the original loses it on leaving the room or dying, and shows nothing). His one-word answer was "Original" (read as: he
+  had played in ORIGINAL); ask before building. The faithful Wanted bot's WIP is on branch `worktree-agent-a8fa738a703218e33`, unmerged.
 
 ## Next
 
