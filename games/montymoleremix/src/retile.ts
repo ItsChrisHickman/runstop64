@@ -50,6 +50,9 @@ export interface RemixRoom {
  */
 export const C64_OF = [0, 6, 2, 4, 5, 3, 7, 1] as const;
 
+/** A Spectrum ink (0-7) as the C64 colour of a thing drawn on the remix's black: Wanted's black ink (on its coloured paper) is white here, or it would not be seen. */
+export const inkOnBlack = (ink: number): number => (ink === 0 ? 1 : C64_OF[ink] ?? 1);
+
 /** A tile's colour: its paper where it has one (a brick on yellow is a yellow brick), else its ink. */
 function colourOf(attr: number): number {
   const paper = (attr >> 3) & 7;

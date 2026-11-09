@@ -8,7 +8,7 @@
  *   nice -n 15 node tools/test.mjs games/montymoleremix/test/game.ts
  */
 import { COAL_FLAGS, imageAt, SPRITE_BYTES, SPRITE_BASE } from '../../montymole/src/data';
-import { Enemy } from '../../montymole/src/enemy-rules';
+import { Enemy, EnemyState } from '../../montymole/src/enemy-rules';
 import { OBJECT_FRAMES } from '../../montymole/src/object';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { Enemies } from '../../montymole/src/enemies';
@@ -19,9 +19,9 @@ import { ROOM_COLS } from '../../montymole/src/room';
 import { check, finish } from '../../shared/test/check';
 import { getProp } from '../../shared/guards';
 import { must } from '../../shared/test/must';
-import { cellRow, wantedMonty } from '../src/coords';
+import { cellRow, VIC_LEFT, VIC_TOP, WANTED_TOP, wantedMonty } from '../src/coords';
 import { COAL_CHAR, ENDING_ROOM, HOME_COL, HOME_ROW, OPENING_ROOM, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
-import { lookOfSet, NAMED_KINDS } from '../src/kinds';
+import { carries, lookOfSet, NAMED_KINDS } from '../src/kinds';
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { retile, roleAt } from '../src/retile';
 import { type Play, collisions, collisionsInView, newGame, NONE, place, settled, step } from './harness';
@@ -330,6 +330,44 @@ function findFlat(): { id: number; col: number; row: number } | null {
     wrong = wrong.concat(Object.keys(p.g).filter((k) => !skip.has(k) && dump(getProp(p.g, k)) !== dump(getProp(copy, k))).map((k) => `${k} after`));
   }
   check(`a copy of the game is the game, every field, and goes on as it does (${games} games; differing: ${wrong.join(' ') || 'none'})`, wrong.length === 0);
+}
+
+{
+  // with the tool in hand, a touch takes the creature he touches (`$92DF`): Monty put on each creature of each room in turn, the tool in hand
+  const p = newGame();
+  let tries = 0;
+  const failed: string[] = [];
+  for (let room = 1; room < ROOMS.length; room++) {
+    for (let slot = 0; slot < 6; slot++) {
+      p.g.travelTo(room, 0x40, 0x80);
+      for (let f = 0; f < 30 && !settled(p.g); f++) step(p, NONE);
+      for (let f = 0; f < 4; f++) step(p, NONE);
+      const e = p.g.creatures[slot];
+      // (not one the remix does not draw, the opening's bucket, nor what holds him up: the ferries and room 10's picket)
+      if (e === undefined || e.state === EnemyState.none || lookOfSet(e.sets[e.dir] ?? 0) === null || carries(e.sets[e.dir] ?? 0, e.dir >= 2)) continue;
+      const alive = p.g.creatures.filter((c) => c.state !== EnemyState.none).length;
+      p.g.carrying = true;
+      p.g.x2 = (e.x + VIC_LEFT) >> 1; p.g.stepGate = (e.x + VIC_LEFT) & 1; p.g.y = VIC_TOP + WANTED_TOP - e.y;
+      tries++;
+      for (let f = 0; f < 3 && p.g.carrying; f++) step(p, NONE);
+      if (p.g.carrying || p.g.creatures.filter((c) => c.state !== EnemyState.none).length !== alive - 1) failed.push(`${room}.${slot}${p.g.carrying ? ' (no touch)' : ''}`);
+    }
+  }
+  check(`with the tool, a touch takes a creature he touches (${tries} creatures; not taken: ${failed.join(' ') || 'none'})`, failed.length === 0 && tries > 40);
+}
+
+{
+  // Wanted draws a creature in the ink of the cells it passes, often black on its coloured paper: on the remix's black it would not be seen
+  const p = newGame();
+  const black: number[] = [];
+  for (let room = 0; room < ROOMS.length; room++) {
+    p.g.travelTo(room, 0x40, 0x80);
+    for (let f = 0; f < 200; f++) {
+      step(p, NONE);
+      if (p.g.vic.sprites.some((s, n) => ((p.g.vic.enable >> n) & 1) === 1 && s.colour === 0) && !black.includes(room)) black.push(room);
+    }
+  }
+  check(`no sprite is drawn black in any room, where it would not be seen (black in rooms: ${black.join(' ') || 'none'})`, black.length === 0);
 }
 
 finish();

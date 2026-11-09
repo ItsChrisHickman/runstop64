@@ -23,7 +23,7 @@ import {
 import { cellRow, coalCells, VIC_LEFT, VIC_TOP, vicX, vicY, WANTED_TOP, wantedMonty } from './coords';
 import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
 import { carries, lookOf, lookOfSet, type Look } from './kinds';
-import { C64_OF, retile, type RemixRoom } from './retile';
+import { C64_OF, inkOnBlack, retile, type RemixRoom } from './retile';
 import { GATE, SCENE, SCENE_PATH_ROW, SCENE_ROOM, SCENE_START_X } from './opening-scene';
 
 /**
@@ -169,7 +169,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   passes = 0;
   /** the sprite bits the creatures and the tool have on now */
   private shown = 0;
-  /** of them, the carriers' (they kill by Wanted's own touch test, not the VIC's pixels: `touchesCarrier`) */
+  /** of them, the carriers' (they kill by Wanted's own touch test, not the VIC's pixels: `touchedCarrier`) */
   private carrierBits = 0;
 
   // ---- Wanted's things ----------------------------------------------------------
@@ -502,7 +502,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     if (this.crusher.present) {
       const tile = data.tiles[(data.map[cellRow(this.crusher.lowest - 4)]?.charCodeAt(this.crusher.column + 1) ?? 48) - 48];
       const ink = (tile?.attr ?? 7) & 7;
-      this.crusherColour = ink === 0 ? 1 : C64_OF[ink] ?? 1;
+      this.crusherColour = inkOnBlack(ink);
     }
     this.crusherPicture.clear();
     this.floor.enter(data);
@@ -704,7 +704,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
       r.x = vicX(e.x);
       r.y = vicY(e.y);
       r.ptr = creaturePtr(slot) + (e.dir === 1 || e.dir === 3 ? 4 : 0) + ((e.counter >> 1) & 3);
-      r.colour = C64_OF[e.colour & 7] ?? 1;
+      r.colour = inkOnBlack(e.colour & 7);
       shown |= 1 << n;
       if (carries(e.sets[e.dir] ?? 0, e.dir >= 2)) carriers |= 1 << n;
     });
@@ -754,10 +754,28 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private touchCreature(): void {
     // (in the scene only the acorn is a danger)
     const lethal = this.roomId === OPENING_ROOM ? SCENE_LETHAL : CREATURES_BITS & ~this.carrierBits;
-    const vic = (this.collisionStore & 0x08) !== 0 && (this.collisionStore & lethal) !== 0;
-    if (!vic && !this.touchesCarrier()) return;
-    if (this.carrying) { this.useTool(); return; }
+    const hit = (this.collisionStore & 0x08) !== 0 ? this.collisionStore & lethal : 0;
+    const carrier = this.touchedCarrier();
+    if (hit === 0 && carrier === null) return;
+    if (this.carrying) { this.useTool(carrier ?? this.nearestTouched(hit)); return; }
     if (!this.actionCounter) this.actionCounter = 2;
+  }
+
+  /**
+   * Of the creatures whose sprites the VIC says touched something (`bits`), the one nearest him: the creature he is touching. (Two
+   * creatures that cross each other raise their bits too, so the nearest is the one on him.) Wanted finds it by its own 16 x 16 box
+   * (`$9327`), but the remix draws Monty on the Run's creatures, bigger than Wanted's, so a touch can come before that box reaches him.
+   */
+  private nearestTouched(bits: number): Enemy | null {
+    const m = wantedMonty(this.x2, this.stepGate, this.y);
+    let best: Enemy | null = null, bestDistance = Infinity;
+    this.creatures.forEach((e, slot) => {
+      const n = CREATURE_SPRITE[slot];
+      if (n === undefined || (bits & (1 << n)) === 0 || e.state === EnemyState.none) return;
+      const distance = Math.abs(m.x - e.x) + Math.abs(m.y - e.y);
+      if (distance < bestDistance) { best = e; bestDistance = distance; }
+    });
+    return best;
   }
 
   /**
@@ -765,11 +783,11 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
    * pixel of its picture, not when two sprites' pixels meet. Its wing stands up into the lines he stands on (it holds him from the line 8 below
    * its top), which the VIC would take for a touch at once.
    */
-  private touchesCarrier(): boolean {
-    if (this.carrierBits === 0) return false;
+  private touchedCarrier(): Enemy | null {
+    if (this.carrierBits === 0) return null;
     const m = wantedMonty(this.x2, this.stepGate, this.y);
     const points: readonly (readonly [number, number])[] = [[m.x, m.y], [m.x + 10, m.y + 1], [m.x, m.y - 15], [m.x - 1, m.y - 7], [m.x + 16, m.y - 8], [m.x + 15, m.y - 15]];
-    return this.creatures.some((e, slot) => {
+    return this.creatures.find((e, slot) => {
       const n = CREATURE_SPRITE[slot];
       if (n === undefined || (this.carrierBits & (1 << n)) === 0 || !this.visible(slot)) return false;
       const img = imageAt((e.sets[e.dir] ?? 0) + 32 * ((e.counter >> 1) & 3));
@@ -777,7 +795,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
         const dx = px - e.x, dy = e.y - py;
         return dx >= 0 && dx < 16 && dy >= 0 && dy < 16 && (((img[dy * 2 + (dx >> 3)] ?? 0) >> (7 - (dx & 7))) & 1) !== 0;
       });
-    });
+    }) ?? null;
   }
 
   /** The room's tool, Wanted's own picture of it (`$7A00 + 32 * (frame - 1)`, 16 x 16, one bit a pixel) as the 16 x 16 hires sprite the creatures are drawn as. */
@@ -793,16 +811,14 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     const at = data.object;
     const tile = data.tiles[(data.map[cellRow(at.y)]?.charCodeAt(at.x >> 3) ?? 48) - 48];
     const ink = (tile?.attr ?? 7) & 7;
-    this.toolColour = ink === 0 ? 1 : C64_OF[ink] ?? 1;
+    this.toolColour = inkOnBlack(ink);
   }
 
-  /** The tool is used up and the creature he is touching (the first within 15 pixels both ways) is gone. */
-  private useTool(): void {
+  /** The tool is used up and the creature he is touching is gone. */
+  private useTool(touched: Enemy | null): void {
     this.carrying = false;
     this.sfx(SFX.item);
-    const m = wantedMonty(this.x2, this.stepGate, this.y);
-    const touched = this.creatures.find((e) => e.state !== EnemyState.none && (Math.abs(m.x - e.x) & 0xf0) === 0 && (Math.abs(m.y - e.y) & 0xf0) === 0);
-    if (touched !== undefined) touched.state = EnemyState.none;
+    if (touched !== null) touched.state = EnemyState.none;
     this.placeSprites();
   }
 
