@@ -19,7 +19,7 @@ import { ROOM_COLS } from '../../montymole/src/room';
 import { check, finish } from '../../shared/test/check';
 import { getProp } from '../../shared/guards';
 import { must } from '../../shared/test/must';
-import { cellRow } from '../src/coords';
+import { cellRow, wantedMonty } from '../src/coords';
 import { COAL_CHAR, HOME_COL, HOME_ROW, OPENING_ROOM, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
 import { lookOfSet, NAMED_KINDS } from '../src/kinds';
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
@@ -236,10 +236,20 @@ function findFlat(): { id: number; col: number; row: number } | null {
   frames(p, 60);
   frames(p, 400, { ...NONE, left: true });
   check('walking off the left of room 1 comes back in room 1 from the right (it leads to itself)', p.g.roomId === 1);
-  // room 16's pit lifts him into room 17
+  // room 16 entered low is the scene of the pit (the original's, measured): he walks the floor at the bottom two pixels a frame, goes down the slope into the pit, and is in room 17
   const q = newGame();
-  q.g.enterAt(16, 0x40, 0xda);
-  check(`room 16: entering it low, the pit lifts him into room 17 (${q.g.roomId})`, q.g.roomId === 17);
+  q.g.travelTo(16, 0x40, 0xda);
+  const walked: number[] = [];
+  let slope = false, frame = 0;
+  for (; frame < 200 && !(q.g.roomId === 17 && !q.g.freeze); frame++) {
+    step(q, NONE);
+    const m = wantedMonty(q.g.x2, q.g.stepGate, q.g.y);
+    if (q.g.roomId === 16 && q.g.freeze && m.y === 55 && !slope) walked.push(m.x);
+    if (q.g.roomId === 16 && q.g.freeze && m.y > 55) slope = true; // (up onto the slope's head first)
+  }
+  check(`room 16: entering it low, the scene (${frame} frames): along the bottom from x ${walked[0]} to ${walked[walked.length - 1]}, two pixels a frame, down the slope, into room 17`, q.g.roomId === 17 && walked[0] === 4 && walked[walked.length - 1] === 130 && walked.every((x, i) => i === 0 || x - (walked[i - 1] ?? 0) === 2) && slope && frame > 80);
+  const arrival = wantedMonty(q.g.x2, q.g.stepGate, q.g.y);
+  check(`and he is in room 17 at x $C0, y $A1 (${arrival.x}, ${arrival.y})`, arrival.x === 0xc0 && arrival.y === 0xa1);
 }
 
 // ---- Wanted's own coal, tools and creatures ----
