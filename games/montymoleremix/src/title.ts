@@ -1,9 +1,7 @@
 import { hexBytes } from 'c64kit';
 import raw from '../../montyotr/src/data/motr.json';
 import { Title, type TitleGame, type TitlePage } from '../../montyotr/src/title';
-import { COAL_FLAGS } from '../../montymole/src/data';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
-import { COAL_TOTAL } from '../../montymole/src/coal-rules';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { C64_OF } from './retile';
 import { POSTER_PICTURE, type PictureChar } from './title-picture';
@@ -64,13 +62,11 @@ export interface RemixTitleSound { song(n: number): void; stop(): void; musicOn(
 /**
  * What the title has of Wanted's own where Monty on the Run's has its freedom kit and a page of its box: the loot. Under the table, where the kit
  * stood, a row of Wanted's own piece of coal (the lump of room 0, one of Monty on the Run's characters redefined as it) flickering through
- * the colours as it does in the rooms; and a page after the scores in the box, the poster: WANTED: MONTY MOLE, what for, and how much (the
- * inlay's own words for the raid, and the game's own numbers: 21 rooms, 64 pieces, their worth added up).
+ * the colours as it does in the rooms; and a page after the scores in the box, the poster: WANTED: MONTY MOLE, and what for.
  */
 const COAL_CHAR = 0x02;
 /** The coal's row (23: under the table, between its pillars, columns 11 to 29 every other one). */
 const COAL_ROW = 23, COAL_FROM = 11, COAL_COUNT = 10;
-const COAL_WORTH = COAL_FLAGS.reduce((n, f) => n + (f & 0x7f), 0);
 const codeOf = (c: string): number => (c === ' ' ? 0x60 : (c.charCodeAt(0) & 0x3f) | 0x40);
 /**
  * The poster (28 columns, six rows): the words at the left, twelve letters wide, and Wanted at the right, a picture of sixteen characters by six (title-picture.ts: the pit
@@ -80,10 +76,10 @@ const WORDS = 12;
 const WORDS_OF = [
   { text: 'WANTED:', colour: 7 },
   { text: 'MONTY MOLE', colour: 7 },
-  { text: 'A COAL RAID', colour: 1 },
-  { text: `${ROOMS.length} ROOMS`, colour: 3 },
-  { text: `${COAL_TOTAL} PIECES`, colour: 5 },
-  { text: `${COAL_WORTH} POINTS`, colour: 7 },
+  { text: '', colour: 1 },
+  { text: 'FOR STEALING', colour: 1 },
+  { text: 'COAL FROM', colour: 1 },
+  { text: 'THE PIT', colour: 1 },
 ] as const;
 /** The characters the picture draws with: blank in Monty on the Run's set, and none of them the scroller's ($F0 and over). */
 const PICTURE_CHARS: readonly number[] = Array.from({ length: 0xcc - 0x9b + 1 }, (_, i) => 0x9b + i);
