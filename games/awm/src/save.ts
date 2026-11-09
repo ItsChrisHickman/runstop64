@@ -47,20 +47,29 @@ const fields = {
   soundFlag: S.number,
   tune: S.number,
 };
+/** What ENHANCED's carry anything adds (format 4): the tickets counted, what he carries beyond the boxes, and when each thing in a box was picked up. */
+const carrying = {
+  tickets: S.number,
+  pack: S.array(S.object({ type: S.number, stamp: S.number })),
+  stamps: S.numbers,
+};
 const sound = (s: { room: number; burnPicture: number[]; carried: number[]; hands: unknown[]; score: number[]; money: number[] }): boolean =>
   !!ROOMS[s.room] && s.burnPicture.length === 8 && s.carried.length === 4 && s.hands.length === 4 && s.score.length === 5 && s.money.length === 5;
+const soundCarrying = (s: { stamps: number[]; tickets: number } & Parameters<typeof sound>[0]): boolean => sound(s) && s.stamps.length === 4 && s.tickets >= 0;
 /** Saves up to format 2 kept the shield's flag ($405E); the shield is not in the port and so the flag is dropped (the leaf is a plain item). */
 const shield = { shield: S.number };
 /** Format 1, as players have it: before the flight (a plane with a ticket) kept anything. */
 const AwmSaveV1 = S.refine(S.object({ v: S.literal(1), ...fields, ...shield }), sound);
 const AwmSaveV2 = S.refine(S.object({ v: S.literal(2), ...fields, ...shield, flight: sky }), sound);
-export const AwmSave = S.refine(S.object({ v: S.literal(3), ...fields, flight: sky }), sound);
+/** Format 3: before carrying anything (the four boxes were all there was). */
+const AwmSaveV3 = S.refine(S.object({ v: S.literal(3), ...fields, flight: sky }), sound);
+export const AwmSave = S.refine(S.object({ v: S.literal(4), ...fields, ...carrying, flight: sky }), soundCarrying);
 export type AwmSave = S.Infer<typeof AwmSave>;
 
 export function snapshot(game: Game, hands: readonly (Hand | null)[]): AwmSave {
   const m = game.monty;
   return {
-    v: 3,
+    v: 4,
     room: game.world.room,
     entry: { x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep },
     faceLeft: m.faceLeft,
@@ -71,6 +80,9 @@ export function snapshot(game: Game, hands: readonly (Hand | null)[]): AwmSave {
     clock: { ...game.enemies.clock },
     taken: game.items.collected.flatMap((c, i) => (c ? [i] : [])),
     carried: [...game.items.carried],
+    tickets: game.items.tickets,
+    pack: game.items.pack.map((h) => ({ ...h })),
+    stamps: [...game.items.stamps],
     hands: hands.map((h) => (h ? { type: h.type, colours: [...h.colours] } : null)),
     score: [...game.score.digits],
     money: [...game.money.digits],
@@ -99,6 +111,10 @@ export function restore(save: AwmSave, lost = false): Game {
   m.burnPicture.set(save.burnPicture);
   for (const i of save.taken) if (i < game.items.collected.length) game.items.collected[i] = true;
   save.carried.forEach((t, i) => { game.items.carried[i] = t; });
+  save.stamps.forEach((t, i) => { game.items.stamps[i] = t; });
+  game.items.pack.push(...save.pack.map((h) => ({ ...h })));
+  game.items.tickets = save.tickets;
+  game.items.serial = Math.max(0, ...save.stamps, ...save.pack.map((h) => h.stamp));
   game.score.digits.splice(0, 5, ...save.score);
   game.money.digits.splice(0, 5, ...save.money);
   game.lives = save.lives;
@@ -121,15 +137,20 @@ export function restore(save: AwmSave, lost = false): Game {
 export const parseSave = (v: unknown): AwmSave | null => (AwmSave(v) ? v : null);
 
 /** An old save in the latest: the shield flag dropped (a game that had it loads without), the flights as they left it or, in format 1, nothing in the machine (the program's own values). */
-const upgrade = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV2>): AwmSave => ({ ...rest, v: 3 });
-const upgradeV1 = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV1>): AwmSave => ({ ...rest, v: 3, flight: copySky(FRESH_SKY) });
+const upgrade = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV2>): AwmSave => ({ ...rest, ...nothingMore(), v: 4 });
+const upgradeV1 = ({ shield: _shield, ...rest }: S.Infer<typeof AwmSaveV1>): AwmSave => ({ ...rest, ...nothingMore(), v: 4, flight: copySky(FRESH_SKY) });
+/** Format 3 had the four boxes only: what they hold is all he carries (a ticket in a box stays there, and is taken from it). */
+const upgradeV3 = ({ v: _v, ...rest }: S.Infer<typeof AwmSaveV3>): AwmSave => ({ ...rest, ...nothingMore(), v: 4 });
+function nothingMore(): { tickets: number; pack: { type: number; stamp: number }[]; stamps: number[] } {
+  return { tickets: 0, pack: [], stamps: [0, 0, 0, 0] };
+}
 
-/** Saves as bytes: their JSON (format 3: no shield flag; formats 1 and 2 are read: 1 as a game that has not flown). */
+/** Saves as bytes: their JSON (format 4: with what carry anything keeps; formats 1 to 3 are read: 1 as a game that has not flown, 2 and 3 with only the four boxes). */
 export const CODEC: SaveCodec<AwmSave> = {
-  format: 3,
+  format: 4,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
   unpack: (b, format) => {
-    readsFormat('Auf Wiedersehen Monty', format, 1, 2, 3);
+    readsFormat('Auf Wiedersehen Monty', format, 1, 2, 3, 4);
     const v = readJson(String.fromCharCode(...b));
     if (format === 1) {
       if (!AwmSaveV1(v)) throw new Error('not an Auf Wiedersehen Monty save');
@@ -138,6 +159,10 @@ export const CODEC: SaveCodec<AwmSave> = {
     if (format === 2) {
       if (!AwmSaveV2(v)) throw new Error('not an Auf Wiedersehen Monty save');
       return upgrade(v);
+    }
+    if (format === 3) {
+      if (!AwmSaveV3(v)) throw new Error('not an Auf Wiedersehen Monty save');
+      return upgradeV3(v);
     }
     const s = parseSave(v);
     if (!s) throw new Error('not an Auf Wiedersehen Monty save');

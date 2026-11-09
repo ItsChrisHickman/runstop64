@@ -105,10 +105,10 @@ const digits = (r: Uint8Array, at: number): number => value(Array.from({ length:
   const saved = { ...snapshot(g, [null, null, null, null]), v: 2, shield: SHIELD };
   const bytes = Uint8Array.from(JSON.stringify(saved), (c) => c.charCodeAt(0));
   const loaded = CODEC.unpack(bytes, 2);
-  check('a format 2 save with the shield set reads (as the current format, no flag)', loaded.v === 3 && !('shield' in loaded));
+  check('a format 2 save with the shield set reads (as the current format, no flag)', loaded.v === 4 && !('shield' in loaded));
   check(`and plays with enemies hurting him (${port(restore(loaded))} hits)`, port(restore(loaded)) > 0);
   const packed = readJson(String.fromCharCode(...CODEC.pack(loaded)));
-  check('the codec is format 3 and packs no shield', CODEC.format === 3 && isRecord(packed) && !("shield" in packed));
+  check('the codec is format 4 and packs no shield', CODEC.format === 4 && isRecord(packed) && !("shield" in packed));
 }
 
 finish();

@@ -1,6 +1,7 @@
 import { COL, drawPickName, foundCodec, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { CORE_ROOM, MAP_H, MAP_W } from './data';
 import type { Game } from './game';
+import { carryingPages, carryingTitle } from '../../shared/carrying';
 import * as Inventory from './inventory';
 import { CORE_PIECES, DOOR_SYMBOLS, kindsOf, lyingHere, passRooms, pieceRooms, piecesPlaced, PYRAMID_SYMBOLS, pyramidShown, teleportName, TELEPORT_ROOMS } from './places';
 
@@ -83,11 +84,10 @@ export const starquakeMap = {
     if (pyramidShown(g) && !pyramids.includes(g.room)) pyramids.push(g.room);
   },
   // (the map's two pages, then what BLOB carries: one page, more when there are more than it holds)
-  pages: (g) => ({ list: [0, 1, ...Array.from({ length: Inventory.pageCount(g) }, (_, i) => INVENTORY + i)], current: g.room >> 8 }),
+  pages: (g) => ({ list: carryingPages(INVENTORY, Inventory.count(g)), current: g.room >> 8 }),
   title(g, page = 0) {
     if (page < INVENTORY) return page ? 'THE DEPTHS' : 'THE SURFACE';
-    const n = Inventory.pageCount(g);
-    return n > 1 ? `CARRYING ${page - INVENTORY + 1}/${n}` : 'CARRYING';
+    return carryingTitle(page - INVENTORY, Inventory.pageCount(g));
   },
   draw(s, box, g, f, blink, page = 0, font, pick, assist) {
     if (page >= INVENTORY) { Inventory.draw(s, box, g, font, page - INVENTORY); return; }

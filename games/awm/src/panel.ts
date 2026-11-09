@@ -164,3 +164,16 @@ export function clearBox(screen: Screen, box: number): void {
   const [col, row] = at;
   for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) screen.put(col + dc, row + dr, 0);
 }
+
+/**
+ * Where ENHANCED's count of plane tickets goes: the panel's bottom row, right of the money (the one row of the panel that is
+ * empty; the rows above it, over the picture, are drawn in extended colour mode, where the game's letters do not come out).
+ */
+const TICKETS_AT = [12, ROW_MONEY] as const;
+const TICKETS_WIDTH = 16;
+
+/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel (nothing when he has none). */
+export function drawTickets(screen: Screen, tickets: number): void {
+  const [col, row] = TICKETS_AT;
+  printText(screen, (tickets > 0 ? `AIR TICKETS X${tickets}` : '').padEnd(TICKETS_WIDTH), col, row, Colour.Cyan);
+}

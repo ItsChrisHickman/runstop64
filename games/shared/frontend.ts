@@ -128,7 +128,9 @@ export class FrontEnd<T, F> {
 
   openPause(state: T) {
     this.paused = true; this.pauseTicks = 0;
-    this.page = this.o.map.pages?.(state, this.found).current;
+    // (a map with only one page has no pages to turn: nothing says "other pages")
+    const pages = this.o.map.pages?.(state, this.found);
+    this.page = pages && pages.list.length > 1 ? pages.current : undefined;
     this.pickId = null;
   }
 

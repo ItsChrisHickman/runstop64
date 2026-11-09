@@ -1,6 +1,8 @@
 import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
+import { carryingPages, carryingTitle } from '../../shared/carrying';
+import * as Carrying from './carrying';
 import { isTrap } from './items';
 import type { Entry, Game } from './game';
 import type { Program } from './program';
@@ -97,6 +99,15 @@ export function progressLines(game: Game, found: AwmFound): string[] {
   return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
 }
 
+/**
+ * The pause screen's pages: the world, and with ENHANCED's carry anything the CARRYING pages after it (1, 2...: a page for each
+ * eight things). The page being shown, as the map has it: 0 for the world, also when the pages are not there (ORIGINAL).
+ */
+function shownPage(program: Program, page: number): number {
+  const g = program.game;
+  return g && g.unlimitedCarry() && page >= 1 && page <= Carrying.pages(g) ? page : 0;
+}
+
 /** Frames the map has been drawn (the shimmer's step). */
 let shimmer = 0;
 
@@ -104,10 +115,19 @@ export const awmMap = {
   found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
-  title: () => 'THE WORLD',
-  draw(s, box, program, found, blink, _page, font, pick) {
+  pages(program) {
+    const g = program.game;
+    return { list: g?.unlimitedCarry() ? carryingPages(1, g.items.list().length) : [0], current: 0 };
+  },
+  title(program, page = 0) {
+    const p = shownPage(program, page);
+    return p && program.game ? carryingTitle(p - 1, Carrying.pages(program.game)) : 'THE WORLD';
+  },
+  draw(s, box, program, found, blink, page = 0, font, pick) {
     const game = program.game;
     if (!game) return;
+    const carrying = shownPage(program, page);
+    if (carrying) return Carrying.draw(s, box, game, font, carrying - 1, roomName);
     const { at } = layout(box);
     const tick = shimmer++;
     const seen = found.rooms;
@@ -133,10 +153,10 @@ export const awmMap = {
     font.draw(s, state, box.x, y + 10, l.open ? COL.lgrey : COL.lgreen);
   },
   info: (program, found) => (program.game ? progressLines(program.game, found) : []),
-  legend: [{ colour: COL.dgrey, text: 'NOT SEEN' }, { colour: COL.yellow, text: 'ALL TAKEN' }],
-  places(box: Box, program: Program, found: AwmFound): MapPlace[] {
+  legend: (program, _assist, page = 0) => (shownPage(program, page) ? [] : [{ colour: COL.dgrey, text: 'NOT SEEN' }, { colour: COL.yellow, text: 'ALL TAKEN' }]),
+  places(box: Box, program: Program, found: AwmFound, page = 0): MapPlace[] {
     const game = program.game;
-    if (!game) return [];
+    if (!game || shownPage(program, page)) return [];
     const { at } = layout(box);
     const out: MapPlace[] = [];
     const seen = found.rooms;

@@ -76,6 +76,7 @@ export class Program {
   safeRespawn: () => boolean = () => false;
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
+  unlimitedCarry: () => boolean = () => false;
 
   constructor() {
     const title = new Title(this.scroller, this.soundFlag);
@@ -189,6 +190,7 @@ export class Program {
     game.safeRespawn = () => this.safeRespawn();
     game.liftWaits = () => this.liftWaits();
     game.unlimitedLives = () => this.unlimitedLives();
+    game.unlimitedCarry = () => this.unlimitedCarry();
     return new Picture(game, carry, this.high);
   }
 

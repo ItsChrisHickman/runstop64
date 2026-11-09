@@ -26,7 +26,7 @@ import { PROGRESS_STAGES, type Game } from './game';
 import { FLIGHT_ROOM, type Flight } from './flight';
 import type { BoxEvent } from './items';
 import type { Lift } from './lifts';
-import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, itemGlyphs, printHigh, printMoney, printScore } from './panel';
+import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, drawTickets, itemGlyphs, printHigh, printMoney, printScore } from './panel';
 import { COLS, drawCells, ROWS } from './room';
 import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, FIRST_COL, SPRITE_BUFFERS, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
 import { putSpriteImage } from './sprites';
@@ -86,6 +86,8 @@ export class Picture {
   private shownScore = ZERO;
   private shownMoney = ZERO;
   private shownLives = -1;
+  /** ENHANCED's count of plane tickets as drawn (the original has none, and draws nothing). */
+  private shownTickets = 0;
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
   private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);
 
@@ -179,6 +181,14 @@ export class Picture {
     if (money !== this.shownMoney) { printMoney(screen, game.money.digits); this.shownMoney = money; }
   }
 
+  /** ENHANCED: the tickets he holds, beside the boxes. */
+  private tickets(): void {
+    const n = this.game.items.tickets;
+    if (n === this.shownTickets) return;
+    drawTickets(this.screen, n);
+    this.shownTickets = n;
+  }
+
   private lives(): void {
     if (this.game.lives === this.shownLives) return;
     drawLives(this.screen, this.game.lives);
@@ -202,7 +212,7 @@ export class Picture {
       this.hands[e.hand] = null;
       return clearBox(this.screen, e.hand);
     }
-    const colours = drawnIn ? [...drawnIn] : Array.from(this.slotColours.subarray(e.colourSlot * 4, e.colourSlot * 4 + 4));
+    const colours = drawnIn ? [...drawnIn] : e.colours ? [...e.colours] : Array.from(this.slotColours.subarray(e.colourSlot * 4, e.colourSlot * 4 + 4));
     this.hands[e.hand] = { type: e.type, colours };
     drawBox(this.screen, e.hand, e.type, colours);
   }
@@ -217,6 +227,7 @@ export class Picture {
   /** A frame of the flight: the panel as it stands (a plane shot down is points), under the sky. */
   flightCapture(flight: Flight): FrameCapture {
     this.counters();
+    this.tickets();
     return flight.capture(this.screen);
   }
 
@@ -228,6 +239,7 @@ export class Picture {
     PROGRESS_STAGES.forEach((stage, i) => {
       if (this.game.progress >= stage) drawProgress(this.screen, 2 - i);
     });
+    this.tickets();
     this.capture = this.finish();
   }
 
@@ -349,6 +361,7 @@ export class Picture {
     this.changedCells();
     this.counters();
     this.lives();
+    this.tickets();
     screen.ram.set(game.monty.burnPicture, CHARSET_AT + BURN_CHAR * 8);
     return this.finish();
   }

@@ -50,7 +50,7 @@ export interface Entry {
 }
 
 /** A delivery: the room that wants an item, what it pays and how it counts. */
-interface Delivery {
+export interface Delivery {
   readonly room: number;
   readonly type: number;
   /** `[amount, times]` added to the money. */
@@ -58,7 +58,7 @@ interface Delivery {
 }
 
 /** $55BF-$5618: the four rooms where handing over the right item pays out. */
-const DELIVERIES: readonly Delivery[] = [
+export const DELIVERIES: readonly Delivery[] = [
   { room: 0x16, type: 0x0b, pay: [0x12, 1] },
   { room: 0x2c, type: 0x0c, pay: [0xfa, 4] },
   { room: 0x3e, type: 0x07, pay: [0xfa, 3] },
@@ -156,6 +156,8 @@ export class Game implements MontyHost {
   /** ENHANCED's "a lift waits until you are out from under it when you arrive" (lifts.ts). */
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
+  /** ENHANCED's "carry anything": no limit on what he carries, the tickets counted (items.ts). */
+  unlimitedCarry: () => boolean = () => false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
   private stepsFree = 0;
   safeEntry: Entry | null = null;
@@ -168,6 +170,7 @@ export class Game implements MontyHost {
     this.enemies = parts.enemies ?? new Enemies();
     this.lift = parts.lift ?? new Lift();
     this.lift.waits = () => this.liftWaits();
+    this.items.unlimited = () => this.unlimitedCarry();
     this.world = new World(ROOMS, WORLD_GRID, NO_ROOM, room);
     this.rng = new Random(RANDOM);
     this.monty = new Monty(this.world, this.rng, TABLES.tileGfx, this);

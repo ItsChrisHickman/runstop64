@@ -6,6 +6,11 @@
  * ($6A65) does what its *type* says ($6AB1): most types are score, money or progress, a few have other
  * effects (a life, a random bonus, death), and the rest are carried: up to four at a time,
  * handed over later in the rooms that want them (`take`, from the room scripts and the enemies).
+ *
+ * ENHANCED's "carry anything" (`unlimited`): no limit on what he carries, so a pickup is never refused. A plane ticket takes no hand
+ * (it is a count, `tickets`); the four boxes show the four things picked up last that he still holds, and the rest wait in the
+ * `pack` to come back into a box as one is handed over. `take` looks everywhere, the boxes first. The original's four hands are
+ * `carried` and are all the original ever has; with the pack and the tickets empty, nothing here differs from it.
  */
 import { TABLES } from './data';
 import type { Game } from './game';
@@ -44,6 +49,24 @@ export interface BoxEvent {
   readonly hand: number;
   readonly type: number | null;
   readonly colourSlot: number;
+  /** A thing coming into a box from the pack is drawn in its own colours (its slot is long gone). */
+  readonly colours?: readonly number[];
+}
+
+/** A carried thing waiting out of the boxes, and when it was picked up (later is higher). */
+export interface Held {
+  readonly type: number;
+  readonly stamp: number;
+}
+
+/** An item type's four colours ($6D6B: what its slot held when it was lying in a room). */
+export const coloursOfType = (type: number): number[] => Array.from(TABLES.itemColours.subarray(type * 4, type * 4 + 4));
+
+/** One line of what he carries: a type, how many (the tickets are counted) and when it was picked up (0: not known). */
+export interface Carried {
+  readonly type: number;
+  readonly count: number;
+  readonly stamp: number;
 }
 
 export class Items {
@@ -59,6 +82,16 @@ export class Items {
   readonly slotEntry: number[] = [-1, -1, -1, -1];
   /** $694E: the slot just touched. */
   touched = 0;
+  /** ENHANCED's carry anything is on (the front end's assist, via the game). */
+  unlimited: () => boolean = () => false;
+  /** ENHANCED: plane tickets, which take no hand. */
+  tickets = 0;
+  /** ENHANCED: what he carries beyond the four boxes, oldest first. */
+  readonly pack: Held[] = [];
+  /** When the thing in each box was picked up (0: before anything was kept: a save from before, a scene's). */
+  readonly stamps: number[] = [0, 0, 0, 0];
+  /** The last pick-up's number. */
+  serial = 0;
 
   /** $694F: put the first four uncollected items of the room into its cells. */
   place(room: number, cells: Uint8Array): void {
@@ -79,21 +112,81 @@ export class Items {
     }
   }
 
-  /** $6CB9: is `type` in his hands? If so it is handed over (the box is emptied). */
+  /**
+   * $6CB9: is `type` in his hands? If so it is handed over (the box is emptied). Beyond the original's hands: a ticket counted,
+   * or a thing in the pack (the latest picked up) is found too; a box emptied is filled from the pack, the latest first.
+   */
   take(type: number): boolean {
+    if (type === TICKET && this.tickets > 0) {
+      this.tickets--;
+      return true;
+    }
     const at = this.carried.indexOf(type);
-    if (at < 0) return false;
+    if (at < 0) return this.takeFromPack(type);
     this.carried[at] = 0xff;
-    this.onBox?.({ hand: at, type: null, colourSlot: 0 });
+    this.stamps[at] = 0;
+    const back = this.latestInPack();
+    const next = back < 0 ? undefined : this.pack.splice(back, 1)[0];
+    if (!next) {
+      this.onBox?.({ hand: at, type: null, colourSlot: 0 });
+      return true;
+    }
+    this.carried[at] = next.type;
+    this.stamps[at] = next.stamp;
+    this.onBox?.({ hand: at, type: next.type, colourSlot: at, colours: coloursOfType(next.type) });
     return true;
   }
 
-  /** $6BBC: put a type into the first empty hand, if there is one. */
+  private latestInPack(): number {
+    let best = -1;
+    this.pack.forEach((h, i) => { if (best < 0 || h.stamp >= (this.pack[best]?.stamp ?? 0)) best = i; });
+    return best;
+  }
+
+  private takeFromPack(type: number): boolean {
+    let at = -1;
+    this.pack.forEach((h, i) => { if (h.type === type && (at < 0 || h.stamp >= (this.pack[at]?.stamp ?? 0))) at = i; });
+    if (at < 0) return false;
+    this.pack.splice(at, 1);
+    return true;
+  }
+
+  /** $6BBC: put a type into the first empty hand, if there is one (ENHANCED: always). */
   give(type: number): void {
     const at = this.carried.indexOf(0xff);
-    if (at < 0) return;
-    this.carried[at] = type;
-    this.onBox?.({ hand: at, type, colourSlot: at });
+    if (at < 0 && !this.unlimited()) return;
+    this.add(type, at < 0 ? 0 : at);
+  }
+
+  /**
+   * ENHANCED's pick-up, and `give`'s: a ticket is counted, anything else goes into the first empty box; with none, the box of
+   * the thing picked up longest ago goes to the pack and the new thing takes its place.
+   */
+  private add(type: number, colourSlot: number): void {
+    if (type === TICKET && this.unlimited()) {
+      this.tickets++;
+      return;
+    }
+    let hand = this.carried.indexOf(0xff);
+    if (hand < 0) {
+      hand = this.stamps.indexOf(Math.min(...this.stamps));
+      this.pack.push({ type: this.carried[hand] ?? TICKET, stamp: this.stamps[hand] ?? 0 });
+    }
+    this.carried[hand] = type;
+    this.stamps[hand] = ++this.serial;
+    this.onBox?.({ hand, type, colourSlot });
+  }
+
+  /** Everything he carries, the latest picked up first, with the tickets (counted) last. */
+  list(): Carried[] {
+    const things: Carried[] = [
+      ...this.carried.flatMap((type, hand) => (type === 0xff ? [] : [{ type, count: 1, stamp: this.stamps[hand] ?? 0 }])),
+      ...this.pack.map((h) => ({ type: h.type, count: 1, stamp: h.stamp })),
+    ].sort((a, b) => b.stamp - a.stamp);
+    const tickets = things.filter((t) => t.type === TICKET);
+    const rest = things.filter((t) => t.type !== TICKET);
+    const count = this.tickets + tickets.length;
+    return count > 0 ? [...rest, { type: TICKET, count, stamp: 0 }] : rest;
   }
 
   /** $6A65: is Monty touching an item? Then do what it does. */
@@ -181,14 +274,13 @@ export class Items {
     }
   }
 
-  /** $6BAA: a carried item goes into the first empty hand; with none free it stays where it is. */
+  /** $6BAA: a carried item goes into the first empty hand; with none free it stays where it is (ENHANCED: it is always taken). */
   private carry(g: Game, slot: number, cell: number, type: number): void {
     const free = this.carried.indexOf(0xff);
-    if (free < 0) return;
+    if (free < 0 && !this.unlimited()) return;
     g.sound.effect(0x46);
     this.slotType[slot] = 0;
-    this.carried[free] = type;
     this.collect(g, slot, cell);
-    this.onBox?.({ hand: free, type, colourSlot: slot });
+    this.add(type, slot);
   }
 }
