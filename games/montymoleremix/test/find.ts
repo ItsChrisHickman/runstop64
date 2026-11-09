@@ -5,7 +5,7 @@
  *   nice -n 15 node tools/test.mjs games/montymoleremix/test/find.ts <room> <x2> <y> <goals: piece:N | tool | up | down | left | right, ...>
  *   (BUDGET=n: how many states; `start` for x2 is the new game's room 0)
  */
-import { arrive, factsOf, find, goalName, RoomMap, type Goal } from './bot';
+import { arrive, factsOf, find, goalName, RoomMap, withRoomsCoalTaken, type Goal } from './bot';
 import { newGame } from './harness';
 const [room, x2, y, what] = process.argv.slice(2);
 const parse = (w: string | undefined): Goal => w?.startsWith('piece:') ? { kind: 'piece', id: Number(w.slice(6)) } : w === 'tool' ? { kind: 'tool' } : { kind: 'exit', direction: w === 'up' || w === 'down' || w === 'left' ? w : 'right' };
@@ -21,7 +21,7 @@ maps.set(start.g.roomId, map);
 let shown = 0;
 for (const goal of goals) {
   const t = Date.now();
-  const r = find(start, map, goal, Number(process.env.BUDGET ?? 20000), goal.kind === 'exit' ? (g) => {
+  const r = find(goal.kind === 'exit' ? withRoomsCoalTaken(start, Number(room)) : start, map, goal, Number(process.env.BUDGET ?? 20000), goal.kind === 'exit' ? (g) => {
     let m = maps.get(g.roomId);
     if (m === undefined) { m = new RoomMap(factsOf(g)); maps.set(g.roomId, m); }
     m.addStart(g);

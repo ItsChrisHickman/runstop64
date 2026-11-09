@@ -48,17 +48,19 @@ const OPENING_EXITS = { up: 0xff, down: 0xff, left: 0xff, right: 0 } as const;
 const GIFT_X = 0x40;
 /** The scene's sprites, by their pictures: the pot (a creature's slot), the wife (head and legs), the bird, the acorn; their colours. */
 const SCENE_SLOT = { pot: 0, head: 1, legs: 2, bird: 3, acorn: 4 } as const;
-const SCENE_COLOUR = { pot: 7, head: 1, legs: 1, bird: 1, acorn: 2 } as const;
+const SCENE_COLOUR = { pot: 9, head: 1, legs: 1, bird: 1, acorn: 2 } as const;
 /** The pot stands this much further right than in the original (Wanted's `$2F`, by the house's wall: Monty comes from the house side here, and starts by the wall, so it is moved out of him). */
 const POT_SHIFT = 0x3c - 0x2f;
 /** Where Monty comes back into the scene from room 0: the original's start, x `$D8`. */
 const SCENE_RETURN_X = 0xd8;
 /** The cell of the room grid every room is entered at: Wanted's rooms lead to one another by number, not by place (`exits`). */
 export const HOME_ROW = 2, HOME_COL = 11;
-/** The first of the room numbers that are not rooms of the game (the ending): no way into them yet. */
-const FIRST_SCENE = 21;
+/** The number past the last room: room 20's right edge leads to the ending (`$F858`), which is no room. */
+export const ENDING_ROOM = 21;
 /** Where room 0 takes him in (`$CDB8`: the scene leaves him there), and room 16's pit and where it lifts him (`$96D9`). */
 const ROOM0_ARRIVAL = { x: 0x18, y: 0x27 } as const;
+/** The same as Monty's place in the VIC's coordinates: his sprite's x2 and his y. */
+export const ROOM0_START_X2 = 0x1c + (ROOM0_ARRIVAL.x >> 1), ROOM0_START_Y = 0xf9 - ROOM0_ARRIVAL.y;
 export const PIT_ROOM = 16, PIT_Y = 0x41, PIT_ARRIVAL = { x: 0xc0, y: 0xa1 } as const;
 /** Room 16's scene in Wanted's pixels (x from the left, y up): where he walks from and to along the bottom, and the slope he goes down. */
 const PIT_SCENE = { fromX: 4, walkToX: 130, floorY: 55, slopeX: 152, slopeY: 63, lastY: 32 } as const;
@@ -68,7 +70,7 @@ export const SAFE_FRAMES = 100;
 export const ARRIVE_LEFT_X2 = 0x1c + (2 >> 1), ARRIVE_RIGHT_X2 = 0x1c + (0xee >> 1);
 
 /** The sprites of the room's creatures (records 0-5), the tool's, and Monty's. */
-const CREATURE_SPRITE = [1, 2, 4, 5, 6, 7] as const;
+export const CREATURE_SPRITE = [1, 2, 4, 5, 6, 7] as const;
 const TOOL_SPRITE = 0;
 const MONTY_SPRITE = 3;
 /** The sprite bit of every creature, to read the collisions. */
@@ -114,7 +116,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   actionCounter = 0;
   roomExit = 0;
   script: Seq | null = null;
-  finished: 'gameover' | null = null;
+  /** the game is over: the last life lost, or room 20's right edge taken (the ending) */
+  finished: 'gameover' | 'ending' | null = null;
 
   // ---- input --------------------------------------------------------------------
   input: MontyInput = { left: false, right: false, up: false, down: false, fire: false };
@@ -313,8 +316,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     const dr = row - HOME_ROW, dc = col - HOME_COL;
     const exits = exitsOf(this.roomId);
     const to = dr === -1 && dc === 0 ? exits.up : dr === 1 && dc === 0 ? exits.down : dr === 0 && dc === -1 ? exits.left : dr === 0 && dc === 1 ? exits.right : 0xff;
-    if (to === OPENING_ROOM) return to;
-    return to >= FIRST_SCENE || to === 0xff ? 0xff : to;
+    if (to === OPENING_ROOM || to === ENDING_ROOM) return to;
+    return to > ENDING_ROOM || to === 0xff ? 0xff : to;
   }
 
   private rowAddr(row: number): number { return SCREEN + Math.min(row & 0xff, 25) * ROW; }
@@ -360,8 +363,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     if (!scene) this.opening.gift({ draw() {} });
     this.sceneGateStep = -1;
     this.roomId = scene ? OPENING_ROOM : 0;
-    this.x2 = scene ? (SCENE_START_X + VIC_LEFT) >> 1 : 0x1c + (ROOM0_ARRIVAL.x >> 1);
-    this.y = scene ? VIC_TOP + SCENE_PATH_ROW * 8 : 0xf9 - ROOM0_ARRIVAL.y;
+    this.x2 = scene ? (SCENE_START_X + VIC_LEFT) >> 1 : ROOM0_START_X2;
+    this.y = scene ? VIC_TOP + SCENE_PATH_ROW * 8 : ROOM0_START_Y;
     drawHudFrame(this, this.score, this.hiScore, this.lives);
     this.roomExit = 1; // the main thread loads the first room
     this.freeze = 1;
@@ -987,8 +990,13 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.roomId = this.roomAfterExit();
     this.mapRow = HOME_ROW;
     this.exitCol = HOME_COL;
+    if (this.roomId === ENDING_ROOM) { // the way out of the last room: the game is won, and nothing is loaded
+      this.finished = 'ending';
+      this.roomExit = 0;
+      return;
+    }
     // (the scene and room 0 are put where Wanted puts him: out of the scene at the bottom left of room 0, back from room 0 at the right of the scene)
-    if (from === OPENING_ROOM && this.roomId === 0) { this.x2 = 0x1c + (ROOM0_ARRIVAL.x >> 1); this.y = 0xf9 - ROOM0_ARRIVAL.y; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
+    if (from === OPENING_ROOM && this.roomId === 0) { this.x2 = ROOM0_START_X2; this.y = ROOM0_START_Y; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
     if (from !== OPENING_ROOM && this.roomId === OPENING_ROOM) { this.x2 = (SCENE_RETURN_X + VIC_LEFT) >> 1; this.y = VIC_TOP + SCENE_PATH_ROW * 8; this.stepGate = 0; this.savedX = this.x2; this.savedY = this.y; }
     this.loadRoom();
     // room 16 entered low (the pit: its scene) takes him into the castle, room 17

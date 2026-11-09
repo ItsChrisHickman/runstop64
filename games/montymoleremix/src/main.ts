@@ -1,10 +1,14 @@
 import { SidPlayer, VicView, type Host } from 'c64kit';
 import sidUrl from '../../montyotr/assets/monty_on_the_run.sid?url';
+import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
+import { RewardShow } from '../../shared/ending/show';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { montyLettering } from '../../shared/monty/font';
 import { runPort } from '../../shared/port';
 import { bankImage, MUSIC } from '../../montyotr/src/data';
 import { fineScroll, topScore } from '../../montyotr/src/title';
+import { EndingScreen } from './ending-screen';
+import { endingStats, remixEnding } from './ending';
 import { OPENING_ROOM, RemixGame, START_LIVES } from './game';
 import { coalCount, hintsOf } from './hints';
 import { describeSave, noteReached, remixMap, type RemixFound } from './map';
@@ -46,19 +50,45 @@ export function run(host: Host) {
   type Mode = 'title' | 'play';
   let mode: Mode = 'title';
   let collisions = 0;
+  /** The game's own ending (the verse), while it is on: the game stands still under it. */
+  let epilogue: EndingScreen | null = null;
+  /** The reward show (ENHANCED), once the session is up. */
+  let rewardShow: RewardShow | null = null;
+  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
+  let enhanced = () => false;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<RemixSave, RemixFound, RemixGame>(host, {
     id: 'montymoleremix', font: montyLettering(bankImage), codec: CODEC, map: remixMap, describe: describeSave,
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the table, as in Monty on the Run's title. No restart keys: Monty has none)
+    // (W on the pause screen: the ending's show, once the game has been won, in ENHANCED)
+    ending: () => enhanced() && readWon('montymoleremix'),
     restartKeys: [], strip: { y: STRIP_Y },
     // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
     assists: [LIVES_ASSIST, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'count', long: 'COAL TO GATE' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
+    enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assists as the switch has them now
     g.assist = { get lives() { return fe.assist.lives === true; }, get loops() { return fe.assist.loops === true; } };
     g.graceActive = () => flow.grace.active;
+
+    // ---- the reward for winning (ENHANCED): the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    /** The show is on from the verse's end (the title is up under it, CONTINUE? after), not from W or ?ending (which end on the title). */
+    let afterWin = false;
+    const reward = rewardShow = new RewardShow({
+      host,
+      spec: remixEnding(renderer),
+      font: () => flow.getFont(),
+      // (Monty on the Run's tune, from its start, and again on the way out; nothing in the sound-effects mode)
+      music: {
+        start() { music.hold(false); if (musicOn) g.sound.song(0); },
+        end() { if (musicOn) g.sound.song(0); },
+      },
+      done() {
+        if (afterWin) { afterWin = false; latch.hold(); } else self.backToTitle();
+      },
+    });
 
     g.onRoomLoaded = (game) => {
       if (game.roomId === OPENING_ROOM) return; // (the scene is no room: nothing is noted or saved)
@@ -68,6 +98,7 @@ export function run(host: Host) {
     };
 
     function toTitle() {
+      epilogue = null;
       mode = 'title';
       latch.hold();
       title.start();
@@ -92,11 +123,15 @@ export function run(host: Host) {
     }
 
     toTitle();
+    // ?ending on the page: the show at once, for review
+    if (wantsEnding()) reward.start(endingStats(g, fe.found));
     return {
+      takeover: reward,
+      watchEnding() { afterWin = false; reward.start(endingStats(g, fe.found)); },
       state: () => g,
       phase: () => mode,
-      /** In a sequence (a death, a room's change) no. */
-      canPause: () => !g.freeze && !g.script,
+      /** In a sequence (a death, a room's change, the ending's verse) no. */
+      canPause: () => !g.freeze && !g.script && epilogue === null,
       travel(to) {
         if (!remixMap.go(to, g, fe.found)) return false;
         view.resetSmoothing();
@@ -121,10 +156,24 @@ export function run(host: Host) {
           return 'idle';
         }
         if (holding) return 'idle';
-        g.input = stick();
-        g.inputFire = g.input.fire;
+        const pad = stick();
+        if (epilogue !== null) {
+          // the game's own ending, the verse; then, in ENHANCED, the show over the title it goes back to
+          if (epilogue.frame(pad.fire) === 'done') {
+            const stats = endingStats(g, fe.found);
+            toTitle();
+            if (fe.enhanced) { afterWin = true; reward.start(stats); }
+          }
+          return 'played';
+        }
+        g.input = pad;
+        g.inputFire = pad.fire;
         g.frame(collisions);
-        if (g.finished) {
+        if (g.finished === 'ending') {
+          keepWon('montymoleremix'); // (kept apart from the saves: a new game never wipes it)
+          epilogue = new EndingScreen(g);
+          epilogue.start();
+        } else if (g.finished) {
           // the last life lost: the title, and CONTINUE? over it; the save is kept
           toTitle();
         }
@@ -157,6 +206,9 @@ export function run(host: Host) {
     touch: TOUCH,
     /** For tests: the game, the title and the front end's state. */
     get game() { return g; },
+    /** For tests: the ending's show (src/ending.ts) and the verse while it is on. */
+    get ending() { return rewardShow; },
+    get verse() { return epilogue; },
     get title() { return title; },
     get frontEnd() { return port.fe; },
     /** For tests: the moment's grace. */

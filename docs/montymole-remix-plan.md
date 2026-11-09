@@ -1,6 +1,6 @@
 # Wanted: Monty Mole Remix: the plan
 
-*Status: planned and approved by Chris ("Decided" below); stages 0-5 made (prototype, the shared Monty, the 21 rooms, the game, the passability bot, the front end: loadable at `#montymoleremix`, `listed: false` until Chris has played it); stage 6 (the scenes and the end) is still to do. Chris's corrections after stage 3 are done: the coal is Wanted's own piece, each tool is Wanted's own object, the crushers are the original's picture line for line, the creature kinds are paired by hand (see "After Chris's corrections"). Nothing of the live games changed. The faithful Spectrum rebuild (`games/montymole`, ORIGINAL there, loadable at `#montymole`) stays as it is; the remix is a game of its own, **WANTED MONTY MOLE REMIX** in the directory.*
+*Status: planned and approved by Chris ("Decided" below); stages 0-5 made (prototype, the shared Monty, the 21 rooms, the game, the passability bot, the front end: loadable at `#montymoleremix`, `listed: false` until Chris has played it); stage 6 made (the opening scene, room 16's scene, the ending's verse and the reward show; the passability bot reaches every coal, the tools and the ways on, the castle by room 15's gate and ferry among them). Chris's corrections after stage 3 are done: the coal is Wanted's own piece, each tool is Wanted's own object, the crushers are the original's picture line for line, the creature kinds are paired by hand (see "After Chris's corrections"). Nothing of the live games changed. The faithful Spectrum rebuild (`games/montymole`, ORIGINAL there, loadable at `#montymole`) stays as it is; the remix is a game of its own, **WANTED MONTY MOLE REMIX** in the directory.*
 
 Chris's brief: Wanted's 21 rooms, coal, creatures and story, played with **Monty on the Run's Monty**: his walk speed, the somersault jump, his animation, the death sequence, the controls, the sound, the smooth motion and the C64 look. A native rebuild like the others: Wanted's own data (rooms, coal, creatures' paths, gates) read from `games/montymole`, Monty and his physics from `games/montyotr`, put together in a folder of its own. Studies of both engines are in each game's `re/README.md`; this plan records only what the remix needs from them.
 
@@ -153,6 +153,15 @@ About 19 working days of an agent's time, most of it in stages 3 and 6; stages 0
 
 The game goes down the world, so the ways into room N from room N - 1 are the ways into the room: from them every piece of coal, the tool and the way on are played, and must be met from one of the two the bot takes; the ways in from the other side are met on the map only (a creature comes down a shaft that is climbed from below, with nowhere to step aside: the original does not promise them either), and a way out that is a wall in the faithful game's own map is not a goal. The result is in `QOL.md`'s companion table below.
 
+### What the bot found (2026-11-08)
+
+Four gaps were left in stage 4's table; none was a cell to edit (`fixes.ts` has no entry), all were rules:
+
+* **Room 10's coal 26** is not got from the crusher's head. The original reaches it on a picket that flies the length of the room: in Wanted anything drawn under his feet holds him, the remix held only the ferries and only on their top line, and its coal reach was the 2 x 2 cells of a coin where Wanted's is eight points of his box to the pixel (three on the row under his feet). Carriers (`kinds.ts` `carries`: the ferries and the sideways picket) hold him from the lines of their picture that start a cell row and kill by Wanted's six-point touch test, not the VIC's pixels (the wing stands up into the lines he stands on).
+* **The way into the pit** is room 15's gate (48 pieces) and its ferry, ridden to the right edge and out at the bottom, into room 16 below y `$41`: the castle. The bot has a tag for it (`LIFT`); about 600 frames.
+* **Room 17** is entered by walking now (the pit, above) and its way on is found from that arrival (632 frames); the made way in is no longer used. **Room 13's coal 38 and 39** are had from the way in at the right (from room 14: 192 and 142 frames; from the left they are not on the map, as in the original). Room 20's way out, the ending, is found from the way in (98 frames) once the room's own coal is taken: its gate, at 64 pieces, needs it.
+* The bot waits where it arrives (`PRE_WAITS`) for what has a long period.
+
 ## Tests
 
 * **Every room passable by a bot, on the new physics** (stage 4, `test/passable.ts`): a breadth-first search over the remix's own frames (the game copied at each step; creatures, crushers and floors are part of the state), the way `montyotr/test/runstop64-rooms.ts` proves its rooms and `montymole/test/bot.ts` finds its routes, from each arrival to each exit and to every piece of coal and the tool, with the gates open where their count allows; the result is a table of rooms and the fixes it needed.
@@ -183,7 +192,7 @@ The game goes down the world, so the ways into room N from room N - 1 are the wa
 4. **The gate trap is removed in both modes** (a gate opens when its count is reached, wherever he is).
 5. **Creatures: Monty on the Run's, walking Wanted's paths** (the kind table above).
 6. **The opening scene: Monty can't walk right until he has the bucket.** See "The scenes". The coal is always in the rooms.
-7. **Order**: the opening scene last (stage 6), as planned; until then a new game starts in room 0.
+7. **Order**: the opening scene last (stage 6), as planned; done (a new game now starts in the scene).
 
 ## The prototype
 

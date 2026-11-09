@@ -17,7 +17,7 @@
  */
 import { check, finish } from '../../shared/test/check';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
-import { arrive, bitOf, factsOf, faithfulCan, find, goalName, goalsOf, RoomMap, type Goal } from './bot';
+import { arrive, bitOf, factsOf, faithfulCan, find, goalName, goalsOf, RoomMap, withRoomsCoalTaken, type Goal } from './bot';
 import { ARRIVE_LEFT_X2, HOME_COL, HOME_ROW, PIT_ROOM, RemixGame } from '../src/game';
 import { newGame, type Play } from './harness';
 
@@ -47,6 +47,8 @@ const metIn = new Map<number, Set<string>>();
 const wall = new Map<number, Set<string>>();
 const open = new Map<number, Set<string>>();
 const taken = new Set<string>();
+/** the rooms whose way into the castle has been found (once is the world closed by it: the castle is entered from there) */
+const pitFound = new Set<number>();
 const ways = new Map<string, number>();
 const notes: string[] = [];
 let played = 0, met = 0, looked = 0;
@@ -79,7 +81,7 @@ for (let a = next(); a !== undefined; a = next()) {
     const spots = new Set<string>();
     let first: number | null = null;
     for (let k = 0; k < wanted; k++) {
-      const found = find(play, map, goal, goal.kind === 'exit' && chain !== room + 1 ? EXIT_BUDGET : BUDGET, goal.kind === 'exit' ? (g) => spots.has(spotOf(g)) || !roomy(g) : undefined);
+      const found = find(goal.kind === 'exit' ? withRoomsCoalTaken(play, room) : play, map, goal, goal.kind === 'exit' && chain !== room + 1 ? EXIT_BUDGET : BUDGET, goal.kind === 'exit' ? (g) => spots.has(spotOf(g)) || !roomy(g) : undefined, goal.kind !== 'exit' || chain === room + 1);
       looked += found.expanded;
       if (!('play' in found)) {
         if (k === 0) notes.push(`${where}: ${found.why === 'budget' ? `not found in ${found.expanded} states` : 'no way in the game'} (${found.deaths} deaths)`);
@@ -92,10 +94,10 @@ for (let a = next(); a !== undefined; a = next()) {
     // Only where the map has such a way at all: the search is led to it by its own tag, as the ways out are)
     if (goal.kind === 'exit' && chain === PIT_ROOM) {
       const low: Goal = { ...goal, lift: true };
-      if (map.reaches(play.g, bitOf(facts, low))) {
+      if (!pitFound.has(room) && map.reaches(play.g, bitOf(facts, low))) {
         const lifted = find(play, map, low, BUDGET, (g) => g.roomId !== PIT_ROOM + 1 || !roomy(g));
         looked += lifted.expanded;
-        if ('play' in lifted) { met++; enqueue(lifted.play, room, goal); lines.push(`${name}: the pit, ${lifted.frames} frames`); } else notes.push(`${where}: no way into the pit (room ${PIT_ROOM + 1}) in ${lifted.expanded} states`);
+        if ('play' in lifted) { pitFound.add(room); met++; enqueue(lifted.play, room, goal); lines.push(`${name}: the pit, ${lifted.frames} frames`); } else notes.push(`${where}: no way into the pit (room ${PIT_ROOM + 1}) in ${lifted.expanded} states`);
       }
     }
     lines.push(first === null ? `${name}: NOT FOUND` : `${name}: ${first} frames${spots.size > 1 ? ` (${spots.size} ways)` : ''}`);

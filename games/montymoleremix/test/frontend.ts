@@ -68,6 +68,12 @@ check(`the box shows Wanted's poster after the scores (WANTED: with its picture 
 tap('Space');
 tick(20);
 check('Space: the game, in the opening scene (no room: nothing saved)', p.state.mode === 'play' && g.roomId === OPENING_ROOM && !g.freeze && !store.has('montymoleremix.save.v2'));
+// the pause screen works in the scene (it is no room: the map shows none flashing)
+tap('KeyP');
+check('P in the scene: the pause screen, the game waiting', p.state.paused && g.roomId === OPENING_ROOM);
+shot('2-pause-in-the-scene');
+tap('KeyP');
+check('P again: back in the scene', !p.state.paused && g.roomId === OPENING_ROOM);
 // (the way out of the scene is walked in test/opening.ts: here he is sent to room 0 as the scene's way out puts him)
 g.travelTo(0, 0x1c + (0x18 >> 1), 0xf9 - 0x27);
 tick(20);

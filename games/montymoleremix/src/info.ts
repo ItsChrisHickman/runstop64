@@ -17,12 +17,12 @@ export const info = {
     <p>Controls: arrows or WASD move (up and down climb the ropes) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the title &middot;
     Enter continues a saved game from the title &middot; P or Esc pauses: the map of the 21 rooms with the coal taken; pick a room you've come to and press Enter to go to it &middot;
     M music or sound effects &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
-    <p>What it plays like: coal is what counts (the score is the coal's worth) and four gates open at 16, 32, 48 and 64 pieces; each room's tool kills the creature you touch with it, and is
+    <p>What it plays like: a game begins outside the miner's house, and the gate on the right stays shut until you have the bucket at the pot; the coal is in the rooms from the start. Coal is what counts (the score is the coal's worth) and four gates open at 16, 32, 48 and 64 pieces; each room's tool kills the creature you touch with it, and is
     lost on leaving the room or dying; crushers come down on the way and the floors draw in and out, as they did. Changes from Wanted (the
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/montymoleremix/QOL.md">full log</a>):
     Monty on the Run's Monty and creatures &middot; five lives &middot; a gate opens when its count is reached wherever you are (in Wanted taking the piece elsewhere shut it for good) &middot;
     pause screen with a map, travel, and back to the room's start &middot; autosave on every room and Continue after the last life &middot; a moment's grace after each of those &middot;
-    ENHANCED (switch to ORIGINAL on the title or the pause screen): unlimited lives and continues, a death never starts Monty again into the same death, the count of coal to the next gate, and sparkles on the tool.</p>
+    ENHANCED (switch to ORIGINAL on the title or the pause screen): unlimited lives and continues, a death never starts Monty again into the same death, the count of coal to the next gate, and sparkles on the tool; and the show after the ending's verse (also W on the pause screen once you have won).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; music from the <a href="https://www.hvsc.c64.org/">High Voltage SID Collection</a></p>
   `,
 };

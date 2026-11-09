@@ -21,7 +21,7 @@ import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { cellRow, coalCells, wantedMonty } from '../src/coords';
 import { GATE } from '../src/opening-scene';
 import { HOME_COL, HOME_ROW, OPENING_ROOM, PIT_ROOM, PIT_Y, RemixGame } from '../src/game';
-import { STILL_THERE } from '../../montymole/src/coal-rules';
+import { COAL_TOTAL, STILL_THERE } from '../../montymole/src/coal-rules';
 import { portsFor } from '../../montymole/src/controls';
 import { Game as Faithful } from '../../montymole/src/game';
 import { Flag } from '../../montymole/src/monty';
@@ -78,7 +78,7 @@ function runMove(r: Runner, m: Move): number {
 const TOOL_BIT = 5, EXIT_BIT = 6;
 /** The way out into room 16 low enough to be lifted into the castle (the pit): a tag of its own, so that the map leads to it and not to the room's other ways out. */
 const LIFT_BIT = 10;
-const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
+export const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
 export type Direction = (typeof DIRECTIONS)[number];
 const TOOL_REACH = 12;
 
@@ -428,8 +428,8 @@ export function bitOf(facts: RoomFacts, goal: Goal): number {
 class Running implements Runner {
   loads: number;
   readonly lives: number;
-  constructor(readonly p: Play) { this.loads = p.g.roomLoads; this.lives = p.g.lives; }
-  frame(stick: MontyInput): void { step(this.p, stick); }
+  constructor(readonly p: Play, private readonly onStick?: (stick: MontyInput) => void) { this.loads = p.g.roomLoads; this.lives = p.g.lives; }
+  frame(stick: MontyInput): void { this.onStick?.(stick); step(this.p, stick); }
   airborne(): boolean { return this.p.g.falling !== 0 || this.p.g.montyAction !== 0; }
   scene(): boolean { return this.p.g.script !== null && this.p.g.roomLoads !== this.loads && this.p.g.actionCounter === 0; }
   halted(): boolean { return this.p.g.actionCounter !== 0 || this.p.g.roomLoads !== this.loads || this.p.g.lives < this.lives || this.p.g.finished !== null; }
@@ -447,10 +447,15 @@ function playKey(g: RemixGame): string {
   return [g.x2 * 2 + g.stepGate, g.y, g.montyAction, g.falling, g.arcIdx, g.savedLeft ? 1 : 0, g.savedRight ? 1 : 0, g.onRope, worldKey(g)].join(',');
 }
 
+/** A step of a way: a move, or a wait of this many frames where he came in (`PRE_WAITS`). */
+export type Step = Move | number;
+
 export interface Found {
   /** the frames of the way, how many states were looked at */
   readonly frames: number;
   readonly expanded: number;
+  /** the way itself: what to do from where the search began (`sticksOf` turns it into the stick of every frame) */
+  readonly steps: readonly Step[];
   /** the game just after the goal was met (for a way out: in the next room, as he is put there) */
   readonly play: Play;
 }
@@ -503,6 +508,29 @@ function viable(p: Play): boolean {
   return false;
 }
 
+/** How a state of a search was come to: the move that made it, and the state before. */
+interface Via { readonly step: Move; readonly prev: Via | null }
+
+/** The moves of a way, from the start. */
+function stepsOf(via: Via | null): Move[] {
+  const out: Move[] = [];
+  for (let v = via; v !== null; v = v.prev) out.push(v.step);
+  return out.reverse();
+}
+
+/** The stick of every frame of a way from `start` (a wait is frames of nothing pressed): replayed on a copy, as the search played it. */
+export function sticksOf(start: Play, steps: readonly Step[]): MontyInput[] {
+  const sticks: MontyInput[] = [];
+  const p = clone(start);
+  const run = new Running(p, (stick) => { sticks.push({ ...stick }); });
+  for (const s of steps) {
+    if (typeof s === 'number') for (let i = 0; i < s && !run.halted(); i++) run.frame(NONE);
+    else runMove(run, s);
+  }
+  release(p);
+  return sticks;
+}
+
 /** A* over copies of the game from `start`, by frames so far plus the map's distance (0 where the map does not know the state). */
 export function search(start: Play, graph: RoomMap, goal: Goal, budget = 40000, frameCap = 4000, refuse?: Refuse): Found | Failed {
   // (greedy first: a way is a way; where it is led into a dead end, less greedy, then the shortest in frames)
@@ -521,17 +549,17 @@ export function search(start: Play, graph: RoomMap, goal: Goal, budget = 40000, 
 
 /** One A* over copies of the game, the map's distance counting `weight` times. */
 function searchWith(start: Play, graph: RoomMap, goal: Goal, budget: number, frameCap: number, weight: number, refuse?: Refuse): Found | Failed {
-  const stays = (p: Play): boolean => goal.kind !== 'exit' || ((refuse === undefined || !refuse(p.g)) && viable(p));
+  const stays = (p: Play): boolean => goal.kind !== 'exit' || p.g.finished === 'ending' || ((refuse === undefined || !refuse(p.g)) && viable(p)); // (the ending is somewhere to be: the game is won)
   const facts = graph.facts;
   const bit = bitOf(facts, goal);
   /** The map's distance, or where the map does not know the state (on the crusher, say) as far as where it came from, and a little more. */
   const h = (g: RemixGame, from: number): number => (bit < 0 ? 0 : graph.from(g, bit) ?? from + UNKNOWN);
   const loads = start.g.roomLoads;
-  const heap = new Heap<{ p: Play; frames: number; h: number }>();
+  const heap = new Heap<{ p: Play; frames: number; h: number; via: Via | null }>();
   const seen = new Set<string>();
   const first = clone(start);
   const h0 = h(first.g, 0);
-  heap.push(weight * h0 * 4096, { p: first, frames: 0, h: h0 });
+  heap.push(weight * h0 * 4096, { p: first, frames: 0, h: h0, via: null });
   seen.add(playKey(first.g));
   let expanded = 0, deaths = 0, nearest = Infinity, rejected = 0;
   for (let top = heap.pop(); top !== undefined; top = heap.pop()) {
@@ -542,13 +570,13 @@ function searchWith(start: Play, graph: RoomMap, goal: Goal, budget: number, fra
       const run = new Running(next);
       const frames = runMove(run, m);
       const g = next.g;
-      if (g.actionCounter !== 0 || g.lives < run.lives || g.finished !== null) {
+      if (g.actionCounter !== 0 || g.lives < run.lives || g.finished === 'gameover') { // (the ending is no death: it is the way out of the last room)
         deaths++;
         release(next);
         continue;
       }
       if (met(g, goal, loads)) {
-        if (stays(next)) return { frames: top.v.frames + frames, expanded, play: next };
+        if (stays(next)) return { frames: top.v.frames + frames, expanded, play: next, steps: [...stepsOf(top.v.via), m] };
         rejected++;
         release(next);
         continue;
@@ -560,7 +588,7 @@ function searchWith(start: Play, graph: RoomMap, goal: Goal, budget: number, fra
       const key = playKey(g);
       if (seen.has(key)) { release(next); continue; }
       seen.add(key);
-      heap.push((total + weight * here) * 4096 - total, { p: next, frames: total, h: here }); // (of equal worth, the deeper first)
+      heap.push((total + weight * here) * 4096 - total, { p: next, frames: total, h: here, via: { step: m, prev: top.v.via } }); // (of equal worth, the deeper first)
     }
     release(top.v.p);
   }
@@ -587,21 +615,22 @@ function searchWaiting(start: Play, graph: RoomMap, goal: Goal, budget = 40000, 
     if (run.halted()) { release(p); break; }
     const r = search(p, graph, goal, Math.floor(budget / PRE_WAITS.length), undefined, refuse);
     spent += r.expanded;
-    if ('play' in r) return { ...r, frames: r.frames + wait, expanded: spent };
+    if ('play' in r) return { ...r, frames: r.frames + wait, expanded: spent, steps: [wait, ...r.steps] };
     deaths += r.deaths; rejected += r.rejected; nearest = Math.min(nearest, r.nearest);
     release(p);
   }
   return { expanded: spent, why: plain.why, deaths, nearest, rejected };
 }
 
-/** `searchWaiting`, and where the plain way does not come to the goal, by the room's tool first (it lets one touch of a creature kill the creature, so it opens the way past a guard). */
-export function find(start: Play, map: RoomMap, goal: Goal, budget?: number, refuse?: Refuse): Found | Failed {
-  const plain = searchWaiting(start, map, goal, budget, refuse);
+/** `searchWaiting` (or the plain `search`, where `waits` is off: the ways back are not worth the waiting), and where the plain way does not come to the goal, by the room's tool first (it lets one touch of a creature kill the creature, so it opens the way past a guard). */
+export function find(start: Play, map: RoomMap, goal: Goal, budget?: number, refuse?: Refuse, waits = true): Found | Failed {
+  const seek = (from: Play): Found | Failed => (waits ? searchWaiting(from, map, goal, budget, refuse) : search(from, map, goal, budget, undefined, refuse));
+  const plain = seek(start);
   if ('play' in plain || map.facts.tool === null || goal.kind === 'tool') return plain;
   const tool = search(start, map, { kind: 'tool' }, budget);
   if (!('play' in tool)) return plain;
-  const then = searchWaiting(tool.play, map, goal, budget, refuse);
-  return 'play' in then ? { ...then, frames: then.frames + tool.frames, expanded: plain.expanded + tool.expanded + then.expanded } : then;
+  const then = seek(tool.play);
+  return 'play' in then ? { ...then, frames: then.frames + tool.frames, expanded: plain.expanded + tool.expanded + then.expanded, steps: [...tool.steps, ...then.steps] } : then;
 }
 
 // ---- the rooms, one after another --------------------------------------------------------------------------------------------
@@ -616,6 +645,21 @@ export function normaliseCoal(g: RemixGame, room: number): void {
 export function arrive(p: Play, room: number): Play {
   const q = clone(p);
   normaliseCoal(q.g, room);
+  q.g.roomId = room;
+  q.g.loadRoom();
+  return q;
+}
+
+/**
+ * The game as it is, with every piece of coal of its room taken too, the room loaded again for it: where a gate of the room needs the room's own coal to open
+ * (room 20's, at 64 pieces: the ending is the way out of it), the way on is looked for from there, as a player goes on once he has the coal.
+ */
+export function withRoomsCoalTaken(p: Play, room: number): Play {
+  const own = new Set((ROOMS[room]?.coal ?? []).map((k) => k.id));
+  const needed = GATES.some((gate) => gate.room === room && gate.count > COAL_TOTAL - own.size);
+  if (!needed) return p;
+  const q = clone(p);
+  q.g.coal.flags.forEach((f, id) => { q.g.coal.flags[id] = f & ~STILL_THERE; });
   q.g.roomId = room;
   q.g.loadRoom();
   return q;
