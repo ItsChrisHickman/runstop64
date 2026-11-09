@@ -114,6 +114,12 @@ export const remixMap = {
     if (!font) return;
     const room = pick !== null && pick !== undefined ? Number(pick) : here;
     const y = box.y + TOP + 8 * PITCH_Y + 4;
+    // (the opening scene is no room of the 21: it has the gate, and no coal)
+    if (room >= ROOM_COUNT) {
+      font.draw(s, 'THE OPENING SCENE', box.x, y, COL.white);
+      font.draw(s, g.bucketTaken ? 'THE GATE IS OPEN' : 'THE GATE IS SHUT', box.x, y + 10, COL.lgrey);
+      return;
+    }
     font.draw(s, `ROOM ${room + 1}`, box.x, y, COL.white);
     const line = standing(g, f, room);
     font.draw(s, line.text, box.x, y + 10, line.colour);
