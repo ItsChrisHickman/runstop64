@@ -55,8 +55,8 @@ export const GAMES: readonly RegisteredGame[] = [
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
   { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 193, load: () => import('./montymole/src/main'), listed: false },
-  // Wanted's 21 rooms played as Monty on the Run plays (docs/montymole-remix-plan.md): loadable at #montymoleremix, not in the directory until Chris has played it. 23 letters fit the 40 columns (17 is the longest so far).
-  { id: 'montymoleremix', name: 'WANTED MONTY MOLE REMIX', blocks: 193, load: () => import('./montymoleremix/src/main'), listed: false },
+  // Wanted's 21 rooms played as Monty on the Run plays (docs/montymole-remix-plan.md). 23 letters fit the 40 columns.
+  { id: 'montymoleremix', name: 'WANTED MONTY MOLE REMIX', blocks: 193, load: () => import('./montymoleremix/src/main') },
   { id: 'moley', name: 'MOLEY CHRISTMAS', blocks: 162, load: () => import('./moley/src/main') },
   { id: 'thingonaspring', name: 'THING ON A SPRING', blocks: 187, load: () => import('./thingonaspring/src/main') },
   { id: 'karnath', name: 'STAFF OF KARNATH', blocks: 117, load: () => import('./karnath/src/main') },

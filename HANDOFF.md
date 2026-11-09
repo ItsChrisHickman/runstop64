@@ -5,7 +5,7 @@ state of things and what is waiting on Chris. Last updated 2026-10-26, after the
 
 ## State
 
-All twelve games are built and checked, eleven of them in the directory (Wanted: Monty Mole was taken off on 2026-11-07: Chris found the 1984 game itself poor; it still loads at `#montymole`, and `listed: false` in `games/registry.ts` is the one switch), and the project is near finished. What is left is Chris playing it and the few
+All thirteen games are built and checked, twelve of them in the directory (Wanted: Monty Mole was taken off on 2026-11-07: Chris found the 1984 game itself poor; it still loads at `#montymole`, and `listed: false` in `games/registry.ts` is the one switch. Its remake, Wanted: Monty Mole Remix, is listed since 2026-11-08), and the project is near finished. What is left is Chris playing it and the few
 open questions below; nothing big is under construction.
 
 - **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
