@@ -53,6 +53,7 @@ export const TESTS = [
   // ---- Auf Wiedersehen Monty (its originals are gitignored: games/awm/build/README.md)
   { file: 'games/awm/test/frontend.ts', set: 'fast' },
   { file: 'games/awm/test/carry.ts', set: 'fast' }, // ENHANCED carry anything and jump-boards-a-plane (SPACE: FLY): ORIGINAL refuses a fifth, tickets counted and spent, wanted things from the pack, saves (format 4, 3 migrated), the CARRYING page
+  { file: 'games/awm/test/hop.ts', set: 'fast' }, // ENHANCED quick plane hop: boarding is a ~200 frame cutscene in the flight's sky (his plane left to right, no other plane, input ignored), landing as a completed flight does; ORIGINAL keeps the full flight
   { file: 'games/awm/test/hints.ts', set: 'fast' }, // ENHANCED item hints on the panel: FOR <room> on picking up, WANTED HERE: <picture> on coming in, DELIVERED: +n on a handover; four seconds, then the count or prompt; ORIGINAL silent
   { file: 'games/awm/test/reward.ts', set: 'slow' },
   { file: 'games/awm/test/kills.ts', set: 'fast' }, // enemies hurt him in every way he comes to be in play (and the shield, the original's, is why they might not)

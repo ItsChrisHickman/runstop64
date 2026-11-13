@@ -152,6 +152,8 @@ export class Game implements MontyHost {
    * and a ticket is never taken in a room with no flight (the C key and FLY work as ever).
    */
   jumpBoards: () => boolean = () => false;
+  /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
+  quickHop: () => boolean = () => false;
   /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
   hints: () => boolean = () => false;
   onHint: ((hint: Hint) => void) | null = null;
@@ -386,7 +388,7 @@ export class Game implements MontyHost {
       effect: (n) => this.sound.effect(n),
       silence: (voice) => this.sound.silence(voice),
       kill: (points) => this.score.add(points),
-    }, play);
+    }, play, this.quickHop());
   }
 
   /**

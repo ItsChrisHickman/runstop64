@@ -79,6 +79,8 @@ export class Program {
   unlimitedCarry: () => boolean = () => false;
   /** ENHANCED's jump boards a plane (game.ts `jumpBoards`), and whether the player is on a touch screen (the panel's wording). */
   jumpBoards: () => boolean = () => false;
+  /** ENHANCED's quick hop (game.ts `quickHop`). */
+  quickHop: () => boolean = () => false;
   /** ENHANCED's item hints (game.ts `hints`). */
   hints: () => boolean = () => false;
   touch: () => boolean = () => false;
@@ -98,6 +100,11 @@ export class Program {
   /** He is on a flight: the picture is the sky, and the logic step he boarded in waits for him to come down. */
   get flying(): boolean {
     return this.part.kind === 'play' && this.part.flight !== null;
+  }
+
+  /** He is on ENHANCED's quick hop (a cutscene: the controls are ignored, so the front end holds any press until it is let go). */
+  get hopping(): boolean {
+    return this.part.kind === 'play' && this.part.flight !== null && this.part.flight.hop;
   }
 
   /** The title's choice of sound effects (F7) over music (F1). */
@@ -203,6 +210,7 @@ export class Program {
     game.unlimitedCarry = () => this.unlimitedCarry();
     game.jumpBoards = () => this.jumpBoards();
     game.hints = () => this.hints();
+    game.quickHop = () => this.quickHop();
     const picture = new Picture(game, carry, this.high);
     picture.touch = () => this.touch();
     return picture;
@@ -289,7 +297,8 @@ export class Program {
       this.viewStep = { fresh: true, frames: 2 };
       return this.finishLogic(part);
     }
-    flight.step(game.scramble(decodeStick(controls.stick)));
+    // (the quick hop reads no controls, and a bonus's scrambling is not counted down by it)
+    flight.step(flight.hop ? 0 : game.scramble(decodeStick(controls.stick)));
     this.capture = picture.flightCapture(flight);
   }
 

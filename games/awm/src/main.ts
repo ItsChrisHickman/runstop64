@@ -87,7 +87,7 @@ export function run(host: Host) {
     id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
-    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }, { id: 'carry', long: 'CARRY ANYTHING' }, { id: 'board', long: 'JUMP BOARDS A PLANE' }, { id: 'hints', long: 'ITEM HINTS' }],
+    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }, { id: 'carry', long: 'CARRY ANYTHING' }, { id: 'board', long: 'JUMP BOARDS A PLANE' }, { id: 'hop', long: 'QUICK PLANE HOP' }, { id: 'hints', long: 'ITEM HINTS' }],
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('awm'),
   }, (self) => {
@@ -100,6 +100,7 @@ export function run(host: Host) {
     program.unlimitedCarry = () => fe.assist.carry === true;
     program.jumpBoards = () => fe.assist.board === true;
     program.hints = () => fe.assist.hints === true;
+    program.quickHop = () => fe.assist.hop === true;
     program.touch = () => input.touch;
     program.graceActive = () => flow.grace.active;
 
@@ -180,6 +181,8 @@ export function run(host: Host) {
           result = 'played';
           // a jump that boarded a plane is spent: it neither jumps after landing nor fires in the sky
           if (program.takeSpentJump()) latch.hold();
+          // a key or tap in the cutscene is spent too: it does not jump, or fire, on landing
+          if (program.hopping) latch.hold();
         }
         for (const call of program.takeSound()) play(call);
         // a game has begun from the title / a room has been entered / the game has ended (GAME OVER, the title again)

@@ -76,6 +76,16 @@ const ENEMY_PICTURE = 0x66;
 const EXPLOSION_PICTURE = 0x6e;
 const PLAYER_PICTURE = 0x60;
 
+// ---- the quick hop (ENHANCED) ---------------------------------------------------------------------------------------------
+
+/** ENHANCED's quick hop: his plane crosses the sky from the left edge to the right edge in this many frames (four seconds). */
+export const HOP_FRAMES = 200;
+/** The sprite x (the VIC's, 0-503) his plane starts at (its right half shows at the screen's left edge) and ends at (clear of the right edge: 24 + 320). */
+const HOP_FROM = 0;
+const HOP_TO = 24 + 320;
+/** The height his plane flies at (the game's own value for it at the start of a game). */
+const HOP_HEIGHT = 0x50;
+
 // ---- the numbers of the game ------------------------------------------------------------------------------------------------
 
 /** $7862: what his plane can take, in frames of the other's nose at its tail. */
@@ -251,8 +261,11 @@ export class Flight {
   /** The sky's rows as the VIC has them at their lines. */
   private rows = new Uint8Array(COLS * SKY_ROWS);
 
-  /** `play` is the 16K of the play screen's bank (the panel's characters stay as they are). */
-  constructor(private readonly memory: SkyState, private readonly host: FlightHost, play: Uint8Array) {
+  /**
+   * `play` is the 16K of the play screen's bank (the panel's characters stay as they are). `hop` makes it ENHANCED's quick hop: the
+   * same sky and his plane, crossing it by itself in `HOP_FRAMES`; no other plane, no shooting, no way down but the landing.
+   */
+  constructor(private readonly memory: SkyState, private readonly host: FlightHost, play: Uint8Array, readonly hop = false) {
     this.ram.set(play.subarray(0, 0x4000));
     this.ram.set(DATA, DATA_AT);
     // ($8111: the sky's map copied to the screen)
@@ -290,7 +303,8 @@ export class Flight {
     this.stage3();
     this.stage4();
     this.stage5();
-    this.stage6(controls);
+    if (this.hop) this.stageHop();
+    else this.stage6(controls);
     this.frames++;
   }
 
@@ -327,9 +341,16 @@ export class Flight {
       }
     }
     // his plane
-    first.x[2] = ((m.player[0] ?? 0) + X_OFFSET) & 0xff;
-    first.x[3] = ((m.player[0] ?? 0) + X_OFFSET + 0x18) & 0xff;
-    first.y[2] = first.y[3] = ((m.player[1] ?? 0) + Y_OFFSET) & 0xff;
+    if (this.hop) {
+      const x = HOP_FROM + Math.floor(((HOP_TO - HOP_FROM) * this.frames) / (HOP_FRAMES - 1));
+      first.x[2] = x;
+      first.x[3] = x + 0x18;
+      first.y[2] = first.y[3] = HOP_HEIGHT + Y_OFFSET;
+    } else {
+      first.x[2] = ((m.player[0] ?? 0) + X_OFFSET) & 0xff;
+      first.x[3] = ((m.player[0] ?? 0) + X_OFFSET + 0x18) & 0xff;
+      first.y[2] = first.y[3] = ((m.player[1] ?? 0) + Y_OFFSET) & 0xff;
+    }
     // and his plane's picture, as it leans, every fourth frame
     m.tick = (m.tick - 1) & 0xff;
     if (m.tick === 0) {
@@ -427,6 +448,11 @@ export class Flight {
   }
 
   // ---- stage 6: the game ($7E25) ---------------------------------------------------------------------------------------------
+
+  /** The quick hop's stage 6: nothing is read and nothing touches; the last frame is the one that sets `over`. */
+  private stageHop(): void {
+    if (this.frames >= HOP_FRAMES - 1) this.over = true;
+  }
 
   private stage6(controls: number): void {
     this.steer(controls);
@@ -596,7 +622,8 @@ export class Flight {
   /** The sprites as the VIC starts them down the frame: each at the line its y says, with the registers as the stage before it left them. */
   private sprites(): FrameCapture['sprites'] {
     const starts: { n: number; y: number; set: Placing }[] = [];
-    for (let n = 0; n < 8; n++) starts.push({ n, y: this.first.y[n] ?? 0, set: this.first });
+    // (the quick hop has no other plane: its sprites, 4 and 5, are not shown)
+    for (let n = 0; n < 8; n++) if (!(this.hop && (n === 4 || n === 5))) starts.push({ n, y: this.first.y[n] ?? 0, set: this.first });
     for (const n of CLOUD_SPRITES) {
       // (a sprite is started again only when it has finished: the lower place is far enough down for all four)
       if ((this.lower.y[n] ?? 0) >= (this.first.y[n] ?? 0) + SPRITE_HEIGHT) starts.push({ n, y: this.lower.y[n] ?? 0, set: this.lower });

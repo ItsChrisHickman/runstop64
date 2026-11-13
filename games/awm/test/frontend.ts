@@ -294,8 +294,11 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
 }
 
-// ---- a flight: the key (or a tap on FLY), a ticket, a plane -----------------------------------------------------------------
+// ---- a flight: the key (or a tap on FLY), a ticket, a plane (ORIGINAL's: ENHANCED's is a quick hop, test/hop.ts) ----------------
 {
+  const wasEnhanced = p.frontEnd.enhanced;
+  if (wasEnhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
+  check('the flight is flown in ORIGINAL', !p.frontEnd.enhanced);
   const g = game();
   p.grace.clear();
   g.lives = 0x8c;
@@ -332,6 +335,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   else check('he comes down in room 1, at its plane', g.world.room === 1 && game().monty.x === planeAt(1)?.x && game().monty.y === planeAt(1)?.y);
   const saved2 = must(unpackSlot(CODEC, must(readSaves('awm').current, 'no save')), 'no save');
   check('the autosave keeps what the flight left in the machine (the clouds, the planes)', JSON.stringify(saved2.flight) === JSON.stringify(g.sky) || crashed);
+  if (wasEnhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
 }
 
 // ---- an item taken at his way in: drawn first, then taken, so its colour stays; the way out grows with the progress -------------------
