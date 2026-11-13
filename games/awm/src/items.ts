@@ -287,5 +287,6 @@ export class Items {
     this.slotType[slot] = 0;
     this.collect(g, slot, cell);
     this.add(type, slot);
+    g.taken(type);
   }
 }

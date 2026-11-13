@@ -1,27 +1,24 @@
 import type { BitmapFont, Surface } from 'c64kit';
 import { drawCarrying, pageCount } from '../../shared/carrying';
 import { COL, type Box } from '../../shared/native/pause';
-import { DELIVERIES, type Game } from './game';
+import type { Game } from './game';
 import { coloursOfType, TICKET, type Carried } from './items';
 import { itemGlyphs } from './panel';
 import { COLOUR_OF } from './room';
+import { wantFor } from './wants';
 
 /**
  * The CARRYING page of the pause screen (a page beside the map, ENHANCED's carry anything: `Items.list`): everything Monty
  * carries, the latest picked up first, each with its picture as the boxes draw it, and what it is for, read from the game's own
- * rules (the four deliveries, the two rooms that ask for something, the plane tickets). Text in colours over the black screen.
+ * rules (the four deliveries, the rooms and creatures that ask for something: `wants.ts`, the plane tickets). Text in colours over the black screen.
  */
-
-/** Rooms that ask for a thing, apart from the deliveries (`Game`: room 5 wants $0A, room $1B wants 5). */
-const ASKED: readonly { readonly type: number; readonly room: number }[] = [{ type: 0x0a, room: 5 }, { type: 5, room: 0x1b }];
 
 /** What a thing is for, two lines of 22 letters at most, and the colour of the first. */
 export function describe(c: Carried, roomName: (room: number) => string): { first: string; second: string; ink: number } {
   if (c.type === TICKET) return { first: c.count > 1 ? `AIR TICKETS X${c.count}` : 'AIR TICKET', second: 'ONE FLIGHT EACH', ink: COL.cyan };
-  const delivery = DELIVERIES.find((d) => d.type === c.type);
-  if (delivery) return { first: 'A DELIVERY', second: `TO ${roomName(delivery.room)}`.slice(0, 22), ink: COL.yellow };
-  const asked = ASKED.find((a) => a.type === c.type);
-  if (asked) return { first: 'WANTED IN', second: roomName(asked.room).slice(0, 22), ink: COL.lgreen };
+  const want = wantFor(c.type);
+  if (want?.kind === 'delivery') return { first: 'A DELIVERY', second: `TO ${roomName(want.room)}`.slice(0, 22), ink: COL.yellow };
+  if (want) return { first: 'WANTED IN', second: roomName(want.room).slice(0, 22), ink: COL.lgreen };
   return { first: 'A THING TO HAND OVER', second: 'WHEN SOMEONE ASKS', ink: COL.lgreen };
 }
 

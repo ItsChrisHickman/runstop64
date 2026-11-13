@@ -15,6 +15,7 @@ import { Digits } from './digits';
 import { type AnimClock, Enemies, HIDDEN, isPlane, PLANE_FRAMES } from './enemies';
 import { copySky, destination, FRESH_SKY, Flight, type SkyState } from './flight';
 import { Dir } from './input';
+import type { Hint } from './hints';
 import { Items, TICKET } from './items';
 import { Lift } from './lifts';
 import { type Counters, Monty, type MontyHost } from './monty';
@@ -22,6 +23,7 @@ import { Random } from './rng';
 import { TITLE_ROOM, tuneForRoom } from './sound';
 import { SoundLog } from './soundlog';
 import { State } from './tiles';
+import { DELIVERIES, type Delivery, paid, wantFor, wantIn } from './wants';
 import { World } from './world';
 
 /** A new game's lives byte ($4061): bit 7 set while playing, the rest the lives left. */
@@ -50,21 +52,7 @@ export interface Entry {
   readonly step: number;
 }
 
-/** A delivery: the room that wants an item, what it pays and how it counts. */
-export interface Delivery {
-  readonly room: number;
-  readonly type: number;
-  /** `[amount, times]` added to the money. */
-  readonly pay: readonly [number, number];
-}
-
-/** $55BF-$5618: the four rooms where handing over the right item pays out. */
-export const DELIVERIES: readonly Delivery[] = [
-  { room: 0x16, type: 0x0b, pay: [0x12, 1] },
-  { room: 0x2c, type: 0x0c, pay: [0xfa, 4] },
-  { room: 0x3e, type: 0x07, pay: [0xfa, 3] },
-  { room: 0x0b, type: 0x04, pay: [0x64, 3] },
-];
+export { DELIVERIES, type Delivery };
 
 /**
  * $4ACA, one step of the walk-in (state $11): he faces right, walks right, back left, then stands; the title's two
@@ -164,6 +152,9 @@ export class Game implements MontyHost {
    * and a ticket is never taken in a room with no flight (the C key and FLY work as ever).
    */
   jumpBoards: () => boolean = () => false;
+  /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
+  hints: () => boolean = () => false;
+  onHint: ((hint: Hint) => void) | null = null;
   /** The jump that boarded is spent (the front end holds it until it is let go): told once, by `takeSpentJump`. */
   private spentJump = false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
@@ -245,7 +236,8 @@ export class Game implements MontyHost {
       this.progress = (this.progress + 1) & 0xff;
       for (let i = 0; i < delivery.pay[1]; i++) this.money.add(delivery.pay[0]);
       this.sound.effect(0x4a);
-    }
+      this.tell({ kind: 'delivered', pay: paid(delivery.pay) });
+    } else this.askedHere(room);
     this.load(room);
     this.onRoom?.();
   }
@@ -522,17 +514,21 @@ export class Game implements MontyHost {
         e.setKind(slot, 0);
         this.items.give(0x13);
         this.progress = (this.progress + 1) & 0xff;
+        this.tell({ kind: 'delivered', pay: 100 * 0x43 });
+        this.taken(0x13);
         return this.pay(0x43);
       }
       if (frame >= 0x55 && frame < 0x58) {
         if (!this.items.take(0x13)) continue;
         this.progress = (this.progress + 1) & 0xff;
+        this.tell({ kind: 'delivered', pay: 600 });
         return this.pay(6);
       }
       if (frame === 0x1c) {
         if (this.items.take(3)) {
           this.helped = (this.helped + 1) & 0xff;
           this.progress = (this.progress + 1) & 0xff;
+          this.tell({ kind: 'delivered', pay: 100 * 0x37 });
           return this.pay(0x37);
         }
         if (this.helped === 0) m.state = State.Forced;
@@ -540,6 +536,23 @@ export class Game implements MontyHost {
       }
       return this.hurt();
     }
+  }
+
+  /** ENHANCED's hints: something happened that the panel says. */
+  private tell(hint: Hint): void {
+    if (this.hints()) this.onHint?.(hint);
+  }
+
+  /** A thing was picked up (or given): if a room or a creature wants it, the panel says where it goes. */
+  taken(type: number): void {
+    const want = wantFor(type);
+    if (want) this.tell({ kind: 'for', room: want.room });
+  }
+
+  /** He has come into a room that wants a thing he is not carrying, and has not handed it over yet. */
+  private askedHere(room: number): void {
+    const want = wantIn(room);
+    if (want && !want.done(this) && !this.items.has(want.type)) this.tell({ kind: 'wanted', type: want.type });
   }
 
   /** $5DF7: 100 a time into the money. */
@@ -557,7 +570,10 @@ export class Game implements MontyHost {
     const m = this.monty, room = this.world.room;
     if (room === 0x1b) {
       if (!this.contact80) return;
-      if (this.items.take(5)) this.quest = (this.quest + 1) & 0xff;
+      if (this.items.take(5)) {
+        this.quest = (this.quest + 1) & 0xff;
+        this.tell({ kind: 'delivered', pay: 0 });
+      }
       m.state = State.Pushed;
       this.enemies.setFrame(3, HIDDEN);
       m.x = this.enemies.x(3);

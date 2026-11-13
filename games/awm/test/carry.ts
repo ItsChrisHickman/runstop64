@@ -311,6 +311,9 @@ tick(60);
   g.placeAt({ room: 0, x: 0x10, y: 0x68, state: State.Free, step: 0 });
   tick(6);
   const letters = (r: number, c: number, n: number) => rowCodes(r, c, n).map((x) => String.fromCharCode((x - 0x60) & 0x7f)).join('');
+  // (the last thing picked up says where it goes, for four seconds, over the count: test/hints.ts)
+  check(`the panel first says where the last thing picked up goes (${letters(24, 12, 16)})`, letters(24, 12, 16).trim() === 'FOR PRAHA');
+  tick(220);
   check(`the panel counts the tickets in the game's lettering (${letters(24, 12, 16)})`, letters(24, 12, 16).trim() === 'AIR TICKETS X3');
   check(`the boxes show the last four picked up (${picture().hands.map((h) => h?.type)})`, picture().hands.map((h) => h?.type).join() === '11,4,5,7');
   shot('panel-tickets');

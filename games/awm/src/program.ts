@@ -79,6 +79,8 @@ export class Program {
   unlimitedCarry: () => boolean = () => false;
   /** ENHANCED's jump boards a plane (game.ts `jumpBoards`), and whether the player is on a touch screen (the panel's wording). */
   jumpBoards: () => boolean = () => false;
+  /** ENHANCED's item hints (game.ts `hints`). */
+  hints: () => boolean = () => false;
   touch: () => boolean = () => false;
 
   constructor() {
@@ -200,6 +202,7 @@ export class Program {
     game.unlimitedLives = () => this.unlimitedLives();
     game.unlimitedCarry = () => this.unlimitedCarry();
     game.jumpBoards = () => this.jumpBoards();
+    game.hints = () => this.hints();
     const picture = new Picture(game, carry, this.high);
     picture.touch = () => this.touch();
     return picture;

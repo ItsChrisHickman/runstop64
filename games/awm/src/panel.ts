@@ -10,6 +10,7 @@
 import { hexBytes } from 'c64kit';
 import { BANNERS, HUD_BAR, HUD_HIGH, HUD_MONEY, HUD_SCORE, PROGRESS_HEX } from './data/awm-data';
 import { TABLES } from './data';
+import { coloursOfType } from './items';
 import { COLOUR_OF } from './room';
 import { CHARSET_AT, SCREEN_COLS, type Screen } from './screen';
 
@@ -25,7 +26,7 @@ const COL_BANNER = 4;
 const COL_BANNER_END = 36;
 
 /** Colour RAM values the panel uses. */
-const Colour = { White: 1, Green: 5, Cyan: 3, Yellow: 7 } as const;
+export const Colour = { White: 1, Green: 5, Cyan: 3, Yellow: 7 } as const;
 
 /** $651F: a text at a cell, in a colour: one cell a character, the screen code the ASCII + $60. */
 export function printText(screen: Screen, text: string, col: number, row: number, colour: number): void {
@@ -148,13 +149,7 @@ export function itemGlyphs(type: number): Uint8Array {
 export function drawBox(screen: Screen, box: number, type: number, colours: ArrayLike<number>): void {
   const at = BOXES[box];
   if (!at) throw new Error(`no box ${box}`);
-  const [col, row] = at;
-  const c = BOX_CHARS + 4 * box;
-  screen.put(col, row, c, COLOUR_OF[(colours[0] ?? 0) & 7]);
-  screen.put(col + 1, row, c + 2, COLOUR_OF[(colours[2] ?? 0) & 7]);
-  screen.put(col, row + 1, c + 1, COLOUR_OF[(colours[1] ?? 0) & 7]);
-  screen.put(col + 1, row + 1, c + 3, COLOUR_OF[(colours[3] ?? 0) & 7]);
-  screen.ram.set(itemGlyphs(type), CHARSET_AT + c * 8);
+  putItem(screen, at[0], at[1], BOX_CHARS + 4 * box, type, colours);
 }
 
 /** $6CDD: a box emptied (the characters go; the colours stay). */
@@ -166,23 +161,50 @@ export function clearBox(screen: Screen, box: number): void {
 }
 
 /**
- * Where ENHANCED's count of plane tickets goes: the panel's bottom row, right of the money (the one row of the panel that is
- * empty; the rows above it, over the picture, are drawn in extended colour mode, where the game's letters do not come out).
+ * Where ENHANCED's line on the panel goes: the count of plane tickets, the SPACE: FLY prompt and the item hints share the bottom
+ * row, right of the money (the one row of the panel that is empty; the rows above it, over the picture, are drawn in extended
+ * colour mode, where the game's letters do not come out). A hint with a picture of a thing takes the empty cells of the row above too.
  */
-const TICKETS_AT = [12, ROW_MONEY] as const;
-const TICKETS_WIDTH = 16;
+const SLOT_AT = [12, ROW_MONEY] as const;
+/** Up to the column before the high score's digits. */
+const SLOT_WIDTH = COL_HIGH - SLOT_AT[0];
+/** The four characters a hint's picture is drawn with ($E0-$E3: no text and no box uses them). */
+const HINT_CHARS = 0xe0;
+
+/** What the slot says: a text, its colour and, after the text, the picture of a thing. */
+export interface SlotLine {
+  readonly text: string;
+  readonly ink: number;
+  readonly item?: number;
+}
 
 /** ENHANCED: what the jump does at a plane with a ticket (it boards): on a touch screen the button is JUMP, else the key is Space. */
 export function flyPrompt(touch: boolean): string {
   return touch ? 'JUMP: FLY' : 'SPACE: FLY';
 }
 
-/**
- * ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel (nothing when he has none); while the
- * jump would board a plane, `prompt` takes the slot instead.
- */
-export function drawTickets(screen: Screen, tickets: number, prompt: string | null = null): void {
-  const [col, row] = TICKETS_AT;
-  const text = prompt ?? (tickets > 0 ? `AIR TICKETS X${tickets}` : '');
-  printText(screen, text.padEnd(TICKETS_WIDTH), col, row, Colour.Cyan);
+/** A thing's 2 x 2 characters at a cell, `first` the first of the four characters (the order a box has: $6C0E). */
+function putItem(screen: Screen, col: number, row: number, first: number, type: number, colours: ArrayLike<number>): void {
+  screen.put(col, row, first, COLOUR_OF[(colours[0] ?? 0) & 7]);
+  screen.put(col + 1, row, first + 2, COLOUR_OF[(colours[2] ?? 0) & 7]);
+  screen.put(col, row + 1, first + 1, COLOUR_OF[(colours[1] ?? 0) & 7]);
+  screen.put(col + 1, row + 1, first + 3, COLOUR_OF[(colours[3] ?? 0) & 7]);
+  screen.ram.set(itemGlyphs(type), CHARSET_AT + first * 8);
+}
+
+/** Cells the picture takes after a text of this length: one blank between. */
+const pictureCol = (text: string): number => SLOT_AT[0] + text.length + 1;
+
+/** The slot's line: a hint if there is one, else the prompt, else the count of plane tickets (nothing when he has none). */
+export function drawSlot(screen: Screen, line: SlotLine | null): void {
+  const [col, row] = SLOT_AT;
+  const { text, ink, item } = line ?? { text: '', ink: Colour.Cyan };
+  printText(screen, ''.padEnd(SLOT_WIDTH), col, row - 1, Colour.White);
+  printText(screen, text.padEnd(SLOT_WIDTH), col, row, ink);
+  if (item !== undefined) putItem(screen, pictureCol(text), row - 1, HINT_CHARS, item, coloursOfType(item));
+}
+
+/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel; while the jump would board a plane, `prompt` takes the slot instead, and a `hint` over both. */
+export function drawTickets(screen: Screen, tickets: number, prompt: string | null = null, hint: SlotLine | null = null): void {
+  drawSlot(screen, hint ?? { text: prompt ?? (tickets > 0 ? `AIR TICKETS X${tickets}` : ''), ink: Colour.Cyan });
 }

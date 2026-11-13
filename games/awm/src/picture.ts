@@ -26,6 +26,7 @@ import { PROGRESS_STAGES, type Game } from './game';
 import { FLIGHT_ROOM, type Flight } from './flight';
 import type { BoxEvent } from './items';
 import type { Lift } from './lifts';
+import { HintClock, hintLine } from './hints';
 import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, drawTickets, flyPrompt, itemGlyphs, printHigh, printMoney, printScore } from './panel';
 import { COLS, drawCells, ROWS } from './room';
 import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, FIRST_COL, SPRITE_BUFFERS, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
@@ -88,6 +89,8 @@ export class Picture {
   private shownLives = -1;
   /** ENHANCED's count of plane tickets as drawn (the original has none, and draws nothing). */
   private shownTickets = '';
+  /** ENHANCED's item hints: what is on the panel's slot now (hints.ts). */
+  private readonly hint = new HintClock();
   /** Whether the player is on a touch screen (the panel's SPACE: FLY says JUMP: FLY there). */
   touch: () => boolean = () => false;
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
@@ -109,6 +112,7 @@ export class Picture {
     game.items.onBox = (e) => this.box(e);
     game.onProgress = (stage) => drawProgress(this.screen, 2 - stage);
     game.onRoom = () => this.enterRoom();
+    game.onHint = (h) => this.hint.show(h);
   }
 
   // ---- the game starts ($5B39 on) ----------------------------------------------------------------
@@ -187,9 +191,10 @@ export class Picture {
   private tickets(): void {
     const n = this.game.items.tickets;
     const prompt = this.game.canJumpBoard() ? flyPrompt(this.touch()) : null;
-    const key = `${prompt ?? ''}|${n}`;
+    const hint = this.hint.current;
+    const key = `${prompt ?? ''}|${n}|${hint ? this.hint.serial : ''}`;
     if (key === this.shownTickets) return;
-    drawTickets(this.screen, n, prompt);
+    drawTickets(this.screen, n, prompt, hint ? hintLine(hint) : null);
     this.shownTickets = key;
   }
 
@@ -365,6 +370,7 @@ export class Picture {
     this.changedCells();
     this.counters();
     this.lives();
+    this.hint.step();
     this.tickets();
     screen.ram.set(game.monty.burnPicture, CHARSET_AT + BURN_CHAR * 8);
     return this.finish();
