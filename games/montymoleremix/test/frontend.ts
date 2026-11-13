@@ -2,7 +2,7 @@
  * The remix's front end, headless (c64kit stood in by games/shared/test/kit.ts): the title (Monty on the Run's, with the remix's logo and its tune)
  * → play; the shared pause screen (the map of the 21 rooms, the ORIGINAL / ENHANCED switch), travel by the map (keys and taps), a moment's grace
  * after it; autosave; ENHANCED's unlimited lives; game over → CONTINUE? straight away → back in the last room with five lives; ENTER CONTINUE on
- * the title and after a page load; T on the pause screen; the coal count in the row under the room (ENHANCED only) and the tool's sparkle.
+ * the title and after a page load; T on the pause screen; the coal count in the row under the room (ENHANCED only) and the tool's sparkle (on the tool, then on the creature it is for).
  * With an out-dir, the title is drawn through its pages (the logo's passages, the credits), play, the pause screen and the map.
  *
  *   nice -n 15 node tools/test.mjs games/montymoleremix/test/frontend.ts [out-dir]
@@ -19,8 +19,12 @@ import { readSaves } from '../../shared/saves';
 import { parseOptions } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
 import { SCREEN, ROW } from '../../shared/monty/screen';
-import { hintsOf } from '../src/hints';
-import { OPENING_ROOM, START_LIVES } from '../src/game';
+import { ROOMS } from '../../montymole/src/data/rooms-data';
+import { EnemyState } from '../../montymole/src/enemy-rules';
+import { must } from '../../shared/test/must';
+import { VIC_LEFT, VIC_TOP, vicX, vicY } from '../src/coords';
+import { hintsOf, TOOL_TARGET } from '../src/hints';
+import { CREATURE_SPRITE, OPENING_ROOM, START_LIVES } from '../src/game';
 import { run, STRIP_Y } from '../src/main';
 import { remixMap } from '../src/map';
 
@@ -179,14 +183,49 @@ check(`Enter: back in play in the last room (${g.roomId}), lives as saved`, p.st
   check(`the save described for the save manager ("${saved?.summary.join(' / ')}")`, saved?.summary[0] === `ROOM ${lastRoom + 1}` && saved.summary.includes('LIVES 5'));
 }
 
-// ---- the tool's sparkle: on while it lies there and he carries none ---------------------------------------------------
+// ---- the tool's sparkle: on the tool while it lies there; once carried, on the creature it is for; none once spent ------------------
+
 {
   const q = run({ renderer, input, canvas: nowhere });
   const gg = q.game;
   gg.start(false);
   gg.travelTo(1, 0x44, 0x4c + 8 * 3);
   for (let i = 0; i < 30; i++) gg.frame(0);
-  check('a room with a tool: one sparkle on it; none once he carries it', gg.tool !== null && hintsOf(gg).length === 1 && (() => { gg.carrying = true; return hintsOf(gg).length === 0; })());
+  check('a room with a tool: one sparkle on it; none once he carries it (room 2 has no creature the tool is for)', gg.tool !== null && hintsOf(gg).length === 1 && (() => { gg.carrying = true; return hintsOf(gg).length === 0; })());
+  check('TOOL_TARGET: only rooms that have a tool, and a creature slot', Object.entries(TOOL_TARGET).every(([room, slot]) => (ROOMS[Number(room)]?.object.sprite ?? 0) !== 0 && slot >= 0 && slot < CREATURE_SPRITE.length));
+}
+{
+  // room 12 (id 11): the fish at the top left is what the tool is for; a candle walking below it is touched first
+  const q = run({ renderer, input, canvas: nowhere });
+  const gg = q.game;
+  gg.start(false);
+  gg.enterAt(11, 0x44, 0x4c + 8 * 3);
+  const tool = must(gg.tool, 'room 11 tool');
+  const before = hintsOf(gg);
+  check('room 11, before the tool is taken: one sparkle, on the tool', TOOL_TARGET[11] === 0 && before.length === 1 && before[0]?.x === vicX(tool.x) + 8 - 24 && before[0]?.y === vicY(tool.y) + 8 - 50);
+  // stand on the tool: he takes it
+  for (let i = 0; i < 400 && !gg.carrying; i++) { gg.x2 = (tool.x + VIC_LEFT) >> 1; gg.stepGate = tool.x & 1; gg.y = VIC_TOP + 175 - tool.y; gg.frame(0); }
+  check('room 11: standing on the tool takes it', gg.carrying && gg.tool === null);
+  const fish = must(gg.creatures[0], 'the fish');
+  const near = (h: { x: number; y: number } | undefined, slot: number): boolean => {
+    const r = must(gg.vic.sprites[must(CREATURE_SPRITE[slot], 'creature sprite')], 'sprite registers');
+    return h !== undefined && h.x >= r.x - 24 && h.x < r.x && h.y >= r.y - 50 && h.y < r.y - 50 + 21;
+  };
+  let onFish = true, last = hintsOf(gg)[0], followed = false;
+  for (let i = 0; i < 400; i++) {
+    gg.x2 = 0x70; gg.y = 0x4c + 8 * 3; gg.falling = 0;
+    if (i === 200) fish.x = (fish.x + 48) & 0xff; // (the creature goes elsewhere: the sparkle goes with it)
+    gg.frame(0);
+    const hs = hintsOf(gg);
+    if (hs.length !== 1 || !near(hs[0], 0)) onFish = false;
+    if (i === 202 && hs[0] !== undefined && last !== undefined) followed = Math.abs(hs[0].x - last.x) >= 40;
+    if (i === 199) last = hs[0];
+  }
+  check('room 11, carrying the tool: one sparkle, on the fish (slot 0), not on the candle, in every one of 400 frames', onFish && gg.carrying);
+  check('room 11: the sparkle follows the fish when it moves (48 px sideways)', followed);
+  // the tool takes the first creature he touches (the fish here: only its bit is raised): spent, no sparkle
+  gg.frame(8 | (1 << must(CREATURE_SPRITE[0], 'fish sprite')));
+  check('room 11, the tool spent on the fish: the fish is gone, no sparkle', !gg.carrying && fish.state === EnemyState.none && hintsOf(gg).length === 0);
 }
 
 finish();
