@@ -87,7 +87,7 @@ export function run(host: Host) {
     id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
-    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }, { id: 'carry', long: 'CARRY ANYTHING' }],
+    assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }, { id: 'carry', long: 'CARRY ANYTHING' }, { id: 'board', long: 'JUMP BOARDS A PLANE' }],
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => enhanced() && readWon('awm'),
   }, (self) => {
@@ -98,6 +98,8 @@ export function run(host: Host) {
     program.liftWaits = () => fe.assist.lift === true;
     program.unlimitedLives = () => fe.assist.lives === true;
     program.unlimitedCarry = () => fe.assist.carry === true;
+    program.jumpBoards = () => fe.assist.board === true;
+    program.touch = () => input.touch;
     program.graceActive = () => flow.grace.active;
 
     /** Monty has come into a room (or a game has begun in one): noted for the map, and a save to carry on from. */
@@ -175,6 +177,8 @@ export function run(host: Host) {
         } else if (!holding) {
           program.frame(controls());
           result = 'played';
+          // a jump that boarded a plane is spent: it neither jumps after landing nor fires in the sky
+          if (program.takeSpentJump()) latch.hold();
         }
         for (const call of program.takeSound()) play(call);
         // a game has begun from the title / a room has been entered / the game has ended (GAME OVER, the title again)

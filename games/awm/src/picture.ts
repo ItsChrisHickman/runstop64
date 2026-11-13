@@ -26,7 +26,7 @@ import { PROGRESS_STAGES, type Game } from './game';
 import { FLIGHT_ROOM, type Flight } from './flight';
 import type { BoxEvent } from './items';
 import type { Lift } from './lifts';
-import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, drawTickets, itemGlyphs, printHigh, printMoney, printScore } from './panel';
+import { clearBox, clearScreen, drawBanner, drawBox, drawLabels, drawLives, drawProgress, drawTickets, flyPrompt, itemGlyphs, printHigh, printMoney, printScore } from './panel';
 import { COLS, drawCells, ROWS } from './room';
 import { animateTiles, CHARSET_AT, EntityRegisters, type EntityRecord, FIRST_COL, SPRITE_BUFFERS, Screen, SCREEN_AT, SCREEN_COLS } from './screen';
 import { putSpriteImage } from './sprites';
@@ -87,7 +87,9 @@ export class Picture {
   private shownMoney = ZERO;
   private shownLives = -1;
   /** ENHANCED's count of plane tickets as drawn (the original has none, and draws nothing). */
-  private shownTickets = 0;
+  private shownTickets = '';
+  /** Whether the player is on a touch screen (the panel's SPACE: FLY says JUMP: FLY there). */
+  touch: () => boolean = () => false;
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
   private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);
 
@@ -184,9 +186,11 @@ export class Picture {
   /** ENHANCED: the tickets he holds, beside the boxes. */
   private tickets(): void {
     const n = this.game.items.tickets;
-    if (n === this.shownTickets) return;
-    drawTickets(this.screen, n);
-    this.shownTickets = n;
+    const prompt = this.game.canJumpBoard() ? flyPrompt(this.touch()) : null;
+    const key = `${prompt ?? ''}|${n}`;
+    if (key === this.shownTickets) return;
+    drawTickets(this.screen, n, prompt);
+    this.shownTickets = key;
   }
 
   private lives(): void {

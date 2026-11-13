@@ -172,8 +172,17 @@ export function clearBox(screen: Screen, box: number): void {
 const TICKETS_AT = [12, ROW_MONEY] as const;
 const TICKETS_WIDTH = 16;
 
-/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel (nothing when he has none). */
-export function drawTickets(screen: Screen, tickets: number): void {
+/** ENHANCED: what the jump does at a plane with a ticket (it boards): on a touch screen the button is JUMP, else the key is Space. */
+export function flyPrompt(touch: boolean): string {
+  return touch ? 'JUMP: FLY' : 'SPACE: FLY';
+}
+
+/**
+ * ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel (nothing when he has none); while the
+ * jump would board a plane, `prompt` takes the slot instead.
+ */
+export function drawTickets(screen: Screen, tickets: number, prompt: string | null = null): void {
   const [col, row] = TICKETS_AT;
-  printText(screen, (tickets > 0 ? `AIR TICKETS X${tickets}` : '').padEnd(TICKETS_WIDTH), col, row, Colour.Cyan);
+  const text = prompt ?? (tickets > 0 ? `AIR TICKETS X${tickets}` : '');
+  printText(screen, text.padEnd(TICKETS_WIDTH), col, row, Colour.Cyan);
 }

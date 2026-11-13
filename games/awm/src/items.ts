@@ -137,6 +137,11 @@ export class Items {
     return true;
   }
 
+  /** Is `type` in his hands (or, in ENHANCED, counted or in the pack)? Nothing is taken. */
+  has(type: number): boolean {
+    return (type === TICKET && this.tickets > 0) || this.carried.includes(type) || this.pack.some((h) => h.type === type);
+  }
+
   private latestInPack(): number {
     let best = -1;
     this.pack.forEach((h, i) => { if (best < 0 || h.stamp >= (this.pack[best]?.stamp ?? 0)) best = i; });

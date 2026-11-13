@@ -15,7 +15,7 @@ export const info = {
       <li>Published by <a href="https://en.wikipedia.org/wiki/Gremlin_Graphics">Gremlin Graphics</a>, 1987</li>
     </ul>
     <p>Controls: arrows or WASD move (up climbs) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the title &middot;
-    C boards a plane (stand at one with a ticket; on a touch screen the FLY button) &middot;
+    C boards a plane (stand at one with a ticket; on a touch screen the FLY button; in ENHANCED, Space does too) &middot;
     on the title, F1 chooses the music and F7 the sound effects (on a touch screen, tap the line between the pillars) &middot;
     P or Esc pauses: items taken and a map; pick a room you've stood in and press Enter to travel there &middot;
     M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
@@ -25,7 +25,7 @@ export const info = {
     (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
     refresh rate &middot; the high score kept in your browser &middot; ENHANCED (switch to ORIGINAL on the pause screen):
     unlimited lives and continues; a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life
-    is lost once, not on every try; a lift waits at rest until you are out from under it when you arrive; carry anything: no limit on what Monty carries (plane tickets are a count on the panel, the boxes show the four things picked up last, and the pause screen has a CARRYING page) &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
+    is lost once, not on every try; a lift waits at rest until you are out from under it when you arrive; carry anything: no limit on what Monty carries (plane tickets are a count on the panel, the boxes show the four things picked up last, and the pause screen has a CARRYING page); at a plane with a ticket the jump boards it (SPACE: FLY on the panel) &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
     with Monty running through them, the credits and some true facts, the creatures walking through the places and THE END (W on the pause
     screen shows it again once you've won).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; the game's own graphics,

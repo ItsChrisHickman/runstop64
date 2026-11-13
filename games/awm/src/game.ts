@@ -14,6 +14,7 @@ import { afterLoss } from '../../shared/lives';
 import { Digits } from './digits';
 import { type AnimClock, Enemies, HIDDEN, isPlane, PLANE_FRAMES } from './enemies';
 import { copySky, destination, FRESH_SKY, Flight, type SkyState } from './flight';
+import { Dir } from './input';
 import { Items, TICKET } from './items';
 import { Lift } from './lifts';
 import { type Counters, Monty, type MontyHost } from './monty';
@@ -158,6 +159,13 @@ export class Game implements MontyHost {
   unlimitedLives: () => boolean = () => false;
   /** ENHANCED's "carry anything": no limit on what he carries, the tickets counted (items.ts). */
   unlimitedCarry: () => boolean = () => false;
+  /**
+   * ENHANCED's "jump boards a plane": standing at a plane with a ticket in a room with a flight, the jump boards instead of jumping,
+   * and a ticket is never taken in a room with no flight (the C key and FLY work as ever).
+   */
+  jumpBoards: () => boolean = () => false;
+  /** The jump that boarded is spent (the front end holds it until it is let go): told once, by `takeSpentJump`. */
+  private spentJump = false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
   private stepsFree = 0;
   safeEntry: Entry | null = null;
@@ -328,8 +336,16 @@ export class Game implements MontyHost {
   logic(input: number, key = false): number | null {
     const m = this.monty;
     const { state, step } = m;
-    const entered = m.advance(this.scramble(input));
-    const to = this.boarding(key);
+    let controls = this.scramble(input);
+    let boardKey = key;
+    if ((controls & Dir.Fire) !== 0 && this.canJumpBoard()) {
+      // (ENHANCED: this jump boards; it is not also a jump, and the front end is told it is spent)
+      controls &= ~Dir.Fire;
+      boardKey = true;
+      this.spentJump = true;
+    }
+    const entered = m.advance(controls);
+    const to = this.boarding(boardKey);
     if (to !== null) {
       this.boarded = to;
       this.pending = { state, step, entered };
@@ -344,10 +360,30 @@ export class Game implements MontyHost {
    * the ticket all the same. Returns the room he flies to.
    */
   private boarding(key: boolean): number | null {
-    const m = this.monty, e = this.enemies;
-    const touching = [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
-    if (!touching || NO_BOARDING.includes(m.state) || !key || !this.items.take(TICKET)) return null;
+    if (!this.atPlane() || !key) return null;
+    // (ENHANCED: a room with no flight takes no ticket)
+    if (this.jumpBoards() && destination(this.world.room) === null) return null;
+    if (!this.items.take(TICKET)) return null;
     return destination(this.world.room);
+  }
+
+  /** He stands at a plane (touching it harms nothing) and is in a state that can board. */
+  private atPlane(): boolean {
+    const m = this.monty, e = this.enemies;
+    if (NO_BOARDING.includes(m.state)) return false;
+    return [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
+  }
+
+  /** ENHANCED: the jump would board a plane now (at one, with a ticket, in a room with a flight): the panel says SPACE: FLY. */
+  canJumpBoard(): boolean {
+    return this.jumpBoards() && this.boarded === null && this.atPlane() && destination(this.world.room) !== null && this.items.has(TICKET);
+  }
+
+  /** True once after a jump boarded a plane: the press is spent, not also the flight's fire or the next jump. */
+  takeSpentJump(): boolean {
+    const spent = this.spentJump;
+    this.spentJump = false;
+    return spent;
   }
 
   /** The flight he has boarded, to be flown a frame at a time over `play`, the 16K the play screen's VIC bank holds (the panel stays as it is). */
