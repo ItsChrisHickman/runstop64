@@ -36,6 +36,8 @@ const INTRO_FRAMES = [
 export interface MontyHost {
   /** He went through an exit into `room`; the game loads it ($5581). */
   enterRoom(room: number): void;
+  /** ENHANCED: a room the exits treat as no room for now (the last room until the ending is due). */
+  closed(room: number): boolean;
   /** One step of state $10, $11 or $13, which move enemies, rooms and flags as well as him. */
   scripted(): void;
   /** What he asks of the sound drivers. */
@@ -608,7 +610,7 @@ export class Monty implements MontyData {
   private leave(edge: Edge): void {
     if (edge === 'down') this.y = 6;
     const room = this.world.neighbour(edge);
-    if (this.world.isNoRoom(room)) {
+    if (this.world.isNoRoom(room) || this.host.closed(room)) {
       this.x = this.prevX;
       this.y = this.prevY;
       return;

@@ -5,6 +5,7 @@
  *   - the pause map marks every plane's room he has stood in with a small plane, and the picked room's plane (his own room's if
  *     none is picked) has one line with an arrowhead to where it lands, and PLANE TO under its name (both modes; 2026-11-15: one
  *     flight at a time, not all their lines at once, nor colour badges);
+ *   - the map leaves out the flight's sky (room $4F); ENHANCED keeps the Good Life shut until the ending is due;
  *   - ENHANCED's hoppers rest at the top of each hop, so Breakfast's crossing has a window a person can time; ORIGINAL's and the
  *     hoppers that bob in place are as they were.
  *
@@ -17,10 +18,10 @@ import { stickOf, isMove, type Move } from '../../shared/ending/pilot';
 import { NO_ROOM, WORLD_GRID } from '../src/data';
 import { sceneGame, stickBits } from '../src/ending';
 import { REST_STEPS } from '../src/enemies';
-import { destination } from '../src/flight';
+import { destination, FLIGHT_ROOM } from '../src/flight';
 import { Game } from '../src/game';
-import { decodeStick } from '../src/input';
-import { awmMap, flightFrom, flightsSeen, type AwmFound } from '../src/map';
+import { decodeStick, Dir } from '../src/input';
+import { awmMap, flightFrom, flightsSeen, noteRoom, progressLines, type AwmFound } from '../src/map';
 import { flyPrompt } from '../src/panel';
 import { Program } from '../src/program';
 import { snapshot } from '../src/save';
@@ -127,6 +128,38 @@ check(`ENHANCED: it rests there ${REST_STEPS} more each time (${topSteps(true)} 
   const before = windows(false), after = windows(true);
   check(`ORIGINAL: the crossing is one moment in 64 (${before})`, before <= 2);
   check(`ENHANCED: it is a window to time (${after} moments in 64)`, after >= 15);
+}
+{
+  // the flight's sky (room $4F) is not a room on the map: not drawn, not counted, not noted
+  const all: AwmFound = { rooms: {} };
+  for (const r of ROOMS) all.rooms[r] = [0x40, 0x40, 0, 0];
+  const g = must(program.game, 'the program has a game');
+  check(`the map counts the world's rooms without the flight's sky (${progressLines(g, all)[1]})`, progressLines(g, all)[1] === `ROOMS 79/79`);
+  check('the sky has no place to travel to', !awmMap.places(MAP_BOX, program, all).some((p) => p.id === String(FLIGHT_ROOM)));
+  const sky = new Game(FLIGHT_ROOM);
+  check('being in the sky does not note it', !noteRoom(sky, none) && none.rooms[FLIGHT_ROOM] === undefined);
+}
+{
+  // ENHANCED: the Good Life waits for the end. Walking left out of the Harbour, ORIGINAL goes in and is stuck in its wall, as the
+  // original is; ENHANCED stays in the Harbour and walks back; with everything delivered ENHANCED goes in, to the ending
+  const fromHarbour = (waits: boolean, progress = 0) => {
+    const g = new Game(0x4e);
+    g.goodLifeWaits = () => waits;
+    g.progress = progress;
+    g.placeAt({ room: 0x4e, x: 0x20, y: 0x68, state: State.Free, step: 0 });
+    for (let i = 0; i < 60; i++) g.step(Dir.Left);
+    return g;
+  };
+  const orig = fromHarbour(false);
+  const ox = orig.monty.x;
+  for (let i = 0; i < 30; i++) orig.step(Dir.Right);
+  check(`ORIGINAL: in the Good Life, stuck in its wall (room ${orig.world.room.toString(16)}, x ${ox} then ${orig.monty.x})`, orig.world.room === 0x4d && orig.monty.x === ox);
+  const enh = fromHarbour(true);
+  const ex = enh.monty.x;
+  for (let i = 0; i < 30; i++) enh.step(Dir.Right);
+  check(`ENHANCED: the Harbour's left edge holds, and he walks back (room ${enh.world.room.toString(16)}, x ${ex} then ${enh.monty.x})`, enh.world.room === 0x4e && enh.monty.x > ex);
+  const done = fromHarbour(true, 0xc3);
+  check(`ENHANCED, everything delivered: in, to the ending (room ${done.world.room.toString(16)}, state ${done.monty.state})`, done.world.room === 0x4d && done.monty.state === State.Ending);
 }
 must(program.game, 'the program has a game');
 

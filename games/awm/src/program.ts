@@ -83,6 +83,8 @@ export class Program {
   flightFree: (to: number) => boolean = () => false;
   /** ENHANCED's quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
+  /** ENHANCED's Good Life waits for the end (game.ts `goodLifeWaits`). */
+  goodLifeWaits: () => boolean = () => false;
   /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
   hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (game.ts `hints`). */
@@ -212,6 +214,7 @@ export class Program {
     game.hints = () => this.hints();
     game.quickHop = () => this.quickHop();
     game.hopsRest = () => this.hopsRest();
+    game.goodLifeWaits = () => this.goodLifeWaits();
     const picture = new Picture(game, carry, this.high);
     return picture;
   }

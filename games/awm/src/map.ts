@@ -4,7 +4,7 @@ import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
 import type { Surface } from 'c64kit';
 import { carryingPages, carryingTitle } from '../../shared/carrying';
 import * as Carrying from './carrying';
-import { destination } from './flight';
+import { destination, FLIGHT_ROOM } from './flight';
 import { isTrap } from './items';
 import { placeName } from './wants';
 import type { Entry, Game } from './game';
@@ -39,7 +39,7 @@ export function entryOf(found: AwmFound, room: number): Entry | null {
 /** A room Monty is in (the front end looks every frame): its first time is noted. True if that is new. */
 export function noteRoom(game: { readonly world: { readonly room: number }; readonly entry: Entry }, { rooms }: AwmFound): boolean {
   const room = game.world.room;
-  if (rooms[room]) return false;
+  if (room === FLIGHT_ROOM || rooms[room]) return false;
   const e = game.entry;
   rooms[room] = [e.x, e.y, e.state, e.step];
   return true;
@@ -53,7 +53,8 @@ const ROWS = WORLD_GRID.length / GRID_COLS;
 /** A room's cell on the map: 12 x 8 pixels, drawn 11 x 7 (the rooms are 32 x 18 characters). */
 const CELL_W = 12, CELL_H = 8;
 
-const rooms: readonly number[] = Array.from(WORLD_GRID).filter((r) => r !== NO_ROOM);
+/** The rooms on the map: the world's, without the flight's sky (room $4F, IN FLIGHT: the grid has it, but it is where the plane flies, not a place). */
+const rooms: readonly number[] = Array.from(WORLD_GRID).filter((r) => r !== NO_ROOM && r !== FLIGHT_ROOM);
 
 /** The country each room is in (the banner's first part), and a colour for each. */
 const country = (room: number) => (BANNERS[room] ?? '').split('|')[0] ?? '';
@@ -138,12 +139,15 @@ function layout(box: Box) {
 /** The room in a cell of the grid, or null. */
 function roomAt(row: number, col: number): number | null {
   const r = WORLD_GRID[row * COLS + col];
-  return r === undefined || r === NO_ROOM ? null : r;
+  return r === undefined || r === NO_ROOM || r === FLIGHT_ROOM ? null : r;
 }
+
+/** The map's rooms he has stood in (a save from before the flight's sky was left out may hold it). */
+const roomsSeen = (found: AwmFound): number => rooms.filter((r) => found.rooms[r] !== undefined).length;
 
 /** How he is doing, as the pause screen shows it (and THE END, ending.ts): lives, rooms seen, items taken, how far to the goal. */
 export function progressLines(game: Game, found: AwmFound): string[] {
-  const seen = Object.keys(found.rooms).length;
+  const seen = roomsSeen(found);
   const taken = game.items.collected.filter((c, i) => c && PRIZES.get(TABLES.items[i]?.room ?? NO_ROOM)?.includes(i)).length;
   const goal = Math.min(100, Math.floor((game.progress * 100) / 0xc3));
   return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
@@ -236,7 +240,7 @@ export const awmMap = {
 
 /** A save described for the save manager (ContinueFlow `describe`): the place, then lives, how far he has got and the score. */
 export function describeSave(save: AwmSave, found: AwmFound): string[] {
-  const seen = Object.keys(found.rooms).length;
+  const seen = roomsSeen(found);
   const goal = Math.min(100, Math.floor((save.progress * 100) / 0xc3));
   const score = save.score.reduceRight((n, d) => n * 10 + d, 0);
   return [roomName(save.room) || country(save.room), `LIVES ${save.lives & 0x7f}`, `GOAL ${goal}%`, `ROOMS ${seen}`, `SCORE ${score}`];

@@ -151,6 +151,10 @@ export class Title implements MontyHost {
     throw new Error('the title\'s mole went through an exit');
   }
 
+  closed(): boolean {
+    return false;
+  }
+
   scripted(): void {
     if (this.mole.state !== State.Intro) throw new Error(`the title's mole is in state $${this.mole.state.toString(16)}`);
     if (!walkInStep(this.mole)) return;

@@ -160,6 +160,12 @@ export class Game implements MontyHost {
   flightFree: (to: number) => boolean = () => false;
   /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
+  /**
+   * ENHANCED's "the Good Life waits for the end": until everything is delivered (the ending's progress), the last room is no room to
+   * the exits, so walking in from the Harbour or dropping in does not leave him stuck in its walls; with everything delivered it opens
+   * and the ending plays as ever (Chris, 2026-11-15).
+   */
+  goodLifeWaits: () => boolean = () => false;
   /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
   hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
@@ -225,6 +231,11 @@ export class Game implements MontyHost {
   }
 
   /** Monty has gone through an exit: what $5581 does before it loads the room, then the room. */
+  /** MontyHost: the last room is shut until the ending is due, with ENHANCED's `goodLifeWaits`. */
+  closed(room: number): boolean {
+    return this.goodLifeWaits() && room === FINAL_ROOM && this.progress !== FINAL_PROGRESS;
+  }
+
   enterRoom(room: number): void {
     const m = this.monty;
     this.stepsFree = 0;
