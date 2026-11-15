@@ -81,8 +81,8 @@ export class Input {
       if (e.metaKey || isMeta(e.code)) { this.letGo(); return; }
       this.physical.add(e.code);
       // Enter and Escape are menu keys (confirm/back), reported via `typed` only; F1 and F7 are the games' (the saved games, a title's
-      // choices), not the browser's (its help, caret browsing).
-      if (KEYMAP[e.code] || e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Escape' || e.code === 'F1' || e.code === 'F7') e.preventDefault();
+      // choices), not the browser's (its help, caret browsing); Tab turns the pause screen's pages, not the browser's focus.
+      if (KEYMAP[e.code] || e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Escape' || e.code === 'F1' || e.code === 'F7' || e.code === 'Tab') e.preventDefault();
       if (!e.repeat) this.pendingTyped.push(e.code);
     });
     target.addEventListener('keyup', (e) => {

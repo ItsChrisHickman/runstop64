@@ -8,7 +8,7 @@
  *  2. the names are the game's own (the table at $9C38);
  *  3. things taken by playing (the recorded route that takes the gunpowder and the skull): the flag goes up,
  *     and the game's status line names the thing taken as the table does;
- *  4. through the front end, launched from that save: the side panel says ITEMS 2/24, P then < > (the key for
+ *  4. through the front end, launched from that save: the side panel says ITEMS 2/24, P then Tab (the key for
  *     the pause screen's pages) shows the second page with those two lit and the rest dark; flags set the
  *     way the game sets them (taken, and used: the mirror) change the page's colours and the count; > again
  *     is the map, with its places, travel still on it. PNGs of the pause screen's two pages go to the out dir.
@@ -146,9 +146,9 @@ shot('pause-map');
 check('the map page has places to go back to', (blackwycheMap.places?.(MAP_BOX, ram(), p.frontEnd.found, 0) ?? []).length > 0);
 check('the second page has none (nothing to pick)', (blackwycheMap.places?.(MAP_BOX, ram(), p.frontEnd.found, 1) ?? []).length === 0);
 
-press('Period'); // the pause screen's key for the next page
+press('Tab'); // the pause screen's key for the next page
 tick(2);
-check('< > turns to the second page (the screen changed)', renderer.screen.pixels.some((v, i) => v !== mapShot[i]));
+check('Tab turns to the second page (the screen changed)', renderer.screen.pixels.some((v, i) => v !== mapShot[i]));
 shot('pause-items-2');
 check(`the gunpowder is lit (${nameColour(gunpowder)}) and the skull (${nameColour(skull)})`, nameColour(gunpowder) === String(COL.white) && nameColour(skull) === String(COL.white));
 check('all the others are dark', ITEMS.every((_, i) => i === gunpowder || i === skull || nameColour(i) === String(COL.dgrey)));
@@ -164,9 +164,9 @@ check('each name is drawn in its colour (white taken, green used, dark not yet)'
 check('the mirror is the green one', ITEMS.filter((_, i) => nameColour(i) === String(COL.lgreen)).length === 1 && nameColour(ITEMS.findIndex((i) => i.flag === 0x9d73)) === String(COL.lgreen));
 check('both lots of doubloons and all four pieces of map are separate lines', ITEMS.filter((i) => i.name === 9).length === 2 && ITEMS.filter((i) => i.name === 5).length === 4);
 
-press('Period'); // round again: the map
+press('Tab'); // round again: the map
 tick(2);
-check('> again is the map, with a place picked to go to', blackwycheMap.title(ram(), 0) !== 'ITEMS' && p.frontEnd.picked !== null);
+check('Tab again is the map, with a place picked to go to', blackwycheMap.title(ram(), 0) !== 'ITEMS' && p.frontEnd.picked !== null);
 shot('pause-map-8');
 // the places he's emptied shimmer (the gunpowder's cabin, the skull's hall), and the pick line says so
 const powderRoom = 'C2.1.7', powder = CABINS.find((c) => `C${c.deck}.${c.part}.${c.door}` === powderRoom);

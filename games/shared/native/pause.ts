@@ -85,7 +85,7 @@ export function mapSummary<T, F>(map: PauseMap<T, F>, state: T, found: F): strin
 interface PauseUi {
   page?: number;
   pick?: { x: number; y: number; r?: number; rx?: number; id?: string } | null;
-  /** The touch controls are in use: say "tap" (and show < > for pages) instead of naming keys. */
+  /** The touch controls are in use: say "tap" (and mark the title as the way to the next page) instead of naming keys. */
   touch?: boolean;
   /** Each assist on or off (by id): the side panel's lines that are help show only with theirs. */
   assist?: Readonly<Record<string, boolean>>;
@@ -93,9 +93,12 @@ interface PauseUi {
   list?: string[];
 }
 
+/** The key that turns the pause screen to its next page (round to the first). */
+export const PAGE_KEY = 'Tab';
+
 /** Where things on the pause screen are, for taps (C64 pixels). */
 export const PAUSE_TAP = {
-  /** The title row: its left and right ends turn the pages. */
+  /** The title row: a tap on it turns to the next page. */
   title: { y0: 0, y1: 20, x1: 214 },
   /** The foot line: back to the game. */
   footY: 180,
@@ -159,7 +162,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
       font.draw(s, on ? 'ON' : 'OFF', 178, y, on ? colours.lgreen : colours.grey);
     });
   } else {
-    if (ui.touch && ui.page !== undefined) { font.draw(s, '<', 8, 8, colours.white); font.draw(s, '>', 198, 8, colours.white); }
+    if (ui.touch && ui.page !== undefined) font.draw(s, '>', 198, 8, colours.white);
     map.draw(s, MAP_BOX, ram, found, Math.floor(tick / 12) % 2 === 0, ui.page, font, ui.pick?.id ?? null, ui.assist);
   }
   if (ui.pick) { // the place picked to go to
@@ -187,7 +190,7 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(bx, y, 1, 7, colours.cyan); s.fillRect(bx + 6, y, 1, 7, colours.cyan);
     if (line.check) s.fillRect(bx + 1, y + 1, 5, 5, colours.lgreen);
   });
-  const foot = ui.list ? (ui.touch ? 'TAP AN OPTION TO CHANGE IT' : 'ITS KEY CHANGES IT  O MAP  P BACK') : ui.touch ? (ui.pick ? 'TAP A PLACE, TAP AGAIN TO GO THERE' : 'TAP HERE TO GO BACK TO THE GAME') : ui.pick ? (ui.page !== undefined ? 'ARROWS PICK ENTER GO  < > PAGES  P BACK' : 'ARROWS PICK  ENTER GO  P BACK') : ui.page !== undefined ? '< >  OTHER PAGES    P  BACK' : 'P OR ESC  BACK TO THE GAME';
+  const foot = ui.list ? (ui.touch ? 'TAP AN OPTION TO CHANGE IT' : 'ITS KEY CHANGES IT  O MAP  P BACK') : ui.touch ? (ui.pick ? 'TAP A PLACE, TAP AGAIN TO GO THERE' : 'TAP HERE TO GO BACK TO THE GAME') : ui.pick ? (ui.page !== undefined ? 'ARROWS PICK  ENTER GO  TAB PAGE  P BACK' : 'ARROWS PICK  ENTER GO  P BACK') : ui.page !== undefined ? 'TAB  NEXT PAGE    P  BACK' : 'P OR ESC  BACK TO THE GAME';
   font.draw(s, foot, Math.floor((320 - foot.length * 8) / 2), 186, colours.white);
 }
 

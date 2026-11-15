@@ -134,11 +134,11 @@ if (outDir) {
   tap('KeyP');
   check('P opens the pause screen (on the map page the room is on)', p.state.paused);
   const band = (y0: number, y1: number) => new Set(Array.from(gameRenderer.screen.pixels.slice(y0 * 320, y1 * 320)).filter((c) => c !== 0));
-  tap('Period'); tap('Period');
-  check('the page keys turn through the map\'s two pages to the inventory', band(MAP_BOX.y, MAP_BOX.y + 17).has(COL.pink));
+  tap('Tab'); tap('Tab');
+  check('Tab turns through the map\'s two pages to the inventory', band(MAP_BOX.y, MAP_BOX.y + 17).has(COL.pink));
   if (outDir) indicesPng(path.join(outDir, 'inventory-pause.png'), gameRenderer.screen.pixels, 320, 200);
   tap('KeyE');
-  tap('Comma'); tap('Period');
+  tap('Tab'); tap('Tab'); tap('Tab'); // (round its three pages)
   check('ORIGINAL (E): the page is still there', band(MAP_BOX.y, MAP_BOX.y + 17).has(COL.pink) && !p.state.enhanced);
 }
 finish();

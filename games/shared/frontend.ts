@@ -1,6 +1,6 @@
 import type { BitmapFont, Input, Renderer } from 'c64kit';
 import type { SaveHistory } from './continue';
-import { drawPause, MAP_BOX, PAUSE_TAP, type PauseColours, type PauseMap, type PauseOption } from './native/pause';
+import { drawPause, MAP_BOX, PAUSE_TAP, type PauseColours, type PauseMap, type PauseOption, PAGE_KEY } from './native/pause';
 import { keepFound, readFound } from './saves';
 import { readJson } from './guards';
 
@@ -178,17 +178,14 @@ export class FrontEnd<T, F> {
     const { input } = this.o;
     if (!map.places || !map.go) return null;
     const pages = map.pages?.(state, this.found);
+    // one key turns to the next page, round to the first (Chris, 2026-11-15: < and > for back and on were confusing): Tab, or a tap on the title
     if (pages && this.page !== undefined && pages.list.length > 1) {
-      const i = Math.max(0, pages.list.indexOf(this.page));
-      const next = ['Period', 'BracketRight'].some((k) => input.typed.includes(k)), prev = ['Comma', 'BracketLeft'].some((k) => input.typed.includes(k));
-      const step = (next ? 1 : 0) - (prev ? 1 : 0);
-      if (step) { this.page = pages.list[(i + step + pages.list.length) % pages.list.length]; this.pickId = null; }
-    }
-    // a tap on the title's ends turns the pages
-    for (const t of input.points) {
-      if (pages && this.page !== undefined && pages.list.length > 1 && t.y < PAUSE_TAP.title.y1 && t.x < PAUSE_TAP.title.x1 && (t.x < 50 || t.x > 164)) {
+      const turns = (input.typed.includes(PAGE_KEY) ? 1 : 0)
+        + input.points.filter((t) => t.y < PAUSE_TAP.title.y1 && t.x < PAUSE_TAP.title.x1).length;
+      if (turns > 0) {
         const i = Math.max(0, pages.list.indexOf(this.page));
-        this.page = pages.list[(i + (t.x < 50 ? -1 : 1) + pages.list.length) % pages.list.length]; this.pickId = null;
+        this.page = pages.list[(i + turns) % pages.list.length];
+        this.pickId = null;
       }
     }
     const places = map.places(MAP_BOX, state, this.found, this.page);

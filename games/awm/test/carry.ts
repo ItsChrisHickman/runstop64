@@ -3,7 +3,7 @@
  * fifth thing is refused (the ticket and the Mona Lisa's three-and-one). ENHANCED: a pickup is never refused; plane tickets are a
  * count on the panel (the game's lettering, in the row right of the money) and a flight spends one; the four boxes show the
  * four things picked up last; a room that wants a thing finds it beyond the boxes (a delivery, and Travel's); the saves keep it
- * (format 4) and the old ones (format 3) read; the pause screen's CARRYING page lists everything and turns with < > or a tap.
+ * (format 4) and the old ones (format 3) read; the pause screen's CARRYING page lists everything and turns with Tab or a tap on the heading.
  * With an out-dir: the panel with tickets and the page.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/carry.ts [out-dir]
@@ -349,19 +349,19 @@ tick(60);
   tick(3);
   check(`the pause screen has the world and the CARRYING page (${awmMap.pages(program).list})`, awmMap.pages(program).list.join() === '0,1');
   check('the world first, and it moves', awmMap.title(program, 0) === 'THE WORLD' && !still());
-  tap('Period');
+  tap('Tab');
   tick(2);
-  check(`> turns to the page (${awmMap.title(program, 1)}), which holds still`, awmMap.title(program, 1) === 'CARRYING' && still());
+  check(`Tab turns to the page (${awmMap.title(program, 1)}), which holds still`, awmMap.title(program, 1) === 'CARRYING' && still());
   shot('carrying');
   check('it has no places to pick and no legend', awmMap.places(MAP_BOX, program, p.state.found, 1).length === 0 && typeof awmMap.legend === 'function' && awmMap.legend(program, {}, 1).length === 0);
-  // touch: a tap on the right end of the heading turns the page on (round to the world), and on the left end back
+  // touch: a tap on the heading turns to the next page (round to the world), and again to the page
   input.touch = true;
   tick(2);
-  input.point(205, 8); tick(3);
-  check("touch: a tap on the heading's right end turns round to the world", !still());
-  input.point(8, 8); tick(3);
+  input.point(100, 8); tick(3);
+  check('touch: a tap on the heading turns round to the world', !still());
+  input.point(100, 8); tick(3);
   input.touch = false;
-  check('touch: and on its left end back to the page', still());
+  check('touch: and again to the page', still());
   shot('carrying-touch');
   tap('KeyP');
   tick(4);

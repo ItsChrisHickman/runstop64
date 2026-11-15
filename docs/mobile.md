@@ -37,8 +37,8 @@ Every game (and the loader) has touch controls, from one shared layer:
   RET (the RETURN key: continue on title screens, and so on). Where the gutter is too narrow for a row of them, a second row under it (the
   stick and the buttons below).
 - **Taps on the picture**: on pause maps, tap a place to pick it and tap it again to go there;
-  tap an option (right-hand column) to change it; tap the foot line to go back; tap the ends of
-  the title to turn pages (Entombed's floors). On a title screen with a save, tap
+  tap an option (right-hand column) to change it; tap the foot line to go back; tap the
+  title to turn to the next page (Tab on a keyboard). On a title screen with a save, tap
   "CONTINUE"; in "CONTINUE?", tap YES or NO. On the pause screen, tap T TITLE for the title
   (the save kept). In the loader, tap a game, then tap it again (or move with the stick and
   press LOAD); tap the line under the banner (TAP HERE: SAVED GAMES) for the saved games, where
