@@ -168,13 +168,13 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
   check('with no ticket the key does nothing', !again);
 }
 
-// ---- ENHANCED: the jump boards a plane ---------------------------------------------------------------------------
+// ---- ENHANCED: up boards a plane -----------------------------------------------------------------------------------
 {
   /** A game in `room` with `tickets` counted, Monty on a plane (one is made to show in a room that has none), the boarding rules as the mode has them. */
   const atPlane = (room: number, tickets: number, enhanced: boolean): Game => {
     const g = new Game(0);
     g.unlimitedCarry = () => enhanced;
-    g.jumpBoards = () => enhanced;
+    g.upBoards = () => enhanced;
     g.items.tickets = enhanced ? tickets : 0;
     if (!enhanced) for (let i = 0; i < tickets; i++) g.items.carried[i] = TICKET;
     g.placeAt({ room, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
@@ -188,25 +188,36 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
     g.monty.x = g.enemies.x(slot);
     g.monty.y = g.enemies.y(slot);
   };
-  const FIRE = Dir.Fire;
+  const FIRE = Dir.Fire, UP = Dir.Up;
   const stepWith = (g: Game, input: number, key = false): void => { place(g); g.step(input, key); };
   const FLYING = 0; // room 0 has a flight (to room 1); room 2 has none
 
   const g = atPlane(FLYING, 2, true);
-  check('ENHANCED: the panel prompt applies at a plane with a ticket in a room with a flight', g.canJumpBoard());
-  stepWith(g, FIRE);
-  check(`ENHANCED: Space at a plane with a ticket boards and spends one (${g.items.tickets} left, boarded ${g.boarded})`, g.boarded !== null && g.items.tickets === 1 && g.takeSpentJump() && !g.takeSpentJump());
-  check('ENHANCED: that press is not also a jump', g.monty.state === State.Free);
+  check('ENHANCED: the panel prompt applies at a plane with a ticket in a room with a flight', g.canBoardUp());
+  stepWith(g, UP);
+  check(`ENHANCED: up at a plane with a ticket boards and spends one (${g.items.tickets} left, boarded ${g.boarded})`, g.boarded !== null && g.items.tickets === 1);
+
+  const jumper = atPlane(FLYING, 2, true);
+  stepWith(jumper, FIRE);
+  check(`ENHANCED: the jump at a plane is a jump, and keeps the ticket (${jumper.boarded}, ${jumper.items.tickets}, state ${jumper.monty.state})`, jumper.boarded === null && jumper.items.tickets === 2 && jumper.monty.state !== State.Free);
+
+  const held = atPlane(FLYING, 2, true);
+  held.upHeld = true; // (up held from before he got there, as through a landing)
+  stepWith(held, UP);
+  const heldBoarded = held.boarded;
+  stepWith(held, 0);
+  stepWith(held, UP);
+  check(`ENHANCED: up held from before does not board; a fresh press does (${heldBoarded}, ${held.boarded})`, heldBoarded === null && held.boarded !== null);
 
   const none = atPlane(FLYING, 0, true);
-  check('ENHANCED: no ticket, no prompt', !none.canJumpBoard());
-  stepWith(none, FIRE);
-  check('ENHANCED: Space with no ticket does not board, and is not spent', none.boarded === null && !none.takeSpentJump() && none.monty.state !== State.Free);
+  check('ENHANCED: no ticket, no prompt', !none.canBoardUp());
+  stepWith(none, UP);
+  check('ENHANCED: up with no ticket does not board', none.boarded === null);
 
   const dry = atPlane(2, 2, true);
-  check('ENHANCED: a plane in a room with no flight shows no prompt', isPlane(dry.enemies.frame(0)) && !dry.canJumpBoard());
-  stepWith(dry, FIRE);
-  check(`ENHANCED: Space there jumps and keeps the ticket (${dry.items.tickets}, ${dry.boarded}, state ${dry.monty.state}, ${dry.takeSpentJump()})`, dry.boarded === null && dry.items.tickets === 2 && dry.monty.state !== State.Free && !dry.takeSpentJump());
+  check('ENHANCED: a plane in a room with no flight shows no prompt', isPlane(dry.enemies.frame(0)) && !dry.canBoardUp());
+  stepWith(dry, UP);
+  check(`ENHANCED: up there keeps the ticket (${dry.items.tickets}, ${dry.boarded})`, dry.boarded === null && dry.items.tickets === 2);
   const dryKey = atPlane(2, 2, true);
   stepWith(dryKey, 0, true);
   check('ENHANCED: C in a room with no flight keeps the ticket too', dryKey.boarded === null && dryKey.items.tickets === 2);
@@ -216,17 +227,17 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
 
   const away = new Game(0);
   away.unlimitedCarry = () => true;
-  away.jumpBoards = () => true;
+  away.upBoards = () => true;
   away.items.tickets = 2;
   for (const slot of [0, 1, 2, 3]) away.enemies.setX(slot, 0xe0);
   away.monty.x = 0x20;
-  away.step(FIRE);
-  check(`ENHANCED: away from a plane there is no prompt, and Space boards nothing (${away.canJumpBoard()}, ${away.boarded}, ${away.items.tickets}, state ${away.monty.state})`, !away.canJumpBoard() && away.boarded === null && away.items.tickets === 2);
+  away.step(UP);
+  check(`ENHANCED: away from a plane there is no prompt, and up boards nothing (${away.canBoardUp()}, ${away.boarded}, ${away.items.tickets})`, !away.canBoardUp() && away.boarded === null && away.items.tickets === 2);
 
   const orig = atPlane(FLYING, 1, false);
-  check('ORIGINAL: no prompt', !orig.canJumpBoard());
-  stepWith(orig, FIRE);
-  check('ORIGINAL: Space at a plane with a ticket jumps (ticket kept)', orig.boarded === null && orig.items.carried.includes(TICKET) && orig.monty.state !== State.Free && !orig.takeSpentJump());
+  check('ORIGINAL: no prompt', !orig.canBoardUp());
+  stepWith(orig, UP);
+  check('ORIGINAL: up at a plane with a ticket boards nothing (ticket kept)', orig.boarded === null && orig.items.carried.includes(TICKET));
   const origC = atPlane(FLYING, 1, false);
   stepWith(origC, 0, true);
   check('ORIGINAL: C at a plane boards and takes the ticket', origC.boarded !== null && !origC.items.carried.includes(TICKET));
@@ -234,19 +245,18 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
   stepWith(origDry, 0, true);
   check('ORIGINAL: C at a plane in a room with no flight takes the ticket all the same', origDry.boarded === null && !origDry.items.carried.includes(TICKET));
 
-  // the panel: the prompt takes the count's slot while it applies, in the game's lettering, with where the plane goes; touch says JUMP
+  // the panel: the prompt takes the count's slot while it applies, in the game's lettering, with where the plane goes
   const row = (pic: Picture): string => Array.from({ length: 22 }, (_, c) => String.fromCharCode(((pic.screen.ram[0x400 + 24 * 40 + 12 + c] ?? 0) - 0x60) & 0x7f)).join('').trim();
   const pa = atPlane(FLYING, 2, true);
   const pic = new Picture(pa);
   pa.step(0);
   pic.endB();
-  check(`the panel shows the prompt at a plane with a ticket, and where it flies (${row(pic)})`, row(pic) === 'SPACE: TO COPENHAGEN');
+  check(`the panel shows the prompt at a plane with a ticket, and where it flies (${row(pic)})`, row(pic) === 'UP: FLY TO COPENHAGEN');
   shot('prompt');
-  pic.touch = () => true;
   pa.step(0);
   pa.items.tickets = 3; // (a pickup: the count changes under the prompt)
   pic.endB();
-  check(`touch says JUMP (${row(pic)})`, row(pic) === 'JUMP: TO COPENHAGEN');
+  check(`a pickup under it keeps the prompt (${row(pic)})`, row(pic) === 'UP: FLY TO COPENHAGEN');
   pa.monty.x = 0x10;
   pa.enemies.setX(0, 0xe0);
   pa.step(0);
@@ -317,19 +327,19 @@ tick(60);
   check(`the panel counts the tickets in the game's lettering (${letters(24, 12, 16)})`, letters(24, 12, 16).trim() === 'AIR TICKETS X3');
   check(`the boxes show the last four picked up (${picture().hands.map((h) => h?.type)})`, picture().hands.map((h) => h?.type).join() === '11,4,5,7');
   shot('panel-tickets');
-  // at a plane the panel says what the jump does, in place of the count
+  // at a plane the panel says what up does, in place of the count
   g.placeAt({ room: 0, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   tick(6);
-  check(`at a plane the panel says SPACE: and where it flies (${letters(24, 12, 22)})`, letters(24, 12, 22).trim() === 'SPACE: TO COPENHAGEN');
+  check(`at a plane the panel says UP: and where it flies (${letters(24, 12, 22)})`, letters(24, 12, 22).trim() === 'UP: FLY TO COPENHAGEN');
   shot('panel-prompt');
-  // Space boards (held on through the whole flight: that press is spent, so it neither fires in the sky nor jumps on landing); a flight spends one
-  input.keyDown('Space'); tick(2);
-  check(`Space: one ticket spent, in the air, the panel says X2 (${letters(24, 12, 16)})`, program.flying && g.items.tickets === 2 && letters(24, 12, 16).trim() === 'AIR TICKETS X2');
+  // up boards (held on through the whole flight: landing at Copenhagen's plane, it does not fly on); a flight spends one
+  input.keyDown('ArrowUp'); tick(2);
+  check(`up: one ticket spent, in the air, the panel says X2 (${letters(24, 12, 16)})`, program.flying && g.items.tickets === 2 && letters(24, 12, 16).trim() === 'AIR TICKETS X2');
   let n = 0;
   while (n++ < 4000 && game().flying) tick();
   tick(4);
-  check(`landed with Space still held: no jump (state ${game().monty.state})`, !program.flying && game().monty.state === State.Free);
-  input.keyUp('Space');
+  check(`landed with up still held: on his feet, not flying on (state ${game().monty.state}, ${game().items.tickets} tickets)`, !program.flying && !program.hopping && game().monty.state === State.Free && game().items.tickets === 2);
+  input.keyUp('ArrowUp');
   tick(60);
   // the pause screen's CARRYING page
   /** A picture of the pause screen, and whether it holds still (the world's map blinks and shimmers, the page does not). */

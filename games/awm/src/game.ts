@@ -148,10 +148,10 @@ export class Game implements MontyHost {
   /** ENHANCED's "carry anything": no limit on what he carries, the tickets counted (items.ts). */
   unlimitedCarry: () => boolean = () => false;
   /**
-   * ENHANCED's "jump boards a plane": standing at a plane with a ticket in a room with a flight, the jump boards instead of jumping,
-   * and a ticket is never taken in a room with no flight (the C key and FLY work as ever).
+   * ENHANCED's "up boards a plane": standing at a plane with a ticket in a room with a flight, pressing up boards it (up climbs
+   * nothing at any plane), and a ticket is never taken in a room with no flight (the C key and FLY work as ever). The jump stays a jump.
    */
-  jumpBoards: () => boolean = () => false;
+  upBoards: () => boolean = () => false;
   /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
   /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
@@ -159,8 +159,8 @@ export class Game implements MontyHost {
   /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
   hints: () => boolean = () => false;
   onHint: ((hint: Hint) => void) | null = null;
-  /** The jump that boarded is spent (the front end holds it until it is let go): told once, by `takeSpentJump`. */
-  private spentJump = false;
+  /** Up was held at the last logic step: boarding takes a fresh press, so up held through a landing does not fly on at once. */
+  upHeld = false;
   /** Logic steps on his feet since he came into this room, and the last entry that had `SAFE_STEPS` of them. */
   private stepsFree = 0;
   safeEntry: Entry | null = null;
@@ -335,11 +335,12 @@ export class Game implements MontyHost {
     const { state, step } = m;
     let controls = this.scramble(input);
     let boardKey = key;
-    if ((controls & Dir.Fire) !== 0 && this.canJumpBoard()) {
-      // (ENHANCED: this jump boards; it is not also a jump, and the front end is told it is spent)
-      controls &= ~Dir.Fire;
+    const up = (controls & Dir.Up) !== 0, pressed = up && !this.upHeld;
+    this.upHeld = up;
+    if (pressed && this.canBoardUp()) {
+      // (ENHANCED: this press boards)
+      controls &= ~Dir.Up;
       boardKey = true;
-      this.spentJump = true;
     }
     const entered = m.advance(controls);
     const to = this.boarding(boardKey);
@@ -359,7 +360,7 @@ export class Game implements MontyHost {
   private boarding(key: boolean): number | null {
     if (!this.atPlane() || !key) return null;
     // (ENHANCED: a room with no flight takes no ticket)
-    if (this.jumpBoards() && destination(this.world.room) === null) return null;
+    if (this.upBoards() && destination(this.world.room) === null) return null;
     if (!this.items.take(TICKET)) return null;
     return destination(this.world.room);
   }
@@ -371,17 +372,11 @@ export class Game implements MontyHost {
     return [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
   }
 
-  /** ENHANCED: the jump would board a plane now (at one, with a ticket, in a room with a flight): the panel says SPACE: FLY TO and where. */
-  canJumpBoard(): boolean {
-    return this.jumpBoards() && this.boarded === null && this.atPlane() && destination(this.world.room) !== null && this.items.has(TICKET);
+  /** ENHANCED: up would board a plane now (at one, with a ticket, in a room with a flight): the panel says UP: FLY TO and where. */
+  canBoardUp(): boolean {
+    return this.upBoards() && this.boarded === null && this.atPlane() && destination(this.world.room) !== null && this.items.has(TICKET);
   }
 
-  /** True once after a jump boarded a plane: the press is spent, not also the flight's fire or the next jump. */
-  takeSpentJump(): boolean {
-    const spent = this.spentJump;
-    this.spentJump = false;
-    return spent;
-  }
 
   /** The flight he has boarded, to be flown a frame at a time over `play`, the 16K the play screen's VIC bank holds (the panel stays as it is). */
   startFlight(play: Uint8Array): Flight {

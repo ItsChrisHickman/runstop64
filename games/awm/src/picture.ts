@@ -91,8 +91,6 @@ export class Picture {
   private shownTickets = '';
   /** ENHANCED's item hints: what is on the panel's slot now (hints.ts). */
   private readonly hint = new HintClock();
-  /** Whether the player is on a touch screen (the panel's SPACE: FLY TO says JUMP: there). */
-  touch: () => boolean = () => false;
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
   private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);
 
@@ -190,7 +188,8 @@ export class Picture {
   /** ENHANCED: the tickets he holds, beside the boxes. */
   private tickets(): void {
     const n = this.game.items.tickets;
-    const prompt = this.game.canJumpBoard() ? flyPrompt(this.touch(), destination(this.game.world.room)) : null;
+    const to = this.game.canBoardUp() ? destination(this.game.world.room) : null;
+    const prompt = to === null ? null : flyPrompt(to);
     const hint = this.hint.current;
     const key = `${prompt ?? ''}|${n}|${hint ? this.hint.serial : ''}`;
     if (key === this.shownTickets) return;

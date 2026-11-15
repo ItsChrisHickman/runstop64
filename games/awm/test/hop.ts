@@ -63,14 +63,14 @@ tick(60);
 const FROM = 0;
 const TO = must(destination(FROM), 'room 0 has a flight');
 
-/** Stand at room 0's plane with a ticket and board with Space (held on, to the end). Returns the state before. */
+/** Stand at room 0's plane with a ticket and board with up (held on, to the end). Returns the state before. */
 function board() {
   const g = game();
   g.placeAt({ room: FROM, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   g.items.give(TICKET);
   tick(6);
   const before = { lives: g.lives, score: JSON.stringify(g.score.digits), tickets: tickets(g), room: g.world.room };
-  input.keyDown('Space');
+  input.keyDown('ArrowUp');
   tick(2);
   return before;
 }
@@ -93,8 +93,8 @@ function board() {
     if (!middle && frames === HOP_FRAMES / 2) { shot('hop-middle'); middle = true; }
     if (frames === HOP_FRAMES - 35) shot('hop-end');
     // a key and a tap in the sky are ignored
-    if (frames === 50) { tap('ArrowLeft'); input.keyDown('ArrowUp'); }
-    if (frames === 120) input.keyUp('ArrowUp');
+    if (frames === 50) { tap('ArrowLeft'); input.keyDown('Space'); }
+    if (frames === 120) input.keyUp('Space');
     tick();
     frames++;
   }
@@ -106,8 +106,8 @@ function board() {
   const where = firstPlane(TO);
   check(`landed in the destination room ${TO} (${g.world.room}) at its plane (${g.monty.x},${g.monty.y} / ${where.x},${where.y})`, g.world.room === TO && g.monty.x === where.x && g.monty.y === where.y);
   check('lives and score are as they were, the ticket is spent once', g.lives === before.lives && JSON.stringify(g.score.digits) === before.score && tickets(g) === before.tickets - 1);
-  check(`Space still held: it neither fired nor jumped (state ${g.monty.state})`, g.monty.state === State.Free && !program.flying);
-  input.keyUp('Space');
+  check(`up still held: he neither jumped nor flew on (state ${g.monty.state})`, g.monty.state === State.Free && !program.flying && !program.hopping);
+  input.keyUp('ArrowUp');
   tick(60);
   check('and the room is saved to carry on from', p.state.roomCount >= 1);
 }

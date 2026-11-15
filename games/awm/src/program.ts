@@ -77,15 +77,14 @@ export class Program {
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
   unlimitedCarry: () => boolean = () => false;
-  /** ENHANCED's jump boards a plane (game.ts `jumpBoards`), and whether the player is on a touch screen (the panel's wording). */
-  jumpBoards: () => boolean = () => false;
+  /** ENHANCED's up boards a plane (game.ts `upBoards`). */
+  upBoards: () => boolean = () => false;
   /** ENHANCED's quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
   /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
   hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (game.ts `hints`). */
   hints: () => boolean = () => false;
-  touch: () => boolean = () => false;
 
   constructor() {
     const title = new Title(this.scroller, this.soundFlag);
@@ -124,10 +123,6 @@ export class Program {
     this.titleFrame(title, NO_CONTROLS);
   }
 
-  /** A jump boarded a plane in the frame just played: its press is spent (told once). */
-  takeSpentJump(): boolean {
-    return this.part.kind === 'play' && this.part.game.takeSpentJump();
-  }
 
   /** The game being played or closed, if there is one. */
   get game(): Game | null {
@@ -210,12 +205,11 @@ export class Program {
     game.liftWaits = () => this.liftWaits();
     game.unlimitedLives = () => this.unlimitedLives();
     game.unlimitedCarry = () => this.unlimitedCarry();
-    game.jumpBoards = () => this.jumpBoards();
+    game.upBoards = () => this.upBoards();
     game.hints = () => this.hints();
     game.quickHop = () => this.quickHop();
     game.hopsRest = () => this.hopsRest();
     const picture = new Picture(game, carry, this.high);
-    picture.touch = () => this.touch();
     return picture;
   }
 

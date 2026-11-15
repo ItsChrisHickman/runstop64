@@ -162,7 +162,7 @@ export function clearBox(screen: Screen, box: number): void {
 }
 
 /**
- * Where ENHANCED's line on the panel goes: the count of plane tickets, the SPACE: FLY TO prompt and the item hints share the bottom
+ * Where ENHANCED's line on the panel goes: the count of plane tickets, the UP: FLY TO prompt and the item hints share the bottom
  * row, right of the money (the one row of the panel that is empty; the rows above it, over the picture, are drawn in extended
  * colour mode, where the game's letters do not come out). A hint with a picture of a thing takes the empty cells of the row above too.
  */
@@ -180,15 +180,12 @@ export interface SlotLine {
 }
 
 /**
- * ENHANCED: what the jump does at a plane with a ticket (it boards): on a touch screen the button is JUMP, else the key is Space;
- * with where the flight goes (`to`), the place's name, so a flight is never a guess (SPACE: FLY TO PARIS, or SPACE: TO COPENHAGEN
- * where the longer line would not fit the slot).
+ * ENHANCED: what up does at a plane with a ticket (it boards; the same word for the keys, a pad and the touch stick), with where the
+ * flight goes, so a flight is never a guess (UP: FLY TO PARIS; UP: TO <place> where the longer line would not fit the slot).
  */
-export function flyPrompt(touch: boolean, to: number | null = null): string {
-  const key = touch ? 'JUMP' : 'SPACE';
-  if (to === null) return `${key}: FLY`;
-  const long = `${key}: FLY TO ${placeName(to)}`;
-  return long.length <= SLOT_WIDTH ? long : `${key}: TO ${placeName(to)}`;
+export function flyPrompt(to: number): string {
+  const long = `UP: FLY TO ${placeName(to)}`;
+  return long.length <= SLOT_WIDTH ? long : `UP: TO ${placeName(to)}`;
 }
 
 /** A thing's 2 x 2 characters at a cell, `first` the first of the four characters (the order a box has: $6C0E). */
@@ -212,7 +209,7 @@ export function drawSlot(screen: Screen, line: SlotLine | null): void {
   if (item !== undefined) putItem(screen, pictureCol(text), row - 1, HINT_CHARS, item, coloursOfType(item));
 }
 
-/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel; while the jump would board a plane, `prompt` takes the slot instead, and a `hint` over both. */
+/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel; while up would board a plane, `prompt` takes the slot instead, and a `hint` over both. */
 export function drawTickets(screen: Screen, tickets: number, prompt: string | null = null, hint: SlotLine | null = null): void {
   drawSlot(screen, hint ?? { text: prompt ?? (tickets > 0 ? `AIR TICKETS X${tickets}` : ''), ink: Colour.Cyan });
 }

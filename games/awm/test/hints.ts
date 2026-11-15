@@ -2,7 +2,7 @@
  * Auf Wiedersehen Monty's ENHANCED item hints, headless. A room or creature that wants a thing used to take it without a word; now
  * the panel's bottom row says where a thing goes when it is picked up (FOR MONACO), what a room wants when he comes in without it
  * (WANTED HERE: and the thing's picture), and what a handover paid (DELIVERED: +1000), for four seconds, then the ticket count or
- * the SPACE: prompt is back. ORIGINAL says nothing. Every room and creature that takes a thing is checked.
+ * the UP: prompt is back. ORIGINAL says nothing. Every room and creature that takes a thing is checked.
  * With an out-dir: the panel with each message.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/hints.ts [out-dir]
@@ -205,7 +205,7 @@ function shot(pic: Picture, name: string) {
   check(`and goes (${slotText(pic)})`, slotText(pic) === 'AIR TICKETS X2');
   // the prompt returns too
   g.items.tickets = 2;
-  g.jumpBoards = () => true;
+  g.upBoards = () => true;
   g.placeAt({ room: 0, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   g.step(0);
   pic.endB();
@@ -215,7 +215,7 @@ function shot(pic: Picture, name: string) {
     g.monty.y = g.enemies.y(plane);
     g.step(0);
     pic.endB();
-    check(`at a plane the prompt is the slot's after the hints (${slotText(pic)})`, slotText(pic) === 'SPACE: TO COPENHAGEN');
+    check(`at a plane the prompt is the slot's after the hints (${slotText(pic)})`, slotText(pic) === 'UP: FLY TO COPENHAGEN');
   }
 }
 {

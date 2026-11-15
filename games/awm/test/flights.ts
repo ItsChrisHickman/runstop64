@@ -1,7 +1,7 @@
 /**
  * Planes and hops, the three things that keep a player from being stuck in Denmark (Chris, 2026-11-14: Breakfast's bouncer looked
  * impossible, and nothing said a plane from Moledavia lands in Copenhagen):
- *   - the panel's prompt at a plane says where it flies, for every flight, in the slot's 22 cells (ENHANCED);
+ *   - the panel's prompt at a plane says where it flies, for every flight, in the slot's 22 cells (ENHANCED; up boards, 2026-11-15);
  *   - the pause map badges every plane's room he has stood in (top left) and where it lands (bottom right) in one colour, and the
  *     picked room's lines say where its plane goes (both modes; 2026-11-15: badges, not lines with arrowheads);
  *   - ENHANCED's hoppers rest at the top of each hop, so Breakfast's crossing has a window a person can time; ORIGINAL's and the
@@ -37,15 +37,13 @@ const FLIGHTS = ROOMS.flatMap((from) => {
 // ---- the prompt names where the plane goes
 check(`there are flights (${FLIGHTS.length})`, FLIGHTS.length === 15);
 for (const { from, to } of FLIGHTS) {
-  for (const touch of [false, true]) {
-    const p = flyPrompt(touch, to);
-    const ok = p.length <= 22 && p.endsWith(placeName(to)) && p.startsWith(touch ? 'JUMP: ' : 'SPACE: ') && !p.includes('AIRPORT');
-    if (!ok || touch) check(`$${from.toString(16)}'s prompt fits and names the place (${p})`, ok);
-  }
+  const p = flyPrompt(to);
+  const ok = p.length <= 22 && p.endsWith(placeName(to)) && p.startsWith('UP: ') && !p.includes('AIRPORT');
+  check(`$${from.toString(16)}'s prompt fits and names the place (${p})`, ok);
 }
-check(`a short name keeps FLY (${flyPrompt(false, 0x11)})`, flyPrompt(false, 0x11) === 'SPACE: FLY TO PARIS');
-check(`a long one drops it (${flyPrompt(false, 1)})`, flyPrompt(false, 1) === 'SPACE: TO COPENHAGEN');
-check(`an airport reads as its country (${flyPrompt(false, 0x28)})`, flyPrompt(false, 0x28) === 'SPACE: FLY TO SPAIN');
+check(`a short name says FLY TO (${flyPrompt(0x11)})`, flyPrompt(0x11) === 'UP: FLY TO PARIS');
+check(`so does the longest (${flyPrompt(1)})`, flyPrompt(1) === 'UP: FLY TO COPENHAGEN');
+check(`an airport reads as its country (${flyPrompt(0x28)})`, flyPrompt(0x28) === 'UP: FLY TO SPAIN');
 check('only Copenhagen and Byorn fly both ways', FLIGHTS.filter((f) => destination(f.to) === f.from).map((f) => f.from).sort().join() === '0,1');
 
 // ---- the map: a flight is drawn once its plane's room has been stood in
