@@ -2,8 +2,9 @@
  * Planes and hops, the three things that keep a player from being stuck in Denmark (Chris, 2026-11-14: Breakfast's bouncer looked
  * impossible, and nothing said a plane from Moledavia lands in Copenhagen):
  *   - the panel's prompt at a plane says where it flies, for every flight, in the slot's 22 cells (ENHANCED; up boards, 2026-11-15);
- *   - the pause map badges every plane's room he has stood in (top left) and where it lands (bottom right) in one colour, and the
- *     picked room's lines say where its plane goes (both modes; 2026-11-15: badges, not lines with arrowheads);
+ *   - the pause map marks every plane's room he has stood in with a small plane, and the picked room's plane (his own room's if
+ *     none is picked) has one line with an arrowhead to where it lands, and PLANE TO under its name (both modes; 2026-11-15: one
+ *     flight at a time, not all their lines at once, nor colour badges);
  *   - ENHANCED's hoppers rest at the top of each hop, so Breakfast's crossing has a window a person can time; ORIGINAL's and the
  *     hoppers that bob in place are as they were.
  *
@@ -13,13 +14,13 @@ import { Surface } from 'c64kit';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { stickOf, isMove, type Move } from '../../shared/ending/pilot';
-import { GRID_COLS, NO_ROOM, WORLD_GRID } from '../src/data';
+import { NO_ROOM, WORLD_GRID } from '../src/data';
 import { sceneGame, stickBits } from '../src/ending';
 import { REST_STEPS } from '../src/enemies';
 import { destination } from '../src/flight';
 import { Game } from '../src/game';
 import { decodeStick } from '../src/input';
-import { awmMap, colourOf, flightsSeen, LANDING_COLOURS, type AwmFound } from '../src/map';
+import { awmMap, flightFrom, flightsSeen, type AwmFound } from '../src/map';
 import { flyPrompt } from '../src/panel';
 import { Program } from '../src/program';
 import { snapshot } from '../src/save';
@@ -54,29 +55,21 @@ check(`Moledavia seen: its plane to Copenhagen (${JSON.stringify(flightsSeen(mol
 const program = new Program();
 const g0 = new Game(0x40);
 program.resume(snapshot(g0, [null, null, null, null]), false);
-/** The map drawn with what has been found (blink off, so his room is yellow). */
-function mapOf(found: AwmFound): Surface {
+/** The white pixels of the map drawn with what has been found and a room picked (blink off: his room, Moledavia, is yellow). */
+function whites(found: AwmFound, pick: string | null = null): number {
   const s = new Surface(320, 200, 0);
-  awmMap.draw(s, MAP_BOX, program, found, false, 0, undefined, null);
-  return s;
+  awmMap.draw(s, MAP_BOX, program, found, false, 0, undefined, pick);
+  return s.pixels.filter((p) => p === 1).length;
 }
-const pixelsOf = (s: Surface, colour: number) => s.pixels.filter((p) => p === colour).length;
-// Moledavia's badge and Copenhagen's are in Copenhagen's colour: 15 pixels each; none of it without them
-const own = LANDING_COLOURS.get(1) ?? -1;
-check(`Moledavia's plane and Copenhagen are badged (${pixelsOf(mapOf(moledavia), own)} pixels, ${pixelsOf(mapOf(none), own)} without)`,
-  pixelsOf(mapOf(moledavia), own) === 30 && pixelsOf(mapOf(none), own) === 0);
-{
-  // every landing has a colour; one used twice is on landings seven rooms or more apart, plane rooms included
-  const cell = (r: number) => { const i = WORLD_GRID.indexOf(r); return { c: i % GRID_COLS, r: Math.floor(i / GRID_COLS) }; };
-  const ends = (to: number) => [to, ...FLIGHTS.filter((f) => f.to === to).map((f) => f.from)].map(cell);
-  const landings = [...new Set(FLIGHTS.map((f) => f.to))];
-  check('every landing has a badge colour', landings.every((t) => LANDING_COLOURS.has(t)) && LANDING_COLOURS.size === landings.length);
-  const close = landings.flatMap((a) => landings.filter((b) => a < b && LANDING_COLOURS.get(a) === LANDING_COLOURS.get(b)
-    && ends(a).some((p) => ends(b).some((q) => Math.max(Math.abs(p.c - q.c), Math.abs(p.r - q.r)) < 7))));
-  const onOwn = landings.filter((t) => ends(t).some(({ c, r }) => colourOf(WORLD_GRID[r * GRID_COLS + c] ?? NO_ROOM) === LANDING_COLOURS.get(t)));
-  check(`no badge is the colour of the room it sits on (${onOwn.map((r) => r.toString(16)).join() || 'none'})`, onOwn.length === 0);
-  check(`a colour used twice is far apart (${close.map((r) => r.toString(16)).join() || 'none close'})`, close.length === 0);
-}
+const MARK = 8; // the plane mark's pixels
+const amsterdam: AwmFound = { rooms: { ...moledavia.rooms, [0x05]: [0x40, 0x40, 0, 0] } };
+const own = whites(moledavia), nothing = whites(none);
+check(`standing at Moledavia's plane: its one arrow, to Copenhagen (${own} white pixels, ${nothing} with nothing seen)`, nothing === 0 && own > 60);
+const unpicked = whites(amsterdam, '3');
+check(`a room with no plane picked: no arrow, Amsterdam's plane mark alone (${unpicked})`, unpicked === MARK);
+const picked = whites(amsterdam, '5');
+check(`Amsterdam picked: its mark and its arrow, to Spain (${picked})`, picked > MARK + 60);
+check('where a room he has stood in flies (and nothing for one not seen)', flightFrom(amsterdam, 5) === 0x28 && flightFrom(none, 5) === null && flightFrom(amsterdam, 3) === null);
 
 // ---- ENHANCED: Breakfast's bouncer rests at the top of its hop
 const parse = (s: string): Move[] => s.split(' ').filter(Boolean).flatMap((tok) => {
