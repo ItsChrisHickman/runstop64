@@ -21,7 +21,7 @@ export const info = {
     M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
     <p>Changes from the original (all in the spirit of the 1987 game; the
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/awm/QOL.md">full log</a>):
-    pause screen with a map of the world and travel (with a line from every plane you've found to where it lands) &middot; autosave on every room and Continue after the last life
+    pause screen with a map of the world and travel (every plane you've found has a coloured badge in its room's top left corner, and the room it lands in one of the same colour bottom right) &middot; autosave on every room and Continue after the last life
     (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
     refresh rate &middot; the high score kept in your browser &middot; ENHANCED (switch to ORIGINAL on the pause screen):
     unlimited lives and continues; a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life

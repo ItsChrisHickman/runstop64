@@ -36,21 +36,6 @@ export class Surface {
     this.version++;
   }
 
-  /** A one-pixel line from one point to another, both ends drawn (Bresenham). */
-  line(x0: number, y0: number, x1: number, y1: number, colour: number) {
-    const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-    let x = x0, y = y0, err = dx + dy;
-    for (;;) {
-      if (x >= 0 && y >= 0 && x < this.width && y < this.height) this.pixels[y * this.width + x] = colour;
-      if (x === x1 && y === y1) break;
-      const e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x += sx; }
-      if (e2 <= dx) { err += dx; y += sy; }
-    }
-    this.version++;
-  }
-
   /** Draw a hi-res 8×8 character (8 bytes, MSB = leftmost pixel). */
   drawChar(glyph: ArrayLike<number>, x: number, y: number, fg: number, bg = TRANSPARENT) {
     for (let row = 0; row < 8; row++) {
