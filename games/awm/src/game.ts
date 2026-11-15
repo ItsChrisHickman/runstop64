@@ -152,6 +152,12 @@ export class Game implements MontyHost {
    * nothing at any plane), and a ticket is never taken in a room with no flight (the C key and FLY work as ever). The jump stays a jump.
    */
   upBoards: () => boolean = () => false;
+  /**
+   * ENHANCED: a flight is free (no ticket) once he has stood in the room it lands in, as every plane he has flown (Chris, 2026-11-15:
+   * a plane flown once should be his to use; travel already goes to any room he has stood in for nothing). The front end knows the
+   * rooms (the map's `found`).
+   */
+  flightFree: (to: number) => boolean = () => false;
   /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
   /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
@@ -360,9 +366,11 @@ export class Game implements MontyHost {
   private boarding(key: boolean): number | null {
     if (!this.atPlane() || !key) return null;
     // (ENHANCED: a room with no flight takes no ticket)
-    if (this.upBoards() && destination(this.world.room) === null) return null;
+    const to = destination(this.world.room);
+    if (this.upBoards() && to === null) return null;
+    if (this.upBoards() && to !== null && this.flightFree(to)) return to;
     if (!this.items.take(TICKET)) return null;
-    return destination(this.world.room);
+    return to;
   }
 
   /** He stands at a plane (touching it harms nothing) and is in a state that can board. */
@@ -372,9 +380,10 @@ export class Game implements MontyHost {
     return [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
   }
 
-  /** ENHANCED: up would board a plane now (at one, with a ticket, in a room with a flight): the panel says UP: FLY TO and where. */
+  /** ENHANCED: up would board a plane now (at one, in a room with a flight, with a ticket or the flight free): the panel says UP: FLY TO and where. */
   canBoardUp(): boolean {
-    return this.upBoards() && this.boarded === null && this.atPlane() && destination(this.world.room) !== null && this.items.has(TICKET);
+    const to = destination(this.world.room);
+    return this.upBoards() && this.boarded === null && this.atPlane() && to !== null && (this.items.has(TICKET) || this.flightFree(to));
   }
 
 

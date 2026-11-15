@@ -79,6 +79,8 @@ export class Program {
   unlimitedCarry: () => boolean = () => false;
   /** ENHANCED's up boards a plane (game.ts `upBoards`). */
   upBoards: () => boolean = () => false;
+  /** ENHANCED: a flight to a room he has stood in needs no ticket (game.ts `flightFree`). */
+  flightFree: (to: number) => boolean = () => false;
   /** ENHANCED's quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
   /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
@@ -206,6 +208,7 @@ export class Program {
     game.unlimitedLives = () => this.unlimitedLives();
     game.unlimitedCarry = () => this.unlimitedCarry();
     game.upBoards = () => this.upBoards();
+    game.flightFree = (to) => this.flightFree(to);
     game.hints = () => this.hints();
     game.quickHop = () => this.quickHop();
     game.hopsRest = () => this.hopsRest();

@@ -99,6 +99,7 @@ export function run(host: Host) {
     program.unlimitedLives = () => fe.assist.lives === true;
     program.unlimitedCarry = () => fe.assist.carry === true;
     program.upBoards = () => fe.assist.board === true;
+    program.flightFree = (to) => fe.found.rooms[to] !== undefined;
     program.hints = () => fe.assist.hints === true;
     program.quickHop = () => fe.assist.hop === true;
     program.hopsRest = () => fe.assist.rest === true;

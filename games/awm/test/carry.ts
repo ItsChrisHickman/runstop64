@@ -209,6 +209,20 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
   stepWith(held, UP);
   check(`ENHANCED: up held from before does not board; a fresh press does (${heldBoarded}, ${held.boarded})`, heldBoarded === null && held.boarded !== null);
 
+  const free = atPlane(FLYING, 0, true);
+  free.flightFree = (to) => to === 1; // (he has stood in Copenhagen, where room 0's plane lands)
+  check('ENHANCED: no ticket, but he has been where it lands: the prompt', free.canBoardUp());
+  stepWith(free, UP);
+  check(`ENHANCED: and up flies him there for nothing (boarded ${free.boarded}, ${free.items.tickets} tickets)`, free.boarded === 1 && free.items.tickets === 0);
+  const paid = atPlane(FLYING, 2, true);
+  paid.flightFree = () => true;
+  stepWith(paid, UP);
+  check(`ENHANCED: a free flight keeps the tickets he has (${paid.items.tickets})`, paid.boarded === 1 && paid.items.tickets === 2);
+  const origFree = atPlane(FLYING, 0, false);
+  origFree.flightFree = () => true;
+  stepWith(origFree, 0, true);
+  check('ORIGINAL: no flight is free (C with no ticket boards nothing)', origFree.boarded === null);
+
   const none = atPlane(FLYING, 0, true);
   check('ENHANCED: no ticket, no prompt', !none.canBoardUp());
   stepWith(none, UP);
