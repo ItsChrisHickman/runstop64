@@ -13,6 +13,7 @@ import { TABLES } from './data';
 import { coloursOfType } from './items';
 import { COLOUR_OF } from './room';
 import { CHARSET_AT, SCREEN_COLS, type Screen } from './screen';
+import { placeName } from './wants';
 
 /** The rows of the panel: the band under the play area is row 19, the banner row 20, and so on. */
 const ROW_BAND = 19;
@@ -161,7 +162,7 @@ export function clearBox(screen: Screen, box: number): void {
 }
 
 /**
- * Where ENHANCED's line on the panel goes: the count of plane tickets, the SPACE: FLY prompt and the item hints share the bottom
+ * Where ENHANCED's line on the panel goes: the count of plane tickets, the SPACE: FLY TO prompt and the item hints share the bottom
  * row, right of the money (the one row of the panel that is empty; the rows above it, over the picture, are drawn in extended
  * colour mode, where the game's letters do not come out). A hint with a picture of a thing takes the empty cells of the row above too.
  */
@@ -178,9 +179,16 @@ export interface SlotLine {
   readonly item?: number;
 }
 
-/** ENHANCED: what the jump does at a plane with a ticket (it boards): on a touch screen the button is JUMP, else the key is Space. */
-export function flyPrompt(touch: boolean): string {
-  return touch ? 'JUMP: FLY' : 'SPACE: FLY';
+/**
+ * ENHANCED: what the jump does at a plane with a ticket (it boards): on a touch screen the button is JUMP, else the key is Space;
+ * with where the flight goes (`to`), the place's name, so a flight is never a guess (SPACE: FLY TO PARIS, or SPACE: TO COPENHAGEN
+ * where the longer line would not fit the slot).
+ */
+export function flyPrompt(touch: boolean, to: number | null = null): string {
+  const key = touch ? 'JUMP' : 'SPACE';
+  if (to === null) return `${key}: FLY`;
+  const long = `${key}: FLY TO ${placeName(to)}`;
+  return long.length <= SLOT_WIDTH ? long : `${key}: TO ${placeName(to)}`;
 }
 
 /** A thing's 2 x 2 characters at a cell, `first` the first of the four characters (the order a box has: $6C0E). */

@@ -10,7 +10,7 @@
  *   speed, +10 a counter, +11 a control byte (bits 6-7: how the frame is animated; the low bits: a reload
  *   or the number of a frame sequence), +12 the base frame the animation adds to.
  *
- * (+3 to +6 are never used.) Types 1-9 are what the room tables hold; 10-17 are the states some of them
+ * (+3 to +6 are never used by the game; ENHANCED keeps a hop's rest in +3: `restAtTop`.) Types 1-9 are what the room tables hold; 10-17 are the states some of them
  * go through (a type 7 "shooter" becomes 14, then runs a frame sequence; the record after it is its
  * projectile). A shooter or the record a projectile is made in is always the *next* record, so a
  * shooter in the last slot would write into the code that follows the table: no room has one, and
@@ -23,7 +23,7 @@ export const SLOTS = 4;
 const REC = 13;
 
 /** Offsets in a record. */
-const X = 0, Y = 1, COLOUR = 2, FRAME = 7, TYPE = 8, SPEED = 9, COUNTER = 10, CONTROL = 11, BASE = 12;
+const X = 0, Y = 1, COLOUR = 2, REST = 3, FRAME = 7, TYPE = 8, SPEED = 9, COUNTER = 10, CONTROL = 11, BASE = 12;
 
 /** The type of an enemy while it does something else: the types a room table cannot hold. */
 export const Kind = {
@@ -56,6 +56,11 @@ export const PLANE_FRAMES: readonly number[] = [0xd0, 0xd1];
 export const isPlane = (frame: number): boolean => PLANE_FRAMES.includes(frame);
 
 const add = (a: number, b: number): number => (a + b) & 0xff;
+
+/** The step of the wobble where a hop is at its top: the first of the two still steps (WOBBLE's zeros). */
+const TOP = 7;
+/** ENHANCED: logic steps a hop rests at its top, on the two the game gives it (25 a second: half a second). */
+export const REST_STEPS = 12;
 const neg = (a: number): number => (-a) & 0xff;
 
 /** The animation clock all enemies share ($5ECA-$5ECC, $5ECF); it moves on every second logic step. */
@@ -74,6 +79,12 @@ export class Enemies {
   /** The four records, 13 bytes each, from $5C4C. */
   readonly bytes = new Uint8Array(SLOTS * REC);
   readonly clock: AnimClock = { phase: 0, frame: 0, flip: 0, toggle: 0xff };
+
+  /**
+   * ENHANCED's "hoppers rest at the top": a type 3 enemy that travels sideways as it bobs (five in the game, Breakfast's in Denmark
+   * among them) stays at the top of each hop for `REST_STEPS` more, so the moment to go under it can be seen and timed.
+   */
+  restAtTop: () => boolean = () => false;
 
   /** The tables are the game's ($703F, $3400); a test may hand in others (emptied, to take the enemies out). */
   constructor(private readonly table: Uint8Array = ENEMY_ROOMS, private readonly colours: Uint8Array = ENEMY_COLOURS) {}
@@ -114,6 +125,7 @@ export class Enemies {
       const at = room * 16 + e * 4;
       const b0 = this.table[at] ?? 0, b1 = this.table[at + 1] ?? 0, b2 = this.table[at + 2] ?? 0, b3 = this.table[at + 3] ?? 0;
       this.put(e, COUNTER, 0);
+      this.put(e, REST, 0);
       this.put(e, Y, (b0 & 0x0f) << 3);
       this.put(e, X, b0 & 0xf0);
       const kind = b1 & 0x0f;
@@ -160,6 +172,7 @@ export class Enemies {
         this.setY(e, add(this.y(e), this.get(e, SPEED)));
         return this.turn(e);
       case Kind.Bob: { // $5F7C: along x, turning when the counter reaches the control byte (all of it), bobbing in y
+        if (this.resting(e)) return this.showCycle(e);
         this.put(e, X, this.x(e) + this.get(e, SPEED));
         this.put(e, COUNTER, this.get(e, COUNTER) + 1);
         if (this.get(e, COUNTER) === this.get(e, CONTROL)) {
@@ -169,6 +182,7 @@ export class Enemies {
         let a = this.get(e, COUNTER);
         if (this.get(e, CONTROL) < 0x20) a += 8;
         this.setY(e, add(this.y(e), WOBBLE[a & 15] ?? 0));
+        if ((a & 15) === TOP && this.get(e, SPEED) !== 0 && this.restAtTop()) this.put(e, REST, REST_STEPS);
         return this.showCycle(e);
       }
       case Kind.Wave: { // $5FCB: along y, wobbling in x on a 16-step beat (the counter's low nibble)
@@ -234,6 +248,14 @@ export class Enemies {
   }
 
   // ---- pieces the handlers share ----------------------------------------------------------------
+
+  /** ENHANCED: a hop resting at its top counts a step of its rest; true while it rests. */
+  private resting(e: number): boolean {
+    const left = this.get(e, REST);
+    if (left === 0) return false;
+    this.put(e, REST, left - 1);
+    return true;
+  }
 
   /** $5F60: turn round (the speed's sign flips). */
   private reverse(e: number): void {

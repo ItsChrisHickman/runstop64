@@ -57,12 +57,12 @@ export const wantFor = (type: number): Want | undefined => WANTS.find((w) => w.t
 /** What a room asks for. */
 export const wantIn = (room: number): Want | undefined => WANTS.find((w) => w.room === room);
 
-/**
- * A room's name short enough for the panel, in the game's banner: the place, or the country where the place is blank or
- * reads as nothing alone (room $1B's banner is "THE, AUSTRIA").
- */
+/** Places that say nothing alone: room $1B's banner is "THE, AUSTRIA"; Spain and Yugoslavia each have an AIRPORT. */
+const NOTHING_ALONE: readonly string[] = ['THE', 'AIRPORT'];
+
+/** A room's name short enough for the panel, in the game's banner: the place, or the country where the place is blank or reads as nothing alone. */
 export function placeName(room: number): string {
   const [land = '', place = ''] = (BANNERS[room] ?? '').split('|');
   const p = place.trim();
-  return p.length >= 4 && p !== 'THE' ? p : land.trim();
+  return p.length >= 4 && !NOTHING_ALONE.includes(p) ? p : land.trim();
 }

@@ -21,11 +21,11 @@ export const info = {
     M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
     <p>Changes from the original (all in the spirit of the 1987 game; the
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/awm/QOL.md">full log</a>):
-    pause screen with a map of the world and travel &middot; autosave on every room and Continue after the last life
+    pause screen with a map of the world and travel (with a line from every plane you've found to where it lands) &middot; autosave on every room and Continue after the last life
     (coming back carries on where you were; T on the pause screen goes to the title) &middot; smooth movement at any
     refresh rate &middot; the high score kept in your browser &middot; ENHANCED (switch to ORIGINAL on the pause screen):
     unlimited lives and continues; a death before Monty has had two seconds on his feet in a room starts him again where he last had them, so a life
-    is lost once, not on every try; a lift waits at rest until you are out from under it when you arrive; carry anything: no limit on what Monty carries (plane tickets are a count on the panel, the boxes show the four things picked up last, and the pause screen has a CARRYING page); at a plane with a ticket the jump boards it (SPACE: FLY on the panel), and the flight is a quick hop: the biplane crosses the sky by itself in four seconds and he lands at the other airport &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
+    is lost once, not on every try; a lift waits at rest until you are out from under it when you arrive; carry anything: no limit on what Monty carries (plane tickets are a count on the panel, the boxes show the four things picked up last, and the pause screen has a CARRYING page); at a plane with a ticket the jump boards it (the panel says where it flies: SPACE: FLY TO PARIS), and the flight is a quick hop: the biplane crosses the sky by itself in four seconds and he lands at the other airport; the enemies that hop sideways rest a moment at the top of each hop &middot; ENHANCED's reward for winning: after the ending, a montage of places across Europe
     with Monty running through them, the credits and some true facts, the creatures walking through the places and THE END (W on the pause
     screen shows it again once you've won).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; the game's own graphics,

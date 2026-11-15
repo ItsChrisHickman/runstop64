@@ -154,6 +154,8 @@ export class Game implements MontyHost {
   jumpBoards: () => boolean = () => false;
   /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
+  /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
+  hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
   hints: () => boolean = () => false;
   onHint: ((hint: Hint) => void) | null = null;
@@ -172,6 +174,7 @@ export class Game implements MontyHost {
     this.lift = parts.lift ?? new Lift();
     this.lift.waits = () => this.liftWaits();
     this.items.unlimited = () => this.unlimitedCarry();
+    this.enemies.restAtTop = () => this.hopsRest();
     this.world = new World(ROOMS, WORLD_GRID, NO_ROOM, room);
     this.rng = new Random(RANDOM);
     this.monty = new Monty(this.world, this.rng, TABLES.tileGfx, this);
@@ -368,7 +371,7 @@ export class Game implements MontyHost {
     return [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
   }
 
-  /** ENHANCED: the jump would board a plane now (at one, with a ticket, in a room with a flight): the panel says SPACE: FLY. */
+  /** ENHANCED: the jump would board a plane now (at one, with a ticket, in a room with a flight): the panel says SPACE: FLY TO and where. */
   canJumpBoard(): boolean {
     return this.jumpBoards() && this.boarded === null && this.atPlane() && destination(this.world.room) !== null && this.items.has(TICKET);
   }

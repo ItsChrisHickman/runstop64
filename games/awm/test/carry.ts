@@ -234,19 +234,19 @@ const TICKETS = TABLES.items.flatMap((e, i) => (e.type === TICKET ? [i] : []));
   stepWith(origDry, 0, true);
   check('ORIGINAL: C at a plane in a room with no flight takes the ticket all the same', origDry.boarded === null && !origDry.items.carried.includes(TICKET));
 
-  // the panel: the prompt takes the count's slot while it applies, in the game's lettering; touch says JUMP
-  const row = (pic: Picture): string => Array.from({ length: 16 }, (_, c) => String.fromCharCode(((pic.screen.ram[0x400 + 24 * 40 + 12 + c] ?? 0) - 0x60) & 0x7f)).join('').trim();
+  // the panel: the prompt takes the count's slot while it applies, in the game's lettering, with where the plane goes; touch says JUMP
+  const row = (pic: Picture): string => Array.from({ length: 22 }, (_, c) => String.fromCharCode(((pic.screen.ram[0x400 + 24 * 40 + 12 + c] ?? 0) - 0x60) & 0x7f)).join('').trim();
   const pa = atPlane(FLYING, 2, true);
   const pic = new Picture(pa);
   pa.step(0);
   pic.endB();
-  check(`the panel shows the prompt at a plane with a ticket (${row(pic)})`, row(pic) === 'SPACE: FLY');
+  check(`the panel shows the prompt at a plane with a ticket, and where it flies (${row(pic)})`, row(pic) === 'SPACE: TO COPENHAGEN');
   shot('prompt');
   pic.touch = () => true;
   pa.step(0);
   pa.items.tickets = 3; // (a pickup: the count changes under the prompt)
   pic.endB();
-  check(`touch says JUMP: FLY (${row(pic)})`, row(pic) === 'JUMP: FLY');
+  check(`touch says JUMP (${row(pic)})`, row(pic) === 'JUMP: TO COPENHAGEN');
   pa.monty.x = 0x10;
   pa.enemies.setX(0, 0xe0);
   pa.step(0);
@@ -320,7 +320,7 @@ tick(60);
   // at a plane the panel says what the jump does, in place of the count
   g.placeAt({ room: 0, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   tick(6);
-  check(`at a plane the panel says SPACE: FLY (${letters(24, 12, 16)})`, letters(24, 12, 16).trim() === 'SPACE: FLY');
+  check(`at a plane the panel says SPACE: and where it flies (${letters(24, 12, 22)})`, letters(24, 12, 22).trim() === 'SPACE: TO COPENHAGEN');
   shot('panel-prompt');
   // Space boards (held on through the whole flight: that press is spent, so it neither fires in the sky nor jumps on landing); a flight spends one
   input.keyDown('Space'); tick(2);

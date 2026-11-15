@@ -1,8 +1,10 @@
 import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { BANNERS } from './data/awm-data';
 import { GRID_COLS, NO_ROOM, TABLES, WORLD_GRID } from './data';
+import type { Surface } from 'c64kit';
 import { carryingPages, carryingTitle } from '../../shared/carrying';
 import * as Carrying from './carrying';
+import { destination } from './flight';
 import { isTrap } from './items';
 import type { Entry, Game } from './game';
 import type { Program } from './program';
@@ -12,8 +14,9 @@ import { State } from './tiles';
 /**
  * The map for the shared pause screen (games/shared/frontend.ts): the world as the game lays it out (80 rooms in a grid
  * 16 wide), a room dark grey until Monty has stood in it, then its country's colour; rooms with everything in them
- * taken shimmer in the colours of the coins on Monty on the Run's map; his room flashes. Under it the picked room's
- * name (the banner the game prints over it) and what is left there to take.
+ * taken shimmer in the colours of the coins on Monty on the Run's map; his room flashes; from every room with a plane he has
+ * stood in, a line with an arrowhead to where the plane flies. Under it the picked room's name (the banner the game prints
+ * over it) and what is left there to take.
  *
  * Places to go back to: every room he has stood in, arriving where he first came in, as through an exit
  * (`Program.travel`: the game's own room entry).
@@ -80,6 +83,37 @@ const complete = (program: Program, room: number) => {
   return l.total > 0 && l.open === 0;
 };
 
+/** The flights (flight.ts): a plane's room and where it flies. Only Copenhagen and Byorn fly both ways. */
+const FLIGHTS: readonly { readonly from: number; readonly to: number }[] = rooms.flatMap((from) => {
+  const to = destination(from);
+  return to === null ? [] : [{ from, to }];
+});
+/** The flights' lines and arrowheads. */
+const FLIGHT_INK = COL.white;
+/** An arrowhead's length back along the line, and how far each side of it it spreads (pixels). */
+const HEAD_LENGTH = 4, HEAD_SPREAD = 2.5;
+
+/** The middle of a room's cell on the map. */
+function middleOf(at: (row: number, col: number) => { x: number; y: number }, room: number): { x: number; y: number } {
+  const i = WORLD_GRID.indexOf(room);
+  const p = at(Math.floor(i / COLS), i % COLS);
+  return { x: p.x + 5, y: p.y + 3 };
+}
+
+/** A flight's line from its plane's room to where it lands, the arrowhead at the landing (a flight both ways draws one each way). */
+function drawFlight(s: Surface, from: { x: number; y: number }, to: { x: number; y: number }): void {
+  s.line(from.x, from.y, to.x, to.y, FLIGHT_INK);
+  const dx = from.x - to.x, dy = from.y - to.y, length = Math.hypot(dx, dy);
+  if (length === 0) return;
+  const ux = dx / length, uy = dy / length;
+  for (const side of [1, -1]) {
+    s.line(to.x, to.y, Math.round(to.x + ux * HEAD_LENGTH - uy * HEAD_SPREAD * side), Math.round(to.y + uy * HEAD_LENGTH + ux * HEAD_SPREAD * side), FLIGHT_INK);
+  }
+}
+
+/** The flights whose plane he has seen: from a room he has stood in. */
+export const flightsSeen = (found: AwmFound): readonly { readonly from: number; readonly to: number }[] => FLIGHTS.filter((f) => found.rooms[f.from] !== undefined);
+
 function layout(box: Box) {
   const ox = box.x + Math.floor((box.w - COLS * CELL_W) / 2), oy = box.y + 2;
   return { at: (row: number, col: number) => ({ x: ox + col * CELL_W, y: oy + row * CELL_H }) };
@@ -143,6 +177,7 @@ export const awmMap = {
         s.fillRect(p.x, p.y, CELL_W - 1, CELL_H - 1, colour);
       }
     }
+    for (const f of flightsSeen(found)) drawFlight(s, middleOf(at, f.from), middleOf(at, f.to));
     if (!font) return;
     // the picked room: its name, and what is left there
     const room = pick !== null && pick !== undefined ? Number(pick) : game.world.room;

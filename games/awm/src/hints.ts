@@ -6,7 +6,7 @@ import { placeName } from './wants';
  * without a word, so when something worked it felt like luck. Now a thing picked up that something wants says where it goes
  * (FOR MONACO), a room that wants a thing he is not carrying says so with the thing's picture (WANTED HERE:), and a handover
  * says what it paid (DELIVERED: +1000). `Game` says what happened (`onHint`); the picture shows it for a few seconds
- * (`HintClock`), then the slot goes back to the ticket count or the SPACE: FLY prompt.
+ * (`HintClock`), then the slot goes back to the ticket count or the SPACE: FLY TO prompt.
  */
 export type Hint =
   | { readonly kind: 'for'; readonly room: number }

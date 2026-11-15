@@ -13,5 +13,6 @@ export function copyGame(src: Game): Game {
   g.graceActive = src.graceActive;
   g.safeRespawn = src.safeRespawn;
   g.liftWaits = src.liftWaits;
+  g.hopsRest = src.hopsRest;
   return g;
 }

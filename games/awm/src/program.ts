@@ -81,6 +81,8 @@ export class Program {
   jumpBoards: () => boolean = () => false;
   /** ENHANCED's quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
+  /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
+  hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (game.ts `hints`). */
   hints: () => boolean = () => false;
   touch: () => boolean = () => false;
@@ -211,6 +213,7 @@ export class Program {
     game.jumpBoards = () => this.jumpBoards();
     game.hints = () => this.hints();
     game.quickHop = () => this.quickHop();
+    game.hopsRest = () => this.hopsRest();
     const picture = new Picture(game, carry, this.high);
     picture.touch = () => this.touch();
     return picture;
