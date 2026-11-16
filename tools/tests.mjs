@@ -7,8 +7,7 @@
 //   name    how it is listed (default: file and args)
 // Not listed, on purpose: scripts that write committed files or pictures rather than check anything
 // (antiriad/test/fixtures.ts, native/test/explore.ts, shots.ts,
-// effects-shots.ts), helper modules, and Starquake's comparisons against its original (they need snapshots
-// made by hand from the original; see games/starquake/build/README.md).
+// effects-shots.ts) and helper modules.
 // A new test goes here. Games whose originals are gitignored (AWM) are listed with `needs`.
 
 const AWM = 'games/awm/build/play.state'; // the machine in play, from the original
@@ -247,21 +246,6 @@ export const TESTS = [
   { file: 'games/montymoleremix/test/crusher.ts', set: 'fast', name: 'games/montymoleremix/test/crusher.ts (the nine crushers: record and drawn lines equal the faithful game\'s every frame, the shaft from the ceiling, held from above)' },
   { file: 'games/montymoleremix/test/game.ts', set: 'fast', name: 'games/montymoleremix/test/game.ts (the game: Monty\'s speed and jump, the coal as coins, the gates without the trap, the creatures equal the faithful game\'s pass by pass, the floor, the crusher, deaths and lives, the room graph)' },
 
-  // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
-  { file: 'games/starquake/test/frontend.ts', set: 'fast' },
-  { file: 'games/starquake/test/controls.ts', set: 'fast' },
-  { file: 'games/starquake/test/grace.ts', set: 'fast' },
-  { file: 'games/starquake/test/supplies.ts', set: 'fast' },
-  { file: 'games/starquake/test/lifts.ts', set: 'fast' },
-  { file: 'games/starquake/test/contact.ts', set: 'fast' },
-  { file: 'games/starquake/test/get.ts', set: 'fast' },
-  { file: 'games/starquake/test/bag.ts', set: 'fast' },
-  { file: 'games/starquake/test/inventory.ts', set: 'fast' },
-  { file: 'games/starquake/test/mapinfo.ts', set: 'fast' },
-  { file: 'games/starquake/test/newgame-seeds.ts', set: 'fast' },
-  { file: 'games/starquake/test/save.ts', set: 'fast' },
-  { file: 'games/starquake/test/sprites.ts', set: 'fast' },
-  { file: 'games/starquake/test/reward.ts', set: 'slow' },
 
   // ---- Thing on a Spring
   { file: 'games/thingonaspring/test/assists.ts', set: 'slow', limitSeconds: 580 },

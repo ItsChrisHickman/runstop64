@@ -4,7 +4,7 @@
 // it with the rest of the arguments. On the live server: nice -n 15.
 //
 //   nice -n 15 node tools/test.mjs games/montyotr/test/frontend.ts [args]
-//   nice -n 15 node tools/test.mjs games/starquake/test/frontend.ts /tmp/shots
+//   nice -n 15 node tools/test.mjs games/awm/test/frontend.ts /tmp/shots
 
 import os from 'node:os';
 import path from 'node:path';

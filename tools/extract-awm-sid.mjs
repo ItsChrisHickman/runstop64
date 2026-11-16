@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Builds Auf Wiedersehen Monty's .sid: the original's own music driver ($E400-$F52F, the tunes) and sound
-// effect driver ($C000-$CBFF) taken from a RAM dump of the running game, with a little glue, as the other games
-// do (tools/extract-starquake.mjs). Like everything of the original's it is NOT committed: it is built into
+// effect driver ($C000-$CBFF) taken from a RAM dump of the running game, with a little glue. Like everything of the original's it is NOT committed: it is built into
 // games/awm/build/ (ignored) from the dump the build README describes.
 //
 // Usage: node tools/extract-awm-sid.mjs <play.ram> [out.sid]

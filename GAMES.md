@@ -1,6 +1,6 @@
 # Games
 
-The twelve games (ten for the C64, two for the ZX Spectrum) runstop64 brings to the browser, how each was made, and what is on the list for later. Each is a tribute, with
+The games (nine for the C64, two for the ZX Spectrum) runstop64 brings to the browser, how each was made, and what is on the list for later. Each is a tribute, with
 full credits on its info sheet and title screen. Each game's `QOL.md` lists every change from the original, and its
 `re/README.md` records what was learned about the original and how the port is checked.
 
@@ -30,7 +30,6 @@ They are translations, not native ports, and are never called native.
 | Blackwyche (Ultimate, 1985) | Translation | Map of the galleon with travel, GUIDED narration and hints. |
 | Dragonskulle (Ultimate, 1986) | Translation | The fourth Pendragon game: the island map with travel, hints, an action bar. |
 | Jet Set Willy II (Software Projects, 1985) | Translation | Map of the mansion with travel and an item count, running, safe landings. |
-| Starquake (Bubble Bus, 1985) | Native rebuild, from the C64 game's data and code read in a disassembly | All 512 rooms and the whole game checked frame for frame; map with travel; touch answers for its typed screens. |
 | The Sacred Armour of Antiriad (Palace, 1986) | Native rebuild, from the game's data and code read in a disassembly of the running game | All 69 rooms byte for byte, Tal in and out of the armour, creatures, the panel and Richard Joseph's music from the game's own driver. Map with travel, New Game+. Some parts and the title sequence are not yet checked by scripted runs (`games/antiriad/re/README.md`). |
 
 ## Maybe later

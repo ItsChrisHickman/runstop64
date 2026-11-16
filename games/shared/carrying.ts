@@ -4,7 +4,7 @@ import { COL, type Box } from './native/pause';
 /**
  * The CARRYING page of a pause screen (a page beside the map's, `PauseMap.pages`): everything the hero carries, a line each,
  * newest first, in colours over the black screen (no boxes). The page's arithmetic and its layout are here; a game gives the
- * things (its own pictures, names and what each is for) and how one is drawn: Starquake's bag, Auf Wiedersehen Monty's hands.
+ * things (its own pictures, names and what each is for) and how one is drawn: Auf Wiedersehen Monty's hands.
  */
 
 /** Things on a page: 16 pixels of picture a line and a half apart. */

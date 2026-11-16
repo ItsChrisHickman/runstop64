@@ -11,7 +11,7 @@ import { RoomSaves } from './room-saves';
  * to know: its id, saves, map, assists) and a `PortAdapter` (what its own code does at each
  * point), and `runPort` owns the rest: ContinueFlow, FrontEnd, the spent press (FireLatch), the audio
  * keys, the room-save bookkeeping, the tick order and the render tail. The native rebuilds (Monty,
- * AWM, Starquake, Antiriad) give an adapter by hand; `runNative` builds one over a translated machine.
+ * AWM, Moley Christmas, Antiriad) give an adapter by hand; `runNative` builds one over a translated machine.
  *
  * The tick order, the same for every game:
  *   audio keys; in play: the pause key, a paused tick (and back), travel picked on the map

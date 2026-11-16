@@ -22,7 +22,7 @@ const DIRECTIONS = {
   '^>': { ...REST, up: true, right: true },
   'v<': { ...REST, down: true, left: true },
   'v>': { ...REST, down: true, right: true },
-  // (both: Starquake's pick up)
+  // (both at once)
   '^v': { ...REST, up: true, down: true },
 } as const satisfies Record<string, Stick>;
 

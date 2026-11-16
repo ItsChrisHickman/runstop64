@@ -8,7 +8,6 @@
  *   entombed   a machine save (MACHINE_CODEC)
  *   montyotr   its own JSON save
  *   awm        its own JSON save
- *   starquake  its own save (the game's fields as JSON, then the screen's memory)
  *
  * For each: the slots read as format 1 of the game (the previous one with what had been found),
  * the game launched on the fixture opens on its title and Enter goes back into play from it, and the saves are
@@ -31,8 +30,6 @@ import { CODEC as AWM_CODEC } from '../../awm/src/save';
 import { run as runEntombed } from '../../entombed/src/main';
 import { run as runMonty } from '../../montyotr/src/main';
 import { CODEC as MONTY_CODEC, migrateOldSave, type MontySave } from '../../montyotr/src/save';
-import { run as runStarquake } from '../../starquake/src/main';
-import { CODEC as STARQUAKE_CODEC } from '../../starquake/src/save';
 import { nowhere, stubFetch, useMemoryStorage } from './browser';
 import { check, finish } from './check';
 import { must } from './must';
@@ -111,16 +108,6 @@ const KINDS: Kind[] = [
     roomOf: (bytes) => AWM_CODEC.unpack(bytes, 1).room,
     reads: (bytes, format) => { try { AWM_CODEC.unpack(bytes, format); return true; } catch { return false; } },
     loads: (file) => loadSave(file, AWM_CODEC).room === AWM_CODEC.unpack(fromBase64(must(readExport(file).current, 'current').data), 1).room,
-  },
-  {
-    id: 'starquake',
-    launch() {
-      const b = boot((input) => runStarquake({ renderer: new PixelRenderer(), input, canvas: nowhere }));
-      return { tick: b.tick, enter: b.enter, titled: () => b.p.state.prompt === 'title', playing: () => b.p.state.mode === 'play', room: () => b.p.game.room };
-    },
-    roomOf: (bytes) => STARQUAKE_CODEC.unpack(bytes, 1).fields.room ?? -1,
-    reads: (bytes, format) => { try { STARQUAKE_CODEC.unpack(bytes, format); return true; } catch { return false; } },
-    loads: (file) => loadSave(file, STARQUAKE_CODEC).fields.room === STARQUAKE_CODEC.unpack(fromBase64(must(readExport(file).current, 'current').data), 1).fields.room,
   },
 ];
 

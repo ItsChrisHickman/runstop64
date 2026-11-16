@@ -16,7 +16,7 @@ import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timel
  *  2. THE END and the player's numbers, then back to the title.
  *
  * Two kinds of reel exist, both in this folder's neighbours: a translated machine (`machine-reel.ts`, the Pendragon games, Thing
- * on a Spring, Jet Set Willy II) and a native engine (each rebuild's own: Monty, Auf Wiedersehen Monty, Starquake, Moley
+ * on a Spring, Jet Set Willy II) and a native engine (each rebuild's own: Monty, Auf Wiedersehen Monty, Moley
  * Christmas, Antiriad). The show does the rest: the credits' timing, the visitors' recording and drawing, THE END, the skip.
  *
  * The game's tune plays all through (the game starts it: `music`). Any key or tap skips, after a couple of seconds.

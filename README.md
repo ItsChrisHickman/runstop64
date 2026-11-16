@@ -22,7 +22,6 @@ These are tributes. All credit for the originals belongs to their creators (belo
 | **Blackwyche** (Ultimate, 1985) | Translation | [#blackwyche](https://goshow.me/runstop64/#blackwyche) |
 | **Dragonskulle** (Ultimate, 1986) | Translation | [#dragonskulle](https://goshow.me/runstop64/#dragonskulle) |
 | **Jet Set Willy II** (Software Projects, 1985) | Translation | [#jsw2](https://goshow.me/runstop64/#jsw2) |
-| **Starquake** (Bubble Bus, 1985) | Native rebuild | [#starquake](https://goshow.me/runstop64/#starquake) |
 | **The Sacred Armour of Antiriad** (Palace Software, 1986) | Native rebuild | [#antiriad](https://goshow.me/runstop64/#antiriad) |
 
 There are two kinds of game here, and they are different things.
@@ -116,7 +115,6 @@ Contributors and coding agents: read [AGENTS.md](AGENTS.md) for the rules and th
   by Ultimate Play the Game.
 - **Jet Set Willy II:** Matthew Smith created Jet Set Willy; the Spectrum sequel by Derrick P. Rowson and Steve Wetherill; the
   C64 version by John Darnell and Steve Birtles; published by Software Projects.
-- **Starquake:** Stephen Crow; C64 version by Nick Strange; published by Bubble Bus.
 - **The Sacred Armour of Antiriad:** programming Stanley Schembri; plot and graphics Daniel Malone; music Richard Joseph;
   published by Palace Software.
 

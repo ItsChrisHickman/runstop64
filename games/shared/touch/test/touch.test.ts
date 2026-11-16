@@ -14,7 +14,6 @@ import { nowhere } from '../../test/browser';
 import { KeyPacer, NamePicker } from '../../letters';
 import { must } from '../../test/must';
 import { decideBack, PLAY_ENTRY } from '../back-guard';
-import { TOUCH as STARQUAKE } from '../../../starquake/src/controls';
 import { TOUCH as LOADER } from '../../../loader-touch';
 import { TOUCH as ANTIRIAD } from '../../../antiriad/src/touch';
 import { TOUCH as AWM } from '../../../awm/src/touch';
@@ -36,7 +35,7 @@ const ok = (cond: unknown, what: string) => check(what, !!cond, true);
 // ---- every game's layout, as the game declares it (the front end adds RUN for games that can run: both are checked) ----
 const LAYOUTS: Record<string, TouchLayout | undefined> = {
   loader: LOADER, antiriad: ANTIRIAD, awm: AWM, blackwyche: BLACKWYCHE, dragonskulle: DRAGONSKULLE, entombed: ENTOMBED,
-  jsw2: JSW2, karnath: KARNATH, moley: MOLEY, montymole: MONTYMOLE, montymoleremix: MONTYMOLEREMIX, montyotr: MONTYOTR, starquake: STARQUAKE, thingonaspring: THINGONASPRING,
+  jsw2: JSW2, karnath: KARNATH, moley: MOLEY, montymole: MONTYMOLE, montymoleremix: MONTYMOLEREMIX, montyotr: MONTYOTR, thingonaspring: THINGONASPRING,
 };
 const folders = fs.readdirSync('games').filter((name) => fs.existsSync(`games/${name}/src/main.ts`)).sort();
 ok(JSON.stringify(Object.keys(LAYOUTS).filter((n) => n !== 'loader').sort()) === JSON.stringify(folders), `every game folder has a layout here (${folders.join(', ')})`);
@@ -260,23 +259,6 @@ const heldDirs = (i: Input) => (['up', 'down', 'left', 'right'] as const).filter
   ok(input.down.has('ShiftLeft'), 'RUN: on after a tap, stays on');
   ctl.down(1, run.x, run.y); ctl.up(1); input.poll();
   ok(!input.down.has('ShiftLeft'), 'RUN: off after another tap');
-}
-{
-  // Starquake: GET presses Z (its own key, the game's up in ORIGINAL) and PAD holds the game's down (the stick's still does); Z and X do the same on a keyboard (and don't fire), except while letters are typed
-  const { input, ctl, geo } = rig(GAMES.starquake, 915, 412);
-  const by = (l: string) => must(geo.buttons.find((b) => b.spec.label === l), `the ${l} button`);
-  ctl.down(1, by('GET').x, by('GET').y); input.poll();
-  ok(input.down.has('KeyZ') && !input.held.down, 'Starquake: GET presses Z');
-  ctl.up(1); input.poll();
-  ok(!input.down.has('KeyZ'), 'Starquake: GET lifted');
-  ctl.down(1, by('PAD').x, by('PAD').y); input.poll();
-  ok(input.held.down && !input.held.up && !input.held.fire, 'Starquake: PAD holds down');
-  ctl.up(1); input.poll();
-  const { x, y } = geo.stickHome, R = geo.stickRadius;
-  ctl.down(2, x, y); ctl.move(2, x, y - R); input.poll();
-  ok(input.held.up, 'Starquake: the stick still holds up');
-  ctl.up(2); input.poll();
-  ok(by('FIRE') === geo.buttons[0] && geo.buttons.length === 3, 'Starquake: FIRE stays the main button, two more beside it');
 }
 {
   // small buttons: PAUSE acts on lifting the finger; RETURN is the Enter key; a tap on the picture is a point

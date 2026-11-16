@@ -8,7 +8,7 @@ under construction. Don't start new work unprompted; when he comes back, start f
 
 ## State
 
-All thirteen games are built and checked, twelve of them in the directory (Wanted: Monty Mole was taken off on 2026-11-07: Chris found the 1984 game itself poor; it still loads at `#montymole`, and `listed: false` in `games/registry.ts` is the one switch. Its remake, Wanted: Monty Mole Remix, is listed since 2026-11-08), and the project is near finished. What is left is Chris playing it and the few
+All twelve games are built and checked, eleven of them in the directory (Starquake was deleted on 2026-11-15: Chris found it confusing, endless rooms with nothing worth playing; Wanted: Monty Mole was taken off on 2026-11-07: Chris found the 1984 game itself poor; it still loads at `#montymole`, and `listed: false` in `games/registry.ts` is the one switch. Its remake, Wanted: Monty Mole Remix, is listed since 2026-11-08), and the project is near finished. What is left is Chris playing it and the few
 open questions below; nothing big is under construction.
 
 - **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
@@ -24,7 +24,7 @@ open questions below; nothing big is under construction.
 - **Saves:** every stored save has `{ game, format }` (`games/shared/saves.ts`). The day a game's save bytes change, bump its
   codec's `format` and let `unpack(bytes, format)` read the old one; the old-format fixtures
   (`games/shared/test/fixtures/saves`) keep proving players' saves load. About 1.4 M of the ~5.2 M characters a browser gives are
-  used by all twelve games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
+  used by all the games' current and previous saves, so they are not compressed; a failed write shows a line in the overlay.
 - **No state libraries;** schemas are in-house (`S`). The architecture review's work (`docs/architecture-review.md`, a record
   of 2026-10-16) is done.
 - **History** was squashed to one commit on 2026-10-16 (Chris asked: no old history); a backup is in
@@ -51,7 +51,7 @@ open questions below; nothing big is under construction.
 - **The fast test set is slow** (it was ~11-13 minutes). It is being cut so `npm run verify` stays under 10 minutes; until
   then run the typecheck, `check:strict` and the tests for the code you touch (`tools/tests.mjs` lists them all).
 
-## The reward show (one for all twelve games)
+## The reward show (one for every game)
 
 Every game ends ENHANCED with a reward after the game's own ending: a montage of the game's places with the hero running
 through and doing something that fits (the game's own engine, driven by input), Super Mario World-style credits over it (the
@@ -63,7 +63,7 @@ a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks
 - **One module, two reels:** `games/shared/ending/`: `show.ts` (`RewardShow`), `timeline.ts` (the pure clock: a credit line is
   `CREDIT.slot` 90 frames, a name `NAME.slot` 40, THE END 250), `figures.ts`, `pilot.ts`, `credits.ts`, and `machine-reel.ts` (the
   translated-machine reel: Blackwyche, Dragonskulle, Karnath, Entombed, Thing on a Spring, JSW2). The native rebuilds (Monty, AWM,
-  Starquake, Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
+  Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
   Test kit: `games/shared/test/ending-kit.ts` (`playShow`/`checkShow` for the machines, `CastWatch` and `BandWatch` for all).
 - Weak spots: Entombed and Thing scenes with the hero mostly standing or bouncing (routes not found by search:
   `re/ending/route.ts`, `re/ways.json`); visitors stand at the hero's feet at the moment they enter, so on a stair or in a jump they
@@ -77,7 +77,6 @@ a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks
   still ends in the game's end and CONTINUE? (both modes). Making it "back to the start of the room at full energy, no
   prompt" is Thing on a Spring's `vitals.lifeEnds` (needs the hook address of each game's end, found in its translation). Chris
   to say if he wants it.
-- **Starquake** still has its own ENHANCED assist FULL ENERGY IN EACH ROOM (the Pendragon games' room-entry refill is gone).
   Keep or drop is a product call.
 - **Thing on a Spring** oil out is a lost life back at the room's start with full oil (`vitals.lifeEnds`); the dragon flashes on
   each counted stone in Dragonskulle (`native/colour-cycle.ts`). Both are waiting on a playtest.
@@ -93,7 +92,7 @@ a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks
   reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
-- **Older:** Monty warp to the Ultimate Experience; Starquake hints.
+- **Older:** Monty warp to the Ultimate Experience.
 - **Wanted: Monty Mole Remix** (`games/montymoleremix`, in the directory): done and bot-proved; Chris finds the game itself not one of his,
   so it is left as is. Offered, not built: in ENHANCED the tool kept across rooms and deaths until used, and a picture of it by the lives
   while held (the original loses it on leaving the room or dying, and shows nothing). His one-word answer was "Original" (read as: he
