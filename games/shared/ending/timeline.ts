@@ -2,9 +2,10 @@ import { CREDIT } from './credits';
 
 /**
  * The montage's clock, pure: what the empty band says at each frame of a place, and where each visitor of the cast stands. The band
- * is one row of the picture the game leaves empty, so a place's credit lines and its visitors' names take turns in it: a line, then
- * the name of a visitor passing the middle of the picture, a line, a name... Each visitor walks across the place and is named for a
- * moment as it passes the middle.
+ * is one row of the picture the game leaves empty, so a place's credit lines and its visitors' names take turns in it: all the
+ * place's lines first, one after another, then the names of its visitors, each as the visitor passes the middle of the picture. A
+ * name never comes between two lines, so a sentence typed over two lines is never broken by one (the names are drawn in a colour of
+ * their own, too: `show.ts`). Each visitor walks across the place and is named for a moment as it passes the middle.
  */
 
 /** Frames a visitor's name is shown, a moment it is off at the end, and the frames its walk lasts either side of that. */
@@ -19,19 +20,19 @@ interface PlaceShape { credits?: readonly string[]; frames: number; bandFrom?: n
 export interface Timeline { length: number; beats: readonly Beat[] }
 
 /**
- * A place's turns: credit lines and names alternate, a line first (extra lines or names after). It runs as long as it declares, or
- * longer if its turns need it; spare time is the lines' (held longer).
+ * A place's turns: its credit lines, then its visitors' names. It runs as long as it declares, or longer if its turns need it; spare
+ * time is the lines' (held longer), less a moment after the last name, where there is time for it, for its visitor to walk off.
  */
 export function timelineOf(place: PlaceShape, visitors: number, slot: number = CREDIT.slot, nameSlot: number = NAME.slot): Timeline {
   const lines = place.credits?.length ?? 0;
-  const turns: Pick<Beat, 'kind' | 'index'>[] = [];
-  for (let i = 0; i < Math.max(lines, visitors); i++) {
-    if (i < lines) turns.push({ kind: 'credit', index: i });
-    if (i < visitors) turns.push({ kind: 'name', index: i });
-  }
+  const turns: Pick<Beat, 'kind' | 'index'>[] = [
+    ...Array.from({ length: lines }, (_, index) => ({ kind: 'credit' as const, index })),
+    ...Array.from({ length: visitors }, (_, index) => ({ kind: 'name' as const, index })),
+  ];
   const base = turns.reduce((n, t) => n + (t.kind === 'credit' ? slot : nameSlot), 0);
   const first = place.bandFrom ?? 0;
-  const spare = lines > 0 ? Math.max(0, place.frames - first - base) : 0;
+  const tail = visitors > 0 ? NAME.lead : 0;
+  const spare = lines > 0 ? Math.max(0, place.frames - first - base - tail) : 0;
   let at = first, given = 0, seen = 0;
   const beats = turns.map((t): Beat => {
     let len = t.kind === 'credit' ? slot : nameSlot;

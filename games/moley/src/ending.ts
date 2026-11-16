@@ -176,7 +176,7 @@ export function moleyEnding(renderer: Renderer, sound: MoleySound | null): Rewar
     places,
     cast: CAST.map(([name, room, entity]) => () => recordFigure(name, room, entity)),
     creditRow: CREDIT_ROW,
-    colours: { credit: SPECTRUM.yellow, title: SPECTRUM.yellow, text: SPECTRUM.text },
+    colours: { credit: SPECTRUM.yellow, name: SPECTRUM.cyan, title: SPECTRUM.yellow, text: SPECTRUM.text },
   };
 }
 

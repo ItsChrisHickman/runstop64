@@ -118,11 +118,11 @@ function bandOfPicture(g: Game) {
   for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) if (px[y * 320 + x] !== (bg & 15)) n++;
   return n;
 }
-function bandOfShow() {
+function bandOfShow(ink: number) {
   let yellow = 0, other = 0;
   for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) {
     const c = renderer.screen.pixels[y * 320 + x];
-    if (c === CREDIT.colour) yellow++; else if (c !== TRANSPARENT) other++;
+    if (c === ink) yellow++; else if (c !== TRANSPARENT) other++;
   }
   return { yellow, other };
 }
@@ -187,7 +187,7 @@ while (show.active && frames < 20000) {
     const place = spec.places[p.place];
     // (the tick that moves on to a place draws nothing of it yet)
     if (p.frames === 0) continue;
-    const b = bandOfShow();
+    const b = bandOfShow(p.said?.ink ?? CREDIT.colour);
     // (the game's ending flashes the whole screen: nothing is typed over a background that is not black)
     if ((current()?.g.m.capture.rows[16]?.bg[0] ?? 0) !== 0 && b.yellow > 0) flashed++;
     bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });

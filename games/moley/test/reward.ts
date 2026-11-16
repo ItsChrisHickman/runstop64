@@ -73,10 +73,10 @@ const renderer = new PixelRenderer();
 const spec = moleyEnding(renderer, null);
 const BAND = { top: CREDIT_ROW, bottom: CREDIT_ROW + 7 };
 /** What is in the band now: pixels of the credits' colour, and any other that is not black. */
-function band() {
+function band(ink: number = SPECTRUM.yellow) {
   const pic = renderer.picture();
   let credit = 0, other = 0;
-  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < SURFACE_WIDTH; x++) { const c = pic[y * SURFACE_WIDTH + x]; if (c === SPECTRUM.yellow) credit++; else if ((c & 7) !== 0) other++; }
+  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < SURFACE_WIDTH; x++) { const c = pic[y * SURFACE_WIDTH + x]; if (c === ink) credit++; else if ((c & 7) !== 0) other++; }
   return { credit, other };
 }
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
@@ -122,7 +122,7 @@ while (show.active && frames < 14000) {
     sceneFrames[p.place] = p.frames;
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
-    const b = band();
+    const b = band(p.said?.ink);
     // (a line in full is all credit-coloured pixels in the band, never another colour; while it types on the same)
     bandWatch.frame(p, place.credits, { ink: b.credit, other: b.other });
     castWatch.frame(p, BAND, () => gameBandEmpty);

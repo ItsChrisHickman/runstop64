@@ -5,9 +5,10 @@
 
 /**
  * The frames each credit line is given (it types on a letter a frame, is held, and goes a moment before the next), the row it stands at
- * by default, its colour, the column it starts at and the letters it can have.
+ * by default, its colour, the column it starts at and the letters it can have; and the colour of the creatures' names, apart from the
+ * lines' (cyan: it reads on the black bands, and a name is never taken for part of a line).
  */
-export const CREDIT = { slot: 90, gap: 10, row: 166, colour: 7, x: 8, letters: 38 } as const;
+export const CREDIT = { slot: 90, gap: 10, row: 166, colour: 7, nameColour: 3, x: 8, letters: 38 } as const;
 
 /** The port's own credit lines, the same in every game (his name as he gives it): a game's last scenes spread these. */
 export const PORT_CREDITS: readonly string[] = ['REBUILT FOR THE BROWSER BY', 'CHRISTOPHER HICKMAN', 'WITH CLAUDE (ANTHROPIC)', 'RUNSTOP64'];

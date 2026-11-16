@@ -178,7 +178,7 @@ export function montyEnding(renderer: Renderer): RewardSpec {
     places,
     cast: CAST.map(([name, set, attr]) => () => figureOf(name, set, attr)),
     creditRow: CREDIT_ROW,
-    colours: { credit: SPECTRUM.yellow, title: SPECTRUM.yellow, text: SPECTRUM.text },
+    colours: { credit: SPECTRUM.yellow, name: SPECTRUM.cyan, title: SPECTRUM.yellow, text: SPECTRUM.text },
   };
 }
 

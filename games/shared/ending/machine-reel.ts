@@ -122,7 +122,7 @@ export interface EndingSpec {
   stage?: { top: number; bottom: number };
   /**
    * Where the creatures' names go: a row of eight pixels the game leaves empty other than the credits' (`creditRow`), in its own
-   * colour (a palette index), so the names are never mixed with the credit lines. Default: the credits' row, between the lines.
+   * colour (a palette index), so the names are never mixed with the credit lines. Default: the credits' row, after a place's lines, in the show's name colour.
    */
   nameRow?: number;
   nameInk?: number;
@@ -340,6 +340,11 @@ export function creditColourOn(bg: number): number {
   return [3, 7, 13, 15].includes(bg & 15) ? 0 : 1;
 }
 
+/** The names' colour on a plain background colour, apart from the credits': blue on the light ones, yellow on the rest. */
+export function nameColourOn(bg: number): number {
+  return creditColourOn(bg) === 0 ? 6 : 7;
+}
+
 /** A new game's memory with him in a place (entered at the main loop's wait, as travel does it). */
 export function placed(port: PortConfig, base: MachineState, spec: EndingSpec, enter: (ram: Uint8Array) => boolean, settle?: (ram: Uint8Array) => void): NativeHost | null {
   const g = NativeHost.resume(port, unpackState(packState(base)));
@@ -420,6 +425,7 @@ export class MachineReel implements Reel {
   }
 
   get ink() { return this.o.spec.plainBand ? creditColourOn(bandBackground(this.g.m)) : undefined; }
+  get nameInk() { return this.o.spec.plainBand ? nameColourOn(bandBackground(this.g.m)) : undefined; }
 }
 
 // ---- the cast, recorded ----------------------------------------------------------------------

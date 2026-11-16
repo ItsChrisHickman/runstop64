@@ -95,10 +95,10 @@ const spec = montyEnding(renderer, ENHANCED);
 const bandOf = (place: Place) => { const top = place.creditRow ?? CREDIT_ROW; return { top, bottom: top + 7 }; };
 let BAND = bandOf(spec.places[0]);
 /** What is in the band under the playfield: pixels of the colour the credits use, and any other. */
-function band() {
+function band(ink: number = CREDIT.colour) {
   const pic = renderer.picture();
   let yellow = 0, other = 0;
-  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const c = pic[y * 320 + x]; if (c === CREDIT.colour) yellow++; else if (c !== 0) other++; }
+  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const c = pic[y * 320 + x]; if (c === ink) yellow++; else if (c !== 0) other++; }
   return { yellow, other };
 }
 
@@ -165,7 +165,7 @@ while (show.active && frames < 14000) {
     sceneFrames[p.place] = p.frames;
     const place = spec.places[p.place];
     if (p.frames === 0) continue;
-    const b = band();
+    const b = band(p.said?.ink);
     bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([40, 100, 200, 300, 400, 600, 700].includes(placeFrames)) png(`place-${p.place}-f${placeFrames}.png`, renderer);
