@@ -246,6 +246,7 @@ export const TESTS = [
   { file: 'games/montymoleremix/test/reward.ts', set: 'fast', name: 'games/montymoleremix/test/reward.ts (the reward show: the routes, the montage, the credits, the cast, THE END, the session)' },
   { file: 'games/montymoleremix/test/crusher.ts', set: 'fast', name: 'games/montymoleremix/test/crusher.ts (the nine crushers: record and drawn lines equal the faithful game\'s every frame, the shaft from the ceiling, held from above)' },
   { file: 'games/montymoleremix/test/game.ts', set: 'fast', name: 'games/montymoleremix/test/game.ts (the game: Monty\'s speed and jump, the coal as coins, the gates without the trap, the creatures equal the faithful game\'s pass by pass, the floor, the crusher, deaths and lives, the room graph)' },
+  { file: 'games/montymoleremix/test/tool-kill.ts', set: 'fast', needs: [MM_ROM, 'games/montymole/build/room0.state'], name: 'games/montymoleremix/test/tool-kill.ts (the tool on room 11\'s fish, ROOM 12 on the map: jumping into it with the tool kills it and he lives, walking stops at its step, as Wanted does in lockstep; ORIGINAL and ENHANCED, set down and played by the bot)' },
 
   // ---- Starquake (the comparisons with its original need snapshots made by hand: not listed)
   { file: 'games/starquake/test/frontend.ts', set: 'fast' },

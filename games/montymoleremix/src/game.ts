@@ -719,6 +719,10 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
         shown |= 1 << TOOL_SPRITE;
       }
     }
+    // a sprite that has gone (a creature the tool took, a relay that has ended its leg, the tool taken) leaves the picture now, not at the next frame's
+    // `processSprites`: the frame drawn from here is the one whose collisions the next frame reads, and Wanted draws a taken creature over with nothing
+    // in the same pass (`$92DF`), so a creature the tool has killed must not touch him once more and kill him
+    this.vic.enable &= ~(this.shown & ~shown);
     this.shown = shown;
   }
 
