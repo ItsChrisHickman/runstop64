@@ -33,6 +33,8 @@ export interface Lines {
   webCarrying: Say;
   /** The spider that holds it in view, none carried. */
   spider: Say;
+  /** The library's piece in view, none carried, YEROBAS not yet cast at it (taken without, its guardian takes it back). */
+  library: Say;
 }
 
 export const LINES: Lines = {
@@ -45,4 +47,5 @@ export const LINES: Lines = {
   web: ['THE WEB HOLDS A PIECE. THE SPIDER IS FAR LEFT', 'CAST IBRAHIM AT IT: KEY 8', 'IT FALLS FOR 12 SECONDS', 'THEN RUN BACK: HOLD SHIFT'],
   webCarrying: ['ANOTHER PIECE IS IN THE WEB', 'LAY YOURS FIRST'],
   spider: ['THE SPIDER HOLDS A PIECE', 'CAST IBRAHIM AT IT: KEY 8. WHEN IT HANGS LOW', 'IT FALLS FOR 12 SECONDS', 'THEN RUN TO THE WEB: SHIFT'],
+  library: ['THIS PIECE IS GUARDED', 'CAST YEROBAS AT IT: KEY 0', 'THEN TAKE IT'],
 };

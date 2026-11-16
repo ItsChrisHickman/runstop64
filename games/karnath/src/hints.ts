@@ -109,6 +109,25 @@ export function webView(ram: Uint8Array, vic: Uint8Array): WebView {
   return spriteSpot(ram, vic, WEB.spider) ? 'spider' : 'none';
 }
 
+/**
+ * The library's piece (re/README.md, "Found on the way": the library's piece): the upper floor's top level (the $C800 half of the $E100
+ * block) holds it in sprite 4, and keeps it carried only if YEROBAS (spell 10) has hit it first ($CE17 sets $CFBF; the level's start
+ * clears it). Taken without, sprite 1 comes after him and its touch takes it back ($CF01, $CB39). Nothing in the game says so.
+ */
+export const LIBRARY = {
+  level: 0xb3e1,
+  /** 1 once it is taken for good ($CAF7, only after YEROBAS). */
+  taken: 0x321e,
+  /** 1 once YEROBAS has hit it, on this visit to the level ($CE20). */
+  bound: 0xcfbf,
+  piece: 4,
+} as const;
+
+/** The library's piece in view, guarded still: not taken for good, none carried, YEROBAS not yet cast at it. */
+export const libraryGuarded = (ram: Uint8Array, vic: Uint8Array) =>
+  ram[KEPT.mode] === MODE.upper && ram[LIBRARY.level] === 3 && ram[LIBRARY.taken] !== 1 && !carrying(ram) && ram[LIBRARY.bound] !== 1 &&
+  spriteShows(ram, LIBRARY.piece, PIECE_PICTURE) && spriteSpot(ram, vic, LIBRARY.piece) !== null;
+
 /** The spider, while it holds the piece: where the spell is to be cast. */
 const spiderSpots = (ram: Uint8Array, vic: Uint8Array): Spot[] => {
   const spot = webHeld(ram, vic) ? spriteSpot(ram, vic, WEB.spider) : null;

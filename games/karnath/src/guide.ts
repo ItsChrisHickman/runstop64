@@ -1,7 +1,7 @@
 import { Narrator, type StatusLine } from '../../shared/native/narrate';
 import { pendragonCode } from '../../shared/pendragon/status';
 import { LINES, type Say } from './hint-lines';
-import { MODE, PIECES, KEPT, carrying, deposited, over, staffUp, webHeld, webView, type WebView } from './hints';
+import { MODE, PIECES, KEPT, carrying, deposited, libraryGuarded, over, staffUp, webHeld, webView, type WebView } from './hints';
 
 /**
  * The hints' story (ENHANCED): Pendragon says on the status line what to do with what he has found, in the
@@ -28,11 +28,11 @@ export const STATUS: StatusLine = {
 };
 
 /** What is noted of the game each frame, to see what changed. */
-interface Snap { carrying: boolean; count: number; mode: number; web: WebView }
+interface Snap { carrying: boolean; count: number; mode: number; web: WebView; library: boolean }
 
-const snapshot = (ram: Uint8Array, vic: Uint8Array): Snap => ({ carrying: carrying(ram), count: deposited(ram), mode: ram[KEPT.mode], web: webView(ram, vic) });
+const snapshot = (ram: Uint8Array, vic: Uint8Array): Snap => ({ carrying: carrying(ram), count: deposited(ram), mode: ram[KEPT.mode], web: webView(ram, vic), library: libraryGuarded(ram, vic) });
 
-/** Frames before the web's lines are said again to someone who walks out of its room and back (30 seconds). */
+/** Frames before the web's (or the library's) lines are said again to someone who walks out of its room and back (30 seconds). */
 const WEB_AGAIN = 1500;
 
 export class Guide {
@@ -42,6 +42,7 @@ export class Guide {
   /** Frames played with the hints on, and when the web's lines were last said (by what was in view). */
   private clock = 0;
   private webSaid: Record<'piece' | 'spider', number> = { piece: -WEB_AGAIN, spider: -WEB_AGAIN };
+  private librarySaid = -WEB_AGAIN;
 
   /** One frame of play (call after the game's frame): `on` while the hints are on and the game is being played. */
   frame(ram: Uint8Array, vic: Uint8Array, on: boolean) {
@@ -66,6 +67,14 @@ export class Guide {
     if (staffUp(ram)) this.say(LINES.staff, () => staffUp(ram));
     else if (now.carrying) this.say(now.count === 0 ? LINES.first : LINES.later, () => carrying(ram));
     this.sayWeb(ram, vic, now);
+    this.sayLibrary(ram, vic, now);
+  }
+
+  /** The library's piece has come into view, guarded: YEROBAS at it first, or its guardian takes it back. */
+  private sayLibrary(ram: Uint8Array, vic: Uint8Array, now: Snap) {
+    if (!now.library || this.clock - this.librarySaid < WEB_AGAIN) return;
+    this.librarySaid = this.clock;
+    this.say(LINES.library, () => libraryGuarded(ram, vic));
   }
 
   /**
@@ -92,5 +101,6 @@ export class Guide {
       if (now.mode === MODE.abode) this.say(LINES.abode, () => carrying(ram) && ram[KEPT.mode] === MODE.abode);
     }
     if (now.web !== prev.web) this.sayWeb(ram, vic, now);
+    if (now.library && !prev.library) this.sayLibrary(ram, vic, now);
   }
 }

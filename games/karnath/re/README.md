@@ -318,6 +318,10 @@ read from what the game keeps; nothing is written but the status line's characte
   `$321E` is 1 and it stays carried. The port and the original agree from the same state (dropped 6 frames after the take; kept after
   YEROBAS). A change of level (the stairs, or our travel) runs the level's start ($C870 clears `$CFB9`), so leaving that way first keeps
   the piece carried while it still lies in the library.
+  ENHANCED says it (`LINES.library`, `libraryGuarded` in src/hints.ts): while the piece is in view, none carried, `$321E` not 1 and
+  `$CFBF` 0, Pendragon says it is guarded and to cast YEROBAS at it, key 0, then take it; as it comes into view, not again for 30
+  seconds, dropped once the spell has hit it or it is taken. `test/library.ts`: the rule in the port and the original from
+  `test/fixtures/library.state`, and through the front end the line in ENHANCED, none in ORIGINAL, and key 0, Space, the take: kept.
 - **Checked** (`re/hints/check.ts`, about a minute): the cells against the decoded picture of the next frame, 10,296 frames carrying (6,999 with a
   sign or door in view, 105 the dungeons' far door) and 5,864 not carrying (3,219 with a piece in view), 0 differing; the way down through a front sign
   (level 3 to 2) and the `$CF` into the dungeons by playing; the kitchen's piece taken by the game's own code on a bot's play (94 frames), the hint on its
