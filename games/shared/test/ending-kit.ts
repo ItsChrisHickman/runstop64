@@ -101,6 +101,30 @@ export class CastWatch {
   }
 }
 
+/** The order and colours of the band's turns, in any show: a place's names only after all its lines, in a colour apart from theirs. */
+export class TurnWatch {
+  /** The colours the show drew each kind of text in. */
+  readonly inks = { credit: new Set<number>(), name: new Set<number>() };
+  /** Lines shown after a name in the same place (a name between two lines of its credits). */
+  readonly broken: string[] = [];
+  private namedIn = -1;
+
+  frame(place: number, said: Said) {
+    if (said.text.trim() === '') return;
+    this.inks[said.kind].add(said.ink);
+    if (said.kind === 'name') this.namedIn = place;
+    else if (this.namedIn === place) { const at = `place ${place} line ${said.index}`; if (!this.broken.includes(at)) this.broken.push(at); }
+  }
+
+  /** `colours`: whether the show draws the text itself (not a panel's line in the game's own lettering), so its colours are checked. */
+  check(colours: boolean) {
+    check(`no name comes between two lines of a place's credits${this.broken.length ? ` (${this.broken.join('; ')})` : ''}`, this.broken.length === 0);
+    if (!colours) return;
+    const clash = [...this.inks.name].filter((c) => this.inks.credit.has(c));
+    check(`names are drawn in a colour of their own, apart from the credits' (names ${[...this.inks.name].join(' ')}, credits ${[...this.inks.credit].join(' ')})`, this.inks.name.size > 0 && clash.length === 0);
+  }
+}
+
 /** What the band showed, frame by frame, in a native rebuild's reward test: lines typed on, names, and nothing between turns. */
 export class BandWatch {
   /** The credit lines shown in full (`place.line`). */
@@ -109,6 +133,7 @@ export class BandWatch {
   between = 0;
   wrong = 0;
   readonly wrongAt: string[] = [];
+  readonly turns = new TurnWatch();
 
   /**
    * One frame: what the show says is in the band (null: nothing), the place's credit lines, and what the test reads in the band's
@@ -118,6 +143,7 @@ export class BandWatch {
     const said = p.said;
     if (said) {
       this.withText++;
+      this.turns.frame(p.place, said);
       if (said.text.trim().length > 0 && (b.ink === 0 || b.other > 0)) { this.wrong++; if (this.wrongAt.length < 8) this.wrongAt.push(`place ${p.place} frame ${p.frames} ${said.kind}: ink ${b.ink} other ${b.other}`); }
       if (said.kind === 'credit' && said.text === lines?.[said.index]) this.typed.add(`${p.place}.${said.index}`);
     } else {
@@ -131,6 +157,7 @@ export class BandWatch {
     check(`the game's own picture is empty in the band in all ${gameBandFrames} frames of the montage${badPlaces.length ? ` (${badPlaces.join('; ')})` : ''}`, gameBandFrames > 1000 && gameBand === 0);
     check(`credits and names land in empty pixels only: the text's colour when a turn is up, nothing between turns (${this.withText} frames with text, ${this.between} between; ${this.wrong} wrong${this.wrongAt.length ? `: ${this.wrongAt.join('; ')}` : ''})`, this.withText > 1000 && this.wrong === 0);
     check(`every credit line was typed on in full and held (${this.typed.size} of ${total} lines)`, this.typed.size === total && total >= 12);
+    this.turns.check(true);
   }
 }
 
@@ -167,6 +194,8 @@ interface ShowResult {
   shownLines: Set<string>;
   /** With names in a row of their own (`spec.nameRow`): the frames each kind of turn was up, and what stood in the wrong row (a name's colour in the credits' band, a credit's in the name's row, either between turns). */
   apart: { credit: number; name: number; mixed: string[] };
+  /** The band's turns: their order and colours. */
+  turns: TurnWatch;
   /** The band in each scene with credit lines before its text came (and how many of those), and what stood in it when a line was in full (anything but the credit colour). */
   bandEmptyBefore: number;
   scenes: number;
@@ -207,7 +236,7 @@ export function playShow(o: ShowRun): ShowResult {
   });
   show.start(o.stats);
   const cast = new CastWatch();
-  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, apart: { credit: 0, name: 0, mixed: [] }, spanFrames: 0, cast, sceneFrames: [] };
+  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, apart: { credit: 0, name: 0, mixed: [] }, turns: new TurnWatch(), spanFrames: 0, cast, sceneFrames: [] };
   const { top, bottom } = o.band;
   // (the band's own colour: black, or the room's plain background where the picture fills the screen)
   const backOf = (m: C64) => (o.spec.plainBand ? bandBackground(m) : 0);
@@ -252,6 +281,7 @@ export function playShow(o: ShowRun): ShowResult {
       }
       const px = shown(renderer, m);
       const said = p.said;
+      if (said) r.turns.frame(p.place, said);
       if (o.stage) cast.onStage(p, o.stage, renderer.sprites.filter((h) => h.visible && h.surface && h.z >= 20).map((h) => ({ x: Math.round(h.x), y: Math.round(h.y), w: h.surface?.width ?? 0, h: h.surface?.height ?? 0 })));
       if (o.spec.nameRow !== undefined && o.spec.nameInk !== undefined) {
         // (a name and a credit line are never up together: what the show wrote, its own layer of the picture, has one kind of text in its row
@@ -318,6 +348,7 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   check('it went through every scene of the montage, then THE END, and no parade', spec.scenes.every((_, i) => r.phases.includes(`montage${i}`)) && r.phases[r.phases.length - 1] === 'end' && !r.phases.includes('parade'));
   check(`it is a watchable length (${(r.frames / 50).toFixed(0)} seconds, about 60 to 75)`, r.frames >= SHOW_FRAMES.min && r.frames <= SHOW_FRAMES.max);
   check(`every figure of the cast was recorded (${r.figures.length} of ${spec.cast.length})`, r.figures.length === spec.cast.length);
+  r.turns.check(!spec.creditLine);
   check('the hero is in every scene and not among the visitors', !r.figures.some((f) => /PENDRAGON|WILLY|^THING$/.test(f.name)));
   r.cast.check(r.figures, spec.creditLine?.width ?? spec.creditLetters ?? CREDIT.letters);
   if (o.stage) {

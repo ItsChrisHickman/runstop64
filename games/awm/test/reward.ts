@@ -29,7 +29,7 @@ import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { RoutePilot } from '../../shared/ending/pilot';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, SHOW_FRAMES, drawVisitors } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { AwmReel, awmEnding, CREDIT_LETTERS, CREDIT_ROW, CREDIT_X, endingStats, isDone, routeFrames, sceneGame, Stage, stickBits } from '../src/ending';
@@ -50,13 +50,14 @@ const HURT: readonly number[] = [State.Zap, State.Fire, State.Dying, State.Knock
 const bandAt = (top: number) => ({ top, bottom: top + 7, left: CREDIT_X, right: CREDIT_X + CREDIT_LETTERS * 8 });
 let BAND = bandAt(CREDIT_ROW);
 
-/** The game's picture as the VIC draws it with what the show has put over it (the credits), as a PNG. */
+/** The game's picture as the VIC draws it with what the show has put over it (the credits, the visitors), as a PNG. */
 function shot(name: string, renderer: PixelRenderer, program: Program | null) {
   if (!out) return;
   const px = program ? renderPixels(program) : Uint8Array.from(renderer.picture());
   if (program) {
     const over = renderer.screen.pixels;
     for (let i = 0; i < px.length; i++) if (over[i] !== TRANSPARENT) px[i] = over[i];
+    drawVisitors(renderer, px);
   }
   indicesPng(path.join(out, name), px, 320, 200);
 }
@@ -111,15 +112,15 @@ const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const spec = awmEnding(renderer);
 const watching: { reel: AwmReel | null } = { reel: null };
-/** What the game's own picture has in the credits' row between the side columns, and what the show has put there in yellow and in any other colour. */
+/** What the game's own picture has in the credits' row between the side columns, and what the show has put there in its text's colour and in any other. */
 let gameBand = 0, gameFrames = 0, badFrames = 0, gameBandEmpty = true;
 const badPlaces = new Map<number, string>();
-function bandOf(px: ArrayLike<number>, only: number | null) {
+function bandOf(px: ArrayLike<number>, ink: number | null) {
   let n = 0, yellow = 0, other = 0;
   for (let y = BAND.top; y <= BAND.bottom; y++) {
     for (let x = BAND.left; x < BAND.right; x++) {
       const c = px[y * 320 + x] ?? 0;
-      if (only === null) { if (c !== 0 && c !== TRANSPARENT) n++; } else if (c === CREDIT.colour) yellow++; else if (c !== TRANSPARENT) other++;
+      if (ink === null) { if (c !== 0 && c !== TRANSPARENT) n++; } else if (c === ink) yellow++; else if (c !== TRANSPARENT) other++;
     }
   }
   return { n, yellow, other };
@@ -185,7 +186,7 @@ while (show.active && frames < 20000) {
     sceneFrames[p.place] = p.frames;
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
-    const b = bandOf(renderer.screen.pixels, 1);
+    const b = bandOf(renderer.screen.pixels, p.said?.ink ?? CREDIT.colour);
     bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([60, 150, 250, 350, 500, 700, 900].includes(p.frames)) shot(`place-${p.place}-f${p.frames}.png`, renderer, watching.reel?.program ?? null);

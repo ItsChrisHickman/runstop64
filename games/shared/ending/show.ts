@@ -10,9 +10,10 @@ import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timel
  *
  *  1. A montage of places: each one the game's own engine running (a new game of ours, never the player's), its creatures
  *     moving as the engine moves them, the hero driven by input as in play doing something that fits the place. Over it, in a
- *     part of the picture the game leaves empty (never on a box), the credits type on one line at a time, and between the
+ *     part of the picture the game leaves empty (never on a box), the credits type on one line at a time, and after a place's
  *     lines the show names the cast: the game's creatures walk across the place, each one named for a moment as it passes
- *     the middle, so every one has been seen by the end, in places it never is in the game.
+ *     the middle, in a colour of its own (never between two lines, so a name is never read as part of the credits), so every
+ *     one has been seen by the end, in places it never is in the game.
  *  2. THE END and the player's numbers, then back to the title.
  *
  * Two kinds of reel exist, both in this folder's neighbours: a translated machine (`machine-reel.ts`, the Pendragon games, Thing
@@ -38,8 +39,9 @@ export interface Reel {
   readonly say?: ((text: string) => void) | undefined;
   /** The row (picture pixels) the hero's feet are on now: where the visitors' feet go (the lowest of the last moments, as his jumps do not count). Without it the place's `ground`, else the show's. */
   readonly ground?: number | undefined;
-  /** The colour the text of the band reads in here, if not the show's (a plain band of another colour). */
+  /** The colour the text of the band reads in here, if not the show's (a plain band of another colour), and the names' (a colour apart from it that reads there too). */
   readonly ink?: number | undefined;
+  readonly nameInk?: number | undefined;
   /** The part of the picture the room really shows (the VIC's border and the game's frame left out): the cast is seen only on it, cut off where it leaves it. Without it, the whole picture. */
   readonly shownArea?: Stage | undefined;
 }
@@ -73,17 +75,18 @@ export interface RewardSpec {
   /** The row (picture pixels) the text is drawn at: eight pixels the game leaves empty. */
   creditRow: number;
   /**
-   * Where the creatures' names go, if not in the credits' row between the lines: another row the game leaves empty (eight pixels), in
-   * its own colour (`nameInk`), so a name is never read as part of the credits. A name is up only while no credit line is, as ever.
+   * Where the creatures' names go, if not in the credits' row after a place's lines: another row the game leaves empty (eight pixels).
+   * A name is up only while no credit line is, as ever.
    */
   nameRow?: number;
+  /** The colour of the names, if not the show's (`colours.name`): one apart from the credits' that reads where they stand. */
   nameInk?: number;
   /** Frames a credit line is given (default `CREDIT.slot`). */
   creditSlot?: number;
   /** The column the text starts at (default `CREDIT.x`), and the most letters it can have (default `CREDIT.letters`): the span of the band the game leaves empty. */
   creditX?: number;
   creditLetters?: number;
-  /** The colours of the text, of the title and THE END, and of the numbers: indexes of the renderer's palette (default the C64's yellow and light grey; Moley Christmas's is the Spectrum's). */
+  /** The colours of the credits, of the names, of the title and THE END, and of the numbers: indexes of the renderer's palette (default the C64's yellow, cyan, yellow and light grey; Moley Christmas's is the Spectrum's). */
   colours?: ShowColours;
   /** The row visitors stand on where neither the place nor the reel says (default `GROUND`). */
   ground?: number;
@@ -92,8 +95,8 @@ export interface RewardSpec {
 }
 
 /** The show's colours (indexes of the renderer's palette). */
-interface ShowColours { credit: number; title: number; text: number }
-const C64_COLOURS: ShowColours = { credit: CREDIT.colour, title: 7, text: 15 };
+export interface ShowColours { credit: number; name: number; title: number; text: number }
+const C64_COLOURS: ShowColours = { credit: CREDIT.colour, name: CREDIT.nameColour, title: 7, text: 15 };
 
 /** Where a visitor's feet go when nothing says: the lower middle of the picture. */
 export const GROUND = 150;
@@ -141,8 +144,8 @@ const END_HOLD = 250;
 /** A visitor at one moment, for tests: whose, where it stands (its left edge and the row of its feet) and its size. */
 export interface Seen { name: string; left: number; feet: number; width: number; height: number }
 
-/** The band's text now, for tests: what and where, and whether it is a credit line or a name (the place's `index`th). */
-export interface Said { text: string; kind: 'credit' | 'name'; index: number; x: number; row: number }
+/** The band's text now, for tests: what and where, whether it is a credit line or a name (the place's `index`th), and the colour the show draws it in. */
+export interface Said { text: string; kind: 'credit' | 'name'; index: number; x: number; row: number; ink: number }
 
 export class RewardShow {
   private phase: Phase = 'loading';
@@ -326,11 +329,19 @@ export class RewardShow {
     if (!now || now.text === '') return;
     const { spec } = this.o, apart = this.apart(now);
     const x = this.whereIs(now, place), row = apart && spec.nameRow !== undefined ? spec.nameRow : place.creditRow ?? spec.creditRow;
-    this.said = { text: now.text, kind: now.beat.kind, index: now.beat.index, x, row };
+    const ink = this.inkOf(now.beat.kind, apart, reel);
+    this.said = { text: now.text, kind: now.beat.kind, index: now.beat.index, x, row, ink };
     if (reel.say && !apart) return;
     const { screen } = this.o.host.renderer;
-    this.o.font().draw(screen, now.text, x, row, apart ? spec.nameInk ?? this.colours.credit : reel.ink ?? this.colours.credit);
+    this.o.font().draw(screen, now.text, x, row, ink);
     screen.version++;
+  }
+
+  /** The colour a turn's text is drawn in: a credit line in the credits' (the reel's, on a plain band), a name in the names' (the reel's on its band, unless in a row of its own). */
+  private inkOf(kind: 'credit' | 'name', apart: boolean, reel: Reel): number {
+    const { spec } = this.o;
+    if (kind === 'credit') return reel.ink ?? this.colours.credit;
+    return (apart ? undefined : reel.nameInk) ?? spec.nameInk ?? this.colours.name;
   }
 
   /** The row a visitor's feet stand on: the place's own, else where the hero's feet are (the lowest of the last moments); a band at the foot of the picture is never stood on. */

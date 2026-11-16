@@ -81,9 +81,9 @@ const spec = starquakeEnding(renderer);
 /** What the game's own picture has in the credits' row, and what the show has put there in yellow and in any other colour. */
 let gameBand = 0, gameFrames = 0, gameBandEmpty = true;
 const badPlaces = new Map<number, string>();
-function band(pic: ArrayLike<number>) {
+function band(pic: ArrayLike<number>, ink: number = CREDIT.colour) {
   let other = 0, yellow = 0;
-  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const c = pic[y * 320 + x] ?? 0; if (c === CREDIT.colour) yellow++; else if (c !== 0 && c !== TRANSPARENT) other++; }
+  for (let y = BAND.top; y <= BAND.bottom; y++) for (let x = 0; x < 320; x++) { const c = pic[y * 320 + x] ?? 0; if (c === ink) yellow++; else if (c !== 0 && c !== TRANSPARENT) other++; }
   return { yellow, other };
 }
 const watched: Place[] = spec.places.map((place) => ({
@@ -141,7 +141,7 @@ while (show.active && frames < 20000) {
     sceneFrames[p.place] = p.frames;
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
-    const b = band(renderer.screen.pixels);
+    const b = band(renderer.screen.pixels, p.said?.ink);
     bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([60, 150, 250, 350, 500, 700].includes(p.frames)) png(`place-${p.place}-f${p.frames}.png`, renderer);
