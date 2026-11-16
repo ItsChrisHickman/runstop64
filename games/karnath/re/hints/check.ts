@@ -18,7 +18,8 @@
  */
 import fs from 'node:fs';
 import { decodePicture } from '../../../../packages/c64kit/src/c64/picture';
-import { packState } from 'c64kit';
+import { BitmapFont, KIT_GLYPHS, Surface, packState } from 'c64kit';
+import { COL, PANEL, drawPause } from '../../../shared/native/pause';
 import { NativeHost } from '../../../shared/native/host';
 import { routeWalker } from '../../../shared/test/route-walker';
 import { check, finish } from '../../../shared/test/check';
@@ -426,6 +427,18 @@ stubFetch(title);
   const plain = karnathMap.info(unpackState(packState(start)).ram, karnathMap.found.empty(), { hints: false });
   const lines = counted.length + (karnathMap.legend?.length ?? 0);
   check(`the pause screen counts the pieces laid with the hints (${counted.slice(-2).join(' / ')}), and not in ORIGINAL (${plain.length} lines against ${counted.length}); its lines and the legend are at most 8, so none reaches the options under them (${lines})`, counted.includes('PIECES 0/16') && !plain.some((l) => l.startsWith('PIECES')) && lines <= 8);
+  // the count drawn whole: fifteen laid is "PIECES 15/16", twelve letters, the side panel's width (it was cut to "PIECES 15/1")
+  {
+    const ram = unpackState(packState(start)).ram;
+    ram[KEPT.count] = 15;
+    const info = karnathMap.info(ram, karnathMap.found.empty(), { hints: true }), row = info.indexOf('PIECES 15/16');
+    const s = new Surface(320, 200, 0);
+    drawPause(s, new BitmapFont().addDrawn(KIT_GLYPHS), karnathMap, ram, karnathMap.found.empty(), 0, [], { assist: { hints: true } });
+    const last = PANEL.x + (PANEL.chars - 1) * 8, y = 26 + row * 12;
+    let inked = 0;
+    for (let dy = 0; dy < 8; dy++) for (let dx = 0; dx < 8; dx++) if (s.pixels[(y + dy) * 320 + last + dx] === COL.lgrey) inked++;
+    check(`the pause screen draws "PIECES 15/16" whole: every line fits the side panel's ${PANEL.chars} letters (${info.join(' | ')}), and the last letter is drawn (${inked} pixels)`, row >= 0 && info.every((l) => l.length <= PANEL.chars) && inked > 0 && last + 8 <= 318);
+  }
 }
 
 {

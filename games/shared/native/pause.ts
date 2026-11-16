@@ -115,6 +115,12 @@ export const PAUSE_TAP = {
   listStep: 14,
 };
 
+/**
+ * The side panel right of the map (PAUSED, the map's lines, the legend, the options): its text starts at `x`, and a line has
+ * `chars` letters of 8 pixels, as many as fit before the frame's right edge (x 318). A map's lines longer than that are cut.
+ */
+export const PANEL = { x: 222, chars: Math.floor((318 - 222) / 8) };
+
 /** The box the map is drawn in. */
 export const MAP_BOX: Box = { x: 10, y: 22, w: 196, h: 150 };
 
@@ -171,18 +177,18 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(x0, y - r, w, 1, c); s.fillRect(x0, y + r, w, 1, c);
     s.fillRect(x0, y - r, 1, 2 * r + 1, c); s.fillRect(x0 + w - 1, y - r, 1, 2 * r + 1, c);
   }
-  font.draw(s, 'PAUSED', 222, 8, colours.white);
+  font.draw(s, 'PAUSED', PANEL.x, 8, colours.white);
   const info = map.info(ram, found, ui.assist);
-  info.forEach((line, i) => font.draw(s, line.slice(0, 11), 222, 26 + i * 12, colours.lgrey));
+  info.forEach((line, i) => font.draw(s, line.slice(0, PANEL.chars), PANEL.x, 26 + i * 12, colours.lgrey));
   const legend = typeof map.legend === 'function' ? map.legend(ram, ui.assist, ui.page) : map.legend ?? [];
   legend.forEach((l, i) => {
     const y = 26 + (info.length + i) * 12;
-    s.fillRect(222, y + 1, 6, 6, l.colour);
+    s.fillRect(PANEL.x, y + 1, 6, 6, l.colour);
     font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
   options.forEach((line, i) => {
     const y = 166 - (options.length - 1 - i) * 12;
-    font.draw(s, line.text.slice(0, line.check === undefined ? 11 : 10), 222, y, colours.cyan);
+    font.draw(s, line.text.slice(0, line.check === undefined ? 11 : 10), PANEL.x, y, colours.cyan);
     if (line.check === undefined) return;
     // the box (7 x 7, after the name): an outline, filled when on, so the line names the thing and the box says whether it is on
     const bx = 306;

@@ -311,6 +311,13 @@ read from what the game keeps; nothing is written but the status line's characte
   ten in the map that is seventeen for sixteen needed. **The kitchen's piece** (level 2, `$3220`) is guarded: it hurts him unless `$C754` is 1, which
   AEOLUS (spell 6) cast at it ($C5DE, `$321A = $18`) sets for 80 frames; `check.ts` plays it: AEOLUS, then touch. The balcony's piece (`$321C`) hovers
   above a bed he can't walk onto from where the routes stand; the bot did not take it.
+- **The library's piece** (`$321E`, the upper floor's top level, the $C800 half of the $E100 block; sprite 4 hanging at y $60, taken by
+  touch from higher up the screen, $CADD) is only kept if **YEROBAS (spell 10) has hit it first** ($CE17: the spell on sprite 4 with `$322C`
+  $0A sets `$CFBF`). Taken without it, `$CFB9` is 1 and `$CF01` sends sprite 1 after him on his row; its touch ($CB39, collisions $06)
+  clears `$322F` (SEARCHING again), and as `$321E` was never set the piece is back in the library next time. Taken after YEROBAS,
+  `$321E` is 1 and it stays carried. The port and the original agree from the same state (dropped 6 frames after the take; kept after
+  YEROBAS). A change of level (the stairs, or our travel) runs the level's start ($C870 clears `$CFB9`), so leaving that way first keeps
+  the piece carried while it still lies in the library.
 - **Checked** (`re/hints/check.ts`, about a minute): the cells against the decoded picture of the next frame, 10,296 frames carrying (6,999 with a
   sign or door in view, 105 the dungeons' far door) and 5,864 not carrying (3,219 with a piece in view), 0 differing; the way down through a front sign
   (level 3 to 2) and the `$CF` into the dungeons by playing; the kitchen's piece taken by the game's own code on a bot's play (94 frames), the hint on its
