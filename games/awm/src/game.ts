@@ -34,6 +34,9 @@ const FINAL_ROOM = 0x4d;
 /** Progress at which the last delivery is made ($C3). */
 const FINAL_PROGRESS = 0xc3;
 
+/** ENHANCED's creatures move slower: held still one logic step in this many (three quarters of their speed). */
+export const ENEMY_HOLD = 4;
+
 /** The progress values at which the picture of the way out grows a part ($41, $82, $C3). */
 export const PROGRESS_STAGES = [0x41, 0x82, 0xc3];
 
@@ -166,6 +169,13 @@ export class Game implements MontyHost {
    * and the ending plays as ever (Chris, 2026-11-15).
    */
   goodLifeWaits: () => boolean = () => false;
+  /**
+   * ENHANCED's "creatures move slower": 0, or n to hold the enemies still one logic step in n (they move (n-1)/n as fast; their
+   * touch is checked every step as ever). Chris, 2026-11-15: East Germany's pillars, Monaco and Breakfast were not passable by a person.
+   */
+  enemyHold: () => number = () => 0;
+  /** Logic steps counted for `enemyHold`. */
+  private paceCount = 0;
   /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
   hopsRest: () => boolean = () => false;
   /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
@@ -451,7 +461,9 @@ export class Game implements MontyHost {
   /** The rest of the logic step, after Monty ($5ED0 on) and, if he boarded, the flight. */
   private after(state: number, step: number, entered: number | null): number | null {
     const m = this.monty;
-    this.enemies.step(this.rng);
+    const hold = this.enemyHold();
+    this.paceCount = hold > 0 ? (this.paceCount + 1) % hold : 0;
+    if (hold === 0 || this.paceCount !== 0) this.enemies.step(this.rng);
     this.items.pickup(this);
     this.touch();
     if (this.lift.catches(m)) this.knock();

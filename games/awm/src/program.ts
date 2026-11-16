@@ -15,7 +15,7 @@
 import { EVERY_FRAME, type FrameCapture, type ViewStep } from 'c64kit';
 import { Closing } from './closing';
 import { endOf, updateHigh, type Ending } from './flow';
-import { type Entry, FIRST_GAME, Game, type GameCarry } from './game';
+import { type Entry, FIRST_GAME, Game, type GameCarry, ENEMY_HOLD } from './game';
 import type { Flight } from './flight';
 import { decodeStick, Stick } from './input';
 import { Picture } from './picture';
@@ -83,6 +83,8 @@ export class Program {
   flightFree: (to: number) => boolean = () => false;
   /** ENHANCED's quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
+  /** ENHANCED's creatures move slower (game.ts `enemyHold`). */
+  slowCreatures: () => boolean = () => false;
   /** ENHANCED's Good Life waits for the end (game.ts `goodLifeWaits`). */
   goodLifeWaits: () => boolean = () => false;
   /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
@@ -215,6 +217,7 @@ export class Program {
     game.quickHop = () => this.quickHop();
     game.hopsRest = () => this.hopsRest();
     game.goodLifeWaits = () => this.goodLifeWaits();
+    game.enemyHold = () => (this.slowCreatures() ? ENEMY_HOLD : 0);
     const picture = new Picture(game, carry, this.high);
     return picture;
   }

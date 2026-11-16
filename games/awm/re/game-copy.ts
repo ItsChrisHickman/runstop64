@@ -14,5 +14,6 @@ export function copyGame(src: Game): Game {
   g.safeRespawn = src.safeRespawn;
   g.liftWaits = src.liftWaits;
   g.hopsRest = src.hopsRest;
+  g.enemyHold = src.enemyHold;
   return g;
 }
