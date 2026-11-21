@@ -31,8 +31,8 @@ export function escalatorInit(g: Game) {
   g.esc = { ...NO_RIDE };
 }
 
-/** Whether he is standing on his feet in a room on its floor `row`, his left cell `cell` (the playfield's). */
-function standing(g: Game, row: number): number | null {
+/** Whether he is standing on his feet in a room on its floor `row`: his left cell (the playfield's), or null (cracks.ts asks too). */
+export function standingCell(g: Game, row: number): number | null {
   if (g.gameMode || g.falling || g.montyAction || g.onRope) return null;
   return g.montyRow + 2 === row + PLAY_ROW ? g.montyCol - PLAY_COL : null;
 }
@@ -40,7 +40,7 @@ function standing(g: Game, row: number): number | null {
 /** The escalator of this room whose foot Monty stands on (on its floor row, over one of its two cells, on his feet), or -1. */
 function footUnder(g: Game): number {
   return g.data.escalators.findIndex((e) => {
-    const cell = standing(g, e.row);
+    const cell = standingCell(g, e.row);
     return e.room === g.roomId && cell !== null && cell + 1 >= e.col && cell < e.col + FOOT_WIDTH;
   });
 }
@@ -51,7 +51,7 @@ const landing = (e: EscalatorSpec) => ({ col: e.col + e.dx * e.cols, row: e.row 
 /** The escalator of this room whose landing he is walking off the far side of (against the way it goes), or -1. */
 function backUnder(g: Game): number {
   return g.data.escalators.findIndex((e) => {
-    const end = landing(e), cell = standing(g, end.row);
+    const end = landing(e), cell = standingCell(g, end.row);
     if (e.room !== g.roomId || cell === null) return false;
     const behind = (end.col - cell) * e.dx; // cells the landing is ahead of him along the way it goes
     return behind >= 1 && behind <= PLATE;

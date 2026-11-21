@@ -9,5 +9,7 @@ export * from './decorations';
 export * from './escalator';
 export * from './hat';
 export * from './ice';
+export * from './siberia-items';
 export * from './tiles';
+export * from './world';
 export type { Colour, NewCreature, NewDecor, NewItem, NewTile, TileClass } from './types';

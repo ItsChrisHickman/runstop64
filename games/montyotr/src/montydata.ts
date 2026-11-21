@@ -84,12 +84,18 @@ export interface RoomEffect {
   removeEnemy?: number;
   /** Room char codes (1-8) minus one whose tile becomes passable. */
   openTiles?: readonly number[];
+  /** Screen cells filled with the room's character `code` (1-8): the ledges a lamp shows. */
+  place?: { code: number; cells: readonly (readonly [row: number, col: number])[] };
   /** A trap: taking item `item` the first time wakes the creature in `slot` (back on the screen at x), once. */
   wake?: { item: number; slot: number; x: number };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */
-export interface LiftSpec { room: number; x: number; y: number; type: 1 | 2; speedDir: number; sound: boolean }
+export interface LiftSpec {
+  room: number; x: number; y: number; type: 1 | 2; speedDir: number; sound: boolean;
+  /** A picture of its own (a mine cart: two hires sprites, the upper and the lower, in a colour) in place of Monty on the Run's lift. */
+  look?: { top: number; bottom: number; colour: number };
+}
 
 /**
  * An escalator: a ride Monty cannot leave (as the lift and the crusher's head are). Stepping on its foot (a floor two cells wide,
@@ -112,6 +118,19 @@ export interface EscalatorSpec {
  * breaks, and grows back; it kills like a crusher's head. A room has at most two (the sprites 1 and 2).
  */
 export interface IcicleSpec { room: number; col: number; row: number; floor: number }
+
+/**
+ * A tunnel mouth (tunnels.ts): a portal of the room's tile `code` (1-8, a passable one), `cols` wide, from playfield row `top` to
+ * `bottom`, which comes in at the `from` end after `rest` frames (the first `offset` later) and a `warn` of a flashing edge,
+ * and sweeps the room a cell every `step` frames. Death to what of Monty is in it. A room has several (a pause apart).
+ */
+export interface TunnelSpec { room: number; from: 'left' | 'right'; code: number; cols: number; top: number; bottom: number; step: number; rest: number; warn: number; offset?: number }
+
+/**
+ * Cracking ice (cracks.ts): `cols` cells on playfield row `row` from `col`, shown as the room's tiles `codes` (whole, lines, wide;
+ * 1-8) and gone after standing on it for `crack`, `wide` and `gone` frames, back whole `away` frames after it went.
+ */
+export interface CrackSpec { room: number; col: number; cols: number; row: number; codes: readonly [number, number, number]; crack: number; wide: number; gone: number; away: number }
 
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
@@ -197,6 +216,8 @@ export interface MontyData extends RoomTables, MontyLook {
   lifts: readonly LiftSpec[];
   escalators: readonly EscalatorSpec[];
   icicles: readonly IcicleSpec[];
+  tunnels: readonly TunnelSpec[];
+  cracks: readonly CrackSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

@@ -208,21 +208,21 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // I SIBERIA YOU LATER: drop in onto the roof of a long carriage; along it to the way out at the right, which is shut for now with a
-  // sign. A pocket at the left (steps down off the roof's end, luggage to climb back) holds a coin.
+  // I SIBERIA YOU LATER: drop in onto the roof of a long carriage; along it to the way out at the right, into Siberia's first car (siberia.ts).
+  // A pocket at the left (steps down off the roof's end, luggage to climb back) holds a coin.
   room({
     id: ROOM.station, cell: [1, 3], sector: 5,
     palette: { K: ['kremlinBrick', 2], C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], T: ['trainSide', 5], X: ['crate', 9], P: ['planks', 8] },
     paint(g) {
       roof(g, 2, [[0, 5], [20, 27]]);
       g.clear(15, 0, 18, 1);
-      g.box(0, 2, 0, 16, 'P').box(30, 3, 31, 8, 'P');
+      g.box(0, 2, 0, 16, 'P').box(30, 2, 31, 5, 'P'); // (the way on, east, is open at rows 6-8: along the roof into Siberia)
       g.box(0, 17, 31, 19, 'K');
       g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 11, 16, 'X'); // the luggage back up (a run-up in the pocket)
       g.box(12, 9, 31, 9, 'G').box(12, 10, 31, 16, 'T'); // the carriage
     },
     coins: [[2, 16]],
-    decor: [[{ text: 'SIBERIA COMING SOON', colour: 7 }, 9, 4], ['stationClock', 4, 4]],
+    decor: [[{ text: 'TRAIN TO SIBERIA', colour: 7 }, 9, 4], ['stationClock', 4, 4]],
     creatures: [
       { who: 'balalaika', col: 12, row: 7, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 22, row: 7, way: 'right', speed: 1, range: 40 },

@@ -1,5 +1,6 @@
 import type { TuneVersion } from '../../../montyotr/src/montydata';
 import { MOSCOW } from './moscow';
+import { SIBERIA } from './siberia';
 import { retune, type RegionTune } from './region-tune';
 
 /**
@@ -9,6 +10,7 @@ import { retune, type RegionTune } from './region-tune';
  */
 const REGIONS: readonly { readonly from: number; readonly to: number; readonly tune: RegionTune }[] = [
   { from: 0, to: 4, tune: MOSCOW }, // Moscow: the first four columns (its block of nine rooms)
+  { from: 4, to: 8, tune: SIBERIA }, // Siberia: the next four
 ];
 
 /** A tune as the engine takes it (`MontyData.music.tuneFor`): the version's id, and how to make its .sid from the original's. */

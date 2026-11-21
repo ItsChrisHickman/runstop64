@@ -6,34 +6,36 @@ import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
-  ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_CREATURES, MOSCOW_DECOR, MOSCOW_ITEMS, MOSCOW_TILE_LIST, HAT_COLOUR, ushankaWorn,
+  CART, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST, HAT_COLOUR, ushankaWorn,
 } from './art';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
+import { CRACKS, LIFTS, SHAFT_CODE, SHAFT_LEDGES, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
  * Run: rooms of its own in runstop64's room format (shared/monty/rooms.ts), made of Monty on the Run's rules, music and what of its
  * tiles and sprites fit, and new tiles, decorations, creatures and items in its style (art/). So far Moscow, the first of its regions
- * (moscow.ts): nine rooms at the west end of a wide exit grid, the rest of the world to come a region at a time
+ * (moscow.ts) and Siberia (siberia.ts): nine rooms each at the west end of a wide exit grid, the rest of the world to come a region at a time
  * (docs/dosvidaniya-plan.md).
  */
 
 /** The exit grid: 50 columns for the world west to east (seven regions of about seven rooms), 3 rows for the ways up and down. */
 export const WORLD_COLS = 50, WORLD_ROWS = 3;
 
-const ROOMS = MOSCOW_ROOMS;
+/** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
-const tiles = extendTiles(MOTR_LOOK, MOSCOW_TILE_LIST);
-const creatures = Object.values(MOSCOW_CREATURES);
+const tiles = extendTiles(MOTR_LOOK, WORLD_TILE_LIST);
+const creatures = Object.values(WORLD_CREATURES);
 const enemies = extendEnemies(MOTR_LOOK, creatures, 35);
 
 /** The ushanka: Monty's pictures with its place cleared, and the hat as sprites of its own (in the bank's free blocks, below). */
 const WORN = ushankaWorn(bankImage);
-/** Free blocks of the bank for the hat's pictures (the items' are $D0-$D6). */
-const HAT_BLOCKS: readonly number[] = [0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, ...Array.from({ length: 21 }, (_, i) => 0xeb + i), ...Array.from({ length: 15 }, (_, i) => 0xc1 + i)];
+/** Free blocks of the bank for the hat's pictures (the items' are $D0-$D6, Siberia's $C1-$C5). */
+const HAT_BLOCKS: readonly number[] = [0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, ...Array.from({ length: 21 }, (_, i) => 0xeb + i), ...Array.from({ length: 10 }, (_, i) => 0xc6 + i)];
 /** The hat's pictures, the same ones shared between Monty's pictures that need no difference. */
 const hatBlocks: { ptr: number; block: Uint8Array }[] = [];
 const hatFrames = new Map<number, { ptr: number; dx: number; dy: number }>();
@@ -58,11 +60,17 @@ const bank = extendBank(bankImage, [
   { ptr: SPRITE.iceHalf, block: ICICLE_HALF },
   { ptr: SPRITE.iceSmall, block: ICICLE_SMALL },
   { ptr: SPRITE.iceShards, block: ICICLE_SHARDS },
+  { ptr: SIB_SPRITE.lamp, block: SIBERIA_ITEMS.lamp.block },
+  { ptr: SIB_SPRITE.ticket, block: SIBERIA_ITEMS.ticket.block },
+  { ptr: SIB_SPRITE.pelmeni, block: SIBERIA_ITEMS.pelmeni.block },
+  { ptr: SIB_SPRITE.cartTop, block: CART.top },
+  { ptr: SIB_SPRITE.cartBottom, block: CART.bottom },
 ]);
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
   [SPRITE.token, MOSCOW_ITEMS.metroToken.colour], [SPRITE.ushanka, MOSCOW_ITEMS.ushanka.colour], [SPRITE.pirozhok, MOSCOW_ITEMS.pirozhok.colour],
+  [SIB_SPRITE.lamp, SIBERIA_ITEMS.lamp.colour], [SIB_SPRITE.ticket, SIBERIA_ITEMS.ticket.colour], [SIB_SPRITE.pelmeni, SIBERIA_ITEMS.pelmeni.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
   ...ITEM_SPRITES,
@@ -73,13 +81,17 @@ const itemSprites: MontyData['itemSprites'] = {
 // ---- the rooms' tables ------------------------------------------------------------------------------------------
 
 /** Moscow's decorations are the first decoration types. */
-const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(MOSCOW_DECOR) };
-const tables = buildRooms(BASE, ROOMS, SECTORS, bankImage, SPRITE.pirozhok);
+const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
+const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
 const USHANKA = specialIndex(ROOMS, 'ushanka');
 const PIROZHKI = listSpecials(ROOMS).filter((e) => e.item === null).map((e) => e.index);
+const LAMP = specialIndex(ROOMS, 'lamp');
+const TICKET = specialIndex(ROOMS, 'ticket');
+/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni. */
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2')];
 
 /** The playfield cells (row, column) of a rectangle, in the screen's cells (the playfield starts at column 4, row 3). */
 function screenCells(c0: number, r0: number, c1: number, r1: number): [row: number, col: number][] {
@@ -91,6 +103,8 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): [row: numb
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
+  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: SHAFT_LEDGES.map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
+  { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
 ];
 
 export const WORLD: MontyData = {
@@ -118,9 +132,11 @@ export const WORLD: MontyData = {
   roomEffects: ROOM_EFFECTS,
 
   jetpackRooms: [],
-  lifts: [],
+  lifts: LIFTS,
   escalators: ESCALATORS,
   icicles: ICICLES,
+  tunnels: TUNNELS,
+  cracks: CRACKS,
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // the ushanka: once taken, Monty's pictures have it on
   costumes: [{ item: USHANKA, blocks: WORN.monty, over: { colour: HAT_COLOUR, frames: hatFrames } }],
@@ -135,15 +151,19 @@ export const WORLD: MontyData = {
     take: [
       { item: TOKEN, text: 'TOKEN: FOR THE METRO TURNSTILE' },
       { item: USHANKA, text: 'FUR HAT: PAST THE KREMLIN GUARD' },
+      { item: LAMP, text: 'LAMP: SHOWS THE MINE\'S LEDGES' },
+      { item: TICKET, text: 'TICKET: FOR THE BORDER BARRIER' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },
       { room: ROOM.kremlin, item: USHANKA, text: 'THE GUARD WANTS A FUR HAT' },
+      { room: SIB.shaft, item: LAMP, text: 'TOO DARK TO SEE: FIND A LAMP' },
+      { room: SIB.border, item: TICKET, text: 'THE BARRIER WANTS A TICKET' },
     ],
   },
-  // the map shows Moscow's four columns while he is in them
-  regions: [{ from: 0, to: 3 }],
-  progress: { keyItems: [TOKEN, USHANKA], cakes: PIROZHKI, sectorColours: SECTOR_COLOURS, foodName: 'SNACKS' },
+  // the map shows a region's four columns while he is in them
+  regions: [{ from: 0, to: 3 }, { from: 4, to: 7 }],
+  progress: { keyItems: [TOKEN, USHANKA, LAMP, TICKET], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
       [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',

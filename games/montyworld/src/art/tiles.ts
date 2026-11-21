@@ -14,7 +14,7 @@ import type { Colour, NewTile, TileClass } from './types';
 /** How many tiles the original's library has: the first new tile is this index. */
 export const MOTR_TILE_COUNT = 121;
 
-function tile(name: string, cls: TileClass, colour: Colour, rows: readonly string[]): NewTile {
+export function tile(name: string, cls: TileClass, colour: Colour, rows: readonly string[]): NewTile {
   return { chr: characters(`tile ${name}`, rows, 1, 1), cls, colour };
 }
 

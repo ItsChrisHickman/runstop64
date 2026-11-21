@@ -1,9 +1,7 @@
 import { enemyColours } from '../../montyotr/src/data';
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS } from '../../shared/monty/screen';
-import { MOSCOW_CREATURES, type MoscowCreature } from './art/creatures';
-import { MOSCOW_DECOR, type MoscowDecor } from './art/decorations';
-import { moscowTileIndex, type MoscowTile } from './art/tiles';
+import { WORLD_CREATURES, WORLD_DECOR, worldTileIndex, type WorldCreature, type WorldDecor, type WorldTile } from './art/world';
 
 /**
  * Rooms written the way they are drawn: a playfield of 32 by 20 cells painted with rectangles of a tile (each tile a letter of the
@@ -13,7 +11,7 @@ import { moscowTileIndex, type MoscowTile } from './art/tiles';
  */
 
 /** The palette of a room: a letter for each of up to eight tiles and its colour (the first is code 1, the next code 2...). */
-export type Palette = Readonly<Record<string, readonly [MoscowTile, colour: number]>>;
+export type Palette = Readonly<Record<string, readonly [WorldTile, colour: number]>>;
 
 /** The playfield being painted. */
 export class Grid {
@@ -39,7 +37,7 @@ export type Way = 'right' | 'left' | 'up' | 'down';
 const WAY: Readonly<Record<Way, 0 | 1 | 3 | 4>> = { right: 0, left: 1, up: 3, down: 4 };
 
 /** A creature in a room: its top left cell (where it starts), which way it goes, its speed (pixels a step) and range (steps). */
-export interface Creature { who: MoscowCreature; col: number; row: number; way: Way; speed: number; range: number; colour?: number }
+export interface Creature { who: WorldCreature; col: number; row: number; way: Way; speed: number; range: number; colour?: number }
 
 export interface MoscowRoom {
   id: number;
@@ -53,7 +51,7 @@ export interface MoscowRoom {
   cake?: readonly [col: number, row: number];
   /** A key item: its name, the sprite's top left cell and its pointer in the bank. */
   item?: { name: string; col: number; row: number; sprite: number };
-  decor?: readonly (readonly [MoscowDecor | { text: string; colour: number }, col: number, row: number])[];
+  decor?: readonly (readonly [WorldDecor | { text: string; colour: number }, col: number, row: number])[];
   creatures?: readonly Creature[];
   /** Mole Crushers: the shaft's top cell, its height, its characters. */
   crushers?: readonly { col: number; row: number; height: number; chr: 0x10 | 0x22 }[];
@@ -61,8 +59,8 @@ export interface MoscowRoom {
 
 /** The first creature type of Moscow's in the enemy bank (Monty on the Run's are 8-34). */
 export const FIRST_CREATURE = 35;
-const creatureNames = Object.keys(MOSCOW_CREATURES);
-const decorNames = Object.keys(MOSCOW_DECOR);
+const creatureNames = Object.keys(WORLD_CREATURES);
+const decorNames = Object.keys(WORLD_DECOR);
 
 /** A palette letter's code (1-8). */
 export function codeOf(palette: Palette, letter: string): number {
@@ -77,7 +75,7 @@ export function room(r: MoscowRoom): RoomSpec {
   r.paint(g);
   const map = g.rows().map((row) => [...row].map((c) => (c === '.' ? '.' : String(codeOf(r.palette, c)))).join(''));
   if (map.some((row) => row.includes('0'))) throw new Error(`room $${r.id.toString(16)}: a letter that is not in its palette`);
-  const tiles = letters.map((l) => moscowTileIndex(r.palette[l]?.[0] ?? 'snowGround'));
+  const tiles = letters.map((l) => worldTileIndex(r.palette[l]?.[0] ?? 'snowGround'));
   const colours = letters.map((l) => r.palette[l]?.[1] ?? 1);
   return {
     id: r.id, row: r.cell[0], col: r.cell[1], sector: r.sector,
@@ -94,7 +92,7 @@ export function room(r: MoscowRoom): RoomSpec {
     ...(r.creatures ? {
       enemies: r.creatures.map((c) => ({
         col: c.col + PLAY_COL, row: c.row + PLAY_ROW,
-        colour: Math.max(0, enemyColours.indexOf(c.colour ?? MOSCOW_CREATURES[c.who].colour)),
+        colour: Math.max(0, enemyColours.indexOf(c.colour ?? WORLD_CREATURES[c.who].colour)),
         dir: WAY[c.way], type: FIRST_CREATURE + creatureNames.indexOf(c.who), speed: c.speed, range: c.range,
       })),
     } : {}),

@@ -10,7 +10,7 @@ import { characters, colours } from './pixels';
 import { onionDome, Raster, stroke } from './raster';
 import type { Colour, NewDecor } from './types';
 
-function decor(name: string, w: number, h: number, r: Raster, colour: Colour | readonly string[]): NewDecor {
+export function decor(name: string, w: number, h: number, r: Raster, colour: Colour | readonly string[]): NewDecor {
   return { w, h, chr: characters(name, r.rows(), w, h), colour: typeof colour === 'number' ? colour : colours(name, colour, w, h) };
 }
 

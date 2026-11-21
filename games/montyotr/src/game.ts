@@ -8,7 +8,9 @@ import * as Mech from './mechanisms';
 import * as Items from './items';
 import * as Scripts from './scripts';
 import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
+import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
+import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
@@ -197,6 +199,9 @@ export class Game implements MontyBody, MontyWorld {
   treadTick = 0;
   /** This room's icicles (icicles.ts). */
   ice: IcicleState[] = [];
+  /** This room's tunnel mouths (tunnels.ts) and cracking ice (cracks.ts). */
+  tunnels: TunnelState[] = [];
+  cracks: CrackState[] = [];
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
   /** The line in the name row, and for how long (ENHANCED's hints). */
@@ -321,6 +326,8 @@ export class Game implements MontyBody, MontyWorld {
     this.pd.ride = 0;
     this.esc = { ...NO_RIDE };
     this.ice = [];
+    this.tunnels = [];
+    this.cracks = [];
     this.worn = null;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -382,6 +389,8 @@ export class Game implements MontyBody, MontyWorld {
       Mech.liftCheckContact(this);
       escalatorUpdate(this);
       icicleUpdate(this);
+      tunnelUpdate(this);
+      crackUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -561,6 +570,8 @@ export class Game implements MontyBody, MontyWorld {
     Mech.liftInit(this);
     escalatorInit(this);
     icicleInit(this);
+    tunnelInit(this);
+    crackInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);

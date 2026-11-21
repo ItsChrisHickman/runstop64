@@ -96,3 +96,11 @@ export function itemBlock(name: string, rows: readonly string[]): Uint8Array {
   }
   return out;
 }
+
+/** A full sprite block: a 24 x 21 picture (3 bytes a row, 21 rows), for a thing wider than 16 pixels (a mine cart). */
+export function spriteBlock(name: string, rows: readonly string[]): Uint8Array {
+  const rs = picture(name, rows, 24, 21);
+  const out = new Uint8Array(63);
+  for (let r = 0; r < 21; r++) for (let b = 0; b < 3; b++) out[r * 3 + b] = rowByte(rs[r] ?? '', b * 8);
+  return out;
+}

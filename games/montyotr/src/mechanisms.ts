@@ -179,14 +179,24 @@ export function liftSpriteUpdate(g: Game) {
   g.sx[1] = g.sx[2] = l.x;
   g.sy[1] = l.y;
   g.sy[2] = (l.y + 0x15) & 0xff;
-  const c = g.pulseGreyscale();
-  g.scol[1] = g.scol[2] = c;
-  g.vic.mc1 = 2;
-  g.vic.mc2 = 0x0a;
-  g.sptr[1] = 0x74;
-  g.sptr[2] = 0x75;
-  g.enable |= 0x06;
-  g.multicolour |= 0x06;
+  const look = g.data.lifts.find((s) => s.room === g.roomId)?.look;
+  if (look) {
+    // a picture of the game's own (a mine cart): hires, in its colour
+    g.scol[1] = g.scol[2] = look.colour;
+    g.sptr[1] = look.top;
+    g.sptr[2] = look.bottom;
+    g.enable |= 0x06;
+    g.multicolour &= ~0x06;
+  } else {
+    const c = g.pulseGreyscale();
+    g.scol[1] = g.scol[2] = c;
+    g.vic.mc1 = 2;
+    g.vic.mc2 = 0x0a;
+    g.sptr[1] = 0x74;
+    g.sptr[2] = 0x75;
+    g.enable |= 0x06;
+    g.multicolour |= 0x06;
+  }
   if (l.riding) g.y = (l.y + 0x17) & 0xff;
 }
 

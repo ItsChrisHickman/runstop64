@@ -41,7 +41,8 @@ export function restore(g: Game, data: MontySave) {
   g.score = data.score;
   g.coinCollected.set(data.coins.slice(0, g.coinCollected.length));
   g.siCollected.set(data.items.slice(0, g.siCollected.length));
-  g.exitGrid.set(data.exitGrid.slice(0, g.exitGrid.length));
+  // (the exit grid only changes in a game with a C5 street: a world's saves from when it had fewer regions have shorter or emptier grids)
+  if (g.data.c5) g.exitGrid.set(data.exitGrid.slice(0, g.exitGrid.length));
   c5Arrive(g, data.c5 ?? { ...C5_START, fallStage: data.c5FallStage });
   wear(g, data.worn ?? null);
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't
