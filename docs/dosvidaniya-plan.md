@@ -22,7 +22,7 @@ two games together go once round the world.
 
 ## The world
 
-Six regions of eight or nine rooms each, about fifty rooms in all (Monty on the Run has 52). The regions follow each other west
+Seven regions of about seven rooms each, about fifty rooms in all (Monty on the Run has 52). The regions follow each other west
 to east on the exit grid, so the pause screen's map reads as the trip round the world.
 
 **Inside a region the way is not a line** (Chris, 2026-11-20: what he liked most in Monty on the Run). Each region is a block
@@ -39,7 +39,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | 3. China | the Great Wall, a Beijing market, a temple, a junk on the river | dragons of the New Year dance, firecrackers |
 | 4. Japan | Tokyo rooftops and neon, a bullet train, Mount Fuji's slopes, a temple garden | ninjas, sumo, koi |
 | 5. The Pacific | a cargo ship's holds and decks, Hawaii's volcano, beaches and the luau, a cargo plane's hold | gulls, crabs, lava |
-| 6. South America | the parachute drop into the Andes, Machu Picchu, the Amazon by riverboat, Rio (Sugarloaf, Christ the Redeemer on Corcovado, the carnival: rooms through the parade, its floats and samba dancers, just before the beach; the beach: the ending) | condors, llamas, piranhas, carnival dancers |
+| 6. The Andes and the Amazon | the parachute drop into the Andes, Machu Picchu, the Amazon by riverboat | condors, llamas, piranhas |
+| 7. Rio | Sugarloaf, Christ the Redeemer on Corcovado, the carnival (rooms through the parade, its floats and samba dancers), then the beach: the ending | carnival dancers, drummers |
 
 ## The rules (Monty on the Run's)
 
