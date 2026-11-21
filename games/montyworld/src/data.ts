@@ -110,15 +110,18 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): [row: numb
   return out;
 }
 
+/** Playfield cells (row, column) as the screen's cells a room effect names. */
+const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
+
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
   { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: [...SHAFT_LEDGES, ...SHAFT_STONE].map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
   { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
-  { room: CHI.tower, when: [{ taken: KEY }], clear: TRAPDOOR_CELLS.map(([row, col]) => [row + 3, col + 4] as const), place: { code: TOWER_ROPE_CODE, cells: TRAPDOOR_ROPE.map(([row, col]) => [row + 3, col + 4] as const) } },
-  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: DOOR_CELLS.map(([row, col]) => [row + 3, col + 4] as const) }, // in the rice hat the city gate lets him by
-  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: RAFT_CELLS.map(([row, col]) => [row + 3, col + 4] as const) } }, // the bamboo is a raft out to the junk
+  { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
+  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS) }, // in the rice hat the city gate lets him by
+  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) } }, // the bamboo is a raft out to the junk
 ];
 
 export const WORLD: MontyData = {

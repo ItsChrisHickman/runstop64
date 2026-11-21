@@ -19,8 +19,8 @@ import { SIBERIA_LEGS } from './siberia-route';
 
 const only = process.argv[2];
 
-/** The rooms and finds of Siberia in the tables: the rooms from the dining car on. */
-const siberian = (room: number) => room >= SIB.gravy;
+/** The rooms and finds of Siberia in the tables: the rooms from the dining car to the village. */
+const siberian = (room: number) => room >= SIB.gravy && room <= SIB.border;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;
