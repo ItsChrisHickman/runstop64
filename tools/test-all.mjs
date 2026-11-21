@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // One entry point for the repo's headless tests, on node:test (built in, nothing to install).
 // The manifest (tools/tests.mjs) lists each test script with the arguments it needs; every one is
-// run as its own child process (`nice -n 15 node tools/test.mjs <file> [args]`), two at a time
-// (JOBS=n to change it; this is a live production server: Chris allowed two since 2026-11-21), and passes when it exits 0.
+// run as its own child process (`nice -n 15 node tools/test.mjs <file> [args]`), three at a time
+// (JOBS=n to change it; Chris, 2026-11-21: speed matters, the server has the power), and passes when it exits 0.
 //
 //   node tools/test-all.mjs                 the fast set (a few minutes)
 //   node tools/test-all.mjs --slow          the fast set, then the slow one
@@ -60,8 +60,8 @@ function run(cmd, limit) {
   });
 }
 
-/** How many tests run at once (two by default: the box has four cores and serves the sites). */
-const JOBS = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
+/** How many tests run at once (three by default: Chris finds the box has the power; tests are niced below the sites). */
+const JOBS = Math.max(1, Number(process.env.JOBS ?? 3) || 3);
 const timings = [];
 suite('runstop64', { concurrency: JOBS }, () => {
 for (const t of chosen) {

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Wait for a turn to run tests: at most two at once on this live server (Chris, 2026-11-21).
-# A running test-all (`npm run verify`, `npm test`) counts as two (it runs two tests at a time); a lone tools/test.mjs as one.
+# Wait for a turn to run tests: at most three at once (Chris, 2026-11-21: speed matters, the server has the power; tests run niced below the sites).
+# A running test-all (`npm run verify`, `npm test`) counts as three (it runs three tests at a time); a lone tools/test.mjs as one.
 #   tools/wait-turn.sh      before a single test
-#   tools/wait-turn.sh 2    before `npm run verify`
+#   tools/wait-turn.sh 3    before `npm run verify`
 need=${1:-1}; [ "$need" = "--count" ] && need=0
 under_test_all() { # is process $1 started by a test-all?
   local p=$1
@@ -15,9 +15,9 @@ under_test_all() { # is process $1 started by a test-all?
 }
 busy() {
   local n=0 pid
-  n=$(( $(pgrep -fc '^(\S*/)?node tools/test-all\.mjs' || true) * 2 ))
+  n=$(( $(pgrep -fc '^(\S*/)?node tools/test-all\.mjs' || true) * 3 ))
   for pid in $(pgrep -f '^(\S*/)?node tools/test\.mjs' || true); do under_test_all "$pid" || n=$((n + 1)); done
   echo "$n"
 }
 [ "${1:-}" = "--count" ] && { busy; exit 0; }
-while [ $(( $(busy) + need )) -gt 2 ]; do sleep 10; done
+while [ $(( $(busy) + need )) -gt 3 ]; do sleep 10; done

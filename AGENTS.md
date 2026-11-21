@@ -63,9 +63,10 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 ## Workflow and the machine
 
 - **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
-  process with `nice -n 15`. **At most two tests at once** (Chris, 2026-11-21): `tools/test-all.mjs` (so `npm run verify`)
-  runs two at a time, and before running tests wait for a turn with `tools/wait-turn.sh` (one slot for a single test,
-  `tools/wait-turn.sh 2` before `npm run verify`).
+  process with `nice -n 15`. **Up to three tests at once** (Chris, 2026-11-21: speed matters, the server has the power; tests run niced
+  below the sites): `tools/test-all.mjs` (so `npm run verify`) runs three at a time, and before running tests wait for a turn
+  with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 3` before `npm run verify`). Several agents may
+  work at once.
 - **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests). There is no
   CI (Actions minutes are scarce), so this is the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
