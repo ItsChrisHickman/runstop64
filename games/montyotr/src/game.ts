@@ -9,7 +9,7 @@ import * as Items from './items';
 import * as Scripts from './scripts';
 import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
 import { crackInit, crackUpdate, type CrackState } from './cracks';
-import { dragonInit, dragonUpdate, type DragonState } from './dragons';
+import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
@@ -359,7 +359,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this);
   }
 
   /** Whether a worn costume's overlay sprite (sprite 7) is on Monty this frame (it is no part of his collision box). */

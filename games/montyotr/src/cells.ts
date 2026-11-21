@@ -12,8 +12,18 @@ export const pixelX = (col: number) => 2 * X2_ORIGIN + (col + PLAY_COL) * 8;
 /** The sprite pixel of a playfield row's top. */
 export const pixelY = (row: number) => Y_ORIGIN + (row + PLAY_ROW) * 8;
 
+/** Whether Monty (16 pixels wide, each side trimmed by `trim`) is across the sprite pixels from `x` for `w`: the one horizontal test every mechanism uses. */
+export function montyAcross(g: Game, x: number, w: number, trim: number): boolean {
+  const mx = g.x2 * 2;
+  return mx + 16 - trim > x && x + w > mx + trim;
+}
+
+/** Whether Monty's 16 by 16 box (the sides trimmed by `trim`) meets the box of `w` by `h` sprite pixels at (`x`, `y`): the one box test of the icicles and the dragon. */
+export function montyMeets(g: Game, x: number, y: number, w: number, h: number, trim: number): boolean {
+  return montyAcross(g, x, w, trim) && g.y + 16 > y && y + h > g.y;
+}
+
 /** Whether Monty (his box, the sides trimmed a little) is in the playfield cells from column `left` for `cols` columns, from row `top` to row `bottom`. */
 export function montyOver(g: Game, left: number, cols: number, top: number, bottom: number): boolean {
-  const mx = g.x2 * 2;
-  return mx + 14 > pixelX(left) && pixelX(left + cols) > mx + 2 && g.y < pixelY(bottom + 1) && pixelY(top) < g.y + 16;
+  return montyMeets(g, pixelX(left), pixelY(top), cols * 8, (bottom - top + 1) * 8, 2);
 }

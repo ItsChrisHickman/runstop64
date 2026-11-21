@@ -1,5 +1,4 @@
-import { X2_ORIGIN, Y_ORIGIN } from '../../shared/monty/body';
-import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
+import { montyAcross, montyMeets, pixelX, pixelY } from './cells';
 import type { Game } from './game';
 
 /**
@@ -25,19 +24,14 @@ const WIDTH = 8, HEIGHT = 16, TRIM = 2;
 
 /** A room is loaded: its icicles hanging. */
 export function icicleInit(g: Game) {
-  g.ice = g.data.icicles.filter((e) => e.room === g.roomId).map((e) => ({ state: 'hang' as const, t: 0, y: top(e.row) }));
+  g.ice = g.data.icicles.filter((e) => e.room === g.roomId).map((e) => ({ state: 'hang' as const, t: 0, y: pixelY(e.row) }));
 }
 
-const top = (row: number) => Y_ORIGIN + (row + PLAY_ROW) * 8;
-/** Sprite x of the icicle's column (the sprite's x halved, as `sx` has it: a cell is 4). */
-const halfX = (col: number) => X2_ORIGIN + (col + PLAY_COL) * 4;
 
 /** Whether Monty's box is over (armed) or touches (`hit`) the icicle's. */
 function overlaps(g: Game, col: number, y: number, trim: number, deep: boolean): boolean {
-  const ix = halfX(col) * 2, mx = g.x2 * 2;
-  if (mx + 16 - trim <= ix || ix + WIDTH <= mx + trim) return false;
   // armed: he is not above it; hit: their boxes meet
-  return deep ? g.y < y + HEIGHT && y < g.y + 16 : g.y + 16 > y;
+  return deep ? montyMeets(g, pixelX(col), y, WIDTH, HEIGHT, trim) : montyAcross(g, pixelX(col), WIDTH, trim) && g.y + 16 > y;
 }
 
 /** One frame: each icicle of the room one step (after Monty's move), its sprite set, a death if it falls on him. */
@@ -47,8 +41,8 @@ export function icicleUpdate(g: Game) {
   g.ice.forEach((ic, i) => {
     const e = specs[i];
     if (!e) return;
-    const rest = top(e.row);
-    const landed = top(e.floor) - HEIGHT;
+    const rest = pixelY(e.row);
+    const landed = pixelY(e.floor) - HEIGHT;
     ic.t++;
     switch (ic.state) {
       case 'hang':
@@ -71,7 +65,7 @@ export function icicleUpdate(g: Game) {
     }
     const n = 1 + i;
     const shake = ic.state === 'shiver' ? (ic.t & 2 ? 1 : -1) : 0;
-    g.sx[n] = halfX(e.col) + shake;
+    g.sx[n] = (pixelX(e.col) >> 1) + shake;
     g.sy[n] = ic.y;
     g.scol[n] = ic.state === 'shiver' && ic.t & 4 ? 1 : 3;
     switch (ic.state) {

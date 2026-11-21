@@ -43,6 +43,17 @@ const USHANKA = placeHat(USHANKA_WORN);
 const RICE_WORN = riceHatWorn(bankImage);
 const RICE = placeHat(RICE_WORN);
 
+/** Each dragon picture with its pointer (named one by one, so a missing picture is a compile error). */
+const DRAGON_BLOCKS = [
+  { ptr: DRAGON_POINTERS.headLeftOpen, block: DRAGON_PICTURES.headLeftOpen },
+  { ptr: DRAGON_POINTERS.headLeftShut, block: DRAGON_PICTURES.headLeftShut },
+  { ptr: DRAGON_POINTERS.headRightOpen, block: DRAGON_PICTURES.headRightOpen },
+  { ptr: DRAGON_POINTERS.headRightShut, block: DRAGON_PICTURES.headRightShut },
+  { ptr: DRAGON_POINTERS.body, block: DRAGON_PICTURES.body },
+  { ptr: DRAGON_POINTERS.tailLeft, block: DRAGON_PICTURES.tailLeft },
+  { ptr: DRAGON_POINTERS.tailRight, block: DRAGON_PICTURES.tailRight },
+] as const;
+
 /** The bank with the items, icicles, the cart, the dragon and the first hat at their pointers. */
 const bank = extendBank(bankImage, [
   ...USHANKA.blocks,
@@ -62,15 +73,8 @@ const bank = extendBank(bankImage, [
   { ptr: CHINA_SPRITE.riceHat, block: CHINA_ITEMS.riceHat.block },
   { ptr: CHINA_SPRITE.bamboo, block: CHINA_ITEMS.bamboo.block },
   { ptr: CHINA_SPRITE.dumplings, block: CHINA_ITEMS.dumplings.block },
-  ...Object.entries(DRAGON_POINTERS).map(([name, ptr]) => ({ ptr, block: dragonBlock(name) })),
+  ...DRAGON_BLOCKS,
 ]);
-
-/** A dragon picture by the name of its pointer. */
-function dragonBlock(name: string): Uint8Array {
-  const block = Object.entries(DRAGON_PICTURES).find(([n]) => n === name)?.[1];
-  if (!block) throw new Error(`no dragon picture ${name}`);
-  return block;
-}
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
@@ -103,24 +107,24 @@ const BAMBOO = specialIndex(ROOMS, 'bamboo');
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2')];
 
-/** The playfield cells (row, column) of a rectangle, in the screen's cells (the playfield starts at column 4, row 3). */
-function screenCells(c0: number, r0: number, c1: number, r1: number): [row: number, col: number][] {
-  const out: [number, number][] = [];
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) out.push([r + 3, c + 4]);
-  return out;
-}
-
-/** Playfield cells (row, column) as the screen's cells a room effect names. */
+/** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
+
+/** The cells of a playfield rectangle (corners inclusive), as the screen's cells. */
+function screenCells(c0: number, r0: number, c1: number, r1: number): (readonly [row: number, col: number])[] {
+  const out: (readonly [number, number])[] = [];
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) out.push([r, c]);
+  return onScreen(out);
+}
 
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
-  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: [...SHAFT_LEDGES, ...SHAFT_STONE].map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
+  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: onScreen([...SHAFT_LEDGES, ...SHAFT_STONE]) } }, // the lamp shows the ledges
   { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
-  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS) }, // in the rice hat the city gate lets him by
+  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
   { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) } }, // the bamboo is a raft out to the junk
 ];
 

@@ -298,7 +298,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // the right (the ticket lifts it) and beyond it the way east, to China.
   room({
     id: SIB.border, cell: [2, 7], sector: 17,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], P: ['planks', 8], R: ['rope', 13] },
+    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], R: ['rope', 13] },
     paint(g) {
       sky(g, 2, [[0, 5], [14, 20]]);
       g.clear(4, 0, 6, 1).box(5, 0, 5, 16, 'R'); // the rope from the lake

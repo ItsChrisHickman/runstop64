@@ -1,4 +1,4 @@
-import { pixelX, pixelY } from './cells';
+import { montyMeets, pixelX, pixelY } from './cells';
 import type { Game } from './game';
 import type { DragonSpec } from './montydata';
 
@@ -11,7 +11,7 @@ import type { DragonSpec } from './montydata';
  */
 
 /** A piece's pictures are 24 by 21; it touches him when the two boxes meet, each trimmed a little (a dragon's edges are thin). */
-const WIDTH = 24, HEIGHT = 21, TRIM_X = 4, TRIM_Y = 4, MONTY_TRIM = 2;
+const WIDTH = 24, HEIGHT = 21, TRIM = 4, MONTY_TRIM = 2;
 /** Samples of the spline between two corners. */
 const SAMPLES = 24;
 
@@ -75,6 +75,16 @@ export function piecePlace(spec: DragonSpec, i: number, t: number): readonly [nu
   return pointAt(pathOf(spec), t * spec.speed - i * spec.gap);
 }
 
+/**
+ * The sprites the dragons' pieces are on, as the collision check's mask: the box test above is the one rule by which the dragon kills (the hardware's bits count
+ * any touching pixel, and sprite 0's hits are read as an item), so VicView.collisions leaves them out.
+ */
+export function dragonSprites(g: Game): number {
+  let mask = 0;
+  for (const d of g.dragons) for (const piece of g.data.dragons[d.index]?.pieces ?? []) mask |= 1 << piece.sprite;
+  return mask;
+}
+
 /** One frame (after Monty's move): each dragon a step on, its pieces placed and shown, a death if one touches him. */
 export function dragonUpdate(g: Game) {
   for (const d of g.dragons) {
@@ -92,8 +102,7 @@ export function dragonUpdate(g: Game) {
       const half = piece.frames.length >> 1, ahead = pointAt(pathOf(e), t0 + 6 - i * e.gap);
       g.sptr[n] = piece.frames[(ahead[0] < x ? 0 : half) + ((d.t >> 4) % half)] ?? 0;
       g.enable |= 1 << n;
-      const mx = g.x2 * 2, my = g.y;
-      if (!g.actionCounter && mx + 16 - MONTY_TRIM > x + TRIM_X && x + WIDTH - TRIM_X > mx + MONTY_TRIM && my + 16 > y + TRIM_Y && y + HEIGHT - TRIM_Y > my) g.actionCounter = 1;
+      if (!g.actionCounter && montyMeets(g, x + TRIM, y + TRIM, WIDTH - 2 * TRIM, HEIGHT - 2 * TRIM, MONTY_TRIM)) g.actionCounter = 1;
     });
   }
 }

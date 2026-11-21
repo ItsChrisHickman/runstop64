@@ -31,8 +31,6 @@ const NAMES = [
 export const CHINA_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the wall grey, the hutong dark grey, the tower grey, the top light grey, the market red, the gate red, the roofs yellow, the garden light blue, the quay brown). */
 export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9];
-/** Where China's sectors begin in the world's list. */
-export const FIRST_SECTOR = 18;
 
 // ---- the palettes --------------------------------------------------------------------------------------
 const WALL_PALETTE = {
@@ -151,7 +149,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
     decor: [['bambooClump', 2, 13], ['bambooClump', 9, 13], ['wallFlag', 16, 6], ['hangingLantern', 17, 14], ['hangingLantern', 23, 14], ['hangingLantern', 29, 14], ['rockery', 10, 15]],
     creatures: [
-      { who: 'panda', col: 3, row: 15, way: 'right', speed: 1, range: 48 },
+      { who: 'panda', col: 12, row: 15, way: 'right', speed: 1, range: 48 },
       { who: 'kite', col: 19, row: 2, way: 'down', speed: 1, range: 20 },
     ],
   }),
@@ -209,7 +207,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G');
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'G').clear(15, 17, 17, 19).box(16, 16, 16, 19, 'R');
       g.box(22, 15, 24, 15, 'L').box(25, 13, 27, 13, 'L'); // the steps up from the floor
-      g.box(6, 11, 29, 11, 'L'); // the long walkway
+      g.box(6, 11, 24, 11, 'L'); // the long walkway, ending short of the steps' top so he never stands under it
       g.box(3, 9, 5, 9, 'L').box(6, 7, 8, 7, 'L'); // the steps up the left
       g.box(9, 5, 29, 5, 'L'); // the beacon's platform
       for (const c of [2, 5, 8, 11]) g.box(c, 16, c, 16, 'M');
@@ -240,7 +238,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   }),
 
   // F GATE EXPECTATIONS: the Forbidden City's gate. In from the market, low, into the outer court (a stone lion alive); the gate tower across the room with its doors across the court
-  // (shut until the rice hat); inside, a court with a guard and the rope up at column 24.
+  // (shut until the rice hat); a rope at column 12 up to a gallery over the outer court (a dead end with a coin); inside, a court with a guard (who steps aside for the rice
+  // hat) and the rope up at column 24.
   room({
     id: CHI.gate, cell: [1, 10], sector: 23, palette: GATE_PALETTE,
     paint(g) {
@@ -250,11 +249,12 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
       g.box(12, 4, 19, 4, 'Y').box(13, 5, 18, 5, 'E').box(14, 2, 17, 3, 'W'); // its swept roof and the second storey over it
       g.box(24, 0, 24, 16, 'R');
+      g.box(3, 11, 10, 11, 'Y').box(12, 11, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
     },
-    coins: [[8, 15], [28, 15]],
-    decor: [['lionStatue', 11, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN CITY', colour: 7 }, 0, 6], ['hangingLantern', 12, 8], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
+    coins: [[8, 15], [6, 9], [28, 15]],
+    decor: [['lionStatue', 7, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN', colour: 7 }, 3, 6], [{ text: 'CITY', colour: 7 }, 3, 7], ['hangingLantern', 5, 12], ['hangingLantern', 9, 12], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
-      { who: 'lion', col: 3, row: 15, way: 'right', speed: 1, range: 56 },
+      { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
     ],
   }),
@@ -267,11 +267,11 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 1, 16, 'W').box(30, 2, 31, 5, 'W').box(30, 9, 31, 16, 'W');
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W').clear(23, 17, 25, 19).box(24, 16, 24, 19, 'R');
       g.box(27, 15, 29, 15, 'E').box(24, 13, 26, 13, 'E').box(21, 11, 23, 11, 'E'); // the eaves
-      g.box(18, 9, 31, 9, 'Y'); // the ridge
+      g.box(24, 9, 31, 9, 'Y'); // the ridge, starting past the top eave so he never stands under it
     },
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
-    decor: [['roofDragon', 18, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
+    decor: [['roofDragon', 24, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
     creatures: [
       { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
@@ -314,7 +314,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(3, 0, 3, 16, 'R');
     },
     coins: [[29, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 23, 10], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
+    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 12], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
     creatures: [
       { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },
