@@ -38,7 +38,7 @@ Thirteen rooms, a block 4 wide and 4 high (columns a-d are the region's four col
 row 0   F1 JUMP FOR JOY      F2 OUT OF THIN AIR       F3 CONDOR CLUB              .
 row 1   V  EAR YE, EAR YE    T1 NO PROBLLAMA          T2 ROCK AND ROLL         K  BRIDGE TOO FAR
 row 2   M  MIST OPPORTUNITY  CF CLOUD NINE            X  INCA-PACITATED           .
-row 3      .                 B  THE AMAZON QUEEN      P  VINE AND DANDY        R  SNAPPING UP BARGAINS
+row 3      .                 B  THE RIVER QUEEN      P  VINE AND DANDY        R  SNAPPING UP BARGAINS
 ```
 
 Joins (rope = both ways, drop = one way down, gate = an item):
@@ -54,7 +54,7 @@ Joins (rope = both ways, drop = one way down, gate = an item):
 - Walls (no way): V-F1 (the hold's drop does not reach the market), K-R, T2 east beyond K, M-V west.
 
 **Names** (puns, no Z, no Bond): JUMP FOR JOY, OUT OF THIN AIR, CONDOR CLUB, EAR YE EAR YE, NO PROBLLAMA, ROCK AND ROLL,
-BRIDGE TOO FAR, MIST OPPORTUNITY, CLOUD NINE, INCA-PACITATED, THE AMAZON QUEEN, VINE AND DANDY, SNAPPING UP BARGAINS.
+BRIDGE TOO FAR, MIST OPPORTUNITY, CLOUD NINE, INCA-PACITATED, THE RIVER QUEEN, VINE AND DANDY, SNAPPING UP BARGAINS.
 
 ### The rooms
 
@@ -111,7 +111,7 @@ it. On the far cliff: empanadas and a coin and the finest view (Huayna Picchu's 
 **CF CLOUD NINE** (the cloud forest). Entered three ways: a rope from T1 down through the ceiling (gap cols 10-12), a walk from M
 at the left (low), and a walk from X at the right (low). Giant ferns and tree trunks with moss, bromeliads on the boughs (branches
 are floors, rows 8, 11, 14), a stream across the middle (water, deadly, a stepping log). A jaguar paces the low path, a sloth
-hangs from the high bough (cols 14-18), a poison frog hops on the log, a toucan sits on the bough, a mist rolls. At the bottom right
+hangs from the high bough (cols 14-18), a toucan sits on the bough, a mist rolls. At the bottom right
 the undergrowth (a thick tangle, solid) grows over the floor gap (cols 18-20) that holds the rope down to the jetty. The machete
 cuts the tangle (`clear`). Crossed twice at two heights: the high boughs from the ceiling rope to X's side, the low path under.
 
@@ -121,7 +121,7 @@ torches that flicker, a snake, vampire bats; a stair of blocks up the right (row
 blade in a stone). A Mole Crusher at cols 14-16 (the engine's own) stands across the tunnel, crossed on the way in and out. Out west (walk,
 low) into CF, or back up the ladder.
 
-**B THE AMAZON QUEEN** (the riverboat, drawn as a boat). In: the rope from CF lands on the jetty at the left (rows 15-17). The boat
+**B THE RIVER QUEEN** (the riverboat, drawn as a boat). In: the rope from CF lands on the jetty at the left (rows 15-17). The boat
 is a side view on the river: a wide white hull with a red waterline and its rows of portholes, the **cargo deck** (floor row 15,
 crates, sacks, a hammock, the engine's coughing funnel in the middle), a ladder to the **top deck** (row 8: rails, the pilot house
 with its wheel and a captain, a macaw on its perch, a lifebuoy), a paddle wheel at the stern turning in the brown water (it is
@@ -196,11 +196,11 @@ is deadly: the river). Segments are sprites in several angles (art/andes-items.t
 | vampire bat | M, X | flaps across the cave |
 | jaguar | CF | paces the low path, spots, a big grin |
 | toucan | CF, P | on the bough, the great beak |
-| poison frog | CF | hops on the log, bright blue with black spots |
 | sloth | CF | hangs from the high bough, slow, a goofy smile |
 | anaconda | R | coils and rears across the low path |
 | piranha | P, R | leaps from the water |
 | pink river dolphin | R | leaps in the shallows |
+| captain | B | the riverboat's gate: stands at the gangway, arms folded, and steps aside for the chullo |
 
 (The macaw of B is the toucan's colour variant: the same picture, a red colour record; the dolphin leaps there too.) Monty on the
 Run's 27 kinds are in 5.5 of its 52 rooms; these are in 1.4 of thirteen.
@@ -209,7 +209,7 @@ Run's 27 kinds are in 5.5 of its 52 rooms; these are in 1.4 of thirteen.
 
 The Andean knitted hat with ear flaps and a peaked crown (a conical top with a tassel and a woven band), drawn in red with a white
 pattern and long ear flaps with braids, as the ushanka is a costume sprite over Monty (art/andes-hat.ts; `wearing` in art/costume.ts
-puts it on all 36 of his pictures). Its colour is red (2). It lets him blend in at the riverboat.
+puts it on all 36 of his pictures). Its colour is light red (10). It lets him blend in at the riverboat.
 
 ### Foods: empanadas
 
