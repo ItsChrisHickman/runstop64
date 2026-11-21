@@ -32,15 +32,15 @@ export const JAPAN_TILES = {
   /** Tatami: straw mats with their borders and a rush's lines. Solid. */
   jpTatami: tile('jpTatami', 1, 7, ['########', '#......#', '#.####.#', '#.####.#', '#.####.#', '#......#', '########', '........']),
   /** A paper door shut: a white panel in a lattice frame. Solid. */
-  jpShojiShut: tile('jpShojiShut', 1, 1, ['########', '#.#.#.##', '########', '#.#.#.##', '########', '#.#.#.##', '########', '#.#.#.##']),
+  jpShojiShut: tile('jpShojiShut', 1, 1, ['########', '#..##..#', '#..##..#', '########', '#..##..#', '#..##..#', '########', '#..##..#']),
   /** The paper door shaking: the lattice broken, a warning. Nothing. */
   jpShojiWarn: tile('jpShojiWarn', 0, 7, ['#......#', '#.#..#.#', '#......#', '#..#.#.#', '#......#', '#.#..#.#', '#......#', '#..#.#.#']),
   /** The paper door open: only the frame's edge in the pocket. Nothing. */
   jpShojiOpen: tile('jpShojiOpen', 0, 9, ['#.......', '#.......', '#.......', '#.......', '#.......', '#.......', '#.......', '#.......']),
   /** A castle's plaster wall with the namako lattice: diagonal black ribs on white. Solid. */
-  jpPlaster: tile('jpPlaster', 1, 1, ['#.####.#', '.#.##.#.', '#.####.#', '########', '#.####.#', '.#.##.#.', '#.####.#', '########']),
+  jpPlaster: tile('jpPlaster', 1, 1, ['#......#', '.#....#.', '..#..#..', '...##...', '...##...', '..#..#..', '.#....#.', '#......#']),
   /** A castle's inner wall seen behind him: the same plaster and lattice, but nothing to hit. Nothing. */
-  jpWallBack: tile('jpWallBack', 0, 11, ['#.####.#', '.#.##.#.', '#.####.#', '########', '#.####.#', '.#.##.#.', '#.####.#', '########']),
+  jpWallBack: tile('jpWallBack', 0, 11, ['#......#', '.#....#.', '..#..#..', '...##...', '...##...', '..#..#..', '.#....#.', '#......#']),
   /** A dark timber beam: grain along it. Solid. */
   jpTimber: tile('jpTimber', 1, 9, ['########', '#.#.#.##', '########', '##.#.###', '########', '#.##.#.#', '########', '########']),
   /** The castle's stone base: great blocks, joints wandering. Solid. */
@@ -50,7 +50,7 @@ export const JAPAN_TILES = {
   /** Snow on Fuji's slope: a drift and packed rows. Solid. */
   jpSnow: tile('jpSnow', 1, 1, ['..##..#.', '########', '########', '........', '.####.##', '........', '###.####', '........']),
   /** Volcanic cinders under the snow line: rough lumps. Solid. */
-  jpScree: tile('jpScree', 1, 11, ['#.##.#.#', '.#..#.#.', '##.#..##', '#.#.##.#', '.##.#..#', '#..#.##.', '##.#.#.#', '.#.##.#.']),
+  jpScree: tile('jpScree', 1, 11, ['..####..', '.######.', '###..###', '##....##', '###..###', '.######.', '#.####.#', '..#..#..']),
   /** A pilgrim's trail: stone steps with a dirt edge. A floor. */
   jpTrail: tile('jpTrail', 2, 9, ['########', '########', '.#.#.#.#', '........', '........', '........', '........', '........']),
   /** Moss over rock: turf along the top, soil below. Solid. */
