@@ -6,7 +6,7 @@ import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
-  ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_CREATURES, MOSCOW_DECOR, MOSCOW_ITEMS, MOSCOW_TILE_LIST, ushankaFrames,
+  ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_CREATURES, MOSCOW_DECOR, MOSCOW_ITEMS, MOSCOW_TILE_LIST, HAT_COLOUR, ushankaWorn,
 } from './art';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { tuneForRoom } from './music/regions';
@@ -30,8 +30,27 @@ const tiles = extendTiles(MOTR_LOOK, MOSCOW_TILE_LIST);
 const creatures = Object.values(MOSCOW_CREATURES);
 const enemies = extendEnemies(MOTR_LOOK, creatures, 35);
 
+/** The ushanka: Monty's pictures with its place cleared, and the hat as sprites of its own (in the bank's free blocks, below). */
+const WORN = ushankaWorn(bankImage);
+/** Free blocks of the bank for the hat's pictures (the items' are $D0-$D6). */
+const HAT_BLOCKS: readonly number[] = [0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, ...Array.from({ length: 21 }, (_, i) => 0xeb + i), ...Array.from({ length: 15 }, (_, i) => 0xc1 + i)];
+/** The hat's pictures, the same ones shared between Monty's pictures that need no difference. */
+const hatBlocks: { ptr: number; block: Uint8Array }[] = [];
+const hatFrames = new Map<number, { ptr: number; dx: number; dy: number }>();
+for (const h of WORN.hat) {
+  let at = hatBlocks.find((b) => b.block.every((v, i) => v === h.block[i]));
+  if (!at) {
+    const ptr = HAT_BLOCKS[hatBlocks.length];
+    if (ptr === undefined) throw new Error('no free blocks left for the hat');
+    at = { ptr, block: h.block };
+    hatBlocks.push(at);
+  }
+  hatFrames.set(h.ptr, { ptr: at.ptr, dx: h.dx, dy: h.dy });
+}
+
 /** The bank with Moscow's items and icicles at their pointers. */
 const bank = extendBank(bankImage, [
+  ...hatBlocks,
   { ptr: SPRITE.token, block: MOSCOW_ITEMS.metroToken.block },
   { ptr: SPRITE.ushanka, block: MOSCOW_ITEMS.ushanka.block },
   { ptr: SPRITE.pirozhok, block: MOSCOW_ITEMS.pirozhok.block },
@@ -104,7 +123,7 @@ export const WORLD: MontyData = {
   icicles: ICICLES,
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // the ushanka: once taken, Monty's pictures have it on
-  costumes: [{ item: USHANKA, blocks: ushankaFrames(bankImage) }],
+  costumes: [{ item: USHANKA, blocks: WORN.monty, over: { colour: HAT_COLOUR, frames: hatFrames } }],
   flashingBases: null,
   bollard: null,
   risingCloud: null,

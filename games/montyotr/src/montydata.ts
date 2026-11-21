@@ -113,7 +113,16 @@ export interface IcicleSprites { full: number; half: number; small: number; shar
  * A costume: Monty's pictures with the thing worn drawn on. Taking special item `item` puts it on (in place of whatever he wore):
  * each sprite block of `blocks` (63 bytes) replaces his picture at its pointer in the bank. Kept in the save.
  */
-export interface Costume { item: number; blocks: readonly { ptr: number; block: Uint8Array }[] }
+export interface Costume {
+  item: number;
+  blocks: readonly { ptr: number; block: Uint8Array }[];
+  /**
+   * Something worn in a colour of its own (a fur hat): a sprite over Monty (sprite 7: a room's fourth creature is never in the way),
+   * `colour` the colour it is drawn in and `frames` where it is for each of his pictures (by pointer): its own picture in the bank
+   * and the offset, in pixels from Monty's sprite (dx even, as sprite x is in 2-pixel units).
+   */
+  over?: { colour: number; frames: ReadonlyMap<number, { ptr: number; dx: number; dy: number }> };
+}
 
 /**
  * What ENHANCED's item hints say (shared/monty/hints.ts): a line in the place's name row, in the game's lettering. `take`: when

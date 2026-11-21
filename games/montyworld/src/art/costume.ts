@@ -2,8 +2,8 @@
  * Monty's costumes: his own 36 pictures (the walk, the rope, the somersault, both ways: pointers $50-$73 in the bank) with a hat
  * drawn on. The upright pictures take the hat on the top of the head; each somersault picture is Monty turned round some angle,
  * which is found by laying the upright picture over it (the angle with the most pixels in common), and the hat turned the same
- * angle on the same head. The hat is a picture like the rest of the art (rows of text); where it covers the head a black line
- * is left round it, so it reads on a figure of one ink.
+ * angle on the same head. The hat is a picture like the rest of the art (rows of text); it is a sprite of its own over Monty (his
+ * figure is one ink, the hat is fur in another), and his own picture is cleared where it covers him, with a black line round it.
  */
 import { picture } from './pixels';
 import type { CostumeBlocks } from './types';
@@ -70,39 +70,53 @@ function angleOf(base: Pixels, px: Pixels): number {
   return (best * Math.PI) / 180;
 }
 
+/** A worn thing as a sprite of its own: Monty's pointer it goes with, its 63-byte block, and where the block sits from his sprite. */
+export interface Overlay { readonly ptr: number; readonly block: Uint8Array; readonly dx: number; readonly dy: number }
+
+/** What wearing a hat makes: Monty's pictures with the hat's place cleared (and a black line round it), and the hat itself. */
+export interface Worn { readonly monty: CostumeBlocks; readonly hat: readonly Overlay[] }
+
 /**
- * Monty with a hat on: all 36 pictures of `bank` (63 bytes each, by pointer), `hat` a picture (rows of text, '#' lit) whose top
- * middle sits on the top of his head.
+ * Monty with a hat on: for all 36 pictures of `bank` (63 bytes each, by pointer), his picture with the hat's place and a line round it
+ * cleared, and the hat as a picture of its own to be shown over him in a colour of its own. `hat` is rows of text ('#' lit) whose top
+ * middle sits `rise` rows above the top of his head, so the crown stands up over it and the brim comes down on his forehead.
  */
-export function wearing(bank: Uint8Array, hat: readonly string[]): CostumeBlocks {
+export function wearing(bank: Uint8Array, hat: readonly string[], rise: number): Worn {
   const rows = picture('hat', hat, hat[0]?.length ?? 0, hat.length);
   const hw = rows[0]?.length ?? 0;
   const hatAt = (x: number, y: number) => rows[Math.round(y)]?.[Math.round(x)] === '#';
   const pictures = Array.from({ length: COUNT }, (_, i) => unpack(bank, FIRST + i));
   const base = (ptr: number) => pictures[ptr - FIRST] ?? [];
-  const out: { ptr: number; block: Uint8Array }[] = [];
+  const monty: { ptr: number; block: Uint8Array }[] = [];
+  const over: Overlay[] = [];
   pictures.forEach((px, i) => {
     const ptr = FIRST + i;
-    // for a pixel of this picture, where it is on the hat
+    // for a pixel of this picture's plane (it may be outside the 24 x 21), where it is on the hat
     let onHat: (x: number, y: number) => { x: number; y: number };
     if (i < UPRIGHT) {
       const head = crown(px);
-      onHat = (x, y) => ({ x: x - head.x + (hw - 1) / 2, y: y - head.y });
+      onHat = (x, y) => ({ x: x - head.x + (hw - 1) / 2, y: y - head.y + rise });
     } else {
       const upright = ptr < 0x68 ? BASE_LEFT : BASE_RIGHT;
       const b = base(upright), head = crown(b);
       const back = turned(angleOf(b, px), centre(b), centre(px));
-      onHat = (x, y) => { const p = back(x, y); return { x: p.x - head.x + (hw - 1) / 2, y: p.y - head.y }; };
+      onHat = (x, y) => { const p = back(x, y); return { x: p.x - head.x + (hw - 1) / 2, y: p.y - head.y + rise }; };
     }
     const inside = (x: number, y: number) => { const p = onHat(x, y); return hatAt(p.x, p.y); };
     const next: Pixels = px.map((row) => [...row]);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const row = next[y];
-      if (!row) continue;
-      if (inside(x, y)) row[x] = true;
-      else if (inside(x - 1, y) || inside(x + 1, y) || inside(x, y - 1) || inside(x, y + 1)) row[x] = false; // a black line round the hat
+      if (row && (inside(x, y) || inside(x - 1, y) || inside(x + 1, y) || inside(x, y - 1) || inside(x, y + 1))) row[x] = false;
     }
-    out.push({ ptr, block: pack(next) });
+    monty.push({ ptr, block: pack(next) });
+    // the hat's own pixels, wherever they fall round the picture: its block starts at the top left of what is lit
+    const lits: { x: number; y: number }[] = [];
+    for (let y = -16; y < H + 16; y++) for (let x = -16; x < W + 16; x++) if (inside(x, y)) lits.push({ x, y });
+    const dx = Math.floor(Math.min(...lits.map((p) => p.x)) / 2) * 2, dy = Math.min(...lits.map((p) => p.y));
+    if (Math.max(...lits.map((p) => p.x)) - dx >= W || Math.max(...lits.map((p) => p.y)) - dy >= H) throw new Error(`the hat does not fit a sprite on picture $${ptr.toString(16)}`);
+    const block = new Uint8Array(63);
+    for (const p of lits) { const x = p.x - dx, y = p.y - dy; block[y * 3 + (x >> 3)] = (block[y * 3 + (x >> 3)] ?? 0) | (0x80 >> (x & 7)); }
+    over.push({ ptr, block, dx, dy });
   });
-  return out;
+  return { monty, hat: over };
 }

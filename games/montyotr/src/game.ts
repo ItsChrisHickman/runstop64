@@ -349,7 +349,22 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0;
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0);
+  }
+
+  /** Whether a worn costume's overlay sprite (sprite 7) is on Monty this frame (it is no part of his collision box). */
+  hatPlaced = false;
+
+  /** The worn costume's overlay sprite, placed over Monty's picture (sprite 7), or taken off: false when there is none to show. */
+  private placeOverlay(): boolean {
+    const over = this.data.costumes.find((c) => c.item === this.worn)?.over;
+    const at = over && !this.completionActive && !this.c5.active && !(this.actionCounter & 0x80) && this.enable & 0x08 ? over.frames.get(this.frameIndex) : undefined;
+    if (!over || !at) return false;
+    this.sx[7] = (this.sx[3] + at.dx / 2) & 0xff;
+    this.sy[7] = (this.sy[3] + at.dy) & 0xff;
+    this.sptr[7] = at.ptr;
+    this.scol[7] = over.colour;
+    return true;
   }
 
   /** One 50 Hz frame. `collisions` = sprite-sprite collision bits from the last drawn frame. */
@@ -487,6 +502,7 @@ export class Game implements MontyBody, MontyWorld {
         this.multicolour |= 0x04;
       }
     }
+    this.hatPlaced = this.placeOverlay();
     // Flush shadows to the VIC. X is stored halved; the low bit comes from the
     // step-gate parity (Monty, jetpack) or each enemy's own parity.
     const v = this.vic;
@@ -494,13 +510,14 @@ export class Game implements MontyBody, MontyWorld {
       const r = v.sprites[n];
       let x = this.sx[n] * 2;
       if (!this.completionActive && (n === 3 || (n === 2 && (this.c5.active || this.showJetpack)))) x |= this.stepGate;
-      if (n >= 4) x |= this.enemyParity[n - 4];
+      if (n === 7 && this.hatPlaced) x |= this.stepGate;
+      else if (n >= 4) x |= this.enemyParity[n - 4];
       r.x = x;
       r.y = this.sy[n];
       r.ptr = this.sptr[n];
       r.colour = this.scol[n];
     }
-    v.enable = this.enable;
+    v.enable = this.hatPlaced ? this.enable | 0x80 : this.enable;
     v.expandX = this.expandX;
     v.expandY = this.expandY;
     v.multicolour = this.multicolour;
