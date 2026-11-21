@@ -16,15 +16,13 @@ function towerKey(): NewItem {
   return { block: itemBlock('towerKey', r.rows()), colour: 7 };
 }
 
-/** The rice hat as an item: a wide cone woven in rings, a chin strap hanging from its brim. */
+/** The rice hat as an item: a wide cone woven in strips that run down it, a brim, the two ends of a chin strap hanging from it. */
 function riceHatItem(): NewItem {
   const r = new Raster(16, 16);
-  r.triangle(7.5, 1, 0, 11, 15, 11); r.rect(0, 11, 15, 12);
-  for (const [y, a, b] of [[5, 5, 10], [8, 3, 12]] as const) r.rect(a, y, b, y, false); // the rings of weave
-  r.rect(7, 2, 8, 3, false); // (the tip's knot)
-  r.rect(1, 11, 14, 11, false);
-  r.rect(2, 13, 2, 15); r.rect(13, 13, 13, 15); // the straps
-  r.rect(2, 15, 13, 15);
+  r.triangle(7.5, 0, 0, 11, 15, 11); r.rect(0, 11, 15, 12); // the cone and its brim
+  r.line(6.5, 3, 3, 10, false); r.line(8.5, 3, 12, 10, false); r.line(7.5, 3, 7.5, 10, false); // the weave's strips
+  r.rect(1, 11, 14, 11, false); // the brim's edge
+  r.rect(2, 13, 2, 15); r.rect(13, 13, 13, 15); // the strap's two ends
   return { block: itemBlock('riceHat', r.rows()), colour: 7 };
 }
 

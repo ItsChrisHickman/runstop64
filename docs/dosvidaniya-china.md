@@ -70,7 +70,7 @@ beacon platform (floor 5, cols 9-29), east along it to the **rice hat** at its f
 and a terracotta warrior. 2 coins.
 
 **E STALL IN LOVE** (Beijing's market street at New Year). Two ways in from the tower, low (street, floor 17) and high (a row of stall awnings,
-floor 9, cols 0-10, a gap with a rope at col 12 down to the street); a floor gap with a rope at col 8 down into the hutong; out east, low, to the
+floor 9, cols 0-10, a gap with a rope at col 12 down to the street); a floor gap with a rope at col 4 (over the hutong's rope: the two gaps are the same cells) down into the hutong; out east, low, to the
 gate. Lanterns, banners, stalls. **The New Year dragon** loops through the right half of the room (six sprites on one path, see below): over the
 top, down the right, along the street, up the middle. No creature but the dragon. 2 coins (the awnings, the street under the dragon).
 
@@ -122,6 +122,53 @@ lifts. Data: `dragons: {room, path, speed, gap, pieces}[]`.
 The key item that is a costume, the rice hat, is drawn over Monty as the ushanka is (`Costume.over`), in straw yellow; its sprites take the ushanka's
 sprite blocks (taking it writes its blocks over them: costumes list their own).
 
-## As built
+## As built (2026-11-21)
 
-(The build, where it differs from the design above, and the checks. Filled in when China is built.)
+The nine rooms are in `games/montyworld/src/china.ts` (ids 18-26, sectors 18-26; Moscow's and Siberia's are untouched), art in `art/china-*.ts` and `art/world.ts`
+(the three regions' pieces as one set, Moscow's and Siberia's first so indexes never move), the tune in `music/china.ts`, the sprites' places in `china-pointers.ts`,
+the hats' pool in `hats.ts`, the bot's route in `test/china-route.ts`, the pictures in `test/china-shots.ts`, `china-sheets.ts` and `china-map.ts`. Where the build
+differs from the design:
+
+- **Siberia's village** opens east onto the wall's foot: its planks are gone and the sign reads ROAD TO CHINA (the barrier the ticket lifts stays). Its tests
+  (`siberia-mechanisms.ts`, `siberia-route.ts`) say so; Moscow's and Siberia's tests count the whole world's totals now (27 rooms, 43 coins, 13 finds).
+- **A is ALL WALL AND NO PLAY**, not WALL'S WELL: the lettering draws an apostrophe as a letter.
+- **The dumplings** are in A (the wall's far end, at its top) and G (the courtyard's dead end), not C: a room has one find or a find and the one cake sprite of
+  the whole game, so C holds the rice hat alone. A has 2 coins and the dumplings, C 2 coins and the hat.
+- **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before: its trace and title tests pass unchanged): `pulses` (`pulses.ts`),
+  `dragons` (`dragons.ts`), a second costume (the list in `MontyData.costumes` already allowed it), and `cells.ts`, the cell and box measuring the tunnel mouths
+  already did, now shared with the strikes. A copy of a game copies a number (a group's place in the data's list), not the group, so the bot's search stays quick.
+- **Firecrackers**: nine, cols 19-27 under a beam at row 6 (rows 7-8), the fuse lit from the left after 30 frames of the 300-frame period, a cell every 6 frames,
+  a warning of 18 flickering frames and a bang of 12; the key lies at col 28. Walking with the fuse catches him (its front is faster than his walk); crossing
+  after the last bang (frame 108) takes 87 frames of the 190 before it is hung again.
+- **The arms**: two cells wide from row 6 to the hand at row 14, over the three gaps (cols 12-14, 19-21, 25-26: the arm at cols 13-14, 20-21 and 25-26), starts 0, 40 and 80 of
+  a 150-frame period, 20 frames of twitching and 36 reaching. The garden is a bank (entry cols 0-1, the well at cols 2-4, steps to the shore cols 9-11), stones at cols 15-18 and
+  22-24, the island at cols 27-31 (the bamboo at col 29, the pagoda behind it, a wall at col 31); the bridge is a picture (`archBridge`, rows 4-5) and the figures
+  crouch on it (rows 2-3).
+- **The dragon**: six pieces on sprites 0, 1, 2, 4, 5, 6 at a pixel a frame and 18 pixels apart, a lap of 345 frames; the head turns with its heading and opens and shuts
+  its mouth (`frames` are the pictures going left then going right); its path runs over the top (rows 1.5-2.5), down the right (col 27.5), along the street (row 13.6)
+  and up the middle (cols 17-20). Measured on the engine, a walk along the street from cell 13 to the way out is untouched from about four starts in ten
+  (`.........##########################.........` across a lap in 8-frame steps): about 110 frames of starts to choose from, the dragon seen all the time. The sprite pictures are
+  never an item to the pickup (the head is sprite 0, which touching is picking up): the test checks the pointers.
+- **The rice hat** takes the ushanka's blocks: the hats' pictures (about 25 distinct blocks for Monty's 36) live in one pool of the bank's free blocks (`hats.ts`) and
+  each costume's `blocks` write its own over the pool when it is put on, so a save carried on in either hat shows that one. Costumes list their hat's blocks with Monty's.
+  It is a wide cone in straw yellow with a black weave and a chin strap at each side; the ushanka's colour is fur brown.
+- **The gate**: a tower of red wall over the doors (rows 11-16) with a swept roof and a second storey, the doors a `clear` of 24 cells, the sign FORBIDDEN CITY.
+  **The raft** is seven cells (the quay ends at col 18, the junk's deck begins at col 26; a jump spans about five), a `place` of the bamboo.
+  **The trapdoor** is a plug of six cells in the tower's roof and the key `clear`s them and `place`s the rope's last two cells.
+- **The ropes** are the same cells at both ends (the test lands him on the rope or a floor at each end of every one): the market's gap and the hutong's rope are at col 4,
+  the tower's and the wall's at col 25, the trapdoor's at col 16, the gate's and the palace's at col 24, the well's and the quay's at col 3.
+- **Creatures** (eleven kinds, none in more than two rooms): panda (A), kite (A, C), monk on a pogo stick (D, C), caged cricket (T, J), baker on a bicycle (D, J),
+  terracotta warrior (T, C), paper lantern (T, G), stone lion (F, G), imperial guard (F), carp (H, J), dove (H, two). The market, the dragon's, has none.
+- **Music**: the major pentatonic on G (G A B D E: the notes between them move to the nearest) and a bowed fiddle (a sawtooth, slow attack, vibrato) for the lead; no folk break
+  (no melody was quoted from memory).
+- **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries, the worn item is an index).
+
+Checks (all pass): `games/montyworld/test/china.ts original|enhanced` (the bot plays 39 legs from Siberia's village to the junk's deck taking every coin and find, 6536 frames,
+about 4.5 minutes each, slow set), `china-mechanisms.ts` (75 checks, fast: the strikes' timing and kills, the dragon's six sprites, path, kills and fair street, the three gates
+and their proofs, the hat as a costume and in a save, the loop and the ways back, no trap, the hints, the map, a save in each room and an old save), `music-china.ts` (9, fast);
+Moscow's `moscow.ts`, `mechanisms.ts`, `walk.ts`, `music.ts`, Siberia's tests and all of Monty on the Run's (trace and title with /tmp/motr.prg included) pass.
+Pictures: /root/projects/runstop64-shots/china/ (room-*.png from the real engine with Monty in them, sheet.png, compare-*.png beside Monty on the Run's, crackers.png,
+arms.png, dragon.png, gate-shut/open.png, trapdoor-shut/open.png, junk-no-raft/raft.png, hat-*.png, china-map.png, art/ for tiles, decorations, creatures and the dragon).
+
+**What to look at in play**: the firecrackers' wait (does the string read as a fuse burning?), the dragon's street (shut about half of the time), the arms over the stones, the rice hat
+over Monty, and the rooms' fullness beside Monty on the Run's.

@@ -225,18 +225,18 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   }),
 
   // E STALL IN LOVE: the market at New Year. In from the tower's hall (low, the street) or its walkway (high, the awnings, a rope down to the street); a gap in the street with a rope
-  // down into the hutong; east, low, to the gate. The dragon loops through the right of the room.
+  // down into the hutong (col 4, under the hutong's rope); east, low, to the gate. The dragon loops through the right of the room.
   room({
     id: CHI.market, cell: [1, 9], sector: 22, palette: MARKET_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 1, 'B');
       g.box(0, 2, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 2, 31, 13, 'B');
-      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(7, 17, 9, 19).box(8, 16, 8, 19, 'R');
+      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R');
       g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
       g.box(12, 9, 12, 16, 'R'); // the rope down from them
     },
     coins: [[6, 7], [21, 15]],
-    decor: [['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['stall', 3, 14], ['stall', 13, 14], ['stall', 23, 14], ['drum', 28, 15], ['banner', 4, 11], ['pottedPlant', 10, 15]],
+    decor: [['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['stall', 6, 14], ['stall', 13, 14], ['stall', 23, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15]],
   }),
 
   // F GATE EXPECTATIONS: the Forbidden City's gate. In from the market, low, into the outer court (a stone lion alive); the gate tower across the room with its doors across the court
