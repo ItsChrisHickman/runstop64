@@ -1,7 +1,7 @@
 import type { CharAnim, CrackSpec, LiftSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { codeOf, Grid, room, type Palette } from './layout';
-import { bogieBars, buffersAt, CAR, farWall, gangwayAt, hatch, TRAIN_PALETTE, trainAnims, undercarriage, windowAt } from './train';
+import { bogieBars, buffersAt, CAR, farWall, gangwayAt, hatch, skyAnims, skyDecor, type SkySpec, TRAIN_PALETTE, trainAnims, undercarriage, windowAt } from './train';
 
 /**
  * Siberia, the second region of Do Svidaniya Monty (docs/dosvidaniya-siberia.md): nine rooms in a block four wide and three high at
@@ -110,10 +110,29 @@ export const LIFTS: readonly LiftSpec[] = [
   { room: SIB.mine, x: 26 + 4 * CART_COL, y: 0x32 + (CART_FLOOR - 2 + 3) * 8 - 0x17, type: 2, speedDir: 0x80, sound: false, look: { top: SIB_SPRITE.cartTop, bottom: SIB_SPRITE.cartBottom, colour: 8 } },
 ];
 
-/** What moves in the train's rooms: the dining car's and the sleeper's windows and the tender's rail and wheels (train.ts). */
+/** What moves in the train's rooms: the dining car's and the sleeper's windows and the tender's rail and wheels (train.ts), and the sky above them. */
 export const TRAIN_ANIMS: readonly CharAnim[] = [
   ...trainAnims(SIB.gravy, TRAIN_PALETTE, true), ...trainAnims(SIB.sleeper, TRAIN_PALETTE, true), ...trainAnims(SIB.coal, TENDER_PALETTE, false),
+  ...skyAnims(SIB.gravy, true), ...skyAnims(SIB.sleeper, true), ...skyAnims(SIB.coal, true),
 ];
+
+/**
+ * The night sky above each train room (train.ts, art/siberia-sky.ts): the moon and stars up top, smoke from the locomotive drifting over the cars (thickest
+ * at the tender, where the chimney is), poles and wires and the horizon above the roof. The spans keep clear of the room's tiles: the sleeper's rope through
+ * the sky (column 22), the tender's rope (column 8) and the boiler's end (columns 30-31, with the chimney on it).
+ */
+const SKY_GRAVY: SkySpec = {
+  spans: [[-2, 33]], smoke: [[-2, 33]], moon: [25, 0],
+  stars: [['star', 4, 0], ['starDim', 9, 1], ['star', 14, 0], ['starDim', 19, 1], ['starDim', 2, 1], ['star', 30, 1], ['starDim', 12, 1]],
+};
+const SKY_SLEEPER: SkySpec = {
+  spans: [[-2, 21], [24, 33]], smoke: [[-2, 21], [24, 33]], moon: [4, 0],
+  stars: [['star', 10, 0], ['starDim', 7, 1], ['starDim', 14, 1], ['star', 18, 1], ['starDim', 27, 1], ['star', 29, 0], ['starDim', 12, 0]],
+};
+const SKY_TENDER: SkySpec = {
+  spans: [[-2, 7], [9, 29]], horizon: [[-2, 7], [9, 24]], smoke: [[13, 28]], moon: [10, 2],
+  stars: [['star', 3, 2], ['starDim', 6, 3], ['starDim', 1, 3], ['star', 12, 3]],
+};
 
 // ---- the dark shaft's ledges ---------------------------------------------------------------------------
 /** The shaft is dark: its rock is a dim blue, and the ledges are only felt (dots) until the lamp is taken. */
@@ -142,7 +161,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
     decor: [
-      windowAt(3), windowAt(15), ['carLamp', 9, 11], ['carLamp', 21, 11], ['diningTable', 14, 15], ['diningTable', 19, 15], ['diningSamovar', 22, 14],
+      ...skyDecor(SKY_GRAVY), windowAt(3), windowAt(15), ['carLamp', 9, 11], ['carLamp', 21, 11], ['diningTable', 14, 15], ['diningTable', 19, 15], ['diningSamovar', 22, 14],
       [{ text: 'RESTAURANT', colour: 7 }, 13, 10], gangwayAt(30), ['roofVent', 4, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
     ],
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56 }],
@@ -158,7 +177,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[3, 15], [27, 15]],
     decor: [
-      windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15], gangwayAt(0), gangwayAt(30), ['roofVent', 3, 8], ['roofVent', 12, 8], ['roofVent', 26, 8], ...CAR_FITTINGS,
+      ...skyDecor(SKY_SLEEPER), windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15], gangwayAt(0), gangwayAt(30), ['roofVent', 3, 8], ['roofVent', 12, 8], ['roofVent', 26, 8], ...CAR_FITTINGS,
     ],
     creatures: [{ who: 'inspector', col: 19, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
@@ -179,7 +198,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[15, 13]],
     item: { name: 'ticket', col: 28, row: 7, sprite: SIB_SPRITE.ticket },
-    decor: [['coalBucket', 13, 13], gangwayAt(0), ['cabGauge', 27, 11], ['cabFire', 27, 14], ...bogieBars(TENDER_BOGIES)],
+    decor: [...skyDecor(SKY_TENDER), ['chimney', 30, 2], ['coalBucket', 13, 13], gangwayAt(0), ['cabGauge', 27, 11], ['cabFire', 27, 14], ...bogieBars(TENDER_BOGIES)],
     creatures: [{ who: 'miner', col: 12, row: 13, way: 'right', speed: 1, range: 48 }],
   }),
 

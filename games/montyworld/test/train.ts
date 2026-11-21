@@ -81,6 +81,56 @@ for (const [name, room, windows] of [['dining car', SIB.gravy, true], ['sleeper'
   check('aboard (inside the door) it rolls: the sleepers and the windows move', chr(aboard.g, rail) !== still && ringText(aboard.g, 0) !== ring);
 }
 
+// ---- the sky above the train (art/siberia-sky.ts) ---------------------------------------------------------------
+/** A decoration's characters in a room as text, one per cell of its row `row` (w characters a row). */
+const decorRow = (g: Game, name: Parameters<typeof decorIndex>[0], w: number, row: number) => {
+  const first = decorChars(g.data, g.roomId)[decorIndex(name)] ?? 0;
+  return Array.from({ length: w }, (_, i) => chr(g, first + row * w + i)).join('|');
+};
+for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal], ['platform', ROOM.station]] as const) {
+  const first = decorChars(WORLD, room);
+  check(`${name}: the sky's pieces all fit in the room's characters (none dropped as the pool ran out)`, (['horizon', 'wires', 'moon', 'star'] as const).every((d) => (first[decorIndex(d)] ?? 0) > 0));
+}
+{
+  const s = at(SIB.gravy, 8, 17);
+  const g = s.g;
+  const start = { mountains: [decorRow(g, 'horizon', 2, 0), decorRow(g, 'horizon', 2, 1)], pines: decorRow(g, 'horizon', 2, 2), poles: decorRow(g, 'wires', 4, 0), smoke: decorRow(g, 'smoke', 4, 0) };
+  const mountains = () => [decorRow(g, 'horizon', 2, 0), decorRow(g, 'horizon', 2, 1)];
+  run(s, 2 * 8);
+  check('after 8 steps the mountains have crept (a pixel every fourth step) and so have the pines in front of them (every second)',
+    mountains().join() !== start.mountains.join() && decorRow(g, 'horizon', 2, 2) !== start.pines);
+  run(s, 2 * 24);
+  check('after 32 steps the pines (16 pixels a round) are back and the mountains (8 of their 16) are not',
+    decorRow(g, 'horizon', 2, 2) === start.pines && mountains().join() !== start.mountains.join());
+  check('the poles and the smoke (32 pixels a round, a pixel every step: the pace of the windows\' scenery) are back too', decorRow(g, 'wires', 4, 0) === start.poles && decorRow(g, 'smoke', 4, 0) === start.smoke);
+  run(s, 2 * 32);
+  check('after 64 steps the mountains are back as well: the slowest of all', mountains().join() === start.mountains.join());
+  const mid = at(SIB.gravy, 8, 17);
+  run(mid, 2 * 16);
+  check('the poles are half a round on at 16 steps, the smoke too', decorRow(mid.g, 'wires', 4, 0) !== start.poles && decorRow(mid.g, 'smoke', 4, 0) !== start.smoke);
+}
+{
+  // nothing it draws is solid: the sky's cells are the decoration characters (from $9B), never a room tile (1-8), and the sleeper's and the tender's ropes still stand in it
+  const bad: string[] = [];
+  for (const [name, room, rope] of [['dining car', SIB.gravy, -1], ['sleeper', SIB.sleeper, 22], ['tender', SIB.coal, 8]] as const) {
+    const s = at(room, 8, 17);
+    for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
+      const c = cellAt(s.g, col, row);
+      if (col === rope) { if (c < 1 || c > 8) bad.push(`${name}: the rope's cell ${col},${row} is ${c}`); } else if (c >= 1 && c <= 8 && !(room === SIB.coal && col >= 30)) bad.push(`${name}: a tile ${c} at ${col},${row} in the sky`);
+    }
+  }
+  check(`the sky's cells are never a room tile, and the ropes through it are intact (${bad.join('; ') || 'none wrong'})`, bad.length === 0);
+}
+{
+  const s = at(ROOM.station, 16, 17);
+  const ring = decorRow(s.g, 'horizon', 2, 2);
+  run(s, 120);
+  check('the platform\'s sky stands still with the train until he is aboard', decorRow(s.g, 'horizon', 2, 2) === ring);
+  const aboard = at(ROOM.station, 24, 17);
+  run(aboard, 8);
+  check('and moves once he is', decorRow(aboard.g, 'horizon', 2, 2) !== ring);
+}
+
 // ---- elsewhere nothing moves, and Monty on the Run has no animation -------------------------------------------
 {
   const s = at(SIB.pines, 8, 17);

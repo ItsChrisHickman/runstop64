@@ -67,3 +67,41 @@ export function trainAnims(room: number, palette: Palette, windows: boolean, fro
     } as const] : []),
   ];
 }
+
+// ---- the sky above the train (art/siberia-sky.ts) ---------------------------------------------------------
+
+/** Playfield columns, first to last inclusive, that a stretch of backdrop may fill: the tiles of the room (a rope through the sky, a boiler) stay clear of it. */
+export type Span = readonly [from: number, to: number];
+
+/** The rows the backdrop takes: smoke, the poles and their wires, the horizon (mountains over pines), two, two and three rows. */
+export const SKY = { smoke: 2, wires: 4, horizon: 6 } as const;
+
+/** Copies of a decoration `w` columns wide side by side along each span (they share their characters, so what moves in one moves in all). */
+const along = (what: WorldDecor, w: number, row: number, spans: readonly Span[]): Placed[] =>
+  spans.flatMap(([from, to]) => Array.from({ length: Math.floor((to - from + 1) / w) }, (_, i): Placed => [what, from + i * w, row]));
+
+/** What a room's sky holds: the spans of columns free of tiles, where the horizon and poles go if not the whole of `spans` (the tender leaves its ticket clear), where the smoke may drift (none: none), and the moon and stars (pieces at fixed cells). */
+export interface SkySpec { spans: readonly Span[]; horizon?: readonly Span[]; smoke?: readonly Span[]; moon?: readonly [col: number, row: number]; stars?: readonly Placed[] }
+
+/** The sky's decorations, to go first in a room's list so the car's own pieces (vents, a stovepipe) are drawn over them. */
+export function skyDecor(s: SkySpec): readonly Placed[] {
+  return [
+    ...(s.moon ? [['moon', s.moon[0], s.moon[1]] as const] : []), ...(s.stars ?? []),
+    ...along('smoke', 4, SKY.smoke, s.smoke ?? []), ...along('wires', 4, SKY.wires, s.horizon ?? s.spans), ...along('horizon', 2, SKY.horizon, s.horizon ?? s.spans),
+  ];
+}
+
+/**
+ * What moves in the sky: the mountains slowest (a pixel every fourth step), the pines in front of them (every second), the poles with their wires and the
+ * smoke at the pace of the windows' scenery (every step); all sliding west, as the train runs east. Nothing it draws is solid. `fromCol`: as `trainAnims`.
+ */
+export function skyAnims(room: number, smoke: boolean, fromCol?: number): readonly CharAnim[] {
+  const when = fromCol === undefined ? {} : { fromCol };
+  const cells = (what: WorldDecor, ...rows: readonly (readonly number[])[]) => rows.map((row) => row.map((cell) => ({ decor: decorIndex(what), cell })));
+  return [
+    { kind: 'scroll', room, rings: cells('horizon', [0, 1], [2, 3]), dx: -1, px: 1, every: 4, ...when },
+    { kind: 'scroll', room, rings: cells('horizon', [4, 5]), dx: -1, px: 1, every: 2, ...when },
+    { kind: 'scroll', room, rings: cells('wires', [0, 1, 2, 3], [4, 5, 6, 7]), dx: -1, px: 1, every: 1, ...when },
+    ...(smoke ? [{ kind: 'scroll', room, rings: cells('smoke', [0, 1, 2, 3], [4, 5, 6, 7]), dx: -1, px: 1, every: 1, ...when } as const] : []),
+  ];
+}

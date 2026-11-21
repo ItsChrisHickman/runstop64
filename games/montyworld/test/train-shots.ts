@@ -78,3 +78,14 @@ crops.forEach((px, i) => {
   for (let y = 0; y < ch; y++) cropSheet.set(px.subarray((8 * 14 + y) * W + 8 * 6, (8 * 14 + y) * W + 8 * 6 + cw), y * cw * crops.length + i * cw);
 });
 rgbPng(path.join(out, 'strip-window.png'), indicesToRgb(cropSheet), cw * crops.length, ch, 4);
+
+// the sky: the sleeper (two mouths) and the tender, the dining car's edge flashing as the mouth is about to come, and the backdrop moving (rows 2-8 of the
+// playfield, frames 64 apart: the mountains shift a pixel every 8 frames, the pines every 4, the poles and smoke every 2)
+save('6-dining-car-warning.png', first(session(SIB.gravy, 8, 9, [40 + 130 + 12])));
+save('7-dining-car-mouth.png', first(session(SIB.gravy, 8, 9, [40 + 130 + 48 + 200])));
+save('8-sleeper-roof.png', first(session(SIB.sleeper, 3, 9, [60])));
+const skyFrames = session(SIB.gravy, 8, 17, [60, 124, 188, 252], true);
+const sy = 8 * 5, sh = 8 * 8;
+const skySheet = new Uint8Array(W * skyFrames.length * sh);
+skyFrames.forEach((px, i) => skySheet.set(px.subarray(sy * W, (sy + sh) * W), i * W * sh));
+rgbPng(path.join(out, 'strip-sky.png'), indicesToRgb(skySheet), W, sh * skyFrames.length, 3);

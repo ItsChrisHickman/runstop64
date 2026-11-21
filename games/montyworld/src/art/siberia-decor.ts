@@ -5,6 +5,7 @@
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
+import { SIBERIA_SKY } from './siberia-sky';
 import type { NewDecor } from './types';
 
 /** A pine: tiers of boughs, each tier a triangle with a ragged edge and a black line under it, a trunk. `w` characters across. */
@@ -296,6 +297,7 @@ export const SIBERIA_DECOR = {
   pole: pole(),
   cabin: cabin(),
   stalactites: stalactites(),
+  ...SIBERIA_SKY,
 } as const satisfies Record<string, NewDecor>;
 
 export type SiberiaDecor = keyof typeof SIBERIA_DECOR;

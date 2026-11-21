@@ -2,7 +2,7 @@ import type { CharAnim, EscalatorSpec, IcicleSpec } from '../../montyotr/src/mon
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { bandFrames, BAND_ORDER } from './art/escalator';
 import { codeOf, Grid, room, type Palette } from './layout';
-import { bogieBars, buffersAt, CAR, farWall, hatch, trainAnims, undercarriage, windowAt } from './train';
+import { bogieBars, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, trainAnims, undercarriage, windowAt } from './train';
 
 /**
  * Moscow, the first region of Do Svidaniya Monty (docs/dosvidaniya-moscow.md): nine rooms in a block four wide and three high
@@ -102,7 +102,9 @@ const STATION_PALETTE = {
 } as const satisfies Palette;
 const STATION_BOGIES = [22, 27] as const;
 /** What moves once he is aboard (from column 22): the windows, the sleepers, the wheels. */
-export const STATION_ANIMS: readonly CharAnim[] = trainAnims(ROOM.station, STATION_PALETTE, true, 22);
+export const STATION_ANIMS: readonly CharAnim[] = [...trainAnims(ROOM.station, STATION_PALETTE, true, 22), ...skyAnims(ROOM.station, false, 22)];
+/** The night above the train (train.ts): the moon, a star or two, the poles and the horizon over the car, still until he is aboard. */
+const STATION_SKY: SkySpec = { spans: [[20, 33]], moon: [24, 2], stars: [['star', 21, 3], ['starDim', 28, 2], ['star', 31, 3], ['starDim', 27, 3]] };
 
 export const ICICLES: readonly IcicleSpec[] = [
   { room: ROOM.streets, col: 11, row: 9, floor: 17 }, { room: ROOM.streets, col: 15, row: 9, floor: 17 },
@@ -237,7 +239,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     coins: [[2, 16]],
     decor: [
       [{ text: 'TRAIN TO SIBERIA', colour: 7 }, 2, 3], ['stationClock', 4, 6], ['lampStreet', 11, 13], ['bench', 6, 15],
-      ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...bogieBars(STATION_BOGIES), ...buffersAt(20, 31),
+      ...skyDecor(STATION_SKY), ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...bogieBars(STATION_BOGIES), ...buffersAt(20, 31),
     ],
     creatures: [
       { who: 'balalaika', col: 13, row: 15, way: 'right', speed: 1, range: 24 },
