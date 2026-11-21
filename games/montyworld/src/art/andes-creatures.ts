@@ -5,25 +5,9 @@
  * toucan, a poison frog, a sloth, an anaconda, a piranha and a pink river dolphin. The macaw of the riverboat is the toucan's
  * picture in red (a colour record, `colour` on the room's enemy).
  */
-import { lay, pair } from './creature-kit';
+import { capsule, lay, pair, sym } from './creature-kit';
 import { limb, Raster } from './raster';
 import type { NewCreature } from './types';
-
-/** A picture drawn as its left half (8 wide) and mirrored to a whole 16: for things seen from the front. */
-export const sym = (half: readonly string[]): string[] => half.map((row) => row + [...row].reverse().join(''));
-
-/** Discs along a path, each (x, y, radius): a body that bends (a dolphin, a snake). */
-export function capsule(r: Raster, pts: readonly (readonly [number, number, number])[]) {
-  for (let i = 0; i + 1 < pts.length; i++) {
-    const a = pts[i], b = pts[i + 1];
-    if (!a || !b) continue;
-    const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 2));
-    for (let k = 0; k <= n; k++) {
-      const t = k / n;
-      r.disc(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
-    }
-  }
-}
 
 // ---- the condor: black and wide, a bare head with a hooked beak and a white ruff, wheeling
 

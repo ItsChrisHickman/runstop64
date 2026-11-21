@@ -80,7 +80,7 @@ Cloud scenery wheels past. A coin trail through the updrafts (a line to follow),
 lane (rows 14-17) runs the whole room under market awnings and past the stalls (textiles hung, pots, a guinea-pig pen); steps of
 adobe roofs (rows 12, 9) lead up the left to the stall with the chullo hat, hung on a pole on the roof of the last house (a
 dead end of the roofs, left: the chullo is the key item). A rope at col 22 through a floor gap (cols 21-23) goes down to M. A
-Mole Crusher? No: guinea pigs (cuy) scurry under the awnings. Items: the chullo (the costume). Coins on the awnings.
+Guinea pigs (cuy) scurry under the awnings. Items: the chullo (the costume). Coins on the awnings.
 
 **M MIST OPPORTUNITY** (dead end, under the market). In: the rope from V, at the right (floor gap cols 24-26). A cave in the
 cloud: stone steps down the left (rows 12, 14, 16), a mist that rises from a pit in the floor (deadly: the rock's gap, cols
