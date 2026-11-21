@@ -1,162 +1,208 @@
 /**
  * Moscow's creatures and items for Monty Mole: World Tour, in Monty on the Run's formats: a creature is a 16 x 16 hires sprite
  * with 8 frames (0-3 as it goes back, 4-7 as it goes on; a creature that looks the same both ways has the bank's `copy` flag),
- * an item is a hires sprite block of 63 bytes. All new, made in Monty on the Run's style: one ink, chunky, drawn in outline and
- * texture as its boots, knights and smileys are.
+ * an item is a hires sprite block of 63 bytes. All new, made in Monty on the Run's manner: bold cartoon characters that fill
+ * their 16 x 16, a solid body in one ink with the detail cut into it as black lines and gaps (eyes, brows, teeth, seams), a big
+ * face with an expression, and an animation that reads (a mouth opening, a squash, a turn). No dither.
  */
 import { creatureBank, itemBlock, mirrored, shifted } from './pixels';
-import { Raster, stroke } from './raster';
+import { Raster } from './raster';
 import type { NewCreature, NewItem } from './types';
 
 const BLANK = '.'.repeat(16);
 
-/** Clear every pixel of `r` that `mask` lights, where `where` says so. */
-function clearWhere(r: Raster, mask: Raster, where: (x: number, y: number) => boolean) {
-  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) if (mask.get(x, y) && where(x, y)) r.set(x, y, false);
+/** Lay `shape` over `r`, a one pixel black moat round it so it stands out from the solid body under it. */
+function over(r: Raster, shape: Raster) {
+  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
+    if (!shape.get(x, y) && (shape.get(x - 1, y) || shape.get(x + 1, y) || shape.get(x, y - 1) || shape.get(x, y + 1))) r.set(x, y, false);
+  }
+  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) if (shape.get(x, y)) r.set(x, y);
 }
 
-/** A matryoshka, hopping: a headscarf round a face, a flower on the apron, her hem. Crouches, rises, hangs, lands. */
+/** A thick limb: a line `t` pixels thick. */
+function limb(r: Raster, x0: number, y0: number, x1: number, y1: number, t: number) {
+  for (let k = 0; k < t; k++) for (let j = 0; j < t; j++) r.line(x0 + k - (t - 1) / 2, y0 + j - (t - 1) / 2, x1 + k - (t - 1) / 2, y1 + j - (t - 1) / 2);
+}
+
+// ---- the matryoshka: a red doll, a lit face in a black ring, a dark apron with a flower
+
+/** The doll's rows: the head and scarf, the apron. `mouth` gives the face's rows 7 and 8, shut or open. */
+function doll(mouth: readonly [string, string]): readonly string[] {
+  return [
+    '......####......',
+    '....########....',
+    '...##......##...',
+    '..##.######.##..',
+    '.##.########.##.',
+    '.##.#..##..#.##.',
+    '.##.#..##..#.##.',
+    `.##.${mouth[0]}.##.`,
+    `..##.${mouth[1]}.##..`,
+    '..###......###..',
+    '.##############.',
+    '####...##...####',
+    '####..####..####',
+    '####...##...####',
+    '.##############.',
+    '..############..',
+  ];
+}
+
+/** A matryoshka, hopping: squashes, rises with her mouth open, hangs, lands. */
 function matryoshka(): NewCreature {
-  const r = new Raster(16, 16);
-  r.ellipse(8, 9.5, 6.4, 6.4); // the body, an egg
-  r.ellipse(8, 5.5, 5, 4.4); // the head's scarf
-  const face = new Raster(16, 16);
-  face.ellipse(8, 6, 3.2, 3.1);
-  clearWhere(r, face, () => true);
-  r.set(6.5, 5); r.set(9.5, 5); r.set(8, 7); // eyes and a mouth
-  r.rect(3, 9, 12, 9, false); // the knot of the scarf
-  r.rect(7, 9, 8, 9);
-  const apron = new Raster(16, 16);
-  apron.ellipse(8, 12.5, 3.6, 2.6);
-  clearWhere(r, apron, () => true);
-  r.stamp(['.#.', '###', '.#.'], 7, 11); // a flower
-  r.rect(7, 15, 8, 15, false); // a notch in the hem
-  const doll = r.rows();
-  const squashed = [BLANK, ...doll.slice(0, 8), ...doll.slice(9), BLANK].slice(0, 16);
-  const frames = [squashed, shifted(doll, -1), shifted(doll, -2), shifted(doll, -1)];
+  const closed = doll(['#.####.#', '#....#']);
+  const open = doll(['##....##', '##..##']);
+  const squashed = [BLANK, BLANK, ...closed.filter((_, i) => i !== 1 && i !== 13)];
+  const frames = [squashed, closed, shifted(open, -1), open];
   return { frames: creatureBank('matryoshka', frames, frames), copy: true, colour: 2 };
 }
 
+// ---- the guard: a big fur hat with a star, a lit face with a black moustache, a greatcoat
+
 /** The guard's legs, four steps. */
-const GUARD_LEGS: readonly (readonly [string, string])[] = [
-  ['..###....###....', '.####....####...'],
-  ['...###..###.....', '..####..####....'],
-  ['....######......', '...########.....'],
-  ['...###..###.....', '..####..####....'],
+const STEPS: readonly (readonly [string, string])[] = [
+  ['.####......####.', '#####......#####'],
+  ['..####....####..', '..####....####..'],
+  ['...####..####...', '..####....####..'],
+  ['..####....####..', '..####....####..'],
 ];
 
-/** A guard in a fur hat with a star on it, a rifle at his side, walking: four steps. */
+/** A guard marching, his arms swinging: four steps. */
 function guard(): NewCreature {
-  const frame = ([a, b]: readonly [string, string]) => {
-    const r = new Raster(16, 16);
-    r.ellipse(6.5, 2.4, 5.9, 2.6); // the fur hat
-    r.rect(1, 3, 12, 4);
-    r.rect(1, 4, 2, 8); // its flaps hang beside the face
-    r.rect(11, 4, 12, 8);
-    r.rect(6, 1, 7, 2, false); // the star on it, a small hollow
-    r.set(6, 1); r.set(7, 2);
-    r.rect(3, 5, 10, 7, false); // the face, dark
-    r.rect(4, 8, 9, 8, false);
-    r.set(5, 6); r.set(8, 6); // eyes
-    r.rect(5, 8, 8, 8); // moustache
-    r.rect(2, 9, 11, 13); // the greatcoat
-    r.rect(4, 10, 4, 13, false); // the sleeves, a dark seam each side of the front
-    r.rect(9, 10, 9, 13, false);
-    r.rect(6, 10, 7, 10, false); // buttons down the front
-    r.rect(6, 12, 7, 12, false);
-    r.rect(3, 11, 10, 11, false); // the belt, with its buckle
-    r.rect(3, 11, 4, 11); r.rect(9, 11, 10, 11);
-    r.rect(14, 2, 14, 13); // the rifle he holds
-    r.set(14, 1);
-    r.rect(13, 12, 15, 13);
-    const rows = r.rows();
-    return [...rows.slice(0, 14), a, b];
+  const body = [
+    '...##########...',
+    '..#####..#####..',
+    '.#####....#####.',
+    '#######..#######',
+    '################',
+    '....########....',
+    '...##..##..##...',
+    '...##..##..##...',
+    '...##......##...',
+    '....########....',
+    '.....######.....',
+    '...##########...',
+    '...##########...',
+    '...##########...',
+  ];
+  const frame = (step: number) => {
+    const r = new Raster(16, 14);
+    r.stamp(body, 0, 0);
+    r.rect(3, 12, 12, 12, false); // the belt, a black line with a lit buckle
+    r.rect(7, 12, 8, 12);
+    const left = step & 1, right = (step + 1) & 1;
+    r.rect(0, 11 + left, 1, 13 + left); // arms swinging
+    r.rect(14, 11 + right, 15, 13 + right);
+    const [a, b] = STEPS[step] ?? ['', ''];
+    return [...r.rows(), a, b];
   };
-  const left = GUARD_LEGS.map(frame);
+  const left = [0, 1, 2, 3].map(frame);
   return { frames: creatureBank('guard', left, left.map(mirrored)), copy: false, colour: 5 };
 }
 
-/** A pigeon, flying: wings up, back, down, back. */
+// ---- the pigeon: seen from the front, a round head with eyes and a beak, wings beating either side of a plump body
+
+/** A pigeon, flying at us: wings up, level, down, level. The same going either way. */
 function pigeon(): NewCreature {
-  const frame = (wing: (r: Raster) => void) => {
+  type Pt = readonly [number, number];
+  /** A wing's four corners (root top, tip top, tip bottom, root bottom) and the black lines between its feathers. */
+  const frame = ([a, b, c, d]: readonly [Pt, Pt, Pt, Pt], gaps: readonly (readonly [number, number, number, number])[]) => {
     const r = new Raster(16, 16);
-    r.ellipse(9, 9, 5, 3); // the plump body
-    r.ellipse(6, 7.5, 2.6, 2.6); // the neck
-    r.disc(3.5, 6.5, 2.3); // the head
-    r.triangle(0.5, 6.5, 2, 5.5, 2, 7.8); // the beak
-    r.triangle(13, 8.5, 15.5, 8, 15.5, 11.5); // the tail
-    r.rect(8, 12, 8, 13); r.rect(10, 12, 10, 13); // the feet, tucked
-    wing(r);
-    r.set(3, 6, false); // the eye
+    const wing = new Raster(16, 16);
+    wing.triangle(a[0], a[1], b[0], b[1], c[0], c[1]);
+    wing.triangle(a[0], a[1], c[0], c[1], d[0], d[1]);
+    for (const [x0, y0, x1, y1] of gaps) wing.line(x0, y0, x1, y1, false);
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) if (wing.get(x, y)) wing.set(15 - x, y); // the other wing
+    r.ellipse(7.5, 10.2, 4.2, 5.2); // the plump body
+    r.disc(7.5, 4.6, 3.6); // the head
+    r.rect(6, 14, 6, 15); r.rect(9, 14, 9, 15); // feet
+    r.rect(5, 15, 6, 15); r.rect(9, 15, 10, 15);
+    over(r, wing);
+    r.cut(['#..#', '#..#'], 5, 3); // the eyes, big
+    r.cut(['.##.', '.##.'], 6, 6); // the beak, a dark wedge
+    r.cut(['##', '##', '##', '##'], 7, 11); // a seam down the breast
     return r.rows();
   };
   const frames = [
-    frame((r) => { r.triangle(6, 8, 8, 0, 12, 8); r.triangle(8, 0, 14, 3, 12, 8); }),
-    frame((r) => { r.triangle(6, 8, 15, 2, 12, 8); r.triangle(6, 8, 10, 3, 15, 2); }),
-    frame((r) => { r.triangle(6, 9, 9, 15, 12, 9); r.triangle(9, 15, 14, 13, 12, 9); }),
-    frame((r) => { r.triangle(6, 9, 15, 14, 12, 9); r.triangle(6, 9, 10, 14, 15, 14); }),
+    frame([[5, 8], [2, 0], [0, 5], [5, 13]], []),
+    frame([[5, 8], [0, 6], [0, 11], [5, 13]], [[0, 9, 4, 10]]),
+    frame([[5, 8], [0, 11], [2, 15], [5, 13]], []),
+    frame([[5, 8], [0, 8], [0, 13], [5, 13]], [[0, 11, 4, 12]]),
   ];
-  return { frames: creatureBank('pigeon', frames, frames.map(mirrored)), copy: false, colour: 15 };
+  return { frames: creatureBank('pigeon', frames, frames), copy: true, colour: 15 };
 }
 
-/** One look of a snowball, its stones and twigs turned `turn` round: a disc, its inside thinned to dither, three dark specks. */
+// ---- the snowball: a furious face rolling round a solid ball
+
+/** One look of the snowball, its face turned `turn` round (0 to 3 quarter turns) and squashed on the odd ones. */
 function snowball(turn: number): readonly string[] {
   const r = new Raster(16, 16);
-  r.disc(7.5, 7.5, 7);
-  const inner = new Raster(16, 16);
-  inner.disc(7.5, 7.5, 6);
-  clearWhere(r, inner, (x, y) => (x + y) % 2 === 1);
-  for (let k = 0; k < 3; k++) {
-    const a = turn + (k * 2 * Math.PI) / 3;
-    const x = Math.round(7.5 + 4 * Math.cos(a)), y = Math.round(7.5 + 4 * Math.sin(a));
-    r.rect(x - 1, y - 1, x, y, k === 0); // one of them a lump, two stones
-    if (k !== 0) r.rect(x - 1, y - 1, x, y, false);
-  }
+  const squash = turn % 2 === 1;
+  if (squash) r.ellipse(7.5, 8.5, 7.9, 6.9);
+  else r.disc(7.5, 7.5, 7.5);
+  const dx = [0, 2, 0, -2][turn] ?? 0; // the face goes round with the ball
+  const dy = squash ? 1 : 0;
+  const x = 3 + dx, y = 3 + dy;
+  r.cut(['##...', '.##..'], x, y); // the brows, slanting in
+  r.cut(['...##', '..##.'], x + 5, y);
+  r.cut(['##..##', '##..##'], x + 1, y + 3); // the eyes
+  r.cut(['.########.', '##########', '##########', '.########.'], x, y + 6); // the mouth, gaping
+  r.stamp(['#.#.#.#.'], x + 1, y + 6); // the teeth
+  r.stamp(['.#.#.#.#'], x + 1, y + 9);
   return r.rows();
 }
 
-/** A snowball, rolling: turns one way going back and the other going on. */
+/** A rolling snowball. */
 function snowballs(): NewCreature {
-  const frames = [0, 1, 2, 3].map((f) => snowball((f * Math.PI) / 6));
-  return { frames: creatureBank('snowball', frames, [...frames].reverse()), copy: false, colour: 1 };
+  const frames = [0, 1, 2, 3].map(snowball);
+  return { frames: creatureBank('snowball', frames, [...frames].reverse().map(mirrored)), copy: false, colour: 1 };
 }
 
-/** The arm and leg poses of a dancing bear. */
+// ---- the bear: solid, a big face, dancing the squat dance
+
+/** Where the bear's hands and feet go (x, y), left then right, how far down he sits, and whether his mouth is open. */
 interface Pose {
-  /** where each hand goes (x, y), left then right */
   readonly hands: readonly [readonly [number, number], readonly [number, number]];
-  /** where each foot goes, left then right */
   readonly feet: readonly [readonly [number, number], readonly [number, number]];
-  /** how far down the whole bear sits */
   readonly sink: number;
+  readonly open: boolean;
 }
 
-/** A bear dancing the squat dance: arms up, a leg kicked out, a squat, the other leg. */
+/** A dancing bear, black eyes, a black muzzle with a lit nose and a mouth that opens as he whoops. */
 function bear(): NewCreature {
   const draw = (p: Pose) => {
     const r = new Raster(16, 16);
     const y = p.sink;
-    r.disc(4.5, 1.8 + y, 1.7); // ears
-    r.disc(11.5, 1.8 + y, 1.7);
-    r.disc(8, 4.8 + y, 3.7); // head
-    const face = new Raster(16, 16);
-    face.ellipse(8, 6.4 + y, 1.9, 1.4);
-    clearWhere(r, face, () => true);
-    r.set(8, 5.6 + y);
-    r.set(6.5, 3.6 + y, false); r.set(9.5, 3.6 + y, false); // eyes
-    r.ellipse(8, 11 + y, 5.2, 4.2); // body
-    const belly = new Raster(16, 16);
-    belly.ellipse(8, 11.4 + y, 2.8, 2.6);
-    clearWhere(r, belly, (x, yy) => (x + yy) % 2 === 1);
-    for (const [hand, shoulder] of [[p.hands[0], [4, 8 + y]], [p.hands[1], [12, 8 + y]]] as const) stroke(r, shoulder[0], shoulder[1], hand[0], hand[1], 2);
-    for (const [foot, hip] of [[p.feet[0], [6, 13 + y]], [p.feet[1], [10, 13 + y]]] as const) stroke(r, hip[0], hip[1], foot[0], foot[1], 3);
+    const limbs = [
+      { from: [5, 10 + y], to: p.hands[0] }, { from: [10, 10 + y], to: p.hands[1] },
+      { from: [6, 13 + y], to: p.feet[0] }, { from: [9, 13 + y], to: p.feet[1] },
+    ] as const;
+    for (const { from, to } of limbs) {
+      const shape = new Raster(16, 16);
+      limb(shape, from[0], from[1], to[0], to[1], 3);
+      over(r, shape);
+    }
+    const trunk = new Raster(16, 16);
+    trunk.ellipse(7.5, 11.8 + y, 3.9, 3.3);
+    over(r, trunk);
+    const head = new Raster(16, 16);
+    head.ellipse(7.5, 4.6 + y, 4.9, 4.1);
+    head.disc(3.4, 1.6 + y, 1.8); // the ears
+    head.disc(11.6, 1.6 + y, 1.8);
+    over(r, head);
+    r.cut(['#'], 3, 1 + y); r.cut(['#'], 12, 1 + y); // a dark dot in each ear
+    r.cut(['##..##', '##..##'], 5, 3 + y); // the eyes
+    r.cut(['.####.', '######', '######', '.####.'], 5, 5 + y); // the muzzle, a black patch
+    r.rect(7, 5 + y, 8, 5 + y); // the nose, lit
+    if (p.open) r.rect(7, 7 + y, 8, 8 + y); // the mouth, open and lit
+    else { r.set(6, 7 + y); r.set(9, 7 + y); r.rect(7, 8 + y, 8, 8 + y); }
     return r.rows();
   };
   const frames = [
-    draw({ hands: [[1, 3], [15, 3]], feet: [[6, 15], [10, 15]], sink: 0 }),
-    draw({ hands: [[1, 3], [15, 10]], feet: [[1, 13], [10, 15]], sink: 0 }),
-    draw({ hands: [[5, 13], [11, 13]], feet: [[2, 15], [14, 15]], sink: 2 }),
-    draw({ hands: [[1, 10], [15, 3]], feet: [[6, 15], [15, 13]], sink: 0 }),
+    draw({ hands: [[1, 7], [14, 7]], feet: [[5, 15], [10, 15]], sink: 0, open: true }),
+    draw({ hands: [[1, 7], [15, 12]], feet: [[1, 13], [10, 15]], sink: 0, open: false }),
+    draw({ hands: [[1, 12], [14, 12]], feet: [[2, 15], [13, 15]], sink: 1, open: true }),
+    draw({ hands: [[0.5, 12], [14, 7]], feet: [[5, 15], [14, 13]], sink: 0, open: false }),
   ];
   return { frames: creatureBank('bear', frames, frames.map(mirrored)), copy: false, colour: 9 };
 }
@@ -171,43 +217,49 @@ export const MOSCOW_CREATURES = {
 
 export type MoscowCreature = keyof typeof MOSCOW_CREATURES;
 
-/** A metro token: a brass disc with its M. */
+/** A metro token: a solid brass disc with a rim line cut in it and the metro's M cut out of it, bold. */
 function metroToken(): NewItem {
   const r = new Raster(16, 16);
-  r.ring(7.5, 7.5, 7, 2);
-  r.stamp([
-    '#.....#',
-    '##...##',
-    '#.#.#.#',
-    '#..#..#',
-    '#.....#',
-    '#.....#',
-  ], 4, 5);
+  r.disc(7.5, 7.5, 7.5);
+  const rim = new Raster(16, 16);
+  rim.ring(7.5, 7.5, 6.2, 1);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (rim.get(x, y)) r.set(x, y, false);
+  r.cut([
+    '##.....##',
+    '###...###',
+    '####.####',
+    '##.###.##',
+    '##..#..##',
+    '##.....##',
+    '##.....##',
+  ], 3, 4);
   return { block: itemBlock('metroToken', r.rows()), colour: 7 };
 }
 
-/** An ushanka, the fur hat: a furred crown with its badge, the flaps hanging at the sides. */
+/** An ushanka, the fur hat: a solid crown with a star cut in it, a fur band, the ear flaps hanging at the sides. */
 function ushanka(): NewItem {
   const r = new Raster(16, 16);
-  r.ellipse(8, 6, 6.4, 5.2); // the crown
-  r.ellipse(2.6, 11.5, 2.7, 3.8); // the ear flaps
-  r.ellipse(13.4, 11.5, 2.7, 3.8);
-  r.rect(2, 8, 13, 10); // the band
-  const edge = new Raster(16, 16);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (r.get(x, y) && (!r.get(x - 1, y) || !r.get(x + 1, y) || !r.get(x, y - 1) || !r.get(x, y + 1))) edge.set(x, y);
-  }
-  clearWhere(r, edge, (x, y) => (x + y) % 2 === 0); // a ragged edge: fur
-  const fur = new Raster(16, 16);
-  fur.rect(3, 9, 12, 9);
-  fur.ellipse(2.6, 12.5, 1, 1.8);
-  fur.ellipse(13.4, 12.5, 1, 1.8);
-  clearWhere(r, fur, () => true); // the flaps are lined, the band has its seam
-  const badge = new Raster(16, 16);
-  badge.rect(6, 4, 9, 7);
-  clearWhere(r, badge, () => true); // the badge: a dark patch with a star in it
-  r.stamp(['.##.', '####', '.##.'], 6, 4);
-  r.rect(7, 7, 8, 7);
+  r.stamp([
+    '................',
+    '.....######.....',
+    '...##########...',
+    '..############..',
+    '.######..######.',
+    '.#####....#####.',
+    '.######..######.',
+    '.##############.',
+    '................',
+    '################',
+    '################',
+    '#####......#####',
+    '#####......#####',
+    '.####......####.',
+    '..###......###..',
+    '................',
+  ], 0, 0);
+  r.cut(['#', '#', '#'], 2, 11); // the flaps' folds
+  r.cut(['#', '#', '#'], 13, 11);
+  r.rect(7, 5, 8, 5); // the star's lit middle in its dark patch
   return { block: itemBlock('ushanka', r.rows()), colour: 9 };
 }
 

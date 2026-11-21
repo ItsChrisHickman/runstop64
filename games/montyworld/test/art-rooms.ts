@@ -1,7 +1,9 @@
 /**
  * Mock Moscow rooms drawn with the new art, in Monty on the Run's own terms (32 x 20 playfield, 8 tile codes a room with a colour
  * each, decorations from character $9B up, enemies at their cells, its score row and place name) so the art can be judged in
- * place. Not the game's rooms: a way to look. Pictures go to the folder given.
+ * place. Not the game's rooms: a way to look. Each room is laid out as Monty on the Run's rooms are (walls framing it, a thick
+ * textured ceiling, solid masses, platforms and ladders at several heights), and written twice: alone, and beside one of Monty
+ * on the Run's own rooms at the same scale (`compare-*.png`).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/art-rooms.ts <out-dir>
  */
@@ -11,7 +13,7 @@ import { COIN_CHAR } from '../../shared/monty/screen';
 import { MOSCOW_CREATURES, MOSCOW_ITEMS, type MoscowCreature, type MoscowItem } from '../src/art/creatures';
 import { MOSCOW_DECOR, type MoscowDecor } from '../src/art/decorations';
 import { MOSCOW_TILES, type MoscowTile } from '../src/art/tiles';
-import { Canvas, Screen } from './preview-kit';
+import { Canvas, drawMotrRoom, Screen } from './preview-kit';
 
 const out = process.argv[2];
 if (out === undefined) throw new Error('usage: art-rooms.ts <out-dir>');
@@ -39,7 +41,8 @@ interface MockRoom {
   readonly items: readonly (readonly [MoscowItem, col: number, row: number])[];
 }
 
-function draw(room: MockRoom, file: string) {
+/** Paint a room onto the canvas, its top left at ox. Returns the decoration characters it takes. */
+function paint(room: MockRoom, cv: Canvas, ox: number): number {
   if (room.codes.length > 8) throw new Error(`${room.name}: more than 8 tile codes`);
   const s = new Screen();
   s.tiles(room.codes.map(([t]) => MOSCOW_TILES[t].chr));
@@ -62,101 +65,122 @@ function draw(room: MockRoom, file: string) {
     }
   }
   if (next > 0x100) throw new Error(`${room.name}: decorations take ${next - 0x9b} characters, 101 at most`);
-  for (const [c, r] of room.coins) s.put(4 + c, 3 + r, COIN_CHAR, 7);
+  for (const [c, r] of room.coins) {
+    if (room.grid.has(c, r)) throw new Error(`${room.name}: a coin in a tile at ${c},${r}`);
+    s.put(4 + c, 3 + r, COIN_CHAR, 7);
+  }
   s.hud(1200, 5, room.name, room.nameCol);
-  const cv = new Canvas();
-  s.draw(cv);
+  s.draw(cv, ox, 0);
   for (const [name, col, row, frame, colour] of room.creatures) {
     const c = MOSCOW_CREATURES[name];
-    cv.enemyFrame(c.frames, frame * 32, (4 + col) * 8, (3 + row) * 8, colour ?? c.colour);
+    cv.enemyFrame(c.frames, frame * 32, ox + (4 + col) * 8, (3 + row) * 8, colour ?? c.colour);
   }
   for (const [name, col, row] of room.items) {
     const it = MOSCOW_ITEMS[name];
-    cv.spriteBlock(it.block, (4 + col) * 8, (3 + row) * 8, it.colour);
+    cv.spriteBlock(it.block, ox + (4 + col) * 8, (3 + row) * 8, it.colour);
   }
-  cv.png(path.join(out, file), 3);
-  console.log(`${room.name}: ${next - 0x9b} decoration characters of 101, ${room.codes.length} tile codes of 8`);
+  return next - 0x9b;
 }
 
-// ---- Red Square: Saint Basil's on the cobbles, the end of the Kremlin wall at the left, snow on the ledges
+/** Write a room alone, and beside one of Monty on the Run's rooms (the room's own at the left, the original's at the right). */
+function write(room: MockRoom, file: string, motr: number) {
+  const alone = new Canvas();
+  const chars = paint(room, alone, 0);
+  alone.png(path.join(out, `room-${file}.png`), 3);
+  const both = new Canvas(648, 200);
+  paint(room, both, 0);
+  drawMotrRoom(both, motr, 328, 0);
+  both.png(path.join(out, `compare-${file}.png`), 3);
+  console.log(`${room.name}: ${chars} decoration characters of 101, ${room.codes.length} tile codes of 8`);
+}
+
+
+// ---- Red Square: the Kremlin wall at the left, the GUM facade stepping up at the right, Saint Basil's on the cobbles between
 {
   const g = new Grid();
-  g.fill(0, 0, 31, 0, '8');
-  g.fill(22, 1, 25, 1, '7'); // icicles under the ceiling
-  g.fill(0, 18, 5, 18, '1'); g.fill(26, 18, 31, 18, '1'); g.fill(6, 18, 25, 18, '2');
-  g.fill(0, 19, 5, 19, '8'); g.fill(26, 19, 31, 19, '8'); g.fill(6, 19, 25, 19, '2');
-  g.fill(0, 12, 5, 12, '4'); g.fill(0, 13, 5, 17, '3'); // the wall: battlements over brick
-  g.fill(0, 7, 5, 7, '5'); g.fill(22, 7, 28, 7, '5');
-  draw({
+  g.fill(0, 0, 31, 1, '6'); g.fill(0, 2, 9, 2, '6'); g.fill(18, 2, 31, 2, '6'); g.fill(24, 3, 31, 3, '6'); g.fill(12, 2, 15, 3, '6'); // a ceiling of snow crust
+  g.fill(0, 2, 1, 17, '4'); g.fill(30, 2, 31, 17, '4'); // the frame: a tower each side
+  g.fill(2, 2, 5, 4, '4'); // brick hanging from the roof
+  g.fill(2, 8, 7, 8, '5'); g.fill(2, 9, 7, 17, '4'); // the wall, battlements on top
+  g.fill(24, 14, 29, 14, '5'); g.fill(24, 15, 29, 17, '4'); // the facade steps up
+  g.fill(26, 11, 29, 11, '5'); g.fill(26, 12, 29, 13, '4');
+  g.fill(28, 8, 29, 8, '5'); g.fill(28, 9, 29, 10, '4');
+  g.fill(8, 8, 14, 8, '7'); g.fill(16, 5, 23, 5, '7'); // ledges
+  g.fill(8, 9, 8, 17, '8'); g.fill(23, 6, 23, 17, '8'); // ladders
+  g.fill(0, 18, 7, 18, '1'); g.fill(24, 18, 31, 18, '1'); g.fill(8, 18, 23, 19, '3'); g.fill(0, 19, 7, 19, '2'); g.fill(24, 19, 31, 19, '2');
+  write({
     name: 'RED SQUARE', nameCol: 10,
-    codes: [['snowGround', 1], ['cobbles', 12], ['kremlinBrick', 2], ['battlement', 2], ['snowLedge', 3], ['ironLadder', 7], ['icicles', 3], ['snowFill', 15]],
+    codes: [['snowGround', 1], ['snowFill', 1], ['cobbles', 10], ['kremlinBrick', 2], ['battlement', 2], ['snowCrust', 3], ['snowLedge', 3], ['ironLadder', 7]],
     grid: g,
-    decor: [['stBasils', 8, 10], ['lampStreet', 6, 14], ['lampStreet', 19, 14], ['firTree', 23, 15], ['firTree', 27, 15], ['domeSmall', 1, 9], ['redStar', 24, 5]],
-    coins: [[3, 5], [20, 12]],
-    creatures: [['matryoshka', 20, 16, 1], ['guard', 26, 14, 1]],
-    items: [['metroToken', 27, 5]],
-  }, 'room-red-square.png');
+    decor: [['stBasils', 10, 10], ['redStar', 3, 6], ['domeSmall', 6, 5], ['lampStreet', 9, 14], ['lampStreet', 20, 14], ['firTree', 21, 15]],
+    coins: [[11, 6], [19, 3], [26, 9]],
+    creatures: [['matryoshka', 18, 3, 1], ['guard', 10, 6, 1], ['pigeon', 8, 3, 1], ['snowball', 13, 16, 0]],
+    items: [['metroToken', 28, 6]],
+  }, 'red-square', 5);
 }
 
-// ---- The Kremlin wall: its battlements over brick, Spasskaya Tower, domes behind
+// ---- The Kremlin: Spasskaya Tower over the wall with the domes behind, a stair up the right, a ladder up the left
 {
   const g = new Grid();
-  g.fill(0, 0, 31, 0, '8');
-  g.fill(0, 18, 31, 18, '1'); g.fill(0, 19, 31, 19, '8');
-  g.fill(0, 11, 21, 11, '4'); g.fill(0, 12, 21, 17, '3');
-  g.fill(22, 11, 22, 17, '6');
-  g.fill(24, 8, 30, 8, '5');
-  draw({
+  g.fill(0, 0, 31, 2, '5'); g.fill(3, 3, 6, 3, '5'); g.fill(20, 3, 23, 3, '8'); // the ceiling, a lump on it, icicles
+  g.fill(0, 3, 2, 17, '3'); g.fill(29, 3, 31, 17, '3'); // the frame
+  g.fill(3, 8, 6, 8, '6'); g.fill(3, 13, 6, 13, '6'); // ledges off the left tower
+  g.fill(8, 11, 23, 11, '4'); g.fill(8, 12, 23, 17, '3'); g.fill(7, 11, 7, 17, '7'); // the wall, battlements along it, the ladder up its face
+  g.fill(24, 14, 28, 14, '4'); g.fill(24, 15, 28, 17, '3'); g.fill(26, 11, 28, 11, '4'); g.fill(26, 12, 28, 13, '3'); // the stair
+  g.fill(24, 7, 28, 7, '6'); g.fill(24, 8, 24, 13, '7'); g.fill(17, 6, 22, 6, '6'); // the high ledges
+  g.fill(3, 18, 28, 18, '1'); g.fill(0, 19, 31, 19, '2'); g.fill(0, 18, 2, 18, '1'); g.fill(29, 18, 31, 18, '1');
+  write({
     name: 'THE KREMLIN', nameCol: 10,
-    codes: [['snowGround', 1], ['snowFill', 15], ['kremlinBrick', 2], ['battlement', 2], ['snowLedge', 3], ['ironLadder', 7], ['icicles', 3], ['cobbles', 12]],
+    codes: [['snowGround', 1], ['snowFill', 1], ['kremlinBrick', 2], ['battlement', 2], ['snowCrust', 3], ['snowLedge', 3], ['ironLadder', 7], ['icicles', 3]],
     grid: g,
-    decor: [['spasskaya', 24, 10], ['domeLarge', 2, 6], ['domeMedium', 9, 7], ['domeSmall', 16, 8], ['redStar', 19, 9], ['lampDouble', 28, 14]],
-    coins: [[12, 9], [27, 6]],
-    creatures: [['guard', 13, 9, 1], ['matryoshka', 26, 16, 1], ['pigeon', 8, 3, 0]],
-    items: [['ushanka', 27, 5]],
-  }, 'room-kremlin.png');
+    decor: [['spasskaya', 14, 3], ['domeLarge', 9, 6], ['domeMedium', 18, 7], ['domeSmall', 21, 8], ['lampDouble', 5, 14]],
+    coins: [[4, 6], [19, 4], [10, 4]],
+    creatures: [['guard', 12, 9, 1], ['matryoshka', 3, 16, 1], ['pigeon', 25, 4, 1]],
+    items: [['ushanka', 26, 5]],
+  }, 'kremlin', 14);
 }
 
-// ---- The metro: a platform each side of the track, an escalator up to the concourse
+// ---- The metro: a platform each side of the live rail, escalators up to the concourse and a mezzanine above, vaulted roof
 {
   const g = new Grid();
-  g.fill(0, 0, 31, 1, '1'); g.fill(0, 2, 1, 19, '1'); g.fill(30, 2, 31, 19, '1');
-  g.fill(2, 14, 10, 14, '2'); g.fill(2, 15, 10, 19, '1');
-  g.fill(21, 14, 29, 14, '2'); g.fill(21, 15, 29, 19, '1');
-  g.fill(11, 19, 20, 19, '1'); g.fill(11, 18, 20, 18, '3'); // the track: the live rail
-  g.fill(2, 8, 16, 8, '6'); // the concourse
-  g.fill(19, 9, 20, 13, '4'); // the escalator
-  g.fill(13, 2, 13, 7, '5'); g.fill(24, 2, 24, 7, '5');
-  g.fill(21, 8, 29, 8, '6');
-  g.fill(17, 8, 18, 8, '6');
-  draw({
+  g.fill(0, 0, 31, 2, '2'); // the vaulted roof
+  g.fill(0, 3, 1, 19, '1'); g.fill(30, 3, 31, 19, '1'); g.fill(2, 3, 3, 4, '1'); g.fill(28, 3, 29, 4, '1'); // the walls
+  g.fill(2, 15, 13, 15, '4'); g.fill(2, 16, 13, 19, '1'); // the left platform
+  g.fill(18, 15, 29, 15, '4'); g.fill(18, 16, 29, 19, '1'); // the right platform
+  g.fill(14, 19, 17, 19, '1'); g.fill(14, 18, 17, 18, '5'); // the track and its rail
+  g.fill(2, 9, 6, 9, '7'); g.fill(9, 9, 13, 9, '7'); g.fill(7, 9, 8, 14, '6'); // the concourse, an escalator through it
+  g.fill(18, 9, 22, 9, '7'); g.fill(25, 9, 29, 9, '7'); g.fill(23, 9, 24, 14, '6');
+  g.fill(14, 3, 15, 8, '3'); g.fill(17, 3, 18, 8, '3'); g.fill(14, 9, 17, 9, '8'); // pillars down from the roof, a girder between them
+  g.fill(5, 5, 10, 5, '4'); g.fill(10, 6, 10, 8, '6'); // the mezzanines
+  g.fill(21, 5, 27, 5, '4'); g.fill(21, 6, 21, 8, '6');
+  write({
     name: 'THE METRO', nameCol: 11,
-    codes: [['metroTile', 15], ['platformEdge', 7], ['thirdRail', 2], ['escalator', 12], ['pillar', 15], ['girder', 12], ['arcadeFloor', 14], ['ironLadder', 7]],
+    codes: [['metroTile', 3], ['vault', 14], ['pillar', 1], ['platformEdge', 7], ['thirdRail', 2], ['escalator', 4], ['arcadeFloor', 1], ['girder', 8]],
     grid: g,
-    decor: [['metroSign', 3, 11], ['stationClock', 6, 11], ['chandelier', 8, 2], ['chandelier', 17, 2], ['metroSign', 26, 11], ['lampDouble', 22, 10]],
-    coins: [[6, 7], [14, 13]],
-    creatures: [['guard', 24, 12, 1], ['pigeon', 12, 9, 0]],
-    items: [['metroToken', 9, 6]],
-  }, 'room-metro.png');
+    decor: [['metroSign', 2, 12], ['stationClock', 11, 6], ['chandelier', 11, 3], ['chandelier', 19, 3], ['lampDouble', 11, 11], ['metroSign', 26, 12], ['bench', 4, 13], ['bench', 19, 13], ['poster', 9, 12], ['poster', 28, 12]],
+    coins: [[7, 3], [27, 7], [15, 13]],
+    creatures: [['guard', 20, 13, 1], ['pigeon', 15, 11, 1], ['bear', 3, 7, 0]],
+    items: [['metroToken', 23, 3]],
+  }, 'metro', 1);
 }
 
-// ---- The GUM arcade: arches along the floor, a balcony, the roof's girders
+// ---- The GUM arcade: arches along the floor, a balcony each side, ladders to it, a bridge and a tree in the middle
 {
   const g = new Grid();
+  g.fill(0, 0, 31, 2, '8'); // the arcade's ribbed roof
+  g.fill(0, 3, 2, 17, '2'); g.fill(29, 3, 31, 17, '2'); // piers
   g.fill(0, 18, 31, 19, '1');
-  g.fill(0, 0, 2, 17, '4'); g.fill(29, 0, 31, 17, '4');
-  g.fill(3, 1, 28, 1, '3');
-  g.fill(3, 9, 12, 9, '3'); g.fill(19, 9, 28, 9, '3');
-  g.fill(13, 9, 13, 17, '5');
-  g.fill(16, 2, 16, 8, '2');
-  g.fill(24, 4, 28, 4, '6');
-  draw({
+  g.fill(3, 9, 11, 9, '3'); g.fill(20, 9, 28, 9, '3'); g.fill(3, 10, 11, 10, '4'); g.fill(20, 10, 28, 10, '4'); // the balconies
+  g.fill(12, 9, 12, 17, '5'); g.fill(19, 9, 19, 17, '5'); // ladders down
+  g.fill(4, 5, 10, 5, '7'); g.fill(21, 5, 27, 5, '7'); g.fill(10, 6, 10, 8, '5'); g.fill(21, 6, 21, 8, '5'); // upper ledges
+  g.fill(13, 6, 18, 6, '3'); // the bridge
+  write({
     name: 'GUM ARCADE', nameCol: 10,
-    codes: [['arcadeFloor', 15], ['pillar', 15], ['girder', 12], ['kremlinBrick', 2], ['ironLadder', 7], ['snowLedge', 3], ['battlement', 10], ['cobbles', 12]],
+    codes: [['arcadeFloor', 1], ['pillar', 1], ['girder', 8], ['kremlinBrick', 2], ['ironLadder', 7], ['snowLedge', 3], ['platformEdge', 7], ['vault', 14]],
     grid: g,
-    decor: [['gumArch', 4, 14], ['gumArch', 8, 14], ['gumArch', 17, 14], ['firTree', 24, 15], ['chandelier', 8, 2], ['chandelier', 22, 2], ['lampDouble', 14, 5]],
-    coins: [[6, 8], [26, 3]],
-    creatures: [['bear', 22, 16, 1], ['pigeon', 6, 4, 1], ['matryoshka', 20, 7, 2]],
-    items: [['ushanka', 10, 7]],
-  }, 'room-gum.png');
+    decor: [['gumArch', 3, 14], ['gumArch', 7, 14], ['gumArch', 21, 14], ['gumArch', 25, 14], ['firTree', 15, 15], ['chandelier', 15, 3], ['lampDouble', 11, 5], ['lampDouble', 19, 5], ['shopWindow', 4, 11], ['shopWindow', 8, 11], ['shopWindow', 21, 11], ['shopWindow', 25, 11], ['samovar', 8, 7], ['samovar', 27, 7]],
+    coins: [[7, 3], [13, 4], [24, 3]],
+    creatures: [['bear', 13, 16, 0], ['pigeon', 8, 3, 1], ['matryoshka', 24, 7, 2], ['guard', 5, 7, 1]],
+    items: [['ushanka', 25, 3]],
+  }, 'gum', 10);
 }

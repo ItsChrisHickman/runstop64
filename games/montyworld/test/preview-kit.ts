@@ -4,8 +4,10 @@
  * game's own drawing is the engine's.
  */
 import { indicesPng } from '../../../tools/probe/render';
-import { bankImage, tileLibrary } from '../../montyotr/src/data';
-import { drawHudFrame, PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, ROW, SCREEN } from '../../shared/monty/screen';
+import {
+  bankImage, coinTable, decorRooms, decorTypes, enemyBank, enemyColours, enemyRecords, roomDef, sectorName, tileLibrary,
+} from '../../montyotr/src/data';
+import { COIN_CHAR, drawHudFrame, PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, ROW, SCREEN } from '../../shared/monty/screen';
 
 export const W = 320, H = 200;
 
@@ -78,6 +80,43 @@ export class Screen {
       const code = this.mem[this.at(c, r)] ?? 0;
       cv.glyph(this.mem, code * 8, ox + c * 8, oy + r * 8, this.col[r * ROW + c] ?? 1);
     }
+  }
+}
+
+/**
+ * One of Monty on the Run's own rooms as the game draws it (its tiles and colours, decorations, coins and creatures at their
+ * first frame), onto `cv` with its top left at ox, oy: for judging new art next to the original's.
+ */
+export function drawMotrRoom(cv: Canvas, id: number, ox = 0, oy = 0) {
+  const def = roomDef(id);
+  const s = new Screen();
+  s.tiles(def.tiles);
+  const rows: string[] = [];
+  for (let r = 0; r < PLAY_ROWS; r++) rows.push(Array.from(def.cells.subarray(r * PLAY_COLS, (r + 1) * PLAY_COLS), (c) => '.12345678'[c] ?? '.').join(''));
+  s.playfield(rows, def.colours);
+  const first = new Map<number, number>();
+  let next = 0x9b;
+  for (let i = 0; i + 3 < decorRooms.length; i += 4) {
+    if (decorRooms[i] !== id) continue;
+    const type = decorRooms[i + 3] ?? 0, t = decorTypes[type];
+    if (t === undefined) continue;
+    const at = first.get(type);
+    const col = decorRooms[i + 1] ?? 0, row = decorRooms[i + 2] ?? 0;
+    if (at === undefined) {
+      if (next + t.w * t.h > 0xff) continue;
+      first.set(type, next);
+      next = s.decor(t.chr, t.w, t.h, t.colour, col, row, next);
+    } else {
+      for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) s.put(col + c, row + r, at + r * t.w + c, typeof t.colour === 'number' ? t.colour : t.colour[r * t.w + c] ?? 1);
+    }
+  }
+  for (let i = 0; i * 3 < coinTable.length; i++) if (coinTable[i * 3] === id) s.put((coinTable[i * 3 + 1] ?? 0) + 4, (coinTable[i * 3 + 2] ?? 0) + 3, COIN_CHAR, 7);
+  s.hud(1200, 5, sectorName(id).text, sectorName(id).col);
+  s.draw(cv, ox, oy);
+  const rec = enemyRecords(id);
+  for (let i = 0; i + 6 < rec.length && rec[i] !== 0xff; i += 7) {
+    const x = (((rec[i + 1] ?? 0) >> 1) + 0x1c) & 0xff, y = (0xf9 - (rec[i + 2] ?? 0)) & 0xff;
+    cv.enemyFrame(enemyBank(rec[i + 4] ?? 8), 0, ox + x * 2 - 24, oy + y - 50, enemyColours[(rec[i] ?? 0) & 15] ?? 1);
   }
 }
 
