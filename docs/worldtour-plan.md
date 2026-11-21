@@ -48,8 +48,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 - **The music:** Rob Hubbard's Monty on the Run tune and sound effects, played by his own driver. Each region gets its own
   version of the tune (Chris, 2026-11-20), made by changing the driver's data: the melody bent to the region's scale (minor
   for Russia, the pentatonic for China and Japan), instruments that suggest the place (a plucked balalaika, bells, a sliding
-  ukulele), the tempo, and maybe a short phrase of a public-domain folk tune as a break (Kalinka, Sakura). Moscow's version
-  comes with Moscow's rooms; if it sounds like a gimmick, every region keeps the original.
+  ukulele), and maybe a short phrase of a public-domain folk tune as a break (Kalinka, Sakura). Moscow's version
+  comes with Moscow's rooms; if it sounds like a gimmick, every region keeps the original. The tempo stays Hubbard's (Chris).
 - **The title:** Monty on the Run's title screen, with MONTY MOLE: WORLD TOUR and the story on its scroller. Credits: a new
   game by Christopher Hickman with Claude, after Peter Harrap's Monty on the Run (Gremlin Graphics, 1985).
 
