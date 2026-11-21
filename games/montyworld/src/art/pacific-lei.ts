@@ -6,22 +6,17 @@ import { wearing, type Worn } from './costume';
  * (a negative number here: below it, at his neck), and clears his own picture under it with a black line round it.
  */
 export const LEI: readonly string[] = [
-  '###..........###',
-  '#.#.#......#.#.#',
-  '###.##....##.###',
-  '.#..#.#..#.#..#.',
-  '.##.#.####.#.##.',
-  '..##..#..#..##..',
-  '...###.##.###...',
-  '.....##..##.....',
-  '......####......',
+  '##......##',
+  '#.#....#.#',
+  '.#.#..#.#.',
+  '..#.##.#..',
 ];
 
 /** How far the garland's top sits above the top of his head, in pixels: a negative number, below it. */
-export const LEI_RISE = -7;
+export const LEI_RISE = -6;
 
 /** The colour it is drawn in: light red (pink). */
 export const LEI_COLOUR = 10;
 
 /** Monty's pictures with the lei on, and the lei as a sprite, for each of his sprite pointers. */
-export const leiWorn = (bank: Uint8Array): Worn => wearing(bank, LEI, LEI_RISE);
+export const leiWorn = (bank: Uint8Array): Worn => wearing(bank, LEI, 'neck', LEI_RISE);

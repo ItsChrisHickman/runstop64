@@ -2,8 +2,8 @@ import { wearing, type Worn } from './costume';
 import { limb, Raster } from './raster';
 
 /**
- * Rio's costume, in two proposals (docs/dosvidaniya-rio.md: the choice is Chris's): the carnival headdress, a fan of plumes round a
- * sequined band, and a straw hat. Each is a sprite of its own over Monty (costume.ts), its top middle HAT_RISE rows above his head.
+ * Rio's costume, the carnival headdress: a fan of plumes round a sequined band. Carried it is the big picture; worn it is a small crest
+ * (HEADDRESS_WORN), a sprite of its own over Monty (costume.ts).
  */
 
 /** The headdress: eleven plumes fanned out from the band, the middle ones longest, the band's sequins cut in it. 16 wide. */
@@ -23,7 +23,16 @@ function headdress(): readonly string[] {
 }
 export const HEADDRESS_HAT: readonly string[] = headdress();
 
-/** The straw hat: a round crown with its band and bow over a wide flat brim. 16 wide. */
+/** The headdress as Monty wears it: a small crest of plumes over a sequined band, 10 wide. */
+export const HEADDRESS_WORN: readonly string[] = [
+  '#..#..#..#',
+  '#.##..##.#',
+  '.########.',
+  '##########',
+  '#.#.##.#.#',
+];
+
+/** The straw hat (dropped as a costume: only its item picture is left). 16 wide. */
 export const STRAW_HAT: readonly string[] = [
   '.....######.....',
   '....########....',
@@ -37,12 +46,10 @@ export const STRAW_HAT: readonly string[] = [
 ];
 
 /** How far the crown stands above the top of his head, in pixels. */
-export const HEADDRESS_RISE = 6;
-export const STRAW_RISE = 3;
+export const HEADDRESS_RISE = 3;
 
-/** The colour they are drawn in: gold. */
+/** The colour it is drawn in: gold. */
 export const RIO_HAT_COLOUR = 7;
 
 /** Monty's pictures in each hat, and the hat as a sprite, for each of his sprite pointers. */
-export const headdressWorn = (bank: Uint8Array): Worn => wearing(bank, HEADDRESS_HAT, HEADDRESS_RISE);
-export const strawWorn = (bank: Uint8Array): Worn => wearing(bank, STRAW_HAT, STRAW_RISE);
+export const headdressWorn = (bank: Uint8Array): Worn => wearing(bank, HEADDRESS_WORN, 'head', HEADDRESS_RISE);

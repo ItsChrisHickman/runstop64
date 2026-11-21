@@ -232,6 +232,7 @@ export const TESTS = [
   { file: 'games/montyotr/test/warps.ts', set: 'fast' },
   { file: 'games/montyotr/test/jetpack.ts', args: [MOTR], set: 'slow', needs: [MOTR] },
   { file: 'games/montyotr/test/title.ts', args: [MOTR], set: 'fast', needs: [MOTR] },
+  { file: 'games/montyworld/test/costume.ts', set: 'fast', name: 'games/montyworld/test/costume.ts (every costume on each of Monty\'s 36 pictures: a hat on his head above his eyes, small, the lei below them, his picture cleared only under it)' },
   { file: 'games/montyworld/test/walk.ts', set: 'fast', name: 'games/montyworld/test/walk.ts (World Tour on the Monty engine: its three rooms, the coins and the cake, Monty walked through and back, and through the front end)' },
   { file: 'games/montyworld/test/mechanisms.ts', set: 'fast', name: 'games/montyworld/test/mechanisms.ts (Moscow\'s mechanisms: the icicles\' timing, the escalators\' rides, the Kremlin guard and the turnstile, the ushanka as a costume, kept in the save, the item hints, the pirozhki, the map)' },
   { file: 'games/montyworld/test/moscow.ts', args: ['original'], set: 'slow', limitSeconds: 590, name: 'games/montyworld/test/moscow.ts original (a bot plays Moscow from the first room to the end of the carriage roof, every coin, both pirozhki, the token and the ushanka)' },
