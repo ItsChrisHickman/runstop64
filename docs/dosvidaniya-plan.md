@@ -66,6 +66,11 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   pirozhki in Moscow, dumplings in China, sushi in Japan, Spam musubi in Hawaii (a generic tin, no logo), empanadas in the
   Andes, churrasco skewers in Rio (Chris: Brazil means the Brazilian steakhouse; a food must be recognisable). Rio may get a churrascaria room: gaucho waiters (Chris thinks of gauchos; they're from Brazil's far south, the churrasco's home) carrying long skewers between the tables, their swinging skewers the timing. Coconut shrimp hop off the luau's platters as creatures, and a
   shrimp shack stands on Waikiki with its sign.
+- **C64 references** (Chris, 2026-11-20), small homages with nothing copied: WILLOW PATTERN (China, the room's exact name),
+  THE LAST MOLE (Japan), a California Games surfer and a wave ridden on a board at Waikiki, Boulder Dash at Machu Picchu
+  (the rolling boulders room, gems between them), Impossible Mission in Siberia's mine (a sign STAY A WHILE... STAY FOREVER,
+  lifts in its style), Jeff Minter's llamas winking at Machu Picchu. Turned down: Tetris (doesn't fit), Bruce Lee (a real
+  person; and China has its reference), Pitfall (feels Atari), anything Pendragon.
 - **Items open the way.** As in Monty on the Run, an item taken in one room changes another (a wall gone, a creature seen
   off): two or three in each region, some needed in the next region. No freedom kit to pick (the remake already dropped it).
   An item's use has hint text in ENHANCED, as in Auf Wiedersehen Monty.
