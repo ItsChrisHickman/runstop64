@@ -1,8 +1,11 @@
 /**
  * The art of every region together, in the order the regions were made (Moscow's first: a piece's index, its tile number, creature
  * type and decoration type, never changes once a region has shipped, so rooms and saves stay as they are). A region's art is in
- * its own files (Moscow's: tiles.ts, creatures.ts, decorations.ts; Siberia's: siberia-*.ts); this is where they are one set.
+ * its own files (Moscow's: tiles.ts, creatures.ts, decorations.ts; Siberia's: siberia-*.ts; China's: china-*.ts); this is where they are one set.
  */
+import { CHINA_CREATURES } from './china-creatures';
+import { CHINA_DECOR } from './china-decor';
+import { CHINA_TILES } from './china-tiles';
 import { MOSCOW_CREATURES } from './creatures';
 import { MOSCOW_DECOR } from './decorations';
 import { SIBERIA_CREATURES } from './siberia-creatures';
@@ -10,16 +13,19 @@ import { SIBERIA_DECOR } from './siberia-decor';
 import { SIBERIA_TILES } from './siberia-tiles';
 import { MOSCOW_TILES, MOTR_TILE_COUNT } from './tiles';
 
-export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES } as const;
+export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES, ...CHINA_TILES } as const;
 export type WorldTile = keyof typeof WORLD_TILES;
-export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES } as const;
+export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES, ...CHINA_CREATURES } as const;
 export type WorldCreature = keyof typeof WORLD_CREATURES;
-export const WORLD_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR } as const;
+export const WORLD_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR } as const;
 export type WorldDecor = keyof typeof WORLD_DECOR;
 
 // (a name in two regions would silently replace the first's piece)
-for (const [name, a, b] of [['tile', MOSCOW_TILES, SIBERIA_TILES], ['creature', MOSCOW_CREATURES, SIBERIA_CREATURES], ['decoration', MOSCOW_DECOR, SIBERIA_DECOR]] as const) {
-  const clash = Object.keys(a).filter((k) => k in b);
+for (const [name, regions] of [
+  ['tile', [MOSCOW_TILES, SIBERIA_TILES, CHINA_TILES]], ['creature', [MOSCOW_CREATURES, SIBERIA_CREATURES, CHINA_CREATURES]], ['decoration', [MOSCOW_DECOR, SIBERIA_DECOR, CHINA_DECOR]],
+] as const) {
+  const names = regions.flatMap((r) => Object.keys(r));
+  const clash = names.filter((k, i) => names.indexOf(k) !== i);
   if (clash.length) throw new Error(`${name} names in two regions: ${clash.join(', ')}`);
 }
 

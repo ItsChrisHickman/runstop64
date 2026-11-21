@@ -1,5 +1,5 @@
 /**
- * Preview sheets of a region's art, the same for every region (Andes, Rio): the tiles (each tiled 3 x 2, its class beside it), the
+ * Preview sheets of a region's art, the same for every region (Siberia, China, the Andes, Rio): the tiles (each tiled 3 x 2, its class beside it), the
  * decorations, the creatures (all 8 frames, then the first four large), and the items and other sprites. Not a check. Each sheet is
  * written at 4x (the creatures' large one at 8x).
  */

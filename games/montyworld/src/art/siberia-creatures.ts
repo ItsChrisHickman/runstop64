@@ -4,21 +4,9 @@
  * fangs, seams), a big face with an expression, an animation that reads. A wolf, a bear on all fours, an owl, a reindeer, a ticket
  * inspector, a coal-faced miner, a yeti, a bat and a Baikal seal. No dither.
  */
-import { creatureBank, mirrored } from './pixels';
-import { limb, over, Raster } from './raster';
+import { lay, pair } from './creature-kit';
+import { limb, Raster } from './raster';
 import type { NewCreature } from './types';
-
-/** A shape on its own raster, laid over `r` with a black moat round it (raster.ts `over`). */
-function lay(r: Raster, draw: (s: Raster) => void) {
-  const s = new Raster(16, 16);
-  draw(s);
-  over(r, s);
-}
-
-/** The four frames of a creature that goes left, and its mirror for going right. */
-function pair(name: string, left: readonly (readonly string[])[], colour: number, copy = false): NewCreature {
-  return { frames: creatureBank(name, left, left.map(mirrored)), copy, colour };
-}
 
 // ---- the wolf: grey, a big snarling face with ears up and fangs, loping
 

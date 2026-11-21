@@ -295,20 +295,20 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   }),
 
   // G BORDER LINE CASE: the village. Down the rope onto the snow; cabins, a woodpile to climb, a wolf and a reindeer about; the barrier at
-  // the right (the ticket lifts it) and beyond it the way east, shut for now with a sign.
+  // the right (the ticket lifts it) and beyond it the way east, to China.
   room({
     id: SIB.border, cell: [2, 7], sector: 17,
     palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], P: ['planks', 8], R: ['rope', 13] },
     paint(g) {
       sky(g, 2, [[0, 5], [14, 20]]);
       g.clear(4, 0, 6, 1).box(5, 0, 5, 16, 'R'); // the rope from the lake
-      g.box(0, 2, 1, 16, 'F').box(30, 2, 31, 13, 'F').box(30, 14, 31, 16, 'P');
+      g.box(0, 2, 1, 16, 'F').box(30, 2, 31, 13, 'F');
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F');
       g.box(11, 15, 13, 16, 'L').box(14, 13, 16, 16, 'L'); // the woodpile
       g.box(28, 13, 29, 16, 'B'); // the barrier
     },
     coins: [[12, 13], [24, 15]],
-    decor: [['cabin', 6, 13], ['cabin', 18, 13], [{ text: 'CHINA COMING SOON', colour: 7 }, 9, 6], ['pole', 26, 13], ['pineSmall', 2, 14]],
+    decor: [['cabin', 6, 13], ['cabin', 18, 13], [{ text: 'ROAD TO CHINA', colour: 7 }, 9, 6], ['pole', 26, 13], ['pineSmall', 2, 14]],
     creatures: [
       { who: 'reindeer', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
       { who: 'wolf', col: 6, row: 15, way: 'right', speed: 2, range: 20 },

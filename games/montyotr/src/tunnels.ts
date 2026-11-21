@@ -1,5 +1,5 @@
-import { X2_ORIGIN, Y_ORIGIN } from '../../shared/monty/body';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
+import { montyOver } from './cells';
 import type { Game } from './game';
 import type { TunnelSpec } from './montydata';
 
@@ -46,16 +46,6 @@ function paint(g: Game, t: TunnelState, col: number, row: number, code: number |
   g.setRoomChar(at, code ?? 0);
 }
 
-/** The sprite pixels of a playfield column's left edge and a row's top, as the icicles measure them. */
-const pixelX = (col: number) => 2 * X2_ORIGIN + (col + PLAY_COL) * 8;
-const pixelY = (row: number) => Y_ORIGIN + (row + PLAY_ROW) * 8;
-
-/** Whether Monty (his box, the sides trimmed a little) is in the portal's cells. */
-function inside(g: Game, left: number, cols: number, top: number, bottom: number): boolean {
-  const mx = g.x2 * 2;
-  return mx + 14 > pixelX(left) && pixelX(left + cols) > mx + 2 && g.y < pixelY(bottom + 1) && pixelY(top) < g.y + 16;
-}
-
 /** One frame: each mouth of the room a step on, a death if it has him. */
 export function tunnelUpdate(g: Game) {
   for (const t of g.tunnels) {
@@ -83,7 +73,7 @@ export function tunnelUpdate(g: Game) {
             paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }
-        if (!g.actionCounter && inside(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;
+        if (!g.actionCounter && montyOver(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;
         break;
     }
   }

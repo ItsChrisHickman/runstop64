@@ -1,6 +1,6 @@
 /**
- * The small helpers the Andes' and Rio's creatures are drawn with (Siberia's creatures have their own copies of `lay` and `pair`; a
- * later pass may point them here): a shape laid over a body with a black moat round it, and a creature made from four frames facing left.
+ * The small helpers the regions' creatures are drawn with (Siberia's, China's, the Andes', Rio's): a shape laid over a body with a black
+ * moat round it, and a creature made from four frames facing left.
  */
 import { creatureBank, mirrored } from './pixels';
 import { over, Raster } from './raster';

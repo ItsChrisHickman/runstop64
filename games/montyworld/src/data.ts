@@ -6,8 +6,12 @@ import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
-  CART, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST, HAT_COLOUR, ushankaWorn,
+  CART, CHINA_ITEMS, DRAGON_PICTURES, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
+  HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
+import { CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from './china';
+import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
+import { placeHat } from './hats';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
@@ -25,7 +29,7 @@ import { WORLD_REGIONS } from './regions';
 export const WORLD_COLS = 50, WORLD_ROWS = 3;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS];
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -33,27 +37,15 @@ const tiles = extendTiles(MOTR_LOOK, WORLD_TILE_LIST);
 const creatures = Object.values(WORLD_CREATURES);
 const enemies = extendEnemies(MOTR_LOOK, creatures, 35);
 
-/** The ushanka: Monty's pictures with its place cleared, and the hat as sprites of its own (in the bank's free blocks, below). */
-const WORN = ushankaWorn(bankImage);
-/** Free blocks of the bank for the hat's pictures (the items' are $D0-$D6, Siberia's $C1-$C5). */
-const HAT_BLOCKS: readonly number[] = [0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, ...Array.from({ length: 21 }, (_, i) => 0xeb + i), ...Array.from({ length: 10 }, (_, i) => 0xc6 + i)];
-/** The hat's pictures, the same ones shared between Monty's pictures that need no difference. */
-const hatBlocks: { ptr: number; block: Uint8Array }[] = [];
-const hatFrames = new Map<number, { ptr: number; dx: number; dy: number }>();
-for (const h of WORN.hat) {
-  let at = hatBlocks.find((b) => b.block.every((v, i) => v === h.block[i]));
-  if (!at) {
-    const ptr = HAT_BLOCKS[hatBlocks.length];
-    if (ptr === undefined) throw new Error('no free blocks left for the hat');
-    at = { ptr, block: h.block };
-    hatBlocks.push(at);
-  }
-  hatFrames.set(h.ptr, { ptr: at.ptr, dx: h.dx, dy: h.dy });
-}
+/** The hats: Monty's pictures with the hat's place cleared, and the hat as sprites of its own (hats.ts places them in the bank's free blocks, one set for every hat). */
+const USHANKA_WORN = ushankaWorn(bankImage);
+const USHANKA = placeHat(USHANKA_WORN);
+const RICE_WORN = riceHatWorn(bankImage);
+const RICE = placeHat(RICE_WORN);
 
-/** The bank with Moscow's items and icicles at their pointers. */
+/** The bank with the items, icicles, the cart, the dragon and the first hat at their pointers. */
 const bank = extendBank(bankImage, [
-  ...hatBlocks,
+  ...USHANKA.blocks,
   { ptr: SPRITE.token, block: MOSCOW_ITEMS.metroToken.block },
   { ptr: SPRITE.ushanka, block: MOSCOW_ITEMS.ushanka.block },
   { ptr: SPRITE.pirozhok, block: MOSCOW_ITEMS.pirozhok.block },
@@ -66,12 +58,26 @@ const bank = extendBank(bankImage, [
   { ptr: SIB_SPRITE.pelmeni, block: SIBERIA_ITEMS.pelmeni.block },
   { ptr: SIB_SPRITE.cartTop, block: CART.top },
   { ptr: SIB_SPRITE.cartBottom, block: CART.bottom },
+  { ptr: CHINA_SPRITE.key, block: CHINA_ITEMS.towerKey.block },
+  { ptr: CHINA_SPRITE.riceHat, block: CHINA_ITEMS.riceHat.block },
+  { ptr: CHINA_SPRITE.bamboo, block: CHINA_ITEMS.bamboo.block },
+  { ptr: CHINA_SPRITE.dumplings, block: CHINA_ITEMS.dumplings.block },
+  ...Object.entries(DRAGON_POINTERS).map(([name, ptr]) => ({ ptr, block: dragonBlock(name) })),
 ]);
+
+/** A dragon picture by the name of its pointer. */
+function dragonBlock(name: string): Uint8Array {
+  const block = Object.entries(DRAGON_PICTURES).find(([n]) => n === name)?.[1];
+  if (!block) throw new Error(`no dragon picture ${name}`);
+  return block;
+}
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
   [SPRITE.token, MOSCOW_ITEMS.metroToken.colour], [SPRITE.ushanka, MOSCOW_ITEMS.ushanka.colour], [SPRITE.pirozhok, MOSCOW_ITEMS.pirozhok.colour],
   [SIB_SPRITE.lamp, SIBERIA_ITEMS.lamp.colour], [SIB_SPRITE.ticket, SIBERIA_ITEMS.ticket.colour], [SIB_SPRITE.pelmeni, SIBERIA_ITEMS.pelmeni.colour],
+  [CHINA_SPRITE.key, CHINA_ITEMS.towerKey.colour], [CHINA_SPRITE.riceHat, CHINA_ITEMS.riceHat.colour], [CHINA_SPRITE.bamboo, CHINA_ITEMS.bamboo.colour],
+  [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
   ...ITEM_SPRITES,
@@ -83,16 +89,19 @@ const itemSprites: MontyData['itemSprites'] = {
 
 /** Moscow's decorations are the first decoration types. */
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
-const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS], bankImage, SPRITE.pirozhok);
+const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
-const USHANKA = specialIndex(ROOMS, 'ushanka');
+const USHANKA_ITEM = specialIndex(ROOMS, 'ushanka');
 const PIROZHKI = listSpecials(ROOMS).filter((e) => e.item === null).map((e) => e.index);
 const LAMP = specialIndex(ROOMS, 'lamp');
 const TICKET = specialIndex(ROOMS, 'ticket');
-/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2')];
+const KEY = specialIndex(ROOMS, 'key');
+const RICE_HAT = specialIndex(ROOMS, 'rice hat');
+const BAMBOO = specialIndex(ROOMS, 'bamboo');
+/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings. */
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2')];
 
 /** The playfield cells (row, column) of a rectangle, in the screen's cells (the playfield starts at column 4, row 3). */
 function screenCells(c0: number, r0: number, c1: number, r1: number): [row: number, col: number][] {
@@ -103,9 +112,13 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): [row: numb
 
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
-  { room: ROOM.kremlin, when: [{ taken: USHANKA }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
+  { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
   { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: [...SHAFT_LEDGES, ...SHAFT_STONE].map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
   { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
+  // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
+  { room: CHI.tower, when: [{ taken: KEY }], clear: TRAPDOOR_CELLS.map(([row, col]) => [row + 3, col + 4] as const), place: { code: TOWER_ROPE_CODE, cells: TRAPDOOR_ROPE.map(([row, col]) => [row + 3, col + 4] as const) } },
+  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: DOOR_CELLS.map(([row, col]) => [row + 3, col + 4] as const) }, // in the rice hat the city gate lets him by
+  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: RAFT_CELLS.map(([row, col]) => [row + 3, col + 4] as const) } }, // the bamboo is a raft out to the junk
 ];
 
 export const WORLD: MontyData = {
@@ -139,9 +152,14 @@ export const WORLD: MontyData = {
   tunnels: TUNNELS,
   cracks: CRACKS,
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS],
+  pulses: PULSES,
+  dragons: [DRAGON],
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
-  // the ushanka: once taken, Monty's pictures have it on
-  costumes: [{ item: USHANKA, blocks: WORN.monty, over: { colour: HAT_COLOUR, frames: hatFrames } }],
+  // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last
+  costumes: [
+    { item: USHANKA_ITEM, blocks: [...USHANKA_WORN.monty, ...USHANKA.blocks], over: { colour: HAT_COLOUR, frames: USHANKA.frames } },
+    { item: RICE_HAT, blocks: [...RICE_WORN.monty, ...RICE.blocks], over: { colour: RICE_HAT_COLOUR, frames: RICE.frames } },
+  ],
   flashingBases: null,
   bollard: null,
   risingCloud: null,
@@ -152,20 +170,26 @@ export const WORLD: MontyData = {
   hints: {
     take: [
       { item: TOKEN, text: 'TOKEN: FOR THE METRO TURNSTILE' },
-      { item: USHANKA, text: 'FUR HAT: PAST THE KREMLIN GUARD' },
+      { item: USHANKA_ITEM, text: 'FUR HAT: PAST THE KREMLIN GUARD' },
       { item: LAMP, text: 'LAMP: SHOWS THE MINE\'S LEDGES' },
       { item: TICKET, text: 'TICKET: FOR THE BORDER BARRIER' },
+      { item: KEY, text: 'KEY: FOR THE TOWER\'S TRAPDOOR' },
+      { item: RICE_HAT, text: 'RICE HAT: PAST THE CITY GATE' },
+      { item: BAMBOO, text: 'BAMBOO: A RAFT OUT TO THE JUNK' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },
-      { room: ROOM.kremlin, item: USHANKA, text: 'THE GUARD WANTS A FUR HAT' },
+      { room: ROOM.kremlin, item: USHANKA_ITEM, text: 'THE GUARD WANTS A FUR HAT' },
       { room: SIB.shaft, item: LAMP, text: 'TOO DARK TO SEE: FIND A LAMP' },
       { room: SIB.border, item: TICKET, text: 'THE BARRIER WANTS A TICKET' },
+      { room: CHI.tower, item: KEY, text: 'THE TRAPDOOR WANTS A KEY' },
+      { room: CHI.gate, item: RICE_HAT, text: 'THE CITY GATE WANTS A RICE HAT' },
+      { room: CHI.junk, item: BAMBOO, text: 'OUT TO THE JUNK: FIND BAMBOO' },
     ],
   },
   // the map shows a region's four columns while he is in them
   regions: WORLD_REGIONS.map(({ from, to }) => ({ from, to })),
-  progress: { keyItems: [TOKEN, USHANKA, LAMP, TICKET], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
       [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',

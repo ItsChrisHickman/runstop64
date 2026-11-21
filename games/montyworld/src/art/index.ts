@@ -4,6 +4,8 @@
  * frames) and items (hires sprite blocks). Every piece is new, made for this game in Monty on the Run's style; how each is
  * written and what it becomes is in pixels.ts, and the shapes are in types.ts.
  */
+export * from './china-dragon';
+export * from './china-items';
 export * from './creatures';
 export * from './decorations';
 export * from './escalator';

@@ -153,6 +153,29 @@ export type CharAnim =
   | { readonly kind: 'scroll'; readonly room: number; readonly rings: readonly (readonly CharRef[])[]; readonly dx: 1 | -1; readonly px: number; readonly every: number; readonly fromCol?: number }
   | { readonly kind: 'cycle'; readonly room: number; readonly chars: readonly CharRef[]; readonly frames: readonly Uint8Array[]; readonly every: number; readonly fromCol?: number };
 
+/**
+ * Timed strikes (pulses.ts): the cells `cols` wide and `rows` tall at playfield cell `col`, `row` are harmless at rest (the room's character `idle`, 0 for
+ * empty), flicker with `warn` for `warn` frames (the warning: a lit fuse, an arm twitching) from `start` frames into each `period` of the room's, are deadly
+ * for `live` frames (shown as `live`: a bang, an arm reaching down), then show `spent` (a scrap; 0 empty) until the period comes round. Codes are the room's
+ * characters 1-8. A string of firecrackers is a row of these started one after another.
+ */
+export interface PulseSpec {
+  room: number; col: number; row: number; cols: number; rows: number;
+  period: number; start: number; warn: number; live: number;
+  idle: number; warnCode: number; liveCode: number; spent: number;
+}
+
+/**
+ * A dragon (dragons.ts): pieces on sprites of their own that follow one closed path through the room, `speed` pixels a frame, each `gap` pixels of the path
+ * behind the one in front, the first leading. `path`: the corners of the path as playfield cells (the top left of the first piece's picture, fractions
+ * allowed), made smooth. A piece is shown on the VIC sprite `sprite` in `colour` as the pictures `frames` (sprite pointers: the pictures of going left, then those of going right, as many each; the head's two are its mouth open and shut); each is a 24 by 21 hires block.
+ * Anything of Monty it touches is death.
+ */
+export interface DragonSpec {
+  room: number; path: readonly (readonly [col: number, row: number])[]; speed: number; gap: number;
+  pieces: readonly { sprite: number; frames: readonly number[]; colour: number }[];
+}
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -241,6 +264,8 @@ export interface MontyData extends RoomTables, MontyLook {
   cracks: readonly CrackSpec[];
   /** Characters that scroll or cycle as the room runs (a train's window and the ground under it); none in Monty on the Run. */
   charAnims: readonly CharAnim[];
+  pulses: readonly PulseSpec[];
+  dragons: readonly DragonSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

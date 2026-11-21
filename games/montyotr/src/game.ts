@@ -9,6 +9,8 @@ import * as Items from './items';
 import * as Scripts from './scripts';
 import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
 import { crackInit, crackUpdate, type CrackState } from './cracks';
+import { dragonInit, dragonUpdate, type DragonState } from './dragons';
+import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -191,6 +193,9 @@ export class Game implements MontyBody, MontyWorld {
   /** What the tunnel mouths drew over, by screen cell (tunnels.ts). */
   tunnelUnder = new Map<number, readonly [chr: number, colour: number]>();
   cracks: CrackState[] = [];
+  /** This room's timed strikes (pulses.ts) and dragons (dragons.ts). */
+  pulses: PulseState[] = [];
+  dragons: DragonState[] = [];
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
   /** The line in the name row, and for how long (ENHANCED's hints). */
@@ -322,6 +327,8 @@ export class Game implements MontyBody, MontyWorld {
     this.ice = [];
     this.tunnels = [];
     this.cracks = [];
+    this.pulses = [];
+    this.dragons = [];
     this.worn = null;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -385,6 +392,8 @@ export class Game implements MontyBody, MontyWorld {
       icicleUpdate(this);
       tunnelUpdate(this);
       crackUpdate(this);
+      pulseUpdate(this);
+      dragonUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -566,6 +575,8 @@ export class Game implements MontyBody, MontyWorld {
     icicleInit(this);
     tunnelInit(this);
     crackInit(this);
+    pulseInit(this);
+    dragonInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);
