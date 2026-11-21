@@ -42,15 +42,127 @@ function diningTable(): NewDecor {
   return decor('diningTable', 3, 2, r, ['777', '111']);
 }
 
-/** A carriage window: a frame, the frosted pane with the snow going by in streaks, a curtain at each side. 2 x 2 characters. */
-function carWindow(): NewDecor {
+/**
+ * What goes by a carriage window: a strip of landscape 24 pixels wide and 16 tall that joins up with itself at the edges (a tall pine, a
+ * telegraph pole with its cross-arm, a small pine, the snow along the foot), so the train's window can slide it past for ever (`charAnims`).
+ */
+function scenery(): Raster {
+  const r = new Raster(24, 16);
+  r.triangle(6, 0, 1, 8, 11, 8); r.triangle(6, 3, 0, 12, 12, 12); // the tall pine: two tiers
+  r.rect(1, 8, 11, 8, false); r.rect(0, 12, 12, 12, false); // the dark under each tier
+  r.rect(5, 13, 6, 15);
+  r.rect(15, 2, 15, 15); r.rect(12, 4, 18, 4); r.rect(12, 3, 12, 3); r.rect(18, 3, 18, 3); r.rect(13, 7, 17, 7); // the pole, its arm and its wires' glass
+  r.triangle(20, 6, 17, 12, 23, 12); r.rect(19, 13, 20, 15); // the small pine
+  r.rect(17, 12, 23, 12, false);
+  r.rect(0, 15, 23, 15); // the snow along the foot
+  return r;
+}
+
+/**
+ * A carriage window, 5 x 4 characters: a lintel, a curtain at each side, the landscape in the middle (the 3 x 2 characters of `scenery`: the
+ * game slides them past, the same in every window of a room), the sill. Its characters are the room's own: row 1 and 2, columns 1-3 are the
+ * moving ones (`WINDOW_SCENERY`).
+ */
+function trainWindow(): NewDecor {
+  const r = new Raster(40, 32);
+  r.rect(0, 0, 39, 2); // the lintel
+  r.rect(0, 3, 5, 25); r.rect(34, 3, 39, 25); // the curtains
+  r.rect(2, 5, 2, 25, false); r.rect(37, 5, 37, 25, false); // their folds
+  const land = scenery();
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 24; x++) if (land.get(x, y)) r.set(8 + x, 8 + y);
+  r.rect(0, 26, 39, 28); // the sill
+  r.rect(2, 29, 37, 29);
+  return decor('trainWindow', 5, 4, r, ['77777', '25552', '21112', '77777']);
+}
+
+/** The rows of the window's characters that move (row 1 and 2, columns 1-3, counted row by row in its 5 x 4), as rings: one a row. */
+export const WINDOW_SCENERY: readonly (readonly number[])[] = [[6, 7, 8], [11, 12, 13]];
+
+/** The bellows between two cars at a gangway: a ribbed hood over the doorway and ribbed sides, the way through black between. 2 x 2 characters. */
+function gangway(): NewDecor {
   const r = new Raster(16, 16);
-  r.rect(0, 0, 15, 15);
-  r.rect(2, 2, 13, 13, false);
-  for (const [x, y, n] of [[4, 4, 4], [8, 6, 3], [5, 9, 5], [9, 11, 3]] as const) r.rect(x, y, x + n, y); // streaks of snow
-  r.rect(2, 2, 3, 13); r.rect(12, 2, 13, 13); // the curtains
-  r.rect(3, 4, 3, 11, false); r.rect(12, 4, 12, 11, false);
-  return decor('carWindow', 2, 2, r, ['22', '22']);
+  r.rect(0, 0, 15, 4); r.rect(0, 5, 2, 15); r.rect(13, 5, 15, 15);
+  for (const x of [3, 6, 9, 12]) r.rect(x, 0, x, 4, false); // the folds of the hood
+  for (const y of [7, 10, 13]) { r.rect(0, y, 2, y, false); r.rect(13, y, 15, y, false); } // and of the sides
+  return decor('gangway', 2, 2, r, 11);
+}
+
+/** A carriage's open door: the frame, a grab-rail in it and the step. 2 x 2 characters. */
+function carDoor(): NewDecor {
+  const r = new Raster(16, 16);
+  r.rect(0, 0, 15, 2); r.rect(0, 3, 1, 15); r.rect(14, 3, 15, 15);
+  r.rect(4, 4, 4, 14); r.rect(4, 4, 6, 4); // the grab-rail
+  r.rect(2, 15, 13, 15);
+  return decor('carDoor', 2, 2, r, 7);
+}
+
+/** A ventilator on a carriage roof: a cowl on its base. 2 x 1 characters. */
+function roofVent(): NewDecor {
+  const r = new Raster(16, 8);
+  r.ellipse(8, 4.5, 7, 3.5); r.rect(3, 6, 12, 7);
+  r.rect(7, 2, 8, 4, false);
+  return decor('roofVent', 2, 1, r, 12);
+}
+
+/** The stovepipe of a car's stove, on the roof, with a puff of smoke. 1 x 3 characters. */
+function stovepipe(): NewDecor {
+  const r = new Raster(8, 24);
+  r.ellipse(3, 4, 3, 2.4); r.ellipse(5.5, 2.5, 2, 1.8); // the smoke
+  r.rect(2, 9, 5, 23); r.rect(1, 8, 6, 9); // the pipe and its cap
+  r.rect(3, 12, 3, 20, false);
+  return decor('stovepipe', 1, 3, r, ['1', '1', 'b']);
+}
+
+/** A ceiling lamp: the cord, a shade and its glow. 1 x 2 characters. */
+function carLamp(): NewDecor {
+  const r = new Raster(8, 16);
+  r.rect(3, 0, 4, 4);
+  r.triangle(0, 9, 3.5, 4, 7, 9); r.rect(0, 9, 7, 9);
+  r.rect(2, 11, 5, 14); r.rect(3, 12, 4, 13, false);
+  return decor('carLamp', 1, 2, r, 7);
+}
+
+/** The dining car's samovar on its counter: a bulb with a chimney, a lid and a tap. 2 x 3 characters. */
+function diningSamovar(): NewDecor {
+  const r = new Raster(16, 24);
+  r.rect(7, 2, 8, 6); r.rect(5, 5, 10, 6); // the chimney and its lid
+  r.ellipse(8, 11, 5.5, 5); r.rect(13, 9, 15, 10); r.rect(14, 11, 14, 12); // the bulb and the tap
+  r.rect(5, 11, 11, 11, false); r.rect(5, 14, 11, 14, false);
+  r.rect(0, 16, 15, 23); r.rect(1, 19, 14, 19, false); r.rect(7, 20, 8, 23, false); // the counter
+  return decor('diningSamovar', 2, 3, r, ['77', '77', '99']);
+}
+
+/** A locomotive cab's pressure gauge: a round dial, its needle over the red. 2 x 2 characters. */
+function cabGauge(): NewDecor {
+  const r = new Raster(16, 16);
+  r.disc(8, 8, 7.5);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (Math.hypot(x - 7.5, y - 7.5) <= 5.2) r.set(x, y, false);
+  r.line(8, 8, 12, 4); r.rect(7, 7, 8, 8);
+  return decor('cabGauge', 2, 2, r, 7);
+}
+
+/** The firebox door of the cab: a grate in a hot orange door. 2 x 2 characters. */
+function cabFire(): NewDecor {
+  const r = new Raster(16, 16);
+  r.rect(1, 1, 14, 15);
+  for (const x of [4, 7, 10]) r.rect(x, 4, x, 12, false);
+  r.rect(2, 8, 13, 8, false);
+  r.rect(6, 0, 9, 0);
+  return decor('cabFire', 2, 2, r, 8);
+}
+
+/** A buffer at a car's end, under the floor: the plate on its stem. 1 x 1 character. */
+function buffer(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(0, 1, 7, 2); r.rect(3, 3, 4, 7);
+  return decor('buffer', 1, 1, r, 12);
+}
+
+/** The axle bar between a bogie's two wheels. 1 x 1 character. */
+function bogieBar(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(0, 3, 7, 4); r.rect(2, 1, 5, 2);
+  return decor('bogieBar', 1, 1, r, 12);
 }
 
 /** A sleeper's bunks: two berths, a pillow and a rolled blanket each, the ladder between. 3 x 2 characters. */
@@ -164,7 +276,17 @@ export const SIBERIA_DECOR = {
   pineTall: pine(3, 6, 4, 'pineTall'),
   pineSmall: pine(2, 3, 2, 'pineSmall'),
   diningTable: diningTable(),
-  carWindow: carWindow(),
+  trainWindow: trainWindow(),
+  gangway: gangway(),
+  carDoor: carDoor(),
+  roofVent: roofVent(),
+  stovepipe: stovepipe(),
+  carLamp: carLamp(),
+  diningSamovar: diningSamovar(),
+  cabGauge: cabGauge(),
+  cabFire: cabFire(),
+  bogieBar: bogieBar(),
+  buffer: buffer(),
   bunk: bunk(),
   coalBucket: coalBucket(),
   boulders: boulders(),

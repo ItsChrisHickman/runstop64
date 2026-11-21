@@ -136,6 +136,23 @@ export interface TunnelSpec {
  */
 export interface CrackSpec { room: number; col: number; cols: number; row: number; codes: readonly [number, number, number]; crack: number; wide: number; gone: number; away: number }
 
+/**
+ * A character an animation moves: a room's own (its code 1-8), or one of a decoration's (the cell `cell` of its type `decor`, counted
+ * row by row, the decoration being in the room: its characters are the room's own for as long as it is there).
+ */
+export type CharRef = number | { readonly decor: number; readonly cell: number };
+
+/**
+ * Characters that change picture as a room runs (charanim.ts), every `every` steps (a step is every other frame):
+ * - `scroll`: each ring of `rings` is a strip of characters side by side whose picture slides `px` pixels left (`dx` -1) or right (1) a time,
+ *   what leaves one end coming in at the other: landscape going by a window, the sleepers under a train;
+ * - `cycle`: `chars` take the next of `frames` in turn (`chars.length * 8` bytes each): a wheel's spokes.
+ * `fromCol`: it runs only while Monty is at that playfield column or beyond (a train that pulls out when he is aboard); none: always.
+ */
+export type CharAnim =
+  | { readonly kind: 'scroll'; readonly room: number; readonly rings: readonly (readonly CharRef[])[]; readonly dx: 1 | -1; readonly px: number; readonly every: number; readonly fromCol?: number }
+  | { readonly kind: 'cycle'; readonly room: number; readonly chars: readonly CharRef[]; readonly frames: readonly Uint8Array[]; readonly every: number; readonly fromCol?: number };
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -222,6 +239,8 @@ export interface MontyData extends RoomTables, MontyLook {
   icicles: readonly IcicleSpec[];
   tunnels: readonly TunnelSpec[];
   cracks: readonly CrackSpec[];
+  /** Characters that scroll or cycle as the room runs (a train's window and the ground under it); none in Monty on the Run. */
+  charAnims: readonly CharAnim[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

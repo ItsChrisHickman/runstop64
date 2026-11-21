@@ -11,6 +11,8 @@ import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorR
 import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
+import { animateChars, charAnimInit, type LiveAnim } from './charanim';
+import { decorChars } from './decor-chars';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
@@ -63,26 +65,6 @@ export interface Assists {
 
 /** Where Monty came into a room (the room's cell, his place, the way he faced): where a death starts him again. */
 export interface Entry { mapRow: number; exitCol: number; x2: number; y: number; facing: number }
-
-/**
- * Decor.CalculateRoom's characters: each decoration type in a room takes the next characters from $9B
- * up (w × h of them) the first time it's placed; a type that doesn't fit in the pool (to $FF) isn't
- * drawn, as in the original. By type: its first character, or 0.
- */
-function decorChars(data: MontyData, roomId: number) {
-  const { decorRooms, decorTypes } = data;
-  const first = new Int16Array(decorTypes.length).fill(0);
-  let alloc = 0x9b;
-  for (let i = 0; i + 3 < decorRooms.length; i += 4) {
-    if (decorRooms[i] !== roomId) continue;
-    const type = decorRooms[i + 3], t = decorTypes[type];
-    if (!t || first[type]) continue;
-    if (alloc + t.w * t.h > 0xff) continue; // pool exhausted: the original skips it too
-    first[type] = alloc;
-    alloc += t.w * t.h;
-  }
-  return first;
-}
 
 export interface Enemy {
   x: number; y: number; colour: number; type: number; flags: number; range: number; step: number; speed: number;
@@ -199,6 +181,9 @@ export class Game implements MontyBody, MontyWorld {
   esc: EscalatorRide = { ...NO_RIDE };
   /** The treads' turning (escalators.ts): the steps taken so far. */
   treadTick = 0;
+  /** This room's animated characters (charanim.ts) and the steps taken. */
+  charAnims: LiveAnim[] = [];
+  charTick = 0;
   /** This room's icicles (icicles.ts). */
   ice: IcicleState[] = [];
   /** This room's tunnel mouths (tunnels.ts) and cracking ice (cracks.ts). */
@@ -594,6 +579,7 @@ export class Game implements MontyBody, MontyWorld {
     this.setupEnemies();
     Items.applyRoomEffects(this);
     this.decorate();
+    charAnimInit(this);
     this.populateColourRam();
     Mech.piledriverRoomInit(this);
     Items.spawnForRoom(this);
@@ -807,6 +793,7 @@ export class Game implements MontyBody, MontyWorld {
   private animateThemeChar() {
     animateTheme(this.mem, this.roomFlags);
     animateTreads(this);
+    animateChars(this);
   }
 
   // ---- life lost (original Death.LifeLost) -------------------------------------------

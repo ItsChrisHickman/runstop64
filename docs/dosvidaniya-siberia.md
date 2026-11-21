@@ -143,3 +143,25 @@ coin and find, slow set), `siberia-mechanisms.ts` (46 checks, fast: also the gan
 `music.ts` and all of Monty on the Run's tests (trace and title with /tmp/motr.prg included) pass unchanged but for Moscow's counts now being a part of the whole.
 Pictures: /root/projects/runstop64-shots/siberia/ (room-*.png from the real engine, compare-*.png beside Monty on the Run's, sheet.png, shaft-lit.png,
 tunnel-*.png, ice-*.png, siberia-map.png, art/ for tiles, decorations and creatures).
+
+## The train, reworked (2026-11-21)
+
+Chris on the first Siberia: "it doesn't actually feel like it's a train... rooms with words that say their carts". The train is now drawn
+as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as itself). Route logic, room ids and saves are as they were
+(the hatches' ropes are iron ladders now; the end blocks above the roofs are gone, the sky is open).
+
+- **A car** is a side view on the rails: the roof's walkway with its edge curving away under it (and vents, the dining car's stovepipe), the
+  car's far wall in ribbed green cladding with a row of curtained windows (the landscape going by in each), the inside in front of it (the floor,
+  the end walls, the bellows of a gangway over each opening, tables and a samovar, berths), buffers at both ends, the bogies' red wheels with an
+  axle bar and the rail on its sleepers. RESTAURANT is a board along the dining car's side. The tender is an open wagon of coal with the
+  locomotive's cab at its end: roof, back plate with the pressure gauge and the firebox door, the boiler rising behind.
+- **It moves** (the engine's `charAnims`, MontyData: none in Monty on the Run): the landscape in the windows (a tall pine, a telegraph pole with
+  its arm, a small pine, the snow) slides west a pixel a step, the sleepers two pixels a step (the nearer, the faster), the wheels turn
+  their spokes; a step is every other frame, nothing shakes. No clickety-clack on the SID: the engine's sound model plays Hubbard's driver's
+  effects only, none of them a rhythm of that kind.
+- **Boarding** (Moscow's station, `moscow.ts`): he drops onto the platform, the last car stands at its edge, he walks through the open door and
+  the train starts to roll as he steps in (`fromCol` 22: the windows, sleepers and wheels begin); the hatch's ladder in the car climbs to the roof
+  and the roof goes on east to the dining car. (Before, the drop landed on a carriage roof.)
+- **Checks**: `test/train.ts` (the animations: the windows' pictures move and wrap, the sleepers slide, the wheels cycle, the station's train
+  stands until he is aboard, Monty on the Run has none); the bot (`siberia.ts`) now starts on the platform; `moscow.ts`'s last leg boards the train.
+  Pictures: /root/projects/runstop64-shots/siberia-train/ (`test/train-shots.ts`).

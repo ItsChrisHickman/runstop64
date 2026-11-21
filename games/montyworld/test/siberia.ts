@@ -1,8 +1,8 @@
 /**
- * Siberia, played by a bot from Moscow's carriage roof to the village's barrier (docs/dosvidaniya-siberia.md): the bot (bot.ts) searches
+ * Siberia, played by a bot from Moscow's platform, through the train, to the village's barrier (docs/dosvidaniya-siberia.md): the bot (bot.ts) searches
  * the game's own frames for a way to each goal in siberia-route.ts (every coin, both pelmeni, the ticket, the lamp, tunnel mouths and cracking
  * ice and all), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after
- * Moscow: on the station's roof, with Moscow's four finds and the hat on. (The way back west, the gangways, the loop and the no-trap checks are in siberia-mechanisms.ts.)
+ * Moscow: on the platform where the Kremlin's gorge drops him (the train is boarded and climbed, the first leg), with Moscow's four finds and the hat on. (The way back west, the gangways, the loop and the no-trap checks are in siberia-mechanisms.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia.ts [original|enhanced]
  */
@@ -28,7 +28,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   // Moscow done: the token, the ushanka (worn) and the two pirozhki are his
   for (let i = 0; i < 4; i++) live.g.siCollected[i] = 0x81;
   wear(live.g, itemIndex(live.g, ROOM.platform, 1));
-  enterRoom(live.g, ROOM.station, 0x0c + (20 + 4) * 4, standY(9));
+  enterRoom(live.g, ROOM.station, 0x0c + (16 + 4) * 4, standY(17));
   for (let n = 0; n < 200 && (live.g.freeze || live.g.script); n++) frame(live, NONE);
 
   let frames = 0, nodes = 0;

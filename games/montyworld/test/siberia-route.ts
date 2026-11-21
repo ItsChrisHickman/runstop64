@@ -8,7 +8,7 @@ import { ROOM } from '../src/moscow';
 import { coin, into, item, leg, stands, type Leg } from './route';
 
 export const SIBERIA_LEGS: readonly Leg[] = [
-  leg('I to A: along the carriage roof into the dining car', into(SIB.gravy, 31, 7, ROOM.station)),
+  leg('I to A: aboard, up the hatch ladder, along the roof into the dining car', into(SIB.gravy, 31, 7, ROOM.station)),
   leg('A: down the first hatch to the pelmeni in the left pocket', item(SIB.gravy, 0, [3, 15])),
   leg('A: along the car past the inspector to the coin in the right pocket', coin(SIB.gravy, 28, 15)),
   leg('A: up the second rope to the roof', stands(SIB.gravy, 9, 27, 29)),

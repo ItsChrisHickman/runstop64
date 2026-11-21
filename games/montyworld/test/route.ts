@@ -97,5 +97,5 @@ export const LEGS: readonly Leg[] = [
   leg('K: the coin past the gorge (the guard has stepped aside)', coin(ROOM.kremlin, 25, 4)),
   leg('K to I: the drop', into(ROOM.station, 16, 18, ROOM.kremlin)),
   leg('I: the coin in the pocket', coin(ROOM.station, 2, 16)),
-  leg('I: along the roof to the edge', stands(ROOM.station, 9, 27, 28)),
+  leg('I: along the platform, aboard through the door, up the hatch ladder to the roof', stands(ROOM.station, 9, 30, 31)),
 ];

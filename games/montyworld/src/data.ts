@@ -8,8 +8,8 @@ import {
 import {
   CART, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST, HAT_COLOUR, ushankaWorn,
 } from './art';
-import { ESCALATORS, ICICLES, MOSCOW_ROOMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, LIFTS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
+import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 
@@ -138,6 +138,7 @@ export const WORLD: MontyData = {
   icicles: ICICLES,
   tunnels: TUNNELS,
   cracks: CRACKS,
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS],
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // the ushanka: once taken, Monty's pictures have it on
   costumes: [{ item: USHANKA, blocks: WORN.monty, over: { colour: HAT_COLOUR, frames: hatFrames } }],

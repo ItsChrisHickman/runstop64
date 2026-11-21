@@ -1,7 +1,8 @@
-import type { EscalatorSpec, IcicleSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, EscalatorSpec, IcicleSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { bandFrames, BAND_ORDER } from './art/escalator';
 import { codeOf, Grid, room, type Palette } from './layout';
+import { bogieBars, buffersAt, CAR, farWall, hatch, trainAnims, undercarriage, windowAt } from './train';
 
 /**
  * Moscow, the first region of Do Svidaniya Monty (docs/dosvidaniya-moscow.md): nine rooms in a block four wide and three high
@@ -91,6 +92,17 @@ const DOWN: EscalatorSpec = { room: ROOM.hall, col: 13, row: 9, dx: 1, dy: 1, co
 /** The platform's: up from the lane's foot to the gallery's head, 8 along and 8 up in 96 frames (2 seconds). */
 const UP: EscalatorSpec = { room: ROOM.platform, col: 20, row: 17, dx: 1, dy: -1, cols: 8, rows: 8, frames: 96, treads: treadsOf(PLATFORM_PALETTE, BAND, 'up') };
 export const ESCALATORS: readonly EscalatorSpec[] = [DOWN, UP];
+
+/**
+ * The platform's car: the passenger car's characters (train.ts) in the same places, with the Kremlin's brick for the platform and the wall over it.
+ * The train stands until he is aboard (from column 22, inside the door).
+ */
+const STATION_PALETTE = {
+  D: ['roofDeck', 12], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
+} as const satisfies Palette;
+const STATION_BOGIES = [22, 27] as const;
+/** What moves once he is aboard (from column 22): the windows, the sleepers, the wheels. */
+export const STATION_ANIMS: readonly CharAnim[] = trainAnims(ROOM.station, STATION_PALETTE, true, 22);
 
 export const ICICLES: readonly IcicleSpec[] = [
   { room: ROOM.streets, col: 11, row: 9, floor: 17 }, { room: ROOM.streets, col: 15, row: 9, floor: 17 },
@@ -208,24 +220,28 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // I SIBERIA YOU LATER: drop in onto the roof of a long carriage; along it to the way out at the right, into Siberia's first car (siberia.ts).
-  // A pocket at the left (steps down off the roof's end, luggage to climb back) holds a coin.
+  // I SIBERIA YOU LATER: the Trans-Siberian's platform. He drops in through the Kremlin's gorge onto the platform, a lamp and a bench on it, and the last
+  // car of the train standing at its edge: the open door at its end, the windows (no scenery moves yet), the roof, the wheels on the rail. Through the door
+  // he is aboard: the train starts to roll (the windows, the sleepers and the wheels) as he steps in; the hatch's rope in the car climbs to the roof, and the roof
+  // goes on east to the dining car (siberia.ts). The car's other end is shut. A coin at the platform's far end.
   room({
-    id: ROOM.station, cell: [1, 3], sector: 5,
-    palette: { K: ['kremlinBrick', 2], C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], T: ['trainSide', 5], X: ['crate', 9], P: ['planks', 8] },
+    id: ROOM.station, cell: [1, 3], sector: 5, palette: STATION_PALETTE,
     paint(g) {
-      roof(g, 2, [[0, 5], [20, 27]]);
-      g.clear(15, 0, 18, 1);
-      g.box(0, 2, 0, 16, 'P').box(30, 2, 31, 5, 'P'); // (the way on, east, is open at rows 6-8: along the roof into Siberia)
-      g.box(0, 17, 31, 19, 'K');
-      g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 11, 16, 'X'); // the luggage back up (a run-up in the pocket)
-      g.box(12, 9, 31, 9, 'G').box(12, 10, 31, 16, 'T'); // the carriage
+      g.box(0, 0, 31, 1, 'K').clear(15, 0, 18, 1).box(0, 2, 0, 16, 'K'); // the Kremlin's wall over the platform, the gorge, the west wall
+      g.box(0, 17, 19, 19, 'K'); // the platform
+      g.box(20, CAR.roof, 31, CAR.roof, 'D'); farWall(g, 22, 29); // the car's roof, the wall behind
+      g.box(20, 10, 21, 14, 'T').box(30, 10, 31, 16, 'T'); // its rear wall (the door open below), its far end
+      hatch(g, 28);
+      undercarriage(g, 20, 31, STATION_BOGIES);
     },
     coins: [[2, 16]],
-    decor: [[{ text: 'TRAIN TO SIBERIA', colour: 7 }, 9, 4], ['stationClock', 4, 4]],
+    decor: [
+      [{ text: 'TRAIN TO SIBERIA', colour: 7 }, 2, 3], ['stationClock', 4, 6], ['lampStreet', 11, 13], ['bench', 6, 15],
+      ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...bogieBars(STATION_BOGIES), ...buffersAt(20, 31),
+    ],
     creatures: [
-      { who: 'balalaika', col: 12, row: 7, way: 'right', speed: 1, range: 24 },
-      { who: 'samovar', col: 22, row: 7, way: 'right', speed: 1, range: 40 },
+      { who: 'balalaika', col: 13, row: 15, way: 'right', speed: 1, range: 24 },
+      { who: 'samovar', col: 21, row: 7, way: 'right', speed: 1, range: 24 },
     ],
   }),
 

@@ -62,6 +62,11 @@ export const FIRST_CREATURE = 35;
 const creatureNames = Object.keys(WORLD_CREATURES);
 const decorNames = Object.keys(WORLD_DECOR);
 
+/** A decoration's type number (its place in the game's decoration list: what a `charAnims` entry names it by). */
+export function decorIndex(name: WorldDecor): number {
+  return decorNames.indexOf(name);
+}
+
 /** A palette letter's code (1-8). */
 export function codeOf(palette: Palette, letter: string): number {
   return Object.keys(palette).indexOf(letter) + 1;

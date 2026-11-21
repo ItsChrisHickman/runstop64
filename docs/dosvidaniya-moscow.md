@@ -104,9 +104,12 @@ guard, who paces the whole arch (it fills the walkway: he cannot be jumped), one
 the way on is a floor gap (cols 15-18): a drop into I. Past the gap a stub of walkway (cols 20-30) with a coin. Nothing else opens.
 Shape: a walk-through that ends in a drop.
 
-**I SIBERIA YOU LATER.** Drop in through the ceiling (cols 15-18) onto the roof of a long carriage (solid row 9, cols 8-31). Out:
-the right edge (rows 6-8) along the roof, into Siberia. A pocket at the left (cols 0-7, floor) is reached by stepping off the roof's
-end, with a coin; climb luggage back up. No way back up to K (the pause map's travel covers it).
+**I SIBERIA YOU LATER.** (Reworked 2026-11-21, Chris: the train must feel like a train; the station was a roof with a sign.) Drop in
+through the ceiling (cols 15-18) onto the platform (floor row 17, cols 0-19: a lamp, a bench, the clock, TRAIN TO SIBERIA on a board, a coin at
+its far end), with the train's last car standing at its edge (cols 20-31, drawn as the rest of the train: train.ts): the open door at its end,
+a window, the roof, the wheels on the rail. Through the door he is aboard and the train starts to roll (the windows' landscape, the sleepers and
+the wheels move from column 22); the car's far end is shut, a hatch's ladder (col 28) climbs to the roof, and the roof goes on east (rows 6-8
+at the right edge) into Siberia. No way back up to K (the pause map's travel covers it).
 
 **F STUCK LIKE GUM** (dead end). One opening: a rope up through the floor (gap cols 19-21). Two levels: a ground floor (rows
 14-17) running left to stairs of ledges (rows 12, 9) up to a gallery (row 8, cols 0-14). The metro token lies on the gallery. A

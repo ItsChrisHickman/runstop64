@@ -3,6 +3,7 @@
  * style as Moscow's are: one bright ink on black in solid shapes cut with black lines (planks, bark, logs, rock, coal), never a
  * checker or a dither. The train's, the pines', the mine's, the lake's ice and the village's.
  */
+import { characters } from './pixels';
 import { tile } from './tiles';
 import type { NewTile } from './types';
 
@@ -18,16 +19,49 @@ export const SIBERIA_TILES = {
     '####.###',
     '........',
   ]),
-  /** The wheels under a carriage: a row of spoked wheels on the rail. Solid. */
-  bogie: tile('bogie', 1, 11, [
+  /** The wheel under a carriage: the rim, the hub and four spokes (a cross; `WHEEL_FRAMES` turns it to a saltire). Solid. */
+  wheel: tile('wheel', 1, 2, [
+    '..####..',
+    '.#.##.#.',
+    '#..##..#',
+    '########',
+    '########',
+    '#..##..#',
+    '.#.##.#.',
+    '..####..',
+  ]),
+  /** The rail on its sleepers seen from the side: the iron's head along the top, a sleeper and a gap of ballast every 8 pixels (it is made to slide sideways). Solid. */
+  rail: tile('rail', 1, 12, [
+    '########',
+    '########',
+    '.####...',
+    '.####...',
+    '.####...',
+    '.####...',
+    '........',
+    '#...#.#.',
+  ]),
+  /** A carriage's roof: the walkway along the top and the plate's thickness curving away under it, in scallops. A floor. */
+  roofDeck: tile('roofDeck', 2, 12, [
+    '########',
+    '########',
     '.######.',
-    '########',
-    '###..###',
-    '##.##.##',
-    '##.##.##',
-    '###..###',
-    '########',
-    '########',
+    '..####..',
+    '...##...',
+    '........',
+    '........',
+    '........',
+  ]),
+  /** The far wall of a carriage seen from inside: its cladding in ribs. Nothing (a picture behind him). */
+  carWall: tile('carWall', 0, 5, [
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
   ]),
   /** A heap of coal: rounded lumps with their gaps. Solid. */
   coal: tile('coal', 1, 12, [
@@ -195,5 +229,20 @@ export const SIBERIA_TILES = {
     '........',
   ]),
 } as const satisfies Record<string, NewTile>;
+
+/** The wheel's other picture: the spokes turned to a saltire (a character, as a tile's bytes). */
+export const WHEEL_FRAMES: readonly Uint8Array[] = [
+  SIBERIA_TILES.wheel.chr,
+  characters('wheel turned', [
+    '..####..',
+    '.##..##.',
+    '#.#..#.#',
+    '#..##..#',
+    '#..##..#',
+    '#.#..#.#',
+    '.##..##.',
+    '..####..',
+  ], 1, 1),
+];
 
 export type SiberiaTile = keyof typeof SIBERIA_TILES;

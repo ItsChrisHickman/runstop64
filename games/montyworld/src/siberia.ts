@@ -1,6 +1,7 @@
-import type { CrackSpec, LiftSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, CrackSpec, LiftSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { codeOf, Grid, room, type Palette } from './layout';
+import { bogieBars, buffersAt, CAR, farWall, gangwayAt, hatch, TRAIN_PALETTE, trainAnims, undercarriage, windowAt } from './train';
 
 /**
  * Siberia, the second region of Do Svidaniya Monty (docs/dosvidaniya-siberia.md): nine rooms in a block four wide and three high at
@@ -45,28 +46,32 @@ function sky(g: Grid, rows: number, drips: readonly (readonly [number, number])[
   for (const [a, b] of drips) g.box(a, rows, b, rows, drip);
 }
 
-/** Palette of the train rooms (a roof, a hatch, the car inside). */
-const TRAIN_PALETTE = {
-  C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], T: ['trainSide', 5], F: ['carFloor', 9], W: ['bogie', 11], R: ['rope', 13], X: ['tunnelFace', 12],
-} as const satisfies Palette;
-
-/** The rows of a gangway between two cars (the cars' floor is row 17, his body rows 15 and 16). */
-const GANGWAY = { top: 15, bottom: 16 } as const;
+/** The bogies of a car's rooms (the wheels' first columns: each bogie two wheels, an axle bar between). */
+const BOGIES = [4, 25] as const;
 
 /**
- * A carriage seen cut open: the roof walkway at row 9 with the hatches (floor gaps of three, a rope each), the car's floor, and the car's two
- * ends, shut but for the gangway at an end that joins the next car.
+ * A passenger car (train.ts): the roof's walkway at row 9 with its curved edge under it and the hatches (a gap of three with a rope each), the
+ * car's two ends, shut but for the gangway at an end that joins the next car, the floor, the bogies' wheels and the rail. The sky above is open:
+ * the tunnels sweep it.
  */
 function carriage(g: Grid, hatches: readonly number[], gangways: { left: boolean; right: boolean }) {
-  sky(g, 2, [[0, 3], [10, 14], [22, 27]]);
-  g.box(0, 2, 1, 5, 'T').box(30, 2, 31, 5, 'T'); // (the ends above the roof, shut over the open rows 6-8)
-  g.box(0, 9, 31, 9, 'G');
+  g.box(0, CAR.roof, 31, CAR.roof, 'D');
+  farWall(g, 2, 29);
   g.box(0, 10, 1, 16, 'T').box(30, 10, 31, 16, 'T');
-  if (gangways.left) g.clear(0, GANGWAY.top, 1, GANGWAY.bottom);
-  if (gangways.right) g.clear(30, GANGWAY.top, 31, GANGWAY.bottom);
-  g.box(0, 17, 31, 17, 'F').box(0, 18, 31, 19, 'W');
-  for (const h of hatches) g.clear(h - 1, 9, h + 1, 9).box(h, 9, h, 16, 'R');
+  if (gangways.left) g.clear(0, CAR.gangwayTop, 1, CAR.gangwayBottom);
+  if (gangways.right) g.clear(30, CAR.gangwayTop, 31, CAR.gangwayBottom);
+  undercarriage(g, 0, 31, BOGIES);
+  for (const h of hatches) hatch(g, h);
 }
+
+/** The tender's rooms: the passenger car's characters, in the same places (the wheels 4 and the rail 5), with coal and the mine's rock for the two it has no use for. */
+const TENDER_PALETTE = {
+  D: ['roofDeck', 12], K: ['coal', 12], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], M: ['mineRock', 12], R: ['ironLadder', 7],
+} as const satisfies Palette;
+const TENDER_BOGIES = [4, 24] as const;
+
+/** What goes on every car's roof and under it: a vent or two up top, the bogies' axle bars. */
+const CAR_FITTINGS = [...bogieBars(BOGIES), ...buffersAt(0, 31)] as const;
 
 // ---- the tunnels, ice and cart ------------------------------------------------------------------------
 
@@ -105,6 +110,11 @@ export const LIFTS: readonly LiftSpec[] = [
   { room: SIB.mine, x: 26 + 4 * CART_COL, y: 0x32 + (CART_FLOOR - 2 + 3) * 8 - 0x17, type: 2, speedDir: 0x80, sound: false, look: { top: SIB_SPRITE.cartTop, bottom: SIB_SPRITE.cartBottom, colour: 8 } },
 ];
 
+/** What moves in the train's rooms: the dining car's and the sleeper's windows and the tender's rail and wheels (train.ts). */
+export const TRAIN_ANIMS: readonly CharAnim[] = [
+  ...trainAnims(SIB.gravy, TRAIN_PALETTE, true), ...trainAnims(SIB.sleeper, TRAIN_PALETTE, true), ...trainAnims(SIB.coal, TENDER_PALETTE, false),
+];
+
 // ---- the dark shaft's ledges ---------------------------------------------------------------------------
 /** The shaft is dark: its rock is a dim blue, and the ledges are only felt (dots) until the lamp is taken. */
 const SHAFT_PALETTE = {
@@ -123,7 +133,7 @@ export const SHAFT_CODE = codeOf(SHAFT_PALETTE, 'B');
 export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // A THE GRAVY TRAIN: the dining car. Along the roof from Moscow's carriage, a tunnel mouth sweeping it from the front; two hatches with a
   // rope each into the car, whose floor runs between them (a pocket at the left: a pelmeni; the inspector between) and on out through the gangway
-  // at the right into the sleeper's corridor.
+  // at the right into the sleeper's corridor. Two windows with the snow going by, tables, lamps and the samovar; RESTAURANT on a board along its side.
   room({
     id: SIB.gravy, cell: [1, 4], sector: 9, palette: TRAIN_PALETTE,
     paint(g) {
@@ -131,7 +141,10 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
-    decor: [['carWindow', 4, 11], ['carWindow', 20, 11], ['carWindow', 28, 11], ['diningTable', 15, 15], ['diningTable', 19, 15], [{ text: 'RESTAURANT', colour: 7 }, 7, 13]],
+    decor: [
+      windowAt(3), windowAt(15), ['carLamp', 9, 11], ['carLamp', 21, 11], ['diningTable', 14, 15], ['diningTable', 19, 15], ['diningSamovar', 22, 14],
+      [{ text: 'RESTAURANT', colour: 7 }, 13, 10], gangwayAt(30), ['roofVent', 4, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
+    ],
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
@@ -141,31 +154,32 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.sleeper, cell: [1, 5], sector: 10, palette: TRAIN_PALETTE,
     paint(g) {
       carriage(g, [7, 15], { left: true, right: true });
-      g.clear(21, 0, 23, 1).box(22, 0, 22, 8, 'R'); // the rope up through the ceiling to the forest
+      g.box(22, 0, 22, 8, 'R'); // the rope up through the sky to the forest
     },
     coins: [[3, 15], [27, 15]],
-    decor: [['bunk', 10, 15], ['bunk', 20, 15], ['carWindow', 4, 11], ['carWindow', 11, 11], ['carWindow', 19, 11], ['carWindow', 26, 11]],
+    decor: [
+      windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15], gangwayAt(0), gangwayAt(30), ['roofVent', 3, 8], ['roofVent', 12, 8], ['roofVent', 26, 8], ...CAR_FITTINGS,
+    ],
     creatures: [{ who: 'inspector', col: 19, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
   // C COAL COMFORT: the tender. In from the roof along the rim; a hatch down to the pocket under it (the gangway from the sleeper's corridor comes in
-  // at its left); the coal in steps down to the trough (the stoker paces it) and up the heaps on the far side to the locomotive's cab, where the ticket
-  // lies; a rope from the heap at column 20 climbs through the ceiling into the mine's floor.
+  // at its left); the coal in steps down to the trough (the stoker paces it) and up the heaps on the far side to the locomotive's cab (its roof, a gauge
+  // and the firebox door in its back plate, the boiler's end rising behind), where the ticket lies; a rope from the heap climbs through the ceiling into the mine's floor.
   room({
-    id: SIB.coal, cell: [1, 6], sector: 11,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], K: ['coal', 12], T: ['trainSide', 5], F: ['carFloor', 9], W: ['bogie', 11], R: ['rope', 13] },
+    id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     paint(g) {
-      sky(g, 2, [[0, 3], [12, 18], [26, 29]]);
-      g.clear(7, 0, 9, 1).box(8, 0, 8, 10, 'R'); // the rope up into the mine
-      g.box(0, 2, 1, 5, 'T').box(30, 2, 31, 16, 'T').box(0, 10, 1, 14, 'T');
-      g.box(0, 9, 5, 9, 'G').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
+      g.box(0, 0, 31, 1, 'M').clear(7, 0, 9, 1).box(8, 0, 8, 10, 'R'); // the mine's floor over it, and the rope up into the mine
+      g.box(30, 2, 31, 8, 'T').box(0, 10, 1, 14, 'T'); // the boiler's end, and the tender's end (its gangway open below)
+      g.box(0, 9, 5, 9, 'D').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
       g.box(6, 11, 8, 16, 'K').box(9, 13, 11, 16, 'K').box(12, 15, 19, 16, 'K').box(20, 13, 22, 16, 'K').box(23, 11, 25, 16, 'K'); // the coal in steps
-      g.box(26, 9, 31, 16, 'K'); // the cab's roof (the heap's last step)
-      g.box(0, 17, 31, 17, 'F').box(0, 18, 31, 19, 'W');
+      g.box(26, 9, 31, 9, 'D').box(26, 10, 31, 16, 'T'); // the cab (its roof the heap's last step)
+      g.clear(27, 11, 28, 12).clear(27, 14, 28, 15); // the holes the gauge and the firebox door show in
+      undercarriage(g, 0, 31, TENDER_BOGIES);
     },
     coins: [[15, 13]],
     item: { name: 'ticket', col: 28, row: 7, sprite: SIB_SPRITE.ticket },
-    decor: [['coalBucket', 13, 13]],
+    decor: [['coalBucket', 13, 13], gangwayAt(0), ['cabGauge', 27, 11], ['cabFire', 27, 14], ...bogieBars(TENDER_BOGIES)],
     creatures: [{ who: 'miner', col: 12, row: 13, way: 'right', speed: 1, range: 48 }],
   }),
 
