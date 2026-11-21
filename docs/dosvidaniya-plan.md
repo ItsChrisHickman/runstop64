@@ -35,7 +35,7 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | Region | Places (the rooms) | Its own things |
 |---|---|---|
 | 1. Moscow | the station where he arrives, snowy streets, Red Square, St Basil's domes, the Kremlin wall, the GUM arcade, the metro (escalators, platforms), the Trans-Siberian's station | matryoshka dolls, guards in fur hats, pigeons, snowballs |
-| 2. Siberia | the train's roofs and carriages, frozen forest, a mine, Lake Baikal's ice | wolves, bears, icicles that fall |
+| 2. Siberia (agreed 2026-11-20) | the Trans-Siberian (roofs; the dining car, sleeper and coal tender inside), a frozen pine forest, a coal mine (a nod to Wanted: Monty Mole; mine carts as its lifts; dark rooms whose platforms show once he has the key item, a miner's lamp), Lake Baikal's ice, a village and the way into China. New mechanisms: tunnel mouths sweeping the roof (get down a hatch before one reaches you), ice that cracks if he stands too long. He keeps the ushanka (still Russia) | wolves, a bear (not Moscow's), owls, reindeer, a ticket inspector, a coal-faced miner, a yeti in one room |
 | 3. China | the Great Wall, a Beijing market, a temple, a junk on the river | dragons of the New Year dance, firecrackers |
 | 4. Japan | Tokyo rooftops and neon, a bullet train, Mount Fuji's slopes, a temple garden | ninjas, sumo, koi |
 | 5. The Pacific | a cargo ship's holds and decks, Hawaii's volcano, beaches and the luau, a cargo plane's hold | gulls, crabs, lava |
