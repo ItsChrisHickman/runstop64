@@ -9,49 +9,21 @@
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-mechanisms.ts
  */
 import { enterRoom } from '../../montyotr/src/ending';
-import type { Game, Input as Stick } from '../../montyotr/src/game';
+import type { Game } from '../../montyotr/src/game';
 import { montyMap } from '../../montyotr/src/map';
 import { MOTR } from '../../montyotr/src/motr';
 import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { ROW, SCREEN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { CART_COL, CART_FLOOR, CRACKS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ROOMS, TUNNELS } from '../src/siberia';
 import { newGame, search } from './bot';
+import { at, cell, colOf, dead, diesAt, LEFT, RIGHT, rowText, run } from './mech-kit';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
-
-const LEFT: Stick = { ...NONE, left: true };
-const RIGHT: Stick = { ...NONE, right: true };
-
-/** A game with Monty standing in a room (col, the floor's row), the creatures out of the way, holding the items (by name's index in a room). */
-function at(room: number, col: number, floor: number, holds: readonly (readonly [room: number, nth: number])[] = [], enhanced = false): State {
-  const s = newGame(WORLD, enhanced);
-  for (const [r, n] of holds) s.g.siCollected[itemIndex(s.g, r, n)] = 0x81;
-  enterRoom(s.g, room, 0x0c + (col + 4) * 4, standY(floor));
-  s.g.enemies = [];
-  s.g.enable &= 0x0f;
-  s.g.vic.enable &= 0x0f;
-  return s;
-}
-const run = (s: State, stick: Stick, frames: number) => { for (let i = 0; i < frames; i++) frame(s, stick); };
-const dead = (g: Game) => g.actionCounter !== 0 || g.script !== null;
-const colOf = (g: Game) => g.montyCol - 4;
-const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
-  const v = (g.mem[SCREEN + 24 * ROW + 4 + i] ?? 0) & 0x3f;
-  return v >= 1 && v <= 26 ? String.fromCharCode(64 + v) : v === 0 ? ' ' : String.fromCharCode(v);
-}).join('').trim();
-/** The character at a playfield cell. */
-const cell = (g: Game, col: number, row: number) => g.mem[SCREEN + (row + 3) * ROW + col + 4] ?? 0;
-/** The first frame (up to `limit`) a death happens, or -1. */
-function diesAt(s: State, stick: Stick, limit: number): number {
-  for (let f = 0; f < limit; f++) { frame(s, stick); if (dead(s.g)) return f; }
-  return -1;
-}
 
 // ---- the data ------------------------------------------------------------------------------------
 {

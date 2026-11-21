@@ -170,5 +170,5 @@ Moscow's `moscow.ts`, `mechanisms.ts`, `walk.ts`, `music.ts`, Siberia's tests an
 Pictures: /root/projects/runstop64-shots/china/ (room-*.png from the real engine with Monty in them, sheet.png, compare-*.png beside Monty on the Run's, crackers.png,
 arms.png, dragon.png, gate-shut/open.png, trapdoor-shut/open.png, junk-no-raft/raft.png, hat-*.png, china-map.png, art/ for tiles, decorations, creatures and the dragon).
 
-**What to look at in play**: the firecrackers' wait (does the string read as a fuse burning?), the dragon's street (shut about half of the time), the arms over the stones, the rice hat
+**What to look at in play**: the firecrackers' wait (does the string read as a fuse burning?), the dragon's street (a walk along it is untouched from about four starts in ten), the arms over the stones, the rice hat
 over Monty, and the rooms' fullness beside Monty on the Run's.

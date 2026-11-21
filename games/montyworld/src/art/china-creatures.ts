@@ -90,7 +90,7 @@ function cricket(): NewCreature {
     return r.rows();
   };
   const frames = [frame(1, true), frame(0, false), frame(-1, true), frame(0, false)];
-  return pair('cricket', frames, 13, true);
+  return pair('cricket', frames, 2, true);
 }
 
 // ---- the baker on his bicycle: a conical straw hat, a grin, a basket of buns, the wheels turning

@@ -9,11 +9,10 @@
  *   nice -n 15 node tools/test.mjs games/montyworld/test/mechanisms.ts
  */
 import { enterRoom } from '../../montyotr/src/ending';
-import type { Game, Input as Stick } from '../../montyotr/src/game';
-import { SCREEN, ROW } from '../../shared/monty/screen';
+import type { Game } from '../../montyotr/src/game';
 import { montyMap } from '../../montyotr/src/map';
 import { restore, snapshot } from '../../montyotr/src/save';
-import { frame, NONE, type State } from '../../montyotr/test/play';
+import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { MOTR } from '../../montyotr/src/motr';
@@ -24,32 +23,13 @@ import { MOSCOW_CREATURES } from '../src/art/creatures';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame, search } from './bot';
+import { at, colOf, dead, LEFT, RIGHT, rowText, run } from './mech-kit';
 import { itemIndex, standY } from './route';
 
 const GUARD = FIRST_CREATURE + Object.keys(MOSCOW_CREATURES).indexOf('guard');
-const LEFT: Stick = { ...NONE, left: true };
-const RIGHT: Stick = { ...NONE, right: true };
 
-/** A game with Monty standing in a room (col, the floor's row), the creatures out of the way unless `creatures`. */
-function at(room: number, col: number, floor: number, creatures = false, enhanced = false): State {
-  const s = newGame(WORLD, enhanced);
-  enterRoom(s.g, room, 0x0c + (col + 4) * 4, standY(floor));
-  if (!creatures) {
-    s.g.enemies = [];
-    s.g.enable &= 0x0f;
-    s.g.vic.enable &= 0x0f;
-  }
-  return s;
-}
 /** Whether two byte runs are the same. */
 const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.length && Array.from(a).every((v, i) => v === b[i]);
-const run = (s: State, stick: Stick, frames: number) => { for (let i = 0; i < frames; i++) frame(s, stick); };
-const dead = (g: Game) => g.actionCounter !== 0 || g.script !== null;
-const colOf = (g: Game) => g.montyCol - 4;
-const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
-  const v = (g.mem[SCREEN + 24 * ROW + 4 + i] ?? 0) & 0x3f;
-  return v >= 1 && v <= 26 ? String.fromCharCode(64 + v) : v === 0 ? ' ' : String.fromCharCode(v);
-}).join('').trim();
 
 // ---- the data -----------------------------------------------------------------------------------
 {
@@ -128,7 +108,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   for (const [name, room, col, floor, endCol, endFloor, dy, frames] of [
     ['the hall\'s, down', ROOM.hall, 11, 9, 18, 14, 1, 60], ['the platform\'s, up', ROOM.platform, 15, 17, 28, 9, -1, 96],
   ] as const) {
-    const s = at(room, col, floor, true);
+    const s = at(room, col, floor, [], false, true);
     let began = -1, ended = -1;
     for (let f = 0; f < 300; f++) {
       frame(s, f < 60 ? RIGHT : NONE);
@@ -138,7 +118,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
     check(`${name}: a ride of ${ended - began} frames (a pixel in two frames: ${frames}), he is on his feet after it at the landing (${colOf(s.g)}, floor ${endFloor}), alive, with the room's creatures running`,
       began >= 0 && ended - began === frames && colOf(s.g) === endCol && s.g.y === standY(endFloor) && !s.g.gameMode && !dead(s.g) && Math.sign(endFloor - floor) === dy);
     // the stick does nothing in the ride
-    const t = at(room, col, floor, true);
+    const t = at(room, col, floor, [], false, true);
     for (let f = 0; f < 60 && t.g.esc.index < 0; f++) frame(t, RIGHT);
     const start = { x2: t.g.x2, y: t.g.y };
     for (let f = 0; f < frames - 20; f++) frame(t, { left: true, right: false, up: dy < 0 ? false : true, down: false, fire: f % 7 === 0 });
@@ -150,7 +130,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   for (const [name, room, col, floor, landing] of [
     ['the hall\'s (the terrace)', ROOM.hall, 21, 14, 18], ['the platform\'s (the head)', ROOM.platform, 30, 9, 28],
   ] as const) {
-    const s = at(room, col, floor, true);
+    const s = at(room, col, floor, [], false, true);
     let back = false, least = 99, steady = true;
     for (let f = 0; f < 150; f++) {
       frame(s, LEFT);
@@ -219,7 +199,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   const USHANKA = itemIndex(newGame(WORLD, true).g, ROOM.platform, 1);
   const TOKEN = itemIndex(newGame(WORLD, true).g, ROOM.gum);
   const takeUshanka = (enhanced: boolean) => {
-    const s = at(ROOM.platform, 11, 15, false, enhanced);
+    const s = at(ROOM.platform, 11, 15, [], enhanced);
     for (let f = 0; f < 10 && !s.g.siCollected[USHANKA]; f++) frame(s, NONE);
     return s;
   };
@@ -241,7 +221,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   check('a new game has him bare again', fresh.worn === null && same(fresh.mem.subarray(0x54 * 64, 0x54 * 64 + 63), plain));
 
   // the hints
-  const withHints = at(ROOM.platform, 11, 15, false, true);
+  const withHints = at(ROOM.platform, 11, 15, [], true);
   for (let f = 0; f < 4; f++) frame(withHints, NONE);
   check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: PAST THE KREMLIN GUARD');
   const without = takeUshanka(false);

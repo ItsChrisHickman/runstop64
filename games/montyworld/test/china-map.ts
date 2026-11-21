@@ -21,7 +21,7 @@ drawRegionMap(out, {
   firstSector: CHI.wall, sectors: CHINA_SECTORS, stub: { row: 2, words: ['SIBERIA', 'BORDER LINE', 'CASE'] }, deadEnds: [CHI.top, CHI.alley],
   joins: [
     [-1, CHI.wall, 'W', true, 0], [CHI.wall, CHI.alley, 'W', true, 0], [CHI.alley, CHI.market, 'R', false, 0], [CHI.wall, CHI.tower, 'R', true, 0],
-    [CHI.tower, CHI.top, 'R KEY', true, 0], [CHI.tower, CHI.market, 'W', true, 0], [CHI.market, CHI.gate, 'W', true, 0],
+    [CHI.tower, CHI.top, 'R KEY', true, 0], [CHI.tower, CHI.market, 'W', true, -9], [CHI.tower, CHI.market, 'W HIGH', false, 9], [CHI.market, CHI.gate, 'W', true, 0],
     [CHI.gate, CHI.roofs, 'R HAT', true, 0], [CHI.roofs, CHI.willow, 'W', true, 0], [CHI.willow, CHI.junk, 'R', true, 0],
   ],
   legend: 'W WALK  R ROPE BOTH WAYS  KEY HAT: WHAT THE WAY WANTS  (J: THE BAMBOO OUT TO THE JUNK)',
