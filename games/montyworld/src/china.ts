@@ -74,9 +74,9 @@ const JUNK_PALETTE = {
 /**
  * The hutong's string of firecrackers: nine hung under the beam (cols 19-27, rows 7-8), lit from the left end and going off a cell every 6 frames (the fuse
  * flickering a cell ahead for 18 frames), each a bang for 12 frames, then a scrap of paper (nothing) until the string is hung again at the end of the
- * 300-frame period. The bang front moves faster than he walks (a cell in 8 frames), so he waits until the string has gone off and crosses while it is spent.
+ * 450-frame period. The bang front moves faster than he walks (a cell in 8 frames), so he waits until the string has gone off and crosses while it is spent.
  */
-const CRACKERS = { first: 19, count: 9, rows: [7, 8] as const, period: 300, lit: 170, lag: 6, warn: 18, live: 12 } as const;
+const CRACKERS = { first: 19, count: 9, rows: [7, 8] as const, period: 450, lit: 170, lag: 6, warn: 18, live: 12 } as const;
 export const CRACKER_PULSES: readonly PulseSpec[] = Array.from({ length: CRACKERS.count }, (_, k): PulseSpec => ({
   room: CHI.alley, col: CRACKERS.first + k, row: CRACKERS.rows[0], cols: 1, rows: 2,
   period: CRACKERS.period, start: CRACKERS.lit + k * CRACKERS.lag, warn: CRACKERS.warn, live: CRACKERS.live,
