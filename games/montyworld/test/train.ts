@@ -86,6 +86,6 @@ for (const [name, room, windows] of [['dining car', SIB.gravy, true], ['sleeper'
   const s = at(SIB.pines, 8, 17);
   run(s, 60);
   check('a room that is not the train\'s has no character animation but the game\'s own', s.g.charAnims.length === 0);
-  check('Monty on the Run has none', MOTR.charAnims.length === 0 && WORLD.charAnims.every((a) => [ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal].includes(a.room)));
+  check('Monty on the Run has none', MOTR.charAnims.length === 0 && WORLD.charAnims.every((a) => new Set<number>([ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal]).has(a.room)));
 }
 finish();
