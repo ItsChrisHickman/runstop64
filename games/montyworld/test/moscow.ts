@@ -19,8 +19,9 @@ for (const mode of ['original', 'enhanced'] as const) {
   let frames = 0, nodes = 0;
   for (const leg of LEGS) {
     const t0 = Date.now();
-    const found = search(live, leg.goal, leg.aim);
-    if (!found) { check(`${mode}: ${leg.name}: a way`, false); break; }
+    const stats = { exhausted: false };
+    const found = search(live, leg.goal, leg.aim, 400000, 1.5, stats);
+    if (!found) { check(`${mode}: ${leg.name}: a way (${stats.exhausted ? 'every state looked at' : 'the search limit'})`, false); break; }
     const next = play(live, found.route);
     const ok = next !== null && leg.goal(next.g);
     frames += found.route.reduce((n, [, f]) => n + f, 0);

@@ -164,14 +164,6 @@ export const MOSCOW_TILES = {
     '........',
     '........',
   ]),
-  /** The metro's down escalator (a band going down to the right: escalator.ts): its handrail, its treads (steps that run along it) and its body. Passable: he is carried over them. */
-  escalatorDownRail: DOWN.rail,
-  escalatorDownTread: DOWN.tread,
-  escalatorDownBody: DOWN.body,
-  /** The up escalator: the same band going up to the right. */
-  escalatorUpRail: UP.rail,
-  escalatorUpTread: UP.tread,
-  escalatorUpBody: UP.body,
   /** An iron ladder (rails and rungs). A rope. */
   ironLadder: tile('ironLadder', 3, 7, [
     '##....##',
@@ -315,6 +307,14 @@ export const MOSCOW_TILES = {
     '........',
     '........',
   ]),
+  /** The metro's down escalator (a band going down to the right: escalator.ts): its handrail, its treads (steps that run along it) and its body. Passable: he is carried over them. */
+  escalatorDownRail: DOWN.rail,
+  escalatorDownTread: DOWN.tread,
+  escalatorDownBody: DOWN.body,
+  /** The up escalator: the same band going up to the right. */
+  escalatorUpRail: UP.rail,
+  escalatorUpTread: UP.tread,
+  escalatorUpBody: UP.body,
 } as const satisfies Record<string, NewTile>;
 
 export type MoscowTile = keyof typeof MOSCOW_TILES;

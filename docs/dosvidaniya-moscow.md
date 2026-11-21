@@ -184,7 +184,7 @@ the map above, the bot's findings are why:
   patrols the stair's column, not the gap before the cake's dome.
 - **K**: the gorge is four columns wide and the bot jumps it to the stub's coin and back; only the guard is in the room (a second creature
   on the stub made the coin unreachable).
-- **I**: the carriage starts at column 11, so the pocket at the left has the run-up the luggage steps need. The way east is closed with
+- **I**: the carriage starts at column 12 (the third luggage step is three cells wide, so the last jump up to the roof has room), so the pocket at the left has the run-up the luggage steps need. The way east is closed with
   the planks and the sign SIBERIA COMING SOON.
 - **Creatures** (eleven kinds, none in more than two rooms): pigeon (A, D), babushka (B, H), matryoshka (C, F), samovar (F, I), egg (D);
   one room each: snowball, bear, guard, cossack, tram (the metro train's headlamp face), balalaika. Monty on the Run's 27 kinds are in 5.5

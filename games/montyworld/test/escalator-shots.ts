@@ -10,11 +10,12 @@ import { PixelRenderer, VicView } from 'c64kit';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game, Input as Stick } from '../../montyotr/src/game';
+import { wear } from '../../montyotr/src/items';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { WORLD } from '../src/data';
 import { ROOM } from '../src/moscow';
 import { newGame } from './bot';
-import { standY } from './route';
+import { itemIndex, standY } from './route';
 
 const out = process.argv[2];
 if (out === undefined) throw new Error('usage: escalator-shots.ts <out-dir>');
@@ -31,6 +32,7 @@ function shot(g: Game): Uint8Array {
 
 function start(room: number, col: number, floor: number): State {
   const s = newGame(WORLD, true);
+  wear(s.g, itemIndex(s.g, ROOM.platform, 1)); // (in the ushanka, as he is on the way back)
   enterRoom(s.g, room, 0x0c + (col + 4) * 4, standY(floor));
   s.g.enemies = [];
   s.g.enable &= 0x0f;

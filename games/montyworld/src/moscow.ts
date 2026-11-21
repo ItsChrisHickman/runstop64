@@ -218,8 +218,8 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       g.clear(15, 0, 18, 1);
       g.box(0, 2, 0, 16, 'P').box(30, 3, 31, 8, 'P');
       g.box(0, 17, 31, 19, 'K');
-      g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 10, 16, 'X'); // the luggage back up (a run-up in the pocket)
-      g.box(11, 9, 31, 9, 'G').box(11, 10, 31, 16, 'T'); // the carriage
+      g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 11, 16, 'X'); // the luggage back up (a run-up in the pocket)
+      g.box(12, 9, 31, 9, 'G').box(12, 10, 31, 16, 'T'); // the carriage
     },
     coins: [[2, 16]],
     decor: [[{ text: 'SIBERIA COMING SOON', colour: 7 }, 9, 4], ['stationClock', 4, 4]],
