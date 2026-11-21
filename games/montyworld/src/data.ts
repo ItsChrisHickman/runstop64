@@ -6,12 +6,14 @@ import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
-  CART, CHINA_ITEMS, DRAGON_PICTURES, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
+  CART, CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
   HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
 import { CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from './china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
+import { DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_SECTORS, JP, SHUTTER_CELLS, TRAINS } from './japan';
+import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
@@ -21,7 +23,7 @@ import { WORLD_REGIONS } from './regions';
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
  * Run: rooms of its own in runstop64's room format (shared/monty/rooms.ts), made of Monty on the Run's rules, music and what of its
  * tiles and sprites fit, and new tiles, decorations, creatures and items in its style (art/). So far Moscow, the first of its regions
- * (moscow.ts) and Siberia (siberia.ts): nine rooms each at the west end of a wide exit grid, the rest of the world to come a region at a time
+ * (moscow.ts), Siberia (siberia.ts), China (china.ts) and Japan (japan.ts): nine or eleven rooms each at the west end of a wide exit grid, the rest of the world to come a region at a time
  * (docs/dosvidaniya-plan.md).
  */
 
@@ -29,7 +31,7 @@ import { WORLD_REGIONS } from './regions';
 export const WORLD_COLS = 50, WORLD_ROWS = 3;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS];
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -42,6 +44,8 @@ const USHANKA_WORN = ushankaWorn(bankImage);
 const USHANKA = placeHat(USHANKA_WORN);
 const RICE_WORN = riceHatWorn(bankImage);
 const RICE = placeHat(RICE_WORN);
+const HOOD_WORN = hoodWorn(bankImage);
+const HOOD = placeHat(HOOD_WORN);
 
 /** Each dragon picture with its pointer (named one by one, so a missing picture is a compile error). */
 const DRAGON_BLOCKS = [
@@ -74,6 +78,10 @@ const bank = extendBank(bankImage, [
   { ptr: CHINA_SPRITE.bamboo, block: CHINA_ITEMS.bamboo.block },
   { ptr: CHINA_SPRITE.dumplings, block: CHINA_ITEMS.dumplings.block },
   ...DRAGON_BLOCKS,
+  { ptr: JAPAN_SPRITE.fishFood, block: JAPAN_ITEMS.jpFishFood.block },
+  { ptr: JAPAN_SPRITE.daruma, block: JAPAN_ITEMS.jpDaruma.block },
+  { ptr: JAPAN_SPRITE.sushi, block: JAPAN_ITEMS.jpSushi.block },
+  { ptr: JAPAN_SPRITE.hood, block: JAPAN_ITEMS.jpHood.block },
 ]);
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
@@ -82,6 +90,7 @@ const ITEM_COLOURS = new Map<number, number>([
   [SIB_SPRITE.lamp, SIBERIA_ITEMS.lamp.colour], [SIB_SPRITE.ticket, SIBERIA_ITEMS.ticket.colour], [SIB_SPRITE.pelmeni, SIBERIA_ITEMS.pelmeni.colour],
   [CHINA_SPRITE.key, CHINA_ITEMS.towerKey.colour], [CHINA_SPRITE.riceHat, CHINA_ITEMS.riceHat.colour], [CHINA_SPRITE.bamboo, CHINA_ITEMS.bamboo.colour],
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
+  [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
   ...ITEM_SPRITES,
@@ -93,7 +102,7 @@ const itemSprites: MontyData['itemSprites'] = {
 
 /** Moscow's decorations are the first decoration types. */
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
-const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS], bankImage, SPRITE.pirozhok);
+const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -104,8 +113,11 @@ const TICKET = specialIndex(ROOMS, 'ticket');
 const KEY = specialIndex(ROOMS, 'key');
 const RICE_HAT = specialIndex(ROOMS, 'rice hat');
 const BAMBOO = specialIndex(ROOMS, 'bamboo');
-/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2')];
+const DARUMA = specialIndex(ROOMS, 'daruma');
+const FISH_FOOD = specialIndex(ROOMS, 'fishFood');
+const HOOD_ITEM = specialIndex(ROOMS, 'hood');
+/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi. */
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2')];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
@@ -126,6 +138,10 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
   { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
   { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) } }, // the bamboo is a raft out to the junk
+  { room: JP.platform, when: [{ taken: DARUMA }], clear: onScreen(SHUTTER_CELLS) }, // the daruma's wish rolls the platform's shutter up
+  { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0 }, // fed, the koi leave the pond (the first)
+  { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
+  { room: JP.hall, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // in the ninja hood the castle's guard steps aside
 ];
 
 export const WORLD: MontyData = {
@@ -156,16 +172,17 @@ export const WORLD: MontyData = {
   lifts: LIFTS,
   escalators: ESCALATORS,
   icicles: ICICLES,
-  tunnels: TUNNELS,
+  tunnels: [...TUNNELS, ...TRAINS],
   cracks: CRACKS,
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS],
-  pulses: PULSES,
+  pulses: [...PULSES, ...DOOR_PULSES],
   dragons: [DRAGON],
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last
   costumes: [
     { item: USHANKA_ITEM, blocks: [...USHANKA_WORN.monty, ...USHANKA.blocks], over: { colour: HAT_COLOUR, frames: USHANKA.frames } },
     { item: RICE_HAT, blocks: [...RICE_WORN.monty, ...RICE.blocks], over: { colour: RICE_HAT_COLOUR, frames: RICE.frames } },
+    { item: HOOD_ITEM, blocks: [...HOOD_WORN.monty, ...HOOD.blocks], over: { colour: HOOD_COLOUR, frames: HOOD.frames } },
   ],
   flashingBases: null,
   bollard: null,
@@ -183,6 +200,9 @@ export const WORLD: MontyData = {
       { item: KEY, text: 'KEY: FOR THE TOWER\'S TRAPDOOR' },
       { item: RICE_HAT, text: 'RICE HAT: PAST THE CITY GATE' },
       { item: BAMBOO, text: 'BAMBOO: A RAFT OUT TO THE JUNK' },
+      { item: DARUMA, text: 'WISH GRANTED: THE SHUTTER ROLLS UP' },
+      { item: FISH_FOOD, text: 'FISH FOOD: THE KOI LET YOU BY' },
+      { item: HOOD_ITEM, text: 'NINJA HOOD: PAST THE CASTLE GUARD' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },
@@ -192,11 +212,14 @@ export const WORLD: MontyData = {
       { room: CHI.tower, item: KEY, text: 'THE TRAPDOOR WANTS A KEY' },
       { room: CHI.gate, item: RICE_HAT, text: 'THE CITY GATE WANTS A RICE HAT' },
       { room: CHI.junk, item: BAMBOO, text: 'OUT TO THE JUNK: FIND BAMBOO' },
+      { room: JP.platform, item: DARUMA, text: 'THE SHUTTER WANTS A WISH' },
+      { room: JP.garden, item: FISH_FOOD, text: 'THE KOI WANT FEEDING' },
+      { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD WANTS A NINJA' },
     ],
   },
   // the map shows a region's four columns while he is in them
   regions: WORLD_REGIONS.map(({ from, to }) => ({ from, to })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
       [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',

@@ -28,7 +28,7 @@ export const JAPAN_TILES = {
   /** The parlour's carpet: a loud diamond pattern. Solid. */
   jpCarpet: tile('jpCarpet', 1, 4, ['...##...', '..####..', '.##..##.', '##....##', '##....##', '.##..##.', '..####..', '...##...']),
   /** A pachinko machine: pins and a window, lit. Nothing (he walks in front). */
-  jpPachinko: tile('jpPachinko', 0, 10, ['.######.', '#.#.#.##', '##.#.#.#', '#.#.#.##', '##.#.#.#', '#.#.#.##', '#..##..#', '.######.']),
+  jpPachinko: tile('jpPachinko', 0, 10, ['.######.', '#......#', '#.####.#', '#.#..#.#', '#.#..#.#', '#.####.#', '#......#', '.######.']),
   /** Tatami: straw mats with their borders and a rush's lines. Solid. */
   jpTatami: tile('jpTatami', 1, 7, ['########', '#......#', '#.####.#', '#.####.#', '#.####.#', '#......#', '########', '........']),
   /** A paper door shut: a white panel in a lattice frame. Solid. */
@@ -58,7 +58,7 @@ export const JAPAN_TILES = {
   /** Raked gravel: circles combed in the sand. Solid. */
   jpGravel: tile('jpGravel', 1, 15, ['########', '........', '.######.', '........', '########', '........', '.######.', '........']),
   /** A stepping stone: a round flat stone with its dark underside. A floor. */
-  jpStone: tile('jpStone', 2, 12, ['.######.', '########', '########', '########', '########', '.######.', '..####..', '........']),
+  jpStone: tile('jpStone', 2, 12, ['########', '########', '#.######', '########', '.######.', '..####..', '........', '........']),
   /** A lacquered plank of the zig-zag bridge: bold, with its pegs. A floor. */
   jpPlank: tile('jpPlank', 2, 2, ['########', '#.#..#.#', '########', '........', '........', '........', '........', '........']),
   /** A bamboo pole to climb: a stalk with its nodes. A rope. */
@@ -83,6 +83,16 @@ export const JAPAN_TILES = {
   jpShipHull: tile('jpShipHull', 1, 2, ['########', '........', '#.#.#.#.', '########', '########', '........', '#.#.#.#.', '########']),
   /** The junk's hull: wide planks with a batten between. Solid. */
   jpJunkHull: tile('jpJunkHull', 1, 2, ['########', '########', '........', '#.##.##.', '########', '........', '########', '########']),
+  /** The top of a crate: planks with a cross brace, thin. A floor (the harbour's stair of crates). */
+  jpCrateTop: tile('jpCrateTop', 2, 8, ['########', '#.#..#.#', '########', '........', '........', '........', '........', '........']),
+  /** The bullet train's window row: white with a black window in each cell, the frame left between them. Nothing (the train is a picture drawn over the room as it sweeps). */
+  jpTrainWin: tile('jpTrainWin', 0, 1, ['########', '##....##', '##....##', '##....##', '##....##', '########', '########', '########']),
+  /** The bullet train's white body, a black seam at its foot. Nothing. */
+  jpTrainBody: tile('jpTrainBody', 0, 1, ['########', '########', '########', '########', '########', '########', '########', '........']),
+  /** The bullet train's blue band: a stripe across it between thin black lines. Nothing. */
+  jpTrainBand: tile('jpTrainBand', 0, 6, ['........', '########', '########', '########', '########', '########', '########', '........']),
+  /** The bullet train's skirt and bogie: a grey skirt over a pair of wheels. Nothing. */
+  jpTrainWheel: tile('jpTrainWheel', 0, 12, ['########', '########', '########', '.######.', '##.##.##', '##.##.##', '.######.', '........']),
 } as const;
 
 export type JapanTile = keyof typeof JAPAN_TILES;

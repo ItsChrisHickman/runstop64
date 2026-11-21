@@ -128,6 +128,11 @@ export interface TunnelSpec {
   room: number; from: 'left' | 'right'; code: number; cols: number; top: number; bottom: number; step: number; rest: number; warn: number; offset?: number;
   /** How many cells thick its rock is at the top and the sides (default 1): a thick wall reads as a hill with a tunnel through it, not a doorway. */
   wall?: number;
+  /**
+   * A picture of its own instead of the portal (a train): `rows` rows of `cols` room characters (1-8; 0 leaves the cell as the room has it), the first row at `top`, as it
+   * sweeps in the direction it goes (its nose at the leading end).
+   */
+  picture?: readonly (readonly number[])[];
 }
 
 /**
@@ -162,6 +167,8 @@ export type CharAnim =
 export interface PulseSpec {
   room: number; col: number; row: number; cols: number; rows: number;
   period: number; start: number; warn: number; live: number;
+  /** Frames into its period it is at when the room loads (a row of doors that open one after another), default 0. */
+  offset?: number;
   idle: number; warnCode: number; liveCode: number; spent: number;
 }
 

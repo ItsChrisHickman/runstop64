@@ -1,11 +1,11 @@
 /**
  * Japan's decorations for Monty Mole: World Tour (region 4), in Monty on the Run's decoration format and Moscow's manner
  * (decorations.ts): solid ink with the detail cut into it as black lines. The junk's sail, the market, Tokyo's neon, the parlour's
- * machines, the torii, Fuji, the pagoda and the keep, the garden's cherry tree, lantern and dragon, the bullet train's nose and car, the
+ * machines, the torii, Fuji, the pagoda and the keep, the garden's cherry tree, lantern and dragon, the
  * port's gantry, the Great Wave. Every name starts `jp`.
  */
 import { decor } from './decorations';
-import { Raster } from './raster';
+import { limb, Raster } from './raster';
 import type { NewDecor } from './types';
 
 /** The junk's mast and its great battened sail, 6 x 8 characters: the mast up the left, the sail's ribs (battens) across it, a rope. */
@@ -216,34 +216,6 @@ function keep(): NewDecor {
   return decor('jpKeep', 10, 6, r, ['1111771111', '1111111111', '1111111111', '1111111111', '1111111111', '1111111111']);
 }
 
-/** The bullet train's nose, pointing left: a long swept snout, a cab window, the blue band, the first car's windows. 4 x 6 characters (32 x 48). */
-function trainNose(): NewDecor {
-  const r = new Raster(32, 48);
-  r.rect(0, 29, 31, 43); r.triangle(0, 43, 0, 29, 22, 12); r.rect(22, 12, 31, 28); // the body, its sloping nose
-  r.rect(22, 11, 31, 11); r.rect(0, 30, 31, 30, false); // the roof line, the swept edge
-  r.triangle(6, 29, 24, 15, 24, 29, false); r.rect(10, 28, 22, 28, false); // the cab window
-  r.rect(14, 22, 21, 27); r.rect(15, 23, 20, 26, false); r.rect(16, 24, 19, 25);
-  r.rect(0, 36, 31, 38, false); r.rect(0, 37, 31, 37); // the blue stripe's line
-  r.rect(26, 15, 30, 19, false); r.rect(26, 15, 26, 19); // a window
-  r.rect(0, 44, 31, 47); for (const x of [6, 22]) { r.disc(x, 46, 3); r.rect(x - 1, 46, x + 1, 46, false); } // the bogie's wheels
-  r.rect(0, 44, 31, 44, false);
-  return decor('jpTrainNose', 4, 6, r, ['1111', '1111', '1111', '1111', '6666', '1111']);
-}
-
-/** A bullet-train car, 4 x 6 characters, made to repeat end to end: the roof with a pantograph, the window row, the blue band, the bogies. */
-function trainCar(): NewDecor {
-  const r = new Raster(32, 48);
-  r.rect(0, 14, 31, 43);
-  r.rect(0, 14, 31, 14, false); r.rect(0, 16, 31, 16); // the roof's curve line
-  for (let x = 2; x < 32; x += 16) { r.rect(x, 20, x + 11, 29, false); r.rect(x + 1, 21, x + 10, 28); r.rect(x + 2, 22, x + 9, 27, false); r.rect(x + 5, 22, x + 5, 27); } // windows
-  r.rect(0, 34, 31, 38, false); r.rect(0, 35, 31, 37); // the blue band
-  r.rect(0, 14, 0, 43, false); r.rect(31, 14, 31, 43, false); // the gap between cars
-  r.rect(0, 44, 31, 47); for (const x of [6, 25]) { r.disc(x, 46, 3); r.rect(x - 1, 46, x + 1, 46, false); }
-  r.rect(0, 44, 31, 44, false);
-  r.rect(13, 8, 18, 13); r.rect(10, 5, 21, 5); r.rect(14, 9, 17, 12, false); r.line(13, 13, 10, 6); // the pantograph
-  return decor('jpTrainCar', 4, 6, r, ['1111', '1111', '1111', '1111', '6666', '1111']);
-}
-
 /** A harbour gantry crane: two tall legs on rails, the long jib out over the water, a hanging hook. 6 x 6 characters. */
 function gantry(): NewDecor {
   const r = new Raster(48, 48);
@@ -255,14 +227,17 @@ function gantry(): NewDecor {
   return decor('jpGantry', 6, 6, r, 8);
 }
 
-/** The Great Wave: a deep curl of water with claw-like foam fingers over a trough, Fuji's spirit left to Fuji. 8 x 3 characters. */
+/** The Great Wave: a long arm of water rising from the left, arching over and curling down at the right in claw-like fingers of foam, a hollow under the curl, the trough in front. 8 x 3 characters. */
 function wave(): NewDecor {
   const r = new Raster(64, 24);
-  for (let x = 0; x < 64; x++) { const h = 15 - Math.round(7 * Math.sin((x / 63) * Math.PI) ** 2 * 1.2) + (x > 34 ? Math.round((x - 34) * 0.1) : 0); r.rect(x, h, x, 23); } // the swell
-  r.ellipse(30, 7, 12, 6.5); r.ellipse(30, 9, 8, 3.8, false); // the curl
-  for (const x of [17, 22, 28, 34, 40]) { r.rect(x, 12 - (x % 3), x + 1, 16); r.rect(x, 12 - (x % 3), x, 11 - (x % 3)); } // foam fingers
-  for (let x = 2; x < 64; x += 8) r.rect(x, 20, x + 4, 20, false);
-  r.rect(0, 22, 63, 22, false);
+  const arc: readonly (readonly [number, number])[] = [[0, 23], [6, 19], [12, 13], [19, 7], [27, 4], [35, 4], [42, 7], [47, 12]];
+  arc.forEach(([x, y], i) => { const next = arc[i + 1]; if (next) limb(r, x, y, next[0], next[1], 7); }); // the arm of water
+  r.rect(0, 21, 63, 23); // the sea
+  r.ellipse(33, 15, 11, 7, false); // the hollow under the curl
+  r.rect(22, 20, 52, 20, false); // the trough's line
+  for (const [x, y] of [[44, 10], [48, 13], [51, 17]] as const) { r.triangle(x, y, x + 6, y + 1, x + 2, y + 7); r.rect(x + 2, y + 3, x + 2, y + 3, false); } // the claws of foam
+  r.rect(30, 3, 31, 3, false); r.rect(36, 5, 38, 5, false); r.rect(24, 7, 25, 7, false); r.rect(14, 12, 15, 12, false); r.rect(8, 17, 9, 17, false); // the arm's lines
+  for (let x = 2; x < 64; x += 9) r.rect(x, 22, x + 4, 22, false);
   return decor('jpWave', 8, 3, r, 14);
 }
 
@@ -370,8 +345,6 @@ export const JAPAN_DECOR = {
   jpDragon: dragon(),
   jpMoon: moon(),
   jpKeep: keep(),
-  jpTrainNose: trainNose(),
-  jpTrainCar: trainCar(),
   jpGantry: gantry(),
   jpWave: wave(),
   jpShrine: shrine(),

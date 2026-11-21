@@ -16,9 +16,9 @@ export type PulsePhase = 'idle' | 'warn' | 'live' | 'spent';
 /** A group of the room: its place in the data's list (a copy of the game copies numbers, not the data), the frames into its period, and the character it has drawn (-1: none yet). */
 export interface PulseState { index: number; t: number; drawn: number }
 
-/** A room is loaded: every group at the start of its period. */
+/** A room is loaded: every group at the start of its period (or its `offset` into it). */
 export function pulseInit(g: Game) {
-  g.pulses = g.data.pulses.flatMap((e, index): PulseState[] => (e.room === g.roomId ? [{ index, t: 0, drawn: -1 }] : []));
+  g.pulses = g.data.pulses.flatMap((e, index): PulseState[] => (e.room === g.roomId ? [{ index, t: e.offset ?? 0, drawn: -1 }] : []));
 }
 
 /** Which phase a group is in at `t` frames into its period. */

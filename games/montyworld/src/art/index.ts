@@ -10,6 +10,8 @@ export * from './creatures';
 export * from './decorations';
 export * from './escalator';
 export * from './hat';
+export * from './japan-hood';
+export * from './japan-items';
 export * from './ice';
 export * from './siberia-items';
 export * from './tiles';

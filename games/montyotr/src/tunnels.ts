@@ -9,7 +9,7 @@ import type { TunnelSpec } from './montydata';
  * and warned of: after `rest` frames the cell at its entry flashes for `warn` frames, then it comes on. Anything of Monty inside
  * its cells when it reaches him is death (event 1, as a crusher's head is): on a roof, up a rope. Under the roof (a hatch's rope,
  * the car) is safe. It is drawn in the room's own characters (the tile `code`, 1-8, of the room's palette, a passable one), over
- * whatever is in its cells, which are put back as it moves on.
+ * whatever is in its cells, which are put back as it moves on. With a `picture` it is that instead of a portal (the bullet train: its nose, windows and band, drawn in the room's characters).
  */
 
 /**
@@ -70,7 +70,10 @@ export function tunnelUpdate(g: Game) {
           uncover(g, t);
           if (t.left <= -e.cols || t.left > PLAY_COLS) { t.state = 'rest'; t.t = 0; t.left = start; break; }
           for (let r = e.top; r <= e.bottom; r++) for (let c = t.left; c < t.left + e.cols; c++) {
-            paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
+            if (e.picture) {
+              const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
+              if (code) paint(g, t, c, r, code);
+            } else paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }
         if (!g.actionCounter && montyOver(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;

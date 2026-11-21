@@ -5,7 +5,7 @@ import { codeOf, room, type Palette } from './layout';
 
 /**
  * China, the third region of Do Svidaniya Monty (docs/dosvidaniya-china.md): nine rooms in a block four wide and three high at columns 8-11 of
- * the exit grid, entered from Siberia's border village (room G, column 7) and left east into Japan (not yet built).
+ * the exit grid, entered from Siberia's border village (room G, column 7) and left east, low, from the junk's deck into Japan (japan.ts).
  *
  *            col 8                col 9               col 10                col 11
  *   row 0   C  WALL YOU NEED     .                   G  ROOF AND READY     H  WILLOW PATTERN
@@ -301,20 +301,19 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // J JUNK FOOD: the quay. In by the rope from the garden's well; the quay runs east (a bicycle) to the river, seven cells of water; across it the junk and the way east, shut with
-  // a sign until Japan is built. The bamboo puts a raft across.
+  // J JUNK FOOD: the quay. In by the rope from the garden's well; the quay runs east (a bicycle) to the river, seven cells of water; across it the junk's deck and the way east, low, into Japan's harbour. The bamboo puts a raft across.
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 1, 'E').clear(2, 0, 4, 1);
-      g.box(0, 2, 1, 16, 'E').box(30, 2, 31, 13, 'E').box(30, 14, 31, 16, 'D');
+      g.box(0, 2, 1, 16, 'E').box(30, 2, 31, 14, 'E');
       g.box(0, 17, 18, 17, 'D').box(0, 18, 18, 19, 'E');
       g.box(19, 17, 25, 19, 'W');
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');
       g.box(3, 0, 3, 16, 'R');
     },
     coins: [[22, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 11], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
+    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 11], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2]],
     creatures: [
       { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },
