@@ -27,7 +27,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('C: the coin on the shelf', coin(JP.parlour, 6, 7)),
   leg('C to E: out east, low, to the underpass', into(JP.platform, 31, 15, JP.parlour)),
   leg('E: the coin in the underpass\'s pocket', coin(JP.platform, 27, 15)),
-  leg('E: up the second stairs onto the platform, the coin on it, and back down the stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 25, 12))),
+  leg('E: up the second stairs onto the platform, the coin beside the rope, and back down the stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 22, 12))),
   leg('E to D: up the crossing\'s rope', into(JP.crossing, 23, 0, JP.platform)),
   leg('D: the coin in the street past the sumo', coin(JP.crossing, 19, 14)),
   leg('D: the coin in the street\'s east pocket', coin(JP.crossing, 25, 15)),

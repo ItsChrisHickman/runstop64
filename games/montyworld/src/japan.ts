@@ -221,7 +221,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(9, 13, 9, 16, 'R').box(20, 13, 20, 16, 'R').box(23, 0, 23, 13, 'R');
       g.box(28, 10, 29, 13, 'H');
     },
-    coins: [[27, 15], [25, 12]],
+    coins: [[27, 15], [22, 12]],
     decor: [['jpBoard', 14, 3], ['jpSignalLamp', 27, 8], ['jpSignalLamp', 3, 8], ['jpVending', 4, 11], ['jpNeonTall', 6, 3], ['jpNeonTall', 19, 3], ['jpNeonRamen', 9, 5], ['jpNeonRamen', 24, 4], ['jpLantern', 13, 15], ['jpLantern', 23, 15]],
   }),
 
