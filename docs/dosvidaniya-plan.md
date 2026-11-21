@@ -49,7 +49,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   (bogies and wheels under each car, the body's window row, the curved roof, the bellows between cars), walked along car by car,
   with the landscape moving past in its windows and under it; boarding it is a moment (the platform, the door, then it moves). The
   same goes for every vehicle and set piece: the junk, the bullet train, the cargo ship, the cargo plane's hold, the riverboat,
-  Sugarloaf's cable car. Signs name a place; they never stand in for drawing it.
+  Sugarloaf's cable car. Signs name a place; they never stand in for drawing it. The level is Monty on the Run's: it leaves
+  a lot to the imagination, but its boat looks like a boat and its C5 street like a road (Chris): read at a glance, simply drawn.
 
 ## The rules (Monty on the Run's)
 
