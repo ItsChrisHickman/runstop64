@@ -62,6 +62,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('I: back west through both doors, up the rope and along the gallery to the coin at its end', coin(JP.hall, 13, 6)),
   leg('I to J: through the third door past the guard (gone), to the floor gap and down the rope', into(JP.port, 25, 19, JP.hall)),
   leg('J: the coin on the quay past the crab', coin(JP.port, 23, 15)),
+  leg('J: along the quay past the sumo onto the container stair\'s first step', stands(JP.port, 15, 9, 11)),
   leg('J: the coin on top of the containers past the sumo', coin(JP.port, 4, 9)),
   leg('J: up the gangway onto the ship\'s deck at the sign', stands(JP.port, 13, 28, 29)),
 ];
