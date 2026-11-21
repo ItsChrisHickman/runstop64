@@ -1,5 +1,5 @@
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
-import { montyOver } from './cells';
+import { montyMeets, montyOver, pixelX, pixelY } from './cells';
 import type { Game } from './game';
 import type { TunnelSpec } from './montydata';
 
@@ -46,6 +46,21 @@ function paint(g: Game, t: TunnelState, col: number, row: number, code: number |
   g.setRoomChar(at, code ?? 0);
 }
 
+/** Whether the cell at a playfield column and row was a wall as the room has it (before any mouth drew on it). */
+function solidCell(g: Game, col: number, row: number): boolean {
+  const at = (row + PLAY_ROW) * ROW + col + PLAY_COL;
+  return g.tileFlag(g.tunnelUnder.get(at)?.[0] ?? g.mem[SCREEN + at] ?? 0) !== 0;
+}
+
+/** Whether Monty is over a cell the picture is drawn in (the nose's empty cells are not the train). */
+function touchesPicture(g: Game, t: TunnelState): boolean {
+  const e = t.spec;
+  for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(0, t.left); c < Math.min(PLAY_COLS, t.left + e.cols); c++) {
+    if (t.over.has((r + PLAY_ROW) * ROW + c + PLAY_COL) && montyMeets(g, pixelX(c), pixelY(r), 8, 8, 2)) return true;
+  }
+  return false;
+}
+
 /** One frame: each mouth of the room a step on, a death if it has him. */
 export function tunnelUpdate(g: Game) {
   for (const t of g.tunnels) {
@@ -72,11 +87,11 @@ export function tunnelUpdate(g: Game) {
           for (let r = e.top; r <= e.bottom; r++) for (let c = t.left; c < t.left + e.cols; c++) {
             if (e.picture) {
               const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
-              if (code) paint(g, t, c, r, code);
+              if (code && !solidCell(g, c, r)) paint(g, t, c, r, code); // (a train goes into the tiled wall as into a tunnel: not drawn over it)
             } else paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }
-        if (!g.actionCounter && montyOver(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;
+        if (!g.actionCounter && montyOver(g, t.left, e.cols, e.top, e.bottom) && (!e.picture || touchesPicture(g, t))) g.actionCounter = 1;
         break;
     }
   }

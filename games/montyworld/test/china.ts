@@ -21,7 +21,7 @@ import { itemIndex, standY } from './route';
 const only = process.argv[2];
 
 /** The rooms and finds of China in the tables: the rooms from the wall's foot on. */
-const chinese = (room: number) => room >= CHI.wall;
+const chinese = (room: number) => room >= CHI.wall && room <= CHI.junk;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;

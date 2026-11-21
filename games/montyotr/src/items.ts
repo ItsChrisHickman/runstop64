@@ -15,7 +15,7 @@ export function collectCoin(g: Game) {
 
 /** CharacterAnimation: collectibles shimmer through an 11-step colour cycle. */
 export function animateCharacters(g: Game) {
-  shimmer(g.entities, (at, colour) => g.setCol(at, colour));
+  shimmer(g.entities, (at, colour) => { if (!g.tunnels.some((t) => t.over.has(at))) g.setCol(at, colour); }); // (a coin under a train keeps the train's colour)
 }
 
 /** SpawnSIForRoom: put this room's special item (if any, and not yet taken) on sprite 0. */

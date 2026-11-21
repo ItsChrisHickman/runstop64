@@ -186,12 +186,12 @@ export const montyMap = {
     y = box.y + box.h - 52;
     if (data.kit.length) {
       font.draw(s, 'FREEDOM KIT', box.x, y, COL.yellow);
-      data.kit.forEach((fk, i) => icon(s, g.mem.subarray(0x3800 + fk * 32, 0x3800 + fk * 32 + 32), box.x + i * 24, y + 10, COL.white));
+      data.kit.forEach((fk, i) => icon(s, g.mem.subarray(0x3800 + fk * 32, 0x3800 + fk * 32 + 32), box.x + i * iconStep(box, data.kit.length), y + 10, COL.white));
     }
     y += 30;
     if (progress.keyItems.length) {
       font.draw(s, 'ITEMS FOUND', box.x, y, COL.yellow);
-      progress.keyItems.forEach((item, i) => icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + i * 24, y + 10, g.siCollected[item] ? COL.white : COL.dgrey));
+      progress.keyItems.forEach((item, i) => icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + i * iconStep(box, progress.keyItems.length), y + 10, g.siCollected[item] ? COL.white : COL.dgrey));
     }
   },
   info(g, found) {
@@ -257,6 +257,9 @@ export const montyMap = {
 function icon(s: Surface, bytes: ArrayLike<number>, x: number, y: number, colour: number) {
   for (let q = 0; q < 4; q++) s.drawChar(Array.from({ length: 8 }, (_, i) => bytes[q * 8 + i]), x + (q & 1) * 8, y + (q >> 1) * 8, colour);
 }
+
+/** The step between a row of `n` 16-wide icons: 24 as in Monty on the Run, closer when more would run past the box (and the divider and panel beyond it). */
+function iconStep(box: Box, n: number): number { return Math.max(16, Math.min(24, Math.floor(box.w / n))); }
 
 /** An item's sprite (24×21) cropped to its 16×16 content (left- and bottom-aligned), as an icon's 32 bytes. */
 function spriteIcon(g: Game, ptr: number) {

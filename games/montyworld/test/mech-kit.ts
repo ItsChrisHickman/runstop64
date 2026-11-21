@@ -44,3 +44,11 @@ export function diesAt(s: State, stick: Stick, limit: number): number {
   for (let f = 0; f < limit; f++) { frame(s, stick); if (dead(s.g)) return f; }
   return -1;
 }
+
+/**
+ * The rooms with more creatures than Monty can meet in a costume: the worn hat is drawn in VIC sprite 7, enemy slot 3's, whose collisions are then ignored, so a fourth creature
+ * would be a phantom (never drawn, never touching him). Every room of a region he wears a hat through has at most 3.
+ */
+export function overCrowded(rooms: readonly { readonly id: number; readonly enemies?: readonly unknown[] }[]): number[] {
+  return rooms.filter((r) => (r.enemies?.length ?? 0) > 3).map((r) => r.id);
+}

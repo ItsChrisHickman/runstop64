@@ -79,11 +79,18 @@ export const PORT_PALETTE = {
 // ---- the bullet trains ------------------------------------------------------------------------------------
 /**
  * The bullet trains (E): a train 24 cells long and 6 tall (rows 8-13, on the platform's lane: taller than any jump) sweeps the room a cell every 3 frames, so across the 32 columns
- * and its own length in 168 frames. Its edge flashes at the end it comes in at for 100 frames first (the warning), then it comes on, and 29 frames after it has gone the next warning
- * begins: a 300-frame cycle for each, the up train from the right and the down train from the left 150 frames apart. The platform is unsafe while one is on it; the underpass and the
- * stairs' ropes below the platform are safe. Drawn in the room's own characters: a stepped nose (4 cells) and five cars (4 cells each) of white with a row of windows and a blue band over wheels.
+ * and its own length in 171 frames. Its edge flashes at the end it comes in at for 100 frames first (the warning), then it comes on. The two trains take turns, so the room's cycle is
+ * 656 frames: the up train from the right (its edge flashes from frame 185 and again every 656), 328 frames later the down train from the left, and between one train's going and the other's
+ * flash 57 frames in which nothing is on the platform and no edge flashes: the quiet moment. No flash and no train is "go": a dash from the stairs to the way out (about 100 frames) started
+ * then is clear, since the next train is a flash (100 frames) and its run in away. A flash means a train is coming from that end. The platform is unsafe while one is on it; the underpass
+ * and the stairs' ropes below the platform are safe. Drawn in the room's own characters: a stepped nose (4 cells) and five cars (4 cells each) of white with a row of windows and a blue band
+ * over wheels, going into the tiled wall at the ends as into a tunnel (it is not drawn over a wall).
  */
-export const TRAIN = { rows: 6, top: 8, cols: 24, nose: 4, step: 3, rest: 29, warn: 100, apart: 150 } as const;
+export const TRAIN = { rows: 6, top: 8, cols: 24, nose: 4, step: 3, warn: 100, sweep: 171, quiet: 57, first: 185 } as const;
+/** A train's cycle (rest, warning, sweep) and the frames between the two trains' warnings: two trains with a quiet moment after each. */
+const TRAIN_CYCLE = 2 * (TRAIN.warn + TRAIN.sweep + TRAIN.quiet);
+export const TRAIN_REST = TRAIN_CYCLE - TRAIN.warn - TRAIN.sweep;
+export const TRAIN_APART = TRAIN_CYCLE / 2;
 
 /** The picture of a train, its nose at the leading end (`noseLeft`: the up train, going left). */
 function trainPicture(noseLeft: boolean): number[][] {
@@ -97,8 +104,8 @@ function trainPicture(noseLeft: boolean): number[][] {
 }
 
 export const TRAINS: readonly TunnelSpec[] = [
-  { room: JP.platform, from: 'right', code: codeOf(PLATFORM_PALETTE, 'B'), cols: TRAIN.cols, top: TRAIN.top, bottom: TRAIN.top + TRAIN.rows - 1, step: TRAIN.step, rest: TRAIN.rest, warn: TRAIN.warn, picture: trainPicture(true) },
-  { room: JP.platform, from: 'left', code: codeOf(PLATFORM_PALETTE, 'B'), cols: TRAIN.cols, top: TRAIN.top, bottom: TRAIN.top + TRAIN.rows - 1, step: TRAIN.step, rest: TRAIN.rest, warn: TRAIN.warn, offset: TRAIN.apart, picture: trainPicture(false) },
+  { room: JP.platform, from: 'right', code: codeOf(PLATFORM_PALETTE, 'B'), cols: TRAIN.cols, top: TRAIN.top, bottom: TRAIN.top + TRAIN.rows - 1, step: TRAIN.step, rest: TRAIN_REST, warn: TRAIN.warn, offset: TRAIN.first - TRAIN_REST, picture: trainPicture(true) },
+  { room: JP.platform, from: 'left', code: codeOf(PLATFORM_PALETTE, 'B'), cols: TRAIN.cols, top: TRAIN.top, bottom: TRAIN.top + TRAIN.rows - 1, step: TRAIN.step, rest: TRAIN_REST, warn: TRAIN.warn, offset: TRAIN.first + TRAIN_APART - TRAIN_REST, picture: trainPicture(false) },
 ];
 
 // ---- the paper doors ----------------------------------------------------------------------------------------
@@ -182,7 +189,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [['jpClawMachine', 7, 2], ['jpMachines', 15, 13], ['jpMachines', 23, 13], ['jpNeonRamen', 24, 4], ['jpLantern', 16, 4]],
     creatures: [
       { who: 'jpRobot', col: 15, row: 15, way: 'right', speed: 1, range: 32 },
-      { who: 'jpLanternGhost', col: 16, row: 2, way: 'right', speed: 1, range: 80 },
+      { who: 'jpLanternGhost', col: 24, row: 2, way: 'right', speed: 1, range: 32 },
       { who: 'jpLuckyCat', col: 24, row: 15, way: 'right', speed: 1, range: 32 },
     ],
     crushers: [{ col: 12, row: 12, height: 5, chr: 0x22 }],
@@ -265,7 +272,6 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 1, range: 56 },
       { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 1, range: 56 },
       { who: 'jpTanuki', col: 9, row: 12, way: 'right', speed: 1, range: 24 },
-      { who: 'jpUmbrella', col: 14, row: 9, way: 'down', speed: 1, range: 16 },
     ],
   }),
 

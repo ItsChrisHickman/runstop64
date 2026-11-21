@@ -22,12 +22,12 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAIN, TRAINS } from '../src/japan';
+import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame, search } from './bot';
-import { cell, colOf, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
+import { cell, colOf, overCrowded, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -53,6 +53,8 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const used = [...HAT_BLOCKS, ...Object.values(JAPAN_SPRITE)];
   check(`every block of the bank Japan uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73) and its four items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values(JAPAN_SPRITE).every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
+  const crowded = overCrowded(JAPAN_ROOMS);
+  check(`no room has a fourth creature (sprite 7 is the worn hat's: it would be a phantom; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no pictured tunnels, no pulse with an offset)', MOTR.tunnels.length === 0 && MOTR.pulses.every((p) => p.offset === undefined));
 }
 
@@ -108,13 +110,25 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check(`no decoration, coin, item or creature of Japan's rooms is in a tile, every decoration fits its room's character pool, no more than eight tiles a room (${problems.length ? problems.join('; ') : `${pools} characters of decorations`})`, problems.length === 0);
 }
 
+// ---- the parlour: arriving by the rope and pausing at its top is safe ----------------------------------------
+{
+  for (const enhanced of [false, true]) {
+    const found = search(at(JP.street, 18, 17, [], enhanced), (g) => g.roomId === JP.parlour && g.onRope !== 0, [{ room: JP.street, col: 21, row: 19 }], 150000, 1.5);
+    const s = must(found?.end, 'a way down the rope');
+    const lives = s.g.lives, arrived = s.g.roomId === JP.parlour && s.g.onRope !== 0, top = s.g.y;
+    let died = false;
+    for (let n = 0; n < 1500 && !died; n++) { frame(s, NONE); died = dead(s.g) || s.g.lives !== lives; }
+    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: down the street's stairs into the parlour (arrived ${arrived}, y ${top}) and standing still at the rope's top for 1500 frames, the lantern ghost does not touch him`, arrived && !died);
+  }
+}
+
 // ---- the bullet trains -------------------------------------------------------------------------------------
 {
   const trainCodes = new Set(TRAINS.flatMap((t) => (t.picture ?? []).flat().filter((c) => c !== 0)));
   const lane = (g: Game, col: number) => [8, 9, 10, 11, 12, 13].some((row) => trainCodes.has(cell(g, col, row)));
   const right = must(TRAINS[0], 'the up train'), left = must(TRAINS[1], 'the down train');
-  check(`two trains, ${TRAIN.cols} cells long and ${TRAIN.rows} tall on the platform lane (rows ${TRAIN.top}-${TRAIN.top + TRAIN.rows - 1}), the up one from the right and the down one from the left, ${TRAIN.apart} frames apart, each a cell every ${TRAIN.step} frames`,
-    TRAINS.length === 2 && right.from === 'right' && left.from === 'left' && right.cols === TRAIN.cols && left.picture?.length === TRAIN.rows && left.picture.every((r) => r.length === TRAIN.cols) && (left.offset ?? 0) === TRAIN.apart && right.step === TRAIN.step);
+  check(`two trains, ${TRAIN.cols} cells long and ${TRAIN.rows} tall on the platform lane (rows ${TRAIN.top}-${TRAIN.top + TRAIN.rows - 1}), the up one from the right and the down one from the left, ${TRAIN_APART} frames apart, taking turns, each a cell every ${TRAIN.step} frames`,
+    TRAINS.length === 2 && right.from === 'right' && left.from === 'left' && right.cols === TRAIN.cols && left.picture?.length === TRAIN.rows && left.picture.every((r) => r.length === TRAIN.cols) && (left.offset ?? 0) - (right.offset ?? 0) === TRAIN_APART && right.step === TRAIN.step);
   const noses = [right.picture?.[5]?.[0], left.picture?.[5]?.[TRAIN.cols - 1], right.picture?.[0]?.[0], left.picture?.[0]?.[TRAIN.cols - 1], right.picture?.[0]?.[TRAIN.nose], left.picture?.[0]?.[TRAIN.cols - TRAIN.nose - 1]];
   check('each train\'s nose is at the end it goes in front: stepped (the front cells have no roof) and mirrored between the two', noses[0] !== 0 && noses[1] !== 0 && noses[2] === 0 && noses[3] === 0 && noses[4] !== 0 && noses[5] !== 0);
   check('its characters are tiles he passes through (class 0), so the picture is not a wall', [...trainCodes].every((code) => WORLD.tileProperty(must(JAPAN_ROOMS.find((r) => r.id === JP.platform), 'the platform').tiles[code - 1] ?? -1) === 0));
@@ -122,48 +136,61 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   {
     const s = at(JP.platform, 14, 17);
     let warnFrom = -1, onFrom = -1, offAt = -1, downFrom = -1;
-    for (let f = 1; f <= 700; f++) {
+    for (let f = 1; f <= 800; f++) {
       frame(s, NONE);
       if (lane(s.g, 31) && warnFrom < 0) warnFrom = f;
       if (onFrom < 0 && lane(s.g, 25) && s.g.tunnels[0]?.state === 'sweep') onFrom = f;
       if (onFrom > 0 && offAt < 0 && s.g.tunnels[0]?.state === 'rest') offAt = f;
-      if (lane(s.g, 0) && downFrom < 0 && f > 100) downFrom = f;
+      if (lane(s.g, 0) && downFrom < 0 && f > TRAIN.first + 100) downFrom = f;
     }
-    check(`the up train's right edge starts flashing ${warnFrom} frames in (after ${TRAIN.rest}), it comes on at the room's right at frame ${onFrom} (${TRAIN.warn} frames of warning) and is gone by ${offAt}; the down train's edge flashes from ${downFrom}`,
-      Math.abs(warnFrom - TRAIN.rest) <= 18 && onFrom > warnFrom + TRAIN.warn - 24 && onFrom < warnFrom + TRAIN.warn + 60 && offAt > onFrom + 100 && downFrom > TRAIN.rest + TRAIN.apart - 24);
+    check(`the up train's right edge starts flashing ${warnFrom} frames in (after ${TRAIN.first}), it comes on at the room's right at frame ${onFrom} (${TRAIN.warn} frames of warning) and is gone by ${offAt}; the down train's edge flashes from ${downFrom}`,
+      Math.abs(warnFrom - TRAIN.first) <= 18 && onFrom > warnFrom + TRAIN.warn - 24 && onFrom < warnFrom + TRAIN.warn + 60 && offAt > onFrom + 100 && Math.abs(downFrom - TRAIN.first - TRAIN_APART) <= 24);
   }
   // deadly on the lane, safe below it
   {
     const lanes = at(JP.platform, 14, 14);
-    const when = diesAt(lanes, NONE, 2 * 300);
-    check(`standing on the platform (col 14) a train kills him (frame ${when}) within a cycle`, when >= 0 && when < 300);
+    const when = diesAt(lanes, NONE, 2 * 656);
+    check(`standing on the platform (col 14) a train kills him (frame ${when}) within a cycle`, when >= 0 && when < 2 * (TRAIN.warn + TRAIN.sweep + TRAIN.quiet));
     const under = at(JP.platform, 14, 17);
-    run(under, NONE, 3 * 300);
-    check('in the underpass the trains do nothing to him in three cycles', !dead(under.g));
+    run(under, NONE, 2 * 656);
+    check('in the underpass the trains do nothing to him in two cycles', !dead(under.g));
     const stairs = at(JP.platform, 20, 17);
     run(stairs, UP, 6);
     let rope = 0;
-    for (let f = 0; f < 3 * 300; f++) { frame(stairs, NONE); rope += stairs.g.onRope ? 1 : 0; if (dead(stairs.g)) break; }
+    for (let f = 0; f < 2 * 656; f++) { frame(stairs, NONE); rope += stairs.g.onRope ? 1 : 0; if (dead(stairs.g)) break; }
     check('hanging on the stairs\' rope below the deck (the way up is a rope through the deck, cells 19-21) the trains do nothing either', rope > 0 && !dead(stairs.g));
   }
-  // a fair timing: a dash from the second stairs' top to the way out through the open shutter, at starts across a cycle
+  // a fair timing: the cycle has a quiet moment (no train on the platform, no edge flashing), and a dash from the second stairs' top to the way out through the open shutter, started in it, is always clear
   {
-    let clear = 0, hit = 0, windows = '';
-    for (let wait = 0; wait < 600; wait += 8) {
+    const cycle = 2 * (TRAIN.warn + TRAIN.sweep + TRAIN.quiet);
+    const quietAt = (g: Game) => Array.from({ length: 32 }, (_, c) => c).every((c) => !lane(g, c));
+    // the room watched for two cycles: the frames with nothing on the lane and no edge flashing
+    const watch = at(JP.platform, 14, 17);
+    const quiet: boolean[] = [];
+    for (let f = 0; f < 2 * cycle; f++) { frame(watch, NONE); quiet.push(quietAt(watch.g)); }
+    let longest = 0, run0 = 0;
+    for (const q of quiet) { run0 = q ? run0 + 1 : 0; longest = Math.max(longest, run0); }
+    check(`a cycle is ${cycle} frames and has a quiet moment (${longest} frames in a row with no train on the platform and no edge flashing, after the first ${TRAIN.first}), twice in it`, longest >= 40 && quiet.slice(TRAIN.first + cycle - 20, TRAIN.first + cycle + 20).some((q) => !q));
+    let clear = 0, hit = 0, quietStarts = 0, quietClear = 0, windows = '';
+    for (let wait = 0; wait < cycle; wait += 4) {
       const s = at(JP.platform, 22, 14, [DARUMA]);
       run(s, NONE, wait);
+      const quietStart = wait >= 16 && quiet.slice(wait - 16, wait).every((q) => q); // (nothing for 16 frames: a flash is off for 8 at a time)
       let out = false;
       for (let f = 0; f < 140 && !out && !dead(s.g); f++) { frame(s, RIGHT); if (s.g.roomId === JP.fuji) out = true; }
-      if (out && !dead(s.g)) clear++; else hit++;
-      windows += out && !dead(s.g) ? '.' : '#';
+      const ok = out && !dead(s.g);
+      if (ok) clear++; else hit++;
+      if (quietStart) { quietStarts++; if (ok) quietClear++; }
+      windows += ok ? '.' : '#';
     }
     const total = clear + hit;
-    check(`the dash from the second stairs to the way out (cells 22 to 31, 80 frames) is clear at ${clear} of ${total} starts across the two trains' 600 frames (${windows}): a timing, neither shut nor open`, clear / total >= 0.15 && hit / total >= 0.15);
+    check(`the dash from the second stairs' top to the way out (cells 22 to 31, 80 frames) is clear at ${clear} of ${total} starts across a cycle (${windows}): a timing, neither shut nor open; and started at no flash and no train it is clear at ${quietClear} of ${quietStarts}`,
+      clear / total >= 0.25 && hit / total >= 0.15 && quietStarts >= 8 && quietClear === quietStarts);
   }
   // and the up train's whole length: a 300 frame cycle for each
   {
     const s = at(JP.platform, 14, 17);
-    run(s, NONE, TRAIN.rest + TRAIN.warn + 10);
+    run(s, NONE, TRAIN.first + TRAIN.warn + 10);
     let across = 0, started = false;
     for (let f = 0; f < 200; f++) { frame(s, NONE); const on = lane(s.g, 10); if (on) { started = true; across++; } else if (started) break; }
     check(`a train takes ${across} frames to go past a cell: its ${TRAIN.cols} cells at ${TRAIN.step} a cell (${TRAIN.cols * TRAIN.step})`, Math.abs(across - TRAIN.cols * TRAIN.step) <= 6);
@@ -251,7 +278,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const koi = pond.g.enemies.filter((e) => e.type === KOI);
     check('without the fish food two koi leap in the pond (in its first two slots), on the screen', koi.length === 2 && pond.g.enemies[0]?.type === KOI && pond.g.enemies[1]?.type === KOI && koi.every((e) => e.x !== 0xff));
     const fed = at(JP.garden, 8, 14, [FISH], false, true);
-    check('with it (taken at the overpass) both are gone, sent off the screen; the tanuki and the umbrella stay', fed.g.enemies.filter((e) => e.type === KOI).every((e) => e.x === 0xff) && fed.g.enemies.filter((e) => e.type !== KOI).every((e) => e.x !== 0xff));
+    check('with it (taken at the overpass) both are gone, sent off the screen; the tanuki stays', fed.g.enemies.filter((e) => e.type === KOI).every((e) => e.x === 0xff) && fed.g.enemies.filter((e) => e.type !== KOI).every((e) => e.x !== 0xff));
     // the pond: without the food only the first plank is there (the far bank is seven cells off), with it the other two float up
     const far = (g: Game) => g.roomId === JP.garden && colOf(g) >= 26 && g.y === standY(14);
     const bare = at(JP.garden, 14, 14);

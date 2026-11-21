@@ -20,7 +20,7 @@ import { itemIndex, standY } from './route';
 const only = process.argv[2];
 
 /** The rooms and finds of Japan in the tables: the rooms from the harbour on. */
-const japanese = (room: number) => room >= JP.harbour;
+const japanese = (room: number) => room >= JP.harbour && room <= JP.port;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;
