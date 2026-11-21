@@ -274,16 +274,16 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // G MOLE-OKAI: Molokai, the quiet room. In from the reef onto a stone landing (floor 19); the old fishponds' walls curve out in arcs (tops 17, 15, 13, 15, 17) with the ponds' water between them (deadly), the south shore's tall sea
+  // G MOLE-OKAI: Molokai, the quiet room. In from the reef onto a stone landing (floor 19); the old fishponds' walls curve out in arcs (tops 17, 15, 13, 15) with the ponds' water between them (deadly), the south shore's tall sea
   // cliffs standing behind. Out right onto the far shore. A crab on one wall: nothing else.
   room({
     id: PAC.mole, cell: [2, 22], sector: 44, palette: MOLE_PALETTE,
     paint(g) {
-      g.box(0, 19, 4, 19, 'A').box(28, 19, 31, 19, 'A').box(5, 18, 27, 19, 'W');
-      g.box(5, 17, 8, 19, 'S').box(10, 15, 13, 19, 'S').box(15, 13, 18, 19, 'S').box(20, 15, 23, 19, 'S').box(25, 17, 27, 19, 'S');
+      g.box(0, 19, 4, 19, 'A').box(27, 19, 31, 19, 'A').box(5, 18, 26, 19, 'W');
+      g.box(5, 17, 8, 19, 'S').box(10, 15, 15, 19, 'S').box(17, 13, 20, 19, 'S').box(22, 15, 25, 19, 'S');
       g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G');
     },
-    coins: [[6, 15], [11, 13], [16, 11], [21, 13], [26, 15]],
+    coins: [[6, 15], [14, 13], [18, 11], [23, 13], [29, 17]],
     decor: [['pacSeaCliff', 2, 2], ['pacSeaCliffB', 7, 1], ['pacSeaCliff', 13, 2], ['pacSeaCliffB', 20, 1], ['pacSeaCliff', 25, 2]],
     creatures: [{ who: 'pacCrab', col: 10, row: 13, way: 'right', speed: 1, range: 16 }],
   }),
@@ -448,7 +448,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 7, 6, 7, 'F').box(8, 6, 9, 15, 'N');
       g.box(19, 14, 22, 15, 'C').box(24, 12, 27, 15, 'C');
     },
-    coins: [[4, 5], [9, 11], [14, 14], [20, 12], [26, 10]],
+    coins: [[4, 5], [9, 11], [14, 14], [20, 12], [27, 10]],
     item: { name: 'parachute', col: 25, row: 10, sprite: PAC_SPRITE.parachute },
     decor: [[{ text: 'THE ANDES COMING SOON', colour: 7 }, 8, 3], ['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 10]],
     creatures: [

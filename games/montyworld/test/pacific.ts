@@ -59,7 +59,8 @@ for (const mode of ['original', 'enhanced'] as const) {
       live = replay;
       continue;
     }
-    const found = search(live, leg.goal, leg.aim, 600000, 1.5, stats);
+    // the first look is the careful one (a weighted A*); a swim across a wide reef has too many ways, so the second leans harder on the aim
+    const found = search(live, leg.goal, leg.aim, 150000, 1.5, stats) ?? search(live, leg.goal, leg.aim, 600000, 4, stats);
     if (!found) { check(`${mode}: ${leg.name}: a way (${stats.exhausted ? 'every state looked at' : 'the search limit'})`, false); break; }
     const next = play(live, found.route);
     const ok = next !== null && leg.goal(next.g);

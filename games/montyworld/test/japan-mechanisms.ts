@@ -41,13 +41,13 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
-    cells.filter((c) => c !== 0xff).length === 38 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
+    cells.filter((c) => c !== 0xff).length === 55 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.tiers, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     coinsIn(0, 26) === 44 && itemsIn(0, 26) === 13 && coinsIn(27, 37) === 23 && itemsIn(27, 37) === 5 && (WORLD.coinTable[43 * 3] ?? 99) <= 26 && (WORLD.coinTable[44 * 3] ?? 0) >= 27);
-  check('10 key items and 8 snacks count on the pause screen', WORLD.progress.keyItems.length === 10 && WORLD.progress.cakes.length === 8);
+  check('14 key items and 11 snacks count on the pause screen', WORLD.progress.keyItems.length === 14 && WORLD.progress.cakes.length === 11);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Japan's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -390,7 +390,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check('the hall\'s rope climbs to the roofs and the roofs\' gap drops back to the hall', lands(JP.tiers, [17], quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [14], at(JP.tiers, 8, 17), { room: JP.tiers, col: 4, row: 19 }, 100000));
   check('the hall\'s gap (past the guard) drops to the port and the port\'s rope climbs back to the hall', lands(JP.port, [17], quiet(at(JP.hall, 18, 14, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 100000) && lands(JP.hall, [14], at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, 100000));
   check('from the port he can climb back to the hall with nothing in hand and out west to the garden (the way back runs the whole way)', reach(at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, (g) => g.roomId === JP.hall, 150000) !== null);
-  check('the ship\'s gangway leads up to the deck at the sign (shut with planks until the Pacific), and the sign says so', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
+  check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
 }
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS  0/8' && info[2] === 'ITEMS  0/10');
+  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS  0/11' && info[2] === 'ITEMS  0/14');
   enterRoom(s.g, JP.platform, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 31: [0x40, 0xb2, 2, 14], 32: [0x40, 0xb2, 2, 15] } });
   check('in Japan the map shows its region (five columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -461,7 +461,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before Japan\'s arrays and grids) loads: the finds and the rice hat are as saved, and Japan is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === 18 && g2.coinCollected.length === 67 && g2.coinCollected.slice(44).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === 25 && g2.coinCollected.length === 147 && g2.coinCollected.slice(44).every((c) => c === 0));
 }
 
 void LEFT;

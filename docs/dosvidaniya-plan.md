@@ -22,7 +22,7 @@ two games together go once round the world.
 
 ## The world
 
-Seven regions of about seven rooms each (the Pacific about fourteen), about fifty-five rooms in all (Monty on the Run has 52). The regions follow each other west
+Seven regions of about seven rooms each (the Pacific seventeen as built), about seventy rooms in all (Monty on the Run has 52). The regions follow each other west
 to east on the exit grid, so the pause screen's map reads as the trip round the world.
 
 **Inside a region the way is not a line** (Chris, 2026-11-20: what he liked most in Monty on the Run). Each region is a block
@@ -134,5 +134,6 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 3. Siberia: nine rooms built (2026-11-21; `docs/dosvidaniya-siberia.md`): the train's roofs and cars with tunnel mouths, the pine forest and the yeti's hollow, the mine with its cart, lamp and dark shaft, Baikal's cracking ice, the border village; its tune, pelmeni, hints, bot test and mechanism tests. **Chris plays it** before China.
    China: nine rooms built (2026-11-21; `docs/dosvidaniya-china.md`): the Great Wall's foot and top, a watchtower, the hutong and its firecrackers, the market and its dragon, the Forbidden City's gate (the rice hat), the palace roofs, the willow pattern garden, the quay and the junk; its tune, dumplings, hints, bot test and mechanism tests. **Chris plays it** before Japan.
    Japan: eleven rooms built (2026-11-21; `docs/dosvidaniya-japan.md`): the fishing harbour where the junk lands, Tokyo's street and rooftops, a pachinko parlour (the daruma), the crossing (the fish food), the bullet-train platform swept by two trains on a learnt timing, Mount Fuji's trail, the temple garden's koi pond, THE LAST MOLE (the ninja hood), the castle's roofs and its hall of sliding paper doors in a seen rhythm (the guard lets him by in the hood), and the port with the cargo ship (the way east shut with a sign until the Pacific); its tune (the Hirajoshi scale, a shakuhachi and a koto), sushi, hints, bot test and mechanism tests. **Chris plays it** before the Pacific.
-   The Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
+   The Pacific: seventeen rooms built (2026-11-21; `docs/dosvidaniya-pacific.md`): the cargo ship's stern and bow (the engine room's crushers and bilge, the crane's crate, the hold's gantries), Honolulu's pier and roofs, Waikiki and its snorkel shop, the luau (three torches in turn, the lei), the first reef, Molokai's fishponds, the second reef and the sea cave, Lahaina's harbour, the Road to Hana (three one-lane bridges and their cars), Hana's black sand, the third reef, Kona's coast and farm, the volcano's lava climb, Hilo's airport (the guard lets him by in the lei, the loader) and the plane's hold (the parachute; the way east shut with a sign until the Andes). New in the engine, as data: swimming, rising lava, a span on a tunnel mouth. Its tune (G major, a ukulele), Spam musubi, hints, bot test and mechanism tests. **Chris plays it** before the Andes.
+   The Andes and the Amazon, Rio, one at a time, each played before the next.
 4. The ending on Rio's beach, the reward show, the credits.

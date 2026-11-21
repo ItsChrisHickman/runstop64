@@ -39,13 +39,13 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('China is nine rooms, a block of four columns (8-11) by three rows beside Siberia\'s, room ids 18 to 26 (Moscow\'s and Siberia\'s unchanged)',
-    cells.filter((c) => c !== 0xff).length === 38 && [grid(0, 8), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9)].join()
+    cells.filter((c) => c !== 0xff).length === 55 && [grid(0, 8), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9)].join()
       === [CHI.top, CHI.roofs, CHI.willow, CHI.tower, CHI.market, CHI.gate, CHI.junk, CHI.wall, CHI.alley].join() && grid(2, 7) === SIB.border && grid(1, 3) === ROOM.station && grid(0, 9) === 0xff && grid(2, 10) === 0xff);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('Moscow and Siberia keep their coins and finds, in the same table places (first), and China adds 17 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && coinsIn(18, 26) === 17 && itemsIn(18, 26) === 5 && (WORLD.coinTable[26 * 3] ?? 99) <= 17 && (WORLD.coinTable[27 * 3] ?? 0) >= 18);
-  check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\' (10 and 8 in all)', WORLD.progress.keyItems.length === 10 && WORLD.progress.cakes.length === 8);
+  check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\' (14 and 11 in all)', WORLD.progress.keyItems.length === 14 && WORLD.progress.cakes.length === 11);
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in China's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -388,7 +388,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === 'SNACKS  0/8' && info[2] === 'ITEMS  0/10');
+  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === 'SNACKS  0/11' && info[2] === 'ITEMS  0/14');
   enterRoom(s.g, CHI.market, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 22: [0x40, 0xb2, 1, 9], 23: [0x40, 0xb2, 1, 10] } });
   check('in China the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -426,7 +426,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (Moscow\'s and Siberia\'s arrays and grids) loads: the finds and the ushanka are as saved, and China is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 18 && g2.coinCollected.length === 67 && g2.coinCollected.slice(27).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 25 && g2.coinCollected.length === 147 && g2.coinCollected.slice(27).every((c) => c === 0));
 }
 
 /** The rice hat's index in the table. */
