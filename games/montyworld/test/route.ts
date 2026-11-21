@@ -31,10 +31,12 @@ type Part = Pick<Leg, 'goal' | 'aim'>;
 const into = (room: number, col: number, row: number, from: number, also: Goal = () => true): Part => ({ goal: (g) => g.roomId === room && !g.freeze && !g.script && also(g), aim: [{ room: from, col, row }] });
 /** Above (a high way in) or below a floor row. */
 const above = (floor: number): Goal => (g) => g.y < standY(floor);
-const coin = (room: number, col: number, row: number): Part => ({ goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0, aim: [{ room, col, row: row - 1 }] });
+/** A coin taken, and he is on his feet (or a rope) again: a leg that ended in mid-air would hand the next one a jump already committed. */
+const settledOn: Goal = (g) => !g.montyAction && !g.falling && !g.gameMode && !g.freeze && !g.script;
+const coin = (room: number, col: number, row: number): Part => ({ goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0 && settledOn(g), aim: [{ room, col, row: row - 1 }] });
 /** A special item of a room (its n-th), where its sprite is. */
 const item = (room: number, nth = 0): Part => ({
-  goal: (g) => g.siCollected[itemIndex(g, room, nth)] !== 0,
+  goal: (g) => g.siCollected[itemIndex(g, room, nth)] !== 0 && settledOn(g),
   aim: [{ room, col: ITEM_AT[room]?.[nth]?.[0] ?? 0, row: ITEM_AT[room]?.[nth]?.[1] ?? 0 }],
 });
 /** Standing in a room on a floor row, not in a ride. */
@@ -81,7 +83,7 @@ export const LEGS: readonly Leg[] = [
   leg('C to D: the flagpole rope', into(ROOM.domes, 25, 0, ROOM.square)),
   leg('D: the coin on the stair', coin(ROOM.domes, 7, 11)),
   leg('D: up the stair to the dome tops', stands(ROOM.domes, 6, 14, 17)),
-  leg('D: the coin on the dome tops', coin(ROOM.domes, 22, 4)),
+  leg('D: the coin over the gap between the domes', coin(ROOM.domes, 19, 4)),
   leg('D: the pirozhok', item(ROOM.domes)),
   leg('D to K: the way out, high', into(ROOM.kremlin, 31, 4, ROOM.domes)),
   leg('K: the coin past the gorge (the guard has stepped aside)', coin(ROOM.kremlin, 25, 4)),

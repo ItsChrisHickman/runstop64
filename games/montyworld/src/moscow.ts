@@ -36,10 +36,15 @@ export const SECTOR_COLOURS: readonly number[] = [2, 2, 2, 7, 7, 1, 8, 14, 14];
 
 // ---- shared bits ---------------------------------------------------------------------------------------
 
-/** A ceiling of `rows` rows of crust across the room with a ragged edge of drips under it where `drips` says (column ranges). */
+/**
+ * A ceiling of `rows` rows of crust across the room with a ragged edge under it: at each of the column ranges `drips` says, a
+ * fringe of drips under the crust, and in every second one the crust itself comes a row lower first (so the edge steps).
+ */
 function roof(g: Grid, rows: number, drips: readonly (readonly [number, number])[], crust = 'C', drip = 'D') {
   g.box(0, 0, 31, rows - 1, crust);
-  for (const [a, b] of drips) g.box(a, rows, b, rows, drip);
+  drips.forEach(([a, b], i) => {
+    if (i % 2 === 1 && b - a >= 2) { g.box(a + 1, rows, b - 1, rows, crust); g.box(a + 1, rows + 1, b - 1, rows + 1, drip); } else g.box(a, rows, b, rows, drip);
+  });
 }
 
 /** An escalator's slope: its treads two cells thick along the line his feet follow, from the foot to the far landing. */
@@ -143,11 +148,11 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       g.box(10, 15, 13, 15, 'M').box(6, 13, 9, 13, 'M').box(2, 11, 5, 11, 'M').box(6, 9, 9, 9, 'M').box(10, 7, 13, 7, 'M'); // the stair
       g.box(14, 6, 17, 6, 'M').box(20, 6, 23, 6, 'M').box(26, 6, 31, 6, 'M'); // the dome tops
     },
-    coins: [[7, 11], [22, 4]],
+    coins: [[7, 11], [19, 4]],
     cake: [28, 4],
     decor: [['domeMedium', 14, 2], ['domeSmall', 21, 3], ['domeSmall', 30, 3]],
     creatures: [
-      { who: 'pigeon', col: 24, row: 1, way: 'down', speed: 1, range: 24 },
+      { who: 'pigeon', col: 8, row: 3, way: 'down', speed: 1, range: 40 },
       { who: 'egg', col: 3, row: 3, way: 'down', speed: 1, range: 18 },
     ],
   }),
@@ -160,13 +165,17 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       roof(g, 2, [[19, 24]]);
       g.box(6, 2, 13, 3, 'A').box(30, 2, 31, 5, 'K');
-      g.box(0, 6, 14, 6, 'B').box(0, 7, 14, 19, 'K').box(19, 6, 31, 6, 'B').box(19, 7, 31, 19, 'K');
+      // the wall's top, two slabs over the gorge, each a short face of brick on piers with the undercroft open (black) between them
+      for (const [from, to] of [[0, 14], [19, 31]] as const) {
+        g.box(from, 6, to, 6, 'B').box(from, 7, to, 9, 'K');
+        for (let c = from; c <= to; c += 6) g.box(c, 10, Math.min(c + 2, to), 17, 'K');
+        g.box(from, 18, to, 19, 'F');
+      }
     },
     coins: [[25, 4]],
     decor: [['redStar', 21, 3], ['lampStreet', 28, 2]],
     creatures: [
       { who: 'guard', col: 6, row: 4, way: 'right', speed: 2, range: 24 },
-      { who: 'egg', col: 22, row: 3, way: 'down', speed: 1, range: 12 },
     ],
   }),
 

@@ -1,8 +1,8 @@
 /**
- * Do Svidaniya Monty, the skeleton on the Monty engine: a second data set on the same code as Monty on the Run. Its three
- * placeholder rooms load (no room of Monty on the Run's in it), the exit grid is the wide one (50 by 3, not the original's 23 by 6),
- * Monty walks through them (the coins and the piece of cake taken, the score and the sector names right), walks back, and the same
- * game runs through the front end: the title, play, the pause screen's map of the wide grid, a save on coming into each room.
+ * Do Svidaniya Monty on the Monty engine, the data and the front end: Moscow's nine rooms load (none of Monty on the Run's), the exit
+ * grid is the wide one (50 by 3, not the original's 23 by 6), the rooms are where the plan puts them with their names, the first room's
+ * way out joins the second, and the same game runs through the front end: the title, play, Moscow's version of the tune, the pause
+ * screen's counts and map. (The bot, moscow.ts, plays every room; mechanisms.ts checks each mechanism.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/walk.ts
  */
@@ -16,16 +16,31 @@ import { extendEnemies, extendTiles } from '../../shared/monty/rooms';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { WORLD, WORLD_COLS, WORLD_ROWS } from '../src/data';
-import { run } from '../src/main';
+import { fromBase64, readSaves } from '../../shared/saves';
+import { CODEC, run } from '../src/main';
+import { MOSCOW_ROOMS, ROOM } from '../src/moscow';
+import { enterRoom } from '../../montyotr/src/ending';
+import { standY } from './route';
 
 // ---- the data ------------------------------------------------------------------------------------
-const rooms = [0, 1, 2];
+const cells = WORLD.exitGrid.image;
 check(`the exit grid is ${WORLD_COLS} by ${WORLD_ROWS} (Monty on the Run's is ${MOTR.exitGrid.cols} by ${MOTR.exitGrid.rows})`,
-  WORLD.exitGrid.cols === WORLD_COLS && WORLD.exitGrid.rows === WORLD_ROWS && WORLD.exitGrid.image.length === WORLD_COLS * WORLD_ROWS && MOTR.exitGrid.cols === 23);
-check('the three rooms are in the first three cells of the middle row', rooms.every((id) => WORLD.exitGrid.image[WORLD_COLS + id] === id) && WORLD.exitGrid.image.filter((c) => c !== 0xff).length === 3);
+  WORLD.exitGrid.cols === WORLD_COLS && WORLD.exitGrid.rows === WORLD_ROWS && cells.length === WORLD_COLS * WORLD_ROWS && MOTR.exitGrid.cols === 23);
+check('Moscow\'s nine rooms are the first four columns of the grid, each in the cell the plan gives it',
+  cells.filter((c) => c !== 0xff).length === 9 && [[1, 0, ROOM.start], [1, 1, ROOM.streets], [1, 2, ROOM.square], [1, 3, ROOM.station], [0, 1, ROOM.gum], [0, 2, ROOM.domes], [0, 3, ROOM.kremlin], [2, 1, ROOM.hall], [2, 2, ROOM.platform]]
+    .every(([row, col, id]) => cells[(row ?? 0) * WORLD_COLS + (col ?? 0)] === id));
 check('no room of Monty on the Run\'s extension, no kit, no C5, no jetpack, no ending', WORLD.extensionGrid.every((c) => c === 0xff) && !WORLD.isExtensionRoom(0) && WORLD.kit.length === 0 && !WORLD.c5 && WORLD.jetpackRooms.length === 0 && !WORLD.ending && !WORLD.completion);
-check('the sectors: Moscow station, Red Square', sectorName(WORLD, 0).text === 'MOSCOW STATION' && sectorName(WORLD, 1).text === 'MOSCOW STATION' && sectorName(WORLD, 2).text === 'RED SQUARE');
-check('two coins and a piece of cake', WORLD.coinTable.length === 6 && WORLD.specialItems.length === 4 && WORLD.specialItems[0] === 1);
+check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1, 2, 3, 4, 5, 6, 7, 8].map((id) => sectorName(WORLD, id).text).join('|') ===
+  'MOSCOW MOLE|SNOW PLACE LIKE HOME|SEEING RED|ONION DOME SWEET DOME|KREMLIN GREMLINS|SIBERIA YOU LATER|STUCK LIKE GUM|ESCALATING TENSIONS|UNDERGROUND MOVEMENT');
+check('14 coins, 2 pirozhki, 2 key items', WORLD.coinTable.length === 14 * 3 && WORLD.specialItems.length === 4 * 4 && WORLD.progress.cakes.length === 2 && WORLD.progress.keyItems.length === 2);
+{
+  // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
+  const rooms = new Map<number, Set<number>>();
+  for (const r of MOSCOW_ROOMS) for (const e of r.enemies ?? []) rooms.set(e.type, new Set([...(rooms.get(e.type) ?? []), r.id]));
+  const most = Math.max(...[...rooms.values()].map((v) => v.size));
+  check(`${rooms.size} kinds of creature in Moscow's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 11 && most <= 2);
+}
+check('the exit off the carriage roof is shut: nothing east of the station', cells[WORLD_COLS + 4] === 0xff);
 
 // ---- a game's own tiles, creatures and items come from the data ----------------------------------------
 {
@@ -38,34 +53,18 @@ check('two coins and a piece of cake', WORLD.coinTable.length === 6 && WORLD.spe
   check('an item\'s colour comes from the data (Monty on the Run\'s are white)', MOTR.itemSprites.colour(0x91) === 1 && WORLD.itemSprites.colour(0x91) === 1);
 }
 
-// ---- Monty walked through -------------------------------------------------------------------------
+// ---- Monty in the first room ---------------------------------------------------------------------
 const g = new Game(WORLD);
-g.assist = { lives: false, cloud: false, jetpack: false, c5: false, rooms: false, respawn: false };
+g.assist = { lives: false, cloud: false, jetpack: false, c5: false, rooms: false, respawn: false, hints: false };
 g.start();
 const s: State = { g, col: 0 };
-const settle = () => { for (let n = 0; n < 200 && (g.freeze || g.script); n++) frame(s, NONE); };
-settle();
+for (let n = 0; n < 200 && (g.freeze || g.script); n++) frame(s, NONE);
 check(`a new game starts in room $00 at his start place (${g.roomId}, ${g.mapRow}/${g.exitCol})`, g.roomId === 0 && g.mapRow === 1 && g.exitCol === 0 && !g.freeze);
-check('the room is drawn: its floor under him', g.flagAt(18, 10) === 1 && g.flagAt(14, 10) === 0);
-
-const seen: number[] = [0];
-const right = { left: false, right: true, up: false, down: false, fire: false };
-const left = { left: true, right: false, up: false, down: false, fire: false };
-for (let t = 0; t < 4000 && !(g.roomId === 2 && g.x2 > 0x80); t++) {
-  frame(s, right);
-  if (g.roomId !== seen[seen.length - 1]) seen.push(g.roomId);
-  if (g.script) for (let n = 0; n < 200 && g.script; n++) frame(s, NONE);
-}
-check(`walking right goes through rooms ${seen.join(', ')} (0, 1, 2)`, seen.join() === '0,1,2');
-check(`both coins and the cake taken: ${g.score} points (2 x 50 + 200)`, g.score === 300 && g.coinCollected.every((c) => c !== 0) && g.siCollected[0] !== 0);
-
-const back: number[] = [2];
-for (let t = 0; t < 4000 && g.roomId !== 0; t++) {
-  frame(s, left);
-  if (g.roomId !== back[back.length - 1]) back.push(g.roomId);
-  if (g.script) for (let n = 0; n < 200 && g.script; n++) frame(s, NONE);
-}
-check(`and back: rooms ${back.join(', ')} (2, 1, 0), nothing taken twice (${g.score} points)`, back.join() === '2,1,0' && g.score === 300);
+check('the room is drawn: its floor under him', g.flagAt(20, 10) === 2 || g.flagAt(20, 10) === 1);
+// out at the right of the first room takes him to the second (the bot, moscow.ts, plays the way there; this is the join)
+enterRoom(g, ROOM.start, 0x0c + (31 + 4) * 4 - 8, standY(7));
+for (let t = 0; t < 400 && g.roomId === ROOM.start; t++) { frame(s, { left: false, right: true, up: false, down: false, fire: false }); if (g.script) for (let n = 0; n < 200 && g.script; n++) frame(s, NONE); }
+check(`the first room's way out at the right, high, leads to the streets (room ${g.roomId})`, g.roomId === ROOM.streets);
 
 // ---- through the front end ------------------------------------------------------------------------
 useMemoryStorage();
@@ -79,19 +78,18 @@ check('the title is up, its game is Do Svidaniya Monty\'s', p.state.mode === 'ti
 tap('Space');
 tick(80);
 check(`play begins in room $00 (${p.game.roomId})`, p.state.mode === 'play' && p.game.roomId === 0);
-input.keyDown('ArrowRight');
-for (let i = 0; i < 4000 && !(p.game.roomId === 2 && p.game.x2 > 0x80); i++) tick();
-input.keyUp('ArrowRight');
 tick(10);
-check(`walked to room $02 through the front end, ${p.game.score} points`, p.game.roomId === 2 && p.game.score === 300);
-check(`the music: Moscow's version of the tune started once, coming into Moscow, and not again through its three rooms (${sidLog.tunes.length} start, the original's none)`, sidLog.tunes.length === 1 && sidLog.tunes[0] !== null);
-const found = Object.keys(p.state.found.rooms).map(Number).sort((a, b) => a - b);
-check(`the map kept the three rooms seen (${found.join(', ')})`, found.join() === '0,1,2');
+check(`the music: Moscow's version of the tune started once, coming into Moscow (${sidLog.tunes.length} start, the original's none)`, sidLog.tunes.length === 1 && sidLog.tunes[0] !== null);
+const found = Object.keys(p.state.found.rooms).map(Number);
+check(`the map kept the room seen (${found.join(', ')})`, found.join() === '0');
+const saved = readSaves('montyworld').current;
+check(`the autosave is in the envelope of its own: { game: "montyworld", format: ${CODEC.format} }, and its codec reads it back (room ${saved ? CODEC.unpack(fromBase64(saved.data), saved.format).roomId : '-'})`,
+  saved !== null && saved.format === CODEC.format && CODEC.unpack(fromBase64(saved.data), saved.format).roomId === 0);
 tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[1] === 'ROOMS  3/3' && numbers[2] === 'ITEMS 0/0' && numbers[3] === 'CAKES  1/1');
+check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[1] === 'ROOMS  1/9' && numbers[2] === 'ITEMS 0/2' && numbers[3] === 'PIROZHKI  0/2');
 tap('KeyP');
 tick(4);
 
