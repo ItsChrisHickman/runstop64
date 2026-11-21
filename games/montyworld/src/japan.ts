@@ -326,7 +326,6 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [['jpScroll', 9, 5], ['jpScroll', 15, 5], ['jpScroll', 2, 5], ['jpLantern', 10, 8], ['jpLantern', 16, 8]],
     creatures: [
       { who: 'jpSamurai', col: 20, row: 12, way: 'right', speed: 1, range: 16 },
-      { who: 'jpNinja', col: 14, row: 12, way: 'right', speed: 1, range: 16 },
       { who: 'jpLanternGhost', col: 9, row: 5, way: 'down', speed: 1, range: 24 },
     ],
   }),

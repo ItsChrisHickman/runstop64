@@ -172,3 +172,5 @@ arms.png, dragon.png, gate-shut/open.png, trapdoor-shut/open.png, junk-no-raft/r
 
 **What to look at in play**: the firecrackers' wait (does the string read as a fuse burning?), the dragon's street (a walk along it is untouched from about four starts in ten), the arms over the stones, the rice hat
 over Monty, and the rooms' fullness beside Monty on the Run's.
+
+**Japan built (2026-11-21):** the junk's way east is open now (its planks and the JAPAN COMING SOON sign are gone; the east wall is open at rows 15-16 above the deck) into Japan's harbour (`docs/dosvidaniya-japan.md`).
