@@ -119,7 +119,7 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The kit Monty carries (freedom kit icons, by item): drawn on the title and the pause screen; empty for a game with none. */
   kit: readonly number[];
   /** Sprite pointers that mean something to the item pickup (HandleSICollision). */
-  itemSprites: { treasure: number; extraLife: number; fatal: number; collectable(ptr: number): boolean };
+  itemSprites: { treasure: number; extraLife: number; fatal: number; collectable(ptr: number): boolean; /** The colour an item is drawn in (Monty on the Run's are all white). */ colour(ptr: number): number };
   /** A special item that is the cheat: only there in cheat mode, and taking it turns cheat mode on. */
   cheatItem: number | null;
   /** Special items that don't count towards finishing a room (a trap, a fatal one, the cheat). */

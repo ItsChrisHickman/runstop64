@@ -12,6 +12,7 @@ import { Game } from '../../montyotr/src/game';
 import { montyMap } from '../../montyotr/src/map';
 import { MOTR } from '../../montyotr/src/motr';
 import { frame, NONE, type State } from '../../montyotr/test/play';
+import { extendEnemies, extendTiles } from '../../shared/monty/rooms';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { WORLD, WORLD_COLS, WORLD_ROWS } from '../src/data';
@@ -25,6 +26,17 @@ check('the three rooms are in the first three cells of the middle row', rooms.ev
 check('no room of Monty on the Run\'s extension, no kit, no C5, no jetpack, no ending', WORLD.extensionGrid.every((c) => c === 0xff) && !WORLD.isExtensionRoom(0) && WORLD.kit.length === 0 && !WORLD.c5 && WORLD.jetpackRooms.length === 0 && !WORLD.ending && !WORLD.completion);
 check('the sectors: Moscow station, Red Square', sectorName(WORLD, 0).text === 'MOSCOW STATION' && sectorName(WORLD, 1).text === 'MOSCOW STATION' && sectorName(WORLD, 2).text === 'RED SQUARE');
 check('two coins and a piece of cake', WORLD.coinTable.length === 6 && WORLD.specialItems.length === 4 && WORLD.specialItems[0] === 1);
+
+// ---- a game's own tiles, creatures and items come from the data ----------------------------------------
+{
+  const own = extendTiles(MOTR, [{ chr: new Uint8Array(8).fill(0xff), cls: 2 }, { chr: new Uint8Array(8), cls: 4 }]);
+  check('extended tiles: 121 and 122 are ours, with their own classes; the base\'s tiles keep theirs', own.tileLibrary.length === MOTR.tileLibrary.length + 16 && own.tileProperty(121) === 2 && own.tileProperty(122) === 4
+    && own.tileProperty(123) === 0 && [0x01, 0x30, 0x50, 0x60, 0x80].every((t) => own.tileProperty(t) === MOTR.tileProperty(t)));
+  const frames = new Uint8Array(256).fill(7);
+  const bank = extendEnemies(MOTR, [{ frames, copy: true }], 35);
+  check('extended enemy bank: type 35 is ours, 8-34 the base\'s', bank.enemyBank(35) === frames && bank.enemyCopyFlag(35) === 1 && bank.enemyBank(9) === MOTR.enemyBank(9) || bank.enemyBank(9).every((b, i) => b === MOTR.enemyBank(9)[i]));
+  check('an item\'s colour comes from the data (Monty on the Run\'s are white)', MOTR.itemSprites.colour(0x91) === 1 && WORLD.itemSprites.colour(0x91) === 1);
+}
 
 // ---- Monty walked through -------------------------------------------------------------------------
 const g = new Game(WORLD);

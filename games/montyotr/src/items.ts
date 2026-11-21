@@ -29,7 +29,7 @@ export function spawnForRoom(g: Game) {
     g.sx[0] = specialItems[i * 4 + 1];
     g.sy[0] = specialItems[i * 4 + 2];
     g.sptr[0] = (specialItems[i * 4 + 3] + 0x8e) & 0xff;
-    g.scol[0] = 1;
+    g.scol[0] = g.data.itemSprites.colour(g.sptr[0]);
     g.enable |= 0x01;
     g.priority |= 0x01;
     g.siActiveIdx = i;

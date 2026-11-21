@@ -239,3 +239,37 @@ export function roomCells(size: number, cols: number, rooms: readonly RoomSpec[]
 export function checkFree(grid: Uint8Array, cols: number, rooms: readonly RoomSpec[]): void {
   for (const r of rooms) if (grid[r.row * cols + r.col] !== 0xff) throw new Error(`room $${hex(r.id)}: its cell is the original's`);
 }
+
+// ---- a game's own graphics on top of Monty on the Run's -------------------------------------------------------------
+
+/** A tile of a game's own: its 8 bytes and its collision class (0 nothing, 1 solid, 2 a floor, 3 a rope, 4 deadly). */
+export interface TileArt { readonly chr: Uint8Array; readonly cls: number }
+
+/**
+ * A tile library with tiles of a game's own after the base's (their indexes follow the base's: 121 and up for Monty on the Run's),
+ * and the collision class of each: the base's rule for its own tiles, the tile's `cls` for ours.
+ */
+export function extendTiles(base: { tileLibrary: Uint8Array; tileProperty(tile: number): number }, tiles: readonly TileArt[]) {
+  const first = base.tileLibrary.length / 8;
+  const tileLibrary = Uint8Array.from([...base.tileLibrary, ...tiles.flatMap((t) => [...t.chr])]);
+  return {
+    tileLibrary,
+    tileProperty: (tile: number) => (tile >= first ? tiles[tile - first]?.cls ?? 0 : base.tileProperty(tile)),
+  };
+}
+
+/** A creature of a game's own: 8 frames of 32 bytes, and whether frames 0-3 stand for 4-7. */
+export interface CreatureArt { readonly frames: Uint8Array; readonly copy: boolean }
+
+/** The enemy bank with creatures of a game's own after the base's: types from `firstType` up (Monty on the Run's are 8-34, so 35). */
+export function extendEnemies(
+  base: { enemyBank(type: number): Uint8Array; enemyCopyFlag(type: number): number },
+  creatures: readonly CreatureArt[],
+  firstType: number,
+) {
+  const own = (type: number) => (type >= firstType ? creatures[type - firstType] : undefined);
+  return {
+    enemyBank: (type: number) => own(type)?.frames ?? base.enemyBank(type),
+    enemyCopyFlag: (type: number) => { const c = own(type); return c ? (c.copy ? 1 : 0) : base.enemyCopyFlag(type); },
+  };
+}

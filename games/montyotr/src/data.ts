@@ -76,7 +76,7 @@ export const MUSIC = { init: 0x9554, stop: 0x957d, playSfx: 0x9591 } as const;
  * treasure ($9B), and the pointers that are items ($8E-$97 and $BF). They are Monty on the Run's bank's: a game on its bank has them.
  */
 export const ITEM_SPRITES: MontyData['itemSprites'] = {
-  treasure: 0x9b, extraLife: 0x8e, fatal: 0x92, collectable: (ptr) => ptr === 0xbf || (ptr >= 0x8e && ptr < 0x98),
+  treasure: 0x9b, extraLife: 0x8e, fatal: 0x92, collectable: (ptr) => ptr === 0xbf || (ptr >= 0x8e && ptr < 0x98), colour: () => 1,
 };
 
 /** What every game on the engine can take as it is: Monty on the Run's graphics, tables and sound (the .sid's address is the game's own: `music.sidUrl`). */
