@@ -100,18 +100,18 @@ function cloud(): NewDecor {
   return decor('cloud', 3, 2, r, 1);
 }
 
-/** The two birds of the plate, beak to beak, wings swept up. 6 x 2 characters. */
+/** The two birds of the plate, beak to beak, wings spread up and back. 6 x 2 characters. */
 function kissingDoves(): NewDecor {
   const r = new Raster(48, 16);
   const bird = (flip: boolean) => {
     const f = (x: number) => (flip ? 47 - x : x);
-    r.ellipse(f(11), 10, 6, 2.8); // the body
-    r.triangle(f(6), 9, f(0), 14, f(1), 8); // the tail
-    r.disc(f(19), 7.5, 3); // the head
-    r.triangle(f(21.5), 6.6, f(21.5), 8.6, f(23.5), 7.6); // the beak
-    r.triangle(f(6), 8, f(15), 8, f(8), 0); // the wing, swept up
-    r.cut(['#'], f(18.5), 6.5);
-    r.line(f(9), 6, f(9), 3, false); r.line(f(11), 7, f(11), 4, false); // the feathers
+    r.ellipse(f(12), 11, 7, 2.6); // the body
+    r.triangle(f(6), 10, f(0), 8, f(1), 15); // the tail, fanned
+    r.disc(f(20), 8, 2.8); // the head
+    r.triangle(f(22), 7.2, f(22), 9, f(23.8), 8.2); // the beak
+    r.triangle(f(5), 9, f(17), 9, f(7), 0); r.triangle(f(9), 9, f(18), 8, f(14), 1); // the wing, spread up and back
+    r.line(f(8), 8, f(8), 4, false); r.line(f(11), 8, f(11), 4, false); r.line(f(14), 8, f(14), 4, false); // its feathers
+    r.set(f(20), 7, false); // the eye
   };
   bird(false); bird(true);
   return decor('kissingDoves', 6, 2, r, 1);
