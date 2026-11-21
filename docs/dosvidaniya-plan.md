@@ -9,7 +9,7 @@ Intermole finds Monty's Greek island (where Auf Wiedersehen Monty left him) and 
 works in Europe, so he runs east and out of its reach, the long way round, with no passport: through Moscow, across Siberia
 on the Trans-Siberian railway, through China, by junk to Japan, by cargo ship to Hawaii, stowed in a cargo plane's hold
 over the Pacific, by parachute down into the Andes at Machu Picchu, by riverboat down the Amazon, to Rio de Janeiro. Every
-leg is a different way of travelling. The game ends on Rio's beach under Christ the Redeemer, retired again, out of reach for
+leg is a different way of travelling. The game ends on Rio's beach under Christ the Redeemer, eating an açaí bowl (Brazil's own: the berry is from the Amazon and the bowl a Rio beach food before surfers took it to Hawaii), retired again, out of reach for
 good.
 
 **The name** (Chris, 2026-11-20): Do Svidaniya Monty, Russian for goodbye, as Auf Wiedersehen Monty is German for it (that
