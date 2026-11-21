@@ -13,6 +13,11 @@ function underTheDeck(part: Part): Part {
   return { goal: (g) => part.goal(g) && g.roomId === JP.platform && g.onRope !== 0 && g.montyCol - 4 >= 19 && g.montyCol - 4 <= 21 && g.y >= 50 + 17 * 8, aim: part.aim };
 }
 
+/** A leg that ends west of a column: the third tier's coin is on the east ninja's lane, and a leg that ended with him cornered east of it would hand the next one no way out (the search then finds none). */
+function westOf(part: Part, col: number): Part {
+  return { goal: (g) => part.goal(g) && g.montyCol - 4 <= col, aim: part.aim };
+}
+
 export const JAPAN_LEGS: readonly Leg[] = [
   leg('A: over the inlet, the coin on the first crate', coin(JP.harbour, 15, 13)),
   leg('A: up the stair of crates onto the market\'s roof, the coin at its east end', coin(JP.harbour, 28, 5)),
@@ -46,15 +51,15 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('L: to the shrine and the hood', item(JP.mole, 0, [1, 12])),
   leg('L to G: back over the stones and down the rope', into(JP.garden, 28, 19, JP.mole)),
   leg('G to I: out through the castle gate', into(JP.hall, 31, 13, JP.garden)),
-  leg('I: up the rope and along the gallery to the coin at its end', coin(JP.hall, 13, 6)),
   leg('I to H: up the rope to the roofs', into(JP.tiers, 4, 0, JP.hall)),
   leg('H: the coin on the first tier', coin(JP.tiers, 12, 13)),
-  leg('H: the coin on the third tier', coin(JP.tiers, 26, 9)),
+  leg('H: the coin on the third tier (and back west, clear of the ninja)', westOf(coin(JP.tiers, 26, 9), 22)),
   leg('H: the coin on the fifth tier', coin(JP.tiers, 10, 5)),
   leg('H: the sushi on the top tier', item(JP.tiers, 0, [18, 3])),
   leg('H to I: back down the rope', into(JP.hall, 4, 19, JP.tiers)),
   leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),
   leg('I: through the second door into the space before the third', stands(JP.hall, 14, 14, 17)),
+  leg('I: back west through both doors, up the rope and along the gallery to the coin at its end', coin(JP.hall, 13, 6)),
   leg('I to J: through the third door past the guard (gone), to the floor gap and down the rope', into(JP.port, 25, 19, JP.hall)),
   leg('J: the coin on the quay past the crab', coin(JP.port, 23, 15)),
   leg('J: the coin on top of the containers past the sumo', coin(JP.port, 4, 9)),
