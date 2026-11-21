@@ -13,6 +13,10 @@ import { codeOf, Grid, room, type Palette } from './layout';
  *
  * Playfield cells as in moscow.ts. The tunnel mouths (A, B) sweep the carriage roofs, the ice (L) cracks, the mine cart (M) is a lift, the
  * ledges of the dark shaft (S) are placed by the miner's lamp (M), the border barrier (G) is lifted by the ticket (C).
+ *
+ * The joins wind: the train is two lanes, the roof and, under it, the cars joined by gangways (A-B-C; the roof's hatches go down to them); C's rope
+ * climbs through the mine's floor, M's gantry goes west to the forest and the forest's rope drops to the sleeper (B-C-M-F-B is a loop); the shaft and the
+ * lake are joined by a rope both ways.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
@@ -46,12 +50,20 @@ const TRAIN_PALETTE = {
   C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], T: ['trainSide', 5], F: ['carFloor', 9], W: ['bogie', 11], R: ['rope', 13], X: ['tunnelFace', 12],
 } as const satisfies Palette;
 
-/** A carriage seen cut open: the roof walkway at row 9 with the hatches (floor gaps of three, a rope each), the car's ends and floor. */
-function carriage(g: Grid, hatches: readonly number[]) {
+/** The rows of a gangway between two cars (the cars' floor is row 17, his body rows 15 and 16). */
+const GANGWAY = { top: 15, bottom: 16 } as const;
+
+/**
+ * A carriage seen cut open: the roof walkway at row 9 with the hatches (floor gaps of three, a rope each), the car's floor, and the car's two
+ * ends, shut but for the gangway at an end that joins the next car.
+ */
+function carriage(g: Grid, hatches: readonly number[], gangways: { left: boolean; right: boolean }) {
   sky(g, 2, [[0, 3], [10, 14], [22, 27]]);
   g.box(0, 2, 1, 5, 'T').box(30, 2, 31, 5, 'T'); // (the ends above the roof, shut over the open rows 6-8)
   g.box(0, 9, 31, 9, 'G');
   g.box(0, 10, 1, 16, 'T').box(30, 10, 31, 16, 'T');
+  if (gangways.left) g.clear(0, GANGWAY.top, 1, GANGWAY.bottom);
+  if (gangways.right) g.clear(30, GANGWAY.top, 31, GANGWAY.bottom);
   g.box(0, 17, 31, 17, 'F').box(0, 18, 31, 19, 'W');
   for (const h of hatches) g.clear(h - 1, 9, h + 1, 9).box(h, 9, h, 16, 'R');
 }
@@ -61,7 +73,10 @@ function carriage(g: Grid, hatches: readonly number[]) {
 /** The portal's tile in the train rooms' palette. */
 const TUNNEL_CODE = codeOf(TRAIN_PALETTE, 'X');
 const MOUTH = { code: TUNNEL_CODE, cols: 4, top: 2, bottom: 8, step: 10, rest: 130, warn: 48 } as const;
-/** The tunnel mouths: the dining car's from the front of the train (the right), the sleeper's two, one from each end, a pause apart. */
+/**
+ * The tunnel mouths: the dining car's from the front of the train (the right); the sleeper's two, one from each end, a pause apart (they run at
+ * the same pace, 190 frames apart in a fixed phase, so they cross each other over the same cells every cycle: harmless, the roof is what they sweep).
+ */
 export const TUNNELS: readonly TunnelSpec[] = [
   { room: SIB.gravy, from: 'right', offset: 40, ...MOUTH },
   { room: SIB.sleeper, from: 'right', offset: 40, ...MOUTH },
@@ -72,74 +87,85 @@ const LAKE_PALETTE = {
   S: ['snowGround', 1], K: ['mineRock', 12], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13], C: ['snowCrust', 3],
 } as const satisfies Palette;
 const ICE = { row: 12, codes: [codeOf(LAKE_PALETTE, 'I'), codeOf(LAKE_PALETTE, 'J'), codeOf(LAKE_PALETTE, 'H')], crack: 56, wide: 88, gone: 120, away: 240 } as const;
-/** The lake's two patches of ice: six cells each, so crossing at his walk (48 frames) is safe and waiting is not. */
+/**
+ * The lake's two patches of ice: six cells each. His two-cell body is over a patch for about 56 frames when he walks across without stopping
+ * (measured: 71 frames over 8 cells, the patch showing its lines as he leaves), so crossing at his walk is safe by a hair and waiting is not.
+ */
 export const CRACKS: readonly CrackSpec[] = [
   { room: SIB.lake, col: 16, cols: 6, ...ICE }, { room: SIB.lake, col: 7, cols: 6, ...ICE },
 ];
 
 /**
- * The mine cart: Monty on the Run's lift (a ride down when stood on: type 2), with a picture of its own. It waits at the gantry's end
- * (cell 8, floor 7) and sets him down in the gallery.
+ * The mine cart: Monty on the Run's lift (a ride down when stood on: type 2), with a picture of its own. It hangs from its cable in a gap at the
+ * west end of the high shelf (cell 20, floor 12), clear of the way along the gantry, and sets him down in the gallery (floor 18) beside the way on.
  */
-export const CART_COL = 8;
+export const CART_COL = 20;
+export const CART_FLOOR = 12;
 export const LIFTS: readonly LiftSpec[] = [
-  { room: SIB.mine, x: 26 + 4 * CART_COL, y: 0x5b, type: 2, speedDir: 0x80, sound: false, look: { top: SIB_SPRITE.cartTop, bottom: SIB_SPRITE.cartBottom, colour: 8 } },
+  { room: SIB.mine, x: 26 + 4 * CART_COL, y: 0x32 + (CART_FLOOR - 2 + 3) * 8 - 0x17, type: 2, speedDir: 0x80, sound: false, look: { top: SIB_SPRITE.cartTop, bottom: SIB_SPRITE.cartBottom, colour: 8 } },
 ];
 
 // ---- the dark shaft's ledges ---------------------------------------------------------------------------
-const SHAFT_PALETTE = { K: ['mineRock', 12], B: ['timber', 8], W: ['lakeWater', 6], L: ['mineRail', 11] } as const satisfies Palette;
-/** The ledges and the stepping stone the lamp shows: playfield cells (row, column). */
+/** The shaft is dark: its rock is a dim blue, and the ledges are only felt (dots) until the lamp is taken. */
+const SHAFT_PALETTE = {
+  K: ['mineRock', 6], B: ['timber', 8], W: ['lakeWater', 14], G: ['ledgeGhost', 11], Q: ['coalSeam', 6], R: ['rope', 6],
+} as const satisfies Palette;
+/** The ledges the lamp shows: playfield cells (row, column). */
 export const SHAFT_LEDGES: readonly (readonly [row: number, col: number])[] = [
-  ...[2, 3, 4, 5].map((c) => [16, c] as const), ...[6, 7, 8, 9].map((c) => [14, c] as const), ...[10, 11, 12, 13].map((c) => [12, c] as const),
-  [18, 22], [18, 23],
+  ...[6, 7, 8, 9].map((c) => [14, c] as const), ...[10, 11, 12, 13].map((c) => [12, c] as const),
 ];
+/** The stepping stone in the pit the lamp shows (over the water, so no ghost of it stands there before). */
+export const SHAFT_STONE: readonly (readonly [row: number, col: number])[] = [[18, 22], [18, 23]];
 export const SHAFT_CODE = codeOf(SHAFT_PALETTE, 'B');
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // A THE GRAVY TRAIN: the dining car. Along the roof from Moscow's carriage, a tunnel mouth sweeping it from the front; two hatches with a
-  // rope each into the car, whose floor runs between them (a pocket at each end: a pelmeni to the left, a coin to the right; the inspector between).
+  // rope each into the car, whose floor runs between them (a pocket at the left: a pelmeni; the inspector between) and on out through the gangway
+  // at the right into the sleeper's corridor.
   room({
     id: SIB.gravy, cell: [1, 4], sector: 9, palette: TRAIN_PALETTE,
     paint(g) {
-      carriage(g, [12, 25]);
+      carriage(g, [12, 25], { left: false, right: true });
     },
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
-    decor: [['carWindow', 5, 11], ['carWindow', 17, 11], ['carWindow', 21, 11], ['diningTable', 15, 15], ['diningTable', 19, 15], [{ text: 'RESTAURANT', colour: 7 }, 8, 13], ['pole', 7, 5], ['pineSmall', 16, 6]],
+    decor: [['carWindow', 4, 11], ['carWindow', 20, 11], ['carWindow', 28, 11], ['diningTable', 15, 15], ['diningTable', 19, 15], [{ text: 'RESTAURANT', colour: 7 }, 7, 13]],
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
   // B SLEEPER HIT: the sleeper. The roof again, two mouths, one from each end a pause apart; two hatches into the corridor of berths (an
-  // inspector in its right half, a coin each end); a pine beside the track whose rope climbs out of the ceiling to the forest.
+  // inspector in its right half, a coin each end), a gangway at each end to the cars either side; a rope at column 22 climbs out of the ceiling to the forest.
   room({
     id: SIB.sleeper, cell: [1, 5], sector: 10, palette: TRAIN_PALETTE,
     paint(g) {
-      carriage(g, [7, 15]);
-      g.clear(21, 0, 23, 1).box(22, 0, 22, 8, 'R'); // the pine's rope, up through the ceiling
+      carriage(g, [7, 15], { left: true, right: true });
+      g.clear(21, 0, 23, 1).box(22, 0, 22, 8, 'R'); // the rope up through the ceiling to the forest
     },
     coins: [[3, 15], [27, 15]],
-    decor: [['bunk', 10, 15], ['bunk', 20, 15], ['carWindow', 4, 11], ['carWindow', 11, 11], ['carWindow', 19, 11], ['carWindow', 26, 11], ['pole', 28, 5], ['pineSmall', 3, 6]],
+    decor: [['bunk', 10, 15], ['bunk', 20, 15], ['carWindow', 4, 11], ['carWindow', 11, 11], ['carWindow', 19, 11], ['carWindow', 26, 11]],
     creatures: [{ who: 'inspector', col: 19, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
-  // C COAL COMFORT: the tender, a dead end. From the roof's rim down the coal in steps to the trough (the stoker paces it) and up the heaps
-  // on the far side to the locomotive's cab, where the ticket lies; and back.
+  // C COAL COMFORT: the tender. In from the roof along the rim; a hatch down to the pocket under it (the gangway from the sleeper's corridor comes in
+  // at its left); the coal in steps down to the trough (the stoker paces it) and up the heaps on the far side to the locomotive's cab, where the ticket
+  // lies; a rope from the heap at column 20 climbs through the ceiling into the mine's floor.
   room({
     id: SIB.coal, cell: [1, 6], sector: 11,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], K: ['coal', 12], T: ['trainSide', 5], F: ['carFloor', 9], W: ['bogie', 11] },
+    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], G: ['girder', 12], K: ['coal', 12], T: ['trainSide', 5], F: ['carFloor', 9], W: ['bogie', 11], R: ['rope', 13] },
     paint(g) {
       sky(g, 2, [[0, 3], [12, 18], [26, 29]]);
-      g.box(0, 2, 1, 5, 'T').box(30, 2, 31, 16, 'T');
-      g.box(0, 9, 5, 9, 'G').box(0, 10, 5, 16, 'T'); // the rim, with the car's side under it
+      g.clear(7, 0, 9, 1).box(8, 0, 8, 10, 'R'); // the rope up into the mine
+      g.box(0, 2, 1, 5, 'T').box(30, 2, 31, 16, 'T').box(0, 10, 1, 14, 'T');
+      g.box(0, 9, 5, 9, 'G').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
       g.box(6, 11, 8, 16, 'K').box(9, 13, 11, 16, 'K').box(12, 15, 19, 16, 'K').box(20, 13, 22, 16, 'K').box(23, 11, 25, 16, 'K'); // the coal in steps
       g.box(26, 9, 31, 16, 'K'); // the cab's roof (the heap's last step)
       g.box(0, 17, 31, 17, 'F').box(0, 18, 31, 19, 'W');
     },
     coins: [[15, 13]],
     item: { name: 'ticket', col: 28, row: 7, sprite: SIB_SPRITE.ticket },
-    decor: [['pole', 3, 5], ['pole', 27, 3]],
+    decor: [['coalBucket', 13, 13]],
     creatures: [{ who: 'miner', col: 12, row: 13, way: 'right', speed: 1, range: 48 }],
   }),
 
@@ -156,7 +182,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(4, 7, 25, 7, 'H').box(29, 7, 31, 7, 'H').clear(26, 7, 28, 7).box(27, 7, 27, 16, 'R'); // the boughs, a rope up to them
     },
     coins: [[14, 5], [17, 15]],
-    decor: [['pineTall', 3, 11], ['pineTall', 24, 11], ['pineSmall', 8, 14]],
+    decor: [['pineTall', 3, 11], ['pineTall', 24, 11], ['pineSmall', 8, 14], ['pineSmall', 19, 14]],
     creatures: [
       { who: 'wolf', col: 3, row: 15, way: 'right', speed: 2, range: 24 },
       { who: 'brownBear', col: 14, row: 15, way: 'right', speed: 1, range: 40 },
@@ -167,68 +193,78 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // O YETI OR NOT: a dead end. In from the forest's ground; the yeti paces the floor; a stair of ledges up the left wall to a pelmeni.
   room({
     id: SIB.yeti, cell: [0, 4], sector: 13,
-    palette: { K: ['mineRock', 12], S: ['snowGround', 1], F: ['snowFill', 1], L: ['snowLedge', 3], B: ['pineBark', 9] },
+    palette: { K: ['mineRock', 12], S: ['snowGround', 1], F: ['snowFill', 1], L: ['snowLedge', 3], Q: ['coalSeam', 11], B: ['pineBark', 9] },
     paint(g) {
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 16, 'K').box(30, 3, 31, 13, 'K');
+      g.box(0, 3, 3, 7, 'K').box(26, 3, 31, 6, 'K').box(6, 3, 9, 4, 'K').box(16, 3, 22, 3, 'K'); // the cave's roof, ragged
+      g.box(0, 10, 1, 13, 'Q').box(30, 7, 31, 9, 'Q').box(7, 3, 8, 3, 'Q').box(27, 4, 29, 5, 'Q'); // seams of coal
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F');
       g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L'); // the stair up the wall
       g.box(14, 3, 15, 6, 'B'); // a root hanging from the roof
     },
     coins: [[6, 11]],
     item: { name: 'pelmeni2', col: 2, row: 9, sprite: SIB_SPRITE.pelmeni },
-    decor: [['stalactites', 5, 3], ['stalactites', 20, 3], ['pineSmall', 24, 14]],
+    decor: [['stalactites', 11, 3], ['stalactites', 23, 3], ['boulders', 18, 15], ['boulders', 26, 15]],
     creatures: [
       { who: 'yeti', col: 14, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'owl', col: 4, row: 6, way: 'right', speed: 1, range: 80 },
     ],
   }),
 
-  // M MINE ALL MINE: the mine's mouth, lit. In by the gantry; the cart waits at its end and takes him down to the gallery; left along it a
-  // pocket with the lamp, right the way on; a rope back up from the gallery to the gantry.
+  // M MINE ALL MINE: the mine's mouth, lit. In by the gantry; the rope at its end down to the gallery; left along it (over the gap of the tender's
+  // rope) a pocket with the lamp, right the way on to the shaft; timber ledges up to a shelf with a coin, at whose end the cart hangs and takes him
+  // back down. The tender's rope climbs through the gallery's floor.
   room({
     id: SIB.mine, cell: [0, 6], sector: 14,
-    palette: { K: ['mineRock', 12], B: ['timber', 8], L: ['mineRail', 11], R: ['rope', 13], S: ['snowGround', 1] },
+    palette: { K: ['mineRock', 12], Q: ['coalSeam', 11], B: ['timber', 8], R: ['rope', 13] },
     paint(g) {
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 3, 'K').box(0, 8, 1, 17, 'K').box(30, 3, 31, 14, 'K');
-      g.box(0, 7, 15, 7, 'B').clear(13, 7, 15, 7).box(14, 7, 14, 17, 'R'); // the gantry, the rope's gap
-      g.box(0, 18, 31, 19, 'K');
-      g.box(24, 16, 26, 16, 'B').box(21, 14, 23, 14, 'B').box(18, 12, 20, 12, 'B'); // timber ledges up to a coin
+      g.box(16, 3, 20, 4, 'K').box(26, 3, 29, 5, 'K').box(6, 3, 9, 3, 'K'); // rock hanging from the roof
+      g.box(17, 4, 19, 4, 'Q').box(27, 4, 28, 4, 'Q').box(30, 8, 31, 11, 'Q'); // a seam of coal
+      g.box(0, 7, 12, 7, 'B').box(14, 7, 14, 17, 'R'); // the gantry, and the rope in its gap
+      g.box(0, 18, 31, 19, 'K').clear(7, 18, 9, 19).box(8, 17, 8, 19, 'R'); // the gallery's floor, the gap and the tender's rope
+      g.box(22, 16, 24, 16, 'B').box(25, 14, 27, 14, 'B').box(21, 12, 24, 12, 'B'); // timber ledges up to the shelf (the cart hangs off its west end)
     },
-    coins: [[19, 10]],
+    coins: [[22, 10]],
     item: { name: 'lamp', col: 3, row: 16, sprite: SIB_SPRITE.lamp },
-    decor: [['minePortal', 0, 0], ['mineLamp', 11, 4], ['mineLamp', 27, 14], ['stalactites', 17, 3]],
+    decor: [['minePortal', 0, 0], ['stalactites', 11, 3], ['stalactites', 26, 6], ['pitProp', 11, 15], ['pitProp', 17, 15], ['coalBucket', 5, 16], ['boulders', 27, 16]],
     creatures: [
       { who: 'bat', col: 16, row: 5, way: 'right', speed: 2, range: 28 },
       { who: 'bat', col: 6, row: 12, way: 'down', speed: 1, range: 16 },
     ],
   }),
 
-  // S SHAFT OF DARKNESS: dark. In low; a stair of ledges up to the top of a rock wall and a stepping stone over the water, none of which is shown
-  // (or there) until the lamp is taken; the miner paces the wall's top; out through the floor at the right, into the lake.
+  // S SHAFT OF DARKNESS: dark (its rock a dim blue). In low; a rock step, then a stair of ledges up to the top of a rock wall and a stepping stone
+  // over the water, felt only as dots until the lamp is taken (M), when they are there; the miner paces the wall's top; out through the floor at
+  // the right, a rope in the gap that goes down to the lake and up again.
   room({
     id: SIB.shaft, cell: [0, 7], sector: 15,
     palette: SHAFT_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 14, 'K').box(30, 3, 31, 17, 'K');
-      g.box(0, 18, 31, 19, 'K').clear(27, 18, 29, 19); // the floor, the shaft's gap (the lake below)
-      g.box(14, 10, 19, 17, 'K'); // the wall
+      g.box(0, 3, 6, 4, 'K').box(22, 3, 29, 5, 'K').box(10, 3, 12, 3, 'K'); // the roof's lumps
+      g.box(0, 18, 31, 19, 'K').clear(27, 18, 29, 19).box(28, 16, 28, 19, 'R'); // the floor, the shaft's gap (the lake below) and the rope in it
+      g.box(3, 16, 5, 17, 'K'); // a rock step by the way in
+      g.box(14, 10, 19, 17, 'K').box(15, 12, 16, 13, 'Q').box(17, 15, 18, 16, 'Q'); // the wall, a seam of coal in it
       g.box(21, 18, 25, 19, 'W'); // the water of the pit
+      for (const [row, col] of SHAFT_LEDGES) g.box(col, row, col, row, 'G'); // the ledges, felt only
     },
     coins: [[15, 8]],
-    decor: [['stalactites', 4, 3], ['stalactites', 22, 3], ['mineLamp', 8, 4]],
+    decor: [['stalactites', 7, 3], ['stalactites', 17, 3]],
     creatures: [
       { who: 'miner', col: 17, row: 8, way: 'right', speed: 1, range: 16 },
       { who: 'bat', col: 22, row: 10, way: 'right', speed: 2, range: 20 },
     ],
   }),
 
-  // L BAIKAL TO BASICS: the lake. Dropped in at the right on the shore; the ice westward in two patches of six either side of a rock island,
-  // each cracking if he stands on it too long, a seal on the first and a reindeer on the second; the left shore's gap and its rope go down to the village.
+  // L BAIKAL TO BASICS: the lake. In at the right on the shore by the rope from the shaft; the ice westward in two patches of six either side of a
+  // rock island, each cracking if he stands on it too long, a seal on the first and a reindeer on the second; the left shore's gap and its rope go
+  // down to the village.
   room({
     id: SIB.lake, cell: [1, 7], sector: 16, palette: LAKE_PALETTE,
     paint(g) {
       sky(g, 2, []);
-      g.clear(27, 0, 29, 1); // the shaft above
+      g.clear(27, 0, 29, 1).box(28, 0, 28, 11, 'R'); // the shaft above, and its rope
       g.box(0, 2, 1, 11, 'K').box(30, 2, 31, 11, 'K');
       g.box(22, 12, 31, 12, 'S').box(22, 13, 31, 19, 'K'); // the right shore
       g.box(13, 12, 15, 12, 'S').box(13, 13, 15, 19, 'K'); // the island
@@ -237,7 +273,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(7, 13, 12, 19, 'W').box(16, 13, 21, 19, 'W'); // the water
     },
     coins: [[14, 10], [25, 10]],
-    decor: [['pineSmall', 23, 9], ['pineTall', 27, 6], ['pole', 1, 8]],
+    decor: [['pineSmall', 2, 9], ['fishHut', 22, 10]],
     creatures: [
       { who: 'nerpa', col: 16, row: 10, way: 'right', speed: 1, range: 32 },
       { who: 'reindeer', col: 7, row: 10, way: 'right', speed: 1, range: 32 },
@@ -258,7 +294,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(28, 13, 29, 16, 'B'); // the barrier
     },
     coins: [[12, 13], [24, 15]],
-    decor: [['cabin', 6, 13], ['cabin', 18, 13], [{ text: 'CHINA COMING SOON', colour: 7 }, 9, 6], ['pole', 25, 11]],
+    decor: [['cabin', 6, 13], ['cabin', 18, 13], [{ text: 'CHINA COMING SOON', colour: 7 }, 9, 6], ['pole', 26, 13], ['pineSmall', 2, 14]],
     creatures: [
       { who: 'reindeer', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
       { who: 'wolf', col: 6, row: 15, way: 'right', speed: 2, range: 20 },

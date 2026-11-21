@@ -9,8 +9,9 @@ import {
   CART, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST, HAT_COLOUR, ushankaWorn,
 } from './art';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, LIFTS, SHAFT_CODE, SHAFT_LEDGES, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { CRACKS, LIFTS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
+import { WORLD_REGIONS } from './regions';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -103,7 +104,7 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): [row: numb
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
-  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: SHAFT_LEDGES.map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
+  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: [...SHAFT_LEDGES, ...SHAFT_STONE].map(([row, col]) => [row + 3, col + 4] as const) } }, // the lamp shows the ledges
   { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
 ];
 
@@ -162,7 +163,7 @@ export const WORLD: MontyData = {
     ],
   },
   // the map shows a region's four columns while he is in them
-  regions: [{ from: 0, to: 3 }, { from: 4, to: 7 }],
+  regions: WORLD_REGIONS.map(({ from, to }) => ({ from, to })),
   progress: { keyItems: [TOKEN, USHANKA, LAMP, TICKET], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([

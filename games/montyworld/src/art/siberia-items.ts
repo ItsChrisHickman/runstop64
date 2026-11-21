@@ -34,7 +34,7 @@ function ticket(): NewItem {
   return { block: itemBlock('ticket', r.rows()), colour: 14 };
 }
 
-/** Pelmeni, Siberia's dumplings: three plump pleated pockets of dough heaped on a plate. White, as the cupcake is. */
+/** Pelmeni, Siberia's dumplings: three plump pleated pockets of dough heaped on a plate. Pale yellow (Moscow's pirozhok is white, as the cupcake is). */
 function pelmeni(): NewItem {
   const r = new Raster(16, 16);
   const plate = new Raster(16, 16);
@@ -52,7 +52,7 @@ function pelmeni(): NewItem {
   r.stamp(['..####..####..##', '.##############.'], 0, 12);
   r.rect(3, 14, 12, 14);
   r.cut(['#.#.'], 3, 7); r.cut(['#.#.'], 9.5, 7); r.cut(['#.#.'], 6, 3);
-  return { block: itemBlock('pelmeni', r.rows()), colour: 1 };
+  return { block: itemBlock('pelmeni', r.rows()), colour: 7 };
 }
 
 /** The cart's upper sprite: the hoist's chain hanging from a bracket, over Monty's head. */

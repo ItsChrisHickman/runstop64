@@ -20,48 +20,48 @@ function pair(name: string, left: readonly (readonly string[])[], colour: number
   return { frames: creatureBank(name, left, left.map(mirrored)), copy, colour };
 }
 
-// ---- the wolf: grey, ears up, a long snout and a snarl, running
+// ---- the wolf: grey, a big snarling face with ears up and fangs, loping
 
-/** A wolf running to the left: the four legs in their strides (front pair, back pair), the jaws opening as it goes. */
+/** A wolf loping to the left, its great head turned out at us: slanting eyes, a black nose, the jaws apart on their fangs. */
 function wolf(): NewCreature {
-  const frame = (front: number, back: number, open: boolean) => {
+  const frame = (a: number, open: boolean) => {
     const r = new Raster(16, 16);
-    lay(r, (s) => { limb(s, 5.5, 10, 4 - front, 15, 2); limb(s, 7.5, 10, 8 + front, 15, 2); }); // the front legs
-    lay(r, (s) => { limb(s, 11, 10, 10 - back, 15, 2); limb(s, 12.5, 10, 14 + back, 15, 2); }); // the back legs
-    r.ellipse(9, 8.5, 5.6, 3.4); // the body
-    limb(r, 13, 6.5, 15, 3, 2); // the tail, up
-    r.disc(4, 6, 3); // the head
-    r.triangle(0, 8, 3, 5.2, 4.5, 8.6); // the snout
-    r.triangle(2.6, 4, 3.5, 0.5, 5.4, 3.6); // the ears
-    r.triangle(5.2, 3.6, 6.4, 0.8, 7.4, 4.4);
-    r.cut(['##', '.#'], 3, 5); // the eye, a slanting slit
-    if (open) { r.cut(['######'], 0, 9); r.stamp(['#.#.#'], 1, 9); } // the jaws apart, the fangs
-    else r.cut(['####'], 0, 8);
-    r.cut(['#'], 0, 7); // the nostril
-    r.cut(['.##.', '#..#'], 7, 7); // the shoulder's fur
+    lay(r, (s) => { limb(s, 9, 11, 8 + a, 15, 2); limb(s, 13, 11, 13 - a, 15, 2); }); // the back legs
+    r.ellipse(11.5, 10, 4.6, 3.3); // the body
+    limb(r, 15, 8, 15.5, 5, 2); // the tail, up
+    r.disc(6, 6.5, 5.2); // the head
+    r.triangle(1, 4, 1.5, 0, 5, 2.6); // the ears
+    r.triangle(7, 2.6, 10.5, 0, 11, 4.4);
+    r.rect(2, 8, 10, 12); // the jaw, under the cheeks
+    r.cut(['##.', '.##'], 2, 4); r.cut(['.##', '##.'], 7, 4); // the slanting eyes
+    r.rect(3, 5, 3, 5); r.rect(8, 5, 8, 5); // the eyes' glints
+    r.cut(['###', '###'], 5, 7); // the nose, black
+    r.cut(open ? ['#########', '#########'] : ['#########'], 2, open ? 10 : 11); // the mouth
+    r.stamp(open ? ['#.#.#.#.#'] : ['#.#.#.#'], open ? 2 : 3, open ? 10 : 11); // the fangs
+    lay(r, (s) => { limb(s, 3, 12, 2 - a, 15, 2); limb(s, 8, 12, 8 + a, 15, 2); }); // the front legs
     return r.rows();
   };
-  const left = [frame(1.5, -1.5, true), frame(0, 0, false), frame(-1.5, 1.5, true), frame(0, 0, false)];
+  const left = [frame(1.5, true), frame(0, false), frame(-1.5, true), frame(0, false)];
   return pair('wolf', left, 12);
 }
 
-// ---- the bear: brown, on all fours, the hump of his shoulders, a roar
+// ---- the bear: brown, a big round face with small ears and a black snout, on all fours, a roar
 
-/** A brown bear lumbering to the left on all fours: a big head with a dark muzzle, a hump, the legs in their strides. */
+/** A brown bear lumbering to the left, its round head turned out at us: tiny round ears, small eyes, a black nose, the mouth open on its teeth. */
 function brownBear(): NewCreature {
   const frame = (a: number, roar: boolean) => {
     const r = new Raster(16, 16);
-    lay(r, (s) => { limb(s, 5, 10, 4 + a, 15, 3); limb(s, 8, 10, 8 - a, 15, 3); });
-    lay(r, (s) => { limb(s, 12, 10, 12 - a, 15, 3); limb(s, 14, 10, 14 + a, 15, 3); });
-    r.ellipse(9.5, 8, 6, 4.3); // the body
-    r.disc(6, 4.6, 2.6); // the hump
-    lay(r, (s) => s.ellipse(4, 8, 3.9, 3.7)); // the head
-    r.disc(6, 4.4, 1.2); // an ear, over the hump
-    r.cut(['###'], 2, 7); // the brow: a black line
-    r.rect(3, 8, 4, 8, false); // the eye
-    r.cut(['####'], 0, 10); // the muzzle, a black band
-    r.rect(0, 9, 1, 9); // the nose, lit
-    if (roar) { r.cut(['#####', '#####'], 0, 12); r.stamp(['#.#.#'], 0, 12); } else r.cut(['####'], 0, 12);
+    lay(r, (s) => { limb(s, 10, 11, 9 + a, 15, 3); limb(s, 14, 11, 14 - a, 15, 3); }); // the back legs
+    r.ellipse(11, 10, 5, 4); // the body
+    r.disc(6, 6.5, 5.5); // the head
+    r.disc(1.6, 1.8, 1.8); r.disc(10.4, 1.8, 1.8); // the round ears
+    lay(r, (s) => { limb(s, 3, 12, 2 - a, 15, 3); limb(s, 8, 12, 8 + a, 15, 3); }); // the front legs
+    r.cut(['##', '##'], 2, 4); r.cut(['##', '##'], 8, 4); // the eyes, black
+    r.rect(3, 4, 3, 4); r.rect(9, 4, 9, 4);
+    r.cut(['####', '####'], 4, 7); // the black snout
+    r.rect(5, 7, 6, 7); // its nose, lit
+    r.cut(roar ? ['#######', '#######', '#######'] : ['#######'], 2, roar ? 10 : 11);
+    if (roar) r.stamp(['#.#.#.#'], 2, 10);
     return r.rows();
   };
   const left = [frame(-1, true), frame(0, false), frame(1, true), frame(0, false)];
@@ -95,31 +95,31 @@ function owl(): NewCreature {
   return pair('owl', frames, 7, true);
 }
 
-// ---- the reindeer: walking, a great rack of antlers, a lit nose
+// ---- the reindeer: brown, a great rack of antlers, a big face with a black nose
 
-/** A reindeer walking to the left. */
+/** A reindeer trotting to the left, its long face turned out at us under a great rack of antlers. */
 function reindeer(): NewCreature {
   const frame = (a: number, nod: number) => {
     const r = new Raster(16, 16);
-    lay(r, (s) => { limb(s, 5.5, 10, 4.5 + a, 15, 2); limb(s, 8, 10, 8.5 - a, 15, 2); });
-    lay(r, (s) => { limb(s, 11, 10, 10 - a, 15, 2); limb(s, 13, 10, 13.5 + a, 15, 2); });
-    r.ellipse(10, 9, 5.3, 3.2); // the body
-    limb(r, 6.5, 8, 4.5, 4 + nod, 3); // the neck, up
-    r.ellipse(3.5, 5 + nod, 2.6, 2.1); // the head
-    r.triangle(0, 7 + nod, 2, 4.8 + nod, 3, 7.6 + nod); // the muzzle
-    lay(r, (s) => { // the antlers: a tall beam and its tines, a second behind
-      s.line(5.5, 4 + nod, 7, 0); s.line(7, 0, 9, 0);
-      s.line(6.2, 2.6 + nod, 3.6, 0); s.line(6.8, 1.4 + nod, 5, 0);
-      s.line(7.5, 1, 10, 3);
+    lay(r, (s) => { limb(s, 9, 11, 8.5 + a, 15, 2); limb(s, 14, 11, 14 - a, 15, 2); });
+    r.ellipse(11.5, 10.5, 4.5, 3); // the body
+    r.rect(15, 8, 15, 9); // the tail
+    lay(r, (s) => { limb(s, 3.5, 12, 3 - a, 15, 2); limb(s, 7.5, 12, 7.5 + a, 15, 2); });
+    r.ellipse(5, 7.5 + nod, 4.2, 4.6); // the long face
+    r.ellipse(5, 11 + nod, 2.4, 2.2); // the muzzle
+    lay(r, (s) => { // the antlers: a beam each side, each with its tines
+      s.line(2, 4 + nod, 0.5, 0); s.line(1.2, 2, 3.5, 1); s.line(1.6, 3, 0, 2.6);
+      s.line(8, 4 + nod, 9.5, 0); s.line(9.2, 2, 6.8, 1); s.line(8.8, 3, 11.2, 2.6);
+      s.line(7, 3.5, 13, 3.6);
     });
-    r.cut(['#'], 3, 4 + nod); // the eye
-    r.rect(0, 6 + nod, 0, 6 + nod, false); r.rect(1, 6 + nod, 1, 6 + nod); // the nose
-    r.cut(['##'], 13, 7); // a seam in the flank
-    r.rect(15, 7, 15, 8); // the tail
+    r.cut(['##', '##'], 2, 6 + nod); r.cut(['##', '##'], 7, 6 + nod); // the eyes
+    r.rect(3, 6 + nod, 3, 6 + nod); r.rect(8, 6 + nod, 8, 6 + nod);
+    r.cut(['###', '###'], 4, 10 + nod); // the black nose
+    r.cut(['#'], 5, 13 + nod); // the mouth
     return r.rows();
   };
   const left = [frame(1.5, 0), frame(0, 1), frame(-1.5, 0), frame(0, 1)];
-  return pair('reindeer', left, 15);
+  return pair('reindeer', left, 9);
 }
 
 // ---- the ticket inspector: a peaked cap, a stern face with a black moustache, a long coat, the punch in his raised hand
@@ -158,37 +158,35 @@ function inspector(): NewCreature {
   return pair('inspector', left, 5);
 }
 
-// ---- the miner: a yellow helmet with its lamp, a face black with coal and two white eyes, a lit grin, a pickaxe over the shoulder
+// ---- the miner: an orange helmet with its lamp, a face black with coal and two white eyes, a lit grin, a pickaxe over the shoulder
 
 /** The miner's legs, rows 14 and 15, in four steps. */
 const MINER_STEPS = INSPECTOR_STEPS;
 
-/** A coal-faced miner marching, drawn row by row: the pickaxe over his right shoulder. */
+/** A coal-faced miner marching, drawn row by row: the face is dark (coal) with only its eyes and teeth lit; the pickaxe over his right shoulder. */
 function miner(): NewCreature {
   const frame = (step: number) => {
     const [a, b] = MINER_STEPS[step] ?? MINER_STEPS[0] ?? ['', ''];
     const body = [
-      '....######......',
+      '.....####.......',
+      '....######.####.',
       '...########.####',
-      '..###.#######.##',
-      '..############..',
-      '.##############.',
-      '...#........#...',
-      '...#.##..##.#...',
-      '...#.##..##.#...',
-      '...#..####..#...',
-      '..############..',
-      '..############..',
-      '.......##.......',
-      '..############..',
-      '..############..',
+      '..##########.##.',
+      '..#........#.#..',
+      '..#.##..##.#.#..',
+      '..#.##..##.#.#..',
+      '..#........#.#..',
+      '..#.#.##.#.#.#..',
+      '..#..####..#.#..',
+      '...########..#..',
+      '..##########.#..',
+      '..####.##.####..',
+      '..##########....',
     ];
-    // the handle runs down the right side from the head of the pick
-    const rows = body.map((row, i) => (i >= 3 && i <= 12 ? `${row.slice(0, 14)}#${row.slice(15)}` : row));
-    return [...rows, a, b];
+    return [...body, a, b];
   };
   const left = [0, 1, 2, 3].map(frame);
-  return pair('miner', left, 7);
+  return pair('miner', left, 8);
 }
 
 // ---- the yeti: huge, white and shaggy, a black face with lit eyes and fangs
@@ -250,26 +248,25 @@ function bat(): NewCreature {
   return pair('bat', frames, 4, true);
 }
 
-// ---- the nerpa: the Baikal seal, round and glossy, whiskered, shuffling over the ice
+// ---- the nerpa: the Baikal seal, a big round face with huge eyes and whiskers, flippers out, shuffling over the ice
 
-/** A Baikal seal shuffling to the left: the body arching, the tail flippers lifting. */
+/** A Baikal seal shuffling over the ice, facing us: a round head with great dark eyes, a snout with whiskers, flippers out, the body arching. */
 function nerpa(): NewCreature {
   const frame = (arch: number, flip: number) => {
     const r = new Raster(16, 16);
-    r.ellipse(10.2, 10.6 - arch * 0.5, 5.8, 4 + arch * 0.3); // the long round body
-    r.disc(5.4, 7.6, 3.4); // the head, in one with the body
-    r.triangle(13, 9, 15.8, 8 + flip, 15.8, 12 + flip); // the tail flippers
-    r.triangle(6.5, 12, 10.5, 12, 7.5 + flip, 15.5); // the front flipper, pushing
-    r.rect(4, 6, 5, 7, false); // the eye, black
-    r.rect(3, 6, 3, 6, false);
-    r.cut(['#####'], 3, 11); // the mouth's line
-    r.cut(['######'], 7, 11 + arch); // the belly's line
-    r.cut(['##', '.##'], 9, 8); // a gleam on the back
-    for (const y of [8, 9, 10]) r.rect(0, y, 1, y); // the whiskers, lit dashes
+    r.ellipse(7.5, 11.5 - arch * 0.4, 6.3, 4.2 + arch * 0.3); // the round body
+    lay(r, (s) => { s.triangle(1, 11, 0, 14 + flip, 4, 14); s.triangle(14, 11, 15, 14 - flip, 11, 14); }); // the flippers
+    r.disc(7.5, 6, 5.5); // the big round head
+    r.cut(['.##.', '####', '####', '.##.'], 3, 3); r.cut(['.##.', '####', '####', '.##.'], 9, 3); // the great eyes
+    r.rect(4, 4, 4, 4); r.rect(10, 4, 10, 4); // their glints
+    r.cut(['##'], 7, 7); // the nose
+    r.cut(['#.#'], 6, 9); // the mouth
+    for (const y of [7, 8]) { r.rect(0, y, 1, y, false); r.rect(14, y, 15, y, false); } // (the whiskers are the head's edge, shaved)
+    r.cut(['#####'], 5, 13 + (arch ? 1 : 0)); // the belly's line
     return r.rows();
   };
   const left = [frame(0, 0), frame(1, 1), frame(0, 0), frame(1, -1)];
-  return pair('nerpa', left, 12);
+  return pair('nerpa', left, 15);
 }
 
 export const SIBERIA_CREATURES = {

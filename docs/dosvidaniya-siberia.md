@@ -15,7 +15,8 @@ Read in docs/dosvidaniya-moscow.md; the points Siberia takes:
 - **A way that only opens once an item is found elsewhere** (cake 0 opens `$0C`'s wall, key 1 `$14`): the mine's dark ledges
   want the lamp (found in the mine mouth), the border barrier wants the ticket (found in the tender, a room that looks like a
   dead end of the train and is one).
-- **A drop with no way back** (`$0F`, the jetpack shafts): the shaft's floor gap lands on the lake; the village's rope goes back up.
+- **A drop** (`$0F`, the jetpack shafts) is not used: it trapped a player who skipped the tender (the lake and the village are a closed pair
+  without the ticket), so the shaft's floor gap has a rope in it, down to the lake and up again.
 - **A rope that leaves a room the other side from where it came in** (`$05`, `$0A`): the sleeper's pine rope.
 - **A lift (`$05`, `$0D`)**: the mine cart.
 
@@ -32,9 +33,11 @@ row 2      .                .                  .                 G  BORDER LINE 
 
 Moscow's "SIBERIA YOU LATER" (I, at column 3 row 1) opens east onto A's roof (its planks and sign go).
 
-Joins (rope = both ways, drop = one way down, gate = an item): I-A walk, roof. A-B walk, roof. B-C walk, roof. B-F a rope up
-(a pine beside the track). F-O a walk, low. F-M a walk, high. M-S a walk, low (S's ledges want the lamp). S-L a drop. L-G a rope.
-Walls (no way): A-O, C-M, C-L, G east until the ticket.
+Joins (rope = both ways, gate = an item): I-A walk, roof. A-B walk, roof, and a gangway under it (the cars' interiors). B-C the same, roof
+and gangway. B-F a rope up through the sleeper's ceiling. C-M a rope up through the mine's floor. F-O a walk, low. F-M a walk, high. M-S a walk,
+low (S's ledges want the lamp). S-L a rope in the shaft's floor gap (down to the lake, up again). L-G a rope. Walls (no way): A-O, C-L, G east
+until the ticket. Loops: B-C twice (the roof, and the pocket under it by the gangways), and B-C-M-F-B (the tender's rope up into the mine,
+the gantry west to the forest, the forest's rope down to the sleeper).
 
 **Names** (puns, no Z, no Bond): THE GRAVY TRAIN, SLEEPER HIT, COAL COMFORT, PINE TO BE WILD, YETI OR NOT, MINE ALL MINE,
 SHAFT OF DARKNESS, BAIKAL TO BASICS, BORDER LINE CASE.
@@ -42,16 +45,20 @@ SHAFT OF DARKNESS, BAIKAL TO BASICS, BORDER LINE CASE.
 ### The rooms
 
 **A THE GRAVY TRAIN** (dining car). In: left, on the roof (floor row 9, open rows 6-8), from Moscow's carriage. Out: right on the
-roof. A tunnel mouth sweeps the roof from the right; two hatches (floor gaps cols 11-13 and 24-26) each with a rope down into the
-dining car, whose floor (row 17) joins them: tables, a ticket inspector pacing between the ropes, a coin and a pelmeni. The inside
-is a side lane under the roof (a loop: down one rope, along, up the other) and the shelter from the mouth.
+roof, or right through the gangway (rows 15-16, the car's floor row 17) into the sleeper's corridor. A tunnel mouth sweeps the roof from the
+right; two hatches (floor gaps cols 11-13 and 24-26) each with a rope down into the dining car, whose floor joins them: tables, a ticket
+inspector pacing between the ropes, a coin at the right and a pelmeni in the pocket at the left (its left end is shut, Moscow's wall). The
+inside is a lane under the roof, and the shelter from the mouth. The roof has nothing standing on it: the train moves.
 
-**B SLEEPER HIT** (sleeper car). Roof (row 9) in left, out right. Two mouths, one from each end, a pause apart. Hatches at cols
-6-8 and 14-16 (ropes down into the corridor of compartments, the inspector in it, a coin). A pine beside the track: a rope
-at col 22 climbs through the ceiling gap (cols 21-23) up to F. Crossed twice: east to the tender, back west to the pine.
+**B SLEEPER HIT** (sleeper car). Roof (row 9) in left, out right; the corridor under it has a gangway at each end. Two mouths, one from each
+end, a pause apart. Hatches at cols 6-8 and 14-16 (ropes down into the corridor of compartments, the inspector in it, a coin each end). A rope
+at col 22 climbs through the ceiling gap (cols 21-23) up to F, the way the player goes up. Crossed twice at two heights, the lanes
+sealed from each other but at the hatches and the gangways.
 
-**C COAL COMFORT** (the tender, a dead end). In left on the roof. Coal heaps in steps (rows 9, 7, 5) up to the cab's roof where
-the ticket lies; a coal-faced miner (the stoker) paces the trough under the first heap; no way on east (the locomotive).
+**C COAL COMFORT** (the tender). In left on the roof (the rim, row 9) or under it, from the sleeper's gangway into the pocket below the rim
+(a hatch joins them: that is a loop with B, the roof one way and the corridor the other). Coal heaps in steps (rows 11, 13, then 15 for the
+trough) up to the cab's roof (row 9) where the ticket lies; a coal-faced miner (the stoker) paces the trough; no way on east (the
+locomotive). A rope at col 20 from the heap climbs through the ceiling (gap cols 19-21) into the mine's gallery floor, which is the way round.
 
 **F PINE TO BE WILD** (frozen forest). In: the rope from B comes up through the floor at col 22. Ground lane: west to O (wolves,
 a bear); east a trunk wall, a rope at col 27 up to the boughs (row 7): out east, high, to the mine; owls on the boughs.
@@ -59,27 +66,31 @@ a bear); east a trunk wall, a rope at col 27 up to the boughs (row 7): out east,
 **O YETI OR NOT** (dead end). In right, low. A cave: the yeti paces the floor; ledges up the left wall (rows 15, 12, 9) to a
 pelmeni; an owl; a coin.
 
-**M MINE ALL MINE** (mine mouth, lit). In left on a gantry (floor 7); a pit at col 9-11 drops to the gallery (floor 17); left along
-it a dead end pocket with the lamp (bats); the mine cart (a lift) rises from the gallery back to the gantry; out the gallery's right
-end, low, into S. Crossed twice at two heights.
+**M MINE ALL MINE** (mine mouth, lit). In left on a gantry (floor 7); the rope at col 14 (the gantry's gap, cols 13-15) goes down to the
+gallery (floor 18); left along it, over the gap of the tender's rope (cols 7-9, a rope at col 8 down into C), a dead end pocket with the
+lamp and a coal bucket (Wanted: Monty Mole's pail, the nod); right the way on, low, into S. Timber ledges (rows 16, 14) climb to a high shelf
+(row 12) with a coin; the mine cart hangs off the shelf's west end (col 20) and carries him down to the gallery (floor 18) beside the way
+on. The cart is not on the gantry or the gallery: nothing grabs him on the walk in. Crossed twice at two heights.
 
-**S SHAFT OF DARKNESS** (dark). In low. A rock wall (cols 12-17, rows 9-16) with three ledges up its left side and a stepping
-ledge over a pit: the ledges are not shown, and not there, until the lamp is taken (a `place` effect: the platforms appear). Over
-the wall (a miner paces its top), down the right, out through a floor gap (cols 25-27) into the lake.
+**S SHAFT OF DARKNESS** (dark: its rock a dim blue, no lamp in it). In low. A rock step by the way in (floor 16), then a stair of two ledges
+(floors 14 and 12) up to the top of a rock wall (cols 14-19, floor 10), and a stepping stone over a pit of water: the ledges are only
+dots, felt in the dark, and not there, until the lamp is taken (a `place` effect: the platforms appear in timber); the stone is water until
+then. Over the wall (a miner paces its top), down the right, and out by the floor gap (cols 27-29) with a rope in it that goes down to the
+lake and up again.
 
-**L BAIKAL TO BASICS** (the lake). A drop in at the right onto the rock shore (floor 12); the ice (floor 12) goes left in two
-patches either side of a rock island; stand on a patch too long and it cracks (three stages: lines, wide, gone) and he falls into
-the lake (deadly); a reindeer patrols so he must wait on the island; the left shore has a floor gap with the rope down to G. A fish
-leaps in the water. 
+**L BAIKAL TO BASICS** (the lake). In at the right on the rock shore (floor 12) by the rope from the shaft (col 28, which climbs back up
+too); the ice (floor 12) goes left in two patches either side of a rock island; stand on a patch too long and it cracks (three stages:
+lines, wide, gone) and he falls into the lake (deadly); a reindeer patrols so he must wait on the island; the left shore has a floor gap
+with the rope down to G. A nerpa (the seal) shuffles on the first patch. A fisherman's hut on the shore.
 
-**G BORDER LINE CASE** (the village). In by the rope at the left; houses; a reindeer; a boom gate at the right edge, which the ticket
+**G BORDER LINE CASE** (the village). In by the rope at the left; houses; a reindeer; a barrier of banded poles at the right edge, which the ticket
 lifts; a sign CHINA COMING SOON in the gap beyond (shut like Moscow's).
 
 ### Items, gates, doubling back
 
 - **Miner's lamp** (M, the pocket): puts the ledges in S (`place`). **Ticket** (C): lifts G's barrier (`clear`). **Pelmeni** (A inside,
   O): the food in place of the cupcake. Nothing needed from Moscow but the ushanka, which he keeps (the plan: still Russia).
-- Critical path: I A B (C: the ticket, back) B F (O: the pelmeni, back; boughs) M (down the pit, the lamp, the cart up) S L G (east).
+- Critical path: I A B (C: the ticket, back through the gangways) B F (O: the pelmeni, back; boughs) M (down the rope, the lamp, the shelf and the cart) S L G (east). A player who skips the tender can still climb back from the village to the shaft (the ropes go both ways), and the ticket is the only thing the barrier wants.
 
 ### The two mechanisms
 
@@ -90,7 +101,7 @@ frames, so he cannot run through it but he can outrun it. Data: `tunnels: {room,
 
 **Cracking ice** (L). An ice patch (cells at a floor row) counts the frames he stands on it (a jump is not standing); after 56 frames
 the cells show lines, after 88 wider ones, after 120 they are gone for 240 frames and he falls into the water; the count dies away
-a frame a frame when he is off. Crossing six cells at his walk takes 48 frames. Data: `cracks: {room, col, cols, row, codes}[]`.
+a frame a frame when he is off. Walking across a six-cell patch without stopping, his two-cell body is over it for about 56 frames (measured: 71 frames over eight cells, the patch just showing lines as he leaves): safe by a little, and waiting is not. Data: `cracks: {room, col, cols, row, codes}[]`.
 
 The lamp is the region's key item, with the engine's `place` room effect; the mine cart is the engine's lift with a picture of its
 own. The costume stays the ushanka.
@@ -105,12 +116,14 @@ The nine rooms are in `games/montyworld/src/siberia.ts` (ids 9-17, sectors 9-17;
 - **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before): `tunnels` (`tunnels.ts`), `cracks`
   (`cracks.ts`), a room effect `place` (the lamp's ledges), a `look` for a lift (the cart's two sprites), and a save that no longer restores
   the exit grid in a game with no C5 street (a Moscow-only save would have emptied Siberia's cells).
-- **Mouths**: the dining car's from the right at a cell every 10 frames; the sleeper's two, one from each end, at 9 and 12 frames a cell,
-  so they are never in step. The edge flashes 48 frames before each sweep. A hatch's rope is the shelter.
-- **The mine cart** is Monty on the Run's lift (type 2: a ride down, started by walking onto it at the gantry's end); the ride sets him on floor
-  18, so the gallery's floor is row 18 and S's low way too. The way back up is a rope at column 14.
-- **The shaft**: the lamp places three ledges and a stepping stone (timber, floor class); without it they are not there. The miner paces the
-  wall's top at the right end so the coin at its left end is reached first.
+- **Mouths**: the dining car's from the right at a cell every 10 frames; the sleeper's two, one from each end, at the same pace, 190 frames
+  apart (offsets 40 and 230): the same 538-frame cycle in a fixed phase, so they cross each other over the same cells each time (harmless).
+  The edge flashes 48 frames before each sweep. A hatch's rope, or the car under the roof, is the shelter.
+- **The mine cart** is Monty on the Run's lift (type 2: a ride down, started by walking onto it); it hangs off the high shelf's west end (col 20),
+  and the ride sets him on floor 18, so the gallery's floor is row 18 and S's low way too. The way between gantry and gallery is a rope at column 14.
+- **The shaft**: the lamp places two ledges and a stepping stone (timber, floor class); without it they are not there, only felt as dots (a
+  non-solid tile), and the room is drawn dark (dim blue rock). A rock step by the way in carries the first ledge off the head-height of the way in.
+  The miner paces the wall's top at the right end so the coin at its left end is reached first.
 - **The lake**: the lake's rope is at column 5 (the left shore is a block, the gap beside it), the village's ceiling gap to match.
 - **Creatures** (nine kinds, none in more than two rooms): wolf (F, G), bear (F), owl (F, O), reindeer (L, G), inspector (A, B), miner (C, S),
   yeti (O), bat (M, S), nerpa (L; Baikal's seal, in place of the design's fish).

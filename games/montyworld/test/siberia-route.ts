@@ -1,7 +1,7 @@
 /**
  * Siberia's route for the bot: the goals, in the order a player who takes everything plays them (from Moscow's carriage roof along the
- * train, down every hatch, the tender's ticket, the forest and the yeti's hollow, the mine's lamp, the dark shaft, the lake, to the
- * village and the lifted barrier), as functions on the game. Shared by the bot test and the pictures.
+ * train, down every hatch, the tender's ticket, back under the roof through the gangways, the forest and the yeti's hollow, the mine's lamp
+ * and shelf, the dark shaft, the lake, to the village and the lifted barrier), as functions on the game. Shared by the bot test and the pictures.
  */
 import { SIB } from '../src/siberia';
 import { ROOM } from '../src/moscow';
@@ -19,7 +19,8 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('B to C: east along the roof to the tender', into(SIB.coal, 31, 7, SIB.sleeper)),
   leg('C: down the coal to the coin over the trough', coin(SIB.coal, 15, 13)),
   leg('C: up the heaps to the ticket on the cab', item(SIB.coal, 0, [28, 7])),
-  leg('C to B: back along the rim', into(SIB.sleeper, 0, 7, SIB.coal)),
+  leg('C: back over the coal, down the rim\'s hatch into the pocket', stands(SIB.coal, 17, 0, 5)),
+  leg('C to B: out through the gangway, under the roof', into(SIB.sleeper, 0, 16, SIB.coal)),
   leg('B to F: up the pine\'s rope', into(SIB.pines, 22, 1, SIB.sleeper)),
   leg('F: the coin on the ground past the bear', coin(SIB.pines, 17, 15)),
   leg('F to O: west past the wolf', into(SIB.yeti, 0, 14, SIB.pines)),
@@ -29,12 +30,13 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('F: up the rope to the boughs', stands(SIB.pines, 7, 4, 25)),
   leg('F: the coin on the boughs', coin(SIB.pines, 14, 5)),
   leg('F to M: out east, high', into(SIB.mine, 31, 5, SIB.pines)),
-  leg('M: the cart down to the gallery', stands(SIB.mine, 18, 0, 31)),
+  leg('M: down the rope to the gallery', stands(SIB.mine, 18, 11, 17)),
   leg('M: the lamp in the left pocket', item(SIB.mine, 0, [3, 16])),
-  leg('M: the coin up the timber ledges', coin(SIB.mine, 19, 10)),
+  leg('M: the coin up the timber ledges to the shelf', coin(SIB.mine, 22, 10)),
+  leg('M: the cart down from the shelf\'s end', stands(SIB.mine, 18, 19, 22)),
   leg('M to S: east along the gallery', into(SIB.shaft, 31, 16, SIB.mine)),
   leg('S: over the wall by the ledges the lamp shows, the coin on its top', coin(SIB.shaft, 15, 8)),
-  leg('S to L: through the floor into the lake', into(SIB.lake, 28, 12, SIB.shaft)),
+  leg('S to L: down the rope through the floor into the lake', into(SIB.lake, 28, 12, SIB.shaft)),
   leg('L: the coin on the shore', coin(SIB.lake, 25, 10)),
   leg('L: over the first ice to the coin on the island', coin(SIB.lake, 14, 10)),
   leg('L to G: over the second ice and down the rope', into(SIB.border, 5, 16, SIB.lake)),

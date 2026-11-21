@@ -2,7 +2,7 @@ import { readsFormat, type SaveCodec } from '../../shared/continue';
 import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
 import type { Game } from './game';
 import { wear } from './items';
-import { C5_START, c5Arrive } from './mechanisms';
+import { C5_START, c5Arrive, lastCellIndex } from './mechanisms';
 
 /**
  * Monty's save: what's needed to carry on from the start of a room (taken as
@@ -41,8 +41,11 @@ export function restore(g: Game, data: MontySave) {
   g.score = data.score;
   g.coinCollected.set(data.coins.slice(0, g.coinCollected.length));
   g.siCollected.set(data.items.slice(0, g.siCollected.length));
-  // (the exit grid only changes in a game with a C5 street: a world's saves from when it had fewer regions have shorter or emptier grids)
-  if (g.data.c5) g.exitGrid.set(data.exitGrid.slice(0, g.exitGrid.length));
+  // (the exit grid changes in one cell only, the C5 street's last, opened when the street is driven (mechanisms.ts); every other cell is the data's,
+  // so a world's saves from when it had fewer regions, with shorter or emptier grids, load as they are)
+  const street = g.data.c5;
+  const driven = street ? data.exitGrid[lastCellIndex(g.data, street)] : undefined;
+  if (street && driven !== undefined) g.exitGrid[lastCellIndex(g.data, street)] = driven;
   c5Arrive(g, data.c5 ?? { ...C5_START, fallStage: data.c5FallStage });
   wear(g, data.worn ?? null);
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't

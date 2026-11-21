@@ -20,7 +20,7 @@ import { fromBase64, readSaves } from '../../shared/saves';
 import { CODEC, run } from '../src/main';
 import { MOSCOW_ROOMS, ROOM } from '../src/moscow';
 import { enterRoom } from '../../montyotr/src/ending';
-import { standY } from './route';
+import { creatureRooms, standY } from './route';
 
 // ---- the data ------------------------------------------------------------------------------------
 const cells = WORLD.exitGrid.image;
@@ -35,8 +35,7 @@ check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1,
 check('Moscow and Siberia: 27 coins, 4 pirozhki and pelmeni, 4 key items', WORLD.coinTable.length === 27 * 3 && WORLD.specialItems.length === 8 * 4 && WORLD.progress.cakes.length === 4 && WORLD.progress.keyItems.length === 4);
 {
   // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
-  const rooms = new Map<number, Set<number>>();
-  for (const r of MOSCOW_ROOMS) for (const e of r.enemies ?? []) rooms.set(e.type, new Set([...(rooms.get(e.type) ?? []), r.id]));
+  const rooms = creatureRooms(MOSCOW_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Moscow's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 11 && most <= 2);
 }

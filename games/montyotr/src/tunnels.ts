@@ -1,6 +1,7 @@
 import { X2_ORIGIN, Y_ORIGIN } from '../../shared/monty/body';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import type { Game } from './game';
+import type { TunnelSpec } from './montydata';
 
 /**
  * Tunnel mouths (a game's `tunnels`: Do Svidaniya Monty's Trans-Siberian): a portal of rock, `cols` cells wide and from row `top`
@@ -14,14 +15,14 @@ import type { Game } from './game';
 /**
  * A tunnel mouth of the room: its phase, the frames in it, its left column (playfield cells, any of -cols to 32), the screen cells it
  * has drawn on (`over`). What was under them is kept by the game (`Game.tunnelUnder`), once, as it was before any mouth drew: two mouths
- * crossing each other put back the room, not each other's portal.
+ * crossing each other put back the room, not each other's portal. Its `spec` (the data's) is kept with it, so a frame looks nothing up.
  */
-export interface TunnelState { state: 'rest' | 'warn' | 'sweep'; t: number; left: number; over: Set<number> }
+export interface TunnelState { spec: TunnelSpec; state: 'rest' | 'warn' | 'sweep'; t: number; left: number; over: Set<number> }
 
 /** A room is loaded: every mouth at rest, the first after its offset. */
 export function tunnelInit(g: Game) {
-  g.tunnels = g.data.tunnels.filter((e) => e.room === g.roomId).map((e) => ({
-    state: 'rest' as const, t: -(e.offset ?? 0), left: e.from === 'right' ? PLAY_COLS : -e.cols, over: new Set<number>(),
+  g.tunnels = g.data.tunnels.filter((e) => e.room === g.roomId).map((e): TunnelState => ({
+    spec: e, state: 'rest', t: -(e.offset ?? 0), left: e.from === 'right' ? PLAY_COLS : -e.cols, over: new Set<number>(),
   }));
   g.tunnelUnder = new Map();
 }
@@ -42,8 +43,7 @@ function paint(g: Game, t: TunnelState, col: number, row: number, code: number |
   const at = (row + PLAY_ROW) * ROW + col + PLAY_COL;
   if (!g.tunnelUnder.has(at)) g.tunnelUnder.set(at, [g.mem[SCREEN + at] ?? 0, g.col[at] ?? 0]);
   t.over.add(at);
-  g.mem[SCREEN + at] = code ?? 0;
-  if (code !== null) g.col[at] = g.roomColours[code - 1] ?? 1;
+  g.setRoomChar(at, code ?? 0);
 }
 
 /** The sprite pixels of a playfield column's left edge and a row's top, as the icicles measure them. */
@@ -58,10 +58,8 @@ function inside(g: Game, left: number, cols: number, top: number, bottom: number
 
 /** One frame: each mouth of the room a step on, a death if it has him. */
 export function tunnelUpdate(g: Game) {
-  const specs = g.data.tunnels.filter((e) => e.room === g.roomId);
-  g.tunnels.forEach((t, i) => {
-    const e = specs[i];
-    if (!e) return;
+  for (const t of g.tunnels) {
+    const e = t.spec;
     const dir = e.from === 'right' ? -1 : 1;
     const edge = e.from === 'right' ? PLAY_COLS - 1 : 0;
     const start = e.from === 'right' ? PLAY_COLS : -e.cols;
@@ -87,5 +85,5 @@ export function tunnelUpdate(g: Game) {
         if (!g.actionCounter && inside(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;
         break;
     }
-  });
+  }
 }

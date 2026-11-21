@@ -51,15 +51,37 @@ export const SIBERIA_TILES = {
     '#.#..#.#',
     '#.#.##.#',
   ]),
-  /** The mine's rock: blocks of granite, hewn, their joints staggered. Solid. */
+  /** The mine's rock: rough granite boulders, their joints wandering, a crack or two cut through. Solid. */
   mineRock: tile('mineRock', 1, 12, [
+    '###.####',
+    '##..####',
+    '##.##.##',
+    '#..##.##',
+    '...#..##',
     '####.###',
-    '####.###',
-    '####.###',
+    '###..#.#',
+    '###.##..',
+  ]),
+  /** Rock with a seam of coal through it: black lumps in a lit band. Solid. */
+  coalSeam: tile('coalSeam', 1, 11, [
+    '##.####.',
+    '#..###..',
+    '.##..##.',
+    '####..##',
+    '#.####.#',
+    '..####..',
+    '##.##.##',
+    '###..###',
+  ]),
+  /** A ledge felt but not seen in the dark: its edge in dots, nothing there to stand on. */
+  ledgeGhost: tile('ledgeGhost', 0, 11, [
+    '#.#.#.#.',
     '........',
-    '##.#####',
-    '##.#####',
-    '##.#####',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
     '........',
   ]),
   /** A pit prop's timber: a plank on its edge with a nail at each end. A floor. */
@@ -128,16 +150,16 @@ export const SIBERIA_TILES = {
     '#..#####',
     '##..####',
   ]),
-  /** The lake under the ice: black water, its waves in rows. Deadly. */
+  /** The lake under the ice: black water, a wave in a row of crests. Deadly. */
   lakeWater: tile('lakeWater', 4, 6, [
-    '.##..##.',
-    '#..##..#',
     '........',
-    '.##..##.',
-    '#..##..#',
+    '.#..#...',
+    '#.##.#..',
     '........',
-    '.##..##.',
-    '#..##..#',
+    '........',
+    '..#..#..',
+    '.#.##.#.',
+    '........',
   ]),
   /** A cabin's logs: round-ended, laid in courses. Solid. */
   logWall: tile('logWall', 1, 9, [
@@ -150,16 +172,16 @@ export const SIBERIA_TILES = {
     '########',
     '.######.',
   ]),
-  /** The border's boom gate: red and white stripes at a slant. Solid. */
+  /** The border's boom gate: a pole in red and white bands across the cell (the block of cells is one gate, bar over bar). Solid. */
   barrier: tile('barrier', 1, 2, [
+    '........',
+    '........',
     '##..##..',
-    '#..##..#',
-    '..##..##',
-    '.##..##.',
     '##..##..',
-    '#..##..#',
     '..##..##',
-    '.##..##.',
+    '..##..##',
+    '........',
+    '........',
   ]),
   /** The tunnel mouth's granite: dressed granite in courses. Passable (the portal kills, it does not block). */
   tunnelFace: tile('tunnelFace', 0, 12, [

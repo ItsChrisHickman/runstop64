@@ -1,5 +1,5 @@
 import { Vic } from 'c64kit';
-import { sectorName, type MontyData } from './montydata';
+import { sectorName, type LiftSpec, type MontyData } from './montydata';
 import { afterLoss } from '../../shared/lives';
 import { animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COLS, PLAY_ROWS, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
 import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body';
@@ -192,6 +192,8 @@ export class Game implements MontyBody, MontyWorld {
   // ---- mechanisms ---------------------------------------------------------------
   pd = { roomFlag: 0, state: 0, delay: 1, index: 0xff, position: 0, travel: [0, 0], spriteY: [0, 0], ride: 0 };
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
+  /** The picture the room's lift has of its own (a mine cart), kept at the room's loading so a frame looks nothing up (mechanisms.ts). */
+  liftLook: LiftSpec['look'] = undefined;
   tele = { active: 0, repeat: 0, scr: 0, colH: 0, base: 0, cur: 0, anim: 0, events: 0 };
   /** The escalator ride under way (escalators.ts). */
   esc: EscalatorRide = { ...NO_RIDE };
@@ -255,6 +257,11 @@ export class Game implements MontyBody, MontyWorld {
   chr(addr: number) { return this.mem[addr & 0x3fff]; }
   setChr(addr: number, v: number) { this.mem[addr & 0x3fff] = v & 0xff; }
   setCol(addr: number, v: number) { const i = addr - SCREEN; if (i >= 0 && i < 1024) this.col[i] = v & 15; }
+  /** Room character `code` (1-8 of the room's palette; 0 empties the cell) on the screen cell `at` (its index in the screen), in the palette's colour: the one way a mechanism writes a cell of the room. */
+  setRoomChar(at: number, code: number) {
+    this.mem[SCREEN + at] = code;
+    if (code) this.col[at] = this.roomColours[code - 1] ?? 1;
+  }
 
   /** Collision class of a screen char (original GetTileFlag). */
   tileFlag(code: number) {

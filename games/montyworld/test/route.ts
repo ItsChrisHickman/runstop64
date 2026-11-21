@@ -4,6 +4,7 @@
  * pictures.
  */
 import type { Game } from '../../montyotr/src/game';
+import type { RoomSpec } from '../../shared/monty/rooms';
 import { ROOM } from '../src/moscow';
 import type { Aim, Goal } from './bot';
 
@@ -20,6 +21,13 @@ export function itemIndex(g: Game, room: number, nth = 0): number {
   let n = 0;
   for (let i = 0; i * 4 < t.length; i++) if (t[i * 4] === room && n++ === nth) return i;
   throw new Error(`no item ${nth} in room ${room}`);
+}
+
+/** The rooms each kind of creature (by its enemy type) stands in, over a region's rooms: Chris's rule is that no creature is in more than two rooms of its region. */
+export function creatureRooms(rooms: readonly RoomSpec[]): Map<number, Set<number>> {
+  const out = new Map<number, Set<number>>();
+  for (const r of rooms) for (const e of r.enemies ?? []) out.set(e.type, new Set([...(out.get(e.type) ?? []), r.id]));
+  return out;
 }
 
 /** Monty's y standing on a floor row (the floor's top row; his top is two rows above). */

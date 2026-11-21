@@ -1,7 +1,7 @@
 /**
  * Siberia's decorations for Monty Mole: World Tour (region 2), in Monty on the Run's decoration format and Moscow's manner
  * (decorations.ts): solid ink with the detail cut into it as black lines. Pines, the dining car's table and window, the sleeper's
- * bunks, the mine's lamp and portal, the telegraph pole, a log cabin.
+ * bunks, the mine's coal bucket, props, boulders and portal, the fisherman's hut, the telegraph pole, a log cabin.
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
@@ -68,17 +68,50 @@ function bunk(): NewDecor {
   return decor('bunk', 3, 2, r, ['999', '999']);
 }
 
-/** A miner's lamp hung from a hook: a ring, a cap, a cage of bars round a flame, a base. 1 x 2 characters. */
-function mineLamp(): NewDecor {
-  const r = new Raster(8, 16);
-  r.rect(3, 0, 4, 0); r.rect(2, 1, 2, 2); r.rect(5, 1, 5, 2); // the ring
-  r.rect(1, 3, 6, 4); // the cap
-  r.rect(1, 5, 6, 12); // the cage
-  r.rect(2, 6, 5, 11, false);
-  r.rect(3, 7, 4, 10); r.rect(3, 6, 3, 6); // the flame inside
-  r.rect(0, 13, 7, 15); // the base
-  r.rect(2, 14, 5, 14, false);
-  return decor('mineLamp', 1, 2, r, 7);
+/** A coal bucket (Wanted: Monty Mole's pail): a pail with its handle over, heaped with lumps of coal. 2 x 2 characters. */
+function coalBucket(): NewDecor {
+  const r = new Raster(16, 16);
+  r.line(3, 6, 5, 1); r.line(5, 1, 10, 1); r.line(10, 1, 12, 6); // the handle
+  r.ellipse(7.5, 6.5, 6, 2.6); // the heap of coal
+  for (const [x, y] of [[4, 5], [8, 4], [11, 6], [6, 7]] as const) r.rect(x, y, x, y, false); // the lumps' gaps
+  r.rect(1, 8, 14, 14); // the pail
+  r.rect(2, 11, 13, 11, false); // its hoop
+  r.rect(1, 15, 14, 15);
+  return decor('coalBucket', 2, 2, r, 12);
+}
+
+/** Boulders: three rounded rocks, the big one behind, their gaps black. 3 x 2 characters. */
+function boulders(): NewDecor {
+  const r = new Raster(24, 16);
+  r.ellipse(9, 9, 8.5, 6.5);
+  r.ellipse(18.5, 11.5, 5.5, 4.5);
+  r.rect(0, 14, 23, 15);
+  r.line(4, 7, 8, 5, false); r.line(8, 5, 11, 7, false); r.line(13, 12, 17, 9, false); // the cracks
+  r.rect(13, 8, 13, 15, false); // the gap between the stones
+  return decor('boulders', 3, 2, r, 12);
+}
+
+/** A pit prop: a post under a cap beam, wedged, with the cross brace. 2 x 3 characters. */
+function pitProp(): NewDecor {
+  const r = new Raster(16, 24);
+  r.rect(0, 0, 15, 4); r.rect(1, 2, 14, 2, false); // the cap beam
+  r.rect(5, 5, 10, 23); r.rect(7, 8, 8, 20, false);
+  r.rect(2, 5, 4, 8); r.rect(11, 5, 13, 8); // the wedges
+  r.rect(0, 22, 15, 23);
+  r.rect(5, 15, 10, 15, false);
+  return decor('pitProp', 2, 3, r, 9);
+}
+
+/** An ice fisherman's hut on the lake: a plank hut with a pitched roof, a door and a pipe. 3 x 2 characters. */
+function fishHut(): NewDecor {
+  const r = new Raster(24, 16);
+  r.rect(17, 0, 19, 3); r.rect(18, 1, 18, 2, false); // the pipe
+  r.triangle(0, 7, 12, 1, 23, 7); // the roof
+  r.rect(0, 7, 23, 8);
+  r.rect(2, 9, 21, 15); // the planks
+  for (const x of [6, 10, 18]) r.rect(x, 9, x, 15, false);
+  r.rect(12, 10, 16, 15, false); r.rect(13, 11, 15, 15); r.rect(14, 12, 14, 15, false); // the door
+  return decor('fishHut', 3, 2, r, ['999', '999']);
 }
 
 /** The mine's portal: two heavy timbers and the lintel across them with a pit lamp, rock overhead. 4 x 5 characters. */
@@ -133,7 +166,10 @@ export const SIBERIA_DECOR = {
   diningTable: diningTable(),
   carWindow: carWindow(),
   bunk: bunk(),
-  mineLamp: mineLamp(),
+  coalBucket: coalBucket(),
+  boulders: boulders(),
+  pitProp: pitProp(),
+  fishHut: fishHut(),
   minePortal: minePortal(),
   pole: pole(),
   cabin: cabin(),

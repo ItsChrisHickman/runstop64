@@ -167,9 +167,11 @@ export function liftInit(g: Game) {
   l.type = 0;
   l.speedDir = 0;
   l.riding = 0;
+  g.liftLook = undefined;
   const spec = g.data.lifts.find((s) => s.room === g.roomId);
   if (!spec) return;
   Object.assign(l, { x: spec.x, y: spec.y, type: spec.type, speedDir: spec.speedDir });
+  g.liftLook = spec.look;
   if (spec.sound) g.sfx(g.data.sfx.liftDescend);
 }
 
@@ -179,7 +181,7 @@ export function liftSpriteUpdate(g: Game) {
   g.sx[1] = g.sx[2] = l.x;
   g.sy[1] = l.y;
   g.sy[2] = (l.y + 0x15) & 0xff;
-  const look = g.data.lifts.find((s) => s.room === g.roomId)?.look;
+  const look = g.liftLook;
   if (look) {
     // a picture of the game's own (a mine cart): hires, in its colour
     g.scol[1] = g.scol[2] = look.colour;
@@ -386,7 +388,7 @@ export const c5Restart = (s: C5State): C5State => ({ fallStage: s.fallStage, spe
  * the grid, and with it the way back east (in the original the street is behind him for good;
  * travel puts it back: `c5Street`).
  */
-const lastCellIndex = (data: MontyData, street: C5Street) => street.lastCell.row * data.exitGrid.cols + street.lastCell.col;
+export const lastCellIndex = (data: MontyData, street: C5Street) => street.lastCell.row * data.exitGrid.cols + street.lastCell.col;
 /** What's in the last room's cell: the room until the street's been driven, then nothing (0xff). */
 export function c5LastCell(data: MontyData, street: C5Street, driven: boolean) {
   return driven ? 0xff : data.exitGrid.image[lastCellIndex(data, street)];

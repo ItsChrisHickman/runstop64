@@ -134,10 +134,7 @@ export function applyRoomEffects(g: Game) {
     if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) continue;
     for (const [row, col] of e.clear ?? []) g.setChr(SCREEN + row * ROW + col, 0);
     for (const t of e.openTiles ?? []) g.tileProps[t] = 0;
-    for (const [row, col] of e.place?.cells ?? []) {
-      g.setChr(SCREEN + row * ROW + col, e.place?.code ?? 0);
-      g.setCol(SCREEN + row * ROW + col, g.roomColours[(e.place?.code ?? 1) - 1] ?? 1);
-    }
+    if (e.place) for (const [row, col] of e.place.cells) g.setRoomChar(row * ROW + col, e.place.code);
     const slot = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];
     if (slot) slot.x = 0xff; // (fly spray sees off the wasp; key + rum: the queen steps aside)
     const wake = e.wake && g.enemies[e.wake.slot];

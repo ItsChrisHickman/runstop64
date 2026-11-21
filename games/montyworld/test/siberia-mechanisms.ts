@@ -20,9 +20,9 @@ import { ROW, SCREEN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
-import { CART_COL, CRACKS, SHAFT_LEDGES, SIB, TUNNELS } from '../src/siberia';
+import { CART_COL, CART_FLOOR, CRACKS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ROOMS, TUNNELS } from '../src/siberia';
 import { newGame, search } from './bot';
-import { itemIndex, standY } from './route';
+import { creatureRooms, itemIndex, standY } from './route';
 
 const LEFT: Stick = { ...NONE, left: true };
 const RIGHT: Stick = { ...NONE, right: true };
@@ -64,7 +64,10 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   check('Moscow still has its 14 coins and 4 finds, in the same table places (first), and Siberia adds 13 coins and 4 finds (two pelmeni, the lamp, the ticket)',
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && (WORLD.coinTable[13 * 3] ?? 99) <= 8 && (WORLD.coinTable[14 * 3] ?? 0) >= 9);
   check('4 key items and 4 snacks count on the pause screen', WORLD.progress.keyItems.length === 4 && WORLD.progress.cakes.length === 4);
-  check('no room has more than two mouths or three creatures, and ice is only where the lake is', TUNNELS.filter((t) => t.room === SIB.sleeper).length === 2 && CRACKS.every((c) => c.room === SIB.lake));
+  check('no room has more than two mouths, and ice is only where the lake is', TUNNELS.filter((t) => t.room === SIB.sleeper).length === 2 && TUNNELS.every((t) => t.room === SIB.gravy || t.room === SIB.sleeper) && CRACKS.every((c) => c.room === SIB.lake));
+  const rooms = creatureRooms(SIBERIA_ROOMS);
+  const most = Math.max(...[...rooms.values()].map((v) => v.size));
+  check(`${rooms.size} kinds of creature in Siberia's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
 }
 
 // ---- the tunnel mouths ---------------------------------------------------------------------------
@@ -160,7 +163,7 @@ function diesAt(s: State, stick: Stick, limit: number): number {
     const s = standOn(patch.col + 2);
     run(s, NONE, patch.crack + 5);
     check('after the crack frames the ice shows lines (not yet broken)', cell(s.g, patch.col, patch.row) === patch.codes[1]);
-    run(s, LEFT, 70); // (off the left end, onto the island's rock)
+    run(s, LEFT, 40); // (off the left end, onto the island's rock: not on to the second patch, which would break under him in the 200 frames after)
     run(s, NONE, 200);
     check('off it the count dies away a frame a frame: it is whole again, shown whole', cell(s.g, patch.col, patch.row) === patch.codes[0] && !dead(s.g));
   }
@@ -187,13 +190,19 @@ function diesAt(s: State, stick: Stick, limit: number): number {
 {
   const LAMP = [SIB.mine, 0] as const;
   const bare = at(SIB.shaft, 2, 18);
-  check('without the lamp the ledges are not there (empty cells where they go)', SHAFT_LEDGES.every(([row, col]) => cell(bare.g, col, row) === 0 || row === 18));
+  check('without the lamp the ledges are not there (their cells are the dim dots of a ledge felt in the dark, not the timber; the stone in the pit is water)', SHAFT_LEDGES.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE && cell(bare.g, col, row) !== 0) && SHAFT_STONE.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE));
   const lit = at(SIB.shaft, 2, 18, [LAMP]);
-  check('with it they are (placed on loading the room: a game carried on after the lamp has them), in the room\'s timber character', SHAFT_LEDGES.every(([row, col]) => cell(lit.g, col, row) !== 0));
-  const stats = { exhausted: false };
+  check('with it they are (placed on loading the room: a game carried on after the lamp has them), in the room\'s timber character', [...SHAFT_LEDGES, ...SHAFT_STONE].every(([row, col]) => cell(lit.g, col, row) === SHAFT_CODE));
+  // the gate is proved shut by the jump's height (a search of every state he can reach in the room has more than three million: it does not finish):
+  // his jump rises `rise` pixels, the wall's top is six rows (48) over the rock step the way in has, so with no ledge he cannot be over it
+  const arc = WORLD.jumpArc;
+  let rise = 0;
+  for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
   const over = (g: Game) => g.roomId === SIB.shaft && colOf(g) >= 14 && g.y === standY(10);
+  check(`no way over the wall without the lamp: a jump rises ${rise} pixels, and from the rock step (floor 16) to the wall's top (floor 10) is ${(16 - 10) * 8}`, rise < (16 - 10) * 8 && rise >= 8 * 2);
+  const stats = { exhausted: false };
   const without = search(bare, over, undefined, 150000, 0, stats);
-  check(`no way over the wall without the lamp exists (${stats.exhausted ? 'every state looked at' : 'the limit'})`, without === null);
+  check('and the bot, given 150000 states, finds none (a pointer, not the proof)', without === null);
   const with_ = search(lit, over, undefined, 400000, 0);
   check('and with it the bot finds the way up the ledges to the wall\'s top', with_ !== null);
   // the pick up in the mine puts them in the shaft on the next load: the data's effect
@@ -209,16 +218,55 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const shut = gate(false), open = gate(true);
   check(`without the ticket the barrier stops him (column ${shut}); with it he walks to the planks (column ${open})`, shut <= 27 && open >= 28);
 
-  // the cart: stand on it, it carries him down to the gallery, the stick does nothing
-  const s = at(SIB.mine, CART_COL - 4, 7, [], true);
+  // the cart: hangs off the west end of the high shelf; walk onto it, it carries him down to the gallery, the stick does nothing
+  const s = at(SIB.mine, CART_COL + 4, CART_FLOOR, [], true);
   let began = -1, ended = -1;
   for (let f = 0; f < 600; f++) {
-    frame(s, began < 0 ? RIGHT : ended < 0 ? { ...NONE, left: true, fire: f % 9 === 0 } : NONE);
+    frame(s, began < 0 ? LEFT : ended < 0 ? { ...NONE, right: true, fire: f % 9 === 0 } : NONE);
     if (began < 0 && s.g.gameMode === 1) began = f;
     if (began >= 0 && ended < 0 && s.g.gameMode === 0) ended = f;
     if (ended >= 0 && f > ended + 60) break;
   }
-  check(`the cart takes him down (a ride of ${ended - began} frames he cannot leave, the stick held against it) and he stands on the gallery's floor (row 18: y ${s.g.y} of ${standY(18)}, column ${colOf(s.g)}), alive`, began >= 0 && ended > began && s.g.y === standY(18) && !dead(s.g));
+  check(`the cart takes him down from the shelf's end (a ride of ${ended - began} frames he cannot leave, the stick held against it) and he stands on the gallery's floor (row 18: y ${s.g.y} of ${standY(18)}, column ${colOf(s.g)}), alive`, began >= 0 && ended > began && s.g.y === standY(18) && !dead(s.g));
+  // and it is not on the way along the gantry (M's west way in to the rope): walking the gantry's whole length either way never takes it
+  {
+    const walk = at(SIB.mine, 11, 7, [], true);
+    let grabbed = false;
+    for (let f = 0; f < 140; f++) { frame(walk, LEFT); if (walk.g.gameMode === 1) grabbed = true; }
+    for (let f = 0; f < 140; f++) { frame(walk, RIGHT); if (walk.g.gameMode === 1) grabbed = true; }
+    check(`walking the gantry both ways he is never taken by the cart (still on the gantry: y ${walk.g.y} of ${standY(7)})`, !grabbed && walk.g.y === standY(7));
+  }
+}
+
+// ---- the joins: loops, the way back, no trap -----------------------------------------------------------
+{
+  const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 400000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5);
+  // the cars' interiors are a lane of their own under the roof: from inside the dining car, through the gangway, into the sleeper's corridor and on into the tender's pocket
+  check('under the roof: from inside the dining car through the gangway into the sleeper', reach(at(SIB.gravy, 26, 17), { room: SIB.gravy, col: 31, row: 16 }, (g) => g.roomId === SIB.sleeper && g.y === standY(17)) !== null);
+  check('and from the sleeper\'s corridor through the next gangway into the tender\'s pocket', reach(at(SIB.sleeper, 26, 17), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
+  check('and back west the same way (the tender to the sleeper to the dining car)',
+    reach(at(SIB.coal, 3, 17), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null && reach(at(SIB.sleeper, 3, 17), { room: SIB.sleeper, col: 0, row: 16 }, (g) => g.roomId === SIB.gravy) !== null);
+  // the loop: tender to the mine by the rope through its floor and back
+  check('the tender\'s rope climbs up into the mine\'s gallery', reach(at(SIB.coal, 7, 11), { room: SIB.coal, col: 8, row: 0 }, (g) => g.roomId === SIB.mine, 300000) !== null);
+  check('and the mine\'s gap lets him down it into the tender again', reach(at(SIB.mine, 6, 18), { room: SIB.mine, col: 8, row: 19 }, (g) => g.roomId === SIB.coal, 300000) !== null);
+  // the roof's way back west to Moscow's station
+  {
+    const s = at(SIB.gravy, 6, 9);
+    run(s, LEFT, 80);
+    check(`the dining car's roof walks west back to Moscow's station (room ${s.g.roomId})`, s.g.roomId === ROOM.station);
+  }
+  // no trap: from the village without the ticket he can climb back to the lake and up through the shaft's floor into the shaft
+  check('from the village, with no ticket, he can climb back up to the lake and into the shaft (the drop is a rope both ways)',
+    reach(at(SIB.border, 5, 17), { room: SIB.lake, col: 28, row: 0 }, (g) => g.roomId === SIB.shaft, 600000) !== null);
+  // the barrier: four rows high (32 pixels), more than a jump rises, so without the ticket he cannot pass it; with it he does
+  {
+    const arc = WORLD.jumpArc;
+    let rise = 0;
+    for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
+    const past = (g: Game) => g.roomId === SIB.border && colOf(g) >= 28;
+    check(`the barrier is four rows (${4 * 8} pixels) and a jump rises ${rise}: without the ticket there is no way over it; the bot finds none within 150000 states either`, rise < 4 * 8 && search(at(SIB.border, 24, 17), past, undefined, 150000, 0) === null);
+    check('and with the ticket he gets through', search(at(SIB.border, 22, 17, [[SIB.coal, 0]]), past, undefined, 200000, 0) !== null);
+  }
 }
 
 // ---- hints, the map, the save ---------------------------------------------------------------------
@@ -244,6 +292,26 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 16: [0x40, 0xb2, 1, 7], 17: [0x40, 0xb2, 2, 7] } });
   check('in Siberia the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
   check('Monty on the Run is as it was (no tunnels, no ice)', MOTR.tunnels.length === 0 && MOTR.cracks.length === 0);
+
+  // a save made on coming into each of Siberia's rooms (the lamp taken, so the shaft's ledges have to be placed on loading) carries on
+  {
+    const spots = [[SIB.gravy, 2, 9], [SIB.sleeper, 2, 9], [SIB.coal, 2, 9], [SIB.pines, 22, 17], [SIB.yeti, 26, 17], [SIB.mine, 2, 7], [SIB.shaft, 2, 18], [SIB.lake, 27, 12], [SIB.border, 8, 17]] as const;
+    const carried = spots.filter(([room, col, floor]) => {
+      const a = newGame(WORLD, false);
+      a.g.siCollected[itemIndex(a.g, SIB.mine, 0)] = 0x81;
+      enterRoom(a.g, room, 0x0c + (col + 4) * 4, standY(floor));
+      for (let n = 0; n < 200 && (a.g.freeze || a.g.script); n++) frame(a, NONE);
+      const b = newGame(WORLD, false);
+      restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
+      run(b, NONE, 4);
+      b.g.enemies = [];
+      b.g.enable &= 0x0f;
+      b.g.vic.enable &= 0x0f;
+      run(b, NONE, 120);
+      return b.g.roomId === room && !dead(b.g) && b.g.siCollected[itemIndex(b.g, SIB.mine, 0)] !== 0;
+    }).length;
+    check(`a save made on coming into each of Siberia's nine rooms packs, unpacks and carries on in the same room, alive (${carried} of ${spots.length})`, carried === spots.length);
+  }
 
   // a save from before Siberia: Moscow-only arrays and a grid of Moscow's rooms alone carry on in the new game
   const g1 = newGame(WORLD, true).g;
