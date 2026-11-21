@@ -1,0 +1,65 @@
+/**
+ * Siberia's map as a picture: the nine rooms as boxes on the exit grid (columns 4-7, rows 0-2, Moscow's station beside them), each with
+ * its name, the joins drawn between them (a line with a letter: W walk, R rope both ways, D drop one way, G gated by an item), the
+ * dead ends marked, and the critical path in yellow. Not a check.
+ *
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-map.ts <out-file.png>
+ */
+import { SIB, SIBERIA_SECTORS } from '../src/siberia';
+import { Canvas, label } from './preview-kit';
+
+const out = process.argv[2];
+if (out === undefined) throw new Error('usage: siberia-map.ts <out-file.png>');
+
+const CW = 84, CH = 46, GX = 26, GY = 22, X0 = 12, Y0 = 18;
+const cv = new Canvas(X0 * 2 + 5 * CW + 4 * GX, Y0 * 2 + 3 * CH + 2 * GY);
+label(cv, 'DO SVIDANIYA MONTY: SIBERIA (COLUMNS 4-7)', 4, 4, 1);
+
+/** Where each room is: grid column (3 is Moscow's station, drawn as a stub) and row. */
+const CELL: Readonly<Record<number, readonly [col: number, row: number]>> = {
+  [SIB.yeti]: [4, 0], [SIB.pines]: [5, 0], [SIB.mine]: [6, 0], [SIB.shaft]: [7, 0],
+  [SIB.gravy]: [4, 1], [SIB.sleeper]: [5, 1], [SIB.coal]: [6, 1], [SIB.lake]: [7, 1], [SIB.border]: [7, 2],
+};
+const px = (col: number, row: number) => ({ x: X0 + (col - 3) * (CW + GX), y: Y0 + row * (CH + GY) });
+const box = (x: number, y: number, c: number) => { for (let i = 0; i < CW; i++) { cv.set(x + i, y, c); cv.set(x + i, y + CH - 1, c); } for (let j = 0; j < CH; j++) { cv.set(x, y + j, c); cv.set(x + CW - 1, y + j, c); } };
+const line = (x0: number, y0: number, x1: number, y1: number, c: number) => {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+  for (let i = 0; i <= n; i++) { cv.set(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), c); cv.set(Math.round(x0 + ((x1 - x0) * i) / n) + 1, Math.round(y0 + ((y1 - y0) * i) / n), c); }
+};
+
+// Moscow's station, a stub
+{ const p = px(3, 1); box(p.x, p.y, 2); label(cv, 'MOSCOW', p.x + 4, p.y + 6, 2); label(cv, 'SIBERIA YOU', p.x + 4, p.y + 16, 2); label(cv, 'LATER', p.x + 4, p.y + 24, 2); }
+
+for (const [id, [col, row]] of Object.entries(CELL)) {
+  const p = px(col, row);
+  const sector = SIBERIA_SECTORS[Number(id) - SIB.gravy];
+  const dead = Number(id) === SIB.coal || Number(id) === SIB.yeti;
+  box(p.x, p.y, dead ? 8 : 5);
+  const words = (sector?.text ?? '').split(' ');
+  let y = p.y + 6;
+  let line_ = '';
+  for (const w of words) {
+    if ((line_ + ' ' + w).trim().length * 4 > CW - 8) { label(cv, line_.trim(), p.x + 4, y, 1); y += 8; line_ = ''; }
+    line_ += ` ${w}`;
+  }
+  label(cv, line_.trim(), p.x + 4, y, 1);
+  if (dead) label(cv, 'DEAD END', p.x + 4, p.y + CH - 9, 8);
+}
+
+/** A join between two cells: kind letter and whether it is on the critical path. */
+const JOINS: readonly [from: number, to: number, kind: string, main: boolean][] = [
+  [-1, SIB.gravy, 'W', true], [SIB.gravy, SIB.sleeper, 'W', true], [SIB.sleeper, SIB.coal, 'W', false], [SIB.sleeper, SIB.pines, 'R', true],
+  [SIB.pines, SIB.yeti, 'W', false], [SIB.pines, SIB.mine, 'W', true], [SIB.mine, SIB.shaft, 'W', true], [SIB.shaft, SIB.lake, 'D', true], [SIB.lake, SIB.border, 'R', true],
+];
+for (const [from, to, kind, main] of JOINS) {
+  const a = from < 0 ? px(3, 1) : px(...(CELL[from] ?? [0, 0]));
+  const b = px(...(CELL[to] ?? [0, 0]));
+  const c = main ? 7 : 12;
+  const [ax, ay] = [a.x + CW / 2, a.y + CH / 2], [bx, by] = [b.x + CW / 2, b.y + CH / 2];
+  const horizontal = Math.abs(ay - by) < 2;
+  if (horizontal) line(a.x + (ax < bx ? CW : 0), ay, b.x + (ax < bx ? 0 : CW), by, c); else line(ax, a.y + (ay < by ? CH : 0), bx, b.y + (ay < by ? 0 : CH), c);
+  label(cv, kind, (ax + bx) / 2 - 1, (ay + by) / 2 - 8 + (horizontal ? 0 : 8), c);
+}
+label(cv, 'W WALK  R ROPE  D DROP ONE WAY', 4, cv.h - 12, 12);
+label(cv, 'YELLOW: CRITICAL PATH', 4, cv.h - 6, 7);
+cv.png(out, 3);

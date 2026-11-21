@@ -27,12 +27,12 @@ const cells = WORLD.exitGrid.image;
 check(`the exit grid is ${WORLD_COLS} by ${WORLD_ROWS} (Monty on the Run's is ${MOTR.exitGrid.cols} by ${MOTR.exitGrid.rows})`,
   WORLD.exitGrid.cols === WORLD_COLS && WORLD.exitGrid.rows === WORLD_ROWS && cells.length === WORLD_COLS * WORLD_ROWS && MOTR.exitGrid.cols === 23);
 check('Moscow\'s nine rooms are the first four columns of the grid, each in the cell the plan gives it',
-  cells.filter((c) => c !== 0xff).length === 9 && [[1, 0, ROOM.start], [1, 1, ROOM.streets], [1, 2, ROOM.square], [1, 3, ROOM.station], [0, 1, ROOM.gum], [0, 2, ROOM.domes], [0, 3, ROOM.kremlin], [2, 1, ROOM.hall], [2, 2, ROOM.platform]]
+  cells.filter((c) => c !== 0xff && c <= 8).length === 9 && [[1, 0, ROOM.start], [1, 1, ROOM.streets], [1, 2, ROOM.square], [1, 3, ROOM.station], [0, 1, ROOM.gum], [0, 2, ROOM.domes], [0, 3, ROOM.kremlin], [2, 1, ROOM.hall], [2, 2, ROOM.platform]]
     .every(([row, col, id]) => cells[(row ?? 0) * WORLD_COLS + (col ?? 0)] === id));
 check('no room of Monty on the Run\'s extension, no kit, no C5, no jetpack, no ending', WORLD.extensionGrid.every((c) => c === 0xff) && !WORLD.isExtensionRoom(0) && WORLD.kit.length === 0 && !WORLD.c5 && WORLD.jetpackRooms.length === 0 && !WORLD.ending && !WORLD.completion);
 check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1, 2, 3, 4, 5, 6, 7, 8].map((id) => sectorName(WORLD, id).text).join('|') ===
   'MOSCOW MOLE|SNOW PLACE LIKE HOME|SEEING RED|ONION DOME SWEET DOME|KREMLIN GREMLINS|SIBERIA YOU LATER|STUCK LIKE GUM|ESCALATING TENSIONS|UNDERGROUND MOVEMENT');
-check('14 coins, 2 pirozhki, 2 key items', WORLD.coinTable.length === 14 * 3 && WORLD.specialItems.length === 4 * 4 && WORLD.progress.cakes.length === 2 && WORLD.progress.keyItems.length === 2);
+check('Moscow and Siberia: 27 coins, 4 pirozhki and pelmeni, 4 key items', WORLD.coinTable.length === 27 * 3 && WORLD.specialItems.length === 8 * 4 && WORLD.progress.cakes.length === 4 && WORLD.progress.keyItems.length === 4);
 {
   // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
   const rooms = new Map<number, Set<number>>();
@@ -40,7 +40,7 @@ check('14 coins, 2 pirozhki, 2 key items', WORLD.coinTable.length === 14 * 3 && 
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Moscow's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 11 && most <= 2);
 }
-check('the exit off the carriage roof is shut: nothing east of the station', cells[WORLD_COLS + 4] === 0xff);
+check('the carriage roof leads east into Siberia: the dining car is east of the station', cells[WORLD_COLS + 4] === 9);
 
 // ---- a game's own tiles, creatures and items come from the data ----------------------------------------
 {
@@ -89,7 +89,7 @@ tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS   1/9' && numbers[2] === 'ITEMS   0/2' && numbers[3] === 'SNACKS  0/2');
+check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/18' && numbers[2] === 'ITEMS   0/4' && numbers[3] === 'SNACKS  0/4');
 tap('KeyP');
 tick(4);
 

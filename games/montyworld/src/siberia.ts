@@ -107,7 +107,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
-    decor: [['carWindow', 5, 11], ['carWindow', 17, 11], ['carWindow', 21, 11], ['diningTable', 15, 15], ['diningTable', 19, 15], [{ text: 'RESTAURANT', colour: 7 }, 8, 13]],
+    decor: [['carWindow', 5, 11], ['carWindow', 17, 11], ['carWindow', 21, 11], ['diningTable', 15, 15], ['diningTable', 19, 15], [{ text: 'RESTAURANT', colour: 7 }, 8, 13], ['pole', 7, 5], ['pineSmall', 16, 6]],
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
@@ -120,7 +120,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.clear(21, 0, 23, 1).box(22, 0, 22, 8, 'R'); // the pine's rope, up through the ceiling
     },
     coins: [[3, 15], [27, 15]],
-    decor: [['bunk', 10, 15], ['bunk', 20, 15], ['carWindow', 22, 11], ['carWindow', 27, 11], ['pole', 28, 5]],
+    decor: [['bunk', 10, 15], ['bunk', 20, 15], ['carWindow', 4, 11], ['carWindow', 11, 11], ['carWindow', 19, 11], ['carWindow', 26, 11], ['pole', 28, 5], ['pineSmall', 3, 6]],
     creatures: [{ who: 'inspector', col: 19, row: 15, way: 'right', speed: 1, range: 56 }],
   }),
 
@@ -139,7 +139,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[15, 13]],
     item: { name: 'ticket', col: 28, row: 7, sprite: SIB_SPRITE.ticket },
-    decor: [['pineSmall', 17, 1], ['pole', 3, 5]],
+    decor: [['pole', 3, 5], ['pole', 27, 3]],
     creatures: [{ who: 'miner', col: 12, row: 13, way: 'right', speed: 1, range: 48 }],
   }),
 
@@ -214,10 +214,10 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(14, 10, 19, 17, 'K'); // the wall
       g.box(21, 18, 25, 19, 'W'); // the water of the pit
     },
-    coins: [[16, 8]],
+    coins: [[15, 8]],
     decor: [['stalactites', 4, 3], ['stalactites', 22, 3], ['mineLamp', 8, 4]],
     creatures: [
-      { who: 'miner', col: 14, row: 8, way: 'right', speed: 1, range: 24 },
+      { who: 'miner', col: 17, row: 8, way: 'right', speed: 1, range: 16 },
       { who: 'bat', col: 22, row: 10, way: 'right', speed: 2, range: 20 },
     ],
   }),
@@ -257,7 +257,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(11, 15, 13, 16, 'L').box(14, 13, 16, 16, 'L'); // the woodpile
       g.box(28, 13, 29, 16, 'B'); // the barrier
     },
-    coins: [[10, 15], [24, 15]],
+    coins: [[12, 13], [24, 15]],
     decor: [['cabin', 6, 13], ['cabin', 18, 13], [{ text: 'CHINA COMING SOON', colour: 7 }, 9, 6], ['pole', 25, 11]],
     creatures: [
       { who: 'reindeer', col: 19, row: 15, way: 'right', speed: 1, range: 32 },

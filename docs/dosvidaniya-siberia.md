@@ -94,3 +94,27 @@ a frame a frame when he is off. Crossing six cells at his walk takes 48 frames. 
 
 The lamp is the region's key item, with the engine's `place` room effect; the mine cart is the engine's lift with a picture of its
 own. The costume stays the ushanka.
+
+## As built (2026-11-21)
+
+The nine rooms are in `games/montyworld/src/siberia.ts` (ids 9-17, sectors 9-17; Moscow's are untouched), art in `art/siberia-*.ts` and
+`art/world.ts` (Moscow's and Siberia's pieces as one set, Moscow's first so indexes never move), tune in `music/siberia.ts`, the bot's route in
+`test/siberia-route.ts`, the pictures in `test/siberia-shots.ts`, `siberia-sheets.ts` and `siberia-map.ts`. Where the build differs from the design:
+
+- **Moscow's station** now opens east at rows 6-8 onto the dining car's roof (the planks keep rows 2-5); its sign reads TRAIN TO SIBERIA.
+- **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before): `tunnels` (`tunnels.ts`), `cracks`
+  (`cracks.ts`), a room effect `place` (the lamp's ledges), a `look` for a lift (the cart's two sprites), and a save that no longer restores
+  the exit grid in a game with no C5 street (a Moscow-only save would have emptied Siberia's cells).
+- **Mouths**: the dining car's from the right at a cell every 10 frames; the sleeper's two, one from each end, at 9 and 12 frames a cell,
+  so they are never in step. The edge flashes 48 frames before each sweep. A hatch's rope is the shelter.
+- **The mine cart** is Monty on the Run's lift (type 2: a ride down, started by walking onto it at the gantry's end); the ride sets him on floor
+  18, so the gallery's floor is row 18 and S's low way too. The way back up is a rope at column 14.
+- **The shaft**: the lamp places three ledges and a stepping stone (timber, floor class); without it they are not there. The miner paces the
+  wall's top at the right end so the coin at its left end is reached first.
+- **The lake**: the lake's rope is at column 5 (the left shore is a block, the gap beside it), the village's ceiling gap to match.
+- **Creatures** (nine kinds, none in more than two rooms): wolf (F, G), bear (F), owl (F, O), reindeer (L, G), inspector (A, B), miner (C, S),
+  yeti (O), bat (M, S), nerpa (L; Baikal's seal, in place of the design's fish).
+- **No ticket inspector check on the ushanka**: he is in the hat from Moscow (it was needed to leave), so a gate on it would never close; the
+  region's key items are the lamp and the ticket.
+- **Music**: G Dorian (G#, B, C# and Eb move), a piped lead (a triangle); no folk break (the plan's "maybe"): no melody was quoted from memory.
+- **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries).

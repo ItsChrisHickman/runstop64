@@ -13,6 +13,9 @@ import { LEGS } from './route';
 
 const only = process.argv[2];
 
+/** Whether every entry of a table (a stride of bytes each, the room first) that is in one of Moscow's nine rooms (ids 0-8) is taken. */
+const moscow = (table: Uint8Array, stride: number, taken: Uint8Array) => taken.every((c, i) => (table[i * stride] ?? 9) > 8 || c !== 0);
+
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;
   let live = newGame(WORLD, mode === 'enhanced');
@@ -31,8 +34,8 @@ for (const mode of ['original', 'enhanced'] as const) {
     live = next;
   }
   const g = live.g;
-  check(`${mode}: at the end every one of the 14 coins, both pirozhki and both items are taken (every room has one), ${g.score} points (14 x 50 + 4 x 200 = 1500), the way east shut (room ${g.roomId} is the station)`,
-    g.coinCollected.length === 14 && g.coinCollected.every((c) => c !== 0) && g.siCollected.length === 4 && g.siCollected.every((c) => c !== 0) && g.score === 1500 && g.roomId === ROOM.station);
+  check(`${mode}: at the end every one of the 14 coins, both pirozhki and both items are taken (every room has one), ${g.score} points (14 x 50 + 4 x 200 = 1500), the roof's end (room ${g.roomId} is the station)`,
+    moscow(g.data.coinTable, 3, g.coinCollected) && moscow(g.data.specialItems, 4, g.siCollected) && g.score === 1500 && g.roomId === ROOM.station);
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }
 finish();

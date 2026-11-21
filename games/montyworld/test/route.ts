@@ -25,22 +25,22 @@ export function itemIndex(g: Game, room: number, nth = 0): number {
 /** Monty's y standing on a floor row (the floor's top row; his top is two rows above). */
 export const standY = (floor: number) => 0x32 + (floor - 2 + 3) * 8;
 
-type Part = Pick<Leg, 'goal' | 'aim'>;
+export type Part = Pick<Leg, 'goal' | 'aim'>;
 
 /** Into a room, heading for the spot of the room he is in that leads there (`via`: a cell of it). */
-const into = (room: number, col: number, row: number, from: number, also: Goal = () => true): Part => ({ goal: (g) => g.roomId === room && !g.freeze && !g.script && also(g), aim: [{ room: from, col, row }] });
+export const into = (room: number, col: number, row: number, from: number, also: Goal = () => true): Part => ({ goal: (g) => g.roomId === room && !g.freeze && !g.script && also(g), aim: [{ room: from, col, row }] });
 /** Above (a high way in) or below a floor row. */
-const above = (floor: number): Goal => (g) => g.y < standY(floor);
+export const above = (floor: number): Goal => (g) => g.y < standY(floor);
 /** A coin taken, and he is on his feet (or a rope) again: a leg that ended in mid-air would hand the next one a jump already committed. */
-const settledOn: Goal = (g) => !g.montyAction && !g.falling && !g.gameMode && !g.freeze && !g.script;
-const coin = (room: number, col: number, row: number): Part => ({ goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0 && settledOn(g), aim: [{ room, col, row: row - 1 }] });
+export const settledOn: Goal = (g) => !g.montyAction && !g.falling && !g.gameMode && !g.freeze && !g.script;
+export const coin = (room: number, col: number, row: number): Part => ({ goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0 && settledOn(g), aim: [{ room, col, row: row - 1 }] });
 /** A special item of a room (its n-th), where its sprite is. */
-const item = (room: number, nth = 0): Part => ({
+export const item = (room: number, nth = 0, at: readonly [col: number, row: number] = ITEM_AT[room]?.[nth] ?? [0, 0]): Part => ({
   goal: (g) => g.siCollected[itemIndex(g, room, nth)] !== 0 && settledOn(g),
-  aim: [{ room, col: ITEM_AT[room]?.[nth]?.[0] ?? 0, row: ITEM_AT[room]?.[nth]?.[1] ?? 0 }],
+  aim: [{ room, col: at[0], row: at[1] }],
 });
 /** Standing in a room on a floor row, not in a ride. */
-const stands = (room: number, floor: number, from: number, to: number): Part => ({
+export const stands = (room: number, floor: number, from: number, to: number): Part => ({
   goal: (g) => g.roomId === room && !g.freeze && !g.gameMode && !g.falling && !g.montyAction && g.y === standY(floor) && g.montyCol - 4 >= from && g.montyCol - 4 <= to,
   aim: [{ room, col: Math.round((from + to) / 2), row: floor - 2 }],
 });
@@ -50,7 +50,7 @@ const ITEM_AT: Readonly<Record<number, readonly (readonly [number, number])[]>> 
 };
 
 export interface Leg { name: string; goal: Goal; aim: readonly Aim[] }
-const leg = (name: string, p: Part): Leg => ({ name, ...p });
+export const leg = (name: string, p: Part): Leg => ({ name, ...p });
 
 /** Everything, in order. */
 export const LEGS: readonly Leg[] = [

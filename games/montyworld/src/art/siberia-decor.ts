@@ -68,16 +68,16 @@ function bunk(): NewDecor {
   return decor('bunk', 3, 2, r, ['999', '999']);
 }
 
-/** A miner's lamp hung from a hook: the chain, the lantern with a flame, its cage. 1 x 2 characters. */
+/** A miner's lamp hung from a hook: a ring, a cap, a cage of bars round a flame, a base. 1 x 2 characters. */
 function mineLamp(): NewDecor {
   const r = new Raster(8, 16);
-  r.rect(3, 0, 4, 3);
-  r.rect(3, 1, 4, 1, false);
-  r.rect(1, 4, 6, 5);
-  r.rect(1, 6, 6, 13);
-  r.rect(2, 7, 5, 12, false);
-  r.rect(3, 9, 4, 11); r.rect(3, 8, 3, 8); // the flame
-  r.rect(1, 14, 6, 15);
+  r.rect(3, 0, 4, 0); r.rect(2, 1, 2, 2); r.rect(5, 1, 5, 2); // the ring
+  r.rect(1, 3, 6, 4); // the cap
+  r.rect(1, 5, 6, 12); // the cage
+  r.rect(2, 6, 5, 11, false);
+  r.rect(3, 7, 4, 10); r.rect(3, 6, 3, 6); // the flame inside
+  r.rect(0, 13, 7, 15); // the base
+  r.rect(2, 14, 5, 14, false);
   return decor('mineLamp', 1, 2, r, 7);
 }
 

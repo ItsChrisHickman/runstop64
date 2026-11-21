@@ -11,30 +11,37 @@ import type { Game } from './game';
  * whatever is in its cells, which are put back as it moves on.
  */
 
-/** A cell of the screen as it was before the portal was drawn over it: its character and its colour. */
-type Saved = readonly [chr: number, colour: number];
-
-/** A tunnel mouth of the room: its phase, the frames in it, its left column (playfield cells, any of -cols to 32), what it covers. */
-export interface TunnelState { state: 'rest' | 'warn' | 'sweep'; t: number; left: number; under: Map<number, Saved> }
+/**
+ * A tunnel mouth of the room: its phase, the frames in it, its left column (playfield cells, any of -cols to 32), the screen cells it
+ * has drawn on (`over`). What was under them is kept by the game (`Game.tunnelUnder`), once, as it was before any mouth drew: two mouths
+ * crossing each other put back the room, not each other's portal.
+ */
+export interface TunnelState { state: 'rest' | 'warn' | 'sweep'; t: number; left: number; over: Set<number> }
 
 /** A room is loaded: every mouth at rest, the first after its offset. */
 export function tunnelInit(g: Game) {
   g.tunnels = g.data.tunnels.filter((e) => e.room === g.roomId).map((e) => ({
-    state: 'rest' as const, t: -(e.offset ?? 0), left: e.from === 'right' ? PLAY_COLS : -e.cols, under: new Map(),
+    state: 'rest' as const, t: -(e.offset ?? 0), left: e.from === 'right' ? PLAY_COLS : -e.cols, over: new Set<number>(),
   }));
+  g.tunnelUnder = new Map();
 }
 
 /** Put back what the portal covers. */
 function uncover(g: Game, t: TunnelState) {
-  for (const [at, [chr, colour]] of t.under) { g.mem[SCREEN + at] = chr; g.col[at] = colour; }
-  t.under.clear();
+  for (const at of t.over) {
+    if (g.tunnels.some((o) => o !== t && o.over.has(at))) continue; // (another mouth is still over it)
+    const was = g.tunnelUnder.get(at);
+    if (was) { g.mem[SCREEN + at] = was[0]; g.col[at] = was[1]; g.tunnelUnder.delete(at); }
+  }
+  t.over.clear();
 }
 
 /** Draw `code` on a cell of the playfield (`null`: leave it empty), keeping what was there. */
 function paint(g: Game, t: TunnelState, col: number, row: number, code: number | null) {
   if (col < 0 || col >= PLAY_COLS) return;
   const at = (row + PLAY_ROW) * ROW + col + PLAY_COL;
-  if (!t.under.has(at)) t.under.set(at, [g.mem[SCREEN + at] ?? 0, g.col[at] ?? 0]);
+  if (!g.tunnelUnder.has(at)) g.tunnelUnder.set(at, [g.mem[SCREEN + at] ?? 0, g.col[at] ?? 0]);
+  t.over.add(at);
   g.mem[SCREEN + at] = code ?? 0;
   if (code !== null) g.col[at] = g.roomColours[code - 1] ?? 1;
 }

@@ -269,7 +269,7 @@ function nerpa(): NewCreature {
     return r.rows();
   };
   const left = [frame(0, 0), frame(1, 1), frame(0, 0), frame(1, -1)];
-  return pair('nerpa', left, 14);
+  return pair('nerpa', left, 12);
 }
 
 export const SIBERIA_CREATURES = {

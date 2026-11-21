@@ -56,10 +56,10 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   const cells = WORLD.exitGrid.image;
   const at = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   check('Moscow is nine rooms, a block of four columns by three rows at the grid\'s west end',
-    cells.filter((c) => c !== 0xff).length === 9 && [at(0, 1), at(0, 2), at(0, 3), at(1, 0), at(1, 1), at(1, 2), at(1, 3), at(2, 1), at(2, 2)].join() === [ROOM.gum, ROOM.domes, ROOM.kremlin, ROOM.start, ROOM.streets, ROOM.square, ROOM.station, ROOM.hall, ROOM.platform].join());
-  check('14 coins, 2 pirozhki and 2 key items', WORLD.coinTable.length === 42 && WORLD.specialItems.length === 16 && WORLD.progress.cakes.length === 2 && WORLD.progress.keyItems.length === 2);
+    cells.filter((c) => c !== 0xff && c <= 8).length === 9 && [at(0, 1), at(0, 2), at(0, 3), at(1, 0), at(1, 1), at(1, 2), at(1, 3), at(2, 1), at(2, 2)].join() === [ROOM.gum, ROOM.domes, ROOM.kremlin, ROOM.start, ROOM.streets, ROOM.square, ROOM.station, ROOM.hall, ROOM.platform].join());
+  check('Moscow has 14 coins, 2 pirozhki and 2 key items (the first entries of the tables; Siberia\'s follow)', WORLD.coinTable.subarray(0, 42).every((_, i) => i % 3 !== 0 || (WORLD.coinTable[i] ?? 99) <= 8) && WORLD.specialItems.subarray(0, 16).every((_, i) => i % 4 !== 0 || (WORLD.specialItems[i] ?? 99) <= 8) && WORLD.progress.cakes.slice(0, 2).every((i) => i < 4) && WORLD.progress.keyItems.slice(0, 2).join() === '1,3');
   check('the pirozhki are drawn with a sprite of their own, in the cupcake\'s way (a special item), and the pause screen calls them SNACKS',
-    WORLD.progress.cakes.every((i) => WORLD.specialItems[i * 4 + 3] === ((SPRITE.pirozhok - 0x8e) & 0xff)) && WORLD.itemSprites.collectable(SPRITE.pirozhok) && WORLD.progress.foodName === 'SNACKS');
+    WORLD.progress.cakes.slice(0, 2).every((i) => WORLD.specialItems[i * 4 + 3] === ((SPRITE.pirozhok - 0x8e) & 0xff)) && WORLD.itemSprites.collectable(SPRITE.pirozhok) && WORLD.progress.foodName === 'SNACKS');
 }
 
 // ---- the icicles --------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/2' && info[2] === 'ITEMS   0/2');
+  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/4' && info[2] === 'ITEMS   0/4');
   check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 4 && info.every((l) => l.length === 11));
   const motr = newGame(MOTR, true);
   const motrInfo = montyMap.info(motr.g, { rooms: {} });

@@ -7,16 +7,17 @@ import { itemBlock, spriteBlock } from './pixels';
 import { over, Raster } from './raster';
 import type { NewItem } from './types';
 
-/** A miner's lamp: a hook ring, a cap, a cage of bars round a glass with a lit flame, a heavy base. */
+/** A miner's lamp: a cap with a ring, a round glass globe with a flame in it, a heavy base, rays of light to each side. */
 function lamp(): NewItem {
   const r = new Raster(16, 16);
-  r.ring(7.5, 2.5, 2.5);
-  r.rect(4, 5, 11, 6); // the cap
-  r.rect(3, 7, 12, 13); // the cage
-  r.rect(5, 8, 10, 12, false); // the glass, dark
-  r.rect(7, 10, 8, 12); r.rect(7, 9, 7, 9); // the flame
-  r.rect(3, 14, 12, 15); // the base
-  r.cut(['#'], 3, 10); r.cut(['#'], 12, 10); // the bars' gaps
+  r.rect(6, 0, 9, 0); r.rect(6, 1, 6, 1); r.rect(9, 1, 9, 1); // the ring to carry it by
+  r.rect(5, 2, 10, 3); // the cap
+  r.ellipse(7.5, 8, 3.9, 4.4); // the globe
+  r.ellipse(7.5, 8, 2.6, 3.2, false); // the glass, dark inside
+  r.rect(7, 8, 8, 10); r.rect(7, 6, 7, 7); // the flame
+  r.rect(4, 12, 11, 15); // the base
+  r.rect(5, 13, 10, 13, false);
+  for (const y of [6, 8, 10]) { r.rect(0, y, 1, y); r.rect(14, y, 15, y); } // the rays, dashes of light each side
   return { block: itemBlock('lamp', r.rows()), colour: 7 };
 }
 

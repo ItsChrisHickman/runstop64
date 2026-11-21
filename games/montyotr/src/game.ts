@@ -201,6 +201,8 @@ export class Game implements MontyBody, MontyWorld {
   ice: IcicleState[] = [];
   /** This room's tunnel mouths (tunnels.ts) and cracking ice (cracks.ts). */
   tunnels: TunnelState[] = [];
+  /** What the tunnel mouths drew over, by screen cell (tunnels.ts). */
+  tunnelUnder = new Map<number, readonly [chr: number, colour: number]>();
   cracks: CrackState[] = [];
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
