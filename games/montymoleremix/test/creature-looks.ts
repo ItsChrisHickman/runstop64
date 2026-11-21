@@ -31,7 +31,7 @@ const strip: string[][][] = [];
 for (const [room] of ROOMS.entries()) {
   g.roomId = room;
   g.loadRoom();
-  g.creatures.forEach((e, slot) => {
+  g.creatures.forEach((_, slot) => {
     if (g.creatureType[slot] === null) return;
     creatures++;
     let how: 'same' | 'mirror' | null = null;

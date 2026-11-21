@@ -136,6 +136,7 @@ let lastPlace = -1, placeFrames = 0, placesSeen = 0;
 const bandWatch = new BandWatch(), castWatch = new CastWatch();
 let endFrames = 0, endYellow = 0;
 const sceneFrames: number[] = [];
+let named = false, creditAfterName = 0;
 while (show.active && frames < 14000) {
   input.poll();
   show.tick();
@@ -152,6 +153,8 @@ while (show.active && frames < 14000) {
     sceneFrames[p.place] = p.frames;
     const place = spec.places[p.place];
     if (p.frames === 0) continue;
+    if (p.said?.kind === 'name') named = true;
+    else if (p.said?.kind === 'credit' && p.said.text.trim() !== '' && named) creditAfterName++;
     const b = band(p.said?.ink);
     bandWatch.frame(p, place?.credits, { ink: b.yellow, other: b.other });
     castWatch.frame(p, BAND, () => gameBandEmpty);
@@ -183,6 +186,10 @@ check(`THE END is on the picture in yellow (${endYellow} pixels)`, endYellow > 1
 bandWatch.check(LINES.length, gameFrames, gameBand, [...badPlaces.values()]);
 const bad = LINES.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the game's own lettering${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
+check(`all the credits come first, then all the names: no credit line is typed after the first name (${creditAfterName} frames of one)`, named && creditAfterName === 0);
+// (the lines say what the remix is: Wanted's game, Monty on the Run's look and Rob Hubbard's music; the Spectrum's beeper tunes are not in it)
+const stale = LINES.filter((l) => /BEEPER|COLONEL|BOGEY|EVENTIDE|ABIDE|TUNES/.test(l));
+check(`no line names music the remix does not have${stale.length ? ` (${stale.join(' / ')})` : ''}`, stale.length === 0 && LINES.some((l) => l.includes('ROB HUBBARD')));
 check('the port is credited last, as PORT_CREDITS has it, to Christopher Hickman with Claude', PORT_CREDITS.every((l, i) => LINES[LINES.length - 1 - PORT_CREDITS.length + i] === l) && LINES.some((l) => l.includes('HICKMAN')) && LINES.some((l) => l.includes('CLAUDE')));
 
 // ---- 4. skipping ---------------------------------------------------------------------------------------------------------------

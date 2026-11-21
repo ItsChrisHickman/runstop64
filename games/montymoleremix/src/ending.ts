@@ -23,11 +23,11 @@ export const CREDIT_ROW = 184;
 const PLAN: readonly (readonly [number, readonly string[]])[] = [
   [0, ['WANTED: MONTY MOLE, 1984', 'A GREMLIN GRAPHICS GAME FOR THE', 'ZX SPECTRUM, JULY 1984', 'CREATED AND PROGRAMMED BY PETER HARRAP']],
   [1, ['MONTY MOLE WAS CREATED BY IAN STEWART', 'THE DIRECTOR OF GREMLIN GRAPHICS', 'COVER AND INLAY ART BY DAVID BRACHER', 'A RAID ON A SOUTH YORKSHIRE PIT']],
-  [2, ['DURING THE MINERS STRIKE OF 1984', 'MONTY STEALS COAL TO KEEP WARM', 'THE TUNES ARE ON THE BEEPER:', 'COLONEL BOGEY BY KENNETH ALFORD']],
-  [3, ['ABIDE WITH ME, TO MONKS EVENTIDE', 'CRASH GAVE IT 92 PERCENT AND A SMASH', 'NUMBER 2 IN THE ALL FORMATS CHART', 'IN THE WEEK TO 13 SEPTEMBER 1984']],
+  [2, ['DURING THE MINERS STRIKE OF 1984', 'MONTY STEALS COAL TO KEEP WARM', 'THE FINAL ROOMS ARE ARTHURS CASTLE', 'A CHARACTER BASED ON A UNION LEADER']],
+  [3, ['CRASH GAVE IT 92 PERCENT AND A SMASH', 'PERSONAL COMPUTER GAMES: 80 PERCENT', 'NUMBER 2 IN THE ALL FORMATS CHART', 'IN THE WEEK TO 13 SEPTEMBER 1984']],
   [4, ['20000 COPIES SOLD IN SIX WEEKS', 'CRASH READERS BEST PLATFORM GAME', 'FOLLOWED BY MONTY IS INNOCENT, 1985', 'MONTY ON THE RUN, 1985']],
   [5, ['MONTY ON THE RUN: C64 VERSION BY', 'MICRO PROJECTS LTD, 1985', 'ANTHONY CLARKE AND JASON PERKINS', 'GRAPHICS BY MARK RODGERS']],
-  [6, ['MUSIC BY ROB HUBBARD', 'THIS REMIX PLAYS WANTED WITH MONTY', 'AND THE LOOK OF MONTY ON THE RUN', 'KEEPING WANTEDS OWN COAL AND TOOLS']],
+  [6, ['MONTY ON THE RUNS MUSIC BY ROB HUBBARD', 'THIS REMIX PLAYS WANTED WITH MONTY', 'AND THE LOOK OF MONTY ON THE RUN', 'KEEPING WANTEDS COAL AND TOOLS']],
   [7, [...PORT_CREDITS, 'THANKS FOR PLAYING']],
 ];
 
@@ -143,8 +143,10 @@ function recordCreature(stage: Stage, name: string, room: number, slot: number):
 export function remixEnding(renderer: Renderer): RewardSpec {
   let made: Stage | null = null;
   const stage = (): Stage => (made ??= new Stage(renderer));
-  const places: Place[] = PLAN.map(([room, credits]): Place => ({
+  // (the credits first, then the names: the creatures all walk through the last place, after its lines, so no name comes between a credit and the next)
+  const places: Place[] = PLAN.map(([room, credits], i): Place => ({
     credits,
+    ...(i < PLAN.length - 1 ? { visitors: false as const } : {}),
     // (a room lasts as long as its credits and visitors take: the route's first part is played, the rest is not needed)
     frames: 0,
     open: () => new RoomReel(stage(), room),

@@ -25,7 +25,7 @@ const g = p.g;
 g.graceActive = () => true;
 const bad: string[] = [];
 let pieces = 0;
-for (const [room, data] of ROOMS.entries()) {
+for (const room of ROOMS.keys()) {
   normaliseCoal(g, room);
   g.roomId = room;
   g.loadRoom();
