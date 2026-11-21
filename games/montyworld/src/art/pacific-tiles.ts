@@ -390,6 +390,62 @@ export const PACIFIC_TILES = {
     '#...#...',
     '#...#...',
   ]),
+  /** A chain across a ramp: two posts and heavy links, the gate the bolt cutters cut. Solid. */
+  pacChainGate: tile('pacChainGate', 1, 15, [
+    '##....##',
+    '#.####.#',
+    '##....##',
+    '#.####.#',
+    '##....##',
+    '#.####.#',
+    '##....##',
+    '#.####.#',
+  ]),
+  // ---- the luau's flames and the Road to Hana's car
+  /** A torch's flame at full height: a tall teardrop with a hollow heart. Passable (the strike's own danger is the engine's `pulses`). */
+  pacFlame: tile('pacFlame', 0, 8, [
+    '...##...',
+    '..####..',
+    '.######.',
+    '.##..##.',
+    '.##..##.',
+    '.######.',
+    '..####..',
+    '...##...',
+  ]),
+  /** A torch's flame warning: a small flicker leaning over. Passable. */
+  pacFlameWarn: tile('pacFlameWarn', 0, 7, [
+    '........',
+    '........',
+    '....#...',
+    '...##...',
+    '..###...',
+    '.####...',
+    '.#####..',
+    '..####..',
+  ]),
+  /** A red rental car's cabin: a roof over two windows with a pillar between. Passable (the car is a picture the road's strike draws). */
+  pacCarCab: tile('pacCarCab', 0, 2, [
+    '........',
+    '..####..',
+    '.######.',
+    '##.##.##',
+    '##.##.##',
+    '########',
+    '########',
+    '########',
+  ]),
+  /** A rental car's body: a door line, a handle, a bumper, a wheel arch cut into the foot. Passable. */
+  pacCarBody: tile('pacCarBody', 0, 2, [
+    '########',
+    '########',
+    '##.##.##',
+    '########',
+    '########',
+    '###..###',
+    '##.##.##',
+    '.##..##.',
+  ]),
 } as const;
 
 export type PacificTile = keyof typeof PACIFIC_TILES;

@@ -61,7 +61,7 @@ export const MOTR: MontyData = {
     { room: 0x05, x: 0x48, y: 0x5b, type: 1, speedDir: 0x82, sound: true },
     { room: 0x0d, x: 0x80, y: 0x53, type: 2, speedDir: 0x80, sound: false },
   ],
-  escalators: [], icicles: [], tunnels: [], cracks: [], charAnims: [], pulses: [], dragons: [], iceSprites: { full: 0, half: 0, small: 0, shards: 0 }, costumes: [],
+  escalators: [], icicles: [], tunnels: [], cracks: [], charAnims: [], pulses: [], swimRooms: [], risingLava: [], dragons: [], iceSprites: { full: 0, half: 0, small: 0, shards: 0 }, costumes: [],
   flashingBases: { room: 0x1f, row: 0x11, cols: [8, 10, 12] },
   bollard: { room: 0x0c, row: 15, col: 0x1b },
   risingCloud: { room: 0x01, x: 0x3c, col: 0x0c },

@@ -19,10 +19,15 @@ import type { TunnelSpec } from './montydata';
  */
 export interface TunnelState { spec: TunnelSpec; state: 'rest' | 'warn' | 'sweep'; t: number; left: number; over: Set<number> }
 
+/** The columns a mouth runs between (the room's width, or its `span`): the first, and one past the last. */
+const lanes = (e: TunnelSpec) => ({ lo: e.span?.from ?? 0, hi: (e.span?.to ?? PLAY_COLS - 1) + 1 });
+/** Its left column when it comes in. */
+const startOf = (e: TunnelSpec) => (e.from === 'right' ? lanes(e).hi : lanes(e).lo - e.cols);
+
 /** A room is loaded: every mouth at rest, the first after its offset. */
 export function tunnelInit(g: Game) {
   g.tunnels = g.data.tunnels.filter((e) => e.room === g.roomId).map((e): TunnelState => ({
-    spec: e, state: 'rest', t: -(e.offset ?? 0), left: e.from === 'right' ? PLAY_COLS : -e.cols, over: new Set<number>(),
+    spec: e, state: 'rest', t: -(e.offset ?? 0), left: startOf(e), over: new Set<number>(),
   }));
   g.tunnelUnder = new Map();
 }
@@ -66,8 +71,9 @@ export function tunnelUpdate(g: Game) {
   for (const t of g.tunnels) {
     const e = t.spec;
     const dir = e.from === 'right' ? -1 : 1;
-    const edge = e.from === 'right' ? PLAY_COLS - 1 : 0;
-    const start = e.from === 'right' ? PLAY_COLS : -e.cols;
+    const { lo, hi } = lanes(e);
+    const edge = e.from === 'right' ? hi - 1 : lo;
+    const start = startOf(e);
     const wall = e.wall ?? 1;
     t.t++;
     switch (t.state) {
@@ -83,8 +89,8 @@ export function tunnelUpdate(g: Game) {
         if (t.t % e.step === 0) {
           t.left += dir;
           uncover(g, t);
-          if (t.left <= -e.cols || t.left > PLAY_COLS) { t.state = 'rest'; t.t = 0; t.left = start; break; }
-          for (let r = e.top; r <= e.bottom; r++) for (let c = t.left; c < t.left + e.cols; c++) {
+          if (t.left <= lo - e.cols || t.left > hi) { t.state = 'rest'; t.t = 0; t.left = start; break; }
+          for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(t.left, lo); c < Math.min(t.left + e.cols, hi); c++) {
             if (e.picture) {
               const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
               if (code && !solidCell(g, c, r)) paint(g, t, c, r, code); // (a train goes into the tiled wall as into a tunnel: not drawn over it)

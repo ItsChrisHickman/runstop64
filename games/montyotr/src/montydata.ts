@@ -133,6 +133,8 @@ export interface TunnelSpec {
    * sweeps in the direction it goes (its nose at the leading end).
    */
   picture?: readonly (readonly number[])[];
+  /** It runs only between these playfield columns (inclusive), coming in at one end of them and gone at the other: a car over a one-lane bridge, in place of the whole room's width. */
+  span?: { readonly from: number; readonly to: number };
 }
 
 /**
@@ -181,6 +183,15 @@ export interface PulseSpec {
 export interface DragonSpec {
   room: number; path: readonly (readonly [col: number, row: number])[]; speed: number; gap: number;
   pieces: readonly { sprite: number; frames: readonly number[]; colour: number }[];
+}
+
+/**
+ * Rising lava (lava.ts; the Pacific's volcano): from `col`, `cols` wide, the lava starts with its top at playfield row `baseRow` when Monty comes into the room and rises a row every
+ * `stepFrames` frames to row `topRow`, holds there for `holdFrames`, drains a row every `drainFrames` back to `baseRow` and rises again. It fills the cells down to the floor of the room that are empty
+ * (or hold a decoration), as the room's character `code` (its crest, on the top row, as `crest`: both passable ones, the death is the lava's own) and kills what of Monty is in it (event 1, as a crusher's head).
+ */
+export interface LavaSpec {
+  room: number; col: number; cols: number; baseRow: number; topRow: number; stepFrames: number; holdFrames: number; drainFrames: number; code: number; crest: number;
 }
 
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
@@ -272,6 +283,9 @@ export interface MontyData extends RoomTables, MontyLook {
   /** Characters that scroll or cycle as the room runs (a train's window and the ground under it); none in Monty on the Run. */
   charAnims: readonly CharAnim[];
   pulses: readonly PulseSpec[];
+  /** Rooms of open water (swim.ts: Monty swims as the jetpack flies, slower and buoyant); none in Monty on the Run. */
+  swimRooms: readonly number[];
+  risingLava: readonly LavaSpec[];
   dragons: readonly DragonSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];

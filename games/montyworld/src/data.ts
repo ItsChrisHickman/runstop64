@@ -12,6 +12,9 @@ import {
 import { CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from './china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
+import { LEI_COLOUR, leiWorn } from './art/pacific-lei';
+import { PACIFIC_ITEMS } from './art/pacific-items';
+import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, POOL_CELLS, POOL_SEA, CHAIN_CELLS, TORCH_PULSES } from './pacific';
 import { DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAINS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -31,7 +34,7 @@ import { WORLD_REGIONS } from './regions';
 export const WORLD_COLS = 50, WORLD_ROWS = 3;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS];
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -46,6 +49,8 @@ const RICE_WORN = riceHatWorn(bankImage);
 const RICE = placeHat(RICE_WORN);
 const HOOD_WORN = hoodWorn(bankImage);
 const HOOD = placeHat(HOOD_WORN);
+const LEI_WORN = leiWorn(bankImage);
+const LEI = placeHat(LEI_WORN);
 
 /** Each dragon picture with its pointer (named one by one, so a missing picture is a compile error). */
 const DRAGON_BLOCKS = [
@@ -78,6 +83,11 @@ const bank = extendBank(bankImage, [
   { ptr: CHINA_SPRITE.bamboo, block: CHINA_ITEMS.bamboo.block },
   { ptr: CHINA_SPRITE.dumplings, block: CHINA_ITEMS.dumplings.block },
   ...DRAGON_BLOCKS,
+  { ptr: PAC_SPRITE.cutters, block: PACIFIC_ITEMS.pacCutters.block },
+  { ptr: PAC_SPRITE.snorkel, block: PACIFIC_ITEMS.pacSnorkel.block },
+  { ptr: PAC_SPRITE.lei, block: PACIFIC_ITEMS.pacLei.block },
+  { ptr: PAC_SPRITE.musubi, block: PACIFIC_ITEMS.pacMusubi.block },
+  { ptr: PAC_SPRITE.parachute, block: PACIFIC_ITEMS.pacParachute.block },
   { ptr: JAPAN_SPRITE.fishFood, block: JAPAN_ITEMS.jpFishFood.block },
   { ptr: JAPAN_SPRITE.daruma, block: JAPAN_ITEMS.jpDaruma.block },
   { ptr: JAPAN_SPRITE.sushi, block: JAPAN_ITEMS.jpSushi.block },
@@ -91,6 +101,7 @@ const ITEM_COLOURS = new Map<number, number>([
   [CHINA_SPRITE.key, CHINA_ITEMS.towerKey.colour], [CHINA_SPRITE.riceHat, CHINA_ITEMS.riceHat.colour], [CHINA_SPRITE.bamboo, CHINA_ITEMS.bamboo.colour],
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
   [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
+  [PAC_SPRITE.cutters, PACIFIC_ITEMS.pacCutters.colour], [PAC_SPRITE.snorkel, PACIFIC_ITEMS.pacSnorkel.colour], [PAC_SPRITE.lei, PACIFIC_ITEMS.pacLei.colour], [PAC_SPRITE.musubi, PACIFIC_ITEMS.pacMusubi.colour], [PAC_SPRITE.parachute, PACIFIC_ITEMS.pacParachute.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
   ...ITEM_SPRITES,
@@ -102,7 +113,7 @@ const itemSprites: MontyData['itemSprites'] = {
 
 /** Moscow's decorations are the first decoration types. */
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
-const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS], bankImage, SPRITE.pirozhok);
+const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -116,8 +127,12 @@ const BAMBOO = specialIndex(ROOMS, 'bamboo');
 const DARUMA = specialIndex(ROOMS, 'daruma');
 const FISH_FOOD = specialIndex(ROOMS, 'fishFood');
 const HOOD_ITEM = specialIndex(ROOMS, 'hood');
-/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2')];
+const CUTTERS = specialIndex(ROOMS, 'cutters');
+const SNORKEL = specialIndex(ROOMS, 'snorkel');
+const LEI_ITEM = specialIndex(ROOMS, 'lei');
+const PARACHUTE = specialIndex(ROOMS, 'parachute');
+/** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi. */
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'), specialIndex(ROOMS, 'musubi2'), specialIndex(ROOMS, 'musubi3')];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
@@ -142,6 +157,12 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0, place: { code: PLANK_CODE, cells: onScreen(PLANK_CELLS) } }, // fed, the koi leave the pond (the first) and the pond's planks float up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
   { room: JP.hall, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // in the ninja hood the castle's guard steps aside
+  { room: PAC.box, when: [{ taken: CUTTERS }], clear: onScreen(CHAIN_CELLS) }, // the cutters take the chain off the ramp
+  { room: PAC.surf, when: [{ taken: SNORKEL }], place: { code: POOL_SEA, cells: onScreen(POOL_CELLS) } }, // the snorkel opens the sea: the surf is water to wade into
+  { room: PAC.hana, when: [{ taken: SNORKEL }], clear: onScreen(COVE_CELLS) }, // and the cove's pool is a drop into the reef
+  { room: PAC.hana, when: [{ taken: SNORKEL }], place: { code: COVE_ROPE_CODE, cells: onScreen(COVE_ROPE) } }, // with a rope to climb back
+  { room: PAC.hilo, when: [{ taken: LEI_ITEM }], removeEnemy: 0 }, // in the lei the airport guard takes him for a tourist
+  { room: PAC.hold, when: [{ taken: PARACHUTE }], clear: onScreen(PLANE_DOOR_CELLS) }, // the parachute opens the plane's rear door
 ];
 
 export const WORLD: MontyData = {
@@ -170,12 +191,14 @@ export const WORLD: MontyData = {
 
   jetpackRooms: [],
   lifts: LIFTS,
-  escalators: ESCALATORS,
+  escalators: [...ESCALATORS, LOADER],
   icicles: ICICLES,
-  tunnels: [...TUNNELS, ...TRAINS],
+  tunnels: [...TUNNELS, ...TRAINS, ...BRIDGE_CARS],
   cracks: CRACKS,
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS],
-  pulses: [...PULSES, ...DOOR_PULSES],
+  pulses: [...PULSES, ...DOOR_PULSES, ...TORCH_PULSES],
+  swimRooms: [PAC.clam, PAC.kelp, PAC.cave, PAC.fish],
+  risingLava: [LAVA],
   dragons: [DRAGON],
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last
@@ -183,6 +206,7 @@ export const WORLD: MontyData = {
     { item: USHANKA_ITEM, blocks: [...USHANKA_WORN.monty, ...USHANKA.blocks], over: { colour: HAT_COLOUR, frames: USHANKA.frames } },
     { item: RICE_HAT, blocks: [...RICE_WORN.monty, ...RICE.blocks], over: { colour: RICE_HAT_COLOUR, frames: RICE.frames } },
     { item: HOOD_ITEM, blocks: [...HOOD_WORN.monty, ...HOOD.blocks], over: { colour: HOOD_COLOUR, frames: HOOD.frames } },
+    { item: LEI_ITEM, blocks: [...LEI_WORN.monty, ...LEI.blocks], over: { colour: LEI_COLOUR, frames: LEI.frames } },
   ],
   flashingBases: null,
   bollard: null,
@@ -203,6 +227,10 @@ export const WORLD: MontyData = {
       { item: DARUMA, text: 'DARUMA: ROLLS THE SHUTTER UP' },
       { item: FISH_FOOD, text: 'FISH FOOD: THE KOI LET YOU BY' },
       { item: HOOD_ITEM, text: 'HOOD: PAST THE CASTLE GUARD' },
+      { item: CUTTERS, text: 'CUTTERS: THE CHAIN ON THE RAMP' },
+      { item: SNORKEL, text: 'SNORKEL: THE SEA IS OPEN NOW' },
+      { item: LEI_ITEM, text: 'LEI: PAST THE AIRPORT GUARD' },
+      { item: PARACHUTE, text: 'PARACHUTE: THE REAR DOOR IS OPEN' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },
@@ -215,11 +243,16 @@ export const WORLD: MontyData = {
       { room: JP.platform, item: DARUMA, text: 'THE SHUTTER WANTS A WISH' },
       { room: JP.garden, item: FISH_FOOD, text: 'THE KOI WANT FEEDING' },
       { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD WANTS A NINJA HOOD' },
+      { room: PAC.box, item: CUTTERS, text: 'THE CHAIN WANTS BOLT CUTTERS' },
+      { room: PAC.surf, item: SNORKEL, text: 'THE SEA WANTS A SNORKEL' },
+      { room: PAC.hana, item: SNORKEL, text: 'THE SEA WANTS A SNORKEL' },
+      { room: PAC.hilo, item: LEI_ITEM, text: 'THE GUARD WANTS A LEI' },
+      { room: PAC.hold, item: PARACHUTE, text: 'THE REAR DOOR WANTS A PARACHUTE' },
     ],
   },
   // the map shows a region's four columns while he is in them
   regions: WORLD_REGIONS.map(({ from, to }) => ({ from, to })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
       [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',

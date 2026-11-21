@@ -11,6 +11,7 @@ import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorR
 import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
+import { lavaInit, lavaUpdate, type LavaState } from './lava';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -195,6 +196,9 @@ export class Game implements MontyBody, MontyWorld {
   cracks: CrackState[] = [];
   /** This room's timed strikes (pulses.ts) and dragons (dragons.ts). */
   pulses: PulseState[] = [];
+  /** This room's rising lava (lava.ts) and the strokes swum so far (swim.ts). */
+  lavas: LavaState[] = [];
+  swimTick = 0;
   dragons: DragonState[] = [];
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
@@ -328,6 +332,7 @@ export class Game implements MontyBody, MontyWorld {
     this.tunnels = [];
     this.cracks = [];
     this.pulses = [];
+    this.lavas = [];
     this.dragons = [];
     this.worn = null;
     this.hint = noHint();
@@ -393,6 +398,7 @@ export class Game implements MontyBody, MontyWorld {
       tunnelUpdate(this);
       crackUpdate(this);
       pulseUpdate(this);
+      lavaUpdate(this);
       dragonUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
@@ -576,6 +582,7 @@ export class Game implements MontyBody, MontyWorld {
     tunnelInit(this);
     crackInit(this);
     pulseInit(this);
+    lavaInit(this);
     dragonInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();

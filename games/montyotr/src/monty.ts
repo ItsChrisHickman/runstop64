@@ -2,6 +2,7 @@ import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import { animateMonty } from '../../shared/monty/anim';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
+import { swimMove } from './swim';
 
 /**
  * Monty's movement and animation: the shared Monty (games/shared/monty: the walk, the jump, the fall, the ropes, the exits and
@@ -20,6 +21,7 @@ export function montyDraw(g: Game) {
 function updateMovement(g: Game) {
   if (g.gameMode) return;
   if (g.c5.active) return c5DriveMovement(g);
+  if (g.data.swimRooms.includes(g.roomId)) return swimMove(g);
   // (fire starts a jump, not with the jetpack on)
   decideMonty(g, g, { arc: g.data.jumpArc, canJump: !g.showJetpack, onJump: () => { g.sfx(g.data.sfx.jump, true); } });
 

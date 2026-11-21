@@ -353,10 +353,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(28, 18, 31, 19, 'W'); // the water at the ship's side
       g.box(28, 14, 31, 17, 'H').box(29, 15, 29, 15, 'P').box(31, 15, 31, 15, 'P'); // the ship's hull with its portholes, afloat
       g.box(28, 13, 31, 13, 'K'); // the deck
-      g.box(30, 10, 31, 12, 'D'); // crates across the way east
     },
     coins: [[4, 9], [23, 15]],
-    decor: [['jpWave', 2, 2], [{ text: 'PACIFIC COMING SOON', colour: 7 }, 3, 5], ['jpGantry', 13, 11], ['jpShipMast', 28, 8], ['jpLantern', 22, 12]],
+    decor: [['jpWave', 2, 2], ['jpGantry', 13, 11], ['jpShipMast', 28, 8], ['jpLantern', 22, 12]],
     creatures: [
       { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'jpCrab', col: 18, row: 15, way: 'right', speed: 1, range: 24 },

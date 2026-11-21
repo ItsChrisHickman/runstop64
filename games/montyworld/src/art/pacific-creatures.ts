@@ -279,6 +279,24 @@ function guard(): NewCreature {
   return pair('pacGuard', [0, 1, 2, 3].map(frame), 7);
 }
 
+// ---- the swinging cargo: a crate on a chain from a trolley, with a scowl, swaying
+
+/** A crate swinging on its chain: a hook ring and links at the top, a strapped crate with a scowling face, swaying a pixel either way. */
+function swingCrate(): NewCreature {
+  const frame = (sway: number) => {
+    const r = new Raster(16, 16);
+    r.rect(6 + sway, 0, 9 + sway, 1); r.rect(7 + sway, 0, 8 + sway, 1, false); // the hook's ring
+    r.rect(7 + sway, 2, 8 + sway, 4); r.rect(7 + sway, 3, 7 + sway, 3, false); // links
+    r.rect(1, 5, 14, 15); // the crate
+    r.cut(['##############'], 1, 8); // a strap
+    r.cut(['##', '##'], 3, 6); r.cut(['##', '##'], 11, 6); r.rect(4, 7, 4, 7); r.rect(11, 7, 11, 7); // eyes
+    r.cut(['##########'], 3, 10); r.rect(4, 10, 4, 11); r.rect(7, 10, 7, 11); r.rect(10, 10, 10, 11); // the scowl's teeth
+    r.rect(1, 13, 14, 13, false); // a plank line
+    return r.rows();
+  };
+  return pair('pacSwingCrate', [frame(-1), frame(0), frame(1), frame(0)], 9, true);
+}
+
 export const PACIFIC_CREATURES = {
   pacParrot: parrot(),
   pacSharkFin: sharkFin(),
@@ -292,6 +310,7 @@ export const PACIFIC_CREATURES = {
   pacCoconut: coconut(),
   pacGuard: guard(),
   pacMagma: magma(),
+  pacSwingCrate: swingCrate(),
 } as const satisfies Record<string, NewCreature>;
 
 export type PacificCreature = keyof typeof PACIFIC_CREATURES;
