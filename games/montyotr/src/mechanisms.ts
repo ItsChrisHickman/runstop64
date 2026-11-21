@@ -1,5 +1,5 @@
-import { exitGridImage, isExtensionRoom, piledriverCfg, warpFound, piledriverGlyphs, SFX, teleporterCfg, teleporterColours, teleporterDests } from './data';
 import { ROW, SCREEN, type Game } from './game';
+import type { C5Street, MontyData } from './montydata';
 
 /**
  * Ports of the original Mechanisms (Piledriver = the Mole Crushers, Lift,
@@ -19,6 +19,7 @@ function clearGlyphs(g: Game) {
 
 function seedGlyphs(g: Game) {
   const o = g.cheatMode & 0x80 ? 0x18 : 0;
+  const piledriverGlyphs = g.data.piledriverGlyphs;
   for (let x = 0; x < 8; x++) {
     for (const d of PD_COLS) {
       g.mem[d[0] + x] = piledriverGlyphs[o + x];
@@ -42,6 +43,7 @@ export function piledriverRoomInit(g: Game) {
   clearGlyphs(g);
   seedGlyphs(g);
   const pd = g.pd;
+  const piledriverCfg = g.data.piledriverCfg;
   pd.roomFlag = 0;
   for (let i = 0; i + 4 < piledriverCfg.length; i += 5) {
     if (piledriverCfg[i] !== g.roomId) continue;
@@ -78,7 +80,7 @@ export function piledriverAnimate(g: Game) {
     pd.state = 1;
     pd.position = 5;
     seedGlyphs(g);
-    g.sfx(SFX.piledriverDescend, true);
+    g.sfx(g.data.sfx.piledriverDescend, true);
     return;
   }
   if (pd.state === 2) {
@@ -111,7 +113,7 @@ export function piledriverCheckContact(g: Game) {
   g.gameMode = 1;
   g.pd.ride = 1;
   g.priority = 0x03;
-  g.sfx(SFX.liftDescend);
+  g.sfx(g.data.sfx.liftDescend);
   g.x2 = 0x75;
   g.y = (g.y - 2) & 0xff;
   drawShaft(g, 0x0a, 0x1a, 0x06, 0x10);
@@ -146,12 +148,16 @@ export function piledriverCheckTiles(g: Game) {
   }
 }
 
-/** Room $0C: the rising bollard ($62 at row 15, col 27). */
+/**
+ * The rising bollard ($62): the data's `bollard` room and cell. (The shaft Monty rides it up, `piledriverCheckContact`, is the
+ * original's own geometry and stays in the code.)
+ */
 export function piledriverInitState(g: Game) {
   g.pd.ride = 0;
-  if (g.roomId !== 0x0c) return;
-  g.mem[SCREEN + 15 * ROW + 0x1b] = 0x62;
-  g.col[15 * ROW + 0x1b] = 1;
+  const bollard = g.data.bollard;
+  if (!bollard || g.roomId !== bollard.room) return;
+  g.mem[SCREEN + bollard.row * ROW + bollard.col] = 0x62;
+  g.col[bollard.row * ROW + bollard.col] = 1;
 }
 
 // ---- Lift ---------------------------------------------------------------------------------
@@ -161,12 +167,10 @@ export function liftInit(g: Game) {
   l.type = 0;
   l.speedDir = 0;
   l.riding = 0;
-  if (g.roomId === 0x05) {
-    Object.assign(l, { x: 0x48, y: 0x5b, type: 1, speedDir: 0x82 });
-    g.sfx(SFX.liftDescend);
-  } else if (g.roomId === 0x0d) {
-    Object.assign(l, { x: 0x80, y: 0x53, type: 2, speedDir: 0x80 });
-  }
+  const spec = g.data.lifts.find((s) => s.room === g.roomId);
+  if (!spec) return;
+  Object.assign(l, { x: spec.x, y: spec.y, type: spec.type, speedDir: spec.speedDir });
+  if (spec.sound) g.sfx(g.data.sfx.liftDescend);
 }
 
 export function liftSpriteUpdate(g: Game) {
@@ -218,7 +222,7 @@ export function liftMovementUpdate(g: Game) {
     return;
   }
   if (l.y < 0x62) {
-    g.sfx(SFX.liftDescend);
+    g.sfx(g.data.sfx.liftDescend);
     l.speedDir = 0x88;
     return;
   }
@@ -237,10 +241,10 @@ export function liftCheckContact(g: Game) {
   g.gameMode = 1;
   if (l.type !== 1) {
     l.speedDir = 0x82;
-    g.sfx(SFX.liftDescend);
+    g.sfx(g.data.sfx.liftDescend);
   } else {
     l.speedDir = 0x02;
-    g.sfx(SFX.liftAscend);
+    g.sfx(g.data.sfx.liftAscend);
   }
 }
 
@@ -254,6 +258,7 @@ export function teleporterDisplay(g: Game) {
   const t = g.tele;
   t.active = 0;
   t.repeat = 0;
+  const { teleporterCfg } = g.data;
   for (let i = 0; teleporterCfg[i] !== undefined && teleporterCfg[i] !== 0xff; i += 5, t.repeat++) {
     if (teleporterCfg[i] !== g.roomId) continue;
     const [col, row, height, colour] = teleporterCfg.subarray(i + 1, i + 5);
@@ -291,7 +296,7 @@ export function teleporterAnimate(g: Game) {
   if ((t.anim & 7) !== 7) return;
   t.events = (t.events + 1) & 0xff;
   if ((t.events & 3) === 3) {
-    t.cur = teleporterColours[g.random() & 3];
+    t.cur = g.data.teleporterColours[g.random() & 3];
     g.setCol(t.scr, t.cur);
     g.setCol(t.scr + 2, t.cur);
     let at = t.scr + 1;
@@ -308,7 +313,7 @@ export function teleporterCheckContact(g: Game) {
     return c >= 0x38 && c < 0x3c;
   });
   if (!hit || t.cur === t.base) return;
-  const d = teleporterDests.subarray(t.repeat * 4, t.repeat * 4 + 4);
+  const d = g.data.teleporterDests.subarray(t.repeat * 4, t.repeat * 4 + 4);
   g.x2 = d[0];
   g.y = d[1];
   g.exitCol = d[2];
@@ -318,12 +323,12 @@ export function teleporterCheckContact(g: Game) {
   // runstop64's warps (data/runstop64-rooms.ts): Monty comes in on foot, the C5 street as walking
   // into it always finds it; into the street, straight in as walking in does (as travel does: the
   // game moves the room's enemies on through a dissolve, so the street wouldn't be as he finds it)
-  if (isExtensionRoom(g.roomId)) {
-    for (const i of warpFound.get(g.roomId) ?? []) if (!g.siCollected[i]) g.siCollected[i] = 0x81;
+  if (g.data.isExtensionRoom(g.roomId)) {
+    for (const i of g.data.warpFound.get(g.roomId) ?? []) if (!g.siCollected[i]) g.siCollected[i] = 0x81;
     c5Arrive(g, C5_START);
-    if (isC5Room(g.roomAt(g.mapRow, g.exitCol))) g.dissolvePending = 0;
+    if (isC5Room(g.data, g.roomAt(g.mapRow, g.exitCol))) g.dissolvePending = 0;
   }
-  g.sfx(SFX.warp);
+  g.sfx(g.data.sfx.warp);
 }
 
 // ---- Sinclair C5 ---------------------------------------------------------------------------
@@ -341,8 +346,8 @@ export interface C5State { fallStage: number; speed: number; dir: number; bounce
 /** The section's start: as a C5 death leaves it (DeathByC5), and as it is while Monty is on foot. */
 export const C5_START: C5State = { fallStage: 0, speed: 0, dir: 0x01, bounce: 0 };
 
-/** The C5 street's rooms ($24, $25, $31-$33): InitRoomDeathFlag's (the original's "$31 and up": its last rooms). */
-export const isC5Room = (id: number) => id === 0x24 || id === 0x25 || (id >= 0x31 && id <= 0x33);
+/** The C5 street's rooms (Monty on the Run's $24, $25, $31-$33): InitRoomDeathFlag's (the original's "$31 and up": its last rooms). */
+export const isC5Room = (data: MontyData, id: number) => !!data.c5?.rooms.includes(id);
 
 export const c5State = (g: Game): C5State => ({ fallStage: g.c5.fallStage, speed: g.c5.speed, dir: g.c5.dir, bounce: g.c5.bounce });
 
@@ -367,14 +372,15 @@ export const c5Road = (fallStage: number) => [0x7a, 0xa2, 0xca][Math.min(2, fall
 export const c5Restart = (s: C5State): C5State => ({ fallStage: s.fallStage, speed: 0, dir: s.dir, bounce: 0 });
 
 /**
- * The exit grid's cell for room $33 (row 2, column 4): the drive out of the section takes it off
+ * The exit grid's cell of the street's last room ($33: row 2, column 4): the drive out of the section takes it off
  * the grid, and with it the way back east (in the original the street is behind him for good;
  * travel puts it back: `c5Street`).
  */
-export const C5_LAST = { row: 2, col: 4 } as const;
-const C5_LAST_CELL = C5_LAST.row * 23 + C5_LAST.col;
-/** What's in room $33's cell: the room until the street's been driven, then nothing (0xff). */
-export const c5LastCell = (driven: boolean) => (driven ? 0xff : exitGridImage[C5_LAST_CELL]);
+const lastCellIndex = (data: MontyData, street: C5Street) => street.lastCell.row * data.exitGrid.cols + street.lastCell.col;
+/** What's in the last room's cell: the room until the street's been driven, then nothing (0xff). */
+export function c5LastCell(data: MontyData, street: C5Street, driven: boolean) {
+  return driven ? 0xff : data.exitGrid.image[lastCellIndex(data, street)];
+}
 
 /**
  * The section as the drive out of it leaves it (c5DriveMovement, out through $33): on the bottom
@@ -392,7 +398,9 @@ export const C5_OUT: C5State = { fallStage: 2, speed: 0, dir: 0x01, bounce: 0 };
  * first drives it, so the street can be driven again and leads on as before.
  */
 export function c5Street(g: Game, driven: boolean) {
-  g.exitGrid[C5_LAST_CELL] = c5LastCell(driven);
+  const street = g.data.c5;
+  if (!street) return;
+  g.exitGrid[lastCellIndex(g.data, street)] = c5LastCell(g.data, street, driven);
   c5Arrive(g, driven ? C5_OUT : C5_START);
 }
 
@@ -418,6 +426,8 @@ function c5Decr(g: Game) {
 
 export function c5DriveMovement(g: Game) {
   const c5 = g.c5;
+  const street = g.data.c5;
+  if (!street) return;
   if (!(g.cheatMode & 0x80)) {
     const base = g.montyChr;
     if (g.chr(base + 0x50) === 2 || g.chr(base + 0x54) === 2) {
@@ -426,20 +436,20 @@ export function c5DriveMovement(g: Game) {
     }
   }
   // Room $33: drive off the bottom-left to come back out of the transit zone.
-  if (g.roomId === 0x33 && g.x2 === 0x14 && g.y === 0xca) {
+  if (g.roomId === street.last && g.x2 === 0x14 && g.y === 0xca) {
     g.x2 = 0x9c;
     g.y = 0x5c;
     g.scol[3] = 0x0f;
-    g.exitGrid[C5_LAST_CELL] = c5LastCell(true);
+    g.exitGrid[lastCellIndex(g.data, street)] = c5LastCell(g.data, street, true);
     g.exitCol--;
     g.roomExit = 1;
     return;
   }
   // Fall triggers at the ramp tops.
-  if (g.roomId === 0x24 && g.x2 === 0x94 && g.y === 0xa2) c5.fall = 1;
-  if (g.roomId === 0x33 && g.x2 < 0x15 && g.y === 0x7a) c5.fall = 1;
+  if (g.roomId === street.first && g.x2 === 0x94 && g.y === 0xa2) c5.fall = 1;
+  if (g.roomId === street.last && g.x2 < 0x15 && g.y === 0x7a) c5.fall = 1;
   if (c5.fall) {
-    const floor = g.roomId === 0x24 ? 0xca : 0xa2;
+    const floor = g.roomId === street.first ? 0xca : 0xa2;
     if (g.y >= floor) {
       c5.fallStage++;
       c5.fall = 0;
@@ -473,12 +483,12 @@ export function c5DriveMovement(g: Game) {
     c5.rate = 8 - c5.speed;
     if (c5.speed) c5.anim++;
   }
-  if (g.roomId !== 0x24 && g.x2 >= 0x94) {
+  if (g.roomId !== street.first && g.x2 >= 0x94) {
     g.x2 = 0x16;
     g.exitCol++;
     g.roomExit = 1;
   }
-  if (g.roomId !== 0x33 && g.x2 < 0x15) {
+  if (g.roomId !== street.last && g.x2 < 0x15) {
     g.x2 = 0x93;
     g.exitCol--;
     g.roomExit = 1;

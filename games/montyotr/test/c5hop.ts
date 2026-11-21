@@ -33,6 +33,7 @@
  */
 import { PixelRenderer, VicView } from 'c64kit';
 import { Game } from '../src/game';
+import { MOTR } from '../src/motr';
 import { C5_HOLD, c5Arrive } from '../src/mechanisms';
 import { check, finish } from '../../shared/test/check';
 
@@ -52,7 +53,7 @@ const overHole = (g: Game) => { const b = g.montyChr; return g.chr(b + 0x50) ===
 
 /** A new game, the C5 at a pass's start (the game's own way into a room: an exit pointed at it). */
 function street(p: Pass | { stage: number; room: number; x2: number; y: number; speed: number; dir: number }, enhanced: boolean, cheat: boolean) {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { lives: false, cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: false };
   g.start();
   g.cheatMode = cheat ? 0x80 : 0;

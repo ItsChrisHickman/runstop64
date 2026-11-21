@@ -28,6 +28,7 @@
  *   nice -n 15 node tools/test.mjs games/montyotr/test/warps.ts
  */
 import { Game, type Input as Stick } from '../src/game';
+import { MOTR } from '../src/motr';
 import { montyMap, noteRoom } from '../src/map';
 import { PixelRenderer, VicView } from 'c64kit';
 import { getProp } from '../../shared/guards';
@@ -56,9 +57,9 @@ const run = (s: Play, stick: Stick, n: number) => { for (let i = 0; i < n; i++) 
 const settled = (g: Game) => !g.freeze && !g.script;
 
 function copy(src: Play): Play {
-  const g = new Game();
+  const g = new Game(MOTR);
   for (const k of Object.keys(src.g)) {
-    if (k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
+    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
     Reflect.set(g, k, structuredClone(getProp(src.g, k)));
   }
   g.assist = { ...src.g.assist };
@@ -70,7 +71,7 @@ function copy(src: Play): Play {
 
 /** A new game, ENHANCED (or with the respawn guard off), Monty brought into a room (an exit pointed at it). */
 function into(cell: { mapRow: number; exitCol: number; x2: number; y: number }, respawn = true): Play {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { lives: false, cloud: true, jetpack: true, c5: true, rooms: true, respawn };
   g.start();
   Object.assign(g, cell);

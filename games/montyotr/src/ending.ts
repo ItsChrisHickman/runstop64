@@ -2,12 +2,12 @@ import { VicView, type Renderer } from 'c64kit';
 import { PORT_CREDITS } from '../../shared/ending/credits';
 import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
 import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
-import { enemyRecords, exitGridImage } from './data';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
 import { montyMap, type MontyFound } from './map';
 import { Pilot } from './pilot';
-import { CAST, SCENES, type Scene } from './ending-scenes';
+import type { Scene } from './ending-scenes';
+import { cellOf, type MontyData, type MontyEnding } from './montydata';
 
 /**
  * The reward for beating Monty on the Run (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's):
@@ -21,18 +21,25 @@ export const CREDIT_ROW = 184;
 /** Frames after what Monty does in a room before the next place (a moment to take it in). */
 const TAIL = 40;
 
-/** A new game, the state every place begins from (a game of the montage is put back to it first). */
-let pristine: Game | null = null;
+/** A new game of each game's data, the state every place begins from (a game of the montage is put back to it first). */
+const pristines = new WeakMap<MontyData, Game>();
+function pristineOf(data: MontyData): Game {
+  const known = pristines.get(data);
+  if (known) return known;
+  const made = new Game(data);
+  pristines.set(data, made);
+  return made;
+}
 
 /**
  * Put Monty in a room (any, but the ending's) as a way in puts him, and let the room load (a dissolve is not played).
  * False if the room has no cell on the exit grid.
  */
 export function enterRoom(g: Game, room: number, x2: number, y: number, facing = 0x01): boolean {
-  const cell = exitGridImage.indexOf(room);
-  if (cell < 0) return false;
-  g.mapRow = Math.floor(cell / 23);
-  g.exitCol = cell % 23;
+  const cell = cellOf(g.data, room);
+  if (!cell) return false;
+  g.mapRow = cell.row;
+  g.exitCol = cell.col;
   g.x2 = x2; g.y = y; g.facing = facing;
   g.dissolvePending = 0;
   g.roomExit = 1;
@@ -45,7 +52,7 @@ export function enterRoom(g: Game, room: number, x2: number, y: number, facing =
 
 /** A new game, ready for a place: everything as in a game that has just begun, the scene's own needs taken. */
 function beginPlace(g: Game, scene: Scene): boolean {
-  copyInto(g, (pristine ??= new Game()));
+  copyInto(g, pristineOf(g.data));
   g.start();
   scene.prepare(g);
   return enterRoom(g, scene.room, scene.spot.x2, scene.spot.y, scene.spot.facing);
@@ -53,11 +60,12 @@ function beginPlace(g: Game, scene: Scene): boolean {
 
 /** The montage's engine: a game of its own and the view that draws it, made once. */
 class Stage {
-  readonly game = new Game();
+  readonly game: Game;
   readonly view: VicView;
   /** The score through the places (the HUD keeps counting). */
   score = 0;
-  constructor(renderer: Renderer, assist: Assists) {
+  constructor(data: MontyData, renderer: Renderer, assist: Assists) {
+    this.game = new Game(data);
     this.game.assist = assist;
     // (nothing in the montage can end him: the routes are found without a death, and the crushers' timing is random)
     this.game.graceActive = () => true;
@@ -104,9 +112,9 @@ const routeFrames = (scene: Scene) => Math.max(scene.frames ?? 0, new Pilot(scen
 // ---- the cast ----------------------------------------------------------------------------------------
 
 /** The room a creature first appears in, and the slot of each of its types there (where its frames are recorded). */
-function firstSeen(types: readonly number[]): { room: number; slots: number[] } | null {
-  for (let room = 0; room < 0x34; room++) {
-    const rec = enemyRecords(room);
+function firstSeen(data: MontyData, ending: MontyEnding, types: readonly number[]): { room: number; slots: number[] } | null {
+  for (const room of ending.castRooms) {
+    const rec = data.enemyRecords(room);
     const here: number[] = [];
     for (let i = 0; i + 6 < rec.length && rec[i] !== 0xff && here.length < 4; i += 7) here.push(rec[i + 4]);
     const slots = types.map((t) => here.indexOf(t));
@@ -119,11 +127,11 @@ function firstSeen(types: readonly number[]): { room: number; slots: number[] } 
 const RECORDED = 600;
 
 /** A creature as the engine shows it going its way (right, as the visitors walk): the game runs in the room it first appears in, Monty held out of the way. */
-function recordCreature(stage: Stage, name: string, types: readonly number[]): Figure | null {
-  const at = firstSeen(types);
-  if (!at) return null;
+function recordCreature(stage: Stage, ending: MontyEnding, name: string, types: readonly number[]): Figure | null {
   const g = stage.game;
-  copyInto(g, (pristine ??= new Game()));
+  const at = firstSeen(g.data, ending, types);
+  if (!at) return null;
+  copyInto(g, pristineOf(g.data));
   g.start();
   if (!enterRoom(g, at.room, 0x14, 0x32)) return null;
   const moments: SpriteShot[][] = [];
@@ -142,11 +150,14 @@ function recordCreature(stage: Stage, name: string, types: readonly number[]): F
 /** The ending's last lines: the port's, the same in every game. */
 const LAST = PORT_CREDITS;
 
-export function montyEnding(renderer: Renderer, assist: Assists): RewardSpec {
+export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists): RewardSpec {
+  const ending = data.ending;
+  if (!ending) throw new Error(`${data.id} has no ending`);
+  const { scenes } = ending;
   let made: Stage | null = null;
-  const stage = () => (made ??= new Stage(renderer, assist));
-  const places: Place[] = SCENES.map((scene, i): Place => ({
-    credits: i === SCENES.length - 1 ? [...scene.credits, ...LAST] : scene.credits,
+  const stage = () => (made ??= new Stage(data, renderer, assist));
+  const places: Place[] = scenes.map((scene, i): Place => ({
+    credits: i === scenes.length - 1 ? [...scene.credits, ...LAST] : scene.credits,
     frames: routeFrames(scene),
     creditRow: scene.creditRow,
     open() {
@@ -158,9 +169,9 @@ export function montyEnding(renderer: Renderer, assist: Assists): RewardSpec {
     },
   }));
   return {
-    title: 'MONTY ON THE RUN',
+    title: ending.title,
     places,
-    cast: CAST.map((c) => () => recordCreature(stage(), c.name, c.types)),
+    cast: ending.cast.map((c) => () => recordCreature(stage(), ending, c.name, c.types)),
     creditRow: CREDIT_ROW,
   };
 }

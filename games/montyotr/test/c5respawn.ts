@@ -18,6 +18,7 @@
  *   nice -n 15 node tools/test.mjs games/montyotr/test/c5respawn.ts
  */
 import { Game, type Input as Stick } from '../src/game';
+import { MOTR } from '../src/motr';
 import { c5Arrive, type C5State } from '../src/mechanisms';
 import { getProp } from '../../shared/guards';
 import { check, finish } from '../../shared/test/check';
@@ -29,7 +30,7 @@ interface Arrival { room: number; stage: number; x2: number; y: number; c5: C5St
 
 /** A new game with the C5 brought into a room as the drive brings it (an exit pointed at it). */
 function at(a: Arrival, enhanced: boolean) {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { lives: false, cloud: false, jetpack: false, c5: enhanced, rooms: false, respawn: enhanced };
   g.start();
   const col = [...Array(23).keys()].find((c) => g.roomAt(2, c) === a.room);
@@ -46,9 +47,9 @@ const settle = (g: Game) => { for (let n = 0; n < 400 && (g.script || g.freeze);
 
 /** A copy of a game between frames (no scripted sequence running). */
 function copy(src: Game): Game {
-  const g = new Game();
+  const g = new Game(MOTR);
   for (const k of Object.keys(src)) {
-    if (k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
+    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'script') continue;
     Reflect.set(g, k, structuredClone(getProp(src, k)));
   }
   g.assist = { ...src.assist };

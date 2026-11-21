@@ -1,6 +1,5 @@
 import { readsFormat, type SaveCodec } from '../../shared/continue';
 import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
-import { isExtensionRoom } from './data';
 import type { Game } from './game';
 import { C5_START, c5Arrive } from './mechanisms';
 
@@ -43,7 +42,7 @@ export function restore(g: Game, data: MontySave) {
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't
   // there, so Monty carries on from the start room, where a new game starts him (g.start's
   // place), with everything else the save has.
-  if (!isExtensionRoom(data.roomId) || g.assist.rooms) {
+  if (!g.data.isExtensionRoom(data.roomId) || g.assist.rooms) {
     g.x2 = data.x2;
     g.y = data.y;
     g.mapRow = data.mapRow;

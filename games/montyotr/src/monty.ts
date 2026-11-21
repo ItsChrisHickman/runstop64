@@ -1,6 +1,5 @@
 import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import { animateMonty } from '../../shared/monty/anim';
-import { flameMasks, jumpArc, SFX } from './data';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
 
@@ -22,7 +21,7 @@ function updateMovement(g: Game) {
   if (g.gameMode) return;
   if (g.c5.active) return c5DriveMovement(g);
   // (fire starts a jump, not with the jetpack on)
-  decideMonty(g, g, { arc: jumpArc, canJump: !g.showJetpack, onJump: () => { g.sfx(SFX.jump, true); } });
+  decideMonty(g, g, { arc: g.data.jumpArc, canJump: !g.showJetpack, onJump: () => { g.sfx(g.data.sfx.jump, true); } });
 
   // The jetpack ("The Ultimate Experience"): steer freely; hold up to thrust.
   if (g.showJetpack) {
@@ -36,7 +35,7 @@ function updateMovement(g: Game) {
       g.jetpackActive = 1;
       animateFlame(g);
       g.vic.mc2 = (g.vic.mc2 + 1) & 15;
-      g.sfx(SFX.jetpack, true);
+      g.sfx(g.data.sfx.jetpack, true);
       g.dirUp = true;
       g.upSteps = 1;
       g.downSteps = 0;
@@ -49,11 +48,12 @@ function updateMovement(g: Game) {
 
 /** Jetpack.AnimateFlame: random noise through the flame masks, odd frames. */
 function animateFlame(g: Game) {
+  const masks = g.data.flameMasks;
   if (!g.frameToggle) return;
   let y = g.random();
   for (let x = 17; x >= 0; x--, y = (y + 1) & 0xff) {
     const a = 0x1dea + x, b = 0x1e6a + x;
-    g.mem[a] = (y ^ g.mem[a]) & flameMasks[x];
-    g.mem[b] = (y ^ g.mem[b]) & flameMasks[18 + x];
+    g.mem[a] = (y ^ g.mem[a]) & masks[x];
+    g.mem[b] = (y ^ g.mem[b]) & masks[18 + x];
   }
 }

@@ -33,6 +33,7 @@ import path from 'node:path';
 import { C64, type RowCapture } from '../../../packages/c64kit/src/c64/machine';
 import { renderPng, type Picture } from '../../../tools/probe/render';
 import { Game, SCREEN } from '../src/game';
+import { MOTR } from '../src/motr';
 import { Title } from '../src/title';
 
 const [prgPath, outDir] = process.argv.slice(2);
@@ -59,7 +60,7 @@ const m = original();
 const ORIGINAL_KIT = [...m.ram.subarray(0x3527, 0x352c)];
 
 // ---- the port ------------------------------------------------------------------------------------
-const g = new Game();
+const g = new Game(MOTR);
 const t = new Title(g, { song() {}, stop() {}, musicOn: () => true }, { kit: ORIGINAL_KIT, message: Uint8Array.from(m.ram.subarray(0x3a59, 0x3bdb)) });
 
 let failures = 0;

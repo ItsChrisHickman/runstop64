@@ -21,58 +21,12 @@
  *   and the exit grid cell, which the room transition loads as if he walked in).
  */
 
-/** An enemy: where it starts (screen column, row) and the original's record fields. */
-interface ExtEnemy {
-  col: number; row: number;
-  /** Index into the game's enemy colour table (0 black, 1 blue, 2 red, 3 purple, 4 green, 5 cyan, 6 yellow, 7 white, 8-15 the colours 8-15). */
-  colour: number;
-  /** Index into the direction flags: 0 right, 1 left (starting at the far end), 3 up (from the bottom), 4 down. */
-  dir: 0 | 1 | 3 | 4;
-  type: number; speed: number; range: number;
-}
+import type { RoomSpec, Sector } from '../../../shared/monty/rooms';
 
-/** A sign, in the game's own lettering (its charset's capitals), on a board like MPL ST.'s. */
-export interface Sign { text: string; colour: number }
-
-/** A decoration: one of the original's types (a number), or a sign. */
-interface ExtDecor { col: number; row: number; type: number | Sign }
-
-export interface ExtRoom {
-  id: number;
-  /** Its cell in the exit grid. */
-  row: number; col: number;
-  /** Index into `SECTORS`. */
-  sector: number;
-  /** Tile library index for room codes 1-8. */
-  tiles: readonly number[];
-  /** C64 colour for room codes 1-8. */
-  colours: readonly number[];
-  map: readonly string[];
-  /** room_metadata_tbl: a code whose character animates (water, lava), 0 for none. */
-  theme?: number;
-  /** At most two (fun, not a high score from one room: Chris). */
-  coins?: readonly (readonly [col: number, row: number])[];
-  /** A piece of cake (the original's cupcake, as Monty finds them: 200 points): screen column and row of its sprite's top left. */
-  cake?: readonly [col: number, row: number];
-  decor?: readonly ExtDecor[];
-  enemies?: readonly ExtEnemy[];
-  /** Mole Crushers (up to two): screen column and row of the shaft's top, its height, its characters ($10 or $22). */
-  crushers?: readonly { col: number; row: number; height: number; chr: 0x10 | 0x22 }[];
-  /** The room's teleporter (one, as in the original's rooms). */
-  teleporter?: {
-    col: number; row: number; height: number; colour: number;
-    to: { x2: number; y: number; mapRow: number; exitCol: number };
-    /**
-     * Special items (si_spawn_tbl indexes) the original's only way into the destination has
-     * taken, and the rooms there are built on: the warp lands him with them found, so the rooms
-     * round it are as walking in leaves them (no score: they're the way in's, not a find).
-     */
-    found?: readonly number[];
-  };
-}
+export type { Sign } from '../../../shared/monty/rooms';
 
 /** Sector names (shown under the playfield): column, text (as the original's). */
-export const SECTORS = [
+export const SECTORS: readonly Sector[] = [
   { col: 7, text: 'RUNSTOP64 DEV ROOM' },
   { col: 6, text: 'RUNSTOP64 PLAYGROUND' },
   { col: 6, text: 'RUNSTOP64 WARP GATES' }, // (no Z: the game's small letters stop at Y, as its own names do)
@@ -91,7 +45,7 @@ export const SECTORS = [
  * the playground and up the rope in $3A to the hub. Every way between two rooms goes both ways
  * (floors meet at the same height, ropes run on through), so nobody is trapped.
  */
-export const ROOMS: readonly ExtRoom[] = [
+export const ROOMS: readonly RoomSpec[] = [
   // $34: the dev room: right of the start room
   {
     id: 0x34, row: 2, col: 22, sector: 0,

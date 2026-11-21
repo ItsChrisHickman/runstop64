@@ -29,6 +29,7 @@ import fs from 'node:fs';
 import { PixelRenderer, VicView } from 'c64kit';
 import { C64 } from '../../../packages/c64kit/src/c64/machine';
 import { Game, type Input } from '../src/game';
+import { MOTR } from '../src/motr';
 import { check, finish } from '../../shared/test/check';
 
 const prgPath = process.argv[2];
@@ -52,7 +53,7 @@ function stick(inRoom: boolean, t: number, k: number, x2: number, y: number): In
 type Outcome = string;
 
 function port(side: Side, k: number, enhanced: boolean): Outcome {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { lives: false, cloud: false, jetpack: enhanced, c5: false, rooms: false, respawn: false };
   const view = new VicView(new PixelRenderer(), g.vic);
   g.start();

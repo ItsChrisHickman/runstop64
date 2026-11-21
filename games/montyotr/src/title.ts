@@ -1,7 +1,6 @@
 import { hexBytes, TRANSPARENT, type Surface, type Vic } from 'c64kit';
 import raw from './data/motr.json';
-import { CORRECT_KIT } from './data';
-import { ROW, SCREEN } from './game';
+import { ROW, SCREEN } from '../../shared/monty/screen';
 
 /** What the title draws on: a game's picture (its VIC, with the characters and the screen in its bank) and its random numbers. Monty on the Run's game, and the remix's. */
 export interface TitleGame {
@@ -49,25 +48,31 @@ export const KIT_LABEL_ROW = 22, KIT_LABEL_COL = 11, KIT_ICON_ROW = 23, KIT_COL 
 /** The label in the colour of the original's MONTY FREEDOM KIT. (light blue); the icons white, as the carousel's. */
 const KIT_LABEL_COLOUR = 0x0e, KIT_ICON_COLOUR = 1;
 
+/** A piece of the scroller's stream: text, or its control codes (colour: $FE n). */
+export type ScrollerPiece = string | number[];
+
 /**
  * Our passage for the scroller (in its own control codes, before "GOOD LUCK!"): the
  * credits the original's scroller and table leave out.
  */
-const CREDITS: (string | number[])[] = [
+const CREDITS: ScrollerPiece[] = [
   [0xfe, 1], 'ORIGINAL GAME BY ', [0xfe, 7], 'PETER HARRAP. ',
   [0xfe, 1], 'GRAPHICS BY ', [0xfe, 13], 'MARK RODGERS. ',
   [0xfe, 1], 'MUSIC BY ', [0xfe, 14], 'ROB HUBBARD. ',
   [0xfe, 1], 'A TRIBUTE: ', [0xfe, 10], 'RUNSTOP64.          ',
 ];
 
-/** The scroller's stream: the original's, with our credits before its last passage. */
-export const MESSAGE = (() => {
+/** The scroller's stream: the original's, with a game's own credits before its last passage. */
+export function scrollerMessage(credits: readonly ScrollerPiece[]): Uint8Array {
   const original = [...hexBytes(T.message)];
   // its last passage: "<pause 128> <white> <speed 1> <leftwards> !KCUL DOOG ... <restart>"
   const last = original.findIndex((b, i) => b === 0xf9 && original[i + 1] === 128);
-  const ours = CREDITS.flatMap((c) => (typeof c === 'string' ? [...c].map((ch) => ch.charCodeAt(0)) : c));
+  const ours = credits.flatMap((c) => (typeof c === 'string' ? [...c].map((ch) => ch.charCodeAt(0)) : c));
   return Uint8Array.from([...original.slice(0, last), ...ours, ...original.slice(last)]);
-})();
+}
+
+/** Monty on the Run's: the original's, with our credits before its last passage. */
+export const MESSAGE = scrollerMessage(CREDITS);
 
 /** The table as the original ships it: 50 scores (5 digits), the overflow, 50 names (16). */
 const TABLE = hexBytes(T.scores);
@@ -106,11 +111,11 @@ export class Title {
   private readonly message: Uint8Array;
   private readonly page: TitlePage | null;
 
-  /** `kit` and `message` default to ours (the five that work, our credits in the scroller); tests give the original's. A game with no kit gives `[]`: the table stands alone. */
-  constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit?: number[]; message?: Uint8Array; page?: TitlePage } = {}) {
+  /** `kit` (the freedom kit under the table: a game with no kit gives `[]`, the table stands alone) and `message` (the scroller's stream: `MESSAGE` is ours, tests give the original's) are the game's. */
+  constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit: readonly number[]; message: Uint8Array; page?: TitlePage }) {
     this.page = opts.page ?? null;
-    this.contents = [...(opts.kit ?? CORRECT_KIT)];
-    this.message = opts.message ?? MESSAGE;
+    this.contents = [...opts.kit];
+    this.message = opts.message;
   }
 
   /** InitAttractScreen: the screen drawn, the music started. */

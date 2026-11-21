@@ -1,11 +1,7 @@
 import { Vic } from 'c64kit';
-import {
-  bankImage, coinTable, CORRECT_KIT, decorRooms, decorTypes, enemyBank, enemyColours, enemyCopyFlag, enemyDirFlags,
-  enemyRecords, EVENT_SFX, exitGridImage, extensionGrid, greyPulse, isExtensionRoom, MUSIC, PLAY_COLS, PLAY_ROWS, roomDef, roomMeta, sectorName,
-  specialItems, tileLibrary, tileProperty,
-} from './data';
+import { sectorName, type MontyData } from './montydata';
 import { afterLoss } from '../../shared/lives';
-import { animateTheme, drawHudData, drawHudFrame, nextRandom, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
+import { animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COLS, PLAY_ROWS, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
 import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body';
 import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
@@ -65,7 +61,8 @@ export interface Entry { mapRow: number; exitCol: number; x2: number; y: number;
  * up (w × h of them) the first time it's placed; a type that doesn't fit in the pool (to $FF) isn't
  * drawn, as in the original. By type: its first character, or 0.
  */
-function decorChars(roomId: number) {
+function decorChars(data: MontyData, roomId: number) {
+  const { decorRooms, decorTypes } = data;
   const first = new Int16Array(decorTypes.length).fill(0);
   let alloc = 0x9b;
   for (let i = 0; i + 3 < decorRooms.length; i += 4) {
@@ -125,18 +122,18 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- world --------------------------------------------------------------------
   roomId = 0;
-  mapRow = 2;
-  exitCol = 0x15;
-  readonly exitGrid = Uint8Array.from(exitGridImage);
+  mapRow: number;
+  exitCol: number;
+  readonly exitGrid: Uint8Array;
   tileProps = new Uint8Array(8); // collision class for room chars 1-8
   roomTiles = new Uint8Array(8);
   roomColours = new Uint8Array(8);
   roomFlags = 0; // theme animation (room_metadata_tbl)
 
   // ---- Monty --------------------------------------------------------------------
-  x2 = 0x86;
-  y = 0xb0;
-  facing = 0x81; // player_facing: $01 right, $81 left
+  x2: number;
+  y: number;
+  facing: number; // player_facing: $01 right, $81 left
   frameIndex = 0x50;
   stepGate = 0; // sprite_xmsb
   savedX = 0;
@@ -172,14 +169,13 @@ export class Game implements MontyBody, MontyWorld {
   enemyAnim = new Uint8Array(4);
 
   // ---- coins / items ------------------------------------------------------------
-  coinCollected = new Uint8Array(coinTable.length / 3);
+  readonly coinCollected: Uint8Array;
   /** In-room collectibles: screen offset, colour phase, master index (-1 = no coin, e.g. room $1F bases). */
   entities: Collectible[] = [];
-  siCollected = new Uint8Array(specialItems.length / 4);
+  readonly siCollected: Uint8Array;
   siActiveIdx = -1;
   /** room_item_active[0..4]: jet pack, rope, passport, gas mask, rum — the kit always carries all five. */
   readonly roomItemActive = [1, 1, 1, 1, 1];
-  readonly kit = CORRECT_KIT;
   colourCycle = 0;
   cloudTick = 0;
 
@@ -192,13 +188,23 @@ export class Game implements MontyBody, MontyWorld {
   c5Arrival: Mech.C5State = { ...Mech.C5_START };
   prng = Uint8Array.from(PRNG_START);
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
-  entry: Entry = { mapRow: 2, exitCol: 0x15, x2: 0x86, y: 0xb0, facing: 0x81 };
+  entry: Entry;
   feetFrames = 0;
   /** The last room entry he had SAFE_FRAMES on his feet after (ENHANCED's respawn goes there after a death sooner than that). */
   safeEntry: Entry | null = null;
 
-  constructor() {
-    this.mem.set(bankImage);
+  constructor(readonly data: MontyData) {
+    const { start } = data;
+    this.mapRow = start.mapRow;
+    this.exitCol = start.exitCol;
+    this.x2 = start.x2;
+    this.y = start.y;
+    this.facing = start.facing;
+    this.entry = { ...start };
+    this.exitGrid = Uint8Array.from(data.exitGrid.image);
+    this.coinCollected = new Uint8Array(data.coinTable.length / 3);
+    this.siCollected = new Uint8Array(data.specialItems.length / 4);
+    this.mem.set(data.bankImage);
     this.vic.screenOffset = SCREEN;
     this.vic.background = 0;
     this.vic.border = 0;
@@ -213,7 +219,7 @@ export class Game implements MontyBody, MontyWorld {
 
   pulseGreyscale() {
     this.colourCycle = (this.colourCycle + 1) & 0xff;
-    return greyPulse[(this.colourCycle >> 1) & 7];
+    return this.data.greyPulse[(this.colourCycle >> 1) & 7];
   }
 
   /** Screen RAM address (bank offset) of a row, like GetScreenRowAddress (row clamped to 25). */
@@ -241,9 +247,10 @@ export class Game implements MontyBody, MontyWorld {
   get montyChr() { return this.rowAddr(this.montyRow) + this.montyCol; }
 
   roomAt(row: number, col: number) {
-    if (row < 0 || row > 5 || col < 0 || col > 22) return 0xff;
-    const id = this.exitGrid[row * 23 + col];
-    return id === 0xff && this.extensionOpen ? extensionGrid[row * 23 + col] : id;
+    const { cols, rows } = this.data.exitGrid;
+    if (row < 0 || row >= rows || col < 0 || col >= cols) return 0xff;
+    const id = this.exitGrid[row * cols + col];
+    return id === 0xff && this.extensionOpen ? this.data.extensionGrid[row * cols + col] : id;
   }
 
   /**
@@ -251,7 +258,7 @@ export class Game implements MontyBody, MontyWorld {
    * (switched to ORIGINAL there, their ways stay open until he's back in the original's rooms).
    */
   get extensionOpen() {
-    return this.assist.rooms || isExtensionRoom(this.roomId);
+    return this.assist.rooms || this.data.isExtensionRoom(this.roomId);
   }
 
   sfx(id: number, onlyWithoutMusic = false) { this.sound.sfx(id, onlyWithoutMusic); }
@@ -265,19 +272,20 @@ export class Game implements MontyBody, MontyWorld {
   // ---- game start ---------------------------------------------------------------
 
   start() {
-    this.mem.set(bankImage);
+    const { start } = this.data;
+    this.mem.set(this.data.bankImage);
     this.mem.fill(0, SCREEN, SCREEN + 1024);
     this.col.fill(3);
     this.lives = 5;
     this.score = 0;
     this.coinCollected.fill(0);
     this.siCollected.fill(0);
-    this.exitGrid.set(exitGridImage);
-    this.x2 = 0x86;
-    this.y = 0xb0;
-    this.facing = 0x81;
-    this.mapRow = 2;
-    this.exitCol = 0x15;
+    this.exitGrid.set(this.data.exitGrid.image);
+    this.x2 = start.x2;
+    this.y = start.y;
+    this.facing = start.facing;
+    this.mapRow = start.mapRow;
+    this.exitCol = start.exitCol;
     this.cheatMode = 0;
     this.completionActive = 0;
     this.ending = null;
@@ -431,7 +439,8 @@ export class Game implements MontyBody, MontyWorld {
     this.freeze = 1;
     this.gameMode = 1;
     const ev = ac - 1;
-    if (EVENT_SFX[ev]) this.sfx(EVENT_SFX[ev]);
+    const eventSfx = this.data.eventSfx[ev];
+    if (eventSfx) this.sfx(eventSfx);
     this.actionCounter = ev | 0x80;
     this.script = Scripts.eventScript(this, ev);
   }
@@ -482,7 +491,8 @@ export class Game implements MontyBody, MontyWorld {
 
   loadRoom() {
     const id = this.roomId;
-    const def = roomDef(id);
+    const data = this.data;
+    const def = data.roomDef(id);
     this.roomTiles.set(def.tiles);
     this.roomColours.set(def.colours);
     // BlankPlayfield: colour RAM from row 3 down.
@@ -499,19 +509,19 @@ export class Game implements MontyBody, MontyWorld {
     }
     // SetupTileGraphics: room tiles into chars 1-8, collision classes.
     for (let i = 0; i < 8; i++) {
-      this.mem.set(tileLibrary.subarray(def.tiles[i] * 8, def.tiles[i] * 8 + 8), 8 + i * 8);
-      this.tileProps[i] = tileProperty(def.tiles[i]);
+      this.mem.set(data.tileLibrary.subarray(def.tiles[i] * 8, def.tiles[i] * 8 + 8), 8 + i * 8);
+      this.tileProps[i] = data.tileProperty(def.tiles[i]);
     }
     this.displaySectorName();
     this.roomEntitiesInit();
     Mech.teleporterDisplay(this);
     Mech.liftInit(this);
-    this.roomFlags = roomMeta[id] ?? 0;
+    this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);
-    this.initRoom1F();
+    this.initFlashingBases();
     this.showJetpack = 0;
-    if (id >= 0x1d && id < 0x21 && this.roomItemActive[0]) {
+    if (data.jetpackRooms.includes(id) && this.roomItemActive[0]) {
       this.showJetpack = 1;
       this.scol[2] = 2;
       this.vic.mc1 = 7;
@@ -527,7 +537,7 @@ export class Game implements MontyBody, MontyWorld {
   /** DisplaySectorName: row 24, white, first letter of each word in the upper-case font. */
   private displaySectorName() {
     this.mem.fill(0, SCREEN + 24 * ROW, SCREEN + 25 * ROW);
-    const { col, text } = sectorName(this.roomId);
+    const { col, text } = sectorName(this.data, this.roomId);
     let wordStart = true;
     for (let i = 0; i < text.length; i++) {
       const c = text.charCodeAt(i) & 0x3f;
@@ -542,6 +552,7 @@ export class Game implements MontyBody, MontyWorld {
   /** RoomEntitiesInit: coins (char $34) for this room. */
   private roomEntitiesInit() {
     this.entities = [];
+    const coinTable = this.data.coinTable;
     for (let i = 0; i * 3 < coinTable.length; i++) {
       if (coinTable[i * 3] !== this.roomId || this.coinCollected[i]) continue;
       const at = this.rowAddr(coinTable[i * 3 + 2] + 3) + coinTable[i * 3 + 1] + 4;
@@ -550,14 +561,15 @@ export class Game implements MontyBody, MontyWorld {
     }
   }
 
-  /** InitRoomDeathFlag: the C5 rooms (Mech.isC5Room; the original's "$31 and up" was its last rooms, runstop64's come after them). */
+  /** InitRoomDeathFlag: the C5 rooms (the street's `rooms`; the original's "$31 and up" was its last rooms, runstop64's come after them). */
   private initDeathFlag() {
     const c5 = this.c5;
     c5.active = 0;
     this.expandX = 0;
     c5.fall = 0;
     const id = this.roomId;
-    if (!Mech.isC5Room(id)) return;
+    const street = this.data.c5;
+    if (!street || !street.rooms.includes(id)) return;
     c5.active = 1;
     c5.rate = 1;
     this.sy[1] = 0;
@@ -565,11 +577,11 @@ export class Game implements MontyBody, MontyWorld {
       this.y = 0x7a;
       this.x2 = 0x8f;
     }
-    if (id === 0x33) {
+    if (id === street.last) {
       this.sx[1] = 0x14;
       this.sy[1] = c5.fallStage ? 0xb2 : 0x8a;
     }
-    if (id === 0x24) {
+    if (id === street.first) {
       this.sx[1] = 0x94;
       this.sy[1] = c5.fallStage === 2 ? 0xda : 0xb2;
     }
@@ -578,19 +590,21 @@ export class Game implements MontyBody, MontyWorld {
     this.expandX = 0x02;
   }
 
-  /** InitRoom1FEntities: piledriver base tiles in room $1F (they flash like coins). */
-  private initRoom1F() {
-    if (this.roomId !== 0x1f) return;
-    for (const c of [8, 10, 12]) {
-      const at = SCREEN + 0x11 * ROW + c;
+  /** InitRoom1FEntities: piledriver base tiles in a room (they flash like coins). */
+  private initFlashingBases() {
+    const bases = this.data.flashingBases;
+    if (!bases || this.roomId !== bases.room) return;
+    for (const c of bases.cols) {
+      const at = SCREEN + bases.row * ROW + c;
       this.mem[at] = 0x63;
-      this.entities.push({ at: SCREEN + 0x200 + 0xb0 + (c - 8), phase: 0, index: -1 });
+      this.entities.push({ at, phase: 0, index: -1 });
     }
   }
 
   /** SetupRoom: up to 4 enemies; their graphics unpacked into sprite RAM at $4C00 + slot*$200. */
   private setupEnemies() {
     this.enemies = [];
+    const { enemyRecords, enemyDirFlags, enemyColours, enemyBank, enemyCopyFlag } = this.data;
     const rec = enemyRecords(this.roomId);
     for (let i = 0; i + 6 < rec.length && rec[i] !== 0xff && this.enemies.length < 4; i += 7) {
       const flags = enemyDirFlags[rec[i + 3]] ?? 0;
@@ -626,7 +640,8 @@ export class Game implements MontyBody, MontyWorld {
 
   /** Decor.CalculateRoom: decorations allocate chars from $9B up and draw w×h blocks. */
   private decorate() {
-    const first = decorChars(this.roomId);
+    const { decorRooms, decorTypes } = this.data;
+    const first = decorChars(this.data, this.roomId);
     for (let i = 0; i + 3 < decorRooms.length; i += 4) {
       if (decorRooms[i] !== this.roomId) continue;
       const type = decorRooms[i + 3];
@@ -760,8 +775,4 @@ export class Game implements MontyBody, MontyWorld {
     this.vic.mc1 = e.mc1;
     this.vic.mc2 = e.mc2;
   }
-
-  /** Room the player is in, plus the music entry points (for the shell). */
-  static readonly MUSIC = MUSIC;
-  static readonly items = specialItems;
 }

@@ -54,7 +54,10 @@ grid, so the pause screen's map reads as a strip of the world:
 
 ## Steps
 
-1. The engine takes its data as a value (Monty on the Run unchanged), and World Tour's skeleton loads.
+1. The engine takes its data as a value (Monty on the Run unchanged), and World Tour's skeleton loads. Done: `MontyData`
+   (`games/montyotr/src/montydata.ts`), Monty on the Run's value `motr.ts`, World Tour's `games/montyworld/src/data.ts` (50 by 3
+   exit grid, three placeholder rooms), the session `runMonty` (`session.ts`) and `test/walk.ts`. The pause map draws the wide grid
+   in cells of 3 pixels for now: its design for a strip of fifty rooms (scrolling, or regions) is part of step 2.
 2. Moscow: its ten rooms, art, creatures and item puzzles, playable from the title to the Trans-Siberian's station.
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
 3. Siberia, China, Japan, the Pacific and Hawaii, one at a time, each played before the next.

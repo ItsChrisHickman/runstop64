@@ -36,6 +36,7 @@ import {
   sectorName, specialItems, teleporterCfg, teleporterDests,
 } from '../src/data';
 import { Game, type Input as Stick } from '../src/game';
+import { MOTR } from '../src/motr';
 import { copy, frame, NONE, settled, type State } from './play';
 import { run } from '../src/main';
 import { montyMap, noteRoom } from '../src/map';
@@ -44,6 +45,7 @@ import { MAP_BOX } from '../../shared/native/pause';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
 import { check, finish } from '../../shared/test/check';
+import { continueFromTitle } from '../../shared/test/continue-from-title';
 
 // the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
 {
@@ -172,10 +174,11 @@ function boot(enhanced: boolean, keep = false) {
   b.tick(5);
   const saved = { x2: b.g.x2, y: b.g.y, score: b.g.score };
   const again = boot(true, true);
-  again.tick(5);
+  continueFromTitle(again.p, again.input, again.tick);
   check(`a save in the dev room, the game launched again (ENHANCED): carries on there (${hex(again.g.roomId)}, x2 ${hex(again.g.x2)})`,
     again.until(() => again.p.state.mode === 'play' && settled(again.g), 400) && again.g.roomId === 0x34 && again.g.x2 === saved.x2);
   const orig = boot(false, true);
+  continueFromTitle(orig.p, orig.input, orig.tick);
   check(`the same save with ORIGINAL (the rooms not there): carries on from the start room (${hex(orig.g.roomId)}), as a new game starts him`,
     orig.until(() => orig.p.state.mode === 'play' && settled(orig.g), 400) && orig.g.roomId === 0x00 && orig.g.x2 === 0x86 && orig.g.score === saved.score);
   orig.input.keyDown('ArrowRight');
@@ -224,7 +227,7 @@ function boot(enhanced: boolean, keep = false) {
 
 // ---- 2. every room reached and left by real play -------------------------------------------------------
 
-const g0 = new Game();
+const g0 = new Game(MOTR);
 g0.assist = { ...ENHANCED };
 g0.start();
 const start: State = { g: g0, col: 0 };
@@ -336,7 +339,7 @@ function collect(start: State, got: (g: Game) => boolean, limit = 150000): strin
 
 /** Walk in by play: Monty brought into a room next to it as the game brings him in, then the stick held till the room changes. */
 function walkInto(from: { mapRow: number; exitCol: number; x2: number; y: number }, stick: Stick, set: (g: Game) => void = () => {}) {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { ...ENHANCED };
   g.start();
   set(g);

@@ -12,6 +12,7 @@
 import { specialItems } from '../src/data';
 import { isDone, SCENES, type Scene } from '../src/ending-scenes';
 import { Game, ROW, SCREEN } from '../src/game';
+import { MOTR } from '../src/motr';
 import { copyGame } from '../src/game-copy';
 import { MOVES, routeText, stickOf, type Move } from '../src/pilot';
 import { arrive, frame, NONE, settled, type State } from '../test/play';
@@ -35,7 +36,7 @@ function spots(room: number): { x2: number; y: number }[] {
   const out: { x2: number; y: number }[] = [];
   for (let y = 0x4a; y < 0xd8; y += 8) {
     for (let x2 = 0x14; x2 < 0x9c; x2 += 4) {
-      const g = new Game();
+      const g = new Game(MOTR);
       g.start();
       if (!arrive(g, room, x2, y)) return out;
       const free = [0, 1, 40, 41].every((o) => g.tileFlag(g.chr(g.montyChr + o)) !== 1);
@@ -81,7 +82,7 @@ function distance(scene: Scene, g: Game, stage: number): number {
 }
 
 function search(scene: Scene): Move[] | null {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.start();
   g.assist = { lives: false, cloud: true, jetpack: true, c5: true, rooms: false, respawn: true };
   scene.prepare(g);

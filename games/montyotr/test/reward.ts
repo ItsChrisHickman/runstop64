@@ -33,6 +33,7 @@ import { exitGridImage } from '../src/data';
 import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../src/ending';
 import { CAST, SCENES, isDone } from '../src/ending-scenes';
 import { Game, type Assists } from '../src/game';
+import { MOTR } from '../src/motr';
 import { montyFont, run } from '../src/main';
 import { Pilot } from '../src/pilot';
 import { frame, type State } from './play';
@@ -55,7 +56,7 @@ const ENHANCED: Assists = { lives: false, cloud: true, jetpack: true, c5: true, 
 /** A scene's route played in a game of the game's own (no grace), and what came of it. */
 function playRoute(scene: (typeof SCENES)[number], s: number) {
   reseed(s);
-  const g = new Game();
+  const g = new Game(MOTR);
   g.start();
   g.assist = ENHANCED;
   scene.prepare(g);
@@ -90,7 +91,7 @@ check('the places are in rooms that are on the exit grid, each once', SCENES.eve
 const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 renderer.frame = { x: 32, y: 36 };
-const spec = montyEnding(renderer, ENHANCED);
+const spec = montyEnding(MOTR, renderer, ENHANCED);
 /** The row a place's credits go in (a place may have its own): eight pixels. */
 const bandOf = (place: Place) => { const top = place.creditRow ?? CREDIT_ROW; return { top, bottom: top + 7 }; };
 let BAND = bandOf(spec.places[0]);
@@ -141,7 +142,7 @@ const show = new RewardShow({
   music: { start: () => { tuneStarts++; }, end: () => { tuneEnds++; } },
   done: () => { over++; },
 });
-const stats = endingStats(new Game(), { rooms: {} });
+const stats = endingStats(new Game(MOTR), { rooms: {} });
 show.start(stats);
 let frames = 0;
 const phases: string[] = [];

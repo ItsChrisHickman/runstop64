@@ -10,6 +10,7 @@
  */
 import { exitGridImage, extensionGrid } from '../src/data';
 import { Game, type Input as Stick } from '../src/game';
+import { MOTR } from '../src/motr';
 import { enterRoom } from '../src/ending';
 import { frame, NONE, type State } from './play';
 import { check, finish } from '../../shared/test/check';
@@ -73,7 +74,7 @@ const seen = { jumping: 0, falling: 0, rope: 0, walking: 0, dying: 0, c5: 0, jet
 const EVENTS = [1, 2, 3, 4, 5, 7]; // (6 is the treasure: the ending, played in test/ending.ts)
 
 function playRoom(room: number, variant: number): string {
-  const g = new Game();
+  const g = new Game(MOTR);
   g.assist = { lives: variant % 5 === 4, cloud: variant % 2 === 0, jetpack: variant % 3 === 0, c5: variant % 2 === 1, rooms: true, respawn: variant % 3 === 1 };
   g.start();
   const s: State = { g, col: 0 };
