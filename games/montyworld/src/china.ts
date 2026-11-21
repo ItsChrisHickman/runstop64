@@ -293,7 +293,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[19, 13]],
     item: { name: 'bamboo', col: 29, row: 13, sprite: CHINA_SPRITE.bamboo },
-    decor: [['willowTree', 4, 3], ['archBridge', 11, 4], ['archBridge', 19, 4], ['crouchFigure', 13, 2], ['crouchFigure', 20, 2], ['crouchFigure', 25, 2], ['pagoda', 27, 6]],
+    decor: [['willowTree', 4, 5], ['archBridge', 11, 4], ['archBridge', 19, 4], ['crouchFigure', 13, 2], ['crouchFigure', 20, 2], ['crouchFigure', 25, 2], ['pagoda', 27, 6]],
     creatures: [
       { who: 'dove', col: 10, row: 7, way: 'right', speed: 1, range: 48 },
       { who: 'dove', col: 20, row: 9, way: 'right', speed: 1, range: 40 },

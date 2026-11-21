@@ -126,13 +126,17 @@ function roofDragon(): NewDecor {
   return decor('roofDragon', 2, 2, r, 7);
 }
 
-/** The willow: a thick curved trunk, a great crown, long fronds hanging in strands to the ground. 4 x 6 characters. */
+/** The willow: a thick trunk forking into boughs, a great crown, long fronds hanging in strands either side of the trunk. 4 x 6 characters. */
 function willowTree(): NewDecor {
   const r = new Raster(32, 48);
-  r.rect(14, 18, 17, 47); r.rect(12, 12, 19, 18); r.rect(15, 20, 15, 46, false); r.rect(6, 10, 25, 12); // the trunk and its boughs
-  r.ellipse(16, 8, 14, 8); // the crown
-  for (let x = 3; x < 30; x += 4) { r.rect(x, 12, x, 36 + ((x * 7) % 9)); r.rect(x + 2, 13, x + 2, 28 + ((x * 5) % 11)); } // the hanging fronds
-  r.rect(8, 6, 24, 6, false); r.rect(5, 10, 27, 10, false);
+  r.rect(13, 16, 18, 47); r.rect(15, 20, 16, 46, false); // the trunk, a split in its bark
+  r.rect(9, 14, 22, 17); r.line(13, 16, 8, 11); r.line(18, 16, 23, 11); // the boughs
+  r.ellipse(16, 8, 14, 7.5); // the crown
+  for (const [x, y] of [[8, 5], [16, 3], [23, 6], [12, 9], [20, 10]] as const) r.rect(x, y, x + 2, y, false); // gaps in the leaves
+  for (let x = 1; x < 31; x += 3) {
+    if (x > 11 && x < 20) continue;
+    r.rect(x, 12, x, 26 + ((x * 7) % 15));
+  } // the hanging fronds
   return decor('willowTree', 4, 6, r, 14);
 }
 
