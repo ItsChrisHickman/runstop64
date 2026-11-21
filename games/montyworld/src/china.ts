@@ -107,8 +107,8 @@ export const PULSES: readonly PulseSpec[] = [...CRACKER_PULSES, ...ARM_PULSES];
  */
 export const DRAGON: DragonSpec = {
   room: CHI.market,
-  path: [[13, 2.5], [19, 1.5], [25, 2.5], [27.5, 7], [27, 12.5], [24, 14.5], [20, 13], [17.5, 8.5], [15, 4.5]],
-  speed: 1, gap: 17,
+  path: [[13, 2.5], [19, 1.5], [25, 2.5], [27.5, 7], [27, 12.2], [24, 13.6], [20, 12.4], [17.5, 8.5], [15, 4.5]],
+  speed: 1, gap: 18,
   pieces: [
     { sprite: 0, colour: 2, frames: [DRAGON_POINTERS.headLeftOpen, DRAGON_POINTERS.headLeftShut, DRAGON_POINTERS.headRightOpen, DRAGON_POINTERS.headRightShut] },
     { sprite: 1, colour: 7, frames: [DRAGON_POINTERS.body, DRAGON_POINTERS.body] },
@@ -312,11 +312,11 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');
       g.box(3, 0, 3, 16, 'R');
     },
-    coins: [[28, 15]],
-    decor: [['lanternPost', 10, 14], ['boxes', 14, 15], ['junk', 24, 11], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
+    coins: [[29, 15]],
+    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 23, 10], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
     creatures: [
       { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
-      { who: 'cricket', col: 27, row: 15, way: 'right', speed: 1, range: 16 },
+      { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'carp', col: 19, row: 18, way: 'right', speed: 1, range: 40 },
     ],
   }),

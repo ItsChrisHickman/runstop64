@@ -44,5 +44,5 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('L to G: over the second ice and down the rope', into(SIB.border, 5, 16, SIB.lake)),
   leg('G: the coin on the first woodpile', coin(SIB.border, 12, 13)),
   leg('G: the coin past the woodpile', coin(SIB.border, 24, 15)),
-  leg('G: through the barrier the ticket lifted, to the planks', stands(SIB.border, 17, 28, 29)),
+  leg('G: through the barrier the ticket lifted, to the road to China', stands(SIB.border, 17, 28, 29)),
 ];

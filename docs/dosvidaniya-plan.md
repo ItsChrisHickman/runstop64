@@ -120,5 +120,6 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
    The way east off the carriage roof is shut with planks and a sign (SIBERIA COMING SOON) until Siberia is built. Done 2026-11-20; as built: `docs/dosvidaniya-moscow.md`.
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
 3. Siberia: nine rooms built (2026-11-21; `docs/dosvidaniya-siberia.md`): the train's roofs and cars with tunnel mouths, the pine forest and the yeti's hollow, the mine with its cart, lamp and dark shaft, Baikal's cracking ice, the border village; its tune, pelmeni, hints, bot test and mechanism tests. **Chris plays it** before China.
-   China, Japan, the Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
+   China: nine rooms built (2026-11-21; `docs/dosvidaniya-china.md`): the Great Wall's foot and top, a watchtower, the hutong and its firecrackers, the market and its dragon, the Forbidden City's gate (the rice hat), the palace roofs, the willow pattern garden, the quay and the junk; its tune, dumplings, hints, bot test and mechanism tests. **Chris plays it** before Japan.
+   Japan, the Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
 4. The ending on Rio's beach, the reward show, the credits.

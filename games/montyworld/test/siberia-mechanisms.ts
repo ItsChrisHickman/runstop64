@@ -22,6 +22,7 @@ import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { CART_COL, CART_FLOOR, CRACKS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ROOMS, TUNNELS } from '../src/siberia';
 import { newGame, search } from './bot';
+import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
 
 const LEFT: Stick = { ...NONE, left: true };
@@ -57,13 +58,13 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const cells = WORLD.exitGrid.image;
   const at = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   check('Siberia is nine rooms, a block of four columns (4-7) by three rows beside Moscow\'s, room ids 9 to 17 (Moscow\'s 0-8 unchanged)',
-    cells.filter((c) => c !== 0xff).length === 18 && [at(0, 4), at(0, 5), at(0, 6), at(0, 7), at(1, 4), at(1, 5), at(1, 6), at(1, 7), at(2, 7)].join() === [SIB.yeti, SIB.pines, SIB.mine, SIB.shaft, SIB.gravy, SIB.sleeper, SIB.coal, SIB.lake, SIB.border].join()
+    cells.filter((c) => c !== 0xff && c < CHI.wall).length === 18 && [at(0, 4), at(0, 5), at(0, 6), at(0, 7), at(1, 4), at(1, 5), at(1, 6), at(1, 7), at(2, 7)].join() === [SIB.yeti, SIB.pines, SIB.mine, SIB.shaft, SIB.gravy, SIB.sleeper, SIB.coal, SIB.lake, SIB.border].join()
     && at(1, 3) === ROOM.station);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('Moscow still has its 14 coins and 4 finds, in the same table places (first), and Siberia adds 13 coins and 4 finds (two pelmeni, the lamp, the ticket)',
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && (WORLD.coinTable[13 * 3] ?? 99) <= 8 && (WORLD.coinTable[14 * 3] ?? 0) >= 9);
-  check('4 key items and 4 snacks count on the pause screen', WORLD.progress.keyItems.length === 4 && WORLD.progress.cakes.length === 4);
+  check('4 key items and 4 snacks of Moscow\'s and Siberia\'s count on the pause screen (China\'s follow them in the lists)', WORLD.progress.keyItems.length >= 4 && WORLD.progress.cakes.length >= 4);
   check('no room has more than two mouths, and ice is only where the lake is', TUNNELS.filter((t) => t.room === SIB.sleeper).length === 2 && TUNNELS.every((t) => t.room === SIB.gravy || t.room === SIB.sleeper) && CRACKS.every((c) => c.room === SIB.lake));
   const rooms = creatureRooms(SIBERIA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
@@ -213,10 +214,10 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const gate = (ticket: boolean) => {
     const s = at(SIB.border, 24, 17, ticket ? [[SIB.coal, 0]] : []);
     run(s, RIGHT, 140);
-    return colOf(s.g);
+    return s.g.roomId === SIB.border ? colOf(s.g) : 99; // (99: he has walked out east, onto the wall's foot)
   };
   const shut = gate(false), open = gate(true);
-  check(`without the ticket the barrier stops him (column ${shut}); with it he walks to the planks (column ${open})`, shut <= 27 && open >= 28);
+  check(`without the ticket the barrier stops him (column ${shut}); with it he walks through and out east into China (${open === 99 ? 'room ' + CHI.wall : 'column ' + open})`, shut <= 27 && open === 99);
 
   // the cart: hangs off the west end of the high shelf; walk onto it, it carries him down to the gallery, the stick does nothing
   const s = at(SIB.mine, CART_COL + 4, CART_FLOOR, [], true);
@@ -287,7 +288,7 @@ function diesAt(s: State, stick: Stick, limit: number): number {
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over both regions (${info.join(' | ')})`, info[3] === 'SNACKS  0/4' && info[2] === 'ITEMS   0/4');
+  check(`the pause screen counts the snacks and the items over both regions (${info.join(' | ')})`, info[3] === 'SNACKS  0/6' && info[2] === 'ITEMS   0/7');
   enterRoom(s.g, SIB.lake, 0x40, standY(12));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 16: [0x40, 0xb2, 1, 7], 17: [0x40, 0xb2, 2, 7] } });
   check('in Siberia the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -321,7 +322,7 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const oldSave = { ...old, coins: old.coins.slice(0, 14), items: old.items.slice(0, 4), exitGrid: shortGrid, roomId: ROOM.station, worn: itemIndex(g1, ROOM.platform, 1) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
-  check('an old save (Moscow\'s arrays, Moscow\'s grid) loads: the finds and the hat are as saved, and Siberia is on the grid', g2.siCollected[0] === 0x81 && g2.coinCollected[0] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 4] === SIB.gravy && g2.siCollected.length === 8);
+  check('an old save (Moscow\'s arrays, Moscow\'s grid) loads: the finds and the hat are as saved, and Siberia is on the grid', g2.siCollected[0] === 0x81 && g2.coinCollected[0] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 4] === SIB.gravy && g2.siCollected.length === WORLD.specialItems.length / 4);
 }
 
 finish();

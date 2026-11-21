@@ -30,22 +30,20 @@ function panda(): NewCreature {
   return pair('panda', left, 1);
 }
 
-// ---- the kite: a red diamond with a big face and a tail of bows, sailing
+// ---- the kite: a red diamond of four panels in its frame of sticks, two eyes, a tail of bows, sailing
 
-/** A kite in the wind: a diamond with a cross of sticks, two round eyes and a grin, and a tail of bows that swings. */
+/** A kite in the wind: a diamond whose sticks make a cross over four dark panels, two lit eyes in the lower ones, a tail of bows that swings. */
 function kite(): NewCreature {
   const frame = (sway: number) => {
     const r = new Raster(16, 16);
-    r.triangle(7.5, 0, 0, 5, 7.5, 10); r.triangle(7.5, 0, 15, 5, 7.5, 10); // the diamond
-    r.cut(['.#.'], 6.5, 1); // (a notch at the top)
-    r.cut(['#'], 7.5, 2); r.cut(['#'], 7.5, 8); // the sticks' crossing, shown by two dark pegs
-    r.cut(['##', '##'], 4, 3); r.cut(['##', '##'], 9, 3); // the eyes
-    r.rect(4, 4, 4, 4); r.rect(10, 4, 10, 4); // their glints
-    r.cut(['#.....#', '.#...#.', '..###..'], 4, 6); // the grin
-    // the tail: a string down with a bow on it
+    r.triangle(7.5, 0, 0, 5.5, 7.5, 11); r.triangle(7.5, 0, 15, 5.5, 7.5, 11); // the diamond
+    r.triangle(6.7, 2.6, 2.6, 5, 6.7, 5, false); r.triangle(8.3, 2.6, 12.4, 5, 8.3, 5, false); // the upper panels, dark between the sticks
+    r.triangle(2.8, 6.2, 6.7, 6.2, 6.7, 9, false); r.triangle(12.2, 6.2, 8.3, 6.2, 8.3, 9, false); // the lower panels
+    r.rect(4, 6, 5, 7); r.rect(10, 6, 11, 7); // the eyes, lit in the lower panels
+    // the tail: a string down with two bows on it
     const x = (y: number) => 7.5 + Math.sin(y * 0.9 + sway * 1.6) * 2;
-    for (let y = 10; y < 16; y++) r.set(x(y), y);
-    r.rect(Math.round(x(12)) - 1, 12, Math.round(x(12)) + 1, 12); r.rect(Math.round(x(14)) - 1, 14, Math.round(x(14)) + 1, 14);
+    for (let y = 11; y < 16; y++) r.set(x(y), y);
+    for (const y of [12, 14]) r.rect(Math.round(x(y)) - 2, y, Math.round(x(y)) + 2, y);
     return r.rows();
   };
   const frames = [0, 1, 2, 3].map(frame);
@@ -54,50 +52,44 @@ function kite(): NewCreature {
 
 // ---- the monk: a bald round head, a big smile, an orange robe, bouncing on a pogo stick
 
-/** A monk bouncing on a pogo stick, seen front on: the stick's spring squashes and stretches, the robe flaps. */
+/** A monk bouncing on a pogo stick, seen front on: a round head with its eyes shut and a wide smile, the robe a bell, his sleeves out for balance, the spring squashing and stretching. */
 function monk(): NewCreature {
   const frame = (squash: number) => {
     const r = new Raster(16, 16);
-    const base = squash * 1.5; // how far down the body sits
-    // the stick: a post with its spring and foot
-    r.rect(7, 11 + base, 8, 12 + base);
-    for (let y = 12 + base; y < 15; y++) r.set(y & 1 ? 6 : 9, y);
-    r.rect(7, 14, 8, 15); r.rect(5, 15, 10, 15);
-    // the robe: a bell, sleeves to the bars
-    r.triangle(7.5, 6 + base, 1.5, 12 + base, 13.5, 12 + base);
-    lay(r, (s) => { s.line(3, 8 + base, 0, 6 + base); s.line(12, 8 + base, 15, 6 + base); s.line(0, 6 + base, 15, 6 + base); });
-    r.disc(7.5, 3.5 + base, 3.2); // the head
-    r.cut(['##', '##'], 4, 2.5 + base); r.cut(['##', '##'], 9, 2.5 + base); // the eyes
-    r.rect(4, 3 + base, 4, 3 + base); r.rect(10, 3 + base, 10, 3 + base);
-    r.cut(['#.....#', '.#####.'], 4, 4.5 + base); // the smile
-    r.cut(['..#..', '.###.'], 5, 8 + base); // the robe's lapels
+    const b = squash; // how far down he sits
+    r.rect(7, 12 + b, 8, 15); // the post
+    for (let y = 12 + b; y < 15; y++) { r.set(6, y); r.set(9, y); } // the spring
+    r.rect(4, 15, 11, 15); // the foot
+    r.triangle(7.5, 6.5 + b, 2, 12.5 + b, 13, 12.5 + b); // the robe, a bell
+    r.rect(4, 11 + b, 11, 11 + b, false); // the sash
+    lay(r, (s) => { s.line(4, 8 + b, 0.5, 5 + b); s.line(11, 8 + b, 14.5, 5 + b); s.rect(0, 4 + b, 1, 5 + b); s.rect(14, 4 + b, 15, 5 + b); }); // the sleeves and hands, out and up
+    r.disc(7.5, 3.4 + b, 3.4); // the head
+    r.cut(['##'], 4.5, 2.6 + b); r.cut(['##'], 9.5, 2.6 + b); // the eyes, shut with joy
+    r.cut(['#.....#', '.#####.'], 4.5, 4.4 + b); // the smile
     return r.rows();
   };
   const frames = [frame(0), frame(1), frame(2), frame(1)];
   return pair('monk', frames, 8, true);
 }
 
-// ---- the cricket in its cage: a round bamboo cage on a hook, a big cricket inside, jumping
+// ---- the cricket in its basket: a great round head with huge eyes and feelers over the rim of a bamboo cage, hopping
 
-/** A caged cricket: a domed bamboo cage with its bars, a fat cricket inside with two great eyes and feelers poking out the top; it hops. */
+/** A cricket in a bamboo cage: its big round head over the rim with two huge eyes and long feelers, the cage's slatted body under it; it hops. */
 function cricket(): NewCreature {
   const frame = (hop: number, feelers: boolean) => {
     const r = new Raster(16, 16);
-    const y = 4 + hop;
-    r.ellipse(7.5, y + 1, 6.2, 3); // the dome
-    r.rect(1, y + 1, 14, y + 9); // the body of the cage
-    r.rect(3, y + 3, 12, y + 8, false); // (the bars' spaces)
-    for (const x of [4, 7, 10]) r.rect(x, y + 1, x, y + 9); // the bars
-    r.rect(1, y + 9, 14, y + 10); // the base
-    r.ellipse(7.5, y + 6, 3.6, 2.6); // the cricket inside, a big lit shape
-    r.cut(['#', '#'], 5.5, y + 5); r.cut(['#', '#'], 9.5, y + 5); // its eyes
-    r.cut(['###'], 6.5, y + 8); // its mouth, a line
-    r.rect(7, y - 4, 7, y - 1); // the hook
-    r.rect(6, y - 4, 8, y - 4);
-    if (feelers) { r.line(5, y - 1, 2, y - 3); r.line(10, y - 1, 13, y - 3); }
+    const y = 1 + hop;
+    r.disc(7.5, y + 5, 4.4); // the head
+    r.cut(['##', '##'], 4, y + 3.5); r.cut(['##', '##'], 9, y + 3.5); // the eyes
+    r.rect(4, y + 4, 4, y + 4); r.rect(10, y + 4, 10, y + 4); // their glints
+    r.cut(['#.#'], 6.5, y + 7.5); // the mouth
+    if (feelers) { r.line(5, y + 1, 2, y - 1); r.line(10, y + 1, 13, y - 1); } else { r.line(5, y + 1, 3, y); r.line(10, y + 1, 12, y); }
+    r.rect(1, y + 8, 14, y + 9); // the rim
+    r.rect(2, y + 10, 13, y + 14); for (const x of [4, 7, 10]) r.rect(x, y + 10, x, y + 14, false); // the slats
+    r.rect(1, y + 14, 14, y + 15);
     return r.rows();
   };
-  const frames = [frame(2, true), frame(0, false), frame(-1, true), frame(0, false)];
+  const frames = [frame(1, true), frame(0, false), frame(-1, true), frame(0, false)];
   return pair('cricket', frames, 13, true);
 }
 
@@ -184,47 +176,44 @@ function lantern(): NewCreature {
   return pair('lantern', frames, 10, true);
 }
 
-// ---- the lion: a stone guardian, a great curled mane round a fierce face, fangs, padding forward
+// ---- the lion: a stone guardian, a great mane of curls round a fierce face, fangs, padding forward
 
-/** A stone lion coming to life: a mane of curls round a broad face (round eyes, a flat nose, an open mouth full of teeth), four paws padding. */
+/** A stone lion coming to life: a mane of curls all round a broad face (round eyes, a flat nose, an open mouth full of teeth), two great paws padding. */
 function lion(): NewCreature {
   const frame = (a: number, roar: boolean) => {
     const r = new Raster(16, 16);
-    lay(r, (s) => { limb(s, 9, 11, 8.5 + a, 15, 3); limb(s, 14, 11, 14 - a, 15, 3); }); // the back legs
-    r.ellipse(11.5, 10.5, 4.5, 3.4); // the body
-    lay(r, (s) => { limb(s, 3, 12, 2.5 - a, 15, 3); limb(s, 7.5, 12, 7.5 + a, 15, 3); }); // the front legs
-    // the mane: a ring of curls
-    for (let i = 0; i < 10; i++) { const t = (i / 10) * Math.PI * 2; r.disc(6 + Math.cos(t) * 5, 6.5 + Math.sin(t) * 5, 1.6); }
-    r.disc(6, 6.5, 4.2); // the face
-    r.cut(['##', '##'], 3, 4); r.cut(['##', '##'], 8, 4); // the eyes
-    r.rect(3, 5, 3, 5); r.rect(9, 5, 9, 5);
-    r.cut(['###'], 5, 7); // the nose
-    r.cut(roar ? ['#######', '#######'] : ['#####'], roar ? 2 : 3, roar ? 9 : 9); // the mouth
-    r.stamp(roar ? ['#.#.#.#'] : ['#.#.#'], roar ? 2 : 3, roar ? 9 : 9); // the teeth
+    for (let i = 0; i < 12; i++) { const t = (i / 12) * Math.PI * 2; r.disc(7.5 + Math.cos(t) * 5.6, 7 + Math.sin(t) * 5.2, 2); } // the mane's curls
+    r.disc(7.5, 7, 4.9); // the face
+    r.cut(['##', '##'], 4, 4); r.cut(['##', '##'], 9.5, 4); // the eyes
+    r.rect(4, 5, 4, 5); r.rect(10, 5, 10, 5); // their glints
+    r.cut(['.#.', '###'], 6.5, 7); // the flat nose
+    r.cut(roar ? ['#######', '#######'] : ['#######'], 4, roar ? 10 : 10); // the mouth
+    r.stamp(roar ? ['#.#.#.#'] : ['#.#.#.#'], 4, roar ? 10 : 10); // the teeth
+    lay(r, (s) => { s.rect(2, 13 + (a > 0 ? 0 : 1), 5, 15); s.rect(10, 13 + (a > 0 ? 1 : 0), 13, 15); }); // the paws
     return r.rows();
   };
-  const left = [frame(1.5, true), frame(0, false), frame(-1.5, true), frame(0, false)];
+  const left = [frame(1, true), frame(0, false), frame(-1, true), frame(0, false)];
   return pair('lion', left, 7);
 }
 
-// ---- the guard: a helmet with a plume, a fierce moustache, lamellar armour, a halberd
+// ---- the guard: a pointed hat with a red tassel, a fierce moustache, lamellar armour, a long spear with a banner
 
 /** The guard's feet, rows 14 and 15, in four steps. */
 const GUARD_STEPS = WARRIOR_STEPS;
 
-/** An imperial guard marching, drawn row by row: the plumed helmet, the moustache, the armour's bands, the halberd's blade at the top. */
+/** An imperial guard marching, drawn row by row: the pointed hat and its tassel, the moustache, the armour's bands, the spear's blade at the top with its banner. */
 function imperialGuard(): NewCreature {
   const frame = (step: number) => {
     const [a, b] = GUARD_STEPS[step] ?? GUARD_STEPS[0] ?? ['', ''];
     return [
-      '.....##.....###.',
-      '....####...#####',
-      '...########..##.',
-      '...########..#..',
-      '...#.#..#.#..#..',
-      '...########..#..',
-      '...#.####.#..#..',
-      '....######...#..',
+      '.....#.......#..',
+      '....###.....###.',
+      '...#####.....#..',
+      '..#######....#.#',
+      '...#.##.#....###',
+      '...##..##....#..',
+      '...######....#..',
+      '..##.##.##...#..',
       '..############..',
       '..##.#.##.#.##..',
       '..############..',
@@ -260,21 +249,18 @@ function carp(): NewCreature {
 
 // ---- the dove: white, a round head and a big eye, wings beating
 
-/** A white dove flapping to the left: a round head with a black eye and a beak, a plump body, the wings up, level, down, level. */
+/** A white dove flapping to the left: a round head with a black eye and a short beak, a plump body, a fanned tail, the great wing up, level, down, level. */
 function dove(): NewCreature {
   const frame = (wing: number) => {
     const r = new Raster(16, 16);
-    lay(r, (s) => { // the far wing then the near
-      const y = [1, 5, 11, 5][wing] ?? 5;
-      s.triangle(8, 8, 15, y, 11, 10);
-      s.triangle(7, 8, 13, y + 1, 9, 11);
-    });
-    r.ellipse(8, 9, 5, 3); // the body
-    r.triangle(12, 9, 15.5, 11, 13, 12); // the tail
-    r.disc(3.8, 6.8, 2.8); // the head
-    r.triangle(0, 7, 2, 6, 2, 8.5); // the beak
-    r.cut(['#'], 3, 6); // the eye
-    r.cut(['##'], 6, 8);
+    const tip = [0, 4, 11, 4][wing] ?? 4; // where the wing's tip is
+    lay(r, (s) => { s.triangle(7, 8, 13, tip, 10, 9); s.triangle(5, 8, 11, tip + 1, 8, 10); }); // the wing, two pinions
+    r.ellipse(8.5, 9.5, 5.2, 3.4); // the body
+    r.triangle(12, 8.5, 15.5, 7, 15.5, 12); r.triangle(12, 10, 15.5, 11, 15.5, 14); // the tail, fanned
+    r.disc(3.8, 7, 3); // the head
+    r.triangle(0, 7.5, 1.5, 6, 1.5, 9); // the beak
+    r.cut(['#'], 3, 6); r.cut(['#'], 3, 5); // the eye
+    r.cut(['###'], 6, 9); // a feather's line
     return r.rows();
   };
   const left = [0, 1, 2, 3].map(frame);

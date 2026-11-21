@@ -228,9 +228,9 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   check('the ushanka is taken from its shelf (200 points)', s.g.siCollected[USHANKA] !== 0 && s.g.score === 200);
   const costume = must(WORLD.costumes[0], 'the costume');
   const block = must(costume.blocks.find((b) => b.ptr === 0x54), 'a block for the walk').block;
-  check('Monty wears it from then on: his pictures are the costume\'s (all 36 of them, the hat on each)', s.g.worn === USHANKA && costume.blocks.length === 36
+  check('Monty wears it from then on: his pictures are the costume\'s (all 36 of them, the hat on each)', s.g.worn === USHANKA && costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).length === 36
     && same(s.g.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block) && !same(block, plain));
-  check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.every((b) => !same(b.block, WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))));
+  check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).every((b) => !same(b.block, WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))));
   // kept in the save
   const saved = snapshot(s.g);
   const back = CODEC.unpack(CODEC.pack(saved), CODEC.format);
@@ -277,7 +277,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/4' && info[2] === 'ITEMS   0/4');
+  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/6' && info[2] === 'ITEMS   0/7');
   check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 4 && info.every((l) => l.length === 11));
   const motr = newGame(MOTR, true);
   const motrInfo = montyMap.info(motr.g, { rooms: {} });

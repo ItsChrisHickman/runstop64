@@ -32,7 +32,7 @@ check('Moscow\'s nine rooms are the first four columns of the grid, each in the 
 check('no room of Monty on the Run\'s extension, no kit, no C5, no jetpack, no ending', WORLD.extensionGrid.every((c) => c === 0xff) && !WORLD.isExtensionRoom(0) && WORLD.kit.length === 0 && !WORLD.c5 && WORLD.jetpackRooms.length === 0 && !WORLD.ending && !WORLD.completion);
 check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1, 2, 3, 4, 5, 6, 7, 8].map((id) => sectorName(WORLD, id).text).join('|') ===
   'MOSCOW MOLE|SNOW PLACE LIKE HOME|SEEING RED|ONION DOME SWEET DOME|KREMLIN GREMLINS|SIBERIA YOU LATER|STUCK LIKE GUM|ESCALATING TENSIONS|UNDERGROUND MOVEMENT');
-check('Moscow and Siberia: 27 coins, 4 pirozhki and pelmeni, 4 key items', WORLD.coinTable.length === 27 * 3 && WORLD.specialItems.length === 8 * 4 && WORLD.progress.cakes.length === 4 && WORLD.progress.keyItems.length === 4);
+check('Moscow, Siberia and China: 43 coins, 6 snacks (pirozhki, pelmeni, dumplings), 7 key items', WORLD.coinTable.length === 43 * 3 && WORLD.specialItems.length === 13 * 4 && WORLD.progress.cakes.length === 6 && WORLD.progress.keyItems.length === 7);
 {
   // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
   const rooms = creatureRooms(MOSCOW_ROOMS);
@@ -88,7 +88,7 @@ tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/18' && numbers[2] === 'ITEMS   0/4' && numbers[3] === 'SNACKS  0/4');
+check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/27' && numbers[2] === 'ITEMS   0/7' && numbers[3] === 'SNACKS  0/6');
 tap('KeyP');
 tick(4);
 
