@@ -13,6 +13,13 @@ const T = {
   oval: 21, ghost: 22, jelly: 23, kettle: 24, scarab: 25, cone: 26, hand: 27, cog: 29, spider: 30, fish: 31, plane: 32,
 } as const;
 
+/**
+ * Monty on the Run's types whose second four frames (the ones facing right and down) are not the first four turned round but another look: the
+ * knight's face, the hand's fist, and the plane's tow banner ("GO LU...": in Monty on the Run a second sprite of the same creature). Drawn
+ * as they are, such a creature changes into another every time it turns; so it is one look both ways, the first four frames and their mirror.
+ */
+export const UNPAIRED_TYPES: ReadonlySet<number> = new Set([T.knight, T.hand, T.plane]);
+
 /** What a Wanted kind is drawn as: a Monty on the Run type, or its own frames. */
 export type Look = { readonly type: number } | { readonly own: true };
 const as = (type: number): Look => ({ type });

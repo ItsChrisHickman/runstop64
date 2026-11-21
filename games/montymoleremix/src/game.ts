@@ -1,4 +1,4 @@
-import { Vic } from 'c64kit';
+import { reverseBits, Vic } from 'c64kit';
 import { CoalTally } from '../../montymole/src/coal-rules';
 import { CrusherRule } from '../../montymole/src/crusher-rules';
 import { imageAt, SPRITE_BYTES } from '../../montymole/src/data';
@@ -22,7 +22,7 @@ import {
 } from '../../shared/monty/screen';
 import { cellRow, coalCells, VIC_LEFT, VIC_TOP, vicX, vicY, WANTED_TOP, wantedMonty } from './coords';
 import { CRUSHER_COLUMNS, CrusherPicture } from './crusher-picture';
-import { carries, lookOf, lookOfSet, type Look } from './kinds';
+import { carries, lookOf, lookOfSet, UNPAIRED_TYPES, type Look } from './kinds';
 import { C64_OF, inkOnBlack, retile, type RemixRoom } from './retile';
 import { GATE, SCENE, SCENE_PATH_ROW, SCENE_ROOM, SCENE_START_X } from './opening-scene';
 
@@ -78,7 +78,7 @@ const CREATURES_BITS = CREATURE_SPRITE.reduce((m, n) => m | (1 << n), 0);
 /** In the scene, the sprite bit of the acorn: the only thing there that kills. */
 const SCENE_LETHAL = 1 << (CREATURE_SPRITE[SCENE_SLOT.acorn] ?? 0);
 /** Where each creature's eight frames are in the bank: pointers (a frame is 64 bytes). Monty on the Run keeps four slots at $30; two more are in its free space. */
-const creaturePtr = (slot: number): number => (slot < 4 ? 0x30 + slot * 8 : 0xc8 + (slot - 4) * 8);
+export const creaturePtr = (slot: number): number => (slot < 4 ? 0x30 + slot * 8 : 0xc8 + (slot - 4) * 8);
 /** The tool's picture is Wanted's own, put in the sprite block Monty on the Run keeps its first item in (pointer $8E; its items are not used here). */
 export const TOOL_PTR = 0x8e;
 /** The coal's piece: Wanted's own picture of it in this room, one character (free in Monty on the Run's set). */
@@ -552,6 +552,18 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     });
   }
 
+  /** The four frames facing the other way are the first four turned round (a 16 pixel row is two bytes: each reversed, and swapped). */
+  private mirrorFrames(base: number): void {
+    for (let f = 0; f < 4; f++) {
+      const from = base + f * 64, to = base + (4 + f) * 64;
+      this.mem.fill(0, to, to + 64);
+      for (let r = 0; r < 16; r++) {
+        this.mem[to + r * 3] = reverseBits(this.mem[from + r * 3 + 1] ?? 0);
+        this.mem[to + r * 3 + 1] = reverseBits(this.mem[from + r * 3] ?? 0);
+      }
+    }
+  }
+
   /** Each creature's type and its frames in sprite memory (Monty on the Run's bank, unpacked as its SetupRoom does). */
   private setupCreatures(): void {
     this.creatures.forEach((e, slot) => {
@@ -574,6 +586,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
           }
         }
         if (enemyCopyFlag(look.type)) this.mem.copyWithin(base + 0x100, base, base + 0x100);
+        else if (UNPAIRED_TYPES.has(look.type)) this.mirrorFrames(base);
         return;
       }
       // Wanted's own frames: its four one way (directions 0 and 2) and four the other (1 and 3)
