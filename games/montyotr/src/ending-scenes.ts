@@ -30,8 +30,8 @@ export function isDone(scene: Scene, g: Game): boolean {
 }
 
 const LEFT = 0x81, RIGHT = 0x01;
-/** The row between the score and the room (screen row 2), which the game leaves empty too. */
-const TOP_ROW = 16;
+/** The row between the score and the room (screen row 2), for the rooms whose creatures go through the usual one: the score row is put away for them (ending.ts). */
+export const TOP_ROW = 16;
 const nothing = () => {};
 
 /**
@@ -69,7 +69,7 @@ export const SCENES: readonly Scene[] = [
     credits: ['AS A REACTION TO THE BRITISH', 'MINERS STRIKE: A MOLE STEALING COAL', 'TO KEEP HIS FAMILY WARM'],
   },
   {
-    room: 0x20, spot: { x2: 0x94, y: 0x6a, facing: LEFT }, prepare: nothing, take: { coins: 1 }, creditRow: TOP_ROW,
+    room: 0x20, spot: { x2: 0x94, y: 0x6a, facing: LEFT }, prepare: nothing, take: { coins: 1 },
     route: '<8 .24 <24 .8 >8 <24 ^<8 <24 ^<16 <16 ^<24 <16 ^<8 <16 ^<16',
     credits: ['MONTY ESCAPES FROM HIS HOUSE FOR THE', 'ENGLISH CHANNEL AND FREEDOM'],
   },

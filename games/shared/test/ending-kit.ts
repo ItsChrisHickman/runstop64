@@ -19,8 +19,26 @@ import { PixelRenderer } from './kit';
  * what a win is, the front end).
  */
 
-/** The montage's frames: the show is about a minute to a minute and a quarter (at 50 frames a second). */
-export const SHOW_FRAMES = { min: 2900, max: 3900 } as const;
+/**
+ * The montage's frames: the credits through the places, then the creatures one at a time (each a walk of `NAME.slot` frames), so
+ * a show is about a minute and a half to two minutes (at 50 frames a second). A game's test may give a range of its own.
+ */
+export const SHOW_FRAMES = { min: 3500, max: 6500 } as const;
+
+/**
+ * Pixels of the game's own picture touching a text: in the pixel row just above its cell and the one just below its ink (a glyph's
+ * ink is its first seven rows, so that is the cell's last), over the columns `x` to `x + 8 * letters`. The text keeps a gap of
+ * black from the playfield, so this is 0 in every frame. (`drawn`: whether the game's picture has anything at a pixel; a row off
+ * the picture is no touch.)
+ */
+export function touching(drawn: (x: number, y: number) => boolean, row: number, x: number, letters: number): number {
+  let n = 0;
+  for (const y of [row - 1, row + 7]) {
+    if (y < 0 || y > 199) continue;
+    for (let px = x; px < Math.min(320, x + 8 * letters); px++) if (drawn(px, y)) n++;
+  }
+  return n;
+}
 
 /** The visitors' sprites (ours: the show makes them in front of everything, z 20 and up) drawn into a picture of C64 colour indexes (320 x 200). */
 export function drawVisitors(r: PixelRenderer, out: Uint8Array) {
@@ -58,6 +76,9 @@ export class CastWatch {
   readonly problems = new Set<string>();
   /** Names a picture was made of (for a test run with an out folder). */
   readonly pictured = new Set<string>();
+  /** Frames with two visitors on the picture at once, and frames a lone visitor was on it with its own name not in the band (the parade is one at a time, each named all the way across). */
+  together = 0;
+  unnamedAlone = 0;
   /** With a stage: the frames a visitor was cut by its edge, and what was drawn outside it (`place: who, where`). */
   cutFrames = 0;
   readonly outside = new Set<string>();
@@ -78,6 +99,10 @@ export class CastWatch {
    * says is empty (the caller reads its own game's picture: pixels of its characters and sprites under the text's span).
    */
   frame(p: { place: number; visitors: readonly Seen[]; said: Said | null }, band: { top: number; bottom: number }, empty: (said: Said) => boolean) {
+    const onPicture = p.visitors.filter((v) => v.left + v.width > 0 && v.left < 320);
+    if (onPicture.length > 1) this.together++;
+    const alone = onPicture[0];
+    if (onPicture.length === 1 && alone && !(p.said?.kind === 'name' && p.said.text === alone.name)) this.unnamedAlone++;
     for (const v of p.visitors) {
       if (v.left + v.width > 0 && v.left < 320) this.walked.add(v.name);
       if (band.bottom > 0 && v.feet > band.top && v.feet - v.height <= band.bottom) this.problems.add(`place ${p.place}: ${v.name} reaches into the band (feet ${v.feet}, ${v.height} tall)`);
@@ -96,6 +121,7 @@ export class CastWatch {
     const unseen = names.filter((n) => !this.walked.has(n)), unnamed = names.filter((n) => !this.named.has(n));
     check(`every cast member walks through the montage (${this.walked.size} of ${names.length}${unseen.length ? `; not seen: ${unseen.join(', ')}` : ''})`, names.length > 0 && unseen.length === 0);
     check(`every cast member is named in the band, once, in full (${this.named.size} of ${names.length}${unnamed.length ? `; not named: ${unnamed.join(', ')}` : ''})`, unnamed.length === 0);
+    check(`one creature at a time: never two on the picture at once (${this.together} frames with two), and each is named in the band all the while it is on the picture (${this.unnamedAlone} frames not)`, this.together === 0 && this.unnamedAlone === 0);
     check(`the names land only on pixels the game leaves empty, and no visitor reaches into the band (${this.nameFrames} frames of names)`, this.nameFrames > 0 && this.problems.size === 0);
     if (this.problems.size) console.log([...this.problems].slice(0, 12).join('\n'));
   }
@@ -134,13 +160,17 @@ export class BandWatch {
   wrong = 0;
   readonly wrongAt: string[] = [];
   readonly turns = new TurnWatch();
+  /** Frames the game's own picture touched the text's cell (above or below), and one of them. */
+  touched = 0;
+  touchedAt = '';
 
   /**
    * One frame: what the show says is in the band (null: nothing), the place's credit lines, and what the test reads in the band's
    * rows of the picture as shown: pixels in the text's colour, and in any other.
    */
-  frame(p: { place: number; frames: number; said: Said | null }, lines: readonly string[] | undefined, b: { ink: number; other: number }) {
+  frame(p: { place: number; frames: number; said: Said | null }, lines: readonly string[] | undefined, b: { ink: number; other: number; touch?: number }) {
     const said = p.said;
+    if (b.touch) { this.touched++; if (this.touchedAt === '') this.touchedAt = `place ${p.place} frame ${p.frames}: ${b.touch} pixels`; }
     if (said) {
       this.withText++;
       this.turns.frame(p.place, said);
@@ -156,6 +186,7 @@ export class BandWatch {
   check(total: number, gameBandFrames: number, gameBand: number, badPlaces: readonly string[]) {
     check(`the game's own picture is empty in the band in all ${gameBandFrames} frames of the montage${badPlaces.length ? ` (${badPlaces.join('; ')})` : ''}`, gameBandFrames > 1000 && gameBand === 0);
     check(`credits and names land in empty pixels only: the text's colour when a turn is up, nothing between turns (${this.withText} frames with text, ${this.between} between; ${this.wrong} wrong${this.wrongAt.length ? `: ${this.wrongAt.join('; ')}` : ''})`, this.withText > 1000 && this.wrong === 0);
+    check(`the text keeps a gap of black from the playfield: the pixel rows above and below its cell are the game's empty in every frame (${this.touched} frames touching${this.touchedAt ? `: ${this.touchedAt}` : ''})`, this.touched === 0);
     check(`every credit line was typed on in full and held (${this.typed.size} of ${total} lines)`, this.typed.size === total && total >= 12);
     this.turns.check(true);
   }
@@ -205,6 +236,8 @@ interface ShowResult {
   /** With a plain band (`EndingSpec.plainBand`): the frames a credit line was shown in which what lay under its span was checked. */
   spanFrames: number;
   cast: CastWatch;
+  /** With the text drawn in the picture (no panel line): the frames sampled in which the game's own picture touched the text's cell (the pixel row above or below it), and the first. */
+  touch: { frames: number; first: string };
   /** How many frames each scene ran. */
   sceneFrames: number[];
 }
@@ -236,7 +269,7 @@ export function playShow(o: ShowRun): ShowResult {
   });
   show.start(o.stats);
   const cast = new CastWatch();
-  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, apart: { credit: 0, name: 0, mixed: [] }, turns: new TurnWatch(), spanFrames: 0, cast, sceneFrames: [] };
+  const r: ShowResult = { frames: 0, phases: [], figures: [], tuneFrames: tune, over: 0, active: true, shownLines: new Set(), bandEmptyBefore: 0, scenes: 0, stray: [], gameBand: { pixels: 0, drawn: 0 }, apart: { credit: 0, name: 0, mixed: [] }, turns: new TurnWatch(), spanFrames: 0, cast, touch: { frames: 0, first: '' }, sceneFrames: [] };
   const { top, bottom } = o.band;
   // (the band's own colour: black, or the room's plain background where the picture fills the screen)
   const backOf = (m: C64) => (o.spec.plainBand ? bandBackground(m) : 0);
@@ -281,6 +314,11 @@ export function playShow(o: ShowRun): ShowResult {
       }
       const px = shown(renderer, m);
       const said = p.said;
+      if (!line && said && said.text.trim() !== '' && p.frames % 5 === 0) {
+        const bg = backOf(m), pic = shownLayers(m, renderer.layout);
+        const n = touching((x, y) => { const i = y * 320 + x; return pic.back[i] !== bg || (pic.fore[i] !== TRANSPARENT && pic.fore[i] !== bg); }, said.row, o.spec.creditX ?? CREDIT.x, o.spec.creditLetters ?? CREDIT.letters);
+        if (n > 0) { r.touch.frames++; if (r.touch.first === '') r.touch.first = `scene ${p.place} frame ${p.frames} row ${said.row}: ${n} pixels`; }
+      }
       if (said) r.turns.frame(p.place, said);
       if (o.stage) cast.onStage(p, o.stage, renderer.sprites.filter((h) => h.visible && h.surface && h.z >= 20).map((h) => ({ x: Math.round(h.x), y: Math.round(h.y), w: h.surface?.width ?? 0, h: h.surface?.height ?? 0 })));
       if (o.spec.nameRow !== undefined && o.spec.nameInk !== undefined) {
@@ -345,8 +383,8 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
   const spec = o.spec;
   console.log(`phases: ${r.phases.join(' ')}; ${r.frames} frames (${(r.frames / 50).toFixed(0)} s); figures: ${r.figures.map((f) => `${f.name}:${f.poses}`).join(', ')}; scenes: ${r.sceneFrames.join(' ')}`);
   check('the show ran to its end and went back to the title (done, once)', !r.active && r.over === 1);
-  check('it went through every scene of the montage, then THE END, and no parade', spec.scenes.every((_, i) => r.phases.includes(`montage${i}`)) && r.phases[r.phases.length - 1] === 'end' && !r.phases.includes('parade'));
-  check(`it is a watchable length (${(r.frames / 50).toFixed(0)} seconds, about 60 to 75)`, r.frames >= SHOW_FRAMES.min && r.frames <= SHOW_FRAMES.max);
+  check('it went through every scene of the montage, then THE END', spec.scenes.every((_, i) => r.phases.includes(`montage${i}`)) && r.phases[r.phases.length - 1] === 'end' && !r.phases.includes('parade'));
+  check(`it is a watchable length (${(r.frames / 50).toFixed(0)} seconds)`, r.frames >= SHOW_FRAMES.min && r.frames <= SHOW_FRAMES.max);
   check(`every figure of the cast was recorded (${r.figures.length} of ${spec.cast.length})`, r.figures.length === spec.cast.length);
   r.turns.check(!spec.creditLine);
   check('the hero is in every scene and not among the visitors', !r.figures.some((f) => /PENDRAGON|WILLY|^THING$/.test(f.name)));
@@ -374,6 +412,7 @@ export function checkShow(o: ShowRun, r: ShowResult, lines: readonly string[], p
     check('the band was empty before the text in every scene with credits, and only the credit colour is drawn in it', r.bandEmptyBefore === r.scenes && r.scenes === spec.scenes.filter((sc) => sc.credits?.length).length && r.stray.length === 0);
     check(`every line fits the band (at most ${CREDIT.letters} letters, upper case)`, lines.every((l) => l.length <= CREDIT.letters && l === l.toUpperCase()));
   }
+  if (!line) check(`the text keeps a gap of black from the playfield: the pixel rows above and below its cell hold nothing the game draws (${r.touch.frames} sampled frames touching${r.touch.first ? `: ${r.touch.first}` : ''})`, r.touch.frames === 0);
   if (r.stray.length) console.log(r.stray.join('\n'));
   check('the credits are in order: the game first, the port and thanks last', lines[0] === opening && portLines.every((l) => lines.includes(l)) && lines[lines.length - 1] === 'THANKS FOR PLAYING');
   check('the port is credited to Christopher Hickman, with Claude', portLines.some((l) => l.includes('HICKMAN')) && portLines.some((l) => l.includes('CLAUDE')) && lines.some((l) => l.includes('HICKMAN')) && lines.some((l) => l.includes('CLAUDE')));

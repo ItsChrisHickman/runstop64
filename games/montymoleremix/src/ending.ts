@@ -16,8 +16,8 @@ import { ROOM_COUNT, type RemixFound } from './map';
  * leave empty, and the game's creatures (Monty on the Run's, as the remix draws them) walking through the rooms; then THE END with the numbers the pause screen keeps.
  */
 
-/** The row under the playfield (screen row 23, between the room and the bottom of the screen), which the game leaves empty. */
-export const CREDIT_ROW = 184;
+/** The credits' row: under the playfield (which ends at row 183), in the middle of the 16 rows the game leaves empty to the bottom of the screen, so the text touches neither. */
+export const CREDIT_ROW = 188;
 
 /** A place of the montage: the room and its credit lines (upper case, at most 38 letters, the lettering of the font). */
 const PLAN: readonly (readonly [number, readonly string[]])[] = [
@@ -143,10 +143,9 @@ function recordCreature(stage: Stage, name: string, room: number, slot: number):
 export function remixEnding(renderer: Renderer): RewardSpec {
   let made: Stage | null = null;
   const stage = (): Stage => (made ??= new Stage(renderer));
-  // (the credits first, then the names: the creatures all walk through the last place, after its lines, so no name comes between a credit and the next)
-  const places: Place[] = PLAN.map(([room, credits], i): Place => ({
+  // (the credits first, then the creatures one at a time: the show's parade is in the last place, after its lines)
+  const places: Place[] = PLAN.map(([room, credits]): Place => ({
     credits,
-    ...(i < PLAN.length - 1 ? { visitors: false as const } : {}),
     // (a room lasts as long as its credits and visitors take: the route's first part is played, the rest is not needed)
     frames: 0,
     open: () => new RoomReel(stage(), room),

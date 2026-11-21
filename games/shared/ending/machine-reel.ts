@@ -66,6 +66,10 @@ export interface EndingScene {
   creditsFrom?: number;
   /** The row the visitors' feet stand on in this place, if not where the hero stands as it begins (picture pixels). */
   ground?: number;
+  /** After the last credit line, with none of its own: the parade may cross this place too (`Place.visitors`). */
+  parade?: true;
+  /** The most frames the scene can run (its steps are only so long: a hero left standing may be at the creatures' mercy). With `parade`, the walks that fit are the place's. */
+  limit?: number;
 }
 
 /** One of the game's characters, a visitor of the montage: the sprites that make it up in a place (top part first). The hero is not one: he is in every place. */
@@ -480,6 +484,8 @@ export class Ending {
       ...(scene.credits ? { credits: scene.credits } : {}),
       ...(scene.creditsFrom === undefined ? {} : { bandFrom: scene.creditsFrom }),
       ...(scene.ground === undefined ? {} : { ground: scene.ground }),
+      ...(scene.parade ? { visitors: true } : {}),
+      ...(scene.limit === undefined ? {} : { limit: scene.limit }),
       frames: scene.frames,
       open: () => {
         const base = this.boot();

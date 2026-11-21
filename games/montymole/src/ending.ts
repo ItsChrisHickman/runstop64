@@ -100,7 +100,8 @@ class RoomReel implements Reel {
   }
 
   tick(): void {
-    this.fresh = this.frame++ % PASS_FRAMES === 0 && !this.pilot.done;
+    // (a route that is over gives the rest stick: the game goes on, so the parade is over a room that is alive)
+    this.fresh = this.frame++ % PASS_FRAMES === 0;
     if (!this.fresh) return;
     const stick = this.pilot.next();
     this.game.pass(portsFor(keyByte(stick, stick.fire)));

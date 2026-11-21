@@ -168,6 +168,10 @@ export class AwmReel implements Reel {
   draw() {
     this.stage.view.update(this.program.viewStep);
     this.stage.view.renderer.backdrop = this.stage.view.backdrop;
+    // (the room's last pixel row put away over the credits' span, so the text has a row of black above it, as the green band leaves one below)
+    const { screen } = this.stage.view.renderer, at = ((this.scene.creditRow ?? CREDIT_ROW) - 1) * screen.width + CREDIT_X;
+    screen.pixels.fill(0, at, at + CREDIT_LETTERS * 8);
+    screen.version++;
   }
 
   render(alpha: number) { this.stage.view.render(alpha); }

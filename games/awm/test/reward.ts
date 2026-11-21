@@ -7,7 +7,7 @@
  *     grace at all, for the record, how many of them he gets through untouched;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way out,
  *     every creature of the cast recorded with its frames and walking through the montage, each named in the credits' row in turn on
- *     pixels the game leaves empty (Monty is in every place, not among them), no parade, about a minute and a quarter, THE END and its numbers on
+ *     pixels the game leaves empty (Monty is in every place, not among them), the parade one at a time after the credits, about a minute and a half to two minutes, THE END and its numbers on
  *     the picture;
  *  3. the credits: the row under the room is empty in the game's own picture between the side columns in every frame of every
  *     place (sprites included, the flight's sky too), every line types on there letter by letter in yellow, is held, and goes,
@@ -29,7 +29,7 @@ import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { RoutePilot } from '../../shared/ending/pilot';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES, drawVisitors } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, SHOW_FRAMES, drawVisitors, touching } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { indicesPng, renderPixels } from '../../../tools/probe/render';
 import { AwmReel, awmEnding, CREDIT_LETTERS, CREDIT_ROW, CREDIT_X, endingStats, isDone, routeFrames, sceneGame, Stage, stickBits } from '../src/ending';
@@ -113,7 +113,7 @@ const renderer = new PixelRenderer();
 const spec = awmEnding(renderer);
 const watching: { reel: AwmReel | null } = { reel: null };
 /** What the game's own picture has in the credits' row between the side columns, and what the show has put there in its text's colour and in any other. */
-let gameBand = 0, gameFrames = 0, badFrames = 0, gameBandEmpty = true;
+let gameBand = 0, gameFrames = 0, badFrames = 0, gameBandEmpty = true, gameTouch = 0;
 const badPlaces = new Map<number, string>();
 function bandOf(px: ArrayLike<number>, ink: number | null) {
   let n = 0, yellow = 0, other = 0;
@@ -138,6 +138,7 @@ const watched: Place[] = spec.places.map((place) => ({
         reel.draw();
         const px = renderPixels(reel.program);
         const b = bandOf(px, null);
+        const over = renderer.screen.pixels; gameTouch = touching((x, y) => { const c = over[y * 320 + x] !== TRANSPARENT ? over[y * 320 + x] : px[y * 320 + x]; return c !== undefined && c !== 0 && c !== TRANSPARENT; }, BAND.top, BAND.left, (BAND.right - BAND.left) / 8);
         gameBand += b.n;
         gameBandEmpty = b.n === 0;
         gameFrames++;
@@ -187,7 +188,7 @@ while (show.active && frames < 20000) {
     if (p.frames === 0) continue;
     const place = spec.places[p.place];
     const b = bandOf(renderer.screen.pixels, p.said?.ink ?? CREDIT.colour);
-    bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other });
+    bandWatch.frame(p, place.credits, { ink: b.yellow, other: b.other, touch: p.said ? gameTouch : 0 });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([60, 150, 250, 350, 500, 700, 900].includes(p.frames)) shot(`place-${p.place}-f${p.frames}.png`, renderer, watching.reel?.program ?? null);
     if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); shot(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer, watching.reel?.program ?? null); }
@@ -202,8 +203,8 @@ while (show.active && frames < 20000) {
 }
 const progress = show.progress;
 console.log(`phases ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}`);
-check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END, no parade`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
+check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credits through the places, then the parade; 70 to 130)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 
@@ -306,7 +307,7 @@ function win(s: ReturnType<typeof boot>) {
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
   tick(5);
   check('?ending on the page: the ending at once', ending.active);
-  tick(200);
+  tick(150);
   inp.keyDown('Space'); tick(1); inp.keyUp('Space'); tick(2);
   check('?ending: a key ends it on the title', !ending.active && p.state.kind === 'title');
   Reflect.deleteProperty(globalThis, 'location');

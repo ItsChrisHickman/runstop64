@@ -3,25 +3,26 @@ import { CREDIT } from './credits';
 /**
  * The montage's clock, pure: what the empty band says at each frame of a place, and where each visitor of the cast stands. The band
  * is one row of the picture the game leaves empty, so a place's credit lines and its visitors' names take turns in it: all the
- * place's lines first, one after another, then the names of its visitors, each as the visitor passes the middle of the picture. A
- * name never comes between two lines, so a sentence typed over two lines is never broken by one (the names are drawn in a colour of
- * their own, too: `show.ts`). Each visitor walks across the place and is named for a moment as it passes the middle.
+ * place's lines first, one after another, then the parade: the visitors one at a time (Super Mario World's way), each crossing the
+ * whole picture alone while its name stands under it, the next coming on only once it has gone off. The parade comes after every
+ * credit line of the show (`sharesOf`: the last place with a band takes the whole cast), so a name never comes between two lines
+ * and a sentence typed over two lines is never broken by one (the names are drawn in a colour of their own, too: `show.ts`).
  */
 
-/** Frames a visitor's name is shown, a moment it is off at the end, and the frames its walk lasts either side of that. */
-export const NAME = { slot: 40, gap: 6, lead: 40 } as const;
+/** Frames a visitor's walk lasts: it crosses the picture (2.5 seconds) and is named all the while. One at a time: the next walk begins as this one ends. */
+export const NAME = { slot: 125 } as const;
 
 /** One turn of the band: a credit line (its index) or a visitor's name (its index among this place's visitors). */
 interface Beat { kind: 'credit' | 'name'; index: number; from: number; len: number }
 
 /** What a place declares of its time: its lines, how long it runs at least and the frame its band is empty from. */
-interface PlaceShape { credits?: readonly string[]; frames: number; bandFrom?: number; visitors?: false }
+interface PlaceShape { credits?: readonly string[]; frames: number; bandFrom?: number; visitors?: boolean; limit?: number }
 
 export interface Timeline { length: number; beats: readonly Beat[] }
 
 /**
- * A place's turns: its credit lines, then its visitors' names. It runs as long as it declares, or longer if its turns need it; spare
- * time is the lines' (held longer), less a moment after the last name, where there is time for it, for its visitor to walk off.
+ * A place's turns: its credit lines, then its visitors' names, one walk each. It runs as long as it declares, or longer if its turns
+ * need it; spare time is the lines' (held longer).
  */
 export function timelineOf(place: PlaceShape, visitors: number, slot: number = CREDIT.slot, nameSlot: number = NAME.slot): Timeline {
   const lines = place.credits?.length ?? 0;
@@ -31,8 +32,7 @@ export function timelineOf(place: PlaceShape, visitors: number, slot: number = C
   ];
   const base = turns.reduce((n, t) => n + (t.kind === 'credit' ? slot : nameSlot), 0);
   const first = place.bandFrom ?? 0;
-  const tail = visitors > 0 ? NAME.lead : 0;
-  const spare = lines > 0 ? Math.max(0, place.frames - first - base - tail) : 0;
+    const spare = lines > 0 ? Math.max(0, place.frames - first - base) : 0;
   let at = first, given = 0, seen = 0;
   const beats = turns.map((t): Beat => {
     let len = t.kind === 'credit' ? slot : nameSlot;
@@ -59,17 +59,15 @@ export function bandAt(tl: Timeline, t: number, lines: readonly string[], names:
     const line = lines[beat.index];
     return line === undefined ? null : { text: line.slice(0, into), beat };
   }
-  if (into >= beat.len - NAME.gap) return null;
   const name = names[beat.index];
   return name === undefined ? null : { text: name, beat };
 }
 
-/** The frames a visitor is on its way, about its name's turn. */
+/** The frames a visitor is on its way: exactly its turn, so only one is ever on the picture. */
 export interface Walk { from: number; to: number }
 
-export function walkOf(beat: Beat, length: number): Walk {
-  const from = Math.max(0, beat.from - NAME.lead);
-  return { from, to: Math.max(from + 30, Math.min(length, beat.from + beat.len + NAME.lead)) };
+export function walkOf(beat: Beat): Walk {
+  return { from: beat.from, to: beat.from + beat.len };
 }
 
 /** The left edge of a visitor `width` wide at frame `t` (it comes in off the left and goes out off the right), or null off its walk. */
@@ -84,23 +82,27 @@ export function nameLeft(left: number, letters: number, x: number, span: number)
 }
 
 /**
- * How many of `n` visitors each place takes (none for a place with no credits: its band is not empty, nor for one that says `visitors: false`): spread evenly, the extra ones
- * to the places with the most spare time.
+ * How many of `n` visitors each place takes. The parade comes after every credit line, so it is in the last place that has a line
+ * and in the places after it that say `visitors: true` (their band is empty though they have no lines): never in one that says
+ * `visitors: false` (something the game does there wants the picture to itself). Each takes as many walks as fit in what it can
+ * run (`limit`, frames: a place whose hero has only so long a way; none: as many as are left) after its own lines; what does not
+ * fit anywhere goes to the last of them.
  */
-export function sharesOf(places: readonly PlaceShape[], n: number, slot: number = CREDIT.slot, nameSlot: number = NAME.slot): number[] {
-  const eligible = places.flatMap((p, i) => ((p.credits?.length ?? 0) > 0 && p.visitors !== false ? [i] : []));
+export function sharesOf(places: readonly PlaceShape[], n: number, slot: number = CREDIT.slot): number[] {
   const out = places.map(() => 0);
-  if (eligible.length === 0) return out;
-  const base = Math.floor(n / eligible.length);
-  for (const i of eligible) out[i] = base;
-  const spare = (i: number) => {
+  const last = places.reduce((at, p, i) => ((p.credits ?? []).some((l) => l !== '') && p.visitors !== false ? i : at), -1);
+  if (last < 0) return out;
+  const takers = places.flatMap((p, i) => (i === last || (i > last && p.visitors === true) ? [i] : []));
+  let left = n;
+  for (const i of takers) {
     const p = places[i];
-    return p ? p.frames - (p.bandFrom ?? 0) - (p.credits?.length ?? 0) * slot - base * nameSlot : 0;
-  };
-  const order = [...eligible].sort((a, b) => spare(b) - spare(a) || a - b);
-  for (let k = 0; k < n - base * eligible.length; k++) {
-    const i = order[k];
-    if (i !== undefined) out[i]++;
+    if (!p) continue;
+    const room = p.limit === undefined ? left : Math.max(0, Math.floor((p.limit - (p.bandFrom ?? 0) - (p.credits?.length ?? 0) * slot) / NAME.slot));
+    const take = Math.min(left, room);
+    out[i] = take;
+    left -= take;
   }
+  const end = takers[takers.length - 1];
+  if (end !== undefined) out[end] = (out[end] ?? 0) + left;
   return out;
 }

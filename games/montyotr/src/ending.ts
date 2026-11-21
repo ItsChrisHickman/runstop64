@@ -6,7 +6,7 @@ import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
 import { montyMap, type MontyFound } from './map';
 import { Pilot } from './pilot';
-import type { Scene } from './ending-scenes';
+import { TOP_ROW, type Scene } from './ending-scenes';
 import { cellOf, type MontyData, type MontyEnding } from './montydata';
 
 /**
@@ -16,8 +16,13 @@ import { cellOf, type MontyData, type MontyEnding } from './montydata';
  * and the game's creatures walking through the places; then THE END with the numbers the pause screen keeps.
  */
 
-/** The row under the playfield (screen row 23, between the room and its name), which the game leaves empty. */
-export const CREDIT_ROW = 184;
+/**
+ * The credits' row: under the playfield (which ends at row 183), in the middle of the 16 rows to the bottom of the screen: the show
+ * puts the room's name there away (`NAME_ROWS`), so the text touches neither the room nor a line of the game's.
+ */
+export const CREDIT_ROW = 188;
+/** The screen rows the room's name takes (put away during the show: the credits' row is in the middle of the space under the playfield). */
+const NAME_ROWS = { from: 192, to: 200 } as const;
 /** Frames after what Monty does in a room before the next place (a moment to take it in). */
 const TAIL = 40;
 
@@ -64,7 +69,7 @@ class Stage {
   readonly view: VicView;
   /** The score through the places (the HUD keeps counting). */
   score = 0;
-  constructor(data: MontyData, renderer: Renderer, assist: Assists) {
+  constructor(data: MontyData, readonly renderer: Renderer, assist: Assists) {
     this.game = new Game(data);
     this.game.assist = assist;
     // (nothing in the montage can end him: the routes are found without a death, and the crushers' timing is random)
@@ -77,7 +82,7 @@ class Stage {
 class MontyReel implements Reel {
   private readonly pilot: Pilot;
   private collisions = 0;
-  constructor(private readonly stage: Stage, scene: Scene) { this.pilot = new Pilot(scene.route); }
+  constructor(private readonly stage: Stage, private readonly scene: Scene) { this.pilot = new Pilot(scene.route); }
 
   tick() {
     const g = this.stage.game;
@@ -92,6 +97,12 @@ class MontyReel implements Reel {
   draw() {
     const { game: g, view } = this.stage;
     view.update();
+    // (the room's name put away: the credits stand in the middle of the space under the playfield)
+    const { screen } = this.stage.renderer;
+    screen.pixels.fill(0, NAME_ROWS.from * screen.width, NAME_ROWS.to * screen.width);
+    // (and, in a room whose credits go above it, the score's: the lives' number stands against that row)
+    if (this.scene.creditRow === TOP_ROW) screen.pixels.fill(0, 0, TOP_ROW * screen.width);
+    screen.version++;
     this.collisions = view.collisions(g.uncounted);
   }
 

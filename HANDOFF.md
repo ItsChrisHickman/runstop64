@@ -56,12 +56,13 @@ open questions below; nothing big is under construction.
 Every game ends ENHANCED with a reward after the game's own ending: a montage of the game's places with the hero running
 through and doing something that fits (the game's own engine, driven by input), Super Mario World-style credits over it (the
 makers, then sourced fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), the game's
-creatures walking across the places and named once each, THE END with stats, the game's music. Won is kept apart from the saves,
+creatures parading one at a time, THE END with stats, the game's music. Won is kept apart from the saves,
 W on the pause screen once won, `?ending` on the page. Sources for every fact are in each game's `re/credits.md`; never invent
-a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks it).
+a credit. It runs 75 to 125 seconds now (`SHOW_FRAMES` in the kit, 3500 to 6500 frames; each test prints its length): the credits
+through the places, then the parade (Monty on the Run, 127 s with 24 creatures, is the longest; Moley and JSW2 the shortest).
 
 - **One module, two reels:** `games/shared/ending/`: `show.ts` (`RewardShow`), `timeline.ts` (the pure clock: a credit line is
-  `CREDIT.slot` 90 frames, a name `NAME.slot` 40, THE END 250), `figures.ts`, `pilot.ts`, `credits.ts`, and `machine-reel.ts` (the
+  `CREDIT.slot` 90 frames, a creature's walk `NAME.slot` 125, THE END 250), `figures.ts`, `pilot.ts`, `credits.ts`, and `machine-reel.ts` (the
   translated-machine reel: Blackwyche, Dragonskulle, Karnath, Entombed, Thing on a Spring, JSW2). The native rebuilds (Monty, AWM,
   Moley, Antiriad) give a `Reel` and a `Place` list to `RewardShow` themselves.
   Test kit: `games/shared/test/ending-kit.ts` (`playShow`/`checkShow` for the machines, `CastWatch` and `BandWatch` for all).
@@ -69,6 +70,17 @@ a credit. It runs 60 to 75 seconds (3000 to 3900 frames; each game's test checks
   `re/ending/route.ts`, `re/ways.json`); visitors stand at the hero's feet at the moment they enter, so on a stair or in a jump they
   may float a little. JSW2's scenes are cut short of their found ways (never longer: the test checks). Moley plays the first
   part of each screen's puzzle.
+- **The parade rule (2026-11-20, Chris: "a firehose", wanted Super Mario World's one at a time):** the creatures come after every
+  credit line, one at a time: `sharesOf` gives the whole cast to the last place that has credits (and does not say `visitors:
+  false`), whose timeline is its lines, then one `NAME.slot` (125 frames, 2.5 s) turn per creature. A creature's walk is exactly
+  its turn (`walkOf`), so it crosses the whole picture alone, its name under it all the way, and the next comes on as it leaves
+  (`CastWatch` checks never two on the picture, each named while alone). A place whose reel has a route (Moley, Monty Mole)
+  goes on after the route with no key, so the last room stays alive under the parade. Where a hero's way is only so long and
+  must not run out (JSW2: Willy left standing is at the guardians' mercy), a scene says `limit` (its way's frames) and the
+  parade also crosses the scenes after the last line that say `parade` (`Place.visitors: true`, no lines): each takes the walks
+  that fit (JSW2: room 34 after its lines, then rooms 24 and 47).
+- **The credit row keeps a gap:** the text's cell has at least a pixel row of the game's black above and below it in every frame
+  (`touching` in the kit; `BandWatch` and `checkShow` check it). Each game's `CREDIT_ROW` was moved to clear its playfield.
 - Creature names are ours where the games name none; Chris may want to change them.
 
 ## Open questions (found in the cleanup pass)

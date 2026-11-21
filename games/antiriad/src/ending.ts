@@ -21,13 +21,15 @@ import { Bases, arrive, frameOf, fromState } from './stage';
 
 /** The row between the playfield (rows 0-15) and the panel (from row 17): screen row 16, which the game leaves empty. */
 export const CREDIT_ROW = 128;
+/** The playfield's last pixel row (the credits' row is the next 8): shown black while credits are up, so the text does not touch the floor. */
+const PLAYFIELD_LAST = 127;
 
 /** A place running: the game's frames with Tal's pilot. */
 export class SceneReel implements Reel {
   readonly g: Game;
   private readonly view: C64View;
   private readonly pilot: Pilot;
-  constructor(renderer: Renderer, bases: Bases, readonly scene: Scene) {
+  constructor(private readonly renderer: Renderer, bases: Bases, readonly scene: Scene) {
     this.g = fromState(bases.get(scene.base));
     scene.prepare(this.g);
     if (scene.arrive) arrive(this.g, scene.arrive);
@@ -35,7 +37,15 @@ export class SceneReel implements Reel {
     this.pilot = new Pilot(scene.steps);
   }
   tick() { frameOf(this.g, this.pilot); }
-  draw() { this.view.update(); }
+  draw() {
+    this.view.update();
+    // (the playfield's last pixel row put away over the credits' band, so the text has a row of black above it, as the panel's top leaves one below; not over the ending's flash)
+    if (this.scene.credits.some((l) => l !== '')) {
+      const { screen } = this.renderer;
+      screen.pixels.fill(0, PLAYFIELD_LAST * screen.width, (PLAYFIELD_LAST + 1) * screen.width);
+      screen.version++;
+    }
+  }
   render(alpha: number) { this.view.render(alpha); }
   dispose() { this.view.dispose(); }
 
@@ -62,7 +72,8 @@ export function endingStats(g: Game, found: AntiriadFound): string[] {
 export function antiriadEnding(renderer: Renderer): RewardSpec {
   const bases = new Bases();
   const places: Place[] = SCENES.map((scene, i): Place => ({
-    credits: i === SCENES.length - 1 ? [...scene.credits, ...PORT_CREDITS] : scene.credits,
+    // (the port's lines come before the game's own ending, the last place, which the flash is on and nobody crosses: the parade follows the last line, in the place before it)
+    credits: i === SCENES.length - 2 ? [...scene.credits, ...PORT_CREDITS] : scene.credits,
     frames: scene.shown ?? 0,
     // (the last place is the game's own ending, the screen flashing white: nobody walks through it)
     ...(i === SCENES.length - 1 ? { visitors: false as const } : {}),

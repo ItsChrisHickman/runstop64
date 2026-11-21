@@ -70,19 +70,21 @@ const tidy = (ram: Uint8Array): void => {
 
 /**
  * A scene: a room, the way found for it, its credit lines. It lasts as long as its credit lines and visitors take (the show's
- * timeline), never longer than the way: a way found for the room is safe over every frame of it, so one cut short is too, but Willy left
+ * timeline), never longer than the way (`limit`: the parade takes only the walks that fit): a way found for the room is safe over every frame of it, so one cut short is too, but Willy left
  * standing at the end of a shorter one is at the guardians' mercy (the test checks each scene is no longer than its way).
  */
-const scene = (n: number, credits: readonly string[]): EndingScene => {
+const scene = (n: number, credits: readonly string[], frames = 0): EndingScene => {
   const way = WAYS[n];
-  return { enter: room(n), ...(way ? { settle: stand(n, way.spot) } : {}), steps: way ? stepsOf(way.path) : [], frames: 0, credits };
+  const limit = way?.path.reduce((t, [, frames]) => t + frames, 0);
+  return { enter: room(n), ...(way ? { settle: stand(n, way.spot) } : {}), steps: way ? stepsOf(way.path) : [], frames, credits, ...(limit === undefined ? {} : { limit }), ...(credits.length === 0 ? { parade: true as const } : {}) };
 };
 
 /*
  * The credits are in three parts, as Super Mario World's: the makers, true facts, then the port (shared/ending/credits.ts `PORT_CREDITS`, in the
  * last scene). Sources of every line: re/credits.md. A line is at most 38 letters, upper case, in the game's own lettering (no apostrophes).
  */
-const PLAN: readonly (readonly [number, readonly string[]])[] = [
+/** The room, its credit lines, and how long it is shown at least where its credits would end before Willy has gone anywhere (frames). */
+const PLAN: readonly (readonly [number, readonly string[], number?])[] = [
   // Butlers Pantry: fifteen jars taken
   [68, ['JET SET WILLY II: THE FINAL FRONTIER', 'SOFTWARE PROJECTS, 1985', 'C64 VERSION BY JOHN DARNELL', 'AND STEVE BIRTLES']],
   // The Off Licence: thirteen bottles
@@ -90,13 +92,16 @@ const PLAN: readonly (readonly [number, readonly string[]])[] = [
   [20, ['IT BEGAN AS THE AMSTRAD JET SET WILLY', 'BY DERRICK ROWSON AND STEVE WETHERILL', 'ROWSONS SCREEN COMPRESSION LEFT', 'ENOUGH MEMORY FOR NEW ROOMS']],
   [85, ['THE ZOO WAS WHAT PEOPLE CALLED THE', 'PROGRAMMING OFFICES AT SOFTWARE', 'PROJECTS, IN THE BEAR BRAND COMPLEX', 'AND THE CAMEL IS WETHERILLS OWN']],
   [82, ['THE BIRDS ARE WONGA THE BUDGIE,', 'MARC WILDINGS CODING ALTER EGO']],
-  [104, ['FOOT ROOM: A NOD TO MANIC MINER', 'LOONY JET SET: A NOD TO JET PAC', 'EGGOIDS: A NOD TO LUNAR JET MAN', 'MACARONI TED: A NOD TO TECHNICIAN TED']],
+  [104, ['FOOT ROOM: A NOD TO MANIC MINER', 'LOONY JET SET: A NOD TO JET PAC', 'EGGOIDS: A NOD TO LUNAR JET MAN', 'MACARONI TED: A NOD TO TECHNICIAN TED'], 420],
   [136, ['THE SPECTRUM HAS 175 ITEMS, NEEDS 150', 'THIS VERSION HAS 178 AND NEEDS 160']],
   [34, [...PORT_CREDITS, 'THANKS FOR PLAYING']],
+  // (after the last line the mansion's guardians parade one at a time: over the room the port's lines were in, and two more with no lines, which the ways found for them let run long enough for the walks)
+  [24, []],
+  [47, []],
 ];
 /** The room of each scene, in order. */
 export const SCENE_ROOMS: readonly number[] = PLAN.map(([n]) => n);
-const SCENES: readonly EndingScene[] = PLAN.map(([n, credits]) => scene(n, credits));
+const SCENES: readonly EndingScene[] = PLAN.map(([n, credits, frames]) => scene(n, credits, frames));
 
 const at = (name: string, n: number, sprites: readonly number[], frames = 200): EndingCharacter => {
   const way = WAYS[n];

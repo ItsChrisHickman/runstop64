@@ -5,7 +5,7 @@
  *     asks, alive: each leaves by its way out and the last delivers the papers and ends the game; played twice it is the same game;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the six screens in order each with its credits, the creatures
  *     (recorded; Monty is in every screen, not among them) walking through them, each named in the credits' rows in turn on pixels the game leaves
- *     empty, no parade, about a minute and THE END and its numbers, the tune from its start and again on the way out;
+ *     empty, the parade one at a time after the credits, THE END and its numbers, the tune from its start and again on the way out;
  *  3. the credits: the rows they stand in (where the panel was, put away) are black in every frame of every screen, before the text goes
  *     over them, every line types on there letter by letter in bright yellow, is held and goes, the port's lines last;
  *  4. a key skips it, after two seconds and not before;
@@ -23,7 +23,7 @@ import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
 import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, SHOW_FRAMES, touching } from '../../shared/test/ending-kit';
 import { palettePng } from '../../../tools/png';
 import { SPECTRUM } from '../src/colours';
 import { CREDIT_ROW, LINES, SCENE_ROOMS, endingStats, moleyEnding, newScreen } from '../src/ending';
@@ -80,7 +80,7 @@ function band(ink: number = SPECTRUM.yellow) {
   return { credit, other };
 }
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
-let gameBand = 0, gameFrames = 0, gameBandEmpty = true;
+let gameBand = 0, gameFrames = 0, gameBandEmpty = true, gameTouch = 0;
 const watched: Place[] = spec.places.map((place) => ({
   ...place,
   open() {
@@ -88,7 +88,7 @@ const watched: Place[] = spec.places.map((place) => ({
     if (!reel) return null;
     const watch: Reel = {
       tick: () => reel.tick(),
-      draw() { reel.draw(); const b = band(); gameBand += b.credit + b.other; gameBandEmpty = b.credit + b.other === 0; gameFrames++; },
+      draw() { reel.draw(); { const pic = renderer.picture(); gameTouch = touching((x, y) => ((pic[y * SURFACE_WIDTH + x] ?? 0) & 7) !== 0, BAND.top, CREDIT.x, CREDIT.letters); } const b = band(); gameBand += b.credit + b.other; gameBandEmpty = b.credit + b.other === 0; gameFrames++; },
       render: (a) => reel.render(a),
       dispose: () => reel.dispose(),
     };
@@ -124,7 +124,7 @@ while (show.active && frames < 14000) {
     const place = spec.places[p.place];
     const b = band(p.said?.ink);
     // (a line in full is all credit-coloured pixels in the band, never another colour; while it types on the same)
-    bandWatch.frame(p, place.credits, { ink: b.credit, other: b.other });
+    bandWatch.frame(p, place.credits, { ink: b.credit, other: b.other, touch: p.said ? gameTouch : 0 });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([100, 400, 700, 1000].includes(placeFrame)) png(`place${p.place}-f${placeFrame}.png`, renderer);
     if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
@@ -139,9 +139,9 @@ while (show.active && frames < 14000) {
 }
 console.log(`phases: ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}; figures: ${show.cast.map((f) => `${f.name}:${f.poses.length}`).join(', ')}`);
 check('the show ran to its end and called done, once', !show.active && over === 1);
-check('every screen of the montage in order, then THE END, no parade', phases.join() === 'loading,montage,end');
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
-check(`each screen is as long as its credits and visitors take (${sceneFrames.join(', ')} frames), a part of its route played (never more than the route has)`, sceneFrames.every((n, i) => n > 0 && n <= Pilot.frames(ROUTES[SCENE_ROOMS[i]])));
+check('every screen of the montage in order, then THE END', phases.join() === 'loading,montage,end');
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credits through the places, then the parade; 70 to 130)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
+check(`each screen is as long as its credits take (${sceneFrames.join(', ')} frames), a part of its route played (never more than the route has); the last, which the parade crosses, goes on after its route with no key`, sceneFrames.every((n, i) => n > 0 && (i === sceneFrames.length - 1 || n <= Pilot.frames(ROUTES[SCENE_ROOMS[i]]))));
 check('the tune is begun with the show and again on the way out', tuneStarts === 1 && tuneEnds === 1);
 check(`every creature of the cast was recorded (${show.cast.length}), Monty not among them (he is in every screen), and most of them move`, show.cast.length === spec.cast.length && !show.cast.some((f) => f.name === 'MONTY') && show.cast.filter((f) => f.poses.length > 1).length >= 6);
 castWatch.check(show.cast);

@@ -31,7 +31,8 @@ export class Pilot {
 
   /** The passes of this frame (none on the second frame of a pass at the game's pace), and whether they are the montage's quick ones. */
   frame(): { keys: number[]; fast: boolean } {
-    if (this.done) return { keys: [], fast: false };
+    // (a route that is over: the game goes on with no key, a pass every two frames, so the parade is over a room that is alive)
+    if (this.done) { this.half ^= 1; return { keys: this.half === 1 ? [0] : [], fast: false }; }
     if (this.fast[this.at]) {
       const keys: number[] = [];
       while (keys.length < FAST && !this.done && this.fast[this.at]) keys.push(this.keys[this.at++]);

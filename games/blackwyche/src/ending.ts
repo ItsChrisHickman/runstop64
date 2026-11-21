@@ -76,9 +76,9 @@ export const blackwycheEnding: EndingSpec = {
   cast: CAST,
   status: STATUS,
   // the room is shown in rows 32 to 161 (the frame's art above, the black band and the panel below: not the room), and the creatures are
-  // named in the black row between the frame's art and the room (rows 24 to 31), in white: the credits stay in the band under the room, in yellow
+  // named in the black row between the frame's art and the room (rows 24 to 31: at row 26, a black row clear of the art above), in white: the credits stay in the band under the room, in yellow
   stage: { top: 32, bottom: 162 },
-  nameRow: 24,
+  nameRow: 26,
   nameInk: 1,
   hero: 2,
   // the magic sword in hand, and the seaweed (the oyster gives up its pearl to it)

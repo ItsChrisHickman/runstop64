@@ -6,7 +6,7 @@
  *     asks, alive: every piece of the room's coal is taken, a gate's room opens its gate, the way on is taken; played twice it is the same game;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way out, every creature of the cast
  *     recorded with its frames and walking through the montage, each named in the credits' row in turn on pixels the game leaves empty (Monty is in every
- *     place, not among them), no parade, about a minute and THE END and its numbers;
+ *     place, not among them), the parade one at a time after the credits, THE END and its numbers;
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites included), every line types on there
  *     letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before;
@@ -26,7 +26,7 @@ import { RoutePilot } from '../../shared/ending/pilot';
 import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, SHOW_FRAMES, touching } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { montyLettering } from '../../shared/monty/font';
@@ -90,7 +90,7 @@ function band(ink: number = CREDIT.colour) {
 }
 
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
-let gameBand = 0, gameFrames = 0, gameBandEmpty = true;
+let gameBand = 0, gameFrames = 0, gameBandEmpty = true, gameTouch = 0;
 const badPlaces = new Map<number, string>();
 const watched: Place[] = spec.places.map((place) => ({
   ...place,
@@ -102,6 +102,7 @@ const watched: Place[] = spec.places.map((place) => ({
       draw() {
         reel.draw();
         const b = band();
+        { const pic = renderer.picture(); gameTouch = touching((x, y) => pic[y * 320 + x] !== 0, BAND.top, CREDIT.x, CREDIT.letters); }
         gameBand += b.yellow + b.other;
         gameBandEmpty = b.yellow + b.other === 0;
         gameFrames++;
@@ -156,7 +157,7 @@ while (show.active && frames < 14000) {
     if (p.said?.kind === 'name') named = true;
     else if (p.said?.kind === 'credit' && p.said.text.trim() !== '' && named) creditAfterName++;
     const b = band(p.said?.ink);
-    bandWatch.frame(p, place?.credits, { ink: b.yellow, other: b.other });
+    bandWatch.frame(p, place?.credits, { ink: b.yellow, other: b.other, touch: p.said ? gameTouch : 0 });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([40, 100, 200, 300, 400, 600, 700].includes(placeFrames)) png(`place-${p.place}-f${placeFrames}.png`, renderer);
     if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
@@ -171,8 +172,8 @@ while (show.active && frames < 14000) {
 }
 const progress = show.progress;
 console.log(`phases ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}`);
-check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END, no parade`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
+check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credits through the places, then the parade; 70 to 130)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 

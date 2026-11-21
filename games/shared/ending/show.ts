@@ -10,10 +10,9 @@ import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timel
  *
  *  1. A montage of places: each one the game's own engine running (a new game of ours, never the player's), its creatures
  *     moving as the engine moves them, the hero driven by input as in play doing something that fits the place. Over it, in a
- *     part of the picture the game leaves empty (never on a box), the credits type on one line at a time, and after a place's
- *     lines the show names the cast: the game's creatures walk across the place, each one named for a moment as it passes
- *     the middle, in a colour of its own (never between two lines, so a name is never read as part of the credits), so every
- *     one has been seen by the end, in places it never is in the game.
+ *     part of the picture the game leaves empty (never on a box), the credits type on one line at a time; after the last line
+ *     the cast parades across the last place, one creature at a time, each named all the way across in a colour of its own (so
+ *     a name is never read as part of the credits), so every one has been seen by the end, in places it never is in the game.
  *  2. THE END and the player's numbers, then back to the title.
  *
  * Two kinds of reel exist, both in this folder's neighbours: a translated machine (`machine-reel.ts`, the Pendragon games, Thing
@@ -52,8 +51,14 @@ export interface Place {
   credits?: readonly string[];
   /** How long it is shown at least (frames at 50 a second); longer if its credits and visitors need it. */
   frames: number;
-  /** `false`: none of the cast walks through this place (something the game does here wants the picture to itself). */
-  visitors?: false;
+  /**
+   * `false`: none of the cast parades through this place (something the game does here wants the picture to itself). `true`: a place
+   * after the last credit line, with no lines of its own, whose band is empty all the same: the parade may go on in it (the show
+   * puts the cast in the last place with a line, and in these after it, each as many as fit in `limit`).
+   */
+  visitors?: boolean;
+  /** The most frames this place can run (the hero has only so long a way, found safe): the parade takes only the walks that fit in it. Without it, the place can run as long as it needs. */
+  limit?: number;
   /** The frame the band is empty from (default 0): where the first part of the place has it occupied. */
   bandFrom?: number;
   /** The row its text goes on, if not the show's (a place where the game's creatures are in the show's row). */
@@ -266,13 +271,12 @@ export class RewardShow {
       if (!reel) { this.owed += share; continue; }
       // (the cast it takes: its share, and what places that did not open left; the last place takes whoever is left)
       const left = this.figures.length - this.placed;
-      const take = this.place === spec.places.length - 1 ? left : Math.min(left, share + this.owed);
-      this.owed = 0;
+      const take = place.visitors === false ? 0 : Math.min(left, share + this.owed);
+      if (place.visitors !== false) this.owed = 0;
       this.visitors = this.figures.slice(this.placed, this.placed + take).map((_, k) => this.placed + k);
       this.placed += take;
-      const slot = spec.creditSlot ?? CREDIT.slot;
-      this.tl = timelineOf(place, this.visitors.length, slot);
-      this.walks = this.tl.beats.filter((b) => b.kind === 'name').map((b) => walkOf(b, this.tl.length));
+      this.tl = timelineOf(place, this.visitors.length, spec.creditSlot ?? CREDIT.slot);
+      this.walks = this.tl.beats.filter((b) => b.kind === 'name').map((b) => walkOf(b));
       this.reel = reel;
       this.ground = spec.ground ?? GROUND;
       this.feet = [];

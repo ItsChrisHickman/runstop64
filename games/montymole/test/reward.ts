@@ -4,7 +4,7 @@
  *  1. every room's route (re/ending/route.ts: the test suite's bot's keys, found on a `SteadyGame`) played again does what the room asks, alive: every piece of the room's coal
  *     is taken, a gate's room opens its gate, and the way on is taken; played twice it is the same game;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the rooms in order each with its credits, the creatures (their own frames, as the game shows them
- *     going their way; Monty is in every room, not among them) walking through them, each named in the credits' row in turn on pixels the game leaves empty, no parade,
+ *     going their way; Monty is in every room, not among them) walking through them, each named in the credits' row in turn on pixels the game leaves empty, the parade one at a time after the last line,
  *     about a minute and THE END and its numbers, the tune from its start and again on the way out;
  *  3. the credits: the status rows (the score, the lives) are put away, black in every frame of every room before the text goes over them, every line types on in the top row
  *     letter by letter in bright yellow, is held and goes, the port's lines last;
@@ -24,7 +24,7 @@ import { RoutePilot } from '../../shared/ending/pilot';
 import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, SHOW_FRAMES, touching } from '../../shared/test/ending-kit';
 import { palettePng } from '../../../tools/png';
 import { SPECTRUM, SPECTRUM_PALETTE, SURFACE_WIDTH } from '../../shared/spectrum';
 import { spectrumFont } from '../../shared/spectrum-font';
@@ -91,7 +91,7 @@ function statusPixels(): number {
   return n;
 }
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
-let gameBand = 0, gameFrames = 0, gameBandEmpty = true, statusDrawn = 0;
+let gameBand = 0, gameFrames = 0, gameBandEmpty = true, statusDrawn = 0, gameTouch = 0;
 const watched: Place[] = spec.places.map((place) => ({
   ...place,
   open() {
@@ -104,6 +104,7 @@ const watched: Place[] = spec.places.map((place) => ({
         // (the first frame of a room: its sprites are not yet put where they go, `render` does that; they stand at the corner, which is no picture)
         if (show.progress.frames <= 1) { gameBandEmpty = true; return; }
         const b = band();
+        { const pic = renderer.picture(); gameTouch = touching((x, y) => (pic[y * SURFACE_WIDTH + x] ?? 0) !== 0, BAND.top, CREDIT.x, CREDIT.letters); }
         gameBand += b.credit + b.other;
         gameBandEmpty = b.credit + b.other === 0;
         statusDrawn += statusPixels();
@@ -146,7 +147,7 @@ while (show.active && frames < 14000) {
     const place = spec.places[p.place];
     const b = band(p.said?.ink);
     // (a line in full is all credit-coloured pixels in the band, never another colour; while it types on the same)
-    bandWatch.frame(p, place?.credits, { ink: b.credit, other: b.other });
+    bandWatch.frame(p, place?.credits, { ink: b.credit, other: b.other, touch: p.said ? gameTouch : 0 });
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([100, 400, 700, 1000].includes(placeFrame)) png(`place${p.place}-f${placeFrame}.png`, renderer);
     if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
@@ -161,10 +162,10 @@ while (show.active && frames < 14000) {
 }
 console.log(`phases: ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}; figures: ${show.cast.map((f) => `${f.name}:${f.poses.length}`).join(', ')}`);
 check('the show ran to its end and called done, once', !show.active && over === 1);
-check('every room of the montage in order, then THE END, no parade', phases.join() === 'loading,montage,end');
-check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds, about 60 to 75)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
-check(`each room is as long as its credits and visitors take (${sceneFrames.join(', ')} frames), a part of its route played (never more than the route has: two frames a pass)`,
-  sceneFrames.every((n, i) => n > 0 && n <= 2 * new RoutePilot(routeOf(SCENE_ROOMS[i] ?? 0).route).length));
+check('every room of the montage in order, then THE END', phases.join() === 'loading,montage,end');
+check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credits through the places, then the parade; 70 to 130)`, frames >= SHOW_FRAMES.min && frames <= SHOW_FRAMES.max);
+check(`each room is as long as its credits and visitors take (${sceneFrames.join(', ')} frames), a part of its route played (never more than the route has: two frames a pass), the last, which the parade crosses, going on after its route with no key`,
+  sceneFrames.every((n, i) => n > 0 && (i === sceneFrames.length - 1 || n <= 2 * new RoutePilot(routeOf(SCENE_ROOMS[i] ?? 0).route).length)));
 check('the tune is begun with the show, goes on all through it and is stopped on the way out', tuneStarts === 1 && tuneEnds === 1 && tuneFrames > 2500);
 check(`every creature of the cast was recorded (${show.cast.length}), Monty not among them (he is in every room), and each moves (four pictures)`, show.cast.length === CAST.length && !show.cast.some((f) => f.name === 'MONTY') && show.cast.every((f) => f.poses.length === 4));
 castWatch.check(show.cast);
