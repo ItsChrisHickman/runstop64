@@ -42,6 +42,15 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | 6. The Andes and the Amazon (proposed 2026-11-20, built on Chris's go-ahead) | the parachute drop from the cargo plane (the jetpack-like flight, room by room down through the mountains past condors and updrafts), landing at Machu Picchu (stone terraces, the ruins; rolling boulders coming down the terraces in a set pattern as its new mechanism; Jeff Minter's llamas winking), a mountain village market with the chullo (the Andean ear-flap hat, the costume), down through the cloud forest to the Amazon, the riverboat's decks and the banks; vines to swing across the piranha river (its second new mechanism: MOTR's ropes, swinging) | condors, a spitting llama, a jaguar, a toucan, a poison frog, a sloth, an anaconda, piranhas, a pink river dolphin |
 | 7. Rio | Sugarloaf (its cable car), Christ the Redeemer on Corcovado, the churrascaria (gaucho waiters carrying skewers between the tables, their swinging skewers the timing), the carnival (rooms through the parade, its floats and samba dancers) just before the beach, then the beach: the ending, Monty retired under the Redeemer with an açaí bowl; a room may be called RIO OR BUST | carnival dancers, drummers, gauchos |
 
+## Lessons from Chris's play (read before designing any region)
+
+- **A place must feel like the thing, not be rooms labelled as it** (Chris on Siberia's train, 2026-11-21: "it just looks like
+  rooms with words that say their carts"). A vehicle is shown as itself: a train is a side view of its carriages on the rails
+  (bogies and wheels under each car, the body's window row, the curved roof, the bellows between cars), walked along car by car,
+  with the landscape moving past in its windows and under it; boarding it is a moment (the platform, the door, then it moves). The
+  same goes for every vehicle and set piece: the junk, the bullet train, the cargo ship, the cargo plane's hold, the riverboat,
+  Sugarloaf's cable car. Signs name a place; they never stand in for drawing it.
+
 ## The rules (Monty on the Run's)
 
 - **Monty himself is Monty on the Run's:** his walk, his jump arc, ropes and ladders, no steering in the air, coins (50) and
