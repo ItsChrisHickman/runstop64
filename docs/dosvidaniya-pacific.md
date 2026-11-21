@@ -213,3 +213,11 @@ the column's version in `music/regions.ts`.
   Fewer columns would mean overlapping islands (Maui over Molokai, say) which makes the map read less as the trip it is.
 - A four-room cycle needs a 17th room (a Maui sea cave or a lava tube at Hana, at column 6 row 2). It is not drawn; it can be added.
 - Rising lava stops at row 8, so it is never a kill-on-enter room (a player caught low has a rope): confirm the plan's "the climax" wants the harsher version (lava reaching the rim and a deadline).
+
+## Decisions for the builder (2026-11-21)
+
+- Its entry row matches Japan's exit (room J, row 2 of the exit grid).
+- Loops from rooms crossed twice are enough on a 3-row grid, but make at least one true loop if the layout allows one.
+- The rising lava is the region's climax: it must chase him up the climb at a steady, learnable pace and kill if it reaches him (fair: it never kills on entry, and the climb always outpaces it when played well).
+- The loader needs an upward ride: extend the engine's lift to ride up as data (MontyData), Monty on the Run's lifts unchanged.
+- An Aloha 'Oe break (1878, public domain) is allowed only if it sounds like part of Hubbard's tune.

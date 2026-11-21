@@ -220,3 +220,10 @@ the garden and the castle hall, `compare-*.png` beside Monty on the Run's).
 ## As built
 
 (To be filled in when the region is built.)
+
+## Decisions for the builder (2026-11-21)
+
+- The 5-wide, 11-room block is fine.
+- Japan's exit (room J, row 2) and the Pacific's entry must sit on the same exit-grid row; the builder of whichever comes second lines them up.
+- The weakest creatures (lantern ghost, crane, samurai) get a second pass when the region is built.
+- A Sakura break in the tune is allowed (the song is a traditional 19th-century folk tune, public domain); add it only if it sounds like part of Hubbard's tune, else leave it out.
