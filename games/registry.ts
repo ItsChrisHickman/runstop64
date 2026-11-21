@@ -53,8 +53,8 @@ export const GAMES: readonly RegisteredGame[] = [
   // blocks; for the two Spectrum games the tape file's bytes over 256 (Moley Christmas 41521 = 162, Wanted: Monty Mole 49411 = 193).
 
   { id: 'montyotr', name: 'MONTY ON THE RUN', blocks: 165, load: () => import('./montyotr/src/main') },
-  { id: 'montyworld', name: 'MONTY MOLE WORLD TOUR', blocks: 165, load: () => import('./montyworld/src/main'), listed: false },
-  // A new game on Monty on the Run's engine (docs/worldtour-plan.md): loads at #montyworld, not in the directory until it is played and liked.
+  { id: 'montyworld', name: 'DO SVIDANIYA MONTY', blocks: 165, load: () => import('./montyworld/src/main'), listed: false },
+  // A new game on Monty on the Run's engine (docs/dosvidaniya-plan.md): loads at #montyworld, not in the directory until it is played and liked.
   { id: 'awm', name: 'AUF WIEDERSEHEN', blocks: 172, load: () => import('./awm/src/main') },
   { id: 'montymole', name: 'WANTED MONTY MOLE', blocks: 193, load: () => import('./montymole/src/main'), listed: false },
   // Wanted's 21 rooms played as Monty on the Run plays (docs/montymole-remix-plan.md). 23 letters fit the 40 columns.

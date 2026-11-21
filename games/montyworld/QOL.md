@@ -1,6 +1,6 @@
-# Monty Mole: World Tour: changes from Monty on the Run
+# Do Svidaniya Monty: changes from Monty on the Run
 
-Monty Mole: World Tour is a new game (2026, `docs/worldtour-plan.md`) on the engine, tiles, sprites and music of **Monty on the Run** (Gremlin Graphics, Commodore 64, 1985): the engine in `games/montyotr/src` takes its game data as a value, and this game is a second data set (`games/montyworld/src/data.ts`), not a copy. "The original" below is Monty on the Run. It is **not in the directory yet** (`listed: false` in the registry; it loads at `#montyworld`) and only a skeleton so far: three placeholder rooms, two coins, a piece of cake. Anything that changes how the game *plays* or looks (or helps) beyond Monty on the Run's own is in ENHANCED, one switch (ENHANCED by default; ORIGINAL is the game as designed, without the helps); the rest is in both.
+Do Svidaniya Monty is a new game (2026, `docs/dosvidaniya-plan.md`) on the engine, tiles, sprites and music of **Monty on the Run** (Gremlin Graphics, Commodore 64, 1985): the engine in `games/montyotr/src` takes its game data as a value, and this game is a second data set (`games/montyworld/src/data.ts`), not a copy. "The original" below is Monty on the Run. It is **not in the directory yet** (`listed: false` in the registry; it loads at `#montyworld`) and only a skeleton so far: three placeholder rooms, two coins, a piece of cake. Anything that changes how the game *plays* or looks (or helps) beyond Monty on the Run's own is in ENHANCED, one switch (ENHANCED by default; ORIGINAL is the game as designed, without the helps); the rest is in both.
 
 | Feature | The original | In this port | Default |
 |---|---|---|---|

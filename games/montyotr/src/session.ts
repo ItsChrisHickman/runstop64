@@ -16,7 +16,7 @@ import { TOUCH } from './touch';
 /**
  * The runstop64 front end for a Monty game on this engine (Game is the game, Title its title screen): the music, and the shared
  * pause screen with the map and travel, the assist, autosave and continue (games/shared). Which game it is comes from the data it
- * is given: Monty on the Run's (main.ts) or World Tour's.
+ * is given: Monty on the Run's (main.ts) or Do Svidaniya Monty's.
  */
 
 /** ENTER CONTINUE's top line on the title: 12 pixels under the high scores' box (row 16), 12 over the table (row 21). */

@@ -1,4 +1,4 @@
-# Monty Mole: World Tour: the plan
+# Do Svidaniya Monty: the plan
 
 A new Monty game, made in 2026 on Monty on the Run's engine, rules and parts. Chris asked for it on 2026-11-20; this page is
 the agreed shape. It is built a region at a time, and Chris plays each one before the next is started.
@@ -7,15 +7,20 @@ the agreed shape. It is built a region at a time, and Chris plays each one befor
 
 Intermole finds Monty's Greek island (where Auf Wiedersehen Monty left him) and Europe is no longer safe. Intermole only
 works in Europe, so he runs east and out of its reach, the long way round, with no passport: through Moscow, across Siberia
-on the Trans-Siberian railway, through China and Japan, and over the Pacific to Hawaii. The game ends on a Hawaiian beach,
-retired again, out of reach for good.
+on the Trans-Siberian railway, through China and Japan, over the Pacific by way of Hawaii, and across South America. The
+game ends on a beach in Rio de Janeiro, retired again, out of reach for good.
 
-A sequel (later, not now) has the Crown Jewels stolen and scattered, and a pardon offered if Monty brings them back: the
-Americas, New York, the Atlantic, the Tower, and home to his Yorkshire village.
+**The name** (Chris, 2026-11-20): Do Svidaniya Monty, Russian for goodbye, as Auf Wiedersehen Monty is German for it (that
+one was named after the TV series Auf Wiedersehen, Pet). "Rio or Bust" and "From Russia with Mole" were turned down as the
+title; Rio or Bust can name a room. No James Bond puns: Monty doesn't do them.
+
+A sequel (later, not now) has the Crown Jewels stolen and scattered, and a pardon offered if Monty brings them back: from
+Rio up through Central America and Mexico, the US, New York, the Atlantic, the Tower, and home to his Yorkshire village. The
+two games together go once round the world.
 
 ## The world
 
-Five regions of about ten rooms each, about fifty rooms in all (Monty on the Run has 52). The regions follow each other west
+Six regions of eight or nine rooms each, about fifty rooms in all (Monty on the Run has 52). The regions follow each other west
 to east on the exit grid, so the pause screen's map reads as the trip round the world.
 
 **Inside a region the way is not a line** (Chris, 2026-11-20: what he liked most in Monty on the Run). Each region is a block
@@ -31,7 +36,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | 2. Siberia | the train's roofs and carriages, frozen forest, a mine, Lake Baikal's ice | wolves, bears, icicles that fall |
 | 3. China | the Great Wall, a Beijing market, a temple, a junk on the river | dragons of the New Year dance, firecrackers |
 | 4. Japan | Tokyo rooftops and neon, a bullet train, Mount Fuji's slopes, a temple garden | ninjas, sumo, koi |
-| 5. The Pacific and Hawaii | a cargo ship's holds and decks, Hawaii's volcano, the beach (the ending) | gulls, crabs, lava |
+| 5. The Pacific and Hawaii | a cargo ship's holds and decks, Hawaii's volcano and beaches | gulls, crabs, lava |
+| 6. South America | the Andes, the Amazon, Rio (Sugarloaf, the beach: the ending) | llamas, piranhas, carnival dancers |
 
 ## The rules (Monty on the Run's)
 
@@ -56,7 +62,7 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 ## How it's built
 
 - **One engine.** Monty on the Run's engine (`games/montyotr/src`) takes its game data as a value instead of importing the
-  original's, so World Tour (`games/montyworld`) is a second data set on the same code, not a copy. Monty on the Run plays
+  original's, so Do Svidaniya Monty (`games/montyworld`) is a second data set on the same code, not a copy. Monty on the Run plays
   exactly as before: its tests, the frame-for-frame title check included, all pass unchanged.
 - **Rooms in the original's own terms,** as runstop64's rooms already are (`games/montyotr/src/data/runstop64-rooms.ts`:
   playfield maps, tiles, coins, decorations, crushers, teleporters, enemies).
@@ -65,11 +71,11 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 
 ## Steps
 
-1. The engine takes its data as a value (Monty on the Run unchanged), and World Tour's skeleton loads. Done: `MontyData`
-   (`games/montyotr/src/montydata.ts`), Monty on the Run's value `motr.ts`, World Tour's `games/montyworld/src/data.ts` (50 by 3
+1. The engine takes its data as a value (Monty on the Run unchanged), and Do Svidaniya Monty's skeleton loads. Done: `MontyData`
+   (`games/montyotr/src/montydata.ts`), Monty on the Run's value `motr.ts`, Do Svidaniya Monty's `games/montyworld/src/data.ts` (50 by 3
    exit grid, three placeholder rooms), the session `runMonty` (`session.ts`) and `test/walk.ts`. The pause map draws the wide grid
    in cells of 3 pixels for now: its design for a strip of fifty rooms (scrolling, or regions) is part of step 2.
 2. Moscow: its ten rooms, art, creatures and item puzzles, playable from the title to the Trans-Siberian's station.
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
-3. Siberia, China, Japan, the Pacific and Hawaii, one at a time, each played before the next.
-4. The ending on the beach, the reward show, the credits.
+3. Siberia, China, Japan, the Pacific and Hawaii, South America, one at a time, each played before the next.
+4. The ending on Rio's beach, the reward show, the credits.

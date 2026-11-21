@@ -5,10 +5,10 @@ import { scrollerMessage } from '../../montyotr/src/title';
 import { buildRooms, NO_ROOMS, roomCells, type RoomSpec, type Sector } from '../../shared/monty/rooms';
 
 /**
- * Monty Mole: World Tour's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as
+ * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as
  * Monty on the Run: rooms of its own in runstop64's room format (shared/monty/rooms.ts), made of Monty on the Run's tiles,
  * sprites, music and rules. For now a skeleton: three placeholder rooms in a row (Moscow's station and the square beyond it),
- * a coin or two and a piece of cake, to prove the engine runs a second game (docs/worldtour-plan.md, step 1). The world proper
+ * a coin or two and a piece of cake, to prove the engine runs a second game (docs/dosvidaniya-plan.md, step 1). The world proper
  * (5 regions of about 10 rooms, west to east: Moscow, Siberia, China, Japan, the Pacific and Hawaii) comes a region at a time.
  */
 

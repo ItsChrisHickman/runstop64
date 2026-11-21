@@ -6,7 +6,7 @@ import type { Game } from './game';
 /**
  * A Monty game's data: everything the engine (Game, items, mechanisms, map, save, ending, title, main) reads about the game it
  * plays, as one value. Monty on the Run's is `MOTR` (motr.ts: the original's tables from data.ts, runstop64's rooms after
- * them); Monty Mole: World Tour's is `montyworld/src/data.ts`, rooms of its own on the same engine. A second game is a second
+ * them); Do Svidaniya Monty's is `montyworld/src/data.ts`, rooms of its own on the same engine. A second game is a second
  * value, not a copy of the code: the engine names no room, item or cell but through the value it is given.
  *
  * The tables are in the original's formats (see `shared/monty/rooms.ts` for the ones a list of rooms builds). What belongs to one
@@ -23,7 +23,7 @@ export interface Sfx { warp: number; jump: number; piledriverDescend: number; je
 /**
  * The look and sound the Monty games on this engine share: the VIC bank (the charset and the sprites by pointer), the tile
  * library and its collision classes, the enemy graphics, the tables of the original's code (the jump, the jetpack's flame, the
- * greys), the sound effects and the music driver's entry points. World Tour is made of Monty on the Run's parts, so it takes
+ * greys), the sound effects and the music driver's entry points. Do Svidaniya Monty is made of Monty on the Run's parts, so it takes
  * these as they are (`MOTR_LOOK` in data.ts) and adds its own sprites and tiles as it grows.
  */
 export interface MontyLook {

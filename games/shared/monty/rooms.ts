@@ -5,7 +5,7 @@ import { PLAY_COLS, PLAY_ROWS } from './screen';
  * coins, decorations, crushers, a teleporter, enemies), and what turns a list of them into the tables a Monty game's engine reads
  * (the original's formats: coin table, si_spawn_tbl, decoration list, piledriver and teleporter tables, enemy records...). Used
  * by Monty on the Run (runstop64's rooms after the original's, `montyotr/src/data.ts`) and by every game made of rooms like
- * these (World Tour's, `montyworld/src/data.ts`). See `montyotr/src/data/runstop64-rooms.ts` for the format at work.
+ * these (Do Svidaniya Monty's, `montyworld/src/data.ts`). See `montyotr/src/data/runstop64-rooms.ts` for the format at work.
  *
  * Coordinates are the original's:
  * - `map`: the room's 32 × 20 playfield, one string per row, a character per cell: '.' empty, '1'-'8' the room's character codes

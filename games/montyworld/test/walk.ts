@@ -1,5 +1,5 @@
 /**
- * Monty Mole: World Tour, the skeleton on the Monty engine: a second data set on the same code as Monty on the Run. Its three
+ * Do Svidaniya Monty, the skeleton on the Monty engine: a second data set on the same code as Monty on the Run. Its three
  * placeholder rooms load (no room of Monty on the Run's in it), the exit grid is the wide one (50 by 3, not the original's 23 by 6),
  * Monty walks through them (the coins and the piece of cake taken, the score and the sector names right), walks back, and the same
  * game runs through the front end: the title, play, the pause screen's map of the wide grid, a save on coming into each room.
@@ -75,7 +75,7 @@ const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); 
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 
 tick(5);
-check('the title is up, its game is World Tour\'s', p.state.mode === 'title' && p.game.data.id === 'montyworld');
+check('the title is up, its game is Do Svidaniya Monty\'s', p.state.mode === 'title' && p.game.data.id === 'montyworld');
 tap('Space');
 tick(80);
 check(`play begins in room $00 (${p.game.roomId})`, p.state.mode === 'play' && p.game.roomId === 0);
