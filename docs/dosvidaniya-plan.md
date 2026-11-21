@@ -7,8 +7,10 @@ the agreed shape. It is built a region at a time, and Chris plays each one befor
 
 Intermole finds Monty's Greek island (where Auf Wiedersehen Monty left him) and Europe is no longer safe. Intermole only
 works in Europe, so he runs east and out of its reach, the long way round, with no passport: through Moscow, across Siberia
-on the Trans-Siberian railway, through China and Japan, over the Pacific by way of Hawaii, and across South America. The
-game ends on a beach in Rio de Janeiro, retired again, out of reach for good.
+on the Trans-Siberian railway, through China, by junk to Japan, by cargo ship to Hawaii, stowed in a cargo plane's hold
+over the Pacific, by parachute down into the Andes at Machu Picchu, by riverboat down the Amazon, to Rio de Janeiro. Every
+leg is a different way of travelling. The game ends on Rio's beach under Christ the Redeemer, retired again, out of reach for
+good.
 
 **The name** (Chris, 2026-11-20): Do Svidaniya Monty, Russian for goodbye, as Auf Wiedersehen Monty is German for it (that
 one was named after the TV series Auf Wiedersehen, Pet). "Rio or Bust" and "From Russia with Mole" were turned down as the
@@ -36,8 +38,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | 2. Siberia | the train's roofs and carriages, frozen forest, a mine, Lake Baikal's ice | wolves, bears, icicles that fall |
 | 3. China | the Great Wall, a Beijing market, a temple, a junk on the river | dragons of the New Year dance, firecrackers |
 | 4. Japan | Tokyo rooftops and neon, a bullet train, Mount Fuji's slopes, a temple garden | ninjas, sumo, koi |
-| 5. The Pacific and Hawaii | a cargo ship's holds and decks, Hawaii's volcano and beaches | gulls, crabs, lava |
-| 6. South America | the Andes, the Amazon, Rio (Sugarloaf, the beach: the ending) | llamas, piranhas, carnival dancers |
+| 5. The Pacific | a cargo ship's holds and decks, Hawaii's volcano, beaches and the luau, a cargo plane's hold | gulls, crabs, lava |
+| 6. South America | the parachute drop into the Andes, Machu Picchu, the Amazon by riverboat, Rio (Sugarloaf, Christ the Redeemer on Corcovado, the beach: the ending) | condors, llamas, piranhas, carnival dancers |
 
 ## The rules (Monty on the Run's)
 
@@ -51,7 +53,9 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   the Run's are (a timing to learn, seen at once, fair): Moscow's escalators, icicles that fall when he passes under them;
   the Trans-Siberian's carriage roofs and the tunnels that sweep them; firecrackers and the long New Year dragon in China;
   the bullet train sweeping a platform in Japan; swinging cargo on the ship's cranes; rising lava on the volcano; a flight
-  over the Andes as the jetpack section. Each is proposed to Chris with its region before it is built.
+  the parachute drop from the plane into the Andes as the jetpack section: Auf Wiedersehen Monty's flight
+  idea redeemed (Chris: its minigame was terrible), flying room by room as the jetpack does, down through the mountains past
+  condors and updrafts to a landing at Machu Picchu. Each is proposed to Chris with its region before it is built.
 - **A hat or costume in each country** (Chris, 2026-11-20): found in the region, it is that region's key item and Monty
   wears it from then on (his own frames with it drawn on, until the next region's): the ushanka in Moscow, a rice hat in
   China, a lei in Hawaii, and so on. It lets him blend in: the region's guard or gate lets him by once he wears it.
