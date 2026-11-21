@@ -39,7 +39,7 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 | 3. China | the Great Wall, a Beijing market, a temple, a junk on the river | dragons of the New Year dance, firecrackers |
 | 4. Japan | Tokyo rooftops and neon, a bullet train, Mount Fuji's slopes, a temple garden | ninjas, sumo, koi |
 | 5. The Pacific | a cargo ship's holds and decks, Hawaii's volcano, beaches and the luau, a cargo plane's hold | gulls, crabs, lava |
-| 6. South America | the parachute drop into the Andes, Machu Picchu, the Amazon by riverboat, Rio (Sugarloaf, Christ the Redeemer on Corcovado, the beach: the ending) | condors, llamas, piranhas, carnival dancers |
+| 6. South America | the parachute drop into the Andes, Machu Picchu, the Amazon by riverboat, Rio (Sugarloaf, Christ the Redeemer on Corcovado, the carnival: rooms through the parade, its floats and samba dancers, just before the beach; the beach: the ending) | condors, llamas, piranhas, carnival dancers |
 
 ## The rules (Monty on the Run's)
 
