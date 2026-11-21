@@ -29,9 +29,9 @@ Nine rooms, a block 4 wide and 3 high at columns 8-11 of the world's grid (Siber
 
 ```
           col 8                col 9               col 10               col 11
-row 0   C  WALL YOU NEED     .                   G  ROOF AND READY    H  WILLOW PATTERN
-row 1   T  TOWER OF POWER    E  STALL IN LOVE    F  GATE EXPECTATIONS J  JUNK FOOD
-row 2   A  WALL'S WELL       D  ALLEY OOP        .                    .
+row 0   C  MIND THE BATTLEMENTS     .                   G  THE EMPEROR'S ROOFTOPS    H  WILLOW PATTERN
+row 1   T  THE WATCHTOWER    E  NOODLE MARKET    F  THE FORBIDDEN CITY J  DOWN THE RIVER
+row 2   A  WALL'S WELL       D  BACK ALLEY BEIJING        .                    .
 ```
 
 Siberia's "BORDER LINE CASE" (columns 7, row 2) opens east onto A (its planks and sign go: the barrier the ticket lifts stays).
@@ -43,8 +43,8 @@ a rope, up through the gate's inner court (gate: the rice hat, doors across the 
 H-J a rope down through the bank's well. J-east a raft out to the junk (gate: the bamboo), then COMING SOON. Walls (no way): C-G, T-west, E-north,
 D-east, F-J, G-west, H-east, J-west.
 
-**Names** (puns, no Z, no Bond): WALL'S WELL, ALLEY OOP, TOWER OF POWER, WALL YOU NEED, STALL IN LOVE, GATE EXPECTATIONS, ROOF AND READY,
-WILLOW PATTERN (Chris: exactly that), JUNK FOOD.
+**Names** (puns, no Z, no Bond): WALL'S WELL, BACK ALLEY BEIJING, THE WATCHTOWER, MIND THE BATTLEMENTS, NOODLE MARKET, THE FORBIDDEN CITY, THE EMPEROR'S ROOFTOPS,
+WILLOW PATTERN (Chris: exactly that), DOWN THE RIVER.
 
 ### The rooms
 
@@ -54,31 +54,31 @@ at the foot (rows 14-16): the low way east into D. A stair of three floating sto
 the wall's top; along it to a rope at col 25 climbing through the ceiling (gap cols 24-26) into the tower. A panda in the bamboo at the left on
 the ground, a kite over the wall. 2 coins. The two lanes (the tunnel under the wall, the walk on top of it) are crossed once each.
 
-**D ALLEY OOP** (the hutong, a narrow brick alley). In: left, low. A rope at col 4 (ceiling gap cols 3-5) climbs to the market. Ground lane
+**D BACK ALLEY BEIJING** (the hutong, a narrow brick alley). In: left, low. A rope at col 4 (ceiling gap cols 3-5) climbs to the market. Ground lane
 east to a closed end; floating shelves (floors 15, 13, 11) climb in the middle to a roof ledge (floor 9, cols 17-29) under a beam from which
 a **string of firecrackers** hangs (cols 19-28); the **key** lies on the ledge's far end. A bicycle on the ground, a pogo-stick monk bouncing at
 the east end beside a coin, a caged cricket hopping on the shelves. Off the ledge's west end is a drop to the lane. Dead end with the key.
 
-**T TOWER OF POWER** (the watchtower's hall). In: by the rope from A (floor gap cols 24-26, rope col 25: the arrival is on the hall's floor);
+**T THE WATCHTOWER** (the watchtower's hall). In: by the rope from A (floor gap cols 24-26, rope col 25: the arrival is on the hall's floor);
 out: east, low (rows 14-16) or east, high (rows 6-8) from the walkway. West: a stair of ledges (floors 15, 13, 11) up to the walkway (floor 9,
 cols 12-31), which runs over the hall to the high way east. A rope at col 16 under a trapdoor (ceiling gap cols 15-17, shut) climbs to the wall top.
 A terracotta warrior paces the hall's floor west of the rope, a paper lantern with a face bobs over the walkway. 2 coins.
 
-**C WALL YOU NEED** (the wall's top, a dead end; night, a beacon). In: the floor gap (cols 15-17, rope col 16) from the tower. A winding
+**C MIND THE BATTLEMENTS** (the wall's top, a dead end; night, a beacon). In: the floor gap (cols 15-17, rope col 16) from the tower. A winding
 climb: right up three stone ledges from the floor (floors 15, 13) to a long walkway (floor 11, cols 6-29) back west, up the left (floors 9, 7) to the
 beacon platform (floor 5, cols 9-29), east along it to the **rice hat** at its far end and a **dumpling** on the way. A kite, a monk on a pogo stick
 and a terracotta warrior. 2 coins.
 
-**E STALL IN LOVE** (Beijing's market street at New Year). Two ways in from the tower, low (street, floor 17) and high (a row of stall awnings,
+**E NOODLE MARKET** (Beijing's market street at New Year). Two ways in from the tower, low (street, floor 17) and high (a row of stall awnings,
 floor 9, cols 0-10, a gap with a rope at col 12 down to the street); a floor gap with a rope at col 4 (over the hutong's rope: the two gaps are the same cells) down into the hutong; out east, low, to the
 gate. Lanterns, banners, stalls. **The New Year dragon** loops through the right half of the room (six sprites on one path, see below): over the
 top, down the right, along the street, up the middle. No creature but the dragon. 2 coins (the awnings, the street under the dragon).
 
-**F GATE EXPECTATIONS** (the Forbidden City's south gate). In: left, low. An outer court (a stone lion alive, paces it) and the gate tower across
+**F THE FORBIDDEN CITY** (the Forbidden City's south gate). In: left, low. An outer court (a stone lion alive, paces it) and the gate tower across
 the room, its doors across the court (floor to row 11: six rows, higher than a jump rises): **shut until the rice hat is taken** (the doors are gone:
 `clear`). Inside, a court with a guard and a rope at col 24 (ceiling gap cols 23-25) up onto the palace roofs. 2 coins.
 
-**G ROOF AND READY** (the palace's roofs and courtyards). In: the rope from the gate (floor gap cols 23-25: the arrival is on the courtyard). The
+**G THE EMPEROR'S ROOFTOPS** (the palace's roofs and courtyards). In: the rope from the gate (floor gap cols 23-25: the arrival is on the courtyard). The
 courtyard runs west to a dead end with a **dumpling** and a coin past a lantern and a stone lion; a stair of glazed roof ledges (floors 15, 13, 11) at
 the right climbs the eave onto the ridge (floor 9, cols 19-31), which runs east, high, to the garden (rows 6-8). 2 coins. Two lanes (the court, the
 roofs) crossed once each.
@@ -90,10 +90,26 @@ two cells wide. An **arched bridge** crosses high over the river (a decoration: 
 reach down with both arms over the three gaps on a timing (see below). Two doves over the river, a willow, a pagoda. The **bamboo pole** lies on the island,
 which is the end of the stones: back across, to the well and down the rope into J. 1 coin.
 
-**J JUNK FOOD** (the river's quay, at its mouth). In: the rope from H (ceiling gap cols 2-4, down onto the quay, floor 17). The quay runs east
+**J DOWN THE RIVER** (the river's quay, at its mouth). In: the rope from H (ceiling gap cols 2-4, down onto the quay, floor 17). The quay runs east
 (a bicycle) to the river (water, cols 20-25); across it the **junk**, moored (cols 26-31, hull and mast), and the way east, shut with a sign
 JAPAN COMING SOON. Without the bamboo the river is five cells of water; with it a raft of bamboo is poled across (`place`). A carp leaps in the river (a
 timing for the raft). 1 coin.
+
+### How the rooms look (Chris, 2026-11-21: "China looks pretty rough"; each place drawn as itself, art in `art/china-*.ts`)
+
+A decoration of one character costs one character however often it is placed (a room has 101 in all: `test/china-art.ts` checks it), so a wall's dressed stone, a back wall
+and a run of battlements are stamped a cell at a time (`wallCell`, `backCell`, `crenels`).
+
+- **The Great Wall (A, T, C):** the Wall seen from the side as it snakes over the hills: green and brown mountains behind it (`hillGreen`, `peakBrown`, by night `peakNight` with stars and a
+  moon), the walkway along its top with a run of crenellations, the face of dressed blocks stepping down the flank with the stair, a row of arched bays in its foot, a tower at the end
+  with arrow slits. T is the tower's hall (dark brick inner wall, two windows giving on the Wall climbing the next ridge to a tower), C the Wall's top between two towers under a
+  tiled gallery roof, each ledge a stretch of the Wall with its battlements and its face under it.
+- **WILLOW PATTERN (H):** the game's bridge scene in the plate's blue: a long arched bridge across the room with three giants in great hats crouched on its parapet reaching down
+  (the timed arms), white clouds and the two birds beak to beak in the sky, the river with its white stepping stones and a sampan, the great drooping willow, the pagoda, the zigzag fence,
+  and the plate's lattice border round the room.
+- **Beijing (D, E):** the hutong's grey-tiled eave and brick wall with a gatehouse (grey roof curling up at the corners, red doors with their studs); the market's shop fronts behind noodle stalls
+  under striped awnings with a steaming pot, lanterns and lattice windows.
+- **The Forbidden City (F, G):** red walls, the gate tower under a gold double roof with curling eaves; the rooftops with the palace's halls in the distance (gold double roofs, red walls, white terraces).
 
 ### Items, gates, doubling back
 

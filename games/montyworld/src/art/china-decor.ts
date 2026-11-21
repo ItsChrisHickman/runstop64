@@ -6,6 +6,9 @@
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
+import { PLATE_DECOR } from './china-plate';
+import { CITY_DECOR } from './china-city';
+import { WALL_DECOR } from './china-wall';
 import type { NewDecor } from './types';
 
 /** A clump of bamboo: stalks with their joints and a tuft of leaves at the top of each. 2 x 4 characters. */
@@ -126,54 +129,6 @@ function roofDragon(): NewDecor {
   return decor('roofDragon', 2, 2, r, 7);
 }
 
-/** The willow: a thick trunk forking into boughs, a great crown, long fronds hanging in strands either side of the trunk. 4 x 6 characters. */
-function willowTree(): NewDecor {
-  const r = new Raster(32, 48);
-  r.rect(13, 16, 18, 47); r.rect(15, 20, 16, 46, false); // the trunk, a split in its bark
-  r.rect(9, 14, 22, 17); r.line(13, 16, 8, 11); r.line(18, 16, 23, 11); // the boughs
-  r.ellipse(16, 8, 14, 7.5); // the crown
-  for (const [x, y] of [[8, 5], [16, 3], [23, 6], [12, 9], [20, 10]] as const) r.rect(x, y, x + 2, y, false); // gaps in the leaves
-  for (let x = 1; x < 31; x += 3) {
-    if (x > 11 && x < 20) continue;
-    r.rect(x, 12, x, 26 + ((x * 7) % 15));
-  } // the hanging fronds
-  return decor('willowTree', 4, 6, r, 14);
-}
-
-/** A pagoda: five tiers, each a square body under a swept roof, a spire. 4 x 8 characters. */
-function pagoda(): NewDecor {
-  const r = new Raster(32, 64);
-  r.rect(15, 0, 16, 7);
-  for (let k = 0; k < 5; k++) {
-    const y = 8 + k * 11, w = 5 + k * 2;
-    r.triangle(16 - w - 3, y + 5, 16, y, 16 + w + 3, y + 5); r.rect(16 - w - 4, y + 5, 16 + w + 3, y + 6); // the roof, upturned at its ends
-    r.rect(16 - w, y + 7, 16 + w - 1, y + 10); r.rect(16 - w + 2, y + 8, 16 + w - 3, y + 10, false); r.rect(16 - 1, y + 8, 16, y + 10); // the body and its door
-  }
-  return decor('pagoda', 4, 8, r, 1);
-}
-
-/** The bridge's arches under its deck: three round arches in a heavy wall. 8 x 2 characters. */
-function archBridge(): NewDecor {
-  const r = new Raster(64, 16);
-  r.rect(0, 0, 63, 4);
-  r.rect(0, 5, 63, 15);
-  for (const cx of [11, 32, 53]) { r.ellipse(cx, 15, 8, 9, false); }
-  r.rect(0, 5, 63, 5, false);
-  r.rect(0, 0, 63, 0, false);
-  return decor('archBridge', 8, 2, r, 14);
-}
-
-/** A crouching figure on the bridge: a round head in a hat, long sleeves hanging forward, knees drawn up. 2 x 2 characters. */
-function crouchFigure(): NewDecor {
-  const r = new Raster(16, 16);
-  r.triangle(8, 0, 3, 5, 13, 5); // the pointed hat
-  r.disc(8, 7, 3); // the head
-  r.cut(['#.#'], 6, 6); r.cut(['##'], 7, 9);
-  r.rect(2, 10, 13, 15); r.rect(3, 12, 12, 12, false); // the robed back, the knees
-  r.rect(0, 10, 2, 15); // a sleeve hanging down
-  return decor('crouchFigure', 2, 2, r, 1);
-}
-
 /** A junk: a high stern, a battened hull, a mast with its fully battened sail furled in panels. 6 x 6 characters. */
 function junk(): NewDecor {
   const r = new Raster(48, 48);
@@ -277,10 +232,10 @@ export const CHINA_DECOR = {
   brazier: brazier(),
   lionStatue: lionStatue(),
   roofDragon: roofDragon(),
-  willowTree: willowTree(),
-  pagoda: pagoda(),
-  archBridge: archBridge(),
-  crouchFigure: crouchFigure(),
+  willowTree: PLATE_DECOR.willowTree,
+  pagoda: PLATE_DECOR.pagoda,
+  archBridge: PLATE_DECOR.archBridge,
+  crouchFigure: PLATE_DECOR.crouchFigure,
   junk: junk(),
   lanternPost: lanternPost(),
   boxes: boxes(),
@@ -291,6 +246,17 @@ export const CHINA_DECOR = {
   drum: drum(),
   gong: gong(),
   cloudFrieze: cloudFrieze(),
+  // the willow pattern's added pieces (china-plate.ts)
+  roundTree: PLATE_DECOR.roundTree,
+  willowCurtain: PLATE_DECOR.willowCurtain,
+  cloud: PLATE_DECOR.cloud,
+  kissingDoves: PLATE_DECOR.kissingDoves,
+  plateBoat: PLATE_DECOR.plateBoat,
+  plateFence: PLATE_DECOR.plateFence,
+  // the Great Wall's scenery (china-wall.ts)
+  ...WALL_DECOR,
+  // Beijing's and the Forbidden City's (china-city.ts)
+  ...CITY_DECOR,
 } as const satisfies Record<string, NewDecor>;
 
 export type ChinaDecor = keyof typeof CHINA_DECOR;

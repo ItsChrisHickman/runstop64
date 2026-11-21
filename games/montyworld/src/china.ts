@@ -1,16 +1,17 @@
 import type { DragonSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
-import { codeOf, room, type Palette } from './layout';
+import { codeOf, Grid, room, type Palette } from './layout';
+import type { Placed } from './train';
 
 /**
  * China, the third region of Do Svidaniya Monty (docs/dosvidaniya-china.md): nine rooms in a block four wide and three high at columns 8-11 of
  * the exit grid, entered from Siberia's border village (room G, column 7) and left east, low, from the junk's deck into Japan (japan.ts).
  *
  *            col 8                col 9               col 10                col 11
- *   row 0   C  WALL YOU NEED     .                   G  ROOF AND READY     H  WILLOW PATTERN
- *   row 1   T  TOWER OF POWER    E  STALL IN LOVE    F  GATE EXPECTATIONS  J  JUNK FOOD
- *   row 2   A  ALL WALL AND NO PLAY  D  ALLEY OOP        .                     .
+ *   row 0   C  MIND THE BATTLEMENTS     .                   G  THE EMPEROR(S ROOFTOPS     H  WILLOW PATTERN
+ *   row 1   T  THE WATCHTOWER    E  NOODLE MARKET    F  THE FORBIDDEN CITY  J  DOWN THE RIVER
+ *   row 2   A  ALL WALL AND NO PLAY  D  BACK ALLEY BEIJING        .                     .
  *
  * Playfield cells as in moscow.ts. The firecracker string (D) and the three figures' arms (H) are `pulses`; the dragon (E) is a `dragon`; the tower's
  * trapdoor (T) is opened by the key (D), the city gate (F) by the rice hat (C), the junk's raft (J) by the bamboo (H).
@@ -26,7 +27,7 @@ export const CHI = { wall: 18, alley: 19, tower: 20, top: 21, market: 22, gate: 
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 18 on. */
 const NAMES = [
-  'ALL WALL AND NO PLAY', 'ALLEY OOP', 'TOWER OF POWER', 'WALL YOU NEED', 'STALL IN LOVE', 'GATE EXPECTATIONS', 'ROOF AND READY', 'WILLOW PATTERN', 'JUNK FOOD',
+  'ALL WALL AND NO PLAY', 'BACK ALLEY BEIJING', 'THE WATCHTOWER', 'MIND THE BATTLEMENTS', 'NOODLE MARKET', 'THE FORBIDDEN CITY', 'THE EMPEROR(S ROOFTOPS', 'WILLOW PATTERN', 'DOWN THE RIVER',
 ] as const;
 export const CHINA_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the wall grey, the hutong dark grey, the tower grey, the top light grey, the market red, the gate red, the roofs yellow, the garden light blue, the quay brown). */
@@ -34,7 +35,7 @@ export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9]
 
 // ---- the palettes --------------------------------------------------------------------------------------
 const WALL_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], M: ['merlon', 15], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 15], R: ['rope', 13],
+  G: ['greatBrick', 12], P: ['wallPave', 15], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 15], R: ['rope', 13], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const ALLEY_PALETTE = {
@@ -42,11 +43,11 @@ const ALLEY_PALETTE = {
 } as const satisfies Palette;
 
 const TOWER_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], S: ['stoneStep', 15], T: ['trapdoor', 9], R: ['rope', 13],
+  G: ['greatBrick', 12], P: ['wallPave', 15], S: ['stoneStep', 15], T: ['trapdoor', 9], R: ['rope', 13], N: ['backBrick', 11], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const TOP_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], L: ['stoneStep', 15], M: ['merlon', 15], R: ['rope', 13],
+  G: ['greatBrick', 12], P: ['wallPave', 15], L: ['stoneStep', 15], R: ['rope', 13], S: ['brickSlit', 12], Z: ['roofSlate', 11],
 } as const satisfies Palette;
 
 const MARKET_PALETTE = {
@@ -61,14 +62,30 @@ const ROOFS_PALETTE = {
   P: ['wallPave', 15], W: ['redWall', 2], Y: ['roofTile', 7], E: ['redEave', 2], R: ['rope', 13],
 } as const satisfies Palette;
 
-/** The garden is all blue and white, as the plate: porcelain, the river's waves, white stones, the figures' arms and hands, a rope. */
+/** The garden is the plate's: its lattice border, the hatched banks, the river's waves, white stones, the giants' arms and hands, a rope. */
 const WILLOW_PALETTE = {
-  B: ['blueBank', 14], W: ['blueWave', 6], S: ['stoneRound', 1], A: ['arm', 1], H: ['hand', 1], R: ['rope', 14],
+  B: ['blueBank', 14], K: ['plateBank', 14], W: ['blueWave', 6], S: ['stoneRound', 1], A: ['arm', 1], H: ['hand', 1], R: ['rope', 14],
 } as const satisfies Palette;
 
 const JUNK_PALETTE = {
   E: ['hillEarth', 9], D: ['dock', 9], W: ['lakeWater', 6], R: ['rope', 13], H: ['junkHull', 2], Q: ['raft', 13],
 } as const satisfies Palette;
+
+/** A patch of the wall's face stamped a cell at a time behind him (a decoration of one character costs one character however many are placed): columns c0-c1, rows r0-r1. */
+function faceCells(c0: number, r0: number, c1: number, r1: number): Placed[] {
+  const cells: Placed[] = [];
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) cells.push(['wallCell', c, r]);
+  return cells;
+}
+
+/** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), but not where a coin hangs. */
+function backWall(paint: (g: Grid) => void, coins: readonly (readonly [col: number, row: number])[], c0: number, r0: number, c1: number, r1: number, cell: 'backCell' | 'slateCell' = 'backCell'): Placed[] {
+  const g = new Grid();
+  paint(g);
+  const cells: Placed[] = [];
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (g.at(c, r) === '.' && !coins.some(([cc, cr]) => cc === c && cr === r)) cells.push([cell, c, r]);
+  return cells;
+}
 
 // ---- the timed strikes ----------------------------------------------------------------------------------
 /**
@@ -128,6 +145,50 @@ export const RAFT_CELLS: readonly (readonly [row: number, col: number])[] = Arra
 export const TOWER_ROPE_CODE = codeOf(TOWER_PALETTE, 'R');
 export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
 
+/** The paint of alley's room: its tiles. */
+const paintAlley = (g: Grid): void => {
+    g.box(0, 0, 31, 1, 'B').clear(3, 0, 5, 1);
+    g.box(0, 2, 1, 13, 'B').box(30, 2, 31, 16, 'B');
+    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B');
+    g.box(4, 0, 4, 16, 'R');
+    g.box(8, 15, 10, 15, 'S').box(11, 13, 13, 13, 'S').box(14, 11, 16, 11, 'S'); // the shelves
+    g.box(17, 9, 29, 9, 'P'); // the roof ledge
+    g.box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, the beam
+    for (let c = CRACKERS.first; c < CRACKERS.first + CRACKERS.count; c++) g.box(c, 7, c, 8, 'K'); // the crackers
+};
+
+/** The paint of market's room: its tiles. */
+const paintMarket = (g: Grid): void => {
+    g.box(0, 0, 31, 1, 'B');
+    g.box(0, 2, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 2, 31, 13, 'B');
+    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R');
+    g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
+    g.box(12, 9, 12, 16, 'R'); // the rope down from them
+};
+
+/** The paint of roofs's room: its tiles. */
+const paintRoofs = (g: Grid): void => {
+    g.box(0, 0, 31, 1, 'W');
+    g.box(0, 2, 1, 16, 'W').box(30, 2, 31, 5, 'W').box(30, 9, 31, 16, 'W');
+    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W').clear(23, 17, 25, 19).box(24, 16, 24, 19, 'R');
+    g.box(27, 15, 29, 15, 'E').box(24, 13, 26, 13, 'E').box(21, 11, 23, 11, 'E'); // the eaves
+    g.box(24, 9, 31, 9, 'Y'); // the ridge, starting past the top eave so he never stands under it
+};
+
+/** The paint of gate's room: its tiles. */
+const paintGate = (g: Grid): void => {
+    g.box(0, 0, 31, 1, 'W').clear(23, 0, 25, 1);
+    g.box(0, 2, 1, 13, 'W').box(30, 2, 31, 16, 'W');
+    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W');
+    g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
+    g.box(24, 0, 24, 16, 'R');
+    g.box(3, 9, 10, 9, 'Y').box(12, 9, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
+};
+
+/** Where the coins hang in the hutong and the market (the back walls leave them clear). */
+const ALLEY_COINS = [[12, 11], [27, 15]] as const;
+const MARKET_COINS = [[6, 7], [21, 15]] as const;
+
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const CHINA_ROOMS: readonly RoomSpec[] = [
@@ -141,56 +202,57 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 31, 17, 'T').box(0, 18, 31, 19, 'E');
       g.box(4, 15, 6, 15, 'S').box(7, 13, 9, 13, 'S').box(10, 11, 12, 11, 'S'); // the stair of steps
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
-      g.box(30, 2, 31, 8, 'G'); // the tower's wall at the right
-      for (const c of [14, 20]) g.box(c, 8, c + 1, 8, 'M'); // the merlons
+      g.box(30, 2, 31, 8, 'G').box(30, 4, 31, 4, 'L').box(30, 6, 31, 6, 'L'); // the tower's wall at the right, its slits
       g.box(25, 0, 25, 8, 'R');
     },
     coins: [[8, 11], [21, 7]],
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
-    decor: [['bambooClump', 2, 13], ['bambooClump', 9, 13], ['wallFlag', 16, 6], ['hangingLantern', 17, 14], ['hangingLantern', 23, 14], ['hangingLantern', 29, 14], ['rockery', 10, 15]],
+    decor: [
+      ['hillGreen', 2, 5], ['peakBrown', 8, 4], ['peakBrown', 14, 4], ['hillLow', 19, 5], // the mountains behind the Wall
+      ...[13, 15, 17, 19, 21, 23, 26, 28].map((c) => ['crenels', c, 8] as const), // its battlements
+      ...[13, 19, 25].map((c) => ['arcadeBay', c, 14] as const), // the arched bays of its foot
+      ...faceCells(10, 12, 12, 16), ...faceCells(7, 14, 9, 16), ...faceCells(4, 16, 6, 16), // the flank stepping down with the stair
+      ['wallFlag', 26, 6], ['bambooClump', 2, 13],
+    ],
     creatures: [
       { who: 'panda', col: 7, row: 15, way: 'right', speed: 1, range: 16 },
       { who: 'kite', col: 19, row: 2, way: 'down', speed: 1, range: 20 },
     ],
   }),
 
-  // D ALLEY OOP: the hutong. In from the wall's tunnel, low; a rope at column 4 up to the market. The ground runs east to a dead end past a bicycle and a monk on a pogo stick; shelves
+  // D BACK ALLEY BEIJING: the hutong. In from the wall's tunnel, low; a rope at column 4 up to the market. The ground runs east to a dead end past a bicycle and a monk on a pogo stick; shelves
   // up the middle to a roof ledge under a beam and a string of firecrackers that go off in turn; the key at its end.
   room({
     id: CHI.alley, cell: [2, 9], sector: 19, palette: ALLEY_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'B').clear(3, 0, 5, 1);
-      g.box(0, 2, 1, 13, 'B').box(30, 2, 31, 16, 'B');
-      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B');
-      g.box(4, 0, 4, 16, 'R');
-      g.box(8, 15, 10, 15, 'S').box(11, 13, 13, 13, 'S').box(14, 11, 16, 11, 'S'); // the shelves
-      g.box(17, 9, 29, 9, 'P'); // the roof ledge
-      g.box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, the beam
-      for (let c = CRACKERS.first; c < CRACKERS.first + CRACKERS.count; c++) g.box(c, 7, c, 8, 'K'); // the crackers
-    },
-    coins: [[12, 11], [27, 15]],
+    paint: paintAlley,
+    coins: ALLEY_COINS,
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
-    decor: [['laundry', 6, 5], ['hutongDoor', 20, 14], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2]],
+    decor: [
+      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 29, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 9, 16, 9, 'slateCell'), // the lane's wall behind him, its grey tiled eave
+      ['laundry', 6, 5], ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
+    ],
     creatures: [
       { who: 'bicycle', col: 6, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'monk', col: 24, row: 13, way: 'down', speed: 1, range: 20 },
     ],
   }),
 
-  // T TOWER OF POWER: the watchtower's hall. In by the rope from the wall (the floor gap at column 25); a stair of ledges up to a walkway over the hall; out east low or high. A rope
+  // T THE WATCHTOWER: the watchtower's hall. In by the rope from the wall (the floor gap at column 25); a stair of ledges up to a walkway over the hall; out east low or high. A rope
   // at column 16 under the trapdoor (shut until the key) climbs to the wall's top.
   room({
     id: CHI.tower, cell: [1, 8], sector: 20, palette: TOWER_PALETTE,
     paint(g) {
+      g.box(2, 2, 29, 16, 'N'); // the hall's inner wall
       g.box(0, 0, 31, 1, 'G').box(15, 0, 17, 1, 'T');
       g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 5, 'G').box(30, 9, 31, 13, 'G');
+      g.box(0, 4, 1, 4, 'L').box(0, 10, 1, 10, 'L').box(30, 3, 31, 3, 'L').box(30, 11, 31, 11, 'L'); // slits in the outer walls
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'G').clear(24, 17, 26, 19).box(25, 16, 25, 19, 'R');
       g.box(3, 15, 5, 15, 'S').box(6, 13, 8, 13, 'S').box(9, 11, 11, 11, 'S'); // the stair of ledges
       g.box(12, 9, 31, 9, 'P'); // the walkway
       g.box(16, 2, 16, 8, 'R'); // the rope under the trapdoor
     },
     coins: [[7, 11], [24, 7]],
-    decor: [['arrowSlit', 5, 5], ['arrowSlit', 9, 5], ['banner', 20, 3], ['rack', 13, 15], ['gong', 18, 14], ['drum', 28, 15], ['hangingLantern', 12, 2], ['hangingLantern', 27, 2]],
+    decor: [['wallWindow', 5, 3], ['wallWindow', 23, 3], ['banner', 19, 3], ['rack', 13, 15], ['gong', 18, 14], ['drum', 28, 15], ['hangingLantern', 12, 2], ['hangingLantern', 27, 2]],
     creatures: [
       { who: 'warrior', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 22, row: 2, way: 'down', speed: 1, range: 16 },
@@ -198,23 +260,30 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // C WALL YOU NEED: the wall's top by night, a dead end. In by the floor gap from the tower; a winding climb: right up two steps from the floor to a long walkway back
+  // C MIND THE BATTLEMENTS: the wall's top by night, a dead end. In by the floor gap from the tower; a winding climb: right up two steps from the floor to a long walkway back
   // west, up the left to the beacon's platform and east along it to the rice hat.
   room({
     id: CHI.top, cell: [0, 8], sector: 21, palette: TOP_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'G');
+      g.box(0, 0, 31, 1, 'Z'); // the gallery's roof
       g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G');
+      g.box(0, 5, 1, 5, 'S').box(0, 9, 1, 9, 'S').box(0, 13, 1, 13, 'S').box(30, 5, 31, 5, 'S').box(30, 9, 31, 9, 'S').box(30, 13, 31, 13, 'S'); // the towers' slits
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'G').clear(15, 17, 17, 19).box(16, 16, 16, 19, 'R');
       g.box(22, 15, 24, 15, 'L').box(25, 13, 27, 13, 'L'); // the steps up from the floor
       g.box(6, 11, 24, 11, 'L'); // the long walkway, ending short of the steps' top so he never stands under it
       g.box(3, 9, 5, 9, 'L').box(6, 7, 8, 7, 'L'); // the steps up the left
       g.box(9, 5, 29, 5, 'L'); // the beacon's platform
-      for (const c of [2, 5, 8, 11]) g.box(c, 16, c, 16, 'M');
     },
     coins: [[23, 13], [14, 9]],
     item: { name: 'rice hat', col: 27, row: 3, sprite: CHINA_SPRITE.riceHat },
-    decor: [['brazier', 22, 3], ['wallFlag', 4, 3], ['rack', 14, 3], ['hangingLantern', 11, 2], ['hangingLantern', 19, 2], ['rockery', 10, 15]],
+    decor: [
+      ['moon', 4, 3], ...[[8, 2], [13, 3], [18, 2], [3, 7], [11, 8], [26, 8], [20, 9], [28, 11], [4, 13], [24, 13]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const), // the night
+      ['peakNight', 2, 13], ['peakNight', 8, 13], ['peakNight', 14, 13], // the mountains in the dark
+      ...[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28].filter((c) => c !== 16).map((c) => ['crenels', c, 16] as const), // the walk's battlements
+      ...[6, 8, 10, 12, 14, 16, 18, 20, 22].map((c) => ['crenels', c, 10] as const), // the long walkway's battlements
+      ...faceCells(6, 12, 24, 12), ...faceCells(9, 6, 29, 6), ...faceCells(3, 10, 5, 10), ...faceCells(6, 8, 8, 8), ...faceCells(25, 14, 27, 14), // the wall's face under each stretch
+      ['brazier', 22, 3], ['rack', 14, 3], ['hangingLantern', 11, 2], ['hangingLantern', 19, 2],
+    ],
     creatures: [
       { who: 'warrior', col: 3, row: 15, way: 'right', speed: 1, range: 64 },
       { who: 'kite', col: 14, row: 6, way: 'down', speed: 1, range: 24 },
@@ -222,56 +291,40 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // E STALL IN LOVE: the market at New Year. In from the tower's hall (low, the street) or its walkway (high, the awnings, a rope down to the street); a gap in the street with a rope
+  // E NOODLE MARKET: the market at New Year. In from the tower's hall (low, the street) or its walkway (high, the awnings, a rope down to the street); a gap in the street with a rope
   // down into the hutong (col 4, under the hutong's rope); east, low, to the gate. The dragon loops through the right of the room.
   room({
     id: CHI.market, cell: [1, 9], sector: 22, palette: MARKET_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'B');
-      g.box(0, 2, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 2, 31, 13, 'B');
-      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R');
-      g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
-      g.box(12, 9, 12, 16, 'R'); // the rope down from them
-    },
-    coins: [[6, 7], [21, 15]],
-    decor: [['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['stall', 6, 14], ['stall', 13, 14], ['stall', 23, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15]],
+    paint: paintMarket,
+    coins: MARKET_COINS,
+    decor: [
+      ...backWall(paintMarket, MARKET_COINS, 2, 10, 29, 16), // the shop fronts behind the stalls
+      ['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['latticeWindow', 8, 11], ['latticeWindow', 17, 11], ['latticeWindow', 26, 11],
+      ['noodleStall', 5, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
+    ],
   }),
 
-  // F GATE EXPECTATIONS: the Forbidden City's gate. In from the market, low, into the outer court (a stone lion alive); the gate tower across the room with its doors across the court
+  // F THE FORBIDDEN CITY: the Forbidden City's gate. In from the market, low, into the outer court (a stone lion alive); the gate tower across the room with its doors across the court
   // (shut until the rice hat); a rope at column 12 up to a gallery over the outer court (a dead end with a coin); inside, a court with a guard (who steps aside for the rice
   // hat) and the rope up at column 24.
   room({
     id: CHI.gate, cell: [1, 10], sector: 23, palette: GATE_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(23, 0, 25, 1);
-      g.box(0, 2, 1, 13, 'W').box(30, 2, 31, 16, 'W');
-      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W');
-      g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
-      g.box(12, 4, 19, 4, 'Y').box(13, 5, 18, 5, 'E').box(14, 2, 17, 3, 'W'); // its swept roof and the second storey over it
-      g.box(24, 0, 24, 16, 'R');
-      g.box(3, 9, 10, 9, 'Y').box(12, 9, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
-    },
+    paint: paintGate,
     coins: [[8, 15], [6, 7], [28, 15]],
-    decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN', colour: 7 }, 3, 4], [{ text: 'CITY', colour: 7 }, 3, 5], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
+    decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], ['gateRoof', 12, 2], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
       { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
     ],
   }),
 
-  // G ROOF AND READY: the palace. In by the rope from the gate onto the courtyard; west a dead end with dumplings and a coin; east a stair of glazed eaves up to the ridge, along it east.
+  // G THE EMPEROR(S ROOFTOPS: the palace. In by the rope from the gate onto the courtyard; west a dead end with dumplings and a coin; east a stair of glazed eaves up to the ridge, along it east.
   room({
     id: CHI.roofs, cell: [0, 10], sector: 24, palette: ROOFS_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'W');
-      g.box(0, 2, 1, 16, 'W').box(30, 2, 31, 5, 'W').box(30, 9, 31, 16, 'W');
-      g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W').clear(23, 17, 25, 19).box(24, 16, 24, 19, 'R');
-      g.box(27, 15, 29, 15, 'E').box(24, 13, 26, 13, 'E').box(21, 11, 23, 11, 'E'); // the eaves
-      g.box(24, 9, 31, 9, 'Y'); // the ridge, starting past the top eave so he never stands under it
-    },
+    paint: paintRoofs,
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
-    decor: [['roofDragon', 24, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
+    decor: [['palaceHall', 2, 4], ['palaceHall', 10, 4], ['roofDragon', 24, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
     creatures: [
       { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
@@ -285,15 +338,20 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 0, 31, 1, 'B');
       g.box(0, 2, 1, 5, 'B').box(31, 2, 31, 14, 'B');
-      g.box(0, 9, 1, 19, 'B').box(3, 8, 3, 19, 'R'); // the entry bank, the well and its rope
-      g.box(5, 11, 6, 19, 'B').box(7, 13, 8, 19, 'B').box(9, 15, 11, 19, 'B'); // the steps and the shore
-      g.box(12, 16, 26, 19, 'W'); // the river
+      g.box(0, 9, 1, 19, 'K').box(3, 8, 3, 19, 'R'); // the entry bank, the well and its rope
+      g.box(5, 11, 6, 19, 'K').box(7, 13, 8, 19, 'K').box(9, 15, 11, 19, 'K'); // the steps and the shore
+      g.box(12, 16, 26, 19, 'W').box(12, 19, 26, 19, 'B'); // the river, the plate's border under it
       g.box(15, 15, 18, 16, 'S').box(22, 15, 24, 16, 'S'); // the stones
-      g.box(27, 15, 31, 19, 'B'); // the island
+      g.box(27, 15, 31, 19, 'K'); // the island
     },
     coins: [[19, 13]],
     item: { name: 'bamboo', col: 29, row: 13, sprite: CHINA_SPRITE.bamboo },
-    decor: [['willowTree', 4, 5], ['archBridge', 11, 4], ['archBridge', 19, 4], ['crouchFigure', 13, 2], ['crouchFigure', 20, 2], ['crouchFigure', 25, 2], ['pagoda', 27, 6]],
+    decor: [
+      ['kissingDoves', 2, 2], ['cloud', 9, 2], ['cloud', 15, 2], ['cloud', 27, 2],
+      ...[3, 7, 11, 15, 19, 23].map((c) => ['archBridge', c, 4] as const), // the long arched bridge
+      ['crouchFigure', 12, 2], ['crouchFigure', 19, 2], ['crouchFigure', 24, 2], // the three giants on its parapet
+      ['willowTree', 5, 6], ['willowCurtain', 9, 11], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14], ['plateFence', 0, 8], ['plateBoat', 19, 16], ['roundTree', 0, 6],
+    ],
     creatures: [
       { who: 'dove', col: 10, row: 7, way: 'right', speed: 1, range: 48 },
       { who: 'dove', col: 20, row: 9, way: 'right', speed: 1, range: 40 },
@@ -301,7 +359,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // J JUNK FOOD: the quay. In by the rope from the garden's well; the quay runs east (a bicycle) to the river, seven cells of water; across it the junk's deck and the way east, low, into Japan's harbour. The bamboo puts a raft across.
+  // J DOWN THE RIVER: the quay. In by the rope from the garden's well; the quay runs east (a bicycle) to the river, seven cells of water; across it the junk's deck and the way east, low, into Japan's harbour. The bamboo puts a raft across.
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {

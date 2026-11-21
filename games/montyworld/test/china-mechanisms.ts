@@ -376,7 +376,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   check(`ENHANCED: the quay without the bamboo says so ("${rowText(quay.g)}")`, rowText(quay.g) === 'OUT TO THE JUNK: FIND BAMBOO');
   const plain = at(CHI.junk, 4, 17, [], false);
   run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'JUNK FOOD');
+  check('ORIGINAL says nothing', rowText(plain.g) === 'DOWN THE RIVER');
   for (const [item, text] of [[KEY, 'KEY: FOR THE TOWER\'S TRAPDOOR'], [HAT, 'RICE HAT: PAST THE CITY GATE'], [BAMBOO, 'BAMBOO: A RAFT OUT TO THE JUNK']] as const) {
     const [room, nth] = item;
     const rec = must(CHINA_ROOMS.find((r) => r.id === room)?.item, 'the item');

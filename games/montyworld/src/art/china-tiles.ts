@@ -194,16 +194,16 @@ export const CHINA_TILES = {
     '########',
     '##.##.##',
   ]),
-  /** The garden's porcelain: a glazed tile with a diamond cut in it. Solid. */
+  /** The plate's border: a lattice of diamonds with a dot in each, the band that rings the plate. Solid. */
   blueBank: tile('blueBank', 1, 14, [
-    '.######.',
-    '##.##.##',
-    '#..##..#',
+    '...##...',
+    '..#..#..',
+    '.#.##.#.',
     '#.####.#',
     '#.####.#',
-    '#..##..#',
-    '##.##.##',
-    '.######.',
+    '.#.##.#.',
+    '..#..#..',
+    '...##...',
   ]),
   /** The plate's river: curling waves in rows. Deadly. */
   blueWave: tile('blueWave', 4, 6, [
@@ -292,6 +292,50 @@ export const CHINA_TILES = {
     '........',
     '........',
     '........',
+  ]),
+  /** The garden's bank: the plate's hatched earth, curved strokes in rows. Solid. */
+  plateBank: tile('plateBank', 1, 14, [
+    '#..##..#',
+    '.##..##.',
+    '........',
+    '##..##..',
+    '..##..##',
+    '........',
+    '#..##..#',
+    '.##..##.',
+  ]),
+  /** The wall's stone with an arrow slit cut in it: two courses of block, a dark slit down them. Solid. */
+  brickSlit: tile('brickSlit', 1, 12, [
+    '#####.##',
+    '##..#.##',
+    '##..#.##',
+    '........',
+    '##..####',
+    '##..####',
+    '##..####',
+    '........',
+  ]),
+  /** Grey roof tiles in rows, each a curve with its rib, for a gallery's roof and a hutong's. Solid. */
+  roofSlate: tile('roofSlate', 1, 11, [
+    '########',
+    '#.##.##.',
+    '.#..#..#',
+    '........',
+    '########',
+    '.##.##.#',
+    '#..#..#.',
+    '........',
+  ]),
+  /** A tower's inner wall: dark grey brick in courses, behind him. Passable. */
+  backBrick: tile('backBrick', 0, 11, [
+    '##.##.##',
+    '##.##.##',
+    '........',
+    '#.##.##.',
+    '#.##.##.',
+    '........',
+    '##.##.##',
+    '##.##.##',
   ]),
 } as const satisfies Record<string, NewTile>;
 
