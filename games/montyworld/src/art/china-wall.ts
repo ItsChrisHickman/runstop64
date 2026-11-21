@@ -1,7 +1,7 @@
 /**
  * The Great Wall's scenery, as the Wall is seen from the side where it snakes over the hills: its crenellated parapet, the dressed blocks of its face (a repeating
  * 1 x 1 piece, so a wall of any shape costs one character), the arched bays of its foot, the green and brown mountains behind it, a tower's window on the next
- * ridge, stars and a moon for the night. Solid ink with the detail cut into it as black lines, hatched with lines, never a dither.
+ * ridge. Solid ink with the detail cut into it as black lines, hatched with lines, never a dither.
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
@@ -83,20 +83,4 @@ function wallWindow(): NewDecor {
   return decor('wallWindow', 5, 4, r, ['CCCCC', 'C555C', 'C555C', 'CCCCC']);
 }
 
-/** A star. 1 x 1 characters. */
-function star(): NewDecor {
-  const r = new Raster(8, 8);
-  r.rect(3, 3, 4, 4); r.set(3, 1); r.set(3, 6); r.set(1, 3); r.set(6, 3);
-  return decor('star', 1, 1, r, 1);
-}
-
-/** The moon, a crescent. 2 x 2 characters. */
-function moon(): NewDecor {
-  const r = new Raster(16, 16);
-  r.disc(8, 8, 6.5);
-  const cut = new Raster(16, 16); cut.disc(11, 6.5, 5.5);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (cut.get(x, y)) r.set(x, y, false);
-  return decor('moon', 2, 2, r, 7);
-}
-
-export const WALL_DECOR = { crenels: crenels(), wallCell: wallCell(), arcadeBay: arcadeBay(), peakBrown: peakBrown(), hillGreen: hillGreen(), hillLow: hillLow(), peakNight: peakNight(), wallWindow: wallWindow(), star: star(), moon: moon() } as const satisfies Record<string, NewDecor>;
+export const WALL_DECOR = { crenels: crenels(), wallCell: wallCell(), arcadeBay: arcadeBay(), peakBrown: peakBrown(), hillGreen: hillGreen(), hillLow: hillLow(), peakNight: peakNight(), wallWindow: wallWindow() } as const satisfies Record<string, NewDecor>;
