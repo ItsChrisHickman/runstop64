@@ -8,7 +8,7 @@ import { retune, type RegionTune } from './region-tune';
  * more entry here and a `RegionTune` of its own (its scale and its instruments).
  */
 const REGIONS: readonly { readonly from: number; readonly to: number; readonly tune: RegionTune }[] = [
-  { from: 0, to: 10, tune: MOSCOW }, // Moscow: the world's first ten columns
+  { from: 0, to: 4, tune: MOSCOW }, // Moscow: the first four columns (its block of nine rooms)
 ];
 
 /** A tune as the engine takes it (`MontyData.music.tuneFor`): the version's id, and how to make its .sid from the original's. */

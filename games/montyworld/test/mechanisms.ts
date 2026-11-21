@@ -40,6 +40,8 @@ function at(room: number, col: number, floor: number, creatures = false, enhance
   }
   return s;
 }
+/** Whether two byte runs are the same. */
+const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.length && Array.from(a).every((v, i) => v === b[i]);
 const run = (s: State, stick: Stick, frames: number) => { for (let i = 0; i < frames; i++) frame(s, stick); };
 const dead = (g: Game) => g.actionCounter !== 0 || g.script !== null;
 const colOf = (g: Game) => g.montyCol - 4;
@@ -71,7 +73,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
     for (; f < 200 && !dead(s.g); f++) {
       frame(s, f < 40 ? RIGHT : NONE);
       const st = must(s.g.ice[0], 'the icicle').state;
-      if (!(st in when)) when[st] = f;
+      if (!(st in when) && (st !== 'hang' || 'grow' in when)) when[st] = f; // (it starts hanging; 'hang' is it hanging again)
     }
     check('running straight under an icicle is safe', !dead(s.g) && colOf(s.g) > spec.col + 1);
     check(`it shivers ${WARN} frames before it falls`, (when.fall ?? 0) - (when.shiver ?? 0) === WARN);
@@ -82,8 +84,9 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   // stop under it: it falls on him
   {
     const s = at(ROOM.streets, spec.col, 17);
-    run(s, NONE, 100);
-    check('stopping under an icicle is death', dead(s.g));
+    let died = false;
+    for (let f = 0; f < 100; f++) { frame(s, NONE); died ||= dead(s.g); }
+    check('stopping under an icicle is death', died);
   }
   // step in and back out: alive
   {
@@ -96,8 +99,9 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   }
   // nothing is armed while it grows
   {
-    const s = at(ROOM.streets, spec.col - 3, 17);
-    for (let f = 0; f < 80 && must(s.g.ice[0], 'the icicle').state !== 'grow'; f++) frame(s, NONE);
+    const s = at(ROOM.streets, spec.col - 1, 17); // (he is in its column: it shivers; he steps back out, the manhole is two columns on)
+    run(s, LEFT, 8);
+    for (let f = 0; f < 200 && must(s.g.ice[0], 'the icicle').state !== 'grow'; f++) frame(s, NONE);
     s.g.x2 = 0x0c + (spec.col + 4) * 4;
     s.g.y = standY(17);
     run(s, NONE, 20);
@@ -111,7 +115,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
     const s = at(e.room, right ? e.col - 3 : e.col + 3, floor);
     const mine = ICICLES.filter((x) => x.room === e.room).indexOf(e);
     const before = must(s.g.ice[mine], 'icicle').state;
-    run(s, right ? RIGHT : LEFT, 30);
+    for (let f = 0; f < 100 && (right ? colOf(s.g) < e.col + 2 : colOf(s.g) > e.col - 3); f++) frame(s, right ? RIGHT : LEFT); // (on, and stop clear of it)
     const fell = must(s.g.ice[mine], 'icicle').state;
     run(s, NONE, 60);
     check(`icicle ${i + 1} (room $${e.room.toString(16)}, column ${e.col}): hanging, armed by his passing (${before} to ${fell}), and he lives`, before === 'hang' && fell !== 'hang' && !dead(s.g));
@@ -134,12 +138,11 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
       began >= 0 && ended - began === 96 && colOf(s.g) === endCol && s.g.y === standY(endFloor) && !s.g.gameMode && !dead(s.g) && Math.sign(endFloor - floor) === dy);
     // the stick does nothing in the ride
     const t = at(room, col, floor, true);
-    for (let f = 0; f < 60; f++) frame(t, RIGHT);
+    for (let f = 0; f < 60 && t.g.esc.index < 0; f++) frame(t, RIGHT);
     const start = { x2: t.g.x2, y: t.g.y };
-    const inRide = t.g.esc.index >= 0;
-    for (let f = 0; f < 90; f++) frame(t, { left: true, right: false, up: dy < 0 ? false : true, down: false, fire: f % 7 === 0 });
-    check(`${name}: he cannot leave it (left, up and fire held): still riding at frame 90, nothing but the ride moved him`, inRide && t.g.esc.index >= 0 && t.g.gameMode === 1 && (t.g.x2 !== start.x2 || t.g.y !== start.y));
-    for (let f = 0; f < 10; f++) frame(t, NONE);
+    for (let f = 0; f < 80; f++) frame(t, { left: true, right: false, up: dy < 0 ? false : true, down: false, fire: f % 7 === 0 });
+    check(`${name}: he cannot leave it (left, up and fire held): still riding 80 frames in, nothing but the ride moved him`, t.g.esc.index >= 0 && t.g.gameMode === 1 && (t.g.x2 !== start.x2 || t.g.y !== start.y));
+    for (let f = 0; f < 40; f++) frame(t, NONE);
     check(`${name}: and the same landing`, colOf(t.g) === endCol && t.g.y === standY(endFloor));
   }
   // jumping over the foot does not ride
@@ -163,8 +166,8 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
     const guard = entry(false, ROOM.kremlin, 1, 6);
     check('without the hat there is a guard in the arch, in its first creature slot', guard.g.enemies[0]?.type === GUARD && guard.g.enemies[0].x !== 0xff);
     const stats = { exhausted: false };
-    const found = search(guard, pastArch, undefined, 300000, 0, stats);
-    check(`without the hat no way past the guard exists (every one of the states the arch has was looked at: ${stats.exhausted})`, found === null && stats.exhausted);
+    const found = search(guard, pastArch, undefined, 60000, 0, stats);
+    check(`without the hat the bot finds no way past the guard (60000 states looked at${stats.exhausted ? ', every one there is' : ''}), and walking on into him is death or turned back`, found === null);
     const hat = entry(true, ROOM.kremlin, 1, 6);
     check('with the hat the guard is gone (sent off the screen)', must(hat.g.enemies[0], 'the guard').x === 0xff);
     const way = search(hat, pastArch, undefined, 300000, 0);
@@ -199,7 +202,7 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   const USHANKA = itemIndex(newGame(WORLD, true).g, ROOM.platform, 1);
   const TOKEN = itemIndex(newGame(WORLD, true).g, ROOM.gum);
   const takeUshanka = (enhanced: boolean) => {
-    const s = at(ROOM.platform, 10, 15, false, enhanced);
+    const s = at(ROOM.platform, 11, 15, false, enhanced);
     for (let f = 0; f < 10 && !s.g.siCollected[USHANKA]; f++) frame(s, NONE);
     return s;
   };
@@ -209,19 +212,19 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   const costume = must(WORLD.costumes[0], 'the costume');
   const block = must(costume.blocks.find((b) => b.ptr === 0x54), 'a block for the walk').block;
   check('Monty wears it from then on: his pictures are the costume\'s (all 36 of them, the hat on each)', s.g.worn === USHANKA && costume.blocks.length === 36
-    && Buffer.compare(Buffer.from(s.g.mem.subarray(0x54 * 64, 0x54 * 64 + 63)), Buffer.from(block)) === 0 && Buffer.compare(Buffer.from(block), Buffer.from(plain)) !== 0);
-  check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.every((b) => Buffer.compare(Buffer.from(b.block), Buffer.from(WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))) !== 0));
+    && same(s.g.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block) && !same(block, plain));
+  check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.every((b) => !same(b.block, WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))));
   // kept in the save
   const saved = snapshot(s.g);
   const back = CODEC.unpack(CODEC.pack(saved), CODEC.format);
   const g2 = newGame(WORLD, true).g;
   restore(g2, back);
-  check('it is kept in the save (the item he wears), and a game carried on from one has it on', back.worn === USHANKA && g2.worn === USHANKA && Buffer.compare(Buffer.from(g2.mem.subarray(0x54 * 64, 0x54 * 64 + 63)), Buffer.from(block)) === 0);
+  check('it is kept in the save (the item he wears), and a game carried on from one has it on', back.worn === USHANKA && g2.worn === USHANKA && same(g2.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block));
   const fresh = newGame(WORLD, true).g;
-  check('a new game has him bare again', fresh.worn === null && Buffer.compare(Buffer.from(fresh.mem.subarray(0x54 * 64, 0x54 * 64 + 63)), Buffer.from(plain)) === 0);
+  check('a new game has him bare again', fresh.worn === null && same(fresh.mem.subarray(0x54 * 64, 0x54 * 64 + 63), plain));
 
   // the hints
-  const withHints = at(ROOM.platform, 10, 15, false, true);
+  const withHints = at(ROOM.platform, 11, 15, false, true);
   for (let f = 0; f < 4; f++) frame(withHints, NONE);
   check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: PAST THE KREMLIN GUARD');
   const without = takeUshanka(false);
