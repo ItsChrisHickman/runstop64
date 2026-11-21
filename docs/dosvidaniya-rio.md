@@ -316,3 +316,10 @@ piece ends with spaces before the next; the existing credits and the original's 
 Made as data in `games/montyworld/src/art/`: `rio-tiles.ts`, `rio-decor.ts`, `rio-creatures.ts`, `rio-items.ts`, `rio-hat.ts`, none in
 `world.ts` yet (the builder adds them to `WORLD_*` after the Andes'). Previews: `/root/projects/runstop64-shots/preprod-rio/` (`test/rio-sheets.ts`,
 `rio-rooms.ts`, `rio-hat-shots.ts`).
+
+## Decisions for the builder (2026-11-21)
+
+- Rio's costume is the carnival headdress (it opens the carnival steward's gate; the straw hat is dropped).
+- 11 rooms is fine.
+- The credits: this is a new game, not a port, so the port's line "REBUILT FOR THE BROWSER BY" is wrong here. Its own lines, as the plan says: A NEW GAME BY CHRISTOPHER HICKMAN WITH CLAUDE, AFTER PETER HARRAP'S MONTY ON THE RUN (GREMLIN GRAPHICS, 1985); then Monty on the Run's makers whose engine, graphics and music it uses (from montyotr/re/credits.md). Drop the line "AUF WIEDERSEHEN MONTY IS THE NEXT GAME" (it's about Monty on the Run). Never invent a credit.
+- The rougher creatures (drummer, the tram) and Christ's sleeves get a second pass; the floats must read as floats (the painted piece on its platform, not floating above it).

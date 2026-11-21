@@ -241,3 +241,8 @@ One line each, as the items' hints are in `data.ts`:
 Made as data in `games/montyworld/src/art/`: `andes-tiles.ts`, `andes-decor.ts`, `andes-creatures.ts`, `andes-items.ts`, `andes-hat.ts` (and its
 costume), none in `world.ts` yet (the builder adds them to `WORLD_*` after China's, so indexes never move). Previews:
 `/root/projects/runstop64-shots/preprod-andes/` (`test/andes-sheets.ts`, `andes-rooms.ts`, `andes-hat-shots.ts`).
+
+## Decisions for the builder (2026-11-21)
+
+- 13 rooms is fine (the game grows past 55 rooms; Chris liked bigger regions in Hawaii).
+- The rougher creatures (condor, toucan, marmoset, spitting llama) get a second pass when the region is built, to the Siberia set's standard.
