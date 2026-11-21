@@ -113,6 +113,10 @@ export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k): PulseS
   idle: codeOf(HALL_PALETTE, 'O'), warnCode: codeOf(HALL_PALETTE, 'N'), liveCode: codeOf(HALL_PALETTE, 'S'), spent: codeOf(HALL_PALETTE, 'S'),
 }));
 
+/** The pond's other two planks (cols 19-20 on row 13, cols 22-23 on row 14): not there until the fish food, which brings them up as the koi come to feed. Without them the far bank is seven cells off. */
+export const PLANK_CELLS: readonly (readonly [row: number, col: number])[] = [[13, 19], [13, 20], [14, 22], [14, 23]];
+export const PLANK_CODE = codeOf(GARDEN_PALETTE, 'P');
+
 // ---- the key items' places -------------------------------------------------------------------------------
 /** The shutter's cells (cols 28-29, rows 10-13) that the daruma rolls up. */
 export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [10, 11, 12, 13].flatMap((row) => [28, 29].map((col) => [row, col] as const));
@@ -153,7 +157,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(4, 7, 4, 16, 'R'); // the drainpipe
     },
     coins: [[12, 5], [14, 15]],
-    decor: [['jpNeonTall', 8, 3], ['jpNeonTall', 17, 3], ['jpNeonTall', 28, 3], ['jpLantern', 21, 4], ['jpNeonRamen', 9, 14], ['jpVending', 26, 14], ['jpLantern', 16, 14], ['jpLantern', 7, 14]],
+    decor: [['jpNeonTall', 8, 3], ['jpNeonTall', 15, 3], ['jpScreen', 19, 3], ['jpNeonTall', 28, 3], ['jpNeonRamen', 9, 14], ['jpVending', 26, 14], ['jpLantern', 16, 14], ['jpLantern', 7, 14]],
     creatures: [
       { who: 'jpSushiRoll', col: 6, row: 5, way: 'right', speed: 1, range: 24 },
       { who: 'jpLuckyCat', col: 15, row: 5, way: 'right', speed: 1, range: 48 },
@@ -218,7 +222,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(28, 10, 29, 13, 'H');
     },
     coins: [[27, 15], [25, 12]],
-    decor: [['jpBoard', 14, 3], ['jpSignalLamp', 27, 8], ['jpSignalLamp', 3, 8], ['jpVending', 4, 11], ['jpNeonTall', 6, 3], ['jpNeonTall', 19, 3]],
+    decor: [['jpBoard', 14, 3], ['jpSignalLamp', 27, 8], ['jpSignalLamp', 3, 8], ['jpVending', 4, 11], ['jpNeonTall', 6, 3], ['jpNeonTall', 19, 3], ['jpNeonRamen', 9, 5], ['jpNeonRamen', 24, 4], ['jpLantern', 13, 15], ['jpLantern', 23, 15]],
   }),
 
   // F FUJI-TIVE: Mount Fuji's foot and slope. In from the platform past the shutter (mid); the pilgrim's trail in switchbacks: east along the first ledge, up two steps, back west along the second ledge, up a step
@@ -235,7 +239,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(5, 0, 5, 5, 'R'); // the chain
     },
     coins: [[17, 12], [24, 10], [12, 6]],
-    decor: [['jpFuji', 14, 2], ['jpShrine', 12, 11], ['jpPine', 27, 4], ['jpLantern', 5, 9]],
+    decor: [['jpFuji', 14, 2], ['jpShrine', 12, 11], ['jpPine', 27, 4], ['jpPine', 3, 10], ['jpPine', 20, 10], ['jpLantern', 8, 10]],
     creatures: [
       { who: 'jpTanuki', col: 6, row: 12, way: 'right', speed: 1, range: 40 },
       { who: 'jpCrane', col: 12, row: 4, way: 'right', speed: 1, range: 80 },
@@ -243,14 +247,14 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // G KOI POLLOI: the temple garden on the mountain's shoulder. In by the chain through the floor at the left; the bank runs right past the temple and the cherry tree to the koi pond: a zig-zag of planks over the
-  // water with two koi leaping out of it (gone once they are fed). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
+  // water with two koi leaping out of it (once they are fed they are gone and the planks float up). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
   room({
     id: JP.garden, cell: [1, 15], sector: 33, palette: GARDEN_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 1, 'T').clear(27, 0, 29, 1);
       g.box(0, 2, 0, 13, 'T').box(30, 2, 31, 11, 'T');
       g.box(0, 14, 15, 19, 'M').box(7, 14, 15, 14, 'G').clear(4, 14, 6, 19).box(5, 13, 5, 19, 'R');
-      g.box(16, 15, 24, 19, 'W').box(16, 14, 17, 14, 'P').box(19, 13, 20, 13, 'P').box(22, 14, 23, 14, 'P'); // the pond and the planks
+      g.box(16, 15, 24, 19, 'W').box(16, 14, 17, 14, 'P'); // the pond and the first plank (the others float up when the koi are fed: PLANK_CELLS)
       g.box(25, 14, 31, 19, 'M');
       g.box(28, 12, 29, 12, 'P').box(25, 10, 27, 10, 'P'); // the pergola
       g.box(28, 0, 28, 9, 'R');
@@ -258,8 +262,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     coins: [[16, 12], [19, 11]],
     decor: [['jpSakura', 7, 8], ['jpShrine', 12, 11], ['jpBell', 12, 7], ['jpToro', 2, 11], ['jpToro', 26, 11]],
     creatures: [
-      { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 2, range: 28 },
-      { who: 'jpKoi', col: 20, row: 9, way: 'down', speed: 2, range: 28 },
+      { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 1, range: 56 },
+      { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 1, range: 56 },
       { who: 'jpTanuki', col: 9, row: 12, way: 'right', speed: 1, range: 24 },
       { who: 'jpUmbrella', col: 14, row: 9, way: 'down', speed: 1, range: 16 },
     ],
@@ -341,11 +345,11 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(28, 13, 31, 19, 'H'); // the ship's hull, its deck at row 13
       g.box(30, 10, 31, 12, 'D'); // planks across the way east
     },
-    coins: [[4, 9], [21, 15]],
-    decor: [['jpWave', 2, 2], [{ text: 'PACIFIC COMING SOON', colour: 7 }, 3, 5], ['jpGantry', 13, 11], ['jpLantern', 22, 12], ['jpBarrels', 22, 15]],
+    coins: [[4, 9], [23, 15]],
+    decor: [['jpWave', 2, 2], [{ text: 'PACIFIC COMING SOON', colour: 7 }, 3, 5], ['jpGantry', 13, 11], ['jpLantern', 22, 12]],
     creatures: [
-      { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 56 },
-      { who: 'jpCrab', col: 20, row: 15, way: 'right', speed: 1, range: 16 },
+      { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 40 },
+      { who: 'jpCrab', col: 18, row: 15, way: 'right', speed: 1, range: 24 },
     ],
   }),
 ];

@@ -22,7 +22,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, SHUTTER_CELLS, TRAIN, TRAINS } from '../src/japan';
+import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAIN, TRAINS } from '../src/japan';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
@@ -252,12 +252,13 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     check('without the fish food two koi leap in the pond (in its first two slots), on the screen', koi.length === 2 && pond.g.enemies[0]?.type === KOI && pond.g.enemies[1]?.type === KOI && koi.every((e) => e.x !== 0xff));
     const fed = at(JP.garden, 8, 14, [FISH], false, true);
     check('with it (taken at the overpass) both are gone, sent off the screen; the tanuki and the umbrella stay', fed.g.enemies.filter((e) => e.type === KOI).every((e) => e.x === 0xff) && fed.g.enemies.filter((e) => e.type !== KOI).every((e) => e.x !== 0xff));
-    // the koi kill in their column, so crossing the pond takes the food; a bot with the food crosses
+    // the pond: without the food only the first plank is there (the far bank is seven cells off), with it the other two float up
     const far = (g: Game) => g.roomId === JP.garden && colOf(g) >= 26 && g.y === standY(14);
-    const clear = at(JP.garden, 8, 14, [FISH]);
-    check('with the pond calm the bot crosses the planks to the far bank', search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
-    const wild = at(JP.garden, 8, 14, [], false, true);
-    check('the koi are in the way: a leap meets a rising carp, one dies in the pond\'s column at some frame', (() => { for (let f = 0; f < 200; f++) { frame(wild, NONE); } return !dead(wild.g); })());
+    const bare = at(JP.garden, 14, 14);
+    const jump = (() => { let n = 0; for (const [row, col] of PLANK_CELLS) n += cell(bare.g, col, row) === 0 ? 0 : 1; return n; })();
+    check(`without the food the pond's other planks are not there (${PLANK_CELLS.length} cells empty): the far bank is out of a jump's reach (a jump spans about five cells), and the bot finds no way across in 150000 states`, jump === 0 && search(bare, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) === null);
+    const clear = at(JP.garden, 14, 14, [FISH]);
+    check('with it (taken at the overpass) the planks are there (placed on loading the room) and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
   }
   // the guard and the hood
   {

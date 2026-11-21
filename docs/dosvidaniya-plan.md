@@ -75,7 +75,7 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 - **New things that feel familiar but fresh:** each region adds one or two mechanisms of its own, made the way Monty on
   the Run's are (a timing to learn, seen at once, fair): Moscow's escalators, icicles that fall when he passes under them;
   the Trans-Siberian's carriage roofs and the tunnels that sweep them; firecrackers and the long New Year dragon in China;
-  the bullet train sweeping a platform in Japan; swinging cargo on the ship's cranes; rising lava on the volcano; a flight
+  the bullet trains sweeping a platform and the castle's paper doors in Japan; swinging cargo on the ship's cranes; rising lava on the volcano; a flight
   the parachute drop from the plane into the Andes as the jetpack section: Auf Wiedersehen Monty's flight
   idea redeemed (Chris: its minigame was terrible), flying room by room as the jetpack does, down through the mountains past
   condors and updrafts to a landing at Machu Picchu. Each is proposed to Chris with its region before it is built.
@@ -133,5 +133,6 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
 3. Siberia: nine rooms built (2026-11-21; `docs/dosvidaniya-siberia.md`): the train's roofs and cars with tunnel mouths, the pine forest and the yeti's hollow, the mine with its cart, lamp and dark shaft, Baikal's cracking ice, the border village; its tune, pelmeni, hints, bot test and mechanism tests. **Chris plays it** before China.
    China: nine rooms built (2026-11-21; `docs/dosvidaniya-china.md`): the Great Wall's foot and top, a watchtower, the hutong and its firecrackers, the market and its dragon, the Forbidden City's gate (the rice hat), the palace roofs, the willow pattern garden, the quay and the junk; its tune, dumplings, hints, bot test and mechanism tests. **Chris plays it** before Japan.
-   Japan, the Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
+   Japan: eleven rooms built (2026-11-21; `docs/dosvidaniya-japan.md`): the fishing harbour where the junk lands, Tokyo's street and rooftops, a pachinko parlour (the daruma), the crossing (the fish food), the bullet-train platform swept by two trains on a learnt timing, Mount Fuji's trail, the temple garden's koi pond, THE LAST MOLE (the ninja hood), the castle's roofs and its hall of sliding paper doors in a seen rhythm (the guard lets him by in the hood), and the port with the cargo ship (the way east shut with a sign until the Pacific); its tune (the Hirajoshi scale, a shakuhachi and a koto), sushi, hints, bot test and mechanism tests. **Chris plays it** before the Pacific.
+   The Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
 4. The ending on Rio's beach, the reward show, the credits.

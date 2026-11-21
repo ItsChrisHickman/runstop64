@@ -6,7 +6,12 @@
  * bot test and the pictures.
  */
 import { JP } from '../src/japan';
-import { above, coin, into, item, leg, stands, type Leg } from './route';
+import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
+
+/** A leg ended hanging on the second stairs' rope below the deck (cols 19-21), where a train sweeping the lane cannot reach him: a leg that ended on the deck itself could end with a train a step behind him. */
+function underTheDeck(part: Part): Part {
+  return { goal: (g) => part.goal(g) && g.roomId === JP.platform && g.onRope !== 0 && g.montyCol - 4 >= 19 && g.montyCol - 4 <= 21 && g.y >= 50 + 17 * 8, aim: part.aim };
+}
 
 export const JAPAN_LEGS: readonly Leg[] = [
   leg('A: over the inlet, the coin on the first crate', coin(JP.harbour, 15, 13)),
@@ -22,14 +27,15 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('C: the coin on the shelf', coin(JP.parlour, 6, 7)),
   leg('C to E: out east, low, to the underpass', into(JP.platform, 31, 15, JP.parlour)),
   leg('E: the coin in the underpass\'s pocket', coin(JP.platform, 27, 15)),
-  leg('E: up the second stairs onto the platform, the coin on it', coin(JP.platform, 25, 12)),
+  leg('E: up the second stairs onto the platform, the coin on it, and back down the stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 25, 12))),
   leg('E to D: up the crossing\'s rope', into(JP.crossing, 23, 0, JP.platform)),
   leg('D: the coin in the street past the sumo', coin(JP.crossing, 19, 14)),
   leg('D: the coin in the street\'s east pocket', coin(JP.crossing, 25, 15)),
   leg('D: up the rope to the overpass, the coin on it', coin(JP.crossing, 16, 5)),
   leg('D: along the overpass to the fish food', item(JP.crossing, 0, [24, 5])),
   leg('D to E: back down to the street and the subway\'s rope', into(JP.platform, 23, 19, JP.crossing)),
-  leg('E to F: along the platform past the trains, through the shutter the daruma rolled up', into(JP.fuji, 31, 13, JP.platform)),
+  leg('E: up the second stairs and along the platform to the shutter, which the daruma rolled up', stands(JP.platform, 14, 26, 29)),
+  leg('E to F: out through the opened shutter', into(JP.fuji, 31, 13, JP.platform)),
   leg('F: the coin on the first ledge', coin(JP.fuji, 17, 12)),
   leg('F: the coin on the steps', coin(JP.fuji, 24, 10)),
   leg('F: the coin on the second ledge', coin(JP.fuji, 12, 6)),
@@ -48,8 +54,10 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('H: the coin on the fifth tier', coin(JP.tiers, 10, 5)),
   leg('H: the sushi on the top tier', item(JP.tiers, 0, [18, 3])),
   leg('H to I: back down the rope', into(JP.hall, 4, 19, JP.tiers)),
-  leg('I to J: through the three doors past the guard to the floor gap and down the rope', into(JP.port, 25, 19, JP.hall)),
-  leg('J: the coin on the quay past the crab', coin(JP.port, 21, 15)),
+  leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),
+  leg('I: through the second door past the ninja, into the space before the third', stands(JP.hall, 14, 14, 17)),
+  leg('I to J: through the third door past the guard (gone), to the floor gap and down the rope', into(JP.port, 25, 19, JP.hall)),
+  leg('J: the coin on the quay past the crab', coin(JP.port, 23, 15)),
   leg('J: the coin on top of the containers past the sumo', coin(JP.port, 4, 9)),
   leg('J: up the gangway onto the ship\'s deck at the sign', stands(JP.port, 13, 28, 29)),
 ];

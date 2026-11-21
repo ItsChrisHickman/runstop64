@@ -47,5 +47,5 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('H: back across the stones to the shore', stands(CHI.willow, 15, 9, 11)),
   leg('H to J: up the steps, down the well\'s rope to the quay', into(CHI.junk, 3, 19, CHI.willow)),
   leg('J: along the quay and over the raft to the junk\'s deck, the coin there', coin(CHI.junk, 22, 15)),
-  leg('J: to the sign at the way east', stands(CHI.junk, 17, 28, 29)),
+  leg('J: to the junk\'s deck at the way east into Japan', stands(CHI.junk, 17, 28, 29)),
 ];

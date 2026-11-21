@@ -260,7 +260,7 @@ import { creatureRooms, itemIndex, standY } from './route';
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over both regions (${info.join(' | ')})`, info[3] === 'SNACKS  0/6' && info[2] === 'ITEMS   0/7');
+  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === 'SNACKS  0/8' && info[2] === 'ITEMS  0/10');
   enterRoom(s.g, SIB.lake, 0x40, standY(12));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 16: [0x40, 0xb2, 1, 7], 17: [0x40, 0xb2, 2, 7] } });
   check('in Siberia the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
