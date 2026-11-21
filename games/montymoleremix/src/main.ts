@@ -181,8 +181,9 @@ export function run(host: Host) {
       },
       updateView() {
         // ENHANCED's help (hints.ts): in play, not on a screen of ours
-        const shown = fe.enhanced && mode === 'play' && !g.freeze && !fe.holding;
-        if (mode === 'play') g.note(shown && fe.assist.count === true ? coalCount(g) : null);
+        // (not under the verse: the count's row is the verse's bottom row, and the note would wipe each letter as it is typed)
+        const shown = fe.enhanced && mode === 'play' && !g.freeze && !fe.holding && epilogue === null;
+        if (mode === 'play' && epilogue === null) g.note(shown && fe.assist.count === true ? coalCount(g) : null);
         renderer.sparkles.set((shown && fe.assist.hints === true ? hintsOf(g) : []).map((h) => ({ x: h.x, y: h.y, size: SPARKLE_SIZE, gain: SPARKLE_GAIN })));
         view.update();
         if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
