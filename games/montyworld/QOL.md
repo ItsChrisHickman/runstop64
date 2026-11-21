@@ -32,4 +32,4 @@ Do Svidaniya Monty is a new game (2026, `docs/dosvidaniya-plan.md`) on the engin
 
 ## Not changed
 
-Monty's walk and jump, the coins and items and what they score, the enemies' paths and speeds as the rooms give them, Rob Hubbard's tune and sound effects (each region's own version of the tune is made apart: Moscow's minor with a balalaika, Siberia's Dorian with a pipe, China's pentatonic with a bowed fiddle; the tempo is Hubbard's), the title screen's frame and lettering (the scroller says MONTY MOLE: WORLD TOUR with its credits).
+Monty's walk and jump, the coins and items and what they score, the enemies' paths and speeds as the rooms give them, Rob Hubbard's tune and sound effects (each region's own version of the tune is made apart: Moscow's minor with a balalaika, Siberia's Dorian with a pipe, China's pentatonic with a bowed fiddle, Japan's Hirajoshi scale with a shakuhachi and a koto; the tempo is Hubbard's), the title screen's frame and lettering (the scroller says MONTY MOLE: WORLD TOUR with its credits).

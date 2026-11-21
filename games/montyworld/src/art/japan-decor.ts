@@ -194,8 +194,8 @@ function dragon(): NewDecor {
 function moon(): NewDecor {
   const r = new Raster(24, 24);
   r.disc(11.5, 11.5, 10.5);
-  r.rect(7, 5, 9, 7, false); r.rect(13, 12, 17, 14, false); r.rect(6, 14, 8, 16, false); // craters
-  r.ellipse(17, 20, 8, 3, false); r.ellipse(16, 21, 7, 2, true);
+  r.rect(15, 5, 16, 6, false); r.rect(12, 14, 14, 15, false); r.rect(6, 11, 7, 12, false); // a few maria
+  r.rect(0, 19, 23, 19, false); r.rect(3, 21, 20, 21, false); // thin strips of cloud across its foot
   return decor('jpMoon', 3, 3, r, 1);
 }
 

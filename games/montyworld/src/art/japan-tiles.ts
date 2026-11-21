@@ -58,7 +58,7 @@ export const JAPAN_TILES = {
   /** Raked gravel: circles combed in the sand. Solid. */
   jpGravel: tile('jpGravel', 1, 15, ['########', '........', '.######.', '........', '########', '........', '.######.', '........']),
   /** A stepping stone: a round flat stone with its dark underside. A floor. */
-  jpStone: tile('jpStone', 2, 12, ['########', '########', '#.######', '########', '.######.', '..####..', '........', '........']),
+  jpStone: tile('jpStone', 2, 12, ['########', '########', '###.####', '########', '########', '.######.', '........', '........']),
   /** A lacquered plank of the zig-zag bridge: bold, with its pegs. A floor. */
   jpPlank: tile('jpPlank', 2, 2, ['########', '#.#..#.#', '########', '........', '........', '........', '........', '........']),
   /** A bamboo pole to climb: a stalk with its nodes. A rope. */
