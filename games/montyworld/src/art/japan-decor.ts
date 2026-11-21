@@ -1,8 +1,8 @@
 /**
  * Japan's decorations for Monty Mole: World Tour (region 4), in Monty on the Run's decoration format and Moscow's manner
  * (decorations.ts): solid ink with the detail cut into it as black lines. The junk's sail, the market, Tokyo's neon, the parlour's
- * machines, the torii, Fuji, the pagoda and the keep, the garden's cherry tree, lantern and dragon, the
- * port's gantry, the Great Wave. Every name starts `jp`.
+ * machines, the keep, the garden's cherry tree, lantern and dragon, the
+ * port's gantry and ship's mast, the Great Wave. Every name starts `jp`.
  */
 import { decor } from './decorations';
 import { limb, Raster } from './raster';
@@ -48,6 +48,16 @@ function lantern(): NewDecor {
   r.rect(4, 14, 11, 15); // the foot
   r.rect(7, 15, 8, 15, false);
   return decor('jpLantern', 2, 2, r, 2);
+}
+
+/** A cargo ship's foremast on the deck: the mast, a crow's nest, a yard with its rigging and a pennant at the top. 2 x 5 characters. */
+function shipMast(): NewDecor {
+  const r = new Raster(16, 40);
+  r.rect(7, 0, 8, 39); r.rect(4, 7, 11, 10); r.rect(5, 8, 10, 9, false); // the mast and its crow's nest
+  r.triangle(9, 0, 15, 2, 9, 4); // the pennant
+  r.rect(1, 20, 14, 21); r.line(7, 11, 1, 20); r.line(8, 11, 14, 20); // the yard and the stays
+  r.rect(0, 38, 15, 39); // the deck line at its foot
+  return decor('jpShipMast', 2, 5, r, ['22', '11', '11', '11', '11']);
 }
 
 /** A tall vertical neon board: a frame and strokes of an invented script, a bar of light under it. 2 x 4 characters. */
@@ -102,49 +112,6 @@ function clawMachine(): NewDecor {
   for (const cx of [8, 14, 21, 25]) { r.disc(cx, 25, 3); r.rect(cx - 1, 24, cx - 1, 24, false); r.rect(cx + 1, 24, cx + 1, 24, false); } // prizes with faces
   r.rect(3, 31, 28, 38, false); r.rect(5, 33, 12, 35); r.disc(22, 35, 2); // the panel
   return decor('jpClawMachine', 4, 5, r, ['3333', '3333', '3333', '3333', '2222']);
-}
-
-/** A torii gate: two round pillars, the double beam with its upturned ends, a name tablet. 6 x 5 characters. */
-function torii(): NewDecor {
-  const r = new Raster(48, 40);
-  r.rect(7, 12, 11, 39); r.rect(36, 12, 40, 39); // the pillars
-  r.rect(0, 3, 47, 7); r.triangle(0, 3, 0, 0, 4, 3); r.triangle(47, 3, 47, 0, 43, 3); // the top beam, its ends up
-  r.rect(3, 8, 44, 9, false); r.rect(4, 10, 43, 13); // the gap, the tie beam
-  r.rect(21, 7, 26, 12, false); r.rect(22, 8, 25, 11); // the tablet
-  r.rect(7, 30, 11, 31, false); r.rect(36, 30, 40, 31, false); // the pillars' bases
-  return decor('jpTorii', 6, 5, r, 2);
-}
-
-/** Mount Fuji: the great cone with its flat top, a snow cap with a jagged edge, the slopes ribbed, cloud across the foot. 12 x 6 characters. */
-function fuji(): NewDecor {
-  const r = new Raster(96, 48);
-  for (let y = 0; y < 48; y++) { // the cone: half width grows with a slight curve
-    const half = 12 + (y / 47) ** 1.25 * 36;
-    for (let x = Math.round(48 - half); x <= Math.round(47 + half); x++) r.set(x, y);
-  }
-  for (let x = 0; x < 96; x++) { // the snowline's jagged edge
-    const line = 17 + [0, 3, 1, 5, 2, 4, 0, 3][x % 8] + ((x * 7) % 5);
-    const half = 12 + (line / 47) ** 1.25 * 36;
-    if (Math.abs(x - 47.5) <= half) r.rect(x, line + 1, x, 47, false);
-  }
-  for (let x = 6; x < 90; x += 5) { const top = 22 + Math.abs(x - 48) * 0.3; if (Math.abs(x - 48) < 12 + ((top / 47) ** 1.25) * 36) r.rect(x, Math.round(top), x, 46); } // ribs of the slope
-  r.rect(34, 0, 61, 1, false); // the flat crater top
-  r.rect(0, 40, 95, 47, false);
-  for (let x = 0; x < 96; x += 20) { r.ellipse(x + 8, 43, 11, 3); r.ellipse(x + 18, 45, 9, 2.4); } // cloud across the foot
-  return decor('jpFuji', 12, 6, r, ['111111111111', '111111111111', '666666666666', '666666666666', '666666666666', '666666666666']);
-}
-
-/** A five-tier pagoda: stacked roofs with upturned eaves narrowing to a spire. 4 x 7 characters. */
-function pagoda(): NewDecor {
-  const r = new Raster(32, 56);
-  r.rect(15, 0, 16, 7); r.rect(13, 4, 18, 4); // the spire
-  for (let k = 0; k < 5; k++) {
-    const y = 8 + k * 10, half = 5 + k * 2;
-    r.triangle(16 - half - 2, y + 4, 16 + half + 1, y + 4, 16, y - 1); // the roof
-    r.rect(16 - half - 2, y + 4, 16 + half + 1, y + 5); r.rect(16 - half - 3, y + 3, 16 - half - 3, y + 3); r.rect(16 + half + 2, y + 3, 16 + half + 2, y + 3); // upturned ends
-    r.rect(16 - half + 1, y + 6, 16 + half - 2, y + 9); r.rect(15, y + 7, 16, y + 9, false); // the storey, a door
-  }
-  return decor('jpPagoda', 4, 7, r, 2);
 }
 
 /** A stone garden lantern (toro): a cap, a lit box with its window, a post and a foot. 2 x 3 characters. */
@@ -336,9 +303,6 @@ export const JAPAN_DECOR = {
   jpVending: vending(),
   jpMachines: machines(),
   jpClawMachine: clawMachine(),
-  jpTorii: torii(),
-  jpFuji: fuji(),
-  jpPagoda: pagoda(),
   jpToro: toro(),
   jpSakura: sakura(),
   jpBonsai: bonsai(),
@@ -347,6 +311,7 @@ export const JAPAN_DECOR = {
   jpKeep: keep(),
   jpGantry: gantry(),
   jpWave: wave(),
+  jpShipMast: shipMast(),
   jpShrine: shrine(),
   jpBell: bell(),
   jpScroll: scroll(),

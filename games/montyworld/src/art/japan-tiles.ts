@@ -17,8 +17,8 @@ export const JAPAN_TILES = {
   jpCrate: tile('jpCrate', 1, 8, ['########', '##....##', '#.#..#.#', '#..##..#', '#..##..#', '#.#..#.#', '##....##', '########']),
   /** A kawara roof's top: the ridge's tiles in a scalloped row. A floor. */
   jpKawara: tile('jpKawara', 2, 14, ['########', '########', '#.##.##.', '.#..#..#', '........', '........', '........', '........']),
-  /** The roof's body: rows of curved tiles. Solid. */
-  jpRoofBody: tile('jpRoofBody', 1, 6, ['#.##.##.', '.#..#..#', '########', '#.##.##.', '.#..#..#', '########', '#.##.##.', '.#..#..#']),
+  /** The roof's body: broad bands of tiles with black joints. Solid. */
+  jpRoofBody: tile('jpRoofBody', 1, 6, ['########', '########', '###.####', '........', '########', '####.###', '########', '........']),
   /** A shop front's concrete: a grid of windows. Solid. */
   jpOffice: tile('jpOffice', 1, 12, ['########', '#.##.##.', '#.##.##.', '########', '#.##.##.', '#.##.##.', '########', '########']),
   /** The street: asphalt with a kerb's line along the top. Solid. */
@@ -37,18 +37,18 @@ export const JAPAN_TILES = {
   jpShojiWarn: tile('jpShojiWarn', 0, 7, ['#......#', '#.#..#.#', '#......#', '#..#.#.#', '#......#', '#.#..#.#', '#......#', '#..#.#.#']),
   /** The paper door open: only the frame's edge in the pocket. Nothing. */
   jpShojiOpen: tile('jpShojiOpen', 0, 9, ['#.......', '#.......', '#.......', '#.......', '#.......', '#.......', '#.......', '#.......']),
-  /** A castle's plaster wall with the namako lattice: diagonal black ribs on white. Solid. */
-  jpPlaster: tile('jpPlaster', 1, 1, ['#......#', '.#....#.', '..#..#..', '...##...', '...##...', '..#..#..', '.#....#.', '#......#']),
-  /** A castle's inner wall seen behind him: the same plaster and lattice, but nothing to hit. Nothing. */
-  jpWallBack: tile('jpWallBack', 0, 11, ['#......#', '.#....#.', '..#..#..', '...##...', '...##...', '..#..#..', '.#....#.', '#......#']),
+  /** A castle's plaster wall: white panels with their black joints. Solid. */
+  jpPlaster: tile('jpPlaster', 1, 1, ['########', '########', '####.###', '........', '########', '###.####', '########', '........']),
   /** A dark timber beam: grain along it. Solid. */
   jpTimber: tile('jpTimber', 1, 9, ['########', '#.#.#.##', '########', '##.#.###', '########', '#.##.#.#', '########', '########']),
   /** The castle's stone base: great blocks, joints wandering. Solid. */
   jpStoneWall: tile('jpStoneWall', 1, 12, ['###.####', '###.####', '........', '#.######', '#.######', '........', '####.###', '####.###']),
   /** A castle eave: upturned tiles over a curved lip. A floor. */
   jpEave: tile('jpEave', 2, 14, ['########', '#######.', '.######.', '..####..', '...##...', '........', '........', '........']),
-  /** Snow on Fuji's slope: a drift and packed rows. Solid. */
-  jpSnow: tile('jpSnow', 1, 1, ['..##..#.', '########', '########', '........', '.####.##', '........', '###.####', '........']),
+  /** Snow on Fuji's upper slope: drifts in rows, as scenery (the mountain's body is behind him, the trail in front). Nothing. */
+  jpSnow: tile('jpSnow', 0, 1, ['..####..', '########', '########', '.#.##.#.', '........', '.######.', '########', '........']),
+  /** Fuji's slope below the snow: blue-grey rock in streaks, as scenery. Nothing. */
+  jpSlope: tile('jpSlope', 0, 6, ['##.##.##', '##.##.##', '#..##..#', '##.##.##', '#.##.##.', '##.##.##', '#..##..#', '##.##.##']),
   /** Volcanic cinders under the snow line: rough lumps. Solid. */
   jpScree: tile('jpScree', 1, 11, ['..####..', '.######.', '###..###', '##....##', '###..###', '.######.', '#.####.#', '..#..#..']),
   /** A pilgrim's trail: stone steps with a dirt edge. A floor. */
@@ -69,8 +69,6 @@ export const JAPAN_TILES = {
   jpChain: tile('jpChain', 3, 12, ['...##...', '..#..#..', '..#..#..', '...##...', '...##...', '..#..#..', '..#..#..', '...##...']),
   /** The platform's edge: the yellow studded warning strip over concrete. Solid. */
   jpPlatform: tile('jpPlatform', 1, 7, ['########', '#.#.#.#.', '########', '........', '#...#...', '........', '..#...#.', '........']),
-  /** The rail: iron head along the top, sleepers below. Solid. */
-  jpRail: tile('jpRail', 1, 12, ['########', '########', '.####...', '.####...', '.####...', '.####...', '........', '#...#.#.']),
   /** Tiled concrete wall of the underpass: square tiles. Solid. */
   jpTiled: tile('jpTiled', 1, 14, ['#######.', '#######.', '#######.', '#######.', '#######.', '#######.', '#######.', '........']),
   /** A roller shutter: ribs across, a handle at the foot. Solid. */
@@ -81,6 +79,8 @@ export const JAPAN_TILES = {
   jpSteel: tile('jpSteel', 1, 12, ['########', '#......#', '#.#..#.#', '#......#', '#......#', '#.#..#.#', '#......#', '########']),
   /** A cargo ship's hull: red plates, a seam and rivets. Solid. */
   jpShipHull: tile('jpShipHull', 1, 2, ['########', '........', '#.#.#.#.', '########', '########', '........', '#.#.#.#.', '########']),
+  /** A cargo ship's hull with a porthole: the red plates and a round black window. Solid. */
+  jpPorthole: tile('jpPorthole', 1, 2, ['########', '###..###', '##....##', '##....##', '###..###', '########', '########', '........']),
   /** The junk's hull: wide planks with a batten between. Solid. */
   jpJunkHull: tile('jpJunkHull', 1, 2, ['########', '########', '........', '#.##.##.', '########', '........', '########', '########']),
   /** The top of a crate: planks with a cross brace, thin. A floor (the harbour's stair of crates). */

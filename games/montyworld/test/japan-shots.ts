@@ -40,8 +40,8 @@ const pics = SPOTS.map((s) => {
 });
 contactSheet(out, 'sheet.png', pics);
 
-// the trains: quiet, the warning at the right, the up train coming on, over the platform, going; then the down train
-const trains = [5, 40, 100, 140, 190, 250, 300, 330, 380, 430, 480].map((frames) => placed({ room: JP.platform, col: 14, floor: 17, frames, worn: riceHat }).px);
+// the trains: quiet, the warning at the right, the up train coming on, over the platform, going; the quiet moment; then the down train's warning and the down train
+const trains = [5, 200, 270, 310, 360, 430, 480, 560, 650, 700, 800].map((frames) => placed({ room: JP.platform, col: 14, floor: 17, frames, worn: riceHat }).px);
 contactSheet(out, 'trains.png', trains);
 // the paper doors: open, shaking, shut, a wall
 const doors = [10, 70, 90, 110, 125, 150].map((frames) => placed({ room: JP.hall, col: 3, floor: 14, frames, worn: riceHat }).px);

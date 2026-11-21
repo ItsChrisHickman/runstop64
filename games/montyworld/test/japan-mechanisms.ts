@@ -23,6 +23,7 @@ import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
@@ -320,7 +321,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const play = at(JP.fuji, 20, 8, []);
     wear(play.g, hood);
     run(play, NONE, 5);
-    check('the hood is a sprite of its own over him (sprite 7, blue), enabled', (play.g.vic.enable & 0x80) !== 0 && play.g.scol[7] === 6 && HAT_BLOCKS.includes(play.g.sptr[7] ?? 0));
+    check('the hood is a sprite of its own over him (sprite 7, red), enabled', (play.g.vic.enable & 0x80) !== 0 && play.g.scol[7] === HOOD_COLOUR && HAT_BLOCKS.includes(play.g.sptr[7] ?? 0));
   }
   {
     wear(s.g, rice);

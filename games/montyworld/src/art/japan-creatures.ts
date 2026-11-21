@@ -5,6 +5,7 @@
  * paper-lantern ghost, a sumo wrestler, a spinning paper umbrella, a tanuki, a crane, a koi, a ninja and a samurai guard. No dither.
  * Each is drawn going left (frames 0-3); the mirror goes right (4-7). Every name starts `jp`.
  */
+import { capsule, sym } from './creature-kit';
 import { creatureBank, mirrored } from './pixels';
 import { limb, over, Raster } from './raster';
 import type { NewCreature } from './types';
@@ -49,20 +50,19 @@ function crab(): NewCreature {
   return pair('jpCrab', four(frame), 2);
 }
 
-// ---- the sushi roll on legs: a maki, the rice face with its dark ring of nori, eyes and a grin, trotting
+// ---- the sushi roll on legs: a maki seen end on, a lit rim, the black band of nori, the rice with its face, trotting
 
 function sushiRoll(): NewCreature {
   const frame = (t: number) => {
     const r = new Raster(16, 16);
     const a = [0, 1, 0, -1][t] ?? 0;
     lay(r, (s) => { limb(s, 5, 12, 4 + a, 15, 2); limb(s, 10, 12, 11 - a, 15, 2); s.rect(3 + a, 15, 5 + a, 15); s.rect(10 - a, 15, 12 - a, 15); }); // legs and feet
-    r.disc(7.5, 7, 6.4); // the roll's rice end
-    r.ring(7.5, 7, 4.9, 1); r.ring(7.5, 7, 5.9, 1); // the nori's ring, a black band cut inside
-    r.cut(['##', '##'], 4, 5); r.cut(['##', '##'], 9, 5); // the eyes
-    r.set(4, 5); r.set(9, 5);
-    r.cut(['#.....#', '.#####.'], 4, 8 + (t % 2)); // a grin
-    r.rect(6, 1, 9, 1, false); r.rect(7, 2, 8, 3, false); // the fish in the middle's top, the dark filling
-    lay(r, (s) => { limb(s, 1, 8, 0, 11 + a, 1); limb(s, 14, 8, 15, 11 - a, 1); }); // arms
+    r.disc(7.5, 7, 7.2); // the roll
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const d = Math.hypot(x - 7.5, y - 7); if (d > 5.1 && d <= 6.6) r.set(x, y, false); } // the nori: a lit rim, a thick black band, the rice inside
+    r.cut(['##', '##'], 4, 4); r.cut(['##', '##'], 9, 4); // the eyes
+    r.set(4, 4); r.set(10, 4); // (lit pupils)
+    r.cut(['#...#', '.###.'], 5, 7 + (t % 2)); // a grin
+    lay(r, (s) => { limb(s, 0, 7, 0, 11 + a, 1); limb(s, 15, 7, 15, 11 - a, 1); }); // arms
     return r.rows();
   };
   return pair('jpSushiRoll', four(frame), 1, true);
@@ -189,39 +189,41 @@ function tanuki(): NewCreature {
   return pair('jpTanuki', four(frame), 9);
 }
 
-// ---- the crane: white, a long neck, a red crown, wings beating
+// ---- the crane: white, standing on long thin legs, an S of neck and a long beak, a dark crown, wings beating
 
 function crane(): NewCreature {
   const frame = (t: number) => {
     const r = new Raster(16, 16);
-    const wing = [1, 5, 10, 5][t] ?? 5;
+    const s = [0, 1, 0, -1][t] ?? 0, tip = [2, 5, 11, 6][t] ?? 5;
+    r.line(8, 11, 7 + s, 15); r.line(11, 11, 12 - s, 15); // the long thin legs
+    r.rect(5 + s, 15, 7 + s, 15); r.rect(12 - s, 15, 14 - s, 15); // the feet
+    r.ellipse(9.5, 8.5, 5.4, 3.3); // the body
+    r.triangle(13, 7, 15.5, 3, 15.5, 9); // the tail plumes, up
+    r.line(6, 7, 5, 5); r.line(7, 7, 6, 5); r.line(5, 5, 4, 3); r.line(6, 5, 5, 3); // the neck's S
+    r.disc(4.5, 2.5, 2.2); // the head
+    r.triangle(2.5, 2, 2.5, 4, 0, 3.4); // the beak
+    r.set(4, 1, false); r.set(5, 1, false); r.set(3, 2, false); r.set(5, 2, false); // the dark crown and the eye
     const w = new Raster(16, 16);
-    w.triangle(5, 9, 16, 9, 10, wing); w.triangle(5, 9, 14, 9, 14, wing + 1);
+    w.triangle(5, 8, 14, 8, 13, tip); w.triangle(5, 8, 13, tip, 9, tip + (tip < 8 ? 2 : -2)); // the wing, beating
     over(r, w);
-    r.ellipse(9, 10, 5.6, 2.8); // the body
-    r.line(5, 9, 3, 4); r.line(6, 9, 4, 4); r.line(5, 8, 3, 3); // the long neck
-    r.disc(3, 3, 2.1); r.rect(0, 3, 1, 3); // the head and its beak
-    r.set(3, 3, false); r.rect(3, 1, 4, 1, false); // the eye, the red crown cut dark
-    r.line(14, 11, 15, 14 - (t % 2)); r.line(13, 11, 15, 15 - (t % 2)); // the legs trailing
     return r.rows();
   };
   return pair('jpCrane', four(frame), 1);
 }
 
-// ---- the koi: an orange carp leaping straight up, tail beating
+// ---- the koi: an orange carp leaping, head up, with its whiskers, scales' arcs and a forked tail beating
 
 function koi(): NewCreature {
   const frame = (t: number) => {
     const r = new Raster(16, 16);
     const s = [0, 2, 0, -2][t] ?? 0;
-    r.ellipse(8, 6.5, 5, 6.5); // the body, head up
-    r.triangle(8, 11, 2 + s, 15, 14 + s, 15); // the tail fan
-    r.rect(8, 11, 8, 13, false);
-    r.triangle(4, 6, 0, 9, 4, 11); r.triangle(12, 6, 15, 9, 12, 11); // pectoral fins
-    r.rect(6, 0, 9, 0, false); // a lip notch
-    r.cut(['##', '##'], 4, 2); r.cut(['##', '##'], 10, 2); r.set(5, 2); r.set(10, 2); // the eyes, lit pupils
-    r.cut(['##', '##'], 6, 6); r.cut(['##'], 9, 9); // spots
-    r.cut(['#..#'], 6, 4); // whiskers
+    capsule(r, [[4.8, 3.6, 3.4], [7.5, 7.4, 3.8], [10, 10.6, 2.4]]); // the body, head up left
+    r.triangle(8, 3, 12, 2, 11, 8); // the dorsal fin
+    r.triangle(10, 11, 8 + s, 15.5, 11.5, 14); r.triangle(10, 11, 15.5, 14 + s / 2, 12, 12); // the tail's fork
+    r.triangle(6, 9, 2, 12, 7, 11.5); // the pectoral fin
+    r.cut(['##', '##'], 3, 2); r.set(3, 3); // the eye (a lit pupil)
+    r.cut(['#'], 0, 4); // the mouth
+    r.cut(['.#.', '#.#'], 7, 6); r.cut(['.#.', '#.#'], 9, 9); r.cut(['.#.', '#.#'], 5, 8); // the scales' arcs
     return r.rows();
   };
   return pair('jpKoi', four(frame), 8);
@@ -253,24 +255,34 @@ function ninja(): NewCreature {
   return pair('jpNinja', four(frame), 12);
 }
 
-// ---- the samurai guard: red armour, a great helmet with crescent horns, a spear, a moustached mask
+// ---- the samurai guard: red armour, a great helmet with crescent horns and a crest over a fierce face (slanted eyes, a moustache), broad laced shoulder plates, a skirt of plates
+
+const SAMURAI_TOP = sym([
+  '#.......',
+  '##....##',
+  '.##..###',
+  '..##.###',
+  '...#####',
+  '..######',
+  '..#.####',
+  '..#.#.##',
+  '..#.#.##',
+  '..#..###',
+  '.#######',
+  '####.###',
+  '####.#.#',
+  '.##..###',
+]);
 
 function samurai(): NewCreature {
   const frame = (t: number) => {
     const r = new Raster(16, 16);
     const a = [1, 0, -1, 0][t] ?? 0;
-    limb(r, 5, 12, 4 + a, 15, 2); limb(r, 9, 12, 10 - a, 15, 2); // legs
-    r.rect(3, 8, 10, 13); // the body
-    r.rect(3, 12, 10, 12, false); // the belt
-    r.rect(0, 7, 4, 10); r.rect(9, 7, 13, 10); // the shoulder plates
-    r.rect(1, 9, 3, 9, false); r.rect(10, 9, 12, 9, false);
-    r.ellipse(6.5, 4.5, 4.4, 3.8); // the head
-    r.rect(1, 2, 12, 3); r.rect(3, 0, 10, 1); // the helmet and its brim
-    r.rect(1, 3, 12, 3, false);
-    r.line(3, 0, 1, -1); r.line(10, 0, 12, -1); // the horns
-    r.cut(['###', '###'], 4, 4); r.cut(['###', '###'], 8, 4); r.set(5, 4); r.set(9, 4); // the eye slits
-    r.cut(['#####'], 4, 7); // the moustache
-    r.rect(14, 2, 15, 15); r.rect(13, 3, 15, 3); r.rect(14, 0, 15, 1); // the spear
+    SAMURAI_TOP.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') r.set(x, y); }));
+    r.cut(['#', '#'], 5, 7); r.cut(['#', '#'], 10, 7); // the slanted eyes: dark above the nose
+    r.cut(['#######'], 4, 9); // the moustache's black bar
+    r.cut(['#########', '.........'], 3, 11); // the lacing
+    limb(r, 5, 13, 4 + a, 15, 2); limb(r, 10, 13, 11 - a, 15, 2); r.rect(3 + a, 15, 5 + a, 15); r.rect(10 - a, 15, 12 - a, 15); // legs and feet
     return r.rows();
   };
   return pair('jpSamurai', four(frame), 2);
