@@ -300,7 +300,7 @@ function maunaKea(): NewDecor {
   }
   for (let x = 14; x < 54; x += 2) r.set(x, Math.round(31 - Math.max(0, 30 - Math.abs(x - 34) * 0.62)) + 8 + (x % 5), false); // the snow line's ragged edge
   for (const x of [20, 28, 44]) r.line(x, 17, x + 2, 31, false);
-  return decor('pacMaunaKea', 8, 4, r, ['11111111', '11111111', '55555555', '55555555'].map((s, j) => (j < 2 ? '1'.repeat(8) : '9'.repeat(8))));
+  return decor('pacMaunaKea', 8, 4, r, ['11111111', '11111111', '99999999', '99999999']);
 }
 
 /** A lava fountain: a column of fire flung up from a vent, drops falling away. 2 x 4 characters. */
