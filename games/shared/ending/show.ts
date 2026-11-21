@@ -155,6 +155,8 @@ export interface Said { text: string; kind: 'credit' | 'name'; index: number; x:
 export class RewardShow {
   private phase: Phase = 'loading';
   private frames = 0;
+  /** Frames since the show began (a key skips only after SKIP_AFTER of them; `frames` starts again with each place). */
+  private shown = 0;
   private stats: readonly string[] = [];
   private figures: Figure[] = [];
   private place = -1;
@@ -201,6 +203,7 @@ export class RewardShow {
     this.active = true;
     this.phase = 'loading';
     this.frames = 0;
+    this.shown = 0;
     this.stats = stats;
     this.figures = [];
     this.place = -1;
@@ -228,7 +231,7 @@ export class RewardShow {
   private skipped() {
     const { input } = this.o.host;
     const pressed = input.typed.some((c) => c !== 'KeyM' && c !== 'KeyV') || input.points.length > 0 || input.pressed.fire;
-    return pressed && this.frames > SKIP_AFTER;
+    return pressed && this.shown > SKIP_AFTER;
   }
 
   /** One frame of the show. */
@@ -237,6 +240,7 @@ export class RewardShow {
     const { renderer, input } = this.o.host;
     this.o.music.frame?.();
     this.frames++;
+    this.shown++;
     if (this.phase === 'loading') {
       // (a black frame first, then the work: the cast is recorded in one go)
       if (this.frames === 1) { renderer.hideSprites(); renderer.backdrop = this.black; renderer.layout = null; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }

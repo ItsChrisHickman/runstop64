@@ -94,7 +94,7 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 - **Rooms in the original's own terms,** as runstop64's rooms already are (`games/montyotr/src/data/runstop64-rooms.ts`:
   playfield maps, tiles, coins, decorations, crushers, teleporters, enemies).
 - **Proved by the bot:** every room crossed, every coin and item reachable, the game finishable, in both modes.
-- In the directory at `#montyworld`, unlisted until Chris is happy with it.
+- In the directory (listed once Chris played Moscow), at `#montyworld`.
 
 ## Steps
 
