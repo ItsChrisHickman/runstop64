@@ -84,9 +84,9 @@ export class PixelRenderer implements Renderer {
 }
 
 /** `record`: where every frame pushed is kept (a copy), while it is set. */
-export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[]; record: SidWrite[][] | null } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [], record: null };
+export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[]; record: SidWrite[][] | null; tunes: (((original: Uint8Array) => Uint8Array) | null)[] } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [], record: null, tunes: [] };
 /** The SID player, remembering what it was asked (sidLog) and playing nothing. */
-export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'unlock' | 'play' | 'call' | 'stop' | 'toggleMute' | 'hold' | 'startStream' | 'pushFrame' | 'sfx'> {
+export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'unlock' | 'play' | 'call' | 'stop' | 'toggleMute' | 'hold' | 'startStream' | 'pushFrame' | 'sfx' | 'useTune'> {
   readonly unlocked = true; muted = false;
   constructor(public url = '') {}
   unlock() { return Promise.resolve(); }
@@ -98,6 +98,8 @@ export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'un
   startStream() { return Promise.resolve(); }
   pushFrame(w: SidWrite[] = []) { sidLog.frames++; sidLog.writes += w.length; sidLog.last = w; sidLog.record?.push(w.map((q) => ({ ...q }))); }
   sfx(name: SfxName) { sidLog.sfx.push(name); }
+  /** (the versions asked for, in order: a test makes the bytes from the file's itself) */
+  useTune(make: ((original: Uint8Array) => Uint8Array) | null) { sidLog.tunes.push(make); }
 }
 
 export * from '../../../packages/c64kit/src/ay/ay';

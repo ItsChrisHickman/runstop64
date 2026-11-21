@@ -8,7 +8,7 @@ import { runPort } from '../../shared/port';
 import { endingStats, montyEnding } from './ending';
 import { Game } from './game';
 import { describeSave, montyMap, noTravel, noteRoom, type MontyFound } from './map';
-import type { AssistId, MontyData } from './montydata';
+import type { AssistId, MontyData, TuneVersion } from './montydata';
 import { CODEC, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore } from './title';
 import { TOUCH } from './touch';
@@ -51,6 +51,17 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     song(n) { music.call(data.music.init, n); },
     stop() { music.call(data.music.stop); },
   };
+  /**
+   * The version of the tune the music plays (null: Hubbard's as it is): a room asks for its region's (`music.tuneFor`, data of
+   * the game), and the tune starts again only when the version changes. The title has the original.
+   */
+  let tune: TuneVersion | null = null;
+  function playVersion(version: TuneVersion | null) {
+    if (version?.id === tune?.id) return;
+    tune = version;
+    music.useTune(version ? (original) => version.make(original) : null);
+    if (!musicOn) g.sound.stop();
+  }
   const title = new Title(g, { song: (n) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn }, { kit: data.kit, message: data.title.message });
 
   options.migrate?.();
@@ -100,6 +111,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       : null;
 
     g.onRoomLoaded = (game) => {
+      playVersion(data.music.tuneFor?.(game.roomId) ?? null);
       if (noteRoom(game, fe.found)) fe.keepFound();
       // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
       if (!noTravel(data, game.roomId) && !game.completionActive) {
@@ -109,6 +121,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
 
     function toTitle() {
       mode = 'title';
+      playVersion(null);
       latch.hold();
       title.start();
       view.resetSmoothing();

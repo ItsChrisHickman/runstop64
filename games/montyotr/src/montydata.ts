@@ -48,8 +48,19 @@ export interface MontyLook {
   sfx: Sfx;
   /** SFX per death/completion event (original event_sfx_tbl). */
   eventSfx: readonly number[];
-  /** Entry points inside the music driver (present in the HVSC .sid), and the .sid's address. */
-  music: { init: number; stop: number; playSfx: number; sidUrl: string };
+  /**
+   * Entry points inside the music driver (present in the HVSC .sid), and the .sid's address. `tuneFor`: the version of the tune a
+   * room plays (a region's own: Do Svidaniya Monty's, `montyworld/src/music`), null for the .sid as it is; none for a game that has
+   * one tune (Monty on the Run).
+   */
+  music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null };
+}
+
+/** A version of the game's tune: made from the .sid's bytes by changing the data the music driver plays (never the driver). */
+export interface TuneVersion {
+  /** What it is called: the session starts the tune again only when the version changes. */
+  id: string;
+  make(original: Uint8Array): Uint8Array;
 }
 
 /** A condition on what Monty has done (`RoomEffect.when`). */

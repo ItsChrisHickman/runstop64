@@ -233,6 +233,7 @@ export const TESTS = [
   { file: 'games/montyotr/test/jetpack.ts', args: [MOTR], set: 'slow', needs: [MOTR] },
   { file: 'games/montyotr/test/title.ts', args: [MOTR], set: 'fast', needs: [MOTR] },
   { file: 'games/montyworld/test/walk.ts', set: 'fast', name: 'games/montyworld/test/walk.ts (World Tour on the Monty engine: its three rooms, the coins and the cake, Monty walked through and back, and through the front end)' },
+  { file: 'games/montyworld/test/music.ts', set: 'fast', name: 'games/montyworld/test/music.ts (Moscow\'s version of Monty on the Run\'s tune: made from Hubbard\'s data by a scale and instruments, notes moved only where the scale says, every length, the tempo and the driver\'s gates the original\'s, the lead plucked, the folk break in D minor, Monty on the Run untouched)' },
   { file: 'games/montyotr/test/trace.ts', set: 'fast', name: 'games/montyotr/test/trace.ts (the whole game pinned: random players in every room, deaths forced, a hash of the state every frame; the shared Monty changes nothing)' },
 
   // ---- Wanted: Monty Mole Remix (Wanted's rooms and rules over Monty on the Run's Monty)

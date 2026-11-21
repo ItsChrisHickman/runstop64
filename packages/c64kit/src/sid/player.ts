@@ -11,6 +11,8 @@ export class SidPlayer {
   private node: AudioWorkletNode | null = null;
   private ready: Promise<void> | null = null;
   private tune: ArrayBuffer | null = null;
+  /** The version of the tune to play (null: the file as it is): makes the bytes to load from the file's. */
+  private version: ((original: Uint8Array) => Uint8Array) | null = null;
   private loadedSong = 0;
   muted = false;
   /** Silent while the game is stopped (a pause screen): the SID would hold its last notes. */
@@ -52,11 +54,30 @@ export class SidPlayer {
     await this.ready;
     if (!this.node || !this.tune) return;
     if (!this.loadedSong) {
-      this.send({ type: 'load', data: this.tune.slice(0), song });
+      this.send({ type: 'load', data: this.tuneData(this.tune), song });
     } else {
       this.send({ type: 'song', song });
     }
     this.loadedSong = song;
+    this.applyVolume();
+  }
+
+  /** The bytes to load: the file's, or the version's made from them (always a copy: it is handed to the worklet). */
+  private tuneData(original: ArrayBuffer): ArrayBuffer {
+    const bytes = this.version ? this.version(new Uint8Array(original)) : new Uint8Array(original);
+    const copy = new ArrayBuffer(bytes.length);
+    new Uint8Array(copy).set(bytes);
+    return copy;
+  }
+
+  /**
+   * Play another version of the loaded tune (made from its bytes by `make`, or the file as it is with null), from the start of
+   * the song it was playing. Remembered if the audio is not up yet. A version is the tune's data changed, the player the same.
+   */
+  useTune(make: ((original: Uint8Array) => Uint8Array) | null) {
+    this.version = make;
+    if (!this.node || !this.tune || !this.loadedSong) return;
+    this.send({ type: 'load', data: this.tuneData(this.tune), song: this.loadedSong });
     this.applyVolume();
   }
 

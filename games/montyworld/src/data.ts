@@ -3,6 +3,7 @@ import { bankImage, ITEM_SPRITES, MOTR_LOOK } from '../../montyotr/src/data';
 import type { MontyData } from '../../montyotr/src/montydata';
 import { scrollerMessage } from '../../montyotr/src/title';
 import { buildRooms, NO_ROOMS, roomCells, type RoomSpec, type Sector } from '../../shared/monty/rooms';
+import { tuneForRoom } from './music/regions';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as
@@ -58,7 +59,8 @@ const tables = buildRooms(NO_ROOMS, ROOMS, SECTORS, bankImage);
 export const WORLD: MontyData = {
   ...tables,
   ...MOTR_LOOK,
-  music: { ...MOTR_LOOK.music, sidUrl },
+  // (Hubbard's tune, a version of it for each region: music/regions.ts)
+  music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId) },
   id: 'montyworld',
 
   exitGrid: { image: roomCells(WORLD_COLS * WORLD_ROWS, WORLD_COLS, ROOMS), cols: WORLD_COLS, rows: WORLD_ROWS },

@@ -6,7 +6,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/walk.ts
  */
-import { Input, PixelRenderer } from 'c64kit';
+import { Input, PixelRenderer, sidLog } from 'c64kit';
 import { sectorName } from '../../montyotr/src/montydata';
 import { Game } from '../../montyotr/src/game';
 import { montyMap } from '../../montyotr/src/map';
@@ -84,6 +84,7 @@ for (let i = 0; i < 4000 && !(p.game.roomId === 2 && p.game.x2 > 0x80); i++) tic
 input.keyUp('ArrowRight');
 tick(10);
 check(`walked to room $02 through the front end, ${p.game.score} points`, p.game.roomId === 2 && p.game.score === 300);
+check(`the music: Moscow's version of the tune started once, coming into Moscow, and not again through its three rooms (${sidLog.tunes.length} start, the original's none)`, sidLog.tunes.length === 1 && sidLog.tunes[0] !== null);
 const found = Object.keys(p.state.found.rooms).map(Number).sort((a, b) => a - b);
 check(`the map kept the three rooms seen (${found.join(', ')})`, found.join() === '0,1,2');
 tap('KeyP');
