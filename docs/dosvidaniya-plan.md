@@ -56,6 +56,11 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   middle of the room", "Willow Pattern looks really weird"). The Wall snakes over hills with its parapet and towers; the Willow
   Pattern room is the plate. Every builder and reviewer judges each room's screenshot by one question: would a stranger name
   the place at a glance? If not, it isn't done.
+- **Room names: plain and evocative first, a pun only when it lands** (Chris on China's names, 2026-11-21: only ALL WALL AND
+  NO PLAY worked, "the rest are outright weird"; "not sure what golden roofs means"). As Monty on the Run: THE HOUSE, SEWERAGE
+  WORKS, now and then a pun. A name that needs explaining is the wrong name. China's as Chris approved: ALL WALL AND NO PLAY,
+  THE WATCHTOWER, MIND THE BATTLEMENTS, BACK ALLEY BEIJING, NOODLE MARKET, THE FORBIDDEN CITY, THE EMPEROR'S ROOFTOPS, WILLOW
+  PATTERN, DOWN THE YANGTZE.
 - **A costume is worn, not stuck on** (Chris on the hats, 2026-11-21: "Doesn't look like he is wearing the item. Too large and
   it's over his face"): a hat sits small on his head above his eyes, a lei round his neck; his face always shows.
 
