@@ -70,7 +70,7 @@ signs** (vertical signboards, ramen bowls with steam, a vending machine glowing 
 waving lucky cat on a shop awning (the roofs). 2 coins.
 
 **C PARLOUR TRICKS** (a pachinko parlour, row 2). In: the ceiling gap (cols 20-22), the rope from B's stairs, landing on the carpet
-(floor 17). Out: right, low (rows 14-16, floor 17) to E's underpass. A long hall of **machine banks** (cols 3-12 and 15-30: pachinko
+(floor 17). Out: right, low (rows 15-16, floor 17) to E's underpass. A long hall of **machine banks** (cols 3-12 and 15-30: pachinko
 machines with their lights, silver balls trickling), a stool, a coin pusher; the carpet is purple and loud. At the west end the
 **prize counter** steps up (rows 14, 11) to the **prize shelf** (floor 8, cols 0-5) with the **daruma**; a **claw machine's
 claw** (the engine's Mole Crusher: its shaft cols 8-10) drops across the hall's west lane before the counter, crossed on the way
@@ -84,7 +84,7 @@ and a billboard, runs right to a pocket that holds the **fish food**, and a rope
 street east of the subway gap (the lanes join at the east end). Creatures: a sumo wrestler pacing the street (the crowd that will not
 make way, 8 columns), a toy robot on the overpass, a spinning paper umbrella over the stairs' gap. 3 coins.
 
-**E BULLET POINT** (the bullet-train platform, row 2). Two lanes: the **underpass** (low, floor 17, rows 14-16 open) joins C on the
+**E BULLET POINT** (the bullet-train platform, row 2). Two lanes: the **underpass** (low, floor 17, rows 15-16 open under the deck) joins C on the
 west (a walk) and has two **stairs** up (floor gaps cols 8-10 and 19-21 in the platform's deck, a bamboo rope up through each) to the
 **platform** (floor 14, rows 11-13 open), the walkway in front of the track. The rope from D's subway lands on the platform at col 23
 through the ceiling gap (cols 22-24). The platform's right end (cols 30-31, rows 10-13) is shut by a **roller shutter** (solid) until the
@@ -109,8 +109,8 @@ water: `removeEnemy` for each koi) the pond is a calm and the planks can be cros
 a spinning paper umbrella under the cherry tree. 2 coins.
 
 **L THE LAST MOLE** (hidden: a dead end off G's pergola). A homage to The Last Ninja with nothing copied (the plan: an active series).
-In: the rope up through the floor (gap cols 27-29), onto a mossy ledge (floor 14, right). A moonlit garden: a **pond** (deadly) crossed on **seven
-stepping stones** (floor class, one cell tall, 2-3 cells wide, the gaps 2 cells of water, at floors 14, 13, 14, 12, 13, 14, 13 so each is a jump
+In: the rope up through the floor (gap cols 27-29), onto a mossy ledge (floor 14, right). A moonlit garden: a **pond** (deadly) crossed on **six
+stepping stones** (floor class, 2 cells wide, the gaps 2 cells of water, at floors 14, 13, 14, 12, 13, 14 so each is a jump
 up or down), a **bonsai garden** on the far bank (shelves with bonsai in pots), a **stone dragon** coiled round a pillar (a decoration, big) and a
 **shrine** on a plinth (floor 14 at the far left, cols 1-4) with the **ninja hood** on it. A crane in the moonlight, a koi in the pond
 (deadly, in a gap, jumping out at one stone: a koi on a vertical patrol, learnable). 1 coin on the bonsai shelf. The only
@@ -147,8 +147,8 @@ Great Wave again, and at the east edge the **cargo ship's side** (a red hull wit
 
 ### The two mechanisms
 
-**The bullet train** (E; `trains`). A drawn train sweeps the platform lane: the nose (white, a long swept snout and a blue band), then two cars (windows in a row, blue band, the
-pantograph on the roof of the first), 24 cells long and 6 rows tall (rows 8-13, taller than any jump), the bogies on the rail under it. Two trains alternate on a 300-frame cycle:
+**The bullet train** (E; `trains`). A drawn train sweeps the platform lane: the nose (white, a long swept snout and a blue band), then the cars (windows in a row, blue band, the
+pantograph on the roof of the first), 24 cells long (the nose's 4 cells and five 4-cell car units that repeat end to end) and 6 rows tall (rows 8-13, taller than any jump), the bogies on the rail under it. Two trains alternate on a 300-frame cycle:
 the up train enters from the right (its nose points left), the down train from the left; at 3 frames a cell a train crosses the 32 columns and its own length (56 cells) in 168 frames.
 Anything in its cells on the platform lane is killed (a crusher's event 1). The cycle: **warning** 100 frames (the signal lamp on the gantry at the entering end flashes red and a
 board shows an arrow, the platform's yellow edge blinks; a chime plays as the first note of the warning, a Hubbard sound effect), **sweep** 168 frames, **quiet** 32 frames, then the
