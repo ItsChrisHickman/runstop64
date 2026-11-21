@@ -6,6 +6,7 @@
  */
 export * from './creatures';
 export * from './decorations';
+export * from './escalator';
 export * from './hat';
 export * from './ice';
 export * from './tiles';

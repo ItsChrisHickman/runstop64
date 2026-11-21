@@ -190,3 +190,14 @@ the map above, the bot's findings are why:
   one room each: snowball, bear, guard, cossack, tram (the metro train's headlamp face), balalaika. Monty on the Run's 27 kinds are in 5.5
   of its 52 rooms on average (the sorted counts: 1 1 1 1 1 1 2 2 2 2 4 5 5 5 6 6 7 7 7 8 8 9 9 11 11 13 14), about one in ten rooms; Moscow's
   are in 1.5 of its nine (one in six), and Auf Wiedersehen Monty's reuse was the thing Chris disliked.
+
+### Fixes after the first play (2026-11-20)
+
+Chris played Moscow: the fur hat read as a glitch, the escalators were drawn so they made no sense, and the hall's could not be used from the bottom.
+
+- **The ushanka** is a sprite of its own over Monty (sprite 7), in fur brown, following his 36 pictures; his own picture is cleared under it with a black line round it. The crown stands 5 pixels above his head, the brim sits across his forehead, the ear flaps hang beside his face (`art/hat.ts`, `art/costume.ts`, the engine's `Costume.over`). It is left out of the collision check (`Game.uncounted`), so he dies of what touches his body as before.
+- **Escalators** are drawn at 45 degrees (a cell across for every cell down: three tiles on the three diagonals of cells, the handrail's, the tread's and the body's, `art/escalator.ts`), their characters turned through 16 pictures by the engine (`EscalatorSpec.treads`) so the steps and the handrail's dashes run along the band in the way it goes, as fast as Monty is carried. Each takes three of a room's eight tiles; the hall and the platform gave up their pillar and the comb plate to make room. The slope is now 1:1, so the hall's is 5 cells along and 5 down (60 frames) and the platform's 8 and 8 (96 frames, from column 20: the head is where it was).
+- **The hall's escalator lands on a terrace** (row 14, columns 16-22), not the lower floor: an escalator that lands on a floor shuts that floor to anyone walking under it, and the lower floor has to stay open from the stub's drop to the rope. Under the terrace he has the lower floor's two cells of headroom.
+- **From the other end** (`escalatorUpdate`, `backUnder`): on the cell a step or two before a landing, against the way the escalator goes, the treads carry him back to the landing and a cell beyond it (two thirds of a pixel a frame, his walk animated in place), over and over while he holds the stick. The head of the platform's escalator therefore has to be left by a jump (over the gap to the gallery), which the bot does.
+- The platform's coin under the escalator moved from column 22 to 26 (the band came lower there).
+- The pause screen's panel says SNACKS for the food (Monty on the Run's says CAKES), and its four lines are one width with their numbers right-aligned (`statLine`).

@@ -7,6 +7,7 @@
  * Written as pictures ('#' lit, '.' dark; pixels.ts). Their library indexes follow the original's 121 (`MOTR_TILE_COUNT`), in
  * the order of `MOSCOW_TILE_LIST`.
  */
+import { bandTiles } from './escalator';
 import { characters } from './pixels';
 import type { Colour, NewTile, TileClass } from './types';
 
@@ -16,6 +17,8 @@ export const MOTR_TILE_COUNT = 121;
 function tile(name: string, cls: TileClass, colour: Colour, rows: readonly string[]): NewTile {
   return { chr: characters(`tile ${name}`, rows, 1, 1), cls, colour };
 }
+
+const DOWN = bandTiles('down'), UP = bandTiles('up');
 
 export const MOSCOW_TILES = {
   /** Snow-covered ground: a drift along the top, then rows of packed snow with their breaks. Solid. */
@@ -161,28 +164,14 @@ export const MOSCOW_TILES = {
     '........',
     '........',
   ]),
-  /** The metro's escalator, its treads going by (the room's theme character turns them): handrails and steps. Nothing: he is carried over it. */
-  escalator: tile('escalator', 0, 15, [
-    '#.####.#',
-    '#.####.#',
-    '#......#',
-    '#......#',
-    '#.####.#',
-    '#.####.#',
-    '#......#',
-    '#......#',
-  ]),
-  /** An escalator's comb plate, the still step at either end: he steps on it and the ride starts. A floor. */
-  escalatorFoot: tile('escalatorFoot', 2, 7, [
-    '########',
-    '#.#.#.#.',
-    '########',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
+  /** The metro's down escalator (a band going down to the right: escalator.ts): its handrail, its treads (steps that run along it) and its body. Passable: he is carried over them. */
+  escalatorDownRail: DOWN.rail,
+  escalatorDownTread: DOWN.tread,
+  escalatorDownBody: DOWN.body,
+  /** The up escalator: the same band going up to the right. */
+  escalatorUpRail: UP.rail,
+  escalatorUpTread: UP.tread,
+  escalatorUpBody: UP.body,
   /** An iron ladder (rails and rungs). A rope. */
   ironLadder: tile('ironLadder', 3, 7, [
     '##....##',

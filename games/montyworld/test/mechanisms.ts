@@ -16,6 +16,7 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
+import { MOTR } from '../../montyotr/src/motr';
 import { WORLD } from '../src/data';
 import { ICICLES, ROOM, SPRITE } from '../src/moscow';
 import { FALL, GROW, SHATTER, WARN } from '../../montyotr/src/icicles';
@@ -57,8 +58,8 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   check('Moscow is nine rooms, a block of four columns by three rows at the grid\'s west end',
     cells.filter((c) => c !== 0xff).length === 9 && [at(0, 1), at(0, 2), at(0, 3), at(1, 0), at(1, 1), at(1, 2), at(1, 3), at(2, 1), at(2, 2)].join() === [ROOM.gum, ROOM.domes, ROOM.kremlin, ROOM.start, ROOM.streets, ROOM.square, ROOM.station, ROOM.hall, ROOM.platform].join());
   check('14 coins, 2 pirozhki and 2 key items', WORLD.coinTable.length === 42 && WORLD.specialItems.length === 16 && WORLD.progress.cakes.length === 2 && WORLD.progress.keyItems.length === 2);
-  check('the pirozhki are drawn with a sprite of their own, in the cupcake\'s way (a special item), and the pause screen calls them PIROZHKI',
-    WORLD.progress.cakes.every((i) => WORLD.specialItems[i * 4 + 3] === ((SPRITE.pirozhok - 0x8e) & 0xff)) && WORLD.itemSprites.collectable(SPRITE.pirozhok) && WORLD.progress.foodName === 'PIROZHKI');
+  check('the pirozhki are drawn with a sprite of their own, in the cupcake\'s way (a special item), and the pause screen calls them SNACKS',
+    WORLD.progress.cakes.every((i) => WORLD.specialItems[i * 4 + 3] === ((SPRITE.pirozhok - 0x8e) & 0xff)) && WORLD.itemSprites.collectable(SPRITE.pirozhok) && WORLD.progress.foodName === 'SNACKS');
 }
 
 // ---- the icicles --------------------------------------------------------------------------------
@@ -124,8 +125,8 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
 
 // ---- the escalators -----------------------------------------------------------------------------
 {
-  for (const [name, room, col, floor, endCol, endFloor, dy] of [
-    ['the hall\'s, down', ROOM.hall, 11, 9, 25, 17, 1], ['the platform\'s, up', ROOM.platform, 13, 17, 28, 9, -1],
+  for (const [name, room, col, floor, endCol, endFloor, dy, frames] of [
+    ['the hall\'s, down', ROOM.hall, 11, 9, 18, 14, 1, 60], ['the platform\'s, up', ROOM.platform, 15, 17, 28, 9, -1, 96],
   ] as const) {
     const s = at(room, col, floor, true);
     let began = -1, ended = -1;
@@ -134,16 +135,32 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
       if (began < 0 && s.g.esc.index >= 0) began = f;
       if (began >= 0 && ended < 0 && s.g.esc.index < 0) ended = f;
     }
-    check(`${name}: a ride of ${ended - began} frames (2 seconds, 96), he is on his feet after it at the landing (${colOf(s.g)}, floor ${endFloor}), alive, with the room's creatures running`,
-      began >= 0 && ended - began === 96 && colOf(s.g) === endCol && s.g.y === standY(endFloor) && !s.g.gameMode && !dead(s.g) && Math.sign(endFloor - floor) === dy);
+    check(`${name}: a ride of ${ended - began} frames (a pixel in two frames: ${frames}), he is on his feet after it at the landing (${colOf(s.g)}, floor ${endFloor}), alive, with the room's creatures running`,
+      began >= 0 && ended - began === frames && colOf(s.g) === endCol && s.g.y === standY(endFloor) && !s.g.gameMode && !dead(s.g) && Math.sign(endFloor - floor) === dy);
     // the stick does nothing in the ride
     const t = at(room, col, floor, true);
     for (let f = 0; f < 60 && t.g.esc.index < 0; f++) frame(t, RIGHT);
     const start = { x2: t.g.x2, y: t.g.y };
-    for (let f = 0; f < 80; f++) frame(t, { left: true, right: false, up: dy < 0 ? false : true, down: false, fire: f % 7 === 0 });
-    check(`${name}: he cannot leave it (left, up and fire held): still riding 80 frames in, nothing but the ride moved him`, t.g.esc.index >= 0 && t.g.gameMode === 1 && (t.g.x2 !== start.x2 || t.g.y !== start.y));
+    for (let f = 0; f < frames - 20; f++) frame(t, { left: true, right: false, up: dy < 0 ? false : true, down: false, fire: f % 7 === 0 });
+    check(`${name}: he cannot leave it (left, up and fire held): still riding ${frames - 20} frames in, nothing but the ride moved him`, t.g.esc.index >= 0 && t.g.gameMode === 1 && (t.g.x2 !== start.x2 || t.g.y !== start.y));
     for (let f = 0; f < 40; f++) frame(t, NONE);
     check(`${name}: and the same landing`, colOf(t.g) === endCol && t.g.y === standY(endFloor));
+  }
+  // from the wrong end: walking onto the landing's far side, against it, the treads turn him back
+  for (const [name, room, col, floor, landing] of [
+    ['the hall\'s (the terrace)', ROOM.hall, 21, 14, 18], ['the platform\'s (the head)', ROOM.platform, 30, 9, 28],
+  ] as const) {
+    const s = at(room, col, floor, true);
+    let back = false, least = 99, steady = true;
+    for (let f = 0; f < 150; f++) {
+      frame(s, LEFT);
+      if (s.g.esc.back) back = true;
+      if (colOf(s.g) < least) least = colOf(s.g);
+      if (s.g.y !== standY(floor) || s.g.roomId !== room || dead(s.g)) steady = false;
+    }
+    check(`${name}: walking left onto it from the wrong end the treads carry him back, over and over while he holds the stick (never further than a cell short of the landing, ${landing}: ${least}), he does not fall or leave`, back && least >= landing - 1 && steady);
+    for (let f = 0; f < 60; f++) frame(s, NONE);
+    check(`${name}: let go he stands on the landing, on his feet (${colOf(s.g)})`, colOf(s.g) >= landing && s.g.esc.index < 0 && !s.g.gameMode && s.g.y === standY(floor));
   }
   // jumping over the foot does not ride
   {
@@ -260,7 +277,11 @@ const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the pirozhki (${info.join(' | ')})`, info[3] === 'PIROZHKI  0/2' && info[2] === 'ITEMS 0/2');
+  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/2' && info[2] === 'ITEMS   0/2');
+  check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 4 && info.every((l) => l.length === 11));
+  const motr = newGame(MOTR, true);
+  const motrInfo = montyMap.info(motr.g, { rooms: {} });
+  check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[3]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 1: [0x15, 0xb2, 1, 1], 7: [0x15, 0xb2, 2, 1] } });
   check('the map shows the region he is in: its cells are large (16), the rooms he has been in are places to go', places.length === 3 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 }

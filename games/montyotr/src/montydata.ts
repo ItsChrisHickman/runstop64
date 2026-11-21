@@ -95,9 +95,16 @@ export interface LiftSpec { room: number; x: number; y: number; type: 1 | 2; spe
  * An escalator: a ride Monty cannot leave (as the lift and the crusher's head are). Stepping on its foot (a floor two cells wide,
  * at playfield cell `col`, `row`: the row of the floor he stands on) starts it; it carries him, at a fixed pace, `cols` cells
  * along (`dx` 1 right, -1 left) and `rows` cells down (`dy` 1) or up (-1) over `frames` frames, and sets him down on the
- * landing at its far end. The treads are the room's theme character (RoomSpec.theme); the slope is the room's own art.
+ * landing at its far end (cell `col + dx * cols`, row `row + dy * rows`). The slope is the room's own art; its treads turn by
+ * `treads`: room characters (1-8) and, for each place of the steps, the pictures (8 bytes each) they take in turn.
+ *
+ * Walking onto the landing's far side, against the way it goes (the cells a step or two before the landing, on its row), the
+ * treads carry him back: he walks in place as they push him on to the landing and a cell beyond it.
  */
-export interface EscalatorSpec { room: number; col: number; row: number; dx: 1 | -1; dy: 1 | -1; cols: number; rows: number; frames: number }
+export interface EscalatorSpec {
+  room: number; col: number; row: number; dx: 1 | -1; dy: 1 | -1; cols: number; rows: number; frames: number;
+  treads?: { chars: readonly number[]; frames: readonly Uint8Array[] };
+}
 
 /**
  * An icicle: it hangs where it is drawn (a sprite, in the room at playfield cell `col`, `row`, the top of its 16 pixels) until
@@ -210,7 +217,7 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The regions the map shows one at a time (a world too wide for the box); none: the whole grid. */
   regions: readonly MapRegion[];
   /** The map: the special items that are the key ones, the cakes, and the colour of each sector. */
-  progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[]; /** What the cakes are called on the pause screen (Monty on the Run's cupcakes: CAKES; a game with a food of its own names it). */ foodName?: string };
+  progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[]; /** What the cakes are called on the pause screen (Monty on the Run's cupcakes: CAKES; Do Svidaniya Monty's pirozhki and every region's food: SNACKS). */ foodName?: string };
   /** The title's own text: the scroller's stream. */
   title: { message: Uint8Array };
   /** The reward for winning; null: the game has none yet. */

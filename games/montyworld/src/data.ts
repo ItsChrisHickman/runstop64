@@ -143,7 +143,7 @@ export const WORLD: MontyData = {
   },
   // the map shows Moscow's four columns while he is in them
   regions: [{ from: 0, to: 3 }],
-  progress: { keyItems: [TOKEN, USHANKA], cakes: PIROZHKI, sectorColours: SECTOR_COLOURS, foodName: 'PIROZHKI' },
+  progress: { keyItems: [TOKEN, USHANKA], cakes: PIROZHKI, sectorColours: SECTOR_COLOURS, foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
       [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',

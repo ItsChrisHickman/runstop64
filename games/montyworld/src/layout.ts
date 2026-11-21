@@ -48,8 +48,6 @@ export interface MoscowRoom {
   sector: number;
   palette: Palette;
   paint: (g: Grid) => void;
-  /** The code of the tile whose character turns (the escalator's treads), and the way: 'down' or 'up'. */
-  treads?: { letter: string; way: 'down' | 'up' };
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake: the sprite's top left cell. */
   cake?: readonly [col: number, row: number];
@@ -67,7 +65,7 @@ const creatureNames = Object.keys(MOSCOW_CREATURES);
 const decorNames = Object.keys(MOSCOW_DECOR);
 
 /** A palette letter's code (1-8). */
-function codeOf(palette: Palette, letter: string): number {
+export function codeOf(palette: Palette, letter: string): number {
   return Object.keys(palette).indexOf(letter) + 1;
 }
 
@@ -81,11 +79,9 @@ export function room(r: MoscowRoom): RoomSpec {
   if (map.some((row) => row.includes('0'))) throw new Error(`room $${r.id.toString(16)}: a letter that is not in its palette`);
   const tiles = letters.map((l) => moscowTileIndex(r.palette[l]?.[0] ?? 'snowGround'));
   const colours = letters.map((l) => r.palette[l]?.[1] ?? 1);
-  const theme = r.treads ? (codeOf(r.palette, r.treads.letter) - 1) | (r.treads.way === 'down' ? 0x40 : 0x80) : undefined;
   return {
     id: r.id, row: r.cell[0], col: r.cell[1], sector: r.sector,
     tiles, colours: [...colours, ...Array.from({ length: 8 - colours.length }, () => 0)], map,
-    ...(theme === undefined ? {} : { theme }),
     ...(r.coins ? { coins: r.coins } : {}),
     ...(r.cake ? { cake: [r.cake[0] + PLAY_COL, r.cake[1] + PLAY_ROW] as const } : {}),
     ...(r.item ? { item: { name: r.item.name, col: r.item.col + PLAY_COL, row: r.item.row + PLAY_ROW, sprite: r.item.sprite } } : {}),

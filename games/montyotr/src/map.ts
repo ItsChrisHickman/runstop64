@@ -143,6 +143,9 @@ function count(g: Game, found: MontyFound) {
 /** Frames the map has been drawn (the shimmer's step). */
 let shimmer = 0;
 
+/** One line of the pause screen's panel (11 characters): the name, and its number right-aligned so the numbers make one column. */
+export const statLine = (name: string, value: string) => name.padEnd(6) + value.padStart(5);
+
 export const montyMap = {
   found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
@@ -196,7 +199,11 @@ export const montyMap = {
     const { keyItems, cakes: allCakes } = g.data.progress;
     const cakes = allCakes.filter((i) => g.siCollected[i]).length;
     const items = keyItems.filter((i) => g.siCollected[i]).length;
-    return [`LIVES ${String(g.lives).padStart(5)}`, `ROOMS ${String(rooms.seen).padStart(2)}/${rooms.all}`, `ITEMS ${items}/${keyItems.length}`, `${g.data.progress.foodName ?? 'CAKES'} ${String(cakes).padStart(2)}/${allCakes.length}`];
+    const food = g.data.progress.foodName ?? 'CAKES';
+    return [
+      statLine('LIVES', String(g.lives)), statLine('ROOMS', `${rooms.seen}/${rooms.all}`),
+      statLine('ITEMS', `${items}/${keyItems.length}`), statLine(food, `${cakes}/${allCakes.length}`),
+    ];
   },
   legend: (g) => [
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },

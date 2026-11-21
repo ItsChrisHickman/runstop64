@@ -7,7 +7,7 @@ import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
 import * as Items from './items';
 import * as Scripts from './scripts';
-import { escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
+import { animateTreads, escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
@@ -193,6 +193,8 @@ export class Game implements MontyBody, MontyWorld {
   tele = { active: 0, repeat: 0, scr: 0, colH: 0, base: 0, cur: 0, anim: 0, events: 0 };
   /** The escalator ride under way (escalators.ts). */
   esc: EscalatorRide = { ...NO_RIDE };
+  /** The treads' turning (escalators.ts): the steps taken so far. */
+  treadTick = 0;
   /** This room's icicles (icicles.ts). */
   ice: IcicleState[] = [];
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
@@ -784,6 +786,7 @@ export class Game implements MontyBody, MontyWorld {
 
   private animateThemeChar() {
     animateTheme(this.mem, this.roomFlags);
+    animateTreads(this);
   }
 
   // ---- life lost (original Death.LifeLost) -------------------------------------------

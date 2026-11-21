@@ -155,7 +155,7 @@ function write(room: MockRoom, file: string, motr: number) {
   g.fill(21, 5, 27, 5, '4'); g.fill(21, 6, 21, 8, '6');
   write({
     name: 'THE METRO', nameCol: 11,
-    codes: [['metroTile', 3], ['vault', 14], ['pillar', 1], ['platformEdge', 7], ['thirdRail', 2], ['escalator', 4], ['arcadeFloor', 1], ['girder', 8]],
+    codes: [['metroTile', 3], ['vault', 14], ['pillar', 1], ['platformEdge', 7], ['thirdRail', 2], ['escalatorDownTread', 4], ['arcadeFloor', 1], ['girder', 8]],
     grid: g,
     decor: [['metroSign', 2, 12], ['stationClock', 11, 6], ['chandelier', 11, 3], ['chandelier', 19, 3], ['lampDouble', 11, 11], ['metroSign', 26, 12], ['bench', 4, 13], ['bench', 19, 13], ['poster', 9, 12], ['poster', 28, 12]],
     coins: [[7, 3], [27, 7], [15, 13]],

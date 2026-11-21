@@ -1,6 +1,7 @@
 import type { EscalatorSpec, IcicleSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { Grid, room } from './layout';
+import { bandFrames, BAND_ORDER } from './art/escalator';
+import { codeOf, Grid, room, type Palette } from './layout';
 
 /**
  * Moscow, the first region of Do Svidaniya Monty (docs/dosvidaniya-moscow.md): nine rooms in a block four wide and three high
@@ -47,20 +48,48 @@ function roof(g: Grid, rows: number, drips: readonly (readonly [number, number])
   });
 }
 
-/** An escalator's slope: its treads two cells thick along the line his feet follow, from the foot to the far landing. */
-function slope(g: Grid, letter: string, spec: Pick<EscalatorSpec, 'col' | 'row' | 'dx' | 'dy' | 'cols' | 'rows'>, from: number, to: number) {
-  for (let i = from; i <= to; i++) {
-    const feet = spec.row + spec.dy * Math.round((i * spec.rows) / spec.cols);
-    const c = spec.col + spec.dx * i;
-    if (feet < 17) g.box(c, feet, c, Math.min(feet + 1, 16), letter);
+/**
+ * An escalator's band, painted on the three diagonals of cells it crosses (art/escalator.ts): the treads on the line his feet follow
+ * (between the foot and the landing), the body under them and the handrail above, one cell down (or up) for every cell along.
+ */
+function band(g: Grid, tiles: { tread: string; body: string; rail: string }, spec: Pick<EscalatorSpec, 'col' | 'row' | 'dy' | 'cols'>) {
+  const { col, row, dy, cols } = spec;
+  const at = (c: number, r: number, letter: string) => g.box(c, r, c, r, letter);
+  for (let j = 0; j <= cols; j++) {
+    if (dy === 1) {
+      if (j >= 1 && j <= cols - 1) at(col + 1 + j, row + j, tiles.tread);
+      if (j <= cols - 2) at(col + 1 + j, row + 1 + j, tiles.body);
+      at(col + 1 + j, row - 1 + j, tiles.rail);
+    } else {
+      if (j <= cols - 2) at(col + 1 + j, row - 1 - j, tiles.tread);
+      if (j <= cols - 2) at(col + 2 + j, row - 1 - j, tiles.body);
+      at(col + j, row - 1 - j, tiles.rail);
+    }
   }
 }
 
+/** An escalator's `treads`: the characters of a band's tiles in a room (the palette's codes) and the pictures they take in turn. */
+const treadsOf = (palette: Palette, tiles: { tread: string; body: string; rail: string }, way: 'down' | 'up'): NonNullable<EscalatorSpec['treads']> => ({
+  chars: BAND_ORDER.map((part) => codeOf(palette, tiles[part])), frames: bandFrames(way),
+});
+
 // ---- the escalators and icicles ---------------------------------------------------------------------------
-/** Hall's: down from the concourse, 12 cells along and 8 down in 96 frames (2 seconds), to the lower floor. */
-const DOWN: EscalatorSpec = { room: ROOM.hall, col: 13, row: 9, dx: 1, dy: 1, cols: 12, rows: 8, frames: 96 };
-/** The platform's: up from the lane's foot to the gallery's head. */
-const UP: EscalatorSpec = { room: ROOM.platform, col: 16, row: 17, dx: 1, dy: -1, cols: 12, rows: 8, frames: 96 };
+/** The hall's and the platform's palettes: the three tiles of an escalator's band are three of the eight a room has. */
+const HALL_PALETTE = {
+  V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], R: ['rope', 13], Z: ['turnstile', 7],
+  T: ['escalatorDownTread', 15], B: ['escalatorDownBody', 15], N: ['escalatorDownRail', 7],
+} as const satisfies Palette;
+const PLATFORM_PALETTE = {
+  V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], G: ['girder', 12], Q: ['platformEdge', 7],
+  T: ['escalatorUpTread', 15], B: ['escalatorUpBody', 15], N: ['escalatorUpRail', 7],
+} as const satisfies Palette;
+/** Their letters. */
+const BAND = { tread: 'T', body: 'B', rail: 'N' } as const;
+
+/** Hall's: down from the concourse's end, 5 cells along and 5 down in 60 frames (the pace of the up one) to a terrace over the lower floor. */
+const DOWN: EscalatorSpec = { room: ROOM.hall, col: 13, row: 9, dx: 1, dy: 1, cols: 5, rows: 5, frames: 60, treads: treadsOf(HALL_PALETTE, BAND, 'down') };
+/** The platform's: up from the lane's foot to the gallery's head, 8 along and 8 up in 96 frames (2 seconds). */
+const UP: EscalatorSpec = { room: ROOM.platform, col: 20, row: 17, dx: 1, dy: -1, cols: 8, rows: 8, frames: 96, treads: treadsOf(PLATFORM_PALETTE, BAND, 'up') };
 export const ESCALATORS: readonly EscalatorSpec[] = [DOWN, UP];
 
 export const ICICLES: readonly IcicleSpec[] = [
@@ -222,20 +251,21 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     crushers: [{ col: 10, row: 11, height: 6, chr: 0x10 }],
   }),
 
-  // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), a gap in it that holds the
-  // escalator down to the lower floor, a stub high at the right (in from the platform's gallery). The lower floor runs the
-  // width, out at the right through the turnstile.
+  // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), ending at the down
+  // escalator's foot; the escalator takes him down to a terrace over the lower floor (walking back the way he came, against it, the
+  // treads turn him round), a stub high at the right (in from the platform's gallery). The lower floor runs the width under the
+  // terrace, out at the right through the turnstile.
   room({
     id: ROOM.hall, cell: [2, 1], sector: 7,
-    palette: { V: ['vault', 14], M: ['metroTile', 3], P: ['pillar', 1], F: ['arcadeFloor', 1], E: ['escalatorFoot', 7], R: ['rope', 13], Z: ['turnstile', 7], T: ['escalator', 15] },
-    treads: { letter: 'T', way: 'down' },
+    palette: HALL_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'V').clear(3, 0, 4, 2).clear(6, 0, 8, 2);
-      g.box(0, 3, 1, 8, 'P').box(0, 9, 1, 19, 'M').box(30, 3, 31, 5, 'M').box(30, 9, 31, 12, 'M');
-      g.box(0, 9, 12, 9, 'F').box(26, 9, 31, 9, 'F').box(13, 9, 14, 9, 'E'); // the concourse, the stub, the foot
+      g.box(0, 3, 1, 8, 'M').box(0, 9, 1, 19, 'M').box(30, 3, 31, 5, 'M').box(30, 9, 31, 12, 'M');
+      g.box(0, 9, 14, 9, 'F').box(26, 9, 31, 9, 'F'); // the concourse with the foot at its end, the stub
+      g.box(16, 14, 22, 14, 'F'); // the terrace (a floor over the walkway: two cells of headroom under it)
       g.box(0, 17, 31, 19, 'F').box(28, 13, 29, 16, 'Z');
       g.box(3, 0, 3, 16, 'R').box(4, 9, 4, 9, 'R'); // the rope up through the concourse (a gap two wide: he is two cells across)
-      slope(g, 'T', DOWN, 2, 12);
+      band(g, BAND, DOWN);
     },
     coins: [[10, 15]],
     decor: [['stationClock', 16, 3], ['chandelier', 21, 3], ['metroSign', 10, 12], ['bench', 5, 15], ['bench', 20, 15], ['poster', 25, 5]],
@@ -250,17 +280,16 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // escalator's head. The lane's only way out is the ride.
   room({
     id: ROOM.platform, cell: [2, 2], sector: 8,
-    palette: { V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], E: ['escalatorFoot', 7], G: ['girder', 12], Q: ['platformEdge', 7], P: ['pillar', 1], T: ['escalator', 15] },
-    treads: { letter: 'T', way: 'up' },
+    palette: PLATFORM_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'V').clear(20, 0, 22, 2);
-      g.box(0, 3, 1, 5, 'P').box(0, 12, 1, 12, 'M').box(30, 3, 31, 16, 'M');
+      g.box(0, 3, 1, 5, 'M').box(0, 12, 1, 12, 'M').box(30, 3, 31, 16, 'M');
       g.box(0, 9, 15, 9, 'F').box(0, 10, 15, 11, 'M').box(16, 9, 25, 9, 'G').box(28, 9, 31, 9, 'F'); // the gallery over the lane
-      g.box(0, 17, 31, 19, 'F').box(16, 17, 17, 17, 'E');
+      g.box(0, 17, 31, 19, 'F');
       g.box(8, 7, 10, 7, 'Q').box(12, 5, 14, 5, 'Q').box(11, 15, 13, 15, 'Q'); // the ledges, the shelf
-      slope(g, 'T', UP, 2, 11);
+      band(g, BAND, UP);
     },
-    coins: [[22, 15], [4, 7]],
+    coins: [[26, 15], [4, 7]],
     cake: [13, 3],
     item: { name: 'ushanka', col: 12, row: 13, sprite: SPRITE.ushanka },
     decor: [['metroSign', 3, 13], ['bench', 14, 15], ['chandelier', 6, 3], ['stationClock', 24, 3]],
