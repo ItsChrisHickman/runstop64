@@ -96,5 +96,5 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
    in cells of 3 pixels for now: its design for a strip of fifty rooms (scrolling, or regions) is part of step 2.
 2. Moscow: its ten rooms, art, creatures and item puzzles, playable from the title to the Trans-Siberian's station.
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
-3. Siberia, China, Japan, the Pacific and Hawaii, South America, one at a time, each played before the next.
+3. Siberia, China, Japan, the Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
 4. The ending on Rio's beach, the reward show, the credits.
