@@ -34,6 +34,7 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('E: along the street under the dragon, the coin there', coin(CHI.market, 21, 15)),
   leg('E to F: out east to the gate', into(CHI.gate, 31, 15, CHI.market)),
   leg('F: the coin in the outer court past the lion', coin(CHI.gate, 8, 15)),
+  leg('F: up the rope to the gallery over the outer court, the coin there', coin(CHI.gate, 6, 7)),
   leg('F: through the doors the hat opened, the coin in the inner court', coin(CHI.gate, 28, 15)),
   leg('F to G: up the rope past the guard', into(CHI.roofs, 24, 0, CHI.gate)),
   leg('G: west along the courtyard to the dumplings', item(CHI.roofs, 0, [4, 15])),
@@ -45,6 +46,6 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('H: across the stones to the island and the bamboo', item(CHI.willow, 0, [29, 13])),
   leg('H: back across the stones to the shore', stands(CHI.willow, 15, 9, 11)),
   leg('H to J: up the steps, down the well\'s rope to the quay', into(CHI.junk, 3, 19, CHI.willow)),
-  leg('J: along the quay and over the raft to the junk\'s deck, the coin there', coin(CHI.junk, 29, 15)),
+  leg('J: along the quay and over the raft to the junk\'s deck, the coin there', coin(CHI.junk, 22, 15)),
   leg('J: to the sign at the way east', stands(CHI.junk, 17, 28, 29)),
 ];

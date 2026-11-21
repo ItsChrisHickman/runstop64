@@ -137,7 +137,7 @@ differs from the design:
 - **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before: its trace and title tests pass unchanged): `pulses` (`pulses.ts`),
   `dragons` (`dragons.ts`), a second costume (the list in `MontyData.costumes` already allowed it), and `cells.ts`, the cell and box measuring the tunnel mouths
   already did, now shared with the strikes. A copy of a game copies a number (a group's place in the data's list), not the group, so the bot's search stays quick.
-- **Firecrackers**: nine, cols 19-27 under a beam at row 6 (rows 7-8), the fuse lit from the left after 30 frames of the 300-frame period, a cell every 6 frames,
+- **Firecrackers**: nine, cols 19-27 under a beam at row 6 (rows 7-8), the fuse lit from the left after 170 frames of the 300-frame period (a walk up to the ledge takes about 150, so he meets the string on it), a cell every 6 frames,
   a warning of 18 flickering frames and a bang of 12; the key lies at col 28. Walking with the fuse catches him (its front is faster than his walk); crossing
   after the last bang (frame 108) takes 87 frames of the 190 before it is hung again.
 - **The arms**: two cells wide from row 6 to the hand at row 14, over the three gaps (cols 12-14, 19-21, 25-26: the arm at cols 13-14, 20-21 and 25-26), starts 0, 40 and 80 of

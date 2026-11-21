@@ -43,8 +43,8 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
       === [CHI.top, CHI.roofs, CHI.willow, CHI.tower, CHI.market, CHI.gate, CHI.junk, CHI.wall, CHI.alley].join() && grid(2, 7) === SIB.border && grid(1, 3) === ROOM.station && grid(0, 9) === 0xff && grid(2, 10) === 0xff);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  check('Moscow and Siberia keep their coins and finds, in the same table places (first), and China adds 16 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
-    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && coinsIn(18, 26) === 16 && itemsIn(18, 26) === 5 && (WORLD.coinTable[26 * 3] ?? 99) <= 17 && (WORLD.coinTable[27 * 3] ?? 0) >= 18);
+  check('Moscow and Siberia keep their coins and finds, in the same table places (first), and China adds 17 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
+    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && coinsIn(18, 26) === 17 && itemsIn(18, 26) === 5 && (WORLD.coinTable[26 * 3] ?? 99) <= 17 && (WORLD.coinTable[27 * 3] ?? 0) >= 18);
   check('7 key items and 6 snacks count on the pause screen', WORLD.progress.keyItems.length === 7 && WORLD.progress.cakes.length === 6);
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));

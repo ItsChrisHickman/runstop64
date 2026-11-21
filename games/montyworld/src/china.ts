@@ -76,7 +76,7 @@ const JUNK_PALETTE = {
  * flickering a cell ahead for 18 frames), each a bang for 12 frames, then a scrap of paper (nothing) until the string is hung again at the end of the
  * 300-frame period. The bang front moves faster than he walks (a cell in 8 frames), so he waits until the string has gone off and crosses while it is spent.
  */
-const CRACKERS = { first: 19, count: 9, rows: [7, 8] as const, period: 300, lit: 30, lag: 6, warn: 18, live: 12 } as const;
+const CRACKERS = { first: 19, count: 9, rows: [7, 8] as const, period: 300, lit: 170, lag: 6, warn: 18, live: 12 } as const;
 export const CRACKER_PULSES: readonly PulseSpec[] = Array.from({ length: CRACKERS.count }, (_, k): PulseSpec => ({
   room: CHI.alley, col: CRACKERS.first + k, row: CRACKERS.rows[0], cols: 1, rows: 2,
   period: CRACKERS.period, start: CRACKERS.lit + k * CRACKERS.lag, warn: CRACKERS.warn, live: CRACKERS.live,
@@ -149,7 +149,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
     decor: [['bambooClump', 2, 13], ['bambooClump', 9, 13], ['wallFlag', 16, 6], ['hangingLantern', 17, 14], ['hangingLantern', 23, 14], ['hangingLantern', 29, 14], ['rockery', 10, 15]],
     creatures: [
-      { who: 'panda', col: 12, row: 15, way: 'right', speed: 1, range: 48 },
+      { who: 'panda', col: 7, row: 15, way: 'right', speed: 1, range: 16 },
       { who: 'kite', col: 19, row: 2, way: 'down', speed: 1, range: 20 },
     ],
   }),
@@ -249,10 +249,10 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
       g.box(12, 4, 19, 4, 'Y').box(13, 5, 18, 5, 'E').box(14, 2, 17, 3, 'W'); // its swept roof and the second storey over it
       g.box(24, 0, 24, 16, 'R');
-      g.box(3, 11, 10, 11, 'Y').box(12, 11, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
+      g.box(3, 9, 10, 9, 'Y').box(12, 9, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
     },
-    coins: [[8, 15], [6, 9], [28, 15]],
-    decor: [['lionStatue', 7, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN', colour: 7 }, 3, 6], [{ text: 'CITY', colour: 7 }, 3, 7], ['hangingLantern', 5, 12], ['hangingLantern', 9, 12], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
+    coins: [[8, 15], [6, 7], [28, 15]],
+    decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN', colour: 7 }, 3, 4], [{ text: 'CITY', colour: 7 }, 3, 5], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
       { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
@@ -313,8 +313,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');
       g.box(3, 0, 3, 16, 'R');
     },
-    coins: [[29, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 12], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
+    coins: [[22, 15]],
+    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 11], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
     creatures: [
       { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },
