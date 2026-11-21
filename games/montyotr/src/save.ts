@@ -1,6 +1,7 @@
 import { readsFormat, type SaveCodec } from '../../shared/continue';
 import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
 import type { Game } from './game';
+import { wear } from './items';
 import { C5_START, c5Arrive } from './mechanisms';
 
 /**
@@ -17,6 +18,8 @@ export const MontySave = S.object({
   coins: S.numbers, items: S.numbers, exitGrid: S.numbers, c5FallStage: S.number,
   /** The C5 as it came into the room (saves from before this have only the stage). */
   c5: S.optional(S.object({ fallStage: S.number, speed: S.number, dir: S.number, bounce: S.number })),
+  /** The special item whose costume he wears (a game with costumes: Do Svidaniya Monty's). */
+  worn: S.optional(S.number),
 });
 export type MontySave = S.Infer<typeof MontySave>;
 
@@ -27,6 +30,7 @@ export function snapshot(g: Game): MontySave {
     x2: g.x2, y: g.y, mapRow: g.mapRow, exitCol: g.exitCol, facing: g.facing,
     lives: g.lives, score: g.score,
     coins: [...g.coinCollected], items: [...g.siCollected], exitGrid: [...g.exitGrid], c5FallStage: g.c5Arrival.fallStage, c5: { ...g.c5Arrival },
+    ...(g.worn === null ? {} : { worn: g.worn }),
   };
 }
 
@@ -39,6 +43,7 @@ export function restore(g: Game, data: MontySave) {
   g.siCollected.set(data.items.slice(0, g.siCollected.length));
   g.exitGrid.set(data.exitGrid.slice(0, g.exitGrid.length));
   c5Arrive(g, data.c5 ?? { ...C5_START, fallStage: data.c5FallStage });
+  wear(g, data.worn ?? null);
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't
   // there, so Monty carries on from the start room, where a new game starts him (g.start's
   // place), with everything else the save has.
@@ -56,17 +61,23 @@ export function restore(g: Game, data: MontySave) {
 /** A save read back (from JSON in storage), checked: null if it isn't one. */
 export const parseSave = (v: unknown): MontySave | null => (MontySave(v) ? v : null);
 
-/** Saves as bytes: their JSON. */
-export const CODEC: SaveCodec<MontySave> = {
-  format: 1,
+/**
+ * A game's save codec: saves as bytes, their JSON. `format` is the number its bytes are at (the envelope's: `{ v: 3, game,
+ * format }`, games/shared/saves.ts); every Monty game's save has the same shape, each its own codec under its own name.
+ */
+export const montyCodec = (name: string, format = 1): SaveCodec<MontySave> => ({
+  format,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
-  unpack: (b, format) => {
-    readsFormat('Monty', format, 1);
+  unpack: (b, found) => {
+    readsFormat(name, found, format);
     const s = parseSave(readJson(String.fromCharCode(...b)));
-    if (!s) throw new Error('not a Monty save');
+    if (!s) throw new Error(`not a ${name} save`);
     return s;
   },
-};
+});
+
+/** Monty on the Run's. */
+export const CODEC = montyCodec('Monty');
 
 type Visit = [number, { x2: number; y: number; mapRow: number; exitCol: number }];
 const isVisit = (v: unknown): v is Visit => isArray(v) && v.length === 2 && isNumber(v[0]) && isRecord(v[1]) && isNumber(v[1].x2) && isNumber(v[1].y) && isNumber(v[1].mapRow) && isNumber(v[1].exitCol);

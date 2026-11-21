@@ -52,6 +52,12 @@ export interface RoomSpec {
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake (the original's cupcake, as Monty finds them: 200 points): screen column and row of its sprite's top left. */
   cake?: readonly [col: number, row: number];
+  /**
+   * A special item of the game's own (a key item): which one (its name, for `specialIndex` finds it by), where
+   * its sprite's top left is (screen column and row) and its sprite pointer in the game's bank. At most one with a cake, the
+   * cake first.
+   */
+  item?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly DecorSpec[];
   enemies?: readonly EnemySpec[];
   /** Mole Crushers (up to two): screen column and row of the shaft's top, its height, its characters ($10 or $22). */
@@ -140,6 +146,25 @@ export const NO_ROOMS: BaseRooms = {
 
 /** The frame base of the cupcake in si_spawn_tbl (sprite pointer $91). */
 const CUPCAKE_FRAME = 3;
+/** si_spawn_tbl's frame base for a sprite pointer (the table adds $8E). */
+const frameBase = (sprite: number) => (sprite - 0x8e) & 0xff;
+
+/**
+ * The special items our rooms add, in si_spawn_tbl's order (the rooms' order; a room's cake, then its item), after the
+ * `first` the base has: each as the cake it is or the name of the item. A game finds the number of an item (the index
+ * `roomEffects`, `progress` and the costumes use) here.
+ */
+export function listSpecials(rooms: readonly RoomSpec[], first = 0): readonly { room: number; index: number; item: string | null }[] {
+  return rooms.flatMap((r) => [...(r.cake ? [null] : []), ...(r.item ? [r.item.name] : [])].map((item) => ({ room: r.id, item })))
+    .map((e, i) => ({ ...e, index: first + i }));
+}
+
+/** The index of a named special item. */
+export function specialIndex(rooms: readonly RoomSpec[], name: string, first = 0): number {
+  const at = listSpecials(rooms, first).find((e) => e.item === name);
+  if (!at) throw new Error(`no special item '${name}'`);
+  return at.index;
+}
 const MAP_CODES = '.12345678';
 const hex = (id: number) => id.toString(16);
 
@@ -179,9 +204,9 @@ function signType(sign: Sign, bank: Uint8Array): DecorType {
 /**
  * The tables with `rooms` added after the base's own entries, in the original's formats (the base's rooms read exactly what they
  * did). `sectors` are added after the base's sector names (a room's `sector` indexes them); `bank` is the VIC bank the signs'
- * letters are cut from.
+ * letters are cut from; `cakeSprite` is the sprite pointer a room's `cake` is drawn with (the cupcake's by default: a game with a food of its own gives its own).
  */
-export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors: readonly Sector[], bank: Uint8Array): RoomTables {
+export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors: readonly Sector[], bank: Uint8Array, cakeSprite = CUPCAKE_FRAME + 0x8e): RoomTables {
   const byId = new Map(rooms.map((r) => [r.id, r]));
   const merged = (original: Uint8Array, entries: (r: RoomSpec) => number[][]) => Uint8Array.from([...original, ...rooms.flatMap((r) => entries(r).flat())]);
   /** A table indexed by room id, our rooms' entries put in at their ids (past the base's rooms: bytes no room read). */
@@ -210,7 +235,10 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
       return r ? enemyRecordsOf(r) : base.enemyRecords(id);
     },
     // the cake: the original's cupcake (frame base 3, pointer $91, 200 points), in each room that has one
-    specialItems: merged(base.specialItems, (r) => (r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, CUPCAKE_FRAME]] : [])),
+    specialItems: merged(base.specialItems, (r) => [
+      ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(cakeSprite)]] : []),
+      ...(r.item ? [[r.id, r.item.col * 4 + 0x0c, r.item.row * 8 + 0x32, frameBase(r.item.sprite)]] : []),
+    ]),
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,
     decorTypes: [...base.decorTypes, ...signs.map((s) => signType(s, bank))],
@@ -272,4 +300,11 @@ export function extendEnemies(
     enemyBank: (type: number) => own(type)?.frames ?? base.enemyBank(type),
     enemyCopyFlag: (type: number) => { const c = own(type); return c ? (c.copy ? 1 : 0) : base.enemyCopyFlag(type); },
   };
+}
+
+/** A VIC bank with sprite blocks of a game's own put in at their pointers (63 bytes each: the tables point at them: items, icicles). */
+export function extendBank(base: Uint8Array, blocks: readonly { ptr: number; block: Uint8Array }[]): Uint8Array {
+  const out = Uint8Array.from(base);
+  for (const { ptr, block } of blocks) out.set(block, ptr * 64);
+  return out;
 }

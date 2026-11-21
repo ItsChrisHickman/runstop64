@@ -15,7 +15,7 @@ import type { Game } from './game';
  */
 
 /** The ENHANCED assists the engine knows (each game's `assists` says which it has). */
-export type AssistId = 'lives' | 'cloud' | 'jetpack' | 'c5' | 'rooms' | 'respawn';
+export type AssistId = 'lives' | 'cloud' | 'jetpack' | 'c5' | 'rooms' | 'respawn' | 'hints';
 
 /** Original SFX numbers (Music.PlaySFX). */
 export interface Sfx { warp: number; jump: number; piledriverDescend: number; jetpack: number; liftAscend: number; liftDescend: number; coin: number; item: number }
@@ -91,6 +91,42 @@ export interface RoomEffect {
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */
 export interface LiftSpec { room: number; x: number; y: number; type: 1 | 2; speedDir: number; sound: boolean }
 
+/**
+ * An escalator: a ride Monty cannot leave (as the lift and the crusher's head are). Stepping on its foot (a floor two cells wide,
+ * at playfield cell `col`, `row`: the row of the floor he stands on) starts it; it carries him, at a fixed pace, `cols` cells
+ * along (`dx` 1 right, -1 left) and `rows` cells down (`dy` 1) or up (-1) over `frames` frames, and sets him down on the
+ * landing at its far end. The treads are the room's theme character (RoomSpec.theme); the slope is the room's own art.
+ */
+export interface EscalatorSpec { room: number; col: number; row: number; dx: 1 | -1; dy: 1 | -1; cols: number; rows: number; frames: number }
+
+/**
+ * An icicle: it hangs where it is drawn (a sprite, in the room at playfield cell `col`, `row`, the top of its 16 pixels) until
+ * Monty's width is over its column, shivers for `warn` frames, falls 4 pixels a frame to the floor (playfield row `floor`),
+ * breaks, and grows back; it kills like a crusher's head. A room has at most two (the sprites 1 and 2).
+ */
+export interface IcicleSpec { room: number; col: number; row: number; floor: number }
+
+/** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
+export interface IcicleSprites { full: number; half: number; small: number; shards: number }
+
+/**
+ * A costume: Monty's pictures with the thing worn drawn on. Taking special item `item` puts it on (in place of whatever he wore):
+ * each sprite block of `blocks` (63 bytes) replaces his picture at its pointer in the bank. Kept in the save.
+ */
+export interface Costume { item: number; blocks: readonly { ptr: number; block: Uint8Array }[] }
+
+/**
+ * What ENHANCED's item hints say (shared/monty/hints.ts): a line in the place's name row, in the game's lettering. `take`: when
+ * special item `item` is picked up, what it is for. `wanted`: coming into `room` without the special item, what is wanted there.
+ */
+export interface ItemHints {
+  take: readonly { item: number; text: string }[];
+  wanted: readonly { room: number; item: number; text: string }[];
+}
+
+/** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`. */
+export interface MapRegion { from: number; to: number }
+
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {
   rooms: readonly number[];
@@ -143,6 +179,10 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The rooms where Monty has the jetpack (the jet pack item, kit 0, carried). */
   jetpackRooms: readonly number[];
   lifts: readonly LiftSpec[];
+  escalators: readonly EscalatorSpec[];
+  icicles: readonly IcicleSpec[];
+  iceSprites: IcicleSprites;
+  costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */
   flashingBases: { room: number; row: number; cols: readonly number[] } | null;
   /** The rising bollard on a Mole Crusher's shaft: its room, screen row and column. */
@@ -156,8 +196,12 @@ export interface MontyData extends RoomTables, MontyLook {
   // ---- the front end -----------------------------------------------------------------------------
   /** The assists the game has (ENHANCED's switch and the pause screen list them, in this order after UNLIMITED LIVES). */
   assists: readonly AssistId[];
+  /** ENHANCED's item hints (the assist `hints`); empty for a game with none. */
+  hints: ItemHints;
+  /** The regions the map shows one at a time (a world too wide for the box); none: the whole grid. */
+  regions: readonly MapRegion[];
   /** The map: the special items that are the key ones, the cakes, and the colour of each sector. */
-  progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[] };
+  progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[]; /** What the cakes are called on the pause screen (Monty on the Run's cupcakes: CAKES; a game with a food of its own names it). */ foodName?: string };
   /** The title's own text: the scroller's stream. */
   title: { message: Uint8Array };
   /** The reward for winning; null: the game has none yet. */

@@ -6,5 +6,7 @@
  */
 export * from './creatures';
 export * from './decorations';
+export * from './hat';
+export * from './ice';
 export * from './tiles';
 export type { Colour, NewCreature, NewDecor, NewItem, NewTile, TileClass } from './types';

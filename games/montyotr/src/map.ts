@@ -112,11 +112,20 @@ export function noteRoom(g: Game, { rooms }: MontyFound) {
 
 const visited = (found: MontyFound, id: number) => !!found.rooms[id];
 
-function layout(box: Box, data: MontyData) {
-  const { cols } = data.exitGrid;
-  const cell = Math.min(CELL, Math.floor(box.w / cols));
+/** A cell of a region's map: a region is a few columns, so its cells are bigger. */
+const REGION_CELL = 16;
+
+/**
+ * Where the cells are: the whole grid, or (a game with `regions`) the columns of the region Monty is in, the cell bigger. `from`
+ * is the first column shown, `cols` how many.
+ */
+function layout(box: Box, g: Game) {
+  const { data } = g;
+  const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to);
+  const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
+  const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols));
   const ox = box.x + Math.floor((box.w - cols * cell) / 2);
-  return { cell, at: (row: number, col: number) => ({ x: ox + col * cell, y: box.y + 2 + row * cell }) };
+  return { cell, from, cols, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + row * cell }) };
 }
 
 /** The rooms on the map, and how many of them Monty has been in. */
@@ -141,12 +150,12 @@ export const montyMap = {
   title: () => 'THE WORLD',
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
-    const { cols, rows } = data.exitGrid;
+    const { rows } = data.exitGrid;
     const { progress } = data;
-    const { at, cell } = layout(box, data);
+    const { at, cell, from, cols } = layout(box, g);
     const tick = shimmer++;
     for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
+      for (let c = from; c < from + cols; c++) {
         const id = roomIn(g, r, c);
         if (id === 0xff) continue;
         const p = at(r, c);
@@ -187,17 +196,17 @@ export const montyMap = {
     const { keyItems, cakes: allCakes } = g.data.progress;
     const cakes = allCakes.filter((i) => g.siCollected[i]).length;
     const items = keyItems.filter((i) => g.siCollected[i]).length;
-    return [`LIVES ${String(g.lives).padStart(5)}`, `ROOMS ${String(rooms.seen).padStart(2)}/${rooms.all}`, `ITEMS ${items}/${keyItems.length}`, `CAKES ${String(cakes).padStart(2)}/${allCakes.length}`];
+    return [`LIVES ${String(g.lives).padStart(5)}`, `ROOMS ${String(rooms.seen).padStart(2)}/${rooms.all}`, `ITEMS ${items}/${keyItems.length}`, `${g.data.progress.foodName ?? 'CAKES'} ${String(cakes).padStart(2)}/${allCakes.length}`];
   },
   legend: (g) => [
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
   places(box: Box, g: Game, found: MontyFound): MapPlace[] {
-    const { at, cell } = layout(box, g.data);
+    const { at, cell, from, cols } = layout(box, g);
     const mid = Math.floor(cell / 2) - 1; // (3 in a cell of 8: the dot's place in it)
     const list = Object.entries(found.rooms)
-      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId)
+      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols)
       .map(([id, e]) => { const p = at(e[2], e[3]); return { id, x: p.x + mid, y: p.y + mid }; });
     const p = at(g.mapRow, g.exitCol);
     return [{ id: String(g.roomId), x: p.x + mid, y: p.y + mid, here: true }, ...list];
@@ -282,5 +291,5 @@ export function describeSave(data: MontyData, save: MontySave, found: MontyFound
   const { keyItems, cakes: allCakes } = data.progress;
   const items = keyItems.filter((i) => save.items[i]).length, cakes = allCakes.filter((i) => save.items[i]).length;
   const rooms = Object.keys(found.rooms).filter((id) => !data.isExtensionRoom(Number(id))).length;
-  return [sectorName(data, save.roomId).text, `LIVES ${save.lives}`, `ITEMS ${items}/${keyItems.length}`, `CAKES ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
+  return [sectorName(data, save.roomId).text, `LIVES ${save.lives}`, `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
 }

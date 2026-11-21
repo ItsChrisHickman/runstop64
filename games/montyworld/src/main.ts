@@ -1,4 +1,5 @@
 import type { Host } from 'c64kit';
+import { montyCodec } from '../../montyotr/src/save';
 import { runMonty } from '../../montyotr/src/session';
 import { WORLD } from './data';
 
@@ -9,6 +10,9 @@ import { WORLD } from './data';
  */
 export { info } from './info';
 
+/** Its own save codec (the save envelope's `game` is its id, `format` this): the shape is Monty's, with what he wears. */
+export const CODEC = montyCodec('Do Svidaniya Monty');
+
 export function run(host: Host) {
-  return runMonty(host, WORLD);
+  return runMonty(host, WORLD, { codec: CODEC });
 }

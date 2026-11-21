@@ -61,6 +61,7 @@ export const MOTR: MontyData = {
     { room: 0x05, x: 0x48, y: 0x5b, type: 1, speedDir: 0x82, sound: true },
     { room: 0x0d, x: 0x80, y: 0x53, type: 2, speedDir: 0x80, sound: false },
   ],
+  escalators: [], icicles: [], iceSprites: { full: 0, half: 0, small: 0, shards: 0 }, costumes: [],
   flashingBases: { room: 0x1f, row: 0x11, cols: [8, 10, 12] },
   bollard: { room: 0x0c, row: 15, col: 0x1b },
   risingCloud: { room: 0x01, x: 0x3c, col: 0x0c },
@@ -69,6 +70,8 @@ export const MOTR: MontyData = {
   completion,
 
   assists: ['lives', 'cloud', 'jetpack', 'c5', 'rooms', 'respawn'],
+  hints: { take: [], wanted: [] },
+  regions: [],
   progress: {
     keyItems: [1, 3, 5, 8, 10], // the special items that open up the way to France
     cakes: [0, 2, 4, 6, 7, 9, 14, 15, 17, 18],

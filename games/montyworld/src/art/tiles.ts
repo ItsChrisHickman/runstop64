@@ -161,16 +161,27 @@ export const MOSCOW_TILES = {
     '........',
     '........',
   ]),
-  /** The metro's escalator: handrails and the steps going by. He rides it up and down like a rope. A rope. */
-  escalator: tile('escalator', 3, 15, [
-    '##.##.##',
-    '#......#',
+  /** The metro's escalator, its treads going by (the room's theme character turns them): handrails and steps. Nothing: he is carried over it. */
+  escalator: tile('escalator', 0, 15, [
+    '#.####.#',
     '#.####.#',
     '#......#',
-    '##.##.##',
     '#......#',
     '#.####.#',
+    '#.####.#',
     '#......#',
+    '#......#',
+  ]),
+  /** An escalator's comb plate, the still step at either end: he steps on it and the ride starts. A floor. */
+  escalatorFoot: tile('escalatorFoot', 2, 7, [
+    '########',
+    '#.#.#.#.',
+    '########',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
   ]),
   /** An iron ladder (rails and rungs). A rope. */
   ironLadder: tile('ironLadder', 3, 7, [
@@ -203,6 +214,116 @@ export const MOSCOW_TILES = {
     '.#.##.#.',
     '########',
     '#..##..#',
+    '........',
+  ]),
+  /** A ceiling's ragged lower edge: the crust, then snow dripping and running to points. Solid. */
+  snowDrip: tile('snowDrip', 1, 1, [
+    '########',
+    '########',
+    '#.####.#',
+    '..#..##.',
+    '..#...#.',
+    '.......#',
+    '........',
+    '........',
+  ]),
+  /** Rough boulders, irregular and chunky, for the underground and a rubble wall. Solid. */
+  rock: tile('rock', 1, 12, [
+    '.####.##',
+    '######.#',
+    '#.####.#',
+    '###..###',
+    '.####.##',
+    '##.####.',
+    '###.####',
+    '.##..##.',
+  ]),
+  /** Weathered boards on end, a gap between each: a kiosk, a fence, a cabin. Solid. */
+  planks: tile('planks', 1, 9, [
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+    '###.###.',
+  ]),
+  /** A wooden crate, braced across both ways: luggage, barrels, a stack at the station. Solid. */
+  crate: tile('crate', 1, 8, [
+    '########',
+    '##....##',
+    '#.#..#.#',
+    '#..##..#',
+    '#..##..#',
+    '#.#..#.#',
+    '##....##',
+    '########',
+  ]),
+  /** A railway carriage's side: the rail, a window, the rail. Solid. */
+  trainSide: tile('trainSide', 1, 5, [
+    '########',
+    '########',
+    '#.####.#',
+    '#.####.#',
+    '#.####.#',
+    '########',
+    '########',
+    '........',
+  ]),
+  /** An iron grating: a lattice over the dark. A floor. */
+  grating: tile('grating', 2, 11, [
+    '########',
+    '#.#.#.#.',
+    '########',
+    '#.#.#.#.',
+    '........',
+    '........',
+    '........',
+    '........',
+  ]),
+  /** The turnstile's bars, upright, close together. Solid until the token pays (the room says which cells). */
+  turnstile: tile('turnstile', 1, 7, [
+    '##..##..',
+    '##..##..',
+    '##..##..',
+    '##..##..',
+    '##..##..',
+    '##..##..',
+    '##..##..',
+    '##..##..',
+  ]),
+  /** An onion dome's scales, for a round ledge on the cathedral's roofs. A floor. */
+  domeScale: tile('domeScale', 2, 5, [
+    '.##..##.',
+    '#..##..#',
+    '#..##..#',
+    '.##..##.',
+    '.##..##.',
+    '#..##..#',
+    '#..##..#',
+    '.##..##.',
+  ]),
+  /** A rope hanging with its knots. A rope. */
+  rope: tile('rope', 3, 13, [
+    '...##...',
+    '...##...',
+    '..####..',
+    '...##...',
+    '...##...',
+    '..####..',
+    '...##...',
+    '...##...',
+  ]),
+  /** A shop's striped awning: the stripes, scalloped along its edge. A floor. */
+  awning: tile('awning', 2, 2, [
+    '########',
+    '##.##.##',
+    '#.#..#.#',
+    '#......#',
+    '........',
+    '........',
+    '........',
     '........',
   ]),
 } as const satisfies Record<string, NewTile>;

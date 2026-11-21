@@ -1,6 +1,7 @@
 import { SidPlayer, VicView, type Host } from 'c64kit';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
+import type { SaveCodec } from '../../shared/continue';
 import type { AssistSpec } from '../../shared/frontend';
 import { LIVES_ASSIST } from '../../shared/lives';
 import { montyLettering } from '../../shared/monty/font';
@@ -30,10 +31,11 @@ const ASSIST_SPECS: Record<AssistId, AssistSpec> = {
   c5: { id: 'c5', long: 'C5 HOP AND RETRY' },
   rooms: { id: 'rooms', long: 'RUNSTOP64 ROOMS', role: 'enhanced' },
   respawn: { id: 'respawn', long: 'SAFE RESPAWN' },
+  hints: { id: 'hints', long: 'ITEM HINTS' },
 };
 
 /** What a game adds to the session: work to do before the front end reads the saves (Monty on the Run moves its saves from before the shared front end). */
-export interface SessionOptions { migrate?: () => void }
+export interface SessionOptions { migrate?: () => void; /** The game's own save codec (default: Monty on the Run's). */ codec?: SaveCodec<MontySave> }
 
 export function runMonty(host: Host, data: MontyData, options: SessionOptions = {}) {
   const { renderer, input } = host;
@@ -77,7 +79,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<MontySave, MontyFound, Game>(host, {
-    id: data.id, font: montyFont(data), codec: CODEC, map: montyMap, describe: (save, found) => describeSave(data, save, found),
+    id: data.id, font: montyFont(data), codec: options.codec ?? CODEC, map: montyMap, describe: (save, found) => describeSave(data, save, found),
     // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
     ending: () => !!data.ending && enhanced() && readWon(data.id),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
@@ -88,7 +90,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     const { flow, fe, latch, rooms } = self;
     enhanced = () => fe.enhanced;
     // the game reads ENHANCED's assists as the switch has them now
-    g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; } };
+    g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; }, get hints() { return fe.assist.hints === true; } };
     g.graceActive = () => flow.grace.active;
 
     // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----

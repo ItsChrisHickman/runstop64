@@ -46,3 +46,6 @@ export interface NewItem {
   readonly block: Uint8Array;
   readonly colour: Colour;
 }
+
+/** Monty's pictures with something worn drawn on: a 63-byte sprite block for each of his sprite pointers. */
+export type CostumeBlocks = readonly { readonly ptr: number; readonly block: Uint8Array }[];

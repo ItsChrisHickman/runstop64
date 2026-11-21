@@ -6,23 +6,11 @@
  * face with an expression, and an animation that reads (a mouth opening, a squash, a turn). No dither.
  */
 import { creatureBank, itemBlock, mirrored, shifted } from './pixels';
-import { Raster } from './raster';
+import { babushka, balalaika, cossack, egg, samovarWalker, tram } from './creatures-more';
+import { limb, over, Raster } from './raster';
 import type { NewCreature, NewItem } from './types';
 
 const BLANK = '.'.repeat(16);
-
-/** Lay `shape` over `r`, a one pixel black moat round it so it stands out from the solid body under it. */
-function over(r: Raster, shape: Raster) {
-  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
-    if (!shape.get(x, y) && (shape.get(x - 1, y) || shape.get(x + 1, y) || shape.get(x, y - 1) || shape.get(x, y + 1))) r.set(x, y, false);
-  }
-  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) if (shape.get(x, y)) r.set(x, y);
-}
-
-/** A thick limb: a line `t` pixels thick. */
-function limb(r: Raster, x0: number, y0: number, x1: number, y1: number, t: number) {
-  for (let k = 0; k < t; k++) for (let j = 0; j < t; j++) r.line(x0 + k - (t - 1) / 2, y0 + j - (t - 1) / 2, x1 + k - (t - 1) / 2, y1 + j - (t - 1) / 2);
-}
 
 // ---- the matryoshka: a red doll, a lit face in a black ring, a dark apron with a flower
 
@@ -54,10 +42,10 @@ function matryoshka(): NewCreature {
   const open = doll(['##....##', '##..##']);
   const squashed = [BLANK, BLANK, ...closed.filter((_, i) => i !== 1 && i !== 13)];
   const frames = [squashed, closed, shifted(open, -1), open];
-  return { frames: creatureBank('matryoshka', frames, frames), copy: true, colour: 2 };
+  return { frames: creatureBank('matryoshka', frames, frames), copy: true, colour: 7 };
 }
 
-// ---- the guard: a big fur hat with a star, a lit face with a black moustache, a greatcoat
+// ---- the guard: a tall fur shapka with a star, a lit face with a black moustache, a greatcoat
 
 /** The guard's legs, four steps. */
 const STEPS: readonly (readonly [string, string])[] = [
@@ -67,20 +55,20 @@ const STEPS: readonly (readonly [string, string])[] = [
   ['..####....####..', '..####....####..'],
 ];
 
-/** A guard marching, his arms swinging: four steps. */
+/** A guard marching, his arms swinging: four steps. The hat is the tall straight shapka of the Kremlin's guard, not a dome. */
 function guard(): NewCreature {
   const body = [
-    '...##########...',
-    '..#####..#####..',
-    '.#####....#####.',
-    '#######..#######',
-    '################',
-    '....########....',
-    '...##..##..##...',
-    '...##..##..##...',
-    '...##......##...',
-    '....########....',
-    '.....######.....',
+    '...#.#.##.#.#...',
+    '...###########..',
+    '...####..#####..',
+    '...###.##.####..',
+    '...###########..',
+    '....#########...',
+    '....##.##.###...',
+    '...###.##.####..',
+    '...##........##.',
+    '....##########..',
+    '.....########...',
     '...##########...',
     '...##########...',
     '...##########...',
@@ -91,8 +79,8 @@ function guard(): NewCreature {
     r.rect(3, 12, 12, 12, false); // the belt, a black line with a lit buckle
     r.rect(7, 12, 8, 12);
     const left = step & 1, right = (step + 1) & 1;
-    r.rect(0, 11 + left, 1, 13 + left); // arms swinging
-    r.rect(14, 11 + right, 15, 13 + right);
+    r.rect(0, 9 + left, 1, 13 + left); // arms swinging
+    r.rect(14, 9 + right, 15, 13 + right);
     const [a, b] = STEPS[step] ?? ['', ''];
     return [...r.rows(), a, b];
   };
@@ -100,36 +88,30 @@ function guard(): NewCreature {
   return { frames: creatureBank('guard', left, left.map(mirrored)), copy: false, colour: 5 };
 }
 
-// ---- the pigeon: seen from the front, a round head with eyes and a beak, wings beating either side of a plump body
+// ---- the pigeon: seen from the side, plump, a beak, a tail, the wing beating
 
-/** A pigeon, flying at us: wings up, level, down, level. The same going either way. */
+/** A pigeon flying to the left: wing up, half up, down, half up. */
 function pigeon(): NewCreature {
   type Pt = readonly [number, number];
-  /** A wing's four corners (root top, tip top, tip bottom, root bottom) and the black lines between its feathers. */
-  const frame = ([a, b, c, d]: readonly [Pt, Pt, Pt, Pt], gaps: readonly (readonly [number, number, number, number])[]) => {
+  const frame = (tip: Pt, feather: boolean) => {
     const r = new Raster(16, 16);
+    r.ellipse(8.5, 9.4, 5.6, 3.7); // the plump body
+    r.disc(3.6, 6.2, 2.7); // the head
+    r.triangle(0, 7, 2, 5.6, 2, 8.2); // the beak
+    r.triangle(12, 8, 15.5, 6.5, 15.5, 12); // the tail
+    r.rect(6, 12, 6, 14); r.rect(9, 12, 9, 14); // legs
+    r.rect(5, 15, 7, 15); r.rect(8, 15, 10, 15); // feet
     const wing = new Raster(16, 16);
-    wing.triangle(a[0], a[1], b[0], b[1], c[0], c[1]);
-    wing.triangle(a[0], a[1], c[0], c[1], d[0], d[1]);
-    for (const [x0, y0, x1, y1] of gaps) wing.line(x0, y0, x1, y1, false);
-    for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) if (wing.get(x, y)) wing.set(15 - x, y); // the other wing
-    r.ellipse(7.5, 10.2, 4.2, 5.2); // the plump body
-    r.disc(7.5, 4.6, 3.6); // the head
-    r.rect(6, 14, 6, 15); r.rect(9, 14, 9, 15); // feet
-    r.rect(5, 15, 6, 15); r.rect(9, 15, 10, 15);
+    wing.triangle(5.5, 8, tip[0], tip[1], 12, 8.5);
+    wing.triangle(5.5, 8, tip[0], tip[1], 9.5, 11);
+    if (feather) wing.line(tip[0], tip[1] + 1, 9, 9, false);
     over(r, wing);
-    r.cut(['#..#', '#..#'], 5, 3); // the eyes, big
-    r.cut(['.##.', '.##.'], 6, 6); // the beak, a dark wedge
-    r.cut(['##', '##', '##', '##'], 7, 11); // a seam down the breast
+    r.cut(['#'], 3, 5); // the eye
+    r.cut(['##'], 6, 12); // a seam under the wing
     return r.rows();
   };
-  const frames = [
-    frame([[5, 8], [2, 0], [0, 5], [5, 13]], []),
-    frame([[5, 8], [0, 6], [0, 11], [5, 13]], [[0, 9, 4, 10]]),
-    frame([[5, 8], [0, 11], [2, 15], [5, 13]], []),
-    frame([[5, 8], [0, 8], [0, 13], [5, 13]], [[0, 11, 4, 12]]),
-  ];
-  return { frames: creatureBank('pigeon', frames, frames), copy: true, colour: 15 };
+  const left = [frame([11, 0], false), frame([13, 3.5], true), frame([11, 14], false), frame([13, 3.5], true)];
+  return { frames: creatureBank('pigeon', left, left.map(mirrored)), copy: false, colour: 1 };
 }
 
 // ---- the snowball: a furious face rolling round a solid ball
@@ -213,6 +195,12 @@ export const MOSCOW_CREATURES = {
   pigeon: pigeon(),
   snowball: snowballs(),
   bear: bear(),
+  babushka: babushka(),
+  cossack: cossack(),
+  samovar: samovarWalker(),
+  egg: egg(),
+  tram: tram(),
+  balalaika: balalaika(),
 } as const satisfies Record<string, NewCreature>;
 
 export type MoscowCreature = keyof typeof MOSCOW_CREATURES;
@@ -236,36 +224,57 @@ function metroToken(): NewItem {
   return { block: itemBlock('metroToken', r.rows()), colour: 7 };
 }
 
-/** An ushanka, the fur hat: a solid crown with a star cut in it, a fur band, the ear flaps hanging at the sides. */
+/**
+ * An ushanka, the fur hat, from the front: a puffy crown with a ragged fur top and the star on it, a thick fur band, the ear flaps
+ * hanging down at both sides with fur ends. Drawn row by row: a hat's outline, not a face.
+ */
 function ushanka(): NewItem {
   const r = new Raster(16, 16);
   r.stamp([
     '................',
-    '.....######.....',
-    '...##########...',
+    '....#.####.#....',
     '..############..',
-    '.######..######.',
-    '.#####....#####.',
-    '.######..######.',
     '.##############.',
-    '................',
+    '.##############.',
+    '.######..######.',
+    '.######..######.',
     '################',
-    '################',
-    '#####......#####',
-    '#####......#####',
-    '.####......####.',
-    '..###......###..',
+    '#.############.#',
+    '##.##########.##',
+    '###.########.###',
+    '###..........###',
+    '###..........###',
+    '.##..........##.',
+    '..#..........#..',
     '................',
   ], 0, 0);
-  r.cut(['#', '#', '#'], 2, 11); // the flaps' folds
-  r.cut(['#', '#', '#'], 13, 11);
-  r.rect(7, 5, 8, 5); // the star's lit middle in its dark patch
+  for (const x of [5, 8, 10]) r.cut(['#'], x, 8 + (x % 2)); // the fur's hairs in the band
+  for (const x of [1, 13]) r.cut(['#'], x, 11); // and in the flaps
+  r.cut(['..##..', '.####.', '.####.', '..##..'], 5, 3); // a dark patch on the crown for the star
+  r.stamp(['.##.'], 6, 4);
   return { block: itemBlock('ushanka', r.rows()), colour: 9 };
+}
+
+/**
+ * A pirozhok (plural pirozhki), the small baked Russian bun that Moscow's cakes are: a plump oval lying on its side, the crimped
+ * seam along the top, a slit and two glazed highlights cut in it. Drawn as the cupcake is (a 16 x 16 hires picture, white).
+ */
+function pirozhok(): NewItem {
+  const r = new Raster(16, 16);
+  r.ellipse(7.5, 10.2, 7.4, 4.6); // the bun
+  r.rect(2, 13, 13, 14); // its flat underside
+  for (let x = 2; x <= 13; x += 2) r.set(x, 5); // the crimped seam standing up along the top
+  r.rect(3, 6, 12, 6);
+  r.cut(['..####..'], 4, 9); // the slit
+  r.cut(['#.', '##'], 3, 8); // a glazed highlight
+  r.cut(['.##', '##.'], 10, 11);
+  return { block: itemBlock('pirozhok', r.rows()), colour: 1 };
 }
 
 export const MOSCOW_ITEMS = {
   metroToken: metroToken(),
   ushanka: ushanka(),
+  pirozhok: pirozhok(),
 } as const satisfies Record<string, NewItem>;
 
 export type MoscowItem = keyof typeof MOSCOW_ITEMS;

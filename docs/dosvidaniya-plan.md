@@ -102,7 +102,12 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
    (`games/montyotr/src/montydata.ts`), Monty on the Run's value `motr.ts`, Do Svidaniya Monty's `games/montyworld/src/data.ts` (50 by 3
    exit grid, three placeholder rooms), the session `runMonty` (`session.ts`) and `test/walk.ts`. The pause map draws the wide grid
    in cells of 3 pixels for now: its design for a strip of fifty rooms (scrolling, or regions) is part of step 2.
-2. Moscow: its ten rooms, art, creatures and item puzzles, playable from the title to the Trans-Siberian's station.
+2. Moscow: its nine rooms (`docs/dosvidaniya-moscow.md`, approved 2026-11-20), art, creatures and item puzzles, playable from the title to the
+   Trans-Siberian's carriage roof. Built: the nine rooms (`games/montyworld/src/moscow.ts`), eleven creatures (none in more than two rooms),
+   escalators and icicles as engine features (data: `escalators`, `icicles`), the metro token and the ushanka (a costume: Monty's
+   pictures with the hat on, kept in the save), pirozhki for cakes, ENHANCED item hints, its own save codec, a pause map that shows the
+   region he is in; the bot (`games/montyworld/test/moscow.ts`) plays it from the start to the roof's end in ORIGINAL and ENHANCED.
+   The way east off the carriage roof is shut with a sign (SIBERIA COMING SOON) until Siberia is built.
    **Chris plays it.** If it doesn't feel like a Monty game, we stop here.
 3. Siberia, China, Japan, the Pacific, the Andes and the Amazon, Rio, one at a time, each played before the next.
 4. The ending on Rio's beach, the reward show, the credits.

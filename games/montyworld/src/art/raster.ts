@@ -108,3 +108,16 @@ export function onionDome(r: Raster, cx: number, top: number, width: number, bul
 export function stroke(r: Raster, x0: number, y0: number, x1: number, y1: number, t = 2) {
   for (let k = 0; k < t; k++) r.line(x0 + k - (t - 1) / 2, y0, x1 + k - (t - 1) / 2, y1);
 }
+
+/** Lay `shape` over `r`, a one pixel black moat round it so it stands out from the solid body under it. */
+export function over(r: Raster, shape: Raster) {
+  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
+    if (!shape.get(x, y) && (shape.get(x - 1, y) || shape.get(x + 1, y) || shape.get(x, y - 1) || shape.get(x, y + 1))) r.set(x, y, false);
+  }
+  for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) if (shape.get(x, y)) r.set(x, y);
+}
+
+/** A thick limb: a line `t` pixels thick. */
+export function limb(r: Raster, x0: number, y0: number, x1: number, y1: number, t: number) {
+  for (let k = 0; k < t; k++) for (let j = 0; j < t; j++) r.line(x0 + k - (t - 1) / 2, y0 + j - (t - 1) / 2, x1 + k - (t - 1) / 2, y1 + j - (t - 1) / 2);
+}

@@ -7,6 +7,10 @@ import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
 import * as Items from './items';
 import * as Scripts from './scripts';
+import { escalatorInit, escalatorUpdate, NO_RIDE, type EscalatorRide } from './escalators';
+import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
+import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
+import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
 
 /**
@@ -51,6 +55,8 @@ export interface Assists {
    * (Game.respawn).
    */
   respawn: boolean;
+  /** Item hints (shared/monty/hints.ts): a thing picked up says what it is for, a room that wants one says so. A game with none has no hints to give. */
+  hints?: boolean;
 }
 
 /** Where Monty came into a room (the room's cell, his place, the way he faced): where a death starts him again. */
@@ -174,6 +180,8 @@ export class Game implements MontyBody, MontyWorld {
   entities: Collectible[] = [];
   readonly siCollected: Uint8Array;
   siActiveIdx = -1;
+  /** A room with a second special item (a game's own: Moscow's platform has a pirozhok and the ushanka) shows it on sprite 1; its index, or -1. */
+  siSecondIdx = -1;
   /** room_item_active[0..4]: jet pack, rope, passport, gas mask, rum — the kit always carries all five. */
   readonly roomItemActive = [1, 1, 1, 1, 1];
   colourCycle = 0;
@@ -183,6 +191,14 @@ export class Game implements MontyBody, MontyWorld {
   pd = { roomFlag: 0, state: 0, delay: 1, index: 0xff, position: 0, travel: [0, 0], spriteY: [0, 0], ride: 0 };
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
   tele = { active: 0, repeat: 0, scr: 0, colH: 0, base: 0, cur: 0, anim: 0, events: 0 };
+  /** The escalator ride under way (escalators.ts). */
+  esc: EscalatorRide = { ...NO_RIDE };
+  /** This room's icicles (icicles.ts). */
+  ice: IcicleState[] = [];
+  /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
+  worn: number | null = null;
+  /** The line in the name row, and for how long (ENHANCED's hints). */
+  hint: HintState = noHint();
   c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
   /** The C5 as it came into this room (with savedX, savedY: where a death in the room starts again). */
   c5Arrival: Mech.C5State = { ...Mech.C5_START };
@@ -301,6 +317,10 @@ export class Game implements MontyBody, MontyWorld {
     this.enable = this.expandX = this.expandY = this.multicolour = this.priority = 0;
     this.lift.riding = 0;
     this.pd.ride = 0;
+    this.esc = { ...NO_RIDE };
+    this.ice = [];
+    this.worn = null;
+    this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
     this.feetFrames = 0;
@@ -343,13 +363,17 @@ export class Game implements MontyBody, MontyWorld {
       Mech.liftSpriteUpdate(this);
       Mech.liftMovementUpdate(this);
       Mech.liftCheckContact(this);
+      escalatorUpdate(this);
+      icicleUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
+      Items.secondItemUpdate(this);
       if (this.assist.cloud) Items.cloudAssist(this);
       Items.handleCollision(this);
       Mech.piledriverCheckTiles(this);
       Items.placeTreasure(this);
       Mech.piledriverCheckContact(this);
+      if (stepHint(this.hint)) this.drawNameRow();
     }
     if ((this.actionCounter & 0x80) || !this.freeze) {
       if (this.frameToggle) {
@@ -516,6 +540,8 @@ export class Game implements MontyBody, MontyWorld {
     this.roomEntitiesInit();
     Mech.teleporterDisplay(this);
     Mech.liftInit(this);
+    escalatorInit(this);
+    icicleInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);
@@ -532,12 +558,42 @@ export class Game implements MontyBody, MontyWorld {
     this.populateColourRam();
     Mech.piledriverRoomInit(this);
     Items.spawnForRoom(this);
+    this.hint = noHint();
+    this.hintWanted();
+  }
+
+  /** The name row: the hint if one is on show, else the place's name. */
+  private drawNameRow() {
+    const line = lineOf(this.hint);
+    if (line === null) this.displaySectorName();
+    else this.displayLine(0, line);
+  }
+
+  /** ENHANCED's hint on coming into a room that wants a thing he does not have (once the name has had its moment). */
+  private hintWanted() {
+    if (!this.assist.hints) return;
+    const want = this.data.hints.wanted.find((w) => w.room === this.roomId && !this.siCollected[w.item]);
+    if (want) say(this.hint, want.text, NAME_FRAMES);
+  }
+
+  /** ENHANCED's hint on taking a special item: what it is for. */
+  noteTaken(item: number) {
+    if (!this.assist.hints) return;
+    const hint = this.data.hints.take.find((h) => h.item === item);
+    if (hint) {
+      say(this.hint, hint.text);
+      this.drawNameRow();
+    }
   }
 
   /** DisplaySectorName: row 24, white, first letter of each word in the upper-case font. */
   private displaySectorName() {
-    this.mem.fill(0, SCREEN + 24 * ROW, SCREEN + 25 * ROW);
     const { col, text } = sectorName(this.data, this.roomId);
+    this.displayLine(col, text);
+  }
+
+  private displayLine(col: number, text: string) {
+    this.mem.fill(0, SCREEN + 24 * ROW, SCREEN + 25 * ROW);
     let wordStart = true;
     for (let i = 0; i < text.length; i++) {
       const c = text.charCodeAt(i) & 0x3f;

@@ -21,7 +21,9 @@ export function animateCharacters(g: Game) {
 /** SpawnSIForRoom: put this room's special item (if any, and not yet taken) on sprite 0. */
 export function spawnForRoom(g: Game) {
   g.siActiveIdx = -1;
+  g.siSecondIdx = -1;
   const { specialItems, cheatItem } = g.data;
+  if (spawnTwo(g)) return;
   for (let i = 0; i * 4 < specialItems.length; i++) {
     if (specialItems[i * 4] !== g.roomId) continue;
     if (i === cheatItem && !g.cheatMode) return; // the cake is cheat-mode only
@@ -38,22 +40,57 @@ export function spawnForRoom(g: Game) {
   g.sy[0] = 0xff;
 }
 
+/**
+ * A room with two special items (only a game's own has them: the original's rooms have one): the first of them not yet taken is
+ * on sprite 0, the second on sprite 1 (which such a room has no other use for), each as the original's one is. True if this is
+ * such a room.
+ */
+function spawnTwo(g: Game): boolean {
+  const { specialItems } = g.data;
+  const mine: number[] = [];
+  for (let i = 0; i * 4 < specialItems.length; i++) if (specialItems[i * 4] === g.roomId) mine.push(i);
+  if (mine.length < 2) return false;
+  const left = mine.filter((i) => !g.siCollected[i]);
+  const place = (n: number, i: number | undefined) => {
+    if (i === undefined) return;
+    g.sx[n] = specialItems[i * 4 + 1];
+    g.sy[n] = specialItems[i * 4 + 2];
+    g.sptr[n] = (specialItems[i * 4 + 3] + 0x8e) & 0xff;
+    g.scol[n] = g.data.itemSprites.colour(g.sptr[n]);
+    g.priority |= 1 << n;
+  };
+  g.siActiveIdx = left[0] ?? -1;
+  g.siSecondIdx = left[1] ?? -1;
+  place(0, left[0]);
+  place(1, left[1]);
+  if (left[0] !== undefined) g.enable |= 0x01;
+  else g.sy[0] = 0xff;
+  return true;
+}
+
+/** Each frame: the second special item of a room that has two stays shown (sprite 1 is switched off by the frame's flush). */
+export function secondItemUpdate(g: Game) {
+  if (g.siSecondIdx >= 0 && !g.siCollected[g.siSecondIdx]) g.enable |= 0x02;
+}
+
 /** HandleSICollision: Monty touching sprite 0 (item/treasure) or an enemy (4-7). */
 export function handleCollision(g: Game) {
   const cs = g.collisionStore;
   const { itemSprites } = g.data;
   if (!((g.c5.active && cs & 0x04) || cs & 0x08)) return;
-  if (!(cs & 0x01)) {
+  const second = !(cs & 0x01) && !!(cs & 0x02) && g.siSecondIdx >= 0 && !g.siCollected[g.siSecondIdx];
+  if (!(cs & 0x01) && !second) {
     if (cs & 0xf0) g.actionCounter = g.c5.active ? 7 : 2;
     return;
   }
-  const ptr = g.sptr[0];
+  const n = second ? 1 : 0;
+  const ptr = g.sptr[n];
   if (ptr === itemSprites.treasure) {
     g.actionCounter = 6; // the treasure: the end of the game
     return;
   }
   if (!itemSprites.collectable(ptr)) return;
-  const idx = g.siActiveIdx;
+  const idx = second ? g.siSecondIdx : g.siActiveIdx;
   if (idx < 0 || g.siCollected[idx]) return;
   g.siCollected[idx] = 0x81;
   if (idx === g.data.cheatItem) {
@@ -62,11 +99,24 @@ export function handleCollision(g: Game) {
     return;
   }
   applyRoomEffects(g);
-  g.enable &= 0xfe;
+  g.enable &= ~(1 << n) & 0xff;
   if (ptr === itemSprites.extraLife) g.lives++; // first aid kit
   if (ptr === itemSprites.fatal) g.actionCounter = 1; // the smoke stack
   g.addScore(200);
   g.sfx(g.data.sfx.item);
+  if (g.data.costumes.some((c) => c.item === idx)) wear(g, idx);
+  g.noteTaken(idx);
+}
+
+/**
+ * Put on the costume of special item `item` (the data's `costumes`; null: none): Monty's pictures in the bank are the
+ * costume's from now on. Called when the item is taken and when a save is carried on from (the bank comes back as the game
+ * loads it, so what was worn is put on again).
+ */
+export function wear(g: Game, item: number | null) {
+  g.worn = item;
+  const costume = g.data.costumes.find((c) => c.item === item);
+  for (const { ptr, block } of costume?.blocks ?? []) g.mem.set(block, ptr * 64);
 }
 
 /** Whether a condition of a room effect holds (what Monty has taken, what he carries). */

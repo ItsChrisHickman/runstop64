@@ -6,7 +6,7 @@ export const info = {
   html: `
     <p>Do Svidaniya Monty is a new <a href="https://en.wikipedia.org/wiki/Monty_Mole">Monty Mole</a> game, made in 2026 on the
     engine, tiles, sprites and music of <a href="https://en.wikipedia.org/wiki/Monty_on_the_Run">Monty on the Run</a> (1985), and it
-    is still being built: for now three rooms of Moscow, to show the engine runs a second game. Intermole has found Monty on his Greek
+    is still being built: for now Moscow, its first region, nine rooms from the station to the Trans-Siberian's carriage roof (escalators, falling icicles, Mole Crushers, a turnstile, the Kremlin guard and a fur hat). Intermole has found Monty on his Greek
     island and Europe is no longer safe; he runs east, out of its reach, the long way round, to Rio. All credit for the game
     it is made on belongs to its creators:</p>
     <ul>
@@ -22,7 +22,7 @@ export const info = {
     M music or sound effects &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
     <p>Changes from Monty on the Run (the <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/montyworld/QOL.md">full log</a>):
     pause screen with map and travel &middot; autosave on every room &middot; ENHANCED (switch to ORIGINAL on the title or the pause screen):
-    unlimited lives and continues, and a death never starts Monty again into the same death.</p>
+    unlimited lives and continues, a death never starts Monty again into the same death, and item hints.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a> &middot; music from the
     <a href="https://www.hvsc.c64.org/">High Voltage SID Collection</a></p>
   `,
