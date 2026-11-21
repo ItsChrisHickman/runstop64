@@ -62,6 +62,10 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   China, a lei in Hawaii, and so on. It lets him blend in: the region's guard or gate lets him by once he wears it.
 - **A luau in Hawaii** (Chris: "for sure"): Hawaii's high point is a luau room (the fire dancers' torches as its timing, the
   roast pig, the lei), and it comes back in the reward show.
+- **Each region's food in place of the cupcakes** (Chris, 2026-11-20): the bonus food (200 points, as the cake) is local:
+  pirozhki in Moscow, dumplings in China, sushi in Japan, Spam musubi in Hawaii (a generic tin, no logo), empanadas in the
+  Andes, brigadeiros in Rio (Brazil's chocolate fudge balls). Coconut shrimp hop off the luau's platters as creatures, and a
+  shrimp shack stands on Waikiki with its sign.
 - **Items open the way.** As in Monty on the Run, an item taken in one room changes another (a wall gone, a creature seen
   off): two or three in each region, some needed in the next region. No freedom kit to pick (the remake already dropped it).
   An item's use has hint text in ENHANCED, as in Auf Wiedersehen Monty.
