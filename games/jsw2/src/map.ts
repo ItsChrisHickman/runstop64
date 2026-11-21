@@ -1,7 +1,8 @@
 import type { Surface } from 'c64kit';
 import { COL, foundCodec, MAP_BOX, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
-import { LINKS, MANSION, MANSION_SIZE, UNENTERABLE } from './mansion';
+import { cellOf, ENDS, MAP_SIZE, PAIR_COLOURS, STEP } from './cells';
+import { MANSION, UNENTERABLE } from './mansion';
 
 /**
  * Jet Set Willy II's map, for the pause screen: the whole mansion (laid out from the
@@ -117,61 +118,47 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
   },
   // the room he's in; while picking a room to go to, that room's name
   title: (ram, _page, pick) => (MANSION[pick ? Number(pick) : roomOf(ram)]?.name ?? 'THE MANSION').slice(0, 26),
-  draw(s, box, ram, found, blink, _page, _font, pick) {
+  draw(s, box, ram, found, blink) {
     const seen = new Set(found.rooms), here = roomOf(ram);
     const { cell, cx, cy } = layout(box);
     const size = Math.max(3, cell - 2), done = itemsFound(ram) >= NEED;
     // a room no play can enter is not on the map until he has been in it
     const shown = (room: number) => seen.has(room) || room === here || !UNENTERABLE.includes(room);
-    const half = size >> 1, tint = (a: number, b: number) => (seen.has(a) && seen.has(b) ? COL.lblue : COL.blue);
     // exits between rooms side by side on the map, the way they lead (each pair once)
     const drawn = new Set<string>();
     for (const [n, r] of Object.entries(MANSION)) {
+      const [rx, ry] = cellOf(Number(n));
       r.exits.forEach((to, k) => {
-        const t = MANSION[to];
-        if (to === Number(n) || !t || !shown(Number(n)) || !shown(to) || t.x !== r.x + STEP[k][0] || t.y !== r.y + STEP[k][1]) return;
+        const t = MANSION[to] && cellOf(to);
+        if (to === Number(n) || !t || !shown(Number(n)) || !shown(to) || t[0] !== rx + STEP[k][0] || t[1] !== ry + STEP[k][1]) return;
         const id = Number(n) < to ? `${n},${to}` : `${to},${n}`;
         if (drawn.has(id)) return;
         drawn.add(id);
         const lit = seen.has(Number(n)) && seen.has(to), colour = lit ? COL.yellow : COL.dgrey;
-        const x = Math.min(cx(r.x), cx(t.x)), y = Math.min(cy(r.y), cy(t.y));
-        if (STEP[k][0]) s.fillRect(x, cy(r.y), cell + 1, 1, colour);
-        else s.fillRect(cx(r.x), y, 1, cell + 1, colour);
+        const x = Math.min(cx(rx), cx(t[0])), y = Math.min(cy(ry), cy(t[1]));
+        if (STEP[k][0]) s.fillRect(x, cy(ry), cell + 1, 1, colour);
+        else s.fillRect(cx(rx), y, 1, cell + 1, colour);
       });
     }
-    // a link (an exit to a room that is not beside the room on the map: the mansion is not a consistent grid) is a short stub
-    // on its room's edge, the way the exit leads; the line to where it leads is drawn for the picked room's links only (below)
-    for (const [a, k, b] of LINKS) {
-      const ra = MANSION[a], rb = MANSION[b];
-      if (!ra || !rb || !shown(a) || !shown(b)) continue;
-      stub(s, cx(ra.x), cy(ra.y), size, k, tint(a, b));
-    }
-    for (const [n, r] of Object.entries(MANSION)) {
-      const room = Number(n);
+    for (const n of Object.keys(MANSION)) {
+      const room = Number(n), [rx, ry] = cellOf(room);
       if (!shown(room)) continue;
       // been in and can travel back to (he found his feet there): yellow; only passed through: brown
       const stood = !!found.stand[room];
       const colour = room === here ? (blink ? COL.white : COL.yellow) : !seen.has(room) ? COL.dgrey : stood ? COL.yellow : COL.brown;
       const lit = room === BEDROOM && done && !blink && room !== here ? COL.white : colour;
-      s.fillRect(cx(r.x) - (size >> 1), cy(r.y) - (size >> 1), size, size, lit);
+      s.fillRect(cx(rx) - (size >> 1), cy(ry) - (size >> 1), size, size, lit);
       // items left, only in rooms he's been in
-      if (seen.has(room) && itemsLeft(ram, room) > 0) s.fillRect(cx(r.x) - 1, cy(r.y) - 1, 2, 2, COL.cyan);
+      if (seen.has(room) && itemsLeft(ram, room) > 0) s.fillRect(cx(rx) - 1, cy(ry) - 1, 2, 2, COL.cyan);
     }
-    // the picked room's links, and the links that lead to it: the dotted line from room to room, the room at the other end lit
-    const picked = pick ? Number(pick) : -1;
-    for (const [a, , b] of LINKS) {
-      if (a !== picked && b !== picked) continue;
-      const ra = MANSION[a], rb = MANSION[b];
-      if (!ra || !rb || !shown(a) || !shown(b)) continue;
-      const colour = tint(a, b), other = MANSION[a === picked ? b : a];
-      dotted(s, cx(ra.x), cy(ra.y), cx(rb.x), cy(rb.y), colour);
-      s.fillRect(cx(other.x) - half, cy(other.y) - half, size, size, colour);
-    }
+    // the joins: an exit that does not lead to the room beside this one (the mansion is not a consistent grid) is marked at both
+    // ends, on the edge of the room it leaves by and the edge of the room it comes out at, in one colour for the pair, always
+    for (const e of ENDS) if (shown(e.room)) edge(s, cx(cellOf(e.room)[0]), cy(cellOf(e.room)[1]), size, e.edge, seen.has(e.room) ? PAIR_COLOURS[e.pair % PAIR_COLOURS.length] : COL.dgrey);
   },
   // Places to go back to: the rooms he's found his feet in.
   places(box, ram, found) {
     const { cx, cy } = layout(box), { stand } = found;
-    return Object.keys(stand).map(Number).filter((n) => MANSION[n]).map((n) => ({ id: String(n), x: cx(MANSION[n].x), y: cy(MANSION[n].y), here: n === roomOf(ram) }));
+    return Object.keys(stand).map(Number).filter((n) => MANSION[n]).map((n) => ({ id: String(n), x: cx(cellOf(n)[0]), y: cy(cellOf(n)[1]), here: n === roomOf(ram) }));
   },
   // Going: the game's own way into a room, as if he'd dropped out of the bottom of this one
   // into it (the room left is kept as it is, the new one set up); then he's where he came in (noteArrival).
@@ -193,28 +180,19 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
   },
 };
 
-/** left, right, up, down: where an exit leads on the map. */
-const STEP = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-
-/** A stub on the edge of a room's mark (`size` its width, centred on x, y), the way an exit leads: left, right, up, down. */
-const STUB = 3;
-function stub(s: Surface, x: number, y: number, size: number, k: number, colour: number) {
+/** A join's marker: a bar `THICK` wide along the whole edge of a room's mark (`size` wide, centred on x, y) it leaves or comes out by (0 left, 1 right, 2 up, 3 down). */
+const THICK = 2;
+function edge(s: Surface, x: number, y: number, size: number, k: number, colour: number) {
   const x0 = x - (size >> 1), y0 = y - (size >> 1);
-  if (k === 0) s.fillRect(x0 - STUB, y, STUB, 1, colour);
-  else if (k === 1) s.fillRect(x0 + size, y, STUB, 1, colour);
-  else if (k === 2) s.fillRect(x, y0 - STUB, 1, STUB, colour);
-  else s.fillRect(x, y0 + size, 1, STUB, colour);
-}
-
-/** A dotted line (two pixels in three) between two places on the picture. */
-function dotted(s: Surface, x0: number, y0: number, x1: number, y1: number, colour: number) {
-  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-  for (let i = 0; i <= n; i++) if (i % 3 !== 2) s.set(Math.round(x0 + ((x1 - x0) * i) / (n || 1)), Math.round(y0 + ((y1 - y0) * i) / (n || 1)), colour);
+  if (k === 0) s.fillRect(x0, y0, THICK, size, colour);
+  else if (k === 1) s.fillRect(x0 + size - THICK, y0, THICK, size, colour);
+  else if (k === 2) s.fillRect(x0, y0, size, THICK, colour);
+  else s.fillRect(x0, y0 + size - THICK, size, THICK, colour);
 }
 
 function layout(box: Box) {
-  const cell = Math.floor(Math.min(box.w / MANSION_SIZE.w, box.h / MANSION_SIZE.h));
-  const ox = box.x + Math.floor((box.w - cell * MANSION_SIZE.w) / 2), oy = box.y + Math.floor((box.h - cell * MANSION_SIZE.h) / 2);
+  const cell = Math.floor(Math.min(box.w / MAP_SIZE.w, box.h / MAP_SIZE.h));
+  const ox = box.x + Math.floor((box.w - cell * MAP_SIZE.w) / 2), oy = box.y + Math.floor((box.h - cell * MAP_SIZE.h) / 2);
   return { cell, cx: (x: number) => ox + x * cell + (cell >> 1), cy: (y: number) => oy + y * cell + (cell >> 1) };
 }
 
@@ -223,6 +201,6 @@ export const markSize = () => Math.max(3, layout(MAP_BOX).cell - 2);
 
 /** Where a room's mark is on the pause screen (C64 pixels, its middle), for checks. */
 export function roomSpot(room: number) {
-  const { cx, cy } = layout(MAP_BOX), r = MANSION[room];
-  return { x: cx(r.x), y: cy(r.y) };
+  const { cx, cy } = layout(MAP_BOX), [x, y] = cellOf(room);
+  return { x: cx(x), y: cy(y) };
 }

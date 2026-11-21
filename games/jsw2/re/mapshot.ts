@@ -15,7 +15,7 @@ import { jsw2Map } from '../src/map';
 const [, , outDir = '/tmp', pickArg = '63', prefix = 'map'] = process.argv;
 fs.mkdirSync(outDir, { recursive: true });
 const rooms = Object.keys(MANSION).map(Number);
-const found = { ...jsw2Map.found.empty(), rooms, stand: Object.fromEntries(rooms.map((n) => [n, [0, 0, 0] as const])) };
+const found = { ...jsw2Map.found.empty(), rooms, stand: Object.fromEntries(rooms.map((n): [string, [number, number, number]] => [String(n), [0, 0, 0]])) };
 const font = new BitmapFont().addDrawn(KIT_GLYPHS);
 const options = [{ text: 'E ENHANCED', check: true }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }];
 const shot = (name: string, room: number, pick: number | null) => {

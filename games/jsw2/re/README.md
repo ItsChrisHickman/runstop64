@@ -32,37 +32,33 @@ cycles later).
 
 - **Rooms and the map.** `re/mansion.ts` runs the game's own room loader ($62C5, room number in $13) for every room on a
   copy of the machine, reads each room's name (at the pointer in $73) and exits (left, right, up, down at $8169-$816C),
-  and lays the mansion out (`re/layout.ts`, below) into
-  `src/mansion.ts`: 136 rooms, all joined by exits, 26 x 18 places, `LINKS` (the exits the map draws as a stub, and a line when picked) and `UNENTERABLE`.
-- **The map's layout** (`re/layout.ts`, `re/search.ts`, `test/layout.ts`). The mansion is not a consistent grid: of its 319 exits to
-  another room (rooms nobody can enter left out) the layout draws 308 as two rooms side by side the way the exit leads, and 11 are
-  links. Rooms start as blocks of one; the exits are taken in an order (those both rooms say first) and each joins its two blocks if
-  the places it asks for are free, the blocks moved to meet (a Kruskal over places); what cannot be joined without two rooms on one
-  place stays a link. Blocks that never join are put where they fit. The generator tries 1000 orders and keeps the cheapest links
-  (a way there and back three, a one-way one, the exits among the start and the rooms next to it six times and never given up), then
-  `re/search.ts` improves it: a simulated annealing over the places (a room, or it with the rooms joined to it by drawn exits cut
-  at some, moves to where one of its exits asks it to go; 8 runs of 20 million moves, sheet at most 28 x 20). The cost is 19 (before
-  the room below was left out: 12 links, cost 20); the annealing from eight different Kruskal layouts, even with a sheet of any
-  size, always ends at 19, and the best sheet is 26 x 18 (the map's cell is 7 px).
-  **What it must cost, at least** (`lowerBound`, `exactMinimum`): a loop of exits whose steps do not sum to zero cannot all be
-  drawn, so one of its exits is a link; loops charged to their cheapest exit, the ones that share one using it up, give a bound of 12
-  (7 loops: 129/130 joined on both sides, 6; and six one-way exits' loops, 2 to 24 exits long). The exact minimum if rooms could
-  share a place (a branch and bound over the loops, per biconnected piece: 6 + 1 + 5) is also 12, but the layout it gives (129/130, 109 down, 87 left, 60 left, 60 down, 24 up, 89 down given up) puts 12 pairs of rooms on one
-  place, so 12 is a floor, not a layout: the search's 19 gives up 63/64 (6) and three more one-way exits instead. Not proved
-  optimal. The 11 links: two rooms joined on both sides (63/64, 129/130: one side by side, the other a link) and one-way exits
-  (31 left to 32, 60 left to 44, 24 up to 93, 87 left to 88, 90 down to 28, 109 down to 120, 134 down to 135). (The generator runs the
-  original's code by frames, a room let fall into by the way down as travel does: calling its loader alone waits for the raster
-  interrupts, which a call does not run.)
+  and writes `src/mansion.ts`: 136 rooms, all joined by exits, and `UNENTERABLE`. (The generator runs the original's code by
+  frames, a room let fall into by the way down as travel does: calling its loader alone waits for the raster interrupts, which a
+  call does not run.)
+- **The map's layout** (`src/cells.ts`, `test/layout.ts`). Laid out by hand, one table, room to cell on a 26 x 18 grid (the map's
+  cell is 7 px). The mansion is not a consistent grid (Jet Set Willy II squeezed new rooms into Jet Set Willy's mansion): of its 319
+  exits to another room (rooms nobody can enter left out) 309 are drawn as two rooms side by side the way the exit leads and 10 are
+  JOINS, derived from the table (`JOINS`: any exit whose room is not beside it). The first layout was automatic (a Kruskal over
+  the exits, annealed: 11 links, drawn as stubs with a dotted line when picked) and put Dumb Jetman far from Macaroni Ted: walking
+  right from Ted made "you are here" jump across the map. The hand layout keeps that layout's grid (the ground floor and grounds in
+  one row at y 11, the house over it, the starship at the top) and moves two rooms: Dumb Jetman and the Bathroom go to y 8 beside
+  Macaroni Ted and the east wall (31), so the top landing, Ted, Jetman and the Bathroom (the start) run along one row the way he
+  walks. The price is the Bathroom's way down, to the drain (138, under the dustbins' side): the Bathroom's down and the drain's up
+  are a join (the Chapel is under the Bathroom's cell). No walk is a jump: every exit drawn beside its room has the opposite exit
+  of the room it leads to leading back (or nowhere); the only exception, 31 left to the Bathroom, whose right is a wall (136).
+  The 10 joins, 8 pairs of ends: 32 down / 138 up, 129 right / 130 left (two rooms joined on both sides: one side by side, the
+  other a join), and the one-way ones (60 left to 44, 24 up to 93, 87 left to 88, 90 down to 28, 109 down to 120, 134 down to
+  135). All but the Bathroom's are loops of exits whose steps do not sum to zero, which no grid can draw.
   **A room Willy cannot walk into** (`UNENTERABLE` in `re/mansion.ts`): 136, The Beginning of the End, which only the bathroom's right exit
   leads to, and which only the game's own end enters (put to bed, Willy sleepwalks 33, 63, 64, the bathroom, 136). The bathroom's right side is a solid wall from floor to ceiling, and the original's code agrees: 120 random walks of
   3000 frames in the bathroom (the C64 model running the game's own code) reached x 326 at most, where a room with a way out on the
-  right lets Willy through at x 328 (room 4 does), and left only through the toilet (to the drain). Its exits cost the layout
-  nothing (and no exit to it is a link), and the map does not show it until Willy has been in it. The other rooms with a single
+  right lets Willy through at x 328 (room 4 does), and left only through the toilet (to the drain). Its exits are not drawn (and no
+  exit to it is a join), and the map does not show it until Willy has been in it. The other rooms with a single
   way in (1, 45, 56, 69, 89, 90, 95, 96, 104, 119, 121, 128, 132-134) were looked at only by random walks of their way in, which
   proves nothing either way; they stay drawn.
-  **The drawing** (`src/map.ts`): a link is a 3 px stub on its room's edge the way the exit leads, COL.lblue when both rooms have been
-  in, else COL.blue. While the map's pick is on a room with a link, or on a link's destination, that link's dotted line is
-  drawn from room to room and its other room lit in the same colour.
+  **The drawing** (`src/map.ts`): a join is a 2 px bar along the whole edge of its room's mark, on the edge the exit leaves by and
+  on the edge of the other room it comes out at (the opposite one), in one colour for the pair (`PAIR_COLOURS`), always drawn,
+  dark grey while its room has not been in. The pick draws nothing more.
 - **Items.** 178 items in 80 rooms (`re/items.ts` reads the loader: $8106 a room's count, the pairs at $8108 their cells;
   it writes `re/items.json` and `src/itemcounts.ts`). The game counts them in BCD ($8131/$8132). The ending check (room
   type 6, the Masters Bedroom, $7315) wants 160 or more, so 18 may be left. Per-room taken bits persist at $0A00 +

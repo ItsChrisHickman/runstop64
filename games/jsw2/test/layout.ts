@@ -1,80 +1,67 @@
 /**
- * Jet Set Willy II's pause map (Chris: "sometimes there are no connections between things and sometimes if I go down one
- * floor I appear two levels down on the map"). The mansion is not a consistent grid, so the map is laid out by constraints
- * (re/layout.ts) and what cannot be drawn side by side is drawn as a connector. Checked:
+ * Jet Set Willy II's pause map (Chris: "why on earth does the map jump to a different area on Macaroni Ted? Your mapping is
+ * extremely confused!"). The mansion is not a consistent grid, so the rooms are laid out by hand (src/cells.ts) so that the ways
+ * Willy walks are neighbours in the direction he walks, and the few exits that cannot be (JOINS) are marked at both ends, always,
+ * in one colour for the pair. Checked:
  *
- * - the layout on small mansions: a consistent grid is all side by side; a room whose left and right lead to the same
- *   room cannot be both, and that exit is a link; rooms never share a place, even where the exits ask for it;
- * - src/mansion.ts, the generated map: every room has a place, no two rooms share one, and every exit of every room is
- *   either two rooms side by side the way it leads or one of LINKS (and every link is such an exit, not beside its room);
- *   the examples from the report (the megatree: 4 up leads to 9, which is above it) are right;
- * - the drawing (the pause screen through the front end, as the browser runs it): a line between two rooms side by side
- *   by an exit, none between two that no exit joins; every link a short stub on its room's edge the way the exit leads (lit when
- *   both rooms have been in), and its dotted line from room to room only while the map's pick is on one of its two rooms (the
- *   other room lit); a room no play can enter (UNENTERABLE) not drawn until it has been in.
+ * - src/cells.ts: every room has a cell, no two rooms share one, and every exit of every room leads to the room beside it the
+ *   way it goes or is one of JOINS (the count is reported; a ceiling keeps it from growing); every join's two ends are on edges
+ *   of rooms no other pair uses, and the ends are the exit's own edge and the edge it comes out at;
+ * - the walks: Macaroni Ted, Dumb Jetman and the Bathroom are in a row the way Willy walks them; walking out of a room by an exit
+ *   that is not a join puts you on the room beside it, and a way back by the opposite exit leads to where you were from;
+ * - the drawing (the pause screen through the front end, as the browser runs it): a line between two rooms side by side by an
+ *   exit, none between two that no exit joins; both ends of every join marked in the pair's colour (dark while the room has not
+ *   been in) whatever is picked; the pick changes nothing on the map; a room no play can enter (UNENTERABLE) not drawn until it
+ *   has been in.
  *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/layout.ts
  */
 import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
-import { cost, layout, STEP, type Exits } from '../re/layout';
-import { exactMinimum, improve, lowerBound } from '../re/search';
-import { LINKS, MANSION, MANSION_SIZE, UNENTERABLE } from '../src/mansion';
+import { CELLS, cellOf, ENDS, JOINS, MAP_SIZE, OPPOSITE, PAIRS, PAIR_COLOURS, STEP } from '../src/cells';
+import { MANSION, UNENTERABLE } from '../src/mansion';
 import { jsw2Map, markSize, roomSpot } from '../src/map';
 import { run } from '../src/main';
 import { COL, MAP_BOX } from '../../shared/native/pause';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 
-// ---- the layout itself ----
-const mansion = (rows: [number, Exits][]) => new Map<number, Exits>(rows);
-const noOverlap = (at: Map<number, readonly [number, number]>) => new Set([...at.values()].map(([x, y]) => `${x},${y}`)).size === at.size;
-{
-  // a 3 x 2 grid: 1 2 3 over 4 5 6
-  const grid = mansion([[1, [1, 2, 1, 4]], [2, [1, 3, 2, 5]], [3, [2, 3, 3, 6]], [4, [4, 5, 1, 4]], [5, [4, 6, 2, 5]], [6, [5, 6, 3, 6]]]);
-  const l = layout(grid);
-  check(`a consistent grid: all side by side, no links (${l.links.length}), ${l.size.w} x ${l.size.h}`, l.links.length === 0 && l.size.w === 3 && l.size.h === 2 && noOverlap(l.at));
-  // two rooms each the other's left and right: one of the exits cannot be drawn
-  const ring = mansion([[1, [2, 2, 1, 1]], [2, [1, 1, 2, 2]]]);
-  const r = layout(ring);
-  check(`two rooms joined on both sides: one side by side, the other a link (${r.links.length})`, r.links.length === 2 && noOverlap(r.at));
-  // 1's right is 2, 3's right is 2 too: two rooms cannot both be left of 2
-  const clash = mansion([[1, [1, 2, 1, 1]], [2, [1, 2, 2, 2]], [3, [3, 2, 3, 3]]]);
-  const c = layout(clash);
-  check(`the loops that cannot be drawn give a lower bound: the ring costs at least 6 (${lowerBound(ring, () => 1).bound}), exactly ${exactMinimum(ring, () => 1).cost}`, lowerBound(ring, () => 1).bound === 6 && exactMinimum(ring, () => 1).cost === 6 && lowerBound(grid, () => 1).bound === 0);
-  const better = improve(ring, r.at, () => 1, { seed: 1, steps: 2000, maxW: 4, maxH: 4, held: () => false });
-  check(`annealing never makes a layout dearer (the ring: ${better.cost} for ${cost(ring, r.links)}), and keeps rooms apart`, better.cost <= cost(ring, r.links) && noOverlap(better.at) && better.at.size === 2);
-  check(`two rooms both asking to be left of a third: they do not share a place (${c.links.length} link)`, noOverlap(c.at) && c.links.length >= 1 && c.at.size === 3);
-}
-
-// ---- the generated map ----
+// ---- the cells ----
 const rooms = Object.keys(MANSION).map(Number);
-const cells = new Set(rooms.map((n) => `${MANSION[n].x},${MANSION[n].y}`));
-check(`${rooms.length} rooms, each on a place of its own (no two overlap)`, cells.size === rooms.length);
-check(`every room is inside the map's ${MANSION_SIZE.w} x ${MANSION_SIZE.h}`, rooms.every((n) => MANSION[n].x >= 0 && MANSION[n].y >= 0 && MANSION[n].x < MANSION_SIZE.w && MANSION[n].y < MANSION_SIZE.h));
-const beside = (a: number, k: number, b: number) => MANSION[b].x === MANSION[a].x + STEP[k][0] && MANSION[b].y === MANSION[a].y + STEP[k][1];
-const isLink = (a: number, k: number, b: number) => LINKS.some(([x, y, z]) => x === a && y === k && z === b);
+const cells = new Set(rooms.map((n) => cellOf(n).join(',')));
+check(`${rooms.length} rooms, each with a cell of its own (no two overlap)`, cells.size === rooms.length && Object.keys(CELLS).length === rooms.length);
+check(`every room is inside the map's ${MAP_SIZE.w} x ${MAP_SIZE.h}`, rooms.every((n) => { const [x, y] = cellOf(n); return x >= 0 && y >= 0 && x < MAP_SIZE.w && y < MAP_SIZE.h; }));
+const beside = (a: number, k: number, b: number) => cellOf(b)[0] === cellOf(a)[0] + STEP[k][0] && cellOf(b)[1] === cellOf(a)[1] + STEP[k][1];
+const isJoin = (a: number, k: number, b: number) => JOINS.some((j) => j.from === a && j.way === k && j.to === b);
+// (an exit to or from a room no play can enter is not drawn: it is neither beside nor a join)
+const counted = (a: number, b: number) => !UNENTERABLE.includes(a) && !UNENTERABLE.includes(b);
 let exits = 0, side = 0;
 const lost: string[] = [];
-// (an exit to or from a room no play can enter is not drawn: it is neither beside nor a link)
-const counted = (a: number, b: number) => !UNENTERABLE.includes(a) && !UNENTERABLE.includes(b);
 for (const a of rooms) MANSION[a].exits.forEach((b, k) => {
   if (b === a || !counted(a, b)) return;
   exits++;
   if (!MANSION[b]) { lost.push(`${a} ${'LRUD'[k]} ${b}: no such room`); return; }
-  if (beside(a, k, b)) { side++; if (isLink(a, k, b)) lost.push(`${a} ${'LRUD'[k]} ${b}: beside its room and a link`); } else if (!isLink(a, k, b)) lost.push(`${a} ${'LRUD'[k]} ${b}: neither beside nor a link`);
+  if (beside(a, k, b)) { side++; if (isJoin(a, k, b)) lost.push(`${a} ${'LRUD'[k]} ${b}: beside its room and a join`); } else if (!isJoin(a, k, b)) lost.push(`${a} ${'LRUD'[k]} ${b}: neither beside nor a join`);
 });
-check(`all ${exits} exits are two rooms side by side the way they lead (${side}) or a link (${LINKS.length})${lost.length ? ': ' + lost.join('; ') : ''}`, lost.length === 0 && side + LINKS.length === exits);
-check('every link is an exit of its room', LINKS.every(([a, k, b]) => MANSION[a]?.exits[k] === b && a !== b && counted(a, b)));
-const first = new Set([32, ...MANSION[32].exits]);
-const quiet = (n: number, to: number) => (UNENTERABLE.includes(to) ? n : to);
-const exitsOf = new Map<number, Exits>(rooms.filter((n) => !UNENTERABLE.includes(n)).map((n): [number, Exits] => { const [l, r, u, d] = MANSION[n].exits; return [n, [quiet(n, l), quiet(n, r), quiet(n, u), quiet(n, d)]]; }));
-const startWeight = (a: number, b: number) => (first.has(a) && first.has(b) ? 6 : 1);
-const bound = lowerBound(exitsOf, startWeight, 20).bound;
-check(`links cost no less than the loops allow (${cost(exitsOf, LINKS, startWeight)} against a bound of ${bound})`, cost(exitsOf, LINKS, startWeight) >= bound);
-check(`links are rare (${LINKS.length} of ${exits} exits)`, LINKS.length <= exits / 20);
-check('the megatree: 4 up leads to 9, which is drawn right above it (it was eight rows off), and 9 down leads back', MANSION[4].exits[2] === 9 && beside(4, 2, 9) && MANSION[9].exits[3] === 4 && beside(9, 3, 4));
-check('the start: the bathroom (32) down is the drain (138), side by side', beside(32, 3, 138) && beside(138, 2, 32));
+check(`all ${exits} exits are two rooms side by side the way they lead (${side}) or a join (${JOINS.length})${lost.length ? ': ' + lost.join('; ') : ''}`, lost.length === 0 && side + JOINS.length === exits);
+check('every join is an exit of its room, not beside it, and its pair of ends are the edge it leaves by and the edge it comes out at', JOINS.every((j) => MANSION[j.from]?.exits[j.way] === j.to && j.from !== j.to && counted(j.from, j.to) && j.ends[0].room === j.from && j.ends[0].edge === j.way && j.ends[1].room === j.to && j.ends[1].edge === OPPOSITE[j.way]));
+console.log(`joins: ${JOINS.length} exits in ${PAIRS} pairs of ends (the map before: 11 exits)`);
+check(`joins are few (${JOINS.length} exits of ${exits})`, JOINS.length <= 10 && PAIRS <= PAIR_COLOURS.length);
+// two pairs never mark one edge of a room, and the two ends of a pair are two edges
+const edgeUse = new Map<string, number>();
+for (const e of ENDS) edgeUse.set(`${e.room}.${e.edge}`, (edgeUse.get(`${e.room}.${e.edge}`) ?? 0) + 1);
+check(`every end is on an edge of its own (${ENDS.length} ends of ${PAIRS} pairs)`, [...edgeUse.values()].every((n) => n === 1) && ENDS.length === PAIRS * 2);
+// the walks: a way out that is not a join comes in beside the room; the way back (the opposite exit) leads to where it came from
+const jumps: string[] = [];
+for (const a of rooms) MANSION[a].exits.forEach((b, k) => {
+  if (b === a || !counted(a, b) || isJoin(a, k, b)) return;
+  const back = MANSION[b].exits[OPPOSITE[k]];
+  if (back !== a && back !== b && counted(b, back)) jumps.push(`${a} ${'LRUD'[k]} ${b} but back ${back}`);
+});
+check(`no walk is a jump: every way out by an exit drawn beside its room, and the way back, leads back or nowhere${jumps.length ? ': ' + jumps.join('; ') : ''}`, jumps.length === 0);
+check('the start: the bathroom (32), Dumb Jetman (64), Macaroni Ted (63), the top landing (33) in a row, the way Willy walks (and the east wall beside the bathroom)', beside(33, 1, 63) && beside(63, 1, 64) && beside(64, 1, 32) && beside(31, 0, 32) && cellOf(33)[1] === cellOf(32)[1]);
+check('the megatree: 4 up leads to 9, which is drawn right above it, and 9 down leads back', MANSION[4].exits[2] === 9 && beside(4, 2, 9) && MANSION[9].exits[3] === 4 && beside(9, 3, 4));
+check('the bathroom down is the drain (138): its join', isJoin(32, 3, 138) && isJoin(138, 2, 32));
 
 // ---- the drawing ----
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
@@ -100,57 +87,28 @@ const along = (a: number, b: number) => {
   seen(rooms);
   open();
   tick(2);
-  // links: a stub on the room's edge the way the exit leads, lit (both rooms in); no line from room to room while nothing is picked
-  const size = markSize(), stubAt = (a: number, k: number): [number, number][] => {
-    const { x, y } = roomSpot(a), x0 = x - (size >> 1), y0 = y - (size >> 1);
-    return [0, 1, 2].map((i): [number, number] => (k === 0 ? [x0 - 1 - i, y] : k === 1 ? [x0 + size + i, y] : k === 2 ? [x, y0 - 1 - i] : [x, y0 + size + i]));
-  };
-  const stubs = LINKS.filter(([a, k]) => stubAt(a, k).slice(0, 2).every(([x, y]) => pixel(x, y) === COL.lblue));
-  check(`every link is a short stub on its room's edge, lit when both rooms have been in (${stubs.length} of ${LINKS.length})`, stubs.length === LINKS.length);
-  // (the pick is on the room he is in, the bathroom, which is where the link of 31 ends: that line is drawn)
   const ram = p.machine?.ram;
   if (!ram) throw new Error('no machine');
-  const segment = (a: number, b: number) => {
-    const s = roomSpot(a), t = roomSpot(b), n = Math.max(Math.abs(t.x - s.x), Math.abs(t.y - s.y));
-    return Array.from({ length: n + 1 }, (_, i): string => `${Math.round(s.x + ((t.x - s.x) * i) / n)},${Math.round(s.y + ((t.y - s.y) * i) / n)}`);
+  // the joins: both ends of every pair marked in its colour (on the edge of its room's mark), lit once the room has been in
+  const size = markSize();
+  /** The middle of a room's mark's edge, one pixel in (where the marker is). */
+  const endAt = (room: number, edge: number): [number, number] => {
+    const { x, y } = roomSpot(room), x0 = x - (size >> 1), y0 = y - (size >> 1);
+    return edge === 0 ? [x0, y] : edge === 1 ? [x0 + size - 1, y] : edge === 2 ? [x, y0] : [x, y0 + size - 1];
   };
-  const onStub = new Set(LINKS.flatMap(([a, k]) => stubAt(a, k).map(([x, y]) => `${x},${y}`)));
-  const lit = LINKS.filter(([a, , b]) => a === ram[0x13] || b === ram[0x13]);
-  // what may be blue besides: the picked room's links' lines, and the room at the other end of each, lit
-  const pickedLines = new Set([...onStub, ...lit.flatMap(([a, , b]) => segment(a, b).concat([a, b].flatMap((r) => { const { x, y } = roomSpot(r); return [-2, -1, 0, 1, 2].flatMap((i) => [-2, -1, 0, 1, 2].map((j) => `${x + i},${y + j}`)); })))]);
-  const blueIn = (shot: ArrayLike<number>) => {
-    const out: string[] = [];
-    for (let y = MAP_BOX.y; y < MAP_BOX.y + MAP_BOX.h; y++) for (let x = MAP_BOX.x; x < MAP_BOX.x + MAP_BOX.w; x++) if ((shot[y * 320 + x] === COL.lblue || shot[y * 320 + x] === COL.blue) && !onStub.has(`${x},${y}`) && !pickedLines.has(`${x},${y}`)) out.push(`${x},${y}`);
-    return out;
-  };
-  const still = blueIn(renderer.screen.pixels);
-  check(`nothing picked: no blue anywhere on the map but the stubs (${still.length} other pixels ${still.slice(0, 6).join(' ')})`, still.length === 0);
-  // the map's pick on a room with a link, or on a link's destination: that link's dotted line, the other room lit, no other line
-  const drawPicked = (pick: number | null) => {
+  const marked = ENDS.filter((e) => { const [x, y] = endAt(e.room, e.edge); return pixel(x, y) === PAIR_COLOURS[e.pair % PAIR_COLOURS.length]; });
+  check(`both ends of every join are marked on their room's edge in the pair's colour (${marked.length} of ${ENDS.length}, ${PAIRS} pairs)`, marked.length === ENDS.length);
+  const distinct = new Set(PAIR_COLOURS.slice(0, PAIRS));
+  check('every pair has a colour of its own, none a room colour', distinct.size === PAIRS && PAIR_COLOURS.slice(0, PAIRS).every((c) => c !== COL.yellow && c !== COL.brown && c !== COL.white && c !== COL.cyan && c !== COL.dgrey));
+  // the pick changes nothing on the map (the markers are there all the time, no line leaps from room to room)
+  const drawn = (pick: number | null = null) => {
     renderer.screen.fillRect(MAP_BOX.x, MAP_BOX.y, MAP_BOX.w, MAP_BOX.h, COL.black);
     jsw2Map.draw(renderer.screen, MAP_BOX, ram, p.state.found, false, undefined, undefined, pick === null ? null : String(pick));
     return Uint8Array.from(renderer.screen.pixels);
   };
-  const base = drawPicked(null);
-  const wrong: string[] = [];
-  let drawn = 0;
-  for (const n of rooms) {
-    const touching = LINKS.filter(([a, , b]) => a === n || b === n);
-    const shot = drawPicked(n);
-    const changed: string[] = [];
-    for (let y = MAP_BOX.y; y < MAP_BOX.y + MAP_BOX.h; y++) for (let x = MAP_BOX.x; x < MAP_BOX.x + MAP_BOX.w; x++) if (shot[y * 320 + x] !== base[y * 320 + x]) changed.push(`${x},${y}`);
-    // only the pixels of this room's links' lines (and the room at the other end of each, lit) may differ
-    const allowed = new Set(touching.flatMap(([a, , b]) => segment(a, b).concat([a, b].flatMap((r) => { const { x, y } = roomSpot(r); return [-2, -1, 0, 1, 2].flatMap((i) => [-2, -1, 0, 1, 2].map((j) => `${x + i},${y + j}`)); }))));
-    const stray = changed.filter((c) => !allowed.has(c));
-    if (stray.length) wrong.push(`picked ${n}: ${stray.length} stray pixels`);
-    for (const [a, , b] of touching) {
-      const other = a === n ? b : a, { x, y } = roomSpot(other);
-      drawn++;
-      if (shot[y * 320 + x] !== COL.lblue || !segment(a, b).some((c) => changed.includes(c) && c !== `${x},${y}`)) wrong.push(`picked ${n}: link ${a}-${b} not drawn or ${other} not lit`);
-    }
-    if (!touching.length && changed.length) wrong.push(`picked ${n} (no link): ${changed.length} pixels changed`);
-  }
-  check(`picking a room with a link, or a link's destination, draws that link's dotted line and lights the other room, and nothing else (${drawn} of ${LINKS.length * 2} picks${wrong.length ? ': ' + wrong.slice(0, 4).join('; ') : ''})`, wrong.length === 0 && drawn === LINKS.length * 2);
+  const base = drawn();
+  const moved = rooms.filter((n) => drawn(n).some((v, i) => v !== base[i]));
+  check(`picking a room changes nothing on the map: no highlight leaps (${moved.length} of ${rooms.length} picks changed it)`, moved.length === 0);
   // a room no play can enter: not drawn until he has been in it
   seen(rooms.filter((n) => !UNENTERABLE.includes(n)));
   tick(2);
@@ -167,13 +125,14 @@ const along = (a: number, b: number) => {
   // rooms side by side that no exit joins: no line
   const pairs = new Set(joined.map(([a, b]) => `${Math.min(a, b)},${Math.max(a, b)}`));
   const unjoined: [number, number][] = [];
-  for (const a of rooms) for (const b of rooms) if (a < b && Math.abs(MANSION[a].x - MANSION[b].x) + Math.abs(MANSION[a].y - MANSION[b].y) === 1 && !pairs.has(`${a},${b}`)) unjoined.push([a, b]);
-  check(`rooms side by side that no exit joins have no line between them (${unjoined.length} such pairs; lines: ${unjoined.filter(([a, b]) => !along(a, b).every(([x, y]) => pixel(x, y) === COL.black || pickedLines.has(`${x},${y}`))).map(([a, b]) => a + '-' + b + ':' + along(a, b).map(([x, y]) => pixel(x, y)).join('/')).slice(0, 4).join(' ')})`, unjoined.every(([a, b]) => along(a, b).every(([x, y]) => pixel(x, y) === COL.black || pickedLines.has(`${x},${y}`))));
-  // dark until the rooms have been in
+  for (const a of rooms) for (const b of rooms) if (a < b && Math.abs(cellOf(a)[0] - cellOf(b)[0]) + Math.abs(cellOf(a)[1] - cellOf(b)[1]) === 1 && !pairs.has(`${a},${b}`)) unjoined.push([a, b]);
+  const lined = unjoined.filter(([a, b]) => !along(a, b).every(([x, y]) => pixel(x, y) === COL.black));
+  check(`rooms side by side that no exit joins have no line between them (${unjoined.length} such pairs; lines: ${lined.map(([a, b]) => a + '-' + b).join(' ')})`, lined.length === 0);
+  // dark until the rooms have been in: with only the bathroom in, the markers on rooms not in are dark grey
   seen([32]);
   tick(2);
-  const [la, , lb] = LINKS[0];
-  check(`a connector is dark while its rooms have not been in (${LINKS[0].join(' ')}): none lit`, along(la, lb).every(([x, y]) => pixel(x, y) !== COL.lblue));
+  const dark = ENDS.filter((e) => e.room !== 32 && e.room !== ram[0x13]).every((e) => { const [x, y] = endAt(e.room, e.edge); return pixel(x, y) === COL.dgrey; });
+  check('a join end is dark while its room has not been in', dark);
 }
 
 // the heading: the room he's in, and while picking a room to go to, the picked room's name
