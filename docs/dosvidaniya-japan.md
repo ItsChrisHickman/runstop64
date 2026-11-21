@@ -33,7 +33,7 @@ Japan's first, c0). The way in is at A (row 1, beside China's junk), the way out
 ```
           c0                  c1                   c2                   c3                 c4
 row 0     .                   .                    .                 L THE LAST MOLE    H TIERS OF JOY
-row 1   A CATCH OF THE DAY   B NEON AND ON        D SCRAMBLE FOR IT  G KOI POLLOI       I SHOGUN AND ON
+row 1   A CATCH OF THE DAY   B NEON AND ON        D SCRAMBLE FOR IT  G KOI POLLOI       I SHOGUN BUT NOT FORGOTTEN
 row 2     .                 C PARLOUR TRICKS      E BULLET POINT     F FUJI-TIVE        J SAYONARA SAILOR
 ```
 
@@ -45,7 +45,7 @@ I-J a rope down, past the guard (gate: the hood). Walls (no way): D-G, F-J, A-C,
 the two lanes of A-B, of B-D and of E.
 
 **Names** (puns on the place, no Z, no Bond): CATCH OF THE DAY, NEON AND ON, PARLOUR TRICKS (pachinko), SCRAMBLE FOR IT (Shibuya's
-crossing), BULLET POINT, FUJI-TIVE, KOI POLLOI, TIERS OF JOY (the castle's roofs), SHOGUN AND ON, SAYONARA SAILOR, and the hidden
+crossing), BULLET POINT, FUJI-TIVE, KOI POLLOI, TIERS OF JOY (the castle's roofs), SHOGUN BUT NOT FORGOTTEN, SAYONARA SAILOR, and the hidden
 room, exactly THE LAST MOLE.
 
 ### The rooms
@@ -76,7 +76,7 @@ by a rope (col 29) that comes down to the street east of the gap. A toy robot wa
 Two **bullet trains** sweep the platform lane in turn (below). A departure board, signal lamps, a vending machine. 2 coins (one in the underpass, one on the platform). No creatures: the trains are its danger.
 
 **F FUJI-TIVE** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
-(floor 8), one step (6) and the chain (col 5) up through the ceiling to G. Mount Fuji behind, a tea hut, a pine. A tanuki on the first ledge, a crane flying over the snow. 3 coins.
+(floor 8), one step (6) and the chain (col 5) up through the ceiling to G. The mountain itself is the room: a snow-capped cone on a slope of rock (blue-grey scenery, jpSnow and jpSlope) that the trail winds up in front of, scree for the foot and the frame. A tanuki on the first ledge, a crane flying over the snow. 3 coins.
 
 **G KOI POLLOI** (the temple garden on the mountain's shoulder). In: the chain through the floor gap at the left (cols 4-6); the bank runs right past a cherry tree in blossom, the temple hall and its bell to the **koi pond**
 (cols 16-24): a plank at the bank (floor 14) and, once the koi are fed, two more that float up in a zig-zag (floors 13 and 14) with a one-cell gap between, and **two koi** leaping out of the water at the first two gaps (one rising as the other falls). The far bank has the castle gate on the right
@@ -89,12 +89,12 @@ the **ninja hood**. A crane in the moonlight; a koi leaps out of the water betwe
 **H TIERS OF JOY** (the castle's roofs, a dead end). In: the rope from I's ceiling (col 4). The keep behind; six eaves climb in a zig-zag (floors 15, 13, 11, 9, 7, 5, each overlapping the one before, so he jumps up through it),
 two ninjas pacing the lower ones; the top tier has a **sushi** between golden shachi. 3 coins.
 
-**I SHOGUN AND ON** (inside the castle: the gate hall). In: left, mid, from G's gate. Tatami floor between white plaster and black lattice walls, hanging scrolls and lanterns; **three pairs of sliding paper doors** (cols 6, 12, 18)
+**I SHOGUN BUT NOT FORGOTTEN** (inside the castle: the gate hall). In: left, mid, from G's gate. Tatami floor between white plaster and black lattice walls, hanging scrolls and lanterns; **three pairs of sliding paper doors** (cols 6, 12, 18)
 in the partitions; a lantern ghost floats over the second space (the spaces between the doors are four cells wide: no walker in them). Past the third door a low corridor (two rows high, cols 20-26) where the **guard** (a samurai in a great helmet) paces so that no one can pass him:
-at its end a floor gap (cols 24-26) and the rope down to J. In the ninja hood the guard steps aside. A rope up at col 4 (to H). 1 coin.
+at its end a floor gap (cols 24-26) and the rope down to J. In the ninja hood the guard steps aside. A rope up at col 4 (to H), and a gallery: from the rope an eave-floor on row 8 runs through a hole in each of the first two partitions and ends over the space before the third door, where he steps off and drops to the floor (the doors are not the only way to the third; the guard still is). The lantern ghost bobs over the gallery's first bay. 1 coin, on the gallery.
 
 **J SAYONARA SAILOR** (the port; the way out). In: the rope from I (col 25) onto the quay. A container quay (a stair of containers up to the west with a coin on the top one, a gantry crane, bollards, the Great Wave behind), a sumo dockworker
-and a crab on it, and at the east the **cargo ship's hull** with a gangway step up to its deck, whose way east is shut with planks and a sign (PACIFIC COMING SOON) until the Pacific is built. 2 coins.
+and a crab on it, and at the east the **cargo ship** moored at the quay's end (the room has five columns of it: the port's rope lands at col 25): its red hull with portholes afloat in the water, a foremast with its pennant, a gangway step up to its deck, whose way east is shut with planks and a sign (PACIFIC COMING SOON) until the Pacific is built. 2 coins.
 
 ### Items, gates, doubling back
 
@@ -102,7 +102,7 @@ and a crab on it, and at the east the **cargo ship's hull** with a gangway step 
   **Ninja hood** (L, on the shrine): the guard in I steps aside, and Monty wears the hood from then on (the costume). **Sushi** (A's roof stub, H's top tier): the bonus food, 200 points.
 - **The critical path** (the shortest way out): A (the stair of crates, the roof), B (the roof, the drainpipe down), the street's stairs into C (the claw's lane twice, the daruma), the underpass to E, up a stairs, up the rope to D (the street,
   the rope to the overpass, the fish food, back down), down the subway rope to E, east along the platform past the trains (the shutter rolled up) to F (the switchbacks, the chain), G (the pond, the pergola and rope up), L (the stones, the
-  hood, back the same way), G (the castle gate), I (the doors; the guard steps aside), J (the gangway). A first-time player sees the shutter before the daruma, the koi before the food, the guard before the hood: each gate is seen before the item that opens it.
+  hood, back the same way), G (the castle gate), I (the doors; the guard steps aside), J (the gangway). A first-time player meets the guard before the hood (the hood is behind the pond, which comes after the daruma and the food), but on the way the daruma (C) comes before the shutter it opens (E) and the fish food (D) before the koi (G): those two items are found on the way, then used at the gate they were found for. Only the hood's gate (I) is seen before its item.
 - **Loops and dead ends:** one four-room loop (B, C, E, D), the lanes of A, B, D and E crossed twice, the garden's two ropes (the chain in, the pergola's rope up) and the castle's (up to H, down to J). Dead ends with items: C's prize shelf, D's overpass, A's roof stub, H's roofs, L.
   The start (A) and the way out (J) are the fixed points. Nothing needed from China or the earlier regions' items (the rice hat comes off when the hood goes on).
 
@@ -110,8 +110,8 @@ and a crab on it, and at the east the **cargo ship's hull** with a gangway step 
 
 **The bullet train** (E; the engine's `tunnels`, which gained a `picture`). A train 24 cells long and 6 tall (rows 8-13 on the platform lane, taller than any jump) sweeps the room, a cell every 3 frames (168 frames across the room and its own length):
 a stepped nose (the front cells have no roof) and five cars of white with a row of windows and a blue band over wheels, drawn in the room's own characters (the four tiles `jpTrainBody`, `jpTrainWin`, `jpTrainBand`, `jpTrainWheel`, passable: it is a
-picture, not a wall). Two trains, the up one from the right (nose left) and the down one from the left, each on a 300-frame cycle (29 frames quiet, 100 frames in which its entry edge flashes white, then the sweep), 150 frames apart. What of Monty is
-in its cells when it reaches him dies (event 1, as a crusher's head); the underpass and the stairs' ropes below the deck are safe. The dash from the second stairs to the way out (80 frames) fits between trains at about one start in four.
+picture, not a wall). Two trains, the up one from the right (nose left) and the down one from the left, taking turns on a 656-frame cycle: the up train's edge flashes white for 100 frames and it sweeps (171 frames), 57 frames in which the platform is empty and no edge flashes (the quiet moment: no flash and no train means go), then the down train's flash and sweep, and another quiet 57. The first flash is 185 frames after he comes into the room. What of Monty is
+in its cells when it reaches him dies (event 1, as a crusher's head); the underpass and the stairs' ropes below the deck are safe. The dash from the stairs' top at col 22 to the way out (80 frames) is clear at 106 of 164 starts across a cycle, and at every start made in the quiet (60 of 60: after it the next train is a flash and its run in away).
 Data: `tunnels: {room, from, code, cols, top, bottom, step, rest, warn, offset, picture}[]` (the two records of `TRAINS`, `japan.ts`). (The design drew the signal lamp flashing and the board's arrow; the flashing edge is the warning, the lamp and board are scenery.)
 
 **Sliding paper doors** (I, three pairs; the engine's `pulses`, which gained an `offset`). A doorway 2 cells wide and 3 tall (rows 11-13): **open** for 80 frames (the pocket edge), the lattice **shakes** for 24 (the warning), **shut** over a panel's
@@ -135,7 +135,7 @@ Bold cartoon characters with faces, solid shapes with black-line detail, 16 x 16
 | spinning paper umbrella | D, G | a wagasa twirling on its handle |
 | tanuki | F, G | the raccoon dog with a round belly, a leaf on his head and a sake bottle |
 | crane | F, L | a tall white crane with a red crown, wings flapping |
-| koi | G, L | an orange and white carp leaping out of the water (vertical patrol) |
+| koi | G, L | an orange carp (one ink) leaping out of the water, head up, whiskers, scales, a forked tail (vertical patrol) |
 | ninja | H | a black ninja with a mask and slit, leaping (a patrol): two on the castle's roofs |
 | samurai guard | I | a samurai in a great helmet with a spear: the gate's guard (removed by the hood) |
 
@@ -144,8 +144,8 @@ A creature never patrols a lane shorter than three rows (a lane of two or three 
 ### The costume: the ninja hood
 
 Found on the shrine in L past the stepping stones, worn from then on (his own frames with it drawn on, until the Pacific's lei): `art/japan-hood.ts` (`JAPAN_HOOD`, `hoodWorn`, `HOOD_COLOUR`),
-drawn like the ushanka: a hood over his head and cheeks, a slit for the eyes (the gap shows Monty's dark face behind), the knotted tails streaming from the back of the
-head. Dark blue ink. It lets him by the guard in I.
+drawn like the ushanka: a rounded crown, a thick headband and a cowl down each side of his face, so his face shows through the slit between them. Red ink (the first build's dark blue dome covered his whole face and
+vanished against Fuji). It lets him by the guard in I.
 
 ### The bonus food: sushi
 
@@ -160,8 +160,8 @@ brief allowed it only so), so the tune has none, as Siberia's and China's have n
 
 ### ENHANCED hints (the place-name row's lines, 32 letters at most)
 
-`take`: DARUMA: "WISH GRANTED: SHUTTER ROLLS UP"; FISH FOOD: "FISH FOOD: THE KOI LET YOU BY"; HOOD: "HOOD: PAST THE CASTLE GUARD".
-`wanted`: E "THE SHUTTER WANTS A WISH"; G "THE KOI WANT FEEDING"; I "THE GUARD WANTS A NINJA".
+`take`: DARUMA: "DARUMA: ROLLS THE SHUTTER UP"; FISH FOOD: "FISH FOOD: THE KOI LET YOU BY"; HOOD: "HOOD: PAST THE CASTLE GUARD".
+`wanted`: E "THE SHUTTER WANTS A WISH"; G "THE KOI WANT FEEDING"; I "THE GUARD WANTS A NINJA HOOD".
 
 ### What is in `art/` and the previews
 
@@ -179,7 +179,7 @@ the tune in `music/japan.ts`, the sprites' places in `japan-pointers.ts` (the fo
 - **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before: its trace and title tests pass unchanged): a `picture` on a tunnel mouth (rows of the room's characters, 0 leaving a cell as the room has it, in place of the portal: the train) and an `offset` on a pulse (frames into its period at loading). The design's `trains` and `shoji` records
   are these two existing mechanisms, not new engine modules: the bullet train is a tunnel mouth 24 cells long, the paper door a timed strike whose spent look is a wall.
 - **The trains** are the four tiles `jpTrainBody`, `jpTrainWin`, `jpTrainBand`, `jpTrainWheel` in the platform's palette with the platform's four (a train is a picture of room characters: a moving decoration is not possible), so the design's `jpTrainNose` and `jpTrainCar` decorations are gone. The warning is the flashing white edge
-  at the end the train comes in (100 frames); the signal lamp and the board are scenery. Each train is on a 300-frame cycle, the two 150 frames apart (so their sweeps overlap: a cell of the platform is under a train for 72 frames of each 300, twice). The dash from the second stairs to the way out is clear at about one start in four (measured: 20 of 75).
+  at the end the train comes in (100 frames); the signal lamp and the board are scenery. The trains take turns on a 656-frame cycle (a flash of 100 frames and a sweep of 171 each, 57 quiet frames after each, the second train 328 frames after the first, the first flash 185 frames after he comes in), so the flash can mean `a train is coming from that end` and no flash with an empty platform means go. (The first build had the trains overlapping, with a flash or a train at every frame: no moment to read.) The dash from the stairs' top (col 22) to the way out is clear at 106 of 164 starts across a cycle and at all 60 made in the quiet. A train goes into the tiled wall at each end as into a tunnel (it is not drawn over a wall), and only the cells it is drawn in kill.
   A bot test ends a leg only under the deck (`underTheDeck`): a leg that ended on the lane could end with a train a step behind him.
 - **The doors** shut 40 frames after one another in the order he meets them (offsets 0, 120, 80 in a 160-frame period); the first design's 0, 40, 80 shut them against him. A shut door is a wall.
 - **The pond's gate.** With the koi as the only gate a bot crossed by timing (the koi are sprites he can jump between), so the other two planks float up when the fish food is taken, as the raft in China floats when the bamboo is; the koi leave too.
@@ -188,7 +188,7 @@ the tune in `music/japan.ts`, the sprites' places in `japan-pointers.ts` (the fo
 - **Creatures** (twelve kinds, none in more than two rooms): crab (A, J), sushi roll (A, B: the roofs; a creature never patrols a lane under three rows high, so not the street), lucky cat (B, C), robot (C, D), lantern ghost (C, I: the underpass is two rows high, so not E), sumo (D, J), umbrella (D, G), tanuki (F, G), crane (F, L), koi (G, L), ninja (H: two), samurai guard (I). (A ninja walked the hall's third space in the first build, and a bot found the four-cell space too tight to pass him: he is on the roofs only.) E has none: the trains are its danger.
   The decisions asked for a second pass on the weakest (the lantern ghost, the crane, the samurai): they were looked at beside the rooms; a redraw of the samurai (a taller crest, a masked chin) read worse than the first and was dropped, so all three are as drawn in pre-production and the samurai is the one to judge in play.
 - **Rooms.** A's crate stack in the low lane was dropped (the way out is two rows high: a stack he could not jump into). J's containers climb up to the west (he arrives from the east). B's pits are two rows deep. F lost its torii (the room's decoration pool is 101 characters and Fuji is 72). The Great Wave is redrawn as a long arm of water curling over in claws of foam;
-  `jpStone` joins into one slab across two cells, `jpPachinko` is a framed lit window not a checker. The doc's hint lines are 32 letters at most (the name row's width): WISH GRANTED: SHUTTER ROLLS UP, HOOD: PAST THE CASTLE GUARD.
+  `jpStone` joins into one slab across two cells, `jpPachinko` is a framed lit window not a checker. The doc's hint lines are 32 letters at most (the name row's width): DARUMA: ROLLS THE SHUTTER UP, HOOD: PAST THE CASTLE GUARD.
 - **Music**: the Hirajoshi pentatonic on G (G A Bb D Eb: the notes between them move to the nearest) and a shakuhachi (a triangle with vibrato) for the theme with a koto (a narrow plucked pulse) for the runs; no *Sakura* break (no public score was to hand to transcribe).
 - **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries, the worn item is an index).
 

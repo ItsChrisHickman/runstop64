@@ -25,7 +25,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: JP.garden, name: '33-koi-polloi', col: 8, floor: 14, frames: 40, compare: 0x06 },
   { room: JP.mole, name: '34-the-last-mole', col: 29, floor: 14, frames: 40, compare: 0x0a },
   { room: JP.tiers, name: '35-tiers-of-joy', col: 10, floor: 17, frames: 40, compare: 0x15 },
-  { room: JP.hall, name: '36-shogun-and-on', col: 3, floor: 14, frames: 40, compare: 0x0f },
+  { room: JP.hall, name: '36-shogun-but-not-forgotten', col: 3, floor: 14, frames: 40, compare: 0x0f },
   { room: JP.port, name: '37-sayonara-sailor', col: 22, floor: 17, frames: 40, compare: 0x1d },
 ];
 

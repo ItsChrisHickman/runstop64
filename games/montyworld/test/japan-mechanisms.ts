@@ -29,7 +29,7 @@ import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame, search } from './bot';
 import { cell, colOf, overCrowded, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
-import { creatureRooms, itemIndex, standY } from './route';
+import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
 const DARUMA = [JP.parlour, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
@@ -255,6 +255,27 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   }
 }
 
+// ---- the hall's gallery: a second height, over the first two doors ----------------------------------------
+{
+  const s = at(JP.hall, 3, 14);
+  s.g.pulses = [];
+  const coin = coinIndex(s.g, JP.hall, 13, 6);
+  const found = search(s, (g) => g.coinCollected[coin] !== 0 && g.roomId === JP.hall, [{ room: JP.hall, col: 13, row: 6 }], 150000, 1.5);
+  check('the gallery: up the rope at the left and along the eaves through the partitions to the coin at its end (a floor of its own, row 8, with a hole through each of the first two partitions)', found !== null
+    && [6, 12].every((c) => [5, 6, 7].every((row) => at(JP.hall, 3, 14).g.flagAt(row + 3, c + 4) === 0) && at(JP.hall, 3, 14).g.flagAt(8 + 3, c + 4) === 2));
+}
+
+// ---- the gallery's end: stepping off drops him to the floor before the third door, alive ----------------------
+{
+  for (const enhanced of [false, true]) {
+    const s = at(JP.hall, 13, 8, [], enhanced);
+    s.g.pulses = [];
+    run(s, RIGHT, 60);
+    run(s, NONE, 60);
+    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: walking off the gallery's end he drops to the floor before the third door (col ${colOf(s.g)}, y ${s.g.y}) alive`, !dead(s.g) && s.g.y === standY(14) && colOf(s.g) >= 14 && colOf(s.g) < 18);
+  }
+}
+
 // ---- the gates ------------------------------------------------------------------------------------------
 {
   const arc = WORLD.jumpArc;
@@ -267,7 +288,8 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     check('without the daruma the platform\'s end is a roller shutter (its eight cells hold the shutter tile)', SHUTTER_CELLS.length === 8 && SHUTTER_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0));
     const out = (g: Game) => g.roomId === JP.fuji;
     const stats = { exhausted: false };
-    check(`and the bot finds no way through it (80000 states looked at${stats.exhausted ? ', every one there is' : ''}); a jump (${rise}) is lower than the wall over it`, search(shut, out, undefined, 80000, 0, stats) === null);
+    const noWay = search(shut, out, undefined, 80000, 0, stats) === null;
+    check(`and the bot finds no way through it (80000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}); a jump (${rise}) is lower than the wall over it`, noWay);
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
     check('with it (taken in the parlour) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
@@ -296,7 +318,8 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const past = (g: Game) => g.roomId === JP.port;
     const stats = { exhausted: false };
     guard.g.pulses = [];
-    check(`and the bot finds no way past him to the floor gap (60000 states looked at${stats.exhausted ? ', every one there is' : ''}): the corridor is two cells high under a low ceiling, his lane`, search(guard, past, [{ room: JP.hall, col: 25, row: 19 }], 60000, 0, stats) === null);
+    const noWayPast = search(guard, past, [{ room: JP.hall, col: 25, row: 19 }], 60000, 0, stats) === null;
+    check(`and the bot finds no way past him to the floor gap (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the corridor is two cells high under a low ceiling, his lane`, noWayPast);
     const hood = at(JP.hall, 20, 14, [HOOD], false, true);
     check('with the ninja hood he is gone (sent off the screen)', must(hood.g.enemies[0], 'the guard').x === 0xff);
     hood.g.pulses = [];
@@ -336,7 +359,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const b = newGame(WORLD, false);
     wear(b.g, rice);
     restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
-    check('a save made in the hood carries on in it (the hood as the worn item, its pictures in the bank, the guard gone)', b.g.worn === hood && b.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((v, i) => v === first?.block[i]));
+    check('a save made in the hood carries on in it (the hood as the worn item, its pictures in the bank, the guard gone)', b.g.worn === hood && b.g.enemies.filter((e) => e.type === FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai')).every((e) => e.x === 0xff) && b.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((v, i) => v === first?.block[i]));
   }
 }
 
@@ -372,7 +395,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[JP.platform, 6, 17, 'THE SHUTTER WANTS A WISH'], [JP.garden, 8, 14, 'THE KOI WANT FEEDING'], [JP.hall, 3, 14, 'THE GUARD WANTS A NINJA']] as const;
+  const wants = [[JP.platform, 6, 17, 'THE SHUTTER WANTS A WISH'], [JP.garden, 8, 14, 'THE KOI WANT FEEDING'], [JP.hall, 3, 14, 'THE GUARD WANTS A NINJA HOOD']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -381,7 +404,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const plain = at(JP.garden, 8, 14, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
-  for (const [item, text, floor] of [[DARUMA, 'WISH GRANTED: SHUTTER ROLLS UP', 9], [FISH, 'FISH FOOD: THE KOI LET YOU BY', 7], [HOOD, 'HOOD: PAST THE CASTLE GUARD', 14]] as const) {
+  for (const [item, text, floor] of [[DARUMA, 'DARUMA: ROLLS THE SHUTTER UP', 9], [FISH, 'FISH FOOD: THE KOI LET YOU BY', 7], [HOOD, 'HOOD: PAST THE CASTLE GUARD', 14]] as const) {
     const [room, nth] = item;
     const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4, floor, [], true);
@@ -411,12 +434,18 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
       const b = newGame(WORLD, false);
       restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
       run(b, NONE, 4);
+      // what the keys did in the room is as it was (the effects are put again on loading the room)
+      const KOI_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi'), GUARD_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai');
+      const effects = room === JP.platform ? SHUTTER_CELLS.every(([row, col]) => cell(b.g, col, row) === 0)
+        : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies.filter((e) => e.type === KOI_TYPE).every((e) => e.x === 0xff)
+        : room === JP.hall ? b.g.enemies.filter((e) => e.type === GUARD_TYPE).every((e) => e.x === 0xff)
+        : true;
       b.g.enemies = [];
       b.g.enable &= 0x0f;
       b.g.vic.enable &= 0x0f;
       b.g.tunnels = [];
       run(b, NONE, 60);
-      const ok = b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, JP.mole, 0);
+      const ok = effects && b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, JP.mole, 0);
       if (!ok) { failed.push(room); console.log(`   room ${room}: now in ${b.g.roomId}, dead ${dead(b.g)} (counter ${b.g.actionCounter}, script ${b.g.script ? 'yes' : 'no'}), worn ${b.g.worn}, at ${colOf(b.g)},${b.g.y}`); }
       return ok;
     }).length;

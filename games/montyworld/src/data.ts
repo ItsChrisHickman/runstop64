@@ -200,7 +200,7 @@ export const WORLD: MontyData = {
       { item: KEY, text: 'KEY: FOR THE TOWER\'S TRAPDOOR' },
       { item: RICE_HAT, text: 'RICE HAT: PAST THE CITY GATE' },
       { item: BAMBOO, text: 'BAMBOO: A RAFT OUT TO THE JUNK' },
-      { item: DARUMA, text: 'WISH GRANTED: SHUTTER ROLLS UP' },
+      { item: DARUMA, text: 'DARUMA: ROLLS THE SHUTTER UP' },
       { item: FISH_FOOD, text: 'FISH FOOD: THE KOI LET YOU BY' },
       { item: HOOD_ITEM, text: 'HOOD: PAST THE CASTLE GUARD' },
     ],
@@ -214,7 +214,7 @@ export const WORLD: MontyData = {
       { room: CHI.junk, item: BAMBOO, text: 'OUT TO THE JUNK: FIND BAMBOO' },
       { room: JP.platform, item: DARUMA, text: 'THE SHUTTER WANTS A WISH' },
       { room: JP.garden, item: FISH_FOOD, text: 'THE KOI WANT FEEDING' },
-      { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD WANTS A NINJA' },
+      { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD WANTS A NINJA HOOD' },
     ],
   },
   // the map shows a region's four columns while he is in them

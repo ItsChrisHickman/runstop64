@@ -9,7 +9,7 @@ import { codeOf, room, type Palette } from './layout';
  *
  *             col 12                col 13              col 14                 col 15               col 16
  *   row 0       .                     .                   .                 L  THE LAST MOLE     H  TIERS OF JOY
- *   row 1   A  CATCH OF THE DAY   B  NEON AND ON      D  SCRAMBLE FOR IT    G  KOI POLLOI        I  SHOGUN AND ON
+ *   row 1   A  CATCH OF THE DAY   B  NEON AND ON      D  SCRAMBLE FOR IT    G  KOI POLLOI        I  SHOGUN BUT NOT FORGOTTEN
  *   row 2       .                 C  PARLOUR TRICKS   E  BULLET POINT       F  FUJI-TIVE         J  SAYONARA SAILOR
  *
  * Playfield cells as in moscow.ts. Floors: the harbour, streets, parlour, crossing and port are on row 17 ("low"), the rooftops and the overpass on row 7 ("high"), the platform,
@@ -23,7 +23,7 @@ export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 27 on. */
 const NAMES = [
-  'CATCH OF THE DAY', 'NEON AND ON', 'PARLOUR TRICKS', 'SCRAMBLE FOR IT', 'BULLET POINT', 'FUJI-TIVE', 'KOI POLLOI', 'THE LAST MOLE', 'TIERS OF JOY', 'SHOGUN AND ON', 'SAYONARA SAILOR',
+  'CATCH OF THE DAY', 'NEON AND ON', 'PARLOUR TRICKS', 'SCRAMBLE FOR IT', 'BULLET POINT', 'FUJI-TIVE', 'KOI POLLOI', 'THE LAST MOLE', 'TIERS OF JOY', 'SHOGUN BUT NOT FORGOTTEN', 'SAYONARA SAILOR',
 ] as const;
 export const JAPAN_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the harbour light blue, the street and parlour reds, the crossing grey, the platform blue, the mountain white, the garden green, the hidden room purple, the roofs yellow, the hall orange, the port brown). */
@@ -316,8 +316,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // I SHOGUN AND ON: inside the castle, the gate hall. In from the garden's gate (mid); two ways on: the floor, through three pairs of paper doors that open and shut in turn, or the gallery over the first
-  // two (up the rope at the left, along the eaves through holes in the partitions, down at the end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). At the far end a low corridor
+  // I SHOGUN BUT NOT FORGOTTEN: inside the castle, the gate hall. In from the garden's gate (mid); two ways on: the floor, through three pairs of paper doors that open and shut in turn, or the gallery over the first
+  // two (up the rope at the left, along the eaves through holes in the partitions, down at its end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). At the far end a low corridor
   // where the guard paces, so no one can pass him (the ninja hood sends him off) to the floor gap and the rope down to the port. The rope's top goes on to the roofs.
   room({
     id: JP.hall, cell: [1, 16], sector: 36, palette: HALL_PALETTE,
@@ -327,11 +327,11 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 14, 23, 14, 'A').box(0, 15, 31, 19, 'T').clear(24, 14, 26, 19).box(27, 2, 31, 14, 'T');
       for (const c of DOORS.cols) g.box(c, 2, c + 1, 10, 'P').box(c, DOORS.row, c + 1, DOORS.row + DOORS.rows - 1, 'O'); // the partitions and the doorways
       for (const c of DOORS.cols.slice(0, 2)) g.clear(c, 5, c + 1, 7).box(c, 8, c + 1, 8, 'E'); // the first two have a hole through them for the gallery
-      g.box(5, 8, 17, 8, 'E'); // the gallery's eaves
+      g.box(5, 8, 14, 8, 'E'); // the gallery's eaves (they end at col 14: the three cells before the third door are the way down)
       g.box(20, 2, 26, 11, 'P'); // the corridor's low ceiling
       g.box(4, 0, 4, 13, 'R').box(25, 13, 25, 19, 'R');
     },
-    coins: [[17, 6]],
+    coins: [[13, 6]],
     decor: [['jpScroll', 9, 5], ['jpScroll', 15, 5], ['jpScroll', 2, 5], ['jpLantern', 10, 2], ['jpLantern', 16, 2]],
     creatures: [
       { who: 'jpSamurai', col: 20, row: 12, way: 'right', speed: 1, range: 16 },

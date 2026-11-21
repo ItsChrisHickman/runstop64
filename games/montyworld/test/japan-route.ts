@@ -46,7 +46,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('L: to the shrine and the hood', item(JP.mole, 0, [1, 12])),
   leg('L to G: back over the stones and down the rope', into(JP.garden, 28, 19, JP.mole)),
   leg('G to I: out through the castle gate', into(JP.hall, 31, 13, JP.garden)),
-  leg('I: up the rope and along the gallery to the coin over the space before the third door', coin(JP.hall, 17, 6)),
+  leg('I: up the rope and along the gallery to the coin at its end', coin(JP.hall, 13, 6)),
   leg('I to H: up the rope to the roofs', into(JP.tiers, 4, 0, JP.hall)),
   leg('H: the coin on the first tier', coin(JP.tiers, 12, 13)),
   leg('H: the coin on the third tier', coin(JP.tiers, 26, 9)),
