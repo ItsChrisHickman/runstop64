@@ -161,15 +161,15 @@ export const SIBERIA_TILES = {
     '..##..##',
     '.##..##.',
   ]),
-  /** The tunnel mouth's granite: big dressed blocks, each its own square. Passable (the portal kills, it does not block). */
+  /** The tunnel mouth's granite: dressed granite in courses. Passable (the portal kills, it does not block). */
   tunnelFace: tile('tunnelFace', 0, 12, [
     '#######.',
-    '#.....#.',
-    '#.###.#.',
-    '#.###.#.',
-    '#.###.#.',
-    '#.....#.',
     '#######.',
+    '#######.',
+    '........',
+    '###.####',
+    '###.####',
+    '###.####',
     '........',
   ]),
 } as const satisfies Record<string, NewTile>;

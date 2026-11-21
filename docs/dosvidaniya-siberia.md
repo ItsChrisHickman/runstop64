@@ -118,3 +118,9 @@ The nine rooms are in `games/montyworld/src/siberia.ts` (ids 9-17, sectors 9-17;
   region's key items are the lamp and the ticket.
 - **Music**: G Dorian (G#, B, C# and Eb move), a piped lead (a triangle); no folk break (the plan's "maybe"): no melody was quoted from memory.
 - **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries).
+
+Checks (all pass): `games/montyworld/test/siberia.ts original|enhanced` (the bot plays 33 legs from Moscow's roof to the village barrier taking every
+coin and find, slow set), `siberia-mechanisms.ts` (33 checks, fast), `music-siberia.ts` (9, fast); Moscow's `moscow.ts`, `mechanisms.ts`, `walk.ts`,
+`music.ts` and all of Monty on the Run's tests (trace and title with /tmp/motr.prg included) pass unchanged but for Moscow's counts now being a part of the whole.
+Pictures: /root/projects/runstop64-shots/siberia/ (room-*.png from the real engine, compare-*.png beside Monty on the Run's, sheet.png, shaft-lit.png,
+tunnel-*.png, ice-*.png, siberia-map.png, art/ for tiles, decorations and creatures).

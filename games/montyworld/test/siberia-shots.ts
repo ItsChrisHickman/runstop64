@@ -74,8 +74,8 @@ rgbPng(path.join(out, 'sheet.png'), indicesToRgb(sheet), W * 3, H * 3, 1);
 // the shaft lit by the lamp
 save('shaft-lit.png', placed(SIB.shaft, 2, 18, 40, [itemIndex(new Game(WORLD), SIB.mine)]));
 // the tunnel mouths under way
-save('tunnel-gravy.png', placed(SIB.gravy, 14, 17, 40 + 130 + 48 + 170));
-save('tunnel-sleeper.png', placed(SIB.sleeper, 11, 17, 40 + 130 + 48 + 140));
+save('tunnel-gravy.png', placed(SIB.gravy, 8, 17, 40 + 130 + 48 + 170));
+save('tunnel-sleeper.png', placed(SIB.sleeper, 3, 17, 40 + 130 + 48 + 140));
 // the ice in its stages (he stands on it)
 for (const frames of [30, 70, 100]) {
   const g = new Game(WORLD);
