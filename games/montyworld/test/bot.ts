@@ -42,7 +42,7 @@ export function hold(s: State, stick: Stick, frames: number): Held {
 /** Where he is and how, and roughly where the room's creatures, icicles and crushers are, for the search. */
 export const keyOf = (g: Game): string => [
   g.roomId, g.x2, g.y, g.onRope, g.montyAction, g.arcIdx, g.falling, g.facing >> 7, g.gameMode, g.esc.index, g.esc.t >> 3,
-  ...g.enemies.map((e) => `${e.x >> 4}/${e.y >> 4}/${e.flags >> 7}`), g.pd.state, g.pd.index, g.pd.position >> 3,
+  ...g.enemies.map((e) => `${e.x >> 4}/${e.y >> 4}/${e.flags >> 7}`), g.pd.state, g.pd.index, g.pd.position >> 3, g.swimTick % 6, ...g.lavas.map((l) => l.t >> 3),
   ...g.ice.map((i) => `${i.state}${i.t >> 4}`), ...g.tunnels.map((t) => `${t.state}${t.left}${t.t >> 3}`), ...g.cracks.map((c) => `${c.stage}${c.t >> 3}`), ...g.pulses.filter((p, i, all) => all.findIndex((q) => q.t === p.t) === i).map((p) => `p${p.t >> 3}`), ...g.dragons.map((d) => `d${d.t >> 3}`), g.lift.y, g.siCollected.join(''), g.coinCollected.join(''),
 ].join(',');
 

@@ -56,7 +56,7 @@ export const SURF_PALETTE = {
 
 /** The luau's eight: the sand, thatch, wall posts, crates, the rope, and the torches' small and tall flames. */
 export const LEI_PALETTE = {
-  A: ['pacSand', 7], F: ['pacSandFill', 7], W: ['pacWallStone', 12], T: ['pacThatch', 9], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacFlameWarn', 7], Z: ['pacFlame', 8],
+  A: ['pacSand', 7], F: ['pacSandFill', 7], W: ['pacHullPlate', 2], T: ['pacThatch', 9], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacFlameWarn', 7], Z: ['pacFlame', 8],
 } as const satisfies Palette;
 
 /** A swim room's tiles: the sea, its surface, the seabed (the floor), the reef's rock and coral, the walls. */
@@ -74,7 +74,7 @@ export const WHALE_PALETTE = {
 
 /** The road's eight: the road, the bridge's deck, the cliff, the turf verge, the bamboo to climb, and the red car's cabin and body. */
 export const ROAD_PALETTE = {
-  R: ['pacRoad', 11], B: ['pacBridgeDeck', 12], S: ['pacBasalt', 11], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
+  R: ['pacRoad', 11], B: ['pacBridgeDeck', 12], S: ['pacBasalt', 5], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
 } as const satisfies Palette;
 
 export const HANA_PALETTE = {
@@ -165,13 +165,13 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[20, 10], [15, 16], [7, 14]],
     item: { name: 'cutters', col: 5, row: 14, sprite: PAC_SPRITE.cutters },
-    decor: [['pacFunnel', 9, 7], ['pacBridge', 14, 8], ['pacAnchor', 5, 9], ['pacLifeRing', 25, 9], ['pacEngineBlock', 23, 15], ['pacGauge', 22, 14], ['pacPorthole', 2, 15]],
+    decor: [['pacFunnel', 9, 7], ['pacBridge', 14, 8], ['pacAnchor', 5, 9], ['pacLifeRing', 25, 9], ['pacEngineBlock', 23, 15], ['pacGauge', 22, 14]],
     creatures: [{ who: 'pacParrot', col: 6, row: 5, way: 'right', speed: 1, range: 130 }],
     crushers: [{ col: 11, row: 13, height: 5, chr: 0x22 }, { col: 19, row: 13, height: 5, chr: 0x22 }],
   }),
 
   // B BOX CLEVER: the bow in section. Two lanes in at the left (the deck, floor 11; the hold, floor 18). The deck is a canyon of containers (floors 9, 7, 9), the crane's crate sweeping the deck past them to the bow, where the ramp is chained
-  // until the cutters. The hold's gantries cross the flooded bilge (a shark in it) and a cargo stack at the left holds a musubi; a ladder (col 3) joins the two lanes.
+  // until the cutters. The hold's gantries cross the flooded bilge (a shark in it) and a cargo shelf off the ladder holds a musubi; a ladder (col 3) joins the two lanes.
   room({
     id: PAC.box, cell: [2, 18], sector: 39, palette: BOX_PALETTE,
     paint(g) {
@@ -181,7 +181,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(6, 9, 9, 10, 'T').box(12, 7, 15, 10, 'N').box(18, 9, 21, 10, 'T'); // the stacks of containers
       g.box(30, 9, 31, 10, 'K'); // the chain on the ramp
       g.box(0, 18, 9, 18, 'G').box(10, 18, 27, 19, 'W').box(28, 18, 29, 18, 'G').box(0, 19, 9, 19, 'H').box(28, 19, 29, 19, 'H'); // the hold's floor and the bilge
-      g.box(4, 15, 6, 17, 'T').box(7, 17, 8, 17, 'T'); // the cargo stack and its step
+      g.box(4, 15, 7, 15, 'G'); // the cargo shelf over the lane, off the ladder: a pocket
       g.box(12, 16, 14, 16, 'G').box(17, 16, 19, 16, 'G').box(22, 16, 24, 16, 'G').box(27, 16, 29, 16, 'G'); // the gantries
     },
     coins: [[7, 7], [13, 5], [19, 7], [27, 9], [13, 14], [23, 14], [28, 15]],
@@ -201,7 +201,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'S'); // the pier's stub
       g.box(4, 13, 5, 13, 'B').box(4, 14, 5, 19, 'S').box(6, 15, 7, 15, 'B').box(6, 16, 7, 19, 'S').box(8, 17, 9, 17, 'B').box(8, 18, 9, 19, 'S'); // the steps
       g.box(10, 18, 31, 19, 'P'); // the street
-      g.box(12, 8, 31, 14, 'M'); // the warehouses
+      g.box(12, 8, 31, 12, 'M'); // the warehouses
       g.box(6, 7, 31, 7, 'B'); // their roofs
       g.box(4, 6, 4, 12, 'R'); // the rope up
       g.box(15, 17, 16, 17, 'C').box(21, 17, 22, 17, 'C');
@@ -215,21 +215,21 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   }),
 
   // D SURF AND TURF: Waikiki. Two lanes in at the left: the beach (floor 18) and the promenade (floor 7), joined by a rope (col 14) through a gap in the promenade; the snorkel shop's loft at the left (a rope, col 8, up from the beach)
-  // holds the snorkel; a rope (col 20) up through the ceiling from the promenade to the luau. At the right the beach ends in deadly surf (cols 22-31) until the snorkel opens it: the way on, wading along the sea floor into the reef.
+  // holds the snorkel; a rope (col 28) up through the ceiling from the promenade to the luau. At the right the beach ends in deadly surf (cols 22-31) until the snorkel opens it: the way on, wading along the sea floor into the reef.
   room({
     id: PAC.surf, cell: [2, 20], sector: 41, palette: SURF_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'M').clear(19, 0, 21, 1);
-      g.box(0, 2, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 16, 'M');
+      g.box(0, 0, 31, 0, 'M').clear(27, 0, 29, 0);
+      g.box(0, 1, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 16, 'M');
       g.box(0, 18, 21, 18, 'A').box(0, 19, 31, 19, 'F').box(22, 18, 31, 18, 'W'); // the beach and the pool
       g.box(2, 7, 31, 7, 'B').clear(13, 7, 15, 7); // the promenade
-      g.box(14, 6, 14, 17, 'R').box(20, 0, 20, 6, 'R'); // the ropes
+      g.box(14, 6, 14, 17, 'R').box(28, 0, 28, 6, 'R'); // the ropes
       g.box(22, 8, 29, 15, 'M'); // the hotel
       g.box(2, 13, 7, 13, 'T').box(8, 12, 8, 17, 'R'); // the shop's loft and its rope
     },
-    coins: [[10, 5], [17, 5], [12, 16], [19, 16], [6, 11]],
+    coins: [[15, 5], [17, 5], [12, 15], [19, 15], [6, 11]],
     item: { name: 'snorkel', col: 4, row: 11, sprite: PAC_SPRITE.snorkel },
-    decor: [['pacDiamondHead', 8, 4], ['pacHotel', 24, 1], ['pacPalm', 3, 1], ['pacSnorkelShop', 2, 14], ['pacSurfboards', 10, 16], ['pacUmbrella', 16, 16]],
+    decor: [['pacDiamondHead', 6, 4], ['pacHotel', 24, 1], ['pacPalmSmall', 3, 3], ['pacSnorkelShop', 2, 14], ['pacSurfboards', 10, 16]],
     creatures: [
       { who: 'pacSurfer', col: 11, row: 16, way: 'right', speed: 1, range: 70 },
       { who: 'pacHula', col: 20, row: 5, way: 'left', speed: 1, range: 40 },
@@ -247,9 +247,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(28, 16, 28, 19, 'R');
       g.box(8, 16, 9, 17, 'C').box(6, 14, 7, 17, 'C').box(2, 12, 5, 17, 'C'); // the steps to the shelf
     },
-    coins: [[25, 16], [20, 16], [15, 16], [9, 14]],
+    coins: [[25, 15], [20, 16], [15, 16], [9, 14]],
     item: { name: 'lei', col: 3, row: 10, sprite: PAC_SPRITE.lei },
-    decor: [['pacRoastPig', 24, 16], ['pacTotem', 20, 15], ['pacTotem', 15, 15], ['pacHibiscus', 11, 16], ['pacPalmSmall', 22, 2]],
+    decor: [['pacRoastPig', 24, 16], ['pacTotem', 10, 15], ['pacPalmSmall', 22, 2], ['pacPalmSmall', 14, 2]],
     creatures: [
       { who: 'pacHula', col: 14, row: 11, way: 'right', speed: 1, range: 60 },
       { who: 'pacTiki', col: 22, row: 6, way: 'left', speed: 1, range: 60 },
@@ -266,7 +266,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(8, 14, 12, 18, 'R').box(9, 12, 11, 13, 'R').clear(9, 15, 10, 16); // a rock with an arch
       g.box(16, 16, 18, 18, 'C').box(22, 11, 26, 18, 'R').box(23, 9, 25, 10, 'R').box(13, 3, 16, 7, 'K'); // coral, a tall rock, a rock hanging from the ceiling
     },
-    coins: [[10, 12], [20, 13], [14, 9], [24, 7], [5, 9]],
+    coins: [[10, 11], [20, 13], [14, 9], [24, 7], [5, 9]],
     decor: [['pacKelp', 14, 15], ['pacKelp', 20, 15], ['pacSeaFan', 27, 16], ['pacBubbles', 18, 5], ['pacSeaFan', 5, 16]],
     creatures: [
       { who: 'pacTurtle', col: 4, row: 5, way: 'right', speed: 1, range: 110 },
@@ -311,14 +311,14 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.whale, cell: [1, 23], sector: 46, palette: WHALE_PALETTE,
     paint(g) {
-      g.box(0, 18, 9, 19, 'W').box(2, 15, 9, 17, 'H').box(3, 14, 9, 14, 'D'); // the brig in the water, its deck
+      g.box(0, 18, 9, 19, 'W').box(3, 15, 9, 17, 'H').box(4, 14, 9, 14, 'D'); // the brig in the water, its deck
       g.box(10, 16, 11, 17, 'C').box(10, 18, 13, 19, 'Q').box(17, 18, 31, 19, 'Q'); // the crates, the landing and the quay
       g.box(5, 6, 5, 13, 'R').box(6, 7, 12, 7, 'D'); // the mast's rope and the spar
       g.box(15, 12, 15, 19, 'R'); // the mooring rope
       g.box(30, 2, 31, 15, 'Q');
     },
-    coins: [[6, 12], [9, 5], [22, 15], [27, 15]],
-    decor: [['pacWhaleTail', 24, 11], ['pacOutrigger', 19, 16], ['pacPalm', 26, 10]],
+    coins: [[6, 12], [9, 5], [22, 15], [29, 15]],
+    decor: [['pacWhaleTail', 0, 16], ['pacOutrigger', 19, 16], ['pacPalm', 24, 10]],
     creatures: [
       { who: 'pacTiki', col: 4, row: 12, way: 'right', speed: 1, range: 40 },
       { who: 'pacSurfer', col: 22, row: 16, way: 'right', speed: 1, range: 50 },
@@ -337,7 +337,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(28, 12, 28, 17, 'V').box(3, 7, 3, 12, 'V'); // the bends' bamboo
     },
     coins: [[14, 15], [27, 15], [18, 10], [6, 10], [16, 5], [27, 5]],
-    decor: [['pacWaterfall', 6, 2], ['pacWaterfall', 20, 2], ['pacBambooClump', 24, 15], ['pacBambooClump', 4, 15], ['pacBambooClump', 26, 10], ['pacBambooClump', 8, 10],
+    decor: [['pacWaterfall', 6, 2], ['pacWaterfall', 20, 2], ['pacBambooClump', 25, 4], ['pacBambooClump', 7, 4],
       ['pacLaneSign', 6, 16], ['pacLaneSign', 20, 16], ['pacLaneSign', 10, 11], ['pacLaneSign', 24, 11], ['pacLaneSign', 9, 6], ['pacLaneSign', 23, 6]],
     creatures: [{ who: 'pacCoconut', col: 25, row: 6, way: 'right', speed: 1, range: 40 }],
   }),
@@ -353,7 +353,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(7, 15, 10, 18, 'R').box(14, 13, 17, 18, 'R').box(20, 16, 24, 18, 'C');
     },
     coins: [[8, 13], [15, 11], [22, 14], [28, 16]],
-    decor: [['pacWaterfall', 24, 4], ['pacKelp', 12, 15], ['pacSeaFan', 27, 16], ['pacBubbles', 19, 8]],
+    decor: [['pacWaterfall', 24, 4], ['pacKelp', 12, 15], ['pacSeaFan', 26, 15], ['pacBubbles', 19, 8]],
     creatures: [
       { who: 'pacEel', col: 6, row: 11, way: 'right', speed: 1, range: 80 },
       { who: 'pacManta', col: 20, row: 6, way: 'left', speed: 1, range: 70 },
@@ -386,7 +386,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(24, 12, 28, 18, 'R').box(25, 10, 27, 11, 'R');
     },
     coins: [[7, 11], [16, 13], [26, 8], [12, 6]],
-    decor: [['pacAnchor', 11, 17], ['pacKelp', 20, 16], ['pacSeaFan', 30, 15], ['pacBubbles', 14, 5]],
+    decor: [['pacAnchor', 11, 17], ['pacKelp', 20, 16], ['pacSeaFan', 2, 16], ['pacBubbles', 14, 5]],
     creatures: [{ who: 'pacSharkFin', col: 4, row: 8, way: 'right', speed: 1, range: 150 }],
   }),
 
@@ -400,9 +400,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(5, 11, 12, 11, 'T').box(13, 9, 19, 10, 'S').box(13, 9, 19, 9, 'T').box(20, 7, 31, 10, 'S').box(20, 7, 31, 7, 'T');
       g.box(3, 7, 3, 18, 'R').box(4, 8, 8, 8, 'T');
     },
-    coins: [[10, 16], [24, 16], [8, 9], [16, 7], [26, 5]],
-    item: { name: 'musubi3', col: 6, row: 6, sprite: PAC_SPRITE.musubi },
-    decor: [['pacCoffeeTree', 10, 8], ['pacCoffeeTree', 15, 6], ['pacCoffeeTree', 22, 4], ['pacSacks', 5, 6], ['pacSacks', 27, 5], ['pacLavaRocks', 10, 18], ['pacLavaRocks', 22, 18]],
+    coins: [[10, 16], [24, 16], [8, 9], [18, 7], [26, 5]],
+    item: { name: 'musubi3', col: 5, row: 6, sprite: PAC_SPRITE.musubi },
+    decor: [['pacCoffeeTree', 10, 8], ['pacCoffeeTree', 15, 6], ['pacCoffeeTree', 22, 4], ['pacSacks', 7, 6], ['pacSacks', 27, 5], ['pacLavaRocks', 10, 18], ['pacLavaRocks', 22, 18]],
     creatures: [
       { who: 'pacMagma', col: 14, row: 7, way: 'right', speed: 1, range: 32 },
       { who: 'pacParrot', col: 12, row: 15, way: 'right', speed: 1, range: 120 },
@@ -424,17 +424,17 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacMagma', col: 16, row: 11, way: 'right', speed: 1, range: 16 }],
   }),
 
-  // P HILO GOODBYE: Hilo airport. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17), a customs shed over the way (cols 8-13) with the guard pacing it, who lets him by
+  // P HILO GOODBYE: Hilo airport. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17), a customs shed over the way (cols 8-12) with the guard pacing it, who lets him by
   // in the lei; then the cargo loader (cols 15-16) carries him up to the catwalk over the cargo plane, which stands on the apron behind. Out along the catwalk, high, into the plane.
   room({
     id: PAC.hilo, cell: [2, 28], sector: 53, palette: HILO_PALETTE,
     paint(g) {
-      g.box(0, 9, 6, 19, 'W').box(7, 17, 31, 19, 'P').box(8, 14, 13, 14, 'G').box(7, 8, 7, 16, 'R');
-      g.box(15, 7, 31, 7, 'J').box(30, 8, 31, 16, 'W');
+      g.box(0, 9, 6, 19, 'W').box(7, 17, 31, 19, 'P').box(8, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
+      g.box(15, 7, 31, 7, 'J');
     },
     coins: [[4, 7], [10, 15], [20, 5], [26, 5]],
     decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 17, 12], ['pacLoader', 13, 14]],
-    creatures: [{ who: 'pacGuard', col: 9, row: 15, way: 'right', speed: 1, range: 36 }],
+    creatures: [{ who: 'pacGuard', col: 8, row: 15, way: 'right', speed: 1, range: 24 }],
   }),
 
   // Q HOLD YOUR HORSES: the cargo plane's hold, a fuselage drawn from inside. In from the catwalk onto the door's sill at the left (floor 7); a cargo net down to the roller floor (floor 16); crates swing from their tracks over the lane and the
@@ -450,7 +450,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[4, 5], [9, 11], [14, 14], [20, 12], [26, 10]],
     item: { name: 'parachute', col: 25, row: 10, sprite: PAC_SPRITE.parachute },
-    decor: [[{ text: 'THE ANDES COMING SOON', colour: 7 }, 8, 3], ['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacStrap', 16, 2], ['pacStrap', 24, 2], ['pacPorthole', 4, 10]],
+    decor: [[{ text: 'THE ANDES COMING SOON', colour: 7 }, 8, 3], ['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 10]],
     creatures: [
       { who: 'pacSwingCrate', col: 11, row: 14, way: 'right', speed: 1, range: 40 },
       { who: 'pacSwingCrate', col: 19, row: 12, way: 'right', speed: 1, range: 16 },
