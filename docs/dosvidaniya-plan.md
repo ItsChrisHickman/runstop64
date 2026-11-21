@@ -52,6 +52,10 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   Sugarloaf's cable car. Signs name a place; they never stand in for drawing it. The level is Monty on the Run's: it leaves
   a lot to the imagination, but its boat looks like a boat and its C5 street like a road (Chris): read at a glance, simply drawn.
 
+- **Landmarks must be drawn as the landmark** (Chris on China, 2026-11-21: "the Great Wall just looks like a gray wall in the
+  middle of the room", "Willow Pattern looks really weird"). The Wall snakes over hills with its parapet and towers; the Willow
+  Pattern room is the plate. Every builder and reviewer judges each room's screenshot by one question: would a stranger name
+  the place at a glance? If not, it isn't done.
 - **A costume is worn, not stuck on** (Chris on the hats, 2026-11-21: "Doesn't look like he is wearing the item. Too large and
   it's over his face"): a hat sits small on his head above his eyes, a lei round his neck; his face always shows.
 
