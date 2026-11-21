@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // One entry point for the repo's headless tests, on node:test (built in, nothing to install).
 // The manifest (tools/tests.mjs) lists each test script with the arguments it needs; every one is
-// run as its own child process (`nice -n 15 node tools/test.mjs <file> [args]`), one at a time
-// (this is a live production server), and passes when it exits 0.
+// run as its own child process (`nice -n 15 node tools/test.mjs <file> [args]`), two at a time
+// (JOBS=n to change it; this is a live production server: Chris allowed two since 2026-11-21), and passes when it exits 0.
 //
 //   node tools/test-all.mjs                 the fast set (a few minutes)
 //   node tools/test-all.mjs --slow          the fast set, then the slow one
@@ -18,7 +18,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { after, test } from 'node:test';
+import { after, suite, test } from 'node:test';
 import { TESTS } from './tests.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -60,7 +60,10 @@ function run(cmd, limit) {
   });
 }
 
+/** How many tests run at once (two by default: the box has four cores and serves the sites). */
+const JOBS = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
 const timings = [];
+suite('runstop64', { concurrency: JOBS }, () => {
 for (const t of chosen) {
   const lack = missing(t);
   const name = `[${t.set}] ${nameOf(t)}`;
@@ -80,6 +83,7 @@ for (const t of chosen) {
     if (code !== 0) throw new Error(`exited ${code}`);
   });
 }
+});
 
 after(() => {
   for (const set of sets) {
