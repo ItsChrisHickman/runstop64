@@ -56,7 +56,7 @@ const MARKET_PALETTE = {
 } as const satisfies Palette;
 
 const GATE_PALETTE = {
-  P: ['wallPave', 15], W: ['redWall', 2], D: ['gateDoor', 2], R: ['rope', 13],
+  P: ['wallPave', 15], W: ['redWall', 2], D: ['gateDoor', 2], R: ['rope', 13], Y: ['roofTile', 7], E: ['redEave', 2],
 } as const satisfies Palette;
 
 const ROOFS_PALETTE = {
@@ -144,12 +144,12 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(4, 15, 6, 15, 'S').box(7, 13, 9, 13, 'S').box(10, 11, 12, 11, 'S'); // the stair of steps
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
       g.box(30, 2, 31, 8, 'G'); // the tower's wall at the right
-      for (const c of [14, 20]) g.box(c, 8, c, 8, 'M'); // the merlons
+      for (const c of [14, 20]) g.box(c, 8, c + 1, 8, 'M'); // the merlons
       g.box(25, 0, 25, 8, 'R');
     },
     coins: [[8, 11], [21, 7]],
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
-    decor: [['bambooClump', 2, 13], ['bambooClump', 9, 13], ['wallFlag', 16, 6]],
+    decor: [['bambooClump', 2, 13], ['bambooClump', 9, 13], ['wallFlag', 16, 6], ['hangingLantern', 17, 14], ['hangingLantern', 23, 14], ['hangingLantern', 29, 14], ['rockery', 10, 15]],
     creatures: [
       { who: 'panda', col: 3, row: 15, way: 'right', speed: 1, range: 48 },
       { who: 'kite', col: 19, row: 2, way: 'down', speed: 1, range: 20 },
@@ -172,7 +172,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[12, 11], [27, 15]],
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
-    decor: [['laundry', 6, 5], ['hutongDoor', 20, 14], ['boxes', 15, 15]],
+    decor: [['laundry', 6, 5], ['hutongDoor', 20, 14], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2]],
     creatures: [
       { who: 'bicycle', col: 6, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'monk', col: 24, row: 13, way: 'down', speed: 1, range: 20 },
@@ -192,7 +192,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(16, 2, 16, 8, 'R'); // the rope under the trapdoor
     },
     coins: [[7, 11], [24, 7]],
-    decor: [['arrowSlit', 5, 5], ['arrowSlit', 9, 5], ['banner', 20, 3], ['rack', 13, 15]],
+    decor: [['arrowSlit', 5, 5], ['arrowSlit', 9, 5], ['banner', 20, 3], ['rack', 13, 15], ['gong', 18, 14], ['drum', 28, 15], ['hangingLantern', 12, 2], ['hangingLantern', 27, 2]],
     creatures: [
       { who: 'warrior', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 22, row: 2, way: 'down', speed: 1, range: 16 },
@@ -216,7 +216,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[23, 13], [14, 9]],
     item: { name: 'rice hat', col: 27, row: 3, sprite: CHINA_SPRITE.riceHat },
-    decor: [['brazier', 22, 3], ['wallFlag', 4, 3]],
+    decor: [['brazier', 22, 3], ['wallFlag', 4, 3], ['rack', 14, 3], ['hangingLantern', 11, 2], ['hangingLantern', 19, 2], ['rockery', 10, 15]],
     creatures: [
       { who: 'warrior', col: 3, row: 15, way: 'right', speed: 1, range: 64 },
       { who: 'kite', col: 14, row: 6, way: 'down', speed: 1, range: 24 },
@@ -236,7 +236,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(12, 9, 12, 16, 'R'); // the rope down from them
     },
     coins: [[6, 7], [21, 15]],
-    decor: [['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['stall', 3, 14], ['stall', 13, 14]],
+    decor: [['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['stall', 3, 14], ['stall', 13, 14], ['stall', 23, 14], ['drum', 28, 15], ['banner', 4, 11], ['pottedPlant', 10, 15]],
   }),
 
   // F GATE EXPECTATIONS: the Forbidden City's gate. In from the market, low, into the outer court (a stone lion alive); the gate tower across the room with its doors across the court
@@ -247,11 +247,12 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 31, 1, 'W').clear(23, 0, 25, 1);
       g.box(0, 2, 1, 13, 'W').box(30, 2, 31, 16, 'W');
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W');
-      g.box(14, 2, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
+      g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
+      g.box(12, 4, 19, 4, 'Y').box(13, 5, 18, 5, 'E').box(14, 2, 17, 3, 'W'); // its swept roof and the second storey over it
       g.box(24, 0, 24, 16, 'R');
     },
     coins: [[8, 15], [28, 15]],
-    decor: [['lionStatue', 11, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN CITY', colour: 7 }, 0, 5]],
+    decor: [['lionStatue', 11, 15], ['lionStatue', 18, 15], [{ text: 'FORBIDDEN CITY', colour: 7 }, 0, 6], ['hangingLantern', 12, 8], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
       { who: 'lion', col: 3, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
@@ -270,7 +271,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
-    decor: [['roofDragon', 18, 7], ['lanternPost', 20, 14], ['banner', 8, 11]],
+    decor: [['roofDragon', 18, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
     creatures: [
       { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
@@ -313,7 +314,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(3, 0, 3, 16, 'R');
     },
     coins: [[29, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 23, 10], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
+    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 23, 10], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], [{ text: 'JAPAN COMING SOON', colour: 7 }, 8, 4]],
     creatures: [
       { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
       { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },

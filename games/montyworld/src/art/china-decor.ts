@@ -200,6 +200,66 @@ function boxes(): NewDecor {
   return decor('boxes', 2, 2, r, 8);
 }
 
+/** A paper lantern hanging on its cord from the ceiling. 1 x 2 characters. */
+function hangingLantern(): NewDecor {
+  const r = new Raster(8, 16);
+  r.rect(3, 0, 4, 2); r.rect(1, 3, 6, 11); r.rect(2, 5, 2, 9, false); r.rect(5, 5, 5, 9, false); r.rect(2, 12, 5, 12); r.rect(3, 13, 4, 15);
+  return decor('hangingLantern', 1, 2, r, ['2', '7']);
+}
+
+/** A lattice window: a red frame round a pane of diagonal bars. 2 x 2 characters. */
+function latticeWindow(): NewDecor {
+  const r = new Raster(16, 16);
+  r.rect(0, 0, 15, 15); r.rect(2, 2, 13, 13, false);
+  for (let i = -12; i < 12; i += 4) { r.line(2 + i, 13, 13 + i, 2); r.line(2 - i, 13, 13 - i, 2); } // the bars, crossing
+  r.rect(2, 2, 13, 2, false); r.rect(2, 13, 13, 13, false);
+  return decor('latticeWindow', 2, 2, r, 2);
+}
+
+/** A potted tree: a round pot, a trunk, a ball of leaves. 2 x 2 characters. */
+function pottedPlant(): NewDecor {
+  const r = new Raster(16, 16);
+  r.disc(8, 4.5, 4.2); r.rect(4, 3, 5, 3, false); r.rect(9, 6, 11, 6, false); // the leaves, gaps in them
+  r.rect(7, 8, 8, 10); // the trunk
+  r.rect(3, 11, 12, 15); r.rect(4, 12, 11, 12, false); r.rect(5, 15, 10, 15, false); // the pot
+  return decor('pottedPlant', 2, 2, r, ['55', '22']);
+}
+
+/** A scholar's rock: a pitted grey boulder on a stand, holes through it. 3 x 2 characters. */
+function rockery(): NewDecor {
+  const r = new Raster(24, 16);
+  r.ellipse(12, 6.5, 9, 6.2); r.rect(3, 13, 20, 15); r.rect(5, 12, 18, 12);
+  r.ellipse(8, 5.5, 1.5, 2.4, false); r.ellipse(15.5, 8.5, 1.8, 1.3, false); r.rect(12, 2, 13, 4, false); r.line(5, 10, 9, 8, false); r.rect(11, 9, 12, 11, false);
+  return decor('rockery', 3, 2, r, 15);
+}
+
+/** A big red drum on its stand, studs round its rims. 2 x 2 characters. */
+function drum(): NewDecor {
+  const r = new Raster(16, 16);
+  r.ellipse(8, 7, 7.2, 6.4); r.rect(1, 7, 14, 10);
+  r.ellipse(8, 5, 5, 2.4, false); r.rect(1, 11, 14, 11, false);
+  for (const x of [2, 5, 8, 11, 13]) r.set(x, 9, false);
+  r.rect(3, 12, 4, 15); r.rect(11, 12, 12, 15);
+  return decor('drum', 2, 2, r, ['22', '99']);
+}
+
+/** A bronze gong hung in its frame, a mallet beside it. 3 x 3 characters. */
+function gong(): NewDecor {
+  const r = new Raster(24, 24);
+  r.rect(0, 0, 23, 2); r.rect(1, 3, 2, 23); r.rect(21, 3, 22, 23); // the frame
+  r.line(11, 3, 11, 6);
+  r.disc(11.5, 13, 7.2); r.ellipse(11.5, 13, 4.4, 4.4, false); r.ellipse(11.5, 13, 1.8, 1.8); // the gong, its boss
+  r.rect(0, 22, 23, 23);
+  return decor('gong', 3, 3, r, ['999', '777', '999']);
+}
+
+/** A frieze of curling clouds along a wall's top. 4 x 1 characters. */
+function cloudFrieze(): NewDecor {
+  const r = new Raster(32, 8);
+  for (let x = 0; x < 32; x += 8) { r.ellipse(x + 3.5, 4, 3.2, 3); r.ellipse(x + 3.5, 4, 1.4, 1.2, false); r.rect(x + 6, 5, x + 7, 6); }
+  return decor('cloudFrieze', 4, 1, r, 7);
+}
+
 export const CHINA_DECOR = {
   bambooClump: bambooClump(),
   wallFlag: wallFlag(),
@@ -220,6 +280,13 @@ export const CHINA_DECOR = {
   junk: junk(),
   lanternPost: lanternPost(),
   boxes: boxes(),
+  hangingLantern: hangingLantern(),
+  latticeWindow: latticeWindow(),
+  pottedPlant: pottedPlant(),
+  rockery: rockery(),
+  drum: drum(),
+  gong: gong(),
+  cloudFrieze: cloudFrieze(),
 } as const satisfies Record<string, NewDecor>;
 
 export type ChinaDecor = keyof typeof CHINA_DECOR;

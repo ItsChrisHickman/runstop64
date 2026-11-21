@@ -253,14 +253,15 @@ function carp(): NewCreature {
 function dove(): NewCreature {
   const frame = (wing: number) => {
     const r = new Raster(16, 16);
-    const tip = [0, 4, 11, 4][wing] ?? 4; // where the wing's tip is
-    lay(r, (s) => { s.triangle(7, 8, 13, tip, 10, 9); s.triangle(5, 8, 11, tip + 1, 8, 10); }); // the wing, two pinions
-    r.ellipse(8.5, 9.5, 5.2, 3.4); // the body
+    r.ellipse(8.5, 9.5, 4.6, 3); // the body
     r.triangle(12, 8.5, 15.5, 7, 15.5, 12); r.triangle(12, 10, 15.5, 11, 15.5, 14); // the tail, fanned
-    r.disc(3.8, 7, 3); // the head
-    r.triangle(0, 7.5, 1.5, 6, 1.5, 9); // the beak
-    r.cut(['#'], 3, 6); r.cut(['#'], 3, 5); // the eye
-    r.cut(['###'], 6, 9); // a feather's line
+    r.disc(3.8, 7.2, 2.9); // the head
+    r.triangle(0, 7.7, 1.5, 6.2, 1.5, 9.2); // the beak
+    r.cut(['#'], 3, 6); // the eye
+    // the wing: one great feathered triangle, up, level, down, level
+    const tip = [0, 4, 15, 4][wing] ?? 4;
+    lay(r, (s) => { s.triangle(5, 9, 12, 9, 12.5, tip); s.triangle(5.5, 9, 9, 9, 7, tip); });
+    r.cut(['##'], 6, 10); // a feather's line on the body
     return r.rows();
   };
   const left = [0, 1, 2, 3].map(frame);
