@@ -22,7 +22,8 @@ to east on the exit grid, so the pause screen's map reads as the trip round the 
 of rooms several high, not a row: start going one way, go down, circle back up; pass through a room and on through others
 before doubling back to the ladder that leads out of it; rooms entered from more than one side, a dead end with an item, a
 way that only opens once an item is found elsewhere. Only the region's entry and its exit to the next region are fixed
-points.
+points. The model is Monty on the Run's own route (study its exit grid and how its rooms join), not Auf
+Wiedersehen Monty's: Chris finds the first game's flow far more interesting than the sequel's open map and flights.
 
 | Region | Places (the rooms) | Its own things |
 |---|---|---|
