@@ -20,7 +20,7 @@ import { check, finish } from '../../shared/test/check';
 import { getProp } from '../../shared/guards';
 import { must } from '../../shared/test/must';
 import { cellRow, VIC_LEFT, VIC_TOP, WANTED_TOP, wantedMonty } from '../src/coords';
-import { COAL_CHAR, ENDING_ROOM, HOME_COL, HOME_ROW, OPENING_ROOM, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
+import { COAL_CHAR, COAL_LUMP, ENDING_ROOM, HOME_COL, HOME_ROW, OPENING_ROOM, RemixGame, START_LIVES, TOOL_PTR } from '../src/game';
 import { carries, lookOfSet, NAMED_KINDS } from '../src/kinds';
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { retile, roleAt } from '../src/retile';
@@ -264,7 +264,7 @@ function findFlat(): { id: number; col: number; row: number } | null {
       coalRooms++;
       const piece = must(pieces[0], 'a piece');
       const char = g.mem[SCREEN + (piece.row - 2 + PLAY_ROW) * ROW + PLAY_COL + piece.col];
-      if (char === COAL_CHAR && data.nugget.every((b, k) => g.mem[COAL_CHAR * 8 + k] === b)) coalOk++;
+      if (char === COAL_CHAR && COAL_LUMP.every((b, k) => g.mem[COAL_CHAR * 8 + k] === b)) coalOk++;
     }
     if (data.object.sprite !== 0) {
       toolRooms++;

@@ -83,6 +83,8 @@ const creaturePtr = (slot: number): number => (slot < 4 ? 0x30 + slot * 8 : 0xc8
 export const TOOL_PTR = 0x8e;
 /** The coal's piece: Wanted's own picture of it in this room, one character (free in Monty on the Run's set). */
 export const COAL_CHAR = 0x0a;
+/** The piece's picture, the same in every room: the lump Wanted's first room draws (its later rooms draw rings and blobs, which read as broken coal). */
+export const COAL_LUMP: readonly number[] = ROOMS[0]?.nugget ?? [];
 /** The crusher's picture is drawn with characters $10-$2F, as many different cells as it has on the screen at once. */
 const CRUSHER_CHAR = 0x10, CRUSHER_CHARS = 0x20;
 
@@ -483,8 +485,8 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.room = retile(data);
     const room = this.room;
     this.drawCells(room);
-    // the coal: Wanted's piece in this room's picture (the castle's are not lumps), the pieces not yet taken
-    this.mem.set(data.nugget, COAL_CHAR * 8);
+    // the coal: the lump in every room (Wanted's later rooms draw rings and blobs), the pieces not yet taken
+    this.mem.set(COAL_LUMP, COAL_CHAR * 8);
     this.entities = [];
     for (const piece of room.coal) {
       if (!this.coal.isThere(piece.id)) continue;

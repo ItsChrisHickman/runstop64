@@ -1,7 +1,7 @@
 import { hexBytes } from 'c64kit';
 import raw from '../../montyotr/src/data/motr.json';
 import { Title, type TitleGame, type TitlePage } from '../../montyotr/src/title';
-import { ROOMS } from '../../montymole/src/data/rooms-data';
+import { COAL_LUMP } from './game';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { C64_OF } from './retile';
 import { POSTER_PICTURE, type PictureChar } from './title-picture';
@@ -116,8 +116,7 @@ class RemixTitle extends Title {
 
   override start(): void {
     super.start();
-    const nugget = ROOMS[0]?.nugget ?? [];
-    this.screen.mem.set(nugget, COAL_CHAR * 8);
+    this.screen.mem.set(COAL_LUMP, COAL_CHAR * 8);
     for (const { code, cell } of PICTURE_CODES.values()) this.screen.mem.set(cell.rows, code * 8);
     for (let i = 0; i < COAL_COUNT; i++) this.screen.mem[SCREEN + COAL_ROW * ROW + COAL_FROM + 2 * i] = COAL_CHAR;
     this.tick = 0;
