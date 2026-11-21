@@ -52,6 +52,11 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   the Trans-Siberian's carriage roofs and the tunnels that sweep them; firecrackers and the long New Year dragon in China;
   the bullet train sweeping a platform in Japan; swinging cargo on the ship's cranes; rising lava on the volcano; a flight
   over the Andes as the jetpack section. Each is proposed to Chris with its region before it is built.
+- **A hat or costume in each country** (Chris, 2026-11-20): found in the region, it is that region's key item and Monty
+  wears it from then on (his own frames with it drawn on, until the next region's): the ushanka in Moscow, a rice hat in
+  China, a lei in Hawaii, and so on. It lets him blend in: the region's guard or gate lets him by once he wears it.
+- **A luau in Hawaii** (Chris: "for sure"): Hawaii's high point is a luau room (the fire dancers' torches as its timing, the
+  roast pig, the lei), and it comes back in the reward show.
 - **Items open the way.** As in Monty on the Run, an item taken in one room changes another (a wall gone, a creature seen
   off): two or three in each region, some needed in the next region. No freedom kit to pick (the remake already dropped it).
   An item's use has hint text in ENHANCED, as in Auf Wiedersehen Monty.
