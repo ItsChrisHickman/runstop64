@@ -174,3 +174,19 @@ engine change besides the two above.
 2. The last step is a one-way drop into I.
 3. Escalators are rides you cannot leave; icicles are a warning plus a fall, not a random one.
 4. The key items are the token (turnstile) and the ushanka (guard): two, not three.
+
+## As built (2026-11-20)
+
+The nine rooms are in `games/montyworld/src/moscow.ts` (art in `art/`, the bot's route in `test/route.ts`). Where the build differs from
+the map above, the bot's findings are why:
+
+- **D**: the first coin is over the gap between two domes (a decoration covered the one on the dome top, and a jump takes it); the pigeon
+  patrols the stair's column, not the gap before the cake's dome.
+- **K**: the gorge is four columns wide and the bot jumps it to the stub's coin and back; only the guard is in the room (a second creature
+  on the stub made the coin unreachable).
+- **I**: the carriage starts at column 11, so the pocket at the left has the run-up the luggage steps need. The way east is closed with
+  the planks and the sign SIBERIA COMING SOON.
+- **Creatures** (eleven kinds, none in more than two rooms): pigeon (A, D), babushka (B, H), matryoshka (C, F), samovar (F, I), egg (D);
+  one room each: snowball, bear, guard, cossack, tram (the metro train's headlamp face), balalaika. Monty on the Run's 27 kinds are in 5.5
+  of its 52 rooms on average (the sorted counts: 1 1 1 1 1 1 2 2 2 2 4 5 5 5 6 6 7 7 7 8 8 9 9 11 11 13 14), about one in ten rooms; Moscow's
+  are in 1.5 of its nine (one in six), and Auf Wiedersehen Monty's reuse was the thing Chris disliked.

@@ -47,7 +47,7 @@ const dead = (g: Game) => g.actionCounter !== 0 || g.script !== null;
 const colOf = (g: Game) => g.montyCol - 4;
 const rowText = (g: Game) => Array.from({ length: 32 }, (_, i) => {
   const v = (g.mem[SCREEN + 24 * ROW + 4 + i] ?? 0) & 0x3f;
-  return v >= 1 && v <= 26 ? String.fromCharCode(64 + v) : String.fromCharCode(v);
+  return v >= 1 && v <= 26 ? String.fromCharCode(64 + v) : v === 0 ? ' ' : String.fromCharCode(v);
 }).join('').trim();
 
 // ---- the data -----------------------------------------------------------------------------------

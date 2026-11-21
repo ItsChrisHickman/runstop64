@@ -187,15 +187,15 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       roof(g, 2, [[0, 5], [20, 27]]);
       g.clear(15, 0, 18, 1);
-      g.box(0, 2, 1, 16, 'P').box(30, 3, 31, 8, 'P');
+      g.box(0, 2, 0, 16, 'P').box(30, 3, 31, 8, 'P');
       g.box(0, 17, 31, 19, 'K');
-      g.box(3, 15, 4, 16, 'X').box(5, 13, 6, 16, 'X').box(7, 11, 8, 16, 'X'); // the luggage back up
-      g.box(9, 9, 31, 9, 'G').box(9, 10, 31, 16, 'T'); // the carriage
+      g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 10, 16, 'X'); // the luggage back up (a run-up in the pocket)
+      g.box(11, 9, 31, 9, 'G').box(11, 10, 31, 16, 'T'); // the carriage
     },
     coins: [[2, 16]],
     decor: [[{ text: 'SIBERIA COMING SOON', colour: 7 }, 9, 4], ['stationClock', 4, 4]],
     creatures: [
-      { who: 'balalaika', col: 10, row: 7, way: 'right', speed: 1, range: 24 },
+      { who: 'balalaika', col: 12, row: 7, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 22, row: 7, way: 'right', speed: 1, range: 40 },
     ],
   }),

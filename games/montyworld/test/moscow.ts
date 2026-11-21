@@ -8,6 +8,7 @@
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { newGame, play, search } from './bot';
+import { ROOM } from '../src/moscow';
 import { LEGS } from './route';
 
 const only = process.argv[2];
@@ -28,6 +29,9 @@ for (const mode of ['original', 'enhanced'] as const) {
     if (!next || !ok) break;
     live = next;
   }
+  const g = live.g;
+  check(`${mode}: at the end every one of the 14 coins, both pirozhki and both items are taken (every room has one), ${g.score} points (14 x 50 + 4 x 200 = 1500), the way east shut (room ${g.roomId} is the station)`,
+    g.coinCollected.length === 14 && g.coinCollected.every((c) => c !== 0) && g.siCollected.length === 4 && g.siCollected.every((c) => c !== 0) && g.score === 1500 && g.roomId === ROOM.station);
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }
 finish();
