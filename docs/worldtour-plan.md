@@ -15,8 +15,14 @@ Americas, New York, the Atlantic, the Tower, and home to his Yorkshire village.
 
 ## The world
 
-Five regions of about ten rooms each, about fifty rooms in all (Monty on the Run has 52), laid out west to east on the exit
-grid, so the pause screen's map reads as a strip of the world:
+Five regions of about ten rooms each, about fifty rooms in all (Monty on the Run has 52). The regions follow each other west
+to east on the exit grid, so the pause screen's map reads as the trip round the world.
+
+**Inside a region the way is not a line** (Chris, 2026-11-20: what he liked most in Monty on the Run). Each region is a block
+of rooms several high, not a row: start going one way, go down, circle back up; pass through a room and on through others
+before doubling back to the ladder that leads out of it; rooms entered from more than one side, a dead end with an item, a
+way that only opens once an item is found elsewhere. Only the region's entry and its exit to the next region are fixed
+points.
 
 | Region | Places (the rooms) | Its own things |
 |---|---|---|
