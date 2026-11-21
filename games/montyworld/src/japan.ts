@@ -31,7 +31,7 @@ export const JAPAN_COLOURS: readonly number[] = [14, 2, 10, 12, 6, 1, 5, 4, 7, 8
 
 // ---- the palettes --------------------------------------------------------------------------------------
 export const HARBOUR_PALETTE = {
-  Q: ['jpQuay', 9], P: ['jpPier', 12], W: ['jpWater', 14], H: ['jpJunkHull', 2], T: ['jpCrateTop', 8], K: ['jpKawara', 14], B: ['jpRoofBody', 6], C: ['jpCrate', 8],
+  Q: ['jpQuay', 9], P: ['jpPier', 12], W: ['jpWater', 14], H: ['jpJunkHull', 2], T: ['jpCrateTop', 8], K: ['jpKawara', 14], B: ['jpRoofBody', 6],
 } as const satisfies Palette;
 
 export const STREET_PALETTE = {
@@ -52,7 +52,7 @@ export const PLATFORM_PALETTE = {
 } as const satisfies Palette;
 
 export const FUJI_PALETTE = {
-  S: ['jpScree', 11], T: ['jpTrail', 9], R: ['jpChain', 12], W: ['jpSnow', 1],
+  S: ['jpScree', 11], T: ['jpTrail', 9], R: ['jpChain', 12],
 } as const satisfies Palette;
 
 export const GARDEN_PALETTE = {
@@ -104,12 +104,12 @@ export const TRAINS: readonly TunnelSpec[] = [
 // ---- the paper doors ----------------------------------------------------------------------------------------
 /**
  * The hall's three pairs of sliding paper doors (I; `pulses`): a doorway 2 cells wide and 3 tall (rows 11-13) open for 80 frames, its lattice shaking for 24 (the warning), shut over a
- * panel's leading edge for 8 (deadly to what is in the doorway) and then a wall of paper until the 160-frame period is round. The doors are 40 frames apart (offsets 0, 40, 80). A shut door
+ * panel's leading edge for 8 (deadly to what is in the doorway) and then a wall of paper until the 160-frame period is round. The doors shut 40 frames after one another from the first (the offsets run backwards in the period: 0, 120, 80), so a walker who passes the first as it opens finds the next open as he comes. A shut door
  * is a wall, not a trap: waiting at one is safe, stepping in as it shakes is not.
  */
 export const DOORS = { cols: [6, 12, 18] as const, row: 11, rows: 3, period: 160, open: 80, warn: 24, live: 8, apart: 40 } as const;
 export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k): PulseSpec => ({
-  room: JP.hall, col, row: DOORS.row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: k * DOORS.apart,
+  room: JP.hall, col, row: DOORS.row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: (DOORS.period - k * DOORS.apart) % DOORS.period,
   idle: codeOf(HALL_PALETTE, 'O'), warnCode: codeOf(HALL_PALETTE, 'N'), liveCode: codeOf(HALL_PALETTE, 'S'), spent: codeOf(HALL_PALETTE, 'S'),
 }));
 
@@ -130,9 +130,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 9, 19, 'H').box(10, 17, 12, 19, 'W').box(13, 17, 31, 17, 'Q').box(13, 18, 31, 19, 'P');
       g.box(8, 7, 29, 7, 'K').box(26, 8, 29, 9, 'B'); // the market's roof
       g.box(14, 15, 16, 15, 'T').box(17, 13, 19, 13, 'T').box(20, 11, 22, 11, 'T').box(23, 9, 25, 9, 'T'); // the stair of crates
-      g.box(28, 15, 29, 16, 'C');
     },
-    coins: [[11, 14], [20, 9]],
+    coins: [[15, 13], [28, 5]],
     item: { name: 'sushi1', col: 9, row: 5, sprite: JAPAN_SPRITE.sushi },
     decor: [['jpJunkSail', 1, 9], ['jpWave', 9, 2], ['jpStall', 17, 14], ['jpBarrels', 22, 15], ['jpLantern', 11, 8], ['jpLantern', 17, 8]],
     creatures: [
@@ -156,7 +155,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     coins: [[12, 5], [14, 15]],
     decor: [['jpNeonTall', 8, 3], ['jpNeonTall', 17, 3], ['jpNeonTall', 28, 3], ['jpLantern', 21, 4], ['jpNeonRamen', 9, 14], ['jpVending', 26, 14], ['jpLantern', 16, 14], ['jpLantern', 7, 14]],
     creatures: [
-      { who: 'jpSushiRoll', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
+      { who: 'jpSushiRoll', col: 6, row: 5, way: 'right', speed: 1, range: 24 },
       { who: 'jpLuckyCat', col: 15, row: 5, way: 'right', speed: 1, range: 48 },
     ],
   }),
@@ -174,7 +173,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(15, 8, 20, 12, 'M').box(23, 8, 28, 12, 'M'); // the banks' lit backs
       g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L').box(2, 9, 6, 9, 'L'); // the counter's stair and the prize shelf
     },
-    coins: [[18, 14], [6, 7]],
+    coins: [[22, 14], [6, 7]],
     item: { name: 'daruma', col: 3, row: 7, sprite: JAPAN_SPRITE.daruma },
     decor: [['jpClawMachine', 7, 2], ['jpMachines', 15, 13], ['jpMachines', 23, 13], ['jpNeonRamen', 24, 4], ['jpLantern', 16, 4]],
     creatures: [
@@ -196,9 +195,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 31, 19, 'A').box(8, 17, 15, 17, 'Z').clear(22, 17, 24, 19).box(23, 16, 23, 19, 'R');
       g.box(29, 7, 29, 16, 'R');
     },
-    coins: [[12, 5], [27, 15], [19, 14]],
+    coins: [[16, 5], [25, 15], [19, 14]],
     item: { name: 'fishFood', col: 24, row: 5, sprite: JAPAN_SPRITE.fishFood },
-    decor: [['jpScreen', 9, 3], ['jpNeonTall', 19, 3], ['jpTrafficLight', 6, 14], ['jpTrafficLight', 17, 14], ['jpNeonRamen', 3, 10], ['jpNeonTall', 12, 10], ['jpVending', 26, 14], ['jpLantern', 20, 10]],
+    decor: [['jpScreen', 9, 3], ['jpNeonTall', 19, 3], ['jpTrafficLight', 6, 14], ['jpTrafficLight', 17, 14], ['jpNeonRamen', 3, 10], ['jpNeonTall', 12, 10], ['jpVending', 27, 14], ['jpLantern', 20, 10]],
     creatures: [
       { who: 'jpSumo', col: 9, row: 15, way: 'right', speed: 1, range: 72 },
       { who: 'jpRobot', col: 8, row: 5, way: 'right', speed: 1, range: 64 },
@@ -234,9 +233,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(10, 8, 29, 8, 'T'); // the second ledge
       g.box(7, 6, 9, 6, 'T'); // the last step
       g.box(5, 0, 5, 5, 'R'); // the chain
-      g.box(2, 12, 3, 13, 'W'); // a drift of snow
     },
-    coins: [[15, 12], [24, 10], [18, 6]],
+    coins: [[17, 12], [24, 10], [12, 6]],
     decor: [['jpFuji', 14, 2], ['jpShrine', 12, 11], ['jpPine', 27, 4], ['jpLantern', 5, 9]],
     creatures: [
       { who: 'jpTanuki', col: 6, row: 12, way: 'right', speed: 1, range: 40 },
@@ -257,7 +255,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(28, 12, 29, 12, 'P').box(25, 10, 27, 10, 'P'); // the pergola
       g.box(28, 0, 28, 9, 'R');
     },
-    coins: [[10, 12], [19, 11]],
+    coins: [[16, 12], [19, 11]],
     decor: [['jpSakura', 7, 8], ['jpShrine', 12, 11], ['jpBell', 12, 7], ['jpToro', 2, 11], ['jpToro', 26, 11]],
     creatures: [
       { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 2, range: 28 },
@@ -302,8 +300,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     item: { name: 'sushi2', col: 18, row: 3, sprite: JAPAN_SPRITE.sushi },
     decor: [['jpKeep', 2, 8], ['jpShachi', 14, 3], ['jpShachi', 22, 3], ['jpLantern', 26, 14], ['jpLantern', 26, 5]],
     creatures: [
-      { who: 'jpNinja', col: 15, row: 11, way: 'right', speed: 1, range: 56 },
-      { who: 'jpNinja', col: 21, row: 9, way: 'right', speed: 1, range: 40 },
+      { who: 'jpNinja', col: 15, row: 11, way: 'right', speed: 1, range: 32 },
+      { who: 'jpNinja', col: 24, row: 9, way: 'right', speed: 1, range: 24 },
     ],
   }),
 
@@ -338,12 +336,12 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 0, 16, 'S').box(30, 2, 31, 9, 'S');
       g.box(0, 17, 31, 19, 'S');
       g.box(25, 0, 25, 16, 'R');
-      g.box(3, 15, 5, 16, 'C').box(6, 13, 8, 16, 'C').box(9, 11, 11, 16, 'C'); // the container stair
+      g.box(9, 15, 11, 16, 'C').box(6, 13, 8, 16, 'C').box(3, 11, 5, 16, 'C'); // the container stair, up to the west
       g.box(26, 15, 27, 15, 'K'); // the gangway's step
       g.box(28, 13, 31, 19, 'H'); // the ship's hull, its deck at row 13
       g.box(30, 10, 31, 12, 'D'); // planks across the way east
     },
-    coins: [[10, 9], [21, 15]],
+    coins: [[4, 9], [21, 15]],
     decor: [['jpWave', 2, 2], [{ text: 'PACIFIC COMING SOON', colour: 7 }, 3, 5], ['jpGantry', 13, 11], ['jpLantern', 22, 12], ['jpBarrels', 22, 15]],
     creatures: [
       { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 56 },

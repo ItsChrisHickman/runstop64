@@ -200,9 +200,9 @@ export const WORLD: MontyData = {
       { item: KEY, text: 'KEY: FOR THE TOWER\'S TRAPDOOR' },
       { item: RICE_HAT, text: 'RICE HAT: PAST THE CITY GATE' },
       { item: BAMBOO, text: 'BAMBOO: A RAFT OUT TO THE JUNK' },
-      { item: DARUMA, text: 'WISH GRANTED: THE SHUTTER ROLLS UP' },
+      { item: DARUMA, text: 'WISH GRANTED: SHUTTER ROLLS UP' },
       { item: FISH_FOOD, text: 'FISH FOOD: THE KOI LET YOU BY' },
-      { item: HOOD_ITEM, text: 'NINJA HOOD: PAST THE CASTLE GUARD' },
+      { item: HOOD_ITEM, text: 'HOOD: PAST THE CASTLE GUARD' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },

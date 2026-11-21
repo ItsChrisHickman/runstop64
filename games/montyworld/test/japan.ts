@@ -42,6 +42,7 @@ for (const mode of ['original', 'enhanced'] as const) {
     frames += found.route.reduce((n, [, f]) => n + f, 0);
     nodes += found.nodes;
     check(`${mode}: ${leg.name} (${found.route.reduce((n, [, f]) => n + f, 0)} frames, ${found.nodes} states, ${((Date.now() - t0) / 1000).toFixed(1)}s)`, ok);
+    if (next) console.log(`   now in room ${next.g.roomId} at ${next.g.montyCol - 4},${next.g.montyRow - 3} y ${next.g.y} falling ${next.g.falling} action ${next.g.montyAction} arc ${next.g.arcIdx} rope ${next.g.onRope} counter ${next.g.actionCounter} script ${next.g.script ? 'yes' : 'no'}`);
     if (!next || !ok) break;
     live = next;
   }
