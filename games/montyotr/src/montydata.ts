@@ -124,7 +124,11 @@ export interface IcicleSpec { room: number; col: number; row: number; floor: num
  * `bottom`, which comes in at the `from` end after `rest` frames (the first `offset` later) and a `warn` of a flashing edge,
  * and sweeps the room a cell every `step` frames. Death to what of Monty is in it. A room has several (a pause apart).
  */
-export interface TunnelSpec { room: number; from: 'left' | 'right'; code: number; cols: number; top: number; bottom: number; step: number; rest: number; warn: number; offset?: number }
+export interface TunnelSpec {
+  room: number; from: 'left' | 'right'; code: number; cols: number; top: number; bottom: number; step: number; rest: number; warn: number; offset?: number;
+  /** How many cells thick its rock is at the top and the sides (default 1): a thick wall reads as a hill with a tunnel through it, not a doorway. */
+  wall?: number;
+}
 
 /**
  * Cracking ice (cracks.ts): `cols` cells on playfield row `row` from `col`, shown as the room's tiles `codes` (whole, lines, wide;

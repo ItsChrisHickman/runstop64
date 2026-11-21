@@ -1,7 +1,7 @@
 /**
  * Siberia's map as a picture: the nine rooms as boxes on the exit grid (columns 4-7, rows 0-2, Moscow's station beside them), each with
- * its name, the joins drawn between them (a line with a letter: W walk, R rope both ways, D drop one way, G gated by an item), the
- * dead ends marked, and the critical path in yellow. Not a check.
+ * its name, the joins drawn between them (a line with a letter: W walk, R rope both ways, U under the roof by a gangway), the
+ * dead end marked, and the critical path in yellow. Not a check.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-map.ts <out-file.png>
  */
@@ -33,7 +33,7 @@ const line = (x0: number, y0: number, x1: number, y1: number, c: number) => {
 for (const [id, [col, row]] of Object.entries(CELL)) {
   const p = px(col, row);
   const sector = SIBERIA_SECTORS[Number(id) - SIB.gravy];
-  const dead = Number(id) === SIB.coal || Number(id) === SIB.yeti;
+  const dead = Number(id) === SIB.yeti;
   box(p.x, p.y, dead ? 8 : 5);
   const words = (sector?.text ?? '').split(' ');
   let y = p.y + 6;
@@ -46,20 +46,22 @@ for (const [id, [col, row]] of Object.entries(CELL)) {
   if (dead) label(cv, 'DEAD END', p.x + 4, p.y + CH - 9, 8);
 }
 
-/** A join between two cells: kind letter and whether it is on the critical path. */
-const JOINS: readonly [from: number, to: number, kind: string, main: boolean][] = [
-  [-1, SIB.gravy, 'W', true], [SIB.gravy, SIB.sleeper, 'W', true], [SIB.sleeper, SIB.coal, 'W', false], [SIB.sleeper, SIB.pines, 'R', true],
-  [SIB.pines, SIB.yeti, 'W', false], [SIB.pines, SIB.mine, 'W', true], [SIB.mine, SIB.shaft, 'W', true], [SIB.shaft, SIB.lake, 'D', true], [SIB.lake, SIB.border, 'R', true],
+/** A join between two cells: kind letter, whether it is on the critical path, and how far (pixels) its line is moved off the cells' middle (two joins of a pair do not overlap). */
+const JOINS: readonly [from: number, to: number, kind: string, main: boolean, off: number][] = [
+  [-1, SIB.gravy, 'W', true, 0], [SIB.gravy, SIB.sleeper, 'W', true, -9], [SIB.gravy, SIB.sleeper, 'U', false, 9],
+  [SIB.sleeper, SIB.coal, 'W', true, -9], [SIB.sleeper, SIB.coal, 'U', true, 9], [SIB.sleeper, SIB.pines, 'R', true, 0],
+  [SIB.coal, SIB.mine, 'R', false, 0],
+  [SIB.pines, SIB.yeti, 'W', false, 0], [SIB.pines, SIB.mine, 'W', true, 0], [SIB.mine, SIB.shaft, 'W', true, 0], [SIB.shaft, SIB.lake, 'R', true, 0], [SIB.lake, SIB.border, 'R', true, 0],
 ];
-for (const [from, to, kind, main] of JOINS) {
+for (const [from, to, kind, main, off] of JOINS) {
   const a = from < 0 ? px(3, 1) : px(...(CELL[from] ?? [0, 0]));
   const b = px(...(CELL[to] ?? [0, 0]));
   const c = main ? 7 : 12;
   const [ax, ay] = [a.x + CW / 2, a.y + CH / 2], [bx, by] = [b.x + CW / 2, b.y + CH / 2];
   const horizontal = Math.abs(ay - by) < 2;
-  if (horizontal) line(a.x + (ax < bx ? CW : 0), ay, b.x + (ax < bx ? 0 : CW), by, c); else line(ax, a.y + (ay < by ? CH : 0), bx, b.y + (ay < by ? 0 : CH), c);
-  label(cv, kind, (ax + bx) / 2 - 1, (ay + by) / 2 - 8 + (horizontal ? 0 : 8), c);
+  if (horizontal) line(a.x + (ax < bx ? CW : 0), ay + off, b.x + (ax < bx ? 0 : CW), by + off, c); else line(ax + off, a.y + (ay < by ? CH : 0), bx + off, b.y + (ay < by ? 0 : CH), c);
+  label(cv, kind, (ax + bx) / 2 - 1 + (horizontal ? 0 : off), (ay + by) / 2 - 8 + (horizontal ? off : 8), c);
 }
-label(cv, 'W WALK  R ROPE  D DROP ONE WAY', 4, cv.h - 12, 12);
+label(cv, 'W WALK ON THE ROOF  U UNDER THE ROOF (GANGWAY)  R ROPE', 4, cv.h - 12, 12);
 label(cv, 'YELLOW: CRITICAL PATH', 4, cv.h - 6, 7);
 cv.png(out, 3);

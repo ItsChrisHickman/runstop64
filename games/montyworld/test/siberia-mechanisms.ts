@@ -194,12 +194,12 @@ function diesAt(s: State, stick: Stick, limit: number): number {
   const lit = at(SIB.shaft, 2, 18, [LAMP]);
   check('with it they are (placed on loading the room: a game carried on after the lamp has them), in the room\'s timber character', [...SHAFT_LEDGES, ...SHAFT_STONE].every(([row, col]) => cell(lit.g, col, row) === SHAFT_CODE));
   // the gate is proved shut by the jump's height (a search of every state he can reach in the room has more than three million: it does not finish):
-  // his jump rises `rise` pixels, the wall's top is six rows (48) over the rock step the way in has, so with no ledge he cannot be over it
+  // his jump rises `rise` pixels, the wall's top is six rows (48 pixels) over the rock step the way in has, so with no ledge he cannot be over it
   const arc = WORLD.jumpArc;
   let rise = 0;
   for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
-  const over = (g: Game) => g.roomId === SIB.shaft && colOf(g) >= 14 && g.y === standY(10);
-  check(`no way over the wall without the lamp: a jump rises ${rise} pixels, and from the rock step (floor 16) to the wall's top (floor 10) is ${(16 - 10) * 8}`, rise < (16 - 10) * 8 && rise >= 8 * 2);
+  const over = (g: Game) => g.roomId === SIB.shaft && colOf(g) >= 14 && g.y === standY(11);
+  check(`no way over the wall without the lamp: a jump rises ${rise} pixels, and from the rock step (floor 17) to the wall's top (floor 11) is ${(17 - 11) * 8}`, rise < (17 - 11) * 8 && rise >= 8 * 2);
   const stats = { exhausted: false };
   const without = search(bare, over, undefined, 150000, 0, stats);
   check('and the bot, given 150000 states, finds none (a pointer, not the proof)', without === null);

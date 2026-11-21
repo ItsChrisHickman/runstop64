@@ -2,7 +2,7 @@
  * Siberia, played by a bot from Moscow's carriage roof to the village's barrier (docs/dosvidaniya-siberia.md): the bot (bot.ts) searches
  * the game's own frames for a way to each goal in siberia-route.ts (every coin, both pelmeni, the ticket, the lamp, tunnel mouths and cracking
  * ice and all), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after
- * Moscow: on the station's roof, with Moscow's four finds and the hat on. The way back is checked too: the dining car's roof walks west to Moscow.
+ * Moscow: on the station's roof, with Moscow's four finds and the hat on. (The way back west, the gangways, the loop and the no-trap checks are in siberia-mechanisms.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia.ts [original|enhanced]
  */

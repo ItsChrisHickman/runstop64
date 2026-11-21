@@ -72,7 +72,7 @@ function carriage(g: Grid, hatches: readonly number[], gangways: { left: boolean
 
 /** The portal's tile in the train rooms' palette. */
 const TUNNEL_CODE = codeOf(TRAIN_PALETTE, 'X');
-const MOUTH = { code: TUNNEL_CODE, cols: 4, top: 2, bottom: 8, step: 10, rest: 130, warn: 48 } as const;
+const MOUTH = { code: TUNNEL_CODE, cols: 6, wall: 2, top: 2, bottom: 8, step: 10, rest: 130, warn: 48 } as const;
 /**
  * The tunnel mouths: the dining car's from the front of the train (the right); the sleeper's two, one from each end, a pause apart (they run at
  * the same pace, 190 frames apart in a fixed phase, so they cross each other over the same cells every cycle: harmless, the roof is what they sweep).
@@ -112,7 +112,7 @@ const SHAFT_PALETTE = {
 } as const satisfies Palette;
 /** The ledges the lamp shows: playfield cells (row, column). */
 export const SHAFT_LEDGES: readonly (readonly [row: number, col: number])[] = [
-  ...[6, 7, 8, 9].map((c) => [14, c] as const), ...[10, 11, 12, 13].map((c) => [12, c] as const),
+  ...[6, 7, 8, 9].map((c) => [15, c] as const), ...[10, 11, 12, 13].map((c) => [13, c] as const),
 ];
 /** The stepping stone in the pit the lamp shows (over the water, so no ghost of it stands there before). */
 export const SHAFT_STONE: readonly (readonly [row: number, col: number])[] = [[18, 22], [18, 23]];
@@ -234,7 +234,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // S SHAFT OF DARKNESS: dark (its rock a dim blue). In low; a rock step, then a stair of ledges up to the top of a rock wall and a stepping stone
+  // S SHAFT OF DARKNESS: dark (its rock a dim blue). In low; a rock step one row high, then a stair of two ledges up to the top of a rock wall and a stepping stone
   // over the water, felt only as dots until the lamp is taken (M), when they are there; the miner paces the wall's top; out through the floor at
   // the right, a rope in the gap that goes down to the lake and up again.
   room({
@@ -244,15 +244,15 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 14, 'K').box(30, 3, 31, 17, 'K');
       g.box(0, 3, 6, 4, 'K').box(22, 3, 29, 5, 'K').box(10, 3, 12, 3, 'K'); // the roof's lumps
       g.box(0, 18, 31, 19, 'K').clear(27, 18, 29, 19).box(28, 16, 28, 19, 'R'); // the floor, the shaft's gap (the lake below) and the rope in it
-      g.box(3, 16, 5, 17, 'K'); // a rock step by the way in
-      g.box(14, 10, 19, 17, 'K').box(15, 12, 16, 13, 'Q').box(17, 15, 18, 16, 'Q'); // the wall, a seam of coal in it
+      g.box(3, 17, 5, 17, 'K'); // a rock step by the way in
+      g.box(14, 11, 19, 17, 'K').box(15, 13, 16, 14, 'Q').box(17, 15, 18, 16, 'Q'); // the wall, a seam of coal in it
       g.box(21, 18, 25, 19, 'W'); // the water of the pit
       for (const [row, col] of SHAFT_LEDGES) g.box(col, row, col, row, 'G'); // the ledges, felt only
     },
-    coins: [[15, 8]],
+    coins: [[15, 9]],
     decor: [['stalactites', 7, 3], ['stalactites', 17, 3]],
     creatures: [
-      { who: 'miner', col: 17, row: 8, way: 'right', speed: 1, range: 16 },
+      { who: 'miner', col: 17, row: 9, way: 'right', speed: 1, range: 16 },
       { who: 'bat', col: 22, row: 10, way: 'right', speed: 2, range: 20 },
     ],
   }),

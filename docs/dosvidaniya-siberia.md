@@ -72,8 +72,8 @@ lamp and a coal bucket (Wanted: Monty Mole's pail, the nod); right the way on, l
 (row 12) with a coin; the mine cart hangs off the shelf's west end (col 20) and carries him down to the gallery (floor 18) beside the way
 on. The cart is not on the gantry or the gallery: nothing grabs him on the walk in. Crossed twice at two heights.
 
-**S SHAFT OF DARKNESS** (dark: its rock a dim blue, no lamp in it). In low. A rock step by the way in (floor 16), then a stair of two ledges
-(floors 14 and 12) up to the top of a rock wall (cols 14-19, floor 10), and a stepping stone over a pit of water: the ledges are only
+**S SHAFT OF DARKNESS** (dark: its rock a dim blue, no lamp in it). In low. A rock step one row high by the way in (floor 17), then a stair of two ledges
+(floors 15 and 13) up to the top of a rock wall (cols 14-19, floor 11), and a stepping stone over a pit of water: the ledges are only
 dots, felt in the dark, and not there, until the lamp is taken (a `place` effect: the platforms appear in timber); the stone is water until
 then. Over the wall (a miner paces its top), down the right, and out by the floor gap (cols 27-29) with a rope in it that goes down to the
 lake and up again.
@@ -94,8 +94,8 @@ lifts; a sign CHINA COMING SOON in the gap beyond (shut like Moscow's).
 
 ### The two mechanisms
 
-**Tunnel mouths** (A 1, B 2). A portal of rock 4 cells wide and rows 2-8 tall sweeps the roof from one end to the other at a cell
-every 10 frames (36 cells: six seconds), rests, flashes its leading edge for 48 frames at the entry (the warning), and sweeps again.
+**Tunnel mouths** (A 1, B 2). A portal of rock 6 cells wide (the rock two cells thick at the sides and top: a hill with a tunnel through it) and rows 2-8 tall sweeps the roof from one end to the other at a cell
+every 10 frames (38 cells: six seconds and a bit), rests, flashes its leading edge for 48 frames at the entry (the warning), and sweeps again.
 Anything in its cells dies (the roof, a rope above it); under the roof (a hatch's rope, the car) is safe. He walks a cell in 8
 frames, so he cannot run through it but he can outrun it. Data: `tunnels: {room, from, ...}[]`.
 
@@ -126,14 +126,20 @@ The nine rooms are in `games/montyworld/src/siberia.ts` (ids 9-17, sectors 9-17;
   The miner paces the wall's top at the right end so the coin at its left end is reached first.
 - **The lake**: the lake's rope is at column 5 (the left shore is a block, the gap beside it), the village's ceiling gap to match.
 - **Creatures** (nine kinds, none in more than two rooms): wolf (F, G), bear (F), owl (F, O), reindeer (L, G), inspector (A, B), miner (C, S),
-  yeti (O), bat (M, S), nerpa (L; Baikal's seal, in place of the design's fish).
+  yeti (O), bat (M, S), nerpa (L; Baikal's seal, in place of the design's fish). After the first review the wolf, bear, reindeer, miner and nerpa
+  were redrawn with big faces turned out at us (grey wolf, brown bear and brown reindeer with a rack of antlers, an orange miner with a black
+  coal face and two lit eyes, a silvery seal with great eyes), so no two creatures that share a room are the same grey.
+- **Pelmeni** are pale yellow dumplings on a plate (Moscow's pirozhok is a white pie), so the two foods read apart.
+- **Rooms**: the rock is a rough granite tile (not brick) with a coal-seam tile beside it; the mine, the shaft and the yeti's cave have rock
+  masses, props, boulders, a coal bucket (Wanted: Monty Mole's pail, the nod) and seams; the lake has a fisherman's hut; the barrier is a
+  stack of banded poles. Nothing stands on the moving train's roof.
 - **No ticket inspector check on the ushanka**: he is in the hat from Moscow (it was needed to leave), so a gate on it would never close; the
   region's key items are the lamp and the ticket.
 - **Music**: G Dorian (G#, B, C# and Eb move), a piped lead (a triangle); no folk break (the plan's "maybe"): no melody was quoted from memory.
 - **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries).
 
-Checks (all pass): `games/montyworld/test/siberia.ts original|enhanced` (the bot plays 33 legs from Moscow's roof to the village barrier taking every
-coin and find, slow set), `siberia-mechanisms.ts` (33 checks, fast), `music-siberia.ts` (9, fast); Moscow's `moscow.ts`, `mechanisms.ts`, `walk.ts`,
+Checks (all pass): `games/montyworld/test/siberia.ts original|enhanced` (the bot plays 37 legs from Moscow's roof to the village barrier taking every
+coin and find, slow set), `siberia-mechanisms.ts` (46 checks, fast: also the gangways, the loop, the way back west and from the village to the shaft, the gates' proofs, a save in each room), `music-siberia.ts` (9, fast); Moscow's `moscow.ts`, `mechanisms.ts`, `walk.ts`,
 `music.ts` and all of Monty on the Run's tests (trace and title with /tmp/motr.prg included) pass unchanged but for Moscow's counts now being a part of the whole.
 Pictures: /root/projects/runstop64-shots/siberia/ (room-*.png from the real engine, compare-*.png beside Monty on the Run's, sheet.png, shaft-lit.png,
 tunnel-*.png, ice-*.png, siberia-map.png, art/ for tiles, decorations and creatures).

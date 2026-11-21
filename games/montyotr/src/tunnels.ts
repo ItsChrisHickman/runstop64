@@ -63,6 +63,7 @@ export function tunnelUpdate(g: Game) {
     const dir = e.from === 'right' ? -1 : 1;
     const edge = e.from === 'right' ? PLAY_COLS - 1 : 0;
     const start = e.from === 'right' ? PLAY_COLS : -e.cols;
+    const wall = e.wall ?? 1;
     t.t++;
     switch (t.state) {
       case 'rest':
@@ -79,7 +80,7 @@ export function tunnelUpdate(g: Game) {
           uncover(g, t);
           if (t.left <= -e.cols || t.left > PLAY_COLS) { t.state = 'rest'; t.t = 0; t.left = start; break; }
           for (let r = e.top; r <= e.bottom; r++) for (let c = t.left; c < t.left + e.cols; c++) {
-            paint(g, t, c, r, r === e.top || c === t.left || c === t.left + e.cols - 1 ? e.code : null);
+            paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }
         if (!g.actionCounter && inside(g, t.left, e.cols, e.top, e.bottom)) g.actionCounter = 1;
