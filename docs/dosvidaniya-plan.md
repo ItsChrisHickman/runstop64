@@ -52,6 +52,9 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   Sugarloaf's cable car. Signs name a place; they never stand in for drawing it. The level is Monty on the Run's: it leaves
   a lot to the imagination, but its boat looks like a boat and its C5 street like a road (Chris): read at a glance, simply drawn.
 
+- **A costume is worn, not stuck on** (Chris on the hats, 2026-11-21: "Doesn't look like he is wearing the item. Too large and
+  it's over his face"): a hat sits small on his head above his eyes, a lei round his neck; his face always shows.
+
 ## The rules (Monty on the Run's)
 
 - **Monty himself is Monty on the Run's:** his walk, his jump arc, ropes and ladders, no steering in the air, coins (50) and
