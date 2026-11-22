@@ -134,7 +134,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       g.box(30, 0, 31, 15, 'Q');
       g.box(16, 14, 28, 14, 'P').clear(19, 14, 21, 14).box(20, 14, 20, 17, 'L'); // the pier, and the ladder up to it
     },
-    coins: [[3, 6], [7, 8], [9, 10], [11, 12], [24, 12], [28, 16]],
+    coins: [[3, 6], [7, 8], [11, 12], [24, 12], [28, 16]],
     item: { name: 'skewer1', col: 25, row: 12, sprite: RIO_SPRITE.skewer },
     decor: [[{ text: 'BEM-VINDO', colour: 7 }, 10, 3], ['fishingBoat', 18, 6], ['lampPost', 13, 13], ['lampPost', 29, 15], ['coconutStand', 22, 15]],
     creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 15, row: 12, way: 'up', speed: 1, range: 10 }],
