@@ -167,7 +167,7 @@ const snowFall = (col: number, offset: number): PulseSpec[] => [[8, 0, 40, 10], 
   room: SIB.pines, col, row: row ?? 0, cols: 2, rows: 3, period: FALL.period, start: start ?? 0, warn: warn ?? 1, live: live ?? 10, offset,
   idle: FALL.idle, warnCode: codeOf(FOREST_PALETTE, 'U'), liveCode: codeOf(FOREST_PALETTE, 'N'), spent: FALL.spent,
 }));
-export const SIBERIA_PULSES: readonly PulseSpec[] = [...snowFall(10, 0), ...snowFall(16, 130)];
+export const SIBERIA_PULSES: readonly PulseSpec[] = [...snowFall(6, 0), ...snowFall(14, 130)];
 
 /** The icicle over the high stash in the yeti's cave. */
 export const SIBERIA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.yeti, col: 8, row: 2, floor: 5 }];
@@ -377,7 +377,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(7, 13, 12, 19, 'W').box(16, 13, 21, 19, 'W'); // the water
     },
     coins: [[14, 10], [25, 10]],
-    decor: [['pineSmall', 2, 9], ['fishHut', 22, 10]],
+    decor: [['fishHut', 22, 10]],
     creatures: [
       { who: 'nerpa', col: 16, row: 10, way: 'right', speed: 1, range: 32 },
       { who: 'owl', col: 14, row: 3, way: 'down', speed: 1, range: 36 },

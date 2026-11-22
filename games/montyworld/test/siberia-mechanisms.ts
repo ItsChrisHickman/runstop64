@@ -52,6 +52,36 @@ import { creatureRooms, itemIndex, standY } from './route';
     horizontal.every((n, i) => n < 2 || (horizontal[i + 1] ?? 0) < 2) && vertical.filter((n) => n > 0).length >= 4 && bare >= 1);
 }
 
+// ---- the layout: nothing drawn over a wall, no coin or find in a wall, under a decoration or in a strike's cells ---------------------------
+{
+  const bad: string[] = [];
+  const first = (id: number) => id.toString(16);
+  for (const r of SIBERIA_ROOMS) {
+    const tile = (col: number, row: number) => r.map[row]?.[col] ?? '.';
+    const covered = new Set<string>();
+    for (const d of r.decor ?? []) {
+      if (typeof d.type !== 'number') continue;
+      const t = WORLD.decorTypes[d.type];
+      if (!t) continue;
+      for (let rr = 0; rr < t.h; rr++) for (let cc = 0; cc < t.w; cc++) {
+        const col = d.col - 4 + cc, row = d.row - 3 + rr;
+        if (col < 0 || col > 31 || row < 0 || row > 19) continue;
+        if (tile(col, row) !== '.') bad.push(`$${first(r.id)}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
+        covered.add(col + ',' + row);
+      }
+    }
+    const struck = (col: number, row: number) => SIBERIA_PULSES.some((p) => p.room === r.id && col >= p.col && col < p.col + p.cols && row >= p.row && row < p.row + p.rows);
+    for (const [col, row] of r.coins ?? []) {
+      if (tile(col, row) !== '.' || covered.has(col + ',' + row) || struck(col, row)) bad.push(`$${first(r.id)}: coin ${col},${row} in a wall, under a decoration or in a strike`);
+    }
+    if (r.item) {
+      const col = r.item.col - 4, row = r.item.row - 3;
+      for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) if (tile(col + dc, row + dr) !== '.' || covered.has(col + dc + ',' + (row + dr)) || struck(col + dc, row + dr)) bad.push(`$${first(r.id)}: ${r.item.name} at ${col},${row} in a wall, under a decoration or in a strike`);
+    }
+  }
+  check(`no decoration over a tile, no coin or find in a wall, under a decoration or in a strike's cells in Siberia's nine rooms (${bad.slice(0, 5).join('; ') || 'none wrong'})`, bad.length === 0);
+}
+
 // ---- the tunnel mouths ---------------------------------------------------------------------------
 {
   const mouth = must(TUNNELS[0], 'the dining car\'s mouth');
@@ -278,9 +308,9 @@ import { creatureRooms, itemIndex, standY } from './route';
 }
 {
   // the snow slides off the boughs: harmless at rest, warned by the flakes trembling, then a lump falls down the three stretches and kills on the ground lane
-  const fall = SIBERIA_PULSES.filter((p) => p.col === 10);
+  const fall = SIBERIA_PULSES.filter((p) => p.col === 6);
   const low = must(fall[2], 'the lowest stretch');
-  const s = at(SIB.pines, 10, 17);
+  const s = at(SIB.pines, 6, 17);
   let when = -1;
   for (let f = 0; f < 700 && when < 0; f++) { frame(s, NONE); if (dead(s.g)) when = f; }
   check(`standing under the bough he is struck by the falling lump (frame ${when}, the stretch's start at ${low.start} of a period of ${low.period})`, when >= low.start && when <= low.period + low.start + low.live);

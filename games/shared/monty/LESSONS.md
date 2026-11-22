@@ -76,6 +76,7 @@ most care; the reward show and the title show them off.
 - **Creatures move in varied ways**, as Monty on the Run's do: up-and-down patrols, creatures on different floors, fliers,
   short fast and long slow patrols, timing hazards, rooms with a mechanism instead of a walker; never room after room of two
   walkers to jump over (Chris on Siberia, 2026-11-22).
+- **A tunnel is a mountain** (Chris on Siberia: a moving door "just looks like a door moving across the top of the train"): a long mass of rock running off the screen's edge with the stone portal at its leading edge, and it comes from the way the train travels (the scenery goes the other way), never both ways. Scenery that belongs to a moving thing runs from the moment he is in the room, not once he moves.
 - **Creatures stand out from what's behind them**: never white on snow, brown on earth (Chris on Mount Fuji).
 - **A big creature now and then is a highlight** (Chris on China's New Year dragon: "the first time I've ever seen anything
   this incredible"): several sprites moving as one, the room built round it; at most one per region.
