@@ -274,16 +274,16 @@ export const MOSCOW_TILES = {
     '##..##..',
     '##..##..',
   ]),
-  /** An onion dome's scales, for a round ledge on the cathedral's roofs. A floor. */
+  /** A gilded balcony of a dome, for a ledge on the cathedral's roofs: solid bands with black seams (no dither). A floor. */
   domeScale: tile('domeScale', 2, 5, [
-    '.##..##.',
-    '#..##..#',
-    '#..##..#',
-    '.##..##.',
-    '.##..##.',
-    '#..##..#',
-    '#..##..#',
-    '.##..##.',
+    '########',
+    '########',
+    '########',
+    '........',
+    '###.####',
+    '###.####',
+    '###.####',
+    '........',
   ]),
   /** A rope hanging with its knots. A rope. */
   rope: tile('rope', 3, 13, [

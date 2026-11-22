@@ -270,8 +270,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       ['pacSun', 16, 9], ...luauBackdrop(11, 13, 'pacSeaWave'), ...luauBackdrop(14, 14, 'pacLawn'),
       // the stage on the lawn with its drums (the hula dancer dances on it), the palms planted behind, the feast with the roast pig, the tiki torches, the lei's arch over its shelf
       ...Array.from({ length: 11 }, (_, i) => ['pacStageBoard', 12 + i, 13] as const), ['pacDrums', 12, 11],
-      ['pacPalm', 8, 8], ['pacPalm', 24, 8], ['pacFeast', 26, 14], ['pacRoastPig', 28, 12],
-      ['pacTikiTorch', 10, 13], ['pacTikiTorch', 23, 13],
+      ['pacPalm', 8, 8], ['pacPalm', 24, 8], ['pacFeast', 26, 14], ['pacRoastPig', 24, 16],
+      ['pacTikiTorch', 10, 15], ['pacTikiTorch', 23, 15],
       ['pacArchTop', 2, 8], ['pacArchLeg', 2, 10], ['pacArchLeg', 5, 10],
     ],
     creatures: [

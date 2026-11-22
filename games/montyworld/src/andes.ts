@@ -276,7 +276,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[6, 12], [15, 6], [19, 6], [23, 13], [27, 13], [29, 13]],
     item: { name: 'empanada4', col: 22, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['pilotHouse', 9, 5], ['funnel', 16, 5], ['lifebuoy', 20, 6], ['paddleWheel', 26, 9], ['palm', 2, 10], ['hammock', 9, 13]],
+    decor: [['pilotHouse', 9, 5], ['funnel', 16, 5], ['lifebuoy', 20, 6], ['paddleWheel', 26, 9], ['palm', 2, 11], ['hammock', 9, 13]],
     creatures: [{ who: 'captain', col: 14, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'toucan', col: 11, row: 6, way: 'right', speed: 1, range: 60, colour: 2 }],
   }),
 

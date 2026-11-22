@@ -291,7 +291,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     decor: [
       ...backWall(paintMarket, MARKET_COINS, 2, 10, 29, 16), // the shop fronts behind the stalls
       ['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['latticeWindow', 8, 11], ['latticeWindow', 17, 11], ['latticeWindow', 26, 11],
-      ['noodleStall', 5, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
+      ['noodleStall', 7, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
     ],
   }),
 
@@ -341,7 +341,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['kissingDoves', 2, 2], ['cloud', 9, 2], ['cloud', 15, 2], ['cloud', 27, 2],
       ...[3, 7, 11, 15, 19, 23].map((c) => ['archBridge', c, 4] as const), // the long arched bridge
       ['crouchFigure', 12, 2], ['crouchFigure', 19, 2], ['crouchFigure', 24, 2], // the three giants on its parapet
-      ['willowTree', 5, 6], ['willowCurtain', 9, 11], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14], ['plateFence', 0, 8], ['plateBoat', 19, 16], ['roundTree', 0, 6],
+      ['willowTree', 5, 6], ['willowCurtain', 9, 11], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14], ['plateFence', 0, 8], ['plateBoat', 19, 16], ['roundTree', 0, 7],
     ],
     creatures: [
       { who: 'dove', col: 10, row: 7, way: 'right', speed: 1, range: 48 },

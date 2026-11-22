@@ -49,11 +49,11 @@ function band(g: Grid, tiles: { tread: string; body: string; rail: string }, spe
     if (dy === 1) {
       if (j >= 1 && j <= cols - 1) at(col + 1 + j, row + j, tiles.tread);
       if (j <= cols - 2) at(col + 1 + j, row + 1 + j, tiles.body);
-      at(col + 1 + j, row - 1 + j, tiles.rail);
+      if (j >= 1) at(col + 1 + j, row - 1 + j, tiles.rail); // (none over the landing: the handrail ends flush with the floor it meets)
     } else {
       if (j <= cols - 2) at(col + 1 + j, row - 1 - j, tiles.tread);
       if (j <= cols - 2) at(col + 2 + j, row - 1 - j, tiles.body);
-      at(col + j, row - 1 - j, tiles.rail);
+      if (j <= cols - 1) at(col + j, row - 1 - j, tiles.rail);
     }
   }
 }
