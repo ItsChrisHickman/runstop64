@@ -25,7 +25,9 @@ registers (USPTO, UKIPO, EUIPO; games are class 9 and 41), by Chris or a lawyer.
 One agent follows Monty round the world (Intermole's man; a KGB operative in the Viktor Vole edition): one recognisable
 character at every region's checkpoint or gate, fooled each time by the local disguise (that is what the hats are for; it
 replaces the anonymous guards). At the carnival he corners Monty, and Monty gets him flattened by a Mole Crusher (dressed as
-a giant stamping float): a set piece the player triggers, cartoon squash, then the beach.
+a giant stamping float): a set piece the player triggers, cartoon squash, then the beach. Spy vs Spy style (Chris): the
+agent follows Monty's exact path a few seconds behind; Monty finds the float's crank, fits it in the control booth, leads the
+agent under the stamper and pulls the lever.
 
 ## The story
 
@@ -124,7 +126,7 @@ Do Svidaniya Monty's own examples.
   Andes, churrasco skewers in Rio (Chris: Brazil means the Brazilian steakhouse; a food must be recognisable). Rio may get a churrascaria room: gaucho waiters (Chris thinks of gauchos; they're from Brazil's far south, the churrasco's home) carrying long skewers between the tables, their swinging skewers the timing. Coconut shrimp hop off the luau's platters as creatures, and a
   shrimp shack stands on Waikiki with its sign.
 - **C64 references** (Chris, 2026-11-20), small homages with nothing copied, only to games Chris played and loves:
-  WILLOW PATTERN (China, the room's exact name), THE LAST MOLE (Japan), Jeff Minter's llamas winking at Machu Picchu. Turned
+  WILLOW PATTERN (China, the room's exact name), THE LAST MOLE (Japan), Jeff Minter's llamas winking at Machu Picchu, Spy vs Spy in the carnival showdown. Turned
   down: Tetris, Bruce Lee, Pitfall, Impossible Mission, Boulder Dash, California Games (games he doesn't know, or stretches),
   anything Pendragon.
 - **Items open the way.** As in Monty on the Run, an item taken in one room changes another (a wall gone, a creature seen
