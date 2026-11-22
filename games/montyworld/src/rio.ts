@@ -94,7 +94,7 @@ export const GATE_CELLS: readonly (readonly [row: number, col: number])[] = [8, 
  * 30 cells to their round and 10 apart; lane B (deck row 14) two the other way. The decorations are the painted pieces (the room lists each once, at its `home`, for its characters).
  */
 const float = (decor: 'floatGalleon' | 'floatBird' | 'floatSun', row: number, dir: 1 | -1, offset: number, home: readonly [number, number]): FloatSpec => ({
-  room: RIO_ROOM.float, row, span: { from: 4, to: 26 }, dir, step: 8, every: 30, w: RIO_DECOR[decor].w, h: RIO_DECOR[decor].h, offset, deck: codeOf(FLOAT_PALETTE, 'D'), decor: decorIndex(decor), home,
+  room: RIO_ROOM.float, row, span: { from: 4, to: 24 }, dir, step: 8, every: 30, w: RIO_DECOR[decor].w, h: RIO_DECOR[decor].h, offset, deck: codeOf(FLOAT_PALETTE, 'D'), decor: decorIndex(decor), home,
 });
 export const FLOATS: readonly FloatSpec[] = [
   float('floatGalleon', 18, 1, 0, [3, 5]), float('floatSun', 18, 1, 10, [11, 5]), float('floatGalleon', 18, 1, 20, [3, 5]),
@@ -164,7 +164,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       for (let c = 12; c <= 29; c++) g.box(c, 10 - Math.floor((c - 13) / 2), c, 10 - Math.floor((c - 13) / 2), (c - 13) % 2 === 0 ? 'C' : 'D');
     },
     coins: [[6, 16], [16, 16], [9, 12], [18, 10], [28, 6]],
-    decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: 'CLOSED', colour: 2 }, 3, 12]],
+    decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: 'CLOSED', colour: 2 }, 2, 10]],
     creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 14, row: 2, way: 'right', speed: 2, range: 50 }],
   }),
 
@@ -181,15 +181,15 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'marmoset', col: 7, row: 4, way: 'right', speed: 1, range: 32 }, { who: 'marmoset', col: 23, row: 6, way: 'left', speed: 1, range: 24 }],
   }),
 
-  // C OPEN ARMS: Corcovado. In at the left (floor 8, rows 6-7), a rope (col 5) down the hillside through a gap, the terrace's steps down (floors 11, 14) to the viewing platform at the foot of the Redeemer, and up again (floors 11, 8) to the way out east.
+  // C OPEN ARMS: Corcovado. In at the left (floor 8, rows 6-7), a rope (col 5) down the hillside through a gap, the terrace's steps down (floors 10, 12, 14) to the viewing platform at the foot of the Redeemer, and up again (floors 12, 10, 8) to the way out east.
   room({
     id: RIO_ROOM.arms, cell: [6, 36], sector: 71, palette: ARMS_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 5, 'G').box(30, 0, 31, 5, 'G');
-      g.box(0, 8, 3, 19, 'G').box(7, 8, 8, 19, 'G').box(9, 11, 11, 19, 'G').box(12, 14, 19, 19, 'P').box(20, 11, 22, 19, 'G').box(23, 8, 31, 19, 'G');
+      g.box(0, 8, 3, 19, 'G').box(7, 8, 8, 19, 'G').box(9, 10, 10, 19, 'G').box(11, 12, 11, 19, 'G').box(12, 14, 19, 19, 'P').box(20, 12, 20, 19, 'G').box(21, 10, 22, 19, 'G').box(23, 8, 31, 19, 'G');
       g.box(5, 8, 5, 19, 'V');
     },
-    coins: [[2, 6], [6, 6], [10, 9], [21, 9], [26, 6], [29, 6]],
+    coins: [[2, 6], [6, 6], [10, 8], [21, 8], [26, 6], [29, 6]],
     item: { name: 'skewer5', col: 27, row: 6, sprite: RIO_SPRITE.skewer },
     decor: [['christ', 12, 7], ['stands', 24, 3], [{ text: 'CORCOVADO', colour: 7 }, 10, 3]],
     creatures: [{ who: 'vulture', col: 4, row: 1, way: 'right', speed: 2, range: 60 }],
@@ -216,7 +216,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 18, 31, 19, 'S').box(0, 0, 1, 17, 'G').box(30, 0, 31, 15, 'K');
       g.box(2, 8, 10, 8, 'R').box(2, 9, 10, 13, 'P').box(14, 9, 21, 9, 'R').box(14, 10, 21, 13, 'Y').box(25, 8, 29, 8, 'R').box(25, 9, 29, 13, 'K');
-      g.box(6, 0, 6, 7, 'V');
+      g.box(5, 0, 5, 7, 'V');
     },
     coins: [[4, 6], [18, 7], [29, 6], [8, 16], [16, 16], [24, 16], [12, 12]],
     item: { name: 'skewer6', col: 15, row: 7, sprite: RIO_SPRITE.skewer },
@@ -224,43 +224,43 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'capoeirista', col: 9, row: 16, way: 'right', speed: 1, range: 36 }, { who: 'macaw', col: 12, row: 3, way: 'right', speed: 1, range: 50 }],
   }),
 
-  // W STEAK YOUR CLAIM: the churrascaria, a dead end. In from Sugarloaf's beach at the right (floor 18); two gauchos pace the dining floor, each with a skewer that swings; the stairs of crates (floors 15, 12) climb at the middle to the
+  // W STEAK YOUR CLAIM: the churrascaria, a dead end. In from Sugarloaf's beach at the right (floor 18); two gauchos pace the dining floor, each with a skewer that swings; the stairs of crates (floors 16, 14, 12) climb at the middle to the
   // mezzanine's stage (floor 10) where the headdress hangs on a curtain; a skewer of picanha on the stairs' landing.
   room({
     id: RIO_ROOM.steak, cell: [6, 33], sector: 74, palette: STEAK_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 3, 'B').box(0, 4, 1, 17, 'B').box(30, 4, 31, 15, 'B').box(0, 18, 31, 19, 'F');
-      g.box(2, 10, 15, 10, 'M').box(16, 12, 17, 17, 'R').box(18, 15, 19, 17, 'R');
+      g.box(2, 10, 15, 10, 'M').box(16, 12, 17, 17, 'R').box(18, 14, 19, 17, 'R').box(20, 16, 21, 17, 'R');
     },
-    coins: [[4, 8], [9, 8], [11, 8], [17, 10], [5, 16], [13, 16], [24, 16]],
+    coins: [[4, 8], [9, 8], [11, 8], [17, 10], [5, 16], [13, 16], [28, 16]],
     item: { name: 'headdress', col: 6, row: 8, sprite: RIO_SPRITE.headdress },
-    decor: [['saladBar', 6, 16], ['restTable', 10, 16], ['restTable', 21, 16], ['rotisserie', 25, 15], ['lampRed', 8, 4], ['lampRed', 16, 4], ['lampRed', 24, 4], ['curtain', 2, 7], ['curtain', 13, 7]],
-    creatures: [{ who: 'gaucho', col: 28, row: 16, way: 'left', speed: 1, range: 56 }, { who: 'gaucho', col: 4, row: 16, way: 'right', speed: 1, range: 80 }],
+    decor: [['saladBar', 6, 16], ['restTable', 10, 16], ['restTable', 22, 16], ['rotisserie', 25, 15], ['lampRed', 8, 4], ['lampRed', 16, 4], ['lampRed', 24, 4], ['curtain', 2, 7], ['curtain', 13, 7]],
+    creatures: [{ who: 'gaucho', col: 29, row: 16, way: 'left', speed: 1, range: 48 }, { who: 'gaucho', col: 4, row: 16, way: 'right', speed: 1, range: 80 }],
   }),
 
-  // P BEAT THE DRUM: the carnival's first room. In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 15, 12, 9) up and down the middle with drummers; Tijuca's rope (col 22) comes down to the street; the steward at the right in a low
+  // P BEAT THE DRUM: the carnival's first room. In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 12, 10) up and down the middle with drummers; Tijuca's rope (col 22) comes down to the street; the steward at the right in a low
   // lane (rows 16-17 only) lets him by only in the headdress.
   room({
     id: RIO_ROOM.drum, cell: [7, 37], sector: 75, palette: DRUM_PALETTE,
     paint(g) {
       g.box(0, 18, 31, 19, 'S').box(0, 0, 1, 15, 'Q').box(24, 0, 31, 15, 'Q');
-      g.box(4, 15, 6, 17, 'R').box(7, 12, 9, 17, 'R').box(10, 9, 14, 17, 'R').box(15, 12, 17, 17, 'R').box(18, 15, 19, 17, 'R');
+      g.box(4, 16, 5, 17, 'R').box(6, 14, 7, 17, 'R').box(8, 12, 9, 17, 'R').box(10, 10, 14, 17, 'R').box(15, 12, 16, 17, 'R').box(17, 14, 18, 17, 'R').box(19, 16, 20, 17, 'R');
       g.box(22, 0, 22, 17, 'V');
     },
-    coins: [[5, 13], [8, 10], [16, 10], [19, 13], [21, 16]],
+    coins: [[5, 14], [7, 12], [9, 10], [16, 10], [18, 12], [21, 16]],
     decor: [['sambaBanner', 8, 4], ['bunting', 4, 2], ['bunting', 20, 2], ['lampPost', 2, 15]],
-    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 11, row: 7, way: 'right', speed: 1, range: 24 }, { who: 'dancer', col: 21, row: 16, way: 'left', speed: 1, range: 6 }],
+    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 11, row: 8, way: 'right', speed: 1, range: 16 }, { who: 'dancer', col: 21, row: 16, way: 'left', speed: 1, range: 6 }],
   }),
 
-  // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18); the channel (deep water, cols 4-26) is crossed on the floats that come along it: lane A (the street's height) three of them left to right, lane B (floor 14) two the other
+  // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18); the channel (deep water, cols 4-24) is crossed on the floats that come along it: lane A (the street's height) three of them left to right, lane B (floor 14) two the other
   // way; the stage at the right (floor 18) with a skewer leads east out low to the beach.
   room({
     id: RIO_ROOM.float, cell: [7, 38], sector: 76, palette: FLOAT_PALETTE,
     paint(g) {
-      g.box(0, 18, 3, 19, 'S').box(4, 18, 26, 19, 'W').box(27, 18, 31, 19, 'R').box(0, 0, 31, 1, 'Q').box(0, 2, 1, 15, 'Q').box(30, 2, 31, 15, 'Q');
+      g.box(0, 18, 3, 19, 'S').box(4, 18, 24, 19, 'W').box(25, 18, 31, 19, 'R').box(25, 16, 26, 17, 'R').box(0, 0, 31, 1, 'Q').box(0, 2, 1, 15, 'Q').box(30, 2, 31, 15, 'Q');
     },
-    coins: [[8, 16], [14, 16], [20, 16], [10, 12], [18, 12], [27, 16]],
-    item: { name: 'skewer4', col: 28, row: 16, sprite: RIO_SPRITE.skewer },
+    coins: [[8, 16], [14, 16], [20, 16], [10, 12], [18, 12], [28, 16]],
+    item: { name: 'skewer4', col: 29, row: 16, sprite: RIO_SPRITE.skewer },
     decor: [['stands', 2, 2], ['stands', 6, 2], ['stands', 10, 2], ['stands', 14, 2], ['stands', 18, 2], ['stands', 22, 2], ['stands', 26, 2], ['sambaBanner', 10, 9],
       ['floatGalleon', 3, 5], ['floatSun', 11, 5], ['floatBird', 18, 5], ['surdo', 28, 14]],
   }),

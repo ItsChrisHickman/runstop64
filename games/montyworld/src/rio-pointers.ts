@@ -1,11 +1,10 @@
 /**
  * Where Rio's sprites are in the bank (the blocks of $40 bytes numbered by pointer). Rio's come from the blocks of Monty on the Run's own that a game with no C5, no flag and no boat never shows ($A0-$AE: the Union
- * Jack's four and the C5's sixteen; the game-over letters at $B6-$BC and the lift's death at $BD-$BE stay), and the treasure's block ($9B), which the acai bowl takes: touching it is touching the treasure, and ends the
- * game. A leaf module: the rooms and the data both name these.
+ * Jack's four and the C5's sixteen; the game-over letters at $B6-$BC and the lift's death at $BD-$BE stay), and the block after them ($AF) for the acai bowl, which is the game's treasure (`itemSprites.treasure`): touching it ends the game. A leaf module: the rooms and the data both name these.
  */
 
 /** The key to the city, the headdress, the churrasco skewer (the food) and the acai bowl (the treasure's pointer). */
-export const RIO_SPRITE = { key: 0xa0, headdress: 0xa1, skewer: 0xa2, bowl: 0x9b } as const;
+export const RIO_SPRITE = { key: 0xa0, headdress: 0xa1, skewer: 0xa2, bowl: 0xaf } as const;
 
 /** The setting sun of the finale, and the cable car's roof and floor. */
 export const SUN_POINTER = 0xa4;

@@ -1,6 +1,6 @@
 import type { Host } from 'c64kit';
 import { montyCodec } from '../../montyotr/src/save';
-import { runMonty } from '../../montyotr/src/session';
+import { montyFont as fontOf, runMonty } from '../../montyotr/src/session';
 import { WORLD } from './data';
 
 /**
@@ -15,4 +15,9 @@ export const CODEC = montyCodec('Do Svidaniya Monty');
 
 export function run(host: Host) {
   return runMonty(host, WORLD, { codec: CODEC });
+}
+
+/** The game's own lettering (the credits of its reward show are set in it). */
+export function montyFont() {
+  return fontOf(WORLD);
 }

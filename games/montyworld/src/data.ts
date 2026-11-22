@@ -138,6 +138,7 @@ const ITEM_COLOURS = new Map<number, number>([
 ]);
 const itemSprites: MontyData['itemSprites'] = {
   ...ITEM_SPRITES,
+  treasure: RIO_SPRITE.bowl, // (the acai bowl: touching it ends the game)
   collectable: (ptr) => ITEM_SPRITES.collectable(ptr) || ITEM_COLOURS.has(ptr),
   colour: (ptr) => ITEM_COLOURS.get(ptr) ?? ITEM_SPRITES.colour(ptr),
 };
