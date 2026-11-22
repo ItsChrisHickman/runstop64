@@ -66,6 +66,9 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
   rooms open to the sky and run off the screen's edges (ground, water, rooftops, a train's line continuing); walls only where
   the place is indoors, shaped as that building. A vehicle or structure is never cut off by a wall at the edge. No ceiling
   over an outdoor room (Chris): open sky to the top.
+- **No grey by default** (Chris, 2026-11-22: "drab colour that should only be used if intentional. I don't think Monty on the Run
+  defaults to grey"). Each room picks a few bright, place-true inks on black, as Monty on the Run's do; grey only where the
+  thing is grey (stone, steel).
 - **A costume is worn, not stuck on** (Chris on the hats, 2026-11-21: "Doesn't look like he is wearing the item. Too large and
   it's over his face"): a hat sits small on his head above his eyes, a lei round his neck; his face always shows.
 
