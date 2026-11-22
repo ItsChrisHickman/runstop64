@@ -6,7 +6,9 @@
 import type { Game } from '../../montyotr/src/game';
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { ROOM } from '../src/moscow';
-import type { Aim, Goal } from './bot';
+import type { Goal } from '../../shared/monty/test/bot';
+import type { Leg } from '../../shared/monty/test/legs';
+export type { Leg };
 
 /** The index of the n-th coin of a room (its place in the coin table). */
 export function coinIndex(g: Game, room: number, col: number, row: number): number {
@@ -57,7 +59,6 @@ const ITEM_AT: Readonly<Record<number, readonly (readonly [number, number])[]>> 
   [ROOM.domes]: [[28, 4]], [ROOM.gum]: [[12, 7]], [ROOM.platform]: [[13, 3], [12, 13]],
 };
 
-export interface Leg { name: string; goal: Goal; aim: readonly Aim[] }
 export const leg = (name: string, p: Part): Leg => ({ name, ...p });
 
 /** Everything, in order. */

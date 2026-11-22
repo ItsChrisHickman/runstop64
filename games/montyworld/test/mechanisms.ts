@@ -22,8 +22,8 @@ import { FALL, GROW, SHATTER, WARN } from '../../montyotr/src/icicles';
 import { MOSCOW_CREATURES } from '../src/art/creatures';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
-import { newGame } from './bot';
-import { search } from './proofs';
+import { newGame } from '../../shared/monty/test/bot';
+import { search } from './search';
 import { at, colOf, dead, LEFT, RIGHT, rowText, run } from './mech-kit';
 import { itemIndex, standY } from './route';
 

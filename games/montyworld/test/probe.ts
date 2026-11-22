@@ -1,10 +1,10 @@
 /** Where the bot can get to in one room from a start (a map of cells his top left reached), for finding what a layout lacks. */
 import { enterRoom } from '../../montyotr/src/ending';
 import { WORLD } from '../src/data';
-import { ACTIONS, hold, keyOf, newGame, STEP } from './bot';
+import { ACTIONS, hold, keyOf, newGame, STEP } from '../../shared/monty/test/bot';
 import { copy } from '../../montyotr/test/play';
 import { LEGS, standY } from './route';
-import { play, search } from './bot';
+import { play, search } from '../../shared/monty/test/bot';
 
 const room = Number(process.argv[2] ?? 0), col = Number(process.argv[3] ?? 3), floor = Number(process.argv[4] ?? 17);
 let s = newGame(WORLD, false);

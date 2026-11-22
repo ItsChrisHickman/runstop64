@@ -7,8 +7,9 @@
  */
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
-import { newGame } from './bot';
-import { readArgs, runLegs } from './legs';
+import { newGame } from '../../shared/monty/test/bot';
+import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { ROUTES } from './routes-dir';
 import { ROOM } from '../src/moscow';
 import { LEGS } from './route';
 
@@ -20,7 +21,7 @@ const moscow = (table: Uint8Array, stride: number, taken: Uint8Array) => taken.e
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;
-  const { live, frames, nodes } = runLegs({ region: 'moscow', mode, legs: LEGS, start: newGame(WORLD, mode === 'enhanced'), args, plan: [[400000, 1.5]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'moscow', mode, legs: LEGS, start: newGame(WORLD, mode === 'enhanced'), args, plan: [[400000, 1.5]] });
   const g = live.g;
   check(`${mode}: at the end every one of the 14 coins, both pirozhki and both items are taken (every room has one), ${g.score} points (14 x 50 + 4 x 200 = 1500), the roof's end (room ${g.roomId} is the station)`,
     moscow(g.data.coinTable, 3, g.coinCollected) && moscow(g.data.specialItems, 4, g.siCollected) && g.score === 1500 && g.roomId === ROOM.station);

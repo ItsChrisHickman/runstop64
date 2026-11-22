@@ -6,8 +6,8 @@
  * The game's random numbers (the crushers' delays) come from Math.random; here they are a function of the game's own generator
  * state, so a game and its copy go on the same way and a route found on a copy is the route that plays.
  */
-import { Game, type Input as Stick } from '../../montyotr/src/game';
-import { copy, frame, NONE, settled, type State } from '../../montyotr/test/play';
+import { Game, type Input as Stick } from '../../../montyotr/src/game';
+import { copy, frame, NONE, settled, type State } from '../../../montyotr/test/play';
 
 /** Frames the stick is held for at a time. */
 export const STEP = 4;

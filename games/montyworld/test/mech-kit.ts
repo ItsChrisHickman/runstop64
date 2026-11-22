@@ -7,7 +7,7 @@ import type { Game, Input as Stick } from '../../montyotr/src/game';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
-import { newGame } from './bot';
+import { newGame } from '../../shared/monty/test/bot';
 import { itemIndex, standY } from './route';
 
 export const LEFT: Stick = { ...NONE, left: true };

@@ -27,8 +27,8 @@ import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
-import { newGame } from './bot';
-import { search } from './proofs';
+import { newGame } from '../../shared/monty/test/bot';
+import { search } from './search';
 import { cell, colOf, overCrowded, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 

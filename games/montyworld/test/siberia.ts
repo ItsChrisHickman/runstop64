@@ -13,8 +13,9 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
-import { newGame } from './bot';
-import { readArgs, runLegs } from './legs';
+import { newGame } from '../../shared/monty/test/bot';
+import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { ROUTES } from './routes-dir';
 import { itemIndex, standY } from './route';
 import { SIBERIA_LEGS } from './siberia-route';
 
@@ -33,7 +34,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, ROOM.station, 0x0c + (16 + 4) * 4, standY(17));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ region: 'siberia', mode, legs: SIBERIA_LEGS, start: live0, args, plan: [[600000, 1.5]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'siberia', mode, legs: SIBERIA_LEGS, start: live0, args, plan: [[600000, 1.5]] });
   const g = live.g;
   const coins = g.data.coinTable.length / 3;
   const mine = (i: number) => siberian(g.data.coinTable[i * 3] ?? 0);

@@ -13,8 +13,9 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { AND } from '../src/andes';
 import { PAC } from '../src/pacific';
-import { newGame } from './bot';
-import { readArgs, runLegs } from './legs';
+import { newGame } from '../../shared/monty/test/bot';
+import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { ROUTES } from './routes-dir';
 import { ANDES_LEGS } from './andes-route';
 import { itemIndex, standY } from './route';
 
@@ -32,7 +33,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, PAC.hold, 0x0c + (26 + 4) * 4, standY(16));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ region: 'andes', mode, legs: ANDES_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'andes', mode, legs: ANDES_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
   if (args.first === 0 && (args.last ?? ANDES_LEGS.length) >= ANDES_LEGS.length) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;

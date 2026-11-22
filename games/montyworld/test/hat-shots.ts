@@ -14,7 +14,7 @@ import { wear } from '../../montyotr/src/items';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { WORLD } from '../src/data';
 import { ROOM } from '../src/moscow';
-import { newGame } from './bot';
+import { newGame } from '../../shared/monty/test/bot';
 import { itemIndex, standY } from './route';
 
 const out = process.argv[2];

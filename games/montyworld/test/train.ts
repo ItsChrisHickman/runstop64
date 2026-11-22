@@ -18,7 +18,7 @@ import { WORLD } from '../src/data';
 import { decorIndex } from '../src/layout';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
-import { newGame } from './bot';
+import { newGame } from '../../shared/monty/test/bot';
 import { standY } from './route';
 
 /** A game with Monty standing in a room, the creatures out of the way. */

@@ -6,7 +6,7 @@
 import { RIO_ROOM as R } from '../src/rio';
 import { AND } from '../src/andes';
 import { copy, frame } from '../../montyotr/test/play';
-import { ACTIONS } from './bot';
+import { ACTIONS } from '../../shared/monty/test/bot';
 import { coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg's goal reached with some move that lives on for `frames` more (a coin taken in front of a creature that is about to reach him is no coin taken: the bot's own check looks only 12 frames ahead). */

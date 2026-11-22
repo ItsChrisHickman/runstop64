@@ -13,8 +13,9 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
-import { newGame } from './bot';
-import { readArgs, runLegs } from './legs';
+import { newGame } from '../../shared/monty/test/bot';
+import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { ROUTES } from './routes-dir';
 import { PACIFIC_LEGS } from './pacific-route';
 import { itemIndex, standY } from './route';
 
@@ -33,7 +34,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, PAC.stern, 0x0c + 4 * 4, standY(13));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
   if (args.first === 0 && (args.last ?? PACIFIC_LEGS.length) >= PACIFIC_LEGS.length) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;

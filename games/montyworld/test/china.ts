@@ -14,8 +14,9 @@ import { WORLD } from '../src/data';
 import { CHI } from '../src/china';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
-import { newGame } from './bot';
-import { readArgs, runLegs } from './legs';
+import { newGame } from '../../shared/monty/test/bot';
+import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { ROUTES } from './routes-dir';
 import { CHINA_LEGS } from './china-route';
 import { itemIndex, standY } from './route';
 
@@ -34,7 +35,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, SIB.border, 0x0c + (27 + 4) * 4, standY(17));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ region: 'china', mode, legs: CHINA_LEGS, start: live0, args, plan: [[600000, 1.5]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'china', mode, legs: CHINA_LEGS, start: live0, args, plan: [[600000, 1.5]] });
   const g = live.g;
   const coins = g.data.coinTable.length / 3;
   const mine = (i: number) => chinese(g.data.coinTable[i * 3] ?? 0);

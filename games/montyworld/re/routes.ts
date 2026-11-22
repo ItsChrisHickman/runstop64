@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import { enterRoom } from '../../montyotr/src/ending';
 import { routeText, type Move } from '../../shared/ending/pilot';
 import { frame, NONE, copy, type State } from '../../montyotr/test/play';
-import { ACTIONS, newGame, search, type Route } from '../test/bot';
+import { ACTIONS, newGame, search, type Route } from '../../shared/monty/test/bot';
 import { PLACES } from '../src/ending-places';
 import { WORLD } from '../src/data';
 import { standY } from '../test/route';

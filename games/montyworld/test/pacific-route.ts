@@ -7,7 +7,7 @@
 import { lavaTop } from '../../montyotr/src/lava';
 import { LAVA, PAC } from '../src/pacific';
 import { copy, frame } from '../../montyotr/test/play';
-import { ACTIONS } from './bot';
+import { ACTIONS } from '../../shared/monty/test/bot';
 import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
 
 /** Swimming to a place: his top left within a cell of the one given (a swim across a wide room is a few of these, so the search never has the whole sea to look through). */

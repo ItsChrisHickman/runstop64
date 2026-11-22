@@ -26,8 +26,8 @@ import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
-import { newGame } from './bot';
-import { search } from './proofs';
+import { newGame } from '../../shared/monty/test/bot';
+import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, RIGHT, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 

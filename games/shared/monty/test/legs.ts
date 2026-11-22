@@ -12,14 +12,14 @@
  * The positional arguments are the mode (`original`, `enhanced`, or `all`) and, where a region's bot takes them, the first and last leg to play.
  */
 import fs from 'node:fs';
-import { copy, NONE, type State } from '../../montyotr/test/play';
-import { check } from '../../shared/test/check';
-import { readJsonFile } from '../../shared/test/data';
-import * as S from '../../../packages/c64kit/src/schema';
-import { ACTIONS, hold, keyOf, livesOn, play, search, STEP, type Goal, type Route } from './bot';
-import type { Leg } from './route';
+import { copy, NONE, type State } from '../../../montyotr/test/play';
+import { check } from '../../test/check';
+import { readJsonFile } from '../../test/data';
+import * as S from '../../../../packages/c64kit/src/schema';
+import { ACTIONS, hold, keyOf, livesOn, play, search, STEP, type Aim, type Goal, type Route } from './bot';
 
-export const ROUTES_DIR = 'games/montyworld/test/routes';
+/** A leg of a region's route: a goal for the bot to reach, and where to head (the aim only guides the search). */
+export interface Leg { name: string; goal: Goal; aim: readonly Aim[] }
 
 /** What the command line says: the mode, the legs to play, and the flags. */
 export interface Args { only: string | undefined; first: number; last: number | undefined; record: boolean; full: boolean }
@@ -28,7 +28,7 @@ export function readArgs(argv: readonly string[] = process.argv.slice(2)): Args 
   return { only: pos[0], first: Number(pos[1] ?? 0), last: pos[2] === undefined ? undefined : Number(pos[2]), record: flags.includes('--record'), full: flags.includes('--full') };
 }
 
-const file = (region: string, mode: string) => `${ROUTES_DIR}/${region}-${mode}.json`;
+const file = (dir: string, region: string, mode: string) => `${dir}/${region}-${mode}.json`;
 const routesFile = S.object({ region: S.string, mode: S.string, legs: S.record(S.string) });
 
 export const showRoute = (route: Route) => route.map(([a, f]) => `${a}:${f}`).join(' ');
@@ -37,20 +37,20 @@ export function parseRoute(steps: string): Route {
 }
 
 /** The routes recorded for a region in a mode, by leg name (none if there is no file). */
-export function readRecorded(region: string, mode: string): Map<string, Route> {
+export function readRecorded(dir: string, region: string, mode: string): Map<string, Route> {
   const out = new Map<string, Route>();
-  if (!fs.existsSync(file(region, mode))) return out;
-  const v = readJsonFile(file(region, mode));
-  if (!routesFile(v)) throw new Error(`${file(region, mode)}: not a recorded route file`);
+  if (!fs.existsSync(file(dir, region, mode))) return out;
+  const v = readJsonFile(file(dir, region, mode));
+  if (!routesFile(v)) throw new Error(`${file(dir, region, mode)}: not a recorded route file`);
   for (const [name, steps] of Object.entries(v.legs)) out.set(name, parseRoute(steps));
   return out;
 }
 
 /** Write a region's routes, in the legs' order, one line a leg (so a re-recording's diff shows the legs that changed). */
-export function writeRecorded(region: string, mode: string, legs: readonly Leg[], routes: ReadonlyMap<string, Route>): void {
+export function writeRecorded(dir: string, region: string, mode: string, legs: readonly Leg[], routes: ReadonlyMap<string, Route>): void {
   const lines = legs.flatMap((l) => { const r = routes.get(l.name); return r ? [`    ${JSON.stringify(l.name)}: ${JSON.stringify(showRoute(r))}`] : []; });
-  fs.mkdirSync(ROUTES_DIR, { recursive: true });
-  fs.writeFileSync(file(region, mode), `{\n  "region": ${JSON.stringify(region)},\n  "mode": ${JSON.stringify(mode)},\n  "legs": {\n${lines.join(',\n')}\n  }\n}\n`);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(file(dir, region, mode), `{\n  "region": ${JSON.stringify(region)},\n  "mode": ${JSON.stringify(mode)},\n  "legs": {\n${lines.join(',\n')}\n  }\n}\n`);
 }
 
 /** When a leg finds no way: where he could get to in the room he is in (the cells his top left reached in up to 150000 states), for finding what the layout lacks. */
@@ -81,6 +81,9 @@ function reached(from: State): string {
 export type Plan = readonly (readonly [limit: number, weight: number])[];
 
 export interface LegsRun {
+  /** Where the route files are (committed, one `<region>-<mode>.json` each): the game's `test/routes`. */
+  dir: string;
+  /** The region's name (the file's, and the test's: `<region>.ts` is what the re-record hint names). */
   region: string;
   mode: string;
   legs: readonly Leg[];
@@ -97,9 +100,9 @@ const describe = (s: State) => `   now in room ${s.g.roomId} at ${s.g.montyCol -
 const reachedGoal = (s: State | null, goal: Goal): s is State => s !== null && goal(s.g) && livesOn(s);
 
 export function runLegs(run: LegsRun): LegsResult {
-  const { region, mode, legs, args, plan } = run;
+  const { dir, region, mode, legs, args, plan } = run;
   if (new Set(legs.map((l) => l.name)).size !== legs.length) throw new Error(`${region}: two legs have the same name`);
-  const recorded = args.full ? new Map<string, Route>() : readRecorded(region, mode);
+  const recorded = args.full ? new Map<string, Route>() : readRecorded(dir, region, mode);
   const routes = new Map<string, Route>();
   let live = run.start, frames = 0, nodes = 0, replayed = 0, searched = 0, ok = true;
   const stale: string[] = [];
@@ -139,10 +142,10 @@ export function runLegs(run: LegsRun): LegsResult {
   }
   const complete = ok && args.first === 0 && (args.last ?? legs.length) >= legs.length;
   if (args.record && complete) {
-    writeRecorded(region, mode, legs, routes);
-    console.log(`${mode}: ${routes.size} routes recorded in ${file(region, mode)}`);
+    writeRecorded(dir, region, mode, legs, routes);
+    console.log(`${mode}: ${routes.size} routes recorded in ${file(dir, region, mode)}`);
   } else if (args.record) console.log(`${mode}: not recorded (only a complete run that passes is)`);
-  else if (stale.length > 0 || (complete && searched > 0 && !args.full)) console.log(`${mode}: ${stale.length + (complete ? searched - stale.length : 0)} route(s) stale or missing: re-record with \`node tools/test.mjs games/montyworld/test/${region}.ts ${mode} --record\``);
+  else if (stale.length > 0 || (complete && searched > 0 && !args.full)) console.log(`${mode}: ${stale.length + (complete ? searched - stale.length : 0)} route(s) stale or missing: re-record with \`node tools/test.mjs ${dir.replace(/\/routes$/, '')}/${region}.ts ${mode} --record\``);
   console.log(`${mode}: ${replayed} legs replayed from the recorded routes, ${searched} searched`);
   return { live, frames, nodes, replayed, searched, ok };
 }

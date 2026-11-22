@@ -10,7 +10,7 @@ import { wear } from '../../montyotr/src/items';
 import { copy } from '../../montyotr/test/play';
 import { WORLD } from '../src/data';
 import { PAC } from '../src/pacific';
-import { ACTIONS, hold, keyOf, newGame, STEP } from './bot';
+import { ACTIONS, hold, keyOf, newGame, STEP } from '../../shared/monty/test/bot';
 import { coinIndex, itemIndex, standY } from './route';
 
 const ROOM_NAMES = new Map<string, number>(Object.entries(PAC));

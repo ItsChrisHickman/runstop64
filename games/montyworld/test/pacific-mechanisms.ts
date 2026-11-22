@@ -28,8 +28,8 @@ import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
 import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, POOL_BED, POOL_BED_CELLS, POOL_CELLS, POOL_SEA, TORCHES, TORCH_PULSES } from '../src/pacific';
 import { AND } from '../src/andes';
-import { newGame } from './bot';
-import { search } from './proofs';
+import { newGame } from '../../shared/monty/test/bot';
+import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 

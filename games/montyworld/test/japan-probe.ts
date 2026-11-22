@@ -6,7 +6,7 @@
 import { enterRoom } from '../../montyotr/src/ending';
 import { copy } from '../../montyotr/test/play';
 import { WORLD } from '../src/data';
-import { ACTIONS, hold, keyOf, newGame, STEP } from './bot';
+import { ACTIONS, hold, keyOf, newGame, STEP } from '../../shared/monty/test/bot';
 import { coinIndex, standY } from './route';
 
 const room = Number(process.argv[2] ?? 27), col = Number(process.argv[3] ?? 3), floor = Number(process.argv[4] ?? 17);
