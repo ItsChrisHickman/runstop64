@@ -335,6 +335,7 @@ export const WORLD: MontyData = {
       { room: AND.cloud, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
       { room: AND.boat, item: CHULLO_ITEM, text: 'THE CAPTAIN CARRIES LOCALS ONLY' },
       { room: RIO_ROOM.sugar, item: CITY_KEY, text: 'THE CABLE CAR STATION IS LOCKED' },
+      { room: RIO_ROOM.steak, item: HEADDRESS_ITEM, text: 'FEATHERS FOR THE STEWARD: GO UP' },
       { room: RIO_ROOM.drum, item: HEADDRESS_ITEM, text: 'ONLY DANCERS PASS THE STEWARD' },
     ],
   },

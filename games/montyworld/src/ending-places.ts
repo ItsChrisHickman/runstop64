@@ -55,25 +55,25 @@ export interface Place { room: number; prepare: Scene['prepare']; take: Scene['t
 
 export const PLACES: readonly Place[] = [
   // Moscow: Red Square, St Basil's domes behind
-  { room: ROOM.square, prepare: arrivedIn(FIRST.moscow, 0), take: { coins: 1 }, credits: ['A GREMLIN GRAPHICS GAME, 1985', 'ORIGINAL GAME BY PETER HARRAP'] },
+  { room: ROOM.square, prepare: arrivedIn(FIRST.moscow, 0), take: { coins: 1 }, credits: ['A NEW GAME BY CHRISTOPHER HICKMAN', 'WITH CLAUDE, AFTER MONTY ON THE RUN', 'BY PETER HARRAP, GREMLIN GRAPHICS'] },
   // Siberia: the Trans-Siberian's roof, a tunnel mouth coming
-  { room: SIB.gravy, prepare: arrivedIn(FIRST.siberia, 1), take: { coins: 1 }, credits: ['C64 VERSION BY MICRO PROJECTS LTD', 'ANTHONY CLARKE AND JASON PERKINS', 'GRAPHICS BY MARK RODGERS'] },
+  { room: SIB.gravy, prepare: arrivedIn(FIRST.siberia, 1), take: { coins: 1 }, credits: ['THE TRANS-SIBERIAN RUNS 9289 KM', 'FROM MOSCOW TO VLADIVOSTOK'] },
   // China: the Great Wall and its watchtower
-  { room: CHI.wall, prepare: arrivedIn(FIRST.china, 1), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD', 'THE THIRD MONTY MOLE GAME'] },
+  { room: CHI.wall, prepare: arrivedIn(FIRST.china, 1), take: { coins: 1 }, credits: ['THE GREAT WALL RUNS 21196 KM', 'IN ALL, BRANCHES AND SPURS TOO'] },
   // Japan: the temple garden
-  { room: JP.garden, prepare: arrivedIn(FIRST.japan, 2), take: { coins: 1 }, credits: ['PETER HARRAP WROTE THE FIRST GAME,', 'WANTED: MONTY MOLE, AT 19 IN 1984,'] },
+  { room: JP.garden, prepare: arrivedIn(FIRST.japan, 2), take: { coins: 1 }, credits: ['THE SHINKANSEN RUNS UP TO', '320 KM AN HOUR'] },
   // the Pacific: the luau's torches, and the lava climb
-  { room: PAC.lei, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['AS A REACTION TO THE BRITISH', 'MINERS STRIKE: A MOLE STEALING COAL', 'TO KEEP HIS FAMILY WARM'] },
-  { room: PAC.mauna, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MONTY ESCAPES FROM HIS HOUSE FOR THE', 'ENGLISH CHANNEL AND FREEDOM'] },
+  { room: PAC.lei, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
+  { room: PAC.mauna, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
   // the Andes: the terraces' top path below the drop, Machu Picchu's boulders, the vines
-  { room: AND.llama, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['THE MOLE CRUSHERS CAME OVER FROM', 'WANTED: MONTY MOLE, SAID ZZAP!64', 'PETER HARRAP: I LIKE A BIT OF A SHOCK'] },
-  { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['ROB HUBBARD SAID THE MAIN TUNE WAS', 'INSPIRED BY DEVILS GALOP, THE DICK', 'BARTON RADIO SERIAL THEME'] },
-  { room: AND.river, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['HARDCORE GAMING 101 READERS RATED IT', 'NUMBER 2 IN WESTERN GAME MUSIC, 2011'] },
+  { room: AND.llama, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
+  { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
+  { room: AND.river, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
   // Rio: the cable car, the churrascaria, the floats, the beach
-  { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['ZZAP!64 GAVE IT 90 PER CENT IN 1985:', 'MOLING ABOUT HAS NEVER BEEN SUCH FUN'] },
-  { room: RIO_ROOM.steak, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['MONTY BOARDS A FERRY TO FRANCE'] },
-  { room: RIO_ROOM.float, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: [] },
-  { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: [] },
+  { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
+  { room: RIO_ROOM.steak, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
+  { room: RIO_ROOM.float, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
+  { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: ['THANK YOU FOR PLAYING'] },
 ];
 
 /** The lines under the last place's: this game's own, in the plan's words (a new game, after Peter Harrap's; no port line: it is not a port). */

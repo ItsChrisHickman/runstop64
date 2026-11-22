@@ -228,12 +228,12 @@ const cableLine = (): Placed[] => {
 };
 
 // ---- U SUGARLOAF SUMMIT ---------------------------------------------------------------------------------
-const SUMMIT_COINS: readonly Cell[] = [[1, 6], [9, 4], [24, 6], [30, 6], [17, 16]];
-const SUMMIT_ITEM: Cell = [22, 16];
+const SUMMIT_COINS: readonly Cell[] = [[1, 6], [9, 4], [24, 6], [30, 6], [17, 12]];
+const SUMMIT_ITEM: Cell = [22, 12];
 const paintSummit = (g: Grid): void => {
   g.box(0, 8, 31, 10, 'G').box(6, 7, 12, 10, 'G').box(6, 6, 12, 6, 'M').box(13, 8, 31, 8, 'M'); // the summit's rock, the dome and the green on top
-  g.box(0, 11, 1, 19, 'G').box(30, 11, 31, 19, 'G').box(2, 18, 29, 19, 'G'); // the cave's walls and floor
-  g.clear(19, 8, 21, 10).box(20, 8, 20, 17, 'V'); // the cleft, and the rope down it
+  g.box(0, 11, 1, 19, 'G').box(30, 11, 31, 19, 'G').box(2, 14, 29, 19, 'G'); // the cave's walls and floor (the rock under it is solid)
+  g.clear(19, 8, 21, 10).box(20, 8, 20, 13, 'V'); // the cleft, and the rope down it
 };
 
 // ---- C OPEN ARMS ----------------------------------------------------------------------------------------
@@ -301,7 +301,7 @@ const paintSteak = (g: Grid): void => {
 // ---- P BEAT THE DRUM ------------------------------------------------------------------------------------
 const DRUM_COINS: readonly Cell[] = [[8, 14], [12, 12], [15, 12], [19, 14], [23, 16]];
 const paintDrum = (g: Grid): void => {
-  g.box(0, 18, 31, 19, 'S').box(24, 14, 31, 15, 'T'); // the street, and the gate's lintel over the steward's lane
+  g.box(0, 18, 31, 19, 'S').box(24, 14, 31, 15, 'T').box(28, 5, 31, 13, 'T'); // the street, and the gate's lintel and tower over the steward's lane
   g.box(6, 16, 10, 17, 'R').box(11, 14, 16, 17, 'R').box(17, 16, 21, 17, 'R');
   g.box(22, 0, 22, 17, 'V');
 };
@@ -310,7 +310,7 @@ const paintDrum = (g: Grid): void => {
 const FLOAT_COINS: readonly Cell[] = [[8, 16], [14, 16], [20, 16], [10, 12], [18, 12], [28, 16]];
 const FLOAT_ITEM: Cell = [29, 16];
 const paintFloat = (g: Grid): void => {
-  g.box(0, 18, 5, 19, 'S').box(6, 18, 24, 19, 'W').box(25, 18, 31, 19, 'R').box(25, 16, 26, 17, 'R').box(0, 14, 5, 15, 'T');
+  g.box(0, 18, 5, 19, 'S').box(6, 18, 24, 19, 'W').box(25, 18, 31, 19, 'R').box(25, 16, 26, 17, 'R').box(0, 14, 5, 15, 'T').box(0, 5, 3, 13, 'T');
 };
 
 // ---- B RIO OR BUST --------------------------------------------------------------------------------------
@@ -345,7 +345,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...sky(paintQuay, keepOf(QUAY_COINS, QUAY_ITEM), 0, 9), ...sea(paintQuay, keepOf(QUAY_COINS, QUAY_ITEM), 10, 17),
       ['skyCloud', 6, 1], ['skyCloudBig', 21, 2], ['sugarloaf', 13, 5], [{ text: 'BEM-VINDO', colour: 7 }, 8, 3], ['fishingBoat', 22, 8], ['lampPost', 25, 15], ['coconutStand', 22, 15],
     ],
-    creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 12, row: 12, way: 'up', speed: 1, range: 10 }],
+    creatures: [{ who: 'capoeirista', col: 16, row: 12, way: 'right', speed: 1, range: 12 }, { who: 'football', col: 12, row: 12, way: 'up', speed: 1, range: 10 }],
   }),
 
   // L THE LAPA ARCHES: the aqueduct's two storeys of arches standing on the street, the tram's track on top. In at the left on the street (floor 18, under the arches); a ladder (col 3) goes up to the track (floor 7) which runs the room with the yellow
@@ -360,7 +360,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ['skyCloud', 8, 1], ['skyCloudBig', 22, 0], ['rioPost', 11, 5], ['rioPost', 17, 5], ['rioPost', 21, 5], ['rioPost', 24, 5],
       ...[5, 9, 13, 17, 21].flatMap((col): Placed[] => [['lapaUpper', col, 8], ['lapaBase', col, 12]]),
     ],
-    creatures: [{ who: 'bonde', col: 5, row: 5, way: 'right', speed: 1, range: 90 }],
+    creatures: [{ who: 'bonde', col: 5, row: 5, way: 'right', speed: 1, range: 90 }, { who: 'drummer', col: 15, row: 14, way: 'up', speed: 1, range: 20 }],
   }),
 
   // S SUGAR RUSH: Sugarloaf's base. In at the left on the beach (floor 18); a ladder (col 7) up to the cable's lower station (floor 14, the shelf) whose gate (cols 10-11) is shut until the key to the city; the car on the cable climbs to the summit
@@ -373,7 +373,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...sky(paintSugar, keepOf(SUGAR_COINS), 0, 9),
       ['rioPeak', 19, 9], ...Array.from({ length: 9 }, (_, i): Placed => ['pacLawn', 19 + i, 16]), ['cableStation', 12, 11], ['cableStation', 25, 5], ...cableLine(), ['rioStilts', 9, 16], ['rioStilts', 14, 16], [{ text: CLOSED_SIGN.text, colour: 2 }, CLOSED_SIGN.col, CLOSED_SIGN.row],
     ],
-    creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 14, row: 2, way: 'right', speed: 2, range: 50 }],
+    creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 16, row: 1, way: 'down', speed: 1, range: 24 }],
   }),
 
   // U SUGARLOAF SUMMIT: the top of the loaf. In at the left from the cable's platform (floor 8), over the granite dome (floor 6, green on top) and along the saddle (floor 8), out east to Corcovado, tourists' deckchairs and viewer on it; a cleft
@@ -384,10 +384,10 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: SUMMIT_COINS,
     item: { name: 'skewer2', col: SUMMIT_ITEM[0], row: SUMMIT_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 0, 7), ...fillCells(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), [0, 11, 31, 12], 'rioSkyLow'), ...sea(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 13, 17),
+      ...sky(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 0, 7), ...fillCells(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), [0, 11, 31, 11], 'rioSkyLow'), ...sea(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 12, 13),
       ['skyCloud', 3, 1], ['pacDiamondHead', 14, 3], ['pacDiamondHead', 23, 3], [{ text: 'SUGARLOAF', colour: 7 }, 12, 2],
       ['rioScope', 13, 6], ['parasol', 15, 6], ['deckchair', 18, 7], ['rioRail', 22, 7], ['rioFlag', 26, 5],
-      ['lampRed', 9, 11], ['lampRed', 14, 11], ['lampRed', 24, 11], ['restTable', 8, 16], ['rioDinerRed', 7, 16], ['rioDinerBlue', 11, 16], ['restTable', 13, 16], ['rioDinerBlue', 12, 16], ['saladBar', 24, 16],
+      ['restTable', 8, 12], ['rioDinerRed', 7, 12], ['rioDinerBlue', 11, 12], ['restTable', 13, 12], ['rioDinerBlue', 12, 12], ['saladBar', 24, 12],
     ],
     creatures: [{ who: 'marmoset', col: 7, row: 4, way: 'right', speed: 1, range: 32 }, { who: 'marmoset', col: 28, row: 1, way: 'down', speed: 1, range: 24 }],
   }),
@@ -403,7 +403,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...sky(paintArms, keepOf(ARMS_COINS, ARMS_ITEM), 0, 11),
       ['christ', 16, 0], ['skyCloud', 3, 1], ['skyCloudBig', 24, 2], ['pacPalm', 7, 2],
     ],
-    creatures: [{ who: 'vulture', col: 4, row: 1, way: 'right', speed: 2, range: 60 }],
+    creatures: [{ who: 'vulture', col: 11, row: 1, way: 'down', speed: 1, range: 40 }],
   }),
 
   // T MONKEY BUSINESS: the Tijuca forest. In at the left on the upper bough (floor 8), which runs east to a gap with a rope (col 22) that hangs through to the carnival below; a rope (col 15) from the ground climbs to the bough, past a middle bough (floor 14) with
@@ -436,19 +436,19 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   }),
 
   // W STEAK YOUR CLAIM: the churrascaria, a dead end. In from Sugarloaf's beach at the right (floor 18). Diners at their tables, the grill with the meat turning over the fire, two gauchos pace the dining floor with skewers that swing from table to table;
-  // the stairs of crates (floors 16, 14, 12) climb at the middle to the mezzanine's stage (floor 10) where the headdress hangs on a curtain.
+  // the stairs of crates (floors 16, 14, 12) climb at the middle to the mezzanine's stage (floor 10) under a COSTUMES sign, where the headdress hangs on a curtain: nothing walks the stage, the way up is the stairs in plain sight, and each gaucho keeps to his own lane.
   room({
     id: RIO_ROOM.steak, cell: [6, 33], sector: 74, palette: STEAK_PALETTE,
     paint: paintSteak,
     coins: STEAK_COINS,
     item: { name: 'headdress', col: STEAK_ITEM[0], row: STEAK_ITEM[1], sprite: RIO_SPRITE.headdress },
     decor: [
-      ['rioWineRack', 6, 5], ['rioWineRack', 9, 5], ['lampRed', 8, 4], ['lampRed', 16, 4], ['curtain', 2, 7], ['curtain', 13, 7],
+      [{ text: 'COSTUMES', colour: 7 }, 5, 6], ['rioWineRack', 18, 5], ['rioWineRack', 20, 5], ['lampRed', 8, 4], ['lampRed', 16, 4], ['curtain', 2, 7], ['curtain', 13, 7],
       ['lampRed', 22, 4], ['lampRed', 26, 4], ['lampRed', 29, 4], [{ text: 'CHURRASCO', colour: 7 }, 21, 7], ['rioPlumes', 22, 9], ['rioPlumes', 28, 9], ['rioWineRack', 24, 10], ['rioWineRack', 26, 10],
       ['restTable', 6, 16], ['rioDinerRed', 5, 16], ['rioDinerBlue', 9, 16], ['restTable', 11, 16], ['rioDinerBlue', 10, 16], ['rioDinerRed', 14, 16],
       ['rioGrill', 24, 14],
     ],
-    creatures: [{ who: 'gaucho', col: 26, row: 16, way: 'left', speed: 1, range: 24 }, { who: 'gaucho', col: 4, row: 16, way: 'right', speed: 1, range: 80 }, { who: 'dancer', col: 13, row: 8, way: 'left', speed: 1, range: 8 }],
+    creatures: [{ who: 'gaucho', col: 26, row: 16, way: 'left', speed: 1, range: 24 }, { who: 'gaucho', col: 5, row: 16, way: 'right', speed: 1, range: 60 }],
   }),
 
   // P BEAT THE DRUM: the carnival's first room. In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 16) up and down the middle with drummers; Tijuca's rope (col 22) comes down to the street; the steward at the right in a
@@ -460,10 +460,10 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     decor: [
       ...sky(paintDrum, keepOf(DRUM_COINS), 0, 11),
       [{ text: 'SAMBA', colour: 7 }, 9, 5], ['bunting', 3, 2], ['bunting', 8, 2], ['bunting', 13, 2], ['bunting', 18, 2], ['rioBalloons', 1, 5], ['rioBalloons', 27, 3],
-      ['stands', 0, 12], ['rioStandsGold', 0, 14], ['stands', 0, 16], ['rioStandsGold', 24, 12], ['stands', 28, 12], ['stands', 24, 10], ['rioStandsGold', 28, 10], ['stands', 24, 8], ['rioStandsGold', 28, 8],
+      ['stands', 0, 12], ['rioStandsGold', 0, 14], ['stands', 0, 16], ['rioStandsGold', 24, 12], ['stands', 24, 10], ['rioStandsGold', 24, 8],
       ['surdo', 6, 14], ['surdo', 20, 14], ['rioPlumes', 13, 10], ['rioPlumes', 9, 12], ['rioPlumes', 17, 12], ['lampPost', 3, 15],
     ],
-    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'right', speed: 1, range: 4 }, { who: 'dancer', col: 0, row: 10, way: 'right', speed: 1, range: 16 }],
+    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'up', speed: 1, range: 20 }, { who: 'dancer', col: 0, row: 10, way: 'right', speed: 1, range: 16 }],
   }),
 
   // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18) under the gate's lintel; the channel (deep water, cols 6-24) is crossed on the floats that come along it with a dancer dancing on each: lane A (the street's height) three of them
@@ -475,9 +475,9 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     item: { name: 'skewer4', col: FLOAT_ITEM[0], row: FLOAT_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
       ...sky(paintFloat, keepOf(FLOAT_COINS, FLOAT_ITEM), 0, 4),
-      ...[0, 4, 8, 12, 16, 20, 24, 28].flatMap((col, i): Placed[] => [[i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 6], [i % 2 === 0 ? 'rioStandsGold' : 'stands', col, 8]]),
-      ...run('bunting', 0, 5, 8, 4), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1], ['rioBalloons', 29, 0], [{ text: 'CARNAVAL', colour: 7 }, 12, 10],
-      ['floatGalleon', HOME.galleon[0], HOME.galleon[1]], ['floatSun', HOME.sun[0], HOME.sun[1]], ['floatBird', HOME.bird[0], HOME.bird[1]], ['stands', 0, 12], ['rioStandsGold', 0, 10], ['rioPlumes', 4, 10],
+      ...[0, 4, 8, 12, 16, 20, 24, 28].flatMap((col, i): Placed[] => [[i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 6], [i % 2 === 0 ? 'rioStandsGold' : 'stands', col, 8]]).filter(([, col]) => col > 3),
+      ...run('bunting', 4, 5, 7, 4), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1], ['rioBalloons', 29, 0], [{ text: 'CARNAVAL', colour: 7 }, 12, 10],
+      ['floatGalleon', HOME.galleon[0], HOME.galleon[1]], ['floatSun', HOME.sun[0], HOME.sun[1]], ['floatBird', HOME.bird[0], HOME.bird[1]], ['rioPlumes', 4, 10],
     ],
   }),
 
@@ -490,7 +490,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     item: { name: 'bowl', col: BEACH_ITEM[0], row: BEACH_ITEM[1], sprite: RIO_SPRITE.bowl },
     decor: [
       ...sky(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), 0, BEACH_HORIZON - 1), ...sea(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), BEACH_HORIZON, 14),
-      ['skyCloud', 12, 1], ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['pacDiamondHead', 20, 8], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row],
+      ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['pacDiamondHead', 20, 8], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['parasol', 14, 15], ['deckchair', 15, 17],
     ],
   }),
 ];

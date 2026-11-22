@@ -55,7 +55,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   // the sprites each mechanism takes are not the room's: the cable car's are 0, 1, 2 and 6, its two creatures 4 and 5; the skewers' are 2 and 1, the gauchos' and the dancer's 4 to 6 and the room's item 0
   check('the cars and the skewers take sprites the rooms do not use (items 0 and 1, creatures 4 up, the canopy\'s and the hat\'s 2 and 7: none in these rooms)',
     new Set([CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite]).size === 2 && [CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite].every((n) => n !== 3 && n !== 7)
-    && (must(RIO_ROOMS.find((r) => r.id === R.sugar), 'a room').enemies?.length ?? 0) <= 2 && SKEWERS.every((k) => k.sprite !== 0 && k.sprite !== 3 && k.sprite !== 6 && k.sprite !== 7) && (RIO_ROOMS.find((r) => r.id === R.steak)?.enemies?.length ?? 0) === 3);
+    && (must(RIO_ROOMS.find((r) => r.id === R.sugar), 'a room').enemies?.length ?? 0) <= 2 && SKEWERS.every((k) => k.sprite !== 0 && k.sprite !== 3 && k.sprite !== 6 && k.sprite !== 7) && (RIO_ROOMS.find((r) => r.id === R.steak)?.enemies?.length ?? 0) === 2);
 }
 
 // ---- the cable car ---------------------------------------------------------------------------------------
