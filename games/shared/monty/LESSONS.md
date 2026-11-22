@@ -44,6 +44,10 @@ Monty game lives here.
   docs/dosvidaniya-room-audit.md): about 3 creatures a room, 2 of them long up-and-down patrols (a vertical creature in 94% of
   rooms; no room of walkers only), about 8 ledges on 6 levels, 2 ropes or ladders; a mechanism in only a third of rooms; each
   room has one thing of its own. Measure a new game against it.
+- **Set-up traps make rooms memorable** (Chris, 2026-11-22: "look for opportunities wherein there's something built and set
+  up for some sort of trap"): a ledge that crumbles as you run along it over the fish, a bridge that gives way, a pressure plate
+  that starts the boulders, icicles that drop as you pass, a trapdoor. Seen or hinted before it springs, beatable by keeping
+  moving or timing, never a blind instant death.
 - **Creatures move in varied ways**, as Monty on the Run's do: up-and-down patrols, creatures on different floors, fliers,
   short fast and long slow patrols, timing hazards, rooms with a mechanism instead of a walker; never room after room of two
   walkers to jump over (Chris on Siberia, 2026-11-22).
