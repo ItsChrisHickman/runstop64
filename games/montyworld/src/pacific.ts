@@ -450,7 +450,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.hilo, cell: [2, 28], sector: 53, palette: HILO_PALETTE,
     paint(g) {
-      g.box(0, 9, 6, 19, 'W').box(0, 0, 1, 6, 'W').box(7, 17, 31, 19, 'P').box(8, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
+      g.box(0, 9, 6, 19, 'W').box(0, 0, 1, 6, 'W').box(7, 17, 31, 19, 'P').box(10, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
       g.box(15, 7, 31, 7, 'J').box(30, 8, 31, 16, 'W').box(30, 0, 31, 4, 'W').box(14, 0, 14, 6, 'W'); // the catwalk, the plane's fuselage walling the apron's end, the railing at the loader's top
     },
     coins: [[4, 7], [10, 15], [20, 5], [26, 5]],

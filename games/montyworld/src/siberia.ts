@@ -183,8 +183,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     paint(g) {
       g.box(0, 0, 6, 0, 'M').box(10, 0, 17, 0, 'M').box(1, 1, 5, 1, 'M').box(11, 1, 15, 1, 'M').box(8, 0, 8, 10, 'R'); // the mine's floor overhanging the rope's way up; the rest open sky
-      g.box(30, 2, 31, 8, 'T').box(0, 10, 1, 14, 'T'); // the boiler's end, and the tender's end (its gangway open below)
-      g.box(0, 9, 5, 9, 'D').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
+      g.box(30, 2, 31, 8, 'T').box(0, 10, 0, 14, 'T'); // the boiler's end, and the tender's end (its gangway open below; a cell clear of the rope)
+      g.box(0, 9, 5, 9, 'D').clear(0, 9, 4, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch (five cells round the rope) and rope
       g.box(6, 11, 8, 16, 'K').box(9, 13, 11, 16, 'K').box(12, 15, 19, 16, 'K').box(20, 13, 22, 16, 'K').box(23, 11, 25, 16, 'K'); // the coal in steps
       g.box(26, 9, 31, 9, 'D').box(26, 10, 31, 16, 'T'); // the cab (its roof the heap's last step)
       g.clear(27, 11, 28, 12).clear(27, 14, 28, 15); // the holes the gauge and the firebox door show in

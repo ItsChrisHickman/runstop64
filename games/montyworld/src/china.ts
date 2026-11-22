@@ -143,7 +143,7 @@ export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
 
 /** The paint of alley's room: its tiles. */
 const paintAlley = (g: Grid): void => {
-    g.box(0, 0, 2, 0, 'E').box(6, 0, 14, 0, 'E').box(7, 1, 13, 1, 'E').box(0, 1, 3, 1, 'E').box(0, 2, 1, 13, 'B'); // the house's eave over the rope's way up; the corner of a hutong house at the left, the lane open to the sky and running off to the right
+    g.box(0, 0, 1, 0, 'E').box(7, 0, 14, 0, 'E').box(7, 1, 13, 1, 'E').box(0, 1, 1, 1, 'E').box(0, 2, 1, 13, 'B'); // the house's eave over the rope's way up (five cells wide round it); the corner of a hutong house at the left, the lane open to the sky and running off to the right
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B');
     g.box(4, 0, 4, 16, 'R');
     g.box(8, 15, 10, 15, 'S').box(11, 13, 13, 13, 'S').box(14, 11, 16, 11, 'S'); // the shelves
@@ -155,7 +155,7 @@ const paintAlley = (g: Grid): void => {
 /** The paint of market's room: its tiles. */
 const paintMarket = (g: Grid): void => {
     g.box(0, 0, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 0, 31, 13, 'B'); // a house at each end running up off the screen, the street open to the sky between
-    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R');
+    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(2, 17, 6, 19).box(4, 16, 4, 19, 'R');
     g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
     g.box(12, 9, 12, 16, 'R'); // the rope down from them
 };

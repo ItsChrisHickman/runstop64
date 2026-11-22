@@ -134,7 +134,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       g.box(12, 0, 18, 0, 'K').box(22, 0, 31, 0, 'K').box(14, 1, 18, 1, 'K').box(22, 1, 27, 1, 'K');
       g.box(0, 8, 1, 16, 'X').box(30, 7, 31, 12, 'X');
       g.box(0, 7, 9, 7, 'W'); // the awning he lands on
-      g.box(0, 17, 31, 19, 'S').clear(3, 17, 4, 19).clear(6, 17, 8, 19); // the grating, the manhole
+      g.box(0, 17, 31, 19, 'S').clear(2, 17, 8, 19); // the grating with its rope and the manhole, one opening
       g.box(3, 17, 3, 19, 'R').box(20, 0, 20, 16, 'R');
       g.box(10, 8, 17, 8, 'G'); // the sign beam, the icicles hang under it
       g.box(22, 15, 23, 16, 'X').box(24, 13, 25, 16, 'X').box(26, 15, 27, 16, 'X').box(26, 6, 27, 12, 'L').box(22, 6, 25, 6, 'G').box(28, 6, 31, 6, 'G');
@@ -156,7 +156,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       // the square under the open sky: the Kremlin's wall across the back with its terrace, a tower of it closing the right end
       g.box(0, 9, 1, 12, 'K').box(29, 2, 31, 2, 'B').box(29, 3, 31, 16, 'K');
       g.box(0, 6, 28, 6, 'B').box(0, 7, 28, 8, 'K'); // the terrace on top of the wall
-      g.box(15, 0, 24, 0, 'K').box(17, 1, 24, 1, 'K').box(27, 0, 31, 1, 'K'); // the domes' stonework over the flagpole's way up; the rest open sky
+      g.box(15, 0, 22, 0, 'K').box(17, 1, 22, 1, 'K').box(28, 0, 31, 1, 'K'); // the domes' stonework over the flagpole's way up (five cells round the rope); the rest open sky
       g.box(25, 0, 25, 5, 'R'); // the flagpole rope
       g.box(0, 17, 31, 17, 'O').box(0, 18, 31, 19, 'F').clear(20, 17, 22, 19); // the drain
     },
@@ -177,7 +177,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       // under the open sky: the arcade's roof edge at the left, the Kremlin's wall at the right
       g.box(0, 3, 1, 3, 'B').box(0, 4, 1, 16, 'K').box(30, 7, 31, 16, 'K');
-      g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F').clear(25, 17, 26, 19).box(25, 16, 25, 19, 'R');
+      g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F').clear(23, 17, 27, 19).box(25, 16, 25, 19, 'R');
       g.box(10, 15, 13, 15, 'M').box(6, 13, 9, 13, 'M').box(2, 11, 5, 11, 'M').box(6, 9, 9, 9, 'M').box(10, 7, 13, 7, 'M'); // the stair
       g.box(14, 6, 17, 6, 'M').box(20, 6, 23, 6, 'M').box(26, 6, 31, 6, 'M'); // the dome tops
     },
@@ -257,7 +257,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       { who: 'matryoshka', col: 23, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 5, row: 7, way: 'right', speed: 1, range: 36 },
     ],
-    crushers: [{ col: 10, row: 11, height: 6, chr: 0x10 }],
+    crushers: [{ col: 10, row: 10, height: 7, chr: 0x10 }], // (hung from the gallery over it, as Monty on the Run's hang from their ceilings)
   }),
 
   // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), ending at the down
@@ -268,16 +268,16 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     id: ROOM.hall, cell: [2, 1], sector: 7,
     palette: HALL_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'V').clear(3, 0, 4, 2).clear(6, 0, 8, 2).clear(12, 2, 20, 2); // the vault, stepped up to its crown
+      g.box(0, 0, 31, 2, 'V').clear(2, 0, 8, 2).clear(12, 2, 20, 2); // the vault, stepped up to its crown, open over the street's manhole
       g.box(0, 3, 1, 8, 'M').box(0, 9, 1, 19, 'M').box(30, 3, 31, 5, 'M').box(30, 9, 31, 12, 'M');
-      g.box(0, 9, 14, 9, 'F').box(26, 9, 31, 9, 'F'); // the concourse with the foot at its end, the stub
+      g.box(0, 9, 14, 9, 'F').clear(2, 9, 6, 9).box(26, 9, 31, 9, 'F'); // the concourse with the foot at its end, a gap in it for the rope, the stub
       g.box(16, 14, 22, 14, 'F'); // the terrace (a floor over the walkway: two cells of headroom under it)
       g.box(0, 17, 31, 19, 'F').box(28, 13, 29, 16, 'Z');
-      g.box(3, 0, 3, 16, 'R').box(4, 9, 4, 9, 'R'); // the rope up through the concourse (a gap two wide: he is two cells across)
+      g.box(3, 0, 3, 16, 'R'); // the rope up through the concourse's gap (five cells: he is two or three across)
       band(g, BAND, DOWN);
     },
     coins: [[10, 15]],
-    decor: [['stationClock', 16, 3], ['chandelier', 21, 3], ['metroSign', 10, 12], ['bench', 5, 15], ['bench', 20, 15], ['poster', 25, 5]],
+    decor: [['stationClock', 16, 3], ['chandelier', 21, 3], ['metroSign', 12, 14], ['bench', 5, 15], ['bench', 20, 15], ['poster', 25, 5]],
     creatures: [
       { who: 'cossack', col: 9, row: 7, way: 'right', speed: 1, range: 24 },
       { who: 'tram', col: 6, row: 15, way: 'right', speed: 2, range: 36 },
@@ -301,7 +301,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     coins: [[26, 15], [4, 7]],
     cake: [13, 3],
     item: { name: 'ushanka', col: 12, row: 13, sprite: SPRITE.ushanka },
-    decor: [['metroSign', 3, 13], ['bench', 14, 15], ['chandelier', 6, 3], ['stationClock', 24, 3]],
+    decor: [['metroSign', 3, 14], ['bench', 14, 15], ['chandelier', 6, 3], ['stationClock', 24, 3]],
     creatures: [{ who: 'babushka', col: 14, row: 7, way: 'right', speed: 1, range: 36 }],
     crushers: [{ col: 6, row: 12, height: 5, chr: 0x22 }],
   }),
