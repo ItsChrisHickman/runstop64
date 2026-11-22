@@ -198,7 +198,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 // ---- the gates ---------------------------------------------------------------------------------------------
 {
   const llama = (holds: readonly (readonly [number, number])[]) => at(AND.rock, 4, 18, holds, false, true).g.enemies.filter((e) => e.x !== 0xff).length;
-  check('the spitting llama paces the tunnel\'s mouth until the panpipes are taken, then it is gone (the room has the other llama still)', llama([]) === 2 && llama([PANPIPES]) === 1);
+  check('the spitting llama paces the tunnel\'s mouth until the panpipes are taken, then it is gone', llama([]) === 1 && llama([PANPIPES]) === 0);
   const walk = (holds: readonly (readonly [number, number])[]) => { const s = at(AND.rock, 4, 18, holds, false, true); const died = diesAt(s, RIGHT, 160); return { died, room: s.g.roomId }; };
   check('without the panpipes walking into the tunnel kills him, with them he walks to the well and falls into the Inca tunnel', walk([]).died >= 0 && walk([PANPIPES]).died < 0 && walk([PANPIPES]).room === AND.tunnel);
   const captain = (holds: readonly (readonly [number, number])[]) => at(AND.boat, 9, 15, holds, false, true).g.enemies.filter((e) => e.x !== 0xff).length;

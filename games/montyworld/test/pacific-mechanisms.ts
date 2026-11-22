@@ -351,7 +351,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const plain = at(PAC.surf, 3, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'SURF AND TURF');
-  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS: THE CHAIN ON THE RAMP', 8, 16], [SNORKEL, 'SNORKEL: THE SEA IS OPEN NOW', 3, 13], [LEI, 'LEI: PAST THE AIRPORT GUARD', 6, 12], [PARACHUTE, 'PARACHUTE: THE REAR DOOR IS OPEN', 22, 12]] as const) {
+  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS: THE CHAIN ON THE RAMP', 8, 16], [SNORKEL, 'SNORKEL: THE SEA IS OPEN NOW', 3, 13], [LEI, 'LEI: PAST THE AIRPORT GUARD', 6, 12], [PARACHUTE, 'PARACHUTE: FOLLOW THE COINS DOWN', 22, 12]] as const) {
     const [room, nth] = item;
     const rec = must(PACIFIC_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4 - (col > 0 ? 0 : 0), floor, [], true);

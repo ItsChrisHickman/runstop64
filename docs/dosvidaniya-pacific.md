@@ -191,3 +191,7 @@ Pictures: /root/projects/runstop64-shots/pacific/ (`room-*.png` from the real en
 - Hilo: the apron's end is the plane's wall (cols 30-31, rows 8-16), the catwalk is the only way on; the loader's top has a stone railing at column 14, so the loader is a one-way lift up that reads so from the catwalk.
 - The torches are two groups on one timing: embers (safe), a small yellow flame (the warning), then a tall red flame across both rows.
 - Left for Chris: the route is still mostly in column order (no item found east opens a way back west; Hilo is still down then up); the plane's rear door leads nowhere until the Andes exist (its gutter cells stay shut so he cannot walk into the empty grid cell); the reefs' stone roofs, the ship/road/Hilo art notes.
+
+## After the Andes (2026-11-21)
+
+The plane's rear door (columns 30-31 and the two gutter columns, rows 14-15) opens the way east now: the parachute clears all eight cells and the sign that said THE ANDES COMING SOON is gone from the hold; the door leads onto the Andes' tail ramp (`docs/dosvidaniya-andes.md`). The parachute's hint reads PARACHUTE: FOLLOW THE COINS DOWN.

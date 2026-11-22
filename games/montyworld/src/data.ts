@@ -285,8 +285,8 @@ export const WORLD: MontyData = {
       { room: AND.boat, item: CHULLO_ITEM, text: 'THE CAPTAIN WANTS A LOCAL\'S HAT' },
     ],
   },
-  // the map shows a region's four columns while he is in them
-  regions: WORLD_REGIONS.map(({ from, to }) => ({ from, to })),
+  // the map shows a region's columns and rows while he is in them
+  regions: WORLD_REGIONS.map(({ from, to, rows }) => ({ from, to, rows })),
   progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([

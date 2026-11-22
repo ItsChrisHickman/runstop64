@@ -123,9 +123,10 @@ function layout(box: Box, g: Game) {
   const { data } = g;
   const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to);
   const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
+  const rowFrom = region?.rows?.from ?? 0, rows = region?.rows ? region.rows.to - region.rows.from + 1 : data.exitGrid.rows;
   const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols));
   const ox = box.x + Math.floor((box.w - cols * cell) / 2);
-  return { cell, from, cols, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + row * cell }) };
+  return { cell, from, cols, rowFrom, rows, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + (row - rowFrom) * cell }) };
 }
 
 /** The rooms on the map, and how many of them Monty has been in. */
@@ -153,11 +154,10 @@ export const montyMap = {
   title: () => 'THE WORLD',
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
-    const { rows } = data.exitGrid;
     const { progress } = data;
-    const { at, cell, from, cols } = layout(box, g);
+    const { at, cell, from, cols, rowFrom, rows } = layout(box, g);
     const tick = shimmer++;
-    for (let r = 0; r < rows; r++) {
+    for (let r = rowFrom; r < rowFrom + rows; r++) {
       for (let c = from; c < from + cols; c++) {
         const id = roomIn(g, r, c);
         if (id === 0xff) continue;

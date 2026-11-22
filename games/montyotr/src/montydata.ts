@@ -249,8 +249,8 @@ export interface ItemHints {
   wanted: readonly { room: number; item: number; text: string }[];
 }
 
-/** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`. */
-export interface MapRegion { from: number; to: number }
+/** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
+export interface MapRegion { from: number; to: number; rows?: { from: number; to: number } }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {

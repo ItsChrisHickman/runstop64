@@ -147,13 +147,13 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'condor', col: 4, row: 5, way: 'right', speed: 2, range: 52 }, { who: 'condor', col: 24, row: 12, way: 'left', speed: 2, range: 56 }],
   }),
 
-  // T1 NO PROBLLAMA: Machu Picchu's lower terraces. The drop lands on the top terrace (floor 6) under a roof of cloud, which runs east out high into the great room; a ladder (col 4) goes down through the wall to the low path (floor 18),
+  // T1 NO PROBLLAMA: Machu Picchu's lower terraces. The drop lands on the top terrace (floor 6) under a roof of cloud, which runs east out high into the great room; a ladder (col 4, in a shaft three cells wide) goes down through the wall to the low path (floor 18),
   // where two llamas graze and wink, and which runs east out low into the great room's lane.
   room({
     id: AND.llama, cell: [5, 30], sector: 58, palette: TERRACE_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'C');
-      g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 12, 'W').clear(4, 6, 4, 12).box(4, 6, 4, 17, 'L');
+      g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 12, 'W').clear(3, 6, 5, 12).box(4, 6, 4, 17, 'L');
       g.box(0, 18, 31, 19, 'G');
       g.box(0, 13, 1, 17, 'K').box(30, 12, 31, 13, 'W');
     },
@@ -175,7 +175,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[6, 4], [10, 4], [18, 6], [23, 8], [28, 10], [4, 16]],
     item: { name: 'empanada3', col: 8, row: 16, sprite: ANDES_SPRITE.empanada },
     decor: [['huaynaPicchu', 24, 0], ['incaGate', 2, 2], ['intihuatana', 8, 4], ['skyCloud', 17, 1], ['skyCloud', 8, 0]],
-    creatures: [{ who: 'spitter', col: 12, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 3, row: 4, way: 'right', speed: 1, range: 30 }],
+    creatures: [{ who: 'spitter', col: 12, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
   // V MARKET FORCES: the mountain village. In from the terraces' landing on the first roof (floor 12) at the left; the roofs step down (floors 14, 16) to the lane (floor 18) under the market awnings, stalls and a guinea pig pen, which runs

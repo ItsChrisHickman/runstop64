@@ -49,7 +49,7 @@ check('the carriage roof leads east into Siberia: the dining car is east of the 
   const frames = new Uint8Array(256).fill(7);
   const bank = extendEnemies(MOTR, [{ frames, copy: true }], 35);
   check('extended enemy bank: type 35 is ours, 8-34 the base\'s', bank.enemyBank(35) === frames && bank.enemyCopyFlag(35) === 1 && bank.enemyBank(9) === MOTR.enemyBank(9) || bank.enemyBank(9).every((b, i) => b === MOTR.enemyBank(9)[i]));
-  check('an item\'s colour comes from the data (Monty on the Run\'s are white)', MOTR.itemSprites.colour(0x95) === 1 && WORLD.itemSprites.colour(0x95) === 1);
+  check('an item\'s colour comes from the data (Monty on the Run\'s are white)', MOTR.itemSprites.colour(0x92) === 1 && WORLD.itemSprites.colour(0x92) === 1);
 }
 
 // ---- Monty in the first room ---------------------------------------------------------------------
