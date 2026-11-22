@@ -305,6 +305,8 @@ export interface MontyEnding {
   cast: readonly { types: readonly number[]; name: string }[];
   /** The rooms a creature is looked for in, in order (where it first appears). */
   castRooms: readonly number[];
+  /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
+  closing?: readonly string[];
 }
 
 export interface MontyData extends RoomTables, MontyLook {

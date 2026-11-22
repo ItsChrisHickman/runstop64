@@ -158,17 +158,14 @@ function recordCreature(stage: Stage, ending: MontyEnding, name: string, types: 
 
 // ---- the show ------------------------------------------------------------------------------------------
 
-/** The ending's last lines: the port's, the same in every game. */
-const LAST = PORT_CREDITS;
-
 export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists): RewardSpec {
   const ending = data.ending;
   if (!ending) throw new Error(`${data.id} has no ending`);
-  const { scenes } = ending;
+  const { scenes } = ending, last = ending.closing ?? PORT_CREDITS;
   let made: Stage | null = null;
   const stage = () => (made ??= new Stage(data, renderer, assist));
   const places: Place[] = scenes.map((scene, i): Place => ({
-    credits: i === scenes.length - 1 ? [...scene.credits, ...LAST] : scene.credits,
+    credits: i === scenes.length - 1 ? [...scene.credits, ...last] : scene.credits,
     frames: routeFrames(scene),
     creditRow: scene.creditRow,
     open() {

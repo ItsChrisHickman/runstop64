@@ -25,6 +25,8 @@ import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS,
 import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
+import { completion } from './finale';
+import { WORLD_ENDING } from './ending-scenes';
 import { CABLE_CAR as CABLE_CARS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_POINTER } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
@@ -266,7 +268,7 @@ export const WORLD: MontyData = {
   bollard: null,
   risingCloud: null,
   c5: null,
-  completion: null,
+  completion,
 
   assists: ['lives', 'respawn', 'hints'],
   hints: {
@@ -323,8 +325,12 @@ export const WORLD: MontyData = {
       [0xfe, 1], 'A NEW GAME BY ', [0xfe, 13], 'CHRISTOPHER HICKMAN WITH CLAUDE. ',
       [0xfe, 1], 'AFTER ', [0xfe, 7], 'PETER HARRAP. ',
       [0xfe, 1], 'MUSIC BY ', [0xfe, 14], 'ROB HUBBARD. ',
+      [0xfe, 1], 'THE STORY: ', [0xfe, 13], 'INTERMOLE HAS FOUND MONTY ON HIS GREEK ISLAND AND EUROPE IS NO LONGER SAFE. ',
+      [0xfe, 1], 'HE CAN ONLY WORK IN EUROPE, SO MONTY RUNS EAST, OUT OF HIS REACH, THE LONG WAY ROUND AND WITH NO PASSPORT. ',
+      [0xfe, 7], 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A CARGO PLANE AND A PARACHUTE DOWN INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO. ',
+      [0xfe, 1], 'EVERY LEG A DIFFERENT WAY OF TRAVELLING, EVERY COUNTRY ITS OWN HAT. FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC. ',
       [0xfe, 1], 'A TRIBUTE: ', [0xfe, 10], 'RUNSTOP64.          ',
     ]),
   },
-  ending: null,
+  ending: WORLD_ENDING,
 };

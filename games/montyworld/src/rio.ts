@@ -147,8 +147,8 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[7, 5], [14, 5], [23, 5], [8, 16], [14, 16], [22, 16]],
     item: { name: 'cityKey', col: 13, row: 2, sprite: RIO_SPRITE.key },
-    decor: [['lapaArches', 0, 8], ['lapaArches', 4, 8], ['lapaArches', 8, 8], ['lapaArches', 12, 8], ['lapaArches', 16, 8], ['lapaArches', 20, 8], ['lapaArches', 24, 8], ['lapaArches', 28, 8],
-      ['lapaArches', 0, 12], ['lapaArches', 4, 12], ['lapaArches', 8, 12], ['lapaArches', 12, 12], ['lapaArches', 16, 12], ['lapaArches', 20, 12], ['lapaArches', 24, 12], ['lapaArches', 28, 12]],
+    decor: [['lapaArches', 4, 8], ['lapaArches', 8, 8], ['lapaArches', 12, 8], ['lapaArches', 16, 8], ['lapaArches', 20, 8],
+      ['lapaArches', 4, 12], ['lapaArches', 8, 12], ['lapaArches', 12, 12], ['lapaArches', 16, 12], ['lapaArches', 20, 12]],
     creatures: [{ who: 'bonde', col: 5, row: 5, way: 'right', speed: 1, range: 90 }],
   }),
 
@@ -163,7 +163,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       g.box(24, 8, 31, 8, 'F').box(28, 9, 31, 19, 'G').box(30, 0, 31, 5, 'G');
       for (let c = 12; c <= 29; c++) g.box(c, 10 - Math.floor((c - 13) / 2), c, 10 - Math.floor((c - 13) / 2), (c - 13) % 2 === 0 ? 'C' : 'D');
     },
-    coins: [[4, 16], [16, 16], [9, 12], [18, 10], [28, 6]],
+    coins: [[6, 16], [16, 16], [9, 12], [18, 10], [28, 6]],
     decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: 'CLOSED', colour: 2 }, 3, 12]],
     creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 14, row: 2, way: 'right', speed: 2, range: 50 }],
   }),
@@ -175,7 +175,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 1, 5, 'G').box(0, 8, 5, 19, 'G').box(6, 6, 12, 19, 'G').box(13, 8, 31, 19, 'G').box(30, 0, 31, 5, 'G');
       g.clear(19, 8, 21, 11).clear(16, 12, 23, 17).box(20, 8, 20, 17, 'V');
     },
-    coins: [[3, 6], [9, 4], [24, 6], [28, 6], [17, 16]],
+    coins: [[1, 6], [9, 4], [24, 6], [28, 6], [17, 16]],
     item: { name: 'skewer2', col: 22, row: 16, sprite: RIO_SPRITE.skewer },
     decor: [['christ', 14, 0], ['cableStation', 2, 5]],
     creatures: [{ who: 'marmoset', col: 7, row: 4, way: 'right', speed: 1, range: 32 }, { who: 'marmoset', col: 23, row: 6, way: 'left', speed: 1, range: 24 }],
@@ -204,9 +204,9 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       g.box(0, 8, 13, 8, 'G').box(17, 8, 20, 8, 'G').box(24, 8, 29, 8, 'G').box(5, 14, 14, 14, 'G');
       g.box(8, 18, 12, 19, 'W').clear(21, 18, 23, 19).box(22, 8, 22, 19, 'V').box(15, 8, 15, 17, 'V');
     },
-    coins: [[4, 6], [9, 6], [18, 6], [26, 6], [11, 12], [10, 16], [26, 16]],
+    coins: [[4, 6], [9, 6], [18, 6], [24, 6], [11, 12], [10, 16], [26, 16]],
     item: { name: 'skewer3', col: 7, row: 12, sprite: RIO_SPRITE.skewer },
-    decor: [['giantTree', 25, 4], ['fern', 2, 15], ['bromeliad', 17, 6], ['hangingVines', 5, 2], ['hangingVines', 19, 2]],
+    decor: [['giantTree', 26, 2], ['fern', 2, 15], ['bromeliad', 19, 7], ['hangingVines', 5, 2], ['hangingVines', 19, 2]],
     creatures: [{ who: 'marmoset', col: 3, row: 6, way: 'right', speed: 1, range: 32 }, { who: 'macaw', col: 18, row: 2, way: 'right', speed: 1, range: 50 }],
   }),
 
