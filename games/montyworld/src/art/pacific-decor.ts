@@ -435,11 +435,11 @@ function seaWave(): NewDecor {
   return decor('pacSeaWave', 1, 1, r, 6);
 }
 
-/** A cell of the lawn behind the lane: grass tufts over a dithered turf. 1 x 2 characters (the tufts above the turf). */
+/** A cell of the lawn behind the lane: grass tufts over mown stripes. 1 x 2 characters (the tufts above the turf). */
 function lawn(): NewDecor {
   const r = new Raster(8, 16);
-  r.stamp(['........', '.#..#...', '.#.##.#.', '########', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#'], 0, 0);
-  r.stamp(['#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#'], 0, 8);
+  r.stamp(['........', '.#..#...', '.#.##.#.', '########', '########', '########', '........', '########'], 0, 0);
+  r.stamp(['########', '########', '........', '########', '########', '........', '########', '########'], 0, 8);
   return decor('pacLawn', 1, 2, r, ['d', '5']);
 }
 
@@ -447,7 +447,7 @@ function lawn(): NewDecor {
 function stageBoard(): NewDecor {
   const r = new Raster(8, 16);
   r.stamp(['########', '########', '........', '########', '########', '........', '########', '########'], 0, 0);
-  r.stamp(['########', '#.#.#.#.', '#.#.#.#.', '.#.#.#.#', '.#.#.#.#', '#.#.#.#.', '#.#.#.#.', '........'], 0, 8);
+  r.stamp(['########', '.##.##.#', '.##.##.#', '.##.##.#', '.#..#..#', '.#..#..#', '.#..#..#', '........'], 0, 8);
   return decor('pacStageBoard', 1, 2, r, ['8', 'd']);
 }
 

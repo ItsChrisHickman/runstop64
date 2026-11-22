@@ -284,7 +284,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.clam, cell: [2, 21], sector: 43, palette: SEA_PALETTE,
     paint(g) {
       g.box(0, 3, 31, 18, 'S').box(2, 3, 29, 3, 'U'); // the sea, its surface a wavy waterline with the sky above it
-      g.box(0, 0, 1, 13, 'K').box(2, 3, 2, 5, 'K').box(2, 10, 2, 13, 'K').box(30, 0, 31, 13, 'K').box(29, 6, 29, 9, 'K'); // the reef's sea cliffs, ragged, rising off the top
+      g.box(0, 0, 1, 13, 'K').box(30, 0, 31, 13, 'K'); // the reef's sea cliffs rising off the top
       g.box(0, 19, 31, 19, 'B');
       g.box(8, 14, 12, 18, 'R').box(9, 12, 11, 13, 'R').clear(9, 15, 10, 16); // a rock with an arch
       g.box(16, 16, 18, 18, 'C').box(22, 11, 26, 18, 'R').box(23, 9, 25, 10, 'R').box(13, 4, 16, 7, 'K'); // coral, a tall rock, a rock hanging from the surface
@@ -316,7 +316,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.kelp, cell: [2, 23], sector: 45, palette: SEA_PALETTE,
     paint(g) {
       g.box(0, 4, 31, 18, 'S').box(2, 4, 13, 4, 'U').box(17, 4, 29, 4, 'U'); // the sea, its surface a wavy waterline (the slipway's rope through the gap) with the sky and Molokai's cliffs above it
-      g.box(0, 0, 1, 13, 'K').box(2, 5, 2, 8, 'K').box(2, 11, 2, 13, 'K').box(30, 0, 31, 13, 'K').box(29, 7, 29, 10, 'K').box(13, 0, 13, 3, 'K').box(17, 0, 17, 3, 'K'); // the sea cliffs, ragged, rising off the top; a sea stack either side of the slipway's rope
+      g.box(0, 0, 1, 13, 'K').box(30, 0, 31, 13, 'K').box(13, 0, 13, 3, 'K').box(17, 0, 17, 3, 'K'); // the sea cliffs rising off the top; a sea stack either side of the slipway's rope
       g.box(0, 19, 31, 19, 'B');
       g.box(21, 11, 26, 18, 'R').box(22, 9, 25, 10, 'R').clear(22, 14, 24, 17); // a rock with a cave under it
       g.box(10, 16, 12, 18, 'C').box(17, 14, 19, 18, 'C');
@@ -402,7 +402,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.fish, cell: [2, 25], sector: 50, palette: SEA_PALETTE,
     paint(g) {
       g.box(0, 3, 31, 18, 'S').box(2, 3, 19, 3, 'U').box(23, 3, 29, 3, 'U'); // the sea, its surface a wavy waterline (the cove's rope through the gap) with the sky above it
-      g.box(0, 0, 1, 18, 'K').box(2, 4, 2, 7, 'K').box(2, 11, 2, 14, 'K').box(30, 0, 31, 13, 'K').box(29, 6, 29, 9, 'K').box(19, 0, 19, 2, 'K').box(23, 0, 23, 2, 'K'); // the sea cliffs, ragged, rising off the top; a sea stack either side of the cove's rope
+      g.box(0, 0, 1, 18, 'K').box(30, 0, 31, 13, 'K').box(19, 0, 19, 2, 'K').box(23, 0, 23, 2, 'K'); // the sea cliffs rising off the top; a sea stack either side of the cove's rope
       g.box(0, 19, 31, 19, 'B');
       g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
