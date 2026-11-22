@@ -188,6 +188,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   // to the hutong) and a stair of three stone steps up its flank onto its top, along it to a rope at column 25 up through the sky into the tower (the dumplings at the wall's far end).
   room({
     id: CHI.wall, cell: [2, 8], sector: 18, palette: WALL_PALETTE,
+    shut: [['left', 3, 7, 'E']], // the border post's wall beside it runs up to the sky
     paint(g) {
       g.box(14, 0, 23, 0, 'G').box(27, 0, 31, 0, 'G').box(16, 1, 22, 1, 'G'); // the tower's foot overhanging the rope's way up; the rest open sky
       g.box(0, 8, 1, 13, 'E').box(0, 8, 1, 8, 'T'); // the hillside at the left edge, the sky open above
