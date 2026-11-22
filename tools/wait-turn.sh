@@ -15,7 +15,11 @@ under_test_all() { # is process $1 started by a test-all?
 }
 busy() {
   local n=0 pid
-  n=$(( $(pgrep -fc '^(\S*/)?node tools/test-all\.mjs' || true) * 3 ))
+  # a test-all takes as many slots as it runs tests at once (its JOBS, 3 by default)
+  for pid in $(pgrep -f '^(\S*/)?node tools/test-all\.mjs' || true); do
+    jobs=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | sed -n 's/^JOBS=//p' | head -1)
+    n=$((n + ${jobs:-3}))
+  done
   for pid in $(pgrep -f '^(\S*/)?node tools/test\.mjs' || true); do under_test_all "$pid" || n=$((n + 1)); done
   echo "$n"
 }
