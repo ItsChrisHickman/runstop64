@@ -1,5 +1,8 @@
 import type { MontyData } from './montydata';
 
+/** The first character of the decoration pool (`$9B`): the characters from here up are decorations', not tiles', coins' or items'. */
+export const FIRST_DECOR_CHR = 0x9b;
+
 /**
  * Decor.CalculateRoom's characters: each decoration type in a room takes the next characters from $9B
  * up (w × h of them) the first time it's placed; a type that doesn't fit in the pool (to $FF) isn't
@@ -8,7 +11,7 @@ import type { MontyData } from './montydata';
 export function decorChars(data: MontyData, roomId: number): Int16Array {
   const { decorRooms, decorTypes } = data;
   const first = new Int16Array(decorTypes.length).fill(0);
-  let alloc = 0x9b;
+  let alloc = FIRST_DECOR_CHR;
   for (let i = 0; i + 3 < decorRooms.length; i += 4) {
     if (decorRooms[i] !== roomId) continue;
     const type = decorRooms[i + 3], t = decorTypes[type];

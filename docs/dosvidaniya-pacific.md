@@ -78,7 +78,7 @@ onto the far shore. 5 coins. A crab on one wall: the only creature, no mechanism
 Creatures: a manta, a turtle.
 
 **I WHALE OF A TIME** (Lahaina's whaling harbour). In: by the mooring rope up through the slipway. The old brig lies in the harbour water at the left: crates up to its deck (a tiki mask guards it), a mast's rope to the spar (a dead
-end with a coin); the quay runs east past an outrigger canoe (a surfer on it) to the road. A whale's tail breaches in the harbour. 4 coins.
+end with a coin); the quay runs east past an outrigger canoe to the road. A whale's tail breaches in the harbour. 4 coins.
 
 **J THE ROAD TO HANA.** The road winds up the cliff in three levels (floors 18, 13, 8) joined by bamboo at the bends, over three one-lane bridges with a yield sign at each end; waterfalls down the cliff behind. In left on the lowest
 level, out right on the highest. A car crosses each bridge, the way Monty goes. A gap (cols 24-25) in the lowest level is a pool under a waterfall: a drop into the sea cave. 6 coins. Creature: a coconut.
@@ -132,12 +132,12 @@ All are data in `MontyData` (the engine reads them as it reads `tunnels`, `crack
 
 ### The costume
 
-The lei: a garland of pink blooms hung in a U round his neck, tied with a bow at the front (`art/pacific-lei.ts`), a sprite over him in light red, made by the same `wearing` as the ushanka (his 36 pictures with its place cleared and a black line round it). It replaces the
+The lei: worn as a haku lei, a crown of pink blooms on his head (a hat, as every region's costume is; the item you pick up is still the garland) (`art/pacific-lei.ts`), a sprite over him in light red, made by the same `wearing` as the ushanka (his 36 pictures with its place cleared and a black line round it). It replaces the
 ninja hood; the guard at Hilo lets him by in it.
 
 ### The creatures (thirteen, none in more than two rooms)
 
-Parrot (A, N), shark (B, M), crab (G, K), turtle (F, H), eel (F, L), manta (H, L), tiki (E, I), hula (D, E), surfer (D, I), coconut (C, J), guard (C, P), magma (N, O), swinging crate (B, Q). Bold cartoon characters in
+Parrot (A, N), shark (B, M), crab (G, K), turtle (F, H), eel (F, L), manta (H), tiki (E, I), hula (D, E), surfer (D), coconut (C, J), guard (C, P), magma (N, O), swinging crate (B, Q). Bold cartoon characters in
 `art/pacific-creatures.ts`.
 
 ### The food
@@ -183,3 +183,11 @@ Pictures: /root/projects/runstop64-shots/pacific/ (`room-*.png` from the real en
 - The rising lava is the region's climax: it must chase him up the climb at a steady, learnable pace and kill if it reaches him (fair: it never kills on entry, and the climb always outpaces it when played well).
 - The loader needs an upward ride: the existing escalator rides up as data.
 - An Aloha 'Oe break (1878, public domain) is allowed only if it sounds like part of Hubbard's tune: left out (no public score to hand).
+
+## Fixes after the first review (2026-11-21)
+
+- Gates are now proved shut by `search()` (the chain: a wall to the sky above it; Waikiki's waves: two rows deep, the seabed under them is waves until the snorkel and sand after, gutter columns included). The joins check fails on any open row that meets a wall (pier, Hana, Hilo and the fish reef's left edge were walled to match).
+- Swimming back west out of the reef with the snorkel is safe (the pool's gutter columns 32-33 are sea). The promenade is painted from column 0. The road's coconut patrols the top level's far end, well away from the doorway from Hana.
+- Hilo: the apron's end is the plane's wall (cols 30-31, rows 8-16), the catwalk is the only way on; the loader's top has a stone railing at column 14, so the loader is a one-way lift up that reads so from the catwalk.
+- The torches are two groups on one timing: embers (safe), a small yellow flame (the warning), then a tall red flame across both rows.
+- Left for Chris: the route is still mostly in column order (no item found east opens a way back west; Hilo is still down then up); the plane's rear door leads nowhere until the Andes exist (its gutter cells stay shut so he cannot walk into the empty grid cell); the reefs' stone roofs, the ship/road/Hilo art notes.

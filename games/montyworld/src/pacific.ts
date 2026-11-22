@@ -56,7 +56,7 @@ export const SURF_PALETTE = {
 
 /** The luau's eight: the sand, thatch, wall posts, crates, the rope, and the torches' small and tall flames. */
 export const LEI_PALETTE = {
-  A: ['pacSand', 7], F: ['pacSandFill', 7], W: ['pacHullPlate', 2], T: ['pacThatch', 9], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacFlameWarn', 7], Z: ['pacFlame', 8],
+  A: ['pacSand', 7], W: ['pacHullPlate', 2], T: ['pacThatch', 9], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacEmber', 7], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
 } as const satisfies Palette;
 
 /** A swim room's tiles: the sea, its surface, the seabed (the floor), the reef's rock and coral, the walls. */
@@ -105,10 +105,13 @@ export const HOLD_PALETTE = {
  * so a walker who goes as one dies down finds the next low as he comes; between two torches is a gap of three cells to wait in.
  */
 export const TORCHES = { cols: [22, 17, 12] as const, row: 16, rows: 2, period: 150, idle: 60, warn: 30, live: 48, apart: 40 } as const;
-export const TORCH_PULSES: readonly PulseSpec[] = TORCHES.cols.map((col, k): PulseSpec => ({
-  room: PAC.lei, col, row: TORCHES.row, cols: 2, rows: TORCHES.rows, period: TORCHES.period, start: TORCHES.idle, warn: TORCHES.warn, live: TORCHES.live, offset: (TORCHES.period - k * TORCHES.apart) % TORCHES.period,
-  idle: codeOf(LEI_PALETTE, 'Y'), warnCode: codeOf(LEI_PALETTE, 'Z'), liveCode: codeOf(LEI_PALETTE, 'Z'), spent: codeOf(LEI_PALETTE, 'Y'),
-}));
+/** A torch is two groups on one timing (a pulse draws one character over its cells): the foot (the row Monty's feet are in), an ember that flickers into a small flame, and the head (the row above), empty until the tall flame fills both. */
+const torch = (col: number, k: number, row: number, idle: number, warnCode: number): PulseSpec => ({
+  room: PAC.lei, col, row, cols: 2, rows: 1, period: TORCHES.period, start: TORCHES.idle, warn: TORCHES.warn, live: TORCHES.live, offset: (TORCHES.period - k * TORCHES.apart) % TORCHES.period,
+  idle, warnCode, liveCode: codeOf(LEI_PALETTE, 'F'), spent: idle,
+});
+export const TORCH_PULSES: readonly PulseSpec[] = TORCHES.cols.map((col, k) => torch(col, k, TORCHES.row + 1, codeOf(LEI_PALETTE, 'Y'), codeOf(LEI_PALETTE, 'Z')));
+export const TORCH_HEAD_PULSES: readonly PulseSpec[] = TORCHES.cols.map((col, k) => torch(col, k, TORCHES.row, 0, 0));
 
 /**
  * The Road to Hana's one-lane bridges (J; `tunnels` with a `span`): a red rental car, four cells long and two tall (the lane's own two rows), drives over each bridge, always the way Monty is going: it waits
@@ -139,7 +142,10 @@ export const LOADER: EscalatorSpec = { room: PAC.hilo, col: 15, row: 17, dx: 1, 
 /** The ramp's chain across BOX CLEVER's bow (cols 30-31, rows 9-10, and the two gutter columns 32-33 that mirror the edge): the bolt cutters take it away. */
 export const CHAIN_CELLS: readonly (readonly [row: number, col: number])[] = [9, 10].flatMap((row) => [30, 31, 32, 33].map((col) => [row, col] as const));
 /** Waikiki's pool (cols 22-31, row 18): the waves, which the snorkel turns to open water. */
-export const POOL_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 10 }, (_, i) => [18, 22 + i] as const);
+export const POOL_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 12 }, (_, i) => [18, 22 + i] as const);
+/** The seabed under the pool is deadly waves too until the snorkel (two rows deep: a jump cannot reach the sand), and is sand again after it. */
+export const POOL_BED_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 12 }, (_, i) => [19, 22 + i] as const);
+export const POOL_BED = codeOf(SURF_PALETTE, 'F');
 export const POOL_SEA = codeOf(SURF_PALETTE, 'S');
 /** Hana's cove pool (cols 20-22, rows 18-19): the waves the snorkel takes away, and the rope that hangs into it then (not before: a rope over the surf would let him walk across it). */
 export const COVE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [20, 21, 22].map((col) => [row, col] as const));
@@ -179,7 +185,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 11, 31, 11, 'D').box(0, 12, 31, 12, 'H').clear(2, 11, 4, 12); // the deck, the hold's roof, the hatch
       g.box(3, 10, 3, 17, 'L');
       g.box(6, 9, 9, 10, 'T').box(12, 7, 15, 10, 'N').box(18, 9, 21, 10, 'T'); // the stacks of containers
-      g.box(30, 9, 31, 10, 'K'); // the chain on the ramp
+      g.box(30, 0, 31, 8, 'H').box(30, 9, 31, 10, 'K'); // the bow's wall to the roof of the sky and the chain on the ramp under it: no way over it
       g.box(0, 18, 9, 18, 'G').box(10, 18, 27, 19, 'W').box(28, 18, 29, 18, 'G').box(0, 19, 9, 19, 'H').box(28, 19, 29, 19, 'H'); // the hold's floor and the bilge
       g.box(4, 15, 7, 15, 'G'); // the cargo shelf over the lane, off the ladder: a pocket
       g.box(12, 16, 14, 16, 'G').box(17, 16, 19, 16, 'G').box(22, 16, 24, 16, 'G').box(27, 16, 29, 16, 'G'); // the gantries
@@ -198,7 +204,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.pier, cell: [2, 19], sector: 40, palette: PIER_PALETTE,
     paint(g) {
-      g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'S'); // the pier's stub
+      g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'S').box(0, 0, 1, 8, 'S').box(30, 0, 31, 4, 'M').box(30, 13, 31, 15, 'M'); // the pier's stub, the bow's wall over it, the warehouses' walls at the edge (the ways on are the roofs and the street)
       g.box(4, 13, 5, 13, 'B').box(4, 14, 5, 19, 'S').box(6, 15, 7, 15, 'B').box(6, 16, 7, 19, 'S').box(8, 17, 9, 17, 'B').box(8, 18, 9, 19, 'S'); // the steps
       g.box(10, 18, 31, 19, 'P'); // the street
       g.box(12, 8, 31, 12, 'M'); // the warehouses
@@ -221,8 +227,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 0, 31, 0, 'M').clear(27, 0, 29, 0);
       g.box(0, 1, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 13, 'M');
-      g.box(0, 18, 21, 18, 'A').box(0, 19, 31, 19, 'F').box(22, 18, 31, 18, 'W'); // the beach and the pool
-      g.box(2, 7, 31, 7, 'B').clear(13, 7, 15, 7); // the promenade
+      g.box(0, 18, 21, 18, 'A').box(0, 19, 31, 19, 'F').box(22, 18, 31, 19, 'W'); // the beach and the pool
+      g.box(0, 7, 31, 7, 'B').clear(13, 7, 15, 7); // the promenade
       g.box(14, 6, 14, 17, 'R').box(28, 0, 28, 6, 'R'); // the ropes
       g.box(22, 8, 29, 15, 'M'); // the hotel
       g.box(2, 13, 7, 13, 'T').box(8, 12, 8, 17, 'R'); // the shop's loft and its rope
@@ -243,7 +249,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 0, 31, 1, 'T');
       g.box(0, 2, 1, 19, 'W').box(30, 2, 31, 19, 'W');
-      g.box(2, 18, 26, 18, 'A').box(0, 19, 31, 19, 'F').box(27, 18, 29, 19, '.'); // the floor and the gap the rope comes up through
+      g.box(2, 18, 26, 18, 'A').box(0, 19, 31, 19, 'A').box(27, 18, 29, 19, '.'); // the floor and the gap the rope comes up through
       g.box(28, 16, 28, 19, 'R');
       g.box(8, 16, 9, 17, 'C').box(6, 14, 7, 17, 'C').box(2, 12, 5, 17, 'C'); // the steps to the shelf
     },
@@ -338,7 +344,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: [[14, 15], [27, 15], [18, 10], [6, 10], [16, 5], [27, 5]],
     decor: [['pacWaterfall', 6, 2], ['pacWaterfall', 20, 2], ['pacBambooClump', 25, 4], ['pacBambooClump', 7, 4],
       ['pacLaneSign', 6, 16], ['pacLaneSign', 20, 16], ['pacLaneSign', 10, 11], ['pacLaneSign', 24, 11], ['pacLaneSign', 9, 6], ['pacLaneSign', 23, 6]],
-    creatures: [{ who: 'pacCoconut', col: 25, row: 6, way: 'right', speed: 1, range: 40 }],
+    creatures: [{ who: 'pacCoconut', col: 23, row: 6, way: 'right', speed: 1, range: 16 }],
   }),
 
   // L THE SEA CAVE: under the road, a dead end of open water. In from the reef at the left, and from above where the waterfall's pool drops into it (the ceiling gap, cols 22-27). Rock ceiling and walls, a floor of rubble; an eel.
@@ -363,7 +369,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.hana, cell: [1, 25], sector: 49, palette: HANA_PALETTE,
     paint(g) {
-      g.box(0, 8, 13, 19, 'B').box(0, 8, 13, 8, 'T').box(30, 0, 31, 19, 'B');
+      g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T').box(30, 0, 31, 19, 'B');
       g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 29, 19, 'K'); // the beach and the pool
       g.box(14, 7, 14, 17, 'R');
       g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the cave's ledge
@@ -378,8 +384,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.fish, cell: [2, 25], sector: 50, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 16, 'W').box(30, 2, 31, 13, 'W');
-      g.box(2, 2, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 14, 31, 18, 'S');
+      g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 18, 'W').box(30, 2, 31, 13, 'W');
+      g.box(2, 2, 29, 18, 'S').box(30, 14, 31, 18, 'S');
       g.box(0, 19, 31, 19, 'B');
       g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
@@ -427,11 +433,11 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.hilo, cell: [2, 28], sector: 53, palette: HILO_PALETTE,
     paint(g) {
-      g.box(0, 9, 6, 19, 'W').box(7, 17, 31, 19, 'P').box(8, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
-      g.box(15, 7, 31, 7, 'J');
+      g.box(0, 9, 6, 19, 'W').box(0, 0, 1, 6, 'W').box(7, 17, 31, 19, 'P').box(8, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
+      g.box(15, 7, 31, 7, 'J').box(30, 8, 31, 16, 'W').box(30, 0, 31, 4, 'W').box(14, 0, 14, 6, 'W'); // the catwalk, the plane's fuselage walling the apron's end, the railing at the loader's top
     },
     coins: [[4, 7], [10, 15], [20, 5], [26, 5]],
-    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 17, 12], ['pacLoader', 13, 14]],
+    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 15, 12], ['pacLoader', 13, 14]],
     creatures: [{ who: 'pacGuard', col: 8, row: 15, way: 'right', speed: 1, range: 24 }],
   }),
 

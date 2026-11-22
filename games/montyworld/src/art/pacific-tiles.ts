@@ -402,27 +402,38 @@ export const PACIFIC_TILES = {
     '#.####.#',
   ]),
   // ---- the luau's flames and the Road to Hana's car
-  /** A torch's flame at full height: a tall teardrop with a hollow heart. Passable (the strike's own danger is the engine's `pulses`). */
-  pacFlame: tile('pacFlame', 0, 8, [
-    '...##...',
-    '..####..',
+  /** A torch's flame at full height: a column of fire, wavy tongues with black cuts, two cells of it stacked over each other (one cell on the foot, one on the head). Passable (the strike's own danger is the engine's `pulses`). */
+  pacFlame: tile('pacFlame', 0, 2, [
+    '.#...#..',
+    '.##.###.',
     '.######.',
-    '.##..##.',
-    '.##..##.',
+    '###.####',
     '.######.',
-    '..####..',
-    '...##...',
+    '.###.##.',
+    '..###.#.',
+    '.##.###.',
   ]),
-  /** A torch's flame warning: a small flicker leaning over. Passable. */
+  /** A torch's warning flame: a small flame low in the foot's cell, the head's cell empty. Passable. */
   pacFlameWarn: tile('pacFlameWarn', 0, 7, [
     '........',
     '........',
-    '....#...',
-    '...##...',
-    '..###...',
-    '.####...',
-    '.#####..',
-    '..####..',
+    '........',
+    '..#..#..',
+    '.###.##.',
+    '.######.',
+    '.######.',
+    '########',
+  ]),
+  /** A torch at rest: a few embers glowing in a bowl of coals, low (safe to walk through). Passable. */
+  pacEmber: tile('pacEmber', 0, 7, [
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
+    '..#..#..',
+    '.##.###.',
+    '########',
   ]),
   /** A red rental car's cabin: a roof over two windows with a pillar between. Passable (the car is a picture the road's strike draws). */
   pacCarCab: tile('pacCarCab', 0, 2, [

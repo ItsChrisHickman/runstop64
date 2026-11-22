@@ -1,6 +1,6 @@
 /**
  * The Pacific's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
- * starting in a wall, every opening open at the rows the next room's is (the joins as the design says), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
+ * starting in a wall, the joins as the design says (pacific-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-layout.ts
  */

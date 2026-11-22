@@ -6,6 +6,8 @@
  */
 import { lavaTop } from '../../montyotr/src/lava';
 import { LAVA, PAC } from '../src/pacific';
+import { copy } from '../../montyotr/test/play';
+import { ACTIONS, hold } from './bot';
 import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
 
 /** Swimming to a place: his top left within a cell of the one given (a swim across a wide room is a few of these, so the search never has the whole sea to look through). */
@@ -20,6 +22,12 @@ const swimTo = (room: number, col: number, row: number): Part => ({
  */
 const outOfLava = (part: Part): Part => ({
   goal: (g) => part.goal(g) && (g.lavas[0] === undefined || lavaTop(LAVA, g.lavas[0].t + 100) > g.montyRow - 3 + 1),
+  aim: part.aim,
+});
+
+/** A leg's goal reached with some move that lives on for `frames` more (a coin taken in front of a creature that is about to reach him is no coin taken: the bot's own check looks only 12 frames ahead). */
+const livesFor = (part: Part, frames: number): Part => ({
+  goal: (g) => part.goal(g) && ACTIONS.some(([, stick]) => !hold({ g: copy(g), col: 0 }, stick, frames).dead),
   aim: part.aim,
 });
 
@@ -47,7 +55,7 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('C: the coin on the pier', coin(PAC.pier, 2, 9)),
   leg('C: down the steps to the street, past the guard, the coin', coin(PAC.pier, 18, 15)),
   leg('C: the street\'s second coin', coin(PAC.pier, 25, 15)),
-  leg('C: back to the first step and up the rope to the roofs, the coin', coin(PAC.pier, 14, 5)),
+  leg('C: back to the first step and up the rope to the roofs, the coin', livesFor(coin(PAC.pier, 14, 5), 60)),
   leg('C: along the roofs past the coconut to the second coin', coin(PAC.pier, 24, 5)),
   leg('C to D: out along the roofs, high', into(PAC.surf, 31, 5, PAC.pier, above(9))),
   leg('D: the promenade\'s coin', coin(PAC.surf, 17, 5)),
@@ -94,7 +102,7 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('I: up to the brig\'s deck, past the tiki, the coin', coin(PAC.whale, 6, 12)),
   leg('I: up the mast\'s rope to the spar and its coin', coin(PAC.whale, 9, 5)),
   leg('I: back to the quay, the coin by the canoe', coin(PAC.whale, 22, 15)),
-  leg('I: past the surfer, the quay\'s far coin', coin(PAC.whale, 29, 15)),
+  leg('I: along the quay, the far coin', coin(PAC.whale, 29, 15)),
   leg('I to J: out along the quay to the road', into(PAC.road, 31, 16, PAC.whale)),
   leg('J: over the first bridge behind its car, the coin', coin(PAC.road, 14, 15)),
   leg('J: the first level\'s end coin', coin(PAC.road, 27, 15)),

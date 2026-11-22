@@ -26,7 +26,7 @@ import { HAT_BLOCKS } from '../src/hats';
 import { JP } from '../src/japan';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
-import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, POOL_CELLS, POOL_SEA, TORCHES, TORCH_PULSES } from '../src/pacific';
+import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, POOL_BED, POOL_BED_CELLS, POOL_CELLS, POOL_SEA, TORCHES, TORCH_PULSES } from '../src/pacific';
 import { newGame, search } from './bot';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
@@ -100,8 +100,19 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   check(`at Waikiki the surf is deadly without the snorkel (dead after ${dies} frames at the pool's edge)`, dies >= 0);
   const wade = at(PAC.surf, 20, 18, [SNORKEL]);
   run(wade, RIGHT, 200);
+  {
+    const stats = { exhausted: false };
+    const across = search(at(PAC.surf, 18, 18), (g) => g.roomId === PAC.clam, [{ room: PAC.clam, col: 2, row: 18 }], 150000, 1.5, stats);
+    check(`there is no way across Waikiki's waves without the snorkel, jumps and all (${stats.exhausted ? 'every state looked at' : 'the 150000-state limit'})`, across === null);
+    for (const floor of [17, 18, 19]) {
+      const back = at(PAC.clam, 3, floor, [SNORKEL]);
+      run(back, LEFT, 160);
+      run(back, NONE, 120);
+      check(`swimming back west out of the reef from floor ${floor} with the snorkel he comes into Waikiki alive (room ${back.g.roomId}, y ${back.g.y})`, back.g.roomId === PAC.surf && !dead(back.g));
+    }
+  }
   check('with the snorkel the pool is open water (the waves placed over by the sea tile: no death) and he wades east into the first reef', !dead(wade.g) && wade.g.roomId === PAC.clam);
-  check(`the pool's cells are the waves until the snorkel and the sea after (${POOL_CELLS.length} cells)`, POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18).g, col, row) !== POOL_SEA) && POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18, [SNORKEL]).g, col, row) === POOL_SEA));
+  check(`the pool's cells are the waves until the snorkel and the sea after (${POOL_CELLS.length} cells)`, POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18).g, col, row) !== POOL_SEA) && POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18, [SNORKEL]).g, col, row) === POOL_SEA) && POOL_BED_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18, [SNORKEL]).g, col, row) === POOL_BED));
   const cove = at(PAC.hana, 17, 18);
   check('at Hana the cove\'s pool is deadly surf without the snorkel', diesAt(cove, RIGHT, 200) >= 0);
   const drop = at(PAC.hana, 17, 18, [SNORKEL]);
@@ -119,10 +130,10 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
     phases.join() === ['idle', 'idle', 'warn', 'warn', 'live', 'live', 'spent', 'spent'].join() && TORCH_PULSES.length === 3);
   check(`the three torches go off ${TORCHES.apart} frames after one another (offsets ${TORCH_PULSES.map((p) => p.offset).join(', ')}), a three-cell gap between them`, TORCH_PULSES.map((p) => p.offset).join() === [0, 110, 70].join() && TORCHES.cols.every((c, i) => i === 0 || (TORCHES.cols[i - 1] ?? 0) - c === 5));
   const s = at(PAC.lei, 25, 18);
-  const codeAt = (col: number) => cell(s.g, col, TORCHES.row);
+  const codeAt = (col: number) => cell(s.g, col, TORCHES.row + 1);
   const seen = new Set<number>();
   for (let f = 0; f < TORCHES.period; f++) { frame(s, NONE); seen.add(codeAt(22)); }
-  check(`a torch is drawn in two characters, the small flame and the tall one (${seen.size})`, seen.size === 2 && !dead(s.g));
+  check(`a torch's foot is drawn in three characters, the embers, the small flame and the tall one (${seen.size}), and its head is empty until the tall flame fills it`, seen.size === 3 && !dead(s.g));
   // standing in the first torch's cells: safe through its low and flickering time, dead when it is tall
   const stand = at(PAC.lei, 22, 18);
   let died = -1;
@@ -201,6 +212,16 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   check(`the loader carries him up ten rows (${LOADER.frames} frames) and sets him down on the catwalk (floor 7, column ${colOf(ride.g)}, y ${ride.g.y}, was ${mid} in the ride), alive and free to walk`, ride.g.roomId === PAC.hilo && ride.g.y === standY(7) && colOf(ride.g) >= 15 && ride.g.gameMode === 0 && !dead(ride.g));
   run(ride, RIGHT, 400);
   check('along the catwalk he walks out into the plane\'s hold (its sill, floor 7)', ride.g.roomId === PAC.hold);
+  // the loader's top and the apron's end
+  {
+    const top = at(PAC.hilo, 25, 7);
+    run(top, LEFT, 300);
+    check(`from the catwalk walking west he stops at the railing (column ${colOf(top.g)}), standing on the catwalk, not turned back or dropped`, top.g.roomId === PAC.hilo && top.g.y === standY(7) && colOf(top.g) === 15 && !dead(top.g));
+    const apron = at(PAC.hilo, 13, 17, [LEI]);
+    run(apron, { ...RIGHT, fire: true }, 30);
+    run(apron, RIGHT, 300);
+    check(`walking the apron east past the loader he stops at the plane's side (room ${apron.g.roomId}, column ${colOf(apron.g)}), never out into the hold's wall`, apron.g.roomId === PAC.hilo && colOf(apron.g) >= 26);
+  }
   // the guard and the lei
   const GUARD = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('pacGuard');
   const guard = at(PAC.hilo, 8, 17, [], false, true);
@@ -220,6 +241,11 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const gone = at(PAC.box, 27, 11, [CUTTERS]);
   run(gone, RIGHT, 200);
   check('without them the chain stops him at the bow; with them he walks down the ramp to the pier', wall.g.roomId === PAC.box && gone.g.roomId === PAC.pier);
+  {
+    const stats = { exhausted: false };
+    const over = search(at(PAC.box, 24, 11), (g) => g.roomId === PAC.pier, [{ room: PAC.pier, col: 2, row: 9 }], 150000, 1.5, stats);
+    check(`and no way past the chain without the cutters, jumps and all (${stats.exhausted ? 'every state looked at' : 'the 150000-state limit'})`, over === null);
+  }
   // the parachute
   const door = (holds: readonly (readonly [number, number])[]) => PLANE_DOOR_CELLS.map(([row, col]) => cell(at(PAC.hold, 20, 16, holds).g, col, row));
   check('the plane\'s rear door is shut (four cells) until the parachute and open after', door([]).every((c) => c !== 0) && door([PARACHUTE]).every((c) => c === 0));
@@ -262,7 +288,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   /** The rows open (not a wall) down the edge column of a room, and the columns open along its top or bottom row. */
   const open = (room: number) => {
     const r = must(PACIFIC_ROOMS.find((x) => x.id === room), 'a room');
-    const wall = (col: number, row: number) => { const ch = r.map[row]?.[col] ?? '.'; return ch !== '.' && WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0) === 1; };
+    const wall = (col: number, row: number) => { const ch = r.map[row]?.[col] ?? '.'; return ch !== '.' && [1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0)); };
     return { wall };
   };
   const rowsOpen = (room: number, col: number) => Array.from({ length: 20 }, (_, row) => row).filter((row) => !open(room).wall(col, row));
@@ -270,10 +296,16 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const together = (a: readonly number[], b: readonly number[]) => a.filter((x) => b.includes(x) && b.includes(x + 1) && a.includes(x + 1)).length > 0;
   const sides: readonly (readonly [number, number])[] = [[PAC.stern, PAC.box], [PAC.box, PAC.pier], [PAC.pier, PAC.surf], [PAC.surf, PAC.clam], [PAC.clam, PAC.mole], [PAC.mole, PAC.kelp], [PAC.kelp, PAC.cave], [PAC.whale, PAC.road],
     [PAC.road, PAC.hana], [PAC.fish, PAC.coffee], [PAC.coffee, PAC.mauna], [PAC.mauna, PAC.hilo], [PAC.hilo, PAC.hold]];
-  const badSides = sides.filter(([l, r]) => !together(rowsOpen(l, 31), rowsOpen(r, 0)));
-  check(`every east-west join of the Pacific is open at the same rows on both sides (${badSides.length ? badSides.map(([l, r]) => `${l}-${r}`).join(', ') : 'all thirteen'})`, badSides.length === 0);
+  /** A side's rows that are open on one and wall on the other (a jump or a walk there would end inside a wall): every open row must meet an open one. The chain's rows and the waves' count as open (cut, snorkelled). */
+  const cut = (l: number): readonly number[] => (l === PAC.box ? [9, 10] : l === PAC.surf ? [18] : []);
+  const clash = (l: number, r: number) => {
+    const a = [...rowsOpen(l, 31), ...cut(l)], b = rowsOpen(r, 0);
+    return [...a.filter((x) => !b.includes(x)), ...b.filter((x) => !a.includes(x))].filter((row) => row >= 2); // (the two top rows are the ceiling's: nothing of him gets there)
+  };
+  const badSides = sides.filter(([l, r]) => !together([...rowsOpen(l, 31), ...cut(l)], rowsOpen(r, 0)) || clash(l, r).length > 0);
+  check(`every east-west join of the Pacific is open at the same rows on both sides, no open row meeting a wall (${badSides.length ? badSides.map(([l, r]) => `${l}-${r}: ${clash(l, r).join(' ')}`).join(', ') : 'all thirteen'})`, badSides.length === 0);
   const tops: readonly (readonly [number, number])[] = [[PAC.lei, PAC.surf], [PAC.whale, PAC.kelp], [PAC.road, PAC.cave], [PAC.hana, PAC.fish]];
-  const badTops = tops.filter(([upper, lower]) => !together(colsOpen(upper, 19), colsOpen(lower, 0)));
+  const badTops = tops.filter(([upper, lower]) => !together([...colsOpen(upper, 19), ...(upper === PAC.hana ? [20, 21, 22] : [])], colsOpen(lower, 0)));
   check(`every up-down join is open at the same columns (${badTops.length ? badTops.map(([u, l]) => `${u}-${l}`).join(', ') : 'all four'})`, badTops.length === 0);
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 200000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5) !== null;
   const quiet = (s: State) => { s.g.tunnels = []; s.g.pulses = []; s.g.lavas = []; return s; };
@@ -287,6 +319,24 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   check('the cove\'s rope climbs from the third reef back to Hana\'s beach, and the road runs back down, level by level, to the harbour', reach(at(PAC.fish, 21, 8, [SNORKEL]), { room: PAC.fish, col: 21, row: 0 }, (g) => g.roomId === PAC.hana && g.onRope !== 0)
     && reach(quiet(at(PAC.hana, 2, 8)), { room: PAC.hana, col: 0, row: 6 }, (g) => g.roomId === PAC.road));
   check('Hilo\'s terminal walks back west onto the volcano\'s rim and the hold\'s sill back onto the catwalk', reach(quiet(at(PAC.hilo, 2, 9)), { room: PAC.hilo, col: 0, row: 7 }, (g) => g.roomId === PAC.mauna) && reach(at(PAC.hold, 3, 7), { room: PAC.hold, col: 0, row: 5 }, (g) => g.roomId === PAC.hilo));
+}
+
+// ---- the doors in play (the creatures in) ------------------------------------------------------------------
+{
+  // walking west out of Hana onto the road's top level, the coconut and the car in, then running the level to its far end
+  const road = at(PAC.hana, 2, 8, [], false, true);
+  run(road, LEFT, 60);
+  const alive = road.g.roomId === PAC.road && !dead(road.g);
+  run(road, NONE, 160);
+  check(`walking west from Hana onto the road's top level and standing there ${alive && !dead(road.g) ? 'is safe' : 'kills him'} (the coconut patrols well away from the doorway, ${must(PACIFIC_ROOMS.find((r) => r.id === PAC.road)?.enemies?.[0], 'the coconut').col - 4})`, alive && !dead(road.g));
+  const bys = at(PAC.hana, 2, 8, [], false, true);
+  const west = search(bys, (g) => g.roomId === PAC.road && colOf(g) <= 20 && g.y === standY(8), [{ room: PAC.road, col: 18, row: 6 }], 120000, 1.5);
+  check('and he can run it on west past the coconut (a way found with its creatures in)', west !== null);
+  // walking east along the roofs into Waikiki he stays on the promenade, not dropping into a notch under it
+  const roofs = at(PAC.pier, 20, 7);
+  run(roofs, RIGHT, 260);
+  run(roofs, NONE, 60);
+  check(`from the pier's roofs east onto Waikiki's promenade he lands standing on it (room ${roofs.g.roomId}, y ${roofs.g.y}, the promenade's ${standY(7)})`, roofs.g.roomId === PAC.surf && roofs.g.y === standY(7));
 }
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
