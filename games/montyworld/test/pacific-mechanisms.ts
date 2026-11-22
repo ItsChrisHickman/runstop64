@@ -406,7 +406,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Pacific\'s arrays and grids) loads: the finds and the hood are as saved, and the Pacific is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 17] === PAC.stern && g2.siCollected.length === 34 && g2.coinCollected.length === 220 && g2.coinCollected.slice(67).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 17] === PAC.stern && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(67).every((c) => c === 0));
 }
 
 void LEFT;

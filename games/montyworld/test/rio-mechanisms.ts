@@ -167,7 +167,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const seen = new Set<number>();
   for (let f = 0; f < 100; f++) { frame(s, NONE); if (dead(s.g)) break; seen.add(s.g.vic.sprites[2]?.ptr ?? 0); }
   const man = s.g.enemies[0];
-  check(`the skewer follows its gaucho, in the picture of the pose it is in (${[...seen].map((p) => p.toString(16)).join(' ')}), on sprite 2`, man !== undefined && s.g.skewers.length === 2 && [...seen].every((p) => (SKEWER_POINTERS.left as readonly number[]).includes(p) || (SKEWER_POINTERS.right as readonly number[]).includes(p)));
+  check(`the skewer follows its gaucho, in the picture of the pose it is in (${[...seen].map((p) => p.toString(16)).join(' ')}), on sprite 2`, man !== undefined && s.g.skewers.length === 2 && [...seen].every((p) => [...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right].some((q) => q === p)));
   // the deadly pose over him kills; the same place at the harmless one does not
   const hit = (pose: number): boolean => {
     const u = at(R.steak, 26, 18, [], false, true);

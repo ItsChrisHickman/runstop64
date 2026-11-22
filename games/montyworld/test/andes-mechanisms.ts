@@ -370,7 +370,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   };
   const opens: readonly (readonly [number, 0 | 31, readonly number[]])[] = [
     [AND.jump, 0, [14, 15]], [AND.llama, 31, [3, 4, 5, 16, 17]], [AND.rock, 0, [3, 4, 5, 16, 17]], [AND.rock, 31, [10, 11]], [AND.market, 0, [10, 11]], [AND.market, 31, [16, 17]], [AND.mist, 0, [16, 17]],
-    [AND.cloud, 31, [6, 7, 16, 17]], [AND.tunnel, 0, [6, 7, 16, 17]], [AND.boat, 31, [13, 14]], [AND.river, 0, [13, 14]], [AND.river, 31, [13, 14]], [AND.bank, 0, [13, 14]],
+    [AND.cloud, 31, [6, 7, 16, 17]], [AND.tunnel, 0, [6, 7, 16, 17]], [AND.boat, 31, [13, 14]], [AND.river, 0, [13, 14]], [AND.river, 31, [13, 14]], [AND.bank, 0, [13, 14]], [AND.bank, 31, [6, 7]],
   ];
   const bad: string[] = [];
   for (const r of ANDES_ROOMS) for (const col of [0, 31] as const) {
@@ -459,7 +459,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Andes\' arrays and grids) loads: the finds and the lei are as saved, and the Andes are on the grid, their coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 30] === AND.jump && g2.siCollected.length === 34 && g2.coinCollected.length === 147 + ANDES_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(147).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 30] === AND.jump && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(147).every((c) => c === 0));
 }
 
 void LEFT;
