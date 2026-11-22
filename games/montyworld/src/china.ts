@@ -300,6 +300,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   // hat) and the rope up at column 24.
   room({
     id: CHI.gate, cell: [1, 10], sector: 23, palette: GATE_PALETTE,
+    shut: [['right', 1, 5, 'W']], // the palace wall runs up the right edge: the quay beside it is a wall there
     paint: paintGate,
     coins: [[8, 15], [6, 7], [28, 15]],
     decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], ['gateRoof', 12, 2], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
@@ -354,7 +355,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 16, 'E').box(30, 6, 31, 14, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top, a headland at the right: the sky open over the river
+      g.box(0, 0, 1, 16, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top, a headland at the right: the sky open over the river
       g.box(0, 17, 18, 17, 'D').box(0, 18, 18, 19, 'E');
       g.box(19, 17, 25, 19, 'W');
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');

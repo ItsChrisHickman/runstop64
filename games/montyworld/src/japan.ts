@@ -370,6 +370,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // platform. The platform's east end is shut by a roller shutter until the daruma; two trains sweep the platform lane in turn.
   room({
     id: JP.platform, cell: [2, 14], sector: 31, palette: PLATFORM_PALETTE,
+    shut: [['left', 3, 7, 'W']], // the parlour beside it is a wall there
     paint(g) {
       g.box(0, 0, 0, 13, 'W').box(14, 0, 31, 0, 'W').clear(22, 0, 24, 0).box(29, 1, 29, 9, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it; a canopy's edge over the rope's top and a gantry post over the gate, so that no one jumps off the rope's top over the gate or out of the room)
       g.box(0, 14, 31, 14, 'W').clear(8, 14, 10, 14).clear(19, 14, 21, 14);
@@ -398,6 +399,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // water with two koi leaping out of it (once they are fed they are gone and the planks float up). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
   room({
     id: JP.garden, cell: [1, 15], sector: 33, palette: GARDEN_PALETTE,
+    shut: [['left', 3, 8, 'K'], ['right', 3, 4, 'K']], // the crossing's wall at the left, the hall's at the right
     paint(g) {
       g.box(0, 1, 1, 13, 'L').box(0, 0, 1, 0, 'K'); // (open sky; a temple wall with its tiled cap at the left, the castle gatehouse at the right)
       g.box(30, 2, 31, 11, 'L').box(29, 1, 31, 1, 'K'); // the gatehouse runs up to the pergola's beam: no way out over it into the hall's wall
@@ -421,6 +423,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // on its plinth with the ninja hood. A koi leaps out of the water between two stones.
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
+    shut: [['right', 3, 8, 'K']], // the tiers' wall at the right
     paint(g) {
       g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K'); // (the night sky open above; a garden wall at the right)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
@@ -488,6 +491,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // at the east the cargo ship moored at the quay's end: its hull with its portholes standing in the water, its deckhouse and funnel, and the gangway down, a plank to step on and the deck over it, which walks on east into the Pacific.
   room({
     id: JP.port, cell: [2, 16], sector: 37, palette: PORT_PALETTE,
+    shut: [['left', 4, 4, 'D']], // Fuji's scree is a wall there
     paint: paintPort,
     coins: [[4, 9], [23, 15]],
     decor: [

@@ -123,7 +123,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.jump, cell: [2, 30], sector: 55, palette: SKY_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 17, 'K').box(0, 18, 1, 19, 'K');
+      g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 17, 'K').box(0, 18, 2, 19, 'K');
       g.box(28, 0, 31, 19, 'R');
       g.box(19, 14, 24, 19, 'R').box(20, 13, 23, 13, 'S').box(21, 12, 22, 12, 'S'); // the spire
     },

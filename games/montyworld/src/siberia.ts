@@ -266,6 +266,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // through the mine's loading shelf into the mine.
   room({
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
+    shut: [['right', 18, 18, 'F']], // the lake's rock is a wall where the carriage's floor line is open
     paint(g) {
       g.box(17, 0, 31, 1, 'M').clear(23, 0, 25, 1).box(24, 0, 24, 9, 'R'); // the mine's loading shelf overhanging the rope's way up; the rest open sky
       g.box(0, 10, 1, 14, 'T'); // the wagon's end (its gangway below, an inspector in it until he has the ticket)
@@ -383,6 +384,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // down to the village.
   room({
     id: SIB.lake, cell: [1, 7], sector: 16, palette: LAKE_PALETTE,
+    shut: [['left', 3, 3, 'K']], // the carriage beside it is a wall to its top
     paint(g) {
       g.box(28, 0, 28, 11, 'R'); // the shaft above, and its rope
       g.box(18, 0, 26, 0, 'K').box(20, 1, 25, 1, 'K').box(30, 0, 31, 11, 'K'); // the shaft's rock overhanging the rope's way up

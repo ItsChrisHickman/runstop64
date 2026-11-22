@@ -46,6 +46,11 @@ export interface MoscowRoom {
   sector: number;
   palette: Palette;
   paint: (g: Grid) => void;
+  /**
+   * Edge cells shut with a wall because the room beside has a wall there (an open cell that meets a wall is a trap: he walks or jumps out of the room and lands inside it): which edge,
+   * the rows (first, last) and the palette letter of the wall. games/montyworld/test/joins.ts holds every join of every region to it.
+   */
+  shut?: readonly (readonly [edge: 'left' | 'right', first: number, last: number, letter: string])[];
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake: the sprite's top left cell. */
   cake?: readonly [col: number, row: number];
@@ -78,6 +83,7 @@ export function room(r: MoscowRoom): RoomSpec {
   if (letters.length > 8) throw new Error(`room $${r.id.toString(16)}: ${letters.length} tiles, 8 at most`);
   const g = new Grid();
   r.paint(g);
+  for (const [edge, first, last, letter] of r.shut ?? []) g.box(edge === 'left' ? 0 : PLAY_COLS - 1, first, edge === 'left' ? 0 : PLAY_COLS - 1, last, letter);
   const map = g.rows().map((row) => [...row].map((c) => (c === '.' ? '.' : String(codeOf(r.palette, c)))).join(''));
   if (map.some((row) => row.includes('0'))) throw new Error(`room $${r.id.toString(16)}: a letter that is not in its palette`);
   const tiles = letters.map((l) => worldTileIndex(r.palette[l]?.[0] ?? 'snowGround'));
