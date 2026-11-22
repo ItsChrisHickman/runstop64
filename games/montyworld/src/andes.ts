@@ -173,7 +173,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(9, 16, 13, 16, 'G').box(9, 17, 13, 17, 'W').box(14, 14, 17, 14, 'G').box(14, 15, 17, 17, 'W').box(18, 16, 21, 16, 'G').box(18, 17, 21, 17, 'W'); // the terraces of the low path
       g.box(0, 11, 1, 17, 'K').box(30, 7, 31, 15, 'W');
     },
-    coins: [[11, 4], [16, 4], [22, 4], [28, 4], [11, 14], [15, 12], [19, 14], [27, 16]],
+    coins: [[11, 4], [16, 4], [22, 4], [28, 4], [11, 14], [15, 12], [27, 16]],
     decor: [['mountainRange', 3, 3], ['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
     creatures: [{ who: 'llama', col: 2, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 24, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
@@ -252,7 +252,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(24, 16, 25, 17, 'W').box(26, 14, 27, 17, 'W').box(28, 12, 30, 17, 'W');
       g.box(20, 0, 20, 17, 'R');
     },
-    coins: [[5, 16], [16, 16], [21, 16], [24, 14], [27, 12], [29, 9]],
+    coins: [[5, 16], [16, 16], [18, 16], [25, 14], [27, 12], [29, 9]],
     item: { name: 'machete', col: 28, row: 10, sprite: ANDES_SPRITE.machete },
     decor: [['torch', 7, 16], ['torch', 17, 16], ['idol', 3, 16], ['idol', 14, 16]],
     creatures: [{ who: 'caveBat', col: 12, row: 6, way: 'right', speed: 2, range: 50 }],
