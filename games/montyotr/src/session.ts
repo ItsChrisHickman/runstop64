@@ -11,7 +11,7 @@ import { Game } from './game';
 import { describeSave, montyMap, noTravel, noteRoom, type MontyFound } from './map';
 import type { AssistId, MontyData, TuneVersion } from './montydata';
 import { CODEC, restore, snapshot, type MontySave } from './save';
-import { fineScroll, Title, topScore } from './title';
+import { fineScroll, Title, topScore, type TitleScreen } from './title';
 import { TOUCH } from './touch';
 
 /**
@@ -64,7 +64,8 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     music.useTune(version ? (original) => version.make(original) : null);
     if (!musicOn) g.sound.stop();
   }
-  const title = new Title(g, { song: (n) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn }, { kit: data.kit, message: data.title.message });
+  const sound = { song: (n: number) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn };
+  const title: TitleScreen = 'screen' in data.title ? data.title.screen(g, sound) : new Title(g, sound, { kit: data.kit, message: data.title.message });
 
   options.migrate?.();
   type Mode = 'title' | 'play';
@@ -84,7 +85,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     ending: () => !!data.ending && enhanced() && readWon(data.id),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
     // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
-    restartKeys: [], strip: { y: STRIP_Y },
+    restartKeys: [], strip: { y: 'screen' in data.title ? data.title.stripY : STRIP_Y },
     assists: data.assists.map((id) => ASSIST_SPECS[id]),
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
@@ -130,6 +131,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     }
 
     function startGame() {
+      title.leave();
       g.start();
       won = false;
       g.vic.border = g.vic.background = 0;
@@ -182,6 +184,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
        */
       resume(s, from) {
         const ending = !!g.completionActive;
+        title.leave();
         restore(g, s);
         if (ending) playOn();
         if (from === 'continue' && !won) { g.lives = 5; g.score = 0; }
@@ -217,7 +220,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       },
       updateView() {
         view.update();
-        if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border);
+        if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border, title.fine.top, title.fine.lines);
       },
       renderView: (alpha) => view.render(alpha),
       afterView() { collisions = mode === 'play' ? view.collisions(g.uncounted) : 0; },

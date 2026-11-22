@@ -2,6 +2,7 @@ import type { Seq } from '../../shared/monty/deaths';
 import type { RoomTables } from '../../shared/monty/rooms';
 import type { Scene } from './ending-scenes';
 import type { Game } from './game';
+import type { TitleGame, TitleScreen, TitleSound } from './title';
 
 /**
  * A Monty game's data: everything the engine (Game, items, mechanisms, map, save, ending, title, main) reads about the game it
@@ -388,8 +389,14 @@ export interface MontyData extends RoomTables, MontyLook {
   regions: readonly MapRegion[];
   /** The map: the special items that are the key ones, the cakes, and the colour of each sector. */
   progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[]; /** What the cakes are called on the pause screen (Monty on the Run's cupcakes: CAKES; Do Svidaniya Monty's pirozhki and every region's food: SNACKS). */ foodName?: string };
-  /** The title's own text: the scroller's stream. */
-  title: { message: Uint8Array };
+  /**
+   * The title: the scroller's stream (Monty on the Run's: its title screen runs it), or a title screen of the game's own (`screen`,
+   * made over the game's screen and sprites; its scroller's stream is its own) and where ENTER CONTINUE goes (`stripY`, the top
+   * line in pixels, in a part the picture leaves empty).
+   */
+  title:
+    | { message: Uint8Array }
+    | { screen: (g: TitleGame, sound: TitleSound) => TitleScreen; stripY: number };
   /** The reward for winning; null: the game has none yet. */
   ending: MontyEnding | null;
 }

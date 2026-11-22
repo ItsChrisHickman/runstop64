@@ -1,7 +1,6 @@
 import sidUrl from '../../montyotr/assets/monty_on_the_run.sid?url';
 import { bankImage, ITEM_SPRITES, MOTR_LOOK } from '../../montyotr/src/data';
 import type { MontyData, RoomEffect } from '../../montyotr/src/montydata';
-import { scrollerMessage } from '../../montyotr/src/title';
 import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
@@ -9,6 +8,7 @@ import {
   CART, CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
   HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
+import { MapTitle, STRIP_Y } from './title';
 import { CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from './china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
@@ -329,19 +329,6 @@ export const WORLD: MontyData = {
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ from, to, rows }) => ({ from, to, rows })),
   progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CITY_KEY, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
-  title: {
-    message: scrollerMessage([
-      [0xfe, 1], 'DO SVIDANIYA ', [0xfe, 7], 'MONTY. ',
-      [0xfe, 1], 'A NEW GAME BY ', [0xfe, 13], 'CHRISTOPHER HICKMAN WITH CLAUDE. ',
-      [0xfe, 1], 'AFTER ', [0xfe, 7], 'PETER HARRAP. ',
-      [0xfe, 1], 'MUSIC BY ', [0xfe, 14], 'ROB HUBBARD. ',
-      [0xfe, 1], 'THE STORY: ', [0xfe, 13], 'INTERMOLE HAS FOUND MONTY ON HIS GREEK ISLAND AND EUROPE IS NO LONGER SAFE. ',
-      [0xfe, 1], 'INTERMOLE CAN ONLY WORK IN EUROPE, SO MONTY RUNS EAST, OUT OF ITS REACH, THE LONG WAY ROUND AND WITH NO PASSPORT. ',
-      [0xfe, 7], 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A CARGO PLANE AND A PARACHUTE DOWN INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO. ',
-      [0xfe, 1], 'EVERY LEG A DIFFERENT WAY OF TRAVELLING, EVERY COUNTRY ITS OWN HAT. FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC. ',
-      [0xfe, 1], 'A TRIBUTE: ', [0xfe, 10], 'RUNSTOP64. ',
-      [0xfe, 1], 'GOOD LUCK!          ',
-    ]),
-  },
+  title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };
