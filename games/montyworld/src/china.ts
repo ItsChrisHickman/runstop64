@@ -136,8 +136,8 @@ export const TRAPDOOR_CELLS: readonly (readonly [row: number, col: number])[] = 
 export const TRAPDOOR_ROPE: readonly (readonly [row: number, col: number])[] = [[0, 16], [1, 16]];
 /** The gate's doors (cols 14-17, rows 11-16). */
 export const DOOR_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 6 }, (_, i) => 11 + i).flatMap((row) => [14, 15, 16, 17].map((col) => [row, col] as const));
-/** The hatch in the wall's tunnel roof (the chamber's floor, col 19, row 13) and the rope that takes its place up into the chamber (rows 10-13): playfield cells (row, column). */
-export const HATCH_CELLS: readonly (readonly [row: number, col: number])[] = [[13, 19]];
+/** The hatch in the wall's tunnel roof (three cells wide as the tower's plug is: his body is two; the chamber's floor, columns 18-20, row 13) and the rope that takes its place up into the chamber (rows 10-13): playfield cells (row, column). */
+export const HATCH_CELLS: readonly (readonly [row: number, col: number])[] = [[13, 18], [13, 19], [13, 20]];
 export const HATCH_ROPE: readonly (readonly [row: number, col: number])[] = [[10, 19], [11, 19], [12, 19], [13, 19]];
 export const WALL_ROPE_CODE = codeOf(WALL_PALETTE, 'R');
 /** Where the bamboo puts the raft: the river's cells at the quay's floor (row 17, cols 19-25). */
@@ -217,9 +217,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
       g.box(30, 2, 31, 8, 'G').box(30, 4, 31, 4, 'L').box(30, 6, 31, 6, 'L'); // the tower's wall at the right, its slits
       g.box(25, 0, 25, 8, 'R');
-      g.clear(17, 10, 20, 12).box(19, 14, 19, 16, 'R').box(19, 13, 19, 13, 'H'); // a chamber in the wall's thickness, its hatch in the tunnel's roof (the key takes it) and the rope that hangs under it
+      g.clear(15, 10, 20, 12).box(19, 14, 19, 16, 'R').box(18, 13, 20, 13, 'H'); // a chamber in the wall's thickness, its hatch in the tunnel's roof (the key takes it) and the rope that hangs under it
     },
-    coins: [[8, 11], [17, 11]],
+    coins: [[8, 11], [15, 11]],
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
     decor: [
       ['peakBrown', 2, 5], ['peakBrown', 8, 5], ['peakBrown', 14, 4], ['peakBrown', 19, 4], ['hillGreen', 1, 5], // the mountains behind the Wall, a range and the near hills in front of it

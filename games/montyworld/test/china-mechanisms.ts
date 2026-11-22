@@ -477,7 +477,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   }
   {
     // the wall's hatch: shut (the trapdoor tile) with the rope hanging below it, until the key; then the rope goes on up into the chamber
-    const [row, col] = must(HATCH_CELLS[0], 'the hatch');
+    const [row, col] = must(HATCH_CELLS[1], 'the hatch');
     const shut = at(CHI.wall, 17, 17);
     const open = at(CHI.wall, 17, 17, [KEY]);
     frame(shut, NONE); frame(open, NONE);
