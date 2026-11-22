@@ -5,22 +5,24 @@
  * port's gantry and ship's mast, the Great Wave. Every name starts `jp`.
  */
 import { decor } from './decorations';
+import { JAPAN_NIGHT } from './japan-night';
+import { JAPAN_SCENERY } from './japan-scenery';
 import { limb, Raster } from './raster';
 import type { NewDecor } from './types';
 
-/** The junk's mast and its great battened sail, 6 x 8 characters: the mast up the left, the sail's ribs (battens) across it, a rope. */
+/** The junk's mast and its great battened sail, 5 x 8 characters: the mast up the left, the sail's ribs (battens) across it, a rope. */
 function junkSail(): NewDecor {
-  const r = new Raster(48, 64);
-  r.rect(5, 0, 7, 63); r.rect(6, 4, 6, 63, false); // the mast, its grain
-  r.triangle(9, 2, 40, 14, 9, 14); // the sail's high peak: a swept wing
-  r.rect(9, 14, 41, 58); // the body of the sail
-  for (let y = 22; y < 58; y += 9) r.rect(9, y, 41, y + 1, false); // the dark seams between the panels
-  for (let y = 14; y < 58; y += 9) r.rect(42, y + 3, 45, y + 5); // the battens' ends stick out at the leech
-  for (let y = 18; y < 58; y += 9) r.rect(2, y, 4, y + 1); // and a short way at the mast
-  r.rect(26, 15, 26, 57, false); // a seam up the middle
-  r.rect(0, 62, 47, 63); // the deck line at its foot
-  r.line(8, 2, 0, 20); // a stay to the bow
-  return decor('jpJunkSail', 6, 8, r, 8);
+  const r = new Raster(40, 64);
+  r.rect(4, 0, 6, 63); r.rect(5, 4, 5, 63, false); // the mast, its grain
+  r.triangle(8, 2, 33, 13, 8, 13); // the sail's high peak: a swept wing
+  r.rect(8, 13, 34, 58); // the body of the sail
+  for (let y = 22; y < 58; y += 9) r.rect(8, y, 34, y + 1, false); // the dark seams between the panels
+  for (let y = 13; y < 58; y += 9) r.rect(35, y + 3, 38, y + 5); // the battens' ends stick out at the leech
+  for (let y = 18; y < 58; y += 9) r.rect(1, y, 3, y + 1); // and a short way at the mast
+  r.rect(21, 14, 21, 57, false); // a seam up the middle
+  r.rect(0, 62, 39, 63); // the deck line at its foot
+  r.line(7, 2, 0, 20); // a stay to the bow
+  return decor('jpJunkSail', 5, 8, r, 8);
 }
 
 /** A fish stall: a striped awning, a slab with a tuna on ice. 4 x 3 characters. */
@@ -322,6 +324,8 @@ export const JAPAN_DECOR = {
   jpTrafficLight: trafficLight(),
   jpScreen: screen(),
   jpBoard: board(),
+  ...JAPAN_NIGHT,
+  ...JAPAN_SCENERY,
 } as const satisfies Record<string, NewDecor>;
 
 export type JapanDecor = keyof typeof JAPAN_DECOR;

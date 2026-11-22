@@ -93,6 +93,20 @@ export const JAPAN_TILES = {
   jpTrainBand: tile('jpTrainBand', 0, 6, ['........', '########', '########', '########', '########', '########', '########', '........']),
   /** The bullet train's skirt and bogie: a grey skirt over a pair of wheels. Nothing. */
   jpTrainWheel: tile('jpTrainWheel', 0, 12, ['########', '########', '########', '.######.', '##.##.##', '##.##.##', '.######.', '........']),
+  /** The bullet train's nose, a half cell: the lower half white, so the nose rises a half cell at a time. Nothing. */
+  jpTrainHalf: tile('jpTrainHalf', 0, 1, ['........', '........', '........', '........', '########', '########', '########', '........']),
+  /** A warehouse's wall: upright planks, seams and nails. Solid. */
+  jpWarehouse: tile('jpWarehouse', 1, 9, ['###.###.', '###.###.', '#.#.#.#.', '###.###.', '###.###.', '###.###.', '#.#.#.#.', '###.###.']),
+  /** A tower block's face at night: rows of lit windows on black. Solid. */
+  jpLitA: tile('jpLitA', 1, 7, ['........', '###.###.', '###.###.', '###.###.', '........', '###.###.', '###.###.', '###.###.']),
+  /** A tower block's face at night, some windows dark. Solid. */
+  jpLitB: tile('jpLitB', 1, 7, ['........', '###.....', '###.....', '###.....', '........', '.....###', '.....###', '.....###']),
+  /** A castle's plaster wall in the open: white panels with black joints. Nothing (the castle behind him). */
+  jpKeepWall: tile('jpKeepWall', 0, 1, ['########', '########', '####.###', '........', '########', '###.####', '########', '........']),
+  /** A castle's window: a slit in the plaster. Nothing. */
+  jpKeepWindow: tile('jpKeepWindow', 0, 1, ['########', '#..##..#', '#..##..#', '########', '########', '###.####', '########', '........']),
+  /** A castle's stone base seen behind him: great dressed blocks. Nothing (the castle behind him). */
+  jpKeepBase: tile('jpKeepBase', 0, 9, ['########', '#......#', '########', '###.####', '###.####', '########', '#.######', '#.######']),
 } as const;
 
 export type JapanTile = keyof typeof JAPAN_TILES;
