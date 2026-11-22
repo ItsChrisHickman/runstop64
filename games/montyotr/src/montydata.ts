@@ -234,6 +234,8 @@ export interface CableCarSpec {
   roof: { ptr: number; sprite: number }; floor: { ptr: number; sprite: number }; passing: { roof: number; floor: number }; colour: number;
   /** The car's pictures sit this many pixels left of Monty's left edge and this far above his top (the roof) or his floor (the floor sprite's top). */
   dx: number; roofDy: number; floorDy: number;
+  /** The passing car's own cable: it hangs `dy` pixels below the line (a car's height and a little over) from `ramp` (a fraction of the way) in to `ramp` from the far end, and slides down to it and back up over the ramps. */
+  bypass: { dy: number; ramp: number };
 }
 
 /**

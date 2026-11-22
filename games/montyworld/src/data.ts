@@ -27,10 +27,10 @@ import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
-import { CABLE_CAR as CABLE_CARS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
-import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_POINTER } from './rio-pointers';
+import { CABLE_CAR as CABLE_CAR_SPEC, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
+import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
-import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN } from './art/rio-items';
+import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN, SUN_MASK } from './art/rio-items';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -119,6 +119,7 @@ const bank = extendBank(bankImage, [
   { ptr: RIO_SPRITE.skewer, block: RIO_ITEMS.skewer.block },
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
   { ptr: SUN_POINTER, block: SUN.block },
+  { ptr: SUN_MASK_POINTER, block: SUN_MASK },
   { ptr: CAR_POINTERS.roof, block: CABLE_CAR.top },
   { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: SKEWER_POINTERS.left[i] ?? 0, block: pose.block })),
@@ -252,7 +253,7 @@ export const WORLD: MontyData = {
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
   rollers: BOULDERS,
   vines: VINES,
-  cableCars: [CABLE_CARS],
+  cableCars: [CABLE_CAR_SPEC],
   floats: FLOATS,
   skewers: SKEWERS,
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },

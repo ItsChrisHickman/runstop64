@@ -102,7 +102,7 @@ function skewerAt(x: number, y: number, k: number, facing: 'left' | 'right'): re
     name: 'RIO OR BUST', nameCol: 10,
     codes: [['wavePavement'], ['sand'], ['seaSwell'], ['tableTop'], ['woodLadder']],
     grid: g,
-    decor: [['christ', 22, 4], ['sugarloaf', 6, 8], ['beachPalm', 13, 7], ['parasol', 24, 13], ['deckchair', 22, 15], ['signBoard', 5, 14]],
+    decor: [['christ', 22, 4], ['sugarloaf', 6, 8], ['parasol', 24, 13], ['deckchair', 22, 15], ['signBoard', 5, 14]],
     coins: [],
     creatures: [],
     items: [['acaiBowl', { col: 27, row: 13 }], ['sun', { col: 15, row: 9 }]],

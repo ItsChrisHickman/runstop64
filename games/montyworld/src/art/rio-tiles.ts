@@ -184,6 +184,50 @@ export const RIO_TILES = {
     '........',
     '........',
   ]),
+  /** A palm's crown, its left frond: a long leaf drooping to the left from the knot at the right edge. Nothing. */
+  palmLeft: tile('palmLeft', 0, 5, [
+    '....####',
+    '..###...',
+    '.#..###.',
+    '#.....##',
+    '#.......',
+    '........',
+    '........',
+    '........',
+  ]),
+  /** A palm's crown, the knot with the fronds going up and a pair of coconuts under it. Nothing. */
+  palmKnot: tile('palmKnot', 0, 5, [
+    '#..##..#',
+    '.######.',
+    '..####..',
+    '..#.##..',
+    '...##...',
+    '..#..#..',
+    '........',
+    '........',
+  ]),
+  /** A palm's crown, its right frond (the left's mirror). Nothing. */
+  palmRight: tile('palmRight', 0, 5, [
+    '####....',
+    '...###..',
+    '.###..#.',
+    '##.....#',
+    '.......#',
+    '........',
+    '........',
+    '........',
+  ]),
+  /** A palm's trunk: a slim column ringed with black lines. Nothing. */
+  palmTrunk: tile('palmTrunk', 0, 9, [
+    '...###..',
+    '...###..',
+    '...#.#..',
+    '...###..',
+    '...###..',
+    '...#.#..',
+    '...###..',
+    '...###..',
+  ]),
   /** A wine barrel: staves and two hoops. Solid. */
   barrel: tile('barrel', 1, 9, [
     '.######.',

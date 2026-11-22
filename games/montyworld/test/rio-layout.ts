@@ -26,7 +26,11 @@ for (const r of RIO_ROOMS) {
   let chars = 0;
   const seen = new Set<number>();
   for (const d of r.decor ?? []) {
-    if (typeof d.type !== 'number') continue; // (a sign's letters)
+    if (typeof d.type !== 'number') { // a sign: a character a letter, its cells a decoration's
+      chars += d.type.text.length;
+      for (let x = 0; x < d.type.text.length; x++) decor.add(`${d.col - PLAY_COL + x},${d.row - PLAY_ROW}`);
+      continue;
+    }
     const type = names[d.type];
     if (!type) continue;
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }

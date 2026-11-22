@@ -65,6 +65,14 @@ function sun(): Uint8Array {
 }
 export const SUN = { block: sun(), colour: 7 } as const;
 
+/** A solid 24 x 21 block, drawn black over the sun's place under the horizon (expanded to its size): what the sun sets behind. */
+function sunMask(): Uint8Array {
+  const r = new Raster(24, 21);
+  r.rect(0, 0, 23, 20);
+  return spriteBlock('sun mask', r.rows());
+}
+export const SUN_MASK = sunMask();
+
 export const RIO_ITEMS = {
   cityKey: cityKey(),
   headdress: headdressItem(),

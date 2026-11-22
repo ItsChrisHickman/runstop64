@@ -72,7 +72,7 @@ export const FLOAT_PALETTE = {
 } as const satisfies Palette;
 
 export const BEACH_PALETTE = {
-  W: ['wavePavement', 1], S: ['sand', 7], E: ['seaSwell', 14], T: ['tableTop', 1],
+  W: ['wavePavement', 1], S: ['sand', 7], E: ['seaSwell', 14], T: ['tableTop', 1], L: ['palmLeft', 5], K: ['palmKnot', 5], R: ['palmRight', 5], U: ['palmTrunk', 9],
 } as const satisfies Palette;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ export const BEACH_PALETTE = {
 export const CABLE_CAR: CableCarSpec = {
   room: RIO_ROOM.sugar, low: { col: 12, row: 14 }, high: { col: 24, row: 8 }, frames: 160,
   roof: { ptr: CAR_POINTERS.roof, sprite: 6 }, floor: { ptr: CAR_POINTERS.floor, sprite: 2 }, passing: { roof: 1, floor: 0 }, colour: 1,
-  dx: -4, roofDy: -17, floorDy: 4,
+  dx: -4, roofDy: -17, floorDy: 4, bypass: { dy: 56, ramp: 0.3 },
 };
 /** The gate on the shelf (cols 10-11, rows 8-13) that the key to the city takes away. */
 export const GATE_CELLS: readonly (readonly [row: number, col: number])[] = [8, 9, 10, 11, 12, 13].flatMap((row) => [10, 11].map((col) => [row, col] as const));
@@ -122,18 +122,19 @@ export const SKEWERS: readonly SkewerSpec[] = [
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const RIO_ROOMS: readonly RoomSpec[] = [
-  // H QUAY TO THE CITY: in off the riverboat's gangway at the left (floor 8, rows 6-7), down the wharf's steps (floors 11, 14) to the quay (floor 18), which runs east out low into Lapa. A pier (floor 14) on crates holds a skewer; the bay behind.
+  // H QUAY TO THE CITY: in off the riverboat's gangway at the left (floor 8, rows 6-7), down the wharf's steps (floors 10, 12, 14, 16: two rows each, so he climbs them back to the gangway) to the quay (floor 18), which runs east out low into Lapa. A pier (floor 14) on crates holds a skewer; the bay behind.
   room({
     id: RIO_ROOM.quay, cell: [7, 33], sector: 67, palette: QUAY_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 5, 'Q').box(0, 8, 5, 19, 'Q').box(6, 11, 10, 19, 'Q').box(11, 14, 15, 19, 'Q').box(16, 18, 31, 19, 'Q');
-      g.box(6, 8, 31, 10, 'S').box(30, 0, 31, 15, 'Q');
+      g.box(6, 8, 31, 10, 'S'); // the bay behind (the wharf's steps are drawn over it)
+      g.box(0, 0, 1, 5, 'Q').box(0, 8, 5, 19, 'Q').box(6, 10, 7, 19, 'Q').box(8, 12, 9, 19, 'Q').box(10, 14, 11, 19, 'Q').box(12, 16, 13, 19, 'Q').box(14, 18, 31, 19, 'Q');
+      g.box(30, 0, 31, 15, 'Q');
       g.box(16, 14, 28, 14, 'P').clear(19, 14, 21, 14).box(20, 14, 20, 17, 'L'); // the pier, and the ladder up to it
     },
-    coins: [[3, 6], [8, 9], [13, 12], [24, 12], [28, 16]],
+    coins: [[3, 6], [7, 8], [9, 10], [11, 12], [24, 12], [28, 16]],
     item: { name: 'skewer1', col: 25, row: 12, sprite: RIO_SPRITE.skewer },
-    decor: [[{ text: 'BEM-VINDO', colour: 7 }, 10, 3], ['fishingBoat', 18, 6], ['lampPost', 12, 11], ['lampPost', 29, 15], ['coconutStand', 22, 15]],
-    creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 12, row: 12, way: 'up', speed: 1, range: 10 }],
+    decor: [[{ text: 'BEM-VINDO', colour: 7 }, 10, 3], ['fishingBoat', 18, 6], ['lampPost', 13, 13], ['lampPost', 29, 15], ['coconutStand', 22, 15]],
+    creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 15, row: 12, way: 'up', speed: 1, range: 10 }],
   }),
 
   // L THE LAPA ARCHES: the aqueduct's two storeys of arches across the room. In at the left on the street (floor 18, under the arches), which runs east to the wall; a ladder (col 3) goes up through the tram track (floor 7) which runs the room
@@ -161,7 +162,9 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 1, 15, 'G').box(6, 14, 13, 15, 'F').clear(6, 14, 8, 15).box(7, 14, 7, 17, 'L').box(14, 11, 14, 15, 'G');
       g.box(10, 8, 11, 13, 'G');
       g.box(24, 8, 31, 8, 'F').box(28, 9, 31, 19, 'G').box(30, 0, 31, 5, 'G');
+      // the cable up to the platform, and below it (the car passing his hangs from it: the bypass, 7 rows down) the passing car's own, over the middle
       for (let c = 12; c <= 29; c++) g.box(c, 10 - Math.floor((c - 13) / 2), c, 10 - Math.floor((c - 13) / 2), (c - 13) % 2 === 0 ? 'C' : 'D');
+      for (let c = 16; c <= 23; c++) g.box(c, 17 - Math.floor((c - 13) / 2), c, 17 - Math.floor((c - 13) / 2), (c - 13) % 2 === 0 ? 'C' : 'D');
     },
     coins: [[6, 16], [16, 16], [9, 12], [18, 10], [28, 6]],
     decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: 'CLOSED', colour: 2 }, 2, 10]],
@@ -244,13 +247,13 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   room({
     id: RIO_ROOM.drum, cell: [7, 37], sector: 75, palette: DRUM_PALETTE,
     paint(g) {
-      g.box(0, 18, 31, 19, 'S').box(0, 0, 1, 15, 'Q').box(24, 0, 31, 15, 'Q');
+      g.box(0, 18, 31, 19, 'S').box(0, 0, 1, 15, 'Q').box(30, 0, 31, 15, 'Q').box(24, 14, 29, 15, 'Q'); // (the low lane at the right has a roof of rows 14-15; above it the stands)
       g.box(6, 16, 10, 17, 'R').box(11, 14, 16, 17, 'R').box(17, 16, 21, 17, 'R');
       g.box(22, 0, 22, 17, 'V');
     },
     coins: [[8, 14], [12, 12], [15, 12], [19, 14], [23, 16]],
-    decor: [['sambaBanner', 8, 6], ['bunting', 3, 2], ['bunting', 16, 2], ['lampPost', 2, 15]],
-    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'right', speed: 1, range: 4 }],
+    decor: [[{ text: 'SAMBA', colour: 7 }, 9, 5], ['bunting', 3, 2], ['bunting', 8, 2], ['bunting', 13, 2], ['bunting', 18, 2], ['stands', 2, 10], ['stands', 2, 12], ['stands', 24, 8], ['stands', 24, 10], ['stands', 24, 12], ['surdo', 6, 14], ['surdo', 20, 14], ['lampPost', 2, 15]],
+    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'right', speed: 1, range: 4 }, { who: 'dancer', col: 17, row: 14, way: 'left', speed: 1, range: 8 }],
   }),
 
   // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18); the channel (deep water, cols 6-24) is crossed on the floats that come along it: lane A (the street's height) three of them left to right, lane B (floor 14) two the other
@@ -271,10 +274,11 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   room({
     id: RIO_ROOM.bust, cell: [7, 39], sector: 77, palette: BEACH_PALETTE,
     paint(g) {
-      g.box(0, 18, 31, 18, 'W').box(0, 19, 31, 19, 'S').box(0, 0, 1, 15, 'S').box(30, 0, 31, 17, 'S').box(2, 10, 29, 15, 'E').box(26, 17, 28, 17, 'T');
+      g.box(0, 18, 31, 18, 'W').box(0, 19, 31, 19, 'S').box(0, 0, 1, 15, 'S').box(30, 0, 31, 17, 'S').box(2, 10, 29, 13, 'E').box(26, 17, 28, 17, 'T');
+      for (const c of [8, 15, 23]) g.box(c - 1, 15, c - 1, 15, 'L').box(c, 15, c, 15, 'K').box(c + 1, 15, c + 1, 15, 'R').box(c, 16, c, 17, 'U'); // the palms
     },
     coins: [[5, 16], [11, 16], [20, 16]],
     item: { name: 'bowl', col: 26, row: 15, sprite: RIO_SPRITE.bowl },
-    decor: [['christ', 19, 2], ['sugarloaf', 5, 7], ['beachPalm', 13, 14], ['beachPalm', 17, 14], ['coconutStand', 8, 15], ['parasol', 23, 13], ['deckchair', 23, 16], [{ text: 'INTERMOLE: EUROPE ONLY', colour: 2 }, 2, 0]],
+    decor: [['christ', 19, 2], ['sugarloaf', 5, 7], [{ text: 'INTERMOLE: EUROPE ONLY', colour: 2 }, 2, 14]],
   }),
 ];

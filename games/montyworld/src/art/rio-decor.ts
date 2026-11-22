@@ -158,15 +158,6 @@ function deckchair(): NewDecor {
   return decor('deckchair', 2, 1, r, 10);
 }
 
-/** A beach palm: a curving trunk and a few long fronds. 2 x 4 characters. */
-function beachPalm(): NewDecor {
-  const r = new Raster(16, 32);
-  for (let y = 8; y < 32; y++) { const x = 6 + Math.round(2 * Math.sin((y - 8) / 8)); r.rect(x, y, x + 2, y); }
-  for (let y = 12; y < 32; y += 4) r.rect(4, y, 11, y, false);
-  for (const [dx, dy] of [[-6, 5], [-3, 0], [5, 1], [7, 6], [0, -3]] as const) { r.line(8, 7, 8 + dx, 7 + dy); r.line(8, 8, 8 + dx, 8 + dy); r.line(8, 6, 8 + dx, 6 + dy); }
-  return decor('beachPalm', 2, 4, r, ['55', '55', '99', '99']);
-}
-
 /** A churrascaria table: a white cloth to the floor's edge, plates and a red coaster, a bottle. 3 x 2 characters. */
 function restTable(): NewDecor {
   const r = new Raster(24, 16);
@@ -288,7 +279,6 @@ export const RIO_DECOR = {
   coconutStand: coconutStand(),
   parasol: parasol(),
   deckchair: deckchair(),
-  beachPalm: beachPalm(),
   restTable: restTable(),
   saladBar: saladBar(),
   rotisserie: rotisserie(),

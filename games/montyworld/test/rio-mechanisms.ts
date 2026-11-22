@@ -90,6 +90,18 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const sp = (n: number) => mid.g.vic.sprites[n];
   check('mid-ride the car is two sprites over him (roof 6 behind, floor 2 in front) and the other car two more (1 and 0), the pictures the car\'s', [6, 2, 1, 0].every((n) => ((mid.g.vic.enable >> n) & 1) === 1)
     && sp(6)?.ptr === CAR_POINTERS.roof && sp(2)?.ptr === CAR_POINTERS.floor && sp(1)?.ptr === CAR_POINTERS.roof && sp(0)?.ptr === CAR_POINTERS.floor);
+  // the two cars never share a place: the passing car's box (two sprites, 24 wide, from the roof's top to the floor's foot) never meets his car's or him, in any frame of the ride
+  const ride = at(R.sugar, 8, 14, [KEY]);
+  let worst = 999;
+  for (let f = 0; f < 400; f++) {
+    frame(ride, RIGHT);
+    if (!ride.g.gameMode) continue;
+    const box = (roof: number, floor: number) => ({ x: (ride.g.sx[roof] ?? 0) * 2, y: ride.g.sy[roof] ?? 0, h: (ride.g.sy[floor] ?? 0) + 21 - (ride.g.sy[roof] ?? 0) });
+    const mine = box(CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite), other = box(CABLE_CAR.passing.roof, CABLE_CAR.passing.floor);
+    const gapX = Math.abs(mine.x - other.x) - 24, gapY = Math.max(mine.y - (other.y + other.h), other.y - (mine.y + mine.h));
+    worst = Math.min(worst, Math.max(gapX, gapY));
+  }
+  check(`the passing car hangs clear of his car all the way (the smallest gap between their boxes is ${worst} pixels)`, worst >= 0);
   // he steps off and the other way: the high foot rides down, and a stand on the platform does not ride again
   const stay = at(R.sugar, 8, 14, [KEY]);
   for (let f = 0; f < 400 && !(stay.g.cable.latch && !stay.g.gameMode); f++) frame(stay, RIGHT);
@@ -140,7 +152,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   for (let f = 0; f < 700 && carried < 0; f++) {
     frame(t, f % 40 < 20 ? RIGHT : NONE);
     const c = colOf(t.g);
-    if (c >= 4 && t.g.y === standY(18) && !onDeck) { onDeck = true; }
+    if (c >= 8 && c <= 12 && t.g.y === standY(18) && !onDeck) { onDeck = true; } // (over the channel, not the street's cols 0-5)
     if (onDeck) {
       const before = colOf(t.g);
       run(t, NONE, 40);
@@ -149,6 +161,21 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
     }
   }
   check(`standing still on a float he is carried along with it (${carried} cells in 40 frames)`, carried >= 4 && carried <= 6);
+  // the floats' unseen parts (the cycle runs on past the channel, over the street and the stage) carry nobody, and a float never carries him into a wall
+  const still = (col: number) => { const w = at(R.float, col, 18, [], false, false); w.g.floats = w.g.floats.slice(); run(w, NONE, 400); return w; };
+  const street = still(2), stage = still(28);
+  check('standing still on the street (col 2) for 400 frames he stays there: the floats are not under him', colOf(street.g) === 2 && street.g.roomId === R.float && street.g.y === standY(18) && !dead(street.g));
+  check('standing still on the stage (col 28) for 400 frames he stays there, beside the step and the skewer', colOf(stage.g) === 28 && stage.g.roomId === R.float && stage.g.y === standY(18) && !dead(stage.g));
+  // riding a float to the end of its channel: he is never inside a wall, and when the float leaves he is on the stage's step or in the water (death), not stuck in the stage
+  const wall = at(R.float, 1, 18, [], false, false);
+  let inside = false, swum = false;
+  for (let f = 0; f < 1500 && !swum; f++) {
+    frame(wall, f < 60 ? RIGHT : NONE);
+    const g = wall.g;
+    if (g.roomId !== R.float || g.actionCounter !== 0) { swum = true; break; }
+    if ([g.montyRow, g.montyRow + 1].some((row) => g.flagAt(row, g.montyCol) === 1 || g.flagAt(row, g.montyCol + 1) === 1)) inside = true;
+  }
+  check('riding a float up to the stage he is never carried into the wall (the step block at cols 25-26): when the float goes on, he falls in the channel or walks off', !inside && swum);
   // above the water at the stage's edge the way is a drop
   const swim = at(R.float, 10, 18, [], false, false);
   swim.g.floats = [];

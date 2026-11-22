@@ -6,8 +6,9 @@
 /** The key to the city, the headdress, the churrasco skewer (the food) and the acai bowl (the treasure's pointer). */
 export const RIO_SPRITE = { key: 0xa0, headdress: 0xa1, skewer: 0xa2, bowl: 0xaf } as const;
 
-/** The setting sun of the finale, and the cable car's roof and floor. */
+/** The setting sun of the finale, the black block that is the sea below the horizon (the sun sets behind it), and the cable car's roof and floor. */
 export const SUN_POINTER = 0xa4;
+export const SUN_MASK_POINTER = 0xa3;
 export const CAR_POINTERS = { roof: 0xa5, floor: 0xa6 } as const;
 
 /** The gaucho's skewer in its four poses (down, forward and low, straight out, up), facing left and facing right. */

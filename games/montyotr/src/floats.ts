@@ -59,12 +59,18 @@ function draw(g: Game, f: FloatState, e: FloatSpec, c: number) {
   for (let k = 0; k < e.w; k++) put(left + k, e.row, e.deck, g.roomColours[e.deck - 1] ?? 1, true);
 }
 
-/** Whether he is standing on the deck of the float now, drawn at cell `c` of its cycle. */
+/** Whether he is standing on the deck of the float now, drawn at cell `c` of its cycle: over a deck cell that is drawn (inside the span), not on the street or the stage the unseen part of its cycle runs over. */
 function riding(g: Game, e: FloatSpec, c: number): boolean {
   const cell = standingCell(g, e.row);
   if (cell === null) return false;
-  const left = floatLeft(e, c);
-  return cell + 1 >= left && cell < left + e.w;
+  const left = floatLeft(e, c), lo = Math.max(left, e.span.from), hi = Math.min(left + e.w - 1, e.span.to);
+  return cell + 1 >= lo && cell <= hi;
+}
+
+/** Whether a carry of `dir` cells would put him into a solid cell (the leading cell of his body, on his two rows, after the move). */
+function carryBlocked(g: Game, dir: number): boolean {
+  const x2 = (g.x2 + dir * 4) & 0xff, col0 = ((x2 - 0x0c) & 0xff) >> 2, lead = dir > 0 ? col0 + (((x2 - 0x0c) & 3) ? 2 : 1) : col0;
+  return [g.montyRow, g.montyRow + 1].some((row) => g.flagAt(row, lead) !== 0);
 }
 
 /** One frame (after Monty's move): each float on a cell when its time comes, and whoever stands on its deck carried with it. */
@@ -78,6 +84,6 @@ export function floatUpdate(g: Game) {
     if (Number.isNaN(f.at)) for (let r = 0; r < e.h; r++) for (let k = 0; k < e.w; k++) g.mem[SCREEN + (e.home[1] + r + PLAY_ROW) * ROW + e.home[0] + k + PLAY_COL] = 0;
     const carried = riding(g, e, f.at);
     draw(g, f, e, c);
-    if (carried) g.x2 = (g.x2 + e.dir * 4) & 0xff;
+    if (carried && !carryBlocked(g, e.dir)) g.x2 = (g.x2 + e.dir * 4) & 0xff;
   }
 }

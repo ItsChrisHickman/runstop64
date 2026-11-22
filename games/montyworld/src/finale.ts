@@ -4,18 +4,22 @@ import { wait, type Seq } from '../../shared/monty/deaths';
 import { pixelY } from '../../montyotr/src/cells';
 import type { Game } from '../../montyotr/src/game';
 import { gameOver } from '../../montyotr/src/scripts';
-import { SUN_POINTER } from './rio-pointers';
+import { SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 
 /**
  * Do Svidaniya Monty's finale (the data's `completion`), Monty on the Run's manner (a short play that runs by itself once the treasure is touched, then GAME OVER and the title): on Copacabana at dusk Monty takes the acai bowl, strolls along the
  * promenade to the rail under the sign that says INTERMOLE: EUROPE ONLY, and eats it in three scoops while the sun sets into the sea and the Redeemer is floodlit. The room is the beach itself (no other is loaded); the figures are sprites:
- * Monty (3), the bowl (0, the treasure's), the sun (1, behind the characters) and, over his head, his headdress (7).
+ * Monty (3), the bowl (0, the treasure's), the sun (6, behind the characters and behind the black block of sprite 5 that is the sea below the horizon) and, over his head, his headdress (7).
  */
 
-/** The beach's decorations (playfield cells, rio.ts `bust`): the Redeemer's 8 by 7 at (19, 2) and Sugarloaf's 6 by 3 at (5, 7), the sign's text at row 0 from column 2. */
+/** The beach's decorations (playfield cells, rio.ts `bust`): the Redeemer's 8 by 7 at (19, 2) and Sugarloaf's 6 by 3 at (5, 7), the sign's text at row 14 from column 2 (the sea is rows 10-13). */
 const REDEEMER = { col: 19, row: 2, w: 8, h: 7 } as const;
 const SUGARLOAF = { col: 5, row: 7, w: 6, h: 3 } as const;
-const SIGN = { col: 2, row: 0, w: 22 } as const;
+const SIGN = { col: 2, row: 14, w: 22 } as const;
+/** The sprites: the sun, and the black block under the horizon that hides it as it sets (both behind the characters, the block in front of the sun). */
+const SUN_SPRITE = 6, SUN_BIT = 0x40, MASK_SPRITE = 5, MASK_BIT = 0x20;
+/** The horizon: the top row of the sea, which the sun sinks behind. */
+const HORIZON = 10;
 /** Where he stops on the promenade (sprite x, halved) and how far the sun is from the horizon's top, in frames. */
 const STOP = 0x5c, SET_FRAMES = 600;
 
@@ -44,10 +48,12 @@ export function* completion(g: Game): Seq {
   g.actionCounter = 0;
   g.sound.song(2);
   // the sun: a big disc (expanded) sitting over the sea's far edge, behind the characters
-  const sunY0 = pixelY(5);
-  g.sx[1] = 0x4a; g.sy[1] = sunY0; g.sptr[1] = SUN_POINTER; g.scol[1] = 7;
-  g.expandX |= 0x02; g.expandY |= 0x02; g.priority |= 0x02; g.multicolour &= ~0x02 & 0xff;
-  g.enable |= 0x02;
+  const sunY0 = pixelY(HORIZON) - 42;
+  g.sx[SUN_SPRITE] = 0x4a; g.sy[SUN_SPRITE] = sunY0; g.sptr[SUN_SPRITE] = SUN_POINTER; g.scol[SUN_SPRITE] = 7;
+  g.sx[MASK_SPRITE] = 0x4a; g.sy[MASK_SPRITE] = pixelY(HORIZON); g.sptr[MASK_SPRITE] = SUN_MASK_POINTER; g.scol[MASK_SPRITE] = 0;
+  const both = SUN_BIT | MASK_BIT;
+  g.expandX |= both; g.expandY |= both; g.priority |= both; g.multicolour &= ~both & 0xff;
+  g.enable |= both;
   let tick = 0, face: 'left' | 'right' = g.facing & 0x80 ? 'left' : 'right';
   const frameOf = (stand: boolean) => (face === 'left' ? FRAME.walkLeft : FRAME.walkRight) + (stand ? 0 : (tick >> 2) & 3);
   const step = function* (frames: number, dx: number, bob: (n: number) => number): Seq {
@@ -62,8 +68,8 @@ export function* completion(g: Game): Seq {
       g.scol[0] = 4;
       g.enable |= 0x01;
       crown(g);
-      if (tick % 6 === 0 && (g.sy[1] ?? 0) < pixelY(13)) g.sy[1] = ((g.sy[1] ?? 0) + 1) & 0xff;
-      if ((g.sy[1] ?? 0) >= pixelY(13)) g.enable &= ~0x02 & 0xff;
+      if (tick % 6 === 0 && (g.sy[SUN_SPRITE] ?? 0) < pixelY(HORIZON)) g.sy[SUN_SPRITE] = ((g.sy[SUN_SPRITE] ?? 0) + 1) & 0xff;
+      if ((g.sy[SUN_SPRITE] ?? 0) >= pixelY(HORIZON)) g.enable &= ~both & 0xff; // (all of it is behind the block by now: sun and block off)
     }
   };
   // he takes it and strolls to the rail (to the left, under the sign)

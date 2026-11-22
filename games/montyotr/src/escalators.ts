@@ -37,11 +37,16 @@ export function standingCell(g: Game, row: number): number | null {
   return g.montyRow + 2 === row + PLAY_ROW ? g.montyCol - PLAY_COL : null;
 }
 
+/** Whether he stands on a two-cell foot at playfield column `col` of the floor `row` (on his feet, over one of its cells): an escalator's and a cable car's station's. */
+export function onFoot(g: Game, row: number, col: number): boolean {
+  const cell = standingCell(g, row);
+  return cell !== null && cell + 1 >= col && cell < col + FOOT_WIDTH;
+}
+
 /** The escalator of this room whose foot Monty stands on (on its floor row, over one of its two cells, on his feet), or -1. */
 function footUnder(g: Game): number {
   return g.data.escalators.findIndex((e) => {
-    const cell = standingCell(g, e.row);
-    return e.room === g.roomId && cell !== null && cell + 1 >= e.col && cell < e.col + FOOT_WIDTH;
+    return e.room === g.roomId && onFoot(g, e.row, e.col);
   });
 }
 
