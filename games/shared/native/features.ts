@@ -379,29 +379,34 @@ export const SAFE_PASSES = 50;
 
 /**
  * No death loops, for games where a room can be come into in the air or onto something that kills
- * (and the game's own restart puts him back there): the autosave on coming into a room waits until
- * the player is `steady` there (on his feet), and is kept once he has lived a moment after it
- * (`SAFE_PASSES`, `lives` no fewer), so continuing never starts where he dies at once. And in
- * ENHANCED, a life lost before that starts him again from the last save kept (with the lives as
- * they are now), not where the game would.
+ * (and the game's own restart puts him back there, in another room): the autosave on coming into a room
+ * waits until the player is `steady` there (on his feet), and is kept once he has lived a moment after
+ * it (`SAFE_PASSES`, `lives` no fewer), so continuing never starts where he dies at once. And in
+ * ENHANCED, a life lost before that starts him again in the room he died in (`restart`: the game's own
+ * travel, to a place there he can stand), never in the room before.
  */
-export interface SafeSpec<F> { steady(ram: Uint8Array, found: F): boolean; lives: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number): void } }
+export interface SafeSpec<F> {
+  steady(ram: Uint8Array, found: F): boolean;
+  lives: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number): void };
+  /** Whether he can be put back in a room at a place he can stand (the room's last safe place, or the nearest one he can stand on): the map's travel then takes him there. */
+  restart(found: F, room: number): boolean;
+}
 
 export class SafeArrival<F> {
   /** The room (and screen) he's in: its save, taken when he was first steady there; passes lived since; the lives then. */
   private arrived: { room: number; save: MachineState | null; n: number; lives: number } | null = null;
-  /** A life lost before the room's save was kept (ENHANCED): back to the last save kept, after this frame. */
-  private respawn = false;
+  /** A life lost before the room's save was kept (ENHANCED): the room he died in, to be started again in after this frame. */
+  private respawn: number | null = null;
 
   constructor(private readonly env: NativeEnv, readonly spec: SafeSpec<F>) {}
 
   /** A new host starts. */
   reset() { this.arrived = null; }
 
-  /** Whether a life was lost before the room's save was kept (asked once: it clears). */
-  takeRespawn() {
+  /** The room a life was lost in before the room's save was kept, or null (asked once: it clears). */
+  takeRespawn(): number | null {
     const was = this.respawn;
-    this.respawn = false;
+    this.respawn = null;
     return was;
   }
 
@@ -411,8 +416,8 @@ export class SafeArrival<F> {
     const lives = spec.lives.get(ram), was = this.arrived;
     // a life lost (the game may have started him again in another room: where a fall began)
     if (was && lives < was.lives) {
-      // in ENHANCED, before he'd lived a moment where he was: not where the game starts him again
-      if (was.n < SAFE_PASSES && this.env.on('respawn') && this.env.playing() && !travel) this.respawn = true;
+      // in ENHANCED, before he'd lived a moment where he was: not where the game starts him again, but in the room he died in
+      if (was.n < SAFE_PASSES && this.env.on('respawn') && this.env.playing() && !travel) this.respawn = was.room;
       was.save = null; was.n = 0;
     }
     const a: NonNullable<typeof this.arrived> = was?.room === room ? was : { room, save: null, n: 0, lives };

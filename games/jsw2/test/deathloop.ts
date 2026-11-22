@@ -6,8 +6,9 @@
  * lives for one fall; checked here on the original's 6502 code too). Headless, through the front
  * end (games/shared/native/play.ts `safe`, c64kit stood in by games/shared/test/kit.ts):
  *
- * - the autosave is never in mid-air or where he dies: none in Hades, the last one stays room 60's;
- * - ENHANCED: the fall into Hades costs one life, and he's back at room 60's save, alive;
+ * - the autosave is never in mid-air or where he dies: none in Hades while he falls, the last one stays room 60's;
+ * - ENHANCED: the fall into Hades costs one life, and he starts again in Hades, the room he died in (never room 60, the room before), by its way out,
+ *   alive; the room's save is kept once he has lived a second on his feet there;
  * - ORIGINAL: the original's own rule (two lives, back at the hole's edge), the save still room 60's;
  * - B on the pause screen in Hades: back to room 60's save, alive;
  * - travel from Hades, in the fall, to the drain (Now You're In It): no life lost;
@@ -75,14 +76,14 @@ e.tick(5);
 check(`no autosave falling into Hades (the save: "${e.saved()}")`, e.saved() === BINS_NAME);
 const before = e.lives();
 e.tick(400);
-check(`ENHANCED: the fall into Hades costs one life (${before} -> ${e.lives()}), back in room 60 (${e.room()}), alive 400 frames on`, e.lives() === before - 1 && e.room() === BINS && e.p.state.playing);
-check(`ENHANCED: the save still room 60's ("${e.saved()}")`, e.saved() === BINS_NAME);
+check(`ENHANCED: the fall into Hades costs one life (${before} -> ${e.lives()}), and he starts again in Hades (${e.room()}), not room 60, alive 400 frames on`, e.lives() === before - 1 && e.room() === HADES && e.p.state.playing);
+check(`ENHANCED: standing in Hades a second, its save is kept ("${e.saved()}")`, e.saved().startsWith('ENTRANCE TO HADES'));
 
 // ---- ENHANCED with its unlimited lives: the same, he is back in room 60 and the lives stay full ----
 const u = await launch(new Map(), true);
 check('unlimited lives: left into the hole: Hades', intoHades(u));
 u.tick(400);
-check(`unlimited lives: back in room 60 (${u.room()}), alive 400 frames on, lives ${u.lives()}`, u.room() === BINS && u.p.state.playing && u.lives() === 8);
+check(`unlimited lives: started again in Hades (${u.room()}), alive 400 frames on, lives ${u.lives()}`, u.room() === HADES && u.p.state.playing && u.lives() === 8);
 
 // ---- ORIGINAL: the original's own rule ----
 const o = await launch(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]));

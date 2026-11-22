@@ -348,6 +348,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const onTitle = (g: NativeHost) => (typeof opts.titleWaits === 'function' ? opts.titleWaits(g.m.ram) : opts.titleWaits.includes(g.lastWait));
   /** The room, as the flow numbers them: the game's room and the screen in it. */
   const roomIn = (ram: Uint8Array): number => opts.room(ram) * 4096 + (screens.count & 0xfff);
+  /** The game's room of a `roomIn` key (what the autosave and SafeArrival keep). */
+  const gameRoomOf = (key: number): number => Math.floor(key / 4096);
   const statusOf = (g: NativeHost): GameStatus<MachineState> => ({
     machine: g.m,
     onTitle: onTitle(g),
@@ -441,15 +443,15 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
 
   /**
    * ENHANCED (`safe`): a life lost before he'd lived a moment in the room (he came in falling to his
-   * death, or the game started him again where he dies at once): back to the last save kept instead
-   * (where he had), with the lives as they are now. A life is lost once, not every one.
+   * death, and the game started him again in the room the fall began in): back in the room he died in
+   * instead, by the map's travel, at a place there he can stand, and a moment's grace. A life is lost
+   * once, not every one, and never in the room before.
    */
-  function respawnAtSave(g: NativeHost) {
-    const s = flow.saved();
-    if (!s || !safe) return;
-    safe.spec.lives.set(s.ram, safe.spec.lives.get(g.m.ram));
-    resumeFrom(s);
-    flow.resumed(s, roomIn(s.ram));
+  function restartIn(key: number) {
+    const room = gameRoomOf(key);
+    if (!safe?.spec.restart(fe.found, room)) return;
+    going = String(room);
+    flow.grace.start();
   }
 
   /** One frame of the game: the keys and stick in, the machine run, the sound out. */
@@ -457,8 +459,9 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     const { g } = live();
     // (a game began that was not asked for: the save carries on, as CONTINUE? would)
     if (carryingOn) { carryingOn = false; port.carryOn('continue'); return 'ended'; }
-    // (a life lost before he'd lived a moment in the room, in ENHANCED: back to the last save kept)
-    if (safe?.takeRespawn()) { respawnAtSave(g); return 'ended'; }
+    // (a life lost before he'd lived a moment in the room, in ENHANCED: back in that room, at a place he can stand)
+    const died = safe?.takeRespawn();
+    if (died !== null && died !== undefined) restartIn(died);
     actions?.beforeFrame(g, holding);
     // Hit-stop (an assist): the game waits a few frames when an enemy is destroyed (the effects go on).
     if (combat && combat.hitStop > 0 && flow.state.playing && !holding) { combat.hitStop--; flow.draw(); return 'ended'; }

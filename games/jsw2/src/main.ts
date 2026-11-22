@@ -4,7 +4,7 @@ import { runNative, type RunSpec } from '../../shared/native/play';
 import { JOYSTICK_KEYS } from '../../shared/native/features';
 import { AIR_JUMP, gentleTouch, hintSpots, RopeGrip } from './easy';
 import { END_HOLD, endingStats, jsw2Ending, won } from './ending';
-import { footing, jsw2Map } from './map';
+import { footing, jsw2Map, restartPlace } from './map';
 import { port } from './native';
 import { TOUCH } from './touch';
 import stateUrl from '../assets/jsw2-title.state?url';
@@ -75,8 +75,9 @@ export function run(host: Host) {
     },
     // No death loops: Willy comes into rooms in mid-air (falling into Hades from the dustbins' floor), and
     // a death in a fall from another room starts him again where the fall began (over the hole, where he
-    // dies again at once): saves wait for his feet (as travel's spots do) and a second lived; ENHANCED starts him from the last one.
-    safe: { steady: footing, lives: { get: (ram) => ram[0x8096], set: (ram, n) => { ram[0x8096] = n; } } },
+    // dies again at once): saves wait for his feet (as travel's spots do) and a second lived; ENHANCED starts him again
+    // in the room he died in, at a place there he can stand (map.ts `restartPlace`).
+    safe: { steady: footing, lives: { get: (ram) => ram[0x8096], set: (ram, n) => { ram[0x8096] = n; } }, restart: restartPlace },
     // A moment's grace after a resume: the death routine ($51C7, called from every collision and fall that kills him) returns
     // at once (re/engine.json "skips"), so no life goes and he isn't started again.
     grace: { skip: [0x51c7] },

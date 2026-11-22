@@ -99,8 +99,9 @@ with the keys held as a player holds them, then checks the rooms offered, pickin
 again where it began ($51F9: the room at $7ABD and the spot at $7ABA-$7ABC, noted when a jump or fall starts, $592D): at the
 hole's edge, where within a frame or so a collision kills him again (two lives for the fall, on the original's 6502 code
 too; held left he falls in again, every life). The room's autosave is therefore taken when he has found his feet there
-(`footing`: travel's own rule) and kept once he has lived a second after it; ENHANCED starts him from it after a death
-before that (`play.ts` `safe`). Travel drops him in above the spot rather than at the top of the room's way down, so a fall
+(`footing`: travel's own rule) and kept once he has lived a second after it; ENHANCED starts him again in the room he died in after a death
+before that (`play.ts` `safe`, `restartIn`: the game's own travel to a place there he can stand; Hades' is `RESTARTS` in `map.ts`, the floor by
+its way out, found by putting Willy at places in the room), never in the room before. Travel drops him in above the spot rather than at the top of the room's way down, so a fall
 from Hades meets nothing in the drain (`test/deathloop.ts`).
 
 **Safe landings.** The compare at $5465 reads its operand from memory (`smcOperand` in `re/engine.json`); ENHANCED sets it

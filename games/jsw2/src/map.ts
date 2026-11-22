@@ -93,6 +93,17 @@ function noteArrival(ram: Uint8Array, found: Jsw2Found, room: number) {
  * needs): the autosave waits for it (main.ts `safe`), so a save is never in mid-air.
  */
 export const footing = (ram: Uint8Array, found: Jsw2Found) => found.arrival !== null && found.arrival.room === roomOf(ram) && found.arrival.at !== null;
+/**
+ * Rooms he can only come into falling onto something that kills (Hades, under the hole in the dustbins' floor): where he can stand there, found by
+ * putting Willy at places in the room (test/restart.ts), for a death to start him again in the room he died in.
+ */
+const RESTARTS: Readonly<Record<number, Spot>> = { 7: [24, 0, 158] }; // (Hades: the floor by its way out, at the left)
+/** Whether he can be started again in a room at a place he can stand: the spot he first stood on there (travel's own), else the room's own. */
+export function restartPlace(found: Jsw2Found, room: number): boolean {
+  const own = RESTARTS[room];
+  if (!found.stand[room] && own && MANSION[room]) found.stand[room] = own;
+  return !!found.stand[room];
+}
 function keep({ stand }: Jsw2Found, room: number, at: Spot) {
   if (!stand[room] && MANSION[room]) stand[room] = at;
 }
