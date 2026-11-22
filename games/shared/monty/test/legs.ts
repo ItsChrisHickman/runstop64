@@ -17,7 +17,6 @@ import { check } from '../../test/check';
 import { readJsonFile } from '../../test/data';
 import * as S from '../../../../packages/c64kit/src/schema';
 import { ACTIONS, hold, keyOf, livesOn, play, search, STEP, type Aim, type Goal, type Route } from './bot';
-
 /** A leg of a region's route: a goal for the bot to reach, and where to head (the aim only guides the search). */
 /** One goal of a route (`pickup`: a coin or an item taken, which a player must be able to do without the bot's exact timing). */
 export interface Leg { name: string; goal: Goal; aim: readonly Aim[]; pickup?: true }

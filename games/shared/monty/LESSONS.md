@@ -135,3 +135,15 @@ most care; the reward show and the title show them off.
   (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole and Auf Wiedersehen Monty).
 
 - **A lone Mole Crusher must be drawn in the first glyph bank ($10).** The engine animates the first crusher of a room on $10 and a second, only in a room of two, on $22; a lone one at $22 stood still (Moscow, Andes, Pacific, Japan). `crusherChars` in `games/shared/monty/rooms.ts` now picks the bank from the crusher's place in its room, and `montyworld/test/crushers.ts` checks that every crusher moves.
+
+
+## Build pitfalls found making Japan (2026-11-22)
+
+Things the engine does that a room's picture will not show you; each has a test now.
+
+- **A lone Mole Crusher must be drawn in the first shaft's characters (`chr: 0x10`).** The engine animates the second shaft's (`0x22`) only when a room has two; a lone `0x22` crusher stands still (Japan's parlour did; Moscow, the Andes and the Pacific have lone `0x22` shafts to look at). Its glyphs also overwrite the font's letters P to Z in that room: no text decorations beside a crusher.
+- **A decoration draws over whatever is in its cells, a floor or a rope included.** Keep decorations to empty cells and scenery tiles (`japan-mechanisms.ts` checks it), and never over a coin.
+- **A gap he must fall through is three cells wide, a channel he must climb is two:** Monty is two cells wide. A one cell gap between a ledge's end and a wall is a trap (Japan's prize shelf), a one cell channel beside a rope is a wall (the crossing's overpass).
+- **A bot that cannot get past a creature to a pickup has found a pickup a person cannot take either** (a coin in a creature's patrol, in a pocket the creature fills). Put pickups where a walker passes, and run the fairness check (`japan-fair.ts`: each pickup's leg from starts a few frames and pixels off).
+- **A tunnel mouth with a `span` kills only where it is drawn,** and `harmless` is scenery that kills nothing (a train over the roofs, a crowd). Taxis and crowds on a clock make a crossing: a flash, the car, then the green man.
+- **A creature must differ in colour from everything it passes** (`creature-contrast.ts`): check it when a room's palette or a creature's colour changes.

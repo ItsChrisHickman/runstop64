@@ -72,23 +72,6 @@ function hachiko(): NewDecor {
   return decor('jpHachiko', 3, 3, r, 9);
 }
 
-/** A pachinko machine in a cabinet: the lamp on its top, a screen of reels, the board with its pins and a stream of balls, the tray of balls. 3 x 5 characters. */
-function machine(name: string, colour: number, seed: number): NewDecor {
-  const r = new Raster(24, 40);
-  r.rect(0, 0, 23, 39); // the cabinet
-  r.rect(8, 0, 15, 2, false); r.disc(11.5, 1, 2.4); // the lamp on top: a round dome lit
-  r.rect(2, 4, 21, 11, false); r.rect(4, 6, 7, 9); r.rect(10, 6, 13, 9); r.rect(16, 6, 19, 9); // the screen and its three reels
-  r.rect(5, 7, 6, 8, false); r.rect(11, 7, 12, 8, false); r.rect(17, 7, 18, 8, false); // (a symbol in each)
-  r.rect(2, 13, 21, 29, false); // the board's glass
-  for (let y = 15; y < 29; y += 3) for (let x = 4 + ((y + seed) % 2) * 2; x < 21; x += 4) r.set(x, y); // pins
-  for (let y = 14; y < 28; y += 4) r.set(12 + ((y + seed) % 3) - 1, y); // balls falling through the pins
-  r.rect(10, 29, 13, 29); // the winning pocket
-  r.rect(3, 31, 20, 37, false); r.rect(5, 33, 18, 33); // the tray with its rim
-  for (let x = 6; x < 18; x += 3) r.disc(x, 35.5, 1.2); // the balls in the tray
-  r.rect(0, 38, 23, 39);
-  return decor(name, 3, 5, r, colour);
-}
-
 // ---- the platform
 
 /** A stretch of the overhead wire: the contact wire, a messenger wire over it with droppers between, drawn a cell wide so it runs across the room. 1 x 1 characters. */
@@ -145,21 +128,14 @@ function stars(): NewDecor {
 export const JAPAN_NIGHT = {
   jpTowerYellow: tower('jpTowerYellow', 3, 5, 7, 0, true),
   jpTowerCyan: tower('jpTowerCyan', 2, 6, 3, 2, false),
-  jpTowerRed: tower('jpTowerRed', 4, 4, 10, 1, true),
   jpTowerGreen: tower('jpTowerGreen', 2, 4, 13, 3, false),
   jpNeonRed: neonSign('jpNeonRed', 1, 4, 1, ['2', '2', '7', '7']),
   jpNeonGreen: neonSign('jpNeonGreen', 1, 3, 2, ['5', '5', 'd']),
   jpNeonPink: neonSign('jpNeonPink', 2, 4, 3, ['44', '44', 'aa', 'aa']),
   jpNeonCyan: neonSign('jpNeonCyan', 1, 5, 0, ['3', '3', '3', 'e', 'e']),
   jpCrowdRed: crowd('jpCrowdRed', 4, 2, 0),
-  jpCrowdBlue: crowd('jpCrowdBlue', 4, 6, 2),
   jpCrowdPurple: crowd('jpCrowdPurple', 4, 4, 4),
-  jpCrowdGrey: crowd('jpCrowdGrey', 4, 12, 1),
   jpHachiko: hachiko(),
-  jpMachineYellow: machine('jpMachineYellow', 7, 0),
-  jpMachineCyan: machine('jpMachineCyan', 3, 1),
-  jpMachineRed: machine('jpMachineRed', 10, 0),
-  jpMachineGreen: machine('jpMachineGreen', 13, 1),
   jpWire: wire(),
   jpMast: mast(),
   jpEdge: edge(),

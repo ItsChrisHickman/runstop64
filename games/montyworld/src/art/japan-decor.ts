@@ -77,16 +77,6 @@ function neonTall(): NewDecor {
   return decor('jpNeonTall', 2, 4, r, ['66', '66', '44', '44']);
 }
 
-/** A ramen sign: a bowl with steam and chopsticks on a board. 3 x 2 characters. */
-function neonRamen(): NewDecor {
-  const r = new Raster(24, 16);
-  r.rect(0, 0, 23, 15); r.rect(2, 2, 21, 13, false);
-  r.ellipse(12, 9, 7, 4.2); r.rect(4, 5, 20, 8, false); // the bowl
-  r.rect(4, 9, 20, 9); r.rect(9, 13, 14, 13);
-  for (const x of [8, 12, 16]) { r.set(x, 3, true); r.set(x + 1, 4, true); } // steam
-  r.line(17, 4, 21, 1); r.line(18, 5, 22, 2); // chopsticks
-  return decor('jpNeonRamen', 3, 2, r, ['222', '222']);
-}
 
 /** A glowing drinks machine: a lit panel of cans, a coin slot and a drop tray. 2 x 3 characters. */
 function vending(): NewDecor {
@@ -97,19 +87,6 @@ function vending(): NewDecor {
   return decor('jpVending', 2, 3, r, ['11', '11', '33']);
 }
 
-/** A bank of three pachinko machines: a lit board each with pins, a tray and a screen on top. 6 x 4 characters. */
-function machines(): NewDecor {
-  const r = new Raster(48, 32);
-  for (let k = 0; k < 3; k++) {
-    const x = k * 16;
-    r.rect(x, 0, x + 14, 31); r.rect(x + 2, 2, x + 12, 8, false); // the screen
-    r.rect(x + 4, 4, x + 10, 6); r.rect(x + 7, 4, x + 7, 6, false);
-    r.rect(x + 2, 11, x + 12, 24, false); // the board
-    for (let y = 13; y < 24; y += 3) for (let i = 0; i < 4; i++) r.set(x + 4 + i * 2 + (y % 2), y, true); // pins
-    r.rect(x + 4, 26, x + 10, 29, false); r.rect(x + 5, 28, x + 9, 28); // the tray with its balls
-  }
-  return decor('jpMachines', 6, 4, r, ['aaaaaa', 'aaaaaa', 'aaaaaa', '777777']);
-}
 
 /** A claw machine: a glass cabinet, prizes heaped, the claw hanging. 4 x 5 characters. */
 function clawMachine(): NewDecor {
@@ -173,33 +150,7 @@ function moon(): NewDecor {
   return decor('jpMoon', 3, 3, r, 1);
 }
 
-/** The castle keep: three storeys of white plaster, each with its curved roof and windows, a stone base, golden dolphins on the top gables. 10 x 6 characters. */
-function keep(): NewDecor {
-  const r = new Raster(80, 48);
-  r.rect(8, 40, 71, 47); for (let x = 12; x < 70; x += 12) r.rect(x, 41, x, 46, false); // the stone base
-  const tier = (cx: number, half: number, y: number) => {
-    r.rect(cx - half, y + 6, cx + half, y + 13); // the wall
-    for (const w of [-half * 0.55, 0, half * 0.55]) { const wx = Math.round(cx + w); r.rect(wx - 1, y + 8, wx + 1, y + 11, false); r.rect(wx, y + 8, wx, y + 11); }
-    r.triangle(cx - half - 5, y + 6, cx + half + 5, y + 6, cx, y - 3); // the roof
-    r.rect(cx - half - 6, y + 5, cx + half + 5, y + 7); // its eaves
-    r.rect(cx - half - 7, y + 4, cx - half - 7, y + 4); r.rect(cx + half + 6, y + 4, cx + half + 6, y + 4);
-    r.rect(cx - half + 2, y + 6, cx + half - 2, y + 6, false);
-  };
-  tier(39, 29, 26); tier(39, 21, 12); tier(39, 13, 0);
-  r.rect(26, 0, 27, 2); r.rect(52, 0, 53, 2); // the finials
-  return decor('jpKeep', 10, 6, r, ['1111771111', '1111111111', '1111111111', '1111111111', '1111111111', '1111111111']);
-}
 
-/** A harbour gantry crane: two tall legs on rails, the long jib out over the water, a hanging hook. 6 x 6 characters. */
-function gantry(): NewDecor {
-  const r = new Raster(48, 48);
-  r.rect(4, 8, 7, 47); r.rect(24, 8, 27, 47); r.rect(3, 44, 28, 47); // the legs
-  for (let y = 14; y < 44; y += 10) { r.line(8, y, 23, y + 10); r.line(23, y, 8, y + 10); } // the bracing
-  r.rect(0, 2, 47, 7); r.rect(2, 4, 45, 5, false); // the jib
-  r.rect(36, 8, 36, 22); r.rect(33, 22, 39, 24); r.rect(35, 25, 37, 27); // the cable, the hook
-  r.rect(10, 0, 22, 1); // the machinery house's roof
-  return decor('jpGantry', 6, 6, r, 8);
-}
 
 /** The Great Wave: a long arm of water rising from the left, arching over and curling down at the right in claw-like fingers of foam, a hollow under the curl, the trough in front. 8 x 3 characters. */
 function wave(): NewDecor {
@@ -275,12 +226,6 @@ function pine(): NewDecor {
   return decor('jpPine', 3, 4, r, ['555', '555', '999', '999']);
 }
 
-/** A traffic signal on a pole at the crossing, a red man lit. 1 x 3 characters. */
-function trafficLight(): NewDecor {
-  const r = new Raster(8, 24);
-  r.rect(0, 0, 7, 9); r.rect(1, 1, 6, 8, false); r.rect(3, 2, 4, 3); r.rect(2, 4, 5, 4); r.rect(3, 5, 3, 7); r.rect(4, 5, 4, 7); r.rect(3, 10, 4, 23);
-  return decor('jpTrafficLight', 1, 3, r, ['2', '1', '1']);
-}
 
 /** The giant video screen over the crossing: a frame with a face grinning from it. 6 x 3 characters. */
 function screen(): NewDecor {
@@ -306,17 +251,13 @@ export const JAPAN_DECOR = {
   jpStall: stall(),
   jpLantern: lantern(),
   jpNeonTall: neonTall(),
-  jpNeonRamen: neonRamen(),
   jpVending: vending(),
-  jpMachines: machines(),
   jpClawMachine: clawMachine(),
   jpToro: toro(),
   jpSakura: sakura(),
   jpBonsai: bonsai(),
   jpDragon: dragon(),
   jpMoon: moon(),
-  jpKeep: keep(),
-  jpGantry: gantry(),
   jpWave: wave(),
   jpShipMast: shipMast(),
   jpShrine: shrine(),
@@ -326,7 +267,6 @@ export const JAPAN_DECOR = {
   jpBarrels: barrels(),
   jpShachi: shachi(),
   jpPine: pine(),
-  jpTrafficLight: trafficLight(),
   jpScreen: screen(),
   jpBoard: board(),
   ...JAPAN_CROSSING,

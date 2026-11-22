@@ -319,12 +319,12 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 31, 19, 'P');
       g.box(21, 0, 21, 16, 'R');
       g.box(12, 2, 14, 11, 'K'); // the press's column, down from the ceiling
-      g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L').box(2, 9, 10, 9, 'L'); // the counter's stair and the prize shelf
+      g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L').box(2, 9, 8, 9, 'L'); // the counter's stair and the prize shelf
     },
-    coins: [[28, 15], [6, 7]],
+    coins: [[9, 13], [5, 7]],
     item: { name: 'daruma', col: 3, row: 7, sprite: JAPAN_SPRITE.daruma },
     decor: [
-      ['jpClawMachine', 7, 4],
+      ['jpClawMachine', 6, 4],
       ['jpPachinkoOrange', 15, 12], ['jpPachinkoGreen', 18, 12], ['jpPachinkoOrange', 22, 12], ['jpPachinkoGreen', 25, 12],
     ],
     creatures: [
@@ -341,7 +341,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     id: JP.crossing, cell: [1, 14], sector: 30, palette: CROSSING_PALETTE,
     paint(g) {
       g.box(0, 9, 1, 14, 'S').box(30, 0, 31, 16, 'S'); // (open sky; a tower runs up the right edge, the crossing's buildings at the left)
-      g.box(0, 7, 28, 8, 'S'); // the overpass, down to the rope at its end (cols 29)
+      g.box(0, 7, 27, 8, 'S'); // the overpass (the channel at its end is two cells wide: the rope's, col 29, and the one beside it, so that he climbs it without any pixel positioning)
       g.box(0, 17, 31, 19, 'A').box(CROSSING.zebra[0], 17, CROSSING.zebra[1], 17, 'Z').clear(22, 17, 24, 19).box(23, 16, 23, 19, 'R');
       g.box(29, 7, 29, 16, 'R');
     },

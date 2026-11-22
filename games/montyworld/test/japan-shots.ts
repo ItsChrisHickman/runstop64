@@ -24,7 +24,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: JP.fuji, name: '32-mount-fuji', col: 3, floor: 14, frames: 40, compare: 0x17 },
   { room: JP.garden, name: '33-koi-polloi', col: 8, floor: 14, frames: 40, compare: 0x06 },
   { room: JP.mole, name: '34-the-last-mole', col: 29, floor: 14, frames: 40, compare: 0x0a },
-  { room: JP.hideout, name: '35-the-castle', col: 10, floor: 17, frames: 40, compare: 0x15 },
+  { room: JP.hideout, name: '35-ninja-hideout', col: 10, floor: 17, frames: 40, compare: 0x15 },
   { room: JP.hall, name: '36-the-shogun-s-hall', col: 3, floor: 14, frames: 40, compare: 0x0f },
   { room: JP.port, name: '37-sayonara-sailor', col: 22, floor: 17, frames: 40, compare: 0x1d },
 ];
@@ -34,7 +34,7 @@ const riceHat = itemIndex(probe, CHI.top, 0);
 const daruma = itemIndex(probe, JP.parlour, 0), fish = itemIndex(probe, JP.crossing, 0), hood = itemIndex(probe, JP.mole, 0);
 
 const pics = SPOTS.map((s) => {
-  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: s.room === JP.port || s.room === JP.hideout ? hood : riceHat, items: s.room === JP.port || s.room === JP.hideout ? [hood] : [] });
+  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: s.room === JP.port ? hood : riceHat, items: s.room === JP.port ? [hood] : [] });
   savePng(out, `room-${s.name}.png`, px);
   return px;
 });
@@ -58,6 +58,16 @@ savePng(out, 'guard.png', placed({ room: JP.hall, col: 19, floor: 14, frames: 20
 savePng(out, 'guard-gone.png', placed({ room: JP.hall, col: 19, floor: 14, frames: 20, worn: hood, items: [hood] }).px);
 // him in the hood, standing still on a plain floor
 savePng(out, 'hood.png', placed({ room: JP.fuji, col: 20, floor: 8, frames: 20, worn: hood }).px);
+
+// the hideout's door guard, and the guard gone with the hood
+savePng(out, 'hideout-guard.png', placed({ room: JP.hideout, col: 17, floor: 17, frames: 20, worn: riceHat }).px);
+savePng(out, 'hideout-guard-gone.png', placed({ room: JP.hideout, col: 17, floor: 17, frames: 20, worn: hood, items: [hood] }).px);
+// the street's railway: the train coming in over the roofs, over them, going
+contactSheet(out, 'street-train.png', [60, 120, 160, 200, 240, 300].map((frames) => placed({ room: JP.street, col: 2, floor: 17, frames, worn: riceHat }).px));
+// the crossing's cycle: red man and a taxi coming, the taxi through, the other from the right, the green man and the crowd's two waves, quiet
+contactSheet(out, 'crossing-cycle.png', [20, 60, 100, 150, 200, 240, 280, 340, 420].map((frames) => placed({ room: JP.crossing, col: 2, floor: 17, frames, worn: riceHat }).px));
+// the parlour: the balls falling and the crusher coming down and up
+contactSheet(out, 'parlour-cycle.png', [10, 40, 70, 100, 130, 160, 190, 220, 250].map((frames) => placed({ room: JP.parlour, col: 22, floor: 17, frames, worn: riceHat, noEnemies: true }).px));
 
 // each room beside one of Monty on the Run's
 SPOTS.forEach((s, i) => compare(out, `compare-${s.name}.png`, pics[i] ?? new Uint8Array(0), motrRoom(s.compare)));

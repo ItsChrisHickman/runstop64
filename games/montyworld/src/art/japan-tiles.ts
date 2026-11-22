@@ -27,8 +27,6 @@ export const JAPAN_TILES = {
   jpZebra: tile('jpZebra', 1, 1, ['########', '........', '###.###.', '###.###.', '###.###.', '###.###.', '........', '########']),
   /** The parlour's carpet: a loud diamond pattern. Solid. */
   jpCarpet: tile('jpCarpet', 1, 4, ['...##...', '..####..', '.##..##.', '##....##', '##....##', '.##..##.', '..####..', '...##...']),
-  /** A pachinko machine: pins and a window, lit. Nothing (he walks in front). */
-  jpPachinko: tile('jpPachinko', 0, 10, ['.######.', '#......#', '#.####.#', '#.#..#.#', '#.#..#.#', '#.####.#', '#......#', '.######.']),
   /** Tatami: straw mats with their borders and a rush's lines. Solid. */
   jpTatami: tile('jpTatami', 1, 7, ['########', '#......#', '#.####.#', '#.####.#', '#.####.#', '#......#', '########', '........']),
   /** A paper door shut: a white panel in a lattice frame. Solid. */
