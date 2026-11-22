@@ -104,3 +104,15 @@ export function room(r: MoscowRoom): RoomSpec {
     ...(r.crushers ? { crushers: r.crushers.map((c) => ({ ...c, col: c.col + PLAY_COL, row: c.row + PLAY_ROW })) } : {}),
   };
 }
+
+/**
+ * A one-character decoration stamped on every cell of a rectangle (columns c0-c1, rows r0-r1) that the room's paint leaves empty, except the `keep` cells (a coin, an
+ * item, a pulse's cells): a backdrop (a sky's bands, a sea, a wall seen behind) at the cost of one character however many are placed.
+ */
+export function fillCells(paint: (g: Grid) => void, keep: readonly (readonly [col: number, row: number])[], [c0, r0, c1, r1]: readonly [number, number, number, number], piece: WorldDecor): (readonly [WorldDecor, col: number, row: number])[] {
+  const g = new Grid();
+  paint(g);
+  const cells: (readonly [WorldDecor, col: number, row: number])[] = [];
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (g.at(c, r) === '.' && !keep.some(([kc, kr]) => kc === c && kr === r)) cells.push([piece, c, r]);
+  return cells;
+}

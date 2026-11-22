@@ -40,12 +40,6 @@ export const FIRST_SECTOR = 9;
 
 // ---- shared bits ---------------------------------------------------------------------------------------
 
-/** A ceiling of `rows` rows of crust with a ragged fringe under it at the column ranges `drips` gives. */
-function sky(g: Grid, rows: number, drips: readonly (readonly [number, number])[], crust = 'C', drip = 'D') {
-  g.box(0, 0, 31, rows - 1, crust);
-  for (const [a, b] of drips) g.box(a, rows, b, rows, drip);
-}
-
 /** The bogies of a car's rooms (the wheels' first columns: each bogie two wheels, an axle bar between). */
 const BOGIES = [4, 25] as const;
 
@@ -66,7 +60,7 @@ function carriage(g: Grid, hatches: readonly number[], gangways: { left: boolean
 
 /** The tender's rooms: the passenger car's characters, in the same places (the wheels 4 and the rail 5), with coal and the mine's rock for the two it has no use for. */
 const TENDER_PALETTE = {
-  D: ['roofDeck', 12], K: ['coal', 12], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], M: ['mineRock', 12], R: ['ironLadder', 7],
+  D: ['roofDeck', 14], K: ['coal', 6], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], M: ['mineRock', 9], R: ['ironLadder', 7],
 } as const satisfies Palette;
 const TENDER_BOGIES = [4, 24] as const;
 
@@ -89,7 +83,7 @@ export const TUNNELS: readonly TunnelSpec[] = [
 ];
 
 const LAKE_PALETTE = {
-  S: ['snowGround', 1], K: ['mineRock', 12], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13], C: ['snowCrust', 3],
+  S: ['snowGround', 1], K: ['mineRock', 9], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13],
 } as const satisfies Palette;
 const ICE = { row: 12, codes: [codeOf(LAKE_PALETTE, 'I'), codeOf(LAKE_PALETTE, 'J'), codeOf(LAKE_PALETTE, 'H')], crack: 56, wide: 88, gone: 120, away: 240 } as const;
 /**
@@ -188,7 +182,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   room({
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'M').clear(7, 0, 9, 1).box(8, 0, 8, 10, 'R'); // the mine's floor over it, and the rope up into the mine
+      g.box(0, 0, 6, 0, 'M').box(10, 0, 17, 0, 'M').box(1, 1, 5, 1, 'M').box(11, 1, 15, 1, 'M').box(8, 0, 8, 10, 'R'); // the mine's floor overhanging the rope's way up; the rest open sky
       g.box(30, 2, 31, 8, 'T').box(0, 10, 1, 14, 'T'); // the boiler's end, and the tender's end (its gangway open below)
       g.box(0, 9, 5, 9, 'D').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
       g.box(6, 11, 8, 16, 'K').box(9, 13, 11, 16, 'K').box(12, 15, 19, 16, 'K').box(20, 13, 22, 16, 'K').box(23, 11, 25, 16, 'K'); // the coal in steps
@@ -206,10 +200,10 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // trunk, and a rope at the right up to the boughs, out east, high.
   room({
     id: SIB.pines, cell: [0, 5], sector: 12,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], S: ['snowGround', 1], F: ['snowFill', 1], B: ['pineBark', 9], H: ['snowBough', 5], R: ['rope', 13] },
+    palette: { S: ['snowGround', 1], F: ['snowFill', 1], B: ['pineBark', 9], H: ['snowBough', 5], R: ['rope', 13] },
     paint(g) {
-      sky(g, 2, [[0, 5], [8, 13], [20, 26]]);
-      g.box(0, 2, 1, 13, 'B').box(30, 2, 31, 3, 'B').box(30, 8, 31, 16, 'B'); // the trunks at the edges, shut but for the ground's way and the boughs'
+      // the open forest: sky above, great trunks running up off the top at the edges, shut but for the ground's way and the boughs'
+      g.box(0, 0, 1, 13, 'B').box(30, 0, 31, 3, 'B').box(30, 8, 31, 16, 'B');
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F').clear(21, 17, 23, 19).box(22, 16, 22, 19, 'R'); // the ground, the gap and the rope from the sleeper
       g.box(11, 15, 13, 16, 'S'); // a drift to jump
       g.box(4, 7, 25, 7, 'H').box(29, 7, 31, 7, 'H').clear(26, 7, 28, 7).box(27, 7, 27, 16, 'R'); // the boughs, a rope up to them
@@ -226,7 +220,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // O YETI OR NOT: a dead end. In from the forest's ground; the yeti paces the floor; a stair of ledges up the left wall to a pelmeni.
   room({
     id: SIB.yeti, cell: [0, 4], sector: 13,
-    palette: { K: ['mineRock', 12], S: ['snowGround', 1], F: ['snowFill', 1], L: ['snowLedge', 3], Q: ['coalSeam', 11], B: ['pineBark', 9] },
+    palette: { K: ['mineRock', 14], S: ['snowGround', 1], F: ['snowFill', 1], L: ['snowLedge', 3], Q: ['coalSeam', 6], B: ['pineBark', 9] },
     paint(g) {
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 16, 'K').box(30, 3, 31, 13, 'K');
       g.box(0, 3, 3, 7, 'K').box(26, 3, 31, 6, 'K').box(6, 3, 9, 4, 'K').box(16, 3, 22, 3, 'K'); // the cave's roof, ragged
@@ -249,7 +243,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // back down. The tender's rope climbs through the gallery's floor.
   room({
     id: SIB.mine, cell: [0, 6], sector: 14,
-    palette: { K: ['mineRock', 12], Q: ['coalSeam', 11], B: ['timber', 8], R: ['rope', 13] },
+    palette: { K: ['mineRock', 9], Q: ['coalSeam', 6], B: ['timber', 8], R: ['rope', 13] },
     paint(g) {
       g.box(0, 0, 31, 2, 'K').box(0, 3, 1, 3, 'K').box(0, 8, 1, 17, 'K').box(30, 3, 31, 14, 'K');
       g.box(16, 3, 20, 4, 'K').box(26, 3, 29, 5, 'K').box(6, 3, 9, 3, 'K'); // rock hanging from the roof
@@ -296,9 +290,9 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   room({
     id: SIB.lake, cell: [1, 7], sector: 16, palette: LAKE_PALETTE,
     paint(g) {
-      sky(g, 2, []);
-      g.clear(27, 0, 29, 1).box(28, 0, 28, 11, 'R'); // the shaft above, and its rope
-      g.box(0, 2, 1, 11, 'K').box(30, 2, 31, 11, 'K');
+      g.box(28, 0, 28, 11, 'R'); // the shaft above, and its rope
+      g.box(18, 0, 26, 0, 'K').box(20, 1, 25, 1, 'K').box(30, 0, 31, 11, 'K'); // the shaft's rock overhanging the rope's way up
+      g.box(0, 4, 1, 11, 'K').box(2, 8, 3, 11, 'K'); // the headlands either side, open sky over the lake
       g.box(22, 12, 31, 12, 'S').box(22, 13, 31, 19, 'K'); // the right shore
       g.box(13, 12, 15, 12, 'S').box(13, 13, 15, 19, 'K'); // the island
       g.box(0, 12, 3, 12, 'S').box(0, 13, 3, 19, 'K').clear(4, 12, 6, 19).box(5, 12, 5, 19, 'R'); // the left shore, then the gap and its rope down
@@ -317,11 +311,11 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // the right (the ticket lifts it) and beyond it the way east, to China.
   room({
     id: SIB.border, cell: [2, 7], sector: 17,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], R: ['rope', 13] },
+    palette: { S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], R: ['rope', 13] },
     paint(g) {
-      sky(g, 2, [[0, 5], [14, 20]]);
-      g.clear(4, 0, 6, 1).box(5, 0, 5, 16, 'R'); // the rope from the lake
-      g.box(0, 2, 1, 16, 'F').box(30, 2, 31, 13, 'F');
+      g.box(5, 0, 5, 16, 'R'); // the rope from the lake
+      g.box(0, 0, 3, 0, 'F').box(7, 0, 13, 0, 'F').box(8, 1, 12, 1, 'F'); // the lake shore's snowy overhang above the rope; the rest open sky
+      g.box(30, 3, 31, 13, 'L'); // the border post's wall over the barrier's gate; the snow runs off the left edge
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F');
       g.box(11, 15, 13, 16, 'L').box(14, 13, 16, 16, 'L'); // the woodpile
       g.box(28, 13, 29, 16, 'B'); // the barrier

@@ -15,7 +15,7 @@ import { codeOf, decorIndex, type Grid, type Palette } from './layout';
 
 /** The palette of a passenger car's rooms: the roof, the far wall behind him, the floor, the wheels, the rail, the end walls, a tunnel's granite and a ladder. */
 export const TRAIN_PALETTE = {
-  D: ['roofDeck', 12], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], X: ['tunnelFace', 12], R: ['ironLadder', 7],
+  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], X: ['tunnelFace', 9], R: ['ironLadder', 7],
 } as const satisfies Palette;
 
 /** The rows of a car (playfield rows): the roof's walkway, the floor Monty walks along inside, the wheels and the rail; and a gangway's two rows. */

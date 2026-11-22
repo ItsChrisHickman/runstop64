@@ -36,32 +36,32 @@ export const ANDES_COLOURS: readonly number[] = [14, 14, 6, 13, 12, 8, 4, 5, 11,
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The sky rooms: the plane's tail and its ramp, rock, snow and cloud. */
 export const SKY_PALETTE = {
-  K: ['hullPlate', 12], R: ['mountainRock', 11], S: ['snowCap', 1], C: ['snowCap', 15], T: ['rockLedge', 12],
+  K: ['hullPlate', 14], R: ['mountainRock', 9], S: ['snowCap', 1], C: ['snowCap', 1], T: ['rockLedge', 8],
 } as const satisfies Palette;
 
 /** The terraces' seven: grass, wall, ladder, the well's rope, the rock, and Huayna Picchu's green slope and grey rock (scenery: he walks in front of it). */
 export const TERRACE_PALETTE = {
-  G: ['terraceGrass', 13], W: ['incaWall', 12], L: ['woodLadder', 9], V: ['vine', 5], K: ['mountainRock', 11], P: ['hpSlope', 5], Q: ['hpRock', 11],
+  G: ['terraceGrass', 13], W: ['incaWall', 1], L: ['woodLadder', 7], V: ['vine', 5], K: ['mountainRock', 9], P: ['hpSlope', 5], Q: ['hpRock', 8],
 } as const satisfies Palette;
 
 export const MARKET_PALETTE = {
-  A: ['adobe', 10], T: ['thatch', 7], G: ['terraceGrass', 13], R: ['woodLadder', 9], K: ['mountainRock', 11], C: ['snowCap', 15], W: ['incaWall', 12],
+  A: ['adobe', 10], T: ['thatch', 7], G: ['terraceGrass', 13], R: ['woodLadder', 7], K: ['mountainRock', 9], C: ['snowCap', 1], W: ['incaWall', 1],
 } as const satisfies Palette;
 
 export const MIST_PALETTE = {
-  K: ['mountainRock', 11], M: ['mistPit', 14], S: ['rockLedge', 12], G: ['mossGround', 13], R: ['woodLadder', 9], W: ['incaWall', 12], N: ['mistWisp', 14],
+  K: ['mountainRock', 9], M: ['mistPit', 14], S: ['rockLedge', 8], G: ['mossGround', 13], R: ['woodLadder', 7], W: ['incaWall', 1], N: ['mistWisp', 14],
 } as const satisfies Palette;
 
 export const CLOUD_PALETTE = {
-  J: ['jungleLeaf', 5], M: ['mossGround', 13], G: ['rockLedge', 9], R: ['vine', 5], T: ['tangle', 13], W: ['riverWater', 6], K: ['mountainRock', 11],
+  J: ['jungleLeaf', 5], M: ['mossGround', 13], G: ['rockLedge', 9], R: ['vine', 5], T: ['tangle', 13], W: ['riverWater', 6], K: ['mountainRock', 9],
 } as const satisfies Palette;
 
 export const TUNNEL_PALETTE = {
-  S: ['tunnelStone', 11], W: ['incaWall', 12], R: ['vine', 5], G: ['terraceSlab', 12], K: ['mountainRock', 11],
+  S: ['tunnelStone', 1], W: ['incaWall', 1], R: ['vine', 5], G: ['terraceSlab', 7], K: ['mountainRock', 9],
 } as const satisfies Palette;
 
 export const BOAT_PALETTE = {
-  H: ['hullPlate', 1], P: ['porthole', 1], D: ['deckBoards', 9], L: ['woodLadder', 9], M: ['mud', 9], J: ['jungleLeaf', 5], W: ['riverWater', 6], V: ['vine', 5],
+  H: ['hullPlate', 1], P: ['porthole', 1], D: ['deckBoards', 9], L: ['woodLadder', 7], M: ['mud', 9], J: ['jungleLeaf', 5], W: ['riverWater', 6], V: ['vine', 5],
 } as const satisfies Palette;
 
 export const RIVER_PALETTE = {
@@ -167,11 +167,11 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.llama, cell: [5, 30], sector: 58, palette: TERRACE_PALETTE,
     paint(g) {
-      g.box(0, 0, 7, 2, 'K').box(24, 0, 31, 2, 'K').box(0, 3, 1, 5, 'K'); // the mountain: F3's cliffs go on; its west wall
+      g.box(0, 0, 7, 2, 'K').box(24, 0, 31, 2, 'K'); // the mountain: F3's cliffs go on; the terraces run off the left edge
       g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 10, 'W').box(8, 8, 31, 8, 'G').clear(3, 6, 5, 12).box(4, 6, 4, 17, 'L');
       g.box(0, 18, 31, 19, 'G');
       g.box(9, 16, 13, 16, 'G').box(9, 17, 13, 17, 'W').box(14, 14, 17, 14, 'G').box(14, 15, 17, 17, 'W').box(18, 16, 21, 16, 'G').box(18, 17, 21, 17, 'W'); // the terraces of the low path
-      g.box(0, 11, 1, 17, 'K').box(30, 7, 31, 15, 'W');
+      g.box(30, 7, 31, 15, 'W');
     },
     coins: [[11, 4], [16, 4], [22, 4], [28, 4], [11, 14], [15, 12], [27, 16]],
     decor: [['mountainRange', 3, 3], ['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
@@ -231,11 +231,11 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.cloud, cell: [6, 30], sector: 62, palette: CLOUD_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J');
+      g.box(0, 0, 31, 0, 'J').box(0, 1, 8, 1, 'J').box(12, 1, 20, 1, 'J').box(24, 1, 31, 1, 'J').box(0, 2, 4, 2, 'J').box(15, 2, 17, 2, 'J').box(26, 2, 31, 2, 'J'); // the canopy's ragged leaves
       g.box(0, 18, 31, 19, 'M').box(4, 18, 7, 19, 'T').box(21, 18, 26, 19, 'W').box(22, 17, 23, 17, 'G').box(25, 17, 25, 17, 'G');
       g.box(3, 8, 13, 8, 'G').box(17, 8, 29, 8, 'G').box(18, 13, 27, 13, 'G').box(6, 12, 9, 12, 'G');
       g.box(15, 8, 15, 17, 'R');
-      g.box(0, 3, 1, 17, 'J').box(30, 0, 31, 5, 'J').box(30, 9, 31, 15, 'J').box(28, 8, 31, 8, 'G'); // the east wall has a door high, rows 6-7, onto the bough's end
+      g.box(30, 0, 31, 5, 'J').box(30, 9, 31, 15, 'J').box(28, 8, 31, 8, 'G'); // the east wall has a door high, rows 6-7, onto the bough's end
     },
     coins: [[8, 6], [21, 6], [24, 11], [6, 10], [10, 16], [19, 16], [28, 14]],
     decor: [['giantTree', 2, 12], ['fern', 7, 15], ['fern', 27, 15], ['bromeliad', 10, 7], ['bromeliad', 22, 12], ['hangingVines', 23, 3], ['hangingVines', 9, 3]],
@@ -265,13 +265,14 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.boat, cell: [7, 30], sector: 64, palette: BOAT_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').clear(4, 0, 7, 2).box(5, 0, 5, 15, 'V').box(0, 3, 1, 15, 'J');
+      g.box(0, 0, 3, 0, 'J').box(8, 0, 31, 0, 'J').box(10, 1, 16, 1, 'J').box(20, 1, 29, 1, 'J').box(11, 2, 13, 2, 'J').box(26, 2, 29, 2, 'J'); // the canopy over the river, ragged, leaving the rope's way up
+      g.box(5, 0, 5, 15, 'V'); // the rope up to the cloud forest
       g.box(0, 16, 4, 19, 'M');
       g.box(5, 15, 31, 15, 'D').box(5, 16, 31, 17, 'H').box(5, 18, 31, 19, 'W'); // the deck, the hull, the river under it
       for (let c = 8; c <= 28; c += 4) g.box(c, 17, c, 17, 'P');
       g.box(8, 8, 23, 8, 'D').box(8, 9, 25, 12, 'H').box(12, 10, 12, 10, 'P').box(16, 10, 16, 10, 'P').box(20, 10, 20, 10, 'P').box(24, 4, 25, 8, 'H').box(24, 6, 24, 6, 'P').box(24, 10, 24, 10, 'P');
       g.box(7, 8, 7, 14, 'L');
-      g.box(30, 0, 31, 12, 'J').box(30, 15, 31, 15, 'D');
+      g.box(30, 0, 31, 12, 'J').box(30, 15, 31, 15, 'D'); // the far bank's trees
     },
     coins: [[6, 12], [15, 6], [19, 6], [23, 13], [27, 13], [29, 13]],
     item: { name: 'empanada4', col: 22, row: 6, sprite: ANDES_SPRITE.empanada },
@@ -283,7 +284,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.river, cell: [7, 31], sector: 65, palette: RIVER_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J');
+      g.box(0, 0, 31, 1, 'J').box(7, 2, 9, 2, 'J').box(15, 2, 17, 2, 'J').box(23, 2, 25, 2, 'J').box(0, 2, 3, 2, 'J').box(28, 2, 31, 2, 'J'); // the canopy the vines hang from, ragged
       g.box(0, 15, 4, 19, 'M').box(28, 15, 31, 19, 'M').box(5, 16, 27, 19, 'W').box(13, 16, 15, 16, 'L').box(20, 16, 22, 16, 'L');
       g.box(0, 3, 1, 12, 'J').box(30, 0, 31, 12, 'J');
     },
@@ -298,7 +299,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.bank, cell: [7, 32], sector: 66, palette: BANK_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').box(28, 0, 31, 5, 'J').box(28, 8, 31, 19, 'M').box(0, 3, 1, 12, 'J');
+      g.box(0, 0, 1, 12, 'J').box(28, 0, 31, 5, 'J').box(28, 8, 31, 19, 'M'); // a tree at the left running off the top, the trees at the right over the way east (rows 6-7), the mud running on to Rio's quay; the sky open
       g.box(0, 15, 5, 19, 'M').box(6, 16, 9, 19, 'W').box(10, 13, 13, 19, 'M').box(14, 11, 17, 19, 'M').box(18, 9, 21, 19, 'M').box(22, 8, 27, 19, 'M');
     },
     coins: [[3, 13], [13, 11], [15, 9], [19, 7], [22, 6]],

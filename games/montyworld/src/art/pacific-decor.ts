@@ -178,6 +178,14 @@ function tikiTorch(): NewDecor {
   return decor('pacTikiTorch', 1, 3, r, ['7', '9', '9']);
 }
 
+/** The gangway's rail: a rope between three posts, lowered off the ship's bow onto the pier. 4 x 1 character each... (4 characters) */
+function gangwayRail(): NewDecor {
+  const r = new Raster(32, 8);
+  for (const x of [1, 15, 29]) r.rect(x, 0, x + 1, 7);
+  r.line(2, 2, 14, 4); r.line(16, 4, 28, 2); r.line(2, 3, 14, 5); r.line(16, 5, 28, 3);
+  return decor('pacGangwayRail', 4, 1, r, 7);
+}
+
 /** A tiki totem: three carved heads stacked, eyes, tusks and open mouths. 2 x 3 characters. */
 function totem(): NewDecor {
   const r = new Raster(16, 24);
@@ -403,6 +411,79 @@ function strap(): NewDecor {
   return decor('pacStrap', 1, 3, r, 7);
 }
 
+// ---- the luau at sunset (LEI OF THE LAND): the sky's bands, the sun on the sea, the lawn, the stage, the feast, the lei's arch
+
+/** One character of sunset sky: lines of `colour` that thicken from the purple at the top to the gold at the horizon (placed a cell at a time over the room, as China's wall cells are). */
+function skyBand(name: string, rows: readonly string[], colour: number): NewDecor {
+  const r = new Raster(8, 8);
+  r.stamp(rows, 0, 0);
+  return decor(name, 1, 1, r, colour);
+}
+
+/** The sun on the sea's edge: a half disc with the black stripes of a retro sunset cut across its lower half. 4 x 2 characters. */
+function sun(): NewDecor {
+  const r = new Raster(32, 16);
+  r.disc(15.5, 16, 15.5);
+  for (const y of [8, 11, 14]) r.rect(0, y, 31, y, false);
+  return decor('pacSun', 4, 2, r, 7);
+}
+
+/** A cell of the sea behind the beach: short waves. 1 x 1 character. */
+function seaWave(): NewDecor {
+  const r = new Raster(8, 8);
+  r.stamp(['........', '........', '.##..##.', '#..##..#', '........', '..##....', '.#..#...', '........'], 0, 0);
+  return decor('pacSeaWave', 1, 1, r, 6);
+}
+
+/** A cell of the lawn behind the lane: grass tufts over a dithered turf. 1 x 2 characters (the tufts above the turf). */
+function lawn(): NewDecor {
+  const r = new Raster(8, 16);
+  r.stamp(['........', '.#..#...', '.#.##.#.', '########', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#'], 0, 0);
+  r.stamp(['#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#', '#.#.#.#.', '.#.#.#.#'], 0, 8);
+  return decor('pacLawn', 1, 2, r, ['d', '5']);
+}
+
+/** A cell of the stage: planks over a grass-skirt fringe. 1 x 2 characters. */
+function stageBoard(): NewDecor {
+  const r = new Raster(8, 16);
+  r.stamp(['########', '########', '........', '########', '########', '........', '########', '########'], 0, 0);
+  r.stamp(['########', '#.#.#.#.', '#.#.#.#.', '.#.#.#.#', '.#.#.#.#', '#.#.#.#.', '#.#.#.#.', '........'], 0, 8);
+  return decor('pacStageBoard', 1, 2, r, ['8', 'd']);
+}
+
+/** Two conga drums, striped. 2 x 2 characters. */
+function drums(): NewDecor {
+  const r = new Raster(16, 16);
+  r.ellipse(3.5, 5, 3.5, 1.6); r.rect(1, 6, 6, 14); r.rect(1, 9, 6, 9, false); r.rect(1, 12, 6, 12, false);
+  r.ellipse(11.5, 3, 3.5, 1.6); r.rect(9, 4, 14, 14); r.rect(9, 7, 14, 7, false); r.rect(9, 10, 14, 10, false);
+  return decor('pacDrums', 2, 2, r, ['88', '99']);
+}
+
+/** The feast: a long low table with a cloth, platters of coconut shrimp and fruit on it. 6 x 2 characters. */
+function feast(): NewDecor {
+  const r = new Raster(48, 16);
+  for (let k = 0; k < 5; k++) { r.ellipse(5 + k * 9, 6, 4, 2); r.rect(2 + k * 9, 7, 8 + k * 9, 7, false); r.set(4 + k * 9, 4, false); }
+  r.rect(0, 8, 47, 11); r.rect(0, 12, 47, 12, false); r.rect(2, 12, 3, 15); r.rect(44, 12, 45, 15); r.rect(0, 13, 47, 13);
+  for (let x = 1; x < 47; x += 4) r.rect(x, 9, x, 10, false);
+  return decor('pacFeast', 6, 2, r, ['787878', '222222']);
+}
+
+/** The top of a frangipani arch: a curved bough strung with blossoms. 4 x 2 characters. */
+function archTop(): NewDecor {
+  const r = new Raster(32, 16);
+  r.ring(15.5, 17, 15, 3);
+  for (const [x, y] of [[3, 9], [7, 4], [13, 2], [19, 2], [25, 4], [29, 9]] as const) { r.disc(x, y, 2); r.set(x, y, false); }
+  return decor('pacArchTop', 4, 2, r, 10);
+}
+
+/** One leg of the arch: a post wound with blossoms. 1 x 2 characters. */
+function archLeg(): NewDecor {
+  const r = new Raster(8, 16);
+  r.rect(3, 0, 4, 15);
+  for (const y of [2, 7, 12]) { r.disc(2, y, 1.5); r.disc(5, y + 2, 1.5); }
+  return decor('pacArchLeg', 1, 2, r, ['a', '5']);
+}
+
 export const PACIFIC_DECOR = {
   pacFunnel: funnel(),
   pacBridge: bridge(),
@@ -445,6 +526,19 @@ export const PACIFIC_DECOR = {
   pacPallet: pallet(),
   pacJumpLamp: jumpLamp(),
   pacStrap: strap(),
+  pacGangwayRail: gangwayRail(),
+  pacSkyPurple: skyBand('pacSkyPurple', ['........', '..#.....', '........', '.....#..', '........', '.#......', '........', '....#...'], 4),
+  pacSkyRed: skyBand('pacSkyRed', ['########', '........', '########', '........', '########', '........', '########', '........'], 2),
+  pacSkyOrange: skyBand('pacSkyOrange', ['########', '########', '........', '########', '########', '........', '########', '########'], 8),
+  pacSkyGold: skyBand('pacSkyGold', ['########', '########', '########', '........', '########', '########', '########', '........'], 7),
+  pacSun: sun(),
+  pacSeaWave: seaWave(),
+  pacLawn: lawn(),
+  pacStageBoard: stageBoard(),
+  pacDrums: drums(),
+  pacFeast: feast(),
+  pacArchTop: archTop(),
+  pacArchLeg: archLeg(),
 } as const satisfies Record<string, NewDecor>;
 
 export type PacificDecor = keyof typeof PACIFIC_DECOR;

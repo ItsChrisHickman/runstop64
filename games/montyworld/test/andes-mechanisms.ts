@@ -29,7 +29,7 @@ import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS } from '../src/andes-po
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
-import { PAC, PAC_SPRITE } from '../src/pacific';
+import { PAC, PAC_SPRITE, PACIFIC_ROOMS } from '../src/pacific';
 import { SPRITE } from '../src/moscow';
 import { SIB_SPRITE } from '../src/siberia';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
@@ -373,12 +373,15 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
     [AND.cloud, 31, [6, 7, 16, 17]], [AND.tunnel, 0, [6, 7, 16, 17]], [AND.boat, 31, [13, 14]], [AND.river, 0, [13, 14]], [AND.river, 31, [13, 14]], [AND.bank, 0, [13, 14]], [AND.bank, 31, [6, 7]],
   ];
   const bad: string[] = [];
+  /** A side with no room beyond it is the world's edge (the ground or the sea runs off it and the engine stops him there: no wall is needed). */
+  const worldsEdge = (r: (typeof ANDES_ROOMS)[number], col: 0 | 31) => ![...PACIFIC_ROOMS, ...ANDES_ROOMS].some((o) => o.row === r.row && o.col === r.col + (col === 0 ? -1 : 1));
   for (const r of ANDES_ROOMS) for (const col of [0, 31] as const) {
+    if (worldsEdge(r, col)) continue;
     const want = opens.find(([room, c]) => room === r.id && c === col)?.[2] ?? [];
     const got = edge(r.id, col);
     if (got.join() !== want.join()) bad.push(`room ${r.id} col ${col}: open at ${got.join(' ') || 'none'}, should be ${want.join(' ') || 'none'}`);
   }
-  check(`every side of every room is closed from the third row down but where a join is (${bad.length ? bad.join('; ') : 'all 24 sides'})`, bad.length === 0);
+  check(`every side of every room with a room beyond it is closed from the third row down but where a join is; a side at the world's edge is open ground (${bad.length ? bad.join('; ') : 'all 24 sides'})`, bad.length === 0);
   // the gates, by the bot's search over what he can do (jumps, ropes, falls; the rooms' creatures in): none past a gate without its item
   const stats = { exhausted: false };
   const llama = at(AND.rock, 4, 18, [], false, true);

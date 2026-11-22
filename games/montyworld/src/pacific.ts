@@ -1,6 +1,7 @@
 import type { EscalatorSpec, LavaSpec, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { codeOf, room, type Palette } from './layout';
+import type { WorldDecor } from './art/world';
+import { codeOf, fillCells, type Grid, room, type Palette } from './layout';
 
 /**
  * The Pacific, the fifth region of Do Svidaniya Monty (docs/dosvidaniya-pacific.md): seventeen rooms in a block thirteen wide and two high at columns 17-29 of the exit grid
@@ -39,62 +40,62 @@ export const PACIFIC_COLOURS: readonly number[] = [2, 8, 14, 7, 10, 6, 5, 14, 3,
 
 // ---- the palettes --------------------------------------------------------------------------------------
 export const STERN_PALETTE = {
-  H: ['pacHullPlate', 2], D: ['pacDeckPlate', 12], G: ['pacGrating', 11], C: ['pacCrate', 9], L: ['pacSteelLadder', 12], W: ['pacWaves', 6],
+  H: ['pacHullPlate', 2], D: ['pacDeckPlate', 14], G: ['pacGrating', 3], C: ['pacCrate', 9], L: ['pacSteelLadder', 7], W: ['pacWaves', 6],
 } as const satisfies Palette;
 
 export const BOX_PALETTE = {
-  H: ['pacHullPlate', 2], D: ['pacDeckPlate', 12], T: ['pacContainer', 8], N: ['pacContainer', 5], G: ['pacGrating', 11], L: ['pacSteelLadder', 12], K: ['pacChainGate', 15], W: ['pacWaves', 6],
+  H: ['pacHullPlate', 2], D: ['pacDeckPlate', 14], T: ['pacContainer', 8], N: ['pacContainer', 5], G: ['pacGrating', 3], L: ['pacSteelLadder', 7], K: ['pacChainGate', 1], W: ['pacWaves', 6],
 } as const satisfies Palette;
 
 export const PIER_PALETTE = {
-  B: ['pacBoardwalk', 9], W: ['pacWaves', 6], S: ['pacWallStone', 12], M: ['pacContainer', 8], R: ['pacBamboo', 13], C: ['pacCrate', 9], P: ['pacRoad', 11],
+  B: ['pacBoardwalk', 9], H: ['pacHullPlate', 2], S: ['pacPile', 9], M: ['pacContainer', 8], R: ['pacBamboo', 13], C: ['pacCrate', 9], P: ['pacRoad', 11],
 } as const satisfies Palette;
 
 export const SURF_PALETTE = {
-  A: ['pacSand', 7], F: ['pacSandFill', 7], W: ['pacWaves', 6], S: ['pacSea', 6], B: ['pacBoardwalk', 9], M: ['pacWallStone', 12], R: ['pacBamboo', 13], T: ['pacThatch', 9],
+  A: ['pacSand', 7], F: ['pacSandFill', 7], W: ['pacWaves', 6], S: ['pacSea', 6], B: ['pacBoardwalk', 9], M: ['pacWallStone', 14], R: ['pacBamboo', 13], T: ['pacThatch', 9],
 } as const satisfies Palette;
 
 /** The luau's eight: the sand, thatch, wall posts, crates, the rope, and the torches' small and tall flames. */
 export const LEI_PALETTE = {
-  A: ['pacSand', 7], W: ['pacHullPlate', 2], T: ['pacThatch', 9], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacEmber', 7], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
+  A: ['pacSand', 7], C: ['pacCrate', 9], R: ['pacBamboo', 13], Y: ['pacEmber', 7], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
 } as const satisfies Palette;
 
 /** A swim room's tiles: the sea, its surface, the seabed (the floor), the reef's rock and coral, the walls. */
 export const SEA_PALETTE = {
-  S: ['pacSea', 6], U: ['pacSeaSurface', 14], B: ['pacSand', 8], F: ['pacSandFill', 8], R: ['pacReefRock', 11], C: ['pacCoral', 10], W: ['pacWallStone', 12], K: ['pacReefRock', 12],
+  S: ['pacSea', 6], U: ['pacSeaSurface', 14], B: ['pacSand', 7], F: ['pacSandFill', 7], R: ['pacReefRock', 4], C: ['pacCoral', 10], K: ['pacReefRock', 9],
 } as const satisfies Palette;
 
 export const MOLE_PALETTE = {
-  S: ['pacWallStone', 12], W: ['pacWaves', 6], A: ['pacSand', 7], F: ['pacSandFill', 7], G: ['pacTurf', 5],
+  S: ['pacWallStone', 9], W: ['pacWaves', 6], A: ['pacSand', 7], F: ['pacSandFill', 7], G: ['pacTurf', 5],
 } as const satisfies Palette;
 
 export const WHALE_PALETTE = {
-  Q: ['pacWallStone', 12], W: ['pacWaves', 6], H: ['pacHullPlate', 2], D: ['pacDeckPlate', 12], R: ['pacBamboo', 13], C: ['pacCrate', 9], F: ['pacSandFill', 12],
+  Q: ['pacWallStone', 9], W: ['pacWaves', 6], H: ['pacHullPlate', 2], D: ['pacDeckPlate', 14], R: ['pacBamboo', 13], C: ['pacCrate', 9], F: ['pacSandFill', 7],
 } as const satisfies Palette;
 
 /** The road's eight: the road, the bridge's deck, the cliff, the turf verge, the bamboo to climb, and the red car's cabin and body. */
 export const ROAD_PALETTE = {
-  R: ['pacRoad', 11], B: ['pacBridgeDeck', 12], S: ['pacBasalt', 5], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
+  R: ['pacRoad', 11], B: ['pacBridgeDeck', 8], S: ['pacBasalt', 5], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
 } as const satisfies Palette;
 
 export const HANA_PALETTE = {
-  B: ['pacBasalt', 11], K: ['pacBlackSand', 12], T: ['pacTurf', 5], R: ['pacBamboo', 13], W: ['pacWaves', 6], S: ['pacSoil', 2],
+  B: ['pacBasalt', 9], K: ['pacBlackSand', 11], T: ['pacTurf', 5], R: ['pacBamboo', 13], W: ['pacWaves', 6], S: ['pacSoil', 2],
 } as const satisfies Palette;
 
 export const COFFEE_PALETTE = {
-  B: ['pacBasalt', 11], T: ['pacTurf', 5], S: ['pacSoil', 2], R: ['pacBamboo', 13], A: ['pacSand', 7],
+  B: ['pacBasalt', 9], T: ['pacTurf', 5], S: ['pacSoil', 2], R: ['pacBamboo', 13], A: ['pacSand', 7],
 } as const satisfies Palette;
 
 export const MAUNA_PALETTE = {
-  S: ['pacSnow', 1], M: ['pacMagma', 8], C: ['pacMagmaCrest', 7], B: ['pacBasalt', 11], K: ['pacCrust', 12], R: ['pacBamboo', 13],
+  S: ['pacSnow', 1], M: ['pacMagma', 8], C: ['pacMagmaCrest', 7], B: ['pacBasalt', 2], K: ['pacCrust', 9], R: ['pacBamboo', 13],
 } as const satisfies Palette;
 
 export const HILO_PALETTE = {
-  W: ['pacWallStone', 12], P: ['pacRoad', 11], J: ['pacBridgeDeck', 12], R: ['pacBamboo', 13], G: ['pacFuselage', 15], C: ['pacCrate', 9],
+  W: ['pacWallStone', 14], P: ['pacRoad', 11], J: ['pacBridgeDeck', 8], R: ['pacBamboo', 13], G: ['pacFuselage', 1], C: ['pacCrate', 9],
 } as const satisfies Palette;
 
 export const HOLD_PALETTE = {
-  U: ['pacFuselage', 15], F: ['pacHoldFloor', 15], N: ['pacNet', 13], C: ['pacCrate', 9], I: ['pacRib', 12], D: ['pacContainerDoor', 8],
+  U: ['pacFuselage', 14], F: ['pacHoldFloor', 8], N: ['pacNet', 13], C: ['pacCrate', 9], I: ['pacRib', 3], D: ['pacContainerDoor', 8],
 } as const satisfies Palette;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
@@ -154,6 +155,21 @@ export const COVE_ROPE_CODE = codeOf(HANA_PALETTE, 'R');
 /** The plane's rear door (cols 30-31, rows 14-15, and the two gutter columns 32-33 that mirror the edge): the parachute opens it, onto the Andes' sky. */
 export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] = [14, 15].flatMap((row) => [30, 31, 32, 33].map((col) => [row, col] as const));
 
+// ---- the luau at sunset -------------------------------------------------------------------------------------
+/** The luau's paint: only the beach's sand (running off both edges, the rope's gap), the rope and the crates that step up to the lei's shelf; the rest is backdrop (decorations). */
+const paintLuau = (g: Grid): void => {
+  g.box(0, 18, 26, 18, 'A').box(0, 19, 31, 19, 'A').box(27, 18, 29, 19, '.'); // the floor and the gap the rope comes up through
+  g.box(28, 16, 28, 19, 'R');
+  g.box(8, 16, 9, 17, 'C').box(6, 14, 7, 17, 'C').box(2, 12, 5, 17, 'C'); // the steps to the shelf
+};
+const LUAU_COINS = [[25, 15], [20, 16], [15, 16], [9, 14]] as const;
+/** The cells the backdrop leaves clear: the coins, the lei's two by two, the torches' (the fire jets' cells). */
+const LUAU_CLEAR: readonly (readonly [col: number, row: number])[] = [
+  ...LUAU_COINS, [25, 14] /* (the lawn's cell above a coin is two cells tall) */, [3, 10], [4, 10], [3, 11], [4, 11],
+  ...TORCHES.cols.flatMap((col) => [[col, 16], [col + 1, 16], [col, 17], [col + 1, 17]] as const),
+];
+const luauBackdrop = (r0: number, r1: number, piece: WorldDecor) => fillCells(paintLuau, LUAU_CLEAR, [0, r0, 31, r1], piece);
+
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const PACIFIC_ROOMS: readonly RoomSpec[] = [
@@ -185,7 +201,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 11, 31, 11, 'D').box(0, 12, 31, 12, 'H').clear(2, 11, 4, 12); // the deck, the hold's roof, the hatch
       g.box(3, 10, 3, 17, 'L');
       g.box(6, 9, 9, 10, 'T').box(12, 7, 15, 10, 'N').box(18, 9, 21, 10, 'T'); // the stacks of containers
-      g.box(30, 0, 31, 8, 'H').box(30, 9, 31, 10, 'K'); // the bow's wall to the roof of the sky and the chain on the ramp under it: no way over it
+      g.box(30, 0, 31, 8, 'T').box(30, 4, 31, 5, 'N').box(30, 9, 31, 10, 'K'); // the bow's tall stack of containers to the top of the sky and the chain across the gangway under it: no way over it
       g.box(0, 18, 9, 18, 'G').box(10, 18, 27, 19, 'W').box(28, 18, 29, 18, 'G').box(0, 19, 9, 19, 'H').box(28, 19, 29, 19, 'H'); // the hold's floor and the bilge
       g.box(4, 15, 7, 15, 'G'); // the cargo shelf over the lane, off the ladder: a pocket
       g.box(12, 16, 14, 16, 'G').box(17, 16, 19, 16, 'G').box(22, 16, 24, 16, 'G').box(27, 16, 29, 16, 'G'); // the gantries
@@ -204,7 +220,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.pier, cell: [2, 19], sector: 40, palette: PIER_PALETTE,
     paint(g) {
-      g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'S').box(0, 0, 1, 8, 'S').box(30, 0, 31, 4, 'M').box(30, 13, 31, 15, 'M'); // the pier's stub, the bow's wall over it, the warehouses' walls at the edge (the ways on are the roofs and the street)
+      g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'H').box(0, 0, 1, 8, 'M').box(30, 0, 31, 4, 'M').box(30, 13, 31, 15, 'M'); // the gangway's planks lowered off the ship's bow (its hull under them, its tall stack of containers over them: as the bow of BOX CLEVER), the warehouses' walls at the edge (the ways on are the roofs and the street)
       g.box(4, 13, 5, 13, 'B').box(4, 14, 5, 19, 'S').box(6, 15, 7, 15, 'B').box(6, 16, 7, 19, 'S').box(8, 17, 9, 17, 'B').box(8, 18, 9, 19, 'S'); // the steps
       g.box(10, 18, 31, 19, 'P'); // the street
       g.box(12, 8, 31, 12, 'M'); // the warehouses
@@ -213,7 +229,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(15, 17, 16, 17, 'C').box(21, 17, 22, 17, 'C');
     },
     coins: [[2, 9], [14, 5], [24, 5], [18, 15], [25, 15]],
-    decor: [['pacAlohaTower', 9, 1], ['pacPalm', 18, 1], ['pacPalmSmall', 27, 3], ['pacPallet', 12, 16], ['pacPallet', 26, 16]],
+    decor: [['pacGangwayRail', 0, 10], ['pacAlohaTower', 9, 1], ['pacPalm', 18, 1], ['pacPalmSmall', 27, 3], ['pacPallet', 12, 16], ['pacPallet', 26, 16]],
     creatures: [
       { who: 'pacGuard', col: 11, row: 16, way: 'right', speed: 1, range: 90 },
       { who: 'pacCoconut', col: 12, row: 5, way: 'right', speed: 1, range: 90 },
@@ -225,8 +241,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.surf, cell: [2, 20], sector: 41, palette: SURF_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 0, 'M').clear(27, 0, 29, 0);
-      g.box(0, 1, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 13, 'M');
+      g.box(16, 0, 26, 0, 'M').box(0, 0, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 0, 31, 13, 'M'); // the luau's cliff overhanging the rope's way up; a hotel at each end running up off the screen, the beach open to the sky between
       g.box(0, 18, 21, 18, 'A').box(0, 19, 31, 19, 'F').box(22, 18, 31, 19, 'W'); // the beach and the pool
       g.box(0, 7, 31, 7, 'B').clear(13, 7, 15, 7); // the promenade
       g.box(14, 6, 14, 17, 'R').box(28, 0, 28, 6, 'R'); // the ropes
@@ -246,31 +261,33 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   // roast pig at the entrance, to the steps up at the left (crates, floors 16, 14, 12) and the lei on the high shelf. Hula dancers sway on the stage over the lane.
   room({
     id: PAC.lei, cell: [1, 20], sector: 42, palette: LEI_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'T');
-      g.box(0, 2, 1, 19, 'W').box(30, 2, 31, 19, 'W');
-      g.box(2, 18, 26, 18, 'A').box(0, 19, 31, 19, 'A').box(27, 18, 29, 19, '.'); // the floor and the gap the rope comes up through
-      g.box(28, 16, 28, 19, 'R');
-      g.box(8, 16, 9, 17, 'C').box(6, 14, 7, 17, 'C').box(2, 12, 5, 17, 'C'); // the steps to the shelf
-    },
-    coins: [[25, 15], [20, 16], [15, 16], [9, 14]],
+    paint: paintLuau,
+    coins: LUAU_COINS,
     item: { name: 'lei', col: 3, row: 10, sprite: PAC_SPRITE.lei },
-    decor: [['pacRoastPig', 24, 16], ['pacTotem', 10, 15], ['pacPalmSmall', 22, 2], ['pacPalmSmall', 14, 2]],
+    decor: [
+      // the sunset behind (back to front): the sky's bands, the sun on the sea's edge, the ocean, the lawn behind the lane
+      ...luauBackdrop(0, 1, 'pacSkyPurple'), ...luauBackdrop(2, 4, 'pacSkyRed'), ...luauBackdrop(5, 7, 'pacSkyOrange'), ...luauBackdrop(8, 10, 'pacSkyGold'),
+      ['pacSun', 16, 9], ...luauBackdrop(11, 13, 'pacSeaWave'), ...luauBackdrop(14, 14, 'pacLawn'),
+      // the stage on the lawn with its drums (the hula dancer dances on it), the palms planted behind, the feast with the roast pig, the tiki torches, the lei's arch over its shelf
+      ...Array.from({ length: 11 }, (_, i) => ['pacStageBoard', 12 + i, 13] as const), ['pacDrums', 12, 11],
+      ['pacPalm', 8, 8], ['pacPalm', 24, 8], ['pacFeast', 26, 14], ['pacRoastPig', 28, 12],
+      ['pacTikiTorch', 10, 13], ['pacTikiTorch', 23, 13],
+      ['pacArchTop', 2, 8], ['pacArchLeg', 2, 10], ['pacArchLeg', 5, 10],
+    ],
     creatures: [
       { who: 'pacHula', col: 14, row: 11, way: 'right', speed: 1, range: 60 },
       { who: 'pacTiki', col: 22, row: 6, way: 'left', speed: 1, range: 60 },
     ],
   }),
 
-  // F CLAM DOWN: the first reef, a swim room. In from Waikiki's sea floor at the left (rows 17-18), out to Molokai's landing at the right. Coral heads and a rock arch to weave among; a turtle and an eel.
   room({
     id: PAC.clam, cell: [2, 21], sector: 43, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').box(0, 2, 1, 13, 'W').box(30, 2, 31, 13, 'W').box(0, 2, 31, 2, 'W');
-      g.box(2, 3, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(30, 14, 31, 18, 'S').box(2, 3, 29, 3, 'U');
+      g.box(0, 3, 31, 18, 'S').box(2, 3, 29, 3, 'U'); // the sea, its surface a wavy waterline with the sky above it
+      g.box(0, 0, 1, 13, 'K').box(2, 3, 2, 5, 'K').box(2, 10, 2, 13, 'K').box(30, 0, 31, 13, 'K').box(29, 6, 29, 9, 'K'); // the reef's sea cliffs, ragged, rising off the top
       g.box(0, 19, 31, 19, 'B');
       g.box(8, 14, 12, 18, 'R').box(9, 12, 11, 13, 'R').clear(9, 15, 10, 16); // a rock with an arch
-      g.box(16, 16, 18, 18, 'C').box(22, 11, 26, 18, 'R').box(23, 9, 25, 10, 'R').box(13, 3, 16, 7, 'K'); // coral, a tall rock, a rock hanging from the ceiling
+      g.box(16, 16, 18, 18, 'C').box(22, 11, 26, 18, 'R').box(23, 9, 25, 10, 'R').box(13, 4, 16, 7, 'K'); // coral, a tall rock, a rock hanging from the surface
     },
     coins: [[10, 11], [20, 13], [14, 9], [24, 7], [5, 9]],
     decor: [['pacKelp', 14, 15], ['pacKelp', 20, 15], ['pacSeaFan', 27, 16], ['pacBubbles', 18, 5], ['pacSeaFan', 5, 16]],
@@ -298,14 +315,14 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.kelp, cell: [2, 23], sector: 45, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(14, 0, 16, 1).box(0, 2, 1, 13, 'W').box(30, 2, 31, 13, 'W');
-      g.box(2, 2, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(30, 14, 31, 18, 'S').box(2, 2, 29, 2, 'U');
+      g.box(0, 4, 31, 18, 'S').box(2, 4, 13, 4, 'U').box(17, 4, 29, 4, 'U'); // the sea, its surface a wavy waterline (the slipway's rope through the gap) with the sky and Molokai's cliffs above it
+      g.box(0, 0, 1, 13, 'K').box(2, 5, 2, 8, 'K').box(2, 11, 2, 13, 'K').box(30, 0, 31, 13, 'K').box(29, 7, 29, 10, 'K').box(13, 0, 13, 3, 'K').box(17, 0, 17, 3, 'K'); // the sea cliffs, ragged, rising off the top; a sea stack either side of the slipway's rope
       g.box(0, 19, 31, 19, 'B');
       g.box(21, 11, 26, 18, 'R').box(22, 9, 25, 10, 'R').clear(22, 14, 24, 17); // a rock with a cave under it
       g.box(10, 16, 12, 18, 'C').box(17, 14, 19, 18, 'C');
     },
     coins: [[11, 14], [23, 8], [4, 11], [28, 14], [15, 6]],
-    decor: [['pacSeaCliff', 2, 3], ['pacSeaCliffB', 6, 3], ['pacKelp', 8, 16], ['pacKelp', 14, 15], ['pacSeaFan', 28, 16], ['pacBubbles', 23, 5], ['pacBubbles', 4, 12]],
+    decor: [['pacSeaCliff', 5, 5], ['pacSeaCliffB', 9, 5], ['pacSeaCliff', 17, 5], ['pacKelp', 8, 16], ['pacKelp', 14, 15], ['pacSeaFan', 28, 16], ['pacBubbles', 23, 5], ['pacBubbles', 4, 12]],
     creatures: [
       { who: 'pacManta', col: 8, row: 5, way: 'right', speed: 1, range: 100 },
       { who: 'pacTurtle', col: 12, row: 11, way: 'right', speed: 1, range: 60 },
@@ -335,7 +352,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.road, cell: [1, 24], sector: 47, palette: ROAD_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'S').box(0, 2, 1, 15, 'S').box(0, 18, 1, 19, 'S').box(30, 2, 31, 5, 'S').box(30, 8, 31, 19, 'S');
+      g.box(0, 0, 1, 15, 'S').box(0, 18, 1, 19, 'S').box(30, 0, 31, 5, 'S').box(30, 8, 31, 19, 'S'); // the cliff rising off the top at each end, the sky open over the road
       g.box(2, 18, 29, 19, 'R').clear(24, 18, 25, 19).box(8, 18, 19, 18, 'B').clear(8, 19, 19, 19); // the first level and its bridge, the pool
       g.box(2, 13, 29, 14, 'R').clear(27, 13, 29, 14).box(12, 13, 23, 13, 'B').clear(12, 14, 23, 14); // the second level, its bridge, the bend's gap
       g.box(5, 8, 29, 9, 'R').box(11, 8, 22, 8, 'B').clear(11, 9, 22, 9); // the third level and its bridge
@@ -352,7 +369,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.cave, cell: [2, 24], sector: 48, palette: SEA_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 3, 'K').clear(22, 0, 27, 3).box(0, 4, 1, 13, 'K').box(30, 4, 31, 19, 'K');
-      g.box(2, 4, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(2, 4, 29, 4, 'U');
+      g.box(2, 4, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(2, 4, 21, 4, 'U').box(28, 4, 29, 4, 'U'); // (the surface leaves the waterfall pool's gap open)
       g.box(0, 19, 31, 19, 'B');
       g.box(4, 0, 6, 6, 'K').box(10, 0, 12, 5, 'K').box(16, 0, 18, 4, 'K'); // stalactites
       g.box(7, 15, 10, 18, 'R').box(14, 14, 17, 18, 'R').box(20, 16, 24, 18, 'C');
@@ -369,8 +386,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.hana, cell: [1, 25], sector: 49, palette: HANA_PALETTE,
     paint(g) {
-      g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T').box(30, 0, 31, 19, 'B');
-      g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 29, 19, 'K'); // the beach and the pool
+      g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T');
+      g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 31, 19, 'K'); // the beach and the pool, the black sand running on off the right edge
       g.box(14, 7, 14, 17, 'R');
       g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the cave's ledge
     },
@@ -384,8 +401,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.fish, cell: [2, 25], sector: 50, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 18, 'W').box(30, 2, 31, 13, 'W');
-      g.box(2, 2, 29, 18, 'S').box(30, 14, 31, 18, 'S');
+      g.box(0, 3, 31, 18, 'S').box(2, 3, 19, 3, 'U').box(23, 3, 29, 3, 'U'); // the sea, its surface a wavy waterline (the cove's rope through the gap) with the sky above it
+      g.box(0, 0, 1, 18, 'K').box(2, 4, 2, 7, 'K').box(2, 11, 2, 14, 'K').box(30, 0, 31, 13, 'K').box(29, 6, 29, 9, 'K').box(19, 0, 19, 2, 'K').box(23, 0, 23, 2, 'K'); // the sea cliffs, ragged, rising off the top; a sea stack either side of the cove's rope
       g.box(0, 19, 31, 19, 'B');
       g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
@@ -418,7 +435,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.mauna, cell: [2, 27], sector: 52, palette: MAUNA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'S').box(0, 2, 1, 4, 'S').box(0, 8, 1, 16, 'K').box(30, 2, 31, 6, 'S').box(30, 10, 31, 19, 'K');
+      g.box(0, 0, 1, 4, 'S').box(0, 8, 1, 16, 'K').box(30, 0, 31, 6, 'S').box(30, 10, 31, 19, 'K'); // the snow slopes at each end, the sky open over the crater
       g.box(0, 19, 4, 19, 'B').box(5, 19, 29, 19, 'B'); // the floor under the lava
       g.box(4, 17, 7, 17, 'K').box(9, 15, 13, 15, 'K').box(16, 13, 19, 13, 'K').box(22, 11, 25, 11, 'K').box(28, 9, 31, 9, 'K'); // the ledges
       g.box(0, 7, 10, 7, 'S').box(11, 6, 11, 14, 'R'); // the snow shelf and the rope down

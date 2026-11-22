@@ -1,7 +1,7 @@
 import type { DragonSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
-import { codeOf, Grid, room, type Palette } from './layout';
+import { codeOf, fillCells, Grid, room, type Palette } from './layout';
 import type { Placed } from './train';
 
 /**
@@ -35,31 +35,31 @@ export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9]
 
 // ---- the palettes --------------------------------------------------------------------------------------
 const WALL_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 15], R: ['rope', 13], L: ['brickSlit', 12],
+  G: ['greatBrick', 12], P: ['wallPave', 1], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 3], R: ['rope', 13], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const ALLEY_PALETTE = {
-  B: ['hutongBrick', 11], P: ['wallPave', 12], S: ['shelf', 9], R: ['rope', 13], K: ['cracker', 2], X: ['crackerBang', 7], Y: ['crackerSpark', 1], E: ['redBeam', 2],
+  B: ['hutongBrick', 10], P: ['wallPave', 8], S: ['shelf', 9], R: ['rope', 13], K: ['cracker', 2], X: ['crackerBang', 7], Y: ['crackerSpark', 1], E: ['redBeam', 2],
 } as const satisfies Palette;
 
 const TOWER_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], S: ['stoneStep', 15], T: ['trapdoor', 9], R: ['rope', 13], N: ['backBrick', 11], L: ['brickSlit', 12],
+  G: ['greatBrick', 12], P: ['wallPave', 8], S: ['stoneStep', 3], T: ['trapdoor', 9], R: ['rope', 13], N: ['backBrick', 6], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const TOP_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 15], L: ['stoneStep', 15], R: ['rope', 13], S: ['brickSlit', 12], Z: ['roofSlate', 11],
+  G: ['greatBrick', 12], P: ['wallPave', 1], L: ['stoneStep', 3], R: ['rope', 13], S: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const MARKET_PALETTE = {
-  B: ['hutongBrick', 11], P: ['wallPave', 12], A: ['awning', 2], Y: ['awning', 7], R: ['rope', 13],
+  B: ['hutongBrick', 10], P: ['wallPave', 8], A: ['awning', 2], Y: ['awning', 7], R: ['rope', 13],
 } as const satisfies Palette;
 
 const GATE_PALETTE = {
-  P: ['wallPave', 15], W: ['redWall', 2], D: ['gateDoor', 2], R: ['rope', 13], Y: ['roofTile', 7], E: ['redEave', 2],
+  P: ['wallPave', 1], W: ['redWall', 2], D: ['gateDoor', 2], R: ['rope', 13], Y: ['roofTile', 7], E: ['redEave', 2],
 } as const satisfies Palette;
 
 const ROOFS_PALETTE = {
-  P: ['wallPave', 15], W: ['redWall', 2], Y: ['roofTile', 7], E: ['redEave', 2], R: ['rope', 13],
+  P: ['wallPave', 1], W: ['redWall', 2], Y: ['roofTile', 7], E: ['redEave', 2], R: ['rope', 13],
 } as const satisfies Palette;
 
 /** The garden is the plate's: its lattice border, the hatched banks, the river's waves, white stones, the giants' arms and hands, a rope. */
@@ -80,11 +80,7 @@ function faceCells(c0: number, r0: number, c1: number, r1: number): Placed[] {
 
 /** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), but not where a coin hangs. */
 function backWall(paint: (g: Grid) => void, coins: readonly (readonly [col: number, row: number])[], c0: number, r0: number, c1: number, r1: number, cell: 'backCell' | 'slateCell' = 'backCell'): Placed[] {
-  const g = new Grid();
-  paint(g);
-  const cells: Placed[] = [];
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (g.at(c, r) === '.' && !coins.some(([cc, cr]) => cc === c && cr === r)) cells.push([cell, c, r]);
-  return cells;
+  return fillCells(paint, coins, [c0, r0, c1, r1], cell);
 }
 
 // ---- the timed strikes ----------------------------------------------------------------------------------
@@ -147,20 +143,18 @@ export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
 
 /** The paint of alley's room: its tiles. */
 const paintAlley = (g: Grid): void => {
-    g.box(0, 0, 31, 1, 'B').clear(3, 0, 5, 1);
-    g.box(0, 2, 1, 13, 'B').box(30, 2, 31, 16, 'B');
+    g.box(0, 0, 2, 0, 'E').box(6, 0, 14, 0, 'E').box(7, 1, 13, 1, 'E').box(0, 1, 3, 1, 'E').box(0, 2, 1, 13, 'B'); // the house's eave over the rope's way up; the corner of a hutong house at the left, the lane open to the sky and running off to the right
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B');
     g.box(4, 0, 4, 16, 'R');
     g.box(8, 15, 10, 15, 'S').box(11, 13, 13, 13, 'S').box(14, 11, 16, 11, 'S'); // the shelves
     g.box(17, 9, 29, 9, 'P'); // the roof ledge
-    g.box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, the beam
+    g.box(16, 1, 30, 1, 'E').box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, its eave, the beam
     for (let c = CRACKERS.first; c < CRACKERS.first + CRACKERS.count; c++) g.box(c, 7, c, 8, 'K'); // the crackers
 };
 
 /** The paint of market's room: its tiles. */
 const paintMarket = (g: Grid): void => {
-    g.box(0, 0, 31, 1, 'B');
-    g.box(0, 2, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 2, 31, 13, 'B');
+    g.box(0, 0, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 0, 31, 13, 'B'); // a house at each end running up off the screen, the street open to the sky between
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R');
     g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
     g.box(12, 9, 12, 16, 'R'); // the rope down from them
@@ -168,8 +162,7 @@ const paintMarket = (g: Grid): void => {
 
 /** The paint of roofs's room: its tiles. */
 const paintRoofs = (g: Grid): void => {
-    g.box(0, 0, 31, 1, 'W');
-    g.box(0, 2, 1, 16, 'W').box(30, 2, 31, 5, 'W').box(30, 9, 31, 16, 'W');
+    g.box(30, 0, 31, 5, 'W').box(30, 9, 31, 16, 'W'); // the courtyard open to the sky and running off the left edge; a palace wall at the right
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W').clear(23, 17, 25, 19).box(24, 16, 24, 19, 'R');
     g.box(27, 15, 29, 15, 'E').box(24, 13, 26, 13, 'E').box(21, 11, 23, 11, 'E'); // the eaves
     g.box(24, 9, 31, 9, 'Y'); // the ridge, starting past the top eave so he never stands under it
@@ -177,8 +170,7 @@ const paintRoofs = (g: Grid): void => {
 
 /** The paint of gate's room: its tiles. */
 const paintGate = (g: Grid): void => {
-    g.box(0, 0, 31, 1, 'W').clear(23, 0, 25, 1);
-    g.box(0, 2, 1, 13, 'W').box(30, 2, 31, 16, 'W');
+    g.box(0, 3, 1, 13, 'W').box(0, 2, 2, 2, 'E').box(29, 7, 31, 16, 'W').box(29, 6, 31, 6, 'E'); g.box(14, 0, 22, 0, 'E').box(26, 0, 31, 0, 'E').box(16, 1, 21, 1, 'E'); // the roofs' eaves over the rope's way up // the palace's walls with their eaves, the court open to the sky
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W');
     g.box(14, 5, 17, 10, 'W').box(14, 11, 17, 16, 'D'); // the gate tower and its doors
     g.box(24, 0, 24, 16, 'R');
@@ -197,8 +189,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.wall, cell: [2, 8], sector: 18, palette: WALL_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'E').clear(24, 0, 26, 1);
-      g.box(0, 2, 1, 13, 'E');
+      g.box(14, 0, 23, 0, 'G').box(27, 0, 31, 0, 'G').box(16, 1, 22, 1, 'G'); // the tower's foot overhanging the rope's way up; the rest open sky
+      g.box(0, 8, 1, 13, 'E').box(0, 8, 1, 8, 'T'); // the hillside at the left edge, the sky open above
       g.box(0, 17, 31, 17, 'T').box(0, 18, 31, 19, 'E');
       g.box(4, 15, 6, 15, 'S').box(7, 13, 9, 13, 'S').box(10, 11, 12, 11, 'S'); // the stair of steps
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
@@ -228,7 +220,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: ALLEY_COINS,
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
     decor: [
-      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 29, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 9, 16, 9, 'slateCell'), // the lane's wall behind him, its grey tiled eave
+      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 31, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 9, 16, 9, 'slateCell'), // the lane's wall behind him, its grey tiled eave
       ['laundry', 6, 5], ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
     ],
     creatures: [
@@ -265,9 +257,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.top, cell: [0, 8], sector: 21, palette: TOP_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'Z'); // the gallery's roof
-      g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G');
-      g.box(0, 5, 1, 5, 'S').box(0, 9, 1, 9, 'S').box(0, 13, 1, 13, 'S').box(30, 5, 31, 5, 'S').box(30, 9, 31, 9, 'S').box(30, 13, 31, 13, 'S'); // the towers' slits
+      g.box(0, 2, 1, 16, 'G'); // the tower closing the wall at the left, the night sky open above and the wall running on past the right edge
+      g.box(0, 5, 1, 5, 'S').box(0, 9, 1, 9, 'S').box(0, 13, 1, 13, 'S'); // its slits
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'G').clear(15, 17, 17, 19).box(16, 16, 16, 19, 'R');
       g.box(22, 15, 24, 15, 'L').box(25, 13, 27, 13, 'L'); // the steps up from the floor
       g.box(6, 11, 24, 11, 'L'); // the long walkway, ending short of the steps' top so he never stands under it
@@ -363,8 +354,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'E').clear(2, 0, 4, 1);
-      g.box(0, 2, 1, 16, 'E').box(30, 2, 31, 14, 'E');
+      g.box(0, 0, 1, 16, 'E').box(30, 6, 31, 14, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top, a headland at the right: the sky open over the river
       g.box(0, 17, 18, 17, 'D').box(0, 18, 18, 19, 'E');
       g.box(19, 17, 25, 19, 'W');
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');

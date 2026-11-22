@@ -39,17 +39,6 @@ export const SECTOR_COLOURS: readonly number[] = [2, 2, 2, 7, 7, 1, 8, 14, 14];
 // ---- shared bits ---------------------------------------------------------------------------------------
 
 /**
- * A ceiling of `rows` rows of crust across the room with a ragged edge under it: at each of the column ranges `drips` says, a
- * fringe of drips under the crust, and in every second one the crust itself comes a row lower first (so the edge steps).
- */
-function roof(g: Grid, rows: number, drips: readonly (readonly [number, number])[], crust = 'C', drip = 'D') {
-  g.box(0, 0, 31, rows - 1, crust);
-  drips.forEach(([a, b], i) => {
-    if (i % 2 === 1 && b - a >= 2) { g.box(a + 1, rows, b - 1, rows, crust); g.box(a + 1, rows + 1, b - 1, rows + 1, drip); } else g.box(a, rows, b, rows, drip);
-  });
-}
-
-/**
  * An escalator's band, painted on the three diagonals of cells it crosses (art/escalator.ts): the treads on the line his feet follow
  * (between the foot and the landing), the body under them and the handrail above, one cell down (or up) for every cell along.
  */
@@ -78,11 +67,11 @@ const treadsOf = (palette: Palette, tiles: { tread: string; body: string; rail: 
 /** The hall's and the platform's palettes: the three tiles of an escalator's band are three of the eight a room has. */
 const HALL_PALETTE = {
   V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], R: ['rope', 13], Z: ['turnstile', 7],
-  T: ['escalatorDownTread', 15], B: ['escalatorDownBody', 15], N: ['escalatorDownRail', 7],
+  T: ['escalatorDownTread', 1], B: ['escalatorDownBody', 14], N: ['escalatorDownRail', 7],
 } as const satisfies Palette;
 const PLATFORM_PALETTE = {
-  V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], G: ['girder', 12], Q: ['platformEdge', 7],
-  T: ['escalatorUpTread', 15], B: ['escalatorUpBody', 15], N: ['escalatorUpRail', 7],
+  V: ['vault', 14], M: ['metroTile', 3], F: ['arcadeFloor', 1], G: ['girder', 8], Q: ['platformEdge', 7],
+  T: ['escalatorUpTread', 1], B: ['escalatorUpBody', 14], N: ['escalatorUpRail', 7],
 } as const satisfies Palette;
 /** Their letters. */
 const BAND = { tread: 'T', body: 'B', rail: 'N' } as const;
@@ -98,7 +87,7 @@ export const ESCALATORS: readonly EscalatorSpec[] = [DOWN, UP];
  * The train stands until he is aboard (from column 22, inside the door).
  */
 const STATION_PALETTE = {
-  D: ['roofDeck', 12], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
+  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
 } as const satisfies Palette;
 const STATION_BOGIES = [22, 27] as const;
 /** What moves once he is aboard (from column 22): the windows, the sleepers, the wheels. */
@@ -119,10 +108,11 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // signal gantry and out, high at the right.
   room({
     id: ROOM.start, cell: [1, 0], sector: 0,
-    palette: { S: ['snowGround', 1], C: ['snowCrust', 3], D: ['snowDrip', 3], X: ['crate', 9], T: ['trainSide', 5], G: ['girder', 12], P: ['planks', 8], K: ['kremlinBrick', 2] },
+    palette: { S: ['snowGround', 1], X: ['crate', 9], T: ['trainSide', 5], G: ['girder', 3], K: ['kremlinBrick', 2], B: ['battlement', 2] },
     paint(g) {
-      roof(g, 2, [[0, 3], [7, 10], [15, 17], [24, 27]]);
-      g.box(0, 2, 1, 16, 'P').box(30, 2, 31, 3, 'K').box(28, 8, 31, 16, 'K');
+      // open to the night: the platform runs off the left edge; the Kremlin's wall closes the right, a passage through it at the gantry
+      g.box(28, 8, 31, 16, 'K');
+      g.box(2, 3, 11, 3, 'G'); // the sign's gantry
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'K');
       g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 11, 16, 'X'); // the luggage, a step each
       g.box(12, 9, 27, 9, 'G').box(12, 10, 27, 16, 'T'); // the train
@@ -138,11 +128,11 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // that leaves high at the right, the street itself leaving low.
   room({
     id: ROOM.streets, cell: [1, 1], sector: 1,
-    palette: { S: ['snowGround', 1], C: ['snowCrust', 3], D: ['snowDrip', 3], X: ['crate', 9], W: ['awning', 2], R: ['rope', 13], L: ['ironLadder', 7], G: ['girder', 12] },
+    palette: { S: ['snowGround', 1], X: ['crate', 9], W: ['awning', 2], R: ['rope', 13], L: ['ironLadder', 7], G: ['girder', 3], K: ['kremlinBrick', 2] },
     paint(g) {
-      roof(g, 2, [[0, 5], [8, 12], [24, 31]]);
-      g.clear(19, 0, 21, 1); // the way up, to the arcade
-      g.box(0, 2, 1, 3, 'C').box(0, 8, 1, 16, 'X').box(30, 7, 31, 12, 'X');
+      // an open street under the sky; only the arcade's overhanging floor above the rope's manhole (the way up) closes the sky
+      g.box(12, 0, 18, 0, 'K').box(22, 0, 31, 0, 'K').box(14, 1, 18, 1, 'K').box(22, 1, 27, 1, 'K');
+      g.box(0, 8, 1, 16, 'X').box(30, 7, 31, 12, 'X');
       g.box(0, 7, 9, 7, 'W'); // the awning he lands on
       g.box(0, 17, 31, 19, 'S').clear(3, 17, 4, 19).clear(6, 17, 8, 19); // the grating, the manhole
       g.box(3, 17, 3, 19, 'R').box(20, 0, 20, 16, 'R');
@@ -161,12 +151,12 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // platform. High: along the Kremlin wall's terrace to a flagpole rope that climbs to the domes.
   room({
     id: ROOM.square, cell: [1, 2], sector: 2,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], K: ['kremlinBrick', 2], B: ['battlement', 2], O: ['cobbles', 10], R: ['rope', 13], S: ['snowGround', 1], F: ['snowFill', 1] },
+    palette: { K: ['kremlinBrick', 2], B: ['battlement', 2], O: ['cobbles', 10], R: ['rope', 13], S: ['snowGround', 1], F: ['snowFill', 1] },
     paint(g) {
-      roof(g, 2, [[0, 3], [16, 19], [29, 31]]);
-      g.clear(25, 0, 26, 1).clear(9, 0, 10, 1); // the flagpole's way up, and the chimney the bear dances in
-      g.box(0, 0, 1, 2, 'C').box(0, 9, 1, 12, 'K').box(30, 2, 31, 16, 'K');
-      g.box(0, 6, 29, 6, 'B').box(0, 7, 29, 8, 'K'); // the terrace on top of the wall
+      // the square under the open sky: the Kremlin's wall across the back with its terrace, a tower of it closing the right end
+      g.box(0, 9, 1, 12, 'K').box(29, 2, 31, 2, 'B').box(29, 3, 31, 16, 'K');
+      g.box(0, 6, 28, 6, 'B').box(0, 7, 28, 8, 'K'); // the terrace on top of the wall
+      g.box(15, 0, 24, 0, 'K').box(17, 1, 24, 1, 'K').box(27, 0, 31, 1, 'K'); // the domes' stonework over the flagpole's way up; the rest open sky
       g.box(25, 0, 25, 5, 'R'); // the flagpole rope
       g.box(0, 17, 31, 17, 'O').box(0, 18, 31, 19, 'F').clear(20, 17, 22, 19); // the drain
     },
@@ -183,10 +173,10 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // stair of domes at the left, then right across the dome tops (gaps to jump) to the way out, above the rope.
   room({
     id: ROOM.domes, cell: [0, 2], sector: 3,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], M: ['domeScale', 7], K: ['kremlinBrick', 2], S: ['snowGround', 1], F: ['snowFill', 1], R: ['rope', 13] },
+    palette: { B: ['battlement', 2], M: ['domeScale', 7], K: ['kremlinBrick', 2], S: ['snowGround', 1], F: ['snowFill', 1], R: ['rope', 13] },
     paint(g) {
-      roof(g, 2, [[0, 3], [9, 12], [20, 22]]);
-      g.box(0, 2, 1, 16, 'K').box(30, 2, 31, 2, 'D').box(30, 7, 31, 16, 'K');
+      // under the open sky: the arcade's roof edge at the left, the Kremlin's wall at the right
+      g.box(0, 3, 1, 3, 'B').box(0, 4, 1, 16, 'K').box(30, 7, 31, 16, 'K');
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F').clear(25, 17, 26, 19).box(25, 16, 25, 19, 'R');
       g.box(10, 15, 13, 15, 'M').box(6, 13, 9, 13, 'M').box(2, 11, 5, 11, 'M').box(6, 9, 9, 9, 'M').box(10, 7, 13, 7, 'M'); // the stair
       g.box(14, 6, 17, 6, 'M').box(20, 6, 23, 6, 'M').box(26, 6, 31, 6, 'M'); // the dome tops
@@ -204,10 +194,10 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // that drops to the station, to a stub with a coin.
   room({
     id: ROOM.kremlin, cell: [0, 3], sector: 4,
-    palette: { K: ['kremlinBrick', 2], B: ['battlement', 2], C: ['snowCrust', 3], D: ['snowDrip', 3], A: ['rock', 12], F: ['snowFill', 1] },
+    palette: { K: ['kremlinBrick', 2], B: ['battlement', 2], F: ['snowFill', 1] },
     paint(g) {
-      roof(g, 2, [[19, 24]]);
-      g.box(6, 2, 13, 3, 'A').box(30, 2, 31, 5, 'K');
+      // the wall's top under the open sky: a gate tower straddling it (the low arch), a watchtower closing the far end
+      g.box(6, 0, 13, 0, 'B').box(6, 1, 13, 3, 'K').box(30, 1, 31, 1, 'B').box(30, 2, 31, 5, 'K');
       // the wall's top, two slabs over the gorge, each a short face of brick on piers with the undercroft open (black) between them
       for (const [from, to] of [[0, 14], [19, 31]] as const) {
         g.box(from, 6, to, 6, 'B').box(from, 7, to, 9, 'K');
@@ -229,7 +219,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   room({
     id: ROOM.station, cell: [1, 3], sector: 5, palette: STATION_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'K').clear(15, 0, 18, 1).box(0, 2, 0, 16, 'K'); // the Kremlin's wall over the platform, the gorge, the west wall
+      g.box(0, 2, 1, 16, 'K'); // the Kremlin's tower closing the platform's west end; the night sky open above it and the gorge
       g.box(0, 17, 19, 19, 'K'); // the platform
       g.box(20, CAR.roof, 31, CAR.roof, 'D'); farWall(g, 22, 29); // the car's roof, the wall behind
       g.box(20, 10, 21, 14, 'T').box(30, 10, 31, 16, 'T'); // its rear wall (the door open below), its far end
@@ -251,10 +241,11 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
   // with the metro token, and back the same way.
   room({
     id: ROOM.gum, cell: [0, 1], sector: 6,
-    palette: { C: ['snowCrust', 3], D: ['snowDrip', 3], K: ['kremlinBrick', 2], S: ['snowGround', 1], R: ['rope', 13], L: ['snowLedge', 3], G: ['girder', 12] },
+    palette: { K: ['kremlinBrick', 2], S: ['snowGround', 1], R: ['rope', 13], L: ['snowLedge', 3], G: ['girder', 3] },
     paint(g) {
-      roof(g, 2, [[3, 8], [14, 17], [24, 28]]);
-      g.box(0, 2, 1, 16, 'K').box(30, 2, 31, 16, 'K');
+      // inside the GUM arcade: its barrel vault (stepped up to the crown) over the gallery, the arcade's own end walls
+      g.box(0, 0, 5, 2, 'K').box(26, 0, 31, 2, 'K').box(6, 0, 9, 1, 'K').box(22, 0, 25, 1, 'K').box(10, 0, 21, 0, 'K');
+      g.box(0, 3, 1, 16, 'K').box(30, 3, 31, 16, 'K');
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'K').clear(19, 17, 21, 19).box(20, 16, 20, 19, 'R');
       g.box(7, 15, 9, 15, 'L').box(4, 13, 6, 13, 'L').box(2, 11, 4, 11, 'L'); // the stair
       g.box(5, 9, 14, 9, 'G'); // the gallery
@@ -277,7 +268,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     id: ROOM.hall, cell: [2, 1], sector: 7,
     palette: HALL_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'V').clear(3, 0, 4, 2).clear(6, 0, 8, 2);
+      g.box(0, 0, 31, 2, 'V').clear(3, 0, 4, 2).clear(6, 0, 8, 2).clear(12, 2, 20, 2); // the vault, stepped up to its crown
       g.box(0, 3, 1, 8, 'M').box(0, 9, 1, 19, 'M').box(30, 3, 31, 5, 'M').box(30, 9, 31, 12, 'M');
       g.box(0, 9, 14, 9, 'F').box(26, 9, 31, 9, 'F'); // the concourse with the foot at its end, the stub
       g.box(16, 14, 22, 14, 'F'); // the terrace (a floor over the walkway: two cells of headroom under it)
@@ -300,7 +291,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     id: ROOM.platform, cell: [2, 2], sector: 8,
     palette: PLATFORM_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'V').clear(20, 0, 22, 2);
+      g.box(0, 0, 31, 2, 'V').clear(20, 0, 22, 2).clear(7, 2, 18, 2); // the vault, stepped up to its crown
       g.box(0, 3, 1, 5, 'M').box(0, 12, 1, 12, 'M').box(30, 3, 31, 16, 'M');
       g.box(0, 9, 15, 9, 'F').box(0, 10, 15, 11, 'M').box(16, 9, 25, 9, 'G').box(28, 9, 31, 9, 'F'); // the gallery over the lane
       g.box(0, 17, 31, 19, 'F');

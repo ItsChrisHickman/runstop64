@@ -11,13 +11,24 @@ export const PACIFIC_TILES = {
   /** The hull's steel plates, a seam along the foot and rivets down the plates. Solid. */
   pacHullPlate: tile('pacHullPlate', 1, 2, [
     '########',
-    '#.######',
-    '########',
-    '########',
-    '######.#',
-    '########',
+    '#.####.#',
     '########',
     '........',
+    '########',
+    '#.####.#',
+    '########',
+    '........',
+  ]),
+  /** The piles a pier stands on: tarred posts with black water between them, a cross-brace at intervals. Solid. */
+  pacPile: tile('pacPile', 1, 9, [
+    '.##..##.',
+    '.##..##.',
+    '########',
+    '.##..##.',
+    '.##..##.',
+    '.##..##.',
+    '########',
+    '.##..##.',
   ]),
   /** The deck's non-slip plate: a bright edge and rows of raised bars. A floor. */
   pacDeckPlate: tile('pacDeckPlate', 2, 12, [
@@ -266,7 +277,7 @@ export const PACIFIC_TILES = {
     '..##....',
   ]),
   /** The sea's surface: a row of wave crests. Nothing. */
-  pacSeaSurface: tile('pacSeaSurface', 0, 14, [
+  pacSeaSurface: tile('pacSeaSurface', 1, 14, [
     '..##..##',
     '.#..##..',
     '#.......',

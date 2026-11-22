@@ -15,7 +15,7 @@ function mountainRange(): NewDecor {
   r.rect(0, 22, 63, 23);
   for (const [x0, x1, y] of [[10, 18, 9], [28, 40, 8], [48, 58, 13]] as const) r.rect(x0, y, x1, y, false); // the snowline
   for (let y = 12; y < 22; y += 4) for (let x = (y % 8) + 6; x < 60; x += 11) r.rect(x, y, x + 2, y, false); // crags
-  return decor('mountainRange', 8, 3, r, ['11111111', 'CCCCCCCC', 'BBBBBBBB']);
+  return decor('mountainRange', 8, 3, r, ['11111111', '88888888', '99999999']);
 }
 
 /** One big peak: a snow cap on a grey face with the ridges cut in. 5 x 4 characters. */
@@ -24,7 +24,7 @@ function peak(): NewDecor {
   r.triangle(20, 0, 0, 32, 40, 32);
   r.line(20, 3, 12, 20, false); r.line(20, 6, 28, 22, false); r.line(14, 12, 8, 28, false); r.line(25, 16, 33, 30, false);
   r.rect(10, 14, 30, 14, false); // the snowline
-  return decor('peak', 5, 4, r, ['11111', '1CCC1', 'CCCCC', 'BBBBB']);
+  return decor('peak', 5, 4, r, ['11111', '18881', '88888', '99999']);
 }
 
 /** A puffy cloud: a bank of round heads on a flat foot. 4 x 2 characters. */
@@ -42,7 +42,7 @@ function cloudBig(): NewDecor {
   r.ellipse(9, 10, 9, 5); r.ellipse(22, 7, 10, 7); r.ellipse(36, 8, 9, 6); r.ellipse(43, 11, 5, 4); r.rect(3, 10, 46, 14);
   r.rect(0, 13, 47, 15, false);
   r.rect(7, 6, 10, 6, false); r.rect(20, 2, 24, 2, false); r.rect(34, 4, 37, 4, false);
-  return decor('cloudBig', 6, 2, r, 15);
+  return decor('cloudBig', 6, 2, r, 1);
 }
 
 /** An updraft: three S-shaped wisps of air rising in a column, each a stroke of cloud. 3 x 4 characters. */
@@ -63,7 +63,7 @@ function incaGate(): NewDecor {
   for (let y = 0; y < 32; y += 8) r.rect(0, y + 7, 7, y + 7, false), r.rect(24, y + 7, 31, y + 7, false);
   r.rect(4, 0, 4, 6, false); r.rect(14, 0, 14, 6, false); r.rect(26, 0, 26, 6, false); r.rect(0, 7, 31, 7, false);
   r.rect(0, 28, 7, 31, false);
-  return decor('incaGate', 4, 4, r, 12);
+  return decor('incaGate', 4, 4, r, 1);
 }
 
 /** A stone hut with a thatched roof: the wall of fitted stones, a low door, a window, the straw in rows. 5 x 4 characters. */
@@ -76,7 +76,7 @@ function stoneHut(): NewDecor {
   for (const x of [11, 22, 29]) r.rect(x, 14, x, 31, false);
   r.rect(16, 21, 23, 31, false);
   r.rect(6, 17, 8, 19, false);
-  return decor('stoneHut', 5, 4, r, ['77777', '77777', 'CCCCC', 'CCCCC']);
+  return decor('stoneHut', 5, 4, r, ['77777', '77777', '11111', '11111']);
 }
 
 /** A market stall: a striped awning over a counter heaped with fruit, two posts. 5 x 4 characters. */
@@ -136,7 +136,7 @@ function intihuatana(): NewDecor {
   r.rect(0, 11, 15, 15); r.rect(2, 8, 13, 10);
   r.rect(7, 1, 9, 7); r.rect(5, 0, 6, 1); // the pillar and its angled face
   r.rect(0, 13, 15, 13, false); r.rect(2, 10, 13, 10, false);
-  return decor('intihuatana', 2, 2, r, 15);
+  return decor('intihuatana', 2, 2, r, 1);
 }
 
 /** A heap of broken stone: three rounded rocks, the cracks cut in. 2 x 2 characters. */
@@ -145,7 +145,7 @@ function rubble(): NewDecor {
   r.ellipse(4, 12, 4.2, 3.4); r.ellipse(11.5, 12, 4.5, 3.4); r.ellipse(8, 7.5, 3.6, 3.2);
   r.rect(0, 15, 15, 15);
   r.line(3, 10, 5, 14, false); r.line(11, 9, 12, 14, false); r.line(7, 5, 9, 9, false); r.rect(0, 14, 15, 14, false);
-  return decor('rubble', 2, 2, r, 12);
+  return decor('rubble', 2, 2, r, 9);
 }
 
 /** A waterfall falling from a ledge in streaks, ending in foam. 2 x 6 characters. */

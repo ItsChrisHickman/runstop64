@@ -215,7 +215,7 @@ function captain(): NewCreature {
   return pair('captain', [frame(0), frame(1), frame(0), frame(1)], 1, true);
 }
 
-// ---- the sloth: grey, hanging, a dopey smile in two dark eye patches
+// ---- the sloth: brown, hanging, a dopey smile in two dark eye patches
 
 /** A sloth hanging from a bough by its long arms, swaying: a pale round face with two dark eye patches and a slow smile. */
 function sloth(): NewCreature {
@@ -232,7 +232,7 @@ function sloth(): NewCreature {
     r.cut(['#....#', '.####.'], 5 + sway, 8); // the long smile
     return r.rows();
   };
-  return pair('sloth', [frame(-1), frame(0), frame(1), frame(0)], 15, true);
+  return pair('sloth', [frame(-1), frame(0), frame(1), frame(0)], 9, true);
 }
 
 // ---- the anaconda: a thick green S, the head reared with a forked tongue
