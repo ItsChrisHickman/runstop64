@@ -90,12 +90,12 @@ function daruma(): NewCreature {
   const frame = (t: number) => {
     const r = new Raster(16, 16);
     const s = [0, 1, 0, -1][t] ?? 0;
-    r.ellipse(8 + s, 8.6, 7.2, 7.4); // the round body
-    r.ellipse(8 + s, 6.2, 5, 4, false); // the face's opening
-    r.ellipse(6 + s, 5.6, 1.5, 1.5); r.ellipse(10 + s, 5.6, 1.5, 1.5); r.rect(6 + s, 5, 6 + s, 6, false); // the eyes: the left one painted in
-    r.rect(4 + s, 3, 7 + s, 3); r.rect(9 + s, 3, 12 + s, 3); r.set(4 + s, 4); r.set(12 + s, 4); // the heavy brows
-    r.rect(5 + s, 8, 10 + s, 8); r.rect(6 + s, 9, 9 + s, 9); r.set(8 + s, 7); // the moustache and beard, the nose
-    r.rect(4 + s, 11, 11 + s, 13, false); r.rect(6 + s, 12, 9 + s, 12); r.rect(8 + s, 11, 8 + s, 13); // the band across the belly with its mark
+    r.ellipse(8 + s, 9.4, 6.6, 6.4); // the round body (a squat one: a jump clears it)
+    r.ellipse(8 + s, 7.2, 4.6, 3.4, false); // the face's opening
+    r.ellipse(6 + s, 6.6, 1.4, 1.4); r.ellipse(10 + s, 6.6, 1.4, 1.4); r.rect(6 + s, 6, 6 + s, 7, false); // the eyes: the left one painted in
+    r.rect(4 + s, 4, 7 + s, 4); r.rect(9 + s, 4, 12 + s, 4); // the heavy brows
+    r.rect(5 + s, 9, 10 + s, 9); r.rect(6 + s, 10, 9 + s, 10); r.set(8 + s, 8); // the moustache and beard, the nose
+    r.rect(4 + s, 12, 11 + s, 14, false); r.rect(6 + s, 13, 9 + s, 13); r.rect(8 + s, 12, 8 + s, 14); // the band across the belly with its mark
     r.rect(5, 15, 10, 15, t % 2 === 0); // the base, tipping
     return r.rows();
   };
