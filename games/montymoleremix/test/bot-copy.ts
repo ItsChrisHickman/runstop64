@@ -9,7 +9,7 @@ import type { Play } from './harness';
  * belongs to whoever runs the game (its sound, the hooks, the running sequence) stays as it is; the room's tiles (`room`: never
  * changed, only replaced when a room is loaded) are shared.
  */
-const THEIRS = new Set(['sound', 'onRoomLoaded', 'graceActive', 'script']);
+const THEIRS = new Set(['sound', 'onRoomLoaded', 'graceActive', 'onRestart', 'script']);
 const SHARED = new Set(['room']);
 
 type Typed = Uint8Array | Int8Array | Int16Array;

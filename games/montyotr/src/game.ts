@@ -35,8 +35,8 @@ import { playDissolve } from '../../shared/monty/deaths';
  * at SCREEN ($4800), sprite data by pointer. `col` is colour RAM ($D800).
  */
 export { ROW, SCREEN } from '../../shared/monty/screen';
-/** Frames on his feet in a room (2 seconds) after which its way in is a place to start again from (ENHANCED's respawn). */
-export const SAFE_FRAMES = 100;
+/** feetFrames stops counting here (2 seconds): it is part of the golden trace. */
+const FEET_CAP = 100;
 
 export type { MontyInput as Input } from '../../shared/monty/body';
 
@@ -101,6 +101,8 @@ export class Game implements MontyBody, MontyWorld {
   cheatMode = 0;
   /** Whether a moment's grace is on (the front end's, main.ts): he can't be killed. */
   graceActive: () => boolean = () => false;
+  /** A death has put him back (ENHANCED): the front end starts a moment's grace. */
+  onRestart: () => void = () => {};
   /** A running scripted sequence (death, completion, game over): advanced once per frame. */
   script: Generator<void, void, void> | null = null;
   /** Set when a scripted sequence finishes the game (back to title). */
@@ -226,8 +228,10 @@ export class Game implements MontyBody, MontyWorld {
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry;
   feetFrames = 0;
-  /** The last room entry he had SAFE_FRAMES on his feet after (ENHANCED's respawn goes there after a death sooner than that). */
-  safeEntry: Entry | null = null;
+  /** The last safe place he stood in the room he is in (ENHANCED's respawn starts him there after a death), with the room it is in. */
+  safeSpot: (Entry & { room: number }) | null = null;
+  /** A death has put him back into this room (the safe spot is kept across the room's reload). */
+  private restarting = false;
 
   constructor(readonly data: MontyData) {
     const { start } = data;
@@ -359,7 +363,8 @@ export class Game implements MontyBody, MontyWorld {
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
     this.feetFrames = 0;
-    this.safeEntry = null;
+    this.safeSpot = null;
+    this.restarting = false;
     this.drawHudFrame();
     this.roomExit = 1; // RoomLoop loads the first room
     this.freeze = 1;
@@ -504,17 +509,59 @@ export class Game implements MontyBody, MontyWorld {
     if (this.showJetpack) this.montyAction = 0;
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
+    if (!this.restarting || this.safeSpot?.room !== this.roomId) this.safeSpot = null;
+    this.restarting = false;
     this.onRoomLoaded(this);
   }
 
-  /** On his feet (standing, on a rope, or in the C5) a moment: this room's way in is somewhere he can start again from. */
+  /** On his feet (standing, on a rope, or in the C5): counted, and where he stands, if it is safe, is the place to start again from. */
   private noteFeet() {
-    if (this.feetFrames >= SAFE_FRAMES || this.gameMode || this.actionCounter) return;
+    if (this.gameMode || this.actionCounter) return;
     if (!this.c5.active && (this.falling || this.montyAction)) return;
-    if (++this.feetFrames === SAFE_FRAMES) this.safeEntry = { ...this.entry };
+    if (this.feetFrames < FEET_CAP) this.feetFrames++;
+    if (this.c5.active || this.showJetpack || this.lift.riding || this.pd.ride || this.esc.index >= 0) return;
+    if (this.standsSafely(this.x2, this.y)) this.safeSpot = { room: this.roomId, mapRow: this.mapRow, exitCol: this.exitCol, x2: this.x2, y: this.y, facing: this.facing };
   }
-  /** Whether this room's way in has proved somewhere to start again from (SAFE_FRAMES on his feet after it). */
-  get entrySafe() { return this.feetFrames >= SAFE_FRAMES; }
+
+  /**
+   * Whether Monty put at (x2, y) in this room would stand: his cells clear of walls, a floor (or, on a rope, the rope) under
+   * his feet and no water or lava there. A place the room's own tiles say is safe, not where a mechanism has put something.
+   */
+  standsSafely(x2: number, y: number): boolean {
+    if (((y - 0x32) & 7) !== 0 || x2 < 0x16 || x2 > 0x99) return false;
+    const row = ((y - 0x32) & 0xff) >> 3, col = ((x2 - 0x0c) & 0xff) >> 2;
+    const cols = ((x2 - 0x0c) & 3) === 0 ? 2 : 3;
+    let rope = false;
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < cols; c++) {
+        const f = this.flagAt(row + r, col + c);
+        if (f === 1) return false;
+        if (f === 3) rope = true;
+      }
+    }
+    let floor = false;
+    for (let c = 0; c < cols; c++) {
+      const f = this.flagAt(row + 2, col + c);
+      if (f === 4) return false;
+      if (f === 1 || f === 2) floor = true;
+    }
+    return floor || rope;
+  }
+
+  /** The place in this room to start again from: where he last stood, else where he came in, else the nearest place he can stand. */
+  private restartSpot(): Entry {
+    const here = this.safeSpot && this.safeSpot.room === this.roomId ? this.safeSpot : this.entry;
+    if (this.standsSafely(here.x2, here.y)) return { mapRow: this.mapRow, exitCol: this.exitCol, x2: here.x2, y: here.y, facing: here.facing };
+    let best: Entry | null = null;
+    let bestD = Infinity;
+    for (let y = 0x32 + 3 * 8; y <= 0xda; y += 8) {
+      for (let x2 = 0x16; x2 <= 0x99; x2++) {
+        const d = ((x2 - here.x2) * 2) ** 2 + (y - here.y) ** 2;
+        if (d < bestD && this.standsSafely(x2, y)) { bestD = d; best = { mapRow: this.mapRow, exitCol: this.exitCol, x2, y, facing: here.facing }; }
+      }
+    }
+    return best ?? { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.entry.x2, y: this.entry.y, facing: this.entry.facing };
+  }
 
   /** Monty.Dispatch: turn a pending event (action_counter 1-7) into its sequence. */
   private dispatch() {
@@ -872,20 +919,20 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /**
-   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): if he
-   * died before he'd had a moment on his feet there (SAFE_FRAMES), that way in may only lead into
-   * the same death again (a fall into the sewage, an enemy whose path crosses it): he starts
-   * instead where he last came into a room and had that moment (the room before, usually), so a
-   * life is lost once, not until the game is over.
+   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, at the last
+   * safe place he stood there (his way in if he had none); if that place is deadly (a way in that drops into danger) the nearest
+   * place in the room he can stand; and a moment's grace (`onRestart`). Never in another room.
    */
   respawn() {
-    const safe = this.safeEntry;
-    if (this.assist.respawn && !this.entrySafe && !this.c5.active && safe) {
-      this.mapRow = safe.mapRow;
-      this.exitCol = safe.exitCol;
-      this.savedX = safe.x2;
-      this.savedY = safe.y;
-      this.facing = safe.facing;
+    if (this.assist.respawn) {
+      if (!this.c5.active && !this.showJetpack) {
+        const at = this.restartSpot();
+        this.savedX = at.x2;
+        this.savedY = at.y;
+        this.facing = at.facing;
+        this.restarting = true;
+      }
+      this.onRestart();
     }
     this.x2 = this.savedX;
     this.y = this.savedY;

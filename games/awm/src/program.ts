@@ -74,6 +74,8 @@ export class Program {
   /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`, `unlimitedLives`): the original's are off. */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
+  /** A death has put him back (ENHANCED): the front end starts a moment's grace. */
+  onRestart: () => void = () => {};
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
   unlimitedCarry: () => boolean = () => false;
@@ -208,6 +210,7 @@ export class Program {
     }
     game.graceActive = () => this.graceActive();
     game.safeRespawn = () => this.safeRespawn();
+    game.onRestart = () => this.onRestart();
     game.liftWaits = () => this.liftWaits();
     game.unlimitedLives = () => this.unlimitedLives();
     game.unlimitedCarry = () => this.unlimitedCarry();

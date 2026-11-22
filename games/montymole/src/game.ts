@@ -17,7 +17,7 @@ import { Floor } from './floor';
 import { Gates } from './gates';
 import { Opening } from './opening';
 import { Direction, KEYBOARD, readInput, type Ports } from './input';
-import { Flag, Monty, type Terrain } from './monty';
+import { Flag, InAir, Monty, type Terrain } from './monty';
 import { RoomObject } from './object';
 import { Random } from './random';
 import type { RoomData } from './room';
@@ -27,8 +27,6 @@ import { StateReader, StateWriter, type Stateful } from '../../shared/state';
 import { afterLoss } from '../../shared/lives';
 
 export const START_LIVES = 3;
-/** Two seconds of passes (25 a second): what a room's way in must have given him for it to count as somewhere safe. */
-export const FEET_PASSES = 50;
 
 /** A game and its screen as it was (`Game.snapshot`). */
 export interface GameSnapshot extends FieldCopy {
@@ -131,11 +129,14 @@ export class Game implements Stateful {
   death: { readonly field: FieldCopy; readonly x: number; readonly y: number } | null = null;
   /** a moment's grace after the front end puts him back into play (shared/grace.ts): a death in it costs nothing and puts him back where he came into the room */
   graceActive: () => boolean = () => false;
-  /** ENHANCED: a death before he has had `FEET_PASSES` on his feet in a room starts him where he last came into a room and had them (not where he came into this one) */
+  /** a death has put him back (ENHANCED): the front end starts a moment's grace */
+  onRestart: () => void = () => {};
+  /** ENHANCED: a death starts him in the room he died in, at the last safe place he stood there (his way in if none; if that is deadly, the nearest place he can stand), then a moment's grace */
   noDeathLoops = false;
-  /** the passes since he came into this room, and the way in (room and place) of the last room he had `FEET_PASSES` in */
-  onFeet = 0;
+  /** the last place he stood safely in the room he is in */
   safe: { readonly room: number; readonly x: number; readonly y: number } | null = null;
+  /** a death has put him back into this room: the safe place is kept across the room's drawing again */
+  private restarting = false;
   /** ENHANCED: a death costs no life (shared/lives.ts) */
   unlimitedLives = false;
   /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
@@ -206,7 +207,8 @@ export class Game implements Stateful {
       this.field.printLives(this.lives); // $949E
       this.field.keep(); // $D254
       this.entries++;
-      this.onFeet = 0;
+      if (!this.restarting || this.safe?.room !== this.room) this.safe = null;
+      this.restarting = false;
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
       // $96E1: the pit: the scene lifts him into the castle (room 17), his jump state as it was but the fall and the jump's count cleared
       this.monty.x = PIT_ARRIVAL.x;
@@ -311,7 +313,8 @@ export class Game implements Stateful {
   pass(ports: Ports): Outcome {
     if (this.outcome !== 'playing') return this.outcome;
     if (this.room === OPENING_ROOM) return this.openingPass(ports);
-    if (++this.onFeet === FEET_PASSES) this.safe = { room: this.room, x: this.arrivalX, y: this.arrivalY };
+    const m0 = this.monty;
+    if (!(m0.flags & (Flag.falling | Flag.jumping | Flag.rope)) && !(m0.flags2 & InAir) && m0.stands(m0.x, m0.y)) this.safe = { room: this.room, x: m0.x, y: m0.y };
     this.inputRead = -1;
     this.exitedTo = null;
     const room = this.world.room;
@@ -421,14 +424,20 @@ export class Game implements Stateful {
       this.enter();
       return;
     }
+    // (where to start again is judged on the room's picture before his death is drawn on it)
+    const again = this.noDeathLoops && this.room !== OPENING_ROOM ? this.restartSpot() : null;
     if (this.room === OPENING_ROOM) this.divergence = 'he died in the opening scene: the original freezes for the whole death tune (the scene\'s interrupt routine does not run the death animation that ends the tune early); the rebuilt game shows the death as in a room';
     blit(this.field.screen, this.field.picture, DEATH_SPRITE, m.x, m.y); // $8D7F draws it and `$D254` keeps the screen as the picture
     this.field.picture.set(this.field.screen);
     this.death = { field: this.field.copy(), x: m.x, y: m.y };
     this.lives = afterLoss(this.lives, this.unlimitedLives) & 0xff;
     if (this.lives === 0) { this.outcome = 'gameOver'; return; }
-    const back = this.noDeathLoops && this.onFeet < FEET_PASSES ? this.safe : null;
-    if (back !== null) { this.room = back.room; this.arrivalX = back.x; this.arrivalY = back.y; }
+    if (again !== null) {
+      this.arrivalX = again.x;
+      this.arrivalY = again.y;
+      this.restarting = true;
+      this.onRestart();
+    }
     m.x = this.arrivalX;
     m.y = this.arrivalY;
     m.fallen = 0;
@@ -438,6 +447,22 @@ export class Game implements Stateful {
     m.jumpDir = 0;
     m.jumpCount = 0;
     this.enter();
+  }
+
+  /** Where to start again in this room: where he last stood, else where he came in, else the nearest place he can stand. */
+  private restartSpot(): { readonly x: number; readonly y: number } {
+    const m = this.monty;
+    const here = this.safe !== null && this.safe.room === this.room ? this.safe : { x: this.arrivalX, y: this.arrivalY };
+    if (m.stands(here.x, here.y)) return here;
+    let best: { x: number; y: number } | null = null;
+    let bestD = Infinity;
+    for (let y = BOTTOM_EDGE + 2; y < TOP_EDGE - 2; y++) {
+      for (let x = LEFT_EDGE + 2; x < RIGHT_EDGE - 1; x++) {
+        const d = (x - here.x) ** 2 + (y - here.y) ** 2;
+        if (d < bestD && m.stands(x, y)) { bestD = d; best = { x, y }; }
+      }
+    }
+    return best ?? { x: this.arrivalX, y: this.arrivalY };
   }
 
   // ---- state ---------------------------------------------------------------------------------------------------------------

@@ -72,6 +72,7 @@ export function run(host: Host) {
     // the game reads ENHANCED's assists as the switch has them now
     g.assist = { get lives() { return fe.assist.lives === true; }, get loops() { return fe.assist.loops === true; } };
     g.graceActive = () => flow.grace.active;
+    g.onRestart = () => flow.grace.start();
 
     // ---- the reward for winning (ENHANCED): the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the verse's end (the title is up under it, CONTINUE? after), not from W or ?ending (which end on the title). */

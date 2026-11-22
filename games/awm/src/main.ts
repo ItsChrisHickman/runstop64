@@ -106,6 +106,7 @@ export function run(host: Host) {
     program.goodLifeWaits = () => fe.assist.final === true;
     program.slowCreatures = () => fe.assist.slow === true;
     program.graceActive = () => flow.grace.active;
+    program.onRestart = () => flow.grace.start();
 
     /** Monty has come into a room (or a game has begun in one): noted for the map, and a save to carry on from. */
     function enteredRoom() {

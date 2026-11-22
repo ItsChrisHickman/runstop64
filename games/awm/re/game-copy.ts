@@ -12,6 +12,7 @@ export function copyGame(src: Game): Game {
   copyState(g, src, new Set(['sound']));
   g.graceActive = src.graceActive;
   g.safeRespawn = src.safeRespawn;
+  g.onRestart = src.onRestart;
   g.liftWaits = src.liftWaits;
   g.hopsRest = src.hopsRest;
   g.enemyHold = src.enemyHold;

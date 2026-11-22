@@ -230,17 +230,12 @@ export const montyMap = {
    * it, as the drive out leaves it; before it and in it, as before the drive. Into a C5 room,
    * the C5 then comes as it did, and straight in as the drive does (no teleport effect: the game
    * moves its enemies on through one, so the room wouldn't be as it was when he drove in; the
-   * C5's sprites would cover the effect anyway). Crossing the street, the last place he had a
-   * moment on his feet (ENHANCED's respawn) is on the side he's left: he starts again in this
-   * room until he's had one here.
+   * C5's sprites would cover the effect anyway).
    */
   go(id, g, found) {
     const e = found.rooms[id];
     if (!e || !canGo(g, Number(id), e)) return false;
     const driven = afterStreet(g).has(Number(id));
-    // (the side he's on: the street as the game has it now, $33's cell off the grid only after it)
-    const street = g.data.c5;
-    if (street && driven !== (g.roomAt(street.lastCell.row, street.lastCell.col) === c5LastCell(g.data, street, true))) g.safeEntry = null;
     c5Street(g, driven);
     [g.x2, g.y, g.mapRow, g.exitCol] = e;
     const c5 = e.length === 8;

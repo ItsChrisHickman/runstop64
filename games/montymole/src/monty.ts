@@ -321,6 +321,29 @@ export class Monty implements Stateful {
     return at(sum & 0xff, (sum >> 8) & 0xff) === rope;
   }
 
+  /**
+   * Whether he put at (x, y) in this room would stand there (ENHANCED's no death loops): no deadly cell and no floor-coloured cell in his box,
+   * and the room's picture under his feet. Nothing of him is changed.
+   */
+  stands(x: number, y: number): boolean {
+    const at = { x: this.x, y: this.y, cells: [...this.cells], outside: this.outside };
+    this.x = x;
+    this.y = y;
+    this.matchCells();
+    const clear = !this.cells.includes(MATCH_DEADLY) && !this.cells.includes(MATCH_FLOOR);
+    let ground = false;
+    const row = wrap(y - 16);
+    if (clear && row <= TOP_ROW_Y) {
+      const base = screenOffset(row) + (x >> 3);
+      for (let i = 0; i < ((x & 7) !== 0 ? 3 : 2); i++) if ((this.world.picture[base + i] ?? 0) !== 0) ground = true;
+    }
+    this.x = at.x;
+    this.y = at.y;
+    this.outside = at.outside;
+    for (let i = 0; i < 4; i++) this.cells[i] = at.cells[i] ?? 0;
+    return clear && ground;
+  }
+
   /** The OR of the screen's bytes in the pixel row below his feet (`$8D5F`: row `y - 16`, from his column). */
   private screenBelow(columns: number): number {
     const row = wrap(this.y - 16);

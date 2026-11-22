@@ -97,6 +97,7 @@ export function run(host: Host) {
     function adopt(next: MontyFlow): void {
       current = next;
       next.game.graceActive = () => flow.grace.active;
+      next.game.onRestart = () => flow.grace.start();
       view.setGame(next.game);
       step = null;
       into = 0;

@@ -5,7 +5,7 @@
  * travel back by the map (keys, and taps); autosave and a launch with a save (the title, ENTER CONTINUE, Enter goes back into play); GAME OVER ->
  * CONTINUE? -> back in the last room (a new game's lives, the score from nothing; after the ending, everything as saved);
  * back to room start; the save a faithful copy of the game (what the room start was); the ORIGINAL/ENHANCED switch and
- * ENHANCED's safe respawn; a moment's grace after a resume; the high score kept; the sound requests reaching the .sid.
+ * ENHANCED's safe respawn (in the room he died in); a moment's grace after a resume; the high score kept; the sound requests reaching the .sid.
  * With an out-dir: stills of the title, the front end's screens, play and the pause map.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/frontend.ts [out-dir]
@@ -21,7 +21,7 @@ import { unpackSlot } from '../../shared/continue';
 import { readSaves } from '../../shared/saves';
 import { TRANSPARENT } from '../../../packages/c64kit/src/surface';
 import { TABLES } from '../src/data';
-import { NEW_GAME_LIVES, SAFE_STEPS } from '../src/game';
+import { NEW_GAME_LIVES } from '../src/game';
 import { awmMap, entryOf, roomName } from '../src/map';
 import { run, STRIP_Y } from '../src/main';
 import { CODEC, parseSave, snapshot } from '../src/save';
@@ -267,20 +267,33 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tap('KeyP');
   p.grace.clear();
   g.lives = 0x8c;
-  g.safeEntry = null;
-  // two seconds on his feet in this room: its way in is somewhere safe to start again
+  g.safeSpot = null;
+  // a moment on his feet in this room: where he stands is the place to start again from
   const room = g.world.room;
-  tick(2 * SAFE_STEPS + 20);
-  check(`two seconds on his feet in the room: his way in is the safe place`, game().safeEntry?.room === room);
+  tick(30);
+  const spot = game().safeSpot;
+  check(`on his feet in the room: where he stands is the safe place (${JSON.stringify(spot)})`, spot?.room === room);
   const other = START_ROOM === room ? second : START_ROOM;
-  // into another room, and a death at once: back where he last had two seconds
+  // into another room, and a death at once: back in that room (never the one before), standing, with the grace
   g.placeAt(must(entryOf(p.state.found, other), 'no entry'));
   p.grace.clear();
   const lives = g.lives;
   g.monty.state = State.Dying;
   g.monty.step = 0;
-  until(() => g.world.room === room, 200);
-  check(`ENHANCED: a death before two seconds starts him in the room he last had them in ($${g.world.room.toString(16)}), and takes no life (unlimited)`, g.world.room === room && g.lives === lives);
+  until(() => g.monty.state !== State.Dying && g.monty.dead === 0, 200);
+  tick(2);
+  check(`ENHANCED: a death at once in the next room starts him in that room (${g.world.room.toString(16)}), not the one before (${room.toString(16)}), takes no life (unlimited), with the grace`,
+    g.world.room === other && g.lives === lives && p.grace.active);
+  // after standing in this room, a death starts him where he stood
+  g.placeAt(must(entryOf(p.state.found, room), 'no entry'));
+  tick(30);
+  const stood = must(game().safeSpot, 'no safe spot');
+  g.monty.x = (stood.x + 40) & 0xff;
+  g.monty.state = State.Dying;
+  g.monty.step = 0;
+  until(() => g.monty.state !== State.Dying && g.monty.dead === 0, 200);
+  tick(2);
+  check(`ENHANCED: a death later in the room starts him there, where he last stood (x ${g.monty.x}, was ${stood.x})`, g.world.room === room && g.monty.x === stood.x);
   // ORIGINAL: where he came in
   tap('KeyP'); tap('KeyE'); tap('KeyP');
   p.grace.clear();

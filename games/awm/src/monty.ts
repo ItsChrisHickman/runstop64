@@ -627,6 +627,26 @@ export class Monty implements MontyData {
     this.entered = room;
   }
 
+  /**
+   * Whether he put at (x, y) in this room would stand there: on a row, free, his body's cells empty, plain ground under both
+   * feet and no deadly tile at his corners (ENHANCED's safe respawn).
+   */
+  standsSafely(x: number, y: number): boolean {
+    if ((y & 7) !== 0 || y < 8 || y >= 0x78 || x < 8 || x >= 0xe4) return false;
+    const w = this.world;
+    for (const px of [x + 4, x + 10]) {
+      for (const py of [y, y + 8]) {
+        const l = w.look(px, py);
+        if (l.name !== 0 || l.code >= 0x6d) return false;
+      }
+      const ground = w.look(px, y + 0x10);
+      if (ground.code >= 0x6d) return false;
+    }
+    const a = w.look(x + 4, y + 0x10), b = w.look(x + 10, y + 0x10);
+    if (a.name < 1 && b.name < 1) return false;
+    return classOfName(a.name) === 0 && classOfName(b.name) === 0;
+  }
+
   /** After a death: back where he came into the room, in the state he came in ($5538). */
   respawn(): void {
     this.x = this.entryX;

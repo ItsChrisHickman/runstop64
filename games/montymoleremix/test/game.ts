@@ -305,7 +305,7 @@ function findFlat(): { id: number; col: number; row: number } | null {
 // ---- a copy of the game is the game (the bot searches ahead on copies) ----
 {
   const dump = (v: unknown): string => JSON.stringify(v, (_k, x: unknown) => (x instanceof Uint8Array || x instanceof Int8Array || x instanceof Int16Array ? Array.from(x).join(',') : typeof x === 'function' ? undefined : x));
-  const skip = new Set(['sound', 'onRoomLoaded', 'graceActive', 'script', 'assist']);
+  const skip = new Set(['sound', 'onRoomLoaded', 'graceActive', 'onRestart', 'script', 'assist']);
   let games = 0, wrong: string[] = [];
   let seed = 11;
   const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };

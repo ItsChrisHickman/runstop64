@@ -93,6 +93,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     // the game reads ENHANCED's assists as the switch has them now
     g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; }, get hints() { return fe.assist.hints === true; } };
     g.graceActive = () => flow.grace.active;
+    g.onRestart = () => flow.grace.start();
 
     // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the finale (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */

@@ -7,7 +7,7 @@ import { Game } from './game';
  * grace, the running sequence) stays as it is. The ending's montage puts its one game back to a new game's state before
  * each place (so a place plays the same whatever came before it), and the tests copy a game to search ahead of it.
  */
-const THEIRS = new Set(['data', 'vic', 'mem', 'col', 'sound', 'assist', 'onRoomLoaded', 'graceActive', 'script']);
+const THEIRS = new Set(['data', 'vic', 'mem', 'col', 'sound', 'assist', 'onRoomLoaded', 'graceActive', 'onRestart', 'script']);
 
 export function copyInto(dst: Game, src: Game): Game {
   for (const k of Object.keys(src)) {
