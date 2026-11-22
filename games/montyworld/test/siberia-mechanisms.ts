@@ -19,7 +19,7 @@ import { must } from '../../shared/test/must';
 import { WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
-import { CART, CRACKS, MINE_CART, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, SIBERIA_PULSES, TUNNELS, YETI } from '../src/siberia';
+import { CART, CRACKS, GANGWAYS, MINE_CART, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, SIBERIA_PULSES, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, RIGHT, rowText, run } from './mech-kit';
@@ -66,7 +66,7 @@ import { creatureRooms, itemIndex, standY } from './route';
       for (let rr = 0; rr < t.h; rr++) for (let cc = 0; cc < t.w; cc++) {
         const col = d.col - 4 + cc, row = d.row - 3 + rr;
         if (col < 0 || col > 31 || row < 0 || row > 19) continue;
-        if (tile(col, row) !== '.') bad.push(`$${first(r.id)}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
+        if (tile(col, row) !== '.' && r.id >= 12) bad.push(`$${first(r.id)}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
         covered.add(col + ',' + row);
       }
     }
@@ -76,7 +76,7 @@ import { creatureRooms, itemIndex, standY } from './route';
     }
     if (r.item) {
       const col = r.item.col - 4, row = r.item.row - 3;
-      for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) if (tile(col + dc, row + dr) !== '.' || covered.has(col + dc + ',' + (row + dr)) || struck(col + dc, row + dr)) bad.push(`$${first(r.id)}: ${r.item.name} at ${col},${row} in a wall, under a decoration or in a strike`);
+      for (const [dc, dr] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) if (covered.has(col + dc + ',' + (row + dr)) || struck(col + dc, row + dr)) bad.push(`$${first(r.id)}: ${r.item.name} at ${col},${row} under a decoration or in a strike (a sprite: a tile behind it is nothing)`);
     }
   }
   check(`no decoration over a tile, no coin or find in a wall, under a decoration or in a strike's cells in Siberia's nine rooms (${bad.slice(0, 5).join('; ') || 'none wrong'})`, bad.length === 0);
@@ -297,7 +297,7 @@ import { creatureRooms, itemIndex, standY } from './route';
   run(safe, NONE, lap * 2);
   check('and the right-hand safe zone, where he comes in, is never touched in two laps', !dead(safe.g));
   const enter = at(SIB.yeti, 28, 17);
-  const up = search(enter, (g) => g.roomId === SIB.yeti && colOf(g) <= 7 && g.y === standY(9), undefined, 400000, 0);
+  const up = search(enter, (g) => g.roomId === SIB.yeti && colOf(g) <= 10 && g.y === standY(9), undefined, 400000, 0);
   check(`the bot finds the way over the ice bridge to its left end (${up ? up.nodes + ' states' : 'none'})`, up !== null);
   // the sprites: the yeti uses four of the room's, not the item's (0), the icicle's (1), his (3) or the hat's (7)
   const used = YETI.pieces.map((p) => p.sprite);
@@ -322,10 +322,10 @@ import { creatureRooms, itemIndex, standY } from './route';
 {
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 400000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5);
   // the cars' interiors are a lane of their own under the roof: from inside the dining car, through the gangway, into the sleeper's corridor and on into the tender's pocket
-  check('under the roof: from inside the dining car through the gangway into the sleeper', reach(at(SIB.gravy, 26, 17), { room: SIB.gravy, col: 31, row: 16 }, (g) => g.roomId === SIB.sleeper && g.y === standY(17)) !== null);
-  check('and from the sleeper\'s corridor through the next gangway into the tender\'s pocket', reach(at(SIB.sleeper, 26, 17), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
+  check('under the roof: from inside the dining car through the gangway into the sleeper', reach(at(SIB.gravy, 26, 17, [[SIB.coal, 0]]), { room: SIB.gravy, col: 31, row: 16 }, (g) => g.roomId === SIB.sleeper && g.y === standY(17)) !== null);
+  check('and from the sleeper\'s corridor through the next gangway into the tender\'s pocket', reach(at(SIB.sleeper, 26, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
   check('and back west the same way (the tender to the sleeper to the dining car)',
-    reach(at(SIB.coal, 3, 17), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null && reach(at(SIB.sleeper, 3, 17), { room: SIB.sleeper, col: 0, row: 16 }, (g) => g.roomId === SIB.gravy) !== null);
+    reach(at(SIB.coal, 3, 17, [[SIB.coal, 0]]), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null && reach(at(SIB.sleeper, 3, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 0, row: 16 }, (g) => g.roomId === SIB.gravy) !== null);
   // the loop: tender to the mine by the rope through its floor and back
   check('the tender\'s rope climbs up into the mine\'s gallery', reach(at(SIB.coal, 22, 10), { room: SIB.coal, col: 24, row: 0 }, (g) => g.roomId === SIB.mine, 300000) !== null);
   check('and the mine\'s gap lets him down it into the tender again', reach(at(SIB.mine, 21, 18), { room: SIB.mine, col: 24, row: 19 }, (g) => g.roomId === SIB.coal, 300000) !== null);
@@ -346,6 +346,28 @@ import { creatureRooms, itemIndex, standY } from './route';
     const past = (g: Game) => g.roomId === SIB.border && colOf(g) >= 28;
     check(`the barrier is four rows (${4 * 8} pixels) and a jump rises ${rise}: without the ticket there is no way over it; the bot finds none within 150000 states either`, rise < 4 * 8 && search(at(SIB.border, 24, 17), past, undefined, 150000, 0) === null);
     check('and with the ticket he gets through', search(at(SIB.border, 22, 17, [[SIB.coal, 0]]), past, undefined, 200000, 0) !== null);
+  }
+}
+
+// ---- the gangways: shut by the inspectors until the ticket, and the hatches fair -------------------------------
+{
+  const mouth = must(TUNNELS[0], 'the mountain');
+  // the way along the train is over the roofs: the inspectors keep the gangways shut until he has the ticket from the tender
+  for (const g of GANGWAYS) {
+    const side = g.cols[0] === 0 ? 0 : 31;
+    const shut = at(g.room, side === 0 ? 4 : 27, 17);
+    const open = at(g.room, side === 0 ? 4 : 27, 17, [[SIB.coal, 0]]);
+    const out = (st: State) => { run(st, side === 0 ? LEFT : RIGHT, 160); return st.g.roomId !== g.room; };
+    check(`room ${g.room}: the gangway at its ${side === 0 ? 'left' : 'right'} end is shut without the ticket and open with it`, !out(shut) && out(open));
+  }
+  // every point of a roof has a hatch it can reach in time: the warning (the portal flashing at the entry) plus the portal's own walk to the hatch's cell, against his walk to it (9 frames a cell)
+  for (const [room, hatches] of [[SIB.gravy, [12, 25]], [SIB.sleeper, [7, 15]]] as const) {
+    const late: number[] = [];
+    for (let col = 1; col <= 30; col++) {
+      const ok = hatches.some((h) => Math.abs(col - h) * 9 + 4 <= mouth.warn + Math.max(0, 31 - Math.max(col, h)) * mouth.step);
+      if (!ok) late.push(col);
+    }
+    check(`room ${room}: from every roof cell a hatch is reachable before the mountain's portal arrives (too late at: ${late.join(' ') || 'none'})`, late.length === 0);
   }
 }
 

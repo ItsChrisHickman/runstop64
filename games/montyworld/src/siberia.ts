@@ -2,7 +2,7 @@ import type { CharAnim, CrackSpec, DragonSpec, FloatSpec, IcicleSpec, PulseSpec,
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { YETI_COLOUR } from './art/siberia-yeti';
 import { codeOf, decorIndex, Grid, room, type Palette } from './layout';
-import { type Placed, buffersAt, CAR, farWall, gangwayAt, hatch, skyAnims, skyDecor, type SkySpec, TRAIN_PALETTE, trainAnims, undercarriage, underCar, windowAt } from './train';
+import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, TRAIN_PALETTE, trainAnims, undercarriage, underCar, windowAt } from './train';
 
 /**
  * Siberia, the second region of Do Svidaniya Monty (docs/dosvidaniya-siberia.md): nine rooms in a block four wide and three high at
@@ -48,12 +48,10 @@ const BOGIES = [4, 25] as const;
  * A passenger car (train.ts): the roof's walkway at row 9 with its curved edge under it and the hatches (a gap of three with a rope each), the
  * car's two ends, shut but for the gangway at an end that joins the next car, the floor. The sky above is open: the tunnels sweep it.
  */
-function carriage(g: Grid, hatches: readonly number[], gangways: { left: boolean; right: boolean }) {
+function carriage(g: Grid, hatches: readonly number[]) {
   g.box(0, CAR.roof, 31, CAR.roof, 'D');
   farWall(g, 2, 29);
-  g.box(0, 10, 1, 16, 'T').box(30, 10, 31, 16, 'T');
-  if (gangways.left) g.clear(0, CAR.gangwayTop, 1, CAR.gangwayBottom);
-  if (gangways.right) g.clear(30, CAR.gangwayTop, 31, CAR.gangwayBottom);
+  g.box(0, 10, 1, 16, 'T').box(30, 10, 31, 16, 'T'); // the ends, the gangways shut: an inspector stands in each until he has the ticket (GANGWAYS)
   undercarriage(g, 0, 31);
   for (const h of hatches) hatch(g, h);
 }
@@ -98,7 +96,7 @@ export const TUNNELS: readonly TunnelSpec[] = [
 ];
 
 const LAKE_PALETTE = {
-  S: ['snowGround', 1], K: ['mineRock', 9], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13],
+  S: ['snowGround', 1], K: ['mineRock', 9], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13], L: ['snowLedge', 3],
 } as const satisfies Palette;
 const ICE = { row: 12, codes: [codeOf(LAKE_PALETTE, 'I'), codeOf(LAKE_PALETTE, 'J'), codeOf(LAKE_PALETTE, 'H')], crack: 56, wide: 88, gone: 120, away: 240 } as const;
 /**
@@ -218,13 +216,13 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   room({
     id: SIB.gravy, cell: [1, 4], sector: 9, palette: TRAIN_PALETTE,
     paint(g) {
-      carriage(g, [12, 25], { left: false, right: true });
+      carriage(g, [12, 25]);
     },
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
     decor: [
       ...skyDecor(SKY_GRAVY), windowAt(3), windowAt(15), ['carLamp', 9, 11], ['carLamp', 21, 11], ['diningTable', 14, 15], ['diningTable', 19, 15], ['diningSamovar', 22, 14],
-      [{ text: 'RESTAURANT', colour: 7 }, 13, 10], gangwayAt(30), ['roofVent', 4, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
+      [{ text: 'RESTAURANT', colour: 7 }, 13, 10], ['roofVent', 4, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
     ],
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56, colour: 1 }],
   }),
@@ -235,13 +233,13 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   room({
     id: SIB.sleeper, cell: [1, 5], sector: 10, palette: SLEEPER_PALETTE,
     paint(g) {
-      carriage(g, [7, 15], { left: true, right: true });
+      carriage(g, [7, 15]);
       cutting(g);
       g.box(22, 0, 23, 8, 'P'); // the pine's trunk up through the sky to the forest
     },
     coins: [[3, 15], [27, 15]],
     decor: [
-      ...skyDecor(SKY_SLEEPER), ['pineBough', 17, 0], ['pineBough', 24, 0], ['pineBough', 17, 5], windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15], gangwayAt(0), gangwayAt(30),
+      ...skyDecor(SKY_SLEEPER), ['pineBough', 17, 0], ['pineBough', 24, 0], ['pineBough', 17, 5], windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15],
       ['pineSmall', 0, 0], ['pineSmall', 2, 1], ['pineSmall', 28, 1], ['pineSmall', 30, 0], ['roofVent', 8, 8], ['roofVent', 24, 8], ...CAR_FITTINGS,
     ],
     creatures: [{ who: 'inspector', col: 6, row: 10, way: 'down', speed: 1, range: 24, colour: 1 }],
@@ -255,7 +253,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     paint(g) {
       g.box(17, 0, 31, 1, 'M').clear(23, 0, 25, 1).box(24, 0, 24, 9, 'R'); // the mine's loading shelf overhanging the rope's way up; the rest open sky
-      g.box(0, 10, 1, 14, 'T'); // the wagon's end (its gangway open below)
+      g.box(0, 10, 1, 16, 'T'); // the wagon's end (its gangway shut: an inspector stands in it until he has the ticket)
       g.box(2, 10, 16, 14, 'E'); // the wagon's boards behind the coal
       g.box(0, 9, 5, 9, 'D').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
       g.box(6, 12, 8, 16, 'K').box(9, 14, 10, 16, 'K').box(11, 16, 14, 16, 'K').box(15, 14, 16, 16, 'K').box(17, 12, 18, 16, 'K'); // the coal in steps: down to the trough and up again
@@ -264,13 +262,16 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.clear(21, 12, 22, 13).clear(21, 14, 22, 15).clear(24, 12, 25, 13); // the holes the window, the firebox door and the gauge show in
       g.box(0, CAR.floor, 18, CAR.floor, 'F'); // the wagon's floor (the locomotive has none: its wheels stand under it)
     },
-    coins: [[16, 11]],
+    coins: [[17, 11]],
     item: { name: 'ticket', col: 20, row: 8, sprite: SIB_SPRITE.ticket },
     decor: [
-      ...skyDecor(SKY_TENDER), ['chimney', 29, 9], ['smoke', 26, 7], ['coalBucket', 3, 15], gangwayAt(0), ['cabWindow', 21, 12], ['cabFire', 21, 14], ['cabGauge', 24, 12],
+      ...skyDecor(SKY_TENDER), ['chimney', 29, 9], ['smoke', 26, 7], ['coalBucket', 3, 15], ['cabWindow', 21, 12], ['cabFire', 21, 14], ['cabGauge', 24, 12],
       ...underCar(0, 31, TENDER_BOGIES), ['drivingWheel', 19, 17], ['drivingWheel', 23, 17], ['drivingWheel', 27, 17],
     ],
-    creatures: [{ who: 'miner', col: 11, row: 14, way: 'right', speed: 1, range: 16, colour: 7 }],
+    creatures: [
+      { who: 'miner', col: 11, row: 14, way: 'right', speed: 1, range: 16, colour: 7 },
+      { who: 'samovar', col: 13, row: 11, way: 'down', speed: 1, range: 16, colour: 1 },
+    ],
   }),
 
   // F PINE TO BE WILD: the forest. Up from the sleeper by the pine's trunk onto the ground; west past the wolf (and the snow that slides off the boughs: two falls, each warned by
@@ -303,7 +304,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F');
       g.box(2, 2, 4, 12, 'I').box(2, 13, 4, 16, 'C'); // the frozen waterfall, and the fringe of icicles over its foot
       g.box(27, 15, 29, 15, 'L').box(26, 13, 28, 13, 'L').box(27, 11, 29, 11, 'L'); // the stair at the right up to the bridge
-      g.box(5, 9, 29, 9, 'L'); // the ice bridge
+      g.box(9, 9, 29, 9, 'L'); // the ice bridge (its left end open: the stairs and the ledges go off it)
       g.box(6, 15, 8, 15, 'L').box(5, 13, 7, 13, 'L').box(6, 11, 8, 11, 'L'); // the stair at the left down from it
       g.box(6, 7, 8, 7, 'L').box(5, 5, 7, 5, 'L'); // the ice ledges up the waterfall's face to the high stash
     },
@@ -375,12 +376,13 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 12, 3, 12, 'S').box(0, 13, 3, 19, 'K').clear(4, 12, 6, 19).box(5, 12, 5, 19, 'R'); // the left shore, then the gap and its rope down
       g.box(16, 12, 21, 12, 'I').box(7, 12, 12, 12, 'I'); // the ice
       g.box(7, 13, 12, 19, 'W').box(16, 13, 21, 19, 'W'); // the water
+      g.box(16, 10, 18, 10, 'L').box(12, 8, 15, 8, 'L'); // ice ledges up from the island: a second level over the lake
     },
-    coins: [[14, 10], [25, 10]],
+    coins: [[14, 6], [25, 10]],
     decor: [['fishHut', 22, 10]],
     creatures: [
       { who: 'nerpa', col: 16, row: 10, way: 'right', speed: 1, range: 32 },
-      { who: 'owl', col: 14, row: 3, way: 'down', speed: 1, range: 36 },
+      { who: 'owl', col: 13, row: 2, way: 'down', speed: 1, range: 24 },
     ],
   }),
 
@@ -401,6 +403,15 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'reindeer', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
       { who: 'wolf', col: 14, row: 11, way: 'right', speed: 1, range: 16 },
+      { who: 'guard', col: 26, row: 5, way: 'down', speed: 1, range: 24 },
     ],
   }),
+];
+
+/**
+ * The gangways between the cars, each shut by a ticket inspector until he has the ticket from the tender (the one that later lifts the border's barrier): the way along the train is
+ * over the roofs, timing the tunnels, and the cars' insides, with their coins and pelmeni, open as a second, safer lane for the way back. The cells (playfield columns, rows 15-16).
+ */
+export const GANGWAYS: readonly { readonly room: number; readonly cols: readonly [number, number] }[] = [
+  { room: SIB.gravy, cols: [30, 31] }, { room: SIB.sleeper, cols: [0, 1] }, { room: SIB.sleeper, cols: [30, 31] }, { room: SIB.coal, cols: [0, 1] },
 ];

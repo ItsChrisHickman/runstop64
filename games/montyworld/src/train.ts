@@ -14,11 +14,11 @@ import { decorIndex, type Grid, type Palette } from './layout';
  */
 
 /**
- * The palette of a passenger car's rooms: the roof, the far wall behind him, the floor, the end walls, a tunnel's granite portal, a ladder and the mountain's
+ * The palette of a passenger car's rooms (the outside in the carriages' maroon, the inside wall in wood: a cutaway shows the shell and the room in it): the roof, the far wall behind him, the floor, the end walls, a tunnel's granite portal, a ladder and the mountain's
  * rock. (The wheels and the rail under the car are decorations, `underCar`: nothing there is walked on, and two of the eight codes are the tunnel's.)
  */
 export const TRAIN_PALETTE = {
-  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], T: ['trainSide', 5], X: ['tunnelFace', 15], R: ['ironLadder', 7], M: ['tunnelRock', 9],
+  D: ['roofDeck', 14], E: ['carWall', 8], F: ['carFloor', 9], T: ['trainSide', 2], X: ['tunnelFace', 15], R: ['ironLadder', 7], M: ['tunnelRock', 9],
 } as const satisfies Palette;
 
 /** The rows of a car (playfield rows): the roof's walkway, the floor Monty walks along inside, the wheels and the rail; and a gangway's two rows. */
@@ -56,9 +56,6 @@ export const buffersAt = (from: number, to: number): readonly Placed[] => [['buf
 
 /** A window: the decoration `trainWindow`, 5 x 4 characters, its top left cell. */
 export const windowAt = (col: number, row = 11): Placed => ['trainWindow', col, row];
-
-/** A gangway's bellows over the opening at a car's end (the left end at column 0, the right at 30). */
-export const gangwayAt = (col: 0 | 30): Placed => ['gangway', col, CAR.gangwayTop];
 
 /**
  * What moves in a car's room: the sleepers under it (the rail's character slides back, as the ground goes), the wheels turning, and the

@@ -87,7 +87,7 @@ export const ESCALATORS: readonly EscalatorSpec[] = [DOWN, UP];
  * The train stands until he is aboard (from column 22, inside the door).
  */
 const STATION_PALETTE = {
-  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
+  D: ['roofDeck', 14], E: ['carWall', 8], F: ['carFloor', 9], T: ['trainSide', 2], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
 } as const satisfies Palette;
 const STATION_BOGIES = [22, 27] as const;
 /** What moves once he is aboard (from column 22): the windows, the sleepers, the wheels. */
