@@ -20,7 +20,7 @@ drawRegionMap(out, {
   joins: [
     [-1, AND.jump, 'W PARACHUTE', true, 0], [AND.jump, AND.thin, 'DROP', true, 0], [AND.thin, AND.condor, 'DROP', true, 0], [AND.condor, AND.llama, 'DROP', true, 0],
     [AND.llama, AND.rock, 'W HI', true, -9], [AND.llama, AND.rock, 'W LO', true, 9], [AND.rock, AND.market, 'W STEPS', true, 0], [AND.market, AND.mist, 'W', true, 0],
-    [AND.rock, AND.tunnel, 'DROP PANPIPES', true, 0], [AND.tunnel, AND.cloud, 'W', true, 0], [AND.cloud, AND.boat, 'R MACHETE', true, 0], [AND.boat, AND.river, 'W CHULLO', true, 0],
+    [AND.rock, AND.tunnel, 'R PANPIPES', true, 0], [AND.tunnel, AND.cloud, 'W LO', true, 9], [AND.tunnel, AND.cloud, 'W HI', false, -9], [AND.cloud, AND.boat, 'R MACHETE', true, 0], [AND.boat, AND.river, 'W CHULLO', true, 0],
     [AND.river, AND.bank, 'W VINES', true, 0],
   ],
   legend: 'W WALK (HI, LO: TWO WALKS)  R ROPE  DROP ONE WAY DOWN  PARACHUTE PANPIPES MACHETE CHULLO: WHAT THE WAY WANTS  MIST OPPORTUNITY: A DEAD END',
