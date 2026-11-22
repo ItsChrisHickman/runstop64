@@ -22,6 +22,20 @@ Monty game lives here.
   every region with the same "costume plus guard" gate. Never a
   corridor, and never a closed box crossed by a ladder up and a ladder down. Study its exit grid before laying out a region.
 
+## The benchmark region: Moscow
+
+Chris (2026-11-22): "Moscow feels super well balanced and the music is super fun." Moscow (docs/dosvidaniya-moscow.md) is the
+model for a region's balance (a hub crossed several times, two chained item fetches, a loop, a one-way ride, coins placed to
+reward a move) and its music is the model for a remix (a subtle minor bend and a plucked lead on Hubbard's tune and tempo).
+
+## Signature set pieces: the heart of it
+
+Every region has one or two set pieces nobody forgets (Chris, 2026-11-22, on the moving train, the New Year dragon, the vine
+swing and the bullet trains: "we need to really focus on each area having one or two of these things... a key part of what
+we do when we develop games"). A set piece is a place made into a thing to play: it moves, it's big, it surprises, it has a
+timing or a trick to learn, and the region is built round it. Plan them first, with Chris, before the rooms; give them the
+most care; the reward show and the title show them off.
+
 ## How it looks
 
 - **A place reads at a glance as the place.** The one test for every room's screenshot: would a stranger name it? A train is
