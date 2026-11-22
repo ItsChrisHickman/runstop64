@@ -88,9 +88,12 @@ export const CABLE_CAR: CableCarSpec = {
 };
 /** The gate on the shelf (cols 10-11, rows 8-13) that the key to the city takes away. */
 export const GATE_CELLS: readonly (readonly [row: number, col: number])[] = [8, 9, 10, 11, 12, 13].flatMap((row) => [10, 11].map((col) => [row, col] as const));
+/** The sign CLOSED over the station hut (a board of the word between a space each side: cols 2-9, row 10): it comes down with the gate. */
+export const CLOSED_SIGN = { text: 'CLOSED', col: 2, row: 10 } as const;
+export const CLOSED_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: CLOSED_SIGN.text.length + 2 }, (_, k) => [CLOSED_SIGN.row, CLOSED_SIGN.col + k] as const);
 
 /**
- * The carnival's floats on the avenue (Q): the floor of the channel is deep water from col 4 to col 26; lane A (deck row 18, the street's height) carries three floats left to right, a cell every 8 frames (a pixel a frame),
+ * The carnival's floats on the avenue (Q): the floor of the channel is deep water from col 4 to col 26; lane A (deck row 18, the street's height) carries three floats left to right, a cell every 8 frames (he is carried a cell at a time),
  * 30 cells to their round and 10 apart; lane B (deck row 14) two the other way. The decorations are the painted pieces (the room lists each once, at its `home`, for its characters).
  */
 const float = (decor: 'floatGalleon' | 'floatBird' | 'floatSun', row: number, dir: 1 | -1, offset: number, home: readonly [number, number]): FloatSpec => ({
@@ -106,11 +109,11 @@ export const FLOATS: readonly FloatSpec[] = [
  * cycle apart, and each has a sprite of his own (2 and 1: the room's item takes 0, its third creature 6).
  */
 const poses = SKEWER_POSES.left.map((left, i) => {
-  const right = SKEWER_POSES.right[i];
-  if (!right) throw new Error('a skewer pose without its mirror');
+  const right = SKEWER_POSES.right[i], leftPtr = SKEWER_POINTERS.left[i], rightPtr = SKEWER_POINTERS.right[i];
+  if (!right || leftPtr === undefined || rightPtr === undefined) throw new Error('a skewer pose without its mirror or its pointer');
   return {
-    left: { ptr: SKEWER_POINTERS.left[i] ?? 0, dx: left.dx, dy: left.dy, w: 24, h: 21 },
-    right: { ptr: SKEWER_POINTERS.right[i] ?? 0, dx: right.dx, dy: right.dy, w: 24, h: 21 },
+    left: { ptr: leftPtr, dx: left.dx, dy: left.dy, hit: left.hit },
+    right: { ptr: rightPtr, dx: right.dx, dy: right.dy, hit: right.hit },
     deadly: i === 1 || i === 2,
   };
 });
@@ -167,7 +170,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       for (let c = 16; c <= 23; c++) g.box(c, 17 - Math.floor((c - 13) / 2), c, 17 - Math.floor((c - 13) / 2), (c - 13) % 2 === 0 ? 'C' : 'D');
     },
     coins: [[6, 16], [16, 16], [9, 12], [18, 10], [28, 6]],
-    decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: 'CLOSED', colour: 2 }, 2, 10]],
+    decor: [['sugarloaf', 15, 1], ['sugarloaf', 21, 0], ['cableStation', 2, 15], ['pylon', 19, 8], ['pylon', 19, 12], [{ text: CLOSED_SIGN.text, colour: 2 }, CLOSED_SIGN.col, CLOSED_SIGN.row]],
     creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 14, row: 2, way: 'right', speed: 2, range: 50 }],
   }),
 
@@ -214,7 +217,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'marmoset', col: 3, row: 6, way: 'right', speed: 1, range: 32 }, { who: 'macaw', col: 18, row: 2, way: 'right', speed: 1, range: 50 }],
   }),
 
-  // F HOUSE OF COLOUR: the hillside. Corcovado's rope (col 6) comes down to the roofs at the left (floor 8) which step across (floor 9) with gaps to the church tower; below, the lane (floor 18) runs under the houses east out low to the parade.
+  // F HOUSE OF COLOUR: the hillside. Corcovado's rope (col 5) comes down to the roofs at the left (floor 8) which step across (floor 9) with gaps to the church tower; below, the lane (floor 18) runs under the houses east out low to the parade.
   room({
     id: RIO_ROOM.colour, cell: [7, 36], sector: 73, palette: HILL_PALETTE,
     paint(g) {
@@ -229,7 +232,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   }),
 
   // W STEAK YOUR CLAIM: the churrascaria, a dead end. In from Sugarloaf's beach at the right (floor 18); two gauchos pace the dining floor, each with a skewer that swings; the stairs of crates (floors 16, 14, 12) climb at the middle to the
-  // mezzanine's stage (floor 10) where the headdress hangs on a curtain; a skewer of picanha on the stairs' landing.
+  // mezzanine's stage (floor 10) where the headdress hangs on a curtain; .
   room({
     id: RIO_ROOM.steak, cell: [6, 33], sector: 74, palette: STEAK_PALETTE,
     paint(g) {
@@ -265,8 +268,8 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[8, 16], [14, 16], [20, 16], [10, 12], [18, 12], [28, 16]],
     item: { name: 'skewer4', col: 29, row: 16, sprite: RIO_SPRITE.skewer },
-    decor: [['stands', 2, 2], ['stands', 6, 2], ['stands', 10, 2], ['stands', 14, 2], ['stands', 18, 2], ['stands', 22, 2], ['stands', 26, 2], ['sambaBanner', 10, 9],
-      ['floatGalleon', 3, 5], ['floatSun', 11, 5], ['floatBird', 18, 5], ['surdo', 28, 14]],
+    decor: [['stands', 2, 2], ['stands', 6, 2], ['stands', 10, 2], ['stands', 14, 2], ['stands', 18, 2], ['stands', 22, 2], ['stands', 26, 2], [{ text: 'CARNAVAL', colour: 7 }, 10, 9],
+      ['floatGalleon', 3, 5], ['floatSun', 11, 5], ['floatBird', 18, 5]],
   }),
 
   // B RIO OR BUST: the beach. In at the left on the promenade's wave pavement (floor 18); Sugarloaf across the bay at the left, Christ the Redeemer over Corcovado at the right, the sun low over the sea, and the acai bowl on its table

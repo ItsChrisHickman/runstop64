@@ -638,8 +638,9 @@ export class Game implements MontyBody, MontyWorld {
       this.vic.mc1 = 7;
     }
     this.setupEnemies();
-    Items.applyRoomEffects(this);
+    Items.applyRoomEffects(this, 'before');
     this.decorate();
+    Items.applyRoomEffects(this, 'after');
     charAnimInit(this);
     this.populateColourRam();
     Mech.piledriverRoomInit(this);

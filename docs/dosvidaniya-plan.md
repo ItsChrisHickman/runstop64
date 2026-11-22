@@ -116,7 +116,7 @@ Do Svidaniya Monty's own examples.
   for Russia, the pentatonic for China and Japan), instruments that suggest the place (a plucked balalaika, bells, a sliding
   ukulele), and maybe a short phrase of a public-domain folk tune as a break (Kalinka, Sakura). Moscow's version
   comes with Moscow's rooms; if it sounds like a gimmick, every region keeps the original. The tempo stays Hubbard's (Chris).
-- **The title:** Monty on the Run's title screen, with MONTY MOLE: WORLD TOUR and the story on its scroller. Credits: a new
+- **The title:** Monty on the Run's title screen, with DO SVIDANIYA MONTY and the story on its scroller. Credits: a new
   game by Christopher Hickman with Claude, after Peter Harrap's Monty on the Run (Gremlin Graphics, 1985).
 
 ## How it's built

@@ -127,11 +127,15 @@ function holds(g: Game, c: Condition): boolean {
   return !g.roomItemActive[c.noKit];
 }
 
-/** ApplyItemRoomEffects: item-gated changes to rooms (the data's `roomEffects`; run on load and on pickup). */
-export function applyRoomEffects(g: Game) {
+/**
+ * ApplyItemRoomEffects: item-gated changes to rooms (the data's `roomEffects`; run on load and on pickup). On a room's loading it runs twice, `before` the decorations are drawn (the original's order) and `after` them, for the effects
+ * that are `late` (one that takes a decoration away); on a pickup everything runs once (`all`), the decorations being drawn.
+ */
+export function applyRoomEffects(g: Game, pass: 'all' | 'before' | 'after' = 'all') {
   const id = g.roomId;
   for (const e of g.data.roomEffects) {
     if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) continue;
+    if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) continue;
     for (const [row, col] of e.clear ?? []) g.setChr(SCREEN + row * ROW + col, 0);
     for (const t of e.openTiles ?? []) g.tileProps[t] = 0;
     if (e.place) for (const [row, col] of e.place.cells) g.setRoomChar(row * ROW + col, e.place.code);

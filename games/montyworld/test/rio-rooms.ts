@@ -85,7 +85,7 @@ function skewerAt(x: number, y: number, k: number, facing: 'left' | 'right'): re
     name: 'FLOAT YOUR BOAT', nameCol: 8,
     codes: [['paradeStreet'], ['riser'], ['bayWater', 6], ['floatDeck'], ['paradeBarrier'], ['woodLadder']],
     grid: g,
-    decor: [['stands', 0, 2], ['stands', 4, 2], ['stands', 24, 2], ['stands', 28, 2], ['sambaBanner', 10, 1], ['bunting', 14, 3], ['bunting', 18, 3], ['floatGalleon', 5, 11], ['floatBird', 16, 10], ['floatSun', 12, 5], ['surdo', 24, 6]],
+    decor: [['stands', 0, 2], ['stands', 4, 2], ['stands', 24, 2], ['stands', 28, 2], ['bunting', 14, 3], ['bunting', 18, 3], ['floatGalleon', 5, 11], ['floatBird', 16, 10], ['floatSun', 12, 5], ['surdo', 24, 6]],
     coins: [[8, 8], [18, 6], [24, 12], [14, 15]],
     creatures: [['dancer', 8, 12, 1], ['dancer', 14, 6, 2], ['dancer', 18, 12, 3]],
     items: [],

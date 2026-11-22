@@ -23,10 +23,10 @@ import { RIO_ITEMS } from '../src/art/rio-items';
 import { WORLD } from '../src/data';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
-import { CABLE_CAR, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS } from '../src/rio';
+import { CABLE_CAR, CLOSED_CELLS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS } from '../src/rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
 import { newGame, search } from './bot';
-import { colOf, dead, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
+import { cell, colOf, dead, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
@@ -207,12 +207,15 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
     u.g.actionCounter = 0;
     // the skewer's hand is at the gaucho's left: put him where its picture is
     const p = must(spec.poses[pose], 'a pose').left;
-    u.g.x2 = Math.round((man2.x * 2 + p.dx + 4) / 2);
-    u.g.y = man2.y + p.dy + 4;
+    const box = must(p.hit[Math.floor(p.hit.length / 2)], 'a kill box');
+    u.g.x2 = Math.round((man2.x * 2 + p.dx + box.x + 2) / 2);
+    u.g.y = man2.y + p.dy + box.y;
     u.g.gameMode = 0;
     frame(u, NONE);
     return u.g.actionCounter !== 0;
   };
+  const area = (i: number) => must(k0.poses[i], 'a pose').left.hit.reduce((a, b) => a + b.w * b.h, 0);
+  check(`what kills is what is drawn: each deadly pose's kill boxes cover well under the picture's 24 x 21 (forward and low ${area(1)}, straight out ${area(2)} pixels of 504), the straight one only its own rows`, area(1) < 300 && area(2) < 200 && must(must(k0.poses[2], 'a pose').left.hit[0], 'a box').y >= 6);
   check('the skewer killing: out straight and forward and low it has him where it is, down or up it does not', hit(2) && hit(1) && !hit(0) && !hit(3));
 }
 
@@ -339,6 +342,42 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   check('an old save (the six regions before Rio\'s arrays) loads: the finds and the chullo are as saved, Rio is on the grid, its coins and finds still to take',
     g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 33] === R.quay && g2.siCollected.length === 43
     && g2.coinCollected.length === 220 + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(220).every((c) => c === 0));}
+
+// ---- the way in is two ways, the gates hold, the beach is drawn ---------------------------------------------
+{
+  // Rio joins the Andes' last bank both ways (Chris: every way but the floats' is two-way; pause-map travel covers only the region he is in, so a way back must be walked)
+  const out = at(AND.bank, 24, 8, [], false, false);
+  const into = search(out, (g) => g.roomId === R.quay && !g.freeze && !g.script, [{ room: AND.bank, col: 31, row: 7 }], 100000, 1.5);
+  check('from the Amazon\'s last bank the bot walks into the quay', into !== null);
+  const stats = { exhausted: false };
+  const quay = at(R.quay, 20, 18, [], false, false);
+  const back = search(quay, (g) => g.roomId === AND.bank && !g.freeze && !g.script, [{ room: R.quay, col: 3, row: 6 }, { room: R.quay, col: 0, row: 7 }], 150000, 1.5, stats);
+  check('and from the quay\'s street, up the wharf\'s steps (two rows each) and out west, back to the Andes\' last bank', back !== null);
+  // the gates by the bot's search, as the Andes' are: none past a gate without its item
+  const shelf = at(R.sugar, 9, 14, [], false, false);
+  const st2 = { exhausted: false };
+  const gate = search(shelf, (g) => g.cable.from >= 0 || g.roomId === R.loaf, undefined, 150000, 0, st2);
+  check('the bot finds no way onto the cable car without the key to the city within 150000 states', gate === null);
+  const lane = at(R.drum, 18, 18, [], false, true);
+  const steward = search(lane, (g) => g.roomId === R.float, undefined, 150000, 0);
+  check('the bot finds no way past the steward into the avenue without the headdress within 150000 states', steward === null);
+  // the CLOSED sign comes down with the gate
+  const shut = at(R.sugar, 5, 14, []), open = at(R.sugar, 5, 14, [KEY]);
+  check('the CLOSED sign over the station hut is up until the key to the city is his, and down once it is', CLOSED_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0) && CLOSED_CELLS.every(([row, col]) => cell(open.g, col, row) === 0));
+  // the beach's sign is drawn (a sign is a character a letter: the room's 101 are all taken, so one that does not fit is quietly left out)
+  const beach = at(R.bust, 2, 18, [], false, false);
+  run(beach, NONE, 2);
+  check('the sign INTERMOLE: EUROPE ONLY is drawn on the beach (24 cells of row 14, none empty)', Array.from({ length: 24 }, (_, k) => cell(beach.g, 2 + k, 14)).every((c) => c !== 0));
+  // the carnival has its dancer (the plan's samba dancers), as the churrascaria does
+  const rooms = creatureRooms(RIO_ROOMS);
+  const dancer = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('dancer');
+  check('the dancer is in the carnival (room 75) and the churrascaria (74), two rooms', [...(rooms.get(dancer) ?? [])].sort().join() === [R.steak, R.drum].sort().join());
+  // the Andes' map does not offer Rio's rooms as places to go
+  const bank = newGame(WORLD, true);
+  enterRoom(bank.g, AND.bank, 0x40, standY(15));
+  const andesPlaces = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, bank.g, { rooms: { [R.quay]: [0x40, 0xb2, 7, 33], [R.steak]: [0x40, 0xb2, 6, 33], [AND.cloud]: [0x40, 0xb2, 3, 31] } });
+  check('in the Andes\' last bank the map offers the Andes\' rooms but not the quay and the churrascaria (cells of Rio\'s, cut out of the Andes\' rectangle)', andesPlaces.every((p) => p.id !== String(R.quay) && p.id !== String(R.steak)));
+}
 
 // ---- the finale ---------------------------------------------------------------------------------------------
 {

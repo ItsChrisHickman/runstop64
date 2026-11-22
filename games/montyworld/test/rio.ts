@@ -1,7 +1,7 @@
 /**
  * Rio, played by a bot from the Amazon's last bank to the beach (docs/dosvidaniya-rio.md): the bot (bot.ts) searches the game's own frames for a way to each goal in rio-route.ts (every coin,
  * the six skewers, the key to the city and the headdress; the cable car, the gauchos' skewers, the steward, the floats and the tram all in the way), plays it, and the game
- * must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after the Pacific: in the plane's hold with Moscow's, Siberia's, China's, Japan's and the Pacific's finds and the lei on, the rear door open.
+ * must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts in the quay (enterRoom) with the earlier regions' finds and the Andes' chullo on, as a player arrives off the river: the join with the Andes' last bank is proved in rio-mechanisms.ts, both ways.
  * (The gates' proofs, the loops and the no-trap checks are in rio-mechanisms.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio.ts [original|enhanced] [first leg] [last leg]

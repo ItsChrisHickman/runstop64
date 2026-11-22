@@ -78,6 +78,8 @@ export type Condition =
 export interface RoomEffect {
   room: number;
   when?: readonly Condition[];
+  /** Applied after the room's decorations are drawn, not before (an effect that takes one away: a sign). */
+  late?: boolean;
   /** Screen cells emptied: row, column. */
   clear?: readonly (readonly [row: number, col: number])[];
   /** The creature in this slot is sent off the screen (if the room has one there). */
@@ -254,9 +256,12 @@ export interface FloatSpec {
  * The gaucho's swinging skewer (skewers.ts): a sprite that follows the creature in slot `slot` of the room (its hand), swinging through the `poses` (each: the sprite pointer facing left and facing right and where its block is
  * from the creature's top left) once every `cycle` frames, `offset` frames into it when the room loads. The poses that `deadly` names (indexes) kill what of Monty they touch (event 1: the box test of the dragon and the boulders).
  */
+/** A pose facing one way: the sprite pointer, where its picture goes from the creature's top left, and the boxes of the picture's inked pixels (from the picture's top left) that kill when the pose is deadly: what is drawn is what kills. */
+export interface SkewerLook { ptr: number; dx: number; dy: number; hit: readonly { x: number; y: number; w: number; h: number }[] }
+
 export interface SkewerSpec {
   room: number; slot: number; sprite: number; cycle: number; offset: number; colour: number;
-  poses: readonly { left: { ptr: number; dx: number; dy: number; w: number; h: number }; right: { ptr: number; dx: number; dy: number; w: number; h: number }; deadly: boolean }[];
+  poses: readonly { left: SkewerLook; right: SkewerLook; deadly: boolean }[];
 }
 
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */

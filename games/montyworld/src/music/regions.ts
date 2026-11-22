@@ -6,6 +6,7 @@ import { MOSCOW } from './moscow';
 import { PACIFIC } from './pacific';
 import { RIO } from './rio';
 import { SIBERIA } from './siberia';
+import { regionAt } from '../../../montyotr/src/regions';
 import { WORLD_REGIONS, type RegionName } from '../regions';
 import { retune, type RegionTune } from './region-tune';
 
@@ -29,5 +30,5 @@ export function tuneForRoom(grid: { readonly image: Uint8Array; readonly cols: n
   if (cell < 0) return null;
   const col = cell % grid.cols;
   const row = Math.floor(cell / grid.cols);
-  return VERSIONS.find((r) => col >= r.from && col <= r.to && row >= r.rows.from && row <= r.rows.to)?.version ?? null;
+  return regionAt(VERSIONS, row, col)?.version ?? null;
 }

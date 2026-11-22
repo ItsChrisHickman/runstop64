@@ -24,7 +24,11 @@ export function skewerPose(e: SkewerSpec, t: number): number {
 /** The sprites the skewers are on, as the collision check's mask. */
 export function skewerSprites(g: Game): number {
   let mask = 0;
-  for (const s of g.skewers) mask |= 1 << (g.data.skewers[s.index]?.sprite ?? 0);
+  for (const s of g.skewers) {
+    const e = g.data.skewers[s.index];
+    if (!e) throw new Error(`skewer ${s.index} is not in the data`);
+    mask |= 1 << e.sprite;
+  }
   return mask;
 }
 
@@ -47,6 +51,6 @@ export function skewerUpdate(g: Game) {
     g.sptr[e.sprite] = side.ptr;
     g.scol[e.sprite] = e.colour;
     g.enable |= 1 << e.sprite;
-    if (pose.deadly && !g.actionCounter && meetsMonty(g, x, y, side.w, side.h, 4)) g.actionCounter = 1;
+    if (pose.deadly && !g.actionCounter && side.hit.some((b) => meetsMonty(g, x + b.x, y + b.y, b.w, b.h, 0))) g.actionCounter = 1;
   }
 }

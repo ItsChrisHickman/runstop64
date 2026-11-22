@@ -112,7 +112,7 @@ export const CABLE_CAR = { top: carTop(), bottom: carBottom(), colour: 1 } as co
 // ---- the gaucho's swinging skewer
 
 /** A skewer pose: the sprite block, and where it goes from the gaucho's sprite (its top left): the block's pivot lands on his raised hand. */
-export interface SkewerPose { readonly block: Uint8Array; readonly dx: number; readonly dy: number }
+export interface SkewerPose { readonly block: Uint8Array; readonly dx: number; readonly dy: number; /** The boxes of its inked pixels (strips of `STRIP` rows, each the ink's extent), from the block's top left: what kills. */ readonly hit: readonly { x: number; y: number; w: number; h: number }[] }
 
 /** The gaucho's raised hand, in his 16 x 16 picture facing left (x, y), and facing right (mirrored). */
 const HAND_LEFT = { x: 1, y: 5 } as const;
@@ -141,10 +141,23 @@ function poseRows(deg: number, px: number, py: number, len: number): string[] {
   return r.rows();
 }
 
+/** The kill boxes of a sprite block: the inked pixels' extent in each strip of this many rows (a diagonal is a staircase of small boxes, not its whole corner). */
+const STRIP = 3;
+function hitBoxes(block: Uint8Array): { x: number; y: number; w: number; h: number }[] {
+  const out: { x: number; y: number; w: number; h: number }[] = [];
+  for (let y = 0; y < 21; y += STRIP) {
+    let lo = 24, hi = -1;
+    for (let r = y; r < Math.min(21, y + STRIP); r++) for (let x = 0; x < 24; x++) if (((block[r * 3 + (x >> 3)] ?? 0) & (0x80 >> (x & 7))) !== 0) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+    if (hi >= lo) out.push({ x: lo, y, w: hi - lo + 1, h: Math.min(STRIP, 21 - y) });
+  }
+  return out;
+}
+
 /** The poses facing left, and mirrored for facing right. */
+const pose = (rows: readonly string[], dx: number, dy: number): SkewerPose => { const block = spriteBlock('skewer pose', rows); return { block, dx, dy, hit: hitBoxes(block) }; };
 export const SKEWER_POSES: { readonly left: readonly SkewerPose[]; readonly right: readonly SkewerPose[] } = {
-  left: POSES.map((p) => ({ block: spriteBlock('skewer pose', poseRows(p.deg, p.px, p.py, p.len)), dx: HAND_LEFT.x - p.px, dy: HAND_LEFT.y - p.py })),
-  right: POSES.map((p) => ({ block: spriteBlock('skewer pose', mirrored(poseRows(p.deg, p.px, p.py, p.len))), dx: HAND_RIGHT.x - (23 - p.px), dy: HAND_RIGHT.y - p.py })),
+  left: POSES.map((p) => pose(poseRows(p.deg, p.px, p.py, p.len), HAND_LEFT.x - p.px, HAND_LEFT.y - p.py)),
+  right: POSES.map((p) => pose(mirrored(poseRows(p.deg, p.px, p.py, p.len)), HAND_RIGHT.x - (23 - p.px), HAND_RIGHT.y - p.py)),
 };
 export const SKEWER_COLOUR = 8;
 

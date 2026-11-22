@@ -10,7 +10,7 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly from:
   { name: 'china', from: 8, to: 11, rows: { from: 0, to: 2 } }, // and the next
   { name: 'japan', from: 12, to: 16, rows: { from: 0, to: 2 } }, // Japan's block is five wide
   { name: 'pacific', from: 17, to: 29, rows: { from: 0, to: 2 } }, // the Pacific's thirteen
-  // (Rio is listed before the Andes: its first column, 33, is the Andes' last, whose cave (row 5) is the Andes' and whose quay and restaurant (rows 6-7) are Rio's: a region is a column span and a row span, the first that holds the room)
-  { name: 'rio', from: 33, to: 39, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
   { name: 'andes', from: 30, to: 33, rows: { from: 2, to: 7 } }, // the Andes and the Amazon's four
+  // (Rio's first column, 33, is the Andes' last: its cave (row 5) is the Andes' and its quay and restaurant (rows 6-7) are Rio's. A cell belongs to the smallest region that holds it, whatever the order: games/montyotr/src/regions.ts)
+  { name: 'rio', from: 33, to: 39, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
 ];

@@ -39,7 +39,7 @@ beach: the last room, a room called what the whole trip was). The design's LAP O
 
 ### The rooms
 
-**H QUAY TO THE CITY** (the harbour). In at the left from the riverboat's gangway (floor 8), down the wharf's steps (floors 11, 14) to the quay (floor 18), which runs east out low to Lapa. A pier (floor 14; a ladder, col 20, up through its planks) holds a
+**H QUAY TO THE CITY** (the harbour). In at the left from the riverboat's gangway (floor 8), down the wharf's steps (floors 10, 12, 14, 16: two rows each, so every way is joined both ways but the floats' and a player who comes in can go back to the Andes) to the quay (floor 18), which runs east out low to Lapa. A pier (floor 14; a ladder, col 20, up through its planks) holds a
 skewer; the bay behind under a BEM-VINDO banner, a fishing boat, lamp posts, a coconut stand. A capoeirista on the quay and a football bouncing on the step.
 
 **L THE LAPA ARCHES.** The white aqueduct across the room, two storeys of arches (the street through them, floor 18; its top, the tram's track, floor 7). Crossed twice: the street runs east to a wall; a ladder (col 3) climbs to the track, where the yellow tram
@@ -60,7 +60,7 @@ bough ends east in a dead end. A marmoset and a macaw.
 **W STEAK YOUR CLAIM** (the churrascaria, a dead end). In from Sugarloaf's beach at the right (floor 18). Two gauchos pace the dining floor, each with a skewer that swings; the stairs (floors 16, 14, 12) climb at the middle to the mezzanine's stage (floor 10) where the
 headdress hangs on a curtain; tables, a salad bar, a rotisserie, red lamps.
 
-**P BEAT THE DRUM** (the carnival, first room). In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 12, 10) up and down the middle with a drummer on the top; the forest's rope (col 22) comes down to the street; the steward at the right in a lane two cells high lets him by only in the headdress; a samba dancer.
+**P BEAT THE DRUM** (the carnival, first room). In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 12, 10) up and down the middle with a drummer on the top; the forest's rope (col 22) comes down to the street; the steward at the right in a lane two cells high lets him by only in the headdress; a samba dancer on the high riser; grandstands over the low lane and at the left, surdos on the risers, bunting and a SAMBA sign.
 
 **Q FLOAT YOUR BOAT** (the avenue). In at the left on the street (floor 18); the channel (deep water, cols 4-24) is crossed on the floats: lane A (the street's height) three of them left to right, lane B (floor 14) two the other way; on the right a stage with two steps (floor 16) and a skewer, leading east out low to the beach.
 
@@ -74,17 +74,17 @@ headdress hangs on a curtain; tables, a salad bar, a rotisserie, red lamps.
 ### The three mechanisms
 
 **Sugarloaf's cable car (S; `cableCars`, `games/montyotr/src/cablecars.ts`).** Two cars on one cable, each two sprites over his box (the roof behind him, its floor and rail in front); stepping onto the foot of a station (the car's door, two cells at the cable's end of the platform) carries him
-as the escalators do (a ride he cannot leave) 160 frames up the line, the other car passing it halfway, and sets him on the other station's foot, where he must step off before it rides again; both ends work. The station's gate (a granite wall on the shelf) is the key's.
+as the escalators do (a ride he cannot leave) 160 frames up the line, the other car passing it halfway on a bypass of its own (a second cable drawn below the line, seven rows down, which that car hangs from: two cars on one line would draw on the same pixels), and sets him on the other station's foot, where he must step off before it rides again; both ends work. The station's gate (a granite wall on the shelf) is the key's.
 
 **The gauchos' swinging skewers (W; `skewers`, `skewers.ts`).** A gaucho (a creature) walks between the tables with a skewer in his raised hand (a sprite that follows his hand): it swings through four poses a 24 frames each every 96 frames (down, forward and low, straight out, up) in the way he faces; the middle two kill. The two are half a cycle apart.
 
-**Carnival floats (Q; `floats`, `floats.ts`).** A painted piece (the decoration of a pirate galleon, a sun, a bird) on a deck of a floor tile crosses a span of the room a cell every 8 frames, in the room's own characters; what it covers (the deadly water of the channel) is put back as it goes; he stands on the deck (a floor he passes up through) and is carried a cell with it.
+**Carnival floats (Q; `floats`, `floats.ts`).** A painted piece (the decoration of a pirate galleon, a sun, a bird) on a deck of a floor tile crosses a span of the room a cell every 8 frames, in the room's own characters; what it covers (the deadly water of the channel) is put back as it goes; he stands on the deck (a floor he passes up through) and is carried a cell with it (a cell at a time, 8 frames apart: not smooth), only while a deck cell that is drawn is under his feet and never into a solid cell: the cycle runs on beyond the channel over the street and the stage, where it carries nobody.
 
 ### Creatures (eleven, none in more than two rooms)
 
 | Creature | Rooms | What it does |
 |---|---|---|
-| samba dancer | P | sways in its feathered costume, a big smile |
+| samba dancer | W, P | sways in its feathered costume, a big smile |
 | drummer (surdo) | P | beats the drum on the top riser |
 | steward | P | the parade's gate: a peaked cap, a bow tie, arms folded; steps aside for the headdress |
 | gaucho | W (two) | walks between the tables; his skewer swings |
@@ -116,8 +116,8 @@ A samba feel by instruments only: Hubbard's G minor lifted to G major (the minor
 
 ### The finale (Monty on the Run's manner: the treasure is touched, and a short play runs by itself)
 
-`completion` (`games/montyworld/src/finale.ts`), the room B itself, the figures sprites as the boat's were: Hubbard's finale song starts; Monty takes the bowl (sprite 0 follows him), strolls left along the promenade to the rail under the sign INTERMOLE: EUROPE ONLY
-and stops; the sign winks once; he eats in three scoops (the bowl rises and falls from him, the coin effect for the crunch); the Redeemer's cells go from grey to white and Sugarloaf's lights come on; the sun (sprite 1, behind the characters) has sunk into the sea;
+`completion` (`games/montyworld/src/finale.ts`), the room B itself, the figures sprites as the boat's were: Hubbard's finale song starts; Monty takes the bowl (sprite 0 follows him), strolls left along the promenade to under the sign INTERMOLE: EUROPE ONLY (row 14, over the sea's foot; the palms beside it are tiles, not decorations, so the sign's 24 characters fit the room's 101)
+and stops; the sign winks once; he eats in three scoops (the bowl rises and falls from him, the coin effect for the crunch); the Redeemer's cells go from grey to white and Sugarloaf's lights come on; the sun (sprite 6, behind the characters, with a black block on sprite 5 over the sea under the horizon that it sinks behind) has set into the sea;
 `g.won = true` and GAME OVER as Monty on the Run's ends (`gameOver`), CONTINUE? after it as in every game. In ENHANCED the reward show follows.
 
 ### The reward show (ENHANCED, one show for every game, `games/shared/ending/`)
@@ -130,16 +130,16 @@ WITH CLAUDE, AFTER PETER HARRAPS / MONTY ON THE RUN, GREMLIN GRAPHICS / RUNSTOP6
 
 ### The title scroller's story text
 
-The scroller says MONTY MOLE: WORLD TOUR, A NEW GAME BY CHRISTOPHER HICKMAN WITH CLAUDE, AFTER PETER HARRAP, MUSIC BY ROB HUBBARD, then the story (Intermole has found Monty on his Greek island and Europe is no longer safe; he runs east, out of its reach, the long way round and with no passport; Moscow, the Trans Siberian, the Great Wall, a junk to Japan, a cargo ship to Hawaii, a cargo plane and a parachute down into the Andes, a riverboat down the Amazon, and Rio; every leg a different way of travelling, every country its own hat; find the keys, watch the timing, listen for the music), then A TRIBUTE: RUNSTOP64 and the original's GOOD LUCK!.
+The scroller says DO SVIDANIYA MONTY, A NEW GAME BY CHRISTOPHER HICKMAN WITH CLAUDE, AFTER PETER HARRAP, MUSIC BY ROB HUBBARD, then the story (Intermole has found Monty on his Greek island and Europe is no longer safe; Intermole can only work in Europe, so he runs east, out of its reach, the long way round and with no passport; Moscow, the Trans Siberian, the Great Wall, a junk to Japan, a cargo ship to Hawaii, a cargo plane and a parachute down into the Andes, a riverboat down the Amazon, and Rio; every leg a different way of travelling, every country its own hat; find the keys, watch the timing, listen for the music), then A TRIBUTE: RUNSTOP64 and the original's GOOD LUCK!.
 
 ## As built
 
 Built 2026-11-22: rooms in `games/montyworld/src/rio.ts` (ids 67-77, sectors 67-77), art `art/rio-*.ts`, the tune `music/rio.ts`, finale `finale.ts`, the show `ending-places.ts`, `ending-scenes.ts`, `ending-routes.ts` (written by `re/routes.ts`), map picture `test/rio-map.ts`. Where the build differs from the design above:
 
-- **Engine**, as data (Monty on the Run's value leaves them empty): `cableCars`, `floats`, `skewers`; `MontyEnding.closing` (a game's own last credit lines); the pause map and the tune pick a region by column and row (Rio's column 33 is the Andes' cave's).
+- **Engine**, as data (Monty on the Run's value leaves them empty): `cableCars`, `floats`, `skewers`; `MontyEnding.closing` (a game's own last credit lines); the pause map and the tune pick a region by column and row, the smallest that holds the cell (Rio's column 33 is the Andes' cave's: `games/montyotr/src/regions.ts`); a room effect can be `late` (after the decorations: the CLOSED sign comes down with the gate).
 - **The bot found what the pictures hid**: his jump climbs two rows and needs a run-up, so every step is two rows high and platforms five wide (the parade's risers are two steps, not four); a coin at the water's surface is a death coin; decorations replace the tile under them (a ladder under an arch was no ladder); a creature at the entry or at a rope's foot is a wall; the churrascaria's west lane needed a ladder up to the stage; the favela's roofs needed a ladder from the lane; lane B of the floats is reached from the stage's two-row steps.
-- **Rooms**: the churrascaria has a dancer on the stage and two gauchos (skewer sprites 2 and 1); the summit is a chasm under the platforms (the cleft's rope hangs to a ledge of skewers above the city); the forest has one skewer, the cakes are in H, U, T, C, F, Q; the dancer is W's only.
+- **Rooms**: the churrascaria has a dancer on the stage and two gauchos (skewer sprites 2 and 1); the summit is a chasm under the platforms (the cleft's rope hangs to the chasm's floor, a skewer among the houses of the favela); the forest has one skewer, the cakes are in H, U, T, C, F, Q; the dancer is in W and P.
 - **Costume** the headdress as proposed; **credits**: the port's "REBUILT FOR THE BROWSER BY" is not said, the closing lines are this game's own (a decision of the pre-production); the show has thirteen places (the parachute drop was replaced by T1's terraces: the flight puts the canopy over the credits' row) and 24 creatures, 168 seconds.
-- Saves: format stays 1; old saves load (their shorter coin and item lists fill the first entries).
+- Saves: format stays 1; old saves load (their shorter coin and item lists fill the first entries: the earlier regions did the same, each adding coins and items to the lists without a bump; rio-mechanisms.ts loads an Andes-era save).
 
 Checks: `rio-layout.ts` (183), `rio-mechanisms.ts` (58), `music-rio.ts`, `rio.ts original|enhanced` (87 each: 62 coins, the key, the headdress, six skewers), `reward.ts` (54); the earlier regions' tests count the whole world (78 rooms, 282 coins, 43 finds, 19 key items, 23 snacks); `npm run verify` passes but games/moley/test/game.ts, which needs a ROM missing in this worktree. Pictures: /root/projects/runstop64-shots/rio/.

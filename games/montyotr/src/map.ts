@@ -3,6 +3,7 @@ import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseM
 import { sectorIndex, sectorName, type MontyData } from './montydata';
 import type { Game } from './game';
 import { roomProgress } from './items';
+import { regionAt } from './regions';
 import { c5Arrive, c5LastCell, c5Street } from './mechanisms';
 import type { MontySave } from './save';
 
@@ -124,14 +125,14 @@ const REGION_CELL = 16;
  */
 function layout(box: Box, g: Game) {
   const { data } = g;
-  const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to && (!r.rows || (g.mapRow >= r.rows.from && g.mapRow <= r.rows.to)));
+  const region = regionAt(data.regions, g.mapRow, g.exitCol);
   const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
   const rowFrom = region?.rows?.from ?? 0, rows = region?.rows ? region.rows.to - region.rows.from + 1 : data.exitGrid.rows;
   // (a game with many key items wraps their icons onto more rows, which take the map's room)
   const spare = box.h - MAP_RESERVED - (iconRows(box, data.progress.keyItems.length) - 1) * ICON_ROW;
   const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols), Math.floor(spare / rows));
   const ox = box.x + Math.floor((box.w - cols * cell) / 2);
-  return { cell, from, cols, rowFrom, rows, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + (row - rowFrom) * cell }) };
+  return { region, cell, from, cols, rowFrom, rows, owns: (row: number, col: number) => !region || regionAt(data.regions, row, col) === region, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + (row - rowFrom) * cell }) };
 }
 
 /** The rooms on the map, and how many of them Monty has been in. */
@@ -160,12 +161,12 @@ export const montyMap = {
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
     const { progress } = data;
-    const { at, cell, from, cols, rowFrom, rows } = layout(box, g);
+    const { at, cell, from, cols, rowFrom, rows, owns } = layout(box, g);
     const tick = shimmer++;
     for (let r = rowFrom; r < rowFrom + rows; r++) {
       for (let c = from; c < from + cols; c++) {
         const id = roomIn(g, r, c);
-        if (id === 0xff) continue;
+        if (id === 0xff || !owns(r, c)) continue; // (a cell of another region's, cut out of this one's rectangle, is not shown)
         const p = at(r, c);
         const here = r === g.mapRow && c === g.exitCol;
         const seen = visited(found, id);
@@ -215,10 +216,10 @@ export const montyMap = {
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
   places(box: Box, g: Game, found: MontyFound): MapPlace[] {
-    const { at, cell, from, cols, rowFrom, rows } = layout(box, g);
+    const { at, cell, from, cols, rowFrom, rows, owns } = layout(box, g);
     const mid = Math.floor(cell / 2) - 1; // (3 in a cell of 8: the dot's place in it)
     const list = Object.entries(found.rooms)
-      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols && e[2] >= rowFrom && e[2] < rowFrom + rows)
+      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols && e[2] >= rowFrom && e[2] < rowFrom + rows && owns(e[2], e[3]))
       .map(([id, e]) => { const p = at(e[2], e[3]); return { id, x: p.x + mid, y: p.y + mid }; });
     const p = at(g.mapRow, g.exitCol);
     return [{ id: String(g.roomId), x: p.x + mid, y: p.y + mid, here: true }, ...list];

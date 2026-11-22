@@ -255,14 +255,6 @@ function surdo(): NewDecor {
   return decor('surdo', 2, 2, r, 7);
 }
 
-/** The samba school's banner over the street: a long board with a pattern of lozenges. 4 x 1 characters. */
-function sambaBanner(): NewDecor {
-  const r = new Raster(32, 8);
-  r.rect(0, 0, 31, 7); r.rect(1, 1, 30, 6, false);
-  for (let x = 3; x < 30; x += 6) r.cut(['.##.', '####', '.##.'], x, 2), r.rect(x + 1, 3, x + 2, 4);
-  return decor('sambaBanner', 4, 1, r, 7);
-}
-
 export const RIO_DECOR = {
   christ: christ(),
   sugarloaf: sugarloaf(),
@@ -290,7 +282,6 @@ export const RIO_DECOR = {
   floatSun: floatSun(),
   stands: stands(),
   surdo: surdo(),
-  sambaBanner: sambaBanner(),
 } as const satisfies Record<string, NewDecor>;
 
 export type RioDecor = keyof typeof RIO_DECOR;

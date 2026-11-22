@@ -27,7 +27,7 @@ import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
-import { CABLE_CAR as CABLE_CAR_SPEC, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
+import { CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN, SUN_MASK } from './art/rio-items';
@@ -122,8 +122,8 @@ const bank = extendBank(bankImage, [
   { ptr: SUN_MASK_POINTER, block: SUN_MASK },
   { ptr: CAR_POINTERS.roof, block: CABLE_CAR.top },
   { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
-  ...SKEWER_POSES.left.map((pose, i) => ({ ptr: SKEWER_POINTERS.left[i] ?? 0, block: pose.block })),
-  ...SKEWER_POSES.right.map((pose, i) => ({ ptr: SKEWER_POINTERS.right[i] ?? 0, block: pose.block })),
+  ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
+  ...SKEWER_POSES.right.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.right, i), block: pose.block })),
 ]);
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
@@ -147,6 +147,13 @@ const itemSprites: MontyData['itemSprites'] = {
 // ---- the rooms' tables ------------------------------------------------------------------------------------------
 
 /** Moscow's decorations are the first decoration types. */
+/** The sprite pointer of a pose (a pose without one is a mistake in the data). */
+function pointerOf(pointers: readonly number[], i: number): number {
+  const ptr = pointers[i];
+  if (ptr === undefined) throw new Error(`no sprite pointer for skewer pose ${i}`);
+  return ptr;
+}
+
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
 const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
 
@@ -210,7 +217,8 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: AND.cloud, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS) }, // the machete cuts the tangle over the jetty's rope
   { room: AND.cloud, when: [{ taken: MACHETE }], place: { code: TANGLE_ROPE_CODE, cells: onScreen(TANGLE_ROPE) } }, // and the rope hangs through the gap
   { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: 0 }, // in a local's hat the captain steps aside
-  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], clear: onScreen(GATE_CELLS) }, // the key to the city opens the cable car's gate
+  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], clear: onScreen(GATE_CELLS) }, // the key to the city opens the cable car's gate,
+  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
   { room: RIO_ROOM.drum, when: [{ taken: HEADDRESS_ITEM }], removeEnemy: 0 }, // in the headdress the parade's steward takes him for a dancer
 ];
 
@@ -323,15 +331,16 @@ export const WORLD: MontyData = {
   progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CITY_KEY, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
   title: {
     message: scrollerMessage([
-      [0xfe, 1], 'MONTY MOLE: ', [0xfe, 7], 'WORLD TOUR. ',
+      [0xfe, 1], 'DO SVIDANIYA ', [0xfe, 7], 'MONTY. ',
       [0xfe, 1], 'A NEW GAME BY ', [0xfe, 13], 'CHRISTOPHER HICKMAN WITH CLAUDE. ',
       [0xfe, 1], 'AFTER ', [0xfe, 7], 'PETER HARRAP. ',
       [0xfe, 1], 'MUSIC BY ', [0xfe, 14], 'ROB HUBBARD. ',
       [0xfe, 1], 'THE STORY: ', [0xfe, 13], 'INTERMOLE HAS FOUND MONTY ON HIS GREEK ISLAND AND EUROPE IS NO LONGER SAFE. ',
-      [0xfe, 1], 'HE CAN ONLY WORK IN EUROPE, SO MONTY RUNS EAST, OUT OF HIS REACH, THE LONG WAY ROUND AND WITH NO PASSPORT. ',
+      [0xfe, 1], 'INTERMOLE CAN ONLY WORK IN EUROPE, SO MONTY RUNS EAST, OUT OF ITS REACH, THE LONG WAY ROUND AND WITH NO PASSPORT. ',
       [0xfe, 7], 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A CARGO PLANE AND A PARACHUTE DOWN INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO. ',
       [0xfe, 1], 'EVERY LEG A DIFFERENT WAY OF TRAVELLING, EVERY COUNTRY ITS OWN HAT. FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC. ',
-      [0xfe, 1], 'A TRIBUTE: ', [0xfe, 10], 'RUNSTOP64.          ',
+      [0xfe, 1], 'A TRIBUTE: ', [0xfe, 10], 'RUNSTOP64. ',
+      [0xfe, 1], 'GOOD LUCK!          ',
     ]),
   },
   ending: WORLD_ENDING,

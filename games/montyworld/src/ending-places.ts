@@ -44,6 +44,12 @@ export function arrivedIn(first: number, hats: number) {
   };
 }
 
+/** What he has by Rio's cable car: the earlier regions' finds, the chullo and the key to the city (the show's cable car scene is a ride: the gate is open). */
+function withCityKey(g: Game) {
+  arrivedIn(FIRST.rio, 5)(g);
+  g.siCollected[itemOfRoom(g, RIO_ROOM.lap, 0)] = 0x81;
+}
+
 /** A place of the show without its route and its start: the room, what he has, what he does there (coins: the first of the room's that he can take), and the credits over it. */
 export interface Place { room: number; prepare: Scene['prepare']; take: Scene['take']; frames?: number; creditRow?: number; credits: readonly string[] }
 
@@ -64,7 +70,7 @@ export const PLACES: readonly Place[] = [
   { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['ROB HUBBARD SAID THE MAIN TUNE WAS', 'INSPIRED BY DEVILS GALOP, THE DICK', 'BARTON RADIO SERIAL THEME'] },
   { room: AND.river, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['HARDCORE GAMING 101 READERS RATED IT', 'NUMBER 2 IN WESTERN GAME MUSIC, 2011'] },
   // Rio: the cable car, the churrascaria, the floats, the beach
-  { room: RIO_ROOM.sugar, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['ZZAP!64 GAVE IT 90 PER CENT IN 1985:', 'MOLING ABOUT HAS NEVER BEEN SUCH FUN'] },
+  { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['ZZAP!64 GAVE IT 90 PER CENT IN 1985:', 'MOLING ABOUT HAS NEVER BEEN SUCH FUN'] },
   { room: RIO_ROOM.steak, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['MONTY BOARDS A FERRY TO FRANCE'] },
   { room: RIO_ROOM.float, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: [] },
   { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: [] },
