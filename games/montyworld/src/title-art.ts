@@ -136,14 +136,14 @@ export interface Stop { readonly name: string; readonly x: number; readonly y: n
 
 /** The route from Montos to Rio: where it goes (pixels from the map's top left); the stops are on it. */
 export const STOPS: readonly Stop[] = [
-  { name: 'MONTOS', x: 38, y: 30, label: { col: 1, row: 4 } },
+  { name: 'MONTOS', x: 38, y: 30, label: { col: 6, row: 5 } },
   { name: 'MOSCOW', x: 46, y: 10, label: { col: 0, row: 0 } },
-  { name: 'SIBERIA', x: 96, y: 8, label: { col: 8, row: 2 } },
-  { name: 'CHINA', x: 124, y: 18, label: { col: 14, row: 3 } },
-  { name: 'JAPAN', x: 150, y: 20, label: { col: 20, row: 1 } },
-  { name: 'HAWAII', x: 206, y: 28, label: { col: 24, row: 4 } },
-  { name: 'ANDES', x: 276, y: 38, label: { col: 30, row: 3 } },
-  { name: 'RIO', x: 310, y: 42, label: { col: 36, row: 4 } },
+  { name: 'SIBERIA', x: 96, y: 8, label: { col: 10, row: 0 } },
+  { name: 'CHINA', x: 124, y: 18, label: { col: 11, row: 4 } },
+  { name: 'JAPAN', x: 150, y: 20, label: { col: 19, row: 3 } },
+  { name: 'HAWAII', x: 206, y: 28, label: { col: 23, row: 4 } },
+  { name: 'ANDES', x: 276, y: 38, label: { col: 27, row: 5 } },
+  { name: 'RIO', x: 310, y: 42, label: { col: 31, row: 4 } },
 ];
 /** Between the stops: the sea crossings bend. */
 const WAYPOINTS: readonly (readonly [number, number])[] = [[38, 30], [46, 10], [96, 8], [124, 18], [150, 20], [178, 24], [206, 28], [276, 38], [310, 42]];
@@ -196,8 +196,8 @@ export interface TitleArt {
   readonly ring: number;
 }
 
-/** The ring that marks a stop: a character of its own. */
-const RING = [0x3c, 0x66, 0xc3, 0xc3, 0xc3, 0xc3, 0x66, 0x3c];
+/** The mark of a stop: a round dot, a character of its own. */
+const RING = [0x18, 0x3c, 0x7e, 0x7e, 0x7e, 0x7e, 0x3c, 0x18];
 
 /** Builds the title's picture from the game's bank (its lettering is in it, at $40-$7F of the characters). */
 export function buildTitleArt(bank: Uint8Array): TitleArt {
@@ -236,15 +236,15 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
   const ring = set.code(RING);
   for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {
     const glyph = new Mask(8, 8);
-    let ink = -1;
+    let ink = -1, onRoute = false;
     for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) {
       const row = cy * 2 + j, col = cx * 2 + i, g = groundAt(row, col);
       const dotted = dots.has(row * 80 + col);
       if (g !== 'sea') { glyph.rect(i * 4, j * 4, 4, 4); ink = Math.max(ink, g === 'high' ? BROWN : GREEN); }
-      if (dotted) { glyph.rect(i * 4 + 1, j * 4 + 1, 2, 2); ink = -2; }
+      if (dotted) { glyph.rect(i * 4 + 1, j * 4 + 1, 2, 2); onRoute = true; if (ink === -1) ink = YELLOW; }
     }
     if (ink === -1) continue;
-    put(ROWS.map + cy, cx, set.code(glyph.cell(0, 0)), ink === -2 ? YELLOW : ink === GREEN ? LGREEN : ink);
+    put(ROWS.map + cy, cx, set.code(glyph.cell(0, 0)), onRoute ? YELLOW : ink);
   }
   // the stops' rings and names (a name takes the characters under it)
   for (const s of STOPS) {
@@ -257,10 +257,10 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
   return { chars: set.bytes, screen, colour, used: set.used, ring };
 }
 
-/** The map cells the route's dots are in (a dot in the middle of each, five pixels or so apart along the way): `row * 80 + col`. */
+/** The map cells the route's dots are in (a dot in the middle of each, every cell along the way): `row * 80 + col`. */
 function routeDots(): ReadonlySet<number> {
   const cells = new Set<number>();
-  for (let d = 0; d <= ROUTE_LENGTH; d += 5) {
+  for (let d = 0; d <= ROUTE_LENGTH; d += 2) {
     const p = routeAt(d / ROUTE_LENGTH);
     cells.add(Math.floor((p.y - MAP_Y) / 4) * 80 + Math.floor(p.x / 4));
   }

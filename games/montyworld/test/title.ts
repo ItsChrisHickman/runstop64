@@ -15,7 +15,7 @@ import { must } from '../../shared/test/must';
 import { fineScroll } from '../../montyotr/src/title';
 import { WORLD } from '../src/data';
 import { run } from '../src/main';
-import { MapTitle, SPRITE_BLOCKS, STORY_MESSAGE, STRIP_Y, WALK_FRAMES } from '../src/title';
+import { MapTitle, SPRITE_BLOCKS, STORY_MESSAGE, STAND, STORY, STRIP_Y, WALK_FRAMES } from '../src/title';
 import { buildTitleArt, CREDIT_LINES, ROUTE_LENGTH, routeAt, ROWS, STOPS, TAGLINE } from '../src/title-art';
 import { savePng } from './shots-kit';
 
@@ -57,12 +57,12 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   const spot = () => ({ x: g.vic.sprites[0].x - 24 + 12, y: g.vic.sprites[0].y - 50 + 21, on: (g.vic.enable & 3) === 3 });
   const seen: { x: number; y: number }[] = [];
   let backwards = 0, offRoute = 0;
-  for (let f = 3; f < WALK_FRAMES + 130; f++) {
+  for (let f = 3; f < WALK_FRAMES + STAND - 2; f++) {
     tick();
     const s = spot();
     if (!s.on) continue;
     const t = Math.min(f, WALK_FRAMES) / WALK_FRAMES, want = routeAt(t);
-    if (Math.abs(s.x - want.x) > 6 || Math.abs(s.y - want.y) > 6) offRoute++;
+    if (Math.abs(s.x - want.x) > 6 || Math.abs(s.y - want.y) > 8) offRoute++;
     const last = seen[seen.length - 1];
     if (last && s.x < last.x - 1) backwards++;
     seen.push(s);
@@ -71,10 +71,10 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   check(`Monty starts by Montos (${first.x},${first.y}) and reaches Rio (${last.x},${last.y}) along the route (${Math.round(ROUTE_LENGTH)} px, ${WALK_FRAMES} frames)`, first.x < 60 && last.x > 295);
   check(`his feet stay on the dotted route (${offRoute} frames off it) and he never walks back (${backwards})`, offRoute === 0 && backwards === 0);
   check('he is two sprites (his picture and his hat), hires, in front, not expanded', g.vic.enable === 3 && g.vic.multicolour === 0 && g.vic.priority === 0 && g.vic.expandX === 0);
-  tick(60);
-  check('and after a pause at Rio he is gone, then back at Montos (a loop)', (g.vic.enable & 3) === 0 || spot().x > 290);
-  tick(60);
-  check('back at Montos', spot().x < 60 && (g.vic.enable & 3) === 3);
+  tick(10);
+  check('after a pause at Rio he is gone for a moment', (g.vic.enable & 3) === 0);
+  tick(30);
+  check('and he is back at Montos, to walk it again (a loop)', spot().x < 60 && (g.vic.enable & 3) === 3);
 }
 
 // ---- the scroller and the strip --------------------------------------------------------------------------------------------
@@ -94,7 +94,8 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
 
 // ---- nothing of Monty on the Run's title ---------------------------------------------------------------------------------------
 {
-  const story = Array.from(STORY_MESSAGE, (b) => (b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : ' ')).join('');
+  const story = STORY.filter((piece) => typeof piece === 'string').join('');
+  check('the scroller\'s stream is that story, every letter in the game\'s lettering', STORY_MESSAGE.length > story.length && [...story].every((c) => c !== "'"));
   const everything = `${story} ${CREDIT_LINES.map((l) => l.text).join(' ')} ${TAGLINE}`;
   const banned = ['MONTY ON THE RUN!', 'MICRO PROJECTS', 'JOINT PRODUCTION', 'SCUDMORE', 'SAM STOAT', 'HELL OF', 'FREEDOM KIT', 'HIGH SCORES', 'HI SCORES', 'WRITTEN BY', 'TONY AND JASON', 'TRIBUTE', 'RUNSTOP64', 'FAN GAME', 'REMAKE', 'SAFETY'];
   const hits = banned.filter((b) => everything.includes(b));

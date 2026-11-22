@@ -20,7 +20,8 @@ export const SPRITE_BLOCKS = { monty: 0x30, hat: 0x34 } as const;
 /** Monty's walking pictures (the right-facing half of his set: pointers $54-$57). */
 const WALK = [0x54, 0x55, 0x56, 0x57] as const;
 /** Frames: a step every six, a pixel and a bit a frame; he stands at Rio `STAND` frames and is back at Montos after `GAP` more. */
-const STEP = 6, SPEED = 0.7, STAND = 90, GAP = 30;
+const STEP = 6, SPEED = 0.7, GAP = 30;
+export const STAND = 90;
 export const WALK_FRAMES = Math.ceil(ROUTE_LENGTH / SPEED);
 
 /** A 24-pixel-wide sprite block turned round (he walks east, his pictures face the other way). */
