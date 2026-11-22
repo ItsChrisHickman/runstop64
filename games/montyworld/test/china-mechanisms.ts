@@ -426,7 +426,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (Moscow\'s and Siberia\'s arrays and grids) loads: the finds and the ushanka are as saved, and China is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 34 && g2.coinCollected.length === 219 && g2.coinCollected.slice(27).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 34 && g2.coinCollected.length === 220 && g2.coinCollected.slice(27).every((c) => c === 0));
 }
 
 /** The rice hat's index in the table. */

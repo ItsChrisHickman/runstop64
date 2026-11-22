@@ -171,8 +171,8 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 {
   const [v0, v1, v2] = [must(VINES[0], 'a vine'), must(VINES[1], 'a vine'), must(VINES[2], 'a vine')];
   check(`three vines hang from the canopy at columns ${VINES.map((v) => v.col).join(', ')}, ${v0.length} cells long, swinging ${v0.amplitude} cells either way every ${v0.period} frames, ${v1.phase - v0.phase} frames apart`,
-    VINES.length === 3 && v1.phase - v0.phase === 32 && v2.phase - v1.phase === 32 && VINES.every((v) => v.period === 96 && v.length === 9 && v.top === 3 && v.amplitude === 4));
-  check('a vine is straight at the start of its swing, four cells out at its tip a quarter on, straight again a half on, four the other way three quarters on', [0, 24, 48, 72].map((t) => Math.round(vineOffset(v0, v0.length, t))).join() === '0,4,0,-4' && vineCol(v0, v0.length, 24) === v0.col + 4);
+    VINES.length === 3 && v1.phase - v0.phase === 32 && v2.phase - v1.phase === 32 && VINES.every((v) => v.period === 96 && v.length === 13 && v.top === 3 && v.amplitude === 5));
+  check('a vine is straight at the start of its swing, five cells out at its tip a quarter on, straight again a half on, five the other way three quarters on', [0, 24, 48, 72].map((t) => Math.round(vineOffset(v0, v0.length, t))).join() === '0,5,0,-5' && vineCol(v0, v0.length, 24) === v0.col + 5);
   const s = at(AND.river, 1, 15);
   const code = v0.code;
   const drawn = (g: Game, t: number) => Array.from({ length: v0.length }, (_, d) => cell(g, vineCol(v0, d, t), v0.top + d)).filter((c) => c === code).length;
@@ -184,7 +184,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   // hanging on: put him on the first vine, in the air, and watch him carried
   const h = at(AND.river, 1, 15);
   h.g.enemies = [];
-  enterRoom(h.g, AND.river, 0x0c + (8 + 4) * 4 - 2, standY(11));
+  enterRoom(h.g, AND.river, 0x0c + (8 + 4) * 4 - 2, standY(14));
   for (let n = 0; n < 200 && (h.g.freeze || h.g.script); n++) frame(h, NONE);
   h.g.enemies = [];
   h.g.onRope = 1;

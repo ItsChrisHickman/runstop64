@@ -26,6 +26,9 @@ export function vineOffset(e: VineSpec, depth: number, t: number): number {
 /** The column (playfield, whole) the vine's cell in a row of its depth is drawn in. */
 export const vineCol = (e: VineSpec, depth: number, t: number): number => e.col + Math.round(vineOffset(e, depth, t));
 
+/** The sprite pixel the vine's line is at (its middle) at `depth` cells down, `t` frames into the swing: where he hangs on it. */
+const lineX = (e: VineSpec, depth: number, t: number): number => pixelX(e.col) + 4 + vineOffset(e, depth, t) * 8;
+
 /** A cell a vine may be drawn over: empty, or a decoration's character. */
 const coverable = (chr: number) => chr === 0 || chr >= FIRST_DECOR_CHR;
 
@@ -44,8 +47,7 @@ export function vineHeld(g: Game): { state: VineState; spec: VineSpec; depth: nu
     if (!spec) continue;
     const depth = mid - spec.top;
     if (depth < 0 || depth >= spec.length) continue;
-    const c = vineCol(spec, depth, state.t) + PLAY_COL;
-    if (c >= g.montyCol && c <= g.montyCol + 1) return { state, spec, depth };
+    if (Math.abs(lineX(spec, depth, state.t) - (g.x2 * 2 + 8)) < 12) return { state, spec, depth };
   }
   return null;
 }
@@ -72,8 +74,7 @@ export function vineUpdate(g: Game) {
   const held = vineHeld(g);
   if (held && !g.input.left && !g.input.right) {
     // his body's middle over the vine's line at his height: x2 is in two-pixel units
-    const centre = pixelX(held.spec.col) + 4 + vineOffset(held.spec, held.depth, held.state.t) * 8;
-    const dx = Math.max(-2, Math.min(2, Math.round((centre - 8) / 2) - g.x2));
+    const dx = Math.max(-2, Math.min(2, Math.round((lineX(held.spec, held.depth, held.state.t) - 8) / 2) - g.x2));
     g.x2 = (g.x2 + dx) & 0xff;
   }
 }

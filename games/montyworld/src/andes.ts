@@ -90,8 +90,12 @@ export const BOULDERS: readonly RollerSpec[] = [0, 120, 240].map((start, i): Rol
   room: AND.rock, sprite: [1, 2, 6][i] ?? 1, path: BOULDER_PATH, speed: 1, every: 360, start, frames: BOULDER_POINTERS, colour: 9,
 }));
 
-/** P's vines: three, from the canopy at columns 8, 16 and 24, each nine cells long, swinging through four cells either way every 96 frames, a third of a swing apart. */
-export const VINES: readonly VineSpec[] = [8, 16, 24].map((col, i): VineSpec => ({ room: AND.river, col, top: 3, length: 9, period: 96, amplitude: 4, phase: i * 32, code: codeOf(RIVER_PALETTE, 'V') }));
+/**
+ * P's vines: three, from the canopy at columns 8, 16 and 24, each thirteen cells long (down to row 15, the banks' floor), swinging through five cells either way at the tip every 96 frames, a third of a swing apart. Monty
+ * takes hold of a rope by walking into it or falling onto it (a jump does not: Monty on the Run's rule), so a vine reaches the height of his body on the bank: it swings over the bank's edge and he steps onto it, rides it out over the
+ * water and steps off onto a log (or the far bank) as it swings over.
+ */
+export const VINES: readonly VineSpec[] = [8, 16, 24].map((col, i): VineSpec => ({ room: AND.river, col, top: 3, length: 13, period: 96, amplitude: 5, phase: i * 32, code: codeOf(RIVER_PALETTE, 'V') }));
 
 // ---- the key items' places -------------------------------------------------------------------------
 /** CLOUD NINE's tangle over the jetty's rope (cols 4-7, rows 18-19: four wide, so that he standing anywhere on the rope has air under his three columns): the machete cuts it away. */
@@ -158,7 +162,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(0, 13, 1, 17, 'K').box(30, 12, 31, 13, 'W');
     },
     coins: [[10, 4], [16, 4], [22, 4], [28, 4], [8, 16], [21, 16], [27, 16]],
-    decor: [['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
+    decor: [['mountainRange', 1, 3], ['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
     creatures: [{ who: 'llama', col: 6, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 17, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
@@ -225,16 +229,16 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // X THE INCA TUNNEL: under the terraces, a dead end. In by the rope from the well (cols 19-21) which hangs to the floor; a tunnel of dressed stone lit by torches, golden idols in the niches, a Mole Crusher across it west of the rope, and stairs of blocks
-  // up the east end (floors 15, 12) to a shelf where the machete lies. Out west, low, into the cloud forest.
+  // up the east end (floors 16, 14, 12) to a shelf where the machete lies. Out west, low, into the cloud forest.
   room({
     id: AND.tunnel, cell: [6, 31], sector: 63, palette: TUNNEL_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 3, 'S').clear(19, 0, 21, 3).box(30, 0, 31, 15, 'S').box(0, 4, 1, 15, 'S');
       g.box(0, 18, 31, 19, 'W').box(9, 11, 13, 12, 'S');
-      g.box(24, 15, 27, 17, 'W').box(28, 12, 30, 17, 'W');
+      g.box(23, 16, 25, 17, 'W').box(26, 14, 27, 17, 'W').box(28, 12, 30, 17, 'W');
       g.box(20, 0, 20, 17, 'R');
     },
-    coins: [[5, 16], [16, 16], [23, 16], [26, 13], [29, 9]],
+    coins: [[5, 16], [16, 16], [21, 16], [24, 14], [27, 12], [29, 9]],
     item: { name: 'machete', col: 28, row: 10, sprite: ANDES_SPRITE.machete },
     decor: [['torch', 7, 16], ['torch', 17, 16], ['idol', 3, 16], ['idol', 14, 16], ['torch', 22, 16]],
     creatures: [{ who: 'caveBat', col: 12, row: 6, way: 'right', speed: 2, range: 50 }],
@@ -248,7 +252,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 0, 31, 2, 'J').clear(4, 0, 7, 2).box(5, 0, 5, 15, 'V');
       g.box(0, 16, 4, 19, 'M');
-      g.box(5, 15, 31, 15, 'D').box(5, 16, 31, 19, 'H');
+      g.box(5, 15, 31, 15, 'D').box(5, 16, 31, 17, 'H').box(5, 18, 31, 19, 'W'); // the deck, the hull, the river under it
       for (let c = 8; c <= 28; c += 4) g.box(c, 17, c, 17, 'P');
       g.box(8, 8, 26, 8, 'D').box(8, 9, 25, 12, 'H').box(12, 10, 12, 10, 'P').box(16, 10, 16, 10, 'P').box(20, 10, 20, 10, 'P').box(24, 10, 24, 10, 'P');
       g.box(7, 8, 7, 14, 'L');
@@ -265,7 +269,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.river, cell: [7, 31], sector: 65, palette: RIVER_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'J');
-      g.box(0, 15, 3, 19, 'M').box(28, 15, 31, 19, 'M').box(4, 16, 27, 19, 'W').box(13, 16, 15, 16, 'L').box(20, 16, 22, 16, 'L');
+      g.box(0, 15, 4, 19, 'M').box(28, 15, 31, 19, 'M').box(5, 16, 27, 19, 'W').box(13, 16, 15, 16, 'L').box(20, 16, 22, 16, 'L');
       g.box(0, 3, 1, 12, 'J').box(30, 0, 31, 12, 'J');
     },
     coins: [[10, 11], [14, 14], [18, 10], [21, 14], [26, 11], [30, 13]],
@@ -285,6 +289,6 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[3, 13], [13, 11], [15, 9], [19, 7], [22, 6]],
     item: { name: 'empanada6', col: 23, row: 6, sprite: ANDES_SPRITE.empanada },
     decor: [['palm', 25, 3], ['fern', 10, 10], [{ text: 'RIO COMING SOON', colour: 7 }, 8, 4]],
-    creatures: [{ who: 'anaconda', col: 1, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'piranha', col: 8, row: 18, way: 'up', speed: 1, range: 16 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
+    creatures: [{ who: 'anaconda', col: 15, row: 9, way: 'right', speed: 1, range: 8 }, { who: 'piranha', col: 8, row: 18, way: 'up', speed: 1, range: 16 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
   }),
 ];

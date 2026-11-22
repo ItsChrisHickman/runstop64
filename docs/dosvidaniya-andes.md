@@ -80,7 +80,7 @@ right where the panpipes lie. A bat overhead and a guinea pig. Out the way he ca
 machete cuts it; a rope hangs through to the boat); a rope (col 15) climbs from the ground to the boughs (floors 8, 13, 12) that run across above, a sloth and a toucan on them. Coins on the boughs.
 
 **X THE INCA TUNNEL** (dead end under the terraces). In by the rope from the well (cols 19-21); a tunnel of dressed stone lit by torches, golden idols, a bat, a Mole Crusher across it west of the rope, and stairs of blocks up
-the east end (floors 15, 12) to a shelf with the machete. Out west, low, into the forest.
+the east end (floors 16, 14, 12) to a shelf with the machete. Out west, low, into the forest.
 
 **B THE RIVER QUEEN** (the riverboat, a side view). In by the rope from the forest on the jetty at the left (floor 16), a plank across to the cargo deck (floor 15) under the cabin; a ladder (col 7) goes up to the top deck
 (floor 8: the pilot house, the funnel, a macaw, the lifebuoy, an empanada, a dead end). The captain paces the cargo deck under the cabin (a lane two cells high: no way past him) and steps aside for a local's hat. Out east at
@@ -89,8 +89,8 @@ the stern, low, past the paddle wheel.
 **P VINE AND DANDY** (the piranha river). The boat runs aground. A wide brown river (the floor is water, deadly) from the stern's bank at the left (floor 15) to a mud bank at the right with an empanada; three vines hang from
 the canopy and swing, two logs float between, piranhas leap and a sloth hangs under the canopy. The skill room.
 
-**R THE RIVER'S END** (the last bank). In from the mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs with an empanada; an anaconda coils on the first
-bank, a pool (cols 6-9) between it and the stair has a piranha and a pink river dolphin. The quay's lights glimmer beyond; the way east is shut with a sign (RIO COMING SOON).
+**R THE RIVER'S END** (the last bank). In from the mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs with an empanada; an anaconda coils on the second
+step, a pool (cols 6-9) between it and the stair has a piranha and a pink river dolphin. The quay's lights glimmer beyond; the way east is shut with a sign (RIO COMING SOON).
 
 ### Items, gates, doubling back
 
@@ -111,9 +111,10 @@ the game. A death starts him again at the room's entry.
 **Rolling boulders (T2; `rollers`, `games/montyotr/src/rollers.ts`).** Three boulders (sprites 1, 2 and 6) on one path of the room: off the plateau's lip, along its floor, a fall of two rows at each edge, down the steps to the
 wall at the right, a pixel a frame, 360 frames to a period and 120 apart, so there is always one somewhere on the steps, seen all the way from the plateau. Death on touch (as a crusher's head); a hop clears one.
 
-**Swinging vines (P; `vines`, `games/montyotr/src/vines.ts`).** A vine is nine cells of rope tile hanging from the canopy at columns 8, 16 and 24, swinging like a pendulum (four cells out at the tip, 96 frames a swing, a
-third of a swing apart), redrawn over the room's empty cells as it goes. He takes hold of one as of any rope and is carried with it while he hangs on (nothing held sideways); he lets go by jumping, and goes the way the vine
-is swinging if he holds no direction. A fall into the river is deadly.
+**Swinging vines (P; `vines`, `games/montyotr/src/vines.ts`).** A vine is thirteen cells of rope tile hanging from the canopy at columns 8, 16 and 24 down to the banks' floor, swinging like a pendulum (five cells out at the tip, 96 frames a swing, a
+third of a swing apart), redrawn over the room's empty cells as it goes. He takes hold of one as of any rope, by walking into it or falling onto it (Monty on the Run's ropes are not taken in a jump), so it swings over the
+bank's edge at the height of his body, he steps onto it and is carried with it while he hangs on (nothing held sideways); he steps off sideways onto a log or the far bank as it swings over, or lets go by jumping, and goes
+the way the vine is swinging if he holds no direction. A fall into the river is deadly.
 
 ### Creatures (twelve, none in more than two rooms)
 
@@ -129,7 +130,7 @@ is swinging if he holds no direction. A fall into the river is deadly.
 | sloth | CF, P | hangs, slow, a goofy smile |
 | captain | B | the riverboat's gate: paces the cargo deck, steps aside for the chullo |
 | piranha | P, R | leaps from the water |
-| anaconda | R | coils on the first bank |
+| anaconda | R | coils on the second step |
 | pink river dolphin | R | leaps in the pool |
 
 ### Costume: the chullo
