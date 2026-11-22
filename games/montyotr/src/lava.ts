@@ -1,6 +1,6 @@
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, ROW, SCREEN } from '../../shared/monty/screen';
 import { montyOver } from './cells';
-import { FIRST_DECOR_CHR } from './decor-chars';
+import { coverable } from './decor-chars';
 import type { Game } from './game';
 import type { LavaSpec } from './montydata';
 
@@ -26,9 +26,6 @@ export function lavaTop(e: LavaSpec, t: number): number {
   if (at < rise + e.holdFrames) return e.topRow;
   return e.topRow + Math.floor((at - rise - e.holdFrames) / e.drainFrames);
 }
-
-/** A cell the lava may cover: empty, or a decoration's character (not a tile, a coin or an item). */
-const coverable = (chr: number) => chr === 0 || chr >= FIRST_DECOR_CHR;
 
 /** One frame: the lava a step on, drawn where its top moved, a death if it has him. */
 export function lavaUpdate(g: Game) {

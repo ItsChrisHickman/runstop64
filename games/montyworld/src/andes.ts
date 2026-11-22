@@ -82,10 +82,10 @@ export const FLIGHTS: readonly FlightSpec[] = [
 ];
 
 /**
- * T2's boulders: three, a third of a period apart, from the plateau's lip (col 13) along the plateau (floor 6) and down the steps (floors 8, 10, 12) a pixel a frame, a fall of two rows at each edge, to the wall
- * at the right, `every` 360 frames; a boulder is on the path about 170 of them, so a step has one passing now and then, seen from the plateau all the way.
+ * T2's boulders: three, a third of a period apart, from the plateau's lip (col 13) along the plateau (floor 6) and down the steps (floors 8, 10, 12) a pixel a frame, a fall of two rows at each edge, along the landing into a heap of
+ * rubble (cols 28-29: they end there, short of the doorway at cols 30-31 that he comes in by from the village), `every` 360 frames; a boulder is on the path about 170 of them, so a step has one passing now and then, seen from the plateau all the way.
  */
-export const BOULDER_PATH: readonly (readonly [col: number, row: number])[] = [[13, 4], [15, 4], [16.4, 6], [19.2, 6], [20.4, 8], [24.2, 8], [25.4, 10], [29, 10]];
+export const BOULDER_PATH: readonly (readonly [col: number, row: number])[] = [[13, 4], [15, 4], [16.4, 6], [19.2, 6], [20.4, 8], [24.2, 8], [25.4, 10], [27.6, 10]];
 export const BOULDERS: readonly RollerSpec[] = [0, 120, 240].map((start, i): RollerSpec => ({
   room: AND.rock, sprite: [1, 2, 6][i] ?? 1, path: BOULDER_PATH, speed: 1, every: 360, start, frames: BOULDER_POINTERS, colour: 9,
 }));
@@ -171,7 +171,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 10, 'W').box(8, 8, 31, 8, 'G').clear(3, 6, 5, 12).box(4, 6, 4, 17, 'L');
       g.box(0, 18, 31, 19, 'G');
       g.box(9, 16, 13, 16, 'G').box(9, 17, 13, 17, 'W').box(14, 14, 17, 14, 'G').box(14, 15, 17, 17, 'W').box(18, 16, 21, 16, 'G').box(18, 17, 21, 17, 'W'); // the terraces of the low path
-      g.box(0, 11, 1, 17, 'K').box(30, 7, 31, 13, 'W');
+      g.box(0, 11, 1, 17, 'K').box(30, 7, 31, 15, 'W');
     },
     coins: [[11, 4], [16, 4], [22, 4], [28, 4], [11, 14], [15, 12], [19, 14], [27, 16]],
     decor: [['mountainRange', 3, 3], ['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
@@ -188,11 +188,11 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(0, 6, 15, 6, 'G').box(0, 7, 15, 13, 'W').box(16, 8, 20, 8, 'G').box(16, 9, 20, 13, 'W').box(21, 10, 25, 10, 'G').box(21, 11, 25, 13, 'W').box(26, 12, 31, 12, 'G').box(26, 13, 31, 13, 'W');
       g.clear(4, 6, 6, 13).box(5, 6, 5, 17, 'L'); // the ladder down to the lane
       g.box(0, 18, 31, 19, 'G').clear(19, 18, 21, 19).box(20, 18, 20, 19, 'V').box(11, 14, 22, 15, 'W').box(23, 14, 31, 17, 'K'); // the lane, the well and its rope, the tunnel's lintel and the rock the tunnel ends in
-      g.box(30, 0, 31, 9, 'K').box(0, 0, 1, 2, 'K');
+      g.box(30, 0, 31, 9, 'K').box(0, 0, 1, 2, 'K').box(0, 14, 1, 15, 'W');
     },
-    coins: [[7, 4], [10, 4], [18, 6], [23, 8], [28, 10], [3, 16]],
+    coins: [[7, 4], [10, 4], [18, 6], [23, 8], [27, 10], [3, 16]],
     item: { name: 'empanada3', col: 8, row: 16, sprite: ANDES_SPRITE.empanada },
-    decor: [['incaGate', 2, 2], ['intihuatana', 8, 4], ['skyCloud', 9, 0], ['skyCloud', 25, 1]],
+    decor: [['incaGate', 2, 2], ['intihuatana', 8, 4], ['skyCloud', 9, 0], ['skyCloud', 25, 1], ['rubble', 28, 10]],
     creatures: [{ who: 'spitter', col: 12, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
@@ -247,7 +247,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.tunnel, cell: [6, 31], sector: 63, palette: TUNNEL_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 3, 'S').clear(19, 0, 21, 3).box(30, 0, 31, 15, 'S').box(0, 4, 1, 15, 'S').clear(0, 6, 1, 7).box(0, 8, 6, 9, 'W'); // the west wall has a door high, rows 6-7, onto a ledge (floor 8)
+      g.box(0, 0, 31, 3, 'S').clear(19, 0, 21, 3).box(30, 0, 31, 17, 'S').box(0, 4, 1, 15, 'S').clear(0, 6, 1, 7).box(0, 8, 6, 9, 'W'); // the west wall has a door high, rows 6-7, onto a ledge (floor 8)
       g.box(0, 18, 31, 19, 'W').box(22, 4, 23, 10, 'S'); // the stub of ceiling the crusher hangs from
       g.box(24, 16, 25, 17, 'W').box(26, 14, 27, 17, 'W').box(28, 12, 30, 17, 'W');
       g.box(20, 0, 20, 17, 'R');

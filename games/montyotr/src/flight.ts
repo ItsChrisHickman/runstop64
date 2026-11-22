@@ -38,6 +38,7 @@ export function flightMove(g: Game, spec: FlightSpec) {
   const y = g.y;
   applyMonty(g, g);
   if (g.dirDown || lifted) g.flightResting = g.dirDown && !lifted && g.y === y;
+  if (g.flightResting) g.onRope = 0; // resting on a ledge the canopy is folded and he stands on his feet (his pictures are the rope's while it is open)
 }
 
 /** The canopy's picture for the way he steers. */

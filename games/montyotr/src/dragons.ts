@@ -1,6 +1,7 @@
-import { montyMeets, pixelX, pixelY } from './cells';
+import { meetsMonty, pixelX, pixelY } from './cells';
 import type { Game } from './game';
 import type { DragonSpec } from './montydata';
+import { measurePath, pathCache, pointAt, type MeasuredPath } from './paths';
 
 /**
  * A dragon (a game's `dragons`: Do Svidaniya Monty's New Year dragon): pieces on sprites of their own follow one smooth closed path through the room,
@@ -11,15 +12,12 @@ import type { DragonSpec } from './montydata';
  */
 
 /** A piece's pictures are 24 by 21; it touches him when the two boxes meet, each trimmed a little (a dragon's edges are thin). */
-const WIDTH = 24, HEIGHT = 21, TRIM = 4, MONTY_TRIM = 2;
+const WIDTH = 24, HEIGHT = 21, TRIM = 4;
 /** Samples of the spline between two corners. */
 const SAMPLES = 24;
 
-/** A path measured: the points of the spline (sprite pixels) and the arc length up to each, closing on the first. */
-export interface Path { points: readonly (readonly [number, number])[]; arc: readonly number[]; length: number }
-
 /** Catmull-Rom through the corners, closed, as points in sprite pixels. */
-export function measure(corners: DragonSpec['path']): Path {
+export function measure(corners: DragonSpec['path']): MeasuredPath {
   const n = corners.length;
   const px = corners.map(([c, r]): [number, number] => [pixelX(c), pixelY(r)]);
   const at = (i: number) => px[((i % n) + n) % n] ?? [0, 0];
@@ -32,32 +30,11 @@ export function measure(corners: DragonSpec['path']): Path {
       points.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
     }
   }
-  const arc: number[] = [0];
-  for (let i = 1; i <= points.length; i++) {
-    const a = points[i - 1] ?? [0, 0], b = points[i % points.length] ?? [0, 0];
-    arc.push((arc[i - 1] ?? 0) + Math.hypot(b[0] - a[0], b[1] - a[1]));
-  }
-  return { points, arc, length: arc[points.length] ?? 0 };
-}
-
-/** The point of a path `s` pixels along it (any number: it goes round). */
-export function pointAt(p: Path, s: number): readonly [number, number] {
-  const d = ((s % p.length) + p.length) % p.length;
-  let lo = 0, hi = p.points.length;
-  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if ((p.arc[mid] ?? 0) <= d) lo = mid; else hi = mid; }
-  const a = p.points[lo] ?? [0, 0], b = p.points[(lo + 1) % p.points.length] ?? [0, 0];
-  const span = (p.arc[lo + 1] ?? 0) - (p.arc[lo] ?? 0);
-  const f = span > 0 ? (d - (p.arc[lo] ?? 0)) / span : 0;
-  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  return measurePath(points, true);
 }
 
 /** The measured paths of the data's dragons, once. */
-const MEASURED = new WeakMap<DragonSpec, Path>();
-function pathOf(spec: DragonSpec): Path {
-  let p = MEASURED.get(spec);
-  if (!p) { p = measure(spec.path); MEASURED.set(spec, p); }
-  return p;
-}
+const pathOf = pathCache(({ path }: DragonSpec) => measure(path));
 
 /** A dragon of the room: its place in the data's list (a copy of the game copies numbers, not the data) and the frames since the room's loading, going round with the path. */
 export interface DragonState { index: number; t: number }
@@ -102,7 +79,7 @@ export function dragonUpdate(g: Game) {
       const half = piece.frames.length >> 1, ahead = pointAt(pathOf(e), t0 + 6 - i * e.gap);
       g.sptr[n] = piece.frames[(ahead[0] < x ? 0 : half) + ((d.t >> 4) % half)] ?? 0;
       g.enable |= 1 << n;
-      if (!g.actionCounter && montyMeets(g, x + TRIM, y + TRIM, WIDTH - 2 * TRIM, HEIGHT - 2 * TRIM, MONTY_TRIM)) g.actionCounter = 1;
+      if (!g.actionCounter && meetsMonty(g, x, y, WIDTH, HEIGHT, TRIM)) g.actionCounter = 1;
     });
   }
 }

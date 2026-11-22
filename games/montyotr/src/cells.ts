@@ -23,6 +23,14 @@ export function montyMeets(g: Game, x: number, y: number, w: number, h: number, 
   return montyAcross(g, x, w, trim) && g.y + 16 > y && y + h > g.y;
 }
 
+/** How much of his box's sides Monty gives to the box test of the things that kill by it (the dragon, the boulders). */
+const MONTY_TRIM = 2;
+
+/** Whether Monty meets a sprite's picture of `w` by `h` sprite pixels at (`x`, `y`) with its box trimmed by `trim` all round (the box test of the dragon and the boulders: a thin or round picture touches less than its box). */
+export function meetsMonty(g: Game, x: number, y: number, w: number, h: number, trim: number): boolean {
+  return montyMeets(g, x + trim, y + trim, w - 2 * trim, h - 2 * trim, MONTY_TRIM);
+}
+
 /** Whether Monty (his box, the sides trimmed a little) is in the playfield cells from column `left` for `cols` columns, from row `top` to row `bottom`. */
 export function montyOver(g: Game, left: number, cols: number, top: number, bottom: number): boolean {
   return montyMeets(g, pixelX(left), pixelY(top), cols * 8, (bottom - top + 1) * 8, 2);

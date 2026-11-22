@@ -1,6 +1,6 @@
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { pixelX } from './cells';
-import { FIRST_DECOR_CHR } from './decor-chars';
+import { coverable } from './decor-chars';
 import type { Game } from './game';
 import type { VineSpec } from './montydata';
 
@@ -29,8 +29,6 @@ export const vineCol = (e: VineSpec, depth: number, t: number): number => e.col 
 /** The sprite pixel the vine's line is at (its middle) at `depth` cells down, `t` frames into the swing: where he hangs on it. */
 const lineX = (e: VineSpec, depth: number, t: number): number => pixelX(e.col) + 4 + vineOffset(e, depth, t) * 8;
 
-/** A cell a vine may be drawn over: empty, or a decoration's character. */
-const coverable = (chr: number) => chr === 0 || chr >= FIRST_DECOR_CHR;
 
 /** The way a vine is moving at `t` (-1 left, 0 at an end, 1 right). */
 export function vineWay(e: VineSpec, t: number): number {

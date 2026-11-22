@@ -3,6 +3,9 @@ import type { MontyData } from './montydata';
 /** The first character of the decoration pool (`$9B`): the characters from here up are decorations', not tiles', coins' or items'. */
 export const FIRST_DECOR_CHR = 0x9b;
 
+/** A cell a thing drawn over the room (a vine, the lava) may cover: empty, or a decoration's character. */
+export const coverable = (chr: number): boolean => chr === 0 || chr >= FIRST_DECOR_CHR;
+
 /**
  * Decor.CalculateRoom's characters: each decoration type in a room takes the next characters from $9B
  * up (w × h of them) the first time it's placed; a type that doesn't fit in the pool (to $FF) isn't

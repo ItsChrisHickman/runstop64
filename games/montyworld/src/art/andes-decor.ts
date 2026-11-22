@@ -139,6 +139,15 @@ function intihuatana(): NewDecor {
   return decor('intihuatana', 2, 2, r, 15);
 }
 
+/** A heap of broken stone: three rounded rocks, the cracks cut in. 2 x 2 characters. */
+function rubble(): NewDecor {
+  const r = new Raster(16, 16);
+  r.ellipse(4, 12, 4.2, 3.4); r.ellipse(11.5, 12, 4.5, 3.4); r.ellipse(8, 7.5, 3.6, 3.2);
+  r.rect(0, 15, 15, 15);
+  r.line(3, 10, 5, 14, false); r.line(11, 9, 12, 14, false); r.line(7, 5, 9, 9, false); r.rect(0, 14, 15, 14, false);
+  return decor('rubble', 2, 2, r, 12);
+}
+
 /** A waterfall falling from a ledge in streaks, ending in foam. 2 x 6 characters. */
 function waterfall(): NewDecor {
   const r = new Raster(16, 48);
@@ -309,6 +318,7 @@ export const ANDES_DECOR = {
   cuyPen: cuyPen(),
   huaynaPicchu: huaynaPicchu(),
   intihuatana: intihuatana(),
+  rubble: rubble(),
   waterfall: waterfall(),
   fern: fern(),
   giantTree: giantTree(),

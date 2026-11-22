@@ -1,5 +1,5 @@
 /**
- * Where the Andes' sprites are in the bank (the blocks of $40 bytes numbered by pointer). The free blocks of the earlier regions ($C0-$FF) are all taken, so these are blocks of Monty on the Run's own
+ * Where the Andes' sprites are in the bank (the blocks of $40 bytes numbered by pointer). The free blocks of the earlier regions ($C0-$FE: the hats' pool ends at $FA, China's are $FB-$FD, Japan's $FE) are taken but for $FF, which the empanada has; the rest are blocks of Monty on the Run's own
  * that a game with no jetpack, no treasure and no Union Jack never shows (the jetpack's $76-$79, the original's item blocks $95-$97 and $98-$9B: the Pacific's items took $8F-$91, $93 and $94, and $8E, $92
  * and $9B belong to the first aid kit, the smoke stack and the treasure, which no room of this game holds). A leaf module: the rooms and the data both name these.
  */
