@@ -904,11 +904,11 @@ export class Game implements MontyBody, MontyWorld {
   // ---- life lost (original Death.LifeLost) -------------------------------------------
 
   /** Returns true if the game is over (no lives left). */
-  lifeLost(): boolean {
+  lifeLost(atEntry = false): boolean {
     this.lives = afterLoss(this.lives, this.assist.lives);
     this.drawHudData();
     if (this.lives > 0) {
-      this.respawn();
+      this.respawn(atEntry);
       return false;
     }
     return true;
@@ -919,9 +919,10 @@ export class Game implements MontyBody, MontyWorld {
    * safe place he stood there (his way in if he had none); if that place is deadly (a way in that drops into danger) the nearest
    * place in the room he can stand; and a moment's grace (`onRestart`). Never in another room.
    */
-  respawn() {
+  respawn(atEntry = false) {
     if (this.assist.respawn) {
-      if (!this.c5.active && !this.showJetpack) {
+      // (a C5 crash puts him back on the road at the room's way in, the C5 stopped there: mechanisms.ts c5Restart)
+      if (!atEntry && !this.c5.active && !this.showJetpack) {
         const at = this.restartSpot();
         this.savedX = at.x2;
         this.savedY = at.y;

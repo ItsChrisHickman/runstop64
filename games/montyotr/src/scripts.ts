@@ -105,12 +105,12 @@ function* deathByC5(g: Game): Seq {
     c5Arrive(g, C5_START);
     g.savedX = 0x9b;
   }
-  yield* lifeLost(g);
+  yield* lifeLost(g, true);
 }
 
 /** LifeLost: a life gone, then the room again, or game over (CONTINUE? is the front end's, on the title after it). */
-function* lifeLost(g: Game): Seq {
-  if (!g.lifeLost()) return;
+function* lifeLost(g: Game, atEntry = false): Seq {
+  if (!g.lifeLost(atEntry)) return;
   yield* gameOver(g);
 }
 

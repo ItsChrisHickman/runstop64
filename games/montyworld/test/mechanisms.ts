@@ -93,7 +93,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   for (const [i, e] of ICICLES.entries()) {
     const floor = e.floor === 6 ? 6 : 17;
     const right = e.room !== ROOM.domes;
-    const s = at(e.room, right ? e.col - 3 : e.col + 3, floor);
+    const s = at(e.room, right ? e.col - 3 : Math.min(e.col + 3, 22), floor); // (the domes' floor has a five-cell opening for the rope from col 23)
     const mine = ICICLES.filter((x) => x.room === e.room).indexOf(e);
     const before = must(s.g.ice[mine], 'icicle').state;
     for (let f = 0; f < 100 && (right ? colOf(s.g) < e.col + 2 : colOf(s.g) > e.col - 3); f++) frame(s, right ? RIGHT : LEFT); // (on, and stop clear of it)
