@@ -1,3 +1,4 @@
+import { gameText, textCode } from './lettering';
 import { PLAY_COLS, PLAY_ROWS } from './screen';
 
 /**
@@ -190,10 +191,10 @@ function enemyRecordsOf(r: RoomSpec): Uint8Array {
 
 /** A sign as a decoration type: the game's capitals (screen codes $40-$7F of its charset) cut out of a board, its ends rounded, as MPL ST. is. */
 function signType(sign: Sign, bank: Uint8Array): DecorType {
-  const text = ` ${sign.text} `;
+  const text = ` ${gameText(sign.text)} `;
   const chr = new Uint8Array(text.length * 8);
   for (let i = 0; i < text.length; i++) {
-    const code = (text.charCodeAt(i) & 0x3f) | 0x40;
+    const code = textCode(text.charAt(i));
     for (let y = 0; y < 8; y++) chr[i * 8 + y] = ~bank[code * 8 + y] & 0xff;
   }
   const last = (text.length - 1) * 8;

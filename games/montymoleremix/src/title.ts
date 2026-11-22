@@ -2,6 +2,7 @@ import { hexBytes } from 'c64kit';
 import raw from '../../montyotr/src/data/motr.json';
 import { Title, type TitleGame, type TitlePage } from '../../montyotr/src/title';
 import { COAL_LUMP } from './game';
+import { textCode } from '../../shared/monty/lettering';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { C64_OF } from './retile';
 import { POSTER_PICTURE, type PictureChar } from './title-picture';
@@ -67,7 +68,7 @@ export interface RemixTitleSound { song(n: number): void; stop(): void; musicOn(
 const COAL_CHAR = 0x02;
 /** The coal's row (23: under the table, between its pillars, columns 11 to 29 every other one). */
 const COAL_ROW = 23, COAL_FROM = 11, COAL_COUNT = 10;
-const codeOf = (c: string): number => (c === ' ' ? 0x60 : (c.charCodeAt(0) & 0x3f) | 0x40);
+const codeOf = textCode;
 /**
  * The poster (28 columns, six rows): the words at the left, twelve letters wide, and Wanted at the right, a picture of sixteen characters by six (title-picture.ts: the pit
  * head, the shed, Monty and a bucket with two lumps of coal). The picture's characters are the free ones of Monty on the Run's set (`PICTURE_CHARS`), each in its own colour.

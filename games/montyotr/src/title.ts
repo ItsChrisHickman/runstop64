@@ -1,5 +1,6 @@
 import { hexBytes, TRANSPARENT, type Surface, type Vic } from 'c64kit';
 import raw from './data/motr.json';
+import { textCode } from '../../shared/monty/lettering';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 
 /** What the title draws on: a game's picture (its VIC, with the characters and the screen in its bank) and its random numbers. Monty on the Run's game, and the remix's. */
@@ -42,7 +43,7 @@ const KIT_MARKS = hexBytes(T.kitMarks);
 /** The table: its top in row 21, its pillars in rows 22-24 (columns 7-8 and 31-32). */
 export const TABLE_ROW = 21;
 /** MONTY'S FREEDOM KIT, in the title's lettering (screen codes $40-$7F; the charset's apostrophe is $68). */
-const KIT_LABEL = [..."MONTY'S FREEDOM KIT"].map((c) => (c === "'" ? 0x68 : (c.charCodeAt(0) & 0x3f) | 0x40));
+const KIT_LABEL = [..."MONTY'S FREEDOM KIT"].map(textCode);
 /** Where the kit goes, under the table between the pillars: the label in row 22, the five icons (2x2 characters, 4 columns apart: a carousel step) in rows 23-24. */
 export const KIT_LABEL_ROW = 22, KIT_LABEL_COL = 11, KIT_ICON_ROW = 23, KIT_COL = 11;
 /** The label in the colour of the original's MONTY FREEDOM KIT. (light blue); the icons white, as the carousel's. */

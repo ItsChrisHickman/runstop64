@@ -1,4 +1,5 @@
 import { ENDING_VERSE } from '../../montymole/src/data';
+import { textCode } from '../../shared/monty/lettering';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import type { RemixGame } from './game';
 
@@ -14,7 +15,7 @@ export const LETTER_FRAMES = 2, LINE_PAUSE = 10, SCROLL_FRAMES = 6, WAIT_FRAMES 
 const KEY_AFTER = 60;
 const CYAN = 3;
 
-const codeOf = (c: string): number => (c === ' ' ? 0x60 : (c.charCodeAt(0) & 0x3f) | 0x40);
+const codeOf = textCode;
 
 type Phase = 'typing' | 'pause' | 'scroll' | 'wait';
 
