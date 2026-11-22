@@ -136,14 +136,14 @@ export const LAVA: LavaSpec = {
 export const LOADER: EscalatorSpec = { room: PAC.hilo, col: 15, row: 17, dx: 1, dy: -1, cols: 0, rows: 10, frames: 100 };
 
 // ---- the key items' places -------------------------------------------------------------------------
-/** The ramp's chain across BOX CLEVER's bow (cols 30-31, rows 9-10): the bolt cutters take it away. */
-export const CHAIN_CELLS: readonly (readonly [row: number, col: number])[] = [[9, 30], [9, 31], [10, 30], [10, 31]];
+/** The ramp's chain across BOX CLEVER's bow (cols 30-31, rows 9-10, and the two gutter columns 32-33 that mirror the edge): the bolt cutters take it away. */
+export const CHAIN_CELLS: readonly (readonly [row: number, col: number])[] = [9, 10].flatMap((row) => [30, 31, 32, 33].map((col) => [row, col] as const));
 /** Waikiki's pool (cols 22-31, row 18): the waves, which the snorkel turns to open water. */
 export const POOL_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 10 }, (_, i) => [18, 22 + i] as const);
 export const POOL_SEA = codeOf(SURF_PALETTE, 'S');
-/** Hana's cove pool (cols 20-22, rows 18-19): the waves the snorkel takes away, and the rope that hangs into it then. */
+/** Hana's cove pool (cols 20-22, rows 18-19): the waves the snorkel takes away, and the rope that hangs into it then (not before: a rope over the surf would let him walk across it). */
 export const COVE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [20, 21, 22].map((col) => [row, col] as const));
-export const COVE_ROPE: readonly (readonly [row: number, col: number])[] = [[18, 21], [19, 21]];
+export const COVE_ROPE: readonly (readonly [row: number, col: number])[] = [15, 16, 17, 18, 19].map((row) => [row, 21] as const);
 export const COVE_ROPE_CODE = codeOf(HANA_PALETTE, 'R');
 /** The plane's rear door (cols 30-31, rows 14-15): the parachute opens it. */
 export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] = [14, 15].flatMap((row) => [30, 31].map((col) => [row, col] as const));
@@ -220,7 +220,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.surf, cell: [2, 20], sector: 41, palette: SURF_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 0, 'M').clear(27, 0, 29, 0);
-      g.box(0, 1, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 16, 'M');
+      g.box(0, 1, 1, 4, 'M').box(0, 8, 1, 15, 'M').box(30, 2, 31, 13, 'M');
       g.box(0, 18, 21, 18, 'A').box(0, 19, 31, 19, 'F').box(22, 18, 31, 18, 'W'); // the beach and the pool
       g.box(2, 7, 31, 7, 'B').clear(13, 7, 15, 7); // the promenade
       g.box(14, 6, 14, 17, 'R').box(28, 0, 28, 6, 'R'); // the ropes
@@ -260,8 +260,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.clam, cell: [2, 21], sector: 43, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').box(0, 2, 1, 16, 'W').box(30, 2, 31, 16, 'W').box(0, 2, 31, 2, 'W');
-      g.box(2, 3, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 17, 31, 18, 'S').box(2, 3, 29, 3, 'U');
+      g.box(0, 0, 31, 1, 'W').box(0, 2, 1, 13, 'W').box(30, 2, 31, 13, 'W').box(0, 2, 31, 2, 'W');
+      g.box(2, 3, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(30, 14, 31, 18, 'S').box(2, 3, 29, 3, 'U');
       g.box(0, 19, 31, 19, 'B');
       g.box(8, 14, 12, 18, 'R').box(9, 12, 11, 13, 'R').clear(9, 15, 10, 16); // a rock with an arch
       g.box(16, 16, 18, 18, 'C').box(22, 11, 26, 18, 'R').box(23, 9, 25, 10, 'R').box(13, 3, 16, 7, 'K'); // coral, a tall rock, a rock hanging from the ceiling
@@ -281,7 +281,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 19, 4, 19, 'A').box(27, 19, 31, 19, 'A').box(5, 18, 26, 19, 'W');
       g.box(5, 17, 8, 19, 'S').box(10, 15, 15, 19, 'S').box(17, 13, 20, 19, 'S').box(22, 15, 25, 19, 'S');
-      g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G');
+      g.box(0, 2, 1, 13, 'G').box(30, 2, 31, 13, 'G');
     },
     coins: [[6, 15], [14, 13], [18, 11], [23, 13], [29, 17]],
     decor: [['pacSeaCliff', 2, 2], ['pacSeaCliffB', 7, 1], ['pacSeaCliff', 13, 2], ['pacSeaCliffB', 20, 1], ['pacSeaCliff', 25, 2]],
@@ -292,8 +292,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.kelp, cell: [2, 23], sector: 45, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(14, 0, 16, 1).box(0, 2, 1, 16, 'W').box(30, 2, 31, 16, 'W');
-      g.box(2, 2, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 17, 31, 18, 'S').box(2, 2, 29, 2, 'U');
+      g.box(0, 0, 31, 1, 'W').clear(14, 0, 16, 1).box(0, 2, 1, 13, 'W').box(30, 2, 31, 13, 'W');
+      g.box(2, 2, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(30, 14, 31, 18, 'S').box(2, 2, 29, 2, 'U');
       g.box(0, 19, 31, 19, 'B');
       g.box(21, 11, 26, 18, 'R').box(22, 9, 25, 10, 'R').clear(22, 14, 24, 17); // a rock with a cave under it
       g.box(10, 16, 12, 18, 'C').box(17, 14, 19, 18, 'C');
@@ -346,8 +346,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.cave, cell: [2, 24], sector: 48, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 3, 'K').clear(22, 0, 27, 3).box(0, 4, 1, 16, 'K').box(30, 4, 31, 19, 'K');
-      g.box(2, 4, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(2, 4, 29, 4, 'U');
+      g.box(0, 0, 31, 3, 'K').clear(22, 0, 27, 3).box(0, 4, 1, 13, 'K').box(30, 4, 31, 19, 'K');
+      g.box(2, 4, 29, 18, 'S').box(0, 14, 1, 18, 'S').box(2, 4, 29, 4, 'U');
       g.box(0, 19, 31, 19, 'B');
       g.box(4, 0, 6, 6, 'K').box(10, 0, 12, 5, 'K').box(16, 0, 18, 4, 'K'); // stalactites
       g.box(7, 15, 10, 18, 'R').box(14, 14, 17, 18, 'R').box(20, 16, 24, 18, 'C');
@@ -367,7 +367,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 8, 13, 19, 'B').box(0, 8, 13, 8, 'T').box(30, 0, 31, 19, 'B');
       g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 29, 19, 'K'); // the beach and the pool
-      g.box(14, 7, 14, 17, 'R'); g.box(21, 15, 21, 17, 'R');
+      g.box(14, 7, 14, 17, 'R');
       g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the cave's ledge
     },
     coins: [[8, 6], [16, 16], [24, 14], [28, 11]],
@@ -380,8 +380,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.fish, cell: [2, 25], sector: 50, palette: SEA_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 16, 'W').box(30, 2, 31, 16, 'W');
-      g.box(2, 2, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 17, 31, 18, 'S');
+      g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 16, 'W').box(30, 2, 31, 13, 'W');
+      g.box(2, 2, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 14, 31, 18, 'S');
       g.box(0, 19, 31, 19, 'B');
       g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
@@ -395,7 +395,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.coffee, cell: [2, 26], sector: 51, palette: COFFEE_PALETTE,
     paint(g) {
-      g.box(0, 19, 31, 19, 'B').box(0, 2, 1, 16, 'B').box(30, 2, 31, 4, 'B').box(30, 8, 31, 16, 'B');
+      g.box(0, 19, 31, 19, 'B').box(0, 2, 1, 13, 'B').box(30, 2, 31, 4, 'B').box(30, 8, 31, 16, 'B');
       g.box(2, 11, 31, 14, 'S').clear(2, 11, 4, 14);
       g.box(5, 11, 12, 11, 'T').box(13, 9, 19, 10, 'S').box(13, 9, 19, 9, 'T').box(20, 7, 31, 10, 'S').box(20, 7, 31, 7, 'T');
       g.box(3, 7, 3, 18, 'R').box(4, 8, 8, 8, 'T');

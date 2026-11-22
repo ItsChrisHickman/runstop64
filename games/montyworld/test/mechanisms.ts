@@ -257,7 +257,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS  0/11' && info[2] === 'ITEMS  0/14');
+  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === 'SNACKS 0/11' && info[2] === 'ITEMS  0/14');
   check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 4 && info.every((l) => l.length === 11));
   const motr = newGame(MOTR, true);
   const motrInfo = montyMap.info(motr.g, { rooms: {} });

@@ -88,7 +88,7 @@ tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/55' && numbers[2] === 'ITEMS  0/14' && numbers[3] === 'SNACKS  0/11');
+check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/55' && numbers[2] === 'ITEMS  0/14' && numbers[3] === 'SNACKS 0/11');
 tap('KeyP');
 tick(4);
 
