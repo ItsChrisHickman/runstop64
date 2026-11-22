@@ -16,16 +16,16 @@ if (out === undefined) throw new Error('usage: japan-shots.ts <out-dir>');
 fs.mkdirSync(out, { recursive: true });
 
 const SPOTS: readonly { room: number; name: string; col: number; floor: number; frames: number; compare: number }[] = [
-  { room: JP.harbour, name: '27-catch-of-the-day', col: 3, floor: 17, frames: 40, compare: 0x1c },
-  { room: JP.street, name: '28-neon-and-on', col: 2, floor: 17, frames: 40, compare: 0x13 },
-  { room: JP.parlour, name: '29-parlour-tricks', col: 22, floor: 17, frames: 40, compare: 0x0e },
-  { room: JP.crossing, name: '30-scramble-for-it', col: 3, floor: 17, frames: 40, compare: 0x03 },
-  { room: JP.platform, name: '31-bullet-point', col: 14, floor: 17, frames: 150, compare: 0x1b },
-  { room: JP.fuji, name: '32-fuji-tive', col: 3, floor: 14, frames: 40, compare: 0x17 },
-  { room: JP.garden, name: '33-koi-polloi', col: 8, floor: 14, frames: 40, compare: 0x06 },
+  { room: JP.harbour, name: '27-the-fish-market', col: 3, floor: 17, frames: 40, compare: 0x1c },
+  { room: JP.street, name: '28-neon-street', col: 2, floor: 17, frames: 40, compare: 0x13 },
+  { room: JP.parlour, name: '29-pachinko-parlour', col: 22, floor: 17, frames: 40, compare: 0x0e },
+  { room: JP.crossing, name: '30-the-crossing', col: 3, floor: 17, frames: 40, compare: 0x03 },
+  { room: JP.platform, name: '31-the-bullet-train', col: 14, floor: 17, frames: 150, compare: 0x1b },
+  { room: JP.fuji, name: '32-mount-fuji', col: 3, floor: 14, frames: 40, compare: 0x17 },
+  { room: JP.garden, name: '33-the-koi-pond', col: 8, floor: 14, frames: 40, compare: 0x06 },
   { room: JP.mole, name: '34-the-last-mole', col: 29, floor: 14, frames: 40, compare: 0x0a },
-  { room: JP.tiers, name: '35-tiers-of-joy', col: 10, floor: 17, frames: 40, compare: 0x15 },
-  { room: JP.hall, name: '36-shogun-but-not-forgotten', col: 3, floor: 14, frames: 40, compare: 0x0f },
+  { room: JP.tiers, name: '35-the-castle', col: 10, floor: 17, frames: 40, compare: 0x15 },
+  { room: JP.hall, name: '36-the-shogun-s-hall', col: 3, floor: 14, frames: 40, compare: 0x0f },
   { room: JP.port, name: '37-sayonara-sailor', col: 22, floor: 17, frames: 40, compare: 0x1d },
 ];
 

@@ -403,7 +403,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   }
   const plain = at(JP.garden, 8, 14, [], false);
   run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
+  check('ORIGINAL says nothing', rowText(plain.g) === 'THE KOI POND');
   for (const [item, text, floor] of [[DARUMA, 'DARUMA: ROLLS THE SHUTTER UP', 9], [FISH, 'FISH FOOD: THE KOI LET YOU BY', 7], [HOOD, 'HOOD: PAST THE CASTLE GUARD', 14]] as const) {
     const [room, nth] = item;
     const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');

@@ -32,9 +32,9 @@ Japan's first, c0). The way in is at A (row 1, beside China's junk), the way out
 
 ```
           c0                  c1                   c2                   c3                 c4
-row 0     .                   .                    .                 L THE LAST MOLE    H TIERS OF JOY
-row 1   A CATCH OF THE DAY   B NEON AND ON        D SCRAMBLE FOR IT  G KOI POLLOI       I SHOGUN BUT NOT FORGOTTEN
-row 2     .                 C PARLOUR TRICKS      E BULLET POINT     F FUJI-TIVE        J SAYONARA SAILOR
+row 0     .                   .                    .                 L THE LAST MOLE    H THE CASTLE
+row 1   A THE FISH MARKET   B NEON STREET        D THE CROSSING  G THE KOI POND       I THE SHOGUN'S HALL
+row 2     .                 C PACHINKO PARLOUR      E THE BULLET TRAIN     F MOUNT FUJI        J SAYONARA SAILOR
 ```
 
 Joins (walk both ways; rope = both ways; gate = an item): A-B walk twice (the quay, low; the warehouse roof, high). B-D walk twice
@@ -44,8 +44,8 @@ shut by a shutter (gate: the daruma). F-G a rope up. G-L a rope up (the hood's p
 I-J a rope down, past the guard (gate: the hood). Walls (no way): D-G, F-J, A-C, D's east, G-H, L-H. Loops: B-C-E-D-B (four rooms), and
 the two lanes of A-B, of B-D and of E.
 
-**Names** (puns on the place, no Z, no Bond): CATCH OF THE DAY, NEON AND ON, PARLOUR TRICKS (pachinko), SCRAMBLE FOR IT (Shibuya's
-crossing), BULLET POINT, FUJI-TIVE, KOI POLLOI, TIERS OF JOY (the castle's roofs), SHOGUN BUT NOT FORGOTTEN, SAYONARA SAILOR, and the hidden
+**Names** (renamed 2026-11-22, Chris approved: plain first, as the place; the hall's apostrophe is written '(' in the game's lettering): THE FISH MARKET, NEON STREET, PACHINKO PARLOUR (pachinko), THE CROSSING (Shibuya's
+crossing), THE BULLET TRAIN, MOUNT FUJI, THE KOI POND, THE CASTLE (the castle's roofs), THE SHOGUN'S HALL, SAYONARA SAILOR, and the hidden
 room, exactly THE LAST MOLE.
 
 ### The rooms
@@ -54,31 +54,31 @@ Floors: "low" rooms (harbour, street, parlour, crossing, port) stand on row 17 (
 row 7 (open at rows 5-6), the platform, the mountain, the garden and the hall on row 14 (open at rows 12-13). A jump rises about 20 pixels (two rows and a bit), so every step
 up is two rows; a way is open only where the opening is at least as tall as he is (a corridor two rows high is no place for a jump or a creature he must pass).
 
-**A CATCH OF THE DAY** (the fishing harbour at dawn; the junk lands). In: left, low, on the **junk's deck** (cols 0-9: the red hull, the mast and the great battened sail standing up
+**A THE FISH MARKET** (the fishing harbour at dawn; the junk lands). In: left, low, on the **junk's deck** (cols 0-9: the red hull, the mast and the great battened sail standing up
 the left); a 3-cell inlet of water (deadly) between the junk and the cobbled quay; the quay runs right under a covered market (a stall with a striped awning, barrels, lanterns; the Great Wave behind).
 Out: right, low to B; right, high (rows 5-6, floor 7) to B's roofs. A stair of crates (floors 15, 13, 11, 9: three cells each) climbs through the market's roof (floor 7, cols 8-29), whose west end
 (cols 8-12) is a dead end with a **sushi**. A crab on the quay, a sushi roll on legs trots the roof. 2 coins.
 
-**B NEON AND ON** (Tokyo's street and its rooftops). In: left low (the street) and left high (the roof) from A; out: right low and right high to D. Shop fronts (rows 8-13, cols 6-29) seal the two lanes
+**B NEON STREET** (Tokyo's street and its rooftops). In: left low (the street) and left high (the roof) from A; out: right low and right high to D. Shop fronts (rows 8-13, cols 6-29) seal the two lanes
 from each other but for a **drainpipe** at the left (col 4, rows 7-16); two pits between the roofs (cols 11-13 and 24-26: a jump over each, two rows deep); in the street a floor gap (cols 20-22) with a
 rope down (the stairs) to C. Tall neon boards stand on the roofs. A sushi roll trots the first roof, a waving lucky cat the middle one. 2 coins.
 
-**C PARLOUR TRICKS** (a pachinko parlour; a dead end but for the way out east). In: by the stairs' rope through the ceiling (col 21); out: right, low, to E's underpass. A hall of machines (cols 15-28: lit
+**C PACHINKO PARLOUR** (a pachinko parlour; a dead end but for the way out east). In: by the stairs' rope through the ceiling (col 21); out: right, low, to E's underpass. A hall of machines (cols 15-28: lit
 backs over the machines), a loud carpet, a lantern ghost floating along the ceiling, a robot and a lucky cat on the carpet. West a prize counter: a stair of steps (floors 15, 13, 11) up to the **prize shelf** (floor 9,
 cols 2-6) with the **daruma**, behind the **claw machine's housing** (cols 11-14) whose Mole Crusher drops across the lane (col 12, crossed on the way in and again on the way out). 2 coins.
 
-**D SCRAMBLE FOR IT** (the crossing). In: left low (the street) and left high (the overpass) from B. Out: the subway's rope (down to E) and back. The street (zebra stripes, traffic lights, a sumo wrestler pacing it, a
+**D THE CROSSING** (the crossing). In: left low (the street) and left high (the overpass) from B. Out: the subway's rope (down to E) and back. The street (zebra stripes, traffic lights, a sumo wrestler pacing it, a
 vending machine) has a subway gap (cols 22-24, rope col 23) and a pocket east of it; the **overpass** (rows 7-8, with a giant video screen and a neon board over it) runs along to the **fish food** and ends
 by a rope (col 29) that comes down to the street east of the gap. A toy robot walks the overpass, a spinning umbrella bobs over the gap. 3 coins.
 
-**E BULLET POINT** (the bullet-train platform). Two lanes: the **underpass** (low, two rows high; in from C at the left, a coin pocket at its east end) and the **platform** over it (floor 14), joined by two stairs
+**E THE BULLET TRAIN** (the bullet-train platform). Two lanes: the **underpass** (low, two rows high; in from C at the left, a coin pocket at its east end) and the **platform** over it (floor 14), joined by two stairs
 (ropes through the deck, cols 8-10 and 19-21). The crossing's rope (col 23) lands on the platform. The platform's east end is shut by a **roller shutter** (cols 28-29) until the daruma; open, it walks on east to F.
 Two **bullet trains** sweep the platform lane in turn (below). A departure board, signal lamps, a vending machine. 2 coins (one in the underpass, one on the platform). No creatures: the trains are its danger.
 
-**F FUJI-TIVE** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
+**F MOUNT FUJI** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
 (floor 8), one step (6) and the chain (col 5) up through the ceiling to G. The mountain itself is the room: a snow-capped cone on a slope of rock (blue-grey scenery, jpSnow and jpSlope) that the trail winds up in front of, scree for the foot and the frame. A tanuki on the first ledge, a crane flying over the snow. 3 coins.
 
-**G KOI POLLOI** (the temple garden on the mountain's shoulder). In: the chain through the floor gap at the left (cols 4-6); the bank runs right past a cherry tree in blossom, the temple hall and its bell to the **koi pond**
+**G THE KOI POND** (the temple garden on the mountain's shoulder). In: the chain through the floor gap at the left (cols 4-6); the bank runs right past a cherry tree in blossom, the temple hall and its bell to the **koi pond**
 (cols 16-24): a plank at the bank (floor 14) and, once the koi are fed, two more that float up in a zig-zag (floors 13 and 14) with a one-cell gap between, and **two koi** leaping out of the water at the first two gaps (one rising as the other falls). The far bank has the castle gate on the right
 (mid) and a **pergola** (a step and a ledge) up to a bamboo rope (col 28) through the ceiling to L. A tanuki on the temple steps, a spinning umbrella. With the fish food the koi are gone and the planks are there; without it the far bank is seven cells off. 2 coins.
 
@@ -86,10 +86,10 @@ Two **bullet trains** sweep the platform lane in turn (below). A departure board
 (2 cells each, two cells of water between, at floors 14, 13, 14, 12, 13, 14 so each is a jump up or down), a **bonsai garden** on a shelf, a **stone dragon** coiled behind and a **shrine** on its plinth (floor 14, far left) with
 the **ninja hood**. A crane in the moonlight; a koi leaps out of the water between two stones. 1 coin over a gap.
 
-**H TIERS OF JOY** (the castle's roofs, a dead end). In: the rope from I's ceiling (col 4). The keep behind; six eaves climb in a zig-zag (floors 15, 13, 11, 9, 7, 5, each overlapping the one before, so he jumps up through it),
+**H THE CASTLE** (the castle's roofs, a dead end). In: the rope from I's ceiling (col 4). The keep behind; six eaves climb in a zig-zag (floors 15, 13, 11, 9, 7, 5, each overlapping the one before, so he jumps up through it),
 two ninjas pacing the lower ones; the top tier has a **sushi** between golden shachi. 3 coins.
 
-**I SHOGUN BUT NOT FORGOTTEN** (inside the castle: the gate hall). In: left, mid, from G's gate. Tatami floor between white plaster and black lattice walls, hanging scrolls and lanterns; **three pairs of sliding paper doors** (cols 6, 12, 18)
+**I THE SHOGUN'S HALL** (inside the castle: the gate hall). In: left, mid, from G's gate. Tatami floor between white plaster and black lattice walls, hanging scrolls and lanterns; **three pairs of sliding paper doors** (cols 6, 12, 18)
 in the partitions; a lantern ghost floats over the second space (the spaces between the doors are four cells wide: no walker in them). Past the third door a low corridor (two rows high, cols 20-26) where the **guard** (a samurai in a great helmet) paces so that no one can pass him:
 at its end a floor gap (cols 24-26) and the rope down to J. In the ninja hood the guard steps aside. A rope up at col 4 (to H), and a gallery: from the rope an eave-floor on row 8 runs through a hole in each of the first two partitions and ends over the space before the third door, where he steps off and drops to the floor (the doors are not the only way to the third; the guard still is). The lantern ghost bobs over the gallery's first bay. 1 coin, on the gallery.
 

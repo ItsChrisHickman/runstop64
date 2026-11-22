@@ -8,9 +8,9 @@ import { codeOf, room, type Palette } from './layout';
  * 12-16 of the exit grid, entered from China's junk (column 11) and left east, over the cargo ship's gangway, into the Pacific (not yet built).
  *
  *             col 12                col 13              col 14                 col 15               col 16
- *   row 0       .                     .                   .                 L  THE LAST MOLE     H  TIERS OF JOY
- *   row 1   A  CATCH OF THE DAY   B  NEON AND ON      D  SCRAMBLE FOR IT    G  KOI POLLOI        I  SHOGUN BUT NOT FORGOTTEN
- *   row 2       .                 C  PARLOUR TRICKS   E  BULLET POINT       F  FUJI-TIVE         J  SAYONARA SAILOR
+ *   row 0       .                     .                   .                 L  THE LAST MOLE     H  THE CASTLE
+ *   row 1   A  THE FISH MARKET   B  NEON STREET      D  THE CROSSING    G  THE KOI POND        I  THE SHOGUN'S HALL
+ *   row 2       .                 C  PACHINKO PARLOUR   E  THE BULLET TRAIN       F  MOUNT FUJI         J  SAYONARA SAILOR
  *
  * Playfield cells as in moscow.ts. Floors: the harbour, streets, parlour, crossing and port are on row 17 ("low"), the rooftops and the overpass on row 7 ("high"), the platform,
  * the mountain, the garden and the hall on row 14 ("mid"). The bullet trains (E) are `tunnels` with a picture, the paper doors (I) `pulses` whose spent look is a wall; the daruma (C)
@@ -23,7 +23,7 @@ export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 27 on. */
 const NAMES = [
-  'CATCH OF THE DAY', 'NEON AND ON', 'PARLOUR TRICKS', 'SCRAMBLE FOR IT', 'BULLET POINT', 'FUJI-TIVE', 'KOI POLLOI', 'THE LAST MOLE', 'TIERS OF JOY', 'SHOGUN BUT NOT FORGOTTEN', 'SAYONARA SAILOR',
+  'THE FISH MARKET', 'NEON STREET', 'PACHINKO PARLOUR', 'THE CROSSING', 'THE BULLET TRAIN', 'MOUNT FUJI', 'THE KOI POND', 'THE LAST MOLE', 'THE CASTLE', 'THE SHOGUN(S HALL', 'SAYONARA SAILOR',
 ] as const;
 export const JAPAN_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the harbour light blue, the street and parlour reds, the crossing grey, the platform blue, the mountain white, the garden green, the hidden room purple, the roofs yellow, the hall orange, the port brown). */
@@ -132,7 +132,7 @@ export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const JAPAN_ROOMS: readonly RoomSpec[] = [
-  // A CATCH OF THE DAY: the fishing harbour at dawn. In from China's junk (low, its deck at the left); the quay runs east, with the market on it, past an inlet and a crate stack to the way out (low) to the street.
+  // A THE FISH MARKET: the fishing harbour at dawn. In from China's junk (low, its deck at the left); the quay runs east, with the market on it, past an inlet and a crate stack to the way out (low) to the street.
   // A stair of crates climbs through the market's roof (the way out high, to the rooftops); the roof's west end is a dead end with a sushi.
   room({
     id: JP.harbour, cell: [1, 12], sector: 27, palette: HARBOUR_PALETTE,
@@ -152,7 +152,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // B NEON AND ON: Tokyo's street and its rooftops. In from the harbour low (the street) or high (the roofs); out to the crossing low or high. The shop fronts seal the lanes from each other but for a
+  // B NEON STREET: Tokyo's street and its rooftops. In from the harbour low (the street) or high (the roofs); out to the crossing low or high. The shop fronts seal the lanes from each other but for a
   // drainpipe at the left; two pits between the roofs; a gap in the street with a rope down to the parlour.
   room({
     id: JP.street, cell: [1, 13], sector: 28, palette: STREET_PALETTE,
@@ -172,7 +172,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // C PARLOUR TRICKS: a pachinko parlour. In by the rope from the street's stairs; out east, low, to the underpass. West a prize counter: a stair of steps up to the shelf with the daruma, behind the
+  // C PACHINKO PARLOUR: a pachinko parlour. In by the rope from the street's stairs; out east, low, to the underpass. West a prize counter: a stair of steps up to the shelf with the daruma, behind the
   // claw machine's crusher (crossed on the way in and the way out).
   room({
     id: JP.parlour, cell: [2, 13], sector: 29, palette: PARLOUR_PALETTE,
@@ -196,7 +196,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     crushers: [{ col: 12, row: 12, height: 5, chr: 0x22 }],
   }),
 
-  // D SCRAMBLE FOR IT: the crossing. In from the street low or on the overpass (high). The street runs between the zebra and the crowd to the subway's gap (the rope down to the platform); the overpass runs
+  // D THE CROSSING: the crossing. In from the street low or on the overpass (high). The street runs between the zebra and the crowd to the subway's gap (the rope down to the platform); the overpass runs
   // along over it to the fish food and a rope down to the street east of the gap.
   room({
     id: JP.crossing, cell: [1, 14], sector: 30, palette: CROSSING_PALETTE,
@@ -217,7 +217,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // E BULLET POINT: the bullet-train platform. Two lanes: the underpass (low; in from the parlour) and the platform over it, joined by two stairs (ropes through the deck). The rope from the crossing lands on the
+  // E THE BULLET TRAIN: the bullet-train platform. Two lanes: the underpass (low; in from the parlour) and the platform over it, joined by two stairs (ropes through the deck). The rope from the crossing lands on the
   // platform. The platform's east end is shut by a roller shutter until the daruma; two trains sweep the platform lane in turn.
   room({
     id: JP.platform, cell: [2, 14], sector: 31, palette: PLATFORM_PALETTE,
@@ -233,7 +233,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [['jpBoard', 14, 3], ['jpSignalLamp', 27, 8], ['jpSignalLamp', 3, 8], ['jpVending', 4, 11], ['jpNeonTall', 6, 3], ['jpNeonTall', 19, 3], ['jpNeonRamen', 9, 5], ['jpNeonRamen', 24, 4], ['jpLantern', 13, 15], ['jpLantern', 23, 15]],
   }),
 
-  // F FUJI-TIVE: Mount Fuji's foot and slope. In from the platform past the shutter (mid); the mountain stands over the trail, a snowy cone on a slope of rock (scenery he climbs in front of), and the pilgrim's
+  // F MOUNT FUJI: Mount Fuji's foot and slope. In from the platform past the shutter (mid); the mountain stands over the trail, a snowy cone on a slope of rock (scenery he climbs in front of), and the pilgrim's
   // trail winds up its face in switchbacks: east along the first ledge, up two steps on the flank, back west along the second ledge, up a step to the chain at the left that climbs through the ceiling to the garden.
   room({
     id: JP.fuji, cell: [2, 15], sector: 32, palette: FUJI_PALETTE,
@@ -254,7 +254,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // G KOI POLLOI: the temple garden on the mountain's shoulder. In by the chain through the floor at the left; the bank runs right past the temple and the cherry tree to the koi pond: a zig-zag of planks over the
+  // G THE KOI POND: the temple garden on the mountain's shoulder. In by the chain through the floor at the left; the bank runs right past the temple and the cherry tree to the koi pond: a zig-zag of planks over the
   // water with two koi leaping out of it (once they are fed they are gone and the planks float up). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
   room({
     id: JP.garden, cell: [1, 15], sector: 33, palette: GARDEN_PALETTE,
@@ -297,7 +297,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // H TIERS OF JOY: the castle's roofs, a dead end. In by the rope from the hall's ceiling; a staircase of tiers' eaves zig-zags up (each overlaps the last, so he jumps up through it); two ninjas pace the
+  // H THE CASTLE: the castle's roofs, a dead end. In by the rope from the hall's ceiling; a staircase of tiers' eaves zig-zags up (each overlaps the last, so he jumps up through it); two ninjas pace the
   // middle tiers; the top tier has a sushi between the golden shachi.
   room({
     id: JP.tiers, cell: [0, 16], sector: 35, palette: TIERS_PALETTE,
@@ -316,7 +316,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // I SHOGUN BUT NOT FORGOTTEN: inside the castle, the gate hall. In from the garden's gate (mid); two ways on: the floor, through three pairs of paper doors that open and shut in turn, or the gallery over the first
+  // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); two ways on: the floor, through three pairs of paper doors that open and shut in turn, or the gallery over the first
   // two (up the rope at the left, along the eaves through holes in the partitions, down at its end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). At the far end a low corridor
   // where the guard paces, so no one can pass him (the ninja hood sends him off) to the floor gap and the rope down to the port. The rope's top goes on to the roofs.
   room({
