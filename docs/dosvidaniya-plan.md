@@ -10,6 +10,16 @@ bullet train and the New Year dragon, big creatures, moving scenery, while every
 (one byte per kind, the 256-character set, the VIC bank's sprites, a region's data within a multiload budget), so a native
 C64 version stays possible afterwards (docs/dosvidaniya-c64.md; Monty on the Run's own C64 version first, then this game).
 
+## An original edition: Viktor Vole (Chris, 2026-11-22)
+
+If the Monty rights can't be had, the same game ships as an original: **Viktor Vole**, a Russian vole escaping the KGB out of
+Russia, east round the world to Rio ("Do Svidaniya" becomes his goodbye to Russia). Everything borrowed (Monty's sprite and
+name, Monty on the Run's remaining graphics: HUD, lettering, coins, crushers, leftover tiles; Hubbard's music; Intermole,
+Montos and Gremlin in the story) lives in one swappable layer, so Do Svidaniya Monty and the Viktor Vole edition are the same
+game with a different layer. New music would be commissioned from a SID composer. Name check (2026-11-22): web searches for
+"Viktor Vole" and "Victor Vole" found no game, character, book or trademark; still to do before money is spent: the official
+registers (USPTO, UKIPO, EUIPO; games are class 9 and 41), by Chris or a lawyer.
+
 ## The story
 
 Intermole finds Monty's Greek island (where Auf Wiedersehen Monty left him) and Europe is no longer safe. Intermole only
