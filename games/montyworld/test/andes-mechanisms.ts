@@ -56,13 +56,13 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const placed = [[2, 30, AND.jump], [3, 30, AND.thin], [4, 30, AND.condor], [5, 30, AND.llama], [5, 31, AND.rock], [5, 32, AND.market], [5, 33, AND.mist], [6, 30, AND.cloud], [6, 31, AND.tunnel], [7, 30, AND.boat],
     [7, 31, AND.river], [7, 32, AND.bank]] as const;
   check('the Andes and the Amazon are twelve rooms in a block of four columns (30-33) and six rows (2-7) beside the Pacific\'s hold (row 2, column 29), room ids 55 to 66, the regions before them unchanged',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 67 && grid(2, 29) === PAC.hold && grid(7, 33) === 0xff && WORLD.exitGrid.rows === 8);
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(2, 29) === PAC.hold && grid(7, 33) === 67 && WORLD.exitGrid.rows === 8);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const mine = coinsIn(55, 66);
   check(`the regions before the Andes keep their coins and finds, in the same table places (first), and the Andes add ${mine} coins and 9 finds (the chullo, the panpipes, the machete and six empanadas)`,
     coinsIn(0, 54) === 147 && itemsIn(0, 54) === 25 && itemsIn(55, 66) === 9 && (WORLD.coinTable[146 * 3] ?? 99) <= 54 && (WORLD.coinTable[147 * 3] ?? 0) >= 55);
-  check('17 key items and 17 snacks count on the pause screen', WORLD.progress.keyItems.length === 17 && WORLD.progress.cakes.length === 17);
+  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
   check('the Andes\' sectors and map colours are one each', ANDES_SECTORS.length === 12 && ANDES_COLOURS.length === 12 && ANDES_SECTORS.every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
   const typeable = (t: string) => /^[A-Z0-9 .:,!?-]+$/.test(t);
   check('every name and hint the Andes put in the name row is in letters the font has (it has no apostrophe: a block is drawn there and the letter after it is a capital)',
@@ -417,7 +417,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the six regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/17' && info[2] === 'ITEMS  0/17');
+  check(`the pause screen counts the snacks and the items over the six regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
   enterRoom(s.g, AND.rock, 0x40, standY(6));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.rock]: [0x40, 0xb2, 5, 31], [AND.llama]: [0x40, 0xb2, 5, 30] } });
   check('in the Andes the map shows its region (four columns, six rows), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));

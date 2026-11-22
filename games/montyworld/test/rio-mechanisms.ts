@@ -52,10 +52,10 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   check('every block of the bank Rio uses is its own ($A0-$AF: the flag\'s and the C5\'s, which this game never shows), none twice, and each has a picture', new Set(pointers).size === pointers.length && pointers.every((p) => p >= 0xa0 && p <= 0xaf && WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0))
     && WORLD.itemSprites.treasure === RIO_SPRITE.bowl && RIO_ITEMS.acaiBowl.block.length >= 63);
   check('one cable car (Sugar Rush\'s), five floats (the avenue\'s), two skewers (the churrascaria\'s)', WORLD.cableCars.length === 1 && WORLD.cableCars[0]?.room === R.sugar && WORLD.floats.length === 5 && WORLD.floats.every((f) => f.room === R.float) && WORLD.skewers.length === 2 && WORLD.skewers.every((k) => k.room === R.steak));
-  // the sprites each mechanism takes are not the room's: the cable car's are 0, 1, 2 and 6, its two creatures 4 and 5; the skewers' are 2 and 6, the gauchos' 4 and 5 and the room's item 0 (and its second 1)
+  // the sprites each mechanism takes are not the room's: the cable car's are 0, 1, 2 and 6, its two creatures 4 and 5; the skewers' are 2 and 1, the gauchos' and the dancer's 4 to 6 and the room's item 0
   check('the cars and the skewers take sprites the rooms do not use (items 0 and 1, creatures 4 up, the canopy\'s and the hat\'s 2 and 7: none in these rooms)',
     new Set([CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite, CABLE_CAR.passing.roof, CABLE_CAR.passing.floor]).size === 4 && [CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite, CABLE_CAR.passing.roof, CABLE_CAR.passing.floor].every((n) => n !== 3 && n !== 7)
-    && (must(RIO_ROOMS.find((r) => r.id === R.sugar), 'a room').enemies?.length ?? 0) <= 2 && SKEWERS.every((k) => k.sprite !== 0 && k.sprite !== 1 && k.sprite !== 3 && k.sprite !== 7) && (RIO_ROOMS.find((r) => r.id === R.steak)?.enemies?.length ?? 0) === 2);
+    && (must(RIO_ROOMS.find((r) => r.id === R.sugar), 'a room').enemies?.length ?? 0) <= 2 && SKEWERS.every((k) => k.sprite !== 0 && k.sprite !== 3 && k.sprite !== 6 && k.sprite !== 7) && (RIO_ROOMS.find((r) => r.id === R.steak)?.enemies?.length ?? 0) === 3);
 }
 
 // ---- the cable car ---------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
 {
   const k0 = must(SKEWERS[0], 'a skewer'), k1 = must(SKEWERS[1], 'a skewer');
   check('a skewer swings through four poses a 24 frames each (a cycle of 96): down, forward and low, straight out, up; the middle two are deadly', [0, 24, 48, 72, 95, 96].map((t) => skewerPose(k0, t)).join() === '0,1,2,3,3,0' && k0.poses.map((p) => p.deadly).join() === 'false,true,true,false');
-  check('the second gaucho is half a cycle on from the first (48 frames), each with a sprite of his own (2 and 6), left and right pictures in the bank', k1.offset - k0.offset === 48 && k0.sprite === 2 && k1.sprite === 6
+  check('the second gaucho is half a cycle on from the first (48 frames), each with a sprite of his own (2 and 1), left and right pictures in the bank', k1.offset - k0.offset === 48 && k0.sprite === 2 && k1.sprite === 1
     && k0.poses.every((p, i) => p.left.ptr === SKEWER_POINTERS.left[i] && p.right.ptr === SKEWER_POINTERS.right[i]));
   const s = at(R.steak, 24, 18, [], false, true);
   run(s, NONE, 2);
@@ -301,7 +301,17 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
     return ok;
   }).length;
   check(`a save made on coming into each of Rio's eleven rooms packs, unpacks and carries on in the same room, alive, in the headdress (${carried} of ${spots.length}${failed.length ? `; not in rooms ${failed.join(', ')}` : ''})`, carried === spots.length);
-}
+
+  // a save from before Rio: the first six regions' arrays carry on in the new game, Rio's coins and finds still to take
+  const g1 = newGame(WORLD, true).g;
+  g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[30] = 0xff;
+  const old = snapshot(g1);
+  const oldSave = { ...old, coins: old.coins.slice(0, 220), items: old.items.slice(0, 34), roomId: AND.bank, worn: itemIndex(g1, AND.market, 0) };
+  const g2 = newGame(WORLD, true).g;
+  restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
+  check('an old save (the six regions before Rio\'s arrays) loads: the finds and the chullo are as saved, Rio is on the grid, its coins and finds still to take',
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 33] === R.quay && g2.siCollected.length === 43
+    && g2.coinCollected.length === 220 + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(220).every((c) => c === 0));}
 
 // ---- the finale ---------------------------------------------------------------------------------------------
 {

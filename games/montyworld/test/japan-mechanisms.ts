@@ -41,13 +41,13 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
-    cells.filter((c) => c !== 0xff).length === 67 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
+    cells.filter((c) => c !== 0xff).length === 78 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.tiers, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     coinsIn(0, 26) === 44 && itemsIn(0, 26) === 13 && coinsIn(27, 37) === 23 && itemsIn(27, 37) === 5 && (WORLD.coinTable[43 * 3] ?? 99) <= 26 && (WORLD.coinTable[44 * 3] ?? 0) >= 27);
-  check('17 key items and 17 snacks count on the pause screen', WORLD.progress.keyItems.length === 17 && WORLD.progress.cakes.length === 17);
+  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Japan's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -416,7 +416,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/17' && info[2] === 'ITEMS  0/17');
+  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
   enterRoom(s.g, JP.platform, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 31: [0x40, 0xb2, 2, 14], 32: [0x40, 0xb2, 2, 15] } });
   check('in Japan the map shows its region (five columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
