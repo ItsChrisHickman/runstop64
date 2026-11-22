@@ -62,6 +62,12 @@ Monty game lives here.
   kind, 256 characters, the VIC bank's sprite blocks. A big game splits by region as a multiload would, each region within
   budget; a per-region budget test enforces it.
 
+- **The game ramps up, and every room earns its place** (Chris after finishing, 2026-11-22: "this last area is the weakest...
+  the game was really dragging"). Fewer, stronger rooms beat more (Monty on the Run has about 50); each region about 8 to 10;
+  later regions get the best set pieces and the hardest fair rooms, building to the finale; build the late regions with as
+  much care as the first, not faster.
+- **Credits are written for the game**, never reused from the original it's built on; fun facts are true and sourced.
+
 ## Words and sound
 
 - **Names are plain and evocative first, a pun only when it lands** (Monty on the Run: THE HOUSE, SEWERAGE WORKS). A name that
