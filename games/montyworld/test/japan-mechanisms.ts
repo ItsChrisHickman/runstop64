@@ -22,10 +22,10 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
-import { FIRST_CREATURE } from '../src/layout';
+import { decorIndex, FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
@@ -43,7 +43,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
     cells.filter((c) => c !== 0xff).length === 78 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
-      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.tiers, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
+      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
@@ -73,12 +73,11 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
       const tile = r.tiles[Number(ch) - 1];
       return tile !== undefined && WORLD.tileProperty(tile) !== 0;
     };
-    const any = (col: number, row: number) => (r.map[row]?.[col] ?? '.') !== '.';
     const inRoom = (cx: number, cy: number) => ({ col: cx - 4, row: cy - 3 });
     for (const d of r.decor ?? []) {
       const { col, row } = inRoom(d.col, d.row);
       const w = typeof d.type === 'number' ? decorTypes[d.type]?.w ?? 1 : d.type.text.length, h = typeof d.type === 'number' ? decorTypes[d.type]?.h ?? 1 : 1;
-      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (any(col + x, row + y)) problems.push(`room ${r.id}: a decoration over a tile at ${col + x},${row + y}`);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (solid(col + x, row + y)) problems.push(`room ${r.id}: a decoration over a tile he touches (a floor, a wall, a rope, water) at ${col + x},${row + y}`);
       if (col < 0 || col + w > 32 || row < 0 || row + h > 20) problems.push(`room ${r.id}: a decoration off the playfield`);
     }
     /** The cells decorations are drawn in (a coin or an item there is covered by their characters). */
@@ -260,8 +259,8 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 {
   const s = at(JP.hall, 3, 14);
   s.g.pulses = [];
-  const coin = coinIndex(s.g, JP.hall, 13, 6);
-  const found = search(s, (g) => g.coinCollected[coin] !== 0 && g.roomId === JP.hall, [{ room: JP.hall, col: 13, row: 6 }], 150000, 1.5);
+  const coin = coinIndex(s.g, JP.hall, 8, 6);
+  const found = search(s, (g) => g.coinCollected[coin] !== 0 && g.roomId === JP.hall, [{ room: JP.hall, col: 8, row: 6 }], 150000, 1.5);
   check('the gallery: up the rope at the left and along the eaves through the partitions to the coin at its end (a floor of its own, row 8, with a hole through each of the first two partitions)', found !== null
     && [6, 12].every((c) => [5, 6, 7].every((row) => at(JP.hall, 3, 14).g.flagAt(row + 3, c + 4) === 0) && at(JP.hall, 3, 14).g.flagAt(8 + 3, c + 4) === 2));
 }
@@ -326,6 +325,19 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     hood.g.pulses = [];
     check('and the bot gets through to the floor gap and the rope down to the port', search(hood, past, [{ room: JP.hall, col: 25, row: 19 }], 100000, 1.5) !== null);
   }
+  // the hideout's door guard (a ninja at the low corridor under the roof) and the hood
+  {
+    const NINJA = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
+    const sushi = (g: Game) => g.siCollected[itemIndex(g, JP.hideout, 0)] !== 0;
+    const guard = at(JP.hideout, 17, 17, [], false, true);
+    check('without the hood a ninja guards the hideout\'s door (its first creature slot) and another paces the roof', guard.g.enemies[0]?.type === NINJA && guard.g.enemies[0].x !== 0xff && guard.g.enemies[1]?.type === NINJA);
+    const stats = { exhausted: false };
+    const noWay = search(guard, sushi, [{ room: JP.hideout, col: 26, row: 15 }], 60000, 0, stats) === null;
+    check(`and the bot finds no way past him to the sushi at the corridor's end (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'})`, noWay);
+    const hood = at(JP.hideout, 17, 17, [HOOD], false, true);
+    check('with the ninja hood the door guard is gone (sent off the screen) and the roof ninja stays', must(hood.g.enemies[0], 'the guard').x === 0xff && must(hood.g.enemies[1], 'the roof ninja').x !== 0xff);
+    check('and the bot walks in and takes the sushi', search(hood, sushi, [{ room: JP.hideout, col: 26, row: 15 }], 150000, 1.5) !== null);
+  }
 }
 
 // ---- the hood is a costume: it takes the rice hat's place -------------------------------------------------
@@ -388,7 +400,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check('the mountain\'s chain climbs into the garden and the garden\'s gap lets him down it again', lands(JP.garden, [14], at(JP.fuji, 8, 6), { room: JP.fuji, col: 5, row: 0 }, 200000) && lands(JP.fuji, [14, 8, 6], at(JP.garden, 2, 14), { room: JP.garden, col: 5, row: 19 }, 100000));
   check('the pergola\'s rope climbs into THE LAST MOLE and the hidden room\'s rope drops back to the garden', lands(JP.mole, [14], at(JP.garden, 27, 10, [FISH]), { room: JP.garden, col: 28, row: 0 }, 100000) && lands(JP.garden, [14, 10], at(JP.mole, 30, 14), { room: JP.mole, col: 28, row: 19 }, 100000));
   check('the garden\'s gate walks east into the hall and the hall west back into the garden', into(JP.hall, at(JP.garden, 27, 14), { room: JP.garden, col: 31, row: 13 }) && into(JP.garden, quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 0, row: 13 }));
-  check('the hall\'s rope climbs to the roofs and the roofs\' gap drops back to the hall', lands(JP.tiers, [17], quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [14], at(JP.tiers, 8, 17), { room: JP.tiers, col: 4, row: 19 }, 100000));
+  check('the hall\'s rope climbs to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
   check('the hall\'s gap (past the guard) drops to the port and the port\'s rope climbs back to the hall', lands(JP.port, [17], quiet(at(JP.hall, 18, 14, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 100000) && lands(JP.hall, [14], at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, 100000));
   check('from the port he can climb back to the hall with nothing in hand and out west to the garden (the way back runs the whole way)', reach(at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, (g) => g.roomId === JP.hall, 150000) !== null);
   check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
@@ -396,7 +408,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hall, 3, 14, 'THE GUARD SPOTS OUTSIDERS']] as const;
+  const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hall, 3, 14, 'THE GUARD SPOTS OUTSIDERS'], [JP.hideout, 6, 17, 'THE DOOR IS FOR NINJAS ONLY']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -424,7 +436,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   // a save made on coming into each of Japan's rooms (every key taken, the hood on) carries on in the same room, alive
   {
-    const spots = [[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 22, 17], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.tiers, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const;
+    const spots = [[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 22, 17], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.hideout, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
@@ -466,4 +478,90 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 }
 
 void LEFT;
+// ---- the parlour's Mole Crusher moves (the engine animates a lone shaft only with the first shaft's characters) ----------------------
+{
+  const roomSpec = must(JAPAN_ROOMS.find((r) => r.id === JP.parlour), 'the parlour');
+  check('the parlour has one Mole Crusher, drawn in the first shaft\'s characters (0x10: the engine moves a lone shaft only then)', roomSpec.crushers?.length === 1 && roomSpec.crushers[0]?.chr === 0x10);
+  const watcher = at(JP.parlour, 24, 17);
+  const pictures = new Set<string>(), states = new Set<number>();
+  for (let f = 0; f < 900; f++) { frame(watcher, NONE); states.add(watcher.g.pd.state); pictures.add(Array.from(watcher.g.mem.subarray(0x80, 0xe0)).join()); }
+  check(`it visibly crushes: over 900 frames its shaft takes ${pictures.size} pictures and goes down and back up (states ${[...states].join(',')})`, pictures.size > 10 && states.has(1) && states.has(2));
+  const under = at(JP.parlour, 12, 17);
+  const diedAt = diesAt(under, NONE, 1500);
+  check(`and a mole standing under it dies as it comes down (at frame ${diedAt})`, diedAt >= 0);
+  let throughAlive = 0, tried = 0;
+  for (let wait = 0; wait < 220; wait += 10) {
+    const s = at(JP.parlour, 20, 17);
+    run(s, NONE, wait);
+    tried++;
+    for (let f = 0; f < 200 && !dead(s.g) && colOf(s.g) > 8; f++) frame(s, LEFT);
+    if (!dead(s.g) && colOf(s.g) <= 8) throughAlive++;
+  }
+  check(`walking west across the lane under it from the machines to the stair, ${throughAlive} of ${tried} starts across its cycle get through (it can be timed: the cycle is a few seconds)`, throughAlive > 0 && throughAlive < tried);
+}
+
+// ---- NEON STREET's railway: a train over the roofs that touches nothing -------------------------------------------------------------
+{
+  const train = must(STREET_TRAIN, 'the street\'s train');
+  check('the street has a train over the roofs on a viaduct (rows 0-1, a tunnel mouth with a picture) that is only scenery: harmless, no warning', train.room === JP.street && train.harmless === true && train.warn === 0 && train.top === 0 && train.bottom === 1 && train.picture?.length === 2);
+  const codes = new Set((train.picture ?? []).flat().filter((c) => c !== 0));
+  const s = at(JP.street, 8, 7);
+  let seenFrames = 0;
+  for (let f = 0; f < 700 && !dead(s.g); f++) {
+    frame(s, NONE);
+    const here = [0, 1].some((row) => Array.from({ length: 32 }, (_, c) => c).some((c) => codes.has(cell(s.g, c, row))));
+    if (here) seenFrames++;
+  }
+  check(`it is drawn in the room's own characters and passes over the roofs (seen on ${seenFrames} of 700 frames) while he stands on the roof, alive`, seenFrames > 100 && seenFrames < 650 && !dead(s.g));
+  // the alley's fire escape joins the street to the roofs both ways
+  check('the alley\'s fire escape climbs from the street to the roofs and down again (landings two rows apart)',
+    search(at(JP.street, 12, 17), (g) => g.roomId === JP.street && g.y === standY(7) && colOf(g) >= 21, [{ room: JP.street, col: 22, row: 5 }], 120000, 1.5) !== null
+    && search(at(JP.street, 22, 7), (g) => g.roomId === JP.street && g.y === standY(17) && colOf(g) <= 19, [{ room: JP.street, col: 17, row: 15 }], 120000, 1.5) !== null);
+}
+
+// ---- THE CROSSING: taxis on the red man, the crowd on the green ------------------------------------------------------------------------
+{
+  const taxis = CROSSING_MOUTHS.filter((m) => !m.harmless), crowds = CROSSING_MOUTHS.filter((m) => m.harmless);
+  check(`two taxis (deadly, from the left and from the right) and two crowd waves (harmless) cross the zebra's zone, columns ${CROSSING.zone.from}-${CROSSING.zone.to}, on a ${CROSSING.period} frame cycle`,
+    taxis.length === 2 && crowds.length === 2 && taxis.every((m) => m.span?.from === CROSSING.zone.from && m.span.to === CROSSING.zone.to && m.warn === CROSSING.taxiWarn) && CROSSING_MOUTHS.every((m) => (m.rest ?? 0) + m.warn + ((m.span?.to ?? 31) - (m.span?.from ?? 0) + 1 + m.cols + 1) * m.step === CROSSING.period));
+  // walking east across the zone from its start, every start across the cycle: those on the green get through, those into a taxi die
+  let windows = '', safe = 0, hit = 0;
+  for (let wait = 0; wait < CROSSING.period + 40; wait += 8) {
+    const s = at(JP.crossing, 3, 17);
+    run(s, NONE, wait);
+    for (let f = 0; f < 420 && !dead(s.g) && colOf(s.g) < 19; f++) frame(s, RIGHT);
+    if (dead(s.g)) { hit++; windows += '#'; } else if (colOf(s.g) >= 19) { safe++; windows += '.'; } else windows += 'o';
+  }
+  check(`walking east from the pavement at ${windows.length} starts across the cycle (${windows}): ${safe} get across, ${hit} are hit by a taxi`, safe > 0 && hit > 0 && hit < windows.length / 2);
+  // the green window: every start from just after the second taxi to well before the next flash gets across
+  let clear = true;
+  for (let wait = 181; wait <= 330; wait += 7) {
+    const s = at(JP.crossing, 3, 17);
+    run(s, NONE, wait);
+    for (let f = 0; f < 420 && !dead(s.g) && colOf(s.g) < 19; f++) frame(s, RIGHT);
+    if (dead(s.g) || colOf(s.g) < 19) clear = false;
+  }
+  check('every start on the green man (frames 181 to 330 of the cycle) gets across alive: the whole crossing is a safe window, 370 frames, for a 192 frame walk', clear);
+  // the crowd is only a picture: walking with it, he is not hurt
+  const c = at(JP.crossing, 2, 17);
+  run(c, NONE, 250);
+  let crowdSeen = false;
+  const crowdCodes = new Set(crowds.flatMap((m) => (m.picture ?? []).flat().filter((x) => x !== 0)));
+  for (let f = 0; f < 200 && !dead(c.g); f++) { frame(c, RIGHT); if (Array.from({ length: 32 }, (_, k) => k).some((k) => crowdCodes.has(cell(c.g, k, 15)))) crowdSeen = true; }
+  check('in the crowd\'s wave he walks through its pictured figures unhurt', crowdSeen && !dead(c.g));
+  // the signals: the red man while the taxis have the road, the green man after
+  const ref = decorChars(WORLD, JP.crossing)[decorIndex('jpWalkSignal')] ?? 0;
+  const sig = at(JP.crossing, 3, 17);
+  const lit = (g: Game) => [0, 1].map((k) => Array.from(g.mem.subarray((ref + k) * 8, (ref + k) * 8 + 8)).join());
+  const red = lit(sig.g);
+  run(sig, NONE, 100);
+  const stillRed = lit(sig.g).join() === red.join();
+  run(sig, NONE, 160);
+  const green = lit(sig.g);
+  run(sig, NONE, 300);
+  const nextRed = lit(sig.g);
+  check('the signal shows the red man through the taxis\' turn (to frame 180) and the green man on the crowd\'s, then the red man again for the next cycle', stillRed && green.join() !== red.join() && nextRed.join() === red.join());
+}
+
+
 finish();

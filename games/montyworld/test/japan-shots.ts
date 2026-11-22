@@ -24,7 +24,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: JP.fuji, name: '32-mount-fuji', col: 3, floor: 14, frames: 40, compare: 0x17 },
   { room: JP.garden, name: '33-koi-polloi', col: 8, floor: 14, frames: 40, compare: 0x06 },
   { room: JP.mole, name: '34-the-last-mole', col: 29, floor: 14, frames: 40, compare: 0x0a },
-  { room: JP.tiers, name: '35-the-castle', col: 10, floor: 17, frames: 40, compare: 0x15 },
+  { room: JP.hideout, name: '35-the-castle', col: 10, floor: 17, frames: 40, compare: 0x15 },
   { room: JP.hall, name: '36-the-shogun-s-hall', col: 3, floor: 14, frames: 40, compare: 0x0f },
   { room: JP.port, name: '37-sayonara-sailor', col: 22, floor: 17, frames: 40, compare: 0x1d },
 ];
@@ -34,7 +34,7 @@ const riceHat = itemIndex(probe, CHI.top, 0);
 const daruma = itemIndex(probe, JP.parlour, 0), fish = itemIndex(probe, JP.crossing, 0), hood = itemIndex(probe, JP.mole, 0);
 
 const pics = SPOTS.map((s) => {
-  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: s.room === JP.port || s.room === JP.tiers ? hood : riceHat, items: s.room === JP.port || s.room === JP.tiers ? [hood] : [] });
+  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: s.room === JP.port || s.room === JP.hideout ? hood : riceHat, items: s.room === JP.port || s.room === JP.hideout ? [hood] : [] });
   savePng(out, `room-${s.name}.png`, px);
   return px;
 });

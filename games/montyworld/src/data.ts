@@ -19,7 +19,7 @@ import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY } from './art/andes-items';
 import { ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, BOULDERS, FLIGHTS, TANGLE_CELLS, TANGLE_ROPE, TANGLE_ROPE_CODE, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS } from './andes-pointers';
 import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, POOL_CELLS, POOL_BED_CELLS, POOL_BED, POOL_SEA, CHAIN_CELLS, TORCH_PULSES, TORCH_HEAD_PULSES } from './pacific';
-import { DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, TRAINS } from './japan';
+import { DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
@@ -206,6 +206,7 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0, place: { code: PLANK_CODE, cells: onScreen(PLANK_CELLS) } }, // fed, the koi leave the pond (the first) and the pond's planks float up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
   { room: JP.hall, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // in the ninja hood the castle's guard steps aside
+  { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // and the hideout's door guard, a ninja himself, lets him by
   { room: PAC.box, when: [{ taken: CUTTERS }], clear: onScreen(CHAIN_CELLS) }, // the cutters take the chain off the ramp
   { room: PAC.surf, when: [{ taken: SNORKEL }], place: { code: POOL_SEA, cells: onScreen(POOL_CELLS) } }, // the snorkel opens the sea: the surf is water to wade into
   { room: PAC.surf, when: [{ taken: SNORKEL }], place: { code: POOL_BED, cells: onScreen(POOL_BED_CELLS) } }, // (its floor under the waves is sand then)
@@ -250,9 +251,9 @@ export const WORLD: MontyData = {
   lifts: LIFTS,
   escalators: [...ESCALATORS, LOADER],
   icicles: ICICLES,
-  tunnels: [...TUNNELS, ...TRAINS, ...BRIDGE_CARS],
+  tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS],
   cracks: CRACKS,
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS],
   pulses: [...PULSES, ...DOOR_PULSES, ...TORCH_PULSES, ...TORCH_HEAD_PULSES],
   swimRooms: [PAC.clam, PAC.kelp, PAC.cave, PAC.fish],
   risingLava: [LAVA],
@@ -316,6 +317,7 @@ export const WORLD: MontyData = {
       { room: JP.platform, item: DARUMA, text: 'THE SHUTTER OPENS FOR LUCK' },
       { room: JP.garden, item: FISH_FOOD, text: 'HUNGRY KOI CROWD THE POND' },
       { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD SPOTS OUTSIDERS' },
+      { room: JP.hideout, item: HOOD_ITEM, text: 'THE DOOR IS FOR NINJAS ONLY' },
       { room: PAC.box, item: CUTTERS, text: 'THE RAMP IS CHAINED SHUT' },
       { room: PAC.surf, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
       { room: PAC.hana, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },

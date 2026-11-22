@@ -6,24 +6,12 @@
  * tanuki, a crane, a koi, a ninja and a samurai guard. No dither.
  * Each is drawn going left (frames 0-3); the mirror goes right (4-7). Every name starts `jp`.
  */
-import { capsule, sym } from './creature-kit';
-import { creatureBank, mirrored } from './pixels';
+import { lay, pair } from './creature-kit';
+import { four, koi, ninja, samurai, sumo } from './japan-bold';
 import { limb, over, Raster } from './raster';
 import type { NewCreature } from './types';
 
-/** A shape on its own raster, laid over `r` with a black moat round it (raster.ts `over`). */
-function lay(r: Raster, draw: (s: Raster) => void) {
-  const s = new Raster(16, 16);
-  draw(s);
-  over(r, s);
-}
 
-/** The four frames of a creature that goes left, and its mirror for going right. */
-function pair(name: string, left: readonly (readonly string[])[], colour: number, copy = false): NewCreature {
-  return { frames: creatureBank(name, left, left.map(mirrored)), copy, colour };
-}
-
-const four = (frame: (t: number) => string[]) => [0, 1, 2, 3].map(frame);
 
 // ---- the kappa: a green river imp, a dish of water on his head, big round eyes, a beak and a shell, waddling
 
@@ -123,25 +111,6 @@ function lanternGhost(): NewCreature {
   return pair('jpLanternGhost', four(frame), 3, true);
 }
 
-// ---- the sumo wrestler: big round belly, a topknot, a belt, stamping
-
-function sumo(): NewCreature {
-  const frame = (t: number) => {
-    const r = new Raster(16, 16);
-    const a = [0, 1, 0, 0][t] ?? 0, b = [0, 0, 0, 1][t] ?? 0;
-    lay(r, (s) => { limb(s, 5, 12, 4, 15 - a, 3); limb(s, 11, 12, 12, 15 - b, 3); }); // the stamping legs
-    r.ellipse(8, 10, 7, 5.2); // the belly
-    r.disc(8, 4.6, 3.6); r.rect(7, 0, 9, 1); // the head, the topknot
-    r.rect(6, 4, 6, 4, false); r.rect(10, 4, 10, 4, false); r.rect(5, 3, 7, 3, false); r.rect(9, 3, 11, 3, false); // eyes and frowning brows
-    r.cut(['.###.'], 6, 6); // the stern mouth
-    r.cut(['################'], 0, 11); r.cut(['########'], 4, 12); r.rect(6, 11, 9, 13); // the black belt: a band with the front apron
-    r.cut(['.'], 0, 0); r.rect(7, 9, 8, 9, false); // the navel
-    lay(r, (s) => { limb(s, 1, 8, 0, 12 - a, 2); limb(s, 14, 8, 15, 12 - b, 2); }); // arms at his sides
-    return r.rows();
-  };
-  return pair('jpSumo', four(frame), 10);
-}
-
 // ---- the karakasa: a paper umbrella come alive, one huge eye, a long tongue, hopping on its single leg in its geta
 
 function karakasa(): NewCreature {
@@ -200,84 +169,7 @@ function crane(): NewCreature {
     r.rect(7, 8, 10, 8, false);
     return r.rows();
   };
-  return pair('jpCrane', four(frame), 1);
-}
-
-// ---- the koi: an orange carp leaping, head up, whiskers, a big eye, scale spots and a great forked tail beating
-
-function koi(): NewCreature {
-  const frame = (t: number) => {
-    const r = new Raster(16, 16);
-    const s = [0, 2, 0, -2][t] ?? 0;
-    capsule(r, [[5.4, 3.8, 4], [7.6, 8, 4.4], [10, 11.2, 2.8]]); // the body, head up left
-    r.triangle(9, 3, 14, 1, 12, 9); // the dorsal fin
-    r.triangle(10, 11, 8 + s, 15.5, 12, 14.5); r.triangle(10, 11, 15.5, 14 + s / 2, 12.5, 12.5); // the tail's fork
-    r.triangle(6, 10, 1.5, 13, 7, 12.5); // the pectoral fin
-    r.ellipse(4, 3, 1.7, 1.7, false); r.rect(4, 3, 4, 3); // the big eye
-    r.cut(['##'], 1, 5); // the mouth
-    r.ellipse(8, 8, 1.5, 1.2, false); r.ellipse(9.5, 11, 1.4, 1.1, false); r.ellipse(6, 10.5, 1.2, 1, false); // the dark patches
-    return r.rows();
-  };
-  return pair('jpKoi', four(frame), 10);
-}
-
-// ---- the ninja: dark, a mask with a lit eye slit, a headband streaming, leaping
-
-function ninja(): NewCreature {
-  const frame = (t: number) => {
-    const r = new Raster(16, 16);
-    const a = [2, 0, -2, 0][t] ?? 0;
-    const legs = new Raster(16, 16);
-    limb(legs, 6, 11, 3 + a, 15, 3); limb(legs, 10, 11, 12 - a, 15, 3);
-    over(r, legs);
-    r.rect(4, 7, 11, 12); // the body
-    r.cut(['########'], 4, 11); // the sash
-    r.disc(8, 4, 4.4); // the hooded head
-    r.cut(['#######'], 5, 3); r.cut(['#######'], 5, 4); // the slit
-    r.set(6, 3); r.set(6, 4); r.set(10, 3); r.set(10, 4); // the eyes, lit
-    const arms = new Raster(16, 16);
-    limb(arms, 4, 8, 0, 5 - a, 2); limb(arms, 11, 8, 15, 11 + a, 2);
-    arms.line(14, 4, 14, 12);
-    over(r, arms);
-    const tails = new Raster(16, 16);
-    tails.line(12, 3, 15, 1 + (t % 2)); tails.line(12, 4, 15, 4 + (t % 2));
-    over(r, tails);
-    return r.rows();
-  };
-  return pair('jpNinja', four(frame), 14);
-}
-
-// ---- the samurai guard: red armour, a great helmet with crescent horns and a crest over a fierce face (slanted eyes, a moustache), broad laced shoulder plates, a skirt of plates
-
-const SAMURAI_TOP = sym([
-  '#.......',
-  '##....##',
-  '.##..###',
-  '..##.###',
-  '...#####',
-  '..######',
-  '..#.####',
-  '..#.#.##',
-  '..#.#.##',
-  '..#..###',
-  '.#######',
-  '####.###',
-  '####.#.#',
-  '.##..###',
-]);
-
-function samurai(): NewCreature {
-  const frame = (t: number) => {
-    const r = new Raster(16, 16);
-    const a = [1, 0, -1, 0][t] ?? 0;
-    SAMURAI_TOP.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') r.set(x, y); }));
-    r.cut(['#', '#'], 5, 7); r.cut(['#', '#'], 10, 7); // the slanted eyes: dark above the nose
-    r.cut(['#######'], 4, 9); // the moustache's black bar
-    r.cut(['#########', '.........'], 3, 11); // the lacing
-    limb(r, 5, 13, 4 + a, 15, 2); limb(r, 10, 13, 11 - a, 15, 2); r.rect(3 + a, 15, 5 + a, 15); r.rect(10 - a, 15, 12 - a, 15); // legs and feet
-    return r.rows();
-  };
-  return pair('jpSamurai', four(frame), 10);
+  return pair('jpCrane', four(frame), 2);
 }
 
 export const JAPAN_CREATURES = {

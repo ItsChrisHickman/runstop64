@@ -19,7 +19,8 @@ import * as S from '../../../../packages/c64kit/src/schema';
 import { ACTIONS, hold, keyOf, livesOn, play, search, STEP, type Aim, type Goal, type Route } from './bot';
 
 /** A leg of a region's route: a goal for the bot to reach, and where to head (the aim only guides the search). */
-export interface Leg { name: string; goal: Goal; aim: readonly Aim[] }
+/** One goal of a route (`pickup`: a coin or an item taken, which a player must be able to do without the bot's exact timing). */
+export interface Leg { name: string; goal: Goal; aim: readonly Aim[]; pickup?: true }
 
 /** What the command line says: the mode, the legs to play, and the flags. */
 export interface Args { only: string | undefined; first: number; last: number | undefined; record: boolean; full: boolean }

@@ -35,7 +35,7 @@ export function creatureRooms(rooms: readonly RoomSpec[]): Map<number, Set<numbe
 /** Monty's y standing on a floor row (the floor's top row; his top is two rows above). */
 export const standY = (floor: number) => 0x32 + (floor - 2 + 3) * 8;
 
-export type Part = Pick<Leg, 'goal' | 'aim'>;
+export type Part = Pick<Leg, 'goal' | 'aim' | 'pickup'>;
 
 /** Into a room, heading for the spot of the room he is in that leads there (`via`: a cell of it). */
 export const into = (room: number, col: number, row: number, from: number, also: Goal = () => true): Part => ({ goal: (g) => g.roomId === room && !g.freeze && !g.script && also(g), aim: [{ room: from, col, row }] });
@@ -43,9 +43,10 @@ export const into = (room: number, col: number, row: number, from: number, also:
 export const above = (floor: number): Goal => (g) => g.y < standY(floor);
 /** A coin taken, and he is on his feet (or a rope) again: a leg that ended in mid-air would hand the next one a jump already committed. */
 export const settledOn: Goal = (g) => !g.montyAction && !g.falling && !g.gameMode && !g.freeze && !g.script;
-export const coin = (room: number, col: number, row: number): Part => ({ goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0 && settledOn(g), aim: [{ room, col, row: row - 1 }] });
+export const coin = (room: number, col: number, row: number): Part => ({ pickup: true, goal: (g) => g.coinCollected[coinIndex(g, room, col, row)] !== 0 && settledOn(g), aim: [{ room, col, row: row - 1 }] });
 /** A special item of a room (its n-th), where its sprite is. */
 export const item = (room: number, nth = 0, at: readonly [col: number, row: number] = ITEM_AT[room]?.[nth] ?? [0, 0]): Part => ({
+  pickup: true,
   goal: (g) => g.siCollected[itemIndex(g, room, nth)] !== 0 && settledOn(g),
   aim: [{ room, col: at[0], row: at[1] }],
 });

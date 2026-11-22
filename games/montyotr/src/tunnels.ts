@@ -97,7 +97,8 @@ export function tunnelUpdate(g: Game) {
             } else paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }
-        if (!g.actionCounter && montyOver(g, t.left, e.cols, e.top, e.bottom) && (!e.picture || touchesPicture(g, t))) g.actionCounter = 1;
+        // (only where it is drawn: the part of it outside its span, coming in or going out, is not there to be touched)
+        if (!e.harmless && !g.actionCounter && Math.min(t.left + e.cols, hi) > Math.max(t.left, lo) && montyOver(g, Math.max(t.left, lo), Math.min(t.left + e.cols, hi) - Math.max(t.left, lo), e.top, e.bottom) && (!e.picture || touchesPicture(g, t))) g.actionCounter = 1;
         break;
     }
   }

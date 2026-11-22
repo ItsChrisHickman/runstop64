@@ -138,6 +138,8 @@ export interface TunnelSpec {
   picture?: readonly (readonly number[])[];
   /** It runs only between these playfield columns (inclusive), coming in at one end of them and gone at the other: a car over a one-lane bridge, in place of the whole room's width. */
   span?: { readonly from: number; readonly to: number };
+  /** Scenery that moves, never a danger (an elevated train passing over a street, a crowd): it is drawn as the picture and kills nothing. */
+  harmless?: boolean;
 }
 
 /**

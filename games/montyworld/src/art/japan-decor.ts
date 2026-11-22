@@ -5,7 +5,12 @@
  * port's gantry and ship's mast, the Great Wave. Every name starts `jp`.
  */
 import { decor } from './decorations';
+import { JAPAN_CROSSING } from './japan-crossing';
+import { JAPAN_FUJI } from './japan-fuji';
 import { JAPAN_NIGHT } from './japan-night';
+import { JAPAN_PACHINKO } from './japan-pachinko';
+import { JAPAN_PORT } from './japan-port';
+import { JAPAN_STREET } from './japan-street';
 import { JAPAN_SCENERY } from './japan-scenery';
 import { limb, Raster } from './raster';
 import type { NewDecor } from './types';
@@ -324,7 +329,12 @@ export const JAPAN_DECOR = {
   jpTrafficLight: trafficLight(),
   jpScreen: screen(),
   jpBoard: board(),
+  ...JAPAN_CROSSING,
+  ...JAPAN_FUJI,
   ...JAPAN_NIGHT,
+  ...JAPAN_PACHINKO,
+  ...JAPAN_PORT,
+  ...JAPAN_STREET,
   ...JAPAN_SCENERY,
 } as const satisfies Record<string, NewDecor>;
 
