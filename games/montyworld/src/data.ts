@@ -28,7 +28,8 @@ import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
-import { CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS } from './rio';
+import { codeOf } from './layout';
+import { CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, FLOATS, GATE_CELLS, GATE_SEA_CELLS, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, SUGAR_PALETTE } from './rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN, SUN_MASK } from './art/rio-items';
@@ -223,6 +224,7 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: AND.cloud, when: [{ taken: MACHETE }], place: { code: TANGLE_ROPE_CODE, cells: onScreen(TANGLE_ROPE) } }, // and the rope hangs through the gap
   { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: 0 }, // in a local's hat the captain steps aside
   { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], clear: onScreen(GATE_CELLS) }, // the key to the city opens the cable car's gate,
+  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], place: { code: codeOf(SUGAR_PALETTE, 'E'), cells: onScreen(GATE_SEA_CELLS) } }, // (the bay's sea shows behind where it stood)
   { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
   { room: RIO_ROOM.drum, when: [{ taken: HEADDRESS_ITEM }], removeEnemy: 0 }, // in the headdress the parade's steward takes him for a dancer
 ];
@@ -257,7 +259,7 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS],
   cracks: CRACKS,
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS],
   pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES],
   swimRooms: [PAC.clam, PAC.kelp, PAC.cave, PAC.fish],
   risingLava: [LAVA],

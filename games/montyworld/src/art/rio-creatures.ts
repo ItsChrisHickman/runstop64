@@ -32,7 +32,7 @@ function dancer(): NewCreature {
     r.rect(6 + (sway > 0 ? 1 : 0), 14, 7 + (sway > 0 ? 1 : 0), 15); r.rect(9 + (sway < 0 ? -1 : 0), 14, 10 + (sway < 0 ? -1 : 0), 15);
     return r.rows();
   };
-  return pair('dancer', [frame(0, 0), frame(1, 1), frame(2, 0), frame(3, -1)], 10, true);
+  return pair('dancer', [frame(0, 0), frame(1, 1), frame(2, 0), frame(3, -1)], 3, true);
 }
 
 // ---- the drummer: a cap, a big grin, a surdo drum in front, sticks alternating
@@ -53,7 +53,7 @@ function drummer(): NewCreature {
     r.rect(5, 15, 6, 15); r.rect(9, 15, 10, 15);
     return r.rows();
   };
-  return pair('drummer', [frame(true), frame(false), frame(true), frame(false)], 14, true);
+  return pair('drummer', [frame(true), frame(false), frame(true), frame(false)], 5, true);
 }
 
 // ---- the gaucho: a wide hat, a moustache, a poncho, one arm up with the skewer (its sprite is rio-items.ts SKEWER_POSES)
@@ -112,7 +112,7 @@ function marmoset(): NewCreature {
     r.cut(['##'], 7, 8); r.cut(['#....#', '.####.'], 5, 10); // the nose and the grin
     return r.rows();
   };
-  return pair('marmoset', [frame(0), frame(1), frame(0), frame(-1)], 15, true);
+  return pair('marmoset', [frame(0), frame(1), frame(0), frame(-1)], 8, true);
 }
 
 // ---- the macaw: red, a huge hooked beak, a long tail, wings beating
@@ -189,7 +189,7 @@ function capoeirista(): NewCreature {
     r.cut(['##'], hx - 1, hy - 0.5); // the headband, dark across the face
     return r.rows();
   };
-  return pair('capoeirista', [frame(0), frame(1), frame(2), frame(3)], 13, true);
+  return pair('capoeirista', [frame(0), frame(1), frame(2), frame(3)], 1, true);
 }
 
 // ---- the ghost crab: eyes on stalks, claws up
@@ -211,7 +211,7 @@ function crab(): NewCreature {
     r.cut(['####'], 6, 11); // the mouth
     return r.rows();
   };
-  return pair('crab', [frame(true, 0), frame(false, 1), frame(true, 1), frame(false, 0)], 8, true);
+  return pair('crab', [frame(true, 0), frame(false, 1), frame(true, 1), frame(false, 0)], 2, true);
 }
 
 // ---- the football: a face on it, bouncing
@@ -228,7 +228,7 @@ function football(): NewCreature {
     r.cut(['##'], 1, cy - 4); r.cut(['##'], 13, cy - 4); r.cut(['#'], 7, cy - 5); // panel seams
     return r.rows();
   };
-  return pair('football', [frame(0, 0), frame(1.4, 0), frame(0, 5), frame(-0.5, 8)], 1, true);
+  return pair('football', [frame(0, 0), frame(1.4, 0), frame(0, 5), frame(-0.5, 8)], 3, true);
 }
 
 export const RIO_CREATURES = {

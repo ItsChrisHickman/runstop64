@@ -316,6 +316,72 @@ export const RIO_TILES = {
     '........',
     '........',
   ]),
+  /** A colonial house front: a plaster wall with a shuttered window (the room's colour makes it pink, yellow, blue or green: Rio's colourful houses). Solid. */
+  facade: tile('facade', 1, 10, [
+    '########',
+    '########',
+    '##....##',
+    '##.##.##',
+    '##....##',
+    '##.##.##',
+    '##....##',
+    '########',
+  ]),
+  /** A hillside seen behind, the forest's green with the black cuts of its gullies, a backdrop: he passes through. Nothing. */
+  hillBack: tile('hillBack', 0, 5, [
+    '########',
+    '###.####',
+    '########',
+    '########',
+    '#######.',
+    '########',
+    '.#######',
+    '########',
+  ]),
+  /** Sugarloaf's granite seen behind: the smooth monolith with its long dark streaks, a backdrop: he passes through. Nothing. */
+  graniteBack: tile('graniteBack', 0, 15, [
+    '###.####',
+    '###.####',
+    '####.###',
+    '####.###',
+    '####.###',
+    '###.####',
+    '###.####',
+    '####.###',
+  ]),
+  /** The beach sand seen behind the walkway: pale grains in bands, a backdrop: he passes through. Nothing. */
+  sandBack: tile('sandBack', 0, 7, [
+    '########',
+    '#.######',
+    '########',
+    '#####.##',
+    '########',
+    '###.####',
+    '########',
+    '######.#',
+  ]),
+  /** The cable car station's gate: red steel bars he cannot pass until the key. Solid. */
+  stationGate: tile('stationGate', 1, 2, [
+    '##.##.##',
+    '##.##.##',
+    '########',
+    '##.##.##',
+    '##.##.##',
+    '##.##.##',
+    '########',
+    '##.##.##',
+  ]),
+  /** A trail on the mountain's face: packed earth with a lip of stones along its edge, he stands on it and passes up through it. A floor. */
+  trail: tile('trail', 2, 9, [
+    '########',
+    '########',
+    '#.####.#',
+    '.######.',
+    '..####..',
+    '........',
+    '........',
+    '........',
+  ]),
 } as const;
 
 export type RioTile = keyof typeof RIO_TILES;

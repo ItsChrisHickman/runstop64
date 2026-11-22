@@ -4,6 +4,7 @@ import { wait, type Seq } from '../../shared/monty/deaths';
 import { pixelY } from '../../montyotr/src/cells';
 import type { Game } from '../../montyotr/src/game';
 import { gameOver } from '../../montyotr/src/scripts';
+import { BEACH_HORIZON, BEACH_VIEW } from './rio';
 import { SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 
 /**
@@ -12,13 +13,12 @@ import { SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
  * Monty (3), the bowl (0, the treasure's), the sun (6, behind the characters and behind the black block of sprite 5 that is the sea below the horizon) and, over his head, his headdress (7).
  */
 
-/** The beach's decorations (playfield cells, rio.ts `bust`): the Redeemer's 8 by 7 at (19, 2) and Sugarloaf's 6 by 3 at (5, 7). */
-const REDEEMER = { col: 19, row: 2, w: 8, h: 7 } as const;
-const SUGARLOAF = { col: 5, row: 7, w: 6, h: 3 } as const;
+/** The beach's far shore (playfield cells, rio.ts `bust`): the Redeemer on Corcovado and Sugarloaf. */
+const { redeemer: REDEEMER, sugarloaf: SUGARLOAF } = BEACH_VIEW;
 /** The sprites: the sun, and the black block under the horizon that hides it as it sets (both behind the characters, the block in front of the sun). */
 const SUN_SPRITE = 6, SUN_BIT = 0x40, MASK_SPRITE = 5, MASK_BIT = 0x20;
 /** The horizon: the top row of the sea, which the sun sinks behind. */
-const HORIZON = 10;
+const HORIZON = BEACH_HORIZON;
 /** Where he stops on the promenade (sprite x, halved) and how far the sun is from the horizon's top, in frames. */
 const STOP = 0x5c, SET_FRAMES = 600;
 

@@ -237,19 +237,17 @@ export interface RollerSpec {
 export interface VineSpec { room: number; col: number; top: number; length: number; period: number; amplitude: number; phase: number; code: number }
 
 /**
- * Sugarloaf's cable car (cablecars.ts): two cars on one cable between two stations of a room. Standing on the foot of a station (`col`, two cells wide, on its floor `row`: the car's door, at the cable's end of the
- * platform) puts Monty aboard the car waiting there; it climbs or descends the cable `frames` frames, the other car passing it the other way, and sets him down on the other station's foot, where he must step off
- * (walking back onto a foot rides back). The car is two sprites over his box, a hires 24 by 21 block each: its roof behind him (`roof`, on a VIC sprite not used by the room) and its floor and rail in front
- * (`floor`), placed from Monty's place by `dx` (from his left edge) and `roofDy`, `floorDy` (from his top); the other car takes the two sprites `passing`.
+ * Sugarloaf's cable car (cablecars.ts): one car on one cable between two stations of a room. Standing on the foot of a station (`col`, two cells wide, on its floor `row`: the car's door, at the cable's end of the
+ * platform) puts Monty aboard the car waiting there; it climbs or descends the cable `frames` frames and sets him down on the other station's foot, where he must step off (walking back onto a foot rides back). The car
+ * waits at the station he last rode to, or at the one nearer where he came into the room. The car is two sprites over his box, a hires 24 by 21 block each: its roof behind him (`roof`, on a VIC sprite not used by the room)
+ * and its floor and rail in front (`floor`), placed from Monty's place by `dx` (from his left edge) and `roofDy`, `floorDy` (from his top).
  */
 export interface CableStation { col: number; row: number }
 export interface CableCarSpec {
   room: number; low: CableStation; high: CableStation; frames: number;
-  roof: { ptr: number; sprite: number }; floor: { ptr: number; sprite: number }; passing: { roof: number; floor: number }; colour: number;
+  roof: { ptr: number; sprite: number }; floor: { ptr: number; sprite: number }; colour: number;
   /** The car's pictures sit this many pixels left of Monty's left edge and this far above his top (the roof) or his floor (the floor sprite's top). */
   dx: number; roofDy: number; floorDy: number;
-  /** The passing car's own cable: it hangs `dy` pixels below the line (a car's height and a little over) from `ramp` (a fraction of the way) in to `ramp` from the far end, and slides down to it and back up over the ramps. */
-  bypass: { dy: number; ramp: number };
 }
 
 /**

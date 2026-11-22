@@ -62,7 +62,16 @@ most care; the reward show and the title show them off.
   clothesline runs wall to wall) (Chris on China).
 - **Not every room is a dungeon.** No frame walls or ceilings by habit: outdoor rooms open to the sky and run off the screen's
   edges; walls only where the place is indoors, shaped as that building.
+  How it is built (Rio, 2026-11-22): the sky, the sea and a far hill are one-character pieces laid over every empty cell (`fillCells`: three bands of sky, one of waves) or nothing-class backdrop tiles
+  (`hillBack`, `graniteBack`: painted as shapes, he walks through them); a decoration replaces the characters of every cell it covers, so no coin or item sits under one and none sits on a solid tile. Two
+  rooms that join are open at the same rows (sky above included) and shut under them; a side with no room beyond it needs no wall at all, the engine stops him at the edge.
+- **Nothing floats** (Chris on Rio's Lapa, 2026-11-22: "the entire bottom row is blank and then a building floats over it... amateur"): everything stands on something drawn: an aqueduct on the street under its arches, a house on the
+  hill or the lane, a cable between two anchors, a roof on its posts. Check every picture's bottom edge and every ledge for a gap between a thing and what carries it.
+- **A landmark appears once** (Chris on the Redeemer): exactly one Christ the Redeemer, on the summit of Corcovado, the highest point of its place, drawn with a hanging robe and sleeves (not rectangles); a far view of him is a different
+  picture, small, from the beach. One cable car line, one car on its cable, anchored at both ends: no second cable to make room for a passing car.
 - **No grey by default.** Each room picks a few bright, place-true colours on black; grey only where the thing is grey.
+- **Creatures stand out from the backdrop they cross** (check each creature's colour against the sky, sea, hill and wall of every room it is in: a light blue drummer on a blue riser, a light grey marmoset on granite
+  were found by looking, not by the bot).
 - **Monty on the Run's art manner:** solid shapes with black-line detail, no checkerboard dithering; bold cartoon creatures with
   big faces filling their 16x16 in one solid colour; recognisably of the place they're in.
 - **Monty on the Run's room recipe** (measured over its rooms, sewers aside: games/montyworld/test/room-stats.ts,

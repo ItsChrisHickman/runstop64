@@ -1,6 +1,5 @@
 /**
- * Rio's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, rio.ts, plays them all together): the cable car (the key's gate, the ride up and down in 160 frames, a car at each station, the passing car
- * on the other pair of sprites), the floats (their cycle, the deck under him and him carried, the channel put back behind them), the gauchos' skewers (the four poses, the deadly ones, the sprites), the steward and the headdress, the
+ * Rio's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, rio.ts, plays them all together): the cable car (the key's gate, the ride up and down in 160 frames, the one car waiting where he comes in), the floats (their cycle, the deck under him and him carried, the channel put back behind them), the gauchos' skewers (the four poses, the deadly ones, the sprites), the steward and the headdress, the
  * costume, the joins both ways, the edges, the hints, the map, a save in each room, and the finale on the beach (the bowl is the treasure and ends the game).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-mechanisms.ts
@@ -55,7 +54,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   check('one cable car (Sugar Rush\'s), five floats (the avenue\'s), two skewers (the churrascaria\'s)', WORLD.cableCars.length === 1 && WORLD.cableCars[0]?.room === R.sugar && WORLD.floats.length === 5 && WORLD.floats.every((f) => f.room === R.float) && WORLD.skewers.length === 2 && WORLD.skewers.every((k) => k.room === R.steak));
   // the sprites each mechanism takes are not the room's: the cable car's are 0, 1, 2 and 6, its two creatures 4 and 5; the skewers' are 2 and 1, the gauchos' and the dancer's 4 to 6 and the room's item 0
   check('the cars and the skewers take sprites the rooms do not use (items 0 and 1, creatures 4 up, the canopy\'s and the hat\'s 2 and 7: none in these rooms)',
-    new Set([CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite, CABLE_CAR.passing.roof, CABLE_CAR.passing.floor]).size === 4 && [CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite, CABLE_CAR.passing.roof, CABLE_CAR.passing.floor].every((n) => n !== 3 && n !== 7)
+    new Set([CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite]).size === 2 && [CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite].every((n) => n !== 3 && n !== 7)
     && (must(RIO_ROOMS.find((r) => r.id === R.sugar), 'a room').enemies?.length ?? 0) <= 2 && SKEWERS.every((k) => k.sprite !== 0 && k.sprite !== 3 && k.sprite !== 6 && k.sprite !== 7) && (RIO_ROOMS.find((r) => r.id === R.steak)?.enemies?.length ?? 0) === 3);
 }
 
@@ -83,26 +82,21 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   }
   check(`stepping onto the foot starts the ride: ${rode} frames of it (160 and one), then he is set down on the upper platform at its foot (column ${colOf(up.g)}, floor 8), alive`, rode >= 159 && rode <= 162 && colOf(up.g) === CABLE_CAR.high.col && up.g.y === standY(8) && !dead(up.g));
   check('the ride climbs steadily (his height never goes down), 48 pixels in all', frames.every((y, i) => i === 0 || y <= (frames[i - 1] ?? 0)) && (frames[0] ?? 0) - (frames[frames.length - 1] ?? 0) >= 44);
-  // both cars are drawn (roof behind him on sprite 6, floor in front on 2; the passing car on 1 and 0)
+  // the car is drawn (roof behind him on sprite 6, floor in front on 2), one car only: the passing car's two sprites are not on
   const mid = at(R.sugar, 8, 14, [KEY]);
   run(mid, RIGHT, 60);
   for (let f = 0; f < 200 && !mid.g.gameMode; f++) frame(mid, RIGHT);
   run(mid, NONE, 80);
   const sp = (n: number) => mid.g.vic.sprites[n];
-  check('mid-ride the car is two sprites over him (roof 6 behind, floor 2 in front) and the other car two more (1 and 0), the pictures the car\'s', [6, 2, 1, 0].every((n) => ((mid.g.vic.enable >> n) & 1) === 1)
-    && sp(6)?.ptr === CAR_POINTERS.roof && sp(2)?.ptr === CAR_POINTERS.floor && sp(1)?.ptr === CAR_POINTERS.roof && sp(0)?.ptr === CAR_POINTERS.floor);
-  // the two cars never share a place: the passing car's box (two sprites, 24 wide, from the roof's top to the floor's foot) never meets his car's or him, in any frame of the ride
-  const ride = at(R.sugar, 8, 14, [KEY]);
-  let worst = 999;
-  for (let f = 0; f < 400; f++) {
-    frame(ride, RIGHT);
-    if (!ride.g.gameMode) continue;
-    const box = (roof: number, floor: number) => ({ x: (ride.g.sx[roof] ?? 0) * 2, y: ride.g.sy[roof] ?? 0, h: (ride.g.sy[floor] ?? 0) + 21 - (ride.g.sy[roof] ?? 0) });
-    const mine = box(CABLE_CAR.roof.sprite, CABLE_CAR.floor.sprite), other = box(CABLE_CAR.passing.roof, CABLE_CAR.passing.floor);
-    const gapX = Math.abs(mine.x - other.x) - 24, gapY = Math.max(mine.y - (other.y + other.h), other.y - (mine.y + mine.h));
-    worst = Math.min(worst, Math.max(gapX, gapY));
-  }
-  check(`the passing car hangs clear of his car all the way (the smallest gap between their boxes is ${worst} pixels)`, worst >= 0);
+  check('mid-ride the car is two sprites over him (roof 6 behind, floor 2 in front), the pictures the car\'s, and no second car (sprites 1 and 0 are off)', [6, 2].every((n) => ((mid.g.vic.enable >> n) & 1) === 1) && [1, 0].every((n) => ((mid.g.vic.enable >> n) & 1) === 0)
+    && sp(6)?.ptr === CAR_POINTERS.roof && sp(2)?.ptr === CAR_POINTERS.floor);
+  // the car waits at the station he comes in at: at the low foot from the beach, at the high one from the summit
+  const lowIn = at(R.sugar, 4, 18, [KEY]);
+  run(lowIn, NONE, 6);
+  const highIn = at(R.sugar, 29, 8, [KEY]);
+  run(highIn, NONE, 6);
+  const carX = (s: State) => (s.g.sx[CABLE_CAR.floor.sprite] ?? 0) * 2;
+  check(`the car waits at the station he came in at (x ${carX(lowIn)} from the beach, ${carX(highIn)} from the summit)`, carX(lowIn) < carX(highIn) && ((lowIn.g.vic.enable >> 2) & 1) === 1 && ((highIn.g.vic.enable >> 2) & 1) === 1);
   // he steps off and the other way: the high foot rides down, and a stand on the platform does not ride again
   const stay = at(R.sugar, 8, 14, [KEY]);
   for (let f = 0; f < 400 && !(stay.g.cable.latch && !stay.g.gameMode); f++) frame(stay, RIGHT);
@@ -289,17 +283,24 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
     const r = must(RIO_ROOMS.find((x) => x.id === room), 'a room');
     return Array.from({ length: 17 }, (_, i) => i + 3).filter((row) => { const ch = r.map[row]?.[col] ?? '.'; return ch === '.' || ![1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0)); });
   };
-  const opens: readonly (readonly [number, 0 | 31, readonly number[]])[] = [
+  const joins: readonly (readonly [number, 0 | 31, readonly number[]])[] = [
     [R.quay, 0, [6, 7]], [R.quay, 31, [16, 17]], [R.lap, 0, [16, 17]], [R.sugar, 0, [16, 17]], [R.sugar, 31, [6, 7]], [R.loaf, 0, [6, 7]], [R.loaf, 31, [6, 7]], [R.arms, 0, [6, 7]], [R.arms, 31, [6, 7]],
     [R.monkey, 0, [6, 7]], [R.colour, 31, [16, 17]], [R.steak, 31, [16, 17]], [R.drum, 0, [16, 17]], [R.drum, 31, [16, 17]], [R.float, 0, [16, 17]], [R.float, 31, [16, 17]], [R.bust, 0, [16, 17]],
   ];
   const bad2: string[] = [];
-  for (const r of RIO_ROOMS) for (const col of [0, 31] as const) {
-    const want = opens.find(([room, c]) => room === r.id && c === col)?.[2] ?? [];
-    const got = edge(r.id, col);
-    if (got.join() !== want.join()) bad2.push(`room ${r.id} col ${col}: open at ${got.join(' ') || 'none'}, should be ${want.join(' ') || 'none'}`);
+  for (const [room, col, rows] of joins) {
+    const got = edge(room, col);
+    if (!rows.every((r) => got.includes(r)) || got.includes(18) || got.includes(19)) bad2.push(`room ${room} col ${col}: open at ${got.join(' ') || 'none'}, should be open at ${rows.join(' ')} and shut under`);
   }
-  check(`every side of every room is closed from the third row down but where a join is (${bad2.length ? bad2.join('; ') : 'all 22 sides'})`, bad2.length === 0);
+  check(`every join of Rio is open at its way's rows and shut under them (${bad2.length ? bad2.join('; ') : 'all 17 sides'})`, bad2.length === 0);
+  // (a side with no room beyond it is open sky or hill: the engine stops him at it, he never leaves the room)
+  const stops = ([[R.lap, 28, 18, RIGHT], [R.bust, 28, 18, RIGHT], [R.colour, 3, 8, LEFT], [R.monkey, 28, 8, RIGHT]] as const).map(([room, col, floor, key]) => {
+    const s = at(room, col, floor, []);
+    s.g.enemies = [];
+    run(s, key, 120);
+    return s.g.roomId === room && !dead(s.g);
+  });
+  check(`where no room lies beyond a side he is stopped at the edge (Lapa's east, the beach's east, the favela's west, the forest's east: ${stops.map((x) => (x ? 'stopped' : 'left')).join(' ')})`, stops.every(Boolean));
 }
 
 // ---- the pause screen, the saves ----------------------------------------------------------------------------

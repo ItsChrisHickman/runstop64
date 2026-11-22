@@ -8,8 +8,8 @@ import type { CableCarSpec, CableStation } from './montydata';
 
 /**
  * Cable cars (a game's `cableCars`: Do Svidaniya Monty's Sugarloaf): a ride he cannot leave, made as the escalators' are (gameMode 1: the stick does nothing, he is carried). Stepping onto a station's foot puts him in the
- * car waiting there; it crosses to the other station's foot in `frames` frames at a steady pace along the line between them, the other car coming the other way on a bypass of its own, hung below the line where they pass, and he is set down standing on the
- * foot, where he must step off before it rides again. A car is two sprites, its roof behind him and its floor and rail in front; each station always has one at it.
+ * car waiting there; it crosses to the other station's foot in `frames` frames at a steady pace along the line between them (one car on one cable), and he is set down standing on the
+ * foot, where he must step off before it rides again. A car is two sprites, its roof behind him and its floor and rail in front; it waits at the station he last rode to, or at the one nearer to where he came into the room.
  */
 
 /** The ride under way (`from` the station index it began at, 0 the low one and 1 the high one: -1 none), the frame of it, where it began, and whether he is still standing on the foot he was set down on. */
@@ -18,7 +18,8 @@ export interface CableRide { from: number; t: number; x2: number; y: number; lat
 export const NO_CABLE: CableRide = { from: -1, t: 0, x2: 0, y: 0, latch: false, at: 0 };
 
 export function cableInit(g: Game) {
-  g.cable = { ...NO_CABLE };
+  const c = carOf(g);
+  g.cable = { ...NO_CABLE, at: c && g.x2 > (footX2(c.low) + footX2(c.high)) / 2 ? 1 : 0 };
 }
 
 /** The car of this room, if it has one. */
@@ -43,12 +44,9 @@ function carPlace(c: CableCarSpec, along: number): { x: number; y: number } {
   return { x, y };
 }
 
-/** How far below the line the passing car hangs `along` the way: it leaves the cable for its own (a bypass) over the first and last `ramp` of the way, so it never hangs where his car does. */
-const bypassDy = (c: CableCarSpec, along: number): number => c.bypass.dy * Math.min(1, along / c.bypass.ramp, (1 - along) / c.bypass.ramp);
-
-function showCar(g: Game, c: CableCarSpec, roof: number, floor: number, along: number, down: number) {
-  const { x, y: line } = carPlace(c, along), y = line + down;
-  for (const [n, ptr, dy] of [[roof, c.roof.ptr, c.roofDy], [floor, c.floor.ptr, c.floorDy]] as const) {
+function showCar(g: Game, c: CableCarSpec, along: number) {
+  const { x, y } = carPlace(c, along);
+  for (const [n, ptr, dy] of [[c.roof.sprite, c.roof.ptr, c.roofDy], [c.floor.sprite, c.floor.ptr, c.floorDy]] as const) {
     g.sx[n] = Math.max(0, Math.min(255, Math.round((x + c.dx) / 2)));
     g.sy[n] = Math.max(0, Math.min(255, Math.round(y + dy)));
     g.sptr[n] = ptr;
@@ -60,7 +58,7 @@ function showCar(g: Game, c: CableCarSpec, roof: number, floor: number, along: n
 /** The sprites the cars are on, as the collision check's mask (they are no part of what kills him or what he picks up). */
 export function cableSprites(g: Game): number {
   const c = carOf(g);
-  return c ? (1 << c.roof.sprite) | (1 << c.floor.sprite) | (1 << c.passing.roof) | (1 << c.passing.floor) : 0;
+  return c ? (1 << c.roof.sprite) | (1 << c.floor.sprite) : 0;
 }
 
 /** One frame (after Monty's move): start a ride from a foot, or carry him on, and draw the two cars. */
@@ -98,10 +96,9 @@ export function cableUpdate(g: Game) {
   cableDraw(g, c);
 }
 
-/** The cars: the one he is in on the line, the other at the opposite place along it; at rest one at each station. */
+/** The car: on the line where it is on the ride, at the station it waits at when it is not. */
 function cableDraw(g: Game, c: CableCarSpec) {
   const r = g.cable;
   const along = r.from < 0 ? r.at : r.from === 0 ? Math.min(1, r.t / c.frames) : 1 - Math.min(1, r.t / c.frames);
-  showCar(g, c, c.roof.sprite, c.floor.sprite, along, 0);
-  showCar(g, c, c.passing.roof, c.passing.floor, 1 - along, bypassDy(c, 1 - along));
+  showCar(g, c, along);
 }
