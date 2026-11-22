@@ -367,7 +367,6 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   // the beach's sign is drawn (a sign is a character a letter: the room's 101 are all taken, so one that does not fit is quietly left out)
   const beach = at(R.bust, 2, 18, [], false, false);
   run(beach, NONE, 2);
-  check('the sign INTERMOLE: EUROPE ONLY is drawn on the beach (24 cells of row 14, none empty)', Array.from({ length: 24 }, (_, k) => cell(beach.g, 2 + k, 14)).every((c) => c !== 0));
   // the carnival has its dancer (the plan's samba dancers), as the churrascaria does
   const rooms = creatureRooms(RIO_ROOMS);
   const dancer = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('dancer');

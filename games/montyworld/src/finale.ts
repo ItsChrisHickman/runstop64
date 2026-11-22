@@ -8,14 +8,13 @@ import { SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 
 /**
  * Do Svidaniya Monty's finale (the data's `completion`), Monty on the Run's manner (a short play that runs by itself once the treasure is touched, then GAME OVER and the title): on Copacabana at dusk Monty takes the acai bowl, strolls along the
- * promenade to the rail under the sign that says INTERMOLE: EUROPE ONLY, and eats it in three scoops while the sun sets into the sea and the Redeemer is floodlit. The room is the beach itself (no other is loaded); the figures are sprites:
+ * promenade to the rail and eats it in three scoops while the sun sets into the sea and the Redeemer is floodlit. The room is the beach itself (no other is loaded); the figures are sprites:
  * Monty (3), the bowl (0, the treasure's), the sun (6, behind the characters and behind the black block of sprite 5 that is the sea below the horizon) and, over his head, his headdress (7).
  */
 
-/** The beach's decorations (playfield cells, rio.ts `bust`): the Redeemer's 8 by 7 at (19, 2) and Sugarloaf's 6 by 3 at (5, 7), the sign's text at row 14 from column 2 (the sea is rows 10-13). */
+/** The beach's decorations (playfield cells, rio.ts `bust`): the Redeemer's 8 by 7 at (19, 2) and Sugarloaf's 6 by 3 at (5, 7). */
 const REDEEMER = { col: 19, row: 2, w: 8, h: 7 } as const;
 const SUGARLOAF = { col: 5, row: 7, w: 6, h: 3 } as const;
-const SIGN = { col: 2, row: 14, w: 22 } as const;
 /** The sprites: the sun, and the black block under the horizon that hides it as it sets (both behind the characters, the block in front of the sun). */
 const SUN_SPRITE = 6, SUN_BIT = 0x40, MASK_SPRITE = 5, MASK_BIT = 0x20;
 /** The horizon: the top row of the sea, which the sun sinks behind. */
@@ -72,12 +71,10 @@ export function* completion(g: Game): Seq {
       if ((g.sy[SUN_SPRITE] ?? 0) >= pixelY(HORIZON)) g.enable &= ~both & 0xff; // (all of it is behind the block by now: sun and block off)
     }
   };
-  // he takes it and strolls to the rail (to the left, under the sign)
+  // he takes it and strolls to the rail (to the left)
   face = 'left';
   yield* step(60, 0, () => 0);
   yield* step(((g.sx[3] ?? 0) - STOP) * 2, -1, () => 0);
-  // the sign's wink
-  for (let n = 0; n < 24; n++) { for (let k = 0; k < SIGN.w; k++) g.col[(SIGN.row + PLAY_ROW) * ROW + SIGN.col + k + PLAY_COL] = n < 12 ? 7 : 2; yield* step(1, 0, () => 0); }
   // three scoops
   for (let scoop = 0; scoop < 3; scoop++) {
     yield* step(30, 0, (n) => (n < 12 ? -Math.round(n / 3) : -4 + Math.round((n - 12) / 5)));

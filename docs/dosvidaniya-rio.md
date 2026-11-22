@@ -64,7 +64,7 @@ headdress hangs on a curtain; tables, a salad bar, a rotisserie, red lamps.
 
 **Q FLOAT YOUR BOAT** (the avenue). In at the left on the street (floor 18); the channel (deep water, cols 4-24) is crossed on the floats: lane A (the street's height) three of them left to right, lane B (floor 14) two the other way; on the right a stage with two steps (floor 16) and a skewer, leading east out low to the beach.
 
-**B RIO OR BUST** (the beach). Copacabana's wave pavement under the Redeemer on Corcovado and Sugarloaf across the bay, the sea, palms, a kiosk and a parasol; a sign INTERMOLE: EUROPE ONLY; the acai bowl on its table at the right end. Touching it is the finale.
+**B RIO OR BUST** (the beach). Copacabana's wave pavement under the Redeemer on Corcovado and Sugarloaf across the bay, the sea, palms, a kiosk and a parasol; the acai bowl on its table at the right end. Touching it is the finale.
 
 ### Items, gates, doubling back
 
@@ -116,8 +116,8 @@ A samba feel by instruments only: Hubbard's G minor lifted to G major (the minor
 
 ### The finale (Monty on the Run's manner: the treasure is touched, and a short play runs by itself)
 
-`completion` (`games/montyworld/src/finale.ts`), the room B itself, the figures sprites as the boat's were: Hubbard's finale song starts; Monty takes the bowl (sprite 0 follows him), strolls left along the promenade to under the sign INTERMOLE: EUROPE ONLY (row 14, over the sea's foot; the palms beside it are tiles, not decorations, so the sign's 24 characters fit the room's 101)
-and stops; the sign winks once; he eats in three scoops (the bowl rises and falls from him, the coin effect for the crunch); the Redeemer's cells go from grey to white and Sugarloaf's lights come on; the sun (sprite 6, behind the characters, with a black block on sprite 5 over the sea under the horizon that it sinks behind) has set into the sea;
+`completion` (`games/montyworld/src/finale.ts`), the room B itself, the figures sprites as the boat's were: Hubbard's finale song starts; Monty takes the bowl (sprite 0 follows him), strolls left along the promenade to the rail
+and stops; he eats in three scoops (the bowl rises and falls from him, the coin effect for the crunch); the Redeemer's cells go from grey to white and Sugarloaf's lights come on; the sun (sprite 6, behind the characters, with a black block on sprite 5 over the sea under the horizon that it sinks behind) has set into the sea;
 `g.won = true` and GAME OVER as Monty on the Run's ends (`gameOver`), CONTINUE? after it as in every game. In ENHANCED the reward show follows.
 
 ### The reward show (ENHANCED, one show for every game, `games/shared/ending/`)

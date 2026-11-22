@@ -282,6 +282,6 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[5, 16], [11, 16], [20, 16]],
     item: { name: 'bowl', col: 26, row: 15, sprite: RIO_SPRITE.bowl },
-    decor: [['christ', 19, 2], ['sugarloaf', 5, 7], [{ text: 'INTERMOLE: EUROPE ONLY', colour: 2 }, 2, 14]],
+    decor: [['christ', 19, 2], ['sugarloaf', 5, 7]],
   }),
 ];

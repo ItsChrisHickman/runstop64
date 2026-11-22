@@ -105,7 +105,7 @@ const ORIGINAL: BaseRooms = {
   enemyRecords: (id) => hexBytes(raw.enemies[id]),
   specialItems: hexBytes(raw.specialItems),
   coinTable: hexBytes(raw.coins),
-  decorRooms: hexBytes(raw.decorRooms),
+  decorRooms: Uint16Array.from(hexBytes(raw.decorRooms)),
   decorTypes: originalDecorTypes,
   piledriverCfg: hexBytes(raw.piledrivers),
   teleporterCfg: hexBytes(raw.teleporters),
