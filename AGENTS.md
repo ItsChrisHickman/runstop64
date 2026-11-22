@@ -76,6 +76,11 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 - Never commit secrets, traced (`TRACE=1`) translations or scratch output (keep scratch in `/tmp`). `.claude/` is ignored.
 - Keep reports short and plain.
 
+## Making a new Monty game
+
+Read `games/shared/monty/LESSONS.md` first: what Chris taught us making Do Svidaniya Monty (the route, how places must read,
+no dungeons, no grey, names, costumes, music, and how we build and review a region). Add to it whenever he teaches something new.
+
 ## Shared modules
 
 | Feature | Where | A game provides |

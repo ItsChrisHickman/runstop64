@@ -44,6 +44,9 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 
 ## Lessons from Chris's play (read before designing any region)
 
+The lessons that hold for every Monty game are also in `games/shared/monty/LESSONS.md` (for the next game); this list keeps
+Do Svidaniya Monty's own examples.
+
 - **A place must feel like the thing, not be rooms labelled as it** (Chris on Siberia's train, 2026-11-21: "it just looks like
   rooms with words that say their carts"). A vehicle is shown as itself: a train is a side view of its carriages on the rails
   (bogies and wheels under each car, the body's window row, the curved roof, the bellows between cars), walked along car by car,
