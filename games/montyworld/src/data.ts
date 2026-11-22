@@ -201,7 +201,7 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
   { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: onScreen([...SHAFT_LEDGES, ...SHAFT_STONE]) } }, // the lamp shows the ledges
   { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
-  ...GANGWAYS.map(({ room, cols }): RoomEffect => ({ room, when: [{ taken: TICKET }], clear: screenCells(cols[0], 15, cols[1], 16) })), // and the inspectors let him through the gangways
+  ...[...new Set(GANGWAYS.map((g) => g.room))].map((room): RoomEffect => ({ room, when: [{ taken: TICKET }], clear: GANGWAYS.filter((g) => g.room === room).flatMap(({ cols }) => screenCells(cols[0], 15, cols[1], 16)) })), // and the inspectors let him through the gangways (one effect a room)
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
   { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside

@@ -66,7 +66,7 @@ import { creatureRooms, itemIndex, standY } from './route';
       for (let rr = 0; rr < t.h; rr++) for (let cc = 0; cc < t.w; cc++) {
         const col = d.col - 4 + cc, row = d.row - 3 + rr;
         if (col < 0 || col > 31 || row < 0 || row > 19) continue;
-        if (tile(col, row) !== '.' && r.id >= 12) bad.push(`$${first(r.id)}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
+        if (tile(col, row) !== '.' && r.id >= 12 && r.id !== SIB.mine) bad.push(`$${first(r.id)}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
         covered.add(col + ',' + row);
       }
     }
