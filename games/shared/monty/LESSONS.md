@@ -11,9 +11,15 @@ Monty game lives here.
   quirks that make it fun (the Mole Crushers, a jetpack-like flight); leave out what frustrated (timed warps that send you back
   if you walk in at the wrong moment) and what bored (a vehicle section like the C5 street). New mechanisms should feel familiar
   but fresh: a timing to learn, seen at once, fair from every side. Nothing may feel like a glitch (an escalator must make sense
-  from both ends; a ride never traps).
+  from both ends; a ride never traps). Climbs are easy: from anywhere at a rope's or ladder's foot Monty goes up, and from
+  anywhere over its top he goes down; no overhang or narrow opening that only a pixel-perfect position clears (Chris on Moscow,
+  2026-11-22). Every coin, item and creature on the way is passable with slack, not only by the bot's exact inputs.
 - **The route winds** as Monty on the Run's does: start one way, go down, circle back up, pass through rooms and double back to
-  the ladder out; rooms crossed twice at different heights, dead ends holding items, ways an item opens elsewhere. Never a
+  the ladder out; rooms crossed twice at different heights, dead ends holding items, ways an item opens elsewhere. Give each
+  region at least one "aha": something you can see in a room but can't reach from the way you first come in, reachable only
+  when the route brings you back from another side (Chris on China, 2026-11-22). Vary each region's puzzle shape (an item
+  used twice, taken early and used late, one that changes rooms already crossed); don't repeat one formula, and don't end
+  every region with the same "costume plus guard" gate. Never a
   corridor, and never a closed box crossed by a ladder up and a ladder down. Study its exit grid before laying out a region.
 
 ## How it looks
@@ -23,11 +29,19 @@ Monty game lives here.
   plate); a vehicle runs on through the screen's edges, never into a wall. Signs name a place; they never stand in for drawing
   it. The level is Monty on the Run's own: simply drawn, leaving a lot to the imagination, but its boat is a boat and its
   street is a road.
+- **What looks like a floor is a floor**, and nothing solid looks like background; decorations finish what they start (a
+  clothesline runs wall to wall) (Chris on China).
 - **Not every room is a dungeon.** No frame walls or ceilings by habit: outdoor rooms open to the sky and run off the screen's
   edges; walls only where the place is indoors, shaped as that building.
 - **No grey by default.** Each room picks a few bright, place-true colours on black; grey only where the thing is grey.
 - **Monty on the Run's art manner:** solid shapes with black-line detail, no checkerboard dithering; bold cartoon creatures with
   big faces filling their 16x16 in one solid colour; recognisably of the place they're in.
+- **Creatures move in varied ways**, as Monty on the Run's do: up-and-down patrols, creatures on different floors, fliers,
+  short fast and long slow patrols, timing hazards, rooms with a mechanism instead of a walker; never room after room of two
+  walkers to jump over (Chris on Siberia, 2026-11-22).
+- **Creatures stand out from what's behind them**: never white on snow, brown on earth (Chris on Mount Fuji).
+- **A big creature now and then is a highlight** (Chris on China's New Year dragon: "the first time I've ever seen anything
+  this incredible"): several sprites moving as one, the room built round it; at most one per region.
 - **Creatures are reused rarely** (a reused one should feel like a surprise): no creature in more than two rooms of a region.
 - **A costume is worn, not stuck on:** small on his head above the eyes (a lei round the neck); his face always shows
   (`art/costume.ts` in montyworld finds his head per picture, and its test holds every costume to it).
@@ -36,6 +50,8 @@ Monty game lives here.
 
 - **Names are plain and evocative first, a pun only when it lands** (Monty on the Run: THE HOUSE, SEWERAGE WORKS). A name that
   needs explaining is the wrong name. No James Bond puns. Check the room-name font draws every letter (it has no good Z).
+- **Hints give the reason, in the story** (Chris: not "THE CITY GATE WANTS A RICE HAT" but that Monty needs a disguise). All
+  game text goes through one writer that maps characters the font lacks (the apostrophe) to the game's own.
 - **No filler statistics** on titles, posters or credits. Credits are sourced, never invented; a new game says it is a new
   game, after the original it is built on.
 - **References only to games Chris played and loves** (Willow Pattern, The Last Ninja, Jeff Minter's llamas); nothing he doesn't
