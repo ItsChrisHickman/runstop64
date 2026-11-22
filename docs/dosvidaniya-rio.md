@@ -134,4 +134,12 @@ The scroller says MONTY MOLE: WORLD TOUR, A NEW GAME BY CHRISTOPHER HICKMAN WITH
 
 ## As built
 
-(Filled in as the build is checked: see the end of this page.)
+Built 2026-11-22: rooms in `games/montyworld/src/rio.ts` (ids 67-77, sectors 67-77), art `art/rio-*.ts`, the tune `music/rio.ts`, finale `finale.ts`, the show `ending-places.ts`, `ending-scenes.ts`, `ending-routes.ts` (written by `re/routes.ts`), map picture `test/rio-map.ts`. Where the build differs from the design above:
+
+- **Engine**, as data (Monty on the Run's value leaves them empty): `cableCars`, `floats`, `skewers`; `MontyEnding.closing` (a game's own last credit lines); the pause map and the tune pick a region by column and row (Rio's column 33 is the Andes' cave's).
+- **The bot found what the pictures hid**: his jump climbs two rows and needs a run-up, so every step is two rows high and platforms five wide (the parade's risers are two steps, not four); a coin at the water's surface is a death coin; decorations replace the tile under them (a ladder under an arch was no ladder); a creature at the entry or at a rope's foot is a wall; the churrascaria's west lane needed a ladder up to the stage; the favela's roofs needed a ladder from the lane; lane B of the floats is reached from the stage's two-row steps.
+- **Rooms**: the churrascaria has a dancer on the stage and two gauchos (skewer sprites 2 and 1); the summit is a chasm under the platforms (the cleft's rope hangs to a ledge of skewers above the city); the forest has one skewer, the cakes are in H, U, T, C, F, Q; the dancer is W's only.
+- **Costume** the headdress as proposed; **credits**: the port's "REBUILT FOR THE BROWSER BY" is not said, the closing lines are this game's own (a decision of the pre-production); the show has thirteen places (the parachute drop was replaced by T1's terraces: the flight puts the canopy over the credits' row) and 24 creatures, 168 seconds.
+- Saves: format stays 1; old saves load (their shorter coin and item lists fill the first entries).
+
+Checks: `rio-layout.ts` (183), `rio-mechanisms.ts` (58), `music-rio.ts`, `rio.ts original|enhanced` (87 each: 62 coins, the key, the headdress, six skewers), `reward.ts` (54); the earlier regions' tests count the whole world (78 rooms, 282 coins, 43 finds, 19 key items, 23 snacks); `npm run verify` passes but games/moley/test/game.ts, which needs a ROM missing in this worktree. Pictures: /root/projects/runstop64-shots/rio/.
