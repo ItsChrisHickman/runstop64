@@ -196,14 +196,14 @@ export const CHINA_TILES = {
   ]),
   /** The plate's border: a lattice of diamonds with a dot in each, the band that rings the plate. Solid. */
   blueBank: tile('blueBank', 1, 14, [
-    '...##...',
-    '..#..#..',
-    '.#.##.#.',
-    '#.####.#',
-    '#.####.#',
-    '.#.##.#.',
+    '#......#',
+    '.#....#.',
     '..#..#..',
     '...##...',
+    '...##...',
+    '..#..#..',
+    '.#....#.',
+    '#......#',
   ]),
   /** The plate's river: curling waves in rows. Deadly. */
   blueWave: tile('blueWave', 4, 6, [
@@ -218,14 +218,14 @@ export const CHINA_TILES = {
   ]),
   /** A stepping stone, round and white. Solid. */
   stoneRound: tile('stoneRound', 1, 1, [
+    '..####..',
     '.######.',
     '########',
-    '#.######',
+    '###.####',
     '########',
-    '########',
-    '######.#',
-    '########',
+    '####.###',
     '.######.',
+    '..####..',
   ]),
   /** The arched bridge's deck and rail, high over the river. Passable (it is a picture; he cannot stand on it). */
   bridgeDeck: tile('bridgeDeck', 0, 14, [
@@ -240,25 +240,25 @@ export const CHINA_TILES = {
   ]),
   /** A figure's arm reaching down, both arms side by side in a column of two. Deadly while it reaches (pulses.ts), passable. */
   arm: tile('arm', 0, 1, [
-    '..####..',
-    '..####..',
-    '...##...',
-    '...##...',
-    '...##...',
-    '..####..',
-    '..####..',
-    '...##...',
+    '.######.',
+    '.#.####.',
+    '.#.####.',
+    '.######.',
+    '.####.#.',
+    '.####.#.',
+    '.######.',
+    '.######.',
   ]),
   /** The hand at its end, fingers spread. Deadly with the arm. */
   hand: tile('hand', 0, 1, [
+    '.######.',
     '..####..',
-    '########',
-    '########',
-    '#.##.#.#',
-    '#.##.#.#',
-    '#.##.#.#',
-    '#..#.#..',
-    '...#....',
+    '.######.',
+    '.######.',
+    '#.#.#.#.',
+    '#.#.#.#.',
+    '#.#.#.#.',
+    '..#..#..',
   ]),
   /** A quay's boards laid along it, with the nails. Solid. */
   dock: tile('dock', 1, 9, [

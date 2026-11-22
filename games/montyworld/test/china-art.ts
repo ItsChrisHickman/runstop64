@@ -10,7 +10,7 @@ import { MOTR_TILE_COUNT } from '../src/art/tiles';
 import { WORLD_DECOR, WORLD_TILE_LIST } from '../src/art/world';
 import { CHINA_ROOMS } from '../src/china';
 
-const DECOR_POOL = 0xff - 0x9b + 1;
+const DECOR_POOL = 0xff - 0x9b; // (the engine skips a type that would run past $FF: 100 characters)
 const decorTypes = Object.values(WORLD_DECOR);
 /** Pieces drawn over cells on purpose: a window set into a wall, the junk's picture over the quay's end wall, a boat on the river's far water (the water under it is deadly still). */
 const OVER_ON_PURPOSE: readonly object[] = [WORLD_DECOR.latticeWindow, WORLD_DECOR.junk, WORLD_DECOR.plateBoat];

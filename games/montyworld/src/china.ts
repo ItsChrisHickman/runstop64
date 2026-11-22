@@ -64,7 +64,7 @@ const ROOFS_PALETTE = {
 
 /** The garden is the plate's: its lattice border, the hatched banks, the river's waves, white stones, the giants' arms and hands, a rope. */
 const WILLOW_PALETTE = {
-  B: ['blueBank', 14], K: ['plateBank', 14], W: ['blueWave', 6], S: ['stoneRound', 1], A: ['arm', 1], H: ['hand', 1], R: ['rope', 14],
+  B: ['blueBank', 14], K: ['plateBank', 14], W: ['blueWave', 6], S: ['stoneRound', 13], A: ['arm', 14], H: ['hand', 5], R: ['rope', 14],
 } as const satisfies Palette;
 
 const JUNK_PALETTE = {
@@ -101,7 +101,7 @@ export const CRACKER_PULSES: readonly PulseSpec[] = Array.from({ length: CRACKER
  * underside, row 6, to the water, the hand at row 14): the arm twitches for 20 frames, reaches for 36, and is gone, a third of the 150-frame period
  * apart from the next figure's.
  */
-const ARMS = { gaps: [13, 20, 25] as const, top: 6, hand: 14, period: 150, apart: 40, warn: 20, live: 36 } as const;
+const ARMS = { gaps: [13, 20, 25] as const, top: 8, hand: 14, period: 150, apart: 40, warn: 20, live: 36 } as const;
 export const ARM_PULSES: readonly PulseSpec[] = ARMS.gaps.flatMap((col, k): PulseSpec[] => {
   const common = { room: CHI.willow, col, cols: 2, period: ARMS.period, start: k * ARMS.apart, warn: ARMS.warn, live: ARMS.live, idle: 0, spent: 0 };
   return [
@@ -340,10 +340,10 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[19, 13]],
     item: { name: 'bamboo', col: 29, row: 13, sprite: CHINA_SPRITE.bamboo },
     decor: [
-      ['kissingDoves', 2, 2], ['cloud', 9, 2], ['cloud', 15, 2], ['cloud', 27, 2],
-      ...[3, 7, 11, 15, 19, 23].map((c) => ['archBridge', c, 4] as const), // the long arched bridge
-      ['crouchFigure', 12, 2], ['crouchFigure', 19, 2], ['crouchFigure', 24, 2], // the three giants on its parapet
-      ['willowTree', 5, 6], ['willowCurtain', 9, 11], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14], ['plateFence', 0, 8], ['plateBoat', 19, 16], ['roundTree', 0, 7],
+      ['kissingDoves', 6, 2], ['cloud', 16, 2], ['cloud', 28, 2],
+      ...[9, 16, 23].map((c) => ['archBridge', c, 6] as const), // the long arched bridge
+      ['crouchFigure', 12, 3], ['crouchFigure', 19, 3], ['crouchFigure', 24, 3], // the three giants crouched on it, in front of it, their sleeves over the gaps the arms reach through
+      ['willowTree', 4, 5], ['roundTree', 0, 7], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14],
     ],
     creatures: [
       { who: 'dove', col: 10, row: 7, way: 'right', speed: 1, range: 48 },
