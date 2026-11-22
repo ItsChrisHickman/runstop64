@@ -1,9 +1,9 @@
-import { Scroller, storyMessage, type ScrollerPiece } from '../../montyotr/src/scroller';
 import type { TitleGame, TitleInput, TitleScreen, TitleSound } from '../../montyotr/src/title';
 import { SCREEN } from '../../shared/monty/screen';
 import type { Worn } from './art/costume';
 import { HAT_COLOUR } from './art/hat';
-import { buildTitleArt, ROUTE_LENGTH, routeAt, ROWS, SCROLLER_ROWS, SKY, type TitleArt } from './title-art';
+import { buildTitleArt, CYAN, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SKY, WHITE, YELLOW, type TitleArt } from './title-art';
+import { StripScroller, type Passage } from './title-scroll';
 
 /**
  * Do Svidaniya Monty's title screen (the picture is title-art.ts): the logo over the world map from Montos to Rio, Monty in his
@@ -20,6 +20,7 @@ export const SPRITE_BLOCKS = { monty: 0x30, hat: 0x34 } as const;
 /** Monty's walking pictures (the right-facing half of his set: pointers $54-$57). */
 const WALK = [0x54, 0x55, 0x56, 0x57] as const;
 /** Frames: a step every six, a pixel and a bit a frame; he stands at Rio `STAND` frames and is back at Montos after `GAP` more. */
+const SCROLL_SPEED = 2;
 const STEP = 6, SPEED = 0.7, GAP = 30;
 export const STAND = 90;
 export const WALK_FRAMES = Math.ceil(ROUTE_LENGTH / SPEED);
@@ -37,47 +38,48 @@ function mirrored(block: Uint8Array): Uint8Array {
   return out;
 }
 
-/** The title's story: what the scroller says (no apostrophe: the scroller's letters have none). */
-export const STORY: readonly ScrollerPiece[] = [
-  [0xfe, 1], 'DO SVIDANIYA ', [0xfe, 7], 'MONTY. ',
-  [0xfe, 1], 'INTERMOLE HAS FOUND MONTY ON HIS ISLAND OF ', [0xfe, 13], 'MONTOS. ',
-  [0xfe, 1], 'EUROPE IS NO LONGER SAFE. ',
-  [0xfe, 3], 'SO MONTY HEADS EAST, OUT OF THE REACH OF INTERMOLE, THE LONG WAY ROUND: ',
-  [0xfe, 7], 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A PARACHUTE INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO. ',
-  [0xfe, 1], 'FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC. ',
-  [0xfe, 14], 'WITH THANKS TO PETER HARRAP, ROB HUBBARD AND EVERYONE AT GREMLIN. ',
-  [0xfe, 1], 'GOOD LUCK!', '          ',
+/** The title's story: what the scroller says (colours 0-7; no apostrophe: the scroller's letters have none). */
+export const STORY: readonly Passage[] = [
+  { colour: YELLOW, text: 'DO SVIDANIYA MONTY.  ' },
+  { colour: WHITE, text: 'INTERMOLE HAS FOUND MONTY ON HIS ISLAND OF MONTOS.  ' },
+  { colour: CYAN, text: 'EUROPE IS NO LONGER SAFE.  ' },
+  { colour: WHITE, text: 'SO MONTY HEADS EAST, OUT OF THE REACH OF INTERMOLE, THE LONG WAY ROUND:  ' },
+  { colour: YELLOW, text: 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A PARACHUTE INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO.  ' },
+  { colour: WHITE, text: 'FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC.  ' },
+  { colour: CYAN, text: 'WITH THANKS TO PETER HARRAP, ROB HUBBARD AND EVERYONE AT GREMLIN.  ' },
+  { colour: YELLOW, text: 'GOOD LUCK!' },
 ];
-export const STORY_MESSAGE = storyMessage(STORY);
 
 export class MapTitle implements TitleScreen {
   readonly table = Uint8Array.from([0x30, 0x30, 0x30, 0x30, 0x30]);
-  readonly fine = { top: ROWS.scroller * 8, lines: SCROLLER_ROWS * 8 };
-  private readonly scroller: Scroller;
+  readonly fine = { top: 0, lines: 0 };
+  readonly phase = 0;
+  private readonly scroller: StripScroller;
+  private saved: { mc1: number; mc2: number } | null = null;
   private readonly art: TitleArt;
   private frames = 0;
 
   /** `bank` is the game's bank image (its lettering, and what `leave` puts back), `worn` Monty in his ushanka. */
   constructor(private readonly g: TitleGame, private readonly sound: TitleSound, private readonly bank: Uint8Array, private readonly worn: Worn) {
-    this.scroller = new Scroller(g, STORY_MESSAGE, { top: ROWS.scroller, rows: SCROLLER_ROWS, glyphTop: 0 });
+    this.scroller = new StripScroller(bank, STORY);
     this.art = buildTitleArt(bank);
   }
-
-  get phase() { return this.scroller.phase; }
 
   start() {
     const g = this.g;
     this.frames = 0;
     this.scroller.reset();
     if (this.sound.musicOn()) this.sound.song(0); else this.sound.stop();
+    this.saved ??= { mc1: g.vic.mc1, mc2: g.vic.mc2 };
     g.vic.border = g.vic.background = SKY;
+    g.vic.mc1 = MC1; g.vic.mc2 = MC2; g.vic.multicolourChars = true;
     g.vic.enable = 0;
     g.mem.set(this.art.chars, 0);
     g.mem.fill(0, SCREEN, SCREEN + 1024);
     g.col.fill(1);
     g.mem.set(this.art.screen, SCREEN);
     g.col.set(this.art.colour, 0);
-    this.scroller.afterClear();
+    this.scroller.draw(g.mem, this.art.scrollerCodes, g.col, ROWS.scroller * 40);
     this.placeSprites();
     this.walk();
   }
@@ -115,7 +117,8 @@ export class MapTitle implements TitleScreen {
   }
 
   frame(input: TitleInput): 'start' | null {
-    this.scroller.update();
+    this.scroller.step(SCROLL_SPEED);
+    this.scroller.draw(this.g.mem, this.art.scrollerCodes, this.g.col, ROWS.scroller * 40);
     this.frames++;
     this.walk();
     return input.fire ? 'start' : null;
@@ -123,6 +126,8 @@ export class MapTitle implements TitleScreen {
 
   leave() {
     this.g.vic.enable = 0;
+    this.g.vic.multicolourChars = false;
+    if (this.saved) { this.g.vic.mc1 = this.saved.mc1; this.g.vic.mc2 = this.saved.mc2; this.saved = null; }
     this.g.mem.set(this.bank);
   }
 }

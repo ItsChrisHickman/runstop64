@@ -1,9 +1,6 @@
 import { hexBytes, TRANSPARENT, type Surface, type Vic } from 'c64kit';
 import raw from './data/motr.json';
 import { ROW, SCREEN } from '../../shared/monty/screen';
-import { Scroller, type ScrollerPiece } from './scroller';
-
-export type { ScrollerPiece };
 
 /** What the title draws on: a game's picture (its VIC, with the characters and the screen in its bank) and its random numbers. Monty on the Run's game, and the remix's. */
 export interface TitleGame {
@@ -35,6 +32,8 @@ export interface TitleGame {
  */
 const T = raw.title;
 const ATTRACT_CHR = hexBytes(T.chr);
+const BITMASK = hexBytes(T.bitmask);
+const NYBBLE = hexBytes(T.nybbleMask);
 const ROW_TEMPLATE = hexBytes(T.rowTemplate);
 const BAND_COLOURS = hexBytes(T.bandColours);
 const SCORE_ROWS = hexBytes(T.scoreRows);
@@ -48,6 +47,9 @@ const KIT_LABEL = [..."MONTY'S FREEDOM KIT"].map((c) => (c === "'" ? 0x68 : (c.c
 export const KIT_LABEL_ROW = 22, KIT_LABEL_COL = 11, KIT_ICON_ROW = 23, KIT_COL = 11;
 /** The label in the colour of the original's MONTY FREEDOM KIT. (light blue); the icons white, as the carousel's. */
 const KIT_LABEL_COLOUR = 0x0e, KIT_ICON_COLOUR = 1;
+
+/** A piece of the scroller's stream: text, or its control codes (colour: $FE n). */
+export type ScrollerPiece = string | number[];
 
 /**
  * Our passage for the scroller (in its own control codes, before "GOOD LUCK!"): the
@@ -117,26 +119,29 @@ export class Title implements TitleScreen {
   readonly table = TABLE;
   readonly fine = { top: 0, lines: 40 };
   /** The fine scroll of the scroller's rows ($D016 bits 0-2, rows 0-4; 38 columns there). */
-  get phase() { return this.scroller.phase; }
+  get phase() { return this.sPhase; }
 
-  private readonly scroller: Scroller;
+  // the scroller ($DA-$E9)
+  private sPtr = 0; private sBit = 0; private sDir = 0; private sColour = 0; private pixL = 0; private pixR = 0;
+  private sSpeed = 0; private sPhase = 0; private colDone = 0; private pause = 0; private rowsUp = 0; private rowsDown = 0;
   // the table's roll ($D9, $EE, $EF)
   private scrollIdx = 0; private timer = 0;
   // the kit shown
   private readonly contents: number[];
+  private readonly message: Uint8Array;
   private readonly page: TitlePage | null;
 
   /** `kit` (the freedom kit under the table: a game with no kit gives `[]`, the table stands alone) and `message` (the scroller's stream: `MESSAGE` is ours, tests give the original's) are the game's. */
   constructor(private readonly g: TitleGame, private readonly sound: TitleSound, opts: { kit: readonly number[]; message: Uint8Array; page?: TitlePage }) {
     this.page = opts.page ?? null;
     this.contents = [...opts.kit];
-    this.scroller = new Scroller(g, opts.message);
+    this.message = opts.message;
   }
 
   /** InitAttractScreen: the screen drawn, the music started. */
   start() {
     const g = this.g;
-    this.scroller.reset();
+    Object.assign(this, { sPtr: 0, sBit: 0, sDir: 0, sColour: 0, pixL: 0, pixR: 0, sSpeed: 0, sPhase: 0, colDone: 0, pause: 0, rowsUp: 0, rowsDown: 0 });
     Object.assign(this, { scrollIdx: 0, timer: 0 });
     this.initialiseMusic();
     // InitialiseGraphicsMode
@@ -152,7 +157,7 @@ export class Title implements TitleScreen {
    * the carousel, gone here), then the main loop's turns. Returns 'start' when fire starts the game.
    */
   frame(input: TitleInput): 'start' | null {
-    this.scroller.update();
+    this.scrollerUpdate();
     // AttractScreenPoll: the original's loop turns about three times a frame (its keyboard
     // scan takes most of the time), counting down to the table's next row; the row waits
     // for the next frame.
@@ -203,6 +208,103 @@ export class Title implements TitleScreen {
       m[at(7, 10 + x)] = 0xc8 + x + 0x14;
       col[at(6, 10 + x) - SCREEN] = col[at(7, 10 + x) - SCREEN] = BAND_COLOURS[x];
     }
+  }
+
+  // ---- the scroller (Scroller.ScrollerUpdate and the rest) ---------------------------------------------------
+
+  private scrollerUpdate() {
+    if (this.pause) { this.pause--; return; }
+    if (this.rowsUp) { this.scrollUp(); return; }
+    if (this.rowsDown) { this.scrollDown(); return; }
+    this.colDone = 0;
+    if (this.sDir & 0x80) this.advanceLeft(); else this.advanceRight();
+    if (this.sSpeed && !this.colDone) return;
+    if (!(this.sDir & 0x80)) {
+      this.sBit = (this.sBit + 2) & 0xff;
+      if (this.sBit !== 8) { this.renderSlice(); return; }
+      this.sBit = 0;
+    } else {
+      this.sBit = (this.sBit - 2) & 0xff;
+      if (this.sBit !== 0xfe) { this.renderSlice(); return; }
+      this.sBit = 6;
+    }
+    this.nextByte();
+  }
+
+  /** ScrollAdvanceRight: the phase steps down; past a whole character the six rows move left one. */
+  private advanceRight() {
+    const y = (this.sPhase - this.sSpeed) & 0xff;
+    this.sPhase = y & 7;
+    if (!(y & 8)) return;
+    const m = this.g.mem, col = this.g.col;
+    for (let r = 0; r < 6; r++) col[r * ROW + 39] = this.sColour;
+    for (let x = 0; x < 0xf0; x++) { m[SCREEN + x] = m[SCREEN + x + 1]; col[x] = col[x + 1]; }
+    for (let r = 0; r < 5; r++) m[at(r, 39)] = 0;
+    this.colDone = 1;
+  }
+
+  /** ScrollAdvanceLeft: the other way (the colour still goes into column 39, as the original's does). */
+  private advanceLeft() {
+    const y = this.sPhase + this.sSpeed;
+    this.sPhase = y & 7;
+    if (!(y & 8)) return;
+    const m = this.g.mem, col = this.g.col;
+    for (let r = 0; r < 6; r++) col[r * ROW + 39] = this.sColour;
+    for (let x = 0xef; x >= 0; x--) { m[SCREEN + x + 1] = m[SCREEN + x]; col[x + 1] = col[x]; }
+    for (let r = 0; r < 6; r++) m[at(r, 0)] = 0;
+    this.colDone = 1;
+  }
+
+  private scrollUp() {
+    this.rowsUp--;
+    const m = this.g.mem;
+    for (let x = 0; x < 40; x++) for (let r = 0; r < 5; r++) m[at(r, x)] = m[at(r + 1, x)];
+  }
+
+  private scrollDown() {
+    this.rowsDown--;
+    const m = this.g.mem;
+    for (let x = 39; x >= 0; x--) for (let r = 5; r > 0; r--) m[at(r, x)] = m[at(r - 1, x)];
+  }
+
+  private msg(i: number) { return this.message[i] ?? 0xff; }
+
+  /** ScrollNextByte: the next character, after any control codes. */
+  private nextByte() {
+    for (;;) {
+      this.sPtr++;
+      const b = this.msg(this.sPtr), op = this.msg(this.sPtr + 1);
+      if (b === 0xfe) this.sColour = op;
+      else if (b === 0xfd) {
+        this.sDir = op;
+        if (op & 0x80) { this.sBit = 6; this.pixL = 0; this.pixR = 1; } else { this.sBit = 0; this.pixL = 0x4e; this.pixR = 0x4f; }
+      } else if (b === 0xfc) this.sSpeed = op;
+      else if (b === 0xfb) { this.rowsUp = 9; continue; }
+      else if (b === 0xfa) { this.rowsDown = 9; continue; }
+      else if (b === 0xf9) this.pause = op;
+      else {
+        if (b === 0xff) this.sPtr = 0; // back to the start (its first character drawn now)
+        break;
+      }
+      this.sPtr++; // (the operand)
+    }
+    this.renderSlice();
+  }
+
+  /** ScrollRenderSlice: two columns of the character's pixels, each a quarter of a character cell. */
+  private renderSlice() {
+    const m = this.g.mem;
+    const glyph = ((this.msg(this.sPtr) & 0x3f) | 0x40) * 8;
+    for (let y = 7; y >= 0; y--) {
+      if (m[glyph + y] & BITMASK[this.sBit]) this.plot(this.pixL, y + 2);
+      if (m[glyph + y] & BITMASK[this.sBit + 1]) this.plot(this.pixR, y + 2);
+    }
+  }
+
+  /** ScrollPlotPixel: the quarter (col, row) lit in its character ($F0-$FF are the sixteen quarter patterns). */
+  private plot(col: number, row: number) {
+    const a = at(row >> 1, col >> 1);
+    this.g.mem[a] = (this.g.mem[a] & 0x0f) | NYBBLE[((row & 1) << 1) | (col & 1)];
   }
 
   // ---- the high-score table ----------------------------------------------------------------------------------
@@ -257,7 +359,7 @@ export class Title implements TitleScreen {
    */
   private initKit() {
     const g = this.g, m = g.mem, col = g.col;
-    this.scroller.afterClear(); // (as InitCarousel leaves the scroller)
+    this.sBit = 6; this.sDir = 0; this.sPtr = 0; // (as InitCarousel leaves the scroller)
     // ClearScreen
     m.fill(0, SCREEN, SCREEN + 1024);
     col.fill(3, 0, 1024);

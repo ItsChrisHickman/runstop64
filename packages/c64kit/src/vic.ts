@@ -26,6 +26,8 @@ export class Vic {
   readonly sprites: SpriteRegs[] = Array.from({ length: 8 }, () => ({ x: 0, y: 0, ptr: 0, colour: 0 }));
   enable = 0;
   multicolour = 0;
+  /** Multicolour characters ($D016 bit 4): a cell whose colour is 8-15 is drawn in multicolour, its own colour (the low three bits), `mc1` and `mc2`; below 8, hi-res as ever. */
+  multicolourChars = false;
   priority = 0; // bit set: sprite is drawn behind character pixels
   expandX = 0;
   expandY = 0;
@@ -134,7 +136,9 @@ export class VicView {
         const code = screen[i];
         const g = v.glyph(code);
         if (g[0] | g[1] | g[2] | g[3] | g[4] | g[5] | g[6] | g[7]) {
-          s.drawChar(g, (i % 40) * 8, Math.floor(i / 40) * 8, v.colour[i] & 15);
+          const c = v.colour[i] & 15;
+          if (v.multicolourChars && c >= 8) s.drawMulticolourChar(g, (i % 40) * 8, Math.floor(i / 40) * 8, c & 7, v.mc1 & 15, v.mc2 & 15);
+          else s.drawChar(g, (i % 40) * 8, Math.floor(i / 40) * 8, c);
         }
       }
       if (this.backdrop && this.renderer.backdrop === this.backdrop) this.renderer.backdrop = null;

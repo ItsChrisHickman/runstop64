@@ -68,6 +68,28 @@ export class Surface {
     this.version++;
   }
 
+  /**
+   * Draw a multicolour 8x8 character: each byte is four pixel pairs (2 bits each, the leftmost in the top bits): 00 leaves what was
+   * there (the background), 01 is `mc1`, 10 is `mc2`, 11 is `ink`.
+   */
+  drawMulticolourChar(glyph: ArrayLike<number>, x: number, y: number, ink: number, mc1: number, mc2: number) {
+    const colours = [TRANSPARENT, mc1, mc2, ink];
+    for (let row = 0; row < 8; row++) {
+      const bits = glyph[row];
+      const py = y + row;
+      if (py < 0 || py >= this.height) continue;
+      for (let pair = 0; pair < 4; pair++) {
+        const c = colours[(bits >> (6 - pair * 2)) & 3];
+        if (c === TRANSPARENT) continue;
+        for (let k = 0; k < 2; k++) {
+          const px = x + pair * 2 + k;
+          if (px >= 0 && px < this.width) this.pixels[py * this.width + px] = c;
+        }
+      }
+    }
+    this.version++;
+  }
+
   /** Write the surface into an RGBA byte array (transparent pixels → alpha 0). */
   toRGBA(out: Uint8Array) {
     const out32 = new Uint32Array(out.buffer, out.byteOffset, this.width * this.height);

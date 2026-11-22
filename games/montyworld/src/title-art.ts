@@ -1,69 +1,70 @@
-import { QUARTER_CHARS } from '../../montyotr/src/scroller';
 import { ROW } from '../../shared/monty/screen';
 
 /**
- * The picture of Do Svidaniya Monty's title, made of one 256-character set and a colour for each cell, as the C64 draws it: the
- * game's own lettering ($40-$7F, copied from its bank), the scroller's sixteen quarter patterns ($F0-$FF), and the rest of the
- * set (63 + 112 characters) the logo and the world map are cut into, each distinct 8 x 8 picture once. The text rows are the
- * game's letters; the logo is a block font cut into cells, banded one colour to a row of cells; the map is Europe to South America
- * at four pixels to a map cell (two by two to a character), the land in its own characters over the blue of the screen, the
- * route's dots among them. Monty himself, and the scroller, are not in it (title.ts): he is two sprites, the scroller its own rows.
+ * The picture of Do Svidaniya Monty's title, made of one 256-character set and a colour for each cell, as the C64 draws it in
+ * multicolour character mode: each pixel pair is background (blue, 00), `MC1` (white, 01), `MC2` (brown, 10) or the cell's own colour
+ * (11, one of 0-7), so a cell can carry a body, a light edge and a dark edge at once. The logo is a block font with a light top left
+ * edge, a dark lower right edge and a drop shadow, banded one colour to a row of cells; the map is Europe to South America in the
+ * same four colours, the route in white; the text is the game's own lettering in hires cells. The set holds each distinct 8 x 8
+ * picture once (a test counts them); the scroller's 80 characters are reserved and drawn by title-scroll.ts. Monty himself is two
+ * sprites (title.ts).
  */
 
 // ---- the C64's colours (the ones used) -------------------------------------------------------------------------------------------
-export const BLACK = 0, WHITE = 1, RED = 2, CYAN = 3, GREEN = 5, BLUE = 6, YELLOW = 7, ORANGE = 8, BROWN = 9, LGREY = 15, MGREY = 12, LGREEN = 13;
+export const BLACK = 0, WHITE = 1, RED = 2, CYAN = 3, PURPLE = 4, GREEN = 5, BLUE = 6, YELLOW = 7, BROWN = 9;
 
 /** The screen's colour: the sea, and everything is drawn on it. */
 export const SKY = BLUE;
+/** The two colours every multicolour cell shares: a light edge, a dark edge. */
+export const MC1 = WHITE, MC2 = BROWN;
+
+/** A cell in multicolour has its colour 8 more than its own (0-7). */
+export const multi = (colour: number) => colour | 8;
 
 // ---- where things are (character rows) ------------------------------------------------------------------------------------------
-/** The line over the logo; the logo's two words; the map; the scroller; ENTER CONTINUE's line; the credits. */
-export const ROWS = { line: 0, small: 1, big: 4, map: 8, scroller: 14, strip: 19, credits: 21 } as const;
-/** The scroller's rows (four, its letters 32 pixels tall). */
-export const SCROLLER_ROWS = 4;
-/** The map's rows and top in pixels. */
-const MAP_ROWS = 6, MAP_Y = ROWS.map * 8;
+/** The line over the logo; the logo's two words; the map; the scroller (two rows, its letters 16 pixels tall); ENTER CONTINUE's line; the credits. */
+export const ROWS = { line: 0, small: 1, big: 4, map: 9, scroller: 16, strip: 19, credits: 21 } as const;
+export const MAP_ROWS = 6, SCROLLER_ROWS = 2;
+const MAP_Y = ROWS.map * 8;
+/** The scroller's characters, reserved: two rows of forty. */
+export const SCROLLER_CHARS = SCROLLER_ROWS * 40;
 
 // ---- the set -----------------------------------------------------------------------------------------------------------------------
-/** The characters with their pictures: allocating one that is there already gives its code. */
+/** The characters with their pictures: allocating one that is there already gives its code. Code 0 is blank; the first 80 are the scroller's. */
 class CharSet {
   readonly bytes = new Uint8Array(2048);
-  private readonly free: number[] = [];
+  private next = 1 + SCROLLER_CHARS;
   private readonly seen = new Map<string, number>();
-  constructor() {
-    for (let c = 1; c < 0x40; c++) this.free.push(c);
-    for (let c = 0x80; c < 0xf0; c++) this.free.push(c);
-  }
   /** The code of the character with these 8 bytes (blank is 0). */
   code(glyph: ArrayLike<number>): number {
     const key = Array.from({ length: 8 }, (_, i) => glyph[i] ?? 0).join(',');
     if (key === '0,0,0,0,0,0,0,0') return 0;
     const had = this.seen.get(key);
     if (had !== undefined) return had;
-    const next = this.free.shift();
-    if (next === undefined) throw new Error('the title needs more than the 175 characters the set has room for');
-    for (let i = 0; i < 8; i++) this.bytes[next * 8 + i] = glyph[i] ?? 0;
-    this.seen.set(key, next);
-    return next;
+    if (this.next > 255) throw new Error('the title needs more characters than the set of 256 has');
+    for (let i = 0; i < 8; i++) this.bytes[this.next * 8 + i] = glyph[i] ?? 0;
+    this.seen.set(key, this.next);
+    return this.next++;
   }
-  get used() { return this.seen.size; }
+  /** How many characters are taken, the scroller's and the blank included. */
+  get used() { return this.next; }
 }
 
-/** A picture of pixels (one colour: lit or not), cut into character cells. */
-class Mask {
-  readonly px: Uint8Array;
-  constructor(readonly w: number, readonly h: number) { this.px = new Uint8Array(w * h); }
-  set(x: number, y: number, on = 1) { if (x >= 0 && y >= 0 && x < this.w && y < this.h) this.px[y * this.w + x] = on; }
-  get(x: number, y: number) { return x >= 0 && y >= 0 && x < this.w && y < this.h ? this.px[y * this.w + x] === 1 : false; }
-  rect(x: number, y: number, w: number, h: number) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) this.set(x + i, y + j); }
+/** A picture of pixel pairs (160 x 200, each 0-3: background, MC1, MC2, the cell's colour). */
+class Pairs {
+  readonly px = new Uint8Array(160 * 200);
+  set(x: number, y: number, v: number) { if (x >= 0 && y >= 0 && x < 160 && y < 200) this.px[y * 160 + x] = v; }
+  get(x: number, y: number) { return x >= 0 && y >= 0 && x < 160 && y < 200 ? (this.px[y * 160 + x] ?? 0) : 0; }
   /** The 8 bytes of the cell at character column `cx`, row `cy`. */
   cell(cx: number, cy: number): number[] {
     return Array.from({ length: 8 }, (_, r) => {
       let b = 0;
-      for (let k = 0; k < 8; k++) if (this.get(cx * 8 + k, cy * 8 + r)) b |= 0x80 >> k;
+      for (let k = 0; k < 4; k++) b |= this.get(cx * 4 + k, cy * 8 + r) << (6 - k * 2);
       return b;
     });
   }
+  /** Whether the cell has anything in it. */
+  used(cx: number, cy: number) { return this.cell(cx, cy).some((b) => b !== 0); }
 }
 
 // ---- the logo: a chunky 5 x 7 block font ------------------------------------------------------------------------------------------
@@ -80,73 +81,83 @@ const FONT: Readonly<Record<string, readonly string[]>> = {
   T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'],
 };
 
-/** A word's build: a font pixel `cw` x `ch` pixels, strokes made fatter by `fx`, `fy`, the letters `pitch` apart (a whole number of characters, so each letter is the same cells wherever it is). */
-interface LogoSize { readonly cw: number; readonly ch: number; readonly fx: number; readonly fy: number; readonly pitch: number }
-const SMALL: LogoSize = { cw: 4, ch: 3, fx: 2, fy: 2, pitch: 24 };
-const BIG: LogoSize = { cw: 8, ch: 4, fx: 4, fy: 3, pitch: 48 };
+/**
+ * A word's build, in pixel pairs across and rows down: a font pixel `cw` x `ch`, strokes made fatter by `fx`, `fy`, letters `pitch` apart (a whole number of cells, so a letter
+ * is the same characters wherever it comes), a light edge `ex` pairs / `ey` rows deep on the top and left, a dark one on the bottom and right, and a drop shadow `sx`, `sy` off.
+ */
+interface LogoSize { readonly cw: number; readonly ch: number; readonly fx: number; readonly fy: number; readonly pitch: number; readonly ex: number; readonly ey: number; readonly sx: number; readonly sy: number }
+const SMALL: LogoSize = { cw: 2, ch: 3, fx: 1, fy: 1, pitch: 12, ex: 1, ey: 1, sx: 1, sy: 1 };
+const BIG: LogoSize = { cw: 4, ch: 4, fx: 2, fy: 2, pitch: 24, ex: 1, ey: 2, sx: 2, sy: 2 };
 
-function logoWord(m: Mask, word: string, x: number, y: number, z: LogoSize) {
+function logoWord(p: Pairs, word: string, x: number, y: number, z: LogoSize) {
   const cell = (lx: number, ly: number) => {
     const letter = FONT[word[Math.floor(lx / z.pitch)] ?? ''];
     const px = lx % z.pitch;
     if (letter === undefined || lx < 0 || px >= 5 * z.cw || ly < 0 || ly >= 7 * z.ch) return false;
     return letter[Math.floor(ly / z.ch)]?.[Math.floor(px / z.cw)] === '1';
   };
-  const w = word.length * z.pitch, h = 7 * z.ch + z.fy;
+  const m = (lx: number, ly: number) => cell(lx, ly) || cell(lx - z.fx, ly) || cell(lx, ly - z.fy) || cell(lx - z.fx, ly - z.fy);
+  const w = word.length * z.pitch + z.sx, h = 7 * z.ch + z.fy + z.sy;
   for (let ly = 0; ly < h; ly++) for (let lx = 0; lx < w; lx++) {
-    if (cell(lx, ly) || cell(lx - z.fx, ly) || cell(lx, ly - z.fy) || cell(lx - z.fx, ly - z.fy)) m.set(x + lx, y + ly);
+    if (m(lx, ly)) {
+      const lit = !m(lx, ly - z.ey) || !m(lx - z.ex, ly), foot = !m(lx, ly + z.ey) || !m(lx + z.ex, ly);
+      p.set(x + lx, y + ly, lit ? 1 : foot ? 2 : 3);
+    } else if (m(lx - z.sx, ly - z.sy)) p.set(x + lx, y + ly, 2);
   }
 }
 
 /** The colour of each row of the logo's cells (raster bands: fire). */
-const SMALL_COLOURS = [YELLOW, YELLOW, ORANGE] as const;
-const BIG_COLOURS = [YELLOW, ORANGE, ORANGE, RED] as const;
+const SMALL_COLOURS = [YELLOW, YELLOW, RED] as const;
+const BIG_COLOURS = [YELLOW, YELLOW, RED, RED] as const;
 
 // ---- the map -------------------------------------------------------------------------------------------------------------------------
-/** Map cells: 80 x 12 of 4 x 4 pixels. Land by runs [row, from, to]; highlands (mountains, plateaus) marked after. */
+/**
+ * Map cells: 80 x 12 of 4 x 4 pixels, Europe to South America the way Monty goes, drawn so the stops are spread along it (the Pacific is short, Europe is
+ * squeezed to give the Aegean room): the rows are about 7 degrees of latitude from 62 north. Land by runs [row, from, to]; hills marked after.
+ */
 const LAND: readonly (readonly [number, number, number])[] = [
-  [0, 6, 9], [0, 14, 46], [0, 50, 64],
-  [1, 3, 12], [1, 14, 46], [1, 48, 66],
-  [2, 3, 9], [2, 10, 44], [2, 49, 66],
-  [3, 2, 8], [3, 9, 14], [3, 15, 38], [3, 41, 42], [3, 52, 68],
-  [4, 3, 8], [4, 10, 14], [4, 16, 35], [4, 38, 40], [4, 54, 70],
-  [5, 0, 15], [5, 22, 25], [5, 28, 34], [5, 38, 39], [5, 58, 72],
-  [6, 0, 7], [6, 12, 14], [6, 23, 25], [6, 30, 33], [6, 64, 74],
-  [7, 0, 6], [7, 34, 37], [7, 65, 76],
-  [8, 38, 43], [8, 66, 79],
-  [9, 1, 12], [9, 32, 42], [9, 67, 79],
-  [10, 1, 11], [10, 32, 41], [10, 68, 78],
-  [11, 3, 9], [11, 69, 74],
+  [0, 0, 2], [0, 4, 9], [0, 10, 48], [0, 57, 72],
+  [1, 0, 3], [1, 4, 9], [1, 10, 47], [1, 56, 73],
+  [2, 1, 9], [2, 12, 13], [2, 16, 46], [2, 46, 47], [2, 56, 72],
+  [3, 0, 2], [3, 4, 5], [3, 7, 8], [3, 12, 17], [3, 18, 40], [3, 41, 42], [3, 45, 48], [3, 56, 70],
+  [4, 5, 5], [4, 20, 27], [4, 28, 31], [4, 32, 42], [4, 45, 46], [4, 58, 66],
+  [5, 0, 22], [5, 20, 26], [5, 28, 31], [5, 32, 42], [5, 57, 57], [5, 62, 68],
+  [6, 0, 23], [6, 23, 25], [6, 29, 30], [6, 35, 36], [6, 43, 44], [6, 56, 57], [6, 66, 69],
+  [7, 1, 25], [7, 36, 36], [7, 39, 42], [7, 66, 72],
+  [8, 14, 22], [8, 34, 37], [8, 39, 42], [8, 45, 50], [8, 63, 76],
+  [9, 15, 22], [9, 47, 51], [9, 62, 77],
+  [10, 15, 21], [10, 40, 50], [10, 62, 77],
+  [11, 16, 20], [11, 40, 50], [11, 64, 75],
 ];
-const HIGHLANDS: readonly (readonly [number, number, number])[] = [[4, 21, 27], [3, 53, 58], [4, 54, 56], [7, 66, 67], [8, 67, 68], [9, 68, 69], [10, 69, 70], [5, 61, 63], [2, 54, 55]];
-/** Montos, the island Monty leaves: one map cell in the Aegean. */
-const MONTOS_CELL = { row: 7, col: 9 } as const;
+const HIGHLANDS: readonly (readonly [number, number, number])[] = [[2, 3, 5], [4, 33, 36], [2, 56, 58], [3, 56, 58], [8, 63, 65], [9, 62, 65], [10, 62, 65], [11, 64, 65]];
+const AEGEAN = { row: 3, col: 10 } as const;
 
 /** What a map cell is. */
 type Ground = 'sea' | 'land' | 'high';
 
 function groundAt(row: number, col: number): Ground {
-  if (row === MONTOS_CELL.row && col === MONTOS_CELL.col) return 'land';
-  if (HIGHLANDS.some(([r, a, b]) => r === row && col >= a && col <= b)) return 'high';
+  if (row === AEGEAN.row && col === AEGEAN.col) return 'land';
+  if (HIGHLANDS.some(([r, a, b]) => r === row && col >= a && col <= b && LAND.some(([lr, la, lb]) => lr === row && col >= la && col <= lb))) return 'high';
   return LAND.some(([r, a, b]) => r === row && col >= a && col <= b) ? 'land' : 'sea';
 }
 
-/** A place on the route: its name, where its mark is (pixels from the map's top left) and where its name goes (character column and row, from the map's top). */
-export interface Stop { readonly name: string; readonly x: number; readonly y: number; readonly label: { readonly col: number; readonly row: number } }
+/** A place on the route: its name and where its mark is (pixels from the map's top left). Montos is the small island in the Aegean. */
+export interface Stop { readonly name: string; readonly x: number; readonly y: number }
 
-/** The route from Montos to Rio: where it goes (pixels from the map's top left); the stops are on it. */
 export const STOPS: readonly Stop[] = [
-  { name: 'MONTOS', x: 38, y: 30, label: { col: 6, row: 5 } },
-  { name: 'MOSCOW', x: 46, y: 10, label: { col: 0, row: 0 } },
-  { name: 'SIBERIA', x: 96, y: 8, label: { col: 10, row: 0 } },
-  { name: 'CHINA', x: 124, y: 18, label: { col: 11, row: 4 } },
-  { name: 'JAPAN', x: 150, y: 20, label: { col: 19, row: 3 } },
-  { name: 'HAWAII', x: 206, y: 28, label: { col: 23, row: 4 } },
-  { name: 'ANDES', x: 276, y: 38, label: { col: 27, row: 5 } },
-  { name: 'RIO', x: 310, y: 42, label: { col: 31, row: 4 } },
+  { name: 'MONTOS', x: AEGEAN.col * 4 + 2, y: AEGEAN.row * 4 + 2 },
+  { name: 'MOSCOW', x: 76, y: 9 },
+  { name: 'SIBERIA', x: 116, y: 10 },
+  { name: 'CHINA', x: 152, y: 14 },
+  { name: 'JAPAN', x: 190, y: 15 },
+  { name: 'HAWAII', x: 228, y: 23 },
+  { name: 'ANDES', x: 270, y: 41 },
+  { name: 'RIO', x: 296, y: 45 },
 ];
 /** Between the stops: the sea crossings bend. */
-const WAYPOINTS: readonly (readonly [number, number])[] = [[38, 30], [46, 10], [96, 8], [124, 18], [150, 20], [178, 24], [206, 28], [276, 38], [310, 42]];
+const WAYPOINTS: readonly (readonly [number, number])[] = [
+  [42, 14], [76, 9], [116, 10], [152, 14], [190, 15], [210, 19], [228, 23], [250, 32], [270, 41], [296, 45],
+];
 
 /** A point of the route, `t` from 0 (Montos) to 1 (Rio), in screen pixels. */
 export function routeAt(t: number): { readonly x: number; readonly y: number } {
@@ -167,102 +178,134 @@ export function routeAt(t: number): { readonly x: number; readonly y: number } {
 /** The route's length in pixels. */
 export const ROUTE_LENGTH = WAYPOINTS.slice(1).reduce((sum, p, i) => { const q = WAYPOINTS[i]; return sum + (q ? Math.hypot(p[0] - q[0], p[1] - q[1]) : 0); }, 0);
 
-// ---- text in the game's lettering ------------------------------------------------------------------------------------------------
-/** The character for a letter: the game's own ($40 | letter & $3F), its apostrophe $68; the bracket (it has none) is the closing one turned round. */
-function codeOf(ch: string, bracket: number): number {
-  if (ch === ' ') return 0;
-  if (ch === "'") return 0x68;
-  if (ch === '(') return bracket;
-  return (ch.charCodeAt(0) & 0x3f) | 0x40;
+/** The mark of a stop: a round dot, white with a brown heart, in pixel pairs (3 across, 6 down). */
+const MARK: readonly (readonly number[])[] = [[0, 1, 0], [1, 1, 1], [1, 2, 1], [1, 2, 1], [1, 1, 1], [0, 1, 0]];
+
+/** The route and the marks, drawn over the land: a line over land (every pixel along it), dots over sea (a pair of pixels in every four). White. */
+function drawRoute(p: Pairs) {
+  const over = (x: number, y: number) => groundAt(Math.floor(y / 4), Math.floor(x / 4)) !== 'sea';
+  for (let d = 0; d <= ROUTE_LENGTH; d++) {
+    const at = routeAt(d / ROUTE_LENGTH);
+    const x = Math.round(at.x), y = Math.round(at.y) - MAP_Y;
+    if (over(x, y) || d % 4 < 2) for (let j = 0; j < 2; j++) p.set(Math.floor(x / 2), MAP_Y + y + j - 1, 1);
+  }
 }
 
+/** Where a stop's mark is, in character cells (column, row from the map's top). */
+const markCell = (s: Stop) => ({ col: Math.floor(s.x / 8), row: Math.floor(s.y / 8) });
+
+/** A stop's name on the map: its first character's column and row from the map's top (a name takes the characters under it). */
+export interface Label { readonly name: string; readonly col: number; readonly row: number }
+
+/**
+ * Where each name goes: in the row above or below its mark, over its column, over as little land as there is, never over the route or another mark or name, with a space between names, and wholly on the map. Found
+ * by looking at the picture the route and the marks make.
+ */
+export function placeLabels(route: ReadonlySet<number>): readonly Label[] {
+  const taken = new Set<number>(route);
+  const labels: Label[] = [];
+  for (const s of STOPS) {
+    const m = markCell(s), len = s.name.length;
+    let best: { col: number; row: number; score: number } | null = null;
+    for (const [away, row] of [[0, m.row - 1], [0, m.row + 1], [1, m.row - 2], [1, m.row + 2]] as const) {
+      if (row < 0 || row >= MAP_ROWS) continue;
+      for (let col = m.col - len + 1; col <= m.col; col++) {
+        if (col < 0 || col + len > 40) continue;
+        const cells = Array.from({ length: len + 2 }, (_, i) => row * 40 + col - 1 + i);
+        if (cells.some((c) => taken.has(c))) continue;
+        let land = 0;
+        for (let i = 0; i < len; i++) for (const [j, k] of [[0, 0], [0, 1], [1, 0], [1, 1]] as const) if (groundAt(row * 2 + j, (col + i) * 2 + k) !== 'sea') land++;
+        const score = land + Math.abs(col + (len - 1) / 2 - m.col) * 4 + away * 1000;
+        if (best === null || score < best.score) best = { col, row, score };
+      }
+    }
+    if (best === null) throw new Error(`no place on the map for ${s.name}`);
+    for (let i = -1; i <= len; i++) taken.add(best.row * 40 + best.col + i);
+    labels.push({ name: s.name, col: best.col, row: best.row });
+  }
+  return labels;
+}
+
+// ---- text in the game's lettering ------------------------------------------------------------------------------------------------
 /** The credits: four lines, each in a colour of its own, centred. */
 export const CREDIT_LINES: readonly { readonly text: string; readonly colour: number }[] = [
   { text: 'A NEW GAME BY CHRISTOPHER HICKMAN', colour: YELLOW },
   { text: 'WITH CLAUDE  MUSIC BY ROB HUBBARD', colour: WHITE },
-  { text: "AFTER PETER HARRAP'S MONTY ON THE RUN", colour: LGREY },
-  { text: '(GREMLIN GRAPHICS 1985)', colour: MGREY },
+  { text: "AFTER PETER HARRAP'S MONTY ON THE RUN", colour: CYAN },
+  { text: '(GREMLIN GRAPHICS 1985)', colour: WHITE },
 ];
 export const TAGLINE = 'A MONTY MOLE ADVENTURE';
 
-/** The finished picture: the characters, and each cell's code and colour (the scroller's rows left blank). */
+/** The finished picture: the characters, and each cell's code and colour (the scroller's rows left for it). */
 export interface TitleArt {
   readonly chars: Uint8Array;
   readonly screen: Uint8Array;
   readonly colour: Uint8Array;
-  /** How many characters of the set the logo, the map and the odd ones take (of 175). */
+  /** How many of the set's 256 characters are taken (the scroller's 80 and the blank included). */
   readonly used: number;
-  /** The code of the mark's ring. */
-  readonly ring: number;
+  /** The characters the scroller draws its two rows in, row by row. */
+  readonly scrollerCodes: readonly number[];
+  /** Where each name is on the map. */
+  readonly labels: readonly Label[];
+  /** The picture's pixel pairs of the logo and the map (rows 1-13), for tests. */
+  readonly pairs: Uint8Array;
 }
 
-/** The mark of a stop: a round dot, a character of its own. */
-const RING = [0x18, 0x3c, 0x7e, 0x7e, 0x7e, 0x7e, 0x3c, 0x18];
+/** The game's glyph for a letter: its own lettering ($40 | letter & $3F), the apostrophe at $68; the bracket (it has none) is the closing one turned round. */
+export function glyphOf(bank: Uint8Array, ch: string): number[] {
+  const at = ch === "'" ? 0x68 : ch === '(' ? 0x69 : (ch.charCodeAt(0) & 0x3f) | 0x40;
+  return Array.from({ length: 8 }, (_, r) => {
+    const b = bank[at * 8 + r] ?? 0;
+    if (ch !== '(') return b;
+    let out = 0;
+    for (let k = 0; k < 8; k++) if (b & (0x80 >> k)) out |= 1 << k;
+    return out;
+  });
+}
 
 /** Builds the title's picture from the game's bank (its lettering is in it, at $40-$7F of the characters). */
 export function buildTitleArt(bank: Uint8Array): TitleArt {
   const set = new CharSet();
   const screen = new Uint8Array(1000), colour = new Uint8Array(1000);
   const put = (row: number, col: number, code: number, c: number) => { screen[row * ROW + col] = code; colour[row * ROW + col] = c; };
-
-  // the game's lettering, and the scroller's patterns
-  set.bytes.set(bank.subarray(0x40 * 8, 0x80 * 8), 0x40 * 8);
-  set.bytes.set(QUARTER_CHARS, 0xf0 * 8);
-  const bracket = set.code(Array.from({ length: 8 }, (_, r) => { // the closing bracket, turned round
-    const b = bank[0x69 * 8 + r] ?? 0; let out = 0;
-    for (let k = 0; k < 8; k++) if (b & (0x80 >> k)) out |= 1 << k;
-    return out;
-  }));
-  const text = (row: number, col: number, s: string, c: number) => { [...s].forEach((ch, i) => put(row, col + i, codeOf(ch, bracket), c)); };
+  const text = (row: number, col: number, s: string, c: number) => { [...s].forEach((ch, i) => { if (ch !== ' ') put(row, col + i, set.code(glyphOf(bank, ch)), c); }); };
   const centred = (row: number, s: string, c: number) => text(row, Math.floor((40 - s.length) / 2), s, c);
 
   centred(ROWS.line, TAGLINE, CYAN);
 
-  // the logo: DO SVIDANIYA over MONTY
-  const logo = new Mask(320, 8 * (ROWS.big + 4 - ROWS.small));
-  const smallWidth = 2 * SMALL.pitch + 24 + 9 * SMALL.pitch; // DO, a word space, SVIDANIYA
-  const x0 = Math.floor((320 - smallWidth) / 16) * 8;
-  logoWord(logo, 'DO', x0, 0, SMALL);
-  logoWord(logo, 'SVIDANIYA', x0 + 2 * SMALL.pitch + 24, 0, SMALL);
-  logoWord(logo, 'MONTY', Math.floor((320 - 5 * BIG.pitch) / 16) * 8 + 4, 8 * (ROWS.big - ROWS.small), BIG);
-  for (let cy = 0; cy < ROWS.big + 4 - ROWS.small; cy++) {
-    const row = ROWS.small + cy;
-    const c = cy < ROWS.big - ROWS.small ? SMALL_COLOURS[cy] ?? YELLOW : BIG_COLOURS[cy - (ROWS.big - ROWS.small)] ?? YELLOW;
-    for (let cx = 0; cx < 40; cx++) put(row, cx, set.code(logo.cell(cx, cy)), c);
+  // the logo and the map, one picture of pixel pairs
+  const p = new Pairs();
+  const smallWidth = 2 * SMALL.pitch + SMALL.pitch + 9 * SMALL.pitch; // DO, a word space, SVIDANIYA
+  logoWord(p, 'DO', Math.floor((160 - smallWidth) / 8) * 4, ROWS.small * 8, SMALL);
+  logoWord(p, 'SVIDANIYA', Math.floor((160 - smallWidth) / 8) * 4 + 3 * SMALL.pitch, ROWS.small * 8, SMALL);
+  logoWord(p, 'MONTY', Math.floor((160 - 5 * BIG.pitch) / 8) * 4, ROWS.big * 8, BIG);
+  for (let cy = ROWS.small; cy < ROWS.map; cy++) {
+    const c = cy < ROWS.big ? SMALL_COLOURS[cy - ROWS.small] ?? YELLOW : BIG_COLOURS[cy - ROWS.big] ?? YELLOW;
+    for (let cx = 0; cx < 40; cx++) put(cy, cx, set.code(p.cell(cx, cy)), multi(c));
   }
-
-  // the map: two by two map cells to a character, its colour the strongest thing in it (the route, then mountains, then land)
-  const dots = routeDots();
-  const ring = set.code(RING);
+  for (let r = 0; r < 12; r++) for (let c = 0; c < 80; c++) {
+    const g = groundAt(r, c);
+    if (g === 'sea') continue;
+    for (let j = 0; j < 4; j++) for (let i = 0; i < 2; i++) p.set(c * 2 + i, MAP_Y + r * 4 + j, g === 'high' && (i + j + r) % 2 === 0 ? 2 : 3);
+  }
+  const land = new Pairs();
+  land.px.set(p.px);
+  drawRoute(p);
+  for (const s of STOPS) MARK.forEach((row, j) => row.forEach((v, i) => { if (v) p.set(Math.floor(s.x / 2) - 1 + i, MAP_Y + s.y - 3 + j, v); }));
+  // the cells the route and the marks are in: where the picture differs from the bare land
+  const route = new Set<number>();
   for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {
-    const glyph = new Mask(8, 8);
-    let ink = -1, onRoute = false;
-    for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) {
-      const row = cy * 2 + j, col = cx * 2 + i, g = groundAt(row, col);
-      const dotted = dots.has(row * 80 + col);
-      if (g !== 'sea') { glyph.rect(i * 4, j * 4, 4, 4); ink = Math.max(ink, g === 'high' ? BROWN : GREEN); }
-      if (dotted) { glyph.rect(i * 4 + 1, j * 4 + 1, 2, 2); onRoute = true; if (ink === -1) ink = YELLOW; }
-    }
-    if (ink === -1) continue;
-    put(ROWS.map + cy, cx, set.code(glyph.cell(0, 0)), onRoute ? YELLOW : ink);
+    const cell = p.cell(cx, ROWS.map + cy), was = land.cell(cx, ROWS.map + cy);
+    if (cell.some((b, i) => b !== was[i])) route.add(cy * 40 + cx);
   }
-  // the stops' rings and names (a name takes the characters under it)
-  for (const s of STOPS) {
-    put(ROWS.map + (s.y >> 3), s.x >> 3, ring, WHITE);
-    text(ROWS.map + s.label.row, s.label.col, s.name, WHITE);
+  const labels = placeLabels(route);
+  for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {
+    if (p.used(cx, ROWS.map + cy)) put(ROWS.map + cy, cx, set.code(p.cell(cx, ROWS.map + cy)), multi(GREEN));
   }
+  for (const l of labels) { for (let i = 0; i < l.name.length; i++) put(ROWS.map + l.row, l.col + i, 0, 0); text(ROWS.map + l.row, l.col, l.name, WHITE); }
 
-  // the credits
   CREDIT_LINES.forEach((l, i) => centred(ROWS.credits + i, l.text, l.colour));
-  return { chars: set.bytes, screen, colour, used: set.used, ring };
-}
-
-/** The map cells the route's dots are in (a dot in the middle of each, every cell along the way): `row * 80 + col`. */
-function routeDots(): ReadonlySet<number> {
-  const cells = new Set<number>();
-  for (let d = 0; d <= ROUTE_LENGTH; d += 2) {
-    const p = routeAt(d / ROUTE_LENGTH);
-    cells.add(Math.floor((p.y - MAP_Y) / 4) * 80 + Math.floor(p.x / 4));
-  }
-  return cells;
+  const scrollerCodes = Array.from({ length: SCROLLER_CHARS }, (_, i) => 1 + i);
+  for (let i = 0; i < SCROLLER_CHARS; i++) screen[ROWS.scroller * ROW + i] = 1 + i;
+  return { chars: set.bytes, screen, colour, used: set.used, scrollerCodes, labels, pairs: p.px };
 }

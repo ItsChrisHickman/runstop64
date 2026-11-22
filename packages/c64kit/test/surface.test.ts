@@ -43,6 +43,9 @@ const rows = (s: Surface) => Array.from({ length: s.height }, (_, y) => Array.fr
   const c = new Surface(8, 8, 9);
   c.drawChar(glyph, 0, 0, 2, TRANSPARENT);
   check('drawChar: a transparent background leaves what was there', rows(c)[0] === '29999999');
+  const m = new Surface(8, 8, 9);
+  m.drawMulticolourChar([0b00011011, 0xff, 0, 0, 0, 0, 0, 0], 0, 0, 3, 1, 2);
+  check('drawMulticolourChar: pairs are the background (left as it was), mc1, mc2 and the cell colour, two pixels wide', rows(m)[0] === '99112233' && rows(m)[1] === '33333333' && rows(m)[2] === '99999999');
   const clipped = new Surface(4, 2);
   clipped.drawChar([0xff, 0, 0xf0, 0x0f, 0, 0, 0, 0xff], -4, -1, 3);
   check('drawChar: clipped at the left and top without wrapping onto the row above', rows(clipped).join() === '....,....');
