@@ -3,6 +3,13 @@
 A new Monty game, made in 2026 on Monty on the Run's engine, rules and parts. Chris asked for it on 2026-11-20; this page is
 the agreed shape. It is built a region at a time, and Chris plays each one before the next is started.
 
+## Priority and ambition (Chris, 2026-11-22)
+
+Finishing Do Svidaniya Monty comes first, and it should be amazing: push the Commodore 64's limits with set pieces like the
+bullet train and the New Year dragon, big creatures, moving scenery, while everything stays within what a real C64 could do
+(one byte per kind, the 256-character set, the VIC bank's sprites, a region's data within a multiload budget), so a native
+C64 version stays possible afterwards (docs/dosvidaniya-c64.md; Monty on the Run's own C64 version first, then this game).
+
 ## The story
 
 Intermole finds Monty's Greek island (where Auf Wiedersehen Monty left him) and Europe is no longer safe. Intermole only
