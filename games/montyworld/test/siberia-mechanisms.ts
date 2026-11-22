@@ -354,14 +354,14 @@ import { creatureRooms, itemIndex, standY } from './route';
   const mouth = must(TUNNELS[0], 'the mountain');
   // the way along the train is over the roofs: the inspectors keep the gangways shut until he has the ticket from the tender
   for (const g of GANGWAYS) {
-    const side = g.cols[0] === 0 ? 0 : 31;
+    const side = g.cols[0] <= 1 ? 0 : 31;
     const shut = at(g.room, side === 0 ? 4 : 27, 17);
     const open = at(g.room, side === 0 ? 4 : 27, 17, [[SIB.coal, 0]]);
     const out = (st: State) => { run(st, side === 0 ? LEFT : RIGHT, 160); return st.g.roomId !== g.room; };
     check(`room ${g.room}: the gangway at its ${side === 0 ? 'left' : 'right'} end is shut without the ticket and open with it`, !out(shut) && out(open));
   }
   // every point of a roof has a hatch it can reach in time: the warning (the portal flashing at the entry) plus the portal's own walk to the hatch's cell, against his walk to it (9 frames a cell)
-  for (const [room, hatches] of [[SIB.gravy, [12, 25]], [SIB.sleeper, [7, 15]]] as const) {
+  for (const [room, hatches] of [[SIB.gravy, [12, 25]], [SIB.sleeper, [7, 15, 28]]] as const) {
     const late: number[] = [];
     for (let col = 1; col <= 30; col++) {
       const ok = hatches.some((h) => Math.abs(col - h) * 9 + 4 <= mouth.warn + Math.max(0, 31 - Math.max(col, h)) * mouth.step);

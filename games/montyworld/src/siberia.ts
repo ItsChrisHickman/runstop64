@@ -51,7 +51,7 @@ const BOGIES = [4, 25] as const;
 function carriage(g: Grid, hatches: readonly number[]) {
   g.box(0, CAR.roof, 31, CAR.roof, 'D');
   farWall(g, 2, 29);
-  g.box(0, 10, 1, 16, 'T').box(30, 10, 31, 16, 'T'); // the ends, the gangways shut: an inspector stands in each until he has the ticket (GANGWAYS)
+  g.box(0, 10, 1, 14, 'T').box(30, 10, 31, 14, 'T'); // the ends, their gangways below (an inspector stands in each until he has the ticket: GANGWAYS)
   undercarriage(g, 0, 31);
   for (const h of hatches) hatch(g, h);
 }
@@ -198,6 +198,19 @@ export const YETI: DragonSpec = {
   ],
 };
 
+/**
+ * The gangways between the cars, each shut by a ticket inspector until he has the ticket from the tender (the one that later lifts the border's barrier): the way along the train is
+ * over the roofs, timing the tunnels, and the cars' insides, with their coins and pelmeni, open as a second, safer lane for the way back. The cells (playfield columns, rows 15-16): one cell in from the room's edge, which stays open (a room's way out must be).
+ */
+export const GANGWAYS: readonly { readonly room: number; readonly cols: readonly [number, number] }[] = [
+  { room: SIB.gravy, cols: [30, 30] }, { room: SIB.sleeper, cols: [1, 1] }, { room: SIB.sleeper, cols: [30, 30] }, { room: SIB.coal, cols: [1, 1] },
+];
+
+/** Shut the gangways of a room: the inspector's cells, a wall until the ticket. */
+function inspectors(g: Grid, room: number) {
+  for (const w of GANGWAYS) if (w.room === room) g.box(w.cols[0], CAR.gangwayTop, w.cols[1], CAR.gangwayBottom, 'T');
+}
+
 /** The sleeper's palette: the passenger car's, with the pine's trunk (the eighth code). */
 const SLEEPER_PALETTE = { ...TRAIN_PALETTE, P: ['pineTrunk', 9] } as const satisfies Palette;
 
@@ -217,6 +230,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.gravy, cell: [1, 4], sector: 9, palette: TRAIN_PALETTE,
     paint(g) {
       carriage(g, [12, 25]);
+      inspectors(g, SIB.gravy);
     },
     coins: [[28, 15]],
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
@@ -227,19 +241,20 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56, colour: 1 }],
   }),
 
-  // B SLEEPER HIT: the sleeper, in a cutting. The roof again, one mountain from the front; two hatches into the corridor of berths (an
+  // B SLEEPER HIT: the sleeper, in a cutting. The roof again, one mountain from the front; three hatches into the corridor of berths (an
   // inspector going up and down the first ladder, a coin each end), a gangway at each end to the cars either side. The banks of the cutting rise at both ends under pines;
   // at columns 22-23 a big pine's trunk climbs out of the line side, a bough hanging over the roof: up the tree to the forest.
   room({
     id: SIB.sleeper, cell: [1, 5], sector: 10, palette: SLEEPER_PALETTE,
     paint(g) {
-      carriage(g, [7, 15]);
+      carriage(g, [7, 15, 28]);
+      inspectors(g, SIB.sleeper);
       cutting(g);
       g.box(22, 0, 23, 8, 'P'); // the pine's trunk up through the sky to the forest
     },
     coins: [[3, 15], [27, 15]],
     decor: [
-      ...skyDecor(SKY_SLEEPER), ['pineBough', 17, 0], ['pineBough', 24, 0], ['pineBough', 17, 5], windowAt(9), windowAt(17), windowAt(24), ['bunk', 10, 15], ['bunk', 20, 15],
+      ...skyDecor(SKY_SLEEPER), ['pineBough', 17, 0], ['pineBough', 24, 0], ['pineBough', 17, 5], windowAt(9), windowAt(17), windowAt(22), ['bunk', 10, 15], ['bunk', 20, 15],
       ['pineSmall', 0, 0], ['pineSmall', 2, 1], ['pineSmall', 28, 1], ['pineSmall', 30, 0], ['roofVent', 8, 8], ['roofVent', 24, 8], ...CAR_FITTINGS,
     ],
     creatures: [{ who: 'inspector', col: 6, row: 10, way: 'down', speed: 1, range: 24, colour: 1 }],
@@ -253,7 +268,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     paint(g) {
       g.box(17, 0, 31, 1, 'M').clear(23, 0, 25, 1).box(24, 0, 24, 9, 'R'); // the mine's loading shelf overhanging the rope's way up; the rest open sky
-      g.box(0, 10, 1, 16, 'T'); // the wagon's end (its gangway shut: an inspector stands in it until he has the ticket)
+      g.box(0, 10, 1, 14, 'T'); // the wagon's end (its gangway below, an inspector in it until he has the ticket)
+      inspectors(g, SIB.coal);
       g.box(2, 10, 16, 14, 'E'); // the wagon's boards behind the coal
       g.box(0, 9, 5, 9, 'D').clear(1, 9, 3, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch and rope
       g.box(6, 12, 8, 16, 'K').box(9, 14, 10, 16, 'K').box(11, 16, 14, 16, 'K').box(15, 14, 16, 16, 'K').box(17, 12, 18, 16, 'K'); // the coal in steps: down to the trough and up again
@@ -406,12 +422,4 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       { who: 'guard', col: 26, row: 5, way: 'down', speed: 1, range: 24 },
     ],
   }),
-];
-
-/**
- * The gangways between the cars, each shut by a ticket inspector until he has the ticket from the tender (the one that later lifts the border's barrier): the way along the train is
- * over the roofs, timing the tunnels, and the cars' insides, with their coins and pelmeni, open as a second, safer lane for the way back. The cells (playfield columns, rows 15-16).
- */
-export const GANGWAYS: readonly { readonly room: number; readonly cols: readonly [number, number] }[] = [
-  { room: SIB.gravy, cols: [30, 31] }, { room: SIB.sleeper, cols: [0, 1] }, { room: SIB.sleeper, cols: [30, 31] }, { room: SIB.coal, cols: [0, 1] },
 ];
