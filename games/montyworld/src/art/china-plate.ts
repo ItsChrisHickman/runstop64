@@ -128,16 +128,6 @@ function kissingDoves(): NewDecor {
   return decor('kissingDoves', 5, 2, r, 1);
 }
 
-/** A sampan far off on the water, its boatman under a woven awning, a pole. 3 x 1 characters. */
-function plateBoat(): NewDecor {
-  const r = new Raster(24, 8);
-  r.ellipse(9, 2.5, 5, 2.4); r.rect(5, 3, 13, 3); // the awning
-  r.rect(7, 3, 7, 3, false); r.rect(11, 3, 11, 3, false);
-  r.line(20, 0, 17, 7); // the pole
-  r.triangle(1, 4, 22, 4, 18, 7); r.rect(1, 4, 22, 4); r.rect(5, 6, 16, 6, false);
-  return decor('plateBoat', 3, 1, r, 1);
-}
-
 /** A zigzag fence: two rails going up and down on their posts. 2 x 1 characters. */
 function plateFence(): NewDecor {
   const r = new Raster(16, 8);
@@ -146,4 +136,4 @@ function plateFence(): NewDecor {
   return decor('plateFence', 2, 1, r, 1);
 }
 
-export const PLATE_DECOR = { willowTree: willowTree(), roundTree: roundTree(), pagoda: pagoda(), archBridge: archBridge(), crouchFigure: crouchFigure(), cloud: cloud(), kissingDoves: kissingDoves(), plateBoat: plateBoat(), plateFence: plateFence() } as const satisfies Record<string, NewDecor>;
+export const PLATE_DECOR = { willowTree: willowTree(), roundTree: roundTree(), pagoda: pagoda(), archBridge: archBridge(), crouchFigure: crouchFigure(), cloud: cloud(), kissingDoves: kissingDoves(), plateFence: plateFence() } as const satisfies Record<string, NewDecor>;

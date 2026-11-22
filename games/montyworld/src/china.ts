@@ -1,4 +1,4 @@
-import type { DragonSpec, PulseSpec } from '../../montyotr/src/montydata';
+import type { CrackSpec, DragonSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { codeOf, fillCells, Grid, room, type Palette } from './layout';
@@ -59,7 +59,7 @@ const GATE_PALETTE = {
 } as const satisfies Palette;
 
 const ROOFS_PALETTE = {
-  P: ['wallPave', 1], W: ['redWall', 2], Y: ['roofTile', 7], E: ['redEave', 2], R: ['rope', 13],
+  Y: ['roofRidge', 7], B: ['roofBody', 8], E: ['roofTile', 7], R: ['rope', 13],
 } as const satisfies Palette;
 
 /** The garden is the plate's: its lattice border, the hatched banks, the river's waves, white stones, the giants' arms and hands, a rope. */
@@ -68,7 +68,7 @@ const WILLOW_PALETTE = {
 } as const satisfies Palette;
 
 const JUNK_PALETTE = {
-  E: ['hillEarth', 9], D: ['dock', 9], W: ['lakeWater', 6], R: ['rope', 13], H: ['junkHull', 2], Q: ['raft', 13],
+  E: ['hillEarth', 9], D: ['dock', 9], W: ['lakeWater', 6], R: ['rope', 13], H: ['junkHull', 2], Q: ['raft', 13], K: ['plankCracked', 9], L: ['plankSplit', 9],
 } as const satisfies Palette;
 
 /** A patch of the wall's face stamped a cell at a time behind him (a decoration of one character costs one character however many are placed): columns c0-c1, rows r0-r1. */
@@ -140,6 +140,14 @@ export const DOOR_CELLS: readonly (readonly [row: number, col: number])[] = Arra
 export const RAFT_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 7 }, (_, i) => [17, 19 + i] as const);
 export const TOWER_ROPE_CODE = codeOf(TOWER_PALETTE, 'R');
 export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
+/**
+ * The jetty's planks (row 17, columns 6-18), each cell its own patch of crumbling floor (Siberia's cracking ice, per cell): it shows cracks after 16 frames under his feet, splits after 34 and is gone
+ * after 46, whatever is under it taking him (the river, the fish). His two-cell foot is over a cell for about 18 frames when he walks without stopping, so a steady run is safe with a margin of 28
+ * frames (about half a second) for a hesitation; a long stop is not. It is whole again when he comes into the room.
+ */
+export const JUNK_CRACKS: readonly CrackSpec[] = Array.from({ length: 13 }, (_, k): CrackSpec => ({
+  room: CHI.junk, col: 6 + k, cols: 1, row: 17, codes: [codeOf(JUNK_PALETTE, 'D'), codeOf(JUNK_PALETTE, 'K'), codeOf(JUNK_PALETTE, 'L')], crack: 16, wide: 34, gone: 46, away: 600,
+}));
 
 /** The paint of alley's room: its tiles. */
 const paintAlley = (g: Grid): void => {
@@ -160,12 +168,12 @@ const paintMarket = (g: Grid): void => {
     g.box(12, 9, 12, 16, 'R'); // the rope down from them
 };
 
-/** The paint of roofs's room: its tiles. */
+/** The paint of roofs's room: its tiles. The golden roofs are the floor: the hall's ridge along the bottom, the eaves stepping up, the high ridge. */
 const paintRoofs = (g: Grid): void => {
-    g.box(30, 0, 31, 5, 'W').box(30, 9, 31, 16, 'W'); // the courtyard open to the sky and running off the left edge; a palace wall at the right
-    g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'W').clear(23, 17, 25, 19).box(24, 16, 24, 19, 'R');
+    g.box(30, 0, 31, 5, 'B').box(30, 9, 31, 16, 'B'); // the next hall's gable at the top right and the high ridge's gable end, the sky open between them and running off the left edge
+    g.box(0, 17, 22, 17, 'Y').box(0, 18, 22, 19, 'B').box(26, 17, 31, 17, 'Y').box(26, 18, 31, 19, 'B').box(24, 16, 24, 19, 'R'); // the hall's ridge and slope, the hatch in it and the rope up through it
     g.box(27, 15, 29, 15, 'E').box(24, 13, 26, 13, 'E').box(21, 11, 23, 11, 'E'); // the eaves
-    g.box(24, 9, 31, 9, 'Y'); // the ridge, starting past the top eave so he never stands under it
+    g.box(24, 9, 31, 9, 'E'); // the ridge, starting past the top eave so he never stands under it
 };
 
 /** The paint of gate's room: its tiles. */
@@ -180,6 +188,7 @@ const paintGate = (g: Grid): void => {
 /** Where the coins hang in the hutong and the market (the back walls leave them clear). */
 const ALLEY_COINS = [[12, 11], [27, 15]] as const;
 const MARKET_COINS = [[6, 7], [21, 15]] as const;
+const ROOFS_COINS = [[12, 15], [26, 7]] as const;
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -311,15 +320,23 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // G THE EMPEROR(S ROOFTOPS: the palace. In by the rope from the gate onto the courtyard; west a dead end with dumplings and a coin; east a stair of glazed eaves up to the ridge, along it east.
+  // G THE EMPEROR(S ROOFTOPS: the palace roofs at dusk. In by the rope from the gate up through a hatch in a hall's ridge; west along the ridge a dead end with dumplings and a coin; east a stair of glazed eaves up to the high ridge, along it east.
+  // Halls recede in tiers behind under a sky going from blue to red, lanterns hang under the eaves.
   room({
     id: CHI.roofs, cell: [0, 10], sector: 24, palette: ROOFS_PALETTE,
     paint: paintRoofs,
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
-    decor: [['palaceHall', 2, 4], ['palaceHall', 10, 4], ['roofDragon', 24, 7], ['lanternPost', 20, 14], ['banner', 8, 11], ['cloudFrieze', 2, 3], ['cloudFrieze', 8, 3], ['cloudFrieze', 14, 3], ['rockery', 13, 15], ['pottedPlant', 2, 15]],
+    decor: [
+      ...fillCells(paintRoofs, ROOFS_COINS, [0, 0, 31, 4], 'duskBand'), ...fillCells(paintRoofs, ROOFS_COINS, [0, 5, 31, 12], 'duskGlow'), // the sky, blue overhead and red toward the halls
+      ['moon', 26, 2], ...[[3, 1], [9, 2], [14, 1], [20, 3], [5, 4]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
+      ['gateRoof', 2, 2], ['palaceHall', 12, 5], ['palaceHall', 0, 8], // the halls receding in tiers
+      ['roofDragon', 24, 7], ['roofDragon', 20, 15], ['ridgeBeasts', 8, 16], ['lanternPost', 15, 14], // a dragon on each ridge's end, the beasts marching along the ridge
+      ['eaveTip', 27, 14], ['eaveTip', 29, 14], ['eaveTip', 24, 12], ['eaveTip', 26, 12], ['eaveTip', 21, 10], ['eaveTip', 23, 10], // the curl of each eave
+      ['hangingLantern', 22, 12], ['hangingLantern', 25, 14],
+    ],
     creatures: [
-      { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56 },
+      { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56, colour: 1 },
       { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
     ],
   }),
@@ -352,21 +369,25 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // J DOWN THE RIVER: the quay. In by the rope from the garden's well; the quay runs east (a bicycle) to the river, seven cells of water; across it the junk's deck and the way east, low, into Japan's harbour. The bamboo puts a raft across.
+  // J DOWN THE RIVER: the quay and its rotten jetty. In by the rope from the garden's well; a short bank, then a jetty of old planks over the river that give way a few moments after he steps on them (he must keep
+  // running; a fall is the fish); a crane's arm with a coin, up a rope; seven cells of river (the bamboo puts a raft across), a gull diving; the junk's deck, and the way east, low, into Japan's harbour.
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 16, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top, a headland at the right: the sky open over the river
-      g.box(0, 17, 18, 17, 'D').box(0, 18, 18, 19, 'E');
+      g.box(0, 0, 1, 16, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top: the sky open over the river, and on to the right
+      g.box(0, 17, 5, 17, 'D').box(0, 18, 5, 19, 'E'); // the bank
+      g.box(6, 17, 18, 17, 'D').box(6, 18, 18, 19, 'W'); // the jetty, over the river (JUNK_CRACKS take it from here)
       g.box(19, 17, 25, 19, 'W');
       g.box(26, 17, 31, 17, 'D').box(26, 18, 31, 19, 'H');
       g.box(3, 0, 3, 16, 'R');
+      g.box(8, 11, 12, 11, 'D').box(13, 11, 13, 16, 'R'); // the crane's arm over the jetty, and the rope up to it
     },
-    coins: [[22, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 16, 15], ['junk', 26, 11], ['hangingLantern', 12, 2], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2]],
+    coins: [[10, 9], [22, 15]],
+    decor: [['lanternPost', 9, 14], ['boxes', 15, 15], ['junk', 26, 11], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2]],
     creatures: [
-      { who: 'bicycle', col: 5, row: 15, way: 'right', speed: 2, range: 28 },
-      { who: 'cricket', col: 12, row: 15, way: 'right', speed: 1, range: 24 },
+      { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36 },
+      { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },
+      { who: 'carp', col: 8, row: 18, way: 'right', speed: 1, range: 56 },
       { who: 'carp', col: 19, row: 18, way: 'right', speed: 1, range: 40 },
     ],
   }),

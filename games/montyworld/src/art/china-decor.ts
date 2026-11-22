@@ -9,6 +9,7 @@ import { Raster } from './raster';
 import { PLATE_DECOR } from './china-plate';
 import { CITY_DECOR } from './china-city';
 import { WALL_DECOR } from './china-wall';
+import { ROOF_DECOR } from './china-roofs';
 import type { NewDecor } from './types';
 
 /** A clump of bamboo: stalks with their joints and a tuft of leaves at the top of each. 2 x 4 characters. */
@@ -126,7 +127,7 @@ function roofDragon(): NewDecor {
   r.rect(0, 13, 15, 15);
   r.rect(9, 3, 15, 8); r.rect(11, 5, 13, 5, false); r.rect(10, 7, 15, 7, false); r.rect(13, 4, 13, 4, false); // the head, mouth and eye
   r.triangle(2, 6, 4, 0, 6, 5); r.triangle(6, 5, 8, 0, 9, 4); // the fin
-  return decor('roofDragon', 2, 2, r, 7);
+  return decor('roofDragon', 2, 2, r, 13);
 }
 
 /** A junk: a high stern, a battened hull, a mast with its fully battened sail furled in panels. 6 x 6 characters. */
@@ -248,15 +249,15 @@ export const CHINA_DECOR = {
   cloudFrieze: cloudFrieze(),
   // the willow pattern's added pieces (china-plate.ts)
   roundTree: PLATE_DECOR.roundTree,
-  willowCurtain: PLATE_DECOR.willowCurtain,
   cloud: PLATE_DECOR.cloud,
   kissingDoves: PLATE_DECOR.kissingDoves,
-  plateBoat: PLATE_DECOR.plateBoat,
   plateFence: PLATE_DECOR.plateFence,
   // the Great Wall's scenery (china-wall.ts)
   ...WALL_DECOR,
   // Beijing's and the Forbidden City's (china-city.ts)
   ...CITY_DECOR,
+  // the Emperor's rooftops' (china-roofs.ts)
+  ...ROOF_DECOR,
 } as const satisfies Record<string, NewDecor>;
 
 export type ChinaDecor = keyof typeof CHINA_DECOR;

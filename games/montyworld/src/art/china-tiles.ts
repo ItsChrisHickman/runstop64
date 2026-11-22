@@ -271,6 +271,50 @@ export const CHINA_TILES = {
     '........',
     '########',
   ]),
+  /** A golden hall's ridge: the round ridge tiles in a row along its top, their ends cut with black. Solid (the roof he runs on). */
+  roofRidge: tile('roofRidge', 1, 7, [
+    '########',
+    '########',
+    '#.####.#',
+    '........',
+    '##.##.##',
+    '##.##.##',
+    '........',
+    '.##.##.#',
+  ]),
+  /** The glazed tiles down a roof's slope: staggered barrel tiles with their joints. Solid. */
+  roofBody: tile('roofBody', 1, 8, [
+    '##.##.##',
+    '##.##.##',
+    '##.##.##',
+    '........',
+    '.##.##.#',
+    '.##.##.#',
+    '.##.##.#',
+    '........',
+  ]),
+  /** A jetty's rotten boards with their first cracks: the dock's planks split along the grain and a nail gone. Solid (it is about to give: china.ts). */
+  plankCracked: tile('plankCracked', 1, 9, [
+    '########',
+    '#.##.###',
+    '###.####',
+    '........',
+    '###.#.##',
+    '####..##',
+    '........',
+    '#######.',
+  ]),
+  /** The boards splitting wide: gaps the dark shows through, a plank lifting at one end. Solid still, for a moment more. */
+  plankSplit: tile('plankSplit', 1, 9, [
+    '#.##..##',
+    '..#...#.',
+    '.#..#...',
+    '........',
+    '#...#..#',
+    '.#..#...',
+    '........',
+    '.#....#.',
+  ]),
   /** A junk's hull: planks and a batten. Solid. */
   junkHull: tile('junkHull', 1, 2, [
     '########',
