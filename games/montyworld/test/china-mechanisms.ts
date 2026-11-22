@@ -367,17 +367,17 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 {
   const wants = at(CHI.tower, 6, 17, [], true);
   run(wants, NONE, 120);
-  check(`ENHANCED: coming into the tower without the key says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'THE TRAPDOOR WANTS A KEY');
+  check(`ENHANCED: coming into the tower without the key says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'THE TRAPDOOR IS LOCKED UP');
   const gate = at(CHI.gate, 4, 17, [], true);
   run(gate, NONE, 120);
-  check(`ENHANCED: the gate without the rice hat says so ("${rowText(gate.g)}")`, rowText(gate.g) === 'THE CITY GATE WANTS A RICE HAT');
+  check(`ENHANCED: the gate without the rice hat says so ("${rowText(gate.g)}")`, rowText(gate.g) === 'THE CITY TURNS FOREIGNERS AWAY');
   const quay = at(CHI.junk, 4, 17, [], true);
   run(quay, NONE, 120);
-  check(`ENHANCED: the quay without the bamboo says so ("${rowText(quay.g)}")`, rowText(quay.g) === 'OUT TO THE JUNK: FIND BAMBOO');
+  check(`ENHANCED: the quay without the bamboo says so ("${rowText(quay.g)}")`, rowText(quay.g) === 'THE RIVER IS TOO WIDE TO WADE');
   const plain = at(CHI.junk, 4, 17, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'DOWN THE RIVER');
-  for (const [item, text] of [[KEY, 'KEY: FOR THE TOWER\'S TRAPDOOR'], [HAT, 'RICE HAT: PAST THE CITY GATE'], [BAMBOO, 'BAMBOO: A RAFT OUT TO THE JUNK']] as const) {
+  for (const [item, text] of [[KEY, 'A KEY: SOMETHING IS LOCKED UP'], [HAT, 'A RICE HAT: LOOK LIKE A LOCAL'], [BAMBOO, 'BAMBOO: SOMETHING TO FLOAT ON']] as const) {
     const [room, nth] = item;
     const rec = must(CHINA_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4, room === CHI.top ? 5 : room === CHI.willow ? 15 : 9, [], true);

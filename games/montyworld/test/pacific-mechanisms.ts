@@ -342,7 +342,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[PAC.box, 24, 11, 'THE CHAIN WANTS BOLT CUTTERS'], [PAC.surf, 3, 18, 'THE SEA WANTS A SNORKEL'], [PAC.hilo, 2, 9, 'THE GUARD WANTS A LEI'], [PAC.hold, 3, 7, 'THE REAR DOOR WANTS A PARACHUTE']] as const;
+  const wants = [[PAC.box, 24, 11, 'THE RAMP IS CHAINED SHUT'], [PAC.surf, 3, 18, 'A MOLE CANNOT SWIM THAT FAR'], [PAC.hilo, 2, 9, 'THE GUARD LETS TOURISTS BY'], [PAC.hold, 3, 7, 'THE DROP IS FAR TOO HIGH']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -351,7 +351,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const plain = at(PAC.surf, 3, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'SURF AND TURF');
-  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS: THE CHAIN ON THE RAMP', 8, 16], [SNORKEL, 'SNORKEL: THE SEA IS OPEN NOW', 3, 13], [LEI, 'LEI: PAST THE AIRPORT GUARD', 6, 12], [PARACHUTE, 'PARACHUTE: FOLLOW THE COINS DOWN', 22, 12]] as const) {
+  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS BITE THROUGH CHAINS', 8, 16], [SNORKEL, 'WITH A SNORKEL HE CAN SWIM', 3, 13], [LEI, 'A LEI: LOOK LIKE A TOURIST', 6, 12], [PARACHUTE, 'PARACHUTE: FOR A LONG DROP', 22, 12]] as const) {
     const [room, nth] = item;
     const rec = must(PACIFIC_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4 - (col > 0 ? 0 : 0), floor, [], true);

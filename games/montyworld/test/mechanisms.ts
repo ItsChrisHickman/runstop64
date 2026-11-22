@@ -223,7 +223,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   // the hints
   const withHints = at(ROOM.platform, 11, 15, [], true);
   for (let f = 0; f < 4; f++) frame(withHints, NONE);
-  check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: PAST THE KREMLIN GUARD');
+  check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: LOOK LIKE A LOCAL');
   const without = takeUshanka(false);
   run(without, NONE, 4);
   check(`ORIGINAL: it says nothing (the name stays: "${rowText(without.g)}")`, rowText(without.g) === 'UNDERGROUND MOVEMENT');
@@ -244,7 +244,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   const later = rowText(wants.g);
   run(wants, NONE, 200);
   check(`ENHANCED: a room that wants an item says so, once its name has had its two seconds ("${name}", then "${later}", then the name again)`,
-    name === 'ESCALATING TENSIONS' && during === 'ESCALATING TENSIONS' && later === 'THE TURNSTILE WANTS A TOKEN' && rowText(wants.g) === 'ESCALATING TENSIONS');
+    name === 'ESCALATING TENSIONS' && during === 'ESCALATING TENSIONS' && later === 'THE TURNSTILE TAKES A TOKEN' && rowText(wants.g) === 'ESCALATING TENSIONS');
   const have = room(true, true);
   run(have, NONE, 140);
   check('and says nothing once he has it', rowText(have.g) === 'ESCALATING TENSIONS');

@@ -13,7 +13,10 @@ Monty game lives here.
   but fresh: a timing to learn, seen at once, fair from every side. Nothing may feel like a glitch (an escalator must make sense
   from both ends; a ride never traps). Climbs are easy: from anywhere at a rope's or ladder's foot Monty goes up, and from
   anywhere over its top he goes down; no overhang or narrow opening that only a pixel-perfect position clears (Chris on Moscow,
-  2026-11-22). Every coin, item and creature on the way is passable with slack, not only by the bot's exact inputs.
+  2026-11-22). `montyworld/test/climbs.ts` holds every climb of every region to Monty
+  on the Run's own norm (it fails at 3 of the 11 or so places a rope can be touched from, never more): a rope through a floor
+  has an opening at least 3 cells wide with the rope in the middle (5 is easy), nothing hugs a rope's foot, and where a rope
+  leaves a room the opening is the same in the room it arrives in. Every coin, item and creature on the way is passable with slack, not only by the bot's exact inputs.
 - **The route winds** as Monty on the Run's does: start one way, go down, circle back up, pass through rooms and double back to
   the ladder out; rooms crossed twice at different heights, dead ends holding items, ways an item opens elsewhere. Give each
   region at least one "aha": something you can see in a room but can't reach from the way you first come in, reachable only
@@ -87,7 +90,9 @@ most care; the reward show and the title show them off.
 - **Names are plain and evocative first, a pun only when it lands** (Monty on the Run: THE HOUSE, SEWERAGE WORKS). A name that
   needs explaining is the wrong name. No James Bond puns. Check the room-name font draws every letter (it has no good Z).
 - **Hints give the reason, in the story** (Chris: not "THE CITY GATE WANTS A RICE HAT" but that Monty needs a disguise). All
-  game text goes through one writer that maps characters the font lacks (the apostrophe) to the game's own.
+  game text goes through one writer that maps characters the font lacks (the apostrophe) to the game's own. That writer is `games/shared/monty/lettering.ts` (`gameText`, `textCode`; the apostrophe is the
+  charset's '(' glyph); `montyworld/test/text.ts` draws every name, hint, sign and credit through it. A hint fits the name
+  row (32 characters).
 - **A new game is presented as the next adventure and a tribute, subtly** (Chris, 2026-11-22): its own title screen in the
   house style (never a copy of the original's), a line like A MONTY MOLE ADVENTURE, and the tribute done quietly by the credits
   (the new makers first, "after Peter Harrap's Monty on the Run", the music's author, a thank-you line), never by writing
@@ -112,3 +117,7 @@ most care; the reward show and the title show them off.
   into this file.
 - **Go fast:** up to three tests at once, several agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
   step is merging.
+- **A death restarts in the room he died in** (Chris, 2026-11-22: a restart in the room before "feels like an uncontrollable
+  bug"): at the last safe place he stood there, else its way in; if that is deadly (an entry that drops into danger), at the
+  nearest place in the room he can stand; then a moment's grace. Never a previous-room fallback, in any game
+  (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole and Auf Wiedersehen Monty).

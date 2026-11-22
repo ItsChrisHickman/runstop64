@@ -110,7 +110,7 @@ A samba feel by instruments only: Hubbard's G minor lifted to G major (the minor
 
 ### ENHANCED hints
 
-- Taking: KEY: THE CABLE CAR STATION, HEADDRESS: PAST THE STEWARD. Coming into a room without what it wants: THE CABLE CAR WANTS ITS KEY (S), THE STEWARD WANTS A COSTUME (P).
+- Taking: KEY TO THE CITY: OPENS DOORS, A HEADDRESS: JOIN THE PARADE. Coming into a room without what it wants: THE CABLE CAR STATION IS LOCKED (S), ONLY DANCERS PASS THE STEWARD (P).
 
 ## The ending
 

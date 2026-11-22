@@ -66,7 +66,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   check('the Andes\' sectors and map colours are one each', ANDES_SECTORS.length === 12 && ANDES_COLOURS.length === 12 && ANDES_SECTORS.every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
   const typeable = (t: string) => /^[A-Z0-9 .:,!?-]+$/.test(t);
   check('every name and hint the Andes put in the name row is in letters the font has (it has no apostrophe: a block is drawn there and the letter after it is a capital)',
-    ANDES_SECTORS.every((s) => typeable(s.text)) && ['THE LLAMA WANTS A TUNE', 'THE UNDERGROWTH WANTS A BLADE', 'THE CAPTAIN WANTS A LOCAL HAT', 'CHULLO: BLEND IN ON THE BOAT', 'PANPIPES: A TUNE FOR THE LLAMA', 'MACHETE: CUTS THE TANGLE'].every(typeable));
+    ANDES_SECTORS.every((s) => typeable(s.text)) && ['THE LLAMA IS CROSS: CALM IT', 'THE UNDERGROWTH IS TOO THICK', 'THE CAPTAIN CARRIES LOCALS ONLY', 'A CHULLO: LOOK LIKE A LOCAL', 'PANPIPES: MUSIC CALMS LLAMAS', 'MACHETE: HACKS THROUGH VINES'].every(typeable));
   const rooms = creatureRooms(ANDES_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in the Andes' twelve rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === Object.keys(ANDES_CREATURES).length && rooms.size >= 8 && rooms.size <= 13 && most <= 2);
@@ -398,7 +398,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[AND.rock, 4, 18, 'THE LLAMA WANTS A TUNE'], [AND.cloud, 12, 18, 'THE UNDERGROWTH WANTS A BLADE'], [AND.boat, 9, 15, 'THE CAPTAIN WANTS A LOCAL HAT']] as const;
+  const wants = [[AND.rock, 4, 18, 'THE LLAMA IS CROSS: CALM IT'], [AND.cloud, 12, 18, 'THE UNDERGROWTH IS TOO THICK'], [AND.boat, 9, 15, 'THE CAPTAIN CARRIES LOCALS ONLY']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -407,7 +407,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const plain = at(AND.rock, 4, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'ROCK AND ROLL');
-  for (const [item, text, col, floor] of [[CHULLO, 'CHULLO: BLEND IN ON THE BOAT', 22, 9], [PANPIPES, 'PANPIPES: A TUNE FOR THE LLAMA', 27, 12], [MACHETE, 'MACHETE: CUTS THE TANGLE', 28, 12]] as const) {
+  for (const [item, text, col, floor] of [[CHULLO, 'A CHULLO: LOOK LIKE A LOCAL', 22, 9], [PANPIPES, 'PANPIPES: MUSIC CALMS LLAMAS', 27, 12], [MACHETE, 'MACHETE: HACKS THROUGH VINES', 28, 12]] as const) {
     const [room, nth] = item;
     const rec = must(ANDES_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, col, floor, [], true);

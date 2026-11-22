@@ -152,8 +152,8 @@ Japan's are without theirs.
 
 ### ENHANCED hints (one line each, 32 letters at most)
 
-`take`: CUTTERS: "CUTTERS: THE CHAIN ON THE RAMP"; SNORKEL: "SNORKEL: THE SEA IS OPEN NOW"; LEI: "LEI: PAST THE AIRPORT GUARD"; PARACHUTE: "PARACHUTE: THE REAR DOOR IS OPEN". `wanted`: BOX "THE CHAIN WANTS BOLT CUTTERS"; SURF and HANA "THE SEA WANTS A SNORKEL";
-HILO "THE GUARD WANTS A LEI"; HOLD "THE REAR DOOR WANTS A PARACHUTE".
+`take`: CUTTERS: "CUTTERS BITE THROUGH CHAINS"; SNORKEL: "WITH A SNORKEL HE CAN SWIM"; LEI: "A LEI: LOOK LIKE A TOURIST"; PARACHUTE: "PARACHUTE: THE REAR DOOR IS OPEN". `wanted`: BOX "THE RAMP IS CHAINED SHUT"; SURF and HANA "A MOLE CANNOT SWIM THAT FAR";
+HILO "THE GUARD LETS TOURISTS BY"; HOLD "THE DROP IS FAR TOO HIGH".
 
 ## As built (2026-11-21)
 
@@ -194,4 +194,4 @@ Pictures: /root/projects/runstop64-shots/pacific/ (`room-*.png` from the real en
 
 ## After the Andes (2026-11-21)
 
-The plane's rear door (columns 30-31 and the two gutter columns, rows 14-15) opens the way east now: the parachute clears all eight cells and the sign that said THE ANDES COMING SOON is gone from the hold; the door leads onto the Andes' tail ramp (`docs/dosvidaniya-andes.md`). The parachute's hint reads PARACHUTE: FOLLOW THE COINS DOWN.
+The plane's rear door (columns 30-31 and the two gutter columns, rows 14-15) opens the way east now: the parachute clears all eight cells and the sign that said THE ANDES COMING SOON is gone from the hold; the door leads onto the Andes' tail ramp (`docs/dosvidaniya-andes.md`). The parachute's hint reads PARACHUTE: FOR A LONG DROP.

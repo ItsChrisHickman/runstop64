@@ -166,8 +166,8 @@ brief allowed it only so), so the tune has none, as Siberia's and China's have n
 
 ### ENHANCED hints (the place-name row's lines, 32 letters at most)
 
-`take`: DARUMA: "DARUMA: ROLLS THE SHUTTER UP"; FISH FOOD: "FISH FOOD: THE KOI LET YOU BY"; HOOD: "HOOD: PAST THE CASTLE GUARD".
-`wanted`: E "THE SHUTTER WANTS A WISH"; G "THE KOI WANT FEEDING"; I "THE GUARD WANTS A NINJA HOOD".
+`take`: DARUMA: "DARUMA DOLLS GRANT WISHES"; FISH FOOD: "FISH FOOD: KOI FOLLOW FOOD"; HOOD: "A HOOD HIDES HIM FROM GUARDS".
+`wanted`: E "THE SHUTTER OPENS FOR LUCK"; G "HUNGRY KOI CROWD THE POND"; I "THE GUARD SPOTS OUTSIDERS".
 
 ### What is in `art/` and the previews
 
@@ -194,7 +194,7 @@ the tune in `music/japan.ts`, the sprites' places in `japan-pointers.ts` (the fo
 - **Creatures** (twelve kinds, none in more than two rooms): crab (A, J), sushi roll (A, B: the roofs; a creature never patrols a lane under three rows high, so not the street), lucky cat (B, C), robot (C, D), lantern ghost (C, I: the underpass is two rows high, so not E), sumo (D, J), umbrella (D, G), tanuki (F, G), crane (F, L), koi (G, L), ninja (H: two), samurai guard (I). (A ninja walked the hall's third space in the first build, and a bot found the four-cell space too tight to pass him: he is on the roofs only.) E has none: the trains are its danger.
   The decisions asked for a second pass on the weakest (the lantern ghost, the crane, the samurai): they were looked at beside the rooms; a redraw of the samurai (a taller crest, a masked chin) read worse than the first and was dropped, so all three are as drawn in pre-production and the samurai is the one to judge in play.
 - **Rooms.** A's crate stack in the low lane was dropped (the way out is two rows high: a stack he could not jump into). J's containers climb up to the west (he arrives from the east). B's pits are two rows deep. F lost its torii (the room's decoration pool is 101 characters and Fuji is 72). The Great Wave is redrawn as a long arm of water curling over in claws of foam;
-  `jpStone` joins into one slab across two cells, `jpPachinko` is a framed lit window not a checker. The doc's hint lines are 32 letters at most (the name row's width): DARUMA: ROLLS THE SHUTTER UP, HOOD: PAST THE CASTLE GUARD.
+  `jpStone` joins into one slab across two cells, `jpPachinko` is a framed lit window not a checker. The doc's hint lines are 32 letters at most (the name row's width): DARUMA DOLLS GRANT WISHES, A HOOD HIDES HIM FROM GUARDS.
 - **Music**: the Hirajoshi pentatonic on G (G A Bb D Eb: the notes between them move to the nearest) and a shakuhachi (a triangle with vibrato) for the theme with a koto (a narrow plucked pulse) for the runs; no *Sakura* break (no public score was to hand to transcribe).
 - **Saves**: the format stays 1 (the same shape; shorter coin and item lists load into the first entries, the worn item is an index).
 

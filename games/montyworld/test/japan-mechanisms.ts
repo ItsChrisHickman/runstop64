@@ -395,7 +395,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[JP.platform, 6, 17, 'THE SHUTTER WANTS A WISH'], [JP.garden, 8, 14, 'THE KOI WANT FEEDING'], [JP.hall, 3, 14, 'THE GUARD WANTS A NINJA HOOD']] as const;
+  const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hall, 3, 14, 'THE GUARD SPOTS OUTSIDERS']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -404,7 +404,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const plain = at(JP.garden, 8, 14, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
-  for (const [item, text, floor] of [[DARUMA, 'DARUMA: ROLLS THE SHUTTER UP', 9], [FISH, 'FISH FOOD: THE KOI LET YOU BY', 7], [HOOD, 'HOOD: PAST THE CASTLE GUARD', 14]] as const) {
+  for (const [item, text, floor] of [[DARUMA, 'DARUMA DOLLS GRANT WISHES', 9], [FISH, 'FISH FOOD: KOI FOLLOW FOOD', 7], [HOOD, 'A HOOD HIDES HIM FROM GUARDS', 14]] as const) {
     const [room, nth] = item;
     const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4, floor, [], true);

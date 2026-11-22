@@ -246,17 +246,17 @@ import { creatureRooms, itemIndex, standY } from './route';
 {
   const wants = at(SIB.shaft, 2, 18, [], true);
   run(wants, NONE, 120);
-  check(`ENHANCED: coming into the shaft without the lamp says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'TOO DARK TO SEE: FIND A LAMP');
+  check(`ENHANCED: coming into the shaft without the lamp says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'TOO DARK TO SEE THE LEDGES');
   const village = at(SIB.border, 8, 17, [], true);
   run(village, NONE, 120);
-  check(`ENHANCED: the village without the ticket says so ("${rowText(village.g)}")`, rowText(village.g) === 'THE BARRIER WANTS A TICKET');
+  check(`ENHANCED: the village without the ticket says so ("${rowText(village.g)}")`, rowText(village.g) === 'THE INSPECTOR CHECKS TICKETS');
   const plain = at(SIB.shaft, 2, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'SHAFT OF DARKNESS');
   const take = at(SIB.mine, 3, 18, [], true);
   for (let f = 0; f < 30 && !take.g.siCollected[itemIndex(take.g, SIB.mine, 0)]; f++) frame(take, NONE);
   run(take, NONE, 3);
-  check(`ENHANCED: taking the lamp says what it is for ("${rowText(take.g)}")`, rowText(take.g) === 'LAMP: SHOWS THE MINE\'S LEDGES' && take.g.siCollected[itemIndex(take.g, SIB.mine, 0)] !== 0);
+  check(`ENHANCED: taking the lamp says what it is for ("${rowText(take.g)}")`, rowText(take.g) === 'LAMP LIGHT SHOWS THE LEDGES' && take.g.siCollected[itemIndex(take.g, SIB.mine, 0)] !== 0);
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
