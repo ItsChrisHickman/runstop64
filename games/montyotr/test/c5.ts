@@ -269,6 +269,7 @@ function noted(h: Harness, room: number) {
     const lives = g.lives;
     const back = h.again(i, () => {
       h.drive(i, { frames: 10 });
+      h.p.grace.clear(); // (the restart before it began a moment's grace: a crash in it would not count)
       g.actionCounter = 7; // (the C5's crash, event 7: a hole or an enemy)
       return h.until(() => h.settled(d.room) && g.actionCounter === 0, 200) && g.roomId === d.room;
     });
