@@ -2,7 +2,9 @@ import { applyMonty, decideMonty } from '../../shared/monty/physics';
 import { animateMonty } from '../../shared/monty/anim';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
+import { flightMove, flightOf } from './flight';
 import { swimMove } from './swim';
+import { vineCarry } from './vines';
 
 /**
  * Monty's movement and animation: the shared Monty (games/shared/monty: the walk, the jump, the fall, the ropes, the exits and
@@ -22,8 +24,14 @@ function updateMovement(g: Game) {
   if (g.gameMode) return;
   if (g.c5.active) return c5DriveMovement(g);
   if (g.data.swimRooms.includes(g.roomId)) return swimMove(g);
-  // (fire starts a jump, not with the jetpack on)
+  const flight = flightOf(g);
+  if (flight) return flightMove(g, flight);
+  // (fire starts a jump, not with the jetpack on) Hanging on a swinging vine with no direction held, he jumps the way it is swinging.
+  const carry = g.inputFire && !g.input.left && !g.input.right ? vineCarry(g) : 0;
+  const stick = g.input;
+  if (carry) g.input = { ...stick, left: carry < 0, right: carry > 0 };
   decideMonty(g, g, { arc: g.data.jumpArc, canJump: !g.showJetpack, onJump: () => { g.sfx(g.data.sfx.jump, true); } });
+  if (carry) g.input = stick;
 
   // The jetpack ("The Ultimate Experience"): steer freely; hold up to thrust.
   if (g.showJetpack) {

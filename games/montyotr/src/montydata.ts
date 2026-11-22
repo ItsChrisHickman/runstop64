@@ -194,6 +194,34 @@ export interface LavaSpec {
   room: number; col: number; cols: number; baseRow: number; topRow: number; stepFrames: number; holdFrames: number; drainFrames: number; code: number; crest: number;
 }
 
+/**
+ * A flight room (flight.ts; the Andes' parachute drop): Monty is under a canopy there and flies as the jetpack does, but slowly: he sinks a pixel every other frame (down held, a pixel every frame),
+ * steers sideways at his walking pace, and cannot rise by himself. Each updraft (`cols` wide from playfield column `col`, from row `top` down to `bottom`, default the room's last) lifts him
+ * a pixel a frame while he is in it. A solid tile stops him as it does on foot (he rests on a ledge and steps off it); the canopy is the sprite `canopy` shows, its pictures `frames` (left, level, right).
+ */
+export interface FlightSpec {
+  room: number;
+  updrafts: readonly { readonly col: number; readonly cols: number; readonly top: number; readonly bottom?: number }[];
+}
+
+/** The pointers (in the bank) and colour of the canopy over Monty in a flight room: leaning left, level, leaning right. */
+export interface CanopyLook { left: number; level: number; right: number; colour: number }
+
+/**
+ * A rolling boulder (rollers.ts; Machu Picchu's terraces): a sprite on the VIC sprite `sprite` (one the room does not use) that rolls along `path` (playfield cells: the top left of its 16 by 16 picture, fractions
+ * allowed; straight lines between the points, a fall is a vertical line) at `speed` pixels a frame, every `every` frames, the first `start` frames into the room's time. It is gone when it reaches the path's end
+ * until it comes round again. It shows `frames` (four pictures, one a turn of 8 pixels) in `colour`, and kills what of Monty it touches.
+ */
+export interface RollerSpec {
+  room: number; sprite: number; path: readonly (readonly [col: number, row: number])[]; speed: number; every: number; start: number; frames: readonly number[]; colour: number;
+}
+
+/**
+ * A swinging vine (vines.ts; the Amazon's canopy): `length` cells of rope (the room's character `code`, a rope tile) hanging from playfield cell `col`, `top`, swinging like a pendulum: its tip is `amplitude` cells
+ * to either side at the ends of a swing of `period` frames, `phase` frames into it when the room loads. Monty takes hold of it as of any rope and is carried with it while he hangs on, letting go by jumping.
+ */
+export interface VineSpec { room: number; col: number; top: number; length: number; period: number; amplitude: number; phase: number; code: number }
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -287,6 +315,11 @@ export interface MontyData extends RoomTables, MontyLook {
   swimRooms: readonly number[];
   risingLava: readonly LavaSpec[];
   dragons: readonly DragonSpec[];
+  /** Rooms where Monty flies under a canopy (flight.ts), with the canopy's look; none in Monty on the Run (its jetpack rooms are `jetpackRooms`). */
+  flights: readonly FlightSpec[];
+  canopy: CanopyLook | null;
+  rollers: readonly RollerSpec[];
+  vines: readonly VineSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

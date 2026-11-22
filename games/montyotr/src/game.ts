@@ -12,6 +12,9 @@ import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
+import { canopyFrame, flightOf } from './flight';
+import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
+import { vineInit, vineUpdate, type VineState } from './vines';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -200,6 +203,11 @@ export class Game implements MontyBody, MontyWorld {
   lavas: LavaState[] = [];
   swimTick = 0;
   dragons: DragonState[] = [];
+  /** This room's rolling boulders (rollers.ts) and swinging vines (vines.ts), and the flight's frames so far and whether he rests on something (flight.ts). */
+  rollers: RollerState[] = [];
+  vines: VineState[] = [];
+  flightTick = 0;
+  flightResting = false;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
   /** The line in the name row, and for how long (ENHANCED's hints). */
@@ -334,6 +342,8 @@ export class Game implements MontyBody, MontyWorld {
     this.pulses = [];
     this.lavas = [];
     this.dragons = [];
+    this.rollers = [];
+    this.vines = [];
     this.worn = null;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -364,8 +374,11 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | (this.canopyShown ? 0x04 : 0);
   }
+
+  /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
+  canopyShown = false;
 
   /** Whether a worn costume's overlay sprite (sprite 7) is on Monty this frame (it is no part of his collision box). */
   hatPlaced = false;
@@ -400,6 +413,8 @@ export class Game implements MontyBody, MontyWorld {
       pulseUpdate(this);
       lavaUpdate(this);
       dragonUpdate(this);
+      rollerUpdate(this);
+      vineUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -522,6 +537,16 @@ export class Game implements MontyBody, MontyWorld {
         this.multicolour |= 0x04;
       }
     }
+    this.canopyShown = false;
+    const look = this.data.canopy;
+    if (look && !this.completionActive && !(this.actionCounter & 0x80) && !this.flightResting && flightOf(this)) {
+      this.sx[2] = this.sx[3];
+      this.sy[2] = (this.sy[3] - 19) & 0xff;
+      this.sptr[2] = canopyFrame(this);
+      this.scol[2] = look.colour;
+      this.enable |= 0x04;
+      this.canopyShown = true;
+    }
     this.hatPlaced = this.placeOverlay();
     // Flush shadows to the VIC. X is stored halved; the low bit comes from the
     // step-gate parity (Monty, jetpack) or each enemy's own parity.
@@ -529,7 +554,7 @@ export class Game implements MontyBody, MontyWorld {
     for (let n = 0; n < 8; n++) {
       const r = v.sprites[n];
       let x = this.sx[n] * 2;
-      if (!this.completionActive && (n === 3 || (n === 2 && (this.c5.active || this.showJetpack)))) x |= this.stepGate;
+      if (!this.completionActive && (n === 3 || (n === 2 && (this.c5.active || this.showJetpack || this.canopyShown)))) x |= this.stepGate;
       if (n === 7 && this.hatPlaced) x |= this.stepGate;
       else if (n >= 4) x |= this.enemyParity[n - 4];
       r.x = x;
@@ -584,6 +609,8 @@ export class Game implements MontyBody, MontyWorld {
     pulseInit(this);
     lavaInit(this);
     dragonInit(this);
+    rollerInit(this);
+    vineInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);

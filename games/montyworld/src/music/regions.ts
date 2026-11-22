@@ -1,4 +1,5 @@
 import type { TuneVersion } from '../../../montyotr/src/montydata';
+import { ANDES } from './andes';
 import { CHINA } from './china';
 import { JAPAN } from './japan';
 import { MOSCOW } from './moscow';
@@ -12,7 +13,7 @@ import { retune, type RegionTune } from './region-tune';
  * runs west to east), a version a `RegionTune` (moscow.ts). A region with none plays Hubbard's tune as it is. A later region is one
  * more entry here and a `RegionTune` of its own (its scale and its instruments).
  */
-const TUNES: Readonly<Record<RegionName, RegionTune>> = { moscow: MOSCOW, siberia: SIBERIA, china: CHINA, japan: JAPAN, pacific: PACIFIC };
+const TUNES: Readonly<Record<RegionName, RegionTune>> = { moscow: MOSCOW, siberia: SIBERIA, china: CHINA, japan: JAPAN, pacific: PACIFIC, andes: ANDES };
 const REGIONS = WORLD_REGIONS.map((r) => ({ from: r.from, to: r.to, tune: TUNES[r.name] }));
 
 /** A tune as the engine takes it (`MontyData.music.tuneFor`): the version's id, and how to make its .sid from the original's. */

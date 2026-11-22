@@ -4,7 +4,7 @@ import { codeOf, room, type Palette } from './layout';
 
 /**
  * The Pacific, the fifth region of Do Svidaniya Monty (docs/dosvidaniya-pacific.md): seventeen rooms in a block thirteen wide and two high at columns 17-29 of the exit grid
- * (rows 1-2), entered from Japan's cargo ship (column 16) and left east out of the cargo plane's hold (the Andes, not yet built).
+ * (rows 1-2), entered from Japan's cargo ship (column 16) and left east out of the cargo plane's hold (the Andes).
  *
  *            col 17      18      19      20        21       22        23       24       25        26       27       28       29
  *   row 1      .         .       .    E LEI OF    .         .      I WHALE  J ROAD   K HANA      .        .        .        .
@@ -151,8 +151,8 @@ export const POOL_SEA = codeOf(SURF_PALETTE, 'S');
 export const COVE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [20, 21, 22].map((col) => [row, col] as const));
 export const COVE_ROPE: readonly (readonly [row: number, col: number])[] = [15, 16, 17, 18, 19].map((row) => [row, 21] as const);
 export const COVE_ROPE_CODE = codeOf(HANA_PALETTE, 'R');
-/** The plane's rear door (cols 30-31, rows 14-15): the parachute opens it. */
-export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] = [14, 15].flatMap((row) => [30, 31].map((col) => [row, col] as const));
+/** The plane's rear door (cols 30-31, rows 14-15, and the two gutter columns 32-33 that mirror the edge): the parachute opens it, onto the Andes' sky. */
+export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] = [14, 15].flatMap((row) => [30, 31, 32, 33].map((col) => [row, col] as const));
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -442,7 +442,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   }),
 
   // Q HOLD YOUR HORSES: the cargo plane's hold, a fuselage drawn from inside. In from the catwalk onto the door's sill at the left (floor 7); a cargo net down to the roller floor (floor 16); crates swing from their tracks over the lane and the
-  // pallets; the parachute lies on the high pallet at the right. The rear door in the right wall opens with it: the way on, the drop into the Andes, is shut with a sign until they are built.
+  // pallets; the parachute lies on the high pallet at the right. The rear door in the right wall opens with it: the way on is the drop into the Andes.
   room({
     id: PAC.hold, cell: [2, 29], sector: 54, palette: HOLD_PALETTE,
     paint(g) {
@@ -454,7 +454,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[4, 5], [9, 11], [14, 14], [20, 12], [27, 10]],
     item: { name: 'parachute', col: 25, row: 10, sprite: PAC_SPRITE.parachute },
-    decor: [[{ text: 'THE ANDES COMING SOON', colour: 7 }, 8, 3], ['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 10]],
+    decor: [['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 10]],
     creatures: [
       { who: 'pacSwingCrate', col: 11, row: 14, way: 'right', speed: 1, range: 40 },
       { who: 'pacSwingCrate', col: 19, row: 12, way: 'right', speed: 1, range: 16 },
