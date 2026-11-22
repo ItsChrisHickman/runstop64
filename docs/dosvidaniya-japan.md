@@ -198,6 +198,8 @@ Pictures: /root/projects/runstop64-shots/japan/ (room-*.png from the real engine
 
 **What to look at in play**: the platform's wait (does the flashing edge read as a train coming, and is the dash from the stairs fair?), the doors' rhythm in the hall, the pond (the koi, then the planks floating up), THE LAST MOLE's stones and the hood over Monty, and the rooms' fullness beside Monty on the Run's (the mountain and the street are the plainest).
 
+**Update (the Pacific, 2026-11-21):** the port's way east is open now: the crates across the ship's deck and the PACIFIC COMING SOON sign are gone, and the deck walks on into the cargo ship's stern (docs/dosvidaniya-pacific.md).
+
 ## Decisions for the builder (2026-11-21)
 
 - The 5-wide, 11-room block is fine.

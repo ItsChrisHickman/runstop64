@@ -163,7 +163,7 @@ const breakPatterns = new Set(MOSCOW.breaks.map((x) => x.pattern));
   const made = WORLD.music.tuneFor?.(0)?.make(original);
   check('and its bytes are the version\'s', !!made && equal(made, moscow));
   const grid = { image: Uint8Array.from([0, 1, 0xff, 2]), cols: 2 };
-  check('a room beyond the last region (column 17) or on no cell has the original', tuneForRoom({ image: new Uint8Array(20).map((_, i) => (i === 17 ? 5 : 0xff)), cols: 20 }, 5) === null && tuneForRoom(grid, 9) === null);
+  check('a room beyond the last region (column 30) or on no cell has the original', tuneForRoom({ image: new Uint8Array(20).map((_, i) => (i === 30 ? 5 : 0xff)), cols: 40 }, 5) === null && tuneForRoom(grid, 9) === null);
   check('the world\'s data is otherwise Monty on the Run\'s music (the same driver entry points)', WORLD.music.init === MOTR.music.init && WORLD.music.stop === MOTR.music.stop && WORLD.music.playSfx === MOTR.music.playSfx);
 }
 

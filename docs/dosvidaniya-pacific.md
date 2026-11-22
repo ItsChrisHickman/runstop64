@@ -157,7 +157,24 @@ HILO "THE GUARD WANTS A LEI"; HOLD "THE REAR DOOR WANTS A PARACHUTE".
 
 ## As built (2026-11-21)
 
-(written when the bot test passes: see the end of this section)
+The seventeen rooms are in `games/montyworld/src/pacific.ts` (ids 38-54, sectors 38-54; the earlier regions are untouched but for Japan's port, whose way east is open now), art in `art/pacific-*.ts` and `art/world.ts`, the tune in `music/pacific.ts`, the bot's route in `test/pacific-route.ts`,
+the pictures in `test/pacific-shots.ts` and `pacific-map.ts`. Where the build differs from the design above:
+
+- **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before: its trace and title tests pass unchanged): `swimRooms` (`swim.ts`), `risingLava` (`lava.ts`) and an optional `span` on a tunnel mouth (the car over its bridge). The torches are `pulses`, the loader an `escalators` ride with a landing straight above its foot, the swinging cargo creatures.
+- **Walking pace.** Monty walks a pixel a frame (a cell in 8 frames) and a jump spans about five cells: the design's frame counts took him for half that. The bridges are 12 cells (96 frames to cross) against the 182 frames a car waits and flashes, so the crossing behind a car is generous; swimming sideways is the walking pace, up or down held a pixel every other frame (the jetpack's thrust is a pixel a frame), and the sea lifts him a pixel every sixth.
+- **The map** is 13 columns by 2 rows (the design said 11 by 3): the stern is on row 2 to meet Japan's port, the hold is east of Hilo (not above it, so the loader's lift ends on a catwalk and he walks into the plane), and the reefs are east-west joins, not floor and ceiling ones (only the slipway, the waterfall's pool, the luau's rope and Hana's cove are vertical). A 17th room, the sea cave, makes the loop.
+- **The sea.** At Waikiki the surf is wading water into the first reef (the snorkel places the sea tile over it); at Hana the cove's pool clears and a rope is placed over it (a rope over the surf let him walk across it: the mechanism test found it, so the rope comes with the snorkel). A swim room's doorways are five rows high (the sea lifts him: a doorway two rows high was a chore to hold). The chain across the ramp is eight cells: the two gutter columns that mirror the edge are cleared with it (the bolt cutters first left him stopped at the edge).
+- **Swinging cargo** is a creature patrol (`pacSwingCrate`, the thirteenth creature; the design's arc over a gap needs a gap wider than a jump). **Torches**: three, the flames two cells wide in the lane (not four, not beside it). The musubi in BOX CLEVER is on a shelf off the ladder (the first build put it on a stack across the lane, so it was picked up in passing).
+- **Creatures** (thirteen kinds, none in more than two rooms): the bot's cold runs found where a creature on a short ledge or in a narrow lane is a trap (the magma blob is on the snow shelf, the sea cave has one eel high up, the brig's tiki drifts over the water, no surfer on the quay): a two-cell creature on a four-cell ledge cannot be passed. The customs guard's shed is two cells high so he cannot be jumped.
+- **Items** take the original's unused item blocks ($8F, $90, $91, $93, $94; the first aid kit, smoke stack and treasure pointers are left alone). Four new tiles (the chain gate, the flame, the small flame, the car's cabin and body: five) and the swinging crate.
+- **Music**: G major (China's and Japan's are pentatonic) and a ukulele lead; no bass, slide, shaker or Aloha 'Oe break (no public score was to hand).
+- **No moving sea in the ship's portholes** (the design's set piece): left out.
+- **Saves**: the format stays 1.
+
+Checks (all pass): `games/montyworld/test/pacific.ts original|enhanced` (the bot plays 117 checks' worth of legs from Japan's cargo ship to the hold taking every coin, the cutters, the snorkel, the lei, the parachute and the three musubi, slow set; about 14,000 frames and 210,000 states each, found cold), `pacific-mechanisms.ts` (83 checks, fast: swimming and the shut sea, the torches, the cars, the lava, the loader, the guard, the gates, the lei as a costume, the joins both ways, the hints, the map, a save in each room and an old save), `pacific-layout.ts` (233), `music-pacific.ts` (9); the earlier regions' tests count the whole world's totals now (55 rooms, 147 coins, 25 finds, 14 key items, 11 snacks); all of Monty on the Run's pass (trace and title with /tmp/motr.prg included).
+Pictures: /root/projects/runstop64-shots/pacific/ (`room-*.png` from the real engine with Monty in them, `sheet.png`, `compare-*.png`, `torches.png`, `cars.png`, `lava.png`, `surf-shut/open.png`, `hana-shut/open.png`, `guard.png`, `lei.png`, `pacific-map.png`).
+
+**What to look at in play**: the swim (the lift at doorways), the road's cars and their warning, the torches (a small flame in a big room), the lava's pace (the bot's climb takes about 340 frames against 56 a row), the luau and the road as places (the plainest), and the ship's stern (does it read as a ship?).
 
 ## Decisions for the builder (2026-11-21)
 

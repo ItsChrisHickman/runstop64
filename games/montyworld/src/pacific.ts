@@ -320,8 +320,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: [[6, 12], [9, 5], [22, 15], [29, 15]],
     decor: [['pacWhaleTail', 0, 16], ['pacOutrigger', 19, 16], ['pacPalm', 24, 10]],
     creatures: [
-      { who: 'pacTiki', col: 4, row: 12, way: 'right', speed: 1, range: 40 },
-      { who: 'pacSurfer', col: 22, row: 16, way: 'right', speed: 1, range: 50 },
+      { who: 'pacTiki', col: 0, row: 9, way: 'down', speed: 1, range: 24 },
     ],
   }),
 
@@ -342,7 +341,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacCoconut', col: 25, row: 6, way: 'right', speed: 1, range: 40 }],
   }),
 
-  // L THE SEA CAVE: under the road, a dead end of open water. In from the reef at the left, and from above where the waterfall's pool drops into it (the ceiling gap, cols 22-27). Rock ceiling and walls, a floor of rubble; an eel and a manta.
+  // L THE SEA CAVE: under the road, a dead end of open water. In from the reef at the left, and from above where the waterfall's pool drops into it (the ceiling gap, cols 22-27). Rock ceiling and walls, a floor of rubble; an eel.
   room({
     id: PAC.cave, cell: [2, 24], sector: 48, palette: SEA_PALETTE,
     paint(g) {
@@ -355,8 +354,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: [[8, 13], [15, 11], [22, 14], [28, 16]],
     decor: [['pacWaterfall', 24, 4], ['pacKelp', 12, 15], ['pacSeaFan', 26, 15], ['pacBubbles', 19, 8]],
     creatures: [
-      { who: 'pacEel', col: 6, row: 11, way: 'right', speed: 1, range: 80 },
-      { who: 'pacManta', col: 20, row: 6, way: 'left', speed: 1, range: 70 },
+      { who: 'pacEel', col: 7, row: 7, way: 'right', speed: 1, range: 80 },
     ],
   }),
 
