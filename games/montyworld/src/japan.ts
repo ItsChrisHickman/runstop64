@@ -23,7 +23,7 @@ export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 27 on. */
 const NAMES = [
-  'THE FISH MARKET', 'NEON STREET', 'PACHINKO PARLOUR', 'THE CROSSING', 'BULLET POINT', 'MOUNT FUJI', 'KOI POLLOI', 'THE LAST MOLE', 'THE CASTLE', 'THE SHOGUN(S HALL', 'SAYONARA SAILOR',
+  'THE FISH MARKET', 'NEON STREET', 'PACHINKO PARLOUR', 'THE CROSSING', 'BULLET POINT', 'MOUNT FUJI', 'KOI POLLOI', 'THE LAST MOLE', 'THE CASTLE', "THE SHOGUN'S HALL", 'SAYONARA SAILOR',
 ] as const;
 export const JAPAN_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the harbour light blue, the street and parlour reds, the crossing grey, the platform blue, the mountain white, the garden green, the hidden room purple, the roofs yellow, the hall orange, the port brown). */

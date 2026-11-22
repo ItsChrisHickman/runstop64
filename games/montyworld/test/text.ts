@@ -9,8 +9,9 @@
  */
 import { bankImage } from '../../montyotr/src/data';
 import { sectorName } from '../../montyotr/src/montydata';
+import { MOTR } from '../../montyotr/src/motr';
 import { montyLettering } from '../../shared/monty/font';
-import { APOSTROPHE, gameText, lacking, textCode } from '../../shared/monty/lettering';
+import { APOSTROPHE, gameText, lacking, nameCodes, textCode } from '../../shared/monty/lettering';
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
@@ -72,5 +73,20 @@ check('a hint fits the name row (32 characters)', strings.filter((s) => s.what.i
   const row = Array.from({ length: text.length }, (_, i) => s.g.mem[SCREEN + 24 * ROW + 4 + i] ?? 0);
   const at = text.indexOf("'");
   check(`the name row shows the apostrophe as the charset's ($68), not $67, in the word as it is ("${text}")`, row[at] === textCode("'") && row[at] === 0x68 && row[at + 1] === (0x13 | 0x80));
+}
+// ---- room names in the name row: "Emperor's", "Whale of a Time" ------------------------------------------
+{
+  /** The name row's lettering as Monty on the Run drew it before the apostrophe and "a" rules. */
+  const before = (text: string) => { let start = true; return [...text].map((ch) => { const c = ch.charCodeAt(0) & 0x3f; if (c >= 0x1a) start = true; const code = start ? c | 0x40 : c | 0x80; if (c < 0x1a) start = false; return code; }); };
+  const motr = roomsOf(MOTR).map((r) => sectorName(MOTR, r).text);
+  for (const t of motr) if (nameCodes(t).join() !== before(t).join()) console.log('MOTR name that changes:', t);
+  check(`Monty on the Run's ${motr.length} room names display exactly as before`, motr.every((t) => nameCodes(t).join() === before(t).join()));
+  const small = (t: string, i: number) => (nameCodes(t)[i] ?? 0) >= 0x80;
+  check("after an apostrophe a letter stays small", nameCodes("THE EMPEROR'S ROOFTOPS")[12] === 0x93 && small("THE EMPEROR'S ROOFTOPS", 12));
+  check('a word "a" on its own is small unless it starts the name', small('WHALE OF A TIME', 9) && !small('A TIME', 0) && !small('WHALE OF ABOUT', 9));
+  const names = roomsOf(WORLD).map((r) => sectorName(WORLD, r).text);
+  check('the world\'s names write the apostrophe as one (Monty on the Run\'s own keep their open bracket)', names.every((t) => !t.includes('(')) && names.some((t) => t.includes("'")));
+  const wrong = names.filter((t) => [...t].some((ch, i) => (ch === 'A' && i > 0 && t[i - 1] === ' ' && (t[i + 1] === ' ' || t[i + 1] === undefined) && !small(t, i)) || (i > 0 && t[i - 1] === "'" && /[A-Z]/.test(ch) && !small(t, i))));
+  check(`none of ${names.length} room names shows a capital after an apostrophe or a lone "A" in a name`, wrong.length === 0);
 }
 finish();

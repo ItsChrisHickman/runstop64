@@ -41,3 +41,25 @@ export function lacking(text: string): string[] {
 export function textCode(ch: string): number {
   return (glyphOf(ch).charCodeAt(0) & 0x3f) | 0x40;
 }
+
+/**
+ * A room name or hint as the name row shows it: the first letter of each word in the capitals, the rest in the small letters (Monty on
+ * the Run's), except that after an apostrophe the letter stays small ("Emperor's") and a word "a" on its own is small unless it starts the name
+ * ("Whale of a Time"). The screen codes, left to right.
+ */
+export function nameCodes(text: string): number[] {
+  const raw = [...text];
+  const t = gameText(text);
+  const out: number[] = [];
+  let start = true;
+  for (let i = 0; i < t.length; i++) {
+    const c = t.charCodeAt(i) & 0x3f;
+    const alone = t[i] === 'A' && i > 0 && t[i - 1] === ' ' && (i + 1 >= t.length || t[i + 1] === ' ');
+    // (a written apostrophe keeps the word going; Monty on the Run's own '(' in its names ends it, as it always drew)
+    const written = ALIKE[raw[i] ?? ''] === APOSTROPHE;
+    if (c >= 0x1a && !written) start = true;
+    out.push(!alone && (start || c >= 0x1a) ? c | 0x40 : c | 0x80);
+    if (c < 0x1a) start = false;
+  }
+  return out;
+}

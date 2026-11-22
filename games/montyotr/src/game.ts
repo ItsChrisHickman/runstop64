@@ -25,7 +25,7 @@ import { decorChars } from './decor-chars';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
-import { APOSTROPHE, gameText } from '../../shared/monty/lettering';
+import { nameCodes } from '../../shared/monty/lettering';
 
 /**
  * The game's state and frame loop — a port of the original's zero page,
@@ -729,17 +729,10 @@ export class Game implements MontyBody, MontyWorld {
 
   private displayLine(col: number, text: string) {
     this.mem.fill(0, SCREEN + 24 * ROW, SCREEN + 25 * ROW);
-    let wordStart = true;
-    text = gameText(text);
-    for (let i = 0; i < text.length; i++) {
-      const c = text.charCodeAt(i) & 0x3f;
-      // (the apostrophe is in a word: "Monty's"; other marks and spaces end one)
-      if (c >= 0x1a && text[i] !== APOSTROPHE) wordStart = true;
-      const code = wordStart || c >= 0x1a ? c | 0x40 : c | 0x80;
-      if (c < 0x1a) wordStart = false;
+    nameCodes(text).forEach((code, i) => {
       this.mem[SCREEN + 24 * ROW + 4 + col + i] = code;
       this.col[24 * ROW + 4 + col + i] = 1;
-    }
+    });
   }
 
   /** RoomEntitiesInit: coins (char $34) for this room. */
