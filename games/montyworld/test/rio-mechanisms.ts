@@ -372,7 +372,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   // the carnival has its dancer (the plan's samba dancers), as the churrascaria does
   const rooms = creatureRooms(RIO_ROOMS);
   const dancer = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('dancer');
-  check('the dancer is in the carnival (room 75) and the churrascaria (74), two rooms', [...(rooms.get(dancer) ?? [])].sort().join() === [R.steak, R.drum].sort().join());
+  check('the dancer is in the carnival (room 75) only: the churrascaria has none (the stage is free of creatures)', [...(rooms.get(dancer) ?? [])].join() === String(R.drum));
   // the Andes' map does not offer Rio's rooms as places to go
   const bank = newGame(WORLD, true);
   enterRoom(bank.g, AND.bank, 0x40, standY(15));
