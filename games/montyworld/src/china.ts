@@ -300,7 +300,6 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'warrior', col: 3, row: 15, way: 'right', speed: 1, range: 64 },
-      { who: 'kite', col: 14, row: 6, way: 'down', speed: 1, range: 24 },
       { who: 'monk', col: 19, row: 13, way: 'down', speed: 1, range: 16 },
     ],
   }),
@@ -351,7 +350,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56, colour: 1 },
-      { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
+      { who: 'kite', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
     ],
   }),
 

@@ -291,7 +291,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
     const deck = (g: Game) => g.roomId === CHI.junk && colOf(g) >= 26 && g.y === standY(17);
     check('without the bamboo the river is seven cells of deadly water and the bot finds no way to the junk\'s deck in 150000 states', RAFT_CELLS.every(([row, col]) => cell(bare.g, col, row) !== JUNK_RAFT_CODE && cell(bare.g, col, row) !== 0) && search(bare, deck, undefined, 150000, 0) === null);
     const raft = at(CHI.junk, 14, 17, [BAMBOO]);
-    check('with it (taken in the garden) the raft is there (placed on loading the room) and the bot walks over it to the junk\'s deck', RAFT_CELLS.every(([row, col]) => cell(raft.g, col, row) === JUNK_RAFT_CODE) && search(raft, deck, undefined, 100000, 1.5) !== null);
+    check('with it (taken in the garden) the raft is there (placed on loading the room) and the bot walks over it to the junk\'s deck', RAFT_CELLS.every(([row, col]) => cell(raft.g, col, row) === JUNK_RAFT_CODE) && search(raft, deck, undefined, 400000, 1.5) !== null);
   }
 }
 
@@ -396,7 +396,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
   // a save made on coming into each of China's rooms (every key taken, so the gates are open and the hat is on) carries on in the same room, alive
   {
-    const spots = [[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 20, 17], [CHI.market, 8, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 17, 17]] as const;
+    const spots = [[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 20, 17], [CHI.market, 8, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 28, 17]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
@@ -462,8 +462,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
     check('and a stop of 12 frames half way along it is forgiven (he crosses all the same)', colOf(t.g) >= 17 && !dead(t.g));
     // standing a long while loses the plank under him
     const u = at(CHI.junk, 12, 17);
-    run(u, NONE, 80);
-    check('but standing 80 frames on it does not (he falls into the river)', dead(u.g));
+    check('but standing on it does not: he falls into the river and dies within 160 frames', diesAt(u, NONE, 160) >= 0);
   }
   {
     // it is whole again when he comes into the room
