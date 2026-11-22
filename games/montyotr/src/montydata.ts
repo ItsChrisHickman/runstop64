@@ -222,6 +222,41 @@ export interface RollerSpec {
  */
 export interface VineSpec { room: number; col: number; top: number; length: number; period: number; amplitude: number; phase: number; code: number }
 
+/**
+ * Sugarloaf's cable car (cablecars.ts): two cars on one cable between two stations of a room. Standing on the foot of a station (`col`, two cells wide, on its floor `row`: the car's door, at the cable's end of the
+ * platform) puts Monty aboard the car waiting there; it climbs or descends the cable `frames` frames, the other car passing it the other way, and sets him down on the other station's foot, where he must step off
+ * (walking back onto a foot rides back). The car is two sprites over his box, a hires 24 by 21 block each: its roof behind him (`roof`, on a VIC sprite not used by the room) and its floor and rail in front
+ * (`floor`), placed from Monty's place by `dx` (from his left edge) and `roofDy`, `floorDy` (from his top); the other car takes the two sprites `passing`.
+ */
+export interface CableStation { col: number; row: number }
+export interface CableCarSpec {
+  room: number; low: CableStation; high: CableStation; frames: number;
+  roof: { ptr: number; sprite: number }; floor: { ptr: number; sprite: number }; passing: { roof: number; floor: number }; colour: number;
+  /** The car's pictures sit this many pixels left of Monty's left edge and this far above his top (the roof) or his floor (the floor sprite's top). */
+  dx: number; roofDy: number; floorDy: number;
+}
+
+/**
+ * Floats (floats.ts; the carnival's parade): a platform `w` cells wide with a painted piece over it (the decoration `decor`, `w` by `h` cells, drawn in the room's characters) that crosses a room from one end of a
+ * span to the other a cell every `step` frames: `dir` 1 goes right, -1 left. Its deck is a row of the room's solid-from-above tile `deck` (a code 1-8) at playfield row `row`, the piece standing on it. A float
+ * enters at the span's start and leaves at its end (it is cut off there) and comes round again `every` cells of its travel later (at least the span and its width; the room's floats of one lane are specs with different `offset`s, a count of
+ * cells into the cycle at the room's loading). He stands on a deck and is carried with it.
+ */
+export interface FloatSpec {
+  room: number; row: number; span: { from: number; to: number }; dir: 1 | -1; step: number; every: number; w: number; offset: number; deck: number; decor: number; h: number;
+  /** Where the room lists the decoration (playfield cell): the float draws it itself, so the static one is cleared when the room loads. */
+  home: readonly [col: number, row: number];
+}
+
+/**
+ * The gaucho's swinging skewer (skewers.ts): a sprite that follows the creature in slot `slot` of the room (its hand), swinging through the `poses` (each: the sprite pointer facing left and facing right and where its block is
+ * from the creature's top left) once every `cycle` frames, `offset` frames into it when the room loads. The poses that `deadly` names (indexes) kill what of Monty they touch (event 1: the box test of the dragon and the boulders).
+ */
+export interface SkewerSpec {
+  room: number; slot: number; sprite: number; cycle: number; offset: number; colour: number;
+  poses: readonly { left: { ptr: number; dx: number; dy: number; w: number; h: number }; right: { ptr: number; dx: number; dy: number; w: number; h: number }; deadly: boolean }[];
+}
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -320,6 +355,9 @@ export interface MontyData extends RoomTables, MontyLook {
   canopy: CanopyLook | null;
   rollers: readonly RollerSpec[];
   vines: readonly VineSpec[];
+  cableCars: readonly CableCarSpec[];
+  floats: readonly FloatSpec[];
+  skewers: readonly SkewerSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

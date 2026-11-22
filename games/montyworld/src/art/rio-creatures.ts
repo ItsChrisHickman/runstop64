@@ -77,6 +77,26 @@ function gaucho(): NewCreature {
   return pair('gaucho', [frame(0), frame(1), frame(0), frame(1)], 8);
 }
 
+// ---- the steward: a peaked cap, a big face, a bow tie, a white jacket, arms folded across his chest, standing guard at the parade's gate
+
+/** The parade steward, seen front on, arms folded; his weight shifts from foot to foot. */
+function steward(): NewCreature {
+  const frame = (shift: number) => {
+    const r = new Raster(16, 16);
+    r.rect(4, 0, 11, 2); r.rect(2, 3, 13, 3); // the cap and its peak
+    r.cut(['.#..#.'], 5, 1); // the cap's badge
+    r.rect(4, 4, 11, 8); // the face
+    r.cut(['##..##'], 5, 5); r.cut(['#....#', '.####.'], 5, 7); // eyes, a stern mouth
+    r.rect(6, 9, 9, 9); r.cut(['#.#'], 6, 9); // the bow tie
+    r.rect(2, 10, 13, 15); // the jacket
+    r.cut(['############'], 2, 12); // the folded arms' line
+    r.cut(['.#.#.#.#'], 4, 11);
+    r.rect(5 + shift, 14, 7 + shift, 15, false); r.rect(9 - shift, 14, 10 - shift, 15, false);
+    return r.rows();
+  };
+  return pair('steward', [frame(0), frame(1), frame(0), frame(-1)], 1, true);
+}
+
 // ---- the marmoset (sagui): a small monkey with white ear tufts and a long tail, leaping
 
 /** A marmoset seen front on, clinging to a rock: a round face between two great white ear tufts, huge eyes, a small grin, a long tail curling up. */
@@ -215,6 +235,7 @@ export const RIO_CREATURES = {
   dancer: dancer(),
   drummer: drummer(),
   gaucho: gaucho(),
+  steward: steward(),
   marmoset: marmoset(),
   macaw: macaw(),
   vulture: vulture(),

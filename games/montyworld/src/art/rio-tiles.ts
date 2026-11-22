@@ -140,8 +140,8 @@ export const RIO_TILES = {
     '#......#',
     '########',
   ]),
-  /** A crowd barrier: steel posts and two rails, he passes through. Nothing. */
-  barrier: tile('barrier', 0, 12, [
+  /** A crowd paradeBarrier: steel posts and two rails, he passes through. Nothing. */
+  paradeBarrier: tile('paradeBarrier', 0, 12, [
     '#.#.#.#.',
     '########',
     '#.#.#.#.',
@@ -207,7 +207,7 @@ export const RIO_TILES = {
     '########',
   ]),
   /** Terracotta roof tiles in rows. A floor. */
-  roofTile: tile('roofTile', 2, 2, [
+  favelaTile: tile('favelaTile', 2, 2, [
     '########',
     '#.#.#.#.',
     '########',

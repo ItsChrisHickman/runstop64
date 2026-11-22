@@ -15,6 +15,9 @@ import { lavaInit, lavaUpdate, type LavaState } from './lava';
 import { canopyFrame, flightOf } from './flight';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
+import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from './cablecars';
+import { floatInit, floatUpdate, type FloatState } from './floats';
+import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -206,6 +209,10 @@ export class Game implements MontyBody, MontyWorld {
   /** This room's rolling boulders (rollers.ts) and swinging vines (vines.ts), and the flight's frames so far and whether he rests on something (flight.ts). */
   rollers: RollerState[] = [];
   vines: VineState[] = [];
+  /** This room's cable car (cablecars.ts), floats (floats.ts) and swinging skewers (skewers.ts). */
+  cable: CableRide = { ...NO_CABLE };
+  floats: FloatState[] = [];
+  skewers: SkewerState[] = [];
   flightTick = 0;
   flightResting = false;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
@@ -344,6 +351,9 @@ export class Game implements MontyBody, MontyWorld {
     this.dragons = [];
     this.rollers = [];
     this.vines = [];
+    this.cable = { ...NO_CABLE };
+    this.floats = [];
+    this.skewers = [];
     this.worn = null;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -374,7 +384,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | (this.canopyShown ? 0x04 : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | (this.canopyShown ? 0x04 : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -415,6 +425,9 @@ export class Game implements MontyBody, MontyWorld {
       dragonUpdate(this);
       rollerUpdate(this);
       vineUpdate(this);
+      floatUpdate(this);
+      cableUpdate(this);
+      skewerUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -611,6 +624,9 @@ export class Game implements MontyBody, MontyWorld {
     dragonInit(this);
     rollerInit(this);
     vineInit(this);
+    floatInit(this);
+    cableInit(this);
+    skewerInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);

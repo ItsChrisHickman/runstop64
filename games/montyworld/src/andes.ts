@@ -294,16 +294,16 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // R THE RIVER ENDS: the last bank. In from the river's mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs; an anaconda coils on the bank, piranhas snap in a pool.
-  // The quay's lights glimmer beyond, but the way east is shut with a sign until Rio is built.
+  // The way east is open (rows 6-7) onto Rio's quay.
   room({
     id: AND.bank, cell: [7, 32], sector: 66, palette: BANK_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').box(28, 0, 31, 19, 'J').box(0, 3, 1, 12, 'J');
+      g.box(0, 0, 31, 2, 'J').box(28, 0, 31, 5, 'J').box(28, 8, 31, 19, 'M').box(0, 3, 1, 12, 'J');
       g.box(0, 15, 5, 19, 'M').box(6, 16, 9, 19, 'W').box(10, 13, 13, 19, 'M').box(14, 11, 17, 19, 'M').box(18, 9, 21, 19, 'M').box(22, 8, 27, 19, 'M');
     },
     coins: [[3, 13], [13, 11], [15, 9], [19, 7], [22, 6]],
     item: { name: 'empanada6', col: 23, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['palm', 25, 3], ['fern', 10, 10], [{ text: 'RIO COMING SOON', colour: 7 }, 8, 4]],
+    decor: [['palm', 25, 3], ['fern', 10, 10]],
     creatures: [{ who: 'anaconda', col: 15, row: 9, way: 'right', speed: 1, range: 8 }, { who: 'piranha', col: 8, row: 18, way: 'up', speed: 1, range: 16 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
   }),
 ];

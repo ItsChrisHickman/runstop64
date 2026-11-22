@@ -83,7 +83,7 @@ function skewerAt(x: number, y: number, k: number, facing: 'left' | 'right'): re
   g.fill(5, 14, 10, 14, '4'); g.fill(16, 14, 21, 14, '4'); g.fill(12, 8, 16, 8, '4'); g.fill(22, 8, 27, 8, '4');
   write(out, art, {
     name: 'FLOAT YOUR BOAT', nameCol: 8,
-    codes: [['paradeStreet'], ['riser'], ['bayWater', 6], ['floatDeck'], ['barrier'], ['woodLadder']],
+    codes: [['paradeStreet'], ['riser'], ['bayWater', 6], ['floatDeck'], ['paradeBarrier'], ['woodLadder']],
     grid: g,
     decor: [['stands', 0, 2], ['stands', 4, 2], ['stands', 24, 2], ['stands', 28, 2], ['sambaBanner', 10, 1], ['bunting', 14, 3], ['bunting', 18, 3], ['floatGalleon', 5, 11], ['floatBird', 16, 10], ['floatSun', 12, 5], ['surdo', 24, 6]],
     coins: [[8, 8], [18, 6], [24, 12], [14, 15]],

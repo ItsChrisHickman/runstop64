@@ -124,7 +124,7 @@ const REGION_CELL = 16;
  */
 function layout(box: Box, g: Game) {
   const { data } = g;
-  const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to);
+  const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to && (!r.rows || (g.mapRow >= r.rows.from && g.mapRow <= r.rows.to)));
   const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
   const rowFrom = region?.rows?.from ?? 0, rows = region?.rows ? region.rows.to - region.rows.from + 1 : data.exitGrid.rows;
   // (a game with many key items wraps their icons onto more rows, which take the map's room)
