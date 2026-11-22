@@ -36,6 +36,10 @@ Monty game lives here.
 - **No grey by default.** Each room picks a few bright, place-true colours on black; grey only where the thing is grey.
 - **Monty on the Run's art manner:** solid shapes with black-line detail, no checkerboard dithering; bold cartoon creatures with
   big faces filling their 16x16 in one solid colour; recognisably of the place they're in.
+- **Monty on the Run's room recipe** (measured over its rooms, sewers aside: games/montyworld/test/room-stats.ts,
+  docs/dosvidaniya-room-audit.md): about 3 creatures a room, 2 of them long up-and-down patrols (a vertical creature in 94% of
+  rooms; no room of walkers only), about 8 ledges on 6 levels, 2 ropes or ladders; a mechanism in only a third of rooms; each
+  room has one thing of its own. Measure a new game against it.
 - **Creatures move in varied ways**, as Monty on the Run's do: up-and-down patrols, creatures on different floors, fliers,
   short fast and long slow patrols, timing hazards, rooms with a mechanism instead of a walker; never room after room of two
   walkers to jump over (Chris on Siberia, 2026-11-22).
