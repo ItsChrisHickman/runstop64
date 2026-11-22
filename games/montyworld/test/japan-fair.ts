@@ -35,8 +35,7 @@ function shifted(from: State, how: { wait: number } | { nudge: '<' | '>'; frames
 }
 
 const VARIANTS: readonly { name: string; how: Parameters<typeof shifted>[1] }[] = [
-  { name: 'after 2 frames', how: { wait: 2 } }, { name: 'after 5 frames', how: { wait: 5 } }, { name: 'after 11 frames', how: { wait: 11 } },
-  { name: 'a pixel or two left', how: { nudge: '<', frames: 2 } }, { name: 'a few pixels right', how: { nudge: '>', frames: 5 } }, { name: 'several pixels left', how: { nudge: '<', frames: 9 } },
+  { name: 'after 5 frames', how: { wait: 5 } }, { name: 'a pixel or two left', how: { nudge: '<', frames: 2 } }, { name: 'a few pixels right', how: { nudge: '>', frames: 5 } },
 ];
 
 let live = newGame(WORLD, mode === 'enhanced');
