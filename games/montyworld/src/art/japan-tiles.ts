@@ -46,7 +46,7 @@ export const JAPAN_TILES = {
   /** A castle eave: upturned tiles over a curved lip. A floor. */
   jpEave: tile('jpEave', 2, 14, ['########', '#######.', '.######.', '..####..', '...##...', '........', '........', '........']),
   /** Snow on Fuji's upper slope: drifts in rows, as scenery (the mountain's body is behind him, the trail in front). Nothing. */
-  jpSnow: tile('jpSnow', 0, 1, ['..####..', '########', '########', '.#.##.#.', '........', '.######.', '########', '........']),
+  jpSnow: tile('jpSnow', 0, 1, ['########', '########', '####.###', '########', '########', '###.####', '########', '########']),
   /** Fuji's slope below the snow: blue-grey rock in streaks, as scenery. Nothing. */
   jpSlope: tile('jpSlope', 0, 6, ['##.##.##', '##.##.##', '#..##..#', '##.##.##', '#.##.##.', '##.##.##', '#..##..#', '##.##.##']),
   /** Volcanic cinders under the snow line: rough lumps. Solid. */
@@ -107,6 +107,10 @@ export const JAPAN_TILES = {
   jpKeepWindow: tile('jpKeepWindow', 0, 1, ['########', '#..##..#', '#..##..#', '########', '########', '###.####', '########', '........']),
   /** A castle's stone base seen behind him: great dressed blocks. Nothing (the castle behind him). */
   jpKeepBase: tile('jpKeepBase', 0, 9, ['########', '#......#', '########', '###.####', '###.####', '########', '#.######', '#.######']),
+  /** The mountain's left flank, a 45 degree edge: blue rock below a diagonal, as scenery. Nothing. */
+  jpSlopeL: tile('jpSlopeL', 0, 6, ['.......#', '......##', '.....###', '....####', '...#####', '..######', '.#######', '########']),
+  /** The mountain's right flank, a 45 degree edge. Nothing. */
+  jpSlopeR: tile('jpSlopeR', 0, 6, ['#.......', '##......', '###.....', '####....', '#####...', '######..', '#######.', '########']),
 } as const;
 
 export type JapanTile = keyof typeof JAPAN_TILES;

@@ -53,11 +53,11 @@ export const PLATFORM_PALETTE = {
 
 /** The mountain's five: the scree (frame and foot), the trail's ledges, the chain, and the mountain's own body (snow above, slope below) as scenery behind the trail. */
 export const FUJI_PALETTE = {
-  S: ['jpScree', 9], T: ['jpTrail', 7], R: ['jpChain', 12], N: ['jpSnow', 1], M: ['jpSlope', 6],
+  S: ['jpScree', 9], T: ['jpTrail', 7], R: ['jpChain', 12], N: ['jpSnow', 1], M: ['jpSlope', 6], D: ['jpSlopeL', 6], Y: ['jpSlopeR', 6],
 } as const satisfies Palette;
 
 export const GARDEN_PALETTE = {
-  M: ['jpMoss', 5], G: ['jpGravel', 7], W: ['jpWater', 14], P: ['jpPlank', 2], R: ['jpBamboo', 5], L: ['jpPlaster', 1], K: ['jpKawara', 14],
+  M: ['jpMoss', 5], G: ['jpGravel', 7], W: ['jpWater', 14], P: ['jpPlank', 2], R: ['jpBamboo', 5], L: ['jpPlaster', 1], K: ['jpKawara', 14], T: ['jpTimber', 9],
 } as const satisfies Palette;
 
 export const MOLE_PALETTE = {
@@ -140,10 +140,10 @@ export const PLANK_CODE = codeOf(GARDEN_PALETTE, 'P');
 export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [10, 11, 12, 13].map((row) => [row, 29] as const);
 
 /** The platform's scenery: the skyline beyond the station, a sign and a clock, the overhead wire across the whole room (but where a rope climbs through it) on its masts, the safety line along the deck's edge. */
-const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 23);
+const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 23 && c !== 29);
 const EDGE_COLS = [1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16, 17, 18, 22, 24, 25, 28, 30, 31];
 const PLATFORM_DECOR = [
-  ['jpTowerGreen', 1, 3], ['jpTowerYellow', 27, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 3, 11],
+  ['jpTowerGreen', 1, 3], ['jpTowerYellow', 26, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 3, 11],
   ...WIRE_COLS.map((col) => ['jpWire', col, 7] as const), ['jpMast', 13, 8], ['jpMast', 26, 8],
   ...EDGE_COLS.map((col) => ['jpEdge', col, 13] as const),
 ] as const;
@@ -182,7 +182,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(4, 7, 4, 16, 'R'); // the drainpipe
     },
     coins: [[12, 5], [14, 15]],
-    decor: [['jpTowerYellow', 3, 2], ['jpNeonPink', 7, 3], ['jpTowerCyan', 10, 1], ['jpTowerRed', 15, 3], ['jpScreen', 19, 3], ['jpTowerGreen', 26, 3], ['jpNeonRed', 28, 3], ['jpNeonRamen', 9, 14], ['jpVending', 26, 14], ['jpCrowdBlue', 5, 15]],
+    decor: [['jpTowerYellow', 3, 2], ['jpNeonPink', 7, 3], ['jpTowerCyan', 10, 1], ['jpTowerRed', 15, 3], ['jpScreen', 19, 3], ['jpTowerGreen', 26, 3], ['jpNeonRamen', 9, 14], ['jpVending', 26, 14], ['jpCrowdBlue', 5, 15]],
     creatures: [
       { who: 'jpSushiRoll', col: 6, row: 5, way: 'right', speed: 1, range: 24 },
       { who: 'jpLuckyCat', col: 15, row: 5, way: 'right', speed: 1, range: 48 },
@@ -224,7 +224,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[16, 5], [25, 15], [19, 14]],
     item: { name: 'fishFood', col: 24, row: 5, sprite: JAPAN_SPRITE.fishFood },
-    decor: [['jpTowerRed', 2, 3], ['jpScreen', 9, 2], ['jpTowerYellow', 16, 2], ['jpTowerCyan', 22, 1], ['jpNeonPink', 25, 3], ['jpTrafficLight', 6, 14], ['jpTrafficLight', 15, 14], ['jpCrowdRed', 2, 15], ['jpCrowdBlue', 17, 15], ['jpHachiko', 25, 14]],
+    decor: [['jpTowerRed', 2, 3], ['jpScreen', 9, 2], ['jpTowerYellow', 17, 2], ['jpTowerCyan', 22, 1], ['jpNeonPink', 25, 3], ['jpTrafficLight', 6, 14], ['jpTrafficLight', 15, 14], ['jpCrowdRed', 2, 15], ['jpCrowdBlue', 17, 15], ['jpHachiko', 26, 14]],
     creatures: [
       { who: 'jpSumo', col: 9, row: 15, way: 'right', speed: 1, range: 72 },
       { who: 'jpDaruma', col: 8, row: 5, way: 'right', speed: 1, range: 64 },
@@ -237,7 +237,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   room({
     id: JP.platform, cell: [2, 14], sector: 31, palette: PLATFORM_PALETTE,
     paint(g) {
-      g.box(0, 8, 0, 13, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it)
+      g.box(0, 8, 0, 13, 'W').box(14, 0, 31, 0, 'W').clear(22, 0, 24, 0).box(29, 1, 29, 9, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it; a canopy's edge over the rope's top and a gantry post over the gate, so that no one jumps off the rope's top over the gate or out of the room)
       g.box(0, 14, 31, 14, 'W').clear(8, 14, 10, 14).clear(19, 14, 21, 14);
       g.box(0, 17, 31, 19, 'W').box(30, 15, 31, 16, 'W');
       g.box(9, 13, 9, 16, 'R').box(20, 13, 20, 16, 'R').box(23, 0, 23, 13, 'R');
@@ -252,8 +252,13 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   room({
     id: JP.fuji, cell: [2, 15], sector: 32, palette: FUJI_PALETTE,
     paint(g) {
-      for (let r = 2; r <= 13; r++) { const hw = Math.round(4 + 9 * ((r - 2) / 11) ** 1.3); g.box(17 - hw, r, 16 + hw, r, r <= 6 ? 'N' : 'M'); } // the cone: a flat crater top, steep, then flaring at its foot (the classic curve), the snow line
+      for (let r = 2; r <= 13; r++) { // the cone: a flat crater top, steep, then flaring at its foot at 45 degrees (the classic curve), the snow line, its edges cut on the diagonal
+        const hw = [4, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13][r - 2] ?? 13;
+        g.box(17 - hw, r, 16 + hw, r, r <= 6 ? 'N' : 'M');
+        if (r >= 7) { g.box(16 - hw, r, 16 - hw, r, 'D'); g.box(17 + hw, r, 17 + hw, r, 'Y'); }
+      }
       g.box(11, 7, 12, 7, 'N').box(15, 7, 16, 7, 'N').box(20, 7, 21, 7, 'N').box(24, 7, 24, 7, 'N').box(17, 8, 17, 8, 'N'); // the snow's drips below its line
+      g.box(0, 0, 3, 1, 'S').box(7, 0, 12, 1, 'S'); // (the rock the chain hangs from)
       g.box(30, 4, 31, 13, 'S').box(29, 8, 29, 13, 'S'); // (open sky; the rock of the mountain's flank closes the right, the line of the platform open at the left)
       g.box(0, 14, 22, 14, 'T').box(23, 14, 31, 14, 'S').box(0, 15, 31, 19, 'S');
       g.box(23, 12, 25, 12, 'T').box(26, 10, 28, 10, 'T'); // the steps
@@ -262,7 +267,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(5, 0, 5, 5, 'R'); // the chain
     },
     coins: [[17, 12], [24, 10], [12, 6]],
-    decor: [['jpSun', 24, 2], ['jpCloud', 7, 3], ['jpCloud', 23, 6]],
+    decor: [['jpSun', 24, 2], ['jpCloud', 7, 3], ['jpCloud', 25, 6]],
     creatures: [
       { who: 'jpTanuki', col: 6, row: 12, way: 'right', speed: 1, range: 40 },
       { who: 'jpCrane', col: 12, row: 4, way: 'right', speed: 1, range: 80 },
@@ -276,6 +281,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 10, 1, 13, 'L').box(0, 9, 1, 9, 'K'); // (open sky; a temple wall with its tiled cap at the left, the castle gatehouse at the right)
       g.box(30, 6, 31, 11, 'L').box(29, 5, 31, 5, 'K');
+      g.box(22, 0, 31, 0, 'T').clear(27, 0, 29, 0); // a pergola's beam over the rope's top (no jumping out of the room off it)
       g.box(0, 14, 15, 19, 'M').box(7, 14, 15, 14, 'G').clear(4, 14, 6, 19).box(5, 13, 5, 19, 'R');
       g.box(16, 15, 24, 19, 'W').box(16, 14, 17, 14, 'P'); // the pond and the first plank (the others float up when the koi are fed: PLANK_CELLS)
       g.box(25, 14, 31, 19, 'M');
@@ -360,6 +366,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     id: JP.port, cell: [2, 16], sector: 37, palette: PORT_PALETTE,
     paint(g) {
       g.box(0, 14, 2, 16, 'C').box(0, 11, 2, 13, 'D').box(0, 8, 2, 10, 'C').box(0, 5, 2, 7, 'D'); // (open sky; a stack of four containers closes the left, the ship goes on off the right)
+      g.box(18, 0, 31, 0, 'S').clear(24, 0, 26, 0); // the gantry's girder over the rope's top
       g.box(0, 17, 27, 19, 'S');
       g.box(25, 0, 25, 16, 'R');
       g.box(9, 15, 11, 16, 'C').box(6, 13, 8, 16, 'C').box(3, 11, 5, 16, 'C'); // the container stair, up to the west

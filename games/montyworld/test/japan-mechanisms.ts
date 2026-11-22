@@ -285,7 +285,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   {
     const shut = at(JP.platform, 26, 14);
     shut.g.tunnels = [];
-    check('without the daruma the platform\'s end is a roller shutter (its eight cells hold the shutter tile)', SHUTTER_CELLS.length === 8 && SHUTTER_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0));
+    check('without the daruma the platform\'s end is a roller shutter (its four cells hold the shutter tile)', SHUTTER_CELLS.length === 4 && SHUTTER_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0));
     const out = (g: Game) => g.roomId === JP.fuji;
     const stats = { exhausted: false };
     const noWay = search(shut, out, undefined, 80000, 0, stats) === null;
@@ -403,7 +403,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   }
   const plain = at(JP.garden, 8, 14, [], false);
   run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'THE KOI POND');
+  check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
   for (const [item, text, floor] of [[DARUMA, 'DARUMA: ROLLS THE SHUTTER UP', 9], [FISH, 'FISH FOOD: THE KOI LET YOU BY', 7], [HOOD, 'HOOD: PAST THE CASTLE GUARD', 14]] as const) {
     const [room, nth] = item;
     const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');

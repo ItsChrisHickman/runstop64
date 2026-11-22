@@ -63,16 +63,16 @@ function cloud(): NewDecor {
   return decor('jpCloud', 5, 2, r, 1);
 }
 
-/** A great red torii gate: two round pillars, the two lintels with their upturned ends. 6 x 4 characters. */
+/** A great red torii gate: two round pillars, the two lintels with their upturned ends. 5 x 4 characters. */
 function torii(): NewDecor {
-  const r = new Raster(48, 32);
-  r.rect(7, 8, 11, 31); r.rect(36, 8, 40, 31); // the pillars
-  r.rect(5, 28, 13, 31); r.rect(34, 28, 42, 31); r.rect(8, 10, 8, 30, false); r.rect(37, 10, 37, 30, false);
-  r.rect(1, 2, 46, 5); r.triangle(0, 1, 5, 2, 2, 6, true); r.triangle(47, 1, 42, 2, 45, 6, true); r.rect(3, 2, 44, 2, false); // the top lintel, upturned
-  r.rect(0, 0, 2, 1); r.rect(45, 0, 47, 1); r.rect(4, 3, 43, 3, false);
-  r.rect(10, 11, 37, 14); r.rect(10, 12, 37, 12, false); // the lower tie-beam
-  r.rect(22, 6, 25, 10); r.rect(23, 7, 24, 9, false); // the plaque
-  return decor('jpTorii', 6, 4, r, 2);
+  const r = new Raster(40, 32);
+  r.rect(6, 8, 9, 31); r.rect(30, 8, 33, 31); // the pillars
+  r.rect(4, 28, 11, 31); r.rect(28, 30, 35, 31); r.rect(7, 10, 7, 30, false); r.rect(31, 10, 31, 30, false);
+  r.rect(1, 2, 38, 5); r.triangle(0, 1, 4, 2, 2, 6); r.triangle(39, 1, 35, 2, 37, 6); r.rect(3, 2, 36, 2, false); // the top lintel, upturned
+  r.rect(0, 0, 2, 1); r.rect(37, 0, 39, 1); r.rect(4, 3, 35, 3, false);
+  r.rect(9, 11, 30, 14); r.rect(9, 12, 30, 12, false); // the lower tie-beam
+  r.rect(18, 6, 21, 10); r.rect(19, 7, 20, 9, false); // the plaque
+  return decor('jpTorii', 5, 4, r, 2);
 }
 
 /** A five-storey pagoda: stacked square storeys, each with its swept roof, a finial spire. 4 x 8 characters. */
