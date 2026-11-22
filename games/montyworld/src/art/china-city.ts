@@ -91,4 +91,15 @@ function slateCell(): NewDecor {
   return decor('slateCell', 1, 1, r, 15);
 }
 
-export const CITY_DECOR = { backCell: backCell(), slateCell: slateCell(),  hutongGate: hutongGate(), noodleStall: noodleStall(), gateRoof: gateRoof(), palaceHall: palaceHall(), roofEnd: roofEnd() } as const satisfies Record<string, NewDecor>;
+/** The city beyond the market, far off in a blue haze: tiled roofs of three heights, a pagoda between them, solid with the tiles' lines cut in. 8 x 3 characters. */
+function cityRoofs(): NewDecor {
+  const r = new Raster(64, 24);
+  swept(r, 0, 23, 10, 17, 3); r.rect(3, 18, 20, 23); // a low roof on its wall
+  r.rect(29, 0, 30, 3); r.disc(29.5, 4.5, 1.5); // the pagoda's spire
+  swept(r, 25, 34, 5, 9, 2); r.rect(27, 10, 32, 15); swept(r, 23, 36, 14, 18, 2); r.rect(25, 19, 34, 23); // its two tiers
+  swept(r, 39, 63, 12, 19, 3); r.rect(42, 20, 60, 23); // a broad roof
+  for (const x of [6, 12, 18, 44, 51, 57]) r.rect(x, 20, x, 23, false); // the walls' doorways
+  return decor('cityRoofs', 8, 3, r, 6);
+}
+
+export const CITY_DECOR = { backCell: backCell(), slateCell: slateCell(),  hutongGate: hutongGate(), noodleStall: noodleStall(), gateRoof: gateRoof(), palaceHall: palaceHall(), roofEnd: roofEnd(), cityRoofs: cityRoofs() } as const satisfies Record<string, NewDecor>;

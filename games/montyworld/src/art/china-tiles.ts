@@ -293,6 +293,28 @@ export const CHINA_TILES = {
     '.##.##.#',
     '........',
   ]),
+  /** The yellow awning with its cloth fraying: threads hanging, a seam coming apart. A floor (it is about to give: china.ts). */
+  awningFrayed: tile('awningFrayed', 2, 7, [
+    '########',
+    '##.##.##',
+    '#.#..#.#',
+    '#..#...#',
+    '.#..#...',
+    '........',
+    '........',
+    '........',
+  ]),
+  /** The awning torn: a few rags of cloth over the gap. A floor for a moment more. */
+  awningTorn: tile('awningTorn', 2, 7, [
+    '#.#..##.',
+    '..#..#..',
+    '.#......',
+    '........',
+    '........',
+    '........',
+    '........',
+    '........',
+  ]),
   /** A jetty's rotten boards with their first cracks: the dock's planks split along the grain and a nail gone. Solid (it is about to give: china.ts). */
   plankCracked: tile('plankCracked', 1, 9, [
     '########',

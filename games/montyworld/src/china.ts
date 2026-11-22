@@ -35,7 +35,7 @@ export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9]
 
 // ---- the palettes --------------------------------------------------------------------------------------
 const WALL_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 1], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 3], R: ['rope', 13], L: ['brickSlit', 12],
+  G: ['greatBrick', 12], P: ['wallPave', 1], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 3], R: ['rope', 13], L: ['brickSlit', 12], H: ['trapdoor', 9],
 } as const satisfies Palette;
 
 const ALLEY_PALETTE = {
@@ -51,7 +51,7 @@ const TOP_PALETTE = {
 } as const satisfies Palette;
 
 const MARKET_PALETTE = {
-  B: ['hutongBrick', 10], P: ['wallPave', 8], A: ['awning', 2], Y: ['awning', 7], R: ['rope', 13],
+  B: ['hutongBrick', 10], P: ['wallPave', 8], A: ['awning', 2], Y: ['awning', 7], R: ['rope', 13], T: ['awningFrayed', 7], U: ['awningTorn', 7],
 } as const satisfies Palette;
 
 const GATE_PALETTE = {
@@ -136,9 +136,20 @@ export const TRAPDOOR_CELLS: readonly (readonly [row: number, col: number])[] = 
 export const TRAPDOOR_ROPE: readonly (readonly [row: number, col: number])[] = [[0, 16], [1, 16]];
 /** The gate's doors (cols 14-17, rows 11-16). */
 export const DOOR_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 6 }, (_, i) => 11 + i).flatMap((row) => [14, 15, 16, 17].map((col) => [row, col] as const));
+/** The hatch in the wall's tunnel roof (the chamber's floor, col 19, row 13) and the rope that takes its place up into the chamber (rows 10-13): playfield cells (row, column). */
+export const HATCH_CELLS: readonly (readonly [row: number, col: number])[] = [[13, 19]];
+export const HATCH_ROPE: readonly (readonly [row: number, col: number])[] = [[10, 19], [11, 19], [12, 19], [13, 19]];
+export const WALL_ROPE_CODE = codeOf(WALL_PALETTE, 'R');
 /** Where the bamboo puts the raft: the river's cells at the quay's floor (row 17, cols 19-25). */
 export const RAFT_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 7 }, (_, i) => [17, 19 + i] as const);
 export const TOWER_ROPE_CODE = codeOf(TOWER_PALETTE, 'R');
+/**
+ * The yellow awning over the street (row 9, columns 4-7), the rotten one of the market's awnings: each cell its own patch of crumbling cloth that frays after 14 frames under his feet, tears after 26 and is gone after
+ * 34 (a walk over a cell is about 18), so he crosses it at his walk, picking up the coin on it as he goes, and a pause to look about drops him into the street. Whole again when he comes into the room.
+ */
+export const AWNING_CRACKS: readonly CrackSpec[] = Array.from({ length: 4 }, (_, k): CrackSpec => ({
+  room: CHI.market, col: 4 + k, cols: 1, row: 9, codes: [codeOf(MARKET_PALETTE, 'Y'), codeOf(MARKET_PALETTE, 'T'), codeOf(MARKET_PALETTE, 'U')], crack: 14, wide: 26, gone: 34, away: 300,
+}));
 export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
 /**
  * The jetty's planks (row 17, columns 6-18), each cell its own patch of crumbling floor (Siberia's cracking ice, per cell): it shows cracks after 16 frames under his feet, splits after 34 and is gone
@@ -206,13 +217,14 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
       g.box(30, 2, 31, 8, 'G').box(30, 4, 31, 4, 'L').box(30, 6, 31, 6, 'L'); // the tower's wall at the right, its slits
       g.box(25, 0, 25, 8, 'R');
+      g.clear(17, 10, 20, 12).box(19, 14, 19, 16, 'R').box(19, 13, 19, 13, 'H'); // a chamber in the wall's thickness, its hatch in the tunnel's roof (the key takes it) and the rope that hangs under it
     },
-    coins: [[8, 11], [21, 7]],
+    coins: [[8, 11], [17, 11]],
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
     decor: [
-      ['hillGreen', 2, 5], ['peakBrown', 8, 4], ['peakBrown', 14, 4], ['hillLow', 19, 5], // the mountains behind the Wall
+      ['peakBrown', 2, 5], ['peakBrown', 8, 5], ['peakBrown', 14, 4], ['peakBrown', 19, 4], ['hillGreen', 1, 5], // the mountains behind the Wall, a range and the near hills in front of it
       ...[13, 15, 17, 19, 21, 23, 26, 28].map((c) => ['crenels', c, 8] as const), // its battlements
-      ...[13, 19, 25].map((c) => ['arcadeBay', c, 14] as const), // the arched bays of its foot
+      ...[13, 20, 26].map((c) => ['arcadeBay', c, 14] as const), // the arched bays of its foot (a gap between the first two for the hatch's rope)
       ...faceCells(10, 12, 12, 16), ...faceCells(7, 14, 9, 16), ...faceCells(4, 16, 6, 16), // the flank stepping down with the stair
       ['wallFlag', 26, 6], ['bambooClump', 2, 13],
     ],
@@ -230,8 +242,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: ALLEY_COINS,
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
     decor: [
-      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 31, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 9, 16, 9, 'slateCell'), // the lane's wall behind him, its grey tiled eave
-      ['laundry', 6, 5], ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
+      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 31, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 7, 16, 9), // the lane's wall behind him, running up under the washing
+      ...[2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((c) => ['cord', c, 4] as const), ['laundry', 5, 5], ['laundryB', 9, 5], ['laundryC', 13, 5], // the clothesline from house to house, behind the rope, hung with washing of every colour
+      ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
     ],
     creatures: [
       { who: 'bicycle', col: 6, row: 15, way: 'right', speed: 2, range: 28 },
@@ -299,6 +312,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     paint: paintMarket,
     coins: MARKET_COINS,
     decor: [
+      ['cityRoofs', 7, 6], ['cityRoofs', 15, 6], ['cityRoofs', 22, 6], // the city's roofs far off in the haze, the dragon over them
       ...backWall(paintMarket, MARKET_COINS, 2, 10, 29, 16), // the shop fronts behind the stalls
       ['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['latticeWindow', 8, 11], ['latticeWindow', 17, 11], ['latticeWindow', 26, 11],
       ['noodleStall', 7, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
@@ -315,7 +329,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[8, 15], [6, 7], [28, 15]],
     decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], ['gateRoof', 12, 2], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
-      { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
+      { who: 'lantern', col: 5, row: 10, way: 'down', speed: 1, range: 40 }, // (a lantern on a rope between the gallery and the court)
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
     ],
   }),
@@ -374,7 +388,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.junk, cell: [1, 11], sector: 26, palette: JUNK_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 16, 'E').box(5, 0, 13, 0, 'E').box(6, 1, 11, 1, 'E'); // the bank's overhang over the rope's way up; a cliff of the bank at the left running off the top: the sky open over the river, and on to the right
+      g.box(0, 0, 1, 16, 'E'); // a cliff of the bank at the left running off the top: the sky open over the river, and on to the right
       g.box(0, 17, 5, 17, 'D').box(0, 18, 5, 19, 'E'); // the bank
       g.box(6, 17, 18, 17, 'D').box(6, 18, 18, 19, 'W'); // the jetty, over the river (JUNK_CRACKS take it from here)
       g.box(19, 17, 25, 19, 'W');
@@ -382,8 +396,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(3, 0, 3, 16, 'R');
       g.box(8, 11, 12, 11, 'D').box(13, 11, 13, 16, 'R'); // the crane's arm over the jetty, and the rope up to it
     },
-    coins: [[10, 9], [22, 15]],
-    decor: [['lanternPost', 9, 14], ['boxes', 15, 15], ['junk', 26, 11], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2]],
+    coins: [[10, 9]],
+    decor: [['lanternPost', 9, 14], ['boxes', 15, 15], ['junk', 26, 11], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], ['peakNight', 14, 12], ['peakNight', 20, 12], ['hillLow', 5, 14]],
     creatures: [
       { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36 },
       { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },

@@ -43,15 +43,35 @@ function hutongDoor(): NewDecor {
   return decor('hutongDoor', 3, 3, r, ['777', '222', '222']);
 }
 
-/** Washing on a line: a shirt, trousers and a towel hung by pegs from a cord. 4 x 2 characters. */
+/** A pair of garments hung from the line, each two characters wide: a shirt (red) and trousers (light blue). 4 x 2 characters. */
 function laundry(): NewDecor {
   const r = new Raster(32, 16);
-  r.rect(0, 1, 31, 1);
-  r.rect(3, 2, 9, 8); r.rect(1, 2, 2, 5); r.rect(10, 2, 11, 5); // the shirt, its sleeves
-  r.rect(5, 2, 7, 3, false);
-  r.rect(14, 2, 19, 10); r.rect(16, 6, 17, 10, false); // the trousers
-  r.rect(23, 2, 29, 12); r.rect(23, 5, 29, 5, false); r.rect(23, 8, 29, 8, false); // the towel's stripes
-  return decor('laundry', 4, 2, r, ['1111', '1111']);
+  r.rect(3, 0, 12, 11); r.rect(0, 1, 2, 6); r.rect(13, 1, 15, 6); r.rect(6, 0, 9, 1, false); r.rect(4, 8, 11, 8, false); // the shirt, its sleeves and collar
+  r.rect(19, 0, 28, 3); r.rect(19, 4, 23, 15); r.rect(24, 4, 28, 15); r.rect(23, 4, 24, 15, false); r.rect(19, 2, 28, 2, false); // the trousers, a seam between the legs
+  return decor('laundry', 4, 2, r, ['22EE', '22EE']);
+}
+
+/** A dress (yellow) and a towel (green) on the line. 4 x 2 characters. */
+function laundryB(): NewDecor {
+  const r = new Raster(32, 16);
+  r.rect(5, 0, 6, 3); r.rect(9, 0, 10, 3); r.triangle(3, 3, 12, 3, 1, 15); r.triangle(3, 3, 12, 3, 14, 15); r.rect(1, 14, 14, 15); r.rect(3, 6, 12, 6, false); // the dress: straps, the skirt, a belt
+  r.rect(19, 0, 28, 12); r.rect(19, 3, 28, 3, false); r.rect(19, 7, 28, 7, false); r.rect(19, 13, 21, 15); r.rect(23, 13, 25, 15); r.rect(27, 13, 28, 15); // the towel, its stripes and fringe
+  return decor('laundryB', 4, 2, r, ['77DD', '77DD']);
+}
+
+/** A sheet (white) and a pair of socks (pink) on the line. 4 x 2 characters. */
+function laundryC(): NewDecor {
+  const r = new Raster(32, 16);
+  r.rect(0, 0, 14, 13); r.rect(2, 4, 12, 4, false); r.rect(1, 13, 14, 15); for (let x = 1; x < 14; x += 3) r.rect(x, 13, x, 15, false); // the sheet, hem scalloped
+  r.rect(19, 0, 22, 9); r.rect(19, 10, 24, 13); r.rect(25, 0, 28, 9); r.rect(25, 10, 30, 13); r.rect(19, 3, 22, 3, false); r.rect(25, 3, 28, 3, false); // two socks
+  return decor('laundryC', 4, 2, r, ['11AA', '11AA']);
+}
+
+/** A length of clothesline: a cord sagging a little from one cell to the next. 1 x 1 characters. */
+function cord(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(0, 6, 7, 6); r.set(3, 7); r.set(4, 7);
+  return decor('cord', 1, 1, r, 9);
 }
 
 /** A market stall: a striped awning over a counter with steaming baskets and a hanging lantern. 4 x 3 characters. */
@@ -225,6 +245,9 @@ export const CHINA_DECOR = {
   wallFlag: wallFlag(),
   hutongDoor: hutongDoor(),
   laundry: laundry(),
+  laundryB: laundryB(),
+  laundryC: laundryC(),
+  cord: cord(),
   stall: stall(),
   lanternString: lanternString(),
   banner: banner(),

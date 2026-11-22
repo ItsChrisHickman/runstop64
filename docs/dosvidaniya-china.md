@@ -190,3 +190,21 @@ arms.png, dragon.png, gate-shut/open.png, trapdoor-shut/open.png, junk-no-raft/r
 over Monty, and the rooms' fullness beside Monty on the Run's.
 
 **Japan built (2026-11-21):** the junk's way east is open now (its planks and the JAPAN COMING SOON sign are gone; the east wall is open at rows 15-16 above the deck) into Japan's harbour (`docs/dosvidaniya-japan.md`).
+
+**Third pass (2026-11-22, Chris played it):** room ids, items, routes and saves unchanged; the coin counts of every room are the same (the junk's one coin moved from the raft to the crane's arm).
+- **The Willow Pattern** is a homage to the C64 game and the plate: three giants crouched on the bridge in wide straw hats (rays and rings in the weave), green faces, light blue robes, two sleeves
+  hanging in front over the arch and the arms (pulses, now rows 8-13, hands at row 14) reaching on from them; a long grey bridge of round arches (the giants are drawn in front of three of its bays); the
+  weeping willow (long thin strands, no blob); the plate's pagoda tower (three tiers, spire), its birds beak to beak, a round-crowned orchard tree, the zigzag fence, mossy stones, a thin lattice rim.
+  The boat and the willow's second piece are gone. 100 decoration characters at most a room (the engine skips a type that would run past $FF).
+- **The Emperor's rooftops**: the golden roofs are the floor (ridge tiles along the bottom, glazed slope under them, eaves stepping up, the high ridge), a dragon on each ridge's end and the hall's
+  beasts marching along it, a dusk sky in two bands with a moon and stars, halls receding in three tiers, lanterns under the eaves. The lion is white against the gold.
+- **Back Alley**: the grey band that looked like a platform is gone (the wall behind runs up under the washing); a clothesline runs house to house behind the rope, hung with six garments of six colours.
+- **All Wall and No Play**: a chamber in the wall's thickness with a coin, seen from the way in; its hatch in the tunnel's roof (a rope hangs under it) opens with the key from the hutong, so it
+  is reached when the loop brings him back under the wall (the key used twice). Mountains in two layers behind the Wall.
+- **Down the River**: the quay is a bank and a jetty of rotten planks over the river with the carp below; each plank (13 cells, `JUNK_CRACKS`) frays after 16 frames under his feet, splits after 34, goes at 46
+  (a walk over a cell is about 18): a steady run is safe, a stop of 12 frames is forgiven, standing is the fish. A crane's arm up a rope with the coin, a gull diving over the raft, hills far off; no wall at the right:
+  the river runs on into Japan's harbour. The bicycle is out.
+- **Noodle Market**: the yellow awning over the street is rotten (4 cells, `AWNING_CRACKS`: 14, 26, 34 frames): cross it at a walk and the coin is his, linger and he drops to the street. The city's roofs far off behind the dragon.
+- **The Forbidden City**: the lion becomes a lantern on a rope between the gallery and the court (the audit's proposal).
+- **Joins**: `games/montyworld/test/joins.ts` holds every east-west and north-south join of every region to "no open edge cell meets a wall"; offenders found and mended (a `shut` of a room's
+  edge, `layout.ts`): Siberia (2), China (the wall, the gate), Japan (5), the Andes (1); the intended ones (the box's chain, the surf's waves, the hold's door, the road's pool, the tower's trapdoor) are listed in the test.

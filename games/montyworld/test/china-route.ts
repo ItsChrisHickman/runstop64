@@ -19,7 +19,8 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('D: back along the ledge and down to the lane', stands(CHI.alley, 17, 2, 6)),
   leg('D to A: back west under the wall', into(CHI.wall, 0, 15, CHI.alley)),
   leg('A: the coin on the stair\'s middle step', coin(CHI.wall, 8, 11)),
-  leg('A: up to the wall\'s top, the coin on it', coin(CHI.wall, 21, 7)),
+  leg('A: up the hatch\'s rope into the chamber in the wall, the coin there', coin(CHI.wall, 17, 11)),
+  leg('A: up to the wall\'s top', stands(CHI.wall, 9, 14, 20)),
   leg('A: along the wall to the dumplings', item(CHI.wall, 0, [28, 7])),
   leg('A to T: back to the rope and up it into the tower', into(CHI.tower, 25, 0, CHI.wall)),
   leg('T: past the warrior to the coin on the stair', coin(CHI.tower, 7, 11)),
@@ -46,6 +47,7 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('H: across the stones to the island and the bamboo', item(CHI.willow, 0, [29, 13])),
   leg('H: back across the stones to the shore', stands(CHI.willow, 15, 9, 11)),
   leg('H to J: up the steps, down the well\'s rope to the quay', into(CHI.junk, 3, 19, CHI.willow)),
-  leg('J: along the quay and over the raft to the junk\'s deck, the coin there', coin(CHI.junk, 22, 15)),
+  leg('J: up the crane\'s rope onto its arm over the jetty, the coin there', coin(CHI.junk, 10, 9)),
+  leg('J: along the jetty (it gives way behind him) and over the raft to the junk\'s deck', stands(CHI.junk, 17, 26, 27)),
   leg('J: to the junk\'s deck at the way east into Japan', stands(CHI.junk, 17, 28, 29)),
 ];

@@ -19,7 +19,7 @@ import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { riceHatWorn } from '../src/art';
-import { ARM_PULSES, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from '../src/china';
+import { ARM_PULSES, AWNING_CRACKS, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, HATCH_CELLS, JUNK_CRACKS, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, WALL_ROPE_CODE } from '../src/china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
@@ -428,6 +428,62 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (Moscow\'s and Siberia\'s arrays and grids) loads: the finds and the ushanka are as saved, and China is on the grid, its coins and finds still to take',
     g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(27).every((c) => c === 0));
+}
+
+// ---- the set-up traps: the river's jetty, the market's awning, the wall's hatch -------------------------------------------
+{
+  /** A patch of crumbling floor on its own: its codes seen in turn while he stands on it, he lives or dies, it grows back on coming into the room again. */
+  const crumbles = (what: string, spec: (typeof JUNK_CRACKS)[number], floor: number) => {
+    const s = at(spec.room, spec.col, floor);
+    const seen = new Map<number, number>();
+    for (let f = 0; f < spec.gone + 10; f++) { frame(s, NONE); const c = cell(s.g, spec.col, spec.row); if (!seen.has(c)) seen.set(c, f); }
+    check(`${what}: standing on a cell it frays after ${spec.crack} frames (${seen.get(spec.codes[1])}), splits after ${spec.wide} (${seen.get(spec.codes[2])}) and is gone after ${spec.gone} (${seen.get(0)})`,
+      Math.abs((seen.get(spec.codes[1]) ?? -9) - spec.crack) <= 2 && Math.abs((seen.get(spec.codes[2]) ?? -9) - spec.wide) <= 2 && Math.abs((seen.get(0) ?? -9) - spec.gone) <= 2);
+    run(s, NONE, 60);
+    check(`${what}: and he falls (the river, the street): he is no longer on it (row ${s.g.montyRow})`, dead(s.g) || s.g.montyRow + 2 > spec.row + 3);
+    return s;
+  };
+  check('the jetty is thirteen single cells on row 17, columns 6 to 18, each its own count; the awning four on row 9, columns 4 to 7', JUNK_CRACKS.length === 13 && JUNK_CRACKS.every((c, k) => c.room === CHI.junk && c.cols === 1 && c.row === 17 && c.col === 6 + k)
+    && AWNING_CRACKS.length === 4 && AWNING_CRACKS.every((c, k) => c.room === CHI.market && c.cols === 1 && c.row === 9 && c.col === 4 + k));
+  const plank = must(JUNK_CRACKS[4], 'a plank');
+  const dropped = crumbles('the jetty', plank, 17);
+  check('on the jetty a fall is the river: he dies', dead(dropped.g));
+  crumbles('the awning', must(AWNING_CRACKS[1], 'an awning cell'), 9);
+  {
+    // a steady run along the jetty, from the bank to its last plank: every plank holds under him (lines at most), and he lives
+    const s = at(CHI.junk, 4, 17);
+    let worst = 0, f = 0;
+    for (; f < 400 && colOf(s.g) < 17; f++) { frame(s, RIGHT); for (const c of s.g.cracks) worst = Math.max(worst, c.stage); }
+    check(`running the jetty (${f} frames from the bank to its end) every plank holds: lines at most (stage ${worst}), and he lives`, colOf(s.g) >= 17 && worst <= 1 && !dead(s.g));
+    // a short stop (a creature to wait for) is forgiven: half a stride's pause in the middle
+    const t = at(CHI.junk, 4, 17);
+    let stopped = false;
+    for (let g = 0; g < 400 && colOf(t.g) < 17; g++) { const stop = colOf(t.g) === 11 && !stopped; if (stop) { run(t, NONE, 12); stopped = true; } frame(t, RIGHT); }
+    check('and a stop of 12 frames half way along it is forgiven (he crosses all the same)', colOf(t.g) >= 17 && !dead(t.g));
+    // standing a long while loses the plank under him
+    const u = at(CHI.junk, 12, 17);
+    run(u, NONE, 80);
+    check('but standing 80 frames on it does not (he falls into the river)', dead(u.g));
+  }
+  {
+    // it is whole again when he comes into the room
+    const s = at(CHI.junk, 8, 17);
+    run(s, NONE, 20);
+    for (const c of s.g.cracks) c.t = c.spec.gone + 1;
+    frame(s, NONE);
+    const gone = cell(s.g, 14, 17) === 0;
+    enterRoom(s.g, CHI.junk, 0x0c + (4 + 4) * 4, standY(17));
+    for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
+    check('the planks that went are whole when he comes into the room again', gone && cell(s.g, 14, 17) === plank.codes[0]);
+  }
+  {
+    // the wall's hatch: shut (the trapdoor tile) with the rope hanging below it, until the key; then the rope goes on up into the chamber
+    const [row, col] = must(HATCH_CELLS[0], 'the hatch');
+    const shut = at(CHI.wall, 17, 17);
+    const open = at(CHI.wall, 17, 17, [KEY]);
+    frame(shut, NONE); frame(open, NONE);
+    check('the hatch in the tunnel\'s roof (the chamber\'s floor) is shut without the key and has the rope through it with it, the chamber above it empty', cell(shut.g, col, row) !== 0 && cell(shut.g, col, row) !== WALL_ROPE_CODE && cell(open.g, col, row) === WALL_ROPE_CODE && cell(open.g, col, row - 3) === WALL_ROPE_CODE && cell(shut.g, col, row - 1) === 0);
+  }
 }
 
 /** The rice hat's index in the table. */
