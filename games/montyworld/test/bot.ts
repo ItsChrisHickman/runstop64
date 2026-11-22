@@ -98,7 +98,7 @@ class Heap {
 }
 
 /** Whether some move keeps him alive for the next few frames (a goal reached in the jaws of a creature is not one reached). */
-function livesOn(s: State): boolean {
+export function livesOn(s: State): boolean {
   return ACTIONS.some(([, stick]) => !hold({ g: copy(s.g), col: s.col }, stick, 3 * STEP).dead);
 }
 

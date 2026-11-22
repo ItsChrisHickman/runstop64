@@ -14,38 +14,27 @@ import { WORLD } from '../src/data';
 import { CHI } from '../src/china';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
-import { newGame, play, search } from './bot';
+import { newGame } from './bot';
+import { readArgs, runLegs } from './legs';
 import { CHINA_LEGS } from './china-route';
 import { itemIndex, standY } from './route';
 
-const only = process.argv[2];
+const args = readArgs();
+const only = args.only;
 
 /** The rooms and finds of China in the tables: the rooms from the wall's foot on. */
 const chinese = (room: number) => room >= CHI.wall && room <= CHI.junk;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== mode) continue;
-  let live = newGame(WORLD, mode === 'enhanced');
+  const live0 = newGame(WORLD, mode === 'enhanced');
   // Moscow and Siberia done: every find of theirs is his (the ticket lifts the barrier), the ushanka worn
-  for (let i = 0; i < live.g.siCollected.length; i++) if (!chinese(live.g.data.specialItems[i * 4] ?? 0)) live.g.siCollected[i] = 0x81;
-  wear(live.g, itemIndex(live.g, ROOM.platform, 1));
-  enterRoom(live.g, SIB.border, 0x0c + (27 + 4) * 4, standY(17));
-  for (let n = 0; n < 200 && (live.g.freeze || live.g.script); n++) frame(live, NONE);
+  for (let i = 0; i < live0.g.siCollected.length; i++) if (!chinese(live0.g.data.specialItems[i * 4] ?? 0)) live0.g.siCollected[i] = 0x81;
+  wear(live0.g, itemIndex(live0.g, ROOM.platform, 1));
+  enterRoom(live0.g, SIB.border, 0x0c + (27 + 4) * 4, standY(17));
+  for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  let frames = 0, nodes = 0;
-  for (const leg of CHINA_LEGS) {
-    const t0 = Date.now();
-    const stats = { exhausted: false };
-    const found = search(live, leg.goal, leg.aim, 600000, 1.5, stats);
-    if (!found) { check(`${mode}: ${leg.name}: a way (${stats.exhausted ? 'every state looked at' : 'the search limit'})`, false); break; }
-    const next = play(live, found.route);
-    const ok = next !== null && leg.goal(next.g);
-    frames += found.route.reduce((n, [, f]) => n + f, 0);
-    nodes += found.nodes;
-    check(`${mode}: ${leg.name} (${found.route.reduce((n, [, f]) => n + f, 0)} frames, ${found.nodes} states, ${((Date.now() - t0) / 1000).toFixed(1)}s)`, ok);
-    if (!next || !ok) break;
-    live = next;
-  }
+  const { live, frames, nodes } = runLegs({ region: 'china', mode, legs: CHINA_LEGS, start: live0, args, plan: [[600000, 1.5]] });
   const g = live.g;
   const coins = g.data.coinTable.length / 3;
   const mine = (i: number) => chinese(g.data.coinTable[i * 3] ?? 0);
