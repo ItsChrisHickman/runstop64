@@ -153,6 +153,49 @@ others' (`music/andes.ts`). No folk melody is quoted.
 - On taking: PARACHUTE: FOLLOW THE COINS DOWN; CHULLO: BLEND IN ON THE BOAT; PANPIPES: A TUNE FOR THE LLAMA; MACHETE: CUTS THE TANGLE.
 - On coming into a room without what it wants: T2: THE LLAMA WANTS A TUNE; CF: THE UNDERGROWTH WANTS A BLADE; B: THE CAPTAIN WANTS A LOCAL'S HAT.
 
-## As built
+## As built (2026-11-21)
 
-(Filled in when the bot has played it.)
+The twelve rooms are in `games/montyworld/src/andes.ts` (ids 55-66, sectors 55-66; the Pacific is untouched but for its hold: the sign is gone and the door's gutter cells open with the parachute), art in `art/andes-*.ts` and
+`art/world.ts`, the tune in `music/andes.ts`, the bot's route in `test/andes-route.ts`, the pictures in `test/andes-shots.ts` and `andes-map.ts`. Where the build differs from the design above (and from the pre-production design):
+
+- **The engine** gained, as data (Monty on the Run's value leaves them empty and plays as before: its trace and title tests pass unchanged): `flights` and the canopy (`flight.ts`), `rollers` (`rollers.ts`), `vines` (`vines.ts`), and
+  an optional `rows` on a map region (the pause map of a region shows its own rows: the Andes' six of the grid's eight, the earlier regions' three).
+- **Twelve rooms, not thirteen**, in a block six rows high: the drop is a shaft of three flight rooms (F1, F2, F3 one under another: entering at the hold's door rows 14-15 left no height to fly in a room on its own row, so the
+  sky is stacked and falls), and the bridge dead end (K) is gone. The exit grid is 8 rows now (50 by 8); saves keep their shape (the grid in a save is only read for the C5 street's cell), so the format stays 1 and old saves load.
+- **The forest is behind the tunnel.** The design joined the cloud forest to the terraces by a rope, and so reached the machete and the boat without the panpipes. The forest is now entered from the Inca tunnel only, and the tunnel from
+  the well, which the spitting llama guards: the chain is a chain. The tangle's gap is four cells wide (a three-wide gap with the rope in the middle left him standing on the rope's top with a solid cell under his third column).
+- **A ladder's shaft and a gap are three cells wide at least** (his box is two wide and unaligned three): T1's ladder through the wall was one wide at first and he could not go down it.
+- **The vines hang to the banks' height and are taken by walking into them.** Monty on the Run's ropes are not taken in a jump (the shared rule: no rope while `montyAction` is a jump), so the first design, vines hanging high over the
+  river to be jumped at, could never be taken. They are thirteen cells long now, swing five cells at the tip over the bank's edge, he walks onto one, is carried with it by its line (not by the cell it is drawn in, which jumps a cell
+  at a time) and steps off onto a log or the far bank as it swings over. The bot finds the crossing.
+- **Creatures** (twelve kinds, none in more than two rooms): a range counts steps of the creature's own pace, so a patrol of 130 at speed 2 is 260 pixels, not 130: the condors' circuits were five times too long at first and
+  went through the walls. And a creature patrolling the only way is a wall: a llama on the plateau and an anaconda on the first bank were taken out of the ways (the bot's cold run found each: with the creature adjacent in a lane
+  that is the only way, every move dies); the anaconda coils on the second step, the llama is T1's (two) only. The macaw is the toucan's picture in red.
+- **The flight** (`FLIGHT.sink` 2): the lift ends when his box is wholly above the updraft's top row (a coin above the column's top needs a glide from it, not the column). F2's right-hand canyon has a floor (its open bottom led into
+  F3's overhang rock). The canopy folds on a ledge; the condors' dive in F2 is a vertical patrol.
+- **Items** take the bank's blocks the world never shows: the original's item blocks $95-$97 (the chullo, the panpipes, the machete), the last free block $FF (the empanada), the jetpack's $76-$78 (the canopy's three pictures), $98-$9B
+  (the boulder's four); the earlier regions' free blocks and the hats' pool are all taken. No new tiles.
+- **Walking pace and the gates.** The tunnel is two cells high so the spitting llama is a wall (no jumping a creature in it), the cargo deck under the cabin likewise for the captain; both gates are proved by the mechanism test.
+- **The boat** floats on the river now (water under the hull); the paddle wheel is a picture, it does not turn, and no landscape slides past (the design's `charAnims`): left out, as the ship's portholes were.
+- **The tune**: the minor pentatonic with panpipes and a charango, no folk melody.
+- **Saves**: the format stays 1.
+
+Checks (all pass): `games/montyworld/test/andes.ts original|enhanced` (the bot plays 101 checks' worth of legs from the plane's hold to the last bank taking all 73 coins, the chullo, the panpipes, the machete and the six empanadas,
+slow set; about 8,000 frames each in ORIGINAL and ENHANCED), `andes-mechanisms.ts` (75 checks, fast: the flight and its canopy, the boulders, the vines, the three gates, the chullo, the joins both ways, the hints, the map, a save in each room
+and an old one), `andes-layout.ts` (212), `music-andes.ts` (9); the earlier regions' tests count the whole world's totals now (67 rooms, 220 coins, 34 finds, 17 key items, 17 snacks); all of Monty on the Run's pass (trace and
+title with /tmp/motr.prg included).
+Pictures: /root/projects/runstop64-shots/andes/ (`room-*.png` from the real engine with Monty in them, `sheet.png`, `compare-*.png`, `flight.png`, `boulders.png`, `vines.png`, `riding-a-vine.png`, `llama-*`, `captain-*`,
+`tangle-*`, `andes-map.png`).
+
+**What to look at in play**: the flight (is the sink slow enough to steer, the updrafts easy to find, the condors fair), the boulders (a hop over one on a step), the vines (the grab by walking into one and the step-off), the
+llama's tunnel and the captain's deck as gates, the village and the boat as places (the plainest), and the condor, the toucan and the spitting llama, which are still the roughest creatures.
+
+## Art (pre-production, 2026-11-21)
+
+Made as data in `games/montyworld/src/art/`: `andes-tiles.ts`, `andes-decor.ts`, `andes-creatures.ts`, `andes-items.ts`, `andes-hat.ts` (and its costume), added to `world.ts` after the Pacific's so indexes never move. The only
+change since: the decorations `cloud` and `cloudBig` are `skyCloud` and `skyCloudBig` (China's plate had a `cloud`). Previews: `/root/projects/runstop64-shots/preprod-andes/`.
+
+## Decisions for the builder (2026-11-21)
+
+- 13 rooms was fine; the build has twelve (see above).
+- The rougher creatures (condor, toucan, spitting llama) were to get a second pass to the Siberia set's standard: tried for the condor, not better than the first, left as drawn.

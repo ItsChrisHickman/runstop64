@@ -8,7 +8,10 @@
 import fs from 'node:fs';
 import { AND } from '../src/andes';
 import { itemIndex } from './route';
-import { compare, contactSheet, motrRoom, newPlay, placed, savePng } from './shots-kit';
+import { enterRoom } from '../../montyotr/src/ending';
+import { wear } from '../../montyotr/src/items';
+import { frame, NONE } from '../../montyotr/test/play';
+import { compare, contactSheet, motrRoom, newPlay, placed, savePng, settle, shot, standing } from './shots-kit';
 
 const out = process.argv[2];
 if (out === undefined) throw new Error('usage: andes-shots.ts <out-dir>');
@@ -51,5 +54,37 @@ savePng(out, 'captain-before.png', placed({ room: AND.boat, col: 9, floor: 15, f
 savePng(out, 'captain-after.png', placed({ room: AND.boat, col: 9, floor: 15, frames: 40, worn: chullo, items: [chullo] }).px);
 savePng(out, 'tangle-before.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: chullo }).px);
 savePng(out, 'tangle-after.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: chullo, items: [machete] }).px);
+
+// the parachute: out of the plane's door, off the ramp, up the first updraft, gliding on to the spire
+{
+  const s = newPlay();
+  wear(s.g, chullo);
+  const at = standing(2, 16);
+  enterRoom(s.g, AND.jump, at.x2, at.y);
+  settle(s);
+  const pics: Uint8Array[] = [];
+  const moves = [[40, true, false], [30, true, false], [40, true, false], [40, true, false], [40, true, false], [40, true, false]] as const;
+  for (const [n, right, up] of moves) {
+    for (let f = 0; f < n; f++) frame(s, { ...NONE, right, up });
+    pics.push(shot(s.g));
+  }
+  contactSheet(out, 'flight.png', pics);
+}
+// riding a vine: hanging on the first one at three moments of its swing
+{
+  const s = newPlay();
+  wear(s.g, chullo);
+  const at = standing(7, 14);
+  enterRoom(s.g, AND.river, at.x2, at.y);
+  settle(s);
+  s.g.enemies = [];
+  s.g.onRope = 1;
+  const pics: Uint8Array[] = [];
+  for (let n = 0; n < 6; n++) {
+    for (let f = 0; f < 16; f++) frame(s, NONE);
+    pics.push(shot(s.g));
+  }
+  contactSheet(out, 'riding-a-vine.png', pics);
+}
 
 SPOTS.forEach((s, i) => compare(out, `compare-${s.name}.png`, pics[i] ?? new Uint8Array(0), motrRoom(s.compare)));
