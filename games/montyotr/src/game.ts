@@ -578,7 +578,6 @@ export class Game implements MontyBody, MontyWorld {
     Mech.teleporterDisplay(this);
     Mech.liftInit(this);
     escalatorInit(this);
-    this.swimTick = 0; // (the sea lifts him the same way each time a room loads)
     icicleInit(this);
     tunnelInit(this);
     crackInit(this);

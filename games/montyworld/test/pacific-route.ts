@@ -6,8 +6,8 @@
  */
 import { lavaTop } from '../../montyotr/src/lava';
 import { LAVA, PAC } from '../src/pacific';
-import { copy } from '../../montyotr/test/play';
-import { ACTIONS, hold } from './bot';
+import { copy, frame } from '../../montyotr/test/play';
+import { ACTIONS } from './bot';
 import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
 
 /** Swimming to a place: his top left within a cell of the one given (a swim across a wide room is a few of these, so the search never has the whole sea to look through). */
@@ -27,7 +27,11 @@ const outOfLava = (part: Part): Part => ({
 
 /** A leg's goal reached with some move that lives on for `frames` more (a coin taken in front of a creature that is about to reach him is no coin taken: the bot's own check looks only 12 frames ahead). */
 const livesFor = (part: Part, frames: number): Part => ({
-  goal: (g) => part.goal(g) && ACTIONS.some(([, stick]) => !hold({ g: copy(g), col: 0 }, stick, frames).dead),
+  goal: (g) => part.goal(g) && ACTIONS.some(([, stick]) => {
+    const t = { g: copy(g), col: 0 };
+    for (let f = 0; f < frames; f++) { frame(t, stick); if (t.g.actionCounter !== 0) return false; }
+    return true;
+  }),
   aim: part.aim,
 });
 
@@ -149,7 +153,7 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Q: the coin on the sill', coin(PAC.hold, 4, 5)),
   leg('Q: down the net, the coin on it', coin(PAC.hold, 9, 11)),
   leg('Q: the roller floor\'s coin past the first crate', coin(PAC.hold, 14, 14)),
-  leg('Q: up the first pallet past the second crate, its coin', coin(PAC.hold, 20, 12)),
+  leg('Q: up the first pallet past the second crate, its coin', livesFor(coin(PAC.hold, 20, 12), 60)),
   leg('Q: onto the high pallet and the parachute', item(PAC.hold, 0, [25, 10])),
   leg('Q: the coin beside it', coin(PAC.hold, 27, 10)),
 ];

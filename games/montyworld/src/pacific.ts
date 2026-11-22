@@ -450,7 +450,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 1, 4, 'U').box(0, 8, 1, 19, 'U').box(30, 2, 31, 13, 'U').box(30, 14, 31, 15, 'D').box(30, 16, 31, 19, 'U');
       g.box(2, 16, 29, 16, 'F').box(0, 17, 31, 19, 'U');
       g.box(0, 7, 6, 7, 'F').box(8, 6, 9, 15, 'N');
-      g.box(19, 14, 22, 15, 'C').box(24, 12, 27, 15, 'C');
+      g.box(17, 14, 22, 15, 'C').box(24, 12, 27, 15, 'C'); // (the first pallet's top is six cells for a two-cell crate to swing on)
     },
     coins: [[4, 5], [9, 11], [14, 14], [20, 12], [27, 10]],
     item: { name: 'parachute', col: 25, row: 10, sprite: PAC_SPRITE.parachute },
