@@ -46,12 +46,20 @@ Monty game lives here.
 - **A costume is worn, not stuck on:** small on his head above the eyes (a lei round the neck); his face always shows
   (`art/costume.ts` in montyworld finds his head per picture, and its test holds every costume to it).
 
+- **It must still fit a real C64** (Chris, 2026-11-22). Native code, but the data keeps the machine's limits: one byte per
+  kind, 256 characters, the VIC bank's sprite blocks. A big game splits by region as a multiload would, each region within
+  budget; a per-region budget test enforces it.
+
 ## Words and sound
 
 - **Names are plain and evocative first, a pun only when it lands** (Monty on the Run: THE HOUSE, SEWERAGE WORKS). A name that
   needs explaining is the wrong name. No James Bond puns. Check the room-name font draws every letter (it has no good Z).
 - **Hints give the reason, in the story** (Chris: not "THE CITY GATE WANTS A RICE HAT" but that Monty needs a disguise). All
   game text goes through one writer that maps characters the font lacks (the apostrophe) to the game's own.
+- **A new game is presented as the next adventure and a tribute, subtly** (Chris, 2026-11-22): its own title screen in the
+  house style (never a copy of the original's), a line like A MONTY MOLE ADVENTURE, and the tribute done quietly by the credits
+  (the new makers first, "after Peter Harrap's Monty on the Run", the music's author, a thank-you line), never by writing
+  "tribute" or "fan game", and never implying the originals made it.
 - **No filler statistics** on titles, posters or credits. Credits are sourced, never invented; a new game says it is a new
   game, after the original it is built on.
 - **References only to games Chris played and loves** (Willow Pattern, The Last Ninja, Jeff Minter's llamas); nothing he doesn't
