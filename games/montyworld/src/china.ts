@@ -300,6 +300,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'warrior', col: 3, row: 15, way: 'right', speed: 1, range: 64 },
+      { who: 'kite', col: 14, row: 6, way: 'down', speed: 1, range: 24 },
       { who: 'monk', col: 19, row: 13, way: 'down', speed: 1, range: 16 },
     ],
   }),
@@ -328,7 +329,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[8, 15], [6, 7], [28, 15]],
     decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], ['gateRoof', 12, 2], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
-      { who: 'lantern', col: 5, row: 10, way: 'down', speed: 1, range: 40 }, // (a lantern on a rope between the gallery and the court)
+      { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
     ],
   }),
@@ -350,7 +351,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56, colour: 1 },
-      { who: 'kite', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
+      { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
     ],
   }),
 

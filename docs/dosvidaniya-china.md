@@ -205,6 +205,6 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   (a walk over a cell is about 18): a steady run is safe, a stop of 12 frames is forgiven, standing is the fish. A crane's arm up a rope with the coin, a gull diving over the raft, hills far off; no wall at the right:
   the river runs on into Japan's harbour. The bicycle is out.
 - **Noodle Market**: the yellow awning over the street is rotten (4 cells, `AWNING_CRACKS`: 14, 26, 34 frames): cross it at a walk and the coin is his, linger and he drops to the street. The city's roofs far off behind the dragon.
-- **The Forbidden City**: the lion becomes a lantern on a rope between the gallery and the court (the audit's proposal).
+- **The Forbidden City**: unchanged but for its right edge (shut under the palace wall, so a jump east never lands in the quay's cliff). The audit's lantern-on-a-rope for it was tried and left out: the bot found no way to the inner court past it.
 - **Joins**: `games/montyworld/test/joins.ts` holds every east-west and north-south join of every region to "no open edge cell meets a wall"; offenders found and mended (a `shut` of a room's
   edge, `layout.ts`): Siberia (2), China (the wall, the gate), Japan (5), the Andes (1); the intended ones (the box's chain, the surf's waves, the hold's door, the road's pool, the tower's trapdoor) are listed in the test.
