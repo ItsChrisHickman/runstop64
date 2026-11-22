@@ -2,7 +2,7 @@ import type { CharAnim, EscalatorSpec, IcicleSpec } from '../../montyotr/src/mon
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { bandFrames, BAND_ORDER } from './art/escalator';
 import { codeOf, Grid, room, type Palette } from './layout';
-import { bogieBars, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, trainAnims, undercarriage, windowAt } from './train';
+import { underCar, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, trainAnims, undercarriage, windowAt } from './train';
 
 /**
  * Moscow, the first region of Do Svidaniya Monty (docs/dosvidaniya-moscow.md): nine rooms in a block four wide and three high
@@ -87,11 +87,11 @@ export const ESCALATORS: readonly EscalatorSpec[] = [DOWN, UP];
  * The train stands until he is aboard (from column 22, inside the door).
  */
 const STATION_PALETTE = {
-  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], W: ['wheel', 2], L: ['rail', 12], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
+  D: ['roofDeck', 14], E: ['carWall', 5], F: ['carFloor', 9], T: ['trainSide', 5], K: ['kremlinBrick', 2], R: ['ironLadder', 7],
 } as const satisfies Palette;
 const STATION_BOGIES = [22, 27] as const;
 /** What moves once he is aboard (from column 22): the windows, the sleepers, the wheels. */
-export const STATION_ANIMS: readonly CharAnim[] = [...trainAnims(ROOM.station, STATION_PALETTE, true, 22), ...skyAnims(ROOM.station, false, 22)];
+export const STATION_ANIMS: readonly CharAnim[] = [...trainAnims(ROOM.station, true, 22), ...skyAnims(ROOM.station, false, 22)];
 /** The night above the train (train.ts): the moon, a star or two, the poles and the horizon over the car, still until he is aboard. */
 const STATION_SKY: SkySpec = { spans: [[20, 33]], moon: [24, 2], stars: [['star', 21, 3], ['starDim', 28, 2], ['star', 31, 3], ['starDim', 27, 3]] };
 
@@ -223,12 +223,12 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       g.box(20, CAR.roof, 31, CAR.roof, 'D'); farWall(g, 22, 29); // the car's roof, the wall behind
       g.box(20, 10, 21, 14, 'T').box(30, 10, 31, 16, 'T'); // its rear wall (the door open below), its far end
       hatch(g, 28);
-      undercarriage(g, 20, 31, STATION_BOGIES);
+      undercarriage(g, 20, 31);
     },
     coins: [[2, 16]],
     decor: [
       [{ text: 'TRAIN TO SIBERIA', colour: 7 }, 2, 3], ['stationClock', 4, 6], ['lampStreet', 11, 13], ['bench', 6, 15],
-      ...skyDecor(STATION_SKY), ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...bogieBars(STATION_BOGIES), ...buffersAt(20, 31),
+      ...skyDecor(STATION_SKY), ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...underCar(20, 31, STATION_BOGIES), ...buffersAt(20, 31),
     ],
     creatures: [
       { who: 'balalaika', col: 13, row: 15, way: 'right', speed: 1, range: 24 },

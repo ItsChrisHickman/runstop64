@@ -13,7 +13,7 @@ import { MOTR } from '../../montyotr/src/motr';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WINDOW_SCENERY } from '../src/art/siberia-decor';
-import { WHEEL_FRAMES } from '../src/art/siberia-tiles';
+import { WHEEL_FRAMES } from '../src/art/siberia-decor';
 import { WORLD } from '../src/data';
 import { decorIndex } from '../src/layout';
 import { ROOM } from '../src/moscow';
@@ -45,7 +45,7 @@ const cellAt = (g: Game, col: number, row: number) => g.mem[0x800 + (row + 3) * 
 // ---- the dining car, the sleeper, the tender -------------------------------------------------------------
 for (const [name, room, windows] of [['dining car', SIB.gravy, true], ['sleeper', SIB.sleeper, true], ['tender', SIB.coal, false]] as const) {
   const s = at(room, 8, 17);
-  const rail = cellAt(s.g, 20, 19), wheel = cellAt(s.g, 4, 18);
+  const rail = cellAt(s.g, room === SIB.coal ? 10 : 20, 19), wheel = cellAt(s.g, 4, 18);
   const rail0 = chr(s.g, rail), wheel0 = chr(s.g, wheel), ring0 = windows ? [ringText(s.g, 0), ringText(s.g, 1)] : [];
   const seen = { rail: new Set<string>([rail0]), wheel: new Set<string>([wheel0]), ring: new Set<string>(windows ? [ring0.join('/')] : []) };
   for (let i = 0; i < 60; i++) {
@@ -110,16 +110,21 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   check('the poles are half a round on at 16 steps, the smoke too', decorRow(mid.g, 'wires', 4, 0) !== start.poles && decorRow(mid.g, 'smoke', 4, 0) !== start.smoke);
 }
 {
-  // nothing it draws is solid: the sky's cells are the decoration characters (from $9B), never a room tile (1-8), and the sleeper's and the tender's ropes still stand in it
+  // nothing it draws is solid: the sky's cells are the decoration characters (from $9B), never a room tile (1-8), but where the room has tiles of its own: the sleeper's pine
+  // (columns 22-23) and the banks of its cutting, the tender's rope (column 24) and the mine's shelf over it
   const bad: string[] = [];
-  for (const [name, room, rope] of [['dining car', SIB.gravy, -1], ['sleeper', SIB.sleeper, 22], ['tender', SIB.coal, 8]] as const) {
+  const own = (room: number, col: number, row: number): boolean => room === SIB.sleeper
+    ? col === 22 || col === 23 || ((col < 6 || col > 25) && row >= 3 + ((col < 6 ? col : 31 - col) >> 1))
+    : room === SIB.coal && (col === 24 || (row <= 1 && ((col >= 19 && col <= 22) || (col >= 26 && col <= 29))));
+  for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal]] as const) {
     const s = at(room, 8, 17);
     for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
       const c = cellAt(s.g, col, row);
-      if (col === rope) { if (c < 1 || c > 8) bad.push(`${name}: the rope's cell ${col},${row} is ${c}`); } else if (c >= 1 && c <= 8 && !(room === SIB.coal && col >= 30)) bad.push(`${name}: a tile ${c} at ${col},${row} in the sky`);
+      const tile = c >= 1 && c <= 8;
+      if (tile !== own(room, col, row)) bad.push(`${name}: cell ${col},${row} is ${c}`);
     }
   }
-  check(`the sky's cells are never a room tile, and the ropes through it are intact (${bad.join('; ') || 'none wrong'})`, bad.length === 0);
+  check(`the sky's cells are never a room tile but where the room has tiles of its own (${bad.slice(0, 4).join('; ') || 'none wrong'})`, bad.length === 0);
 }
 {
   const s = at(ROOM.station, 16, 17);
@@ -129,6 +134,18 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   const aboard = at(ROOM.station, 24, 17);
   run(aboard, 8);
   check('and moves once he is', decorRow(aboard.g, 'horizon', 2, 2) !== ring);
+}
+
+// ---- the scenery runs from the moment he is in the room -----------------------------------------------------
+{
+  // he walks in from the station's roof (half off the playfield's edge as the room loads) and stands still: the sleepers, the wheels and the windows go by at once
+  const s = at(ROOM.station, 26, 9);
+  for (let f = 0; f < 300 && s.g.roomId === ROOM.station; f++) frame(s, { ...NONE, right: true });
+  for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
+  const rail = cellAt(s.g, 20, 19), ring = ringText(s.g, 0), at0 = chr(s.g, rail);
+  run(s, 6);
+  check(`coming into the dining car (room ${s.g.roomId}) and standing still, the sleepers and the windows move at once`, s.g.roomId === SIB.gravy && chr(s.g, rail) !== at0 && ringText(s.g, 0) !== ring);
+  check('no animation of the train rooms waits for him: only the platform\'s car has a column to run from', WORLD.charAnims.filter((a) => a.room !== ROOM.station).every((a) => a.fromCol === undefined));
 }
 
 // ---- elsewhere nothing moves, and Monty on the Run has no animation -------------------------------------------

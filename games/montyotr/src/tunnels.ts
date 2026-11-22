@@ -51,10 +51,11 @@ function paint(g: Game, t: TunnelState, col: number, row: number, code: number |
   g.setRoomChar(at, code ?? 0);
 }
 
-/** Whether the cell at a playfield column and row was a wall as the room has it (before any mouth drew on it). */
-function solidCell(g: Game, col: number, row: number): boolean {
+/** Whether the cell at a playfield column and row was a wall as the room has it (before any mouth drew on it); a rope or ladder is not one for a mouth that `coversClimbs`. */
+function solidCell(g: Game, col: number, row: number, e: TunnelSpec): boolean {
   const at = (row + PLAY_ROW) * ROW + col + PLAY_COL;
-  return g.tileFlag(g.tunnelUnder.get(at)?.[0] ?? g.mem[SCREEN + at] ?? 0) !== 0;
+  const flag = g.tileFlag(g.tunnelUnder.get(at)?.[0] ?? g.mem[SCREEN + at] ?? 0);
+  return flag !== 0 && !(flag === 3 && e.coversClimbs);
 }
 
 /** Whether Monty is over a cell the picture is drawn in (the nose's empty cells are not the train). */
@@ -93,7 +94,7 @@ export function tunnelUpdate(g: Game) {
           for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(t.left, lo); c < Math.min(t.left + e.cols, hi); c++) {
             if (e.picture) {
               const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
-              if (code && !solidCell(g, c, r)) paint(g, t, c, r, code); // (a train goes into the tiled wall as into a tunnel: not drawn over it)
+              if (code && !solidCell(g, c, r, e)) paint(g, t, c, r, code); // (a train goes into the tiled wall as into a tunnel: not drawn over it)
             } else paint(g, t, c, r, r < e.top + wall || c < t.left + wall || c >= t.left + e.cols - wall ? e.code : null);
           }
         }

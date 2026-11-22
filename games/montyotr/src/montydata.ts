@@ -140,6 +140,8 @@ export interface TunnelSpec {
   span?: { readonly from: number; readonly to: number };
   /** Scenery that moves, never a danger (an elevated train passing over a street, a crowd): it is drawn as the picture and kills nothing. */
   harmless?: boolean;
+  /** With a `picture`: it covers a rope or ladder in its way too (the mountain over a tree Monty climbs) and kills what of Monty is on it, instead of passing behind it. */
+  coversClimbs?: boolean;
 }
 
 /**
@@ -187,8 +189,15 @@ export interface PulseSpec {
  */
 export interface DragonSpec {
   room: number; path: readonly (readonly [col: number, row: number])[]; speed: number; gap: number;
-  pieces: readonly { sprite: number; frames: readonly number[]; colour: number }[];
+  pieces: readonly DragonPiece[];
 }
+
+/**
+ * A piece of a dragon (or of a creature of several sprites moving as one: the yeti): its VIC `sprite`, its `frames` and `colour`. `rigid`: it does not follow the one in front but stays at this offset
+ * (sprite pixels) from the first piece, so the pieces are one body (the first piece's `gap` does not matter). `facing: 'front'`: a figure seen from the front whose pictures do not turn with the way it goes:
+ * its `frames` are simply the pictures taken in turn.
+ */
+export interface DragonPiece { sprite: number; frames: readonly number[]; colour: number; rigid?: readonly [dx: number, dy: number]; facing?: 'front' }
 
 /**
  * Rising lava (lava.ts; the Pacific's volcano): from `col`, `cols` wide, the lava starts with its top at playfield row `baseRow` when Monty comes into the room and rises a row every
@@ -253,6 +262,11 @@ export interface FloatSpec {
   room: number; row: number; span: { from: number; to: number }; dir: 1 | -1; step: number; every: number; w: number; offset: number; deck: number; decor: number; h: number;
   /** Where the room lists the decoration (playfield cell): the float draws it itself, so the static one is cleared when the room loads. */
   home: readonly [col: number, row: number];
+  /**
+   * A float that goes there and back (the mine cart over the flooded working) instead of round: it stays inside its span (the first cell it covers is the span's start, the last the span's end), crosses it a cell every `step`
+   * frames, rests `hold` cells' time at each end (`every` is then not used, `dir` is only where it starts) and comes back.
+   */
+  bounce?: { hold: number };
 }
 
 /**

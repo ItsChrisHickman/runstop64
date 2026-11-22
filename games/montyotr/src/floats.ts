@@ -16,8 +16,12 @@ export interface FloatState { index: number; t: number; at: number; under: Map<n
 /** The cell of the float's cycle `t` frames into the room's time. */
 export const floatCycle = (e: FloatSpec, t: number): number => Math.floor(t / e.step) + e.offset;
 
-/** The float's left column (playfield cells, any of the span's start less its width to its end) at cell `c` of its cycle. */
+/** The float's left column (playfield cells, any of the span's start less its width to its end) at cell `c` of its cycle; a bouncing one (the mine cart) stays inside the span, rests `hold` cells' time at each end and comes back. */
 export function floatLeft(e: FloatSpec, c: number): number {
+  if (e.bounce) {
+    const travel = e.span.to - e.span.from + 1 - e.w, leg = travel + e.bounce.hold, k = ((c % (2 * leg)) + 2 * leg) % (2 * leg);
+    return e.span.from + (k < leg ? Math.min(k, travel) : travel - Math.min(k - leg, travel));
+  }
   const k = ((c % e.every) + e.every) % e.every;
   return e.dir > 0 ? e.span.from - e.w + k : e.span.to + 1 - k;
 }
@@ -83,7 +87,8 @@ export function floatUpdate(g: Game) {
     if (c === f.at) continue;
     if (Number.isNaN(f.at)) for (let r = 0; r < e.h; r++) for (let k = 0; k < e.w; k++) g.mem[SCREEN + (e.home[1] + r + PLAY_ROW) * ROW + e.home[0] + k + PLAY_COL] = 0;
     const carried = riding(g, e, f.at);
+    const dir = e.bounce ? Math.sign(floatLeft(e, c) - floatLeft(e, c - 1)) : e.dir;
     draw(g, f, e, c);
-    if (carried && !carryBlocked(g, e.dir)) g.x2 = (g.x2 + e.dir * 4) & 0xff;
+    if (carried && dir !== 0 && !carryBlocked(g, dir)) g.x2 = (g.x2 + dir * 4) & 0xff;
   }
 }

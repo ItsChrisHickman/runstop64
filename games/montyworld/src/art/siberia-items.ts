@@ -1,9 +1,9 @@
 /**
  * Siberia's items for Monty Mole: World Tour (region 2): the miner's lamp and the ticket (the key items), the pelmeni (the food in
- * place of the cupcake) and the mine cart's two sprites. Hires sprite blocks as Moscow's items are (creatures.ts), drawn in the
+ * place of the cupcake). Hires sprite blocks as Moscow's items are (creatures.ts), drawn in the
  * same manner: a solid shape with the detail cut into it.
  */
-import { itemBlock, spriteBlock } from './pixels';
+import { itemBlock } from './pixels';
 import { over, Raster } from './raster';
 import type { NewItem } from './types';
 
@@ -55,33 +55,9 @@ function pelmeni(): NewItem {
   return { block: itemBlock('pelmeni', r.rows()), colour: 7 };
 }
 
-/** The cart's upper sprite: the hoist's chain hanging from a bracket, over Monty's head. */
-function cartTop(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.rect(4, 0, 19, 1);
-  for (let y = 2; y < 21; y++) if (y % 4 !== 3) r.rect(11, y, 12, y); // the chain, link by link
-  for (const y of [5, 13]) r.rect(10, y, 13, y);
-  return spriteBlock('cart top', r.rows());
-}
-
-/** The cart's lower sprite: the front of a coal tub with its rim, its rivets and planks, on two wheels (Monty stands in it). */
-function cartBottom(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.rect(0, 9, 23, 10); // the rim
-  r.rect(1, 11, 22, 17); // the tub's front
-  for (const x of [5, 11, 17]) r.rect(x, 12, x, 16, false); // the planks' joints
-  for (const x of [2, 8, 14, 20]) r.set(x, 12, false);
-  r.rect(0, 9, 0, 10, true);
-  for (const cx of [5, 18]) { r.disc(cx, 18, 2.9); r.rect(cx, 18, cx, 18, false); }
-  r.rect(1, 17, 22, 17);
-  r.rect(0, 20, 23, 20);
-  return spriteBlock('cart bottom', r.rows());
-}
-
 export const SIBERIA_ITEMS = {
   lamp: lamp(),
   ticket: ticket(),
   pelmeni: pelmeni(),
 } as const satisfies Record<string, NewItem>;
 
-export const CART = { top: cartTop(), bottom: cartBottom(), colour: 8 } as const;

@@ -47,8 +47,16 @@ export function dragonInit(g: Game) {
 /** How many frames a lap takes: the state's `t` goes round in this. */
 export const lapFrames = (spec: DragonSpec) => Math.ceil(pathOf(spec).length / spec.speed);
 
-/** Where piece `i` is (sprite pixels, the top left of its 24 by 21) `t` frames into the lap. */
+/**
+ * Where piece `i` is (sprite pixels, the top left of its 24 by 21) `t` frames into the lap: `gap` pixels of the path behind the one in front, or, for a rigid piece (the
+ * yeti's four sprites: one body), the leader's place and its own offset from it.
+ */
 export function piecePlace(spec: DragonSpec, i: number, t: number): readonly [number, number] {
+  const piece = spec.pieces[i];
+  if (piece?.rigid) {
+    const [x, y] = pointAt(pathOf(spec), t * spec.speed);
+    return [x + piece.rigid[0], y + piece.rigid[1]];
+  }
   return pointAt(pathOf(spec), t * spec.speed - i * spec.gap);
 }
 
@@ -76,8 +84,8 @@ export function dragonUpdate(g: Game) {
       g.sy[n] = Math.max(0, Math.min(255, Math.round(y)));
       g.scol[n] = piece.colour;
       // its picture: the frames are those of going left, then those of going right, and the pieces turn with the path
-      const half = piece.frames.length >> 1, ahead = pointAt(pathOf(e), t0 + 6 - i * e.gap);
-      g.sptr[n] = piece.frames[(ahead[0] < x ? 0 : half) + ((d.t >> 4) % half)] ?? 0;
+      const half = piece.frames.length >> 1, ahead = pointAt(pathOf(e), t0 + 6 - (piece.rigid ? 0 : i * e.gap));
+      g.sptr[n] = (piece.facing === 'front' ? piece.frames[(d.t >> 4) % piece.frames.length] : piece.frames[(ahead[0] < x ? 0 : half) + ((d.t >> 4) % half)]) ?? 0;
       g.enable |= 1 << n;
       if (!g.actionCounter && meetsMonty(g, x, y, WIDTH, HEIGHT, TRIM)) g.actionCounter = 1;
     });

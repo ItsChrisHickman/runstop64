@@ -1,7 +1,7 @@
 /**
  * Siberia's creatures for Monty Mole: World Tour (region 2), in Monty on the Run's formats and Moscow's manner (creatures.ts): bold
  * cartoon figures that fill their 16 x 16, a solid body in one ink with the detail cut into it as black lines and gaps (eyes, brows,
- * fangs, seams), a big face with an expression, an animation that reads. A wolf, a bear on all fours, an owl, a reindeer, a ticket
+ * fangs, seams), a big face with an expression, an animation that reads. A wolf, an owl, a reindeer, a ticket
  * inspector, a coal-faced miner, a yeti, a bat and a Baikal seal. No dither.
  */
 import { lay, pair } from './creature-kit';
@@ -31,29 +31,6 @@ function wolf(): NewCreature {
   };
   const left = [frame(1.5, true), frame(0, false), frame(-1.5, true), frame(0, false)];
   return pair('wolf', left, 12);
-}
-
-// ---- the bear: brown, a big round face with small ears and a black snout, on all fours, a roar
-
-/** A brown bear lumbering to the left, its round head turned out at us: tiny round ears, small eyes, a black nose, the mouth open on its teeth. */
-function brownBear(): NewCreature {
-  const frame = (a: number, roar: boolean) => {
-    const r = new Raster(16, 16);
-    lay(r, (s) => { limb(s, 10, 11, 9 + a, 15, 3); limb(s, 14, 11, 14 - a, 15, 3); }); // the back legs
-    r.ellipse(11, 10, 5, 4); // the body
-    r.disc(6, 6.5, 5.5); // the head
-    r.disc(1.6, 1.8, 1.8); r.disc(10.4, 1.8, 1.8); // the round ears
-    lay(r, (s) => { limb(s, 3, 12, 2 - a, 15, 3); limb(s, 8, 12, 8 + a, 15, 3); }); // the front legs
-    r.cut(['##', '##'], 2, 4); r.cut(['##', '##'], 8, 4); // the eyes, black
-    r.rect(3, 4, 3, 4); r.rect(9, 4, 9, 4);
-    r.cut(['####', '####'], 4, 7); // the black snout
-    r.rect(5, 7, 6, 7); // its nose, lit
-    r.cut(roar ? ['#######', '#######', '#######'] : ['#######'], 2, roar ? 10 : 11);
-    if (roar) r.stamp(['#.#.#.#'], 2, 10);
-    return r.rows();
-  };
-  const left = [frame(-1, true), frame(0, false), frame(1, true), frame(0, false)];
-  return pair('brownBear', left, 9);
 }
 
 // ---- the owl: round, a lit face with two huge ringed eyes, ear tufts, flying
@@ -259,7 +236,6 @@ function nerpa(): NewCreature {
 
 export const SIBERIA_CREATURES = {
   wolf: wolf(),
-  brownBear: brownBear(),
   owl: owl(),
   reindeer: reindeer(),
   inspector: inspector(),

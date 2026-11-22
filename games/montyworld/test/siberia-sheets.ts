@@ -5,7 +5,7 @@
  */
 import { SIBERIA_CREATURES } from '../src/art/siberia-creatures';
 import { SIBERIA_DECOR } from '../src/art/siberia-decor';
-import { CART, SIBERIA_ITEMS } from '../src/art/siberia-items';
+import { SIBERIA_ITEMS } from '../src/art/siberia-items';
 import { SIBERIA_TILES } from '../src/art/siberia-tiles';
 import { writeSheets } from './sheet-kit';
 
@@ -13,5 +13,5 @@ const out = process.argv[2];
 if (out === undefined) throw new Error('usage: siberia-sheets.ts <out-dir>');
 writeSheets(out, {
   title: 'SIBERIA', tiles: SIBERIA_TILES, decor: SIBERIA_DECOR, creatures: SIBERIA_CREATURES,
-  sprites: { ...SIBERIA_ITEMS, cartTop: { block: CART.top, colour: CART.colour }, cartBottom: { block: CART.bottom, colour: CART.colour } },
+  sprites: { ...SIBERIA_ITEMS },
 });

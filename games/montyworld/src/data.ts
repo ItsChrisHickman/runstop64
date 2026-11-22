@@ -5,11 +5,12 @@ import {
   buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
-  CART, CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
+  CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
   HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
 import { MapTitle, STRIP_Y } from './title';
 import { CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from './china';
+import { YETI_PICTURES } from './art/siberia-yeti';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
 import { LEI_COLOUR, leiWorn } from './art/pacific-lei';
@@ -22,7 +23,7 @@ import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, L
 import { BALL_STREAM, DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, LIFTS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { CRACKS, MINE_CART, SIBERIA_ICICLES, SIBERIA_PULSES, YETI, YETI_POINTERS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
@@ -77,7 +78,7 @@ const DRAGON_BLOCKS = [
   { ptr: DRAGON_POINTERS.tailRight, block: DRAGON_PICTURES.tailRight },
 ] as const;
 
-/** The bank with the items, icicles, the cart, the dragon and the first hat at their pointers. */
+/** The bank with the items, icicles, the dragon and the first hat at their pointers. */
 const bank = extendBank(bankImage, [
   ...USHANKA.blocks,
   { ptr: SPRITE.token, block: MOSCOW_ITEMS.metroToken.block },
@@ -90,13 +91,15 @@ const bank = extendBank(bankImage, [
   { ptr: SIB_SPRITE.lamp, block: SIBERIA_ITEMS.lamp.block },
   { ptr: SIB_SPRITE.ticket, block: SIBERIA_ITEMS.ticket.block },
   { ptr: SIB_SPRITE.pelmeni, block: SIBERIA_ITEMS.pelmeni.block },
-  { ptr: SIB_SPRITE.cartTop, block: CART.top },
-  { ptr: SIB_SPRITE.cartBottom, block: CART.bottom },
   { ptr: CHINA_SPRITE.key, block: CHINA_ITEMS.towerKey.block },
   { ptr: CHINA_SPRITE.riceHat, block: CHINA_ITEMS.riceHat.block },
   { ptr: CHINA_SPRITE.bamboo, block: CHINA_ITEMS.bamboo.block },
   { ptr: CHINA_SPRITE.dumplings, block: CHINA_ITEMS.dumplings.block },
   ...DRAGON_BLOCKS,
+  { ptr: YETI_POINTERS.topLeft, block: YETI_PICTURES.topLeft },
+  { ptr: YETI_POINTERS.topRight, block: YETI_PICTURES.topRight },
+  ...YETI_PICTURES.bottomLeft.map((block, i) => ({ ptr: YETI_POINTERS.bottomLeft[i] ?? 0, block })),
+  ...YETI_PICTURES.bottomRight.map((block, i) => ({ ptr: YETI_POINTERS.bottomRight[i] ?? 0, block })),
   { ptr: PAC_SPRITE.cutters, block: PACIFIC_ITEMS.pacCutters.block },
   { ptr: PAC_SPRITE.snorkel, block: PACIFIC_ITEMS.pacSnorkel.block },
   { ptr: PAC_SPRITE.lei, block: PACIFIC_ITEMS.pacLei.block },
@@ -248,22 +251,22 @@ export const WORLD: MontyData = {
   roomEffects: ROOM_EFFECTS,
 
   jetpackRooms: [],
-  lifts: LIFTS,
+  lifts: [],
   escalators: [...ESCALATORS, LOADER],
-  icicles: ICICLES,
+  icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS],
   cracks: CRACKS,
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS],
-  pulses: [...PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES],
+  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES],
   swimRooms: [PAC.clam, PAC.kelp, PAC.cave, PAC.fish],
   risingLava: [LAVA],
-  dragons: [DRAGON],
+  dragons: [DRAGON, YETI],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
   rollers: BOULDERS,
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
-  floats: FLOATS,
+  floats: [...FLOATS, MINE_CART],
   skewers: SKEWERS,
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last

@@ -4,6 +4,7 @@
  * bunks, the mine's coal bucket, props, boulders and portal, the fisherman's hut, the telegraph pole, a log cabin.
  */
 import { decor } from './decorations';
+import { characters } from './pixels';
 import { Raster } from './raster';
 import { SIBERIA_SKY } from './siberia-sky';
 import type { NewDecor } from './types';
@@ -273,6 +274,67 @@ function stalactites(): NewDecor {
   return decor('stalactites', 3, 1, r, 12);
 }
 
+// ---- under the train: the rail and the wheels (decorations: nothing under the floor is walked on) --------------------
+
+/** The rail on its sleepers seen from the side: the iron's head along the top, a sleeper and a gap of ballast every 8 pixels (it is made to slide sideways). 1 x 1 character. */
+const RAIL_ROWS = ['########', '########', '.####...', '.####...', '.####...', '.####...', '........', '#...#.#.'] as const;
+/** The wheel under a carriage: the rim, the hub and four spokes (a cross; `WHEEL_FRAMES` turns it to a saltire). 1 x 1 character. */
+const WHEEL_ROWS = ['..####..', '.#.##.#.', '#..##..#', '########', '########', '#..##..#', '.#.##.#.', '..####..'] as const;
+const oneChar = (name: string, rows: readonly string[], colour: number): NewDecor => {
+  const r = new Raster(8, 8);
+  r.stamp(rows, 0, 0);
+  return decor(name, 1, 1, r, colour);
+};
+
+/** The wheel's pictures in turn (a character, as bytes): the cross, then the saltire. */
+export const WHEEL_FRAMES: readonly Uint8Array[] = [
+  characters('wheel', WHEEL_ROWS, 1, 1),
+  characters('wheel turned', ['..####..', '.##..##.', '#.#..#.#', '#..##..#', '#..##..#', '#.#..#.#', '.##..##.', '..####..'], 1, 1),
+];
+
+/** A locomotive's big driving wheel: the tyre, six spokes and the hub with a crank pin. 3 x 3 characters. */
+function drivingWheel(): NewDecor {
+  const r = new Raster(24, 24);
+  r.ring(11.5, 11.5, 11, 3);
+  for (let k = 0; k < 6; k++) {
+    const a = (k * Math.PI) / 3 + 0.3;
+    r.line(11.5, 11.5, 11.5 + 9 * Math.cos(a), 11.5 + 9 * Math.sin(a));
+    r.line(12.5, 11.5, 12.5 + 9 * Math.cos(a), 11.5 + 9 * Math.sin(a));
+  }
+  r.disc(11.5, 11.5, 3.2); r.ellipse(11.5, 11.5, 1.2, 1.2, false);
+  return decor('drivingWheel', 3, 3, r, 2);
+}
+
+/** The locomotive cab's window: a lit frame round dark glass with a glint, a sill. 2 x 2 characters. */
+function cabWindow(): NewDecor {
+  const r = new Raster(16, 16);
+  r.rect(0, 0, 15, 15);
+  r.rect(2, 2, 13, 11, false);
+  r.line(4, 9, 8, 4); r.line(6, 9, 10, 4);
+  r.rect(7, 2, 8, 11);
+  return decor('cabWindow', 2, 2, r, 7);
+}
+
+/** A cluster of a big pine's boughs: three tiers with their fringes and a cap of snow (the sleeper's pine has two round its top and one over the roof). 5 x 2 characters. */
+function pineBough(): NewDecor {
+  const r = new Raster(40, 16);
+  for (const [top, bottom, half] of [[0, 6, 8], [4, 11, 14], [8, 15, 19]] as const) {
+    for (let y = top; y <= bottom; y++) { const t = (y - top) / (bottom - top); const x = Math.max(2, Math.round(half * (0.2 + 0.8 * t))); r.rect(20 - x, y, 19 + x, y); }
+    r.rect(20 - half + 2, bottom, 19 + half - 2, bottom, false);
+    for (let x = 20 - half + 4; x < 19 + half - 4; x += 4) r.set(x, bottom - 1, false);
+  }
+  return decor('pineBough', 5, 2, r, 5);
+}
+
+/** A mine cart's wall over its bed: the rim of the box with a heap of coal in it and a lamp hook. 4 x 1 characters. */
+function mineCart(): NewDecor {
+  const r = new Raster(32, 8);
+  r.rect(0, 3, 31, 4); r.rect(0, 5, 31, 7); r.rect(2, 6, 29, 6, false);
+  r.ellipse(9, 2.5, 5, 2.6); r.ellipse(22, 2.5, 6, 2.6); // the heaped ore
+  for (const x of [6, 11, 19, 24]) r.set(x, 2, false);
+  return decor('mineCart', 4, 1, r, 8);
+}
+
 export const SIBERIA_DECOR = {
   pineTall: pine(3, 6, 4, 'pineTall'),
   pineSmall: pine(2, 3, 2, 'pineSmall'),
@@ -297,6 +359,12 @@ export const SIBERIA_DECOR = {
   pole: pole(),
   cabin: cabin(),
   stalactites: stalactites(),
+  rail: oneChar('rail', RAIL_ROWS, 12),
+  wheel: oneChar('wheel', WHEEL_ROWS, 2),
+  drivingWheel: drivingWheel(),
+  cabWindow: cabWindow(),
+  pineBough: pineBough(),
+  mineCart: mineCart(),
   ...SIBERIA_SKY,
 } as const satisfies Record<string, NewDecor>;
 

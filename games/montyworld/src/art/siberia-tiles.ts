@@ -3,7 +3,6 @@
  * style as Moscow's are: one bright ink on black in solid shapes cut with black lines (planks, bark, logs, rock, coal), never a
  * checker or a dither. The train's, the pines', the mine's, the lake's ice and the village's.
  */
-import { characters } from './pixels';
 import { tile } from './tiles';
 import type { NewTile } from './types';
 
@@ -18,28 +17,6 @@ export const SIBERIA_TILES = {
     '####.###',
     '####.###',
     '........',
-  ]),
-  /** The wheel under a carriage: the rim, the hub and four spokes (a cross; `WHEEL_FRAMES` turns it to a saltire). Solid. */
-  wheel: tile('wheel', 1, 2, [
-    '..####..',
-    '.#.##.#.',
-    '#..##..#',
-    '########',
-    '########',
-    '#..##..#',
-    '.#.##.#.',
-    '..####..',
-  ]),
-  /** The rail on its sleepers seen from the side: the iron's head along the top, a sleeper and a gap of ballast every 8 pixels (it is made to slide sideways). Solid. */
-  rail: tile('rail', 1, 12, [
-    '########',
-    '########',
-    '.####...',
-    '.####...',
-    '.####...',
-    '.####...',
-    '........',
-    '#...#.#.',
   ]),
   /** A carriage's roof: the walkway along the top and the plate's thickness curving away under it, in scallops. A floor. */
   roofDeck: tile('roofDeck', 2, 12, [
@@ -228,21 +205,94 @@ export const SIBERIA_TILES = {
     '###.####',
     '........',
   ]),
+  /** The mountain's rock the tunnel runs through (and the cutting's wall): rough boulders with the cracks between them, one ink on black. Nothing (a picture: the tunnel's mass kills, it does not block). */
+  tunnelRock: tile('tunnelRock', 0, 9, [
+    '########',
+    '##..####',
+    '#.##.###',
+    '########',
+    '####..##',
+    '###.##.#',
+    '#.######',
+    '########',
+  ]),
+  /** A big pine's trunk with a branch stub each side: bark in strips and a knot. A rope's class (he climbs it). */
+  pineTrunk: tile('pineTrunk', 3, 9, [
+    '.#.##.#.',
+    '.#.##.#.',
+    '##.##.##',
+    '.#.##.#.',
+    '.#.#..#.',
+    '.#.##.#.',
+    '##.##.##',
+    '.#.##.#.',
+  ]),
+  /** A locomotive's boiler: plates with a band of rivets and a black seam between. Solid. */
+  boilerPlate: tile('boilerPlate', 1, 5, [
+    '########',
+    '#.#.#.##',
+    '########',
+    '........',
+    '########',
+    '#.#.#.##',
+    '########',
+    '........',
+  ]),
+  /** The frozen waterfall: streaks of ice running down in different widths, the gaps between them dark. Solid. */
+  iceFall: tile('iceFall', 1, 3, [
+    '.###.##.',
+    '.###.##.',
+    '.##..##.',
+    '.##.###.',
+    '##..###.',
+    '##.####.',
+    '.##.###.',
+    '.##..##.',
+  ]),
+  /** The fringe of icicles hanging over a hollow in the ice: thin streaks, passable. */
+  iceCurtain: tile('iceCurtain', 0, 3, [
+    '.#..#..#',
+    '.#..#..#',
+    '.#.##..#',
+    '..#.#..#',
+    '.##..#..',
+    '..#..#.#',
+    '..#..#.#',
+    '..#...#.',
+  ]),
+  /** Snow shaken loose from a bough, trembling before it falls: a few flakes. Nothing. */
+  snowDust: tile('snowDust', 0, 1, [
+    '........',
+    '..#..#..',
+    '.......#',
+    '#.......',
+    '...#....',
+    '.#....#.',
+    '........',
+    '.....#..',
+  ]),
+  /** A lump of snow falling off a bough. Nothing (what it falls on is not blocked: it is a strike). */
+  snowLump: tile('snowLump', 0, 1, [
+    '..####..',
+    '.######.',
+    '########',
+    '########',
+    '########',
+    '########',
+    '.######.',
+    '..####..',
+  ]),
+  /** A mine cart's bed: the plank under the ore, its wheel under it on the rail. A floor (the cart carries him). */
+  cartDeck: tile('cartDeck', 2, 8, [
+    '########',
+    '########',
+    '#.####.#',
+    '.######.',
+    '..####..',
+    '.#.##.#.',
+    '.#.##.#.',
+    '########',
+  ]),
 } as const satisfies Record<string, NewTile>;
-
-/** The wheel's other picture: the spokes turned to a saltire (a character, as a tile's bytes). */
-export const WHEEL_FRAMES: readonly Uint8Array[] = [
-  SIBERIA_TILES.wheel.chr,
-  characters('wheel turned', [
-    '..####..',
-    '.##..##.',
-    '#.#..#.#',
-    '#..##..#',
-    '#..##..#',
-    '#.#..#.#',
-    '.##..##.',
-    '..####..',
-  ], 1, 1),
-];
 
 export type SiberiaTile = keyof typeof SIBERIA_TILES;

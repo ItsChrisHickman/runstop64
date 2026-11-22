@@ -165,3 +165,23 @@ as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as 
 - **Checks**: `test/train.ts` (the animations: the windows' pictures move and wrap, the sleepers slide, the wheels cycle, the station's train
   stands until he is aboard, Monty on the Run has none); the bot (`siberia.ts`) now starts on the platform; `moscow.ts`'s last leg boards the train.
   Pictures: /root/projects/runstop64-shots/siberia-train/ (`test/train-shots.ts`).
+
+## After Chris played it (2026-11-22)
+
+- **The tunnel is a mountain** (`MOUNTAIN` in `siberia.ts`, a `picture` tunnel of 34 cells with `coversClimbs`): rock running off the screen's edge, the granite portal at its leading
+  edge and another where the train comes out; it covers the roof and what stands on it (the tree too), never the car under it. One direction only, from the right (the way the train
+  travels, against the scenery's way): the sleeper's second mouth is gone. The same rest, warning and pace; the sweep over a point is longer, so a hatch is where he waits.
+- **The scenery runs from the moment he is in the room** (`charAnims` with no `fromCol` ran only once he was a cell inside the playfield: he comes in half off its edge). The rail and the
+  wheels under a car are decorations (`underCar`), which frees two tile codes in every train room for the mountain's rock and the pine's trunk.
+- **COAL COMFORT** is the coal tender behind the locomotive: an open wagon (boards, bogies, coal in steps down to the stoker's trough and up) and, at its front, the locomotive's cab (roof, window, gauge,
+  firebox door), the boiler, the chimney with smoke and three big driving wheels. The mine's rope is now at column 24, up from the cab roof (and the mine's floor gap with it).
+- **SLEEPER HIT to PINE TO BE WILD**: the line runs in a cutting (banks under pines at both ends) and a big pine's trunk (two cells, climbable) rises beside the roof with a bough hanging over it:
+  up the tree. In the forest the trunk comes up through the ground; the other climb there is a great pine too.
+- **YETI OR NOT**: one cave rock; a frozen waterfall with icicles over its foot (the pelmeni behind them), ice ledges up its face to a high stash with an icicle over it, an ice bridge, and the
+  **big yeti**: four sprites (6 x 5 cells) moving as one on a loop (floor west, up the left, the bridge east, down the right): the floor is clear while it is on the bridge and the bridge while it
+  is on the floor. Engine: `rigid` pieces and `facing: 'front'` in `DragonSpec`, the same machinery as China's dragon.
+- **MINE ALL MINE**: the lamp's pocket is across a flooded working the cart shuttles over on a track (a bouncing float: `bounce` in `FloatSpec`); it carries him there and back. The old lift cart
+  (and its two sprites) is gone, the yeti uses their pointers.
+- **BORDER LINE CASE**: no right wall; the barrier closes the way.
+- **Creatures** vary: a ladder guard in the sleeper, a stoker in the tender, a wolf, falling snow (timed strikes) and a diving owl in the forest, the yeti alone in its cave, bats over the working and
+  across the rope, a bat sweeping the shaft's pit, an owl over the lake's island, a wolf on the woodpile's top.
