@@ -9,15 +9,17 @@
 import fs from 'node:fs';
 import { enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
-import { frame, NONE } from '../../montyotr/test/play';
+import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
-import { newGame, play, search, type Route } from './bot';
+import { copy } from '../../montyotr/test/play';
+import { ACTIONS, hold, keyOf, newGame, play, search, STEP, type Route } from './bot';
 import { PACIFIC_LEGS } from './pacific-route';
 import { itemIndex, standY } from './route';
 
+if (new Set(PACIFIC_LEGS.map((l) => l.name)).size !== PACIFIC_LEGS.length) throw new Error('two legs have the same name');
 const only = process.argv[2];
 const first = Number(process.argv[3] ?? 0), last = Number(process.argv[4] ?? PACIFIC_LEGS.length);
 
@@ -35,6 +37,30 @@ if (cacheFile && fs.existsSync(cacheFile)) {
 const keep = (name: string, route: Route) => { cached.set(name, route); if (cacheFile) fs.writeFileSync(cacheFile, [...cached].map(([n, r]) => `${n}\t${r.map(([a, f]) => `${a}:${f}`).join(' ')}`).join('\n')); };
 
 /** The rooms and finds of the Pacific in the tables: the rooms from the stern on. */
+/** When a leg finds no way: where he could get to in the room he is in (the cells his top left reached in up to 150000 states), for finding what the layout lacks. */
+function reached(from: State): string {
+  const room = from.g.roomId;
+  const seen = new Set([keyOf(from.g)]), cells = new Set<string>();
+  let level = [from], nodes = 0;
+  while (level.length && nodes < 150000) {
+    const next: State[] = [];
+    for (const n of level) {
+      for (const [, stick] of n.g.montyAction || n.g.falling || n.g.gameMode ? [ACTIONS[4] ?? ['.', NONE]] : ACTIONS) {
+        const t: State = { g: copy(n.g), col: n.col };
+        const r = hold(t, stick, STEP);
+        nodes++;
+        if (r.dead || t.g.roomId !== room) continue;
+        cells.add(`${t.g.montyCol - 4},${t.g.montyRow}`);
+        const k = keyOf(t.g);
+        if (!seen.has(k)) { seen.add(k); next.push(t); }
+      }
+    }
+    level = next;
+  }
+  const g = from.g;
+  return Array.from({ length: 20 }, (_, r) => `${String(r).padStart(2)} ${Array.from({ length: 32 }, (_, c) => (cells.has(`${c},${r + 3}`) ? '*' : g.flagAt(r + 3, c + 4) === 1 ? '#' : '.')).join('')}`).join('\n');
+}
+
 const pacific = (room: number) => room >= PAC.stern && room <= PAC.hold;
 
 for (const mode of ['original', 'enhanced'] as const) {
@@ -60,8 +86,8 @@ for (const mode of ['original', 'enhanced'] as const) {
       continue;
     }
     // the first look is the careful one (a weighted A*); a swim across a wide reef has too many ways, so the second leans harder on the aim
-    const found = search(live, leg.goal, leg.aim, 150000, 1.5, stats) ?? search(live, leg.goal, leg.aim, 600000, 4, stats);
-    if (!found) { check(`${mode}: ${leg.name}: a way (${stats.exhausted ? 'every state looked at' : 'the search limit'})`, false); break; }
+    const found = search(live, leg.goal, leg.aim, 60000, 1.5, stats) ?? search(live, leg.goal, leg.aim, 600000, 3, stats);
+    if (!found) { check(`${mode}: ${leg.name}: a way (${stats.exhausted ? 'every state looked at' : 'the search limit'})`, false); console.log(`   from room ${live.g.roomId} at ${live.g.montyCol - 4},${live.g.montyRow - 3} (y ${live.g.y}, lava ${live.g.lavas[0]?.t ?? '-'}), he reaches:\n${reached(live)}`); break; }
     const next = play(live, found.route);
     const ok = next !== null && leg.goal(next.g);
     if (ok) keep(leg.name, found.route);

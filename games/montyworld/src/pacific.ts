@@ -349,8 +349,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 31, 3, 'K').clear(22, 0, 27, 3).box(0, 4, 1, 16, 'K').box(30, 4, 31, 19, 'K');
       g.box(2, 4, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(2, 4, 29, 4, 'U');
       g.box(0, 19, 31, 19, 'B');
-      g.box(4, 0, 6, 6, 'K').box(10, 0, 12, 8, 'K').box(16, 0, 18, 5, 'K'); // stalactites
-      g.box(7, 15, 10, 18, 'R').box(14, 13, 17, 18, 'R').box(20, 16, 24, 18, 'C');
+      g.box(4, 0, 6, 6, 'K').box(10, 0, 12, 5, 'K').box(16, 0, 18, 4, 'K'); // stalactites
+      g.box(7, 15, 10, 18, 'R').box(14, 14, 17, 18, 'R').box(20, 16, 24, 18, 'C');
     },
     coins: [[8, 13], [15, 11], [22, 14], [28, 16]],
     decor: [['pacWaterfall', 24, 4], ['pacKelp', 12, 15], ['pacSeaFan', 26, 15], ['pacBubbles', 19, 8]],
@@ -383,9 +383,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 31, 1, 'W').clear(20, 0, 22, 1).box(0, 2, 1, 16, 'W').box(30, 2, 31, 16, 'W');
       g.box(2, 2, 29, 18, 'S').box(0, 17, 1, 18, 'S').box(30, 17, 31, 18, 'S');
       g.box(0, 19, 31, 19, 'B');
-      g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(24, 12, 28, 18, 'R').box(25, 10, 27, 11, 'R');
+      g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
-    coins: [[7, 11], [16, 13], [26, 8], [12, 6]],
+    coins: [[7, 11], [16, 13], [24, 8], [12, 6]],
     decor: [['pacAnchor', 11, 17], ['pacKelp', 20, 16], ['pacSeaFan', 2, 16], ['pacBubbles', 14, 5]],
     creatures: [{ who: 'pacSharkFin', col: 4, row: 8, way: 'right', speed: 1, range: 150 }],
   }),

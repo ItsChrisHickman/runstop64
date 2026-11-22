@@ -5,11 +5,18 @@
  * the volcano's climb with the lava behind him, Hilo's airport (the guard gone, the loader up) and the plane's hold with the parachute), as functions on the game. Shared by the bot test and the pictures.
  */
 import { PAC } from '../src/pacific';
-import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
+import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
+
+/** Swimming to a place: his top left within a cell of the one given (a swim across a wide room is a few of these, so the search never has the whole sea to look through). */
+const swimTo = (room: number, col: number, row: number): Part => ({
+  goal: (g) => g.roomId === room && !g.freeze && !g.script && Math.abs(g.montyCol - 4 - col) <= 1 && Math.abs(g.montyRow - 3 - row) <= 1,
+  aim: [{ room, col, row }],
+});
 
 /** A leg that ends in the low lane: the way out is the same room by two lanes, and a leg that ended in the other would hand the next one the wrong start. */
 const low = (floor: number) => (g: Parameters<Part['goal']>[0]) => !above(floor)(g);
 
+/** Every leg has a name of its own (the bot's kept routes are by name). */
 export const PACIFIC_LEGS: readonly Leg[] = [
   leg('A: up onto the deck, the coin by the bridge', coin(PAC.stern, 20, 10)),
   leg('A: down the hatch ladder into the engine room', stands(PAC.stern, 18, 24, 28)),
@@ -69,6 +76,9 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('L: the second coin', coin(PAC.cave, 15, 11)),
   leg('L: the third coin', coin(PAC.cave, 22, 14)),
   leg('L: the far coin', coin(PAC.cave, 28, 16)),
+  leg('L: back across the cave above the coral', swimTo(PAC.cave, 20, 9)),
+  leg('L: left between the stalactites', swimTo(PAC.cave, 8, 9)),
+  leg('L: down the cave\'s west end', swimTo(PAC.cave, 3, 15)),
   leg('L to H: back out to the reef', into(PAC.kelp, 0, 17, PAC.cave)),
   leg('H to I: up through the ceiling to the slipway', into(PAC.whale, 15, 0, PAC.kelp)),
   leg('I: up to the brig\'s deck, past the tiki, the coin', coin(PAC.whale, 6, 12)),
@@ -77,10 +87,10 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('I: past the surfer, the quay\'s far coin', coin(PAC.whale, 29, 15)),
   leg('I to J: out along the quay to the road', into(PAC.road, 31, 16, PAC.whale)),
   leg('J: over the first bridge behind its car, the coin', coin(PAC.road, 14, 15)),
-  leg('J: the level\'s end coin', coin(PAC.road, 27, 15)),
+  leg('J: the first level\'s end coin', coin(PAC.road, 27, 15)),
   leg('J: up the bamboo to the second level', stands(PAC.road, 13, 22, 27)),
   leg('J: over the second bridge, the coin', coin(PAC.road, 18, 10)),
-  leg('J: the level\'s end coin', coin(PAC.road, 6, 10)),
+  leg('J: the second level\'s end coin', coin(PAC.road, 6, 10)),
   leg('J: up the bamboo to the third level', stands(PAC.road, 8, 4, 8)),
   leg('J: over the third bridge, the coin', coin(PAC.road, 16, 5)),
   leg('J: the last coin, past the coconut', coin(PAC.road, 27, 5)),
@@ -94,7 +104,7 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('K to M: into the cove and down into the third reef', into(PAC.fish, 21, 19, PAC.hana)),
   leg('M: the first coin', coin(PAC.fish, 7, 11)),
   leg('M: the second coin', coin(PAC.fish, 16, 13)),
-  leg('M: the third coin', coin(PAC.fish, 26, 8)),
+  leg('M: the third coin', coin(PAC.fish, 24, 8)),
   leg('M: the coin near the surface', coin(PAC.fish, 12, 6)),
   leg('M to N: out to the coast', into(PAC.coffee, 31, 17, PAC.fish)),
   leg('N: the first coin on the shore', coin(PAC.coffee, 10, 16)),
@@ -103,7 +113,8 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('N: up the rope to the shed and the musubi', item(PAC.coffee, 0, [5, 6])),
   leg('N: along the terraces to the second terrace\'s coin', coin(PAC.coffee, 18, 7)),
   leg('N: the top terrace\'s coin', coin(PAC.coffee, 26, 5)),
-  leg('N to O: down the rope and out on the shore, low, to the volcano', into(PAC.mauna, 31, 17, PAC.coffee, low(14))),
+  leg('N: back down the rope to the shore', stands(PAC.coffee, 19, 0, 8)),
+  leg('N to O: out along the shore, low, to the volcano', into(PAC.mauna, 31, 17, PAC.coffee, (g) => g.y === standY(19))),
   leg('O: onto the first ledge, its coin', coin(PAC.mauna, 6, 15)),
   leg('O: the second ledge\'s coin', coin(PAC.mauna, 11, 13)),
   leg('O: up the rope to the snow shelf and its coin', coin(PAC.mauna, 4, 5)),
