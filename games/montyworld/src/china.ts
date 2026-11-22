@@ -401,8 +401,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36 },
       { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },
-      { who: 'carp', col: 8, row: 18, way: 'right', speed: 1, range: 56 },
-      { who: 'carp', col: 19, row: 18, way: 'right', speed: 1, range: 40 },
+      { who: 'carp', col: 7, row: 18, way: 'right', speed: 1, range: 88 },
     ],
   }),
 ];

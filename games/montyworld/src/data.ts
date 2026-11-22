@@ -322,6 +322,7 @@ export const WORLD: MontyData = {
       { room: SIB.sleeper, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: SIB.border, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: CHI.tower, item: KEY, text: 'THE TRAPDOOR IS LOCKED UP' },
+      { room: CHI.wall, item: KEY, text: 'THE HATCH IS LOCKED UP' },
       { room: CHI.gate, item: RICE_HAT, text: 'THE CITY TURNS FOREIGNERS AWAY' },
       { room: CHI.junk, item: BAMBOO, text: 'THE RIVER IS TOO WIDE TO WADE' },
       { room: JP.platform, item: DARUMA, text: 'THE SHUTTER OPENS FOR LUCK' },
