@@ -64,7 +64,8 @@ Wiedersehen Monty's: Chris finds the first game's flow far more interesting than
 - **Not every room is a dungeon** (Chris on Japan, 2026-11-22: "What's up with all the ugly grey borders?"; "On Monty on the Run,
   the tree, driving levels, sewer stages and boat didn't have screen borders"). No frame walls round a room by habit: outdoor
   rooms open to the sky and run off the screen's edges (ground, water, rooftops, a train's line continuing); walls only where
-  the place is indoors, shaped as that building. A vehicle or structure is never cut off by a wall at the edge.
+  the place is indoors, shaped as that building. A vehicle or structure is never cut off by a wall at the edge. No ceiling
+  over an outdoor room (Chris): open sky to the top.
 - **A costume is worn, not stuck on** (Chris on the hats, 2026-11-21: "Doesn't look like he is wearing the item. Too large and
   it's over his face"): a hat sits small on his head above his eyes, a lei round his neck; his face always shows.
 
