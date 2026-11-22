@@ -72,7 +72,7 @@ export const RIO_LEGS: readonly Leg[] = [
   leg('F: across to the second roof, the skewer', item(R.colour, 0, [15, 7])),
   leg('F: the second roof\'s coin', livesFor(coin(R.colour, 18, 7), 60)),
   leg('F: the church\'s roof, the coin', livesFor(coin(R.colour, 29, 6), 60)),
-  leg('F: down into the gap, the coin', livesFor(coin(R.colour, 12, 12), 60)),
+  leg('F: down into the gap, the coin', livesFor(coin(R.colour, 13, 12), 60)),
   leg('F: down to the lane, the first coin', livesFor(coin(R.colour, 8, 16), 60)),
   leg('F: the lane\'s next', livesFor(coin(R.colour, 16, 16), 60)),
   leg('F: the lane\'s last', livesFor(coin(R.colour, 24, 16), 60)),

@@ -23,7 +23,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: RIO_ROOM.arms, name: '71-open-arms', col: 1, floor: 8, frames: 40, compare: 0x0a },
   { room: RIO_ROOM.monkey, name: '72-monkey-business', col: 2, floor: 8, frames: 40, compare: 0x15 },
   { room: RIO_ROOM.colour, name: '73-house-of-colour', col: 3, floor: 8, frames: 40, compare: 0x07 },
-  { room: RIO_ROOM.steak, name: '74-steak-your-claim', col: 24, floor: 18, frames: 40, compare: 0x0f },
+  { room: RIO_ROOM.steak, name: '74-steak-your-claim', col: 30, floor: 18, frames: 30, compare: 0x0f },
   { room: RIO_ROOM.drum, name: '75-beat-the-drum', col: 1, floor: 18, frames: 40, compare: 0x1d },
   { room: RIO_ROOM.float, name: '76-float-your-boat', col: 1, floor: 18, frames: 40, compare: 0x1e },
   { room: RIO_ROOM.bust, name: '77-rio-or-bust', col: 2, floor: 18, frames: 40, compare: 0x1f },
@@ -45,7 +45,7 @@ for (const s of SPOTS) compare(out, `compare-${s.name}.png`, placed({ room: s.ro
 
 // the floats through their cycle, the skewers through theirs
 contactSheet(out, 'floats.png', [10, 90, 170, 250, 330, 410].map((frames) => placed({ room: RIO_ROOM.float, col: 1, floor: 18, frames, worn: headdress }).px));
-contactSheet(out, 'skewers.png', [5, 30, 55, 80].map((frames) => placed({ room: RIO_ROOM.steak, col: 24, floor: 18, frames, worn: chullo }).px));
+contactSheet(out, 'skewers.png', [5, 30, 55, 80].map((frames) => placed({ room: RIO_ROOM.steak, col: 30, floor: 18, frames, worn: chullo }).px));
 // the cable car's station before and after the key
 savePng(out, 'gate-before.png', placed({ room: RIO_ROOM.sugar, col: 8, floor: 14, frames: 40, worn: chullo }).px);
 savePng(out, 'gate-after.png', placed({ room: RIO_ROOM.sugar, col: 8, floor: 14, frames: 40, worn: chullo, items: [key] }).px);

@@ -61,8 +61,8 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
 // ---- the cable car ---------------------------------------------------------------------------------------
 {
   const shut = at(R.sugar, 5, 14, []), open = at(R.sugar, 5, 14, [KEY]);
-  const solid = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row, col) === 1);
-  const clear = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row, col) === 0);
+  const solid = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 1);
+  const clear = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 0);
   // (the key's effect is made on taking it, and on coming into the room)
   const withKey = at(R.sugar, 8, 14, [KEY]);
   check('the station\'s gate (cols 10-11, rows 8-13) is solid until the key to the city is his, and gone once it is', solid(at(R.sugar, 8, 14, [])) && clear(withKey) && solid(shut) && clear(open));
@@ -130,7 +130,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   run(p, NONE, 100);
   run(q, NONE, 100 + 8 * 30);
   const row = (g: Game, r: number) => Array.from({ length: 32 }, (_, c) => g.mem[SCREEN + (r + 3) * ROW + c + 4]).join();
-  check('the avenue is the same a whole cycle later (240 frames), every row of it', [10, 14, 15, 16, 17, 18, 19].every((r) => row(p.g, r) === row(q.g, r)));
+  check('the avenue is the same a whole cycle later (240 frames), every row of it but the coins\'', [10, 11, 12, 13, 14, 15, 17, 18, 19].every((r) => row(p.g, r) === row(q.g, r)));
   // a float carries him: standing at the left end of lane A's deck as it comes, then across
   const ride = search(at(R.float, 1, 18, [], false, false), (g) => g.roomId === R.bust && !g.freeze && !g.script, [{ room: R.float, col: 31, row: 17 }], 200000, 1.5);
   check('from the street at the left the floats carry him across the channel to the stage and the beach (the bot finds a way)', ride !== null);
@@ -279,7 +279,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   enterRoom(s.g, R.sugar, 0x40, standY(18));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 6, 34], [R.lap]: [0x40, 0xb2, 7, 34] } });
   check('in Rio the map shows its region (seven columns, two rows), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
-  const spots = [[R.quay, 2, 8], [R.lap, 4, 18], [R.sugar, 4, 18], [R.loaf, 2, 8], [R.arms, 1, 8], [R.monkey, 2, 8], [R.colour, 3, 8], [R.steak, 24, 18], [R.drum, 1, 18], [R.float, 1, 18], [R.bust, 2, 18]] as const;
+  const spots = [[R.quay, 2, 8], [R.lap, 4, 18], [R.sugar, 14, 18], [R.loaf, 2, 8], [R.arms, 1, 8], [R.monkey, 10, 8], [R.colour, 3, 8], [R.steak, 24, 18], [R.drum, 1, 18], [R.float, 1, 18], [R.bust, 2, 18]] as const;
   const failed: number[] = [];
   const carried = spots.filter(([room, col, floor]) => {
     const a = newGame(WORLD, false);
@@ -295,7 +295,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
     b.g.vic.enable &= 0x0f;
     b.g.skewers = [];
     run(b, NONE, 30);
-    const gateOpen = room !== R.sugar || GATE_CELLS.every(([row, col2]) => b.g.flagAt(row, col2) === 0);
+    const gateOpen = room !== R.sugar || GATE_CELLS.every(([row, col2]) => b.g.flagAt(row + 3, col2 + 4) === 0);
     const ok = gateOpen && b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, R.steak, 0);
     if (!ok) failed.push(room);
     return ok;

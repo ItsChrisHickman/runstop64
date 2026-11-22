@@ -56,7 +56,7 @@ export const FOREST_PALETTE = {
 } as const satisfies Palette;
 
 export const HILL_PALETTE = {
-  P: ['plaster', 14], Y: ['plaster', 7], K: ['plaster', 10], G: ['plaster', 13], R: ['favelaTile', 2], S: ['paradeStreet', 10], V: ['vine', 5],
+  P: ['plaster', 14], Y: ['plaster', 7], K: ['plaster', 10], G: ['plaster', 13], R: ['favelaTile', 2], S: ['paradeStreet', 10], V: ['vine', 5], L: ['woodLadder', 9],
 } as const satisfies Palette;
 
 export const STEAK_PALETTE = {
@@ -172,12 +172,13 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   room({
     id: RIO_ROOM.loaf, cell: [6, 35], sector: 70, palette: SUMMIT_PALETTE,
     paint(g) {
-      g.box(0, 0, 1, 5, 'G').box(0, 8, 5, 19, 'G').box(6, 6, 12, 19, 'G').box(13, 8, 31, 19, 'G').box(30, 0, 31, 5, 'G');
-      g.clear(19, 8, 21, 11).clear(16, 12, 23, 17).box(20, 8, 20, 17, 'V');
+      g.box(0, 0, 1, 5, 'G').box(0, 8, 5, 10, 'G').box(6, 6, 12, 10, 'G').box(13, 8, 31, 10, 'G').box(30, 0, 31, 5, 'G');
+      g.box(0, 11, 1, 19, 'G').box(30, 11, 31, 19, 'G').box(2, 18, 29, 19, 'G'); // the cliffs, and the chasm's floor far below
+      g.clear(19, 8, 21, 10).box(20, 8, 20, 17, 'V');
     },
     coins: [[1, 6], [9, 4], [24, 6], [28, 6], [17, 16]],
     item: { name: 'skewer2', col: 22, row: 16, sprite: RIO_SPRITE.skewer },
-    decor: [['christ', 14, 0], ['cableStation', 2, 5]],
+    decor: [['christ', 14, 0], ['cableStation', 2, 5], ['house', 3, 15], ['house', 6, 15], ['house', 9, 15], ['house', 12, 15], ['house', 25, 15], ['sugarloaf', 3, 12], ['sugarloaf', 24, 12]],
     creatures: [{ who: 'marmoset', col: 7, row: 4, way: 'right', speed: 1, range: 32 }, { who: 'marmoset', col: 23, row: 6, way: 'left', speed: 1, range: 24 }],
   }),
 
@@ -216,11 +217,11 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, 18, 31, 19, 'S').box(0, 0, 1, 17, 'G').box(30, 0, 31, 15, 'K');
       g.box(2, 8, 10, 8, 'R').box(2, 9, 10, 13, 'P').box(14, 9, 21, 9, 'R').box(14, 10, 21, 13, 'Y').box(25, 8, 29, 8, 'R').box(25, 9, 29, 13, 'K');
-      g.box(5, 0, 5, 7, 'V');
+      g.box(5, 0, 5, 7, 'V').box(12, 8, 12, 17, 'L'); // the rope down from Corcovado, and a ladder from the lane up to the roofs
     },
-    coins: [[4, 6], [18, 7], [29, 6], [8, 16], [16, 16], [24, 16], [12, 12]],
+    coins: [[4, 6], [18, 7], [29, 6], [8, 16], [16, 16], [24, 16], [13, 12]],
     item: { name: 'skewer6', col: 15, row: 7, sprite: RIO_SPRITE.skewer },
-    decor: [['house', 8, 5], ['house', 19, 6], ['church', 26, 4], ['dish', 4, 7], ['washing', 3, 14], ['washing', 22, 14], ['washing', 12, 14]],
+    decor: [['house', 8, 5], ['house', 19, 6], ['church', 26, 4], ['dish', 4, 7], ['washing', 3, 14], ['washing', 22, 14]],
     creatures: [{ who: 'capoeirista', col: 9, row: 16, way: 'right', speed: 1, range: 36 }, { who: 'macaw', col: 12, row: 3, way: 'right', speed: 1, range: 50 }],
   }),
 
