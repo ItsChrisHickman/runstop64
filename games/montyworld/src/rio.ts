@@ -137,7 +137,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: [[3, 6], [7, 8], [11, 12], [24, 12], [28, 16]],
     item: { name: 'skewer1', col: 25, row: 12, sprite: RIO_SPRITE.skewer },
     decor: [[{ text: 'BEM-VINDO', colour: 7 }, 10, 3], ['fishingBoat', 18, 6], ['lampPost', 13, 13], ['lampPost', 29, 15], ['coconutStand', 22, 15]],
-    creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 15, row: 12, way: 'up', speed: 1, range: 10 }],
+    creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'football', col: 12, row: 12, way: 'up', speed: 1, range: 10 }],
   }),
 
   // L THE LAPA ARCHES: the aqueduct's two storeys of arches across the room. In at the left on the street (floor 18, under the arches), which runs east to the wall; a ladder (col 3) goes up through the tram track (floor 7) which runs the room
@@ -256,7 +256,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[8, 14], [12, 12], [15, 12], [19, 14], [23, 16]],
     decor: [[{ text: 'SAMBA', colour: 7 }, 9, 5], ['bunting', 3, 2], ['bunting', 8, 2], ['bunting', 13, 2], ['bunting', 18, 2], ['stands', 2, 10], ['stands', 2, 12], ['stands', 24, 8], ['stands', 24, 10], ['stands', 24, 12], ['surdo', 6, 14], ['surdo', 20, 14], ['lampPost', 2, 15]],
-    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'right', speed: 1, range: 4 }, { who: 'dancer', col: 17, row: 14, way: 'left', speed: 1, range: 8 }],
+    creatures: [{ who: 'steward', col: 26, row: 16, way: 'left', speed: 1, range: 8 }, { who: 'drummer', col: 13, row: 12, way: 'right', speed: 1, range: 4 }, { who: 'dancer', col: 2, row: 8, way: 'right', speed: 1, range: 16 }],
   }),
 
   // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18); the channel (deep water, cols 6-24) is crossed on the floats that come along it: lane A (the street's height) three of them left to right, lane B (floor 14) two the other

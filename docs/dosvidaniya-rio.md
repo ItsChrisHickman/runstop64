@@ -60,7 +60,7 @@ bough ends east in a dead end. A marmoset and a macaw.
 **W STEAK YOUR CLAIM** (the churrascaria, a dead end). In from Sugarloaf's beach at the right (floor 18). Two gauchos pace the dining floor, each with a skewer that swings; the stairs (floors 16, 14, 12) climb at the middle to the mezzanine's stage (floor 10) where the
 headdress hangs on a curtain; tables, a salad bar, a rotisserie, red lamps.
 
-**P BEAT THE DRUM** (the carnival, first room). In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 12, 10) up and down the middle with a drummer on the top; the forest's rope (col 22) comes down to the street; the steward at the right in a lane two cells high lets him by only in the headdress; a samba dancer on the high riser; grandstands over the low lane and at the left, surdos on the risers, bunting and a SAMBA sign.
+**P BEAT THE DRUM** (the carnival, first room). In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 12, 10) up and down the middle with a drummer on the top; the forest's rope (col 22) comes down to the street; the steward at the right in a lane two cells high lets him by only in the headdress; a samba dancer on the left grandstand; grandstands over the low lane and at the left, surdos on the risers, bunting and a SAMBA sign.
 
 **Q FLOAT YOUR BOAT** (the avenue). In at the left on the street (floor 18); the channel (deep water, cols 4-24) is crossed on the floats: lane A (the street's height) three of them left to right, lane B (floor 14) two the other way; on the right a stage with two steps (floor 16) and a skewer, leading east out low to the beach.
 

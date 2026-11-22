@@ -1,6 +1,6 @@
 /**
  * Rio's eleven rooms as the real engine draws them (the game's own frame, Monty in it under the Andes' chullo until the headdress, the creatures, floats and skewers where they are a moment in), one picture each and a contact sheet; the cable
- * car on its way up; the floats through their cycle; the gauchos' skewers in their poses; the gates before the key and the headdress and after; and each room beside one of Monty on the Run's (compare-*.png). Pictures only: nothing is checked.
+ * car's ride (the two cars passing); the floats through their cycle; the gauchos' skewers in their poses; the gates before the key and the headdress and after; and each room beside one of Monty on the Run's (compare-*.png). Pictures only: nothing is checked.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-shots.ts <out-dir>
  */
@@ -46,6 +46,8 @@ for (const s of SPOTS) compare(out, `compare-${s.name}.png`, placed({ room: s.ro
 // the floats through their cycle, the skewers through theirs
 contactSheet(out, 'floats.png', [10, 90, 170, 250, 330, 410].map((frames) => placed({ room: RIO_ROOM.float, col: 1, floor: 18, frames, worn: headdress }).px));
 contactSheet(out, 'skewers.png', [5, 30, 55, 80].map((frames) => placed({ room: RIO_ROOM.steak, col: 30, floor: 18, frames, worn: chullo }).px));
+// the cable car's ride, the two cars passing (the key is his)
+contactSheet(out, 'ride.png', [30, 60, 80, 100, 130].map((frames) => placed({ room: RIO_ROOM.sugar, col: 12, floor: 14, frames, worn: chullo, items: [key] }).px));
 // the cable car's station before and after the key
 savePng(out, 'gate-before.png', placed({ room: RIO_ROOM.sugar, col: 8, floor: 14, frames: 40, worn: chullo }).px);
 savePng(out, 'gate-after.png', placed({ room: RIO_ROOM.sugar, col: 8, floor: 14, frames: 40, worn: chullo, items: [key] }).px);

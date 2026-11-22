@@ -23,8 +23,8 @@ const livesFor = (part: Part, frames: number): Part => ({
 export const RIO_LEGS: readonly Leg[] = [
   leg('R to H: off the gangway', into(R.quay, 31, 7, AND.bank)),
   leg('H: the gangway\'s coin', coin(R.quay, 3, 6)),
-  leg('H: down the wharf, the first step\'s coin', coin(R.quay, 8, 9)),
-  leg('H: the second step\'s coin', livesFor(coin(R.quay, 13, 12), 40)),
+  leg('H: down the wharf, the first step\'s coin', coin(R.quay, 7, 8)),
+  leg('H: the third step\'s coin', livesFor(coin(R.quay, 11, 12), 40)),
   leg('H: up the ladder to the pier, the skewer', item(R.quay, 0, [25, 12])),
   leg('H: the pier\'s coin', coin(R.quay, 24, 12)),
   leg('H: down to the quay, its last coin', livesFor(coin(R.quay, 28, 16), 40)),
