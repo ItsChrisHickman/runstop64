@@ -94,7 +94,7 @@ on is the sea: the cove's pool (cols 20-22) is deadly surf until the snorkel, th
 ledge (a musubi); a magma blob from the volcano on the terraces. Out right, low or high. 5 coins.
 
 **O MAUNA KEA-OS** (the volcano, the climax). In low at the left (floor 19) or high on the snow shelf (floor 7, a rope down to the second ledge). Lava rises in the basin; the ledges climb ahead of it to the rim at the right (floor 9). Mauna Kea's snow behind, a lava
-fountain, a magma blob on a ledge. 5 coins.
+fountain, a magma blob on the snow shelf. 5 coins.
 
 **P HILO GOODBYE** (Hilo airport). In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope down to the apron; a customs shed over the way with the guard pacing it, who lets him by in the lei; then the cargo loader
 carries him up to the catwalk over the cargo plane. Out along the catwalk, high, into the plane. 4 coins.

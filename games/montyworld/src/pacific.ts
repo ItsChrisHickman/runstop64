@@ -410,7 +410,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   }),
 
   // O MAUNA KEA-OS: the volcano's crater, the climb. In low at the left (floor 19) or high on the snow shelf (floor 7, a rope down to the second ledge); lava rises in the basin (cols 5-27) a row every 56 frames from row 19 to 11, and the
-  // ledges climb ahead of it (floors 17, 15, 13, 11) to the rim at the right (floor 9). Snow on Mauna Kea behind; a magma blob on a ledge.
+  // ledges climb ahead of it (floors 17, 15, 13, 11) to the rim at the right (floor 9). Snow on Mauna Kea behind; a magma blob on the snow shelf.
   room({
     id: PAC.mauna, cell: [2, 27], sector: 52, palette: MAUNA_PALETTE,
     paint(g) {
@@ -421,7 +421,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[6, 15], [11, 13], [17, 11], [23, 9], [4, 5]],
     decor: [['pacMaunaKea', 12, 2], ['pacLavaFountain', 27, 15], ['pacLavaRocks', 8, 18], ['pacLavaRocks', 20, 18]],
-    creatures: [{ who: 'pacMagma', col: 16, row: 11, way: 'right', speed: 1, range: 16 }],
+    creatures: [{ who: 'pacMagma', col: 2, row: 5, way: 'right', speed: 1, range: 56 }],
   }),
 
   // P HILO GOODBYE: Hilo airport. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17), a customs shed over the way (cols 8-12) with the guard pacing it, who lets him by

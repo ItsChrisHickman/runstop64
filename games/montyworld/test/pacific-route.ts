@@ -4,13 +4,23 @@
  * wading into the first reef, Molokai's fishponds, the second reef and the sea cave, up the slipway to Lahaina, the Road to Hana's three bridges, Hana's beach and cave and the drop into the third reef, Kona's coast and farm,
  * the volcano's climb with the lava behind him, Hilo's airport (the guard gone, the loader up) and the plane's hold with the parachute), as functions on the game. Shared by the bot test and the pictures.
  */
-import { PAC } from '../src/pacific';
+import { lavaTop } from '../../montyotr/src/lava';
+import { LAVA, PAC } from '../src/pacific';
 import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
 
 /** Swimming to a place: his top left within a cell of the one given (a swim across a wide room is a few of these, so the search never has the whole sea to look through). */
 const swimTo = (room: number, col: number, row: number): Part => ({
   goal: (g) => g.roomId === room && !g.freeze && !g.script && Math.abs(g.montyCol - 4 - col) <= 1 && Math.abs(g.montyRow - 3 - row) <= 1,
   aim: [{ room, col, row }],
+});
+
+/**
+ * A leg's goal reached with the lava still a good way off (100 frames): a coin taken on a ledge the lava reaches in a few frames is no coin taken (the bot's check that some move lives on looks 12 frames ahead,
+ * and a jump from a ledge the lava is about to reach lives that long), and a leg that ended there would hand the next one a death.
+ */
+const outOfLava = (part: Part): Part => ({
+  goal: (g) => part.goal(g) && (g.lavas[0] === undefined || lavaTop(LAVA, g.lavas[0].t + 100) > g.montyRow - 3 + 1),
+  aim: part.aim,
 });
 
 /** A leg that ends in the low lane: the way out is the same room by two lanes, and a leg that ended in the other would hand the next one the wrong start. */
@@ -115,11 +125,11 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('N: the top terrace\'s coin', coin(PAC.coffee, 26, 5)),
   leg('N: back down the rope to the shore', stands(PAC.coffee, 19, 0, 8)),
   leg('N to O: out along the shore, low, to the volcano', into(PAC.mauna, 31, 17, PAC.coffee, (g) => g.y === standY(19))),
-  leg('O: onto the first ledge, its coin', coin(PAC.mauna, 6, 15)),
-  leg('O: the second ledge\'s coin', coin(PAC.mauna, 11, 13)),
-  leg('O: up the rope to the snow shelf and its coin', coin(PAC.mauna, 4, 5)),
-  leg('O: down to the third ledge, its coin', coin(PAC.mauna, 17, 11)),
-  leg('O: the fourth ledge\'s coin', coin(PAC.mauna, 23, 9)),
+  leg('O: onto the first ledge, its coin', outOfLava(coin(PAC.mauna, 6, 15))),
+  leg('O: the second ledge\'s coin', outOfLava(coin(PAC.mauna, 11, 13))),
+  leg('O: up the rope to the snow shelf and its coin', outOfLava(coin(PAC.mauna, 4, 5))),
+  leg('O: down to the third ledge, its coin', outOfLava(coin(PAC.mauna, 17, 11))),
+  leg('O: the fourth ledge\'s coin', outOfLava(coin(PAC.mauna, 23, 9))),
   leg('O to P: out along the rim to the terminal', into(PAC.hilo, 31, 7, PAC.mauna)),
   leg('P: the coin on the terminal\'s roof', coin(PAC.hilo, 4, 7)),
   leg('P: down the roof\'s rope to the apron', stands(PAC.hilo, 17, 7, 9)),
