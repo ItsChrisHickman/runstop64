@@ -1,6 +1,6 @@
 /**
- * Renders Monty on the Run's tune and each region's version of it to WAV files, to listen to: the original's first 45 seconds,
- * the region's first 45 seconds, and the stretch around the region's break (where the folk phrase is, late in the loop).
+ * Renders Monty on the Run's tune and each region's version of it to WAV files, to listen to (original.wav, moscow.wav, siberia.wav...: the
+ * first 45 seconds of each), and, for Moscow, the stretch around the region's break (where the folk phrase is, late in the loop).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/music-wav.ts <out-dir>
  */
@@ -8,7 +8,13 @@ import fs from 'node:fs';
 import { parsePsid, SidTune } from '../../../packages/c64kit/src/sid/psid';
 import { wavBytes } from '../../../tools/wav';
 import { GAME_SONG, retune, type RegionTune } from '../src/music/region-tune';
+import { ANDES } from '../src/music/andes';
+import { CHINA } from '../src/music/china';
+import { JAPAN } from '../src/music/japan';
 import { MOSCOW } from '../src/music/moscow';
+import { PACIFIC } from '../src/music/pacific';
+import { RIO } from '../src/music/rio';
+import { SIBERIA } from '../src/music/siberia';
 
 const RATE = 44100;
 /** A tick is two frames of the 50 Hz player: 25 a second. */
@@ -55,8 +61,16 @@ function breakSeconds(tune: RegionTune, file: Uint8Array): { from: number; to: n
 }
 
 const moscow = retune(original, MOSCOW);
-write('original-first-45s', render(original, 45));
-write(`${MOSCOW.id}-first-45s`, render(moscow, 45));
+write('original', render(original, 45));
+/** The tune proper begins after the introduction (35.8 s): the 45 seconds from 36 s show what a version does to the lead. */
+const MAIN_FROM = 36;
+const proper = (file: Uint8Array) => render(file, MAIN_FROM + 45).subarray(MAIN_FROM * RATE);
+write('original-main', proper(original));
+for (const tune of [MOSCOW, SIBERIA, CHINA, JAPAN, PACIFIC, ANDES, RIO]) {
+  const file = retune(original, tune);
+  write(tune.id, render(file, 45));
+  write(`${tune.id}-main`, proper(file));
+}
 const at = breakSeconds(MOSCOW, moscow);
 if (at) {
   const from = Math.max(0, Math.floor(at.from) - 12), to = Math.ceil(at.to) + 10;

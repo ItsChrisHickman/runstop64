@@ -19,10 +19,11 @@ import { parsePsid, SidTune } from '../../../packages/c64kit/src/sid/psid';
 import { MOTR } from '../../montyotr/src/motr';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
-import { encodePattern, FREQUENCY_NOTES, INSTRUMENT_COUNT, patternTicks, PATTERN_COUNT, playedSteps, TuneImage } from '../src/music/hubbard';
+import { encodePattern, INSTRUMENT_COUNT, patternTicks, PATTERN_COUNT, TuneImage } from '../src/music/hubbard';
 import { MOSCOW } from '../src/music/moscow';
-import { bend, GAME_SONG, noteNumber, retune, SCALE_DEGREES, type RegionTune } from '../src/music/region-tune';
+import { GAME_SONG, noteNumber, retune, SCALE_DEGREES, type RegionTune } from '../src/music/region-tune';
 import { tuneForRoom } from '../src/music/regions';
+import { checkNotes } from './music-kit';
 
 const original = Uint8Array.from(fs.readFileSync('games/montyotr/assets/monty_on_the_run.sid'));
 const before = Uint8Array.from(original);
@@ -51,44 +52,12 @@ const equal = <T>(x: ArrayLike<T>, y: ArrayLike<T>) => x.length === y.length && 
 // ---- what moved ----------------------------------------------------------------------------------
 const song = GAME_SONG;
 const used = new Set(a.voices(song).flat());
-const breakPatterns = new Set(MOSCOW.breaks.map((x) => x.pattern));
 {
-  check('Moscow\'s scale moves four degrees of the tune\'s G minor (the major third, major sixth, raised fourth, flat second)',
-    MOSCOW.shift.map((s, i) => (s === 0 ? -1 : i)).filter((i) => i >= 0).join() === '1,4,6,9');
-  let notes = 0, moved = 0, drums = 0, beyond = 0, wrong = 0, lengths = 0, structure = 0;
-  const degrees = new Set<number>();
-  const pitched = new Map<string, boolean>();
-  for (const { step } of playedSteps(a, song)) pitched.set(`${step.pattern}:${step.index}`, !a.isPercussion(step.instrument));
-  for (const p of used) {
-    if (breakPatterns.has(p)) continue;
-    const was = a.readPattern(p).events, now = b.readPattern(p).events;
-    if (was.length !== now.length) { structure++; continue; }
-    was.forEach((w, i) => {
-      const n = now[i];
-      if (!n) return;
-      if (w.ticks !== n.ticks || w.hold !== n.hold || JSON.stringify(w.prefix) !== JSON.stringify(n.prefix) || (w.note === null) !== (n.note === null)) lengths++;
-      if (w.note === null || n.note === null) return;
-      notes++;
-      const isNote = pitched.get(`${p}:${i}`) === true && w.note < FREQUENCY_NOTES;
-      if (!isNote) { if (n.note !== w.note) wrong++; if (w.note >= FREQUENCY_NOTES) beyond++; else drums++; return; }
-      const expected = bend(w.note, MOSCOW);
-      if (n.note !== expected) wrong++;
-      if (n.note !== w.note) { moved++; degrees.add((((w.note - MOSCOW.tonic) % 12) + 12) % 12); }
-    });
-  }
-  check(`${notes} notes in ${used.size - breakPatterns.size} patterns: ${moved} moved, the other ${notes - moved} stay (${drums} of them drums or effects, ${beyond} beyond the frequency table)`, moved > 0 && wrong === 0);
-  check(`only the degrees the scale names moved (${[...degrees].sort((x, y) => x - y).join(', ')}), each by its amount`, [...degrees].sort((x, y) => x - y).join() === '1,4,6,9');
-  check('no note\'s length, hold or instrument change differs, and no pattern gained or lost a step', lengths === 0 && structure === 0);
-  // minor: nothing of the four degrees is left on a note of the tune
-  let major = 0;
-  for (const p of used) {
-    if (breakPatterns.has(p)) continue;
-    b.readPattern(p).events.forEach((e, i) => {
-      if (e.note === null || e.note >= FREQUENCY_NOTES || pitched.get(`${p}:${i}`) !== true) return;
-      if ([1, 4, 6, 9].includes((((e.note - MOSCOW.tonic) % 12) + 12) % 12)) major++;
-    });
-  }
-  check('in Moscow\'s version no note is on the major third, major sixth, raised fourth or flat second (outside the break)', major === 0);
+  // the notes: the introduction untouched, a lead note bent only where consonant with the bass (music-kit.ts), the break aside
+  checkNotes({
+    name: 'Moscow', tune: MOSCOW, moved: '1,4,6,9',
+    scale: { text: 'lands on the minor scale\'s own note (A, Bb, C or Eb)', ok: (degree) => [2, 3, 5, 8].includes(degree) },
+  }, a, b);
 }
 
 // ---- tempo and rhythm are Hubbard's --------------------------------------------------------------

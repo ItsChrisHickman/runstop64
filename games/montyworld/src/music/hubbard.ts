@@ -21,6 +21,7 @@
 const LOAD_ADDRESS = 0x8000;
 const DATA_OFFSET = 0x7e;
 const SONG_TABLE = 0x856c;
+const FREQUENCY_TABLE = 0x8400;
 const PATTERN_LO = 0x857e;
 const PATTERN_HI = 0x85cb;
 export const PATTERN_COUNT = PATTERN_HI - PATTERN_LO;
@@ -201,6 +202,12 @@ export class TuneImage {
     [i.pulseWidth & 0xff, (i.pulseWidth >> 8) & 0x0f, i.control, i.attackDecay, i.sustainRelease, i.vibrato, i.pulseSweep, i.effects].forEach((b, k) => this.set8(a + k, b));
   }
 
+  /** The SID frequency of a note: a 16-bit value at $8400 + 2 * note in the driver's frequency table. */
+  frequency(note: number): number {
+    if (note < 0 || note >= FREQUENCY_NOTES) throw new Error(`there is no frequency for note ${note}`);
+    return this.u8(FREQUENCY_TABLE + 2 * note) | (this.u8(FREQUENCY_TABLE + 2 * note + 1) << 8);
+  }
+
   /**
    * Whether an instrument is a drum or an effect: made of noise, or with its pitch falling as it sounds (effects bits 0 and 1, the
    * toms and the bell's fall). Its "note" is where the sound starts, not a note of the tune, and the length of the fall follows it.
@@ -249,4 +256,37 @@ export function playedSteps(image: TuneImage, song: number): { voice: number; st
     }
   });
   return out;
+}
+
+/** One step of a song as played: where it falls in its voice's loop, and what sounds. */
+export interface SongNote {
+  readonly voice: number;
+  readonly pattern: number;
+  /** The step's number in its pattern. */
+  readonly index: number;
+  /** The tick of the voice's loop at which the step starts, and its length. */
+  readonly start: number;
+  readonly ticks: number;
+  /** The note, or null for a rest. */
+  readonly note: number | null;
+  /** The instrument sounding at the step. */
+  readonly instrument: number;
+  /** A note of the tune: not a rest, not a drum or an effect, and in the frequency table. */
+  readonly pitched: boolean;
+}
+
+/** Every step each voice of a song plays, in order, with its tick (a pattern played twice appears twice). */
+export function songNotes(image: TuneImage, song: number): SongNote[][] {
+  return image.voices(song).map((patterns, voice) => {
+    const out: SongNote[] = [];
+    let instrument = 0, start = 0;
+    for (const pattern of patterns) {
+      image.readPattern(pattern).events.forEach((e, index) => {
+        if (e.prefix?.kind === 'instrument') instrument = e.prefix.instrument;
+        out.push({ voice, pattern, index, start, ticks: e.ticks, note: e.note, instrument, pitched: e.note !== null && e.note < FREQUENCY_NOTES && !image.isPercussion(instrument) });
+        start += e.ticks;
+      });
+    }
+    return out;
+  });
 }

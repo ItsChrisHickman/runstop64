@@ -103,6 +103,10 @@ most care; the reward show and the title show them off.
   know, nothing that's a stretch.
 - **Music:** Hubbard's own driver and tune; a region's version may change the scale and the instruments, never the tempo.
   Folk-tune breaks only from public-domain tunes, and only if they sound like part of the tune.
+  Moscow's light touch is the model (2026-11-22, after Japan and the Pacific): the introduction is Hubbard's note for note (a version
+  that bends it sounds like a glitch), a lead note bends only where the result is consonant with the bass under it (no minor second,
+  major seventh or tritone), and the instrument carries the place (the Pacific: a steel guitar sliding into notes, a strummed backing,
+  softer drums). Every version is checked for it (`test/music-kit.ts`).
 
 ## How we build it
 

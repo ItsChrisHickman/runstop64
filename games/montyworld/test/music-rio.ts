@@ -1,6 +1,6 @@
 /**
- * Rio's version of Monty on the Run's tune (games/montyworld/src/music/rio.ts), made from the original .sid by a scale and instruments only (music-kit.ts):
- * the minor pentatonic on G (G Bb C D F), a panpipes lead (a triangle wave with a short attack and a long sustain), the tempo Hubbard's.
+ * Rio's version of Monty on the Run's tune (games/montyworld/src/music/rio.ts), made from the original .sid by a scale, instruments and a drum groove (music-kit.ts):
+ * G major where it is consonant with the bass, a brass lead (from the introduction's first bar), a samba on the noise channel at Hubbard's tempo.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/music-rio.ts
  */
@@ -16,7 +16,7 @@ const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 checkTune({
   name: 'Rio', tune: RIO, moved: '1,3,6,8,10',
   scale: { text: 'every note is one of G major\'s seven', ok: (degree) => MAJOR.includes(degree) },
-  lead: { text: 'a cavaquinho: a narrow pulse with a short decay and a quick vibrato', ok: (lead) => lead.control === 0x41 && (lead.attackDecay & 0x0f) <= 5 && lead.vibrato === 3 },
+  lead: { text: 'brass: a sawtooth with a quick attack, a held sustain and a light vibrato', ok: (lead) => lead.control === 0x21 && lead.attackDecay >> 4 <= 3 && lead.sustainRelease >> 4 >= 8 && lead.vibrato === 1 },
   rooms: [RIO_ROOM.quay, RIO_ROOM.lap, RIO_ROOM.steak, RIO_ROOM.bust], others: [[AND.bank, 'andes'], [AND.mist, 'andes'], [0, 'moscow']], sample: RIO_ROOM.sugar,
 });
 finish();
