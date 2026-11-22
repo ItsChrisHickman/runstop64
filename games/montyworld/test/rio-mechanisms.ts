@@ -25,7 +25,8 @@ import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
 import { CABLE_CAR, CLOSED_CELLS, FLOATS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS } from '../src/rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
-import { newGame, search } from './bot';
+import { newGame } from './bot';
+import { search } from './proofs';
 import { cell, colOf, dead, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 

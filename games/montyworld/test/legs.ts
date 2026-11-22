@@ -31,8 +31,8 @@ export function readArgs(argv: readonly string[] = process.argv.slice(2)): Args 
 const file = (region: string, mode: string) => `${ROUTES_DIR}/${region}-${mode}.json`;
 const routesFile = S.object({ region: S.string, mode: S.string, legs: S.record(S.string) });
 
-const show = (route: Route) => route.map(([a, f]) => `${a}:${f}`).join(' ');
-function parse(steps: string): Route {
+export const showRoute = (route: Route) => route.map(([a, f]) => `${a}:${f}`).join(' ');
+export function parseRoute(steps: string): Route {
   return steps === '' ? [] : steps.split(' ').map((p): readonly [string, number] => { const at = p.lastIndexOf(':'); return [p.slice(0, at), Number(p.slice(at + 1))]; });
 }
 
@@ -42,13 +42,13 @@ export function readRecorded(region: string, mode: string): Map<string, Route> {
   if (!fs.existsSync(file(region, mode))) return out;
   const v = readJsonFile(file(region, mode));
   if (!routesFile(v)) throw new Error(`${file(region, mode)}: not a recorded route file`);
-  for (const [name, steps] of Object.entries(v.legs)) out.set(name, parse(steps));
+  for (const [name, steps] of Object.entries(v.legs)) out.set(name, parseRoute(steps));
   return out;
 }
 
 /** Write a region's routes, in the legs' order, one line a leg (so a re-recording's diff shows the legs that changed). */
 export function writeRecorded(region: string, mode: string, legs: readonly Leg[], routes: ReadonlyMap<string, Route>): void {
-  const lines = legs.flatMap((l) => { const r = routes.get(l.name); return r ? [`    ${JSON.stringify(l.name)}: ${JSON.stringify(show(r))}`] : []; });
+  const lines = legs.flatMap((l) => { const r = routes.get(l.name); return r ? [`    ${JSON.stringify(l.name)}: ${JSON.stringify(showRoute(r))}`] : []; });
   fs.mkdirSync(ROUTES_DIR, { recursive: true });
   fs.writeFileSync(file(region, mode), `{\n  "region": ${JSON.stringify(region)},\n  "mode": ${JSON.stringify(mode)},\n  "legs": {\n${lines.join(',\n')}\n  }\n}\n`);
 }

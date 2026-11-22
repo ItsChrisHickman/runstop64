@@ -34,7 +34,8 @@ import { SPRITE } from '../src/moscow';
 import { SIB_SPRITE } from '../src/siberia';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
-import { newGame, search } from './bot';
+import { newGame } from './bot';
+import { search } from './proofs';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
