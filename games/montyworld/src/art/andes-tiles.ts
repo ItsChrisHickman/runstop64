@@ -227,16 +227,16 @@ export const ANDES_TILES = {
     '.#######',
     '........',
   ]),
-  /** The tangle of undergrowth over the jetty's rope: thorny creepers. Solid until the machete. */
+  /** The tangle of undergrowth over the jetty's rope: thorny creepers, solid knots with black gaps between. Solid until the machete. */
   tangle: tile('tangle', 1, 13, [
-    '#.#.#.#.',
-    '.#####.#',
-    '###.###.',
-    '#.#####.',
+    '##.###.#',
+    '.#######',
+    '###.##.#',
+    '#.######',
     '.###.###',
-    '###.#.##',
-    '.#.###.#',
-    '#.#.#.#.',
+    '###.####',
+    '#.#####.',
+    '########',
   ]),
   /** Icicles hanging from an overhang of rock: deadly points. Deadly. */
   iceSpikes: tile('iceSpikes', 4, 1, [
@@ -249,16 +249,49 @@ export const ANDES_TILES = {
     '..#..#..',
     '........',
   ]),
-  /** Mist rising from a pit in the cave floor: deadly (it hides the fall). Deadly. */
+  /** Mist rising from a pit in the cave floor: round puffs of cloud, black between them. Deadly (it hides the fall). */
   mistPit: tile('mistPit', 4, 14, [
-    '..###...',
-    '.#...#..',
-    '#.....#.',
+    '..####..',
+    '.######.',
+    '##.##.##',
+    '########',
+    '#.####.#',
+    '########',
+    '.##..##.',
+    '########',
+  ]),
+  /** A drift of mist over the pit, rising: puffs of cloud he passes through. Nothing. */
+  mistWisp: tile('mistWisp', 0, 14, [
+    '...##...',
+    '..####..',
+    '.##..##.',
+    '########',
+    '#.####.#',
+    '########',
+    '.######.',
     '........',
-    '...###..',
-    '..#...#.',
-    '.#.....#',
+  ]),
+  /** Huayna Picchu's green slope: forested terraces in bands, steep. Scenery (he walks in front of it). Nothing. */
+  hpSlope: tile('hpSlope', 0, 5, [
+    '########',
+    '##.#####',
+    '########',
     '........',
+    '#####.##',
+    '########',
+    '########',
+    '........',
+  ]),
+  /** Huayna Picchu's bare grey rock: long streaks down its face. Scenery. Nothing. */
+  hpRock: tile('hpRock', 0, 11, [
+    '####.###',
+    '###.####',
+    '###.####',
+    '##.#####',
+    '########',
+    '#.######',
+    '##.#####',
+    '###.####',
   ]),
 } as const;
 

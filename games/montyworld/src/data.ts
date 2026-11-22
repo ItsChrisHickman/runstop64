@@ -282,7 +282,7 @@ export const WORLD: MontyData = {
       { room: PAC.hold, item: PARACHUTE, text: 'THE REAR DOOR WANTS A PARACHUTE' },
       { room: AND.rock, item: PANPIPES, text: 'THE LLAMA WANTS A TUNE' },
       { room: AND.cloud, item: MACHETE, text: 'THE UNDERGROWTH WANTS A BLADE' },
-      { room: AND.boat, item: CHULLO_ITEM, text: 'THE CAPTAIN WANTS A LOCAL\'S HAT' },
+      { room: AND.boat, item: CHULLO_ITEM, text: 'THE CAPTAIN WANTS A LOCAL HAT' },
     ],
   },
   // the map shows a region's columns and rows while he is in them

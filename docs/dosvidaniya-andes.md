@@ -35,7 +35,7 @@ row 3   F2 OUT OF THIN AIR
 row 4   F3 CONDOR COUNTRY
 row 5   T1 NO PROBLLAMA        T2 ROCK AND ROLL       V MARKET FORCES     M MIST OPPORTUNITY
 row 6   CF CLOUD NINE          X THE INCA TUNNEL
-row 7   B THE RIVER QUEEN      P VINE AND DANDY       R THE RIVER'S END   (Rio, shut)
+row 7   B THE RIVER QUEEN      P VINE AND DANDY       R THE RIVER ENDS   (Rio, shut)
 ```
 
 Joins (rope = a rope both ways, drop = one way down, gate = an item):
@@ -48,7 +48,7 @@ Joins (rope = a rope both ways, drop = one way down, gate = an item):
 - Walls (no way): the flight rooms' sides, T1's west, the cave's east, the forest's and the tunnel's west and east ends but their one door, R's east (a sign: RIO COMING SOON).
 
 **Names** (plain first, a pun where it lands, no Z, no Bond): JUMP FOR JOY, OUT OF THIN AIR, CONDOR COUNTRY, NO PROBLLAMA, ROCK AND ROLL, MARKET FORCES, MIST OPPORTUNITY, CLOUD NINE, THE INCA TUNNEL, THE RIVER QUEEN,
-VINE AND DANDY, THE RIVER'S END. (The design's EAR YE EAR YE, BRIDGE TOO FAR, INCA-PACITATED and SNAPPING UP BARGAINS did not land, in Chris's sense of the plan: the puns that do are the llama, the boulders, the
+VINE AND DANDY, THE RIVER ENDS. (The design's EAR YE EAR YE, BRIDGE TOO FAR, INCA-PACITATED and SNAPPING UP BARGAINS did not land, in Chris's sense of the plan: the puns that do are the llama, the boulders, the
 market, the mist, the cloud, the vines and the boat.)
 
 ### The rooms
@@ -89,7 +89,7 @@ the stern, low, past the paddle wheel.
 **P VINE AND DANDY** (the piranha river). The boat runs aground. A wide brown river (the floor is water, deadly) from the stern's bank at the left (floor 15) to a mud bank at the right with an empanada; three vines hang from
 the canopy and swing, two logs float between, piranhas leap and a sloth hangs under the canopy. The skill room.
 
-**R THE RIVER'S END** (the last bank). In from the mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs with an empanada; an anaconda coils on the second
+**R THE RIVER ENDS** (the last bank). In from the mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs with an empanada; an anaconda coils on the second
 step, a pool (cols 6-9) between it and the stair has a piranha and a pink river dolphin. The quay's lights glimmer beyond; the way east is shut with a sign (RIO COMING SOON).
 
 ### Items, gates, doubling back
@@ -151,7 +151,7 @@ others' (`music/andes.ts`). No folk melody is quoted.
 ### ENHANCED hints (one line each, 32 letters at most)
 
 - On taking: PARACHUTE: FOLLOW THE COINS DOWN; CHULLO: BLEND IN ON THE BOAT; PANPIPES: A TUNE FOR THE LLAMA; MACHETE: CUTS THE TANGLE.
-- On coming into a room without what it wants: T2: THE LLAMA WANTS A TUNE; CF: THE UNDERGROWTH WANTS A BLADE; B: THE CAPTAIN WANTS A LOCAL'S HAT.
+- On coming into a room without what it wants: T2: THE LLAMA WANTS A TUNE; CF: THE UNDERGROWTH WANTS A BLADE; B: THE CAPTAIN WANTS A LOCAL HAT.
 
 ## As built (2026-11-21)
 

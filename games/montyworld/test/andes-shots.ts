@@ -1,5 +1,5 @@
 /**
- * The Andes and the Amazon's twelve rooms as the real engine draws them (the game's own frame, Monty in it under his chullo, the creatures, boulders and vines where they are a moment in), one picture each and a contact
+ * The Andes and the Amazon's twelve rooms as the real engine draws them (the game's own frame, Monty in it under the lei until the boat and the chullo from it on, the creatures, boulders and vines where they are a moment in), one picture each and a contact
  * sheet; the flight (the canopy, an updraft); the boulders on the terraces through their cycle; the vines swinging; the llama and the captain before the panpipes and the chullo and after; the tangle before the machete and
  * after; and each room beside one of Monty on the Run's (compare-*.png). Pictures only: nothing is checked.
  *
@@ -7,6 +7,7 @@
  */
 import fs from 'node:fs';
 import { AND } from '../src/andes';
+import { PAC } from '../src/pacific';
 import { itemIndex } from './route';
 import { enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
@@ -34,31 +35,34 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 
 const probe = newPlay().g;
 const chullo = itemIndex(probe, AND.market, 0);
+// what Monty wears where he is: the Pacific's lei until the chullo is found, and he is only sure to have the chullo on the boat and after
+const lei = itemIndex(probe, PAC.lei, 0);
+const hat = (room: number) => (room >= AND.boat ? chullo : lei);
 
 const pics = SPOTS.map((s) => {
-  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: chullo });
+  const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: hat(s.room) });
   savePng(out, `room-${s.name}.png`, px);
   return px;
 });
 contactSheet(out, 'sheet.png', pics);
 
 // the boulders on the terraces through their cycle
-contactSheet(out, 'boulders.png', [10, 60, 120, 180, 240, 300].map((frames) => placed({ room: AND.rock, col: 3, floor: 6, frames, worn: chullo }).px));
+contactSheet(out, 'boulders.png', [10, 60, 120, 180, 240, 300].map((frames) => placed({ room: AND.rock, col: 3, floor: 6, frames, worn: lei }).px));
 // the vines swinging
 contactSheet(out, 'vines.png', [5, 25, 45, 65, 85, 105].map((frames) => placed({ room: AND.river, col: 1, floor: 15, frames, worn: chullo }).px));
 // the llama at the tunnel, the captain on the deck, before and after what sees them off
 const panpipes = itemIndex(probe, AND.mist, 0), machete = itemIndex(probe, AND.tunnel, 0);
-savePng(out, 'llama-before.png', placed({ room: AND.rock, col: 4, floor: 18, frames: 40, worn: chullo }).px);
-savePng(out, 'llama-after.png', placed({ room: AND.rock, col: 4, floor: 18, frames: 40, worn: chullo, items: [panpipes] }).px);
-savePng(out, 'captain-before.png', placed({ room: AND.boat, col: 9, floor: 15, frames: 40 }).px);
+savePng(out, 'llama-before.png', placed({ room: AND.rock, col: 4, floor: 18, frames: 40, worn: lei }).px);
+savePng(out, 'llama-after.png', placed({ room: AND.rock, col: 4, floor: 18, frames: 40, worn: lei, items: [panpipes] }).px);
+savePng(out, 'captain-before.png', placed({ room: AND.boat, col: 9, floor: 15, frames: 40, worn: lei }).px);
 savePng(out, 'captain-after.png', placed({ room: AND.boat, col: 9, floor: 15, frames: 40, worn: chullo, items: [chullo] }).px);
-savePng(out, 'tangle-before.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: chullo }).px);
-savePng(out, 'tangle-after.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: chullo, items: [machete] }).px);
+savePng(out, 'tangle-before.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: lei }).px);
+savePng(out, 'tangle-after.png', placed({ room: AND.cloud, col: 9, floor: 18, frames: 40, worn: lei, items: [machete] }).px);
 
 // the parachute: out of the plane's door, off the ramp, up the first updraft, gliding on to the spire
 {
   const s = newPlay();
-  wear(s.g, chullo);
+  wear(s.g, lei);
   const at = standing(2, 16);
   enterRoom(s.g, AND.jump, at.x2, at.y);
   settle(s);

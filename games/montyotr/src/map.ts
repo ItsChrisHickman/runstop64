@@ -112,6 +112,9 @@ export function noteRoom(g: Game, { rooms }: MontyFound) {
 
 const visited = (found: MontyFound, id: number) => !!found.rooms[id];
 
+/** The icons of the freedom kit and the key items are 16 wide and 16 high; wrapped, a row of them takes 18. The map box's height under its cells' rows: the picked room's name, what is left there and the icons' label and first row. */
+const ICON = 16, ICON_ROW = 18, MAP_RESERVED = 62;
+
 /** A cell of a region's map: a region is a few columns, so its cells are bigger. */
 const REGION_CELL = 16;
 
@@ -124,7 +127,9 @@ function layout(box: Box, g: Game) {
   const region = data.regions.find((r) => g.exitCol >= r.from && g.exitCol <= r.to);
   const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
   const rowFrom = region?.rows?.from ?? 0, rows = region?.rows ? region.rows.to - region.rows.from + 1 : data.exitGrid.rows;
-  const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols));
+  // (a game with many key items wraps their icons onto more rows, which take the map's room)
+  const spare = box.h - MAP_RESERVED - (iconRows(box, data.progress.keyItems.length) - 1) * ICON_ROW;
+  const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols), Math.floor(spare / rows));
   const ox = box.x + Math.floor((box.w - cols * cell) / 2);
   return { cell, from, cols, rowFrom, rows, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + (row - rowFrom) * cell }) };
 }
@@ -183,15 +188,15 @@ export const montyMap = {
     const state = p.coins + p.items === 0 ? 'NOTHING TO COLLECT' : left.length ? `${left.join(' AND ')} LEFT` : 'ALL COLLECTED';
     font.draw(s, state, box.x, y, left.length ? COL.lgrey : COL.lgreen);
     // the freedom kit, and the key items (dark until found); a game with none has no row for them
-    y = box.y + box.h - 52;
+    y = box.y + box.h - 52 - (iconRows(box, progress.keyItems.length) - 1) * ICON_ROW;
     if (data.kit.length) {
       font.draw(s, 'FREEDOM KIT', box.x, y, COL.yellow);
-      data.kit.forEach((fk, i) => icon(s, g.mem.subarray(0x3800 + fk * 32, 0x3800 + fk * 32 + 32), box.x + i * iconStep(box, data.kit.length), y + 10, COL.white));
+      data.kit.forEach((fk, i) => { const at = iconAt(box, data.kit.length, i); icon(s, g.mem.subarray(0x3800 + fk * 32, 0x3800 + fk * 32 + 32), box.x + at.x, y + 10 + at.y, COL.white); });
     }
     y += 30;
     if (progress.keyItems.length) {
       font.draw(s, 'ITEMS FOUND', box.x, y, COL.yellow);
-      progress.keyItems.forEach((item, i) => icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + i * iconStep(box, progress.keyItems.length), y + 10, g.siCollected[item] ? COL.white : COL.dgrey));
+      progress.keyItems.forEach((item, i) => { const at = iconAt(box, progress.keyItems.length, i); icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + at.x, y + 10 + at.y, g.siCollected[item] ? COL.white : COL.dgrey); });
     }
   },
   info(g, found) {
@@ -210,10 +215,10 @@ export const montyMap = {
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
   places(box: Box, g: Game, found: MontyFound): MapPlace[] {
-    const { at, cell, from, cols } = layout(box, g);
+    const { at, cell, from, cols, rowFrom, rows } = layout(box, g);
     const mid = Math.floor(cell / 2) - 1; // (3 in a cell of 8: the dot's place in it)
     const list = Object.entries(found.rooms)
-      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols)
+      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols && e[2] >= rowFrom && e[2] < rowFrom + rows)
       .map(([id, e]) => { const p = at(e[2], e[3]); return { id, x: p.x + mid, y: p.y + mid }; });
     const p = at(g.mapRow, g.exitCol);
     return [{ id: String(g.roomId), x: p.x + mid, y: p.y + mid, here: true }, ...list];
@@ -258,8 +263,17 @@ function icon(s: Surface, bytes: ArrayLike<number>, x: number, y: number, colour
   for (let q = 0; q < 4; q++) s.drawChar(Array.from({ length: 8 }, (_, i) => bytes[q * 8 + i]), x + (q & 1) * 8, y + (q >> 1) * 8, colour);
 }
 
-/** The step between a row of `n` 16-wide icons: 24 as in Monty on the Run, closer when more would run past the box (and the divider and panel beyond it). */
-function iconStep(box: Box, n: number): number { return Math.max(16, Math.min(24, Math.floor(box.w / n))); }
+/** How many icons fit along the box (they are 16 wide, side by side at the closest). */
+const iconsPerRow = (box: Box): number => Math.floor(box.w / ICON);
+
+/** How many rows `n` icons take: one, until more than fit along the box (past it are the divider and the panel beyond it). */
+const iconRows = (box: Box, n: number): number => Math.max(1, Math.ceil(n / iconsPerRow(box)));
+
+/** Where the `i`th of `n` icons goes from the row's start: 24 apart as in Monty on the Run, closer (down to 16) when more would run past the box, and past that wrapped onto the next row. */
+function iconAt(box: Box, n: number, i: number): { x: number; y: number } {
+  if (n <= iconsPerRow(box)) return { x: i * Math.min(24, Math.floor(box.w / n)), y: 0 };
+  return { x: (i % iconsPerRow(box)) * ICON, y: Math.floor(i / iconsPerRow(box)) * ICON_ROW };
+}
 
 /** An item's sprite (24×21) cropped to its 16×16 content (left- and bottom-aligned), as an icon's 32 bytes. */
 function spriteIcon(g: Game, ptr: number) {

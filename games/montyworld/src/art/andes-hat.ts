@@ -22,13 +22,13 @@ export const CHULLO_HAT: readonly string[] = [
   '..#..........#..',
 ];
 
-/** The chullo as Monty wears it: small, a peaked woolly crown with a tassel, a patterned band and an ear flap at each side. */
+/** The chullo as Monty wears it: small, a peaked woolly crown with a tassel, a patterned band and a long ear flap at each side (two rows deep, down past his ears). */
 export const CHULLO_WORN: readonly string[] = [
   '....##....',
-  '...####...',
-  '.########.',
+  '..######..',
   '##########',
   '#.##.##.##',
+  '##......##',
   '##......##',
 ];
 

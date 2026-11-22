@@ -2,31 +2,31 @@
  * The Andes' and the Amazon's creatures for Monty Mole: World Tour (region 6), in Monty on the Run's formats and the earlier regions'
  * manner: bold cartoon figures that fill their 16 x 16, a solid body in one ink with the detail cut into it as black lines and gaps,
  * a big face with an expression, no dither. A condor, two llamas (one winking, one spitting), a guinea pig, a cave bat, a jaguar, a
- * toucan, a poison frog, a sloth, an anaconda, a piranha and a pink river dolphin. The macaw of the riverboat is the toucan's
+ * toucan, a sloth, an anaconda, a piranha and a pink river dolphin. The macaw of the riverboat is the toucan's
  * picture in red (a colour record, `colour` on the room's enemy).
  */
 import { capsule, lay, pair, sym } from './creature-kit';
 import { limb, Raster } from './raster';
 import type { NewCreature } from './types';
 
-// ---- the condor: black and wide, a bare head with a hooked beak and a white ruff, wheeling
+// ---- the condor: white, wide, a bare head with a hooked beak over a ruff, wheeling
 
 const CONDOR_UP = [
-  '#.....##', '##...###', '###..#.#', '####.###', '#####.##', '######.#', '########', '########',
-  '.#######', '..######', '...#####', '.....###', '......##', '......##', '.....###', '.....#.#',
+  '#....###', '##..####', '##..#.##', '###.####', '####.#.#', '#####.##', '########', '########',
+  '.#######', '..######', '...#####', '....####', '.....###', '.....###', '......##', '.....#.#',
 ] as const;
 const CONDOR_LEVEL = [
-  '......##', '.....###', '.....#.#', '.....###', '......##', '.......#', '..######', '########',
-  '########', '#.##.###', '#..#..##', '.....###', '......##', '......##', '.....###', '.....#.#',
+  '........', '.....###', '....####', '....#.##', '....####', '.....#.#', '..######', '########',
+  '########', '#.######', '#.#.####', '..#..###', '.....###', '.....###', '......##', '.....#.#',
 ] as const;
 const CONDOR_DOWN = [
-  '......##', '.....###', '.....#.#', '.....###', '......##', '.......#', '..######', '.#######',
-  '#.######', '#.#.####', '#.#.####', '#...####', '....####', '.....###', '.....###', '.....#.#',
+  '.....###', '....####', '....#.##', '....####', '.....#.#', '..######', '.#######', '.#######',
+  '#.######', '#.######', '##.#####', '##..####', '###..###', '#.#..###', '#....###', '.....#.#',
 ] as const;
 
-/** A condor in flight seen front on: the great wings up, level, down, level, their ends fingered; a ruff round a bare head, the beak hooked. */
+/** A condor in flight seen front on: the great wings up, level, down, level, their ends fingered; a ruff round a bare head with its eyes and hooked beak cut in, a short tail. White, to stand off the grey rock. */
 function condor(): NewCreature {
-  return pair('condor', [CONDOR_UP, CONDOR_LEVEL, CONDOR_DOWN, CONDOR_LEVEL].map(sym), 12, true);
+  return pair('condor', [CONDOR_UP, CONDOR_LEVEL, CONDOR_DOWN, CONDOR_LEVEL].map(sym), 1, true);
 }
 
 // ---- the llama: woolly, a long neck, banana ears, a big silly face; it winks (Jeff Minter's)
@@ -62,10 +62,28 @@ function llama(): NewCreature {
   return pair('llama', [sideLlama(1.5, f('open', 'shut')), sideLlama(0, f('wink', 'shut')), sideLlama(-1.5, f('open', 'chew')), sideLlama(0, f('wink', 'chew'))], 1, false);
 }
 
-/** The spitting llama: orange-brown, ears laid back, a scowl, a glob flying from its mouth. */
+/**
+ * The spitting llama: orange-brown, in profile like the others but with its neck stretched out low and forward over its shoulders, ears laid back, a scowl, a glob flying from its mouth (a different animal on the page from the winking
+ * llamas' upright, woolly ones).
+ */
+function spitterFrame(a: number, spit: boolean): string[] {
+  const r = new Raster(16, 16);
+  lay(r, (s) => { limb(s, 10, 11, 9.5 + a, 15, 2); limb(s, 13.5, 11, 13.5 - a, 15, 2); }); // the back legs
+  r.ellipse(11, 10, 4.8, 3.2); // the body, lower and leaner
+  r.rect(15, 9, 15, 10); // the tail
+  lay(r, (s) => { limb(s, 6.5, 11, 6 - a, 15, 2); limb(s, 9, 11, 9 + a, 15, 2); }); // the front legs
+  limb(r, 7.5, 9, 3.5, 6.5, 3); // the neck, stretched forward and down
+  r.ellipse(3, 6.5, 3, 2.6); // the head, thrust out
+  lay(r, (s) => { s.triangle(5, 5, 9, 4, 6.5, 2.6); s.triangle(4, 4.4, 8, 3.2, 5, 1.6); }); // the ears, laid back along the neck
+  r.cut(['##', '.#'], 2, 5); // the scowling eye
+  r.cut(['#'], 0, 7); // the nostril
+  r.cut(spit ? ['###'] : ['##'], 0, 8);
+  if (spit) { r.disc(-1, 9.5, 0.8); r.rect(0, 10, 1, 11); r.set(0, 13); } // the glob
+  return r.rows();
+}
+
 function spitter(): NewCreature {
-  const f = (mouth: LlamaFace['mouth']): LlamaFace => ({ ears: 'back', eye: 'scowl', mouth });
-  return pair('spitter', [sideLlama(1, f('shut')), sideLlama(0, f('spit')), sideLlama(-1, f('shut')), sideLlama(0, f('spit'))], 8, false);
+  return pair('spitter', [spitterFrame(1, false), spitterFrame(0, true), spitterFrame(-1, false), spitterFrame(0, true)], 8, false);
 }
 
 // ---- the guinea pig (cuy): a round bright chunk with a big face
@@ -133,32 +151,33 @@ function jaguar(): NewCreature {
   return pair('jaguar', [frame(1.5, true), frame(0, false), frame(-1.5, true), frame(0, false)], 7);
 }
 
-// ---- the toucan: a great banana beak
+// ---- the toucan: a black-ringed eye and a great banana beak with its tip, orange
 
-/** A toucan's body, tail and head, drawn in rows (facing left): the huge beak out of the left, a ringed eye; `legs` are the last two rows. */
+/** A toucan's body, tail and head, drawn in rows (facing left): the enormous beak out of the left, down-curved, its tip cut off by a line; a round head with a ringed eye; `legs` are the last rows. */
 const TOUCAN = [
   '................',
-  '......####......',
-  '.....######.....',
-  '#####..#.###....',
+  '.......####.....',
+  '......######....',
+  '#####.##.####...',
   '#########.####..',
-  '###########.###.',
-  '.##########.####',
-  '.....#########.#',
-  '......########..',
-  '.......######...',
-  '........####.##.',
-  '.........##..##.',
+  '#########.#####.',
+  '.########.######',
+  '..#.......######',
+  '...##########.##',
+  '.....########..#',
+  '......######....',
+  '.......####.##..',
 ] as const;
 
-/** A toucan perched or flying: the beak's line cut along it, the wings (up, level, down) and tail under the body's rows. */
+/** A toucan perched or flying: the beak's line cut along it, the wings (up, level, down) over the body. */
 function toucan(): NewCreature {
   const frame = (w: number): string[] => {
     const r = new Raster(16, 16);
     r.stamp(TOUCAN, 0, 0);
-    r.cut(['#######'], 0, 4); // the beak's line
-    r.cut(['.##.', '#..#', '#..#', '.##.'].map((x) => x.replace(/#/g, '#')), 5, 3); // (the eye's ring, cut)
-    r.rect(6, 4, 7, 5); // the eye, lit in the ring
+    r.cut(['#######'], 0, 5); // the beak's line
+    r.cut(['##'], 4, 3); // the beak's tip, cut off
+    r.cut(['.##.', '#..#', '#..#', '.##.'], 6, 2); // (the eye's ring, cut)
+    r.rect(7, 3, 8, 4); // the eye, lit in the ring
     const y = [0, 4, 8, 4][w] ?? 4;
     const wing = new Raster(16, 16);
     wing.triangle(8, 7, 15, 5 + y * 0.5, 14, 11 + y * 0.5);
@@ -167,27 +186,33 @@ function toucan(): NewCreature {
     r.rect(9, 12, 10, 14); r.rect(8, 15, 11, 15);
     return r.rows();
   };
-  return pair('toucan', [0, 1, 2, 3].map(frame), 7, false);
+  return pair('toucan', [0, 1, 2, 3].map(frame), 1, false);
 }
 
 /** `shape` over `r` with its moat. */
 function over2(r: Raster, shape: Raster) { lay(r, (s) => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (shape.get(x, y)) s.set(x, y); }); }
 
-// ---- the captain of the riverboat: a peaked cap, a bushy beard, a striped jersey, arms folded
+// ---- the captain of the riverboat: a peaked cap with its badge, a bushy beard and a pipe, a striped jersey, arms folded
 
-const CAPTAIN = [
-  '..######', '.#######', '.##.####', '########', '..######', '..##.###', '..######', '.#######',
-  '.#####..', '..######', '.#######', '########', '#..#..##', '#######.', '..###.##', '..###.##',
-] as const;
-
-/** The riverboat's captain, seen front on: a peaked cap with its badge, two small eyes over a great beard, a striped jersey, arms folded; he rocks from foot to foot. */
+/** The riverboat's captain, seen front on: a white-topped cap with a wide peak and a badge, small eyes over a great beard with a pipe in it, a jersey striped across, arms folded; he rocks from foot to foot. */
 function captain(): NewCreature {
   const frame = (k: number): string[] => {
-    const rows = sym(CAPTAIN);
-    if (k & 1) { rows[14] = '..###..###..###.'; rows[15] = '.###....###.....'; }
-    return rows;
+    const r = new Raster(16, 16);
+    r.ellipse(8, 2.5, 5, 2.6); r.rect(3, 3, 12, 4); // the cap's crown
+    r.rect(1, 5, 14, 6); // the peak, wide
+    r.rect(2, 4, 13, 4, false); r.cut(['##', '##'], 7, 1); // the band, the badge
+    r.rect(4, 7, 11, 9); // the face
+    r.cut(['#'], 5, 8); r.cut(['#'], 10, 8); // the eyes
+    r.ellipse(8, 11.5, 5, 3); // the great beard
+    r.cut(['#####'], 3, 11); r.rect(10, 11, 14, 11); r.rect(13, 12, 14, 13); // the mouth cut in it, the pipe's stem and bowl
+    r.rect(13, 12, 14, 12, false);
+    r.rect(1, 13, 14, 15); // the jersey and folded arms
+    for (const y of [13, 15]) r.rect(2, y, 13, y, false); // the stripes
+    r.rect(7, 13, 8, 15, false); // the arms' join
+    if (k & 1) { r.rect(1, 15, 3, 15, false); r.rect(12, 15, 14, 15, false); }
+    return r.rows();
   };
-  return pair('captain', [frame(0), frame(1), frame(0), frame(1)], 15, true);
+  return pair('captain', [frame(0), frame(1), frame(0), frame(1)], 1, true);
 }
 
 // ---- the sloth: grey, hanging, a dopey smile in two dark eye patches

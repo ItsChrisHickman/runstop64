@@ -280,7 +280,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[AND.rock, 4, 18, 'THE LLAMA WANTS A TUNE'], [AND.cloud, 12, 18, 'THE UNDERGROWTH WANTS A BLADE'], [AND.boat, 9, 15, 'THE CAPTAIN WANTS A LOCAL\'S HAT']] as const;
+  const wants = [[AND.rock, 4, 18, 'THE LLAMA WANTS A TUNE'], [AND.cloud, 12, 18, 'THE UNDERGROWTH WANTS A BLADE'], [AND.boat, 9, 15, 'THE CAPTAIN WANTS A LOCAL HAT']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
