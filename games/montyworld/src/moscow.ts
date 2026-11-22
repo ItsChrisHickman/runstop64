@@ -110,16 +110,15 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     id: ROOM.start, cell: [1, 0], sector: 0,
     palette: { S: ['snowGround', 1], X: ['crate', 9], T: ['trainSide', 5], G: ['girder', 3], K: ['kremlinBrick', 2], B: ['battlement', 2] },
     paint(g) {
-      // open to the night: the platform runs off the left edge; the Kremlin's wall closes the right, a passage through it at the gantry
+      // open to the night: the platform runs off the left edge (no wall: the exit grid stops him, as at Monty on the Run's start) and the sky is open above; the Kremlin's wall closes the right (the street's edge is solid there), a passage through it at the gantry
       g.box(28, 8, 31, 16, 'K');
-      g.box(2, 3, 11, 3, 'G'); // the sign's gantry
       g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'K');
       g.box(5, 15, 6, 16, 'X').box(7, 13, 8, 16, 'X').box(9, 11, 11, 16, 'X'); // the luggage, a step each
       g.box(12, 9, 27, 9, 'G').box(12, 10, 27, 16, 'T'); // the train
       g.box(22, 7, 31, 7, 'G'); // the gantry
     },
     coins: [[20, 8]],
-    decor: [[{ text: 'MOSKVA', colour: 1 }, 4, 4], ['stationClock', 13, 4], ['lampStreet', 3, 13]],
+    decor: [['stationClock', 13, 4], ['lampStreet', 3, 13]],
     creatures: [{ who: 'pigeon', col: 17, row: 3, way: 'down', speed: 1, range: 24 }],
   }),
 
