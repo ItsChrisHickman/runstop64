@@ -42,9 +42,9 @@ export const STREET_PALETTE = {
   A: ['jpAsphalt', 6], O: ['jpLitA', 7], P: ['jpLitB', 3], K: ['jpKawara', 14], R: ['jpPipe', 5], F: ['jpPlank', 2], W: ['jpTrainWin', 1], N: ['jpTrainBand', 6],
 } as const satisfies Palette;
 
-/** The parlour's five: the carpet, the walls, the press's column, the stair's steps, the rope. */
+/** The parlour's seven (the last two only drawn by the ball stream's timing): the carpet, the walls, the press's column, the stair's steps, the rope. */
 export const PARLOUR_PALETTE = {
-  P: ['jpCarpet', 4], W: ['jpOffice', 2], K: ['jpTimber', 9], L: ['jpPlank', 2], R: ['jpBamboo', 5],
+  P: ['jpCarpet', 4], W: ['jpOffice', 2], K: ['jpTimber', 9], L: ['jpPlank', 2], R: ['jpBamboo', 5], F: ['jpBallsFew', 15], B: ['jpBalls', 15],
 } as const satisfies Palette;
 /** The crossing's eight: the asphalt, the zebra, the overpass's steel (and the towers), the subway's rope, a taxi's cabin and body, the crowd's heads and legs (the last four only drawn by the moving pictures). */
 export const CROSSING_PALETTE = {
@@ -175,6 +175,14 @@ export const JAPAN_TUNNELS: readonly TunnelSpec[] = [...TRAINS, STREET_TRAIN, ..
 /** Every picture that moves of Japan's rooms: the parlour's balls and the crossing's signals. */
 export const JAPAN_ANIMS: readonly CharAnim[] = [...PARLOUR_ANIMS, SIGNAL_ANIM];
 
+/**
+ * The parlour's ball stream (`pulses`): steel balls pour down the chute from the ceiling on to the middle floor between the machines and the rope, two cells wide and two tall where he walks (rows 9-10, columns 18-19):
+ * nothing for 60 frames, a trickle for 30 (the warning), a stream for 40 (deadly: the balls bounce across the floor), 10 frames of nothing, a 140 frame period. A set-up trap: the coin beyond it waits for the lull.
+ */
+export const BALL_STREAM: PulseSpec = {
+  room: JP.parlour, col: 18, row: 9, cols: 2, rows: 2, period: 140, start: 60, warn: 30, live: 40, idle: 0, warnCode: codeOf(PARLOUR_PALETTE, 'F'), liveCode: codeOf(PARLOUR_PALETTE, 'B'), spent: 0,
+};
+
 // ---- the paper doors ----------------------------------------------------------------------------------------
 /**
  * The hall's three pairs of sliding paper doors (I; `pulses`): a doorway 2 cells wide and 3 tall (rows 11-13) open for 80 frames, its lattice shaking for 24 (the warning), shut over a
@@ -196,7 +204,7 @@ export const PLANK_CODE = codeOf(GARDEN_PALETTE, 'P');
 export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [10, 11, 12, 13].map((row) => [row, 29] as const);
 
 /** The platform's scenery: the skyline beyond the station, a sign and a clock, the overhead wire across the whole room (but where a rope climbs through it) on its masts, the safety line along the deck's edge. */
-const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 23 && c !== 29);
+const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 0 && c !== 23 && c !== 29);
 const EDGE_COLS = [1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16, 17, 18, 22, 24, 25, 28, 30, 31];
 const PLATFORM_DECOR = [
   ['jpTowerGreen', 1, 3], ['jpTowerYellow', 26, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 3, 11],
@@ -213,7 +221,7 @@ const SNOW_ROWS = 5;
 function paintFuji(g: Grid) {
   FUJI_HALF.forEach((hw, k) => g.box(17 - hw, k + 2, 16 + hw, k + 2, k + 2 <= SNOW_ROWS ? 'N' : 'M')); // the cone: snow above, blue slope below
   g.box(0, 0, 3, 1, 'S').box(7, 0, 12, 1, 'S'); // (the rock the chain hangs from)
-  g.box(30, 4, 31, 13, 'S').box(29, 8, 29, 13, 'S'); // (open sky; the rock of the mountain's flank closes the right, the line of the platform open at the left)
+  g.box(30, 0, 31, 13, 'S').box(29, 8, 29, 13, 'S'); // (open sky; the rock of the mountain's flank closes the right, the line of the platform open at the left)
   g.box(0, 14, 22, 14, 'T').box(23, 14, 31, 14, 'S').box(0, 15, 31, 19, 'S');
   g.box(23, 12, 25, 12, 'T').box(26, 10, 28, 10, 'T'); // the steps
   g.box(10, 8, 26, 8, 'T'); // the second ledge
@@ -250,7 +258,7 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
 // ---- the port ----------------------------------------------------------------------------------------------
 /** The port's tiles: the container stack at the left, the quay, the rope down from the hall and a short crane arm over its top, the container stair, the gangway's plank, the ship's hull and deck. */
 function paintPort(g: Grid) {
-  g.box(0, 14, 2, 16, 'C').box(0, 11, 2, 13, 'D').box(0, 8, 2, 10, 'C').box(0, 5, 2, 7, 'D'); // (open sky; a stack of four containers closes the left, the ship goes on off the right)
+  g.box(0, 14, 2, 16, 'C').box(0, 11, 2, 13, 'D').box(0, 8, 2, 10, 'C').box(0, 5, 2, 7, 'D').box(0, 2, 2, 4, 'C').box(0, 0, 2, 1, 'D'); // (open sky; a stack of four containers closes the left, the ship goes on off the right)
   g.box(19, 0, 31, 0, 'S').clear(24, 0, 26, 0); // a crane's boom over the rope's top (so no one leaves by the sky beside it)
   g.box(0, 17, 27, 19, 'S');
   g.box(25, 0, 25, 16, 'R');
@@ -306,6 +314,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'jpSushiRoll', col: 6, row: 5, way: 'right', speed: 1, range: 24 },
       { who: 'jpLuckyCat', col: 27, row: 5, way: 'right', speed: 1, range: 16 },
+      { who: 'jpKarakasa', col: 19, row: 5, way: 'down', speed: 1, range: 16 }, // a paper umbrella hopping up and down the alley between the fire escape's landings
     ],
   }),
 
@@ -319,18 +328,21 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 17, 31, 19, 'P');
       g.box(21, 0, 21, 16, 'R');
       g.box(12, 2, 14, 11, 'K'); // the press's column, down from the ceiling
+      g.box(15, 11, 19, 11, 'L').box(23, 11, 29, 11, 'L'); // the middle floor, the lane machines' tops (a gap for the rope)
+      g.box(15, 5, 17, 5, 'L').box(23, 5, 29, 5, 'L'); // the top floor, the middle machines' tops (the gap for the rope and the ball chute)
       g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L').box(2, 9, 8, 9, 'L'); // the counter's stair and the prize shelf
     },
-    coins: [[9, 13], [5, 7]],
+    coins: [[16, 9], [25, 3]],
     item: { name: 'daruma', col: 3, row: 7, sprite: JAPAN_SPRITE.daruma },
     decor: [
-      ['jpClawMachine', 6, 4],
+      ['jpClawMachine', 6, 4], ...Array.from({ length: 7 }, (_, k) => ['jpChute', 18, 2 + k] as const),
+      ['jpPachinkoGreen', 23, 6], ['jpPachinkoOrange', 26, 6],
       ['jpPachinkoOrange', 15, 12], ['jpPachinkoGreen', 18, 12], ['jpPachinkoOrange', 22, 12], ['jpPachinkoGreen', 25, 12],
     ],
     creatures: [
       { who: 'jpDaruma', col: 15, row: 15, way: 'right', speed: 1, range: 32 },
-      { who: 'jpLanternGhost', col: 24, row: 2, way: 'right', speed: 1, range: 32 },
-      { who: 'jpLuckyCat', col: 24, row: 15, way: 'right', speed: 1, range: 32 },
+      { who: 'jpLanternGhost', col: 22, row: 6, way: 'down', speed: 1, range: 32 }, // the ghost bobs up and down beside the rope between the middle and the top floor and guards the way up to the coin
+      { who: 'jpLuckyCat', col: 24, row: 15, way: 'left', speed: 2, range: 14 },
     ],
     crushers: [{ col: 12, row: 12, height: 5 }],
   }),
@@ -359,13 +371,13 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   room({
     id: JP.platform, cell: [2, 14], sector: 31, palette: PLATFORM_PALETTE,
     paint(g) {
-      g.box(0, 8, 0, 13, 'W').box(14, 0, 31, 0, 'W').clear(22, 0, 24, 0).box(29, 1, 29, 9, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it; a canopy's edge over the rope's top and a gantry post over the gate, so that no one jumps off the rope's top over the gate or out of the room)
+      g.box(0, 0, 0, 13, 'W').box(14, 0, 31, 0, 'W').clear(22, 0, 24, 0).box(29, 1, 29, 9, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it; a canopy's edge over the rope's top and a gantry post over the gate, so that no one jumps off the rope's top over the gate or out of the room)
       g.box(0, 14, 31, 14, 'W').clear(8, 14, 10, 14).clear(19, 14, 21, 14);
       g.box(0, 17, 31, 19, 'W').box(30, 15, 31, 16, 'W');
       g.box(9, 13, 9, 16, 'R').box(20, 13, 20, 16, 'R').box(23, 0, 23, 13, 'R');
       g.box(29, 10, 29, 13, 'H');
     },
-    coins: [[27, 15], [22, 12]],
+    coins: [[27, 15], [16, 12]],
     decor: [...PLATFORM_DECOR],
   }),
 
@@ -387,8 +399,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   room({
     id: JP.garden, cell: [1, 15], sector: 33, palette: GARDEN_PALETTE,
     paint(g) {
-      g.box(0, 10, 1, 13, 'L').box(0, 9, 1, 9, 'K'); // (open sky; a temple wall with its tiled cap at the left, the castle gatehouse at the right)
-      g.box(30, 6, 31, 11, 'L').box(29, 5, 31, 5, 'K');
+      g.box(0, 1, 1, 13, 'L').box(0, 0, 1, 0, 'K'); // (open sky; a temple wall with its tiled cap at the left, the castle gatehouse at the right)
+      g.box(30, 2, 31, 11, 'L').box(29, 1, 31, 1, 'K'); // the gatehouse runs up to the pergola's beam: no way out over it into the hall's wall
       g.box(22, 0, 31, 0, 'T').clear(27, 0, 29, 0); // a pergola's beam over the rope's top (no jumping out of the room off it)
       g.box(0, 14, 15, 19, 'M').box(7, 14, 15, 14, 'G').clear(4, 14, 6, 19).box(5, 13, 5, 19, 'R');
       g.box(16, 15, 24, 19, 'W').box(16, 14, 17, 14, 'P'); // the pond and the first plank (the others float up when the koi are fed: PLANK_CELLS)
@@ -410,15 +422,16 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
     paint(g) {
-      g.box(30, 10, 31, 13, 'L').box(30, 9, 31, 9, 'K'); // (the night sky open above; a garden wall at the right)
+      g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K'); // (the night sky open above; a garden wall at the right)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
       for (const [c, r] of [[24, 14], [20, 13], [16, 14], [12, 12], [8, 13], [4, 14]] as const) g.box(c, r, c + 1, r, 'S'); // the stones
       g.box(1, 10, 8, 10, 'T'); // the bonsai shelf
+      g.box(10, 6, 12, 6, 'S').box(16, 6, 18, 6, 'S').box(14, 6, 14, 13, 'R'); // a high ledge, split at the middle for the bamboo rope that climbs to it from the stones
     },
-    coins: [[14, 10]],
+    coins: [[17, 4]],
     item: { name: 'hood', col: 1, row: 12, sprite: JAPAN_SPRITE.hood },
-    decor: [['jpMoon', 20, 2], ['jpDragon', 10, 4], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
+    decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
     creatures: [
       { who: 'jpKoi', col: 18, row: 17, way: 'up', speed: 2, range: 20 },
       { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
@@ -485,7 +498,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 40 },
-      { who: 'jpKappa', col: 18, row: 15, way: 'right', speed: 1, range: 24 },
+      { who: 'jpKappa', col: 16, row: 9, way: 'down', speed: 1, range: 56 }, // a kappa hopping up out of the sea behind the quay and down again across the lane
     ],
   }),
 ];

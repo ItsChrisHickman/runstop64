@@ -55,6 +55,11 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const used = [...HAT_BLOCKS, ...Object.values(JAPAN_SPRITE)];
   check(`every block of the bank Japan uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73) and its four items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values(JAPAN_SPRITE).every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
+  const lockstep = JAPAN_ROOMS.flatMap((r) => {
+    const seen = new Set<string>();
+    return (r.enemies ?? []).flatMap((e) => { const k = `${e.dir}/${e.speed}/${e.range}`; if (seen.has(k)) return [`room ${r.id}: two creatures that go ${k} (direction/speed/range)`]; seen.add(k); return []; });
+  });
+  check(`no two creatures of a room go in lockstep (the same direction, speed and range): ${lockstep.length ? lockstep.join('; ') : 'none do'}`, lockstep.length === 0);
   const crowded = overCrowded(JAPAN_ROOMS);
   check(`no room has a fourth creature (sprite 7 is the worn hat's: it would be a phantom; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no pictured tunnels, no pulse with an offset)', MOTR.tunnels.length === 0 && MOTR.pulses.every((p) => p.offset === undefined));
@@ -563,5 +568,31 @@ void LEFT;
   check('the signal shows the red man through the taxis\' turn (to frame 180) and the green man on the crowd\'s, then the red man again for the next cycle', stillRed && green.join() !== red.join() && nextRed.join() === red.join());
 }
 
+
+// ---- the joins are strict: what is open at one room's edge is open on the other side, at every height (a jump reaches any) ------------------------------
+{
+  const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
+  const roomAt = (row: number, col: number) => JAPAN_ROOMS.find((r) => r.id === cells[row * cols + col]);
+  type Spec = (typeof JAPAN_ROOMS)[number];
+  const propAt = (r: Spec, col: number, row: number) => {
+    const ch = r.map[row]?.[col] ?? '.';
+    return ch === '.' ? 0 : WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0);
+  };
+  const solidAt = (r: Spec, col: number, row: number) => { const p = propAt(r, col, row); return p === 1 || p === 2; };
+  /** An open edge cell he can be in: open, with a floor under it within a jump's reach (his body two cells, a jump two and a bit) and open cells between. */
+  const reachable = (r: Spec, col: number, row: number) => {
+    if (solidAt(r, col, row)) return false;
+    for (let f = row + 1; f <= row + 4 && f < 20; f++) { if (solidAt(r, col, f)) return true; }
+    return false;
+  };
+  const bad: string[] = [];
+  for (const r of JAPAN_ROOMS) {
+    const east = roomAt(r.row, r.col + 1);
+    if (east) for (let row = 0; row < 20; row++) {
+      if ((reachable(r, 31, row) && solidAt(east, 0, row)) || (reachable(east, 0, row) && solidAt(r, 31, row))) bad.push(`${r.id}|${east.id} row ${row}`);
+    }
+  }
+  check(`every edge cell of Japan's rooms that is open (not solid) on one side of a join is open on the other, at every row (${bad.length ? bad.join('; ') : 'none differ'})`, bad.length === 0);
+}
 
 finish();

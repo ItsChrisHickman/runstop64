@@ -113,6 +113,10 @@ export const JAPAN_TILES = {
   jpCrowdTop: tile('jpCrowdTop', 0, 13, ['..####..', '.######.', '.######.', '..####..', '...##...', '.######.', '########', '########']),
   /** A figure of the crowd, legs mid stride. Nothing. */
   jpCrowdLegs: tile('jpCrowdLegs', 0, 6, ['.######.', '.##..##.', '.##..##.', '.##..##.', '##...##.', '##....##', '###..###', '###..###']),
+  /** The parlour's ball stream, a trickle: a few steel balls falling. Nothing (a picture drawn by the pulse). */
+  jpBallsFew: tile('jpBallsFew', 0, 15, ['........', '..##....', '..##....', '........', '......##', '......##', '........', '..##....']),
+  /** The parlour's ball stream at full: a rush of steel balls. Nothing (deadly by the pulse, not by the tile). */
+  jpBalls: tile('jpBalls', 0, 15, ['.##..##.', '.##..##.', '........', '##..##..', '##..##..', '........', '.##..##.', '.##..##.']),
 } as const;
 
 export type JapanTile = keyof typeof JAPAN_TILES;

@@ -50,7 +50,15 @@ export function pachinkoFrames(phase: number): Uint8Array[] {
   return Array.from({ length: STEPS }, (_, step) => characters(`pachinko glass ${step}`, machine(balls(step, phase)).rows(), W, H).slice(8 * GLASS_CELLS[0], 8 * (GLASS_CELLS[5] + 1)));
 }
 
+/** The chute the balls pour from: a steel pipe, one character, stamped down from the ceiling. */
+function chute(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(1, 0, 2, 7); r.rect(5, 0, 6, 7); r.rect(3, 0, 4, 7, false);
+  return decor('jpChute', 1, 1, r, 12);
+}
+
 export const JAPAN_PACHINKO = {
+  jpChute: chute(),
   jpPachinkoOrange: pachinko('jpPachinkoOrange', 8),
   jpPachinkoGreen: pachinko('jpPachinkoGreen', 13),
 } as const satisfies Record<string, NewDecor>;
