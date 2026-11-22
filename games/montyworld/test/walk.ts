@@ -32,7 +32,7 @@ check('Moscow\'s nine rooms are the first four columns of the grid, each in the 
 check('no room of Monty on the Run\'s extension, no kit, no C5, no jetpack, no ending', WORLD.extensionGrid.every((c) => c === 0xff) && !WORLD.isExtensionRoom(0) && WORLD.kit.length === 0 && !WORLD.c5 && WORLD.jetpackRooms.length === 0 && !WORLD.ending && !WORLD.completion);
 check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1, 2, 3, 4, 5, 6, 7, 8].map((id) => sectorName(WORLD, id).text).join('|') ===
   'MOSCOW MOLE|SNOW PLACE LIKE HOME|SEEING RED|ONION DOME SWEET DOME|KREMLIN GREMLINS|SIBERIA YOU LATER|STUCK LIKE GUM|ESCALATING TENSIONS|UNDERGROUND MOVEMENT');
-check('Moscow, Siberia, China, Japan and the Pacific: 147 coins, 11 snacks (pirozhki, pelmeni, dumplings, sushi, musubi), 14 key items', WORLD.coinTable.length === 147 * 3 && WORLD.specialItems.length === 25 * 4 && WORLD.progress.cakes.length === 11 && WORLD.progress.keyItems.length === 14);
+check('Moscow, Siberia, China, Japan, the Pacific and the Andes: 219 coins, 17 snacks (pirozhki, pelmeni, dumplings, sushi, musubi, empanadas), 17 key items', WORLD.coinTable.length === 219 * 3 && WORLD.specialItems.length === 34 * 4 && WORLD.progress.cakes.length === 17 && WORLD.progress.keyItems.length === 17);
 {
   // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
   const rooms = creatureRooms(MOSCOW_ROOMS);
@@ -88,7 +88,7 @@ tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/55' && numbers[2] === 'ITEMS  0/14' && numbers[3] === 'SNACKS 0/11');
+check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === 'ROOMS  1/67' && numbers[2] === 'ITEMS  0/17' && numbers[3] === 'SNACKS 0/17');
 tap('KeyP');
 tick(4);
 

@@ -298,8 +298,8 @@ function idol(): NewDecor {
 export const ANDES_DECOR = {
   mountainRange: mountainRange(),
   peak: peak(),
-  cloud: cloud(),
-  cloudBig: cloudBig(),
+  skyCloud: cloud(),
+  skyCloudBig: cloudBig(),
   updraft: updraft(),
   incaGate: incaGate(),
   stoneHut: stoneHut(),

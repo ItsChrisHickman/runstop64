@@ -78,7 +78,7 @@ export const BANK_PALETTE = {
 export const FLIGHTS: readonly FlightSpec[] = [
   { room: AND.jump, updrafts: [{ col: 9, cols: 3, top: 6 }] },
   { room: AND.thin, updrafts: [{ col: 5, cols: 3, top: 7 }, { col: 22, cols: 3, top: 6 }] },
-  { room: AND.condor, updrafts: [{ col: 13, cols: 3, top: 6 }, { col: 27, cols: 2, top: 10 }] },
+  { room: AND.condor, updrafts: [{ col: 13, cols: 3, top: 6 }, { col: 19, cols: 3, top: 6 }] },
 ];
 
 /**
@@ -94,8 +94,8 @@ export const BOULDERS: readonly RollerSpec[] = [0, 120, 240].map((start, i): Rol
 export const VINES: readonly VineSpec[] = [8, 16, 24].map((col, i): VineSpec => ({ room: AND.river, col, top: 3, length: 9, period: 96, amplitude: 4, phase: i * 32, code: codeOf(RIVER_PALETTE, 'V') }));
 
 // ---- the key items' places -------------------------------------------------------------------------
-/** CLOUD NINE's tangle over the jetty's rope (cols 4-6, rows 18-19): the machete cuts it away. */
-export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [4, 5, 6].map((col) => [row, col] as const));
+/** CLOUD NINE's tangle over the jetty's rope (cols 4-7, rows 18-19: four wide, so that he standing anywhere on the rope has air under his three columns): the machete cuts it away. */
+export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [4, 5, 6, 7].map((col) => [row, col] as const));
 /** The rope that hangs through that gap once it is clear (the jetty below): placed with the machete. */
 export const TANGLE_ROPE: readonly (readonly [row: number, col: number])[] = [18, 19].map((row) => [row, 5] as const);
 export const TANGLE_ROPE_CODE = codeOf(CLOUD_PALETTE, 'R');
@@ -109,13 +109,13 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.jump, cell: [2, 30], sector: 55, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 17, 'K').box(0, 18, 1, 19, 'K');
-      g.box(28, 0, 31, 19, 'R').box(27, 9, 27, 19, 'R').box(26, 15, 26, 19, 'R').box(25, 17, 25, 19, 'R');
+      g.box(28, 0, 31, 19, 'R');
       g.box(19, 14, 24, 19, 'R').box(20, 13, 23, 13, 'S').box(21, 12, 22, 12, 'S'); // the spire
     },
     coins: [[7, 12], [13, 8], [16, 9], [19, 10], [26, 12]],
     item: { name: 'empanada1', col: 21, row: 10, sprite: ANDES_SPRITE.empanada },
-    decor: [['mountainRange', 2, 17], ['mountainRange', 11, 18], ['peak', 15, 12], ['cloudBig', 4, 4], ['cloud', 13, 2], ['cloud', 22, 5], ['cloud', 6, 9],
-      ['updraft', 9, 16], ['updraft', 9, 12], ['updraft', 9, 8]],
+    decor: [['mountainRange', 4, 17], ['mountainRange', 11, 17], ['peak', 14, 14], ['skyCloudBig', 4, 4], ['skyCloud', 13, 2], ['skyCloud', 22, 5], ['skyCloud', 5, 9],
+      ['updraft', 9, 12], ['updraft', 9, 8]],
   }),
 
   // F2 OUT OF THIN AIR: the canyon. In from above anywhere; the cliffs close in at each side, a ridge rises mid-room (coins on its crest), an updraft each side of it, two condors crossing at two heights. Out at the bottom.
@@ -123,12 +123,12 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.thin, cell: [3, 30], sector: 56, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 2, 19, 'R').box(3, 8, 3, 19, 'R').box(4, 13, 4, 19, 'R').box(29, 0, 31, 19, 'R').box(28, 7, 28, 19, 'R').box(27, 12, 27, 19, 'R');
-      g.box(11, 14, 20, 19, 'R').box(12, 12, 19, 13, 'R').box(14, 10, 17, 11, 'R').box(15, 9, 16, 9, 'S').box(14, 10, 17, 10, 'S');
+      g.box(11, 14, 20, 19, 'R').box(21, 18, 26, 19, 'R').box(12, 12, 19, 13, 'R').box(14, 10, 17, 11, 'R').box(15, 9, 16, 9, 'S').box(14, 10, 17, 10, 'S');
     },
-    coins: [[7, 6], [8, 10], [15, 6], [16, 7], [23, 5], [23, 9], [24, 13]],
-    decor: [['mountainRange', 12, 16], ['peak', 6, 15], ['peak', 21, 15], ['cloudBig', 3, 3], ['cloud', 22, 2], ['cloud', 14, 8],
-      ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 22, 16], ['updraft', 22, 12], ['updraft', 22, 8]],
-    creatures: [{ who: 'condor', col: 4, row: 3, way: 'right', speed: 2, range: 100 }, { who: 'condor', col: 26, row: 12, way: 'left', speed: 2, range: 110 }],
+    coins: [[26, 13], [23, 7], [19, 6], [16, 8], [12, 10], [8, 12], [6, 7]],
+    decor: [['skyCloudBig', 3, 3], ['skyCloud', 22, 2], ['skyCloud', 13, 3],
+      ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 22, 12], ['updraft', 22, 8]],
+    creatures: [{ who: 'condor', col: 4, row: 4, way: 'right', speed: 2, range: 88 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 44 }],
   }),
 
   // F3 CONDOR COUNTRY: the climax of the drop. A rock overhang hangs at the right (an empanada on its lip), a ledge at each side, two updrafts, two condors on slow wide circuits; down through the gap between the ledges (cols 8-23)
@@ -137,45 +137,44 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.condor, cell: [4, 30], sector: 57, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 19, 'R').box(30, 0, 31, 19, 'R').box(2, 16, 7, 19, 'R').box(24, 16, 29, 19, 'R').box(3, 14, 5, 15, 'R');
-      g.box(18, 0, 29, 5, 'R').box(22, 6, 29, 7, 'R').box(26, 8, 29, 9, 'R'); // the overhang
-      g.box(18, 6, 21, 6, 'T');
+      g.box(18, 0, 29, 4, 'R').box(21, 5, 29, 5, 'R'); // the overhang
+      g.box(22, 9, 27, 10, 'R').box(22, 8, 27, 8, 'S'); // the shelf under it
     },
-    coins: [[12, 4], [14, 9], [17, 12], [22, 12], [28, 12], [5, 12], [10, 14]],
-    item: { name: 'empanada2', col: 26, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['mountainRange', 4, 17], ['mountainRange', 14, 18], ['peak', 8, 12], ['cloudBig', 3, 3], ['cloud', 13, 1], ['cloud', 24, 11],
-      ['updraft', 13, 16], ['updraft', 13, 12], ['updraft', 13, 8]],
-    creatures: [{ who: 'condor', col: 4, row: 5, way: 'right', speed: 2, range: 120 }, { who: 'condor', col: 24, row: 10, way: 'left', speed: 2, range: 130 }],
+    coins: [[5, 12], [10, 14], [14, 6], [17, 8], [27, 7], [27, 13]],
+    item: { name: 'empanada2', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
+    decor: [['mountainRange', 8, 17], ['mountainRange', 16, 17], ['skyCloudBig', 3, 3], ['skyCloud', 13, 1], ['skyCloud', 22, 12],
+      ['updraft', 13, 12], ['updraft', 13, 8], ['updraft', 19, 12], ['updraft', 19, 8]],
+    creatures: [{ who: 'condor', col: 4, row: 5, way: 'right', speed: 2, range: 52 }, { who: 'condor', col: 24, row: 12, way: 'left', speed: 2, range: 56 }],
   }),
 
   // T1 NO PROBLLAMA: Machu Picchu's lower terraces. The drop lands on the top terrace (floor 6) under a roof of cloud, which runs east out high into the great room; a ladder (col 4) goes down through the wall to the low path (floor 18),
-  // where two llamas graze and wink, and which runs east out low; a gap in it (cols 14-16) holds the rope down to the cloud forest.
+  // where two llamas graze and wink, and which runs east out low into the great room's lane.
   room({
     id: AND.llama, cell: [5, 30], sector: 58, palette: TERRACE_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 2, 'C');
       g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 12, 'W').clear(4, 6, 4, 12).box(4, 6, 4, 17, 'L');
-      g.box(0, 18, 31, 19, 'G').clear(14, 18, 16, 19).box(15, 18, 15, 19, 'V');
-      g.box(0, 13, 1, 17, 'K').box(30, 12, 31, 12, 'W');
+      g.box(0, 18, 31, 19, 'G');
+      g.box(0, 13, 1, 17, 'K').box(30, 12, 31, 13, 'W');
     },
     coins: [[10, 4], [16, 4], [22, 4], [28, 4], [8, 16], [21, 16], [27, 16]],
-    decor: [['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14], ['mountainRange', 8, 10]],
+    decor: [['intihuatana', 12, 4], ['pots', 25, 4], ['incaGate', 22, 14]],
     creatures: [{ who: 'llama', col: 6, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 17, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
   // T2 ROCK AND ROLL: Machu Picchu proper. In from T1 on the plateau at the left (floor 6: the temple gate and the sacred stone) or on the low lane (floor 18). Boulders roll off the plateau's lip down the steps (floors 8, 10) to the landing (floor 12),
-  // which is the way out east high into the village; a ladder (col 28) at its foot goes down through the wall to the lane. The lane runs under the terraces: a low tunnel (cols 11-22) where a spitting llama paces the mouth and a well
-  // (cols 19-21) falls into the Inca tunnel; the llama steps aside for a tune. East of the tunnel the lane reaches the ladder.
+  // which is the way out east high into the village. The lane runs under the terraces from T1's low path: a low tunnel (cols 11-22, two cells high) where a spitting llama paces the mouth and a well (cols 19-21) falls into the Inca
+  // tunnel; the llama steps aside for a tune.
   room({
     id: AND.rock, cell: [5, 31], sector: 59, palette: TERRACE_PALETTE,
     paint(g) {
       g.box(0, 6, 15, 6, 'G').box(0, 7, 15, 13, 'W').box(16, 8, 20, 8, 'G').box(16, 9, 20, 13, 'W').box(21, 10, 25, 10, 'G').box(21, 11, 25, 13, 'W').box(26, 12, 31, 12, 'G').box(26, 13, 31, 13, 'W');
-      g.clear(28, 12, 28, 13).box(28, 12, 28, 17, 'L');
-      g.box(0, 18, 31, 19, 'G').clear(19, 18, 21, 19).box(11, 14, 22, 15, 'S').box(30, 14, 31, 17, 'K'); // the lane, the well, the tunnel's lintel
+      g.box(0, 18, 31, 19, 'G').clear(19, 18, 21, 19).box(11, 14, 22, 15, 'W').box(23, 14, 31, 17, 'K'); // the lane, the well, the tunnel's lintel and the rock the tunnel ends in
       g.box(30, 0, 31, 9, 'K');
     },
-    coins: [[6, 4], [10, 4], [18, 6], [23, 8], [28, 10], [5, 16], [27, 16]],
-    item: { name: 'empanada3', col: 24, row: 16, sprite: ANDES_SPRITE.empanada },
-    decor: [['huaynaPicchu', 24, 0], ['incaGate', 2, 2], ['intihuatana', 8, 4], ['cloud', 17, 1], ['cloud', 8, 0]],
+    coins: [[6, 4], [10, 4], [18, 6], [23, 8], [28, 10], [4, 16]],
+    item: { name: 'empanada3', col: 8, row: 16, sprite: ANDES_SPRITE.empanada },
+    decor: [['huaynaPicchu', 24, 0], ['incaGate', 2, 2], ['intihuatana', 8, 4], ['skyCloud', 17, 1], ['skyCloud', 8, 0]],
     creatures: [{ who: 'spitter', col: 12, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 3, row: 4, way: 'right', speed: 1, range: 30 }],
   }),
 
@@ -185,12 +184,12 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.market, cell: [5, 32], sector: 60, palette: MARKET_PALETTE,
     paint(g) {
       g.box(0, 12, 9, 12, 'T').box(0, 13, 9, 17, 'A').box(10, 14, 14, 14, 'T').box(10, 15, 14, 17, 'A').box(15, 16, 18, 16, 'T').box(15, 17, 18, 17, 'A');
-      g.box(0, 18, 31, 19, 'G').box(30, 0, 31, 15, 'K').box(0, 0, 1, 7, 'K');
+      g.box(0, 18, 31, 19, 'G').box(30, 0, 31, 15, 'K').box(0, 0, 1, 9, 'K');
       g.box(21, 9, 28, 9, 'T').box(20, 9, 20, 17, 'R');
     },
-    coins: [[5, 10], [12, 12], [16, 14], [23, 16], [24, 7], [27, 16]],
+    coins: [[7, 10], [12, 12], [16, 14], [21, 16], [24, 7], [27, 16]],
     item: { name: 'chullo', col: 25, row: 7, sprite: ANDES_SPRITE.chullo },
-    decor: [['marketStall', 22, 14], ['marketStall', 26, 14], ['textile', 4, 9], ['pots', 12, 12], ['cuyPen', 17, 14], ['stoneHut', 1, 8], ['cloud', 12, 3], ['mountainRange', 14, 6]],
+    decor: [['marketStall', 22, 14], ['textile', 28, 14], ['pots', 8, 10], ['cuyPen', 17, 14], ['stoneHut', 2, 8], ['skyCloud', 12, 3], ['mountainRange', 14, 6]],
     creatures: [{ who: 'cuy', col: 20, row: 16, way: 'right', speed: 1, range: 30 }],
   }),
 
@@ -203,25 +202,25 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(0, 18, 8, 19, 'G').box(9, 18, 13, 19, 'M').box(14, 18, 31, 19, 'G').box(11, 17, 12, 17, 'S');
       g.box(19, 16, 22, 17, 'W').box(23, 14, 26, 17, 'W').box(27, 12, 29, 17, 'W');
     },
-    coins: [[5, 16], [11, 15], [16, 16], [20, 14], [24, 12], [28, 10]],
+    coins: [[5, 16], [11, 15], [16, 16], [20, 14], [24, 12], [29, 9]],
     item: { name: 'panpipes', col: 28, row: 10, sprite: ANDES_SPRITE.panpipes },
-    decor: [['torch', 4, 14], ['torch', 16, 14], ['idol', 31, 16]],
-    creatures: [{ who: 'caveBat', col: 4, row: 6, way: 'right', speed: 2, range: 100 }, { who: 'cuy', col: 15, row: 16, way: 'right', speed: 1, range: 30 }],
+    decor: [['torch', 3, 16], ['torch', 17, 16], ['idol', 21, 14]],
+    creatures: [{ who: 'caveBat', col: 4, row: 6, way: 'right', speed: 2, range: 95 }, { who: 'cuy', col: 15, row: 16, way: 'right', speed: 1, range: 30 }],
   }),
 
-  // CF CLOUD NINE: the cloud forest. In by the rope from the low path above (through the canopy, cols 14-16) which hangs to the ground. The ground (floor 18) runs from a tangle over a gap at the left (cols 4-6: the machete cuts it) past a jaguar
-  // to a stream at the right (stepping logs) and out east low into the Inca tunnel; boughs (floors 8, 13) run across above it, a sloth and a toucan on them.
+  // CF CLOUD NINE: the cloud forest. In from the Inca tunnel at the right (low). The ground (floor 18) runs west over a stream (stepping logs) past a jaguar to a tangle over a gap at the left (cols 4-7: the machete cuts it, and a rope hangs
+  // through to the riverboat); a rope (col 15) climbs from the ground to the boughs (floors 8, 13, 12) that run across above it, a sloth and a toucan on them.
   room({
     id: AND.cloud, cell: [6, 30], sector: 62, palette: CLOUD_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').clear(14, 0, 16, 2);
-      g.box(0, 18, 31, 19, 'M').box(4, 18, 6, 19, 'T').box(21, 18, 26, 19, 'W').box(22, 17, 23, 17, 'G').box(25, 17, 25, 17, 'G');
-      g.box(3, 8, 13, 8, 'G').box(17, 8, 27, 8, 'G').box(18, 13, 27, 13, 'G').box(2, 12, 7, 12, 'G');
-      g.box(15, 0, 15, 17, 'R');
+      g.box(0, 0, 31, 2, 'J');
+      g.box(0, 18, 31, 19, 'M').box(4, 18, 7, 19, 'T').box(21, 18, 26, 19, 'W').box(22, 17, 23, 17, 'G').box(25, 17, 25, 17, 'G');
+      g.box(3, 8, 13, 8, 'G').box(17, 8, 27, 8, 'G').box(18, 13, 27, 13, 'G').box(6, 12, 9, 12, 'G');
+      g.box(15, 8, 15, 17, 'R');
       g.box(0, 3, 1, 17, 'J').box(30, 0, 31, 15, 'J');
     },
-    coins: [[8, 6], [21, 6], [24, 11], [6, 10], [10, 16], [19, 16], [28, 16]],
-    decor: [['giantTree', 2, 12], ['fern', 8, 15], ['fern', 28, 15], ['bromeliad', 10, 7], ['bromeliad', 22, 12], ['hangingVines', 20, 3], ['hangingVines', 9, 3]],
+    coins: [[8, 6], [21, 6], [24, 11], [6, 10], [10, 16], [19, 16], [28, 14]],
+    decor: [['giantTree', 2, 12], ['fern', 7, 15], ['fern', 27, 15], ['bromeliad', 10, 7], ['bromeliad', 22, 12], ['hangingVines', 23, 3], ['hangingVines', 9, 3]],
     creatures: [{ who: 'jaguar', col: 8, row: 16, way: 'right', speed: 1, range: 56 }, { who: 'toucan', col: 18, row: 6, way: 'right', speed: 1, range: 50 }, { who: 'sloth', col: 4, row: 6, way: 'right', speed: 1, range: 40 }],
   }),
 
@@ -236,9 +235,9 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       g.box(20, 0, 20, 17, 'R');
     },
     coins: [[5, 16], [16, 16], [23, 16], [26, 13], [29, 9]],
-    item: { name: 'machete', col: 29, row: 10, sprite: ANDES_SPRITE.machete },
-    decor: [['torch', 5, 14], ['torch', 16, 14], ['idol', 3, 16], ['idol', 14, 16], ['torch', 23, 14]],
-    creatures: [{ who: 'caveBat', col: 14, row: 6, way: 'right', speed: 2, range: 90 }],
+    item: { name: 'machete', col: 28, row: 10, sprite: ANDES_SPRITE.machete },
+    decor: [['torch', 7, 16], ['torch', 17, 16], ['idol', 3, 16], ['idol', 14, 16], ['torch', 22, 16]],
+    creatures: [{ who: 'caveBat', col: 12, row: 6, way: 'right', speed: 2, range: 50 }],
     crushers: [{ col: 10, row: 13, height: 5, chr: 0x22 }],
   }),
 
@@ -247,18 +246,18 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.boat, cell: [7, 30], sector: 64, palette: BOAT_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').clear(4, 0, 6, 2).box(5, 0, 5, 15, 'V');
-      g.box(0, 16, 4, 17, 'M').box(0, 18, 4, 19, 'W');
+      g.box(0, 0, 31, 2, 'J').clear(4, 0, 7, 2).box(5, 0, 5, 15, 'V');
+      g.box(0, 16, 4, 19, 'M');
       g.box(5, 15, 31, 15, 'D').box(5, 16, 31, 19, 'H');
       for (let c = 8; c <= 28; c += 4) g.box(c, 17, c, 17, 'P');
-      g.box(8, 8, 26, 8, 'D').box(8, 9, 26, 12, 'H').box(12, 10, 12, 10, 'P').box(16, 10, 16, 10, 'P').box(20, 10, 20, 10, 'P').box(24, 10, 24, 10, 'P');
+      g.box(8, 8, 26, 8, 'D').box(8, 9, 25, 12, 'H').box(12, 10, 12, 10, 'P').box(16, 10, 16, 10, 'P').box(20, 10, 20, 10, 'P').box(24, 10, 24, 10, 'P');
       g.box(7, 8, 7, 14, 'L');
       g.box(30, 0, 31, 12, 'H').box(30, 15, 31, 15, 'D');
     },
-    coins: [[6, 12], [10, 6], [17, 6], [24, 6], [23, 13], [28, 12]],
+    coins: [[6, 12], [15, 6], [21, 6], [26, 6], [23, 13], [29, 13]],
     item: { name: 'empanada4', col: 22, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['pilotHouse', 9, 5], ['funnel', 18, 5], ['lifebuoy', 25, 6], ['cargo', 27, 13], ['paddleWheel', 27, 9], ['palm', 0, 10], ['hammock', 9, 13]],
-    creatures: [{ who: 'captain', col: 14, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'toucan', col: 11, row: 6, way: 'right', speed: 1, range: 60, colour: 2 }, { who: 'dolphin', col: 1, row: 17, way: 'up', speed: 1, range: 18 }],
+    decor: [['pilotHouse', 9, 5], ['funnel', 18, 5], ['lifebuoy', 24, 6], ['paddleWheel', 26, 9], ['palm', 0, 10], ['hammock', 9, 13]],
+    creatures: [{ who: 'captain', col: 14, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'toucan', col: 11, row: 6, way: 'right', speed: 1, range: 60, colour: 2 }],
   }),
 
   // P VINE AND DANDY: the boat runs aground. A wide brown river (the floor is water) from the stern's bank at the left (floor 15) to a mud bank at the right; three vines hang from the canopy and swing, two logs float between, piranhas leap.
@@ -271,7 +270,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[10, 11], [14, 14], [18, 10], [21, 14], [26, 11], [30, 13]],
     item: { name: 'empanada5', col: 29, row: 13, sprite: ANDES_SPRITE.empanada },
-    decor: [['giantTree', 0, 9], ['stiltHut', 28, 11], ['fern', 5, 14]],
+    decor: [['giantTree', 2, 9]],
     creatures: [{ who: 'piranha', col: 9, row: 18, way: 'up', speed: 1, range: 24 }, { who: 'piranha', col: 17, row: 18, way: 'up', speed: 1, range: 24 }, { who: 'sloth', col: 12, row: 3, way: 'right', speed: 1, range: 30 }],
   }),
 
@@ -280,12 +279,12 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.bank, cell: [7, 32], sector: 66, palette: BANK_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 2, 'J').box(28, 0, 31, 19, 'J');
+      g.box(0, 0, 31, 2, 'J').box(28, 0, 31, 19, 'J').box(0, 3, 1, 12, 'J');
       g.box(0, 15, 5, 19, 'M').box(6, 16, 9, 19, 'W').box(10, 13, 13, 19, 'M').box(14, 11, 17, 19, 'M').box(18, 9, 21, 19, 'M').box(22, 8, 27, 19, 'M');
     },
-    coins: [[3, 13], [11, 11], [15, 9], [19, 7], [25, 6]],
-    item: { name: 'empanada6', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['palm', 22, 2], ['fern', 12, 10], [{ text: 'RIO COMING SOON', colour: 7 }, 12, 5]],
-    creatures: [{ who: 'anaconda', col: 1, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'piranha', col: 7, row: 18, way: 'up', speed: 1, range: 24 }],
+    coins: [[3, 13], [13, 11], [15, 9], [19, 7], [22, 6]],
+    item: { name: 'empanada6', col: 23, row: 6, sprite: ANDES_SPRITE.empanada },
+    decor: [['palm', 25, 3], ['fern', 10, 10], [{ text: 'RIO COMING SOON', colour: 7 }, 8, 4]],
+    creatures: [{ who: 'anaconda', col: 1, row: 13, way: 'right', speed: 1, range: 24 }, { who: 'piranha', col: 8, row: 18, way: 'up', speed: 1, range: 16 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
   }),
 ];

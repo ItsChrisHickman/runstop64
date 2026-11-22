@@ -37,7 +37,7 @@ export function flightMove(g: Game, spec: FlightSpec) {
   g.upSteps = g.downSteps = 1;
   const y = g.y;
   applyMonty(g, g);
-  g.flightResting = g.dirDown && !lifted && g.y === y;
+  if (g.dirDown || lifted) g.flightResting = g.dirDown && !lifted && g.y === y;
 }
 
 /** The canopy's picture for the way he steers. */

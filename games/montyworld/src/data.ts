@@ -260,9 +260,9 @@ export const WORLD: MontyData = {
       { item: SNORKEL, text: 'SNORKEL: THE SEA IS OPEN NOW' },
       { item: LEI_ITEM, text: 'LEI: PAST THE AIRPORT GUARD' },
       { item: PARACHUTE, text: 'PARACHUTE: FOLLOW THE COINS DOWN' },
-      { item: CHULLO_ITEM, text: 'CHULLO: BLEND IN ON THE RIVERBOAT' },
-      { item: PANPIPES, text: 'PANPIPES: THE LLAMA WILL SETTLE FOR A TUNE' },
-      { item: MACHETE, text: 'MACHETE: CUTS THE TANGLE IN THE FOREST' },
+      { item: CHULLO_ITEM, text: 'CHULLO: BLEND IN ON THE BOAT' },
+      { item: PANPIPES, text: 'PANPIPES: A TUNE FOR THE LLAMA' },
+      { item: MACHETE, text: 'MACHETE: CUTS THE TANGLE' },
     ],
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE WANTS A TOKEN' },
