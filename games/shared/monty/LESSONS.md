@@ -29,6 +29,10 @@ Monty game lives here.
   plate); a vehicle runs on through the screen's edges, never into a wall. Signs name a place; they never stand in for drawing
   it. The level is Monty on the Run's own: simply drawn, leaving a lot to the imagination, but its boat is a boat and its
   street is a road.
+- **Backgrounds tell the place** (Chris on the train's moving scenery and sky, 2026-11-22: "I really love what was done with
+  the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
+  play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
+  rooftops, not under a picture of them).
 - **What looks like a floor is a floor**, and nothing solid looks like background; decorations finish what they start (a
   clothesline runs wall to wall) (Chris on China).
 - **Not every room is a dungeon.** No frame walls or ceilings by habit: outdoor rooms open to the sky and run off the screen's
