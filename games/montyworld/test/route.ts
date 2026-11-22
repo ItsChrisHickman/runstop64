@@ -96,6 +96,7 @@ export const LEGS: readonly Leg[] = [
   leg('D to K: the way out, high', into(ROOM.kremlin, 31, 4, ROOM.domes)),
   leg('K: the coin past the gorge (the guard has stepped aside)', coin(ROOM.kremlin, 25, 4)),
   leg('K to I: the drop', into(ROOM.station, 16, 18, ROOM.kremlin)),
-  leg('I: the coin in the pocket', coin(ROOM.station, 2, 16)),
+  // (the pocket is one cell wide: the leg ends with the platform's creature a good way off, or the way out of it begins in its jaws)
+  leg('I: the coin in the pocket', ((c) => ({ goal: (g: Game) => c.goal(g) && g.enemies.every((e) => Math.abs(e.x - g.x2 * 2) > 40 || Math.abs(e.y - g.y) > 24), aim: c.aim }))(coin(ROOM.station, 2, 16))),
   leg('I: along the platform, aboard through the door, up the hatch ladder to the roof', stands(ROOM.station, 9, 30, 31)),
 ];
