@@ -477,11 +477,11 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   }
   {
     // the wall's hatch: shut (the trapdoor tile) with the rope hanging below it, until the key; then the rope goes on up into the chamber
-    const [row, col] = must(HATCH_CELLS[1], 'the hatch');
+    const [row, col] = must(HATCH_CELLS[2], 'the hatch');
     const shut = at(CHI.wall, 17, 17);
     const open = at(CHI.wall, 17, 17, [KEY]);
     frame(shut, NONE); frame(open, NONE);
-    check('the hatch in the tunnel\'s roof (the chamber\'s floor) is shut without the key and has the rope through it with it, the chamber above it empty', cell(shut.g, col, row) !== 0 && cell(shut.g, col, row) !== WALL_ROPE_CODE && cell(open.g, col, row) === WALL_ROPE_CODE && cell(open.g, col, row - 3) === WALL_ROPE_CODE && cell(shut.g, col, row - 1) === 0);
+    check('the hatch in the tunnel\'s roof (the chamber\'s floor) is shut without the key and has the rope through it with it, the chamber above it empty', cell(shut.g, col, row) !== 0 && cell(shut.g, col, row) !== WALL_ROPE_CODE && cell(open.g, col, row) === WALL_ROPE_CODE && cell(open.g, col, row - 2) === WALL_ROPE_CODE && cell(shut.g, col, row - 1) === 0);
   }
 }
 

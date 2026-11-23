@@ -228,6 +228,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // at the right into the sleeper's corridor. Two windows with the snow going by, tables, lamps and the samovar; RESTAURANT on a board along its side.
   room({
     id: SIB.gravy, cell: [1, 4], sector: 9, palette: TRAIN_PALETTE,
+    shut: [['left', 15, 16, 'T']], // the station's carriage beside it is a wall there
     paint(g) {
       carriage(g, [12, 25]);
       inspectors(g, SIB.gravy);
@@ -266,13 +267,13 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // through the mine's loading shelf into the mine.
   room({
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
-    shut: [['right', 18, 18, 'F']], // the lake's rock is a wall where the carriage's floor line is open
+    shut: [['right', 3, 10, 'M'], ['right', 17, 19, 'F']], // the lake's rock is a wall beside it (the mine's rock above the boiler, the carriage's floor line and undercarriage below)
     paint(g) {
       g.box(17, 0, 31, 1, 'M').clear(23, 0, 25, 1).box(24, 0, 24, 9, 'R'); // the mine's loading shelf overhanging the rope's way up; the rest open sky
       g.box(0, 10, 1, 14, 'T'); // the wagon's end (its gangway below, an inspector in it until he has the ticket)
       inspectors(g, SIB.coal);
       g.box(2, 10, 16, 14, 'E'); // the wagon's boards behind the coal
-      g.box(0, 9, 5, 9, 'D').clear(0, 9, 4, 9).box(2, 9, 2, 16, 'R'); // the rim, with its hatch (five cells round the rope) and rope
+      g.box(0, 9, 6, 9, 'D').clear(1, 9, 5, 9).box(3, 9, 3, 16, 'R'); // the rim, with its hatch (five cells round the rope, the end's wall at the edge) and rope
       g.box(6, 12, 8, 16, 'K').box(9, 14, 10, 16, 'K').box(11, 16, 14, 16, 'K').box(15, 14, 16, 16, 'K').box(17, 12, 18, 16, 'K'); // the coal in steps: down to the trough and up again
       g.box(17, 10, 26, 10, 'D').box(19, 11, 25, 16, 'T'); // the cab (its roof the heap's last step) and its back plate
       g.box(26, 11, 31, 16, 'B'); // the boiler
@@ -408,6 +409,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   // the right (the ticket lifts it) and beyond it the way east, to China.
   room({
     id: SIB.border, cell: [2, 7], sector: 17,
+    shut: [['right', 3, 13, 'L']], // the Wall's hillside beside it is a wall there
     palette: { S: ['snowGround', 1], F: ['snowFill', 1], L: ['logWall', 9], B: ['barrier', 2], R: ['rope', 13] },
     paint(g) {
       g.box(5, 0, 5, 16, 'R'); // the rope from the lake
