@@ -1,5 +1,5 @@
 /**
- * The Pacific's pieces new with the reset (docs/dosvidaniya-reset.md): the palm's trunk, Hana's surge streaks, Hilo's cracking crust and steam vent, the hotel's front and its arcade's
+ * The Pacific's pieces new with the reset (docs/dosvidaniya-reset.md): the palm's trunk, Hana's surge streaks, Hilo's splitting crust, the lava's crest and the steam vent, the hotel's front and its arcade's
  * pillars, the glow of Hilo's lava seen from the sea, Kilauea far off, the hold's portholes with the clouds going by, the nene and the rooster, and the hold's loose crate as it rolls.
  * Monty on the Run's manner: one ink, solid shapes cut with black lines, no dither; backdrops dark and plain. Names start `pac`.
  */
@@ -21,6 +21,17 @@ export const PACIFIC_RESET_TILES = {
     '..####..',
     '...####.',
   ]),
+  /** Aloha Tower's face: pale stone courses with a dark window slit in each. Solid. */
+  pacTowerFace: tile('pacTowerFace', 1, 1, [
+    '########',
+    '###..###',
+    '###..###',
+    '###..###',
+    '########',
+    '........',
+    '########',
+    '########',
+  ]),
   /** The surge going by: the flat sea cut by black streaks running west. Nothing (a pulse draws it while a set runs). */
   pacSurge: tile('pacSurge', 0, 6, [
     '########',
@@ -31,17 +42,6 @@ export const PACIFIC_RESET_TILES = {
     '#....###',
     '######..',
     '########',
-  ]),
-  /** The crust cracking under him: the slabs split by a wide crack. Solid (the `cracks` mechanism takes it away). */
-  pacCrustCracked: tile('pacCrustCracked', 1, 9, [
-    '###..###',
-    '##..####',
-    '#..#..##',
-    '..###..#',
-    '###...##',
-    '##..#.##',
-    '#..####.',
-    '..######',
   ]),
   /** The crust about to go: broken slabs, lava light through the gaps. Solid. */
   pacCrustSplit: tile('pacCrustSplit', 1, 9, [
@@ -54,16 +54,16 @@ export const PACIFIC_RESET_TILES = {
     '..##.#..',
     '.###..#.',
   ]),
-  /** The vent's warning: a puff of steam at the crack. Nothing. */
-  pacSteamPuff: tile('pacSteamPuff', 0, 15, [
-    '........',
-    '........',
-    '........',
-    '..#..#..',
-    '...##...',
-    '.#.##.#.',
-    '..####..',
-    '...##...',
+  /** The lava's surface: the crest, bubbles breaking. Deadly (the lava's own death; a passable character the mechanism draws). */
+  pacMagmaCrest: tile('pacMagmaCrest', 4, 7, [
+    '.#..#...',
+    '#.##.##.',
+    '########',
+    '########',
+    '#.######',
+    '########',
+    '####.###',
+    '########',
   ]),
   /** The vent blowing: a column of steam. Nothing (the pulse is the danger). */
   pacSteam: tile('pacSteam', 0, 1, [

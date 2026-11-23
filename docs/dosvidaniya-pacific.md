@@ -1,5 +1,10 @@
 # Do Svidaniya Monty: the Pacific's room map
 
+> **Rebuilt 2026-11-23 (the reset).** The region is now five rooms in a U, to the plan in docs/dosvidaniya-reset.md ("the Pacific"): A THE CARGO SHIP (38, [2,17]), B WAIKIKI (41, [2,18]),
+> C HANA (49, [3,18], the one swim room), D HILO (52, [3,19], the lava set piece) and E THE CARGO PLANE (54, [2,19]). The puzzle is the sea (the snorkel on the beach stand's roof, reached from the
+> hotel's lawn); the new move is swimming against Hana's surge (`currents`, swim.ts). The rooms are described in `games/montyworld/src/pacific.ts`; the route in `test/pacific-route.ts`, the
+> mechanisms in `test/pacific-mechanisms.ts`. The Andes and Rio moved ten columns west (the Andes' first room is at [2,20]). Below is the earlier build, kept for its history.
+
 Region 5 (docs/dosvidaniya-plan.md; Hawaii's order and its rooms are Chris's: he has been to all three islands). Built 2026-11-21 from the pre-production design and its art (`games/montyworld/src/art/pacific-*.ts`).
 Rows 0 (top) to 19, columns 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open at the same rows as the way in of the next room. Every
 number was a starting value for the bot to check; the "As built" section says what the bot changed.

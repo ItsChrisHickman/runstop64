@@ -6,7 +6,7 @@ import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
  * Reading a format 1 save (the game as shipped before the reset) into today's tables. A save's coins and finds are flags by their place in the tables, and the reset cut, moved and added rooms, so each
  * flag is matched to what it was (save-format1.ts) and set where that is now: a coin by its room and cell, a find by its room and picture, a key item by its picture alone (the chullo moved rooms). Coins and
  * snacks of rooms that were cut are gone with them; every key item taken stays taken, so no gate closes again.
- * Where he was: a room that was cut sends him to the kept room the region's plan names (`RETIRED`); a room whose cells changed puts him on the nearest place in it he can stand, so a saved place never leaves
+ * Where he was: a room that was cut sends him to the kept room the region's plan names (`RETIRED`), at the nearest place he can stand to its west end, low; a room whose cells changed puts him on the nearest place in it he can stand, so a saved place never leaves
  * him inside a wall; and the cell of the exit grid he is in is today's cell for that room.
  */
 
@@ -41,7 +41,7 @@ function cellsHash(cells: Uint8Array): number {
   return h;
 }
 
-/** The nearest place to (col, floor) in a room where he can stand: two cells of air for his body over two that hold him (a wall or a floor), nothing deadly underfoot. */
+/** The nearest place to (col, floor) in a room where he can stand: two cells of air for his body over two that hold him (a wall or a floor), nothing deadly underfoot, no timed strike where he stands. */
 export function standingPlace(data: MontyData, room: number, col: number, floor: number): { col: number; floor: number } | null {
   const def = data.roomDef(room);
   const flag = (c: number, r: number) => {
@@ -52,7 +52,9 @@ export function standingPlace(data: MontyData, room: number, col: number, floor:
   for (let f = 2; f < ROWS; f++) for (let c = 0; c < COLS - 1; c++) {
     const air = [f - 2, f - 1].every((r) => [c, c + 1].every((cc) => flag(cc, r) === 0 || flag(cc, r) === 3));
     const holds = [c, c + 1].every((cc) => flag(cc, f) === 1 || flag(cc, f) === 2);
-    if (!air || !holds) continue;
+    // (nor where a timed strike of the room comes: a torch, a vent, a moray)
+    const struck = data.pulses.some((p) => p.room === room && p.live > 0 && p.col <= c + 1 && p.col + p.cols > c && p.row <= f - 1 && p.row + p.rows > f - 2);
+    if (!air || !holds || struck) continue;
     const d = (c - col) ** 2 + (f - floor) ** 2;
     if (!best || d < best.d) best = { col: c, floor: f, d };
   }
@@ -93,7 +95,9 @@ export function fromFormat1(data: MontyData, s: MontySave): MontySave {
     place.exitCol = cell % data.exitGrid.cols;
     const was = FORMAT1_ROOMS.findIndex((v, k) => k % 2 === 0 && v === s.roomId);
     const changed = roomId !== s.roomId || was < 0 || FORMAT1_ROOMS[was + 1] !== cellsHash(data.roomDef(roomId).cells);
-    const spot = changed ? standingPlace(data, roomId, colAt(s.x2), floorAt(s.y)) : null;
+    // (a cut room's place means nothing in the kept one: he carries on at its west end, low, where a way in usually is; a changed room's, as near his place as he can stand)
+    const cut = roomId !== s.roomId;
+    const spot = changed ? standingPlace(data, roomId, cut ? 0 : colAt(s.x2), cut ? ROWS - 1 : floorAt(s.y)) : null;
     if (spot) { place.x2 = x2At(spot.col); place.y = yAt(spot.floor); }
   }
   const out: MontySave = { ...s, ...place, roomId: cell >= 0 ? roomId : s.roomId, coins, items };

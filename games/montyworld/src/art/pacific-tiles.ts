@@ -120,17 +120,6 @@ export const PACIFIC_TILES = {
     '####.##.',
     '........',
   ]),
-  /** A dry-stacked fishpond wall: rounded lava stones, the courses offset, black gaps between them. Solid. */
-  pacWallStone: tile('pacWallStone', 1, 12, [
-    '.##..##.',
-    '########',
-    '########',
-    '.##..##.',
-    '#..##..#',
-    '########',
-    '########',
-    '#..##..#',
-  ]),
   /** Black basalt: cooled lava in blocks with wandering joints. Solid. */
   pacBasalt: tile('pacBasalt', 1, 11, [
     '###.####',

@@ -48,7 +48,7 @@ export const SHIP_PALETTE = {
 
 /** Waikiki: the pier's and the lawn's boards, the sand, the surf, Aloha Tower's stone, the palm's trunk, the headland's rock, the torches' flames (warning and full). */
 export const WAIKIKI_PALETTE = {
-  B: ['pacBoardwalk', 8], A: ['pacSand', 7], W: ['pacWaves', 14], S: ['pacWallStone', 1], R: ['pacPalmTrunk', 9], K: ['pacBasalt', 11], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
+  B: ['pacBoardwalk', 8], A: ['pacSand', 7], W: ['pacWaves', 14], S: ['pacTowerFace', 7], R: ['pacPalmTrunk', 9], K: ['pacBasalt', 11], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
 } as const satisfies Palette;
 
 /** Hana (the sea is a backdrop, one flat blue: `HANA_SEA`): the black rock and sand, the reef's brown rock, coral, the moray's hole, eyes and body, and the surge's streaks. */
@@ -56,9 +56,9 @@ export const HANA_PALETTE = {
   K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 3],
 } as const satisfies Palette;
 
-/** Hilo: the cooled crust (whole, cracking, split), the lava, the rope, the plane's white belly, the steam vent's puff and its column. */
+/** Hilo: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the rope, the plane's white belly, the steam vent's column. */
 export const HILO_PALETTE = {
-  K: ['pacCrust', 12], X: ['pacCrustCracked', 12], Y: ['pacCrustSplit', 12], M: ['pacMagma', 8], R: ['pacBamboo', 13], U: ['pacFuselage', 1], P: ['pacSteamPuff', 15], V: ['pacSteam', 1],
+  K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 8], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], U: ['pacFuselage', 1], V: ['pacSteam', 1],
 } as const satisfies Palette;
 
 /** The plane's hold: the fuselage, the roller floor, the cargo net, the belly ladder, the rear door. */
@@ -86,14 +86,14 @@ export const TORCH_HEAD_PULSES: readonly PulseSpec[] = TORCHES.cols.map((col, k)
 export const SURF_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [26, 27, 28, 29, 30].map((col) => [row, col] as const));
 
 /**
- * Hana's surge (`currents`): in sets, the sea runs west along the bottom lane, 90 frames on and 120 off. Over the coral heads (rows 12-14) and in the open water between the first two heads and past the
+ * Hana's surge (`currents`): in sets, the sea runs west along the bottom lane, 90 frames on and 120 off. Over the coral heads (rows 12-15) and in the open water between the first two heads and past the
  * last it carries him west at his own pace; in the lee of the first and the third head (their west sides) the water is still. He shelters low in a lee while a set runs and swims on between sets.
  */
 export const SURGE = { period: 210, start: 120, length: 90, warn: 30 } as const;
 export const CURRENTS: readonly CurrentSpec[] = [
-  { col: 10, cols: 21, top: 12, bottom: 14 }, // over the heads
-  { col: 16, cols: 3, top: 15, bottom: 18 }, // between the first head and the second
-  { col: 29, cols: 2, top: 15, bottom: 18 }, // past the third
+  { col: 10, cols: 21, top: 12, bottom: 15 }, // over the heads
+  { col: 16, cols: 3, top: 16, bottom: 18 }, // between the first head and the second
+  { col: 29, cols: 2, top: 16, bottom: 18 }, // past the third
 ].map((box): CurrentSpec => ({ room: PAC.hana, ...box, dx: -1, period: SURGE.period, start: SURGE.start, length: SURGE.length }));
 /** The surge seen: streaks flicker in the lane over the heads from 30 frames before a set until it is spent (harmless `pulses`: a warning and nothing live). */
 export const SURGE_PULSES: readonly PulseSpec[] = [11, 16, 21, 26].flatMap((col) => [13].map((row): PulseSpec => ({
@@ -116,16 +116,16 @@ export const MORAY_PULSES: readonly PulseSpec[] = [
  * feet, holds 150 and drains a row every 12. The ledges at floor 9 and above are always clear.
  */
 export const LAVA: LavaSpec = {
-  room: PAC.hilo, col: 6, cols: 24, baseRow: 19, topRow: 10, stepFrames: 40, holdFrames: 150, drainFrames: 12, code: codeOf(HILO_PALETTE, 'M'), crest: codeOf(HILO_PALETTE, 'M'),
+  room: PAC.hilo, col: 6, cols: 24, baseRow: 19, topRow: 10, stepFrames: 40, holdFrames: 150, drainFrames: 12, code: codeOf(HILO_PALETTE, 'M'), crest: codeOf(HILO_PALETTE, 'C'),
 };
-/** The first two stepping ledges over the lava are cooled crust (`cracks`): standing on one, it cracks after 10 frames, splits after 18 and is gone after 26; back 200 frames later. Keep moving. */
+/** The first two stepping ledges over the lava are thin crust (`cracks`): standing on one, it splits after 10 frames and is gone after 26; back 200 frames later. Keep moving. */
 export const CRUST_CRACKS: readonly CrackSpec[] = [10, 15].map((col): CrackSpec => ({
-  room: PAC.hilo, col, cols: 3, row: 14, codes: [codeOf(HILO_PALETTE, 'K'), codeOf(HILO_PALETTE, 'X'), codeOf(HILO_PALETTE, 'Y')], crack: 10, wide: 18, gone: 26, away: 200,
+  room: PAC.hilo, col, cols: 3, row: 14, codes: [codeOf(HILO_PALETTE, 'L'), codeOf(HILO_PALETTE, 'Y'), codeOf(HILO_PALETTE, 'Y')], crack: 10, wide: 18, gone: 26, away: 200,
 }));
-/** The steam vent halfway along the long ledge (`pulses`, cols 19-20, rows 7-8: his own on floor 9): it puffs for 30 frames (the warning), blows deadly for 40, then rests: a 160-frame period. */
+/** The steam vent halfway along the long ledge (`pulses`, cols 19-20, rows 7-8: his own on floor 9): it spits steam at its foot for 30 frames (the warning, flickering), blows full height and deadly for 40, then rests: a 160-frame period. */
 export const VENT = { col: 19, row: 7, period: 160, start: 90, warn: 30, live: 40 } as const;
 export const VENT_PULSES: readonly PulseSpec[] = [
-  { room: PAC.hilo, col: VENT.col, row: VENT.row + 1, cols: 2, rows: 1, period: VENT.period, start: VENT.start, warn: VENT.warn, live: VENT.live, idle: 0, warnCode: codeOf(HILO_PALETTE, 'P'), liveCode: codeOf(HILO_PALETTE, 'V'), spent: 0 },
+  { room: PAC.hilo, col: VENT.col, row: VENT.row + 1, cols: 2, rows: 1, period: VENT.period, start: VENT.start, warn: VENT.warn, live: VENT.live, idle: 0, warnCode: codeOf(HILO_PALETTE, 'V'), liveCode: codeOf(HILO_PALETTE, 'V'), spent: 0 },
   { room: PAC.hilo, col: VENT.col, row: VENT.row, cols: 2, rows: 1, period: VENT.period, start: VENT.start, warn: VENT.warn, live: VENT.live, idle: 0, warnCode: 0, liveCode: codeOf(HILO_PALETTE, 'V'), spent: 0 },
 ];
 
@@ -167,7 +167,7 @@ const paintHana = (g: Grid): void => {
     g.box(8, 10, 30, 10, 'C').box(8, 11, 30, 11, 'R'); // the shelf of coral on rock between the lanes
     g.box(0, 12, 4, 13, 'K').box(0, 17, 4, 18, 'K'); // the sea cave's roof and its ledge (the cave cols 2-4, rows 14-16)
     g.box(8, 12, 9, 15, 'R').box(8, 14, 8, 14, 'H'); // the pillar under the shelf and the moray's hole
-    g.box(13, 15, 15, 18, 'C').box(19, 15, 22, 18, 'C').clear(19, 16, 20, 17).box(26, 15, 28, 18, 'C'); // the coral heads, a hollow in the middle one
+    g.box(13, 16, 15, 18, 'C').box(19, 15, 22, 18, 'C').clear(19, 16, 20, 17).box(26, 16, 28, 18, 'C'); // the coral heads (the middle one taller, a hollow in it)
 };
 /** Hana's sea over every empty cell (a backdrop: a coin is drawn over it, a pulse's cell goes back to it). */
 const HANA_SEA = fillCells(paintHana, [], [0, 0, 31, 19], 'pacSeaFlat');
@@ -176,11 +176,11 @@ const paintHilo = (g: Grid): void => {
   g.box(0, 0, 1, 14, 'K').box(30, 0, 31, 19, 'K').box(0, 19, 31, 19, 'K'); // the crater's walls and floor (the shore at the left, cols 0-5, outside the lava)
   g.box(2, 0, 29, 1, 'U').clear(7, 0, 9, 1); // the plane's belly across the top, its hatch
   g.box(8, 0, 8, 4, 'R'); // the belly ladder (the plane's own, yellow in the hold above; here a rope down from the hatch)
-  g.box(2, 5, 17, 5, 'K').clear(13, 5, 15, 5); // the apron under the plane
+  g.box(2, 5, 17, 5, 'L').clear(13, 5, 15, 5); // the apron under the plane
   g.box(14, 4, 14, 8, 'R'); // the rope up to it from the long ledge
-  g.box(10, 9, 29, 9, 'K').clear(27, 9, 29, 9).box(19, 9, 20, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
+  g.box(10, 9, 29, 9, 'L').clear(27, 9, 29, 9).box(19, 9, 20, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
   g.box(28, 8, 28, 13, 'R'); // the rope up the east wall
-  g.box(5, 14, 7, 14, 'K').box(10, 14, 12, 14, 'K').box(15, 14, 17, 14, 'K').box(20, 14, 29, 14, 'K'); // the first ledge and the stepping ledges (floor 14)
+  g.box(5, 14, 7, 14, 'L').box(10, 14, 12, 14, 'L').box(15, 14, 17, 14, 'L').box(20, 14, 29, 14, 'L'); // the first ledge and the stepping ledges (floor 14)
   g.box(3, 13, 3, 18, 'R'); // the rope up from the shore
 };
 

@@ -50,7 +50,8 @@ for (let f = 0; f < 120; f++) frame(b, NONE);
 check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.roomId === PAC.hana && !dead(b.g));
 // every retired room carries on somewhere he can stand
 for (const [from, to] of Object.entries(RETIRED)) {
-  const t = CODEC.unpack(CODEC.pack(format1(Number(from), 0x40, 0x32 + 10 * 8, 0, 0, [], [])), 1);
+  // (a save in one of the old sea rooms was made with the snorkel: the sea was shut without it)
+  const t = CODEC.unpack(CODEC.pack(format1(Number(from), 0x40, 0x32 + 10 * 8, 0, 0, [], WORLD.swimRooms.includes(to) ? [oldItem(41)] : [])), 1);
   const p = newGame(WORLD, true);
   restore(p.g, t);
   for (let f = 0; f < 120; f++) frame(p, NONE);

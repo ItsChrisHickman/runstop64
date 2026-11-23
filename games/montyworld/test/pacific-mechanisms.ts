@@ -60,8 +60,9 @@ const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARA
   check('the bilge water kills (walking into it)', diesAt(bilge, RIGHT, 80) >= 0);
   const hop = search(at(PAC.ship, 14, 19), (g) => colOf(g) >= 22 && g.y === standY(19), [{ room: PAC.ship, col: 24, row: 17 }], 40000, 1.5);
   check('a jump clears it', hop !== null);
-  const deckEnd = search(at(PAC.ship, 20, 9), (g) => g.roomId === PAC.waikiki, [{ room: PAC.ship, col: 31, row: 7 }], 60000, 1.5, { exhausted: false });
-  check('the bow door is not reached from the deck (the containers close its end: the hold and the bilge are the way)', deckEnd === null);
+  const ship = PACIFIC_ROOMS.find((r) => r.id === PAC.ship);
+  const edge = Array.from({ length: 20 }, (_, row) => ship?.map[row]?.[31] ?? '.').join('');
+  check(`the bow's end is shut from the deck down through the hold (the containers and the hull: the door, rows 15-18, is reached only by the bilge) (${edge})`, /^[^.]{15}\.{4}[^.]$/.test(edge));
 }
 
 // ---- Waikiki: the surf, the snorkel on the roof, the torches ---------------------------------------
@@ -114,7 +115,9 @@ const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARA
   check('between sets the water is still over the heads too', Math.abs(still.g.x2 - sx) <= 1);
   // the moray
   const mouth = at(PAC.hana, 5, 15, [SNORKEL]);
-  const died = diesAt(mouth, NONE, MORAY.period + 20);
+  const hold = mouth.g.y; // (the sea lifts him: a stroke down whenever it has, so he stays in the lunge's way)
+  let died = -1;
+  for (let f = 0; f < MORAY.period + 20 && died < 0; f++) { frame(mouth, mouth.g.y < hold ? DOWN : NONE); if (dead(mouth.g)) died = f; }
   check(`at the sea cave's mouth the moray's lunge kills (dead at frame ${died}, the lunge from ${MORAY.start + MORAY.warn + 15})`, died >= MORAY.start + MORAY.warn);
   const cave = search(at(PAC.hana, 5, 11, [SNORKEL]), (g) => g.coinCollected.some((c, i) => c !== 0 && WORLD.coinTable[i * 3] === PAC.hana && WORLD.coinTable[i * 3 + 1] === 4), [{ room: PAC.hana, col: 3, row: 15 }], 80000, 1.5);
   check('the bot swims past the moray into the sea cave for its coin (timing the lunge)', cave !== null);
@@ -128,7 +131,7 @@ const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARA
   const land = at(PAC.ship, 1, 13);
   const blocksOut = [...SWIM_POINTERS.left, ...SWIM_POINTERS.right].every((ptr) => land.g.mem.slice(ptr * 64, ptr * 64 + 64).every((b, i) => b === WORLD.bankImage[ptr * 64 + i]));
   check('in Hana he swims in his own pictures with the lei\'s crown on them, the blocks in the bank only there', facingRight && facingLeft && blocksOut);
-  const out = at(PAC.hana, 28, 17, [SNORKEL]);
+  const out = at(PAC.hana, 29, 18, [SNORKEL]);
   run(out, RIGHT, 80);
   check('out at the bottom right he comes onto Hilo\'s shore and stands there', out.g.roomId === PAC.hilo && !dead(out.g));
 }
