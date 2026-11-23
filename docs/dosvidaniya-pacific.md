@@ -4,6 +4,11 @@
 > C HANA (49, [3,18], the one swim room), D HILO (52, [3,19], the lava set piece) and E THE CARGO PLANE (54, [2,19]). The puzzle is the sea (the snorkel on the beach stand's roof, reached from the
 > hotel's lawn); the new move is swimming against Hana's surge (`currents`, swim.ts). The rooms are described in `games/montyworld/src/pacific.ts`; the route in `test/pacific-route.ts`, the
 > mechanisms in `test/pacific-mechanisms.ts`. The Andes and Rio moved ten columns west (the Andes' first room is at [2,20]). Below is the earlier build, kept for its history.
+>
+> **Where the build differs from the plan.** Ten kinds of creature, not eleven: the ship's crane and the hold's hoist swing the same crate. Hana's three coral heads are the same
+> height (the shark passes over him on every crossing; a taller middle head left no way past it), and the middle head's coin lies in a hollow under its overhang on the seabed.
+> Hilo's lava is red under a yellow crest (the C64's orange read as earth). There is no far view of Diamond Head (it floated in Waikiki's sky); the cliff at the bay's east end
+> stands for it.
 
 Region 5 (docs/dosvidaniya-plan.md; Hawaii's order and its rooms are Chris's: he has been to all three islands). Built 2026-11-21 from the pre-production design and its art (`games/montyworld/src/art/pacific-*.ts`).
 Rows 0 (top) to 19, columns 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open at the same rows as the way in of the next room. Every
