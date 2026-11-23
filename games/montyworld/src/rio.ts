@@ -203,7 +203,7 @@ const LAPA_COINS: readonly Cell[] = [[7, 5], [14, 5], [23, 5], [4, 16], [25, 16]
 const LAPA_ITEM: Cell = [13, 2];
 const paintLapa = (g: Grid): void => {
   ellipse(g, 32, 21, 8, 11, 'K'); // the hill beyond the aqueduct's end
-  g.box(0, 0, 2, 15, 'F'); // a townhouse at the left edge, running off the top
+  g.box(0, 0, 1, 15, 'F'); // a townhouse at the left edge, running off the top
   g.box(0, 18, 31, 19, 'W'); // the street
   g.box(5, 7, 24, 7, 'T').clear(18, 7, 20, 7).box(3, 7, 3, 17, 'L').box(26, 0, 26, 17, 'V').box(19, 4, 19, 7, 'L'); // the tram's track, the ladders and the rope
   g.box(11, 4, 17, 4, 'T').box(21, 4, 24, 4, 'T'); // the roofs of two tram shelters on the track
@@ -386,7 +386,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     decor: [
       ...sky(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 0, 7), ...fillCells(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), [0, 11, 31, 11], 'rioSkyLow'), ...sea(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 12, 13),
       ['skyCloud', 3, 1], ['pacDiamondHead', 14, 3], ['pacDiamondHead', 23, 3], [{ text: 'SUGARLOAF', colour: 7 }, 12, 2],
-      ['rioScope', 13, 6], ['parasol', 15, 6], ['deckchair', 18, 7], ['rioRail', 22, 7], ['rioFlag', 26, 5],
+      ['rioScope', 13, 6], ['parasol', 15, 6], ['deckchair', 23, 7], ['rioRail', 22, 7], ['rioFlag', 26, 5],
       ['restTable', 8, 12], ['rioDinerRed', 7, 12], ['rioDinerBlue', 11, 12], ['restTable', 13, 12], ['rioDinerBlue', 12, 12], ['saladBar', 24, 12],
     ],
     creatures: [{ who: 'marmoset', col: 7, row: 4, way: 'right', speed: 1, range: 32 }, { who: 'marmoset', col: 28, row: 1, way: 'down', speed: 1, range: 24 }],
@@ -490,7 +490,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     item: { name: 'bowl', col: BEACH_ITEM[0], row: BEACH_ITEM[1], sprite: RIO_SPRITE.bowl },
     decor: [
       ...sky(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), 0, BEACH_HORIZON - 1), ...sea(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), BEACH_HORIZON, 14),
-      ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['pacDiamondHead', 20, 8], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['parasol', 14, 15], ['deckchair', 15, 17],
+      ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['pacDiamondHead', 20, 8], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['parasol', 14, 16], ['deckchair', 15, 17],
     ],
   }),
 ];
