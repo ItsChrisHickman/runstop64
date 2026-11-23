@@ -399,7 +399,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[10, 9]],
     decor: [['lanternPost', 9, 14], ['boxes', 15, 15], ['junk', 26, 11], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], ['peakNight', 14, 12], ['peakNight', 20, 12], ['hillLow', 5, 14]],
     creatures: [
-      { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36 },
+      { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36, colour: 8 },
       { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },
       { who: 'carp', col: 7, row: 18, way: 'right', speed: 1, range: 88 },
     ],
