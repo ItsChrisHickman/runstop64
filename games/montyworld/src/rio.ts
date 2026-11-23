@@ -81,7 +81,7 @@ export const DRUM_PALETTE = {
 } as const satisfies Palette;
 
 export const BEACH_PALETTE = {
-  W: ['wavePavement', 1], S: ['sand', 7], E: ['seaSwell', 6], T: ['tableTop', 1], U: ['palmTrunk', 9], L: ['palmLeft', 5], R: ['palmRight', 5],
+  W: ['wavePavement', 1], S: ['sand', 7], E: ['seaSwell', 6], T: ['tableTop', 1], U: ['palmTrunk', 9], L: ['palmLeft', 5], R: ['palmRight', 5], K: ['graniteBack', 6],
 } as const satisfies Palette;
 
 // ---- C OPEN ARMS ----------------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ const STEAK_CRANK: Cell = [28, 10];
 const STEAK_COINS: readonly Cell[] = [[17, 17]];
 
 // ---- S SUGAR RUSH ---------------------------------------------------------------------------------------
-/** Praia Vermelha at Sugarloaf's foot: in low on the sand (18), the ladder (col 10) to the lower station's shelf (14) behind its bars (the winch, dead without its crank), the climbers' rope (col 4) up to the granite ledge (8) and out west onto Lapa's track; the car to the top station (8) and out east. */
+/** Praia Vermelha at Sugarloaf's foot: in low on the sand (18), the ladder (col 10) to the lower station's shelf (14) behind its bars (the winch, dead without its crank), the climbers' rope (col 4) up its cleft in the rock face (the massif's dark blue, a backdrop) to the granite ledge (8) and out west onto Lapa's track; the car to the top station (8) and out east. */
 const SUGAR = rows([
     '....................KKK.........', // 0
     '...................KKKKK........', // 1
@@ -203,37 +203,37 @@ const SUGAR = rows([
     '............TT...KKKKKKKKK......', // 6
     '............TT...KKKKKKKK.......', // 7
     'GGG.V.GG....TT...KKKKKK.GGGGGGGG', // 8
-    '....V.......TT...KKKK......GGGGG', // 9
-    '....V.......TT...KK........GGGGG', // 10
-    '....V.......TT.............GGGGG', // 11
-    '....V.......TT.............GGGGG', // 12
-    '....V.......TT.............GGGGG', // 13
-    '....V.....L.HHHHHHH........GGGGG', // 14
-    '....V.....L.HHHHHHH........GGGGG', // 15
-    'EEEEVEEEEELEEEEEEEEEEEEEEEEGGGGG', // 16
-    'EEEEVEEEEELEEEEEEEEEEEEEEEEGGGGG', // 17
+    'KKK.V.KK....TT...KKKK......GGGGG', // 9
+    'KKK.V.KK....TT...KK........GGGGG', // 10
+    'KKK.V.KK....TT.............GGGGG', // 11
+    'KKK.V.KK....TT.............GGGGG', // 12
+    'KKK.V.KK....TT.............GGGGG', // 13
+    'KKK.V.KK..L.HHHHHHH........GGGGG', // 14
+    'KKK.V.KK..L.HHHHHHH........GGGGG', // 15
+    'KKK.V.KKEELEEEEEEEEEEEEEEEEGGGGG', // 16
+    'KKK.V.KKEELEEEEEEEEEEEEEEEEGGGGG', // 17
     'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN', // 18
     'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN', // 19
 ]);
 const SUGAR_COINS: readonly Cell[] = [[7, 7]];
 
 // ---- D THE SAMBADROME -----------------------------------------------------------------------------------
-/** The showdown: in high on the stand's ledge (8) from the cable car's top station, the headdress on the drum riser; the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry and down the rope again, under the head, and the lever when the agent is under it. The bars (cols 28-29) lift and the avenue runs on east to the beach. */
+/** The showdown: in high on the stand's ledge (8) from the cable car's top station, the headdress on the drum riser; the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry and down the rope again, under the head, and the lever when the agent is under it. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
 const DRUM = rows([
     '................................', // 0
     '...........................SSSS.', // 1
     '..............................S.', // 2
     '..............................S.', // 3
     '.............V.EEEEEEEEE.L.EEES.', // 4
-    '.............V...........L....S.', // 5
-    '.......SSS...V...........L....S.', // 6
-    '.......SSS...V...........L....S.', // 7
-    'EEEEEEEEEEEE.V...........L....S.', // 8
-    'SS...........V.FFFFFF....L....S.', // 9
-    'SS...........V...........L....S.', // 10
-    'SS...........V...........L....S.', // 11
-    'SS...........V...........L....S.', // 12
-    'SS...........V...........L....S.', // 13
+    '.............V...........L...S..', // 5
+    '.......SSS...V...........L...S..', // 6
+    '.......SSS...V...........L...S..', // 7
+    'EEEEEEEEEEEE.V...........L...S..', // 8
+    'SS...........V.FFFFFF....L...S..', // 9
+    'SS...........V...........L...S..', // 10
+    'SS...........V...........L...S..', // 11
+    'SS...........V...........L...S..', // 12
+    'SS...........V...........L...S..', // 13
     'SS...........V...........L..BB..', // 14
     'SS...........V...........L..BB..', // 15
     'SS...........V...........L..BB..', // 16
@@ -245,7 +245,7 @@ const DRUM_HEADDRESS: Cell = [7, 4];
 const DRUM_COINS: readonly Cell[] = [[18, 8]];
 
 // ---- B RIO OR BUST --------------------------------------------------------------------------------------
-/** Copacabana at night: in low on the promenade (18), the bowl on its little table a few steps in, the deckchair beside it, two palms, the sea, the Redeemer and Sugarloaf floodlit across the bay. No coins, no creatures: the finale's stage. */
+/** Copacabana at night: in low on the promenade (18), the bowl on its little table a few steps in, the deckchair beside it, two palms, the sea, the Redeemer on Corcovado's dark hill and Sugarloaf floodlit across the bay. No coins, no creatures: the finale's stage. */
 const BEACH = rows([
     '................................', // 0
     '................................', // 1
@@ -256,9 +256,9 @@ const BEACH = rows([
     '................................', // 6
     '................................', // 7
     '................................', // 8
-    '................................', // 9
-    '...................LUR..........', // 10
-    '....................U......LUR..', // 11
+    '.......................KK.......', // 9
+    '...................LURKKKK......', // 10
+    '....................UKKKKKKLUR..', // 11
     'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 12
     'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 13
     'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 14
@@ -286,8 +286,8 @@ export const CABLE_CAR: CableCarSpec = {
 };
 /** The bars of the winch house on the shelf (cols 12-13, rows 4-13): the crank takes them away. */
 export const GATE_CELLS: readonly (readonly [row: number, col: number])[] = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13].flatMap((row) => [12, 13].map((col) => [row, col] as const));
-/** The sign CLOSED over the bars (a board of the word between a space each side: cols 10-17, row 2): it comes down with them. */
-export const CLOSED_SIGN = { text: 'CLOSED', col: 10, row: 2 } as const;
+/** The sign CLOSED over the bars (a board of the word between a space each side: cols 10-17, row 3, on the bars' tops): it comes down with them. */
+export const CLOSED_SIGN = { text: 'CLOSED', col: 10, row: 3 } as const;
 export const CLOSED_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: CLOSED_SIGN.text.length + 2 }, (_, k) => [CLOSED_SIGN.row, CLOSED_SIGN.col + k] as const);
 
 /** The cable's line: a row up every two cells, from the lower station's roof (col 19, row 10) to the top station's platform (col 23, row 8), under Sugarloaf's dome. */
@@ -398,7 +398,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     id: RIO_ROOM.drum, cell: [7, 37], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
     coins: DRUM_COINS,
     item: { name: 'headdress', col: DRUM_HEADDRESS[0], row: DRUM_HEADDRESS[1], sprite: RIO_SPRITE.headdress },
-    decor: [['rioArch', 1, 0], ['rioFloat', 15, 10], ['rioLever', 23, 16], ['rioBooth', 27, 2]],
+    decor: [['rioArch', 1, 5], ['rioFloat', 15, 10], ...[5, 6, 7, 8].flatMap((row): Placed[] => [['rioChain', 15, row], ['rioChain', 20, row]]), ['rioLever', 23, 16], ['rioBooth', 27, 2]],
     creatures: [{ who: 'drummer', col: 8, row: 0, way: 'down', speed: 1, range: 18 }, { who: 'dancer', col: 22, row: 2, way: 'left', speed: 2, range: 26 }, { who: 'agent', col: 0, row: 6, way: 'right', speed: 1, range: 1 }],
     crushers: FLOAT_HEAD.cols.map((col) => ({ col, row: FLOAT_HEAD.row, height: FLOAT_HEAD.height })),
   }),

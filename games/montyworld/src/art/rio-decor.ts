@@ -58,21 +58,11 @@ function cableHigh(): NewDecor {
   return decor('rioCableHigh', 1, 1, r, 1);
 }
 
-/** A harbour lamp post: a post with a hooked arm and a lamp. 1 x 3 characters. */
-function lampPost(): NewDecor {
-  const r = new Raster(8, 24);
-  r.rect(3, 4, 4, 23); r.rect(1, 22, 6, 23); r.rect(3, 3, 7, 3); r.rect(5, 4, 7, 6); r.rect(6, 5, 6, 5, false);
-  return decor('lampPost', 1, 3, r, 7);
-}
-
-/** A beach parasol: a striped canopy on a pole. 3 x 2 characters. */
-function parasol(): NewDecor {
-  const r = new Raster(24, 16);
-  r.ellipse(11.5, 6, 11.5, 6); r.rect(0, 6, 23, 12, false);
-  r.rect(0, 5, 23, 6);
-  for (const x of [5, 11, 17]) r.line(11.5, 0, x, 6, false);
-  r.rect(11, 7, 12, 15);
-  return decor('parasol', 3, 2, r, ['212', '111']);
+/** A chain the Sambadrome's float hangs by from the lighting gantry: links one under another. 1 x 1 character, repeated down. */
+function chain(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(3, 0, 4, 1); r.rect(2, 2, 5, 5); r.rect(3, 3, 4, 4, false); r.rect(3, 6, 4, 7);
+  return decor('rioChain', 1, 1, r, 12);
 }
 
 /** A deckchair: a striped sling between a frame. 2 x 1 characters. */
@@ -249,8 +239,6 @@ export const RIO_DECOR = {
   cableStation: cableStation(),
   rioCableLow: cableLow(),
   rioCableHigh: cableHigh(),
-  lampPost: lampPost(),
-  parasol: parasol(),
   deckchair: deckchair(),
   lapaUpper: lapaUpper(),
   lapaBase: lapaBase(),
@@ -264,6 +252,7 @@ export const RIO_DECOR = {
   rioLever: lever(),
   rioBooth: booth(),
   rioArch: apoteose(),
+  rioChain: chain(),
   rioFirework: firework(),
   rioShade: shade(),
 } as const satisfies Record<string, NewDecor>;
