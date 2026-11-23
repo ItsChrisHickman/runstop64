@@ -80,15 +80,6 @@ function trainWindow(): NewDecor {
 /** The rows of the window's characters that move (row 1 and 2, columns 1-3, counted row by row in its 5 x 4), as rings: one a row. */
 export const WINDOW_SCENERY: readonly (readonly number[])[] = [[6, 7, 8], [11, 12, 13]];
 
-/** The bellows between two cars at a gangway: a ribbed hood over the doorway and ribbed sides, the way through black between. 2 x 2 characters. */
-function gangway(): NewDecor {
-  const r = new Raster(16, 16);
-  r.rect(0, 0, 15, 4); r.rect(0, 5, 2, 15); r.rect(13, 5, 15, 15);
-  for (const x of [3, 6, 9, 12]) r.rect(x, 0, x, 4, false); // the folds of the hood
-  for (const y of [7, 10, 13]) { r.rect(0, y, 2, y, false); r.rect(13, y, 15, y, false); } // and of the sides
-  return decor('gangway', 2, 2, r, 11);
-}
-
 /** A carriage's open door: the frame, a grab-rail in it and the step. 2 x 2 characters. */
 function carDoor(): NewDecor {
   const r = new Raster(16, 16);
@@ -194,17 +185,6 @@ function coalBucket(): NewDecor {
   return decor('coalBucket', 2, 2, r, 12);
 }
 
-/** Boulders: three rounded rocks, the big one behind, their gaps black. 3 x 2 characters. */
-function boulders(): NewDecor {
-  const r = new Raster(24, 16);
-  r.ellipse(9, 9, 8.5, 6.5);
-  r.ellipse(18.5, 11.5, 5.5, 4.5);
-  r.rect(0, 14, 23, 15);
-  r.line(4, 7, 8, 5, false); r.line(8, 5, 11, 7, false); r.line(13, 12, 17, 9, false); // the cracks
-  r.rect(13, 8, 13, 15, false); // the gap between the stones
-  return decor('boulders', 3, 2, r, 12);
-}
-
 /** A pit prop: a post under a cap beam, wedged, with the cross brace. 2 x 3 characters. */
 function pitProp(): NewDecor {
   const r = new Raster(16, 24);
@@ -250,6 +230,16 @@ function pole(): NewDecor {
   for (const x of [4, 11]) r.rect(x, 7, x, 9);
   r.rect(7, 14, 8, 14, false); r.rect(7, 22, 8, 22, false); // the grain
   return decor('pole', 2, 4, r, 9);
+}
+
+/**
+ * The border's boom gate, raised: the striped pole stood up on end beside its post, the bands a cell each (red, white), the post's foot grey. 1 x 7 characters.
+ * Scenery: the way east is open (the ticket got him this far).
+ */
+function boomUp(): NewDecor {
+  const r = new Raster(8, 56);
+  r.rect(2, 0, 5, 47); r.rect(1, 48, 6, 55); r.rect(2, 50, 5, 50, false);
+  return decor('boomUp', 1, 7, r, ['2', '1', '2', '1', '2', '1', 'C']);
 }
 
 /** A log cabin: logs in courses, a snow roof, a lit window, a door, a chimney. 5 x 4 characters. */
@@ -340,7 +330,7 @@ export const SIBERIA_DECOR = {
   pineSmall: pine(2, 3, 2, 'pineSmall'),
   diningTable: diningTable(),
   trainWindow: trainWindow(),
-  gangway: gangway(),
+  boomUp: boomUp(),
   carDoor: carDoor(),
   roofVent: roofVent(),
   stovepipe: stovepipe(),
@@ -352,7 +342,6 @@ export const SIBERIA_DECOR = {
   buffer: buffer(),
   bunk: bunk(),
   coalBucket: coalBucket(),
-  boulders: boulders(),
   pitProp: pitProp(),
   fishHut: fishHut(),
   minePortal: minePortal(),

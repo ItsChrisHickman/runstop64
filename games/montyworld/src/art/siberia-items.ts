@@ -1,25 +1,11 @@
 /**
- * Siberia's items for Monty Mole: World Tour (region 2): the miner's lamp and the ticket (the key items), the pelmeni (the food in
+ * Siberia's items for Monty Mole: World Tour (region 2): the ticket (the key item), the pelmeni (the food in
  * place of the cupcake). Hires sprite blocks as Moscow's items are (creatures.ts), drawn in the
  * same manner: a solid shape with the detail cut into it.
  */
 import { itemBlock } from './pixels';
 import { over, Raster } from './raster';
 import type { NewItem } from './types';
-
-/** A miner's lamp: a cap with a ring, a round glass globe with a flame in it, a heavy base, rays of light to each side. */
-function lamp(): NewItem {
-  const r = new Raster(16, 16);
-  r.rect(6, 0, 9, 0); r.rect(6, 1, 6, 1); r.rect(9, 1, 9, 1); // the ring to carry it by
-  r.rect(5, 2, 10, 3); // the cap
-  r.ellipse(7.5, 8, 3.9, 4.4); // the globe
-  r.ellipse(7.5, 8, 2.6, 3.2, false); // the glass, dark inside
-  r.rect(7, 8, 8, 10); r.rect(7, 6, 7, 7); // the flame
-  r.rect(4, 12, 11, 15); // the base
-  r.rect(5, 13, 10, 13, false);
-  for (const y of [6, 8, 10]) { r.rect(0, y, 1, y); r.rect(14, y, 15, y); } // the rays, dashes of light each side
-  return { block: itemBlock('lamp', r.rows()), colour: 7 };
-}
 
 /** A railway ticket: a card with its stub torn off by a row of holes, lines of print, a punched star and a stripe. */
 function ticket(): NewItem {
@@ -56,7 +42,6 @@ function pelmeni(): NewItem {
 }
 
 export const SIBERIA_ITEMS = {
-  lamp: lamp(),
   ticket: ticket(),
   pelmeni: pelmeni(),
 } as const satisfies Record<string, NewItem>;
