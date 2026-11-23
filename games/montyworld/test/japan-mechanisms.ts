@@ -486,7 +486,7 @@ void LEFT;
 // ---- the parlour's Mole Crusher moves (the engine animates a lone shaft only with the first shaft's characters) ----------------------
 {
   const roomSpec = must(JAPAN_ROOMS.find((r) => r.id === JP.parlour), 'the parlour');
-  check('the parlour has one Mole Crusher, drawn in the first shaft\'s characters (0x10: the engine moves a lone shaft only then)', roomSpec.crushers?.length === 1 && roomSpec.crushers[0]?.chr === 0x10);
+  check('the parlour has one Mole Crusher (the engine picks its glyph bank: crushers.ts)', roomSpec.crushers?.length === 1);
   const watcher = at(JP.parlour, 24, 17);
   const pictures = new Set<string>(), states = new Set<number>();
   for (let f = 0; f < 900; f++) { frame(watcher, NONE); states.add(watcher.g.pd.state); pictures.add(Array.from(watcher.g.mem.subarray(0x80, 0xe0)).join()); }
