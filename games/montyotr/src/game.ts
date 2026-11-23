@@ -12,6 +12,7 @@ import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
+import { currentsTick } from './swim';
 import { canopyFrame, flightOf } from './flight';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
@@ -213,6 +214,8 @@ export class Game implements MontyBody, MontyWorld {
   /** This room's rising lava (lava.ts) and the strokes swum so far (swim.ts). */
   lavas: LavaState[] = [];
   swimTick = 0;
+  /** The frames since this room was loaded, for its surges (swim.ts `currents`). */
+  currentTime = 0;
   dragons: DragonState[] = [];
   /** This room's rolling boulders (rollers.ts) and swinging vines (vines.ts), and the flight's frames so far and whether he rests on something (flight.ts). */
   rollers: RollerState[] = [];
@@ -435,6 +438,7 @@ export class Game implements MontyBody, MontyWorld {
       tunnelUpdate(this);
       crackUpdate(this);
       pulseUpdate(this);
+      currentsTick(this);
       lavaUpdate(this);
       dragonUpdate(this);
       rollerUpdate(this);
@@ -675,8 +679,10 @@ export class Game implements MontyBody, MontyWorld {
     tunnelInit(this);
     crackInit(this);
     pulseInit(this);
+    this.currentTime = 0;
     lavaInit(this);
     dragonInit(this);
+    this.placeRoomBlocks();
     rollerInit(this);
     vineInit(this);
     floatInit(this);
@@ -703,6 +709,29 @@ export class Game implements MontyBody, MontyWorld {
     Items.spawnForRoom(this);
     this.hint = noHint();
     this.hintWanted();
+    this.arrive(id);
+  }
+
+  /** The room last loaded (-1: none yet), for the arrival banners. */
+  private lastRoom = -1;
+
+  /** The data's arrival banner for coming into room `id` from the one before, if there is one: shown in the name row (both modes; it replaces a hint the room would give at once). */
+  private arrive(id: number) {
+    const came = this.lastRoom;
+    this.lastRoom = id;
+    if (came < 0 || this.hint.text !== null) return; // (a hint the room already gives wins the row)
+    const banner = this.data.arrivals.find((a) => a.rooms.includes(id) && !a.rooms.includes(came) && (a.from === undefined || a.from.includes(came)));
+    if (!banner) return;
+    say(this.hint, banner.text, 0);
+    this.drawNameRow();
+  }
+
+  /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
+  private placeRoomBlocks() {
+    const sets = this.data.roomBlocks;
+    if (!sets.length) return;
+    for (const set of sets) for (const { ptr } of set.blocks) this.mem.set(this.data.bankImage.subarray(ptr * 64, ptr * 64 + 64), ptr * 64);
+    for (const set of sets) if (set.rooms.includes(this.roomId)) for (const { ptr, block } of set.blocks) this.mem.set(block, ptr * 64);
   }
 
   /** The name row: the hint if one is on show, else the place's name. */

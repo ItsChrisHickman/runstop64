@@ -211,6 +211,22 @@ export interface DragonMoods {
 }
 
 /**
+ * A surge in a swim room (swim.ts; the Pacific's Hana): while it runs, from `start` frames into each `period` of the room's time for `length` frames (the time counts from the room's
+ * loading, as a pulse's does), Monty inside the box (`cols` wide from playfield column `col`, rows `top` to `bottom`) is carried the way `dx` says at his swimming pace whatever he does
+ * sideways, as the flight's updrafts lift him; the room's rock stops him as it does on foot, so the lee of a rock is shelter. Outside its time the water is still.
+ */
+export interface CurrentSpec { room: number; col: number; cols: number; top: number; bottom: number; dx: 1 | -1; period: number; start: number; length: number }
+
+/** A banner shown on arriving: see `arrivals`. */
+export interface Arrival { rooms: readonly number[]; from?: readonly number[]; text: string }
+
+/** Monty's pictures for swimming: the pointers of the stroke's pictures going left and going right (as many each), (a costume's `over.frames` places its hat on each too). */
+export interface SwimPictures { left: readonly number[]; right: readonly number[] }
+
+/** Sprite blocks a set of rooms has in their places while they are loaded: (pointer, picture) pairs. */
+export interface RoomBlocks { rooms: readonly number[]; blocks: readonly { ptr: number; block: Uint8Array }[] }
+
+/**
  * A piece of a dragon (or of a creature of several sprites moving as one: the yeti): its VIC `sprite`, its `frames` and `colour`. `rigid`: it does not follow the one in front but stays at this offset
  * (sprite pixels) from the first piece, so the pieces are one body (the first piece's `gap` does not matter). `facing: 'front'`: a figure seen from the front whose pictures do not turn with the way it goes:
  * its `frames` are simply the pictures taken in turn.
@@ -398,6 +414,16 @@ export interface MontyData extends RoomTables, MontyLook {
   pulses: readonly PulseSpec[];
   /** Rooms of open water (swim.ts: Monty swims as the jetpack flies, slower and buoyant); none in Monty on the Run. */
   swimRooms: readonly number[];
+  /** The special item without which the open water is deadly (the Pacific's snorkel): coming into a swim room without it he drowns; null: no gate (Monty on the Run has no swimming). */
+  swimGate: number | null;
+  /** Surges in the swim rooms (swim.ts): boxes of the water that carry him one way while they run; none in Monty on the Run. */
+  currents: readonly CurrentSpec[];
+  /** Arrival banners: on coming into one of `rooms` from a room outside them (and, if `from` is given, from one of those) the name row shows `text` for a few seconds (the Pacific's islands); none in Monty on the Run. */
+  arrivals: readonly Arrival[];
+  /** Monty's own pictures for swimming (swim.ts: a horizontal body with a stroke, left and right; pointers of blocks `roomBlocks` puts in the swim rooms); null: he swims in his rope pictures (Monty on the Run has no swimming). */
+  swimPictures: SwimPictures | null;
+  /** Pictures put into the sprite bank when a room is loaded (and the bank's own put back where another room had them): a region's rooms borrow blocks the world's other regions use elsewhere (the Pacific's swimming pictures and sea serpent). */
+  roomBlocks: readonly RoomBlocks[];
   risingLava: readonly LavaSpec[];
   dragons: readonly DragonSpec[];
   /** Rooms where Monty flies under a canopy (flight.ts), with the canopy's look; none in Monty on the Run (its jetpack rooms are `jetpackRooms`). */

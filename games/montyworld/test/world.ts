@@ -22,7 +22,7 @@ const REGIONS: readonly (readonly [string, readonly RoomSpec[]])[] = [
 const all = REGIONS.flatMap(([, rooms]) => rooms);
 const onGrid = [...WORLD.exitGrid.image].filter((c) => c !== 0xff);
 const coinsOf = (rooms: readonly RoomSpec[]) => rooms.reduce((n, r) => n + (r.coins?.length ?? 0), 0);
-const findsOf = (rooms: readonly RoomSpec[]) => rooms.reduce((n, r) => n + (r.cake ? 1 : 0) + (r.item ? 1 : 0), 0);
+const findsOf = (rooms: readonly RoomSpec[]) => rooms.reduce((n, r) => n + (r.cake ? 1 : 0) + (r.item ? 1 : 0) + (r.item2 ? 1 : 0), 0);
 
 for (const [name, rooms] of REGIONS) console.log(`   ${name}: ${rooms.length} rooms, ${coinsOf(rooms)} coins (${(coinsOf(rooms) / rooms.length).toFixed(1)} a room, at most ${Math.max(...rooms.map((r) => r.coins?.length ?? 0))}), ${findsOf(rooms)} finds`);
 console.log(`   the world: ${all.length} rooms (Monty on the Run has 52), ${coinsOf(all)} coins (it has 64)`);

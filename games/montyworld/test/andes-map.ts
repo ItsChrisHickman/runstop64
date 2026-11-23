@@ -1,5 +1,5 @@
 /**
- * The Andes and the Amazon's map as a picture: the eight rooms as boxes on the exit grid (columns 30-32, rows 2-6 drawn as 0-4, the plane's hold beside them), each with its name, the joins drawn between them (a line with
+ * The Andes and the Amazon's map as a picture: the eight rooms as boxes on the exit grid (columns 20-22, rows 2-6 drawn as 0-4, the plane beside them), each with its name, the joins drawn between them (a line with
  * a letter: W walk, R rope both ways, DROP one way down, and what a gate wants: PARACHUTE, PANPIPES, MACHETE), the dead ends marked, and the critical path in yellow. Not a check.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/andes-map.ts <out-file.png>
@@ -17,10 +17,10 @@ const out = process.argv[2];
 if (out === undefined) throw new Error('usage: andes-map.ts <out-file.png>');
 
 drawRegionMap(out, {
-  title: 'DO SVIDANIYA MONTY: THE ANDES AND THE AMAZON (COLUMNS 30-32, ROWS 2-6)', firstCol: 30, cols: 3, rows: 5,
+  title: 'DO SVIDANIYA MONTY: THE ANDES AND THE AMAZON (COLUMNS 20-22, ROWS 2-6)', firstCol: 20, cols: 3, rows: 5,
   cells: {
-    [AND.jump]: [30, 0], [AND.gorge]: [30, 1], [AND.terraces]: [30, 2], [AND.picchu]: [31, 2],
-    [AND.canopy]: [31, 3], [AND.kapok]: [32, 3], [AND.sandbar]: [31, 4], [AND.roots]: [32, 4],
+    [AND.jump]: [20, 0], [AND.gorge]: [20, 1], [AND.terraces]: [20, 2], [AND.picchu]: [21, 2],
+    [AND.canopy]: [21, 3], [AND.kapok]: [22, 3], [AND.sandbar]: [21, 4], [AND.roots]: [22, 4],
   },
   firstSector: AND.jump, sectors: Array.from({ length: 12 }, (_, i) => ({ col: 0, text: NAMES[AND.jump + i] ?? '' })), stub: { row: 0, words: ['THE PACIFIC', 'THE HOLD'] }, deadEnds: [AND.picchu],
   joins: [

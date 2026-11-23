@@ -7,7 +7,7 @@ import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layou
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 
 /**
- * Rio, the seventh and last region of Do Svidaniya Monty (docs/dosvidaniya-rio.md): eleven rooms in a block of seven columns and two rows at columns 33-39 of the exit grid (rows 6-7), entered from the Amazon's last bank (the
+ * Rio, the seventh and last region of Do Svidaniya Monty (docs/dosvidaniya-rio.md): eleven rooms in a block of seven columns and two rows at columns 23-29 of the exit grid (rows 6-7), entered from the Amazon's last bank (the
  * Andes' column 32) and ending on the beach, where the game ends.
  *
  *            col 33              34               35               36               37              38               39
@@ -340,7 +340,7 @@ export const BEACH_VIEW = { redeemer: { col: 22, row: 5, w: 4, h: 3 }, sugarloaf
 export const RIO_ROOMS: readonly RoomSpec[] = [
   // H QUAY TO THE CITY: in off the riverboat's gangway at the left (floor 8, rows 6-7), down the wharf's steps (floors 10, 12, 14, 16: two rows each, so he climbs them back to the gangway) to the quay (floor 18), which runs east out low into Lapa. A pier (floor 14) on crates holds a skewer; the bay and Sugarloaf behind.
   room({
-    id: RIO_ROOM.quay, cell: [7, 33], sector: 67, palette: QUAY_PALETTE,
+    id: RIO_ROOM.quay, cell: [7, 23], sector: 67, palette: QUAY_PALETTE,
     paint: paintQuay,
     coins: QUAY_COINS,
     item: { name: 'skewer1', col: QUAY_ITEM[0], row: QUAY_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -354,7 +354,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // L THE LAPA ARCHES: the aqueduct's two storeys of arches standing on the street, the tram's track on top. In at the left on the street (floor 18, under the arches); a ladder (col 3) goes up to the track (floor 7) which runs the room with the yellow
   // tram on it; a second ladder (col 19) climbs from the track to the roofs of the tram shelters (floor 4) with the key to the city; a rope (col 26) climbs from the street, past the aqueduct's end, through to Sugarloaf above.
   room({
-    id: RIO_ROOM.lap, cell: [7, 34], sector: 68, palette: LAPA_PALETTE,
+    id: RIO_ROOM.lap, cell: [7, 24], sector: 68, palette: LAPA_PALETTE,
     paint: paintLapa,
     coins: LAPA_COINS,
     item: { name: 'cityKey', col: LAPA_ITEM[0], row: LAPA_ITEM[1], sprite: RIO_SPRITE.key },
@@ -369,7 +369,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // S SUGAR RUSH: Sugarloaf's base. In at the left on the beach (floor 18); a ladder (col 7) up to the cable's lower station (floor 14, the shelf) whose gate (cols 10-11) is shut until the key to the city; the car on the cable climbs to the summit
   // station (floor 8, cols 24-31) at the right, on the crown of the granite peak, which runs out east into the summit. The rope (col 26) from Lapa comes up through the beach's gap under the platform.
   room({
-    id: RIO_ROOM.sugar, cell: [6, 34], sector: 69, palette: SUGAR_PALETTE,
+    id: RIO_ROOM.sugar, cell: [6, 24], sector: 69, palette: SUGAR_PALETTE,
     paint: paintSugar,
     coins: SUGAR_COINS,
     decor: [
@@ -382,7 +382,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // U SUGARLOAF SUMMIT: the top of the loaf. In at the left from the cable's platform (floor 8), over the granite dome (floor 6, green on top) and along the saddle (floor 8), out east to Corcovado, tourists' deckchairs and viewer on it; a cleft
   // (a rope, col 20) down through the rock to a cave with a skewer. Corcovado's green peak and the bay far off.
   room({
-    id: RIO_ROOM.loaf, cell: [6, 35], sector: 70, palette: SUMMIT_PALETTE,
+    id: RIO_ROOM.loaf, cell: [6, 25], sector: 70, palette: SUMMIT_PALETTE,
     paint: paintSummit,
     coins: SUMMIT_COINS,
     item: { name: 'skewer2', col: SUMMIT_ITEM[0], row: SUMMIT_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -398,7 +398,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // C OPEN ARMS: Corcovado, the climb to the Redeemer. In at the left (floor 8, rows 6-7) on the shoulder; a rope (col 5) down through the gap into the favela; over the gap to a ledge, a ladder (col 10) down to the valley's trail (floor 14), along it and a long
   // ladder (col 22) up to the summit (floor 6) where Christ the Redeemer stands, the highest point of Rio, arms out; down the east side (floor 8) to the forest.
   room({
-    id: RIO_ROOM.arms, cell: [6, 36], sector: 71, palette: ARMS_PALETTE,
+    id: RIO_ROOM.arms, cell: [6, 26], sector: 71, palette: ARMS_PALETTE,
     paint: paintArms,
     coins: ARMS_COINS,
     item: { name: 'skewer5', col: ARMS_ITEM[0], row: ARMS_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -412,7 +412,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // T MONKEY BUSINESS: the Tijuca forest. In at the left on the upper bough (floor 8), which runs east to a gap with a rope (col 22) that hangs through to the carnival below; a rope (col 15) from the ground climbs to the bough, past a middle bough (floor 14) with
   // a skewer; a stream pool on the ground (floor 18). The bough runs on east to the edge of the screen with a coin.
   room({
-    id: RIO_ROOM.monkey, cell: [6, 37], sector: 72, palette: FOREST_PALETTE,
+    id: RIO_ROOM.monkey, cell: [6, 27], sector: 72, palette: FOREST_PALETTE,
     paint: paintForest,
     coins: FOREST_COINS,
     item: { name: 'skewer3', col: FOREST_ITEM[0], row: FOREST_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -426,7 +426,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // F HOUSE OF COLOUR: the hillside. Corcovado's rope (col 5) comes down to the roofs at the left (floor 8) which step across (floor 9) to the church tower; the colourful houses stand under the roofs on the green hill, washing hung between them at every
   // height; below, the lane (floor 18) runs in front of them east out low to the parade.
   room({
-    id: RIO_ROOM.colour, cell: [7, 36], sector: 73, palette: HILL_PALETTE,
+    id: RIO_ROOM.colour, cell: [7, 26], sector: 73, palette: HILL_PALETTE,
     paint: paintHill,
     coins: HILL_COINS,
     item: { name: 'skewer6', col: HILL_ITEM[0], row: HILL_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -441,7 +441,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // W STEAK YOUR CLAIM: the churrascaria, a dead end. In from Sugarloaf's beach at the right (floor 18). Diners at their tables, the grill with the meat turning over the fire, two gauchos pace the dining floor with skewers that swing from table to table;
   // the stairs of crates (floors 16, 14, 12) climb at the middle to the mezzanine's stage (floor 10) under a COSTUMES sign, where the headdress hangs on a curtain: nothing walks the stage, the way up is the stairs in plain sight, and each gaucho keeps to his own lane.
   room({
-    id: RIO_ROOM.steak, cell: [6, 33], sector: 74, palette: STEAK_PALETTE,
+    id: RIO_ROOM.steak, cell: [6, 23], sector: 74, palette: STEAK_PALETTE,
     paint: paintSteak,
     coins: STEAK_COINS,
     item: { name: 'headdress', col: STEAK_ITEM[0], row: STEAK_ITEM[1], sprite: RIO_SPRITE.headdress },
@@ -457,7 +457,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // P BEAT THE DRUM: the carnival's first room. In from the hillside at the left (floor 18); the stepped risers of the bateria (floors 16, 14, 16) up and down the middle with drummers; Tijuca's rope (col 22) comes down to the street; the steward at the right in a
   // low lane (rows 16-17 only) under the sambadrome's gate lets him by only in the headdress.
   room({
-    id: RIO_ROOM.drum, cell: [7, 37], sector: 75, palette: DRUM_PALETTE,
+    id: RIO_ROOM.drum, cell: [7, 27], sector: 75, palette: DRUM_PALETTE,
     paint: paintDrum,
     coins: DRUM_COINS,
     decor: [
@@ -472,7 +472,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // Q FLOAT YOUR BOAT: the avenue. In at the left on the street (floor 18) under the gate's lintel; the channel (deep water, cols 6-24) is crossed on the floats that come along it with a dancer dancing on each: lane A (the street's height) three of them
   // left to right, lane B (floor 14) two the other way; the stage at the right (floor 18) with a skewer leads east out low to the beach.
   room({
-    id: RIO_ROOM.float, cell: [7, 38], sector: 76, palette: FLOAT_PALETTE,
+    id: RIO_ROOM.float, cell: [7, 28], sector: 76, palette: FLOAT_PALETTE,
     paint: paintFloat,
     coins: FLOAT_COINS,
     item: { name: 'skewer4', col: FLOAT_ITEM[0], row: FLOAT_ITEM[1], sprite: RIO_SPRITE.skewer },
@@ -487,7 +487,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   // B RIO OR BUST: the beach. In at the left on the promenade's wave pavement (floor 18); palms standing in the sand, the sea and sky behind, Sugarloaf across the bay at the left, Christ the Redeemer small on Corcovado at the right, the sun low over the sea,
   // and the acai bowl on its table at the right end. Touching it is the end.
   room({
-    id: RIO_ROOM.bust, cell: [7, 39], sector: 77, palette: BEACH_PALETTE,
+    id: RIO_ROOM.bust, cell: [7, 29], sector: 77, palette: BEACH_PALETTE,
     paint: paintBeach,
     coins: BEACH_COINS,
     item: { name: 'bowl', col: BEACH_ITEM[0], row: BEACH_ITEM[1], sprite: RIO_SPRITE.bowl },

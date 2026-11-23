@@ -9,7 +9,7 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly from:
   { name: 'siberia', from: 4, to: 7, rows: { from: 0, to: 2 } }, // the next four
   { name: 'china', from: 8, to: 11, rows: { from: 0, to: 2 } }, // and the next
   { name: 'japan', from: 12, to: 16, rows: { from: 0, to: 2 } }, // Japan's block is five wide
-  { name: 'pacific', from: 17, to: 29, rows: { from: 0, to: 2 } }, // the Pacific's thirteen
-  { name: 'andes', from: 30, to: 32, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of the Pacific's hold
-  { name: 'rio', from: 33, to: 39, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
+  { name: 'pacific', from: 17, to: 19, rows: { from: 2, to: 3 } }, // the Pacific's U of five rooms, three columns and two rows
+  { name: 'andes', from: 20, to: 22, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of the Pacific's plane
+  { name: 'rio', from: 23, to: 29, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
 ];

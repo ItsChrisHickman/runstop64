@@ -249,7 +249,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // F1 JUMP FOR JOY: out of the plane's tail. In at the left on the ramp (floor 16: the hold's door, rows 14-15); off the ramp's end the canopy opens. An updraft (cols 9-11) lifts him to glide to the
   // spire, the coin on its snowy tip: the first thing the new move is for. The bottom is open west of the spire: he sinks out of it into the gorge. No creature, nothing falling.
   room({
-    id: AND.jump, cell: [2, 30], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,
+    id: AND.jump, cell: [2, 20], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,
     coins: [[19, 10]],
     decor: [['mistCloud', 4, 4], ['mistCloud', 24, 6], ['updraft', 9, 12], ['updraft', 9, 8]],
   }),
@@ -257,7 +257,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // F2 CONDOR COUNTRY: the gorge, its cliffs closing in. An updraft (cols 13-15) lifts him to the overhang, where he steers onto the shelf (floor 8) for the empanada; two condors dive, one in the updraft's
   // column, one in the neck; the coin hangs between their dives. A pinnacle splits the foot into two throats: the narrow west one lands on the guardhouse's roof, the wide east one on the terraces.
   room({
-    id: AND.gorge, cell: [3, 30], sector: 57, palette: SKY_PALETTE, paint: PAINT.gorge,
+    id: AND.gorge, cell: [3, 20], sector: 57, palette: SKY_PALETTE, paint: PAINT.gorge,
     coins: [[16, 9]],
     item: { name: 'empanada1', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
     decor: [['mistCloud', 6, 2], ['updraft', 13, 10], ['updraft', 13, 6]],
@@ -268,7 +268,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // cuy hopping over the last step, then a drop to the low path (floor 18), where two llamas graze and wink, and east under the cliff into Machu Picchu's lane. The high ledge on the cliff (floor 8) holds
   // an empanada in plain sight, out of reach from here: it is Machu Picchu's plateau that runs out onto it, and off its west end the drop is onto the last step, so the terraces climb back to the top.
   room({
-    id: AND.terraces, cell: [4, 30], sector: 58, palette: TERRACE_PALETTE, paint: PAINT.terraces,
+    id: AND.terraces, cell: [4, 20], sector: 58, palette: TERRACE_PALETTE, paint: PAINT.terraces,
     coins: [[4, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
@@ -280,7 +280,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // llama paces the mouth: a wall until the panpipes. The ladder (col 5) climbs to the plateau (floor 8); a condor dives into the gap (cols 13-15); the hill steps up (floors 6, 4) to the Intihuatana, the
   // panpipes by it, the boulders rolling down at him every 120 frames. The plateau runs out west onto the terraces' high ledge. In the tunnel the well (cols 19-21) drops into the canopy.
   room({
-    id: AND.picchu, cell: [4, 31], sector: 59, palette: PICCHU_PALETTE, paint: PAINT.picchu,
+    id: AND.picchu, cell: [4, 21], sector: 59, palette: PICCHU_PALETTE, paint: PAINT.picchu,
     coins: [[30, 2], [21, 4]],
     item: { name: 'panpipes', col: 25, row: 2, sprite: ANDES_SPRITE.panpipes },
     decor: [['intihuatana', 28, 2], ['torch', 22, 16], ['torch', 24, 16]],
@@ -291,7 +291,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // two more lianas and two cross lianas make a lattice to climb in any direction, boughs (floors 6, 10, 14) in it; the walkway (floor 4) runs east to the kapok. The coin hangs at a crossing. A sloth
   // and a toucan climb up and down. Below, the low leaves are open only over the sandbar and the second log.
   room({
-    id: AND.canopy, cell: [5, 31], sector: AMAZON, palette: CANOPY_PALETTE, paint: PAINT.canopy,
+    id: AND.canopy, cell: [5, 21], sector: AMAZON, palette: CANOPY_PALETTE, paint: PAINT.canopy,
     coins: [[13, 11]],
     creatures: [{ who: 'sloth', col: 3, row: 3, way: 'down', speed: 1, range: 88, colour: 15 }, { who: 'toucan', col: 16, row: 3, way: 'down', speed: 1, range: 64 }],
   }),
@@ -299,7 +299,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // A2 THE AMAZON, the kapok: the walkway runs east to the kapok's crown (floor 4), the anaconda hanging from the canopy over it (its coin at the foot of the patrol), the jaguar pacing the crown; the
   // hollow trunk (cols 26-28) is the only way down, and a one-way drop. Under the walkway the low boughs close the floor (floor 16): a fall off it walks west into the canopy and down to the sandbar.
   room({
-    id: AND.kapok, cell: [5, 32], sector: AMAZON, palette: KAPOK_PALETTE, paint: PAINT.kapok,
+    id: AND.kapok, cell: [5, 22], sector: AMAZON, palette: KAPOK_PALETTE, paint: PAINT.kapok,
     coins: [[17, 2]],
     creatures: [{ who: 'anaconda', col: 16, row: 2, way: 'down', speed: 1, range: 64, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 24 }],
   }),
@@ -307,7 +307,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // A3 THE AMAZON, the river: the long liana comes down to the sandbar (floor 15); west over the channel (a piranha leaping in it), two rotten logs that give way under a pause, and the vine from the fig
   // to the pocket under the fig's root, where the coin and the empanada are (off the route). A dolphin leaps under the vine. East along the sandbar into the roots' room.
   room({
-    id: AND.sandbar, cell: [6, 31], sector: AMAZON, palette: SANDBAR_PALETTE, paint: PAINT.sandbar,
+    id: AND.sandbar, cell: [6, 21], sector: AMAZON, palette: SANDBAR_PALETTE, paint: PAINT.sandbar,
     coins: [[3, 14]],
     item: { name: 'empanada2', col: 0, row: 13, sprite: ANDES_SPRITE.empanada },
     creatures: [{ who: 'dolphin', col: 5, row: 17, way: 'up', speed: 1, range: 40 }],
@@ -316,7 +316,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // A4 THE AMAZON, the roots: two vines and a log over the river (cols 5-17), two piranhas leaping; the coin on the log between the vines. The east bank (floor 15) and the jetty under the kapok's root arch,
   // the tangle filling the arch (THE UNDERGROWTH IS TOO THICK); the machete in sight on the bough 8 rows up, reached only down the hollow trunk from the crown. Out east under the roots on the launch to Rio.
   room({
-    id: AND.roots, cell: [6, 32], sector: AMAZON, palette: ROOTS_PALETTE, paint: PAINT.roots,
+    id: AND.roots, cell: [6, 22], sector: AMAZON, palette: ROOTS_PALETTE, paint: PAINT.roots,
     coins: [[10, 14]],
     item: { name: 'machete', col: 22, row: 5, sprite: ANDES_SPRITE.machete },
     decor: [['launch', 26, 12]],

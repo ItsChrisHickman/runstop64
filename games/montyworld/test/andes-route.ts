@@ -29,7 +29,7 @@ export const LEDGE_EMPANADA = 0, CHULLO = 1;
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const ANDES_LEGS: readonly Leg[] = [
-  leg('Q to F1: out of the plane\'s door', into(AND.jump, 31, 15, PAC.hold)),
+  leg('Q to F1: out of the plane\'s door', into(AND.jump, 31, 15, PAC.plane)),
   leg('F1: up the updraft, the coin on the spire\'s tip', coin(AND.jump, 19, 10)),
   leg('F1 to F2: out at the bottom', into(AND.gorge, 10, 19, AND.jump)),
   leg('F2: up the updraft and under the overhang, the empanada on the shelf', livesFor(item(AND.gorge, 0, [24, 6]), 40)),

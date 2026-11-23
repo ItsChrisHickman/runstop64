@@ -1,7 +1,7 @@
 /**
  * Where the bot can get to in one of the Pacific's rooms from a start (a map of the cells his top left reached, the creatures out of the way unless CREATURES=1), for finding what a layout lacks:
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-probe.ts <room name> <col> <floor> [rooms whose first find is held: stern,surf,lei]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-probe.ts <room name> <col> <floor> [rooms whose finds are held: waikiki,plane]
  *
  * (a swim room's `floor` is where his feet would be: he swims from there). `COIN=col,row` says when the coin of that cell is first taken.
  */
@@ -19,14 +19,13 @@ const named = (word: string): number => {
   if (id === undefined) throw new Error(`no room called ${word}`);
   return id;
 };
-const room = named(process.argv[2] ?? 'stern'), col = Number(process.argv[3] ?? 3), floor = Number(process.argv[4] ?? 17);
+const room = named(process.argv[2] ?? 'ship'), col = Number(process.argv[3] ?? 3), floor = Number(process.argv[4] ?? 17);
 const held = (process.argv[5] ?? '').split(',').filter((w) => w !== '').map(named);
 const s = newGame(WORLD, false);
-for (let i = 0; i < s.g.siCollected.length; i++) if ((s.g.data.specialItems[i * 4] ?? 0) < PAC.stern) s.g.siCollected[i] = 0x81;
+for (let i = 0; i < s.g.siCollected.length; i++) if ((s.g.data.specialItems[i * 4] ?? 0) < PAC.ship) s.g.siCollected[i] = 0x81;
 for (const r of held) {
-  const i = itemIndex(s.g, r, 0);
-  s.g.siCollected[i] = 0x81;
-  if (r === PAC.lei) wear(s.g, i);
+  for (let i = 0; i * 4 < s.g.data.specialItems.length; i++) if (s.g.data.specialItems[i * 4] === r) s.g.siCollected[i] = 0x81;
+  if (r === PAC.waikiki) wear(s.g, itemIndex(s.g, r, 1));
 }
 enterRoom(s.g, room, 0x0c + (col + 4) * 4, standY(floor));
 for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) hold(s, ACTIONS[4]?.[1] ?? { left: false, right: false, up: false, down: false, fire: false }, 1);

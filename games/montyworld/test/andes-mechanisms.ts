@@ -43,7 +43,7 @@ const DOWN = { ...NONE, down: true };
 const UP = { ...NONE, up: true };
 const JUMP = { ...NONE, fire: true };
 /** The items by where they are (the room's nth). */
-const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.roots, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
+const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.roots, 0] as const, PARACHUTE = [PAC.plane, 0] as const;
 
 /** The picture sprite 2 shows (the canopy's). */
 const sprite2 = (g: Game): number | undefined => g.vic.sprites[2]?.ptr;
@@ -67,9 +67,9 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 30, AND.jump], [3, 30, AND.gorge], [4, 30, AND.terraces], [4, 31, AND.picchu], [5, 31, AND.canopy], [5, 32, AND.kapok], [6, 31, AND.sandbar], [6, 32, AND.roots]] as const;
-  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 30, Machu Picchu beside its foot, the Amazon an open block of two by two under it, beside the Pacific\'s hold (row 2, column 29)',
-    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(2, 29) === PAC.hold && WORLD.exitGrid.rows === 8);
+  const placed = [[2, 20, AND.jump], [3, 20, AND.gorge], [4, 20, AND.terraces], [4, 21, AND.picchu], [5, 21, AND.canopy], [5, 22, AND.kapok], [6, 21, AND.sandbar], [6, 22, AND.roots]] as const;
+  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 20, Machu Picchu beside its foot, the Amazon an open block of two by two under it, beside the Pacific\'s plane (row 2, column 19)',
+    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(2, 19) === PAC.plane && WORLD.exitGrid.rows === 8);
   check('the ids of the rooms kept are as they were (55, 57, 58, 59; 62, 63, 65, 66), and the retired 56, 60, 61, 64 and 78 are no room\'s', [...cells].every((c) => ![56, 60, 61, 64, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 57, 58, 59, 62, 63, 65, 66].includes(r.id)));
   const coins = ANDES_ROOMS.map((r) => r.coins?.length ?? 0);
   check(`9 coins in 8 rooms, never more than 3 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 9 && coins.every((n) => n <= 3));
@@ -151,16 +151,16 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   check(`down the west throat he lands on the guardhouse's roof (room ${west.g.roomId}, y ${west.g.y}, the roof's ${standY(5)}), down the east one on the broad terrace (y ${east.g.y}, ${standY(12)}), on his feet, alive`,
     west.g.roomId === AND.terraces && west.g.y === standY(5) && east.g.roomId === AND.terraces && east.g.y === standY(12) && !west.g.canopyShown && !dead(west.g) && !dead(east.g));
   check('the gorge\'s foot is open only at the two throats (cols 3-7 and 11-14), the pinnacle between them', [...Array(32).keys()].filter((c) => !solid(AND.gorge, c, 19)).join() === [3, 4, 5, 6, 7, 11, 12, 13, 14].join());
-  const door = at(PAC.hold, 28, 16, [PARACHUTE]);
+  const door = at(PAC.plane, 28, 16, [PARACHUTE]);
   run(door, RIGHT, 90);
   run(door, NONE, 2);
   check('with the parachute he walks out of the plane\'s rear door and the sky takes him: the first flight room, under the canopy', door.g.roomId === AND.jump && door.g.canopyShown);
-  const shut = at(PAC.hold, 28, 16);
+  const shut = at(PAC.plane, 28, 16);
   run(shut, RIGHT, 90);
-  check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.hold);
+  check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.plane);
   const back = at(AND.jump, 2, 16);
   run(back, LEFT, 60);
-  check('the plane\'s ramp walks back into the hold (the door is the only opening on that side)', back.g.roomId === PAC.hold);
+  check('the plane\'s ramp walks back into the hold (the door is the only opening on that side)', back.g.roomId === PAC.plane);
   const cond = at(AND.gorge, 13, 9, [], false, true);
   check(`a condor diving in the updraft's column kills him when it meets him (in ${diesAt(cond, NONE, 260)} frames)`, diesAt(at(AND.gorge, 13, 9, [], false, true), NONE, 260) >= 0);
   check('the flight shaft is one way: from the terraces the bot finds no way up into the gorge (40000 states)', search(at(AND.terraces, 4, 5, [], false, true), (g) => g.roomId === AND.gorge, undefined, 40000, 0) === null);
@@ -256,12 +256,12 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   // the bough holds the machete: reached only down the hollow (from the crown), never from the bank, the river or the sandbar
   const onBough = (g: Game) => g.roomId === AND.roots && g.y === standY(7) && colOf(g) >= 18 && colOf(g) <= 24;
   check('the bough is reached only down the hollow: from the east bank, the bot finds no way up onto it (it is 8 rows up, no rope; 120000 states)', search(at(AND.roots, 20, 15), onBough, undefined, 120000, 0) === null);
-  check('from the sandbar either, the way back up into the canopy shut (100000 states)', search(shutOff(at(AND.sandbar, 22, 15), 5, 31), onBough, undefined, 100000, 0) === null);
+  check('from the sandbar either, the way back up into the canopy shut (100000 states)', search(shutOff(at(AND.sandbar, 22, 15), 5, 21), onBough, undefined, 100000, 0) === null);
   check('down the hollow from the crown he lands in it and walks out onto the bough', reach(at(AND.kapok, 23, 4), { room: AND.roots, col: 21, row: 5 }, onBough));
   check('and the hollow is one way: from the bough the bot finds no way back up into the kapok (60000 states)', search(at(AND.roots, 21, 7), (g) => g.roomId === AND.kapok, undefined, 60000, 0) === null);
   // the high ledge: reached only from Machu Picchu's plateau
   const onLedge = (g: Game) => g.roomId === AND.terraces && g.y === standY(8) && colOf(g) >= 22;
-  check('the terraces\' high ledge is out of reach from the terraces: the way east to Machu Picchu shut, the bot finds no way onto it from the top terrace (100000 states)', search(shutOff(at(AND.terraces, 6, 8), 4, 31), onLedge, undefined, 100000, 0) === null);
+  check('the terraces\' high ledge is out of reach from the terraces: the way east to Machu Picchu shut, the bot finds no way onto it from the top terrace (100000 states)', search(shutOff(at(AND.terraces, 6, 8), 4, 21), onLedge, undefined, 100000, 0) === null);
   check('it is the plateau that runs out onto it, west from Machu Picchu', reach(at(AND.picchu, 2, 8), { room: AND.terraces, col: 27, row: 6 }, onLedge));
   check('and off its west end he drops onto the last step, from where the terraces climb back up to the top terrace (the chullo\'s, never a dead end)',
     reach(at(AND.terraces, 23, 8), { room: AND.terraces, col: 4, row: 6 }, (g) => g.roomId === AND.terraces && g.y === standY(8) && colOf(g) <= 7));
@@ -353,7 +353,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   const info = montyMap.info(s.g, { rooms: {} });
   check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[3] === 'SNACKS 0/20' && info[2] === 'ITEMS  0/19');
   enterRoom(s.g, AND.picchu, 0x40, standY(8));
-  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: [0x40, 0xb2, 4, 31], [AND.terraces]: [0x40, 0xb2, 4, 30] } });
+  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: [0x40, 0xb2, 4, 21], [AND.terraces]: [0x40, 0xb2, 4, 20] } });
   check('in the Andes the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 
   // a save made on coming into each of the region's rooms (every key taken, the chullo on) carries on in the same room, alive

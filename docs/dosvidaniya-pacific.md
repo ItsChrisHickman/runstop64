@@ -1,5 +1,15 @@
 # Do Svidaniya Monty: the Pacific's room map
 
+> **Rebuilt 2026-11-23 (the reset).** The region is now five rooms in a U, to the plan in docs/dosvidaniya-reset.md ("the Pacific"): A THE CARGO SHIP (38, [2,17]), B WAIKIKI (41, [2,18]),
+> C HANA (49, [3,18], the one swim room), D HILO (52, [3,19], the lava set piece) and E THE CARGO PLANE (54, [2,19]). The puzzle is the sea (the snorkel on the beach stand's roof, reached from the
+> hotel's lawn); the new move is swimming against Hana's surge (`currents`, swim.ts). The rooms are described in `games/montyworld/src/pacific.ts`; the route in `test/pacific-route.ts`, the
+> mechanisms in `test/pacific-mechanisms.ts`. The Andes and Rio moved ten columns west (the Andes' first room is at [2,20]). Below is the earlier build, kept for its history.
+>
+> **Where the build differs from the plan.** Ten kinds of creature, not eleven: the ship's crane and the hold's hoist swing the same crate. Hana's three coral heads are the same
+> height (the shark passes over him on every crossing; a taller middle head left no way past it), and the middle head's coin lies in a hollow under its overhang on the seabed.
+> Hilo's lava is red under a yellow crest (the C64's orange read as earth). There is no far view of Diamond Head (it floated in Waikiki's sky); the cliff at the bay's east end
+> stands for it.
+
 Region 5 (docs/dosvidaniya-plan.md; Hawaii's order and its rooms are Chris's: he has been to all three islands). Built 2026-11-21 from the pre-production design and its art (`games/montyworld/src/art/pacific-*.ts`).
 Rows 0 (top) to 19, columns 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open at the same rows as the way in of the next room. Every
 number was a starting value for the bot to check; the "As built" section says what the bot changed.
@@ -195,3 +205,11 @@ Pictures: /root/projects/runstop64-shots/pacific/ (`room-*.png` from the real en
 ## After the Andes (2026-11-21)
 
 The plane's rear door (columns 30-31 and the two gutter columns, rows 14-15) opens the way east now: the parachute clears all eight cells and the sign that said THE ANDES COMING SOON is gone from the hold; the door leads onto the Andes' tail ramp (`docs/dosvidaniya-andes.md`). The parachute's hint reads PARACHUTE: FOR A LONG DROP.
+
+## Pacific v2 (2026-11-22, after Chris played it)
+
+Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts of the first seventeen rooms are unchanged (so saves stay valid), new coins and finds are appended at the end of the tables.
+
+- **Map**: the luau is two rooms. THE FEAST (78, above Waikiki: the cliff rope comes up into it; torches, the ladder to the deck, the earth oven, the pig, the coconut-shrimp table, a rope up to Diamond Head) and LEI OF THE LAND (42, moved to the cell above Clam Down: the show: the stage over a lagoon, drummers, hula dancers, the fire-knife dancer's leaps as the timing, the lei on its stand). Waikiki's sea is closed (a sea wall): the way east is the show's far lawn, whose last boards are deadly waves until the snorkel, then a dive (a rope hung in the gap) into Clam Down, so the lei is always won on the way. DIAMOND HEAD (79) and THE LOOKOUT (80) are an optional climb from the feast (a rope): the crater trail's switchbacks, the bunker's tunnel, the stairs with rocks tumbling down them (the tunnel is where to wait), a musubi and coins at the summit lookout; Diamond Head stands whole behind Waikiki with the lookout on its rim (seen from the beach first).
+- **Engine (data-driven, Monty on the Run unchanged)**: `roomBlocks` (pictures put in the sprite bank while rooms are loaded: the bank is full, so the swim rooms borrow Rio's skewer blocks and the sea cave borrows China's dragon blocks), `swimPictures` (Monty's own swimming pictures, and the lei's crown on them), `arrivals` (name-row banners: WELCOME TO HAWAII: OAHU at Honolulu, HAWAII: MOLOKAI, MAUI, THE BIG ISLAND), and the sea's lift now stops short of a room's top (only a stroke up carries him out through a ceiling gap, so there is no screen bounce).
+- **Rooms**: MOLE-OKAI's crab is a tern diving over the ponds; THE SEA CAVE is built round a sea serpent (a dragon of six pieces looping the cavern) with its way up at the top right (the pool's gap and rope on the road); THE ROAD TO HANA's cascades fall and splash (charAnims); KELP WANTED's top is the sea's surface and a moray's eyes blink in its hole before it lunges (pulses); FISH OUT OF WATER has a wreck to swim into and a clam with a pearl; bubbles rise in every underwater room; BOX CLEVER has a crane standing on the deck over the swinging crate and holds the bolt cutters (STERN WARNING's pocket has the musubi); WHALE OF A TIME's palm is planted; HANA BANANA has the banana-bread stand (a musubi), a wave sweeping the black sand on a timing and the cliff closing its right edge; PIER PRESSURE's roofs have rotten planks over an alley (cracks); HILO GOODBYE has a gatehouse whose corridor the lei guard blocks (the wall goes to the top of the room), the cargo plane drawn whole, the conveyor truck's slope he rides to the gantry along the plane's back; the hold's sill is at floor 12 to meet it.

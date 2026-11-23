@@ -1,0 +1,33 @@
+{
+  "region": "pacific",
+  "mode": "enhanced",
+  "legs": {
+    "A: up the crate step onto the deck": "J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "A: up the rung ladder to the funnel's catwalk, its coin": ">:4 >:4 >:4 >:4 >:4 >:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 ^:4 ^:4 <:4 <:4 <:4",
+    "A: east along the deck under the crane's crate, down the hatch into the hold": ">:4 >:4 >:4 >:4 >:4 v:4 v:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 >:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 <:4 <:4 ^:4 ^:4 ^:4 ^:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 .:4 .:4",
+    "A: west between the pistons, the coin": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4",
+    "A: past the second piston to the ladder, down into the bilge": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 v:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "A to B: east over the bilge water, out of the bow door": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
+    "B: along the beach to the palm by the surf": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
+    "B: up the palm to the lawn, the coin at its head": ">:4 >:4 >:4 >:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4",
+    "B: west past the first torch, the coin between them": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4",
+    "B: past the second torch and the hula dancer, the lei": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 >:4 >:4 <:4 <:4 <:4",
+    "B: off the lawn's end onto the stand's roof, the snorkel": ">:4 >:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4 <:4 <:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 <:4",
+    "B to C: down to the sand, east past the coconut, into the sea": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 <:4 ^:4 <:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 <:4 .:4 .:4",
+    "C: west along the top lane past the turtle to the drop-off": ".:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 v:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 v:4 <:4 v:4 v:4 <:4 v:4 v:4 <:4 v:4 v:4 <:4 v:4 v:4 <:4 v:4 v:4",
+    "C: down past the moray into the sea cave, the coin on its ledge": ">:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 ^:4 ^:4 <:4 <:4 <:4 <:4 v:4 ^:4 v:4 <:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 v:4 v:4 v:4 v:4 <:4",
+    "C: the Spam musubi in the cave": "<:4",
+    "C: out past the moray, east into the first head's lee": ">:4 >:4 >:4 >:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
+    "C: over the first head against the surge, the coin in the middle head's hollow": "v:4 >:4 >:4 v:4 v:4 v:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 ^:4 >:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 >:4 >:4 >:4 >:4 >:4",
+    "C: out of the hollow and up over the middle head between sets": "<:4 <:4 <:4 <:4 ^:4 ^:4 >:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 <:4 ^:4 <:4 >:4 >:4 >:4 >:4 >:4 v:4 >:4 v:4 >:4 >:4 >:4 >:4 >:4",
+    "C: down past the middle head, timing the shark, into the third head's lee": ">:4 >:4 >:4 >:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4",
+    "C to D: over the third head between sets, out onto Hilo's shore": "v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 ^:4 <:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
+    "D: up the rope and over the cracking crust, the coin on the middle ledge": "<:4 .:4 .:4 .:4 .:4 <:4 <:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 ^:4",
+    "D: up the east wall's rope to the long ledge, the coin at its head": "^:4 ^:4 ^:4 <:4",
+    "D: west past the steam vent, up the rope to the apron": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 <:4",
+    "D to E: past the nene, up the belly ladder into the hold": "<:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 J:4 .:4",
+    "E: up the cargo net, the coin in it": ".:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "E: west along the rack past the rooster, the parachute": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 <:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4",
+    "E to the Andes: down, across the floor behind the loose crate, out of the rear door": ">:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4"
+  }
+}

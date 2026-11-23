@@ -10,6 +10,7 @@ import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { newGame } from '../../shared/monty/test/bot';
 import { AND } from '../src/andes';
+import { PAC } from '../src/pacific';
 import { WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
@@ -36,22 +37,37 @@ function format1(room: number, x2: number, y: number, mapRow: number, exitCol: n
 }
 
 check('today\'s saves are format 2, and format 1 is read too', CODEC.format === 2);
-// format 1's Andes: the chullo was in MARKET FORCES (60), the panpipes in MIST OPPORTUNITY (61), the machete in THE INCA TUNNEL (63)
-const old = format1(61, 0x0c + (20 + 4) * 4, 0x32 + 15 * 8, 5, 33, [0, 1, 140], [0, 1, oldItem(60), oldItem(61), oldItem(63)], oldItem(60));
+// format 1's Pacific: the snorkel was in SURF AND TURF (41), the lei in LEI OF THE LAND (42), the parachute in HOLD YOUR HORSES (54); a save in KELP WANTED (45, cut) carries on in Hana's sea
+const old = format1(45, 0x0c + (10 + 4) * 4, 0x32 + 10 * 8, 2, 23, [0, 1], [0, 1, oldItem(41), oldItem(42)], oldItem(42));
 const s = CODEC.unpack(CODEC.pack(old), 1);
 const g = newGame(WORLD, true).g;
-const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.roots, 0);
+const snorkel = itemIndex(g, PAC.waikiki, 0), lei = itemIndex(g, PAC.waikiki, 1);
 check(`Moscow's coins and finds keep their places (coins ${s.coins.slice(0, 2).join()}, finds ${s.items.slice(0, 2).join()})`, s.coins[0] === 0xff && s.coins[1] === 0xff && s.items[0] === 0x81 && s.items[1] === 0x81);
-check('the key items taken are taken where they are now: the chullo (moved to the terraces), the panpipes, the machete; and the chullo is still worn', s.items[chullo] === 0x81 && s.items[panpipes] === 0x81 && s.items[machete] === 0x81 && s.worn === chullo);
+check('the key items taken are taken where they are now: the snorkel and the lei (both at Waikiki now), and the lei is still worn', s.items[snorkel] === 0x81 && s.items[lei] === 0x81 && s.worn === lei);
 check(`the arrays are today's lengths (${s.coins.length} coins, ${s.items.length} finds)`, s.coins.length === WORLD.coinTable.length / 3 && s.items.length === WORLD.specialItems.length / 4);
-check(`a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu, at its cell [4,31] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[61] && s.roomId === AND.picchu && s.mapRow === 4 && s.exitCol === 31);
+check(`a save in KELP WANTED (cut) carries on in Hana, at its cell [3,18] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[45] && s.roomId === PAC.hana && s.mapRow === 3 && s.exitCol === 18);
 const b = newGame(WORLD, true);
 restore(b.g, s);
 for (let f = 0; f < 120; f++) frame(b, NONE);
-check(`and loads there standing, alive (room ${b.g.roomId}, falling ${b.g.falling}, dead ${dead(b.g)})`, b.g.roomId === AND.picchu && !dead(b.g) && !b.g.falling);
+check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.roomId === PAC.hana && !dead(b.g));
+// format 1's Andes: the chullo was in MARKET FORCES (60), the panpipes in MIST OPPORTUNITY (61), the machete in THE INCA TUNNEL (63); a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu
+{
+  const old = format1(61, 0x0c + (20 + 4) * 4, 0x32 + 15 * 8, 5, 33, [0, 1], [0, 1, oldItem(60), oldItem(61), oldItem(63)], oldItem(60));
+  const s = CODEC.unpack(CODEC.pack(old), 1);
+  const g = newGame(WORLD, true).g;
+  const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.roots, 0);
+  check('the Andes\' key items taken are taken where they are now: the chullo (moved to the terraces), the panpipes, the machete; and the chullo is still worn', s.items[chullo] === 0x81 && s.items[panpipes] === 0x81 && s.items[machete] === 0x81 && s.worn === chullo);
+  const cell = [...WORLD.exitGrid.image].indexOf(AND.picchu);
+  check(`a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu, at its cell (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[61] && s.roomId === AND.picchu && s.mapRow * WORLD.exitGrid.cols + s.exitCol === cell);
+  const b = newGame(WORLD, true);
+  restore(b.g, s);
+  for (let f = 0; f < 120; f++) frame(b, NONE);
+  check(`and loads there standing, alive (room ${b.g.roomId}, falling ${b.g.falling}, dead ${dead(b.g)})`, b.g.roomId === AND.picchu && !dead(b.g) && !b.g.falling);
+}
 // every retired room carries on somewhere he can stand
 for (const [from, to] of Object.entries(RETIRED)) {
-  const t = CODEC.unpack(CODEC.pack(format1(Number(from), 0x40, 0x32 + 10 * 8, 0, 0, [], [])), 1);
+  // (a save in one of the old sea rooms was made with the snorkel: the sea was shut without it)
+  const t = CODEC.unpack(CODEC.pack(format1(Number(from), 0x40, 0x32 + 10 * 8, 0, 0, [], WORLD.swimRooms.includes(to) ? [oldItem(41)] : [])), 1);
   const p = newGame(WORLD, true);
   restore(p.g, t);
   for (let f = 0; f < 120; f++) frame(p, NONE);

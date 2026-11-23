@@ -34,7 +34,7 @@ const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['wolf', 'WOLF'], ['reindeer', 'REINDEER'], ['inspector', 'TICKET INSPECTOR'], ['nerpa', 'BAIKAL SEAL']],
   [['panda', 'PANDA'], ['warrior', 'TERRACOTTA WARRIOR'], ['lion', 'STONE LION'], ['kite', 'KITE']],
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
-  [['pacHula', 'HULA DANCER'], ['pacSurfer', 'SURFER'], ['pacTurtle', 'GREEN TURTLE'], ['pacManta', 'MANTA RAY']],
+  [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
   [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
   [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['steward', 'PARADE STEWARD'], ['bonde', 'SANTA TERESA TRAM']],
 ];
