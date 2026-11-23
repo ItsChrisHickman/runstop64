@@ -206,11 +206,10 @@ const PAINT = {
     g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 17, 'K').box(0, 18, 3, 19, 'K');
     g.box(28, 0, 31, 19, 'R');
     g.box(19, 14, 24, 19, 'R').box(20, 13, 23, 13, 'S').box(21, 12, 22, 12, 'S'); // the spire
-    g.box(4, 19, 6, 19, 'R').box(25, 19, 27, 19, 'R'); // foothills: the gorge below is narrower than the sky (the way down is cols 7-18)
   },
   thin(g: Grid) {
-    // the gorge: cliffs close in on both sides (18 wide at the top, 14 at the foot), snowy ledges on the outcrops, nothing in the middle but the boulders' fall
-    g.box(0, 0, 6, 19, 'R').box(7, 9, 8, 19, 'R').box(7, 9, 8, 9, 'S').box(25, 0, 31, 19, 'R').box(23, 12, 24, 19, 'R').box(23, 12, 24, 12, 'S');
+    // the gorge: cliffs close in on both sides (24 wide at the top, 14 at the foot), snowy ledges on the outcrops, nothing in the middle but the boulders' fall
+    g.box(0, 0, 3, 8, 'R').box(0, 9, 8, 19, 'R').box(4, 9, 8, 9, 'S').box(28, 0, 31, 11, 'R').box(23, 12, 31, 19, 'R').box(23, 12, 27, 12, 'S');
     g.box(18, 18, 22, 19, 'R').box(18, 17, 22, 17, 'S'); // a rock in the gorge's floor, snow-capped (the way down is cols 9-17: the room below has its overhang at the right)
   },
   condor(g: Grid) {
@@ -302,7 +301,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
       ['updraft', 9, 12], ['updraft', 9, 8]],
   }),
 
-  // F2 OUT OF THIN AIR: the gorge. In from above anywhere; the cliffs close in (18 cells wide at the top, 14 at the foot) with ledges of snow on the outcrops, an updraft each side, and two boulders drop from above down the middle on their own periods (a rockfall).
+  // F2 OUT OF THIN AIR: the gorge. In from above anywhere; the cliffs close in (24 cells wide at the top, 14 at the foot) with ledges of snow on the outcrops, an updraft each side, and two boulders drop from above down the middle on their own periods (a rockfall).
   // The room's own hazard: dive, steer or ride the lift round them. Out at the bottom.
   room({
     id: AND.thin, cell: [3, 30], sector: 56, palette: SKY_PALETTE, paint: PAINT.thin,
