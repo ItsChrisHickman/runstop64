@@ -68,5 +68,15 @@ savePng(out, 'guard-gone.png', placed({ room: PAC.hilo, col: 9, floor: 17, frame
 // him in the lei, standing on a plain floor
 savePng(out, 'lei.png', placed({ room: PAC.surf, col: 3, floor: 18, frames: 20, worn: lei }).px);
 
+// the moray in Kelp Wanted: at rest, the eyes in the hole, the lunge, drawn back
+contactSheet(out, 'moray.png', [20, 70, 100, 125, 140, 170].map((frames) => placed({ room: PAC.kelp, col: 24, floor: 12, frames, worn: lei }).px));
+// Hana's wave sweeping up the beach
+contactSheet(out, 'wave.png', [60, 112, 120, 135, 160, 180].map((frames) => placed({ room: PAC.hana, col: 12, floor: 8, frames, worn: lei }).px));
+// the waterfalls falling (the road), the cave's serpent round its loop
+contactSheet(out, 'falls.png', [4, 8, 12, 16, 20, 24].map((frames) => placed({ room: PAC.road, col: 3, floor: 18, frames, worn: lei }).px));
+contactSheet(out, 'serpent.png', [10, 90, 170, 250, 330, 410].map((frames) => placed({ room: PAC.cave, col: 3, floor: 19, frames, worn: lei }).px));
+contactSheet(out, 'bubbles.png', [4, 8, 12, 16, 20, 24].map((frames) => placed({ room: PAC.fish, col: 4, floor: 19, frames, worn: lei }).px));
+contactSheet(out, 'pier-plank.png', [10, 60, 100, 130, 160, 250].map((frames) => placed({ room: PAC.pier, col: 15, floor: 7, frames, worn: lei, noEnemies: true }).px));
+
 // each room beside one of Monty on the Run's
 SPOTS.forEach((s, i) => compare(out, `compare-${s.name}.png`, pics[i] ?? new Uint8Array(0), motrRoom(s.compare)));

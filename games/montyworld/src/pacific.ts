@@ -402,7 +402,7 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     decor: [['pacDiamondHeadBig', 8, 1], ['pacPalmSmall', 3, 3], ['pacSnorkelShop', 2, 14], ['pacSurfboards', 10, 16], ['pacUmbrella', 24, 16]],
     creatures: [
       { who: 'pacSurfer', col: 11, row: 16, way: 'right', speed: 1, range: 70 },
-      { who: 'pacHula', col: 22, row: 5, way: 'right', speed: 1, range: 40 },
+      { who: 'pacHula', col: 22, row: 5, way: 'right', speed: 1, range: 24 },
     ],
   }),
 

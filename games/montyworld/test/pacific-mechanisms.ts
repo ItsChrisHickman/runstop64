@@ -20,6 +20,7 @@ import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { WORLD_CREATURES } from '../src/art';
 import { PACIFIC_CREATURES } from '../src/art/pacific-creatures';
+import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
 import { PACIFIC_MORE_CREATURES } from '../src/art/pacific-more';
 import { LEI_COLOUR, leiWorn } from '../src/art/pacific-lei';
 import { WORLD } from '../src/data';
@@ -27,12 +28,13 @@ import { HAT_BLOCKS } from '../src/hats';
 import { JP } from '../src/japan';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
-import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, TORCHES, TORCH_PULSES } from '../src/pacific';
+import { BRIDGES, CAR, CHAIN_CELLS, MORAY, PIER_PALETTE, ROCKS, WAVE, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, TORCHES, TORCH_PULSES } from '../src/pacific';
 import { AND } from '../src/andes';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
+import { codeOf } from '../src/layout';
 
 const DOWN = { ...NONE, down: true };
 /** The items by name (the room's nth). */
@@ -412,6 +414,93 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Pacific\'s arrays and grids) loads: the finds and the hood are as saved, and the Pacific is on the grid, its coins and finds still to take',
     g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 17] === PAC.stern && g2.siCollected.length === 44 && g2.coinCollected.length === 293 && g2.coinCollected.slice(67).every((c) => c === 0));
+}
+
+// ---- the second pass: the banners, the swimmer, the serpent, the moray, the wave, the rocks, the planks, the tern ----------------------------------
+{
+  const arrive = (from: number, to: number, col: number, floor: number) => {
+    const s = at(from, 2, 11);
+    enterRoom(s.g, to, 0x0c + (col + 4) * 4, standY(floor));
+    run(s, NONE, 3);
+    return rowText(s.g);
+  };
+  check('the harbour welcomes him off the ship and each island names itself on coming ashore (the name row, both modes)',
+    arrive(PAC.box, PAC.pier, 1, 11) === 'WELCOME TO HAWAII: OAHU' && arrive(PAC.clam, PAC.mole, 2, 19) === 'HAWAII: MOLOKAI' && arrive(PAC.kelp, PAC.whale, 15, 18) === 'HAWAII: MAUI' && arrive(PAC.fish, PAC.coffee, 3, 19) === 'HAWAII: THE BIG ISLAND');
+  check('not between the rooms of one island: the name is shown', arrive(PAC.pier, PAC.surf, 3, 18) === 'SURF AND TURF' && arrive(PAC.whale, PAC.road, 3, 18) === 'THE ROAD TO HANA' && arrive(PAC.coffee, PAC.mauna, 2, 19) === 'MAUNA KEA-OS');
+
+  // the swimmer: his own pictures, the lei's crown on them, the blocks put in only in the swim rooms
+  const swimmer = at(PAC.clam, 4, 10);
+  wear(swimmer.g, itemIndex(swimmer.g, PAC.lei, 0));
+  run(swimmer, RIGHT, 24);
+  const rightSet: readonly number[] = SWIM_CYCLE.right, leftSet: readonly number[] = SWIM_CYCLE.left;
+  const facingRight = rightSet.includes(swimmer.g.sptr[3] ?? 0) && swimmer.g.sptr[7] === SWIM_POINTERS.crownRight;
+  run(swimmer, LEFT, 24);
+  const facingLeft = leftSet.includes(swimmer.g.sptr[3] ?? 0) && swimmer.g.sptr[7] === SWIM_POINTERS.crownLeft;
+  const blocksIn = [...SWIM_POINTERS.left, ...SWIM_POINTERS.right].every((ptr) => swimmer.g.mem.slice(ptr * 64, ptr * 64 + 63).some((b) => b !== 0) && !swimmer.g.mem.slice(ptr * 64, ptr * 64 + 64).every((b, i) => b === WORLD.bankImage[ptr * 64 + i]));
+  const land = at(PAC.stern, 1, 13);
+  const blocksOut = [...SWIM_POINTERS.left, ...SWIM_POINTERS.right].every((ptr) => land.g.mem.slice(ptr * 64, ptr * 64 + 64).every((b, i) => b === WORLD.bankImage[ptr * 64 + i]));
+  check('swimming right and left he is drawn in his own swimming pictures with the lei\'s crown on each, the pictures in the bank only while a swim room is loaded (Rio\'s skewers have the blocks otherwise)', facingRight && facingLeft && blocksIn && blocksOut);
+  const walker = at(PAC.mole, 2, 19);
+  run(walker, RIGHT, 20);
+  check('on land (Molokai) he is in his walking pictures', walker.g.frameIndex >= 0x50 && walker.g.frameIndex <= 0x73);
+}
+
+{
+  // the sea cave's serpent and its two ways out
+  const lane = at(PAC.cave, 2, 19);
+  let safe = true;
+  for (let f = 0; f < 800; f++) { frame(lane, f % 220 < 110 ? RIGHT : LEFT); if (dead(lane.g)) { safe = false; break; } }
+  check('the seabed under the serpent\'s loop is clear: he swims its length and back, twice over the loop\'s lap, untouched', safe);
+  const there = at(PAC.cave, 20, 12);
+  let died = false;
+  for (let f = 0; f < 800 && !died; f++) { frame(there, NONE); died = dead(there.g); }
+  check('and the serpent kills what it touches (the loop\'s middle is deadly within a lap)', died);
+  check('the cave has one big creature and no walker: the serpent\'s six pieces, no enemies', WORLD.dragons.some((d) => d.room === PAC.cave && d.pieces.length === 6) && !PACIFIC_ROOMS.find((r) => r.id === PAC.cave)?.enemies?.length);
+  const reachUp = (s: State) => search(s, (g) => g.roomId === PAC.road && g.onRope !== 0 && !g.freeze && !g.script, [{ room: PAC.cave, col: 24, row: 0 }], 300000, 1.5) !== null;
+  check('from the entrance the bot swims round the serpent and up through the pool\'s gap to the road, onto the rope (the way up at the top right: a real exit, no bounce)', reachUp(at(PAC.cave, 2, 18)));
+  const idle = at(PAC.road, 20, 18);
+  for (let f = 0; f < 200 && idle.g.roomId !== PAC.cave; f++) frame(idle, RIGHT);
+  for (let f = 0; f < 200 && idle.g.roomId !== PAC.cave; f++) frame(idle, DOWN);
+  run(idle, NONE, 400);
+  check('coming down the pool\'s rope into the cave and then doing nothing, he stays in the cave (the sea\'s lift stops short of the ceiling: no screen bounce), alive', idle.g.roomId === PAC.cave && !dead(idle.g));
+}
+
+{
+  // the moray, Hana's wave, the lookout's rocks, the pier's rotten planks
+  const hole = MORAY.hole, body = MORAY.body;
+  const s = at(PAC.kelp, 15, 19);
+  const holeCodes = new Set<number>(), bodyCodes = new Set<number>();
+  for (let f = 0; f < MORAY.period; f++) { frame(s, NONE); holeCodes.add(cell(s.g, hole[0], hole[1])); bodyCodes.add(cell(s.g, body.col, body.row)); }
+  check(`the moray's hole shows its eyes (${holeCodes.size} pictures) before a ${MORAY.warn}-frame blink, then its body lunges across the way to the cave (${bodyCodes.size} pictures at its first cell)`, holeCodes.size === 2 && bodyCodes.size === 2);
+  const lunge = at(PAC.kelp, 28, 17);
+  const diedAt = diesAt(lunge, NONE, MORAY.period + 20);
+  check(`standing in the lunge's cells he is safe until it comes and dies in it (dead at frame ${diedAt}, the lunge from ${MORAY.start + MORAY.warn + 15})`, diedAt >= MORAY.start + MORAY.warn && diedAt <= MORAY.start + MORAY.warn + 15 + MORAY.live);
+  const past = search(at(PAC.kelp, 20, 19), (g) => g.roomId === PAC.cave, [{ room: PAC.kelp, col: 31, row: 17 }], 300000, 1.5);
+  check('the bot swims past the moray into the sea cave (timing it)', past !== null);
+  const wave = at(PAC.hana, 17, 18);
+  const waveDied = diesAt(wave, NONE, WAVE.period + 50);
+  check(`the wave sweeps the beach: standing at the cove's edge he dies when it comes (dead at frame ${waveDied}, the first group live from ${WAVE.start + WAVE.warn})`, waveDied >= WAVE.start && waveDied <= WAVE.start + WAVE.warn + WAVE.live);
+  const nook = at(PAC.hana, 11, 18);
+  let nookSafe = true;
+  for (let f = 0; f < 2 * WAVE.period; f++) { frame(nook, NONE); if (dead(nook.g)) nookSafe = false; }
+  check('the nook under the headland is out of the wave\'s reach through two waves', nookSafe);
+  const tunnel = at(PAC.lookout, 6, 10);
+  let tunnelSafe = true;
+  for (let f = 0; f < 1000; f++) { frame(tunnel, NONE); if (dead(tunnel.g)) tunnelSafe = false; }
+  check(`the tunnel is the place to wait: rocks (${ROCKS.length} of them, a lap of ${ROCKS[0]?.every} frames) vanish at its mouth and never reach inside, through a thousand frames`, tunnelSafe && ROCKS.length === 3);
+  const stair = at(PAC.lookout, 16, 8);
+  const stairDied = diesAt(stair, NONE, 800);
+  check(`on the stairs a rock reaches him (dead at frame ${stairDied}): the trap is seen coming and keeps rolling`, stairDied >= 0);
+  const summit = search(at(PAC.lookout, 4, 10), (g) => g.siCollected[itemIndex(g, PAC.lookout, 0)] !== 0 && g.y === standY(4), [{ room: PAC.lookout, col: 24, row: 2 }], 400000, 1.5);
+  check('the bot climbs the stairs past the tumbling rocks to the stash (a musubi and coins) at the summit lookout', summit !== null);
+  const planks = at(PAC.pier, 16, 7);
+  const planksAt = (frames: number) => { run(planks, NONE, frames); return cell(planks.g, 16, 7); };
+  const code = (l: string) => codeOf(PIER_PALETTE, l);
+  const [c1, c2, c3] = [planksAt(60), planksAt(32), planksAt(40)];
+  check('standing on the rotten planks he sees them crack, split and give way (whole, cracked, split, gone), and he falls into the alley to the street', c1 === code('X') && c2 === code('Y') && c3 === 0 && (run(planks, NONE, 40), planks.g.roomId === PAC.pier && planks.g.y === standY(18)));
+  const crossing = at(PAC.pier, 10, 7);
+  run(crossing, RIGHT, 330);
+  check('walking across without stopping they hold (he comes over onto the far roofs, still on the roof level)', crossing.g.roomId === PAC.pier && colOf(crossing.g) >= 21 && crossing.g.y === standY(7));
 }
 
 void LEFT;

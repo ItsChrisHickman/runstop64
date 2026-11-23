@@ -302,7 +302,7 @@ function tern(): NewCreature {
     r.rect(6, 10, 8, 11, false);
     return r.rows();
   };
-  return pair('pacTern', [frame(-1), frame(0), frame(1), frame(0)], 1, true);
+  return pair('pacTern', [frame(-1), frame(0), frame(1), frame(0)], 3, true);
 }
 
 /** The fire-knife dancer: a man in a grass skirt twirling a flaming blade over his head, one flame at each end. */
@@ -318,7 +318,7 @@ function fireKnife(): NewCreature {
     r.rect(4, 8, 5, 8); r.rect(10, 8, 11, 8);
     return r.rows();
   };
-  return pair('pacFireKnife', [frame(0), frame(1), frame(2), frame(3)], 2, true);
+  return pair('pacFireKnife', [frame(0), frame(1), frame(2), frame(3)], 1, true);
 }
 
 export const PACIFIC_MORE_CREATURES = {
