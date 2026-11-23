@@ -208,6 +208,13 @@ export interface DragonMoods {
   weights: { pause: number; back: number; charge: number };
 }
 
+/**
+ * A surge in a swim room (swim.ts; the Pacific's Hana): while it runs, from `start` frames into each `period` of the room's time for `length` frames (the time counts from the room's
+ * loading, as a pulse's does), Monty inside the box (`cols` wide from playfield column `col`, rows `top` to `bottom`) is carried the way `dx` says at his swimming pace whatever he does
+ * sideways, as the flight's updrafts lift him; the room's rock stops him as it does on foot, so the lee of a rock is shelter. Outside its time the water is still.
+ */
+export interface CurrentSpec { room: number; col: number; cols: number; top: number; bottom: number; dx: 1 | -1; period: number; start: number; length: number }
+
 /** A banner shown on arriving: see `arrivals`. */
 export interface Arrival { rooms: readonly number[]; from?: readonly number[]; text: string }
 
@@ -405,6 +412,8 @@ export interface MontyData extends RoomTables, MontyLook {
   swimRooms: readonly number[];
   /** The special item without which the open water is deadly (the Pacific's snorkel): coming into a swim room without it he drowns; null: no gate (Monty on the Run has no swimming). */
   swimGate: number | null;
+  /** Surges in the swim rooms (swim.ts): boxes of the water that carry him one way while they run; none in Monty on the Run. */
+  currents: readonly CurrentSpec[];
   /** Arrival banners: on coming into one of `rooms` from a room outside them (and, if `from` is given, from one of those) the name row shows `text` for a few seconds (the Pacific's islands); none in Monty on the Run. */
   arrivals: readonly Arrival[];
   /** Monty's own pictures for swimming (swim.ts: a horizontal body with a stroke, left and right; pointers of blocks `roomBlocks` puts in the swim rooms); null: he swims in his rope pictures (Monty on the Run has no swimming). */

@@ -56,6 +56,8 @@ export interface MoscowRoom {
   cake?: readonly [col: number, row: number];
   /** A key item: its name, the sprite's top left cell and its pointer in the bank. */
   item?: { name: string; col: number; row: number; sprite: number };
+  /** A second key item (no cake then). */
+  item2?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly (readonly [WorldDecor | { text: string; colour: number }, col: number, row: number])[];
   creatures?: readonly Creature[];
   /** Mole Crushers: the shaft's top cell, its height, its characters. */
@@ -94,6 +96,7 @@ export function room(r: MoscowRoom): RoomSpec {
     ...(r.coins ? { coins: r.coins } : {}),
     ...(r.cake ? { cake: [r.cake[0] + PLAY_COL, r.cake[1] + PLAY_ROW] as const } : {}),
     ...(r.item ? { item: { name: r.item.name, col: r.item.col + PLAY_COL, row: r.item.row + PLAY_ROW, sprite: r.item.sprite } } : {}),
+    ...(r.item2 ? { item2: { name: r.item2.name, col: r.item2.col + PLAY_COL, row: r.item2.row + PLAY_ROW, sprite: r.item2.sprite } } : {}),
     ...(r.decor ? {
       decor: r.decor.map(([d, col, row]) => ({
         col: col + PLAY_COL, row: row + PLAY_ROW,

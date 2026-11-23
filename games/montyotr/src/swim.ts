@@ -1,5 +1,7 @@
 import { applyMonty } from '../../shared/monty/physics';
+import { montyOver } from './cells';
 import type { Game } from './game';
+import type { CurrentSpec } from './montydata';
 
 /**
  * Swimming (a game's `swimRooms`: Do Svidaniya Monty's reefs, which the snorkel opens): in a room of open water Monty moves as the jetpack flies, four ways with no
@@ -9,7 +11,7 @@ import type { Game } from './game';
  */
 export const SWIM = { stroke: 2, float: 6 } as const;
 
-/** The sea's lift stops short of the room's top (the sprite's y): only a stroke up carries him out through a ceiling gap, so arriving from above never bounces him straight back. */
+/** The sea's surface (the sprite's y): neither the lift nor a stroke takes him above it, so a swim room is never left upward (he came in by a dive, and arriving from above never bounces him straight back). */
 const FLOAT_CEILING = 0x54;
 
 export function swimMove(g: Game) {
@@ -25,13 +27,27 @@ export function swimMove(g: Game) {
   g.onRope = 1;
   g.arcIdx = 0;
   g.isMoving = false;
-  g.dirLeft = input.left;
-  g.dirRight = input.right;
+  const surge = surgeOn(g);
+  g.dirLeft = surge ? surge.dx < 0 : input.left;
+  g.dirRight = surge ? surge.dx > 0 : input.right;
   const stroke = g.swimTick % SWIM.stroke === 0;
-  g.dirUp = input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0 && g.y > FLOAT_CEILING;
+  g.dirUp = (input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0) && g.y > FLOAT_CEILING;
   g.dirDown = input.down && !input.up && stroke;
   g.upSteps = g.downSteps = 1;
   applyMonty(g, g);
+}
+
+/** Whether a surge runs at `t` frames into the room's time. */
+export const surgeRuns = (c: CurrentSpec, t: number): boolean => (t % c.period) >= c.start && (t % c.period) < c.start + c.length;
+
+/** The surge of the room that carries him now, if one does (it runs and he is in its box). */
+export function surgeOn(g: Game): CurrentSpec | undefined {
+  return g.data.currents.find((c) => c.room === g.roomId && surgeRuns(c, g.currentTime) && montyOver(g, c.col, c.cols, c.top, c.bottom));
+}
+
+/** The room's time for its surges: a frame on (after Monty's move, as a pulse's), in a room that has one. */
+export function currentsTick(g: Game) {
+  if (g.data.currents.some((c) => c.room === g.roomId)) g.currentTime++;
 }
 
 /** After his frame is chosen: in a swim room whose game has swimming pictures he is drawn as a swimmer, a stroke every 8 frames while he moves and the glide when he lets go. */

@@ -12,6 +12,7 @@ import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
+import { currentsTick } from './swim';
 import { canopyFrame, flightOf } from './flight';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
@@ -213,6 +214,8 @@ export class Game implements MontyBody, MontyWorld {
   /** This room's rising lava (lava.ts) and the strokes swum so far (swim.ts). */
   lavas: LavaState[] = [];
   swimTick = 0;
+  /** The frames since this room was loaded, for its surges (swim.ts `currents`). */
+  currentTime = 0;
   dragons: DragonState[] = [];
   /** This room's rolling boulders (rollers.ts) and swinging vines (vines.ts), and the flight's frames so far and whether he rests on something (flight.ts). */
   rollers: RollerState[] = [];
@@ -435,6 +438,7 @@ export class Game implements MontyBody, MontyWorld {
       tunnelUpdate(this);
       crackUpdate(this);
       pulseUpdate(this);
+      currentsTick(this);
       lavaUpdate(this);
       dragonUpdate(this);
       rollerUpdate(this);
@@ -675,6 +679,7 @@ export class Game implements MontyBody, MontyWorld {
     tunnelInit(this);
     crackInit(this);
     pulseInit(this);
+    this.currentTime = 0;
     lavaInit(this);
     dragonInit(this);
     this.placeRoomBlocks();

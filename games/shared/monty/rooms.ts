@@ -59,6 +59,8 @@ export interface RoomSpec {
    * cake first.
    */
   item?: { name: string; col: number; row: number; sprite: number };
+  /** A second key item in the same room (no cake then: the engine shows two of a room's special items, on sprites 0 and 1), after `item` in the table. */
+  item2?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly DecorSpec[];
   enemies?: readonly EnemySpec[];
   /** Mole Crushers (up to two): screen column and row of the shaft's top and its height (the first is drawn in the glyph bank at $10, the second at $22: `crusherChars`). */
@@ -168,12 +170,12 @@ const CUPCAKE_FRAME = 3;
 const frameBase = (sprite: number) => (sprite - 0x8e) & 0xff;
 
 /**
- * The special items our rooms add, in si_spawn_tbl's order (the rooms' order; a room's cake, then its item), after the
+ * The special items our rooms add, in si_spawn_tbl's order (the rooms' order; a room's cake, then its item, then its second), after the
  * `first` the base has: each as the cake it is or the name of the item. A game finds the number of an item (the index
  * `roomEffects`, `progress` and the costumes use) here.
  */
 export function listSpecials(rooms: readonly RoomSpec[], first = 0): readonly { room: number; index: number; item: string | null }[] {
-  return rooms.flatMap((r) => [...(r.cake ? [null] : []), ...(r.item ? [r.item.name] : [])].map((item) => ({ room: r.id, item })))
+  return rooms.flatMap((r) => [...(r.cake ? [null] : []), ...(r.item ? [r.item.name] : []), ...(r.item2 ? [r.item2.name] : [])].map((item) => ({ room: r.id, item })))
     .map((e, i) => ({ ...e, index: first + i }));
 }
 
@@ -256,6 +258,7 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     specialItems: merged(base.specialItems, (r) => [
       ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(cakeSprite)]] : []),
       ...(r.item ? [[r.id, r.item.col * 4 + 0x0c, r.item.row * 8 + 0x32, frameBase(r.item.sprite)]] : []),
+      ...(r.item2 ? [[r.id, r.item2.col * 4 + 0x0c, r.item2.row * 8 + 0x32, frameBase(r.item2.sprite)]] : []),
     ]),
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,
