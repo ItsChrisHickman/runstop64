@@ -24,7 +24,8 @@ Monty game lives here.
   used twice, taken early and used late, one that changes rooms already crossed); don't repeat one formula, and don't end
   every region with the same "costume plus guard" gate. Meet the lock before the key (Chris, 2026-11-22: items picked up
   naturally before their gate make the gate feel arbitrary): the player sees the gate first, with the hint's reason, then finds
-  the item a short detour off the path; no required item lies on the straight path before its gate. Never a
+  the item a short detour off the path; no required item lies on the straight path before its gate. An item never gates
+  just a coin (Chris): a key opens something important; a coin stash is reached by skill or by the route's "aha". Never a
   corridor, and never a closed box crossed by a ladder up and a ladder down. Study its exit grid before laying out a region.
 
 ## The benchmark region: Moscow
