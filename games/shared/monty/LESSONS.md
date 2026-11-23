@@ -56,6 +56,8 @@ most care; the reward show and the title show them off.
   up clashing, "weird and busy"). Exciting comes from the set pieces and the play, not from filling every cell. Backgrounds
   stay calm (darker, fewer colours, little detail right behind where Monty plays) so floors, creatures, items and hazards
   read at a glance; sprites are always drawn in front of scenery; detail goes into the landmark and the set piece, sparingly.
+  A background must never be mistaken for a wall or a floor (Chris): darker or muted colours than anything solid, no hard
+  top edges that look walkable, and solid tiles always brighter and crisper than what's behind them.
 - **What looks like a floor is a floor**, and nothing solid looks like background; decorations finish what they start (a
   clothesline runs wall to wall) (Chris on China).
 - **Not every room is a dungeon.** No frame walls or ceilings by habit: outdoor rooms open to the sky and run off the screen's
