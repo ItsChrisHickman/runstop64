@@ -6,7 +6,7 @@ import { CHI, CHINA_ROOMS } from './china';
 import { JAPAN_ROOMS, JP } from './japan';
 import { MOSCOW_ROOMS, ROOM } from './moscow';
 import { PAC, PACIFIC_ROOMS } from './pacific';
-import { RIO_ROOM, RIO_ROOMS } from './rio';
+import { RIO_FIRST, RIO_ROOM, RIO_ROOMS } from './rio';
 import { SIB } from './siberia';
 
 /**
@@ -16,7 +16,7 @@ import { SIB } from './siberia';
  */
 
 /** The first room of each region (what he has by a place is every find of the rooms before it) and the room his hat was taken in. */
-const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.ship, andes: AND.jump, rio: RIO_ROOM.quay } as const;
+const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.ship, andes: AND.jump, rio: RIO_FIRST } as const;
 /** The room an item of the game's rooms (by its name) is in, and its place among the room's finds (a room's cake comes first). */
 const placeOf = (name: string): { room: number; nth: number } => {
   const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name || r.item2?.name === name);
@@ -44,10 +44,10 @@ export function arrivedIn(first: number, hats: number) {
   };
 }
 
-/** What he has by Rio's cable car: the earlier regions' finds, the chullo and the key to the city (the show's cable car scene is a ride: the gate is open). */
-function withCityKey(g: Game) {
+/** What he has by Rio's cable car: the earlier regions' finds, the chullo and the crank (the show's cable car scene is a ride: the winch works). */
+function withCrank(g: Game) {
   arrivedIn(FIRST.rio, 5)(g);
-  g.siCollected[itemOfRoom(g, RIO_ROOM.lap, 0)] = 0x81;
+  g.siCollected[itemOfRoom(g, RIO_ROOM.steak, 0)] = 0x81;
 }
 
 /** A place of the show without its route and its start: the room, what he has, what he does there (coins: the first of the room's that he can take), and the credits over it. */
@@ -69,10 +69,10 @@ export const PLACES: readonly Place[] = [
   { room: AND.jump, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
   { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
   { room: AND.roots, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
-  // Rio: the cable car, the churrascaria, the floats, the beach
-  { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
-  { room: RIO_ROOM.steak, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
-  { room: RIO_ROOM.float, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
+  // Rio: the Redeemer climbed, the cable car, the Sambadrome, the beach
+  { room: RIO_ROOM.arms, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
+  { room: RIO_ROOM.sugar, prepare: withCrank, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
+  { room: RIO_ROOM.drum, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
   { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: ['THANK YOU FOR PLAYING'] },
 ];
 

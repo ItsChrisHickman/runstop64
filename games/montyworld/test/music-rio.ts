@@ -17,6 +17,6 @@ checkTune({
   name: 'Rio', tune: RIO, moved: '1,3,6,8,10',
   scale: { text: 'every note is one of G major\'s seven', ok: (degree) => MAJOR.includes(degree) },
   lead: { text: 'brass: a sawtooth with a quick attack, a held sustain and a light vibrato', ok: (lead) => lead.control === 0x21 && lead.attackDecay >> 4 <= 3 && lead.sustainRelease >> 4 >= 8 && lead.vibrato === 1 },
-  rooms: [RIO_ROOM.quay, RIO_ROOM.lap, RIO_ROOM.steak, RIO_ROOM.bust], others: [[AND.roots, 'andes'], [AND.sandbar, 'andes'], [0, 'moscow']], sample: RIO_ROOM.sugar,
+  rooms: [RIO_ROOM.arms, RIO_ROOM.lap, RIO_ROOM.steak, RIO_ROOM.bust], others: [[AND.kapok, 'andes'], [AND.picchu, 'andes'], [0, 'moscow']], sample: RIO_ROOM.sugar,
 });
 finish();

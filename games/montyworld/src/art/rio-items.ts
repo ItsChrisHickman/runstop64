@@ -1,7 +1,7 @@
 /**
- * Rio's items and moving parts for Monty Mole: World Tour (region 7): the key to the city, the headdress and the straw hat (the
+ * Rio's items and moving parts for Monty Mole: World Tour (region 7): the crank, the headdress and the straw hat (the
  * costume's picture as an item), the churrasco skewer (the food in place of the cupcake), the acai bowl (the treasure of the finale), the
- * sun that sets over the finale, the cable car's two sprites, and the gaucho's swinging skewer in its four poses each way. Hires sprite
+ * agent squashed flat and his hat, the cable car's two sprites, and the gaucho's swinging skewer in its four poses each way. Hires sprite
  * blocks as the earlier regions' items are: a solid shape with the detail cut into it.
  */
 import { itemBlock, mirrored, spriteBlock } from './pixels';
@@ -11,16 +11,14 @@ import type { NewItem } from './types';
 
 const pad16 = (rows: readonly string[]): readonly string[] => [...rows, ...Array.from({ length: 16 - rows.length }, () => '.'.repeat(16))];
 
-/** The key to the city: a big brass key, a ring bow with a clover cut in it, a long shaft and two teeth. */
-function cityKey(): NewItem {
+/** The crank: the churrascaria spit's handle, an iron arm bent twice with a wooden grip at one end and the square socket that fits a winch at the other. */
+function crank(): NewItem {
   const r = new Raster(16, 16);
-  r.disc(4.5, 7.5, 4.6); // the bow
-  r.ellipse(4.5, 7.5, 2.3, 2.3, false);
-  r.cut(['.#.', '###', '.#.'], 3.5, 6.5);
-  r.rect(8, 7, 15, 8); // the shaft
-  r.rect(12, 9, 13, 11); r.rect(15, 9, 15, 10); // the teeth
-  r.rect(10, 7, 10, 8, false); // a ring on the shaft
-  return { block: itemBlock('cityKey', r.rows()), colour: 7 };
+  r.rect(1, 1, 5, 5); r.rect(2, 2, 4, 4, false); // the socket
+  r.rect(4, 3, 11, 4); // the arm
+  r.rect(10, 3, 11, 12); // its bend down
+  r.rect(9, 10, 14, 15); r.rect(10, 11, 13, 14, false); r.rect(11, 11, 12, 14); // the wooden grip
+  return { block: itemBlock('crank', r.rows()), colour: 8 };
 }
 
 /** The headdress as an item: the picture it is worn as. */
@@ -55,26 +53,25 @@ function acaiBowl(): NewItem {
   return { block: itemBlock('acaiBowl', r.rows()), colour: 4 };
 }
 
-/** The sun of the finale (a sprite shown expanded to twice its size): a disc with a ring cut in it and a few rays. 24 x 21. */
-function sun(): Uint8Array {
+/** The agent squashed: his hat gone, flat as a mat under the head, his dark glasses and the coat's buttons still on him, his shoes sticking out. 24 x 21, his 16 wide at the left, on the floor (rows 13-15 of his 16). */
+function agentFlat(): Uint8Array {
   const r = new Raster(24, 21);
-  r.disc(11.5, 10, 8);
-  r.ellipse(11.5, 10, 5.6, 5.6, false); r.disc(11.5, 10, 4);
-  for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4 + 0.2; r.line(11.5 + Math.cos(a) * 9.5, 10 + Math.sin(a) * 9.5, 11.5 + Math.cos(a) * 11.5, 10 + Math.sin(a) * 10.5); }
-  return spriteBlock('sun', r.rows());
+  r.rect(0, 13, 15, 15); // flat on the floor
+  r.cut(['###.##'], 5, 13); // the glasses
+  r.cut(['#.#.#'], 9, 14); // the buttons
+  r.set(0, 12); r.set(15, 12); // the shoes sticking up
+  return spriteBlock('agent flat', r.rows());
 }
-export const SUN = { block: sun(), colour: 7 } as const;
-
-/** A solid 24 x 21 block, drawn black over the sun's place under the horizon (expanded to its size): what the sun sets behind. */
-function sunMask(): Uint8Array {
+/** His hat, popped off as he is squashed. 24 x 21, the hat at the top left. */
+function agentHat(): Uint8Array {
   const r = new Raster(24, 21);
-  r.rect(0, 0, 23, 20);
-  return spriteBlock('sun mask', r.rows());
+  r.rect(3, 0, 8, 1); r.rect(0, 2, 11, 2);
+  return spriteBlock('agent hat', r.rows());
 }
-export const SUN_MASK = sunMask();
+export const AGENT_SQUASH = { flat: agentFlat(), hat: agentHat() } as const;
 
 export const RIO_ITEMS = {
-  cityKey: cityKey(),
+  crank: crank(),
   headdress: headdressItem(),
   strawHat: strawItem(),
   skewer: skewer(),
@@ -164,7 +161,8 @@ export const SKEWER_COLOUR = 8;
 /** Every sprite of the region as a list for the preview sheets. */
 export const RIO_SPRITES: Readonly<Record<string, NewItem>> = {
   ...RIO_ITEMS,
-  sun: SUN,
+  agentFlat: { block: AGENT_SQUASH.flat, colour: 1 },
+  agentHat: { block: AGENT_SQUASH.hat, colour: 1 },
   carTop: { block: CABLE_CAR.top, colour: CABLE_CAR.colour },
   carBottom: { block: CABLE_CAR.bottom, colour: CABLE_CAR.colour },
   skewerDown: { block: SKEWER_POSES.left[0]?.block ?? new Uint8Array(63), colour: SKEWER_COLOUR },

@@ -1,5 +1,5 @@
 /**
- * Rio's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
+ * Rio's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's; a backdrop keeps it), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (rio-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-layout.ts
@@ -34,9 +34,10 @@ for (const r of RIO_ROOMS) {
     const type = names[d.type];
     if (!type) continue;
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }
+    const backdrop = WORLD.decorTypes[d.type]?.backdrop === true; // (a backdrop keeps a coin in it: the engine draws the coin over it)
     for (let y = 0; y < type.h; y++) for (let x = 0; x < type.w; x++) {
       const c = d.col - PLAY_COL + x, row = d.row - PLAY_ROW + y;
-      decor.add(`${c},${row}`);
+      if (!backdrop) decor.add(`${c},${row}`);
       if (solid(c, row)) check(`${label}: a decoration sits on a wall at ${c},${row}`, false);
     }
   }
@@ -59,5 +60,5 @@ for (const r of RIO_ROOMS) {
 const rooms = creatureRooms(RIO_ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of Rio (${[...where].join(', ')})`, where.size <= 2);
 check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('eleven rooms', RIO_ROOMS.length === 11);
+check('six play rooms and the beach', RIO_ROOMS.length === 7);
 finish();

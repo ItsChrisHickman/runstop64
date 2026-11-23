@@ -1,5 +1,13 @@
 # Do Svidaniya Monty: Rio's room map, and the ending
 
+> **Rebuilt 2026-11-23 (the reset).** Rio is now six rooms and the beach, at night on black, to the plan in docs/dosvidaniya-reset.md ("Rio (the last level)"): C OPEN ARMS (the Redeemer
+> climbed), F HOUSE OF COLOUR (the favela, the tightest room), L THE LAPA ARCHES (crossed twice; the tram over the track's gap), W STEAK YOUR CLAIM (the gauchos' skewers, the crank), S SUGAR RUSH
+> (the climbers' rope, the winch dead until the crank, the cable car), D THE SAMBADROME (the showdown: the agent on Monty's path, the float's held head, the crank fitted in the booth arms the lever)
+> and B RIO OR BUST (the finale). QUAY TO THE CITY and SUGARLOAF SUMMIT are cut, MONKEY BUSINESS and FLOAT YOUR BOAT merged; a save in one carries on in a kept room (`save-migrate.ts`). The rooms are
+> described in `games/montyworld/src/rio.ts`; the route in `test/rio-route.ts` (recorded in `test/routes/`), the gates and mechanisms in `test/rio-mechanisms.ts`, fairness in `test/rio-fair.ts`.
+> Below is the earlier eleven-room build, kept for its history.
+> Not done here: the Andes rebuild moves the rainforest's exit to [6,33] (floor 15); Rio's C is at [7,33], entered west at floor 8 as before. Whoever merges the two places the join.
+
 Region 7 (docs/dosvidaniya-plan.md), the last: eleven rooms and the whole game's end. Read docs/dosvidaniya-moscow.md (how Monty on the Run's rooms open and join), docs/dosvidaniya-siberia.md (the method and the bar) and, for the lesson that governs every
 picture here, the plan's "Lessons from Chris's play": a place is drawn as itself (a cable car on its cable, a restaurant with its tables and skewers, a street parade with its floats), never rooms with words on. Rows 0 (top) to 19, columns 0-31; Monty stands
 on a floor row F with his body on F-2 and F-1, and a way out at a side is open at the same rows as the way in of the next room. His jump climbs two rows (steps are two rows high at most: a three-row step cannot be climbed, the bot found it).

@@ -31,11 +31,11 @@ import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
-import { codeOf, isBackdrop } from './layout';
-import { CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, FLOATS, GATE_CELLS, GATE_SEA_CELLS, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, SUGAR_PALETTE } from './rio';
-import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
+import { isBackdrop } from './layout';
+import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
-import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN, SUN_MASK } from './art/rio-items';
+import { AGENT_SQUASH, CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -137,12 +137,12 @@ const bank = extendBank(bankImage, [
   { ptr: CANOPY_POINTERS.right, block: CANOPY.right },
   ...BOULDER_POINTERS.map((ptr, i) => ({ ptr, block: BOULDER_FRAMES[i]?.block ?? new Uint8Array(64) })),
   ...LEAP_POINTERS.map((ptr, i) => ({ ptr, block: LEAP_FRAMES[i]?.block ?? new Uint8Array(64) })),
-  { ptr: RIO_SPRITE.key, block: RIO_ITEMS.cityKey.block },
+  { ptr: RIO_SPRITE.crank, block: RIO_ITEMS.crank.block },
   { ptr: RIO_SPRITE.headdress, block: RIO_ITEMS.headdress.block },
   { ptr: RIO_SPRITE.skewer, block: RIO_ITEMS.skewer.block },
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
-  { ptr: SUN_POINTER, block: SUN.block },
-  { ptr: SUN_MASK_POINTER, block: SUN_MASK },
+  { ptr: AGENT_POINTERS.flat, block: AGENT_SQUASH.flat },
+  { ptr: AGENT_POINTERS.hat, block: AGENT_SQUASH.hat },
   { ptr: CAR_POINTERS.roof, block: CABLE_CAR.top },
   { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
@@ -157,7 +157,7 @@ const ITEM_COLOURS = new Map<number, number>([
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
   [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
   [PAC_SPRITE.snorkel, PACIFIC_ITEMS.pacSnorkel.colour], [PAC_SPRITE.lei, PACIFIC_ITEMS.pacLei.colour], [PAC_SPRITE.musubi, PACIFIC_ITEMS.pacMusubi.colour], [PAC_SPRITE.parachute, PACIFIC_ITEMS.pacParachute.colour],
-  [RIO_SPRITE.key, RIO_ITEMS.cityKey.colour], [RIO_SPRITE.headdress, RIO_ITEMS.headdress.colour], [RIO_SPRITE.skewer, RIO_ITEMS.skewer.colour], [RIO_SPRITE.bowl, RIO_ITEMS.acaiBowl.colour],
+  [RIO_SPRITE.crank, RIO_ITEMS.crank.colour], [RIO_SPRITE.headdress, RIO_ITEMS.headdress.colour], [RIO_SPRITE.skewer, RIO_ITEMS.skewer.colour], [RIO_SPRITE.bowl, RIO_ITEMS.acaiBowl.colour],
   [ANDES_SPRITE.chullo, ANDES_ITEMS.chullo.colour], [ANDES_SPRITE.panpipes, ANDES_ITEMS.panpipes.colour], [ANDES_SPRITE.machete, ANDES_ITEMS.machete.colour], [ANDES_SPRITE.empanada, ANDES_ITEMS.empanada.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
@@ -178,7 +178,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
 }
 
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
-const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
+const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -198,9 +198,17 @@ const PARACHUTE = specialIndex(ROOMS, 'parachute');
 const CHULLO_ITEM = specialIndex(ROOMS, 'chullo');
 const PANPIPES = specialIndex(ROOMS, 'panpipes');
 const MACHETE = specialIndex(ROOMS, 'machete');
-const CITY_KEY = specialIndex(ROOMS, 'cityKey');
+const CRANK = specialIndex(ROOMS, 'crank');
 const HEADDRESS_ITEM = specialIndex(ROOMS, 'headdress');
 const BOWL = specialIndex(ROOMS, 'bowl');
+
+/**
+ * Two finds no room shows (their room is none: $FF), for what the Sambadrome must remember through a death and a save: the crank fitted in the booth, and the agent squashed (levers.ts takes them; the room's effects read
+ * them). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
+ */
+const HIDDEN = ['crank fitted', 'agent squashed'] as const;
+const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
+const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
   ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `skewer${n}`))];
@@ -233,10 +241,11 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: PAC.plane, when: [{ taken: PARACHUTE }], clear: onScreen(PLANE_DOOR_CELLS) }, // the parachute opens the plane's rear door
   { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0 }, // a tune settles the spitting llama at the tunnel's mouth (and its spit, a pulse: calmedBy), and the tunnel and its well are open
   { room: AND.roots, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS) }, // the machete cuts the tangle out of the kapok's root arch: the way out to Rio
-  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], clear: onScreen(GATE_CELLS) }, // the key to the city opens the cable car's gate,
-  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], place: { code: codeOf(SUGAR_PALETTE, 'E'), cells: onScreen(GATE_SEA_CELLS) } }, // (the bay's sea shows behind where it stood)
-  { room: RIO_ROOM.sugar, when: [{ taken: CITY_KEY }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
-  { room: RIO_ROOM.drum, when: [{ taken: HEADDRESS_ITEM }], removeEnemy: 0 }, // in the headdress the parade's steward takes him for a dancer
+  { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], clear: onScreen(GATE_CELLS) }, // the crank works the cable car's winch: its bars go,
+  { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
+  { room: RIO_ROOM.drum, when: [{ taken: FITTED }], late: true, place: { code: LIT_CODE, cells: onScreen(BOOTH_LIGHT) } }, // the crank fitted, the booth's window lights up
+  { room: RIO_ROOM.drum, when: [{ taken: SQUASHED }], clear: onScreen(BARS_CELLS) }, // the agent squashed, the bars at the avenue's end lift
+  { room: RIO_ROOM.bust, removeEnemy: 0 }, { room: RIO_ROOM.bust, removeEnemy: 1 }, // (the finale's troupe waits off the beach)
 ];
 
 export const WORLD: MontyData = {
@@ -259,7 +268,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL],
+  uncountedItems: [BOWL, FITTED, SQUASHED],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -284,8 +293,10 @@ export const WORLD: MontyData = {
   rollers: [...ROLLERS, LOOSE_CRATE],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
-  floats: [...FLOATS, MINE_CART],
+  floats: [TRAM, MINE_CART],
   skewers: SKEWERS,
+  pursuers: [pursuerOf(SQUASHED)],
+  levers: [leverOf(CRANK, FITTED, SQUASHED)],
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last
   costumes: [
@@ -323,7 +334,6 @@ export const WORLD: MontyData = {
       { item: CHULLO_ITEM, text: 'A CHULLO: LOOK LIKE A LOCAL' },
       { item: PANPIPES, text: 'PANPIPES: MUSIC CALMS BEASTS' },
       { item: MACHETE, text: 'MACHETE: HACKS THROUGH VINES' },
-      { item: CITY_KEY, text: 'KEY TO THE CITY: OPENS DOORS' },
       { item: HEADDRESS_ITEM, text: 'A HEADDRESS: JOIN THE PARADE' },
     ],
     wanted: [
@@ -343,14 +353,12 @@ export const WORLD: MontyData = {
       { room: PAC.plane, item: PARACHUTE, text: 'THE DROP IS FAR TOO HIGH' },
       { room: AND.picchu, item: PANPIPES, text: 'THE LLAMA IS CROSS: CALM IT' },
       { room: AND.roots, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
-      { room: RIO_ROOM.sugar, item: CITY_KEY, text: 'THE CABLE CAR STATION IS LOCKED' },
-      { room: RIO_ROOM.steak, item: HEADDRESS_ITEM, text: 'FEATHERS FOR THE STEWARD: GO UP' },
-      { room: RIO_ROOM.drum, item: HEADDRESS_ITEM, text: 'ONLY DANCERS PASS THE STEWARD' },
+      { room: RIO_ROOM.sugar, item: CRANK, text: 'THE CABLE CAR STATION IS LOCKED' },
     ],
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ from, to, rows, except }) => ({ from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CITY_KEY, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

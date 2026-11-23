@@ -315,6 +315,23 @@ export interface SkewerSpec {
   poses: readonly { left: SkewerLook; right: SkewerLook; deadly: boolean }[];
 }
 
+/** A box of playfield cells, corners inclusive. */
+export interface CellBox { col0: number; row0: number; col1: number; row1: number }
+
+/**
+ * A pursuer (pursuers.ts; the Sambadrome's agent): the creature in slot `slot` of the room does not patrol but walks Monty's own path `delay` frames behind him, where he was and which way he faced, once Monty has
+ * left the box `calm` (where he comes in): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item `until` is taken he is gone from the room.
+ * Squashed (levers.ts), he lies flat (the picture `flat`, a sprite pointer) and his hat (`hat`) pops off on the VIC sprite `hatSprite`.
+ */
+export interface PursuerSpec { room: number; slot: number; delay: number; calm: CellBox; until: number; flat: number; hat: number; hatSprite: number }
+
+/**
+ * A lever that holds a room's Mole Crushers up (levers.ts; the Sambadrome's float): the shafts never stamp by themselves. Stepping into the lever (its cells: one wide, two tall from `lever`) drops them together as one
+ * head, once (again only after he has stepped out and in); it works only once special item `armed` is taken, which touching the booth (`booth`) while carrying `key` takes (it fits). The head squashing the room's
+ * pursuer takes special item `done` (what the room's effects open), and the lever is still from then on. Unarmed, the lever only rattles.
+ */
+export interface LeverSpec { room: number; lever: { col: number; row: number }; booth: CellBox; key: number; armed: number; done: number }
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -434,6 +451,9 @@ export interface MontyData extends RoomTables, MontyLook {
   cableCars: readonly CableCarSpec[];
   floats: readonly FloatSpec[];
   skewers: readonly SkewerSpec[];
+  /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
+  pursuers: readonly PursuerSpec[];
+  levers: readonly LeverSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

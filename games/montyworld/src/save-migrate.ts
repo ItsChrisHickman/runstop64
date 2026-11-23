@@ -31,6 +31,11 @@ export const RETIRED: Readonly<Record<number, number>> = {
   61: 59, // MIST OPPORTUNITY: Machu Picchu
   64: 66, // THE RIVER QUEEN: the rainforest's river
   78: 58, // LLAMA DRAMA (never shipped, but a test build had it): the terraces
+  // Rio
+  67: 71, // QUAY TO THE CITY: Rio starts at Corcovado (OPEN ARMS)
+  72: 71, // MONKEY BUSINESS: merged into OPEN ARMS (Tijuca at its foot)
+  70: 69, // SUGARLOAF SUMMIT: SUGAR RUSH, the cable car
+  76: 75, // FLOAT YOUR BOAT: merged into THE SAMBADROME
 };
 
 const PLAY_COL = 4, COLS = 32, ROWS = 20;

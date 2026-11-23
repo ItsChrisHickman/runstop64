@@ -23,12 +23,14 @@ const all = REGIONS.flatMap(([, rooms]) => rooms);
 const onGrid = [...WORLD.exitGrid.image].filter((c) => c !== 0xff);
 const coinsOf = (rooms: readonly RoomSpec[]) => rooms.reduce((n, r) => n + (r.coins?.length ?? 0), 0);
 const findsOf = (rooms: readonly RoomSpec[]) => rooms.reduce((n, r) => n + (r.cake ? 1 : 0) + (r.item ? 1 : 0) + (r.item2 ? 1 : 0), 0);
+/** The finds no room shows (room $FF: what a mechanism must remember through a death and a save, the Sambadrome's crank fitted and agent squashed), after the rooms' in the table. */
+const hidden = Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4]).filter((room) => room === 0xff).length;
 
 for (const [name, rooms] of REGIONS) console.log(`   ${name}: ${rooms.length} rooms, ${coinsOf(rooms)} coins (${(coinsOf(rooms) / rooms.length).toFixed(1)} a room, at most ${Math.max(...rooms.map((r) => r.coins?.length ?? 0))}), ${findsOf(rooms)} finds`);
 console.log(`   the world: ${all.length} rooms (Monty on the Run has 52), ${coinsOf(all)} coins (it has 64)`);
 
 check(`every region's rooms are on the exit grid once, and only they are (${all.length} rooms, ${onGrid.length} cells)`, new Set(all.map((r) => r.id)).size === all.length && onGrid.length === all.length && all.every((r) => onGrid.includes(r.id)));
-check(`the coin table is the regions' coins (${WORLD.coinTable.length / 3} = ${coinsOf(all)}), the finds table their finds (${WORLD.specialItems.length / 4} = ${findsOf(all)})`, WORLD.coinTable.length / 3 === coinsOf(all) && WORLD.specialItems.length / 4 === findsOf(all));
-check(`the pause screen counts every find: ${WORLD.progress.keyItems.length} key items and ${WORLD.progress.cakes.length} snacks, ${WORLD.progress.keyItems.length + WORLD.progress.cakes.length} in all, the finds less the ending's treasure`,
-  WORLD.progress.keyItems.length + WORLD.progress.cakes.length === findsOf(all) - WORLD.uncountedItems.length && new Set([...WORLD.progress.keyItems, ...WORLD.progress.cakes]).size === findsOf(all) - WORLD.uncountedItems.length);
+check(`the coin table is the regions' coins (${WORLD.coinTable.length / 3} = ${coinsOf(all)}), the finds table their finds and the ${hidden} no room shows (${WORLD.specialItems.length / 4} = ${findsOf(all)} + ${hidden})`, WORLD.coinTable.length / 3 === coinsOf(all) && WORLD.specialItems.length / 4 === findsOf(all) + hidden);
+check(`the pause screen counts every find: ${WORLD.progress.keyItems.length} key items and ${WORLD.progress.cakes.length} snacks, ${WORLD.progress.keyItems.length + WORLD.progress.cakes.length} in all, the finds less the ending's treasure and the hidden ones`,
+  WORLD.progress.keyItems.length + WORLD.progress.cakes.length === findsOf(all) + hidden - WORLD.uncountedItems.length && new Set([...WORLD.progress.keyItems, ...WORLD.progress.cakes]).size === findsOf(all) + hidden - WORLD.uncountedItems.length);
 finish();

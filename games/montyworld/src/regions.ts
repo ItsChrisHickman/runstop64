@@ -11,5 +11,5 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly from:
   { name: 'japan', from: 12, to: 16, rows: { from: 0, to: 2 } }, // Japan's block is five wide
   { name: 'pacific', from: 17, to: 19, rows: { from: 2, to: 3 } }, // the Pacific's U of five rooms, three columns and two rows
   { name: 'andes', from: 20, to: 22, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of the Pacific's plane
-  { name: 'rio', from: 23, to: 29, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
+  { name: 'rio', from: 23, to: 28, rows: { from: 4, to: 5 } }, // Rio's six columns of two rows, entered from the kapok's crown (the Amazon's [5,22]) into OPEN ARMS at [5,23]
 ];

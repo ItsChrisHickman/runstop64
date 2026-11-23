@@ -2,7 +2,7 @@
  * Every Mole Crusher in every region moves through its cycle: the engine animates the first crusher of a room on the glyph bank at $10 and
  * the second (only when there are two) on the bank at $22, so a lone crusher drawn at $22 stood still (Moscow's, the Andes', the Pacific's, Japan's).
  * Each room with crushers is entered with Monty out of their way and played for a few seconds: each crusher's head must come down
- * (its glyph memory changes, the descent runs down its shaft) and go up again, and in a room of two both do.
+ * (its glyph memory changes, the descent runs down its shaft) and go up again, and in a room of two both do. A head held by a lever (the Sambadrome's: levers.ts) is pulled whenever it is up.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/crushers.ts
  */
@@ -27,11 +27,14 @@ for (const room of rooms) {
   const banks = new Set<number>();
   const pictures = new Set<string>();
   let down = false, up = false, last = 0;
+  const held = WORLD.levers.some((l) => l.room === room); // (a head held by a lever stamps when it is pulled: pull it whenever it is up)
   for (let f = 0; f < FRAMES; f++) {
+    if (held && s.g.pd.state === 0) s.g.hold.pull = 1;
     frame(s, NONE);
     const pd = s.g.pd;
     if (pd.state === 0 || pd.index === 0xff) continue;
     banks.add(pd.index);
+    if (s.g.hold.both) banks.add(1);
     const from = 0x80 + 0x90 * pd.index;
     pictures.add(`${pd.index}:${Array.from(s.g.mem.subarray(from, from + 0x30)).join()}`);
     if (pd.state === 1 && pd.position > last) down = true;
@@ -63,7 +66,9 @@ for (const room of rooms) {
   const glyphs = () => s.g.mem.slice(GLYPHS[0], GLYPHS[1]);
   const before = { screen: screen(), glyphs: glyphs() };
   let cycles = 0, was = 0, wrong = 0;
+  const held = WORLD.levers.some((l) => l.room === room);
   for (let f = 0; f < 3000 && cycles < 3; f++) {
+    if (held && s.g.pd.state === 0 && f % 100 === 0) s.g.hold.pull = 1;
     frame(s, NONE);
     if (was !== 0 && s.g.pd.state === 0) {
       cycles++;

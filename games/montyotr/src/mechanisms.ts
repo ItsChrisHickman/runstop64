@@ -56,21 +56,45 @@ export function piledriverRoomInit(g: Game) {
   pd.state = 0;
   pd.delay = 1;
   pd.index = 0xff;
+  g.hold.held = g.data.levers.some((l) => l.room === g.roomId) ? 1 : 0;
+  g.hold.both = 0;
+  g.hold.pull = 0;
 }
 
 function moveUp(g: Game, index: number) {
-  for (const base of PD_COLS[index]) g.mem.copyWithin(base, base + 1, base + 0x30);
+  for (const i of shafts(g, index)) for (const base of PD_COLS[i]) g.mem.copyWithin(base, base + 1, base + 0x30);
 }
 
 function moveDown(g: Game, index: number) {
-  for (const base of PD_COLS[index]) g.mem.copyWithin(base + 1, base, base + 0x2f);
+  for (const i of shafts(g, index)) for (const base of PD_COLS[i]) g.mem.copyWithin(base + 1, base, base + 0x2f);
 }
+
+/** The shafts a stamp moves: the one chosen, or both of a held pair (`hold.both`: the two shafts are one head). */
+const shafts = (g: Game, index: number): readonly number[] => (g.hold.both && g.pd.roomFlag === 2 ? [0, 1] : [index]);
+
+/**
+ * A held head (a game's `levers`: the Sambadrome's float): the room's crushers never start by themselves. Pulling the lever (`hold.pull`, levers.ts) drops the room's shafts together as one head, twice as fast as a
+ * crusher's stamp (`HELD_STEP` pixels a frame), and it rises again and waits. Monty on the Run has none: its crushers start on their random clock.
+ */
+const HELD_STEP = 4;
 
 export function piledriverAnimate(g: Game) {
   const pd = g.pd;
   if (!pd.roomFlag) return;
   if (!pd.state) {
     pd.index = 0xff;
+    g.hold.both = 0;
+    if (g.hold.held) {
+      if (!g.hold.pull) return;
+      g.hold.pull = 0;
+      pd.index = 0;
+      g.hold.both = 1;
+      pd.state = 1;
+      pd.position = 5;
+      seedGlyphs(g);
+      g.sfx(g.data.sfx.piledriverDescend);
+      return;
+    }
     pd.delay = (pd.delay - 1) & 0xff;
     if (pd.delay) return;
     pd.delay = (g.random() & 0x3f) + 0x14;
@@ -93,13 +117,14 @@ export function piledriverAnimate(g: Game) {
     moveUp(g, pd.index);
     return;
   }
-  pd.position += 2;
+  const step = g.hold.both ? HELD_STEP : 2;
+  pd.position += step;
   if (pd.position >= pd.travel[pd.index]) {
     pd.state++;
+    pd.position -= step - 2; // (the rise goes back two pixels a frame from the last place the head came down to, so it ends where it began)
     return;
   }
-  moveDown(g, pd.index);
-  moveDown(g, pd.index);
+  for (let n = 0; n < step; n++) moveDown(g, pd.index);
 }
 
 /** Stepping on a crusher head ($62) rides it; the base ($63) sets event 4. */
@@ -142,7 +167,7 @@ export function piledriverCheckTiles(g: Game) {
     const c = g.chr(base + o);
     if (c < 0x10 || c >= 0x34) continue;
     const which = c < 0x20 ? 0 : 1;
-    if (which !== pd.index) return;
+    if (which !== pd.index && !g.hold.both) return;
     if (((pd.spriteY[pd.index] + pd.position) & 0xff) >= g.y) g.actionCounter = 1;
     return;
   }
