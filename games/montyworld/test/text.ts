@@ -24,7 +24,7 @@ import { MOSCOW_ROOMS } from '../src/moscow';
 import { PACIFIC_ROOMS } from '../src/pacific';
 import { RIO_ROOMS } from '../src/rio';
 import { SIBERIA_ROOMS } from '../src/siberia';
-import { newGame } from './bot';
+import { newGame } from '../../shared/monty/test/bot';
 import { roomsOf } from './climb-kit';
 
 // ---- the writer ---------------------------------------------------------------------------------------

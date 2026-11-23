@@ -8,7 +8,7 @@ import type { Game } from '../../montyotr/src/game';
 import type { MontyData } from '../../montyotr/src/montydata';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS } from '../../shared/monty/screen';
-import { newGame } from './bot';
+import { newGame } from '../../shared/monty/test/bot';
 
 /** The collision class of a playfield cell (0 empty, 1 solid, 2 floor, 3 rope, 4 hazard). */
 const flag = (g: Game, col: number, row: number) => (col < 0 || col >= PLAY_COLS || row < 0 || row >= PLAY_ROWS ? 0 : g.flagAt(PLAY_ROW + row, PLAY_COL + col));
