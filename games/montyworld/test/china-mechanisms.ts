@@ -28,7 +28,7 @@ import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { cell, colOf, dead, diesAt, LEFT, RIGHT, at, rowText, run } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, panelLine, RIGHT, rowText, run, snacksIn } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -40,13 +40,12 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('China is nine rooms, a block of four columns (8-11) by three rows beside Siberia\'s, room ids 18 to 26 (Moscow\'s and Siberia\'s unchanged)',
-    cells.filter((c) => c !== 0xff).length === 78 && [grid(0, 8), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9)].join()
+    cells.filter((c) => c >= CHI.wall && c <= CHI.junk).length === 9 && [grid(0, 8), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9)].join()
       === [CHI.top, CHI.roofs, CHI.willow, CHI.tower, CHI.market, CHI.gate, CHI.junk, CHI.wall, CHI.alley].join() && grid(2, 7) === SIB.border && grid(1, 3) === ROOM.station && grid(0, 9) === 0xff && grid(2, 10) === 0xff);
-  const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  check('Moscow and Siberia keep their coins and finds, in the same table places (first), and China adds 17 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
-    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 13 && itemsIn(9, 17) === 4 && coinsIn(18, 26) === 17 && itemsIn(18, 26) === 5 && (WORLD.coinTable[26 * 3] ?? 99) <= 17 && (WORLD.coinTable[27 * 3] ?? 0) >= 18);
-  check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\' (17 and 17 in all)', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
+  const before = entriesBefore(CHI.wall, CHI.junk);
+  check('Moscow keeps its coins and finds, in the same table places (first), the regions before China come before its own entries, and China adds 17 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
+    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && before.ordered && coinsIn(CHI.wall, CHI.junk) === 17 && itemsIn(CHI.wall, CHI.junk) === 5);
+  check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\'', keyItemsIn(CHI.wall, CHI.junk) === 3 && snacksIn(CHI.wall, CHI.junk) === 2);
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in China's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -346,7 +345,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   /** Into a room by a rope or a gap: and he is where there is something to hold or stand on (on the rope, or on a floor of the room), not in its stone. */
   const lands = (room: number, floors: readonly number[], from: State, aim: { room: number; col: number; row: number }, limit?: number) =>
     reach(from, aim, (g) => g.roomId === room && (g.onRope !== 0 || floors.some((f) => g.y === standY(f))), limit) !== null;
-  check('Siberia\'s village walks east onto the wall\'s foot (the planks are gone)', (() => { const s = at(SIB.border, 24, 17, [[SIB.coal, 0]]); run(s, RIGHT, 140); return s.g.roomId === CHI.wall; })());
+  check('Siberia\'s village walks east onto the wall\'s foot (the planks are gone)', (() => { const s = at(SIB.border, 24, 17, siberiaFinds()); run(s, RIGHT, 140); return s.g.roomId === CHI.wall; })());
   check('the wall\'s foot walks west back to the village', (() => { const s = at(CHI.wall, 3, 17); run(s, LEFT, 80); return s.g.roomId === SIB.border; })());
   check('the tunnel under the wall leads east to the hutong and the hutong west back to the wall', into(CHI.alley, at(CHI.wall, 20, 17), { room: CHI.wall, col: 31, row: 15 }) && into(CHI.wall, at(CHI.alley, 12, 17), { room: CHI.alley, col: 0, row: 15 }));
   check('the hutong\'s rope climbs into the market\'s street, and the street\'s gap lets him down it again (both ends on the rope: the gaps are at the same cells)', lands(CHI.market, [17], at(CHI.alley, 5, 17), { room: CHI.alley, col: 4, row: 0 }, 100000) && lands(CHI.alley, [17], at(CHI.market, 7, 17), { room: CHI.market, col: 4, row: 19 }, 100000));
@@ -389,7 +388,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
   enterRoom(s.g, CHI.market, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 22: [0x40, 0xb2, 1, 9], 23: [0x40, 0xb2, 1, 10] } });
   check('in China the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -420,14 +419,16 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
   // a save from before China: Siberia's arrays and a grid of Moscow's and Siberia's rooms alone carry on in the new game
   const g1 = newGame(WORLD, true).g;
-  g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[20] = 0xff;
+  const before = entriesBefore(CHI.wall, CHI.junk);
+  const last = { coin: before.coins - 1, item: before.items - 1 }; // the last of the earlier regions' entries
+  g1.siCollected[0] = 0x81; g1.siCollected[last.item] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[last.coin] = 0xff;
   const old = snapshot(g1);
   const shortGrid = Array.from(WORLD.exitGrid.image, (c) => (c >= CHI.wall && c !== 0xff ? 0xff : c));
-  const oldSave = { ...old, coins: old.coins.slice(0, 27), items: old.items.slice(0, 8), exitGrid: shortGrid, roomId: SIB.border, worn: itemIndex(g1, ROOM.platform, 1) };
+  const oldSave = { ...old, coins: old.coins.slice(0, before.coins), items: old.items.slice(0, before.items), exitGrid: shortGrid, roomId: SIB.border, worn: itemIndex(g1, ROOM.platform, 1) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (Moscow\'s and Siberia\'s arrays and grids) loads: the finds and the ushanka are as saved, and China is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(27).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[last.item] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[last.coin] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === WORLD.specialItems.length / 4 && g2.coinCollected.length === WORLD.coinTable.length / 3 && g2.coinCollected.slice(before.coins).every((c) => c === 0));
 }
 
 // ---- the set-up traps: the river's jetty, the market's awning, -------------------------------------------
@@ -479,4 +480,18 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
 /** The rice hat's index in the table. */
 function riceHatItem(g: Game) { return itemIndex(g, CHI.top, 0); }
+
+/** Every find in Siberia's rooms (the ticket among them: it opens the border post), as `at` takes them: whatever Siberia's rooms hold, the village's way east is open. */
+function siberiaFinds(): [number, number][] {
+  const rooms: readonly number[] = Object.values(SIB);
+  const seen = new Map<number, number>();
+  const out: [number, number][] = [];
+  for (let i = 0; i < WORLD.specialItems.length / 4; i++) {
+    const room = WORLD.specialItems[i * 4] ?? -1;
+    const nth = seen.get(room) ?? 0;
+    seen.set(room, nth + 1);
+    if (rooms.includes(room)) out.push([room, nth]);
+  }
+  return out;
+}
 finish();

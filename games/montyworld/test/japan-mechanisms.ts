@@ -6,7 +6,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts
  */
-import { SCREEN_MARGIN } from '../../shared/monty/screen';
+import { PLAY_COL, PLAY_ROW, ROW, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { decorChars } from '../../montyotr/src/decor-chars';
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -26,11 +26,11 @@ import { HAT_BLOCKS } from '../src/hats';
 import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
-import { decorIndex, FIRST_CREATURE } from '../src/layout';
+import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { cell, colOf, overCrowded, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -43,13 +43,12 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
-    cells.filter((c) => c !== 0xff).length === 78 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
+    cells.filter((c) => c >= JP.harbour && c <= JP.port).length === 11 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
-  const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
+  const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
-    coinsIn(0, 26) === 44 && itemsIn(0, 26) === 13 && coinsIn(27, 37) === 23 && itemsIn(27, 37) === 5 && (WORLD.coinTable[43 * 3] ?? 99) <= 26 && (WORLD.coinTable[44 * 3] ?? 0) >= 27);
-  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
+    before.ordered && coinsIn(JP.harbour, JP.port) === 23 && itemsIn(JP.harbour, JP.port) === 5);
+  check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Japan's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -68,7 +67,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- nothing drawn in a tile: the layout's sanity --------------------------------------------------------
 {
-  const decorTypes = Object.values(WORLD_DECOR);
+  const decorTypes = Object.values(WORLD_DECOR), decorNames = Object.keys(WORLD_DECOR);
   const problems: string[] = [];
   let pools = 0;
   for (const r of JAPAN_ROOMS) {
@@ -86,8 +85,9 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (solid(col + x, row + y)) problems.push(`room ${r.id}: a decoration over a tile he touches (a floor, a wall, a rope, water) at ${col + x},${row + y}`);
       if (col < -SCREEN_MARGIN || col + w > 32 + SCREEN_MARGIN || row < 0 || row + h > 20) problems.push(`room ${r.id}: a decoration off the picture (the playfield and the margin it shows)`);
     }
-    /** The cells decorations are drawn in (a coin or an item there is covered by their characters). */
+    /** The cells decorations are drawn in (a coin or an item there is covered by their characters; a backdrop lies under the pickups, the coin drawn over it). */
     const drawn = new Set((r.decor ?? []).flatMap((d) => {
+      if (typeof d.type === 'number' && isBackdrop(decorNames[d.type] ?? '')) return [];
       const { col, row } = inRoom(d.col, d.row);
       const w = typeof d.type === 'number' ? decorTypes[d.type]?.w ?? 1 : d.type.text.length, h = typeof d.type === 'number' ? decorTypes[d.type]?.h ?? 1 : 1;
       return Array.from({ length: w * h }, (_, i) => `${col + (i % w)},${row + Math.floor(i / w)}`);
@@ -261,25 +261,34 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   }
 }
 
-// ---- the hall's gallery: a second height, over the first two doors ----------------------------------------
+// ---- the hall's gallery: the way on, back west over the doors from the rope past the third to the rope up to the hideout ----------
 {
-  const s = at(JP.hall, 3, 14);
+  const s = at(JP.hall, 20, 14);
   s.g.pulses = [];
   const coin = coinIndex(s.g, JP.hall, 8, 6);
   const found = search(s, (g) => g.coinCollected[coin] !== 0 && g.roomId === JP.hall, [{ room: JP.hall, col: 8, row: 6 }], 150000, 1.5);
-  check('the gallery: up the rope at the left and along the eaves through the partitions to the coin at its end (a floor of its own, row 8, with a hole through each of the first two partitions)', found !== null
-    && [6, 12].every((c) => [5, 6, 7].every((row) => at(JP.hall, 3, 14).g.flagAt(row + 3, c + 4) === 0) && at(JP.hall, 3, 14).g.flagAt(8 + 3, c + 4) === 2));
+  check('the gallery: up the rope past the third door and back west along the eaves through the partitions to the coin (a floor of its own, row 8, with a hole through each partition)', found !== null
+    && DOORS.cols.every((c) => [5, 6, 7].every((row) => at(JP.hall, 3, 14).g.flagAt(row + 3, c + 4) === 0) && at(JP.hall, 3, 14).g.flagAt(8 + 3, c + 4) === 2));
+  for (const enhanced of [false, true]) {
+    const t = at(JP.hall, 20, 14, [], enhanced);
+    t.g.pulses = [];
+    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: from the floor past the third door the bot climbs to the gallery and walks it west to the rope at the left, up to the hideout`,
+      search(t, (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.hall, col: 4, row: 0 }], 150000, 1.5) !== null);
+  }
 }
 
-// ---- the gallery's end: stepping off drops him to the floor before the third door, alive ----------------------
+// ---- the doors are the way: held shut, nothing gets him from the hall's west end up to the gallery or the hideout --------------------
 {
-  for (const enhanced of [false, true]) {
-    const s = at(JP.hall, 13, 8, [], enhanced);
-    s.g.pulses = [];
-    run(s, RIGHT, 60);
-    run(s, NONE, 60);
-    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: walking off the gallery's end he drops to the floor before the third door (col ${colOf(s.g)}, y ${s.g.y}) alive`, !dead(s.g) && s.g.y === standY(14) && colOf(s.g) >= 14 && colOf(s.g) < 18);
-  }
+  const s = at(JP.hall, 3, 14);
+  const wall = (col: number, row: number, code: number) => s.g.setRoomChar((row + PLAY_ROW) * ROW + col + PLAY_COL, code);
+  for (const p of DOOR_PULSES) for (let r = p.row; r < p.row + p.rows; r++) for (let c = p.col; c < p.col + p.cols; c++) wall(c, r, p.spent);
+  const door = must(DOOR_PULSES[0], 'a door');
+  wall(0, 12, door.spent); wall(0, 13, door.spent); // (and the way back to the garden, so the search stays in the hall's west end)
+  s.g.pulses = [];
+  const shut = DOOR_PULSES.every((p) => s.g.flagAt(p.row + 1 + PLAY_ROW, p.col + PLAY_COL) !== 0) && s.g.flagAt(13 + PLAY_ROW, PLAY_COL) !== 0;
+  const stats = { exhausted: false };
+  const none = search(s, (g) => g.roomId !== JP.hall || g.onRope !== 0 || g.y <= standY(8), [{ room: JP.hall, col: 4, row: 8 }], 100000, 0, stats) === null;
+  check(`with the three doors held shut the bot finds no way from the hall's west end onto a rope or the gallery (${stats.exhausted ? 'every state there is looked at' : 'the search limit'}): the hideout's rope hangs out of reach of the floor, so the doors are the way`, shut && none && stats.exhausted);
 }
 
 // ---- the gates ------------------------------------------------------------------------------------------
@@ -397,12 +406,12 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check('the mountain\'s chain climbs into the garden and the garden\'s gap lets him down it again', lands(JP.garden, [14], at(JP.fuji, 8, 6), { room: JP.fuji, col: 5, row: 0 }, 200000) && lands(JP.fuji, [14, 8, 6], at(JP.garden, 2, 14), { room: JP.garden, col: 5, row: 19 }, 100000));
   check('the pergola\'s rope climbs into THE LAST MOLE and the hidden room\'s rope drops back to the garden', lands(JP.mole, [14], at(JP.garden, 27, 10, [FISH]), { room: JP.garden, col: 28, row: 0 }, 100000) && lands(JP.garden, [14, 10], at(JP.mole, 30, 14), { room: JP.mole, col: 28, row: 19 }, 100000));
   check('the garden\'s gate walks east into the hall and the hall west back into the garden', into(JP.hall, at(JP.garden, 27, 14), { room: JP.garden, col: 31, row: 13 }) && into(JP.garden, quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 0, row: 13 }));
-  check('the hall\'s rope climbs to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
+  check('the hall\'s rope climbs from the gallery to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 7, 8)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [8, 14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
   check('the hideout\'s corridor gap (past the guard, in the hood) drops down the hall\'s walled shaft and the rope into the port', into(JP.port, quiet(at(JP.hideout, 21, 17, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 150000));
-  check('the hall\'s far end is walled: from the doors\' side he cannot reach the port (the hideout is the way on)', (() => { const s = quiet(at(JP.hall, 14, 14, [HOOD])); const st = { exhausted: false }; return search(s, (g) => g.roomId === JP.port, [{ room: JP.hall, col: 25, row: 19 }], 60000, 0, st) === null; })());
+  check('the hall\'s far end is walled: column 23 is solid from the ceiling to the floor between the doors\' side and the shaft (the hideout is the way on)', (() => { const s = at(JP.hall, 3, 14); return Array.from({ length: 15 }, (_, row) => s.g.flagAt(row + 3, 23 + 4)).every((f) => f === 1 || f === 2); })());
   check('from the port he can climb the rope up the hall\'s shaft to the hideout (hood on)', search(quiet(at(JP.port, 22, 17, [HOOD])), (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.port, col: 25, row: 0 }, { room: JP.hall, col: 25, row: 0 }], 200000, 1.5) !== null);
   check('and from the hideout down its left rope and out west of the hall to the garden (the way back runs the whole way)', reach(quiet(at(JP.hideout, 8, 17, [HOOD])), { room: JP.hideout, col: 4, row: 19 }, (g) => g.roomId === JP.hall, 150000) !== null
-    && reach(quiet(at(JP.hall, 3, 14, [HOOD])), { room: JP.hall, col: 0, row: 13 }, (g) => g.roomId === JP.garden, 150000) !== null);
+    && reach(at(JP.hall, 7, 8, [HOOD]), { room: JP.hall, col: 0, row: 13 }, (g) => g.roomId === JP.garden, 150000) !== null);
   check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
 }
 
@@ -429,7 +438,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
   enterRoom(s.g, JP.platform, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 31: [0x40, 0xb2, 2, 14], 32: [0x40, 0xb2, 2, 15] } });
   check('in Japan the map shows its region (five columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -467,14 +476,16 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   // a save from before Japan: the first four regions' arrays and a grid without Japan carry on in the new game
   const g1 = newGame(WORLD, true).g;
-  g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[30] = 0xff;
+  const before = entriesBefore(JP.harbour, JP.port);
+  const last = { coin: before.coins - 1, item: before.items - 1 }; // the last of the earlier regions' entries
+  g1.siCollected[0] = 0x81; g1.siCollected[last.item] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[last.coin] = 0xff;
   const old = snapshot(g1);
   const shortGrid = Array.from(WORLD.exitGrid.image, (c) => (c >= JP.harbour && c !== 0xff ? 0xff : c));
-  const oldSave = { ...old, coins: old.coins.slice(0, 44), items: old.items.slice(0, 13), exitGrid: shortGrid, roomId: CHI.junk, worn: itemIndex(g1, CHI.top, 0) };
+  const oldSave = { ...old, coins: old.coins.slice(0, before.coins), items: old.items.slice(0, before.items), exitGrid: shortGrid, roomId: CHI.junk, worn: itemIndex(g1, CHI.top, 0) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before Japan\'s arrays and grids) loads: the finds and the rice hat are as saved, and Japan is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(44).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[last.item] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[last.coin] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === WORLD.specialItems.length / 4 && g2.coinCollected.length === WORLD.coinTable.length / 3 && g2.coinCollected.slice(before.coins).every((c) => c === 0));
 }
 
 void LEFT;
