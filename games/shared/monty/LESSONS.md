@@ -164,11 +164,11 @@ Things the engine does that a room's picture will not show you; each has a test 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and
 you can name it:
 
-- **marks the way on**: the start room's only coin is on the step up to its only exit;
+- **teaches the jump**: the start room's only coin is at the top of three small steps, away from its creatures;
 - **tops a climb**: on the highest ledge or at a rope's head ($05, $0A, $1B);
 - **one per height**: a coin in each lane of a room crossed twice ($11, $01);
 - **seen now, reached later**: in $0D's low lane, seen from the sealed corridor above, reached after the hairpin;
-- **at a hazard's edge**: on the post beyond the spike pit ($12), the step by the water ($0D);
+- **at a hazard's edge**: on the post beyond the spike pit ($12), the step by the deadly tiles ($0D);
 - **guarded**: on a patrol or between two walkers ($26, $0F);
 - **in a pocket off the route**: a short detour into a niche or alcove ($0E, $13);
 - **inside the structure**: in the sewer's pipe lattice, taken only by climbing round it ($15);

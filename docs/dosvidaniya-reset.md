@@ -51,8 +51,8 @@ scenery. The last sector, the boat, is the biggest after the house.
 MOTR has 64 coins in 52 rooms. 14 rooms have none, 18 have one, 14 have two, 6 have three, and no room has more than three.
 Every coin sits on a floor, within a jump of one, in the pipe lattice, or in a jetpack room's air. They fall into these patterns:
 
-1. **Marks the way on.** In $00, the start, the only coin is on the step of the stair you climb to the only exit (14,9), level with
-   that exit. Before the player knows the game, the coin says "up and out this way".
+1. **Teaches the jump.** In $00, the start, the only coin is at the top of three small flowerpot steps (14,9), well away from
+   the room's two creatures. It is the first jump you make, in a safe place.
 2. **Tops a climb.** In $05 it is on the highest ledge (18,3) and at the top of the rope (7,5). In $0A it is on the top-left
    ledge (5,4). In $1B it is on a block beside the rope's head (23,5). In $01 it is on a pocket ledge at the head of the
    right-hand rope (29,6).
@@ -60,8 +60,8 @@ Every coin sits on a floor, within a jump of one, in the pipe lattice, or in a j
    at three heights ((29,6), (13,12), (6,18)). Crossing the room twice pays twice.
 4. **Seen now, reached later.** In $0D the coin (11,14) and the cake are in the low lane, which you see from the sealed high
    corridor on your first crossing. You reach them only after the hairpin in $0E, coming back along the low lane.
-5. **At a hazard's edge.** In $12 the coin is on the post on the far side of the spike pit (23,15). In $0D it is on the step at
-   the water's edge (11,14). In $2A it is on the ledge over the deadly pool (16,10). In $28 it is on the ledge over the sea that
+5. **At a hazard's edge.** In $12 the coin is on the post on the far side of the spike pit (23,15). In $0D it is on the step beside
+   the deadly tiles (11,14). In $2A it is on the ledge over the deadly pool (16,10). In $28 it is on the ledge over the sea that
    fills the room's floor (28,12).
 6. **Guarded.** In $26 the coin is on the deck between two walkers (10,14). In $0F it is in the top-left pocket where a creature
    starts (2,4). In $13 it is at the foot of the stair, on a creature's patrol (12,17).
@@ -150,6 +150,9 @@ room keeps its join with Japan as it is on Japan's side.
    - No lines of coins, no coins strewn along a floor, no coin in the air without the lattice or a flight to reach it.
    - A region of 6 rooms has about 7 to 10 coins.
 6. **Calm backgrounds, strong contrast.**
+   - MOTR's pictures (checked room by room) have no backdrop at all: black behind everything. Colour goes on what you stand on,
+     what kills you, and a few objects (a clock, a picture, a lamp post, a plant). Start from black and add a backdrop only where
+     it tells the place.
    - Backdrops are darker and use fewer colours than anything solid, with no hard top edges that look walkable. Keep little
      detail directly behind where Monty plays.
    - Monty, creatures, items and hazards must read at a glance on every backdrop they cross. Monty's own colours against the
