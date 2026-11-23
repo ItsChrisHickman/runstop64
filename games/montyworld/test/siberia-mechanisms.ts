@@ -22,7 +22,7 @@ import { ROOM } from '../src/moscow';
 import { CART, CRACKS, GANGWAYS, MINE_CART, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, SIBERIA_PULSES, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { at, cell, colOf, dead, diesAt, LEFT, RIGHT, rowText, run } from './mech-kit';
+import { at, cell, colOf, dead, diesAt, LEFT, panelLine, RIGHT, rowText, run } from './mech-kit';
 import { DRAGON } from '../src/china';
 import { piecePlace, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
@@ -411,7 +411,7 @@ import { creatureRooms, itemIndex, standY } from './route';
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
   enterRoom(s.g, SIB.lake, 0x40, standY(12));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 16: [0x40, 0xb2, 1, 7], 17: [0x40, 0xb2, 2, 7] } });
   check('in Siberia the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
