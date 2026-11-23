@@ -4,6 +4,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-layout.ts
  */
+import { isBackdrop } from '../src/layout';
 import { check, finish } from '../../shared/test/check';
 import { WORLD_DECOR } from '../src/art/world';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
@@ -13,6 +14,7 @@ import { creatureRooms } from './route';
 
 const NAME = new Map<number, string>(Object.entries(RIO_ROOM).map(([k, v]) => [v, k]));
 const names = Object.values(WORLD_DECOR);
+const backdropType = (i: number): boolean => isBackdrop(Object.keys(WORLD_DECOR)[i] ?? ''); // a sky or sea fill: coins are drawn over it on purpose
 
 for (const r of RIO_ROOMS) {
   const label = NAME.get(r.id) ?? String(r.id);
@@ -36,7 +38,7 @@ for (const r of RIO_ROOMS) {
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }
     for (let y = 0; y < type.h; y++) for (let x = 0; x < type.w; x++) {
       const c = d.col - PLAY_COL + x, row = d.row - PLAY_ROW + y;
-      decor.add(`${c},${row}`);
+      if (!backdropType(d.type)) decor.add(`${c},${row}`);
       if (solid(c, row)) check(`${label}: a decoration sits on a wall at ${c},${row}`, false);
     }
   }
