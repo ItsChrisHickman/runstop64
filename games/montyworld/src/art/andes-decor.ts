@@ -4,6 +4,7 @@
  * updraft, Machu Picchu's gate, hut, stone and Huayna Picchu, the village market's stall, textiles, pots and pen, the waterfall, the
  * cloud forest's tree, ferns and vines, the tunnel's torch and idol, and the riverboat's funnel, pilot house, paddle wheel and cargo.
  */
+import { ANDES_DECOR_MORE } from './andes-decor-more';
 import { decor } from './decorations';
 import { Raster } from './raster';
 import type { NewDecor } from './types';
@@ -63,7 +64,7 @@ function incaGate(): NewDecor {
   for (let y = 0; y < 32; y += 8) r.rect(0, y + 7, 7, y + 7, false), r.rect(24, y + 7, 31, y + 7, false);
   r.rect(4, 0, 4, 6, false); r.rect(14, 0, 14, 6, false); r.rect(26, 0, 26, 6, false); r.rect(0, 7, 31, 7, false);
   r.rect(0, 28, 7, 31, false);
-  return decor('incaGate', 4, 4, r, 1);
+  return decor('incaGate', 4, 4, r, 8);
 }
 
 /** A stone hut with a thatched roof: the wall of fitted stones, a low door, a window, the straw in rows. 5 x 4 characters. */
@@ -136,7 +137,7 @@ function intihuatana(): NewDecor {
   r.rect(0, 11, 15, 15); r.rect(2, 8, 13, 10);
   r.rect(7, 1, 9, 7); r.rect(5, 0, 6, 1); // the pillar and its angled face
   r.rect(0, 13, 15, 13, false); r.rect(2, 10, 13, 10, false);
-  return decor('intihuatana', 2, 2, r, 1);
+  return decor('intihuatana', 2, 2, r, 8);
 }
 
 /** A heap of broken stone: three rounded rocks, the cracks cut in. 2 x 2 characters. */
@@ -335,6 +336,7 @@ export const ANDES_DECOR = {
   signBoard: signBoard(),
   torch: torch(),
   idol: idol(),
+  ...ANDES_DECOR_MORE,
 } as const satisfies Record<string, NewDecor>;
 
 export type AndesDecor = keyof typeof ANDES_DECOR;

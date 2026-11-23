@@ -74,7 +74,7 @@ function vine(px: number, py: number, deg: number): readonly (readonly [{ block:
     grid: g,
     decor: [['giantTree', 0, 9], ['stiltHut', 28, 11], ['hangingVines', 5, 4], ['hangingVines', 26, 4], ['fern', 4, 14, 13], ['skyCloud', 12, 6, 15]],
     coins: [[10, 9], [14, 13], [21, 13], [26, 10]],
-    creatures: [['piranha', 9, 13, 0], ['piranha', 18, 12, 2], ['toucan', 4, 6, 1], ['sloth', 12, 4, 1]],
+    creatures: [['dolphin', 9, 13, 0], ['dolphin', 18, 12, 2], ['toucan', 4, 6, 1], ['sloth', 12, 4, 1]],
     items: [...vine(p1x, p1y, -25), ...vine(p2x, p2y, 5), ...vine(p3x, p3y, 38)],
     monty: [{ ptr: 0x58, at: { x: Math.round(p2x + Math.sin(0.087) * 60 - 12), y: Math.round(p2y + 60 - 6) } }],
   }, 'vine-and-dandy', 0x07);

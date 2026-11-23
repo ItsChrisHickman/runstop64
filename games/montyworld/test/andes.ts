@@ -22,7 +22,7 @@ import { itemIndex, standY } from './route';
 const args = readArgs();
 const only = args.only;
 
-const andes = (room: number) => room >= AND.jump && room <= AND.bank;
+const andes = (room: number) => (room >= AND.jump && room <= AND.bank) || room === AND.herd;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== 'all' && only !== mode) continue;
@@ -42,7 +42,7 @@ for (const mode of ['original', 'enhanced'] as const) {
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => andes(g.data.specialItems[i * 4] ?? 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
     check(`${mode}: at the end all ${mineCoins.length} coins, the chullo, the panpipes, the machete and the six empanadas of the Andes are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${mineCoins.length} x 50 + ${found.length} x 200), he is on the last bank (room ${g.roomId}), in the chullo`,
-      coinsLeft === 0 && itemsLeft === 0 && found.length === 9 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === AND.bank && g.worn === itemIndex(g, AND.market, 0));
+      coinsLeft === 0 && itemsLeft === 0 && found.length === 9 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === AND.bank && g.worn === itemIndex(g, AND.boat, 0));
   }
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }

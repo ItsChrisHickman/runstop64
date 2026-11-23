@@ -8,7 +8,7 @@ export function regionAt<R extends MapRegion>(regions: readonly R[], row: number
   const area = (r: R) => (r.to - r.from + 1) * (r.rows ? r.rows.to - r.rows.from + 1 : Number.MAX_SAFE_INTEGER);
   let best: R | undefined;
   for (const r of regions) {
-    if (col < r.from || col > r.to || (r.rows && (row < r.rows.from || row > r.rows.to))) continue;
+    if (col < r.from || col > r.to || (r.rows && (row < r.rows.from || row > r.rows.to)) || r.except?.some((c) => c.row === row && c.col === col)) continue;
     if (!best || area(r) < area(best)) best = r;
   }
   return best;

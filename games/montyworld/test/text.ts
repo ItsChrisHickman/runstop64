@@ -15,7 +15,7 @@ import { APOSTROPHE, gameText, lacking, nameCodes, textCode } from '../../shared
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
-import { ANDES_ROOMS } from '../src/andes';
+import { ANDES_ALL_ROOMS } from '../src/andes';
 import { CHINA_ROOMS } from '../src/china';
 import { WORLD } from '../src/data';
 import { CLOSING, PLACES } from '../src/ending-places';
@@ -33,7 +33,7 @@ check('what the font lacks is written as a space (a tilde, an accent mark alone)
 check('an apostrophe is not a text to fix, an ampersand is', lacking("MONTY'S").length === 0 && lacking('A&B').length === 1);
 
 // ---- every string ---------------------------------------------------------------------------------------
-const REGIONS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const REGIONS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
 /** [what it is, its text, whether it is drawn in the game's charset (the name row, signs) or the pause and ending font (credits)]. */
 const strings: { what: string; text: string; font: 'charset' | 'pause' }[] = [];
 for (const room of roomsOf(WORLD)) strings.push({ what: `room ${room}'s name`, text: sectorName(WORLD, room).text, font: 'charset' });

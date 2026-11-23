@@ -45,11 +45,12 @@ export function pulseUpdate(g: Game) {
     const e = g.data.pulses[p.index];
     if (!e) continue;
     p.t = (p.t + 1) % e.period;
-    const code = pulseCode(e, p.t);
+    const calm = e.calmedBy !== undefined && g.siCollected[e.calmedBy] !== 0;
+    const code = calm ? e.idle : pulseCode(e, p.t);
     if (code !== p.drawn) {
       p.drawn = code;
       for (let r = e.row; r < e.row + e.rows; r++) for (let c = e.col; c < e.col + e.cols; c++) g.setRoomChar((r + PLAY_ROW) * ROW + c + PLAY_COL, code);
     }
-    if (!g.actionCounter && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
+    if (!calm && !g.actionCounter && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
   }
 }

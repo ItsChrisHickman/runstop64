@@ -14,10 +14,10 @@ import { SIBERIA_ROOMS } from '../src/siberia';
 import { CHINA_ROOMS } from '../src/china';
 import { JAPAN_ROOMS } from '../src/japan';
 import { PACIFIC_ROOMS } from '../src/pacific';
-import { ANDES_ROOMS } from '../src/andes';
+import { ANDES_ALL_ROOMS } from '../src/andes';
 import { RIO_ROOMS } from '../src/rio';
 
-const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
 const solid = (r: RoomSpec, col: number, row: number): boolean => {
   const ch = r.map[row]?.[col] ?? '.';
   return ch !== '.' && [1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0));

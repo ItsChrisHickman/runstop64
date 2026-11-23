@@ -31,7 +31,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 
 const probe = newPlay().g;
 const headdress = itemIndex(probe, RIO_ROOM.steak, 0);
-const chullo = itemIndex(probe, AND.market, 0);
+const chullo = itemIndex(probe, AND.boat, 0);
 const key = itemIndex(probe, RIO_ROOM.lap, 0);
 const hat = (room: number) => (room === RIO_ROOM.drum || room === RIO_ROOM.float || room === RIO_ROOM.bust ? headdress : chullo);
 

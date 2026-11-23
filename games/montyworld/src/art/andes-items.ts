@@ -4,6 +4,7 @@
  * four frames (T2's terraces) and the swinging vine's segments in every angle (P's river). Hires sprite blocks as the earlier regions'
  * items are (siberia-items.ts): a solid shape with the detail cut into it.
  */
+import { PIRANHA_PICTURE } from './andes-creatures';
 import { itemBlock, spriteBlock } from './pixels';
 import { CHULLO_COLOUR, CHULLO_HAT } from './andes-hat';
 import { limb, over, Raster } from './raster';
@@ -140,3 +141,14 @@ export const ANDES_SPRITES: Readonly<Record<string, NewItem>> = {
   vineDown: { block: vineSegment(0), colour: VINE_COLOUR },
   vineRight: { block: vineSegment(30), colour: VINE_COLOUR },
 };
+
+// ---- the leaping piranha
+
+/** A picture turned a quarter: clockwise (a fish facing left then faces up) or anticlockwise (it faces down). */
+function turned(rows: readonly string[], clockwise: boolean): string[] {
+  const n = rows.length;
+  return Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => (clockwise ? rows[n - 1 - x]?.[y] : rows[x]?.[n - 1 - y]) ?? '.').join(''));
+}
+
+/** The river's piranha in the air (16 x 16): leaping nose up, level at the top of its arc (it faces right as it comes down the far side), and diving nose down: the piranha of the first build turned. */
+export const LEAP_FRAMES: readonly NewItem[] = [turned(PIRANHA_PICTURE, true), PIRANHA_PICTURE, turned(PIRANHA_PICTURE, false)].map((rows, i) => ({ block: itemBlock(`leap ${i}`, rows), colour: 2 }));

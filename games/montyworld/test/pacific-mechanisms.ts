@@ -45,7 +45,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const placed = [[2, 17, PAC.stern], [2, 18, PAC.box], [2, 19, PAC.pier], [2, 20, PAC.surf], [1, 20, PAC.lei], [2, 21, PAC.clam], [2, 22, PAC.mole], [2, 23, PAC.kelp], [1, 23, PAC.whale], [1, 24, PAC.road], [2, 24, PAC.cave],
     [1, 25, PAC.hana], [2, 25, PAC.fish], [2, 26, PAC.coffee], [2, 27, PAC.mauna], [2, 28, PAC.hilo], [2, 29, PAC.hold]] as const;
   check('the Pacific is seventeen rooms in a block of thirteen columns (17-29) beside Japan\'s, room ids 38 to 54, Japan\'s port (row 2) joined to the stern (row 2), the regions before it unchanged',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(2, 16) === JP.port && grid(0, 17) === 0xff && grid(1, 17) === 0xff && grid(2, 30) === AND.jump);
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 79 && grid(2, 16) === JP.port && grid(0, 17) === 0xff && grid(1, 17) === 0xff && grid(2, 30) === AND.jump);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('the regions before the Pacific keep their coins and finds, in the same table places (first), and the Pacific adds 80 coins and 7 finds (the cutters, the snorkel, the lei, the parachute and three musubi)',

@@ -171,6 +171,11 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **A tunnel mouth with a `span` kills only where it is drawn,** and `harmless` is scenery that kills nothing (a train over the roofs, a crowd). Taxis and crowds on a clock make a crossing: a flash, the car, then the green man.
 - **A creature must differ in colour from everything it passes** (`creature-contrast.ts`): check it when a room's palette or a creature's colour changes.
 
+- **Every element has a playable purpose** (Chris on the Andes, 2026-11-22: "set up but not thought through from a playability stance"). Before a room is done, answer for each piece: a crusher crushes across a path he must take (not a pillar beside it), a platform leads somewhere or holds something, a coin is reachable from the way the room is played (several starts and timings: `fair from every start` in `andes-mechanisms.ts`), a creature has a lane it matters in (a bat that flies above every place he stands is no bat), a gate needs its item (the bot finds no way past it without). A blue thing rising from the ground reads as what it is (a hot spring's steam, a geyser that warns before it scalds) or it goes; a deadly spot looks deadly.
+- **Hazards and creatures are drawn in front of the scenery, and stand out from it** (`montyworld/test/sprites-front.ts`, `creature-contrast.ts` for creatures and things on paths): a boulder in the brown of the rock behind it reads as going behind the mountain.
+- **Never an unreachable way back**: a drop into a lower region needs a way up (a ladder), or he can drop before he has the item the lower region's gate wants. A creature that is a gate is a wall only in a lane two cells high or on a step as wide as it (a ceiling over a climb makes the climb impossible too).
+- **The bot's state key must hold every timed thing's phase** (`bot.ts` `keyOf`: each roller by its own period, not the first's): with a hazard of its own period left out the search dedups states that are not the same and misses ways that exist.
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and

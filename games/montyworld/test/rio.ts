@@ -29,7 +29,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   const live0 = newGame(WORLD, mode === 'enhanced');
   // Moscow, Siberia, China, Japan and the Pacific done: every find of theirs is his, the lei worn
   for (let i = 0; i < live0.g.siCollected.length; i++) if (!rio(live0.g.data.specialItems[i * 4] ?? 0)) live0.g.siCollected[i] = 0x81;
-  wear(live0.g, itemIndex(live0.g, AND.market, 0));
+  wear(live0.g, itemIndex(live0.g, AND.boat, 0));
   enterRoom(live0.g, RIO_ROOM.quay, 0x0c + (0 + 4) * 4, standY(8));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
