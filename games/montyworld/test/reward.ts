@@ -38,7 +38,7 @@ import { WORLD } from '../src/data';
 import { CLOSING } from '../src/ending-places';
 import { SCENES, WORLD_ENDING } from '../src/ending-scenes';
 import { montyFont, run } from '../src/main';
-import { RIO_ROOM } from '../src/rio';
+import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { standY } from './route';
 
 const exitGridImage = WORLD.exitGrid.image;
@@ -268,7 +268,7 @@ function boot(enhanced: boolean) {
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
   const press = (code: string) => { inp.keyDown(code); tick(1); inp.keyUp(code); tick(1); };
   const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };
-  return { p, g: p.game, tick, press, until, rend };
+  return { p, g: p.game, tick, press, until, rend, inp };
 }
 
 /** Win the game: the beach, Monty put on the bowl, the finale played out. */
@@ -280,7 +280,12 @@ function win(s: ReturnType<typeof boot>) {
   const cell = exitGridImage.indexOf(RIO_ROOM.bust);
   g.mapRow = Math.floor(cell / WORLD.exitGrid.cols); g.exitCol = cell % WORLD.exitGrid.cols; g.x2 = 0x70; g.y = standY(18); g.roomExit = 1;
   s.until(() => g.roomId === RIO_ROOM.bust && !g.freeze, 200);
-  s.until(() => { g.x2 = 0x0c + (25 + 4) * 4; g.y = standY(18); return g.completionActive === 1; }, 200);
+  // in on the promenade west of the bowl's table, and east into the bowl
+  const bowl = must(RIO_ROOMS.find((r) => r.id === RIO_ROOM.bust)?.item, 'the beach\'s bowl');
+  g.x2 = 0x0c + (Math.max(0, bowl.col - 8) + 4) * 4; g.y = standY(18);
+  s.inp.keyDown('ArrowRight');
+  s.until(() => g.completionActive === 1, 400);
+  s.inp.keyUp('ArrowRight');
   return s.until(() => p.state.mode === 'title', 6000) && g.won;
 }
 

@@ -64,8 +64,8 @@ function find(index: number): Found | null {
   if (!place) return null;
   const room = place.room;
   if ('treasure' in place.take) {
-    // the beach: from the promenade to the bowl on its table
-    return { room, spot: { x2: X2(16), y: standY(18), facing: 0x01 }, route: '>200' };
+    // the beach: in from the west on the promenade, east to the bowl on its table
+    return { room, spot: { x2: X2(2), y: standY(18), facing: 0x01 }, route: '>200' };
   }
   const probe = begin(index, X2(0), standY(18), 0x01);
   if (!probe) return null;
@@ -101,7 +101,7 @@ const results: (Found | null)[] = [];
 for (let i = 0; i < PLACES.length; i++) {
   if (only.length && !only.includes(i)) { results.push(null); continue; }
   const r = find(i);
-  console.log(`place ${i} (room ${PLACES[i]?.room}): ${r ? `${r.spot.x2.toString(16)},${r.spot.y.toString(16)} ${r.route}` : 'NO ROUTE'}`);
+  console.log(`place ${i} (room ${PLACES[i]?.room}): ${r ? `${r.spot.x2.toString(16)},${r.spot.y.toString(16)} facing ${r.spot.facing.toString(16)} ${r.route}` : 'NO ROUTE'}`);
   results.push(r);
 }
 if (!only.length) {

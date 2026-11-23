@@ -69,8 +69,8 @@ export const PLACES: readonly Place[] = [
   { room: AND.llama, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
   { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
   { room: AND.river, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
-  // Rio: the tram on the arches, the cable car, the Sambadrome, the beach
-  { room: RIO_ROOM.lap, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
+  // Rio: the Redeemer climbed, the cable car, the Sambadrome, the beach
+  { room: RIO_ROOM.arms, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
   { room: RIO_ROOM.sugar, prepare: withCrank, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
   { room: RIO_ROOM.drum, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
   { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: ['THANK YOU FOR PLAYING'] },

@@ -11,8 +11,8 @@ export const ROUTES: readonly { room: number; spot: { x2: number; y: number; fac
   { room: 58, spot: { x2: 0x54, y: 0x6a, facing: 0x1 }, route: 'J>4 .36 <4 .4 J>4 .36' },
   { room: 59, spot: { x2: 0x1c, y: 0x6a, facing: 0x1 }, route: 'J>4 .36 >12' },
   { room: 65, spot: { x2: 0x24, y: 0xb2, facing: 0x1 }, route: 'J>4 .36 <4 .4 J>4 .12' },
-  { room: 68, spot: { x2: 0x24, y: 0xc2, facing: 0x1 }, route: '>100' },
-  { room: 69, spot: { x2: 0x24, y: 0xc2, facing: 0x1 }, route: '>100' },
-  { room: 75, spot: { x2: 0x24, y: 0x6a, facing: 0x1 }, route: '>100' },
-  { room: 77, spot: { x2: 0x24, y: 0xc2, facing: 0x1 }, route: '>200' },
+  { room: 71, spot: { x2: 0x6c, y: 0x82, facing: 0x1 }, route: '^4 J>4 .20 J>4 .32 >36' },
+  { room: 69, spot: { x2: 0x1c, y: 0x7a, facing: 0x1 }, route: '>52' },
+  { room: 75, spot: { x2: 0x7c, y: 0xaa, facing: 0x81 }, route: '^4 J4 .20 J<4 .32 <12' },
+  { room: 77, spot: { x2: 0x24, y: 0xca, facing: 0x1 }, route: '>200' },
 ];
