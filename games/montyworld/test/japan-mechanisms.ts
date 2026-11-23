@@ -30,7 +30,7 @@ import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
 import { CODEC } from '../src/main';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { cell, colOf, overCrowded, dead, diesAt, LEFT, RIGHT, UP, at, rowText, run } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -43,13 +43,12 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
-    cells.filter((c) => c !== 0xff).length === 78 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
+    cells.filter((c) => c >= JP.harbour && c <= JP.port).length === 11 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
-  const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
+  const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
-    coinsIn(0, 26) === 44 && itemsIn(0, 26) === 13 && coinsIn(27, 37) === 23 && itemsIn(27, 37) === 5 && (WORLD.coinTable[43 * 3] ?? 99) <= 26 && (WORLD.coinTable[44 * 3] ?? 0) >= 27);
-  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
+    before.ordered && coinsIn(JP.harbour, JP.port) === 23 && itemsIn(JP.harbour, JP.port) === 5);
+  check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Japan's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
@@ -439,7 +438,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the four regions (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
   enterRoom(s.g, JP.platform, 0x40, standY(17));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 31: [0x40, 0xb2, 2, 14], 32: [0x40, 0xb2, 2, 15] } });
   check('in Japan the map shows its region (five columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -477,14 +476,16 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   // a save from before Japan: the first four regions' arrays and a grid without Japan carry on in the new game
   const g1 = newGame(WORLD, true).g;
-  g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[30] = 0xff;
+  const before = entriesBefore(JP.harbour, JP.port);
+  const last = { coin: before.coins - 1, item: before.items - 1 }; // the last of the earlier regions' entries
+  g1.siCollected[0] = 0x81; g1.siCollected[last.item] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[last.coin] = 0xff;
   const old = snapshot(g1);
   const shortGrid = Array.from(WORLD.exitGrid.image, (c) => (c >= JP.harbour && c !== 0xff ? 0xff : c));
-  const oldSave = { ...old, coins: old.coins.slice(0, 44), items: old.items.slice(0, 13), exitGrid: shortGrid, roomId: CHI.junk, worn: itemIndex(g1, CHI.top, 0) };
+  const oldSave = { ...old, coins: old.coins.slice(0, before.coins), items: old.items.slice(0, before.items), exitGrid: shortGrid, roomId: CHI.junk, worn: itemIndex(g1, CHI.top, 0) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before Japan\'s arrays and grids) loads: the finds and the rice hat are as saved, and Japan is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(44).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[last.item] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[last.coin] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === WORLD.specialItems.length / 4 && g2.coinCollected.length === WORLD.coinTable.length / 3 && g2.coinCollected.slice(before.coins).every((c) => c === 0));
 }
 
 void LEFT;
