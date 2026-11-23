@@ -291,11 +291,33 @@ import { creatureRooms, itemIndex, standY } from './route';
   // it kills what of Monty it touches: on the floor in front of it, not on the safe zones at the right
   const s = at(SIB.yeti, 14, 17);
   let died = -1;
-  for (let f = 0; f < lap * 2 && died < 0; f++) { frame(s, NONE); if (dead(s.g)) died = f; }
-  check(`it prowls through the floor lane: standing there for two laps he is caught (frame ${died})`, died >= 0);
+  for (let f = 0; f < lap * 4 && died < 0; f++) { frame(s, NONE); if (dead(s.g)) died = f; }
+  check(`it prowls through the floor lane: standing there for four laps he is caught (frame ${died})`, died >= 0);
   const safe = at(SIB.yeti, 29, 17);
-  run(safe, NONE, lap * 2);
-  check('and the right-hand safe zone, where he comes in, is never touched in two laps', !dead(safe.g));
+  run(safe, NONE, lap * 12);
+  check('and the right-hand safe zone, where he comes in, is never touched in twelve laps, whatever it chooses', !dead(safe.g));
+  {
+    // it chooses: over a long stay it carries on, stands, turns back and charges, each warned by a roar; the same seed gives the same yeti
+    const moods = YETI.moods;
+    const watch = at(SIB.yeti, 29, 17);
+    const seen = { roar: 0, rest: 0, back: 0, charge: 0 };
+    let warnedAll = true, roarLen = 0, last = watch.g.dragons[0];
+    for (let f = 0; f < lap * 12; f++) {
+      frame(watch, NONE);
+      const d = watch.g.dragons[0];
+      if (!d || !last) continue;
+      if (d.mode === 'roar') { roarLen++; } else {
+        if (last.mode === 'roar') { seen.roar++; if (roarLen < (moods?.roar ?? 0)) warnedAll = false; if (d.then === 'back') seen.back++; if (d.then === 'charge') seen.charge++; if (d.then === 'rest') seen.rest++; }
+        roarLen = 0;
+      }
+      last = { ...d };
+    }
+    check(`the yeti has moods (${YETI.moods ? 'yes' : 'no'}): in twelve laps it roared ${seen.roar} times, then rested ${seen.rest}, turned back ${seen.back}, charged ${seen.charge}`, YETI.moods !== undefined && seen.rest > 0 && seen.back > 0 && seen.charge > 0);
+    check(`every roar is a full ${moods?.roar} frames before it moves: the warning`, warnedAll);
+    const again = at(SIB.yeti, 29, 17);
+    run(again, NONE, lap * 12);
+    check('and it is deterministic: the same seed, the same yeti', JSON.stringify(again.g.dragons) === JSON.stringify(watch.g.dragons));
+  }
   const enter = at(SIB.yeti, 28, 17);
   const up = search(enter, (g) => g.roomId === SIB.yeti && colOf(g) <= 10 && g.y === standY(9), undefined, 400000, 0);
   check(`the bot finds the way over the ice bridge to its left end (${up ? up.nodes + ' states' : 'none'})`, up !== null);

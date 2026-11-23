@@ -143,6 +143,8 @@ export interface TunnelSpec {
   harmless?: boolean;
   /** With a `picture`: it covers a rope or ladder in its way too (the mountain over a tree Monty climbs) and kills what of Monty is on it, instead of passing behind it. */
   coversClimbs?: boolean;
+  /** It is drawn out to the screen's very edges, over the playfield's margin columns too (the room's timing and its danger stay the playfield's): a band that spans the whole picture. */
+  bleed?: boolean;
 }
 
 /**
@@ -193,6 +195,19 @@ export interface PulseSpec {
 export interface DragonSpec {
   room: number; path: readonly (readonly [col: number, row: number])[]; speed: number; gap: number;
   pieces: readonly DragonPiece[];
+  /** Without it the dragon goes round at `speed` for ever, the same each lap. With it, it chooses (`moods`). */
+  moods?: DragonMoods;
+}
+
+/**
+ * What a dragon (a creature of one body, the yeti) does at the corners of its path listed in `stops` (their indices in `path`), chosen from the game's own random source at each: carry on
+ * (with a new pace, `pace` either way as a fraction of `speed`), stop and roar then stand a while (`rest` frames or up to twice that), roar then turn back the way it came, or roar then
+ * charge (`charge.speed` times as fast for `charge.frames`). The roar (`roar` frames, the body shaking where it stands) always comes first: it never heads the player's way without a warning of at least that long.
+ * `weights`: the chances out of 256 of the four in that order (the rest, carry on).
+ */
+export interface DragonMoods {
+  stops: readonly number[]; pace: number; roar: number; rest: number; charge: { speed: number; frames: number };
+  weights: { pause: number; back: number; charge: number };
 }
 
 /**

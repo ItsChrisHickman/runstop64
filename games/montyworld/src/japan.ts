@@ -1,3 +1,4 @@
+import { SCREEN_MARGIN } from '../../shared/monty/screen';
 import type { CharAnim, CrackSpec, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE } from './japan-pointers';
@@ -272,8 +273,6 @@ function paintPort(g: Grid) {
   g.box(28, 14, 31, 17, 'H').box(29, 15, 29, 15, 'P').box(31, 15, 31, 15, 'P'); // the ship's hull with its portholes, afloat
   g.box(28, 13, 31, 13, 'K'); // the deck
 }
-/** The cells a backdrop leaves alone: the coins' (a coin under a decoration's character cannot be seen). */
-const PORT_KEEP: readonly (readonly [number, number])[] = [[4, 9], [23, 15]];
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -311,7 +310,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[12, 5], [14, 15]],
     decor: [
-      ...Array.from({ length: 32 }, (_, c) => ['jpViaduct', c, 2] as const), // the railway's girder over the roofs
+      ...Array.from({ length: 32 + 2 * SCREEN_MARGIN }, (_, c) => ['jpViaduct', c - SCREEN_MARGIN, 2] as const), // the railway's girder over the roofs, out to the screen's edges
       ['jpTowerYellow', 3, 2], ['jpNeonPink', 7, 3], ['jpNeonCyan', 10, 2], ['jpScreen', 17, 3], ['jpTowerGreen', 26, 3],
       ['jpRamenStall', 8, 14], ['jpLantern', 6, 14], ['jpCrowdRed', 0, 15], ['jpCrowdPurple', 22, 15], ['jpVending', 26, 14], ['jpVending', 28, 14],
     ],
@@ -499,8 +498,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     paint: paintPort,
     coins: [[4, 9], [23, 15]],
     decor: [
-      ...fillCells(paintPort, PORT_KEEP, [0, 2, 27, 3], 'jpSkyA'), ...fillCells(paintPort, PORT_KEEP, [0, 4, 27, 5], 'jpSkyB'), ...fillCells(paintPort, PORT_KEEP, [0, 6, 27, 8], 'jpSkyC'), ...fillCells(paintPort, PORT_KEEP, [0, 9, 27, 11], 'jpSkyD'),
-      ...fillCells(paintPort, PORT_KEEP, [0, 12, 27, 16], 'jpSeaLines'),
+      ...fillCells(paintPort, [], [0, 2, 27, 3], 'jpSkyA'), ...fillCells(paintPort, [], [0, 4, 27, 5], 'jpSkyB'), ...fillCells(paintPort, [], [0, 6, 27, 8], 'jpSkyC'), ...fillCells(paintPort, [], [0, 9, 27, 11], 'jpSkyD'),
+      ...fillCells(paintPort, [], [0, 12, 27, 16], 'jpSeaLines'),
       ['jpFujiFar', 13, 10], ['jpSunHalf', 21, 10], ['jpGulls', 11, 4], ['jpGulls', 20, 6],
       ['jpLanternPost', 12, 13], ['jpFlagHinomaru', 15, 14], ['jpLanternPost', 20, 13], ['jpShipBridge', 28, 6], ['jpGangwayRail', 26, 12],
     ],

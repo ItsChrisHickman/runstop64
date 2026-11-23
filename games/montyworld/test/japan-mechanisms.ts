@@ -6,6 +6,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts
  */
+import { SCREEN_MARGIN } from '../../shared/monty/screen';
 import { decorChars } from '../../montyotr/src/decor-chars';
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -72,7 +73,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   let pools = 0;
   for (const r of JAPAN_ROOMS) {
     const solid = (col: number, row: number) => {
-      const ch = r.map[row]?.[col];
+      const ch = r.map[row]?.[Math.max(0, Math.min(31, col))]; // (a margin column is as the edge cell beside it)
       if (ch === undefined) return true;
       if (ch === '.') return false;
       const tile = r.tiles[Number(ch) - 1];
@@ -83,7 +84,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
       const { col, row } = inRoom(d.col, d.row);
       const w = typeof d.type === 'number' ? decorTypes[d.type]?.w ?? 1 : d.type.text.length, h = typeof d.type === 'number' ? decorTypes[d.type]?.h ?? 1 : 1;
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (solid(col + x, row + y)) problems.push(`room ${r.id}: a decoration over a tile he touches (a floor, a wall, a rope, water) at ${col + x},${row + y}`);
-      if (col < 0 || col + w > 32 || row < 0 || row + h > 20) problems.push(`room ${r.id}: a decoration off the playfield`);
+      if (col < -SCREEN_MARGIN || col + w > 32 + SCREEN_MARGIN || row < 0 || row + h > 20) problems.push(`room ${r.id}: a decoration off the picture (the playfield and the margin it shows)`);
     }
     /** The cells decorations are drawn in (a coin or an item there is covered by their characters). */
     const drawn = new Set((r.decor ?? []).flatMap((d) => {

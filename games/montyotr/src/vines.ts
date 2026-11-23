@@ -1,6 +1,5 @@
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { pixelX } from './cells';
-import { coverable } from './decor-chars';
 import type { Game } from './game';
 import type { VineSpec } from './montydata';
 
@@ -63,7 +62,7 @@ export function vineUpdate(g: Game) {
     const drawn: [number, number, number][] = [];
     for (const at of now) {
       const chr = g.mem[SCREEN + at] ?? 0;
-      if (!coverable(chr)) continue;
+      if (!g.mayCover(chr)) continue;
       drawn.push([at, chr, g.col[at] ?? 0]);
       g.setRoomChar(at, e.code);
     }

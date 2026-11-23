@@ -1,5 +1,5 @@
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
-import { coverable, decorChars } from './decor-chars';
+import { decorChars } from './decor-chars';
 import { standingCell } from './escalators';
 import type { Game } from './game';
 import type { FloatSpec } from './montydata';
@@ -34,7 +34,7 @@ export function floatInit(g: Game) {
 /** Whether the float's cell (playfield column `col`) may be drawn over: empty, a decoration, or deadly water (a deck covers the channel). */
 const drawable = (g: Game, at: number, deck: boolean) => {
   const chr = g.mem[SCREEN + at] ?? 0;
-  return coverable(chr) || (deck && g.tileFlag(chr) === 4);
+  return g.mayCover(chr) || (deck && g.tileFlag(chr) === 4);
 };
 
 function uncover(g: Game, f: FloatState) {

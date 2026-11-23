@@ -71,8 +71,8 @@ const strip = (name: string, room: number, col: number, floor: number, frames: r
   contactSheet(out, name, pics);
 };
 // the mountain: the portal flashing at the entry, then coming in, over the roof, going out (he is safe in the car)
-strip('strip-tunnel-gravy.png', SIB.gravy, 8, 17, [190, 260, 340, 420, 520, 640, 760, 860, 900], true);
-strip('strip-tunnel-sleeper.png', SIB.sleeper, 8, 17, [190, 300, 420, 540, 660, 780], true);
+strip('strip-tunnel-gravy.png', SIB.gravy, 8, 17, [190, 235, 330, 450, 570, 690, 810, 930, 1060], true);
+strip('strip-tunnel-sleeper.png', SIB.sleeper, 8, 17, [190, 235, 330, 450, 570, 690, 810, 930, 1060], true);
 // the yeti on its loop
 strip('strip-yeti.png', SIB.yeti, 29, 17, [10, 60, 110, 160, 210, 260, 310, 360, 410]);
 // the cart, from the east dock

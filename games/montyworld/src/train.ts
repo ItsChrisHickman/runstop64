@@ -2,6 +2,7 @@ import type { CharAnim } from '../../montyotr/src/montydata';
 import { WINDOW_SCENERY } from './art/siberia-decor';
 import { WHEEL_FRAMES } from './art/siberia-decor';
 import type { WorldDecor } from './art/world';
+import { PLAY_COLS, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { decorIndex, type Grid, type Palette } from './layout';
 
 /**
@@ -14,11 +15,11 @@ import { decorIndex, type Grid, type Palette } from './layout';
  */
 
 /**
- * The palette of a passenger car's rooms (the outside in the carriages' maroon, the inside wall in wood: a cutaway shows the shell and the room in it): the roof, the far wall behind him, the floor, the end walls, a tunnel's granite portal, a ladder and the mountain's
- * rock. (The wheels and the rail under the car are decorations, `underCar`: nothing there is walked on, and two of the eight codes are the tunnel's.)
+ * The palette of a passenger car's rooms (the outside in the carriages' maroon, the inside wall in wood: a cutaway shows the shell and the room in it): the roof, the far wall behind him, the floor, the end walls, a tunnel's stone portal, a ladder and the tunnel's
+ * brick lining. (The wheels and the rail under the car are decorations, `underCar`: nothing there is walked on, and two of the eight codes are the tunnel's.)
  */
 export const TRAIN_PALETTE = {
-  D: ['roofDeck', 14], E: ['carWall', 8], F: ['carFloor', 9], T: ['trainSide', 2], X: ['tunnelFace', 15], R: ['ironLadder', 7], M: ['tunnelRock', 9],
+  D: ['roofDeck', 14], E: ['carWall', 8], F: ['carFloor', 9], T: ['trainSide', 2], X: ['tunnelFace', 15], R: ['ironLadder', 7], M: ['tunnelBrick', 2],
 } as const satisfies Palette;
 
 /** The rows of a car (playfield rows): the roof's walkway, the floor Monty walks along inside, the wheels and the rail; and a gangway's two rows. */
@@ -37,7 +38,8 @@ export function undercarriage(g: Grid, from: number, to: number) {
  * bogies' wheels, each bogie two (at its column and two on) with an axle bar between. Decorations, not tiles: nothing under the floor is walked on.
  */
 export const underCar = (from: number, to: number, bogies: readonly number[]): readonly Placed[] => [
-  ...Array.from({ length: to - from + 1 }, (_, i): Placed => ['rail', from + i, CAR.rail]),
+  // (the rail runs on out to the screen's edge where the car does)
+  ...Array.from({ length: (to >= PLAY_COLS - 1 ? to + SCREEN_MARGIN : to) - (from <= 0 ? -SCREEN_MARGIN : from) + 1 }, (_, i): Placed => ['rail', (from <= 0 ? -SCREEN_MARGIN : from) + i, CAR.rail]),
   ...bogies.flatMap((c): Placed[] => [['wheel', c, CAR.wheels], ['wheel', c + 2, CAR.wheels], ['bogieBar', c + 1, CAR.wheels]]),
 ];
 
@@ -86,14 +88,14 @@ export const SKY = { smoke: 2, wires: 4, horizon: 6 } as const;
 const along = (what: WorldDecor, w: number, row: number, spans: readonly Span[]): Placed[] =>
   spans.flatMap(([from, to]) => Array.from({ length: Math.floor((to - from + 1) / w) }, (_, i): Placed => [what, from + i * w, row]));
 
-/** What a room's sky holds: the spans of columns free of tiles, where the horizon and poles go if not the whole of `spans` (the tender leaves its ticket clear), where the smoke may drift (none: none), and the moon and stars (pieces at fixed cells). */
-export interface SkySpec { spans: readonly Span[]; horizon?: readonly Span[]; smoke?: readonly Span[]; moon?: readonly [col: number, row: number]; stars?: readonly Placed[] }
+/** What a room's sky holds: the spans of columns free of tiles, where the horizon goes (and the poles, unless `wires` says) if not the whole of `spans` (the tender leaves its ticket clear), where the smoke may drift (none: none), and the moon and stars (pieces at fixed cells). */
+export interface SkySpec { spans: readonly Span[]; horizon?: readonly Span[]; wires?: readonly Span[]; smoke?: readonly Span[]; moon?: readonly [col: number, row: number]; stars?: readonly Placed[] }
 
 /** The sky's decorations, to go first in a room's list so the car's own pieces (vents, a stovepipe) are drawn over them. */
 export function skyDecor(s: SkySpec): readonly Placed[] {
   return [
     ...(s.moon ? [['moon', s.moon[0], s.moon[1]] as const] : []), ...(s.stars ?? []),
-    ...along('smoke', 4, SKY.smoke, s.smoke ?? []), ...along('wires', 4, SKY.wires, s.horizon ?? s.spans), ...along('horizon', 2, SKY.horizon, s.horizon ?? s.spans),
+    ...along('smoke', 4, SKY.smoke, s.smoke ?? []), ...along('wires', 4, SKY.wires, s.wires ?? s.horizon ?? s.spans), ...along('horizon', 2, SKY.horizon, s.horizon ?? s.spans),
   ];
 }
 

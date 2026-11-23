@@ -7,7 +7,9 @@ import { shimmer, takeCoin } from '../../shared/monty/screen';
 /** CollectCoin: a coin char ($34) in Monty's 2x2 footprint is worth 50. */
 export function collectCoin(g: Game) {
   const taken = takeCoin(g.mem, g.montyChr, g.entities);
-  if (!taken?.item) return;
+  if (!taken) return;
+  g.clearCell(taken.at - SCREEN); // (the backdrop shows where it was)
+  if (!taken.item) return;
   g.coinCollected[taken.item.index] = 0xff;
   g.addScore(50);
   g.sfx(g.data.sfx.coin);
@@ -136,7 +138,7 @@ export function applyRoomEffects(g: Game, pass: 'all' | 'before' | 'after' = 'al
   for (const e of g.data.roomEffects) {
     if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) continue;
     if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) continue;
-    for (const [row, col] of e.clear ?? []) g.setChr(SCREEN + row * ROW + col, 0);
+    for (const [row, col] of e.clear ?? []) g.clearCell(row * ROW + col);
     for (const t of e.openTiles ?? []) g.tileProps[t] = 0;
     if (e.place) for (const [row, col] of e.place.cells) g.setRoomChar(row * ROW + col, e.place.code);
     const slot = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];

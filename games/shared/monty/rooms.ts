@@ -87,8 +87,11 @@ export interface RoomDef {
   cells: Uint8Array; // 32 × 20 char codes
 }
 
-/** A decoration type: w × h characters (8 bytes each) and their colour(s). */
-export interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array }
+/**
+ * A decoration type: w × h characters (8 bytes each) and their colour(s). A `backdrop` (a sky's bands, a sea, a wall seen behind) lies under the room's pickups
+ * and the cells it clears: it is drawn under a coin (the coin's own picture over it), and a coin taken, a gate or a crack cleared leaves it showing, never black.
+ */
+export interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array; backdrop?: boolean }
 
 /** The tables of a game's own rooms, in the original's formats (what `buildRooms` adds to, and returns). */
 export interface RoomTables {
