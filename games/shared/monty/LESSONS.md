@@ -158,3 +158,21 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **A bot that cannot get past a creature to a pickup has found a pickup a person cannot take either** (a coin in a creature's patrol, in a pocket the creature fills). Put pickups where a walker passes, and run the fairness check (`japan-fair.ts`: each pickup's leg from starts a few frames and pixels off).
 - **A tunnel mouth with a `span` kills only where it is drawn,** and `harmless` is scenery that kills nothing (a train over the roofs, a crowd). Taxis and crowds on a clock make a crossing: a flash, the car, then the green man.
 - **A creature must differ in colour from everything it passes** (`creature-contrast.ts`): check it when a room's palette or a creature's colour changes.
+
+## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
+
+Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and
+you can name it:
+
+- **marks the way on**: the start room's only coin is on the step up to its only exit;
+- **tops a climb**: on the highest ledge or at a rope's head ($05, $0A, $1B);
+- **one per height**: a coin in each lane of a room crossed twice ($11, $01);
+- **seen now, reached later**: in $0D's low lane, seen from the sealed corridor above, reached after the hairpin;
+- **at a hazard's edge**: on the post beyond the spike pit ($12), the step by the water ($0D);
+- **guarded**: on a patrol or between two walkers ($26, $0F);
+- **in a pocket off the route**: a short detour into a niche or alcove ($0E, $13);
+- **inside the structure**: in the sewer's pipe lattice, taken only by climbing round it ($15);
+- **tests the new move**: in a jetpack room's hollow that must be flown into ($1E, $1F).
+
+No lines of coins, no floors strewn with them, no coin floating out of reach, and no coin in a room with nothing to say. A region of 6
+rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a room, 215 in 40 rooms, and they read as random.)
