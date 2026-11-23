@@ -468,9 +468,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); the floor runs through three pairs of paper doors that open and shut in turn, or the gallery over the first
-  // two (up the rope at the left, along the eaves through holes in the partitions, down at its end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). The hall's far end is walled: the rope at the left
-  // goes up to the ninja hideout, and the way on to the port is down the hideout's shaft, which lands in the shut-off space at the right (cols 24-26) with the rope down to the port.
+  // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); the floor runs east through three pairs of paper doors that open and shut in turn, the only way on. Past the third a rope
+  // (col 21) climbs to the gallery, which runs back west along the eaves through a hole in each partition (a coin on it, the lantern ghost bobbing over its first bay) to the rope at the left (col 4) up to the ninja hideout:
+  // that rope's foot hangs at the gallery, out of reach of the floor below it. The hall's far end is walled: the way on to the port is down the hideout's shaft, which lands in the shut-off space at the right (cols 24-26) with the rope down to the port.
   room({
     id: JP.hall, cell: [1, 16], sector: 36, palette: HALL_PALETTE,
     paint(g) {
@@ -478,10 +478,10 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 1, 11, 'S');
       g.box(0, 14, 22, 14, 'A').box(0, 15, 31, 19, 'T').clear(24, 14, 26, 19).box(27, 2, 31, 14, 'T');
       for (const c of DOORS.cols) g.box(c, 2, c + 1, 10, 'S').box(c, DOORS.row, c + 1, DOORS.row + DOORS.rows - 1, 'O'); // the partitions and the doorways
-      for (const c of DOORS.cols.slice(0, 2)) g.clear(c, 5, c + 1, 7).box(c, 8, c + 1, 8, 'E'); // the first two have a hole through them for the gallery
-      g.box(5, 8, 14, 8, 'E'); // the gallery's eaves (they end at col 14: the three cells before the third door are the way down)
-      g.box(20, 2, 22, 11, 'T').box(23, 2, 23, 14, 'T'); // the low ceiling past the third door and the wall that shuts the hall's far end: the way on is through the hideout, down the shaft at its right (cols 24-26)
-      g.box(4, 0, 4, 13, 'R').box(25, 0, 25, 19, 'R');
+      for (const c of DOORS.cols) g.clear(c, 5, c + 1, 7).box(c, 8, c + 1, 8, 'E'); // each has a hole through it for the gallery
+      g.box(5, 8, 19, 8, 'E'); // the gallery's eaves, from the rope up to the hideout (col 4) to the rope up from the floor past the third door (col 21, in a gap of three)
+      g.box(23, 2, 23, 14, 'T'); // the wall that shuts the hall's far end: the way on is through the hideout, down the shaft at its right (cols 24-26)
+      g.box(4, 0, 4, 8, 'R').box(21, 7, 21, 13, 'R').box(25, 0, 25, 19, 'R'); // the hideout's rope (its foot at the gallery), the rope up to the gallery, the shaft's rope
     },
     coins: [[8, 6]],
     decor: [['jpScroll', 9, 5], ['jpScroll', 15, 5], ['jpScroll', 2, 5], ['jpLantern', 10, 2], ['jpLantern', 16, 2], ['jpAndon', 9, 11], ['jpAndon', 15, 11]],

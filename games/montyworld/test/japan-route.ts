@@ -2,7 +2,7 @@
  * Japan's route for the bot: the goals, in the order a player who takes everything plays them (from China's junk onto the harbour's quay, the crates and the market's
  * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour for the daruma, the underpass to the platform, up the rope to the crossing for the fish
  * food, back down and east past the shutter and the trains, Fuji's switchbacks, the garden's pond and pergola to THE LAST MOLE for the hood, back to the gate and through
- * the hall (the paper doors, a dead end past them) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
+ * the hall (the paper doors, the rope past them up to the gallery and back west along it to the rope up) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
  */
 import { JP } from '../src/japan';
@@ -59,8 +59,9 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('G to I: out through the castle gate', into(JP.hall, 31, 13, JP.garden)),
   leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),
   leg('I: through the second door into the space before the third', stands(JP.hall, 14, 14, 17)),
-  leg('I: back west through both doors, up the rope and along the gallery to the coin at its end', clearOfCreatures(coin(JP.hall, 8, 6))),
-  leg('I to H: back down and up the rope at the left to the woods outside (the hall\'s far end is walled)', into(JP.hideout, 4, 0, JP.hall)),
+  leg('I: through the third door to the foot of the rope past it', stands(JP.hall, 14, 20, 22)),
+  leg('I: up the rope to the gallery and back west along it to the coin', clearOfCreatures(coin(JP.hall, 8, 6))),
+  leg('I to H: on west along the gallery to the rope at the left and up it to the woods outside (the hall\'s far end is walled)', into(JP.hideout, 4, 0, JP.hall)),
   leg('H: the coin on the first walkway', coin(JP.hideout, 9, 13)),
   leg('H: the coin on the hideout\'s ridge (and back west, clear of the samurai)', westOf(coin(JP.hideout, 26, 9), 21)),
   leg('H: the coin on the lookout, over the rotten boards', coin(JP.hideout, 11, 5)),
