@@ -67,16 +67,18 @@ export const parseSave = (v: unknown): MontySave | null => (MontySave(v) ? v : n
 
 /**
  * A game's save codec: saves as bytes, their JSON. `format` is the number its bytes are at (the envelope's: `{ v: 3, game,
- * format }`, games/shared/saves.ts); every Monty game's save has the same shape, each its own codec under its own name.
+ * format }`, games/shared/saves.ts); every Monty game's save has the same shape, each its own codec under its own name. `older` reads the
+ * formats before it: each turns a save of that format into one of today's (a game whose tables changed: Do Svidaniya Monty's save-migrate.ts).
  */
-export const montyCodec = (name: string, format = 1): SaveCodec<MontySave> => ({
+export const montyCodec = (name: string, format = 1, older: Readonly<Record<number, (s: MontySave) => MontySave>> = {}): SaveCodec<MontySave> => ({
   format,
   pack: (s) => Uint8Array.from(JSON.stringify(s), (c) => c.charCodeAt(0)),
   unpack: (b, found) => {
-    readsFormat(name, found, format);
+    readsFormat(name, found, format, ...Object.keys(older).map(Number));
     const s = parseSave(readJson(String.fromCharCode(...b)));
     if (!s) throw new Error(`not a ${name} save`);
-    return s;
+    const up = found === format ? undefined : older[found];
+    return up ? up(s) : s;
   },
 });
 
