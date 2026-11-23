@@ -34,6 +34,11 @@ export interface RegionTune {
   readonly instruments: readonly { readonly instrument: number; readonly set: InstrumentChange }[];
   /** A pattern (of the in-game song) given other notes of the same length in ticks, played as written (the scale does not move them). */
   readonly breaks: readonly { readonly pattern: number; readonly events: readonly PatternEvent[] }[];
+  /**
+   * Keep the version exactly as it was approved: every pitched note of every voice (the introduction's too) moved by `shift`, with no consonance gate, no scoop and the bass moved as the
+   * lead is. Moscow's, which Chris loved as it was before the gate existed (test/music.ts holds it to the bytes it had).
+   */
+  readonly asApproved?: boolean;
 }
 
 /** The song the game plays while the player plays (Music.Init 0). */
@@ -138,6 +143,7 @@ export function bend(note: number, tune: Pick<RegionTune, 'tonic' | 'shift'>, sh
  * assumes (a step that is a drum under one voice and a note under another, a break of another length).
  */
 export function retune(original: Uint8Array, tune: RegionTune, song = GAME_SONG): Uint8Array {
+  if (tune.asApproved) return retuneAsApproved(original, tune, song);
   if (tune.shift.length !== SCALE_DEGREES || (tune.bassShift && tune.bassShift.length !== SCALE_DEGREES)) throw new Error(`a scale has ${SCALE_DEGREES} degrees`);
   const image = new TuneImage(original);
   const notes = songNotes(image, song);
@@ -233,4 +239,33 @@ function scoop(image: TuneImage, tune: RegionTune, events: readonly PatternEvent
     if (speed < 1 || speed > SLIDE_MAX_SPEED) return e;
     return { ...e, prefix: { kind: 'slide', value: SLIDE_FLAG | speed }, note: from };
   });
+}
+
+/** `asApproved` versions: the scale moves every pitched note of the song, the introduction's and the bass's included, wherever it lands. */
+function retuneAsApproved(original: Uint8Array, tune: RegionTune, song: number): Uint8Array {
+  if (tune.shift.length !== SCALE_DEGREES) throw new Error(`a scale has ${SCALE_DEGREES} degrees`);
+  const image = new TuneImage(original);
+  const notes = songNotes(image, song);
+  const pitched = new Map<string, boolean>();
+  for (const n of notes.flat()) {
+    const key = `${n.pattern}:${n.index}`;
+    if (pitched.get(key) === !n.pitched && n.note !== null && n.note < 0x60) throw new Error(`pattern ${n.pattern} step ${n.index} is a drum under one voice and a note under another`);
+    pitched.set(key, n.pitched);
+  }
+  const used = new Set(notes.flat().map((n) => n.pattern));
+  const broken = new Set(tune.breaks.map((b) => b.pattern));
+  for (const pattern of used) {
+    if (broken.has(pattern)) continue;
+    const { events } = image.readPattern(pattern);
+    const moved = events.map((e, index): PatternEvent => (e.note !== null && pitched.get(`${pattern}:${index}`) === true ? { ...e, note: bend(e.note, tune) } : e));
+    if (moved.some((e, i) => e.note !== events[i]?.note)) image.writePattern(pattern, moved);
+  }
+  for (const { pattern, events } of tune.breaks) {
+    if (!used.has(pattern)) throw new Error(`pattern ${pattern} is not in song ${song}`);
+    const was = patternTicks(image.readPattern(pattern).events);
+    if (patternTicks(events) !== was) throw new Error(`the break for pattern ${pattern} lasts ${patternTicks(events)} ticks, the pattern ${was}`);
+    image.writePattern(pattern, events);
+  }
+  for (const { instrument, set } of tune.instruments) image.writeInstrument(instrument, { ...image.readInstrument(instrument), ...set });
+  return image.file();
 }

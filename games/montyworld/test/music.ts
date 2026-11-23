@@ -14,17 +14,19 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/music.ts
  */
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { parsePsid, SidTune } from '../../../packages/c64kit/src/sid/psid';
 import { MOTR } from '../../montyotr/src/motr';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
-import { encodePattern, INSTRUMENT_COUNT, patternTicks, PATTERN_COUNT, TuneImage } from '../src/music/hubbard';
+import { encodePattern, INSTRUMENT_COUNT, patternTicks, PATTERN_COUNT, songNotes, TuneImage } from '../src/music/hubbard';
 import { MOSCOW } from '../src/music/moscow';
-import { GAME_SONG, noteNumber, retune, SCALE_DEGREES, type RegionTune } from '../src/music/region-tune';
+import { bend, GAME_SONG, noteNumber, retune, SCALE_DEGREES, type RegionTune } from '../src/music/region-tune';
 import { tuneForRoom } from '../src/music/regions';
-import { checkNotes } from './music-kit';
 
+/** The sha256 of Moscow's .sid as the version made it before the consonance gate (commit 2147f12): what Chris approved. */
+const APPROVED_MOSCOW = '595af5c581b0191a57e8f93887c342c56a0aa8b8617ea1f8b7db76e477c92115';
 const original = Uint8Array.from(fs.readFileSync('games/montyotr/assets/monty_on_the_run.sid'));
 const before = Uint8Array.from(original);
 const moscow = retune(original, MOSCOW);
@@ -52,12 +54,15 @@ const equal = <T>(x: ArrayLike<T>, y: ArrayLike<T>) => x.length === y.length && 
 // ---- what moved ----------------------------------------------------------------------------------
 const song = GAME_SONG;
 const used = new Set(a.voices(song).flat());
+const breakPatterns = new Set(MOSCOW.breaks.map((x) => x.pattern));
 {
-  // the notes: the introduction untouched, a lead note bent only where consonant with the bass (music-kit.ts), the break aside
-  checkNotes({
-    name: 'Moscow', tune: MOSCOW, moved: '1,4,6,9', breakClashes: 3, // Korobeiniki's passing notes against the bass, as Chris approved it
-    scale: { text: 'lands on the minor scale\'s own note (A, Bb, C or Eb)', ok: (degree) => [2, 3, 5, 8].includes(degree) },
-  }, a, b);
+  // Moscow is kept exactly as Chris approved it (asApproved): the file is the very bytes the version made before the consonance gate and the untouched introduction existed
+  const hash = crypto.createHash('sha256').update(moscow).digest('hex');
+  check(`Moscow's version is byte for byte the approved one (sha256 ${hash.slice(0, 12)})`, MOSCOW.asApproved === true && hash === APPROVED_MOSCOW);
+  check('every pitched note of every voice, the introduction\'s too, moved by the scale alone (no gate)', songNotes(a, song).flat().every((n) => {
+    const m = b.readPattern(n.pattern).events[n.index];
+    return breakPatterns.has(n.pattern) || (m !== undefined && m.note === (n.note !== null && n.pitched ? bend(n.note, MOSCOW) : n.note));
+  }));
 }
 
 // ---- tempo and rhythm are Hubbard's --------------------------------------------------------------

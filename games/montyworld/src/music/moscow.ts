@@ -42,4 +42,5 @@ export const MOSCOW: RegionTune = {
   shift: SHIFT,
   instruments: LEAD_INSTRUMENTS.map((instrument) => ({ instrument, set: BALALAIKA })),
   breaks: [{ pattern: 0x38, events: melody(0, KOROBEINIKI) }],
+  asApproved: true,
 };
