@@ -1,25 +1,27 @@
-import type { CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } from '../../montyotr/src/montydata';
+import type { Arrival, CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { ANDES_SPRITE, BOULDER_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { codeOf, room, type Grid, type Palette } from './layout';
+import { codeOf, fillCells, room, type Grid, type Palette } from './layout';
 
 /**
- * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "the Andes and the Amazon: the plan"): eight rooms at columns 30-32 of the exit grid (rows 2-6), entered from the
- * cargo plane's hold (the Pacific, [2,29]) and left east out of the Amazon's last room under the kapok's roots (Rio, [6,33]).
+ * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "the Andes and the Amazon: the plan"): eight rooms at columns 20-22 of the exit grid (rows 2-6), entered from the
+ * cargo plane's rear door (the Pacific, [2,19]) and left east off the kapok's crown into Rio's first room, OPEN ARMS ([5,23], entered west at rows 6-7 on floor 8).
  *
- *            col 30                    31                       32
+ *            col 20                    21                       22
  *   row 2   F1 JUMP FOR JOY                                                        (the parachute drop: two flight rooms, one under the other)
  *   row 3   F2 CONDOR COUNTRY
  *   row 4   MP1 NO PROBLLAMA         MP2 MACHU PICCHU
- *   row 5                            A1 THE AMAZON (the canopy) A2 THE AMAZON (the kapok)       (the Amazon: an open block of four, joined at nearly the full width,
- *   row 6                            A3 THE AMAZON (the river)  A4 THE AMAZON (the roots)        as Monty on the Run's sewer is, straight after the region's tightest room)
+ *   row 5                            A1 THE AMAZON (the canopy) A2 THE AMAZON (the kapok)       (the Amazon: an open block of four, as Monty on the Run's sewer is, straight after the
+ *   row 6                            A3 THE AMAZON (the river)  A4 THE AMAZON (the roots)        region's tightest room; joined at full width down each side and along the river)
  *
- * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). The route: fly the drop and land on the guardhouse's roof or the terraces (the chullo in the
- * guardhouse); see the empanada on MP1's high ledge, out of reach; down the terraces past the cuy and the llamas, east along the lane under Machu Picchu to the spitting llama at the tunnel's mouth (a wall
- * until the panpipes); up the ladder, over the condor's gap and up the hill against the boulders to the Intihuatana, where the panpipes are (a dead end); back by the ladder, or west from the plateau onto
- * MP1's high ledge for the empanada and down the terraces again (a loop); past the calmed llama through the tunnel and down the well into the canopy (tight into open); down the long liana to the sandbar
- * (the pocket west over the rotten logs); east over the vines to see the tangle in the kapok's root arch and the machete on a bough 8 rows up, out of reach; back over the vines and up the lattice to the
- * walkway, east under the anaconda to the kapok's crown, down its hollow trunk to the bough (the machete), off the bough onto the bank, the tangle cut, and out under the roots on the launch to Rio.
+ * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). The route: fly the drop past the condor to the spire and land on the guardhouse's roof or the terraces
+ * (the chullo in the guardhouse, a costume); see the empanada on MP1's high ledge, out of reach; down the terraces past the llamas and the cuy, east along the lane under Machu Picchu to the spitting llama at the
+ * tunnel's mouth (a wall until the panpipes); up the ladder, over the gap and up the hill against the boulders to the Intihuatana, where the panpipes are (a dead end); back by the ladder, or west from the plateau
+ * onto MP1's high ledge for the empanada and down the terraces again (a loop); past the calmed llama through the tunnel and down the well into the canopy (tight into open). The Amazon is crossed the long way
+ * round, as a U: down the canopy's lattice of lianas (the well's liana ends on a bough; the only way on is west along the lianas, over a trunk, and down through the canopy's floor), onto the river's west bank;
+ * east over the river (the vine, the rotten logs, the piranha) to the sandbar and on over the second river (two vines, the log, two piranhas) to the east bank; up the liana on the kapok's flank into the kapok;
+ * up its buttress boughs past the anaconda to the walkway, where the tangle on the crown's branch (the way out, seen on coming in) wants the machete that lies at the walkway's far end past the jaguar (seen from
+ * the climb, reached only from the top); back along the walkway, the tangle cut, and east along the branch into Rio.
  *
  * The flight rooms are `flights` (flight.ts), the boulders of MP2 and the leaping piranhas `rollers`, the vines of A3 and A4 `vines`, the spit at the tunnel's mouth a pulse calmed by the panpipes, the
  * rotten logs `cracks`.
@@ -52,7 +54,7 @@ export const SKY_PALETTE = {
   K: ['hullPlate', 14], R: ['mountainRock', 9], S: ['snowCap', 1],
 } as const satisfies Palette;
 
-/** The terraces (MP1): green grass lips on ochre Inca stone, the guardhouse's thatch, the brown rock of the cliff and the high ledge. */
+/** The terraces (MP1): green grass lips on ochre Inca dry-stone walls, the guardhouse's thatch, the brown rock of the cliff and the high ledge. */
 export const TERRACE_PALETTE = {
   G: ['terraceGrass', 5], W: ['incaWall', 8], T: ['thatch', 7], K: ['mountainRock', 9], P: ['stallPost', 9],
 } as const satisfies Palette;
@@ -65,14 +67,14 @@ export const PICCHU_PALETTE = {
   G: ['terraceGrass', 5], W: ['incaWall', 8], L: ['woodLadder', 7], V: ['vine', 8], T: ['tunnelStone', 9], K: ['mountainRock', 9], S: ['spitGob', 5], Q: ['hpRock', 6],
 } as const satisfies Palette;
 
-/** The canopy (A1): the leaf fringe and the low leaves, the lianas (orange: a colour of their own, nothing else in the Amazon is drawn in it), the boughs and the walkway's planks. */
+/** The canopy (A1): the leaf fringe and the low leaves, the lianas hanging and slung across (orange: a colour of their own, nothing else in the Amazon is drawn in it), the bough, a trunk's bark. */
 export const CANOPY_PALETTE = {
-  J: ['jungleLeaf', 5], V: ['vine', 8], B: ['plankBridge', 9],
+  J: ['jungleLeaf', 5], V: ['vine', 8], H: ['lianaAcross', 8], B: ['plankBridge', 9], K: ['mud', 9],
 } as const satisfies Palette;
 
-/** The kapok (A2): leaves, the walkway's planks, the trunk's bark. */
+/** The kapok (A2): leaves, the walkway's, the boughs' and the branch's planks, the liana up its flank, the tangle on the crown's branch (the trunk itself is a backdrop behind them: `KAPOK_TRUNK`). */
 export const KAPOK_PALETTE = {
-  J: ['jungleLeaf', 5], B: ['plankBridge', 9], K: ['mud', 9],
+  J: ['jungleLeaf', 5], B: ['plankBridge', 9], V: ['vine', 8], T: ['tangle', 13],
 } as const satisfies Palette;
 
 /** The river (A3): leaves, the sandbar's and the pocket's sand, the water, the logs whole, cracked and split, a vine, the fig's trunk. */
@@ -80,9 +82,9 @@ export const SANDBAR_PALETTE = {
   J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], P: ['deckBoards', 9], Q: ['plankCracked', 9], S: ['plankSplit', 9], V: ['vine', 8], K: ['mud', 9],
 } as const satisfies Palette;
 
-/** The roots (A4): leaves, sand, water, the log and the jetty, the vines, the kapok's bark, the bough, and the tangle in the root arch. */
+/** The roots (A4): leaves, sand, water, the log, the vines and the liana up the kapok, the kapok's bark. */
 export const ROOTS_PALETTE = {
-  J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], L: ['deckBoards', 9], V: ['vine', 8], K: ['mud', 9], B: ['plankBridge', 9], T: ['tangle', 13],
+  J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], L: ['deckBoards', 9], V: ['vine', 8], K: ['mud', 9],
 } as const satisfies Palette;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
@@ -97,11 +99,11 @@ export const FLIGHTS: readonly FlightSpec[] = [
 const BOULDER_COLOUR = 12;
 
 /**
- * MP2's boulders: from the hill's top at the east edge (floor 4) west along it, a fall of two rows onto the step (floor 6), along it, a fall onto the plateau (floor 8), along it into the condor's gap,
+ * MP2's boulders: rolling in from off the hill's top at the east edge (floor 4: the path starts past the picture's margin, so each is seen coming, never appearing where he stands) west along it, a fall of two rows onto the step (floor 6), along it, a fall onto the plateau (floor 8), along it into the condor's gap,
  * where they end; a pixel a frame, `every` 360 frames, three a third of that apart: one every 120 frames rolls down at him as he climbs to the Intihuatana. (A point is a boulder's top left cell: its
  * floor's row less two.)
  */
-export const BOULDER_PATH: readonly (readonly [col: number, row: number])[] = [[30, 2], [24.4, 2], [23.2, 4], [20.4, 4], [19.2, 6], [16.2, 6], [14.6, 8]];
+export const BOULDER_PATH: readonly (readonly [col: number, row: number])[] = [[34, 2], [24.4, 2], [23.2, 4], [20.4, 4], [19.2, 6], [16.2, 6], [14.6, 8]];
 export const BOULDERS_OF_PICCHU: readonly RollerSpec[] = [0, 120, 240].map((start, i): RollerSpec => ({
   room: AND.picchu, sprite: [1, 2, 6][i] ?? 1, path: BOULDER_PATH, speed: 1, every: 360, start, frames: BOULDER_POINTERS, colour: BOULDER_COLOUR,
 }));
@@ -127,12 +129,12 @@ export const ROOTS_LEAPS: readonly RollerSpec[] = [leap(AND.roots, 1, 6.5, 10.5,
 export const ROLLERS: readonly RollerSpec[] = [...BOULDERS_OF_PICCHU, ...SANDBAR_LEAPS, ...ROOTS_LEAPS];
 
 /**
- * The vines (VINE AND DANDY's, now crossed twice with a reason): A3's one, from the fig's crown at column 7 over the water between the pocket and the first log; A4's two, from the leaves under the
- * kapok's low boughs at columns 7 and 13, over the water between the sandbar, the log and the east bank. Each hangs to the height of his middle standing on the bank (row 14) and swings four or five cells either way at its tip every 96 frames; he takes hold by walking into one
+ * The vines (VINE AND DANDY's, now on the way): A3's one, from the canopy at column 9 over the water between the west bank and the first log (out of reach of the bank's liana: he is taken only by stepping to the bank's edge); A4's two, from the leaves at columns 7 and 13, over the
+ * water between the sandbar, the log and the east bank. Each hangs to the height of his middle standing on the bank (row 14) and swings four or five cells either way at its tip every 96 frames; he takes hold by walking into one
  * as it swings over the edge he stands on (a jump does not take a rope: Monty on the Run's rule) and steps off as it swings over the far side.
  */
 export const VINES: readonly VineSpec[] = [
-  { room: AND.sandbar, col: 7, top: 2, length: 13, period: 96, amplitude: 4, phase: 0, code: codeOf(SANDBAR_PALETTE, 'V') },
+  { room: AND.sandbar, col: 9, top: 2, length: 13, period: 96, amplitude: 4, phase: 0, code: codeOf(SANDBAR_PALETTE, 'V') },
   { room: AND.roots, col: 7, top: 1, length: 14, period: 96, amplitude: 5, phase: 0, code: codeOf(ROOTS_PALETTE, 'V') },
   { room: AND.roots, col: 13, top: 1, length: 14, period: 96, amplitude: 5, phase: 48, code: codeOf(ROOTS_PALETTE, 'V') },
 ];
@@ -156,8 +158,8 @@ export const LOG_CRACKS: readonly CrackSpec[] = LOGS.flatMap(([a, b]) => Array.f
 })));
 
 // ---- the key items' places -------------------------------------------------------------------------
-/** The tangle in the kapok's root arch over the jetty (A4: cols 24-25, rows 12-14, the way out to Rio): the machete cuts it away. */
-export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [12, 13, 14].flatMap((row) => [24, 25].map((col) => [row, col] as const));
+/** The tangle on the kapok's crown branch (A2: cols 25-26, rows 5-7, the way out east to Rio): the machete cuts it away. */
+export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [5, 6, 7].flatMap((row) => [25, 26].map((col) => [row, col] as const));
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -172,7 +174,14 @@ function huaynaPicchu(g: Grid, col: number, top: number, bottom: number, half: n
   }
 }
 
-const SIGN = { text: 'PERU', colour: 7 } as const;
+/** The banner on coming out of the plane into the Andes' sky (the sign that stood on the guardhouse's roof). One name row: 32 letters. */
+export const ANDES_ARRIVALS: readonly Arrival[] = [{ rooms: [AND.jump], text: 'PERU' }];
+
+/** The Inca tunnel's mouth (MP2): the lane under the lintel, cols 12-24, rows 15-17, the well (cols 19-21) in it; the torches standing on its floor against the back wall. */
+const TUNNEL = [12, 15, 24, 17] as const;
+const TORCHES: readonly (readonly [col: number, row: number])[] = [[18, 16], [23, 16]];
+/** The kapok's trunk (A2), a backdrop he climbs in front of: cols 14-16 from the crown down to the low boughs. */
+const KAPOK_TRUNK = [14, 1, 16, 15] as const;
 
 const PAINT = {
   jump(g: Grid) {
@@ -200,45 +209,49 @@ const PAINT = {
   picchu(g: Grid) {
     huaynaPicchu(g, 17, 0, 7, 9);
     g.box(0, 8, 12, 8, 'G').box(0, 9, 12, 14, 'W').clear(4, 8, 6, 14).box(5, 8, 5, 17, 'L'); // the plateau (floor 8), its ladder down to the lane in a shaft three wide
-    g.box(13, 10, 15, 10, 'G').box(13, 11, 15, 14, 'W'); // the condor's gap (floor 10)
+    g.box(13, 10, 15, 10, 'G').box(13, 11, 15, 14, 'W'); // the gap (floor 10)
     g.box(16, 8, 19, 8, 'G').box(16, 9, 19, 14, 'W'); // the plateau beyond it
     g.box(20, 6, 23, 6, 'G').box(20, 7, 23, 14, 'W').box(24, 4, 31, 4, 'G').box(24, 5, 31, 14, 'W'); // the hill's step (floor 6) and its top (floor 4), the Intihuatana's
-    g.box(11, 13, 24, 14, 'T'); // the tunnel's lintel
+    g.box(11, 13, 24, 13, 'T').box(12, 14, 24, 14, 'T'); // the tunnel's lintel, its mouth narrowing as an Inca doorway does
     g.box(25, 13, 31, 17, 'K'); // the rock the tunnel ends in
     g.box(0, 18, 31, 18, 'G').box(0, 19, 31, 19, 'W').clear(19, 18, 21, 19).box(20, 18, 20, 19, 'V'); // the lane (floor 18) and the well, its liana down into the canopy
   },
   canopy(g: Grid) {
-    g.box(0, 0, 18, 0, 'J').box(22, 0, 31, 0, 'J').box(0, 1, 3, 1, 'J').box(9, 1, 14, 1, 'J').box(26, 1, 31, 1, 'J'); // the leaf fringe (the well comes in at cols 19-21)
-    g.box(4, 2, 4, 17, 'V').box(12, 2, 12, 17, 'V').box(20, 0, 20, 19, 'V'); // the lianas: two, and the long one from the well down to the sandbar
-    g.box(5, 7, 19, 7, 'V').box(5, 12, 19, 12, 'V'); // the cross lianas
-    g.box(22, 4, 31, 4, 'B'); // the walkway (floor 4), east to the kapok
-    g.box(5, 6, 9, 6, 'B').box(13, 10, 18, 10, 'B').box(21, 14, 26, 14, 'B'); // the boughs (floors 6, 10 and 14), each off a liana
-    g.box(0, 18, 12, 19, 'J').box(16, 18, 17, 19, 'J').box(30, 16, 31, 19, 'J'); // the low leaves: open below only over the sandbar and the second log
+    g.box(0, 0, 18, 0, 'J').box(22, 0, 31, 0, 'J').box(0, 1, 3, 1, 'J').box(9, 1, 14, 1, 'J').box(26, 1, 30, 1, 'J'); // the leaf fringe (the well comes in at cols 19-21)
+    g.box(31, 0, 31, 19, 'J'); // the canopy closes east (the kapok's room is reached from the river)
+    g.box(20, 0, 20, 6, 'V').box(17, 7, 30, 7, 'B'); // the well's liana, ending on a bough (floor 7) that grows from the leaves east
+    g.box(3, 9, 16, 9, 'H').box(8, 14, 16, 14, 'H'); // the lianas slung across: under the bough's west end, and lower
+    g.box(12, 2, 12, 17, 'V').box(8, 10, 8, 13, 'V').box(16, 10, 16, 13, 'V'); // the hanging lianas through them, the long one from the leaves
+    g.box(3, 10, 3, 19, 'V'); // and the one at the west, down through the canopy's floor to the river's bank
+    g.box(6, 11, 7, 19, 'K'); // a trunk: the canopy's floor east of it does not lead west
+    g.box(0, 18, 1, 19, 'J').box(5, 18, 5, 19, 'J').box(8, 18, 30, 19, 'J'); // the low leaves (floor 18), open only round the west liana (cols 2-4)
   },
   kapok(g: Grid) {
-    g.box(0, 0, 31, 0, 'J').box(16, 1, 31, 1, 'J'); // the leaf fringe and the kapok's crown (above his head: the walkway is clear at rows 2-3)
-    g.box(0, 4, 21, 4, 'B'); // the walkway to the crown
-    g.box(22, 4, 25, 4, 'K').box(29, 4, 31, 4, 'K').box(24, 5, 25, 19, 'K').box(29, 5, 31, 19, 'K').box(22, 5, 23, 6, 'K'); // the trunk, its hollow (cols 26-28) open at the crown
-    g.box(0, 16, 23, 19, 'J'); // the low boughs: the floor is closed but for the hollow
+    g.box(0, 0, 31, 0, 'J').box(0, 1, 1, 19, 'J'); // the canopy over the kapok, the leaves west
+    g.box(18, 1, 31, 1, 'J').box(30, 2, 31, 5, 'J').box(30, 9, 31, 19, 'J'); // the crown's leaves, east round the branch's way out (rows 6-7)
+    g.box(2, 6, 15, 6, 'B'); // the walkway (floor 6), from the trunk west to its end
+    g.box(10, 14, 15, 14, 'B').box(15, 12, 20, 12, 'B').box(10, 10, 15, 10, 'B'); // the buttress boughs either side of the trunk (floors 14, 12, 10)
+    g.box(15, 8, 31, 8, 'B'); // the crown's branch (floor 8), from the trunk east to Rio
+    g.box(2, 16, 18, 19, 'J').box(22, 16, 29, 19, 'J'); // the low boughs (floor 16), open only round the liana
+    g.box(20, 14, 20, 19, 'V'); // the liana up the kapok's flank from the river (its head over the low boughs)
+    for (const [row, col] of TANGLE_CELLS) g.box(col, row, col, row, 'T'); // the tangle on the branch
   },
   sandbar(g: Grid) {
-    g.box(0, 0, 12, 1, 'J').box(0, 2, 1, 9, 'K').box(0, 10, 2, 11, 'K'); // the fig: its crown, its trunk, the root that roofs the pocket
-    g.box(0, 15, 3, 19, 'M'); // the pocket's floor (floor 15)
-    g.box(4, 16, 17, 19, 'W'); // the river
+    g.box(0, 0, 1, 1, 'J').box(5, 0, 14, 1, 'J'); // the canopy over the river, open where the canopy's liana comes down (cols 2-4)
+    g.box(0, 2, 1, 10, 'K').box(0, 11, 1, 12, 'K'); // the fig's trunk, and the root that roofs the niche under it (rows 13-14)
+    g.box(3, 0, 3, 14, 'V'); // the liana down from the canopy to the west bank
+    g.box(0, 15, 4, 19, 'M'); // the west bank (floor 15)
+    g.box(5, 16, 17, 19, 'W'); // the river
     for (const [a, b] of LOGS) g.box(a, 16, b, 16, 'P'); // the rotten logs (floor 16)
     g.box(18, 15, 31, 19, 'M'); // the sandbar (floor 15), east into the roots' room
-    g.box(20, 0, 20, 14, 'V'); // the long liana down to the sandbar
   },
   roots(g: Grid) {
-    g.box(0, 0, 23, 0, 'J').box(0, 1, 4, 1, 'J').box(9, 1, 11, 1, 'J').box(17, 1, 23, 1, 'J'); // the leaves under the kapok's low boughs
-    g.box(24, 0, 25, 11, 'K').box(29, 0, 31, 11, 'K').box(26, 7, 28, 11, 'K').clear(24, 4, 25, 6); // the trunk: its hollow (cols 26-28) down to rows 4-6, open west onto the bough
-    g.box(22, 7, 25, 7, 'B'); // the bough (floor 7)
-    g.box(18, 1, 19, 6, 'J'); // a curtain of leaves between the vines and the bough: no jump off a vine reaches it, so it is reached only down the hollow
-    g.box(22, 9, 23, 11, 'K').box(23, 8, 23, 8, 'K'); // a buttress
+    g.box(0, 0, 18, 0, 'J').box(22, 0, 25, 0, 'J').box(0, 1, 4, 1, 'J').box(9, 1, 11, 1, 'J').box(15, 1, 17, 1, 'J'); // the leaves the vines hang from (the liana goes up at cols 19-21)
+    g.box(26, 0, 31, 19, 'K'); // the kapok's trunk and roots
+    g.box(20, 0, 20, 14, 'V'); // the liana up the kapok's flank, its foot on the east bank
     g.box(0, 15, 4, 19, 'M'); // the sandbar (floor 15)
     g.box(5, 16, 17, 19, 'W').box(9, 16, 11, 16, 'L'); // the river and its log
-    g.box(18, 15, 23, 19, 'M').box(24, 15, 31, 15, 'L').box(24, 16, 31, 19, 'W'); // the east bank and the jetty over the water
-    for (const [row, col] of TANGLE_CELLS) g.box(col, row, col, row, 'T'); // the tangle in the root arch
+    g.box(18, 15, 25, 19, 'M'); // the east bank (floor 15)
   },
 } as const;
 
@@ -247,11 +260,12 @@ const LEDGE_EMPANADA = [27, 6] as const;
 
 export const ANDES_ROOMS: readonly RoomSpec[] = [
   // F1 JUMP FOR JOY: out of the plane's tail. In at the left on the ramp (floor 16: the hold's door, rows 14-15); off the ramp's end the canopy opens. An updraft (cols 9-11) lifts him to glide to the
-  // spire, the coin on its snowy tip: the first thing the new move is for. The bottom is open west of the spire: he sinks out of it into the gorge. No creature, nothing falling.
+  // spire, the coin on its snowy tip (the first thing the new move is for), a condor diving across the glide: the glide is timed. The bottom is open west of the spire: he sinks out of it into the gorge.
   room({
     id: AND.jump, cell: [2, 20], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,
     coins: [[19, 10]],
     decor: [['mistCloud', 4, 4], ['mistCloud', 24, 6], ['updraft', 9, 12], ['updraft', 9, 8]],
+    creatures: [{ who: 'condor', col: 14, row: 3, way: 'down', speed: 1, range: 72 }],
   }),
 
   // F2 CONDOR COUNTRY: the gorge, its cliffs closing in. An updraft (cols 13-15) lifts him to the overhang, where he steers onto the shelf (floor 8) for the empanada; two condors dive, one in the updraft's
@@ -264,62 +278,64 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 1, range: 96 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48 }],
   }),
 
-  // MP1 NO PROBLLAMA: Machu Picchu's terraces. The guardhouse on the top terrace (floor 8) holds the chullo; its roof's coin is for the west landing. The terraces step down east (floors 10, 12, 14), the
-  // cuy hopping over the last step, then a drop to the low path (floor 18), where two llamas graze and wink, and east under the cliff into Machu Picchu's lane. The high ledge on the cliff (floor 8) holds
-  // an empanada in plain sight, out of reach from here: it is Machu Picchu's plateau that runs out onto it, and off its west end the drop is onto the last step, so the terraces climb back to the top.
+  // MP1 NO PROBLLAMA: Machu Picchu's terraces, dry-stone walls under their grass. The guardhouse on the top terrace (floor 8), its thatch roof clear, holds the chullo; the roof's coin is for the west landing.
+  // The terraces step down east (floors 10, 12, 14): a llama grazes on the broad terrace (jumped), the cuy hops over the last step, and the second llama paces the low path (floor 18) where he drops onto it; east under
+  // the cliff into Machu Picchu's lane. The high ledge on the cliff (floor 8) holds an empanada in plain sight, out of reach from here: it is Machu Picchu's plateau that runs out onto it, and off its west
+  // end the drop is onto the last step, so the terraces climb back to the top.
   room({
     id: AND.terraces, cell: [4, 20], sector: 58, palette: TERRACE_PALETTE, paint: PAINT.terraces,
     coins: [[4, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
-    decor: [[SIGN, 1, 4]],
     creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 15, row: 10, way: 'right', speed: 1, range: 8 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
-  // MP2 MACHU PICCHU: the plateau, Huayna Picchu behind. The lane (floor 18) runs east from the terraces under the plateau into the tunnel (cols 11-24, rows 15-17 under the lintel), where the spitting
-  // llama paces the mouth: a wall until the panpipes. The ladder (col 5) climbs to the plateau (floor 8); a condor dives into the gap (cols 13-15); the hill steps up (floors 6, 4) to the Intihuatana, the
-  // panpipes by it, the boulders rolling down at him every 120 frames. The plateau runs out west onto the terraces' high ledge. In the tunnel the well (cols 19-21) drops into the canopy.
+  // MP2 MACHU PICCHU: the plateau, Huayna Picchu behind. The lane (floor 18) runs east from the terraces under the plateau into the tunnel (cols 12-24, rows 15-17 under the lintel, its back wall in the dark
+  // with two torches), where the spitting llama paces the mouth: a wall until the panpipes. The ladder (col 5) climbs to the plateau (floor 8); a cuy hops out of the gap (cols 13-15); the hill steps up (floors
+  // 6, 4) to the Intihuatana, the panpipes by it, the boulders rolling in from the east and down at him every 120 frames. The plateau runs out west onto the terraces' high ledge. In the tunnel the well (cols
+  // 19-21) drops into the canopy.
   room({
     id: AND.picchu, cell: [4, 21], sector: 59, palette: PICCHU_PALETTE, paint: PAINT.picchu,
     coins: [[30, 2], [21, 4]],
     item: { name: 'panpipes', col: 25, row: 2, sprite: ANDES_SPRITE.panpipes },
-    decor: [['intihuatana', 28, 2], ['torch', 22, 16], ['torch', 24, 16]],
-    creatures: [{ who: 'spitter', col: 11, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'condor', col: 13, row: 1, way: 'down', speed: 1, range: 56 }],
+    decor: [['intihuatana', 28, 2], ...TORCHES.map(([c, r]) => ['torch', c, r] as const), ...fillCells(PAINT.picchu, TORCHES.flatMap(([c, r]) => [[c, r], [c, r + 1]] as const), TUNNEL, 'tunnelBack')],
+    creatures: [{ who: 'spitter', col: 11, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'cuy', col: 13, row: 8, way: 'up', speed: 1, range: 40 }],
   }),
 
-  // A1 THE AMAZON, the canopy: the open block's first room, straight out of the tunnel's squeeze. The long liana from the well runs down through the walkway's gap and out at the bottom to the sandbar;
-  // two more lianas and two cross lianas make a lattice to climb in any direction, boughs (floors 6, 10, 14) in it; the walkway (floor 4) runs east to the kapok. The coin hangs at a crossing. A sloth
-  // and a toucan climb up and down. Below, the low leaves are open only over the sandbar and the second log.
+  // A1 THE AMAZON, the canopy: the open block's first room, straight out of the tunnel's squeeze. The well's liana ends on a bough; the only way on is the lattice: off the bough onto the liana slung across,
+  // west along it past the toucan and the sloth, over the trunk, and down the west liana through the canopy's floor to the river. The coin is at the head of the middle liana, the sloth's (a climb off the way).
   room({
     id: AND.canopy, cell: [5, 21], sector: AMAZON, palette: CANOPY_PALETTE, paint: PAINT.canopy,
-    coins: [[13, 11]],
-    creatures: [{ who: 'sloth', col: 3, row: 3, way: 'down', speed: 1, range: 88, colour: 15 }, { who: 'toucan', col: 16, row: 3, way: 'down', speed: 1, range: 64 }],
+    coins: [[13, 4]],
+    creatures: [{ who: 'sloth', col: 12, row: 5, way: 'down', speed: 1, range: 64, colour: 15 }, { who: 'toucan', col: 9, row: 3, way: 'down', speed: 1, range: 88 }],
   }),
 
-  // A2 THE AMAZON, the kapok: the walkway runs east to the kapok's crown (floor 4), the anaconda hanging from the canopy over it (its coin at the foot of the patrol), the jaguar pacing the crown; the
-  // hollow trunk (cols 26-28) is the only way down, and a one-way drop. Under the walkway the low boughs close the floor (floor 16): a fall off it walks west into the canopy and down to the sandbar.
+  // A2 THE AMAZON, the kapok: in from the river up the liana on its flank onto the low boughs. The crown's branch, the way east into Rio, is choked by the tangle (THE UNDERGROWTH IS TOO THICK); the machete
+  // lies at the far end of the walkway, seen from below. Up the buttress boughs either side of the trunk, the anaconda coiling up and down it across every jump, onto the branch; up from its root onto the
+  // walkway and west past the jaguar for the machete; back down onto the branch, the tangle cut, and east into Rio. A fall off the walkway lands on the low boughs, from where the climb starts again. The coin
+  // tops the climb, at the walkway's root by the trunk.
   room({
     id: AND.kapok, cell: [5, 22], sector: AMAZON, palette: KAPOK_PALETTE, paint: PAINT.kapok,
-    coins: [[17, 2]],
-    creatures: [{ who: 'anaconda', col: 16, row: 2, way: 'down', speed: 1, range: 64, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 24 }],
+    coins: [[12, 5]],
+    item: { name: 'machete', col: 2, row: 4, sprite: ANDES_SPRITE.machete },
+    decor: fillCells(PAINT.kapok, [[12, 5]], KAPOK_TRUNK, 'kapokBark'),
+    creatures: [{ who: 'anaconda', col: 14, row: 7, way: 'down', speed: 1, range: 56, colour: 13 }, { who: 'jaguar', col: 5, row: 4, way: 'right', speed: 1, range: 40 }],
   }),
 
-  // A3 THE AMAZON, the river: the long liana comes down to the sandbar (floor 15); west over the channel (a piranha leaping in it), two rotten logs that give way under a pause, and the vine from the fig
-  // to the pocket under the fig's root, where the coin and the empanada are (off the route). A dolphin leaps under the vine. East along the sandbar into the roots' room.
+  // A3 THE AMAZON, the river: down the canopy's liana onto the west bank (floor 15); east over the river: the vine from the fig, the two rotten logs that give way under a pause, the channel where a piranha
+  // leaps, onto the sandbar and east into the roots' room. The empanada is in the niche under the fig's root, a step off the bank; the coin on the second log. A dolphin rises by the bank, where he takes the vine.
   room({
     id: AND.sandbar, cell: [6, 21], sector: AMAZON, palette: SANDBAR_PALETTE, paint: PAINT.sandbar,
-    coins: [[3, 14]],
+    coins: [[14, 14]],
     item: { name: 'empanada2', col: 0, row: 13, sprite: ANDES_SPRITE.empanada },
     creatures: [{ who: 'dolphin', col: 5, row: 17, way: 'up', speed: 1, range: 40 }],
   }),
 
-  // A4 THE AMAZON, the roots: two vines and a log over the river (cols 5-17), two piranhas leaping; the coin on the log between the vines. The east bank (floor 15) and the jetty under the kapok's root arch,
-  // the tangle filling the arch (THE UNDERGROWTH IS TOO THICK); the machete in sight on the bough 8 rows up, reached only down the hollow trunk from the crown. Out east under the roots on the launch to Rio.
+  // A4 THE AMAZON, the roots: two vines and a log over the river (cols 5-17), two piranhas leaping; the coin on the log between the vines. The east bank (floor 15) under the kapok, and the liana up its flank
+  // into the kapok's room.
   room({
     id: AND.roots, cell: [6, 22], sector: AMAZON, palette: ROOTS_PALETTE, paint: PAINT.roots,
     coins: [[10, 14]],
-    item: { name: 'machete', col: 22, row: 5, sprite: ANDES_SPRITE.machete },
-    decor: [['launch', 26, 12]],
   }),
 ];
 

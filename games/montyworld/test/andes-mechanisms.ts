@@ -1,9 +1,9 @@
 /**
  * The Andes and the Amazon's mechanisms, headless, each on its own with the room's creatures out of the way unless it says so (the bot, andes.ts, plays them all together; docs/dosvidaniya-reset.md is the plan): the
  * parachute's flight (a slow sink, the dive, the steering, the updrafts' lift, a ledge to rest on, the canopy over him, only in the two flight rooms) and the drop's two landings, the boulders on Machu Picchu's hill,
- * the spitting llama and its spit (the panpipes' gate), the vines, the rotten logs, the tangle in the root arch (the machete's gate), the region's one-way pieces and its loops proved by search (the bough only down the
- * hollow, the high ledge only from the plateau, the tunnel a wall without the panpipes, the kapok's floor closed but for the hollow, every fall through the canopy's floor landing on his feet), fairness from several
- * starts, the hints, the map and a save in each room.
+ * the spitting llama and its spit (the panpipes' gate), the vines, the rotten logs, the tangle on the kapok's branch (the machete's gate), the Amazon's route proved by search (the canopy left only down its lattice,
+ * each river crossed only on its vines, the kapok entered only from the river, the machete only off the walkway), the high ledge only from the plateau, the tunnel a wall without the panpipes, the loops, fairness
+ * from several starts, the hints, the map and a save in each room.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/andes-mechanisms.ts [--record]
  */
@@ -29,11 +29,13 @@ import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
 import { PAC, PAC_SPRITE } from '../src/pacific';
+import { RIO_FIRST } from '../src/rio';
 import { SPRITE } from '../src/moscow';
 import { SIB_SPRITE } from '../src/siberia';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { newGame } from '../../shared/monty/test/bot';
+import { ROW, SCREEN } from '../../shared/monty/screen';
 import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
@@ -43,7 +45,7 @@ const DOWN = { ...NONE, down: true };
 const UP = { ...NONE, up: true };
 const JUMP = { ...NONE, fire: true };
 /** The items by where they are (the room's nth). */
-const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.roots, 0] as const, PARACHUTE = [PAC.plane, 0] as const;
+const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.kapok, 0] as const, PARACHUTE = [PAC.plane, 0] as const;
 
 /** The picture sprite 2 shows (the canopy's). */
 const sprite2 = (g: Game): number | undefined => g.vic.sprites[2]?.ptr;
@@ -61,6 +63,14 @@ const solid = (id: number, col: number, row: number) => {
 };
 /** A game standing in a room whose way out to the room at (row, col) of the exit grid is shut: what he can reach without leaving the room that way. */
 const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[row * WORLD.exitGrid.cols + col] = 0xff; return s; };
+/** A game whose room's vines are taken down (their cells as they were under them): what he can reach without riding one. */
+const noVines = (s: State): State => {
+  for (const v of s.g.vines) for (const [at, chr, colour] of v.cells) { s.g.mem[SCREEN + at] = chr; s.g.col[at] = colour; }
+  s.g.vines = [];
+  return s;
+};
+/** The room he is in has him at its cell of the exit grid (the region's rooms by their cells). */
+const cellOf = (id: number): readonly [row: number, col: number] => { const r = roomOf(id); return [r.row, r.col]; };
 
 // ---- the data -------------------------------------------------------------------------------------
 {
@@ -75,7 +85,9 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   check(`9 coins in 8 rooms, never more than 3 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 9 && coins.every((n) => n <= 3));
   const finds = ANDES_ROOMS.flatMap((r) => [...(r.cake ? ['cake'] : []), ...(r.item ? [r.item.name] : [])]);
   check(`six finds: the chullo, the panpipes, the machete and three empanadas (${finds.join(', ')})`, finds.length === 6 && ['chullo', 'panpipes', 'machete', 'empanada1', 'empanada2', 'cake'].every((n) => finds.includes(n)));
-  check('the three key items still count on the pause screen, the snacks three fewer than the six empanadas there were', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 20);
+  const index = (room: number, nth: number) => itemIndex(newGame(WORLD, false).g, room, nth);
+  check('the chullo, the panpipes and the machete count among the pause screen\'s items, the three empanadas among its snacks',
+    [CHULLO_AT, PANPIPES, MACHETE].every(([r, n]) => WORLD.progress.keyItems.includes(index(r, n))) && [[AND.terraces, LEDGE_EMPANADA], [AND.gorge, 0], [AND.sandbar, 0]].every(([r, n]) => WORLD.progress.cakes.includes(index(r ?? 0, n ?? 0))));
   check('the Amazon\'s four rooms show one name, THE RAINFOREST, as the sewer\'s six show SEWERAGE WORKS; the drop\'s and Machu Picchu\'s their own',
     [AND.canopy, AND.kapok, AND.sandbar, AND.roots].every((id) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text === 'THE RAINFOREST')
     && ([[AND.jump, 'JUMP FOR JOY'], [AND.gorge, 'CONDOR COUNTRY'], [AND.terraces, 'NO PROBLLAMA'], [AND.picchu, 'MACHU PICCHU']] as const).every(([id, t]) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text === t)
@@ -196,7 +208,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
 // ---- the vines and the rotten logs ---------------------------------------------------------------------------
 {
   const roots = VINES.filter((v) => v.room === AND.roots);
-  check(`A4's two vines hang from the leaves at columns ${roots.map((v) => v.col).join(' and ')}, half a swing apart; A3's one from the fig at column 7`, roots.length === 2 && roots[1]?.phase === 48 && VINES.find((v) => v.room === AND.sandbar)?.col === 7);
+  check(`A4's two vines hang from the leaves at columns ${roots.map((v) => v.col).join(' and ')}, half a swing apart; A3's one from the canopy at column 9`, roots.length === 2 && roots[1]?.phase === 48 && VINES.find((v) => v.room === AND.sandbar)?.col === 9);
   const grabbed = (): { s: State; frames: number } => {
     const h = at(AND.roots, 2, 15);
     h.g.rollers = [];
@@ -244,54 +256,58 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   };
   check('without the panpipes walking into the tunnel kills him; with them he walks to the well, takes hold of its liana and climbs down into the canopy', walkIn([]).died >= 0 && walkIn([PANPIPES]).died < 0 && walkIn([PANPIPES]).room === AND.canopy);
   check('the tunnel is a wall without the panpipes: the bot finds no way from the lane into the canopy (150000 states, the creatures in)', search(at(AND.picchu, 2, 18, [], false, true), (g) => g.roomId === AND.canopy, undefined, 150000, 0) === null);
-  const tangle = (holds: readonly (readonly [number, number])[]) => at(AND.roots, 20, 15, holds);
-  check('the tangle fills the root arch (six cells) until the machete is taken, then it is gone', TANGLE_CELLS.length === 6 && TANGLE_CELLS.every(([row, col]) => cell(tangle([]).g, col, row) !== 0 && cell(tangle([MACHETE]).g, col, row) === 0));
-  check('without the machete the bot finds no way from the east bank under the roots onto the jetty or out to Rio (100000 states)',
-    search(tangle([]), (g) => (g.roomId === AND.roots && colOf(g) >= 26 && g.y === standY(15)) || g.roomId === 74, undefined, 100000, 0) === null);
-  check('with it he walks through the arch onto the jetty', reach(tangle([MACHETE]), { room: AND.roots, col: 28, row: 13 }, (g) => g.roomId === AND.roots && colOf(g) >= 27 && g.y === standY(15)));
+  const tangle = (holds: readonly (readonly [number, number])[]) => at(AND.kapok, 18, 8, holds);
+  check('the tangle chokes the kapok\'s branch (six cells) until the machete is taken, then it is gone', TANGLE_CELLS.length === 6 && TANGLE_CELLS.every(([row, col]) => cell(tangle([]).g, col, row) !== 0 && cell(tangle([MACHETE]).g, col, row) === 0));
+  const past = (g: Game) => (g.roomId === AND.kapok && colOf(g) >= 27 && g.y === standY(8)) || g.roomId === RIO_FIRST;
+  check('without the machete the bot finds no way along the branch past the tangle or out to Rio, from the branch or the low boughs (100000 states each)',
+    search(tangle([]), past, undefined, 100000, 0) === null && search(at(AND.kapok, 22, 16), past, undefined, 100000, 0) === null);
+  check('with it he walks along the branch out of the kapok into Rio\'s first room', reach(tangle([MACHETE]), { room: AND.kapok, col: 31, row: 7 }, (g) => g.roomId === RIO_FIRST));
 }
 
-// ---- the one-way pieces and the loops (proofs by search) ------------------------------------------------------
+// ---- the Amazon's route and the loops (proofs by search) ------------------------------------------------------
 {
-  // the bough holds the machete: reached only down the hollow (from the crown), never from the bank, the river or the sandbar
-  const onBough = (g: Game) => g.roomId === AND.roots && g.y === standY(7) && colOf(g) >= 18 && colOf(g) <= 24;
-  check('the bough is reached only down the hollow: from the east bank, the bot finds no way up onto it (it is 8 rows up, no rope; 120000 states)', search(at(AND.roots, 20, 15), onBough, undefined, 120000, 0) === null);
-  check('from the sandbar either, the way back up into the canopy shut (100000 states)', search(shutOff(at(AND.sandbar, 22, 15), 5, 21), onBough, undefined, 100000, 0) === null);
-  check('down the hollow from the crown he lands in it and walks out onto the bough', reach(at(AND.kapok, 23, 4), { room: AND.roots, col: 21, row: 5 }, onBough));
-  check('and the hollow is one way: from the bough the bot finds no way back up into the kapok (60000 states)', search(at(AND.roots, 21, 7), (g) => g.roomId === AND.kapok, undefined, 60000, 0) === null);
+  // the canopy: the well's liana ends on the bough, and the only way on is down the lattice through the canopy's floor to the river's west bank
+  const [riverRow, riverCol] = cellOf(AND.sandbar);
+  const elsewhere = (g: Game) => g.roomId !== AND.canopy && g.roomId !== AND.picchu;
+  check('the canopy is left only down its lattice: from the well\'s bough, the way down through its floor shut, the bot finds no way into any other room of the Amazon (150000 states)',
+    search(shutOff(at(AND.canopy, 20, 7), riverRow, riverCol), elsewhere, undefined, 150000, 0) === null);
+  check('and down it he comes to the river\'s west bank, under the canopy\'s west liana', reach(at(AND.canopy, 20, 7), { room: AND.canopy, col: 3, row: 19 }, (g) => g.roomId === AND.sandbar && colOf(g) <= 5));
+  check('the canopy\'s floor is closed but round the west liana (cols 2-4), and its east side is shut (the kapok is reached from the river)',
+    [...Array(32).keys()].filter((c) => !solid(AND.canopy, c, 19)).join() === '2,3,4' && [...Array(20).keys()].every((r) => solid(AND.canopy, 31, r)));
+  // each river is crossed on its vines: without them the bot finds no way over
+  const onSandbar = (g: Game) => g.roomId !== AND.sandbar || (colOf(g) >= 18 && g.y === standY(15));
+  check('the river is crossed only on its vine: with it taken down, from the west bank the bot finds no way to the sandbar or beyond (100000 states)',
+    search(noVines(at(AND.sandbar, 2, 15)), (g) => onSandbar(g) && g.roomId !== AND.canopy, undefined, 100000, 0) === null);
+  check('the roots\' river likewise: with its two vines taken down, from the sandbar the bot finds no way to the east bank or the kapok (100000 states)',
+    search(noVines(at(AND.roots, 2, 15)), (g) => (g.roomId === AND.roots && colOf(g) >= 18 && g.y === standY(15)) || g.roomId === AND.kapok, undefined, 100000, 0) === null);
+  check('the kapok is entered only from the river: from the river\'s rooms, the liana up its flank shut, the bot finds no way into it (100000 states)',
+    search(shutOff(at(AND.roots, 20, 15), ...cellOf(AND.kapok)), (g) => g.roomId === AND.kapok, undefined, 100000, 0) === null);
+  check('the kapok\'s floor is closed but round the liana (cols 19-21)', [...Array(32).keys()].filter((c) => !solid(AND.kapok, c, 19)).join() === '19,20,21');
+  // the machete: seen from the low boughs, reached only from the branch, up onto the walkway
+  const onWalkway = (g: Game) => g.roomId === AND.kapok && g.y === standY(6);
+  check('the walkway is reached only from the branch: from the low boughs, the branch taken away, the bot finds no way onto it (100000 states)',
+    search((() => { const s = at(AND.kapok, 6, 16); for (let c = 15; c <= 31; c++) if (cell(s.g, c, 8) !== 0) s.g.setRoomChar((8 + 3) * ROW + c + 4, 0); return s; })(), onWalkway, undefined, 100000, 0) === null);
+  check('with the branch, up the boughs and onto the walkway', reach(at(AND.kapok, 6, 16), { room: AND.kapok, col: 10, row: 4 }, onWalkway));
+  check('a fall off the walkway is no trap: from the low boughs he climbs back up to the branch', reach(at(AND.kapok, 4, 16), { room: AND.kapok, col: 18, row: 6 }, (g) => g.roomId === AND.kapok && g.y === standY(8)));
   // the high ledge: reached only from Machu Picchu's plateau
   const onLedge = (g: Game) => g.roomId === AND.terraces && g.y === standY(8) && colOf(g) >= 22;
-  check('the terraces\' high ledge is out of reach from the terraces: the way east to Machu Picchu shut, the bot finds no way onto it from the top terrace (100000 states)', search(shutOff(at(AND.terraces, 6, 8), 4, 21), onLedge, undefined, 100000, 0) === null);
+  check('the terraces\' high ledge is out of reach from the terraces: the way east to Machu Picchu shut, the bot finds no way onto it from the top terrace (100000 states)', search(shutOff(at(AND.terraces, 6, 8), ...cellOf(AND.picchu)), onLedge, undefined, 100000, 0) === null);
   check('it is the plateau that runs out onto it, west from Machu Picchu', reach(at(AND.picchu, 2, 8), { room: AND.terraces, col: 27, row: 6 }, onLedge));
   check('and off its west end he drops onto the last step, from where the terraces climb back up to the top terrace (the chullo\'s, never a dead end)',
     reach(at(AND.terraces, 23, 8), { room: AND.terraces, col: 4, row: 6 }, (g) => g.roomId === AND.terraces && g.y === standY(8) && colOf(g) <= 7));
-  // the kapok's floor is closed but for the hollow
-  check('the kapok\'s floor (its bottom row) is closed but for the hollow, cols 26-28', [...Array(32).keys()].filter((c) => !solid(AND.kapok, c, 19)).join() === '26,27,28');
-  // every fall through the canopy's floor lands on his feet, never in the water
-  const openBelow = [...Array(31).keys()].filter((c) => !solid(AND.canopy, c, 19) && !solid(AND.canopy, c + 1, 19));
-  const falls = openBelow.map((c) => {
-    const s = at(AND.canopy, c, 19);
-    s.g.enemies = []; s.g.rollers = []; s.g.onRope = 0;
-    s.g.y = standY(19) - 12;
-    for (let f = 0; f < 300 && (s.g.roomId !== AND.sandbar || s.g.falling) && !s.g.onRope; f++) frame(s, NONE);
-    run(s, NONE, 4);
-    return { c, ok: !dead(s.g) && (s.g.onRope !== 0 || (s.g.roomId === AND.sandbar && (s.g.y === standY(15) || s.g.y === standY(16)))) };
-  });
-  check(`every fall through the canopy's floor (open at cols ${openBelow.join(' ')}) lands him standing on the sandbar or the second log, or on the long liana, never in the river (${falls.filter((f) => !f.ok).map((f) => f.c).join(' ') || 'all'})`,
-    openBelow.length >= 10 && falls.every((f) => f.ok));
-  // the loops
+  // the loops and the ways back
   check('Machu Picchu is a loop: the lane, the ladder up to the plateau, west onto the terraces\' high ledge, down the terraces to the low path, east into the lane again',
     reach(at(AND.picchu, 2, 18), { room: AND.picchu, col: 2, row: 6 }, (g) => g.roomId === AND.picchu && g.y === standY(8))
     && reach(at(AND.picchu, 2, 8), { room: AND.terraces, col: 27, row: 6 }, onLedge)
     && reach(at(AND.terraces, 23, 8), { room: AND.terraces, col: 24, row: 16 }, (g) => g.roomId === AND.terraces && g.y === standY(18))
     && reach(at(AND.terraces, 24, 18), { room: AND.terraces, col: 31, row: 16 }, (g) => g.roomId === AND.picchu));
-  check('the Amazon is a loop: the roots back over the vines to the sandbar, up the long liana into the canopy, the walkway east to the kapok, down the hollow into the roots',
-    reach(at(AND.roots, 20, 15), { room: AND.roots, col: 0, row: 13 }, (g) => g.roomId === AND.sandbar, 400000)
-    && reach(at(AND.sandbar, 21, 15), { room: AND.sandbar, col: 20, row: 0 }, (g) => g.roomId === AND.canopy)
-    && reach(at(AND.canopy, 23, 4), { room: AND.canopy, col: 31, row: 2 }, (g) => g.roomId === AND.kapok)
-    && reach(at(AND.kapok, 23, 4), { room: AND.kapok, col: 27, row: 19 }, (g) => g.roomId === AND.roots));
-  check('the well\'s liana goes both ways: up from the canopy into the tunnel', reach(at(AND.canopy, 22, 14, [PANPIPES]), { room: AND.canopy, col: 20, row: 0 }, (g) => g.roomId === AND.picchu));
-  check('a fall off the kapok\'s walkway is no trap: from its low boughs he walks west into the canopy and down to the sandbar', reach(at(AND.kapok, 8, 16), { room: AND.canopy, col: 28, row: 16 }, (g) => g.roomId === AND.sandbar));
+  check('the Amazon goes round as a U, and back: the river\'s west bank east to the sandbar, on to the roots\' east bank, up into the kapok; and from the kapok down to the east bank, back over both rivers and up the west liana into the canopy',
+    reach(at(AND.sandbar, 2, 15), { room: AND.sandbar, col: 31, row: 13 }, (g) => g.roomId === AND.roots, 400000)
+    && reach(at(AND.roots, 2, 15), { room: AND.roots, col: 20, row: 0 }, (g) => g.roomId === AND.kapok, 400000)
+    && reach(at(AND.kapok, 22, 16), { room: AND.kapok, col: 20, row: 19 }, (g) => g.roomId === AND.roots)
+    && reach(at(AND.roots, 22, 15), { room: AND.roots, col: 0, row: 13 }, (g) => g.roomId === AND.sandbar, 400000)
+    && reach(at(AND.sandbar, 22, 15), { room: AND.sandbar, col: 3, row: 0 }, (g) => g.roomId === AND.canopy, 400000));
+  check('the well\'s liana goes both ways: up from the canopy\'s bough into the tunnel', reach(at(AND.canopy, 20, 7, [PANPIPES]), { room: AND.canopy, col: 20, row: 0 }, (g) => g.roomId === AND.picchu));
 }
 
 // ---- fairness: from several starts (the room's timings run a while before he comes in), the crossing is there -------------------------
@@ -300,14 +316,17 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
     const ok = [0, 37, 74, 111, 148].filter((wait) => { const s = make(); run(s, NONE, wait); return reach(s, aim, goal, 400000); }).length;
     check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
   };
+  fair('the canopy\'s lattice past the toucan and the sloth, the bough to the river', () => at(AND.canopy, 20, 7, [], false, true), { room: AND.canopy, col: 3, row: 19 }, (g) => g.roomId === AND.sandbar);
+  fair('the river\'s vine and rotten logs, the west bank to the sandbar', () => at(AND.sandbar, 2, 15, [], false, true), { room: AND.sandbar, col: 20, row: 13 }, (g) => g.roomId === AND.sandbar && colOf(g) >= 18 && g.y === standY(15));
+  fair('and back', () => at(AND.sandbar, 22, 15, [], false, true), { room: AND.sandbar, col: 2, row: 13 }, (g) => g.roomId === AND.sandbar && colOf(g) <= 4 && g.y === standY(15));
   fair('the roots\' vines and log, the sandbar to the east bank', () => at(AND.roots, 2, 15, [], false, true), { room: AND.roots, col: 20, row: 13 }, (g) => g.roomId === AND.roots && colOf(g) >= 18 && g.y === standY(15));
   fair('back over them, the east bank to the sandbar', () => at(AND.roots, 20, 15, [], false, true), { room: AND.roots, col: 0, row: 13 }, (g) => g.roomId === AND.sandbar);
-  fair('the river\'s rotten logs and vine, the sandbar to the fig\'s pocket', () => at(AND.sandbar, 22, 15, [], false, true), { room: AND.sandbar, col: 2, row: 13 }, (g) => g.roomId === AND.sandbar && colOf(g) <= 2 && g.y === standY(15));
-  fair('and back', () => at(AND.sandbar, 1, 15, [], false, true), { room: AND.sandbar, col: 20, row: 13 }, (g) => g.roomId === AND.sandbar && colOf(g) >= 18 && g.y === standY(15));
+  fair('the kapok\'s boughs past the anaconda, the low boughs to the branch', () => at(AND.kapok, 6, 16, [], false, true), { room: AND.kapok, col: 18, row: 6 }, (g) => g.roomId === AND.kapok && g.y === standY(8));
+  fair('the walkway past the jaguar to the machete and back to the branch', () => at(AND.kapok, 17, 8, [], false, true), { room: AND.kapok, col: 2, row: 4 }, (g) => g.siCollected[itemIndex(g, ...MACHETE)] !== 0 && g.y === standY(6));
   fair('Machu Picchu\'s hill against the boulders, the plateau to the Intihuatana', () => at(AND.picchu, 2, 8, [], false, true), { room: AND.picchu, col: 26, row: 2 }, (g) => g.roomId === AND.picchu && colOf(g) >= 25 && g.y === standY(4));
-  fair('the terraces past the llama and the cuy to the low path', () => at(AND.terraces, 12, 12, [], false, true), { room: AND.terraces, col: 31, row: 16 }, (g) => g.roomId === AND.picchu);
-  fair('the walkway under the anaconda and past the jaguar into the hollow', () => at(AND.kapok, 2, 4, [], false, true), { room: AND.kapok, col: 27, row: 19 }, (g) => g.roomId === AND.roots);
+  fair('the terraces past the llamas and the cuy to the low path', () => at(AND.terraces, 12, 12, [], false, true), { room: AND.terraces, col: 31, row: 16 }, (g) => g.roomId === AND.picchu);
   fair('the gorge\'s condors to the shelf', () => at(AND.gorge, 6, 2, [], false, true), { room: AND.gorge, col: 24, row: 6 }, (g) => g.roomId === AND.gorge && g.y === standY(8) && colOf(g) >= 22);
+  fair('the drop\'s condor, the updraft to the spire', () => at(AND.jump, 10, 14, [], false, true), { room: AND.jump, col: 19, row: 10 }, (g) => g.roomId === AND.jump && g.y === standY(12) && colOf(g) >= 18);
 }
 
 // ---- the chullo ---------------------------------------------------------------------------------------------
@@ -330,7 +349,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[AND.picchu, 2, 18, 'THE LLAMA IS CROSS: CALM IT'], [AND.roots, 20, 15, 'THE UNDERGROWTH IS TOO THICK']] as const;
+  const wants = [[AND.picchu, 2, 18, 'THE LLAMA IS CROSS: CALM IT'], [AND.kapok, 22, 16, 'THE UNDERGROWTH IS TOO THICK']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -340,7 +359,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   run(plain, NONE, 120);
   check('ORIGINAL says only the place\'s name', rowText(plain.g) === 'MACHU PICCHU');
   check('no hint is left for what the rebuild took out (the captain, the snake)', WORLD.hints?.wanted.every((w) => !/CAPTAIN|SNAKE/.test(w.text)) ?? true);
-  for (const [item, text, col, floor] of [[CHULLO_AT, 'A CHULLO: LOOK LIKE A LOCAL', 5, 8], [PANPIPES, 'PANPIPES: MUSIC CALMS BEASTS', 27, 4], [MACHETE, 'MACHETE: HACKS THROUGH VINES', 23, 7]] as const) {
+  for (const [item, text, col, floor] of [[CHULLO_AT, 'A CHULLO: LOOK LIKE A LOCAL', 5, 8], [PANPIPES, 'PANPIPES: MUSIC CALMS BEASTS', 27, 4], [MACHETE, 'MACHETE: HACKS THROUGH VINES', 5, 6]] as const) {
     const [room, nth] = item;
     const take = at(room, col, floor, [], true);
     take.g.rollers = [];
@@ -351,13 +370,13 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[3] === 'SNACKS 0/20' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[3] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[2] === `ITEMS  0/${WORLD.progress.keyItems.length}`); // (the totals are world.ts's)
   enterRoom(s.g, AND.picchu, 0x40, standY(8));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: [0x40, 0xb2, 4, 21], [AND.terraces]: [0x40, 0xb2, 4, 20] } });
   check('in the Andes the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 
   // a save made on coming into each of the region's rooms (every key taken, the chullo on) carries on in the same room, alive
-  const spots = [[AND.jump, 1, 16], [AND.gorge, 6, 6], [AND.terraces, 5, 8], [AND.picchu, 2, 8], [AND.canopy, 24, 4], [AND.kapok, 2, 4], [AND.sandbar, 22, 15], [AND.roots, 20, 15]] as const;
+  const spots = [[AND.jump, 1, 16], [AND.gorge, 6, 6], [AND.terraces, 5, 8], [AND.picchu, 2, 8], [AND.canopy, 20, 7], [AND.kapok, 22, 16], [AND.sandbar, 2, 15], [AND.roots, 20, 15]] as const;
   const failed: number[] = [];
   const carried = spots.filter(([room, col, floor]) => {
     const a = newGame(WORLD, false);
@@ -368,7 +387,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
     const b = newGame(WORLD, false);
     restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
     run(b, NONE, 4);
-    const cut = room === AND.roots ? TANGLE_CELLS.every(([row, c]) => cell(b.g, c, row) === 0) : true;
+    const cut = room === AND.kapok ? TANGLE_CELLS.every(([row, c]) => cell(b.g, c, row) === 0) : true;
     b.g.enemies = []; b.g.enable &= 0x0f; b.g.vic.enable &= 0x0f; b.g.rollers = [];
     run(b, NONE, 60);
     const ok = cut && b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, ...CHULLO_AT);

@@ -2,8 +2,16 @@
 
 > **Rebuilt 2026-11-23 (the reset).** The region is now eight rooms, to the plan in docs/dosvidaniya-reset.md ("the Andes and the Amazon: the plan"): the drop (F1 JUMP FOR JOY, F2 CONDOR COUNTRY),
 > Machu Picchu (MP1 NO PROBLLAMA, MP2 MACHU PICCHU) and the rainforest's open block of four (A1-A4, one name: THE RAINFOREST, since the room-name font has no good Z for THE AMAZON). The rooms are
-> described in `games/montyworld/src/andes.ts`; the route, the gates and the one-way proofs in `test/andes-route.ts` and `test/andes-mechanisms.ts`. Below is the earlier thirteen-room build, kept for its history.
-> Not done here: Rio's first room must meet the rainforest's exit at [6,33] (west edge open at rows 12-14, floor 15), which is the Rio rebuild's to place.
+> described in `games/montyworld/src/andes.ts`; the route, the gates and the proofs by search in `test/andes-route.ts` and `test/andes-mechanisms.ts`. Below is the earlier thirteen-room build, kept for its history.
+>
+> **Round 1 of the reset's playtest (2026-11-23).** The region sits where the plan has it, at columns 20-22 (F1 [2,20] beside the Pacific's cargo plane at [2,19], its rear door at rows 14-15), and Rio's rebuilt block
+> sits at columns 23-28, rows 4-5, so its first room (OPEN ARMS, [5,23]) is entered west at rows 6-7 on floor 8 off the kapok's crown branch ([5,22]). The Amazon is crossed the long way round, as a U, and the
+> search proves it: the well's liana ends on a bough and the canopy is left only down its lattice (lianas slung across, drawn as vines lying along the row) through its floor at the west; each river is crossed only on
+> its vines (the river's vine, rotten logs and piranha now on the way, not a pocket's guard); the kapok is entered only up the liana on its flank from the east bank; its boughs climb either side of the trunk past the
+> anaconda to the branch and the walkway; the tangle on the branch, the way out, wants the machete at the walkway's far end past the jaguar. Smaller changes: a condor crosses F1's glide to the spire; the
+> guardhouse's PERU sign is the banner on coming out of the plane, so its thatch shows; the terraces are dry-stone; a llama paces the broad terrace and another the low path's drop point; Machu Picchu's tunnel has a
+> narrowing lintel, a dark back wall and torches that read as flames, a cuy in its gap (the condor went to the drop: no creature in three rooms), and the boulders roll in from beyond the hill's east edge (never
+> appearing on the coin's cell). The chullo stays a costume that gates nothing, counted among the items as the Pacific's lei is.
 
 Region 6 (docs/dosvidaniya-plan.md). Built 2026-11-21 from the pre-production design and its art (`games/montyworld/src/art/andes-*.ts`), after it was checked against the plan's "Lessons from Chris's play" and changed
 where it fell short (the "As built" section says where). Rows 0 (top) to 19, columns 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open at

@@ -1,6 +1,6 @@
 /**
  * The Andes and the Amazon's eight rooms as the real engine draws them (the game's own frame, Monty in it under the lei until the terraces and in the chullo from there on, the creatures, boulders and vines where they are a
- * moment in), one picture each and a contact sheet; the flight (the canopy, an updraft); the boulders on the hill through their cycle; the vines swinging; the llama before the panpipes and after; the tangle before the
+ * moment in), one picture each and a contact sheet; the flight (the canopy, an updraft); the boulders on the hill through their cycle; the vines swinging; the llama before the panpipes and after; the tangle on the kapok's branch before the
  * machete and after; and each room beside one of Monty on the Run's (compare-*.png: the canopy beside the sewer it is modelled on). Pictures only: nothing is checked.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/andes-shots.ts <out-dir>
@@ -24,9 +24,9 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: AND.gorge, name: '57-condor-country', col: 6, floor: 8, frames: 30, compare: 0x1f },
   { room: AND.terraces, name: '58-no-probllama', col: 12, floor: 12, frames: 40, compare: 0x04 },
   { room: AND.picchu, name: '59-machu-picchu', col: 2, floor: 8, frames: 100, compare: 0x13 },
-  { room: AND.canopy, name: '62-the-amazon-canopy', col: 23, floor: 4, frames: 40, compare: 0x15 },
-  { room: AND.kapok, name: '63-the-amazon-kapok', col: 3, floor: 4, frames: 40, compare: 0x18 },
-  { room: AND.sandbar, name: '66-the-amazon-river', col: 22, floor: 15, frames: 40, compare: 0x16 },
+  { room: AND.canopy, name: '62-the-amazon-canopy', col: 20, floor: 7, frames: 40, compare: 0x15 },
+  { room: AND.kapok, name: '63-the-amazon-kapok', col: 16, floor: 16, frames: 40, compare: 0x18 },
+  { room: AND.sandbar, name: '66-the-amazon-river', col: 2, floor: 15, frames: 40, compare: 0x16 },
   { room: AND.roots, name: '65-the-amazon-roots', col: 2, floor: 15, frames: 40, compare: 0x17 },
 ];
 
@@ -45,11 +45,11 @@ contactSheet(out, 'sheet.png', pics);
 
 contactSheet(out, 'boulders.png', [10, 60, 120, 180, 240, 300].map((frames) => placed({ room: AND.picchu, col: 2, floor: 8, frames, worn: chullo }).px));
 contactSheet(out, 'vines.png', [5, 25, 45, 65, 85, 105].map((frames) => placed({ room: AND.roots, col: 2, floor: 15, frames, worn: chullo }).px));
-const panpipes = itemIndex(probe, AND.picchu, 0), machete = itemIndex(probe, AND.roots, 0);
+const panpipes = itemIndex(probe, AND.picchu, 0), machete = itemIndex(probe, AND.kapok, 0);
 savePng(out, 'llama-before.png', placed({ room: AND.picchu, col: 4, floor: 18, frames: 40, worn: chullo }).px);
 savePng(out, 'llama-after.png', placed({ room: AND.picchu, col: 4, floor: 18, frames: 40, worn: chullo, items: [panpipes] }).px);
-savePng(out, 'tangle-before.png', placed({ room: AND.roots, col: 20, floor: 15, frames: 40, worn: chullo }).px);
-savePng(out, 'tangle-after.png', placed({ room: AND.roots, col: 20, floor: 15, frames: 40, worn: chullo, items: [machete] }).px);
+savePng(out, 'tangle-before.png', placed({ room: AND.kapok, col: 20, floor: 8, frames: 40, worn: chullo }).px);
+savePng(out, 'tangle-after.png', placed({ room: AND.kapok, col: 20, floor: 8, frames: 40, worn: chullo, items: [machete] }).px);
 
 // the parachute: out of the plane's door, off the ramp, up the first updraft, gliding on to the spire
 {

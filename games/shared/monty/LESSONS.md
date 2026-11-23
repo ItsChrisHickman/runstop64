@@ -183,6 +183,9 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **A vine or rope holds him standing only where it reaches his middle row** (the floor's row less one): a tip that only touches his head stops him without carrying him.
 - **A jump off a vine's upper half carries about five cells:** what must be out of reach (a bough reached only one way) is farther than that from every vine's swing, or shielded (a curtain of leaves).
 - **Prove every one-way piece with the bot's search, not by eye** (`andes-mechanisms.ts`: the bough only down the hollow, the high ledge only from the plateau): the search found both ways round a first layout that looked closed.
+- **An open block's route is made by its ways out, not by its art** (the Amazon's first build let the well's liana step onto a walkway east, and the whole river was optional): give each room of the block only the exits the route wants (the canopy's floor open round one liana, the kapok entered only up the liana from the river, the east side of the canopy shut), then prove it by search with each crossing taken away (the vines taken down, a room's way shut).
+- **A rope slung across a room needs a glyph that lies along the row:** the hanging rope's glyph repeated sideways reads as a fence of spikes (the canopy's first lattice), a hazard, not a thing to climb.
+- **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
 
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 

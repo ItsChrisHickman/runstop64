@@ -7,27 +7,27 @@
 import { tile } from './tiles';
 
 export const ANDES_TILES = {
-  /** Inca masonry: tight courses of dressed blocks, their joints broken. Solid. */
+  /** Inca dry-stone masonry: big fitted stones of no one size, their joints jogging and their corners rounded, no mortar and no courses (not bricks). Solid. */
   incaWall: tile('incaWall', 1, 12, [
+    '.#####.#',
+    '######.#',
+    '#####..#',
+    '.###.##.',
+    '....####',
     '###.####',
-    '###.####',
-    '###.####',
-    '........',
-    '##.#####',
-    '##.#####',
-    '##.#####',
-    '........',
+    '###.###.',
+    '.##..#..',
   ]),
-  /** A terrace's grass lip along the top of a stone wall: tufts, then the stone's first courses. Solid. */
+  /** A terrace's grass lip along the top of a dry-stone wall: tufts, then the fitted stones under them. Solid. */
   terraceGrass: tile('terraceGrass', 1, 13, [
     '.#.#..#.',
     '########',
     '########',
-    '###.####',
-    '###.####',
-    '........',
-    '##.#####',
-    '##.#####',
+    '.#####.#',
+    '#####..#',
+    '.###.##.',
+    '....####',
+    '###.###.',
   ]),
   /** Mountain rock: grey strata broken by long diagonal cracks. Solid. */
   mountainRock: tile('mountainRock', 1, 11, [
@@ -150,16 +150,16 @@ export const ANDES_TILES = {
     '########',
     '........',
   ]),
-  /** A porthole in the hull: a ring on the plating. Solid. */
-  porthole: tile('porthole', 1, 1, [
+  /** A liana slung across the canopy: a thick stem lying along the row, a leaf above and below it in turn, so it reads as a vine to climb along (the hanging `vine` stands upright). Climbable. */
+  lianaAcross: tile('lianaAcross', 3, 5, [
+    '........',
+    '.##...#.',
+    '..#...##',
     '########',
-    '##....##',
-    '#.####.#',
-    '#.#..#.#',
-    '#.#..#.#',
-    '#.####.#',
-    '##....##',
     '########',
+    '#...#...',
+    '##..##..',
+    '........',
   ]),
   /** The deck's boards, with the seams. A floor. */
   deckBoards: tile('deckBoards', 2, 9, [

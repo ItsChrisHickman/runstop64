@@ -38,6 +38,11 @@ export const RETIRED: Readonly<Record<number, number>> = {
   76: 75, // FLOAT YOUR BOAT: merged into THE SAMBADROME
 };
 
+/** Where a kept room that takes the saves of cut rooms is come into, when that is not its west end, low (Rio's OPEN ARMS: high on the canopy, entered from the Amazon; its forest floor is the marmoset's). */
+const WAY_IN: Readonly<Record<number, { col: number; floor: number }>> = {
+  71: { col: 1, floor: 8 },
+};
+
 const PLAY_COL = 4, COLS = 32, ROWS = 20;
 /** Monty's x (halved) and y standing at a playfield column on a floor row, as the engine places him. */
 const x2At = (col: number) => 0x0c + (col + PLAY_COL) * 4;
@@ -106,9 +111,10 @@ export function fromFormat1(data: MontyData, s: MontySave): MontySave {
     place.exitCol = cell % data.exitGrid.cols;
     const was = FORMAT1_ROOMS.findIndex((v, k) => k % 2 === 0 && v === s.roomId);
     const changed = roomId !== s.roomId || was < 0 || FORMAT1_ROOMS[was + 1] !== cellsHash(data.roomDef(roomId).cells);
-    // (a cut room's place means nothing in the kept one: he carries on at its west end, low, where a way in usually is; a changed room's, as near his place as he can stand)
+    // (a cut room's place means nothing in the kept one: he carries on where the kept room is come into (`WAY_IN`), else at its west end, low, where a way in usually is; a changed room's, as near his place as he can stand)
     const cut = roomId !== s.roomId;
-    const spot = changed ? standingPlace(data, roomId, cut ? 0 : colAt(s.x2), cut ? ROWS - 1 : floorAt(s.y)) : null;
+    const way = WAY_IN[roomId] ?? { col: 0, floor: ROWS - 1 };
+    const spot = changed ? standingPlace(data, roomId, cut ? way.col : colAt(s.x2), cut ? way.floor : floorAt(s.y)) : null;
     if (spot) { place.x2 = x2At(spot.col); place.y = yAt(spot.floor); }
   }
   const out: MontySave = { ...s, ...place, roomId: cell >= 0 ? roomId : s.roomId, coins, items };

@@ -15,13 +15,18 @@ function cloud(colour = 1, name = 'cloud'): NewDecor {
   return decor(name, 4, 2, r, colour);
 }
 
-/** A great cloud bank. 6 x 2 characters. */
-function cloudBig(): NewDecor {
-  const r = new Raster(48, 16);
-  r.ellipse(9, 10, 9, 5); r.ellipse(22, 7, 10, 7); r.ellipse(36, 8, 9, 6); r.ellipse(43, 11, 5, 4); r.rect(3, 10, 46, 14);
-  r.rect(0, 13, 47, 15, false);
-  r.rect(7, 6, 10, 6, false); r.rect(20, 2, 24, 2, false); r.rect(34, 4, 37, 4, false);
-  return decor('cloudBig', 6, 2, r, 1);
+/** The inside of the Inca tunnel: the joints of the back wall's fitted stones, faint in the dark behind him (lines only, the stone itself unlit), dimmer than the stone he walks under. 1 x 1 character (a backdrop). */
+function tunnelBack(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(0, 3, 7, 3); r.rect(5, 0, 5, 2); r.rect(2, 4, 2, 7);
+  return decor('tunnelBack', 1, 1, r, 11);
+}
+
+/** The kapok's trunk behind the boughs and the walkway it carries: grey bark in long vertical ridges, darker than anything he stands on (he climbs in front of it). 1 x 1 character (a backdrop). */
+function kapokBark(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(1, 0, 1, 7); r.rect(4, 0, 4, 4); r.rect(6, 3, 6, 7);
+  return decor('kapokBark', 1, 1, r, 11);
 }
 
 /** An updraft: three S-shaped wisps of air rising in a column, each a stroke of cloud. 3 x 4 characters. */
@@ -91,13 +96,13 @@ function signBoard(): NewDecor {
   return decor('signBoard', 3, 2, r, 9);
 }
 
-/** A torch in a wall bracket: a flame on a stick. 1 x 2 characters. */
+/** A torch standing on a tunnel's floor: a tall flame with tongues licking up, yellow at its tips over an orange heart, in an iron cup on a short pole. 1 x 2 characters. */
 function torch(): NewDecor {
   const r = new Raster(8, 16);
-  r.triangle(4, 0, 1, 6, 7, 6); r.ellipse(4, 5, 3, 2);
-  r.rect(3, 5, 4, 5, false);
-  r.rect(3, 7, 4, 15); r.rect(1, 12, 6, 13);
-  return decor('torch', 1, 2, r, ['8', '9']);
+  r.ellipse(3.5, 10, 3, 4); r.triangle(3, 0, 1, 9, 6, 9); r.triangle(6, 3, 4, 9, 7, 9); r.triangle(0, 4, 0, 9, 3, 9); // the flame and its tongues
+  r.rect(3, 9, 4, 11, false); // its hot heart
+  r.rect(1, 13, 6, 13); r.rect(2, 14, 5, 14); r.rect(3, 15, 4, 15); // the cup and its stick
+  return decor('torch', 1, 2, r, ['7', '8']);
 }
 
 /** The launch that takes passengers down to the sea: a short hull, a cabin, a tall funnel and a pennant. 6 x 3 characters. */
@@ -112,10 +117,10 @@ function launch(): NewDecor {
 }
 
 export const ANDES_DECOR = {
-  skyCloud: cloud(),
+  kapokBark: kapokBark(),
   /** The Andes' cloud: the same puffy shape in dark grey, so a sky stays calm and nothing white sits behind him. */
   mistCloud: cloud(11, 'mistCloud'),
-  skyCloudBig: cloudBig(),
+  tunnelBack: tunnelBack(),
   updraft: updraft(),
   intihuatana: intihuatana(),
   fern: fern(),
