@@ -313,8 +313,9 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(2, 2, 3, 2, 'K').box(12, 2, 14, 2, 'K').box(24, 2, 27, 2, 'K'); // the roof, ragged
       g.box(2, 17, 29, 17, 'S').box(2, 18, 29, 19, 'F').clear(19, 17, 22, 19).box(PINE.cols[0], 15, PINE.cols[1], 19, 'P'); // the floor, the gap and the pine's top in it
       g.box(28, 3, 29, 12, 'I'); // the frozen waterfall down the east wall
-      g.box(25, 15, 27, 15, 'L').box(22, 13, 24, 13, 'L').box(25, 11, 27, 11, 'L'); // the stair up to the bridge
-      g.box(4, 9, 26, 9, 'L'); // the ice bridge
+      // the stair up to the bridge and down again: no ledge under another's end, so a walk off each end lands on the next (a ledge is a floor from above only)
+      g.box(23, 15, 25, 15, 'L').box(26, 13, 27, 13, 'L').box(23, 11, 25, 11, 'L');
+      g.box(4, 9, 21, 9, 'L'); // the ice bridge
       g.box(22, 7, 24, 7, 'L').box(17, 5, 21, 5, 'L'); // the ledges up to the high stash
     },
     coins: [[13, 8]],
