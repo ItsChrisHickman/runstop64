@@ -115,7 +115,8 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   const bad: string[] = [];
   const own = (room: number, col: number, row: number): boolean => room === SIB.sleeper
     ? col === 22 || col === 23 || ((col < 6 || col > 25) && row >= 3 + ((col < 6 ? col : 31 - col) >> 1))
-    : room === SIB.coal && (col === 24 || (row <= 1 && ((col >= 19 && col <= 22) || (col >= 26 && col <= 29))));
+    : room === SIB.coal && (col === 24 || (col === 31 && row >= 3) || (row <= 1 && ((col >= 19 && col <= 22) || (col >= 26 && col <= 29))));
+  // (the tender's col 31 is the join's `shut` edge to the lake, until the lake moves east for the fourth car)
   for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal]] as const) {
     const s = at(room, 8, 17);
     for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
@@ -153,6 +154,7 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   const s = at(SIB.pines, 8, 17);
   run(s, 60);
   check('a room that is not the train\'s has no character animation but the game\'s own', s.g.charAnims.length === 0);
-  check('Monty on the Run has none', MOTR.charAnims.length === 0 && WORLD.charAnims.every((a) => new Set<number>([ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal]).has(a.room)));
+  // (other regions animate characters of their own now: Japan's trains, Rio's grill and dancers; only Monty on the Run must have none)
+  check('Monty on the Run has none, and every train room animates', MOTR.charAnims.length === 0 && [ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal].every((r) => WORLD.charAnims.some((a) => a.room === r)));
 }
 finish();
