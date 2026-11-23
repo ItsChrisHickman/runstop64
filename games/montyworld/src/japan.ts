@@ -209,7 +209,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       { who: 'jpLanternGhost', col: 24, row: 2, way: 'right', speed: 1, range: 32 },
       { who: 'jpLuckyCat', col: 24, row: 15, way: 'right', speed: 1, range: 32 },
     ],
-    crushers: [{ col: 12, row: 12, height: 5, chr: 0x22 }],
+    crushers: [{ col: 12, row: 12, height: 5 }],
   }),
 
   // D THE CROSSING: the crossing. In from the street low or on the overpass (high). The street runs between the zebra and the crowd to the subway's gap (the rope down to the platform); the overpass runs

@@ -256,7 +256,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     item: { name: 'machete', col: 28, row: 10, sprite: ANDES_SPRITE.machete },
     decor: [['torch', 7, 16], ['torch', 17, 16], ['idol', 3, 16], ['idol', 14, 16]],
     creatures: [{ who: 'caveBat', col: 12, row: 6, way: 'right', speed: 2, range: 50 }],
-    crushers: [{ col: 22, row: 11, height: 7, chr: 0x22 }],
+    crushers: [{ col: 22, row: 11, height: 7 }],
   }),
 
   // B THE RIVER QUEEN: the riverboat, a side view. In by the rope from the forest on the jetty at the left (floor 16), a plank across to the cargo deck (floor 15) under the cabin: a ladder at its foot (col 7) goes up to the top deck (floor 8:

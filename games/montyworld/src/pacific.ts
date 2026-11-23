@@ -189,7 +189,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     item: { name: 'cutters', col: 5, row: 14, sprite: PAC_SPRITE.cutters },
     decor: [['pacFunnel', 9, 7], ['pacBridge', 14, 8], ['pacAnchor', 5, 9], ['pacLifeRing', 25, 9], ['pacEngineBlock', 23, 15], ['pacGauge', 22, 14]],
     creatures: [{ who: 'pacParrot', col: 6, row: 5, way: 'right', speed: 1, range: 130 }],
-    crushers: [{ col: 11, row: 13, height: 5, chr: 0x22 }, { col: 19, row: 13, height: 5, chr: 0x22 }],
+    crushers: [{ col: 11, row: 13, height: 5 }, { col: 19, row: 13, height: 5 }],
   }),
 
   // B BOX CLEVER: the bow in section. Two lanes in at the left (the deck, floor 11; the hold, floor 18). The deck is a canyon of containers (floors 9, 7, 9), the crane's crate sweeping the deck past them to the bow, where the ramp is chained

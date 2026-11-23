@@ -125,3 +125,5 @@ most care; the reward show and the title show them off.
   bug"): at the last safe place he stood there, else its way in; if that is deadly (an entry that drops into danger), at the
   nearest place in the room he can stand; then a moment's grace. Never a previous-room fallback, in any game
   (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole and Auf Wiedersehen Monty).
+
+- **A lone Mole Crusher must be drawn in the first glyph bank ($10).** The engine animates the first crusher of a room on $10 and a second, only in a room of two, on $22; a lone one at $22 stood still (Moscow, Andes, Pacific, Japan). `crusherChars` in `games/shared/monty/rooms.ts` now picks the bank from the crusher's place in its room, and `montyworld/test/crushers.ts` checks that every crusher moves.

@@ -256,7 +256,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       { who: 'matryoshka', col: 23, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 5, row: 7, way: 'right', speed: 1, range: 36 },
     ],
-    crushers: [{ col: 10, row: 10, height: 7, chr: 0x10 }], // (hung from the gallery over it, as Monty on the Run's hang from their ceilings)
+    crushers: [{ col: 10, row: 10, height: 7 }], // (hung from the gallery over it, as Monty on the Run's hang from their ceilings)
   }),
 
   // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), ending at the down
@@ -302,6 +302,6 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     item: { name: 'ushanka', col: 12, row: 13, sprite: SPRITE.ushanka },
     decor: [['metroSign', 3, 14], ['bench', 14, 15], ['chandelier', 6, 3], ['stationClock', 24, 3]],
     creatures: [{ who: 'babushka', col: 14, row: 7, way: 'right', speed: 1, range: 36 }],
-    crushers: [{ col: 6, row: 12, height: 5, chr: 0x22 }],
+    crushers: [{ col: 6, row: 12, height: 5 }],
   }),
 ];

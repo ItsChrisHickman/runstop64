@@ -353,7 +353,7 @@ export const ROOMS: readonly RoomSpec[] = [
     ],
     coins: [[3, 16], [27, 16]],
     cake: [18, 18], // between the crushers
-    crushers: [{ col: 12, row: 14, height: 6, chr: 0x10 }, { col: 24, row: 14, height: 6, chr: 0x22 }],
+    crushers: [{ col: 12, row: 14, height: 6 }, { col: 24, row: 14, height: 6 }],
   },
   // $3D: the playground: the vault (up to the warp zone)
   {

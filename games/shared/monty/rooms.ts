@@ -61,8 +61,8 @@ export interface RoomSpec {
   item?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly DecorSpec[];
   enemies?: readonly EnemySpec[];
-  /** Mole Crushers (up to two): screen column and row of the shaft's top, its height, its characters ($10 or $22). */
-  crushers?: readonly { col: number; row: number; height: number; chr: 0x10 | 0x22 }[];
+  /** Mole Crushers (up to two): screen column and row of the shaft's top and its height (the first is drawn in the glyph bank at $10, the second at $22: `crusherChars`). */
+  crushers?: readonly { col: number; row: number; height: number }[];
   /** The room's teleporter (one, as in the original's rooms). */
   teleporter?: {
     col: number; row: number; height: number; colour: number;
@@ -146,6 +146,11 @@ export const NO_ROOMS: BaseRooms = {
 };
 
 /** The frame base of the cupcake in si_spawn_tbl (sprite pointer $91). */
+/**
+ * The characters a room's nth crusher is drawn in. The engine animates the first crusher on the glyph bank at 0x10 and, only when a room
+ * has two, the second on the bank at 0x22 (`piledriverAnimate`): a lone crusher drawn in 0x22 never moves. So the data does not choose.
+ */
+const crusherChars = (nth: number): 0x10 | 0x22 => (nth === 0 ? 0x10 : 0x22);
 const CUPCAKE_FRAME = 3;
 /** si_spawn_tbl's frame base for a sprite pointer (the table adds $8E). */
 const frameBase = (sprite: number) => (sprite - 0x8e) & 0xff;
@@ -243,7 +248,7 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,
     decorTypes: [...base.decorTypes, ...signs.map((s) => signType(s, bank))],
-    piledriverCfg: merged(base.piledriverCfg, (r) => (r.crushers ?? []).map((p) => [r.id, p.col, p.row, p.height, p.chr])),
+    piledriverCfg: merged(base.piledriverCfg, (r) => (r.crushers ?? []).map((p, i) => [r.id, p.col, p.row, p.height, crusherChars(i)])),
     teleporterCfg: Uint8Array.from([...base.teleporterCfg, ...tele.flatMap(({ id, t }) => [id, t.col, t.row, t.height, t.colour])]),
     teleporterDests: Uint8Array.from([...base.teleporterDests, ...tele.flatMap(({ t }) => [t.to.x2, t.to.y, t.to.exitCol, t.to.mapRow])]),
     warpFound: new Map(tele.map(({ id, t }) => [id, t.found ?? []])),

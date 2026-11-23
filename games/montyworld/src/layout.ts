@@ -54,7 +54,7 @@ export interface MoscowRoom {
   decor?: readonly (readonly [WorldDecor | { text: string; colour: number }, col: number, row: number])[];
   creatures?: readonly Creature[];
   /** Mole Crushers: the shaft's top cell, its height, its characters. */
-  crushers?: readonly { col: number; row: number; height: number; chr: 0x10 | 0x22 }[];
+  crushers?: readonly { col: number; row: number; height: number; }[];
 }
 
 /** The first creature type of Moscow's in the enemy bank (Monty on the Run's are 8-34). */
