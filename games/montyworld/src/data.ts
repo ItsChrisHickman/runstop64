@@ -243,6 +243,7 @@ export const WORLD: MontyData = {
   // he starts on the platform at the left, facing right, on the floor (row 17)
   start: { mapRow: 1, exitCol: 0, x2: 0x28, y: 0xc2, facing: 0x01 },
   untravellable: [],
+  ropeHoldRooms: [SIB.yeti], // (jumping up the pine into the cave, he holds it there)
 
   kit: [],
   itemSprites,

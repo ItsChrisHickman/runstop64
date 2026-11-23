@@ -88,7 +88,7 @@ const decorRow = (g: Game, name: Parameters<typeof decorIndex>[0], w: number, ro
   return Array.from({ length: w }, (_, i) => chr(g, first + row * w + i)).join('|');
 };
 for (const [name, room, pieces] of [
-  ['dining car', SIB.gravy, ['horizonDark', 'moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['horizonDark', 'smoke', 'moon']],
+  ['dining car', SIB.gravy, ['horizonDark', 'moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['smoke', 'moon']],
   ['platform', ROOM.station, ['horizon', 'wires', 'moon', 'star']],
 ] as const) {
   const first = decorChars(WORLD, room);
@@ -98,6 +98,7 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
   const first = decorChars(WORLD, room);
   return !first[decorIndex('wires')] && !first[decorIndex('horizon')];
 }));
+check('the tender\'s coal stands on plain night: no horizon behind it, only the smoke and the moon above', !decorChars(WORLD, SIB.coal)[decorIndex('horizonDark')]);
 {
   const s = at(SIB.gravy, 8, 17);
   const g = s.g;
@@ -122,7 +123,7 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
   check('the tender\'s smoke is half a round on at 16 steps and back at 32', half !== smoke0 && decorRow(s.g, 'smoke', 4, 0) === smoke0);
 }
 {
-  // nothing it draws is solid: the sky's cells (rows 2-8) are decoration characters or empty, and a room tile only where the room's own map has one (the sleeper's pine, banks and
+  // nothing it draws is solid: the sky's cells (rows 2-8) are decoration characters or empty, and a room tile only where the room's own map has one (the sleeper's pine and
   // bunker; the tender's bunker, tipple and the hill)
   const bad: string[] = [];
   for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal]] as const) {
@@ -171,8 +172,8 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
 // ---- the backdrop runs unbroken ----------------------------------------------------------------------------------
 {
   // across each car's horizon band (rows 6-8; Siberia's calm night has no poles or wires above it) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
-  // or a tile or rope of the room that stands in front of it). The tender's horizon is only the stretch between its bunker and the tipple's leg (the boards and the legs stand in front elsewhere).
-  for (const [name, room, from, to] of [['dining car', SIB.gravy, -2, 33], ['sleeper', SIB.sleeper, -2, 33], ['tender', SIB.coal, 4, 15]] as const) {
+  // or a tile or rope of the room that stands in front of it). (The tender has no horizon: its coal stands on the plain night.)
+  for (const [name, room, from, to] of [['dining car', SIB.gravy, -2, 33], ['sleeper', SIB.sleeper, -2, 33]] as const) {
     const s = at(room, 8, 17);
     const empty: string[] = [];
     const bare: readonly (readonly [number, number])[] = [];

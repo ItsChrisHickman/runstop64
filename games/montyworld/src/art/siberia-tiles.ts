@@ -40,16 +40,16 @@ export const SIBERIA_TILES = {
     '###.###.',
     '###.###.',
   ]),
-  /** A heap of coal: rounded lumps with their gaps. Solid. */
+  /** A heap of coal: black lumps, only the light on their tops and left sides lit, an arc to a lump. Solid. */
   coal: tile('coal', 1, 12, [
-    '..##..#.',
-    '.####.##',
-    '.####.##',
-    '#.##.###',
-    '####.###',
-    '#####.##',
-    '.####.#.',
-    '..##..#.',
+    '.##...##',
+    '#..#.#..',
+    '#....#..',
+    '........',
+    '...##...',
+    '..#..#.#',
+    '..#....#',
+    '........',
   ]),
   /** The mine's rock: rough granite boulders, their joints wandering, a crack or two cut through. Solid. */
   mineRock: tile('mineRock', 1, 12, [
@@ -139,16 +139,16 @@ export const SIBERIA_TILES = {
     '###.####',
     '........',
   ]),
-  /** A big pine's trunk with a branch stub each side: bark in strips and a knot. A rope's class (he climbs it). */
+  /** A big pine's trunk: bark in long plates split by wandering fissures, no rungs (a tree, not a ladder). A rope's class (he climbs it). */
   pineTrunk: tile('pineTrunk', 3, 9, [
-    '.#.##.#.',
-    '.#.##.#.',
+    '##.###.#',
+    '#.####.#',
+    '#.###.##',
     '##.##.##',
-    '.#.##.#.',
-    '.#.#..#.',
-    '.#.##.#.',
-    '##.##.##',
-    '.#.##.#.',
+    '##.#.###',
+    '#.##.###',
+    '#.###.##',
+    '##.###.#',
   ]),
   /** A locomotive's boiler: plates with a band of rivets and a black seam between. Solid. */
   boilerPlate: tile('boilerPlate', 1, 5, [

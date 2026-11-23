@@ -21,7 +21,7 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('Y: up the ice stair to the bridge, the coin in the yeti\'s lane', coin(SIB.yeti, 13, 8)),
   leg('Y: up the ledges to the ticket under the icicle', item(SIB.yeti, 0, [18, 3])),
   leg('Y to B: back down the pine', into(SIB.sleeper, 20, 19, SIB.yeti)),
-  leg('B: the coin on the roof by the bunker', coin(SIB.sleeper, 27, 7)),
+  leg('B: the coin over the roof, a jump on the way west from the pine', coin(SIB.sleeper, 16, 5)),
   leg('B to A: west along the roof', into(SIB.gravy, 0, 7, SIB.sleeper, above(10))),
   leg('A: down a hatch into the car', stands(SIB.gravy, 17, 2, 29)),
   leg('A to B: east through the open gangway, under the roof', into(SIB.sleeper, 31, 16, SIB.gravy, (g) => !above(10)(g))),

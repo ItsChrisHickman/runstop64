@@ -107,14 +107,17 @@ export function skyDecor(s: SkySpec): readonly Placed[] {
 
 /**
  * What moves in the sky: the mountains slowest (a pixel every fourth step), the pines in front of them (every second), the poles with their wires and the
- * smoke at the pace of the windows' scenery (every step); all sliding west, as the train runs east. Nothing it draws is solid. `fromCol`: as `trainAnims`; `dark`: as the room's `SkySpec`.
+ * smoke at the pace of the windows' scenery (every step); all sliding west, as the train runs east. Nothing it draws is solid. `fromCol`: as `trainAnims`; `dark`: as the room's `SkySpec`;
+ * `horizon`: false for a room whose sky has none (its `SkySpec.horizon` empty).
  */
-export function skyAnims(room: number, smoke: boolean, fromCol?: number, dark = false): readonly CharAnim[] {
+export function skyAnims(room: number, smoke: boolean, fromCol?: number, dark = false, horizon = true): readonly CharAnim[] {
   const when = fromCol === undefined ? {} : { fromCol };
   const cells = (what: WorldDecor, ...rows: readonly (readonly number[])[]) => rows.map((row) => row.map((cell) => ({ decor: decorIndex(what), cell })));
   return [
-    { kind: 'scroll', room, rings: cells(horizonOf(dark), [0, 1], [2, 3]), dx: -1, px: 1, every: 4, ...when },
-    { kind: 'scroll', room, rings: cells(horizonOf(dark), [4, 5]), dx: -1, px: 1, every: 2, ...when },
+    ...(horizon ? [
+      { kind: 'scroll', room, rings: cells(horizonOf(dark), [0, 1], [2, 3]), dx: -1, px: 1, every: 4, ...when } as const,
+      { kind: 'scroll', room, rings: cells(horizonOf(dark), [4, 5]), dx: -1, px: 1, every: 2, ...when } as const,
+    ] : []),
     ...(dark ? [] : [{ kind: 'scroll', room, rings: cells('wires', [0, 1, 2, 3], [4, 5, 6, 7]), dx: -1, px: 1, every: 1, ...when } as const]),
     ...(smoke ? [{ kind: 'scroll', room, rings: cells('smoke', [0, 1, 2, 3], [4, 5, 6, 7]), dx: -1, px: 1, every: 1, ...when } as const] : []),
   ];

@@ -367,6 +367,11 @@ export interface MontyData extends RoomTables, MontyLook {
   start: { mapRow: number; exitCol: number; x2: number; y: number; facing: number };
   /** Rooms the pause screen's travel never goes to and no save is made in (the ending's). */
   untravellable: readonly number[];
+  /**
+   * Rooms entered up a rope from the room below where a jump that carried him through the edge ends as he comes in, so he holds the rope (Do Svidaniya Monty's pine into the
+   * yeti's cave). Without it the jump's fall goes on and drops him back out of the bottom edge into the room he came from, and he bounces between the two. None in Monty on the Run.
+   */
+  ropeHoldRooms?: readonly number[];
 
   // ---- items -------------------------------------------------------------------------------------
   /** The kit Monty carries (freedom kit icons, by item): drawn on the title and the pause screen; empty for a game with none. */

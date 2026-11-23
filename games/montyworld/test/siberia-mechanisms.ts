@@ -22,7 +22,7 @@ import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER,
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, RIGHT, UP, rowText, run } from './mech-kit';
-import { piecePlace, lapFrames } from '../../montyotr/src/dragons';
+import { piecePlace, placeAt, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
 
@@ -249,18 +249,23 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
 // ---- the yeti and the icicle ---------------------------------------------------------------------------
 {
   const lap = lapFrames(YETI);
-  let steady = true, maxRight = 0, minY = 999, maxY = 0;
+  let steady = true, minY = 999, maxY = 0;
   const origin = piecePlace(YETI, 0, 0)[0] - (YETI.path[0]?.[0] ?? 0) * 8; // (sprite pixels from the playfield's left edge)
+  const places = Array.from({ length: Math.ceil(lap / 2) }, (_, i) => piecePlace(YETI, 0, i * 2));
   for (let t = 0; t < lap; t += 2) {
     const [x0, y0] = piecePlace(YETI, 0, t);
     YETI.pieces.forEach((piece, i) => {
       const [x, y] = piecePlace(YETI, i, t);
       if (!piece.rigid || Math.abs(x - x0 - piece.rigid[0]) > 0.01 || Math.abs(y - y0 - piece.rigid[1]) > 0.01) steady = false;
     });
-    maxRight = Math.max(maxRight, x0 - origin + 48); minY = Math.min(minY, y0); maxY = Math.max(maxY, y0);
+    minY = Math.min(minY, y0); maxY = Math.max(maxY, y0);
   }
+  // its right edge (playfield pixels) in its lower half (where it stands on the floor or comes down to it) and on the bridge lane
+  const rightEdge = (keep: (y: number) => boolean) => Math.max(...places.filter(([, y]) => keep(y)).map(([x]) => x - origin + 48));
+  const floorRight = rightEdge((y) => y >= maxY - 2), bridgeRight = rightEdge((y) => y <= minY + 2), anyRight = rightEdge(() => true);
   check(`the yeti's four sprites keep their places as one body round its lap of ${lap} frames`, steady && YETI.pieces.length === 4);
-  check(`its loop runs from the floor lane to the bridge lane (${((maxY - minY) / 8).toFixed(1)} rows) and never east of column ${(maxRight / 8).toFixed(1)}: the pine's gap (from ${PINE.cols[0] - 1}) and the stair are never in its way`, maxY - minY >= 8 * 6 && maxRight <= 17 * 8 + 4);
+  check(`its loop runs from the floor lane to the bridge lane (${((maxY - minY) / 8).toFixed(1)} rows); on the floor it never comes east of column ${(floorRight / 8).toFixed(1)} (the pine's gap is from ${PINE.cols[0] - 1}: he arrives safe) nor anywhere east of ${(anyRight / 8).toFixed(1)} (the stair is from 23), and on the bridge it walks to column ${(bridgeRight / 8).toFixed(1)}, over the bridge's east end where the stair comes up`,
+    maxY - minY >= 8 * 6 && floorRight <= 17 * 8 + 4 && anyRight <= 23 * 8 && bridgeRight >= 22 * 8);
   const s = at(SIB.yeti, 10, 17);
   let died = -1;
   for (let f = 0; f < lap * 4 && died < 0; f++) { frame(s, NONE); if (dead(s.g)) died = f; }
@@ -300,6 +305,22 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
   check('and back down from the ticket: over the bridge, down the stair, into the gap and down the pine into the sleeper (a dead end, never a trap)',
     search(at(SIB.yeti, 18, 5, [TICKET]), (g) => g.roomId === SIB.sleeper && !g.freeze && !g.script, [{ room: SIB.yeti, col: 20, row: 19 }], 400000, 1.5) !== null);
   check('the bot finds the way from the pine\'s top over the stair and the bridge to the ticket', search(at(SIB.yeti, 23, 17), (g) => g.roomId === SIB.yeti && g.siCollected[itemIndex(g, SIB.yeti, 0)] !== 0, [{ room: SIB.yeti, col: 18, row: 3 }], 400000, 1.5) !== null);
+  {
+    // the way to the ticket goes through the yeti's lane: held still on the bridge's east end, it shuts the way (he cannot get past it by walking and jumping); held on the
+    // floor, the way is open. So the ticket is taken by reading where it is, not by ignoring it.
+    const held = (pos: number) => {
+      const s = at(SIB.yeti, 23, 17);
+      frame(s, NONE);
+      const d = must(s.g.dragons[0], 'the yeti');
+      d.pos = pos; d.mode = 'rest'; d.left = 1e9;
+      return search(s, (g) => g.roomId === SIB.yeti && g.siCollected[itemIndex(g, SIB.yeti, 0)] !== 0, [{ room: SIB.yeti, col: 18, row: 3 }], 150000, 1.5) !== null;
+    };
+    const length = lap * YETI.speed;
+    const steps = Array.from({ length: Math.ceil(length) }, (_, i) => i);
+    const east = steps.filter((p) => placeAt(YETI, 0, p)[1] <= minY + 2).reduce((a, b) => (placeAt(YETI, 0, b)[0] > placeAt(YETI, 0, a)[0] ? b : a));
+    const shut = !held(east), open = held(0);
+    check(`held on the bridge's east end, the yeti shuts the way to the ticket (${shut ? 'shut' : 'open'}); held on the floor, the way is open (${open ? 'open' : 'shut'})`, shut && open);
+  }
 }
 
 // ---- the mine cart ---------------------------------------------------------------------------------------
@@ -410,6 +431,27 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
     reach(at(SIB.mine, 3, 4), { room: SIB.coal, col: 24, row: 9 }, (g) => g.roomId === SIB.coal && g.y === standY(11), 400000) !== null);
   check('the sleeper\'s pine climbs into the yeti\'s cave and the cave\'s gap lets him down it again (both ends on the trunk)',
     reach(at(SIB.sleeper, 22, 9), { room: SIB.sleeper, col: 20, row: 0 }, lands(SIB.yeti, [17]), 200000) !== null && reach(at(SIB.yeti, 23, 17), { room: SIB.yeti, col: 20, row: 19 }, lands(SIB.sleeper, [9]), 200000) !== null);
+  {
+    // the pine's join holds: up it into the cave, climbing or jumping up the trunk, and let go of the stick: he stays in the cave (a jump that carried him through the edge
+    // ends there, he holds the trunk); and down it into the sleeper and let go: he stays in the sleeper
+    const upAndRelease = (jump: boolean) => {
+      const s = at(SIB.sleeper, PINE.cols[0], CAR_ROOF);
+      frame(s, NONE);
+      s.g.tunnels = []; // (the mountain is not what this is about)
+      for (let f = 0; f < 400 && s.g.roomId === SIB.sleeper; f++) frame(s, { ...UP, fire: jump && f % 8 === 0 });
+      const arrived = s.g.roomId === SIB.yeti;
+      let left = false;
+      for (let f = 0; f < 200; f++) { frame(s, NONE); if (s.g.roomId !== SIB.yeti) left = true; }
+      return arrived && !left;
+    };
+    const down = at(SIB.yeti, PINE.cols[0], 17);
+    for (let f = 0; f < 400 && down.g.roomId === SIB.yeti; f++) frame(down, DOWN);
+    down.g.tunnels = [];
+    let back = false;
+    for (let f = 0; f < 200; f++) { frame(down, NONE); if (down.g.roomId !== SIB.sleeper) back = true; }
+    check('up the pine into the cave, climbing or jumping, and the stick let go: he stays in the cave 200 frames; down it into the sleeper and let go: he stays there',
+      upAndRelease(false) && upAndRelease(true) && down.g.roomId === SIB.sleeper && !back);
+  }
   check('the mine\'s rope goes down into the river\'s village and, no trap, up again from the bank into the mine',
     reach(at(SIB.mine, 2, 18), { room: SIB.mine, col: 5, row: 19 }, lands(SIB.border, [17]), 200000) !== null && reach(at(SIB.border, 3, 17), { room: SIB.border, col: 5, row: 0 }, lands(SIB.mine, [18]), 200000) !== null);
   {

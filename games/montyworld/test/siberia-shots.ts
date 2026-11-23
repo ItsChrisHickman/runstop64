@@ -42,7 +42,7 @@ savePng(out, 'sleeper-corridor.png', placed({ room: SIB.sleeper, col: 4, floor: 
 savePng(out, 'sleeper-ticket.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 30, worn, items: [itemIndex(newPlay().g, SIB.yeti)] }).px);
 // the tunnel mouths under way
 savePng(out, 'tunnel-gravy.png', placed({ room: SIB.gravy, col: 8, floor: 17, frames: 40 + 130 + 48 + 170, worn }).px);
-savePng(out, 'tunnel-sleeper.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 12 + 48 + 140, worn }).px);
+savePng(out, 'tunnel-sleeper.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 24 + 28 + 48 + 90, worn }).px);
 // the ice in its stages (he stands on it)
 for (const frames of [30, 70, 100]) {
   const s = newPlay();
@@ -69,7 +69,7 @@ const strip = (name: string, room: number, col: number, floor: number, frames: r
 };
 // the mountain: the portal flashing at the entry, then coming in, over the roof, going out (he is safe in the car)
 strip('strip-tunnel-gravy.png', SIB.gravy, 8, 17, [190, 235, 330, 450, 570, 690, 810, 930, 1060], true);
-strip('strip-tunnel-sleeper.png', SIB.sleeper, 4, 17, [30, 100, 200, 300, 400, 500, 600, 700, 860], true);
+strip('strip-tunnel-sleeper.png', SIB.sleeper, 4, 17, [40, 90, 140, 200, 260, 320, 400, 480, 560], true);
 // the yeti on its loop
 strip('strip-yeti.png', SIB.yeti, 25, 17, [10, 60, 110, 160, 210, 260, 310, 360, 410]);
 // the cart, from the east dock
