@@ -83,7 +83,10 @@ type Cell = readonly [col: number, row: number];
 type Piece = WorldDecor | { text: string; colour: number };
 type Placed = readonly [Piece, col: number, row: number];
 
-/** The cells the backdrops leave alone: the coins' and an item's (the item's two by two). */
+/** The cells a backdrop leaves alone: an item's two by two (a coin's cell has the backdrop: the engine draws the coin over it). */
+const itemCells = (item?: Cell, ...more: readonly Cell[]): Cell[] => keepOf([], item, ...more);
+
+/** The cells the other pieces leave alone: the coins' and an item's (the item's two by two). */
 const keepOf = (coins: readonly Cell[], item?: Cell, ...more: readonly Cell[]): Cell[] => [
   ...coins, ...(item ? ([[0, 0], [1, 0], [0, 1], [1, 1]] as const).map(([dx, dy]): Cell => [item[0] + dx, item[1] + dy]) : []), ...more,
 ];
@@ -342,7 +345,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: QUAY_COINS,
     item: { name: 'skewer1', col: QUAY_ITEM[0], row: QUAY_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintQuay, keepOf(QUAY_COINS, QUAY_ITEM), 0, 9), ...sea(paintQuay, keepOf(QUAY_COINS, QUAY_ITEM), 10, 17),
+      ...sky(paintQuay, itemCells(QUAY_ITEM), 0, 9), ...sea(paintQuay, itemCells(QUAY_ITEM), 10, 17),
       ['skyCloud', 6, 1], ['skyCloudBig', 21, 2], ['sugarloaf', 13, 5], [{ text: 'BEM-VINDO', colour: 7 }, 8, 3], ['fishingBoat', 22, 8], ['lampPost', 25, 15], ['coconutStand', 22, 15],
     ],
     creatures: [{ who: 'capoeirista', col: 16, row: 12, way: 'right', speed: 1, range: 12 }, { who: 'football', col: 12, row: 12, way: 'up', speed: 1, range: 10 }],
@@ -356,7 +359,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: LAPA_COINS,
     item: { name: 'cityKey', col: LAPA_ITEM[0], row: LAPA_ITEM[1], sprite: RIO_SPRITE.key },
     decor: [
-      ...sky(paintLapa, keepOf(LAPA_COINS, LAPA_ITEM), 0, 17),
+      ...sky(paintLapa, itemCells(LAPA_ITEM), 0, 17),
       ['skyCloud', 8, 1], ['skyCloudBig', 22, 0], ['rioPost', 11, 5], ['rioPost', 17, 5], ['rioPost', 21, 5], ['rioPost', 24, 5],
       ...[5, 9, 13, 17, 21].flatMap((col): Placed[] => [['lapaUpper', col, 8], ['lapaBase', col, 12]]),
     ],
@@ -370,7 +373,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     paint: paintSugar,
     coins: SUGAR_COINS,
     decor: [
-      ...sky(paintSugar, keepOf(SUGAR_COINS), 0, 9),
+      ...sky(paintSugar, itemCells(), 0, 9),
       ['rioPeak', 19, 9], ...Array.from({ length: 9 }, (_, i): Placed => ['pacLawn', 19 + i, 16]), ['cableStation', 12, 11], ['cableStation', 25, 5], ...cableLine(), ['rioStilts', 9, 16], ['rioStilts', 14, 16], [{ text: CLOSED_SIGN.text, colour: 2 }, CLOSED_SIGN.col, CLOSED_SIGN.row],
     ],
     creatures: [{ who: 'crab', col: 3, row: 16, way: 'right', speed: 1, range: 16 }, { who: 'vulture', col: 16, row: 1, way: 'down', speed: 1, range: 24 }],
@@ -384,7 +387,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: SUMMIT_COINS,
     item: { name: 'skewer2', col: SUMMIT_ITEM[0], row: SUMMIT_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 0, 7), ...fillCells(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), [0, 11, 31, 11], 'rioSkyLow'), ...sea(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_ITEM), 12, 13),
+      ...sky(paintSummit, itemCells(SUMMIT_ITEM), 0, 7), ...fillCells(paintSummit, itemCells(SUMMIT_ITEM), [0, 11, 31, 11], 'rioSkyLow'), ...sea(paintSummit, itemCells(SUMMIT_ITEM), 12, 13),
       ['skyCloud', 3, 1], ['pacDiamondHead', 14, 3], ['pacDiamondHead', 23, 3], [{ text: 'SUGARLOAF', colour: 7 }, 12, 2],
       ['rioScope', 13, 6], ['parasol', 15, 6], ['deckchair', 23, 7], ['rioRail', 22, 7], ['rioFlag', 26, 5],
       ['restTable', 8, 12], ['rioDinerRed', 7, 12], ['rioDinerBlue', 11, 12], ['restTable', 13, 12], ['rioDinerBlue', 12, 12], ['saladBar', 24, 12],
@@ -400,7 +403,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: ARMS_COINS,
     item: { name: 'skewer5', col: ARMS_ITEM[0], row: ARMS_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintArms, keepOf(ARMS_COINS, ARMS_ITEM), 0, 11),
+      ...sky(paintArms, itemCells(ARMS_ITEM), 0, 11),
       ['christ', 16, 0], ['skyCloud', 3, 1], ['skyCloudBig', 24, 2], ['pacPalm', 7, 2],
     ],
     creatures: [{ who: 'vulture', col: 11, row: 1, way: 'down', speed: 1, range: 40 }],
@@ -414,7 +417,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: FOREST_COINS,
     item: { name: 'skewer3', col: FOREST_ITEM[0], row: FOREST_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintForest, keepOf(FOREST_COINS, FOREST_ITEM), 0, 17),
+      ...sky(paintForest, itemCells(FOREST_ITEM), 0, 17),
       ['giantTree', 26, 2], ['fern', 2, 15], ['bromeliad', 19, 7], ['hangingVines', 5, 2], ['hangingVines', 19, 2], ['giantTree', 11, 2],
     ],
     creatures: [{ who: 'marmoset', col: 3, row: 6, way: 'right', speed: 1, range: 32 }, { who: 'macaw', col: 18, row: 2, way: 'right', speed: 1, range: 50 }],
@@ -428,7 +431,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: HILL_COINS,
     item: { name: 'skewer6', col: HILL_ITEM[0], row: HILL_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintHill, keepOf(HILL_COINS, HILL_ITEM), 0, 7),
+      ...sky(paintHill, itemCells(HILL_ITEM), 0, 7),
       ['skyCloud', 8, 1], ['skyCloudBig', 17, 0], ['church', 26, 4], ['dish', 4, 7],
       ...fitting(paintHill, keepOf(HILL_COINS, HILL_ITEM), [...houses(), ...washing()], 'K'),
     ],
@@ -458,7 +461,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     paint: paintDrum,
     coins: DRUM_COINS,
     decor: [
-      ...sky(paintDrum, keepOf(DRUM_COINS), 0, 11),
+      ...sky(paintDrum, itemCells(), 0, 11),
       [{ text: 'SAMBA', colour: 7 }, 9, 5], ['bunting', 3, 2], ['bunting', 8, 2], ['bunting', 13, 2], ['bunting', 18, 2], ['rioBalloons', 1, 5], ['rioBalloons', 27, 3],
       ['stands', 0, 12], ['rioStandsGold', 0, 14], ['stands', 0, 16], ['rioStandsGold', 24, 12], ['stands', 24, 10], ['rioStandsGold', 24, 8],
       ['surdo', 6, 14], ['surdo', 20, 14], ['rioPlumes', 13, 10], ['rioPlumes', 9, 12], ['rioPlumes', 17, 12], ['lampPost', 3, 15],
@@ -474,7 +477,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: FLOAT_COINS,
     item: { name: 'skewer4', col: FLOAT_ITEM[0], row: FLOAT_ITEM[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...sky(paintFloat, keepOf(FLOAT_COINS, FLOAT_ITEM), 0, 4),
+      ...sky(paintFloat, itemCells(FLOAT_ITEM), 0, 4),
       ...[0, 4, 8, 12, 16, 20, 24, 28].flatMap((col, i): Placed[] => [[i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 6], [i % 2 === 0 ? 'rioStandsGold' : 'stands', col, 8]]).filter(([, col]) => col > 3),
       ...run('bunting', 4, 5, 7, 4), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1], ['rioBalloons', 29, 0], [{ text: 'CARNAVAL', colour: 7 }, 12, 10],
       ['floatGalleon', HOME.galleon[0], HOME.galleon[1]], ['floatSun', HOME.sun[0], HOME.sun[1]], ['floatBird', HOME.bird[0], HOME.bird[1]], ['rioPlumes', 4, 10],
@@ -489,7 +492,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: BEACH_COINS,
     item: { name: 'bowl', col: BEACH_ITEM[0], row: BEACH_ITEM[1], sprite: RIO_SPRITE.bowl },
     decor: [
-      ...sky(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), 0, BEACH_HORIZON - 1), ...sea(paintBeach, keepOf(BEACH_COINS, BEACH_ITEM), BEACH_HORIZON, 14),
+      ...sky(paintBeach, itemCells(BEACH_ITEM), 0, BEACH_HORIZON - 1), ...sea(paintBeach, itemCells(BEACH_ITEM), BEACH_HORIZON, 14),
       ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['pacDiamondHead', 20, 8], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['parasol', 14, 16], ['deckchair', 15, 17],
     ],
   }),

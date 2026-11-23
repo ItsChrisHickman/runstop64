@@ -76,20 +76,35 @@ export const COIN_CHAR = 0x34;
 const COIN_COLOURS = [2, 4, 4, 10, 7, 1, 1, 7, 10, 4, 4];
 
 /** A collectible on the screen: where it is (a screen offset), its colour phase, and what the game knows it by. */
-export interface Collectible { at: number; phase: number; index: number }
+export interface Collectible { at: number; phase: number; index: number; /** The character it is drawn as, where that is not the coin's own (a coin over a backdrop has the backdrop in its picture). */ chr?: number }
 
 /**
  * CollectCoin: a coin character in Monty's 2 x 2 cells (his top-left cell at `base`, a screen offset) is taken: the character
  * goes. A game whose collectible is another character (the remix's coal) says which. Null when there was none; else the collectible it was (`item` null when it was not one the game counts).
  */
-export function takeCoin(mem: Uint8Array, base: number, items: readonly Collectible[], char = COIN_CHAR): { item: Collectible | null } | null {
+export function takeCoin(mem: Uint8Array, base: number, items: readonly Collectible[], char = COIN_CHAR): { item: Collectible | null; at: number } | null {
   for (const o of [ROW + 1, ROW, 1, 0]) {
     const at = (base + o) & 0x3fff;
-    if (mem[at] !== char) continue;
+    const item = items.find((x) => x.at === base + o && x.index >= 0) ?? null;
+    if (mem[at] !== (item?.chr ?? char)) continue;
     mem[at] = 0;
-    return { item: items.find((x) => x.at === base + o && x.index >= 0) ?? null };
+    return { item, at };
   }
   return null;
+}
+
+/**
+ * A coin's picture over a backdrop's (8 bytes each): the backdrop's pixels in the cell, but not touching the coin, which has a pixel of the cell's background all round
+ * it (the one colour of a cell cannot tell them apart, so the coin is told by the gap) instead of a black cell.
+ */
+export function coinOverBackdrop(coin: Uint8Array, back: Uint8Array): Uint8Array {
+  const out = new Uint8Array(8);
+  for (let y = 0; y < 8; y++) {
+    let halo = 0;
+    for (let k = Math.max(0, y - 1); k <= Math.min(7, y + 1); k++) { const row = coin[k] ?? 0; halo |= row | (row << 1) | (row >> 1); }
+    out[y] = ((back[y] ?? 0) & ~halo & 0xff) | (coin[y] ?? 0);
+  }
+  return out;
 }
 
 /** CharacterAnimation: collectibles shimmer through the colour cycle. */

@@ -111,11 +111,16 @@ export function room(r: MoscowRoom): RoomSpec {
   };
 }
 
+/** The decorations used as backdrops (`fillCells`): the engine keeps them under the room's coins and shows them where a cell is cleared. */
+const backdrops = new Set<WorldDecor>();
+export const isBackdrop = (name: string): boolean => [...backdrops].some((b) => b === name);
+
 /**
  * A one-character decoration stamped on every cell of a rectangle (columns c0-c1, rows r0-r1) that the room's paint leaves empty, except the `keep` cells (a coin, an
  * item, a pulse's cells): a backdrop (a sky's bands, a sea, a wall seen behind) at the cost of one character however many are placed.
  */
 export function fillCells(paint: (g: Grid) => void, keep: readonly (readonly [col: number, row: number])[], [c0, r0, c1, r1]: readonly [number, number, number, number], piece: WorldDecor): (readonly [WorldDecor, col: number, row: number])[] {
+  backdrops.add(piece);
   const g = new Grid();
   paint(g);
   const cells: (readonly [WorldDecor, col: number, row: number])[] = [];
