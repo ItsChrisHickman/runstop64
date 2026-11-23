@@ -92,7 +92,7 @@ export interface Entry { room: number; x2: number; y: number; facing: number }
 export interface Assists {
   /** Unlimited lives and continues (shared/lives.ts): a death takes no life. */
   lives: boolean;
-  /** No death loops: a death starts him again in the room he died in, at the last safe place he stood there, with a moment's grace. */
+  /** No death loops: a death starts him again in the room he died in, exactly where he came into it, with a moment's grace. */
   loops: boolean;
 }
 
@@ -227,10 +227,6 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   /** where Monty came into this room (a death starts him again there) */
   entry: Entry = { room: 0, x2: 0, y: 0, facing: 0x01 };
   feetFrames = 0;
-  /** The last safe place he stood in the room he is in (ENHANCED's no death loops starts him there after a death). */
-  safeSpot: Entry | null = null;
-  /** A death has put him back into this room (the safe spot is kept across the room's reload). */
-  private restarting = false;
 
   constructor() {
     this.mem.set(bankImage);
@@ -292,8 +288,6 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.roomLoads = o.roomLoads; this.enteredBy = o.enteredBy;
     this.entry = { ...o.entry };
     this.feetFrames = o.feetFrames;
-    this.safeSpot = o.safeSpot === null ? null : { ...o.safeSpot };
-    this.restarting = o.restarting;
     // the picture
     const v = this.vic, ov = o.vic;
     v.bank.set(ov.bank); v.colour.set(ov.colour);
@@ -355,8 +349,6 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.enable = 0;
     this.script = null;
     this.feetFrames = 0;
-    this.safeSpot = null;
-    this.restarting = false;
     this.facing = 0x01;
     this.stepGate = 0;
     this.animTimer = 1;
@@ -432,11 +424,10 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.enable |= 0x08;
   }
 
-  /** On his feet (standing or on a rope): where he stands, if it is safe, is the place to start again from. */
+  /** On his feet (standing or on a rope): counted. */
   private noteFeet(): void {
     if (this.gameMode || this.actionCounter || this.falling || this.montyAction) return;
     if (this.feetFrames < 100) this.feetFrames++;
-    if (this.standsSafely(this.x2, this.y)) this.safeSpot = { room: this.roomId, x2: this.x2, y: this.y, facing: this.facing };
   }
 
   /** Whether Monty put at (x2, y) in this room would stand: his cells clear of walls, a floor (or a rope) under his feet, no water or lava. */
@@ -461,9 +452,9 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     return floor || rope;
   }
 
-  /** The place in this room to start again from: where he last stood, else where he came in, else the nearest place he can stand. */
+  /** The place in this room to start again from: exactly where and how he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): Entry {
-    const here = this.safeSpot && this.safeSpot.room === this.roomId ? this.safeSpot : this.entry;
+    const here = this.entry;
     if (this.standsSafely(here.x2, here.y)) return { room: this.roomId, x2: here.x2, y: here.y, facing: here.facing };
     let best: Entry | null = null;
     let bestD = Infinity;
@@ -1090,8 +1081,6 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.roomExit = 0;
     this.entry = { room: this.roomId, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
-    if (!this.restarting || this.safeSpot?.room !== this.roomId) this.safeSpot = null;
-    this.restarting = false;
     this.onRoomLoaded(this);
   }
 
@@ -1158,13 +1147,12 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   /**
    * Back to where Monty came into the room, the creatures and the coal as the room had them. ENHANCED (no death loops): in the room he
-   * died in, at the last safe place he stood there (his way in if none; if that is deadly, the nearest place he can stand), and a
+   * died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
    * moment's grace: never in another room.
    */
   respawn(): void {
     if (this.assist.loops) {
       this.entry = this.restartSpot();
-      this.restarting = true;
       this.onRestart();
     }
     this.x2 = this.entry.x2;

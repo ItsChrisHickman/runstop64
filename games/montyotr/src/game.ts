@@ -229,10 +229,6 @@ export class Game implements MontyBody, MontyWorld {
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry;
   feetFrames = 0;
-  /** The last safe place he stood in the room he is in (ENHANCED's respawn starts him there after a death), with the room it is in. */
-  safeSpot: (Entry & { room: number }) | null = null;
-  /** A death has put him back into this room (the safe spot is kept across the room's reload). */
-  private restarting = false;
 
   constructor(readonly data: MontyData) {
     const { start } = data;
@@ -364,8 +360,6 @@ export class Game implements MontyBody, MontyWorld {
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
     this.feetFrames = 0;
-    this.safeSpot = null;
-    this.restarting = false;
     this.drawHudFrame();
     this.roomExit = 1; // RoomLoop loads the first room
     this.freeze = 1;
@@ -510,18 +504,14 @@ export class Game implements MontyBody, MontyWorld {
     if (this.showJetpack) this.montyAction = 0;
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
-    if (!this.restarting || this.safeSpot?.room !== this.roomId) this.safeSpot = null;
-    this.restarting = false;
     this.onRoomLoaded(this);
   }
 
-  /** On his feet (standing, on a rope, or in the C5): counted, and where he stands, if it is safe, is the place to start again from. */
+  /** On his feet (standing, on a rope, or in the C5): counted. */
   private noteFeet() {
     if (this.gameMode || this.actionCounter) return;
     if (!this.c5.active && (this.falling || this.montyAction)) return;
     if (this.feetFrames < FEET_CAP) this.feetFrames++;
-    if (this.c5.active || this.showJetpack || this.lift.riding || this.pd.ride || this.esc.index >= 0) return;
-    if (this.standsSafely(this.x2, this.y)) this.safeSpot = { room: this.roomId, mapRow: this.mapRow, exitCol: this.exitCol, x2: this.x2, y: this.y, facing: this.facing };
   }
 
   /**
@@ -549,9 +539,9 @@ export class Game implements MontyBody, MontyWorld {
     return floor || rope;
   }
 
-  /** The place in this room to start again from: where he last stood, else where he came in, else the nearest place he can stand. */
+  /** The place in this room to start again from: exactly where and how he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): Entry {
-    const here = this.safeSpot && this.safeSpot.room === this.roomId ? this.safeSpot : this.entry;
+    const here = this.entry;
     if (this.standsSafely(here.x2, here.y)) return { mapRow: this.mapRow, exitCol: this.exitCol, x2: here.x2, y: here.y, facing: here.facing };
     let best: Entry | null = null;
     let bestD = Infinity;
@@ -915,9 +905,9 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /**
-   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, at the last
-   * safe place he stood there (his way in if he had none); if that place is deadly (a way in that drops into danger) the nearest
-   * place in the room he can stand; and a moment's grace (`onRestart`). Never in another room.
+   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, exactly where
+   * and how he came in; if that way in is deadly (it drops into danger) the nearest place in the room he can stand; and a
+   * moment's grace (`onRestart`). Never in another room.
    */
   respawn(atEntry = false) {
     if (this.assist.respawn) {
@@ -927,7 +917,6 @@ export class Game implements MontyBody, MontyWorld {
         this.savedX = at.x2;
         this.savedY = at.y;
         this.facing = at.facing;
-        this.restarting = true;
       }
       this.onRestart();
     }

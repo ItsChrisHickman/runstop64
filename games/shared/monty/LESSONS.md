@@ -149,10 +149,13 @@ most care; the reward show and the title show them off.
   into this file.
 - **Go fast:** up to three tests at once, several agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
   step is merging.
-- **A death restarts in the room he died in** (Chris, 2026-11-22: a restart in the room before "feels like an uncontrollable
-  bug"): at the last safe place he stood there, else its way in; if that is deadly (an entry that drops into danger), at the
-  nearest place in the room he can stand; then a moment's grace. Never a previous-room fallback, in any game
-  (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole and Auf Wiedersehen Monty).
+- **A death restarts the room as he came into it** (Chris, 2026-11-22: a restart in the room before "feels like an
+  uncontrollable bug"; then, of the "last safe spot" that replaced it, "it seems to send us back to right before we died and I
+  did not want that. You should restart at the beginning of the room as you entered"): in the room he died in, exactly where and
+  how he came in (the entry the game recorded); only if that entry is itself deadly (it drops into danger) at the nearest place
+  in the room he can stand; then a moment's grace. Never the previous room, never where he last stood: no "last safe spot"
+  tracking (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole, Auf Wiedersehen Monty and, by the map's
+  travel, Jet Set Willy II).
 
 - **A lone Mole Crusher must be drawn in the first glyph bank ($10).** The engine animates the first crusher of a room on $10 and a second, only in a room of two, on $22; a lone one at $22 stood still (Moscow, Andes, Pacific, Japan). `crusherChars` in `games/shared/monty/rooms.ts` now picks the bank from the crusher's place in its room, and `montyworld/test/crushers.ts` checks that every crusher moves.
 

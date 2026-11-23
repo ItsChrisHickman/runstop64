@@ -1,5 +1,5 @@
 /**
- * ENHANCED's "no death loops" (`Game.noDeathLoops`), on the rebuilt game alone: a death starts Monty again in the room he died in, at the last place he stood there (his way in if none; if that is deadly, the nearest place he can stand and no loop), where without it he starts again where he came into the room, which for a way in that is a fall onto something fatal is the same death every time.
+ * ENHANCED's "no death loops" (`Game.noDeathLoops`), on the rebuilt game alone: a death starts Monty again in the room he died in, exactly where he came into it (if that way in is deadly, the nearest place he can stand and no loop), where without it he starts again where he came into the room, which for a way in that is a fall onto something fatal is the same death every time.
  *
  *   nice -n 15 node tools/test.mjs games/montymole/test/loops.ts
  */
@@ -40,7 +40,6 @@ function passesUntilDeath(g: Game): number {
 }
 {
   const g = scene(true);
-  check(`a place he stood on in room 1 is the safe one (${JSON.stringify(g.safe)})`, g.safe !== null && g.safe.room === 1);
   fatalFall(g);
   const lives = g.lives;
   passesUntilDeath(g);
@@ -50,15 +49,15 @@ function passesUntilDeath(g: Game): number {
   const after = g.lives;
   for (let i = 0; i < 300; i++) g.pass(NONE);
   check(`and nothing pressed for 300 passes loses no more (${after} to ${g.lives}): no loop`, g.lives === after && g.room === 7);
-  // after a while standing in room 7 and walking on, a death starts him at the last place he stood, in room 7
+  // after a while standing in room 7 and walking on (with the way in a safe place), a death still starts him where he came in, not where he last stood
   const h = scene(true);
   h.place(7, 0x60, 0x27);
+  const came = { x: h.arrivalX, y: h.arrivalY };
   for (let i = 0; i < 60; i++) h.pass(NONE);
-  const stood = h.safe;
-  check(`room 7: the place he stood on is kept (${JSON.stringify(stood)})`, stood !== null && stood.room === 7);
   const k = h.monty;
+  k.x += 12;
   k.flags = 1; k.flags2 = 0x80; k.fallen = 40; k.y = 0x70;
   passesUntilDeath(h);
-  check(`a death in room 7 starts him in room 7 where he last stood (${h.room}, ${k.x}, ${k.y})`, h.room === 7 && stood !== null && k.x === stood.x && k.y === stood.y);
+  check(`a death in room 7 starts him in room 7 exactly where he came in (${h.room}, ${k.x}, ${k.y}), not where he last stood`, h.room === 7 && k.x === came.x && k.y === came.y);
 }
 finish();

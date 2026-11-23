@@ -12,8 +12,8 @@
  *  - the warp lands him with what its destination's only way in has taken (runstop64-rooms.ts
  *    teleporter.found: the joystick), so $1C's floor is there as walking in leaves it;
  *  - ENHANCED (assist respawn): a death always starts him again in the room he died in (never the
- *    one before), at the last safe place he stood there, or its way in if he had none; if that is
- *    deadly (an entry that drops into danger) at the nearest place in the room he can stand; and
+ *    one before), exactly where and how he came in; if that is deadly (an entry that drops into
+ *    danger) at the nearest place in the room he can stand; and
  *    a moment's grace. (The same loop was waiting a step right of Pie Are Square: $09's way in
  *    from $08 is on an enemy's path, which killed him there every couple of seconds, nothing pressed.)
  *
