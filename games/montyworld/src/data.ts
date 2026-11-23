@@ -67,7 +67,11 @@ const HOOD = placeHat(HOOD_WORN);
 const LEI_WORN = leiWorn(bankImage);
 const LEI = placeHat(LEI_WORN);
 /** The lei's crown on each of the swimming pictures (a picture of its own over the head, the same offset as his sprite). */
-const LEI_SWIM_FRAMES = new Map([...LEI.frames, ...[...SWIM_CYCLE.left, ...SWIM_CYCLE.right].map((ptr) => [ptr, { ptr: (SWIM_CYCLE.left as readonly number[]).includes(ptr) ? SWIM_POINTERS.crownLeft : SWIM_POINTERS.crownRight, dx: 0, dy: 0 }] as const)]);
+const LEI_SWIM_FRAMES = new Map([
+  ...LEI.frames,
+  ...SWIM_CYCLE.left.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownLeft, dx: 0, dy: 0 }] as const),
+  ...SWIM_CYCLE.right.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownRight, dx: 0, dy: 0 }] as const),
+]);
 /** The swimming pictures in the blocks Rio's skewers use in Rio (the swim rooms borrow them while they are loaded). */
 const SWIM_BLOCKS = [
   ...SWIM_LEFT.map((rows, i) => ({ ptr: SWIM_POINTERS.left[i] ?? 0, block: swimBlock(`swim left ${i}`, rows) })),
