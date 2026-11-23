@@ -5,6 +5,7 @@
  * the reef's coral and kelp; Maui's waterfall, bamboo and signs; the volcano; the airport and the cargo plane. Names start `pac`.
  */
 import { decor } from './decorations';
+import { splashRows, streakRows } from './pacific-falls';
 import { Raster } from './raster';
 import type { NewDecor } from './types';
 
@@ -255,12 +256,12 @@ function bubbles(): NewDecor {
   return decor('pacBubbles', 1, 2, r, 1);
 }
 
-/** A cascade: a stream falling over a lip in lines, its mist at the foot. 2 x 5 characters. */
+/** A cascade: a stream falling over a lip in lines, its splash and mist at the foot. 2 x 5 characters (the streaks and the splash move: pacific-falls.ts, a `charAnims` cycle in the rooms that have it). */
 function waterfall(): NewDecor {
   const r = new Raster(16, 40);
-  r.rect(0, 0, 15, 2);
-  for (const x of [3, 7, 11]) for (let y = 4; y < 34; y += 6) r.rect(x, y, x + 1, y + 4);
-  r.ellipse(4, 37, 4, 2.4); r.ellipse(11, 37, 4.4, 2.4); r.ellipse(8, 35, 3, 2);
+  r.rect(0, 0, 15, 2); r.rect(2, 3, 4, 5); r.rect(7, 3, 9, 6); r.rect(12, 3, 13, 5); // the lip and the water leaving it
+  r.stamp(streakRows(0), 0, 8);
+  r.stamp(splashRows(0), 0, 32);
   return decor('pacWaterfall', 2, 5, r, ['55', '33', '33', '33', '11']);
 }
 
@@ -359,7 +360,7 @@ function controlTower(): NewDecor {
 
 /**
  * The cargo plane on the apron, seen from the side as itself: the long fuselage with its nose at the right, the cockpit's windows in the hump
- * of the upper deck, the wing with an engine slung under it, the tall tail fin and tailplane at the left, the wheels. 15 x 5 characters.
+ * of the upper deck, the wing with an engine slung under it, the tail fin and tailplane at the left, the wheels. 15 x 4 characters.
  */
 function cargoPlane(): NewDecor {
   const r = new Raster(120, 40);
@@ -375,8 +376,10 @@ function cargoPlane(): NewDecor {
   r.rect(112, 23, 116, 24, false); // the nose door's seam
   r.rect(30, 34, 31, 36); r.disc(30.5, 37, 2.6); r.rect(64, 34, 65, 36); r.disc(64.5, 37, 2.6); r.rect(98, 34, 99, 36); r.disc(98.5, 37, 2.6); // wheels
   r.rect(0, 39, 119, 39); // the apron
+  const plane = new Raster(120, 32); // (the top eight rows go: the fin's tip stands level with the gantry along the plane's back)
+  plane.stamp(r.rows().slice(8), 0, 0);
   const fin = '222' + '1'.repeat(12);
-  return decor('pacCargoPlane', 15, 5, r, [fin, fin, '1'.repeat(15), '1'.repeat(15), '1'.repeat(15)]);
+  return decor('pacCargoPlane', 15, 4, plane, [fin, '1'.repeat(15), '1'.repeat(15), '1'.repeat(15)]);
 }
 
 /** A cargo loader: a scissor lift's platform on crossed arms, a rail round it. 3 x 3 characters. */

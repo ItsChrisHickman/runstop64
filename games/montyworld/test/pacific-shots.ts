@@ -19,7 +19,10 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: PAC.box, name: '39-box-clever', col: 2, floor: 11, frames: 40, compare: 0x14 },
   { room: PAC.pier, name: '40-pier-pressure', col: 1, floor: 11, frames: 40, compare: 0x1c },
   { room: PAC.surf, name: '41-surf-and-turf', col: 3, floor: 18, frames: 40, compare: 0x04 },
-  { room: PAC.lei, name: '42-lei-of-the-land', col: 24, floor: 18, frames: 40, compare: 0x13 },
+  { room: PAC.lei, name: '42-lei-of-the-land', col: 2, floor: 12, frames: 40, compare: 0x13 },
+  { room: PAC.feast, name: '78-the-feast', col: 24, floor: 18, frames: 40, compare: 0x13 },
+  { room: PAC.diamond, name: '79-diamond-head', col: 8, floor: 18, frames: 40, compare: 0x0a },
+  { room: PAC.lookout, name: '80-the-lookout', col: 4, floor: 10, frames: 40, compare: 0x0a },
   { room: PAC.clam, name: '43-clam-down', col: 3, floor: 19, frames: 40, compare: 0x07 },
   { room: PAC.mole, name: '44-mole-okai', col: 2, floor: 19, frames: 40, compare: 0x0a },
   { room: PAC.kelp, name: '45-kelp-wanted', col: 3, floor: 19, frames: 40, compare: 0x07 },
@@ -45,14 +48,16 @@ const pics = SPOTS.map((s) => {
 contactSheet(out, 'sheet.png', pics);
 
 // the luau: the torches through their cycle (low, flickering, tall, settling)
-contactSheet(out, 'torches.png', [10, 70, 95, 140, 200, 260].map((frames) => placed({ room: PAC.lei, col: 24, floor: 18, frames, worn: lei }).px));
+contactSheet(out, 'torches.png', [10, 70, 95, 140, 200, 260].map((frames) => placed({ room: PAC.feast, col: 24, floor: 18, frames, worn: lei }).px));
 // the road: the cars waiting, flashing, on the bridges
 contactSheet(out, 'cars.png', [20, 160, 185, 220, 260, 320, 400, 480, 560].map((frames) => placed({ room: PAC.road, col: 3, floor: 18, frames, worn: lei }).px));
 // the volcano: the lava rising, held, draining
 contactSheet(out, 'lava.png', [10, 150, 300, 450, 620, 760].map((frames) => placed({ room: PAC.mauna, col: 2, floor: 19, frames, worn: lei }).px));
 // the sea shut and open at Waikiki and Hana
-savePng(out, 'surf-shut.png', placed({ room: PAC.surf, col: 18, floor: 18, frames: 20, worn: lei }).px);
-savePng(out, 'surf-open.png', placed({ room: PAC.surf, col: 18, floor: 18, frames: 20, worn: lei, items: [snorkel] }).px);
+savePng(out, 'dive-shut.png', placed({ room: PAC.lei, col: 24, floor: 12, frames: 20, worn: lei }).px);
+savePng(out, 'dive-open.png', placed({ room: PAC.lei, col: 24, floor: 12, frames: 20, worn: lei, items: [snorkel] }).px);
+contactSheet(out, 'rocks.png', [10, 60, 120, 180, 240, 300].map((frames) => placed({ room: PAC.lookout, col: 4, floor: 10, frames, worn: lei }).px));
+contactSheet(out, 'fire-knife.png', [10, 30, 50, 70, 90, 110].map((frames) => placed({ room: PAC.lei, col: 2, floor: 12, frames, worn: lei }).px));
 savePng(out, 'hana-shut.png', placed({ room: PAC.hana, col: 17, floor: 18, frames: 20, worn: lei }).px);
 savePng(out, 'hana-open.png', placed({ room: PAC.hana, col: 17, floor: 18, frames: 20, worn: lei, items: [snorkel] }).px);
 // the chain on the ramp, cut
@@ -62,6 +67,16 @@ savePng(out, 'guard.png', placed({ room: PAC.hilo, col: 9, floor: 17, frames: 20
 savePng(out, 'guard-gone.png', placed({ room: PAC.hilo, col: 9, floor: 17, frames: 20, worn: lei, items: [lei] }).px);
 // him in the lei, standing on a plain floor
 savePng(out, 'lei.png', placed({ room: PAC.surf, col: 3, floor: 18, frames: 20, worn: lei }).px);
+
+// the moray in Kelp Wanted: at rest, the eyes in the hole, the lunge, drawn back
+contactSheet(out, 'moray.png', [20, 70, 100, 125, 140, 170].map((frames) => placed({ room: PAC.kelp, col: 24, floor: 12, frames, worn: lei }).px));
+// Hana's wave sweeping up the beach
+contactSheet(out, 'wave.png', [60, 112, 120, 135, 160, 180].map((frames) => placed({ room: PAC.hana, col: 12, floor: 8, frames, worn: lei }).px));
+// the waterfalls falling (the road), the cave's serpent round its loop
+contactSheet(out, 'falls.png', [4, 8, 12, 16, 20, 24].map((frames) => placed({ room: PAC.road, col: 3, floor: 18, frames, worn: lei }).px));
+contactSheet(out, 'serpent.png', [10, 90, 170, 250, 330, 410].map((frames) => placed({ room: PAC.cave, col: 3, floor: 19, frames, worn: lei }).px));
+contactSheet(out, 'bubbles.png', [4, 8, 12, 16, 20, 24].map((frames) => placed({ room: PAC.fish, col: 4, floor: 19, frames, worn: lei }).px));
+contactSheet(out, 'pier-plank.png', [10, 60, 100, 130, 160, 250].map((frames) => placed({ room: PAC.pier, col: 15, floor: 7, frames, worn: lei, noEnemies: true }).px));
 
 // each room beside one of Monty on the Run's
 SPOTS.forEach((s, i) => compare(out, `compare-${s.name}.png`, pics[i] ?? new Uint8Array(0), motrRoom(s.compare)));

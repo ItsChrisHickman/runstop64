@@ -39,6 +39,7 @@ const strings: { what: string; text: string; font: 'charset' | 'pause' }[] = [];
 for (const room of roomsOf(WORLD)) strings.push({ what: `room ${room}'s name`, text: sectorName(WORLD, room).text, font: 'charset' });
 for (const h of WORLD.hints.take) strings.push({ what: `the hint on taking item ${h.item}`, text: h.text, font: 'charset' });
 for (const h of WORLD.hints.wanted) strings.push({ what: `the hint in room ${h.room}`, text: h.text, font: 'charset' });
+for (const a of WORLD.arrivals) strings.push({ what: `the arrival banner of rooms ${a.rooms.join()}`, text: a.text, font: 'charset' });
 for (const r of REGIONS) for (const d of r.decor ?? []) if (typeof d.type === 'object') strings.push({ what: `the sign in room ${r.id}`, text: d.type.text, font: 'charset' });
 for (const p of PLACES) for (const c of p.credits) strings.push({ what: `a credit over room ${p.room}`, text: c, font: 'pause' });
 for (const c of CLOSING) strings.push({ what: 'a closing credit', text: c, font: 'pause' });

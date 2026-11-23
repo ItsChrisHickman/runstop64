@@ -677,6 +677,7 @@ export class Game implements MontyBody, MontyWorld {
     pulseInit(this);
     lavaInit(this);
     dragonInit(this);
+    this.placeRoomBlocks();
     rollerInit(this);
     vineInit(this);
     floatInit(this);
@@ -703,6 +704,29 @@ export class Game implements MontyBody, MontyWorld {
     Items.spawnForRoom(this);
     this.hint = noHint();
     this.hintWanted();
+    this.arrive(id);
+  }
+
+  /** The room last loaded (-1: none yet), for the arrival banners. */
+  private lastRoom = -1;
+
+  /** The data's arrival banner for coming into room `id` from the one before, if there is one: shown in the name row (both modes; it replaces a hint the room would give at once). */
+  private arrive(id: number) {
+    const came = this.lastRoom;
+    this.lastRoom = id;
+    if (came < 0 || this.hint.text !== null) return; // (a hint the room already gives wins the row)
+    const banner = this.data.arrivals.find((a) => a.rooms.includes(id) && !a.rooms.includes(came) && (a.from === undefined || a.from.includes(came)));
+    if (!banner) return;
+    say(this.hint, banner.text, 0);
+    this.drawNameRow();
+  }
+
+  /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
+  private placeRoomBlocks() {
+    const sets = this.data.roomBlocks;
+    if (!sets.length) return;
+    for (const set of sets) for (const { ptr } of set.blocks) this.mem.set(this.data.bankImage.subarray(ptr * 64, ptr * 64 + 64), ptr * 64);
+    for (const set of sets) if (set.rooms.includes(this.roomId)) for (const { ptr, block } of set.blocks) this.mem.set(block, ptr * 64);
   }
 
   /** The name row: the hint if one is on show, else the place's name. */

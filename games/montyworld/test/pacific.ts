@@ -23,7 +23,7 @@ const args = readArgs();
 const only = args.only;
 
 /** The rooms and finds of the Pacific in the tables: the rooms from the stern on. */
-const pacific = (room: number) => room >= PAC.stern && room <= PAC.hold;
+const pacific = (room: number) => (room >= PAC.stern && room <= PAC.hold) || room >= PAC.feast;
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== 'all' && only !== mode) continue;
@@ -42,8 +42,8 @@ for (const mode of ['original', 'enhanced'] as const) {
     const coinsLeft = mineCoins.filter((i) => !g.coinCollected[i]).length;
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => pacific(g.data.specialItems[i * 4] ?? 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
-    check(`${mode}: at the end all ${mineCoins.length} coins, the cutters, the snorkel, the lei, the parachute and the three musubi of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${mineCoins.length} x 50 + ${found.length} x 200), he is in the plane's hold (room ${g.roomId}), in the lei`,
-      coinsLeft === 0 && itemsLeft === 0 && found.length === 7 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === PAC.hold && g.worn === itemIndex(g, PAC.lei, 0));
+    check(`${mode}: at the end all ${mineCoins.length} coins, the cutters, the snorkel, the lei, the parachute and the four musubi of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${mineCoins.length} x 50 + ${found.length} x 200), he is in the plane's hold (room ${g.roomId}), in the lei`,
+      coinsLeft === 0 && itemsLeft === 0 && found.length === 8 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === PAC.hold && g.worn === itemIndex(g, PAC.lei, 0));
   }
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }

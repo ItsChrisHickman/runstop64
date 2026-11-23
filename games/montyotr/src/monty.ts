@@ -3,7 +3,7 @@ import { animateMonty } from '../../shared/monty/anim';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
 import { flightMove, flightOf } from './flight';
-import { swimMove } from './swim';
+import { swimMove, swimPose } from './swim';
 import { vineCarry } from './vines';
 
 /**
@@ -15,6 +15,7 @@ import { vineCarry } from './vines';
 export function montyDraw(g: Game) {
   updateMovement(g);
   animateMonty(g);
+  swimPose(g);
   g.enable |= 0x08;
 }
 
