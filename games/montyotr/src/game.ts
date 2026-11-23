@@ -1,7 +1,7 @@
 import { Vic } from 'c64kit';
 import { sectorName, type LiftSpec, type MontyData } from './montydata';
 import { afterLoss } from '../../shared/lives';
-import { animateTheme, drawHudData, drawHudFrame, nextRandom, PLAY_COLS, PLAY_ROWS, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
+import { animateTheme, COIN_CHAR, coinOverBackdrop, drawHudData, drawHudFrame, nextRandom, PLAY_COLS, PLAY_ROWS, PRNG_START, ROW, SCREEN, type Collectible, type Sound } from '../../shared/monty/screen';
 import type { MontyBody, MontyInput, MontyWorld } from '../../shared/monty/body';
 import { montyDraw } from './monty';
 import * as Mech from './mechanisms';
@@ -21,7 +21,7 @@ import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './ske
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
-import { decorChars } from './decor-chars';
+import { coverable, decorChars, decorPool } from './decor-chars';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
@@ -174,6 +174,11 @@ export class Game implements MontyBody, MontyWorld {
   readonly coinCollected: Uint8Array;
   /** In-room collectibles: screen offset, colour phase, master index (-1 = no coin, e.g. room $1F bases). */
   entities: Collectible[] = [];
+  /** The room's backdrop under its pickups and the cells that clear (the decorations of a `backdrop` type): per screen cell its character and colour, 0 where there is none. */
+  private readonly backChr = new Uint8Array(1024);
+  private readonly backCol = new Uint8Array(1024);
+  /** The characters a coin over a backdrop is drawn as (the coin's picture with the backdrop's in it): not a decoration's, so nothing drawn over empty cells covers them. */
+  private readonly coinGlyphs = new Set<number>();
   readonly siCollected: Uint8Array;
   siActiveIdx = -1;
   /** A room with a second special item (a game's own: Moscow's platform has a pirozhok and the ushanka) shows it on sprite 1; its index, or -1. */
@@ -229,10 +234,6 @@ export class Game implements MontyBody, MontyWorld {
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry;
   feetFrames = 0;
-  /** The last safe place he stood in the room he is in (ENHANCED's respawn starts him there after a death), with the room it is in. */
-  safeSpot: (Entry & { room: number }) | null = null;
-  /** A death has put him back into this room (the safe spot is kept across the room's reload). */
-  private restarting = false;
 
   constructor(readonly data: MontyData) {
     const { start } = data;
@@ -273,9 +274,18 @@ export class Game implements MontyBody, MontyWorld {
   setCol(addr: number, v: number) { const i = addr - SCREEN; if (i >= 0 && i < 1024) this.col[i] = v & 15; }
   /** Room character `code` (1-8 of the room's palette; 0 empties the cell) on the screen cell `at` (its index in the screen), in the palette's colour: the one way a mechanism writes a cell of the room. */
   setRoomChar(at: number, code: number) {
+    if (!code) { this.clearCell(at); return; }
     this.mem[SCREEN + at] = code;
-    if (code) this.col[at] = this.roomColours[code - 1] ?? 1;
+    this.col[at] = this.roomColours[code - 1] ?? 1;
   }
+  /** A cell that something took or cleared (a coin, a gate, cracked ice) shows what the room has behind it: its backdrop, or nothing where it has none. `at` is the cell's index in the screen. */
+  clearCell(at: number) {
+    const back = this.backChr[at] ?? 0;
+    this.mem[SCREEN + at] = back;
+    if (back) this.col[at] = this.backCol[at] ?? 0;
+  }
+  /** A character a thing drawn over the room (a vine, the lava) may cover: empty or a decoration's, not a coin's picture. */
+  mayCover(chr: number): boolean { return coverable(chr) && !this.coinGlyphs.has(chr); }
 
   /** Collision class of a screen char (original GetTileFlag). */
   tileFlag(code: number) {
@@ -364,8 +374,6 @@ export class Game implements MontyBody, MontyWorld {
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
     this.feetFrames = 0;
-    this.safeSpot = null;
-    this.restarting = false;
     this.drawHudFrame();
     this.roomExit = 1; // RoomLoop loads the first room
     this.freeze = 1;
@@ -510,18 +518,14 @@ export class Game implements MontyBody, MontyWorld {
     if (this.showJetpack) this.montyAction = 0;
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
-    if (!this.restarting || this.safeSpot?.room !== this.roomId) this.safeSpot = null;
-    this.restarting = false;
     this.onRoomLoaded(this);
   }
 
-  /** On his feet (standing, on a rope, or in the C5): counted, and where he stands, if it is safe, is the place to start again from. */
+  /** On his feet (standing, on a rope, or in the C5): counted. */
   private noteFeet() {
     if (this.gameMode || this.actionCounter) return;
     if (!this.c5.active && (this.falling || this.montyAction)) return;
     if (this.feetFrames < FEET_CAP) this.feetFrames++;
-    if (this.c5.active || this.showJetpack || this.lift.riding || this.pd.ride || this.esc.index >= 0) return;
-    if (this.standsSafely(this.x2, this.y)) this.safeSpot = { room: this.roomId, mapRow: this.mapRow, exitCol: this.exitCol, x2: this.x2, y: this.y, facing: this.facing };
   }
 
   /**
@@ -549,9 +553,9 @@ export class Game implements MontyBody, MontyWorld {
     return floor || rope;
   }
 
-  /** The place in this room to start again from: where he last stood, else where he came in, else the nearest place he can stand. */
+  /** The place in this room to start again from: exactly where and how he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): Entry {
-    const here = this.safeSpot && this.safeSpot.room === this.roomId ? this.safeSpot : this.entry;
+    const here = this.entry;
     if (this.standsSafely(here.x2, here.y)) return { mapRow: this.mapRow, exitCol: this.exitCol, x2: here.x2, y: here.y, facing: here.facing };
     let best: Entry | null = null;
     let bestD = Infinity;
@@ -640,6 +644,9 @@ export class Game implements MontyBody, MontyWorld {
     const id = this.roomId;
     const data = this.data;
     const def = data.roomDef(id);
+    this.backChr.fill(0);
+    this.backCol.fill(0);
+    this.coinGlyphs.clear();
     this.roomTiles.set(def.tiles);
     this.roomColours.set(def.colours);
     // BlankPlayfield: colour RAM from row 3 down.
@@ -689,6 +696,7 @@ export class Game implements MontyBody, MontyWorld {
     Items.applyRoomEffects(this, 'before');
     this.decorate();
     Items.applyRoomEffects(this, 'after');
+    this.drawCoinsOverBackdrop();
     charAnimInit(this);
     this.populateColourRam();
     Mech.piledriverRoomInit(this);
@@ -839,11 +847,38 @@ export class Game implements MontyBody, MontyWorld {
       let stream = 0;
       for (let r = 0; r < t.h; r++) {
         for (let c = 0; c < t.w; c++) {
-          this.mem[at + c] = tile++;
-          this.setCol(at + c, typeof t.colour === 'number' ? t.colour : t.colour[stream++]);
+          const chr = tile++;
+          const colour = typeof t.colour === 'number' ? t.colour : t.colour[stream++];
+          if (t.backdrop) {
+            this.backChr[at + c - SCREEN] = chr;
+            this.backCol[at + c - SCREEN] = (colour ?? 0) & 15;
+            if (this.mem[at + c] === COIN_CHAR) continue; // a coin keeps its cell (drawn over the backdrop by drawCoinsOverBackdrop)
+          }
+          this.mem[at + c] = chr;
+          this.setCol(at + c, colour);
         }
         at += ROW;
       }
+    }
+  }
+
+  /** A coin on a backdrop is drawn as the coin's picture over the backdrop's (a character of its own, from the free ones above the decorations'), not on a black cell. */
+  private drawCoinsOverBackdrop() {
+    let next = decorPool(this.data, this.roomId).end;
+    const made = new Map<number, number>();
+    for (const e of this.entities) {
+      const back = this.backChr[e.at - SCREEN] ?? 0;
+      if (!back || this.mem[e.at] !== COIN_CHAR) continue;
+      let glyph = made.get(back);
+      if (glyph === undefined) {
+        if (next > 0xff) continue; // (no character left: the plain coin, as before)
+        glyph = next++;
+        this.mem.set(coinOverBackdrop(this.mem.subarray(COIN_CHAR * 8, COIN_CHAR * 8 + 8), this.mem.subarray(back * 8, back * 8 + 8)), glyph * 8);
+        made.set(back, glyph);
+        this.coinGlyphs.add(glyph);
+      }
+      this.mem[e.at] = glyph;
+      e.chr = glyph;
     }
   }
 
@@ -915,9 +950,9 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /**
-   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, at the last
-   * safe place he stood there (his way in if he had none); if that place is deadly (a way in that drops into danger) the nearest
-   * place in the room he can stand; and a moment's grace (`onRestart`). Never in another room.
+   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, exactly where
+   * and how he came in; if that way in is deadly (it drops into danger) the nearest place in the room he can stand; and a
+   * moment's grace (`onRestart`). Never in another room.
    */
   respawn(atEntry = false) {
     if (this.assist.respawn) {
@@ -927,7 +962,6 @@ export class Game implements MontyBody, MontyWorld {
         this.savedX = at.x2;
         this.savedY = at.y;
         this.facing = at.facing;
-        this.restarting = true;
       }
       this.onRestart();
     }

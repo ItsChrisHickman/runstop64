@@ -59,7 +59,7 @@ const GRAVY_PALETTE = { ...TRAIN_PALETTE, E: ['carWall', 9] } as const satisfies
  * and the pine's trunk the eighth. The tunnel's granite and rock keep their codes (5 and 7: the mountain's picture is drawn in them).
  */
 const SLEEPER_PALETTE = {
-  D: ['roofDeck', 14], E: ['carWall', 9], K: ['coal', 11], T: ['trainSide', 2], X: ['tunnelFace', 15], R: ['ironLadder', 7], M: ['tunnelRock', 9], P: ['pineTrunk', 9],
+  D: ['roofDeck', 14], E: ['carWall', 9], K: ['coal', 11], T: ['trainSide', 2], X: ['tunnelFace', 11], R: ['ironLadder', 7], M: ['tunnelBrick', 2], P: ['pineTrunk', 9],
 } as const satisfies Palette;
 
 /**
@@ -67,7 +67,7 @@ const SLEEPER_PALETTE = {
  * wagon's end in green, the boiler, the wagon's boards and the tipple's legs (a dark picture behind), the tipple's timber deck, its ladder and the hill's rock.
  */
 const TENDER_PALETTE = {
-  D: ['roofDeck', 14], K: ['coal', 11], T: ['trainSide', 5], B: ['boilerPlate', 5], E: ['carWall', 9], W: ['timber', 8], R: ['ironLadder', 7], M: ['mineRock', 9],
+  D: ['roofDeck', 14], K: ['coal', 11], T: ['trainSide', 2], B: ['boilerPlate', 5], E: ['carWall', 9], W: ['timber', 8], R: ['ironLadder', 7], M: ['mineRock', 9],
 } as const satisfies Palette;
 const TENDER_BOGIES = [4, 12] as const;
 
@@ -102,11 +102,11 @@ function closet(g: Grid) {
   g.box(CLOSET.left, CAR.roof + 1, CLOSET.left, CLOSET.floor, 'T').box(CLOSET.right, CAR.roof + 1, CLOSET.right, CLOSET.floor, 'T').box(CLOSET.left, CLOSET.floor, CLOSET.right, CLOSET.floor, 'T');
 }
 
-/** The banks of the cutting the sleeper runs through: the hillside's rock sloping up at both ends (a picture behind him: he walks through). */
+/** The banks of the cutting the sleeper runs through: dressed stone sloping up at both ends (a picture behind him: he walks through). */
 function cutting(g: Grid) {
   for (let c = 0; c < 6; c++) {
-    g.box(c, 3 + (c >> 1), c, 8, 'M');
-    if (31 - c < 30) g.box(31 - c, 3 + (c >> 1), 31 - c, 8, 'M');
+    g.box(c, 3 + (c >> 1), c, 8, 'X');
+    if (31 - c < 30) g.box(31 - c, 3 + (c >> 1), 31 - c, 8, 'X');
   }
 }
 
@@ -115,26 +115,26 @@ export const PINE = { cols: [20, 21] } as const;
 
 // ---- the tunnels ------------------------------------------------------------------------------------------
 
-/** The portal's granite and the mountain's rock, in the train rooms' palette. */
-const PORTAL = codeOf(TRAIN_PALETTE, 'X'), ROCK = codeOf(TRAIN_PALETTE, 'M');
-/** How many cells long the mountain is (more than the room is wide: it runs off the screen's edge as it comes in and as it goes). */
-const MASS = 34;
+/** The portal's dressed stone and the tunnel's brick lining, in the train rooms' palette. */
+const PORTAL = codeOf(TRAIN_PALETTE, 'X'), BRICK = codeOf(TRAIN_PALETTE, 'M');
 /**
- * The mountain the line goes into, seen from the side as the room has it, rows 2 to 8 (the roof's walkway is row 9: what stands on it is inside the rock): a long mass of rock whose top
- * slopes up from the portal and runs on, the stone portal at its leading end (two courses of granite for a pier, a cap above them) and, at its far end, the portal the train comes out of.
+ * How many cells long the tunnel is: longer than the screen is wide (the playfield and its margins, 40 cells), so while it passes it fills the band
+ * from edge to edge with nothing of the backdrop beside it.
  */
-export const MOUNTAIN: readonly (readonly number[])[] = Array.from({ length: 7 }, (_, r) => Array.from({ length: MASS }, (_, c) => {
-  const row = 2 + r, edge = Math.min(c, MASS - 1 - c);
-  if (edge <= 1 && row >= 4) return PORTAL;
-  if (edge <= 2 && row === 3) return PORTAL;
-  return edge >= 2 && row >= (edge < 8 ? 3 : 2) ? ROCK : 0;
-}));
+const MASS = 44;
+/** How far the portal's stone ring reaches into the brick at each end, row by row from the top (the arch's curve: thickest at the crown). */
+const ARCH = [4, 3, 2, 2, 2, 2, 2] as const;
+/**
+ * The tunnel as the room has it, rows 2 to 8 (the roof's walkway is row 9: what stands on it is inside): a solid lining of brick in clean courses, with the arch of dressed stone at
+ * its leading end and the one the train comes out of at its far end.
+ */
+export const MOUNTAIN: readonly (readonly number[])[] = ARCH.map((reach) => Array.from({ length: MASS }, (_, c) => (Math.min(c, MASS - 1 - c) < reach ? PORTAL : BRICK)));
 /**
  * The tunnel mountain, from the front of the train (the right: the train runs east, the scenery goes west). A wait, a warning of the portal flashing at the entry, then it comes
  * a cell every ten frames; what is on the roof or up the pine when it reaches him is lost, what is under the roof (a hatch's ladder, the closet, the car) is safe. A room's cycle
  * starts when he comes into it.
  */
-const MOUTH = { code: PORTAL, cols: MASS, top: 2, bottom: 8, step: 10, warn: 48, picture: MOUNTAIN, coversClimbs: true } as const;
+const MOUTH = { code: PORTAL, cols: MASS, top: 2, bottom: 8, step: 10, warn: 48, picture: MOUNTAIN, coversClimbs: true, bleed: true } as const;
 /**
  * The dining car teaches it (a long wait first: he sees it come and goes down a hatch). The sleeper tests it: it flashes almost as he comes onto the roof, so a run straight to the
  * pine is caught on the trunk (the mountain is at the pine about 170 frames in, his walk and climb take about 250), and a wait in the closet for one sweep is the way: the next comes
@@ -158,7 +158,7 @@ export const TRAIN_ANIMS: readonly CharAnim[] = [
  */
 const SKY_GRAVY: SkySpec = { dark: true, spans: [[-2, 33]], moon: [25, 0], stars: [['star', 6, 0], ['starDim', 13, 1], ['star', 19, 0], ['starDim', 30, 1]] };
 const SKY_SLEEPER: SkySpec = { dark: true, spans: [[6, 19], [22, 25]], moon: [9, 0], stars: [['star', 15, 1], ['starDim', 26, 0]] };
-const SKY_TENDER: SkySpec = { dark: true, spans: [[5, 12]], smoke: [[5, 12]], moon: [8, 0], stars: [['starDim', 12, 1]] };
+const SKY_TENDER: SkySpec = { dark: true, spans: [[4, 15]], smoke: [[4, 15]], moon: [8, 0], stars: [['starDim', 12, 1]] };
 
 // ---- the cave, the mine and the river ----------------------------------------------------------------------
 
@@ -203,6 +203,9 @@ export const YETI_POINTERS = { topLeft: 0xc4, topRight: 0xc5, bottomLeft: [0xb0,
  */
 export const YETI: DragonSpec = {
   room: SIB.yeti, speed: 0.8, gap: 0,
+  // at the ends of the floor lane (corners 0, 2) and of the ice bridge (4, 6) it chooses from the game's random source: carry on at a new pace (half the time), stand and roar then rest, roar and turn back, or roar and charge (a stretch
+  // of 90 frames at 1.7 times its pace). It always roars first (36 frames: the body shakes where it stands), so it never heads his way without a readable warning; whatever it chooses it stays on its loop, west of the pine.
+  moods: { stops: [0, 2, 4, 6], pace: 0.15, roar: 36, rest: 50, charge: { speed: 1.7, frames: 90 }, weights: { pause: 56, back: 40, charge: 32 } },
   path: [[9.5, 11.75], [7, 11.75], [4.3, 11.75], [3, 7.75], [4.3, 3.75], [7, 3.75], [9.5, 3.75], [10.8, 7.75]],
   pieces: [
     { sprite: 4, colour: YETI_COLOUR, frames: [YETI_POINTERS.topLeft, YETI_POINTERS.topLeft], rigid: [0, 0], facing: 'front' },
@@ -258,8 +261,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[27, 7], [27, 15]],
     decor: [
-      ...skyDecor(SKY_SLEEPER), windowAt(2), windowAt(14), windowAt(23), ['bunk', 16, 15], ['pineBough', 15, 2], ['pineBough', 22, 3],
-      ['pineSmall', 0, 1], ['pineSmall', 2, 2], ['pineSmall', 26, 2], ['pineSmall', 28, 1], ['roofVent', 4, 8], ['roofVent', 15, 8], ...CAR_FITTINGS,
+      ...skyDecor(SKY_SLEEPER), windowAt(2), windowAt(14), windowAt(23), ['bunk', 16, 15],
+      ['pineSmall', 0, 0], ['pineSmall', 2, 1], ['pineSmall', 26, 2], ['pineSmall', 28, 1], ['roofVent', 6, 8], ['roofVent', 15, 8], ...CAR_FITTINGS,
     ],
     creatures: [
       { who: 'inspector', col: 21, row: 15, way: 'right', speed: 2, range: 20, colour: 10 },
@@ -277,7 +280,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(0, 3, 1, 9, 'K').box(2, 5, 2, 9, 'K').box(3, 7, 3, 9, 'K'); // the bunker, coal heaped high at the tender's front (the sleeper's roof ends against it)
       g.box(0, 10, 1, 14, 'T'); // the wagon's end, its gangway below
       inspectors(g, SIB.coal);
-      g.box(2, 10, 17, 14, 'E'); // the wagon's boards behind the coal
+      g.box(2, 10, 17, CAR.floor - 1, 'E'); // the wagon's boards behind the coal, down to the floor (no empty cell between the coal and the wall)
       g.box(0, CAR.floor, 18, CAR.floor, 'K'); // the wagon's floor, coal (the locomotive has none: its wheels stand under it)
       g.box(6, 15, 7, 16, 'K').box(8, 13, 9, 16, 'K').box(10, 11, 12, 16, 'K'); // the coal in steps to the crest
       g.box(13, 15, 15, 16, 'K').box(16, 13, 17, 16, 'K'); // down into the trough and up again
@@ -285,7 +288,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       g.box(26, 12, 31, 16, 'B'); // the boiler
       g.clear(21, 13, 22, 14).clear(21, 15, 22, 16).clear(24, 13, 25, 14); // the holes the window, the firebox door and the gauge show in
       g.box(30, 5, 31, 11, 'M'); // the hillside the mine is in, beyond the smokebox
-      g.box(17, 5, 17, 10, 'E').box(29, 5, 29, 10, 'E'); // the tipple's legs (behind the line)
+      g.box(16, 5, 16, 10, 'E').box(29, 5, 29, 10, 'E'); // the tipple's legs (behind the line)
       g.box(14, 4, 31, 4, 'W').clear(23, 4, 25, 4).box(24, 4, 24, 10, 'R'); // the tipple's deck, its gap and ladder
     },
     coins: [[11, 10]],

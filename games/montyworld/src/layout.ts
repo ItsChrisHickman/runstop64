@@ -1,6 +1,6 @@
 import { enemyColours } from '../../montyotr/src/data';
 import type { RoomSpec } from '../../shared/monty/rooms';
-import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS } from '../../shared/monty/screen';
+import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { WORLD_CREATURES, WORLD_DECOR, worldTileIndex, type WorldCreature, type WorldDecor, type WorldTile } from './art/world';
 
 /**
@@ -111,14 +111,24 @@ export function room(r: MoscowRoom): RoomSpec {
   };
 }
 
+/** The decorations used as backdrops (`fillCells`): the engine keeps them under the room's coins and shows them where a cell is cleared. */
+const backdrops = new Set<WorldDecor>();
+export const isBackdrop = (name: string): boolean => [...backdrops].some((b) => b === name);
+
 /**
  * A one-character decoration stamped on every cell of a rectangle (columns c0-c1, rows r0-r1) that the room's paint leaves empty, except the `keep` cells (a coin, an
  * item, a pulse's cells): a backdrop (a sky's bands, a sea, a wall seen behind) at the cost of one character however many are placed.
  */
 export function fillCells(paint: (g: Grid) => void, keep: readonly (readonly [col: number, row: number])[], [c0, r0, c1, r1]: readonly [number, number, number, number], piece: WorldDecor): (readonly [WorldDecor, col: number, row: number])[] {
+  backdrops.add(piece);
   const g = new Grid();
   paint(g);
   const cells: (readonly [WorldDecor, col: number, row: number])[] = [];
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (g.at(c, r) === '.' && !keep.some(([kc, kr]) => kc === c && kr === r)) cells.push([piece, c, r]);
+  // a backdrop that reaches the playfield's edge goes on to the screen's: the margin columns the picture shows either side (SCREEN_MARGIN of them) are as empty as the edge cell beside them
+  const from = c0 <= 0 ? -SCREEN_MARGIN : c0, to = c1 >= PLAY_COLS - 1 ? PLAY_COLS - 1 + SCREEN_MARGIN : c1;
+  for (let r = r0; r <= r1; r++) for (let c = from; c <= to; c++) {
+    const at = Math.max(0, Math.min(PLAY_COLS - 1, c));
+    if (g.at(at, r) === '.' && !keep.some(([kc, kr]) => kc === at && kr === r)) cells.push([piece, c, r]);
+  }
   return cells;
 }

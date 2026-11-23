@@ -163,9 +163,9 @@ const paintLuau = (g: Grid): void => {
   g.box(8, 16, 9, 17, 'C').box(6, 14, 7, 17, 'C').box(2, 12, 5, 17, 'C'); // the steps to the shelf
 };
 const LUAU_COINS = [[25, 15], [20, 16], [15, 16], [9, 14]] as const;
-/** The cells the backdrop leaves clear: the coins, the lei's two by two, the torches' (the fire jets' cells). */
+/** The cells the backdrop leaves clear (a coin's cell has it: the engine draws the coin over it): the lei's two by two, the torches' (the fire jets' cells). */
 const LUAU_CLEAR: readonly (readonly [col: number, row: number])[] = [
-  ...LUAU_COINS, [25, 14] /* (the lawn's cell above a coin is two cells tall) */, [3, 10], [4, 10], [3, 11], [4, 11],
+  [25, 14] /* (the lawn's cell above a coin is two cells tall) */, [3, 10], [4, 10], [3, 11], [4, 11],
   ...TORCHES.cols.flatMap((col) => [[col, 16], [col + 1, 16], [col, 17], [col + 1, 17]] as const),
 ];
 const luauBackdrop = (r0: number, r1: number, piece: WorldDecor) => fillCells(paintLuau, LUAU_CLEAR, [0, r0, 31, r1], piece);

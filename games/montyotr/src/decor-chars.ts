@@ -11,7 +11,10 @@ export const coverable = (chr: number): boolean => chr === 0 || chr >= FIRST_DEC
  * up (w × h of them) the first time it's placed; a type that doesn't fit in the pool (to $FF) isn't
  * drawn, as in the original. By type: its first character, or 0.
  */
-export function decorChars(data: MontyData, roomId: number): Int16Array {
+export const decorChars = (data: MontyData, roomId: number): Int16Array => decorPool(data, roomId).first;
+
+/** `decorChars` and the first character after the pool (the characters from there up to $FF are free for the room's own use: a coin over a backdrop). */
+export function decorPool(data: MontyData, roomId: number): { first: Int16Array; end: number } {
   const { decorRooms, decorTypes } = data;
   const first = new Int16Array(decorTypes.length).fill(0);
   let alloc = FIRST_DECOR_CHR;
@@ -23,5 +26,5 @@ export function decorChars(data: MontyData, roomId: number): Int16Array {
     first[type] = alloc;
     alloc += t.w * t.h;
   }
-  return first;
+  return { first, end: alloc };
 }

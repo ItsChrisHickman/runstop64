@@ -78,9 +78,9 @@ function faceCells(c0: number, r0: number, c1: number, r1: number): Placed[] {
   return cells;
 }
 
-/** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), but not where a coin hangs. */
-function backWall(paint: (g: Grid) => void, coins: readonly (readonly [col: number, row: number])[], c0: number, r0: number, c1: number, r1: number, cell: 'backCell' | 'slateCell' = 'backCell'): Placed[] {
-  return fillCells(paint, coins, [c0, r0, c1, r1], cell);
+/** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), (a coin hangs on it: the engine draws the coin over the backdrop). */
+function backWall(paint: (g: Grid) => void, c0: number, r0: number, c1: number, r1: number, cell: 'backCell' | 'slateCell' = 'backCell'): Placed[] {
+  return fillCells(paint, [], [c0, r0, c1, r1], cell);
 }
 
 // ---- the timed strikes ----------------------------------------------------------------------------------
@@ -195,7 +195,6 @@ const paintGate = (g: Grid): void => {
 /** Where the coins hang in the hutong and the market (the back walls leave them clear). */
 const ALLEY_COINS = [[12, 11], [27, 15]] as const;
 const MARKET_COINS = [[6, 7], [21, 15]] as const;
-const ROOFS_COINS = [[12, 15], [26, 7]] as const;
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -238,7 +237,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: ALLEY_COINS,
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
     decor: [
-      ...backWall(paintAlley, ALLEY_COINS, 2, 10, 31, 16), ...backWall(paintAlley, ALLEY_COINS, 2, 7, 16, 9), // the lane's wall behind him, running up under the washing
+      ...backWall(paintAlley, 2, 10, 31, 16), ...backWall(paintAlley, 2, 7, 16, 9), // the lane's wall behind him, running up under the washing
       ...[2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((c) => ['cord', c, 4] as const), ['laundry', 5, 5], ['laundryB', 9, 5], ['laundryC', 13, 5], // the clothesline from house to house, behind the rope, hung with washing of every colour
       ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
     ],
@@ -309,7 +308,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: MARKET_COINS,
     decor: [
       ['cityRoofs', 7, 6], ['cityRoofs', 15, 6], ['cityRoofs', 22, 6], // the city's roofs far off in the haze, the dragon over them
-      ...backWall(paintMarket, MARKET_COINS, 2, 10, 29, 16), // the shop fronts behind the stalls
+      ...backWall(paintMarket, 2, 10, 29, 16), // the shop fronts behind the stalls
       ['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['latticeWindow', 8, 11], ['latticeWindow', 17, 11], ['latticeWindow', 26, 11],
       ['noodleStall', 7, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
     ],
@@ -338,7 +337,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
     decor: [
-      ...fillCells(paintRoofs, ROOFS_COINS, [0, 0, 31, 4], 'duskBand'), ...fillCells(paintRoofs, ROOFS_COINS, [0, 5, 31, 12], 'duskGlow'), // the sky, blue overhead and red toward the halls
+      ...fillCells(paintRoofs, [], [0, 0, 31, 4], 'duskBand'), ...fillCells(paintRoofs, [], [0, 5, 31, 12], 'duskGlow'), // the sky, blue overhead and red toward the halls
       ['moon', 26, 2], ...[[3, 1], [9, 2], [14, 1], [20, 3], [5, 4]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
       ['gateRoof', 2, 2], ['palaceHall', 12, 5], ['palaceHall', 0, 8], // the halls receding in tiers
       ['roofDragon', 24, 7], ['roofDragon', 20, 15], ['ridgeBeasts', 8, 16], ['lanternPost', 15, 14], // a dragon on each ridge's end, the beasts marching along the ridge

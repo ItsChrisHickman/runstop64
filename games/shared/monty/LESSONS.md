@@ -105,6 +105,13 @@ most care; the reward show and the title show them off.
   later regions get the best set pieces and the hardest fair rooms, building to the finale; build the late regions with as
   much care as the first, not faster.
 - **Credits are written for the game**, never reused from the original it's built on; fun facts are true and sourced.
+- **The parade is a procession, not a queue** (Chris on the live ending, 2026-11-22: creatures running one at a time over the
+  sand were "practically unrecognizable" and "a very boring parade"; Super Mario World's march was enjoyable to watch). After
+  the credits each region's creatures march in together as a troupe in their own walk, halt a little left of the middle, each
+  does a small move (a hop, a turn, a bow) as its name comes up, then march off; Monty last, dancing. They march on a plain
+  black ground of their own with a line under their feet, never over a busy picture; names are plain descriptive words
+  (MATRYOSHKA DOLL, KOI) in coloured text on the black, no box. Shared: `procession` in `games/shared/ending/show.ts`
+  (`procession.ts` is its clock).
 
 ## Words and sound
 
@@ -142,10 +149,13 @@ most care; the reward show and the title show them off.
   into this file.
 - **Go fast:** up to three tests at once, several agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
   step is merging.
-- **A death restarts in the room he died in** (Chris, 2026-11-22: a restart in the room before "feels like an uncontrollable
-  bug"): at the last safe place he stood there, else its way in; if that is deadly (an entry that drops into danger), at the
-  nearest place in the room he can stand; then a moment's grace. Never a previous-room fallback, in any game
-  (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole and Auf Wiedersehen Monty).
+- **A death restarts the room as he came into it** (Chris, 2026-11-22: a restart in the room before "feels like an
+  uncontrollable bug"; then, of the "last safe spot" that replaced it, "it seems to send us back to right before we died and I
+  did not want that. You should restart at the beginning of the room as you entered"): in the room he died in, exactly where and
+  how he came in (the entry the game recorded); only if that entry is itself deadly (it drops into danger) at the nearest place
+  in the room he can stand; then a moment's grace. Never the previous room, never where he last stood: no "last safe spot"
+  tracking (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole, Auf Wiedersehen Monty and, by the map's
+  travel, Jet Set Willy II).
 
 - **A lone Mole Crusher must be drawn in the first glyph bank ($10).** The engine animates the first crusher of a room on $10 and a second, only in a room of two, on $22; a lone one at $22 stood still (Moscow, Andes, Pacific, Japan). `crusherChars` in `games/shared/monty/rooms.ts` now picks the bank from the crusher's place in its room, and `montyworld/test/crushers.ts` checks that every crusher moves.
 

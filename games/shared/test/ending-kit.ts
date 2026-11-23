@@ -142,9 +142,13 @@ export class TurnWatch {
     else if (this.namedIn === place) { const at = `place ${place} line ${said.index}`; if (!this.broken.includes(at)) this.broken.push(at); }
   }
 
-  /** `colours`: whether the show draws the text itself (not a panel's line in the game's own lettering), so its colours are checked. */
-  check(colours: boolean) {
+  /**
+   * `colours`: whether the show draws the text itself (not a panel's line in the game's own lettering), so its colours are checked.
+   * `names`: whether names come in the band at all (not where the cast marches in a procession after the places, named there).
+   */
+  check(colours: boolean, names = true) {
     check(`no name comes between two lines of a place's credits${this.broken.length ? ` (${this.broken.join('; ')})` : ''}`, this.broken.length === 0);
+    if (!names) { check(`no name in the band of any place: the cast is named in its procession (${this.inks.name.size} name colours seen)`, this.inks.name.size === 0); return; }
     if (!colours) return;
     const clash = [...this.inks.name].filter((c) => this.inks.credit.has(c));
     check(`names are drawn in a colour of their own, apart from the credits' (names ${[...this.inks.name].join(' ')}, credits ${[...this.inks.credit].join(' ')})`, this.inks.name.size > 0 && clash.length === 0);
@@ -183,13 +187,73 @@ export class BandWatch {
   }
 
   /** The checks every native rebuild's credits have to pass (`total`: how many lines the places carry). */
-  check(total: number, gameBandFrames: number, gameBand: number, badPlaces: readonly string[]) {
+  check(total: number, gameBandFrames: number, gameBand: number, badPlaces: readonly string[], names = true) {
     check(`the game's own picture is empty in the band in all ${gameBandFrames} frames of the montage${badPlaces.length ? ` (${badPlaces.join('; ')})` : ''}`, gameBandFrames > 1000 && gameBand === 0);
     check(`credits and names land in empty pixels only: the text's colour when a turn is up, nothing between turns (${this.withText} frames with text, ${this.between} between; ${this.wrong} wrong${this.wrongAt.length ? `: ${this.wrongAt.join('; ')}` : ''})`, this.withText > 1000 && this.wrong === 0);
     check(`the text keeps a gap of black from the playfield: the pixel rows above and below its cell are the game's empty in every frame (${this.touched} frames touching${this.touchedAt ? `: ${this.touchedAt}` : ''})`, this.touched === 0);
     check(`every credit line was typed on in full and held (${this.typed.size} of ${total} lines)`, this.typed.size === total && total >= 12);
-    this.turns.check(true);
+    this.turns.check(true, names);
   }
+}
+
+/** The procession, frame by frame (a show with `procession`): who marched in which troupe, under which heading, whether the ground stayed plain, and each troupe's time. */
+export class ProcessionWatch {
+  /** Members seen on the picture, with the troupe they were in; names that came up, with the heading over them. */
+  readonly marched = new Map<string, number>();
+  readonly named = new Map<string, string>();
+  /** The troupes in the order they came on, and the frames each was on. */
+  readonly order: number[] = [];
+  readonly frames = new Map<number, number>();
+  /** Frames a marcher was of another troupe than the one on; the first few pixels of the ground that were not plain (the place's own picture showing through, or anything else); marchers whose feet were off the line. */
+  strays = 0;
+  readonly busy: string[] = [];
+  busyFrames = 0;
+  offLine = 0;
+
+  /**
+   * One frame of the parade: the show's progress, the picture as shown (colour indexes, 320 x 200), the visitors' sprites alone
+   * drawn into another (TRANSPARENT elsewhere), and the ground (`top`, `feet`, `line`, `colour`) with the inks its text may have.
+   */
+  frame(p: { visitors: readonly Seen[]; marching: { troupe: number; title: string; names: readonly string[] } | null; troupes: readonly { names: readonly string[] }[] }, pic: Uint8Array, sprites: Uint8Array, ground: { top: number; feet: number; line: number; colour?: number }, inks: readonly number[]) {
+    const m = p.marching;
+    if (!m) return;
+    if (this.order[this.order.length - 1] !== m.troupe) this.order.push(m.troupe);
+    this.frames.set(m.troupe, (this.frames.get(m.troupe) ?? 0) + 1);
+    const members = p.troupes[m.troupe]?.names ?? [];
+    for (const v of p.visitors) {
+      this.marched.set(v.name, m.troupe);
+      if (!members.includes(v.name)) this.strays++;
+      if (v.feet > ground.feet) this.offLine++;
+    }
+    for (const n of m.names) this.named.set(n, m.title);
+    const plain = ground.colour ?? 0;
+    let bad = 0;
+    for (let y = ground.top; y < 200; y++) for (let x = 0; x < 320; x++) {
+      const i = y * 320 + x, c = pic[i] ?? 0;
+      if ((sprites[i] ?? TRANSPARENT) !== TRANSPARENT || c === plain || (y === ground.feet && c === ground.line) || inks.includes(c)) continue;
+      if (bad++ === 0 && this.busy.length < 6) this.busy.push(`troupe ${m.troupe} (${x},${y}) colour ${c}`);
+    }
+    if (bad) this.busyFrames++;
+  }
+
+  /** The checks: every one of the cast in its troupe, in order, named under its troupe's heading; the ground plain; one troupe at a time, each about `seconds` long. */
+  check(troupes: readonly { title: string; names: readonly string[] }[], seconds: { min: number; max: number } = { min: 4, max: 7 }) {
+    const missing = troupes.flatMap((t, k) => t.names.filter((n) => this.marched.get(n) !== k));
+    check(`every marcher marched with its troupe (${this.marched.size} seen${missing.length ? `; not: ${missing.join(', ')}` : ''}), no one with another's (${this.strays} frames)`, missing.length === 0 && this.strays === 0);
+    const unnamed = troupes.flatMap((t) => t.names.filter((n) => this.named.get(n) !== t.title));
+    check(`every marcher was named under its troupe's heading${unnamed.length ? ` (not: ${unnamed.join(', ')})` : ''}`, unnamed.length === 0);
+    check(`the troupes came on one at a time, in order (${this.order.join(' ')})`, this.order.length === troupes.length && this.order.every((t, i) => t === i));
+    const lengths = [...this.frames.values()].map((f) => f / 50);
+    check(`each troupe's turn is a readable ${seconds.min} to ${seconds.max} seconds (${lengths.map((s) => s.toFixed(1)).join(' ')})`, lengths.length > 0 && lengths.every((s) => s >= seconds.min && s <= seconds.max));
+    check(`the ground stays plain under the marchers: nothing of the place's picture shows on it (${this.busyFrames} frames${this.busy.length ? `: ${this.busy.join('; ')}` : ''}), and their feet are on its line (${this.offLine} off)`, this.busyFrames === 0 && this.offLine === 0);
+  }
+}
+
+/** A figure in its true colours reads on a plain ground of `ground`: its first pose's pixels are mostly another colour than the ground's (the creature-contrast rule). The share that is the ground's colour. */
+export function groundShare(fig: { poses: readonly { parts: readonly { surface: { pixels: Uint8Array } }[] }[] }, ground: number): number {
+  let all = 0, same = 0;
+  for (const part of fig.poses[0]?.parts ?? []) for (const v of part.surface.pixels) { if (v === TRANSPARENT) continue; all++; if (v === ground) same++; }
+  return all === 0 ? 1 : same / all;
 }
 
 /** A show to run: the machines it needs and where the credits stand. */

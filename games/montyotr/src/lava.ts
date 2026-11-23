@@ -1,6 +1,5 @@
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, ROW, SCREEN } from '../../shared/monty/screen';
 import { montyOver } from './cells';
-import { coverable } from './decor-chars';
 import type { Game } from './game';
 import type { LavaSpec } from './montydata';
 
@@ -43,7 +42,7 @@ export function lavaUpdate(g: Game) {
           continue;
         }
         const chr = g.mem[SCREEN + at] ?? 0;
-        if (!saved && !coverable(chr)) continue;
+        if (!saved && !g.mayCover(chr)) continue;
         if (!saved) l.under.set(at, [chr, g.col[at] ?? 0]);
         g.setRoomChar(at, r === top ? e.crest : e.code);
       }

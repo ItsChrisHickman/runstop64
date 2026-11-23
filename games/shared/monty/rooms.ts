@@ -87,8 +87,11 @@ export interface RoomDef {
   cells: Uint8Array; // 32 × 20 char codes
 }
 
-/** A decoration type: w × h characters (8 bytes each) and their colour(s). */
-export interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array }
+/**
+ * A decoration type: w × h characters (8 bytes each) and their colour(s). A `backdrop` (a sky's bands, a sea, a wall seen behind) lies under the room's pickups
+ * and the cells it clears: it is drawn under a coin (the coin's own picture over it), and a coin taken, a gate or a crack cleared leaves it showing, never black.
+ */
+export interface DecorType { w: number; h: number; chr: Uint8Array; colour: number | Uint8Array; backdrop?: boolean }
 
 /** The tables of a game's own rooms, in the original's formats (what `buildRooms` adds to, and returns). */
 export interface RoomTables {
@@ -151,6 +154,15 @@ export const NO_ROOMS: BaseRooms = {
  * has two, the second on the bank at 0x22 (`piledriverAnimate`): a lone crusher drawn in 0x22 never moves. So the data does not choose.
  */
 const crusherChars = (nth: number): 0x10 | 0x22 => (nth === 0 ? 0x10 : 0x22);
+/**
+ * The tallest shaft: a crusher's glyph memory is three columns of six characters ($30 bytes each, scrolled as one), and a shaft's cell i of
+ * a column is the character base + i. A seventh cell would be the next column's first character (the head's middle column), drawn at the floor.
+ */
+export const CRUSHER_MAX_HEIGHT = 6;
+const crusherHeight = (room: number, height: number): number => {
+  if (!Number.isInteger(height) || height < 1 || height > CRUSHER_MAX_HEIGHT) throw new Error(`room ${room}: a crusher's shaft is 1 to ${CRUSHER_MAX_HEIGHT} cells tall, not ${height}`);
+  return height;
+};
 const CUPCAKE_FRAME = 3;
 /** si_spawn_tbl's frame base for a sprite pointer (the table adds $8E). */
 const frameBase = (sprite: number) => (sprite - 0x8e) & 0xff;
@@ -248,7 +260,7 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,
     decorTypes: [...base.decorTypes, ...signs.map((s) => signType(s, bank))],
-    piledriverCfg: merged(base.piledriverCfg, (r) => (r.crushers ?? []).map((p, i) => [r.id, p.col, p.row, p.height, crusherChars(i)])),
+    piledriverCfg: merged(base.piledriverCfg, (r) => (r.crushers ?? []).map((p, i) => [r.id, p.col, p.row, crusherHeight(r.id, p.height), crusherChars(i)])),
     teleporterCfg: Uint8Array.from([...base.teleporterCfg, ...tele.flatMap(({ id, t }) => [id, t.col, t.row, t.height, t.colour])]),
     teleporterDests: Uint8Array.from([...base.teleporterDests, ...tele.flatMap(({ t }) => [t.to.x2, t.to.y, t.to.exitCol, t.to.mapRow])]),
     warpFound: new Map(tele.map(({ id, t }) => [id, t.found ?? []])),

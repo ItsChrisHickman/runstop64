@@ -388,7 +388,7 @@ export const SAFE_PASSES = 50;
 export interface SafeSpec<F> {
   steady(ram: Uint8Array, found: F): boolean;
   lives: { get(ram: Uint8Array): number; set(ram: Uint8Array, n: number): void };
-  /** Whether he can be put back in a room at a place he can stand (the room's last safe place, or the nearest one he can stand on): the map's travel then takes him there. */
+  /** Whether he can be put back in a room at a place he can stand (where he came into it, or if that is in the air or deadly the nearest one he can stand on): the map's travel then takes him there. */
   restart(found: F, room: number): boolean;
 }
 
@@ -416,8 +416,9 @@ export class SafeArrival<F> {
     const lives = spec.lives.get(ram), was = this.arrived;
     // a life lost (the game may have started him again in another room: where a fall began)
     if (was && lives < was.lives) {
-      // in ENHANCED, before he'd lived a moment where he was: not where the game starts him again, but in the room he died in
-      if (was.n < SAFE_PASSES && this.env.on('respawn') && this.env.playing() && !travel) this.respawn = was.room;
+      // in ENHANCED, before he'd lived a moment where he was, or when the game has started him again in another room (where a
+      // fall began): not there, but in the room he died in, where he came into it
+      if ((was.n < SAFE_PASSES || room !== was.room) && this.env.on('respawn') && this.env.playing() && !travel) this.respawn = was.room;
       was.save = null; was.n = 0;
     }
     const a: NonNullable<typeof this.arrived> = was?.room === room ? was : { room, save: null, n: 0, lives };

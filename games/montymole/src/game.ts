@@ -17,7 +17,7 @@ import { Floor } from './floor';
 import { Gates } from './gates';
 import { Opening } from './opening';
 import { Direction, KEYBOARD, readInput, type Ports } from './input';
-import { Flag, InAir, Monty, type Terrain } from './monty';
+import { Flag, Monty, type Terrain } from './monty';
 import { RoomObject } from './object';
 import { Random } from './random';
 import type { RoomData } from './room';
@@ -131,12 +131,8 @@ export class Game implements Stateful {
   graceActive: () => boolean = () => false;
   /** a death has put him back (ENHANCED): the front end starts a moment's grace */
   onRestart: () => void = () => {};
-  /** ENHANCED: a death starts him in the room he died in, at the last safe place he stood there (his way in if none; if that is deadly, the nearest place he can stand), then a moment's grace */
+  /** ENHANCED: a death starts him in the room he died in, exactly where he came into it (if that way in is deadly, the nearest place he can stand), then a moment's grace */
   noDeathLoops = false;
-  /** the last place he stood safely in the room he is in */
-  safe: { readonly room: number; readonly x: number; readonly y: number } | null = null;
-  /** a death has put him back into this room: the safe place is kept across the room's drawing again */
-  private restarting = false;
   /** ENHANCED: a death costs no life (shared/lives.ts) */
   unlimitedLives = false;
   /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
@@ -207,8 +203,6 @@ export class Game implements Stateful {
       this.field.printLives(this.lives); // $949E
       this.field.keep(); // $D254
       this.entries++;
-      if (!this.restarting || this.safe?.room !== this.room) this.safe = null;
-      this.restarting = false;
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
       // $96E1: the pit: the scene lifts him into the castle (room 17), his jump state as it was but the fall and the jump's count cleared
       this.monty.x = PIT_ARRIVAL.x;
@@ -313,8 +307,6 @@ export class Game implements Stateful {
   pass(ports: Ports): Outcome {
     if (this.outcome !== 'playing') return this.outcome;
     if (this.room === OPENING_ROOM) return this.openingPass(ports);
-    const m0 = this.monty;
-    if (!(m0.flags & (Flag.falling | Flag.jumping | Flag.rope)) && !(m0.flags2 & InAir) && m0.stands(m0.x, m0.y)) this.safe = { room: this.room, x: m0.x, y: m0.y };
     this.inputRead = -1;
     this.exitedTo = null;
     const room = this.world.room;
@@ -435,7 +427,6 @@ export class Game implements Stateful {
     if (again !== null) {
       this.arrivalX = again.x;
       this.arrivalY = again.y;
-      this.restarting = true;
       this.onRestart();
     }
     m.x = this.arrivalX;
@@ -449,10 +440,10 @@ export class Game implements Stateful {
     this.enter();
   }
 
-  /** Where to start again in this room: where he last stood, else where he came in, else the nearest place he can stand. */
+  /** Where to start again in this room: exactly where he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): { readonly x: number; readonly y: number } {
     const m = this.monty;
-    const here = this.safe !== null && this.safe.room === this.room ? this.safe : { x: this.arrivalX, y: this.arrivalY };
+    const here = { x: this.arrivalX, y: this.arrivalY };
     if (m.stands(here.x, here.y)) return here;
     let best: { x: number; y: number } | null = null;
     let bestD = Infinity;

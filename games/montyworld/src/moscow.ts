@@ -256,7 +256,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       { who: 'matryoshka', col: 23, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 5, row: 7, way: 'right', speed: 1, range: 36 },
     ],
-    crushers: [{ col: 10, row: 10, height: 7 }], // (hung from the gallery over it, as Monty on the Run's hang from their ceilings)
+    crushers: [{ col: 10, row: 11, height: 6 }], // (hung under the gallery over it, one cell down: a shaft is six cells at most, as Monty on the Run's hang from their ceilings)
   }),
 
   // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), ending at the down

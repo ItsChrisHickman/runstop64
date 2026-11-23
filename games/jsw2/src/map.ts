@@ -98,7 +98,7 @@ export const footing = (ram: Uint8Array, found: Jsw2Found) => found.arrival !== 
  * putting Willy at places in the room (test/restart.ts), for a death to start him again in the room he died in.
  */
 const RESTARTS: Readonly<Record<number, Spot>> = { 7: [24, 0, 158] }; // (Hades: the floor by its way out, at the left)
-/** Whether he can be started again in a room at a place he can stand: the spot he first stood on there (travel's own), else the room's own. */
+/** Whether he can be started again in a room at a place he can stand: where he came into it (travel's own spot: the way in if he came in on his feet, else where he first landed), else the room's own. */
 export function restartPlace(found: Jsw2Found, room: number): boolean {
   const own = RESTARTS[room];
   if (!found.stand[room] && own && MANSION[room]) found.stand[room] = own;

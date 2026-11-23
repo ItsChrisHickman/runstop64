@@ -267,12 +267,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tap('KeyP');
   p.grace.clear();
   g.lives = 0x8c;
-  g.safeSpot = null;
-  // a moment on his feet in this room: where he stands is the place to start again from
   const room = g.world.room;
-  tick(30);
-  const spot = game().safeSpot;
-  check(`on his feet in the room: where he stands is the safe place (${JSON.stringify(spot)})`, spot?.room === room);
   const other = START_ROOM === room ? second : START_ROOM;
   // into another room, and a death at once: back in that room (never the one before), standing, with the grace
   g.placeAt(must(entryOf(p.state.found, other), 'no entry'));
@@ -284,16 +279,16 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   tick(2);
   check(`ENHANCED: a death at once in the next room starts him in that room (${g.world.room.toString(16)}), not the one before (${room.toString(16)}), takes no life (unlimited), with the grace`,
     g.world.room === other && g.lives === lives && p.grace.active);
-  // after standing in this room, a death starts him where he stood
-  g.placeAt(must(entryOf(p.state.found, room), 'no entry'));
+  // after standing and walking in this room, a death starts him where he came in, not where he stood
+  const came = must(entryOf(p.state.found, room), 'no entry');
+  g.placeAt(came);
   tick(30);
-  const stood = must(game().safeSpot, 'no safe spot');
-  g.monty.x = (stood.x + 40) & 0xff;
+  g.monty.x = (came.x + 40) & 0xff;
   g.monty.state = State.Dying;
   g.monty.step = 0;
   until(() => g.monty.state !== State.Dying && g.monty.dead === 0, 200);
   tick(2);
-  check(`ENHANCED: a death later in the room starts him there, where he last stood (x ${g.monty.x}, was ${stood.x})`, g.world.room === room && g.monty.x === stood.x);
+  check(`ENHANCED: a death later in the room starts him there, exactly where he came in (x ${g.monty.x}, came in at ${came.x})`, g.world.room === room && g.monty.x === came.x && g.monty.y === came.y);
   // ORIGINAL: where he came in
   tap('KeyP'); tap('KeyE'); tap('KeyP');
   p.grace.clear();

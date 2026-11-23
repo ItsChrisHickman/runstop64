@@ -44,7 +44,7 @@ function uncover(g: Game, t: TunnelState) {
 
 /** Draw `code` on a cell of the playfield (`null`: leave it empty), keeping what was there. */
 function paint(g: Game, t: TunnelState, col: number, row: number, code: number | null) {
-  if (col < 0 || col >= PLAY_COLS) return;
+  if (col < -PLAY_COL || col >= ROW - PLAY_COL) return; // (the screen's width: the margins either side of the playfield too)
   const at = (row + PLAY_ROW) * ROW + col + PLAY_COL;
   if (!g.tunnelUnder.has(at)) g.tunnelUnder.set(at, [g.mem[SCREEN + at] ?? 0, g.col[at] ?? 0]);
   t.over.add(at);
@@ -73,6 +73,7 @@ export function tunnelUpdate(g: Game) {
     const e = t.spec;
     const dir = e.from === 'right' ? -1 : 1;
     const { lo, hi } = lanes(e);
+    const margin = e.bleed ? PLAY_COL : 0; // (how far past the playfield a bleeding mouth is drawn, and runs on before it is gone)
     const edge = e.from === 'right' ? hi - 1 : lo;
     const start = startOf(e);
     const wall = e.wall ?? 1;
@@ -90,8 +91,8 @@ export function tunnelUpdate(g: Game) {
         if (t.t % e.step === 0) {
           t.left += dir;
           uncover(g, t);
-          if (t.left <= lo - e.cols || t.left > hi) { t.state = 'rest'; t.t = 0; t.left = start; break; }
-          for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(t.left, lo); c < Math.min(t.left + e.cols, hi); c++) {
+          if (t.left <= lo - margin - e.cols || t.left > hi + margin) { t.state = 'rest'; t.t = 0; t.left = start; break; }
+          for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(t.left, lo - margin); c < Math.min(t.left + e.cols, hi + margin); c++) {
             if (e.picture) {
               const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
               if (code && !solidCell(g, c, r, e)) paint(g, t, c, r, code); // (a train goes into the tiled wall as into a tunnel: not drawn over it)

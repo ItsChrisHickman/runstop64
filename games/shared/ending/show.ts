@@ -1,6 +1,7 @@
 import { Surface, TRANSPARENT, type BitmapFont, type Host, type SpriteHandle } from 'c64kit';
 import { CREDIT } from './credits';
-import { poseAt, type Figure } from './figures';
+import { poseAt, type Figure, type Part } from './figures';
+import { FLAT, movesFor, nameSpot, processionOf, troupeAt, type Move, type TroupeShape } from './procession';
 import { WHOLE, cutTo, type Stage } from './stage';
 import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timeline, type Walk } from './timeline';
 
@@ -97,6 +98,31 @@ export interface RewardSpec {
   ground?: number;
   /** Whether the show can run at all (the machines it needs are there); default yes. Checked once, as the show begins. */
   ready?(): boolean;
+  /**
+   * The parade as a procession (`procession.ts`), after the last place has run its course: the cast marching by in troupes on a
+   * plain ground of its own, the hero last. Without it, the cast walks through the last place one at a time (`timeline.ts`).
+   */
+  procession?: ProcessionSpec;
+}
+
+/** The hero as he comes last in a procession: his walk and his dance (both recorded by the game). */
+export interface Lead { walk: Figure; dance: Figure }
+
+/** A procession's troupes, its hero and its ground (picture pixels). */
+export interface ProcessionSpec {
+  /** In order: a heading and how many of the cast (the next ones, in its order) march in it, at most `MARCH.most`. */
+  troupes: readonly { title: string; size: number }[];
+  /** The hero, last, dancing, under a heading of his own (blank: none), and the gag after him, if there is one (squashed flat, wobbling along). */
+  hero?: { title: string; record(): Lead | null };
+  gag?: () => Figure | null;
+  /**
+   * The ground: the picture from row `top` to its foot is one plain colour (`colour`, default black), the place's own picture
+   * behind it left out, and the marchers' feet are on row `feet` with a line of `line` under them. The headings go in `titleRow`
+   * and the names in `nameRows` (two rows, two names each), all inside it.
+   */
+  ground: { top: number; feet: number; line: number; colour?: number };
+  titleRow: number;
+  nameRows: readonly [number, number];
 }
 
 /** The show's colours (indexes of the renderer's palette). */
@@ -137,7 +163,7 @@ function bigText(s: Surface, font: BitmapFont, text: string, x: number, y: numbe
 
 // ---- the show -------------------------------------------------------------------------------------------
 
-type Phase = 'loading' | 'montage' | 'end';
+type Phase = 'loading' | 'montage' | 'parade' | 'end';
 
 /** The frames before a key or a tap skips it. */
 const SKIP_AFTER = 100;
@@ -181,6 +207,10 @@ export class RewardShow {
   private readonly black = new Surface(320, 200, 0);
   private seen: Seen[] = [];
   private said: Said | null = null;
+  /** The procession's troupes (made once the cast is recorded), its clock, and what it shows now (for tests). */
+  private troupes: Troupe[] = [];
+  private march: ReturnType<typeof processionOf> = { turns: [], length: 0 };
+  private marching: Marching | null = null;
 
   constructor(private readonly o: RewardOptions) {}
 
@@ -192,9 +222,13 @@ export class RewardShow {
   /** For tests: the figures recorded. */
   get cast(): readonly Figure[] { return this.figures; }
 
-  /** For tests: where the show is, the place's reel, who is walking now and what the band says. */
+  /** For tests: where the show is, the place's reel, who is walking now and what the band says; in a procession, the troupe on now (its heading and the names up) and every troupe's heading and members. */
   get progress() {
-    return { phase: this.phase, place: this.place, frames: this.frames, reel: this.reel, visitors: this.seen, said: this.said, figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })), length: this.tl.length };
+    return {
+      phase: this.phase, place: this.place, frames: this.frames, shown: this.shown, reel: this.reel, visitors: this.seen, said: this.said,
+      figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })), length: this.phase === 'parade' ? this.march.length : this.tl.length,
+      marching: this.marching, troupes: this.troupes.map((t) => ({ title: t.title, names: t.members.map((m) => m.fig.name) })),
+    };
   }
 
   /** Begin: `stats` are the lines under THE END. */
@@ -206,6 +240,9 @@ export class RewardShow {
     this.shown = 0;
     this.stats = stats;
     this.figures = [];
+    this.troupes = [];
+    this.march = { turns: [], length: 0 };
+    this.marching = null;
     this.place = -1;
     this.placed = 0;
     this.owed = 0;
@@ -245,8 +282,13 @@ export class RewardShow {
       // (a black frame first, then the work: the cast is recorded in one go)
       if (this.frames === 1) { renderer.hideSprites(); renderer.backdrop = this.black; renderer.layout = null; renderer.screen.clear(TRANSPARENT); renderer.border = 0; return; }
       if (this.o.spec.ready && !this.o.spec.ready()) { this.finish(); return; }
-      this.figures = this.o.spec.cast.flatMap((record) => { const f = record(); return f ? [f] : []; });
       const { spec } = this.o;
+      const recorded = spec.cast.map((record) => record());
+      this.figures = recorded.flatMap((f) => (f ? [f] : []));
+      if (spec.procession) {
+        this.troupes = troupesOf(spec.procession, recorded);
+        this.march = processionOf(this.troupes.map((t) => t.shape));
+      }
       this.shares = sharesOf(spec.places, this.figures.length, spec.creditSlot ?? CREDIT.slot);
       this.nextPlace();
       return;
@@ -254,6 +296,7 @@ export class RewardShow {
     if (this.skipped()) { this.finish(); return; }
     input.typed.length = 0;
     if (this.phase === 'montage') this.montage();
+    else if (this.phase === 'parade') this.parade();
     else this.end();
   }
 
@@ -269,13 +312,14 @@ export class RewardShow {
     for (;;) {
       this.place++;
       const place = spec.places[this.place];
-      if (!place) { this.beginEnd(); return; }
+      if (!place) { if (spec.procession) this.beginParade(); else this.beginEnd(); return; }
       const reel = place.open();
       const share = this.shares[this.place] ?? 0;
       if (!reel) { this.owed += share; continue; }
       // (the cast it takes: its share, and what places that did not open left; the last place takes whoever is left)
       const left = this.figures.length - this.placed;
-      const take = place.visitors === false ? 0 : Math.min(left, share + this.owed);
+      // (none where the cast marches by in a procession of its own after the places)
+      const take = place.visitors === false || spec.procession ? 0 : Math.min(left, share + this.owed);
       if (place.visitors !== false) this.owed = 0;
       this.visitors = this.figures.slice(this.placed, this.placed + take).map((_, k) => this.placed + k);
       this.placed += take;
@@ -306,7 +350,10 @@ export class RewardShow {
     if (feet !== undefined && (row <= 96 || feet <= row)) { this.feet.push(feet); if (this.feet.length > FLOOR_FRAMES) this.feet.shift(); }
     this.drawVisitors(t, place);
     this.band(now, place, reel);
-    if (this.frames >= this.tl.length) this.nextPlace();
+    if (this.frames < this.tl.length) return;
+    // (the procession goes on over the last place, which keeps running behind it)
+    if (this.o.spec.procession && this.place === this.o.spec.places.length - 1) this.beginParade();
+    else this.nextPlace();
   }
 
   /** The columns the band's text may use: where it starts and how many letters. */
@@ -361,7 +408,6 @@ export class RewardShow {
 
   /** The visitors on their way, over the picture: one handle per part drawn, shared along the line. */
   private drawVisitors(t: number, place: Place) {
-    const { renderer } = this.o.host;
     const stage = this.reel?.shownArea ?? WHOLE;
     this.seen = [];
     let used = 0;
@@ -373,23 +419,82 @@ export class RewardShow {
       const stand = (this.stands[k] ??= this.floor(place));
       const top = stand - fig.foot;
       this.seen.push({ name: fig.name, left, feet: stand, width: fig.width, height: fig.foot });
-      poseAt(fig, t - walk.from).parts.forEach((part) => {
-        while (this.handles.length <= used) { this.handles.push(renderer.createSprite(20 + this.handles.length * 0.001)); this.cuts.push(null); }
-        // (only what is on the stage: a part half out is cut, one wholly out is not drawn)
-        const { cut, spare } = cutTo(part.surface, left + part.dx, top + part.dy, stage, this.cuts[used] ?? null);
-        const h = this.handles[used];
-        this.cuts[used] = spare;
-        used++;
-        if (!h || !cut) { if (h) h.visible = false; return; }
-        h.surface = cut.surface; h.x = cut.x; h.y = cut.y; h.visible = true;
-      });
+      for (const part of poseAt(fig, t - walk.from).parts) used = this.put(used, part.surface, left + part.dx, top + part.dy, stage);
     });
-    for (let k = used; k < this.handles.length; k++) { const h = this.handles[k]; if (h) h.visible = false; }
+    this.putAway(used);
+  }
+
+  /** A part of a figure drawn on handle `used` (made if there are not that many yet), cut to the stage (a part half out is cut, one wholly out is not drawn): the next handle. */
+  private put(used: number, surface: Surface, x: number, y: number, stage: Stage): number {
+    while (this.handles.length <= used) { this.handles.push(this.o.host.renderer.createSprite(20 + this.handles.length * 0.001)); this.cuts.push(null); }
+    const { cut, spare } = cutTo(surface, x, y, stage, this.cuts[used] ?? null);
+    const h = this.handles[used];
+    this.cuts[used] = spare;
+    if (h && cut) { h.surface = cut.surface; h.x = cut.x; h.y = cut.y; h.visible = true; } else if (h) h.visible = false;
+    return used + 1;
+  }
+
+  /** The handles from `used` on hidden. */
+  private putAway(used: number) { for (let k = used; k < this.handles.length; k++) { const h = this.handles[k]; if (h) h.visible = false; } }
+
+  // -- the procession
+
+  private beginParade() {
+    this.phase = 'parade';
+    this.frames = 0;
+    this.seen = [];
+    this.said = null;
+    this.marching = null;
+    // (the last place stands still behind it as it was last drawn, its own figures put away: the hero comes in the procession; with no place, a black picture)
+    const { renderer } = this.o.host;
+    renderer.hideSprites();
+    if (!this.reel) { renderer.backdrop = this.black; renderer.screen.clear(TRANSPARENT); }
+  }
+
+  /** One frame of the procession: the last place's picture behind, the plain ground over its lower part, the troupe on now, its heading and the names up. */
+  private parade() {
+    const proc = this.o.spec.procession;
+    if (!proc || this.frames > this.march.length) { this.beginEnd(); return; }
+    const { screen } = this.o.host.renderer, font = this.o.font();
+    const t = this.frames - 1;
+    const { ground } = proc;
+    screen.fillRect(0, ground.top, 320, 200 - ground.top, ground.colour ?? 0);
+    screen.fillRect(0, ground.feet, 320, 1, ground.line);
+    this.seen = [];
+    this.marching = null;
+    let used = 0;
+    const k = this.march.turns.findIndex((turn) => t >= turn.from && t < turn.from + turn.length);
+    const troupe = this.troupes[k], turn = this.march.turns[k];
+    if (troupe && turn) {
+      const into = t - turn.from;
+      const { stances, named } = troupeAt(troupe.shape, into);
+      const names = named.map((n) => troupe.members[n]?.fig.name ?? '');
+      this.marching = { troupe: k, title: troupe.title, names };
+      if (troupe.title) font.draw(screen, troupe.title, 8, proc.titleRow, this.colours.title);
+      const nameInk = this.o.spec.nameInk ?? this.colours.name;
+      names.forEach((name, n) => { const at = nameSpot(n, proc.nameRows); font.draw(screen, name, at.x, at.row, nameInk); });
+      troupe.members.forEach((m, n) => {
+        const st = stances[n];
+        if (!st) return;
+        const fig = st.dancing && m.dance ? m.dance : m.fig;
+        const pose = poseAt(fig, st.dancing ? st.moveAt : into);
+        const feet = ground.feet - st.lift;
+        if (st.left + fig.width > 0 && st.left < 320) this.seen.push({ name: m.fig.name, left: st.left, feet, width: fig.width, height: fig.foot });
+        for (const part of pose.parts) {
+          const drawn = shapedPart(fig, part, st.mirror, st.squash);
+          used = this.put(used, drawn.surface, st.left + drawn.dx, feet - fig.foot + drawn.dy, WHOLE);
+        }
+      });
+    }
+    screen.version++;
+    this.putAway(used);
   }
 
   // -- THE END
 
   private beginEnd() {
+    this.reel?.dispose();
+    this.reel = null;
     this.phase = 'end';
     this.frames = 0;
     this.seen = [];
@@ -418,4 +523,60 @@ export class RewardShow {
     if (this.phase === 'montage' && this.reel) this.reel.render(alpha);
     else this.o.host.renderer.render();
   }
+}
+
+// ---- the procession's troupes -------------------------------------------------------------------------------------
+
+/** A troupe of the procession: its heading, its members (a figure each, and the hero's dance), and its shape for the clock. */
+interface Troupe { title: string; members: { fig: Figure; dance?: Figure }[]; shape: TroupeShape }
+
+/** What the procession shows now, for tests: which troupe, its heading and the names up. */
+export interface Marching { troupe: number; title: string; names: readonly string[] }
+
+/** The troupes from the cast as recorded (one that could not be is left out of its troupe; a troupe left with none is not made), the hero's last. */
+function troupesOf(proc: ProcessionSpec, recorded: readonly (Figure | null)[]): Troupe[] {
+  let at = 0;
+  const out = proc.troupes.flatMap((t, i): Troupe[] => {
+    const figs = recorded.slice(at, at + t.size).flatMap((f) => (f ? [f] : []));
+    at += t.size;
+    const moves = movesFor(i, figs.length);
+    const members = figs.map((fig, k) => ({ fig, move: moves[k] ?? 'hop' }));
+    return members.length ? [{ title: t.title, members, shape: { members: members.map((m) => ({ width: m.fig.width, move: m.move })) } }] : [];
+  });
+  const lead = proc.hero?.record() ?? null;
+  if (lead && proc.hero) {
+    const gag = proc.gag?.() ?? null;
+    // (the gag behind him, at the left)
+    const members: { fig: Figure; dance?: Figure; move: Move }[] = [...(gag ? [{ fig: gag, move: 'flat' as const }] : []), { fig: lead.walk, dance: lead.dance, move: 'dance' }];
+    out.push({ title: proc.hero.title, members, shape: { members: members.map((m) => ({ width: m.fig.width, move: m.move })) } });
+  }
+  return out;
+}
+
+/** The pictures made of a part: mirrored, squashed (kept, so each is made once). */
+const shaped = new WeakMap<Surface, Map<string, Surface>>();
+
+/** A part of a figure as a stance draws it: turned about (mirrored in the figure's box) and squashed down to its feet (the gag spread wide too). */
+function shapedPart(fig: Figure, part: Part, mirror: boolean, squash: number): Part {
+  if (!mirror && squash === 1) return part;
+  const src = part.surface;
+  const wide = squash <= FLAT ? 1.5 : 1;
+  const w = Math.round(src.width * wide), h = Math.max(1, Math.round(src.height * squash));
+  const key = `${mirror ? 1 : 0}:${w}x${h}`;
+  let made = shaped.get(src);
+  if (!made) { made = new Map(); shaped.set(src, made); }
+  let out = made.get(key);
+  if (!out) {
+    out = new Surface(w, h, TRANSPARENT);
+    out.palette = src.palette;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const sx = Math.min(src.width - 1, Math.floor(((mirror ? w - 1 - x : x) * src.width) / w)), sy = Math.min(src.height - 1, Math.floor((y * src.height) / h));
+      out.pixels[y * w + x] = src.pixels[sy * src.width + sx] ?? TRANSPARENT;
+    }
+    out.version++;
+    made.set(key, out);
+  }
+  // (mirrored in the figure's box; squashed toward its feet, spread about its middle)
+  const dx0 = mirror ? fig.width - part.dx - src.width : part.dx;
+  return { surface: out, dx: Math.round(dx0 - (w - src.width) / 2), dy: Math.round(fig.foot - (fig.foot - part.dy) * squash) };
 }

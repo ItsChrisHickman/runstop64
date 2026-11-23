@@ -131,7 +131,8 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
     for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
       const c = cellAt(s.g, col, row);
       const tile = c >= 1 && c <= 8;
-      if (tile !== ((map[row]?.[col] ?? '.') !== '.')) bad.push(`${name}: cell ${col},${row} is ${c}`);
+      const coin = SIBERIA_ROOMS.find((r) => r.id === room)?.coins?.some(([cc, cr]) => cc === col && cr === row) === true;
+      if (!coin && tile !== ((map[row]?.[col] ?? '.') !== '.')) bad.push(`${name}: cell ${col},${row} is ${c}`);
     }
   }
   check(`the sky's cells are never a room tile but where the room has tiles of its own (${bad.slice(0, 4).join('; ') || 'none wrong'})`, bad.length === 0);
@@ -166,5 +167,19 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
   check('a room that is not the train\'s has no character animation but the game\'s own', s.g.charAnims.length === 0);
   // (other regions animate characters of their own now: Japan's trains, Rio's grill and dancers; only Monty on the Run must have none)
   check('Monty on the Run has none, and every train room animates', MOTR.charAnims.length === 0 && [ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal].every((r) => WORLD.charAnims.some((a) => a.room === r)));
+}
+// ---- the backdrop runs unbroken ----------------------------------------------------------------------------------
+{
+  // across each car's horizon band (rows 6-8; Siberia's calm night has no poles or wires above it) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
+  // or a tile or rope of the room that stands in front of it). The tender's horizon is only the stretch between its bunker and the tipple's leg (the boards and the legs stand in front elsewhere).
+  for (const [name, room, from, to] of [['dining car', SIB.gravy, -2, 33], ['sleeper', SIB.sleeper, -2, 33], ['tender', SIB.coal, 4, 15]] as const) {
+    const s = at(room, 8, 17);
+    const empty: string[] = [];
+    const bare: readonly (readonly [number, number])[] = [];
+    for (let row = 6; row <= 8; row++) for (let col = from; col <= to; col++) {
+      if (cellAt(s.g, col, row) === 0 && !bare.some(([c, r]) => c === col && r === row)) empty.push(`${col},${row}`);
+    }
+    check(`${name}: the sky band has no empty cell (${empty.join(' ') || 'none'})`, empty.length === 0);
+  }
 }
 finish();

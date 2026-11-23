@@ -28,7 +28,7 @@ import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
-import { codeOf } from './layout';
+import { codeOf, isBackdrop } from './layout';
 import { CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, FLOATS, GATE_CELLS, GATE_SEA_CELLS, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, SUGAR_PALETTE } from './rio';
 import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SUN_MASK_POINTER, SUN_POINTER } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
@@ -157,7 +157,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
   return ptr;
 }
 
-const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
+const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
 const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */

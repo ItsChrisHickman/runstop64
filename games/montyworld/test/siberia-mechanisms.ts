@@ -252,11 +252,33 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
   check(`its loop runs from the floor lane to the bridge lane (${((maxY - minY) / 8).toFixed(1)} rows) and never east of column ${(maxRight / 8).toFixed(1)}: the pine's gap (from ${PINE.cols[0] - 1}) and the stair are never in its way`, maxY - minY >= 8 * 6 && maxRight <= 17 * 8 + 4);
   const s = at(SIB.yeti, 10, 17);
   let died = -1;
-  for (let f = 0; f < lap * 2 && died < 0; f++) { frame(s, NONE); if (dead(s.g)) died = f; }
-  check(`it prowls the floor lane: standing there for two laps he is caught (frame ${died})`, died >= 0);
+  for (let f = 0; f < lap * 4 && died < 0; f++) { frame(s, NONE); if (dead(s.g)) died = f; }
+  check(`it prowls the floor lane: standing there for four laps he is caught (frame ${died})`, died >= 0);
   const safe = at(SIB.yeti, 23, 17);
-  run(safe, NONE, lap * 2);
-  check('and where he comes up the pine (the floor east of its gap) is never touched in two laps', !dead(safe.g));
+  run(safe, NONE, lap * 12);
+  check('and where he comes up the pine (the floor east of its gap) is never touched in twelve laps, whatever it chooses', !dead(safe.g));
+  {
+    // it chooses: over a long stay it carries on, stands, turns back and charges, each warned by a roar; the same seed gives the same yeti
+    const moods = YETI.moods;
+    const watch = at(SIB.yeti, 23, 17);
+    const seen = { roar: 0, rest: 0, back: 0, charge: 0 };
+    let warnedAll = true, roarLen = 0, last = watch.g.dragons[0];
+    for (let f = 0; f < lap * 12; f++) {
+      frame(watch, NONE);
+      const d = watch.g.dragons[0];
+      if (!d || !last) continue;
+      if (d.mode === 'roar') { roarLen++; } else {
+        if (last.mode === 'roar') { seen.roar++; if (roarLen < (moods?.roar ?? 0)) warnedAll = false; if (d.then === 'back') seen.back++; if (d.then === 'charge') seen.charge++; if (d.then === 'rest') seen.rest++; }
+        roarLen = 0;
+      }
+      last = { ...d };
+    }
+    check(`the yeti has moods: in twelve laps it roared ${seen.roar} times, then rested ${seen.rest}, turned back ${seen.back}, charged ${seen.charge}`, moods !== undefined && seen.rest > 0 && seen.back > 0 && seen.charge > 0);
+    check(`every roar is a full ${moods?.roar} frames before it moves: the warning`, warnedAll);
+    const again = at(SIB.yeti, 23, 17);
+    run(again, NONE, lap * 12);
+    check('and it is deterministic: the same seed, the same yeti', JSON.stringify(again.g.dragons) === JSON.stringify(watch.g.dragons));
+  }
   const yeti = roomOf(SIB.yeti);
   const rock = (col: number, row: number) => classAt(SIB.yeti, col, row) === 1;
   check('the cave\'s edges are rock all round: its only way out is down the pine through the floor\'s gap', Array.from({ length: 32 }, (_, c) => c).every((c) => rock(c, 0) && (rock(c, 19) || (c >= PINE.cols[0] - 1 && c <= PINE.cols[1] + 1)))

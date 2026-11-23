@@ -79,6 +79,23 @@ e.tick(400);
 check(`ENHANCED: the fall into Hades costs one life (${before} -> ${e.lives()}), and he starts again in Hades (${e.room()}), not room 60, alive 400 frames on`, e.lives() === before - 1 && e.room() === HADES && e.p.state.playing);
 check(`ENHANCED: standing in Hades a second, its save is kept ("${e.saved()}")`, e.saved().startsWith('ENTRANCE TO HADES'));
 
+// ---- ENHANCED: a death after a long stay in Hades (he has lived more than a second there, then goes back onto the skull): still Hades, never room 60 ----
+const l = await launch();
+{
+  l.input.keyDown('ArrowLeft');
+  let skull: [number, number] | null = null;
+  const start = l.lives();
+  for (let i = 0; i < 400 && l.lives() === start; i++) { skull = [l.ram()[0x8062], l.ram()[0x8063]]; l.tick(); }
+  l.input.keyUp('ArrowLeft');
+  l.tick(400);
+  const [sx, sy] = must(skull, 'the skull');
+  const lBefore = l.lives();
+  const r = l.ram();
+  r[0x8062] = r[0x82c0] = sx; r[0x8063] = sy; r[0x82e4] = 0; r[0x82d7] = 0; r[0x8306] = 1;
+  l.tick(300);
+  check(`ENHANCED: a death in Hades after a long stay there (${lBefore} -> ${l.lives()}) starts him again in Hades (${l.room()}), never room 60, alive`, l.lives() === lBefore - 1 && l.room() === HADES && l.p.state.playing);
+}
+
 // ---- ENHANCED with its unlimited lives: the same, he is back in room 60 and the lives stay full ----
 const u = await launch(new Map(), true);
 check('unlimited lives: left into the hole: Hades', intoHades(u));

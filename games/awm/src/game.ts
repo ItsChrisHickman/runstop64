@@ -181,8 +181,6 @@ export class Game implements MontyHost {
   onHint: ((hint: Hint) => void) | null = null;
   /** Up was held at the last logic step: boarding takes a fresh press, so up held through a landing does not fly on at once. */
   upHeld = false;
-  /** The last safe place he stood in the room he is in (ENHANCED's safe respawn starts him there after a death). */
-  safeSpot: Entry | null = null;
   /** ENHANCED: a death has put him back (the front end starts a moment's grace). */
   onRestart: () => void = () => {};
 
@@ -247,7 +245,6 @@ export class Game implements MontyHost {
 
   enterRoom(room: number): void {
     const m = this.monty;
-    if (this.safeSpot?.room !== room) this.safeSpot = null;
     const tune = tuneForRoom(room, this.soundFlag, this.tune);
     if (tune !== null) {
       this.tune = tune;
@@ -471,8 +468,8 @@ export class Game implements MontyHost {
       m.step = step;
     }
     // $5510: a finished death takes a life and puts him back where he came into the room ($5538). ENHANCED (safe respawn): in the
-    // room he died in, at the last safe place he stood there (his way in if none; if that is deadly, the nearest place he can
-    // stand), and a moment's grace: never in another room.
+    // room he died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
+    // moment's grace: never in another room.
     if (m.dead !== 0) {
       if (this.safeRespawn()) {
         const at = this.restartSpot();
@@ -485,18 +482,16 @@ export class Game implements MontyHost {
       m.respawn();
       this.lift.rearm();
       this.lives = afterLoss(this.lives, this.unlimitedLives()) & 0xff;
-    } else if (m.state === State.Free && m.standsSafely(m.x, m.y)) {
-      this.safeSpot = { room: this.world.room, x: m.x, y: m.y, state: m.state, step: 0 };
     }
     return entered;
   }
 
-  /** Where to start again in this room: where he last stood, else where he came in, else the nearest place he can stand. */
+  /** Where to start again in this room: exactly where and how he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): Entry {
     const m = this.monty;
     const room = this.world.room;
     const entry: Entry = { room, x: m.entryX, y: m.entryY, state: m.entryState, step: m.entryStep };
-    const here = this.safeSpot !== null && this.safeSpot.room === room ? this.safeSpot : entry;
+    const here = entry;
     if (m.standsSafely(here.x, here.y)) return here;
     let best: Entry | null = null;
     let bestD = Infinity;
