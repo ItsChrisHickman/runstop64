@@ -54,6 +54,8 @@ export interface MoscowRoom {
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake: the sprite's top left cell. */
   cake?: readonly [col: number, row: number];
+  /** The cake's sprite pointer, when it is not the game's food (an empanada beside the room's key item). */
+  cakeSprite?: number;
   /** A key item: its name, the sprite's top left cell and its pointer in the bank. */
   item?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly (readonly [WorldDecor | { text: string; colour: number }, col: number, row: number])[];
@@ -93,6 +95,7 @@ export function room(r: MoscowRoom): RoomSpec {
     tiles, colours: [...colours, ...Array.from({ length: 8 - colours.length }, () => 0)], map,
     ...(r.coins ? { coins: r.coins } : {}),
     ...(r.cake ? { cake: [r.cake[0] + PLAY_COL, r.cake[1] + PLAY_ROW] as const } : {}),
+    ...(r.cakeSprite === undefined ? {} : { cakeSprite: r.cakeSprite }),
     ...(r.item ? { item: { name: r.item.name, col: r.item.col + PLAY_COL, row: r.item.row + PLAY_ROW, sprite: r.item.sprite } } : {}),
     ...(r.decor ? {
       decor: r.decor.map(([d, col, row]) => ({

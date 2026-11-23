@@ -29,12 +29,12 @@ function peak(): NewDecor {
 }
 
 /** A puffy cloud: a bank of round heads on a flat foot. 4 x 2 characters. */
-function cloud(): NewDecor {
+function cloud(colour = 1, name = 'cloud'): NewDecor {
   const r = new Raster(32, 16);
   r.ellipse(8, 10, 8, 5); r.ellipse(17, 7, 8, 6); r.ellipse(25, 10, 7, 5); r.rect(2, 10, 30, 14);
   r.rect(0, 13, 31, 15, false);
   r.rect(6, 6, 8, 6, false); r.rect(15, 3, 18, 3, false); // light gaps
-  return decor('cloud', 4, 2, r, 1);
+  return decor(name, 4, 2, r, colour);
 }
 
 /** A great cloud bank. 6 x 2 characters. */
@@ -309,6 +309,8 @@ export const ANDES_DECOR = {
   mountainRange: mountainRange(),
   peak: peak(),
   skyCloud: cloud(),
+  /** The Andes' cloud: the same puffy shape in dark grey, so a sky stays calm and nothing white sits behind him. */
+  mistCloud: cloud(11, 'mistCloud'),
   skyCloudBig: cloudBig(),
   updraft: updraft(),
   incaGate: incaGate(),

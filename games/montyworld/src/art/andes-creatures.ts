@@ -107,25 +107,6 @@ function cuy(): NewCreature {
   return pair('cuy', [frame(0, 0), frame(-1, 1), frame(0, 0), frame(-1, 1)], 8, true);
 }
 
-// ---- the cave bat: two huge ears, a big grin
-
-/** A vampire bat, front on: ears like sails, eyes cut out, a wide mouth with two fangs; the wings down, out, up, out. */
-function caveBat(): NewCreature {
-  const frame = (w: number) => {
-    const r = new Raster(16, 16);
-    const tip = [12, 7, 2, 7][w] ?? 7;
-    lay(r, (s) => { s.triangle(5, 8, 0, tip, 2, tip + 4); s.triangle(5, 8, 2, tip + 4, 6, 13); s.triangle(10, 8, 15, tip, 13, tip + 4); s.triangle(10, 8, 13, tip + 4, 9, 13); });
-    r.rect(1, tip + 2, 1, tip + 4, false); r.rect(14, tip + 2, 14, tip + 4, false);
-    r.ellipse(7.5, 10, 2.6, 3.8); // the body
-    r.disc(7.5, 6, 3.2); // the head
-    r.triangle(4.2, 5, 3.6, -0.5, 6.4, 3.4); r.triangle(10.8, 5, 11.4, -0.5, 8.6, 3.4); // the great ears
-    r.cut(['##'], 5, 5); r.cut(['##'], 9, 5); // the eyes
-    r.cut(['####'], 6, 7.5); r.rect(6, 8, 6, 9); r.rect(9, 8, 9, 9); // the grin and its fangs
-    return r.rows();
-  };
-  return pair('caveBat', [0, 1, 2, 3].map(frame), 14, true);
-}
-
 // ---- the jaguar: yellow with black rosettes, a big grinning face
 
 /** A jaguar padding to the left, its great face turned out at us: round ears, slit eyes, a wide grin of fangs, rosettes cut into the coat. */
@@ -191,29 +172,6 @@ function toucan(): NewCreature {
 
 /** `shape` over `r` with its moat. */
 function over2(r: Raster, shape: Raster) { lay(r, (s) => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (shape.get(x, y)) s.set(x, y); }); }
-
-// ---- the captain of the riverboat: a peaked cap with its badge, a bushy beard and a pipe, a striped jersey, arms folded
-
-/** The riverboat's captain, seen front on: a white-topped cap with a wide peak and a badge, small eyes over a great beard with a pipe in it, a jersey striped across, arms folded; he rocks from foot to foot. */
-function captain(): NewCreature {
-  const frame = (k: number): string[] => {
-    const r = new Raster(16, 16);
-    r.ellipse(8, 2.5, 5, 2.6); r.rect(3, 3, 12, 4); // the cap's crown
-    r.rect(1, 5, 14, 6); // the peak, wide
-    r.rect(2, 4, 13, 4, false); r.cut(['##', '##'], 7, 1); // the band, the badge
-    r.rect(4, 7, 11, 9); // the face
-    r.cut(['#'], 5, 8); r.cut(['#'], 10, 8); // the eyes
-    r.ellipse(8, 11.5, 5, 3); // the great beard
-    r.cut(['#####'], 3, 11); r.rect(10, 11, 14, 11); r.rect(13, 12, 14, 13); // the mouth cut in it, the pipe's stem and bowl
-    r.rect(13, 12, 14, 12, false);
-    r.rect(1, 13, 14, 15); // the jersey and folded arms
-    for (const y of [13, 15]) r.rect(2, y, 13, y, false); // the stripes
-    r.rect(7, 13, 8, 15, false); // the arms' join
-    if (k & 1) { r.rect(1, 15, 3, 15, false); r.rect(12, 15, 14, 15, false); }
-    return r.rows();
-  };
-  return pair('captain', [frame(0), frame(1), frame(0), frame(1)], 1, true);
-}
 
 // ---- the sloth: brown, hanging, a dopey smile in two dark eye patches
 
@@ -309,10 +267,8 @@ export const ANDES_CREATURES = {
   llama: llama(),
   spitter: spitter(),
   cuy: cuy(),
-  caveBat: caveBat(),
   jaguar: jaguar(),
   toucan: toucan(),
-  captain: captain(),
   sloth: sloth(),
   anaconda: anaconda(),
   dolphin: dolphin(),

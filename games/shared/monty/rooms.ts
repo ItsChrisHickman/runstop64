@@ -53,6 +53,8 @@ export interface RoomSpec {
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake (the original's cupcake, as Monty finds them: 200 points): screen column and row of its sprite's top left. */
   cake?: readonly [col: number, row: number];
+  /** The sprite pointer the room's cake is drawn with, when it is not the game's food sprite (a second snack of its own in a room that also has an item). */
+  cakeSprite?: number;
   /**
    * A special item of the game's own (a key item): which one (its name, for `specialIndex` finds it by), where
    * its sprite's top left is (screen column and row) and its sprite pointer in the game's bank. At most one with a cake, the
@@ -245,7 +247,7 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     },
     // the cake: the original's cupcake (frame base 3, pointer $91, 200 points), in each room that has one
     specialItems: merged(base.specialItems, (r) => [
-      ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(cakeSprite)]] : []),
+      ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(r.cakeSprite ?? cakeSprite)]] : []),
       ...(r.item ? [[r.id, r.item.col * 4 + 0x0c, r.item.row * 8 + 0x32, frameBase(r.item.sprite)]] : []),
     ]),
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),

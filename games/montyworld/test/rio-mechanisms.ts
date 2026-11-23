@@ -36,8 +36,8 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [[7, 33, R.quay], [7, 34, R.lap], [6, 34, R.sugar], [6, 35, R.loaf], [6, 36, R.arms], [6, 37, R.monkey], [7, 36, R.colour], [6, 33, R.steak], [7, 37, R.drum], [7, 38, R.float], [7, 39, R.bust]] as const;
-  check('Rio is eleven rooms in seven columns (33-39) and two rows (6-7) beside the Amazon\'s last bank (row 7, column 32), room ids 67 to 77',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 79 && grid(7, 32) === AND.bank && R.quay === 67 && R.bust === 77);
+  check('Rio is eleven rooms in seven columns (33-39) and two rows (6-7) beside the Amazon\'s last room (row 6, column 32), room ids 67 to 77',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(6, 32) === AND.roots && R.quay === 67 && R.bust === 77);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check(`the earlier regions keep their coins and finds, in the same table places, and Rio adds ${coinsIn(67, 77)} coins and 9 finds (the key to the city, the headdress, six skewers and the bowl)`,
@@ -338,23 +338,29 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const g1 = newGame(WORLD, true).g;
   g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[30] = 0xff;
   const old = snapshot(g1);
-  const oldSave = { ...old, coins: old.coins.slice(0, 220), items: old.items.slice(0, 34), roomId: AND.bank, worn: itemIndex(g1, AND.boat, 0) };
+  const rio = (room: number) => room >= R.quay && room <= R.bust;
+  const firstRioCoin = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).find((i) => rio(WORLD.coinTable[i * 3] ?? 0)) ?? 0;
+  const firstRioItem = Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => i).find((i) => rio(WORLD.specialItems[i * 4] ?? 0)) ?? 0;
+  const oldSave = { ...old, coins: old.coins.slice(0, firstRioCoin), items: old.items.slice(0, firstRioItem), roomId: AND.roots, worn: itemIndex(g1, AND.terraces, 1) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the six regions before Rio\'s arrays) loads: the finds and the chullo are as saved, Rio is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 33] === R.quay && g2.siCollected.length === 43
-    && g2.coinCollected.length === 223 + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(220).every((c) => c === 0));}
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 33] === R.quay && g2.siCollected.length === WORLD.specialItems.length / 4
+    && g2.coinCollected.length === firstRioCoin + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(firstRioCoin).every((c) => c === 0));}
 
 // ---- the way in is two ways, the gates hold, the beach is drawn ---------------------------------------------
 {
-  // Rio joins the Andes' last bank both ways (Chris: every way but the floats' is two-way; pause-map travel covers only the region he is in, so a way back must be walked)
-  const out = at(AND.bank, 24, 8, [], false, false);
-  const into = search(out, (g) => g.roomId === R.quay && !g.freeze && !g.script, [{ room: AND.bank, col: 31, row: 7 }], 100000, 1.5);
-  check('from the Amazon\'s last bank the bot walks into the quay', into !== null);
+  // Rio joins the Amazon's last room both ways (Chris: every way but the floats' is two-way; pause-map travel covers only the region he is in, so a way back must be walked).
+  // The Amazon's rebuild (docs/dosvidaniya-reset.md) leaves east under the kapok's roots at [6,32], rows 12-14: Rio's first room is to meet it at [6,33] (the Rio rebuild places it)
+  const MACHETE = [AND.roots, 0] as const;
+  const rio = (room: number) => room >= R.quay && room <= R.bust;
+  const out = at(AND.roots, 26, 15, [MACHETE], false, false);
+  const into = search(out, (g) => rio(g.roomId) && !g.freeze && !g.script, [{ room: AND.roots, col: 31, row: 13 }], 100000, 1.5);
+  check('from the Amazon\'s last room (the jetty under the kapok\'s roots) the bot walks east into Rio', into !== null);
   const stats = { exhausted: false };
-  const quay = at(R.quay, 20, 18, [], false, false);
-  const back = search(quay, (g) => g.roomId === AND.bank && !g.freeze && !g.script, [{ room: R.quay, col: 3, row: 6 }, { room: R.quay, col: 0, row: 7 }], 150000, 1.5, stats);
-  check('and from the quay\'s street, up the wharf\'s steps (two rows each) and out west, back to the Andes\' last bank', back !== null);
+  const first = at(R.steak, 2, 15, [MACHETE], false, false);
+  const back = search(first, (g) => g.roomId === AND.roots && !g.freeze && !g.script, [{ room: R.steak, col: 0, row: 13 }], 150000, 1.5, stats);
+  check('and from Rio\'s first room out west, back to the Amazon', back !== null);
   // the gates by the bot's search, as the Andes' are: none past a gate without its item
   const shelf = at(R.sugar, 9, 14, [], false, false);
   const st2 = { exhausted: false };
@@ -375,8 +381,8 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   check('the dancer is in the carnival (room 75) only: the churrascaria has none (the stage is free of creatures)', [...(rooms.get(dancer) ?? [])].join() === String(R.drum));
   // the Andes' map does not offer Rio's rooms as places to go
   const bank = newGame(WORLD, true);
-  enterRoom(bank.g, AND.bank, 0x40, standY(15));
-  const andesPlaces = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, bank.g, { rooms: { [R.quay]: [0x40, 0xb2, 7, 33], [R.steak]: [0x40, 0xb2, 6, 33], [AND.cloud]: [0x40, 0xb2, 3, 31] } });
+  enterRoom(bank.g, AND.roots, 0x40, standY(15));
+  const andesPlaces = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, bank.g, { rooms: { [R.quay]: [0x40, 0xb2, 7, 33], [R.steak]: [0x40, 0xb2, 6, 33], [AND.canopy]: [0x40, 0xb2, 5, 31] } });
   check('in the Andes\' last bank the map offers the Andes\' rooms but not the quay and the churrascaria (cells of Rio\'s, cut out of the Andes\' rectangle)', andesPlaces.every((p) => p.id !== String(R.quay) && p.id !== String(R.steak)));
 }
 

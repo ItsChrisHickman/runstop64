@@ -1,5 +1,5 @@
 /**
- * The Andes and the Amazon's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
+ * The Andes and the Amazon's eight rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (andes-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/andes-layout.ts
@@ -54,6 +54,6 @@ for (const r of ANDES_ALL_ROOMS) {
 
 const rooms = creatureRooms(ANDES_ALL_ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Andes (${[...where].join(', ')})`, where.size <= 2);
-check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('thirteen rooms', ANDES_ALL_ROOMS.length === 13);
+check(`nine kinds of creature (${rooms.size}; the piranha is a thing on a path)`, rooms.size === 9);
+check('eight rooms', ANDES_ALL_ROOMS.length === 8);
 finish();

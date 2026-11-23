@@ -17,14 +17,14 @@ import { SIB } from './siberia';
 
 /** The first room of each region (what he has by a place is every find of the rooms before it) and the room his hat was taken in. */
 const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.stern, andes: AND.jump, rio: RIO_ROOM.quay } as const;
-/** The room an item of the game's rooms (by its name) is in. */
-const roomOf = (name: string): number => {
+/** The room an item of the game's rooms (by its name) is in, and its place among the room's finds (a room's cake comes first). */
+const placeOf = (name: string): { room: number; nth: number } => {
   const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name);
   if (!room) throw new Error(`no item ${name}`);
-  return room.id;
+  return { room: room.id, nth: room.cake ? 1 : 0 };
 };
-/** The hats in the order they are found: the room each was taken in (Moscow's ushanka, China's rice hat, Japan's hood, the Pacific's lei, the Andes' chullo, Rio's headdress). */
-const HATS: readonly number[] = ['ushanka', 'rice hat', 'hood', 'lei', 'chullo', 'headdress'].map(roomOf);
+/** The hats in the order they are found: where each was taken (Moscow's ushanka, China's rice hat, Japan's hood, the Pacific's lei, the Andes' chullo, Rio's headdress). */
+const HATS: readonly { room: number; nth: number }[] = ['ushanka', 'rice hat', 'hood', 'lei', 'chullo', 'headdress'].map(placeOf);
 
 /** The index of the n-th special item of a room. */
 export function itemOfRoom(g: Game, room: number, nth = 0): number {
@@ -40,7 +40,7 @@ export function arrivedIn(first: number, hats: number) {
     const t = g.data.specialItems;
     for (let i = 0; i * 4 < t.length; i++) if ((t[i * 4] ?? 0) < first) g.siCollected[i] = 0x81;
     const hat = HATS[hats - 1];
-    if (hat !== undefined) wear(g, itemOfRoom(g, hat));
+    if (hat !== undefined) wear(g, itemOfRoom(g, hat.room, hat.nth));
   };
 }
 
@@ -65,10 +65,10 @@ export const PLACES: readonly Place[] = [
   // the Pacific: the luau's torches, and the lava climb
   { room: PAC.lei, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
   { room: PAC.mauna, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
-  // the Andes: the terraces' top path below the drop, Machu Picchu's boulders, the vines
-  { room: AND.llama, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
-  { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
-  { room: AND.river, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
+  // the Andes: the terraces under the drop, Machu Picchu's boulders, the Amazon's vines
+  { room: AND.terraces, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
+  { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
+  { room: AND.roots, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
   // Rio: the cable car, the churrascaria, the floats, the beach
   { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
   { room: RIO_ROOM.steak, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },

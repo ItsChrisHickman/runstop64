@@ -17,6 +17,6 @@ checkTune({
   name: 'the Andes', tune: ANDES, moved: '1,2,4,6,8,9,11',
   scale: { text: 'every note is one of the minor pentatonic\'s five (G, Bb, C, D, F)', ok: (degree) => PENTATONIC.includes(degree) },
   lead: { text: 'panpipes: a triangle wave with a slow breathy attack and a long sustain, a vibrato', ok: (lead) => lead.control === 0x11 && lead.attackDecay >> 4 >= 4 && lead.sustainRelease >> 4 >= 8 && lead.vibrato === 2 },
-  rooms: [AND.jump, AND.llama, AND.market, AND.bank], others: [[PAC.hold, 'pacific'], [0, 'moscow']], sample: AND.llama,
+  rooms: [AND.jump, AND.terraces, AND.canopy, AND.roots], others: [[PAC.hold, 'pacific'], [0, 'moscow']], sample: AND.terraces,
 });
 finish();

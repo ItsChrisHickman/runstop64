@@ -21,7 +21,7 @@ const livesFor = (part: Part, frames: number): Part => ({
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const RIO_LEGS: readonly Leg[] = [
-  leg('R to H: off the gangway', into(R.quay, 31, 7, AND.bank)),
+  leg('R to H: off the gangway', into(R.quay, 31, 13, AND.roots)),
   leg('H: the gangway\'s coin', coin(R.quay, 3, 6)),
   leg('H: down the wharf, the first step\'s coin', coin(R.quay, 7, 8)),
   leg('H: the third step\'s coin', livesFor(coin(R.quay, 11, 12), 40)),
