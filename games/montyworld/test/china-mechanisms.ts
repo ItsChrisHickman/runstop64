@@ -461,7 +461,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
     for (let g = 0; g < 400 && colOf(t.g) < 17; g++) { const stop = colOf(t.g) === 11 && !stopped; if (stop) { run(t, NONE, 12); stopped = true; } frame(t, RIGHT); }
     check('and a stop of 12 frames half way along it is forgiven (he crosses all the same)', colOf(t.g) >= 17 && !dead(t.g));
     // standing a long while loses the plank under him
-    const u = at(CHI.junk, 12, 17);
+    const u = at(CHI.junk, 8, 17);
     check('but standing on it does not: he falls into the river and dies within 160 frames', diesAt(u, NONE, 160) >= 0);
   }
   {
