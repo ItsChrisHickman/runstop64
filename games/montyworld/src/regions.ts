@@ -12,5 +12,5 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly from:
   { name: 'pacific', from: 17, to: 29, rows: { from: 0, to: 2 } }, // the Pacific's thirteen
   { name: 'andes', from: 30, to: 33, rows: { from: 2, to: 7 } }, // the Andes and the Amazon's four
   // (Rio's first column, 33, is the Andes' last: its cave (row 5) is the Andes' and its quay and restaurant (rows 6-7) are Rio's. A cell belongs to the smallest region that holds it, whatever the order: games/montyotr/src/regions.ts)
-  { name: 'rio', from: 33, to: 39, rows: { from: 6, to: 7 } }, // Rio's seven columns of two rows
+  { name: 'rio', from: 33, to: 38, rows: { from: 6, to: 7 } }, // Rio's six columns of two rows
 ];

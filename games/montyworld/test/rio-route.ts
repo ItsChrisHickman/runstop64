@@ -1,16 +1,17 @@
 /**
- * Rio's route for the bot: the goals, in the order a player who takes everything plays them (off the riverboat's gangway down to the quay and its pier, east into Lapa under the arches and up the aqueduct to the key to the city, up the rope to
- * Sugarloaf's beach, west into the churrascaria past the gauchos for the headdress and back, the cable car up to the summit and on to Corcovado, the rope down into the favela and east into the carnival past the steward (gone with the headdress),
- * across the avenue on the floats to the stage and the beach), as functions on the game. Shared by the bot test and the pictures.
+ * Rio's route for the bot: the goals, in the order a player who takes everything plays them (docs/dosvidaniya-reset.md, "Rio (the last level)": up the Redeemer and off his east hand, down through the favela, along Lapa's
+ * street under the track to Sugarloaf's foot, where the winch is dead; up the climbers' rope and west onto the track, over its gap on the tram, up the ladder into the churrascaria for the crank and back past the gauchos;
+ * down through the gap and back to Sugarloaf, the crank works the winch and the car goes up; the Sambadrome's showdown; the beach), as functions on the game. Shared by the bot test and the pictures.
  */
+import type { Game } from '../../montyotr/src/game';
 import { RIO_ROOM as R } from '../src/rio';
 import { AND } from '../src/andes';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
-import { coin, into, item, leg, stands, type Leg, type Part } from './route';
+import { coin, coinIndex, into, item, leg, settledOn, stands, type Leg, type Part } from './route';
 
 /** A leg's goal reached with some move that lives on for `frames` more (a coin taken in front of a creature that is about to reach him is no coin taken: the bot's own check looks only 12 frames ahead). */
-const livesFor = (part: Part, frames: number): Part => ({
+export const livesFor = (part: Part, frames: number): Part => ({
   goal: (g) => part.goal(g) && ACTIONS.some(([, stick]) => {
     const t = { g: copy(g), col: 0 };
     for (let f = 0; f < frames; f++) { frame(t, stick); if (t.g.actionCounter !== 0) return false; }
@@ -19,92 +20,45 @@ const livesFor = (part: Part, frames: number): Part => ({
   aim: part.aim,
 });
 
+/** The Sambadrome's lever and booth, by the data (the crank fitted, the agent squashed: finds no room shows). */
+const lever = (g: Game) => {
+  const l = g.data.levers[0];
+  if (!l) throw new Error('no lever in the data');
+  return l;
+};
+/** A goal in the Sambadrome, guided to a cell. */
+const inDrum = (goal: (g: Game) => boolean, col: number, row: number): Part => ({ goal: (g) => g.roomId === R.drum && goal(g) && settledOn(g), aim: [{ room: R.drum, col, row }] });
+
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const RIO_LEGS: readonly Leg[] = [
-  leg('R to H: off the gangway', into(R.quay, 31, 7, AND.bank)),
-  leg('H: the gangway\'s coin', coin(R.quay, 3, 6)),
-  leg('H: down the wharf, the first step\'s coin', coin(R.quay, 7, 8)),
-  leg('H: the third step\'s coin', livesFor(coin(R.quay, 11, 12), 40)),
-  leg('H: up the ladder to the pier, the skewer', item(R.quay, 0, [25, 12])),
-  leg('H: the pier\'s coin', coin(R.quay, 24, 12)),
-  leg('H: down to the quay, its last coin', livesFor(coin(R.quay, 28, 16), 40)),
-  leg('H to L: out east', into(R.lap, 31, 17, R.quay)),
-  leg('L: the street\'s first coin, at the foot of the ladder', coin(R.lap, 4, 16)),
-  leg('L: up the ladder to the track, the coin', livesFor(coin(R.lap, 7, 5), 60)),
-  leg('L: along the track past the tram, the coin', livesFor(coin(R.lap, 14, 5), 60)),
-  leg('L: up the second ladder to the ledge, the key to the city', item(R.lap, 0, [13, 2])),
-  leg('L: the track\'s far coin', livesFor(coin(R.lap, 23, 5), 60)),
-  leg('L: down to the street past the aqueduct\'s end, the coin by the rope', coin(R.lap, 25, 16)),
-  leg('L: the street\'s last coin', coin(R.lap, 27, 16)),
-  leg('L to S: up the rope', into(R.sugar, 26, 0, R.lap)),
-  leg('S: the beach\'s coin', coin(R.sugar, 16, 16)),
-  leg('S: up the ladder to the shelf, the coin', coin(R.sugar, 9, 12)),
-  leg('S: down to the beach, west past the crab, the coin', livesFor(coin(R.sugar, 6, 16), 60)),
-  leg('S to W: out west', into(R.steak, 0, 17, R.sugar)),
-  leg('W: past the first gaucho, the lane\'s coin', livesFor(coin(R.steak, 23, 16), 60)),
-  leg('W: up the stairs, the coin', coin(R.steak, 17, 10)),
-  leg('W: along the stage, the first coin', coin(R.steak, 11, 8)),
-  leg('W: the second', coin(R.steak, 9, 8)),
-  leg('W: the headdress', item(R.steak, 0, [6, 8])),
-  leg('W: the stage\'s last coin', coin(R.steak, 5, 8)),
-  leg('W: down into the west lane past the second gaucho, the coin', livesFor(coin(R.steak, 4, 16), 60)),
-  leg('W: the lane\'s other coin', livesFor(coin(R.steak, 15, 16), 60)),
-  leg('W to S: back out east', into(R.sugar, 31, 17, R.steak)),
-  leg('S: up the ladder, onto the car and up the cable: the coin on the way', livesFor(coin(R.sugar, 18, 10), 60)),
-  leg('S: the platform\'s coin', coin(R.sugar, 30, 6)),
-  leg('S to U: out east', into(R.loaf, 31, 7, R.sugar)),
-  leg('U: the first coin', coin(R.loaf, 1, 6)),
-  leg('U: over the dome, its coin', livesFor(coin(R.loaf, 9, 4), 60)),
-  leg('U: the next coin', livesFor(coin(R.loaf, 24, 6), 60)),
-  leg('U: down the cleft\'s rope, the cave\'s coin', livesFor(coin(R.loaf, 17, 12), 60)),
-  leg('U: the skewer', item(R.loaf, 0, [22, 12])),
-  leg('U: back up, the last coin', livesFor(coin(R.loaf, 30, 6), 60)),
-  leg('U to C: out east', into(R.arms, 31, 7, R.loaf)),
-  leg('C: the first coin', coin(R.arms, 2, 6)),
-  leg('C: the coin past the rope\'s gap', livesFor(coin(R.arms, 6, 6), 60)),
-  leg('C: down the ladder into the valley, the first coin', coin(R.arms, 15, 12)),
-  leg('C: the valley\'s next coin', coin(R.arms, 19, 12)),
-  leg('C: up the long ladder to the Redeemer\'s summit, the coin', coin(R.arms, 25, 4)),
-  leg('C: down the east side, the skewer', item(R.arms, 0, [27, 6])),
-  leg('C: the last coin', coin(R.arms, 29, 6)),
-  leg('C to F: down the rope', into(R.colour, 5, 19, R.arms)),
-  leg('F: the roof\'s coin', coin(R.colour, 4, 6)),
-  leg('F: across to the second roof, the skewer', item(R.colour, 0, [15, 7])),
-  leg('F: the second roof\'s coin', livesFor(coin(R.colour, 18, 7), 60)),
-  leg('F: the church\'s roof, the coin', livesFor(coin(R.colour, 29, 6), 60)),
-  leg('F: down into the gap, the coin', livesFor(coin(R.colour, 13, 12), 60)),
-  leg('F: down to the lane, the first coin', livesFor(coin(R.colour, 8, 16), 60)),
-  leg('F: the lane\'s next', livesFor(coin(R.colour, 16, 16), 60)),
-  leg('F: the lane\'s last', livesFor(coin(R.colour, 24, 16), 60)),
-  leg('F to P: out east', into(R.drum, 31, 17, R.colour)),
-  leg('P: up the first riser, the coin', coin(R.drum, 8, 14)),
-  leg('P: up onto the top, the first coin', livesFor(coin(R.drum, 12, 12), 60)),
-  leg('P: past the drummer, the next coin', livesFor(coin(R.drum, 15, 12), 60)),
-  leg('P: down the right side, the coin', livesFor(coin(R.drum, 19, 14), 60)),
-  leg('P: the street\'s coin by the rope', livesFor(coin(R.drum, 23, 16), 60)),
-  leg('P to T: up the rope', into(R.monkey, 22, 0, R.drum)),
-  leg('T: the ground\'s coin', coin(R.monkey, 26, 16)),
-  leg('T: up the rope to the middle bough, its coin', livesFor(coin(R.monkey, 11, 12), 60)),
-  leg('T: the skewer', item(R.monkey, 0, [7, 12])),
-  leg('T: off the bough\'s end to the ground', stands(R.monkey, 18, 2, 6)),
-  leg('T: over the pool, the coin', livesFor(coin(R.monkey, 10, 14), 60)),
-  leg('T: up the rope to the bough, the coin', livesFor(coin(R.monkey, 18, 6), 60)),
-  leg('T: along the bough, the coin', livesFor(coin(R.monkey, 9, 6), 60)),
-  leg('T: the first coin', livesFor(coin(R.monkey, 4, 6), 60)),
-  leg('T: the bough\'s end coin', coin(R.monkey, 24, 6)),
-  leg('T to P: down the rope', into(R.drum, 22, 19, R.monkey)),
-  leg('P to Q: past the steward (gone with the headdress)', into(R.float, 31, 17, R.drum)),
-  leg('Q: onto the first float, the coin', livesFor(coin(R.float, 8, 16), 60)),
-  leg('Q: the next coin', livesFor(coin(R.float, 14, 16), 60)),
-  leg('Q: the next', livesFor(coin(R.float, 20, 16), 60)),
-  leg('Q: onto the stage, the coin', coin(R.float, 28, 16)),
-  leg('Q: the skewer', item(R.float, 0, [29, 16])),
-  leg('Q: back up the stage\'s steps onto a float of the high lane, its coin', livesFor(coin(R.float, 18, 12), 60)),
-  leg('Q: the high lane\'s next coin', livesFor(coin(R.float, 10, 12), 60)),
-  leg('Q: down to the street at the left', stands(R.float, 18, 0, 5)),
-  leg('Q: across again on the floats to the stage', stands(R.float, 18, 27, 31)),
-  leg('Q to B: out east', into(R.bust, 31, 17, R.float)),
-  leg('B: the first coin', coin(R.bust, 5, 16)),
-  leg('B: the second', coin(R.bust, 11, 16)),
-  leg('B: the third', coin(R.bust, 20, 16)),
+  leg('C: off the canopy to the forest floor, the coin in the marmoset\'s run', livesFor(coin(R.arms, 4, 13), 40)),
+  leg('C: up the west ladder to the west arm, the snack on its hand', item(R.arms, 0, [4, 2])),
+  leg('C: down, through the chapel, up the east ladder and along the east arm, the coin on the hand', livesFor(coin(R.arms, 28, 3), 40)),
+  leg('C to F: off the hand, out east', into(R.colour, 31, 7, R.arms)),
+  leg('F: down between the houses to the alley, over the ladder\'s hole, the snack by the tank', livesFor(item(R.colour, 0, [3, 12]), 40)),
+  leg('F: down the ladder to the lane, the coin under the football', livesFor(coin(R.colour, 27, 17), 40)),
+  leg('F to L: out east, low', into(R.lap, 31, 17, R.colour)),
+  leg('L: the street\'s coin in the bat\'s bay', livesFor(coin(R.lap, 21, 17), 40)),
+  leg('L to S: on along the street', into(R.sugar, 31, 17, R.lap)),
+  leg('S: up the climbers\' rope, the coin at the ledge\'s end', coin(R.sugar, 7, 7)),
+  leg('S to L: west onto the track', into(R.lap, 0, 7, R.sugar)),
+  leg('L: on the tram over the gap, the coin on the track\'s west part', coin(R.lap, 7, 7)),
+  leg('L to W: up the ladder into the churrascaria', into(R.steak, 5, 0, R.lap)),
+  leg('W: past the first gaucho, the coin between the arcs', livesFor(coin(R.steak, 17, 17), 40)),
+  leg('W: up the steps past the second gaucho, the crank', livesFor(item(R.steak, 0, [28, 10]), 40)),
+  leg('W to L: back past both gauchos and down the ladder', into(R.lap, 5, 19, R.steak)),
+  leg('L: through the gap to the street', stands(R.lap, 18, 10, 20)),
+  leg('L to S: along the street', into(R.sugar, 31, 17, R.lap)),
+  leg('S: up the ladder, the bars gone, onto the car and up to the top station', stands(R.sugar, 8, 25, 31)),
+  leg('S to D: out east from the top station', into(R.drum, 31, 7, R.sugar)),
+  leg('D: the headdress on the drum riser', livesFor(item(R.drum, 0, [7, 4]), 40)),
+  leg('D: down the rope onto the float, its coin, and off its east end to the lever (it only rattles)', inDrum((g) => g.leverLatch && g.coinCollected[coinIndex(g, R.drum, 18, 8)] !== 0, 22, 15)),
+  leg('D: up the ladder to the booth, the crank fitted', inDrum((g) => !!g.siCollected[lever(g).armed], 28, 2)),
+  leg('D: west along the gantry and down the rope to the avenue', stands(R.drum, 18, 9, 14)),
+  leg('D: east under the float\'s head, the lever as the agent is under it', inDrum((g) => !!g.siCollected[lever(g).done], 21, 15)),
+  leg('D to B: the bars lifted, out east to the beach', into(R.bust, 31, 17, R.drum)),
+  leg('B: onto the promenade', stands(R.bust, 18, 2, 6)),
 ];
+
+/** The Andes' last bank, where Rio is come into from (the route starts in C as a player arrives from it). */
+export const FROM = AND.bank;

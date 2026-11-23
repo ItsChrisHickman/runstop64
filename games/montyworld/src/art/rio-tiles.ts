@@ -272,6 +272,17 @@ export const RIO_TILES = {
     '#######.',
     '#######.',
   ]),
+  /** The Redeemer's soapstone: smooth pale stone with the robe's folds running down it. Solid (he climbs the statue: its arms are floors). */
+  soapstone: tile('soapstone', 1, 1, [
+    '########',
+    '###.####',
+    '###.####',
+    '####.###',
+    '########',
+    '##.#####',
+    '##.#####',
+    '########',
+  ]),
   /** The aqueduct's top: the tram line, two rails on sleepers. A floor. */
   aqueductTop: tile('aqueductTop', 2, 1, [
     '########',

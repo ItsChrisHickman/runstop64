@@ -2,7 +2,7 @@
  * Rio's creatures for Monty Mole: World Tour (region 7), in Monty on the Run's formats and the earlier regions' manner: bold cartoon
  * figures that fill their 16 x 16, a solid body in one ink with the detail cut into it as black lines and gaps, a big face with an
  * expression, no dither. A samba dancer, a drummer, a gaucho waiter (his skewer is a sprite of its own: rio-items.ts), a marmoset, a
- * macaw, a vulture, the yellow tram, a capoeirista, a ghost crab and a football with a face.
+ * macaw, a vulture, a capoeirista, a football with a face, the customs officer who follows Monty (the agent), a kite and a bat.
  */
 import { lay, pair, sym } from './creature-kit';
 import { limb, Raster } from './raster';
@@ -77,26 +77,6 @@ function gaucho(): NewCreature {
   return pair('gaucho', [frame(0), frame(1), frame(0), frame(1)], 8);
 }
 
-// ---- the steward: a peaked cap, a big face, a bow tie, a white jacket, arms folded across his chest, standing guard at the parade's gate
-
-/** The parade steward, seen front on, arms folded; his weight shifts from foot to foot. */
-function steward(): NewCreature {
-  const frame = (shift: number) => {
-    const r = new Raster(16, 16);
-    r.rect(4, 0, 11, 2); r.rect(2, 3, 13, 3); // the cap and its peak
-    r.cut(['.#..#.'], 5, 1); // the cap's badge
-    r.rect(4, 4, 11, 8); // the face
-    r.cut(['##..##'], 5, 5); r.cut(['#....#', '.####.'], 5, 7); // eyes, a stern mouth
-    r.rect(6, 9, 9, 9); r.cut(['#.#'], 6, 9); // the bow tie
-    r.rect(2, 10, 13, 15); // the jacket
-    r.cut(['############'], 2, 12); // the folded arms' line
-    r.cut(['.#.#.#.#'], 4, 11);
-    r.rect(5 + shift, 14, 7 + shift, 15, false); r.rect(9 - shift, 14, 10 - shift, 15, false);
-    return r.rows();
-  };
-  return pair('steward', [frame(0), frame(1), frame(0), frame(-1)], 1, true);
-}
-
 // ---- the marmoset (sagui): a small monkey with white ear tufts and a long tail, leaping
 
 /** A marmoset seen front on, clinging to a rock: a round face between two great white ear tufts, huge eyes, a small grin, a long tail curling up. */
@@ -153,24 +133,7 @@ function vulture(): NewCreature {
     r.rect(5, 12, 5, 14); r.rect(10, 12, 10, 14); // the tail feathers
     return r.rows();
   };
-  return pair('vulture', [0, 1, 2, 3].map(frame), 11, true);
-}
-
-// ---- the bonde: Santa Teresa's yellow tram, its pole on the wire
-
-const BONDE = [
-  '.......#', '.......#', '.......#', '..######', '.#######', '########', '#......#', '#......#',
-  '#......#', '########', '###.####', '########', '.######.', '..####..', '.##..##.', '.##..##.',
-] as const;
-
-/** The yellow tram of Santa Teresa seen head on: its trolley pole to the wire, a flat roof, two big windscreens with a pillar between, headlamps and its wheels turning. */
-function bonde(): NewCreature {
-  const frame = (k: number): string[] => {
-    const rows = sym(BONDE);
-    if (k & 1) { rows[14] = '..##.##..##.##..'; rows[15] = '..##.##..##.##..'; }
-    return rows;
-  };
-  return pair('bonde', [frame(0), frame(1), frame(0), frame(1)], 7, true);
+  return pair('vulture', [0, 1, 2, 3].map(frame), 12, true);
 }
 
 // ---- the capoeirista: a cartwheel, a headband
@@ -192,26 +155,64 @@ function capoeirista(): NewCreature {
   return pair('capoeirista', [frame(0), frame(1), frame(2), frame(3)], 1, true);
 }
 
-// ---- the ghost crab: eyes on stalks, claws up
+// ---- the agent: the customs officer on Monty's trail, a wide hat, dark glasses, a long coat flapping
 
-/** A ghost crab sidling over the sand, seen front on: eyes on stalks, two raised claws with their pincers, four legs a side. */
-function crab(): NewCreature {
-  const frame = (up: boolean, step: number) => {
+/** The customs officer who follows Monty through the Sambadrome, walking to the left: a wide-brimmed hat pulled low, dark glasses, a long coat to his shins, its tail flapping as he strides. White, so he reads on Rio's night. */
+function agent(): NewCreature {
+  const frame = (step: number) => {
     const r = new Raster(16, 16);
-    r.ellipse(7.5, 10.5, 5, 3.2); // the shell
-    for (const s of [0, 1]) {
-      const sgn = s ? 1 : -1, cx = 7.5 + sgn * 6;
-      limb(r, 7.5 + sgn * 4, 11, cx + sgn * 1.5, 13 + (step & 1 ? 1 : 0), 1); // legs
-      limb(r, 7.5 + sgn * 4, 12.5, cx + sgn, 15, 1);
-      limb(r, 7.5 + sgn * 3, 9, 7.5 + sgn * 6.5, up ? 4 : 7, 2); // the arm
-      r.disc(7.5 + sgn * 6.7, up ? 3 : 6, 2.3); r.rect(Math.round(7.5 + sgn * 6.7), up ? 1 : 4, Math.round(7.5 + sgn * 6.7), up ? 2 : 5, false); // the pincer's gap
-      limb(r, 7.5 + sgn * 2, 8, 7.5 + sgn * 2.5, 4, 1); r.disc(7.5 + sgn * 2.5, 3.4, 1.4); // the eye stalk
-    }
-    r.set(5, 3, false); r.set(10, 3, false); // the eyes' pupils
-    r.cut(['####'], 6, 11); // the mouth
+    r.rect(5, 0, 10, 1); r.rect(2, 2, 13, 2); // the hat's crown and its wide brim
+    r.rect(5, 3, 10, 6); // the face
+    r.cut(['###.##'], 5, 4); // the dark glasses
+    r.cut(['##'], 7, 6); // a thin mouth
+    r.rect(3, 7, 12, 13); // the long coat
+    r.cut(['#', '#', '#', '#', '#'], 8, 8); // its front
+    r.cut(['#'], 6, 9); r.cut(['#'], 6, 11); // the buttons
+    const flap = step & 1;
+    r.rect(12, 10 + flap, 13 + flap, 13); // the coat's tail flapping behind him
+    limb(r, 4, 8, 1.5, 11 - flap, 2); // the arm swinging
+    const a = step === 1 ? 1 : step === 3 ? -1 : 0;
+    r.rect(5 + a, 14, 6 + a, 15); r.rect(9 - a, 14, 10 - a, 15); // the legs
+    r.set(4 + a, 15); r.set(8 - a, 15); // the shoes, pointing the way he goes
     return r.rows();
   };
-  return pair('crab', [frame(true, 0), frame(false, 1), frame(true, 1), frame(false, 0)], 2, true);
+  return pair('agent', [frame(0), frame(1), frame(2), frame(3)], 1);
+}
+
+// ---- the kite (pipa): a diamond on its line, its tail of bows swaying
+
+/** A favela kite, a pipa, hanging on its line and bobbing: a diamond with its cross spars cut in black, the tail of bows below it swaying from side to side. */
+function rioKite(): NewCreature {
+  const frame = (sway: number) => {
+    const r = new Raster(16, 16);
+    r.triangle(7.5, 0, 1.5, 5, 13.5, 5); r.triangle(1.5, 5, 13.5, 5, 7.5, 11); // the diamond
+    r.line(7.5, 1, 7.5, 10, false); r.line(3, 5, 12, 5, false); // the spars
+    for (let k = 0; k < 3; k++) { const x = Math.round(7.5 + sway * (k + 1) * 0.6), y = 12 + k * 1.5; r.rect(x - 1, Math.round(y), x + 1, Math.round(y)); } // the bows
+    r.set(Math.round(7.5 + sway * 0.3), 11); r.set(Math.round(7.5 + sway * 1.5), 15);
+    return r.rows();
+  };
+  return pair('rioKite', [frame(0), frame(1), frame(0), frame(-1)], 3, true);
+}
+
+// ---- the bat: wings flapping, ears up, a grin of fangs
+
+/** A fruit bat of the arches, seen front on, dropping and rising: big ears, eyes, two fangs, the wings beating from up to down. */
+function rioBat(): NewCreature {
+  const frame = (w: number) => {
+    const r = new Raster(16, 16);
+    const tip = [1, 4, 9, 4][w] ?? 4;
+    for (const side of [0, 1]) {
+      const sx = side ? 9 : 6, ex = side ? 15.5 : 0.5;
+      r.triangle(sx, 6, ex, tip, sx, 11);
+      r.triangle(ex, tip, sx, 11, ex - (side ? 3 : -3), tip + 5);
+    }
+    r.ellipse(7.5, 8, 2.8, 4); // the body
+    r.triangle(5, 2, 6.5, 5, 4.5, 5); r.triangle(10, 2, 8.5, 5, 10.5, 5); // the ears
+    r.cut(['#..#'], 6, 6); // the eyes
+    r.cut(['####'], 6, 9); r.set(6, 10); r.set(9, 10); // the mouth and its fangs
+    return r.rows();
+  };
+  return pair('rioBat', [0, 1, 2, 3].map(frame), 10, true);
 }
 
 // ---- the football: a face on it, bouncing
@@ -235,14 +236,14 @@ export const RIO_CREATURES = {
   dancer: dancer(),
   drummer: drummer(),
   gaucho: gaucho(),
-  steward: steward(),
   marmoset: marmoset(),
   macaw: macaw(),
   vulture: vulture(),
-  bonde: bonde(),
   capoeirista: capoeirista(),
-  crab: crab(),
   football: football(),
+  agent: agent(),
+  rioKite: rioKite(),
+  rioBat: rioBat(),
 } as const satisfies Record<string, NewCreature>;
 
 export type RioCreature = keyof typeof RIO_CREATURES;
