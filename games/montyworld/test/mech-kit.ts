@@ -52,3 +52,32 @@ export function diesAt(s: State, stick: Stick, limit: number): number {
 export function overCrowded(rooms: readonly { readonly id: number; readonly enemies?: readonly unknown[] }[]): number[] {
   return rooms.filter((r) => (r.enemies?.length ?? 0) > 3).map((r) => r.id);
 }
+
+// ---- the world's tables, read by region (so a region's test never hard-codes another region's totals) ----------------------------------------
+
+/** A line of the pause screen's panel: the label and the count of what is taken (`0/n`), right-aligned to the panel's 11 characters. */
+export const panelLine = (label: string, of: number, taken = 0) => `${label}${`${taken}/${of}`.padStart(11 - label.length)}`;
+
+const coinRooms = () => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
+const itemRooms = () => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0);
+/** How many coins / special items (finds and snacks) lie in rooms `lo` to `hi`. */
+export const coinsIn = (lo: number, hi: number) => coinRooms().filter((r) => r >= lo && r <= hi).length;
+export const itemsIn = (lo: number, hi: number) => itemRooms().filter((r) => r >= lo && r <= hi).length;
+const roomOfItem = (i: number) => WORLD.specialItems[i * 4] ?? -1;
+/** The key items / the snacks (the pause screen's ITEMS and SNACKS) in rooms `lo` to `hi`. */
+export const keyItemsIn = (lo: number, hi: number) => WORLD.progress.keyItems.filter((i) => roomOfItem(i) >= lo && roomOfItem(i) <= hi).length;
+export const snacksIn = (lo: number, hi: number) => WORLD.progress.cakes.filter((i) => roomOfItem(i) >= lo && roomOfItem(i) <= hi).length;
+
+/**
+ * What a save from before a region has: the tables hold the earlier regions' entries first, so an old save's arrays are as long as the entries of the rooms before
+ * `lo` (the region's lowest room id). `ordered` says the tables really are in that order: the earlier entries, then the region's own (rooms `lo` to `hi`).
+ */
+export function entriesBefore(lo: number, hi: number): { coins: number; items: number; ordered: boolean } {
+  const coins = coinRooms(), items = itemRooms();
+  const nCoins = coins.filter((r) => r < lo).length, nItems = items.filter((r) => r < lo).length;
+  const own = (rooms: readonly number[], from: number, n: number) => rooms.slice(from, from + n).every((r) => r >= lo && r <= hi);
+  return {
+    coins: nCoins, items: nItems,
+    ordered: coins.slice(0, nCoins).every((r) => r < lo) && items.slice(0, nItems).every((r) => r < lo) && own(coins, nCoins, coinsIn(lo, hi)) && own(items, nItems, itemsIn(lo, hi)),
+  };
+}
