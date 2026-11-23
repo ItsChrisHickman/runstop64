@@ -32,7 +32,7 @@ import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
-import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
 import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { AGENT_SQUASH, CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
@@ -290,7 +290,7 @@ export const WORLD: MontyData = {
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
-  rollers: [...ROLLERS, LOOSE_CRATE],
+  rollers: [...ROLLERS, LOOSE_CRATE, LAPA_STONE],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],

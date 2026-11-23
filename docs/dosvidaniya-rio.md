@@ -6,7 +6,29 @@
 > and B RIO OR BUST (the finale). QUAY TO THE CITY and SUGARLOAF SUMMIT are cut, MONKEY BUSINESS and FLOAT YOUR BOAT merged; a save in one carries on in a kept room (`save-migrate.ts`). The rooms are
 > described in `games/montyworld/src/rio.ts`; the route in `test/rio-route.ts` (recorded in `test/routes/`), the gates and mechanisms in `test/rio-mechanisms.ts`, fairness in `test/rio-fair.ts`.
 > Below is the earlier eleven-room build, kept for its history.
-> Not done here: the Andes rebuild moves the rainforest's exit to [6,33] (floor 15); Rio's C is at [7,33], entered west at floor 8 as before. Whoever merges the two places the join.
+> The join: Rio's block sits at columns 23-28, rows 4-5 of the world grid as the Andes and Pacific branches have it, OPEN ARMS ([5,23]) entered west off the Amazon's kapok ([5,22]) on floor 8, both ways
+> (`rio-mechanisms.ts`).
+>
+> **Round 1 of the reset's playtest (2026-11-23): Rio plays like the last level.** Each room asks more, on the line the player has to take:
+> - **C OPEN ARMS**: three creatures, two of them up-and-down: the vulture dives across the east arm by the ladder's head, a bat flits up and down at the east hand over its coin, a marmoset scampers on the west arm by the snack. A liana
+>   (col 8) climbs from the forest floor back to the canopy, so the drop from the Amazon is no longer one way.
+> - **F HOUSE OF COLOUR**: a real switchback: east along the roofs over the light well (five wide, the football bouncing up out of it: jump it, or drop in and climb out), off the yellow roof down the open lane where
+>   the kite dips, back west along the alley under the houses (their dark ground floor behind it) where the macaw drops out of a stairwell, down the ladder and east along the lane. The houses are plain plaster; only the
+>   blue house has windows. The tank and the six washing lines are gone.
+> - **L THE LAPA ARCHES**: stones work loose at the track's broken span, fall through the gap and roll west along the street (`rollers`, every 200 frames): read on the first crossing, and again on the drop back through the
+>   gap. The capoeirista comes from the east. The building at the west edge is the churrascaria's, in its red brick, and the ladder climbs beside it.
+> - **W STEAK YOUR CLAIM**: no CHURRASCO sign; the grill's platform is lifted to floor 8 and climbed by a ladder (col 18) whose head the second gaucho's skewer swings over. The skewers swing a step faster (80
+>   frames a cycle, 20 a pose; Japan's quickest timing was slower).
+> - **S SUGAR RUSH**: the climbers' pillars are solid granite with the walkway under them open; no sea at Monty's height; the marmoset leaps down off the rock onto the top station's way out (not on the car's landing);
+>   a macaw guards the ledge's coin.
+> - **D THE SAMBADROME**: the drummer stands on the riser at the bottom of each bounce; the headdress is at the gantry's west end past the dancer, taken with the agent already on his trail; the agent is 125 frames
+>   behind (was 150).
+> - **B RIO OR BUST**: the fireworks are 4 x 4 bursts, two at a time, over the bay; two dancers and two drummers walk on; the deckchair is a side-on chair he sits in (in front of it, the bowl in his hand); he steps out and
+>   dances (a step each way and a hop, on the beat).
+>
+> Checks: the bot plays the region in both modes, every coin and find, in 5,344 frames (was 4,948), every leg recorded; `rio-fair.ts` passes the churrascaria from four arrival timings and wins the showdown after
+> three waits; `rio-mechanisms.ts` adds the liana back to the Amazon, the light well (crossed by a jump, climbed out of after a fall) and the falling stone. The reward show's Corcovado place takes the canopy's coin
+> (its route set by hand in `ending-routes.ts`: the hand's coin depends on the bat's timing, which the show does not share with `re/routes.ts`). The washing line and the water tank are gone from the decorations.
 
 Region 7 (docs/dosvidaniya-plan.md), the last: eleven rooms and the whole game's end. Read docs/dosvidaniya-moscow.md (how Monty on the Run's rooms open and join), docs/dosvidaniya-siberia.md (the method and the bar) and, for the lesson that governs every
 picture here, the plan's "Lessons from Chris's play": a place is drawn as itself (a cable car on its cable, a restaurant with its tables and skewers, a street parade with its floats), never rooms with words on. Rows 0 (top) to 19, columns 0-31; Monty stands

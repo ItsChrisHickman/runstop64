@@ -1,6 +1,6 @@
 /**
  * Rio's decorations for Do Svidaniya Monty (region 7, played at night on black, as Monty on the Run's rooms are), in Monty on the Run's decoration format: solid ink with the detail cut into it as black lines. Few, and
- * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, the cable car's stations and cable, Lapa's arches (dark grey, behind him), one washing line and a water tank in the favela, the
+ * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, the cable car's stations and cable, Lapa's arches (dark grey, behind him), the
  * churrascaria's tables, lamps and grill, Santa Teresa's tram, the Sambadrome's float with its stamping head, its lever and control booth, the Apoteose arch, and the finale's fireworks.
  */
 import { decor } from './decorations';
@@ -65,12 +65,15 @@ function chain(): NewDecor {
   return decor('rioChain', 1, 1, r, 12);
 }
 
-/** A deckchair: a striped sling between a frame. 2 x 1 characters. */
+/** A deckchair seen from the side, facing the sea (right): the canvas sling slanting back from the seat with its stripes cut in, the arm and its post, the frame's crossed legs. 3 x 2 characters, orange. */
 function deckchair(): NewDecor {
-  const r = new Raster(16, 8);
-  r.line(1, 0, 4, 7); r.line(2, 0, 5, 7); r.rect(4, 5, 14, 6); r.line(14, 2, 10, 6);
-  r.rect(5, 1, 11, 4); r.rect(6, 2, 6, 4, false); r.rect(9, 2, 9, 4, false);
-  return decor('deckchair', 2, 1, r, 10);
+  const r = new Raster(24, 16);
+  for (let t = 0; t < 4; t++) r.line(1 + t, 0, 8 + t, 11); // the back
+  r.rect(8, 9, 21, 11); // the seat
+  r.line(3, 3, 7, 3, false); r.line(5, 6, 9, 6, false); // the stripes
+  r.rect(11, 5, 22, 6); r.rect(21, 5, 22, 9); // the arm and its post
+  for (let t = 0; t < 2; t++) { r.line(10 + t, 12, 19 + t, 15); r.line(19 + t, 12, 10 + t, 15); } // the legs
+  return decor('deckchair', 3, 2, r, 8);
 }
 
 // ---- Lapa's aqueduct: two storeys of arches, the street under them
@@ -91,17 +94,6 @@ function lapaBase(): NewDecor {
   r.rect(4, 14, 27, 39, false); r.ellipse(15.5, 14, 12, 12, false);
   r.rect(0, 0, 31, 0, false); r.rect(0, 1, 31, 1);
   return decor('lapaBase', 4, 5, r, 11);
-}
-
-/** A line of washing, two cells wide: the line along the top, clothes in two colours hanging from it (cells side by side make one line of any length). 2 x 1 characters. */
-function wash(name: string, kind: 'shirts' | 'dress' | 'towels' | 'trousers', colours: string): NewDecor {
-  const r = new Raster(16, 8);
-  r.rect(0, 0, 15, 0);
-  if (kind === 'shirts') { r.rect(1, 1, 6, 6); r.rect(0, 1, 1, 3); r.rect(6, 1, 7, 3); r.rect(9, 1, 14, 7); r.rect(11, 1, 12, 2, false); }
-  else if (kind === 'dress') { r.triangle(4, 1, 0, 7, 8, 7); r.rect(3, 1, 5, 2); r.rect(10, 1, 13, 4); r.rect(11, 5, 12, 6); }
-  else if (kind === 'towels') { r.rect(1, 1, 5, 7); r.rect(1, 3, 5, 3, false); r.rect(9, 1, 14, 6); r.rect(9, 3, 14, 3, false); }
-  else { r.rect(1, 1, 6, 2); r.rect(1, 3, 2, 7); r.rect(5, 3, 6, 7); r.rect(9, 1, 14, 5); r.rect(11, 1, 12, 1, false); r.rect(9, 5, 10, 7); r.rect(13, 5, 14, 7); }
-  return decor(name, 2, 1, r, [colours]);
 }
 
 /** A churrascaria table: a white cloth to the floor's edge, plates and a red coaster, a bottle. 3 x 2 characters. */
@@ -152,16 +144,7 @@ function lampRed(): NewDecor {
 }
 
 
-// ---- the favela's water tank, the tram, the Sambadrome
-
-/** A blue water tank on a roof: a ribbed drum with its lid. 2 x 2 characters. */
-function waterTank(): NewDecor {
-  const r = new Raster(16, 16);
-  r.rect(2, 0, 13, 2); r.rect(1, 3, 14, 15); // the lid and the drum
-  for (const y of [6, 10, 13]) r.rect(1, y, 14, y, false); // the ribs
-  r.rect(7, 0, 8, 0, false);
-  return decor('rioTank', 2, 2, r, 14);
-}
+// ---- the tram, the Sambadrome
 
 /** Santa Teresa's tram (the bonde), side on: the yellow open car under its roof, the benches and posts of its open sides, the trolley pole to the wire, the wheels on the deck. 5 x 3 characters (the deck it stands on is the float's: floats.ts). */
 function tram(): NewDecor {
@@ -217,20 +200,22 @@ function shade(): NewDecor {
   return decor('rioShade', 1, 1, r, 11);
 }
 
-/** A firework of the finale: blank until the finale draws its bursts in (finale.ts writes its characters). 2 x 2 characters. */
+/** A firework of the finale: blank until the finale draws its bursts in (finale.ts writes its characters). 4 x 4 characters. */
 function firework(): NewDecor {
-  return decor('rioFirework', 2, 2, new Raster(16, 16), 7);
+  return decor('rioFirework', 4, 4, new Raster(32, 32), 7);
 }
 
-/** The finale's firework bursts in turn: a rising spark, a small star, the full burst, its trailing embers (the firework's four characters each, row by row). */
+/** The finale's firework bursts in turn: a rising spark, a small star, the full burst (twelve rays with a bead at each tip), its embers falling away (the firework's sixteen characters each, row by row). */
 export const FIREWORK_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((k) => {
-  const r = new Raster(16, 16);
-  if (k === 0) r.rect(7, 10, 8, 15);
+  const r = new Raster(32, 32), c = 15.5;
+  if (k === 0) { r.rect(15, 20, 16, 31); r.rect(14, 18, 17, 19); }
   else for (let a = 0; a < 12; a++) {
-    const t = (a * Math.PI) / 6, len = k === 1 ? 3 : k === 2 ? 7 : 6;
-    for (let d = k === 3 ? 4 : 1; d <= len; d++) if (k !== 3 || d % 2 === 0) r.set(7.5 + Math.cos(t) * d, 7.5 + Math.sin(t) * d);
+    const t = (a * Math.PI) / 6, dx = Math.cos(t), dy = Math.sin(t);
+    if (k === 1) for (let d = 1; d <= 6; d++) r.set(c + dx * d, c + dy * d);
+    else if (k === 2) { for (let d = 3; d <= 13; d++) r.set(c + dx * d, c + dy * d); r.disc(c + dx * 14, c + dy * 14, 1); }
+    else for (let d = 9; d <= 15; d += 3) r.set(c + dx * d, c + dy * d + (d - 8) / 2);
   }
-  return characters('rioFirework', r.rows(), 2, 2);
+  return characters('rioFirework', r.rows(), 4, 4);
 });
 
 export const RIO_DECOR = {
@@ -242,11 +227,9 @@ export const RIO_DECOR = {
   deckchair: deckchair(),
   lapaUpper: lapaUpper(),
   lapaBase: lapaBase(),
-  rioWash: wash('rioWash', 'shirts', 'e1'),
   restTable: restTable(),
   rioGrill: grill(),
   lampRed: lampRed(),
-  rioTank: waterTank(),
   rioTram: tram(),
   rioFloat: sambaFloat(),
   rioLever: lever(),

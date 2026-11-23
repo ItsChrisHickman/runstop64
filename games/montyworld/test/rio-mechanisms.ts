@@ -23,7 +23,7 @@ import { BARS_CELLS, CABLE_CAR, CLOSED_CELLS, GATE_CELLS, RIO_COLOURS, RIO_ROOM 
 import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { cell, colOf, dead, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
+import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 const CRANK = [R.steak, 0] as const, HEADDRESS = [R.drum, 0] as const;
@@ -93,16 +93,26 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   // without the tram the gap is a drop to the street
   const drop = at(R.lap, 11, 8, [], false, false);
   drop.g.floats = [];
+  drop.g.rollers = []; // (and no stone falling: the drop itself is what is checked)
   run(drop, RIGHT, 16);
   run(drop, NONE, 160);
   check('without the tram, walking east off the west part he drops through the gap to the street, alive', drop.g.y === standY(18) && !dead(drop.g) && drop.g.roomId === R.lap);
 }
 
+// ---- the broken span's stones ----------------------------------------------------------------------------------
+{
+  const stone = must(WORLD.rollers.find((r) => r.room === R.lap), 'Lapa\'s stone');
+  check('a stone falls from the track\'s gap (col 14) to the street and rolls west out of the picture, on a sprite no creature of the room has', stone.path[0]?.[0] === 14 && stone.path[0][1] === 8 && stone.path[1]?.[1] === 16 && (stone.path[2]?.[0] ?? 0) < 0 && stone.sprite === 1);
+  const wait = at(R.lap, 6, 18, [], false, false);
+  const struck = diesAt(wait, NONE, stone.every + stone.start + 200);
+  check(`standing on the street west of the gap, the stone reaches him (frame ${struck})`, struck > 0);
+}
+
 // ---- the gauchos' skewers ----------------------------------------------------------------------------------
 {
   const k0 = must(SKEWERS[0], 'a skewer'), k1 = must(SKEWERS[1], 'a skewer');
-  check('a skewer swings through four poses a 24 frames each (a cycle of 96); the middle two are deadly', [0, 24, 48, 72, 95, 96].map((t) => skewerPose(k0, t)).join() === '0,1,2,3,3,0' && k0.poses.map((p) => p.deadly).join() === 'false,true,true,false');
-  check('the second gaucho is half a cycle on from the first, each with a sprite of his own (2 and 1)', k1.offset - k0.offset === 48 && k0.sprite === 2 && k1.sprite === 1);
+  check('a skewer swings through four poses a 20 frames each (a cycle of 80, a step quicker than any timing before it); the middle two are deadly', [0, 20, 40, 60, 79, 80].map((t) => skewerPose(k0, t)).join() === '0,1,2,3,3,0' && k0.poses.map((p) => p.deadly).join() === 'false,true,true,false');
+  check('the second gaucho is half a cycle on from the first, each with a sprite of his own (2 and 1)', k1.offset - k0.offset === k0.cycle / 2 && k0.sprite === 2 && k1.sprite === 1);
   const s = at(R.steak, 3, 18, [], false, true);
   const seen = new Set<number>();
   run(s, NONE, 4);
@@ -153,7 +163,7 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   let squashed = false;
   for (let f = 0; f < 60 && !squashed; f++) { frame(under, NONE); if (dead(under.g)) squashed = true; }
   check('standing under the head when it falls squashes Monty', squashed);
-  // the agent: he walks Monty's own path 150 frames behind, once Monty has left the stand's ledge
+  // the agent: he walks Monty's own path `delay` frames behind, once Monty has left the stand's ledge
   const chase = at(R.drum, 10, 8, [CRANK, HEADDRESS], false, true);
   run(chase, NONE, 2);
   const path: (readonly [number, number])[] = [];
@@ -167,13 +177,13 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
     if (on && seenAt < 0) seenAt = f;
     if (on) { const was = path[f - agent.delay]; if (was && (was[0] !== man.x || ((was[1] + 1) & 0xff) !== man.y)) match = false; }
   }
-  check(`the agent appears once Monty has left the ledge (frame ${seenAt}), and walks exactly where Monty was 150 frames before`, seenAt > 0 && match);
+  check(`the agent appears once Monty has left the ledge (frame ${seenAt}), and walks exactly where Monty was ${agent.delay} frames (two and a half seconds) before`, seenAt > 0 && match && agent.delay === 125);
   check('standing still lets him catch up: Monty, waiting, is caught (a creature\'s touch: death)', dead(chase.g));
   // the squash: armed, the agent under the head as it falls
   const trap = avenue(21, [CRANK, HEADDRESS], [lever.armed]);
   const p = must(trap.g.pursuers[0], 'the pursuer state');
   p.awake = true;
-  // (his ring: Monty walking west to east under the head, so 150 frames on he passes under it)
+  // (his ring: Monty walking west to east under the head, so `delay` frames on he passes under it)
   for (let i = 0; i < agent.delay; i++) { const at3 = i * 3; p.ring[at3] = 0x0c + Math.round((8 + (i * 12) / agent.delay) + 4) * 4; p.ring[at3 + 1] = standY(18); p.ring[at3 + 2] = 1; }
   p.written = agent.delay;
   trap.g.enemies = trap.g.enemies.map((e, i) => (i === agent.slot ? e : { ...e, x: 0xff }));
@@ -205,7 +215,7 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
 
 // ---- the costume, the hints ---------------------------------------------------------------------------------
 {
-  const s = at(R.drum, 7, 6, [CRANK], true);
+  const s = at(R.drum, 14, 4, [CRANK], true);
   for (let f = 0; f < 120 && !s.g.siCollected[itemIndex(s.g, ...HEADDRESS)]; f++) frame(s, RIGHT);
   run(s, NONE, 3);
   check(`taking the headdress puts it on him in gold, and the hint says what it is for ("${rowText(s.g)}")`, s.g.worn === itemIndex(s.g, ...HEADDRESS) && s.g.hatPlaced && s.g.vic.sprites[7]?.colour === 7 && rowText(s.g) === 'A HEADDRESS: JOIN THE PARADE');
@@ -224,6 +234,9 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   const reach = (from: State, aims: readonly { room: number; col: number; row: number }[], goal: (g: Game) => boolean, limit = 150000) => search(from, (g) => goal(g) && !g.freeze && !g.script, aims, limit, 1.5) !== null;
   check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [[AND.kapok, 0]]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [[AND.kapok, 0]]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
   check('Corcovado\'s east hand drops onto the ledge and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
+  check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [[AND.kapok, 0]]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
+  check('the favela\'s light well is crossed by a jump from roof to roof, and a fall into it is climbed out of (no trap)', reach(at(R.colour, 8, 8), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16)
+    && reach(at(R.colour, 13, 10), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16));
   check('the favela\'s lane runs out east onto Lapa\'s street', reach(at(R.colour, 12, 18), [{ room: R.colour, col: 31, row: 17 }], (g) => g.roomId === R.lap && g.y >= standY(17)));
   check('Lapa and Sugarloaf join on the street both ways', reach(at(R.lap, 25, 18), [{ room: R.lap, col: 31, row: 17 }], (g) => g.roomId === R.sugar) && reach(at(R.sugar, 2, 18), [{ room: R.sugar, col: 0, row: 17 }], (g) => g.roomId === R.lap));
   check('the climbers\' rope and ledge join Sugarloaf to Lapa\'s track, west, and the track back east to the ledge', reach(at(R.sugar, 6, 18), [{ room: R.sugar, col: 4, row: 8 }, { room: R.sugar, col: 0, row: 7 }], (g) => g.roomId === R.lap && g.y <= standY(8))
@@ -282,7 +295,8 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   for (let f = 0; f < 200 && touched < 0; f++) { frame(s, RIGHT); if (s.g.completionActive) touched = f; }
   check('walking east along the promenade he touches the acai bowl and the finale begins', touched >= 0);
   let over = -1, troupe = false, sat = false;
-  for (let f = 0; f < 3000 && over < 0; f++) { frame(s, NONE); if (s.g.gameOverActive) over = f; if ((s.g.vic.enable & 0x30) === 0x30) troupe = true; if (s.g.priority & 0x08) sat = true; }
-  check(`the finale runs by itself to GAME OVER (${over} frames): he sits in the chair, the troupe walks on, the game is won`, over > 600 && over < 2000 && s.g.won && troupe && sat);
+  const standing = s.g.sy[3] ?? 0;
+  for (let f = 0; f < 3000 && over < 0; f++) { frame(s, NONE); if (s.g.gameOverActive) over = f; if ((s.g.vic.enable & 0x36) === 0x36) troupe = true; if ((s.g.sy[3] ?? 0) === standing + 4 && (s.g.vic.enable & 0x01)) sat = true; }
+  check(`the finale runs by itself to GAME OVER (${over} frames): he sits in the chair, the troupe (two dancers, two drummers) walks on, the game is won`, over > 600 && over < 2000 && s.g.won && troupe && sat);
 }
 finish();

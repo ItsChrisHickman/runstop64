@@ -21,10 +21,10 @@ import { RIO_LEGS } from './rio-route';
 
 const room = RIO_ROOMS.find((r) => r.id === R.steak);
 if (!room) throw new Error('no churrascaria');
-/** The pickups in the order a player takes them: the coin between the gauchos' arcs, up the steps for the crank, and back past both down the ladder. */
+/** The pickups in the order a player takes them: the coin by the step in the first gaucho's lane, up the ladder past the second's skewer for the crank, and back past both down the ladder. */
 const parts: readonly (readonly [string, Part])[] = [
-  ['the coin between the arcs', coin(R.steak, 17, 17)],
-  ['the crank', item(R.steak, 0, [28, 10])],
+  ['the coin by the step', coin(R.steak, 14, 17)],
+  ['the crank', item(R.steak, 0, [28, 6])],
   ['back down the ladder to the track', into(R.lap, 5, 19, R.steak)],
 ];
 if (room.coins?.length !== 1) throw new Error('the churrascaria\'s coins are not the ones this test takes');
@@ -32,7 +32,7 @@ if (room.coins?.length !== 1) throw new Error('the churrascaria\'s coins are not
 for (const enhanced of [false, true]) {
   for (const wait of [0, 23, 51, 90]) {
     const s = newGame(WORLD, enhanced);
-    enterRoom(s.g, R.steak, 0x0c + (2 + 4) * 4, standY(18)); // (on the dining floor west of the ladder's hole he comes up through: clear of the first gaucho's lane, cols 8-24)
+    enterRoom(s.g, R.steak, 0x0c + (2 + 4) * 4, standY(18)); // (on the dining floor west of the ladder's hole he comes up through: clear of the first gaucho's lane, cols 8-16)
     for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
     for (let n = 0; n < wait; n++) frame(s, NONE);
     let live = s;
