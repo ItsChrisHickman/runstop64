@@ -1,4 +1,4 @@
-import { groove, type Hit, type RegionTune } from './region-tune';
+import { groove, melody, type Hit, type RegionTune } from './region-tune';
 
 /**
  * The Andes' version of Monty on the Run's tune, a huayno on Hubbard's own driver at his tempo. Hubbard's tune is in G minor with chromatic colour; the Andes bend
@@ -11,6 +11,8 @@ import { groove, type Hit, type RegionTune } from './region-tune';
  * - **a charango** for the runs and the backing: a bright narrow pluck whose pitch jumps an octave every frame, the strum;
  * - **a huayno on the noise channel**: the bombo's thud on the beat and two quick light taps after it (the huayno's long, short, short), a crack at the end of every
  *   fourth bar, in the two patterns the groove is made of (the drum fills and the introduction's are Hubbard's).
+ *
+ * - **a quena's descent** in the tune's breakdown (pattern $38): the pentatonic falling over the bass's chords (Dm, C, Gm, Dm, two bars each) to a long note, a phrase of ours.
  *
  * No folk melody is quoted: El Condor Pasa is not clearly free of rights, and no other was checked note for note.
  */
@@ -33,6 +35,10 @@ const BAR = 'B.ttB.tt';
 const FILL = 'B.ttB.cc';
 const HUAYNO = [BAR, BAR, BAR, FILL, BAR, BAR, BAR, FILL].join('');
 
+/** The descent: four notes falling, the last held, then the silence of the high plain (64 ticks). */
+const FALL = (a: string, b: string, c: string, d: string): readonly (readonly [string, number])[] => [[a, 8], [b, 8], [c, 8], [d, 16], ['-', 24]];
+const QUENA = [...FALL('D6', 'C6', 'A5', 'F5'), ...FALL('C6', 'Bb5', 'G5', 'F5'), ...FALL('D6', 'C6', 'Bb5', 'G5'), ...FALL('D6', 'C6', 'A5', 'D5')];
+
 export const ANDES: RegionTune = {
   id: 'andes',
   tonic: 7,
@@ -42,5 +48,5 @@ export const ANDES: RegionTune = {
     { instrument: 4, set: CHARANGO }, { instrument: 5, set: CHARANGO },
     { instrument: 2, set: STRUM },
   ],
-  breaks: [{ pattern: 0x39, events: groove(HUAYNO, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
+  breaks: [{ pattern: 0x38, events: melody(0, QUENA) }, { pattern: 0x39, events: groove(HUAYNO, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
 };

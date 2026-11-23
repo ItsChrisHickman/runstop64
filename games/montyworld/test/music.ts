@@ -55,7 +55,7 @@ const used = new Set(a.voices(song).flat());
 {
   // the notes: the introduction untouched, a lead note bent only where consonant with the bass (music-kit.ts), the break aside
   checkNotes({
-    name: 'Moscow', tune: MOSCOW, moved: '1,4,6,9',
+    name: 'Moscow', tune: MOSCOW, moved: '1,4,6,9', breakClashes: 3, // Korobeiniki's passing notes against the bass, as Chris approved it
     scale: { text: 'lands on the minor scale\'s own note (A, Bb, C or Eb)', ok: (degree) => [2, 3, 5, 8].includes(degree) },
   }, a, b);
 }

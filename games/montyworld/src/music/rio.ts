@@ -1,4 +1,4 @@
-import { groove, type Hit, type RegionTune } from './region-tune';
+import { groove, melody, type Hit, type RegionTune } from './region-tune';
 
 /**
  * Rio's version of Monty on the Run's tune, a samba on Hubbard's own driver at his tempo. The tune is lifted to its major, the carnival's lift
@@ -11,6 +11,8 @@ import { groove, type Hit, type RegionTune } from './region-tune';
  * - **an agogo** for the runs (a short high bell) and a **cavaquinho strum** for the backing stabs (a narrow pluck, its pitch jumping an octave every frame);
  * - **a samba on the noise channel**: the surdo's low thud on the second beat of each 2/4 bar and a soft one on the first, a tamborim's sixteenths
  *   between, a crack at the end of every fourth bar, in the two patterns the groove is made of (the drum fills and the introduction's are Hubbard's).
+ *
+ * - **a brass riff** in the tune's breakdown (pattern $38): the samba's 3 + 3 + 2 syncopation on the bass's chords (D, C, G, D, two bars each), each note chosen to be consonant with the bass under it, a phrase of ours.
  *
  * No tune is quoted: Brazil's tunes of the time are not in the public domain, and the ones that are were not checked note for note.
  */
@@ -36,6 +38,10 @@ const BAR = 'k.tuS.ut';
 const FILL = 'k.tuS.cc';
 const SAMBA = [BAR, BAR, BAR, FILL, BAR, BAR, BAR, FILL].join('');
 
+/** The riff: a chord's three notes, 12 + 12 + 8 ticks (three, three and two eighths), twice in each two bars (64 ticks). */
+const RIFF = (a: string, b: string, c: string): readonly (readonly [string, number])[] => [[a, 12], [b, 12], [c, 8], [a, 12], [b, 12], [c, 8]];
+const BRASS_RIFF = [...RIFF('A5', 'D6', 'F6'), ...RIFF('G5', 'C6', 'D6'), ...RIFF('A5', 'D6', 'Eb6'), ...RIFF('A5', 'D6', 'F6')];
+
 export const RIO: RegionTune = {
   id: 'rio',
   tonic: 7,
@@ -47,5 +53,5 @@ export const RIO: RegionTune = {
     { instrument: 2, set: CAVAQUINHO },
   ],
   // the drum groove of the game's song (patterns $39, four bars of 32 ticks, and $01, one)
-  breaks: [{ pattern: 0x39, events: groove(SAMBA, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
+  breaks: [{ pattern: 0x38, events: melody(0, BRASS_RIFF) }, { pattern: 0x39, events: groove(SAMBA, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
 };

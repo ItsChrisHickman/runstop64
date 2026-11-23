@@ -83,11 +83,15 @@ export function noteNumber(name: string): number {
   return 12 * Number(m[3]) + base + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
 }
 
-/** A melody for a break: each note's name and its length in ticks, all on one instrument (set on the first note). */
+/** A melody for a break: each note's name and its length in ticks (the name "-" is a rest), all on one instrument (set on the first note). */
 export function melody(instrument: number, notes: readonly (readonly [name: string, ticks: number])[]): PatternEvent[] {
-  return notes.map(([name, ticks], i) => ({
-    ticks, hold: false, prefix: i === 0 ? { kind: 'instrument', instrument } : null, note: noteNumber(name),
-  }));
+  let first = true;
+  return notes.map(([name, ticks]) => {
+    if (name === '-') return { ticks, hold: false, prefix: null, note: null };
+    const prefix: PatternEvent['prefix'] = first ? { kind: 'instrument', instrument } : null;
+    first = false;
+    return { ticks, hold: false, prefix, note: noteNumber(name) };
+  });
 }
 
 /** A drum for a groove: the driver's instrument, the pitch of its noise or thud, and how many steps it lasts (the steps after it, written as rests, are part of it). */

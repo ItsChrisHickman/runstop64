@@ -16,6 +16,8 @@ export interface TuneChecks {
   tune: RegionTune;
   /** The degrees (semitones above G) the scale moves, as the comma-joined list. */
   moved: string;
+  /** How many (break note, bass note) pairs of a rewritten lead phrase may clash (0 unless a phrase was approved as it is). */
+  breakClashes?: number;
   /** What every bent note must land on, and how that reads after "every bent note". */
   scale: { text: string; ok: (degree: number) => boolean };
   /** What its lead instrument must be like, and how that reads. */
@@ -29,7 +31,7 @@ export interface TuneChecks {
 
 const equal = <T>(x: ArrayLike<T>, y: ArrayLike<T>) => x.length === y.length && Array.from(x).every((v, i) => v === y[i]);
 
-export type NoteChecks = Pick<TuneChecks, 'name' | 'tune' | 'moved' | 'scale'>;
+export type NoteChecks = Pick<TuneChecks, 'name' | 'tune' | 'moved' | 'scale' | 'breakClashes'>;
 
 /** The notes of a version `b` against the original `a`: the introduction untouched, every other note the original's or its bend, every length kept, and consonance with the bass. */
 export function checkNotes(c: NoteChecks, a: TuneImage, b: TuneImage) {
@@ -106,6 +108,10 @@ export function checkNotes(c: NoteChecks, a: TuneImage, b: TuneImage) {
     const before = clashes(was[LEAD_VOICE] ?? [], bassWas, a), after = clashes(now[LEAD_VOICE] ?? [], bass, b);
     const added = [...after].filter((k) => !before.has(k));
     check(`consonant with the bass: no minor second, major seventh or tritone under a lead note that the version did not already have in Hubbard's (${before.size} in his, ${after.size} in the version, ${added.length} new)`, added.length === 0);
+    // a phrase written into the lead (a break) against the bass under it
+    const phrase = (now[LEAD_VOICE] ?? []).filter((n) => breaks.has(n.pattern) && n.pitched);
+    const phraseClashes = phrase.filter((n) => n.note !== null && bass.some((x) => x.start < n.start + n.ticks && x.start + x.ticks > n.start && x.note !== null && !consonant(n.note ?? 0, x.note))).length;
+    if (phrase.length > 0) check(`the lead's written phrase (${phrase.length} notes) is consonant with the bass under it (${phraseClashes} clashing, ${c.breakClashes ?? 0} allowed)`, phraseClashes <= (c.breakClashes ?? 0));
     const bentStarts = new Set((was[LEAD_VOICE] ?? []).filter((n) => n.pitched && !intro.has(n.pattern) && !breaks.has(n.pattern) && !accompaniment(n.pattern) && target(n, b) !== n.note).map((n) => n.start));
     const clashedBends = [...after].filter((k) => bentStarts.has(Number(k.split(':')[0]))).length;
     check(`and none of the ${bentStarts.size} lead notes the version bent or slid is among the clashes (${clashedBends})`, clashedBends === 0);

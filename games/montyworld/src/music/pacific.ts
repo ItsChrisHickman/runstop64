@@ -1,10 +1,11 @@
-import { groove, type Hit, type RegionTune } from './region-tune';
+import { groove, melody, type Hit, type RegionTune } from './region-tune';
 
 /**
  * The Pacific's version of Monty on the Run's tune, made to say islands at once and still be Hubbard's: the lead is a Hawaiian steel guitar that
  * slides up into its notes (Hubbard's own slide, region-tune.ts `scoop`) with a gentle vibrato, the backing is strummed like a ukulele, the drums are
  * softer, and the minor tune turns to the sunny mixolydian (the minor third and sixth go up: the major third B, the major sixth E; the minor seventh F stays,
- * the leading note F# stays), for the bass and the lead both. Hubbard's notes are otherwise kept; the introduction is his note for note.
+ * the leading note F# stays), for the bass and the lead both, a hula's heartbeat on the noise channel, and a roll down the chords in the breakdown (pattern $38).
+ * Hubbard's notes are otherwise kept; the introduction is his note for note, in the steel guitar's sound.
  */
 
 /** Semitones above G: G# up to A, Bb up to B, C# up to D, Eb up to E. */
@@ -31,6 +32,10 @@ const BAR = 'S.t.tt.t';
 const FILL = 'S.t.cc.t';
 const HULA = [BAR, BAR, BAR, FILL, BAR, BAR, BAR, FILL].join('');
 
+/** A roll down a chord, 12 + 12 + 8 ticks, twice in each two bars (64 ticks): a strummed ukulele's glide, played by the steel guitar over the breakdown's chords. */
+const ROLL = (a: string, b: string, c: string): readonly (readonly [string, number])[] => [[a, 12], [b, 12], [c, 8], [a, 12], [b, 12], [c, 8]];
+const ROLLS = [...ROLL('F6', 'D6', 'A5'), ...ROLL('D6', 'C6', 'G5'), ...ROLL('D6', 'B5', 'A5'), ...ROLL('F6', 'D6', 'A5')];
+
 export const PACIFIC: RegionTune = {
   id: 'pacific',
   tonic: 7,
@@ -42,5 +47,5 @@ export const PACIFIC: RegionTune = {
     { instrument: 2, set: STRUM },
     { instrument: 1, set: SOFT_1 }, { instrument: 3, set: SOFT_3 }, { instrument: 11, set: SOFT_11 }, { instrument: 14, set: SOFT_14 },
   ],
-  breaks: [{ pattern: 0x39, events: groove(HULA, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
+  breaks: [{ pattern: 0x38, events: melody(0, ROLLS) }, { pattern: 0x39, events: groove(HULA, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
 };
