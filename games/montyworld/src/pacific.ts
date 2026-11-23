@@ -166,7 +166,7 @@ const paintHana = (g: Grid): void => {
     g.box(8, 10, 30, 10, 'C').box(8, 11, 30, 11, 'R'); // the shelf of coral on rock between the lanes
     g.box(0, 12, 4, 13, 'K').box(0, 17, 4, 18, 'K'); // the sea cave's roof and its ledge (the cave cols 2-4, rows 14-16)
     g.box(8, 12, 9, 15, 'R').box(8, 14, 8, 14, 'H'); // the pillar under the shelf and the moray's hole
-    g.box(13, 16, 15, 18, 'C').box(19, 15, 22, 18, 'C').clear(19, 16, 20, 17).box(26, 16, 28, 18, 'C'); // the coral heads (the middle one taller, a hollow in it)
+    g.box(13, 16, 15, 18, 'C').box(19, 16, 22, 18, 'C').clear(19, 17, 20, 18).box(26, 16, 28, 18, 'C'); // the coral heads, low enough that the shark passes over him (a hollow in the middle one, under its overhang on the seabed)
 };
 /** Hana's sea over every empty cell (a backdrop: a coin is drawn over it, a pulse's cell goes back to it). */
 const HANA_SEA = fillCells(paintHana, [], [0, 0, 31, 19], 'pacSeaFlat');
@@ -238,7 +238,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   room({
     id: PAC.hana, cell: [3, 18], sector: 49, palette: HANA_PALETTE,
     paint: paintHana,
-    coins: [[20, 16], [4, 16]],
+    coins: [[20, 18], [4, 16]],
     item: { name: 'musubi1', col: 2, row: 15, sprite: PAC_SPRITE.musubi },
     decor: [...HANA_SEA, ['pacGlow', 29, 5]],
     creatures: [

@@ -35,7 +35,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, PAC.ship, 0x0c + 4 * 4, standY(13));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
+  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, plan: [[60000, 1.5], [400000, 0], [600000, 3]] }); // a breadth-first look second: in the sea a weighted look can keep, for a place, a state that times the surge and the shark badly
   if (args.first === 0 && (args.last ?? PACIFIC_LEGS.length) >= PACIFIC_LEGS.length) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;
