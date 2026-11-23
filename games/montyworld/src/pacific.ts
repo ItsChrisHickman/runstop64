@@ -26,6 +26,9 @@ export const PAC = {
   stern: 38, box: 39, pier: 40, surf: 41, lei: 42, clam: 43, mole: 44, kelp: 45, whale: 46, road: 47, cave: 48, hana: 49, fish: 50, coffee: 51, mauna: 52, hilo: 53, hold: 54,
 } as const;
 
+/** The rooms of open water (swim.ts): Monty swims in them. */
+export const SWIM_ROOMS: readonly number[] = [PAC.clam, PAC.kelp, PAC.cave, PAC.fish];
+
 /** The sprite pointers (in the bank) of the Pacific's items: the original's item blocks the world never uses ($8F-$91, $93, $94; $8E is the first aid kit, $92 the smoke stack, $9B the treasure). */
 export const PAC_SPRITE = { cutters: 0x8f, snorkel: 0x90, lei: 0x91, musubi: 0x93, parachute: 0x94 } as const;
 

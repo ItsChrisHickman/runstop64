@@ -25,3 +25,12 @@ export function swimMove(g: Game) {
   g.upSteps = g.downSteps = 1;
   applyMonty(g, g);
 }
+
+/** After his frame is chosen: in a swim room whose game has swimming pictures he is drawn as a swimmer, a stroke every 8 frames while he moves and the glide when he lets go. */
+export function swimPose(g: Game) {
+  const pictures = g.data.swimPictures;
+  if (!pictures || g.gameMode || !g.data.swimRooms.includes(g.roomId)) return;
+  const set = g.facing & 0x80 ? pictures.left : pictures.right;
+  const moving = g.input.left || g.input.right || g.input.up || g.input.down;
+  g.frameIndex = set[moving ? (g.swimTick >> 3) % set.length : 0] ?? g.frameIndex;
+}

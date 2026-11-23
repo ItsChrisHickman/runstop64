@@ -670,6 +670,7 @@ export class Game implements MontyBody, MontyWorld {
     pulseInit(this);
     lavaInit(this);
     dragonInit(this);
+    this.placeRoomBlocks();
     rollerInit(this);
     vineInit(this);
     floatInit(this);
@@ -695,6 +696,14 @@ export class Game implements MontyBody, MontyWorld {
     Items.spawnForRoom(this);
     this.hint = noHint();
     this.hintWanted();
+  }
+
+  /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
+  private placeRoomBlocks() {
+    const sets = this.data.roomBlocks;
+    if (!sets.length) return;
+    for (const set of sets) for (const { ptr } of set.blocks) this.mem.set(this.data.bankImage.subarray(ptr * 64, ptr * 64 + 64), ptr * 64);
+    for (const set of sets) if (set.rooms.includes(this.roomId)) for (const { ptr, block } of set.blocks) this.mem.set(block, ptr * 64);
   }
 
   /** The name row: the hint if one is on show, else the place's name. */
