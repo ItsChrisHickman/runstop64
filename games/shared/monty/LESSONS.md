@@ -28,6 +28,8 @@ Monty game lives here.
   just a coin (Chris): a key opens something important; a coin stash is reached by skill or by the route's "aha". Never a
   corridor, and never a closed box crossed by a ladder up and a ladder down. Study its exit grid before laying out a region.
 
+- **An item never gates just a coin, and a gate is never optional** (Chris on China and Japan, 2026-11-22: "items are usually for unlocking important things and a coin is not an important thing"; the ninja hideout "is totally optional, which feels a little weird"). A key, hat or hood opens a way on or something that matters (a snack, a costume's door); a coin is guarded by a place (a rotten board, a ledge to reach), never by an item. A room whose guard holds the way on must be on the way on: the way to the next region runs through its gate, not round it.
+
 ## The benchmark region: Moscow
 
 Chris (2026-11-22): "Moscow feels super well balanced and the music is super fun." Moscow (docs/dosvidaniya-moscow.md) is the

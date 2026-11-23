@@ -19,7 +19,7 @@ import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { riceHatWorn } from '../src/art';
-import { ARM_PULSES, AWNING_CRACKS, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, HATCH_CELLS, JUNK_CRACKS, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, WALL_ROPE_CODE } from '../src/china';
+import { ARM_PULSES, AWNING_CRACKS, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from '../src/china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
@@ -430,7 +430,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
     g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[20] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 8] === CHI.wall && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(27).every((c) => c === 0));
 }
 
-// ---- the set-up traps: the river's jetty, the market's awning, the wall's hatch -------------------------------------------
+// ---- the set-up traps: the river's jetty, the market's awning, -------------------------------------------
 {
   /** A patch of crumbling floor on its own: its codes seen in turn while he stands on it, he lives or dies, it grows back on coming into the room again. */
   const crumbles = (what: string, spec: (typeof JUNK_CRACKS)[number], floor: number) => {
@@ -474,14 +474,6 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
     enterRoom(s.g, CHI.junk, 0x0c + (4 + 4) * 4, standY(17));
     for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
     check('the planks that went are whole when he comes into the room again', gone && cell(s.g, 14, 17) === plank.codes[0]);
-  }
-  {
-    // the wall's hatch: shut (the trapdoor tile) with the rope hanging below it, until the key; then the rope goes on up into the chamber
-    const [row, col] = must(HATCH_CELLS[2], 'the hatch');
-    const shut = at(CHI.wall, 17, 17);
-    const open = at(CHI.wall, 17, 17, [KEY]);
-    frame(shut, NONE); frame(open, NONE);
-    check('the hatch in the tunnel\'s roof (the chamber\'s floor) is shut without the key and has the rope through it with it, the chamber above it empty', cell(shut.g, col, row) !== 0 && cell(shut.g, col, row) !== WALL_ROPE_CODE && cell(open.g, col, row) === WALL_ROPE_CODE && cell(open.g, col, row - 2) === WALL_ROPE_CODE && cell(shut.g, col, row - 1) === 0);
   }
 }
 

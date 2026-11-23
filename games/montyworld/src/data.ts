@@ -9,7 +9,7 @@ import {
   HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
 import { MapTitle, STRIP_Y } from './title';
-import { AWNING_CRACKS, CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, HATCH_CELLS, HATCH_ROPE, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, WALL_ROPE_CODE } from './china';
+import { AWNING_CRACKS, CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, } from './china';
 import { YETI_PICTURES } from './art/siberia-yeti';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
@@ -205,8 +205,6 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   ...[...new Set(GANGWAYS.map((g) => g.room))].map((room): RoomEffect => ({ room, when: [{ taken: TICKET }], clear: GANGWAYS.filter((g) => g.room === room).flatMap(({ cols }) => screenCells(cols[0], 15, cols[1], 16)) })), // and the inspectors let him through the gangways (one effect a room)
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
-  // (and the same key takes the hatch from the wall's tunnel roof: the chamber in the wall, seen from the way in, opens when he comes back with it)
-  { room: CHI.wall, when: [{ taken: KEY }], clear: onScreen(HATCH_CELLS), place: { code: WALL_ROPE_CODE, cells: onScreen(HATCH_ROPE) } },
   { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
   { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) } }, // the bamboo is a raft out to the junk
   { room: JP.platform, when: [{ taken: DARUMA }], clear: onScreen(SHUTTER_CELLS) }, // the daruma's wish rolls the platform's shutter up
@@ -322,7 +320,6 @@ export const WORLD: MontyData = {
       { room: SIB.sleeper, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: SIB.border, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: CHI.tower, item: KEY, text: 'THE TRAPDOOR IS LOCKED UP' },
-      { room: CHI.wall, item: KEY, text: 'THE HATCH IS LOCKED UP' },
       { room: CHI.gate, item: RICE_HAT, text: 'THE CITY TURNS FOREIGNERS AWAY' },
       { room: CHI.junk, item: BAMBOO, text: 'THE RIVER IS TOO WIDE TO WADE' },
       { room: JP.platform, item: DARUMA, text: 'THE SHUTTER OPENS FOR LUCK' },

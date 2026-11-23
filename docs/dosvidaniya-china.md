@@ -199,8 +199,7 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
 - **The Emperor's rooftops**: the golden roofs are the floor (ridge tiles along the bottom, glazed slope under them, eaves stepping up, the high ridge), a dragon on each ridge's end and the hall's
   beasts marching along it, a dusk sky in two bands with a moon and stars, halls receding in three tiers, lanterns under the eaves. The lion is white against the gold.
 - **Back Alley**: the grey band that looked like a platform is gone (the wall behind runs up under the washing); a clothesline runs house to house behind the rope, hung with six garments of six colours.
-- **All Wall and No Play**: a chamber in the wall's thickness with a coin, seen from the way in; its hatch in the tunnel's roof (a rope hangs under it) opens with the key from the hutong, so it
-  is reached when the loop brings him back under the wall (the key used twice). Mountains in two layers behind the Wall.
+- **All Wall and No Play**: a chamber in the wall's thickness with a coin, seen from the way in and reached by a rope up through a gap in the tunnel's roof: no item (Chris, 2026-11-22: a key never guards just a coin; the key's one job is the tower's trapdoor). Mountains in two layers behind the Wall.
 - **Down the River**: the quay is a bank and a jetty of rotten planks over the river with the carp below; each plank (13 cells, `JUNK_CRACKS`) frays after 16 frames under his feet, splits after 34, goes at 46
   (a walk over a cell is about 18): a steady run is safe, a stop of 12 frames is forgiven, standing is the fish. A crane's arm up a rope with the coin, a gull diving over the raft, hills far off; no wall at the right:
   the river runs on into Japan's harbour. The bicycle is out.

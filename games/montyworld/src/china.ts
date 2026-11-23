@@ -35,7 +35,7 @@ export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9]
 
 // ---- the palettes --------------------------------------------------------------------------------------
 const WALL_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 1], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 3], R: ['rope', 13], L: ['brickSlit', 12], H: ['trapdoor', 9],
+  G: ['greatBrick', 12], P: ['wallPave', 1], T: ['hillTurf', 5], E: ['hillEarth', 9], S: ['stoneStep', 3], R: ['rope', 13], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const ALLEY_PALETTE = {
@@ -136,10 +136,6 @@ export const TRAPDOOR_CELLS: readonly (readonly [row: number, col: number])[] = 
 export const TRAPDOOR_ROPE: readonly (readonly [row: number, col: number])[] = [[0, 16], [1, 16]];
 /** The gate's doors (cols 14-17, rows 11-16). */
 export const DOOR_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 6 }, (_, i) => 11 + i).flatMap((row) => [14, 15, 16, 17].map((col) => [row, col] as const));
-/** The hatch in the wall's tunnel roof (five cells wide round the rope, as the climbs test wants; the chamber's floor, columns 17-21, row 12) and the rope that takes its place up into the chamber (rows 10-12): playfield cells (row, column). */
-export const HATCH_CELLS: readonly (readonly [row: number, col: number])[] = [[12, 17], [12, 18], [12, 19], [12, 20], [12, 21]];
-export const HATCH_ROPE: readonly (readonly [row: number, col: number])[] = [[10, 19], [11, 19], [12, 19]];
-export const WALL_ROPE_CODE = codeOf(WALL_PALETTE, 'R');
 /** Where the bamboo puts the raft: the river's cells at the quay's floor (row 17, cols 19-25). */
 export const RAFT_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 7 }, (_, i) => [17, 19 + i] as const);
 export const TOWER_ROPE_CODE = codeOf(TOWER_PALETTE, 'R');
@@ -217,7 +213,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(13, 10, 31, 13, 'G').box(13, 9, 31, 9, 'P'); // the wall, its paved top
       g.box(30, 2, 31, 8, 'G').box(30, 4, 31, 4, 'L').box(30, 6, 31, 6, 'L'); // the tower's wall at the right, its slits
       g.box(25, 0, 25, 8, 'R');
-      g.clear(15, 10, 21, 11).clear(17, 13, 21, 13).box(19, 13, 19, 16, 'R').box(17, 12, 21, 12, 'H'); // a chamber in the wall's thickness, its hatch (five cells round the rope) in the tunnel's roof (the key takes it) and the rope that hangs under it
+      g.clear(15, 10, 21, 11).clear(17, 12, 21, 13).box(19, 10, 19, 16, 'R'); // a chamber in the wall's thickness, open to the tunnel through a gap in its roof (five cells round the rope) and the rope up into it: no item needed, a coin is no reason for a key
     },
     coins: [[8, 11], [15, 11]],
     item: { name: 'dumplings1', col: 28, row: 7, sprite: CHINA_SPRITE.dumplings },
