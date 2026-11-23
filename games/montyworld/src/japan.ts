@@ -1,4 +1,4 @@
-import type { CharAnim, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, CrackSpec, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
@@ -69,9 +69,9 @@ export const MOLE_PALETTE = {
   M: ['jpMoss', 5], W: ['jpWater', 14], S: ['jpStone', 12], T: ['jpTimber', 9], R: ['jpBamboo', 5], L: ['jpPlaster', 1], K: ['jpKawara', 14],
 } as const satisfies Palette;
 
-/** The hideout's six: the timber (the trunks and the roof's wall), the grass, the walkways' planks, the eave's ridge and lip, the roof's body, the rope. */
+/** The hideout's eight: the timber (the trunks and the roof's wall), the grass, the walkways' planks, the eave's ridge and lip (yellow tiles), the roof's body (red tiles), the rope, and the two states of a plank giving way (only drawn by the lookout's rotten boards). */
 export const HIDEOUT_PALETTE = {
-  T: ['jpTimber', 9], M: ['jpMoss', 5], P: ['jpPlank', 8], E: ['jpEave', 14], B: ['jpRoofBody', 6], R: ['jpBamboo', 5],
+  T: ['jpTimber', 9], M: ['jpMoss', 5], P: ['jpPlank', 8], E: ['jpEave', 7], B: ['jpRoofBody', 2], R: ['jpBamboo', 5], K: ['plankCracked', 8], L: ['plankSplit', 8],
 } as const satisfies Palette;
 /** The hall's eight: the timber, tatami, plaster, the gallery's eave, the paper door shut, shaking and open, and the rope. */
 export const HALL_PALETTE = {
@@ -189,6 +189,10 @@ export const BALL_STREAM: PulseSpec = {
  * panel's leading edge for 8 (deadly to what is in the doorway) and then a wall of paper until the 160-frame period is round. The doors shut 40 frames after one another from the first (the offsets run backwards in the period: 0, 120, 80), so a walker who passes the first as it opens finds the next open as he comes. A shut door
  * is a wall, not a trap: waiting at one is safe, stepping in as it shakes is not.
  */
+/** The hideout's lookout boards (row 9, columns 12-16), each cell its own patch of rotten wood: it shows a crack after 16 frames under his feet, splits after 34 and is gone after 46 (a walk over a cell is about 18); whole again when he comes into the room. */
+export const HIDEOUT_CRACKS: readonly CrackSpec[] = Array.from({ length: 5 }, (_, k): CrackSpec => ({
+  room: JP.hideout, col: 12 + k, cols: 1, row: 9, codes: [codeOf(HIDEOUT_PALETTE, 'P'), codeOf(HIDEOUT_PALETTE, 'K'), codeOf(HIDEOUT_PALETTE, 'L')], crack: 16, wide: 34, gone: 46, away: 600,
+}));
 export const DOORS = { cols: [6, 12, 18] as const, row: 11, rows: 3, period: 160, open: 80, warn: 24, live: 8, apart: 40 } as const;
 export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k): PulseSpec => ({
   room: JP.hall, col, row: DOORS.row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: (DOORS.period - k * DOORS.apart) % DOORS.period,
@@ -441,48 +445,48 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // H NINJA HIDEOUT: the woods outside the shogun's walls, a dead end. In by the rope from the hall's ceiling (it comes up through the grass at the left); wooden walkways zig-zag up through the pines and bamboo (floors 15, 13, 11), the third one the ridge of the hideout's
+  // H NINJA HIDEOUT: the woods outside the shogun's walls, on the way to the port. In by the rope from the hall's ceiling (it comes up through the grass at the left); wooden walkways zig-zag up through the pines and bamboo (floors 15, 13, 11), the third one the ridge of the hideout's
   // curved-eave roof, and doubling back left from it a lookout (floors 9 and 7). The hideout's door is a low corridor in the ground floor under the roof, where its guard (a ninja) paces so that no one can pass him (in the ninja hood he lets him by) to the sushi at its end.
-  // A second ninja paces the ridge.
+  // A samurai paces the ridge. Past the guard the corridor's floor has a gap (cols 24-26, a rope down it): the shaft down through the hall to the port's rope, the way on; the sushi lies beyond it at the corridor's end.
+  // The lookout's boards (row 9, cols 12-16) are rotten (HIDEOUT_CRACKS): they give way under whoever stops on them, on the way to the coin.
   room({
     id: JP.hideout, cell: [0, 16], sector: 35, palette: HIDEOUT_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 16, 'T'); // (a great cedar's trunk closes the left; open sky above and the woods running off at the top)
-      g.box(0, 17, 31, 19, 'M').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R'); // the grass and the rope's gap
+      g.box(0, 17, 31, 19, 'M').clear(3, 17, 5, 19).box(4, 16, 4, 19, 'R').clear(24, 17, 26, 19).box(25, 16, 25, 19, 'R'); // the grass, the rope's gap up to the hall and (behind the door's guard) the shaft's gap down to it
       g.box(7, 15, 11, 15, 'P').box(12, 13, 16, 13, 'P').box(17, 11, 21, 11, 'P'); // the walkways up
-      g.box(22, 11, 29, 11, 'E').box(21, 12, 30, 13, 'B').box(19, 14, 31, 14, 'E'); // the hideout's curved eave roof: its ridge, its body and the upturned lip over the door
-      g.box(21, 15, 31, 15, 'T').clear(21, 15, 27, 16).box(28, 15, 31, 16, 'T'); // the wall over the door and the doorway's low corridor
+      g.box(22, 11, 29, 11, 'E').box(21, 12, 31, 13, 'B').box(19, 14, 31, 14, 'E'); // the hideout's curved eave roof: its ridge in yellow tiles, its red body (to the edge: nothing to walk into) and the upturned lip over the door
+      g.box(21, 15, 31, 15, 'T').clear(21, 15, 29, 16).box(30, 15, 31, 16, 'T'); // the wall over the door and the doorway's low corridor
       g.box(30, 5, 31, 11, 'T'); // (a pine's trunk closes the right over the roof)
       g.box(12, 9, 16, 9, 'P').box(6, 7, 11, 7, 'P'); // the lookout
     },
     coins: [[9, 13], [26, 9], [11, 5]],
-    item: { name: 'sushi2', col: 26, row: 15, sprite: JAPAN_SPRITE.sushi },
+    item: { name: 'sushi2', col: 28, row: 15, sprite: JAPAN_SPRITE.sushi },
     decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 6, 3], ['jpBamboo3', 3, 9], ['jpBamboo3', 18, 3], ['jpPine', 13, 5], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5]],
     creatures: [
       { who: 'jpNinja', col: 21, row: 15, way: 'right', speed: 1, range: 24 },
-      { who: 'jpNinja', col: 22, row: 9, way: 'right', speed: 1, range: 32 },
+      { who: 'jpSamurai', col: 22, row: 9, way: 'right', speed: 1, range: 32 }, // a castle samurai on the ridge
     ],
   }),
 
-  // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); two ways on: the floor, through three pairs of paper doors that open and shut in turn, or the gallery over the first
-  // two (up the rope at the left, along the eaves through holes in the partitions, down at its end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). At the far end a low corridor
-  // where the guard paces, so no one can pass him (the ninja hood sends him off) to the floor gap and the rope down to the port. The rope's top goes on to the roofs.
+  // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); the floor runs through three pairs of paper doors that open and shut in turn, or the gallery over the first
+  // two (up the rope at the left, along the eaves through holes in the partitions, down at its end into the space before the third door, with a coin on it and the lantern ghost bobbing over it). The hall's far end is walled: the rope at the left
+  // goes up to the ninja hideout, and the way on to the port is down the hideout's shaft, which lands in the shut-off space at the right (cols 24-26) with the rope down to the port.
   room({
     id: JP.hall, cell: [1, 16], sector: 36, palette: HALL_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'T').clear(3, 0, 5, 1);
+      g.box(0, 0, 31, 1, 'T').clear(3, 0, 5, 1).clear(24, 0, 26, 1);
       g.box(0, 2, 1, 11, 'S');
-      g.box(0, 14, 23, 14, 'A').box(0, 15, 31, 19, 'T').clear(24, 14, 26, 19).box(27, 2, 31, 14, 'T');
+      g.box(0, 14, 22, 14, 'A').box(0, 15, 31, 19, 'T').clear(24, 14, 26, 19).box(27, 2, 31, 14, 'T');
       for (const c of DOORS.cols) g.box(c, 2, c + 1, 10, 'S').box(c, DOORS.row, c + 1, DOORS.row + DOORS.rows - 1, 'O'); // the partitions and the doorways
       for (const c of DOORS.cols.slice(0, 2)) g.clear(c, 5, c + 1, 7).box(c, 8, c + 1, 8, 'E'); // the first two have a hole through them for the gallery
       g.box(5, 8, 14, 8, 'E'); // the gallery's eaves (they end at col 14: the three cells before the third door are the way down)
-      g.box(20, 2, 26, 11, 'T'); // the corridor's low ceiling
-      g.box(4, 0, 4, 13, 'R').box(25, 13, 25, 19, 'R');
+      g.box(20, 2, 22, 11, 'T').box(23, 2, 23, 14, 'T'); // the low ceiling past the third door and the wall that shuts the hall's far end: the way on is through the hideout, down the shaft at its right (cols 24-26)
+      g.box(4, 0, 4, 13, 'R').box(25, 0, 25, 19, 'R');
     },
     coins: [[8, 6]],
     decor: [['jpScroll', 9, 5], ['jpScroll', 15, 5], ['jpScroll', 2, 5], ['jpLantern', 10, 2], ['jpLantern', 16, 2], ['jpAndon', 9, 11], ['jpAndon', 15, 11]],
     creatures: [
-      { who: 'jpSamurai', col: 20, row: 12, way: 'right', speed: 1, range: 16 },
       { who: 'jpLanternGhost', col: 9, row: 4, way: 'down', speed: 1, range: 16 },
     ],
   }),

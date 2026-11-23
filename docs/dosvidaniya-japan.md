@@ -228,3 +228,13 @@ Pictures: /root/projects/runstop64-shots/japan/ (room-*.png from the real engine
 - Japan's exit (room J, row 2) and the Pacific's entry must sit on the same exit-grid row; the builder of whichever comes second lines them up.
 - The weakest creatures (lantern ghost, crane, samurai) get a second pass when the region is built.
 - A Sakura break in the tune is allowed (the song is a traditional 19th-century folk tune, public domain); add it only if it sounds like part of Hubbard's tune, else leave it out.
+
+## Playtest 2026-11-22: the hideout is the way on
+
+Chris on the ninja hideout: the blue band and the gap on the right were unclear, the room "a missed opportunity", and "totally optional". Now:
+
+- **The way to the port runs through the hideout's door.** The hall's far end is walled (past the third door a three-cell space under the low ceiling, nothing more); its rope at the left goes up to the hideout, whose door guard (a ninja, gone in the hood) holds the corridor; past him the corridor's floor has a gap (cols 24-26, a rope down it) that drops down a shaft through the hall (cols 24-26, rope at 25) to the port's rope. The sushi lies beyond the gap at the corridor's end (cols 27-29). The hall's own guard and its hint (THE GUARD SPOTS OUTSIDERS) are gone: the hood has one gate, the hideout's door (THE DOOR IS FOR NINJAS ONLY). The hood is still found before the gate, in THE LAST MOLE off the garden.
+- **The set piece: rotten boards.** The lookout's boards (row 9, cols 12-16) crack after 16 frames under his feet, split after 34, go at 46 (`HIDEOUT_CRACKS`): a steady walk is safe, a stop is a fall. The coin is guarded by the boards, not by an item.
+- **Everything reads.** The roof is red tiles under a yellow ridge and lip (nothing blue), closed to the screen's edge; the gap that invited is gone (the right side is the pine and the roof).
+- The castle samurai moved from the hall to pace the hideout's ridge (a creature kind keeps at least one room); the second walker there is no longer a ninja.
+- The route's legs: the hall's doors and gallery first, then the rope up, the hideout's three coins and the sushi, down the corridor's gap and the shaft to the port.

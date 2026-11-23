@@ -2,7 +2,7 @@
  * Japan's route for the bot: the goals, in the order a player who takes everything plays them (from China's junk onto the harbour's quay, the crates and the market's
  * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour for the daruma, the underpass to the platform, up the rope to the crossing for the fish
  * food, back down and east past the shutter and the trains, Fuji's switchbacks, the garden's pond and pergola to THE LAST MOLE for the hood, back to the gate and through
- * the hall (the paper doors, the guard gone) with the hideout's dead end on the way, down to the port and the cargo ship's gangway), as functions on the game. Shared by the
+ * the hall (the paper doors, a dead end past them) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
  */
 import { JP } from '../src/japan';
@@ -16,6 +16,11 @@ function underTheDeck(part: Part): Part {
 /** A leg that ends west of a column: the third tier's coin is on the east ninja's lane, and a leg that ended with him cornered east of it would hand the next one no way out (the search then finds none). */
 function westOf(part: Part, col: number): Part {
   return { ...part, goal: (g) => part.goal(g) && g.montyCol - 4 <= col };
+}
+
+/** A leg that ends with no creature within three cells of him: the gallery's coin is on the lantern ghost's beat, and a leg that ended with it on top of him would hand the next one no way out. */
+function clearOfCreatures(part: Part): Part {
+  return { ...part, goal: (g) => part.goal(g) && g.enemies.every((e) => e.x === 0xff || Math.abs(e.x - (g.montyCol - 4) * 8) > 24 || Math.abs(e.y - g.y) > 24) };
 }
 
 export const JAPAN_LEGS: readonly Leg[] = [
@@ -52,16 +57,16 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('L: to the shrine and the hood', item(JP.mole, 0, [1, 12])),
   leg('L to G: back over the stones and down the rope', into(JP.garden, 28, 19, JP.mole)),
   leg('G to I: out through the castle gate', into(JP.hall, 31, 13, JP.garden)),
-  leg('I to H: up the rope to the woods outside', into(JP.hideout, 4, 0, JP.hall)),
-  leg('H: the coin on the first walkway', coin(JP.hideout, 9, 13)),
-  leg('H: the coin on the hideout\'s ridge (and back west, clear of the ninja)', westOf(coin(JP.hideout, 26, 9), 21)),
-  leg('H: the coin on the lookout', coin(JP.hideout, 11, 5)),
-  leg('H: the sushi at the end of the door\'s corridor (the guard gone)', item(JP.hideout, 0, [26, 15])),
-  leg('H to I: back down the rope', into(JP.hall, 4, 19, JP.hideout)),
   leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),
   leg('I: through the second door into the space before the third', stands(JP.hall, 14, 14, 17)),
-  leg('I: back west through both doors, up the rope and along the gallery to the coin at its end', coin(JP.hall, 8, 6)),
-  leg('I to J: through the third door past the guard (gone), to the floor gap and down the rope', into(JP.port, 25, 19, JP.hall)),
+  leg('I: back west through both doors, up the rope and along the gallery to the coin at its end', clearOfCreatures(coin(JP.hall, 8, 6))),
+  leg('I to H: back down and up the rope at the left to the woods outside (the hall\'s far end is walled)', into(JP.hideout, 4, 0, JP.hall)),
+  leg('H: the coin on the first walkway', coin(JP.hideout, 9, 13)),
+  leg('H: the coin on the hideout\'s ridge (and back west, clear of the samurai)', westOf(coin(JP.hideout, 26, 9), 21)),
+  leg('H: the coin on the lookout, over the rotten boards', coin(JP.hideout, 11, 5)),
+  leg('H: the sushi at the end of the door\'s corridor (the guard gone), beyond the shaft\'s gap', item(JP.hideout, 0, [28, 15])),
+  leg('H to I: back to the gap and down the shaft, the rope', into(JP.hall, 25, 19, JP.hideout)),
+  leg('I to J: on down the hall\'s shaft to the port', into(JP.port, 25, 19, JP.hall)),
   leg('J: the coin on the quay past the crab', coin(JP.port, 23, 15)),
   leg('J: along the quay past the sumo onto the container stair\'s first step', stands(JP.port, 15, 9, 11)),
   leg('J: the coin on top of the containers past the sumo', coin(JP.port, 4, 9)),

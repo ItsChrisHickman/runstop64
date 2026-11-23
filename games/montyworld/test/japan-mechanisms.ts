@@ -315,33 +315,24 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const clear = at(JP.garden, 14, 14, [FISH]);
     check('with it (taken at the overpass) the planks are there (placed on loading the room) and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
   }
-  // the guard and the hood
+  // the hideout's door guard (a ninja at the low corridor under the roof) and the hood: the way on to the port runs through that door (the hall's far end is walled)
   {
-    const GUARD = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai');
-    const guard = at(JP.hall, 20, 14, [], false, true);
-    check('without the hood there is a guard in the corridor (its first creature slot)', guard.g.enemies[0]?.type === GUARD && guard.g.enemies[0].x !== 0xff);
-    const past = (g: Game) => g.roomId === JP.port;
-    const stats = { exhausted: false };
-    guard.g.pulses = [];
-    const noWayPast = search(guard, past, [{ room: JP.hall, col: 25, row: 19 }], 60000, 0, stats) === null;
-    check(`and the bot finds no way past him to the floor gap (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the corridor is two cells high under a low ceiling, his lane`, noWayPast);
-    const hood = at(JP.hall, 20, 14, [HOOD], false, true);
-    check('with the ninja hood he is gone (sent off the screen)', must(hood.g.enemies[0], 'the guard').x === 0xff);
-    hood.g.pulses = [];
-    check('and the bot gets through to the floor gap and the rope down to the port', search(hood, past, [{ room: JP.hall, col: 25, row: 19 }], 100000, 1.5) !== null);
-  }
-  // the hideout's door guard (a ninja at the low corridor under the roof) and the hood
-  {
+    const SAMURAI = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai');
     const NINJA = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
     const sushi = (g: Game) => g.siCollected[itemIndex(g, JP.hideout, 0)] !== 0;
     const guard = at(JP.hideout, 17, 17, [], false, true);
-    check('without the hood a ninja guards the hideout\'s door (its first creature slot) and another paces the roof', guard.g.enemies[0]?.type === NINJA && guard.g.enemies[0].x !== 0xff && guard.g.enemies[1]?.type === NINJA);
+    check('without the hood a ninja guards the hideout\'s door (its first creature slot) and a samurai paces the roof', guard.g.enemies[0]?.type === NINJA && guard.g.enemies[0].x !== 0xff && guard.g.enemies[1]?.type === SAMURAI);
     const stats = { exhausted: false };
-    const noWay = search(guard, sushi, [{ room: JP.hideout, col: 26, row: 15 }], 60000, 0, stats) === null;
-    check(`and the bot finds no way past him to the sushi at the corridor's end (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'})`, noWay);
+    const port = (g: Game) => g.roomId === JP.port;
+    const aim = [{ room: JP.hideout, col: 25, row: 19 }, { room: JP.hall, col: 25, row: 19 }] as const;
+    guard.g.pulses = [];
+    const noWay = search(guard, port, aim, 60000, 0, stats) === null && search(guard, sushi, [{ room: JP.hideout, col: 28, row: 15 }], 60000, 0) === null;
+    check(`and the bot finds no way past him, neither to the sushi nor down the shaft to the port (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the hall's far end is walled, so the hideout's door is the way on`, noWay);
     const hood = at(JP.hideout, 17, 17, [HOOD], false, true);
-    check('with the ninja hood the door guard is gone (sent off the screen) and the roof ninja stays', must(hood.g.enemies[0], 'the guard').x === 0xff && must(hood.g.enemies[1], 'the roof ninja').x !== 0xff);
-    check('and the bot walks in and takes the sushi', search(hood, sushi, [{ room: JP.hideout, col: 26, row: 15 }], 150000, 1.5) !== null);
+    check('with the ninja hood the door guard is gone (sent off the screen) and the roof samurai stays', must(hood.g.enemies[0], 'the guard').x === 0xff && must(hood.g.enemies[1], 'the roof samurai').x !== 0xff);
+    check('and the bot walks in and takes the sushi', search(hood, sushi, [{ room: JP.hideout, col: 28, row: 15 }], 150000, 1.5) !== null);
+    hood.g.pulses = [];
+    check('and drops down the corridor\'s gap, down the hall\'s shaft and the rope, to the port', search(at(JP.hideout, 17, 17, [HOOD], false, true), port, aim, 150000, 1.5) !== null);
   }
 }
 
@@ -372,12 +363,12 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const a = newGame(WORLD, false);
     a.g.siCollected[hood] = 0x81;
     wear(a.g, hood);
-    enterRoom(a.g, JP.hall, 0x0c + 6 * 4, standY(14));
+    enterRoom(a.g, JP.hideout, 0x0c + 10 * 4, standY(17));
     for (let n = 0; n < 200 && (a.g.freeze || a.g.script); n++) frame(a, NONE);
     const b = newGame(WORLD, false);
     wear(b.g, rice);
     restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
-    check('a save made in the hood carries on in it (the hood as the worn item, its pictures in the bank, the guard gone)', b.g.worn === hood && b.g.enemies.filter((e) => e.type === FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai')).every((e) => e.x === 0xff) && b.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((v, i) => v === first?.block[i]));
+    check('a save made in the hood carries on in it (the hood as the worn item, its pictures in the bank, the guard gone)', b.g.worn === hood && b.g.enemies.filter((e) => e.type === FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja')).every((e) => e.x === 0xff) && b.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((v, i) => v === first?.block[i]));
   }
 }
 
@@ -406,14 +397,17 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check('the pergola\'s rope climbs into THE LAST MOLE and the hidden room\'s rope drops back to the garden', lands(JP.mole, [14], at(JP.garden, 27, 10, [FISH]), { room: JP.garden, col: 28, row: 0 }, 100000) && lands(JP.garden, [14, 10], at(JP.mole, 30, 14), { room: JP.mole, col: 28, row: 19 }, 100000));
   check('the garden\'s gate walks east into the hall and the hall west back into the garden', into(JP.hall, at(JP.garden, 27, 14), { room: JP.garden, col: 31, row: 13 }) && into(JP.garden, quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 0, row: 13 }));
   check('the hall\'s rope climbs to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
-  check('the hall\'s gap (past the guard) drops to the port and the port\'s rope climbs back to the hall', lands(JP.port, [17], quiet(at(JP.hall, 18, 14, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 100000) && lands(JP.hall, [14], at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, 100000));
-  check('from the port he can climb back to the hall with nothing in hand and out west to the garden (the way back runs the whole way)', reach(at(JP.port, 22, 17), { room: JP.port, col: 25, row: 0 }, (g) => g.roomId === JP.hall, 150000) !== null);
+  check('the hideout\'s corridor gap (past the guard, in the hood) drops down the hall\'s walled shaft and the rope into the port', into(JP.port, quiet(at(JP.hideout, 21, 17, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 150000));
+  check('the hall\'s far end is walled: from the doors\' side he cannot reach the port (the hideout is the way on)', (() => { const s = quiet(at(JP.hall, 14, 14, [HOOD])); const st = { exhausted: false }; return search(s, (g) => g.roomId === JP.port, [{ room: JP.hall, col: 25, row: 19 }], 60000, 0, st) === null; })());
+  check('from the port he can climb the rope up the hall\'s shaft to the hideout (hood on)', search(quiet(at(JP.port, 22, 17, [HOOD])), (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.port, col: 25, row: 0 }, { room: JP.hall, col: 25, row: 0 }], 200000, 1.5) !== null);
+  check('and from the hideout down its left rope and out west of the hall to the garden (the way back runs the whole way)', reach(quiet(at(JP.hideout, 8, 17, [HOOD])), { room: JP.hideout, col: 4, row: 19 }, (g) => g.roomId === JP.hall, 150000) !== null
+    && reach(quiet(at(JP.hall, 3, 14, [HOOD])), { room: JP.hall, col: 0, row: 13 }, (g) => g.roomId === JP.garden, 150000) !== null);
   check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
 }
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hall, 3, 14, 'THE GUARD SPOTS OUTSIDERS'], [JP.hideout, 6, 17, 'THE DOOR IS FOR NINJAS ONLY']] as const;
+  const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hideout, 6, 17, 'THE DOOR IS FOR NINJAS ONLY']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -453,10 +447,10 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
       restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
       run(b, NONE, 4);
       // what the keys did in the room is as it was (the effects are put again on loading the room)
-      const KOI_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi'), GUARD_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai');
+      const KOI_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi'), GUARD_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
       const effects = room === JP.platform ? SHUTTER_CELLS.every(([row, col]) => cell(b.g, col, row) === 0)
         : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies.filter((e) => e.type === KOI_TYPE).every((e) => e.x === 0xff)
-        : room === JP.hall ? b.g.enemies.filter((e) => e.type === GUARD_TYPE).every((e) => e.x === 0xff)
+        : room === JP.hideout ? b.g.enemies.filter((e) => e.type === GUARD_TYPE).every((e) => e.x === 0xff)
         : true;
       b.g.enemies = [];
       b.g.enable &= 0x0f;
