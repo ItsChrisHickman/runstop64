@@ -10,7 +10,7 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { RIO_ROOM as R, RIO_ROOMS } from '../src/rio';
 import { enterRoom } from '../../montyotr/src/ending';
-import { newGame, play, search } from './bot';
+import { newGame, play, search } from '../../shared/monty/test/bot';
 import { coin, into, item, standY, type Part } from './route';
 
 const room = RIO_ROOMS.find((r) => r.id === R.steak);
