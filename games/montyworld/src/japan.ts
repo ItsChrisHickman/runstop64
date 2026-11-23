@@ -454,7 +454,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[9, 13], [26, 9], [8, 5]],
     item: { name: 'sushi2', col: 26, row: 15, sprite: JAPAN_SPRITE.sushi },
-    decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 8, 9], ['jpBamboo3', 3, 9], ['jpBamboo3', 13, 3], ['jpPine', 17, 6], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5]],
+    decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 7, 3], ['jpBamboo3', 3, 9], ['jpBamboo3', 18, 3], ['jpPine', 13, 5], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5]],
     creatures: [
       { who: 'jpNinja', col: 21, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'jpNinja', col: 22, row: 9, way: 'right', speed: 1, range: 32 },
