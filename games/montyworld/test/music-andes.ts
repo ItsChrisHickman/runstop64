@@ -1,6 +1,6 @@
 /**
- * The Andes' version of Monty on the Run's tune (games/montyworld/src/music/andes.ts), made from the original .sid by a scale, instruments and a drum groove (music-kit.ts):
- * the minor pentatonic on G where it is consonant with the bass, panpipes (from the introduction's first bar), a huayno on the noise channel at Hubbard's tempo.
+ * The Andes' version of Monty on the Run's tune (games/montyworld/src/music/andes.ts), made from the original .sid by a scale and instruments only (music-kit.ts):
+ * the minor pentatonic on G where it is consonant with the bass, a panpipe lead; the introduction, drums and tempo Hubbard's.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/music-andes.ts
  */

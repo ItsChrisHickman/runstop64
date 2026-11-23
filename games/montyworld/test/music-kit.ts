@@ -39,6 +39,8 @@ export function checkNotes(c: NoteChecks, a: TuneImage, b: TuneImage) {
   const was = songNotes(a, song), now = songNotes(b, song);
   const intro = introPatterns(was);
   const breaks = new Set(c.tune.breaks.map((x) => x.pattern));
+  /** Where a fill starts in its pattern: the steps from there on are the region's own (the rest it replaces was no note of Hubbard's). */
+  const fillFrom = new Map((c.tune.fills ?? []).map((f) => [f.pattern, a.readPattern(f.pattern).events.length - 1] as const));
   const bassShift = c.tune.bassShift ?? c.tune.shift;
   const voicesOf = new Map<number, Set<number>>();
   for (const voice of was) for (const n of voice) voicesOf.set(n.pattern, (voicesOf.get(n.pattern) ?? new Set<number>()).add(n.voice));
@@ -56,7 +58,7 @@ export function checkNotes(c: NoteChecks, a: TuneImage, b: TuneImage) {
     let steps = 0, bent = 0, wrong = 0, lengths = 0, off = 0, slides = 0, slideWrong = 0;
     const seen = new Set<string>();
     for (const n of was.flat()) {
-      if (intro.has(n.pattern) || breaks.has(n.pattern)) continue;
+      if (intro.has(n.pattern) || breaks.has(n.pattern) || n.index >= (fillFrom.get(n.pattern) ?? Infinity)) continue;
       const key = `${n.pattern}:${n.index}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -144,10 +146,11 @@ export function checkTune(c: TuneChecks) {
     };
     const g0 = gates(original), g1 = gates(made);
     // (a rewritten pattern, a drum groove or a phrase, has its own rhythm over the same ticks: its frames are left out)
-    const rewritten = songNotes(a, song).map((voice) => voice.filter((n) => n.index === 0 && c.tune.breaks.some((x) => x.pattern === n.pattern)).map((n) => [2 * n.start, 2 * (n.start + patternTicks(a.readPattern(n.pattern).events))] as const));
+    const rewrittenPatterns = [...c.tune.breaks, ...(c.tune.fills ?? [])];
+    const rewritten = songNotes(a, song).map((voice) => voice.filter((n) => n.index === 0 && rewrittenPatterns.some((x) => x.pattern === n.pattern)).map((n) => [2 * n.start, 2 * (n.start + patternTicks(a.readPattern(n.pattern).events))] as const));
     const outside = (list: readonly string[], v: number) => list.filter((e) => { const f = Number(e.split(':')[0]); return !(rewritten[v] ?? []).some(([from, to]) => f >= from && f < to); });
-    check(`every gate of every voice on every frame of the loop is the original's outside the ${c.tune.breaks.length} rewritten patterns: the same tempo (${frames} frames)`, [0, 1, 2].every((v) => equal(outside(g0[v] ?? [], v), outside(g1[v] ?? [], v))));
-    const same1 = c.tune.breaks.every((x) => patternTicks(b.readPattern(x.pattern).events) === patternTicks(a.readPattern(x.pattern).events));
+    check(`every gate of every voice on every frame of the loop is the original's outside the ${rewrittenPatterns.length} rewritten patterns: the same tempo (${frames} frames)`, [0, 1, 2].every((v) => equal(outside(g0[v] ?? [], v), outside(g1[v] ?? [], v))));
+    const same1 = rewrittenPatterns.every((x) => patternTicks(b.readPattern(x.pattern).events) === patternTicks(a.readPattern(x.pattern).events));
     check('and every rewritten pattern lasts the ticks it did', same1);
   }
   {

@@ -10,7 +10,8 @@ import { patternTicks, songNotes, TuneImage, type InstrumentChange, type Pattern
  *   or tritone against it, else it keeps Hubbard's note;
  * - **scoops**: a lead note approached from below may slide up into its pitch (Hubbard's own slide, a byte in the pattern's data);
  * - **instruments**: new settings for the instruments the lead plays (and any other), by number;
- * - **breaks**: a phrase of another tune (a folk tune) in place of one pattern, of the same length in ticks.
+ * - **breaks**: a phrase of another tune (a folk tune) in place of one pattern, of the same length in ticks;
+ * - **fills**: a short phrase of the region's own in the silence that ends a pattern (the rest the lead already has), the pattern's notes before it Hubbard's (bent as the scale says).
  *
  * Every pattern keeps the ticks of every note, so the rhythm and the tempo are Hubbard's whatever the region. A region is a
  * `RegionTune` value (moscow.ts) and `retune` makes the .sid for it.
@@ -34,6 +35,8 @@ export interface RegionTune {
   readonly instruments: readonly { readonly instrument: number; readonly set: InstrumentChange }[];
   /** A pattern (of the in-game song) given other notes of the same length in ticks, played as written (the scale does not move them). */
   readonly breaks: readonly { readonly pattern: number; readonly events: readonly PatternEvent[] }[];
+  /** A pattern's closing rest given notes of the region's own (a call at the end of a phrase): the events' ticks add up to the rest's, so the pattern keeps its length. The notes before it are the scale's as ever. */
+  readonly fills?: readonly { readonly pattern: number; readonly events: readonly PatternEvent[] }[];
   /**
    * Keep the version exactly as it was approved: every pitched note of every voice (the introduction's too) moved by `shift`, with no consonance gate, no scoop and the bass moved as the
    * lead is. Moscow's, which Chris loved as it was before the gate existed (test/music.ts holds it to the bytes it had).
@@ -214,6 +217,14 @@ export function retune(original: Uint8Array, tune: RegionTune, song = GAME_SONG)
     const was = patternTicks(image.readPattern(pattern).events);
     if (patternTicks(events) !== was) throw new Error(`the break for pattern ${pattern} lasts ${patternTicks(events)} ticks, the pattern ${was}`);
     image.writePattern(pattern, events);
+  }
+
+  for (const { pattern, events } of tune.fills ?? []) {
+    if (!used.has(pattern) || broken.has(pattern) || intro.has(pattern)) throw new Error(`pattern ${pattern} cannot take a fill`);
+    const now = image.readPattern(pattern).events;
+    const rest = now[now.length - 1];
+    if (!rest || rest.note !== null || rest.prefix !== null || rest.hold || rest.ticks !== patternTicks(events)) throw new Error(`pattern ${pattern} does not end in a rest of ${patternTicks(events)} ticks`);
+    image.writePattern(pattern, [...now.slice(0, -1), ...events]);
   }
 
   for (const { instrument, set } of tune.instruments) {

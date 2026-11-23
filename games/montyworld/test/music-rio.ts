@@ -1,6 +1,6 @@
 /**
- * Rio's version of Monty on the Run's tune (games/montyworld/src/music/rio.ts), made from the original .sid by a scale, instruments and a drum groove (music-kit.ts):
- * G major where it is consonant with the bass, a brass lead (from the introduction's first bar), a samba on the noise channel at Hubbard's tempo.
+ * Rio's version of Monty on the Run's tune (games/montyworld/src/music/rio.ts), made from the original .sid by a scale and instruments only (music-kit.ts):
+ * G major where it is consonant with the bass, a brass lead that slides into long notes; the introduction, drums and tempo Hubbard's.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/music-rio.ts
  */

@@ -1,51 +1,39 @@
-import { groove, melody, type Hit, type RegionTune } from './region-tune';
+import type { RegionTune } from './region-tune';
 
 /**
- * The Pacific's version of Monty on the Run's tune, made to say islands at once and still be Hubbard's: the lead is a Hawaiian steel guitar that
- * slides up into its notes (Hubbard's own slide, region-tune.ts `scoop`) with a gentle vibrato, the backing is strummed like a ukulele, the drums are
- * softer, and the minor tune turns to the sunny mixolydian (the minor third and sixth go up: the major third B, the major sixth E; the minor seventh F stays,
- * the leading note F# stays), for the bass and the lead both, a hula's heartbeat on the noise channel, and a roll down the chords in the breakdown (pattern $38).
- * Hubbard's notes are otherwise kept; the introduction is his note for note, in the steel guitar's sound.
+ * The Pacific's version of Monty on the Run's tune, kept as subtle as Moscow's and with one clear colour, Hawaii: Hubbard's melody, harmony and drums (his patterns, his tempo) with
+ *
+ * - **a ukulele lead**: the theme's two instruments (the main theme 0 and the second theme 15) are a bright pluck, an instant attack and a short decay to a quiet ring, no vibrato;
+ * - **the steel guitar on the held notes**: the long notes Hubbard plays on instrument 6 are a steel guitar (a soft attack, a held sustain, a wide slow vibrato), and a note of eight ticks or more that is approached from below
+ *   slides up into its pitch (Hubbard's own slide, region-tune.ts `scoop`), the steel's signature;
+ * - **a softer, lighter drum mix**: his drum instruments with shorter, quieter noise and thud, in his own patterns;
+ * - the minor tune turns to the sunny mixolydian (the minor third and sixth go up: the major third B, the major sixth E; the minor seventh F stays, the leading note F# stays), lead and bass both.
+ *
+ * Nothing else is rewritten: the introduction is his note for note, the backing stabs and runs, and the breakdown are his.
  */
 
 /** Semitones above G: G# up to A, Bb up to B, C# up to D, Eb up to E. */
 const SHIFT = [0, +1, 0, +1, 0, 0, +1, 0, +1, 0, 0, 0] as const;
 
-/** A steel guitar for the theme (the main theme 0 and the second theme 15): a pulse a little wider than square, a soft attack, a held sustain, a slow vibrato. */
-const STEEL = { pulseWidth: 0x0a00, control: 0x41, attackDecay: 0x36, sustainRelease: 0x86, vibrato: 2, pulseSweep: 0 } as const;
-/** A ukulele for the runs (4 and 5): a pulse with no attack, a quick decay and no sustain, so every note is a pluck. */
-const UKULELE = { pulseWidth: 0x0800, control: 0x41, attackDecay: 0x09, sustainRelease: 0x20, vibrato: 0, pulseSweep: 0 } as const;
-/** The backing stabs (2) strummed: a pluck whose pitch jumps an octave every frame (the driver's arpeggio effect), a quick ring of strings. */
-const STRUM = { pulseWidth: 0x0800, control: 0x41, attackDecay: 0x08, sustainRelease: 0x20, effects: 4 } as const;
+/** A ukulele for the theme (0 and 15): a pulse with an instant attack and a quick decay to a quiet ring (the sustain keeps the notes the tune ties together sounding), no vibrato, no sweep. */
+const UKULELE = { pulseWidth: 0x0800, control: 0x41, attackDecay: 0x08, sustainRelease: 0x30, vibrato: 0, pulseSweep: 0 } as const;
+/** A steel guitar for the held notes (instrument 6): a soft attack, a held sustain, the widest slow vibrato the driver has in its small table. */
+const STEEL = { pulseWidth: 0x0a00, control: 0x41, attackDecay: 0x36, sustainRelease: 0x86, vibrato: 3, pulseSweep: 0 } as const;
 /** The drums, softer: shorter noise (1, 3, 11) and a shorter thud (14). */
 const SOFT_1 = { attackDecay: 0x01, sustainRelease: 0x05 } as const;
 const SOFT_3 = { attackDecay: 0x07, sustainRelease: 0x05 } as const;
 const SOFT_11 = { attackDecay: 0x08, sustainRelease: 0x06 } as const;
 const SOFT_14 = { attackDecay: 0x05, sustainRelease: 0x08 } as const;
 
-/** The introduction's soft lead (9) and the lead of the first part (6) are the steel guitar too, so the islands are there from the first bar. */
-const STEEL_INSTRUMENTS = [0, 6, 9, 15] as const;
-
-/** A hula's heartbeat on the noise channel: a soft ipu thud on the beat, a shaker between, a crack at the end of every fourth bar. */
-const DRUMS: Readonly<Record<string, Hit>> = { S: [14, 47], t: [1, 91], c: [3, 47] };
-const BAR = 'S.t.tt.t';
-const FILL = 'S.t.cc.t';
-const HULA = [BAR, BAR, BAR, FILL, BAR, BAR, BAR, FILL].join('');
-
-/** A roll down a chord, 12 + 12 + 8 ticks, twice in each two bars (64 ticks): a strummed ukulele's glide, played by the steel guitar over the breakdown's chords. */
-const ROLL = (a: string, b: string, c: string): readonly (readonly [string, number])[] => [[a, 12], [b, 12], [c, 8], [a, 12], [b, 12], [c, 8]];
-const ROLLS = [...ROLL('F6', 'D6', 'A5'), ...ROLL('D6', 'C6', 'G5'), ...ROLL('D6', 'B5', 'A5'), ...ROLL('F6', 'D6', 'A5')];
-
 export const PACIFIC: RegionTune = {
   id: 'pacific',
   tonic: 7,
   shift: SHIFT,
-  scoop: { minTicks: 6, maxTicks: 16, below: 2 },
+  scoop: { minTicks: 8, maxTicks: 32, below: 2 },
   instruments: [
-    ...STEEL_INSTRUMENTS.map((instrument) => ({ instrument, set: STEEL })),
-    { instrument: 4, set: UKULELE }, { instrument: 5, set: UKULELE },
-    { instrument: 2, set: STRUM },
+    { instrument: 0, set: UKULELE }, { instrument: 15, set: UKULELE },
+    { instrument: 6, set: STEEL },
     { instrument: 1, set: SOFT_1 }, { instrument: 3, set: SOFT_3 }, { instrument: 11, set: SOFT_11 }, { instrument: 14, set: SOFT_14 },
   ],
-  breaks: [{ pattern: 0x38, events: melody(0, ROLLS) }, { pattern: 0x39, events: groove(HULA, DRUMS) }, { pattern: 0x01, events: groove(BAR + FILL, DRUMS) }],
+  breaks: [],
 };
