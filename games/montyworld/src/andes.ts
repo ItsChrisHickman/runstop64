@@ -4,10 +4,10 @@ import { ANDES_SPRITE, BOULDER_POINTERS } from './andes-pointers';
 import { codeOf, room, type Grid, type Palette } from './layout';
 
 /**
- * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-andes.md): twelve rooms in a block four columns wide and six rows high at columns 30-33 of the exit grid (rows 2-7), entered from
+ * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-andes.md): twelve rooms in a block four columns wide and six rows high at columns 20-23 of the exit grid (rows 2-7; 30-33 before the Pacific went down to five rooms), entered from
  * the cargo plane's hold (the Pacific, column 29) and left east out of the river's end (Rio, not yet built).
  *
- *            col 30                31               32                 33
+ *            col 20                21               22                 23
  *   row 2   F1 JUMP FOR JOY
  *   row 3   F2 OUT OF THIN AIR                                           (the parachute drop: a shaft of three flight rooms, one under another)
  *   row 4   F3 CONDOR COUNTRY
@@ -121,7 +121,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // F1 JUMP FOR JOY: out of the plane's tail. In at the left on the ramp (floor 16: the hold's door, rows 14-15); the plane's tail is the wall; off the ramp's end the canopy opens. An updraft (cols 9-11) lifts him back up to glide
   // to a spire at the right (an empanada on its snowy tip), clouds under. The bottom is open (nothing solid is drawn in it): he sinks out of it into the next room.
   room({
-    id: AND.jump, cell: [2, 30], sector: 55, palette: SKY_PALETTE,
+    id: AND.jump, cell: [2, 20], sector: 55, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 17, 'K').box(0, 18, 2, 19, 'K');
       g.box(28, 0, 31, 19, 'R');
@@ -135,7 +135,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
 
   // F2 OUT OF THIN AIR: the canyon. In from above anywhere; the cliffs close in at each side, a ridge rises mid-room (coins on its crest), an updraft each side of it, two condors crossing at two heights. Out at the bottom.
   room({
-    id: AND.thin, cell: [3, 30], sector: 56, palette: SKY_PALETTE,
+    id: AND.thin, cell: [3, 20], sector: 56, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 2, 19, 'R').box(3, 8, 3, 19, 'R').box(4, 13, 4, 19, 'R').box(29, 0, 31, 19, 'R').box(28, 7, 28, 19, 'R').box(27, 12, 27, 19, 'R');
       g.box(11, 14, 20, 19, 'R').box(21, 18, 26, 19, 'R').box(12, 12, 19, 13, 'R').box(14, 10, 17, 11, 'R').box(15, 9, 16, 9, 'S').box(14, 10, 17, 10, 'S');
@@ -149,7 +149,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // F3 CONDOR COUNTRY: the climax of the drop. A rock overhang hangs at the right (an empanada on its lip), a ledge at each side, two updrafts, two condors on slow wide circuits; down through the gap between the ledges (cols 8-23)
   // onto Machu Picchu's terrace under it.
   room({
-    id: AND.condor, cell: [4, 30], sector: 57, palette: SKY_PALETTE,
+    id: AND.condor, cell: [4, 20], sector: 57, palette: SKY_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 19, 'R').box(30, 0, 31, 19, 'R').box(2, 16, 7, 19, 'R').box(24, 16, 29, 19, 'R').box(3, 14, 5, 15, 'R');
       g.box(18, 0, 29, 4, 'R').box(21, 5, 29, 5, 'R'); // the overhang
@@ -165,7 +165,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // T1 NO PROBLLAMA: Machu Picchu's lower terraces. The drop lands on the top terrace (floor 6) through the gap in the mountain's rock roof (cols 8-23, open to F3's: nothing is drawn solid in it); the terrace runs east out high into the great room, and a
   // ladder (col 4, in a shaft three cells wide) goes down through the stepped walls to the low path (floor 18), which climbs three terraces (floors 16, 14, 16) where two llamas graze and wink on the flat, and runs east out low into the great room's lane.
   room({
-    id: AND.llama, cell: [5, 30], sector: 58, palette: TERRACE_PALETTE,
+    id: AND.llama, cell: [5, 20], sector: 58, palette: TERRACE_PALETTE,
     paint(g) {
       g.box(0, 0, 7, 2, 'K').box(24, 0, 31, 2, 'K'); // the mountain: F3's cliffs go on; the terraces run off the left edge
       g.box(0, 6, 31, 6, 'G').box(0, 7, 31, 10, 'W').box(8, 8, 31, 8, 'G').clear(3, 6, 5, 12).box(4, 6, 4, 17, 'L');
@@ -182,7 +182,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // (a loop with T1's ladder). Boulders roll off the plateau's lip down the steps (floors 8, 10) to the landing (floor 12), the way out east high into the village. The lane runs under the terraces from T1's low path: a low tunnel (cols 11-22, two cells high) where a
   // spitting llama paces the mouth and a well (cols 19-21, a rope in it) falls into the Inca tunnel; the llama steps aside for a tune.
   room({
-    id: AND.rock, cell: [5, 31], sector: 59, palette: TERRACE_PALETTE,
+    id: AND.rock, cell: [5, 21], sector: 59, palette: TERRACE_PALETTE,
     paint(g) {
       huaynaPicchu(g, 20, 0, 9, 7);
       g.box(0, 6, 15, 6, 'G').box(0, 7, 15, 13, 'W').box(16, 8, 20, 8, 'G').box(16, 9, 20, 13, 'W').box(21, 10, 25, 10, 'G').box(21, 11, 25, 13, 'W').box(26, 12, 31, 12, 'G').box(26, 13, 31, 13, 'W');
@@ -199,7 +199,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // V MARKET FORCES: the mountain village. In from the terraces' landing on the first roof (floor 12) at the left; the roofs step down (floors 14, 16) to the lane (floor 18) under the market awnings, stalls and a guinea pig pen, which runs
   // east out low to the cave. A ladder (col 20) from the lane goes up to the hat stall's roof (floor 9): the chullo hangs there.
   room({
-    id: AND.market, cell: [5, 32], sector: 60, palette: MARKET_PALETTE,
+    id: AND.market, cell: [5, 22], sector: 60, palette: MARKET_PALETTE,
     paint(g) {
       g.box(0, 12, 9, 12, 'T').box(0, 13, 9, 17, 'A').box(10, 14, 14, 14, 'T').box(10, 15, 14, 17, 'A').box(15, 16, 18, 16, 'T').box(15, 17, 18, 17, 'A');
       g.box(0, 18, 31, 19, 'G').box(30, 0, 31, 15, 'K').box(0, 0, 1, 9, 'K');
@@ -214,7 +214,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // M MIST OPPORTUNITY: a cave in the cloud, a dead end. In low from the village at the left; mist rises from a pit (cols 9-13, deadly in its two rows, a drift of it over them) crossed on a stone pillar standing in its middle (cols 11-12); the cave's floor climbs in three steps (floors 16, 14, 12) to a ledge at the right where
   // the panpipes lie. Bats overhead. Out the way he came.
   room({
-    id: AND.mist, cell: [5, 33], sector: 61, palette: MIST_PALETTE,
+    id: AND.mist, cell: [5, 23], sector: 61, palette: MIST_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 3, 'K').box(0, 4, 1, 15, 'K').box(30, 4, 31, 19, 'K');
       g.box(0, 18, 8, 19, 'G').box(9, 18, 13, 19, 'M').box(14, 18, 31, 19, 'G').box(9, 16, 13, 17, 'N').box(11, 18, 12, 19, 'S'); // the pit, the mist rising over it, the stone standing in it
@@ -229,7 +229,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // CF CLOUD NINE: the cloud forest. In from the Inca tunnel at the right (low). The ground (floor 18) runs west over a stream (stepping logs) past a jaguar to a tangle over a gap at the left (cols 4-7: the machete cuts it, and a rope hangs
   // through to the riverboat); a rope (col 15) climbs from the ground to the boughs (floors 8, 13, 12) that run across above it, a sloth and a toucan on them. The topmost bough runs out east through a door (rows 6-7) into the Inca tunnel's high ledge: a loop with the low door.
   room({
-    id: AND.cloud, cell: [6, 30], sector: 62, palette: CLOUD_PALETTE,
+    id: AND.cloud, cell: [6, 20], sector: 62, palette: CLOUD_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 0, 'J').box(0, 1, 8, 1, 'J').box(12, 1, 20, 1, 'J').box(24, 1, 31, 1, 'J').box(0, 2, 4, 2, 'J').box(15, 2, 17, 2, 'J').box(26, 2, 31, 2, 'J'); // the canopy's ragged leaves
       g.box(0, 18, 31, 19, 'M').box(4, 18, 7, 19, 'T').box(21, 18, 26, 19, 'W').box(22, 17, 23, 17, 'G').box(25, 17, 25, 17, 'G');
@@ -245,7 +245,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // X THE INCA TUNNEL: under the terraces, a dead end. In by the rope from the well (cols 19-21) which hangs to the floor; a tunnel of dressed stone lit by torches, golden idols in the niches, a Mole Crusher hanging from the ceiling between the rope and the stairs of blocks
   // up the east end (floors 16, 14, 12) to a shelf where the machete lies. Out west, low, into the cloud forest, or by the ledge at the west end (floor 8, from the forest's boughs: a drop to the floor).
   room({
-    id: AND.tunnel, cell: [6, 31], sector: 63, palette: TUNNEL_PALETTE,
+    id: AND.tunnel, cell: [6, 21], sector: 63, palette: TUNNEL_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 3, 'S').clear(19, 0, 21, 3).box(30, 0, 31, 17, 'S').box(0, 4, 1, 15, 'S').clear(0, 6, 1, 7).box(0, 8, 6, 9, 'W'); // the west wall has a door high, rows 6-7, onto a ledge (floor 8)
       g.box(0, 18, 31, 19, 'W').box(22, 4, 23, 10, 'S'); // the stub of ceiling the crusher hangs from
@@ -263,7 +263,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // the pilot house, the funnel, a macaw, the lifebuoy), which ends at the aft house (cols 24-25, up to row 4: no jumping onto it, no walking off the deck's end: the top deck is a dead end). The captain paces the cargo deck under the cabin (a lane two
   // cells high, shut from the top deck: no way past him) and steps aside for a local hat. Out east at the stern, low, under the paddle wheel.
   room({
-    id: AND.boat, cell: [7, 30], sector: 64, palette: BOAT_PALETTE,
+    id: AND.boat, cell: [7, 20], sector: 64, palette: BOAT_PALETTE,
     paint(g) {
       g.box(0, 0, 3, 0, 'J').box(8, 0, 31, 0, 'J').box(10, 1, 16, 1, 'J').box(20, 1, 29, 1, 'J').box(11, 2, 13, 2, 'J').box(26, 2, 29, 2, 'J'); // the canopy over the river, ragged, leaving the rope's way up
       g.box(5, 0, 5, 15, 'V'); // the rope up to the cloud forest
@@ -282,7 +282,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
 
   // P VINE AND DANDY: the boat runs aground. A wide brown river (the floor is water) from the stern's bank at the left (floor 15) to a mud bank at the right; three vines hang from the canopy and swing, two logs float between, piranhas leap.
   room({
-    id: AND.river, cell: [7, 31], sector: 65, palette: RIVER_PALETTE,
+    id: AND.river, cell: [7, 21], sector: 65, palette: RIVER_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 1, 'J').box(7, 2, 9, 2, 'J').box(15, 2, 17, 2, 'J').box(23, 2, 25, 2, 'J').box(0, 2, 3, 2, 'J').box(28, 2, 31, 2, 'J'); // the canopy the vines hang from, ragged
       g.box(0, 15, 4, 19, 'M').box(28, 15, 31, 19, 'M').box(5, 16, 27, 19, 'W').box(13, 16, 15, 16, 'L').box(20, 16, 22, 16, 'L');
@@ -297,7 +297,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // R THE RIVER ENDS: the last bank. In from the river's mud bank at the left (floor 15); the bank climbs a muddy stair (floors 13, 11, 9) to a high bank (floor 8) under the boughs; an anaconda coils on the bank, piranhas snap in a pool.
   // The way east is open (rows 6-7) onto Rio's quay.
   room({
-    id: AND.bank, cell: [7, 32], sector: 66, palette: BANK_PALETTE,
+    id: AND.bank, cell: [7, 22], sector: 66, palette: BANK_PALETTE,
     paint(g) {
       g.box(0, 0, 1, 12, 'J').box(28, 0, 31, 5, 'J').box(28, 8, 31, 19, 'M'); // a tree at the left running off the top, the trees at the right over the way east (rows 6-7), the mud running on to Rio's quay; the sky open
       g.box(0, 15, 5, 19, 'M').box(6, 16, 9, 19, 'W').box(10, 13, 13, 19, 'M').box(14, 11, 17, 19, 'M').box(18, 9, 21, 19, 'M').box(22, 8, 27, 19, 'M');

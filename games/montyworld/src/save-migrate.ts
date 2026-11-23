@@ -10,13 +10,21 @@ import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
  * him inside a wall; and the cell of the exit grid he is in is today's cell for that room.
  */
 
-/** The rooms the reset cut, and the kept room of the same region a save in one carries on in (the Andes: docs/dosvidaniya-reset.md). Other regions' rebuilds add theirs here. */
+/** The rooms the reset cut, and the kept room of the same region a save in one carries on in (docs/dosvidaniya-reset.md). Other regions' rebuilds add theirs here. */
 export const RETIRED: Readonly<Record<number, number>> = {
-  56: 57, // OUT OF THIN AIR: the gorge (CONDOR COUNTRY)
-  60: 59, // MARKET FORCES: Machu Picchu
-  61: 59, // MIST OPPORTUNITY: Machu Picchu
-  64: 66, // THE RIVER QUEEN: the rainforest's river
-  78: 58, // LLAMA DRAMA (never shipped, but a test build had it): the terraces
+  // the Pacific (docs/dosvidaniya-reset.md): each cut room's save carries on in the kept room of its island or crossing
+  39: 38, // BOX CLEVER: the cargo ship
+  40: 41, // PIER PRESSURE: Waikiki
+  42: 41, // LEI OF THE LAND: Waikiki
+  43: 49, // CLAM DOWN: Hana's sea
+  44: 49, // MOLE-OKAI: Hana
+  45: 49, // KELP WANTED: Hana's sea
+  46: 49, // WHALE OF A TIME: Hana (Maui)
+  47: 49, // THE ROAD TO HANA: Hana
+  48: 49, // THE SEA CAVE: Hana's sea
+  50: 49, // FISH OUT OF WATER: Hana's sea
+  51: 52, // COFFEE BREAK: Hilo (the Big Island)
+  53: 52, // HILO GOODBYE: Hilo
 };
 
 const PLAY_COL = 4, COLS = 32, ROWS = 20;

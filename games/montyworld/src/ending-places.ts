@@ -16,10 +16,10 @@ import { SIB } from './siberia';
  */
 
 /** The first room of each region (what he has by a place is every find of the rooms before it) and the room his hat was taken in. */
-const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.stern, andes: AND.jump, rio: RIO_ROOM.quay } as const;
+const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.ship, andes: AND.jump, rio: RIO_ROOM.quay } as const;
 /** The room an item of the game's rooms (by its name) is in. */
 const roomOf = (name: string): number => {
-  const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name);
+  const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name || r.item2?.name === name);
   if (!room) throw new Error(`no item ${name}`);
   return room.id;
 };
@@ -62,9 +62,9 @@ export const PLACES: readonly Place[] = [
   { room: CHI.wall, prepare: arrivedIn(FIRST.china, 1), take: { coins: 1 }, credits: ['THE GREAT WALL RUNS 21196 KM', 'IN ALL, BRANCHES AND SPURS TOO'] },
   // Japan: the temple garden
   { room: JP.garden, prepare: arrivedIn(FIRST.japan, 2), take: { coins: 1 }, credits: ['THE SHINKANSEN RUNS UP TO', '320 KM AN HOUR'] },
-  // the Pacific: the luau's torches, and the lava climb
-  { room: PAC.lei, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
-  { room: PAC.mauna, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
+  // the Pacific: the luau's torches on the hotel's lawn, and the lava climb at Hilo
+  { room: PAC.waikiki, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
+  { room: PAC.hilo, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
   // the Andes: the terraces' top path below the drop, Machu Picchu's boulders, the vines
   { room: AND.llama, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
   { room: AND.rock, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
