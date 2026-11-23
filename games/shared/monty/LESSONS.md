@@ -22,7 +22,9 @@ Monty game lives here.
   region at least one "aha": something you can see in a room but can't reach from the way you first come in, reachable only
   when the route brings you back from another side (Chris on China, 2026-11-22). Vary each region's puzzle shape (an item
   used twice, taken early and used late, one that changes rooms already crossed); don't repeat one formula, and don't end
-  every region with the same "costume plus guard" gate. Never a
+  every region with the same "costume plus guard" gate. Meet the lock before the key (Chris, 2026-11-22: items picked up
+  naturally before their gate make the gate feel arbitrary): the player sees the gate first, with the hint's reason, then finds
+  the item a short detour off the path; no required item lies on the straight path before its gate. Never a
   corridor, and never a closed box crossed by a ladder up and a ladder down. Study its exit grid before laying out a region.
 
 ## The benchmark region: Moscow
