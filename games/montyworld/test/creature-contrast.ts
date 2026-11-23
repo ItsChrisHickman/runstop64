@@ -22,7 +22,7 @@ const WATCH = 900;
  * Rooms of regions other than Japan whose creatures still share a colour with something they pass (found when this test was written, 2026-11-22: Moscow, Siberia, the Pacific, the Andes
  * and Rio were being built by others): listed so the suite passes while their owners recolour a creature or a decoration, and to be emptied as they do. Japan's rooms are never on it.
  */
-const PENDING = new Set([0x0c, 0x11, 0x13, 0x28, 0x2d, 0x2f, 0x36, 0x38, 0x39, 0x3a, 0x40, 0x4a]);
+const PENDING = new Set([0x11, 0x13, 0x28, 0x2d, 0x2f, 0x36, 0x38, 0x39, 0x3a, 0x40, 0x4a]);
 
 /** The room ids of the world's exit grid. */
 const rooms = [...new Set(Array.from(WORLD.exitGrid.image).filter((id) => id !== 0xff))].sort((a, b) => a - b);

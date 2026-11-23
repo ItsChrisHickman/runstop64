@@ -238,7 +238,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ...skyDecor(SKY_GRAVY), windowAt(3), windowAt(15), ['carLamp', 9, 11], ['carLamp', 21, 11], ['diningTable', 14, 15], ['diningTable', 19, 15], ['diningSamovar', 22, 14],
       [{ text: 'RESTAURANT', colour: 7 }, 13, 10], ['roofVent', 4, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
     ],
-    creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56, colour: 1 }],
+    creatures: [{ who: 'inspector', col: 14, row: 15, way: 'right', speed: 1, range: 56, colour: 10 }],
   }),
 
   // B SLEEPER HIT: the sleeper, in a cutting. The roof again, one mountain from the front; three hatches into the corridor of berths (an

@@ -223,7 +223,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[5, 16], [11, 15], [16, 16], [20, 14], [24, 12], [29, 9]],
     item: { name: 'panpipes', col: 28, row: 10, sprite: ANDES_SPRITE.panpipes },
     decor: [['torch', 3, 16], ['torch', 17, 16], ['idol', 21, 14]],
-    creatures: [{ who: 'caveBat', col: 4, row: 6, way: 'right', speed: 2, range: 95 }, { who: 'cuy', col: 15, row: 16, way: 'right', speed: 1, range: 30 }],
+    creatures: [{ who: 'caveBat', col: 4, row: 6, way: 'right', speed: 2, range: 95 }, { who: 'cuy', col: 15, row: 16, way: 'right', speed: 1, range: 30, colour: 7 }],
   }),
 
   // CF CLOUD NINE: the cloud forest. In from the Inca tunnel at the right (low). The ground (floor 18) runs west over a stream (stepping logs) past a jaguar to a tangle over a gap at the left (cols 4-7: the machete cuts it, and a rope hangs
