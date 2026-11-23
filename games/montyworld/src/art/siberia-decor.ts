@@ -1,7 +1,7 @@
 /**
  * Siberia's decorations for Monty Mole: World Tour (region 2), in Monty on the Run's decoration format and Moscow's manner
  * (decorations.ts): solid ink with the detail cut into it as black lines. Pines, the dining car's table and window, the sleeper's
- * bunks, the mine's coal bucket, props, boulders and portal, the fisherman's hut, the telegraph pole, a log cabin.
+ * bunk, the mine's coal bucket and cart, the telegraph pole, a log cabin, the border's raised boom.
  */
 import { decor } from './decorations';
 import { characters } from './pixels';
@@ -185,42 +185,6 @@ function coalBucket(): NewDecor {
   return decor('coalBucket', 2, 2, r, 12);
 }
 
-/** A pit prop: a post under a cap beam, wedged, with the cross brace. 2 x 3 characters. */
-function pitProp(): NewDecor {
-  const r = new Raster(16, 24);
-  r.rect(0, 0, 15, 4); r.rect(1, 2, 14, 2, false); // the cap beam
-  r.rect(5, 5, 10, 23); r.rect(7, 8, 8, 20, false);
-  r.rect(2, 5, 4, 8); r.rect(11, 5, 13, 8); // the wedges
-  r.rect(0, 22, 15, 23);
-  r.rect(5, 15, 10, 15, false);
-  return decor('pitProp', 2, 3, r, 9);
-}
-
-/** An ice fisherman's hut on the lake: a plank hut with a pitched roof, a door and a pipe. 3 x 2 characters. */
-function fishHut(): NewDecor {
-  const r = new Raster(24, 16);
-  r.rect(17, 0, 19, 3); r.rect(18, 1, 18, 2, false); // the pipe
-  r.triangle(0, 7, 12, 1, 23, 7); // the roof
-  r.rect(0, 7, 23, 8);
-  r.rect(2, 9, 21, 15); // the planks
-  for (const x of [6, 10, 18]) r.rect(x, 9, x, 15, false);
-  r.rect(12, 10, 16, 15, false); r.rect(13, 11, 15, 15); r.rect(14, 12, 14, 15, false); // the door
-  return decor('fishHut', 3, 2, r, ['999', '999']);
-}
-
-/** The mine's portal: two heavy timbers and the lintel across them with a pit lamp, rock overhead. 4 x 5 characters. */
-function minePortal(): NewDecor {
-  const r = new Raster(32, 40);
-  r.rect(0, 0, 31, 7);
-  for (let x = 4; x < 31; x += 7) r.rect(x, 0, x, 7, false); // the rock's joints
-  r.rect(0, 8, 31, 12); // the lintel
-  r.rect(0, 11, 31, 11, false);
-  r.rect(0, 13, 5, 39); r.rect(26, 13, 31, 39); // the posts
-  for (const y of [18, 25, 32]) { r.rect(1, y, 4, y, false); r.rect(27, y, 30, y, false); } // their joints
-  r.rect(14, 13, 17, 15); r.rect(15, 16, 16, 18); // the lamp hanging
-  return decor('minePortal', 4, 5, r, ['CCCC', '9999', '9009', '9009', '9009']);
-}
-
 /** A telegraph pole: the pole, two cross-arms with their glass insulators, the wire in a sag to each side. 2 x 4 characters. */
 function pole(): NewDecor {
   const r = new Raster(16, 32);
@@ -305,17 +269,6 @@ function cabWindow(): NewDecor {
   return decor('cabWindow', 2, 2, r, 7);
 }
 
-/** A cluster of a big pine's boughs: three tiers with their fringes and a cap of snow (the sleeper's pine has two round its top and one over the roof). 5 x 2 characters. */
-function pineBough(): NewDecor {
-  const r = new Raster(40, 16);
-  for (const [top, bottom, half] of [[0, 6, 8], [4, 11, 14], [8, 15, 19]] as const) {
-    for (let y = top; y <= bottom; y++) { const t = (y - top) / (bottom - top); const x = Math.max(2, Math.round(half * (0.2 + 0.8 * t))); r.rect(20 - x, y, 19 + x, y); }
-    r.rect(20 - half + 2, bottom, 19 + half - 2, bottom, false);
-    for (let x = 20 - half + 4; x < 19 + half - 4; x += 4) r.set(x, bottom - 1, false);
-  }
-  return decor('pineBough', 5, 2, r, 5);
-}
-
 /** A mine cart's wall over its bed: the rim of the box with a heap of coal in it and a lamp hook. 4 x 1 characters. */
 function mineCart(): NewDecor {
   const r = new Raster(32, 8);
@@ -326,7 +279,6 @@ function mineCart(): NewDecor {
 }
 
 export const SIBERIA_DECOR = {
-  pineTall: pine(3, 6, 4, 'pineTall'),
   pineSmall: pine(2, 3, 2, 'pineSmall'),
   diningTable: diningTable(),
   trainWindow: trainWindow(),
@@ -342,9 +294,6 @@ export const SIBERIA_DECOR = {
   buffer: buffer(),
   bunk: bunk(),
   coalBucket: coalBucket(),
-  pitProp: pitProp(),
-  fishHut: fishHut(),
-  minePortal: minePortal(),
   pole: pole(),
   cabin: cabin(),
   stalactites: stalactites(),
@@ -352,7 +301,6 @@ export const SIBERIA_DECOR = {
   wheel: oneChar('wheel', WHEEL_ROWS, 2),
   drivingWheel: drivingWheel(),
   cabWindow: cabWindow(),
-  pineBough: pineBough(),
   mineCart: mineCart(),
   ...SIBERIA_SKY,
 } as const satisfies Record<string, NewDecor>;

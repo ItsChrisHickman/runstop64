@@ -51,17 +51,6 @@ export const SIBERIA_TILES = {
     '.####.#.',
     '..##..#.',
   ]),
-  /** A pine's trunk: bark in vertical strips with the knots between. Solid. */
-  pineBark: tile('pineBark', 1, 9, [
-    '#.#.##.#',
-    '#.#.##.#',
-    '#.#..#.#',
-    '#.##.#.#',
-    '..##.#.#',
-    '#.##.#..',
-    '#.#..#.#',
-    '#.#.##.#',
-  ]),
   /** The mine's rock: rough granite boulders, their joints wandering, a crack or two cut through. Solid. */
   mineRock: tile('mineRock', 1, 12, [
     '###.####',
@@ -73,56 +62,12 @@ export const SIBERIA_TILES = {
     '###..#.#',
     '###.##..',
   ]),
-  /** Rock with a seam of coal through it: black lumps in a lit band. Solid. */
-  coalSeam: tile('coalSeam', 1, 11, [
-    '##.####.',
-    '#..###..',
-    '.##..##.',
-    '####..##',
-    '#.####.#',
-    '..####..',
-    '##.##.##',
-    '###..###',
-  ]),
-  /** A ledge felt but not seen in the dark: its edge in dots, nothing there to stand on. */
-  ledgeGhost: tile('ledgeGhost', 0, 11, [
-    '#.#.#.#.',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
   /** A pit prop's timber: a plank on its edge with a nail at each end. A floor. */
   timber: tile('timber', 2, 8, [
     '########',
     '#.####.#',
     '########',
     '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** A mine's rail: the iron on its sleepers. A floor. */
-  mineRail: tile('mineRail', 2, 11, [
-    '########',
-    '.#....#.',
-    '.#....#.',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** A pine bough with snow on it, the needles hanging in a fringe. A floor. */
-  snowBough: tile('snowBough', 2, 5, [
-    '########',
-    '########',
-    '#.##.##.',
-    '.#.#..#.',
     '........',
     '........',
     '........',
@@ -170,28 +115,6 @@ export const SIBERIA_TILES = {
     '........',
     '..#..#..',
     '.#.##.#.',
-    '........',
-  ]),
-  /** A cabin's logs: round-ended, laid in courses. Solid. */
-  logWall: tile('logWall', 1, 9, [
-    '.######.',
-    '########',
-    '#.####.#',
-    '.######.',
-    '.######.',
-    '#.####.#',
-    '########',
-    '.######.',
-  ]),
-  /** The border's boom gate: a pole in red and white bands across the cell (the block of cells is one gate, bar over bar). Solid. */
-  barrier: tile('barrier', 1, 2, [
-    '........',
-    '........',
-    '##..##..',
-    '##..##..',
-    '..##..##',
-    '..##..##',
-    '........',
     '........',
   ]),
   /** The tunnel portal's dressed stone (the arch's ring, in courses). Passable (the portal kills, it does not block). */
@@ -248,39 +171,6 @@ export const SIBERIA_TILES = {
     '##.####.',
     '.##.###.',
     '.##..##.',
-  ]),
-  /** The fringe of icicles hanging over a hollow in the ice: thin streaks, passable. */
-  iceCurtain: tile('iceCurtain', 0, 3, [
-    '.#..#..#',
-    '.#..#..#',
-    '.#.##..#',
-    '..#.#..#',
-    '.##..#..',
-    '..#..#.#',
-    '..#..#.#',
-    '..#...#.',
-  ]),
-  /** Snow shaken loose from a bough, trembling before it falls: a few flakes. Nothing. */
-  snowDust: tile('snowDust', 0, 1, [
-    '........',
-    '..#..#..',
-    '.......#',
-    '#.......',
-    '...#....',
-    '.#....#.',
-    '........',
-    '.....#..',
-  ]),
-  /** A lump of snow falling off a bough. Nothing (what it falls on is not blocked: it is a strike). */
-  snowLump: tile('snowLump', 0, 1, [
-    '..####..',
-    '.######.',
-    '########',
-    '########',
-    '########',
-    '########',
-    '.######.',
-    '..####..',
   ]),
   /** A mine cart's bed: the plank under the ore, its wheel under it on the rail. A floor (the cart carries him). */
   cartDeck: tile('cartDeck', 2, 8, [
