@@ -76,8 +76,8 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   const finds = ANDES_ROOMS.flatMap((r) => [...(r.cake ? ['cake'] : []), ...(r.item ? [r.item.name] : [])]);
   check(`six finds: the chullo, the panpipes, the machete and three empanadas (${finds.join(', ')})`, finds.length === 6 && ['chullo', 'panpipes', 'machete', 'empanada1', 'empanada2', 'cake'].every((n) => finds.includes(n)));
   check('the three key items still count on the pause screen, the snacks three fewer than the six empanadas there were', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 20);
-  check('the Amazon\'s four rooms show one name, THE AMAZON, as the sewer\'s six show SEWERAGE WORKS; the drop\'s and Machu Picchu\'s their own',
-    [AND.canopy, AND.kapok, AND.sandbar, AND.roots].every((id) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text === 'THE AMAZON')
+  check('the Amazon\'s four rooms show one name, THE RAINFOREST, as the sewer\'s six show SEWERAGE WORKS; the drop\'s and Machu Picchu\'s their own',
+    [AND.canopy, AND.kapok, AND.sandbar, AND.roots].every((id) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text === 'THE RAINFOREST')
     && ([[AND.jump, 'JUMP FOR JOY'], [AND.gorge, 'CONDOR COUNTRY'], [AND.terraces, 'NO PROBLLAMA'], [AND.picchu, 'MACHU PICCHU']] as const).every(([id, t]) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text === t)
     && ANDES_SECTORS.length === 12);
   const rooms = creatureRooms(ANDES_ROOMS);

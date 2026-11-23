@@ -10,7 +10,7 @@ import { drawRegionMap } from './map-kit';
 /** Each room's name on the map (the Amazon's four share THE AMAZON in the game: here each says which it is). */
 const NAMES: Readonly<Record<number, string>> = {
   [AND.jump]: 'JUMP FOR JOY', [AND.gorge]: 'CONDOR COUNTRY', [AND.terraces]: 'NO PROBLLAMA', [AND.picchu]: 'MACHU PICCHU',
-  [AND.canopy]: 'THE AMAZON: THE CANOPY', [AND.kapok]: 'THE AMAZON: THE KAPOK', [AND.sandbar]: 'THE AMAZON: THE RIVER', [AND.roots]: 'THE AMAZON: THE ROOTS',
+  [AND.canopy]: 'THE RAINFOREST: THE CANOPY', [AND.kapok]: 'THE RAINFOREST: THE KAPOK', [AND.sandbar]: 'THE RAINFOREST: THE RIVER', [AND.roots]: 'THE RAINFOREST: THE ROOTS',
 };
 
 const out = process.argv[2];

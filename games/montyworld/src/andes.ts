@@ -35,10 +35,10 @@ export const AND = {
 } as const;
 
 /**
- * The sectors' names by their place from 55 (Rio's sectors follow at 67, so the list keeps twelve places: the retired rooms' are empty). The Amazon's four rooms share one name, THE AMAZON (62), as all six
- * of Monty on the Run's sewer rooms show SEWERAGE WORKS.
+ * The sectors' names by their place from 55 (Rio's sectors follow at 67, so the list keeps twelve places: the retired rooms' are empty). The Amazon's four rooms share one name (62), as all six of Monty on
+ * the Run's sewer rooms show SEWERAGE WORKS: THE RAINFOREST (the plan's THE AMAZON has a Z, and the room-name font has no good Z).
  */
-const NAMES = ['JUMP FOR JOY', '', 'CONDOR COUNTRY', 'NO PROBLLAMA', 'MACHU PICCHU', '', '', 'THE AMAZON', '', '', '', ''] as const;
+const NAMES = ['JUMP FOR JOY', '', 'CONDOR COUNTRY', 'NO PROBLLAMA', 'MACHU PICCHU', '', '', 'THE RAINFOREST', '', '', '', ''] as const;
 const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
 export const ANDES_SECTORS: readonly Sector[] = NAMES.map(centred);
 /** The sector of the Amazon's four rooms. */
@@ -54,7 +54,7 @@ export const SKY_PALETTE = {
 
 /** The terraces (MP1): green grass lips on ochre Inca stone, the guardhouse's thatch, the brown rock of the cliff and the high ledge. */
 export const TERRACE_PALETTE = {
-  G: ['terraceGrass', 5], W: ['incaWall', 8], T: ['thatch', 7], K: ['mountainRock', 9],
+  G: ['terraceGrass', 5], W: ['incaWall', 8], T: ['thatch', 7], K: ['mountainRock', 9], P: ['stallPost', 9],
 } as const satisfies Palette;
 
 /**
@@ -190,7 +190,7 @@ const PAINT = {
   },
   terraces(g: Grid) {
     g.box(0, 8, 8, 8, 'G').box(0, 9, 8, 19, 'W'); // the top terrace (floor 8)
-    g.box(1, 5, 7, 5, 'T').box(1, 6, 1, 7, 'W'); // the guardhouse: its thatched roof (floor 5) and back wall, open to the east
+    g.box(1, 5, 7, 5, 'T').box(1, 6, 1, 7, 'W').box(7, 6, 7, 7, 'P'); // the guardhouse: its thatched roof (floor 5) on its back wall and a post, open to the east
     g.box(9, 10, 10, 10, 'G').box(9, 11, 10, 19, 'W'); // a step (floor 10)
     g.box(11, 12, 17, 12, 'G').box(11, 13, 17, 19, 'W'); // the broad terrace (floor 12)
     g.box(18, 14, 21, 14, 'G').box(18, 15, 21, 19, 'W'); // the last step (floor 14), then a drop to the low path
@@ -212,11 +212,11 @@ const PAINT = {
     g.box(4, 2, 4, 17, 'V').box(12, 2, 12, 17, 'V').box(20, 0, 20, 19, 'V'); // the lianas: two, and the long one from the well down to the sandbar
     g.box(5, 7, 19, 7, 'V').box(5, 12, 19, 12, 'V'); // the cross lianas
     g.box(22, 4, 31, 4, 'B'); // the walkway (floor 4), east to the kapok
-    g.box(6, 6, 9, 6, 'B').box(14, 10, 18, 10, 'B').box(22, 14, 27, 14, 'B'); // the boughs (floors 6, 10 and 14)
+    g.box(5, 6, 9, 6, 'B').box(13, 10, 18, 10, 'B').box(21, 14, 26, 14, 'B'); // the boughs (floors 6, 10 and 14), each off a liana
     g.box(0, 18, 12, 19, 'J').box(16, 18, 17, 19, 'J').box(30, 16, 31, 19, 'J'); // the low leaves: open below only over the sandbar and the second log
   },
   kapok(g: Grid) {
-    g.box(0, 0, 31, 0, 'J').box(16, 1, 31, 1, 'J').box(20, 2, 23, 2, 'J'); // the leaf fringe and the kapok's crown
+    g.box(0, 0, 31, 0, 'J').box(16, 1, 31, 1, 'J'); // the leaf fringe and the kapok's crown (above his head: the walkway is clear at rows 2-3)
     g.box(0, 4, 21, 4, 'B'); // the walkway to the crown
     g.box(22, 4, 25, 4, 'K').box(29, 4, 31, 4, 'K').box(24, 5, 25, 19, 'K').box(29, 5, 31, 19, 'K').box(22, 5, 23, 6, 'K'); // the trunk, its hollow (cols 26-28) open at the crown
     g.box(0, 16, 23, 19, 'J'); // the low boughs: the floor is closed but for the hollow
@@ -259,7 +259,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.gorge, cell: [3, 30], sector: 57, palette: SKY_PALETTE, paint: PAINT.gorge,
     coins: [[16, 9]],
     item: { name: 'empanada1', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['mistCloud', 6, 2], ['updraft', 13, 13], ['updraft', 13, 9], ['updraft', 13, 5]],
+    decor: [['mistCloud', 6, 2], ['updraft', 13, 10], ['updraft', 13, 6]],
     creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 1, range: 96 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48 }],
   }),
 
@@ -271,7 +271,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[4, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
-    decor: [[SIGN, 11, 9]],
+    decor: [[SIGN, 1, 4]],
     creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 15, row: 10, way: 'right', speed: 1, range: 8 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 1, range: 40 }],
   }),
 
@@ -282,7 +282,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.picchu, cell: [4, 31], sector: 59, palette: PICCHU_PALETTE, paint: PAINT.picchu,
     coins: [[30, 2], [21, 4]],
     item: { name: 'panpipes', col: 25, row: 2, sprite: ANDES_SPRITE.panpipes },
-    decor: [['intihuatana', 28, 2], ['torch', 22, 15], ['torch', 24, 15]],
+    decor: [['intihuatana', 28, 2], ['torch', 22, 16], ['torch', 24, 16]],
     creatures: [{ who: 'spitter', col: 11, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'condor', col: 13, row: 1, way: 'down', speed: 1, range: 56 }],
   }),
 
@@ -300,7 +300,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.kapok, cell: [5, 32], sector: AMAZON, palette: KAPOK_PALETTE, paint: PAINT.kapok,
     coins: [[17, 2]],
-    creatures: [{ who: 'anaconda', col: 16, row: 0, way: 'down', speed: 1, range: 80, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 32 }],
+    creatures: [{ who: 'anaconda', col: 16, row: 2, way: 'down', speed: 1, range: 64, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 32 }],
   }),
 
   // A3 THE AMAZON, the river: the long liana comes down to the sandbar (floor 15); west over the channel (a piranha leaping in it), two rotten logs that give way under a pause, and the vine from the fig
