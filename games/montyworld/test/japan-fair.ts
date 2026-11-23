@@ -14,7 +14,7 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { CHI } from '../src/china';
 import { JP } from '../src/japan';
-import { ACTIONS, hold, newGame, play, search } from './bot';
+import { ACTIONS, hold, newGame, play, search } from '../../shared/monty/test/bot';
 import { JAPAN_LEGS } from './japan-route';
 import { itemIndex, settledOn, standY } from './route';
 
