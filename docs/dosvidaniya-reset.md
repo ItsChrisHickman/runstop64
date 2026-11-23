@@ -60,7 +60,7 @@ Every coin sits on a floor, within a jump of one, in the pipe lattice, or in a j
    at three heights ((29,6), (13,12), (6,18)). Crossing the room twice pays twice.
 4. **Seen now, reached later.** In $0D the coin (11,14) and the cake are in the low lane, which you see from the sealed high
    corridor on your first crossing. You reach them only after the hairpin in $0E, coming back along the low lane.
-5. **At a hazard's edge.** In $12 the coin is on the post on the far side of the spike pit (23,15). In $0D it is on the step beside
+5. **At a hazard's edge.** In $12 the coin is on the post on the far side of the deadly pit (23,15). In $0D it is on the step beside
    the deadly tiles (11,14). In $2A it is on the ledge over the deadly pool (16,10). In $28 it is on the ledge over the sea that
    fills the room's floor (28,12).
 6. **Guarded.** In $26 the coin is on the deck between two walkers (10,14). In $0F it is in the top-left pocket where a creature

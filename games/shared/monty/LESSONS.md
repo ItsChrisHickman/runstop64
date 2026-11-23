@@ -168,7 +168,7 @@ you can name it:
 - **tops a climb**: on the highest ledge or at a rope's head ($05, $0A, $1B);
 - **one per height**: a coin in each lane of a room crossed twice ($11, $01);
 - **seen now, reached later**: in $0D's low lane, seen from the sealed corridor above, reached after the hairpin;
-- **at a hazard's edge**: on the post beyond the spike pit ($12), the step by the deadly tiles ($0D);
+- **at a hazard's edge**: on the post beyond the deadly pit ($12), the step by the deadly tiles ($0D);
 - **guarded**: on a patrol or between two walkers ($26, $0F);
 - **in a pocket off the route**: a short detour into a niche or alcove ($0E, $13);
 - **inside the structure**: in the sewer's pipe lattice, taken only by climbing round it ($15);
