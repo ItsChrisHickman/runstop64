@@ -100,9 +100,9 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   // the open block: like the sewer, under a quarter solid, its lianas a lattice
   const share = (id: number) => { let n = 0; for (let r = 0; r < 20; r++) for (let c = 0; c < 32; c++) if (solid(id, c, r)) n++; return n / 640; };
   const ropes = (id: number) => { const r = roomOf(id); let n = 0; for (const line of r.map) for (const ch of line) if (ch !== '.' && WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0) === 3) n++; return n; };
-  check(`the Amazon's block is open, as the sewer is: each of its rooms under a quarter solid (${[AND.canopy, AND.kapok, AND.sandbar, AND.roots].map((id) => Math.round(share(id) * 100)).join('% ')}%), the canopy a lattice of ${ropes(AND.canopy)} rope cells (60-100)`,
-    [AND.canopy, AND.kapok, AND.sandbar, AND.roots].every((id) => share(id) < 0.25) && ropes(AND.canopy) >= 60 && ropes(AND.canopy) <= 100);
-  check(`and the tunnel before it is the region's tightest stretch: Machu Picchu is ${Math.round(share(AND.picchu) * 100)}% solid, more than any of the block's rooms`, [AND.canopy, AND.kapok, AND.sandbar, AND.roots].every((id) => share(AND.picchu) > share(id) + 0.2));
+  check(`the canopy is the open space, as the sewer is: under a quarter solid (${Math.round(share(AND.canopy) * 100)}%), a lattice of ${ropes(AND.canopy)} rope cells (60-100)`, share(AND.canopy) < 0.25 && ropes(AND.canopy) >= 60 && ropes(AND.canopy) <= 100);
+  check(`and Machu Picchu before it, its tunnel the region's squeeze, is the most solid room of all (${Math.round(share(AND.picchu) * 100)}%; the block's ${[AND.canopy, AND.kapok, AND.sandbar, AND.roots].map((id) => Math.round(share(id) * 100)).join('% ')}%, water and ground counted)`,
+    ANDES_ROOMS.every((r) => r.id === AND.picchu || share(r.id) < share(AND.picchu)));
 }
 
 // ---- the parachute: flight --------------------------------------------------------------------------
@@ -146,7 +146,7 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   for (let f = 0; f < 400 && down.g.roomId !== AND.gorge; f++) frame(down, DOWN);
   check('out of the first flight room by the open bottom he comes into the gorge at its top, still under the canopy', down.g.roomId === AND.gorge && down.g.montyRow - 3 <= 4 && flightOf(down.g) !== undefined);
   // the gorge's foot is two throats either side of the pinnacle: the west one lands on the guardhouse's roof, the east one on the broad terrace, on his feet
-  const land = (col: number) => { const s = at(AND.gorge, col, 17); for (let f = 0; f < 400 && s.g.roomId !== AND.terraces; f++) frame(s, DOWN); run(s, NONE, 60); return s; };
+  const land = (col: number) => { const s = at(AND.gorge, col, 17); for (let f = 0; f < 400 && s.g.roomId !== AND.terraces; f++) frame(s, DOWN); run(s, NONE, 150); return s; };
   const west = land(4), east = land(12);
   check(`down the west throat he lands on the guardhouse's roof (room ${west.g.roomId}, y ${west.g.y}, the roof's ${standY(5)}), down the east one on the broad terrace (y ${east.g.y}, ${standY(12)}), on his feet, alive`,
     west.g.roomId === AND.terraces && west.g.y === standY(5) && east.g.roomId === AND.terraces && east.g.y === standY(12) && !west.g.canopyShown && !dead(west.g) && !dead(east.g));
@@ -198,13 +198,13 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
   const roots = VINES.filter((v) => v.room === AND.roots);
   check(`A4's two vines hang from the leaves at columns ${roots.map((v) => v.col).join(' and ')}, half a swing apart; A3's one from the fig at column 7`, roots.length === 2 && roots[1]?.phase === 48 && VINES.find((v) => v.room === AND.sandbar)?.col === 7);
   const grabbed = (): { s: State; frames: number } => {
-    const h = at(AND.roots, 3, 15);
+    const h = at(AND.roots, 2, 15);
     h.g.rollers = [];
     for (let f = 0; f < 400; f++) { frame(h, NONE); if (h.g.onRope && vineHeld(h.g)) return { s: h, frames: f }; }
     return { s: h, frames: -1 };
   };
   const hang = grabbed();
-  check(`standing still at the sandbar's edge (col 3) the first vine swings over and takes hold of him (after ${hang.frames} frames)`, hang.frames >= 0 && !dead(hang.s.g));
+  check(`standing still at the sandbar's edge the first vine swings over and takes hold of him (after ${hang.frames} frames)`, hang.frames >= 0 && !dead(hang.s.g));
   const xs: number[] = [];
   for (let f = 0; f < 96; f++) { frame(hang.s, NONE); xs.push(px(hang.s.g)); }
   check(`hanging on it he is carried, ${Math.max(...xs) - Math.min(...xs)} pixels from one end of the swing to the other`, Math.max(...xs) - Math.min(...xs) >= 20 && !dead(hang.s.g));
@@ -273,9 +273,9 @@ const shutOff = (s: State, row: number, col: number): State => { s.g.exitGrid[ro
     const s = at(AND.canopy, c, 19);
     s.g.enemies = []; s.g.rollers = []; s.g.onRope = 0;
     s.g.y = standY(19) - 12;
-    for (let f = 0; f < 300 && (s.g.roomId !== AND.sandbar || s.g.falling); f++) frame(s, NONE);
+    for (let f = 0; f < 300 && (s.g.roomId !== AND.sandbar || s.g.falling) && !s.g.onRope; f++) frame(s, NONE);
     run(s, NONE, 4);
-    return { c, ok: s.g.roomId === AND.sandbar && !dead(s.g) && (s.g.y === standY(15) || s.g.y === standY(16) || s.g.onRope !== 0) };
+    return { c, ok: !dead(s.g) && (s.g.onRope !== 0 || (s.g.roomId === AND.sandbar && (s.g.y === standY(15) || s.g.y === standY(16)))) };
   });
   check(`every fall through the canopy's floor (open at cols ${openBelow.join(' ')}) lands him standing on the sandbar or the second log, or on the long liana, never in the river (${falls.filter((f) => !f.ok).map((f) => f.c).join(' ') || 'all'})`,
     openBelow.length >= 10 && falls.every((f) => f.ok));

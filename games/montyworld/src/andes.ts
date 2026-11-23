@@ -120,7 +120,7 @@ function leap(room: number, sprite: number, col: number, apex: number, every: nu
 }
 /** A3's piranha: in the channel between the second log and the sandbar. */
 export const SANDBAR_LEAPS: readonly RollerSpec[] = [leap(AND.sandbar, 1, 16.5, 11, 170, 40)];
-/** A4's two: under the first vine's swing, and between the log and the east bank, at periods of their own (none a multiple of the other or of the vines' 96). */
+/** A4's two: under the first vine's swing, and between the second vine and the east bank, at periods of their own (none a multiple of the other or of the vines' 96). */
 export const ROOTS_LEAPS: readonly RollerSpec[] = [leap(AND.roots, 1, 6.5, 10.5, 190, 30), leap(AND.roots, 2, 15.5, 10.5, 230, 120)];
 
 /** Every roller of the region: the boulders and the leaping piranhas. */
@@ -128,13 +128,13 @@ export const ROLLERS: readonly RollerSpec[] = [...BOULDERS_OF_PICCHU, ...SANDBAR
 
 /**
  * The vines (VINE AND DANDY's, now crossed twice with a reason): A3's one, from the fig's crown at column 7 over the water between the pocket and the first log; A4's two, from the leaves under the
- * kapok's low boughs at columns 8 and 15, over the water between the sandbar, the log and the east bank. Each swings five cells either way at its tip every 96 frames; he takes hold by walking into one
+ * kapok's low boughs at columns 7 and 13, over the water between the sandbar, the log and the east bank. Each swings five cells either way at its tip every 96 frames; he takes hold by walking into one
  * as it swings over the edge he stands on (a jump does not take a rope: Monty on the Run's rule) and steps off as it swings over the far side.
  */
 export const VINES: readonly VineSpec[] = [
   { room: AND.sandbar, col: 7, top: 2, length: 12, period: 96, amplitude: 4, phase: 0, code: codeOf(SANDBAR_PALETTE, 'V') },
-  { room: AND.roots, col: 8, top: 1, length: 13, period: 96, amplitude: 4, phase: 0, code: codeOf(ROOTS_PALETTE, 'V') },
-  { room: AND.roots, col: 15, top: 1, length: 13, period: 96, amplitude: 4, phase: 48, code: codeOf(ROOTS_PALETTE, 'V') },
+  { room: AND.roots, col: 7, top: 1, length: 13, period: 96, amplitude: 5, phase: 0, code: codeOf(ROOTS_PALETTE, 'V') },
+  { room: AND.roots, col: 13, top: 1, length: 13, period: 96, amplitude: 5, phase: 48, code: codeOf(ROOTS_PALETTE, 'V') },
 ];
 
 /**
@@ -230,12 +230,12 @@ const PAINT = {
     g.box(20, 0, 20, 14, 'V'); // the long liana down to the sandbar
   },
   roots(g: Grid) {
-    g.box(0, 0, 23, 0, 'J').box(0, 1, 5, 1, 'J').box(11, 1, 13, 1, 'J').box(18, 1, 23, 1, 'J'); // the leaves under the kapok's low boughs
+    g.box(0, 0, 23, 0, 'J').box(0, 1, 4, 1, 'J').box(9, 1, 11, 1, 'J').box(17, 1, 23, 1, 'J'); // the leaves under the kapok's low boughs
     g.box(24, 0, 25, 11, 'K').box(29, 0, 31, 11, 'K').box(26, 7, 28, 11, 'K').clear(24, 4, 25, 6); // the trunk: its hollow (cols 26-28) down to rows 4-6, open west onto the bough
-    g.box(19, 7, 25, 7, 'B'); // the bough (floor 7)
+    g.box(22, 7, 25, 7, 'B'); // the bough (floor 7): five cells and more from the nearest a vine swings, so it is reached only down the hollow
     g.box(22, 9, 23, 11, 'K').box(23, 8, 23, 8, 'K'); // a buttress
     g.box(0, 15, 4, 19, 'M'); // the sandbar (floor 15)
-    g.box(5, 16, 17, 19, 'W').box(10, 16, 12, 16, 'L'); // the river and its log
+    g.box(5, 16, 17, 19, 'W').box(9, 16, 11, 16, 'L'); // the river and its log
     g.box(18, 15, 23, 19, 'M').box(24, 15, 31, 15, 'L').box(24, 16, 31, 19, 'W'); // the east bank and the jetty over the water
     for (const [row, col] of TANGLE_CELLS) g.box(col, row, col, row, 'T'); // the tangle in the root arch
   },
@@ -300,14 +300,14 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.kapok, cell: [5, 32], sector: AMAZON, palette: KAPOK_PALETTE, paint: PAINT.kapok,
     coins: [[17, 2]],
-    creatures: [{ who: 'anaconda', col: 16, row: 2, way: 'down', speed: 1, range: 64, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 32 }],
+    creatures: [{ who: 'anaconda', col: 16, row: 2, way: 'down', speed: 1, range: 64, colour: 13 }, { who: 'jaguar', col: 26, row: 2, way: 'right', speed: 1, range: 24 }],
   }),
 
   // A3 THE AMAZON, the river: the long liana comes down to the sandbar (floor 15); west over the channel (a piranha leaping in it), two rotten logs that give way under a pause, and the vine from the fig
   // to the pocket under the fig's root, where the coin and the empanada are (off the route). A dolphin leaps under the vine. East along the sandbar into the roots' room.
   room({
     id: AND.sandbar, cell: [6, 31], sector: AMAZON, palette: SANDBAR_PALETTE, paint: PAINT.sandbar,
-    coins: [[3, 13]],
+    coins: [[3, 14]],
     item: { name: 'empanada2', col: 0, row: 13, sprite: ANDES_SPRITE.empanada },
     creatures: [{ who: 'dolphin', col: 5, row: 17, way: 'up', speed: 1, range: 40 }],
   }),
@@ -316,8 +316,8 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   // the tangle filling the arch (THE UNDERGROWTH IS TOO THICK); the machete in sight on the bough 8 rows up, reached only down the hollow trunk from the crown. Out east under the roots on the launch to Rio.
   room({
     id: AND.roots, cell: [6, 32], sector: AMAZON, palette: ROOTS_PALETTE, paint: PAINT.roots,
-    coins: [[11, 14]],
-    item: { name: 'machete', col: 20, row: 5, sprite: ANDES_SPRITE.machete },
+    coins: [[10, 14]],
+    item: { name: 'machete', col: 22, row: 5, sprite: ANDES_SPRITE.machete },
     decor: [['launch', 26, 12]],
   }),
 ];

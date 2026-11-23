@@ -65,9 +65,9 @@ export const PLACES: readonly Place[] = [
   // the Pacific: the luau's torches, and the lava climb
   { room: PAC.lei, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
   { room: PAC.mauna, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
-  // the Andes: the terraces under the drop, Machu Picchu's boulders, the Amazon's vines
-  { room: AND.terraces, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
-  { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
+  // the Andes: the parachute drop, Machu Picchu's boulders, the rainforest's vines
+  { room: AND.jump, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
+  { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
   { room: AND.roots, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
   // Rio: the cable car, the churrascaria, the floats, the beach
   { room: RIO_ROOM.sugar, prepare: withCityKey, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
