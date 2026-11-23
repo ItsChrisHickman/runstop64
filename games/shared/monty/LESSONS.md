@@ -176,6 +176,14 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **Never an unreachable way back**: a drop into a lower region needs a way up (a ladder), or he can drop before he has the item the lower region's gate wants. A creature that is a gate is a wall only in a lane two cells high or on a step as wide as it (a ceiling over a climb makes the climb impossible too).
 - **The bot's state key must hold every timed thing's phase** (`bot.ts` `keyOf`: each roller by its own period, not the first's): with a hazard of its own period left out the search dedups states that are not the same and misses ways that exist.
 
+## Build pitfalls found rebuilding the Andes (2026-11-23)
+
+- **A jump rises 20 pixels, two and a half rows:** a step of three rows is a wall going up (a terrace that must be climbed back steps two rows at a time, or has a ladder).
+- **A floor on row 4 or higher with nothing above it lets a jump leave by the top of the room** into the room above (a leaf fringe on row 0 stops it; a roof he can land on needs to be lower).
+- **A vine or rope holds him standing only where it reaches his middle row** (the floor's row less one): a tip that only touches his head stops him without carrying him.
+- **A jump off a vine's upper half carries about five cells:** what must be out of reach (a bough reached only one way) is farther than that from every vine's swing, or shielded (a curtain of leaves).
+- **Prove every one-way piece with the bot's search, not by eye** (`andes-mechanisms.ts`: the bough only down the hollow, the high ledge only from the plateau): the search found both ways round a first layout that looked closed.
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and
