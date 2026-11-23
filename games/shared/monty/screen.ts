@@ -16,6 +16,8 @@ export const PLAY_COL = 4;
 export const PLAY_ROW = 3;
 export const PLAY_COLS = 32;
 export const PLAY_ROWS = 20;
+/** The columns of the screen's margin either side of the playfield that the picture shows (the 40-column screen is cropped to 36): a backdrop runs out to them, so no strip is left at either edge. */
+export const SCREEN_MARGIN = 2;
 
 /** What a game plays the sound with (`musicOff` effects only play when music is off, as in the original). */
 export interface Sound {

@@ -157,4 +157,17 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   // (other regions animate characters of their own now: Japan's trains, Rio's grill and dancers; only Monty on the Run must have none)
   check('Monty on the Run has none, and every train room animates', MOTR.charAnims.length === 0 && [ROOM.station, SIB.gravy, SIB.sleeper, SIB.coal].every((r) => WORLD.charAnims.some((a) => a.room === r)));
 }
+// ---- the backdrop runs unbroken ----------------------------------------------------------------------------------
+{
+  // across each car's sky band (rows 4-8: the wires and the horizon; the smoke above is only where it drifts) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
+  // or a tile or rope of the room that stands in front of it). The exceptions: the sleeper's cutting rises to row 5 at its ends (pines above it) and plain sky 2 by 2 beside its pine and by the tender's join is too narrow for a pole's four wires; the tender's ticket has two columns of the horizon cleared behind it.
+  for (const [name, room, bare] of [['dining car', SIB.gravy, []], ['sleeper', SIB.sleeper, [[4, 4], [5, 4], [26, 4], [27, 4], [24, 4], [25, 4], [24, 5], [25, 5]]], ['tender', SIB.coal, [[29, 4], [30, 4], [29, 5], [30, 5], [20, 6], [21, 6], [20, 7], [21, 7], [20, 8], [21, 8]]]] as const) {
+    const s = at(room, 8, 17);
+    const empty: string[] = [];
+    for (let row = 4; row <= 8; row++) for (let col = -2; col <= 33; col++) {
+      if (cellAt(s.g, col, row) === 0 && !bare.some(([c, r]) => c === col && r === row)) empty.push(`${col},${row}`);
+    }
+    check(`${name}: the sky band has no empty cell (${empty.join(' ') || 'none'})`, empty.length === 0);
+  }
+}
 finish();

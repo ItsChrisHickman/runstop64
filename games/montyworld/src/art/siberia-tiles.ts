@@ -194,8 +194,8 @@ export const SIBERIA_TILES = {
     '........',
     '........',
   ]),
-  /** The tunnel mouth's granite: dressed granite in courses. Passable (the portal kills, it does not block). */
-  tunnelFace: tile('tunnelFace', 0, 12, [
+  /** The tunnel portal's dressed stone (the arch's ring, in courses). Passable (the portal kills, it does not block). */
+  tunnelFace: tile('tunnelFace', 0, 15, [
     '#######.',
     '#######.',
     '#######.',
@@ -205,16 +205,16 @@ export const SIBERIA_TILES = {
     '###.####',
     '........',
   ]),
-  /** The mountain's rock the tunnel runs through (and the cutting's wall): rough boulders with the cracks between them, one ink on black. Nothing (a picture: the tunnel's mass kills, it does not block). */
-  tunnelRock: tile('tunnelRock', 0, 9, [
-    '########',
-    '##..####',
-    '#.##.###',
-    '########',
-    '####..##',
-    '###.##.#',
-    '#.######',
-    '########',
+  /** The tunnel's brick lining: clean courses of brick, running bond, black mortar. Nothing (a picture: the tunnel's mass kills, it does not block). */
+  tunnelBrick: tile('tunnelBrick', 0, 2, [
+    '#######.',
+    '#######.',
+    '#######.',
+    '........',
+    '###.####',
+    '###.####',
+    '###.####',
+    '........',
   ]),
   /** A big pine's trunk with a branch stub each side: bark in strips and a knot. A rope's class (he climbs it). */
   pineTrunk: tile('pineTrunk', 3, 9, [

@@ -1,3 +1,4 @@
+import { SCREEN_MARGIN } from '../../shared/monty/screen';
 import type { CharAnim, CrackSpec, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE } from './japan-pointers';
@@ -311,7 +312,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[12, 5], [14, 15]],
     decor: [
-      ...Array.from({ length: 32 }, (_, c) => ['jpViaduct', c, 2] as const), // the railway's girder over the roofs
+      ...Array.from({ length: 32 + 2 * SCREEN_MARGIN }, (_, c) => ['jpViaduct', c - SCREEN_MARGIN, 2] as const), // the railway's girder over the roofs, out to the screen's edges
       ['jpTowerYellow', 3, 2], ['jpNeonPink', 7, 3], ['jpNeonCyan', 10, 2], ['jpScreen', 17, 3], ['jpTowerGreen', 26, 3],
       ['jpRamenStall', 8, 14], ['jpLantern', 6, 14], ['jpCrowdRed', 0, 15], ['jpCrowdPurple', 22, 15], ['jpVending', 26, 14], ['jpVending', 28, 14],
     ],
