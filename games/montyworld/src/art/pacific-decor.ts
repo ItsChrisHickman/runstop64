@@ -360,7 +360,7 @@ function controlTower(): NewDecor {
 
 /**
  * The cargo plane on the apron, seen from the side as itself: the long fuselage with its nose at the right, the cockpit's windows in the hump
- * of the upper deck, the wing with an engine slung under it, the tall tail fin and tailplane at the left, the wheels. 15 x 5 characters.
+ * of the upper deck, the wing with an engine slung under it, the tail fin and tailplane at the left, the wheels. 15 x 4 characters.
  */
 function cargoPlane(): NewDecor {
   const r = new Raster(120, 40);
@@ -376,8 +376,10 @@ function cargoPlane(): NewDecor {
   r.rect(112, 23, 116, 24, false); // the nose door's seam
   r.rect(30, 34, 31, 36); r.disc(30.5, 37, 2.6); r.rect(64, 34, 65, 36); r.disc(64.5, 37, 2.6); r.rect(98, 34, 99, 36); r.disc(98.5, 37, 2.6); // wheels
   r.rect(0, 39, 119, 39); // the apron
+  const plane = new Raster(120, 32); // (the top eight rows go: the fin's tip stands level with the gantry along the plane's back)
+  plane.stamp(r.rows().slice(8), 0, 0);
   const fin = '222' + '1'.repeat(12);
-  return decor('pacCargoPlane', 15, 5, r, [fin, fin, '1'.repeat(15), '1'.repeat(15), '1'.repeat(15)]);
+  return decor('pacCargoPlane', 15, 4, plane, [fin, '1'.repeat(15), '1'.repeat(15), '1'.repeat(15)]);
 }
 
 /** A cargo loader: a scissor lift's platform on crossed arms, a rail round it. 3 x 3 characters. */

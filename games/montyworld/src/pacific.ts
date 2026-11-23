@@ -1,9 +1,9 @@
-import type { CharAnim, DragonSpec, EscalatorSpec, LavaSpec, PulseSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { Arrival, CharAnim, CrackSpec, DragonSpec, EscalatorSpec, LavaSpec, PulseSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import type { WorldDecor } from './art/world';
 import { BOULDER_POINTERS } from './andes-pointers';
 import { DRAGON_POINTERS } from './china-pointers';
-import { SPLASH_FRAMES, STREAK_FRAMES } from './art/pacific-falls';
+import { BUBBLE_FRAMES, SPLASH_FRAMES, STREAK_FRAMES } from './art/pacific-falls';
 import { codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
 
 /**
@@ -60,7 +60,7 @@ export const BOX_PALETTE = {
 } as const satisfies Palette;
 
 export const PIER_PALETTE = {
-  B: ['pacBoardwalk', 9], H: ['pacHullPlate', 2], S: ['pacPile', 9], M: ['pacContainer', 8], R: ['pacBamboo', 13], C: ['pacCrate', 9], P: ['pacRoad', 11],
+  B: ['pacBoardwalk', 9], H: ['pacHullPlate', 2], S: ['pacPile', 9], M: ['pacContainer', 8], R: ['pacBamboo', 13], X: ['pacPlankCracked', 9], Y: ['pacPlankSplit', 9], P: ['pacRoad', 11],
 } as const satisfies Palette;
 
 export const SURF_PALETTE = {
@@ -92,6 +92,11 @@ export const KELP_PALETTE = {
   S: ['pacSea', 6], K: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 10],
 } as const satisfies Palette;
 
+/** The third reef's: the sea, its surface, the seabed, the cliffs' and the reef's rock, coral, and the plates of a wreck's hull. */
+export const FISH_PALETTE = {
+  S: ['pacSea', 6], U: ['pacSeaSurface', 14], B: ['pacSand', 7], K: ['pacReefRock', 9], R: ['pacReefRock', 4], C: ['pacCoral', 10], H: ['pacHullPlate', 2],
+} as const satisfies Palette;
+
 export const MOLE_PALETTE = {
   S: ['pacWallStone', 9], W: ['pacWaves', 6], A: ['pacSand', 7], F: ['pacSandFill', 7], G: ['pacTurf', 5],
 } as const satisfies Palette;
@@ -106,7 +111,7 @@ export const ROAD_PALETTE = {
 } as const satisfies Palette;
 
 export const HANA_PALETTE = {
-  B: ['pacBasalt', 9], K: ['pacBlackSand', 11], T: ['pacTurf', 5], R: ['pacBamboo', 13], W: ['pacWaves', 6], S: ['pacSoil', 2],
+  B: ['pacBasalt', 9], K: ['pacBlackSand', 11], T: ['pacTurf', 5], R: ['pacBamboo', 13], W: ['pacWaves', 6], P: ['pacSwash', 6],
 } as const satisfies Palette;
 
 export const COFFEE_PALETTE = {
@@ -118,7 +123,7 @@ export const MAUNA_PALETTE = {
 } as const satisfies Palette;
 
 export const HILO_PALETTE = {
-  W: ['pacWallStone', 14], P: ['pacRoad', 11], J: ['pacBridgeDeck', 8], R: ['pacBamboo', 13], G: ['pacFuselage', 1], C: ['pacCrate', 9],
+  W: ['pacHotelWall', 7], P: ['pacRoad', 11], J: ['pacBridgeDeck', 8], R: ['pacBamboo', 13], G: ['pacFuselage', 1], C: ['pacCrate', 9],
 } as const satisfies Palette;
 
 export const HOLD_PALETTE = {
@@ -185,8 +190,37 @@ export const FALLS_ANIMS: readonly CharAnim[] = [PAC.road, PAC.cave].flatMap((ro
   ];
 });
 
-/** The cargo loader (O): its foot on the apron at columns 15-16 carries him up ten rows to the catwalk over the plane. */
-export const LOADER: EscalatorSpec = { room: PAC.hilo, col: 15, row: 17, dx: 1, dy: -1, cols: 0, rows: 10, frames: 100 };
+/**
+ * Hana's wave (`pulses`): the surf's wave sweeps up the black sand from the cove: three groups of cells two rows tall (rows 16-17, the height of him) start one after another from the cove (cols 18-19, 16-17, 15), spray for 16 frames (the warning), the wave
+ * is across the beach for 40 (deadly: jump it or wait on the rope's foot), and it draws back the way it came. A 220-frame period.
+ */
+export const WAVE = { period: 220, start: 100, warn: 16, live: 40, rows: 2, row: 16, groups: [{ col: 18, cols: 2 }, { col: 16, cols: 2 }, { col: 15, cols: 1 }], apart: 14 } as const;
+export const WAVE_PULSES: readonly PulseSpec[] = WAVE.groups.map((g, k): PulseSpec => ({
+  room: PAC.hana, col: g.col, row: WAVE.row, cols: g.cols, rows: WAVE.rows, period: WAVE.period, start: WAVE.start + k * WAVE.apart, warn: WAVE.warn, live: WAVE.live - k * 4,
+  idle: 0, warnCode: codeOf(HANA_PALETTE, 'P'), liveCode: codeOf(HANA_PALETTE, 'P'), spent: 0,
+}));
+
+/** The bubbles rise in every underwater room (a `charAnims` cycle over the decoration's two characters: the rings climb 2 pixels a step and come round again at the foot). */
+export const BUBBLE_ANIMS: readonly CharAnim[] = SWIM_ROOMS.map((room): CharAnim => ({
+  kind: 'cycle', room, chars: [0, 1].map((cell) => ({ decor: decorIndex('pacBubbles'), cell })), frames: BUBBLE_FRAMES, every: 1,
+}));
+
+/** The arrival banners: Honolulu's harbour welcomes him off the ship, and each island names itself on coming ashore (the sea rooms between are no island's). One name row: 32 letters. */
+export const ARRIVALS: readonly Arrival[] = [
+  { rooms: [PAC.pier], from: [PAC.box], text: 'WELCOME TO HAWAII: OAHU' },
+  { rooms: [PAC.mole], text: 'HAWAII: MOLOKAI' },
+  { rooms: [PAC.whale, PAC.road, PAC.hana, PAC.cave], text: 'HAWAII: MAUI' },
+  { rooms: [PAC.coffee, PAC.mauna, PAC.hilo], text: 'HAWAII: THE BIG ISLAND' },
+];
+
+/**
+ * The rotten planks on the roofs (PIER PRESSURE; `cracks`, as Lake Baikal's ice): six cells of the warehouses' roof over the alley between them, whole boards at first that crack, split and fall away after 56, 88 and 120 frames of standing on
+ * them (crossing at his walk is safe by a hair and waiting is not), the planks back 240 frames after; what is under them is the street, and the guard.
+ */
+export const PIER_CRACKS: readonly CrackSpec[] = [{ room: PAC.pier, col: 14, cols: 6, row: 7, codes: [codeOf(PIER_PALETTE, 'B'), codeOf(PIER_PALETTE, 'X'), codeOf(PIER_PALETTE, 'Y')], crack: 56, wide: 88, gone: 120, away: 240 }];
+
+/** The cargo loader (P): the conveyor truck's foot on the apron at columns 14-15 carries him up its slope, three cells along and five rows up, to the gantry along the plane's back (the landing at col 17, floor 12). */
+export const LOADER: EscalatorSpec = { room: PAC.hilo, col: 14, row: 17, dx: 1, dy: -1, cols: 3, rows: 5, frames: 50 };
 
 // ---- the key items' places -------------------------------------------------------------------------
 /** The ramp's chain across BOX CLEVER's bow (cols 30-31, rows 9-10, and the two gutter columns 32-33 that mirror the edge): the bolt cutters take it away. */
@@ -339,10 +373,9 @@ const ALL_ROOMS: readonly RoomSpec[] = [
       g.box(0, 11, 3, 11, 'B').box(0, 12, 3, 19, 'H').box(0, 0, 1, 8, 'M').box(30, 0, 31, 4, 'M').box(30, 13, 31, 15, 'M'); // the gangway's planks lowered off the ship's bow (its hull under them, its tall stack of containers over them: as the bow of BOX CLEVER), the warehouses' walls at the edge (the ways on are the roofs and the street)
       g.box(4, 13, 5, 13, 'B').box(4, 14, 5, 19, 'S').box(6, 15, 7, 15, 'B').box(6, 16, 7, 19, 'S').box(8, 17, 9, 17, 'B').box(8, 18, 9, 19, 'S'); // the steps
       g.box(10, 18, 31, 19, 'P'); // the street
-      g.box(12, 8, 31, 12, 'M'); // the warehouses
+      g.box(12, 8, 13, 12, 'M').box(20, 8, 31, 12, 'M'); // the warehouses, an alley between them (cols 14-19) under the roofs' rotten planks
       g.box(6, 7, 31, 7, 'B'); // their roofs
       g.box(4, 6, 4, 12, 'R'); // the rope up
-      g.box(15, 17, 16, 17, 'C').box(21, 17, 22, 17, 'C');
     },
     coins: [[2, 9], [14, 5], [24, 5], [18, 15], [25, 15]],
     decor: [['pacGangwayRail', 0, 10], ['pacAlohaTower', 9, 1], ['pacPalm', 18, 1], ['pacPalmSmall', 27, 3], ['pacPallet', 12, 16], ['pacPallet', 26, 16]],
@@ -529,33 +562,37 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     decor: [['pacWaterfall', 24, 4], ['pacKelp', 12, 16], ['pacSeaFan', 27, 15], ['pacBubbles', 5, 11], ['pacBubbles', 29, 14]],
   }),
 
-  // K HANA BANANA: Hana, the road's end. In at the left on the headland (floor 8); the bamboo rope (col 14) down the cliff to Waianapanapa's black sand beach (floor 18), a crab on it, a ledge in the sea cave at the right with a musubi. The way on is the
-  // sea: the cove's pool (cols 20-22) is deadly surf until the snorkel, then open water you drop into, with a rope to climb back.
+  // K HANA BANANA: Hana, the road's end. In at the left on the headland (floor 8), where the banana-bread stand stands by the road (a musubi on its table); the bamboo rope (col 14) down the cliff to Waianapanapa's black sand beach (floor 18), a nook
+  // under the headland, the surf's wave sweeping up the beach from the cove on a timing (a pulse: spray, then the wave across the beach, then it draws back), a crab on the sand, steps to a ledge over the cave. The way on is the sea: the cove's pool
+  // (cols 20-22) is deadly surf until the snorkel, then open water you drop into, with a rope to climb back. The right edge is the cliff.
   room({
     id: PAC.hana, cell: [1, 25], sector: 49, palette: HANA_PALETTE,
     paint(g) {
       g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T');
-      g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 31, 19, 'K'); // the beach and the pool, the black sand running on off the right edge
+      g.clear(9, 16, 13, 17).clear(10, 15, 12, 15).box(9, 18, 13, 19, 'K'); // a nook under the headland, a sea arch cut in the cliff's foot
+      g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 29, 19, 'K').box(30, 0, 31, 17, 'B').box(30, 18, 31, 19, 'K'); // the beach and the pool, the cliff closing the right edge
       g.box(14, 7, 14, 17, 'R');
-      g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the cave's ledge
+      g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the ledge over the cave
     },
-    coins: [[8, 6], [16, 16], [24, 14], [28, 11]],
-    item: { name: 'musubi2', col: 28, row: 12, sprite: PAC_SPRITE.musubi },
-    decor: [['pacPalm', 4, 2], ['pacPalmSmall', 9, 4], ['pacLavaRocks', 17, 17], ['pacLavaRocks', 26, 17]],
+    coins: [[12, 6], [11, 16], [24, 14], [28, 11]],
+    item: { name: 'musubi2', col: 6, row: 6, sprite: PAC_SPRITE.musubi },
+    decor: [['pacBreadStand', 2, 5], ['pacPalmSmall', 9, 4], ['pacLavaRocks', 17, 17], ['pacLavaRocks', 26, 17]],
     creatures: [{ who: 'pacCrab', col: 15, row: 16, way: 'right', speed: 1, range: 24 }],
   }),
 
-  // M FISH OUT OF WATER: the third reef, between Maui and the Big Island. In through the ceiling from Hana's cove (cols 20-22, the rope hanging); out right to the coast. The deep channel: reef on the floor, a shark's patrol, a sunken anchor.
+  // M FISH OUT OF WATER: the third reef, between Maui and the Big Island. In through the ceiling from Hana's cove (cols 20-22, the rope hanging); out right to the coast. The deep channel: a wreck lies on the seabed at the left, its hull
+  // a hold he swims into through the bow's doorway for the coin in it; a giant clam on the sand with a pearl (a coin) over it, a shark's patrol, reef and a sunken anchor; bubbles rise through the water.
   room({
-    id: PAC.fish, cell: [2, 25], sector: 50, palette: SEA_PALETTE,
+    id: PAC.fish, cell: [2, 25], sector: 50, palette: FISH_PALETTE,
     paint(g) {
       g.box(0, 3, 31, 18, 'S').box(2, 3, 19, 3, 'U').box(23, 3, 29, 3, 'U'); // the sea, its surface a wavy waterline (the cove's rope through the gap) with the sky above it
       g.box(0, 0, 1, 18, 'K').box(30, 0, 31, 13, 'K').box(19, 0, 19, 2, 'K').box(23, 0, 23, 2, 'K'); // the sea cliffs rising off the top; a sea stack either side of the cove's rope
       g.box(0, 19, 31, 19, 'B');
-      g.box(5, 15, 9, 18, 'R').box(6, 13, 8, 14, 'R').box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
+      g.box(3, 14, 11, 18, 'H').clear(4, 15, 10, 17).clear(11, 15, 11, 17).box(7, 10, 7, 13, 'H'); // the wreck: its deck, hull and a mast, the bow's doorway at the right into the hold
+      g.box(14, 16, 17, 18, 'C').box(22, 12, 26, 18, 'R').box(23, 10, 25, 11, 'R');
     },
-    coins: [[7, 11], [16, 13], [24, 8], [12, 6]],
-    decor: [['pacAnchor', 11, 17], ['pacKelp', 20, 16], ['pacSeaFan', 2, 16], ['pacBubbles', 14, 5]],
+    coins: [[7, 16], [19, 15], [24, 8], [12, 6]],
+    decor: [['pacAnchor', 12, 17], ['pacClam', 18, 17], ['pacKelp', 21, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 14, 5], ['pacBubbles', 28, 9], ['pacBubbles', 16, 11], ['pacBubbles', 12, 8]],
     creatures: [{ who: 'pacSharkFin', col: 4, row: 8, way: 'right', speed: 1, range: 150 }],
   }),
 
@@ -593,17 +630,21 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacMagma', col: 2, row: 5, way: 'right', speed: 1, range: 56 }],
   }),
 
-  // P HILO GOODBYE: Hilo airport. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17), a customs shed over the way (cols 8-12) with the guard pacing it, who lets him by
-  // in the lei; then the cargo loader (cols 15-16) carries him up to the catwalk over the cargo plane, which stands on the apron behind. Out along the catwalk, high, into the plane.
+  // P HILO GOODBYE: Hilo airport, redesigned. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17). The departure gate is a gatehouse straddling the apron (cols 9-12, its wall
+  // to the top of the room, a corridor 2 cells high through it): the lei guard patrols the corridor, so there is no way to the plane past him (nothing over the gatehouse, nothing under it) until he is in a lei (departing travellers wear one). Beyond it the
+  // tarmac: the cargo plane drawn whole (nose, fuselage, wing, tail with its fin, wheels, the open cargo door at its tail) and, in front of it, the cargo loader's conveyor truck: its belt rises on the slope to the gantry over the plane's tail, and he
+  // rides it (the foot at cols 14-15, the landing at col 17, floor 12), walks the gantry and into the plane (the right edge, rows 10-11).
   room({
     id: PAC.hilo, cell: [2, 28], sector: 53, palette: HILO_PALETTE,
     paint(g) {
-      g.box(0, 9, 6, 19, 'W').box(0, 0, 1, 6, 'W').box(7, 17, 31, 19, 'P').box(10, 14, 12, 14, 'G').box(7, 8, 7, 16, 'R');
-      g.box(15, 7, 31, 7, 'J').box(30, 8, 31, 16, 'W').box(30, 0, 31, 4, 'W').box(14, 0, 14, 6, 'W'); // the catwalk, the plane's fuselage walling the apron's end, the railing at the loader's top
+      g.box(0, 9, 5, 19, 'W').box(0, 0, 1, 6, 'W').box(6, 17, 31, 19, 'P').box(6, 8, 6, 16, 'R'); // the terminal, its roof's rope, the apron
+      g.box(7, 0, 9, 14, 'W'); // the gatehouse, its corridor (rows 15-16) at the apron's level
+      g.box(17, 12, 31, 12, 'J'); // the gantry along the plane's back: the loader's landing at col 17, the way into the plane at the right edge (rows 10-11)
+      g.box(31, 0, 31, 9, 'G').box(31, 13, 31, 16, 'G'); // the plane's nose walling the end of the apron, the way in open at rows 10-11
     },
-    coins: [[4, 7], [10, 15], [20, 5], [26, 5]],
-    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 15, 12], ['pacLoader', 13, 14]],
-    creatures: [{ who: 'pacGuard', col: 8, row: 15, way: 'right', speed: 1, range: 24 }],
+    coins: [[4, 7], [15, 15], [21, 10], [27, 10]],
+    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 16, 13], ['pacConveyor', 10, 13]],
+    creatures: [{ who: 'pacGuard', col: 7, row: 15, way: 'right', speed: 1, range: 8 }],
   }),
 
   // Q HOLD YOUR HORSES: the cargo plane's hold, a fuselage drawn from inside. In from the catwalk onto the door's sill at the left (floor 7); a cargo net down to the roller floor (floor 16); crates swing from their tracks over the lane and the
@@ -612,14 +653,14 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     id: PAC.hold, cell: [2, 29], sector: 54, palette: HOLD_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 1, 'U').box(0, 2, 3, 3, 'U').box(28, 2, 31, 3, 'U').box(12, 2, 13, 3, 'I').box(20, 2, 21, 3, 'I');
-      g.box(0, 2, 1, 4, 'U').box(0, 8, 1, 19, 'U').box(30, 2, 31, 13, 'U').box(30, 14, 31, 15, 'D').box(30, 16, 31, 19, 'U');
+      g.box(0, 2, 1, 9, 'U').box(0, 12, 1, 19, 'U').box(30, 2, 31, 13, 'U').box(30, 14, 31, 15, 'D').box(30, 16, 31, 19, 'U');
       g.box(2, 16, 29, 16, 'F').box(0, 17, 31, 19, 'U');
-      g.box(0, 7, 6, 7, 'F').box(8, 6, 9, 15, 'N');
+      g.box(0, 12, 6, 12, 'F').box(8, 11, 9, 15, 'N');
       g.box(17, 14, 22, 15, 'C').box(24, 12, 27, 15, 'C'); // (the first pallet's top is six cells for a two-cell crate to swing on)
     },
-    coins: [[4, 5], [9, 11], [14, 14], [20, 12], [27, 10]],
+    coins: [[4, 10], [9, 12], [14, 14], [20, 12], [27, 10]],
     item: { name: 'parachute', col: 25, row: 10, sprite: PAC_SPRITE.parachute },
-    decor: [['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 10]],
+    decor: [['pacJumpLamp', 28, 12], ['pacPallet', 12, 14], ['pacPorthole', 4, 5]],
     creatures: [
       { who: 'pacSwingCrate', col: 11, row: 14, way: 'right', speed: 1, range: 40 },
       { who: 'pacSwingCrate', col: 19, row: 12, way: 'right', speed: 1, range: 16 },

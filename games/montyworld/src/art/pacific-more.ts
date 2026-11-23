@@ -68,6 +68,28 @@ export const PACIFIC_MORE_TILES = {
     '########',
     '........',
   ]),
+  /** A pier's plank beginning to give: the boards with cracks across them. A floor. */
+  pacPlankCracked: tile('pacPlankCracked', 2, 9, [
+    '########',
+    '.#......',
+    '.##.#.##',
+    '.#.##.##',
+    '..#.....',
+    '####.#..',
+    '#.##..#.',
+    '........',
+  ]),
+  /** A rotten plank splitting: the boards broken, wide gaps. A floor. */
+  pacPlankSplit: tile('pacPlankSplit', 2, 9, [
+    '#.#..#.#',
+    '........',
+    '.#..#..#',
+    '..#..##.',
+    '........',
+    '#..#...#',
+    '.#...#..',
+    '........',
+  ]),
   /** Black sand running down into the sea, a ripple of foam along its top. A floor. */
   pacSwash: tile('pacSwash', 4, 6, [
     '..#..#..',
@@ -176,16 +198,16 @@ function cargoDoor(): NewDecor {
   return decor('pacCargoDoor', 3, 2, r, 14);
 }
 
-/** The conveyor truck at the cargo door: a boxy cab, a long belt rising at an angle on a scissor frame. 6 x 4 characters. */
+/** The cargo loader's conveyor truck: a boxy cab at the left, the belt rising on its scissor frame to the right (the slope he rides). 5 x 4 characters. */
 function conveyorTruck(): NewDecor {
-  const r = new Raster(48, 32);
-  r.rect(0, 14, 13, 28); r.rect(2, 16, 8, 21, false); r.rect(9, 16, 12, 21, false); // the cab with its windows
-  r.disc(5, 29, 2.8); r.disc(37, 29, 2.8); r.disc(5, 29, 1.2); r.disc(37, 29, 1.2); // wheels
-  r.rect(14, 24, 41, 27); // the chassis
-  r.line(16, 24, 38, 6); r.line(17, 24, 39, 6); r.line(16, 23, 38, 5); r.line(19, 24, 41, 6); // the belt on its rise
-  for (let k = 0; k < 6; k++) r.rect(20 + k * 4, 22 - k * 3, 21 + k * 4, 23 - k * 3, false); // the belt's cleats
-  r.line(26, 26, 32, 12); r.line(32, 26, 26, 12); // the scissor frame
-  return decor('pacConveyor', 6, 4, r, 7);
+  const r = new Raster(40, 32);
+  r.rect(0, 12, 11, 27); r.rect(2, 14, 8, 20, false); r.rect(9, 14, 10, 20, false); // the cab, its windows
+  r.disc(5, 29, 2.6); r.disc(30, 29, 2.6); r.disc(5, 29, 1.1); r.disc(30, 29, 1.1); // wheels
+  r.rect(12, 24, 35, 27); // the chassis
+  r.line(12, 25, 38, 2); r.line(12, 24, 38, 1); r.line(12, 26, 38, 3); r.line(14, 27, 39, 5); // the belt on its rise
+  for (let k = 0; k < 5; k++) r.rect(17 + k * 4, 21 - k * 4, 18 + k * 4, 22 - k * 4, false); // the belt's cleats
+  r.line(20, 26, 26, 12, false); r.line(26, 26, 20, 12, false); // the scissor frame
+  return decor('pacConveyor', 5, 4, r, 7);
 }
 
 /** The Hilo terminal's gate: a counter with a lei greeter's sign, a conveyor of baggage. 3 x 2 characters. */

@@ -22,7 +22,7 @@ import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY } from './art/andes-items';
 import { ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, BOULDERS, FLIGHTS, TANGLE_CELLS, TANGLE_ROPE, TANGLE_ROPE_CODE, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS } from './andes-pointers';
-import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, SWIM_ROOMS, PACIFIC_ROOMS, PACIFIC_SECTORS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, ROCKS, SERPENT, MORAY_PULSES, FALLS_ANIMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_EXTRA_COLOURS, CHAIN_CELLS, TORCH_PULSES, TORCH_HEAD_PULSES } from './pacific';
+import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, SWIM_ROOMS, PACIFIC_ROOMS, PACIFIC_SECTORS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, ROCKS, SERPENT, MORAY_PULSES, WAVE_PULSES, ARRIVALS, PIER_CRACKS, FALLS_ANIMS, BUBBLE_ANIMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_EXTRA_COLOURS, CHAIN_CELLS, TORCH_PULSES, TORCH_HEAD_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -239,9 +239,9 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // and the hideout's door guard, a ninja himself, lets him by
   { room: PAC.box, when: [{ taken: CUTTERS }], clear: onScreen(CHAIN_CELLS) }, // the cutters take the chain off the ramp
   { room: PAC.lei, when: [{ taken: SNORKEL }], clear: onScreen(DIVE_CELLS) }, // the snorkel opens the dive off the stage's far end: the waves are a drop into the sea
-  { room: PAC.lei, when: [{ taken: SNORKEL }], place: { code: DIVE_ROPE_CODE, cells: onScreen(DIVE_ROPE) } }, // with a rope to climb back
+  { room: PAC.lei, when: [{ taken: SNORKEL }], late: true, place: { code: DIVE_ROPE_CODE, cells: onScreen(DIVE_ROPE) } }, // with a rope to climb back
   { room: PAC.hana, when: [{ taken: SNORKEL }], clear: onScreen(COVE_CELLS) }, // and the cove's pool is a drop into the reef
-  { room: PAC.hana, when: [{ taken: SNORKEL }], place: { code: COVE_ROPE_CODE, cells: onScreen(COVE_ROPE) } }, // with a rope to climb back
+  { room: PAC.hana, when: [{ taken: SNORKEL }], late: true, place: { code: COVE_ROPE_CODE, cells: onScreen(COVE_ROPE) } }, // with a rope to climb back
   { room: PAC.hilo, when: [{ taken: LEI_ITEM }], removeEnemy: 0 }, // in the lei the airport guard takes him for a tourist
   { room: PAC.hold, when: [{ taken: PARACHUTE }], clear: onScreen(PLANE_DOOR_CELLS) }, // the parachute opens the plane's rear door
   { room: AND.rock, when: [{ taken: PANPIPES }], removeEnemy: 0 }, // a tune settles the spitting llama at the tunnel's mouth, and the well is open
@@ -283,10 +283,11 @@ export const WORLD: MontyData = {
   escalators: [...ESCALATORS, LOADER],
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS],
-  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...FALLS_ANIMS],
-  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES],
+  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...PIER_CRACKS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...FALLS_ANIMS, ...BUBBLE_ANIMS],
+  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...WAVE_PULSES],
   swimRooms: SWIM_ROOMS,
+  arrivals: ARRIVALS,
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
   roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.cave], blocks: SERPENT_BLOCKS }],
   risingLava: [LAVA],

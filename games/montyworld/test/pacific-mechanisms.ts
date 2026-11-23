@@ -215,30 +215,29 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   run(ride, RIGHT, 40);
   const mid = ride.g.y;
   run(ride, NONE, 140);
-  check(`the loader carries him up ten rows (${LOADER.frames} frames) and sets him down on the catwalk (floor 7, column ${colOf(ride.g)}, y ${ride.g.y}, was ${mid} in the ride), alive and free to walk`, ride.g.roomId === PAC.hilo && ride.g.y === standY(7) && colOf(ride.g) >= 15 && ride.g.gameMode === 0 && !dead(ride.g));
+  check(`the loader carries him up its slope, five rows (${LOADER.frames} frames) and sets him down on the gantry along the plane's back (floor 12, column ${colOf(ride.g)}, y ${ride.g.y}, was ${mid} in the ride), alive and free to walk`, ride.g.roomId === PAC.hilo && ride.g.y === standY(12) && colOf(ride.g) >= 16 && ride.g.gameMode === 0 && !dead(ride.g));
   run(ride, RIGHT, 400);
-  check('along the catwalk he walks out into the plane\'s hold (its sill, floor 7)', ride.g.roomId === PAC.hold);
-  // the loader's top and the apron's end
+  check('along the gantry he walks out into the plane\'s hold (its sill, floor 12)', ride.g.roomId === PAC.hold);
   {
-    const top = at(PAC.hilo, 25, 7);
+    const top = at(PAC.hilo, 25, 12);
     run(top, LEFT, 300);
-    check(`from the catwalk walking west he stops at the railing (column ${colOf(top.g)}), standing on the catwalk, not turned back or dropped`, top.g.roomId === PAC.hilo && top.g.y === standY(7) && colOf(top.g) === 15 && !dead(top.g));
+    check(`from the gantry walking west he is turned back by the loader's treads or stands on it (column ${colOf(top.g)}), never dropped`, top.g.roomId === PAC.hilo && !dead(top.g) && top.g.y === standY(12));
     const apron = at(PAC.hilo, 13, 17, [LEI]);
     run(apron, { ...RIGHT, fire: true }, 30);
     run(apron, RIGHT, 300);
-    check(`walking the apron east past the loader he stops at the plane's side (room ${apron.g.roomId}, column ${colOf(apron.g)}), never out into the hold's wall`, apron.g.roomId === PAC.hilo && colOf(apron.g) >= 26);
+    check(`walking the apron east under the plane he stops at its end (room ${apron.g.roomId}, column ${colOf(apron.g)}), never out into the hold's wall`, apron.g.roomId === PAC.hilo && colOf(apron.g) >= 26);
   }
   // the guard and the lei
   const GUARD = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('pacGuard');
-  const guard = at(PAC.hilo, 8, 17, [], false, true);
-  check('without the lei there is a guard in the customs shed (its first creature slot)', guard.g.enemies[0]?.type === GUARD && guard.g.enemies[0].x !== 0xff);
-  const past = (g: Game) => g.roomId === PAC.hilo && colOf(g) >= 13 && g.y === standY(17);
+  const guard = at(PAC.hilo, 6, 17, [], false, true);
+  check('without the lei there is a guard in the gatehouse\'s corridor (its first creature slot)', guard.g.enemies[0]?.type === GUARD && guard.g.enemies[0].x !== 0xff);
+  const past = (g: Game) => g.roomId === PAC.hilo && colOf(g) >= 11 && g.y === standY(17);
   const stats = { exhausted: false };
-  const noWay = search(guard, past, [{ room: PAC.hilo, col: 14, row: 15 }], 60000, 0, stats) === null;
-  check(`and the bot finds no way past him through the shed (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the shed is two cells high under its roof, his lane`, noWay);
-  const lei = at(PAC.hilo, 8, 17, [LEI], false, true);
+  const noWay = search(guard, past, [{ room: PAC.hilo, col: 12, row: 15 }], 120000, 0, stats) === null;
+  check(`and the bot finds no way past him (120000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the gatehouse's wall goes to the top of the room and the corridor is his lane, two cells high`, noWay);
+  const lei = at(PAC.hilo, 6, 17, [LEI], false, true);
   check('with the lei he is gone (sent off the screen)', must(lei.g.enemies[0], 'the guard').x === 0xff);
-  check('and the bot gets through the shed to the loader', search(lei, past, [{ room: PAC.hilo, col: 14, row: 15 }], 100000, 1.5) !== null);
+  check('and the bot gets through the gatehouse to the loader', search(lei, past, [{ room: PAC.hilo, col: 12, row: 15 }], 100000, 1.5) !== null);
   // the cutters
   const chain = (holds: readonly (readonly [number, number])[]) => CHAIN_CELLS.map(([row, col]) => cell(at(PAC.box, 24, 11, holds).g, col, row));
   check('the chain across the ramp is a wall until the cutters (eight cells, with the gutter columns) and gone after', chain([]).every((c) => c !== 0) && chain([CUTTERS]).every((c) => c === 0));
@@ -280,7 +279,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
     const a = newGame(WORLD, false);
     a.g.siCollected[lei] = 0x81;
     wear(a.g, lei);
-    enterRoom(a.g, PAC.hilo, 0x0c + 8 * 4, standY(17));
+    enterRoom(a.g, PAC.hilo, 0x0c + 15 * 4, standY(17));
     for (let n = 0; n < 200 && (a.g.freeze || a.g.script); n++) frame(a, NONE);
     const b = newGame(WORLD, false);
     wear(b.g, hood);
@@ -325,7 +324,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
     reach(quiet(at(PAC.road, 20, 18)), { room: PAC.road, col: 24, row: 19 }, (g) => g.roomId === PAC.cave) && reach(at(PAC.cave, 3, 18), { room: PAC.cave, col: 0, row: 17 }, (g) => g.roomId === PAC.kelp));
   check('the cove\'s rope climbs from the third reef back to Hana\'s beach, and the road runs back down, level by level, to the harbour', reach(at(PAC.fish, 21, 8, [SNORKEL]), { room: PAC.fish, col: 21, row: 0 }, (g) => g.roomId === PAC.hana && g.onRope !== 0)
     && reach(quiet(at(PAC.hana, 2, 8)), { room: PAC.hana, col: 0, row: 6 }, (g) => g.roomId === PAC.road));
-  check('Hilo\'s terminal walks back west onto the volcano\'s rim and the hold\'s sill back onto the catwalk', reach(quiet(at(PAC.hilo, 2, 9)), { room: PAC.hilo, col: 0, row: 7 }, (g) => g.roomId === PAC.mauna) && reach(at(PAC.hold, 3, 7), { room: PAC.hold, col: 0, row: 5 }, (g) => g.roomId === PAC.hilo));
+  check('Hilo\'s terminal walks back west onto the volcano\'s rim and the hold\'s sill back onto the gantry', reach(quiet(at(PAC.hilo, 2, 9)), { room: PAC.hilo, col: 0, row: 7 }, (g) => g.roomId === PAC.mauna) && reach(at(PAC.hold, 3, 12), { room: PAC.hold, col: 0, row: 10 }, (g) => g.roomId === PAC.hilo));
 }
 
 // ---- the doors in play (the creatures in) ------------------------------------------------------------------
@@ -348,7 +347,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[PAC.box, 24, 11, 'THE RAMP IS CHAINED SHUT'], [PAC.lei, 2, 12, 'A MOLE CANNOT SWIM THAT FAR'], [PAC.hilo, 2, 9, 'THE GUARD LETS TOURISTS BY'], [PAC.hold, 3, 7, 'THE DROP IS FAR TOO HIGH']] as const;
+  const wants = [[PAC.box, 24, 11, 'THE RAMP IS CHAINED SHUT'], [PAC.lei, 2, 12, 'A MOLE CANNOT SWIM THAT FAR'], [PAC.hilo, 2, 9, 'THE GUARD LETS TOURISTS BY'], [PAC.hold, 3, 12, 'THE DROP IS FAR TOO HIGH']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -357,7 +356,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   const plain = at(PAC.surf, 3, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'SURF AND TURF');
-  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS BITE THROUGH CHAINS', 8, 16], [SNORKEL, 'WITH A SNORKEL HE CAN SWIM', 3, 13], [LEI, 'A LEI: LOOK LIKE A TOURIST', 6, 12], [PARACHUTE, 'PARACHUTE: FOR A LONG DROP', 22, 12]] as const) {
+  for (const [item, text, col, floor] of [[CUTTERS, 'CUTTERS BITE THROUGH CHAINS', 8, 15], [SNORKEL, 'WITH A SNORKEL HE CAN SWIM', 3, 13], [LEI, 'A LEI: LOOK LIKE A TOURIST', 6, 8], [PARACHUTE, 'PARACHUTE: FOR A LONG DROP', 22, 12]] as const) {
     const [room, nth] = item;
     const rec = must(PACIFIC_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, rec.col - 4 - (col > 0 ? 0 : 0), floor, [], true);
@@ -377,7 +376,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   // a save made on coming into each of the Pacific's rooms (every key taken, the lei on) carries on in the same room, alive
   {
     const spots = [[PAC.stern, 1, 13], [PAC.box, 2, 11], [PAC.pier, 1, 11], [PAC.surf, 3, 18], [PAC.lei, 2, 12], [PAC.feast, 24, 18], [PAC.diamond, 8, 18], [PAC.lookout, 4, 10], [PAC.clam, 3, 19], [PAC.mole, 2, 19], [PAC.kelp, 3, 19], [PAC.whale, 12, 18], [PAC.road, 3, 18], [PAC.cave, 3, 19],
-      [PAC.hana, 2, 8], [PAC.fish, 4, 19], [PAC.coffee, 3, 19], [PAC.mauna, 2, 19], [PAC.hilo, 2, 9], [PAC.hold, 2, 7]] as const;
+      [PAC.hana, 2, 8], [PAC.fish, 4, 19], [PAC.coffee, 3, 19], [PAC.mauna, 2, 19], [PAC.hilo, 2, 9], [PAC.hold, 2, 12]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);

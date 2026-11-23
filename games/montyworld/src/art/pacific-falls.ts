@@ -32,3 +32,13 @@ export function splashRows(frame: number): string[] {
   return r.rows();
 }
 export const SPLASH_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((i) => characters(`falls splash ${i}`, splashRows(i), 2, 1));
+
+/** A rise of bubbles (the reefs' decoration `pacBubbles`, one character wide and two tall: three rings, small to large), each ring `k` pixels higher and coming round at the foot again: eight pictures, a roll of 2 pixels each. */
+export function bubbleRows(k: number): string[] {
+  const base = new Raster(8, 16);
+  base.ring(4, 12, 1.5, 1); base.ring(3, 7, 2, 1); base.ring(4.5, 2, 2, 1);
+  const r = new Raster(8, 16);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 8; x++) if (base.get(x, y)) r.set(x, (((y - 2 * k) % 16) + 16) % 16);
+  return r.rows();
+}
+export const BUBBLE_FRAMES: readonly Uint8Array[] = Array.from({ length: 8 }, (_, k) => characters(`bubbles ${k}`, bubbleRows(k), 1, 2));

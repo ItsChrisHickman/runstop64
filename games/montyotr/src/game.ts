@@ -696,6 +696,21 @@ export class Game implements MontyBody, MontyWorld {
     Items.spawnForRoom(this);
     this.hint = noHint();
     this.hintWanted();
+    this.arrive(id);
+  }
+
+  /** The room last loaded (-1: none yet), for the arrival banners. */
+  private lastRoom = -1;
+
+  /** The data's arrival banner for coming into room `id` from the one before, if there is one: shown in the name row (both modes; it replaces a hint the room would give at once). */
+  private arrive(id: number) {
+    const came = this.lastRoom;
+    this.lastRoom = id;
+    if (came < 0) return;
+    const banner = this.data.arrivals.find((a) => a.rooms.includes(id) && !a.rooms.includes(came) && (a.from === undefined || a.from.includes(came)));
+    if (!banner) return;
+    say(this.hint, banner.text, 0);
+    this.drawNameRow();
   }
 
   /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
