@@ -4,6 +4,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/china-art.ts
  */
+import { isBackdrop } from '../src/layout';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
 import { MOTR_TILE_COUNT } from '../src/art/tiles';
@@ -12,6 +13,7 @@ import { CHINA_ROOMS } from '../src/china';
 
 const DECOR_POOL = 0xff - 0x9b; // (the engine skips a type that would run past $FF: 100 characters)
 const decorTypes = Object.values(WORLD_DECOR);
+const backdropType = (i: number): boolean => isBackdrop(Object.keys(WORLD_DECOR)[i] ?? ''); // a sky or sea fill: coins are drawn over it on purpose
 /** Pieces drawn over cells on purpose: a window set into a wall, the junk's picture over the quay's end wall. */
 const OVER_ON_PURPOSE: readonly object[] = [WORLD_DECOR.latticeWindow, WORLD_DECOR.junk];
 
@@ -34,7 +36,7 @@ for (const room of CHINA_ROOMS) {
     }
   }
   check(`${name}: no decoration over a solid, floor or rope cell${covered.length ? ' ' + covered.slice(0, 8).join(' ') : ''}`, covered.length === 0);
-  const hidden = (room.coins ?? []).filter(([cc, cr]) => placed.some(({ d, t }) => t && cc >= d.col - PLAY_COL && cc < d.col - PLAY_COL + t.w && cr >= d.row - PLAY_ROW && cr < d.row - PLAY_ROW + t.h));
+  const hidden = (room.coins ?? []).filter(([cc, cr]) => placed.some(({ d, t }) => t && typeof d.type === 'number' && !backdropType(d.type) && cc >= d.col - PLAY_COL && cc < d.col - PLAY_COL + t.w && cr >= d.row - PLAY_ROW && cr < d.row - PLAY_ROW + t.h));
   check(`${name}: no coin under a decoration${hidden.length ? ' ' + hidden.map(([c, r]) => `(${c},${r})`).join(' ') : ''}`, hidden.length === 0);
 }
 finish();
