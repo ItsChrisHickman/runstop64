@@ -50,7 +50,8 @@ export function rollerUpdate(g: Game) {
     g.sx[n] = Math.max(0, Math.min(255, Math.round(at.x / 2)));
     g.sy[n] = Math.max(0, Math.min(255, Math.round(at.y)));
     g.scol[n] = e.colour;
-    g.sptr[n] = e.frames[Math.floor(at.along / 8) % e.frames.length] ?? 0;
+    const step = e.spread ? Math.min(e.frames.length - 1, Math.floor((at.along / Math.max(1, pathOf(e).length)) * e.frames.length)) : Math.floor(at.along / 8) % e.frames.length;
+    g.sptr[n] = e.frames[step] ?? 0;
     g.enable |= 1 << n;
     if (!g.actionCounter && meetsMonty(g, at.x, at.y, SIZE, SIZE, TRIM)) g.actionCounter = 1;
   }

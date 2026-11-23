@@ -23,6 +23,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: AND.thin, name: '56-out-of-thin-air', col: 8, floor: 9, frames: 30, compare: 0x1e },
   { room: AND.condor, name: '57-condor-country', col: 10, floor: 8, frames: 30, compare: 0x1f },
   { room: AND.llama, name: '58-no-probllama', col: 10, floor: 6, frames: 40, compare: 0x04 },
+  { room: AND.herd, name: '78-llama-drama', col: 26, floor: 6, frames: 40, compare: 0x04 },
   { room: AND.rock, name: '59-rock-and-roll', col: 3, floor: 6, frames: 100, compare: 0x13 },
   { room: AND.market, name: '60-market-forces', col: 2, floor: 12, frames: 40, compare: 0x1c },
   { room: AND.mist, name: '61-mist-opportunity', col: 3, floor: 18, frames: 40, compare: 0x0a },
@@ -34,10 +35,10 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 ];
 
 const probe = newPlay().g;
-const chullo = itemIndex(probe, AND.market, 0);
+const chullo = itemIndex(probe, AND.boat, 0);
 // what Monty wears where he is: the Pacific's lei until the chullo is found, and he is only sure to have the chullo on the boat and after
 const lei = itemIndex(probe, PAC.lei, 0);
-const hat = (room: number) => (room >= AND.boat ? chullo : lei);
+const hat = (room: number) => (room === AND.boat || room === AND.river || room === AND.bank ? chullo : lei);
 
 const pics = SPOTS.map((s) => {
   const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: hat(s.room) });

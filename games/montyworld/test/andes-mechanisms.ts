@@ -24,8 +24,8 @@ import { ANDES_CREATURES } from '../src/art/andes-creatures';
 import { FIRST_CREATURE } from '../src/layout';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY } from '../src/art/andes-items';
 import { chulloWorn, CHULLO_COLOUR } from '../src/art/andes-hat';
-import { AND, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, BOULDER_PATH, BOULDERS, TANGLE_CELLS, TANGLE_ROPE, TANGLE_ROPE_CODE, VINES } from '../src/andes';
-import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS } from '../src/andes-pointers';
+import { AND, ANDES_ALL_ROOMS, ANDES_COLOURS, ANDES_EXTRA_COLOURS, ANDES_EXTRA_SECTORS, ANDES_ROOMS, ANDES_SECTORS, BOULDER_OF_ROCK, BOULDER_PATH, GEYSERS, ROCKFALL, TANGLE_CELLS, TANGLE_ROPE, TANGLE_ROPE_CODE, VENTS, VINES } from '../src/andes';
+import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from '../src/andes-pointers';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
@@ -42,7 +42,7 @@ import { creatureRooms, itemIndex, standY } from './route';
 const DOWN = { ...NONE, down: true };
 const JUMP = { ...NONE, fire: true };
 /** The items by name (the room's nth). */
-const CHULLO = [AND.market, 0] as const, PANPIPES = [AND.mist, 0] as const, MACHETE = [AND.tunnel, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
+const CHULLO = [AND.boat, 0] as const, PANPIPES = [AND.mist, 0] as const, MACHETE = [AND.tunnel, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
 
 /** The picture sprite 2 shows (the canopy's). */
 const sprite2 = (g: Game): number | undefined => g.vic.sprites[2]?.ptr;
@@ -54,32 +54,35 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 30, AND.jump], [3, 30, AND.thin], [4, 30, AND.condor], [5, 30, AND.llama], [5, 31, AND.rock], [5, 32, AND.market], [5, 33, AND.mist], [6, 30, AND.cloud], [6, 31, AND.tunnel], [7, 30, AND.boat],
+  const placed = [[2, 30, AND.jump], [3, 30, AND.thin], [4, 30, AND.condor], [5, 29, AND.herd], [5, 30, AND.llama], [5, 31, AND.rock], [5, 32, AND.market], [5, 33, AND.mist], [6, 30, AND.cloud], [6, 31, AND.tunnel], [7, 30, AND.boat],
     [7, 31, AND.river], [7, 32, AND.bank]] as const;
-  check('the Andes and the Amazon are twelve rooms in a block of four columns (30-33) and six rows (2-7) beside the Pacific\'s hold (row 2, column 29), room ids 55 to 66, the regions before them unchanged',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(2, 29) === PAC.hold && grid(7, 33) === 67 && WORLD.exitGrid.rows === 8);
+  check('the Andes and the Amazon are thirteen rooms in a block of five columns (29-33) and six rows (2-7) beside the Pacific\'s hold (row 2, column 29), room ids 55 to 66 and LLAMA DRAMA (78, added after Rio: the ids before it unchanged), the regions before them unchanged',
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 79 && grid(2, 29) === PAC.hold && grid(7, 33) === 67 && WORLD.exitGrid.rows === 8);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  const mine = coinsIn(55, 66);
+  const mine = coinsIn(55, 66) + coinsIn(78, 78);
   check(`the regions before the Andes keep their coins and finds, in the same table places (first), and the Andes add ${mine} coins and 9 finds (the chullo, the panpipes, the machete and six empanadas)`,
     coinsIn(0, 54) === 147 && itemsIn(0, 54) === 25 && itemsIn(55, 66) === 9 && (WORLD.coinTable[146 * 3] ?? 99) <= 54 && (WORLD.coinTable[147 * 3] ?? 0) >= 55);
   check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
-  check('the Andes\' sectors and map colours are one each', ANDES_SECTORS.length === 12 && ANDES_COLOURS.length === 12 && ANDES_SECTORS.every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
+  check('the Andes\' sectors and map colours are one each', ANDES_SECTORS.length === 12 && ANDES_COLOURS.length === 12 && ANDES_EXTRA_SECTORS.length === 1 && ANDES_EXTRA_COLOURS.length === 1 && [...ANDES_SECTORS, ...ANDES_EXTRA_SECTORS].every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
   const typeable = (t: string) => /^[A-Z0-9 .:,!?-]+$/.test(t);
   check('every name and hint the Andes put in the name row is in letters the font has (it has no apostrophe: a block is drawn there and the letter after it is a capital)',
-    ANDES_SECTORS.every((s) => typeable(s.text)) && ['THE LLAMA IS CROSS: CALM IT', 'THE UNDERGROWTH IS TOO THICK', 'THE CAPTAIN CARRIES LOCALS ONLY', 'A CHULLO: LOOK LIKE A LOCAL', 'PANPIPES: MUSIC CALMS LLAMAS', 'MACHETE: HACKS THROUGH VINES'].every(typeable));
-  const rooms = creatureRooms(ANDES_ROOMS);
+    [...ANDES_SECTORS, ...ANDES_EXTRA_SECTORS].every((s) => typeable(s.text)) && ['THE LLAMA IS CROSS: CALM IT', 'THE UNDERGROWTH IS TOO THICK', 'THE CAPTAIN CARRIES LOCALS ONLY', 'A SNAKE COILS ON THE STAIR', 'A CHULLO: LOOK LIKE A LOCAL', 'PANPIPES: MUSIC CALMS BEASTS', 'MACHETE: HACKS THROUGH VINES'].every(typeable));
+  const rooms = creatureRooms(ANDES_ALL_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in the Andes' twelve rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === Object.keys(ANDES_CREATURES).length && rooms.size >= 8 && rooms.size <= 13 && most <= 2);
-  const used = [...HAT_BLOCKS, ...Object.values(SPRITE), ...Object.values(SIB_SPRITE), ...Object.values(CHINA_SPRITE), ...Object.values(DRAGON_POINTERS), ...Object.values(JAPAN_SPRITE), ...Object.values(PAC_SPRITE), ...Object.values(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS];
-  check(`every block of the bank the Andes use is its own (${used.length} pointers with every earlier region's and the hats', none twice, none Monty's: $50-$73, the death's $7E-$8D, the first aid kit's, the smoke stack's) and each has a picture there`,
-    new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && [...Object.values<number>(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS].every((p) => (p < 0x7e || p > 0x8e) && p !== 0x92 && WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
-  const crowded = overCrowded(ANDES_ROOMS);
+  check(`${rooms.size} kinds of creature in the Andes' thirteen rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === Object.keys(ANDES_CREATURES).length && rooms.size >= 8 && rooms.size <= 13 && most <= 2);
+  const used = [...HAT_BLOCKS, ...Object.values(SPRITE), ...Object.values(SIB_SPRITE), ...Object.values(CHINA_SPRITE), ...Object.values(DRAGON_POINTERS), ...Object.values(JAPAN_SPRITE), ...Object.values(PAC_SPRITE), ...Object.values(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS];
+  check(`every block of the bank the Andes use is its own (${used.length} pointers with every earlier region's and the hats', none twice, none Monty's: $50-$73, the death's $7E-$8D) and each has a picture there (the leaping piranha's three are the jetpack's fourth block, the first aid kit's and the smoke stack's: no room of this game shows them)`,
+    new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && [...Object.values<number>(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS].every((p) => (p < 0x7e || p > 0x8e) && p !== 0x92) && [...Object.values<number>(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS].every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
+  const crowded = overCrowded(ANDES_ALL_ROOMS);
   check(`no room has a fourth creature (sprite 7 is the worn chullo's: it would be a phantom; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no flight rooms, no boulders, no vines, no canopy)', MOTR.flights.length === 0 && MOTR.rollers.length === 0 && MOTR.vines.length === 0 && MOTR.canopy === null);
-  check('the flight rooms are the three of the drop, the boulders T2\'s three, the vines P\'s three', WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.condor].join() && WORLD.rollers.length === 3 && WORLD.rollers.every((r) => r.room === AND.rock) && WORLD.vines.length === 3 && WORLD.vines.every((v) => v.room === AND.river));
-  const roomsWithSprites = ANDES_ROOMS.filter((r) => (r.enemies?.length ?? 0) + (r.item ? 1 : 0) > 3 && WORLD.rollers.some((b) => b.room === r.id));
-  check('the boulders\' room leaves their sprites (1, 2 and 6) free: one item, at most two creatures', roomsWithSprites.length === 0 && (ANDES_ROOMS.find((r) => r.id === AND.rock)?.enemies?.length ?? 9) <= 2);
+  const rollersIn = (room: number) => WORLD.rollers.filter((r) => r.room === room).length;
+  check('the flight rooms are the three of the drop, the boulders T2\'s three, the gorge\'s rockfall two, the leaping piranhas three in the river and one in the estuary, the vines P\'s three, the llamas\' rides two', WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.condor].join()
+    && rollersIn(AND.rock) === 3 && rollersIn(AND.thin) === 2 && rollersIn(AND.river) === 3 && rollersIn(AND.bank) === 1 && WORLD.rollers.length === 9 && WORLD.vines.length === 3 && WORLD.vines.every((v) => v.room === AND.river) && WORLD.floats.filter((f) => f.room === AND.herd).length === 2);
+  // a roller takes one of the sprites 1, 2 and 6, so the room's creatures (4 upward) and its item (0) never share one: at most two creatures in the boulders' room (sprites 4, 5) and one with three of them, none in the gorge
+  const crowdedRollers = ANDES_ALL_ROOMS.filter((r) => WORLD.rollers.some((b) => b.room === r.id && (b.sprite === 6 ? (r.enemies?.length ?? 0) > 2 : false)) || new Set(WORLD.rollers.filter((b) => b.room === r.id).map((b) => b.sprite)).size !== rollersIn(r.id));
+  check('no two things on paths share a sprite, and the one on sprite 6 has no third creature to meet there', crowdedRollers.length === 0);
 }
 
 // ---- the parachute: flight --------------------------------------------------------------------------
@@ -143,15 +146,15 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const wall = at(AND.jump, 3, 11);
   run(wall, LEFT, 40);
   check('and he cannot fly into the tail\'s wall to be out of the room: he stays in the first flight room', wall.g.roomId === AND.jump);
-  const cond = at(AND.thin, 4, 4, [], false, true);
+  const cond = at(AND.condor, 6, 7, [], false, true);
   const dies = diesAt(cond, NONE, 260);
-  check(`a condor kills him (event 1) when it meets him: the first, crossing the second room's top, in ${dies} frames`, dies >= 0);
+  check(`a condor kills him (event 1) when it meets him: the first, circling the third room's left, in ${dies} frames`, dies >= 0);
 }
 
 // ---- the boulders ---------------------------------------------------------------------------------------
 {
   const path = polyline(BOULDER_PATH);
-  const first = must(BOULDERS[0], 'a boulder');
+  const first = must(BOULDER_OF_ROCK[0], 'a boulder');
   const start = rollerAt(first, first.start);
   const mid = rollerAt(first, first.start + Math.floor(path.length / first.speed / 2));
   const end = rollerAt(first, first.start + Math.floor(path.length / first.speed));
@@ -159,7 +162,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const again = rollerAt(first, first.start + first.every);
   check(`a boulder rolls from the plateau's lip (${start ? Math.round(start.x) : '-'}, ${start ? Math.round(start.y) : '-'}) along a path ${Math.round(path.length)} pixels long at ${first.speed} a frame, is at the wall at the end, gone after it and back at the lip ${first.every} frames on`,
     start !== null && mid !== null && end !== null && gone === null && again !== null && Math.abs((again?.x ?? 0) - (start?.x ?? 1)) < 1 && (mid?.y ?? 0) > (start?.y ?? 0));
-  check('three boulders, a third of a period apart, one path, sprites 1, 2 and 6, four pictures', BOULDERS.map((b) => b.start).join() === [0, 120, 240].join() && BOULDERS.map((b) => b.sprite).join() === '1,2,6' && BOULDERS.every((b) => b.frames.length === 4 && b.path === BOULDER_PATH && b.every === 360) && BOULDER_FRAMES.length === 4);
+  check('three boulders, a third of a period apart, one path, sprites 1, 2 and 6, four pictures', BOULDER_OF_ROCK.map((b) => b.start).join() === [0, 120, 240].join() && BOULDER_OF_ROCK.map((b) => b.sprite).join() === '1,2,6' && BOULDER_OF_ROCK.every((b) => b.frames.length === 4 && b.path === BOULDER_PATH && b.every === 360) && BOULDER_FRAMES.length === 4);
   // the picture on screen: a sprite is shown while the boulder is on its path and hidden after
   const s = at(AND.rock, 2, 6);
   let shown = 0;
@@ -197,6 +200,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
     VINES.length === 3 && v1.phase - v0.phase === 32 && v2.phase - v1.phase === 32 && VINES.every((v) => v.period === 96 && v.length === 13 && v.top === 3 && v.amplitude === 5));
   check('a vine is straight at the start of its swing, five cells out at its tip a quarter on, straight again a half on, five the other way three quarters on', [0, 24, 48, 72].map((t) => Math.round(vineOffset(v0, v0.length, t))).join() === '0,5,0,-5' && vineCol(v0, v0.length, 24) === v0.col + 5);
   const s = at(AND.river, 1, 15);
+  s.g.rollers = [];
   const code = v0.code;
   const drawn = (g: Game, t: number) => Array.from({ length: v0.length }, (_, d) => cell(g, vineCol(v0, d, t), v0.top + d)).filter((c) => c === code).length;
   run(s, NONE, 1);
@@ -207,6 +211,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   // the real grab: standing at the bank's edge, a vine swings over it and takes hold of him (a rope is taken by walking into it); then he is carried with it
   const grabbed = (): { s: State; frames: number } => {
     const h = at(AND.river, 4, 15);
+    h.g.rollers = [];
     for (let f = 0; f < 400; f++) { frame(h, NONE); if (h.g.onRope && vineHeld(h.g)) return { s: h, frames: f }; }
     return { s: h, frames: -1 };
   };
@@ -236,6 +241,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
     return way > 0 && !j.g.onRope && px(j.g) < x0;
   })());
   const w = at(AND.river, 1, 15);
+  w.g.rollers = [];
   check('the river is deadly: stepping off the bank into it kills him', diesAt(at(AND.river, 3, 15), RIGHT, 80) >= 0 && w.g.roomId === AND.river);
 }
 
@@ -274,7 +280,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 // ---- the chullo ---------------------------------------------------------------------------------------------
 {
   const worn = chulloWorn(WORLD.bankImage);
-  const chullo = itemIndex(newGame(WORLD, false).g, AND.market, 0);
+  const chullo = itemIndex(newGame(WORLD, false).g, AND.boat, 0);
   const s = newGame(WORLD, false);
   wear(s.g, chullo);
   check('putting on the chullo writes its pictures over Monty\'s and its sprite over the hat pool\'s', s.g.worn === chullo && worn.monty.length > 0 && worn.monty.every((m) => s.g.mem.slice(m.ptr * 64, m.ptr * 64 + 63).every((b, i) => b === m.block[i])));
@@ -294,25 +300,102 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   check('a save made in the chullo carries on in it (the chullo as the worn item, the captain gone)', b.g.worn === chullo && b.g.roomId === AND.boat && b.g.enemies.filter((e) => e.type === FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('captain')).every((e) => e.x === 0xff));
 }
 
+// ---- the 2026-11-22 set pieces: the rockfall, the leaping piranhas, the geysers, the spit, the llamas' rides, the awning, the crusher, the bat, the snake ----------------
+{
+  const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 300000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5) !== null;
+  // the gorge's rockfall: two boulders fall the room's height down their own columns on their own periods
+  const [fa, fb] = [must(ROCKFALL[0], 'a boulder'), must(ROCKFALL[1], 'a boulder')];
+  const top = rollerAt(fa, fa.start + 5), bottom = rollerAt(fa, fa.start + 70);
+  check(`the gorge's boulders fall from above the room's top (y ${top ? Math.round(top.y) : '-'}) to its foot (y ${bottom ? Math.round(bottom.y) : '-'}) in about 80 frames, on periods of ${fa.every} and ${fb.every} frames that are not multiples of one another`,
+    top !== null && bottom !== null && bottom.y - top.y > 100 && fa.every !== fb.every && fa.every % fb.every !== 0 && fb.every % fa.every !== 0 && fa.path === fa.path && Math.abs((top?.x ?? 0) - (bottom?.x ?? 1)) < 1);
+  check('standing in a boulder\'s column he is struck by it within a period, at the far cliff\'s foot never', diesAt(at(AND.thin, 14, 9), NONE, 520) >= 0 && diesAt(at(AND.thin, 22, 9), NONE, 800) < 0);
+
+  // the leaping piranhas: in the air for part of each period only, nose up, level, nose down
+  for (const room of [AND.river, AND.bank]) {
+    const specs = WORLD.rollers.filter((r) => r.room === room && r.spread);
+    const s = at(room, 2, 15);
+    const seen = new Set<number>();
+    let shown = 0;
+    const bit = 1 << (specs[0]?.sprite ?? 1);
+    const every = specs[0]?.every ?? 1;
+    for (let f = 0; f < every; f++) { frame(s, NONE); if ((s.g.vic.enable & bit) !== 0) { shown++; seen.add(s.g.vic.sprites[specs[0]?.sprite ?? 1]?.ptr ?? 0); } }
+    check(`room ${room}: a piranha leaps out of the water for ${shown} of its ${every} frames, through its three pictures (${[...seen].map((p) => '$' + p.toString(16)).join(' ')})`, shown > 30 && shown < every * 0.7 && seen.size === 3 && [...seen].every((p) => (LEAP_POINTERS as readonly number[]).includes(p)));
+  }
+  check('the river\'s three piranhas have periods of their own (170, 190, 230: none a multiple of another, none of the vines\' 96)', (() => {
+    const e = WORLD.rollers.filter((r) => r.room === AND.river).map((r) => r.every);
+    return e.length === 3 && e.every((x) => x % 96 !== 0) && e.every((x, i) => e.every((y, j) => i === j || (x % y !== 0 && y % x !== 0)));
+  })());
+
+  // the geysers: three vents take turns; never two at once; puffs before the jet; the cells between them safe
+  const live = (t: number) => GEYSERS.filter((g) => { const p = (t + (g.offset ?? 0)) % g.period; return p >= g.start + g.warn && p < g.start + g.warn + g.live; }).length;
+  check('three geysers, 150 frames to a period, never two jetting at once (so there is always a vent to cross)', GEYSERS.length === VENTS.length && Math.max(...Array.from({ length: 150 }, (_, t) => live(t))) === 1);
+  const vent = at(AND.mist, 6, 18);
+  const codes = new Set<number>();
+  for (let f = 0; f < 300; f++) { frame(vent, NONE); codes.add(cell(vent.g, 6, 15)); if (dead(vent.g)) break; }
+  check('at a vent the steam shows puffs first (a warning) and then the jet, which scalds him; in the 3 cells between two vents he can stand through three periods untouched', codes.size >= 3 && diesAt(at(AND.mist, 6, 18), NONE, 450) >= 0 && diesAt(at(AND.mist, 9, 18), NONE, 450) < 0 && diesAt(at(AND.mist, 13, 18), NONE, 450) < 0);
+
+  // the spit at the tunnel's mouth: a gob on a timing, calmed by the panpipes
+  check('the spit gobs in front of the tunnel on a timing (it kills in the three cells before the mouth) and the panpipes calm it', diesAt(at(AND.rock, 9, 18), NONE, 480) >= 0 && diesAt(at(AND.rock, 9, 18, [PANPIPES]), NONE, 480) < 0);
+
+  // the llamas' rides: two decks, half a cycle apart; the ravine's drop is safe
+  const rides = WORLD.floats.filter((f) => f.room === AND.herd);
+  check('two llamas carry decks across the ravine and back (the span cols 9-22), half a cycle apart, a deck is always about to arrive at either side', rides.length === 2 && rides.every((r) => r.bounce !== undefined && r.span.from === 9 && r.span.to === 22) && rides[0]?.offset !== rides[1]?.offset);
+  const drop = at(AND.herd, 20, 6);
+  run(drop, NONE, 120);
+  check(`a fall off the east terrace into the ravine is a drop to the lane, not a death (alive, y ${drop.g.y}, the lane's ${standY(18)})`, !dead(drop.g) && drop.g.y === standY(18));
+  check('a way across the ravine on the llamas\' backs: from the east terrace to the west one (search)', reach(at(AND.herd, 26, 6), { room: AND.herd, col: 4, row: 4 }, (g) => g.roomId === AND.herd && g.y === standY(6) && colOf(g) <= 7));
+
+  // the awning: a walk over the hat stall's roof is safe, a stop is not (it gives way and drops him to the lane)
+  const stop = at(AND.market, 25, 9);
+  run(stop, NONE, 100);
+  check(`the hat stall's awning gives way under a stop (he falls to the lane: y ${stop.g.y}, the lane's ${standY(18)})`, stop.g.y === standY(18) && !dead(stop.g));
+  const walk = at(AND.market, 22, 9);
+  run(walk, RIGHT, 80);
+  check(`and holds a walk over it (after 80 frames of walking he is on it at col ${colOf(walk.g)}, y ${walk.g.y})`, walk.g.y === standY(9) && colOf(walk.g) >= 25);
+
+  // the crusher crosses the tunnel's lane: standing under it is death within a cycle, the lane before it is safe, and a crossing is a timing
+  check('the Mole Crusher comes down across the lane: standing under it is death within its cycle, the stretch before it is safe, and he gets across on its cycle (search)',
+    diesAt(at(AND.tunnel, 22, 18), NONE, 900) >= 0 && diesAt(at(AND.tunnel, 17, 18), NONE, 900) < 0
+    && reach(at(AND.tunnel, 18, 18), { room: AND.tunnel, col: 25, row: 14 }, (g) => g.roomId === AND.tunnel && g.y === standY(16) && colOf(g) >= 24));
+  // the bat dives across the lane: it matters now
+  check('the cave bat dives down to the lane and up again: standing in its column kills him within its patrol', diesAt(at(AND.tunnel, 12, 18, [], false, true), NONE, 700) >= 0);
+  // the snake on the stair: no way up without a tune (and the stair holds nothing else)
+  const stair = (holds: readonly (readonly [number, number])[]) => at(AND.bank, 20, 14, holds, false, true);
+  check('the anaconda on the estuary\'s second step is a wall (a low bough over it: no jumping it) until the panpipes: no way up to the launch without them, a way with them',
+    search(stair([]), (g) => g.roomId === AND.bank && g.y === standY(8) && colOf(g) >= 27, undefined, 120000, 0) === null
+    && search(stair([PANPIPES]), (g) => g.roomId === AND.bank && g.y === standY(8) && colOf(g) >= 27, [{ room: AND.bank, col: 29, row: 6 }], 200000, 1.5) !== null);
+
+  // fairness: from several starts (the room's timings run for a while before he comes in), the crossing is there
+  const fair = (label: string, make: () => State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean) => {
+    const ok = [0, 37, 74, 111, 148].filter((wait) => { const s = make(); run(s, NONE, wait); return reach(s, aim, goal, 400000); }).length;
+    check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
+  };
+  fair('the piranha river crossed by the vines', () => at(AND.river, 2, 15, [], false, true), { room: AND.river, col: 31, row: 14 }, (g) => g.roomId === AND.bank);
+  fair('the estuary\'s stepping stones past the piranha and the dolphin to the stair', () => at(AND.bank, 2, 15, [PANPIPES], false, true), { room: AND.bank, col: 20, row: 13 }, (g) => g.roomId === AND.bank && g.y === standY(14));
+  fair('the hot spring cave\'s three geysers to the first step', () => at(AND.mist, 2, 18, [], false, true), { room: AND.mist, col: 22, row: 16 }, (g) => g.roomId === AND.mist && colOf(g) >= 19 && g.y === standY(16));
+  fair('the herd\'s lane, from the ravine\'s landing east to T1\'s low path', () => at(AND.herd, 14, 16, [], false, true), { room: AND.herd, col: 31, row: 16 }, (g) => g.roomId === AND.llama);
+  fair('the gorge\'s rockfall, from the top to the foot', () => at(AND.thin, 16, 4), { room: AND.thin, col: 14, row: 19 }, (g) => g.roomId === AND.condor);
+}
+
 // ---- the joins ------------------------------------------------------------------------------------------
 {
   /** The rows open (not a wall) down the edge column of a room, and the columns open along its top or bottom row. */
   const open = (room: number) => {
-    const r = must(ANDES_ROOMS.find((x) => x.id === room), 'a room');
+    const r = must(ANDES_ALL_ROOMS.find((x) => x.id === room), 'a room');
     const wall = (col: number, row: number) => { const ch = r.map[row]?.[col] ?? '.'; return ch !== '.' && [1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0)); };
     return { wall };
   };
   const rowsOpen = (room: number, col: number) => Array.from({ length: 20 }, (_, row) => row).filter((row) => !open(room).wall(col, row));
   const colsOpen = (room: number, row: number) => Array.from({ length: 32 }, (_, col) => col).filter((col) => !open(room).wall(col, row));
   const together = (a: readonly number[], b: readonly number[]) => a.filter((x) => b.includes(x) && b.includes(x + 1) && a.includes(x + 1)).length > 0;
-  const sides: readonly (readonly [number, number])[] = [[AND.llama, AND.rock], [AND.rock, AND.market], [AND.market, AND.mist], [AND.cloud, AND.tunnel], [AND.boat, AND.river], [AND.river, AND.bank]];
+  const sides: readonly (readonly [number, number])[] = [[AND.herd, AND.llama], [AND.llama, AND.rock], [AND.rock, AND.market], [AND.market, AND.mist], [AND.cloud, AND.tunnel], [AND.boat, AND.river], [AND.river, AND.bank]];
   /** The rows open on one side of a join and wall on the other (a walk there would end inside a wall): the two top rows are the ceiling's, nothing of him gets there. */
   const clash = (l: number, r: number) => {
     const a = rowsOpen(l, 31), b = rowsOpen(r, 0);
     return [...a.filter((x) => !b.includes(x)), ...b.filter((x) => !a.includes(x))].filter((row) => row >= 3);
   };
   const badSides = sides.filter(([l, r]) => !together(rowsOpen(l, 31), rowsOpen(r, 0)) || clash(l, r).length > 0);
-  check(`every east-west join of the Andes is open at the same rows on both sides, no open row meeting a wall (${badSides.length ? badSides.map(([l, r]) => `${l}-${r}: ${clash(l, r).join(' ')}`).join(', ') : 'all six'})`, badSides.length === 0);
+  check(`every east-west join of the Andes is open at the same rows on both sides, no open row meeting a wall (${badSides.length ? badSides.map(([l, r]) => `${l}-${r}: ${clash(l, r).join(' ')}`).join(', ') : 'all seven'})`, badSides.length === 0);
   const tops: readonly (readonly [number, number])[] = [[AND.thin, AND.condor]];
   check('the flight rooms\' open bottoms meet the next room\'s open top (the cells he falls into are air)', tops.every(([u, l]) => colsOpen(u, 19).filter((c) => colsOpen(l, 3).includes(c)).length >= 5)
     && colsOpen(AND.jump, 19).filter((c) => colsOpen(AND.thin, 3).includes(c)).length >= 5 && colsOpen(AND.condor, 19).filter((c) => colsOpen(AND.llama, 3).includes(c)).length >= 5);
@@ -363,26 +446,26 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
     reach(at(AND.boat, 4, 16, [MACHETE]), { room: AND.cloud, col: 5, row: 17 }, (g) => g.roomId === AND.cloud, 200000));
   // the edges: no room is open at a side that leads nowhere (he would walk into the border). The rows open at each side, from the third row down
   const edge = (room: number, col: 0 | 31) => {
-    const r = must(ANDES_ROOMS.find((x) => x.id === room), 'a room');
+    const r = must(ANDES_ALL_ROOMS.find((x) => x.id === room), 'a room');
     return Array.from({ length: 17 }, (_, i) => i + 3).filter((row) => {
       const ch = r.map[row]?.[col] ?? '.';
       return ch === '.' || ![1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0)); // (water is no way out: he falls into it and dies)
     });
   };
   const opens: readonly (readonly [number, 0 | 31, readonly number[]])[] = [
-    [AND.jump, 0, [14, 15]], [AND.llama, 31, [3, 4, 5, 16, 17]], [AND.rock, 0, [3, 4, 5, 16, 17]], [AND.rock, 31, [10, 11]], [AND.market, 0, [10, 11]], [AND.market, 31, [16, 17]], [AND.mist, 0, [16, 17]],
+    [AND.jump, 0, [14, 15]], [AND.herd, 31, [3, 4, 5, 16, 17]], [AND.llama, 0, [3, 4, 5, 16, 17]], [AND.llama, 31, [3, 4, 5, 16, 17]], [AND.rock, 0, [3, 4, 5, 16, 17]], [AND.rock, 31, [10, 11]], [AND.market, 0, [10, 11]], [AND.market, 31, [16, 17]], [AND.mist, 0, [16, 17]],
     [AND.cloud, 31, [6, 7, 16, 17]], [AND.tunnel, 0, [6, 7, 16, 17]], [AND.boat, 31, [13, 14]], [AND.river, 0, [13, 14]], [AND.river, 31, [13, 14]], [AND.bank, 0, [13, 14]], [AND.bank, 31, [6, 7]],
   ];
   const bad: string[] = [];
   /** A side with no room beyond it is the world's edge (the ground or the sea runs off it and the engine stops him there: no wall is needed). */
-  const worldsEdge = (r: (typeof ANDES_ROOMS)[number], col: 0 | 31) => ![...PACIFIC_ROOMS, ...ANDES_ROOMS].some((o) => o.row === r.row && o.col === r.col + (col === 0 ? -1 : 1));
-  for (const r of ANDES_ROOMS) for (const col of [0, 31] as const) {
+  const worldsEdge = (r: (typeof ANDES_ROOMS)[number], col: 0 | 31) => ![...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS].some((o) => o.row === r.row && o.col === r.col + (col === 0 ? -1 : 1));
+  for (const r of ANDES_ALL_ROOMS) for (const col of [0, 31] as const) {
     if (worldsEdge(r, col)) continue;
     const want = opens.find(([room, c]) => room === r.id && c === col)?.[2] ?? [];
     const got = edge(r.id, col);
     if (got.join() !== want.join()) bad.push(`room ${r.id} col ${col}: open at ${got.join(' ') || 'none'}, should be ${want.join(' ') || 'none'}`);
   }
-  check(`every side of every room with a room beyond it is closed from the third row down but where a join is; a side at the world's edge is open ground (${bad.length ? bad.join('; ') : 'all 24 sides'})`, bad.length === 0);
+  check(`every side of every room with a room beyond it is closed from the third row down but where a join is; a side at the world's edge is open ground (${bad.length ? bad.join('; ') : 'all 26 sides'})`, bad.length === 0);
   // the gates, by the bot's search over what he can do (jumps, ropes, falls; the rooms' creatures in): none past a gate without its item
   const stats = { exhausted: false };
   const llama = at(AND.rock, 4, 18, [], false, true);
@@ -399,7 +482,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[AND.rock, 4, 18, 'THE LLAMA IS CROSS: CALM IT'], [AND.cloud, 12, 18, 'THE UNDERGROWTH IS TOO THICK'], [AND.boat, 9, 15, 'THE CAPTAIN CARRIES LOCALS ONLY']] as const;
+  const wants = [[AND.rock, 4, 18, 'THE LLAMA IS CROSS: CALM IT'], [AND.cloud, 12, 18, 'THE UNDERGROWTH IS TOO THICK'], [AND.boat, 9, 15, 'THE CAPTAIN CARRIES LOCALS ONLY'], [AND.bank, 2, 15, 'A SNAKE COILS ON THE STAIR']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -408,9 +491,9 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const plain = at(AND.rock, 4, 18, [], false);
   run(plain, NONE, 120);
   check('ORIGINAL says nothing', rowText(plain.g) === 'ROCK AND ROLL');
-  for (const [item, text, col, floor] of [[CHULLO, 'A CHULLO: LOOK LIKE A LOCAL', 22, 9], [PANPIPES, 'PANPIPES: MUSIC CALMS LLAMAS', 27, 12], [MACHETE, 'MACHETE: HACKS THROUGH VINES', 28, 12]] as const) {
+  for (const [item, text, col, floor] of [[CHULLO, 'A CHULLO: LOOK LIKE A LOCAL', 22, 8], [PANPIPES, 'PANPIPES: MUSIC CALMS BEASTS', 27, 12], [MACHETE, 'MACHETE: HACKS THROUGH VINES', 28, 12]] as const) {
     const [room, nth] = item;
-    const rec = must(ANDES_ROOMS.find((r) => r.id === room)?.item, 'the item');
+    const rec = must(ANDES_ALL_ROOMS.find((r) => r.id === room)?.item, 'the item');
     const take = at(room, col, floor, [], true);
     void rec;
     for (let f = 0; f < 120 && !take.g.siCollected[itemIndex(take.g, room, nth)]; f++) frame(take, { ...NONE, right: true });
@@ -428,13 +511,13 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
   // a save made on coming into each of the Andes' rooms (every key taken, the chullo on) carries on in the same room, alive
   {
-    const spots = [[AND.jump, 1, 16], [AND.thin, 8, 9], [AND.condor, 8, 9], [AND.llama, 10, 6], [AND.rock, 10, 6], [AND.market, 2, 12], [AND.mist, 3, 18], [AND.cloud, 29, 18], [AND.tunnel, 3, 18], [AND.boat, 2, 16], [AND.river, 1, 15],
+    const spots = [[AND.jump, 1, 16], [AND.thin, 8, 9], [AND.condor, 8, 9], [AND.herd, 26, 6], [AND.llama, 10, 6], [AND.rock, 10, 6], [AND.market, 2, 12], [AND.mist, 3, 18], [AND.cloud, 29, 18], [AND.tunnel, 3, 18], [AND.boat, 2, 16], [AND.river, 1, 15],
       [AND.bank, 12, 13]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
       for (const [r, n] of [CHULLO, PANPIPES, MACHETE]) a.g.siCollected[itemIndex(a.g, r, n)] = 0x81;
-      wear(a.g, itemIndex(a.g, AND.market, 0));
+      wear(a.g, itemIndex(a.g, AND.boat, 0));
       enterRoom(a.g, room, 0x0c + (col + 4) * 4, standY(floor));
       for (let n = 0; n < 200 && (a.g.freeze || a.g.script); n++) frame(a, NONE);
       const b = newGame(WORLD, false);
@@ -446,11 +529,11 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
       b.g.vic.enable &= 0x0f;
       b.g.rollers = [];
       run(b, NONE, 60);
-      const ok = effects && b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, AND.market, 0);
+      const ok = effects && b.g.roomId === room && !dead(b.g) && b.g.worn === itemIndex(b.g, AND.boat, 0);
       if (!ok) { failed.push(room); console.log(`   room ${room}: now in ${b.g.roomId}, dead ${dead(b.g)} (counter ${b.g.actionCounter}, script ${b.g.script ? 'yes' : 'no'}), worn ${b.g.worn}, at ${colOf(b.g)},${b.g.y}`); }
       return ok;
     }).length;
-    check(`a save made on coming into each of the Andes' twelve rooms packs, unpacks and carries on in the same room, alive, in the chullo (${carried} of ${spots.length}${failed.length ? `; not in rooms ${failed.join(', ')}` : ''})`, carried === spots.length);
+    check(`a save made on coming into each of the Andes' thirteen rooms packs, unpacks and carries on in the same room, alive, in the chullo (${carried} of ${spots.length}${failed.length ? `; not in rooms ${failed.join(', ')}` : ''})`, carried === spots.length);
   }
 
   // a save from before the Andes: the first five regions' arrays and a grid without it carry on in the new game

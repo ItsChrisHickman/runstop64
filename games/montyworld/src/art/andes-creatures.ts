@@ -26,7 +26,7 @@ const CONDOR_DOWN = [
 
 /** A condor in flight seen front on: the great wings up, level, down, level, their ends fingered; a ruff round a bare head with its eyes and hooked beak cut in, a short tail. White, to stand off the grey rock. */
 function condor(): NewCreature {
-  return pair('condor', [CONDOR_UP, CONDOR_LEVEL, CONDOR_DOWN, CONDOR_LEVEL].map(sym), 1, true);
+  return pair('condor', [CONDOR_UP, CONDOR_LEVEL, CONDOR_DOWN, CONDOR_LEVEL].map(sym), 15, true);
 }
 
 // ---- the llama: woolly, a long neck, banana ears, a big silly face; it winks (Jeff Minter's)
@@ -59,7 +59,7 @@ function sideLlama(a: number, face: LlamaFace): string[] {
 
 function llama(): NewCreature {
   const f = (eye: LlamaFace['eye'], mouth: LlamaFace['mouth']): LlamaFace => ({ ears: 'up', eye, mouth });
-  return pair('llama', [sideLlama(1.5, f('open', 'shut')), sideLlama(0, f('wink', 'shut')), sideLlama(-1.5, f('open', 'chew')), sideLlama(0, f('wink', 'chew'))], 1, false);
+  return pair('llama', [sideLlama(1.5, f('open', 'shut')), sideLlama(0, f('wink', 'shut')), sideLlama(-1.5, f('open', 'chew')), sideLlama(0, f('wink', 'chew'))], 7, false);
 }
 
 /**
@@ -255,7 +255,7 @@ function anaconda(): NewCreature {
   return pair('anaconda', [frame(0, true), frame(1, false), frame(2, true), frame(3, false)], 5);
 }
 
-// ---- the piranha: red, a great underbite of teeth
+// ---- the piranha: red, a great underbite of teeth (no longer a creature of the rooms: the river's fish leap, as `rollers`)
 
 /** A piranha's body, facing left (12 wide): the eye with its furious brow, the jutting jaw with teeth top and bottom. */
 const PIRANHA = [
@@ -283,10 +283,8 @@ const PIRANHA_TAIL = [
   ['....', '....', '....', '....', '...#', '..##', '.###', '####', '###.', '####', '.###', '..##', '...#', '....', '....', '....'],
 ] as const;
 
-function piranha(): NewCreature {
-  const frame = (t: number): string[] => PIRANHA.map((row, i) => row + (PIRANHA_TAIL[t]?.[i] ?? '....'));
-  return pair('piranha', [frame(0), frame(1), frame(2), frame(1)], 2);
-}
+/** The piranha's picture, facing left (16 x 16): the river's leaping fish (andes-items.ts) are this turned up and down. */
+export const PIRANHA_PICTURE: readonly string[] = PIRANHA.map((row, i) => row + (PIRANHA_TAIL[1]?.[i] ?? '....'));
 
 // ---- the pink river dolphin: a long beak, a smile, leaping
 
@@ -317,7 +315,6 @@ export const ANDES_CREATURES = {
   captain: captain(),
   sloth: sloth(),
   anaconda: anaconda(),
-  piranha: piranha(),
   dolphin: dolphin(),
 } as const satisfies Record<string, NewCreature>;
 

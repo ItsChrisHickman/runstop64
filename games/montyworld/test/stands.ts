@@ -6,7 +6,7 @@
  */
 import { check, finish } from '../../shared/test/check';
 import type { RoomSpec } from '../../shared/monty/rooms';
-import { ANDES_ROOMS } from '../src/andes';
+import { ANDES_ALL_ROOMS } from '../src/andes';
 import { WORLD_DECOR } from '../src/art/world';
 import { CHINA_ROOMS } from '../src/china';
 import { JAPAN_ROOMS } from '../src/japan';
@@ -18,7 +18,7 @@ import { WORLD } from '../src/data';
 import { inRoom } from './climb-kit';
 
 const STANDS = new Set(['lampStreet', 'lampDouble', 'metroSign', 'bench', 'firTree', 'lampPost', 'palm', 'parasol', 'deckchair', 'restTable', 'saladBar', 'rotisserie', 'roundTree', 'lionStatue', 'intihuatana', 'pacTikiTorch', 'pacTotem', 'pacHibiscus', 'pacRoastPig', 'torch', 'jpToro', 'jpBonsai', 'jpPine', 'jpPineBig', 'jpVending', 'jpAndon', 'noodleStall', 'stall', 'marketStall', 'samovar']);
-const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
 const entries = Object.entries(WORLD_DECOR);
 
 let checked = 0;

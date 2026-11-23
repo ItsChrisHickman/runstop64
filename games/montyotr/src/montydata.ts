@@ -179,6 +179,8 @@ export interface PulseSpec {
   /** Frames into its period it is at when the room loads (a row of doors that open one after another), default 0. */
   offset?: number;
   idle: number; warnCode: number; liveCode: number; spent: number;
+  /** A special item that calms it (a tune settles the spitting llama): once Monty has taken item `calmedBy` the group stays at its idle look and kills nothing. */
+  calmedBy?: number;
 }
 
 /**
@@ -228,6 +230,8 @@ export interface CanopyLook { left: number; level: number; right: number; colour
  */
 export interface RollerSpec {
   room: number; sprite: number; path: readonly (readonly [col: number, row: number])[]; speed: number; every: number; start: number; frames: readonly number[]; colour: number;
+  /** The pictures follow the progress along the path instead of turning a step in 8 pixels (a fish leaping from the river: nose up, level, nose down): the first at the start, the last at the end. */
+  spread?: boolean;
 }
 
 /**
@@ -307,7 +311,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { from: number; to: number; rows?: { from: number; to: number } }
+export interface MapRegion { from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column): the Andes' first room beside the Pacific's hold. */ except?: readonly { row: number; col: number }[] }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {

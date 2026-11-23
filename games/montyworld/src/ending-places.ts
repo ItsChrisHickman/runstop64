@@ -1,7 +1,7 @@
 import { wear } from '../../montyotr/src/items';
 import type { Game } from '../../montyotr/src/game';
 import { TOP_ROW, type Scene } from '../../montyotr/src/ending-scenes';
-import { AND, ANDES_ROOMS } from './andes';
+import { AND, ANDES_ALL_ROOMS } from './andes';
 import { CHI, CHINA_ROOMS } from './china';
 import { JAPAN_ROOMS, JP } from './japan';
 import { MOSCOW_ROOMS, ROOM } from './moscow';
@@ -19,7 +19,7 @@ import { SIB } from './siberia';
 const FIRST = { moscow: 0, siberia: SIB.gravy, china: CHI.wall, japan: JP.harbour, pacific: PAC.stern, andes: AND.jump, rio: RIO_ROOM.quay } as const;
 /** The room an item of the game's rooms (by its name) is in. */
 const roomOf = (name: string): number => {
-  const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name);
+  const room = [...MOSCOW_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS].find((r) => r.item?.name === name);
   if (!room) throw new Error(`no item ${name}`);
   return room.id;
 };

@@ -6,7 +6,7 @@
  */
 import { check, finish } from '../../shared/test/check';
 import { WORLD_DECOR } from '../src/art/world';
-import { AND, ANDES_ROOMS } from '../src/andes';
+import { AND, ANDES_ALL_ROOMS } from '../src/andes';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { creatureRooms } from './route';
@@ -14,7 +14,7 @@ import { creatureRooms } from './route';
 const NAME = new Map<number, string>(Object.entries(AND).map(([k, v]) => [v, k]));
 const names = Object.values(WORLD_DECOR);
 
-for (const r of ANDES_ROOMS) {
+for (const r of ANDES_ALL_ROOMS) {
   const label = NAME.get(r.id) ?? String(r.id);
   /** A wall: a cell of a tile of the collision class that stops him (1), not the sea's or a rope's. */
   const solid = (col: number, row: number) => {
@@ -52,8 +52,8 @@ for (const r of ANDES_ROOMS) {
   }
 }
 
-const rooms = creatureRooms(ANDES_ROOMS);
+const rooms = creatureRooms(ANDES_ALL_ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Andes (${[...where].join(', ')})`, where.size <= 2);
 check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('twelve rooms', ANDES_ROOMS.length === 12);
+check('thirteen rooms', ANDES_ALL_ROOMS.length === 13);
 finish();

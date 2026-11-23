@@ -293,6 +293,72 @@ export const ANDES_TILES = {
     '##.#####',
     '###.####',
   ]),
+  /** A stall's wooden post: a pole of two columns. Passable. */
+  stallPost: tile('stallPost', 0, 9, [
+    '...##...',
+    '...##...',
+    '...##...',
+    '...##...',
+    '..###...',
+    '...##...',
+    '...##...',
+    '...##...',
+  ]),
+  /** A hot spring in the cave floor: a pool of water with its ripples and the steam's bubbles, set in rock. Solid (he stands on its stone rim: the rows below are rock). */
+  hotSpring: tile('hotSpring', 1, 14, [
+    '.##..##.',
+    '#..##..#',
+    '........',
+    '.##..##.',
+    '#..##..#',
+    '........',
+    '########',
+    '########',
+  ]),
+  /** The llama's spit gathering at its lips: a few drops. Passable (the warning). */
+  spitDrop: tile('spitDrop', 0, 13, [
+    '........',
+    '........',
+    '.#....#.',
+    '..#.#...',
+    '.#......',
+    '......#.',
+    '..#.....',
+    '........',
+  ]),
+  /** The gob of spit flying: a long green-white splash with a head. Passable, deadly while it is live (a pulse). */
+  spitGob: tile('spitGob', 0, 13, [
+    '........',
+    '..####..',
+    '.######.',
+    '########',
+    '########',
+    '.######.',
+    '..####..',
+    '........',
+  ]),
+  /** Steam leaking from a vent in the cave floor: small puffs. Passable (the warning). */
+  steamPuff: tile('steamPuff', 0, 14, [
+    '........',
+    '........',
+    '..##....',
+    '.####...',
+    '..##..#.',
+    '....####',
+    '.....##.',
+    '........',
+  ]),
+  /** A jet of scalding steam: a thick white-hot column with its edges torn. Passable, deadly while it is live (a pulse). */
+  steamJet: tile('steamJet', 0, 10, [
+    '.######.',
+    '########',
+    '.######.',
+    '########',
+    '.######.',
+    '########',
+    '.######.',
+    '########',
+  ]),
 } as const;
 
 export type AndesTile = keyof typeof ANDES_TILES;

@@ -12,3 +12,9 @@ export const CANOPY_POINTERS = { left: 0x76, level: 0x77, right: 0x78 } as const
 
 /** The boulder's four pictures, one a quarter turn on from the last. */
 export const BOULDER_POINTERS = [0x98, 0x99, 0x9a, 0x9b] as const;
+
+/**
+ * The leaping piranha's three pictures (nose up, level at the top, nose down): the blocks of Monty on the Run's own that a game with no jetpack flame and no first aid kit or smoke stack never shows
+ * (the jetpack's fourth block $79, the first aid kit's $8E and the smoke stack's $92).
+ */
+export const LEAP_POINTERS = [0x79, 0x8e, 0x92] as const;
