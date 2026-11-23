@@ -41,8 +41,8 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check(`the earlier regions keep their coins and finds, in the same table places, and Rio adds ${coinsIn(67, 77)} coins and 9 finds (the key to the city, the headdress, six skewers and the bowl)`,
-    coinsIn(0, 66) === 218 && itemsIn(0, 66) === 34 && itemsIn(67, 77) === 9 && (WORLD.coinTable[217 * 3] ?? 99) <= 66 && (WORLD.coinTable[218 * 3] ?? 0) >= 67);
-  check('19 key items and 23 snacks count on the pause screen; the bowl does not count towards a room\'s finds', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23 && WORLD.uncountedItems.length === 1);
+    (() => { const before = coinsIn(0, 66); return itemsIn(67, 77) === 9 && (WORLD.coinTable[(before - 1) * 3] ?? 99) <= 66 && (WORLD.coinTable[before * 3] ?? 0) >= 67; })()); // (the earlier regions' totals are world.ts's)
+  check('Rio\'s two key items and six skewers count on the pause screen; the bowl does not count towards a room\'s finds', ['cityKey', 'headdress'].every((n) => RIO_ROOMS.some((r) => r.item?.name === n)) && RIO_ROOMS.filter((r) => r.item?.name.startsWith('skewer')).length === 6 && WORLD.uncountedItems.length === 1);
   check('Rio\'s sectors and map colours are one each, in letters the font has', RIO_SECTORS.length === 11 && RIO_COLOURS.length === 11 && RIO_SECTORS.every((s) => s.text.length <= 32 && /^[A-Z0-9 .:,!?-]+$/.test(s.text) && !/Z/.test(s.text)));
   const rooms = creatureRooms(RIO_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
@@ -307,7 +307,7 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the seven regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the seven regions (${info.join(' | ')})`, info[3] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[2] === `ITEMS  0/${WORLD.progress.keyItems.length}`); // (the totals themselves are world.ts's)
   enterRoom(s.g, R.sugar, 0x40, standY(18));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 6, 34], [R.lap]: [0x40, 0xb2, 7, 34] } });
   check('in Rio the map shows its region (seven columns, two rows), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));

@@ -42,7 +42,7 @@ for (const room of rooms) {
   check(`room ${room}: ${crushers.length} crusher${crushers.length > 1 ? 's' : ''} (characters ${chars}) come down and go up (down ${down}, up ${up}, banks moved ${[...banks].join(',')}, ${pictures.size} different pictures)`,
     down && up && banks.size === crushers.length && pictures.size > 8);
 }
-check(`${rooms.length} rooms with crushers were found`, rooms.length >= 5);
+check(`${rooms.length} rooms with crushers were found (Moscow's, Japan's and the Pacific's; the Andes' rebuild took out the Inca tunnel's)`, rooms.length >= 4);
 
 // Nothing is left behind: a shaft's cells are only its own characters (a column's cell i is the base + 6 * column + i, so a shaft no taller than the six
 // a column of glyph memory holds), and when a crusher is away after a cycle the glyph memory and the screen are as they were on entering the room.
