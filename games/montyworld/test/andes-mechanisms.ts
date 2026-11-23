@@ -42,7 +42,7 @@ import { creatureRooms, itemIndex, standY } from './route';
 const DOWN = { ...NONE, down: true };
 const JUMP = { ...NONE, fire: true };
 /** The items by name (the room's nth). */
-const CHULLO = [AND.market, 0] as const, PANPIPES = [AND.mist, 0] as const, MACHETE = [AND.tunnel, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
+const CHULLO = [AND.market, 0] as const, PANPIPES = [AND.mist, 0] as const, MACHETE = [AND.tunnel, 0] as const, PARACHUTE = [PAC.plane, 0] as const;
 
 /** The picture sprite 2 shows (the canopy's). */
 const sprite2 = (g: Game): number | undefined => g.vic.sprites[2]?.ptr;
@@ -57,7 +57,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const placed = [[2, 30, AND.jump], [3, 30, AND.thin], [4, 30, AND.condor], [5, 30, AND.llama], [5, 31, AND.rock], [5, 32, AND.market], [5, 33, AND.mist], [6, 30, AND.cloud], [6, 31, AND.tunnel], [7, 30, AND.boat],
     [7, 31, AND.river], [7, 32, AND.bank]] as const;
   check('the Andes and the Amazon are twelve rooms in a block of four columns (30-33) and six rows (2-7) beside the Pacific\'s hold (row 2, column 29), room ids 55 to 66, the regions before them unchanged',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(2, 29) === PAC.hold && grid(7, 33) === 67 && WORLD.exitGrid.rows === 8);
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 66 && grid(2, 19) === PAC.plane && grid(7, 23) === 67 && WORLD.exitGrid.rows === 8);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const mine = coinsIn(55, 66);
@@ -130,16 +130,16 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   for (let f = 0; f < 600 && down.g.roomId !== AND.llama && gap.g.roomId !== AND.llama; f++) frame(gap, NONE);
   run(gap, NONE, 40);
   check(`down through the third room's gap he lands on Machu Picchu's top terrace (room ${gap.g.roomId}, y ${gap.g.y}, the terrace's ${standY(6)}) on his feet, alive`, gap.g.roomId === AND.llama && gap.g.y === standY(6) && !gap.g.canopyShown && !dead(gap.g));
-  const door = at(PAC.hold, 28, 16, [PARACHUTE]);
+  const door = at(PAC.plane, 28, 16, [PARACHUTE]);
   run(door, RIGHT, 90);
   run(door, NONE, 2);
   check('with the parachute he walks out of the plane\'s rear door and the sky takes him: the first flight room, under the canopy', door.g.roomId === AND.jump && door.g.canopyShown);
-  const shut = at(PAC.hold, 28, 16);
+  const shut = at(PAC.plane, 28, 16);
   run(shut, RIGHT, 90);
-  check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.hold);
+  check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.plane);
   const back = at(AND.jump, 2, 16);
   run(back, LEFT, 60);
-  check('the plane\'s ramp walks back into the hold (the door is the only opening on that side)', back.g.roomId === PAC.hold);
+  check('the plane\'s ramp walks back into the hold (the door is the only opening on that side)', back.g.roomId === PAC.plane);
   const wall = at(AND.jump, 3, 11);
   run(wall, LEFT, 40);
   check('and he cannot fly into the tail\'s wall to be out of the room: he stays in the first flight room', wall.g.roomId === AND.jump);
@@ -459,7 +459,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const old = snapshot(g1);
   // (a real pre-Andes save has the grid of three rows, 150 cells, and none of the Andes' rooms)
   const shortGrid = Array.from(WORLD.exitGrid.image.slice(0, 3 * WORLD.exitGrid.cols), (c) => (c >= AND.jump && c !== 0xff ? 0xff : c));
-  const oldSave = { ...old, coins: old.coins.slice(0, 147), items: old.items.slice(0, 25), exitGrid: shortGrid, roomId: PAC.hold, worn: itemIndex(g1, PAC.lei, 0) };
+  const oldSave = { ...old, coins: old.coins.slice(0, 147), items: old.items.slice(0, 25), exitGrid: shortGrid, roomId: PAC.plane, worn: itemIndex(g1, PAC.waikiki, 1) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Andes\' arrays and grids) loads: the finds and the lei are as saved, and the Andes are on the grid, their coins and finds still to take',

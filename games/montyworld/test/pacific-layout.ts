@@ -1,20 +1,23 @@
 /**
- * The Pacific's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
+ * The Pacific's five rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's; a backdrop, Hana's sea, is
+ * drawn under them), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (pacific-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-layout.ts
  */
 import { check, finish } from '../../shared/test/check';
 import { WORLD_DECOR } from '../src/art/world';
-import { PAC, PACIFIC_EXTRA_ROOMS, PACIFIC_ROOMS } from '../src/pacific';
+import { isBackdrop } from '../src/layout';
+import { PAC, PACIFIC_ROOMS } from '../src/pacific';
 
-const ROOMS = [...PACIFIC_ROOMS, ...PACIFIC_EXTRA_ROOMS];
+const ROOMS = PACIFIC_ROOMS;
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { creatureRooms } from './route';
 
 const NAME = new Map<number, string>(Object.entries(PAC).map(([k, v]) => [v, k]));
 const names = Object.values(WORLD_DECOR);
+const decorNames = Object.keys(WORLD_DECOR);
 
 for (const r of ROOMS) {
   const label = NAME.get(r.id) ?? String(r.id);
@@ -34,7 +37,7 @@ for (const r of ROOMS) {
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }
     for (let y = 0; y < type.h; y++) for (let x = 0; x < type.w; x++) {
       const c = d.col - PLAY_COL + x, row = d.row - PLAY_ROW + y;
-      decor.add(`${c},${row}`);
+      if (!isBackdrop(decorNames[d.type] ?? '')) decor.add(`${c},${row}`);
       if (solid(c, row)) check(`${label}: a decoration sits on a wall at ${c},${row}`, false);
     }
   }
@@ -43,8 +46,8 @@ for (const r of ROOMS) {
     check(`${label}: the coin at ${c},${row} is in the open`, !solid(c, row));
     check(`${label}: the coin at ${c},${row} is not under a decoration`, !decor.has(`${c},${row}`));
   }
-  if (r.item) {
-    const { item } = r;
+  for (const item of [r.item, r.item2]) {
+    if (!item) continue;
     const at = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => `${item.col - PLAY_COL + (x ?? 0)},${item.row - PLAY_ROW + (y ?? 0)}`);
     check(`${label}: the ${item.name} is in the open`, at.every((p) => { const [c, row] = p.split(',').map(Number); return !solid(c ?? 0, row ?? 0); }));
     check(`${label}: the ${item.name} is not under a decoration`, at.every((p) => !decor.has(p)));
@@ -56,6 +59,8 @@ for (const r of ROOMS) {
 
 const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
-check(`about 8 to 16 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 16);
-check('seventeen rooms of the first build and three of the second pass', PACIFIC_ROOMS.length === 17 && PACIFIC_EXTRA_ROOMS.length === 3);
+check(`ten kinds of creature, the moray a mechanism (${rooms.size})`, rooms.size === 10);
+check('five rooms (the reset)', PACIFIC_ROOMS.length === 5);
+const coins = ROOMS.map((r) => r.coins?.length ?? 0);
+check(`nine coins, two a room and one in the hold (${coins.join(', ')})`, coins.join() === '2,2,2,2,1');
 finish();

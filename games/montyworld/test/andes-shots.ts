@@ -36,7 +36,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 const probe = newPlay().g;
 const chullo = itemIndex(probe, AND.market, 0);
 // what Monty wears where he is: the Pacific's lei until the chullo is found, and he is only sure to have the chullo on the boat and after
-const lei = itemIndex(probe, PAC.lei, 0);
+const lei = itemIndex(probe, PAC.waikiki, 1);
 const hat = (room: number) => (room >= AND.boat ? chullo : lei);
 
 const pics = SPOTS.map((s) => {

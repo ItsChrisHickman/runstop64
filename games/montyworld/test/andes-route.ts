@@ -24,7 +24,7 @@ const livesFor = (part: Part, frames: number): Part => ({
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const ANDES_LEGS: readonly Leg[] = [
-  leg('Q to F1: out of the plane\'s door', into(AND.jump, 31, 15, PAC.hold)),
+  leg('Q to F1: out of the plane\'s door', into(AND.jump, 31, 15, PAC.plane)),
   leg('F1: off the ramp, the coin by the cliffs', coin(AND.jump, 7, 12)),
   leg('F1: up the updraft to the first coin', coin(AND.jump, 13, 8)),
   leg('F1: the second coin', coin(AND.jump, 16, 9)),

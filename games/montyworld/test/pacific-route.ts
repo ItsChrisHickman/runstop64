@@ -1,166 +1,67 @@
 /**
- * The Pacific's route for the bot: the goals, in the order a player who takes everything plays them (from Japan's cargo ship onto the stern, the engine room for the bolt cutters, the hold and the deck of the bow
- * for the musubi and the coins, the chain cut and down the ramp to Honolulu, the street and the roofs to Waikiki, the snorkel in the shop's loft, up the cliff rope to the luau for the lei past the torches, back down and
- * wading into the first reef, Molokai's fishponds, the second reef and the sea cave, up the slipway to Lahaina, the Road to Hana's three bridges, Hana's beach and cave and the drop into the third reef, Kona's coast and farm,
- * the volcano's climb with the lava behind him, Hilo's airport (the guard gone, the loader up) and the plane's hold with the parachute), as functions on the game. Shared by the bot test and the pictures.
+ * The Pacific's route for the bot (docs/dosvidaniya-reset.md, "the Pacific"): the goals, in the order a player who takes everything plays them. Onto the cargo ship from Japan's gangway, up onto the deck
+ * and the funnel's catwalk, down the hatch, west between the pistons, down into the bilge and out of the bow door; along Waikiki's beach to the surf that stops him, up the palm to the hotel's lawn, past
+ * the torches to the lei, off the lawn's end onto the stand's roof for the snorkel, back down and into the sea; west along Hana's top lane, down past the moray into the sea cave, east along the bottom lane
+ * against the surge, out onto Hilo's shore; up the lava climb to the apron and the belly ladder; in the hold up the net, the parachute, and out of the rear door. Functions on the game, shared by the bot
+ * test and the pictures.
  */
 import { lavaTop } from '../../montyotr/src/lava';
-import { LAVA, PAC } from '../src/pacific';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
-import { above, coin, into, item, leg, standY, stands, type Leg, type Part } from './route';
+import { AND } from '../src/andes';
+import { LAVA, PAC } from '../src/pacific';
+import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
 
-/**
- * A leg's goal reached with the lava still a good way off (100 frames): a coin taken on a ledge the lava reaches in a few frames is no coin taken (the bot's check that some move lives on looks 12 frames ahead,
- * and a jump from a ledge the lava is about to reach lives that long), and a leg that ended there would hand the next one a death.
- */
+/** A leg's goal reached with the lava still a good way off (100 frames): a leg that ended on a ledge the lava reaches in a few frames would hand the next one a death. */
 const outOfLava = (part: Part): Part => ({
+  ...part,
   goal: (g) => part.goal(g) && (g.lavas[0] === undefined || lavaTop(LAVA, g.lavas[0].t + 100) > g.montyRow - 3 + 1),
-  aim: part.aim,
 });
 
-/** A leg's goal reached with some move that lives on for `frames` more (a coin taken in front of a creature that is about to reach him is no coin taken: the bot's own check looks only 12 frames ahead). */
+/** A leg's goal reached with some move that lives on for `frames` more (the bot's own check looks only 12 frames ahead). */
 const livesFor = (part: Part, frames: number): Part => ({
+  ...part,
   goal: (g) => part.goal(g) && ACTIONS.some(([, stick]) => {
     const t = { g: copy(g), col: 0 };
     for (let f = 0; f < frames; f++) { frame(t, stick); if (t.g.actionCounter !== 0) return false; }
     return true;
   }),
-  aim: part.aim,
 });
 
-/** A leg that ends in the low lane: the way out is the same room by two lanes, and a leg that ended in the other would hand the next one the wrong start. */
-const low = (floor: number) => (g: Parameters<Part['goal']>[0]) => !above(floor)(g);
+/** In a room with his top left in a box of playfield cells (a place in open water, where he does not stand). */
+const within = (room: number, c0: number, c1: number, r0: number, r1: number): Part => ({
+  goal: (g) => g.roomId === room && !g.freeze && !g.script && g.montyCol - 4 >= c0 && g.montyCol - 4 <= c1 && g.montyRow - 3 >= r0 && g.montyRow - 3 <= r1,
+  aim: [{ room, col: Math.round((c0 + c1) / 2), row: Math.round((r0 + r1) / 2) }],
+});
+
+/** Where the items' sprites are (playfield cell of the top left), as the rooms say. */
+const SNORKEL_AT = [6, 12] as const, LEI_AT = [7, 5] as const, MUSUBI_AT = [2, 15] as const, PARACHUTE_AT = [2, 6] as const;
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const PACIFIC_LEGS: readonly Leg[] = [
-  leg('A: up onto the deck, the coin by the bridge', coin(PAC.stern, 20, 10)),
-  leg('A: down the hatch ladder into the engine room', stands(PAC.stern, 18, 24, 28)),
-  leg('A: past the crusher to the coin by the bilge', coin(PAC.stern, 15, 16)),
-  leg('A: the coin on the pocket\'s crates', coin(PAC.stern, 7, 14)),
-  leg('A: the Spam musubi in the pocket', item(PAC.stern, 0, [5, 14])),
-  leg('A to B: out right in the hold lane', into(PAC.box, 31, 16, PAC.stern, low(14))),
-  leg('B: the first gantry over the bilge, its coin', coin(PAC.box, 13, 14)),
-  leg('B: the second gantry\'s coin', coin(PAC.box, 23, 14)),
-  leg('B: the far gantry\'s coin', coin(PAC.box, 28, 15)),
-  leg('B: back across to the cargo stack and the bolt cutters on its shelf', item(PAC.box, 0, [5, 13])),
-  leg('B: up the hatch ladder onto the deck', stands(PAC.box, 11, 4, 8)),
-  leg('B: the coin on the first stack', coin(PAC.box, 7, 7)),
-  leg('B: the coin on the tallest stack', coin(PAC.box, 13, 5)),
-  leg('B: the coin on the third stack', coin(PAC.box, 19, 7)),
-  leg('B: down to the crane\'s crate and the coin by the ramp', coin(PAC.box, 27, 9)),
-  leg('B to C: down the ramp (the chain is cut)', into(PAC.pier, 31, 9, PAC.box)),
-  leg('C: the coin on the pier', coin(PAC.pier, 2, 9)),
-  leg('C: down the steps to the street, past the guard, the coin', coin(PAC.pier, 18, 15)),
-  leg('C: the street\'s second coin', coin(PAC.pier, 25, 15)),
-  leg('C: back to the first step and up the rope to the roofs, the coin', livesFor(coin(PAC.pier, 14, 5), 60)),
-  leg('C: along the roofs past the coconut to the second coin', coin(PAC.pier, 24, 5)),
-  leg('C to D: out along the roofs, high', into(PAC.surf, 31, 5, PAC.pier, above(9))),
-  leg('D: the promenade\'s coin', coin(PAC.surf, 17, 5)),
-  leg('D: the promenade\'s other coin', coin(PAC.surf, 15, 5)),
-  leg('D: down the rope to the beach, the coin', coin(PAC.surf, 12, 15)),
-  leg('D: along the beach past the surfer, the coin', coin(PAC.surf, 19, 15)),
-  leg('D: up the shop\'s rope to the loft and the snorkel', item(PAC.surf, 0, [4, 11])),
-  leg('D: the loft\'s coin', coin(PAC.surf, 6, 11)),
-  leg('D to E: up the promenade and the cliff rope to the feast', into(PAC.feast, 28, 0, PAC.surf)),
-  leg('E: the first gap between the torches, its coin', coin(PAC.feast, 25, 15)),
-  leg('E: the second gap, its coin', coin(PAC.feast, 20, 16)),
-  leg('E: the third gap, its coin', coin(PAC.feast, 15, 16)),
-  leg('E: up the ladder to the deck, along it to the coin on the table', coin(PAC.feast, 23, 10)),
-  leg('E to Diamond Head: up the hillside rope', into(PAC.diamond, 14, 0, PAC.feast)),
-  leg('Diamond Head: up the step, the coin on the first ledge', coin(PAC.diamond, 20, 16)),
-  leg('Diamond Head: the second ledge, its coin', coin(PAC.diamond, 8, 12)),
-  leg('Diamond Head: the third ledge, its coin', coin(PAC.diamond, 24, 8)),
-  leg('Diamond Head: the coin over the tern', coin(PAC.diamond, 12, 8)),
-  leg('Diamond Head to the Lookout: out along the third ledge', into(PAC.lookout, 31, 8, PAC.diamond)),
-  leg('The Lookout: the coin in the tunnel', coin(PAC.lookout, 6, 8)),
-  leg('The Lookout: up the stairs past the tumbling rocks to the first coin of the stash', livesFor(coin(PAC.lookout, 23, 2), 60)),
-  leg('The Lookout: the musubi', item(PAC.lookout, 0, [24, 2])),
-  leg('The Lookout: the last coin', livesFor(coin(PAC.lookout, 26, 2), 60)),
-  leg('The Lookout to Diamond Head: back down the stairs and out of the tunnel', into(PAC.diamond, 0, 8, PAC.lookout)),
-  leg('Diamond Head to the feast: down the trail and the rope', into(PAC.feast, 14, 19, PAC.diamond)),
-  leg('E to the show: east along the deck', into(PAC.lei, 31, 10, PAC.feast, above(12))),
-  leg('The show: the coin on the lawn', coin(PAC.lei, 8, 10)),
-  leg('The show: up onto the stage, the first coin', coin(PAC.lei, 11, 6)),
-  leg('The show: the lei', livesFor(item(PAC.lei, 0, [17, 6]), 60)),
-  leg('The show: the second coin on the stage', livesFor(coin(PAC.lei, 20, 6), 60)),
-  leg('The show: down the far step, the coin', coin(PAC.lei, 24, 8)),
-  leg('E to F: the dive off the lawn, down the rope into the reef', into(PAC.clam, 28, 19, PAC.lei)),
-  leg('F: the coin by the arch', coin(PAC.clam, 10, 11)),
-  leg('F: the coin by the tall rock', coin(PAC.clam, 20, 13)),
-  leg('F: the coin by the hanging rock', coin(PAC.clam, 14, 9)),
-  leg('F: the coin in the open water', coin(PAC.clam, 24, 7)),
-  leg('F: the coin at the surface', coin(PAC.clam, 5, 9)),
-  leg('F to G: out right to Molokai', into(PAC.mole, 31, 17, PAC.clam)),
-  leg('G: the first wall\'s coin', coin(PAC.mole, 6, 15)),
-  leg('G: the second wall\'s coin (the crab)', coin(PAC.mole, 14, 13)),
-  leg('G: the high wall\'s coin', coin(PAC.mole, 18, 11)),
-  leg('G: the fourth wall\'s coin', coin(PAC.mole, 23, 13)),
-  leg('G: the far shore\'s coin', coin(PAC.mole, 29, 17)),
-  leg('G to H: down into the second reef', into(PAC.kelp, 31, 17, PAC.mole)),
-  leg('H: the coin by the coral', coin(PAC.kelp, 11, 14)),
-  leg('H: the coin over the rock', coin(PAC.kelp, 23, 8)),
-  leg('H: the coin by the cliffs', coin(PAC.kelp, 4, 11)),
-  leg('H: the coin by the far kelp', coin(PAC.kelp, 28, 14)),
-  leg('H: the coin under the slipway', coin(PAC.kelp, 15, 6)),
-  leg('H to L: east into the sea cave', into(PAC.cave, 31, 17, PAC.kelp)),
-  leg('L: the first coin (round the serpent\'s loop)', coin(PAC.cave, 12, 11)),
-  leg('L: the second coin', coin(PAC.cave, 20, 12)),
-  leg('L: the coin beyond the loop', coin(PAC.cave, 28, 8)),
-  leg('L: the coin by the entrance', coin(PAC.cave, 4, 9)),
-  leg('L to H: back out to the reef', into(PAC.kelp, 0, 17, PAC.cave)),
-  leg('H to I: up through the ceiling to the slipway', into(PAC.whale, 15, 0, PAC.kelp)),
-  leg('I: up to the brig\'s deck, past the tiki, the coin', coin(PAC.whale, 6, 12)),
-  leg('I: up the mast\'s rope to the spar and its coin', coin(PAC.whale, 9, 5)),
-  leg('I: back to the quay, the coin by the canoe', coin(PAC.whale, 22, 15)),
-  leg('I: along the quay, the far coin', coin(PAC.whale, 29, 15)),
-  leg('I to J: out along the quay to the road', into(PAC.road, 31, 16, PAC.whale)),
-  leg('J: over the first bridge behind its car, the coin', coin(PAC.road, 14, 15)),
-  leg('J: the first level\'s end coin', coin(PAC.road, 27, 15)),
-  leg('J: up the bamboo to the second level', stands(PAC.road, 13, 22, 27)),
-  leg('J: over the second bridge, the coin', coin(PAC.road, 18, 10)),
-  leg('J: the second level\'s end coin', coin(PAC.road, 6, 10)),
-  leg('J: up the bamboo to the third level', stands(PAC.road, 8, 4, 8)),
-  leg('J: over the third bridge, the coin', coin(PAC.road, 16, 5)),
-  leg('J: the last coin, past the coconut', coin(PAC.road, 27, 5)),
-  leg('J to K: out onto the headland', into(PAC.hana, 31, 6, PAC.road)),
-  leg('K: the Spam musubi at the banana-bread stand', item(PAC.hana, 0, [6, 6])),
-  leg('K: the coin on the headland', coin(PAC.hana, 12, 6)),
-  leg('K: down the bamboo rope to the beach', stands(PAC.hana, 18, 15, 19)),
-  leg('K: the coin over the wave\'s beach (a jump)', livesFor(coin(PAC.hana, 17, 15), 60)),
-  leg('K: past the crab and the wave to the steps, the coin', livesFor(coin(PAC.hana, 24, 14), 60)),
-  leg('K: up to the ledge over the cave, the coin', coin(PAC.hana, 28, 11)),
-  leg('K to M: into the cove and down into the third reef', into(PAC.fish, 21, 19, PAC.hana)),
-  leg('M: the coin in the wreck\'s hold', coin(PAC.fish, 7, 16)),
-  leg('M: the pearl over the clam', coin(PAC.fish, 19, 15)),
-  leg('M: the third coin', coin(PAC.fish, 24, 8)),
-  leg('M: the coin near the surface', coin(PAC.fish, 12, 6)),
-  leg('M to N: out to the coast', into(PAC.coffee, 31, 17, PAC.fish)),
-  leg('N: the first coin on the shore', coin(PAC.coffee, 10, 16)),
-  leg('N: the second coin on the shore', coin(PAC.coffee, 24, 16)),
-  leg('N: up the rope to the first terrace, the coin', coin(PAC.coffee, 8, 9)),
-  leg('N: up the rope to the shed and the musubi', item(PAC.coffee, 0, [5, 6])),
-  leg('N: along the terraces to the second terrace\'s coin', coin(PAC.coffee, 18, 7)),
-  leg('N: the top terrace\'s coin', coin(PAC.coffee, 26, 5)),
-  leg('N: back down the rope to the shore', stands(PAC.coffee, 19, 0, 8)),
-  leg('N to O: out along the shore, low, to the volcano', into(PAC.mauna, 31, 17, PAC.coffee, (g) => g.y === standY(19))),
-  leg('O: onto the first ledge, its coin', outOfLava(coin(PAC.mauna, 6, 15))),
-  leg('O: the second ledge\'s coin', outOfLava(coin(PAC.mauna, 11, 13))),
-  leg('O: up the rope to the snow shelf and its coin', outOfLava(coin(PAC.mauna, 4, 5))),
-  leg('O: down to the third ledge, its coin', outOfLava(coin(PAC.mauna, 17, 11))),
-  leg('O: the fourth ledge\'s coin', outOfLava(coin(PAC.mauna, 23, 9))),
-  leg('O to P: out along the rim to the terminal', into(PAC.hilo, 31, 7, PAC.mauna)),
-  leg('P: the coin on the terminal\'s roof', coin(PAC.hilo, 4, 7)),
-  leg('P: down the roof\'s rope to the apron', stands(PAC.hilo, 17, 6, 7)),
-  leg('P: the coin before the gate', coin(PAC.hilo, 7, 15)),
-  leg('P: through the gatehouse (the guard has gone), up the loader onto the gantry', stands(PAC.hilo, 12, 17, 19)),
-  leg('P: along the gantry, the first coin', coin(PAC.hilo, 21, 10)),
-  leg('P: the second coin', coin(PAC.hilo, 27, 10)),
-  leg('P to Q: out along the gantry into the plane', into(PAC.hold, 31, 10, PAC.hilo)),
-  leg('Q: the coin on the sill', coin(PAC.hold, 4, 10)),
-  leg('Q: down the net, the coin on it', coin(PAC.hold, 9, 12)),
-  leg('Q: the roller floor\'s coin past the first crate', coin(PAC.hold, 14, 14)),
-  leg('Q: up the first pallet past the second crate, its coin', livesFor(coin(PAC.hold, 20, 12), 60)),
-  leg('Q: onto the high pallet and the parachute', item(PAC.hold, 0, [25, 10])),
-  leg('Q: the coin beside it', coin(PAC.hold, 27, 10)),
+  leg('A: up the crate step onto the deck', stands(PAC.ship, 9, 7, 11)),
+  leg('A: up the rung ladder to the funnel\'s catwalk, its coin', coin(PAC.ship, 9, 3)),
+  leg('A: east along the deck under the crane\'s crate, down the hatch into the hold', stands(PAC.ship, 14, 22, 26)),
+  leg('A: west between the pistons, the coin', livesFor(coin(PAC.ship, 17, 13), 40)),
+  leg('A: past the second piston to the ladder, down into the bilge', stands(PAC.ship, 19, 7, 12)),
+  leg('A to B: east over the bilge water, out of the bow door', into(PAC.waikiki, 31, 17, PAC.ship)),
+  leg('B: along the beach to the palm by the surf', stands(PAC.waikiki, 19, 17, 21)),
+  leg('B: up the palm to the lawn, the coin at its head', coin(PAC.waikiki, 19, 6)),
+  leg('B: west past the first torch, the coin between them', livesFor(coin(PAC.waikiki, 13, 6), 40)),
+  leg('B: past the second torch and the hula dancer, the lei', livesFor(item(PAC.waikiki, 1, LEI_AT), 40)),
+  leg('B: off the lawn\'s end onto the stand\'s roof, the snorkel', item(PAC.waikiki, 0, SNORKEL_AT)),
+  leg('B to C: down to the sand, east past the coconut, into the sea', into(PAC.hana, 28, 19, PAC.waikiki)),
+  leg('C: west along the top lane past the turtle to the drop-off', within(PAC.hana, 2, 6, 9, 12)),
+  leg('C: down past the moray into the sea cave, the coin on its ledge', livesFor(coin(PAC.hana, 4, 16), 40)),
+  leg('C: the Spam musubi in the cave', livesFor(item(PAC.hana, 0, MUSUBI_AT), 40)),
+  leg('C: out past the moray, east into the first head\'s lee', livesFor(within(PAC.hana, 10, 11, 15, 17), 40)),
+  leg('C: over the first head against the surge, the coin in the middle head\'s hollow', livesFor(coin(PAC.hana, 20, 16), 40)),
+  leg('C to D: on over the heads under the shark, out onto Hilo\'s shore', into(PAC.hilo, 31, 16, PAC.hana)),
+  leg('D: up the rope and over the cracking crust, the coin on the middle ledge', outOfLava(coin(PAC.hilo, 16, 13))),
+  leg('D: up the east wall\'s rope to the long ledge, the coin at its head', coin(PAC.hilo, 26, 8)),
+  leg('D: west past the steam vent, up the rope to the apron', stands(PAC.hilo, 5, 9, 12)),
+  leg('D to E: past the nene, up the belly ladder into the hold', into(PAC.plane, 8, 0, PAC.hilo, above(17))),
+  leg('E: up the cargo net, the coin in it', livesFor(coin(PAC.plane, 15, 10), 40)),
+  leg('E: west along the rack past the rooster, the parachute', livesFor(item(PAC.plane, 0, PARACHUTE_AT), 40)),
+  leg('E to the Andes: down, across the floor behind the loose crate, out of the rear door', into(AND.jump, 31, 14, PAC.plane)),
 ];

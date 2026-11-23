@@ -17,6 +17,6 @@ checkTune({
   name: 'the Pacific', tune: PACIFIC, moved: '1,3,6,8',
   scale: { text: 'lands on the mixolydian (G, A, B, C, D, E, F) or the leading note F#', ok: (degree) => MIXOLYDIAN.includes(degree) },
   lead: { text: 'a ukulele: a pulse wave with an instant attack, a short decay and no vibrato', ok: (lead) => lead.control === 0x41 && lead.attackDecay >> 4 === 0 && (lead.attackDecay & 15) <= 9 && lead.vibrato === 0 },
-  rooms: [PAC.stern, PAC.surf, PAC.road, PAC.hold], others: [[JP.port, 'japan'], [0, 'moscow']], sample: PAC.road,
+  rooms: [PAC.ship, PAC.waikiki, PAC.hana, PAC.plane], others: [[JP.port, 'japan'], [0, 'moscow']], sample: PAC.waikiki,
 });
 finish();
