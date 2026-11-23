@@ -563,18 +563,17 @@ const ALL_ROOMS: readonly RoomSpec[] = [
   }),
 
   // K HANA BANANA: Hana, the road's end. In at the left on the headland (floor 8), where the banana-bread stand stands by the road (a musubi on its table); the bamboo rope (col 14) down the cliff to Waianapanapa's black sand beach (floor 18), a nook
-  // under the headland, the surf's wave sweeping up the beach from the cove on a timing (a pulse: spray, then the wave across the beach, then it draws back), a crab on the sand, steps to a ledge over the cave. The way on is the sea: the cove's pool
+  // the surf's wave sweeping up the beach from the cove on a timing (a pulse: spray, then the wave across the beach, then it draws back), a crab on the sand, steps to a ledge over the cave. The way on is the sea: the cove's pool
   // (cols 20-22) is deadly surf until the snorkel, then open water you drop into, with a rope to climb back. The right edge is the cliff.
   room({
     id: PAC.hana, cell: [1, 25], sector: 49, palette: HANA_PALETTE,
     paint(g) {
       g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T');
-      g.clear(9, 16, 13, 17).clear(10, 15, 12, 15).box(9, 18, 13, 19, 'K'); // a nook under the headland, a sea arch cut in the cliff's foot
       g.box(14, 18, 19, 19, 'K').box(20, 18, 22, 19, 'W').box(23, 18, 29, 19, 'K').box(30, 0, 31, 17, 'B').box(30, 18, 31, 19, 'K'); // the beach and the pool, the cliff closing the right edge
       g.box(14, 7, 14, 17, 'R');
       g.box(24, 16, 25, 17, 'B').box(27, 14, 29, 15, 'B'); // the steps to the ledge over the cave
     },
-    coins: [[12, 6], [11, 16], [24, 14], [28, 11]],
+    coins: [[12, 6], [17, 15], [24, 14], [28, 11]],
     item: { name: 'musubi2', col: 6, row: 6, sprite: PAC_SPRITE.musubi },
     decor: [['pacBreadStand', 2, 5], ['pacPalmSmall', 9, 4], ['pacLavaRocks', 17, 17], ['pacLavaRocks', 26, 17]],
     creatures: [{ who: 'pacCrab', col: 15, row: 16, way: 'right', speed: 1, range: 24 }],
@@ -630,7 +629,7 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacMagma', col: 2, row: 5, way: 'right', speed: 1, range: 56 }],
   }),
 
-  // P HILO GOODBYE: Hilo airport, redesigned. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17). The departure gate is a gatehouse straddling the apron (cols 9-12, its wall
+  // P HILO GOODBYE: Hilo airport, redesigned. In at the left on the terminal's roof (floor 9, the control tower on it); the roof's rope (col 7) down to the apron (floor 17). The departure gate is a gatehouse straddling the apron (cols 8-10, its wall
   // to the top of the room, a corridor 2 cells high through it): the lei guard patrols the corridor, so there is no way to the plane past him (nothing over the gatehouse, nothing under it) until he is in a lei (departing travellers wear one). Beyond it the
   // tarmac: the cargo plane drawn whole (nose, fuselage, wing, tail with its fin, wheels, the open cargo door at its tail) and, in front of it, the cargo loader's conveyor truck: its belt rises on the slope to the gantry over the plane's tail, and he
   // rides it (the foot at cols 14-15, the landing at col 17, floor 12), walks the gantry and into the plane (the right edge, rows 10-11).
@@ -638,13 +637,13 @@ const ALL_ROOMS: readonly RoomSpec[] = [
     id: PAC.hilo, cell: [2, 28], sector: 53, palette: HILO_PALETTE,
     paint(g) {
       g.box(0, 9, 5, 19, 'W').box(0, 0, 1, 6, 'W').box(6, 17, 31, 19, 'P').box(6, 8, 6, 16, 'R'); // the terminal, its roof's rope, the apron
-      g.box(7, 0, 9, 14, 'W'); // the gatehouse, its corridor (rows 15-16) at the apron's level
+      g.box(8, 0, 10, 14, 'W'); // the gatehouse, its corridor (rows 15-16) at the apron's level
       g.box(17, 12, 31, 12, 'J'); // the gantry along the plane's back: the loader's landing at col 17, the way into the plane at the right edge (rows 10-11)
       g.box(31, 0, 31, 9, 'G').box(31, 13, 31, 16, 'G'); // the plane's nose walling the end of the apron, the way in open at rows 10-11
     },
-    coins: [[4, 7], [15, 15], [21, 10], [27, 10]],
-    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 16, 13], ['pacConveyor', 10, 13]],
-    creatures: [{ who: 'pacGuard', col: 7, row: 15, way: 'right', speed: 1, range: 8 }],
+    coins: [[4, 7], [7, 15], [21, 10], [27, 10]],
+    decor: [['pacControlTower', 2, 3], ['pacCargoPlane', 16, 13], ['pacConveyor', 11, 13]],
+    creatures: [{ who: 'pacGuard', col: 8, row: 15, way: 'right', speed: 1, range: 8 }],
   }),
 
   // Q HOLD YOUR HORSES: the cargo plane's hold, a fuselage drawn from inside. In from the catwalk onto the door's sill at the left (floor 7); a cargo net down to the roller floor (floor 16); crates swing from their tracks over the lane and the

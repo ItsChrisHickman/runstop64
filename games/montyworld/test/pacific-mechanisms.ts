@@ -482,10 +482,10 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   const wave = at(PAC.hana, 17, 18);
   const waveDied = diesAt(wave, NONE, WAVE.period + 50);
   check(`the wave sweeps the beach: standing at the cove's edge he dies when it comes (dead at frame ${waveDied}, the first group live from ${WAVE.start + WAVE.warn})`, waveDied >= WAVE.start && waveDied <= WAVE.start + WAVE.warn + WAVE.live);
-  const nook = at(PAC.hana, 11, 18);
-  let nookSafe = true;
-  for (let f = 0; f < 2 * WAVE.period; f++) { frame(nook, NONE); if (dead(nook.g)) nookSafe = false; }
-  check('the nook under the headland is out of the wave\'s reach through two waves', nookSafe);
+  const clear = at(PAC.hana, 25, 18);
+  let clearSafe = true;
+  for (let f = 0; f < 2 * WAVE.period; f++) { frame(clear, NONE); if (dead(clear.g)) clearSafe = false; }
+  check('the wave stops short of the steps: the right-hand beach is safe through two waves', clearSafe);
   const tunnel = at(PAC.lookout, 6, 10);
   let tunnelSafe = true;
   for (let f = 0; f < 1000; f++) { frame(tunnel, NONE); if (dead(tunnel.g)) tunnelSafe = false; }
