@@ -5,6 +5,7 @@
  * the reef's coral and kelp; Maui's waterfall, bamboo and signs; the volcano; the airport and the cargo plane. Names start `pac`.
  */
 import { decor } from './decorations';
+import { splashRows, streakRows } from './pacific-falls';
 import { Raster } from './raster';
 import type { NewDecor } from './types';
 
@@ -255,12 +256,12 @@ function bubbles(): NewDecor {
   return decor('pacBubbles', 1, 2, r, 1);
 }
 
-/** A cascade: a stream falling over a lip in lines, its mist at the foot. 2 x 5 characters. */
+/** A cascade: a stream falling over a lip in lines, its splash and mist at the foot. 2 x 5 characters (the streaks and the splash move: pacific-falls.ts, a `charAnims` cycle in the rooms that have it). */
 function waterfall(): NewDecor {
   const r = new Raster(16, 40);
-  r.rect(0, 0, 15, 2);
-  for (const x of [3, 7, 11]) for (let y = 4; y < 34; y += 6) r.rect(x, y, x + 1, y + 4);
-  r.ellipse(4, 37, 4, 2.4); r.ellipse(11, 37, 4.4, 2.4); r.ellipse(8, 35, 3, 2);
+  r.rect(0, 0, 15, 2); r.rect(2, 3, 4, 5); r.rect(7, 3, 9, 6); r.rect(12, 3, 13, 5); // the lip and the water leaving it
+  r.stamp(streakRows(0), 0, 8);
+  r.stamp(splashRows(0), 0, 32);
   return decor('pacWaterfall', 2, 5, r, ['55', '33', '33', '33', '11']);
 }
 

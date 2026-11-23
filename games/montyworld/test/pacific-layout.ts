@@ -6,7 +6,9 @@
  */
 import { check, finish } from '../../shared/test/check';
 import { WORLD_DECOR } from '../src/art/world';
-import { PAC, PACIFIC_ROOMS } from '../src/pacific';
+import { PAC, PACIFIC_EXTRA_ROOMS, PACIFIC_ROOMS } from '../src/pacific';
+
+const ROOMS = [...PACIFIC_ROOMS, ...PACIFIC_EXTRA_ROOMS];
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { creatureRooms } from './route';
@@ -14,7 +16,7 @@ import { creatureRooms } from './route';
 const NAME = new Map<number, string>(Object.entries(PAC).map(([k, v]) => [v, k]));
 const names = Object.values(WORLD_DECOR);
 
-for (const r of PACIFIC_ROOMS) {
+for (const r of ROOMS) {
   const label = NAME.get(r.id) ?? String(r.id);
   /** A wall: a cell of a tile of the collision class that stops him (1), not the sea's or a rope's. */
   const solid = (col: number, row: number) => {
@@ -52,8 +54,8 @@ for (const r of PACIFIC_ROOMS) {
   }
 }
 
-const rooms = creatureRooms(PACIFIC_ROOMS);
+const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
-check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('seventeen rooms', PACIFIC_ROOMS.length === 17);
+check(`about 8 to 16 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 16);
+check('seventeen rooms of the first build and three of the second pass', PACIFIC_ROOMS.length === 17 && PACIFIC_EXTRA_ROOMS.length === 3);
 finish();

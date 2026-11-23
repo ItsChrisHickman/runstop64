@@ -19,7 +19,10 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: PAC.box, name: '39-box-clever', col: 2, floor: 11, frames: 40, compare: 0x14 },
   { room: PAC.pier, name: '40-pier-pressure', col: 1, floor: 11, frames: 40, compare: 0x1c },
   { room: PAC.surf, name: '41-surf-and-turf', col: 3, floor: 18, frames: 40, compare: 0x04 },
-  { room: PAC.lei, name: '42-lei-of-the-land', col: 24, floor: 18, frames: 40, compare: 0x13 },
+  { room: PAC.lei, name: '42-lei-of-the-land', col: 2, floor: 12, frames: 40, compare: 0x13 },
+  { room: PAC.feast, name: '78-the-feast', col: 24, floor: 18, frames: 40, compare: 0x13 },
+  { room: PAC.diamond, name: '79-diamond-head', col: 8, floor: 18, frames: 40, compare: 0x0a },
+  { room: PAC.lookout, name: '80-the-lookout', col: 4, floor: 10, frames: 40, compare: 0x0a },
   { room: PAC.clam, name: '43-clam-down', col: 3, floor: 19, frames: 40, compare: 0x07 },
   { room: PAC.mole, name: '44-mole-okai', col: 2, floor: 19, frames: 40, compare: 0x0a },
   { room: PAC.kelp, name: '45-kelp-wanted', col: 3, floor: 19, frames: 40, compare: 0x07 },
@@ -45,14 +48,16 @@ const pics = SPOTS.map((s) => {
 contactSheet(out, 'sheet.png', pics);
 
 // the luau: the torches through their cycle (low, flickering, tall, settling)
-contactSheet(out, 'torches.png', [10, 70, 95, 140, 200, 260].map((frames) => placed({ room: PAC.lei, col: 24, floor: 18, frames, worn: lei }).px));
+contactSheet(out, 'torches.png', [10, 70, 95, 140, 200, 260].map((frames) => placed({ room: PAC.feast, col: 24, floor: 18, frames, worn: lei }).px));
 // the road: the cars waiting, flashing, on the bridges
 contactSheet(out, 'cars.png', [20, 160, 185, 220, 260, 320, 400, 480, 560].map((frames) => placed({ room: PAC.road, col: 3, floor: 18, frames, worn: lei }).px));
 // the volcano: the lava rising, held, draining
 contactSheet(out, 'lava.png', [10, 150, 300, 450, 620, 760].map((frames) => placed({ room: PAC.mauna, col: 2, floor: 19, frames, worn: lei }).px));
 // the sea shut and open at Waikiki and Hana
-savePng(out, 'surf-shut.png', placed({ room: PAC.surf, col: 18, floor: 18, frames: 20, worn: lei }).px);
-savePng(out, 'surf-open.png', placed({ room: PAC.surf, col: 18, floor: 18, frames: 20, worn: lei, items: [snorkel] }).px);
+savePng(out, 'dive-shut.png', placed({ room: PAC.lei, col: 24, floor: 12, frames: 20, worn: lei }).px);
+savePng(out, 'dive-open.png', placed({ room: PAC.lei, col: 24, floor: 12, frames: 20, worn: lei, items: [snorkel] }).px);
+contactSheet(out, 'rocks.png', [10, 60, 120, 180, 240, 300].map((frames) => placed({ room: PAC.lookout, col: 4, floor: 10, frames, worn: lei }).px));
+contactSheet(out, 'fire-knife.png', [10, 30, 50, 70, 90, 110].map((frames) => placed({ room: PAC.lei, col: 2, floor: 12, frames, worn: lei }).px));
 savePng(out, 'hana-shut.png', placed({ room: PAC.hana, col: 17, floor: 18, frames: 20, worn: lei }).px);
 savePng(out, 'hana-open.png', placed({ room: PAC.hana, col: 17, floor: 18, frames: 20, worn: lei, items: [snorkel] }).px);
 // the chain on the ramp, cut

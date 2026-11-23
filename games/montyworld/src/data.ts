@@ -16,12 +16,13 @@ import { placeHat } from './hats';
 import { LEI_COLOUR, leiWorn } from './art/pacific-lei';
 import { PACIFIC_ITEMS } from './art/pacific-items';
 import { SWIM_CROWN, SWIM_LEFT, SWIM_RIGHT, swimBlock } from './art/pacific-swim';
+import { SERPENT_PICTURES } from './art/pacific-serpent';
 import { SWIM_CYCLE, SWIM_POINTERS } from './pacific-pointers';
 import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY } from './art/andes-items';
 import { ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, BOULDERS, FLIGHTS, TANGLE_CELLS, TANGLE_ROPE, TANGLE_ROPE_CODE, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS } from './andes-pointers';
-import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, SWIM_ROOMS, PACIFIC_ROOMS, PACIFIC_SECTORS, POOL_CELLS, POOL_BED_CELLS, POOL_BED, POOL_SEA, CHAIN_CELLS, TORCH_PULSES, TORCH_HEAD_PULSES } from './pacific';
+import { BRIDGE_CARS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, PLANE_DOOR_CELLS, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, SWIM_ROOMS, PACIFIC_ROOMS, PACIFIC_SECTORS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, ROCKS, SERPENT, MORAY_PULSES, FALLS_ANIMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_EXTRA_COLOURS, CHAIN_CELLS, TORCH_PULSES, TORCH_HEAD_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -48,7 +49,7 @@ import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES, SUN, SUN_MASK } from './art/rio-ite
 export const WORLD_COLS = 50, WORLD_ROWS = 8;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...PACIFIC_EXTRA_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -88,6 +89,17 @@ const DRAGON_BLOCKS = [
   { ptr: DRAGON_POINTERS.body, block: DRAGON_PICTURES.body },
   { ptr: DRAGON_POINTERS.tailLeft, block: DRAGON_PICTURES.tailLeft },
   { ptr: DRAGON_POINTERS.tailRight, block: DRAGON_PICTURES.tailRight },
+] as const;
+
+/** The sea serpent's pictures in the blocks China's dragon uses in China (put in while the sea cave is loaded). */
+const SERPENT_BLOCKS = [
+  { ptr: DRAGON_POINTERS.headLeftOpen, block: SERPENT_PICTURES.headLeftOpen },
+  { ptr: DRAGON_POINTERS.headLeftShut, block: SERPENT_PICTURES.headLeftShut },
+  { ptr: DRAGON_POINTERS.headRightOpen, block: SERPENT_PICTURES.headRightOpen },
+  { ptr: DRAGON_POINTERS.headRightShut, block: SERPENT_PICTURES.headRightShut },
+  { ptr: DRAGON_POINTERS.body, block: SERPENT_PICTURES.body },
+  { ptr: DRAGON_POINTERS.tailLeft, block: SERPENT_PICTURES.tailLeft },
+  { ptr: DRAGON_POINTERS.tailRight, block: SERPENT_PICTURES.tailRight },
 ] as const;
 
 /** The bank with the items, icicles, the dragon and the first hat at their pointers. */
@@ -170,7 +182,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
 }
 
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.values(WORLD_DECOR) };
-const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
+const tables = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...PACIFIC_EXTRA_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -195,7 +207,7 @@ const CITY_KEY = specialIndex(ROOMS, 'cityKey');
 const HEADDRESS_ITEM = specialIndex(ROOMS, 'headdress');
 const BOWL = specialIndex(ROOMS, 'bowl');
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'), specialIndex(ROOMS, 'musubi2'), specialIndex(ROOMS, 'musubi3'),
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'), specialIndex(ROOMS, 'musubi2'), specialIndex(ROOMS, 'musubi3'), specialIndex(ROOMS, 'musubi4'),
   ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
@@ -226,8 +238,8 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.hall, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // in the ninja hood the castle's guard steps aside
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // and the hideout's door guard, a ninja himself, lets him by
   { room: PAC.box, when: [{ taken: CUTTERS }], clear: onScreen(CHAIN_CELLS) }, // the cutters take the chain off the ramp
-  { room: PAC.surf, when: [{ taken: SNORKEL }], place: { code: POOL_SEA, cells: onScreen(POOL_CELLS) } }, // the snorkel opens the sea: the surf is water to wade into
-  { room: PAC.surf, when: [{ taken: SNORKEL }], place: { code: POOL_BED, cells: onScreen(POOL_BED_CELLS) } }, // (its floor under the waves is sand then)
+  { room: PAC.lei, when: [{ taken: SNORKEL }], clear: onScreen(DIVE_CELLS) }, // the snorkel opens the dive off the stage's far end: the waves are a drop into the sea
+  { room: PAC.lei, when: [{ taken: SNORKEL }], place: { code: DIVE_ROPE_CODE, cells: onScreen(DIVE_ROPE) } }, // with a rope to climb back
   { room: PAC.hana, when: [{ taken: SNORKEL }], clear: onScreen(COVE_CELLS) }, // and the cove's pool is a drop into the reef
   { room: PAC.hana, when: [{ taken: SNORKEL }], place: { code: COVE_ROPE_CODE, cells: onScreen(COVE_ROPE) } }, // with a rope to climb back
   { room: PAC.hilo, when: [{ taken: LEI_ITEM }], removeEnemy: 0 }, // in the lei the airport guard takes him for a tourist
@@ -272,16 +284,16 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS],
-  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...FALLS_ANIMS],
+  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.cave], blocks: SERPENT_BLOCKS }],
   risingLava: [LAVA],
-  dragons: [DRAGON, YETI],
+  dragons: [DRAGON, YETI, SERPENT],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
-  rollers: BOULDERS,
+  rollers: [...BOULDERS, ...ROCKS],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [...FLOATS, MINE_CART],
@@ -343,7 +355,7 @@ export const WORLD: MontyData = {
       { room: JP.hall, item: HOOD_ITEM, text: 'THE GUARD SPOTS OUTSIDERS' },
       { room: JP.hideout, item: HOOD_ITEM, text: 'THE DOOR IS FOR NINJAS ONLY' },
       { room: PAC.box, item: CUTTERS, text: 'THE RAMP IS CHAINED SHUT' },
-      { room: PAC.surf, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
+      { room: PAC.lei, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
       { room: PAC.hana, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
       { room: PAC.hilo, item: LEI_ITEM, text: 'THE GUARD LETS TOURISTS BY' },
       { room: PAC.hold, item: PARACHUTE, text: 'THE DROP IS FAR TOO HIGH' },
@@ -357,7 +369,7 @@ export const WORLD: MontyData = {
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ from, to, rows }) => ({ from, to, rows })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CITY_KEY, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, CUTTERS, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CITY_KEY, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...PACIFIC_EXTRA_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

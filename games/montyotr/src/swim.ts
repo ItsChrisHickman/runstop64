@@ -9,6 +9,9 @@ import type { Game } from './game';
  */
 export const SWIM = { stroke: 2, float: 6 } as const;
 
+/** The sea's lift stops short of the room's top (the sprite's y): only a stroke up carries him out through a ceiling gap, so arriving from above never bounces him straight back. */
+const FLOAT_CEILING = 0x54;
+
 export function swimMove(g: Game) {
   const input = g.input;
   g.swimTick = (g.swimTick + 1) & 0xff;
@@ -20,7 +23,7 @@ export function swimMove(g: Game) {
   g.dirLeft = input.left;
   g.dirRight = input.right;
   const stroke = g.swimTick % SWIM.stroke === 0;
-  g.dirUp = input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0;
+  g.dirUp = input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0 && g.y > FLOAT_CEILING;
   g.dirDown = input.down && !input.up && stroke;
   g.upSteps = g.downSteps = 1;
   applyMonty(g, g);

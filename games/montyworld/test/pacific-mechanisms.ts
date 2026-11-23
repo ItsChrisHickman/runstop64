@@ -20,13 +20,14 @@ import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { WORLD_CREATURES } from '../src/art';
 import { PACIFIC_CREATURES } from '../src/art/pacific-creatures';
+import { PACIFIC_MORE_CREATURES } from '../src/art/pacific-more';
 import { LEI_COLOUR, leiWorn } from '../src/art/pacific-lei';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { JP } from '../src/japan';
 import { FIRST_CREATURE } from '../src/layout';
 import { CODEC } from '../src/main';
-import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, POOL_BED, POOL_BED_CELLS, POOL_CELLS, POOL_SEA, TORCHES, TORCH_PULSES } from '../src/pacific';
+import { BRIDGES, CAR, CHAIN_CELLS, COVE_CELLS, COVE_ROPE, COVE_ROPE_CODE, LAVA, LOADER, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_EXTRA_ROOMS, PACIFIC_EXTRA_SECTORS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, DIVE_CELLS, DIVE_ROPE, DIVE_ROPE_CODE, TORCHES, TORCH_PULSES } from '../src/pacific';
 import { AND } from '../src/andes';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
@@ -35,26 +36,27 @@ import { creatureRooms, itemIndex, standY } from './route';
 
 const DOWN = { ...NONE, down: true };
 /** The items by name (the room's nth). */
-const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [PAC.lei, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
+const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [PAC.lei, 0] as const, PARACHUTE = [PAC.hold, 0] as const;
 
 // ---- the data -------------------------------------------------------------------------------------
 {
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 17, PAC.stern], [2, 18, PAC.box], [2, 19, PAC.pier], [2, 20, PAC.surf], [1, 20, PAC.lei], [2, 21, PAC.clam], [2, 22, PAC.mole], [2, 23, PAC.kelp], [1, 23, PAC.whale], [1, 24, PAC.road], [2, 24, PAC.cave],
+  const placed = [[2, 17, PAC.stern], [2, 18, PAC.box], [2, 19, PAC.pier], [2, 20, PAC.surf], [1, 21, PAC.lei], [1, 20, PAC.feast], [0, 20, PAC.diamond], [0, 21, PAC.lookout], [2, 21, PAC.clam], [2, 22, PAC.mole], [2, 23, PAC.kelp], [1, 23, PAC.whale], [1, 24, PAC.road], [2, 24, PAC.cave],
     [1, 25, PAC.hana], [2, 25, PAC.fish], [2, 26, PAC.coffee], [2, 27, PAC.mauna], [2, 28, PAC.hilo], [2, 29, PAC.hold]] as const;
-  check('the Pacific is seventeen rooms in a block of thirteen columns (17-29) beside Japan\'s, room ids 38 to 54, Japan\'s port (row 2) joined to the stern (row 2), the regions before it unchanged',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(2, 16) === JP.port && grid(0, 17) === 0xff && grid(1, 17) === 0xff && grid(2, 30) === AND.jump);
+  check('the Pacific is seventeen rooms in a block of thirteen columns (17-29) beside Japan\'s, room ids 38 to 54, and three more of the second pass (the feast, Diamond Head and its lookout, ids 78-80), Japan\'s port (row 2) joined to the stern (row 2), the regions before it unchanged',
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 81 && grid(2, 16) === JP.port && grid(0, 17) === 0xff && grid(1, 17) === 0xff && grid(2, 30) === AND.jump);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check('the regions before the Pacific keep their coins and finds, in the same table places (first), and the Pacific adds 80 coins and 7 finds (the cutters, the snorkel, the lei, the parachute and three musubi)',
     coinsIn(0, 37) === 67 && itemsIn(0, 37) === 18 && coinsIn(38, 54) === 80 && itemsIn(38, 54) === 7 && (WORLD.coinTable[66 * 3] ?? 99) <= 37 && (WORLD.coinTable[67 * 3] ?? 0) >= 38);
-  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
+  check('19 key items and 24 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 24);
+  check('the second pass adds 11 coins and a musubi (rooms 78-80), after Rio\'s in the tables', coinsIn(78, 80) === 11 && itemsIn(78, 80) === 1 && PACIFIC_EXTRA_SECTORS.length === 3);
   check('the Pacific\'s sectors and map colours are one each', PACIFIC_SECTORS.length === 17 && PACIFIC_COLOURS.length === 17 && PACIFIC_SECTORS.every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
-  const rooms = creatureRooms(PACIFIC_ROOMS);
+  const rooms = creatureRooms([...PACIFIC_ROOMS, ...PACIFIC_EXTRA_ROOMS]);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in the Pacific's seventeen rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === Object.keys(PACIFIC_CREATURES).length && rooms.size >= 8 && rooms.size <= 13 && most <= 2);
+  check(`${rooms.size} kinds of creature in the Pacific's seventeen rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size <= Object.keys(PACIFIC_CREATURES).length + Object.keys(PACIFIC_MORE_CREATURES).length && rooms.size >= 8 && most <= 2);
   const used = [...HAT_BLOCKS, ...Object.values(PAC_SPRITE)];
   check(`every block of the bank the Pacific uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73, none the first aid kit's, the smoke stack's or the treasure's) and its five items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values<number>(PAC_SPRITE).every((p) => p !== 0x8e && p !== 0x92 && p !== 0x9b && WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
@@ -97,24 +99,25 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const lift = at(PAC.mole, 2, 19);
   run(lift, NONE, 60);
   check('on land (Molokai) he does not swim: a stick of nothing leaves him standing on the landing', lift.g.y === standY(19) && lift.g.roomId === PAC.mole);
-  const sea = at(PAC.surf, 20, 18);
-  const dies = diesAt(sea, RIGHT, 200);
-  check(`at Waikiki the surf is deadly without the snorkel (dead after ${dies} frames at the pool's edge)`, dies >= 0);
-  const wade = at(PAC.surf, 20, 18, [SNORKEL]);
-  run(wade, RIGHT, 200);
+  const dive = at(PAC.lei, 26, 12);
+  check('at the stage\'s far end the lawn\'s last boards are deadly waves without the snorkel (he dies stepping on them)', diesAt(dive, RIGHT, 200) >= 0);
   {
     const stats = { exhausted: false };
-    const across = search(at(PAC.surf, 18, 18), (g) => g.roomId === PAC.clam, [{ room: PAC.clam, col: 2, row: 18 }], 150000, 1.5, stats);
-    check(`there is no way across Waikiki's waves without the snorkel, jumps and all (${stats.exhausted ? 'every state looked at' : 'the 150000-state limit'})`, across === null);
-    for (const floor of [17, 18, 19]) {
-      const back = at(PAC.clam, 3, floor, [SNORKEL]);
-      run(back, LEFT, 160);
-      run(back, NONE, 120);
-      check(`swimming back west out of the reef from floor ${floor} with the snorkel he comes into Waikiki alive (room ${back.g.roomId}, y ${back.g.y})`, back.g.roomId === PAC.surf && !dead(back.g));
+    const across = search(at(PAC.lei, 26, 12), (g) => g.roomId === PAC.clam, [{ room: PAC.clam, col: 28, row: 3 }], 150000, 1.5, stats);
+    check(`there is no way past the waves into the reef without the snorkel, jumps and all (${stats.exhausted ? 'every state looked at' : 'the 150000-state limit'})`, across === null);
+    const open = at(PAC.lei, 26, 12, [SNORKEL]);
+    for (let f = 0; f < 120 && open.g.onRope === 0; f++) frame(open, RIGHT);
+    for (let f = 0; f < 400 && open.g.roomId !== PAC.clam; f++) frame(open, DOWN);
+    run(open, NONE, 4);
+    check('with the snorkel the dive is a gap with a rope hanging in it: he takes the rope and climbs down into the first reef alive', open.g.roomId === PAC.clam && !dead(open.g));
+    check(`the dive's cells are deadly waves until the snorkel and empty after, with the rope hung down the gap (${DIVE_CELLS.length} cells, ${DIVE_ROPE.length} of rope)`, DIVE_CELLS.every(([row, col]) => cell(at(PAC.lei, 2, 12).g, col, row) !== 0) && DIVE_CELLS.every(([row, col]) => cell(at(PAC.lei, 2, 12, [SNORKEL]).g, col, row) === 0 || DIVE_ROPE.some(([r2, c2]) => r2 === row && c2 === col)) && DIVE_ROPE.every(([row, col]) => cell(at(PAC.lei, 2, 12, [SNORKEL]).g, col, row) === DIVE_ROPE_CODE));
+    for (const floor of [5, 10, 15]) {
+      const back = at(PAC.clam, 28, floor, [SNORKEL]);
+      for (let f = 0; f < 400 && back.g.roomId !== PAC.lei; f++) frame(back, UP);
+      run(back, NONE, 4);
+      check(`swimming up out of the reef through the gap from row ${floor} he comes into the show alive, on the rope (room ${back.g.roomId}, y ${back.g.y})`, back.g.roomId === PAC.lei && !dead(back.g) && back.g.onRope !== 0);
     }
   }
-  check('with the snorkel the pool is open water (the waves placed over by the sea tile: no death) and he wades east into the first reef', !dead(wade.g) && wade.g.roomId === PAC.clam);
-  check(`the pool's cells are the waves until the snorkel and the sea after (${POOL_CELLS.length} cells)`, POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18).g, col, row) !== POOL_SEA) && POOL_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18, [SNORKEL]).g, col, row) === POOL_SEA) && POOL_BED_CELLS.every(([row, col]) => cell(at(PAC.surf, 5, 18, [SNORKEL]).g, col, row) === POOL_BED));
   const cove = at(PAC.hana, 17, 18);
   check('at Hana the cove\'s pool is deadly surf without the snorkel', diesAt(cove, RIGHT, 200) >= 0);
   const drop = at(PAC.hana, 17, 18, [SNORKEL]);
@@ -122,6 +125,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   for (let f = 0; f < 300 && drop.g.roomId !== PAC.fish; f++) frame(drop, DOWN);
   check('with it the pool is a gap with a rope over it: he takes the rope and climbs down into the third reef, and the rope hangs back up into the cove', drop.g.roomId === PAC.fish && COVE_ROPE.every(([row, col]) => cell(at(PAC.hana, 17, 18, [SNORKEL]).g, col, row) === COVE_ROPE_CODE));
   void COVE_CELLS;
+  void SWIM;
 }
 
 // ---- the luau's torches --------------------------------------------------------------------------------
@@ -131,22 +135,22 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   check(`a torch burns low for ${TORCHES.idle} frames, flickers for ${TORCHES.warn}, burns tall and deadly for ${TORCHES.live} and settles for ${TORCHES.period - TORCHES.idle - TORCHES.warn - TORCHES.live}, a ${TORCHES.period}-frame period (${phases.join(' ')})`,
     phases.join() === ['idle', 'idle', 'warn', 'warn', 'live', 'live', 'spent', 'spent'].join() && TORCH_PULSES.length === 3);
   check(`the three torches go off ${TORCHES.apart} frames after one another (offsets ${TORCH_PULSES.map((p) => p.offset).join(', ')}), a three-cell gap between them`, TORCH_PULSES.map((p) => p.offset).join() === [0, 110, 70].join() && TORCHES.cols.every((c, i) => i === 0 || (TORCHES.cols[i - 1] ?? 0) - c === 5));
-  const s = at(PAC.lei, 25, 18);
+  const s = at(PAC.feast, 25, 18);
   const codeAt = (col: number) => cell(s.g, col, TORCHES.row + 1);
   const seen = new Set<number>();
   for (let f = 0; f < TORCHES.period; f++) { frame(s, NONE); seen.add(codeAt(22)); }
   check(`a torch's foot is drawn in three characters, the embers, the small flame and the tall one (${seen.size}), and its head is empty until the tall flame fills it`, seen.size === 3 && !dead(s.g));
   // standing in the first torch's cells: safe through its low and flickering time, dead when it is tall
-  const stand = at(PAC.lei, 22, 18);
+  const stand = at(PAC.feast, 22, 18);
   let died = -1;
   for (let f = 0; f < 200; f++) { frame(stand, NONE); if (dead(stand.g)) { died = f; break; } }
   check(`standing in a torch's cells he is safe while it burns low and dies when it burns tall (dead at frame ${died}, the tall flame from ${TORCHES.idle + TORCHES.warn})`, died >= TORCHES.idle + TORCHES.warn - 3 && died < TORCHES.idle + TORCHES.warn + TORCHES.live);
-  const gap = at(PAC.lei, 25, 18);
+  const gap = at(PAC.feast, 25, 18);
   let safe = true;
   for (let f = 0; f < 600; f++) { frame(gap, NONE); if (dead(gap.g)) safe = false; }
   check('in the gap between two torches he is never touched, through four cycles', safe);
-  const through = search(at(PAC.lei, 26, 18), (g) => g.roomId === PAC.lei && colOf(g) <= 10 && g.y === standY(18), [{ room: PAC.lei, col: 9, row: 16 }], 150000, 1.5);
-  check('the bot walks the stage from the rope to the steps past all three torches (waiting in the gaps)', through !== null);
+  const through = search(at(PAC.feast, 26, 18), (g) => g.roomId === PAC.feast && colOf(g) <= 6 && g.y === standY(18), [{ room: PAC.feast, col: 5, row: 16 }], 150000, 1.5);
+  check('the bot walks the lane from the rope to the ladder past all three torches (waiting in the gaps)', through !== null);
 }
 
 // ---- the road's cars -----------------------------------------------------------------------------------
@@ -289,24 +293,24 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
 {
   /** The rows open (not a wall) down the edge column of a room, and the columns open along its top or bottom row. */
   const open = (room: number) => {
-    const r = must(PACIFIC_ROOMS.find((x) => x.id === room), 'a room');
+    const r = must([...PACIFIC_ROOMS, ...PACIFIC_EXTRA_ROOMS].find((x) => x.id === room), 'a room');
     const wall = (col: number, row: number) => { const ch = r.map[row]?.[col] ?? '.'; return ch !== '.' && [1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0)); };
     return { wall };
   };
   const rowsOpen = (room: number, col: number) => Array.from({ length: 20 }, (_, row) => row).filter((row) => !open(room).wall(col, row));
   const colsOpen = (room: number, row: number) => Array.from({ length: 32 }, (_, col) => col).filter((col) => !open(room).wall(col, row));
   const together = (a: readonly number[], b: readonly number[]) => a.filter((x) => b.includes(x) && b.includes(x + 1) && a.includes(x + 1)).length > 0;
-  const sides: readonly (readonly [number, number])[] = [[PAC.stern, PAC.box], [PAC.box, PAC.pier], [PAC.pier, PAC.surf], [PAC.surf, PAC.clam], [PAC.clam, PAC.mole], [PAC.mole, PAC.kelp], [PAC.kelp, PAC.cave], [PAC.whale, PAC.road],
+  const sides: readonly (readonly [number, number])[] = [[PAC.stern, PAC.box], [PAC.box, PAC.pier], [PAC.pier, PAC.surf], [PAC.feast, PAC.lei], [PAC.diamond, PAC.lookout], [PAC.clam, PAC.mole], [PAC.mole, PAC.kelp], [PAC.kelp, PAC.cave], [PAC.whale, PAC.road],
     [PAC.road, PAC.hana], [PAC.fish, PAC.coffee], [PAC.coffee, PAC.mauna], [PAC.mauna, PAC.hilo], [PAC.hilo, PAC.hold]];
   /** A side's rows that are open on one and wall on the other (a jump or a walk there would end inside a wall): every open row must meet an open one. The chain's rows and the waves' count as open (cut, snorkelled). */
-  const cut = (l: number): readonly number[] => (l === PAC.box ? [9, 10] : l === PAC.surf ? [18] : []);
+  const cut = (l: number): readonly number[] => (l === PAC.box ? [9, 10] : []);
   const clash = (l: number, r: number) => {
     const a = [...rowsOpen(l, 31), ...cut(l)], b = rowsOpen(r, 0);
     return [...a.filter((x) => !b.includes(x)), ...b.filter((x) => !a.includes(x))].filter((row) => row >= 2); // (the two top rows are the ceiling's: nothing of him gets there)
   };
   const badSides = sides.filter(([l, r]) => !together([...rowsOpen(l, 31), ...cut(l)], rowsOpen(r, 0)) || clash(l, r).length > 0);
   check(`every east-west join of the Pacific is open at the same rows on both sides, no open row meeting a wall (${badSides.length ? badSides.map(([l, r]) => `${l}-${r}: ${clash(l, r).join(' ')}`).join(', ') : 'all thirteen'})`, badSides.length === 0);
-  const tops: readonly (readonly [number, number])[] = [[PAC.lei, PAC.surf], [PAC.whale, PAC.kelp], [PAC.road, PAC.cave], [PAC.hana, PAC.fish]];
+  const tops: readonly (readonly [number, number])[] = [[PAC.feast, PAC.surf], [PAC.lei, PAC.clam], [PAC.diamond, PAC.feast], [PAC.whale, PAC.kelp], [PAC.road, PAC.cave], [PAC.hana, PAC.fish]];
   const badTops = tops.filter(([upper, lower]) => !together([...colsOpen(upper, 19), ...(upper === PAC.hana ? [20, 21, 22] : [])], colsOpen(lower, 0)));
   check(`every up-down join is open at the same columns (${badTops.length ? badTops.map(([u, l]) => `${u}-${l}`).join(', ') : 'all four'})`, badTops.length === 0);
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 200000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5) !== null;
@@ -314,7 +318,8 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   check('Japan\'s port walks east onto the stern\'s landing and the stern walks west back onto the port\'s deck', (() => { const a = at(JP.port, 27, 13); run(a, RIGHT, 100); const b = at(PAC.stern, 1, 13); run(b, LEFT, 100); return a.g.roomId === PAC.stern && b.g.roomId === JP.port; })());
   check('the pier and Waikiki join twice, low (the street, the beach) and high (the roofs, the promenade), both ways', reach(quiet(at(PAC.pier, 20, 18)), { room: PAC.pier, col: 31, row: 16 }, (g) => g.roomId === PAC.surf) && reach(quiet(at(PAC.surf, 2, 18)), { room: PAC.surf, col: 0, row: 16 }, (g) => g.roomId === PAC.pier)
     && reach(quiet(at(PAC.pier, 20, 7)), { room: PAC.pier, col: 31, row: 5 }, (g) => g.roomId === PAC.surf) && reach(quiet(at(PAC.surf, 2, 7)), { room: PAC.surf, col: 0, row: 5 }, (g) => g.roomId === PAC.pier));
-  check('the cliff rope climbs from the promenade to the luau and the luau\'s rope drops back', reach(quiet(at(PAC.surf, 20, 7)), { room: PAC.surf, col: 28, row: 0 }, (g) => g.roomId === PAC.lei && g.onRope !== 0) && reach(quiet(at(PAC.lei, 24, 18)), { room: PAC.lei, col: 28, row: 19 }, (g) => g.roomId === PAC.surf && g.onRope !== 0));
+  check('the cliff rope climbs from the promenade to the feast and the feast\'s rope drops back; the hillside rope climbs to Diamond Head and drops back', reach(quiet(at(PAC.surf, 20, 7)), { room: PAC.surf, col: 28, row: 0 }, (g) => g.roomId === PAC.feast && g.onRope !== 0) && reach(quiet(at(PAC.feast, 24, 18)), { room: PAC.feast, col: 28, row: 19 }, (g) => g.roomId === PAC.surf && g.onRope !== 0)
+    && reach(quiet(at(PAC.feast, 20, 12)), { room: PAC.feast, col: 14, row: 0 }, (g) => g.roomId === PAC.diamond && g.onRope !== 0) && reach(quiet(at(PAC.diamond, 8, 18)), { room: PAC.diamond, col: 14, row: 19 }, (g) => g.roomId === PAC.feast && g.onRope !== 0));
   check('the slipway\'s rope climbs from the second reef up to Lahaina and the harbour\'s rope drops back into the reef', reach(at(PAC.kelp, 15, 8), { room: PAC.kelp, col: 15, row: 0 }, (g) => g.roomId === PAC.whale && g.onRope !== 0) && reach(at(PAC.whale, 12, 18), { room: PAC.whale, col: 15, row: 19 }, (g) => g.roomId === PAC.kelp));
   check('the road\'s pool drops into the sea cave (from the first level), the cave\'s ceiling gap is the pool\'s and the cave leads back to the reef (the loop: reef, Lahaina, the road, the cave, the reef)',
     reach(quiet(at(PAC.road, 20, 18)), { room: PAC.road, col: 24, row: 19 }, (g) => g.roomId === PAC.cave) && reach(at(PAC.cave, 3, 18), { room: PAC.cave, col: 0, row: 17 }, (g) => g.roomId === PAC.kelp));
@@ -343,7 +348,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
 {
-  const wants = [[PAC.box, 24, 11, 'THE RAMP IS CHAINED SHUT'], [PAC.surf, 3, 18, 'A MOLE CANNOT SWIM THAT FAR'], [PAC.hilo, 2, 9, 'THE GUARD LETS TOURISTS BY'], [PAC.hold, 3, 7, 'THE DROP IS FAR TOO HIGH']] as const;
+  const wants = [[PAC.box, 24, 11, 'THE RAMP IS CHAINED SHUT'], [PAC.lei, 2, 12, 'A MOLE CANNOT SWIM THAT FAR'], [PAC.hilo, 2, 9, 'THE GUARD LETS TOURISTS BY'], [PAC.hold, 3, 7, 'THE DROP IS FAR TOO HIGH']] as const;
   for (const [room, col, floor, text] of wants) {
     const w = at(room, col, floor, [], true);
     run(w, NONE, 120);
@@ -364,14 +369,14 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the five regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the five regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/24' && info[2] === 'ITEMS  0/19');
   enterRoom(s.g, PAC.surf, 0x40, standY(18));
-  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 41: [0x40, 0xb2, 2, 20], 42: [0x40, 0xb2, 1, 20] } });
+  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 41: [0x40, 0xb2, 2, 20], 42: [0x40, 0xb2, 1, 21] } });
   check('in the Pacific the map shows its region (thirteen columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 
   // a save made on coming into each of the Pacific's rooms (every key taken, the lei on) carries on in the same room, alive
   {
-    const spots = [[PAC.stern, 1, 13], [PAC.box, 2, 11], [PAC.pier, 1, 11], [PAC.surf, 3, 18], [PAC.lei, 24, 18], [PAC.clam, 3, 19], [PAC.mole, 2, 19], [PAC.kelp, 3, 19], [PAC.whale, 12, 18], [PAC.road, 3, 18], [PAC.cave, 3, 19],
+    const spots = [[PAC.stern, 1, 13], [PAC.box, 2, 11], [PAC.pier, 1, 11], [PAC.surf, 3, 18], [PAC.lei, 2, 12], [PAC.feast, 24, 18], [PAC.diamond, 8, 18], [PAC.lookout, 4, 10], [PAC.clam, 3, 19], [PAC.mole, 2, 19], [PAC.kelp, 3, 19], [PAC.whale, 12, 18], [PAC.road, 3, 18], [PAC.cave, 3, 19],
       [PAC.hana, 2, 8], [PAC.fish, 4, 19], [PAC.coffee, 3, 19], [PAC.mauna, 2, 19], [PAC.hilo, 2, 9], [PAC.hold, 2, 7]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
@@ -383,7 +388,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
       const b = newGame(WORLD, false);
       restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
       run(b, NONE, 4);
-      const effects = room === PAC.box ? CHAIN_CELLS.every(([row, col2]) => cell(b.g, col2, row) === 0) : room === PAC.surf ? POOL_CELLS.every(([row, col2]) => cell(b.g, col2, row) === POOL_SEA) : true;
+      const effects = room === PAC.box ? CHAIN_CELLS.every(([row, col2]) => cell(b.g, col2, row) === 0) : room === PAC.lei ? DIVE_CELLS.every(([row, col2]) => cell(b.g, col2, row) === 0 || DIVE_ROPE.some(([r2, c2]) => r2 === row && c2 === col2)) : true;
       b.g.enemies = [];
       b.g.enable &= 0x0f;
       b.g.vic.enable &= 0x0f;
@@ -407,7 +412,7 @@ const CUTTERS = [PAC.stern, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI =
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Pacific\'s arrays and grids) loads: the finds and the hood are as saved, and the Pacific is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 17] === PAC.stern && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(67).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 17] === PAC.stern && g2.siCollected.length === 44 && g2.coinCollected.length === 293 && g2.coinCollected.slice(67).every((c) => c === 0));
 }
 
 void LEFT;
