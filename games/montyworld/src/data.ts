@@ -287,6 +287,7 @@ export const WORLD: MontyData = {
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...FALLS_ANIMS, ...BUBBLE_ANIMS],
   pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...WAVE_PULSES],
   swimRooms: SWIM_ROOMS,
+  swimGate: SNORKEL,
   arrivals: ARRIVALS,
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
   roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.cave], blocks: SERPENT_BLOCKS }],

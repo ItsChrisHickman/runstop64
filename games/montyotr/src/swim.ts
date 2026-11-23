@@ -13,6 +13,11 @@ export const SWIM = { stroke: 2, float: 6 } as const;
 const FLOAT_CEILING = 0x54;
 
 export function swimMove(g: Game) {
+  const gate = g.data.swimGate;
+  if (gate !== null && !g.siCollected[gate]) { // without the snorkel the deep water drowns him
+    if (!g.actionCounter) g.actionCounter = 1;
+    return;
+  }
   const input = g.input;
   g.swimTick = (g.swimTick + 1) & 0xff;
   g.montyAction = 0;

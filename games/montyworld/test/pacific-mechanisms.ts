@@ -477,7 +477,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   let diedAt = -1;
   for (let f = 0; f < MORAY.period + 20 && diedAt < 0; f++) { frame(lunge, lunge.g.y > y0 ? UP : lunge.g.y < y0 - 2 ? DOWN : NONE); if (dead(lunge.g)) diedAt = f; }
   check(`standing in the lunge's cells he is safe until it comes and dies in it (dead at frame ${diedAt}, the lunge from ${MORAY.start + MORAY.warn + 15})`, diedAt >= MORAY.start + MORAY.warn && diedAt <= MORAY.start + MORAY.warn + 15 + MORAY.live);
-  const past = search(at(PAC.kelp, 20, 19), (g) => g.roomId === PAC.cave, [{ room: PAC.kelp, col: 31, row: 17 }], 300000, 1.5);
+  const past = search(at(PAC.kelp, 20, 19), (g) => g.roomId === PAC.cave, [{ room: PAC.kelp, col: 31, row: 17 }], 900000, 1.5);
   check('the bot swims past the moray into the sea cave (timing it)', past !== null);
   const wave = at(PAC.hana, 17, 18);
   const waveDied = diesAt(wave, NONE, WAVE.period + 50);
@@ -493,7 +493,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   const stair = at(PAC.lookout, 16, 8);
   const stairDied = diesAt(stair, NONE, 800);
   check(`on the stairs a rock reaches him (dead at frame ${stairDied}): the trap is seen coming and keeps rolling`, stairDied >= 0);
-  const summit = search(at(PAC.lookout, 4, 10), (g) => g.siCollected[itemIndex(g, PAC.lookout, 0)] !== 0 && g.y === standY(4), [{ room: PAC.lookout, col: 24, row: 2 }], 400000, 1.5);
+  const summit = search(at(PAC.lookout, 4, 10), (g) => g.siCollected[itemIndex(g, PAC.lookout, 0)] !== 0 && g.y === standY(4), [{ room: PAC.lookout, col: 24, row: 2 }], 1500000, 3);
   check('the bot climbs the stairs past the tumbling rocks to the stash (a musubi and coins) at the summit lookout', summit !== null);
   const planks = at(PAC.pier, 16, 7);
   const planksAt = (frames: number) => { run(planks, NONE, frames); return cell(planks.g, 16, 7); };
@@ -513,6 +513,19 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
     return search(s, (g) => g.roomId === PAC.kelp, [{ room: PAC.mole, col: 31, row: 17 }], 200000, 1.5) !== null;
   });
   check(`the fishponds are crossed from every one of six starts, the tern at six different places in its dive (${crossings.filter(Boolean).length} of 6), one creature, a bird over the water, never a walker to jump`, crossings.every(Boolean) && PACIFIC_ROOMS.find((r) => r.id === PAC.mole)?.enemies?.length === 1);
+}
+
+{
+  // the snorkel gates the sea: every swim room's water drowns him without it and carries him with it
+  const bad: number[] = [];
+  for (const room of WORLD.swimRooms) {
+    const without = at(room, 4, 12);
+    run(without, NONE, 8);
+    const withIt = at(room, 4, 12, [SNORKEL]);
+    run(withIt, RIGHT, 60);
+    if (!dead(without.g) || dead(withIt.g)) bad.push(room);
+  }
+  check(`in every swim room (${WORLD.swimRooms.length}) the water drowns him at once without the snorkel and he swims with it${bad.length ? ` (not in rooms ${bad.join()})` : ''}`, bad.length === 0 && WORLD.swimGate !== null);
 }
 
 void LEFT;

@@ -381,6 +381,8 @@ export interface MontyData extends RoomTables, MontyLook {
   pulses: readonly PulseSpec[];
   /** Rooms of open water (swim.ts: Monty swims as the jetpack flies, slower and buoyant); none in Monty on the Run. */
   swimRooms: readonly number[];
+  /** The special item without which the open water is deadly (the Pacific's snorkel): coming into a swim room without it he drowns; null: no gate (Monty on the Run has no swimming). */
+  swimGate: number | null;
   /** Arrival banners: on coming into one of `rooms` from a room outside them (and, if `from` is given, from one of those) the name row shows `text` for a few seconds (the Pacific's islands); none in Monty on the Run. */
   arrivals: readonly Arrival[];
   /** Monty's own pictures for swimming (swim.ts: a horizontal body with a stroke, left and right; pointers of blocks `roomBlocks` puts in the swim rooms); null: he swims in his rope pictures (Monty on the Run has no swimming). */
