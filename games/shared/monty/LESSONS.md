@@ -52,6 +52,10 @@ most care; the reward show and the title show them off.
   the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
   play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
   rooftops, not under a picture of them).
+- **Clear before busy** (Chris, 2026-11-22: Monty on the Run didn't overcomplicate; many C64 games that went for detail ended
+  up clashing, "weird and busy"). Exciting comes from the set pieces and the play, not from filling every cell. Backgrounds
+  stay calm (darker, fewer colours, little detail right behind where Monty plays) so floors, creatures, items and hazards
+  read at a glance; sprites are always drawn in front of scenery; detail goes into the landmark and the set piece, sparingly.
 - **What looks like a floor is a floor**, and nothing solid looks like background; decorations finish what they start (a
   clothesline runs wall to wall) (Chris on China).
 - **Not every room is a dungeon.** No frame walls or ceilings by habit: outdoor rooms open to the sky and run off the screen's
