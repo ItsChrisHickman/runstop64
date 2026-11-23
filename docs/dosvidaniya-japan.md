@@ -238,3 +238,12 @@ Chris on the ninja hideout: the blue band and the gap on the right were unclear,
 - **Everything reads.** The roof is red tiles under a yellow ridge and lip (nothing blue), closed to the screen's edge; the gap that invited is gone (the right side is the pine and the roof).
 - The castle samurai moved from the hall to pace the hideout's ridge (a creature kind keeps at least one room); the second walker there is no longer a ninja.
 - The route's legs: the hall's doors and gallery first, then the rope up, the hideout's three coins and the sushi, down the corridor's gap and the shaft to the port.
+
+## Playtest 2026-11-23: the paper doors are on the way again
+
+Chris: "the three paper doors in Japan are a very cool thing. I don't want to lose those." The hideout change had left the hall's rope up at its west end, so the doors led only to the walled space past the third. Now the doors are the way into the hideout:
+
+- **The hall's route.** In from the garden's gate, east along the floor through the three doors (their timing as before: offsets 0, 120, 80, a walker meets each open). Past the third, in the space the low ceiling used to cover (cols 20-22), a rope (col 21, in a gap of three in the gallery's floor) climbs to the gallery, which now runs west from there along the eaves through a hole in each of the three partitions (the coin on it, the lantern ghost over its first bay) to the rope at the left (col 4) up to the hideout. That rope's foot hangs at the gallery (row 8), out of reach of the floor: with the doors held shut the bot finds no way onto a rope or the gallery (`japan-mechanisms.ts`, exhaustive).
+- **The rest is as the hideout pass left it**: the hideout's door guard (the hood) is the hood's one gate, its corridor gap and the shaft down the walled east of the hall to the port, the red tiled roof, the rotten lookout boards. The Pacific's join is untouched.
+- **The way back** from the hideout: down its left rope onto the gallery, east to the rope past the third door, down it and west through the doors to the garden (or drop off the gallery's west end to the floor).
+- The route's legs: the three doors, the rope past the third, the gallery west to its coin, on west and up to the hideout, then the hideout's legs as before.
