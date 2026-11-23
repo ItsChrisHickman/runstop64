@@ -1,5 +1,6 @@
 import type { Seq } from '../../shared/monty/deaths';
 import type { RoomTables } from '../../shared/monty/rooms';
+import type { ProcessionSpec } from '../../shared/ending/show';
 import type { Scene } from './ending-scenes';
 import type { Game } from './game';
 import type { TitleGame, TitleScreen, TitleSound } from './title';
@@ -329,6 +330,12 @@ export interface MontyEnding {
   castRooms: readonly number[];
   /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
   closing?: readonly string[];
+  /**
+   * The parade as a procession (shared/ending/procession.ts) after the last place: the cast in troupes (the next `size` of `cast`
+   * each), the plain ground it marches on, and Monty last, dancing, under `hero.title` with his name. Without it the cast walks
+   * through the last place one at a time.
+   */
+  procession?: Omit<ProcessionSpec, 'hero' | 'gag'> & { hero: { title: string; name: string } };
 }
 
 export interface MontyData extends RoomTables, MontyLook {

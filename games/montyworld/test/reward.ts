@@ -4,12 +4,12 @@
  *  1. every scene's route does what the scene says in the game as the game plays it (no grace, the crushers' timing
  *     seeded), the same room and the same place each time, and nothing kills him;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way
- *     out, every creature of the cast recorded with its frames and walking through the montage, each named in the credits' row in turn on
- *     pixels the game leaves empty (Monty is in every place, not among them), the parade one at a time after the credits, about a minute and a half to two minutes, THE END and its numbers
+ *     out, every creature of the cast recorded with its frames, marching by after the credits in a troupe from its region (a plain ground under them, each named under its region), Monty last;
+ *     about a minute and a half to two minutes and a half, THE END and its numbers
  *     on the picture;
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
  *     included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
- *  4. a key skips it, after two seconds and not before;
+ *  4. a key skips it, after two seconds and not before, and in the procession;
  *  5. in the session: winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
  *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
  *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
@@ -20,12 +20,13 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { Input, PixelRenderer } from 'c64kit';
+import { Input, PixelRenderer, TRANSPARENT } from 'c64kit';
 import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
 import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, SHOW_FRAMES, touching } from '../../shared/test/ending-kit';
+import { BandWatch, CastWatch, ProcessionWatch, SHOW_FRAMES, drawVisitors, groundShare, touching } from '../../shared/test/ending-kit';
+import { MARCH, NAME_LETTERS } from '../../shared/ending/procession';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../../montyotr/src/ending';
@@ -42,6 +43,7 @@ import { standY } from './route';
 
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
+const PROC = must(WORLD_ENDING.procession, 'the procession');
 
 // the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
 let seed = 12345;
@@ -154,8 +156,8 @@ show.start(stats);
 let frames = 0;
 const phases: string[] = [];
 let lastPlace = -1, placeFrames = 0, placesSeen = 0;
-const bandWatch = new BandWatch(), castWatch = new CastWatch();
-let endFrames = 0, endYellow = 0;
+const bandWatch = new BandWatch(), castWatch = new CastWatch(), procWatch = new ProcessionWatch();
+let endFrames = 0, endYellow = 0, paradeFrames = 0, paradeLength = 0, shownOff = 0;
 const sceneFrames: number[] = [];
 while (show.active && frames < 14000) {
   input.poll();
@@ -163,6 +165,7 @@ while (show.active && frames < 14000) {
   show.render(0);
   frames++;
   const p = show.progress;
+  if (p.shown !== frames && show.active) shownOff++;
   if (phases[phases.length - 1] !== p.phase) phases.push(p.phase);
   if (p.phase === 'montage') {
     if (p.place !== lastPlace) {
@@ -178,6 +181,13 @@ while (show.active && frames < 14000) {
     castWatch.frame(p, BAND, () => gameBandEmpty);
     if ([40, 100, 200, 300, 400, 600, 700].includes(placeFrames)) png(`place-${p.place}-f${placeFrames}.png`, renderer);
     if (p.said?.kind === 'name' && !castWatch.pictured.has(p.said.text)) { castWatch.pictured.add(p.said.text); png(`name-${p.said.text.toLowerCase().replace(/\W+/g, '-')}.png`, renderer); }
+  } else if (p.phase === 'parade') {
+    paradeFrames++;
+    paradeLength = p.length;
+    const mask = new Uint8Array(320 * 200).fill(TRANSPARENT);
+    drawVisitors(renderer, mask);
+    procWatch.frame(p, renderer.picture(), mask, PROC.ground, [7, CREDIT.nameColour]);
+    if (paradeFrames % 50 === 0) png(`parade-${String(paradeFrames).padStart(4, '0')}.png`, renderer);
   } else if (p.phase === 'end') {
     endFrames++;
     const pic = renderer.picture();
@@ -189,21 +199,37 @@ while (show.active && frames < 14000) {
 }
 const progress = show.progress;
 console.log(`phases ${phases.join(' ')}; ${frames} frames (${(frames / 50).toFixed(0)} s); scenes ${sceneFrames.join(' ')}`);
-check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage and THE END`, phases.join() === 'loading,montage,end' && !show.active && over === 1);
+check(`the show ran through its phases (${phases.join(', ')}) in ${frames} frames (${(frames / 50).toFixed(0)} s) and is over: the montage, the procession and THE END`, phases.join() === 'loading,montage,parade,end' && !show.active && over === 1);
+check(`the show's own clock (\`shown\`, what the skip goes by) counted every frame, the procession's too (${shownOff} frames off)`, shownOff === 0);
 check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credits through thirteen places, then the parade of the whole world's creatures)`, frames >= SHOW_FRAMES.min && frames <= 20000);
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 check('the places are thirteen rooms, one or two from every region', SCENES.length === 13);
 
 const figures = progress.figures;
-check(`the cast: ${CAST.length} creatures, each with frames (${figures.length} recorded), Monty not among them (he is in every place)`, figures.length === CAST.length && figures.every((f) => f.poses >= 1) && !figures.some((f) => f.name === 'MONTY'));
+const unrecorded = CAST.filter((c) => !figures.some((f) => f.name === c.name)).map((c) => c.name);
+check(`the cast: ${CAST.length} creatures, each with frames (${figures.length} recorded${unrecorded.length ? `; not: ${unrecorded.join(', ')}` : ''}), Monty not among them (he comes last, on his own)`, figures.length === CAST.length && figures.every((f) => f.poses >= 1) && !figures.some((f) => f.name.startsWith('MONTY')));
 check(`creatures are named as the cast says, in order`, CAST.every((c, i) => figures[i]?.name === c.name));
 check(`the cast walks (${figures.filter((f) => f.poses >= 4).length} have 4 frames or more)`, figures.filter((f) => f.poses >= 4).length >= CAST.length - 3);
-castWatch.check(figures);
+check(`no creature walks through a place of the montage: they march in the procession after it (${castWatch.walked.size} seen in places)`, castWatch.walked.size === 0);
+// the procession: a troupe from each region in the journey's order under its name, Monty last
+{
+  const troupes = progress.troupes;
+  const regions = PROC.troupes.map((t) => t.title);
+  check(`the troupes: one per region in the journey's order (${troupes.map((t) => t.title || '(Monty)').join(', ')}), then Monty on his own`, troupes.length === regions.length + 1 && regions.every((r, i) => troupes[i]?.title === r) && troupes[troupes.length - 1]?.names.join() === PROC.hero.name && regions.join() === 'MOSCOW,SIBERIA,CHINA,JAPAN,HAWAII,ANDES,RIO');
+  check('the troupes march the cast in its order, four at most each', troupes.slice(0, -1).flatMap((t) => t.names).join() === CAST.map((c) => c.name).join() && troupes.every((t) => t.names.length >= 1 && t.names.length <= MARCH.most));
+  procWatch.check(troupes);
+  check(`the procession is ${(paradeFrames / 50).toFixed(0)} s, all of it shown`, paradeLength > 0 && paradeFrames >= paradeLength);
+  const names = troupes.flatMap((t) => [t.title, ...t.names]);
+  const badNames = names.filter((n) => n.length > NAME_LETTERS || [...n].some((c) => c !== ' ' && !montyFont().glyph(c)));
+  check(`every heading and name fits its half of a row (${NAME_LETTERS} letters) in the game's lettering${badNames.length ? ` (not: ${badNames.join(', ')})` : ''}`, badNames.length === 0);
+  const dark = show.cast.filter((f) => groundShare(f, PROC.ground.colour ?? 0) > 0.2).map((f) => f.name);
+  check(`every creature reads on the plain ground in its own colours: none is mostly the ground's colour${dark.length ? ` (${dark.join(', ')})` : ''}`, dark.length === 0);
+}
 check(`THE END is on the picture in yellow (${endYellow} pixels)`, endYellow > 100);
 
 const lines = spec.places.flatMap((p) => p.credits ?? []);
-bandWatch.check(lines.length, gameFrames, gameBand, [...badPlaces.values()]);
+bandWatch.check(lines.length, gameFrames, gameBand, [...badPlaces.values()], false);
 const font = montyFont();
 const bad = lines.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the game's own lettering${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
@@ -221,6 +247,16 @@ check('the game\'s own credit is last (a new game, not a port: the port\'s "rebu
   for (let f = 0; f < 60; f++) { input.poll(); s.tick(); }
   input.keyDown('Space'); input.poll(); s.tick(); input.keyUp('Space'); input.poll();
   check('a key after them does', !s.active && ended === 1);
+}
+{
+  // (the last place alone, to the procession: a key there skips the rest, THE END too)
+  let ended = 0, n = 0;
+  const s = new RewardShow({ host: { renderer, input, canvas: nowhere }, spec: { ...spec, places: spec.places.slice(-1) }, font: montyFont, music: { start() {}, end() {} }, done: () => { ended++; } });
+  s.start(stats);
+  while (s.active && n < 4000 && !(s.progress.phase === 'parade' && s.progress.frames > 100)) { input.poll(); s.tick(); n++; }
+  check(`the procession comes on after the last place, its first troupe marching (${s.progress.marching?.title ?? 'none'}) and the show's clock counting on through it (shown ${s.progress.shown} of ${n} frames)`, s.progress.phase === 'parade' && s.progress.marching?.title === 'MOSCOW' && s.progress.shown === n);
+  input.keyDown('Space'); input.poll(); s.tick(); input.keyUp('Space'); input.poll();
+  check('a key in the procession skips the rest of the show', !s.active && ended === 1);
 }
 
 // ---- 5. in the session ----------------------------------------------------------------------------------------------------------

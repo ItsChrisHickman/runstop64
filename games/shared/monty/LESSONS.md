@@ -105,6 +105,13 @@ most care; the reward show and the title show them off.
   later regions get the best set pieces and the hardest fair rooms, building to the finale; build the late regions with as
   much care as the first, not faster.
 - **Credits are written for the game**, never reused from the original it's built on; fun facts are true and sourced.
+- **The parade is a procession, not a queue** (Chris on the live ending, 2026-11-22: creatures running one at a time over the
+  sand were "practically unrecognizable" and "a very boring parade"; Super Mario World's march was enjoyable to watch). After
+  the credits each region's creatures march in together as a troupe in their own walk, halt a little left of the middle, each
+  does a small move (a hop, a turn, a bow) as its name comes up, then march off; Monty last, dancing. They march on a plain
+  black ground of their own with a line under their feet, never over a busy picture; names are plain descriptive words
+  (MATRYOSHKA DOLL, KOI) in coloured text on the black, no box. Shared: `procession` in `games/shared/ending/show.ts`
+  (`procession.ts` is its clock).
 
 ## Words and sound
 

@@ -1,7 +1,8 @@
 import { VicView, type Renderer } from 'c64kit';
 import { PORT_CREDITS } from '../../shared/ending/credits';
 import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
-import type { Place, Reel, RewardSpec } from '../../shared/ending/show';
+import type { Lead, Place, Reel, RewardSpec } from '../../shared/ending/show';
+import { FRAME } from '../../shared/monty/frames';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
 import { montyMap, type MontyFound } from './map';
@@ -156,6 +157,34 @@ function recordCreature(stage: Stage, ending: MontyEnding, name: string, types: 
   return recordFigure(name, moments);
 }
 
+/** Frames each of Monty's pictures is held: in his walk, and in his dance. */
+const WALK_HOLD = 4, DANCE_HOLD = 6, FLIP_HOLD = 3;
+
+/**
+ * Monty as he comes last in a procession, from the game's own pictures of him (FRAME): his walk to the right, and his dance (arms
+ * up in turn as on a rope, a look left and right, then his somersault on the spot). Drawn as the engine draws him in a place (his
+ * colours), with no costume on.
+ */
+function recordMonty(stage: Stage, scene: Scene, name: string): Lead | null {
+  const g = stage.game;
+  copyInto(g, pristineOf(g.data));
+  g.start();
+  if (!enterRoom(g, scene.room, scene.spot.x2, scene.spot.y, scene.spot.facing)) return null;
+  // (the room's sprites are put on by the frames after it loads)
+  for (let n = 0; n < 5; n++) g.frame(0);
+  const shot = vicShot(g.vic, 3);
+  if (!shot) return null;
+  const at = (ptr: number, hold: number): SpriteShot[][] => Array.from({ length: hold }, () => [{ ...shot, data: Uint8Array.from(g.vic.spriteData(ptr).subarray(0, 63)) }]);
+  const run = (from: number, n: number, hold: number) => Array.from({ length: n }, (_, i) => at(from + i, hold)).flat();
+  const walk = recordFigure(name, run(FRAME.walkRight, 4, WALK_HOLD));
+  const dance = recordFigure(name, [
+    ...run(FRAME.rope, 4, DANCE_HOLD), ...run(FRAME.rope, 4, DANCE_HOLD),
+    ...at(FRAME.walkLeft, DANCE_HOLD * 2), ...at(FRAME.walkRight, DANCE_HOLD * 2), ...at(FRAME.walkLeft, DANCE_HOLD * 2), ...at(FRAME.walkRight, DANCE_HOLD * 2),
+    ...run(FRAME.jumpRight, 12, FLIP_HOLD),
+  ]);
+  return walk && dance ? { walk, dance } : null;
+}
+
 // ---- the show ------------------------------------------------------------------------------------------
 
 export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists): RewardSpec {
@@ -176,11 +205,13 @@ export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists
       return new MontyReel(s, scene);
     },
   }));
+  const proc = ending.procession, first = scenes[0];
   return {
     title: ending.title,
     places,
     cast: ending.cast.map((c) => () => recordCreature(stage(), ending, c.name, c.types)),
     creditRow: CREDIT_ROW,
+    ...(proc ? { procession: { ...proc, hero: { title: proc.hero.title, record: () => (first ? recordMonty(stage(), first, proc.hero.name) : null) } } } : {}),
   };
 }
 
