@@ -55,7 +55,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('I to H: up the rope to the woods outside', into(JP.hideout, 4, 0, JP.hall)),
   leg('H: the coin on the first walkway', coin(JP.hideout, 9, 13)),
   leg('H: the coin on the hideout\'s ridge (and back west, clear of the ninja)', westOf(coin(JP.hideout, 26, 9), 21)),
-  leg('H: the coin on the lookout', coin(JP.hideout, 8, 5)),
+  leg('H: the coin on the lookout', coin(JP.hideout, 11, 5)),
   leg('H: the sushi at the end of the door\'s corridor (the guard gone)', item(JP.hideout, 0, [26, 15])),
   leg('H to I: back down the rope', into(JP.hall, 4, 19, JP.hideout)),
   leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),
