@@ -190,14 +190,6 @@ function craneJib(): NewDecor {
   return decor('pacCraneJib', 7, 2, r, 14);
 }
 
-/** The cargo door of the plane, open: a ramp let down from the fuselage's side. 3 x 2 characters. */
-function cargoDoor(): NewDecor {
-  const r = new Raster(24, 16);
-  r.rect(0, 0, 23, 1); r.rect(0, 2, 1, 14); r.rect(22, 2, 23, 14); r.rect(2, 2, 21, 14, false);
-  r.line(1, 15, 22, 9); r.line(1, 14, 22, 8); // the ramp
-  return decor('pacCargoDoor', 3, 2, r, 14);
-}
-
 /** The cargo loader's conveyor truck: a boxy cab at the left, the belt rising on its scissor frame to the right (the slope he rides). 5 x 4 characters. */
 function conveyorTruck(): NewDecor {
   const r = new Raster(40, 32);
@@ -208,13 +200,6 @@ function conveyorTruck(): NewDecor {
   for (let k = 0; k < 5; k++) r.rect(17 + k * 4, 21 - k * 4, 18 + k * 4, 22 - k * 4, false); // the belt's cleats
   r.line(20, 26, 26, 12, false); r.line(26, 26, 20, 12, false); // the scissor frame
   return decor('pacConveyor', 5, 4, r, 7);
-}
-
-/** The Hilo terminal's gate: a counter with a lei greeter's sign, a conveyor of baggage. 3 x 2 characters. */
-function gateDesk(): NewDecor {
-  const r = new Raster(24, 16);
-  r.rect(0, 6, 23, 15); r.rect(2, 8, 21, 9, false); r.rect(0, 4, 23, 5); r.rect(10, 0, 13, 3); r.rect(11, 1, 12, 2, false);
-  return decor('pacGateDesk', 3, 2, r, 7);
 }
 
 /** A banana-bread stand: a striped awning over a table, loaves on it. 4 x 3 characters. */
@@ -236,33 +221,6 @@ function lookout(): NewDecor {
   return decor('pacLookout', 4, 3, r, 12);
 }
 
-/** A sea arch of black basalt: a bridge of rock over the surf. 6 x 4 characters. */
-function seaArch(): NewDecor {
-  const r = new Raster(48, 32);
-  r.rect(0, 10, 47, 31);
-  r.ellipse(24, 31, 13, 15, false);
-  r.rect(0, 6, 11, 9); r.rect(36, 6, 47, 9);
-  for (const x of [4, 14, 34, 42]) r.line(x, 12, x + 2, 24, false);
-  return decor('pacSeaArch', 6, 4, r, 9);
-}
-
-/** Falling water down a cliff (a column of streaks): the picture the room's animation scrolls, the streaks falling. 2 x 6 characters, in two tones. */
-function fallsStreaks(): NewDecor {
-  const r = new Raster(16, 48);
-  for (let x = 1; x < 15; x += 3) { for (let y = (x * 7) % 11; y < 48; y += 11) r.rect(x, y, x + 1, y + 6); }
-  return decor('pacFalls', 2, 6, r, 3);
-}
-
-/** A wreck's bow in the sand: a hull's ribs and a hole in its side a diver swims through. 6 x 4 characters. */
-function wreck(): NewDecor {
-  const r = new Raster(48, 32);
-  r.rect(4, 12, 43, 29); r.rect(0, 8, 8, 12); r.rect(40, 6, 47, 12);
-  r.ellipse(24, 20, 10, 7, false);
-  for (const x of [10, 38]) r.rect(x, 14, x, 28, false);
-  r.rect(14, 0, 15, 8); r.line(15, 1, 22, 5);
-  return decor('pacWreck', 6, 4, r, 12);
-}
-
 /** A giant clam, open, with a pearl: its two ribbed shells. 3 x 2 characters. */
 function clam(): NewDecor {
   const r = new Raster(24, 16);
@@ -279,14 +237,9 @@ export const PACIFIC_MORE_DECOR = {
   pacDiamondHeadBig: diamondHeadBig(),
   pacCraneMast: craneMast(),
   pacCraneJib: craneJib(),
-  pacCargoDoor: cargoDoor(),
   pacConveyor: conveyorTruck(),
-  pacGateDesk: gateDesk(),
   pacBreadStand: breadStand(),
   pacLookout: lookout(),
-  pacSeaArch: seaArch(),
-  pacFalls: fallsStreaks(),
-  pacWreck: wreck(),
   pacClam: clam(),
 } as const satisfies Record<string, NewDecor>;
 

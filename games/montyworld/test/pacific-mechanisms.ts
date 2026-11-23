@@ -503,5 +503,15 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   check('walking across without stopping they hold (he comes over onto the far roofs, still on the roof level)', crossing.g.roomId === PAC.pier && colOf(crossing.g) >= 21 && crossing.g.y === standY(7));
 }
 
+{
+  // MOLE-OKAI's tern: comfortably passable (Chris found the crab very hard to jump): from several starts and timings the bot crosses the ponds
+  const crossings = [0, 25, 50, 75, 100, 125].map((wait) => {
+    const s = at(PAC.mole, 2, 19, [], false, true);
+    run(s, NONE, wait);
+    return search(s, (g) => g.roomId === PAC.kelp, [{ room: PAC.mole, col: 31, row: 17 }], 200000, 1.5) !== null;
+  });
+  check(`the fishponds are crossed from every one of six starts, the tern at six different places in its dive (${crossings.filter(Boolean).length} of 6), one creature, a bird over the water, never a walker to jump`, crossings.every(Boolean) && PACIFIC_ROOMS.find((r) => r.id === PAC.mole)?.enemies?.length === 1);
+}
+
 void LEFT;
 finish();
