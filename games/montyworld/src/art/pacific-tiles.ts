@@ -191,7 +191,7 @@ export const PACIFIC_TILES = {
     '#.######',
   ]),
   /** Molten lava: waves with dark troughs, always moving up its basin. Deadly. */
-  pacMagma: tile('pacMagma', 4, 8, [
+  pacMagma: tile('pacMagma', 4, 2, [
     '########',
     '#.##.###',
     '########',

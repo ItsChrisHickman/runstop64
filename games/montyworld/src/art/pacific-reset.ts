@@ -43,16 +43,16 @@ export const PACIFIC_RESET_TILES = {
     '######..',
     '########',
   ]),
-  /** The crust about to go: broken slabs, lava light through the gaps. Solid. */
+  /** The crust about to go: split by black cracks. Solid. */
   pacCrustSplit: tile('pacCrustSplit', 1, 9, [
-    '##....##',
+    '###.####',
+    '###..###',
+    '##.#..##',
     '#..##..#',
-    '..#..#..',
-    '.#....#.',
-    '##.##..#',
-    '#..#...#',
-    '..##.#..',
-    '.###..#.',
+    '.####...',
+    '####.#.#',
+    '###..###',
+    '##..####',
   ]),
   /** The lava's surface: the crest, bubbles breaking. Deadly (the lava's own death; a passable character the mechanism draws). */
   pacMagmaCrest: tile('pacMagmaCrest', 4, 7, [
@@ -102,15 +102,6 @@ function glow(): NewDecor {
   return decor('pacGlow', 2, 3, r, 2);
 }
 
-/** Diamond Head far off over the bay: the crater's long profile, low and dark, its rim ragged (no edge that looks walkable). 8 x 3 characters. */
-function diamondFar(): NewDecor {
-  const r = new Raster(64, 24);
-  const top = (x: number) => Math.round(23 - (x < 10 ? x * 0.9 : x < 22 ? 9 + (x - 10) * 0.6 : x < 44 ? 16 - Math.abs(x - 33) * 0.15 + ((x * 7) % 3) : 16 - (x - 44) * 0.8));
-  for (let x = 0; x < 64; x++) for (let y = Math.max(0, top(x)); y < 24; y++) r.set(x, y);
-  for (let x = 4; x < 60; x += 6) r.line(x, 23, x + 3, Math.max(0, top(x) + 3), false); // the ridges down its flank
-  return decor('pacDiamondFar', 8, 3, r, 11);
-}
-
 /** A palm's crown over its trunk: fronds drooping either way. 4 x 2 characters. */
 function fronds(): NewDecor {
   const r = new Raster(32, 16);
@@ -157,7 +148,6 @@ export const PACIFIC_RESET_DECOR = {
   pacHotelFront: hotelFront(),
   pacPillar: pillar(),
   pacGlow: glow(),
-  pacDiamondFar: diamondFar(),
   pacFronds: fronds(),
   pacGear: gear(),
   pacSeaFlat: seaFlat(),

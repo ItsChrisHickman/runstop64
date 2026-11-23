@@ -35,14 +35,14 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
 {
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[7, 33, R.quay], [7, 34, R.lap], [6, 34, R.sugar], [6, 35, R.loaf], [6, 36, R.arms], [6, 37, R.monkey], [7, 36, R.colour], [6, 33, R.steak], [7, 37, R.drum], [7, 38, R.float], [7, 39, R.bust]] as const;
-  check('Rio is eleven rooms in seven columns (33-39) and two rows (6-7) beside the Amazon\'s last bank (row 7, column 32), room ids 67 to 77',
-    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 78 && grid(7, 32) === AND.bank && R.quay === 67 && R.bust === 77);
+  const placed = [[7, 23, R.quay], [7, 24, R.lap], [6, 24, R.sugar], [6, 25, R.loaf], [6, 26, R.arms], [6, 27, R.monkey], [7, 26, R.colour], [6, 23, R.steak], [7, 27, R.drum], [7, 28, R.float], [7, 29, R.bust]] as const;
+  check('Rio is eleven rooms in seven columns (23-29) and two rows (6-7) beside the Amazon\'s last bank (row 7, column 22), room ids 67 to 77',
+    placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 66 && grid(7, 22) === AND.bank && R.quay === 67 && R.bust === 77);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   check(`the earlier regions keep their coins and finds, in the same table places, and Rio adds ${coinsIn(67, 77)} coins and 9 finds (the key to the city, the headdress, six skewers and the bowl)`,
-    coinsIn(0, 66) === 220 && itemsIn(0, 66) === 34 && itemsIn(67, 77) === 9 && (WORLD.coinTable[219 * 3] ?? 99) <= 66 && (WORLD.coinTable[220 * 3] ?? 0) >= 67);
-  check('19 key items and 23 snacks count on the pause screen; the bowl does not count towards a room\'s finds', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23 && WORLD.uncountedItems.length === 1);
+    coinsIn(0, 66) === 149 && itemsIn(0, 66) === 31 && itemsIn(67, 77) === 9 && (WORLD.coinTable[148 * 3] ?? 99) <= 66 && (WORLD.coinTable[149 * 3] ?? 0) >= 67);
+  check('18 key items and 21 snacks count on the pause screen; the bowl does not count towards a room\'s finds', WORLD.progress.keyItems.length === 18 && WORLD.progress.cakes.length === 21 && WORLD.uncountedItems.length === 1);
   check('Rio\'s sectors and map colours are one each, in letters the font has', RIO_SECTORS.length === 11 && RIO_COLOURS.length === 11 && RIO_SECTORS.every((s) => s.text.length <= 32 && /^[A-Z0-9 .:,!?-]+$/.test(s.text) && !/Z/.test(s.text)));
   const rooms = creatureRooms(RIO_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
@@ -307,9 +307,9 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
 {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the seven regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the seven regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/21' && info[2] === 'ITEMS  0/18');
   enterRoom(s.g, R.sugar, 0x40, standY(18));
-  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 6, 34], [R.lap]: [0x40, 0xb2, 7, 34] } });
+  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 6, 24], [R.lap]: [0x40, 0xb2, 7, 24] } });
   check('in Rio the map shows its region (seven columns, two rows), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
   const spots = [[R.quay, 2, 8], [R.lap, 4, 18], [R.sugar, 14, 18], [R.loaf, 2, 8], [R.arms, 1, 8], [R.monkey, 10, 8], [R.colour, 3, 8], [R.steak, 24, 18], [R.drum, 1, 18], [R.float, 1, 18], [R.bust, 2, 18]] as const;
   const failed: number[] = [];
@@ -338,12 +338,12 @@ const KEY = [R.lap, 0] as const, HEADDRESS = [R.steak, 0] as const;
   const g1 = newGame(WORLD, true).g;
   g1.siCollected[0] = 0x81; g1.siCollected[5] = 0x81; g1.coinCollected[0] = 0xff; g1.coinCollected[30] = 0xff;
   const old = snapshot(g1);
-  const oldSave = { ...old, coins: old.coins.slice(0, 220), items: old.items.slice(0, 34), roomId: AND.bank, worn: itemIndex(g1, AND.market, 0) };
+  const oldSave = { ...old, coins: old.coins.slice(0, 149), items: old.items.slice(0, 31), roomId: AND.bank, worn: itemIndex(g1, AND.market, 0) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the six regions before Rio\'s arrays) loads: the finds and the chullo are as saved, Rio is on the grid, its coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 33] === R.quay && g2.siCollected.length === 43
-    && g2.coinCollected.length === 220 + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(220).every((c) => c === 0));}
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[7 * WORLD.exitGrid.cols + 23] === R.quay && g2.siCollected.length === 40
+    && g2.coinCollected.length === 149 + RIO_ROOMS.reduce((n, r) => n + (r.coins?.length ?? 0), 0) && g2.coinCollected.slice(149).every((c) => c === 0));}
 
 // ---- the way in is two ways, the gates hold, the beach is drawn ---------------------------------------------
 {

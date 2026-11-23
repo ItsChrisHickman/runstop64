@@ -53,12 +53,12 @@ export const WAIKIKI_PALETTE = {
 
 /** Hana (the sea is a backdrop, one flat blue: `HANA_SEA`): the black rock and sand, the reef's brown rock, coral, the moray's hole, eyes and body, and the surge's streaks. */
 export const HANA_PALETTE = {
-  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 3],
+  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 14],
 } as const satisfies Palette;
 
 /** Hilo: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the rope, the plane's white belly, the steam vent's column. */
 export const HILO_PALETTE = {
-  K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 8], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], U: ['pacFuselage', 1], V: ['pacSteam', 1],
+  K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 2], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], U: ['pacFuselage', 1], V: ['pacSteam', 1],
 } as const satisfies Palette;
 
 /** The plane's hold: the fuselage, the roller floor, the cargo net, the belly ladder, the rear door. */
@@ -86,13 +86,12 @@ export const TORCH_HEAD_PULSES: readonly PulseSpec[] = TORCHES.cols.map((col, k)
 export const SURF_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [26, 27, 28, 29, 30].map((col) => [row, col] as const));
 
 /**
- * Hana's surge (`currents`): in sets, the sea runs west along the bottom lane, 90 frames on and 120 off. Over the coral heads (rows 12-15) and in the open water between the first two heads and past the
- * last it carries him west at his own pace; in the lee of the first and the third head (their west sides) the water is still. He shelters low in a lee while a set runs and swims on between sets.
+ * Hana's surge (`currents`): in sets, the sea runs west along the bottom lane, 90 frames on and 120 off. Over the coral heads (rows 12-15) and in the open water past the last it carries him west at his own
+ * pace; low in the lee of each head (its west side) the water is still. He shelters low in a lee while a set runs and swims on between sets.
  */
 export const SURGE = { period: 210, start: 120, length: 90, warn: 30 } as const;
 export const CURRENTS: readonly CurrentSpec[] = [
   { col: 10, cols: 21, top: 12, bottom: 15 }, // over the heads
-  { col: 16, cols: 3, top: 16, bottom: 18 }, // between the first head and the second
   { col: 29, cols: 2, top: 16, bottom: 18 }, // past the third
 ].map((box): CurrentSpec => ({ room: PAC.hana, ...box, dx: -1, period: SURGE.period, start: SURGE.start, length: SURGE.length }));
 /** The surge seen: streaks flicker in the lane over the heads from 30 frames before a set until it is spent (harmless `pulses`: a warning and nothing live). */
@@ -130,11 +129,11 @@ export const VENT_PULSES: readonly PulseSpec[] = [
 ];
 
 /**
- * The hold's loose crate (`rollers`, sprite 1: the room has two creatures and the parachute): chocked at the front, it breaks loose and rolls the length of the roller floor to the rear door, two pixels a
- * frame, every 360 frames; its first roll 150 frames after he comes in, so arriving up the ladder is safe. The net and the ladder's shaft are out of its way. Its pictures are the boulders' blocks,
+ * The hold's loose crate (`rollers`, sprite 1: the room has two creatures and the parachute): chocked aft of the belly hatch, it breaks loose and rolls the length of the roller floor to the rear door, two
+ * pixels a frame, every 360 frames, its first roll 150 frames after he comes in. The front of the floor (by the ladder) and the net are out of its way. Its pictures are the boulders' blocks,
  * the crate's put in while the hold is loaded (`roomBlocks`).
  */
-export const LOOSE_CRATE: RollerSpec = { room: PAC.plane, sprite: 1, path: [[2, 14], [28, 14]], speed: 2, every: 360, start: 150, frames: BOULDER_POINTERS, colour: 9 };
+export const LOOSE_CRATE: RollerSpec = { room: PAC.plane, sprite: 1, path: [[10, 14], [28, 14]], speed: 2, every: 360, start: 150, frames: BOULDER_POINTERS, colour: 9 };
 
 /** The clouds go by the hold's portholes (a `charAnims` cycle over the decoration's one character). */
 export const CLOUD_ANIMS: readonly CharAnim[] = [{ kind: 'cycle', room: PAC.plane, chars: [{ decor: decorIndex('pacPortCloud'), cell: 0 }], frames: CLOUD_FRAMES, every: 4 }];
@@ -152,7 +151,7 @@ export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] 
 // ---- the backdrops -------------------------------------------------------------------------------------
 const paintWaikiki = (g: Grid): void => {
   g.box(0, 0, 2, 14, 'S'); // Aloha Tower at the harbour's end, its ground floor an arcade the pier runs through (rows 15-18)
-  g.box(0, 19, 5, 19, 'B').box(6, 19, 25, 19, 'A').box(26, 18, 30, 19, 'W').box(31, 0, 31, 19, 'K'); // the pier, the sand, the surf, Diamond Head's foot closing the bay
+  g.box(0, 19, 5, 19, 'B').box(6, 19, 25, 19, 'A').box(26, 18, 30, 19, 'W').box(31, 0, 31, 19, 'K'); // the pier, the sand, the surf, Diamond Head's cliff closing the bay
   g.box(3, 14, 8, 14, 'B'); // the beach stand's roof
   g.box(5, 7, 19, 7, 'B'); // the hotel's lawn
   g.box(20, 6, 20, 18, 'R'); // the palm at the sea's edge, up to the lawn
@@ -223,7 +222,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     item: { name: 'snorkel', col: 6, row: 12, sprite: PAC_SPRITE.snorkel },
     item2: { name: 'lei', col: 7, row: 5, sprite: PAC_SPRITE.lei },
     decor: [
-      ['pacDiamondFar', 22, 4], ...hotelFront, ...pillars, ['pacFronds', 18, 4],
+      ...hotelFront, ...pillars, ['pacFronds', 18, 4],
       ['pacSnorkelShop', 3, 15], ['pacPalm', 22, 13],
     ],
     creatures: [

@@ -54,16 +54,16 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 30, AND.jump], [3, 30, AND.thin], [4, 30, AND.condor], [5, 30, AND.llama], [5, 31, AND.rock], [5, 32, AND.market], [5, 33, AND.mist], [6, 30, AND.cloud], [6, 31, AND.tunnel], [7, 30, AND.boat],
-    [7, 31, AND.river], [7, 32, AND.bank]] as const;
-  check('the Andes and the Amazon are twelve rooms in a block of four columns (30-33) and six rows (2-7) beside the Pacific\'s hold (row 2, column 29), room ids 55 to 66, the regions before them unchanged',
+  const placed = [[2, 20, AND.jump], [3, 20, AND.thin], [4, 20, AND.condor], [5, 20, AND.llama], [5, 21, AND.rock], [5, 22, AND.market], [5, 23, AND.mist], [6, 20, AND.cloud], [6, 21, AND.tunnel], [7, 20, AND.boat],
+    [7, 21, AND.river], [7, 22, AND.bank]] as const;
+  check('the Andes and the Amazon are twelve rooms in a block of four columns (20-23) and six rows (2-7) beside the Pacific\'s plane (row 2, column 19), room ids 55 to 66, the regions before them unchanged',
     placed.every(([r, c, id]) => grid(r, c) === id) && cells.filter((c) => c !== 0xff).length === 66 && grid(2, 19) === PAC.plane && grid(7, 23) === 67 && WORLD.exitGrid.rows === 8);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const mine = coinsIn(55, 66);
   check(`the regions before the Andes keep their coins and finds, in the same table places (first), and the Andes add ${mine} coins and 9 finds (the chullo, the panpipes, the machete and six empanadas)`,
-    coinsIn(0, 54) === 147 && itemsIn(0, 54) === 25 && itemsIn(55, 66) === 9 && (WORLD.coinTable[146 * 3] ?? 99) <= 54 && (WORLD.coinTable[147 * 3] ?? 0) >= 55);
-  check('19 key items and 23 snacks count on the pause screen', WORLD.progress.keyItems.length === 19 && WORLD.progress.cakes.length === 23);
+    coinsIn(0, 54) === 76 && itemsIn(0, 54) === 22 && itemsIn(55, 66) === 9 && (WORLD.coinTable[75 * 3] ?? 99) <= 54 && (WORLD.coinTable[76 * 3] ?? 0) >= 55);
+  check('18 key items and 21 snacks count on the pause screen', WORLD.progress.keyItems.length === 18 && WORLD.progress.cakes.length === 21);
   check('the Andes\' sectors and map colours are one each', ANDES_SECTORS.length === 12 && ANDES_COLOURS.length === 12 && ANDES_SECTORS.every((s) => s.text.length <= 32 && !/Z/.test(s.text)));
   const typeable = (t: string) => /^[A-Z0-9 .:,!?-]+$/.test(t);
   check('every name and hint the Andes put in the name row is in letters the font has (it has no apostrophe: a block is drawn there and the letter after it is a capital)',
@@ -77,7 +77,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const crowded = overCrowded(ANDES_ROOMS);
   check(`no room has a fourth creature (sprite 7 is the worn chullo's: it would be a phantom; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no flight rooms, no boulders, no vines, no canopy)', MOTR.flights.length === 0 && MOTR.rollers.length === 0 && MOTR.vines.length === 0 && MOTR.canopy === null);
-  check('the flight rooms are the three of the drop, the boulders T2\'s three, the vines P\'s three', WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.condor].join() && WORLD.rollers.length === 3 && WORLD.rollers.every((r) => r.room === AND.rock) && WORLD.vines.length === 3 && WORLD.vines.every((v) => v.room === AND.river));
+  check('the flight rooms are the three of the drop, the boulders T2\'s three (the plane\'s loose crate the other roller), the vines P\'s three', WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.condor].join() && WORLD.rollers.filter((r) => r.room === AND.rock).length === 3 && WORLD.vines.length === 3 && WORLD.vines.every((v) => v.room === AND.river));
   const roomsWithSprites = ANDES_ROOMS.filter((r) => (r.enemies?.length ?? 0) + (r.item ? 1 : 0) > 3 && WORLD.rollers.some((b) => b.room === r.id));
   check('the boulders\' room leaves their sprites (1, 2 and 6) free: one item, at most two creatures', roomsWithSprites.length === 0 && (ANDES_ROOMS.find((r) => r.id === AND.rock)?.enemies?.length ?? 9) <= 2);
 }
@@ -421,9 +421,9 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over the six regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/23' && info[2] === 'ITEMS  0/19');
+  check(`the pause screen counts the snacks and the items over the six regions (${info.join(' | ')})`, info[3] === 'SNACKS 0/21' && info[2] === 'ITEMS  0/18');
   enterRoom(s.g, AND.rock, 0x40, standY(6));
-  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.rock]: [0x40, 0xb2, 5, 31], [AND.llama]: [0x40, 0xb2, 5, 30] } });
+  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.rock]: [0x40, 0xb2, 5, 21], [AND.llama]: [0x40, 0xb2, 5, 20] } });
   check('in the Andes the map shows its region (four columns, six rows), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 
   // a save made on coming into each of the Andes' rooms (every key taken, the chullo on) carries on in the same room, alive
@@ -459,11 +459,11 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   const old = snapshot(g1);
   // (a real pre-Andes save has the grid of three rows, 150 cells, and none of the Andes' rooms)
   const shortGrid = Array.from(WORLD.exitGrid.image.slice(0, 3 * WORLD.exitGrid.cols), (c) => (c >= AND.jump && c !== 0xff ? 0xff : c));
-  const oldSave = { ...old, coins: old.coins.slice(0, 147), items: old.items.slice(0, 25), exitGrid: shortGrid, roomId: PAC.plane, worn: itemIndex(g1, PAC.waikiki, 1) };
+  const oldSave = { ...old, coins: old.coins.slice(0, 76), items: old.items.slice(0, 22), exitGrid: shortGrid, roomId: PAC.plane, worn: itemIndex(g1, PAC.waikiki, 1) };
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before the Andes\' arrays and grids) loads: the finds and the lei are as saved, and the Andes are on the grid, their coins and finds still to take',
-    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 30] === AND.jump && g2.siCollected.length === 43 && g2.coinCollected.length === 282 && g2.coinCollected.slice(147).every((c) => c === 0));
+    g2.siCollected[0] === 0x81 && g2.siCollected[5] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[30] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[2 * WORLD.exitGrid.cols + 20] === AND.jump && g2.siCollected.length === 40 && g2.coinCollected.length === 211 && g2.coinCollected.slice(76).every((c) => c === 0));
 }
 
 void LEFT;
