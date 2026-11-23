@@ -449,7 +449,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   // the sea cave's serpent and its two ways out
   const lane = at(PAC.cave, 2, 19);
   let safe = true;
-  for (let f = 0; f < 800; f++) { frame(lane, f % 220 < 110 ? RIGHT : LEFT); if (dead(lane.g)) { safe = false; break; } }
+  for (let f = 0; f < 800; f++) { frame(lane, f % 220 < 110 ? { ...RIGHT, down: true } : { ...LEFT, down: true }); if (dead(lane.g)) { safe = false; break; } }
   check('the seabed under the serpent\'s loop is clear: he swims its length and back, twice over the loop\'s lap, untouched', safe);
   const there = at(PAC.cave, 20, 12);
   let died = false;
@@ -458,9 +458,9 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   check('the cave has one big creature and no walker: the serpent\'s six pieces, no enemies', WORLD.dragons.some((d) => d.room === PAC.cave && d.pieces.length === 6) && !PACIFIC_ROOMS.find((r) => r.id === PAC.cave)?.enemies?.length);
   const reachUp = (s: State) => search(s, (g) => g.roomId === PAC.road && g.onRope !== 0 && !g.freeze && !g.script, [{ room: PAC.cave, col: 24, row: 0 }], 300000, 1.5) !== null;
   check('from the entrance the bot swims round the serpent and up through the pool\'s gap to the road, onto the rope (the way up at the top right: a real exit, no bounce)', reachUp(at(PAC.cave, 2, 18)));
-  const idle = at(PAC.road, 20, 18);
-  for (let f = 0; f < 200 && idle.g.roomId !== PAC.cave; f++) frame(idle, RIGHT);
-  for (let f = 0; f < 200 && idle.g.roomId !== PAC.cave; f++) frame(idle, DOWN);
+  const idle = at(PAC.road, 21, 18);
+  for (let f = 0; f < 120 && idle.g.onRope === 0; f++) frame(idle, RIGHT);
+  for (let f = 0; f < 300 && idle.g.roomId !== PAC.cave; f++) frame(idle, DOWN);
   run(idle, NONE, 400);
   check('coming down the pool\'s rope into the cave and then doing nothing, he stays in the cave (the sea\'s lift stops short of the ceiling: no screen bounce), alive', idle.g.roomId === PAC.cave && !dead(idle.g));
 }
@@ -473,7 +473,9 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   for (let f = 0; f < MORAY.period; f++) { frame(s, NONE); holeCodes.add(cell(s.g, hole[0], hole[1])); bodyCodes.add(cell(s.g, body.col, body.row)); }
   check(`the moray's hole shows its eyes (${holeCodes.size} pictures) before a ${MORAY.warn}-frame blink, then its body lunges across the way to the cave (${bodyCodes.size} pictures at its first cell)`, holeCodes.size === 2 && bodyCodes.size === 2);
   const lunge = at(PAC.kelp, 28, 17);
-  const diedAt = diesAt(lunge, NONE, MORAY.period + 20);
+  const y0 = lunge.g.y;
+  let diedAt = -1;
+  for (let f = 0; f < MORAY.period + 20 && diedAt < 0; f++) { frame(lunge, lunge.g.y > y0 ? UP : lunge.g.y < y0 - 2 ? DOWN : NONE); if (dead(lunge.g)) diedAt = f; }
   check(`standing in the lunge's cells he is safe until it comes and dies in it (dead at frame ${diedAt}, the lunge from ${MORAY.start + MORAY.warn + 15})`, diedAt >= MORAY.start + MORAY.warn && diedAt <= MORAY.start + MORAY.warn + 15 + MORAY.live);
   const past = search(at(PAC.kelp, 20, 19), (g) => g.roomId === PAC.cave, [{ room: PAC.kelp, col: 31, row: 17 }], 300000, 1.5);
   check('the bot swims past the moray into the sea cave (timing it)', past !== null);
@@ -487,7 +489,7 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   const tunnel = at(PAC.lookout, 6, 10);
   let tunnelSafe = true;
   for (let f = 0; f < 1000; f++) { frame(tunnel, NONE); if (dead(tunnel.g)) tunnelSafe = false; }
-  check(`the tunnel is the place to wait: rocks (${ROCKS.length} of them, a lap of ${ROCKS[0]?.every} frames) vanish at its mouth and never reach inside, through a thousand frames`, tunnelSafe && ROCKS.length === 3);
+  check(`the tunnel is the place to wait: rocks (${ROCKS.length} of them, a lap of ${ROCKS[0]?.every} frames) vanish at its mouth and never reach inside, through a thousand frames`, tunnelSafe && ROCKS.length === 2);
   const stair = at(PAC.lookout, 16, 8);
   const stairDied = diesAt(stair, NONE, 800);
   check(`on the stairs a rock reaches him (dead at frame ${stairDied}): the trap is seen coming and keeps rolling`, stairDied >= 0);
@@ -497,9 +499,9 @@ const CUTTERS = [PAC.box, 0] as const, SNORKEL = [PAC.surf, 0] as const, LEI = [
   const planksAt = (frames: number) => { run(planks, NONE, frames); return cell(planks.g, 16, 7); };
   const code = (l: string) => codeOf(PIER_PALETTE, l);
   const [c1, c2, c3] = [planksAt(60), planksAt(32), planksAt(40)];
-  check('standing on the rotten planks he sees them crack, split and give way (whole, cracked, split, gone), and he falls into the alley to the street', c1 === code('X') && c2 === code('Y') && c3 === 0 && (run(planks, NONE, 40), planks.g.roomId === PAC.pier && planks.g.y === standY(18)));
+  check('standing on the rotten planks he sees them crack, split and give way (whole, cracked, split, gone), and he falls into the alley to the street', c1 === code('X') && c2 === code('Y') && c3 === 0 && (run(planks, NONE, 140), planks.g.roomId === PAC.pier && planks.g.y === standY(18) && !dead(planks.g)));
   const crossing = at(PAC.pier, 10, 7);
-  run(crossing, RIGHT, 330);
+  run(crossing, RIGHT, 110);
   check('walking across without stopping they hold (he comes over onto the far roofs, still on the roof level)', crossing.g.roomId === PAC.pier && colOf(crossing.g) >= 21 && crossing.g.y === standY(7));
 }
 

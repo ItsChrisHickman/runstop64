@@ -285,12 +285,12 @@ const LOOKOUT_COINS = [[23, 2], [26, 2], [6, 8]] as const;
 const lookoutBackdrop = (r0: number, r1: number, piece: WorldDecor) => fillCells(paintLookout, [...LOOKOUT_COINS, [24, 2], [25, 2], [24, 3], [25, 3]], [0, r0, 31, r1], piece);
 
 /**
- * The tumbling rocks of THE LOOKOUT (rollers; the Andes' boulders' pictures): three, a third of a period apart, from the crater rim above the summit's lookout (col 28, falling in at the top of the room) along the summit (floor 4), down the stairs (floors 6, 8) a pixel a frame, a fall of two rows at each
- * edge, and gone at the tunnel's mouth (col 13): the tunnel is where to wait, the rocks never come into it. `every` 360 frames; a rock is on the path about 130 of them.
+ * The tumbling rocks of THE LOOKOUT (rollers; the Andes' boulders' pictures): two, half a period apart, from the crater rim above the summit's lookout (col 28, falling in at the top of the room) along the summit (floor 4), down the stairs (floors 6, 8) a pixel a frame, a fall of two rows at each
+ * edge, and gone at the tunnel's mouth (col 13): the tunnel is where to wait, the rocks never come into it. `every` 400 frames; a rock is on the path about 170 of them, so one at a time.
  */
 export const ROCK_PATH: readonly (readonly [col: number, row: number])[] = [[28, 0], [28, 2], [22.4, 2], [21.4, 4], [18.2, 4], [17.4, 6], [14.2, 6], [13.4, 8], [13.4, 8]];
-export const ROCKS: readonly RollerSpec[] = [0, 120, 240].map((start, i): RollerSpec => ({
-  room: PAC.lookout, sprite: [0, 1, 2][i] ?? 0, path: ROCK_PATH, speed: 1, every: 360, start, frames: BOULDER_POINTERS, colour: 9,
+export const ROCKS: readonly RollerSpec[] = [0, 200].map((start, i): RollerSpec => ({
+  room: PAC.lookout, sprite: [0, 1][i] ?? 0, path: ROCK_PATH, speed: 1, every: 400, start, frames: BOULDER_POINTERS, colour: 9,
 }));
 
 /** The sea cave's rock and water: a roof with the pool's gap (cols 23-25) at the top right, short stalactites, humps on the seabed (the serpent's loop is clear of them), the doorway to the reef at the left (rows 14-18). */
@@ -303,12 +303,12 @@ const paintCave = (g: Grid): void => {
 };
 
 /**
- * The sea serpent: a head, four body pieces and a tail on sprites 0, 1, 2, 4, 5 and 6, round a closed path that circles the cavern's middle above the seabed's lane (the corners are the top left of the head's 24 by 21 picture, in playfield cells); its pictures
+ * The sea serpent: a head, four body pieces and a tail on sprites 0, 1, 2, 4, 5 and 6, round a closed path that circles the cavern's left and middle above the seabed's lane, leaving the right-hand side and the top rows clear (the corners are the top left of the head's 24 by 21 picture, in playfield cells); its pictures
  * are the blocks China's dragon has in China, put in while the cave is loaded (`roomBlocks`).
  */
 export const SERPENT: DragonSpec = {
   room: PAC.cave,
-  path: [[8, 11], [12, 7], [18, 6.5], [24, 8], [27, 11], [24, 12.5], [18, 13.5], [12, 13]],
+  path: [[7, 11], [11, 7.5], [16, 7], [20, 8.5], [22, 11], [20, 12.5], [16, 13.5], [11, 13]],
   speed: 1, gap: 18,
   pieces: [
     { sprite: 0, colour: 13, frames: [DRAGON_POINTERS.headLeftOpen, DRAGON_POINTERS.headLeftShut, DRAGON_POINTERS.headRightOpen, DRAGON_POINTERS.headRightShut] },

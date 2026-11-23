@@ -706,7 +706,7 @@ export class Game implements MontyBody, MontyWorld {
   private arrive(id: number) {
     const came = this.lastRoom;
     this.lastRoom = id;
-    if (came < 0) return;
+    if (came < 0 || this.hint.text !== null) return; // (a hint the room already gives wins the row)
     const banner = this.data.arrivals.find((a) => a.rooms.includes(id) && !a.rooms.includes(came) && (a.from === undefined || a.from.includes(came)));
     if (!banner) return;
     say(this.hint, banner.text, 0);
