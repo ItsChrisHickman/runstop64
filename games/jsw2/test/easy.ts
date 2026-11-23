@@ -135,9 +135,11 @@ function dies(s: Session, times: number) {
   for (let n = 0; n < times; n++) {
     s.p.grace.clear();
     for (let i = 0; i < 12; i++) { s.ram()[0x8304] |= 1; s.ram()[0x8173] = 0; s.tick(); }
-    s.tick(5);
-    if (s.p.state.grace > 0 || s.lives() < before) lost++;
-    s.tick(25);
+    // (the restart puts him back in the room he died in, which takes a few frames: the life gone shows at some frame of the next
+    // thirty, not at a fixed one, and ENHANCED fills it again at the next main wait)
+    let seen = false;
+    for (let i = 0; i < 30; i++) { s.tick(); if (s.p.state.grace > 0 || s.lives() < before) seen = true; }
+    if (seen) lost++;
   }
   return { before, after: s.lives(), lost };
 }

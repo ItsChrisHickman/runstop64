@@ -350,7 +350,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
   check('the wall\'s foot walks west back to the village', (() => { const s = at(CHI.wall, 3, 17); run(s, LEFT, 80); return s.g.roomId === SIB.border; })());
   check('the tunnel under the wall leads east to the hutong and the hutong west back to the wall', into(CHI.alley, at(CHI.wall, 20, 17), { room: CHI.wall, col: 31, row: 15 }) && into(CHI.wall, at(CHI.alley, 12, 17), { room: CHI.alley, col: 0, row: 15 }));
   check('the hutong\'s rope climbs into the market\'s street, and the street\'s gap lets him down it again (both ends on the rope: the gaps are at the same cells)', lands(CHI.market, [17], at(CHI.alley, 5, 17), { room: CHI.alley, col: 4, row: 0 }, 100000) && lands(CHI.alley, [17], at(CHI.market, 7, 17), { room: CHI.market, col: 4, row: 19 }, 100000));
-  check('the market walks west into the tower, low (the hall) and high (the walkway)', into(CHI.tower, at(CHI.market, 5, 17), { room: CHI.market, col: 0, row: 15 }, 100000) && into(CHI.tower, at(CHI.market, 5, 9), { room: CHI.market, col: 0, row: 7 }, 100000));
+  check('the market walks west into the tower, low (the hall) and high (the walkway)', into(CHI.tower, at(CHI.market, 8, 17), { room: CHI.market, col: 0, row: 15 }, 100000) && into(CHI.tower, at(CHI.market, 5, 9), { room: CHI.market, col: 0, row: 7 }, 100000));
   check('the tower walks east into the market, low and high', into(CHI.market, at(CHI.tower, 28, 17), { room: CHI.tower, col: 31, row: 15 }, 100000) && into(CHI.market, at(CHI.tower, 28, 9), { room: CHI.tower, col: 31, row: 7 }, 100000));
   check('the tower\'s floor gap lets him down its rope to the wall\'s top, and the wall\'s top climbs it again: the loop wall, hutong, market, tower, wall',
     lands(CHI.wall, [9], at(CHI.tower, 27, 17), { room: CHI.tower, col: 25, row: 19 }, 100000) && lands(CHI.tower, [17], at(CHI.wall, 22, 9), { room: CHI.wall, col: 25, row: 0 }, 200000));
@@ -396,7 +396,7 @@ const KEY = [CHI.alley, 0] as const, HAT = [CHI.top, 0] as const, BAMBOO = [CHI.
 
   // a save made on coming into each of China's rooms (every key taken, so the gates are open and the hat is on) carries on in the same room, alive
   {
-    const spots = [[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 20, 17], [CHI.market, 2, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 17, 17]] as const;
+    const spots = [[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 20, 17], [CHI.market, 8, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 17, 17]] as const;
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);

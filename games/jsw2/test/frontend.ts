@@ -74,7 +74,7 @@ check(`Enter: back in play in the drain (room ${room()})`, p.state.playing && ro
 
 // A new game over the save asks first (NEW GAME?), from the title and in the moment before CONTINUE? is up
 const mid = readSaves('jsw2').current;
-const newGameAsked = (what: string) => check(`${what}: NEW GAME? (the title held, the save as it was)`, p.state.prompt === 'newGame' && !p.state.playing && readSaves('jsw2').current?.data === mid?.data);
+const newGameAsked = (what: string, was = mid) => check(`${what}: NEW GAME? (the title held, the save as it was)`, p.state.prompt === 'newGame' && !p.state.playing && readSaves('jsw2').current?.data === was?.data);
 tap('KeyP'); tap('KeyT'); tick(60);
 tap('Space');
 newGameAsked('Space on the title');
@@ -94,11 +94,14 @@ input.keyUp('Space');
 tick(5);
 check(`jump held as the last life goes: CONTINUE? (${p.state.prompt}), no new game`, p.state.prompt === 'continue' && !p.state.playing);
 tap('Escape');
+// (a death restarts him in the room he died in, and the save on coming back is the game's autosave: the save is now the one the
+// restarts made, not the one before the deaths; it is that one NEW GAME? leaves alone and a new game keeps as the previous)
+const dead = readSaves('jsw2').current;
 tap('Space');
-newGameAsked('Esc on CONTINUE?, then Space');
+newGameAsked('Esc on CONTINUE?, then Space', dead);
 tap('Space');
 tick(200);
 const after = readSaves('jsw2');
-check(`Space again: a new game, in the bathroom (room ${room()}), the save before it kept as the previous`, p.state.playing && room() === 32 && after.previous?.data === mid?.data);
+check(`Space again: a new game, in the bathroom (room ${room()}), the save before it kept as the previous`, p.state.playing && room() === 32 && after.previous?.data === dead?.data);
 
 finish();
