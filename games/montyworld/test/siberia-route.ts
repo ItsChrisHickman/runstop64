@@ -1,8 +1,9 @@
 /**
  * Siberia's route for the bot (docs/dosvidaniya-reset.md, "Siberia (the Trans-Siberian)"): the goals, in the order a player who takes everything plays them. Onto the dining
- * car's roof from Moscow's carriage, down its first hatch (the coin) to the pelmeni, back up; along the roof to the sleeper, into the closet while the mountain goes over,
- * then up the pine before the next; the yeti's cave (the coin on the bridge, the ticket); back down the pine and west along the roof to the dining car, down a hatch and
- * east under the roof through the gangways (the inspector has seen the ticket) into the tender; the coal, the tipple, the mine's hairpin, the river's ice, China's road.
+ * car's roof from Moscow's carriage, down its first hatch (the coin) to the pelmeni in its dead end, back up; along the roof to the sleeper, into the closet while the mountain
+ * goes over, then up the pine before the next; the yeti's cave (the coin on the bridge, the ticket); back down the pine and west along the roof under the mountain to the
+ * closet, whose floor the ticket has opened, down into the corridor and east through the gangway (the inspector has seen the ticket) into the tender; the coal, the tipple,
+ * the mine's hairpin, the river's ice, China's road.
  * As functions on the game; shared by the bot test and the pictures.
  */
 import { CLOSET, SIB } from '../src/siberia';
@@ -22,9 +23,7 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('Y: up the ledges to the ticket under the icicle', item(SIB.yeti, 0, [18, 3])),
   leg('Y to B: back down the pine', into(SIB.sleeper, 20, 19, SIB.yeti)),
   leg('B: the coin over the roof, a jump on the way west from the pine', coin(SIB.sleeper, 16, 5)),
-  leg('B to A: west along the roof', into(SIB.gravy, 0, 7, SIB.sleeper, above(10))),
-  leg('A: down a hatch into the car', stands(SIB.gravy, 17, 2, 29)),
-  leg('A to B: east through the open gangway, under the roof', into(SIB.sleeper, 31, 16, SIB.gravy, (g) => !above(10)(g))),
+  leg('B: west along the roof to the closet and down through its open floor into the corridor', { ...stands(SIB.sleeper, 17, 2, 29), aim: [{ room: SIB.sleeper, col: CLOSET.hatch, row: 15 }] }),
   leg('B: the coin in front of the inspector\'s gangway, past the provodnitsa', coin(SIB.sleeper, 27, 15)),
   leg('B to C: through the gangway the inspector has left', into(SIB.coal, 31, 16, SIB.sleeper)),
   leg('C: up the coal, the coin on the crest under the stoker', coin(SIB.coal, 11, 10)),

@@ -140,6 +140,9 @@ export function runLegs(run: LegsRun): LegsResult {
     routes.set(leg.name, found.route);
     live = next;
   }
+  // no life lost on the way: a death the bot did not see (and a restart it took for a way on) shows here, in ORIGINAL; in ENHANCED a death takes no life, and the bot's own check (bot.ts `diedIn`) is the proof
+  if (ok) check(`${mode}: no life lost on the way (${live.g.lives} as at the start, ${run.start.g.lives})`, live.g.lives === run.start.g.lives);
+  ok &&= live.g.lives === run.start.g.lives;
   const complete = ok && args.first === 0 && (args.last ?? legs.length) >= legs.length;
   if (args.record && complete) {
     writeRecorded(dir, region, mode, legs, routes);

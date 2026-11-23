@@ -51,8 +51,10 @@ export function proofsIn(dir: string): typeof bfs {
       const end = play(start, before);
       if (end && goal(end.g) && livesOn(end)) { kept.set(key, before); return { route: before, end, nodes: 0 }; }
       console.log(`   a recorded route (${key}) no longer reaches its goal: searching (re-record with --record)`);
-    } else if (!record && !full) console.log(`   no recorded route for the search ${key}: searching (record it with --record)`);
+    }
     const found = bfs(start, goal, aim, limit, weight, stats);
+    // (a search that finds no way is the proof itself and is searched every run: only a way found and not recorded is worth saying)
+    if (found && !before && !record && !full) console.log(`   no recorded route for the search ${key}: searched (record it with --record)`);
     if (found && record) { kept.set(key, found.route); save(); }
     return found;
   }

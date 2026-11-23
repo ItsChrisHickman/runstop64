@@ -240,7 +240,18 @@ row 2      .                      .                         .                   
 
 ### The puzzle
 
-**The way under the sleeper starts in the dining car.** Four facts lock together:
+**Changed after the second playtest (2026-11-23): the closet's floor.** The open gangway gave the answer away: going down A's hatch for the
+pelmeni, a player walked east into B's corridor and met the inspector before the problem was set. Now:
+- A's east gangway is bolted (both sides of the join). A's inside is a dead end: the pelmeni behind the conductor, the coin on the hatch.
+- B's corridor is shut at both ends. From the roof you see it cut away, the inspector in the far gangway, right under the closet's floor,
+  which is bolted. Sheltering from the mountain on the way to the pine, you stand on that floor.
+- The ticket opens it (the provodnitsa unbolts it, the same room effect as the inspector's: `TRAPDOOR` in siberia.ts): coming back
+  down the pine with the ticket you see the closet's ladder run on through its floor. Back down the pine, west along the roof under the mountain to the closet, down through its floor, past the inspector into C.
+So the roof under the mountain is crossed twice for a reason, the lock (the closet's floor, the inspector) is in sight before the key,
+and nothing on the way to the key shows the way in. The plan below is otherwise as built; read "A to B: the inside gangway" and play
+order steps 3, 6 and 7 as replaced by this.
+
+**The way under the sleeper starts in the dining car** (the first build, replaced above). Four facts lock together:
 - The roof ends at the tender's coal.
 - The corridor is shut by the inspector.
 - B's roof and corridor are sealed from each other, and the two lanes meet only through A's hatches.

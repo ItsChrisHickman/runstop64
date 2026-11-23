@@ -88,7 +88,7 @@ const decorRow = (g: Game, name: Parameters<typeof decorIndex>[0], w: number, ro
   return Array.from({ length: w }, (_, i) => chr(g, first + row * w + i)).join('|');
 };
 for (const [name, room, pieces] of [
-  ['dining car', SIB.gravy, ['horizonDark', 'moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['smoke', 'moon']],
+  ['dining car', SIB.gravy, ['moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['smoke', 'moon']],
   ['platform', ROOM.station, ['horizon', 'wires', 'moon', 'star']],
 ] as const) {
   const first = decorChars(WORLD, room);
@@ -99,8 +99,9 @@ check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) an
   return !first[decorIndex('wires')] && !first[decorIndex('horizon')];
 }));
 check('the tender\'s coal stands on plain night: no horizon behind it, only the smoke and the moon above', !decorChars(WORLD, SIB.coal)[decorIndex('horizonDark')]);
+check('the dining car\'s roof lane, where the mountain is first dodged, has only the night behind it: no horizon, the moon and stars', !decorChars(WORLD, SIB.gravy)[decorIndex('horizonDark')]);
 {
-  const s = at(SIB.gravy, 8, 17);
+  const s = at(SIB.sleeper, 8, 17);
   const g = s.g;
   const start = { mountains: [decorRow(g, 'horizonDark', 2, 0), decorRow(g, 'horizonDark', 2, 1)], pines: decorRow(g, 'horizonDark', 2, 2) };
   const mountains = () => [decorRow(g, 'horizonDark', 2, 0), decorRow(g, 'horizonDark', 2, 1)];
@@ -172,8 +173,8 @@ check('the tender\'s coal stands on plain night: no horizon behind it, only the 
 // ---- the backdrop runs unbroken ----------------------------------------------------------------------------------
 {
   // across each car's horizon band (rows 6-8; Siberia's calm night has no poles or wires above it) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
-  // or a tile or rope of the room that stands in front of it). (The tender has no horizon: its coal stands on the plain night.)
-  for (const [name, room, from, to] of [['dining car', SIB.gravy, -2, 33], ['sleeper', SIB.sleeper, -2, 33]] as const) {
+  // or a tile or rope of the room that stands in front of it). (The tender and the dining car have no horizon: the coal and the first roof run stand on the plain night.)
+  for (const [name, room, from, to] of [['sleeper', SIB.sleeper, -2, 33]] as const) {
     const s = at(room, 8, 17);
     const empty: string[] = [];
     const bare: readonly (readonly [number, number])[] = [];

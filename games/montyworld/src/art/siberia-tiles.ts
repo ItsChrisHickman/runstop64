@@ -40,16 +40,16 @@ export const SIBERIA_TILES = {
     '###.###.',
     '###.###.',
   ]),
-  /** A heap of coal: black lumps, only the light on their tops and left sides lit, an arc to a lump. Solid. */
-  coal: tile('coal', 1, 12, [
-    '.##...##',
-    '#..#.#..',
-    '#....#..',
-    '........',
-    '...##...',
-    '..#..#.#',
-    '..#....#',
-    '........',
+  /** A heap of coal: big round lumps in solid dark ink, black cracks between them (shown dark: coal, not gravel). Solid. */
+  coal: tile('coal', 1, 11, [
+    '.###.###',
+    '#####.##',
+    '####..#.',
+    '.##.####',
+    '...#####',
+    '###.###.',
+    '####.#.#',
+    '.##..###',
   ]),
   /** The mine's rock: rough granite boulders, their joints wandering, a crack or two cut through. Solid. */
   mineRock: tile('mineRock', 1, 12, [
