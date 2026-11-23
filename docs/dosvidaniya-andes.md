@@ -1,5 +1,10 @@
 # Do Svidaniya Monty: the Andes and the Amazon's room map
 
+> **Rebuilt 2026-11-23 (the reset).** The region is now eight rooms, to the plan in docs/dosvidaniya-reset.md ("the Andes and the Amazon: the plan"): the drop (F1 JUMP FOR JOY, F2 CONDOR COUNTRY),
+> Machu Picchu (MP1 NO PROBLLAMA, MP2 MACHU PICCHU) and the rainforest's open block of four (A1-A4, one name: THE RAINFOREST, since the room-name font has no good Z for THE AMAZON). The rooms are
+> described in `games/montyworld/src/andes.ts`; the route, the gates and the one-way proofs in `test/andes-route.ts` and `test/andes-mechanisms.ts`. Below is the earlier thirteen-room build, kept for its history.
+> Not done here: Rio's first room must meet the rainforest's exit at [6,33] (west edge open at rows 12-14, floor 15), which is the Rio rebuild's to place.
+
 Region 6 (docs/dosvidaniya-plan.md). Built 2026-11-21 from the pre-production design and its art (`games/montyworld/src/art/andes-*.ts`), after it was checked against the plan's "Lessons from Chris's play" and changed
 where it fell short (the "As built" section says where). Rows 0 (top) to 19, columns 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open at
 the same rows as the way in of the next room. Every number was a starting value for the bot to check.
