@@ -59,7 +59,7 @@ function sideLlama(a: number, face: LlamaFace): string[] {
 
 function llama(): NewCreature {
   const f = (eye: LlamaFace['eye'], mouth: LlamaFace['mouth']): LlamaFace => ({ ears: 'up', eye, mouth });
-  return pair('llama', [sideLlama(1.5, f('open', 'shut')), sideLlama(0, f('wink', 'shut')), sideLlama(-1.5, f('open', 'chew')), sideLlama(0, f('wink', 'chew'))], 7, false);
+  return pair('llama', [sideLlama(1.5, f('open', 'shut')), sideLlama(0, f('wink', 'shut')), sideLlama(-1.5, f('open', 'chew')), sideLlama(0, f('wink', 'chew'))], 15, false);
 }
 
 /**

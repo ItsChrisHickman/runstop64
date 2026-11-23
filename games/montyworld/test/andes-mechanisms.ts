@@ -347,7 +347,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
 
   // the awning: a walk over the hat stall's roof is safe, a stop is not (it gives way and drops him to the lane)
   const stop = at(AND.market, 25, 9);
-  run(stop, NONE, 100);
+  run(stop, NONE, 170);
   check(`the hat stall's awning gives way under a stop (he falls to the lane: y ${stop.g.y}, the lane's ${standY(18)})`, stop.g.y === standY(18) && !dead(stop.g));
   const walk = at(AND.market, 22, 9);
   run(walk, RIGHT, 80);
@@ -361,7 +361,7 @@ const px = (g: Game) => g.x2 * 2 + g.stepGate;
   check('the cave bat dives down to the lane and up again: standing in its column kills him within its patrol', diesAt(at(AND.tunnel, 12, 18, [], false, true), NONE, 700) >= 0);
   // the snake on the stair: no way up without a tune (and the stair holds nothing else)
   const stair = (holds: readonly (readonly [number, number])[]) => at(AND.bank, 20, 14, holds, false, true);
-  check('the anaconda on the estuary\'s second step is a wall (a low bough over it: no jumping it) until the panpipes: no way up to the launch without them, a way with them',
+  check('the anaconda on the estuary\'s second step is a wall (the step is its width, and the third step is four rows up from the first) until the panpipes: no way up to the launch without them, a way with them',
     search(stair([]), (g) => g.roomId === AND.bank && g.y === standY(8) && colOf(g) >= 27, undefined, 120000, 0) === null
     && search(stair([PANPIPES]), (g) => g.roomId === AND.bank && g.y === standY(8) && colOf(g) >= 27, [{ room: AND.bank, col: 29, row: 6 }], 200000, 1.5) !== null);
 

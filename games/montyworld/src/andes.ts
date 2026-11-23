@@ -80,7 +80,7 @@ export const RIVER_PALETTE = {
 } as const satisfies Palette;
 
 export const BANK_PALETTE = {
-  J: ['jungleLeaf', 5], M: ['mud', 9], W: ['riverWater', 6], K: ['mossGround', 5], R: ['vine', 5], P: ['deckBoards', 9],
+  J: ['jungleLeaf', 5], M: ['mud', 9], W: ['riverWater', 6], P: ['deckBoards', 9], Q: ['plankCracked', 9], S: ['plankSplit', 9],
 } as const satisfies Palette;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
@@ -169,6 +169,14 @@ export const MARKET_CRACKS: readonly CrackSpec[] = Array.from({ length: 7 }, (_,
   room: AND.market, col: 22 + k, cols: 1, row: 9, codes: [codeOf(MARKET_PALETTE, 'N'), codeOf(MARKET_PALETTE, 'F'), codeOf(MARKET_PALETTE, 'O')], crack: 30, wide: 48, gone: 60, away: 300,
 }));
 
+/**
+ * The estuary's stepping stones (logs, row 16: cols 5-6, 10-12 and 16-18) are rotten: each cell shows cracks after 40 frames under his feet, splits after 62 and is gone after 80 (he is over a cell for about 18 frames when he crosses at his walk, over a log for 48),
+ * so a steady crossing is safe with a margin and a pause to look at the piranha and the dolphin drops him into the water. Whole again 400 frames later, and when he comes into the room: the set-up trap over the fish.
+ */
+export const STONE_CRACKS: readonly CrackSpec[] = [5, 6, 10, 11, 12, 16, 17, 18].map((col): CrackSpec => ({
+  room: AND.bank, col, cols: 1, row: 16, codes: [codeOf(BANK_PALETTE, 'P'), codeOf(BANK_PALETTE, 'Q'), codeOf(BANK_PALETTE, 'S')], crack: 40, wide: 62, gone: 80, away: 400,
+}));
+
 // ---- the key items' places -------------------------------------------------------------------------
 /** CLOUD NINE's tangle over the jetty's rope (cols 4-7, rows 18-19: four wide, so that he standing anywhere on the rope has air under his three columns): the machete cuts it away. */
 export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [4, 5, 6, 7].map((col) => [row, col] as const));
@@ -222,7 +230,6 @@ const PAINT = {
     g.box(23, 6, 31, 6, 'G').box(23, 7, 31, 10, 'W').box(23, 8, 31, 8, 'G'); // the east terrace (where T1's runs out)
     g.box(0, 6, 8, 6, 'G').box(0, 7, 8, 10, 'W').box(0, 8, 8, 8, 'G'); // the west one, over the pocket
     g.box(0, 18, 31, 19, 'G');
-    g.box(26, 16, 29, 16, 'G').box(26, 17, 29, 17, 'W'); // a step on the lane
     g.box(12, 16, 15, 16, 'G').box(12, 17, 15, 17, 'W'); // a terrace the drop lands on
     g.box(30, 7, 31, 15, 'W');
   },
@@ -281,7 +288,6 @@ const PAINT = {
     g.box(4, 16, 18, 19, 'W'); // the estuary
     g.box(5, 16, 6, 16, 'P').box(10, 16, 12, 16, 'P').box(16, 16, 18, 16, 'P'); // three stepping stones (logs)
     g.box(19, 14, 21, 19, 'M').box(22, 12, 23, 19, 'M').box(24, 10, 25, 19, 'M').box(26, 9, 29, 19, 'M').box(26, 8, 29, 8, 'P'); // the stair up from the water, and the launch's deck
-    g.box(21, 0, 23, 9, 'J'); // a tree's hanging boughs over the second step: the snake's coil is a wall there
   },
 } as const;
 
@@ -352,7 +358,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[4, 16], [9, 16], [14, 16], [20, 14], [24, 12], [29, 9]],
     item: { name: 'panpipes', col: 28, row: 10, sprite: ANDES_SPRITE.panpipes },
     decor: [['torch', 2, 16], ['torch', 18, 16], ['idol', 21, 14]],
-    creatures: [{ who: 'cuy', col: 2, row: 16, way: 'right', speed: 1, range: 10, colour: 10 }],
+    creatures: [{ who: 'cuy', col: 27, row: 10, way: 'right', speed: 1, range: 12, colour: 10 }],
   }),
 
   // CF CLOUD NINE: the cloud forest. In from the Inca tunnel at the right (low). The ground (floor 18) runs west over a stream (stepping logs) past a jaguar to a tangle over a gap at the left (cols 4-7: the machete cuts it, and a rope hangs
@@ -399,7 +405,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // R THE RIVER ENDS: the estuary, the last room before Rio. In from the river's mud bank at the left (floor 15); three stepping logs cross the mouth (floor 16) between a leaping piranha and a dolphin; the bank climbs a muddy stair (floors 14, 12, 10) where an anaconda
-  // coils under a tree's low boughs on the second step (a tune settles it) to the launch's deck (floor 8) that takes him down to Rio.
+  // coils on the second step, which is its whole width (a tune settles it: jumping from the first step to the third is four rows) to the launch's deck (floor 8) that takes him down to Rio.
   room({
     id: AND.bank, cell: [7, 32], sector: 66, palette: BANK_PALETTE, paint: PAINT.bank,
     coins: [[9, 13], [30, 6]],
@@ -412,7 +418,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
 /** The rooms added after Rio (their places in the tables follow Rio's, so what is saved of every room before them never moves): LLAMA DRAMA, west of T1. */
 export const ANDES_EXTRA_ROOMS: readonly RoomSpec[] = [
   // H LLAMA DRAMA: the herd's terraces west of Machu Picchu. T1's top terrace runs out west high onto an east terrace (floor 6) over a ravine (cols 9-22) that two llamas ferry him across, one each way, on plank decks, to a west terrace (floor 6) with coins; the ravine's
-  // floor is the lane (floor 18), a drop from either edge, where a winking herd runs the lane (the stampede) round a terrace the drop lands on and a step, and where the lane runs out east low into T1's low path. West of the drop the lane is a pocket under the west terrace.
+  // floor is the lane (floor 18), a drop from either edge, where a winking herd runs the lane (the stampede) round a terrace the drop lands on, and where the lane runs out east low into T1's low path. West of the drop the lane is a pocket under the west terrace.
   room({
     id: AND.herd, cell: [5, 29], sector: 78, palette: TERRACE_PALETTE, paint: PAINT.herd,
     coins: [[2, 4], [6, 4], [15, 2], [20, 16], [5, 16]],
