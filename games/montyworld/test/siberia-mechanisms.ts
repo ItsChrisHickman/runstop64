@@ -27,6 +27,8 @@ import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
 
 const DOWN = { ...NONE, down: true };
+/** The roof's walkway row. */
+const CAR_ROOF = 9;
 /** The ticket, by the room it lies in. */
 const TICKET = [SIB.yeti, 0] as const;
 const roomOf = (id: number) => must(SIBERIA_ROOMS.find((r) => r.id === id), `room ${id}`);
@@ -182,7 +184,7 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
     // the frames to spare: the next sweep is at column `left`, a cell every `step` frames from the pine
     const spare = t.state === 'sweep' ? (t.left - PINE.cols[1]) * mouth.step + (mouth.step - (t.t % mouth.step)) : 999;
     check(`one shelter in the closet (he is in it ${inside ? 'at once' : 'never'}), out as the tail goes by, and up the pine: he is in the yeti's cave at frame ${f} with ${spare} frames to spare before the next mountain is at the pine`,
-      inside && s.g.roomId === SIB.yeti && !dead(s.g) && spare >= 20 && spare <= 120);
+      inside && s.g.roomId === SIB.yeti && !dead(s.g) && spare >= 20 && spare <= 140);
   }
   {
     const s = at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor);
@@ -202,12 +204,21 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
   const sleeper = roomOf(SIB.sleeper);
   const ropes: string[] = [];
   for (let row = 10; row <= 16; row++) for (let col = 0; col < 32; col++) if (classAt(SIB.sleeper, col, row) === 3) ropes.push(`${col},${row}`);
-  const walled = [CLOSET.left, CLOSET.right].every((c) => [10, 11, 12, 13].every((row) => classAt(SIB.sleeper, c, row) === 1))
+  const walled = [CLOSET.left, CLOSET.right].every((c) => [9, 10, 11, 12, 13].every((row) => classAt(SIB.sleeper, c, row) === 1))
     && Array.from({ length: CLOSET.right - CLOSET.left + 1 }, (_, i) => CLOSET.left + i).every((c) => classAt(SIB.sleeper, c, CLOSET.floor) === 1);
   check(`in the sleeper the roof and the corridor never meet: the only climbs below the roof are the closet's (${ropes.join(' ')}), which is walled and floored solid, and a jump rises ${RISE} pixels of the ${(17 - 9) * 8} between them`,
     ropes.every((p) => { const [c = -1, r = -1] = p.split(',').map(Number); return c === CLOSET.hatch && r < CLOSET.floor; }) && walled && RISE < (17 - 9) * 8 - 21 && sleeper.map.length === 20);
-  const stats = { exhausted: false };
-  check('and the bot, from the closet, finds no way down into the corridor (a pointer, not the proof)', search(at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor), (g) => g.roomId === SIB.sleeper && g.y === standY(17), undefined, 150000, 0, stats) === null);
+  {
+    // a pointer, not the proof: with the dining car and the cave taken off his exit grid (so the way round by the dining car's hatches is not there), the bot finds no way from the
+    // closet or the pine's foot down into the corridor
+    const sealed = (col: number, floor: number) => {
+      const s = at(SIB.sleeper, col, floor);
+      s.g.exitGrid[1 * WORLD.exitGrid.cols + 4] = 0xff;
+      s.g.exitGrid[0 * WORLD.exitGrid.cols + 5] = 0xff;
+      return search(s, (g) => g.roomId === SIB.sleeper && g.y === standY(17), undefined, 150000, 0) === null;
+    };
+    check('with the dining car off the grid, the bot finds no way from the closet or the pine\'s foot down into the sleeper\'s corridor', sealed(CLOSET.hatch - 1, CLOSET.floor) && sealed(PINE.cols[0] - 1, CAR_ROOF));
+  }
   // the inspector keeps the corridor: shut without the ticket, open with it, and he is gone
   for (const w of GANGWAYS) {
     const side = w.cols[0] <= 1 ? 0 : 31;
@@ -450,6 +461,21 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
       return b.g.roomId === room && !dead(b.g) && b.g.siCollected[itemIndex(b.g, SIB.yeti, 0)] !== 0;
     }).length;
     check(`a save made on coming into each of Siberia's six rooms packs, unpacks and carries on in the same room, alive (${carried} of ${spots.length})`, carried === spots.length);
+  }
+
+  // a save from before the reset (format 1: Siberia of nine rooms, 13 coins and 4 finds) moves on: Moscow's and the later regions' coins and finds to their new places, Siberia's
+  // pelmeni and ticket kept, and a save made in a room of Siberia's (here the cut dark shaft, 15) carries on from the dining car's roof
+  {
+    const now = newGame(WORLD, true).g;
+    const coins = Array.from({ length: now.coinCollected.length + 5 }, () => 0), items = Array.from({ length: now.siCollected.length + 2 }, () => 0);
+    coins[3] = 0xff; coins[20] = 0xff; coins[27] = 0xff; items[1] = 0x81; items[5] = 0x81; items[7] = 0x81; items[8] = 0x81;
+    const v1 = { ...snapshot(now), coins, items, roomId: 15, mapRow: 0, exitCol: 7, worn: itemIndex(now, CHI.top, 0) + 2 };
+    const g = newGame(WORLD, true).g;
+    restore(g, CODEC.unpack(CODEC.pack(v1), 1));
+    run({ g, col: 0 }, NONE, 4);
+    check(`a format 1 save reads as format ${CODEC.format}: Moscow's coin and find where they were, Siberia's old coins gone, China's first coin and find moved down (27 to 22, 8 to 6), the ticket kept, the lamp gone, the worn rice hat's number moved down two, and he carries on from the dining car's roof (room ${g.roomId})`,
+      g.coinCollected[3] === 0xff && g.coinCollected.slice(14, 22).every((c) => c === 0) && g.coinCollected[22] === 0xff && g.coinCollected.filter((c) => c).length === 2
+      && g.siCollected[1] === 0x81 && g.siCollected[5] === 0x81 && g.siCollected[6] === 0x81 && g.siCollected.filter((c) => c).length === 3 && g.worn === itemIndex(now, CHI.top, 0) && g.roomId === SIB.gravy && g.y === standY(9));
   }
 
   // a save from before Siberia: Moscow-only arrays and a grid of Moscow's rooms alone carry on in the new game

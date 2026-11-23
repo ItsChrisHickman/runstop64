@@ -95,11 +95,14 @@ function inspectors(g: Grid, room: number) {
   for (const w of GANGWAYS) if (w.room === room) g.box(w.cols[0], CAR.gangwayTop, w.cols[1], CAR.gangwayBottom, 'T');
 }
 
-/** The luggage closet under the sleeper's one hatch: a ladder well three wide (columns 9-11) down to its floor at row 13, walled at 8 and 12. Sealed from the corridor under it. */
+/**
+ * The luggage closet under the sleeper's one hatch: a ladder well three wide (columns 9-11) down to its floor at row 13, walled at 8 and 12. Sealed from the corridor under it:
+ * its walls rise through the roof's walkway (the hatch's frame), so a jump off the ladder cannot carry him sideways under the walkway and down into the car.
+ */
 export const CLOSET = { hatch: 10, floor: 13, left: 8, right: 12 } as const;
 function closet(g: Grid) {
-  g.clear(CLOSET.hatch - 1, CAR.roof, CLOSET.hatch + 1, CAR.roof).box(CLOSET.hatch, CAR.roof, CLOSET.hatch, CLOSET.floor - 1, 'R');
-  g.box(CLOSET.left, CAR.roof + 1, CLOSET.left, CLOSET.floor, 'T').box(CLOSET.right, CAR.roof + 1, CLOSET.right, CLOSET.floor, 'T').box(CLOSET.left, CLOSET.floor, CLOSET.right, CLOSET.floor, 'T');
+  g.clear(CLOSET.hatch - 1, CAR.roof, CLOSET.hatch + 1, CLOSET.floor - 1).box(CLOSET.hatch, CAR.roof, CLOSET.hatch, CLOSET.floor - 1, 'R'); // (the well open under the eaves)
+  g.box(CLOSET.left, CAR.roof, CLOSET.left, CLOSET.floor, 'T').box(CLOSET.right, CAR.roof, CLOSET.right, CLOSET.floor, 'T').box(CLOSET.left, CLOSET.floor, CLOSET.right, CLOSET.floor, 'T');
 }
 
 /** The banks of the cutting the sleeper runs through: dressed stone sloping up at both ends (a picture behind him: he walks through). */
@@ -137,8 +140,8 @@ export const MOUNTAIN: readonly (readonly number[])[] = ARCH.map((reach) => Arra
 const MOUTH = { code: PORTAL, cols: MASS, top: 2, bottom: 8, step: 10, warn: 48, picture: MOUNTAIN, coversClimbs: true, bleed: true } as const;
 /**
  * The dining car teaches it (a long wait first: he sees it come and goes down a hatch). The sleeper tests it: it flashes almost as he comes onto the roof, so a run straight to the
- * pine is caught on the trunk (the mountain is at the pine about 170 frames in, his walk and climb take about 250), and a wait in the closet for one sweep is the way: the next comes
- * so soon after that he must go at once (siberia-mechanisms.ts measures both).
+ * pine is caught at its foot (the tunnel is at the pine 170 frames in, as he gets there), and a wait in the closet for one sweep is the way: the next comes so soon after that he
+ * must go at once (going as the tail passes the closet, he is up the pine about 115 frames before the next arch reaches it; siberia-mechanisms.ts measures both).
  */
 export const SLEEPER_MOUTH = { rest: 4, offset: 8 } as const;
 export const TUNNELS: readonly TunnelSpec[] = [
@@ -251,6 +254,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(0, CAR.roof, 29, CAR.roof, 'D');
       farWall(g, 2, 29);
+      g.box(2, CAR.roof + 1, 29, CAR.roof + 1, 'T'); // the car's eaves under the walkway, solid: nothing on the roof (off the pine's foot, off the closet's ladder) slips under it into the car
       g.box(0, 10, 1, 14, 'T').box(30, 10, 31, 14, 'T');
       g.box(0, CAR.floor, 31, CAR.floor, 'T');
       cutting(g);
