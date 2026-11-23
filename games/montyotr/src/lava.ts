@@ -48,6 +48,7 @@ export function lavaUpdate(g: Game) {
       }
       l.top = top;
     }
-    if (!g.actionCounter && l.top < PLAY_ROWS && montyOver(g, e.col, e.cols, l.top, PLAY_ROWS - 1)) g.actionCounter = 1;
+    // (not on the frame he leaves the room: climbing out of the top puts him at the bottom before the next room loads, in the lava's rows)
+    if (!g.actionCounter && !g.roomExit && l.top < PLAY_ROWS && montyOver(g, e.col, e.cols, l.top, PLAY_ROWS - 1)) g.actionCounter = 1;
   }
 }

@@ -158,9 +158,14 @@ const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARA
   check(`standing over the vent he dies when it blows (frame ${ventDied}, live from ${VENT.start + VENT.warn})`, vent !== undefined && ventDied >= VENT.start + VENT.warn - 1);
   const climb = search(at(PAC.hilo, 1, 19, [SNORKEL]), (g) => g.y === standY(9) && colOf(g) >= 20, [{ room: PAC.hilo, col: 26, row: 7 }], 200000, 2);
   check('the bot climbs from the shore to the long ledge ahead of the lava', climb !== null);
-  const ladder = at(PAC.hilo, 8, 5, [SNORKEL]);
-  for (let f = 0; f < 300 && ladder.g.roomId === PAC.hilo; f++) frame(ladder, UP);
-  check('up the belly ladder he comes into the hold', ladder.g.roomId === PAC.plane);
+  // up the ladder from either column it can be climbed from, with the lava's rows on the floor under the hatch (he comes out of the top at the bottom of the room before the hold loads)
+  for (const col of [7, 8]) {
+    const ladder = at(PAC.hilo, col, 5, [SNORKEL]);
+    let died = false;
+    for (let f = 0; f < 300 && ladder.g.roomId === PAC.hilo; f++) { frame(ladder, UP); if (ladder.g.actionCounter !== 0) died = true; }
+    run(ladder, UP, 20);
+    check(`up the belly ladder (from column ${col}) he comes into the hold alive, on the ladder at its foot (at ${colOf(ladder.g)},${ladder.g.montyRow - 3})`, !died && !dead(ladder.g) && ladder.g.roomId === PAC.plane && ladder.g.montyRow - 3 >= 14);
+  }
 }
 
 // ---- the cargo plane: the crate, the door ------------------------------------------------------------

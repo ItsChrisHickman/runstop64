@@ -50,6 +50,6 @@ export function pulseUpdate(g: Game) {
       p.drawn = code;
       for (let r = e.row; r < e.row + e.rows; r++) for (let c = e.col; c < e.col + e.cols; c++) g.setRoomChar((r + PLAY_ROW) * ROW + c + PLAY_COL, code);
     }
-    if (!g.actionCounter && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
+    if (!g.actionCounter && !g.roomExit && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
   }
 }
