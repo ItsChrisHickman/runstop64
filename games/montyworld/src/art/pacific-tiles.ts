@@ -19,17 +19,6 @@ export const PACIFIC_TILES = {
     '########',
     '........',
   ]),
-  /** The piles a pier stands on: tarred posts with black water between them, a cross-brace at intervals. Solid. */
-  pacPile: tile('pacPile', 1, 9, [
-    '.##..##.',
-    '.##..##.',
-    '########',
-    '.##..##.',
-    '.##..##.',
-    '.##..##.',
-    '########',
-    '.##..##.',
-  ]),
   /** The deck's non-slip plate: a bright edge and rows of raised bars. A floor. */
   pacDeckPlate: tile('pacDeckPlate', 2, 12, [
     '########',
@@ -74,17 +63,6 @@ export const PACIFIC_TILES = {
     '........',
     '........',
   ]),
-  /** A fat steam pipe along the engine room: the tube with a highlight cut along it. Solid. */
-  pacPipe: tile('pacPipe', 1, 3, [
-    '........',
-    '.######.',
-    '########',
-    '#.######',
-    '########',
-    '########',
-    '.######.',
-    '........',
-  ]),
   /** A ship's steel ladder: two rails and rungs. A rope (he climbs it). */
   pacSteelLadder: tile('pacSteelLadder', 3, 12, [
     '#......#',
@@ -95,17 +73,6 @@ export const PACIFIC_TILES = {
     '########',
     '#......#',
     '#......#',
-  ]),
-  /** A crane's chain: links, one over the next. A rope. */
-  pacChain: tile('pacChain', 3, 15, [
-    '...##...',
-    '..#..#..',
-    '..#..#..',
-    '...##...',
-    '...##...',
-    '..#..#..',
-    '..#..#..',
-    '...##...',
   ]),
   /** Water: waves with a dark trough (a flooded hold, the harbour, the surf). Deadly. */
   pacWaves: tile('pacWaves', 4, 6, [
@@ -141,17 +108,6 @@ export const PACIFIC_TILES = {
     '.#####.#',
     '........',
     '###.####',
-  ]),
-  /** Sand to fill under the crest. Solid. */
-  pacSandFill: tile('pacSandFill', 1, 7, [
-    '#####.##',
-    '........',
-    '.##.####',
-    '........',
-    '####.###',
-    '........',
-    '##.#####',
-    '........',
   ]),
   /** Boardwalk and pier planks: the boards in rows, each its joints. A floor. */
   pacBoardwalk: tile('pacBoardwalk', 2, 9, [
@@ -197,39 +153,6 @@ export const PACIFIC_TILES = {
     '........',
     '##.###.#',
   ]),
-  /** Thatch for a hut's roof: straw laid in slanting rows. A floor. */
-  pacThatch: tile('pacThatch', 2, 9, [
-    '########',
-    '#.##.##.',
-    '########',
-    '.##.##.#',
-    '########',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** Jungle earth with grass along its top and roots below. Solid. */
-  pacTurf: tile('pacTurf', 1, 5, [
-    '#.#.#.##',
-    '########',
-    '#.######',
-    '########',
-    '........',
-    '###.####',
-    '###.####',
-    '........',
-  ]),
-  /** Red earth under the turf. Solid. */
-  pacSoil: tile('pacSoil', 1, 2, [
-    '###.####',
-    '###.####',
-    '........',
-    '.#####.#',
-    '.#####.#',
-    '........',
-    '####.###',
-    '####.###',
-  ]),
   /** A stalk of bamboo: nodes with their rings. A rope (he climbs it). */
   pacBamboo: tile('pacBamboo', 3, 13, [
     '..####..',
@@ -241,52 +164,8 @@ export const PACIFIC_TILES = {
     '...##...',
     '...##...',
   ]),
-  /** The one-lane bridge's deck: a kerb and the road over concrete. A floor. */
-  pacBridgeDeck: tile('pacBridgeDeck', 2, 12, [
-    '########',
-    '########',
-    '#.#.#.#.',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** Asphalt: the road's top with its centre dashes, packed rows under. Solid. */
-  pacRoad: tile('pacRoad', 1, 11, [
-    '########',
-    '########',
-    '........',
-    '##..##..',
-    '........',
-    '########',
-    '########',
-    '........',
-  ]),
 
   // ---- under the sea
-  /** Open water: a wave's line here and there. Nothing (it is the room's sea). */
-  pacSea: tile('pacSea', 0, 6, [
-    '........',
-    '........',
-    '.##.....',
-    '...##...',
-    '........',
-    '........',
-    '.....##.',
-    '..##....',
-  ]),
-  /** The sea's surface: a row of wave crests. Nothing. */
-  pacSeaSurface: tile('pacSeaSurface', 1, 14, [
-    '..##..##',
-    '.#..##..',
-    '#.......',
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
   /** The reef's rock: lumpy and pitted. Solid. */
   pacReefRock: tile('pacReefRock', 1, 11, [
     '.######.',
@@ -311,17 +190,6 @@ export const PACIFIC_TILES = {
   ]),
 
   // ---- the volcano
-  /** Snow on Mauna Kea's top: a drift along the crest and packed rows. Solid. */
-  pacSnow: tile('pacSnow', 1, 1, [
-    '..##..#.',
-    '########',
-    '########',
-    '........',
-    '.####.##',
-    '........',
-    '###.####',
-    '........',
-  ]),
   /** Cooled lava crust, cracked: slabs with a crack cut through them. Solid. */
   pacCrust: tile('pacCrust', 1, 12, [
     '###.####',
@@ -342,17 +210,6 @@ export const PACIFIC_TILES = {
     '########',
     '########',
     '#.####.#',
-    '########',
-  ]),
-  /** Lava's surface: the crest with bubbles breaking. Deadly. */
-  pacMagmaCrest: tile('pacMagmaCrest', 4, 7, [
-    '.#..#...',
-    '#.##.##.',
-    '########',
-    '#.####.#',
-    '########',
-    '########',
-    '##.##.##',
     '########',
   ]),
 
@@ -379,17 +236,6 @@ export const PACIFIC_TILES = {
     '........',
     '........',
   ]),
-  /** A frame of the fuselage: a rib, in a vertical bar with its flange. Solid. */
-  pacRib: tile('pacRib', 1, 12, [
-    '..####..',
-    '..####..',
-    '..####..',
-    '.######.',
-    '.######.',
-    '..####..',
-    '..####..',
-    '..####..',
-  ]),
   /** A cargo net: ropes crossed in a square mesh. A rope (he climbs it). */
   pacNet: tile('pacNet', 3, 13, [
     '########',
@@ -400,17 +246,6 @@ export const PACIFIC_TILES = {
     '#...#...',
     '#...#...',
     '#...#...',
-  ]),
-  /** A chain across a ramp: two posts and heavy links, the gate the bolt cutters cut. Solid. */
-  pacChainGate: tile('pacChainGate', 1, 15, [
-    '##....##',
-    '#.####.#',
-    '##....##',
-    '#.####.#',
-    '##....##',
-    '#.####.#',
-    '##....##',
-    '#.####.#',
   ]),
   // ---- the luau's flames and the Road to Hana's car
   /** A torch's flame at full height: a column of fire, wavy tongues with black cuts, two cells of it stacked over each other (one cell on the foot, one on the head). Passable (the strike's own danger is the engine's `pulses`). */
@@ -434,39 +269,6 @@ export const PACIFIC_TILES = {
     '.######.',
     '.######.',
     '########',
-  ]),
-  /** A torch at rest: a few embers glowing in a bowl of coals, low (safe to walk through). Passable. */
-  pacEmber: tile('pacEmber', 0, 7, [
-    '........',
-    '........',
-    '........',
-    '........',
-    '........',
-    '..#..#..',
-    '.##.###.',
-    '########',
-  ]),
-  /** A red rental car's cabin: a roof over two windows with a pillar between. Passable (the car is a picture the road's strike draws). */
-  pacCarCab: tile('pacCarCab', 0, 2, [
-    '........',
-    '..####..',
-    '.######.',
-    '##.##.##',
-    '##.##.##',
-    '########',
-    '########',
-    '########',
-  ]),
-  /** A rental car's body: a door line, a handle, a bumper, a wheel arch cut into the foot. Passable. */
-  pacCarBody: tile('pacCarBody', 0, 2, [
-    '########',
-    '########',
-    '##.##.##',
-    '########',
-    '########',
-    '###..###',
-    '##.##.##',
-    '.##..##.',
   ]),
 } as const;
 

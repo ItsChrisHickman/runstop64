@@ -8,16 +8,6 @@ import { itemBlock } from './pixels';
 import { over, Raster } from './raster';
 import type { NewItem } from './types';
 
-/** Bolt cutters: two long handles crossing at a pivot, the jaws open at the top on a link of chain. */
-function cutters(): NewItem {
-  const r = new Raster(16, 16);
-  r.line(3, 15, 9, 6); r.line(4, 15, 10, 6); r.line(12, 15, 7, 6); r.line(11, 15, 6, 6); // the handles
-  r.rect(0, 13, 4, 15); r.rect(11, 13, 15, 15); // the grips
-  r.triangle(5, 6, 3, 0, 8, 4); r.triangle(10, 6, 12, 0, 8, 4); // the jaws
-  r.rect(7, 7, 8, 8, false); // the pivot
-  return { block: itemBlock('pacCutters', r.rows()), colour: 2 };
-}
-
 /** A diving mask with a snorkel: a round glass in a thick frame, a strap, a tube standing up at the side with its mouthpiece. */
 function snorkel(): NewItem {
   const r = new Raster(16, 16);
@@ -69,7 +59,6 @@ function musubi(): NewItem {
 }
 
 export const PACIFIC_ITEMS = {
-  pacCutters: cutters(),
   pacSnorkel: snorkel(),
   pacLei: lei(),
   pacParachute: parachute(),

@@ -4,7 +4,7 @@
  * brows, teeth, shells), a big face with an expression, an animation that reads. The captain's parrot, a shark's fin, a crab, a turtle,
  * a moray eel, a manta ray, a tiki mask, a hula dancer, a surfer, a bouncing coconut, an airport guard and a lava blob. No dither.
  */
-import { creatureBank, mirrored, shifted } from './pixels';
+import { creatureBank, mirrored } from './pixels';
 import { limb, over, Raster } from './raster';
 import type { NewCreature } from './types';
 
@@ -22,44 +22,7 @@ function pair(name: string, left: readonly (readonly string[])[], colour: number
 
 // ---- the crab: red, facing us, claws raised, eyes on stalks, scuttling sideways
 
-/** A beach crab, front on: two raised claws that snap, eyes on stalks, six legs. */
-function crab(): NewCreature {
-  const frame = (a: number, snap: boolean) => {
-    const r = new Raster(16, 16);
-    r.ellipse(7.5, 10, 5.8, 3.6); // the body
-    lay(r, (s) => { for (let k = 0; k < 3; k++) { limb(s, 3 - k, 11 + k * 0.4, 0 + a * (k % 2 ? 1 : -1), 13 + k * 1, 1); limb(s, 12 + k, 11 + k * 0.4, 15 - a * (k % 2 ? 1 : -1), 13 + k * 1, 1); } });
-    lay(r, (s) => { // the claws up
-      limb(s, 3, 8, 1, 4, 2); limb(s, 12, 8, 14, 4, 2);
-      s.disc(1.6, 2.4, 2.8); s.disc(13.4, 2.4, 2.8);
-    });
-    r.cut(snap ? ['#', '#', '#'] : ['#'], 1, 1); r.cut(snap ? ['#', '#', '#'] : ['#'], 14, 1); // the claws' gape
-    r.rect(5, 5, 5, 7); r.rect(10, 5, 10, 7); r.disc(5, 4.4, 1.4); r.disc(10, 4.4, 1.4); // eye stalks and eyes
-    r.set(5, 4, false); r.set(10, 4, false);
-    r.cut(['#####'], 5, 10); r.rect(5, 9, 5, 9); r.rect(9, 9, 9, 9); // a wide grin
-    return r.rows();
-  };
-  return pair('pacCrab', [frame(-1, true), frame(0, false), frame(1, true), frame(0, false)], 2, true);
-}
-
 // ---- the tiki: a carved mask head, brown, with huge eyes and tusks, bobbing
-
-/** A floating tiki head: a flat brow, great round eyes, a wide nose, the mouth open with tusks, bobbing as it goes. */
-function tiki(): NewCreature {
-  const frame = (bob: number, wide: boolean) => {
-    const r = new Raster(16, 16);
-    r.rect(1, 1 + bob, 14, 14 + bob);
-    r.rect(0, 3 + bob, 15, 4 + bob); r.rect(2, 0 + bob, 13, 0 + bob); // the brow ridge
-    r.cut(['.##.', '####', '####', '.##.'], 2, 5 + bob); r.cut(['.##.', '####', '####', '.##.'], 10, 5 + bob); // the eyes
-    r.rect(4, 6 + bob, 5, 7 + bob); r.rect(11, 6 + bob, 12, 7 + bob); // the pupils
-    r.cut(['#.#'], 6, 9 + bob); r.rect(7, 7 + bob, 8, 9 + bob); // the nose
-    r.cut(wide ? ['########', '########'] : ['########'], 4, 11 + bob);
-    r.rect(5, 11 + bob, 5, 12 + bob); r.rect(10, 11 + bob, 10, 12 + bob); // the tusks
-    r.rect(0, 15, 1, 15 - 0); r.rect(14, 15, 15, 15);
-    r.rect(3, 15, 12, 15, false);
-    return r.rows();
-  };
-  return pair('pacTiki', [frame(0, true), frame(1, false), frame(0, true), frame(-1, false)].map((rows) => rows), 9, true);
-}
 
 // ---- the hula dancer: a grass skirt swaying, a flower in the hair, a lei, arms out
 
@@ -183,101 +146,9 @@ function sharkFin(): NewCreature {
 
 // ---- the eel: a moray, a great head with its jaws open on rows of teeth, a thick body waving
 
-/** A moray swimming to the left: a big head with a ringed eye, the jaws snapping on their teeth, a thick body that waves. */
-function eel(): NewCreature {
-  const frame = (ph: number, open: boolean) => {
-    const r = new Raster(16, 16);
-    for (let x = 7; x < 16; x++) {
-      const y = 9 + 2.4 * Math.sin((x - ph * 2.2) / 1.9);
-      r.rect(x, Math.round(y - 2.5), x, Math.round(y + 2.5));
-    }
-    r.ellipse(5, 8, 5.6, 5); // the head
-    r.cut(open ? ['######', '######', '######'] : ['######'], 0, open ? 9 : 10); // the jaws
-    r.stamp(['#.#.#.'], 0, open ? 8 : 9); // upper teeth
-    if (open) r.stamp(['.#.#.#'], 0, 12);
-    r.cut(['###', '###', '###'], 4, 3); r.rect(5, 4, 5, 4); // the eye
-    return r.rows();
-  };
-  return pair('pacEel', [frame(0, true), frame(1, false), frame(2, true), frame(3, false)], 13);
-}
-
 // ---- the manta: a broad pair of wings flapping, two horns, eyes and a mouth at the front, a long tail
 
-/** A manta ray flapping, front on like the bat: wings down, level, up, level; a body with two horns, two big eyes and a wide mouth, a long tail. */
-function manta(): NewCreature {
-  const frame = (wing: number) => {
-    const r = new Raster(16, 16);
-    const tip = [11, 6, 1, 6][wing] ?? 6;
-    lay(r, (s) => { s.triangle(5, 5, 0, tip, 1, tip + 5); s.triangle(5, 5, 1, tip + 5, 6, 12); s.triangle(10, 5, 15, tip, 14, tip + 5); s.triangle(10, 5, 14, tip + 5, 9, 12); }); // the wings
-    r.ellipse(7.5, 8, 4.4, 5.6); // the body
-    lay(r, (s) => { s.triangle(3.4, 0, 3.4, 4, 5.8, 4); s.triangle(11.6, 0, 11.6, 4, 9.2, 4); }); // the horns
-    r.rect(7, 12, 8, 15); // the tail
-    r.cut(['##', '##'], 4, 5); r.cut(['##', '##'], 9, 5); r.rect(5, 5, 5, 5); r.rect(10, 5, 10, 5); // the eyes
-    r.cut(['#####'], 5, 9); r.cut(['#..#'], 5.5, 11); // the mouth
-    r.rect(2, tip + 3, 2, tip + 5, false); r.rect(13, tip + 3, 13, tip + 5, false);
-    return r.rows();
-  };
-  return pair('pacManta', [0, 1, 2, 3].map(frame), 14, true);
-}
-
 // ---- the surfer: front on, riding his board, spiky hair, sunglasses, a wide grin, one arm up hanging loose
-
-/** The surfer's first pose, row by row: his right arm up in a wave, the other down, the board under his feet. */
-const SURFER: readonly string[] = [
-  '....#.#..#.#..#.',
-  '...##########.##',
-  '...##########.#.',
-  '...#..####..#.#.',
-  '...#..####..###.',
-  '...##########.#.',
-  '....#......#.#..',
-  '.....######..#..',
-  '..############..',
-  '.##.#.####.#.##.',
-  '.##.########.##.',
-  '.#..##....##..#.',
-  '....##....##....',
-  '....##....##....',
-  '.##############.',
-  '..############..',
-];
-
-function surfer(): NewCreature {
-  const waveLeft = mirrored(SURFER);
-  const left = [SURFER, shifted(waveLeft, 1), SURFER, shifted(waveLeft, 1)];
-  return pair('pacSurfer', left, 8);
-}
-
-/** The guard's legs, four rows a step. */
-const GUARD_STEPS: readonly (readonly [string, string, string, string])[] = [
-  ['...####..####...', '...####..####...', '...###....###...', '..####....####..'],
-  ['....########....', '....###..###....', '....###..###....', '...####..####...'],
-  ['...####..####...', '...###....###...', '...###....###...', '..####....####..'],
-  ['....########....', '....###..###....', '....###..###....', '...####..####...'],
-];
-
-/** An airport guard marching, drawn row by row: the peaked cap, black sunglasses, a flowered shirt, a wand held out at the right. */
-function guard(): NewCreature {
-  const frame = (step: number) => {
-    const legs = GUARD_STEPS[step] ?? GUARD_STEPS[0] ?? ['', '', '', ''];
-    return [
-      '....########....',
-      '...##########...',
-      '.##############.',
-      '....########....',
-      '....#..##..#....',
-      '....########....',
-      '.....#....#.....',
-      '.....######.....',
-      '..############.#',
-      '.##.#.####.#.###',
-      '.####.#..#.####.',
-      '.#.##########.#.',
-      ...legs,
-    ];
-  };
-  return pair('pacGuard', [0, 1, 2, 3].map(frame), 7);
-}
 
 // ---- the swinging cargo: a crate on a chain from a trolley, with a scowl, swaying
 
@@ -300,15 +171,9 @@ function swingCrate(): NewCreature {
 export const PACIFIC_CREATURES = {
   pacParrot: parrot(),
   pacSharkFin: sharkFin(),
-  pacCrab: crab(),
   pacTurtle: turtle(),
-  pacEel: eel(),
-  pacManta: manta(),
-  pacTiki: tiki(),
   pacHula: hula(),
-  pacSurfer: surfer(),
   pacCoconut: coconut(),
-  pacGuard: guard(),
   pacMagma: magma(),
   pacSwingCrate: swingCrate(),
 } as const satisfies Record<string, NewCreature>;
