@@ -128,13 +128,13 @@ export const ROLLERS: readonly RollerSpec[] = [...BOULDERS_OF_PICCHU, ...SANDBAR
 
 /**
  * The vines (VINE AND DANDY's, now crossed twice with a reason): A3's one, from the fig's crown at column 7 over the water between the pocket and the first log; A4's two, from the leaves under the
- * kapok's low boughs at columns 7 and 13, over the water between the sandbar, the log and the east bank. Each swings five cells either way at its tip every 96 frames; he takes hold by walking into one
+ * kapok's low boughs at columns 7 and 13, over the water between the sandbar, the log and the east bank. Each hangs to the height of his middle standing on the bank (row 14) and swings four or five cells either way at its tip every 96 frames; he takes hold by walking into one
  * as it swings over the edge he stands on (a jump does not take a rope: Monty on the Run's rule) and steps off as it swings over the far side.
  */
 export const VINES: readonly VineSpec[] = [
-  { room: AND.sandbar, col: 7, top: 2, length: 12, period: 96, amplitude: 4, phase: 0, code: codeOf(SANDBAR_PALETTE, 'V') },
-  { room: AND.roots, col: 7, top: 1, length: 13, period: 96, amplitude: 5, phase: 0, code: codeOf(ROOTS_PALETTE, 'V') },
-  { room: AND.roots, col: 13, top: 1, length: 13, period: 96, amplitude: 5, phase: 48, code: codeOf(ROOTS_PALETTE, 'V') },
+  { room: AND.sandbar, col: 7, top: 2, length: 13, period: 96, amplitude: 4, phase: 0, code: codeOf(SANDBAR_PALETTE, 'V') },
+  { room: AND.roots, col: 7, top: 1, length: 14, period: 96, amplitude: 5, phase: 0, code: codeOf(ROOTS_PALETTE, 'V') },
+  { room: AND.roots, col: 13, top: 1, length: 14, period: 96, amplitude: 5, phase: 48, code: codeOf(ROOTS_PALETTE, 'V') },
 ];
 
 /**
@@ -232,7 +232,8 @@ const PAINT = {
   roots(g: Grid) {
     g.box(0, 0, 23, 0, 'J').box(0, 1, 4, 1, 'J').box(9, 1, 11, 1, 'J').box(17, 1, 23, 1, 'J'); // the leaves under the kapok's low boughs
     g.box(24, 0, 25, 11, 'K').box(29, 0, 31, 11, 'K').box(26, 7, 28, 11, 'K').clear(24, 4, 25, 6); // the trunk: its hollow (cols 26-28) down to rows 4-6, open west onto the bough
-    g.box(22, 7, 25, 7, 'B'); // the bough (floor 7): five cells and more from the nearest a vine swings, so it is reached only down the hollow
+    g.box(22, 7, 25, 7, 'B'); // the bough (floor 7)
+    g.box(18, 1, 19, 6, 'J'); // a curtain of leaves between the vines and the bough: no jump off a vine reaches it, so it is reached only down the hollow
     g.box(22, 9, 23, 11, 'K').box(23, 8, 23, 8, 'K'); // a buttress
     g.box(0, 15, 4, 19, 'M'); // the sandbar (floor 15)
     g.box(5, 16, 17, 19, 'W').box(9, 16, 11, 16, 'L'); // the river and its log
