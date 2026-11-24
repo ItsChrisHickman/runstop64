@@ -105,7 +105,8 @@ shape: another loop inside it. Nothing else runs while it is up, no raster work 
   sector index is already per room), dark grey (the C64's colour 11) until visited, white flash on his room, the original's coin
   colours cycling on rooms with everything collected. "Visited" is one bit a room (the web's `found`; 62 rooms is 8 bytes), set
   by `LoadRoom`; "everything collected" compares the room's coin flags and items with the tables (about 100 B).
-  Do Svidaniya Monty's grid (50 x 8) is shown one region at a time, two characters a cell, as the web's `regions` do.
+  Do Svidaniya Monty's world (29 x 7 of its 50 x 8) is shown through a window, two characters a cell, scrolled to the cursor's
+  region as the web's map is (`regions`): moving the cursor into the next region scrolls the window there.
 - **Under the map**: LIVES, ROOMS n/62, ITEMS n/20, CAKES, COINS (five-digit BCD to screen codes, the score's own routine),
   the sector name of the cursor's room (the existing `DisplaySectorName`), and the options: RETURN travel, B back to room
   start, E EASY (ticked when on), M music/effects, S save, RUN/STOP resume. LIVES only in HARD.

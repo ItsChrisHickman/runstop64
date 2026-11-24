@@ -25,7 +25,11 @@ import type { MontySave } from './save';
  * the drive leaves it. The map shows the world as travel has it: $33 always on it.
  *
  * The map reads everything of the game it shows from the Game's data (`g.data`: the exit grid, whatever its size, the
- * sectors and their colours, the kit, the key items, the cakes); a wide grid is drawn in smaller cells to fit the box.
+ * sectors and their colours, the kit, the key items, the cakes); a wide grid is drawn in smaller cells to fit the box. A world in
+ * regions (Do Svidaniya Monty's countries, `data.regions`) is drawn whole in bigger cells and scrolls between them: the view
+ * shows the picked room's country (Monty's until one is picked), and travel goes to any room visited, whichever country.
+ * The cells are the exit grid as the game has it, so rooms a rebuild cut are not on it, and a kept entry for a room no
+ * longer in its cell is no place to go.
  *
  * In both modes, runstop64's rooms (data/runstop64-rooms.ts) are on the map too, in their own
  * colour (RUNSTOP64 in the legend), and travel goes to them like any other; they aren't
@@ -113,26 +117,68 @@ export function noteRoom(g: Game, { rooms }: MontyFound) {
 
 const visited = (found: MontyFound, id: number) => !!found.rooms[id];
 
-/** The icons of the freedom kit and the key items are 16 wide and 16 high; wrapped, a row of them takes 18. The map box's height under its cells' rows: the picked room's name, what is left there and the icons' label and first row. */
-const ICON = 16, ICON_ROW = 18, MAP_RESERVED = 62;
+/** The icons of the freedom kit and the key items are 16 wide and 16 high; wrapped, a row of them takes 20 (a gap of 4, so two rows don't crowd). */
+const ICON = 16, ICON_ROW = 20;
+/** Between the map's cells and what is under them: the gap, the picked room's name (two lines at most) and what is left there, and a gap again. */
+const NAMES = 8 + 28 + 4;
 
-/** A cell of a region's map: a region is a few columns, so its cells are bigger. */
+/** The largest a cell of a world in regions gets. */
 const REGION_CELL = 16;
 
 /**
- * Where the cells are: the whole grid, or (a game with `regions`) the columns of the region Monty is in, the cell bigger. `from`
- * is the first column shown, `cols` how many.
+ * Where the rows under the map's names go: the kit's label and the key items' (their icons 10 under each), and the top of the
+ * first. Monty on the Run's: the kit, then the items under it. A game with no kit has the items' rows at the box's foot, and
+ * the kit's room goes to the map.
  */
-function layout(box: Box, g: Game) {
+function below(box: Box, data: MontyData) {
+  const extra = (iconRows(box, data.progress.keyItems.length) - 1) * ICON_ROW;
+  const items = data.kit.length ? box.y + box.h - 22 - extra : box.y + box.h - 10 - ICON - extra;
+  return { kit: items - 30, items, top: data.kit.length ? items - 30 : items };
+}
+
+/** The cells a game's regions cover together: its world (columns and rows, first and last). */
+function worldOf(data: MontyData) {
+  const { regions } = data, last = data.exitGrid.rows - 1;
+  return {
+    from: Math.min(...regions.map((r) => r.from)), to: Math.max(...regions.map((r) => r.to)),
+    rowFrom: Math.min(...regions.map((r) => r.rows?.from ?? 0)), rowTo: Math.max(...regions.map((r) => r.rows?.to ?? last)),
+  };
+}
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/**
+ * Where the cells are, and the window they're seen through (`view`: cells are drawn only inside it). The whole grid, in cells
+ * that fit the box; or, a game with `regions` (a world too wide for the box), the whole world in cells as big as its largest
+ * region allows, scrolled to the region of `focus` (the picked room's cell, else Monty's): that region centred where the world
+ * runs on past the box's sides, its neighbours' rooms on to the edges (Moscow's view takes in Japan; Rio's the Pacific).
+ */
+function layout(box: Box, g: Game, focus: readonly [row: number, col: number]) {
   const { data } = g;
-  const region = regionAt(data.regions, g.mapRow, g.exitCol);
-  const from = region?.from ?? 0, cols = region ? region.to - region.from + 1 : data.exitGrid.cols;
-  const rowFrom = region?.rows?.from ?? 0, rows = region?.rows ? region.rows.to - region.rows.from + 1 : data.exitGrid.rows;
-  // (a game with many key items wraps their icons onto more rows, which take the map's room)
-  const spare = box.h - MAP_RESERVED - (iconRows(box, data.progress.keyItems.length) - 1) * ICON_ROW;
-  const cell = Math.min(region ? REGION_CELL : CELL, Math.floor(box.w / cols), Math.floor(spare / rows));
-  const ox = box.x + Math.floor((box.w - cols * cell) / 2);
-  return { region, cell, from, cols, rowFrom, rows, owns: (row: number, col: number) => !region || regionAt(data.regions, row, col) === region, at: (row: number, col: number) => ({ x: ox + (col - from) * cell, y: box.y + 2 + (row - rowFrom) * cell }) };
+  const top = box.y + 2, spare = below(box, data).top - NAMES - top;
+  if (!data.regions.length) {
+    const { cols, rows } = data.exitGrid;
+    const cell = Math.min(CELL, Math.floor(box.w / cols), Math.floor(spare / rows));
+    const ox = box.x + Math.floor((box.w - cols * cell) / 2);
+    return { cell, view: { x: ox, y: top, w: cols * cell, h: rows * cell }, at: (row: number, col: number) => ({ x: ox + col * cell, y: top + row * cell }) };
+  }
+  const world = worldOf(data), cols = world.to - world.from + 1, rows = world.rowTo - world.rowFrom + 1;
+  const cell = Math.min(REGION_CELL, ...data.regions.map((r) => Math.floor(box.w / (r.to - r.from + 1))),
+    ...data.regions.map((r) => Math.floor(spare / (r.rows ? r.rows.to - r.rows.from + 1 : rows))));
+  const w = Math.min(box.w, cols * cell), h = Math.min(rows, Math.floor(spare / cell)) * cell;
+  const region = regionAt(data.regions, focus[0], focus[1]);
+  const span = { from: region?.from ?? world.from, to: region?.to ?? world.to, rowFrom: region?.rows?.from ?? world.rowFrom, rowTo: region?.rows?.to ?? world.rowTo };
+  // (sideways to the pixel, the edges' cells cut; up and down in whole rows)
+  const ox = clamp(Math.round((span.from + span.to + 1) * cell / 2 - w / 2), world.from * cell, (world.to + 1) * cell - w);
+  const oy = clamp(Math.round(((span.rowFrom + span.rowTo + 1) / 2 - h / cell / 2)) * cell, world.rowFrom * cell, (world.rowTo + 1) * cell - h);
+  const vx = box.x + Math.floor((box.w - w) / 2);
+  return { cell, view: { x: vx, y: top, w, h }, at: (row: number, col: number) => ({ x: vx + col * cell - ox, y: top + row * cell - oy }) };
+}
+
+/** The cell the map is scrolled to: the picked room's (where he came into it), else Monty's. */
+function focusOf(g: Game, found: MontyFound, pick: string | null | undefined): [row: number, col: number] {
+  const e = pick !== null && pick !== undefined && pick !== String(g.roomId) ? found.rooms[pick] : undefined;
+  return e ? [e[2], e[3]] : [g.mapRow, g.exitCol];
 }
 
 /** The rooms on the map, and how many of them Monty has been in. */
@@ -161,13 +207,16 @@ export const montyMap = {
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
     const { progress } = data;
-    const { at, cell, from, cols, rowFrom, rows, owns } = layout(box, g);
+    const { at, cell, view } = layout(box, g, focusOf(g, found, pick));
     const tick = shimmer++;
-    for (let r = rowFrom; r < rowFrom + rows; r++) {
-      for (let c = from; c < from + cols; c++) {
+    const { cols, rows } = data.exitGrid;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
         const id = roomIn(g, r, c);
-        if (id === 0xff || !owns(r, c)) continue; // (a cell of another region's, cut out of this one's rectangle, is not shown)
-        const p = at(r, c);
+        if (id === 0xff) continue;
+        // (only what the view takes in: rows whole, the cells at its sides cut where the world runs on past them)
+        const p = at(r, c), x0 = Math.max(p.x, view.x), x1 = Math.min(p.x + cell - 1, view.x + view.w);
+        if (x1 <= x0 || p.y < view.y || p.y + cell > view.y + view.h) continue;
         const here = r === g.mapRow && c === g.exitCol;
         const seen = visited(found, id);
         const colour = here ? (blink ? COL.white : COL.yellow)
@@ -175,13 +224,13 @@ export const montyMap = {
           : roomProgress(g, id).complete ? shimmerColour(tick, r + c)
           : data.isExtensionRoom(id) ? RUNSTOP64_COLOUR
           : progress.sectorColours[sectorIndex(data, id)] ?? COL.white;
-        s.fillRect(p.x, p.y, cell - 1, cell - 1, colour);
+        s.fillRect(x0, p.y, x1 - x0, cell - 1, colour);
       }
     }
     if (!font) return;
     // the picked room: its name, and what's left there
     const id = pick !== null && pick !== undefined ? Number(pick) : g.roomId;
-    let y = box.y + 2 + rows * cell + 8;
+    let y = view.y + view.h + 8;
     wrap(sectorName(data, id).text.toUpperCase(), 24).slice(0, 2).forEach((line) => { font.draw(s, line, box.x, y, COL.white); y += 10; });
     const p = roomProgress(g, id), left: string[] = [];
     if (p.coinsLeft) left.push(`${p.coinsLeft} COIN${p.coinsLeft > 1 ? 'S' : ''}`);
@@ -189,12 +238,13 @@ export const montyMap = {
     const state = p.coins + p.items === 0 ? 'NOTHING TO COLLECT' : left.length ? `${left.join(' AND ')} LEFT` : 'ALL COLLECTED';
     font.draw(s, state, box.x, y, left.length ? COL.lgrey : COL.lgreen);
     // the freedom kit, and the key items (dark until found); a game with none has no row for them
-    y = box.y + box.h - 52 - (iconRows(box, progress.keyItems.length) - 1) * ICON_ROW;
+    const under = below(box, data);
     if (data.kit.length) {
+      y = under.kit;
       font.draw(s, 'FREEDOM KIT', box.x, y, COL.yellow);
       data.kit.forEach((fk, i) => { const at = iconAt(box, data.kit.length, i); icon(s, g.mem.subarray(0x3800 + fk * 32, 0x3800 + fk * 32 + 32), box.x + at.x, y + 10 + at.y, COL.white); });
     }
-    y += 30;
+    y = under.items;
     if (progress.keyItems.length) {
       font.draw(s, 'ITEMS FOUND', box.x, y, COL.yellow);
       progress.keyItems.forEach((item, i) => { const at = iconAt(box, progress.keyItems.length, i); icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + at.x, y + 10 + at.y, g.siCollected[item] ? COL.white : COL.dgrey); });
@@ -216,11 +266,15 @@ export const montyMap = {
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
-  places(box: Box, g: Game, found: MontyFound): MapPlace[] {
-    const { at, cell, from, cols, rowFrom, rows, owns } = layout(box, g);
+  /**
+   * Every room visited, the whole world over, where the view scrolled to `pick` has it (those of countries out of the view
+   * too: an arrow goes on to the next country's, and the view follows; a tap at the box's edge picks one just past it).
+   */
+  places(box: Box, g: Game, found: MontyFound, _page?: number, pick?: string | null): MapPlace[] {
+    const { at, cell } = layout(box, g, focusOf(g, found, pick));
     const mid = Math.floor(cell / 2) - 1; // (3 in a cell of 8: the dot's place in it)
     const list = Object.entries(found.rooms)
-      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId && e[3] >= from && e[3] < from + cols && e[2] >= rowFrom && e[2] < rowFrom + rows && owns(e[2], e[3]))
+      .filter(([id, e]) => canGo(g, Number(id), e) && Number(id) !== g.roomId)
       .map(([id, e]) => { const p = at(e[2], e[3]); return { id, x: p.x + mid, y: p.y + mid }; });
     const p = at(g.mapRow, g.exitCol);
     return [{ id: String(g.roomId), x: p.x + mid, y: p.y + mid, here: true }, ...list];
@@ -266,10 +320,14 @@ const iconsPerRow = (box: Box): number => Math.floor(box.w / ICON);
 /** How many rows `n` icons take: one, until more than fit along the box (past it are the divider and the panel beyond it). */
 const iconRows = (box: Box, n: number): number => Math.max(1, Math.ceil(n / iconsPerRow(box)));
 
-/** Where the `i`th of `n` icons goes from the row's start: 24 apart as in Monty on the Run, closer (down to 16) when more would run past the box, and past that wrapped onto the next row. */
-function iconAt(box: Box, n: number, i: number): { x: number; y: number } {
-  if (n <= iconsPerRow(box)) return { x: i * Math.min(24, Math.floor(box.w / n)), y: 0 };
-  return { x: (i % iconsPerRow(box)) * ICON, y: Math.floor(i / iconsPerRow(box)) * ICON_ROW };
+/**
+ * Where the `i`th of `n` icons goes from the row's start: 24 apart as in Monty on the Run, closer (down to 16) when more would
+ * run past the box; past that over as many rows as it takes, as evenly as they share them (17: nine and eight), each row
+ * spread as the one row is.
+ */
+export function iconAt(box: Box, n: number, i: number): { x: number; y: number } {
+  const perRow = Math.ceil(n / iconRows(box, n));
+  return { x: (i % perRow) * Math.min(24, Math.floor(box.w / perRow)), y: Math.floor(i / perRow) * ICON_ROW };
 }
 
 /** An item's sprite (24×21) cropped to its 16×16 content (left- and bottom-aligned), as an icon's 32 bytes. */
