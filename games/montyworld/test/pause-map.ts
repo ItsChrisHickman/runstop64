@@ -3,7 +3,7 @@
  * grid as the rooms have it: a kept entry for a room the rebuild cut is no place to go), scrolled to the picked room's country
  * (Monty's at first: Moscow's view, Rio past its right edge); the arrows go on from one country into the next and the view
  * follows, the pick always in the box; Enter goes to a room in another country; paused there, the view is that country's.
- * Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, rio.png).
+ * Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, pick-<n>-<country>.png as the pick enters each country, rio.png).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pause-map.ts [out-dir]
  */
@@ -69,7 +69,7 @@ let allIn = true;
 for (let n = 0; n < 80; n++) {
   const at = onGrid.get(Number(fe.picked));
   const where = at ? regionOf(at[0], at[1]) : undefined;
-  if (where && seen.at(-1) !== where) seen.push(where);
+  if (where && seen.at(-1) !== where) { seen.push(where); shot(`pick-${seen.length}-${where}`); }
   if (where === 'rio') break;
   // (down where the country ahead is lower: the Pacific's rooms, the Andes')
   tap(at && at[1] >= 16 ? 'ArrowDown' : 'ArrowRight');
@@ -91,6 +91,25 @@ tap('KeyP');
 tick(2);
 const here = montyMap.places(MAP_BOX, g, p.state.found, undefined, fe.picked).find((q) => q.here);
 check('paused in Rio: his room is in the box', !!here && inBox(here) && here.id === String(target));
+
+// by touch: a tap on a room picks it and the view scrolls to its country; tapping the room furthest west in the box, again and
+// again, goes back country by country to Moscow (the pick in the box all the way, a tap never a trip until the picked room is tapped)
+const touchSeen: string[] = [];
+let touchIn = true;
+for (let n = 0; n < 40 && p.state.paused; n++) {
+  const at = onGrid.get(Number(fe.picked));
+  const where = at ? regionOf(at[0], at[1]) : undefined;
+  if (where && touchSeen.at(-1) !== where) touchSeen.push(where);
+  if (where === 'moscow') break;
+  const shown = montyMap.places(MAP_BOX, g, p.state.found, undefined, fe.picked);
+  const pick = shown.find((q) => q.id === fe.picked);
+  if (!pick || !inBox(pick)) { touchIn = false; break; }
+  const west = shown.filter((q) => inBox(q) && q.id !== fe.picked).sort((a, b) => a.x - b.x)[0];
+  if (!west || west.x >= pick.x) break;
+  input.point(west.x, west.y);
+  tick(2);
+}
+check(`taps go back from country to country (${touchSeen.join(', ')}), never travelling, the pick in the box`, p.state.paused && touchSeen.at(-1) === 'moscow' && touchIn && g.roomId === target);
 tap('KeyP');
 
 // a kept entry for a room in a cell no longer its own is no place to go either
