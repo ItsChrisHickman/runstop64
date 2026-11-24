@@ -86,7 +86,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     ending: () => !!data.ending && readWon(data.id),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
     // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
-    restartKeys: [], strip: { y: 'screen' in data.title ? data.title.stripY : STRIP_Y },
+    restartKeys: [], strip: { y: 'screen' in data.title ? data.title.stripY : STRIP_Y }, fire: TOUCH.buttons[0]?.label,
     assists: data.assists.map((id) => ASSIST_SPECS[id]),
   }, (self) => {
     const { flow, fe, latch, rooms } = self;

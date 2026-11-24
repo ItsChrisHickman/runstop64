@@ -199,4 +199,5 @@ const L = FLOW_LAYOUT;
   input.points.length = 0;
 }
 
+check('the title names the game\'s own button on a touch screen (JUMP for Monty), FIRE when it gives none', stripText({ y: 172 }, true, 'JUMP') === 'TAP: CONTINUE    JUMP: NEW GAME' && stripText({ y: 172 }, true).includes('FIRE: NEW GAME') && !stripText({ y: 172 }, false, 'JUMP').includes('JUMP'));
 finish();

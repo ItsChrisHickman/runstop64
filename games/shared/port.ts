@@ -46,6 +46,8 @@ interface PortSetup<S, F, T> {
   codec: SaveCodec<S>;
   map: PauseMap<T, F>;
   assists: AssistSpec[];
+  /** The game's own name for its main touch button (JUMP...), for the title's and NEW GAME?'s prompts. */
+  fire?: string;
   /** Where the title's ENTER CONTINUE goes. */
   strip?: TitleStrip;
   /** Keys that restart a game on purpose (default F1 and R; none where the game types or uses them). */
@@ -124,7 +126,7 @@ export class Port<S, F, T> {
     const { renderer, input } = host;
     this.flow = new ContinueFlow<S, F>({
       id: setup.id, renderer, input, font: setup.font, codec: setup.codec, found: setup.map.found,
-      restartKeys: setup.restartKeys, strip: setup.strip, describe: setup.describe, colours: setup.colours,
+      restartKeys: setup.restartKeys, strip: setup.strip, fire: setup.fire, describe: setup.describe, colours: setup.colours,
     });
     this.latch = new FireLatch();
     this.fe = new FrontEnd<T, F>({
