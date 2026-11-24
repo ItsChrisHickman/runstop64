@@ -141,11 +141,10 @@ export function pursuerUpdate(g: Game) {
     p.ring[at] = g.x2; p.ring[at + 1] = g.y; p.ring[at + 2] = g.facing;
     p.written++;
     if (!p.awake && (e.wake ? inBox(g, e.wake) : e.calm ? !inBox(g, e.calm) : true)) p.awake = true;
-    if (!p.awake || p.written <= p.lag || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; continue; }
+    if (!p.awake || p.written <= p.lag || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; if (e.look?.over) g.enable &= ~(1 << e.look.over.sprite) & 0xff; continue; }
     man.x = p.x2; man.y = (p.y + 1) & 0xff;
-    g.sx[n] = p.x2; g.sy[n] = man.y; g.scol[n] = man.colour;
-    g.sptr[n] = 0x30 + e.slot * 8 + (p.facing & 0x80 ? 0 : 4) + ((p.walk >> 2) & 3);
-    g.enable |= 1 << n;
+    g.scol[n] = man.colour;
+    drawChase(g, e, p.x2, man.y, p.facing, p.walk);
     if (p.shaken > 0) p.shaken--;
     else if (knocked(g, e, p.x2, man.y)) {
       const setback = e.knockedBy?.setback;
@@ -160,6 +159,18 @@ function closeIn(p: PursuerState, e: PursuerSpec) {
   if (p.lag < p.back) { p.lag = Math.min(p.back, p.lag + FALL_BACK); return; }
   if (e.close && p.written % e.close.every === 0 && p.lag > e.close.least) p.lag--;
   p.back = p.lag;
+}
+
+/** His chase picture at (x2, y) (where Monty was): his creature slot's walk, or his own `look` (its pictures in turn, its offset, the second sprite on him); his sprite (and the second) shown. */
+export function drawChase(g: Game, e: PursuerSpec, x2: number, y: number, facing: number, walk: number) {
+  const n = spriteOf(e), look = e.look;
+  g.sx[n] = (x2 + (look?.dx ?? 0)) & 0xff; g.sy[n] = (y + (look?.dy ?? 0)) & 0xff;
+  g.sptr[n] = look ? look.frames[((walk >> 2) & 0xff) % look.frames.length] ?? 0 : 0x30 + e.slot * 8 + (facing & 0x80 ? 0 : 4) + ((walk >> 2) & 3);
+  g.enable |= 1 << n;
+  const over = look?.over;
+  if (!over) return;
+  g.sx[over.sprite] = g.sx[n] ?? 0; g.sy[over.sprite] = g.sy[n] ?? 0; g.sptr[over.sprite] = over.ptr; g.scol[over.sprite] = over.colour;
+  g.enable |= 1 << over.sprite;
 }
 
 /** Whether something of the room his `knockedBy` names meets him: a creature whose picture meets his (the sprites' boxes, 16 by 16), or a tunnel's mouth sweeping over the cells he is in (as it takes Monty off a roof). */
@@ -203,6 +214,7 @@ export function pursuerSprites(g: Game): number {
     if (!e) continue;
     if (p.gone === 'split') for (const s of e.split?.sprites ?? []) mask |= 1 << s;
     if (p.gone === 'knocked' || p.intro >= 0) mask |= 1 << spriteOf(e);
+    if (e.look?.over) mask |= 1 << e.look.over.sprite;
   }
   return mask;
 }
