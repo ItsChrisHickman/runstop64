@@ -128,8 +128,13 @@ export interface Prints {
   room(id: number): string;
 }
 
-/** The sources a game's states depend on: the engine's (files or folders, tests left out), its region files (read room by room), and anything else to hold (the tables' layout). */
-export interface PrintSources { readonly engine: readonly string[]; readonly regions: readonly string[]; readonly also: string }
+/**
+ * The sources a game's states depend on: the engine's (files or folders, tests left out), its region files (read room by room), and anything else to hold
+ * (the tables' layout). `presentation`: files and folders inside the engine's that only draw, play sound or run the front end (the pause map, the title,
+ * the reward show, the music, the renderer): nothing a game frame reads, so a change to them leaves every recorded state and proof standing (Chris,
+ * 2026-11-24: a pause-map change re-searched every recorded "no way"). Leave out only what no frame can read; sprite art stays in (collisions read it).
+ */
+export interface PrintSources { readonly engine: readonly string[]; readonly regions: readonly string[]; readonly also: string; readonly presentation?: readonly string[] }
 
 /** The `.ts` files of files and folders (a folder's test folders left out), sorted. */
 export function sourceFiles(paths: readonly string[]): string[] {
@@ -146,7 +151,9 @@ export function fingerprints(src: PrintSources): Prints {
   const regionTexts = src.regions.map((f) => fs.readFileSync(f, 'utf8'));
   const tables = roomTables(regionTexts);
   const read = regionTexts.map((t) => attribute(t, tables));
-  const engine = sourceFiles(src.engine).filter((f) => !src.regions.includes(f)).map((f) => `${f}\n${fs.readFileSync(f, 'utf8')}`);
+  const shown = src.presentation ?? [];
+  const presentational = (f: string) => shown.some((p) => (p.endsWith('.ts') ? f === p : f.startsWith(p.endsWith('/') ? p : `${p}/`)));
+  const engine = sourceFiles(src.engine).filter((f) => !src.regions.includes(f) && !presentational(f)).map((f) => `${f}\n${fs.readFileSync(f, 'utf8')}`);
   const rest = digest([...engine, ...read.map((a) => a.rest), src.also].join('\n\u0000'));
   const rooms = new Map<number, string>();
   return {

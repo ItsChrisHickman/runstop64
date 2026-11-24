@@ -54,6 +54,17 @@ export const REGION_FILES: readonly string[] = REGION_ROOMS.map((r) => `games/mo
 export const prints = (): Prints => fingerprints({
   engine: ['games/montyotr/src', 'games/shared', 'packages/c64kit/src', 'games/shared/test/kit.ts', 'games/montyotr/test/play.ts', 'games/shared/monty/test/bot.ts', 'games/montyworld/src'],
   regions: REGION_FILES,
+  // what only draws, sounds or runs the front end (attribute.ts PrintSources): never read by a game frame
+  presentation: [
+    'games/montyotr/src/map.ts', 'games/montyotr/src/title.ts', 'games/montyotr/src/info.ts', 'games/montyotr/src/ending.ts', 'games/montyotr/src/ending-scenes.ts',
+    'games/montyworld/src/title.ts', 'games/montyworld/src/title-art.ts', 'games/montyworld/src/title-chase.ts', 'games/montyworld/src/title-scroll.ts',
+    'games/montyworld/src/title-viktor.ts', 'games/montyworld/src/info.ts', 'games/montyworld/src/ending-scenes.ts', 'games/montyworld/src/ending-places.ts',
+    'games/montyworld/src/ending-routes.ts', 'games/montyworld/src/music',
+    'games/shared/frontend.ts', 'games/shared/native', 'games/shared/pendragon', 'games/shared/spectrum.ts', 'games/shared/spectrum-font.ts', 'games/shared/touch',
+    'games/shared/ending', 'games/shared/audio.ts', 'games/shared/carrying.ts', 'games/shared/letters.ts',
+    'packages/c64kit/src/renderer.ts', 'packages/c64kit/src/layout.ts', 'packages/c64kit/src/overlay.ts', 'packages/c64kit/src/effects.ts',
+    'packages/c64kit/src/effects-layer.ts', 'packages/c64kit/src/sid', 'packages/c64kit/src/ay', 'packages/c64kit/src/beeper.ts',
+  ],
   also: JSON.stringify([
     Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3]),
     Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4]),

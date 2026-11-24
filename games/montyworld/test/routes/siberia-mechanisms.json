@@ -21,9 +21,9 @@
     "c71e787a": ">:4 >:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 ^:4 J:4 .:4 .:4 .:4 .:4"
   },
   "none": {
-    "ac516793": {"print":"a4fda2bbe8a17acd","rooms":[9,10,13],"exhausted":false,"nodes":150000},
-    "d9b9e349": {"print":"b916ba6f8bab1c97","rooms":[10,13],"exhausted":false,"nodes":150006},
-    "981a5e2d": {"print":"a4fda2bbe8a17acd","rooms":[9,10],"exhausted":false,"nodes":150005},
-    "1123bcc5": {"print":"b916ba6f8bab1c97","rooms":[10,13],"exhausted":false,"nodes":150006}
+    "ac516793": {"print":"4fedca71fef05fae","rooms":[9,10,13],"exhausted":false,"nodes":150000},
+    "d9b9e349": {"print":"d3892105713c0379","rooms":[10,13],"exhausted":false,"nodes":150006},
+    "981a5e2d": {"print":"4fedca71fef05fae","rooms":[9,10],"exhausted":false,"nodes":150005},
+    "1123bcc5": {"print":"d3892105713c0379","rooms":[10,13],"exhausted":false,"nodes":150006}
   }
 }

@@ -16,8 +16,8 @@
     "e914f6d4": "<:4 <:4 <:4 <:4 <:4 <:4 v:4 v:4 v:4 v:4 v:4"
   },
   "none": {
-    "2025a86a": {"print":"af6641c37a4eb4ae","rooms":[68,69,73],"exhausted":false,"nodes":120000},
-    "84053680": {"print":"af6641c37a4eb4ae","rooms":[68,69],"exhausted":false,"nodes":150003},
-    "326ee697": {"print":"af6641c37a4eb4ae","rooms":[75],"exhausted":false,"nodes":150000}
+    "2025a86a": {"print":"5228a12f371c1e0c","rooms":[68,69,73],"exhausted":false,"nodes":120000},
+    "84053680": {"print":"5228a12f371c1e0c","rooms":[68,69],"exhausted":false,"nodes":150003},
+    "326ee697": {"print":"5228a12f371c1e0c","rooms":[75],"exhausted":false,"nodes":150000}
   }
 }

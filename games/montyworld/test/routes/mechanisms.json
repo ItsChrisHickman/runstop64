@@ -4,7 +4,7 @@
     "f1be528b": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4"
   },
   "none": {
-    "b4aa5314": {"print":"7e8f62a9762ac340","rooms":[3,4],"exhausted":false,"nodes":60000},
-    "46ee5837": {"print":"7e8f62a9762ac340","rooms":[1,7],"exhausted":false,"nodes":100002}
+    "b4aa5314": {"print":"e5291492781c3e59","rooms":[3,4],"exhausted":false,"nodes":60000},
+    "46ee5837": {"print":"e5291492781c3e59","rooms":[1,7],"exhausted":false,"nodes":100002}
   }
 }
