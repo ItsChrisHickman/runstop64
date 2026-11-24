@@ -1,14 +1,16 @@
-import { VicView, type Renderer } from 'c64kit';
+import { Surface, TRANSPARENT, VicView, decodeSprite, type Renderer } from 'c64kit';
 import { PORT_CREDITS } from '../../shared/ending/credits';
-import { recordFigure, shotFeet, vicShot, type Figure, type SpriteShot } from '../../shared/ending/figures';
-import type { Lead, Place, Reel, RewardSpec } from '../../shared/ending/show';
+import { recordFigure, shotFeet, vicShot, type Figure, type Part, type SpriteShot } from '../../shared/ending/figures';
+import type { Lead, ParadeGag, Place, ProcessionSpec, Reel, RewardSpec } from '../../shared/ending/show';
+import { SPLIT_FIRST, splitDeath, type SplitStage } from '../../shared/monty/deaths';
+import { PARADE } from '../../shared/ending/procession';
 import { FRAME } from '../../shared/monty/frames';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
 import { montyMap, type MontyFound } from './map';
 import { Pilot } from './pilot';
 import { TOP_ROW, type Scene } from './ending-scenes';
-import { cellOf, type MontyData, type MontyEnding } from './montydata';
+import { cellOf, type MontyData, type MontyEnding, type MontyParade } from './montydata';
 
 /**
  * The reward for beating Monty on the Run (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's):
@@ -140,6 +142,12 @@ const RECORDED = 600;
 
 /** A creature as the engine shows it going its way (right, as the visitors walk): the game runs in the room it first appears in, Monty held out of the way. */
 function recordCreature(stage: Stage, ending: MontyEnding, name: string, types: readonly number[]): Figure | null {
+  const moments = creatureShots(stage, ending, types);
+  return moments ? recordFigure(name, moments) : null;
+}
+
+/** The sprites of a creature, a moment at a time, as `recordCreature` records them. */
+function creatureShots(stage: Stage, ending: MontyEnding, types: readonly number[]): SpriteShot[][] | null {
   const g = stage.game;
   const at = firstSeen(g.data, ending, types);
   if (!at) return null;
@@ -154,7 +162,68 @@ function recordCreature(stage: Stage, ending: MontyEnding, name: string, types: 
     const shots = at.slots.flatMap((slot) => { const shot = vicShot(g.vic, 4 + slot); return shot ? [shot] : []; });
     if (lead && shots.length === at.slots.length && !(lead.flags & 0x80)) moments.push(shots);
   }
-  return recordFigure(name, moments);
+  return moments;
+}
+
+// ---- the parade's gag ----------------------------------------------------------------------------------
+
+/** A sprite's 63 bytes as a picture, in the colours of a shot of it. */
+function pictureOf(data: Uint8Array, s: { colour: number; multicolour: boolean; mc1: number; mc2: number }): Surface {
+  const flat = new Surface(24, 21, TRANSPARENT);
+  decodeSprite(data, s.colour, s.multicolour, s.mc1, s.mc2, false, false, flat);
+  return flat;
+}
+
+/**
+ * The engine's death under a Mole Crusher (shared/monty/deaths.ts `splitDeath`, Monty on the Run's four-way split) played on a creature's sixteen split pictures from where he stands (`left`, `top`: picture
+ * pixels), a frame each: the pieces in sight, from his top left. It goes on until the last piece has left the picture, as the game's does.
+ */
+export function splitFrames(split: readonly Uint8Array[], left: number, top: number): { parts: Part[] }[] {
+  const s: SplitStage = { sx: new Uint8Array(8), sy: new Uint8Array(8), sptr: new Uint8Array(8), scol: new Uint8Array(8), enable: 0, multicolour: 0, x2: (left + 24) >> 1, y: (top + 50) & 0xff };
+  const pictures = new Map<string, Surface>();
+  const picture = (ptr: number, colour: number) => {
+    const key = `${ptr}:${colour}`, known = pictures.get(key);
+    if (known) return known;
+    const made = pictureOf(split[ptr - SPLIT_FIRST] ?? new Uint8Array(63), { colour, multicolour: false, mc1: 0, mc2: 0 });
+    pictures.set(key, made);
+    return made;
+  };
+  const out: { parts: Part[] }[] = [];
+  const steps = splitDeath(s);
+  while (!steps.next().done) {
+    const parts: Part[] = [];
+    for (let n = 0; n < 4; n++) if (s.enable & (1 << n)) parts.push({ surface: picture(s.sptr[n] ?? SPLIT_FIRST, s.scol[n] ?? 1), dx: (s.sx[n] ?? 0) * 2 - 24 - left, dy: (s.sy[n] ?? 0) - 50 - top });
+    out.push({ parts });
+  }
+  return out;
+}
+
+/** The engine's Mole Crusher as the room draws it (mechanisms.ts): the head's three characters in their colours, and the shaft (the head's top row, repeated as the glyphs scroll down) as tall as the picture. */
+export function crusherPicture(data: MontyData): { shaft: Surface; head: Surface } {
+  const COLOURS = [0x0f, 0x0c, 0x0b];
+  const head = new Surface(24, 8, TRANSPARENT), shaft = new Surface(24, 200, TRANSPARENT);
+  for (let c = 0; c < 3; c++) for (let row = 0; row < 8; row++) {
+    const bits = data.piledriverGlyphs[c * 8 + row] ?? 0, top = data.piledriverGlyphs[c * 8] ?? 0;
+    for (let x = 0; x < 8; x++) {
+      if (bits & (0x80 >> x)) head.pixels[row * 24 + c * 8 + x] = COLOURS[c] ?? 1;
+      if (top & (0x80 >> x)) for (let y = 0; y < 200; y++) shaft.pixels[y * 24 + c * 8 + x] = COLOURS[c] ?? 1;
+    }
+  }
+  head.version++; shaft.version++;
+  return { shaft, head };
+}
+
+/** The parade's gag: the creature recorded as the cast is, his four-way split from where he stops on the parade's ground (`feet`), the crusher, and the game's sound for a death under it. */
+function paradeGag(stage: Stage, ending: MontyEnding, gag: NonNullable<MontyParade['gag']>, feet: number, sfx: ((id: number) => void) | undefined): ParadeGag | null {
+  const moments = creatureShots(stage, ending, gag.types);
+  const walk = moments ? recordFigure(gag.name, moments) : null;
+  if (!walk) return null;
+  const data = stage.game.data, crunch = data.eventSfx[0];
+  return {
+    walk, dying: splitFrames(gag.split, PARADE.crushAt, feet - walk.foot),
+    crusher: { ...crusherPicture(data), top: 24 },
+    ...(sfx && crunch ? { crunch: () => sfx(crunch) } : {}),
+  };
 }
 
 /** Frames each of Monty's pictures is held: in his walk, and in his dance. */
@@ -187,7 +256,8 @@ function recordMonty(stage: Stage, scene: Scene, name: string): Lead | null {
 
 // ---- the show ------------------------------------------------------------------------------------------
 
-export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists): RewardSpec {
+/** The show of a game's ending; `sfx` plays the game's sound effects (the parade's crusher). */
+export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists, sfx?: (id: number) => void): RewardSpec {
   const ending = data.ending;
   if (!ending) throw new Error(`${data.id} has no ending`);
   const { scenes } = ending, last = ending.closing ?? PORT_CREDITS;
@@ -206,12 +276,17 @@ export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists
     },
   }));
   const proc = ending.procession, first = scenes[0];
+  /** The procession: the hero recorded from the first place, and a parade's gag made from its creature. */
+  const processionOf = ({ hero, parade, ...rest }: NonNullable<MontyEnding['procession']>): ProcessionSpec => {
+    const style = parade ? (({ gag, ...look }) => ({ ...look, ...(gag ? { gag: () => paradeGag(stage(), ending, gag, rest.ground.feet, sfx) } : {}) }))(parade) : undefined;
+    return { ...rest, hero: { title: hero.title, record: () => (first ? recordMonty(stage(), first, hero.name) : null) }, ...(style ? { parade: style } : {}) };
+  };
   return {
     title: ending.title,
     places,
     cast: ending.cast.map((c) => () => recordCreature(stage(), ending, c.name, c.types)),
     creditRow: CREDIT_ROW,
-    ...(proc ? { procession: { ...proc, hero: { title: proc.hero.title, record: () => (first ? recordMonty(stage(), first, proc.hero.name) : null) } } } : {}),
+    ...(proc ? { procession: processionOf(proc) } : {}),
   };
 }
 

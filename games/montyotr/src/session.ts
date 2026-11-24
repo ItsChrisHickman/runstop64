@@ -104,7 +104,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     const reward = data.ending
       ? rewardShow = new RewardShow({
         host,
-        spec: montyEnding(data, renderer, g.assist),
+        spec: montyEnding(data, renderer, g.assist, (id) => g.sfx(id)),
         font: () => flow.getFont(),
         // (the game's tune, from its start, and again as the title's on the way out; nothing in the sound-effects mode)
         music: {

@@ -1,7 +1,7 @@
 import { Surface, TRANSPARENT, type BitmapFont, type Host, type SpriteHandle } from 'c64kit';
 import { CREDIT } from './credits';
 import { poseAt, type Figure, type Part } from './figures';
-import { FLAT, movesFor, nameSpot, processionOf, troupeAt, type Move, type TroupeShape } from './procession';
+import { FLAT, PARADE, movesFor, nameSpot, paradeAt, paradeOf, processionOf, troupeAt, type GagPhase, type Move, type ParadeShape, type ParadeUnit, type TroupeShape } from './procession';
 import { WHOLE, cutTo, type Stage } from './stage';
 import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timeline, type Walk } from './timeline';
 
@@ -123,6 +123,37 @@ export interface ProcessionSpec {
   ground: { top: number; feet: number; line: number; colour?: number };
   titleRow: number;
   nameRows: readonly [number, number];
+  /** The carnival parade (procession.ts `PARADE`) in place of troupes coming on one at a time: the troupes are its groups, each behind a banner with its heading. */
+  parade?: ParadeStyle;
+}
+
+/** How a carnival parade looks: who leads it, who watches from the side, its banners and fireworks, and the gag at its tail. */
+export interface ParadeStyle {
+  /** The cast (indexes) at the column's head, unnamed (named in their own group), and dancing at the side with the hero, watching. */
+  leaders: readonly number[];
+  watchers: readonly number[];
+  /** Where the watchers stand: the hero's left edge, then each watcher's, all with their feet on the row `feet` (behind the column). */
+  watch: { x: readonly number[]; feet: number };
+  /** The banners: the cloth's colours, one a group in turn, the letters' and the poles'. */
+  banner: { cloth: readonly number[]; ink: number; pole: number };
+  /** The names' colour on the ground. */
+  ink: number;
+  /** Where fireworks burst over the picture (their middles) and their colours in turn. */
+  fireworks: readonly (readonly [number, number])[];
+  sparks: readonly number[];
+  /** The gag at the tail, made by the game as the show begins (null: none). */
+  gag?: () => ParadeGag | null;
+}
+
+/** The gag at the parade's tail: his walk (and name), his death under a crusher as the game's engine draws it, and the crusher. */
+export interface ParadeGag {
+  walk: Figure;
+  /** His death under the crusher as the engine plays it (Monty on the Run's four-way split, in his pictures), a frame each: the pieces, from his figure's top left where he stopped. */
+  dying: readonly { readonly parts: readonly Part[] }[];
+  /** The game's crusher: its shaft (a picture repeated down from row `top`) and its head. */
+  crusher: { shaft: Surface; head: Surface; top: number };
+  /** The game's sound as the crusher lands. */
+  crunch?(): void;
 }
 
 /** The show's colours (indexes of the renderer's palette). */
@@ -211,6 +242,9 @@ export class RewardShow {
   private troupes: Troupe[] = [];
   private march: ReturnType<typeof processionOf> = { turns: [], length: 0 };
   private marching: Marching | null = null;
+  /** The carnival parade, where the procession is one (made once the cast is recorded), and what its gag is doing now (for tests). */
+  private carnival: Carnival | null = null;
+  private gagNow: { phase: GagPhase; left: number } | null = null;
 
   constructor(private readonly o: RewardOptions) {}
 
@@ -228,6 +262,7 @@ export class RewardShow {
       phase: this.phase, place: this.place, frames: this.frames, shown: this.shown, reel: this.reel, visitors: this.seen, said: this.said,
       figures: this.figures.map((f) => ({ name: f.name, poses: f.poses.length })), length: this.phase === 'parade' ? this.march.length : this.tl.length,
       marching: this.marching, troupes: this.troupes.map((t) => ({ title: t.title, names: t.members.map((m) => m.fig.name) })),
+      gag: this.gagNow, gagName: this.carnival?.gag?.walk.name ?? null,
     };
   }
 
@@ -243,6 +278,8 @@ export class RewardShow {
     this.troupes = [];
     this.march = { turns: [], length: 0 };
     this.marching = null;
+    this.carnival = null;
+    this.gagNow = null;
     this.place = -1;
     this.placed = 0;
     this.owed = 0;
@@ -286,8 +323,12 @@ export class RewardShow {
       const recorded = spec.cast.map((record) => record());
       this.figures = recorded.flatMap((f) => (f ? [f] : []));
       if (spec.procession) {
-        this.troupes = troupesOf(spec.procession, recorded);
-        this.march = processionOf(this.troupes.map((t) => t.shape));
+        const style = spec.procession.parade;
+        this.troupes = troupesOf(spec.procession, recorded, !style);
+        if (style) {
+          this.carnival = carnivalOf(spec.procession, style, recorded, this.troupes, this.o.font());
+          this.march = { turns: [], length: paradeOf(this.carnival.shape).length };
+        } else this.march = processionOf(this.troupes.map((t) => t.shape));
       }
       this.shares = sharesOf(spec.places, this.figures.length, spec.creditSlot ?? CREDIT.slot);
       this.nextPlace();
@@ -462,6 +503,7 @@ export class RewardShow {
     screen.fillRect(0, ground.feet, 320, 1, ground.line);
     this.seen = [];
     this.marching = null;
+    if (this.carnival && proc.parade) { this.carnivalFrame(this.carnival, proc, proc.parade, t); return; }
     let used = 0;
     const k = this.march.turns.findIndex((turn) => t >= turn.from && t < turn.from + turn.length);
     const troupe = this.troupes[k], turn = this.march.turns[k];
@@ -488,6 +530,73 @@ export class RewardShow {
     }
     screen.version++;
     this.putAway(used);
+  }
+
+  /** One frame of the carnival parade: the fireworks, the watchers at the side, the column (banners, marchers bouncing on the beat, the gag at its tail), the names of the group passing, and the gag's end. */
+  private carnivalFrame(c: Carnival, proc: ProcessionSpec, style: ParadeStyle, t: number) {
+    const { screen } = this.o.host.renderer, font = this.o.font();
+    const { feet } = proc.ground;
+    const now = paradeAt(c.shape, t);
+    let used = 0;
+    // the fireworks, two bursting at a time
+    const turn = Math.floor(t / 40), n = style.fireworks.length;
+    style.fireworks.forEach(([x, y], i) => {
+      if (i !== turn % n && i !== (turn + 2) % n) return;
+      const k = Math.min(3, Math.floor((t % 40) / 10)), colour = style.sparks[(turn + i) % style.sparks.length] ?? 1;
+      used = this.put(used, burstOf(k, colour), x - 16, y - 16, WHOLE);
+    });
+    // the watchers, dancing (and hopping, cheering, at the end)
+    const cheer = now.gag.phase === 'cheer' ? Math.round(Math.abs(Math.sin((now.gag.at * Math.PI) / 12)) * 8) : 0;
+    c.watchers.forEach((fig, i) => {
+      const x = style.watch.x[i] ?? 0, pose = poseAt(fig, t + i * 7);
+      for (const part of pose.parts) used = this.put(used, part.surface, x + part.dx, style.watch.feet - fig.foot - cheer + part.dy, WHOLE);
+    });
+    // the column
+    const gagIndex = c.units.length - 1;
+    c.units.forEach((u, k) => {
+      const left = now.lefts[k] ?? 0, lift = now.lifts[k] ?? 0;
+      if (u.kind === 'gag' && c.gag) { used = this.gagFrame(c.gag, now.gag, left, feet, t, used); return; }
+      if (left >= 320 || left + u.width <= 0) return;
+      if (u.banner) { used = this.put(used, u.banner, left, feet - u.banner.height, WHOLE); return; }
+      const fig = u.fig;
+      if (!fig) return;
+      this.seen.push({ name: fig.name, left, feet: feet - lift, width: fig.width, height: fig.foot });
+      for (const part of poseAt(fig, t + k * 5).parts) used = this.put(used, part.surface, left + part.dx, feet - lift - fig.foot + part.dy, WHOLE);
+    });
+    // the names: the group passing, two to a row; the gag's own once the column has gone
+    const gagOn = c.gag !== null && now.gag.phase !== 'march';
+    const names = gagOn && c.gag ? [c.gag.walk.name] : now.named.map((k) => c.units[k]?.fig?.name ?? '');
+    names.forEach((name, i) => { const at = nameSpot(i, proc.nameRows); font.draw(screen, name, at.x, at.row, style.ink); });
+    this.marching = gagOn ? { troupe: c.titles.length, title: '', names } : now.group >= 0 ? { troupe: now.group, title: c.titles[now.group] ?? '', names } : null;
+    this.gagNow = c.gag ? { phase: now.gag.phase, left: now.lefts[gagIndex] ?? 0 } : null;
+    screen.version++;
+    this.putAway(used);
+  }
+
+  /** The gag at the tail: walking, then standing; the crusher slamming down on him, his death under it (the engine's frames: the pieces flying apart), the crusher going back up. */
+  private gagFrame(gag: ParadeGag, at: { phase: GagPhase; at: number }, left: number, feet: number, t: number, used: number): number {
+    const fig = gag.walk, top = feet - fig.foot;
+    const head = gag.crusher.head, cx = left + Math.round((fig.width - head.width) / 2);
+    // (where the crusher head's foot is: coming down from the top onto his head, held there while he goes, going back up)
+    let foot: number | null = null;
+    if (at.phase === 'drop') foot = gag.crusher.top + Math.round(((top - gag.crusher.top) * (at.at + 1)) / PARADE.drop);
+    else if (at.phase === 'crush') foot = top;
+    else if (at.phase === 'rise') foot = Math.round(top - ((top - gag.crusher.top) * at.at) / PARADE.rise);
+    if (at.phase === 'drop' && at.at === PARADE.drop - 1) gag.crunch?.();
+    if (at.phase === 'march' || at.phase === 'stop' || at.phase === 'drop') {
+      const pose = at.phase === 'march' ? poseAt(fig, t) : fig.poses[0];
+      if (left < 320 && left + fig.width > 0) this.seen.push({ name: fig.name, left, feet, width: fig.width, height: fig.foot });
+      for (const part of pose?.parts ?? []) used = this.put(used, part.surface, left + part.dx, top + part.dy, WHOLE);
+    } else if (at.phase === 'crush') {
+      for (const part of gag.dying[at.at]?.parts ?? []) used = this.put(used, part.surface, left + part.dx, top + part.dy, WHOLE);
+    }
+    if (foot !== null && foot > gag.crusher.top) {
+      // the shaft from the top down to the head, the head at the foot
+      const shaftTop = gag.crusher.top, headTop = foot - head.height, shaft = gag.crusher.shaft;
+      if (headTop > shaftTop) used = this.put(used, shaft, cx + Math.round((head.width - shaft.width) / 2), headTop - shaft.height, { x: 0, y: shaftTop, w: 320, h: headTop - shaftTop });
+      used = this.put(used, head, cx, headTop, { x: 0, y: shaftTop, w: 320, h: 200 - shaftTop });
+    }
+    return used;
   }
 
   // -- THE END
@@ -534,7 +643,7 @@ interface Troupe { title: string; members: { fig: Figure; dance?: Figure }[]; sh
 export interface Marching { troupe: number; title: string; names: readonly string[] }
 
 /** The troupes from the cast as recorded (one that could not be is left out of its troupe; a troupe left with none is not made), the hero's last. */
-function troupesOf(proc: ProcessionSpec, recorded: readonly (Figure | null)[]): Troupe[] {
+function troupesOf(proc: ProcessionSpec, recorded: readonly (Figure | null)[], withHero = true): Troupe[] {
   let at = 0;
   const out = proc.troupes.flatMap((t, i): Troupe[] => {
     const figs = recorded.slice(at, at + t.size).flatMap((f) => (f ? [f] : []));
@@ -543,7 +652,7 @@ function troupesOf(proc: ProcessionSpec, recorded: readonly (Figure | null)[]): 
     const members = figs.map((fig, k) => ({ fig, move: moves[k] ?? 'hop' }));
     return members.length ? [{ title: t.title, members, shape: { members: members.map((m) => ({ width: m.fig.width, move: m.move })) } }] : [];
   });
-  const lead = proc.hero?.record() ?? null;
+  const lead = withHero ? proc.hero?.record() ?? null : null;
   if (lead && proc.hero) {
     const gag = proc.gag?.() ?? null;
     // (the gag behind him, at the left)
@@ -579,4 +688,58 @@ function shapedPart(fig: Figure, part: Part, mirror: boolean, squash: number): P
   // (mirrored in the figure's box; squashed toward its feet, spread about its middle)
   const dx0 = mirror ? fig.width - part.dx - src.width : part.dx;
   return { surface: out, dx: Math.round(dx0 - (w - src.width) / 2), dy: Math.round(fig.foot - (fig.foot - part.dy) * squash) };
+}
+
+// ---- the carnival parade ------------------------------------------------------------------------------------------
+
+/** A unit of the parade as drawn: a marcher's figure, or a banner's picture. */
+interface CarnivalUnit extends ParadeUnit { fig?: Figure; banner?: Surface }
+/** The parade made from the cast: its column (leaders, each group behind its banner, the gag), its clock's shape, the watchers (the hero dancing first), the gag and the groups' headings. */
+interface Carnival { units: CarnivalUnit[]; shape: ParadeShape; watchers: Figure[]; gag: ParadeGag | null; titles: string[] }
+
+/** A banner carried on two poles: the cloth in a colour with the heading in letters on it, the poles down to the marchers' feet. */
+function bannerOf(title: string, cloth: number, ink: number, pole: number, font: BitmapFont): Surface {
+  const w = title.length * 8 + 8, h = 30, b = new Surface(w, h, TRANSPARENT);
+  b.fillRect(0, 0, w, 12, cloth);
+  font.draw(b, title, 4, 2, ink);
+  b.fillRect(1, 12, 2, h - 12, pole); b.fillRect(w - 3, 12, 2, h - 12, pole);
+  b.version++;
+  return b;
+}
+
+/** The parade from the recorded cast: the leaders, each troupe behind its banner, the gag; the hero (dancing) and the watchers at the side. */
+function carnivalOf(proc: ProcessionSpec, style: ParadeStyle, recorded: readonly (Figure | null)[], troupes: readonly Troupe[], font: BitmapFont): Carnival {
+  const figure = (i: number) => recorded[i] ?? null;
+  const units: CarnivalUnit[] = [];
+  for (const i of style.leaders) { const fig = figure(i); if (fig) units.push({ kind: 'leader', width: fig.width, group: -1, fig }); }
+  troupes.forEach((t, g) => {
+    const banner = bannerOf(t.title, style.banner.cloth[g % style.banner.cloth.length] ?? 2, style.banner.ink, style.banner.pole, font);
+    units.push({ kind: 'banner', width: banner.width, group: g, banner });
+    for (const m of t.members) units.push({ kind: 'member', width: m.fig.width, group: g, fig: m.fig });
+  });
+  const gag = style.gag?.() ?? null;
+  if (gag) units.push({ kind: 'gag', width: gag.walk.width, group: -1, fig: gag.walk });
+  const lead = proc.hero?.record() ?? null;
+  const watchers = [...(lead ? [lead.dance] : []), ...style.watchers.flatMap((i) => { const f = figure(i); return f ? [f] : []; })];
+  return { units, shape: { units: units.map((u) => ({ kind: u.kind, width: u.width, group: u.group })), ...(gag ? { crush: gag.dying.length } : {}) }, watchers, gag, titles: troupes.map((t) => t.title) };
+}
+
+/** A firework's burst, frame `k` (a rising spark, a small star, the full burst with beads at the tips, embers falling), 32 x 32, in a colour (made once each). */
+const bursts = new Map<string, Surface>();
+function burstOf(k: number, colour: number): Surface {
+  const key = `${k}:${colour}`;
+  const known = bursts.get(key);
+  if (known) return known;
+  const s = new Surface(32, 32, TRANSPARENT), c = 15.5;
+  const dot = (x: number, y: number) => { const px = Math.round(x), py = Math.round(y); if (px >= 0 && px < 32 && py >= 0 && py < 32) s.pixels[py * 32 + px] = colour; };
+  if (k === 0) for (let y = 18; y < 32; y++) { dot(15, y); dot(16, y); }
+  else for (let a = 0; a < 12; a++) {
+    const r = (a * Math.PI) / 6, dx = Math.cos(r), dy = Math.sin(r);
+    if (k === 1) for (let d = 1; d <= 6; d++) dot(c + dx * d, c + dy * d);
+    else if (k === 2) { for (let d = 3; d <= 13; d++) dot(c + dx * d, c + dy * d); dot(c + dx * 14, c + dy * 14); dot(c + dx * 14 + 1, c + dy * 14); }
+    else for (let d = 9; d <= 15; d += 3) dot(c + dx * d, c + dy * d + (d - 8) / 2);
+  }
+  s.version++;
+  bursts.set(key, s);
+  return s;
 }

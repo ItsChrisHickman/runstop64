@@ -112,6 +112,15 @@ most care; the reward show and the title show them off.
   black ground of their own with a line under their feet, never over a busy picture; names are plain descriptive words
   (MATRYOSHKA DOLL, KOI) in coloured text on the black, no box. Shared: `procession` in `games/shared/ending/show.ts`
   (`procession.ts` is its clock).
+  Then (Chris, 2026-11-23) the parade became the place's own event: Rio's carnival across the beach, everyone together in one
+  long column without a break, region after region behind a banner with its name, bouncing on the samba beat, the finale's
+  troupe leading, each named as it passes; Monty and the troupe dance at the side watching; the agent sneaks after him at the
+  tail and a Mole Crusher gets him with Monty on the Run's own death (the four-way split, frame for frame). The sand under them
+  is one flat colour: no texture or dither behind a marcher (`parade` in `ProcessionSpec`, `PARADE` in `procession.ts`).
+- **A finale's beats read at 1x** (Chris on the beach, 2026-11-23: "it just moved the two objects to the left and then played
+  music"). Each beat gets its own pictures, not a sprite slid about: he sits (seated pictures, his body in a deckchair drawn as a
+  deckchair), he eats (the bowl in his hands, the spoon going to his mouth, a happy face), he dances (dance pictures). When the
+  actors are small, cut to a close-up with expanded sprites, and keep the ground behind them plain.
 
 ## Words and sound
 

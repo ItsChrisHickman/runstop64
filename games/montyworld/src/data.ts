@@ -34,7 +34,8 @@ import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
 import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
-import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { AGENT_POINTERS, CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { AGENT_SQUASH, CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 
@@ -96,6 +97,9 @@ const DRAGON_BLOCKS = [
   { ptr: DRAGON_POINTERS.tailRight, block: DRAGON_PICTURES.tailRight },
 ] as const;
 
+/** The finale's pictures, put in with the beach (finale.ts). */
+const FINALE_NAMES = ['chair', 'bowlFull', 'bowlEmpty', 'berries3', 'berries2', 'berries1', 'sitDip', 'sitUp', 'sitMouth', 'sitChew', 'danceLeft', 'danceRight', 'spoonDip', 'spoonUp', 'spoonMouth'] as const satisfies readonly FinalePicture[];
+const FINALE_BLOCKS = FINALE_NAMES.map((name) => ({ ptr: FINALE_POINTERS[name], block: FINALE_PICTURES[name] }));
 /** The hold's loose crate rolling, in the blocks the Andes' boulders use in the Andes (put in while the hold is loaded). */
 const CRATE_BLOCKS = CRATE_ROLL.map((block, i) => ({ ptr: BOULDER_POINTERS[i] ?? 0, block }));
 
@@ -288,7 +292,7 @@ export const WORLD: MontyData = {
   currents: CURRENTS,
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }],
   risingLava: [LAVA],
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
