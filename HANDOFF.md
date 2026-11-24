@@ -34,10 +34,9 @@ leg 1 seabirds (gull Vs, a diving frigatebird with a screech tell, a slow albatr
 clouds that flicker before lightning, gusts shown by streaks, a waterspout), coins on safe lines and in risky gaps; leg 3 Viktor in
 a black plane tails him copying his path, shaken off into flocks/clouds, and as the Andes appear clips Monty's tail: Monty bails
 out and parachutes into the Andes (replacing the walk-into-the-plane cut). The HUD tally becomes Spy vs Spy: Monty 2 (train, ship)
-v Viktor 1 (the plane), settled in SPY VERSUS MOLE. C64: parallax bands like AWM's, ~8 sprites. Also queued: the title's chase
-loop is repetitive: vary each loop (Viktor trips on a name, Monty ducks behind a label so Viktor overshoots, Viktor overtakes then
-backs off). Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
-(`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
+v Viktor 1 (the plane), settled in SPY VERSUS MOLE. C64: parallax bands like AWM's, ~8 sprites. The title's chase varies each loop
+since 2026-11-24 (Viktor trips on SIBERIA's dot, Monty ducks behind JAPAN, Viktor overtakes then backs off: `src/title-chase.ts`).
+The pause map shipped 2026-11-24. Waiting on Chris: the tipsy moment's source (AWM quirks); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
 car (would shift China).
 
 ## Questions for Chris (ask these first; each has a recommendation)
@@ -45,8 +44,7 @@ car (would shift China).
 **Decided 2026-11-24** (Chris, at the start of the next session):
 - **The flight:** build it as proposed (yellow mail biplane taken at Hilo, no gun, seabirds then weather then Viktor's black
   plane; Viktor wins it, Monty parachutes into the Andes, the tally reads Monty 2 v Viktor 1 before SPY VERSUS MOLE).
-- **The title chase:** vary each loop (Viktor trips on a place name; Monty ducks behind a label and Viktor overshoots; Viktor
-  gets ahead, then backs off).
+- **The title chase:** vary each loop: built 2026-11-24 (Viktor trips on a place's dot, since the names sit off the route).
 - **The music crossing:** `phrase` (the phrase end, no dip); `DEFAULT_CROSSING` in `games/montyworld/src/music/crossing.ts`.
 - **The parade ground:** stays dark grey.
 - **The top bar:** with the flight in, one of the three stars becomes Viktor's (it lights when he wins the plane round).
