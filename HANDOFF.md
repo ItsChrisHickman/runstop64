@@ -14,9 +14,19 @@ THE LAST MOLE, escapes on the train and the cargo ship, the SPY VERSUS MOLE puzz
 crusher death); the close-up beach finale and the carnival parade ending in a crusher on Viktor; the new title; region tunes
 Hubbard-first, crossing in step at phrase ends with a volume dip; EASY/HARD everywhere; restart the room as he came in.
 
-Open (2026-11-24): a backlog workflow was shipping, in two lanes: the cover art on the info card, the pause map (whole world,
-travel anywhere visited), the top-centre HUD (Monty, three escape stars, Viktor's silhouette that lights when he's due; lives
-only in HARD), a Monty kit README, the C64 budget (decoration kinds back within 255). Check `git log` for which landed. The title/continue
+Open (2026-11-24, end of the long session): shipped today also the cover art on the info card, the Monty kit README
+(`games/shared/monty/README.md`) and the C64 budget (decoration kinds in one byte, with a budget test). Not finished:
+- **The pause map** (whole world, scrolling between countries, travel anywhere visited, items over two rows): built on branch
+  `backlog/pause-map` (`.claude/worktrees/backlog-pause-map`, commit 095a262), not reviewed or shipped. Review, run its tests
+  (`tools/affected.mjs --run`), ship.
+- **The top-centre HUD** (Monty's face, three Spy vs Spy stars, Viktor's silhouette that lights when he's due via
+  `encounterState(g)` in games/montyotr/src/pursuers.ts and `VIKTOR_FACE` in games/montyworld/src/art/viktor.ts; lives only in
+  HARD): not started. If Chris OKs the flight, the tally becomes Monty 2 v Viktor 1 before the finale.
+- **Unshipped playtest-round fixes** on `reset/andes` (3 commits) and `reset/pacific` (5 commits) from the reset workflow's later
+  rounds: look at them (`git log main..reset/andes`), merge what's good.
+Waiting on Chris: the flight (below); the tipsy moment's source (AWM quirks); which crossing he prefers
+(`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
+car (would shift China). The title/continue
 prompt names the game's own touch button (JUMP) since 2026-11-24.
 
 Proposed to Chris, awaiting his OK (2026-11-24): THE FLIGHT, Hilo to the Andes (~75 s), redeeming AWM's flight (games/awm/src/flight.ts:
