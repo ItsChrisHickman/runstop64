@@ -52,7 +52,7 @@ interface FrontEndOptions<T, F> {
 }
 
 /**
- * The EASY switch as kept (`<id>.assist`): `{ easy }`; before EASY/HARD it was `{ enhanced }`, whose ours had the
+ * The EASY switch as kept (`<id>.assist`): `{ easy }`; before EASY/HARD it was `{ enhanced }`, whose ENHANCED had the
  * unlimited lives that are EASY's and whose ORIGINAL the original's lives that are HARD's, so it reads as that. Anything
  * else is EASY, the default.
  */

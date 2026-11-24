@@ -321,7 +321,7 @@ export const WORLD: MontyData = {
   completion,
 
   assists: ['lives', 'respawn', 'hints'],
-  // our hints give the reason in the story, not the answer (Chris: not "THE CITY GATE WANTS A RICE HAT" but that the guards turn away
+  // Our hints give the reason in the story, not the answer (Chris: not "THE CITY GATE WANTS A RICE HAT" but that the guards turn away
   // foreigners): what is picked up says why someone wants it, a room that wants a thing says what is in the way. One name row: 32 characters.
   hints: {
     take: [

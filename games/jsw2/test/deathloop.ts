@@ -7,7 +7,7 @@
  * end (games/shared/native/play.ts `safe`, c64kit stood in by games/shared/test/kit.ts):
  *
  * - the autosave is never in mid-air or where he dies: none in Hades while he falls, the last one stays room 60's;
- * - ours (both modes): the fall into Hades costs one life, and he starts again in Hades, the room he died in (never room 60, the room before), by its way out,
+ * - Ours (both modes): the fall into Hades costs one life, and he starts again in Hades, the room he died in (never room 60, the room before), by its way out,
  *   alive; the room's save is kept once he has lived a second on his feet there;
  * - the original's own rule (as only a test has it now: original-rules.ts; two lives, back at the hole's edge), the save still room 60's;
  * - B on the pause screen in Hades: back to room 60's save, alive;

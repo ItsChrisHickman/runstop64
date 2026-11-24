@@ -17,7 +17,7 @@ const DRAGON_SPRITES = [1, 4, 5, 6, 7];
  * for six frames with the hurt sound ($37AD), then gives the damage ($3432), which takes energy
  * from the face going ($123E: 20 a face; five faces, the lives, $1248).
  *
- * The dragons take ten stones thrown facing up: the game counts each at $6561 (`react`, ours's
+ * The dragons take ten stones thrown facing up: the game counts each at $6561 (`react`, our
  * ENEMIES SHOW HITS: the dragon's colours cycle for a few frames; the tenth too, and then its death
  * is the game's own colour cycle over the body, sprites 4-7, $6763 counting to $F0; the spark and
  * sound are the `strike`'s).

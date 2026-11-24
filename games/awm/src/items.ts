@@ -7,7 +7,7 @@
  * effects (a life, a random bonus, death), and the rest are carried: up to four at a time,
  * handed over later in the rooms that want them (`take`, from the room scripts and the enemies).
  *
- * our "carry anything" (`unlimited`): no limit on what he carries, so a pickup is never refused. A plane ticket takes no hand
+ * Our "carry anything" (`unlimited`): no limit on what he carries, so a pickup is never refused. A plane ticket takes no hand
  * (it is a count, `tickets`); the four boxes show the four things picked up last that he still holds, and the rest wait in the
  * `pack` to come back into a box as one is handed over. `take` looks everywhere, the boxes first. The original's four hands are
  * `carried` and are all the original ever has; with the pack and the tickets empty, nothing here differs from it.
@@ -82,7 +82,7 @@ export class Items {
   readonly slotEntry: number[] = [-1, -1, -1, -1];
   /** $694E: the slot just touched. */
   touched = 0;
-  /** our carry anything is on (the front end's assist, via the game). */
+  /** Our carry anything is on (the front end's assist, via the game). */
   unlimited: () => boolean = () => false;
   /** Plane tickets, which take no hand. */
   tickets = 0;
@@ -164,7 +164,7 @@ export class Items {
   }
 
   /**
-   * our pick-up, and `give`'s: a ticket is counted, anything else goes into the first empty box; with none, the box of
+   * Our pick-up, and `give`'s: a ticket is counted, anything else goes into the first empty box; with none, the box of
    * the thing picked up longest ago goes to the pack and the new thing takes its place.
    */
   private add(type: number, colourSlot: number): void {

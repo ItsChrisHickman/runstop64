@@ -101,12 +101,19 @@ tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
 const zH = jumps('KeyZ');
 check(`HARD: Z still jumps, and isn't fire: our buttons are in both modes (${JSON.stringify(zH)})`, !p.state.easy && zH.air && !zH.fired);
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
-// EASY: unlimited lives and continues: out of life he is rejuvenated, with none used, never game over
-g().ram[V.deaths] = 4;
-g().ram[V.life] = 0;
-n = 0;
-while (g().ram[V.life] < 0x1f && n++ < 1500) tick();
-check(`EASY: out of life with the last rejuvenation used: he is rejuvenated, none used up, no game over (deaths ${g().ram[V.deaths]}, life ${g().ram[V.life]})`, g().ram[V.deaths] === 4 && !(g().ram[V.gameOver] & 0x80) && g().ram[V.life] >= 0x1f);
+// EASY: unlimited lives and continues: out of life, once his fall has played out, he is back at the start of the room as he
+// came into it, with full life and none used, never game over
+{
+  const room = g().ram[V.room];
+  g().ram[V.deaths] = 4;
+  g().ram[V.life] = 0;
+  let fell = false, back = false;
+  n = 0;
+  while (!back && n++ < 1500) { tick(); fell ||= g().ram[V.anim] === 0xa6; back = fell && p.state.playing && p.state.grace > 0 && g().ram[V.anim] !== 0xa6; }
+  tick(5);
+  check(`EASY: out of life with the last rejuvenation used: the fall, then back at the room's start (${roomName(g().ram[V.room])}), full life, none used up, no game over (deaths ${g().ram[V.deaths]}, life ${g().ram[V.life]}, ${n} frames)`,
+    back && g().ram[V.room] === room && g().ram[V.deaths] === 0 && !(g().ram[V.gameOver] & 0x80) && g().ram[V.life] === 0x1f && ![0xa6, 0xa8, 0xaa].includes(g().ram[V.anim]));
+}
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
 check('HARD: no unlimited lives', !p.state.easy && !g().unlimitedLives());
 // the game over: the last rejuvenation used, then no life left

@@ -7,7 +7,7 @@ import { V } from './vars';
  * up the moment he is in the armour, so an armour out of energy strands him unless he happens to
  * hold one. Here every cell he crouches over is his (each once: the game marks the room's as taken
  * as ever), the count is kept, and C in the armour fills it from one; stepping into the armour
- * with a cell fills it too, as the original does. The original's $A7 is never set in both modes, so
+ * with a cell fills it too, as the original does. The original's $A7 is never set here, so
  * its own use of it never fires.
  *
  * The count is kept in memory the original's code used ($81C0: the port doesn't need it, as the

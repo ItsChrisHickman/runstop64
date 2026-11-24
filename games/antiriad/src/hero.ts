@@ -48,7 +48,7 @@ export function joystick(g: Game) {
 const readStick = (g: Game) => (g.ram[V.joystick] = ~g.r(0xdc00) & 0x1f);
 
 /**
- * our jump button (or up), read with the joystick: a press since the last read counts
+ * Our jump button (or up), read with the joystick: a press since the last read counts
  * even if it's let go again before it (the joystick is read only every 7th frame).
  */
 function jumpAsked(g: Game, j: number) {
@@ -112,7 +112,7 @@ function jump(g: Game) {
 }
 
 /**
- * $92C9: fire out of the armour: jump (walking), throw (standing). ours: fire only
+ * $92C9: fire out of the armour: jump (walking), throw (standing). Ours: fire only
  * throws; walking, he stops to throw (the standing throw, as from the stance he'd stop in),
  * unless his stone is still out: then, as standing, there's no throw, and he walks on.
  */
@@ -280,7 +280,7 @@ function settleEmpty(g: Game) {
 /**
  * $961D: leave the armour where it stands (not in the first ten rooms: too much radiation, "HIGH
  * RADIATION SAFETY INTERLOCK OPERATIVE"). There, out of energy, the original keeps him in for
- * good: the armour can't fly, nothing in it can hurt him, so the game never ends. ours: an
+ * good: the armour can't fly, nothing in it can hurt him, so the game never ends. Ours: an
  * empty armour's interlock doesn't hold him (out there the radiation is his to face). In New Game+
  * there's no radiation, and no interlock (plus.ts).
  */
@@ -428,7 +428,7 @@ function suitCeiling(g: Game) {
 }
 
 /**
- * $9C5D: the armour reaches a floor: lands (taking off) or bounces. ours: out of energy it
+ * $9C5D: the armour reaches a floor: lands (taking off) or bounces. Ours: out of energy it
  * lands whichever way it faces (`settleEmpty`).
  */
 function suitFloor(g: Game) {

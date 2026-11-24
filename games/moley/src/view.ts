@@ -3,7 +3,7 @@
  * below), the border colour round it, the Spectrum's own colours (palette.ts) in both looks.
  *
  * ORIGINAL puts the display's screen on the surface once a logic pass (25 a second), nothing else: the sprites are in it.
- * ours puts the scenery on the surface and the entities on the renderer as sprites, each whole in its colour (`SPRITE_INK`), and moves them
+ * Ours puts the scenery on the surface and the entities on the renderer as sprites, each whole in its colour (`SPRITE_INK`), and moves them
  * smoothly between the passes the way Auf Wiedersehen Monty's view does (c64kit's `C64View`): the logic steps once in two frames,
  * so the view is told the step (`ViewStep`: `fresh` in the frame the step happened, `frames` how long it lasts) and glides across
  * all of it, at whatever rate `render(alpha)` is called. The logic is not touched; the sprites are only drawn in between.

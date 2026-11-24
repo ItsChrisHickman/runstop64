@@ -128,7 +128,7 @@ class RoomReel implements Reel {
 
 // ---- the cast ---------------------------------------------------------------------------------------
 
-/** A creature's picture in the colour ours shows sprites in. */
+/** A creature's picture in the colour our look shows sprites in. */
 function surfaceOf(address: number, attr: number): Surface {
   const image = imageAt(address);
   const ink = cellInk(attr) === cellPaper(attr) ? SPECTRUM.white : cellInk(attr);

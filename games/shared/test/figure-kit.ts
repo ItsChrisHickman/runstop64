@@ -12,7 +12,7 @@ import { PlaySession, type NativeRun } from './play-session';
 /**
  * The checks of a game's Pendragon figure swap (shared/pendragon/figure.ts), the same for each game that has one: every picture of
  * him the game draws, over a scripted run of every pose it has, is Dragonskulle's in the capture once the swap has run, and the
- * game's state is the same whether the swap runs or not; through the front end, both modes show his figure (the swap is ours,
+ * game's state is the same whether the swap runs or not; through the front end, both modes show his figure (the swap is our change,
  * on in both).
  */
 export interface FigureGame {
@@ -113,8 +113,8 @@ export function checkFigure(g: FigureGame) {
 /** A save of the game as it will launch from (the first state), run through the front end in EASY and in HARD (the figure in both). */
 export async function checkFigureGate(g: FigureGame) {
   const save = must(g.states()[0], 'a state');
-  for (const enhanced of [true, false]) {
-    const s = await PlaySession.launch(g.run, g.id, save, g.keep, enhanced);
+  for (const easy of [true, false]) {
+    const s = await PlaySession.launch(g.run, g.id, save, g.keep, easy);
     const swap = new FigureSwap(g.spec);
     let shown = 0, frames = 0;
     s.input.keyDown('ArrowRight');
@@ -127,7 +127,7 @@ export async function checkFigureGate(g: FigureGame) {
       if (swap.shows(sp.data)) shown++;
     }
     s.input.keyUp('ArrowRight');
-    check(`${g.id}: ${enhanced ? 'EASY' : 'HARD'} through the front end shows Dragonskulle's figure (${shown} of ${frames} frames)`, frames > 30 && shown === frames);
+    check(`${g.id}: ${easy ? 'EASY' : 'HARD'} through the front end shows Dragonskulle's figure (${shown} of ${frames} frames)`, frames > 30 && shown === frames);
   }
 }
 

@@ -78,7 +78,7 @@ const PLAYER_PICTURE = 0x60;
 
 // ---- the quick hop (both modes) ---------------------------------------------------------------------------------------------
 
-/** our quick hop: his plane crosses the sky from the left edge to the right edge in this many frames (four seconds). */
+/** Our quick hop: his plane crosses the sky from the left edge to the right edge in this many frames (four seconds). */
 export const HOP_FRAMES = 200;
 /** The sprite x (the VIC's, 0-503) his plane starts at (its right half shows at the screen's left edge) and ends at (clear of the right edge: 24 + 320). */
 const HOP_FROM = 0;

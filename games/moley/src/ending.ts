@@ -137,7 +137,7 @@ function recordFigure(name: string, room: number, entity: number, from = 0, to =
   return poses.length > 0 ? { name, poses, width: 16, height: 16, foot: footOf(poses) } : null;
 }
 
-/** A sprite's picture facing right, in the colour ours shows sprites in. */
+/** A sprite's picture facing right, in the colour our look shows sprites in. */
 function surfaceOf(frame: number): Surface {
   const image = spriteImage(frame, false);
   const s = new Surface(16, 16, TRANSPARENT);

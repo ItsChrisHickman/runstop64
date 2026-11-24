@@ -11,7 +11,7 @@
  *     exit grid), and driving on from there reaches the next room. Out of the section: room
  *     $33's cell is off the grid, the street and the rooms before it are still on the map's
  *     places, and travel on foot among the rooms west of it works.
- *  2. ours (both modes): a crash in each C5 room (the game's event 7; one a real crash
+ *  2. Ours (both modes): a crash in each C5 room (the game's event 7; one a real crash
  *     into a hole) starts Monty again in that room where he came in, the C5 stopped (test/c5respawn.ts),
  *     a life gone; back to room start brings it in as it came, and he drives on.
  *  3. the original's rules (as only a test has them now): a real crash goes back to the tree in $24 (the section's start), a life gone;
@@ -84,8 +84,8 @@ const restarted = (a: Arrival): Arrival => ({ ...a, speed: 0, bounce: 0, y: [0x7
 const same = (a: Arrival, b: Arrival) => JSON.stringify(a) === JSON.stringify(b);
 const show = (a: Arrival) => `${hex(a.room)} x2 ${hex(a.x2)} y ${hex(a.y)} stage ${a.fallStage} speed ${a.speed} dir ${hex(a.dir)} hop ${a.bounce} ramp ${a.ramp.map(hex)}`;
 
-/** A new game in a fresh front end, ours (`enhanced`) or the original's rules (as only a test has them now: shared/test/original-rules.ts). */
-function boot(enhanced: boolean) {
+/** A new game in a fresh front end, with our changes (`ours`) or the original's rules (as only a test has them now: shared/test/original-rules.ts). */
+function boot(ours: boolean) {
   store.clear();
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
@@ -96,7 +96,7 @@ function boot(enhanced: boolean) {
   tick(400);
   tap('Space');
   tick(20);
-  if (!enhanced) originalRules(p.frontEnd.assist);
+  if (!ours) originalRules(p.frontEnd.assist);
   p.frontEnd.assist.lives = false; // (a crash is told by the life it takes: unlimited lives are checked in test/frontend.ts)
   const first = g.roomId;
   g.lives = 9;

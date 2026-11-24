@@ -33,7 +33,7 @@
   "out": "../src/gen/rooms/room-ef20.ts",
   "runtime": "../../../../shared/native/cpu",
   "hooks": {
-    "61ea": "the shovel's check: the collisions just read ($3414; ENHANCED takes the shovel on touching it, src/shovel.ts)",
+    "61ea": "the shovel's check: the collisions just read ($3414; the shovel is taken on touching it, src/shovel.ts)",
     "6213": "hurt: the block's hurt flag ($62D2)",
     "6438": "hurt: the block's hurt flag ($6B74)",
     "648e": "hurt: the block's hurt flag ($6B74)",

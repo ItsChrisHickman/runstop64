@@ -1,5 +1,5 @@
 import { C64Machine, C64View, C64_KEYS, SidPlayer, type MachineState, type Host } from 'c64kit';
-import { LIVES_ASSIST } from '../../shared/lives';
+import { LIVES_ASSIST, livesShown } from '../../shared/lives';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { MACHINE_CODEC, type GameStatus } from '../../shared/continue';
@@ -27,10 +27,11 @@ import { TOUCH } from './touch';
 /**
  * Touch: Tal walks, jumps (up) and crouches (down); FIRE throws (the Pulsar Beam in the armour),
  * JUMP jumps (lifts the armour), CELL fills the armour from a stored recharge cell (cells.ts).
- * In ORIGINAL FIRE and JUMP are the original's one button, and CELL does nothing.
+ * (Under the original's rules, as only the tests that compare with the original have them, FIRE and JUMP are its one button,
+ * and CELL does nothing: controls.ts `giveControls`.)
  */
 
-/** our buttons (main.ts controls()): Z jumps; Space, X, Ctrl and the pad's buttons fire. */
+/** Our buttons (main.ts controls()): Z jumps; Space, X, Ctrl and the pad's buttons fire. */
 const JUMP_KEY = 'KeyZ';
 const FIRE_KEYS = ['Space', 'KeyX', 'ControlLeft', 'ControlRight'];
 
@@ -160,10 +161,10 @@ export function run(host: Host) {
     rewardShow = reward;
     startReward = () => { afterWin = true; reward.start(stats); };
     // ?ending on the page: the ending at once, for review
-    if (wantsEnding()) reward.start(endingStats(g, self.fe.found));
+    if (wantsEnding()) reward.start(endingStats(g, self.fe.found, livesShown(self.fe.assist)));
     return {
       takeover: reward,
-      watchEnding() { afterWin = false; reward.start(endingStats(g, self.fe.found)); },
+      watchEnding() { afterWin = false; reward.start(endingStats(g, self.fe.found, livesShown(self.fe.assist))); },
       state: () => g,
       phase: () => (g.playing ? 'play' : g.onTitle ? 'title' : 'other'),
       // (the save is taken when the flow asks; none inside a room change, or on the way to a place picked on the map)
@@ -254,10 +255,15 @@ export function run(host: Host) {
     controls();
     const wasPlaying = g.playing;
     g.tick();
+    // (EASY, a death played out: back to the room's start as he came into it, with full life, as CONTINUE? would; the rest of
+    // the rejuvenation this frame began ran in a machine that is dropped)
+    const ended = g.lifeEnded;
+    g.lifeEnded = false;
+    if (ended && port.carryOn('continue')) return 'ended';
     felt();
     const result = g.playing ? 'played' : 'idle';
     if (!wasPlaying && g.playing && !flow.state.playing) fe.newGame();
-    if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; keepWon('antiriad'); stats = endingStats(g, fe.found); rooms.enter(); }
+    if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; keepWon('antiriad'); stats = endingStats(g, fe.found, livesShown(fe.assist)); rooms.enter(); }
     if (won && g.onTitle) {
       port.backToTitle();
       // (the reward over the title, after the game's own ending)

@@ -26,7 +26,7 @@ export { info } from './info';
 /** ENTER CONTINUE's top line on the title: Monty on the Run's place for it, 12 pixels under the high scores' box, 12 over the table. */
 export const STRIP_Y = 148;
 
-/** our sparkles: as Moley Christmas's and Wanted's. */
+/** Our sparkles: as Moley Christmas's and Wanted's. */
 const SPARKLE_SIZE = 2, SPARKLE_GAIN = 2;
 
 export function run(host: Host) {
@@ -178,7 +178,7 @@ export function run(host: Host) {
         return 'played';
       },
       updateView() {
-        // our help (hints.ts): in play, not on a screen of ours
+        // Our help (hints.ts): in play, not on a screen of ours
         // (not under the verse: the count's row is the verse's bottom row, and the note would wipe each letter as it is typed)
         const shown = mode === 'play' && !g.freeze && !fe.holding && epilogue === null;
         if (mode === 'play' && epilogue === null) g.note(shown && fe.assist.count === true ? coalCount(g) : null);

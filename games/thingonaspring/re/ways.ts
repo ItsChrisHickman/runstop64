@@ -7,7 +7,7 @@
  * comes into another screen: from which screen, to which, at which end ("L": its left end, walking
  * right), with the inputs that did it from the start's state, so it can be replayed.
  *
- * In both modes=1, the same in both modes on (to see it still gets everywhere the original does).
+ * With ENHANCED=1, the same with our changes on (to see it still gets everywhere the original does).
  *
  *   nice -n 15 node tools/test.mjs games/thingonaspring/re/ways.ts <out.json> [iterations] [seed] [episode frames]
  */
@@ -52,7 +52,7 @@ for (let it = 1; it <= Number(itersArg); it++) {
   cell.visits++;
   const log = cell.inputs.slice();
   const g = resumeSnap(cell.snap, INPUTS[log[log.length - 1]].joy);
-  // (both modes=1: with the ours set on, from each episode's start)
+  // (ENHANCED=1: with our changes on, from each episode's start)
   const enhanced = process.env.ENHANCED ? makeEnhanced() : null;
   if (enhanced) g.onHook = (pc) => enhanced.hook(pc, g.m.ram, () => true);
   allOn(g.m.ram);

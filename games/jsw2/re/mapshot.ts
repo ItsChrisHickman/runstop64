@@ -17,7 +17,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const rooms = Object.keys(MANSION).map(Number);
 const found = { ...jsw2Map.found.empty(), rooms, stand: Object.fromEntries(rooms.map((n): [string, [number, number, number]] => [String(n), [0, 0, 0]])) };
 const font = new BitmapFont().addDrawn(KIT_GLYPHS);
-const options = [{ text: 'E ENHANCED', check: true }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }];
+const options = [{ text: 'E EASY', check: true }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }];
 const shot = (name: string, room: number, pick: number | null) => {
   const ram = new Uint8Array(0x10000);
   ram[0x13] = room;

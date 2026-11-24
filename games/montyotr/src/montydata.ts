@@ -510,9 +510,9 @@ export interface MontyData extends RoomTables, MontyLook {
   completion: ((g: Game) => Seq) | null;
 
   // ---- the front end -----------------------------------------------------------------------------
-  /** The assists the game has (our switch and the pause screen list them, in this order after UNLIMITED LIVES). */
+  /** The assists the game has (the pause screen lists them, in this order after UNLIMITED LIVES). */
   assists: readonly AssistId[];
-  /** our item hints (the assist `hints`); empty for a game with none. */
+  /** Our item hints (the assist `hints`); empty for a game with none. */
   hints: ItemHints;
   /** The regions the map shows one at a time (a world too wide for the box); none: the whole grid. */
   regions: readonly MapRegion[];

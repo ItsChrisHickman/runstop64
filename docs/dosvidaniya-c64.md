@@ -3,7 +3,8 @@
 Chris wants real Commodore 64 versions of our Monty games, as a goal after the web versions are polished: a **disk image
 and a cartridge image** that run on a real C64 and in emulators. Two targets, in this order:
 
-1. **Monty on the Run ENHANCED** (smaller, proves the toolchain): the original's own 6502 plus our ENHANCED changes.
+1. **Monty on the Run with our changes** (smaller, proves the toolchain): the original's own 6502 plus our changes, with the
+   EASY / HARD switch every game has (AGENTS.md: the two differ only in the lives; every other change is on in both).
 2. **Do Svidaniya Monty** (the big one): the same engine, our data, new mechanisms written in 6502, regions loaded as Monty
    crosses into them.
 
@@ -12,14 +13,14 @@ section 6) or estimated; estimates say so and are good to about +/-30% until ste
 
 ## The answers in short
 
-- **Does it fit?** Yes, with little to spare. Monty on the Run ENHANCED needs about 6 KB more than the original has free; the
+- **Does it fit?** Yes, with little to spare. Monty on the Run with our changes needs about 6 KB more than the original has free; the
   hi-score code and table, the anti-hack screen and (if needed) the freedom-kit carousel give about 7-9 KB. Do Svidaniya Monty
   needs about 9-12 KB of new code and one region's data (9 to 14.5 KB) resident at a time, in the 22.5 KB the original gives
   to level data and decorations plus what the cut parts free. Pacific, China and Japan are the tight regions.
 - **Biggest risks:** (1) the licence of the code we would build on; (2) the VIC bank's 176 sprite blocks, which the web
   build already fills; (3) frame time with several mechanisms at once, because MOTR does all its work in one interrupt;
   (4) tables with fixed sizes in the original's code (64 coins, 21 items) that Do Svidaniya Monty outgrows (282 coins).
-- **Effort:** about 15-20 working sessions for Monty on the Run ENHANCED, 45-60 more for Do Svidaniya Monty.
+- **Effort:** about 15-20 working sessions for Monty on the Run with our changes, 45-60 more for Do Svidaniya Monty.
 - **Delivery:** a disk (fast loader, two seconds a region) and an EasyFlash cartridge (region copy under a quarter of a
   second); the cart is the easier of the two to test here.
 - **Test it here first:** boot it on `tools/probe`, play by script, compare its state with the web engine.
@@ -50,28 +51,28 @@ reverses that for the C64 build, which raises two things to settle before step 1
 ### Order
 
 1. Toolchain: a Kick-subset assembler in TypeScript, the original rebuilt here and byte-compared; probe harness.
-2. Monty on the Run ENHANCED (section 2), disk and cartridge.
+2. Monty on the Run with our changes (section 2), disk and cartridge.
 3. Do Svidaniya Monty: engine generalised (regions), mechanisms (section 3), regions one at a time, as the web version was.
 
-## 2. Stage 1: Monty on the Run ENHANCED (`games/montyotr/QOL.md`)
+## 2. Stage 1: Monty on the Run with our changes (`games/montyotr/QOL.md`)
 
 Hints are dropped (Chris: not useful here). The others, with sizes (code + data, estimated unless noted):
 
 | Feature | How on the C64 | Size |
 |---|---|---|
-| ORIGINAL/ENHANCED switch | one byte `enhanced` next to `cheatmode`; E on the title and on the pause screen; every rule below tests it (5 bytes a test). Toggling writes the extension rooms' cells into/out of `room_exit_dest_tbl` (RAM, `$187A`) | 120 B |
-| Unlimited lives and continue | the life-lost site skips the decrement when `enhanced`; GAME OVER never comes, so no CONTINUE? prompt (ORIGINAL: game over to the title as it was) | 30 B |
-| Back to room start, no death loops | a death restarts where Monty came into the room (the original already saves that position); ENHANCED adds "stable entry" bookkeeping: remember the last entry he had two seconds on his feet after (3 bytes and a frame counter) and use it on an early death | 150 B |
+| EASY/HARD switch | one byte `easy` next to `cheatmode`; E on the pause screen; only the lives test it (5 bytes a test). Every other change below is on in both modes, so the extension rooms' cells are written into `room_exit_dest_tbl` (RAM, `$187A`) once | 60 B |
+| Unlimited lives and continue (EASY) | the life-lost site skips the decrement when `easy`, and the lives digits are left off the score row; GAME OVER never comes, so no CONTINUE? prompt (HARD: game over to the title as it was) | 40 B |
+| Back to room start, no death loops | a death restarts where Monty came into the room (the original already saves that position); we add "stable entry" bookkeeping: remember the last entry he had two seconds on his feet after (3 bytes and a frame counter) and use it on an early death | 150 B |
 | Grace (150 frames after any resume) | a countdown byte tested in the death dispatcher; set by travel, back to room start, load | 60 B |
 | C5 street: a crash restarts the room; hold fire for a longer hop | the crash handler reloads the current room (as a death does) instead of sending him to the tree; the hop's height/length table is selected by how long fire was held (patch of the C5 jump code) | 200 B |
-| Ride the cloud | cloud's characters become a floor for Monty while `enhanced` (the existing cloud code moves them 8 px at a time) | 130 B |
+| Ride the cloud | cloud's characters become a floor for Monty (the existing cloud code moves them 8 px at a time) | 130 B |
 | Jetpack: only Monty is hit | the jetpack sprite's collision bit is masked out of the enemy-collision test | 40 B |
-| runstop64's ten rooms (`$34`-`$3D`) | data only, in MOTR's formats: maps 971 B (RLE, measured), 10 room records 160, enemy records 52, decoration placements 44, 7 new decoration types 1,145, coins, 3 teleporters, sector names, 5 specials; the engine reads them as it reads any room; the only new code opens the way right of the start room when `enhanced` | 2,600 B data, 80 B code |
+| runstop64's ten rooms (`$34`-`$3D`) | data only, in MOTR's formats: maps 971 B (RLE, measured), 10 room records 160, enemy records 52, decoration placements 44, 7 new decoration types 1,145, coins, 3 teleporters, sector names, 5 specials; the engine reads them as it reads any room; the only new code opens the way right of the start room | 2,600 B data, 80 B code |
 | Pause screen, map, travel, back to room start | section 2a | 1,500 B |
 | Save and continue | section 2b | 350 B |
 | Freedom kit | no picking: the contents table preset to the five right items (jet pack, rope, passport, gas mask, barrel of rum: `fk_item_slot_idx` 1, 3, 11, 12, 15) and the pick step skipped; the carousel may stay | 60 B |
 | Hi-scores | no name entry: the table is shown as the original ships it; the entry code (`CheckAndInsertHiScore`, `HiScoreNameInput`, `ProcessHiScoreName`), the 16 replacement names and the triggers go | frees 2-3 KB (estimate) |
-| Title text | ENTER CONTINUE and the ENHANCED/ORIGINAL line in the title's empty rows | 150 B |
+| Title text | ENTER CONTINUE in the title's empty rows | 100 B |
 
 Not ported: the ending's reward show and its routes (a web-only montage), smooth movement, touch controls, the saved-games screen.
 Total new: about **3.5 KB of code and 2.7 KB of data, 6.2 KB**.
@@ -90,7 +91,7 @@ MOTR has `PauseGameOnP`, a busy-wait inside the interrupt (SID volume 0) until P
 shape: another loop inside it. Nothing else runs while it is up, no raster work is needed, the VIC just shows what it is told.
 
 - **The key: RUN/STOP.** Scan row 7 of the keyboard: write `$7F` to `$DC00`, read `$DC01`, bit 7 clear means pressed (RUN/STOP
-  is the project's name). RESTORE's NMI (the original's "abandon game") is disabled in ENHANCED so RUN/STOP+RESTORE cannot
+  is the project's name). RESTORE's NMI (the original's "abandon game") is disabled so RUN/STOP+RESTORE cannot
   fall into the title by accident (on the cartridge it will mean "back to the menu", section 7).
 - **What is saved.** The map is drawn on a *second screen* in the same VIC bank, so the playfield's screen RAM stays untouched:
   1 KB screen at `$7400` (inside the freed hi-score/anti-hack area; Do Svidaniya Monty finds 1 KB elsewhere in the bank, see
@@ -99,7 +100,7 @@ shape: another loop inside it. Nothing else runs while it is up, no raster work 
   exit all are written back and the frame continues. A pause then costs about 15,000 cycles each way, under a frame.
 - **The charset.** The map is text: the game's own font (`$40-$7F`: letters and digits) plus four glyphs (a solid cell, a
   hollow cell, a cursor, a collected shimmer) written into four unused character codes for the duration and put back (32 B saved).
-- **The map from the exit grid.** The grid is in RAM (`room_exit_dest_tbl`, 23 x 6; ENHANCED's rooms from row 2-5 columns
+- **The map from the exit grid.** The grid is in RAM (`room_exit_dest_tbl`, 23 x 6; our rooms from row 2-5 columns
   19-22). One character a cell fits (23 columns of 40): a solid block coloured by the room's sector colour (a 10-entry table; the
   sector index is already per room), dark grey (the C64's colour 11) until visited, white flash on his room, the original's coin
   colours cycling on rooms with everything collected. "Visited" is one bit a room (the web's `found`; 62 rooms is 8 bytes), set
@@ -107,7 +108,7 @@ shape: another loop inside it. Nothing else runs while it is up, no raster work 
   Do Svidaniya Monty's grid (50 x 8) is shown one region at a time, two characters a cell, as the web's `regions` do.
 - **Under the map**: LIVES, ROOMS n/62, ITEMS n/20, CAKES, COINS (five-digit BCD to screen codes, the score's own routine),
   the sector name of the cursor's room (the existing `DisplaySectorName`), and the options: RETURN travel, B back to room
-  start, E ORIGINAL/ENHANCED, M music/effects, S save, RUN/STOP resume.
+  start, E EASY (ticked when on), M music/effects, S save, RUN/STOP resume. LIVES only in HARD.
 - **Travel through the game's own door.** A teleporter does: store Monty's x2, y, the exit column and map row, set
   `zp_room_exit`; `RoomLoop` then runs `LoadRoom` (`CheckTeleporterContact` is the model). Travel stores the *entry position of
   the picked room* (where he first came in: 2 bytes a room, recorded where `RoomLoop` already saves his position on a room
@@ -292,7 +293,7 @@ state fails two (China's characters, the Pacific's footprint), each a small fix.
   enemy slots `$0200`, `si_collected_tbl`), on screen RAM, and on rendered frames.
 - **Frame by frame against the web engine** wherever the logic is the same: for MOTR the web engine is already checked against
   the original; run both from the same state with the same input and compare Monty, enemies and the screen's characters each frame
-  (ENHANCED differences listed and masked). For each new mechanism, the web module is the specification: same room, same
+  (where our changes differ: listed and masked). For each new mechanism, the web module is the specification: same room, same
   input, same cell/sprite output per frame (the probe's `decodePicture` renders both with one function).
 - **Multiload.** The probe has no drive, so a build flag gives **a KERNAL-`LOAD` loader** for tests (the probe serves it from the .d64);
   the fast loader is checked on Chris's Mac with VICE. The cartridge path is tested here: add EasyFlash bank registers to the probe
@@ -315,7 +316,7 @@ Loader does. Real hardware needs the user's write-enabled disk for saves.
 | Ocean type 1 (CRT type 5) | up to 64 banks of 8 KB (512 KB) | everything below | none | VICE and most |
 | Magic Desk (CRT type 19) | 8 KB banks, ROML only | everything below | none | VICE, common |
 
-Sizes: Monty on the Run ENHANCED about 64 KB resident + its tune + extension rooms 3 KB: 4-5 banks of 16 KB. Do Svidaniya
+Sizes: Monty on the Run with our changes about 64 KB resident + its tune + extension rooms 3 KB: 4-5 banks of 16 KB. Do Svidaniya
 Monty: resident (21 KB code + 16 KB bank + driver 5.5 KB) about 45 KB, regions 78 KB uncompressed (no crunching needed on a
 cart: it is a copy), together about 125 KB, 8 banks. Both games and a menu: **about 210 KB, a fifth of an EasyFlash**, under
 half of an Ocean cart. **Recommendation: EasyFlash**, for the space, the flash saves, and because Ocean and Magic Desk
@@ -327,7 +328,7 @@ add nothing we need.
   1 second: a 16 KB copy is 230,000 cycles). The stub stays in RAM (the bank register is in I/O). `LoadRegion` then
   is a stub call: select the bank, map ROM, copy, unmap, about a quarter of a second for 14 KB.
 - **Differences from the disk build.** No loader, no crunching, a CBM80 header is the cart's own (MOTR's anti-hack `$8000`
-  header is removed in ENHANCED either way: reset would show THAT WAS SILLY).
+  header is removed either way: reset would show THAT WAS SILLY).
 - **A menu cartridge, RUN/STOP 64.** Bank 0 holds the menu (about 2 KB of 6502: the project's font and the title, a list read
   from a directory: name, first bank, byte count, load address, entry, flags); a game's wrapper loads its image as above and
   starts it. Needs: (1) a directory format, written by one TypeScript script (`tools/crt`) from the games' images and a
@@ -361,11 +362,11 @@ A session is about a day of agent work with Chris's check-ins; the web build is 
 |---|---|---|
 | 0 | Decision on licence and release form (patches); ask Dave-Agent | 0 |
 | 1 | Toolchain: the Kick-subset assembler (reproduces `reference.sha256`), symbol table export, probe harness that boots MOTR, a state-comparison harness against the web engine, `.d64` and `.crt` writers | 4 |
-| 2 | MOTR ENHANCED, small rules: switch, lives, grace, no death loops, C5, cloud, jetpack, kit, hi-score cuts; each with a probe test | 5 |
+| 2 | MOTR with our changes, small rules: the EASY/HARD switch, lives, grace, no death loops, C5, cloud, jetpack, kit, hi-score cuts; each with a probe test | 5 |
 | 3 | The ten extension rooms as data and their way in | 2 |
 | 4 | Pause screen, map, travel, back to room start, save (disk, then flash) | 5 |
 | 5 | Packaging: disk (fast loader on the Mac), EasyFlash cartridge, probe's cartridge banks | 3 |
-| | **Monty on the Run ENHANCED** | **about 19** |
+| | **Monty on the Run with our changes** | **about 19** |
 | 6 | Data exporter: `MontyData` to region binaries and header; region loader; generalised grid, flags, tables (coins, items, room-id cases) | 8 |
 | 7 | The mechanisms (section 3), about 17 modules at 1-2 sessions each including their probe test against the web module | 20 |
 | 8 | Regions one at a time: export, budget fit, play by the bot on the probe, Chris plays: Moscow first (escalators, icicles), 7 x 1.5 | 10 |

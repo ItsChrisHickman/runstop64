@@ -2,9 +2,9 @@ import { cpu } from '../../shared/native/cpu';
 import * as engine from './gen/engine';
 
 /**
- * Thing on a Spring, ours: the original's play made kinder, so the factory can be played
- * through without wrestling Thing (the original is one switch away: ORIGINAL). One set, chosen
- * as a whole; each part is checked against the original by playing (test/assists.ts):
+ * Thing on a Spring, our changes: the original's play made kinder, so the factory can be played
+ * through without wrestling Thing. One set, chosen as a whole and on in both modes (EASY and HARD
+ * differ only in what the oil running out is); each part is checked against the original by playing (test/assists.ts):
  *
  * - air: in the air the joystick steers him, and a wall stops him instead of throwing him back;
  * - grace: a bounce asked for just after walking off an edge still goes, and one asked for just
@@ -85,7 +85,7 @@ const open = (c: number) => c === 0x20 || c < 3 || (c >= 0x0a && c < 0x12) || c 
 /** A character that stops him sideways: a ledge to land on (not a doorway $32/$33, nor live wires). */
 const ledge = (c: number) => !open(c) && c !== 0x32 && c !== 0x33 && c !== 0x2e && c !== 0x31 && c !== 0x6a && c !== 0x6b;
 
-// ---- ours ----------------------------------------------------------------------------
+// ---- our changes ---------------------------------------------------------------------
 
 /** The fall, a step a frame ($486A, from the fall's start): the original's (up to 8), and a gentler one (up to 4). */
 export const FALL = [1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8];
@@ -118,7 +118,7 @@ function ontoLedge(ram: Uint8Array, right: boolean) {
   return true;
 }
 
-/** ours, with what it keeps between frames. */
+/** Our changes, with what they keep between frames. */
 export function makeEnhanced() {
   let last = { air: false, standing: false };
   let sinceEdge = 99, asked = 99, askedRight = false;

@@ -10,8 +10,8 @@
  * next swing putting it back again. Keep swinging, as anyone does at something that doesn't fall,
  * and it never ends.
  *
- * In both modes the store is made a no-op once the end has begun (at the hook, as the other
- * ours rules of the game's code are made: games/dragonskulle/src/shovel.ts): the first blow
+ * In both modes the store is made a no-op once the end has begun (at the hook, as our other
+ * changes to the game's rules are made: games/dragonskulle/src/shovel.ts): the first blow
  * counts, the end runs its course (the note rises $07 to $20 and stops), and the rest is as it was.
  */
 import { cpu } from '../../shared/native/cpu';

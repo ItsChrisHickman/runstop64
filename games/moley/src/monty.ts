@@ -161,7 +161,7 @@ export class Monty implements Stateful {
   // ---- falling ($8FBA), jumping ($8D66, $8D77) -------------------------------------------------------------
 
   /**
-   * our air steering: the sideways step of the keys held now (the walking steps, so walls and edges stop him as on the ground), and
+   * Our air steering: the sideways step of the keys held now (the walking steps, so walls and edges stop him as on the ground), and
    * he faces the way he went. Not in the original.
    */
   private steer(keys: number): void {
@@ -194,7 +194,7 @@ export class Monty implements Stateful {
   /**
    * One pass of the jump. He moves sideways the way he was pressing at take-off, then up or down by the table. Going down
    * (or level) he lands on a floor or rope; going up, a ceiling stops him: his position goes back to where the pass began
-   * and the phase to 23 minus itself, so he starts down. ours: the sideways move is of the keys held now, not those of take-off.
+   * and the phase to 23 minus itself, so he starts down. Ours: the sideways move is of the keys held now, not those of take-off.
    */
   private jump(keys: number): void {
     if (this.world.airSteering) this.steer(keys);

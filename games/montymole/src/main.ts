@@ -20,8 +20,8 @@ import { MontyView } from './view';
 
 /**
  * Wanted: Monty Mole: the runstop64 front end for the rebuilt game. `MontyFlow` is the whole game (the title, the options, play, game over, the ending) as one object this
- * file steps; `MontyView` puts it on the renderer in the Spectrum's colours (ORIGINAL exact, ours without colour clash and with smooth motion); the session (saves,
- * continue, the pause screen with its map and travel, the ORIGINAL / EASY/HARD switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
+ * file steps; `MontyView` puts it on the renderer in the Spectrum's colours (without colour clash and with smooth motion); the session (saves,
+ * continue, the pause screen with its map and travel, the EASY / HARD switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
  */
 export { info } from './info';
 
@@ -104,7 +104,12 @@ export function run(host: Host) {
 
     /** Our changes, from the switch as it is now (all on, the unlimited lives with EASY). */
     function applyEnhancements(): void {
-      current.game.unlimitedLives = fe.assist.lives === true;
+      const unlimited = fe.assist.lives === true;
+      if (unlimited !== current.game.unlimitedLives) {
+        current.game.unlimitedLives = unlimited;
+        // (switched in the middle of a room, or a save carried on in the other mode: the lives line as the mode has it at once)
+        if (current.phase === 'play') current.game.reprintLives();
+      }
       current.game.monty.safeFalls = fe.assist.falls === true;
       current.game.noDeathLoops = fe.assist.loops === true;
     }

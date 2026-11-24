@@ -390,7 +390,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   sfx(id: number, onlyWithoutMusic = false): void { this.sound.sfx(id, onlyWithoutMusic); }
 
   /**
-   * A line of text under the room, in the score row's letters (the rows under the room are empty: Wanted's rooms have no names). ours's
+   * A line of text under the room, in the score row's letters (the rows under the room are empty: Wanted's rooms have no names): our
    * coal count. A room's loading clears it, so the front end puts it back every frame; null: none.
    */
   note(text: string | null): void {
@@ -1159,7 +1159,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   }
 
   /**
-   * Back to where Monty came into the room, the creatures and the coal as the room had them. ours (no death loops): in the room he
+   * Back to where Monty came into the room, the creatures and the coal as the room had them. Ours (no death loops): in the room he
    * died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
    * moment's grace: never in another room.
    */

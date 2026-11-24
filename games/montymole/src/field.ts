@@ -104,8 +104,19 @@ export class Field {
 
   /** `LIVES: ` and the number left, on the screen (`$949E`). */
   printLives(lives: number, shown = true): void {
-    // (EASY's unlimited lives have none to count: the line's place left blank)
-    const text = LIVES_LINE.text + digitChar(lives);
-    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, shown ? text : ' '.repeat(text.length));
+    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, livesText(lives, shown));
   }
+
+  /** The lives line again in the middle of a room (EASY or HARD switched on the pause screen): on the screen and in the kept picture both. */
+  reprintLives(lives: number, shown: boolean): void {
+    const text = livesText(lives, shown);
+    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, text);
+    drawLine({ bitmap: this.picture, attrs: this.attrs }, LIVES_LINE, text);
+  }
+}
+
+/** `LIVES: ` and the number left; EASY's unlimited lives have none to count: the line's place left blank. */
+function livesText(lives: number, shown: boolean): string {
+  const text = LIVES_LINE.text + digitChar(lives);
+  return shown ? text : ' '.repeat(text.length);
 }

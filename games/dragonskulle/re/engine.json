@@ -36,7 +36,8 @@
   "out": "../src/gen/engine.ts",
   "runtime": "../../../shared/native/cpu",
   "hooks": {
-    "27f6": "swing: a stone thrown"
+    "27f6": "swing: a stone thrown",
+    "1501": "a life ends: the energy of the face under way gone, its skull about to be drawn"
   },
   "callsMayWait": [
     "6000"

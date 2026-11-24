@@ -79,19 +79,19 @@ export class Program {
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
   unlimitedCarry: () => boolean = () => false;
-  /** our up boards a plane (game.ts `upBoards`). */
+  /** Our up boards a plane (game.ts `upBoards`). */
   upBoards: () => boolean = () => false;
   /** A flight to a room he has stood in needs no ticket (game.ts `flightFree`). */
   flightFree: (to: number) => boolean = () => false;
-  /** our quick hop (game.ts `quickHop`). */
+  /** Our quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
-  /** our creatures move slower (game.ts `enemyHold`). */
+  /** Our creatures move slower (game.ts `enemyHold`). */
   slowCreatures: () => boolean = () => false;
-  /** our Good Life waits for the end (game.ts `goodLifeWaits`). */
+  /** Our Good Life waits for the end (game.ts `goodLifeWaits`). */
   goodLifeWaits: () => boolean = () => false;
-  /** our hoppers rest at the top (game.ts `hopsRest`). */
+  /** Our hoppers rest at the top (game.ts `hopsRest`). */
   hopsRest: () => boolean = () => false;
-  /** our item hints (game.ts `hints`). */
+  /** Our item hints (game.ts `hints`). */
   hints: () => boolean = () => false;
 
   constructor() {

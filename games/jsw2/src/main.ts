@@ -39,7 +39,7 @@ export const RUN: RunSpec = {
 /**
  * The fall that kills: landing ($5465, `cmp #$28`) compares the fall counter ($82D7, two a step) with
  * 40 and calls the death routine at 40 or more. The operand is read from the code's own byte ($5466,
- * `smcOperand` in re/engine.json); ORIGINAL keeps 40. ours sets it to $FF, which the counter
+ * `smcOperand` in re/engine.json); the original's rules keep 40. Ours sets it to $FF, which the counter
  * (always even) never reaches: a long fall ends in an ordinary landing. What he lands on is
  * judged by the game's own collisions as ever, so a fall onto a guardian, nasty or Hades' skull
  * still kills (that is the thing, not the fall).

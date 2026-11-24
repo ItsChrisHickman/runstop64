@@ -2,7 +2,7 @@ import { imageCentre, spriteImage, type FrameCapture } from 'c64kit';
 import type { CombatEvent } from '../../shared/native/combat';
 
 /**
- * What Tal and the creatures feel (added for runstop64, our and ORIGINAL's presentation
+ * What Tal and the creatures feel (added for runstop64, presentation in both modes
  * alike: effects over the picture, never in it): the game's hurts and kills, noted as they
  * happen (collisions.ts) and placed on the screen with the sprites as the VIC drew them, as the
  * shared combat events (games/shared/native/combat.ts `playEvents` makes them effects and

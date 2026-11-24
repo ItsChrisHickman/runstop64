@@ -96,7 +96,7 @@ through the places, then the parade (Monty on the Run, 127 s with 24 creatures, 
   vertical position without smoothing on a phone.
 - **Blackwyche GUIDED:** his notes on the draft lines (he wanted the prose less clumsy; `games/blackwyche/src/guided-lines.ts`).
 - **Karnath hints:** his notes on the lines (`games/karnath/src/hint-lines.ts`).
-- **JSW2:** the "a lot easier" set (now in both modes) (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
+- **JSW2:** the "a lot easier" set, now in both modes (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
   item sparkles) and the pause map laid out by the exits are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the
   reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.

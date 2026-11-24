@@ -4,7 +4,7 @@
  *
  * ORIGINAL puts the game's screen on the surface once a pass (25 a second in the rooms, 50 in the opening), nothing else: the sprites are in it, over the scenery, in
  * the colour of the cells they are over (the colour clash).
- * ours puts the scenery (the screen without the sprites: scenery.ts) on the surface and the sprites on the renderer, each whole in one colour, and moves them
+ * Ours puts the scenery (the screen without the sprites: scenery.ts) on the surface and the sprites on the renderer, each whole in one colour, and moves them
  * smoothly between the passes the way Moley Christmas's view does (c64kit's `Smoothed`): the logic steps once in two frames, so the view is told the step (`ViewStep`:
  * `fresh` in the frame the step happened, `frames` how long it lasts) and glides across all of it, at whatever rate `render(alpha)` is called. The logic is not touched.
  */
@@ -51,7 +51,7 @@ export const COUNT_LINE = { column: 14, pixelRow: 188, colour: 0x46, attrRow: 0 
 
 export class MontyView {
   look: Look;
-  /** our line of text in the status rows (hints.ts `coalCount`), or null for none. It is on the surface only: the game's own screen is not touched. */
+  /** Our line of text in the status rows (hints.ts `coalCount`), or null for none. It is on the surface only: the game's own screen is not touched. */
   count: string | null = null;
   private readonly countAttrs = new Uint8Array(768);
   private readonly countBits = new Uint8Array(6144);

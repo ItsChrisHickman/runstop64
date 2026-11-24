@@ -14,7 +14,8 @@
  *   drawn; over random fights and a life's last points (both modes) its lines empty from the top as
  *   the energy says, the rest of the status line as drawn; the skull and a full next face when a
  *   life goes (HARD); EASY: only the face of the life under way, the faces to come left out; energy kept on travelling;
- * - losing every life: CONTINUE? (Enter), back on the last screen with all five lives;
+ * - EASY: a life's energy gone is a start of the screen again (as he came onto it, full health, no prompt); HARD: the last
+ *   life lost is CONTINUE? (Enter), back on the last screen with all five lives;
  * - the bar, read off the picture as it's shown (tools/probe's renderPixels with the front end's
  *   layout): the status line at the top, the play area and its sprites under it, 4 lines up
  *   (its top four, never drawn on, left out), the icons at the bottom in the keys' order (jump,
@@ -41,6 +42,7 @@ import { dragonskulleCombat } from '../src/combat';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { readRoute, parseOptions } from '../../shared/test/data';
 import { check, finish } from '../../shared/test/check';
+import { checkLifeEnds } from '../../shared/test/life-ends';
 
 // a browser's storage, in memory; the title snapshot from disk
 const store = useMemoryStorage();
@@ -306,7 +308,7 @@ const energyRun = (frames: number, shots: boolean) => {
     const mode = x.easy ? 'EASY' : 'HARD';
     check(`${mode}: the face drained as the energy fell, over ${x.hurts} hurts and a life's end: ${x.checked} frames looked at, ${x.levels.size} levels (${[...x.levels].sort((a, b) => a - b).join(' ')}), ${x.wrong.length} wrong${x.wrong.length ? `: ${x.wrong.slice(0, 3).join('; ')}` : ''}`,
       x.hurts > 2 && x.levels.size === ENERGY.max && x.wrong.length === 0);
-    // (EASY's unlimited lives bring a face back at once, so no skull stays: HARD only)
+    // (in EASY a life's end starts the screen again with every face, so no skull stays: HARD only)
     if (!x.easy) check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
     else check(`${mode}: no face stays lost (${lives()} lives now)`, lives() === 5);
   }
@@ -319,15 +321,9 @@ const energyRun = (frames: number, shots: boolean) => {
   check(`EASY: travelled (to ${cell()}), energy kept (${ENERGY.get(ram())}), the face as low (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.easy && ENERGY.get(ram()) === 7 && back.emptied > 0);
 }
 
-// ---- EASY: unlimited lives and continues: lives lost come back, never CONTINUE? --------------------------------
-{
-  settled();
-  let lost = 0;
-  for (let n = 0; n < 3000; n++) { ram()[0x123e] = 1; ram()[0x3432] = 2; tick(); if (ram()[0x1249] !== 0) lost++; }
-  check(`EASY: life after life taken for 3000 frames (the life-lost sound ran ${lost} frames): still five lives (${lives()}), never CONTINUE? (${p.state.prompt})`, lost > 0 && lives() === 5 && p.state.prompt !== 'continue' && p.state.playing && p.frontEnd.easy);
-  tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('HARD: no unlimited lives', !p.frontEnd.easy && p.frontEnd.assist.lives === false);
-}
+settled();
+tap('KeyP'); tap('KeyE'); tap('KeyP');
+check('HARD: no unlimited lives', !p.frontEnd.easy && p.frontEnd.assist.lives === false);
 
 // ---- every life lost: CONTINUE?-----------------------------------------------------------------------
 for (let n = 0; n < 3000 && p.state.prompt !== 'continue'; n++) { ram()[0x1248] = 0x0c; ram()[0x123e] = 1; ram()[0x3432] = 2; tick(); }
@@ -340,8 +336,11 @@ check(`Enter: back on ${cell()} with all five lives (${lives()}, energy ${ram()[
 shot('6-continued');
 
 // ---- a new game ---------------------------------------------------------------------------------------
-tap('KeyR'); // (R restarts: back to the title)
-until(() => !p.state.playing, 400);
+// (T on the pause screen: the title, the save kept. Not R here: R is the game's own F1, whose title never scans the keyboard, so
+// an F1 let go on the title stays in $CB and, as in the original, the next game's first pass can restart it; when depends on where
+// in its loop the game took the key: not this test's subject)
+tap('KeyP'); tap('KeyT');
+check('T on the pause screen: the title', until(() => !p.state.playing && p.state.prompt === 'title', 400));
 tick(100);
 input.keyDown('Space'); tick(10); input.keyUp('Space');
 check('Space: NEW GAME? first (a new game over a save asks)', p.state.prompt === 'newGame' && !p.state.playing);
@@ -483,5 +482,12 @@ tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2); // (the bar below is read in HAR
   check('EASY: the rest of the picture as in HARD (the play area and the bar)', same(easyShown, 0, 24, hardShown, 0, 24, W, 176));
   shot('9-easy-status');
 }
+
+// ---- EASY: the last of a life's energy gone is a start of the screen again, at full health with all five faces, never CONTINUE?;
+// HARD: the same with the last face is the game's end (last: it ends on CONTINUE?) ----------------------------------------------------
+settled();
+if (!p.frontEnd.easy) p.frontEnd.toggleEasy();
+checkLifeEnds('dragonskulle', { p, tick }, (m) => { m[0x1248] = 0x0c; m[0x123e] = 1; m[0x3432] = 2; }, (m) => (m[0x20a8] << 8) | m[0x20a9],
+  (m) => m[0x123e] === ENERGY.max && m[0x1248] === 0);
 
 finish();

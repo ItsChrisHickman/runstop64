@@ -520,7 +520,7 @@ export class C64 {
   collisionsPerLine = false;
   /**
    * How many opaque pixels two sprites must share to count as touching (the VIC's own rule: one). A game
-   * can ask for more (a gentler ours); the frame-end collisions only, not `collisionsPerLine`'s.
+   * can ask for more (a gentler touch); the frame-end collisions only, not `collisionsPerLine`'s.
    */
   spriteOverlap = 1;
   /** The sprites being drawn this frame (with their opaque pixels), for collisionsPerLine. */

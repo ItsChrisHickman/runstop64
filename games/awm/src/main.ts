@@ -19,7 +19,7 @@ import { FLY_KEY, TOUCH } from './touch';
 /**
  * Auf Wiedersehen Monty: the runstop64 front end for the rebuilt game (Program is the game as the original runs it, title,
  * play, GAME OVER; the picture is drawn by c64kit's C64View from what it makes): the music and effects by the original's
- * own drivers, and the shared pause screen with the map and travel, ours, autosave and continue (games/shared).
+ * own drivers, and the shared pause screen with the map and travel, our changes, autosave and continue (games/shared).
  */
 export { info } from './info';
 

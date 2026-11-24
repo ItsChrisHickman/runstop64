@@ -146,13 +146,13 @@ const route = (p: string[]) => p.reduce<[string, number][]>((a, n) => {
 // ---- 1. ENHANCED, the front end: right from the start, into the dev room --------------------------
 
 const store = useMemoryStorage();
-/** A fresh front end, ours (`enhanced`) or the original's rules (the rooms not there: as only a test has them now, shared/test/original-rules.ts). */
-function boot(enhanced: boolean, keep = false) {
+/** A fresh front end, with our changes (`ours`) or the original's rules (the rooms not there: as only a test has them now, shared/test/original-rules.ts). */
+function boot(ours: boolean, keep = false) {
   if (!keep) store.clear();
   const input = new Input(nowhere);
   const renderer = new PixelRenderer();
   const p = run({ renderer, input, canvas: nowhere });
-  if (!enhanced) originalRules(p.frontEnd.assist);
+  if (!ours) originalRules(p.frontEnd.assist);
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
   const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };

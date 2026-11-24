@@ -1,7 +1,7 @@
 /**
  * The two looks of the picture. ORIGINAL is the Spectrum's screen exactly as the original makes it (display.ts): a sprite is
  * drawn into the bitmap, goes behind the scenery's ink, and shows in the ink of the cell it is over (the colour clash).
- * ours has no clash: the scenery is drawn without the sprites and each sprite is drawn over it, whole, in its colour
+ * Ours has no clash: the scenery is drawn without the sprites and each sprite is drawn over it, whole, in its colour
  * (`SPRITE_INK`), like a C64 sprite. Both use the Spectrum's colours.
  */
 import { Display, pixelsOf, type SpritePlace } from './display';
@@ -35,7 +35,7 @@ export function spritePixel(image: Uint8Array, c: number, r: number): boolean {
   return (image[r * 2 + (c >> 3)] & (0x80 >> (c & 7))) !== 0;
 }
 
-/** The picture of a screen state as colour indexes, in a look. `plain` and `sprites` are only used by ours. */
+/** The picture of a screen state as colour indexes, in a look. `plain` and `sprites` are only used by our look. */
 export function paintPixels(look: Look, bits: Uint8Array, plain: Uint8Array, attrs: Uint8Array, sprites: readonly SpritePlace[], out: Uint8Array, flash = false): Uint8Array {
   if (look === 'original') return pixelsOf(bits, attrs, out, flash);
   pixelsOf(plain, attrs, out, flash);

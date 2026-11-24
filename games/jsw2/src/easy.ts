@@ -6,7 +6,7 @@ import { ITEM_CELLS } from './itemcounts';
 import { BEDROOM, itemBits, itemsFound, NEED } from './items';
 
 /**
- * Jet Set Willy II's ours, the part that makes the game a lot easier (QOL.md): a second jump in the
+ * Our changes to Jet Set Willy II, the part that makes the game a lot easier (QOL.md): a second jump in the
  * air, ropes that hold, a gentler touch, sparkles on the items left. Each is the game's own code and
  * bytes put to a new use, so rooms, collisions and falls work as ever.
  */
@@ -43,7 +43,7 @@ export const AIR_JUMP: AirJumpSpec = {
  * 9 or more) and the VIC reports his sprite touching the picture ($8305, bit 0: $D01F read every other pass),
  * which a rope's one dotted pixel makes a matter of luck; he lets go when that report is missing three steps
  * running ($53E1), and the jump off a rope wants him on its lower part ($54E1: `cmp #$0e` against how far
- * along it he is, $835C). ours has him always touching what his cells meet (the report set, and the VIC's
+ * along it he is, $835C). Ours has him always touching what his cells meet (the report set, and the VIC's
  * latch it is read from), so he takes hold at once and does not fall off, and the jump off works from
  * anywhere on the rope, in the direction held: the game's own jump off ($54E8, then $550A and $552F). For a
  * moment after he lets go (`ROPE_LET_GO`) the report is left to the VIC, or the jump off would take him
@@ -74,7 +74,7 @@ export class RopeGrip {
 // ---- a gentler touch -----------------------------------------------------------------------------------
 
 /**
- * Guardians and nasties are the VIC's sprite collisions: one shared pixel kills. ours asks for a
+ * Guardians and nasties are the VIC's sprite collisions: one shared pixel kills. Ours asks for a
  * substantial overlap instead (the model's `spriteOverlap`: opaque pixels two sprites share). Willy's sprite
  * is about 60 pixels; 14 is a hand's breadth of him. Ropes (sprite and picture) are unchanged.
  */

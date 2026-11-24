@@ -34,7 +34,7 @@ const FINAL_ROOM = 0x4d;
 /** Progress at which the last delivery is made ($C3). */
 const FINAL_PROGRESS = 0xc3;
 
-/** our creatures move slower: held still one logic step in this many (three quarters of their speed). */
+/** Our creatures move slower: held still one logic step in this many (three quarters of their speed). */
 export const ENEMY_HOLD = 4;
 
 /** The progress values at which the picture of the way out grows a part ($41, $82, $C3). */
@@ -138,18 +138,18 @@ export class Game implements MontyHost {
   onRoom: (() => void) | null = null;
   /**
    * The front end's, not the original's (both off for the original's rules, as the lockstep has them):
-   * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is ours's
+   * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is our
    * "no death loops", `unlimitedLives` EASY's (shared/lives.ts: a death takes no life).
    */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
-  /** our "a lift waits until you are out from under it when you arrive" (lifts.ts). */
+  /** Our "a lift waits until you are out from under it when you arrive" (lifts.ts). */
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
-  /** our "carry anything": no limit on what he carries, the tickets counted (items.ts). */
+  /** Our "carry anything": no limit on what he carries, the tickets counted (items.ts). */
   unlimitedCarry: () => boolean = () => false;
   /**
-   * our "up boards a plane": standing at a plane with a ticket in a room with a flight, pressing up boards it (up climbs
+   * Our "up boards a plane": standing at a plane with a ticket in a room with a flight, pressing up boards it (up climbs
    * nothing at any plane), and a ticket is never taken in a room with no flight (the C key and FLY work as ever). The jump stays a jump.
    */
   upBoards: () => boolean = () => false;
@@ -159,24 +159,24 @@ export class Game implements MontyHost {
    * rooms (the map's `found`).
    */
   flightFree: (to: number) => boolean = () => false;
-  /** our quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
+  /** Our quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
   /**
-   * our "the Good Life waits for the end": until everything is delivered (the ending's progress), the last room is no room to
+   * Our "the Good Life waits for the end": until everything is delivered (the ending's progress), the last room is no room to
    * the exits, so walking in from the Harbour or dropping in does not leave him stuck in its walls; with everything delivered it opens
    * and the ending plays as ever (Chris, 2026-11-15).
    */
   goodLifeWaits: () => boolean = () => false;
   /**
-   * our "creatures move slower": 0, or n to hold the enemies still one logic step in n (they move (n-1)/n as fast; their
+   * Our "creatures move slower": 0, or n to hold the enemies still one logic step in n (they move (n-1)/n as fast; their
    * touch is checked every step as ever). Chris, 2026-11-15: East Germany's pillars, Monaco and Breakfast were not passable by a person.
    */
   enemyHold: () => number = () => 0;
   /** Logic steps counted for `enemyHold`. */
   private paceCount = 0;
-  /** our "hoppers rest at the top" (enemies.ts `restAtTop`). */
+  /** Our "hoppers rest at the top" (enemies.ts `restAtTop`). */
   hopsRest: () => boolean = () => false;
-  /** our item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
+  /** Our item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
   hints: () => boolean = () => false;
   onHint: ((hint: Hint) => void) | null = null;
   /** Up was held at the last logic step: boarding takes a fresh press, so up held through a landing does not fly on at once. */
@@ -238,7 +238,7 @@ export class Game implements MontyHost {
   }
 
   /** Monty has gone through an exit: what $5581 does before it loads the room, then the room. */
-  /** MontyHost: the last room is shut until the ending is due, in both modes's `goodLifeWaits`. */
+  /** MontyHost: the last room is shut until the ending is due, while `goodLifeWaits` (on in both modes). */
   closed(room: number): boolean {
     return this.goodLifeWaits() && room === FINAL_ROOM && this.progress !== FINAL_PROGRESS;
   }
@@ -467,7 +467,7 @@ export class Game implements MontyHost {
       m.state = state;
       m.step = step;
     }
-    // $5510: a finished death takes a life and puts him back where he came into the room ($5538). ours (safe respawn): in the
+    // $5510: a finished death takes a life and puts him back where he came into the room ($5538). Ours (safe respawn): in the
     // room he died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
     // moment's grace: never in another room.
     if (m.dead !== 0) {
@@ -585,7 +585,7 @@ export class Game implements MontyHost {
     }
   }
 
-  /** our hints: something happened that the panel says. */
+  /** Our hints: something happened that the panel says. */
   private tell(hint: Hint): void {
     if (this.hints()) this.onHint?.(hint);
   }

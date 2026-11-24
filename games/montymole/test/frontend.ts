@@ -21,6 +21,8 @@ import { must } from '../../shared/test/must';
 import { PAUSE_COLOURS, PICTURE_TOP, SPECTRUM, SPECTRUM_PALETTE } from '../../shared/spectrum';
 import { Key } from '../src/controls';
 import { START_LIVES } from '../src/game';
+import { LIVES_LINE } from '../src/data/texts-data';
+import { bitmapRow } from '../src/room';
 import { run, STRIP_Y } from '../src/main';
 import { arrivalOf, montyMap } from '../src/map';
 import { CODEC, type MontySave } from '../src/save';
@@ -125,7 +127,15 @@ check('a moment of grace after the travel', p.state.grace > 0);
 check('the map is not changed by a travel', p.state.found.reached.join() === '0,1');
 
 // ---- EASY / HARD -----------------------------------------------------------------------------------------------------------
+/** Pixels set where the lives line goes (`LIVES: ` and the digit), on the screen and in the kept picture: none while EASY leaves it blank. */
+const livesInk = (bitmap: Uint8Array) => {
+  let ink = 0;
+  for (let r = 0; r < 8; r++) for (let c = 0; c <= LIVES_LINE.text.length; c++) if (bitmap[bitmapRow(191 - LIVES_LINE.pixelRow + r) + LIVES_LINE.column + c]) ink++;
+  return ink;
+};
+const livesLine = () => ({ screen: livesInk(game().field.screen), picture: livesInk(game().field.picture) });
 check('EASY by default: unlimited lives, no deaths from falls, no clash', p.state.easy && game().unlimitedLives && game().monty.safeFalls && p.frontEnd.assist.look === true);
+check(`EASY: no lives line (${JSON.stringify(livesLine())} pixels)`, livesLine().screen === 0 && livesLine().picture === 0);
 tap('KeyP');
 tap('KeyE');
 tick(2);
@@ -133,12 +143,15 @@ check('E: HARD, the switch kept', !p.state.easy && store.get('montymole.assist')
 tap('KeyP');
 tick(4);
 check('HARD: the enhancements still on (sprites on the renderer, no deaths from falls), the lives the game\'s own', visibleSprites() > 0 && !game().unlimitedLives && game().monty.safeFalls);
+const roomNow = game().room;
+check(`HARD, switched in the middle of the room: the lives line back at once, on the screen and in the picture (${JSON.stringify(livesLine())} pixels, room ${roomNow})`, livesLine().screen > 0 && livesLine().picture > 0);
 shot('7-hard');
 tap('KeyP');
 tap('KeyE');
 tap('KeyP');
 tick(4);
 check('E again: EASY', p.state.easy && visibleSprites() > 0 && game().unlimitedLives);
+check(`EASY again in the same room (${game().room}): the lives line gone at once (${JSON.stringify(livesLine())} pixels)`, game().room === roomNow && livesLine().screen === 0 && livesLine().picture === 0);
 
 // ---- back to room start ----------------------------------------------------------------------------------------------------
 {

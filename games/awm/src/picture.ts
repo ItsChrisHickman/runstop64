@@ -87,9 +87,9 @@ export class Picture {
   private shownScore = ZERO;
   private shownMoney = ZERO;
   private shownLives = -1;
-  /** our count of plane tickets as drawn (the original has none, and draws nothing). */
+  /** Our count of plane tickets as drawn (the original has none, and draws nothing). */
   private shownTickets = '';
-  /** our item hints: what is on the panel's slot now (hints.ts). */
+  /** Our item hints: what is on the panel's slot now (hints.ts). */
   private readonly hint = new HintClock();
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
   private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);

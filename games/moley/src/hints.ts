@@ -1,5 +1,5 @@
 /**
- * our sparkles: where in the screen the game's puzzles and ways out are, read from the game's own state (`Game`, the rooms'
+ * Our sparkles: where in the screen the game's puzzles and ways out are, read from the game's own state (`Game`, the rooms'
  * scripts), never from a timer of the view's. Each one marks something the original lets you find out only by dying or by luck, and
  * only while it is what moves the game on: a hazard gets none, and a thing that kills in one picture and saves in another is marked
  * in the picture that saves. Places are the middle of the thing in the Spectrum's 256 x 192 picture; the view shifts them into the
@@ -19,7 +19,7 @@
  *
  * Not marked, being hazards: the lamps, reels, walkers, traffic and pistons, the machines' flash in screen 1, the pit in screen 2, the parked
  * car while it can wake in screen 3 (by it when it wakes is the death), the lorry. Items are not marked: the items-left count
- * in the pocket box (the ours row before this one) says how many are left, and they are drawn in changing colours.
+ * in the pocket box (our row before this one) says how many are left, and they are drawn in changing colours.
  */
 import { BLANK_FRAME } from './data';
 import type { Game } from './game';

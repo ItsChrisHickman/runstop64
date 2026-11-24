@@ -134,7 +134,7 @@ export class Game implements Stage, Outside {
   first = false;
   /** who hears of the picture's moments (the display), if anyone */
   observer: Observer | null = null;
-  /** our changes, all off */
+  /** Our changes, all off */
   readonly enhanced: Enhancements = { airSteering: false, itemCount: false, unlimitedLives: false };
   /**
    * A moment's grace (games/shared/grace.ts): a death while it holds is not suffered but turned into a fresh start of the room with the life

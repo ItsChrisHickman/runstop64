@@ -22,12 +22,12 @@ export class PlaySession {
   }
 
   /**
-   * The game continued from `save` (its stored save, as the page keeps one), in EASY unless `enhanced` is false (HARD) (the switch as the
+   * The game continued from `save` (its stored save, as the page keeps one), in EASY unless `easy` is false (HARD) (the switch as the
    * page remembers it). `keep` is called on the game's memory after every frame (his energy kept up so nothing ends the game).
    */
-  static async launch(run: (host: Host) => NativeRun, id: string, save: MachineState, keep: (ram: Uint8Array) => void, enhanced = true) {
+  static async launch(run: (host: Host) => NativeRun, id: string, save: MachineState, keep: (ram: Uint8Array) => void, easy = true) {
     const kept = new Map([[`${id}.save.v1`, Buffer.from(packState(save)).toString('base64')]]);
-    if (!enhanced) kept.set(`${id}.assist`, JSON.stringify({ easy: false }));
+    if (!easy) kept.set(`${id}.assist`, JSON.stringify({ easy: false }));
     useMemoryStorage(kept);
     const s = new PlaySession(run, keep);
     await new Promise((r) => setTimeout(r, 0));

@@ -1,11 +1,11 @@
 /**
- * Writes PNGs of rebuilt frames, to look at: the original's screen beside the rebuilt picture in each look (ORIGINAL, ours),
+ * Writes PNGs of rebuilt frames, to look at: the original's screen beside the rebuilt picture in each look (the original's, ours),
  * each in the 320 x 200 surface the renderer is given, border colour round it, the Spectrum's colours.
  *
  *   nice -n 15 node tools/test.mjs games/moley/re/frames.ts <out-dir> [rooms e.g. 0,1,3] [passes e.g. 40,200] [scale]
  *
  * Each room is played by a random player from its saved state (games/moley/build/room<n>.state); at each pass wanted the
- * original's screen, the rebuilt ORIGINAL picture and the rebuilt ours picture are written as
+ * original's screen, the rebuilt picture in the original's look and in ours are written as
  * `room<n>-pass<p>-{original,rebuilt,enhanced}.png`, and `-sheet.png` has the three side by side.
  */
 import fs from 'node:fs';

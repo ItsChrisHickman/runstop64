@@ -56,15 +56,18 @@ export class SceneReel implements Reel {
   }
 }
 
-/** The lines under THE END: the score, the rooms Tal has been in, the parts of the armour found and the rejuvenations used, the numbers in a column. */
-export function endingStats(g: Game, found: AntiriadFound): string[] {
+/**
+ * The lines under THE END: the score, the rooms Tal has been in, the parts of the armour found and (in HARD: `lives`) the
+ * rejuvenations used, the numbers in a column. EASY has no lives to count, so no rejuvenations line.
+ */
+export function endingStats(g: Game, found: AntiriadFound, lives: boolean): string[] {
   const { ram } = g;
   const parts = [0, 1, 2, 3].filter((i) => ram[0x067e + i] & 0x80).length;
   const rows = [
     ['SCORE', String(ram[0x0697] | (ram[0x0698] << 8) | (ram[0x0699] << 16))],
     ['ROOMS', `${found.rooms.length} OF ${ROOMS}`],
     ['PARTS', `${parts} OF 4`],
-    ['REJUVENATIONS', String(ram[V.deaths])],
+    ...(lives ? [['REJUVENATIONS', String(ram[V.deaths])]] : []),
   ];
   return rows.map(([label, value]) => `${label.padEnd(14)}${value.padStart(8)}`);
 }

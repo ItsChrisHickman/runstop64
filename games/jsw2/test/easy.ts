@@ -1,5 +1,5 @@
 /**
- * Jet Set Willy II made a lot easier (both modes) (src/easy.ts, QOL.md), headless through the front end as the
+ * Jet Set Willy II made a lot easier (both modes; src/easy.ts, QOL.md), headless through the front end as the
  * browser runs it:
  *
  * - a second jump in the air: Space again while he is up goes higher (the game's own jump begun again at
@@ -88,8 +88,8 @@ async function jumps(original: boolean, again: number | null, presses = 1, dir =
   const twice = await jumps(false, 20);
   const third = await jumps(false, 20, 2);
   const original = await jumps(true, 20);
-  check(`ours: Space again in the air goes higher (top ${single.top} -> ${twice.top}, smaller is higher)`, twice.top <= single.top - 12);
-  check(`ours: one second jump per airtime (a third press: top ${third.top}, as with two: ${twice.top})`, third.top === twice.top);
+  check(`with our changes: Space again in the air goes higher (top ${single.top} -> ${twice.top}, smaller is higher)`, twice.top <= single.top - 12);
+  check(`with our changes: one second jump per airtime (a third press: top ${third.top}, as with two: ${twice.top})`, third.top === twice.top);
   check(`the original's rules: Space again in the air does nothing (top ${original.top}, as the single jump's ${single.top})`, original.top === single.top);
   const right = await jumps(false, 20, 1, 'ArrowRight');
   const left = await jumps(false, 20, 1, 'ArrowLeft');
@@ -126,7 +126,7 @@ async function beach(original: boolean) {
 }
 {
   const e = await beach(false);
-  check(`ours: the beach crossed (the rope taken: ${e.grabbed}), in the Tool Shed (room ${e.room})`, e.grabbed && e.room === 48);
+  check(`with our changes: the beach crossed (the rope taken: ${e.grabbed}), in the Tool Shed (room ${e.room})`, e.grabbed && e.room === 48);
   const o = await beach(true);
   check(`the original's rules: the same bot does not cross (room ${o.room}, rope taken: ${o.grabbed})`, o.room === 28);
 }
@@ -155,7 +155,7 @@ function dies(s: Session, times: number) {
   const e = await launch();
   const o = await launch(true);
   const ed = dies(e, 6), od = dies(o, 6);
-  check(`ours: six deaths (${ed.lost} lost a life) and still ${ed.after} lives`, ed.lost === 6 && ed.before === 8 && ed.after === 8);
+  check(`with our changes: six deaths (${ed.lost} lost a life) and still ${ed.after} lives`, ed.lost === 6 && ed.before === 8 && ed.after === 8);
   check(`the original's rules: they do cost (${od.lost} lost a life: lives ${od.before} -> ${od.after})`, od.after === od.before - 6);
 }
 
@@ -204,7 +204,7 @@ function dies(s: Session, times: number) {
   /** The widest gap at which the guardian still touches him (smaller: it has to overlap him more). */
   const reach = (s: Session) => { for (let dx = 24; dx >= -24; dx--) if (touches(s, dx)) return dx; return -99; };
   const original = reach(o), enhanced = reach(e);
-  check(`a guardian must overlap him more in ours (touches at a gap of ${original} under the original's rules, ${enhanced} in ours)`, original - enhanced >= 3);
+  check(`a guardian must overlap him more with our changes (touches at a gap of ${original} under the original's rules, ${enhanced} with ours)`, original - enhanced >= 3);
 }
 
 // ---- sparkles on the items left ----

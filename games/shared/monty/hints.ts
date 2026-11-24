@@ -1,5 +1,5 @@
 /**
- * our item hints for the Monty games on Monty on the Run's engine: a line in the row where the place's name stands, in the
+ * Our item hints for the Monty games on Monty on the Run's engine: a line in the row where the place's name stands, in the
  * game's lettering, for a few seconds, then the name is back. A thing picked up that something wants says what it is for; a
  * room that wants a thing he is not carrying says so (after the name has had its moment). Auf Wiedersehen Monty's hints
  * (games/awm/src/hints.ts) say the same on its panel; the engines and the rows differ, so each game has its own clock.

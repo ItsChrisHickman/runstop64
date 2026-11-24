@@ -26,7 +26,7 @@ export const info = {
     the order of their keys and labelled with them (the PAUSE icon is P or Esc now); a map of the island on the pause screen (P, or the gear) with travel back to any screen
     you've been on; progress saved each time you come onto a screen (coming back carries on where you were; T on the pause screen goes to the title); after
     losing, continue from the last screen you came onto with all five lives; back to the start of a screen. Fights get
-    effects over the picture and sounds of their own. EASY (on unless you switch to HARD with E on the pause screen): unlimited lives and continues, and no lives to count (only the face of the life under way); HARD: the original's lives.
+    effects over the picture and sounds of their own. EASY (on unless you switch to HARD with E on the pause screen): unlimited lives and continues (when a life's energy runs out you are back at the start of the screen with full energy), and no lives to count (only the face of the life under way); HARD: the original's lives.
     In both: 8-way controls, safe for a moment after a hit, knockback, hit-stop, a dragon flashing its colours each time a stone counts on it, a tally on the status line of the wizards a bridge wants and a dragon's hits (WIZARDS 3 OF 10), the shovel taken by walking up to it (the original only gave it to a well-aimed stone), sparkles on
     what moves the game on (the starfish, the shovel, the grave of the cloak, the wizards that open a bridge, the dragons,
     the falling rock that gives the cloak again), what is left to do at a bridge or a dragon on the pause screen, and the CLOAK

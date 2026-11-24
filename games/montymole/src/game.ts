@@ -133,7 +133,7 @@ export class Game implements Stateful {
   onRestart: () => void = () => {};
   /** A death starts him in the room he died in, exactly where he came into it (if that way in is deadly, the nearest place he can stand), then a moment's grace */
   noDeathLoops = false;
-  /** A death costs no life (shared/lives.ts) */
+  /** A death costs no life (shared/lives.ts), and the lives line is left blank (`reprintLives` when it changes in the middle of a room) */
   unlimitedLives = false;
   /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
   entries = 0;
@@ -213,6 +213,11 @@ export class Game implements Stateful {
       this.monty.fallen = 0;
       this.monty.jumpCount = 0;
     }
+  }
+
+  /** The lives line printed again as `unlimitedLives` has it (EASY or HARD switched, or a save carried on in the other mode): the room goes on, its picture with it. */
+  reprintLives(): void {
+    this.field.reprintLives(this.lives, !this.unlimitedLives);
   }
 
   // ---- a new game ($F7D6) and the opening scene ($CD41) ----------------------------------------------------------------

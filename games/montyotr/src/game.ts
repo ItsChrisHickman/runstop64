@@ -47,7 +47,7 @@ export type { MontyInput as Input } from '../../shared/monty/body';
 
 export type { Sound };
 
-/** our changes to how the game plays (QOL.md). */
+/** Our changes to how the game plays (QOL.md). */
 export interface Assists {
   /** Unlimited lives and continues (shared/lives.ts): a death takes no life. */
   lives: boolean;
@@ -91,7 +91,7 @@ export class Game implements MontyBody, MontyWorld {
   readonly mem = this.vic.bank;
   readonly col = this.vic.colour;
   sound: Sound = { sfx() {}, song() {}, stop() {} };
-  /** our assists (off by default so the original stays the original). */
+  /** Our assists (off here, the original's rules, as the tests that compare with the original have them; the front end turns them on). */
   assist: Assists = { lives: false, cloud: false, jetpack: false, c5: false, rooms: false, respawn: false };
   /** Optional hook for QOL features (map, warp) to learn where rooms are entered. */
   onRoomLoaded: (g: Game) => void = () => {};
@@ -777,14 +777,14 @@ export class Game implements MontyBody, MontyWorld {
     else this.displayLine(0, line);
   }
 
-  /** our hint on coming into a room that wants a thing he does not have (once the name has had its moment). */
+  /** Our hint on coming into a room that wants a thing he does not have (once the name has had its moment). */
   private hintWanted() {
     if (!this.assist.hints) return;
     const want = this.data.hints.wanted.find((w) => w.room === this.roomId && !this.siCollected[w.item]);
     if (want) say(this.hint, want.text, NAME_FRAMES);
   }
 
-  /** our hint on taking a special item: what it is for. */
+  /** Our hint on taking a special item: what it is for. */
   noteTaken(item: number) {
     if (!this.assist.hints) return;
     const hint = this.data.hints.take.find((h) => h.item === item);
@@ -1005,7 +1005,7 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /**
-   * Back to where Monty came into the room (as the original). ours (assist respawn): in the room he died in, exactly where
+   * Back to where Monty came into the room (as the original). Ours (assist respawn): in the room he died in, exactly where
    * and how he came in; if that way in is deadly (it drops into danger) the nearest place in the room he can stand; and a
    * moment's grace (`onRestart`). Never in another room.
    */

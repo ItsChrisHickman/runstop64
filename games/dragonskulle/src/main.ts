@@ -231,14 +231,17 @@ export function run(host: Host) {
     vitals: {
       // continuing: all five lives back, as the game starts with
       fullHealth: (ram, colour) => allLives(ram, colour),
-      // EASY: unlimited lives and continues (shared/lives.ts): a lost life comes back
+      // EASY: unlimited lives and continues (shared/lives.ts): a lost life comes back; and once the energy of the life under way
+      // is gone ($1501, re/engine.json) he is back at the start of the screen he came onto at full health, as CONTINUE? would
+      // without the prompt (shared/native/play.ts `lifeEnds`); HARD: the next face takes over, as the game has it
       lives: livesBack,
       infinite: true,
+      lifeEnds: 0x1501,
     },
     map: dragonskulleMap,
     // sparkles on what moves the game on: re/hints
     hints: hintSpots,
-    // our own play changes: the shovel taken by walking up to it (src/shovel.ts), at the room's check of the collisions
+    // Our own play changes: the shovel taken by walking up to it (src/shovel.ts), at the room's check of the collisions
     onAssists: (a) => { assists = a; },
     onHook: (pc, ram) => { shovelByHand(pc, ram); },
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls

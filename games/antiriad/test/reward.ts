@@ -167,7 +167,10 @@ const show = new RewardShow({
   music: { start: () => { tuneStarts++; }, frame: () => { tuneFrames++; }, end: () => { tuneEnds++; } },
   done: () => { over++; },
 });
-const stats = endingStats(new Game(), { rooms: [], entry: {}, suitEntry: {} });
+const stats = endingStats(new Game(), { rooms: [], entry: {}, suitEntry: {} }, true);
+const easyStats = endingStats(new Game(), { rooms: [], entry: {}, suitEntry: {} }, false);
+check(`THE END's lines: the rejuvenations in HARD only (EASY has no lives to count: ${easyStats.join(' / ')})`,
+  stats.some((l) => l.startsWith('REJUVENATIONS')) && !easyStats.some((l) => l.startsWith('REJUVENATIONS')) && easyStats.length === 3);
 show.start(stats);
 let frames = 0;
 const phases: string[] = [];
