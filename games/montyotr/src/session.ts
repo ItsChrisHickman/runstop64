@@ -55,13 +55,16 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
   };
   /**
    * The version of the tune the music plays (null: Hubbard's as it is): a room asks for its region's (`music.tuneFor`, data of
-   * the game), and the tune starts again only when the version changes. The title has the original.
+   * the game), and the tune starts again only when the version changes, unless the game has a crossing: from one version to
+   * another the song then carries on, and only the version changes at the next phrase. The title has the original, and the game's
+   * first room starts the tune from its beginning.
    */
   let tune: TuneVersion | null = null;
   function playVersion(version: TuneVersion | null) {
     if (version?.id === tune?.id) return;
+    const crossing = tune && version && musicOn ? data.music.crossing : undefined;
     tune = version;
-    music.useTune(version ? (original) => version.make(original) : null);
+    music.useTune(version ? (original) => version.make(original) : null, crossing);
     if (!musicOn) g.sound.stop();
   }
   const sound = { song: (n: number) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn };

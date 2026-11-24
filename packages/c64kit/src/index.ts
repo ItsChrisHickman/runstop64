@@ -21,3 +21,4 @@ export type { Marker } from './overlay';
 export * from './effects';
 export * from './layout';
 export type { SfxName } from './sid/sfx';
+export type { CrossingPlan } from './sid/crossing';

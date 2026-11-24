@@ -1,9 +1,11 @@
 import { isRecord } from '../json';
+import { isCrossingPlan, type CrossingPlan } from './crossing';
 import { isSfxName, type SfxName } from './sfx';
 
 /** What SidPlayer (main thread) tells the SID worklet (sid-worklet.ts). */
 export type ToWorklet =
   | { type: 'load'; data: ArrayBuffer; song?: number }
+  | { type: 'cross'; data: ArrayBuffer; plan: CrossingPlan }
   | { type: 'song'; song: number }
   | { type: 'stop' }
   | { type: 'volume'; value: number }
@@ -22,6 +24,7 @@ export function isToWorklet(d: unknown): d is ToWorklet {
   if (!isRecord(d)) return false;
   switch (d.type) {
     case 'load': return d.data instanceof ArrayBuffer && isOptNumber(d.song);
+    case 'cross': return d.data instanceof ArrayBuffer && isCrossingPlan(d.plan);
     case 'song': return typeof d.song === 'number';
     case 'stop': case 'stream': return true;
     case 'volume': return typeof d.value === 'number';
