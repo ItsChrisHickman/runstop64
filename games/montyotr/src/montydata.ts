@@ -335,14 +335,14 @@ export interface CameoSpec { room: number; from?: readonly number[]; when: CellB
 
 /**
  * A pursuer (pursuers.ts; Viktor Vole on the cargo ship and in the Sambadrome): the creature in slot `slot` of the room does not patrol but walks Monty's own path `delay` frames behind him, where he was and
- * which way he faced, once Monty has left the box `calm` (where he comes in): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item
+ * which way he faced, once Monty has left the box `calm` (where he comes in), or, with `wake` instead, once he is in that box (the train's roof: never in the carriage's lower lane): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item
  * `until` is taken he is gone from the room: he is escaped. How: `knockedBy`, the room's creatures in those slots knock him off the picture when their pictures meet his (the ship's swinging crate: he tumbles
  * overboard), or its tunnels' mouths do as they sweep over him (the train's roof), and `until` is taken; `split`, the room's lever's head squashes him (levers.ts) and he goes as Monty goes under a Mole Crusher, the four-way split, on the four `sprites` from its 16 `pictures`
  * (pointers, four a piece, in the order of Monty's own at $7E: going back, going on, up, down). `intro`: on coming in he walks on at the far side while the room's name flashes, and off again,
  * before the chase.
  */
 export interface PursuerSpec {
-  room: number; slot: number; delay: number; calm: CellBox; until: number;
+  room: number; slot: number; delay: number; calm?: CellBox; wake?: CellBox; until: number;
   knockedBy?: { creatures?: readonly number[]; tunnels?: boolean };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
   intro?: CameoMove;

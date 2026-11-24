@@ -131,7 +131,7 @@ export function pursuerUpdate(g: Game) {
     }
     p.ring[at] = g.x2; p.ring[at + 1] = g.y; p.ring[at + 2] = g.facing;
     p.written++;
-    if (!p.awake && !inBox(g, e.calm)) p.awake = true;
+    if (!p.awake && (e.wake ? inBox(g, e.wake) : e.calm ? !inBox(g, e.calm) : true)) p.awake = true;
     if (!p.awake || p.written <= e.delay || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; continue; }
     man.x = p.x2; man.y = (p.y + 1) & 0xff;
     g.sx[n] = p.x2; g.sy[n] = man.y; g.scol[n] = man.colour;
