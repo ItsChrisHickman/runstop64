@@ -131,12 +131,7 @@ export function proofsIn(dir: string, sources: ProofSources): typeof bfs {
   /** The search's answer: played from a recorded route, taken from a recorded no-way, or searched. */
   function answer(start: State, goal: Goal, aim: readonly Aim[] | undefined, limit: number, weight: number, stats: SearchStats | undefined): { route: Route; end: State; nodes: number } | null {
     const key = hash([keyOf(start.g), goal.toString(), JSON.stringify(aim ?? null), limit, weight].join('|'));
-    const before = recorded.get(key);
-    if (before) {
-      const end = play(start, before);
-      if (end && goal(end.g) && livesOn(end)) { kept.set(key, before); return { route: before, end, nodes: 0 }; }
-      console.log(`   a recorded route (${key}) no longer reaches its goal: searching (re-record with --record)`);
-    }
+    // a no-way first: it is known by the exact start, a route only by `keyOf`'s rough one (two starts a few frames apart can share a route's key)
     const noKey = hash(`${key}|${statePrint(start)}`);
     const times = (asked.get(noKey) ?? 0) + 1;
     asked.set(noKey, times);
@@ -151,6 +146,12 @@ export function proofsIn(dir: string, sources: ProofSources): typeof bfs {
         return null;
       }
       console.log(`   the recorded no-way ${noKey} depends on something that changed (${none.print} -> ${print}): searching (re-record with --record)`);
+    }
+    const before = recorded.get(key);
+    if (before) {
+      const end = play(start, before);
+      if (end && goal(end.g) && livesOn(end)) { kept.set(key, before); return { route: before, end, nodes: 0 }; }
+      console.log(`   a recorded route (${key}) no longer reaches its goal: searching (re-record with --record)`);
     }
     const t0 = performance.now();
     const own: SearchStats = { exhausted: false };
