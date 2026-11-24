@@ -667,3 +667,607 @@ room in the region, and it hands straight over to the parachute drop.
 - **Contrast:** check Monty, the turtle, the shark and the magma blob against their backdrops with `creature-contrast.ts`.
 - **If the Pacific must drop to 4:** fold C into D. The breakers drop into a short reef swim along D's bottom level, with the surge and
   one moray, onto Lahaina's slipway. This keeps the snorkel gate, the road and the run for the plane, and gives up the two-height swim.
+
+## Rio (the last level)
+
+The current 11 rooms go down to 6 play rooms plus the beach, which is the ending's stage: 7 in all. Moscow, China and Japan do not
+change. Rio's first room meets the Amazon's east edge at [7,32] as it is today (rows 6-7, floor 8). If the Amazon's rebuild moves its
+exit, only Corcovado's west edge follows.
+
+### Which proposal, and why
+
+Two proposals were judged. **The base is proposal A, "play first".** Its route is the better MOTR route:
+- Lapa is crossed twice at two heights, on the street and then on the track.
+- The loop runs Lapa, Sugarloaf, back into Lapa, back into Sugarloaf.
+- One item, the crank, is used twice: it works the cable car's winch, then it arms the Sambadrome's lever. That is a puzzle shape LESSONS
+  asks for and no region has yet.
+- It keeps the favela as a room of its own, the region's tightest, just before Lapa's open arches.
+- It cuts the steward. The steward is the "costume plus guard" gate that Moscow, China and Japan already use, and LESSONS says not to end
+  every region with it.
+
+Proposal B, "set-piece first", has two strong ideas:
+- The churrascaria's crank springs a trapdoor that drops Monty into a room he could only look at.
+- The headdress is seen from the street and reached by dropping through the track.
+
+But B gates the Sambadrome with the steward and the headdress again, and it folds the favela into Corcovado, so the climax loses its
+tight-before-open beat. In B's showdown the lever is up in the booth, far from the mallet, so the moment Monty pulls it is watched from
+above, not felt from just in front of the agent.
+
+Scores (A first, then B):
+
+| measure | A | B |
+|---|---|---|
+| fun like MOTR: route, puzzle, rooms that ask something | 5 | 4 |
+| Chris's notes | 5 | 4 |
+| calm, readable art | 4 | 5 |
+| coins with reasons | 5 | 4 |
+| ramp | 5 | 4 |
+| budget | 4 | 5 |
+| buildable | 4 | 4 |
+
+A's budget scores lower because the beach makes it 7 rooms, not 6 (see the budget below). Both need the same new engine piece, the
+pursuer.
+
+From B this plan takes six things:
+- **Night.** Rio is played at night: black sky, as in MOTR. Colour goes on floors, hazards and one landmark per room. The ending's
+  fireworks then read on black. The sun and the sea's mask sprites go, which frees two sprites for the ending.
+- **The agent is white on black** (wide hat, long coat), so he reads against Rio's black. A's dark suit would vanish. He stays A's
+  customs officer (see the open calls), and `creature-contrast.ts` checks him against Monty's light grey.
+- **The pursuer's spec:** a ring buffer of Monty's x, y and picture, about 600 bytes at 160 frames. He appears only after Monty has
+  passed a set column (the entry ledge's end). He passes through creatures.
+- **No text decoration in the Sambadrome.** The crusher's glyphs overwrite the letters P to Z, so the room carries no signs.
+- **The cable car needs no engine change.** `cablecars.ts` already rides any line between two stations.
+- **The reward show's places** swap the floats for a lap of the Sambadrome.
+
+B's trapdoor is not taken. In A the crank's dead end is left the way it was entered, past the gauchos again in reverse, and that second
+reading of the skewers is the room's point. A one-way fall would skip it.
+
+### The route
+
+```
+         col 33               34                   35                    36                 37                 38
+row 6                                         W STEAK YOUR CLAIM
+                                                   || ladder col 5 (both ways)
+row 7    C OPEN ARMS ==hi==> F HOUSE OF COLOUR ==lo==> L THE LAPA ARCHES ==lo (street)== S SUGAR RUSH ==hi (car)== D THE SAMBADROME ==lo==> B RIO OR BUST
+         ^ hi from the Amazon                          L ===hi (track)===============  S (climbers' ledge)       (bars until the squash)
+```
+
+**The joins:**
+- The Amazon to C: west, high, floor 8, as today.
+- C to F: east, high.
+- F to L: east, low.
+- L to W: up a ladder at column 5, from the west part of the track.
+- L to S: east, low (the street to the beach) and east, high (the track to the climbers' ledge).
+- S to D: east, high, from the cable car's top station.
+- D to B: east, low. Bars close it until the squash.
+
+**Walls close the other edges:**
+- L's west edge, rows 0-15: the townhouse, as now.
+- S's east edge, low: the cliff.
+- D's west edge, rows 9-17: the stand's wall.
+
+W is the churrascaria at the top of the Lapa arches, at the tram's end: Santa Teresa, where the bonde really goes.
+
+**Play order** (11 steps through 7 rooms):
+1. C: climb past the Redeemer and out at his east hand.
+2. F: down through the favela.
+3. L, the street: the track and the restaurant's ladder are high above. He can see them and cannot reach them.
+4. S, low: the cable car's winch is dead behind the red bars under CLOSED.
+5. S: climb the climbers' rope to the granite ledge.
+6. L, the track, going west: ride the tram across the gap.
+7. W: get the crank past the gauchos, then back past them to the ladder and down to the track.
+8. L: drop through the gap to the street. This is one way: no rope or ladder joins the street to the track.
+9. S, low: the crank works the winch. Ride up.
+10. D: the showdown.
+11. B: the ending.
+
+There is no soft-lock. A drop through the gap before he has the crank lands on the street, and the street leads back to the rope.
+
+**Rule 2 of the reset, checked:**
+- Rooms crossed twice at two heights: L (the street going east, the track going west) and S (the sand, then the cable).
+- A dead end holding an item: W (the crank).
+- A gate seen before its key: the winch.
+- Seen now, reached later: the track and its coin, from L's street. Also the snack on the Redeemer's west hand, from the forest.
+- A loop back into a known room: L to S, up, back into L, back into S.
+- Tight before open: F (about 40% solid) comes before L's wide arches. W, indoors, comes before S's open-sky ride, and S before D, the
+  biggest open space of the region.
+- The new way to move: riding (the tram, the cable car), then being chased.
+
+### The puzzle: the crank, used twice
+
+- **The gate.** The cable car's winch has lost its handle. The existing gate effect (the `clear` of the red bars, with the CLOSED sign)
+  is re-keyed from the key to the city to the crank. The existing hint THE CABLE CAR STATION IS LOCKED stays.
+- **The aha.** The handle is the crank of the churrascaria's spit, up at the top of the arches. He sees the track from the street, and
+  he reaches it only round the loop: the climbers' rope at Sugarloaf, then west along the track on the tram.
+- **The second use.** The same crank fits the Sambadrome's control booth, and that makes the lever live.
+- **The headdress gates nothing.** It sits on the Sambadrome's drum riser and he wears it into the dance at the end.
+
+**Hints:**
+- Keep: THE CABLE CAR STATION IS LOCKED, and A HEADDRESS: JOIN THE PARADE.
+- Delete: KEY TO THE CITY: OPENS DOORS, FEATHERS FOR THE STEWARD: GO UP, and ONLY DANCERS PASS THE STEWARD.
+- Add none.
+
+### The set piece: the showdown in the Sambadrome (D)
+
+**The agent** follows Monty's exact path about 3 seconds behind (about 150 frames; the bot tunes it).
+- He replays Monty's recorded position and picture, delayed. Touching him kills.
+- He appears after Monty has passed the entry ledge's end.
+- A death restarts Monty at D's entry, and the agent starts again. A fitted crank stays fitted.
+
+**The tension.** Monty can never turn back, and if he stands still for 3 seconds the agent reaches him. Every wait for a patrol costs
+something, so each patrol's cycle must fit inside that slack with about a second to spare.
+
+**The trick:**
+1. Lap 1: down to the avenue and under the giant float, whose stamping head is held up.
+2. Walk into the lever. It is dead and only rattles.
+3. Climb the right-hand stand to the booth. The crank fits, the booth lights up and the head lifts to ready.
+4. West along the lighting gantry, and down the rope just west of the float.
+5. East under the float again, and stop just past the head, at the lever.
+6. Wait for the agent to follow him under it, and step into the lever.
+
+**The squash.** The two crusher shafts drop together as one head, once: a cartoon squash, the agent flat, his hat popping off. The head
+rises again, the bars at the avenue's east end lift, and the way to the beach is open.
+- Pulled too early, it stamps on nothing and re-arms, and he goes round the loop again with the agent behind him.
+- Standing under the head when it falls squashes Monty.
+- The timing is read: the window is the moment the agent is under the head.
+
+```
+D THE SAMBADROME (approximate; # solid, = gantry, H ladder, | rope, C crusher head held up (two shafts), : shafts and float skirt,
+L lever, X bars, h headdress, o coin, d drummer, a dancer)
+          1111111111222222222233
+01234567890123456789012345678901
+........d.......................  0  the drummer bounces over the riser
+..........................######  1  booth roof
+.................a..............  2  dancer on the gantry
+................................  3
+.......hh....|============####H#  4  gantry and booth floor (the crank's socket)
+.......hh....|................H.  5
+.......###...|................H.  6  the drum riser (a two-row step), the headdress on it
+.......###...|................H.  7  (west edge open rows 0-7: the cable car's top station)
+###H########.|....o...........H.  8  entry ledge; a coin on the float's top
+##.H.........|.######.........H.  9  the float's top (floor 9)
+##.H.........|..CCCC..........H. 10
+##.H.........|..CCCC..........H. 11
+##.H.........|..::::........###. 12
+##.H.........|..::::............ 13
+##.H.........|..::::.....H##.... 14
+##.H.........|..::::.....H...... 15
+##.H.........|.:....:.L..H....XX 16
+##.H.........|.:....:.L..H....XX 17
+################################ 18  the avenue
+################################ 19
+```
+
+- **Creatures:** the drummer bouncing over the riser (vertical, short) and a samba dancer on the gantry (horizontal, short and fast).
+  With the agent that is three things to read.
+- **Coin (1)** on the float's top: guarded, and a choice under pursuit. Off the float's west end it costs only time. Off its east end
+  his path, and so the agent's, never passes under the head, and a lap is lost.
+- **The headdress** on the drum riser, a two-row hop off the entry ledge, just past the ladder down.
+- **Background:** black, a few grandstand lights, one dark-blue outline of the Apoteose arch at the top right, away from the lap. The
+  float carries the colour and the detail.
+
+### Rooms: kept, merged, cut
+
+| room now | id | cell now | becomes |
+|---|---|---|---|
+| QUAY TO THE CITY | 67 | [7,33] | cut. Rio starts at Corcovado |
+| SUGARLOAF SUMMIT | 70 | [6,35] | cut |
+| MONKEY BUSINESS | 72 | [6,37] | merged into OPEN ARMS: Tijuca is Corcovado's own slope. A second green forest after the Amazon repeats the Amazon, and green is what hid Monty |
+| FLOAT YOUR BOAT | 76 | [7,38] | merged into THE SAMBADROME. The floats mechanism moves to Lapa as the tram |
+| OPEN ARMS | 71 | [6,36] | **C OPEN ARMS**, [7,33]: Corcovado with Tijuca at its foot |
+| HOUSE OF COLOUR | 73 | [7,36] | **F HOUSE OF COLOUR**, [7,34]: the tightest room |
+| THE LAPA ARCHES | 68 | [7,34] | **L THE LAPA ARCHES**, [7,35]: crossed twice, the tram |
+| STEAK YOUR CLAIM | 74 | [6,33] | **W STEAK YOUR CLAIM**, [6,35]: the skewers, the crank |
+| SUGAR RUSH | 69 | [6,34] | **S SUGAR RUSH**, [7,36]: the cable car |
+| BEAT THE DRUM | 75 | [7,37] | **D THE SAMBADROME**, [7,37]: the showdown. The steward goes |
+| RIO OR BUST | 77 | [7,39] | **B RIO OR BUST**, [7,38]: the ending's stage |
+
+- Rio's map region becomes columns 33 to 38. Cells [6,33], [6,34], [6,36], [6,37] and [7,39] are freed.
+- Rooms, cells, coins and items change, so the save format bumps once, with the whole reset. A save in a retired room loads at the next
+  kept one: 67 and 72 into C, 70 into S, 76 into D's entry.
+- The key to the city and the steward go.
+
+### Room by room
+
+Floors are rows; Monty's body is on rows F-2 and F-1. Every room is at night on black.
+
+**C OPEN ARMS** (Corcovado, with Tijuca at its foot; the entry room is a climb over the landmark)
+- **Layout:**
+  1. In high at the west on the forest canopy (floor 8; dark green solids along the bottom left).
+  2. Down to the forest trail (floor 14).
+  3. Up onto the Redeemer's pedestal (floor 12).
+  4. Up the maintenance ladder on his east side (column 19) to the east arm (floor 4).
+  5. Along the arm to the hand, step off to a ledge (floor 8), and out east, high.
+- **The detour:** a second ladder on his west side (column 12) climbs to the west arm. Its hand holds a snack, a churrasco skewer: in a
+  pocket off the route, at the top of a climb. Monty never walks over the head.
+- **Why it is fun:** he climbs the statue itself. Its arms are the floors, the highest place in the game: MOTR's "inside the structure".
+- **Creatures:** a vulture on a long up-and-down patrol at columns 21-22, rows 0-12, crossing the east arm (time the crossing); a marmoset,
+  short and fast, on the forest trail.
+- **Coins (2):** on the trail inside the marmoset's patrol (guarded); on the east hand's tip, where he steps off as the vulture passes (at
+  a hazard's edge).
+- **Background:** black sky. The statue is white and is the solid he climbs, so it is never behind his body. The ladders are brown,
+  beside the robe. No hills.
+
+**F HOUSE OF COLOUR** (the favela; the tightest room, about 40% solid)
+- **Layout:** it switchbacks down like MOTR's well.
+  1. In at the top west (floor 8) on a pink roof.
+  2. Down a step to a yellow roof (floor 10).
+  3. A ladder (column 17) down to an alley (floor 14) that runs back west.
+  4. A ladder (column 8) down to the lane (floor 18).
+  5. The lane runs east under an overhang of houses, and out low.
+- **Colour** goes into the house blocks, the solids he stands on: pink, yellow, light blue and green, with dark windows. The space
+  between is black. One washing line, not every alley.
+- **The snack** (the second churrasco skewer) is behind a water tank at the alley's west end: a pocket off the route.
+- **Creatures:** a kite (new) hanging and bobbing at column 15, rows 0-7, over the step down between the roofs (vertical); a macaw flying
+  along the alley, short and fast; the football bouncing in the shaft beside the lane (vertical).
+- **Coin (1):** at the shaft's foot, under the football (guarded).
+
+**L THE LAPA ARCHES** (crossed twice, at two heights)
+- **The street** (floor 18) runs west to east under the aqueduct. The arches are dark grey, behind him, darker than anything solid. The
+  track deck on top (floor 8) is bright white and solid. Everything stands on something: the arches stand on the street.
+- **The track:** its west part (columns 2-11) holds the ladder up to W (column 5) and a coin. Then a six-cell gap (columns 12-17). The
+  east part (columns 18-31) runs into S's ledge.
+- **The tram** is the floats mechanism, running east to west over the gap, through the screen's edges. He waits at the edge, steps on and
+  rides across. The old bonde creature goes.
+- **Coming back:** he drops through the gap to the street, one way.
+- **Creatures:** a bat dropping and rising in one arch bay (columns 20-21, rows 9-17, vertical, new); the capoeirista cartwheeling along
+  the street (long, slow); the tram, the mechanism.
+- **Coins (2), one per height:** on the track's west part at column 9 (seen from the street on the first crossing, reached on the
+  second); on the street in the bat's bay (guarded).
+- **Background:** black. The townhouse closes the west edge at rows 0-15, as now.
+
+```
+L (approximate; T the tram on the east part, o coins, b bat)
+##...H..........................  0   townhouse; the ladder at col 5 up into W
+##...H..........................  1-4
+##...H..................TTTTT...  5
+##...H..................TTTTT...  6   east edge open rows 6-7 (the track to S)
+##...H...o..............TTTTT...  7
+##==========......==============  8   the track: west part | gap (the tram's span) | east part
+##.:...:...:..:...:..b:...:...:.  9-15 dark-grey arches; the bat in one bay
+.....................o..........  16  west and east open, rows 16-17
+................................  17
+################################  18-19 the street
+```
+
+**W STEAK YOUR CLAIM** (the churrascaria; one idea, the gauchos' skewers)
+- **Layout:** in up through a hole in the floor (column 5) onto the dining floor (floor 18). Gaucho 1 paces columns 8-16. Two-row steps
+  (floors 16 and 14) climb to the grill platform (floor 12). Gaucho 2 paces a short lane at the grill. The spit and its crank are at the
+  dead end (columns 26-29).
+- **The skewers** are the existing ones (`skewers.ts`): a 96-frame cycle, the middle half deadly, the two gauchos half a cycle apart.
+  Read one, pass, read the other. With the crank he reads them again in reverse.
+- **Coin (1):** on the floor between the two arcs at column 17 (guarded).
+- **Art, calm:** walls and ceiling, a black interior, a red tiled floor, two tables, two lamps, the grill (its turning meat and flames
+  stay) and one CHURRASCO sign. The diners, wine racks, plumes, curtains and the COSTUMES sign go.
+- **No vertical creature,** on purpose: it is a mechanism room, as MOTR's are.
+
+**S SUGAR RUSH** (the cable car, visited twice)
+- **Layout:** in low from the street onto Praia Vermelha's sand (floor 18). A ladder (column 8) up to the lower station's shelf (floor
+  14), with the winch behind the red bars under CLOSED. The climbers' rope (column 4) climbs from the sand to a granite ledge (floor 8,
+  columns 0-6) and out west, high, onto Lapa's track. With the crank, the car rides from the shelf to the top station (floor 8, columns
+  24-31) and out east, high.
+- **The car** is as built: one car, 160 frames.
+- **Creatures:** a vulture's long up-and-down patrol crosses the cable halfway (columns 18-19). The ride cannot be left, so he chooses
+  when to board. The builder checks that a creature touching him on the ride kills, as on the escalators. A marmoset, short and fast, on
+  the top station's platform past where the car sets him down.
+- **Coin (1):** at the east end of the climbers' ledge (tops a climb).
+- **Background:** black sky. Sugarloaf as a dark-blue silhouette at the far right, not light grey, because Monty is light grey. The sea a
+  dark-blue band above the beach line. The cable and the stations crisp and bright. The churrascaria's wall, the stilts and the lawn go.
+
+**B RIO OR BUST** (the ending's stage)
+- **The room:** in low from D. A night beach: black sky, a dark sea band, sand, two palms, a deckchair with the açaí bowl on a side table a
+  few steps in, the floodlit Redeemer and Sugarloaf small across the bay. No coins, no creatures.
+- **The finale** (rewrites `finale.ts`):
+  1. Touching the bowl sits Monty in the chair: a seated picture, or the chair drawn over his legs.
+  2. Three scoops, as now.
+  3. The Sambadrome's dancers and the drummer walk on from the left.
+  4. Fireworks burst in turn over the bay, as cycling characters.
+  5. Monty gets up and dances in his headdress: frames left and right and small hops on the tune's beat.
+  6. GAME OVER, and in ENHANCED the reward show.
+- **Sprites:** 0 the bowl, 1 and 2 the dancers, 3 Monty, 4 the drummer, 5 the headdress, 6 and 7 free (a second drummer, or the biggest
+  firework). The sun and the sea's mask go with the sunset.
+
+### Totals
+
+- **Coins:** 8 in 6 rooms (C 2, F 1, L 2, W 1, S 1, D 1, B 0), down from 62, each with a named pattern from (b). None in a line, none along
+  a floor, none in the air.
+- **Items:** the crank (W), the headdress (D, a costume, no gate), the bowl (B). Snacks: 2 (C, F), down from 6.
+- **Creatures:** vulture (C, S), marmoset (C, S), macaw, football and kite (F), capoeirista and bat (L), two gauchos (W), drummer, dancer
+  and the agent (D). None is in more than two rooms, and every room but W has a vertical patrol. The crab, the steward and the bonde
+  creature go.
+- **Ramp:** C is a climb with one timing. F is a tight descent through stacked patrols. L is the route puzzle and boarding the tram. W
+  reads two swings, twice. S times the boarding. D is the pursuit, where every wait costs time, then the delay trick and the finale. The
+  hardest fair room is the last.
+- **Decoration kinds:** Rio's 50 drop to about 20. Gone: three sky-fleck kinds, the clouds, four washing sets, plumes, wine racks,
+  diners, curtains, two stand kinds, bunting, balloons, the surdo, stilts, the lawn, the scope, the flag, the rail. New: the stamping
+  float, the lever, the booth, the bars, the tram, the fireworks.
+- **The reward show's places:** the cable car, the churrascaria, the tram on the arches, a lap of the Sambadrome with the squash, the
+  beach.
+
+### Notes for the builder
+
+**Engine work.** All of it is data, empty in Monty on the Run's value, so MOTR plays identically and its fast tests and trace stay
+green.
+1. `pursuers`: room, delay, sprite, the column that wakes him; a ring buffer of Monty's x, y and picture. He resets on entry and on
+   death, passes through creatures, kills on touch, and can be squashed.
+2. A crusher held by a lever: it stays up until a lever cell is touched while armed, stamps once, then rises and re-arms. The fall kills
+   Monty or squashes the pursuer where their boxes overlap. The two shafts move as one head. Check the banks against the crusher-leftover
+   fix on main.
+3. The booth arming the lever: a room effect keyed on carrying the crank, like the existing `place` effect.
+4. The squash sets a hidden, uncounted item, so the existing `clear` effect lifts the bars.
+5. Floats running over air between two columns, for the tram.
+6. The finale rewritten: the seated pose, the troupe walking on, the fireworks, the dance, at night.
+
+**Other notes:**
+- Rewriting means `rio.ts`, `rio-pointers.ts`, Rio's layout and mechanisms and its legs, and re-recording its routes. The world counts
+  (rooms, coins, finds) change. Moscow, China and Japan files stay untouched.
+- If the floats-over-air work fails, the tram becomes a lift-like platform sliding across the gap on its own clock; the route does not
+  change.
+
+### The budget
+
+Rio has 6 play rooms and the beach: 7. With Moscow 9, Siberia 6, China 9, Japan 11, the Pacific 5 and the Andes and Amazon 8, the game has
+55 rooms, the top of Chris's 50 to 55. The beach stays as a room: it is the ending's stage and costs only art. So the Pacific's optional
+6th room (THE ROAD TO HANA) stays out unless another room goes.
+
+### Open calls for Chris
+
+1. **Who the agent is.** The plan's pick is the customs officer, after the man with no passport. The story says Intermole only works in
+   Europe, and the customs officer is the story's own thread. He moves like Spy vs Spy, and he is white on black.
+2. **The coin on the float's top.** Dropping off its east end loses a lap. It may be a welcome trick or too subtle.
+
+## the Andes and the Amazon (parachute into Peru, Machu Picchu, the Amazon)
+
+The region's 12 rooms (13 with the old branch's LLAMA DRAMA) go down to 8: the drop (2), Machu Picchu (2) and the Amazon as an open
+2 x 2 block (4). Moscow, China and Japan do not change. The joins at both ends are the ones already merged on `reset/andes`:
+- **In:** F1 is at [2,20], entered west from the cargo plane's rear door (PAC.plane, [2,19], rows 14-15, the ramp at floor 16).
+- **Out:** Rio's OPEN ARMS at [5,23] is entered west off the kapok room [5,22] at rows 6-7, floor 8.
+
+The old branch `worktree-agent-ad1fe42a19dbcc6bf` is already merged into `reset/andes`, so build step 0 is to work from `reset/andes`
+with main merged in. `reset/andes` round 1 (2bd41af) already has most of this grid; the changes from it are listed under "Changes from
+round 1" at the end.
+
+### Which proposal, and why
+
+**The base is proposal B, "built around the set piece".** It makes the Amazon a puzzle, not a fetch:
+- **The one-way liana.** You can climb down to the machete but never back up the same way, so the vines over the piranha river must be
+  crossed, and they come at the right moment. In A the lianas go both ways, so the machete is a walk there and back.
+- **It has more of the route shapes the study asks for:** two gates seen before their keys, and rooms crossed twice in both halves of
+  the region.
+- **It keeps one hazard idea per room** (F2 drops the rockfall and keeps the condors).
+
+A's best ideas are grafted on:
+- **Climbing against the boulders.** In T2 you climb the steps toward the Intihuatana against the boulders, with one-cell notches to
+  duck into. That is a machine you play, not a roll you hop once.
+- **F2's two chutes**, a condor diving in each, so you steer one line between dives. This is the "improve it a little" Chris asked for.
+- **Seeing the llama from above** through a light well from the plateau, before you meet it.
+- **A1/A2 and A3/A4 joined at full height or width**, like the sewer's 3 x 2 block.
+
+Dropped from both:
+- **The captain and the boat as the last gate.** The way out into Rio is high, off the kapok's crown, so a moored boat cannot be the
+  exit. "A costume shown to a guard" is also the gate Moscow, China and Japan already end on, and LESSONS says not to end every region
+  with it. The chullo stays as the region's costume, with no gate.
+- **The anaconda as a second panpipes gate**, the market, the mist cave, LLAMA DRAMA's ferry and herd, and the estuary.
+
+Scores (A first, then B):
+
+| measure | A | B |
+|---|---|---|
+| fun like MOTR: route, puzzle, rooms that ask something | 4 | 5 |
+| Chris's notes (parachute kept, Amazon as the open space, Machu Picchu reads) | 5 | 5 |
+| calm, readable art | 5 | 4 |
+| coins with reasons | 5 | 5 |
+| ramp | 4 | 4 |
+| budget | 5 | 5 |
+| buildable in this engine | 4 | 4 |
+
+### The route
+
+```
+            col 19            col 20                         col 21                          col 22
+row 2   [plane's hold] =r14-15=> [F1 JUMP FOR JOY]
+                                   | sink out of the open floor
+row 3                            [F2 CONDOR COUNTRY]
+                                   | the east chute lands on the top terrace
+row 4                            [T1 THE TERRACES] ==high, floor 8==> [T2 MACHU PICCHU]
+                                   chullo in the guardhouse   <==low, floor 18==> plateau, boulder steps up to the
+                                   (top terrace)                                  Intihuatana: the panpipes (dead end);
+                                                                                  below: the lane, the tunnel (spitting
+                                                                                  llama), the crusher, the well
+                                                                                    | the well's liana, one way down
+row 5                                                           [A1 THE CANOPY] <==full height==> [A2 THE KAPOK] ==r6-7, floor 8==> Rio [5,23]
+                                                                  | west liana: ONE WAY DOWN        || lattice up the kapok's flank
+row 6                                                           [A3 THE RIVER] <==river and banks==> [A4 THE ROOTS]
+```
+
+The joins:
+- **A1/A2** are open side to side over about 13 rows.
+- **A2/A4** are open floor to ceiling across about 24 columns, with the lattice running through.
+- **A1 to A3** is a single liana at the west. Its foot hangs above A3's west bank, higher than a jump reaches. You climb down and drop
+  off, but you can never climb back up.
+- **A3/A4** join at river and bank height.
+
+The way through:
+1. Out of the plane, through F1 and F2, onto T1's top terrace. The chullo is in the guardhouse there: the region's costume, a step off
+   the landing.
+2. East along the high lane into T2's plateau. Through the light well you see the spitting llama pacing the tunnel mouth below: the
+   gate, seen before its key.
+3. Up the steps against the boulders to the Intihuatana and the panpipes, a dead end.
+4. Back west along the high lane, then down T1's terraces to the low path. T1 is now crossed a second time, at another height.
+5. East along the lane into T2. The llama is calmed. Through the tunnel under the crusher, then down the well into A1. T2 is also
+   crossed twice.
+6. A1 is the release into the open space. East through the full-height join, A2's crown branch is choked by the tangle: the way out,
+   seen first.
+7. Down through A1's floor you see the machete on A3's west bank: seen now, reached later.
+8. Down the west liana and drop onto the bank. You take the machete, a dead end.
+9. The only way back is east on the vines over the piranha river into A4, then up the lattice on the kapok's flank into A2.
+10. Climb the kapok past the anaconda, cut the tangle and go out east into Rio.
+
+How it meets the study's rules:
+- **A room crossed twice at two heights:** T1 and T2. A2 too, if you go to look at the tangle first.
+- **A dead end that holds an item:** the Intihuatana (the panpipes) and A3's bank (the machete).
+- **A gate seen before its key:** the spitting llama, and the tangle.
+- **Seen now, reached later:** the machete, and T2's tunnel coin.
+- **A loop:** T1 high, T2 high, T1 low, T2 low; and A1, A3, A4, A2, back into sight of A1.
+- **Tightest before most open:** T2's tunnel is two cells high, with the crusher and a three-column well. The block straight after it is
+  about 12 to 25% solid.
+
+### The region's one puzzle
+
+The tangle shuts the only way out. The machete that cuts it lies where the one-way liana leaves you, and the only way back is the vine
+crossing. It is built like the sewer, with the key off the path, the lock seen first, and the set piece made compulsory by the
+geometry, all inside the open space. Before the block, the panpipes and the spitting llama are Machu Picchu's simple lock and key, like
+MOTR's key for $14.
+
+Every effect already exists:
+- `calmedBy` for the llama;
+- `clear` for the tangle (THE UNDERGROWTH IS TOO THICK stays as it is);
+- the `vines` mechanism;
+- rope tiles for the lianas.
+
+The mechanism tests must prove three things:
+- you cannot climb back up the west liana from A3;
+- the tangle blocks the exit until it is cut;
+- the llama blocks the tunnel until it is calmed.
+
+### The signature set piece: the Amazon block
+
+It is the first space in the game with no edges, after the region's tightest stretch. The order of space through the region is: the sky
+(open, flying), the terraces (walled, about 35 to 45% solid), the tunnel (the tightest), then the block.
+
+The lianas are a climbing lattice of roughly 40 to 100 rope cells a room. The vine swing over the piranha river is at its heart and is
+crossed once, when it matters. The parachute stays as the region's new way to move. It is tightened, not grown.
+
+### Room by room
+
+**F1 JUMP FOR JOY** [2,20] (flight; the lesson)
+- **Layout:** out of the tail ramp; one updraft (cols 9-11) and the snowy spire; the floor open west of the spire, so you sink into F2.
+  Remove the band of clouds and keep two small dim ones high up, clear of every flight line.
+- **What you do:** learn to sink, steer and ride the updraft. Nothing here kills you.
+- **Creatures:** none.
+- **Coins (1):** on the spire's tip, reached only off the top of the updraft. It tests the new move.
+- **Background:** black sky, brown rock, white only for snow, updraft wisps dim.
+
+**F2 CONDOR COUNTRY** [3,20] (flight; the drop's test)
+- **Layout:** the gorge closes into two chutes either side of a pinnacle. An updraft in the east chute reaches the shelf under the
+  overhang. The east chute lands on T1's top terrace. The west chute ends on a side ledge, from which you walk off and try again.
+- **What you do:** steer one line between two diving condors. Catch the updraft between dives to reach the shelf.
+- **Creatures (2):** a condor diving up and down in each chute, out of phase. There is no rockfall: one hazard idea per room.
+- **Coins (1):** in the east chute between the condors' dive lines (guarded, and it tests the move).
+- **Empanada:** on the shelf under the overhang.
+- **Background:** black, brown rock, no clouds behind the chutes.
+
+**T1 THE TERRACES** [4,20] (Machu Picchu's farming terraces)
+- **Layout:**
+  - The landing is the top terrace (floor 8), with the guardhouse and its thatch roof.
+  - The high lane runs east into T2's plateau.
+  - Below, stepped terraces (floors 10, 12, 14) fall to the low path (floor 18), which runs east into T2's lane.
+  - There is no ladder. You go down by the terrace steps.
+- **What you do:** cross high on the way to the panpipes, then come back down the steps and cross low.
+- **Creatures (3):**
+  - a llama grazing the broad terrace (horizontal);
+  - a cuy hopping on the last step (vertical);
+  - a condor diving in the gap below the high lane (vertical), so you time the walk along it.
+- **Coins (2):** one on the high lane and one on the low path, in the same column. That is one per height, so crossing twice pays twice.
+- **Item:** the chullo, in the guardhouse (the costume, with no gate).
+- **Background:** black sky; the terrace tops one muted green and the dry-stone faces one ochre; one dark two-colour range at the very
+  top, nothing behind the play rows.
+
+**T2 MACHU PICCHU** [4,21] (the landmark, with the Inca tunnel as its lower lane)
+- **Top half:**
+  - The plateau (floor 8) has a light well looking down onto the tunnel mouth.
+  - Steps climb east (floors 6, 4) to the Intihuatana, where the panpipes lie.
+  - Boulders roll down the steps at you every 120 frames. A one-cell notch in each step is where you duck one.
+  - Huayna Picchu stands behind as a dark two-colour silhouette with no flat tops that look walkable. It is the room's one landmark.
+- **Bottom half:**
+  - The lane (floor 18) comes in from T1.
+  - The tunnel (two cells high under the lintel, dressed stone, two torches) has the spitting llama in its mouth.
+  - Past the llama, the Mole Crusher, then the three-column well whose liana drops into A1.
+- **What you do:** climb against the boulders, see the gate from above, come back for it with the panpipes, then the region's
+  tightest stretch.
+- **Creatures:**
+  - the spitting llama, which is the gate (its spit is a timed pulse);
+  - a cave bat diving up and down in the well;
+  - the boulders and the crusher are machines.
+- **Coins (2):**
+  - in the top step's notch nearest the Intihuatana (at a hazard's edge);
+  - just inside the tunnel past the llama: seen when you meet the gate, reached after the panpipes.
+- **Empanada:** at the lane's west end.
+- **Background:** black sky; detail goes only into the Intihuatana and Huayna Picchu.
+
+**A1 THE CANOPY** [5,21] (the arrival into the open space)
+- **Layout:**
+  - The well's liana ends on a high bough.
+  - Below it is a lattice of lianas and short boughs, open at full height east into A2.
+  - In the west, the one liana hangs through the floor into A3.
+  - A gap in the floor shows the machete on A3's bank.
+- **What you do:** the release. You get a little lost, find your bearings by the lianas, see the tangle east and the machete below.
+- **Creatures (2):**
+  - a sloth creeping up and down a liana (vertical; it blocks the climb);
+  - a toucan on the top bough (horizontal).
+- **Coins (1):** hung between two lianas mid-room, taken only by climbing across the lattice (inside the structure).
+- **Background:** black; leaves as solid canopy in the top two rows only; the lianas thin green lines; nothing green behind Monty
+  (Rio's lesson).
+
+**A2 THE KAPOK** [5,22] (the great tree; the way out)
+- **Layout:**
+  - The kapok's trunk fills the middle, with buttress boughs either side.
+  - The crown's branch runs east off the room to Rio (rows 6-7, floor 8), choked by the tangle.
+  - The room is open below into A4 across about 24 columns, with the lattice running up the flank.
+- **What you do:** see the tangle from A1 on arrival; come back up from A4 with the machete; climb past the anaconda and cut your way
+  out.
+- **Creatures (2):**
+  - the anaconda coiling up and down the trunk across the jumps (vertical);
+  - the jaguar pacing the crown's bough (horizontal).
+- **Coins (1):** at the root of the crown branch by the trunk, the top of the climb.
+- **Background:** as A1. The trunk is the one big shape, and its bark is darker than the boughs you stand on.
+
+**A3 THE RIVER** [6,21] (west river; the dead end and the skill crossing)
+- **Layout:**
+  - The west bank (floor 15) is where the liana leaves you, with the machete.
+  - East of the bank the brown river is a deadly floor, crossed by the vine from the fig, then two rotten logs that crumble under a
+    pause (the branch's crumbling stones), then the channel.
+  - The river runs on into A4.
+- **What you do:** the region's skill moment, forced once, on the way back.
+- **Creatures (2):** two piranhas leaping in arcs, each on its own period (vertical).
+- **Coins (1):** on the second log beside the leaping piranha (at a hazard's edge).
+- **Item:** the machete.
+- **Empanada:** in the niche under the fig's root, a step off the bank.
+- **Background:** black above; a dark river band with one light crest; leaves only at the very top, where the vines hang from.
+
+**A4 THE ROOTS** [6,22] (east river; the way back up)
+- **Layout:** one vine and a log over the river's west part (an easier stretch after A3), the east bank (floor 15) under the kapok, and
+  the lattice up its flank into A2.
+- **What you do:** finish the crossing and start the climb back into the canopy.
+- **Creatures (2):**
+  - a piranha leaping under the vine (vertical);
+  - the pink river dolphin rising by the bank (vertical).
+- **Coins:** none. The room's job is the crossing out.
+- **Background:** black, a dark river band, the roots in brown.
+
+### Totals
+
+- **Rooms:** 8.
+- **Coins:** 9 (1, 1, 2, 2, 1, 1, 1, 0), down from 73. Each has a named pattern from (b), and none are in a line, along a floor or in the
+  air without a flight or the lattice to reach them.
+- **Empanadas:** 3 (F2, T2, A3), down from 6. The pause screen's food total comes from the data.
+- **Items:** the panpipes (T2), the machete (A3), and the chullo (T1, the costume).
+- **Creatures:** condor (F2, T1), llama (T1), cuy (T1), spitting llama (T2), cave bat (T2), sloth and toucan (A1), anaconda and jaguar
+  (A2), piranha (A3, A4) and dolphin (A4). None is in more than two rooms, and every room with creatures has a vertical patrol. The
+  macaw and the captain go.
+- **Decoration kinds:** only removed (the market, the mist cave and geysers, the estuary, the boat). No new tiles, so the kinds count
+  goes down.
+- **Hint text:** none new. CALM IT and THE UNDERGROWTH IS TOO THICK stay as they are. LOCALS ONLY goes with the captain. The branch's
+  PERU and AMAZONAS signs are optional.
+- **Ramp:** F1 is safe. F2 times two dives. T1 times a dive on a lane. T2 climbs against the boulders and runs the crusher. The Amazon
+  holds the one-way puzzle and the vine crossing. Rio, after it, is harder.
+
+### Changes from round 1 on `reset/andes`
+
+- **The machete moves** from the kapok's walkway to A3's west bank, and A1's west liana is made one-way (its foot out of a jump's
+  reach). Today the machete is a climb in the room that holds the gate.
+- **The panpipes stay by the Intihuatana.** The boulders roll down the steps against the climb, with one notch per step.
+- **The terraces' empanada on the cliff ledge goes.** T2's plateau no longer runs out west onto it. T1's two coins sit one per height
+  in one column.
+- **Coins and snacks are recounted** to the totals above. F1 loses its diving condor, so it teaches the move safely.
+- **Bot routes and proofs** are recorded again for the new route, in both modes.
