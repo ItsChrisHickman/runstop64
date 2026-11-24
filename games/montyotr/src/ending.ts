@@ -155,8 +155,12 @@ function creatureShots(stage: Stage, ending: MontyEnding, types: readonly number
   g.start();
   if (!enterRoom(g, at.room, 0x14, 0x32)) return null;
   const moments: SpriteShot[][] = [];
+  // (a pursuer is asleep until Monty trips his wake: here he is woken at once, so he walks the path Monty strolls)
+  const chased = g.pursuers.filter((p) => g.data.pursuers[p.index]?.slot === at.slots[0]);
+  for (const p of chased) p.awake = true;
   for (let f = 0; f < RECORDED; f++) {
-    g.x2 = 0x14; g.y = 0x32; // (up in the corner: nothing in the room is his to meet)
+    // (up in the corner: nothing in the room is his to meet; a pursuer walks Monty's own path, so for him Monty strolls to and fro, facing right, for him to follow)
+    g.x2 = chased.length ? 0x30 + (f % 64) : 0x14; g.y = 0x32; g.facing = 1;
     g.frame(0);
     const lead = g.enemies[at.slots[0]];
     const shots = at.slots.flatMap((slot) => { const shot = vicShot(g.vic, 4 + slot); return shot ? [shot] : []; });

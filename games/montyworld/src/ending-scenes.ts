@@ -32,7 +32,7 @@ export const SCENES: readonly Scene[] = PLACES.map((p, i): Scene => {
  */
 const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['matryoshka', 'MATRYOSHKA DOLL'], ['guard', 'KREMLIN GUARD'], ['babushka', 'BABUSHKA'], ['cossack', 'COSSACK DANCER']],
-  [['inspector', 'TICKET INSPECTOR'], ['yeti', 'YETI'], ['miner', 'MINER'], ['reindeer', 'REINDEER']],
+  [['inspector', 'TICKET INSPECTOR'], ['bat', 'BAT'], ['miner', 'MINER'], ['reindeer', 'REINDEER']],
   [['panda', 'PANDA'], ['warrior', 'TERRACOTTA WARRIOR'], ['lion', 'STONE LION'], ['kite', 'KITE']],
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
   [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
