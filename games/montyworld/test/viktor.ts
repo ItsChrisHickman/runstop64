@@ -157,7 +157,7 @@ for (const enhanced of [false, true]) {
 // ---- the two escapes on the way: the train's roof, the cargo ship ------------------------------------------
 /** An escape: the room, where Monty comes in, where the bot is aimed, what the proof says, and the strip's name. */
 const ESCAPES = [
-  { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, a step behind on the roof, is swept off it', strip: '4-train-escape' },
+  { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, behind him on the roof, is swept off it', strip: '4-train-escape' },
   { room: PAC.ship, at: { col: 0, floor: 13 }, aim: { col: 27, row: 12 }, what: 'duck under the crane crate so that Viktor, following, is knocked overboard', strip: '5-ship-escape' },
 ] as const;
 for (const esc of ESCAPES) {

@@ -64,10 +64,10 @@ export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
 
 /**
  * The train (Siberia's sleeper, early on): Viktor drops onto the carriage roof behind Monty from the dining car's (the room's third creature, slot 2: sprite 6) and walks his path `TRAIN_CHASE.delay`
- * frames behind, a step behind, from when Monty leaves the roof's west end. The mountain comes from the east soon after Monty comes onto the roof; Monty shelters in the luggage closet under its hatch
- * as it goes over, and Viktor, still on the roof behind him, is swept off it (`knockedBy.tunnels`). Escaped, he is gone from the train (`escaped`, kept in a save).
+ * frames behind, from when Monty leaves the roof's west end. The mountain comes from the east soon after Monty comes onto the roof; Monty shelters in the luggage closet under its hatch
+ * as it goes over, and Viktor, still on the roof behind him (however soon Monty is down the hatch), is swept off it (`knockedBy.tunnels`). Escaped, he is gone from the train (`escaped`, kept in a save).
  */
-export const TRAIN_CHASE = { delay: 90 } as const;
+export const TRAIN_CHASE = { delay: 150 } as const;
 export const trainPursuer = (escaped: number): PursuerSpec => ({
   room: SIB.sleeper, slot: 2, delay: TRAIN_CHASE.delay, calm: { col0: 0, row0: 0, col1: 1, row1: 9 }, until: escaped, knockedBy: { tunnels: true },
 });

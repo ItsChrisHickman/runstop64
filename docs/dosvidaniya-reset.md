@@ -1032,13 +1032,18 @@ cut into the hat; a red one would need a sprite of its own over him (one ink a s
    has the hood, his shadow (black, so seen only against the moon) walks on, stops on the moon, turns to look at Monty for a long
    beat and moves on: the hood has fooled him. Once only (a hidden find keeps it). The room has no paper screen, so the moon is the
    screen; nothing else in the room changed.
-2. **The cargo ship** (the Pacific's first room, about halfway): the Japan to Pacific crossing is no cameo but Viktor coming
+2. **The cargo ship** (the Pacific's first room, about halfway, the second escape): the Japan to Pacific crossing is no cameo but Viktor coming
    aboard behind him on the same follow-your-path pursuer as the finale (192 frames behind). The crane's crate swings down to the
    deck and up, 128 frames there and back; he is a swing and a half behind, so when Monty ducks under the crate as it rises,
    it is coming down as Viktor ducks under after him, and it knocks him overboard. This teaches the finale's idea gently: he
    copies you, and you can lead him into the world's hazards. Escaped, he is gone from the ship (a hidden find).
-3. **The train** (Siberia, early): waits for reset/siberia on main (Viktor dropping onto the carriage roofs behind Monty and
-   swept off by a tunnel as Monty shelters in a hatch).
+3. **The train** (Siberia's sleeper, early, the first escape): Viktor drops onto the carriage roof behind Monty from the dining
+   car's and follows his path three seconds behind (150 frames: long enough that, however soon Monty is down the hatch, Viktor is still on the roof when the mountain reaches it). The mountain comes from the east soon after Monty comes onto the
+   roof; Monty shelters in the luggage closet under its hatch as it goes over, and Viktor, still on the roof, is swept off it.
+   It teaches the first half of the finale's idea: he copies you, and the world's hazards can take him.
+
+The order the player meets them: the train (swept off), the ship (led under the crate), SPY VERSUS MOLE (made to stand under
+the head). `encounterState(g).escaped` lists them in that order, for the HUD's three stars.
 
 **SPY VERSUS MOLE** (the Sambadrome, room 75, renamed from THE SAMBADROME: the room's name says Monty has been caught up with).
 As Monty comes in on the stand's ledge, Viktor walks on at the avenue's far end beyond the bars, looks across at him and walks
@@ -1060,7 +1065,7 @@ pieces (sprites 6, 1, 2 and the dancer's 5: the dancer is out of sight while the
 Proved headless in `games/montyworld/test/viktor.ts`: the naive walk and pull after every wait from 0 to 120 frames never squashes
 him; standing under the head 60, 80 or 100 frames and pulling as he stops there does, with Monty alive, in both modes; the early
 pull re-arms; standing still under the falling head kills; he reaches Monty only after standing still longer than his delay; the
-ship's escape from several arrival timings; every cameo plays, touches nothing and goes. The HUD (another agent) reads
+train's and the ship's escapes from several arrival timings; every cameo plays, touches nothing and goes. The HUD (another agent) reads
 `encounterState(g)` in `pursuers.ts` (each pursuer escaped or not, and whether Viktor is due in this room) and `VIKTOR_FACE`.
 
 ### Open calls for Chris
