@@ -4,7 +4,7 @@
  * structured clone algorithm's bytes (node:v8), so a state read back is the state a copy would be.
  *
  * The states are a cache, not a record: they live outside the repo (`os.tmpdir()/runstop64-leg-states`, shared by every worktree), each with
- * the fingerprints of what made it (legs.ts `Prints`), and one whose fingerprints no longer match is not used (the leg is reached by replaying
+ * the fingerprints of what made it (attribute.ts `Prints`), and one whose fingerprints no longer match is not used (the leg is reached by replaying
  * the recorded routes before it instead). `--record` and every complete run write them.
  */
 import fs from 'node:fs';
