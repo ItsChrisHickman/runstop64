@@ -47,6 +47,13 @@ export function boardUpdate(g: Game) {
   if (g.siCollected[board.needs]) {
     g.mapRow = board.goes.mapRow;
     g.exitCol = board.goes.exitCol;
+    // (inside the leg's box: boarded in a jump he may be above it)
+    const leg = g.data.planes.find((p) => p.room === g.roomAt(board.goes.mapRow, board.goes.exitCol));
+    if (leg) {
+      const box = limits(leg.box);
+      g.x2 = Math.min(box.right, Math.max(box.left, g.x2));
+      g.y = Math.min(box.bottom, Math.max(box.top, g.y));
+    }
     g.roomExit = 1;
     return;
   }

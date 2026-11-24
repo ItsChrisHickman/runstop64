@@ -24,11 +24,11 @@
     "C to D: over the third head between sets, out onto Hilo's shore": "v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 v:4 >:4 >:4 ^:4 <:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 v:4 >:4 v:4 v:4 >:4 v:4 v:4 v:4 v:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
     "D: up the rope and over the cracking crust, the coin on the middle ledge": "<:4 .:4 .:4 .:4 .:4 <:4 <:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 ^:4",
     "D: up the east wall's rope to the long ledge, the coin at its head": "^:4 ^:4 ^:4 <:4",
-    "D: west past the steam vent, up the rope to the apron": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 <:4",
-    "D to E: past the nene, up the belly ladder into the hold": "<:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 J:4 .:4",
-    "E: up the cargo net, the coin in it": ".:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
-    "E: west along the rack past the rooster, the parachute": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 <:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4",
-    "E to the flight: down, across the floor behind the loose crate, out of the rear door onto the biplane": ">:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4"
+    "D: on up the rope past the long ledge to the high shelf, the coin at its head": ">:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 <:4 <:4 <:4",
+    "D: past the rooster, the parachute": ">:4 >:4 <:4 <:4 >:4 >:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "D: back past the rooster and down the rope to the long ledge": "<:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 .:4 .:4",
+    "D: west past the steam vent, up the rope to the apron": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4",
+    "D to the flight: past the nene to the biplane, and away": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4"
   },
   "rooms": {
     "A: up the crate step onto the deck": "38",
@@ -53,10 +53,10 @@
     "C to D: over the third head between sets, out onto Hilo's shore": "49 52",
     "D: up the rope and over the cracking crust, the coin on the middle ledge": "52 49",
     "D: up the east wall's rope to the long ledge, the coin at its head": "52",
+    "D: on up the rope past the long ledge to the high shelf, the coin at its head": "52",
+    "D: past the rooster, the parachute": "52",
+    "D: back past the rooster and down the rope to the long ledge": "52",
     "D: west past the steam vent, up the rope to the apron": "52",
-    "D to E: past the nene, up the belly ladder into the hold": "52 54",
-    "E: up the cargo net, the coin in it": "54",
-    "E: west along the rack past the rooster, the parachute": "54",
-    "E to the flight: down, across the floor behind the loose crate, out of the rear door onto the biplane": "54 79"
+    "D to the flight: past the nene to the biplane, and away": "52 79"
   }
 }
