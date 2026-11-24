@@ -49,6 +49,34 @@ function tilted(rows: readonly string[], dy: number): string[] {
 /** The wreck after Viktor clips it: the tail gone, a jagged break, the top wing hanging. */
 const PLANE_WRECK = PLANE_LEVEL.map((row, y) => [...row].map((ch, x) => (x <= 6 + (y % 3) ? '.' : y < 2 && x > 18 ? '.' : ch)).join(''));
 
+/**
+ * Viktor's plane: the same mail-plane build as Monty's (top and lower wings, struts, fuselage, tail, propeller), flown east on his tail, in metal grey (black would not show on the black sky), with him
+ * in the cockpit facing the way he flies: his tall fur hat with the star cut in it, his eye, the long snout and moustache (VIKTOR_FACE: the HUD's face, his own head). The propeller turns through four
+ * pictures. The star shows red through a second sprite under it (`VIKTOR_STAR`, the hole's pixels).
+ */
+const VIKTOR_AT = { x: 5, y: 3 } as const;
+const VIKTOR_HEAD = mirrored(VIKTOR_FACE.lit);
+function viktorBiplane(prop: number): string[] {
+  const r = new Raster(24, 21);
+  r.stamp(PLANE_LEVEL.map((row, y) => (y >= 9 && y <= 16 ? `${row.slice(0, 23)}.` : row)), 0, 0); // (his propeller is his own: below)
+  r.stamp(VIKTOR_HEAD, VIKTOR_AT.x, VIKTOR_AT.y);
+  for (let y = 9; y <= 16; y++) if ((y + prop) % 4 !== 0) r.set(23, y); // the propeller's blur, a gap going round
+  return r.rows();
+}
+/** The star's pixels: the holes in his hat's crown (rows 1-3 of his head), where the second sprite's red shows through. */
+const VIKTOR_STAR_ROWS = (() => {
+  const r = new Raster(24, 21);
+  VIKTOR_HEAD.slice(1, 4).forEach((row, j) => {
+    const first = row.indexOf('#'), last = row.lastIndexOf('#');
+    for (let i = first; i <= last; i++) if (row[i] === '.') r.set(VIKTOR_AT.x + i, VIKTOR_AT.y + 1 + j);
+  });
+  return r.rows();
+})();
+export const VIKTOR_PLANE_PICTURES: readonly Uint8Array[] = [0, 1, 2, 3].map((k) => spriteBlock(`sky viktor biplane ${k}`, viktorBiplane(k)));
+export const VIKTOR_STAR: Uint8Array = spriteBlock('sky viktor star', VIKTOR_STAR_ROWS);
+/** The star's red. */
+export const VIKTOR_STAR_INK = 2;
+
 export const PLANE_PICTURES = {
   level: spriteBlock('sky plane level', PLANE_LEVEL),
   climb: spriteBlock('sky plane climb', tilted(PLANE_LEVEL, 1)),
@@ -137,6 +165,7 @@ export const BIRD_COLOURS = { gull: 1, frigate: 2, albatross: 15 } as const;
 // ---- Viktor's black plane (the pursuer: a creature, slot 0) ----------------------------------------------------------------------------
 
 /**
+ * (The creature in L3's slot 0, which the pursuer drives: its chase is drawn in VIKTOR_PLANE_PICTURES, a full biplane; these small pictures stay as the slot's own.)
  * His plane flying east: a dark fighter, solid, its panels and the cockpit's rim cut in black lines, the tail fin at the back, his tall fur hat in the cockpit, the wing under it, the propeller turning. On the
  * black sky the "black plane" is drawn in dark metal grey (`VIKTOR_PLANE_INK`): one ink, as every sprite.
  */
@@ -161,7 +190,7 @@ const viktorPlane = (prop: number): string[] => {
     '................',
   ];
 };
-/** His plane's ink: dark metal grey (black would not show on the black sky). */
+/** His plane's ink: metal grey (black would not show on the black sky, and dark grey sank into it). */
 export const VIKTOR_PLANE_INK = 12;
 const VIKTOR_PLANE_RIGHT = [0, 1, 2, 3].map(viktorPlane);
 export const SKY_CREATURES = {

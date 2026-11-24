@@ -387,6 +387,11 @@ export interface PursuerSpec {
   knockedBy?: { creatures?: readonly number[]; tunnels?: boolean; rollers?: boolean; pulses?: boolean; setback?: number };
   /** He closes in: his lag behind Monty shrinks a frame every `every` frames, down to `least` (the flight's Viktor gaining on him). */
   close?: { every: number; least: number };
+  /**
+   * His chase drawn in pictures of his own instead of his creature slot's (the flight's Viktor in his biplane, a full 24 x 21 sprite like Monty's): `frames` (pointers, in turn as he moves), placed `dx` x2 units and
+   * `dy` pixels from where Monty was; `over`, a second sprite drawn on him in another ink (his hat's red star), no part of the collision check.
+   */
+  look?: { frames: readonly number[]; dx: number; dy: number; over?: { sprite: number; ptr: number; colour: number } };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
   intro?: CameoMove;
 }

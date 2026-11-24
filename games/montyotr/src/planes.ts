@@ -2,6 +2,7 @@ import { applyMonty } from '../../shared/monty/physics';
 import type { Game } from './game';
 import type { CellBox, PlaneLeg, PlaneLook } from './montydata';
 import { surgeOn } from './swim';
+import { drawChase } from './pursuers';
 
 /**
  * A flight in a plane (a game's `planes`: Do Svidaniya Monty's yellow mail biplane, Hilo to the Andes; docs/dosvidaniya-flight.md). Each leg is a room: in it Monty sits in the plane (sprite 2 over him, no
@@ -88,17 +89,17 @@ function bailFrame(g: Game, leg: PlaneLeg) {
   const t = ++g.planeBail;
   const look = g.data.planeLook;
   const viktor = 4 + then.viktor, man = g.enemies[then.viktor];
-  const tail = g.x2 - 8;
+  const chase = g.data.pursuers.find((e) => e.room === g.roomId && e.slot === then.viktor);
+  const tail = g.x2 - 8 + (chase?.look?.dx ?? 0), level = g.y + 1 + (chase?.look?.dy ?? 0); // (his sprite's place with its nose at Monty's tail, level with his plane)
   // the pursuer: from where he is (or from off the picture's left) along to Monty's tail, then up and away east
   if (man) {
     if (t === 1) g.planeFrom = g.enable & (1 << viktor) ? g.sx[viktor] ?? 0 : 0;
     const at = Math.min(1, t / then.surge);
     const x = t <= then.surge ? Math.round(g.planeFrom + (tail - g.planeFrom) * at) : tail + (t - then.surge) * 2;
-    const y = t <= then.surge ? (g.y + 1) & 0xff : Math.max(0, g.y + 1 - (t - then.surge) * 2);
-    g.sx[viktor] = Math.max(0, Math.min(0xff, x)); g.sy[viktor] = y & 0xff;
-    g.sptr[viktor] = 0x30 + then.viktor * 8 + 4 + ((t >> 2) & 3);
+    const y = t <= then.surge ? level & 0xff : Math.max(0, level - (t - then.surge) * 2);
     g.scol[viktor] = man.colour;
-    g.enable = x < 0xd0 && y > 0x20 ? g.enable | (1 << viktor) : g.enable & ~(1 << viktor) & 0xff;
+    if (chase && x < 0xd0 && y > 0x20) drawChase(g, chase, Math.max(0, Math.min(0xff, x)) - (chase.look?.dx ?? 0), y - (chase.look?.dy ?? 0), 0x01, t);
+    else { g.enable &= ~(1 << viktor) & 0xff; if (chase?.look?.over) g.enable &= ~(1 << chase.look.over.sprite) & 0xff; }
   }
   if (t === then.surge) { // the clip: his tail is gone, the round is the villain's
     g.siCollected[then.lost] = 0x81;
