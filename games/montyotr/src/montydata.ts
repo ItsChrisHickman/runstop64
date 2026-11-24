@@ -182,6 +182,8 @@ export interface PulseSpec {
   /** Frames into its period it is at when the room loads (a row of doors that open one after another), default 0. */
   offset?: number;
   idle: number; warnCode: number; liveCode: number; spent: number;
+  /** A special item that calms it (a tune settles the spitting llama): once Monty has taken item `calmedBy` the group stays at its idle look and kills nothing. */
+  calmedBy?: number;
 }
 
 /**
@@ -207,6 +209,22 @@ export interface DragonMoods {
   stops: readonly number[]; pace: number; roar: number; rest: number; charge: { speed: number; frames: number };
   weights: { pause: number; back: number; charge: number };
 }
+
+/**
+ * A surge in a swim room (swim.ts; the Pacific's Hana): while it runs, from `start` frames into each `period` of the room's time for `length` frames (the time counts from the room's
+ * loading, as a pulse's does), Monty inside the box (`cols` wide from playfield column `col`, rows `top` to `bottom`) is carried the way `dx` says at his swimming pace whatever he does
+ * sideways, as the flight's updrafts lift him; the room's rock stops him as it does on foot, so the lee of a rock is shelter. Outside its time the water is still.
+ */
+export interface CurrentSpec { room: number; col: number; cols: number; top: number; bottom: number; dx: 1 | -1; period: number; start: number; length: number }
+
+/** A banner shown on arriving: see `arrivals`. */
+export interface Arrival { rooms: readonly number[]; from?: readonly number[]; text: string }
+
+/** Monty's pictures for swimming: the pointers of the stroke's pictures going left and going right (as many each), (a costume's `over.frames` places its hat on each too). */
+export interface SwimPictures { left: readonly number[]; right: readonly number[] }
+
+/** Sprite blocks a set of rooms has in their places while they are loaded: (pointer, picture) pairs. */
+export interface RoomBlocks { rooms: readonly number[]; blocks: readonly { ptr: number; block: Uint8Array }[] }
 
 /**
  * A piece of a dragon (or of a creature of several sprites moving as one: the yeti): its VIC `sprite`, its `frames` and `colour`. `rigid`: it does not follow the one in front but stays at this offset
@@ -244,6 +262,8 @@ export interface CanopyLook { left: number; level: number; right: number; colour
  */
 export interface RollerSpec {
   room: number; sprite: number; path: readonly (readonly [col: number, row: number])[]; speed: number; every: number; start: number; frames: readonly number[]; colour: number;
+  /** The pictures follow the progress along the path instead of turning a step in 8 pixels (a fish leaping from the river: nose up, level, nose down): the first at the start, the last at the end. */
+  spread?: boolean;
 }
 
 /**
@@ -295,6 +315,23 @@ export interface SkewerSpec {
   poses: readonly { left: SkewerLook; right: SkewerLook; deadly: boolean }[];
 }
 
+/** A box of playfield cells, corners inclusive. */
+export interface CellBox { col0: number; row0: number; col1: number; row1: number }
+
+/**
+ * A pursuer (pursuers.ts; the Sambadrome's agent): the creature in slot `slot` of the room does not patrol but walks Monty's own path `delay` frames behind him, where he was and which way he faced, once Monty has
+ * left the box `calm` (where he comes in): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item `until` is taken he is gone from the room.
+ * Squashed (levers.ts), he lies flat (the picture `flat`, a sprite pointer) and his hat (`hat`) pops off on the VIC sprite `hatSprite`.
+ */
+export interface PursuerSpec { room: number; slot: number; delay: number; calm: CellBox; until: number; flat: number; hat: number; hatSprite: number }
+
+/**
+ * A lever that holds a room's Mole Crushers up (levers.ts; the Sambadrome's float): the shafts never stamp by themselves. Stepping into the lever (its cells: one wide, two tall from `lever`) drops them together as one
+ * head, once (again only after he has stepped out and in); it works only once special item `armed` is taken, which touching the booth (`booth`) while carrying `key` takes (it fits). The head squashing the room's
+ * pursuer takes special item `done` (what the room's effects open), and the lever is still from then on. Unarmed, the lever only rattles.
+ */
+export interface LeverSpec { room: number; lever: { col: number; row: number }; booth: CellBox; key: number; armed: number; done: number }
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -323,7 +360,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { from: number; to: number; rows?: { from: number; to: number } }
+export interface MapRegion { from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column): the Andes' first room beside the Pacific's hold. */ except?: readonly { row: number; col: number }[] }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {
@@ -399,6 +436,16 @@ export interface MontyData extends RoomTables, MontyLook {
   pulses: readonly PulseSpec[];
   /** Rooms of open water (swim.ts: Monty swims as the jetpack flies, slower and buoyant); none in Monty on the Run. */
   swimRooms: readonly number[];
+  /** The special item without which the open water is deadly (the Pacific's snorkel): coming into a swim room without it he drowns; null: no gate (Monty on the Run has no swimming). */
+  swimGate: number | null;
+  /** Surges in the swim rooms (swim.ts): boxes of the water that carry him one way while they run; none in Monty on the Run. */
+  currents: readonly CurrentSpec[];
+  /** Arrival banners: on coming into one of `rooms` from a room outside them (and, if `from` is given, from one of those) the name row shows `text` for a few seconds (the Pacific's islands); none in Monty on the Run. */
+  arrivals: readonly Arrival[];
+  /** Monty's own pictures for swimming (swim.ts: a horizontal body with a stroke, left and right; pointers of blocks `roomBlocks` puts in the swim rooms); null: he swims in his rope pictures (Monty on the Run has no swimming). */
+  swimPictures: SwimPictures | null;
+  /** Pictures put into the sprite bank when a room is loaded (and the bank's own put back where another room had them): a region's rooms borrow blocks the world's other regions use elsewhere (the Pacific's swimming pictures and sea serpent). */
+  roomBlocks: readonly RoomBlocks[];
   risingLava: readonly LavaSpec[];
   dragons: readonly DragonSpec[];
   /** Rooms where Monty flies under a canopy (flight.ts), with the canopy's look; none in Monty on the Run (its jetpack rooms are `jetpackRooms`). */
@@ -409,6 +456,9 @@ export interface MontyData extends RoomTables, MontyLook {
   cableCars: readonly CableCarSpec[];
   floats: readonly FloatSpec[];
   skewers: readonly SkewerSpec[];
+  /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
+  pursuers: readonly PursuerSpec[];
+  levers: readonly LeverSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

@@ -21,7 +21,9 @@ import { ROOM } from '../src/moscow';
 import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { at, cell, colOf, dead, diesAt, LEFT, RIGHT, UP, rowText, run } from './mech-kit';
+import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
+import { RETIRED } from '../src/save-migrate';
+import { at, cell, colOf, dead, diesAt, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
 import { piecePlace, placeAt, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
@@ -491,7 +493,7 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[2] === `ITEMS  0/${WORLD.progress.keyItems.length}`);
+  check(`the pause screen counts the snacks and the items over every region (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
   enterRoom(s.g, SIB.mine, 0x40, standY(4));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 14: [0x40, 0x52, 1, 7], 17: [0x40, 0xb2, 2, 7] } });
   check('in Siberia the map shows its region (four columns), the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
@@ -517,19 +519,23 @@ const RISE = (() => { let rise = 0; for (let i = 0; i < WORLD.jumpArc.length && 
     check(`a save made on coming into each of Siberia's six rooms packs, unpacks and carries on in the same room, alive (${carried} of ${spots.length})`, carried === spots.length);
   }
 
-  // a save from before the reset (format 1: Siberia of nine rooms, 13 coins and 4 finds) moves on: Moscow's and the later regions' coins and finds to their new places, Siberia's
-  // pelmeni and ticket kept, and a save made in a room of Siberia's (here the cut dark shaft, 15) carries on from the dining car's roof
+  // a save from before the reset (format 1: Siberia of nine rooms, 13 coins and 4 finds) is read into today's tables by save-migrate.ts (the whole world's, from the format 1 tables):
+  // Moscow's coin and find where they were, Siberia's ticket kept (wherever it lies now), the lamp gone, and a save made in a cut room (here the dark shaft, 15) carries on in the room the plan names
   {
     const now = newGame(WORLD, true).g;
-    const coins = Array.from({ length: now.coinCollected.length + 5 }, () => 0), items = Array.from({ length: now.siCollected.length + 2 }, () => 0);
-    coins[3] = 0xff; coins[20] = 0xff; coins[27] = 0xff; items[1] = 0x81; items[5] = 0x81; items[7] = 0x81; items[8] = 0x81;
-    const v1 = { ...snapshot(now), coins, items, roomId: 15, mapRow: 0, exitCol: 7, worn: itemIndex(now, CHI.top, 0) + 2 };
+    const coins = Array.from({ length: FORMAT1_COINS.length / 3 }, () => 0), items = Array.from({ length: FORMAT1_ITEMS.length / 4 }, () => 0);
+    coins[3] = 0xff; items[1] = 0x81; items[5] = 0x81; items[7] = 0x81; // (Moscow's coin and find, Siberia's ticket and lamp)
+    const v1 = { ...snapshot(now), coins, items, roomId: 15, mapRow: 0, exitCol: 7 };
     const g = newGame(WORLD, true).g;
-    restore(g, CODEC.unpack(CODEC.pack(v1), 1));
-    run({ g, col: 0 }, NONE, 4);
-    check(`a format 1 save reads as format ${CODEC.format}: Moscow's coin and find where they were, Siberia's old coins gone, China's first coin and find moved down (27 to 22, 8 to 6), the ticket kept, the lamp gone, the worn rice hat's number moved down two, and he carries on from the dining car's roof (room ${g.roomId})`,
-      g.coinCollected[3] === 0xff && g.coinCollected.slice(14, 22).every((c) => c === 0) && g.coinCollected[22] === 0xff && g.coinCollected.filter((c) => c).length === 2
-      && g.siCollected[1] === 0x81 && g.siCollected[5] === 0x81 && g.siCollected[6] === 0x81 && g.siCollected.filter((c) => c).length === 3 && g.worn === itemIndex(now, CHI.top, 0) && g.roomId === SIB.gravy && g.y === standY(9));
+    const migrated = CODEC.unpack(CODEC.pack(v1), 1);
+    restore(g, migrated);
+    const b = { g, col: 0 };
+    run(b, NONE, 4);
+    g.enemies = [];
+    run(b, NONE, 120);
+    check(`a format 1 save reads as format ${CODEC.format}: Moscow's coin and find where they were, the ticket kept where it lies now, the lamp gone, and the cut shaft's save carries on in the mine, alive (room ${g.roomId})`,
+      migrated.coins[3] === 0xff && migrated.coins.filter((c) => c).length === 1 && migrated.items[1] === 0x81 && migrated.items[itemIndex(now, SIB.yeti, 0)] === 0x81 && migrated.items.filter((c) => c).length === 2
+      && migrated.roomId === RETIRED[15] && g.roomId === SIB.mine && !dead(g));
   }
 
   // a save from before Siberia: Moscow-only arrays and a grid of Moscow's rooms alone carry on in the new game

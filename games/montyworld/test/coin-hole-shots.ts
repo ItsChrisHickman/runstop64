@@ -15,9 +15,8 @@ fs.mkdirSync(out, { recursive: true });
 const ROOMS = [
   { room: RIO_ROOM.steak, name: 'churrascaria', col: 30, floor: 18 },
   { room: RIO_ROOM.drum, name: 'carnival-drum', col: 1, floor: 18 },
-  { room: RIO_ROOM.float, name: 'carnival-float', col: 1, floor: 18 },
   { room: RIO_ROOM.bust, name: 'carnival-bust', col: 2, floor: 18 },
-  { room: RIO_ROOM.quay, name: 'quay-sky', col: 2, floor: 8 },
+  { room: RIO_ROOM.sugar, name: 'sugar-sea', col: 2, floor: 18 },
   { room: RIO_ROOM.lap, name: 'lapa-sky', col: 4, floor: 18 },
 ];
 for (const r of ROOMS) {

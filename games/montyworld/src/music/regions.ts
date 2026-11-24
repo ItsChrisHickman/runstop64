@@ -16,7 +16,7 @@ import { retune, type RegionTune } from './region-tune';
  * more entry here and a `RegionTune` of its own (its scale and its instruments).
  */
 const TUNES: Readonly<Record<RegionName, RegionTune>> = { moscow: MOSCOW, siberia: SIBERIA, china: CHINA, japan: JAPAN, pacific: PACIFIC, andes: ANDES, rio: RIO };
-const REGIONS = WORLD_REGIONS.map((r) => ({ from: r.from, to: r.to, rows: r.rows, tune: TUNES[r.name] }));
+const REGIONS = WORLD_REGIONS.map((r) => ({ from: r.from, to: r.to, rows: r.rows, except: r.except, tune: TUNES[r.name] }));
 
 /** A tune as the engine takes it (`MontyData.music.tuneFor`): the version's id, and how to make its .sid from the original's. */
 function version(tune: RegionTune): TuneVersion {

@@ -15,7 +15,7 @@ import { APOSTROPHE, gameText, lacking, nameCodes, textCode } from '../../shared
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
-import { ANDES_ROOMS } from '../src/andes';
+import { ANDES_ALL_ROOMS } from '../src/andes';
 import { CHINA_ROOMS } from '../src/china';
 import { WORLD } from '../src/data';
 import { CLOSING, PLACES } from '../src/ending-places';
@@ -33,16 +33,17 @@ check('what the font lacks is written as a space (a tilde, an accent mark alone)
 check('an apostrophe is not a text to fix, an ampersand is', lacking("MONTY'S").length === 0 && lacking('A&B').length === 1);
 
 // ---- every string ---------------------------------------------------------------------------------------
-const REGIONS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const REGIONS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
 /** [what it is, its text, whether it is drawn in the game's charset (the name row, signs) or the pause and ending font (credits)]. */
 const strings: { what: string; text: string; font: 'charset' | 'pause' }[] = [];
 for (const room of roomsOf(WORLD)) strings.push({ what: `room ${room}'s name`, text: sectorName(WORLD, room).text, font: 'charset' });
 for (const h of WORLD.hints.take) strings.push({ what: `the hint on taking item ${h.item}`, text: h.text, font: 'charset' });
 for (const h of WORLD.hints.wanted) strings.push({ what: `the hint in room ${h.room}`, text: h.text, font: 'charset' });
+for (const a of WORLD.arrivals) strings.push({ what: `the arrival banner of rooms ${a.rooms.join()}`, text: a.text, font: 'charset' });
 for (const r of REGIONS) for (const d of r.decor ?? []) if (typeof d.type === 'object') strings.push({ what: `the sign in room ${r.id}`, text: d.type.text, font: 'charset' });
 for (const p of PLACES) for (const c of p.credits) strings.push({ what: `a credit over room ${p.room}`, text: c, font: 'pause' });
 for (const c of CLOSING) strings.push({ what: 'a closing credit', text: c, font: 'pause' });
-check(`${strings.length} strings: the names, hints, signs and credits of every region`, strings.length > 150);
+check(`${strings.length} strings: the names, hints, signs and credits of every region`, strings.length > 120); // (the reset of 2026-11 cut rooms, names and hints from Siberia on)
 
 const solid = (code: number) => { const g = bankImage.subarray(code * 8, code * 8 + 8); return !g.some((b) => b) || g.every((b) => b === 0xff); };
 const pause = montyLettering(bankImage);

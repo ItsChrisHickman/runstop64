@@ -7,38 +7,27 @@
 import { tile } from './tiles';
 
 export const ANDES_TILES = {
-  /** Inca masonry: tight courses of dressed blocks, their joints broken. Solid. */
+  /** Inca dry-stone masonry: big fitted stones of no one size, their joints jogging and their corners rounded, no mortar and no courses (not bricks). Solid. */
   incaWall: tile('incaWall', 1, 12, [
+    '.#####.#',
+    '######.#',
+    '#####..#',
+    '.###.##.',
+    '....####',
     '###.####',
-    '###.####',
-    '###.####',
-    '........',
-    '##.#####',
-    '##.#####',
-    '##.#####',
-    '........',
+    '###.###.',
+    '.##..#..',
   ]),
-  /** A terrace's grass lip along the top of a stone wall: tufts, then the stone's first courses. Solid. */
+  /** A terrace's grass lip along the top of a dry-stone wall: tufts, then the fitted stones under them. Solid. */
   terraceGrass: tile('terraceGrass', 1, 13, [
     '.#.#..#.',
     '########',
     '########',
-    '###.####',
-    '###.####',
-    '........',
-    '##.#####',
-    '##.#####',
-  ]),
-  /** A terrace's stone floor to walk on: a flat slab with its edge. A floor. */
-  terraceSlab: tile('terraceSlab', 2, 12, [
-    '########',
-    '########',
-    '#.######',
-    '.#######',
-    '........',
-    '........',
-    '........',
-    '........',
+    '.#####.#',
+    '#####..#',
+    '.###.##.',
+    '....####',
+    '###.###.',
   ]),
   /** Mountain rock: grey strata broken by long diagonal cracks. Solid. */
   mountainRock: tile('mountainRock', 1, 11, [
@@ -161,16 +150,16 @@ export const ANDES_TILES = {
     '########',
     '........',
   ]),
-  /** A porthole in the hull: a ring on the plating. Solid. */
-  porthole: tile('porthole', 1, 1, [
+  /** A liana slung across the canopy: a thick stem lying along the row, a leaf above and below it in turn, so it reads as a vine to climb along (the hanging `vine` stands upright). Climbable. */
+  lianaAcross: tile('lianaAcross', 3, 5, [
+    '........',
+    '.##...#.',
+    '..#...##',
     '########',
-    '##....##',
-    '#.####.#',
-    '#.#..#.#',
-    '#.#..#.#',
-    '#.####.#',
-    '##....##',
     '########',
+    '#...#...',
+    '##..##..',
+    '........',
   ]),
   /** The deck's boards, with the seams. A floor. */
   deckBoards: tile('deckBoards', 2, 9, [
@@ -180,17 +169,6 @@ export const ANDES_TILES = {
     '........',
     '........',
     '........',
-    '........',
-    '........',
-  ]),
-  /** A ship's rail: posts and a top bar, he passes through. Nothing. */
-  shipRail: tile('shipRail', 0, 1, [
-    '########',
-    '.#....#.',
-    '.#....#.',
-    '.#....#.',
-    '.#....#.',
-    '.#....#.',
     '........',
     '........',
   ]),
@@ -204,17 +182,6 @@ export const ANDES_TILES = {
     '........',
     '........',
     '........',
-  ]),
-  /** The village's adobe: sun-baked bricks. Solid. */
-  adobe: tile('adobe', 1, 10, [
-    '#####.##',
-    '#####.##',
-    '........',
-    '##.#####',
-    '##.#####',
-    '........',
-    '#####.##',
-    '#####.##',
   ]),
   /** The Inca tunnel's walls: great fitted blocks in the dark. Solid. */
   tunnelStone: tile('tunnelStone', 1, 11, [
@@ -238,50 +205,6 @@ export const ANDES_TILES = {
     '#.#####.',
     '########',
   ]),
-  /** Icicles hanging from an overhang of rock: deadly points. Deadly. */
-  iceSpikes: tile('iceSpikes', 4, 1, [
-    '########',
-    '#.####.#',
-    '.#.##.#.',
-    '.#.##.#.',
-    '..#..#..',
-    '..#..#..',
-    '..#..#..',
-    '........',
-  ]),
-  /** Mist rising from a pit in the cave floor: round puffs of cloud, black between them. Deadly (it hides the fall). */
-  mistPit: tile('mistPit', 4, 14, [
-    '..####..',
-    '.######.',
-    '##.##.##',
-    '########',
-    '#.####.#',
-    '########',
-    '.##..##.',
-    '########',
-  ]),
-  /** A drift of mist over the pit, rising: puffs of cloud he passes through. Nothing. */
-  mistWisp: tile('mistWisp', 0, 14, [
-    '...##...',
-    '..####..',
-    '.##..##.',
-    '########',
-    '#.####.#',
-    '########',
-    '.######.',
-    '........',
-  ]),
-  /** Huayna Picchu's green slope: forested terraces in bands, steep. Scenery (he walks in front of it). Nothing. */
-  hpSlope: tile('hpSlope', 0, 5, [
-    '########',
-    '##.#####',
-    '########',
-    '........',
-    '#####.##',
-    '########',
-    '########',
-    '........',
-  ]),
   /** Huayna Picchu's bare grey rock: long streaks down its face. Scenery. Nothing. */
   hpRock: tile('hpRock', 0, 11, [
     '####.###',
@@ -292,6 +215,28 @@ export const ANDES_TILES = {
     '#.######',
     '##.#####',
     '###.####',
+  ]),
+  /** A stall's wooden post: a pole of two columns. Passable. */
+  stallPost: tile('stallPost', 0, 9, [
+    '...##...',
+    '...##...',
+    '...##...',
+    '...##...',
+    '..###...',
+    '...##...',
+    '...##...',
+    '...##...',
+  ]),
+  /** The gob of spit flying: a long green-white splash with a head. Passable, deadly while it is live (a pulse). */
+  spitGob: tile('spitGob', 0, 13, [
+    '........',
+    '..####..',
+    '.######.',
+    '########',
+    '########',
+    '.######.',
+    '..####..',
+    '........',
   ]),
 } as const;
 

@@ -171,6 +171,22 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **A tunnel mouth with a `span` kills only where it is drawn,** and `harmless` is scenery that kills nothing (a train over the roofs, a crowd). Taxis and crowds on a clock make a crossing: a flash, the car, then the green man.
 - **A creature must differ in colour from everything it passes** (`creature-contrast.ts`): check it when a room's palette or a creature's colour changes.
 
+- **Every element has a playable purpose** (Chris on the Andes, 2026-11-22: "set up but not thought through from a playability stance"). Before a room is done, answer for each piece: a crusher crushes across a path he must take (not a pillar beside it), a platform leads somewhere or holds something, a coin is reachable from the way the room is played (several starts and timings: `fair from every start` in `andes-mechanisms.ts`), a creature has a lane it matters in (a bat that flies above every place he stands is no bat), a gate needs its item (the bot finds no way past it without). A blue thing rising from the ground reads as what it is (a hot spring's steam, a geyser that warns before it scalds) or it goes; a deadly spot looks deadly.
+- **Hazards and creatures are drawn in front of the scenery, and stand out from it** (`montyworld/test/sprites-front.ts`, `creature-contrast.ts` for creatures and things on paths): a boulder in the brown of the rock behind it reads as going behind the mountain.
+- **Never an unreachable way back**: a drop into a lower region needs a way up (a ladder), or he can drop before he has the item the lower region's gate wants. A creature that is a gate is a wall only in a lane two cells high or on a step as wide as it (a ceiling over a climb makes the climb impossible too).
+- **The bot's state key must hold every timed thing's phase** (`bot.ts` `keyOf`: each roller by its own period, not the first's): with a hazard of its own period left out the search dedups states that are not the same and misses ways that exist.
+
+## Build pitfalls found rebuilding the Andes (2026-11-23)
+
+- **A jump rises 20 pixels, two and a half rows:** a step of three rows is a wall going up (a terrace that must be climbed back steps two rows at a time, or has a ladder).
+- **A floor on row 4 or higher with nothing above it lets a jump leave by the top of the room** into the room above (a leaf fringe on row 0 stops it; a roof he can land on needs to be lower).
+- **A vine or rope holds him standing only where it reaches his middle row** (the floor's row less one): a tip that only touches his head stops him without carrying him.
+- **A jump off a vine's upper half carries about five cells:** what must be out of reach (a bough reached only one way) is farther than that from every vine's swing, or shielded (a curtain of leaves).
+- **Prove every one-way piece with the bot's search, not by eye** (`andes-mechanisms.ts`: the bough only down the hollow, the high ledge only from the plateau): the search found both ways round a first layout that looked closed.
+- **An open block's route is made by its ways out, not by its art** (the Amazon's first build let the well's liana step onto a walkway east, and the whole river was optional): give each room of the block only the exits the route wants (the canopy's floor open round one liana, the kapok entered only up the liana from the river, the east side of the canopy shut), then prove it by search with each crossing taken away (the vines taken down, a room's way shut).
+- **A rope slung across a room needs a glyph that lies along the row:** the hanging rope's glyph repeated sideways reads as a fence of spikes (the canopy's first lattice), a hazard, not a thing to climb.
+- **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and

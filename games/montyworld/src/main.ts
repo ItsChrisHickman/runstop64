@@ -2,7 +2,7 @@ import type { Host } from 'c64kit';
 import { montyCodec } from '../../montyotr/src/save';
 import { montyFont as fontOf, runMonty } from '../../montyotr/src/session';
 import { WORLD } from './data';
-import { OLDER_SAVES, SAVE_FORMAT } from './save-formats';
+import { fromFormat1 } from './save-migrate';
 
 /**
  * Do Svidaniya Monty: Monty on the Run's engine (games/montyotr/src, `runMonty`) on this game's data (data.ts): the music,
@@ -11,8 +11,11 @@ import { OLDER_SAVES, SAVE_FORMAT } from './save-formats';
  */
 export { info } from './info';
 
-/** Its own save codec (the save envelope's `game` is its id, `format` this): the shape is Monty's, with what he wears; the saves of its earlier formats are moved on (save-formats.ts). */
-export const CODEC = montyCodec('Do Svidaniya Monty', SAVE_FORMAT, OLDER_SAVES);
+/**
+ * Its own save codec (the save envelope's `game` is its id, `format` this): the shape is Monty's, with what he wears. Format 2 is the reset's tables (rooms cut, moved and added: the coins' and finds'
+ * places changed); a format 1 save is read into them (save-migrate.ts).
+ */
+export const CODEC = montyCodec('Do Svidaniya Monty', 2, { 1: (s) => fromFormat1(WORLD, s) });
 
 export function run(host: Host) {
   return runMonty(host, WORLD, { codec: CODEC });

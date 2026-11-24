@@ -53,12 +53,16 @@ export interface RoomSpec {
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake (the original's cupcake, as Monty finds them: 200 points): screen column and row of its sprite's top left. */
   cake?: readonly [col: number, row: number];
+  /** The sprite pointer the room's cake is drawn with, when it is not the game's food sprite (a second snack of its own in a room that also has an item). */
+  cakeSprite?: number;
   /**
    * A special item of the game's own (a key item): which one (its name, for `specialIndex` finds it by), where
    * its sprite's top left is (screen column and row) and its sprite pointer in the game's bank. At most one with a cake, the
    * cake first.
    */
   item?: { name: string; col: number; row: number; sprite: number };
+  /** A second key item in the same room (no cake then: the engine shows two of a room's special items, on sprites 0 and 1), after `item` in the table. */
+  item2?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly DecorSpec[];
   enemies?: readonly EnemySpec[];
   /** Mole Crushers (up to two): screen column and row of the shaft's top and its height (the first is drawn in the glyph bank at $10, the second at $22: `crusherChars`). */
@@ -168,12 +172,12 @@ const CUPCAKE_FRAME = 3;
 const frameBase = (sprite: number) => (sprite - 0x8e) & 0xff;
 
 /**
- * The special items our rooms add, in si_spawn_tbl's order (the rooms' order; a room's cake, then its item), after the
+ * The special items our rooms add, in si_spawn_tbl's order (the rooms' order; a room's cake, then its item, then its second), after the
  * `first` the base has: each as the cake it is or the name of the item. A game finds the number of an item (the index
  * `roomEffects`, `progress` and the costumes use) here.
  */
 export function listSpecials(rooms: readonly RoomSpec[], first = 0): readonly { room: number; index: number; item: string | null }[] {
-  return rooms.flatMap((r) => [...(r.cake ? [null] : []), ...(r.item ? [r.item.name] : [])].map((item) => ({ room: r.id, item })))
+  return rooms.flatMap((r) => [...(r.cake ? [null] : []), ...(r.item ? [r.item.name] : []), ...(r.item2 ? [r.item2.name] : [])].map((item) => ({ room: r.id, item })))
     .map((e, i) => ({ ...e, index: first + i }));
 }
 
@@ -254,8 +258,9 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     },
     // the cake: the original's cupcake (frame base 3, pointer $91, 200 points), in each room that has one
     specialItems: merged(base.specialItems, (r) => [
-      ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(cakeSprite)]] : []),
+      ...(r.cake ? [[r.id, r.cake[0] * 4 + 0x0c, r.cake[1] * 8 + 0x32, frameBase(r.cakeSprite ?? cakeSprite)]] : []),
       ...(r.item ? [[r.id, r.item.col * 4 + 0x0c, r.item.row * 8 + 0x32, frameBase(r.item.sprite)]] : []),
+      ...(r.item2 ? [[r.id, r.item2.col * 4 + 0x0c, r.item2.row * 8 + 0x32, frameBase(r.item2.sprite)]] : []),
     ]),
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,

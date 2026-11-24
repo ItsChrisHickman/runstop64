@@ -12,12 +12,15 @@ import { crackInit, crackUpdate, type CrackState } from './cracks';
 import { dragonInit, dragonSprites, dragonUpdate, type DragonState } from './dragons';
 import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
+import { currentsTick } from './swim';
 import { canopyFrame, flightOf } from './flight';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
 import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from './cablecars';
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
+import { pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
+import { leverInit, leverUpdate } from './levers';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -78,6 +81,8 @@ export interface Entry { mapRow: number; exitCol: number; x2: number; y: number;
 
 export interface Enemy {
   x: number; y: number; colour: number; type: number; flags: number; range: number; step: number; speed: number;
+  /** Moved and drawn by a mechanism of its own (pursuers.ts: the agent), not by its patrol. */
+  driven?: boolean;
 }
 
 export class Game implements MontyBody, MontyWorld {
@@ -190,6 +195,8 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- mechanisms ---------------------------------------------------------------
   pd = { roomFlag: 0, state: 0, delay: 1, index: 0xff, position: 0, travel: [0, 0], spriteY: [0, 0], ride: 0 };
+  /** A room whose crushers wait for its lever (levers.ts): held, the two shafts dropping as one head, the lever just pulled (mechanisms.ts). Apart from `pd`, which is Monty on the Run's own. */
+  hold = { held: 0, both: 0, pull: 0 };
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
   /** The picture the room's lift has of its own (a mine cart), kept at the room's loading so a frame looks nothing up (mechanisms.ts). */
   liftLook: LiftSpec['look'] = undefined;
@@ -213,6 +220,8 @@ export class Game implements MontyBody, MontyWorld {
   /** This room's rising lava (lava.ts) and the strokes swum so far (swim.ts). */
   lavas: LavaState[] = [];
   swimTick = 0;
+  /** The frames since this room was loaded, for its surges (swim.ts `currents`). */
+  currentTime = 0;
   dragons: DragonState[] = [];
   /** This room's rolling boulders (rollers.ts) and swinging vines (vines.ts), and the flight's frames so far and whether he rests on something (flight.ts). */
   rollers: RollerState[] = [];
@@ -221,6 +230,9 @@ export class Game implements MontyBody, MontyWorld {
   cable: CableRide = { ...NO_CABLE };
   floats: FloatState[] = [];
   skewers: SkewerState[] = [];
+  /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
+  pursuers: PursuerState[] = [];
+  leverLatch = false;
   flightTick = 0;
   flightResting = false;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
@@ -369,6 +381,8 @@ export class Game implements MontyBody, MontyWorld {
     this.cable = { ...NO_CABLE };
     this.floats = [];
     this.skewers = [];
+    this.pursuers = [];
+    this.leverLatch = false;
     this.worn = null;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -398,7 +412,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | (this.canopyShown ? 0x04 : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | (this.canopyShown ? 0x04 : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -435,6 +449,7 @@ export class Game implements MontyBody, MontyWorld {
       tunnelUpdate(this);
       crackUpdate(this);
       pulseUpdate(this);
+      currentsTick(this);
       lavaUpdate(this);
       dragonUpdate(this);
       rollerUpdate(this);
@@ -442,6 +457,8 @@ export class Game implements MontyBody, MontyWorld {
       floatUpdate(this);
       cableUpdate(this);
       skewerUpdate(this);
+      pursuerUpdate(this);
+      leverUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -682,13 +699,16 @@ export class Game implements MontyBody, MontyWorld {
     tunnelInit(this);
     crackInit(this);
     pulseInit(this);
+    this.currentTime = 0;
     lavaInit(this);
     dragonInit(this);
+    this.placeRoomBlocks();
     rollerInit(this);
     vineInit(this);
     floatInit(this);
     cableInit(this);
     skewerInit(this);
+    leverInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);
@@ -700,6 +720,7 @@ export class Game implements MontyBody, MontyWorld {
       this.vic.mc1 = 7;
     }
     this.setupEnemies();
+    pursuerInit(this);
     Items.applyRoomEffects(this, 'before');
     this.decorate();
     Items.applyRoomEffects(this, 'after');
@@ -710,6 +731,29 @@ export class Game implements MontyBody, MontyWorld {
     Items.spawnForRoom(this);
     this.hint = noHint();
     this.hintWanted();
+    this.arrive(id);
+  }
+
+  /** The room last loaded (-1: none yet), for the arrival banners. */
+  private lastRoom = -1;
+
+  /** The data's arrival banner for coming into room `id` from the one before, if there is one: shown in the name row (both modes; it replaces a hint the room would give at once). */
+  private arrive(id: number) {
+    const came = this.lastRoom;
+    this.lastRoom = id;
+    if (came < 0 || this.hint.text !== null) return; // (a hint the room already gives wins the row)
+    const banner = this.data.arrivals.find((a) => a.rooms.includes(id) && !a.rooms.includes(came) && (a.from === undefined || a.from.includes(came)));
+    if (!banner) return;
+    say(this.hint, banner.text, 0);
+    this.drawNameRow();
+  }
+
+  /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
+  private placeRoomBlocks() {
+    const sets = this.data.roomBlocks;
+    if (!sets.length) return;
+    for (const set of sets) for (const { ptr } of set.blocks) this.mem.set(this.data.bankImage.subarray(ptr * 64, ptr * 64 + 64), ptr * 64);
+    for (const set of sets) if (set.rooms.includes(this.roomId)) for (const { ptr, block } of set.blocks) this.mem.set(block, ptr * 64);
   }
 
   /** The name row: the hint if one is on show, else the place's name. */
@@ -904,7 +948,7 @@ export class Game implements MontyBody, MontyWorld {
   enemiesTick() {
     for (let slot = this.enemies.length - 1; slot >= 0; slot--) {
       const e = this.enemies[slot];
-      if (e.x === 0xff) continue;
+      if (e.x === 0xff || e.driven) continue;
       if (e.flags & 1) {
         if (!(e.flags & 0x80)) {
           e.step = (e.step + 1) & 0xff;

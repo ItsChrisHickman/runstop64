@@ -54,8 +54,12 @@ export interface MoscowRoom {
   coins?: readonly (readonly [col: number, row: number])[];
   /** A piece of cake: the sprite's top left cell. */
   cake?: readonly [col: number, row: number];
+  /** The cake's sprite pointer, when it is not the game's food (an empanada beside the room's key item). */
+  cakeSprite?: number;
   /** A key item: its name, the sprite's top left cell and its pointer in the bank. */
   item?: { name: string; col: number; row: number; sprite: number };
+  /** A second key item (no cake then). */
+  item2?: { name: string; col: number; row: number; sprite: number };
   decor?: readonly (readonly [WorldDecor | { text: string; colour: number }, col: number, row: number])[];
   creatures?: readonly Creature[];
   /** Mole Crushers: the shaft's top cell, its height, its characters. */
@@ -93,7 +97,9 @@ export function room(r: MoscowRoom): RoomSpec {
     tiles, colours: [...colours, ...Array.from({ length: 8 - colours.length }, () => 0)], map,
     ...(r.coins ? { coins: r.coins } : {}),
     ...(r.cake ? { cake: [r.cake[0] + PLAY_COL, r.cake[1] + PLAY_ROW] as const } : {}),
+    ...(r.cakeSprite === undefined ? {} : { cakeSprite: r.cakeSprite }),
     ...(r.item ? { item: { name: r.item.name, col: r.item.col + PLAY_COL, row: r.item.row + PLAY_ROW, sprite: r.item.sprite } } : {}),
+    ...(r.item2 ? { item2: { name: r.item2.name, col: r.item2.col + PLAY_COL, row: r.item2.row + PLAY_ROW, sprite: r.item2.sprite } } : {}),
     ...(r.decor ? {
       decor: r.decor.map(([d, col, row]) => ({
         col: col + PLAY_COL, row: row + PLAY_ROW,
@@ -114,6 +120,11 @@ export function room(r: MoscowRoom): RoomSpec {
 /** The decorations used as backdrops (`fillCells`): the engine keeps them under the room's coins and shows them where a cell is cleared. */
 const backdrops = new Set<WorldDecor>();
 export const isBackdrop = (name: string): boolean => [...backdrops].some((b) => b === name);
+/** A decoration of several cells drawn as a backdrop (Lapa's arches behind the street): kept under a coin in it, shown where a cell of it is cleared. Returns the piece. */
+export function asBackdrop<T extends WorldDecor>(piece: T): T {
+  backdrops.add(piece);
+  return piece;
+}
 
 /**
  * A one-character decoration stamped on every cell of a rectangle (columns c0-c1, rows r0-r1) that the room's paint leaves empty, except the `keep` cells (a coin, an
