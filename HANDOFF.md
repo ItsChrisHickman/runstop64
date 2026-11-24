@@ -24,8 +24,7 @@ Open (2026-11-24, end of the long session): shipped today also the cover art on 
   HARD): not started. If Chris OKs the flight, the tally becomes Monty 2 v Viktor 1 before the finale.
 - **Unshipped playtest-round fixes** on `reset/andes` (3 commits) and `reset/pacific` (5 commits) from the reset workflow's later
   rounds: look at them (`git log main..reset/andes`), merge what's good.
-Waiting on Chris: the flight (below); the tipsy moment's source (AWM quirks); which crossing he prefers
-(`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
+Waiting on Chris: see "Questions for Chris" below. Not doing: Siberia's fourth
 car (would shift China). The title/continue
 prompt names the game's own touch button (JUMP) since 2026-11-24.
 
@@ -40,6 +39,29 @@ loop is repetitive: vary each loop (Viktor trips on a name, Monty ducks behind a
 backs off). Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
 (`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
 car (would shift China).
+
+## Questions for Chris (ask these first; each has a recommendation)
+
+1. **The flight** (Hilo to the Andes, ~75 s, in place of walking into the plane and appearing on the mountain; full proposal in
+   the paragraph "Proposed to Chris" above). Build it as proposed? Recommended: yes, with Viktor winning the plane round so the
+   tally reads Monty 2 v Viktor 1 before SPY VERSUS MOLE. Open points inside it: a yellow mail biplane he takes at Hilo (rather
+   than stowing away)? No gun, survive and steer only? Seabirds and weather as the hazards (no enemy planes, no extra spies)?
+2. **The title chase variety:** vary each loop (Viktor trips on a place name; Monty ducks behind a label and Viktor overshoots;
+   Viktor gets ahead, then backs off). Go ahead with those, or does he want the chase to play once and then show something else?
+3. **The music crossing** between regions: which of `/root/projects/runstop64-shots/tunes/crossing-dip.mp3` (live now: switch at
+   the phrase end with a volume dip), `crossing-phrase.mp3` (phrase end, no dip) or `crossing-cut.mp3` (hard cut on a bar)? Or
+   restart the tune after all?
+4. **The parade ground** is dark grey, not sand, because sand colours hide six creatures. Keep grey, or recolour those creatures
+   so the beach can be sand?
+5. **Viktor's red star:** he's one white sprite (the coat drawn in black outline, the star cut into his hat). Add a second
+   sprite over him for a red star, or keep him one sprite (C64 sprite budget)?
+6. **The top bar** (Monty, three Spy vs Spy stars, Viktor's silhouette that lights when he's due; lives only in HARD): approved;
+   if the flight goes in, OK that one star becomes Viktor's?
+7. **AWM's tipsy moment** (reversed controls for a few seconds): which item or place causes it in this game? (No answer yet.)
+8. **China's coin chamber** in ALL WALL AND NO PLAY now opens on the first pass, so its "seen but not reachable yet" moment is
+   gone. Bring back a one-way way in (reachable only when the route brings him back from the right)?
+9. **A playthrough** of the rebuilt back half (Siberia from the train, the Pacific, the Andes and Amazon, Rio with Viktor and the
+   new ending): his notes drive the next work.
 
 ## State
 
