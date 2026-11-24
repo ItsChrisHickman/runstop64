@@ -11,7 +11,9 @@
 // - A Monty game's region file (games/montyworld/src/siberia.ts...): its changed lines are mapped to rooms (games/shared/monty/test/attribute.ts) and
 //   the game's planner (games/<game>/test/affected.ts, the shared games/shared/monty/test/affected.ts) gives the room-scoped runs (`--room`): the room
 //   tests over those rooms, the region's mechanisms and bot over them, and the cheap world-wide tests. Changes about several regions: the full suites.
-// - Any other file: every test whose bundle imports it (esbuild's metafile over every test of tools/tests.mjs), whole, fast and slow sets.
+// - Any other file: every test that imports it without going through a hub (`HUBS`: a game's whole-game value, data.ts, which imports
+//   every region, tune, picture and set piece, so every test bundles nearly everything: following imports through it made a change to a
+//   tune's constant run 42 tests, Chris 2026-11-24). A file reached only through a hub runs no test here; the end-of-batch verify covers it.
 // - Markdown: nothing to test. A file no test imports (a tool, a config, package.json): the full suites (`node tools/test-all.mjs --slow`).
 // The full suites stay the ship gate's fallback: `npm run verify` and `node tools/test-all.mjs --slow` are unchanged.
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -22,6 +24,12 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { ensureGen } from './gen.mjs';
 import { TESTS } from './tests.mjs';
+import { keyOf, readTimings, secondsOf } from './timings.mjs';
+
+/** The aggregators: a game's whole value. Imports are not followed through them (see above). */
+const HUBS = new Set(['games/montyworld/src/data.ts', 'games/montyotr/src/motr.ts', 'games/registry.ts']);
+/** A run's budget in minutes (TEST_BUDGET_MIN): `--run` refuses a plan estimated over it unless `--over-budget` (a full run Chris asked for). */
+const BUDGET_MIN = Number(process.env.TEST_BUDGET_MIN ?? 10) || 10;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -72,9 +80,24 @@ const meta = (await build({
   }],
 })).metafile;
 /** test file -> the files its bundle reads */
+const bundled = new Map();
+for (const out of Object.values(meta.outputs)) if (out.entryPoint) bundled.set(out.entryPoint, new Set(Object.keys(out.inputs)));
+/** file -> the files it imports */
+const edges = new Map(Object.entries(meta.inputs).map(([f, i]) => [f, i.imports.map((x) => x.path).filter((x) => x in meta.inputs)]));
+/** test file -> the files it reaches without passing through a hub (a hub itself is reached, not gone through) */
 const imports = new Map();
-for (const out of Object.values(meta.outputs)) if (out.entryPoint) imports.set(out.entryPoint, new Set(Object.keys(out.inputs)));
+for (const e of entries) {
+  const seen = new Set([e]);
+  const todo = [e];
+  while (todo.length) {
+    const f = todo.pop();
+    if (f !== e && HUBS.has(f)) continue;
+    for (const g of edges.get(f) ?? []) if (!seen.has(g)) { seen.add(g); todo.push(g); }
+  }
+  imports.set(e, seen);
+}
 const importers = (file) => entries.filter((e) => imports.get(e)?.has(file));
+const bundledBy = (file) => entries.filter((e) => bundled.get(e)?.has(file));
 
 // ---- the Monty games' planners -------------------------------------------------------------------------------------------------------------------------------
 const planners = fs.readdirSync(path.join(root, 'games')).map((g) => `games/${g}/test/affected.ts`).filter((f) => fs.existsSync(path.join(root, f)));
@@ -91,7 +114,10 @@ for (const planner of planners) {
 fs.rmSync(tmp, { force: true });
 
 // ---- the plan -----------------------------------------------------------------------------------------------------------------------------------------------
-const NEEDS_ALL = /^(tools\/(test|test-all|tests|gen|affected)\.mjs|package(-lock)?\.json|tsconfig(\.test)?\.json|types\/)/;
+// what changes how every test is built or what it runs on: all of them. The runner and the planner (test-all, tests, affected, timings,
+// wait-turn) change no test's outcome, so they run none (a broken runner shows on its next use).
+const NEEDS_ALL = /^(tools\/(test|gen)\.mjs|tools\/re\/|package(-lock)?\.json|tsconfig(\.test)?\.json|types\/)/;
+const RUNNER = /^tools\/(test-all|tests|affected|timings)\.mjs$|^tools\/wait-turn\.sh$/;
 const runs = []; // { file, args, why }
 const whole = new Map(); // test file -> why (run whole, fast and slow)
 let everything = null; // why every test must run
@@ -102,6 +128,7 @@ for (const [file] of changes) {
   const p = claimedBy.get(file);
   if (p) continue;
   if (file.endsWith('.md')) { notes.push(`${file}: prose, nothing to test`); continue; }
+  if (RUNNER.test(file)) { notes.push(`${file}: the test runner or planner, no test (the typecheck only)`); continue; }
   // a recorded route file is read by its test at run time, not imported: routes/<region>-<mode>.json is the region's bot, routes/<test>.json a mechanisms test's
   const route = /^(games\/[^/]+\/test)\/routes\/(.+?)(-original|-enhanced)?\.json$/.exec(file);
   if (route) {
@@ -109,6 +136,7 @@ for (const [file] of changes) {
     if (fs.existsSync(path.join(root, test))) { if (!whole.has(test)) whole.set(test, `its recorded routes changed (${file})`); continue; }
   }
   const by = importers(file);
+  if (by.length === 0 && !NEEDS_ALL.test(file) && bundledBy(file).length) { notes.push(`${file}: reached only through a hub (${[...HUBS].filter((h) => bundledBy(file).length && entries.some((e) => imports.get(e)?.has(h))).join(', ')}), no test of its own: the end-of-batch verify covers it`); continue; }
   if (NEEDS_ALL.test(file) || (by.length === 0 && /\.(m?[jt]s|json)$/.test(file))) { everything ??= `${file} is not imported by a test (a tool, a config): every test`; continue; }
   if (by.length === 0) { notes.push(`${file}: no test reads it`); continue; }
   // a test that changed is run itself; any other file runs the tests importing it
@@ -155,7 +183,16 @@ for (const p of plans) if (p.rooms.length) console.log(`  ${p.game}: rooms ${p.r
 for (const n of notes) console.log(`  ${n}`);
 if (flags.has('--list')) process.exit(0);
 console.log(everything ? '\nrun: npm run typecheck && npm run check:strict && node tools/test-all.mjs --slow' : `\nrun: npm run typecheck, npm run check:strict, then ${planned.length} test run(s):`);
-for (const t of planned) console.log(`  node tools/test.mjs ${[t.file, ...(t.args ?? [])].join(' ')}`);
+const timings = readTimings();
+for (const t of planned) { const s = secondsOf(timings, t); console.log(`  node tools/test.mjs ${[t.file, ...(t.args ?? [])].join(' ')}   ~${Math.round(s)}s${keyOf(t) in timings ? '' : ' (not timed yet)'}`); }
+const jobsN = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
+const estimateMin = everything ? Infinity : planned.reduce((n, t) => n + secondsOf(timings, t), 0) / jobsN / 60;
+console.log(everything ? '\nestimate: the full suites (well over the budget)' : `\nestimate: ~${estimateMin.toFixed(1)} min of tests at ${jobsN} at a time, plus the typecheck (budget ${BUDGET_MIN} min)`);
+if (flags.has('--run') && estimateMin > BUDGET_MIN && !flags.has('--over-budget')) {
+  console.log(`affected: over the ${BUDGET_MIN}-minute budget, not run. Run the one or two tests that exercise the change by hand (node tools/test.mjs <file> [--room ...]),\n` +
+    'or narrow the change; --over-budget only when a full run is really due (shared engine/kit code, or once before a deploy).');
+  process.exit(2);
+}
 
 if (!flags.has('--run')) { console.log('\n(node tools/affected.mjs --run runs it)'); process.exit(0); }
 const step = (cmd, args, env = {}) => {

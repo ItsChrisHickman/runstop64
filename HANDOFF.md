@@ -5,7 +5,7 @@ state of things and what is waiting on Chris. Last updated 2026-11-24.
 
 **Active, 2026-11-24: Do Svidaniya Monty** (`games/montyworld`, `#montyworld`), Chris's original Monty game on Monty on the
 Run's engine. Read `games/shared/monty/LESSONS.md` (his rules), `docs/dosvidaniya-reset.md` (the reset plan and what was built)
-and `AGENTS.md`'s testing rules (`tools/affected.mjs --run`: test only what a change touches; Chris is very sensitive to slow,
+and `AGENTS.md`'s testing rules ("Testing is a budget": ~5 minutes of tests a change, the full gate once per batch; Chris is very sensitive to slow,
 broad test runs and to many agents at once: at most four, one running region bots).
 
 Live: Moscow, China, Japan (Chris says leave them be; only his own notes touch them); Siberia, the Pacific, the Andes/Amazon and
@@ -18,7 +18,7 @@ Open (2026-11-24, end of the long session): shipped today also the cover art on 
 (`games/shared/monty/README.md`) and the C64 budget (decoration kinds in one byte, with a budget test). Not finished:
 - **The pause map** (whole world, scrolling between countries, travel anywhere visited, items over two rows): built on branch
   `backlog/pause-map` (`.claude/worktrees/backlog-pause-map`, commit 095a262), not reviewed or shipped. Review, run its tests
-  (`tools/affected.mjs --run`), ship.
+  (its own `pause-map.ts`), ship.
 - **The top-centre HUD** (Monty's face, three Spy vs Spy stars, Viktor's silhouette that lights when he's due via
   `encounterState(g)` in games/montyotr/src/pursuers.ts and `VIKTOR_FACE` in games/montyworld/src/art/viktor.ts; lives only in
   HARD): not started. If Chris OKs the flight, the tally becomes Monty 2 v Viktor 1 before the finale.
@@ -42,21 +42,19 @@ car (would shift China).
 
 ## Questions for Chris (ask these first; each has a recommendation)
 
-1. **The flight** (Hilo to the Andes, ~75 s, in place of walking into the plane and appearing on the mountain; full proposal in
-   the paragraph "Proposed to Chris" above). Build it as proposed? Recommended: yes, with Viktor winning the plane round so the
-   tally reads Monty 2 v Viktor 1 before SPY VERSUS MOLE. Open points inside it: a yellow mail biplane he takes at Hilo (rather
-   than stowing away)? No gun, survive and steer only? Seabirds and weather as the hazards (no enemy planes, no extra spies)?
-2. **The title chase variety:** vary each loop (Viktor trips on a place name; Monty ducks behind a label and Viktor overshoots;
-   Viktor gets ahead, then backs off). Go ahead with those, or does he want the chase to play once and then show something else?
-3. **The music crossing** between regions: which of `/root/projects/runstop64-shots/tunes/crossing-dip.mp3` (live now: switch at
-   the phrase end with a volume dip), `crossing-phrase.mp3` (phrase end, no dip) or `crossing-cut.mp3` (hard cut on a bar)? Or
-   restart the tune after all?
-4. **The parade ground** is dark grey, not sand, because sand colours hide six creatures. Keep grey, or recolour those creatures
-   so the beach can be sand?
+**Decided 2026-11-24** (Chris, at the start of the next session):
+- **The flight:** build it as proposed (yellow mail biplane taken at Hilo, no gun, seabirds then weather then Viktor's black
+  plane; Viktor wins it, Monty parachutes into the Andes, the tally reads Monty 2 v Viktor 1 before SPY VERSUS MOLE).
+- **The title chase:** vary each loop (Viktor trips on a place name; Monty ducks behind a label and Viktor overshoots; Viktor
+  gets ahead, then backs off).
+- **The music crossing:** `phrase` (the phrase end, no dip); `DEFAULT_CROSSING` in `games/montyworld/src/music/crossing.ts`.
+- **The parade ground:** stays dark grey.
+- **The top bar:** with the flight in, one of the three stars becomes Viktor's (it lights when he wins the plane round).
+
+Still open:
+
 5. **Viktor's red star:** he's one white sprite (the coat drawn in black outline, the star cut into his hat). Add a second
    sprite over him for a red star, or keep him one sprite (C64 sprite budget)?
-6. **The top bar** (Monty, three Spy vs Spy stars, Viktor's silhouette that lights when he's due; lives only in HARD): approved;
-   if the flight goes in, OK that one star becomes Viktor's?
 7. **AWM's tipsy moment** (reversed controls for a few seconds): which item or place causes it in this game? (No answer yet.)
 8. **China's coin chamber** in ALL WALL AND NO PLAY now opens on the first pass, so its "seen but not reachable yet" moment is
    gone. Bring back a one-way way in (reachable only when the route brings him back from the right)?

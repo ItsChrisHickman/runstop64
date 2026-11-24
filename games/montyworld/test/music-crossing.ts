@@ -51,7 +51,8 @@ const equal = (a: readonly unknown[], b: readonly unknown[]) => a.length === b.l
 }
 
 // ---- the plan -------------------------------------------------------------------------------------
-const plan = crossingPlan(original);
+// the dip's plan (the comparison style with a fade): its phrases and bars are the game's own (`phrase`, the default), and it has the fades to check
+const plan = crossingPlan(original, 'dip');
 {
   check(`the loop is 8768 ticks of two frames (${plan.loopFrames} frames), ${plan.phrases.length} phrases and ${plan.bars.length} bars in it`, plan.loopFrames === 17536 && plan.phrases.length > 10 && plan.bars.length === 274);
   check('every phrase is a bar line, in order', plan.phrases.every((p, i) => plan.bars.includes(p) && (i === 0 || p > (plan.phrases[i - 1] ?? 0))));
@@ -173,7 +174,8 @@ for (const style of ['dip', 'phrase', 'cut'] as const) {
 {
   const make = WORLD.music.crossing;
   const made: CrossingPlan | undefined = make?.(original);
-  check('the world has a crossing, the dip, made from the .sid', made !== undefined && made.fadeOutFrames === 16 && JSON.stringify(made) === JSON.stringify(plan));
+  check('the world has a crossing, at the phrase with no dip (Chris, 2026-11-24), made from the .sid', made !== undefined && made.fadeOutFrames === 0 && made.fadeInFrames === 0
+    && JSON.stringify(made) === JSON.stringify(crossingPlan(original, 'phrase')) && JSON.stringify(made.phrases) === JSON.stringify(plan.phrases));
 }
 
 finish();

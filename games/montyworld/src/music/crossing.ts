@@ -6,8 +6,8 @@ import { GAME_SONG, LEAD_VOICE } from './region-tune';
  * Going from one region's version of the tune to another's while Monty plays (docs/dosvidaniya-plan.md): every version is Hubbard's
  * same song (the same patterns, order and timing; `test/music.ts` holds each to it), so the song carries on and only the version
  * changes, at the next phrase of the lead's order list (the start of one of its patterns after a pattern of two bars or more), or, if
- * that is more than `MAX_WAIT_SECONDS` away, at the next bar. The SID's master volume dips over the beat before and swells over the
- * beat after (`FADE_FRAMES`). The numbers are all here.
+ * that is more than `MAX_WAIT_SECONDS` away, at the next bar, at full volume (Chris's pick, 2026-11-24). The `dip` style, kept for
+ * comparing, dips the SID's master volume over the beat before and swells it over the beat after (`FADE_FRAMES`). The numbers are all here.
  */
 
 /** The player is called 50 times a second, and a tick (the unit of a pattern) is two calls. */
@@ -24,11 +24,11 @@ const MAX_WAIT_SECONDS = 4;
 const SHORT_PATTERN_TICKS = 2 * BAR_TICKS;
 
 /**
- * How a crossing sounds: `dip` is the one the game plays (the phrase boundary, the volume dipping and swelling); `phrase` (the
- * boundary, no dip) and `cut` (the next bar, no dip) are for comparing, by the render of the crossing (`test/music-wav.ts`).
+ * How a crossing sounds: `phrase` is the one the game plays (the phrase boundary, no dip); `dip` (the boundary, the volume dipping
+ * and swelling) and `cut` (the next bar, no dip) are for comparing, by the render of the crossing (`test/music-wav.ts`).
  */
 export type CrossingStyle = 'dip' | 'phrase' | 'cut';
-export const DEFAULT_CROSSING: CrossingStyle = 'dip';
+export const DEFAULT_CROSSING: CrossingStyle = 'phrase';
 
 /** The plan for crossing the song of `original` (the .sid as Hubbard made it). */
 export function crossingPlan(original: Uint8Array, style: CrossingStyle = DEFAULT_CROSSING): CrossingPlan {

@@ -76,29 +76,38 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
   below the sites): `tools/test-all.mjs` (so `npm run verify`) runs three at a time, and before running tests wait for a turn
   with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 2` before a `JOBS=2` verify). A few agents may
   work at once (see the testing rules below).
-- **Test only what the change touches** (Chris, 2026-11-23: broad runs "wasted a lot of tokens and slowed things down a
-  heck of a lot"; the three test slots are the bottleneck). The rules:
-  1. **Pick tests by the change, not by habit: `nice -n 15 node tools/affected.mjs --run`** (without `--run` it prints the
-     plan). It reads `git diff` against `main` (or a base given), maps the changed lines of a Monty game's region files to
-     rooms (a line inside a room's `{ id: ... }` or a mechanism's `{ room: ... }` literal is that room's; any other line of
-     the file is the whole region's) and runs typecheck, check:strict and the minimal tests: the room tests over those rooms
-     (`--room`: joins with each neighbour, climbs, stands, edges, contrast, backdrops, crushers, sprites, bounces, layout),
-     the region's mechanisms test (only its `SCOPE.section`s about those rooms) and bot (only the legs through them, from
-     kept states), and the cheap world-wide checks (world, text, saves, walk, train). Any other file runs the tests that
-     import it; several regions, the engine, a kit or a tool fall back to the full suites. One test over some rooms:
-     `node tools/test.mjs <test> --room <id|region.key|region>[,...]`. Never a whole-region bot or a broad suite by hand
-     when only rooms changed.
-  2. **Region bots and recorded routes** (the slow `<region>.ts original|enhanced`, `--record`) only when that region's
-     route or gates changed, once per change, never "to be safe", never for art, text, music or another region.
-  3. **`npm run verify` / `test-all`** only when shared engine or kit code changed (games/montyotr/src, games/shared,
-     packages, tools), or once at the end of a batch before a deploy. Never per agent per round. One run, `JOBS=2`.
-  4. **Music, title, ending, text** changes run their own tests only (music*, title, reward/ending, text, walk); no bots.
-  5. **Docs-only** changes run nothing.
-  6. **Never re-run a passing test** on code that hasn't changed since; never run the same suite in two worktrees.
-  7. **Coordinating session:** at most four agents at once, and at most one of them running region bots; a red test that
-     fails the same way on main is reported, not chased in an unrelated change.
-  8. A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.
-  There is no CI (Actions minutes are scarce), so the scoped run plus the end-of-batch verify is the check.
+- **Testing is a budget, not a ritual** (Chris, 2026-11-24: "every change took 30 to 60 minutes" on a game already largely
+  playtested; 2026-11-23: broad runs "wasted a lot of tokens and slowed things down a heck of a lot"). A change is a few
+  minutes of building and at most a few minutes of testing. The rules:
+  1. **Budget: about 5 minutes of tests for a change, 10 at the most.** `tools/affected.mjs` prints each run's last time
+     (`tools/timings.mjs`, recorded by test-all) and an estimate, and `--run` refuses a plan over 10 minutes
+     (`TEST_BUDGET_MIN`). Over budget means the change is too broad or the plan is wrong: narrow it, or run the one test
+     that matters by hand. `--over-budget` only for the end-of-batch gate (rule 5).
+  2. **While iterating, run the one test that exercises the change**: `nice -n 15 node tools/test.mjs <file> [--room <id>]`.
+     A music change: its `music*.ts`; the title: `title.ts`; a room: the room tests `--room <id>` and the region's mechanisms
+     `--room <id>`; text: `text.ts`. Look at renders yourself rather than adding broad checks. Then `npm run typecheck`
+     (30 s) once before the commit; `check:strict` (20 s) once per batch.
+  3. **`node tools/affected.mjs` (without `--run`) is the check before a commit**: read the plan; if it lists more than the
+     handful of tests you expected, the planner is wrong: fix the planner, don't run its plan. It follows imports only up to
+     the hubs (`HUBS`: `games/montyworld/src/data.ts` imports every region, tune and picture, so following through it made
+     a change to a tune's constant run 42 tests); a file reached only through a hub runs no test of its own.
+  4. **Region bots and recorded routes** (`<region>.ts original|enhanced`, `--record`) only when that region's route or gates
+     changed, scoped to the legs through the changed rooms, once per change. Never for art, text, music, the title, the
+     ending, the HUD or another region; never "to be safe".
+  5. **The full gate once per batch, by the coordinating session, before a deploy**: `npm run verify` (`JOBS=2`), plus the
+     slow bots only for the regions whose routes changed in the batch. Never per agent, never per round, never after each
+     merge. A merge with no code conflicts is not re-tested; one with conflicts runs rule 2's tests for the conflicted files.
+  6. **Never re-run a passing test on unchanged code**, never the same suite in two worktrees, and never a test to confirm
+     what an agent's report already shows (its numbers are enough; read its renders).
+  7. **Runner and planner files** (`tools/test-all.mjs`, `tests.mjs`, `affected.mjs`, `timings.mjs`, `wait-turn.sh`) run no
+     tests; the translator, `tools/test.mjs`, `gen.mjs`, the configs and `package.json` are what need the full gate. **Docs**
+     run nothing.
+  8. **Coordinating session:** at most four agents at once, at most one of them running region bots; each agent's brief
+     repeats rules 1, 2 and 6. A red test that fails the same way on main is reported, not chased in an unrelated change.
+     A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.
+  9. **Waiting:** let a background command notify you when it ends. Never a `pgrep -f <pattern>` wait loop: it matches its
+     own command line and never exits (16 of them were left running for days, 2026-11-24). Wait on a PID or not at all.
+  There is no CI (Actions minutes are scarce), so rule 2's tests plus the end-of-batch gate are the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
   session merges, pushes and deploys (`npm run deploy`).

@@ -21,6 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, suite, test } from 'node:test';
 import { TESTS } from './tests.mjs';
+import { keyOf, recordTimings } from './timings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -81,7 +82,7 @@ for (const t of chosen) {
     const started = performance.now();
     const { code, timedOut, output } = await run(cmd, limit);
     const seconds = (performance.now() - started) / 1000;
-    timings.push({ set: t.set, name: nameOf(t), seconds });
+    timings.push({ set: t.set, name: nameOf(t), key: keyOf(t), seconds, ok: code === 0 && !timedOut });
     if (verbose || code !== 0) process.stdout.write(output.split('\n').map((l) => `    | ${l}`).join('\n') + '\n');
     if (timedOut) throw new Error(`took more than ${limit / 1000}s and was stopped`);
     if (code !== 0) throw new Error(`exited ${code}`);
@@ -90,6 +91,7 @@ for (const t of chosen) {
 });
 
 after(() => {
+  recordTimings(timings);
   for (const set of [...new Set(timings.map((x) => x.set))]) {
     const mine = timings.filter((x) => x.set === set);
     if (!mine.length) continue;

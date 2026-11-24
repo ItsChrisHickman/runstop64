@@ -59,7 +59,7 @@ Room scoping (`test/scope.ts`): every room-level test reads `SCOPE`, and every p
 declares its rooms once (`games/montyworld/test/scope.ts`: `REGION_ROOMS`, `SCOPE`, `prints()`) and its tests for the planner
 once (`games/montyworld/test/affected.ts`). Then:
 
-    nice -n 15 node tools/affected.mjs --run                         # the tests this diff needs, nothing else
+    nice -n 15 node tools/affected.mjs                               # the plan for this diff, with times (--run runs it, within the 10-minute budget)
     nice -n 15 node tools/test.mjs games/montyworld/test/climbs.ts --room moscow.streets
 
 `tools/affected.mjs` maps changed lines to rooms and runs the room tests over them (joins, climbs, stands, edges, contrast,
@@ -102,7 +102,7 @@ The ushanka sends the Kremlin guard off, and Monty wears it from then on:
    the two hints in `hints.take` / `hints.wanted`; the worn hat in `costumes` (art in `src/art/hat.ts`).
 3. The proof: the section `'the guard in the arch and the hat'` in `games/montyworld/test/mechanisms.ts` (the guard blocks the
    arch without the hat, is gone with it) and Moscow's bot (`test/moscow.ts`, legs in `test/route.ts`).
-4. A change to the Kremlin room alone: `node tools/affected.mjs --run` runs those rooms' tests and sections, not the world.
+4. A change to the Kremlin room alone: `node tools/affected.mjs` plans those rooms' tests and sections, not the world.
 
 ## The order of work
 

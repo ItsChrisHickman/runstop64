@@ -154,8 +154,8 @@ most care; the reward show and the title show them off.
   know, nothing that's a stretch.
 - **Music:** Hubbard's own driver and tune; a region's version may change the scale and the instruments, never the tempo.
   Folk-tune breaks only from public-domain tunes, and only if they sound like part of the tune.
-  Between regions the song never restarts (Chris, 2026-11-23): the version changes in step at the next phrase, the SID volume dipping a
-  beat each way (`music/crossing.ts`, `c64kit/src/sid/crossing.ts`); so every version keeps the song's order and every pattern's length.
+  Between regions the song never restarts (Chris, 2026-11-23): the version changes in step at the next phrase, at full volume
+  (Chris picked no dip over the dip and the cut, 2026-11-24; `music/crossing.ts`, `c64kit/src/sid/crossing.ts`); so every version keeps the song's order and every pattern's length.
   Moscow's light touch is the model (2026-11-22, after Japan and the Pacific): the introduction is Hubbard's note for note (a version
   that bends it sounds like a glitch), a lead note bends only where the result is consonant with the bass under it (no minor second,
   major seventh or tritone), and the instrument carries the place (the Pacific: a steel guitar sliding into notes, a strummed backing,
@@ -173,13 +173,15 @@ most care; the reward show and the title show them off.
 - **Chris plays it and his notes come fast:** keep a pass running for his notes alongside the build; write every lesson back
   into this file.
 - **Test the rooms a change is about, not the world** (Chris, 2026-11-23: "we really need these tests to be able to analyze
-  individual rooms if that's all it concerns"; a one-room change re-ran whole-region bots for hours). `node tools/affected.mjs --run`
-  maps the diff's lines to rooms and runs only what proves them; one test over some rooms is `node tools/test.mjs <test> --room
+  individual rooms if that's all it concerns"; a one-room change re-ran whole-region bots for hours; 2026-11-24: "every change took
+  30 to 60 minutes"). Testing is a budget: about 5 minutes a change (AGENTS.md, "Testing is a budget"). `node tools/affected.mjs`
+  maps the diff's lines to rooms and prints what proves them, with times; one test over some rooms is `node tools/test.mjs <test> --room
   siberia.coal,12`. What makes it work, for the next Monty game too: every room-level test reads `SCOPE` (`scope.ts`); every part of a
   mechanism test is a `SCOPE.section([rooms], ...)` naming every room it enters, reads or can wander into (over-naming is safe,
   under-naming hides a failure); a region file writes each room and each mechanism entry as a literal naming its room (`id:` / `room:`)
   so a line can be traced to its room; the bots' route files keep each leg's rooms (`--record`). The full suites stay the ship gate.
-- **Go fast:** up to three tests at once, several agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
+- **Go fast:** build more, test less: the one test that exercises a change while iterating, the full gate once per batch before a
+  deploy. Up to three tests at once, a few agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
   step is merging.
 - **A death restarts the room as he came into it** (Chris, 2026-11-22: a restart in the room before "feels like an
   uncontrollable bug"; then, of the "last safe spot" that replaced it, "it seems to send us back to right before we died and I
