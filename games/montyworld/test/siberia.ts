@@ -1,7 +1,7 @@
 /**
  * Siberia, played by a bot from Moscow's platform, through the train, to the village's barrier (docs/dosvidaniya-siberia.md): the bot (bot.ts) searches
- * the game's own frames for a way to each goal in siberia-route.ts (every coin, both pelmeni, the ticket, the lamp, tunnel mouths and cracking
- * ice and all), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after
+ * the game's own frames for a way to each goal in siberia-route.ts (every coin, the pelmeni and the ticket, the mountains, the closet, the yeti, the cart
+ * and the cracking ice and all), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after
  * Moscow: on the platform where the Kremlin's gorge drops him (the train is boarded and climbed, the first leg), with Moscow's four finds and the hat on. (The way back west, the gangways, the loop and the no-trap checks are in siberia-mechanisms.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia.ts [original|enhanced] [--room <rooms>]
@@ -46,8 +46,8 @@ for (const mode of ['original', 'enhanced'] as const) {
   const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => siberian(g.data.specialItems[i * 4] ?? 0));
   const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
   const sibCoins = Array.from({ length: coins }, (_, i) => i).filter(mine).length;
-  if (complete) check(`${mode}: at the end all ${sibCoins} coins, both pelmeni, the ticket and the lamp of Siberia are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${sibCoins} x 50 + ${found.length} x 200), he is in the village (room ${g.roomId})`,
-    coinsLeft === 0 && itemsLeft === 0 && found.length === 4 && g.score === sibCoins * 50 + found.length * 200 && g.roomId === SIB.border);
+  if (complete) check(`${mode}: at the end all ${sibCoins} coins, the pelmeni and the ticket of Siberia are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${sibCoins} x 50 + ${found.length} x 200), he is on the river's far bank (room ${g.roomId})`,
+    coinsLeft === 0 && itemsLeft === 0 && sibCoins === 8 && found.length === 2 && g.score === sibCoins * 50 + found.length * 200 && g.roomId === SIB.border);
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }
 finish();

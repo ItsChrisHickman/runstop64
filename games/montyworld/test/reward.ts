@@ -4,7 +4,8 @@
  *  1. every scene's route does what the scene says in the game as the game plays it (no grace, the crushers' timing
  *     seeded), the same room and the same place each time, and nothing kills him;
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way
- *     out, every creature of the cast recorded with its frames, marching by after the credits in a troupe from its region (a plain ground under them, each named under its region), Monty last;
+ *     out, every creature of the cast recorded with its frames, marching by after the credits in Rio's carnival parade across the beach (a group from each region behind its banner, a plain sand under
+ *     them, each named under its region as it passes), Monty and the samba troupe dancing at the side, Viktor at the tail and the Mole Crusher's end for him;
  *     about a minute and a half to two minutes and a half, THE END and its numbers
  *     on the picture;
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
@@ -25,8 +26,8 @@ import { CREDIT, PORT_CREDITS, readWon } from '../../shared/ending/credits';
 import { RewardShow, type Place, type Reel } from '../../shared/ending/show';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
-import { BandWatch, CastWatch, ProcessionWatch, SHOW_FRAMES, drawVisitors, groundShare, touching } from '../../shared/test/ending-kit';
-import { MARCH, NAME_LETTERS } from '../../shared/ending/procession';
+import { BandWatch, CastWatch, ParadeWatch, SHOW_FRAMES, drawVisitors, groundShare, touching } from '../../shared/test/ending-kit';
+import { MARCH, NAME_LETTERS, PARADE } from '../../shared/ending/procession';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../../montyotr/src/ending';
@@ -44,6 +45,7 @@ import { standY } from './route';
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
 const PROC = must(WORLD_ENDING.procession, 'the procession');
+const STYLE = must(PROC.parade, 'the parade');
 
 // the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
 let seed = 12345;
@@ -156,10 +158,10 @@ show.start(stats);
 let frames = 0;
 const phases: string[] = [];
 let lastPlace = -1, placeFrames = 0, placesSeen = 0;
-const bandWatch = new BandWatch(), castWatch = new CastWatch(), procWatch = new ProcessionWatch();
+const bandWatch = new BandWatch(), castWatch = new CastWatch(), procWatch = new ParadeWatch();
 let endFrames = 0, endYellow = 0, paradeFrames = 0, paradeLength = 0, shownOff = 0;
 const sceneFrames: number[] = [];
-while (show.active && frames < 14000) {
+while (show.active && frames < 16000) {
   input.poll();
   show.tick();
   show.render(0);
@@ -186,7 +188,7 @@ while (show.active && frames < 14000) {
     paradeLength = p.length;
     const mask = new Uint8Array(320 * 200).fill(TRANSPARENT);
     drawVisitors(renderer, mask);
-    procWatch.frame(p, renderer.picture(), mask, PROC.ground, [7, CREDIT.nameColour]);
+    procWatch.frame(p, renderer.picture(), mask, PROC.ground, [STYLE.ink]);
     if (paradeFrames % 50 === 0) png(`parade-${String(paradeFrames).padStart(4, '0')}.png`, renderer);
   } else if (p.phase === 'end') {
     endFrames++;
@@ -212,19 +214,23 @@ check(`the cast: ${CAST.length} creatures, each with frames (${figures.length} r
 check(`creatures are named as the cast says, in order`, CAST.every((c, i) => figures[i]?.name === c.name));
 check(`the cast walks (${figures.filter((f) => f.poses >= 4).length} have 4 frames or more)`, figures.filter((f) => f.poses >= 4).length >= CAST.length - 3);
 check(`no creature walks through a place of the montage: they march in the procession after it (${castWatch.walked.size} seen in places)`, castWatch.walked.size === 0);
-// the procession: a troupe from each region in the journey's order under its name, Monty last
+// the parade: a group from each region in the journey's order behind its banner, Viktor last
 {
   const troupes = progress.troupes;
   const regions = PROC.troupes.map((t) => t.title);
-  check(`the troupes: one per region in the journey's order (${troupes.map((t) => t.title || '(Monty)').join(', ')}), then Monty on his own`, troupes.length === regions.length + 1 && regions.every((r, i) => troupes[i]?.title === r) && troupes[troupes.length - 1]?.names.join() === PROC.hero.name && regions.join() === 'MOSCOW,SIBERIA,CHINA,JAPAN,HAWAII,ANDES,RIO');
-  check('the troupes march the cast in its order, four at most each', troupes.slice(0, -1).flatMap((t) => t.names).join() === CAST.map((c) => c.name).join() && troupes.every((t) => t.names.length >= 1 && t.names.length <= MARCH.most));
-  procWatch.check(troupes);
+  check(`the groups: one per region in the journey's order (${troupes.map((t) => t.title).join(', ')})`, troupes.length === regions.length && regions.every((r, i) => troupes[i]?.title === r) && regions.join() === 'MOSCOW,SIBERIA,CHINA,JAPAN,HAWAII,ANDES,RIO');
+  check('the groups march the cast in its order, four at most each', troupes.flatMap((t) => t.names).join() === CAST.map((c) => c.name).join() && troupes.every((t) => t.names.length >= 1 && t.names.length <= MARCH.most));
+  check(`Viktor is the gag at the tail (${progress.gagName ?? 'none'})`, progress.gagName === STYLE.gag?.name);
+  procWatch.check(troupes, PARADE.crushAt);
+}
+{
+  const troupes = progress.troupes;
   check(`the procession is ${(paradeFrames / 50).toFixed(0)} s, all of it shown`, paradeLength > 0 && paradeFrames >= paradeLength);
-  const names = troupes.flatMap((t) => [t.title, ...t.names]);
+  const names = [...troupes.flatMap((t) => [t.title, ...t.names]), progress.gagName ?? ''];
   const badNames = names.filter((n) => n.length > NAME_LETTERS || [...n].some((c) => c !== ' ' && !montyFont().glyph(c)));
   check(`every heading and name fits its half of a row (${NAME_LETTERS} letters) in the game's lettering${badNames.length ? ` (not: ${badNames.join(', ')})` : ''}`, badNames.length === 0);
   const dark = show.cast.filter((f) => groundShare(f, PROC.ground.colour ?? 0) > 0.2).map((f) => f.name);
-  check(`every creature reads on the plain ground in its own colours: none is mostly the ground's colour${dark.length ? ` (${dark.join(', ')})` : ''}`, dark.length === 0);
+  check(`every creature reads on the plain sand in its own colours: none is mostly the sand's colour${dark.length ? ` (${dark.join(', ')})` : ''}`, dark.length === 0);
 }
 check(`THE END is on the picture in yellow (${endYellow} pixels)`, endYellow > 100);
 
@@ -253,8 +259,8 @@ check('the game\'s own credit is last (a new game, not a port: the port\'s "rebu
   let ended = 0, n = 0;
   const s = new RewardShow({ host: { renderer, input, canvas: nowhere }, spec: { ...spec, places: spec.places.slice(-1) }, font: montyFont, music: { start() {}, end() {} }, done: () => { ended++; } });
   s.start(stats);
-  while (s.active && n < 4000 && !(s.progress.phase === 'parade' && s.progress.frames > 100)) { input.poll(); s.tick(); n++; }
-  check(`the procession comes on after the last place, its first troupe marching (${s.progress.marching?.title ?? 'none'}) and the show's clock counting on through it (shown ${s.progress.shown} of ${n} frames)`, s.progress.phase === 'parade' && s.progress.marching?.title === 'MOSCOW' && s.progress.shown === n);
+  while (s.active && n < 4000 && !(s.progress.phase === 'parade' && s.progress.marching !== null)) { input.poll(); s.tick(); n++; }
+  check(`the procession comes on after the last place, its first group passing (${s.progress.marching?.title ?? 'none'}) and the show's clock counting on through it (shown ${s.progress.shown} of ${n} frames)`, s.progress.phase === 'parade' && s.progress.marching?.title === 'MOSCOW' && s.progress.shown === n);
   input.keyDown('Space'); input.poll(); s.tick(); input.keyUp('Space'); input.poll();
   check('a key in the procession skips the rest of the show', !s.active && ended === 1);
 }

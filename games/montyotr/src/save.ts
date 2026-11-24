@@ -66,6 +66,12 @@ export function restore(g: Game, data: MontySave) {
 export const parseSave = (v: unknown): MontySave | null => (MontySave(v) ? v : null);
 
 /**
+ * How a game reads the saves of its earlier formats: the formats it still reads, and what a save of one becomes in the current format (a game whose rooms or
+ * finds moved: their places in the tables are what a save holds).
+ */
+export interface OlderSaves { readonly formats: readonly number[]; migrate(s: MontySave, format: number): MontySave }
+
+/**
  * A game's save codec: saves as bytes, their JSON. `format` is the number its bytes are at (the envelope's: `{ v: 3, game,
  * format }`, games/shared/saves.ts); every Monty game's save has the same shape, each its own codec under its own name. `older` reads the
  * formats before it: each turns a save of that format into one of today's (a game whose tables changed: Do Svidaniya Monty's save-migrate.ts).

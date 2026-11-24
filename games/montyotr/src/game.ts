@@ -533,9 +533,16 @@ export class Game implements MontyBody, MontyWorld {
     this.roomExit = 0;
     this.scol[3] = 0x0f;
     if (this.showJetpack) this.montyAction = 0;
+    if (this.montyAction && this.savedY === 0xda && this.data.ropeHoldRooms?.includes(this.roomId) && this.onRopeHere()) { this.montyAction = 0; this.arcIdx = 0; this.inputFire = false; }
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
     this.onRoomLoaded(this);
+  }
+
+  /** Whether a rope is in any of the cells his body overlaps (as the move's own rope check looks). */
+  private onRopeHere(): boolean {
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) if (this.flagAt(this.montyRow + r, this.montyCol + c) === 3) return true;
+    return false;
   }
 
   /** On his feet (standing, on a rope, or in the C5): counted. */

@@ -7,6 +7,8 @@ import { CLOSING, PLACES } from './ending-places';
 import { ROUTES } from './ending-routes';
 import { FIRST_CREATURE } from './layout';
 import { RIO_ROOM } from './rio';
+import { RIO_CREATURES } from './art/rio-creatures';
+import { mirrored, spriteBlock } from './art/pixels';
 
 /**
  * Do Svidaniya Monty's reward show (ENHANCED): the places (ending-places.ts) with where each starts him and the route that does what it says there (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
@@ -31,33 +33,76 @@ export const SCENES: readonly Scene[] = PLACES.map((p, i): Scene => {
  */
 const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['matryoshka', 'MATRYOSHKA DOLL'], ['guard', 'KREMLIN GUARD'], ['babushka', 'BABUSHKA'], ['cossack', 'COSSACK DANCER']],
-  [['wolf', 'WOLF'], ['reindeer', 'REINDEER'], ['inspector', 'TICKET INSPECTOR'], ['nerpa', 'BAIKAL SEAL']],
+  [['inspector', 'TICKET INSPECTOR'], ['yeti', 'YETI'], ['miner', 'MINER'], ['reindeer', 'REINDEER']],
   [['panda', 'PANDA'], ['warrior', 'TERRACOTTA WARRIOR'], ['lion', 'STONE LION'], ['kite', 'KITE']],
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
   [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
   [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
-  [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER'], ['agent', 'CUSTOMS OFFICER']],
+  [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER']],
 ];
 /** The regions' names, Montos (where he sets out from) left off. */
 const REGIONS = STOPS.slice(1).map((s) => s.name);
 if (REGIONS.length !== TROUPES.length) throw new Error(`a troupe for each region: ${REGIONS.length} regions, ${TROUPES.length} troupes`);
 const KEYS = Object.keys(WORLD_CREATURES);
-const CAST: MontyEnding['cast'] = TROUPES.flat().map(([key, name]) => {
+/** A creature's enemy type: its place in the art's list. */
+function typeOf(key: WorldCreature): number {
   const at = KEYS.indexOf(key);
   if (at < 0) throw new Error(`no creature ${key}`);
-  return { types: [FIRST_CREATURE + at], name };
-});
+  return FIRST_CREATURE + at;
+}
+const CAST: MontyEnding['cast'] = TROUPES.flat().map(([key, name]) => ({ types: [typeOf(key)], name }));
+/** Where a creature of Rio's troupe is in the cast (the finale's samba troupe leads the parade and dances with Monty at the side). */
+const castOf = (key: WorldCreature): number => {
+  const at = TROUPES.flat().findIndex(([k]) => k === key);
+  if (at < 0) throw new Error(`${key} is not in the cast`);
+  return at;
+};
 
 /**
- * The ground the procession marches on: a plain black band over the beach's sand and the promenade (rows 144 to the foot), the sky, the sea and the Redeemer above it; the region's name at its top, the
- * marchers' feet on a line under them, and their names in the two rows under it.
+ * The sixteen pictures of a four-way split (as Monty's are, the bank's $7E-$8D: going back, on, up and down, four pictures each, a small wobble) made from a creature's first frame: the stand-in for Viktor's
+ * own split pictures until they are drawn.
+ */
+function splitOf(frames: Uint8Array): Uint8Array[] {
+  const rows = Array.from({ length: 16 }, (_, y) => Array.from({ length: 16 }, (_, x) => ((frames[(y >> 3) * 16 + (x >> 3) * 8 + (y & 7)] ?? 0) & (0x80 >> (x & 7)) ? '#' : '.')).join(''));
+  const block = (pic: readonly string[], dy: number) => spriteBlock('viktor split', Array.from({ length: 21 }, (_, y) => `${pic[y - dy] ?? '.'.repeat(16)}........`));
+  const turned = (down: boolean) => Array.from({ length: 16 }, (_, y) => Array.from({ length: 16 }, (_, x) => (down ? rows[x]?.[15 - y] : rows[15 - x]?.[y]) ?? '.').join(''));
+  const ways = [rows, mirrored(rows), turned(true), turned(false)];
+  return ways.flatMap((pic) => [0, 1, 2, 1].map((dy) => block(pic, dy)));
+}
+
+/**
+ * Viktor, the agent who followed Monty round the world, at the parade's tail: his walk is the agent creature's (art/rio-creatures.ts `agent`), his split under the crusher made from its first frame. His own
+ * pictures (art/viktor.ts `VIKTOR_SPLIT`, `VIKTOR_NAME`), when they come, go in here and nowhere else.
+ */
+export const VIKTOR = { name: 'VIKTOR VOLE', creature: 'agent', split: splitOf(RIO_CREATURES.agent.frames) } as const satisfies { name: string; creature: WorldCreature; split: readonly Uint8Array[] };
+
+/**
+ * The beach's plain sand under the parade: one colour, nothing of the picture behind it. Moonlit sand, dark grey: the one colour no marcher is drawn in (orange would hide the terracotta warrior and
+ * the gaucho, brown the reindeer, yellow six of them).
+ */
+export const PARADE_SAND = 11;
+
+/**
+ * The procession after the last credit: Rio's carnival parade across the beach at night (shared/ending/procession.ts `PARADE`). The beach's close-up stands behind (the sky, the sea, Sugarloaf, the Redeemer, the
+ * umbrella) with fireworks bursting over it; from the sea down the sand is one plain colour. The finale's samba troupe (a dancer and a drummer) leads, then each region's creatures behind a banner with its name,
+ * bouncing on the beat, each named under them as it passes the middle; Monty and the troupe dance at the side, behind the column, watching; Viktor sneaks after him at the tail, and a Mole Crusher gets him.
  */
 const PROCESSION: NonNullable<MontyEnding['procession']> = {
   troupes: TROUPES.map((t, i) => ({ title: REGIONS[i] ?? '', size: t.length })),
   hero: { title: '', name: 'MONTY MOLE' },
-  ground: { top: 144, feet: 179, line: 6 },
+  ground: { top: 128, feet: 176, line: PARADE_SAND, colour: PARADE_SAND },
   titleRow: 147,
   nameRows: [183, 192],
+  parade: {
+    leaders: [castOf('drummer'), castOf('dancer')],
+    watchers: [castOf('dancer'), castOf('drummer')],
+    watch: { x: [228, 254, 280], feet: 150 },
+    banner: { cloth: [2, 6, 5, 4, 2, 6, 5], ink: 1, pole: 1 },
+    ink: 7,
+    fireworks: [[56, 44], [120, 34], [250, 40], [150, 60]],
+    sparks: [7, 10, 13, 3, 1],
+    gag: { name: VIKTOR.name, types: [typeOf(VIKTOR.creature)], split: VIKTOR.split },
+  },
 };
 
 export const WORLD_ENDING: MontyEnding = {

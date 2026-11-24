@@ -1,4 +1,4 @@
-import { dissolve, dissolveDeath, sinkStep, wait, type Seq } from '../../shared/monty/deaths';
+import { dissolve, dissolveDeath, sinkStep, splitDeath, wait, type Seq } from '../../shared/monty/deaths';
 import type { Game } from './game';
 import { C5_START, c5Arrive, c5Restart, c5Road } from './mechanisms';
 
@@ -26,34 +26,7 @@ function* nothing(): Seq {}
 // ---- deaths ---------------------------------------------------------------------------------
 
 function* death4Split(g: Game): Seq {
-  g.enable |= 0x0f;
-  g.multicolour = 0;
-  g.sx[0] = g.sx[1] = g.x2;
-  g.sx[2] = (g.x2 - 8) & 0xff;
-  g.sx[3] = (g.sx[2] + 0x10) & 0xff;
-  g.sy[2] = g.sy[3] = g.y;
-  g.sy[0] = (g.y - 0x10) & 0xff;
-  g.sy[1] = (g.sy[0] + 0x20) & 0xff;
-  g.scol.fill(1, 0, 4);
-  let n = 0;
-  for (;;) {
-    if (g.sx[2] < 3) g.enable &= 0xfb;
-    g.sx[2] = (g.sx[2] - 3) & 0xff;
-    g.sx[3] = (g.sx[3] + 3) & 0xff;
-    if (g.sx[3] >= 0xa0) g.enable &= 0xf7;
-    if (g.sy[0] < 3) g.enable &= 0xfe;
-    g.sy[0] = (g.sy[0] - 3) & 0xff;
-    if (g.sy[1] + 3 > 0xff) g.enable &= 0xfd;
-    g.sy[1] = (g.sy[1] + 3) & 0xff;
-    n++;
-    const x = (n & 7) >> 1;
-    g.sptr[1] = 0x7e + 12 + x;
-    g.sptr[0] = 0x7e + 8 + x;
-    g.sptr[3] = 0x7e + 4 + x;
-    g.sptr[2] = 0x7e + x;
-    if (!(g.enable & 0x0f)) break;
-    yield;
-  }
+  yield* splitDeath(g);
   yield* lifeLost(g);
 }
 

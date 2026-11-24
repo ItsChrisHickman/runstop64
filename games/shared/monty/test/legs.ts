@@ -250,6 +250,12 @@ export function runLegs(run: LegsRun): LegsResult {
   const whole = from === 0 && to === legs.length;
   let end: State | null = live !== null && at === to ? live : null;
   if (ok && whole && end === null) { end = reach(legs.length); ok = end !== null; }
+  // no life lost on the way: a death the bot did not see (and a restart it took for a way on) shows here, in ORIGINAL; in ENHANCED a death takes no life, and the bot's own check (bot.ts `diedIn`) is the proof
+  const last = end ?? live;
+  if (ok && last) {
+    check(`${mode}: no life lost on the way (${last.g.lives} as at the start, ${run.start.g.lives})`, last.g.lives === run.start.g.lives);
+    ok &&= last.g.lives === run.start.g.lives;
+  }
   if (end) keepAt(legs.length, end);
   const complete = ok && whole && end !== null;
 

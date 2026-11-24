@@ -20,7 +20,9 @@ import { WORLD } from '../src/data';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
 import { BARS_CELLS, CABLE_CAR, CLOSED_CELLS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from '../src/rio';
-import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
+import { AGENT_POINTERS, CAR_POINTERS, FINALE_POINTERS as FP, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
+import { SAND_COLOUR } from '../src/finale';
+import { FRAME } from '../../shared/monty/frames';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
@@ -329,10 +331,48 @@ SCOPE.section([R.bust], 'the finale', () => {
   let touched = -1;
   for (let f = 0; f < 200 && touched < 0; f++) { frame(s, RIGHT); if (s.g.completionActive) touched = f; }
   check('walking east along the promenade he touches the acai bowl and the finale begins', touched >= 0);
-  let over = -1, troupe = false, sat = false;
-  const standing = s.g.sy[3] ?? 0;
-  for (let f = 0; f < 3000 && over < 0; f++) { frame(s, NONE); if (s.g.gameOverActive) over = f; if ((s.g.vic.enable & 0x36) === 0x36) troupe = true; if ((s.g.sy[3] ?? 0) === standing + 4 && (s.g.vic.enable & 0x01)) sat = true; }
-  check(`the finale runs by itself to GAME OVER (${over} frames): he sits in the chair, the troupe (two dancers, two drummers) walks on, the game is won`, over > 600 && over < 2000 && s.g.won && troupe && sat);
+  // every frame: which beat Monty's pictures say he is in (sprite 3), the spoonfuls (the spoon reaching his mouth), the berries left, the troupe on
+  type Beat = 'walk' | 'sit' | 'dance';
+  const beats: Beat[] = [];
+  let over = -1, mouths = 0, lastPtr = -1, troupeOn = -1, expanded = true, chairShown = false, sand = false;
+  const berries: number[] = [];
+  const sitting = new Set<number>([FP.sitDip, FP.sitUp, FP.sitMouth, FP.sitChew]);
+  const dancing = new Set<number>([FP.danceLeft, FP.danceRight]);
+  const spoon: number[] = [], spoons: number[] = [];
+  for (let f = 0; f < 3000 && over < 0; f++) {
+    frame(s, NONE);
+    const v = s.g.vic, ptr = v.sprites[3]?.ptr ?? 0;
+    if (s.g.gameOverActive) { over = f; break; }
+    const shown = (n: number) => (v.enable & (1 << n)) !== 0;
+    const beat: Beat | null = !shown(3) || !(v.expandX & 0x08) ? null : sitting.has(ptr) ? 'sit' : dancing.has(ptr) ? 'dance' : ptr >= FRAME.walkLeft && ptr < FRAME.walkLeft + 8 ? 'walk' : null;
+    // (his dance has samba steps in his walk's pictures: once he dances, a step is part of it)
+    if (beat && beats[beats.length - 1] !== beat && !(beat === 'walk' && beats.includes('dance'))) beats.push(beat);
+    if (beat === 'sit' && ptr !== lastPtr) spoon.push(ptr);
+    { const sp = shown(0) && (v.sprites[0]?.colour ?? 0) === 1 && beat === 'sit' ? v.sprites[0]?.ptr ?? 0 : 0; if (sp && spoons[spoons.length - 1] !== sp) spoons.push(sp); }
+    if (beat === 'sit' && ptr === FP.sitMouth && lastPtr !== FP.sitMouth) mouths++;
+    lastPtr = ptr;
+    if (beat && !(v.expandY & 0x08)) expanded = false;
+    // (until the last is eaten: then sprite 1 is a drummer's)
+    if (beat === 'sit' && berries[berries.length - 1] !== 0) { const b = shown(1) ? v.sprites[1]?.ptr ?? 0 : 0; if (berries[berries.length - 1] !== b) berries.push(b); }
+    if (shown(7) && v.sprites[7]?.ptr === FP.chair && (v.multicolour & 0x80) && (v.expandX & 0x80)) chairShown = true;
+    if (troupeOn < 0 && [1, 4, 5, 6].every(shown) && [1, 4, 5, 6].every((n) => ((v.sprites[n]?.ptr ?? 0) & 0xf0) === 0x30)) troupeOn = beats.length;
+    if (beat === 'sit' && !sand) {
+      // (the close-up: the sand two plain rows of one colour, nothing between the sea's row and the sand but the umbrella's pole)
+      const row = (r: number) => Array.from({ length: 32 }, (_, c) => (r + 3) * 40 + c + 4);
+      const plain = [18, 19].every((r) => row(r).every((i) => s.g.col[i] === SAND_COLOUR && s.g.mem[0x800 + i] === (s.g.mem[0x800 + (row(18)[0] ?? 0)] ?? -1)));
+      const clear = [13, 14, 15, 16, 17].every((r) => row(r).every((i) => { const c = s.g.mem[0x800 + i] ?? 0; return c === 0 || c >= 0x9b; }));
+      sand = plain && clear;
+    }
+  }
+  check(`the picture cuts to the close-up: the sand plain, the palms, the table and the near sea gone (${sand}); the deckchair a striped multicolour sprite, expanded (${chairShown})`, sand && chairShown);
+  check(`the beats in order, every one in his own expanded pictures (${beats.join(', ')}; expanded ${expanded}): he walks to the chair, sits, eats, and gets up to dance`, beats.join() === 'walk,sit,walk,dance' && expanded);
+  const cycle = spoon.join(' ');
+  const fp = (n: number) => n.toString(16);
+  check(`he eats with the spoon: bowl, up, to his mouth, chewing, three times (${mouths} spoonfuls: ${spoon.map(fp).join(' ')})`, mouths === 3 && cycle.includes([FP.sitDip, FP.sitUp, FP.sitMouth, FP.sitChew].join(' ')));
+  check(`the spoon is a white sprite of its own going bowl, up, mouth (${spoons.map(fp).join(' ')})`, spoons.join(' ').includes([FP.spoonDip, FP.spoonUp, FP.spoonMouth].join(' ')));
+  check(`a berry goes with each spoonful (${berries.map(fp).join(' ')})`, berries.join() === [FP.berries3, FP.berries2, FP.berries1, 0].join());
+  check(`the samba troupe (two dancers, two drummers) comes on once he has eaten, before he dances (at beat ${troupeOn})`, troupeOn >= 2 && troupeOn <= 3);
+  check(`the finale runs by itself to GAME OVER (${over} frames), the game won`, over > 600 && over < 2000 && s.g.won);
 });
 SCOPE.report();
 finish();

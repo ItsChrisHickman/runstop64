@@ -12,6 +12,10 @@ import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
 
 /** The rooms the reset cut, and the kept room of the same region a save in one carries on in (docs/dosvidaniya-reset.md). Other regions' rebuilds add theirs here. */
 export const RETIRED: Readonly<Record<number, number>> = {
+  // Siberia: the forest carries on in the yeti's cave, the dark shaft in the mine, the lake at the border
+  12: 13, // PINE TO BE WILD
+  15: 14, // SHAFT OF DARKNESS
+  16: 17, // BAIKAL TO BASICS
   // the Pacific (docs/dosvidaniya-reset.md): each cut room's save carries on in the kept room of its island or crossing
   39: 38, // BOX CLEVER: the cargo ship
   40: 41, // PIER PRESSURE: Waikiki

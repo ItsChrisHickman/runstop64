@@ -6,7 +6,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/shared/test/ending-procession.ts
  */
-import { BOW, FLAT, MARCH, NAME_LETTERS, movesFor, nameSpot, phasesOf, processionOf, troupeAt, type Move, type TroupeShape } from '../ending/procession';
+import { BOW, FLAT, MARCH, NAME_LETTERS, PARADE, movesFor, nameSpot, paradeAt, paradeOf, phasesOf, processionOf, troupeAt, type Move, type ParadeShape, type ParadeUnit, type TroupeShape } from '../ending/procession';
 import { check, finish } from './check';
 
 const troupe = (n: number, width = 24, first = 0): TroupeShape => ({ members: movesFor(first, n).map((move) => ({ width, move })) });
@@ -71,6 +71,49 @@ for (const n of [1, 2, 3, 4]) {
   const rows = [183, 192] as const;
   const spots = [0, 1, 2, 3].map((k) => nameSpot(k, rows));
   check('four names, four spots: two to a row, two rows, each with room for a whole name', new Set(spots.map((s) => `${s.x},${s.row}`)).size === 4 && spots.every((s) => s.x + NAME_LETTERS * 8 <= 320) && (spots[1]?.x ?? 0) >= (spots[0]?.x ?? 0) + NAME_LETTERS * 8);
+}
+
+// the carnival parade: one column, the groups behind their banners, names as each passes, the gag's end
+{
+  const member = (group: number, width = 16): ParadeUnit => ({ kind: 'member', width, group });
+  const units: ParadeUnit[] = [
+    { kind: 'leader', width: 16, group: -1 }, { kind: 'leader', width: 16, group: -1 },
+    { kind: 'banner', width: 64, group: 0 }, member(0), member(0, 24), member(0), member(0),
+    { kind: 'banner', width: 56, group: 1 }, member(1), member(1),
+    { kind: 'banner', width: 40, group: 2 }, member(2, 24),
+    { kind: 'gag', width: 16, group: -1 },
+  ];
+  const shape: ParadeShape = { units, crush: 60 }, p = paradeOf(shape);
+  let order = true, apart = true, offAfter = true, bounced = 0, bannersStill = true;
+  const named: number[] = [], groups: number[] = [], phases: string[] = [];
+  let gagLeft = new Set<number>(), namesOk = true, prevNamed: number[] = [];
+  for (let t = 0; t < p.length; t++) {
+    const now = paradeAt(shape, t);
+    // (the column keeps its order and its spacing: each unit behind the one in front, never touching it)
+    for (let k = 1; k < units.length; k++) {
+      const a = now.lefts[k - 1] ?? 0, b = now.lefts[k] ?? 0, w = units[k]?.width ?? 0;
+      if (b >= a) order = false;
+      if (b + w > a && k !== units.length - 1) apart = false;
+    }
+    if (now.lifts.some((l, k) => l > 0 && units[k]?.kind === 'member')) bounced++;
+    if (now.lifts.some((l, k) => l !== 0 && (units[k]?.kind === 'banner' || units[k]?.kind === 'gag'))) bannersStill = false;
+    if (groups[groups.length - 1] !== now.group) groups.push(now.group);
+    // (names only grow within a group, in the column's order, and start again with the next group)
+    const same = now.named.length >= prevNamed.length && prevNamed.every((k, i) => now.named[i] === k);
+    if (!same && now.named.length > 1) namesOk = false;
+    for (const k of now.named) if (!named.includes(k)) named.push(k);
+    prevNamed = now.named;
+    if (phases[phases.length - 1] !== now.gag.phase) phases.push(now.gag.phase);
+    if (now.gag.phase !== 'march') gagLeft.add(now.lefts[units.length - 1] ?? 0);
+    if (now.gag.phase === 'cheer' && units.slice(0, -1).some((_, k) => (now.lefts[k] ?? 0) < 320)) offAfter = false;
+  }
+  const members = units.flatMap((u, k) => (u.kind === 'member' ? [k] : []));
+  check(`the parade keeps its order (${order}) and its spacing (${apart}): no one passes or touches the one in front`, order && apart);
+  check(`the marchers bounce on the beat (${bounced} frames), the banners and the gag do not`, bounced > 100 && bannersStill);
+  check(`the groups pass in order (${groups.join(' ')}) and every marcher is named once as it passes, in the column's order, the names starting again with each group`, groups.join() === '-1,0,1,2' && named.join() === members.join() && namesOk);
+  check(`the gag's end: ${phases.join(', ')}, standing at ${[...gagLeft].join(' ')}, the crusher death as long as the game says (${p.phases.rise - p.phases.crush} frames), the rest of the column gone by the cheer`, phases.join() === 'march,stop,drop,crush,rise,cheer' && gagLeft.size === 1 && gagLeft.has(PARADE.crushAt) && p.phases.rise - p.phases.crush === 60 && offAfter);
+  check(`a parade of thirty is a watchable length (${(paradeOf({ units: [...units, ...units.slice(2, -1), ...units.slice(2, -1), ...units.slice(2)] }).length / 50).toFixed(0)} s)`, paradeOf({ units: [...units, ...units.slice(2, -1), ...units.slice(2, -1), ...units.slice(2)] }).length / 50 < 60);
+  gagLeft = new Set();
 }
 
 finish();

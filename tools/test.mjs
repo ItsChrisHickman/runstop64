@@ -36,7 +36,7 @@ await build({
   plugins: [{
     name: 'url-stub',
     setup(b) {
-      b.onResolve({ filter: /\?url$/ }, (a) => ({ path: a.path, namespace: 'url-stub' }));
+      b.onResolve({ filter: /\?(?:worker&)?url$/ }, (a) => ({ path: a.path, namespace: 'url-stub' }));
       b.onLoad({ filter: /.*/, namespace: 'url-stub' }, () => ({ contents: 'export default ""', loader: 'js' }));
     },
   }],
