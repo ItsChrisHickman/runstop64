@@ -1,8 +1,8 @@
 /**
  * Do Svidaniya Monty's own title screen (src/title.ts, title-art.ts), through the front end: the logo, the map from Montos to Rio and
- * its labels, Monty walking the route on a loop, the story scroller, the credits; the C64's limits (one set of 256 characters, the
+ * its labels, Monty walking the route on a loop with Viktor after him (a different turn each loop), the story scroller, the credits; the C64's limits (one set of 256 characters, the
  * sprites in blocks the bank leaves empty, the palette); nothing of Monty on the Run's title in it; ENTER CONTINUE's row left empty;
- * and the title given back on leaving it. With an out-dir, three frames of it.
+ * and the title given back on leaving it. With an out-dir, three frames of it and frames of each loop's turn.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/title.ts [out-dir]
  */
@@ -14,7 +14,8 @@ import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { WORLD } from '../src/data';
 import { run } from '../src/main';
-import { MapTitle, MONTY_BITS, MONTY_HEIGHT, SPRITE_BLOCKS, STAND, STORY, STRIP_Y, VIKTOR_BITS, VIKTOR_GAP, WALK_FRAMES } from '../src/title';
+import { MapTitle, MONTY_BITS, MONTY_HEIGHT, SCENES, SPRITE_BLOCKS, STAND, STORY, STRIP_Y, VIKTOR_BITS, VIKTOR_GAP, WALK_FRAMES } from '../src/title';
+import { chaseAt, HIDE_DROP, loopLength, type ChaseAt, type Scene } from '../src/title-chase';
 import { buildTitleArt, CREDIT_LINES, glyphOf, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, STOPS } from '../src/title-art';
 import { VIKTOR_HEIGHT } from '../src/title-viktor';
 import { savePng } from './shots-kit';
@@ -35,7 +36,7 @@ check('one set: every character the screen shows is one of 256, and the scroller
 check('the logo is cut with a light edge (MC1), a dark edge and shadow (MC2) and a body (the cell\'s colour): all three in its cells', [1, 2, 3].every((v) => art.pairs.slice(0, 64 * 160).some((x) => x === v)));
 check('the multicolour colours are white and brown, the cells\' own colours 0-7', MC1 === 1 && MC2 === 9 && [...art.colour].every((c) => c < 16));
 check('every colour is the C64\'s (0-15)', art.colour.every((c) => c < 16));
-check('the sprite blocks Monty, his hat and Viktor use are empty in the bank', [...Array(16).keys()].every((i) => WORLD.bankImage.subarray((SPRITE_BLOCKS.monty + i) * 64, (SPRITE_BLOCKS.monty + i) * 64 + 64).every((b) => b === 0)));
+check('the sprite blocks Monty, his hat and Viktor use ($30-$4B) are empty in the bank', [...Array(SPRITE_BLOCKS.hiddenHat - SPRITE_BLOCKS.monty + 1).keys()].every((i) => WORLD.bankImage.subarray((SPRITE_BLOCKS.monty + i) * 64, (SPRITE_BLOCKS.monty + i) * 64 + 64).every((b) => b === 0)));
 
 // ---- the title is up -------------------------------------------------------------------------------------------------
 tick(3);
@@ -68,7 +69,7 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
 {
   const spot = () => ({ x: g.vic.sprites[0].x - 24 + 8, y: g.vic.sprites[0].y - 50 + MONTY_HEIGHT, on: (g.vic.enable & MONTY_BITS) === MONTY_BITS });
   const viktor = () => ({ x: g.vic.sprites[2].x - 24 + 12, y: g.vic.sprites[2].y - 50 + VIKTOR_HEIGHT, on: (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS });
-  let covered = 0, behind = 0, apart = 0, viktorFrames = 0, viktorFirst = '';
+  let covered = 0, behind = 0, viktorFrames = 0, viktorFirst = '';
   const seen: { x: number; y: number }[] = [];
   let backwards = 0, offRoute = 0;
   for (let f = 3; f < WALK_FRAMES + STAND - 2; f++) {
@@ -89,23 +90,82 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
     if (w.on) {
       viktorFrames++;
       if (viktorFrames === 1) viktorFirst = `${w.x},${w.y}`;
-      const dist = Math.hypot(s.x - w.x, s.y - w.y);
       if (w.x > s.x + 1) behind++;
-      if (dist < 12 || dist > VIKTOR_GAP + 8) apart++;
-      if (Math.abs(w.y - routeAt(Math.max(0, t * ROUTE_LENGTH - VIKTOR_GAP) / ROUTE_LENGTH).y) > 8) offRoute++;
     }
   }
   const first = must(seen[0], 'a first sighting'), last = must(seen[seen.length - 1], 'a last sighting');
   check(`Monty starts by Montos (${first.x},${first.y}) and reaches Rio (${last.x},${last.y}) along the route (${Math.round(ROUTE_LENGTH)} px, ${WALK_FRAMES} frames)`, first.x < 60 && last.x > 285);
   check(`no walker covers a place name (${covered} frames)`, covered === 0);
   check(`his feet stay on the dotted route (${offRoute} frames off it) and he never walks back (${backwards})`, offRoute === 0 && backwards === 0);
-  check(`Viktor Vole follows ${VIKTOR_GAP} pixels along the route behind him, from Montos (first seen at ${viktorFirst}) to Rio: ${viktorFrames} frames, never ahead of Monty (${behind}) and never on top of him or further off than a few steps (${apart})`, viktorFrames > WALK_FRAMES * 0.8 && behind === 0 && apart === 0);
+  check(`the first loop is the trip: Viktor Vole follows him from Montos (first seen at ${viktorFirst}) to Rio, ${viktorFrames} frames, never ahead of him (${behind})`, SCENES[0]?.name === 'trip' && viktorFrames > WALK_FRAMES * 0.8 && behind === 0);
   check('Viktor is four hires sprites one over the other (coat, star, hat, fur), black, red, grey, orange, with his own sprite blocks', (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS && [2, 3, 4, 5].every((n, i) => g.vic.sprites[n].colour === [0, 2, 12, 8][i] && g.vic.sprites[n].ptr >= SPRITE_BLOCKS.viktor && g.vic.sprites[n].ptr < SPRITE_BLOCKS.viktor + 8));
   check('he is two sprites (his picture and his hat), hires, in front, not expanded', (g.vic.enable & MONTY_BITS) === MONTY_BITS && g.vic.multicolour === 0 && g.vic.priority === 0 && g.vic.expandX === 0);
   tick(10);
   check('after a pause at Rio, he and Viktor are gone for a moment', (g.vic.enable & (MONTY_BITS | VIKTOR_BITS)) === 0);
   tick(30);
   check('and he is back at Montos, to walk it again (a loop)', spot().x < 60 && (g.vic.enable & 3) === 3);
+}
+
+// ---- each loop's turn, in the choreography (title-chase.ts) ---------------------------------------------------------------
+{
+  const frames = (sc: Scene) => Array.from({ length: loopLength(sc) }, (_, f) => ({ f, at: chaseAt(sc, f) })).filter((x): x is { f: number; at: ChaseAt } => x.at !== null);
+  check('the loops take the three turns in order: Viktor trips, Monty hides, Viktor overtakes', SCENES.map((sc) => sc.name).join(' ') === 'trip duck overtake');
+  for (const sc of SCENES) {
+    const all = frames(sc), end = must(all[all.length - 1], 'a last frame').at;
+    let backwards = 0, last = 0;
+    for (const { at } of all) { if (at.monty.d < last - 0.01) backwards++; last = at.monty.d; }
+    check(`${sc.name}: Monty never walks back (${backwards}), reaches Rio and stands there with Viktor ${VIKTOR_GAP} pixels behind him`, backwards === 0 && Math.abs(end.monty.d - ROUTE_LENGTH) < 0.01 && end.viktor !== null && Math.abs(end.monty.d - end.viktor.d - VIKTOR_GAP) < 0.5);
+  }
+  const [tripS, duckS, overS] = SCENES;
+  {
+    const f = frames(must(tripS, 'the trip'));
+    const lying = f.filter((x) => x.at.viktor?.fallen === true);
+    const flies = f.filter((x) => x.at.viktor?.fallen === true && x.at.viktor.hat !== null && x.at.viktor.hat.lift > 0);
+    const gap = Math.max(...f.map((x) => x.at.monty.d - (x.at.viktor?.d ?? x.at.monty.d)));
+    const ahead = f.filter((x) => x.at.viktor !== null && x.at.viktor.d > x.at.monty.d - 12).length;
+    check(`trip: Viktor lies flat ${lying.length} frames, his hat is knocked off ahead of him (${flies.length} frames); Monty gets ${Math.round(gap)} pixels ahead and Viktor runs to catch up, never closer than a few steps (${ahead})`, lying.length > 30 && flies.length > 3 && gap > VIKTOR_GAP + 30 && ahead === 0 && f.some((x) => x.at.viktor?.running === true));
+  }
+  {
+    const f = frames(must(duckS, 'the hiding'));
+    const hidden = f.filter((x) => x.at.monty.drop >= HIDE_DROP);
+    const past = hidden.filter((x) => (x.at.viktor?.d ?? 0) > x.at.monty.d + 20);
+    const looks = hidden.filter((x) => x.at.viktor?.facing === 'west');
+    const ahead = f.filter((x) => x.at.monty.drop === 0 && x.at.viktor !== null && x.at.viktor.d > x.at.monty.d - 12).length;
+    check(`duck: Monty is down behind the names ${hidden.length} frames; Viktor runs past him (${past.length}) and looks back (${looks.length}); on the route Viktor is never on him (${ahead})`, hidden.length > 100 && past.length > 30 && looks.length > 30 && ahead === 0);
+  }
+  {
+    const f = frames(must(overS, 'the overtaking'));
+    const ahead = f.filter((x) => x.at.viktor !== null && x.at.viktor.d > x.at.monty.d + 12);
+    const facesHim = ahead.filter((x) => x.at.viktor?.facing === 'west');
+    const backs = f.filter((x) => x.at.viktor !== null && x.at.viktor.facing === 'east' && x.at.viktor.moving && (chaseAt(must(overS, 'it'), x.f + 1)?.viktor?.d ?? 0) < x.at.viktor.d);
+    check(`overtake: Viktor gets ahead of Monty (${ahead.length} frames), turns to look at him (${facesHim.length}), then backs off past him (${backs.length} frames backwards)`, ahead.length > 40 && facesHim.length > 20 && backs.length > 30);
+  }
+}
+
+// ---- drawn: nobody covers a name over three loops; Monty behind the names shows only what is above them ---------------------------------
+{
+  title.start();
+  const rects = art.labels.map((l) => ({ x0: l.col * 8, x1: (l.col + l.name.length) * 8, y0: (ROWS.map + l.row) * 8, y1: (ROWS.map + l.row + 1) * 8 }));
+  let covered = 0, peeks = 0, hiddenFrames = 0, whole = 0;
+  const cut: number[] = [];
+  const total = SCENES.reduce((n, sc) => n + loopLength(sc), 0);
+  for (let n = 0; n < total; n++) {
+    tick();
+    let montyLit = 0;
+    for (let i = 0; i < 6; i++) {
+      if (!(g.vic.enable & (1 << i))) continue;
+      const sp = g.vic.sprites[i], sx = sp.x - 24, sy = sp.y - 50;
+      for (let r = 0; r < 21; r++) for (let c = 0; c < 24; c++) {
+        if (!((g.mem[sp.ptr * 64 + r * 3 + (c >> 3)] ?? 0) & (0x80 >> (c & 7)))) continue;
+        if (i < 2) montyLit++;
+        if (rects.some((q) => sx + c >= q.x0 && sx + c < q.x1 && sy + r >= q.y0 && sy + r < q.y1)) covered++;
+      }
+    }
+    if (g.vic.sprites[0].ptr === SPRITE_BLOCKS.hidden && (g.vic.enable & 1)) cut.push(montyLit); else whole = Math.max(whole, montyLit);
+  }
+  hiddenFrames = cut.length; peeks = cut.filter((n) => n > 0 && n < whole / 2).length;
+  check(`no sprite pixel is drawn over a place name in the three loops (${covered})`, covered === 0);
+  check(`behind JAPAN and ANDES only a little of Monty shows (his hat and eyes) (under half of him) in ${peeks} of the ${hiddenFrames} frames he is cut`, hiddenFrames > 100 && peeks > 100);
 }
 
 // ---- the scroller and the strip --------------------------------------------------------------------------------------------
@@ -147,6 +207,34 @@ if (out !== undefined) {
   fresh(Math.round(WALK_FRAMES * 0.2)); shot('title-frame1.png');
   tick(Math.round(WALK_FRAMES * 0.3)); shot('title-frame2.png');
   tick(Math.round(WALK_FRAMES * 0.27)); shot('title-frame3.png');
+  // each loop's turn: the frames picked from the choreography
+  let offset = 0;
+  for (const sc of SCENES) {
+    const pick = (what: string, test: (at: ChaseAt) => boolean, after = 0) => {
+      for (let f = 0; f < loopLength(sc); f++) {
+        const at = chaseAt(sc, f);
+        if (at !== null && test(at)) { fresh(offset + f + after); shot(`title-${sc.name}-${what}.png`); return; }
+      }
+      check(`${sc.name}: no frame for ${what}`, false);
+    };
+    if (sc.name === 'trip') {
+      pick('1-falls', (a) => a.viktor?.fallen === true, 4);
+      pick('2-down', (a) => a.viktor?.fallen === true, 30);
+      pick('3-gets-hat', (a) => a.viktor !== null && !a.viktor.fallen && a.viktor.hat !== null && a.viktor.moving);
+      pick('4-runs', (a) => a.viktor?.running === true, 10);
+    } else if (sc.name === 'duck') {
+      pick('1-ducks', (a) => a.monty.drop > 8);
+      pick('2-runs-past', (a) => a.monty.drop >= HIDE_DROP && (a.viktor?.d ?? 0) > a.monty.d + 10);
+      pick('3-looks-back', (a) => a.viktor?.facing === 'west', 10);
+      pick('4-comes-out', (a) => a.monty.drop > 4 && a.monty.drop < HIDE_DROP - 6 && a.viktor?.facing === 'west');
+    } else {
+      pick('1-passes', (a) => a.viktor !== null && a.viktor.d > a.monty.d - 4);
+      pick('2-ahead', (a) => a.viktor !== null && !a.monty.moving && a.viktor.d > a.monty.d + 12, 4);
+      pick('3-looks', (a) => a.viktor?.facing === 'west', 10);
+      pick('4-backs-off', (a) => a.viktor !== null && a.viktor.facing === 'east' && a.viktor.moving && !a.viktor.running && a.monty.moving && a.viktor.d > a.monty.d + 4 && a.viktor.d < a.monty.d + 16);
+    }
+    offset += loopLength(sc);
+  }
   check(`pictures written to ${path.basename(out)}`, true);
 }
 

@@ -176,6 +176,18 @@ export function routeAt(t: number): { readonly x: number; readonly y: number } {
   }
   return { x: 0, y: MAP_Y };
 }
+/** How far along the route, in pixels, it reaches screen column `x` (it only ever goes east). */
+export function distanceAtX(x: number): number {
+  let d = 0;
+  for (let i = 1; i < WAYPOINTS.length; i++) {
+    const a = WAYPOINTS[i - 1], b = WAYPOINTS[i];
+    if (a === undefined || b === undefined) break;
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (x <= b[0]) return d + l * Math.max(0, x - a[0]) / (b[0] - a[0]);
+    d += l;
+  }
+  return d;
+}
 /** The route's length in pixels. */
 export const ROUTE_LENGTH = WAYPOINTS.slice(1).reduce((sum, p, i) => { const q = WAYPOINTS[i]; return sum + (q ? Math.hypot(p[0] - q[0], p[1] - q[1]) : 0); }, 0);
 
