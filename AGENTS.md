@@ -72,9 +72,10 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 ## Workflow and the machine
 
 - **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
-  process with `nice -n 15`. **Up to three tests at once** (Chris, 2026-11-21: speed matters, the server has the power; tests run niced
-  below the sites): `tools/test-all.mjs` (so `npm run verify`) runs three at a time, and before running tests wait for a turn
-  with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 2` before a `JOBS=2` verify). A few agents may
+  process with `nice -n 15`. **Up to two tests at once** (2026-11-24: the box has 4 cores shared with the live sites and CaptureM360's
+  test lane, and three at once made each test about 1.7x slower): `tools/test-all.mjs` (so `npm run verify`) runs two at a
+  time (`JOBS`, 2 by default), and before running tests wait for a turn with `tools/wait-turn.sh` (one slot for a single test,
+  `tools/wait-turn.sh 2` before a verify). A few agents may
   work at once (see the testing rules below).
 - **Testing is a budget, not a ritual** (Chris, 2026-11-24: "every change took 30 to 60 minutes" on a game already largely
   playtested; 2026-11-23: broad runs "wasted a lot of tokens and slowed things down a heck of a lot"). A change is a few
