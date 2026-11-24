@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
 import { indicesPng } from '../../../tools/probe/render';
-import { iconAt, montyMap } from '../../montyotr/src/map';
+import { iconAt, mapView, montyMap } from '../../montyotr/src/map';
 import { regionAt } from '../../montyotr/src/regions';
 import { MAP_BOX, type MapPlace } from '../../shared/native/pause';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
@@ -27,7 +27,20 @@ const input = new Input(nowhere);
 const renderer = new PixelRenderer();
 const p = run({ renderer, input, canvas: nowhere });
 const g = p.game;
-const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
+/** The biggest move of the map's view between two drawn frames, and how many frames it moved in (the camera: never a jump). */
+let biggestStep = 0, movingFrames = 0;
+const tick = (n = 1) => {
+  for (let i = 0; i < n; i++) {
+    const before = mapView(g)?.shown;
+    input.poll(); p.tick(); p.render(0);
+    const after = mapView(g)?.shown;
+    if (before && after && p.state.paused) {
+      const d = Math.max(Math.abs(after.x - before.x), Math.abs(after.y - before.y));
+      biggestStep = Math.max(biggestStep, d);
+      if (d) movingFrames++;
+    }
+  }
+};
 const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
 const outDir = process.argv[2];
 function shot(name: string) {
@@ -85,6 +98,7 @@ for (let n = 0; n < 80; n++) {
   if (!pick || !inBox(pick)) allIn = false;
 }
 check(`the arrows go on from country to country (${seen.join(', ')}), the view following: the pick in the box all the way`, seen[0] === 'moscow' && seen.at(-1) === 'rio' && seen.length >= 5 && allIn);
+check(`the view slides, never jumps: at most 4 pixels between frames (biggest ${biggestStep}, moving in ${movingFrames} frames)`, biggestStep > 0 && biggestStep <= 4);
 check(`the heading follows the view, naming each country as the pick enters it (${headings.join(', ')})`, headings.length === seen.length && headings.every((h, i) => h === labelOf(seen[i])));
 shot('rio');
 const target = Number(fe.picked);

@@ -53,6 +53,8 @@ export interface PauseMap<T, F> {
   readonly found: FoundCodec<F>;
   /** Every frame of play: note what the player has found (`vic`: the VIC-II registers). */
   observe(ram: T, found: F, vic: Uint8Array): void;
+  /** The pause screen has just opened (a map whose view scrolls starts it afresh, on the player). */
+  opened?(ram: T): void;
   /**
    * The heading over the map, e.g. "FLOOR 3" (`page`: which page is shown, for maps with pages). `pick`: the place picked
    * to go to, while one is (maps whose places have names say the picked one's here, so a pick says where it goes).

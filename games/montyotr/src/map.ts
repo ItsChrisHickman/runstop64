@@ -148,12 +148,40 @@ function worldOf(data: MontyData) {
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
+ * The view of a world in regions follows the pick like a camera (Chris, 2026-11-24: a view that jumped a whole country when the
+ * pick crossed a border was confusing): it moves only when the pick comes within `MARGIN` cells of the box's edge (rows: `MARGIN_ROWS`),
+ * just far enough, and slides there `SLIDE` pixels a frame. When the pause screen opens it starts on the player's region, centred.
+ * `to`: where the view is going (the places are placed there, so a pick is always inside the box); `shown`: where it is drawn now.
+ */
+interface Camera { to: { x: number; y: number }; shown: { x: number; y: number }; fresh: boolean }
+const cameras = new WeakMap<Game, Camera>();
+const MARGIN = 2, MARGIN_ROWS = 1, SLIDE = 4;
+/** Where the view of `g`'s map is drawn now, and where it is going (pixels into the world), for the tests; none before it is first drawn. */
+export function mapView(g: Game): { shown: { x: number; y: number }; to: { x: number; y: number } } | undefined {
+  const c = cameras.get(g);
+  return c ? { shown: { ...c.shown }, to: { ...c.to } } : undefined;
+}
+/** Opening the pause screen: the next view starts afresh, on the player. */
+function freshCamera(g: Game) {
+  const c = cameras.get(g);
+  if (c) c.fresh = true;
+}
+/** Moves `at` (a view's offset along one axis) just enough that the cells `from`..`to` (pixels) are `margin` inside the view `size`, within `lo`..`hi`. */
+function follow(at: number, from: number, to: number, margin: number, size: number, lo: number, hi: number): number {
+  let v = at;
+  if (from - margin < v) v = from - margin;
+  if (to + margin > v + size) v = to + margin - size;
+  return clamp(v, lo, hi);
+}
+
+/**
  * Where the cells are, and the window they're seen through (`view`: cells are drawn only inside it). The whole grid, in cells
  * that fit the box; or, a game with `regions` (a world too wide for the box), the whole world in cells as big as its largest
- * region allows, scrolled to the region of `focus` (the picked room's cell, else Monty's): that region centred where the world
- * runs on past the box's sides, its neighbours' rooms on to the edges (Moscow's view takes in Japan; Rio's the Pacific).
+ * region allows, seen through the camera (above) on `focus` (the picked room's cell, else Monty's): opened on its region centred
+ * where the world runs on past the box's sides (Moscow's view takes in Japan; Rio's the Pacific), then following the pick.
+ * `draw`: the frame is being drawn (the view slides a step towards where it is going, and is drawn where it is now).
  */
-function layout(box: Box, g: Game, focus: readonly [row: number, col: number]) {
+function layout(box: Box, g: Game, focus: readonly [row: number, col: number], draw = false) {
   const { data } = g;
   const top = box.y + 2, spare = below(box, data).top - NAMES - top;
   if (!data.regions.length) {
@@ -166,11 +194,22 @@ function layout(box: Box, g: Game, focus: readonly [row: number, col: number]) {
   const cell = Math.min(REGION_CELL, ...data.regions.map((r) => Math.floor(box.w / (r.to - r.from + 1))),
     ...data.regions.map((r) => Math.floor(spare / (r.rows ? r.rows.to - r.rows.from + 1 : rows))));
   const w = Math.min(box.w, cols * cell), h = Math.min(rows, Math.floor(spare / cell)) * cell;
-  const region = regionAt(data.regions, focus[0], focus[1]);
-  const span = { from: region?.from ?? world.from, to: region?.to ?? world.to, rowFrom: region?.rows?.from ?? world.rowFrom, rowTo: region?.rows?.to ?? world.rowTo };
-  // (sideways to the pixel, the edges' cells cut; up and down in whole rows)
-  const ox = clamp(Math.round((span.from + span.to + 1) * cell / 2 - w / 2), world.from * cell, (world.to + 1) * cell - w);
-  const oy = clamp(Math.round(((span.rowFrom + span.rowTo + 1) / 2 - h / cell / 2)) * cell, world.rowFrom * cell, (world.rowTo + 1) * cell - h);
+  const lo = { x: world.from * cell, y: world.rowFrom * cell }, hi = { x: (world.to + 1) * cell - w, y: (world.rowTo + 1) * cell - h };
+  let cam = cameras.get(g);
+  if (!cam || cam.fresh) {
+    // opened: the focus's region centred (sideways to the pixel, the edges' cells cut; up and down in whole rows)
+    const region = regionAt(data.regions, focus[0], focus[1]);
+    const span = { from: region?.from ?? world.from, to: region?.to ?? world.to, rowFrom: region?.rows?.from ?? world.rowFrom, rowTo: region?.rows?.to ?? world.rowTo };
+    const x = clamp(Math.round((span.from + span.to + 1) * cell / 2 - w / 2), lo.x, hi.x);
+    const y = clamp(Math.round(((span.rowFrom + span.rowTo + 1) / 2 - h / cell / 2)) * cell, lo.y, hi.y);
+    cam = { to: { x, y }, shown: { x, y }, fresh: false };
+    cameras.set(g, cam);
+  }
+  // following the focus: just far enough to keep it MARGIN cells inside (up and down in whole rows)
+  cam.to.x = follow(cam.to.x, focus[1] * cell, (focus[1] + 1) * cell, MARGIN * cell, w, lo.x, hi.x);
+  cam.to.y = follow(cam.to.y, focus[0] * cell, (focus[0] + 1) * cell, MARGIN_ROWS * cell, h, lo.y, hi.y);
+  if (draw) for (const k of ['x', 'y'] as const) cam.shown[k] += clamp(cam.to[k] - cam.shown[k], -SLIDE, SLIDE);
+  const { x: ox, y: oy } = draw ? cam.shown : cam.to;
   const vx = box.x + Math.floor((box.w - w) / 2);
   return { cell, view: { x: vx, y: top, w, h }, at: (row: number, col: number) => ({ x: vx + col * cell - ox, y: top + row * cell - oy }) };
 }
@@ -203,6 +242,7 @@ export const montyMap = {
   found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
+  opened: freshCamera,
   /** The heading: the name of the region in view (the picked room's, else Monty's: the view follows the pick); a map with no regions (Monty on the Run's) is THE MAP. */
   title(g, _page, pick) {
     const { data } = g;
@@ -213,7 +253,7 @@ export const montyMap = {
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
     const { progress } = data;
-    const { at, cell, view } = layout(box, g, focusOf(g, found, pick));
+    const { at, cell, view } = layout(box, g, focusOf(g, found, pick), true);
     const tick = shimmer++;
     const { cols, rows } = data.exitGrid;
     for (let r = 0; r < rows; r++) {
