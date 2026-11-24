@@ -52,7 +52,10 @@ module and a new list, never a special case in `game.ts` for one room. A flown s
 The bots (`test/bot.ts`: `search`, `play`, `newGame(data, enhanced)`) search the game's own frames. A region's bot is a list of
 legs (goals: `games/montyworld/test/route.ts` for Moscow, `<region>-route.ts` for the rest) played by `test/legs.ts`
 (`runLegs`) from recorded routes in `games/montyworld/test/routes/` (`--record` after a route changes, `--full` to search
-afresh); mechanism tests record their searches the same way (`test/proofs.ts`, `games/montyworld/test/search.ts`).
+afresh); mechanism tests record their searches the same way (`test/proofs.ts`, `games/montyworld/test/search.ts`), the ways found
+as routes that are played back and the searches that found no way as answers kept while their fingerprint holds (the engine and
+every non-room source, the test-side code, the exact start, and every room of each region the search went into or borders on): a
+change to a room searches that region's no-ways again, nothing else. `--record` once after a room or mechanism changes.
 
 Room scoping (`test/scope.ts`): every room-level test reads `SCOPE`, and every part of a mechanism test is a
 `SCOPE.section([rooms], what, body)` naming every room it enters, reads or can wander into (over-naming is safe). A game

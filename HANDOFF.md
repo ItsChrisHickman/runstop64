@@ -19,10 +19,10 @@ THE SKY; Monty on the Run's says THE MAP); the title chase varied each loop; the
 Hilo to the Andes (`src/sky.ts`, its own region THE SKY, three legs, Viktor's grey biplane, the Spy vs Spy tally 2-1), playing Auf
 Wiedersehen Monty's main theme with the kit's effects over it; the cargo plane's hold cut (Hilo's apron has the biplane, the parachute
 is on the shelf under the crater rim, saves in the hold carry on to the apron). Open:
-- **Test speed** (Chris: sessions far too slow): the region mechanism tests take 6-17 minutes each and `viktor.ts` 13-16, so a batch
-  verify takes 35 minutes and timed out four tests on this 4-core box shared with CaptureM360. Causes: every "no way without the key"
-  proof is a full search on every run (only found ways are recorded), China and Japan have no recorded routes at all, and three tests
-  at once on 4 shared cores. See "Testing is a budget" in AGENTS.md.
+- **Test speed** (done 2026-11-24): the mechanism tests and `viktor.ts` took 1-16 minutes each, almost all of it searches answered
+  afresh on every run (the no-way proofs, and routes never recorded or recorded under stale keys). `proofs.ts` now records a search that
+  found no way too, under a fingerprint of everything it depends on; unchanged, each of the eight takes 1-5 s. After a change to a room or
+  mechanism a region's no-ways are searched again (the run says so): re-record that test once with `--record`. Tests run two at once.
 - `games/montyworld/test/scope.ts` still files the sky's rooms under the Andes for the planner; `src/info.ts`'s room-list prose is stale.
 - **Unshipped playtest-round fixes** on `reset/andes` and `reset/pacific`: they conflict with main (the bot's death check was fixed
   differently on main; the Andes and the Pacific have moved on). Look at what is still worth having, port it by hand, re-record once.

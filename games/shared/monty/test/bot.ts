@@ -31,10 +31,19 @@ const TREASURE = [6, 5 | 0x80] as const;
  */
 export const diedIn = (before: number, after: number): boolean => before === 0 && after !== 0 && !TREASURE.some((t) => t === after);
 
+/**
+ * Make the game's random numbers a function of a game's own generator state (see the head of the file). `hold` does it for the state it plays, and a new
+ * game for itself; frames played outside them go on with the last one's, so the recorded searches (proofs.ts) set it back to the state a search started
+ * from whether they searched, played a recorded route or took a recorded answer: what follows a search then plays the same however it was answered.
+ */
+export function useRandomOf(g: Game): void {
+  const prng = g.prng;
+  Math.random = () => (((prng[0] ?? 0) * 7 + (prng[1] ?? 0) * 13 + (prng[2] ?? 0) * 31 + (prng[3] ?? 0) * 57 + 11) & 255) / 256;
+}
+
 /** Hold a stick for some frames. `room`: the room he has come into (settled there), if he has; dead: a death was set going. */
 export function hold(s: State, stick: Stick, frames: number): Held {
-  const prng = s.g.prng;
-  Math.random = () => (((prng[0] ?? 0) * 7 + (prng[1] ?? 0) * 13 + (prng[2] ?? 0) * 31 + (prng[3] ?? 0) * 57 + 11) & 255) / 256;
+  useRandomOf(s.g);
   const room = s.g.roomId;
   for (let f = 0; f < frames; f++) {
     const before = s.g.actionCounter;
@@ -119,12 +128,17 @@ function toAim(g: Game, aims: readonly Aim[]): number {
   return (dx + dy) / STEP;
 }
 
+/** What a search says about itself: whether a null came from having looked at every state there is (so there is no way) or from the limit; and, filled in by the search, the states it tried and every room it went into (a death's room too). */
+export interface SearchStats { exhausted: boolean; nodes?: number; rooms?: readonly number[] }
+
 /**
  * A route (in steps of STEP frames) from `start` to a state where `goal` holds, or null within `limit` states. With an `aim` it
  * is a weighted A*: states nearer the aim are looked at first, so the route found is a good one, not always the shortest.
- * `stats.exhausted` says whether a null came from having looked at every state there is (so there is no way) or from the limit.
+ * `stats` (SearchStats) says whether a null came from having looked at every state there is, how many states it tried and the rooms they were in.
  */
-export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 400000, weight = 1.5, stats?: { exhausted: boolean }): { route: Route; end: State; nodes: number } | null {
+export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 400000, weight = 1.5, stats?: SearchStats): { route: Route; end: State; nodes: number } | null {
+  const rooms = new Set([start.g.roomId]);
+  const tell = (nodes: number) => { if (stats) { stats.nodes = nodes; stats.rooms = [...rooms].sort((a, b) => a - b); } };
   const seen = new Set([keyOf(start.g)]);
   const heap = new Heap();
   heap.push(0, { s: start, up: null, step: ['', 0], depth: 0 });
@@ -136,11 +150,13 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
       const t: State = { g: copy(node.s.g), col: node.s.col };
       const r = hold(t, stick, STEP);
       nodes++;
+      rooms.add(t.g.roomId);
       if (r.dead) continue;
       const here: Node = { s: t, up: node, step: [name, STEP], depth: node.depth + 1 };
       if (goal(t.g) && livesOn(t)) {
         const route: [string, number][] = [];
         for (let n: Node | null = here; n && n.up; n = n.up) route.unshift([n.step[0], n.step[1]]);
+        tell(nodes);
         return { route, end: t, nodes };
       }
       const k = keyOf(t.g);
@@ -150,6 +166,7 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
     }
   }
   if (stats) stats.exhausted = heap.size === 0 && nodes < limit;
+  tell(nodes);
   return null;
 }
 
@@ -171,9 +188,10 @@ export function playThrough(start: State, route: Route): { end: State; rooms: nu
   return { end: s, rooms };
 }
 
-/** A new game as the front end starts one, settled in its first room. */
+/** A new game as the front end starts one, settled in its first room (its random numbers its own from the start: not left over from whatever was played before). */
 export function newGame(data: Game['data'], enhanced: boolean): State {
   const g = new Game(data);
+  useRandomOf(g);
   g.assist = { lives: enhanced, cloud: false, jetpack: false, c5: false, rooms: false, respawn: enhanced, hints: enhanced };
   g.start();
   const s: State = { g, col: 0 };
