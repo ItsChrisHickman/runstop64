@@ -2,7 +2,7 @@ import { ROW } from '../../shared/monty/screen';
 
 /**
  * The picture of Do Svidaniya Monty's title, made of one 256-character set and a colour for each cell, as the C64 draws it in
- * multicolour character mode: each pixel pair is background (blue, 00), `MC1` (white, 01), `MC2` (brown, 10) or the cell's own colour
+ * multicolour character mode: each pixel pair is background (black, 00; the map's strip has a blue one for the sea), `MC1` (white, 01), `MC2` (brown, 10) or the cell's own colour
  * (11, one of 0-7), so a cell can carry a body, a light edge and a dark edge at once. The logo is a block font with a light top left
  * edge, a dark lower right edge and a drop shadow, banded one colour to a row of cells; the map is Europe to South America in the
  * same four colours, the route in white; the text is the game's own lettering in hires cells. The set holds each distinct 8 x 8
@@ -13,8 +13,9 @@ import { ROW } from '../../shared/monty/screen';
 // ---- the C64's colours (the ones used) -------------------------------------------------------------------------------------------
 export const BLACK = 0, WHITE = 1, RED = 2, CYAN = 3, PURPLE = 4, GREEN = 5, BLUE = 6, YELLOW = 7, BROWN = 9;
 
-/** The screen's colour: the sea, and everything is drawn on it. */
-export const SKY = BLUE;
+/** The screen's colour: black all over; blue only behind the map's strip (`SEA`, the background colour changed down its lines as a raster split does). */
+export const SKY = BLACK;
+export const SEA = BLUE;
 /** The two colours every multicolour cell shares: a light edge, a dark edge. */
 export const MC1 = WHITE, MC2 = BROWN;
 
@@ -22,8 +23,8 @@ export const MC1 = WHITE, MC2 = BROWN;
 export const multi = (colour: number) => colour | 8;
 
 // ---- where things are (character rows) ------------------------------------------------------------------------------------------
-/** The line over the logo; the logo's two words; the map; the scroller (two rows, its letters 16 pixels tall); ENTER CONTINUE's line; the credits. */
-export const ROWS = { line: 0, small: 1, big: 4, map: 9, scroller: 16, strip: 19, credits: 21 } as const;
+/** The logo's two words (it starts at the top); the map; the scroller (two rows, its letters 16 pixels tall); ENTER CONTINUE's line; the credits. */
+export const ROWS = { small: 0, big: 3, map: 8, scroller: 15, strip: 18, credits: 20 } as const;
 export const MAP_ROWS = 6, SCROLLER_ROWS = 2;
 const MAP_Y = ROWS.map * 8;
 /** The scroller's characters, reserved: two rows of forty. */
@@ -227,14 +228,12 @@ export function placeLabels(route: ReadonlySet<number>): readonly Label[] {
 }
 
 // ---- text in the game's lettering ------------------------------------------------------------------------------------------------
-/** The credits: four lines, each in a colour of its own, centred. */
+/** The credits: three lines, each in a colour of its own, centred. */
 export const CREDIT_LINES: readonly { readonly text: string; readonly colour: number }[] = [
   { text: 'A NEW GAME BY CHRISTOPHER HICKMAN', colour: YELLOW },
-  { text: 'WITH CLAUDE  MUSIC BY ROB HUBBARD', colour: WHITE },
-  { text: "AFTER PETER HARRAP'S MONTY ON THE RUN", colour: CYAN },
-  { text: '(GREMLIN GRAPHICS 1985)', colour: WHITE },
+  { text: 'A TRIBUTE TO PETER HARRAP', colour: WHITE },
+  { text: 'MUSIC BY ROB HUBBARD', colour: CYAN },
 ];
-export const TAGLINE = 'A MONTY MOLE ADVENTURE';
 
 /** The finished picture: the characters, and each cell's code and colour (the scroller's rows left for it). */
 export interface TitleArt {
@@ -245,6 +244,8 @@ export interface TitleArt {
   readonly used: number;
   /** The characters the scroller draws its two rows in, row by row. */
   readonly scrollerCodes: readonly number[];
+  /** The map's strip: the pixel rows (from the top, `height` of them) the sea's blue is the background colour of. */
+  readonly sea: { readonly top: number; readonly height: number };
   /** Where each name is on the map. */
   readonly labels: readonly Label[];
   /** The picture's pixel pairs of the logo and the map (rows 1-13), for tests. */
@@ -270,8 +271,6 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
   const put = (row: number, col: number, code: number, c: number) => { screen[row * ROW + col] = code; colour[row * ROW + col] = c; };
   const text = (row: number, col: number, s: string, c: number) => { [...s].forEach((ch, i) => { if (ch !== ' ') put(row, col + i, set.code(glyphOf(bank, ch)), c); }); };
   const centred = (row: number, s: string, c: number) => text(row, Math.floor((40 - s.length) / 2), s, c);
-
-  centred(ROWS.line, TAGLINE, CYAN);
 
   // the logo and the map, one picture of pixel pairs
   const p = new Pairs();
@@ -307,5 +306,5 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
   CREDIT_LINES.forEach((l, i) => centred(ROWS.credits + i, l.text, l.colour));
   const scrollerCodes = Array.from({ length: SCROLLER_CHARS }, (_, i) => 1 + i);
   for (let i = 0; i < SCROLLER_CHARS; i++) screen[ROWS.scroller * ROW + i] = 1 + i;
-  return { chars: set.bytes, screen, colour, used: set.used, scrollerCodes, labels, pairs: p.px };
+  return { chars: set.bytes, screen, colour, used: set.used, scrollerCodes, labels, pairs: p.px, sea: { top: MAP_Y, height: MAP_ROWS * 8 } };
 }

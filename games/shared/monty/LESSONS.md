@@ -131,9 +131,10 @@ most care; the reward show and the title show them off.
   charset's '(' glyph); `montyworld/test/text.ts` draws every name, hint, sign and credit through it. A hint fits the name
   row (32 characters).
 - **A new game is presented as the next adventure and a tribute, subtly** (Chris, 2026-11-22): its own title screen in the
-  house style (never a copy of the original's), a line like A MONTY MOLE ADVENTURE, and the tribute done quietly by the credits
-  (the new makers first, "after Peter Harrap's Monty on the Run", the music's author, a thank-you line), never by writing
-  "tribute" or "fan game", and never implying the originals made it.
+  house style (never a copy of the original's), and the tribute named in the credits
+  (Chris, 2026-11-23, for Do Svidaniya Monty: A NEW GAME BY CHRISTOPHER HICKMAN / A TRIBUTE TO PETER HARRAP / MUSIC BY ROB HUBBARD;
+  no A MONTY MOLE ADVENTURE line, no "with Claude" in this game's title, credits or info card), never "fan game", and never
+  implying the originals made it. The title is black all over, the sea's strip alone blue (a raster split: the title's `backdrop`).
 - **No filler statistics** on titles, posters or credits. Credits are sourced, never invented; a new game says it is a new
   game, after the original it is built on.
 - **References only to games Chris played and loves** (Willow Pattern, The Last Ninja, Jeff Minter's llamas); nothing he doesn't
