@@ -45,26 +45,39 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
   const music = new SidPlayer(data.music.sidUrl);
   let musicOn = true;
 
-  g.sound = {
-    sfx(id, onlyWithoutMusic) {
-      if (onlyWithoutMusic && musicOn) return;
-      music.call(data.music.playSfx, id);
-    },
-    song(n) { music.call(data.music.init, n); },
-    stop() { music.call(data.music.stop); },
-  };
   /**
    * The version of the tune the music plays (null: Hubbard's as it is): a room asks for its region's (`music.tuneFor`, data of
    * the game), and the tune starts again only when the version changes, unless the game has a crossing: from one version to
    * another the song then carries on, and only the version changes at the next phrase. The title has the original, and the game's
-   * first room starts the tune from its beginning.
+   * first room starts the tune from its beginning. A room may ask for another .sid altogether (`file`): it plays from its start
+   * while the music is on (with the sound effects chosen, the game's own .sid stays loaded for them).
    */
   let tune: TuneVersion | null = null;
+  /** Another .sid is playing: the game's routines are not in it (no effects; its song and stop are the player's). */
+  const foreign = () => musicOn && tune !== null && 'file' in tune;
+  g.sound = {
+    sfx(id, onlyWithoutMusic) {
+      if ((onlyWithoutMusic && musicOn) || foreign()) return;
+      music.call(data.music.playSfx, id);
+    },
+    song(n) { if (!foreign()) music.call(data.music.init, n); },
+    stop() { if (foreign()) music.stop(); else music.call(data.music.stop); },
+  };
   function playVersion(version: TuneVersion | null) {
     if (version?.id === tune?.id) return;
-    const crossing = tune && version && musicOn ? data.music.crossing : undefined;
+    const before = tune, cross = before !== null && 'make' in before && !foreign();
     tune = version;
-    music.useTune(version ? (original) => version.make(original) : null, crossing);
+    loadTune(cross);
+  }
+  /** Loads what `tune` asks for: another .sid while the music is on, else the game's (its version, or as it is), crossing from the version playing if `cross`. */
+  function loadTune(cross: boolean) {
+    const version = tune;
+    if (version && 'file' in version && musicOn) {
+      music.useFile(version.file.url, version.file.song);
+      return;
+    }
+    const make = version && 'make' in version ? (original: Uint8Array) => version.make(original) : null;
+    music.useTune(make, cross && make && musicOn ? data.music.crossing : undefined);
     if (!musicOn) g.sound.stop();
   }
   const sound = { song: (n: number) => g.sound.song(n), stop: () => g.sound.stop(), musicOn: () => musicOn };
@@ -235,7 +248,9 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
         // the original's choice (the C= key on its title): Hubbard's music, or sound effects
         mute: () => {
           musicOn = !musicOn;
-          if (musicOn) g.sound.song(0);
+          // (in a room with another .sid: it, from its start, or the game's own for the effects)
+          if (tune && 'file' in tune) loadTune(false);
+          else if (musicOn) g.sound.song(0);
           else g.sound.stop();
         },
       },

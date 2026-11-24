@@ -23,7 +23,10 @@ import { WORLD } from '../src/data';
 import { encodePattern, INSTRUMENT_COUNT, patternTicks, PATTERN_COUNT, songNotes, TuneImage } from '../src/music/hubbard';
 import { MOSCOW } from '../src/music/moscow';
 import { bend, GAME_SONG, noteNumber, retune, SCALE_DEGREES, type RegionTune } from '../src/music/region-tune';
-import { tuneForRoom } from '../src/music/regions';
+import { AWM_THEME, tuneForRoom } from '../src/music/regions';
+import { madeFrom } from './music-kit';
+import { AND } from '../src/andes';
+import { FLY } from '../src/sky';
 
 /** The sha256 of Moscow's .sid as the version made it before the consonance gate (commit 2147f12): what Chris approved. */
 const APPROVED_MOSCOW = '595af5c581b0191a57e8f93887c342c56a0aa8b8617ea1f8b7db76e477c92115';
@@ -134,10 +137,13 @@ const breakPatterns = new Set(MOSCOW.breaks.map((x) => x.pattern));
   const rooms = [0, 1, 2];
   check('Monty on the Run has no version of its tune: it plays the file as it is', MOTR.music.tuneFor === undefined);
   check('Do Svidaniya Monty\'s Moscow rooms ask for the Moscow version', rooms.every((id) => WORLD.music.tuneFor?.(id)?.id === 'moscow'));
-  const made = WORLD.music.tuneFor?.(0)?.make(original);
+  const made = madeFrom(WORLD.music.tuneFor?.(0) ?? null, original);
   check('and its bytes are the version\'s', !!made && equal(made, moscow));
   const grid = { image: Uint8Array.from([0, 1, 0xff, 2]), cols: 2 };
   check('a room beyond the last region (column 30) or on no cell has the original', tuneForRoom({ image: new Uint8Array(20).map((_, i) => (i === 30 ? 5 : 0xff)), cols: 40 }, 5) === null && tuneForRoom(grid, 9) === null);
+  const sky = Object.values(FLY).map((id) => WORLD.music.tuneFor?.(id) ?? null);
+  check(`the sky's three legs play Auf Wiedersehen Monty's theme, song ${'file' in AWM_THEME ? AWM_THEME.file.song : '-'} of its own .sid (tune 0); the Andes' drop after them Hubbard's Andes version (${WORLD.music.tuneFor?.(AND.jump)?.id})`,
+    sky.every((v) => v === AWM_THEME) && 'file' in AWM_THEME && AWM_THEME.file.song === 1 && WORLD.music.tuneFor?.(AND.jump)?.id === 'andes');
   check('the world\'s data is otherwise Monty on the Run\'s music (the same driver entry points)', WORLD.music.init === MOTR.music.init && WORLD.music.stop === MOTR.music.stop && WORLD.music.playSfx === MOTR.music.playSfx);
 }
 

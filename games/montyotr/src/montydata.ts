@@ -60,12 +60,16 @@ export interface MontyLook {
   music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
-/** A version of the game's tune: made from the .sid's bytes by changing the data the music driver plays (never the driver). */
-export interface TuneVersion {
-  /** What it is called: the session starts the tune again only when the version changes. */
-  id: string;
-  make(original: Uint8Array): Uint8Array;
-}
+/**
+ * What a room plays: a version of the game's tune, made from the .sid's bytes by changing the data the music driver plays (never
+ * the driver); or (`file`) another tune altogether, a .sid of its own and its song (Do Svidaniya Monty's flight plays Auf
+ * Wiedersehen Monty's theme). The game's sound effects are routines of its own .sid, so none play while another one does; going
+ * to or from another .sid is a clean change (a crossing is only between versions of one song). `id`: what it is called: the
+ * session starts the music again only when it changes.
+ */
+export type TuneVersion =
+  | { readonly id: string; make(original: Uint8Array): Uint8Array }
+  | { readonly id: string; readonly file: { readonly url: string; readonly song: number } };
 
 /** A condition on what Monty has done (`RoomEffect.when`). */
 export type Condition =
@@ -426,7 +430,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column): the Andes' first room beside the Pacific's hold. */ except?: readonly { row: number; col: number }[] }
+export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[] }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {

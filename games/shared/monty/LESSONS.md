@@ -160,6 +160,11 @@ most care; the reward show and the title show them off.
   that bends it sounds like a glitch), a lead note bends only where the result is consonant with the bass under it (no minor second,
   major seventh or tritone), and the instrument carries the place (the Pacific: a steel guitar sliding into notes, a strummed backing,
   softer drums). Every version is checked for it (`test/music-kit.ts`).
+  **One exception, on purpose** (Chris, 2026-11-24): Do Svidaniya Monty's flight (the sky) plays Auf Wiedersehen Monty's main
+  theme (tune 0, Hubbard and Daglish) from that game's own .sid, a nod to the third game. It starts from its beginning on taking
+  off and plays on through a death in the sky; the Andes after it go back to Hubbard's song with a clean change (the phrase
+  crossing only works between versions of one song). No sound effects play over it (they are routines of Hubbard's .sid).
+  Not a pattern for other places: one song is the rule (`montyworld/src/music/regions.ts`, `test/music-sky.ts`).
 
 ## How we build it
 

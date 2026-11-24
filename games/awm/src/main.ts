@@ -1,5 +1,4 @@
 import { BitmapFont, C64View, KIT_GLYPHS, SidPlayer, type Host } from 'c64kit';
-import sidUrl from '../build/awm.sid?url';
 import { RewardShow } from '../../shared/ending/show';
 import { keepWon, readWon, wantsEnding } from '../../shared/ending/credits';
 import { LIVES_ASSIST } from '../../shared/lives';
@@ -12,7 +11,7 @@ import { Stick } from './input';
 import { awmMap, describeSave, noteRoom, type AwmFound } from './map';
 import { Program, type Controls } from './program';
 import { CODEC, snapshot, type AwmSave } from './save';
-import { SOUND } from './sound';
+import { AWM_SID_URL, SOUND } from './sound';
 import type { SoundCall } from './soundlog';
 import { FLY_KEY, TOUCH } from './touch';
 
@@ -53,7 +52,7 @@ export function run(host: Host) {
   const kept = readHigh();
   if (kept) program.high.splice(0, 5, ...kept);
   const view = new C64View(renderer, program);
-  const music = new SidPlayer(sidUrl);
+  const music = new SidPlayer(AWM_SID_URL);
 
   // ---- sound: the game's requests of its drivers, played by the .sid's copies of them -------------
   /** The tune last asked for (played again once the audio is unlocked, which comes after the title began). */

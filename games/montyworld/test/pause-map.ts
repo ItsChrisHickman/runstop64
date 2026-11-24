@@ -3,7 +3,8 @@
  * grid as the rooms have it: a kept entry for a room the rebuild cut is no place to go), scrolled to the picked room's country
  * (Monty's at first: Moscow's view, Rio past its right edge); the arrows go on from one country into the next and the view
  * follows, the pick always in the box; Enter goes to a room in another country; paused there, the view is that country's.
- * Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, pick-<n>-<country>.png as the pick enters each country, rio.png).
+ * The heading names the country in view (MOSCOW at first, then each country the arrows or taps scroll to; THE SKY over the flight).
+ * Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, pick-<n>-<country>.png as the pick enters each country, rio.png, sky.png).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pause-map.ts [out-dir]
  */
@@ -19,6 +20,7 @@ import { check, finish } from '../../shared/test/check';
 import { WORLD, WORLD_COLS } from '../src/data';
 import { run } from '../src/main';
 import { WORLD_REGIONS } from '../src/regions';
+import { FLY } from '../src/sky';
 
 useMemoryStorage();
 const input = new Input(nowhere);
@@ -49,6 +51,9 @@ const gone = 0xf0, moved = [...onGrid.keys()].find((id) => id !== g.roomId) ?? 1
 check('the id kept for a cut room is on no cell of the grid', !onGrid.has(gone));
 rooms[gone] = [0x40, 0xb2, 1, 2];
 const regionOf = (row: number, col: number) => regionAt(WORLD_REGIONS, row, col)?.name;
+const labelOf = (name: string | undefined) => WORLD_REGIONS.find((r) => r.name === name)?.label;
+/** The map's heading as the pause screen has it now (its pick). */
+const heading = () => montyMap.title(g, undefined, p.frontEnd.picked);
 
 tap('KeyP');
 tick(2);
@@ -62,14 +67,16 @@ check(`paused: the whole world's rooms are places to go (${places.length} of ${o
 const inView = places.filter(inBox).map((q) => onGrid.get(Number(q.id))).flatMap((c) => (c ? [regionOf(c[0], c[1])] : []));
 check(`Moscow's view: Monty's room picked, Moscow's rooms in the box and the next countries' after them; Rio past its right edge (${[...new Set(inView)].join(', ')})`,
   fe.picked === String(g.roomId) && inView.includes('moscow') && inView.includes('siberia') && !inView.includes('rio'));
+check(`Moscow's view is headed MOSCOW (${heading()}), and every heading fits the panel's 214 pixels centred`, heading() === 'MOSCOW' && WORLD_REGIONS.every((r) => r.label.length * 8 <= 214));
 
 // on east by the arrows: country after country, the pick always in the box (the view scrolls with it)
 const seen: string[] = [];
+const headings: string[] = [];
 let allIn = true;
 for (let n = 0; n < 80; n++) {
   const at = onGrid.get(Number(fe.picked));
   const where = at ? regionOf(at[0], at[1]) : undefined;
-  if (where && seen.at(-1) !== where) { seen.push(where); shot(`pick-${seen.length}-${where}`); }
+  if (where && seen.at(-1) !== where) { seen.push(where); headings.push(heading() === labelOf(where) ? heading() : `${heading()}?`); shot(`pick-${seen.length}-${where}`); }
   if (where === 'rio') break;
   // (down where the country ahead is lower: the Pacific's rooms, the Andes')
   tap(at && at[1] >= 16 ? 'ArrowDown' : 'ArrowRight');
@@ -78,6 +85,7 @@ for (let n = 0; n < 80; n++) {
   if (!pick || !inBox(pick)) allIn = false;
 }
 check(`the arrows go on from country to country (${seen.join(', ')}), the view following: the pick in the box all the way`, seen[0] === 'moscow' && seen.at(-1) === 'rio' && seen.length >= 5 && allIn);
+check(`the heading follows the view, naming each country as the pick enters it (${headings.join(', ')})`, headings.length === seen.length && headings.every((h, i) => h === labelOf(seen[i])));
 shot('rio');
 const target = Number(fe.picked);
 const rioView = montyMap.places(MAP_BOX, g, p.state.found, undefined, fe.picked).filter(inBox).map((q) => onGrid.get(Number(q.id))).flatMap((c) => (c ? [regionOf(c[0], c[1])] : []));
@@ -110,6 +118,17 @@ for (let n = 0; n < 40 && p.state.paused; n++) {
   tick(2);
 }
 check(`taps go back from country to country (${touchSeen.join(', ')}), never travelling, the pick in the box`, p.state.paused && touchSeen.at(-1) === 'moscow' && touchIn && g.roomId === target);
+check(`tapped back to Moscow, the heading is MOSCOW again (${heading()}), though Monty is in Rio`, heading() === 'MOSCOW');
+tap('KeyP');
+
+// the flight is a country of its own on the map: paused in the sky, THE SKY, its three legs in the box at the map's cell size (no other country's rows squeezed in)
+check('travel to the second leg of the flight', montyMap.go(String(FLY.storm), g, p.state.found));
+for (let n = 0; n < 300 && (g.roomId !== FLY.storm || g.freeze); n++) tick();
+tap('KeyP');
+tick(2);
+shot('sky');
+const skyView = montyMap.places(MAP_BOX, g, p.state.found, undefined, fe.picked).filter(inBox).map((q) => onGrid.get(Number(q.id))).flatMap((c) => (c ? [regionOf(c[0], c[1])] : []));
+check(`paused in the sky: headed THE SKY (${heading()}), its legs in the box (${[...new Set(skyView)].join(', ')})`, heading() === 'THE SKY' && skyView.filter((r) => r === 'sky').length === 3 && !skyView.includes('moscow'));
 tap('KeyP');
 
 // a kept entry for a room in a cell no longer its own is no place to go either
