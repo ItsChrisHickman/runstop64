@@ -173,7 +173,7 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
     if (dead(chase.g)) break;
     path.push([chase.g.x2, chase.g.y]);
     const man = must(chase.g.enemies[agent.slot], 'the agent');
-    const on = ((chase.g.vic.enable >> (4 + agent.slot)) & 1) === 1;
+    const on = ((chase.g.vic.enable >> (4 + agent.slot)) & 1) === 1 && (chase.g.pursuers[0]?.intro ?? -1) < 0; // (not his walk-on at the far side as Monty comes in)
     if (on && seenAt < 0) seenAt = f;
     if (on) { const was = path[f - agent.delay]; if (was && (was[0] !== man.x || ((was[1] + 1) & 0xff) !== man.y)) match = false; }
   }

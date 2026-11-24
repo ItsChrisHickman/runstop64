@@ -59,7 +59,7 @@ for (const r of ROOMS) {
 
 const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
-check(`ten kinds of creature, the moray a mechanism (${rooms.size})`, rooms.size === 10);
+check(`ten kinds of creature and Viktor Vole aboard the ship, the moray a mechanism (${rooms.size})`, rooms.size === 11);
 check('five rooms (the reset)', PACIFIC_ROOMS.length === 5);
 const coins = ROOMS.map((r) => r.coins?.length ?? 0);
 check(`nine coins, two a room and one in the hold (${coins.join(', ')})`, coins.join() === '2,2,2,2,1');
