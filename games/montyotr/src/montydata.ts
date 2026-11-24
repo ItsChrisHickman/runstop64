@@ -1,7 +1,7 @@
 import type { CrossingPlan } from 'c64kit';
 import type { Seq } from '../../shared/monty/deaths';
 import type { RoomTables } from '../../shared/monty/rooms';
-import type { ProcessionSpec } from '../../shared/ending/show';
+import type { ParadeStyle, ProcessionSpec } from '../../shared/ending/show';
 import type { Scene } from './ending-scenes';
 import type { Game } from './game';
 import type { TitleGame, TitleScreen, TitleSound } from './title';
@@ -389,7 +389,15 @@ export interface MontyEnding {
    * each), the plain ground it marches on, and Monty last, dancing, under `hero.title` with his name. Without it the cast walks
    * through the last place one at a time.
    */
-  procession?: Omit<ProcessionSpec, 'hero' | 'gag'> & { hero: { title: string; name: string } };
+  procession?: Omit<ProcessionSpec, 'hero' | 'gag' | 'parade'> & { hero: { title: string; name: string }; parade?: MontyParade };
+}
+
+/**
+ * A carnival parade (shared/ending/show.ts `ParadeStyle`) as a Monty game declares it: the gag at its tail is a creature (its enemy types, recorded as the cast is) under a name, with the sixteen pictures of
+ * his four-way split (as the bank's $7E-$8D are Monty's: a head going back, on, up and down, four pictures each) for when the game's Mole Crusher gets him (ending.ts plays the engine's split on them).
+ */
+export interface MontyParade extends Omit<ParadeStyle, 'gag'> {
+  gag?: { name: string; types: readonly number[]; split: readonly Uint8Array[] };
 }
 
 export interface MontyData extends RoomTables, MontyLook {

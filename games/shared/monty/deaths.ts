@@ -108,3 +108,44 @@ export function* dissolveDeath(s: DissolveStage, kind: DeathKind): Seq {
       return;
   }
 }
+
+/** What the four-way split works on: sprites 0-3 as the game keeps them (x halved), where he was (x halved, y), and which are on. */
+export interface SplitStage { sx: Uint8Array; sy: Uint8Array; sptr: Uint8Array; scol: Uint8Array; enable: number; multicolour: number; x2: number; y: number }
+
+/** The pictures of the split (the bank's $7E-$8D in Monty on the Run: a head going back, on, up and down, four pictures each). */
+export const SPLIT_FIRST = 0x7e;
+
+/**
+ * Death4Split, Monty on the Run's death under a Mole Crusher: four heads fly apart from where he was, back and on three units a frame (six pixels), up and down three, each piece's four pictures in
+ * turn, until all four have left the picture (a life lost follows, the game's).
+ */
+export function* splitDeath(s: SplitStage): Seq {
+  s.enable |= 0x0f;
+  s.multicolour = 0;
+  s.sx[0] = s.sx[1] = s.x2;
+  s.sx[2] = (s.x2 - 8) & 0xff;
+  s.sx[3] = (s.sx[2] + 0x10) & 0xff;
+  s.sy[2] = s.sy[3] = s.y;
+  s.sy[0] = (s.y - 0x10) & 0xff;
+  s.sy[1] = (s.sy[0] + 0x20) & 0xff;
+  s.scol.fill(1, 0, 4);
+  let n = 0;
+  for (;;) {
+    if ((s.sx[2] ?? 0) < 3) s.enable &= 0xfb;
+    s.sx[2] = ((s.sx[2] ?? 0) - 3) & 0xff;
+    s.sx[3] = ((s.sx[3] ?? 0) + 3) & 0xff;
+    if ((s.sx[3] ?? 0) >= 0xa0) s.enable &= 0xf7;
+    if ((s.sy[0] ?? 0) < 3) s.enable &= 0xfe;
+    s.sy[0] = ((s.sy[0] ?? 0) - 3) & 0xff;
+    if ((s.sy[1] ?? 0) + 3 > 0xff) s.enable &= 0xfd;
+    s.sy[1] = ((s.sy[1] ?? 0) + 3) & 0xff;
+    n++;
+    const x = (n & 7) >> 1;
+    s.sptr[1] = SPLIT_FIRST + 12 + x;
+    s.sptr[0] = SPLIT_FIRST + 8 + x;
+    s.sptr[3] = SPLIT_FIRST + 4 + x;
+    s.sptr[2] = SPLIT_FIRST + x;
+    if (!(s.enable & 0x0f)) break;
+    yield;
+  }
+}

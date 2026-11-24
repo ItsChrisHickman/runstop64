@@ -3,6 +3,7 @@
  * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, the cable car's stations and cable, Lapa's arches (dark grey, behind him), the
  * churrascaria's tables, lamps and grill, Santa Teresa's tram, the Sambadrome's float with its stamping head, its lever and control booth, the Apoteose arch, and the finale's fireworks.
  */
+import { FINALE_DECOR } from './rio-finale';
 import { decor } from './decorations';
 import { characters } from './pixels';
 import { Raster } from './raster';
@@ -63,17 +64,6 @@ function chain(): NewDecor {
   const r = new Raster(8, 8);
   r.rect(3, 0, 4, 1); r.rect(2, 2, 5, 5); r.rect(3, 3, 4, 4, false); r.rect(3, 6, 4, 7);
   return decor('rioChain', 1, 1, r, 12);
-}
-
-/** A deckchair seen from the side, facing the sea (right): the canvas sling slanting back from the seat with its stripes cut in, the arm and its post, the frame's crossed legs. 3 x 2 characters, orange. */
-function deckchair(): NewDecor {
-  const r = new Raster(24, 16);
-  for (let t = 0; t < 4; t++) r.line(1 + t, 0, 8 + t, 11); // the back
-  r.rect(8, 9, 21, 11); // the seat
-  r.line(3, 3, 7, 3, false); r.line(5, 6, 9, 6, false); // the stripes
-  r.rect(11, 5, 22, 6); r.rect(21, 5, 22, 9); // the arm and its post
-  for (let t = 0; t < 2; t++) { r.line(10 + t, 12, 19 + t, 15); r.line(19 + t, 12, 10 + t, 15); } // the legs
-  return decor('deckchair', 3, 2, r, 8);
 }
 
 // ---- Lapa's aqueduct: two storeys of arches, the street under them
@@ -224,7 +214,7 @@ export const RIO_DECOR = {
   cableStation: cableStation(),
   rioCableLow: cableLow(),
   rioCableHigh: cableHigh(),
-  deckchair: deckchair(),
+  ...FINALE_DECOR,
   lapaUpper: lapaUpper(),
   lapaBase: lapaBase(),
   restTable: restTable(),

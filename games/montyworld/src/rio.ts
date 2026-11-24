@@ -263,7 +263,7 @@ const DRUM_HEADDRESS: Cell = [16, 2];
 const DRUM_COINS: readonly Cell[] = [[18, 8]];
 
 // ---- B RIO OR BUST --------------------------------------------------------------------------------------
-/** Copacabana at night: in low on the promenade (18), the bowl on its little table a few steps in, the deckchair beside it, two palms, the sea, the Redeemer on Corcovado's dark hill and Sugarloaf floodlit across the bay. No coins, no creatures: the finale's stage. */
+/** Copacabana at night: in low on the promenade (18), the bowl on its little table a few steps in, a beach umbrella at the east end, a palm, the sea, the Redeemer on Corcovado's dark hill and Sugarloaf floodlit across the bay. No coins, no creatures: the finale's stage (finale.ts shows it in close-up: the table, the palms and the near sea cleared, the sand plain, the deckchair under the umbrella). */
 const BEACH = rows([
     '................................', // 0
     '................................', // 1
@@ -274,23 +274,23 @@ const BEACH = rows([
     '................................', // 6
     '................................', // 7
     '................................', // 8
-    '.......................KK.......', // 9
-    '...................LURKKKK......', // 10
-    '....................UKKKKKKLUR..', // 11
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 12
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 13
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEUEEE', // 14
-    '....................U.......U...', // 15
-    '....................U.......U...', // 16
-    '..........TTT.......U.......U...', // 17
+    '...............KK...............', // 9
+    '..............KKKK.LUR..........', // 10
+    '.............KKKKKK.U...........', // 11
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 12
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 13
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 14
+    '....................U...........', // 15
+    '....................U...........', // 16
+    '..........TTT.......U...........', // 17
     'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW', // 18
     'SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', // 19
 ]);
 const BEACH_BOWL: Cell = [10, 15];
-/** Where the finale's parts are on the beach (playfield cells): the Redeemer and Sugarloaf across the bay (it floodlights them), the deckchair Monty sits in, and the fireworks over the bay. */
-const FIREWORKS: readonly Cell[] = [[1, 2], [10, 0], [17, 3], [26, 1]];
+/** Where the finale's parts are on the beach (playfield cells): the Redeemer and Sugarloaf across the bay (it floodlights them), the umbrella (its canopy and its pole) the deckchair stands under, and the fireworks over the bay. */
+const FIREWORKS: readonly Cell[] = [[1, 2], [10, 0], [18, 1], [26, 1]];
 export const BEACH_VIEW = {
-  redeemer: { col: 22, row: 6, w: 4, h: 3 }, sugarloaf: { col: 3, row: 7, w: 8, h: 5 }, chair: { col: 14, row: 16 },
+  redeemer: { col: 14, row: 6, w: 4, h: 3 }, sugarloaf: { col: 3, row: 7, w: 8, h: 5 }, umbrella: { col: 23, row: 10 }, pole: { col: 26, row: 12 },
   fireworks: FIREWORKS,
 } as const;
 
@@ -441,7 +441,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     id: RIO_ROOM.bust, cell: [5, 28], sector: 77, palette: BEACH_PALETTE, paint: BEACH,
     item: { name: 'bowl', col: BEACH_BOWL[0], row: BEACH_BOWL[1], sprite: RIO_SPRITE.bowl },
     decor: [
-      ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['deckchair', BEACH_VIEW.chair.col, BEACH_VIEW.chair.row],
+      ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['rioUmbrella', BEACH_VIEW.umbrella.col, BEACH_VIEW.umbrella.row], ['rioPole', BEACH_VIEW.pole.col, BEACH_VIEW.pole.row],
       ...BEACH_VIEW.fireworks.map(([col, row]): Placed => ['rioFirework', col, row]),
     ],
     creatures: [{ who: 'dancer', col: 0, row: 16, way: 'right', speed: 1, range: 1 }, { who: 'drummer', col: 0, row: 16, way: 'right', speed: 1, range: 1 }],
