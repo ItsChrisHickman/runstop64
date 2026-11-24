@@ -23,7 +23,6 @@ import { must } from '../../shared/test/must';
 import { ANDES_CREATURES } from '../src/art/andes-creatures';
 import { ANDES_ITEMS, CANOPY } from '../src/art/andes-items';
 import { chulloWorn, CHULLO_COLOUR } from '../src/art/andes-hat';
-import { FLY } from '../src/sky';
 import { AND, ANDES_ROOMS, ANDES_SECTORS, BOULDER_PATH, BOULDERS_OF_PICCHU, LOG_CRACKS, LOGS, TANGLE_CELLS, VINES } from '../src/andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from '../src/andes-pointers';
 import { WORLD } from '../src/data';
@@ -47,7 +46,7 @@ const DOWN = { ...NONE, down: true };
 const UP = { ...NONE, up: true };
 const JUMP = { ...NONE, fire: true };
 /** The items by where they are (the room's nth). */
-const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.kapok, 0] as const, PARACHUTE = [PAC.plane, 0] as const;
+const CHULLO_AT = [AND.terraces, CHULLO] as const, PANPIPES = [AND.picchu, 0] as const, MACHETE = [AND.kapok, 0] as const;
 
 /** The picture sprite 2 shows (the canopy's). */
 const sprite2 = (g: Game): number | undefined => g.vic.sprites[2]?.ptr;
@@ -80,8 +79,8 @@ SCOPE.section([], 'the data', () => {
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [[2, 20, AND.jump], [3, 20, AND.gorge], [4, 20, AND.terraces], [4, 21, AND.picchu], [5, 21, AND.canopy], [5, 22, AND.kapok], [6, 21, AND.sandbar], [6, 22, AND.roots]] as const;
-  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 20, Machu Picchu beside its foot, the Amazon an open block of two by two under it, beside the Pacific\'s plane (row 2, column 19)',
-    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(2, 19) === PAC.plane && WORLD.exitGrid.rows === 8);
+  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 20, Machu Picchu beside its foot, the Amazon an open block of two by two under it, east of Hilo (row 3, column 19; the cut hold\'s cell west of the drop empty)',
+    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(3, 19) === PAC.hilo && grid(2, 19) === 0xff && WORLD.exitGrid.rows === 8);
   check('the ids of the rooms kept are as they were (55, 57, 58, 59; 62, 63, 65, 66), and the retired 56, 60, 61, 64 and 78 are no room\'s', [...cells].every((c) => ![56, 60, 61, 64, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 57, 58, 59, 62, 63, 65, 66].includes(r.id)));
   const coins = ANDES_ROOMS.map((r) => r.coins?.length ?? 0);
   check(`9 coins in 8 rooms, never more than 3 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 9 && coins.every((n) => n <= 3));
@@ -120,7 +119,7 @@ SCOPE.section([], 'the data', () => {
 });
 
 // ---- the parachute: flight --------------------------------------------------------------------------
-SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, PAC.plane], 'the parachute: flight', () => {
+SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu], 'the parachute: flight', () => {
   SCOPE.section([AND.jump], 'flight in the first room: sink, dive, steering, updraft, ledge, canopy', () => {
     const spec = must(flightOf(at(AND.jump, 6, 8).g), 'the first flight room');
     const a = at(AND.jump, 6, 8);
@@ -173,15 +172,8 @@ SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, PAC.plane], 'the p
       west.g.roomId === AND.terraces && west.g.y === standY(5) && east.g.roomId === AND.terraces && east.g.y === standY(12) && !west.g.canopyShown && !dead(west.g) && !dead(east.g));
     check('the gorge\'s foot is open only at the two throats (cols 3-7 and 11-14), the pinnacle between them', [...Array(32).keys()].filter((c) => !solid(AND.gorge, c, 19)).join() === [3, 4, 5, 6, 7, 11, 12, 13, 14].join());
   });
-  SCOPE.section([PAC.plane, AND.jump, FLY.mail], 'the plane rear door onto the flight, and JUMP FOR JOY shut to the west', () => {
-    const door = at(PAC.plane, 28, 16, [PARACHUTE]);
-    run(door, RIGHT, 90);
-    run(door, NONE, 2);
-    check('with the parachute he walks out of the plane\'s rear door onto the mail biplane: the flight\'s first leg (sky.ts), in the plane, not the Andes\' first room beside the hold', door.g.roomId === FLY.mail && door.g.planeShown);
-    const shut = at(PAC.plane, 28, 16);
-    run(shut, RIGHT, 90);
-    check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.plane);
-    check('JUMP FOR JOY\'s west edge is the mountainside, solid all the way down (he drops in at its top from the bail-out; no way west into the hold)', [...Array(20).keys()].every((r) => solid(AND.jump, 0, r)));
+  SCOPE.section([AND.jump], 'JUMP FOR JOY shut to the west', () => {
+    check('JUMP FOR JOY\'s west edge is the mountainside, solid all the way down (he drops in at its top from the bail-out; nothing west of it since the hold was cut)', [...Array(20).keys()].every((r) => solid(AND.jump, 0, r)));
   });
   SCOPE.section([AND.gorge], 'the gorge condor', () => {
     const cond = at(AND.gorge, 13, 9, [], false, true);
@@ -349,7 +341,7 @@ SCOPE.section([AND.canopy, AND.picchu, AND.terraces, AND.gorge, AND.sandbar, AND
 });
 
 // ---- fairness: from several starts (the room's timings run a while before he comes in), the crossing is there -------------------------
-SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, AND.canopy, AND.kapok, AND.sandbar, AND.roots, PAC.plane, RIO_FIRST], 'fairness from several starts', () => {
+SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, AND.canopy, AND.kapok, AND.sandbar, AND.roots, RIO_FIRST], 'fairness from several starts', () => {
   const fair = (label: string, make: () => State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean) => {
     const ok = [0, 37, 74, 111, 148].filter((wait) => { const s = make(); run(s, NONE, wait); return reach(s, aim, goal, 400000); }).length;
     check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
@@ -384,7 +376,7 @@ SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, AND.canopy, AND.ka
   SCOPE.section([AND.gorge, AND.jump, AND.terraces], 'fair: the gorge condors', () => {
     fair('the gorge\'s condors to the shelf', () => at(AND.gorge, 6, 2, [], false, true), { room: AND.gorge, col: 24, row: 6 }, (g) => g.roomId === AND.gorge && g.y === standY(8) && colOf(g) >= 22);
   });
-  SCOPE.section([AND.jump, AND.gorge, PAC.plane], 'fair: the drop condor and updraft', () => {
+  SCOPE.section([AND.jump, AND.gorge], 'fair: the drop condor and updraft', () => {
     fair('the drop\'s condor, the updraft to the spire', () => at(AND.jump, 10, 14, [], false, true), { room: AND.jump, col: 19, row: 10 }, (g) => g.roomId === AND.jump && g.y === standY(12) && colOf(g) >= 18);
   });
 });

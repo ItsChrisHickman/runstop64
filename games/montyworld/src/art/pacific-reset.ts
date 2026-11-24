@@ -1,9 +1,9 @@
 /**
  * The Pacific's pieces new with the reset (docs/dosvidaniya-reset.md): the palm's trunk, Hana's surge streaks, Hilo's splitting crust, the lava's crest and the steam vent, the hotel's front and its arcade's
- * pillars, the glow of Hilo's lava seen from the sea, Kilauea far off, the hold's portholes with the clouds going by, the nene and the rooster, and the hold's loose crate as it rolls.
+ * pillars, the glow of Hilo's lava seen from the sea, Kilauea far off, the nene and the rooster.
  * Monty on the Run's manner: one ink, solid shapes cut with black lines, no dither; backdrops dark and plain. Names start `pac`.
  */
-import { characters, creatureBank, itemBlock, mirrored } from './pixels';
+import { creatureBank, mirrored } from './pixels';
 import { Raster } from './raster';
 import { decor } from './decorations';
 import { tile } from './tiles';
@@ -110,13 +110,6 @@ function fronds(): NewDecor {
   return decor('pacFronds', 4, 2, r, 5);
 }
 
-/** The plane's nose wheel under its belly, standing on the apron: the strut and the tyre. 2 x 3 characters. */
-function gear(): NewDecor {
-  const r = new Raster(16, 24);
-  r.rect(7, 0, 8, 14); r.rect(4, 6, 11, 7); r.disc(7.5, 18.5, 5); r.disc(7.5, 18.5, 2); r.ring(7.5, 18.5, 3.5, 1);
-  return decor('pacGear', 2, 3, r, 15);
-}
-
 /** Hana's sea, one flat dark blue (laid over every empty cell, `fillCells`). */
 function seaFlat(): NewDecor {
   const r = new Raster(8, 8);
@@ -124,34 +117,12 @@ function seaFlat(): NewDecor {
   return decor('pacSeaFlat', 1, 1, r, 6);
 }
 
-/** One picture of a porthole (16 x 16) with a cloud going by `k` pixels along inside its ring. */
-function portholeRows(k: number): string[] {
-  const r = new Raster(16, 16);
-  const cloud = new Raster(16, 16);
-  cloud.ellipse(4, 9, 3, 2); cloud.ellipse(7, 7, 3, 2.5); cloud.ellipse(10, 9, 3, 2);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    const sx = (((x - k) % 16) + 16) % 16;
-    if (cloud.get(sx, y) && (x - 7.5) ** 2 + (y - 7.5) ** 2 < 25) r.set(x, y);
-  }
-  r.ring(7.5, 7.5, 7.5, 2);
-  return r.rows();
-}
-function portCloud(): NewDecor {
-  const r = new Raster(16, 16);
-  r.stamp(portholeRows(0), 0, 0);
-  return decor('pacPortCloud', 2, 2, r, 14);
-}
-/** The clouds going by the porthole: sixteen pictures, a pixel each. */
-export const CLOUD_FRAMES: readonly Uint8Array[] = Array.from({ length: 16 }, (_, k) => characters(`porthole ${k}`, portholeRows(k), 2, 2));
-
 export const PACIFIC_RESET_DECOR = {
   pacHotelFront: hotelFront(),
   pacPillar: pillar(),
   pacGlow: glow(),
   pacFronds: fronds(),
-  pacGear: gear(),
   pacSeaFlat: seaFlat(),
-  pacPortCloud: portCloud(),
 } as const satisfies Record<string, NewDecor>;
 
 // ---- the creatures
@@ -198,17 +169,3 @@ export const PACIFIC_RESET_CREATURES = {
   pacRooster: rooster(),
 } as const satisfies Record<string, NewCreature>;
 
-// ---- the hold's loose crate, rolling
-
-/** The crate tumbling: a strapped box drawn at four quarter turns (square, tipped, on its edge, tipped back), a 16 x 16 sprite picture each. */
-function crateRows(turn: number): string[] {
-  const r = new Raster(16, 16);
-  if (turn % 2 === 0) {
-    r.rect(1, 1, 14, 14); r.rect(3, 3, 12, 12, false); r.line(3, 3, 12, 12); r.line(4, 3, 12, 11); r.line(3, 12, 12, 3); r.line(3, 11, 11, 3); // the box, its cross-brace
-  } else {
-    r.triangle(8, 0, 15, 8, 8, 15); r.triangle(8, 0, 0, 8, 8, 15); // on its corner
-    r.triangle(8, 4, 11, 8, 8, 11, false); r.triangle(8, 4, 5, 8, 8, 11, false); r.line(8, 2, 8, 13);
-  }
-  return r.rows();
-}
-export const CRATE_ROLL: readonly Uint8Array[] = [0, 1, 2, 3].map((k) => itemBlock(`loose crate ${k}`, crateRows(k)));

@@ -1,12 +1,13 @@
 # Do Svidaniya Monty: THE FLIGHT, Hilo to the Andes
 
 Approved by Chris 2026-11-24 (HANDOFF.md, "Proposed to Chris"). It redeems Auf Wiedersehen Monty's flight (`games/awm/src/flight.ts`:
-40 seconds, one plane on a loop) and replaces the cut where Monty walks into the hold and drops straight onto the mountain.
+40 seconds, one plane on a loop) and replaces the cut where Monty walked into a cargo plane's hold and dropped straight onto the mountain.
 
 ## The story
 
-Monty takes the parachute in the cargo plane's hold on Hilo's apron. The rear door opens onto the apron, and he takes the yellow
-mail biplane waiting there. He flies east over the Pacific for about 75 seconds. The tail of the flight belongs to Viktor: his black
+Monty takes the parachute from the high shelf under Hilo's crater rim (up the east wall's rope past the long ledge, past a strutting
+rooster), climbs to the airport's apron and touches the yellow mail biplane waiting there: it takes off with him (without the parachute,
+NO FLYING WITHOUT A PARACHUTE, and nothing happens). He flies east over the Pacific for about 75 seconds. The tail of the flight belongs to Viktor: his black
 plane copies Monty's path and closes in. As the Andes rise ahead, Viktor clips Monty's tail. Monty bails out and parachutes into JUMP
 FOR JOY. Viktor wins this round, so the Spy vs Spy tally goes into Rio at Monty 2 (the train, the ship) v Viktor 1 (the plane).
 
@@ -15,7 +16,12 @@ FOR JOY. Viktor wins this round, so the Spy vs Spy tally goes into Rio at Monty 
 Each leg is a room of its own, so the shared rules hold without special cases:
 - A death restarts the leg as he came into it (`respawn`, `lives.ts`), never the previous leg.
 - Autosave, continue and the map's travel see an ordinary room.
-- The Andes' music plays from the first leg (columns 20-22): the flight is the way into the Andes.
+- The legs are a region of their own, THE SKY (`regions.ts`: columns 20-22, row 0), so the pause map shows the Andes (rows 2-6) and the sky
+  each at the normal cell size, and its heading names THE SKY.
+- The music is Auf Wiedersehen Monty's main theme (tune 0, Hubbard and Daglish), from that game's own .sid: a nod to the third game and the
+  one exception to the one song (Chris, 2026-11-24; `music/regions.ts`, `SidPlayer.useFile`). It starts from its beginning on taking off and
+  plays on through a death or a restart in the sky, and a save in the sky continues with it; into the Andes, Hubbard's song comes back in its
+  Andes version, a clean change (the phrase crossing works only between versions of one song). No sound effects play over it.
 
 The rooms are on a row of the exit grid nothing else touches, so no room beside them can be walked or jumped into:
 
@@ -23,7 +29,8 @@ The rooms are on a row of the exit grid nothing else touches, so no room beside 
             col 20              col 21               col 22
 row 0   L1 THE MAIL RUN ==> L2 STORMY WEATHER ==> L3 ON HIS TAIL        (ids 79-81, the clock moves him on)
 row 1   (empty)
-row 2   F1 JUMP FOR JOY <== bail-out from L3 ([2,19] is the hold; its rear door now leads to L1)
+row 2   F1 JUMP FOR JOY <== bail-out from L3   (west of it, [2,19], is empty: the hold was cut)
+row 3   (Hilo at [3,19]: its apron's biplane takes off into L1)
 ```
 
 | Leg | Frames | What is in it |
@@ -76,8 +83,9 @@ The sky is black, as every room in this game is. The bands are dim blue, so the 
   is the new hidden find "viktor won the plane", which the clip takes.
 - **`tunnels`** (existing) are the plume, the waterspout and the Andes' peaks (`harmless`, so nothing kills).
 - **`pulses`** (existing) are the lightning: the cloud cells flicker during `warn`, and the bolt below is live.
-- **`ways`** (new, a short list in `MontyData`): from room R, the way to cell X leads to cell Y instead. The hold's rear door leads
-  to L1, not to F1 beside it. `roomAt` reads it, and the transition keeps the map's cell right.
+- **`boardings`** (new, a short list in `MontyData`, planes.ts `boardUpdate`): a plane waiting in a room. Monty's top left in its box with
+  the item it needs taken, he goes to the cell it names (L1), where he is on the screen; without the item its hint shows (once a touch, the hints
+  assist) and nothing happens. (It replaced `ways`, an edge that led elsewhere: the cut hold's rear door.)
 - **Restart in the air:** in a flight or plane room the way he came in is a place to restart from, since he does not stand there.
   F1 is now entered from the top.
 - **The tally** (`tally` in `MontyData`, null for Monty on the Run), drawn in the score row's centre (columns 15-21):
@@ -96,17 +104,22 @@ The sky is black, as every room in this game is. The bands are dim blue, so the 
   Their art is in `art/sky-*.ts`.
 - **F1 JUMP FOR JOY:** the cargo plane's tail and ramp go, and a cliff closes the west edge. Viktor's cameo in the doorway goes
   (he is in his plane now).
-- **The hold** keeps its route and the parachute. The parachute still opens the rear door. Its wanted hint becomes NO FLYING WITHOUT
-  A PARACHUTE.
+- **Hilo** (pacific.ts): the cargo plane's belly and hold are gone (cut 2026-11-24: a parked plane drawn as if flying made no sense). The
+  biplane stands on the apron (a decoration, `skyBiplane`: the flying picture, cockpit empty). The parachute is on the rim's high shelf
+  (floor 5, columns 20-26), reached only on up the east wall's rope past the long ledge (the rim's spur shuts it from the apron), with the
+  hold's coin at the rope's head and the hold's rooster strutting there; the hold's crates are gone. The coin and the parachute keep the hold's
+  places in the tables, so saves keep them; a save made in the hold carries on on the apron (`RETIRED`, `carryOn` in save-migrate.ts).
 - **Saves:** the new rooms come last, so no coin or find of a shipped room moves, and older saves load as they are. The new find
   comes after the hidden ones.
 
 ## Tests
 
-- `games/montyworld/test/flight.ts`: the flight played by a bot from the hold's door to F1, in EASY and HARD. It also checks:
+- `games/montyworld/test/flight.ts`: the flight played by a bot from the biplane on Hilo's apron to F1, in EASY and HARD. It also checks:
   - a death in a leg restarts that leg;
   - a save made in L2 continues in L2;
   - Viktor's touch kills, and a bird knocks him back;
   - the clip takes the find.
 - The tally reads Monty 2 v Viktor 1 with the train and the ship escaped and the flight flown.
 - Renders: each leg and the HUD (`flight-shots.ts`).
+- `music-sky.ts`: the theme into the sky from its start, on through a death, Hubbard's Andes version clean after it, from a save in the sky.
+- `pacific-mechanisms.ts` (Hilo): the parachute on the shelf past the rooster, the shelf only up the rope, the biplane with and without it.

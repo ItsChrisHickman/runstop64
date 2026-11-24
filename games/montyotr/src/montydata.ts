@@ -281,8 +281,11 @@ export interface PlaneLeg {
 /** The plane's pictures (pointers in the bank, on sprite 2 over Monty, `dx` x2 and `dy` pixels from his sprite) and colour, and his own picture sitting in it (`seat`, his sprite's pointer). */
 export interface PlaneLook { level: number; climb: number; dive: number; wreck: number; colour: number; seat: number; dx: number; dy: number }
 
-/** A way out of a room's edge that leads to another cell than the one beside it (`ways`): from room `room`, the way to the grid's cell `to` goes to `goes` (the hold's rear door, onto the apron's biplane). */
-export interface WaySpec { room: number; to: readonly [row: number, col: number]; goes: readonly [row: number, col: number] }
+/**
+ * A plane waiting in a room (`boardings`, planes.ts: Do Svidaniya Monty's mail biplane on Hilo's apron): touched (Monty's top left in `box`, playfield cells) with the special item `needs` taken, it takes
+ * off with him: he goes to the cell `goes` (the flight's first leg), where he is on the screen. Touched without it, `hint` shows in the name row (the hints assist) and nothing happens.
+ */
+export interface BoardingSpec { room: number; box: CellBox; needs: number; goes: { readonly mapRow: number; readonly exitCol: number }; hint: string }
 
 /**
  * The Spy vs Spy tally in the score row's centre (tally.ts; Do Svidaniya Monty's): Monty's face, a star for each round, the villain's face (lit while he is due). A round is settled when its special item
@@ -537,8 +540,8 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The legs of a flight in a plane (planes.ts) and the plane's look; none in Monty on the Run. */
   planes: readonly PlaneLeg[];
   planeLook: PlaneLook | null;
-  /** Ways out of an edge that lead elsewhere than the cell beside (physics' exits read them); none in Monty on the Run. */
-  ways: readonly WaySpec[];
+  /** Planes waiting to be boarded, the way into a flight's first leg (planes.ts); none in Monty on the Run. */
+  boardings: readonly BoardingSpec[];
   /** The Spy vs Spy tally in the score row (tally.ts); null: the score row as Monty on the Run has it. */
   tally: TallySpec | null;
   rollers: readonly RollerSpec[];

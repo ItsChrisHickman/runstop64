@@ -1,6 +1,6 @@
 /**
  * THE FLIGHT, Hilo to the Andes (sky.ts, docs/dosvidaniya-flight.md), played headless in EASY and in HARD (the game's two modes: the lives alone differ):
- * - out of the cargo plane's rear door (the parachute taken) onto the apron's biplane: the first leg, and the map's cell is the leg's own;
+ * - on Hilo's apron, the parachute taken, into the yellow mail biplane: the first leg, and the map's cell is the leg's own;
  * - the three legs flown by a bot (a depth-first search over the game's own frames that keeps him alive, heading for each leg's coins), each leg handing on to the next where he is, and the bail-out
  *   into JUMP FOR JOY's top under the canopy, alive;
  * - Viktor wins the round (the find), and the tally reads Monty 2 v Viktor 1 with the train and the ship won, its stars in the winners' colours;
@@ -114,19 +114,20 @@ for (const mode of oneLeg ? [] : ['easy', 'hard'] as const) {
   if (only !== undefined && only !== mode) continue;
   const s0 = game(mode);
   const g0 = s0.g;
-  // the Pacific done (every find before the Andes'), the lei on, the train and the ship won, the parachute taken: in the hold by the rear door
+  // the Pacific done (every find before the Andes'), the lei on, the train and the ship won, the parachute taken: on Hilo's apron, east of the biplane
   const andes = new Set<number>([...Object.values(AND), ...Object.values(FLY)]);
   for (let i = 0; i < g0.siCollected.length; i++) if (!andes.has(g0.data.specialItems[i * 4] ?? 0)) g0.siCollected[i] = 0x81;
   g0.siCollected[ROUNDS.plane] = 0;
   wear(g0, itemIndex(g0, PAC.waikiki, 1));
-  enterRoom(g0, PAC.plane, 0x0c + (26 + 4) * 4, standY(16));
+  enterRoom(g0, PAC.hilo, 0x0c + (9 + 4) * 4, standY(5));
+  g0.enemies = []; g0.enable &= 0x0f; g0.vic.enable &= 0x0f; // (the nene out of the way: the boarding is what is checked here)
   for (let n = 0; n < 200 && !settled(g0); n++) frame(s0, NONE);
 
-  // out of the rear door: the first leg
-  for (let n = 0; n < 200 && g0.roomId === PAC.plane; n++) frame(s0, { ...NONE, right: true });
+  // into the biplane: the first leg
+  for (let n = 0; n < 200 && g0.roomId === PAC.hilo; n++) frame(s0, { ...NONE, left: true });
   for (let n = 0; n < 200 && !settled(g0); n++) frame(s0, NONE);
   for (let n = 0; n < 2; n++) frame(s0, NONE);
-  check(`${mode}: out of the hold's rear door he is in the first leg (room ${g0.roomId}), its map cell [${g0.mapRow},${g0.exitCol}] the leg's own [0,20], not the Andes' first room beside the hold`,
+  check(`${mode}: into the biplane on Hilo's apron he is in the first leg (room ${g0.roomId}), its map cell [${g0.mapRow},${g0.exitCol}] the leg's own [0,20]`,
     g0.roomId === FLY.mail && g0.mapRow === 0 && g0.exitCol === 20);
   check(`${mode}: in the plane, the plane is drawn over him (sprite 2, out of the collision check) and he sits in it`, g0.planeShown && (g0.uncounted & 0x04) !== 0 && g0.frameIndex === 0x54);
 

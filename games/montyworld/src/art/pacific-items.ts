@@ -1,7 +1,7 @@
 /**
  * The Pacific's items for Monty Mole: World Tour (region 5): the bolt cutters (the engine room's, for the chain on the dock ramp), the
  * snorkel and mask (which open Hawaii's water), the lei (the region's key item and its costume: pacific-lei.ts has how he wears it),
- * the parachute pack (the hold's, needed in the Andes) and the Spam musubi (the food in place of the cupcake). Hires sprite blocks as
+ * the parachute pack (on Hilo's high shelf: no flying without it) and the Spam musubi (the food in place of the cupcake). Hires sprite blocks as
  * Moscow's and Siberia's items are, a solid shape with the detail cut into it.
  */
 import { itemBlock } from './pixels';

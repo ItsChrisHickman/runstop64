@@ -1,8 +1,9 @@
 /**
  * The Pacific's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, pacific.ts, plays them all together; docs/dosvidaniya-reset.md, "the Pacific"): the region's data
- * (five rooms on the grid, the ids kept, the coins and finds), the ship's pistons and bilge, Waikiki's surf shut until the snorkel and the snorkel out of reach from the sand, the luau's torches, Hana's
- * swimming (the snorkel, no way out upward, the surge and its lee, the moray), Hilo's lava (from the floor to under the long ledge), its cracking crust and steam vent, the hold's loose crate and its shelter,
- * the rear door and the parachute, the lei as a costume that gates nothing, the hints, the banners, the swimmer's pictures, and a save in each room.
+ * (four rooms on the grid, the ids kept, the coins and finds), the ship's pistons and bilge, Waikiki's surf shut until the snorkel and the snorkel out of reach from the sand, the luau's torches, Hana's
+ * swimming (the snorkel, no way out upward, the surge and its lee, the moray), Hilo's lava (from the floor to under the long ledge), its cracking crust and steam vent, the parachute on the rim's high shelf
+ * (up the east wall's rope only, past the rooster), the biplane on the apron (it flies with the parachute, says why not without), the lei as a costume that gates nothing, the hints, the banners, the
+ * swimmer's pictures, and a save in each room.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-mechanisms.ts [--room <rooms>] [--record]
  */
@@ -15,13 +16,14 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { surgeRuns } from '../../montyotr/src/swim';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
+import { ROW } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { CRUST_CRACKS, CURRENTS, LAVA, LOOSE_CRATE, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
@@ -30,23 +32,23 @@ import { SCOPE } from './scope';
 
 const DOWN = { ...NONE, down: true };
 /** The items by room and place in it. */
-const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARACHUTE = [PAC.plane, 0] as const;
+const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARACHUTE = [PAC.hilo, 0] as const;
 
 // ---- the data -------------------------------------------------------------------------------------
 SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 17, PAC.ship], [2, 18, PAC.waikiki], [3, 18, PAC.hana], [3, 19, PAC.hilo], [2, 19, PAC.plane]] as const;
-  check('the Pacific is five rooms in a U at columns 17-19 (rows 2-3): Japan\'s port beside the ship, the plane beside the Andes\' first room (moved to [2,20]), nothing else in its columns',
-    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && grid(2, 20) === AND.jump && [0, 1, 4, 5, 6, 7].every((r) => [17, 18, 19].every((c) => grid(r, c) === 0xff)) && grid(3, 17) === 0xff);
-  const before = entriesBefore(PAC.ship, PAC.plane);
-  check('the regions before the Pacific keep their coins and finds in the same table places, and the Pacific has 9 coins (2, 2, 2, 2, 1) and 4 finds (the snorkel, the lei, the musubi, the parachute)',
-    before.ordered && coinsIn(PAC.ship, PAC.plane) === 9 && itemsIn(PAC.ship, PAC.plane) === 4 && PACIFIC_ROOMS.map((r) => r.coins?.length ?? 0).join() === '2,2,2,2,1');
-  check('the room ids are the first build\'s (38, 41, 49, 52, 54); the sectors keep seventeen places, the five kept named plainly and the retired twelve empty',
-    PACIFIC_ROOMS.map((r) => r.id).join() === '38,41,49,52,54' && PACIFIC_SECTORS.length === 17 && PACIFIC_SECTORS.filter((s) => s.text !== '').map((s) => s.text).join() === 'THE CARGO SHIP,WAIKIKI,HANA,HILO,THE CARGO PLANE');
+  const placed = [[2, 17, PAC.ship], [2, 18, PAC.waikiki], [3, 18, PAC.hana], [3, 19, PAC.hilo]] as const;
+  check('the Pacific is four rooms in a U at columns 17-19 (rows 2-3): Japan\'s port beside the ship, the cut hold\'s cell [2,19] empty, nothing else in its columns',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && grid(2, 19) === 0xff && grid(2, 20) === AND.jump && [0, 1, 4, 5, 6, 7].every((r) => [17, 18, 19].every((c) => grid(r, c) === 0xff)) && grid(3, 17) === 0xff);
+  const before = entriesBefore(PAC.ship, PAC.hilo);
+  check('the regions before the Pacific keep their coins and finds in the same table places, and the Pacific has 9 coins (2, 2, 2, 3: the hold\'s coin is Hilo\'s third, in its table place) and 4 finds (the snorkel, the lei, the musubi, the parachute, Hilo\'s now)',
+    before.ordered && coinsIn(PAC.ship, PAC.hilo) === 9 && itemsIn(PAC.ship, PAC.hilo) === 4 && PACIFIC_ROOMS.map((r) => r.coins?.length ?? 0).join() === '2,2,2,3');
+  check('the room ids are the first build\'s (38, 41, 49, 52; the hold\'s 54 is retired); the sectors keep seventeen places, the four kept named plainly and the retired thirteen empty',
+    PACIFIC_ROOMS.map((r) => r.id).join() === '38,41,49,52' && PACIFIC_SECTORS.length === 17 && PACIFIC_SECTORS.filter((s) => s.text !== '').map((s) => s.text).join() === 'THE CARGO SHIP,WAIKIKI,HANA,HILO');
   const rooms = creatureRooms(PACIFIC_ROOMS);
-  check(`ten kinds of creature and Viktor Vole aboard the ship, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, rooms.size === 11 && [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
+  check(`ten kinds of creature and Viktor Vole aboard the ship (the hold's rooster in Hilo now, its swinging crate the ship's alone), none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, rooms.size === 11 && [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
   check('Hana is the one swim room and the only room of the Pacific with a surge (the flight\'s gusts are currents too); Hilo has the lava; Monty on the Run has none of them',
     WORLD.swimRooms.join() === String(PAC.hana) && WORLD.currents.every((c) => c.room === PAC.hana || (Object.values<number>(FLY)).includes(c.room)) && WORLD.risingLava.some((l) => l.room === PAC.hilo) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
   check('the lei opens nothing: no room effect waits for it, and it is worn', WORLD.roomEffects.every((e) => (e.when ?? []).every((w) => !('taken' in w) || w.taken !== itemIndex(newGame(WORLD, false).g, ...LEI))) && WORLD.costumes.some((c) => c.item === itemIndex(newGame(WORLD, false).g, ...LEI)));
@@ -66,8 +68,8 @@ SCOPE.section([PAC.ship, JP.port, PAC.waikiki], 'the cargo ship: the pistons and
 });
 
 // ---- Waikiki: the surf, the snorkel on the roof, the torches ---------------------------------------
-SCOPE.section([PAC.waikiki, PAC.hana, PAC.ship, PAC.plane], 'Waikiki: the surf, the snorkel on the roof, the torches', () => {
-  SCOPE.section([PAC.waikiki, PAC.hana, PAC.ship, PAC.plane], 'Waikiki: the surf and the snorkel on the roof', () => {
+SCOPE.section([PAC.waikiki, PAC.hana, PAC.ship], 'Waikiki: the surf, the snorkel on the roof, the torches', () => {
+  SCOPE.section([PAC.waikiki, PAC.hana, PAC.ship], 'Waikiki: the surf and the snorkel on the roof', () => {
     check('the surf kills him without the snorkel', diesAt(at(PAC.waikiki, 23, 19), RIGHT, 120) >= 0);
     const stats = { exhausted: false };
     const swim = search(at(PAC.waikiki, 23, 19), (g) => g.roomId === PAC.hana, [{ room: PAC.waikiki, col: 28, row: 17 }], 120000, 1.5, stats);
@@ -149,7 +151,7 @@ SCOPE.section([PAC.hana, PAC.waikiki, PAC.hilo, PAC.ship], 'Hana: the snorkel, t
 });
 
 // ---- Hilo: the lava, the crust, the vent ------------------------------------------------------------
-SCOPE.section([PAC.hilo, PAC.hana, PAC.plane], 'Hilo: the lava, the crust, the vent', () => {
+SCOPE.section([PAC.hilo, PAC.hana, FLY.mail], 'Hilo: the lava, the crust, the vent, the shelf, the biplane', () => {
   SCOPE.section([PAC.hilo], 'Hilo: the lava, the crust, the vent', () => {
     const tops = [0, 40, 200, 360, 500].map((t) => lavaTop(LAVA, t));
     check(`the lava starts at the floor and rises a row every 40 frames to row 10, the row under the long ledge's feet (tops ${tops.join(' ')})`, tops[0] === 19 && tops[1] === 18 && tops[3] === 10 && tops[4] === 10 && Math.min(...Array.from({ length: 900 }, (_, t) => lavaTop(LAVA, t))) === LAVA.topRow);
@@ -170,49 +172,47 @@ SCOPE.section([PAC.hilo, PAC.hana, PAC.plane], 'Hilo: the lava, the crust, the v
     const ventDied = diesAt(atVent, NONE, VENT.period + 10);
     check(`standing over the vent he dies when it blows (frame ${ventDied}, live from ${VENT.start + VENT.warn})`, vent !== undefined && ventDied >= VENT.start + VENT.warn - 1);
   });
-  SCOPE.section([PAC.hilo, PAC.hana, PAC.plane], 'Hilo: the climb to the long ledge', () => {
+  SCOPE.section([PAC.hilo, PAC.hana], 'Hilo: the climb to the long ledge', () => {
     const climb = search(at(PAC.hilo, 1, 19, [SNORKEL]), (g) => g.y === standY(9) && colOf(g) >= 20, [{ room: PAC.hilo, col: 26, row: 7 }], 200000, 2);
     check('the bot climbs from the shore to the long ledge ahead of the lava', climb !== null);
   });
-  SCOPE.section([PAC.hilo, PAC.plane], 'Hilo: up the belly ladder into the hold', () => {
-    // up the ladder from either column it can be climbed from, with the lava's rows on the floor under the hatch (he comes out of the top at the bottom of the room before the hold loads)
-    for (const col of [7, 8]) {
-      const ladder = at(PAC.hilo, col, 5, [SNORKEL]);
-      let died = false;
-      for (let f = 0; f < 300 && ladder.g.roomId === PAC.hilo; f++) { frame(ladder, UP); if (ladder.g.actionCounter !== 0) died = true; }
-      run(ladder, UP, 20);
-      check(`up the belly ladder (from column ${col}) he comes into the hold alive, on the ladder at its foot (at ${colOf(ladder.g)},${ladder.g.montyRow - 3})`, !died && !dead(ladder.g) && ladder.g.roomId === PAC.plane && ladder.g.montyRow - 3 >= 14);
-    }
+  SCOPE.section([PAC.hilo], 'Hilo: the parachute on the rim\'s high shelf', () => {
+    // up the east wall's rope past the long ledge, onto the shelf, past the rooster (its creatures in) to the parachute
+    const up = search(at(PAC.hilo, 27, 9, [SNORKEL], false, true), (g) => !!g.siCollected[itemIndex(g, ...PARACHUTE)] && !dead(g), [{ room: PAC.hilo, col: PARACHUTE_AT.col, row: PARACHUTE_AT.row }], 200000, 2);
+    check('from the long ledge\'s head, on up the rope to the shelf and past the rooster, the bot takes the parachute', up !== null);
+    // and the shelf is only up that rope: the rope's part above the long ledge taken away, the rim's spur shuts it from the apron, and the long ledge is too far below to jump to it
+    const onShelf = (g: Parameters<typeof dead>[0]) => g.roomId === PAC.hilo && g.y === standY(5) && colOf(g) >= 20 && colOf(g) <= 26;
+    const noRope = (s: ReturnType<typeof at>) => { for (let r = 4; r <= 8; r++) s.g.setRoomChar((r + 3) * ROW + 28 + 4, 0); return s; }; // (the rope's part above the long ledge taken away)
+    const fromApron = search(noRope(at(PAC.hilo, 16, 5, [SNORKEL])), onShelf, [{ room: PAC.hilo, col: 23, row: 3 }], 30000, 2);
+    const fromLedge = search(noRope(at(PAC.hilo, 22, 9, [SNORKEL])), onShelf, [{ room: PAC.hilo, col: 23, row: 3 }], 30000, 2);
+    check(`the shelf is not reached from the apron (the spur) nor jumped to from the long ledge below it (${fromApron === null}, ${fromLedge === null})`, fromApron === null && fromLedge === null);
   });
-});
-
-// ---- the cargo plane: the crate, the door ------------------------------------------------------------
-SCOPE.section([PAC.plane, AND.jump], 'the cargo plane: the crate, the door', () => {
-  SCOPE.section([PAC.plane], 'the cargo plane: the loose crate', () => {
-    const arrive = at(PAC.plane, 7, 16, [SNORKEL]);
-    run(arrive, NONE, LOOSE_CRATE.start - 10);
-    check('arriving up the ladder is safe: the loose crate\'s first roll comes later', !dead(arrive.g));
-    const floor = at(PAC.plane, 20, 16, [SNORKEL]);
-    check('standing on the roller floor the loose crate gets him', diesAt(floor, NONE, LOOSE_CRATE.start + LOOSE_CRATE.every) >= 0);
-    const net = at(PAC.plane, 14, 12, [SNORKEL]);
-    run(net, NONE, 2 * LOOSE_CRATE.every);
-    check('on the cargo net he is out of its way', !dead(net.g));
-  });
-  SCOPE.section([PAC.plane, AND.jump], 'the cargo plane: the rear door', () => {
-    const shut = at(PAC.plane, 27, 16, [SNORKEL]);
-    run(shut, RIGHT, 80);
-    check('without the parachute the rear door is shut (he stops in the hold)', shut.g.roomId === PAC.plane && PLANE_DOOR_CELLS.length === 8);
-    const open = at(PAC.plane, 27, 16, [SNORKEL, PARACHUTE]);
-    run(open, RIGHT, 80);
-    check('with it the door is open onto the apron\'s mail biplane: the flight\'s first leg (sky.ts)', open.g.roomId === FLY.mail);
+  SCOPE.section([PAC.hilo, FLY.mail], 'Hilo: the biplane on the apron', () => {
+    // without the parachute: the hint, once, and he stays; with it: off into the flight's first leg, at [0,20], where he was on the screen
+    const without = at(PAC.hilo, 9, 5, [SNORKEL]);
+    without.g.assist = { ...without.g.assist, hints: true };
+    run(without, LEFT, 60);
+    const said = rowText(without.g);
+    run(without, NONE, 20);
+    check(`touching the biplane without the parachute: ${said}, and nothing happens (he is still on the apron, room ${without.g.roomId})`, said === 'NO FLYING WITHOUT A PARACHUTE' && without.g.roomId === PAC.hilo && !dead(without.g));
+    const quiet = at(PAC.hilo, 9, 5, [SNORKEL]);
+    run(quiet, LEFT, 60);
+    check(`with the hints off nothing is said (${rowText(quiet.g)})`, rowText(quiet.g) !== 'NO FLYING WITHOUT A PARACHUTE');
+    const away = at(PAC.hilo, 9, 5, [SNORKEL, PARACHUTE]);
+    let y = away.g.y;
+    for (let f = 0; f < 80 && away.g.roomId === PAC.hilo; f++) { y = away.g.y; frame(away, LEFT); }
+    run(away, NONE, 4);
+    check(`touching it with the parachute he takes off: the first leg (room ${away.g.roomId} at [${away.g.mapRow},${away.g.exitCol}]), at the height he boarded (y ${away.g.y} vs ${y}), its nose at column ${BIPLANE_AT.col + 2}`,
+      away.g.roomId === FLY.mail && away.g.mapRow === 0 && away.g.exitCol === 20 && Math.abs(away.g.y - y) <= 4 && away.g.planeShown);
   });
 });
 
 // ---- the hints and the banners ------------------------------------------------------------------------
 SCOPE.section([], 'the hints and the banners', () => {
   SCOPE.section([], 'the hints', () => {
-    const want = WORLD.hints.wanted.filter((h) => h.room >= PAC.ship && h.room <= PAC.plane).map((h) => `${h.room}:${h.text}`);
-    check(`the gates' hints are the two kept (${want.join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR|${PAC.plane}:NO FLYING WITHOUT A PARACHUTE`);
+    const want = WORLD.hints.wanted.filter((h) => h.room >= PAC.ship && h.room <= PAC.hilo).map((h) => `${h.room}:${h.text}`);
+    const board = WORLD.boardings.map((b) => `${b.room}:${b.hint}`);
+    check(`the gates' hints are the surf's on coming into Waikiki and the biplane's on touching it (${[...want, ...board].join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR` && board.join('|') === `${PAC.hilo}:NO FLYING WITHOUT A PARACHUTE`);
     const take = new Set(WORLD.hints.take.map((h) => h.text));
     check('the take hints are the snorkel\'s, the lei\'s and the parachute\'s; the cutters\' and the chain\'s are gone', take.has('WITH A SNORKEL HE CAN SWIM') && take.has('A LEI: TRAVELLERS WEAR ONE') && take.has('PARACHUTE: FOR A LONG DROP') && ![...take].some((t) => t.includes('CUTTERS') || t.includes('CHAIN')));
   });
@@ -230,7 +230,7 @@ SCOPE.section([], 'the hints and the banners', () => {
 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
-  const spots = [[PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.hana, 27, 5], [PAC.hilo, 1, 19], [PAC.plane, 7, 16]] as const;
+  const spots = [[PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.hana, 27, 5], [PAC.hilo, 1, 19], [PAC.hilo, 16, 5]] as const;
   const failed: number[] = [];
   for (const [room, col, floor] of spots.filter(([id]) => SCOPE.has(id))) {
     const a = newGame(WORLD, false);
@@ -244,7 +244,7 @@ SCOPE.section([], 'a save in each room', () => {
     run(b, NONE, 40);
     if (b.g.roomId !== room || dead(b.g) || b.g.worn !== itemIndex(b.g, ...LEI)) failed.push(room);
   }
-  check(`a save made in each of the five rooms carries on there, alive, in the lei${failed.length ? ` (not in ${failed.join()})` : ''}`, failed.length === 0);
+  check(`a save made in each of the four rooms (Hilo's shore and its apron) carries on there, alive, in the lei${failed.length ? ` (not in ${failed.join()})` : ''}`, failed.length === 0);
 });
 
 SCOPE.report();

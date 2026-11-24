@@ -15,8 +15,8 @@ const solid = (r: RoomSpec, col: number, row: number): boolean => {
   const ch = r.map[row]?.[col] ?? '.';
   return ch !== '.' && [1, 2, 4].includes(WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0));
 };
-/** Joins that look like a clash on the page but are made open in play (each proved by its region's mechanisms test): the chain's rows in the box (the cutters), the surf's waves (the snorkel), the hold's door (the parachute) and the road's pool and the tower's trapdoor. */
-const OPENED: readonly string[] = ['39|40', '41|43', '54|55', '47/48', '21/20'];
+/** Joins that look like a clash on the page but are made open in play (each proved by its region's mechanisms test): the chain's rows in the box (the cutters), the surf's waves (the snorkel) and the road's pool and the tower's trapdoor. */
+const OPENED: readonly string[] = ['39|40', '41|43', '47/48', '21/20'];
 const at = (col: number, row: number) => ROOMS.find((r) => r.col === col && r.row === row);
 
 const bad: string[] = [];

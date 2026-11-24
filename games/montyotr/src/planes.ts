@@ -1,6 +1,7 @@
 import { applyMonty } from '../../shared/monty/physics';
 import type { Game } from './game';
 import type { CellBox, PlaneLeg, PlaneLook } from './montydata';
+import { inBox } from './cameos';
 import { surgeOn } from './swim';
 
 /**
@@ -32,6 +33,25 @@ export function planeInit(g: Game) {
   g.planeBail = -1;
   g.planeTilt = 0;
   g.planeFrom = 0;
+  g.planeTouch = 0;
+}
+
+/**
+ * The plane waiting in the room (`boardings`): touched with the item it needs, it takes off with him into the flight's first leg, where he is on the screen; touched without it, its hint (once a touch,
+ * not every frame he stays against it) and nothing more.
+ */
+export function boardUpdate(g: Game) {
+  const board = g.data.boardings.find((b) => b.room === g.roomId);
+  if (!board || g.actionCounter || g.roomExit) return;
+  if (!inBox(g, board.box)) { g.planeTouch = 0; return; }
+  if (g.siCollected[board.needs]) {
+    g.mapRow = board.goes.mapRow;
+    g.exitCol = board.goes.exitCol;
+    g.roomExit = 1;
+    return;
+  }
+  if (!g.planeTouch) g.noteWanted(board.hint);
+  g.planeTouch = 1;
 }
 
 /** One frame of his flying (in place of walking: monty.ts): the stick, a gust, the box. */

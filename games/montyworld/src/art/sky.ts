@@ -222,7 +222,16 @@ export const SKY_DECOR = {
   skyWisps: decor('skyWisps', 12, 1, farWisps(), 6),
   /** The near band's low cloud (blue: it goes by faster). */
   skyLowCloud: decor('skyLowCloud', 12, 2, lowCloud(), 6),
+  /** The mail biplane parked on Hilo's apron, waiting for him: the flying picture, its cockpit empty, its wheels on the cells' bottom row (3 x 3 characters, the plane's yellow). */
+  skyBiplane: decor('skyBiplane', 3, 3, parked(), PLANE_COLOUR),
 } satisfies Record<string, NewDecor>;
+
+/** The level plane's picture in a 24 x 24 raster, three rows down so its wheels stand on the bottom row. */
+function parked(): Raster {
+  const r = new Raster(24, 24);
+  r.stamp(PLANE_LEVEL, 0, 24 - PLANE_LEVEL.length);
+  return r;
+}
 
 // ---- the HUD's tally: Viktor's face (four characters) and the star ------------------------------------------------------------------------
 

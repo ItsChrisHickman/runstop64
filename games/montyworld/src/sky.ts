@@ -1,11 +1,10 @@
-import type { Arrival, CharAnim, CurrentSpec, PlaneLeg, PlaneLook, PulseSpec, PursuerSpec, RollerSpec, TunnelSpec, WaySpec } from '../../montyotr/src/montydata';
+import type { Arrival, CharAnim, CurrentSpec, PlaneLeg, PlaneLook, PulseSpec, PursuerSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { BIRD_COLOURS, BIRD_PICTURES, PLANE_COLOUR, PLANE_PICTURES } from './art/sky';
 import { codeOf, decorIndex, room, type Palette } from './layout';
-import { PAC } from './pacific';
 
 /**
- * THE FLIGHT, Hilo to the Andes (docs/dosvidaniya-flight.md): out of the cargo plane's rear door on Hilo's apron Monty takes the yellow mail biplane, and flies three legs east, a room each, about 75 seconds
+ * THE FLIGHT, Hilo to the Andes (docs/dosvidaniya-flight.md): on Hilo's apron Monty, with the parachute, takes the yellow mail biplane (pacific.ts `biplaneBoarding`), and flies three legs east, a room each, about 75 seconds
  * in all, to the Andes, where Viktor clips his tail and he bails out into JUMP FOR JOY. The legs are on the exit grid's top row over the Andes' columns, where nothing else is beside them:
  *
  *            col 20               col 21                 col 22
@@ -33,8 +32,8 @@ export const SKY_COLOURS: readonly number[] = [0, 14, 14, 14];
 /** The banner on taking off. One name row: 32 letters. */
 export const SKY_ARRIVALS: readonly Arrival[] = [{ rooms: [FLY.mail, FLY.storm, FLY.tail], text: 'BY AIR MAIL TO THE ANDES' }];
 
-/** The hold's rear door (the Pacific's plane, [2,19]): the way east leads onto the apron's biplane, the first leg, not into the Andes' first room beside it. */
-export const HOLD_WAY: WaySpec = { room: PAC.plane, to: [2, 20], goes: [0, 20] };
+/** The first leg's cell, where the biplane on Hilo's apron takes him (pacific.ts `biplaneBoarding`). */
+export const TAKE_OFF = { mapRow: 0, exitCol: 20 } as const;
 
 // ---- the pictures (in the creature slots' blocks while a leg is loaded: the legs have no creatures but Viktor, in slot 0) ----------------------
 
