@@ -1,10 +1,26 @@
 # Handoff: start here
 
 For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only the
-state of things and what is waiting on Chris. Last updated 2026-11-08.
+state of things and what is waiting on Chris. Last updated 2026-11-24.
 
-**Paused, 2026-11-08.** Chris is taking a break ("diminishing returns"; the point was reliving his childhood games). Nothing is
-under construction. Don't start new work unprompted; when he comes back, start from "Waiting on Chris" below.
+**Active, 2026-11-24: Do Svidaniya Monty** (`games/montyworld`, `#montyworld`), Chris's original Monty game on Monty on the
+Run's engine. Read `games/shared/monty/LESSONS.md` (his rules), `docs/dosvidaniya-reset.md` (the reset plan and what was built)
+and `AGENTS.md`'s testing rules (`tools/affected.mjs --run`: test only what a change touches; Chris is very sensitive to slow,
+broad test runs and to many agents at once: at most four, one running region bots).
+
+Live: Moscow, China, Japan (Chris says leave them be; only his own notes touch them); Siberia, the Pacific, the Andes/Amazon and
+Rio rebuilt smaller (54 rooms); Viktor Vole, KGB, Monty's mirror (title intro, a too-late cameo at each border, his shadow in
+THE LAST MOLE, escapes on the train and the cargo ship, the SPY VERSUS MOLE puzzle in Rio, squashed with Monty on the Run's
+crusher death); the close-up beach finale and the carnival parade ending in a crusher on Viktor; the new title; region tunes
+Hubbard-first, crossing in step at phrase ends with a volume dip; EASY/HARD everywhere; restart the room as he came in.
+
+Open (2026-11-24): a backlog workflow was shipping, in two lanes: the cover art on the info card, the pause map (whole world,
+travel anywhere visited), the top-centre HUD (Monty, three escape stars, Viktor's silhouette that lights when he's due; lives
+only in HARD), a Monty kit README, the C64 budget (decoration kinds back within 255). Check `git log` for which landed. The
+title/continue prompt's "FIRE" now names the game's button (JUMP) on branch fix/fire-label (`.claude/worktrees/fire-label`),
+tests were running. Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
+(`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
+car (would shift China).
 
 ## State
 
