@@ -45,6 +45,17 @@ let program: Program;
 function showInfo(info: GameInfo) {
   panelTitle.textContent = info.title;
   panelBody.innerHTML = info.html;
+  if (info.cover) {
+    const img = document.createElement('img');
+    img.className = 'cover';
+    img.src = info.cover.src;
+    img.alt = info.cover.alt;
+    img.width = info.cover.width;
+    img.height = info.cover.height;
+    img.loading = 'lazy'; // (the sheet is closed until asked for)
+    img.decoding = 'async';
+    panelBody.prepend(img);
+  }
   document.title = info.title === 'runstop64' ? 'runstop64' : `${info.title} · runstop64`;
 }
 

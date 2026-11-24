@@ -180,6 +180,18 @@ a { color: var(--link); }
 .info h1 a { text-decoration: none; }
 .info p, .info ul { margin: 0 0 10px; }
 .info ul { padding-left: 20px; }
+/* A game's cover art (GameInfo.cover): beside the text on a wide sheet, above it on a phone. */
+.info .cover {
+  display: block;
+  width: min(100%, 240px);
+  height: auto;
+  margin: 0 0 12px;
+  border-radius: 4px;
+}
+@media (min-width: 600px) {
+  .info .cover { float: right; margin: 0 0 12px 16px; }
+}
+#info-body::after { content: ''; display: block; clear: both; }
 .info .small { color: var(--muted); font-size: 13px; }
 
 /* ---- Touch controls (games/shared/touch): only once a touch is seen, or on a phone/tablet. ---- */

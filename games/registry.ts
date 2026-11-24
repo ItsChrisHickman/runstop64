@@ -28,6 +28,8 @@ export interface Program {
 export interface GameInfo {
   title: string;
   html: string;
+  /** Cover art shown at the top of the info sheet (the shell draws it): a small web image shipped with the game, its size in pixels. */
+  cover?: { src: string; alt: string; width: number; height: number };
   /** Shown when leaving for the menu: whether progress is kept. */
   progress?: string;
 }

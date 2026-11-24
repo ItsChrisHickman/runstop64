@@ -1,7 +1,12 @@
 // What the shell's info sheet says about Do Svidaniya Monty (shown by games/shell.ts, from the registry's `load`). Data only; the game's code is main.ts.
 
-export const info = {
+// The cover: Monty running for it with his suitcase, 480 px wide (twice the sheet's 240 for sharp screens), WebP.
+import type { GameInfo } from '../../registry';
+import coverUrl from './cover.webp?url';
+
+export const info: GameInfo = {
   title: 'Do Svidaniya Monty',
+  cover: { src: coverUrl, alt: 'Do Svidaniya Monty: Monty Mole in a fur hat runs with his suitcase from the KGB, past Moscow, the Trans-Siberian, the Great Wall, Mount Fuji, Machu Picchu and Rio', width: 480, height: 716 },
   progress: 'Your progress is saved each time Monty enters a room: coming back to the game carries on where you were, and the save from before your last new game is kept too (the saved games: F1 on the directory).',
   html: `
     <p><strong>Do Svidaniya Monty: Christopher Hickman</strong></p>
