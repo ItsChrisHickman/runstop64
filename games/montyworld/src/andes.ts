@@ -49,9 +49,9 @@ const AMAZON = 62;
 export const ANDES_COLOURS: readonly number[] = [14, 0, 14, 13, 8, 0, 0, 5, 0, 0, 0, 0];
 
 // ---- the palettes --------------------------------------------------------------------------------------
-/** The sky: the plane's tail and its ramp, rock, snow. Nothing behind (black, as Monty on the Run draws every room). */
+/** The sky: rock, snow. Nothing behind (black, as Monty on the Run draws every room). */
 export const SKY_PALETTE = {
-  K: ['hullPlate', 14], R: ['mountainRock', 9], S: ['snowCap', 1],
+  R: ['mountainRock', 9], S: ['snowCap', 1],
 } as const satisfies Palette;
 
 /** The terraces (MP1): green grass lips on ochre Inca dry-stone walls, the guardhouse's thatch, the brown rock of the cliff and the high ledge. */
@@ -185,7 +185,7 @@ const KAPOK_TRUNK = [14, 1, 16, 15] as const;
 
 const PAINT = {
   jump(g: Grid) {
-    g.box(0, 0, 1, 13, 'K').box(0, 16, 3, 19, 'K'); // the plane's tail and its ramp (floor 16: the hold's door is rows 14-15)
+    g.box(0, 0, 0, 19, 'R').box(0, 16, 3, 19, 'R'); // the mountainside closing the west, and its foot (over the gorge's west cliff below); he drops in from the top: the mail plane's bail-out, sky.ts
     g.box(17, 14, 22, 19, 'R').box(18, 13, 21, 13, 'S').box(19, 12, 20, 12, 'S'); // the spire, its snowy tip (floor 12)
     g.box(23, 12, 31, 19, 'R').box(23, 11, 31, 11, 'S'); // the mountain's shoulder: the gorge below is open only west of the spire
   },
@@ -259,7 +259,7 @@ const PAINT = {
 const LEDGE_EMPANADA = [27, 6] as const;
 
 export const ANDES_ROOMS: readonly RoomSpec[] = [
-  // F1 JUMP FOR JOY: out of the plane's tail. In at the left on the ramp (floor 16: the hold's door, rows 14-15); off the ramp's end the canopy opens. An updraft (cols 9-11) lifts him to glide to the
+  // F1 JUMP FOR JOY: bailed out of the mail plane (sky.ts), he comes in at the top under the canopy. An updraft (cols 9-11) lifts him to glide to the
   // spire, the coin on its snowy tip (the first thing the new move is for), a condor diving across the glide: the glide is timed. The bottom is open west of the spire: he sinks out of it into the gorge.
   room({
     id: AND.jump, cell: [2, 20], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,

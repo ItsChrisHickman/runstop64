@@ -22,9 +22,9 @@ drawRegionMap(out, {
     [AND.jump]: [20, 0], [AND.gorge]: [20, 1], [AND.terraces]: [20, 2], [AND.picchu]: [21, 2],
     [AND.canopy]: [21, 3], [AND.kapok]: [22, 3], [AND.sandbar]: [21, 4], [AND.roots]: [22, 4],
   },
-  firstSector: AND.jump, sectors: Array.from({ length: 12 }, (_, i) => ({ col: 0, text: NAMES[AND.jump + i] ?? '' })), stub: { row: 0, words: ['THE PACIFIC', 'THE HOLD'] }, deadEnds: [AND.picchu],
+  firstSector: AND.jump, sectors: Array.from({ length: 12 }, (_, i) => ({ col: 0, text: NAMES[AND.jump + i] ?? '' })), stub: { row: 0, words: ['THE FLIGHT', 'FROM HILO'] }, deadEnds: [AND.picchu],
   joins: [
-    [-1, AND.jump, 'W PARACHUTE', true, 0], [AND.jump, AND.gorge, 'DROP', true, 0], [AND.gorge, AND.terraces, 'DROP', true, 0],
+    [-1, AND.jump, 'BAIL OUT', true, 0], [AND.jump, AND.gorge, 'DROP', true, 0], [AND.gorge, AND.terraces, 'DROP', true, 0],
     [AND.terraces, AND.picchu, 'W LO', true, 9], [AND.picchu, AND.terraces, 'W HI', false, -9],
     [AND.picchu, AND.canopy, 'R PANPIPES', true, 0], [AND.canopy, AND.sandbar, 'R / DROP', true, 0], [AND.sandbar, AND.roots, 'W VINES', true, 0],
     [AND.canopy, AND.kapok, 'W WALKWAY', true, 0], [AND.kapok, AND.roots, 'DROP HOLLOW', true, 0],

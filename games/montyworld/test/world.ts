@@ -15,9 +15,10 @@ import { JAPAN_ROOMS } from '../src/japan';
 import { PACIFIC_ROOMS } from '../src/pacific';
 import { ANDES_ROOMS } from '../src/andes';
 import { RIO_ROOMS } from '../src/rio';
+import { SKY_ROOMS } from '../src/sky';
 
 const REGIONS: readonly (readonly [string, readonly RoomSpec[]])[] = [
-  ['Moscow', MOSCOW_ROOMS], ['Siberia', SIBERIA_ROOMS], ['China', CHINA_ROOMS], ['Japan', JAPAN_ROOMS], ['the Pacific', PACIFIC_ROOMS], ['the Andes and the Amazon', ANDES_ROOMS], ['Rio', RIO_ROOMS],
+  ['Moscow', MOSCOW_ROOMS], ['Siberia', SIBERIA_ROOMS], ['China', CHINA_ROOMS], ['Japan', JAPAN_ROOMS], ['the Pacific', PACIFIC_ROOMS], ['the Andes and the Amazon', ANDES_ROOMS], ['Rio', RIO_ROOMS], ['the flight', SKY_ROOMS],
 ];
 const all = REGIONS.flatMap(([, rooms]) => rooms);
 const onGrid = [...WORLD.exitGrid.image].filter((c) => c !== 0xff);

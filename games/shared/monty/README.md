@@ -40,12 +40,12 @@ Art goes in `src/art/<region>-*.ts`, gathered in `src/art/world.ts`. Text goes t
 ## 3. Mechanisms are data
 
 Every mechanism beyond walking is a module in `games/montyotr/src` (`escalators.ts`, `icicles.ts`, `tunnels.ts`, `cracks.ts`,
-`pulses.ts`, `rollers.ts`, `vines.ts`, `dragons.ts`, `floats.ts`, `levers.ts`, `pursuers.ts`, `cablecars.ts`, ...) driven by a
+`pulses.ts`, `rollers.ts`, `vines.ts`, `dragons.ts`, `floats.ts`, `levers.ts`, `pursuers.ts`, `cablecars.ts`, `planes.ts`, ...) driven by a
 list in the `MontyData` value (`escalators`, `icicles`, `pulses`, `rollers`...; Monty on the Run's lists are empty). A region
 declares its entries (`ESCALATORS`, `ICICLES` in `moscow.ts`) and `data.ts` concatenates them. What an item does is a
 `RoomEffect` in `data.ts`'s `ROOM_EFFECTS` (clear cells, place a tile, remove a creature, when an item is taken); its hints are
 `hints.take` and `hints.wanted` there (the reason, in the story); a costume is a `costumes` entry. A new mechanism is a new
-module and a new list, never a special case in `game.ts` for one room.
+module and a new list, never a special case in `game.ts` for one room. A flown sequence is rooms too: `planes` (Do Svidaniya Monty's flight, `src/sky.ts`) makes each leg a room, so deaths, saves and travel need nothing new; `ways` sends an edge's way out to a cell that is not beside it; `tally` draws a Spy vs Spy score in the score row.
 
 ## 4. Tests: the kit, and testing only the rooms you touched
 

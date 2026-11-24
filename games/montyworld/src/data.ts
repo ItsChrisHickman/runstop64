@@ -2,7 +2,7 @@ import sidUrl from '../../montyotr/assets/monty_on_the_run.sid?url';
 import { bankImage, ITEM_SPRITES, MOTR_LOOK } from '../../montyotr/src/data';
 import type { MontyData, RoomEffect } from '../../montyotr/src/montydata';
 import {
-  buildRooms, extendBank, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
+  buildRooms, extendBank, extendChars, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
 } from '../../shared/monty/rooms';
 import {
   CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
@@ -39,6 +39,8 @@ import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
 import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
+import { TALLY_FACE, TALLY_STAR } from './art/sky';
+import { FLY, HOLD_WAY, PLANE_LOOK, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOCKS, SKY_COLOURS, SKY_CURRENTS, SKY_PULSES, SKY_ROOMS, SKY_SECTORS, SKY_TUNNELS, skyRollers, tailPursuer } from './sky';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -52,7 +54,7 @@ import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 export const WORLD_COLS = 50, WORLD_ROWS = 8;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS];
+const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -104,8 +106,11 @@ const FINALE_BLOCKS = FINALE_NAMES.map((name) => ({ ptr: FINALE_POINTERS[name], 
 /** The hold's loose crate rolling, in the blocks the Andes' boulders use in the Andes (put in while the hold is loaded). */
 const CRATE_BLOCKS = CRATE_ROLL.map((block, i) => ({ ptr: BOULDER_POINTERS[i] ?? 0, block }));
 
-/** The bank with the items, icicles, the dragon and the first hat at their pointers. */
-const bank = extendBank(bankImage, [
+/** The tally's characters in the HUD (tally.ts): Viktor's face and the star, in characters the charset leaves blank and nothing draws ($0A-$0E; $38-$3B, blank too, are Monty on the Run's teleporter beam). */
+export const TALLY_CHARS = { face: 0x0a, star: 0x0e } as const;
+
+/** The bank with the items, icicles, the dragon and the first hat at their pointers, and the tally's characters. */
+const bank = extendChars(extendBank(bankImage, [
   ...USHANKA.blocks,
   { ptr: SPRITE.token, block: MOSCOW_ITEMS.metroToken.block },
   { ptr: SPRITE.ushanka, block: MOSCOW_ITEMS.ushanka.block },
@@ -150,7 +155,7 @@ const bank = extendBank(bankImage, [
   { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
   ...SKEWER_POSES.right.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.right, i), block: pose.block })),
-]);
+]), [{ chr: TALLY_CHARS.face, bytes: TALLY_FACE }, { chr: TALLY_CHARS.star, bytes: TALLY_STAR }]);
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
@@ -181,7 +186,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
 }
 
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
-const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS], bankImage, SPRITE.pirozhok);
+const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -208,9 +213,11 @@ const BOWL = specialIndex(ROOMS, 'bowl');
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
  * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
-const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4;
+const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5;
+/** The hidden finds the tests read (the tally's rounds). */
+export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
   ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
@@ -274,7 +281,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -282,26 +289,34 @@ export const WORLD: MontyData = {
   lifts: [],
   escalators: ESCALATORS,
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
-  tunnels: [...TUNNELS, ...JAPAN_TUNNELS],
+  tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...CLOUD_ANIMS],
-  pulses: [...PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES)],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...CLOUD_ANIMS, ...SKY_ANIMS],
+  pulses: [...PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimGate: SNORKEL,
-  currents: CURRENTS,
-  arrivals: [...ARRIVALS, ...ANDES_ARRIVALS],
+  currents: [...CURRENTS, ...SKY_CURRENTS],
+  arrivals: [...ARRIVALS, ...ANDES_ARRIVALS, ...SKY_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }],
   risingLava: [LAVA],
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
-  rollers: [...ROLLERS, LOOSE_CRATE, LAPA_STONE],
+  planes: planeLegs(PLANE_LOST),
+  planeLook: PLANE_LOOK,
+  ways: [HOLD_WAY],
+  // the Spy vs Spy tally: Monty wins the train and the ship, Viktor the plane (Monty 2 v Viktor 1 into SPY VERSUS MOLE)
+  tally: {
+    rounds: [{ find: SWEPT, winner: 'hero' }, { find: OVERBOARD, winner: 'hero' }, { find: PLANE_LOST, winner: 'villain' }],
+    face: TALLY_CHARS.face, star: TALLY_CHARS.star, colours: { hero: 8, villain: 1, open: 11, away: 11 },
+  },
+  rollers: [...ROLLERS, LOOSE_CRATE, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],
   skewers: SKEWERS,
-  pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED)],
+  pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
   cameos: viktorCameos(MOON_SEEN, HOOD_ITEM),
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
@@ -353,7 +368,7 @@ export const WORLD: MontyData = {
       { room: JP.garden, item: FISH_FOOD, text: 'HUNGRY KOI CROWD THE POND' },
       { room: JP.hideout, item: HOOD_ITEM, text: 'THE DOOR IS FOR NINJAS ONLY' },
       { room: PAC.waikiki, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
-      { room: PAC.plane, item: PARACHUTE, text: 'THE DROP IS FAR TOO HIGH' },
+      { room: PAC.plane, item: PARACHUTE, text: 'NO FLYING WITHOUT A PARACHUTE' },
       { room: AND.picchu, item: PANPIPES, text: 'THE LLAMA IS CROSS: CALM IT' },
       { room: AND.kapok, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
       { room: RIO_ROOM.sugar, item: CRANK, text: 'THE CABLE CAR STATION IS LOCKED' },
@@ -361,7 +376,7 @@ export const WORLD: MontyData = {
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ from, to, rows, except }) => ({ from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

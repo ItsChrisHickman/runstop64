@@ -23,6 +23,7 @@ import { must } from '../../shared/test/must';
 import { ANDES_CREATURES } from '../src/art/andes-creatures';
 import { ANDES_ITEMS, CANOPY } from '../src/art/andes-items';
 import { chulloWorn, CHULLO_COLOUR } from '../src/art/andes-hat';
+import { FLY } from '../src/sky';
 import { AND, ANDES_ROOMS, ANDES_SECTORS, BOULDER_PATH, BOULDERS_OF_PICCHU, LOG_CRACKS, LOGS, TANGLE_CELLS, VINES } from '../src/andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from '../src/andes-pointers';
 import { WORLD } from '../src/data';
@@ -172,17 +173,15 @@ SCOPE.section([AND.jump, AND.gorge, AND.terraces, AND.picchu, PAC.plane], 'the p
       west.g.roomId === AND.terraces && west.g.y === standY(5) && east.g.roomId === AND.terraces && east.g.y === standY(12) && !west.g.canopyShown && !dead(west.g) && !dead(east.g));
     check('the gorge\'s foot is open only at the two throats (cols 3-7 and 11-14), the pinnacle between them', [...Array(32).keys()].filter((c) => !solid(AND.gorge, c, 19)).join() === [3, 4, 5, 6, 7, 11, 12, 13, 14].join());
   });
-  SCOPE.section([PAC.plane, AND.jump], 'the plane rear door and its ramp', () => {
+  SCOPE.section([PAC.plane, AND.jump, FLY.mail], 'the plane rear door onto the flight, and JUMP FOR JOY shut to the west', () => {
     const door = at(PAC.plane, 28, 16, [PARACHUTE]);
     run(door, RIGHT, 90);
     run(door, NONE, 2);
-    check('with the parachute he walks out of the plane\'s rear door and the sky takes him: the first flight room, under the canopy', door.g.roomId === AND.jump && door.g.canopyShown);
+    check('with the parachute he walks out of the plane\'s rear door onto the mail biplane: the flight\'s first leg (sky.ts), in the plane, not the Andes\' first room beside the hold', door.g.roomId === FLY.mail && door.g.planeShown);
     const shut = at(PAC.plane, 28, 16);
     run(shut, RIGHT, 90);
     check('without it the door is shut (he stops in the hold)', shut.g.roomId === PAC.plane);
-    const back = at(AND.jump, 2, 16);
-    run(back, LEFT, 60);
-    check('the plane\'s ramp walks back into the hold (the door is the only opening on that side)', back.g.roomId === PAC.plane);
+    check('JUMP FOR JOY\'s west edge is the mountainside, solid all the way down (he drops in at its top from the bail-out; no way west into the hold)', [...Array(20).keys()].every((r) => solid(AND.jump, 0, r)));
   });
   SCOPE.section([AND.gorge], 'the gorge condor', () => {
     const cond = at(AND.gorge, 13, 9, [], false, true);

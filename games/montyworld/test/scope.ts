@@ -14,6 +14,7 @@ import { MOSCOW_ROOMS, ROOM } from '../src/moscow';
 import { PAC, PACIFIC_ROOMS } from '../src/pacific';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { SIB, SIBERIA_ROOMS } from '../src/siberia';
+import { FLY, SKY_ROOMS } from '../src/sky';
 
 /** Each region's rooms: its key table (the ids by name) and its room specs. */
 export const REGION_ROOMS: readonly { readonly name: RegionName; readonly rooms: Readonly<Record<string, number>>; readonly specs: readonly RoomSpec[] }[] = [
@@ -22,7 +23,7 @@ export const REGION_ROOMS: readonly { readonly name: RegionName; readonly rooms:
   { name: 'china', rooms: CHI, specs: CHINA_ROOMS },
   { name: 'japan', rooms: JP, specs: JAPAN_ROOMS },
   { name: 'pacific', rooms: PAC, specs: PACIFIC_ROOMS },
-  { name: 'andes', rooms: AND, specs: ANDES_ALL_ROOMS },
+  { name: 'andes', rooms: { ...AND, ...FLY }, specs: [...ANDES_ALL_ROOMS, ...SKY_ROOMS] }, // (the flight from Hilo is on the Andes' columns: sky.ts)
   { name: 'rio', rooms: RIO_ROOM, specs: RIO_ROOMS },
 ];
 

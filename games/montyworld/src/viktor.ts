@@ -27,7 +27,6 @@ const PLACES = {
   wall: slot(CHI.wall, 2), // China's first room (two)
   harbour: slot(JP.harbour, 2), // Japan's first (two)
   moon: slot(JP.mole, 2), // THE LAST MOLE (two)
-  drop: slot(AND.jump, 1), // the parachute drop, JUMP FOR JOY (one creature)
   arms: { room: RIO_ROOM.arms, sprite: 1, first: 0xa7 }, // OPEN ARMS has three creatures and Monty's hat on sprite 7: sprite 1 (no second find there) and the left skewer's and right skewer's blocks
 } as const satisfies Record<string, Place>;
 
@@ -45,8 +44,6 @@ export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec
   border(PLACES.wall, SIB.border, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
   // China to Japan, off the junk onto the fish market's quay
   border(PLACES.harbour, CHI.junk, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
-  // the Pacific to the Andes: out of the plane's rear door; Viktor in the doorway, looking down after the falling Monty
-  border(PLACES.drop, PAC.plane, 'left', 16, 'lookDown', { col0: 0, row0: 0, col1: 1, row1: 19 }, 4),
   // the Andes to Rio, off the kapok's crown branch onto the canopy
   border(PLACES.arms, AND.kapok, 'left', 8, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
   // Japan, THE LAST MOLE: the hood taken, his shadow (black: seen only against the moon) walks on from the east, stops on the moon and turns to Monty for a long beat, and moves on west
@@ -58,7 +55,7 @@ export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec
 
 /** The pictures the cameos and the showdown's split want in their rooms while those are loaded. */
 export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
-  ...[PLACES.station, PLACES.wall, PLACES.harbour, PLACES.drop, PLACES.arms].map((p): RoomBlocks => ({ rooms: [p.room], blocks: creatureBlocks(VIKTOR_CAMEO).map((block, i) => ({ ptr: p.first + i, block })) })),
+  ...[PLACES.station, PLACES.wall, PLACES.harbour, PLACES.arms].map((p): RoomBlocks => ({ rooms: [p.room], blocks: creatureBlocks(VIKTOR_CAMEO).map((block, i) => ({ ptr: p.first + i, block })) })),
   { rooms: [PLACES.moon.room], blocks: creatureBlocks(VIKTOR_SHADOW).map((block, i) => ({ ptr: PLACES.moon.first + i, block })) },
   { rooms: [RIO_ROOM.drum], blocks: VIKTOR_SPLIT.map((block, i) => ({ ptr: SPLIT_POINTERS[i] ?? 0, block })) },
 ];

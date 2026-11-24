@@ -1,5 +1,5 @@
 /**
- * The Andes and the Amazon's route for the bot: the goals, in the order a player who takes everything plays them (docs/dosvidaniya-reset.md, the plan's route): out of the plane's door and down the drop (the spire's
+ * The Andes and the Amazon's route for the bot: the goals, in the order a player who takes everything plays them (docs/dosvidaniya-reset.md, the plan's route): bailed out of the mail plane into the drop's top (the flight: flight.ts) and down the drop (the spire's
  * coin past the condor, the gorge's shelf and the coin between the condors' dives), the west throat onto the guardhouse's roof (its coin) and into the guardhouse for the chullo, down the terraces past the llamas and
  * the cuy to Machu Picchu's lane, up the ladder, over the gap and up the hill against the boulders for its two coins and the panpipes, west off the plateau onto the terraces' high ledge (the empanada seen from
  * below), down the terraces again and back into the lane, past the calmed llama down the well into the canopy; down the canopy's lattice (the coin at the middle liana's head) and through its floor to the river's
@@ -10,7 +10,6 @@
 import { AND } from '../src/andes';
 import { into, item, leg, stands, type Leg } from './route';
 import { coin } from './route';
-import { PAC } from '../src/pacific';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
 import type { Part } from './route';
@@ -30,7 +29,6 @@ export const LEDGE_EMPANADA = 0, CHULLO = 1;
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const ANDES_LEGS: readonly Leg[] = [
-  leg('Q to F1: out of the plane\'s door', into(AND.jump, 31, 15, PAC.plane)),
   leg('F1: up the updraft and past the condor, the coin on the spire\'s tip', coin(AND.jump, 19, 10)),
   leg('F1 to F2: out at the bottom', into(AND.gorge, 10, 19, AND.jump)),
   leg('F2: up the updraft and under the overhang, the empanada on the shelf', livesFor(item(AND.gorge, 0, [24, 6]), 40)),
