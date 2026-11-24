@@ -85,9 +85,9 @@ export class PixelRenderer implements Renderer {
 }
 
 /** `record`: where every frame pushed is kept (a copy), while it is set. */
-export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[]; record: SidWrite[][] | null; tunes: (((original: Uint8Array) => Uint8Array) | null)[]; crossings: boolean[] } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [], record: null, tunes: [], crossings: [] };
+export const sidLog: { song: number[]; calls: number[][]; frames: number; writes: number; last: SidWrite[]; sfx: SfxName[]; record: SidWrite[][] | null; tunes: (((original: Uint8Array) => Uint8Array) | null)[]; crossings: boolean[]; files: { url: string; song: number }[]; loads: ('tune' | 'file')[] } = { song: [], calls: [], frames: 0, writes: 0, last: [], sfx: [], record: null, tunes: [], crossings: [], files: [], loads: [] };
 /** The SID player, remembering what it was asked (sidLog) and playing nothing. */
-export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'unlock' | 'play' | 'call' | 'stop' | 'toggleMute' | 'hold' | 'startStream' | 'pushFrame' | 'sfx' | 'useTune'> {
+export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'unlock' | 'play' | 'call' | 'stop' | 'toggleMute' | 'hold' | 'startStream' | 'pushFrame' | 'sfx' | 'useTune' | 'useFile'> {
   readonly unlocked = true; muted = false;
   constructor(public url = '') {}
   unlock() { return Promise.resolve(); }
@@ -100,7 +100,9 @@ export class SidPlayer implements Pick<RealSidPlayer, 'unlocked' | 'muted' | 'un
   pushFrame(w: SidWrite[] = []) { sidLog.frames++; sidLog.writes += w.length; sidLog.last = w; sidLog.record?.push(w.map((q) => ({ ...q }))); }
   sfx(name: SfxName) { sidLog.sfx.push(name); }
   /** (the versions asked for, in order: a test makes the bytes from the file's itself) */
-  useTune(make: ((original: Uint8Array) => Uint8Array) | null, crossing?: unknown) { sidLog.tunes.push(make); sidLog.crossings.push(crossing !== undefined); }
+  useTune(make: ((original: Uint8Array) => Uint8Array) | null, crossing?: unknown) { sidLog.tunes.push(make); sidLog.crossings.push(crossing !== undefined); sidLog.loads.push('tune'); }
+  /** (another .sid asked for: its url and song; `loads` keeps the order of both kinds) */
+  useFile(url: string, song: number) { sidLog.files.push({ url, song }); sidLog.loads.push('file'); }
 }
 
 export * from '../../../packages/c64kit/src/ay/ay';

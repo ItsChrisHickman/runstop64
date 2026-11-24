@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import { parsePsid, SidTune } from '../../../packages/c64kit/src/sid/psid';
 import { check } from '../../shared/test/check';
 import { WORLD } from '../src/data';
+import type { TuneVersion } from '../../montyotr/src/montydata';
 import { INSTRUMENT_COUNT, patternTicks, songNotes, TuneImage, type Instrument, type SongNote } from '../src/music/hubbard';
 import { bend, BASS_VOICE, consonant, GAME_SONG, introPatterns, LEAD_VOICE, retune, type RegionTune } from '../src/music/region-tune';
 
@@ -30,6 +31,9 @@ export interface TuneChecks {
 }
 
 const equal = <T>(x: ArrayLike<T>, y: ArrayLike<T>) => x.length === y.length && Array.from(x).every((v, i) => v === y[i]);
+
+/** The bytes a room's tune makes from the original's (undefined for none, or for another .sid: the sky's). */
+export const madeFrom = (version: TuneVersion | null, original: Uint8Array): Uint8Array | undefined => (version && 'make' in version ? version.make(original) : undefined);
 
 export type NoteChecks = Pick<TuneChecks, 'name' | 'tune' | 'moved' | 'scale' | 'breakClashes'>;
 
@@ -160,6 +164,6 @@ export function checkTune(c: TuneChecks) {
   }
   {
     check(`${c.name}'s rooms ask for its version, the others' for theirs`, c.rooms.every((id) => WORLD.music.tuneFor?.(id)?.id === c.tune.id) && c.others.every(([room, id]) => WORLD.music.tuneFor?.(room)?.id === id));
-    check('and its bytes are the version\'s', equal(WORLD.music.tuneFor?.(c.sample)?.make(original) ?? new Uint8Array(0), made));
+    check('and its bytes are the version\'s', equal(madeFrom(WORLD.music.tuneFor?.(c.sample) ?? null, original) ?? new Uint8Array(0), made));
   }
 }

@@ -60,12 +60,16 @@ export interface MontyLook {
   music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
-/** A version of the game's tune: made from the .sid's bytes by changing the data the music driver plays (never the driver). */
-export interface TuneVersion {
-  /** What it is called: the session starts the tune again only when the version changes. */
-  id: string;
-  make(original: Uint8Array): Uint8Array;
-}
+/**
+ * What a room plays: a version of the game's tune, made from the .sid's bytes by changing the data the music driver plays (never
+ * the driver); or (`file`) another tune altogether, a .sid of its own and its song (Do Svidaniya Monty's flight plays Auf
+ * Wiedersehen Monty's theme). The game's sound effects are routines of its own .sid, so none play while another one does; going
+ * to or from another .sid is a clean change (a crossing is only between versions of one song). `id`: what it is called: the
+ * session starts the music again only when it changes.
+ */
+export type TuneVersion =
+  | { readonly id: string; make(original: Uint8Array): Uint8Array }
+  | { readonly id: string; readonly file: { readonly url: string; readonly song: number } };
 
 /** A condition on what Monty has done (`RoomEffect.when`). */
 export type Condition =
@@ -277,8 +281,11 @@ export interface PlaneLeg {
 /** The plane's pictures (pointers in the bank, on sprite 2 over Monty, `dx` x2 and `dy` pixels from his sprite) and colour, and his own picture sitting in it (`seat`, his sprite's pointer). */
 export interface PlaneLook { level: number; climb: number; dive: number; wreck: number; colour: number; seat: number; dx: number; dy: number }
 
-/** A way out of a room's edge that leads to another cell than the one beside it (`ways`): from room `room`, the way to the grid's cell `to` goes to `goes` (the hold's rear door, onto the apron's biplane). */
-export interface WaySpec { room: number; to: readonly [row: number, col: number]; goes: readonly [row: number, col: number] }
+/**
+ * A plane waiting in a room (`boardings`, planes.ts: Do Svidaniya Monty's mail biplane on Hilo's apron): touched (Monty's top left in `box`, playfield cells) with the special item `needs` taken, it takes
+ * off with him: he goes to the cell `goes` (the flight's first leg), where he is on the screen. Touched without it, `hint` shows in the name row (the hints assist) and nothing happens.
+ */
+export interface BoardingSpec { room: number; box: CellBox; needs: number; goes: { readonly mapRow: number; readonly exitCol: number }; hint: string }
 
 /**
  * The Spy vs Spy tally in the score row's centre (tally.ts; Do Svidaniya Monty's): Monty's face, a star for each round, the villain's face (lit while he is due). A round is settled when its special item
@@ -431,7 +438,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column): the Andes' first room beside the Pacific's hold. */ except?: readonly { row: number; col: number }[] }
+export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[] }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {
@@ -538,8 +545,8 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The legs of a flight in a plane (planes.ts) and the plane's look; none in Monty on the Run. */
   planes: readonly PlaneLeg[];
   planeLook: PlaneLook | null;
-  /** Ways out of an edge that lead elsewhere than the cell beside (physics' exits read them); none in Monty on the Run. */
-  ways: readonly WaySpec[];
+  /** Planes waiting to be boarded, the way into a flight's first leg (planes.ts); none in Monty on the Run. */
+  boardings: readonly BoardingSpec[];
   /** The Spy vs Spy tally in the score row (tally.ts); null: the score row as Monty on the Run has it. */
   tally: TallySpec | null;
   rollers: readonly RollerSpec[];

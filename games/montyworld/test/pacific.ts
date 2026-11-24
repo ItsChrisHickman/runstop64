@@ -1,7 +1,7 @@
 /**
- * The Pacific, played by a bot from Japan's cargo ship to the plane's rear door (docs/dosvidaniya-reset.md, "the Pacific"): the bot (bot.ts) searches the game's own frames for a way to each goal in
- * pacific-route.ts (every coin, the lei, the snorkel, the musubi and the parachute; the pistons, the torches, the surf, the moray, the surge, the shark, the lava, the cracking crust, the vent, the nene and
- * the loose crate all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after Japan: on the cargo ship's landing with
+ * The Pacific, played by a bot from Japan's cargo ship to Hilo's biplane (docs/dosvidaniya-reset.md, "the Pacific"): the bot (bot.ts) searches the game's own frames for a way to each goal in
+ * pacific-route.ts (every coin, the lei, the snorkel, the musubi and the parachute; the pistons, the torches, the surf, the moray, the surge, the shark, the lava, the cracking crust, the vent, the rooster and
+ * the nene all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after Japan: on the cargo ship's landing with
  * Moscow's, Siberia's, China's and Japan's finds and the ninja hood on. (The gates' proofs and the mechanisms are in pacific-mechanisms.ts.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific.ts [original|enhanced] [--room <rooms>] [first leg] [last leg] [--record] [--full]
@@ -24,8 +24,8 @@ import { itemIndex, standY } from './route';
 const args = readArgs();
 const only = args.only;
 
-/** The rooms of the Pacific (ids 38-54: the five kept and the retired between them). */
-const pacific = (room: number) => room >= PAC.ship && room <= PAC.plane;
+/** The rooms of the Pacific (ids 38-52: the four kept and the retired between them). */
+const pacific = (room: number) => room >= PAC.ship && room <= PAC.hilo;
 
 /** What the kept leg states are checked against (read once). */
 const PRINTS = prints();
@@ -47,7 +47,7 @@ for (const mode of ['original', 'enhanced'] as const) {
     const coinsLeft = mineCoins.filter((i) => !g.coinCollected[i]).length;
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => pacific(g.data.specialItems[i * 4] ?? 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
-    check(`${mode}: at the end all ${mineCoins.length} coins, the lei, the snorkel, the musubi and the parachute of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), he is out of the plane's door in the flight's first leg (room ${g.roomId}), in the lei`,
+    check(`${mode}: at the end all ${mineCoins.length} coins, the lei, the snorkel, the musubi and the parachute of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), he is off in the biplane, in the flight's first leg (room ${g.roomId}), in the lei`,
       mineCoins.length === 9 && coinsLeft === 0 && itemsLeft === 0 && found.length === 4 && g.roomId === FLY.mail && g.worn === itemIndex(g, PAC.waikiki, 1));
   }
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);

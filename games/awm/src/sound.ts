@@ -4,10 +4,15 @@
  * This module is the entry points of that file and the numbers the game asks for.
  */
 
+/** The .sid (its one import: Do Svidaniya Monty's flight plays its theme from the same asset). */
+export { default as AWM_SID_URL } from '../build/awm.sid?url';
+
 /** The .sid's songs (1-based): 1-13 are the tunes 0-12 of the game's own player ($E409), 14 the game with its effects. */
 export const SOUND = {
   tunes: 13,
   effectsSong: 14,
+  /** The main theme (tune 0, Hubbard and Daglish's: it loops for ever), as a song of the .sid. */
+  themeSong: 1,
   /** The glue's `sfx` entry (A = a sound number $40-$4C, the game's $85A6) and the music's stop ($E40C). */
   request: 0xcc21,
   stop: 0xe40c,

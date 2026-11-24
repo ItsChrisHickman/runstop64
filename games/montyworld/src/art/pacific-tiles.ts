@@ -1,8 +1,8 @@
 /**
  * The Pacific's tiles for Monty Mole: World Tour (region 5): 8 x 8 hires characters for a room's codes 1-8, in Monty on the Run's
  * style as Moscow's and Siberia's are: one bright ink on black in solid shapes cut with black lines (plates, planks, stones, sand,
- * rock, ribs), never a checker or a dither. The cargo ship's, Hawaii's beaches, fishponds, road and jungle, the reef's, the volcano's,
- * the airport's and the cargo plane's. Every name starts `pac` so no region's piece can take another's.
+ * rock, ribs), never a checker or a dither. The cargo ship's, Hawaii's beaches, fishponds, road and jungle, the reef's and the volcano's.
+ * Every name starts `pac` so no region's piece can take another's.
  */
 import { tile } from './tiles';
 
@@ -39,17 +39,6 @@ export const PACIFIC_TILES = {
     '#.#.#.##',
     '#.#.#.##',
     '#.#.#.##',
-    '########',
-  ]),
-  /** A container's door end: the frame and the two locking bars with their handles. Solid. */
-  pacContainerDoor: tile('pacContainerDoor', 1, 8, [
-    '########',
-    '#.#..#.#',
-    '#.#..#.#',
-    '########',
-    '#.#..#.#',
-    '#.#..#.#',
-    '#.#..#.#',
     '########',
   ]),
   /** Steel grating of the engine room: a bright edge over a row of slots. A floor. */
@@ -202,40 +191,6 @@ export const PACIFIC_TILES = {
     '########',
   ]),
 
-  // ---- the airport and the cargo plane
-  /** The cargo plane's skin seen from inside: panels, their seam and a row of rivets. Solid. */
-  pacFuselage: tile('pacFuselage', 1, 15, [
-    '########',
-    '#.#.#.#.',
-    '########',
-    '########',
-    '###..###',
-    '###..###',
-    '########',
-    '########',
-  ]),
-  /** The hold's floor: a roller track along its top, plate under. A floor. */
-  pacHoldFloor: tile('pacHoldFloor', 2, 15, [
-    '########',
-    '#.##.##.',
-    '########',
-    '........',
-    '.######.',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** A cargo net: ropes crossed in a square mesh. A rope (he climbs it). */
-  pacNet: tile('pacNet', 3, 13, [
-    '########',
-    '#...#...',
-    '#...#...',
-    '#...#...',
-    '########',
-    '#...#...',
-    '#...#...',
-    '#...#...',
-  ]),
   // ---- the luau's flames and the Road to Hana's car
   /** A torch's flame at full height: a column of fire, wavy tongues with black cuts, two cells of it stacked over each other (one cell on the foot, one on the head). Passable (the strike's own danger is the engine's `pulses`). */
   pacFlame: tile('pacFlame', 0, 2, [

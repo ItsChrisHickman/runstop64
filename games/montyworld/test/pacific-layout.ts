@@ -1,5 +1,5 @@
 /**
- * The Pacific's five rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's; a backdrop, Hana's sea, is
+ * The Pacific's four rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's; a backdrop, Hana's sea, is
  * drawn under them), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (pacific-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
@@ -61,7 +61,7 @@ for (const r of scopedRooms(ROOMS)) {
 const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
 check(`ten kinds of creature and Viktor Vole aboard the ship, the moray a mechanism (${rooms.size})`, rooms.size === 11);
-check('five rooms (the reset)', PACIFIC_ROOMS.length === 5);
+check('four rooms (the reset, and the cargo plane\'s hold cut for the flight)', PACIFIC_ROOMS.length === 4);
 const coins = ROOMS.map((r) => r.coins?.length ?? 0);
-check(`nine coins, two a room and one in the hold (${coins.join(', ')})`, coins.join() === '2,2,2,2,1');
+check(`nine coins, two a room and three in Hilo (the cut hold's one on its high shelf) (${coins.join(', ')})`, coins.join() === '2,2,2,3');
 finish();

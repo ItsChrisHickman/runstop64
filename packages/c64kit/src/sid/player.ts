@@ -15,6 +15,12 @@ export class SidPlayer {
   /** The version of the tune to play (null: the file as it is): makes the bytes to load from the file's. */
   private version: ((original: Uint8Array) => Uint8Array) | null = null;
   private loadedSong = 0;
+  /**
+   * Another .sid playing in place of the file (`useFile`: its url and song), or null. Its routines are not the file's, so `call`
+   * does nothing while it plays; `useTune` goes back to the file. Each url is fetched once.
+   */
+  private other: { url: string; song: number } | null = null;
+  private readonly others = new Map<string, Promise<ArrayBuffer>>();
   muted = false;
   /** Silent while the game is stopped (a pause screen): the SID would hold its last notes. */
   private held = false;
@@ -54,13 +60,53 @@ export class SidPlayer {
     if (!this.ready) return;
     await this.ready;
     if (!this.node || !this.tune) return;
-    if (!this.loadedSong) {
+    const first = !this.loadedSong;
+    this.loadedSong = song;
+    if (this.other) {
+      if (first) await this.loadOther();
+      return;
+    }
+    if (first) {
       this.send({ type: 'load', data: this.tuneData(this.tune), song });
     } else {
       this.send({ type: 'song', song });
     }
-    this.loadedSong = song;
     this.applyVolume();
+  }
+
+  /**
+   * Play another .sid altogether in place of the file, song `song` from its start (Do Svidaniya Monty's flight plays Auf
+   * Wiedersehen Monty's theme), until `useTune` goes back to the file. Remembered if the audio is not up yet.
+   */
+  useFile(url: string, song: number) {
+    this.other = { url, song };
+    void this.loadOther();
+  }
+
+  /** Loads the other .sid once it is fetched, if it is still the one asked for (the player may have moved on meanwhile). */
+  private async loadOther() {
+    const other = this.other;
+    if (!other || !this.node || !this.loadedSong) return;
+    let data: ArrayBuffer;
+    try {
+      data = await this.fetchOther(other.url);
+    } catch (err) {
+      console.error('SID: could not load', other.url, err);
+      if (this.other === other) this.useTune(this.version);
+      return;
+    }
+    if (this.other !== other) return;
+    this.send({ type: 'load', data: data.slice(0), song: other.song });
+    this.applyVolume();
+  }
+
+  private fetchOther(url: string): Promise<ArrayBuffer> {
+    let bytes = this.others.get(url);
+    if (!bytes) {
+      bytes = fetch(url).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))));
+      this.others.set(url, bytes);
+    }
+    return bytes;
   }
 
   /** The bytes to load: the file's, or the version's made from them (always a copy: it is handed to the worklet). */
@@ -78,8 +124,10 @@ export class SidPlayer {
    */
   useTune(make: ((original: Uint8Array) => Uint8Array) | null, crossing?: (original: Uint8Array) => CrossingPlan) {
     this.version = make;
+    const fromOther = this.other !== null;
+    this.other = null;
     if (!this.node || !this.tune || !this.loadedSong) return;
-    if (crossing) this.send({ type: 'cross', data: this.tuneData(this.tune), plan: crossing(new Uint8Array(this.tune)) });
+    if (crossing && !fromOther) this.send({ type: 'cross', data: this.tuneData(this.tune), plan: crossing(new Uint8Array(this.tune)) });
     else this.send({ type: 'load', data: this.tuneData(this.tune), song: this.loadedSong });
     this.applyVolume();
   }
@@ -89,7 +137,7 @@ export class SidPlayer {
    * sound-effect entry point. Ignored until audio is unlocked and loaded.
    */
   call(addr: number, a = 0, x = 0, y = 0) {
-    if (!this.loadedSong) return;
+    if (!this.loadedSong || this.other) return; // (another .sid's memory is not the file's: its routines are elsewhere)
     this.send({ type: 'call', addr, a, x, y });
   }
 

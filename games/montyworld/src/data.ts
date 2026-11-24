@@ -16,13 +16,12 @@ import { placeHat } from './hats';
 import { LEI_COLOUR, leiWorn } from './art/pacific-lei';
 import { PACIFIC_ITEMS } from './art/pacific-items';
 import { SWIM_CROWN, SWIM_LEFT, SWIM_RIGHT, swimBlock } from './art/pacific-swim';
-import { CRATE_ROLL } from './art/pacific-reset';
 import { SWIM_CYCLE, SWIM_POINTERS } from './pacific-pointers';
 import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { ARRIVALS, CLOUD_ANIMS, CRUST_CRACKS, CURRENTS, LAVA, LOOSE_CRATE, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, SURF_CELLS, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES } from './pacific';
+import { ARRIVALS, biplaneBoarding, CRUST_CRACKS, CURRENTS, LAVA, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SURF_CELLS, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -40,7 +39,7 @@ import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 import { TALLY_FACE, TALLY_STAR } from './art/sky';
-import { FLY, HOLD_WAY, PLANE_LOOK, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOCKS, SKY_COLOURS, SKY_CURRENTS, SKY_PULSES, SKY_ROOMS, SKY_SECTORS, SKY_TUNNELS, skyRollers, tailPursuer } from './sky';
+import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOCKS, SKY_COLOURS, SKY_CURRENTS, SKY_PULSES, SKY_ROOMS, SKY_SECTORS, SKY_TUNNELS, skyRollers, tailPursuer } from './sky';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -103,8 +102,6 @@ const DRAGON_BLOCKS = [
 /** The finale's pictures, put in with the beach (finale.ts). */
 const FINALE_NAMES = ['chair', 'bowlFull', 'bowlEmpty', 'berries3', 'berries2', 'berries1', 'sitDip', 'sitUp', 'sitMouth', 'sitChew', 'danceLeft', 'danceRight', 'spoonDip', 'spoonUp', 'spoonMouth'] as const satisfies readonly FinalePicture[];
 const FINALE_BLOCKS = FINALE_NAMES.map((name) => ({ ptr: FINALE_POINTERS[name], block: FINALE_PICTURES[name] }));
-/** The hold's loose crate rolling, in the blocks the Andes' boulders use in the Andes (put in while the hold is loaded). */
-const CRATE_BLOCKS = CRATE_ROLL.map((block, i) => ({ ptr: BOULDER_POINTERS[i] ?? 0, block }));
 
 /** The tally's characters in the HUD (tally.ts): Viktor's face and the star, in characters the charset leaves blank and nothing draws ($0A-$0E; $38-$3B, blank too, are Monty on the Run's teleporter beam). */
 export const TALLY_CHARS = { face: 0x0a, star: 0x0e } as const;
@@ -250,7 +247,6 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // the hideout's door guard, a ninja himself, lets him by (the way on to the port runs through that door)
   { room: PAC.waikiki, when: [{ taken: SNORKEL }], clear: onScreen(SURF_CELLS) }, // with the snorkel the surf is the way down into Hana's sea
-  { room: PAC.plane, when: [{ taken: PARACHUTE }], clear: onScreen(PLANE_DOOR_CELLS) }, // the parachute opens the plane's rear door
   { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0 }, // a tune settles the spitting llama at the tunnel's mouth (and its spit, a pulse: calmedBy), and the tunnel and its well are open
   { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS) }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
   { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], clear: onScreen(GATE_CELLS) }, // the crank works the cable car's winch: its bars go,
@@ -291,27 +287,28 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...CLOUD_ANIMS, ...SKY_ANIMS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS],
   pulses: [...PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimGate: SNORKEL,
   currents: [...CURRENTS, ...SKY_CURRENTS],
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS, ...SKY_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }],
   risingLava: [LAVA],
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
   planes: planeLegs(PLANE_LOST),
   planeLook: PLANE_LOOK,
-  ways: [HOLD_WAY],
+  // the yellow mail biplane on Hilo's apron: with the parachute, it takes him off into the flight's first leg
+  boardings: [biplaneBoarding(PARACHUTE, TAKE_OFF)],
   // the Spy vs Spy tally: Monty wins the train and the ship, Viktor the plane (Monty 2 v Viktor 1 into SPY VERSUS MOLE)
   tally: {
     rounds: [{ find: SWEPT, winner: 'hero' }, { find: OVERBOARD, winner: 'hero' }, { find: PLANE_LOST, winner: 'villain' }],
     face: TALLY_CHARS.face, star: TALLY_CHARS.star, colours: { hero: 8, villain: 1, open: 11, away: 11 },
   },
-  rollers: [...ROLLERS, LOOSE_CRATE, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
+  rollers: [...ROLLERS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],
@@ -368,14 +365,13 @@ export const WORLD: MontyData = {
       { room: JP.garden, item: FISH_FOOD, text: 'HUNGRY KOI CROWD THE POND' },
       { room: JP.hideout, item: HOOD_ITEM, text: 'THE DOOR IS FOR NINJAS ONLY' },
       { room: PAC.waikiki, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
-      { room: PAC.plane, item: PARACHUTE, text: 'NO FLYING WITHOUT A PARACHUTE' },
       { room: AND.picchu, item: PANPIPES, text: 'THE LLAMA IS CROSS: CALM IT' },
       { room: AND.kapok, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
       { room: RIO_ROOM.sugar, item: CRANK, text: 'THE CABLE CAR STATION IS LOCKED' },
     ],
   },
   // the map shows a region's columns and rows while he is in them
-  regions: WORLD_REGIONS.map(({ from, to, rows, except }) => ({ from, to, rows, ...(except ? { except } : {}) })),
+  regions: WORLD_REGIONS.map(({ label, from, to, rows, except }) => ({ name: label, from, to, rows, ...(except ? { except } : {}) })),
   progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,

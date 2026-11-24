@@ -14,7 +14,7 @@ import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
 import { currentsTick } from './swim';
 import { canopyFrame, flightOf } from './flight';
-import { planeInit, planeOf, planeShow, planeUpdate } from './planes';
+import { boardUpdate, planeInit, planeOf, planeShow, planeUpdate } from './planes';
 import { drawTally, rounds, tallyKey } from './tally';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
@@ -245,6 +245,8 @@ export class Game implements MontyBody, MontyWorld {
   planeBail = -1;
   planeTilt = 0;
   planeFrom = 0;
+  /** Touching a plane he cannot board yet (planes.ts `boardUpdate`): its hint is said once a touch. */
+  planeTouch = 0;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
   /** The line in the name row, and for how long (our hints). */
@@ -335,11 +337,6 @@ export class Game implements MontyBody, MontyWorld {
    * runstop64's rooms are on the grid: with the assist on, and while Monty is in one of them
    * (switched to ORIGINAL there, their ways stay open until he's back in the original's rooms).
    */
-  /** A way out of this room's edge toward a cell that leads elsewhere (the data's `ways`; physics' exits read it). */
-  wayOut(row: number, col: number): readonly [number, number] | null {
-    return this.data.ways.find((w) => w.room === this.roomId && w.to[0] === row && w.to[1] === col)?.goes ?? null;
-  }
-
   get extensionOpen() {
     return this.assist.rooms || this.data.isExtensionRoom(this.roomId);
   }
@@ -508,6 +505,7 @@ export class Game implements MontyBody, MontyWorld {
       leverUpdate(this);
       cameoUpdate(this);
       planeUpdate(this);
+      boardUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -822,6 +820,13 @@ export class Game implements MontyBody, MontyWorld {
     if (!this.assist.hints) return;
     const want = this.data.hints.wanted.find((w) => w.room === this.roomId && !this.siCollected[w.item]);
     if (want) say(this.hint, want.text, NAME_FRAMES);
+  }
+
+  /** Our hint on touching a thing that wants what he does not have (a plane without the parachute: planes.ts). */
+  noteWanted(text: string) {
+    if (!this.assist.hints) return;
+    say(this.hint, text);
+    this.drawNameRow();
   }
 
   /** Our hint on taking a special item: what it is for. */

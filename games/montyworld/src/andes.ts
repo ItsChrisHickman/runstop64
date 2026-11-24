@@ -5,7 +5,7 @@ import { codeOf, fillCells, room, type Grid, type Palette } from './layout';
 
 /**
  * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "the Andes and the Amazon: the plan"): eight rooms at columns 20-22 of the exit grid (rows 2-6), entered from the
- * cargo plane's rear door (the Pacific, [2,19]) and left east off the kapok's crown into Rio's first room, OPEN ARMS ([5,23], entered west at rows 6-7 on floor 8).
+ * flight's bail-out (sky.ts: he parachutes into JUMP FOR JOY's top) and left east off the kapok's crown into Rio's first room, OPEN ARMS ([5,23], entered west at rows 6-7 on floor 8).
  *
  *            col 20                    21                       22
  *   row 2   F1 JUMP FOR JOY                                                        (the parachute drop: two flight rooms, one under the other)

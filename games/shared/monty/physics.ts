@@ -84,8 +84,7 @@ function updateRope(b: MontyBody, w: MontyWorld) {
   b.onRope = 0;
 }
 
-function exitTo(b: MontyBody, w: MontyWorld, toRow: number, toCol: number) {
-  const [row, col] = w.wayOut?.(toRow, toCol) ?? [toRow, toCol];
+function exitTo(b: MontyBody, w: MontyWorld, row: number, col: number) {
   if (w.roomAt(row, col) === 0xff) return false;
   b.mapRow = row;
   b.exitCol = col;

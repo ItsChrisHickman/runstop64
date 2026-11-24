@@ -1,5 +1,5 @@
 /**
- * The Andes and the Amazon, played by a bot from the cargo plane's hold to the kapok's crown branch, the way out to Rio (docs/dosvidaniya-reset.md): the bot (bot.ts) searches the game's own frames for a way to each goal in andes-route.ts
+ * The Andes and the Amazon, played by a bot from the flight's bail-out to the kapok's crown branch, the way out to Rio (docs/dosvidaniya-reset.md): the bot (bot.ts) searches the game's own frames for a way to each goal in andes-route.ts
  * (every coin, the three empanadas, the chullo, the panpipes and the machete; the two flight rooms and their condors and updrafts, the llamas and the cuy, the boulders, the spitting llama, the lattice, the toucan and the sloth, the rotten logs, the
  * vines, the piranhas and the river, the anaconda and the jaguar all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after the flight: at the drop's top under the canopy with Moscow's, Siberia's, China's, Japan's and the Pacific's finds and the lei on.
  * (The gates' proofs, the loops and the no-trap checks are in andes-mechanisms.ts.)

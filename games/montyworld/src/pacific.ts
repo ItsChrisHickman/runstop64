@@ -1,31 +1,30 @@
-import type { Arrival, CharAnim, CrackSpec, CurrentSpec, LavaSpec, PulseSpec, RollerSpec } from '../../montyotr/src/montydata';
+import type { Arrival, BoardingSpec, CrackSpec, CurrentSpec, LavaSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { CLOUD_FRAMES } from './art/pacific-reset';
-import { BOULDER_POINTERS } from './andes-pointers';
-import { codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
+import { codeOf, fillCells, type Grid, room, type Palette } from './layout';
 
 /**
- * The Pacific, the fifth region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "the Pacific"): five rooms in a U. East along the top through the cargo ship to
- * Waikiki, down through the surf into the sea off Hana, east along the bottom to Hilo's lava, and up the plane's belly ladder into its hold, whose rear door is the
- * way out to the Andes.
+ * The Pacific, the fifth region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "the Pacific"): four rooms in a U. East along the top through the cargo ship to
+ * Waikiki, down through the surf into the sea off Hana, east along the bottom to Hilo's lava, and up to the airport's apron, where the yellow mail biplane takes him
+ * off into THE FLIGHT (sky.ts), the way to the Andes. (The cargo plane's hold, once above Hilo at [2,19], was cut on 2026-11-24.)
  *
  *            col 17                  col 18                 col 19
- *   row 2   A THE CARGO SHIP ==> B WAIKIKI              E THE CARGO PLANE ==> the Andes
- *                                 || the surf (the snorkel)   ^ the belly ladder
- *   row 3                        C HANA ==== low, east ==> D HILO
+ *   row 2   A THE CARGO SHIP ==> B WAIKIKI
+ *                                 || the surf (the snorkel)
+ *   row 3                        C HANA ==== low, east ==> D HILO ==> the biplane: THE FLIGHT
  *
  * The puzzle is the sea: water kills him (the bilge, Waikiki's surf) until he has the snorkel, which lies in plain sight on the beach stand's roof, out of reach from
  * the sand; the way to it is up the palm by the sea that stopped him, west along the hotel's lawn past the luau's torches (the lei), and a drop off the lawn's end.
- * The set piece is Hilo: the lava rises behind him as he climbs to the plane's belly, seen first as a red glow from the sea below. The new way to move is swimming
+ * The set piece is Hilo: the lava rises behind him as he climbs to the apron, seen first as a red glow from the sea below; the parachute waits on the crater rim's
+ * high shelf, up past the long ledge, so the climb winds back on itself. The new way to move is swimming
  * against Hana's surge (`currents`). Playfield cells as in moscow.ts.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /**
- * Room ids go on from Japan's (27-37) and never change once a region has shipped: the reset keeps five of the first build's seventeen (38-54), and the ids of the
- * twelve it cut are retired (save-migrate.ts carries a save in one on in the kept room of its island).
+ * Room ids go on from Japan's (27-37) and never change once a region has shipped: the reset kept five of the first build's seventeen (38-54), the cargo plane's hold (54)
+ * was cut after the flight came in, and the ids of the rooms cut are retired (save-migrate.ts carries a save in one on in the kept room of its island).
  */
-export const PAC = { ship: 38, waikiki: 41, hana: 49, hilo: 52, plane: 54 } as const;
+export const PAC = { ship: 38, waikiki: 41, hana: 49, hilo: 52 } as const;
 
 /** The room of open water (swim.ts): Monty swims in it, and only with the snorkel. */
 export const SWIM_ROOMS: readonly number[] = [PAC.hana];
@@ -34,11 +33,11 @@ export const SWIM_ROOMS: readonly number[] = [PAC.hana];
 export const PAC_SPRITE = { snorkel: 0x90, lei: 0x91, musubi: 0x93, parachute: 0x94 } as const;
 
 /** The sectors' names by their place from 38 (the Andes' follow at 55, so the list keeps seventeen places: the retired rooms' are empty). Plain names. */
-const NAMES = ['THE CARGO SHIP', '', '', 'WAIKIKI', '', '', '', '', '', '', '', 'HANA', '', '', 'HILO', '', 'THE CARGO PLANE'] as const;
+const NAMES = ['THE CARGO SHIP', '', '', 'WAIKIKI', '', '', '', '', '', '', '', 'HANA', '', '', 'HILO', '', ''] as const;
 const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
 export const PACIFIC_SECTORS: readonly Sector[] = NAMES.map(centred);
-/** The map's colour of each (the ship red, Waikiki's sand yellow, Hana's sea blue, Hilo's lava orange, the plane white; the retired places none). */
-export const PACIFIC_COLOURS: readonly number[] = [2, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 8, 0, 1];
+/** The map's colour of each (the ship red, Waikiki's sand yellow, Hana's sea blue, Hilo's lava orange; the retired places none). */
+export const PACIFIC_COLOURS: readonly number[] = [2, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 8, 0, 0];
 
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The ship: the hull's red plates, the deck's bright plate, the hold's grating, the ladders, a crate step, the bow's containers, the bilge water. */
@@ -56,14 +55,9 @@ export const HANA_PALETTE = {
   K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 14],
 } as const satisfies Palette;
 
-/** Hilo: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the rope, the plane's white belly, the steam vent's column. */
+/** Hilo: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the rope, the steam vent's column. */
 export const HILO_PALETTE = {
-  K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 2], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], U: ['pacFuselage', 1], V: ['pacSteam', 1],
-} as const satisfies Palette;
-
-/** The plane's hold: the fuselage, the roller floor, the cargo net, the belly ladder, the rear door. */
-export const PLANE_PALETTE = {
-  U: ['pacFuselage', 11], F: ['pacHoldFloor', 8], N: ['pacNet', 13], L: ['pacSteelLadder', 7], D: ['pacContainerDoor', 2],
+  K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 2], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], V: ['pacSteam', 1],
 } as const satisfies Palette;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
@@ -128,25 +122,25 @@ export const VENT_PULSES: readonly PulseSpec[] = [
   { room: PAC.hilo, col: VENT.col, row: VENT.row, cols: 2, rows: 1, period: VENT.period, start: VENT.start, warn: VENT.warn, live: VENT.live, idle: 0, warnCode: 0, liveCode: codeOf(HILO_PALETTE, 'V'), spent: 0 },
 ];
 
-/**
- * The hold's loose crate (`rollers`, sprite 1: the room has two creatures and the parachute): chocked aft of the belly hatch, it breaks loose and rolls the length of the roller floor to the rear door, two
- * pixels a frame, every 360 frames, its first roll 150 frames after he comes in. The front of the floor (by the ladder) and the net are out of its way. Its pictures are the boulders' blocks,
- * the crate's put in while the hold is loaded (`roomBlocks`).
- */
-export const LOOSE_CRATE: RollerSpec = { room: PAC.plane, sprite: 1, path: [[10, 14], [28, 14]], speed: 2, every: 360, start: 150, frames: BOULDER_POINTERS, colour: 9 };
-
-/** The clouds go by the hold's portholes (a `charAnims` cycle over the decoration's one character). */
-export const CLOUD_ANIMS: readonly CharAnim[] = [{ kind: 'cycle', room: PAC.plane, chars: [{ decor: decorIndex('pacPortCloud'), cell: 0 }], frames: CLOUD_FRAMES, every: 4 }];
-
-/** The arrival banners: Oahu on coming aboard at Honolulu from Japan, Maui in Hana's sea, the Big Island at Hilo (the plane still on its apron). One name row: 32 letters. */
+/** The arrival banners: Oahu on coming aboard at Honolulu from Japan, Maui in Hana's sea, the Big Island at Hilo. One name row: 32 letters. */
 export const ARRIVALS: readonly Arrival[] = [
   { rooms: [PAC.ship, PAC.waikiki], text: 'WELCOME TO HAWAII: OAHU' },
   { rooms: [PAC.hana], text: 'HAWAII: MAUI' },
-  { rooms: [PAC.hilo, PAC.plane], text: 'HAWAII: THE BIG ISLAND' },
+  { rooms: [PAC.hilo], text: 'HAWAII: THE BIG ISLAND' },
 ];
 
-/** The plane's rear door (cols 30-31, rows 14-15, and the two gutter columns 32-33 that mirror the edge): the parachute opens it, onto the Andes' sky. */
-export const PLANE_DOOR_CELLS: readonly (readonly [row: number, col: number])[] = [14, 15].flatMap((row) => [30, 31, 32, 33].map((col) => [row, col] as const));
+/** Where the yellow mail biplane stands on Hilo's apron (its top left, playfield cells: a 3 x 3 decoration, its wheels on the apron, floor 5, its nose to the east). */
+export const BIPLANE_AT = { col: 2, row: 2 } as const;
+/** The parachute on the rim's high shelf (floor 5, west of the rooster's patrol; its top left). */
+export const PARACHUTE_AT = { col: 20, row: 3 } as const;
+
+/**
+ * The biplane waiting on Hilo's apron (`boardings`): touched with the parachute (his top left over its cells: from its nose at column 4 west to the crater wall, standing on the apron or jumping), it takes
+ * off with him into THE FLIGHT's first leg ([0,20], sky.ts), where he is on the screen; without it the hint, and nothing happens. Given the parachute's find (data.ts).
+ */
+export const biplaneBoarding = (parachute: number, goes: { mapRow: number; exitCol: number }): BoardingSpec => ({
+  room: PAC.hilo, box: { col0: 0, row0: 0, col1: BIPLANE_AT.col + 2, row1: BIPLANE_AT.row + 2 }, needs: parachute, goes, hint: 'NO FLYING WITHOUT A PARACHUTE',
+});
 
 // ---- the backdrops -------------------------------------------------------------------------------------
 const paintWaikiki = (g: Grid): void => {
@@ -173,12 +167,11 @@ const HANA_SEA = fillCells(paintHana, [], [0, 0, 31, 19], 'pacSeaFlat');
 
 const paintHilo = (g: Grid): void => {
   g.box(0, 0, 1, 14, 'K').box(30, 0, 31, 19, 'K').box(0, 19, 31, 19, 'K'); // the crater's walls and floor (the shore at the left, cols 0-5, outside the lava)
-  g.box(2, 0, 29, 1, 'U').clear(7, 0, 9, 1); // the plane's belly across the top, its hatch
-  g.box(8, 0, 8, 4, 'R'); // the belly ladder (the plane's own, yellow in the hold above; here a rope down from the hatch)
-  g.box(2, 5, 17, 5, 'L').clear(13, 5, 15, 5); // the apron under the plane
+  g.box(2, 5, 17, 5, 'L').clear(13, 5, 15, 5); // the airport's apron, where the biplane stands (the open sky over it)
   g.box(14, 4, 14, 8, 'R'); // the rope up to it from the long ledge
+  g.box(19, 0, 19, 4, 'K').box(20, 5, 26, 5, 'L'); // the rim's spur and the high shelf east of it (floor 5): the spur shuts it off from the apron, so the shelf is only up the east wall's rope
   g.box(10, 9, 29, 9, 'L').clear(27, 9, 29, 9).box(19, 9, 20, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
-  g.box(28, 8, 28, 13, 'R'); // the rope up the east wall
+  g.box(28, 4, 28, 13, 'R'); // the rope up the east wall, past the long ledge on up to the shelf
   g.box(5, 14, 7, 14, 'L').box(10, 14, 12, 14, 'L').box(15, 14, 17, 14, 'L').box(20, 14, 29, 14, 'L'); // the first ledge and the stepping ledges (floor 14)
   g.box(3, 13, 3, 18, 'R'); // the rope up from the shore
 };
@@ -250,35 +243,19 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
 
   // D HILO: the Big Island, Kilauea's flow below the airport; the set piece. Out of the sea onto the lava-rock shore (floor 19, outside the lava), and the lava starts to rise. Up the rope to the first ledge
   // (floor 14), east over three stepping ledges (the first two cooled crust that cracks under a standing foot; a magma blob bobs up between them), up the rope on the east wall to the long ledge (floor 9:
-  // the lava stops under it), west past the steam vent, up the rope to the apron (floor 5) under the plane's white belly, past the nene and up the belly ladder.
+  // the lava stops under it). The parachute is seen from there, on the rim's high shelf above: on up the same rope past the long ledge (a coin at its head), past the strutting rooster to the parachute,
+  // and back down. West along the long ledge past the steam vent, up the rope to the apron (floor 5), past the nene to the yellow mail biplane, and away (`biplaneBoarding`). The third coin is the one the
+  // cut cargo plane's hold had (so its place in the coin table, and saves, are as they were); the parachute is the hold's item, in the same place in the finds.
   room({
     id: PAC.hilo, cell: [3, 19], sector: 52, palette: HILO_PALETTE,
     paint: paintHilo,
-    coins: [[16, 13], [26, 8]],
-    decor: [['pacGear', 10, 2]],
+    coins: [[16, 13], [26, 8], [25, 4]],
+    item: { name: 'parachute', col: PARACHUTE_AT.col, row: PARACHUTE_AT.row, sprite: PAC_SPRITE.parachute },
+    decor: [['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]],
     creatures: [
       { who: 'pacMagma', col: 13, row: 16, way: 'up', speed: 1, range: 40, colour: 1 },
-      { who: 'pacNene', col: 2, row: 3, way: 'right', speed: 1, range: 24 },
-    ],
-  }),
-
-  // E THE CARGO PLANE: the hold in flight. Up the belly ladder onto the roller floor (floor 16); the rear door in the right wall (rows 14-15, the jump lamp by it) is shut until he has the parachute. Up the
-  // cargo net (a coin in it) to the high rack (floor 8), west past the rooster to the parachute at the front; back down, across the floor behind the loose crate's roll and under the hoisted crate, and out.
-  room({
-    id: PAC.plane, cell: [2, 19], sector: 54, palette: PLANE_PALETTE,
-    paint(g) {
-      g.box(0, 0, 31, 1, 'U').box(0, 2, 1, 19, 'U').box(30, 2, 31, 13, 'U').box(30, 14, 31, 15, 'D').box(30, 16, 31, 19, 'U'); // the fuselage, the rear door
-      g.box(2, 16, 29, 16, 'F').box(2, 17, 29, 19, 'U').clear(7, 16, 9, 19); // the roller floor, the belly hatch's shaft
-      g.box(8, 15, 8, 19, 'L'); // the belly ladder
-      g.box(14, 7, 17, 15, 'N'); // the cargo net
-      g.box(2, 8, 13, 8, 'F'); // the high rack
-    },
-    coins: [[15, 10]],
-    item: { name: 'parachute', col: 2, row: 6, sprite: PAC_SPRITE.parachute },
-    decor: [['pacJumpLamp', 29, 12], ...[4, 10, 20, 26].map((col) => ['pacPortCloud', col, 4] as const)],
-    creatures: [
-      { who: 'pacSwingCrate', col: 22, row: 3, way: 'down', speed: 1, range: 72 },
-      { who: 'pacRooster', col: 6, row: 6, way: 'right', speed: 1, range: 32 },
+      { who: 'pacNene', col: 6, row: 3, way: 'right', speed: 1, range: 24 },
+      { who: 'pacRooster', col: 23, row: 3, way: 'right', speed: 1, range: 8 },
     ],
   }),
 ];

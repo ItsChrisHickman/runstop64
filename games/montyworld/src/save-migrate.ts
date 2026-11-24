@@ -8,6 +8,9 @@ import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
  * snacks of rooms that were cut are gone with them; every key item taken stays taken, so no gate closes again.
  * Where he was: a room that was cut sends him to the kept room the region's plan names (`RETIRED`), at the nearest place he can stand to its west end, low; a room whose cells changed puts him on the nearest place in it he can stand, so a saved place never leaves
  * him inside a wall; and the cell of the exit grid he is in is today's cell for that room.
+ *
+ * A room cut after format 2 (the cargo plane's hold, 2026-11-24: its coin and the parachute moved into Hilo at the same places in the tables, so the format stayed) is `carryOn`'s: every save read, of any
+ * format, made in a cut room carries on in the kept room, as a format 1 save's does.
  */
 
 /** The rooms the reset cut, and the kept room of the same region a save in one carries on in (docs/dosvidaniya-reset.md). Other regions' rebuilds add theirs here. */
@@ -40,11 +43,14 @@ export const RETIRED: Readonly<Record<number, number>> = {
   72: 71, // MONKEY BUSINESS: merged into OPEN ARMS (Tijuca at its foot)
   70: 69, // SUGARLOAF SUMMIT: SUGAR RUSH, the cable car
   76: 75, // FLOAT YOUR BOAT: merged into the Sambadrome (SPY VERSUS MOLE)
+  // the Pacific again, after the flight (2026-11-24)
+  54: 52, // THE CARGO PLANE (HOLD YOUR HORSES in format 1): Hilo's apron, by the biplane
 };
 
 /** Where a kept room that takes the saves of cut rooms is come into, when that is not its west end, low (Rio's OPEN ARMS: high on the canopy, entered from the Amazon; its forest floor is the marmoset's). */
 const WAY_IN: Readonly<Record<number, { col: number; floor: number }>> = {
   71: { col: 1, floor: 8 },
+  52: { col: 16, floor: 5 }, // Hilo: the apron by the rope's head, east of it (out of the nene's way), the biplane at the apron's west end
 };
 
 const PLAY_COL = 4, COLS = 32, ROWS = 20;
@@ -79,6 +85,16 @@ export function standingPlace(data: MontyData, room: number, col: number, floor:
     if (!best || d < best.d) best = { col: c, floor: f, d };
   }
   return best ? { col: best.col, floor: best.floor } : null;
+}
+
+/** A save of any format made in a room cut since: carried on in the kept room that takes its saves, where that room is come into (`WAY_IN`, else its west end, low), at today's cell. Any other save as it is. */
+export function carryOn(data: MontyData, s: MontySave): MontySave {
+  const kept = RETIRED[s.roomId];
+  const cell = kept === undefined ? -1 : [...data.exitGrid.image].indexOf(kept);
+  if (kept === undefined || cell < 0) return s;
+  const way = WAY_IN[kept] ?? { col: 0, floor: ROWS - 1 };
+  const spot = standingPlace(data, kept, way.col, way.floor);
+  return { ...s, roomId: kept, mapRow: Math.floor(cell / data.exitGrid.cols), exitCol: cell % data.exitGrid.cols, ...(spot ? { x2: x2At(spot.col), y: yAt(spot.floor) } : {}) };
 }
 
 /** A format 1 save as one of today's. */

@@ -2,7 +2,7 @@
  * The Pacific's decorations for Monty Mole: World Tour (region 5), in Monty on the Run's decoration format and Moscow's manner
  * (decorations.ts): solid ink with the detail cut into it as black lines. The ship's funnel, bridge and crane; Honolulu's tower;
  * Waikiki's palms, hotel and surfboards; the luau's torches, totem and roast pig; Molokai's sea cliffs (the backdrop of the reef);
- * the reef's coral and kelp; Maui's waterfall, bamboo and signs; the volcano; the airport and the cargo plane. Names start `pac`.
+ * the reef's coral and kelp; Maui's waterfall, bamboo and signs; the volcano. Names start `pac`.
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
@@ -90,15 +90,6 @@ function snorkelShop(): NewDecor {
 
 // ---- the Big Island
 
-// ---- the airport and the cargo plane
-
-/** The jump lamp: a red lamp in a housing on the hold's wall. 1 x 2 characters. */
-function jumpLamp(): NewDecor {
-  const r = new Raster(8, 16);
-  r.rect(1, 0, 6, 15); r.ellipse(3.5, 5, 2.4, 3, false); r.rect(3, 4, 4, 6); r.rect(2, 11, 5, 13, false);
-  return decor('pacJumpLamp', 1, 2, r, 2);
-}
-
 // ---- the luau at sunset (LEI OF THE LAND): the sky's bands, the sun on the sea, the lawn, the stage, the feast, the lei's arch
 
 /** A cell of the sea behind the beach: short waves. 1 x 1 character. */
@@ -123,7 +114,6 @@ export const PACIFIC_DECOR = {
   pacPalm: palm(4, 6, 'pacPalm'),
   pacDiamondHead: diamondHead(),
   pacSnorkelShop: snorkelShop(),
-  pacJumpLamp: jumpLamp(),
   pacSeaWave: seaWave(),
   pacLawn: lawn(),
 } as const satisfies Record<string, NewDecor>;

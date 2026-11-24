@@ -1,7 +1,8 @@
 /**
  * Saves of format 1 (the game as shipped before the reset) read into today's tables (save-migrate.ts): every coin and find of a room the reset kept as it was is still taken, every key item taken is still
  * taken wherever its room went (the chullo moved rooms), the costume worn is still worn, a save in a room that was cut carries on in the room the plan names, and a save in a room whose cells changed puts
- * him somewhere he can stand, in the exit grid's cell that room has now. Today's saves (format 2) read as they are.
+ * him somewhere he can stand, in the exit grid's cell that room has now. Today's saves (format 2) read as they are, but one made in a room cut since (the cargo plane's hold) carries on in the room
+ * that took its place (Hilo's apron).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/save-migrate.ts
  */
@@ -16,7 +17,7 @@ import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { RETIRED } from '../src/save-migrate';
 import { dead } from './mech-kit';
-import { itemIndex } from './route';
+import { coinIndex, itemIndex } from './route';
 import { CHULLO } from './andes-route';
 
 /** The place of a format 1 find in its table: the n-th of a room's. */
@@ -81,4 +82,17 @@ check('a save in a room the reset did not change keeps its place exactly (Moscow
 const now = snapshot(b.g);
 const again = CODEC.unpack(CODEC.pack(now), 2);
 check('a format 2 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
+// a format 2 save made in the cargo plane's hold (cut 2026-11-24: room 54 at [2,19]), its coin and the parachute taken: on Hilo's apron by the biplane, both still taken (they kept their table places in Hilo)
+{
+  const p = newGame(WORLD, true);
+  const parachute = itemIndex(p.g, PAC.hilo, 0), coin = coinIndex(p.g, PAC.hilo, 25, 4);
+  const held = { ...snapshot(p.g), roomId: 54, x2: 0x0c + (20 + 4) * 4, y: 0x32 + 17 * 8, mapRow: 2, exitCol: 19 };
+  held.coins = held.coins.map((v, i) => (i === coin ? 0xff : v));
+  held.items = held.items.map((v, i) => (i === parachute ? 0x81 : v));
+  const t = CODEC.unpack(CODEC.pack(held), 2);
+  restore(p.g, t);
+  for (let f = 0; f < 120; f++) frame(p, NONE);
+  check(`a format 2 save in the cut hold carries on on Hilo's apron (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}], floor ${p.g.montyRow - 3 + 2}, column ${p.g.montyCol - 4}), alive, the hold's coin and the parachute still taken`,
+    RETIRED[54] === PAC.hilo && p.g.roomId === PAC.hilo && p.g.mapRow === 3 && p.g.exitCol === 19 && p.g.montyRow - 3 + 2 === 5 && p.g.montyCol - 4 >= 15 && p.g.montyCol - 4 <= 17 && !dead(p.g) && t.coins[coin] === 0xff && t.items[parachute] === 0x81);
+}
 finish();

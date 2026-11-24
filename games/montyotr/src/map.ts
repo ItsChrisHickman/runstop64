@@ -1,6 +1,6 @@
 import type { Surface } from 'c64kit';
 import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
-import { sectorIndex, sectorName, type MontyData } from './montydata';
+import { cellOf, sectorIndex, sectorName, type MontyData } from './montydata';
 import type { Game } from './game';
 import { roomProgress } from './items';
 import { regionAt } from './regions';
@@ -203,7 +203,13 @@ export const montyMap = {
   found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
-  title: () => 'THE WORLD',
+  /** The heading: the name of the region in view (the picked room's, else Monty's: the view follows the pick); a map with no regions (Monty on the Run's) is THE MAP. */
+  title(g, _page, pick) {
+    const { data } = g;
+    const id = pick !== null && pick !== undefined ? Number(pick) : g.roomId;
+    const cell = cellOf(data, id) ?? { row: g.mapRow, col: g.exitCol };
+    return regionAt(data.regions, cell.row, cell.col)?.name ?? 'THE MAP';
+  },
   draw(s, box, g, found, blink, _page, font, pick) {
     const data = g.data;
     const { progress } = data;
