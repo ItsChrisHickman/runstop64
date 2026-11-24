@@ -1,5 +1,6 @@
 /**
- * Sound effects for overlays (combat effects), made the way a C64 game makes them: short
+ * Sound effects for overlays (combat effects, and a Monty game's own while a room plays another .sid:
+ * `MontyLook.music.overOther`), made the way a C64 game makes them: short
  * programs of SID register writes, one step per 50 Hz frame, played on a SID of their own
  * (a second chip in the audio worklet, mixed with the game's), so they sound like the
  * machine and never touch the game's own sound.
@@ -8,7 +9,7 @@
  * numbers (0-1 frequency, 2-3 pulse width, 4 control, 5 attack/decay, 6 sustain/release),
  * and the worklet puts each on a free voice.
  */
-export const SFX_NAMES = ['kill', 'hit', 'hurt'] as const;
+export const SFX_NAMES = ['kill', 'hit', 'hurt', 'coin', 'screech'] as const;
 export type SfxName = (typeof SFX_NAMES)[number];
 export const isSfxName = (v: unknown): v is SfxName => SFX_NAMES.some((n) => n === v);
 
@@ -52,6 +53,13 @@ export const SFX: Record<SfxName, VoiceProgram[]> = {
   hurt: [
     sweep({ wave: SAW, from: 300, to: 110, frames: 14, ad: 0x08, sr: 0x06, release: 5, wobble: 0.06 }),
     sweep({ wave: TRI, from: 150, to: 55, frames: 14, ad: 0x08, sr: 0x06, release: 5 }),
+  ],
+  // Something taken (a coin): a quick bright chirp up a fifth, a triangle ringing out.
+  coin: [sweep({ wave: TRI, from: 1050, to: 1570, frames: 5, ad: 0x00, sr: 0x07, release: 4 })],
+  // A seabird's screech: a harsh sawtooth sliding down, wobbling, with a breath of noise under it.
+  screech: [
+    sweep({ wave: SAW, from: 1500, to: 900, frames: 18, ad: 0x04, sr: 0x86, release: 12, wobble: 0.1 }),
+    sweep({ wave: NOISE, from: 1200, to: 800, frames: 8, ad: 0x04, sr: 0x03, release: 3 }),
   ],
 };
 

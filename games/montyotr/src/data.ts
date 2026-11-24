@@ -1,5 +1,5 @@
 import raw from './data/motr.json';
-import { hexBytes } from 'c64kit';
+import { hexBytes, type SfxName } from 'c64kit';
 import { PLAY_COLS, PLAY_ROWS } from '../../shared/monty/screen';
 import { buildRooms, checkFree, roomCells, type BaseRooms, type DecorType, type RoomDef } from '../../shared/monty/rooms';
 import { ROOMS as EXT_ROOMS, SECTORS as EXT_SECTORS } from './data/runstop64-rooms';
@@ -68,8 +68,19 @@ export const SFX = {
 /** SFX per death/completion event (original event_sfx_tbl). */
 export const EVENT_SFX = [9, 10, 14, 12, 13, 0, 14];
 
+/**
+ * The kit's effects (packages/c64kit/src/sid/sfx.ts, on a SID of their own mixed over the tune) that stand in for the original's
+ * while another .sid plays (Do Svidaniya Monty's flight: Auf Wiedersehen Monty's theme), by the original's number: a coin or an
+ * item taken, the warp (the frigatebird's screech, a roller's `sound`), the jump's rattle (a pursuer knocked back), and every
+ * death's crunch (Viktor's clip at the bail-out is one too). The jetpack's and the jump's own are only without the music.
+ */
+const OVER_OTHER = {
+  [SFX.coin]: 'coin', [SFX.item]: 'coin', [SFX.warp]: 'screech', [SFX.jump]: 'hit',
+  ...Object.fromEntries(EVENT_SFX.filter((id) => id !== 0).map((id) => [id, 'kill'] as const)),
+} satisfies Readonly<Partial<Record<number, SfxName>>>;
+
 /** Entry points inside the original music driver (present in the HVSC .sid). */
-export const MUSIC = { init: 0x9554, stop: 0x957d, playSfx: 0x9591 } as const;
+export const MUSIC = { init: 0x9554, stop: 0x957d, playSfx: 0x9591, overOther: OVER_OTHER } as const;
 
 /**
  * The sprites the item pickup knows (HandleSICollision): the first aid kit ($8E: an extra life), the smoke stack ($92: fatal), the

@@ -21,7 +21,7 @@ Each leg is a room of its own, so the shared rules hold without special cases:
 - The music is Auf Wiedersehen Monty's main theme (tune 0, Hubbard and Daglish), from that game's own .sid: a nod to the third game and the
   one exception to the one song (Chris, 2026-11-24; `music/regions.ts`, `SidPlayer.useFile`). It starts from its beginning on taking off and
   plays on through a death or a restart in the sky, and a save in the sky continues with it; into the Andes, Hubbard's song comes back in its
-  Andes version, a clean change (the phrase crossing works only between versions of one song). No sound effects play over it.
+  Andes version, a clean change (the phrase crossing works only between versions of one song). The sound effects over it are the kit's (`music.overOther`: coin, screech, hit, kill on the overlay SID), Hubbard's being routines of his .sid.
 
 The rooms are on a row of the exit grid nothing else touches, so no room beside them can be walked or jumped into:
 

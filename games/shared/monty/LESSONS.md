@@ -163,7 +163,7 @@ most care; the reward show and the title show them off.
   **One exception, on purpose** (Chris, 2026-11-24): Do Svidaniya Monty's flight (the sky) plays Auf Wiedersehen Monty's main
   theme (tune 0, Hubbard and Daglish) from that game's own .sid, a nod to the third game. It starts from its beginning on taking
   off and plays on through a death in the sky; the Andes after it go back to Hubbard's song with a clean change (the phrase
-  crossing only works between versions of one song). No sound effects play over it (they are routines of Hubbard's .sid).
+  crossing only works between versions of one song). The game's sound effects are routines of Hubbard's .sid, so over it the kit's own play instead (`overOther`: a coin's chirp, the frigatebird's screech, a knock's click, a death's crunch, on the overlay SID; Chris, 2026-11-24).
   Not a pattern for other places: one song is the rule (`montyworld/src/music/regions.ts`, `test/music-sky.ts`).
 
 ## How we build it

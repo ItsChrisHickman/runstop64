@@ -1,4 +1,4 @@
-import type { CrossingPlan } from 'c64kit';
+import type { CrossingPlan, SfxName } from 'c64kit';
 import type { Seq } from '../../shared/monty/deaths';
 import type { RoomTables } from '../../shared/monty/rooms';
 import type { ParadeStyle, ProcessionSpec } from '../../shared/ending/show';
@@ -55,15 +55,17 @@ export interface MontyLook {
    * Entry points inside the music driver (present in the HVSC .sid), and the .sid's address. `tuneFor`: the version of the tune a
    * room plays (a region's own: Do Svidaniya Monty's, `montyworld/src/music`), null for the .sid as it is; none for a game that has
    * one tune (Monty on the Run). `crossing`: the plan for going from one version to another with the song carrying on (where it
-   * changes, the dip: packages/c64kit/src/sid/crossing.ts), made from the .sid's bytes; none: the tune starts again.
+   * changes, the dip: packages/c64kit/src/sid/crossing.ts), made from the .sid's bytes; none: the tune starts again. `overOther`:
+   * the kit's effect (`SidPlayer.sfx`) each of the game's own (by number) plays as while a room's tune is another .sid, whose
+   * memory has none of the game's routines; one it lacks is silent there.
    */
-  music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
+  music: { init: number; stop: number; playSfx: number; sidUrl: string; overOther: Readonly<Partial<Record<number, SfxName>>>; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
 /**
  * What a room plays: a version of the game's tune, made from the .sid's bytes by changing the data the music driver plays (never
  * the driver); or (`file`) another tune altogether, a .sid of its own and its song (Do Svidaniya Monty's flight plays Auf
- * Wiedersehen Monty's theme). The game's sound effects are routines of its own .sid, so none play while another one does; going
+ * Wiedersehen Monty's theme). The game's sound effects are routines of its own .sid, so while another one plays the kit's stand in (`music.overOther`); going
  * to or from another .sid is a clean change (a crossing is only between versions of one song). `id`: what it is called: the
  * session starts the music again only when it changes.
  */

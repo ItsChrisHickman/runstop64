@@ -50,15 +50,22 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
    * the game), and the tune starts again only when the version changes, unless the game has a crossing: from one version to
    * another the song then carries on, and only the version changes at the next phrase. The title has the original, and the game's
    * first room starts the tune from its beginning. A room may ask for another .sid altogether (`file`): it plays from its start
-   * while the music is on (with the sound effects chosen, the game's own .sid stays loaded for them).
+   * while the music is on, the game's effects the kit's over it (with the sound effects chosen, the game's own .sid stays loaded
+   * for them, as everywhere).
    */
   let tune: TuneVersion | null = null;
-  /** Another .sid is playing: the game's routines are not in it (no effects; its song and stop are the player's). */
+  /**
+   * Another .sid is playing: the game's routines are not in it, so its song and stop are the player's, and its effects are the
+   * kit's (`music.overOther`: on the overlay SID, mixed over the tune, which plays on untouched), so the flight sounds like the
+   * rest of the game.
+   */
   const foreign = () => musicOn && tune !== null && 'file' in tune;
   g.sound = {
     sfx(id, onlyWithoutMusic) {
-      if ((onlyWithoutMusic && musicOn) || foreign()) return;
-      music.call(data.music.playSfx, id);
+      if (onlyWithoutMusic && musicOn) return;
+      if (!foreign()) { music.call(data.music.playSfx, id); return; }
+      const kit = data.music.overOther[id];
+      if (kit) music.sfx(kit);
     },
     song(n) { if (!foreign()) music.call(data.music.init, n); },
     stop() { if (foreign()) music.stop(); else music.call(data.music.stop); },
