@@ -107,10 +107,10 @@ check(`the finale to the end: France (${g.won ? 'won' : 'not won'}), the title`,
 
 // after the finale: ENHANCED's reward comes first (test/reward.ts); a key, once it has run two seconds, skips it
 const reward = must(p.ending, 'the ending\'s show');
-check('the reward (ENHANCED) begins from the finale', reward.active);
+check(`the reward (ENHANCED) begins from the finale, with the hi-score tune (song ${lastSong()})`, reward.active && lastSong() === 2);
 tick(110);
 press('Space');
-check('a key skips it, back to the title', !reward.active && p.state.mode === 'title');
+check(`a key skips it, back to the title, with the title's tune (song ${lastSong()})`, !reward.active && p.state.mode === 'title' && lastSong() === 0);
 
 // after the finale: everything kept, and on into the game again
 const s = unpackSlot(CODEC, saved), found = Object.keys(readFound('montyotr').rooms ?? {});

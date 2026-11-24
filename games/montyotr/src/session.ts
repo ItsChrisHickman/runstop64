@@ -106,9 +106,10 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
         host,
         spec: montyEnding(data, renderer, g.assist, (id) => g.sfx(id)),
         font: () => flow.getFont(),
-        // (the game's tune, from its start, and again as the title's on the way out; nothing in the sound-effects mode)
+        // (the ending's song, the game's tune unless it gives its own, from its start; the title's on the way out; nothing in the
+        // sound-effects mode)
         music: {
-          start() { music.hold(false); if (musicOn) g.sound.song(0); },
+          start() { music.hold(false); if (musicOn) g.sound.song(data.ending?.song ?? 0); },
           end() { if (musicOn) g.sound.song(0); },
         },
         done() {

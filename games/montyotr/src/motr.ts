@@ -78,5 +78,5 @@ export const MOTR: MontyData = {
     sectorColours: [7, 13, 10, 14, 5, 4, 8, 3, 15, 1],
   },
   title: { message: MESSAGE },
-  ending: { title: 'MONTY ON THE RUN', scenes: SCENES, cast: CAST, castRooms: range(0, ROOM_COUNT - 1) },
+  ending: { title: 'MONTY ON THE RUN', scenes: SCENES, cast: CAST, castRooms: range(0, ROOM_COUNT - 1), song: 2 }, // (song 2: the hi-score and ending tune)
 };

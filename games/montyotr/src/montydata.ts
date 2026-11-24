@@ -403,6 +403,11 @@ export interface MontyEnding {
   cast: readonly { types: readonly number[]; name: string }[];
   /** The rooms a creature is looked for in, in order (where it first appears). */
   castRooms: readonly number[];
+  /**
+   * The song the show plays (Music.Init n), 0 (the game's tune) unless the game gives its own: Monty on the Run's is song 2, the
+   * original's hi-score and ending tune (the dock's, and the name entry's, which the port has not got).
+   */
+  song?: number;
   /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
   closing?: readonly string[];
   /**
