@@ -131,6 +131,8 @@ most care; the reward show and the title show them off.
   know, nothing that's a stretch.
 - **Music:** Hubbard's own driver and tune; a region's version may change the scale and the instruments, never the tempo.
   Folk-tune breaks only from public-domain tunes, and only if they sound like part of the tune.
+  Between regions the song never restarts (Chris, 2026-11-23): the version changes in step at the next phrase, the SID volume dipping a
+  beat each way (`music/crossing.ts`, `c64kit/src/sid/crossing.ts`); so every version keeps the song's order and every pattern's length.
   Moscow's light touch is the model (2026-11-22, after Japan and the Pacific): the introduction is Hubbard's note for note (a version
   that bends it sounds like a glitch), a lead note bends only where the result is consonant with the bass under it (no minor second,
   major seventh or tritone), and the instrument carries the place (the Pacific: a steel guitar sliding into notes, a strummed backing,
