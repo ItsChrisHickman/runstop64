@@ -34,10 +34,11 @@ import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
 import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
-import { AGENT_POINTERS, CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
+import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
-import { AGENT_SQUASH, CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
+import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 
 /**
  * Do Svidaniya Monty's data, for the Monty engine (games/montyotr/src: `MontyData`). A second data set on the same code as Monty on the
@@ -145,8 +146,6 @@ const bank = extendBank(bankImage, [
   { ptr: RIO_SPRITE.headdress, block: RIO_ITEMS.headdress.block },
   { ptr: RIO_SPRITE.skewer, block: RIO_ITEMS.skewer.block },
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
-  { ptr: AGENT_POINTERS.flat, block: AGENT_SQUASH.flat },
-  { ptr: AGENT_POINTERS.hat, block: AGENT_SQUASH.hat },
   { ptr: CAR_POINTERS.roof, block: CABLE_CAR.top },
   { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
@@ -206,12 +205,12 @@ const HEADDRESS_ITEM = specialIndex(ROOMS, 'headdress');
 const BOWL = specialIndex(ROOMS, 'bowl');
 
 /**
- * Two finds no room shows (their room is none: $FF), for what the Sambadrome must remember through a death and a save: the crank fitted in the booth, and the agent squashed (levers.ts takes them; the room's effects read
- * them). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
+ * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
+ * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
-const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1;
+const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
   ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
@@ -275,7 +274,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -292,7 +291,7 @@ export const WORLD: MontyData = {
   currents: CURRENTS,
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS],
   risingLava: [LAVA],
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
@@ -302,8 +301,9 @@ export const WORLD: MontyData = {
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],
   skewers: SKEWERS,
-  pursuers: [pursuerOf(SQUASHED)],
+  pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
+  cameos: viktorCameos(MOON_SEEN, HOOD_ITEM),
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
   // a region's hat: once taken, Monty's pictures have it on (and the hat's own pictures take the pool's blocks), in place of the last
   costumes: [

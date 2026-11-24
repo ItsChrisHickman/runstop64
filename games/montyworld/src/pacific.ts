@@ -208,6 +208,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'pacParrot', col: 14, row: 1, way: 'down', speed: 1, range: 40 },
       { who: 'pacSwingCrate', col: 23, row: 3, way: 'down', speed: 1, range: 32 },
+      { who: 'agent', col: 0, row: 11, way: 'right', speed: 1, range: 1 }, // Viktor Vole, aboard behind him (viktor.ts `shipPursuer`: he walks Monty's path, not a patrol)
     ],
     crushers: [{ col: 11, row: 11, height: 3 }, { col: 20, row: 11, height: 3 }],
   }),

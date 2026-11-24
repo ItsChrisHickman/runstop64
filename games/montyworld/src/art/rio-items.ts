@@ -53,23 +53,6 @@ function acaiBowl(): NewItem {
   return { block: itemBlock('acaiBowl', r.rows()), colour: 4 };
 }
 
-/** The agent squashed: his hat gone, flat as a mat under the head, his dark glasses and the coat's buttons still on him, his shoes sticking out. 24 x 21, his 16 wide at the left, on the floor (rows 13-15 of his 16). */
-function agentFlat(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.rect(0, 13, 15, 15); // flat on the floor
-  r.cut(['###.##'], 5, 13); // the glasses
-  r.cut(['#.#.#'], 9, 14); // the buttons
-  r.set(0, 12); r.set(15, 12); // the shoes sticking up
-  return spriteBlock('agent flat', r.rows());
-}
-/** His hat, popped off as he is squashed. 24 x 21, the hat at the top left. */
-function agentHat(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.rect(3, 0, 8, 1); r.rect(0, 2, 11, 2);
-  return spriteBlock('agent hat', r.rows());
-}
-export const AGENT_SQUASH = { flat: agentFlat(), hat: agentHat() } as const;
-
 export const RIO_ITEMS = {
   crank: crank(),
   headdress: headdressItem(),
@@ -161,8 +144,6 @@ export const SKEWER_COLOUR = 8;
 /** Every sprite of the region as a list for the preview sheets. */
 export const RIO_SPRITES: Readonly<Record<string, NewItem>> = {
   ...RIO_ITEMS,
-  agentFlat: { block: AGENT_SQUASH.flat, colour: 1 },
-  agentHat: { block: AGENT_SQUASH.hat, colour: 1 },
   carTop: { block: CABLE_CAR.top, colour: CABLE_CAR.colour },
   carBottom: { block: CABLE_CAR.bottom, colour: CABLE_CAR.colour },
   skewerDown: { block: SKEWER_POSES.left[0]?.block ?? new Uint8Array(63), colour: SKEWER_COLOUR },

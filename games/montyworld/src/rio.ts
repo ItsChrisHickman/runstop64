@@ -5,7 +5,7 @@ import { GRILL_ANIM, RIO_DECOR } from './art/rio-decor';
 import { SKEWER_POSES } from './art/rio-items';
 import type { WorldDecor } from './art/world';
 import { asBackdrop, codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
-import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SPLIT_POINTERS } from './rio-pointers';
 
 /**
  * Rio, the seventh and last region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "Rio (the last level)"): six rooms and the beach, at night on black, in a block at columns 23-28 of the exit grid (rows 4-5), entered from the
@@ -13,7 +13,7 @@ import { AGENT_POINTERS, CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio
  *
  *            col 23             24                  25                   26              27                 28
  *   row 4                                         W STEAK YOUR CLAIM
- *   row 5   C OPEN ARMS        F HOUSE OF COLOUR   L THE LAPA ARCHES    S SUGAR RUSH    D THE SAMBADROME   B RIO OR BUST
+ *   row 5   C OPEN ARMS        F HOUSE OF COLOUR   L THE LAPA ARCHES    S SUGAR RUSH    D SPY VERSUS MOLE  B RIO OR BUST
  *
  * The route: up the Redeemer and off his east hand (C); down through the favela, the region's tightest room (F); along Lapa's street under the arches, the tram's track high above and out of reach (L); the cable car's winch
  * dead behind its bars at Sugarloaf's foot (S); up the climbers' rope and west onto the track, across its gap on the tram, up the ladder into the churrascaria at the top of the arches, past the gauchos' skewers to the
@@ -36,7 +36,7 @@ export const RIO_FIRST = RIO_ROOM.arms;
 export const isRio = (room: number): boolean => room >= 67 && room <= 77;
 
 /** The sectors' names by their place from 67 (as the ids: the retired rooms' places are empty, so no later sector moves). */
-const NAMES = ['', 'THE LAPA ARCHES', 'SUGAR RUSH', '', 'OPEN ARMS', '', 'HOUSE OF COLOUR', 'STEAK YOUR CLAIM', 'THE SAMBADROME', '', 'RIO OR BUST'] as const;
+const NAMES = ['', 'THE LAPA ARCHES', 'SUGAR RUSH', '', 'OPEN ARMS', '', 'HOUSE OF COLOUR', 'STEAK YOUR CLAIM', 'SPY VERSUS MOLE', '', 'RIO OR BUST'] as const;
 export const RIO_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (Lapa's white, Sugarloaf's blue, the Redeemer's white, the favela's pink, the restaurant's red, the carnival's yellow, the beach's sand; the retired rooms' unused). */
 export const RIO_COLOURS: readonly number[] = [0, 1, 14, 0, 1, 0, 10, 2, 7, 0, 8];
@@ -235,8 +235,8 @@ const SUGAR = rows([
 ]);
 const SUGAR_COINS: readonly Cell[] = [[7, 7]];
 
-// ---- D THE SAMBADROME -----------------------------------------------------------------------------------
-/** The showdown: in high on the stand's ledge (8) from the cable car's top station, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again, under the head, and the lever when the agent is under it. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
+// ---- D SPY VERSUS MOLE (the Sambadrome) --------------------------------------------------------------------
+/** The showdown: in high on the stand's ledge (8) from the cable car's top station, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): a walker is out from under the head before it lands, so Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
 const DRUM = rows([
     '................................', // 0
     '...........................SSSS.', // 1
@@ -359,9 +359,15 @@ export const LIT_CODE = codeOf(DRUM_PALETTE, 'Y');
 export const leverOf = (crank: number, fitted: number, squashed: number): LeverSpec => ({
   room: RIO_ROOM.drum, lever: { col: 23, row: 16 }, booth: { col0: 27, row0: 2, col1: 29, row1: 3 }, key: crank, armed: fitted, done: squashed,
 });
-/** The agent (the room's third creature, slot 2: sprite 6) on Monty's path 125 frames (two and a half seconds) behind, from when he leaves the stand's ledge and the riser (cols 0-11, rows 0-8); gone once squashed. His hat pops off on sprite 1. */
+/**
+ * Viktor Vole (the room's third creature, slot 2: sprite 6) on Monty's path 125 frames (two and a half seconds) behind, from when he leaves the stand's ledge and the riser (cols 0-11, rows 0-8). As Monty comes in
+ * he walks on at the avenue's far end beyond the bars (col 30, floor 18), looks across at him while the room's name flashes, and walks off; the chase starts as Monty leaves the ledge. He is escaped only by the
+ * float's head, and only standing under it (levers.ts: a walker under it is out before it lands): he goes in Monty's four-way split, on sprites 6, 1 and 2 and the dancer's 5 (back, on, up, down).
+ */
+export const SHOWDOWN = { delay: 125, intro: { from: 33, at: { col: 30, row: 18 }, to: 33, pose: 'look', hold: 60 } } as const;
 export const pursuerOf = (squashed: number): PursuerSpec => ({
-  room: RIO_ROOM.drum, slot: 2, delay: 125, calm: { col0: 0, row0: 0, col1: 11, row1: 8 }, until: squashed, flat: AGENT_POINTERS.flat, hat: AGENT_POINTERS.hat, hatSprite: 1,
+  room: RIO_ROOM.drum, slot: 2, delay: SHOWDOWN.delay, calm: { col0: 0, row0: 0, col1: 11, row1: 8 }, until: squashed,
+  split: { sprites: [6, 1, 2, 5], pictures: SPLIT_POINTERS }, intro: SHOWDOWN.intro,
 });
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
@@ -426,7 +432,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'gaucho', col: 24, row: 6, way: 'left', speed: 1, range: 24 }, { who: 'gaucho', col: 8, row: 16, way: 'right', speed: 1, range: 56 }],
   }),
 
-  // D THE SAMBADROME: the showdown (the agent, the float's head, the lever, the booth)
+  // D SPY VERSUS MOLE, the Sambadrome: the showdown (the agent, the float's head, the lever, the booth)
   room({
     id: RIO_ROOM.drum, cell: [5, 27], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
     coins: DRUM_COINS,

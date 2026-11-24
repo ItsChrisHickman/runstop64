@@ -281,6 +281,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'inspector', col: 16, row: 15, way: 'right', speed: 1, range: 64, colour: 10 },
       { who: 'inspector', col: 30, row: 15, way: 'down', speed: 0, range: 8, colour: 1 },
+      { who: 'agent', col: 0, row: 7, way: 'right', speed: 1, range: 1 }, // Viktor Vole, onto the roof behind him (viktor.ts `trainPursuer`: he walks Monty's path, not a patrol)
     ],
   }),
 

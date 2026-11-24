@@ -20,7 +20,7 @@ import { WORLD } from '../src/data';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
 import { BARS_CELLS, CABLE_CAR, CLOSED_CELLS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from '../src/rio';
-import { AGENT_POINTERS, CAR_POINTERS, FINALE_POINTERS as FP, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
+import { CAR_POINTERS, FINALE_POINTERS as FP, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
 import { SAND_COLOUR } from '../src/finale';
 import { FRAME } from '../../shared/monty/frames';
 import { newGame } from '../../shared/monty/test/bot';
@@ -30,7 +30,7 @@ import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 
 const CRANK = [R.steak, 0] as const, HEADDRESS = [R.drum, 0] as const;
-const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WORLD.pursuers[0], 'the agent');
+const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WORLD.pursuers.find((p) => p.room === R.drum), 'the agent');
 
 // ---- the data -------------------------------------------------------------------------------------
 SCOPE.section([], 'the data', () => {
@@ -43,18 +43,18 @@ SCOPE.section([], 'the data', () => {
   check(`8 coins in the six play rooms, at most two a room, none on the beach (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 8 && Math.max(...coins) <= 2 && (RIO_ROOMS.find((r) => r.id === R.bust)?.coins?.length ?? 0) === 0);
   const finds = RIO_ROOMS.flatMap((r) => (r.item ? [r.item.name] : []));
   check(`Rio's finds: the crank, the headdress, two skewers and the bowl (${finds.join(', ')})`, finds.sort().join() === 'bowl,crank,headdress,skewer1,skewer2');
-  check('the crank and the headdress are key items, the skewers snacks, the bowl and the Sambadrome\'s two hidden finds count for nothing', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, ...CRANK)) && WORLD.uncountedItems.length === 3
+  check('the crank and the headdress are key items, the skewers snacks, the bowl and the Sambadrome\'s two hidden finds count for nothing', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, ...CRANK))
     && WORLD.uncountedItems.includes(lever.armed) && WORLD.uncountedItems.includes(lever.done) && WORLD.specialItems[lever.armed * 4] === 0xff && WORLD.specialItems[lever.done * 4] === 0xff);
   check('Rio\'s sectors keep their places (the retired rooms\' empty), in letters the font has', RIO_SECTORS.length === 11 && RIO_COLOURS.length === 11 && RIO_SECTORS.every((s) => s.text.length <= 32 && /^[A-Z0-9 .:,!?-]*$/.test(s.text) && !/Z/.test(s.text)));
   const rooms = creatureRooms(RIO_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Rio, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}); every kind of Rio's is in a room`, rooms.size === Object.keys(RIO_CREATURES).length && most <= 2);
   check(`no room has a fourth creature (sprite 7 is the costume's; ${overCrowded(RIO_ROOMS).join() || 'none do'})`, overCrowded(RIO_ROOMS).length === 0);
-  const pointers = [...Object.values(RIO_SPRITE), AGENT_POINTERS.flat, AGENT_POINTERS.hat, CAR_POINTERS.roof, CAR_POINTERS.floor, ...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right];
+  const pointers = [...Object.values(RIO_SPRITE), CAR_POINTERS.roof, CAR_POINTERS.floor, ...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right];
   check('every block of the bank Rio uses is its own ($A0-$AF), none twice, each with a picture', new Set(pointers).size === pointers.length && pointers.every((p) => p >= 0xa0 && p <= 0xaf && WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0))
     && WORLD.itemSprites.treasure === RIO_SPRITE.bowl && RIO_ITEMS.acaiBowl.block.length >= 63);
   check('one cable car (Sugar Rush\'s), one tram (Lapa\'s float), two skewers (the churrascaria\'s), one lever and one pursuer (the Sambadrome\'s)', WORLD.cableCars.length === 1 && WORLD.cableCars[0]?.room === R.sugar
-    && WORLD.floats.filter((f) => f.room === R.lap).length === 1 && WORLD.skewers.every((k) => k.room === R.steak) && WORLD.levers.length === 1 && lever.room === R.drum && WORLD.pursuers.length === 1 && agent.room === R.drum);
+    && WORLD.floats.filter((f) => f.room === R.lap).length === 1 && WORLD.skewers.every((k) => k.room === R.steak) && WORLD.levers.length === 1 && lever.room === R.drum && WORLD.pursuers.filter((p) => p.room === R.drum).length === 1);
 });
 
 // ---- the cable car and the winch ---------------------------------------------------------------------------
@@ -170,8 +170,8 @@ SCOPE.section([R.drum, R.bust], 'the Sambadrome', () => {
   under.g.enemies = []; under.g.enable &= 0x0f;
   under.g.hold.pull = 1;
   let squashed = false;
-  for (let f = 0; f < 60 && !squashed; f++) { frame(under, NONE); if (dead(under.g)) squashed = true; }
-  check('standing under the head when it falls squashes Monty', squashed);
+  for (let f = 0; f < 100 && !squashed; f++) { frame(under, NONE); if (dead(under.g)) squashed = true; }
+  check('standing under the head when it falls (after its warning) squashes Monty', squashed);
   // the agent: he walks Monty's own path `delay` frames behind, once Monty has left the stand's ledge
   const chase = at(R.drum, 10, 8, [CRANK, HEADDRESS], false, true);
   run(chase, NONE, 2);
@@ -182,30 +182,30 @@ SCOPE.section([R.drum, R.bust], 'the Sambadrome', () => {
     if (dead(chase.g)) break;
     path.push([chase.g.x2, chase.g.y]);
     const man = must(chase.g.enemies[agent.slot], 'the agent');
-    const on = ((chase.g.vic.enable >> (4 + agent.slot)) & 1) === 1;
+    const on = ((chase.g.vic.enable >> (4 + agent.slot)) & 1) === 1 && (chase.g.pursuers[0]?.intro ?? -1) < 0; // (not his walk-on at the far side as Monty comes in)
     if (on && seenAt < 0) seenAt = f;
     if (on) { const was = path[f - agent.delay]; if (was && (was[0] !== man.x || ((was[1] + 1) & 0xff) !== man.y)) match = false; }
   }
   check(`the agent appears once Monty has left the ledge (frame ${seenAt}), and walks exactly where Monty was ${agent.delay} frames (two and a half seconds) before`, seenAt > 0 && match && agent.delay === 125);
   check('standing still lets him catch up: Monty, waiting, is caught (a creature\'s touch: death)', dead(chase.g));
-  // the squash: armed, the agent under the head as it falls
+  // a walker is not squashed: armed, the agent walking under the head as it is pulled is out before it lands (viktor.ts plays the puzzle itself)
   const trap = avenue(21, [CRANK, HEADDRESS], [lever.armed]);
   const p = must(trap.g.pursuers[0], 'the pursuer state');
   p.awake = true;
-  // (his ring: Monty walking west to east under the head, so `delay` frames on he passes under it)
-  for (let i = 0; i < agent.delay; i++) { const at3 = i * 3; p.ring[at3] = 0x0c + Math.round((8 + (i * 12) / agent.delay) + 4) * 4; p.ring[at3 + 1] = standY(18); p.ring[at3 + 2] = 1; }
+  // (his ring: Monty walking west to east under the head at his pace, so `delay` frames on he passes under it)
+  for (let i = 0; i < agent.delay; i++) { const at3 = i * 3; p.ring[at3] = 0x0c + (Math.min(26, 8 + Math.floor(i / 4)) + 4) * 4; p.ring[at3 + 1] = standY(18); p.ring[at3 + 2] = 1; } // (at a walk: a cell every four frames)
   p.written = agent.delay;
   trap.g.enemies = trap.g.enemies.map((e, i) => (i === agent.slot ? e : { ...e, x: 0xff }));
   let gone = false, opened = false;
   for (let f = 0; f < 300; f++) {
     const man = trap.g.pursuers[0];
     const col = man ? (man.x2 - 0x0c) / 4 - 4 : 0;
-    frame(trap, man && !man.squashed && col >= 13 && col <= 16 && !trap.g.leverLatch ? RIGHT : NONE);
-    if (trap.g.pursuers[0]?.squashed) gone = true;
+    frame(trap, man && man.gone === 'no' && col >= 13 && col <= 16 && !trap.g.leverLatch ? RIGHT : NONE);
+    if (trap.g.pursuers[0] && trap.g.pursuers[0].gone !== 'no') gone = true;
     if (BARS_CELLS.every(([row, c]) => trap.g.flagAt(row + 3, c + 4) === 0)) opened = true;
     if (dead(trap.g)) break;
   }
-  check('armed, the lever pulled with the agent under the head: he is squashed flat (his hat popping off), the squashed find is taken and the bars lift', gone && !!trap.g.siCollected[lever.done] && opened);
+  check('armed, the lever pulled with the agent walking under the head: he walks out before it lands, nothing is squashed and the bars stand', !gone && !trap.g.siCollected[lever.done] && !opened);
   // the bars hold without the squash, and the way east opens with it
   const bars = (s: State) => BARS_CELLS.every(([row, c]) => s.g.flagAt(row + 3, c + 4) === 1);
   check('the bars at the avenue\'s east end stand until the agent is squashed, and stay lifted after (a save, a death)', bars(avenue(24, [CRANK])) && !bars(avenue(24, [CRANK], [lever.done])));

@@ -45,7 +45,7 @@ SCOPE.section([], 'the data', () => {
   check('the room ids are the first build\'s (38, 41, 49, 52, 54); the sectors keep seventeen places, the five kept named plainly and the retired twelve empty',
     PACIFIC_ROOMS.map((r) => r.id).join() === '38,41,49,52,54' && PACIFIC_SECTORS.length === 17 && PACIFIC_SECTORS.filter((s) => s.text !== '').map((s) => s.text).join() === 'THE CARGO SHIP,WAIKIKI,HANA,HILO,THE CARGO PLANE');
   const rooms = creatureRooms(PACIFIC_ROOMS);
-  check(`ten kinds of creature, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, rooms.size === 10 && [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
+  check(`ten kinds of creature and Viktor Vole aboard the ship, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, rooms.size === 11 && [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
   check('Hana is the one swim room and the only room with a surge; Hilo has the lava; Monty on the Run has none of them',
     WORLD.swimRooms.join() === String(PAC.hana) && WORLD.currents.every((c) => c.room === PAC.hana) && WORLD.risingLava.some((l) => l.room === PAC.hilo) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
   check('the lei opens nothing: no room effect waits for it, and it is worn', WORLD.roomEffects.every((e) => (e.when ?? []).every((w) => !('taken' in w) || w.taken !== itemIndex(newGame(WORLD, false).g, ...LEI))) && WORLD.costumes.some((c) => c.item === itemIndex(newGame(WORLD, false).g, ...LEI)));

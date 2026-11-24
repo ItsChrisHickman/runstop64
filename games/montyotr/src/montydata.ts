@@ -321,11 +321,32 @@ export interface SkewerSpec {
 export interface CellBox { col0: number; row0: number; col1: number; row1: number }
 
 /**
- * A pursuer (pursuers.ts; the Sambadrome's agent): the creature in slot `slot` of the room does not patrol but walks Monty's own path `delay` frames behind him, where he was and which way he faced, once Monty has
- * left the box `calm` (where he comes in): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item `until` is taken he is gone from the room.
- * Squashed (levers.ts), he lies flat (the picture `flat`, a sprite pointer) and his hat (`hat`) pops off on the VIC sprite `hatSprite`.
+ * A walk-on (cameos.ts, and a pursuer's `intro`): a figure steps in from column `from` (it may be off the picture: -3, 33) to `at` (its floor row: he stands on it), holds `pose` facing Monty for `hold`
+ * frames, and walks on to column `to` (back where it came from, or on past) and is gone, two pixels a frame (`CAMEO_PACE`).
  */
-export interface PursuerSpec { room: number; slot: number; delay: number; calm: CellBox; until: number; flat: number; hat: number; hatSprite: number }
+export interface CameoMove { from: number; at: { col: number; row: number }; to: number; pose: 'look' | 'lookDown'; hold: number }
+
+/**
+ * A cameo (cameos.ts; Do Svidaniya Monty's Viktor Vole at every border he arrives at too late): harmless, no part of what kills Monty, a figure on VIC sprite `sprite` with eight pictures from pointer
+ * `first` (two steps, the look, the look down going left, then the same going right) in ink `colour`. In room `room`, when he came from one of the rooms `from` (any, if none), once Monty has left the
+ * box `when` (or, with `after`, once that find is taken), after `wait` frames the figure makes its `move`. With `once`, that find is taken as it plays, and it never plays again (kept in a save).
+ */
+export interface CameoSpec { room: number; from?: readonly number[]; when: CellBox; after?: number; once?: number; wait: number; sprite: number; first: number; colour: number; move: CameoMove }
+
+/**
+ * A pursuer (pursuers.ts; Viktor Vole on the cargo ship and in the Sambadrome): the creature in slot `slot` of the room does not patrol but walks Monty's own path `delay` frames behind him, where he was and
+ * which way he faced, once Monty has left the box `calm` (where he comes in), or, with `wake` instead, once he is in that box (the train's roof: never in the carriage's lower lane): standing still lets him catch up. He is a creature, so touching him is death; he passes through the others. Once special item
+ * `until` is taken he is gone from the room: he is escaped. How: `knockedBy`, the room's creatures in those slots knock him off the picture when their pictures meet his (the ship's swinging crate: he tumbles
+ * overboard), or its tunnels' mouths do as they sweep over him (the train's roof), and `until` is taken; `split`, the room's lever's head squashes him (levers.ts) and he goes as Monty goes under a Mole Crusher, the four-way split, on the four `sprites` from its 16 `pictures`
+ * (pointers, four a piece, in the order of Monty's own at $7E: going back, going on, up, down). `intro`: on coming in he walks on at the far side while the room's name flashes, and off again,
+ * before the chase.
+ */
+export interface PursuerSpec {
+  room: number; slot: number; delay: number; calm?: CellBox; wake?: CellBox; until: number;
+  knockedBy?: { creatures?: readonly number[]; tunnels?: boolean };
+  split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
+  intro?: CameoMove;
+}
 
 /**
  * A lever that holds a room's Mole Crushers up (levers.ts; the Sambadrome's float): the shafts never stamp by themselves. Stepping into the lever (its cells: one wide, two tall from `lever`) drops them together as one
@@ -469,6 +490,8 @@ export interface MontyData extends RoomTables, MontyLook {
   /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
   pursuers: readonly PursuerSpec[];
   levers: readonly LeverSpec[];
+  /** Walk-ons that touch nothing (cameos.ts); none in Monty on the Run. */
+  cameos: readonly CameoSpec[];
   iceSprites: IcicleSprites;
   costumes: readonly Costume[];
   /** Crusher base tiles that flash like coins (a room's): the room, the screen row and columns. */

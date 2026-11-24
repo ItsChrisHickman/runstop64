@@ -2,13 +2,12 @@ import { CREDIT } from '../../shared/ending/credits';
 import type { Scene } from '../../montyotr/src/ending-scenes';
 import type { MontyEnding } from '../../montyotr/src/montydata';
 import { WORLD_CREATURES, type WorldCreature } from './art/world';
+import { VIKTOR_NAME, VIKTOR_SPLIT } from './art/viktor';
 import { STOPS } from './title-art';
 import { CLOSING, PLACES } from './ending-places';
 import { ROUTES } from './ending-routes';
 import { FIRST_CREATURE } from './layout';
 import { RIO_ROOM } from './rio';
-import { RIO_CREATURES } from './art/rio-creatures';
-import { mirrored, spriteBlock } from './art/pixels';
 
 /**
  * Do Svidaniya Monty's reward show (ENHANCED): the places (ending-places.ts) with where each starts him and the route that does what it says there (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
@@ -62,19 +61,11 @@ const castOf = (key: WorldCreature): number => {
  * The sixteen pictures of a four-way split (as Monty's are, the bank's $7E-$8D: going back, on, up and down, four pictures each, a small wobble) made from a creature's first frame: the stand-in for Viktor's
  * own split pictures until they are drawn.
  */
-function splitOf(frames: Uint8Array): Uint8Array[] {
-  const rows = Array.from({ length: 16 }, (_, y) => Array.from({ length: 16 }, (_, x) => ((frames[(y >> 3) * 16 + (x >> 3) * 8 + (y & 7)] ?? 0) & (0x80 >> (x & 7)) ? '#' : '.')).join(''));
-  const block = (pic: readonly string[], dy: number) => spriteBlock('viktor split', Array.from({ length: 21 }, (_, y) => `${pic[y - dy] ?? '.'.repeat(16)}........`));
-  const turned = (down: boolean) => Array.from({ length: 16 }, (_, y) => Array.from({ length: 16 }, (_, x) => (down ? rows[x]?.[15 - y] : rows[15 - x]?.[y]) ?? '.').join(''));
-  const ways = [rows, mirrored(rows), turned(true), turned(false)];
-  return ways.flatMap((pic) => [0, 1, 2, 1].map((dy) => block(pic, dy)));
-}
-
 /**
- * Viktor, the agent who followed Monty round the world, at the parade's tail: his walk is the agent creature's (art/rio-creatures.ts `agent`), his split under the crusher made from its first frame. His own
- * pictures (art/viktor.ts `VIKTOR_SPLIT`, `VIKTOR_NAME`), when they come, go in here and nowhere else.
+ * Viktor Vole, the agent who followed Monty round the world, at the parade's tail: his walk is the agent creature's (art/rio-creatures.ts `agent`, his own pictures), his split under the crusher and his
+ * name art/viktor.ts's, the one place his pictures are.
  */
-export const VIKTOR = { name: 'VIKTOR VOLE', creature: 'agent', split: splitOf(RIO_CREATURES.agent.frames) } as const satisfies { name: string; creature: WorldCreature; split: readonly Uint8Array[] };
+export const VIKTOR = { name: VIKTOR_NAME, creature: 'agent', split: VIKTOR_SPLIT } as const satisfies { name: string; creature: WorldCreature; split: readonly Uint8Array[] };
 
 /**
  * The beach's plain sand under the parade: one colour, nothing of the picture behind it. Moonlit sand, dark grey: the one colour no marcher is drawn in (orange would hide the terracotta warrior and

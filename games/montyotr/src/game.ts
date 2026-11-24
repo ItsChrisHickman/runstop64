@@ -21,6 +21,7 @@ import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
 import { pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
 import { leverInit, leverUpdate } from './levers';
+import { cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -196,7 +197,7 @@ export class Game implements MontyBody, MontyWorld {
   // ---- mechanisms ---------------------------------------------------------------
   pd = { roomFlag: 0, state: 0, delay: 1, index: 0xff, position: 0, travel: [0, 0], spriteY: [0, 0], ride: 0 };
   /** A room whose crushers wait for its lever (levers.ts): held, the two shafts dropping as one head, the lever just pulled (mechanisms.ts). Apart from `pd`, which is Monty on the Run's own. */
-  hold = { held: 0, both: 0, pull: 0 };
+  hold: { held: number; both: number; pull: number; warn: number; watch: number; inks: number[] } = { held: 0, both: 0, pull: 0, warn: 0, watch: 0, inks: [] };
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
   /** The picture the room's lift has of its own (a mine cart), kept at the room's loading so a frame looks nothing up (mechanisms.ts). */
   liftLook: LiftSpec['look'] = undefined;
@@ -233,6 +234,8 @@ export class Game implements MontyBody, MontyWorld {
   /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
   pursuers: PursuerState[] = [];
   leverLatch = false;
+  /** This room's cameos (cameos.ts). */
+  cameos: CameoState[] = [];
   flightTick = 0;
   flightResting = false;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
@@ -382,6 +385,7 @@ export class Game implements MontyBody, MontyWorld {
     this.floats = [];
     this.skewers = [];
     this.pursuers = [];
+    this.cameos = [];
     this.leverLatch = false;
     this.worn = null;
     this.hint = noHint();
@@ -412,7 +416,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | (this.canopyShown ? 0x04 : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown ? 0x04 : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -459,6 +463,7 @@ export class Game implements MontyBody, MontyWorld {
       skewerUpdate(this);
       pursuerUpdate(this);
       leverUpdate(this);
+      cameoUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -721,6 +726,7 @@ export class Game implements MontyBody, MontyWorld {
     }
     this.setupEnemies();
     pursuerInit(this);
+    cameoInit(this, this.lastRoom);
     Items.applyRoomEffects(this, 'before');
     this.decorate();
     Items.applyRoomEffects(this, 'after');
@@ -868,17 +874,7 @@ export class Game implements MontyBody, MontyWorld {
     this.enemies.forEach((e, slot) => {
       const bank = enemyBank(e.type);
       const base = 0x0c00 + slot * 0x200;
-      for (let f = 0; f < 8; f++) {
-        const src = bank.subarray(f * 32, f * 32 + 32);
-        const dst = this.mem.subarray(base + f * 64, base + f * 64 + 64);
-        dst.fill(0);
-        for (let r = 0; r < 8; r++) {
-          dst[r * 3] = src[r];
-          dst[r * 3 + 1] = src[8 + r];
-          dst[(8 + r) * 3] = src[16 + r];
-          dst[(8 + r) * 3 + 1] = src[24 + r];
-        }
-      }
+      creatureBlocks(bank).forEach((block, f) => this.mem.set(block, base + f * 64));
       if (enemyCopyFlag(e.type)) this.mem.copyWithin(base + 0x100, base, base + 0x100);
     });
   }

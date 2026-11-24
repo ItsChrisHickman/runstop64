@@ -48,8 +48,8 @@ for (const enhanced of [false, true]) {
 }
 // the showdown: the region's own legs to the rope's foot (the headdress, the dead lever, the crank fitted in the booth, the gantry and the rope), then a wait, then the squash
 const toRope = RIO_LEGS.filter((l) => l.name.startsWith('D: ')).slice(0, 4);
-const squash = RIO_LEGS.find((l) => l.name.startsWith('D: east under the float'));
-if (toRope.length !== 4 || !squash) throw new Error('the Sambadrome\'s legs are not the ones this test plays');
+const squash = RIO_LEGS.find((l) => l.name.startsWith('D: under the float')), pull = RIO_LEGS.find((l) => l.name.startsWith('D: the lever as Viktor'));
+if (toRope.length !== 4 || !squash || !pull) throw new Error('the Sambadrome\'s legs are not the ones this test plays');
 for (const enhanced of [false, true]) {
   const s = newGame(WORLD, enhanced);
   for (let i = 0; i < s.g.siCollected.length; i++) { const r = s.g.data.specialItems[i * 4] ?? 0; if (!isRio(r) && r !== 0xff) s.g.siCollected[i] = 0x81; }
@@ -63,9 +63,14 @@ for (const enhanced of [false, true]) {
   for (const wait of [0, 23, 51]) {
     let live = atRope;
     for (let n = 0; n < wait; n++) { const next = play(live, [['', 1]]); if (next) live = next; }
-    const found = search(live, squash.goal, squash.aim, 60000, 1.5) ?? search(live, squash.goal, squash.aim, 400000, 3);
-    const end = found ? play(live, found.route) : null;
-    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}, the showdown after a wait of ${wait} frames at the rope's foot: the agent squashed under the float's head`, !!end && squash.goal(end.g));
+    let end: typeof live | null = live;
+    for (const part of [squash, pull]) {
+      if (!end) break;
+      const from: typeof live = end;
+      const found = search(from, part.goal, part.aim, 60000, 1.5) ?? search(from, part.goal, part.aim, 400000, 3);
+      end = found ? play(from, found.route) : null;
+    }
+    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}, the showdown after a wait of ${wait} frames at the rope's foot: Viktor led to stand under the float's head and squashed`, !!end && pull.goal(end.g));
   }
 }
 finish();
