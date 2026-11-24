@@ -5,7 +5,7 @@ import type { Worn } from './art/costume';
 import { HAT_COLOUR } from './art/hat';
 import { buildTitleArt, CYAN, MC1, MC2, RED, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, WHITE, YELLOW, type TitleArt } from './title-art';
 import { StripScroller, type Passage } from './title-scroll';
-import { VIKTOR_LAYERS, VIKTOR_POSES, viktorBlock } from './title-viktor';
+import { VIKTOR_HEIGHT, VIKTOR_LAYERS, VIKTOR_POSES, viktorBlock } from './title-viktor';
 
 /**
  * Do Svidaniya Monty's title screen (the picture is title-art.ts): the logo over the world map from Montos to Rio on a black screen (the
@@ -23,6 +23,8 @@ export const SPRITE_BLOCKS = { monty: 0x30, hat: 0x34, viktor: 0x38 } as const;
 /** How far behind Monty Viktor walks along the route, in pixels, and the sprites (2 to 5) he is drawn with. */
 export const VIKTOR_GAP = 28;
 /** Sprite-enable bits: Monty's two sprites, Viktor's four. */
+/** Rows from the top of Monty's sprite block to the soles of his feet (his pictures leave the rest of the block empty). */
+export const MONTY_HEIGHT = 15;
 export const MONTY_BITS = 0x03, VIKTOR_BITS = 0x3c;
 /** Monty's walking pictures (the right-facing half of his set: pointers $54-$57). */
 const WALK = [0x54, 0x55, 0x56, 0x57] as const;
@@ -120,7 +122,7 @@ export class MapTitle implements TitleScreen {
     const walking = f < WALK_FRAMES;
     const pose = walking ? Math.floor(f / STEP) % WALK.length : 0;
     const bob = walking && pose % 2 === 1 ? 1 : 0;
-    const x = Math.round(at.x) - 12, y = Math.round(at.y) - 21 - bob;
+    const x = Math.round(at.x) - 8, y = Math.round(at.y) - MONTY_HEIGHT - bob;
     const hat = this.worn.hat.find((h) => h.ptr === WALK[pose]);
     const dx = hat ? -hat.dx : 0, dy = hat ? hat.dy : 0;
     v.enable |= MONTY_BITS;
@@ -136,7 +138,7 @@ export class MapTitle implements TitleScreen {
     const at = routeAt((gone - VIKTOR_GAP) / ROUTE_LENGTH);
     const walking = f < WALK_FRAMES, pose = walking ? Math.floor(f / (STEP + 2)) % VIKTOR_POSES : 0;
     const bob = walking && pose === 1 ? 1 : 0;
-    const x = Math.round(at.x) - 12 + 24, y = Math.round(at.y) - 21 - bob + 50;
+    const x = Math.round(at.x) - 12 + 24, y = Math.round(at.y) - VIKTOR_HEIGHT - bob + 50;
     v.enable = VIKTOR_BITS;
     for (const layer of VIKTOR_LAYERS) {
       const s = v.sprites[layer.sprite];

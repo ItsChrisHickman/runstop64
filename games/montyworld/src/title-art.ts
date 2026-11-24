@@ -199,7 +199,7 @@ const markCell = (s: Stop) => ({ col: Math.floor(s.x / 8), row: Math.floor(s.y /
 export interface Label { readonly name: string; readonly col: number; readonly row: number }
 
 /**
- * Where each name goes: in the row above or below its mark, over its column, over as little land as there is, never over the route or another mark or name, with a space between names, and wholly on the map. Found
+ * Where each name goes: in a row above or below its mark (the nearest that is free), over its column, over as little land as there is, never over the route or another mark or name, with a space between names, and wholly on the map. Found
  * by looking at the picture the route and the marks make.
  */
 export function placeLabels(route: ReadonlySet<number>): readonly Label[] {
@@ -208,9 +208,9 @@ export function placeLabels(route: ReadonlySet<number>): readonly Label[] {
   for (const s of STOPS) {
     const m = markCell(s), len = s.name.length;
     let best: { col: number; row: number; score: number } | null = null;
-    for (const [away, row] of [[0, m.row - 1], [0, m.row + 1], [1, m.row - 2], [1, m.row + 2]] as const) {
+    for (const [away, row] of [[0, m.row - 1], [0, m.row + 1], [1, m.row - 2], [1, m.row + 2], [2, m.row - 3], [2, m.row + 3], [3, m.row]] as const) {
       if (row < 0 || row >= MAP_ROWS) continue;
-      for (let col = m.col - len + 1; col <= m.col; col++) {
+      for (let col = m.col - len - 3; col <= m.col + 4; col++) {
         if (col < 0 || col + len > 40) continue;
         const cells = Array.from({ length: len + 2 }, (_, i) => row * 40 + col - 1 + i);
         if (cells.some((c) => taken.has(c))) continue;
@@ -296,6 +296,13 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
   for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {
     const cell = p.cell(cx, ROWS.map + cy), was = land.cell(cx, ROWS.map + cy);
     if (cell.some((b, i) => b !== was[i])) route.add(cy * 40 + cx);
+  }
+  // and the cells Monty and Viktor pass through (13 pixels wide, 18 tall, standing on the route): no name is where they walk
+  for (let d = 0; d <= ROUTE_LENGTH; d++) {
+    const at = routeAt(d / ROUTE_LENGTH), y = Math.round(at.y) - MAP_Y;
+    for (let cy = Math.max(0, Math.floor((y - 18) / 8)); cy <= Math.min(MAP_ROWS - 1, Math.floor(y / 8)); cy++) {
+      for (let cx = Math.max(0, Math.floor((at.x - 8) / 8)); cx <= Math.min(39, Math.floor((at.x + 8) / 8)); cx++) route.add(cy * 40 + cx);
+    }
   }
   const labels = placeLabels(route);
   for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {

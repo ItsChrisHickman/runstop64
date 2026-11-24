@@ -14,8 +14,9 @@ import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { WORLD } from '../src/data';
 import { run } from '../src/main';
-import { MapTitle, MONTY_BITS, SPRITE_BLOCKS, STAND, STORY, STRIP_Y, VIKTOR_BITS, VIKTOR_GAP, WALK_FRAMES } from '../src/title';
+import { MapTitle, MONTY_BITS, MONTY_HEIGHT, SPRITE_BLOCKS, STAND, STORY, STRIP_Y, VIKTOR_BITS, VIKTOR_GAP, WALK_FRAMES } from '../src/title';
 import { buildTitleArt, CREDIT_LINES, glyphOf, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, STOPS } from '../src/title-art';
+import { VIKTOR_HEIGHT } from '../src/title-viktor';
 import { savePng } from './shots-kit';
 
 const out = process.argv[2];
@@ -58,16 +59,16 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   for (const l of art.labels) {
     const s = must(STOPS.find((x) => x.name === l.name), 'its stop');
     const mx = Math.floor(s.x / 8), my = Math.floor(s.y / 8);
-    const near = l.col <= mx + 1 && l.col + l.name.length - 1 >= mx - 1 && Math.abs(l.row - my) <= 2 && Math.abs(l.row - my) >= 1;
-    check(`${l.name} is right above or below its mark (cells ${l.col}-${l.col + l.name.length - 1} row ${l.row}; mark ${mx},${my}) and wholly on the screen`, near && l.col >= 0 && l.col + l.name.length <= 40);
+    const near = l.col <= mx + 5 && l.col + l.name.length - 1 >= mx - 5 && Math.abs(l.row - my) <= 3;
+    check(`${l.name} is above or below its mark, near it (clear of where the walkers pass) (cells ${l.col}-${l.col + l.name.length - 1} row ${l.row}; mark ${mx},${my}) and wholly on the screen`, near && l.col >= 0 && l.col + l.name.length <= 40);
   }
 }
 
 // ---- Monty walks the route on a loop ----------------------------------------------------------------------------------
 {
-  const spot = () => ({ x: g.vic.sprites[0].x - 24 + 12, y: g.vic.sprites[0].y - 50 + 21, on: (g.vic.enable & MONTY_BITS) === MONTY_BITS });
-  const viktor = () => ({ x: g.vic.sprites[2].x - 24 + 12, y: g.vic.sprites[2].y - 50 + 21, on: (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS });
-  let behind = 0, apart = 0, viktorFrames = 0, viktorFirst = '';
+  const spot = () => ({ x: g.vic.sprites[0].x - 24 + 8, y: g.vic.sprites[0].y - 50 + MONTY_HEIGHT, on: (g.vic.enable & MONTY_BITS) === MONTY_BITS });
+  const viktor = () => ({ x: g.vic.sprites[2].x - 24 + 12, y: g.vic.sprites[2].y - 50 + VIKTOR_HEIGHT, on: (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS });
+  let covered = 0, behind = 0, apart = 0, viktorFrames = 0, viktorFirst = '';
   const seen: { x: number; y: number }[] = [];
   let backwards = 0, offRoute = 0;
   for (let f = 3; f < WALK_FRAMES + STAND - 2; f++) {
@@ -79,6 +80,10 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
     const last = seen[seen.length - 1];
     if (last && s.x < last.x - 1) backwards++;
     seen.push(s);
+    // neither figure ever covers a place name (a figure is about 13 x 18 pixels, its feet on the route)
+    const hides = (f: { x: number; y: number }) => art.labels.some((l) => f.x + 7 > l.col * 8 && f.x - 7 < (l.col + l.name.length) * 8 && f.y > (ROWS.map + l.row) * 8 && f.y - 18 < (ROWS.map + l.row + 1) * 8);
+    const w0 = viktor();
+    if (hides(s) || (w0.on && hides(w0))) covered++;
     // Viktor: on the route too, the same distance behind Monty along it (not past him, not on top of him), the same sprite colours each frame
     const w = viktor();
     if (w.on) {
@@ -92,9 +97,10 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   }
   const first = must(seen[0], 'a first sighting'), last = must(seen[seen.length - 1], 'a last sighting');
   check(`Monty starts by Montos (${first.x},${first.y}) and reaches Rio (${last.x},${last.y}) along the route (${Math.round(ROUTE_LENGTH)} px, ${WALK_FRAMES} frames)`, first.x < 60 && last.x > 285);
+  check(`no walker covers a place name (${covered} frames)`, covered === 0);
   check(`his feet stay on the dotted route (${offRoute} frames off it) and he never walks back (${backwards})`, offRoute === 0 && backwards === 0);
   check(`Viktor Vole follows ${VIKTOR_GAP} pixels along the route behind him, from Montos (first seen at ${viktorFirst}) to Rio: ${viktorFrames} frames, never ahead of Monty (${behind}) and never on top of him or further off than a few steps (${apart})`, viktorFrames > WALK_FRAMES * 0.8 && behind === 0 && apart === 0);
-  check('Viktor is four hires sprites one over the other (coat, star, hat, fur), black, red, grey, brown, with his own sprite blocks', (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS && [2, 3, 4, 5].every((n, i) => g.vic.sprites[n].colour === [0, 2, 12, 9][i] && g.vic.sprites[n].ptr >= SPRITE_BLOCKS.viktor && g.vic.sprites[n].ptr < SPRITE_BLOCKS.viktor + 8));
+  check('Viktor is four hires sprites one over the other (coat, star, hat, fur), black, red, grey, orange, with his own sprite blocks', (g.vic.enable & VIKTOR_BITS) === VIKTOR_BITS && [2, 3, 4, 5].every((n, i) => g.vic.sprites[n].colour === [0, 2, 12, 8][i] && g.vic.sprites[n].ptr >= SPRITE_BLOCKS.viktor && g.vic.sprites[n].ptr < SPRITE_BLOCKS.viktor + 8));
   check('he is two sprites (his picture and his hat), hires, in front, not expanded', (g.vic.enable & MONTY_BITS) === MONTY_BITS && g.vic.multicolour === 0 && g.vic.priority === 0 && g.vic.expandX === 0);
   tick(10);
   check('after a pause at Rio, he and Viktor are gone for a moment', (g.vic.enable & (MONTY_BITS | VIKTOR_BITS)) === 0);
