@@ -65,10 +65,25 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 - **This is a live production server** hosting client sites: no dev servers, no installs, no open ports. Run every node
   process with `nice -n 15`. **Up to three tests at once** (Chris, 2026-11-21: speed matters, the server has the power; tests run niced
   below the sites): `tools/test-all.mjs` (so `npm run verify`) runs three at a time, and before running tests wait for a turn
-  with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 3` before `npm run verify`). Several agents may
-  work at once.
-- **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests). There is no
-  CI (Actions minutes are scarce), so this is the check.
+  with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 2` before a `JOBS=2` verify). A few agents may
+  work at once (see the testing rules below).
+- **Test only what the change touches** (Chris, 2026-11-23: broad runs "wasted a lot of tokens and slowed things down a
+  heck of a lot"; the three test slots are the bottleneck). The rules:
+  1. **Pick tests by the change, not by habit.** A change to one region's rooms or art runs that region's room-level
+     tests for those rooms (layout/art, joins, climbs, stands, contrast, its mechanisms test) and, if the route changed,
+     only the bot legs through those rooms. When `tools/affected.mjs` exists, it chooses: `nice -n 15 node
+     tools/affected.mjs --run`.
+  2. **Region bots and recorded routes** (the slow `<region>.ts original|enhanced`, `--record`) only when that region's
+     route or gates changed, once per change, never "to be safe", never for art, text, music or another region.
+  3. **`npm run verify` / `test-all`** only when shared engine or kit code changed (games/montyotr/src, games/shared,
+     packages, tools), or once at the end of a batch before a deploy. Never per agent per round. One run, `JOBS=2`.
+  4. **Music, title, ending, text** changes run their own tests only (music*, title, reward/ending, text, walk); no bots.
+  5. **Docs-only** changes run nothing.
+  6. **Never re-run a passing test** on code that hasn't changed since; never run the same suite in two worktrees.
+  7. **Coordinating session:** at most four agents at once, and at most one of them running region bots; a red test that
+     fails the same way on main is reported, not chased in an unrelated change.
+  8. A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.
+  There is no CI (Actions minutes are scarce), so the scoped run plus the end-of-batch verify is the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
   session merges, pushes and deploys (`npm run deploy`).

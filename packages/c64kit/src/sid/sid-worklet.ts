@@ -118,6 +118,8 @@ class SidProcessor extends AudioWorkletProcessor {
           this.tune = new SidTune(parsePsid(m.data), sampleRate);
           this.tune.start(m.song);
           this.playing = true;
+        } else if (m.type === 'cross' && this.tune) {
+          this.tune.crossTo(parsePsid(m.data), m.plan);
         } else if (m.type === 'song' && this.tune) {
           this.tune.start(m.song);
           this.playing = true;
