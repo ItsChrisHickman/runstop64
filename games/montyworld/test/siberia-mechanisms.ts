@@ -6,7 +6,7 @@
  * passable, until it is taken, and are there when a game is carried on after it), the barrier the ticket lifts, the mine cart's ride, the hints,
  * the map, and a save from before Siberia carries on.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-mechanisms.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-mechanisms.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -27,9 +27,10 @@ import { DRAGON } from '../src/china';
 import { piecePlace, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
+import { SCOPE, scopedRooms } from './scope';
 
 // ---- the data ------------------------------------------------------------------------------------
-{
+SCOPE.section([], 'the data: the region on the grid, its tables and creatures', () => {
   const cells = WORLD.exitGrid.image;
   const at = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   check('Siberia is nine rooms, a block of four columns (4-7) by three rows beside Moscow\'s, room ids 9 to 17 (Moscow\'s 0-8 unchanged)',
@@ -50,13 +51,13 @@ import { creatureRooms, itemIndex, standY } from './route';
   const bare = SIBERIA_ROOMS.filter((r) => (r.enemies ?? []).length === 0).length;
   check(`creatures vary: no two rooms in a row with two walkers (walkers a room ${horizontal.join(' ')}), up-and-down patrols in ${vertical.filter((n) => n > 0).length} rooms (${vertical.join(' ')}), ${bare} rooms with a mechanism or a big creature and no walker`,
     horizontal.every((n, i) => n < 2 || (horizontal[i + 1] ?? 0) < 2) && vertical.filter((n) => n > 0).length >= 4 && bare >= 1);
-}
+});
 
 // ---- the layout: nothing drawn over a wall, no coin or find in a wall, under a decoration or in a strike's cells ---------------------------
-{
+SCOPE.section([], 'the layout of each room (the rooms in the filter)', () => {
   const bad: string[] = [];
   const first = (id: number) => id.toString(16);
-  for (const r of SIBERIA_ROOMS) {
+  for (const r of scopedRooms(SIBERIA_ROOMS)) {
     const tile = (col: number, row: number) => r.map[row]?.[col] ?? '.';
     const covered = new Set<string>();
     for (const d of r.decor ?? []) {
@@ -80,29 +81,29 @@ import { creatureRooms, itemIndex, standY } from './route';
     }
   }
   check(`no decoration over a tile, no coin or find in a wall, under a decoration or in a strike's cells in Siberia's nine rooms (${bad.slice(0, 5).join('; ') || 'none wrong'})`, bad.length === 0);
-}
+});
 
 // ---- the tunnel mouths ---------------------------------------------------------------------------
-{
+SCOPE.section([SIB.gravy, SIB.sleeper], 'the tunnel mouths', () => {
   const mouth = must(TUNNELS[0], 'the dining car\'s mouth');
   const first = mouth.rest + (mouth.offset ?? 0); // frames until the edge flashes
   const TUNNELS_ROCK = must(mouth.picture?.[3]?.[10], 'a cell of the rock');
   const sweepFrom = first + mouth.warn;
   // standing on the roof at the left end: it reaches him a long way into the sweep; standing in the car, never
   const sweepTotal = (32 + mouth.cols) * mouth.step;
-  {
+  SCOPE.section([SIB.gravy], 'a mouth kills him on the roof at the left end', () => {
     const s = at(SIB.gravy, 2, 9);
     const when = diesAt(s, NONE, sweepFrom + mouth.step * 40);
     const reach = sweepFrom + mouth.step * (32 - 4);
     check(`on the roof at the left end the mountain's portal kills him ${when - sweepFrom} frames into its sweep (it crosses the room, a cell every ${mouth.step} frames)`, when >= reach - mouth.step * 6 && when <= reach + mouth.step * 4);
-  }
-  {
+  });
+  SCOPE.section([SIB.gravy], 'a mouth kills him on the roof at the right end', () => {
     const s = at(SIB.gravy, 28, 9);
     const when = diesAt(s, NONE, sweepFrom + mouth.step * 12);
     check(`on the roof at the right end it comes in at once: death ${when - sweepFrom} frames into the sweep, and not before the edge has flashed for its ${mouth.warn} frames (${first}-${sweepFrom})`, when >= sweepFrom && when <= sweepFrom + mouth.step * 6);
-  }
+  });
   // seen before it comes: the edge flashes, the portal's granite and the rock are on the screen, a long mass running off the screen's edge
-  {
+  SCOPE.section([SIB.gravy], 'a mouth is warned of and seen', () => {
     const s = at(SIB.gravy, 2, 9);
     let flash = false, portal = false, mass = 0;
     const rows = (code: number) => Array.from({ length: 32 }, (_, c) => cell(s.g, c, mouth.top + 3) === code).filter(Boolean).length;
@@ -112,23 +113,23 @@ import { creatureRooms, itemIndex, standY } from './route';
       if (f > sweepFrom + mouth.step * 8) { if (rows(mouth.code) > 0) portal = true; mass = Math.max(mass, rows(TUNNELS_ROCK)); }
     }
     check(`it is warned of (its edge flashes at the entry) and seen on the way: the granite portal at its leading edge and behind it a mass of rock, ${mass} cells of a row of 32 and on off the screen's edge`, flash && portal && mass >= 12);
-  }
+  });
   // the hatch: down the rope (the roof's gap), under the roof, safe for the whole of two cycles; and the car's floor
-  {
+  SCOPE.section([SIB.gravy], 'under the roof he is safe', () => {
     const s = at(SIB.gravy, 12, 17);
     run(s, NONE, 2 * (sweepFrom + sweepTotal));
     check('in the car under the roof (the hatch\'s rope, the floor) nothing happens to him in two whole cycles', !dead(s.g));
-  }
+  });
   // a mountain that is gone: the roof is clear again, and what it covered is as it was
-  {
+  SCOPE.section([SIB.gravy], 'the sky over the roof is as it was', () => {
     const s = at(SIB.gravy, 12, 17);
     const before = Array.from({ length: 32 * 7 }, (_, i) => cell(s.g, i % 32, 2 + Math.floor(i / 32)));
     run(s, NONE, sweepFrom + sweepTotal + 5);
     const after = Array.from({ length: 32 * 7 }, (_, i) => cell(s.g, i % 32, 2 + Math.floor(i / 32)));
     check('and when it has gone by, the sky above the roof is exactly as it was', before.join() === after.join());
-  }
+  });
   // what it covers comes back: the sleeper's pine rope (column 22, rows 0 to 8)
-  {
+  SCOPE.section([SIB.sleeper], 'the sleeper\'s rope comes back', () => {
     const s = at(SIB.sleeper, 3, 17);
     const before = Array.from({ length: 9 }, (_, r) => cell(s.g, 22, r));
     let over = false, rested = 0, wrong = 0;
@@ -140,19 +141,19 @@ import { creatureRooms, itemIndex, standY } from './route';
     }
     const after = wrong === 0 && rested > 0 ? before : [];
     check(`as the mouths cross the rope they cover it, and whenever neither is on the screen (${rested} frames of 1700, the two mouths crossing each other too) the rope is as it was`, over && after.join() === before.join());
-  }
+  });
   // a mouth does not start on a room's loading in the middle of a sweep: every room load starts a fresh cycle
-  {
+  SCOPE.section([SIB.gravy], 'a mouth starts afresh on coming in', () => {
     const s = at(SIB.gravy, 2, 9);
     run(s, NONE, sweepFrom + mouth.step * 8);
     enterRoom(s.g, SIB.gravy, 0x0c + 4 * 4, standY(9));
     for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
     check('coming into the room again starts the mouth afresh (resting, nothing on the screen)', must(s.g.tunnels[0], 'the mouth').state === 'rest' && !dead(s.g));
-  }
-}
+  });
+});
 
 // ---- the cracking ice ----------------------------------------------------------------------------
-{
+SCOPE.section([SIB.lake], 'the cracking ice', () => {
   const patch = must(CRACKS[0], 'the first patch');
   const standOn = (col: number) => at(SIB.lake, col, 12);
   {
@@ -206,75 +207,81 @@ import { creatureRooms, itemIndex, standY } from './route';
     for (let f = 0; f < patch.away + 20 && back < 0; f++) { frame(s, NONE); if (cell(s.g, patch.col + 2, patch.row) === patch.codes[0]) back = f; }
     check(`it grows back whole ${patch.away} frames after it went (${back})`, Math.abs(back - patch.away) <= 4 && !dead(s.g));
   }
-}
+});
 
 // ---- the lamp's ledges, the barrier, the cart -------------------------------------------------------
-{
-  const LAMP = [SIB.mine, 0] as const;
-  const bare = at(SIB.shaft, 2, 18);
-  check('without the lamp the ledges are not there (their cells are the dim dots of a ledge felt in the dark, not the timber; the stone in the pit is water)', SHAFT_LEDGES.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE && cell(bare.g, col, row) !== 0) && SHAFT_STONE.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE));
-  const lit = at(SIB.shaft, 2, 18, [LAMP]);
-  check('with it they are (placed on loading the room: a game carried on after the lamp has them), in the room\'s timber character', [...SHAFT_LEDGES, ...SHAFT_STONE].every(([row, col]) => cell(lit.g, col, row) === SHAFT_CODE));
-  // the gate is proved shut by the jump's height (a search of every state he can reach in the room has more than three million: it does not finish):
-  // his jump rises `rise` pixels, the wall's top is six rows (48 pixels) over the rock step the way in has, so with no ledge he cannot be over it
-  const arc = WORLD.jumpArc;
-  let rise = 0;
-  for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
-  const over = (g: Game) => g.roomId === SIB.shaft && colOf(g) >= 14 && g.y === standY(11);
-  check(`no way over the wall without the lamp: a jump rises ${rise} pixels, and from the rock step (floor 17) to the wall's top (floor 11) is ${(17 - 11) * 8}`, rise < (17 - 11) * 8 && rise >= 8 * 2);
-  const stats = { exhausted: false };
-  const without = search(bare, over, undefined, 150000, 0, stats);
-  check('and the bot, given 150000 states, finds none (a pointer, not the proof)', without === null);
-  const with_ = search(lit, over, undefined, 400000, 0);
-  check('and with it the bot finds the way up the ledges to the wall\'s top', with_ !== null);
-  // the pick up in the mine puts them in the shaft on the next load: the data's effect
-  const effect = WORLD.roomEffects.find((e) => e.room === SIB.shaft);
-  check('the room effect is the data\'s: taken lamp places the ledges (a place effect)', effect?.place !== undefined);
+SCOPE.section([SIB.shaft, SIB.mine, SIB.lake, SIB.border, SIB.coal, SIB.pines, CHI.wall, CHI.top], 'the lamp\'s ledges, the barrier, the cart', () => {
+  SCOPE.section([SIB.shaft, SIB.mine, SIB.lake, CHI.top], 'the lamp\'s ledges in the shaft', () => {
+    const LAMP = [SIB.mine, 0] as const;
+    const bare = at(SIB.shaft, 2, 18);
+    check('without the lamp the ledges are not there (their cells are the dim dots of a ledge felt in the dark, not the timber; the stone in the pit is water)', SHAFT_LEDGES.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE && cell(bare.g, col, row) !== 0) && SHAFT_STONE.every(([row, col]) => cell(bare.g, col, row) !== SHAFT_CODE));
+    const lit = at(SIB.shaft, 2, 18, [LAMP]);
+    check('with it they are (placed on loading the room: a game carried on after the lamp has them), in the room\'s timber character', [...SHAFT_LEDGES, ...SHAFT_STONE].every(([row, col]) => cell(lit.g, col, row) === SHAFT_CODE));
+    // the gate is proved shut by the jump's height (a search of every state he can reach in the room has more than three million: it does not finish):
+    // his jump rises `rise` pixels, the wall's top is six rows (48 pixels) over the rock step the way in has, so with no ledge he cannot be over it
+    const arc = WORLD.jumpArc;
+    let rise = 0;
+    for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
+    const over = (g: Game) => g.roomId === SIB.shaft && colOf(g) >= 14 && g.y === standY(11);
+    check(`no way over the wall without the lamp: a jump rises ${rise} pixels, and from the rock step (floor 17) to the wall's top (floor 11) is ${(17 - 11) * 8}`, rise < (17 - 11) * 8 && rise >= 8 * 2);
+    const stats = { exhausted: false };
+    const without = search(bare, over, undefined, 150000, 0, stats);
+    check('and the bot, given 150000 states, finds none (a pointer, not the proof)', without === null);
+    const with_ = search(lit, over, undefined, 400000, 0);
+    check('and with it the bot finds the way up the ledges to the wall\'s top', with_ !== null);
+    // the pick up in the mine puts them in the shaft on the next load: the data's effect
+    const effect = WORLD.roomEffects.find((e) => e.room === SIB.shaft);
+    check('the room effect is the data\'s: taken lamp places the ledges (a place effect)', effect?.place !== undefined);
+  });
 
-  // the barrier
-  const gate = (ticket: boolean) => {
-    const s = at(SIB.border, 24, 17, ticket ? [[SIB.coal, 0]] : []);
-    run(s, RIGHT, 140);
-    return s.g.roomId === SIB.border ? colOf(s.g) : 99; // (99: he has walked out east, onto the wall's foot)
-  };
-  const shut = gate(false), open = gate(true);
-  check(`without the ticket the barrier stops him (column ${shut}); with it he walks through and out east into China (${open === 99 ? 'room ' + CHI.wall : 'column ' + open})`, shut <= 27 && open === 99);
+  SCOPE.section([SIB.border, SIB.coal, CHI.wall], 'the ticket lifts the barrier', () => {
+    // the barrier
+    const gate = (ticket: boolean) => {
+      const s = at(SIB.border, 24, 17, ticket ? [[SIB.coal, 0]] : []);
+      run(s, RIGHT, 140);
+      return s.g.roomId === SIB.border ? colOf(s.g) : 99; // (99: he has walked out east, onto the wall's foot)
+    };
+    const shut = gate(false), open = gate(true);
+    check(`without the ticket the barrier stops him (column ${shut}); with it he walks through and out east into China (${open === 99 ? 'room ' + CHI.wall : 'column ' + open})`, shut <= 27 && open === 99);
+  });
 
-  // the mine cart: a float over the flooded working. How far a jump goes (from flat snow), and the gap the cart leaves at each dock
-  const jump = at(SIB.border, 10, 17);
-  const y0 = jump.g.y, x0 = jump.g.x2;
-  let airborne = false, span = 0;
-  for (let f = 0; f < 140; f++) {
-    frame(jump, { ...RIGHT, fire: f === 0 });
-    if (jump.g.y !== y0) airborne = true;
-    else if (airborne) break;
-    span = ((jump.g.x2 - x0 + 256) & 0xff) >> 2;
-  }
-  const travel = CART.span.to - CART.span.from + 1 - CART.w;
-  const dockGap = CART.span.to - CART.span.from + 1 - CART.w;
-  check(`a jump carries him ${span} cells; the working is ${CART.span.to - CART.span.from + 1} wide and the cart at one dock leaves ${dockGap} of it open: no way across without the cart (the cart travels ${travel} cells)`, dockGap > span + 1);
-  const ride = at(SIB.mine, 17, 18, [], true);
-  run(ride, LEFT, 24);
-  const aboard = colOf(ride.g);
-  run(ride, NONE, 150);
-  check(`stepping onto the cart at the east dock (column ${aboard}) it carries him across: after its crossing he is at column ${colOf(ride.g)}, on the floor, alive`, aboard >= 13 && colOf(ride.g) <= CART.span.from + 4 && ride.g.y === standY(18) && !dead(ride.g));
-  run(ride, LEFT, 60);
-  check(`and he walks off at the far side into the lamp's pocket (column ${colOf(ride.g)}), the lamp his`, colOf(ride.g) <= 4 && ride.g.y === standY(18) && ride.g.siCollected[itemIndex(ride.g, SIB.mine, 0)] !== 0);
-  const there = search(at(SIB.mine, 17, 18), (g) => g.roomId === SIB.mine && colOf(g) <= 4 && g.y === standY(18), [{ room: SIB.mine, col: 3, row: 16 }], 300000, 1.5);
-  const back = search(at(SIB.mine, 3, 18), (g) => g.roomId === SIB.mine && colOf(g) >= 17 && g.y === standY(18), [{ room: SIB.mine, col: 19, row: 16 }], 300000, 1.5);
-  check(`the bot finds the way there (${there ? there.nodes : 'none'} states) and the way back (${back ? back.nodes : 'none'}): the cart carries him both ways`, there !== null && back !== null);
-  // and it is not on the way along the gantry: walking the gantry's whole length either way never touches it
-  {
-    const walk = at(SIB.mine, 11, 7, [], true);
-    for (let f = 0; f < 140; f++) frame(walk, LEFT);
-    for (let f = 0; f < 140; f++) frame(walk, RIGHT);
-    check(`walking the gantry both ways he stays on it (y ${walk.g.y} of ${standY(7)})`, walk.g.y === standY(7) || walk.g.gameMode === 0);
-  }
-  check(`the cart is a float with a bouncing cycle (rests ${MINE_CART.bounce?.hold} cells' time at each end)`, MINE_CART.bounce !== undefined && MINE_CART.room === SIB.mine);
-}
+  SCOPE.section([SIB.mine, SIB.border, SIB.pines, SIB.shaft, SIB.coal], 'the mine cart', () => {
+    // the mine cart: a float over the flooded working. How far a jump goes (from flat snow), and the gap the cart leaves at each dock
+    const jump = at(SIB.border, 10, 17);
+    const y0 = jump.g.y, x0 = jump.g.x2;
+    let airborne = false, span = 0;
+    for (let f = 0; f < 140; f++) {
+      frame(jump, { ...RIGHT, fire: f === 0 });
+      if (jump.g.y !== y0) airborne = true;
+      else if (airborne) break;
+      span = ((jump.g.x2 - x0 + 256) & 0xff) >> 2;
+    }
+    const travel = CART.span.to - CART.span.from + 1 - CART.w;
+    const dockGap = CART.span.to - CART.span.from + 1 - CART.w;
+    check(`a jump carries him ${span} cells; the working is ${CART.span.to - CART.span.from + 1} wide and the cart at one dock leaves ${dockGap} of it open: no way across without the cart (the cart travels ${travel} cells)`, dockGap > span + 1);
+    const ride = at(SIB.mine, 17, 18, [], true);
+    run(ride, LEFT, 24);
+    const aboard = colOf(ride.g);
+    run(ride, NONE, 150);
+    check(`stepping onto the cart at the east dock (column ${aboard}) it carries him across: after its crossing he is at column ${colOf(ride.g)}, on the floor, alive`, aboard >= 13 && colOf(ride.g) <= CART.span.from + 4 && ride.g.y === standY(18) && !dead(ride.g));
+    run(ride, LEFT, 60);
+    check(`and he walks off at the far side into the lamp's pocket (column ${colOf(ride.g)}), the lamp his`, colOf(ride.g) <= 4 && ride.g.y === standY(18) && ride.g.siCollected[itemIndex(ride.g, SIB.mine, 0)] !== 0);
+    const there = search(at(SIB.mine, 17, 18), (g) => g.roomId === SIB.mine && colOf(g) <= 4 && g.y === standY(18), [{ room: SIB.mine, col: 3, row: 16 }], 300000, 1.5);
+    const back = search(at(SIB.mine, 3, 18), (g) => g.roomId === SIB.mine && colOf(g) >= 17 && g.y === standY(18), [{ room: SIB.mine, col: 19, row: 16 }], 300000, 1.5);
+    check(`the bot finds the way there (${there ? there.nodes : 'none'} states) and the way back (${back ? back.nodes : 'none'}): the cart carries him both ways`, there !== null && back !== null);
+    // and it is not on the way along the gantry: walking the gantry's whole length either way never touches it
+    {
+      const walk = at(SIB.mine, 11, 7, [], true);
+      for (let f = 0; f < 140; f++) frame(walk, LEFT);
+      for (let f = 0; f < 140; f++) frame(walk, RIGHT);
+      check(`walking the gantry both ways he stays on it (y ${walk.g.y} of ${standY(7)})`, walk.g.y === standY(7) || walk.g.gameMode === 0);
+    }
+    check(`the cart is a float with a bouncing cycle (rests ${MINE_CART.bounce?.hold} cells' time at each end)`, MINE_CART.bounce !== undefined && MINE_CART.room === SIB.mine);
+  });
+});
 
 // ---- the yeti, the snow, the icicle ---------------------------------------------------------------------
-{
+SCOPE.section([SIB.yeti, DRAGON.room], 'the yeti and the cave\'s icicle', () => {
   // the yeti is four sprites moving as one: its pieces keep their offsets from the first all the way round, and no two ever disagree about where the body is
   const lap = lapFrames(YETI);
   let steady = true, minY = 999, maxY = 0, minX = 999, maxX = 0;
@@ -318,17 +325,21 @@ import { creatureRooms, itemIndex, standY } from './route';
     run(again, NONE, lap * 12);
     check('and it is deterministic: the same seed, the same yeti', JSON.stringify(again.g.dragons) === JSON.stringify(watch.g.dragons));
   }
-  const enter = at(SIB.yeti, 28, 17);
-  const up = search(enter, (g) => g.roomId === SIB.yeti && colOf(g) <= 10 && g.y === standY(9), undefined, 400000, 0);
-  check(`the bot finds the way over the ice bridge to its left end (${up ? up.nodes + ' states' : 'none'})`, up !== null);
+  SCOPE.section([SIB.yeti, ROOM.kremlin, SIB.pines, SIB.gravy], 'the way over the ice bridge', () => {
+    const enter = at(SIB.yeti, 28, 17);
+    const up = search(enter, (g) => g.roomId === SIB.yeti && colOf(g) <= 10 && g.y === standY(9), undefined, 400000, 0);
+    check(`the bot finds the way over the ice bridge to its left end (${up ? up.nodes + ' states' : 'none'})`, up !== null);
+  });
   // the sprites: the yeti uses four of the room's, not the item's (0), the icicle's (1), his (3) or the hat's (7)
   const used = YETI.pieces.map((p) => p.sprite);
   check(`it takes sprites ${used.join(', ')}: none that the pelmeni (0), the icicle (1), Monty (3) or his hat (7) need, and the room has no creatures to want any`, used.every((n) => ![0, 1, 3, 7].includes(n)) && SIBERIA_ROOMS.find((r) => r.id === SIB.yeti)?.enemies === undefined);
   check('the cave has one icicle (sprite 1)', SIBERIA_ICICLES.length === 1 && SIBERIA_ICICLES[0]?.room === SIB.yeti);
-  const china = DRAGON.pieces.map((p) => p.sprite);
-  check(`China's dragon is as it was: a chain of ${china.length}, none rigid`, DRAGON.pieces.every((p) => !p.rigid));
-}
-{
+  SCOPE.section([DRAGON.room], 'China\'s dragon as it was', () => {
+    const china = DRAGON.pieces.map((p) => p.sprite);
+    check(`China's dragon is as it was: a chain of ${china.length}, none rigid`, DRAGON.pieces.every((p) => !p.rigid));
+  });
+});
+SCOPE.section([SIB.pines], 'the snow off the boughs', () => {
   // the snow slides off the boughs: harmless at rest, warned by the flakes trembling, then a lump falls down the three stretches and kills on the ground lane
   const fall = SIBERIA_PULSES.filter((p) => p.col === 6);
   const low = must(fall[2], 'the lowest stretch');
@@ -339,51 +350,64 @@ import { creatureRooms, itemIndex, standY } from './route';
   const free = at(SIB.pines, 25, 17);
   run(free, NONE, 600);
   check('and a place out from under the boughs is untouched', !dead(free.g));
-}
+});
 // ---- the joins: loops, the way back, no trap -----------------------------------------------------------
-{
+SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.mine, SIB.lake, SIB.shaft, SIB.border, SIB.pines, SIB.yeti, ROOM.station, CHI.wall, CHI.tower, CHI.top], 'the joins: loops, the way back, no trap', () => {
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 400000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5);
   // the cars' interiors are a lane of their own under the roof: from inside the dining car, through the gangway, into the sleeper's corridor and on into the tender's pocket
-  check('under the roof: from inside the dining car through the gangway into the sleeper', reach(at(SIB.gravy, 26, 17, [[SIB.coal, 0]]), { room: SIB.gravy, col: 31, row: 16 }, (g) => g.roomId === SIB.sleeper && g.y === standY(17)) !== null);
-  check('and from the sleeper\'s corridor through the next gangway into the tender\'s pocket', reach(at(SIB.sleeper, 26, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
-  check('and back west the same way (the tender to the sleeper to the dining car)',
-    reach(at(SIB.coal, 3, 17, [[SIB.coal, 0]]), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null && reach(at(SIB.sleeper, 3, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 0, row: 16 }, (g) => g.roomId === SIB.gravy) !== null);
+  SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, ROOM.station, SIB.yeti, SIB.pines], 'under the roof: the dining car to the sleeper', () => {
+    check('under the roof: from inside the dining car through the gangway into the sleeper', reach(at(SIB.gravy, 26, 17, [[SIB.coal, 0]]), { room: SIB.gravy, col: 31, row: 16 }, (g) => g.roomId === SIB.sleeper && g.y === standY(17)) !== null);
+  SCOPE.section([SIB.sleeper, SIB.coal, SIB.gravy, SIB.pines, SIB.mine, SIB.lake], 'under the roof: the sleeper to the tender', () => {
+  });
+    check('and from the sleeper\'s corridor through the next gangway into the tender\'s pocket', reach(at(SIB.sleeper, 26, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
+  SCOPE.section([SIB.coal, SIB.sleeper, SIB.gravy, SIB.mine, SIB.lake, SIB.pines, ROOM.station, SIB.yeti], 'under the roof: back west', () => {
+  });
+    check('and back west the same way (the tender to the sleeper to the dining car)',
+      reach(at(SIB.coal, 3, 17, [[SIB.coal, 0]]), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null && reach(at(SIB.sleeper, 3, 17, [[SIB.coal, 0]]), { room: SIB.sleeper, col: 0, row: 16 }, (g) => g.roomId === SIB.gravy) !== null);
+  });
   // the loop: tender to the mine by the rope through its floor and back
-  check('the tender\'s rope climbs up into the mine\'s gallery', reach(at(SIB.coal, 22, 10), { room: SIB.coal, col: 24, row: 0 }, (g) => g.roomId === SIB.mine, 300000) !== null);
-  check('and the mine\'s gap lets him down it into the tender again', reach(at(SIB.mine, 21, 18), { room: SIB.mine, col: 24, row: 19 }, (g) => g.roomId === SIB.coal, 300000) !== null);
+  SCOPE.section([SIB.coal, SIB.mine, SIB.sleeper, SIB.lake, SIB.pines, SIB.shaft], 'the loop: the tender\'s rope and the mine\'s gap', () => {
+    check('the tender\'s rope climbs up into the mine\'s gallery', reach(at(SIB.coal, 22, 10), { room: SIB.coal, col: 24, row: 0 }, (g) => g.roomId === SIB.mine, 300000) !== null);
+    check('and the mine\'s gap lets him down it into the tender again', reach(at(SIB.mine, 21, 18), { room: SIB.mine, col: 24, row: 19 }, (g) => g.roomId === SIB.coal, 300000) !== null);
+  });
   // the roof's way back west to Moscow's station
-  {
+  SCOPE.section([SIB.gravy, ROOM.station], 'the roof west to Moscow\'s station', () => {
     const s = at(SIB.gravy, 6, 9);
     run(s, LEFT, 80);
     check(`the dining car's roof walks west back to Moscow's station (room ${s.g.roomId})`, s.g.roomId === ROOM.station);
-  }
+  });
   // no trap: from the village without the ticket he can climb back to the lake and up through the shaft's floor into the shaft
-  check('from the village, with no ticket, he can climb back up to the lake and into the shaft (the drop is a rope both ways)',
-    reach(at(SIB.border, 5, 17), { room: SIB.lake, col: 28, row: 0 }, (g) => g.roomId === SIB.shaft, 600000) !== null);
+  SCOPE.section([SIB.border, SIB.lake, SIB.shaft, SIB.coal, SIB.mine, CHI.wall, CHI.tower, CHI.top], 'no trap: the village back up to the shaft', () => {
+    check('from the village, with no ticket, he can climb back up to the lake and into the shaft (the drop is a rope both ways)',
+      reach(at(SIB.border, 5, 17), { room: SIB.lake, col: 28, row: 0 }, (g) => g.roomId === SIB.shaft, 600000) !== null);
+  });
   // the barrier: four rows high (32 pixels), more than a jump rises, so without the ticket he cannot pass it; with it he does
-  {
+  SCOPE.section([SIB.border, SIB.coal, SIB.lake, CHI.wall], 'the barrier by the jump\'s height', () => {
     const arc = WORLD.jumpArc;
     let rise = 0;
     for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
     const past = (g: Game) => g.roomId === SIB.border && colOf(g) >= 28;
     check(`the barrier is four rows (${4 * 8} pixels) and a jump rises ${rise}: without the ticket there is no way over it; the bot finds none within 150000 states either`, rise < 4 * 8 && search(at(SIB.border, 24, 17), past, undefined, 150000, 0) === null);
     check('and with the ticket he gets through', search(at(SIB.border, 22, 17, [[SIB.coal, 0]]), past, undefined, 200000, 0) !== null);
-  }
-}
+  });
+});
 
 // ---- the gangways: shut by the inspectors until the ticket, and the hatches fair -------------------------------
-{
+SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal], 'the gangways and the hatches', () => {
   const mouth = must(TUNNELS[0], 'the mountain');
   // the way along the train is over the roofs: the inspectors keep the gangways shut until he has the ticket from the tender
-  for (const g of GANGWAYS) {
-    const side = g.cols[0] <= 1 ? 0 : 31;
-    const shut = at(g.room, side === 0 ? 4 : 27, 17);
-    const open = at(g.room, side === 0 ? 4 : 27, 17, [[SIB.coal, 0]]);
-    const out = (st: State) => { run(st, side === 0 ? LEFT : RIGHT, 160); return st.g.roomId !== g.room; };
-    check(`room ${g.room}: the gangway at its ${side === 0 ? 'left' : 'right'} end is shut without the ticket and open with it`, !out(shut) && out(open));
-  }
+  SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal], 'the gangways shut until the ticket', () => {
+    for (const g of GANGWAYS) {
+      const side = g.cols[0] <= 1 ? 0 : 31;
+      const shut = at(g.room, side === 0 ? 4 : 27, 17);
+      const open = at(g.room, side === 0 ? 4 : 27, 17, [[SIB.coal, 0]]);
+      const out = (st: State) => { run(st, side === 0 ? LEFT : RIGHT, 160); return st.g.roomId !== g.room; };
+      check(`room ${g.room}: the gangway at its ${side === 0 ? 'left' : 'right'} end is shut without the ticket and open with it`, !out(shut) && out(open));
+    }
+  });
   // every point of a roof has a hatch it can reach in time: the warning (the portal flashing at the entry) plus the portal's own walk to the hatch's cell, against his walk to it (9 frames a cell)
   for (const [room, hatches] of [[SIB.gravy, [12, 25]], [SIB.sleeper, [7, 15, 28]]] as const) {
+    if (!SCOPE.any([room, SIB.gravy])) continue; // (the rooms in the filter; the mountain's numbers are the dining car's)
     const late: number[] = [];
     for (let col = 1; col <= 30; col++) {
       const ok = hatches.some((h) => Math.abs(col - h) * 9 + 4 <= mouth.warn + Math.max(0, 31 - Math.max(col, h)) * mouth.step);
@@ -391,23 +415,25 @@ import { creatureRooms, itemIndex, standY } from './route';
     }
     check(`room ${room}: from every roof cell a hatch is reachable before the mountain's portal arrives (too late at: ${late.join(' ') || 'none'})`, late.length === 0);
   }
-}
+});
 
 // ---- hints, the map, the save ---------------------------------------------------------------------
-{
-  const wants = at(SIB.shaft, 2, 18, [], true);
-  run(wants, NONE, 120);
-  check(`ENHANCED: coming into the shaft without the lamp says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'TOO DARK TO SEE THE LEDGES');
-  const village = at(SIB.border, 8, 17, [], true);
-  run(village, NONE, 120);
-  check(`ENHANCED: the village without the ticket says so ("${rowText(village.g)}")`, rowText(village.g) === 'THE INSPECTOR CHECKS TICKETS');
-  const plain = at(SIB.shaft, 2, 18, [], false);
-  run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'SHAFT OF DARKNESS');
-  const take = at(SIB.mine, 3, 18, [], true);
-  for (let f = 0; f < 30 && !take.g.siCollected[itemIndex(take.g, SIB.mine, 0)]; f++) frame(take, NONE);
-  run(take, NONE, 3);
-  check(`ENHANCED: taking the lamp says what it is for ("${rowText(take.g)}")`, rowText(take.g) === 'LAMP LIGHT SHOWS THE LEDGES' && take.g.siCollected[itemIndex(take.g, SIB.mine, 0)] !== 0);
+SCOPE.section([], 'hints, the map, the save', () => {
+  SCOPE.section([SIB.shaft, SIB.border, SIB.mine], 'the hints', () => {
+    const wants = at(SIB.shaft, 2, 18, [], true);
+    run(wants, NONE, 120);
+    check(`ENHANCED: coming into the shaft without the lamp says so ("${rowText(wants.g)}")`, rowText(wants.g) === 'TOO DARK TO SEE THE LEDGES');
+    const village = at(SIB.border, 8, 17, [], true);
+    run(village, NONE, 120);
+    check(`ENHANCED: the village without the ticket says so ("${rowText(village.g)}")`, rowText(village.g) === 'THE INSPECTOR CHECKS TICKETS');
+    const plain = at(SIB.shaft, 2, 18, [], false);
+    run(plain, NONE, 120);
+    check('ORIGINAL says nothing', rowText(plain.g) === 'SHAFT OF DARKNESS');
+    const take = at(SIB.mine, 3, 18, [], true);
+    for (let f = 0; f < 30 && !take.g.siCollected[itemIndex(take.g, SIB.mine, 0)]; f++) frame(take, NONE);
+    run(take, NONE, 3);
+    check(`ENHANCED: taking the lamp says what it is for ("${rowText(take.g)}")`, rowText(take.g) === 'LAMP LIGHT SHOWS THE LEDGES' && take.g.siCollected[itemIndex(take.g, SIB.mine, 0)] !== 0);
+  });
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
@@ -419,7 +445,8 @@ import { creatureRooms, itemIndex, standY } from './route';
 
   // a save made on coming into each of Siberia's rooms (the lamp taken, so the shaft's ledges have to be placed on loading) carries on
   {
-    const spots = [[SIB.gravy, 2, 9], [SIB.sleeper, 2, 9], [SIB.coal, 2, 9], [SIB.pines, 22, 17], [SIB.yeti, 26, 17], [SIB.mine, 2, 7], [SIB.shaft, 2, 18], [SIB.lake, 27, 12], [SIB.border, 8, 17]] as const;
+    const everySpot = [[SIB.gravy, 2, 9], [SIB.sleeper, 2, 9], [SIB.coal, 2, 9], [SIB.pines, 22, 17], [SIB.yeti, 26, 17], [SIB.mine, 2, 7], [SIB.shaft, 2, 18], [SIB.lake, 27, 12], [SIB.border, 8, 17]] as const;
+    const spots = everySpot.filter(([room]) => SCOPE.any([room, SIB.mine])); // (the rooms in the filter; the lamp held is the mine's)
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
       a.g.siCollected[itemIndex(a.g, SIB.mine, 0)] = 0x81;
@@ -446,6 +473,7 @@ import { creatureRooms, itemIndex, standY } from './route';
   const g2 = newGame(WORLD, true).g;
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (Moscow\'s arrays, Moscow\'s grid) loads: the finds and the hat are as saved, and Siberia is on the grid', g2.siCollected[0] === 0x81 && g2.coinCollected[0] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 4] === SIB.gravy && g2.siCollected.length === WORLD.specialItems.length / 4);
-}
+});
 
+SCOPE.report();
 finish();

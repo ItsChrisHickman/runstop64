@@ -130,9 +130,10 @@ export function probeRoom(s: State): RoomClimbs {
   return out;
 }
 
-export function probe(data: MontyData): { room: number; found: RoomClimbs }[] {
+/** Every climb of the rooms (all of the game's by default), probed. */
+export function probe(data: MontyData, rooms: readonly number[] = roomsOf(data)): { room: number; found: RoomClimbs }[] {
   const out: { room: number; found: RoomClimbs }[] = [];
-  for (const room of roomsOf(data)) {
+  for (const room of rooms) {
     const s = inRoom(data, room);
     if (!s) continue;
     out.push({ room, found: probeRoom(s) });

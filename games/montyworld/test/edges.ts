@@ -5,12 +5,13 @@
  * neighbour that is not meant. An edge with no neighbour needs no wall (the exit grid stops him), so a room with such cells that has no reason
  * here fails. `PENDING` are the regions still to sweep (their rooms are being rebuilt in parallel): each is counted in the output.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/edges.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/edges.ts [--room <rooms>]
  */
 import { check, finish } from '../../shared/test/check';
 import { PLAY_COLS } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { inRoom, roomsOf } from './climb-kit';
+import { SCOPE } from './scope';
 
 const MOSCOW: Readonly<Record<number, string>> = {
   0: 'the Kremlin wall closes the right edge (the street beyond is solid there); a passage through it at the gantry',
@@ -29,7 +30,7 @@ const PENDING = 'to sweep (the region\'s rooms are being rebuilt in parallel)';
 const reasonOf = (room: number): string | undefined => MOSCOW[room] ?? (room >= 9 ? PENDING : undefined);
 
 let unexplained = 0, pending = 0, explained = 0;
-for (const room of roomsOf(WORLD)) {
+for (const room of SCOPE.keep(roomsOf(WORLD))) {
   const s = inRoom(WORLD, room);
   if (!s) continue;
   const solid = (c: number, r: number) => { const f = s.g.flagAt(3 + r, 4 + c); return f === 1 || f === 2; };

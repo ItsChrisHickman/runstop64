@@ -2,11 +2,12 @@
  * China's rooms drawn within the engine's means: a room's decorations take their characters from $9B up (101 in all, a type once however often it is placed: one that
  * does not fit is silently not drawn), and a decoration drawn over a solid, floor or rope cell would make it passable, over a coin would hide it. Checked for every room.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/china-art.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/china-art.ts [--room <rooms>]   (--room: the named rooms' own checks; the region's totals are always checked)
  */
 import { isBackdrop } from '../src/layout';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
+import { scopedRooms } from './scope';
 import { MOTR_TILE_COUNT } from '../src/art/tiles';
 import { WORLD_DECOR, WORLD_TILE_LIST } from '../src/art/world';
 import { CHINA_ROOMS } from '../src/china';
@@ -17,7 +18,7 @@ const backdropType = (i: number): boolean => isBackdrop(Object.keys(WORLD_DECOR)
 /** Pieces drawn over cells on purpose: a window set into a wall, the junk's picture over the quay's end wall. */
 const OVER_ON_PURPOSE: readonly object[] = [WORLD_DECOR.latticeWindow, WORLD_DECOR.junk];
 
-for (const room of CHINA_ROOMS) {
+for (const room of scopedRooms(CHINA_ROOMS)) {
   const name = `room $${room.id.toString(16)}`;
   const placed = (room.decor ?? []).flatMap((d) => (typeof d.type === 'number' ? [{ d, t: decorTypes[d.type] }] : []));
   const used = new Set((room.decor ?? []).map((d) => d.type));

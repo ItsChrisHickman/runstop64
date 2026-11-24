@@ -4,13 +4,14 @@
  * run for a while with the creatures, boulders, leaping fish, dragons and the rest moving; in every frame no sprite of a creature or a hazard (any sprite but the item's own, sprite 0, and the
  * second find's, sprite 1, in the rooms that have two) has its priority bit set while it is enabled, and none is placed under a cell of the picture's own colour (creature-contrast.ts checks the colours).
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/sprites-front.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/sprites-front.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { newPlay, settle, standing } from './shots-kit';
+import { SCOPE } from './scope';
 
 Math.random = () => 0.3;
 
@@ -18,7 +19,7 @@ Math.random = () => 0.3;
 const WATCH = 500;
 
 /** The room ids of the world's exit grid. */
-const rooms = [...new Set(Array.from(WORLD.exitGrid.image).filter((id) => id !== 0xff))].sort((a, b) => a - b);
+const rooms = SCOPE.keep([...new Set(Array.from(WORLD.exitGrid.image).filter((id) => id !== 0xff))].sort((a, b) => a - b));
 
 let behind = 0;
 for (const id of rooms) {
@@ -41,5 +42,5 @@ for (const id of rooms) {
   if (bad.size) behind++;
   check(`room $${id.toString(16)}: no creature or hazard is drawn behind the scenery${bad.size ? ` (sprites ${[...bad].join(', ')} have the priority bit)` : ''}`, bad.size === 0);
 }
-check(`every room on the grid watched (${rooms.length})`, rooms.length >= 50 && behind === 0); // (the reset of 2026-11 brought the world to about 54 rooms)
+check(`every room on the grid watched (${rooms.length})`, (!SCOPE.all || rooms.length >= 50) && behind === 0); // (the reset of 2026-11 brought the world to about 54 rooms)
 finish();

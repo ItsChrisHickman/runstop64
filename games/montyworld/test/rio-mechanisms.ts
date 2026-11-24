@@ -3,7 +3,7 @@
  * the Sambadrome (the lever dead until the crank is fitted in the booth, the held head stamping once as one, the agent on Monty's path 150 frames behind, squashed under the head, the bars lifting, a death keeping the crank
  * fitted), the headdress as a costume, the hints, the joins both ways and the one-way drop, the gates proved by search, the map, a save in each room, and the finale on the beach.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-mechanisms.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-mechanisms.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -25,12 +25,13 @@ import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
+import { SCOPE } from './scope';
 
 const CRANK = [R.steak, 0] as const, HEADDRESS = [R.drum, 0] as const;
 const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WORLD.pursuers[0], 'the agent');
 
 // ---- the data -------------------------------------------------------------------------------------
-{
+SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [[5, 23, R.arms], [5, 24, R.colour], [5, 25, R.lap], [4, 25, R.steak], [5, 26, R.sugar], [5, 27, R.drum], [5, 28, R.bust]] as const;
@@ -52,38 +53,44 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
     && WORLD.itemSprites.treasure === RIO_SPRITE.bowl && RIO_ITEMS.acaiBowl.block.length >= 63);
   check('one cable car (Sugar Rush\'s), one tram (Lapa\'s float), two skewers (the churrascaria\'s), one lever and one pursuer (the Sambadrome\'s)', WORLD.cableCars.length === 1 && WORLD.cableCars[0]?.room === R.sugar
     && WORLD.floats.filter((f) => f.room === R.lap).length === 1 && WORLD.skewers.every((k) => k.room === R.steak) && WORLD.levers.length === 1 && lever.room === R.drum && WORLD.pursuers.length === 1 && agent.room === R.drum);
-}
+});
 
 // ---- the cable car and the winch ---------------------------------------------------------------------------
-{
-  const solid = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 1);
-  const clear = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 0);
-  check('the winch house\'s bars (cols 12-13, rows 4-13) stand until the crank is his, and are gone once it is', solid(at(R.sugar, 8, 18, [])) && clear(at(R.sugar, 8, 18, [CRANK])));
-  const shut = at(R.sugar, 8, 18, []), open = at(R.sugar, 8, 18, [CRANK]);
-  check('the CLOSED sign is up until the crank is his, and down once it is', CLOSED_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0) && CLOSED_CELLS.every(([row, col]) => cell(open.g, col, row) === 0));
-  const up = at(R.sugar, 12, 14, [CRANK]);
-  let rode = 0, begun = -1;
-  const ys: number[] = [];
-  for (let f = 0; f < 400; f++) {
-    frame(up, RIGHT);
-    if (up.g.gameMode && begun < 0) begun = f;
-    if (up.g.gameMode) { rode++; ys.push(up.g.y); }
-    if (begun >= 0 && !up.g.gameMode) break;
-  }
-  check(`stepping onto the lower foot starts the ride: ${rode} frames (160 and one), then he is set down at the top station's foot (column ${colOf(up.g)}, floor 8), alive`, rode >= 159 && rode <= 162 && colOf(up.g) === CABLE_CAR.high.col && up.g.y === standY(8) && !dead(up.g));
-  check('the ride climbs steadily, 48 pixels in all', ys.every((y, i) => i === 0 || y <= (ys[i - 1] ?? 0)) && (ys[0] ?? 0) - (ys[ys.length - 1] ?? 0) >= 44);
-  const east = at(R.sugar, 27, 8, [CRANK]);
-  run(east, RIGHT, 80);
-  check('the top station\'s way out east leads into the Sambadrome, high', east.g.roomId === R.drum && east.g.y < standY(10));
-  // a creature touching him on the ride kills, as on the escalators
-  const ride = at(R.sugar, 12, 14, [CRANK], false, true);
-  let died = false;
-  for (let f = 0; f < 600 && !died; f++) { frame(ride, f < 60 ? RIGHT : NONE); if (dead(ride.g) && ride.g.roomId === R.sugar) died = true; if (!ride.g.gameMode && f > 300) break; }
-  check('the vulture crossing the cable can catch him on the ride (the ride is not a shelter)', died || ride.g.roomId === R.sugar);
-}
+SCOPE.section([R.sugar, R.drum], 'the cable car and the winch', () => {
+  SCOPE.section([R.sugar], 'the winch bars, the CLOSED sign and the ride', () => {
+    const solid = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 1);
+    const clear = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 0);
+    check('the winch house\'s bars (cols 12-13, rows 4-13) stand until the crank is his, and are gone once it is', solid(at(R.sugar, 8, 18, [])) && clear(at(R.sugar, 8, 18, [CRANK])));
+    const shut = at(R.sugar, 8, 18, []), open = at(R.sugar, 8, 18, [CRANK]);
+    check('the CLOSED sign is up until the crank is his, and down once it is', CLOSED_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0) && CLOSED_CELLS.every(([row, col]) => cell(open.g, col, row) === 0));
+    const up = at(R.sugar, 12, 14, [CRANK]);
+    let rode = 0, begun = -1;
+    const ys: number[] = [];
+    for (let f = 0; f < 400; f++) {
+      frame(up, RIGHT);
+      if (up.g.gameMode && begun < 0) begun = f;
+      if (up.g.gameMode) { rode++; ys.push(up.g.y); }
+      if (begun >= 0 && !up.g.gameMode) break;
+    }
+    check(`stepping onto the lower foot starts the ride: ${rode} frames (160 and one), then he is set down at the top station's foot (column ${colOf(up.g)}, floor 8), alive`, rode >= 159 && rode <= 162 && colOf(up.g) === CABLE_CAR.high.col && up.g.y === standY(8) && !dead(up.g));
+    check('the ride climbs steadily, 48 pixels in all', ys.every((y, i) => i === 0 || y <= (ys[i - 1] ?? 0)) && (ys[0] ?? 0) - (ys[ys.length - 1] ?? 0) >= 44);
+  });
+  SCOPE.section([R.sugar, R.drum], 'the top station east into the Sambadrome', () => {
+    const east = at(R.sugar, 27, 8, [CRANK]);
+    run(east, RIGHT, 80);
+    check('the top station\'s way out east leads into the Sambadrome, high', east.g.roomId === R.drum && east.g.y < standY(10));
+  });
+  SCOPE.section([R.sugar], 'the vulture on the ride', () => {
+    // a creature touching him on the ride kills, as on the escalators
+    const ride = at(R.sugar, 12, 14, [CRANK], false, true);
+    let died = false;
+    for (let f = 0; f < 600 && !died; f++) { frame(ride, f < 60 ? RIGHT : NONE); if (dead(ride.g) && ride.g.roomId === R.sugar) died = true; if (!ride.g.gameMode && f > 300) break; }
+    check('the vulture crossing the cable can catch him on the ride (the ride is not a shelter)', died || ride.g.roomId === R.sugar);
+  });
+});
 
 // ---- the tram ---------------------------------------------------------------------------------------------
-{
+SCOPE.section([R.lap], 'the tram', () => {
   check('the tram is a float there and back over the track\'s gap (cols 12-17), its deck the track\'s height', TRAM.room === R.lap && TRAM.row === 8 && !!TRAM.bounce && TRAM.span.from <= 11 && TRAM.span.to >= 18);
   // standing on the track's east part he is carried west over the gap and set on the west part
   const s = at(R.lap, 18, 8, [], false, false);
@@ -97,19 +104,19 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   run(drop, RIGHT, 16);
   run(drop, NONE, 160);
   check('without the tram, walking east off the west part he drops through the gap to the street, alive', drop.g.y === standY(18) && !dead(drop.g) && drop.g.roomId === R.lap);
-}
+});
 
 // ---- the broken span's stones ----------------------------------------------------------------------------------
-{
+SCOPE.section([R.lap], 'the broken span stones', () => {
   const stone = must(WORLD.rollers.find((r) => r.room === R.lap), 'Lapa\'s stone');
   check('a stone falls from the track\'s gap (col 14) to the street and rolls west out of the picture, on a sprite no creature of the room has', stone.path[0]?.[0] === 14 && stone.path[0][1] === 8 && stone.path[1]?.[1] === 16 && (stone.path[2]?.[0] ?? 0) < 0 && stone.sprite === 1);
   const wait = at(R.lap, 6, 18, [], false, false);
   const struck = diesAt(wait, NONE, stone.every + stone.start + 200);
   check(`standing on the street west of the gap, the stone reaches him (frame ${struck})`, struck > 0);
-}
+});
 
 // ---- the gauchos' skewers ----------------------------------------------------------------------------------
-{
+SCOPE.section([R.steak], 'the gauchos skewers', () => {
   const k0 = must(SKEWERS[0], 'a skewer'), k1 = must(SKEWERS[1], 'a skewer');
   check('a skewer swings through four poses a 20 frames each (a cycle of 80, a step quicker than any timing before it); the middle two are deadly', [0, 20, 40, 60, 79, 80].map((t) => skewerPose(k0, t)).join() === '0,1,2,3,3,0' && k0.poses.map((p) => p.deadly).join() === 'false,true,true,false');
   check('the second gaucho is half a cycle on from the first, each with a sprite of his own (2 and 1)', k1.offset - k0.offset === k0.cycle / 2 && k0.sprite === 2 && k1.sprite === 1);
@@ -118,10 +125,10 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   run(s, NONE, 4);
   for (let f = 0; f < 100; f++) { frame(s, NONE); seen.add(s.g.vic.sprites[2]?.ptr ?? 0); }
   check(`the skewer follows its gaucho in the picture of its pose (${[...seen].map((p) => p.toString(16)).join(' ')})`, s.g.skewers.length === 2 && [...seen].every((p) => [...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right].some((q) => q === p)));
-}
+});
 
 // ---- the Sambadrome ---------------------------------------------------------------------------------------
-{
+SCOPE.section([R.drum, R.bust], 'the Sambadrome', () => {
   /** In the Sambadrome on the avenue at a column, with what he holds, the creatures (the agent among them) in. */
   const avenue = (col: number, holds: readonly (readonly [number, number])[], extra: readonly number[] = []) => {
     const s = at(R.drum, col, 18, holds, false, true);
@@ -211,10 +218,10 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   again.g.hold.pull = 1;
   for (let f = 0; f < 400 && !(again.g.roomId === R.drum && !dead(again.g) && f > 100); f++) frame(again, NONE);
   check('a death in the Sambadrome restarts the room and the crank stays fitted', !!again.g.siCollected[lever.armed] && again.g.roomId === R.drum);
-}
+});
 
 // ---- the costume, the hints ---------------------------------------------------------------------------------
-{
+SCOPE.section([R.drum, R.sugar, R.steak], 'the costume, the hints', () => {
   const s = at(R.drum, 14, 4, [CRANK], true);
   for (let f = 0; f < 120 && !s.g.siCollected[itemIndex(s.g, ...HEADDRESS)]; f++) frame(s, RIGHT);
   run(s, NONE, 3);
@@ -227,48 +234,76 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   check('ORIGINAL says nothing', rowText(plain.g) === 'SUGAR RUSH');
   check('the crank has no hint of its own, and no hint names the steward or the key to the city', !WORLD.hints.take.some((h) => h.item === itemIndex(s.g, ...CRANK)) && ![...WORLD.hints.take, ...WORLD.hints.wanted].some((h) => /STEWARD|KEY TO THE CITY/.test(h.text)));
   for (const n of [1, 2]) check(`the skewer${n} is a snack (a named item with the skewer's sprite)`, RIO_ROOMS.some((r) => r.item?.name === `skewer${n}` && r.item.sprite === RIO_SPRITE.skewer));
-}
+});
 
 // ---- the joins, the one-way drop, the gates ------------------------------------------------------------------
-{
+SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the joins, the one-way drop, the gates', () => {
   const reach = (from: State, aims: readonly { room: number; col: number; row: number }[], goal: (g: Game) => boolean, limit = 150000) => search(from, (g) => goal(g) && !g.freeze && !g.script, aims, limit, 1.5) !== null;
-  check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [[AND.kapok, 0]]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [[AND.kapok, 0]]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
-  check('Corcovado\'s east hand drops onto the ledge and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
-  check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [[AND.kapok, 0]]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
-  check('the favela\'s light well is crossed by a jump from roof to roof, and a fall into it is climbed out of (no trap)', reach(at(R.colour, 8, 8), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16)
-    && reach(at(R.colour, 13, 10), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16));
-  check('the favela\'s lane runs out east onto Lapa\'s street', reach(at(R.colour, 12, 18), [{ room: R.colour, col: 31, row: 17 }], (g) => g.roomId === R.lap && g.y >= standY(17)));
-  check('Lapa and Sugarloaf join on the street both ways', reach(at(R.lap, 25, 18), [{ room: R.lap, col: 31, row: 17 }], (g) => g.roomId === R.sugar) && reach(at(R.sugar, 2, 18), [{ room: R.sugar, col: 0, row: 17 }], (g) => g.roomId === R.lap));
-  check('the climbers\' rope and ledge join Sugarloaf to Lapa\'s track, west, and the track back east to the ledge', reach(at(R.sugar, 6, 18), [{ room: R.sugar, col: 4, row: 8 }, { room: R.sugar, col: 0, row: 7 }], (g) => g.roomId === R.lap && g.y <= standY(8))
-    && reach(at(R.lap, 25, 8), [{ room: R.lap, col: 31, row: 7 }], (g) => g.roomId === R.sugar && g.y <= standY(8)));
-  check('the ladder joins Lapa\'s track and the churrascaria both ways', reach(at(R.lap, 3, 8), [{ room: R.lap, col: 5, row: 0 }], (g) => g.roomId === R.steak) && reach(at(R.steak, 8, 18), [{ room: R.steak, col: 5, row: 19 }], (g) => g.roomId === R.lap && g.y <= standY(8)));
-  // one way: from Lapa's street there is no way up to the track
-  const street = at(R.lap, 14, 18, [], false, false);
-  const up = search(street, (g) => g.roomId === R.lap && g.y <= standY(8), [{ room: R.lap, col: 14, row: 8 }], 120000, 0);
-  check('the bot finds no way from Lapa\'s street up onto the track (the drop through the gap is one way)', up === null);
-  // the winch's gate
-  const sand = at(R.sugar, 8, 18, [], false, false);
-  const car = search(sand, (g) => g.cable.from >= 0 || g.roomId === R.drum, undefined, 150000, 0);
-  check('the bot finds no way onto the cable car or past it without the crank', car === null);
-  // the bars
-  const lane = at(R.drum, 22, 18, [CRANK, HEADDRESS], false, false);
-  const pass = search(lane, (g) => g.roomId === R.bust, undefined, 150000, 0);
-  check('the bot finds no way past the Sambadrome\'s bars to the beach without the squash', pass === null);
-  // a side with no room beyond it stops him
-  const stops = ([[R.bust, 28, 18, RIGHT], [R.lap, 29, 18, RIGHT]] as const).map(([room, col, floor, key]) => { const s = at(room, col, floor, [CRANK]); run(s, key, 60); return s.g.roomId === room || s.g.roomId === R.sugar; });
-  check('the beach\'s east side stops him', stops[0] === true);
+  SCOPE.section([AND.kapok, R.arms, AND.canopy, AND.roots, R.colour], 'the kapok and Corcovado join both ways', () => {
+    check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [[AND.kapok, 0]]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [[AND.kapok, 0]]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
+  });
+  SCOPE.section([R.arms, R.colour, AND.kapok], 'Corcovado east into the favela', () => {
+    check('Corcovado\'s east hand drops onto the ledge and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
+  });
+  SCOPE.section([R.arms, AND.kapok, R.colour], 'Corcovado forest floor back to the canopy', () => {
+    check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [[AND.kapok, 0]]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
+  });
+  SCOPE.section([R.colour, R.arms, R.lap], 'the favela light well', () => {
+    check('the favela\'s light well is crossed by a jump from roof to roof, and a fall into it is climbed out of (no trap)', reach(at(R.colour, 8, 8), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16)
+      && reach(at(R.colour, 13, 10), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16));
+  });
+  SCOPE.section([R.colour, R.lap, R.arms, R.steak, R.sugar], 'the favela lane onto the Lapa street', () => {
+    check('the favela\'s lane runs out east onto Lapa\'s street', reach(at(R.colour, 12, 18), [{ room: R.colour, col: 31, row: 17 }], (g) => g.roomId === R.lap && g.y >= standY(17)));
+  });
+  SCOPE.section([R.lap, R.sugar, R.colour, R.steak, R.drum], 'Lapa and Sugarloaf on the street', () => {
+    check('Lapa and Sugarloaf join on the street both ways', reach(at(R.lap, 25, 18), [{ room: R.lap, col: 31, row: 17 }], (g) => g.roomId === R.sugar) && reach(at(R.sugar, 2, 18), [{ room: R.sugar, col: 0, row: 17 }], (g) => g.roomId === R.lap));
+  });
+  SCOPE.section([R.sugar, R.lap, R.colour, R.steak, R.drum], 'the climbers rope and ledge', () => {
+    check('the climbers\' rope and ledge join Sugarloaf to Lapa\'s track, west, and the track back east to the ledge', reach(at(R.sugar, 6, 18), [{ room: R.sugar, col: 4, row: 8 }, { room: R.sugar, col: 0, row: 7 }], (g) => g.roomId === R.lap && g.y <= standY(8))
+      && reach(at(R.lap, 25, 8), [{ room: R.lap, col: 31, row: 7 }], (g) => g.roomId === R.sugar && g.y <= standY(8)));
+  });
+  SCOPE.section([R.lap, R.steak, R.colour, R.sugar], 'the ladder to the churrascaria', () => {
+    check('the ladder joins Lapa\'s track and the churrascaria both ways', reach(at(R.lap, 3, 8), [{ room: R.lap, col: 5, row: 0 }], (g) => g.roomId === R.steak) && reach(at(R.steak, 8, 18), [{ room: R.steak, col: 5, row: 19 }], (g) => g.roomId === R.lap && g.y <= standY(8)));
+  });
+  SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the one-way drop in Lapa', () => {
+    // one way: from Lapa's street there is no way up to the track
+    const street = at(R.lap, 14, 18, [], false, false);
+    const up = search(street, (g) => g.roomId === R.lap && g.y <= standY(8), [{ room: R.lap, col: 14, row: 8 }], 120000, 0);
+    check('the bot finds no way from Lapa\'s street up onto the track (the drop through the gap is one way)', up === null);
+  });
+  SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the winch gate', () => {
+    // the winch's gate
+    const sand = at(R.sugar, 8, 18, [], false, false);
+    const car = search(sand, (g) => g.cable.from >= 0 || g.roomId === R.drum, undefined, 150000, 0);
+    check('the bot finds no way onto the cable car or past it without the crank', car === null);
+  });
+  SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the Sambadrome bars', () => {
+    // the bars
+    const lane = at(R.drum, 22, 18, [CRANK, HEADDRESS], false, false);
+    const pass = search(lane, (g) => g.roomId === R.bust, undefined, 150000, 0);
+    check('the bot finds no way past the Sambadrome\'s bars to the beach without the squash', pass === null);
+  });
+  SCOPE.section([R.bust, R.lap, R.sugar], 'a side with no room beyond stops him', () => {
+    // a side with no room beyond it stops him
+    const stops = ([[R.bust, 28, 18, RIGHT], [R.lap, 29, 18, RIGHT]] as const).map(([room, col, floor, key]) => { const s = at(room, col, floor, [CRANK]); run(s, key, 60); return s.g.roomId === room || s.g.roomId === R.sugar; });
+    check('the beach\'s east side stops him', stops[0] === true);
+  });
   void UP; void LEFT;
-}
+});
 
 // ---- the pause screen, the saves ----------------------------------------------------------------------------
-{
-  const s = newGame(WORLD, true);
-  enterRoom(s.g, R.sugar, 0x40, standY(18));
-  const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 5, 26], [R.lap]: [0x40, 0xb2, 5, 25] } });
-  check('in Rio the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
+SCOPE.section([], 'the pause screen, the saves', () => {
+  SCOPE.section([R.sugar, R.lap], 'the map in Rio', () => {
+    const s = newGame(WORLD, true);
+    enterRoom(s.g, R.sugar, 0x40, standY(18));
+    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 5, 26], [R.lap]: [0x40, 0xb2, 5, 25] } });
+    check('in Rio the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
+  });
   const spots = [[R.arms, 1, 8], [R.colour, 2, 8], [R.lap, 4, 18], [R.steak, 2, 18], [R.sugar, 2, 18], [R.drum, 1, 8], [R.bust, 2, 18]] as const;
   const failed: number[] = [];
-  const carried = spots.filter(([room, col, floor]) => {
+  // (the rooms the filter lets through: all of them without --room, so the count is the whole region's then)
+  const scoped = spots.filter(([id]) => SCOPE.has(id));
+  const carried = scoped.filter(([room, col, floor]) => {
     const a = newGame(WORLD, false);
     for (const item of [CRANK, HEADDRESS]) a.g.siCollected[itemIndex(a.g, item[0], item[1])] = 0x81;
     a.g.siCollected[lever.armed] = 0x81;
@@ -284,11 +319,11 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
     if (!ok) failed.push(room);
     return ok;
   }).length;
-  check(`a save made on coming into each of Rio's rooms carries on in the same room, alive, in the headdress, the crank still fitted (${carried} of ${spots.length}${failed.length ? `; not in ${failed.join(', ')}` : ''})`, carried === spots.length);
-}
+  check(`a save made on coming into each of Rio's rooms carries on in the same room, alive, in the headdress, the crank still fitted (${carried} of ${scoped.length}${failed.length ? `; not in ${failed.join(', ')}` : ''})`, carried === scoped.length);
+});
 
 // ---- the finale ---------------------------------------------------------------------------------------------
-{
+SCOPE.section([R.bust], 'the finale', () => {
   const s = at(R.bust, 3, 18, [CRANK, HEADDRESS], false, true);
   wear(s.g, itemIndex(s.g, ...HEADDRESS));
   let touched = -1;
@@ -298,5 +333,6 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
   const standing = s.g.sy[3] ?? 0;
   for (let f = 0; f < 3000 && over < 0; f++) { frame(s, NONE); if (s.g.gameOverActive) over = f; if ((s.g.vic.enable & 0x36) === 0x36) troupe = true; if ((s.g.sy[3] ?? 0) === standing + 4 && (s.g.vic.enable & 0x01)) sat = true; }
   check(`the finale runs by itself to GAME OVER (${over} frames): he sits in the chair, the troupe (two dancers, two drummers) walks on, the game is won`, over > 600 && over < 2000 && s.g.won && troupe && sat);
-}
+});
+SCOPE.report();
 finish();

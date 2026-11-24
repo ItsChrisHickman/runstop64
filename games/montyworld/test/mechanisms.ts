@@ -6,7 +6,7 @@
  * turnstile (shut without the token, open with it), the costume (the hat is on his pictures from the pickup, in the save), the
  * hints (ENHANCED says what an item is for, ORIGINAL does not), the pirozhki and the map.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/mechanisms.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/mechanisms.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -26,6 +26,8 @@ import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, colOf, dead, LEFT, panelLine, RIGHT, rowText, run } from './mech-kit';
 import { itemIndex, standY } from './route';
+import { SCOPE } from './scope';
+import { SIB } from '../src/siberia';
 
 const GUARD = FIRST_CREATURE + Object.keys(MOSCOW_CREATURES).indexOf('guard');
 
@@ -33,7 +35,7 @@ const GUARD = FIRST_CREATURE + Object.keys(MOSCOW_CREATURES).indexOf('guard');
 const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.length && Array.from(a).every((v, i) => v === b[i]);
 
 // ---- the data -----------------------------------------------------------------------------------
-{
+SCOPE.section([], 'the data: the region on the grid and its tables', () => {
   const cells = WORLD.exitGrid.image;
   const at = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   check('Moscow is nine rooms, a block of four columns by three rows at the grid\'s west end',
@@ -41,14 +43,14 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   check('Moscow has 14 coins, 2 pirozhki and 2 key items (the first entries of the tables; the later regions\' follow)', WORLD.coinTable.subarray(0, 42).every((_, i) => i % 3 !== 0 || (WORLD.coinTable[i] ?? 99) <= 8) && WORLD.specialItems.subarray(0, 16).every((_, i) => i % 4 !== 0 || (WORLD.specialItems[i] ?? 99) <= 8) && WORLD.progress.cakes.slice(0, 2).every((i) => i < 4) && WORLD.progress.keyItems.slice(0, 2).join() === '1,3');
   check('the pirozhki are drawn with a sprite of their own, in the cupcake\'s way (a special item), and the pause screen calls them SNACKS',
     WORLD.progress.cakes.slice(0, 2).every((i) => WORLD.specialItems[i * 4 + 3] === ((SPRITE.pirozhok - 0x8e) & 0xff)) && WORLD.itemSprites.collectable(SPRITE.pirozhok) && WORLD.progress.foodName === 'SNACKS');
-}
+});
 
 // ---- the icicles --------------------------------------------------------------------------------
-{
+SCOPE.section([ROOM.streets, ROOM.domes, ROOM.kremlin], 'the icicles', () => {
   const spec = must(ICICLES[0], 'an icicle');
   check('Moscow has five icicles (the streets 2, the domes 2, the Kremlin 1), at most two a room', ICICLES.length === 5 && [ROOM.streets, ROOM.domes, ROOM.kremlin].every((r) => ICICLES.filter((i) => i.room === r).length <= 2));
   // run straight under the first one (the street, left to right, the pace he walks)
-  {
+  SCOPE.section([ROOM.streets], 'running straight under an icicle', () => {
     const s = at(ROOM.streets, spec.col - 3, 17);
     const when: Record<string, number> = {};
     let f = 0;
@@ -62,25 +64,25 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     const fallFrames = Math.ceil(((spec.floor - spec.row) * 8 - 16) / FALL);
     check(`it falls ${FALL} pixels a frame to the floor (${fallFrames} frames), breaks for ${SHATTER}`, (when.shatter ?? 0) - (when.fall ?? 0) === fallFrames && (when.grow ?? 0) - (when.shatter ?? 0) === SHATTER);
     check(`it is back, armed, ${GROW} frames after it hit the floor`, (when.hang ?? 0) - (when.shatter ?? 0) === GROW);
-  }
+  });
   // stop under it: it falls on him
-  {
+  SCOPE.section([ROOM.streets], 'stopping under an icicle', () => {
     const s = at(ROOM.streets, spec.col, 17);
     let died = false;
     for (let f = 0; f < 100; f++) { frame(s, NONE); died ||= dead(s.g); }
     check('stopping under an icicle is death', died);
-  }
+  });
   // step in and back out: alive
-  {
+  SCOPE.section([ROOM.streets], 'stepping in and back out', () => {
     const s = at(ROOM.streets, spec.col - 3, 17);
     let f = 0;
     for (; f < 40 && must(s.g.ice[0], 'the icicle').state === 'hang'; f++) frame(s, RIGHT);
     run(s, LEFT, 20);
     run(s, NONE, 100);
     check('stepping in and back out is safe: it falls behind him', !dead(s.g) && colOf(s.g) < spec.col - 1);
-  }
+  });
   // nothing is armed while it grows
-  {
+  SCOPE.section([ROOM.streets], 'nothing armed while it grows', () => {
     const s = at(ROOM.streets, spec.col - 1, 17); // (he is in its column: it shivers; he steps back out, the manhole is two columns on)
     run(s, LEFT, 8);
     for (let f = 0; f < 200 && must(s.g.ice[0], 'the icicle').state !== 'grow'; f++) frame(s, NONE);
@@ -89,9 +91,10 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     run(s, NONE, 20);
     const stillGrowing = must(s.g.ice[0], 'the icicle').state === 'grow';
     check('while it grows back it is not armed: he can stand under it', !dead(s.g) && stillGrowing);
-  }
+  });
   // all five, run through at his pace
   for (const [i, e] of ICICLES.entries()) {
+    if (!SCOPE.has(e.room)) continue; // (the icicles of the rooms in the filter)
     const floor = e.floor === 6 ? 6 : 17;
     const right = e.room !== ROOM.domes;
     const s = at(e.room, right ? e.col - 3 : Math.min(e.col + 3, 22), floor); // (the domes' floor has a five-cell opening for the rope from col 23)
@@ -102,13 +105,14 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     run(s, NONE, 60);
     check(`icicle ${i + 1} (room $${e.room.toString(16)}, column ${e.col}): hanging, armed by his passing (${before} to ${fell}), and he lives`, before === 'hang' && fell !== 'hang' && !dead(s.g));
   }
-}
+});
 
 // ---- the escalators -----------------------------------------------------------------------------
-{
+SCOPE.section([ROOM.hall, ROOM.platform], 'the escalators', () => {
   for (const [name, room, col, floor, endCol, endFloor, dy, frames] of [
     ['the hall\'s, down', ROOM.hall, 11, 9, 18, 14, 1, 60], ['the platform\'s, up', ROOM.platform, 15, 17, 28, 9, -1, 96],
   ] as const) {
+    if (!SCOPE.has(room)) continue; // (the escalators of the rooms in the filter)
     const s = at(room, col, floor, [], false, true);
     let began = -1, ended = -1;
     for (let f = 0; f < 300; f++) {
@@ -131,6 +135,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   for (const [name, room, col, floor, landing] of [
     ['the hall\'s (the terrace)', ROOM.hall, 21, 14, 18], ['the platform\'s (the head)', ROOM.platform, 30, 9, 28],
   ] as const) {
+    if (!SCOPE.has(room)) continue;
     const s = at(room, col, floor, [], false, true);
     let back = false, least = 99, steady = true;
     for (let f = 0; f < 150; f++) {
@@ -144,15 +149,15 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     check(`${name}: let go he stands on the landing, on his feet (${colOf(s.g)})`, colOf(s.g) >= landing && s.g.esc.index < 0 && !s.g.gameMode && s.g.y === standY(floor));
   }
   // jumping over the foot does not ride
-  {
+  SCOPE.section([ROOM.hall], 'a jump over the foot does not ride', () => {
     const s = at(ROOM.hall, 9, 9);
     run(s, { ...NONE, right: true, fire: true }, 30);
     check('the foot is a floor to stand on: a jump over it does not start the ride', s.g.esc.index < 0 || s.g.y !== standY(9));
-  }
-}
+  });
+});
 
 // ---- the guard and the turnstile -----------------------------------------------------------------
-{
+SCOPE.section([ROOM.kremlin, ROOM.platform, ROOM.domes, ROOM.station, SIB.yeti, ROOM.hall, ROOM.gum, ROOM.streets], 'the guard and the turnstile', () => {
   const entry = (hat: boolean, room: number, col: number, floor: number) => {
     const s = newGame(WORLD, false);
     if (hat) s.g.siCollected[itemIndex(s.g, ROOM.platform, 1)] = 0x81;
@@ -160,7 +165,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     return s;
   };
   const pastArch = (g: Game) => g.roomId === ROOM.kremlin && colOf(g) >= 14;
-  {
+  SCOPE.section([ROOM.kremlin, ROOM.platform, ROOM.domes, ROOM.station, SIB.yeti], 'the guard in the arch and the hat', () => {
     const guard = entry(false, ROOM.kremlin, 1, 6);
     check('without the hat there is a guard in the arch, in its first creature slot', guard.g.enemies[0]?.type === GUARD && guard.g.enemies[0].x !== 0xff);
     const stats = { exhausted: false };
@@ -170,8 +175,8 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     check('with the hat the guard is gone (sent off the screen)', must(hat.g.enemies[0], 'the guard').x === 0xff);
     const way = search(hat, pastArch, undefined, 300000, 0);
     check('and with it Monty walks through the arch to the gorge', way !== null);
-  }
-  {
+  });
+  SCOPE.section([ROOM.hall, ROOM.platform, ROOM.gum, ROOM.streets], 'the turnstile and the token', () => {
     const lower = (token: boolean) => {
       const s = newGame(WORLD, false);
       if (token) s.g.siCollected[itemIndex(s.g, ROOM.gum)] = 0x81;
@@ -192,11 +197,11 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     const s = lower(false);
     const found = search(s, (g) => g.roomId === ROOM.platform, undefined, 100000, 0, stats);
     check(`no way into the platform without the token exists (${stats.exhausted ? 'every state looked at' : 'limit'})`, found === null);
-  }
-}
+  });
+});
 
 // ---- the costume, the hints, the save --------------------------------------------------------------------
-{
+SCOPE.section([ROOM.platform, ROOM.gum, ROOM.hall, ROOM.start], 'the costume, the hints, the save', () => {
   const USHANKA = itemIndex(newGame(WORLD, true).g, ROOM.platform, 1);
   const TOKEN = itemIndex(newGame(WORLD, true).g, ROOM.gum);
   const takeUshanka = (enhanced: boolean) => {
@@ -205,57 +210,63 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
     return s;
   };
   const plain = Uint8Array.from(WORLD.bankImage.subarray(0x54 * 64, 0x54 * 64 + 63));
-  const s = takeUshanka(true);
-  check('the ushanka is taken from its shelf (200 points)', s.g.siCollected[USHANKA] !== 0 && s.g.score === 200);
-  const costume = must(WORLD.costumes[0], 'the costume');
-  const block = must(costume.blocks.find((b) => b.ptr === 0x54), 'a block for the walk').block;
-  check('Monty wears it from then on: his pictures are the costume\'s (all 36 of them, the hat on each)', s.g.worn === USHANKA && costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).length === 36
-    && same(s.g.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block) && !same(block, plain));
-  check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).every((b) => !same(b.block, WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))));
-  // kept in the save
-  const saved = snapshot(s.g);
-  const back = CODEC.unpack(CODEC.pack(saved), CODEC.format);
-  const g2 = newGame(WORLD, true).g;
-  restore(g2, back);
-  check('it is kept in the save (the item he wears), and a game carried on from one has it on', back.worn === USHANKA && g2.worn === USHANKA && same(g2.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block));
-  const fresh = newGame(WORLD, true).g;
-  check('a new game has him bare again', fresh.worn === null && same(fresh.mem.subarray(0x54 * 64, 0x54 * 64 + 63), plain));
+  SCOPE.section([ROOM.platform, ROOM.start], 'the ushanka worn, in the save, bare in a new game', () => {
+    const s = takeUshanka(true);
+    check('the ushanka is taken from its shelf (200 points)', s.g.siCollected[USHANKA] !== 0 && s.g.score === 200);
+    const costume = must(WORLD.costumes[0], 'the costume');
+    const block = must(costume.blocks.find((b) => b.ptr === 0x54), 'a block for the walk').block;
+    check('Monty wears it from then on: his pictures are the costume\'s (all 36 of them, the hat on each)', s.g.worn === USHANKA && costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).length === 36
+      && same(s.g.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block) && !same(block, plain));
+    check('every one of the 36 differs from the plain picture, in pixels near the top of the figure or turned with it', costume.blocks.filter((b) => b.ptr >= 0x50 && b.ptr <= 0x73).every((b) => !same(b.block, WORLD.bankImage.subarray(b.ptr * 64, b.ptr * 64 + 63))));
+    // kept in the save
+    const saved = snapshot(s.g);
+    const back = CODEC.unpack(CODEC.pack(saved), CODEC.format);
+    const g2 = newGame(WORLD, true).g;
+    restore(g2, back);
+    check('it is kept in the save (the item he wears), and a game carried on from one has it on', back.worn === USHANKA && g2.worn === USHANKA && same(g2.mem.subarray(0x54 * 64, 0x54 * 64 + 63), block));
+    const fresh = newGame(WORLD, true).g;
+    check('a new game has him bare again', fresh.worn === null && same(fresh.mem.subarray(0x54 * 64, 0x54 * 64 + 63), plain));
+  });
 
-  // the hints
-  const withHints = at(ROOM.platform, 11, 15, [], true);
-  for (let f = 0; f < 4; f++) frame(withHints, NONE);
-  check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: LOOK LIKE A LOCAL');
-  const without = takeUshanka(false);
-  run(without, NONE, 4);
-  check(`ORIGINAL: it says nothing (the name stays: "${rowText(without.g)}")`, rowText(without.g) === 'UNDERGROUND MOVEMENT');
-  run(withHints, NONE, 220);
-  check('and four seconds on the name is back', rowText(withHints.g) === 'UNDERGROUND MOVEMENT');
-  const room = (enhanced: boolean, token: boolean) => {
-    const r = newGame(WORLD, enhanced);
-    if (token) r.g.siCollected[TOKEN] = 0x81;
-    enterRoom(r.g, ROOM.hall, 0x0c + (8 + 4) * 4, standY(9));
-    r.g.enemies = [];
-    return r;
-  };
-  const wants = room(true, false);
-  const name = rowText(wants.g);
-  run(wants, NONE, 60);
-  const during = rowText(wants.g);
-  run(wants, NONE, 60);
-  const later = rowText(wants.g);
-  run(wants, NONE, 200);
-  check(`ENHANCED: a room that wants an item says so, once its name has had its two seconds ("${name}", then "${later}", then the name again)`,
-    name === 'ESCALATING TENSIONS' && during === 'ESCALATING TENSIONS' && later === 'THE TURNSTILE TAKES A TOKEN' && rowText(wants.g) === 'ESCALATING TENSIONS');
-  const have = room(true, true);
-  run(have, NONE, 140);
-  check('and says nothing once he has it', rowText(have.g) === 'ESCALATING TENSIONS');
-  const orig = room(false, false);
-  run(orig, NONE, 140);
-  check('ORIGINAL says nothing at all', rowText(orig.g) === 'ESCALATING TENSIONS');
-}
+  SCOPE.section([ROOM.platform], 'the ushanka\'s hint', () => {
+    // the hints
+    const withHints = at(ROOM.platform, 11, 15, [], true);
+    for (let f = 0; f < 4; f++) frame(withHints, NONE);
+    check(`ENHANCED: taking the ushanka says what it is for in the name row: "${rowText(withHints.g)}"`, rowText(withHints.g) === 'FUR HAT: LOOK LIKE A LOCAL');
+    const without = takeUshanka(false);
+    run(without, NONE, 4);
+    check(`ORIGINAL: it says nothing (the name stays: "${rowText(without.g)}")`, rowText(without.g) === 'UNDERGROUND MOVEMENT');
+    run(withHints, NONE, 220);
+    check('and four seconds on the name is back', rowText(withHints.g) === 'UNDERGROUND MOVEMENT');
+  SCOPE.section([ROOM.hall, ROOM.gum], 'the hall wants the token', () => {
+  });
+    const room = (enhanced: boolean, token: boolean) => {
+      const r = newGame(WORLD, enhanced);
+      if (token) r.g.siCollected[TOKEN] = 0x81;
+      enterRoom(r.g, ROOM.hall, 0x0c + (8 + 4) * 4, standY(9));
+      r.g.enemies = [];
+      return r;
+    };
+    const wants = room(true, false);
+    const name = rowText(wants.g);
+    run(wants, NONE, 60);
+    const during = rowText(wants.g);
+    run(wants, NONE, 60);
+    const later = rowText(wants.g);
+    run(wants, NONE, 200);
+    check(`ENHANCED: a room that wants an item says so, once its name has had its two seconds ("${name}", then "${later}", then the name again)`,
+      name === 'ESCALATING TENSIONS' && during === 'ESCALATING TENSIONS' && later === 'THE TURNSTILE TAKES A TOKEN' && rowText(wants.g) === 'ESCALATING TENSIONS');
+    const have = room(true, true);
+    run(have, NONE, 140);
+    check('and says nothing once he has it', rowText(have.g) === 'ESCALATING TENSIONS');
+    const orig = room(false, false);
+    run(orig, NONE, 140);
+    check('ORIGINAL says nothing at all', rowText(orig.g) === 'ESCALATING TENSIONS');
+  });
+});
 
 // ---- the pause screen's map ------------------------------------------------------------------------
-{
+SCOPE.section([], 'the pause screen\'s map', () => {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
   check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
@@ -265,6 +276,7 @@ const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.leng
   check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[3]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 1: [0x15, 0xb2, 1, 1], 7: [0x15, 0xb2, 2, 1] } });
   check('the map shows the region he is in: its cells are large (16), the rooms he has been in are places to go', places.length === 3 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
-}
+});
 
+SCOPE.report();
 finish();

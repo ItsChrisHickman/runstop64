@@ -5,13 +5,14 @@
  * them: its worst fails at 3 places of the 11 or so a rope can be touched from, the three unaligned ones beside an aligned fit; a pixel-perfect
  * place is one that works at 1 of them), so a climb may fail at `MOTR_NORM` places and no more. `show` prints the cells round each offender.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/climbs.ts [motr|show]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/climbs.ts [motr|show] [--room <rooms>]
  */
 import { MOTR } from '../../montyotr/src/motr';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import type { MontyData } from '../../montyotr/src/montydata';
-import { inRoom, probe, type Fail } from './climb-kit';
+import { inRoom, probe, roomsOf, type Fail } from './climb-kit';
+import { SCOPE } from './scope';
 
 // the same run each time (a room's mechanisms take g.random(), which takes Math.random)
 {
@@ -48,7 +49,7 @@ if (process.argv[2] === 'motr') {
   check(`Monty on the Run's ${climbs} climbs in its first ${ORIGINAL_ROOMS} rooms fail at ${worst} places at the worst (the norm, ${MOTR_NORM})`, worst <= MOTR_NORM);
   finish();
 } else {
-  const all = probe(WORLD);
+  const all = probe(WORLD, SCOPE.keep(roomsOf(WORLD)));
   let climbs = 0, offenders = 0;
   for (const { room, found } of all) {
     climbs += found.climbs.length;

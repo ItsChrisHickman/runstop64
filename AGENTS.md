@@ -67,8 +67,15 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
   below the sites): `tools/test-all.mjs` (so `npm run verify`) runs three at a time, and before running tests wait for a turn
   with `tools/wait-turn.sh` (one slot for a single test, `tools/wait-turn.sh 3` before `npm run verify`). Several agents may
   work at once.
+- **Test what the change touches: `node tools/affected.mjs --run`** is an agent's normal pre-ship check (Chris, 2026-11-23:
+  whole-region runs for a one-room change took hours). It reads `git diff` against `main` (or a base given), maps changed lines of
+  a Monty game's region files to rooms, and runs typecheck, check:strict and the minimal tests: the room tests over those rooms
+  (`--room`), the region's mechanisms sections and bot legs through them, the cheap world-wide checks; any other file runs every
+  test that imports it; several regions, the engine or a tool fall back to the full suites. **When only rooms changed, never run
+  whole-region bots or broad suites by hand:** use it, or `node tools/test.mjs <test> --room <id|region.key>[,...]` for one test.
+  Without `--run` it prints the plan.
 - **Before every push run `nice -n 15 npm run verify`** (typecheck + check:strict + the fast tests). There is no
-  CI (Actions minutes are scarce), so this is the check.
+  CI (Actions minutes are scarce), so this is the check; the coordinating session runs it (and `--slow` before a region ships).
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
   session merges, pushes and deploys (`npm run deploy`).
@@ -116,6 +123,7 @@ no dungeons, no grey, names, costumes, music, and how we build and review a regi
 | Names and codes on a touch screen | `games/shared/letters.ts` (`NamePicker`, `KeyPacer`) | its letters, `names:` |
 | A Monty game on Monty on the Run's engine: the engine (`Game`, items, mechanisms, map, save, ending, title) takes everything of the game it plays as one `MontyData` value (rooms, exit grid of any size, tiles, sprites, coins, items and their room effects, crushers, lifts, teleporters, sectors, start, music, and a world tour's own mechanisms: escalators, icicles, tunnel mouths, cracking ice, timed strikes (`pulses`), dragons, animated characters (`charAnims`: scrolling rings, cycling pictures: a train's windows, sleepers and wheels) and costumes, a module each in `games/montyotr/src` and a list in the value, empty in Monty on the Run's; Monty on the Run's own C5 street, jetpack rooms, rising cloud and finale are data of its value); the session (`runMonty`) is written once; rooms in runstop64's room format (`RoomSpec`) are turned into the tables by `buildRooms`. A second game is a second value, not a copy | `games/montyotr/src/montydata.ts` (`MontyData`), `session.ts` (`runMonty`), `games/shared/monty/rooms.ts` (`RoomSpec`, `buildRooms`); Monty on the Run's value `motr.ts` (tables `data.ts`), Do Svidaniya Monty's `games/montyworld/src/data.ts`; tests `montyworld/test/walk.ts` | a `MontyData` and a `main.ts` that calls `runMonty(host, data)` |
 | A Monty game's test bots, game-agnostic: the search over the game's own frames (`bot.ts`: `search`, `play`, `newGame(data, enhanced)`), a region's legs played from recorded routes (`legs.ts`: `runLegs`, `--record`, `--full`; a route that no longer reaches its goal falls back to the search and says to re-record) and the mechanism tests' searches recorded the same way (`proofs.ts`: `proofsIn(dir)`) | `games/shared/monty/test/` | a `MontyData`, its legs (`Leg`: goal and aim), a routes folder (`games/montyworld/test/routes`, `routes-dir.ts`, `search.ts`) |
+| Room-scoped testing for a Monty game: `--room` on `tools/test.mjs` (env `MONTY_ROOMS`) and `RoomScope` (`scope.ts`: `has`, `keep`, `pick`, `section(rooms, what, body)` for a mechanism test's parts); the bots' legs chosen by the rooms their recorded routes go through, started from kept states (`states.ts`, a cache in `os.tmpdir()`, used only while the fingerprints of the engine and the rooms behind them hold: `attribute.ts`) and checked to rejoin the recorded chain after; lines to rooms (`attribute.ts`) and the change detector's planner (`affected.ts`, called by `tools/affected.mjs`) | `games/shared/monty/test/` (`scope.ts`, `attribute.ts`, `states.ts`, `affected.ts`) | its room names (`montyworld/test/scope.ts`: `SCOPE`, `prints()`), its tests for the planner (`montyworld/test/affected.ts`) |
 | Loader, shell (home, gear, info, full screen) | `games/loader.ts`, `games/shell.ts` | `run(host)`, `info` (registry entry) |
 
 All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Antiriad) run their session through `runPort`
@@ -131,7 +139,8 @@ All the native rebuilds (Monty, Auf Wiedersehen Monty, Moley Christmas, Antiriad
   AWM's gitignored originals in `games/awm/build/`, is a skip with a message, not a failure). `--slow` adds the slow set,
   `--list` shows what would run, a word filters by name. **A new test goes in `tests.mjs`.** Tests report with
   `check(what, ok)` and end with `finish()` (`games/shared/test/check.ts`: the exit code is what the runner goes by).
-  `npm run verify` = typecheck + check:strict + the fast tests.
+  `npm run verify` = typecheck + check:strict + the fast tests. `--plan=<file.json>` runs a given list (what `tools/affected.mjs --run` hands it).
+- `tools/affected.mjs` (`[base] [--run] [--slow] [--list]`): the change detector, the pre-ship check for a change (see Workflow).
 - `tools/probe`: a C64 in TypeScript (boot a .prg/.d64, run frames, patch memory, save a state, render PNGs). It makes title
   snapshots and runs the originals the ports are checked against (`games/*/build/README.md`).
 - `tools/zx`: a headless ZX Spectrum 48K in TypeScript (Z80, ULA, tape loader trap, snapshots, PNGs, a Z80 disassembler), the

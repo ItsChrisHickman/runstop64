@@ -3,7 +3,7 @@
  * showing what the room's backdrop has there (a sky, a sea: the decorations of a backdrop type, derived here from the room's own list), never black unless the backdrop is
  * black there. A coin on a backdrop is drawn over it (its picture in the cell with the backdrop's, not a black box).
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-holes.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-holes.ts [--room <rooms>]
  */
 import { decorPool } from '../../montyotr/src/decor-chars';
 import { ROW, SCREEN } from '../../montyotr/src/game';
@@ -14,6 +14,7 @@ import { COIN_CHAR, PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { inRoom, roomsOf } from './climb-kit';
+import { SCOPE } from './scope';
 
 /** What the room's backdrop has at each screen cell: the last decoration of a backdrop type that covers it, its character and colour (derived from the data, as the engine does not). */
 function backdropOf(room: number): Map<number, readonly [chr: number, colour: number]> {
@@ -49,7 +50,7 @@ function showsBackdrop(g: Game, room: number, at: number, back: ReadonlyMap<numb
   return want !== undefined;
 }
 
-for (const room of roomsOf(WORLD)) {
+for (const room of SCOPE.keep(roomsOf(WORLD))) {
   const back = backdropOf(room);
 
   // every coin: drawn over the backdrop (its pixels all there), and taken, it leaves the backdrop
@@ -117,5 +118,5 @@ for (const room of roomsOf(WORLD)) {
   }
 }
 
-check(`${coins} coins taken (${coinsOnBackdrop} on a backdrop), ${cleared} cleared cells (${clearedOnBackdrop} on a backdrop), ${cracked} cells of gone ice: each leaves the backdrop's cell (${wrong.length} wrong${wrong.length ? `: ${wrong.slice(0, 6).join('; ')}` : ''})`, wrong.length === 0 && coins > 0 && coinsOnBackdrop > 0);
+check(`${coins} coins taken (${coinsOnBackdrop} on a backdrop), ${cleared} cleared cells (${clearedOnBackdrop} on a backdrop), ${cracked} cells of gone ice: each leaves the backdrop's cell (${wrong.length} wrong${wrong.length ? `: ${wrong.slice(0, 6).join('; ')}` : ''})`, wrong.length === 0 && (!SCOPE.all || (coins > 0 && coinsOnBackdrop > 0))); // (the counts' floor is the whole world's: a room may have no coin on a backdrop)
 finish();

@@ -5,6 +5,9 @@
 //
 //   nice -n 15 node tools/test.mjs games/montyotr/test/frontend.ts [args]
 //   nice -n 15 node tools/test.mjs games/awm/test/frontend.ts /tmp/shots
+//
+// `--room <id|name>[,...]` (or `--room=...`) is taken off the arguments and handed to the test as MONTY_ROOMS: a Monty game's
+// room-level tests then check only those rooms (games/shared/monty/test/scope.ts), its region bots only the legs through them.
 
 import os from 'node:os';
 import path from 'node:path';
@@ -12,7 +15,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { ensureGen } from './gen.mjs';
 
-const [, , entry, ...args] = process.argv;
+const [, , entry, ...given] = process.argv;
+const args = [];
+for (let i = 0; i < given.length; i++) {
+  const a = given[i];
+  if (a === '--room') { process.env.MONTY_ROOMS = given[++i] ?? ''; continue; }
+  if (a.startsWith('--room=')) { process.env.MONTY_ROOMS = a.slice('--room='.length); continue; }
+  args.push(a);
+}
 if (!entry) {
   console.error('usage: node tools/test.mjs <test.ts> [args]');
   process.exit(1);

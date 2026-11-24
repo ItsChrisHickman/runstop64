@@ -2,23 +2,17 @@
  * Decorations that stand on something (a lamp, a bench, a sign on its post, a tree, a statue, a palm) have solid cells directly under their foot
  * (Chris on the metro sign: its post floated over the floor). `STANDS` names them; a sign on a wall is not on it.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/stands.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/stands.ts [--room <rooms>]
  */
 import { check, finish } from '../../shared/test/check';
 import type { RoomSpec } from '../../shared/monty/rooms';
-import { ANDES_ALL_ROOMS } from '../src/andes';
 import { WORLD_DECOR } from '../src/art/world';
-import { CHINA_ROOMS } from '../src/china';
-import { JAPAN_ROOMS } from '../src/japan';
-import { MOSCOW_ROOMS } from '../src/moscow';
-import { PACIFIC_ROOMS } from '../src/pacific';
-import { RIO_ROOMS } from '../src/rio';
-import { SIBERIA_ROOMS } from '../src/siberia';
 import { WORLD } from '../src/data';
 import { inRoom } from './climb-kit';
+import { ALL_ROOMS, scopedRooms } from './scope';
 
 const STANDS = new Set(['lampStreet', 'lampDouble', 'metroSign', 'bench', 'firTree', 'lampPost', 'palm', 'parasol', 'deckchair', 'restTable', 'saladBar', 'rotisserie', 'roundTree', 'lionStatue', 'intihuatana', 'pacTikiTorch', 'pacTotem', 'pacHibiscus', 'pacRoastPig', 'torch', 'jpToro', 'jpBonsai', 'jpPine', 'jpPineBig', 'jpVending', 'jpAndon', 'noodleStall', 'stall', 'marketStall', 'samovar']);
-const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
+const ROOMS: readonly RoomSpec[] = scopedRooms(ALL_ROOMS);
 const entries = Object.entries(WORLD_DECOR);
 
 let checked = 0;

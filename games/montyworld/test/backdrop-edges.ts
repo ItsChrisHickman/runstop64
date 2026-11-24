@@ -2,15 +2,16 @@
  * A backdrop runs edge to edge: in every room, a row of the picture that is filled across its middle (columns 2-29, all of it decoration characters: a sky, a sea, a wall seen behind)
  * is filled (by the picture too, or a tile) at the playfield's first and last columns and in the margin the picture shows either side too (Chris, 2026-11-22: Rio's sky stopped one column short at each side).
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-edges.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-edges.ts [--room <rooms>]
  */
 import { check, finish } from '../../shared/test/check';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, SCREEN, ROW, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
 import { inRoom, roomsOf } from './climb-kit';
+import { SCOPE } from './scope';
 
 const gaps: string[] = [];
-for (const room of roomsOf(WORLD)) {
+for (const room of SCOPE.keep(roomsOf(WORLD))) {
   const s = inRoom(WORLD, room);
   if (!s) continue;
   const cell = (col: number, row: number) => s.g.mem[SCREEN + (row + PLAY_ROW) * ROW + col + PLAY_COL] ?? 0;

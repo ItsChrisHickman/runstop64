@@ -18,6 +18,7 @@ declare class Buffer extends Uint8Array {
 declare const process: {
   readonly argv: string[];
   readonly env: Record<string, string | undefined>;
+  readonly pid: number;
   exit(code?: number): never;
 };
 
@@ -27,14 +28,16 @@ declare module 'node:fs' {
   function readFileSync(path: Path, encoding: BufferEncoding): string;
   function writeFileSync(path: Path, data: string | Uint8Array): void;
   function mkdirSync(path: Path, options?: { recursive?: boolean }): void;
-  function readdirSync(path: Path): string[];
+  function readdirSync(path: Path, options?: { recursive?: boolean }): string[];
   function existsSync(path: Path): boolean;
+  function renameSync(from: Path, to: Path): void;
   const fs: {
     readFileSync: typeof readFileSync;
     writeFileSync: typeof writeFileSync;
     mkdirSync: typeof mkdirSync;
     readdirSync: typeof readdirSync;
     existsSync: typeof existsSync;
+    renameSync: typeof renameSync;
   };
   export default fs;
 }
@@ -55,8 +58,19 @@ declare module 'node:url' {
 }
 
 declare module 'node:zlib' {
-  const zlib: { deflateSync(data: Uint8Array): Buffer };
+  const zlib: { deflateSync(data: Uint8Array): Buffer; gzipSync(data: Uint8Array): Buffer; gunzipSync(data: Uint8Array): Buffer };
   export default zlib;
+}
+
+declare module 'node:v8' {
+  /** The structured clone algorithm's bytes (what `structuredClone` copies, written out). */
+  const v8: { serialize(value: unknown): Buffer; deserialize(data: Uint8Array): unknown };
+  export default v8;
+}
+
+declare module 'node:os' {
+  const os: { tmpdir(): string };
+  export default os;
 }
 
 declare module 'node:crypto' {

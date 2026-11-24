@@ -4,7 +4,7 @@
  * Each room with crushers is entered with Monty out of their way and played for a few seconds: each crusher's head must come down
  * (its glyph memory changes, the descent runs down its shaft) and go up again, and in a room of two both do. A head held by a lever (the Sambadrome's: levers.ts) is pulled whenever it is up.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/crushers.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/crushers.ts [--room <rooms>]
  */
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
@@ -13,11 +13,12 @@ import { ROW, SCREEN } from '../../shared/monty/screen';
 import { CRUSHER_MAX_HEIGHT } from '../../shared/monty/rooms';
 import { piledriverCfg as MOTR_CFG } from '../../montyotr/src/data';
 import { at } from './mech-kit';
+import { SCOPE } from './scope';
 
 const cfg = WORLD.piledriverCfg;
 const FRAMES = 1500; // (a crusher waits 20 to 83 frames, then comes down and goes up; a pair take turns at random)
 const records = Array.from({ length: Math.floor(cfg.length / 5) }, (_, i) => ({ room: cfg[i * 5] ?? 0, col: cfg[i * 5 + 1] ?? 0, chr: cfg[i * 5 + 4] ?? 0 }));
-const rooms = [...new Set(records.map((r) => r.room))].filter((r) => r > 0);
+const rooms = SCOPE.keep([...new Set(records.map((r) => r.room))].filter((r) => r > 0));
 
 for (const room of rooms) {
   const crushers = records.filter((r) => r.room === room);
@@ -45,7 +46,7 @@ for (const room of rooms) {
   check(`room ${room}: ${crushers.length} crusher${crushers.length > 1 ? 's' : ''} (characters ${chars}) come down and go up (down ${down}, up ${up}, banks moved ${[...banks].join(',')}, ${pictures.size} different pictures)`,
     down && up && banks.size === crushers.length && pictures.size > 8);
 }
-check(`${rooms.length} rooms with crushers were found (Moscow's, Japan's and the Pacific's; the Andes' rebuild took out the Inca tunnel's)`, rooms.length >= 4);
+check(`${rooms.length} rooms with crushers were found (Moscow's, Japan's and the Pacific's; the Andes' rebuild took out the Inca tunnel's)`, !SCOPE.all || rooms.length >= 4); // (the world's count: under --room, only the named rooms' crushers are run)
 
 // Nothing is left behind: a shaft's cells are only its own characters (a column's cell i is the base + 6 * column + i, so a shaft no taller than the six
 // a column of glyph memory holds), and when a crusher is away after a cycle the glyph memory and the screen are as they were on entering the room.

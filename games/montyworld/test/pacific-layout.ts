@@ -3,9 +3,10 @@
  * drawn under them), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (pacific-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-layout.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-layout.ts [--room <rooms>]   (--room: the named rooms' own checks; the region's totals are always checked)
  */
 import { check, finish } from '../../shared/test/check';
+import { scopedRooms } from './scope';
 import { WORLD_DECOR } from '../src/art/world';
 import { isBackdrop } from '../src/layout';
 import { PAC, PACIFIC_ROOMS } from '../src/pacific';
@@ -19,7 +20,7 @@ const NAME = new Map<number, string>(Object.entries(PAC).map(([k, v]) => [v, k])
 const names = Object.values(WORLD_DECOR);
 const decorNames = Object.keys(WORLD_DECOR);
 
-for (const r of ROOMS) {
+for (const r of scopedRooms(ROOMS)) {
   const label = NAME.get(r.id) ?? String(r.id);
   /** A wall: a cell of a tile of the collision class that stops him (1), not the sea's or a rope's. */
   const solid = (col: number, row: number) => {

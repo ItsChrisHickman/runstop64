@@ -3,12 +3,13 @@
  * world each creature is run for a while (as it patrols: walkers, fliers, the up-and-down ones), and the colour it is drawn in must differ from the colour of every cell with
  * something drawn in it (a tile, a decoration) in the box of cells its picture sweeps. Nothing can end him while the patrols are watched.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/creature-contrast.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/creature-contrast.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { frame, NONE } from '../../montyotr/test/play';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, ROW, SCREEN } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
+import { SCOPE } from './scope';
 import { rollerAt } from '../../montyotr/src/rollers';
 import { WORLD } from '../src/data';
 import { newPlay, settle, standing } from './shots-kit';
@@ -26,7 +27,7 @@ const WATCH = 900;
 const PENDING = new Set([0x11, 0x13, 0x28, 0x2d, 0x2f, 0x36, 0x4a]);
 
 /** The room ids of the world's exit grid. */
-const rooms = [...new Set(Array.from(WORLD.exitGrid.image).filter((id) => id !== 0xff))].sort((a, b) => a - b);
+const rooms = SCOPE.keep([...new Set(Array.from(WORLD.exitGrid.image).filter((id) => id !== 0xff))].sort((a, b) => a - b));
 
 /** Colours of the C64 by name, for a message. */
 const NAME = ['black', 'white', 'red', 'cyan', 'purple', 'green', 'blue', 'yellow', 'orange', 'brown', 'light red', 'dark grey', 'grey', 'light green', 'light blue', 'light grey'];

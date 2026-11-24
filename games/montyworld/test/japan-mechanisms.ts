@@ -4,7 +4,7 @@
  * the three gates (the shutter and the daruma, the koi and the fish food, the guard and the ninja hood), the hood as a costume in the rice hat's place, the joins (the
  * loop, the ways back, no trap), the layout's sanity (nothing drawn in a tile), the hints, the map, and a save from before Japan carrying on.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts [--room <rooms>]
  */
 import { PLAY_COL, PLAY_ROW, ROW, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { decorChars } from '../../montyotr/src/decor-chars';
@@ -28,7 +28,9 @@ import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
 import { CODEC } from '../src/main';
+import { PAC } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
+import { SCOPE, scopedRooms } from './scope';
 import { search } from './search';
 import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
@@ -38,7 +40,7 @@ const DARUMA = [JP.parlour, 0] as const, FISH = [JP.crossing, 0] as const, HOOD 
 const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- the data -------------------------------------------------------------------------------------
-{
+SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite blocks', () => {
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
@@ -55,22 +57,22 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const used = [...HAT_BLOCKS, ...Object.values(JAPAN_SPRITE)];
   check(`every block of the bank Japan uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73) and its four items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values(JAPAN_SPRITE).every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
-  const lockstep = JAPAN_ROOMS.flatMap((r) => {
+  const lockstep = scopedRooms(JAPAN_ROOMS).flatMap((r) => {
     const seen = new Set<string>();
     return (r.enemies ?? []).flatMap((e) => { const k = `${e.dir}/${e.speed}/${e.range}`; if (seen.has(k)) return [`room ${r.id}: two creatures that go ${k} (direction/speed/range)`]; seen.add(k); return []; });
   });
   check(`no two creatures of a room go in lockstep (the same direction, speed and range): ${lockstep.length ? lockstep.join('; ') : 'none do'}`, lockstep.length === 0);
-  const crowded = overCrowded(JAPAN_ROOMS);
+  const crowded = overCrowded(scopedRooms(JAPAN_ROOMS));
   check(`no room has a fourth creature (sprite 7 is the worn hat's: it would be a phantom; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no pictured tunnels, no pulse with an offset)', MOTR.tunnels.length === 0 && MOTR.pulses.every((p) => p.offset === undefined));
-}
+});
 
 // ---- nothing drawn in a tile: the layout's sanity --------------------------------------------------------
-{
+SCOPE.section([], 'the layout\'s sanity: nothing drawn in a tile', () => {
   const decorTypes = Object.values(WORLD_DECOR), decorNames = Object.keys(WORLD_DECOR);
   const problems: string[] = [];
   let pools = 0;
-  for (const r of JAPAN_ROOMS) {
+  for (const r of scopedRooms(JAPAN_ROOMS)) {
     const solid = (col: number, row: number) => {
       const ch = r.map[row]?.[Math.max(0, Math.min(31, col))]; // (a margin column is as the edge cell beside it)
       if (ch === undefined) return true;
@@ -115,10 +117,10 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     if (r.tiles.length > 8) problems.push(`room ${r.id}: more than eight tiles`);
   }
   check(`no decoration, coin, item or creature of Japan's rooms is in a tile, every decoration fits its room's character pool, no more than eight tiles a room (${problems.length ? problems.join('; ') : `${pools} characters of decorations`})`, problems.length === 0);
-}
+});
 
 // ---- the parlour: arriving by the rope and pausing at its top is safe ----------------------------------------
-{
+SCOPE.section([JP.street, JP.parlour, JP.harbour, JP.crossing, JP.platform], 'the parlour: arriving by the rope is safe', () => {
   for (const enhanced of [false, true]) {
     const found = search(at(JP.street, 18, 17, [], enhanced), (g) => g.roomId === JP.parlour && g.onRope !== 0, [{ room: JP.street, col: 21, row: 19 }], 150000, 1.5);
     const s = must(found?.end, 'a way down the rope');
@@ -127,10 +129,10 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     for (let n = 0; n < 1500 && !died; n++) { frame(s, NONE); died = dead(s.g) || s.g.lives !== lives; }
     check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: down the street's stairs into the parlour (arrived ${arrived}, y ${top}) and standing still at the rope's top for 1500 frames, the lantern ghost does not touch him`, arrived && !died);
   }
-}
+});
 
 // ---- the bullet trains -------------------------------------------------------------------------------------
-{
+SCOPE.section([JP.platform, JP.fuji, JP.parlour], 'the bullet trains', () => {
   const trainCodes = new Set(TRAINS.flatMap((t) => (t.picture ?? []).flat().filter((c) => c !== 0)));
   const lane = (g: Game, col: number) => [8, 9, 10, 11, 12, 13].some((row) => trainCodes.has(cell(g, col, row)));
   const right = must(TRAINS[0], 'the up train'), left = must(TRAINS[1], 'the down train');
@@ -140,7 +142,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   check('each train\'s nose is at the end it goes in front: stepped (the front cells have no roof) and mirrored between the two', noses[0] !== 0 && noses[1] !== 0 && noses[2] === 0 && noses[3] === 0 && noses[4] !== 0 && noses[5] !== 0);
   check('its characters are tiles he passes through (class 0), so the picture is not a wall', [...trainCodes].every((code) => WORLD.tileProperty(must(JAPAN_ROOMS.find((r) => r.id === JP.platform), 'the platform').tiles[code - 1] ?? -1) === 0));
   // the sequence: quiet, a flashing edge at the right, the up train through, the down train
-  {
+  SCOPE.section([JP.platform], 'the bullet trains: the sequence', () => {
     const s = at(JP.platform, 14, 17);
     let warnFrom = -1, onFrom = -1, offAt = -1, downFrom = -1;
     for (let f = 1; f <= 800; f++) {
@@ -152,9 +154,9 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     }
     check(`the up train's right edge starts flashing ${warnFrom} frames in (after ${TRAIN.first}), it comes on at the room's right at frame ${onFrom} (${TRAIN.warn} frames of warning) and is gone by ${offAt}; the down train's edge flashes from ${downFrom}`,
       Math.abs(warnFrom - TRAIN.first) <= 18 && onFrom > warnFrom + TRAIN.warn - 24 && onFrom < warnFrom + TRAIN.warn + 60 && offAt > onFrom + 100 && Math.abs(downFrom - TRAIN.first - TRAIN_APART) <= 24);
-  }
+  });
   // deadly on the lane, safe below it
-  {
+  SCOPE.section([JP.platform], 'the bullet trains: deadly on the lane, safe below', () => {
     const lanes = at(JP.platform, 14, 14);
     const when = diesAt(lanes, NONE, 2 * 656);
     check(`standing on the platform (col 14) a train kills him (frame ${when}) within a cycle`, when >= 0 && when < 2 * (TRAIN.warn + TRAIN.sweep + TRAIN.quiet));
@@ -166,9 +168,9 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     let rope = 0;
     for (let f = 0; f < 2 * 656; f++) { frame(stairs, NONE); rope += stairs.g.onRope ? 1 : 0; if (dead(stairs.g)) break; }
     check('hanging on the stairs\' rope below the deck (the way up is a rope through the deck, cells 19-21) the trains do nothing either', rope > 0 && !dead(stairs.g));
-  }
+  });
   // a fair timing: the cycle has a quiet moment (no train on the platform, no edge flashing), and a dash from the second stairs' top to the way out through the open shutter, started in it, is always clear
-  {
+  SCOPE.section([JP.platform, JP.fuji, JP.parlour], 'the bullet trains: a fair timing to the way out', () => {
     const cycle = 2 * (TRAIN.warn + TRAIN.sweep + TRAIN.quiet);
     const quietAt = (g: Game) => Array.from({ length: 32 }, (_, c) => c).every((c) => !lane(g, c));
     // the room watched for two cycles: the frames with nothing on the lane and no edge flashing
@@ -193,19 +195,19 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const total = clear + hit;
     check(`the dash from the second stairs' top to the way out (cells 22 to 31, 80 frames) is clear at ${clear} of ${total} starts across a cycle (${windows}): a timing, neither shut nor open; and started at no flash and no train it is clear at ${quietClear} of ${quietStarts}`,
       clear / total >= 0.25 && hit / total >= 0.15 && quietStarts >= 8 && quietClear === quietStarts);
-  }
+  });
   // and the up train's whole length: a 300 frame cycle for each
-  {
+  SCOPE.section([JP.platform], 'the bullet trains: a train\'s whole length', () => {
     const s = at(JP.platform, 14, 17);
     run(s, NONE, TRAIN.first + TRAIN.warn + 10);
     let across = 0, started = false;
     for (let f = 0; f < 200; f++) { frame(s, NONE); const on = lane(s.g, 10); if (on) { started = true; across++; } else if (started) break; }
     check(`a train takes ${across} frames to go past a cell: its ${TRAIN.cols} cells at ${TRAIN.step} a cell (${TRAIN.cols * TRAIN.step})`, Math.abs(across - TRAIN.cols * TRAIN.step) <= 6);
-  }
-}
+  });
+});
 
 // ---- the paper doors ----------------------------------------------------------------------------------------
-{
+SCOPE.section([JP.hall], 'the paper doors', () => {
   const door = (k: number) => must(DOOR_PULSES[k], 'a door');
   check(`three doors at cols ${DOORS.cols.join(', ')}, 2 cells wide and ${DOORS.rows} tall, a ${DOORS.period}-frame period, started ${DOORS.apart} frames apart`, DOOR_PULSES.length === 3 && DOOR_PULSES.every((p, k) => p.col === DOORS.cols[k] && p.rows === DOORS.rows && p.period === DOORS.period && p.offset === (DOORS.period - k * DOORS.apart) % DOORS.period));
   const first = door(0);
@@ -259,10 +261,10 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     }
     check(`walking right from the hall's start at ${DOORS.period / 8} starts across a period (${windows}): ${through} go through all three, ${stopped} are stopped by a shut door, ${died} are caught as one shuts`, through > 0 && stopped + died > 0 && died < through + stopped);
   }
-}
+});
 
 // ---- the hall's gallery: the way on, back west over the doors from the rope past the third to the rope up to the hideout ----------
-{
+SCOPE.section([JP.hall, JP.hideout, JP.garden, JP.port, JP.mole], 'the hall\'s gallery: the way on to the hideout', () => {
   const s = at(JP.hall, 20, 14);
   s.g.pulses = [];
   const coin = coinIndex(s.g, JP.hall, 8, 6);
@@ -275,10 +277,10 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: from the floor past the third door the bot climbs to the gallery and walks it west to the rope at the left, up to the hideout`,
       search(t, (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.hall, col: 4, row: 0 }], 150000, 1.5) !== null);
   }
-}
+});
 
 // ---- the doors are the way: held shut, nothing gets him from the hall's west end up to the gallery or the hideout --------------------
-{
+SCOPE.section([JP.hall], 'the doors are the way: held shut, no way up', () => {
   const s = at(JP.hall, 3, 14);
   const wall = (col: number, row: number, code: number) => s.g.setRoomChar((row + PLAY_ROW) * ROW + col + PLAY_COL, code);
   for (const p of DOOR_PULSES) for (let r = p.row; r < p.row + p.rows; r++) for (let c = p.col; c < p.col + p.cols; c++) wall(c, r, p.spent);
@@ -289,15 +291,15 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const stats = { exhausted: false };
   const none = search(s, (g) => g.roomId !== JP.hall || g.onRope !== 0 || g.y <= standY(8), [{ room: JP.hall, col: 4, row: 8 }], 100000, 0, stats) === null;
   check(`with the three doors held shut the bot finds no way from the hall's west end onto a rope or the gallery (${stats.exhausted ? 'every state there is looked at' : 'the search limit'}): the hideout's rope hangs out of reach of the floor, so the doors are the way`, shut && none && stats.exhausted);
-}
+});
 
 // ---- the gates ------------------------------------------------------------------------------------------
-{
+SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole, JP.hall, JP.hideout, JP.port], 'the gates', () => {
   const arc = WORLD.jumpArc;
   let rise = 0;
   for (let i = 0; i < arc.length && arc[i] !== 0xff; i++) rise += arc[i] ?? 0;
   // the shutter and the daruma
-  {
+  SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing], 'the gates: the shutter and the daruma', () => {
     const shut = at(JP.platform, 26, 14);
     shut.g.tunnels = [];
     check('without the daruma the platform\'s end is a roller shutter (its four cells hold the shutter tile)', SHUTTER_CELLS.length === 4 && SHUTTER_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0));
@@ -308,9 +310,9 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
     check('with it (taken in the parlour) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
-  }
+  });
   // the koi and the fish food
-  {
+  SCOPE.section([JP.garden, JP.crossing, JP.fuji, JP.mole, JP.hall], 'the gates: the koi and the fish food', () => {
     const KOI = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi');
     const pond = at(JP.garden, 8, 14, [], false, true);
     const koi = pond.g.enemies.filter((e) => e.type === KOI);
@@ -324,9 +326,9 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     check(`without the food the pond's other planks are not there (${PLANK_CELLS.length} cells empty): the far bank is out of a jump's reach (a jump spans about five cells), and the bot finds no way across in 150000 states`, jump === 0 && search(bare, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) === null);
     const clear = at(JP.garden, 14, 14, [FISH]);
     check('with it (taken at the overpass) the planks are there (placed on loading the room) and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
-  }
+  });
   // the hideout's door guard (a ninja at the low corridor under the roof) and the hood: the way on to the port runs through that door (the hall's far end is walled)
-  {
+  SCOPE.section([JP.hideout, JP.hall, JP.port, JP.mole, JP.garden], 'the gates: the door guard and the hood', () => {
     const SAMURAI = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpSamurai');
     const NINJA = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
     const sushi = (g: Game) => g.siCollected[itemIndex(g, JP.hideout, 0)] !== 0;
@@ -343,11 +345,11 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     check('and the bot walks in and takes the sushi', search(hood, sushi, [{ room: JP.hideout, col: 28, row: 15 }], 150000, 1.5) !== null);
     hood.g.pulses = [];
     check('and drops down the corridor\'s gap, down the hall\'s shaft and the rope, to the port', search(at(JP.hideout, 17, 17, [HOOD], false, true), port, aim, 150000, 1.5) !== null);
-  }
-}
+  });
+});
 
 // ---- the hood is a costume: it takes the rice hat's place -------------------------------------------------
-{
+SCOPE.section([CHI.top, JP.mole, JP.fuji, JP.hideout], 'the hood as a costume', () => {
   const rice = itemIndex(newGame(WORLD, false).g, CHI.top, 0), hood = itemIndex(newGame(WORLD, false).g, JP.mole, 0);
   const worn = hoodWorn(WORLD.bankImage);
   const s = newGame(WORLD, false);
@@ -359,17 +361,17 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   const first = worn.monty[0];
   check('putting on the hood writes its pictures over Monty\'s (the rice hat\'s go) and its sprite over the hat pool\'s',
     s.g.worn === hood && first !== undefined && first.ptr === 0x50 && s.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((b, i) => b === first.block[i]) && !hatBlock(s.g).every((b, i) => b === ricePicture[i]));
-  {
+  SCOPE.section([JP.fuji, JP.mole], 'the hood costume: its sprite over him', () => {
     const play = at(JP.fuji, 20, 8, []);
     wear(play.g, hood);
     run(play, NONE, 5);
     check('the hood is a sprite of its own over him (sprite 7, red), enabled', (play.g.vic.enable & 0x80) !== 0 && play.g.scol[7] === HOOD_COLOUR && HAT_BLOCKS.includes(play.g.sptr[7] ?? 0));
-  }
-  {
+  });
+  SCOPE.section([CHI.top, JP.mole], 'the hood costume: the rice hat again', () => {
     wear(s.g, rice);
     check('wearing the rice hat again (a game carried on from an older save) puts its pictures back over the hood\'s', s.g.worn === rice && hatBlock(s.g).every((b, i) => b === ricePicture[i]));
-  }
-  {
+  });
+  SCOPE.section([JP.hideout, JP.mole, CHI.top], 'the hood costume: kept in a save', () => {
     const a = newGame(WORLD, false);
     a.g.siCollected[hood] = 0x81;
     wear(a.g, hood);
@@ -379,60 +381,102 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
     wear(b.g, rice);
     restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
     check('a save made in the hood carries on in it (the hood as the worn item, its pictures in the bank, the guard gone)', b.g.worn === hood && b.g.enemies.filter((e) => e.type === FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja')).every((e) => e.x === 0xff) && b.g.mem.slice(0x50 * 64, 0x50 * 64 + 63).every((v, i) => v === first?.block[i]));
-  }
-}
+  });
+});
 
 // ---- the joins: loops, the ways back, no trap -----------------------------------------------------------
-{
+SCOPE.section([...Object.values(JP), CHI.junk, CHI.willow, PAC.ship], 'the joins: loops, the ways back, no trap', () => {
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 400000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5);
   const into = (room: number, from: State, aim: { room: number; col: number; row: number }, limit = 150000) => reach(from, aim, (g) => g.roomId === room, limit) !== null;
   /** Into a room by a rope or a gap: and he is where there is something to hold or stand on (on the rope, or on a floor of the room), not in its stone. */
   const lands = (room: number, floors: readonly number[], from: State, aim: { room: number; col: number; row: number }, limit = 150000) =>
     reach(from, aim, (g) => g.roomId === room && (g.onRope !== 0 || floors.some((f) => g.y === standY(f))), limit) !== null;
   const quiet = (s: State) => { s.g.tunnels = []; s.g.pulses = []; return s; };
-  check('China\'s junk walks east onto Japan\'s harbour (its deck) and the harbour walks west back onto the junk\'s deck', (() => { const s = at(CHI.junk, 27, 17, [[CHI.willow, 0]]); run(s, RIGHT, 100); const t = at(JP.harbour, 3, 17); run(t, LEFT, 100); return s.g.roomId === JP.harbour && t.g.roomId === CHI.junk; })());
-  check('the harbour and the street join twice: low (the quay) and high (the roof) both ways', into(JP.street, at(JP.harbour, 15, 17), { room: JP.harbour, col: 31, row: 15 }) && into(JP.harbour, at(JP.street, 5, 17), { room: JP.street, col: 0, row: 15 })
-    && into(JP.street, at(JP.harbour, 25, 7), { room: JP.harbour, col: 31, row: 5 }) && into(JP.harbour, at(JP.street, 1, 7), { room: JP.street, col: 0, row: 5 }));
-  check('the street and the crossing join twice: low and high, both ways', into(JP.crossing, at(JP.street, 5, 17), { room: JP.street, col: 31, row: 15 }) && into(JP.street, at(JP.crossing, 5, 17), { room: JP.crossing, col: 0, row: 15 })
-    && into(JP.crossing, at(JP.street, 28, 7), { room: JP.street, col: 31, row: 5 }) && into(JP.street, at(JP.crossing, 1, 7), { room: JP.crossing, col: 0, row: 5 }));
-  check('the drainpipe joins the street to its roofs (up and down it)', search(at(JP.street, 2, 17), (g) => g.roomId === JP.street && g.y === standY(7) && colOf(g) >= 6, [{ room: JP.street, col: 8, row: 5 }], 100000, 1.5) !== null
-    && search(at(JP.street, 8, 7), (g) => g.roomId === JP.street && g.y === standY(17), [{ room: JP.street, col: 3, row: 15 }], 100000, 1.5) !== null);
-  check('the street\'s gap lets him down its rope into the parlour and the parlour\'s rope climbs back up (both ends on the rope: the gaps are at the same cells)', lands(JP.parlour, [17], at(JP.street, 18, 17), { room: JP.street, col: 21, row: 19 }) && lands(JP.street, [17], at(JP.parlour, 18, 17), { room: JP.parlour, col: 21, row: 0 }));
-  check('the parlour walks east into the underpass and the underpass west back into the parlour', into(JP.platform, at(JP.parlour, 25, 17), { room: JP.parlour, col: 31, row: 15 }) && into(JP.parlour, quiet(at(JP.platform, 5, 17)), { room: JP.platform, col: 0, row: 15 }));
-  check('the underpass reaches the platform by both stairs (the bot climbs each)', [9, 20].every((c) => search(quiet(at(JP.platform, c - 3, 17)), (g) => g.roomId === JP.platform && g.y === standY(14), [{ room: JP.platform, col: c, row: 12 }], 100000, 1.5) !== null));
-  check('the crossing\'s subway rope lands him on the platform and the platform\'s rope climbs back to the crossing (the loop street, parlour, underpass, platform, crossing, street)',
-    lands(JP.platform, [14], at(JP.crossing, 19, 17), { room: JP.crossing, col: 23, row: 19 }, 100000) && lands(JP.crossing, [17], quiet(at(JP.platform, 20, 14)), { room: JP.platform, col: 23, row: 0 }, 100000));
-  check('the platform walks east into the mountain\'s foot (with the daruma) and the mountain walks west back onto the platform', into(JP.fuji, quiet(at(JP.platform, 24, 14, [DARUMA])), { room: JP.platform, col: 31, row: 13 }) && into(JP.platform, at(JP.fuji, 5, 14), { room: JP.fuji, col: 0, row: 13 }));
-  check('the mountain\'s chain climbs into the garden and the garden\'s gap lets him down it again', lands(JP.garden, [14], at(JP.fuji, 8, 6), { room: JP.fuji, col: 5, row: 0 }, 200000) && lands(JP.fuji, [14, 8, 6], at(JP.garden, 2, 14), { room: JP.garden, col: 5, row: 19 }, 100000));
-  check('the pergola\'s rope climbs into THE LAST MOLE and the hidden room\'s rope drops back to the garden', lands(JP.mole, [14], at(JP.garden, 27, 10, [FISH]), { room: JP.garden, col: 28, row: 0 }, 100000) && lands(JP.garden, [14, 10], at(JP.mole, 30, 14), { room: JP.mole, col: 28, row: 19 }, 100000));
-  check('the garden\'s gate walks east into the hall and the hall west back into the garden', into(JP.hall, at(JP.garden, 27, 14), { room: JP.garden, col: 31, row: 13 }) && into(JP.garden, quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 0, row: 13 }));
-  check('the hall\'s rope climbs from the gallery to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 7, 8)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [8, 14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
-  check('the hideout\'s corridor gap (past the guard, in the hood) drops down the hall\'s walled shaft and the rope into the port', into(JP.port, quiet(at(JP.hideout, 21, 17, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 150000));
-  check('the hall\'s far end is walled: column 23 is solid from the ceiling to the floor between the doors\' side and the shaft (the hideout is the way on)', (() => { const s = at(JP.hall, 3, 14); return Array.from({ length: 15 }, (_, row) => s.g.flagAt(row + 3, 23 + 4)).every((f) => f === 1 || f === 2); })());
-  check('from the port he can climb the rope up the hall\'s shaft to the hideout (hood on)', search(quiet(at(JP.port, 22, 17, [HOOD])), (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.port, col: 25, row: 0 }, { room: JP.hall, col: 25, row: 0 }], 200000, 1.5) !== null);
-  check('and from the hideout down its left rope and out west of the hall to the garden (the way back runs the whole way)', reach(quiet(at(JP.hideout, 8, 17, [HOOD])), { room: JP.hideout, col: 4, row: 19 }, (g) => g.roomId === JP.hall, 150000) !== null
-    && reach(at(JP.hall, 7, 8, [HOOD]), { room: JP.hall, col: 0, row: 13 }, (g) => g.roomId === JP.garden, 150000) !== null);
-  check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
-}
+  SCOPE.section([CHI.junk, JP.harbour, CHI.willow], 'the joins: China\'s junk and the harbour', () => {
+    check('China\'s junk walks east onto Japan\'s harbour (its deck) and the harbour walks west back onto the junk\'s deck', (() => { const s = at(CHI.junk, 27, 17, [[CHI.willow, 0]]); run(s, RIGHT, 100); const t = at(JP.harbour, 3, 17); run(t, LEFT, 100); return s.g.roomId === JP.harbour && t.g.roomId === CHI.junk; })());
+  });
+  SCOPE.section([JP.harbour, JP.street, JP.crossing, JP.parlour, CHI.junk], 'the joins: the harbour and the street', () => {
+    check('the harbour and the street join twice: low (the quay) and high (the roof) both ways', into(JP.street, at(JP.harbour, 15, 17), { room: JP.harbour, col: 31, row: 15 }) && into(JP.harbour, at(JP.street, 5, 17), { room: JP.street, col: 0, row: 15 })
+      && into(JP.street, at(JP.harbour, 25, 7), { room: JP.harbour, col: 31, row: 5 }) && into(JP.harbour, at(JP.street, 1, 7), { room: JP.street, col: 0, row: 5 }));
+  });
+  SCOPE.section([JP.street, JP.crossing, JP.harbour, JP.parlour, JP.platform, JP.garden], 'the joins: the street and the crossing', () => {
+    check('the street and the crossing join twice: low and high, both ways', into(JP.crossing, at(JP.street, 5, 17), { room: JP.street, col: 31, row: 15 }) && into(JP.street, at(JP.crossing, 5, 17), { room: JP.crossing, col: 0, row: 15 })
+      && into(JP.crossing, at(JP.street, 28, 7), { room: JP.street, col: 31, row: 5 }) && into(JP.street, at(JP.crossing, 1, 7), { room: JP.crossing, col: 0, row: 5 }));
+  });
+  SCOPE.section([JP.street, JP.harbour, JP.crossing, JP.parlour], 'the joins: the drainpipe', () => {
+    check('the drainpipe joins the street to its roofs (up and down it)', search(at(JP.street, 2, 17), (g) => g.roomId === JP.street && g.y === standY(7) && colOf(g) >= 6, [{ room: JP.street, col: 8, row: 5 }], 100000, 1.5) !== null
+      && search(at(JP.street, 8, 7), (g) => g.roomId === JP.street && g.y === standY(17), [{ room: JP.street, col: 3, row: 15 }], 100000, 1.5) !== null);
+  });
+  SCOPE.section([JP.street, JP.parlour, JP.harbour, JP.crossing, JP.platform], 'the joins: the street\'s rope and the parlour', () => {
+    check('the street\'s gap lets him down its rope into the parlour and the parlour\'s rope climbs back up (both ends on the rope: the gaps are at the same cells)', lands(JP.parlour, [17], at(JP.street, 18, 17), { room: JP.street, col: 21, row: 19 }) && lands(JP.street, [17], at(JP.parlour, 18, 17), { room: JP.parlour, col: 21, row: 0 }));
+  });
+  SCOPE.section([JP.parlour, JP.platform, JP.street, JP.crossing, JP.fuji], 'the joins: the parlour and the underpass', () => {
+    check('the parlour walks east into the underpass and the underpass west back into the parlour', into(JP.platform, at(JP.parlour, 25, 17), { room: JP.parlour, col: 31, row: 15 }) && into(JP.parlour, quiet(at(JP.platform, 5, 17)), { room: JP.platform, col: 0, row: 15 }));
+  });
+  SCOPE.section([JP.platform, JP.parlour, JP.crossing, JP.fuji], 'the joins: the underpass\'s stairs', () => {
+    check('the underpass reaches the platform by both stairs (the bot climbs each)', [9, 20].every((c) => search(quiet(at(JP.platform, c - 3, 17)), (g) => g.roomId === JP.platform && g.y === standY(14), [{ room: JP.platform, col: c, row: 12 }], 100000, 1.5) !== null));
+  });
+  SCOPE.section([JP.crossing, JP.platform, JP.street, JP.garden, JP.parlour, JP.fuji], 'the joins: the subway rope, crossing and platform', () => {
+    check('the crossing\'s subway rope lands him on the platform and the platform\'s rope climbs back to the crossing (the loop street, parlour, underpass, platform, crossing, street)',
+      lands(JP.platform, [14], at(JP.crossing, 19, 17), { room: JP.crossing, col: 23, row: 19 }, 100000) && lands(JP.crossing, [17], quiet(at(JP.platform, 20, 14)), { room: JP.platform, col: 23, row: 0 }, 100000));
+  });
+  SCOPE.section([JP.platform, JP.fuji, JP.parlour, JP.crossing, JP.garden], 'the joins: the platform and the mountain', () => {
+    check('the platform walks east into the mountain\'s foot (with the daruma) and the mountain walks west back onto the platform', into(JP.fuji, quiet(at(JP.platform, 24, 14, [DARUMA])), { room: JP.platform, col: 31, row: 13 }) && into(JP.platform, at(JP.fuji, 5, 14), { room: JP.fuji, col: 0, row: 13 }));
+  });
+  SCOPE.section([JP.fuji, JP.garden, JP.platform, JP.mole, JP.hall, JP.crossing], 'the joins: the mountain\'s chain and the garden', () => {
+    check('the mountain\'s chain climbs into the garden and the garden\'s gap lets him down it again', lands(JP.garden, [14], at(JP.fuji, 8, 6), { room: JP.fuji, col: 5, row: 0 }, 200000) && lands(JP.fuji, [14, 8, 6], at(JP.garden, 2, 14), { room: JP.garden, col: 5, row: 19 }, 100000));
+  });
+  SCOPE.section([JP.garden, JP.mole, JP.crossing, JP.fuji, JP.hall, JP.hideout], 'the joins: the pergola\'s rope and the hidden room', () => {
+    check('the pergola\'s rope climbs into THE LAST MOLE and the hidden room\'s rope drops back to the garden', lands(JP.mole, [14], at(JP.garden, 27, 10, [FISH]), { room: JP.garden, col: 28, row: 0 }, 100000) && lands(JP.garden, [14, 10], at(JP.mole, 30, 14), { room: JP.mole, col: 28, row: 19 }, 100000));
+  });
+  SCOPE.section([JP.garden, JP.hall, JP.fuji, JP.mole, JP.crossing, JP.hideout, JP.port], 'the joins: the garden\'s gate and the hall', () => {
+    check('the garden\'s gate walks east into the hall and the hall west back into the garden', into(JP.hall, at(JP.garden, 27, 14), { room: JP.garden, col: 31, row: 13 }) && into(JP.garden, quiet(at(JP.hall, 3, 14)), { room: JP.hall, col: 0, row: 13 }));
+  });
+  SCOPE.section([JP.hall, JP.hideout, JP.garden, JP.port, JP.mole], 'the joins: the hall\'s rope and the roofs', () => {
+    check('the hall\'s rope climbs from the gallery to the roofs and the roofs\' gap drops back to the hall', lands(JP.hideout, [17], quiet(at(JP.hall, 7, 8)), { room: JP.hall, col: 4, row: 0 }, 100000) && lands(JP.hall, [8, 14], at(JP.hideout, 8, 17), { room: JP.hideout, col: 4, row: 19 }, 100000));
+  });
+  SCOPE.section([JP.hideout, JP.hall, JP.port, JP.mole, JP.garden], 'the joins: the hideout down to the port', () => {
+    check('the hideout\'s corridor gap (past the guard, in the hood) drops down the hall\'s walled shaft and the rope into the port', into(JP.port, quiet(at(JP.hideout, 21, 17, [HOOD])), { room: JP.hall, col: 25, row: 19 }, 150000));
+  });
+  SCOPE.section([JP.hall], 'the joins: the hall\'s far end is walled', () => {
+    check('the hall\'s far end is walled: column 23 is solid from the ceiling to the floor between the doors\' side and the shaft (the hideout is the way on)', (() => { const s = at(JP.hall, 3, 14); return Array.from({ length: 15 }, (_, row) => s.g.flagAt(row + 3, 23 + 4)).every((f) => f === 1 || f === 2); })());
+  });
+  SCOPE.section([JP.port, JP.hall, JP.hideout, JP.mole, JP.garden, PAC.ship], 'the joins: the port back up to the hideout', () => {
+    check('from the port he can climb the rope up the hall\'s shaft to the hideout (hood on)', search(quiet(at(JP.port, 22, 17, [HOOD])), (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.port, col: 25, row: 0 }, { room: JP.hall, col: 25, row: 0 }], 200000, 1.5) !== null);
+  });
+  SCOPE.section([JP.hideout, JP.hall, JP.garden, JP.mole, JP.port, JP.fuji], 'the joins: the hideout back to the garden', () => {
+    check('and from the hideout down its left rope and out west of the hall to the garden (the way back runs the whole way)', reach(quiet(at(JP.hideout, 8, 17, [HOOD])), { room: JP.hideout, col: 4, row: 19 }, (g) => g.roomId === JP.hall, 150000) !== null
+      && reach(at(JP.hall, 7, 8, [HOOD]), { room: JP.hall, col: 0, row: 13 }, (g) => g.roomId === JP.garden, 150000) !== null);
+  });
+  SCOPE.section([JP.port, JP.hall, PAC.ship], 'the joins: the ship\'s gangway', () => {
+    check('the ship\'s gangway leads up to the deck, whose way east is open into the Pacific (the stern\'s landing)', (() => { const s = at(JP.port, 24, 17); return search(s, (g) => g.roomId === JP.port && g.y === standY(13) && colOf(g) >= 28, [{ room: JP.port, col: 28, row: 11 }], 100000, 1.5) !== null; })());
+  });
+});
 
 // ---- hints, the map, saves --------------------------------------------------------------------------------
-{
+SCOPE.section([], 'hints, the map, saves', () => {
   const wants = [[JP.platform, 6, 17, 'THE SHUTTER OPENS FOR LUCK'], [JP.garden, 8, 14, 'HUNGRY KOI CROWD THE POND'], [JP.hideout, 6, 17, 'THE DOOR IS FOR NINJAS ONLY']] as const;
   for (const [room, col, floor, text] of wants) {
-    const w = at(room, col, floor, [], true);
-    run(w, NONE, 120);
-    check(`ENHANCED: coming into room ${room} without what it wants says so ("${rowText(w.g)}")`, rowText(w.g) === text);
+    SCOPE.section([room], 'hints: a room without what it wants', () => {
+      const w = at(room, col, floor, [], true);
+      run(w, NONE, 120);
+      check(`ENHANCED: coming into room ${room} without what it wants says so ("${rowText(w.g)}")`, rowText(w.g) === text);
+    });
   }
-  const plain = at(JP.garden, 8, 14, [], false);
-  run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
+  SCOPE.section([JP.garden], 'hints: ORIGINAL says nothing', () => {
+    const plain = at(JP.garden, 8, 14, [], false);
+    run(plain, NONE, 120);
+    check('ORIGINAL says nothing', rowText(plain.g) === 'KOI POLLOI');
+  });
   for (const [item, text, floor] of [[DARUMA, 'DARUMA DOLLS GRANT WISHES', 9], [FISH, 'FISH FOOD: KOI FOLLOW FOOD', 7], [HOOD, 'A HOOD HIDES HIM FROM GUARDS', 14]] as const) {
-    const [room, nth] = item;
-    const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');
-    const take = at(room, rec.col - 4, floor, [], true);
-    for (let f = 0; f < 80 && !take.g.siCollected[itemIndex(take.g, room, nth)]; f++) frame(take, NONE);
-    run(take, NONE, 3);
-    check(`ENHANCED: taking the ${text.split(':')[0]?.toLowerCase()} says what it is for ("${rowText(take.g)}")`, rowText(take.g) === text && take.g.siCollected[itemIndex(take.g, room, nth)] !== 0);
+    SCOPE.section([item[0]], 'hints: taking an item says what it is for', () => {
+      const [room, nth] = item;
+      const rec = must(JAPAN_ROOMS.find((r) => r.id === room)?.item, 'the item');
+      const take = at(room, rec.col - 4, floor, [], true);
+      for (let f = 0; f < 80 && !take.g.siCollected[itemIndex(take.g, room, nth)]; f++) frame(take, NONE);
+      run(take, NONE, 3);
+      check(`ENHANCED: taking the ${text.split(':')[0]?.toLowerCase()} says what it is for ("${rowText(take.g)}")`, rowText(take.g) === text && take.g.siCollected[itemIndex(take.g, room, nth)] !== 0);
+    });
   }
   for (const n of ['sushi1', 'sushi2']) check(`the ${n} is a 200 point snack (a named item with the sushi's sprite)`, JAPAN_ROOMS.some((r) => r.item?.name === n && r.item.sprite === JAPAN_SPRITE.sushi));
 
@@ -445,7 +489,7 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
   // a save made on coming into each of Japan's rooms (every key taken, the hood on) carries on in the same room, alive
   {
-    const spots = [[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 22, 17], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.hideout, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const;
+    const spots = ([[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 22, 17], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.hideout, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const).filter(([room]) => SCOPE.has(room));
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
@@ -486,11 +530,11 @@ const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
   restore(g2, CODEC.unpack(CODEC.pack(oldSave), CODEC.format));
   check('an old save (the regions before Japan\'s arrays and grids) loads: the finds and the rice hat are as saved, and Japan is on the grid, its coins and finds still to take',
     g2.siCollected[0] === 0x81 && g2.siCollected[last.item] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[last.coin] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === WORLD.specialItems.length / 4 && g2.coinCollected.length === WORLD.coinTable.length / 3 && g2.coinCollected.slice(before.coins).every((c) => c === 0));
-}
+});
 
 void LEFT;
 // ---- the parlour's Mole Crusher moves (the engine animates a lone shaft only with the first shaft's characters) ----------------------
-{
+SCOPE.section([JP.parlour], 'the parlour\'s Mole Crusher', () => {
   const roomSpec = must(JAPAN_ROOMS.find((r) => r.id === JP.parlour), 'the parlour');
   check('the parlour has one Mole Crusher (the engine picks its glyph bank: crushers.ts)', roomSpec.crushers?.length === 1);
   const watcher = at(JP.parlour, 24, 17);
@@ -509,29 +553,33 @@ void LEFT;
     if (!dead(s.g) && colOf(s.g) <= 8) throughAlive++;
   }
   check(`walking west across the lane under it from the machines to the stair, ${throughAlive} of ${tried} starts across its cycle get through (it can be timed: the cycle is a few seconds)`, throughAlive > 0 && throughAlive < tried);
-}
+});
 
 // ---- NEON STREET's railway: a train over the roofs that touches nothing -------------------------------------------------------------
-{
-  const train = must(STREET_TRAIN, 'the street\'s train');
-  check('the street has a train over the roofs on a viaduct (rows 0-1, a tunnel mouth with a picture) that is only scenery: harmless, no warning', train.room === JP.street && train.harmless === true && train.warn === 0 && train.top === 0 && train.bottom === 1 && train.picture?.length === 2);
-  const codes = new Set((train.picture ?? []).flat().filter((c) => c !== 0));
-  const s = at(JP.street, 8, 7);
-  let seenFrames = 0;
-  for (let f = 0; f < 700 && !dead(s.g); f++) {
-    frame(s, NONE);
-    const here = [0, 1].some((row) => Array.from({ length: 32 }, (_, c) => c).some((c) => codes.has(cell(s.g, c, row))));
-    if (here) seenFrames++;
-  }
-  check(`it is drawn in the room's own characters and passes over the roofs (seen on ${seenFrames} of 700 frames) while he stands on the roof, alive`, seenFrames > 100 && seenFrames < 650 && !dead(s.g));
-  // the alley's fire escape joins the street to the roofs both ways
-  check('the alley\'s fire escape climbs from the street to the roofs and down again (landings two rows apart)',
-    search(at(JP.street, 12, 17), (g) => g.roomId === JP.street && g.y === standY(7) && colOf(g) >= 21, [{ room: JP.street, col: 22, row: 5 }], 120000, 1.5) !== null
-    && search(at(JP.street, 22, 7), (g) => g.roomId === JP.street && g.y === standY(17) && colOf(g) <= 19, [{ room: JP.street, col: 17, row: 15 }], 120000, 1.5) !== null);
-}
+SCOPE.section([JP.street, JP.harbour, JP.crossing, JP.parlour], 'NEON STREET: the railway and the fire escape', () => {
+  SCOPE.section([JP.street], 'NEON STREET: the train over the roofs', () => {
+    const train = must(STREET_TRAIN, 'the street\'s train');
+    check('the street has a train over the roofs on a viaduct (rows 0-1, a tunnel mouth with a picture) that is only scenery: harmless, no warning', train.room === JP.street && train.harmless === true && train.warn === 0 && train.top === 0 && train.bottom === 1 && train.picture?.length === 2);
+    const codes = new Set((train.picture ?? []).flat().filter((c) => c !== 0));
+    const s = at(JP.street, 8, 7);
+    let seenFrames = 0;
+    for (let f = 0; f < 700 && !dead(s.g); f++) {
+      frame(s, NONE);
+      const here = [0, 1].some((row) => Array.from({ length: 32 }, (_, c) => c).some((c) => codes.has(cell(s.g, c, row))));
+      if (here) seenFrames++;
+    }
+    check(`it is drawn in the room's own characters and passes over the roofs (seen on ${seenFrames} of 700 frames) while he stands on the roof, alive`, seenFrames > 100 && seenFrames < 650 && !dead(s.g));
+  });
+  SCOPE.section([JP.street, JP.harbour, JP.crossing, JP.parlour], 'NEON STREET: the fire escape', () => {
+    // the alley's fire escape joins the street to the roofs both ways
+    check('the alley\'s fire escape climbs from the street to the roofs and down again (landings two rows apart)',
+      search(at(JP.street, 12, 17), (g) => g.roomId === JP.street && g.y === standY(7) && colOf(g) >= 21, [{ room: JP.street, col: 22, row: 5 }], 120000, 1.5) !== null
+      && search(at(JP.street, 22, 7), (g) => g.roomId === JP.street && g.y === standY(17) && colOf(g) <= 19, [{ room: JP.street, col: 17, row: 15 }], 120000, 1.5) !== null);
+  });
+});
 
 // ---- THE CROSSING: taxis on the red man, the crowd on the green ------------------------------------------------------------------------
-{
+SCOPE.section([JP.crossing], 'THE CROSSING: taxis and the crowd', () => {
   const taxis = CROSSING_MOUTHS.filter((m) => !m.harmless), crowds = CROSSING_MOUTHS.filter((m) => m.harmless);
   check(`two taxis (deadly, from the left and from the right) and two crowd waves (harmless) cross the zebra's zone, columns ${CROSSING.zone.from}-${CROSSING.zone.to}, on a ${CROSSING.period} frame cycle`,
     taxis.length === 2 && crowds.length === 2 && taxis.every((m) => m.span?.from === CROSSING.zone.from && m.span.to === CROSSING.zone.to && m.warn === CROSSING.taxiWarn) && CROSSING_MOUTHS.every((m) => (m.rest ?? 0) + m.warn + ((m.span?.to ?? 31) - (m.span?.from ?? 0) + 1 + m.cols + 1) * m.step === CROSSING.period));
@@ -572,11 +620,11 @@ void LEFT;
   run(sig, NONE, 300);
   const nextRed = lit(sig.g);
   check('the signal shows the red man through the taxis\' turn (to frame 180) and the green man on the crowd\'s, then the red man again for the next cycle', stillRed && green.join() !== red.join() && nextRed.join() === red.join());
-}
+});
 
 
 // ---- the joins are strict: what is open at one room's edge is open on the other side, at every height (a jump reaches any) ------------------------------
-{
+SCOPE.section([], 'the joins are strict: open edges match', () => {
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const roomAt = (row: number, col: number) => JAPAN_ROOMS.find((r) => r.id === cells[row * cols + col]);
   type Spec = (typeof JAPAN_ROOMS)[number];
@@ -594,11 +642,12 @@ void LEFT;
   const bad: string[] = [];
   for (const r of JAPAN_ROOMS) {
     const east = roomAt(r.row, r.col + 1);
-    if (east) for (let row = 0; row < 20; row++) {
+    if (east && SCOPE.any([r.id, east.id])) for (let row = 0; row < 20; row++) {
       if ((reachable(r, 31, row) && solidAt(east, 0, row)) || (reachable(east, 0, row) && solidAt(r, 31, row))) bad.push(`${r.id}|${east.id} row ${row}`);
     }
   }
   check(`every edge cell of Japan's rooms that is open (not solid) on one side of a join is open on the other, at every row (${bad.length ? bad.join('; ') : 'none differ'})`, bad.length === 0);
-}
+});
 
+SCOPE.report();
 finish();

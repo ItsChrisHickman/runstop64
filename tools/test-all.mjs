@@ -9,6 +9,7 @@
 //   node tools/test-all.mjs --only-slow     just the slow set
 //   node tools/test-all.mjs --list          what would run (and what is skipped, and why)
 //   node tools/test-all.mjs <text> ...      only tests whose name contains the text (e.g. `entombed`)
+//   --plan=<file.json>                      the runs a JSON file lists (tools/affected.mjs writes one: `[{ file, args, set, limitSeconds, name }]`)
 //   --verbose                               show each test's own output, not only when it fails
 //
 // A test whose inputs are not on this machine (the originals of Auf Wiedersehen Monty are gitignored:
@@ -31,9 +32,12 @@ const sets = flags.has('--only-slow') ? ['slow'] : flags.has('--slow') ? ['fast'
 /** The name a test is listed by: its file without the folder prefix noise, and its arguments. */
 const nameOf = (t) => t.name ?? [t.file ?? t.cmd.join(' '), ...(t.args ?? [])].join(' ');
 const missing = (t) => (t.needs ?? []).filter((f) => !fs.existsSync(path.resolve(root, f)));
-const chosen = TESTS
-  .filter((t) => sets.includes(t.set))
-  .filter((t) => filters.length === 0 || filters.some((f) => nameOf(t).includes(f)));
+const planFile = argv.find((a) => a.startsWith('--plan='))?.slice('--plan='.length);
+const chosen = planFile
+  ? JSON.parse(fs.readFileSync(planFile, 'utf8')).filter((t) => filters.length === 0 || filters.some((f) => nameOf(t).includes(f)))
+  : TESTS
+    .filter((t) => sets.includes(t.set))
+    .filter((t) => filters.length === 0 || filters.some((f) => nameOf(t).includes(f)));
 
 if (flags.has('--list')) {
   for (const t of chosen) {
@@ -86,7 +90,7 @@ for (const t of chosen) {
 });
 
 after(() => {
-  for (const set of sets) {
+  for (const set of [...new Set(timings.map((x) => x.set))]) {
     const mine = timings.filter((x) => x.set === set);
     if (!mine.length) continue;
     const total = mine.reduce((n, x) => n + x.seconds, 0);

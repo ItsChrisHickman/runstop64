@@ -4,7 +4,7 @@
  * the loose crate all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after Japan: on the cargo ship's landing with
  * Moscow's, Siberia's, China's and Japan's finds and the ninja hood on. (The gates' proofs and the mechanisms are in pacific-mechanisms.ts.)
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific.ts [original|enhanced] [first leg] [last leg] [--record] [--full]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific.ts [original|enhanced] [--room <rooms>] [first leg] [last leg] [--record] [--full]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
@@ -16,6 +16,7 @@ import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { prints, SCOPE } from './scope';
 import { ROUTES } from './routes-dir';
 import { PACIFIC_LEGS } from './pacific-route';
 import { itemIndex, standY } from './route';
@@ -26,6 +27,9 @@ const only = args.only;
 /** The rooms of the Pacific (ids 38-54: the five kept and the retired between them). */
 const pacific = (room: number) => room >= PAC.ship && room <= PAC.plane;
 
+/** What the kept leg states are checked against (read once). */
+const PRINTS = prints();
+
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== 'all' && only !== mode) continue;
   const live0 = newGame(WORLD, mode === 'enhanced');
@@ -35,8 +39,8 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, PAC.ship, 0x0c + 4 * 4, standY(13));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, plan: [[60000, 1.5], [400000, 0], [600000, 3]] }); // a breadth-first look second: in the sea a weighted look can keep, for a place, a state that times the surge and the shark badly
-  if (args.first === 0 && (args.last ?? PACIFIC_LEGS.length) >= PACIFIC_LEGS.length) {
+  const { live, frames, nodes, complete } = runLegs({ dir: ROUTES, region: 'pacific', mode, legs: PACIFIC_LEGS, start: live0, args, scope: SCOPE, prints: PRINTS, plan: [[60000, 1.5], [400000, 0], [600000, 3]] }); // a breadth-first look second: in the sea a weighted look can keep, for a place, a state that times the surge and the shark badly
+  if (complete) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;
     const mineCoins = Array.from({ length: coins }, (_, i) => i).filter((i) => pacific(g.data.coinTable[i * 3] ?? 0));

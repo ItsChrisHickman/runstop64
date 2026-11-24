@@ -146,12 +146,20 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
 
 /** Play a route on a game (copied: the game is not touched): the state it ends in, or null if he died on the way. */
 export function play(start: State, route: Route): State | null {
+  return playThrough(start, route)?.end ?? null;
+}
+
+/** Play a route (on a copy) and say which rooms it went through: the one it starts in and every one it came into, in order; null if he died on the way. */
+export function playThrough(start: State, route: Route): { end: State; rooms: number[] } | null {
   const s: State = { g: copy(start.g), col: start.col };
+  const rooms = [s.g.roomId];
   for (const [name, frames] of route) {
     const stick = ACTIONS.find(([n]) => n === name)?.[1] ?? NONE;
-    if (hold(s, stick, frames).dead) return null;
+    const held = hold(s, stick, frames);
+    if (held.dead) return null;
+    if (held.room !== null && !rooms.includes(held.room)) rooms.push(held.room);
   }
-  return s;
+  return { end: s, rooms };
 }
 
 /** A new game as the front end starts one, settled in its first room. */

@@ -4,7 +4,7 @@
  * vines, the piranhas and the river, the anaconda and the jaguar all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after the Pacific: in the plane's hold with Moscow's, Siberia's, China's, Japan's and the Pacific's finds and the lei on, the rear door open.
  * (The gates' proofs, the loops and the no-trap checks are in andes-mechanisms.ts.)
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/andes.ts [original|enhanced] [first leg] [last leg]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/andes.ts [original|enhanced] [--room <rooms>] [first leg] [last leg]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
@@ -15,6 +15,7 @@ import { AND } from '../src/andes';
 import { PAC } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { prints, SCOPE } from './scope';
 import { ROUTES } from './routes-dir';
 import { ANDES_LEGS, CHULLO } from './andes-route';
 import { itemIndex, standY } from './route';
@@ -23,6 +24,9 @@ const args = readArgs();
 const only = args.only;
 
 const andes = (room: number) => (Object.values<number>(AND)).includes(room);
+
+/** What the kept leg states are checked against (read once). */
+const PRINTS = prints();
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== 'all' && only !== mode) continue;
@@ -33,8 +37,8 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, PAC.plane, 0x0c + (26 + 4) * 4, standY(16));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'andes', mode, legs: ANDES_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
-  if (args.first === 0 && (args.last ?? ANDES_LEGS.length) >= ANDES_LEGS.length) {
+  const { live, frames, nodes, complete } = runLegs({ dir: ROUTES, region: 'andes', mode, legs: ANDES_LEGS, start: live0, args, scope: SCOPE, prints: PRINTS, plan: [[60000, 1.5], [600000, 3]] });
+  if (complete) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;
     const mineCoins = Array.from({ length: coins }, (_, i) => i).filter((i) => andes(g.data.coinTable[i * 3] ?? 0));

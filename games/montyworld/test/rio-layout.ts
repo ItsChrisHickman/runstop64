@@ -2,9 +2,10 @@
  * Rio's rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's; a backdrop keeps it), no decoration on a wall, no creature
  * starting in a wall, the joins as the design says (rio-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-layout.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-layout.ts [--room <rooms>]   (--room: the named rooms' own checks; the region's totals are always checked)
  */
 import { check, finish } from '../../shared/test/check';
+import { scopedRooms } from './scope';
 import { WORLD_DECOR } from '../src/art/world';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
@@ -14,7 +15,7 @@ import { creatureRooms } from './route';
 const NAME = new Map<number, string>(Object.entries(RIO_ROOM).map(([k, v]) => [v, k]));
 const names = Object.values(WORLD_DECOR);
 
-for (const r of RIO_ROOMS) {
+for (const r of scopedRooms(RIO_ROOMS)) {
   const label = NAME.get(r.id) ?? String(r.id);
   /** A wall: a cell of a tile of the collision class that stops him (1), not the sea's or a rope's. */
   const solid = (col: number, row: number) => {

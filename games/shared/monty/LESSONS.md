@@ -147,6 +147,13 @@ most care; the reward show and the title show them off.
   trace and title tests).
 - **Chris plays it and his notes come fast:** keep a pass running for his notes alongside the build; write every lesson back
   into this file.
+- **Test the rooms a change is about, not the world** (Chris, 2026-11-23: "we really need these tests to be able to analyze
+  individual rooms if that's all it concerns"; a one-room change re-ran whole-region bots for hours). `node tools/affected.mjs --run`
+  maps the diff's lines to rooms and runs only what proves them; one test over some rooms is `node tools/test.mjs <test> --room
+  siberia.coal,12`. What makes it work, for the next Monty game too: every room-level test reads `SCOPE` (`scope.ts`); every part of a
+  mechanism test is a `SCOPE.section([rooms], ...)` naming every room it enters, reads or can wander into (over-naming is safe,
+  under-naming hides a failure); a region file writes each room and each mechanism entry as a literal naming its room (`id:` / `room:`)
+  so a line can be traced to its room; the bots' route files keep each leg's rooms (`--record`). The full suites stay the ship gate.
 - **Go fast:** up to three tests at once, several agents in parallel (`tools/wait-turn.sh`). Never push to main while a ship
   step is merging.
 - **A death restarts the room as he came into it** (Chris, 2026-11-22: a restart in the room before "feels like an

@@ -4,7 +4,7 @@
  * It starts on Corcovado's canopy (enterRoom) with the earlier regions' finds and the Andes' chullo on, as a player arrives from the Amazon: the join with the Andes' last bank is proved in rio-mechanisms.ts, both ways.
  * (The gates' proofs, the loops and the no-trap checks are in rio-mechanisms.ts.)
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/rio.ts [original|enhanced] [first leg] [last leg]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/rio.ts [original|enhanced] [--room <rooms>] [first leg] [last leg]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
@@ -15,6 +15,7 @@ import { AND } from '../src/andes';
 import { isRio, RIO_FIRST, RIO_ROOM } from '../src/rio';
 import { newGame } from '../../shared/monty/test/bot';
 import { readArgs, runLegs } from '../../shared/monty/test/legs';
+import { prints, SCOPE } from './scope';
 import { ROUTES } from './routes-dir';
 import { RIO_LEGS } from './rio-route';
 import { itemIndex, standY } from './route';
@@ -22,6 +23,9 @@ import { itemIndex, standY } from './route';
 const args = readArgs();
 const only = args.only;
 
+
+/** What the kept leg states are checked against (read once). */
+const PRINTS = prints();
 
 for (const mode of ['original', 'enhanced'] as const) {
   if (only !== undefined && only !== 'all' && only !== mode) continue;
@@ -32,8 +36,8 @@ for (const mode of ['original', 'enhanced'] as const) {
   enterRoom(live0.g, RIO_FIRST, 0x0c + (0 + 4) * 4, standY(8));
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);
 
-  const { live, frames, nodes } = runLegs({ dir: ROUTES, region: 'rio', mode, legs: RIO_LEGS, start: live0, args, plan: [[60000, 1.5], [600000, 3]] });
-  if (args.first === 0 && (args.last ?? RIO_LEGS.length) >= RIO_LEGS.length) {
+  const { live, frames, nodes, complete } = runLegs({ dir: ROUTES, region: 'rio', mode, legs: RIO_LEGS, start: live0, args, scope: SCOPE, prints: PRINTS, plan: [[60000, 1.5], [600000, 3]] });
+  if (complete) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;
     const mineCoins = Array.from({ length: coins }, (_, i) => i).filter((i) => isRio(g.data.coinTable[i * 3] ?? 0));

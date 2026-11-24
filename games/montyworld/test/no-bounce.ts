@@ -2,7 +2,7 @@
  * No screen flip anywhere (Chris, the sea cave: going up flipped between two rooms): for every room and every open place along each of its four edges, Monty at the edge holds the way out for a moment; if
  * that takes him into another room and he then does nothing (or keeps the stick the same), he must not be back in the room he left within 40 frames. Every swim room is tried with the snorkel taken.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/no-bounce.ts
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/no-bounce.ts [--room <rooms>]
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import { frame, NONE, type State } from '../../montyotr/test/play';
@@ -10,11 +10,12 @@ import { check, finish } from '../../shared/test/check';
 import { newGame } from '../../shared/monty/test/bot';
 import { WORLD } from '../src/data';
 import { inRoom, roomsOf } from './climb-kit';
+import { SCOPE } from './scope';
 
 const bounces: string[] = [];
 let trials = 0;
 
-for (const room of roomsOf(WORLD)) {
+for (const room of SCOPE.keep(roomsOf(WORLD))) {
   const probe = inRoom(WORLD, room);
   if (!probe) continue;
   const solid = (c: number, r: number) => { const f = probe.g.flagAt(3 + r, 4 + c); return f === 1 || f === 2; };
@@ -44,5 +45,5 @@ for (const room of roomsOf(WORLD)) {
   }
 }
 for (const b of bounces.slice(0, 20)) console.log(b);
-check(`no room change bounces back within 40 frames from ${trials} edge places in every room of the game (${bounces.length} do)`, bounces.length === 0);
+check(`no room change bounces back within 40 frames from ${trials} edge places in ${SCOPE.all ? 'every room of the game' : `rooms ${[...SCOPE.rooms].join(', ')}`} (${bounces.length} do)`, bounces.length === 0);
 finish();
