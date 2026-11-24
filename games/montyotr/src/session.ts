@@ -104,7 +104,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     const reward = data.ending
       ? rewardShow = new RewardShow({
         host,
-        spec: montyEnding(data, renderer, g.assist),
+        spec: montyEnding(data, renderer, g.assist, (id) => g.sfx(id)),
         font: () => flow.getFont(),
         // (the game's tune, from its start, and again as the title's on the way out; nothing in the sound-effects mode)
         music: {
@@ -224,6 +224,9 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       },
       updateView() {
         view.update();
+        // (the title's own background lines, but not under the ending's show, which has its own picture)
+        const titleUp = mode === 'title' && !reward?.active;
+        if (title.backdrop) renderer.backdrop = titleUp ? title.backdrop : renderer.backdrop === title.backdrop ? null : renderer.backdrop;
         if (mode === 'title') fineScroll(renderer.screen, title.phase, g.vic.border, title.fine.top, title.fine.lines);
       },
       renderView: (alpha) => view.render(alpha),

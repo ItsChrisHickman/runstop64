@@ -249,6 +249,50 @@ export class ProcessionWatch {
   }
 }
 
+/**
+ * Watching a carnival parade (procession.ts `PARADE`): the groups passing in the journey's order, every marcher named under its group's
+ * heading, the ground plain under the column (only the sprites, the names and the ground's colour on it), the marchers' feet on the ground,
+ * and the gag's end in order: he stops where the clock says, the crusher comes down, he goes, it goes back up, the watchers cheer.
+ */
+export class ParadeWatch {
+  readonly groups: number[] = [];
+  readonly named = new Map<string, string>();
+  readonly phases: string[] = [];
+  readonly busy: string[] = [];
+  busyFrames = 0;
+  offLine = 0;
+  stopLefts = new Set<number>();
+  gagNamed = false;
+
+  frame(p: { frames: number; visitors: readonly Seen[]; marching: { troupe: number; title: string; names: readonly string[] } | null; gag: { phase: string; left: number } | null; gagName: string | null }, pic: Uint8Array, sprites: Uint8Array, ground: { top: number; feet: number; colour?: number }, inks: readonly number[]) {
+    // (the frame the parade begins on still shows the last place: its first picture comes with the next)
+    if (p.frames === 0) return;
+    const m = p.marching;
+    if (m && this.groups[this.groups.length - 1] !== m.troupe) this.groups.push(m.troupe);
+    if (m) for (const n of m.names) this.named.set(n, m.title);
+    if (p.gag && this.phases[this.phases.length - 1] !== p.gag.phase) this.phases.push(p.gag.phase);
+    if (p.gag && p.gag.phase !== 'march') { this.stopLefts.add(p.gag.left); if (p.gagName && m?.names.includes(p.gagName)) this.gagNamed = true; }
+    for (const v of p.visitors) if (v.feet > ground.feet) this.offLine++;
+    const plain = ground.colour ?? 0;
+    let bad = 0;
+    for (let y = ground.top; y < 200; y++) for (let x = 0; x < 320; x++) {
+      const i = y * 320 + x, c = pic[i] ?? 0;
+      if ((sprites[i] ?? TRANSPARENT) !== TRANSPARENT || c === plain || inks.includes(c)) continue;
+      if (bad++ === 0 && this.busy.length < 6) this.busy.push(`(${x},${y}) colour ${c}`);
+    }
+    if (bad) this.busyFrames++;
+  }
+
+  /** The checks, for the groups (headings and marchers) and the gag's stop (`crushAt`). */
+  check(groups: readonly { title: string; names: readonly string[] }[], crushAt: number) {
+    check(`the groups passed in order, one after another, the gag last (${this.groups.join(' ')})`, this.groups.length === groups.length + 1 && this.groups.every((g, i) => g === i));
+    const unnamed = groups.flatMap((t) => t.names.filter((n) => this.named.get(n) !== t.title));
+    check(`every marcher was named as it passed, under its group's heading${unnamed.length ? ` (not: ${unnamed.join(', ')})` : ''}`, unnamed.length === 0);
+    check(`the ground stays plain under the column: only the sprites, the names and the sand's colour on it (${this.busyFrames} frames${this.busy.length ? `: ${this.busy.join('; ')}` : ''}), the feet on it (${this.offLine} off)`, this.busyFrames === 0 && this.offLine === 0);
+    check(`the gag's end in order (${this.phases.join(', ')}): he stops at ${crushAt} (${[...this.stopLefts].join(' ')}), named, the crusher comes down, he goes, it goes back up, the watchers cheer`, this.phases.join() === 'march,stop,drop,crush,rise,cheer' && this.stopLefts.size === 1 && this.stopLefts.has(crushAt) && this.gagNamed);
+  }
+}
+
 /** A figure in its true colours reads on a plain ground of `ground`: its first pose's pixels are mostly another colour than the ground's (the creature-contrast rule). The share that is the ground's colour. */
 export function groundShare(fig: { poses: readonly { parts: readonly { surface: { pixels: Uint8Array } }[] }[] }, ground: number): number {
   let all = 0, same = 0;

@@ -20,7 +20,7 @@ function wrapped(w: number, shape: (dx: number) => void) {
  * above the line in the first row, the blue rock in the second) over a row of pines, a tall one and a short one. Rows are separate rings:
  * the mountains slide slower than the pines in front.
  */
-function horizon(): NewDecor {
+function horizon(name: 'horizon' | 'horizonDark', colours: readonly string[]): NewDecor {
   const r = new Raster(16, 24);
   wrapped(16, (dx) => {
     r.triangle(5 + dx, 0, -3 + dx, 15, 13 + dx, 15); // the tall peak
@@ -32,7 +32,7 @@ function horizon(): NewDecor {
     r.triangle(4 + dx, 16, 0 + dx, 22, 8 + dx, 22); r.rect(3 + dx, 23, 4 + dx, 23); // a tall pine
     r.triangle(12 + dx, 18, 9 + dx, 22, 15 + dx, 22); r.rect(11 + dx, 23, 12 + dx, 23); // and a short one
   });
-  return decor('horizon', 2, 3, r, ['11', '66', '55']);
+  return decor(name, 2, 3, r, colours);
 }
 
 /**
@@ -95,4 +95,10 @@ function starDim(): NewDecor {
   return decor('starDim', 1, 1, r, 15);
 }
 
-export const SIBERIA_SKY = { horizon: horizon(), wires: wires(), smoke: smoke(), chimney: chimney(), moon: moon(), star: star(), starDim: starDim() } as const satisfies Record<string, NewDecor>;
+/**
+ * The horizon as Siberia's cars show it (the reset: calm backgrounds): the same picture with the peaks in the mountains' own dark blue, no white snow,
+ * over the dark green pines, so nothing behind the roof's lane is brighter than what he stands on.
+ */
+export const HORIZON_DARK = ['66', '66', '55'] as const;
+
+export const SIBERIA_SKY = { horizon: horizon('horizon', ['11', '66', '55']), horizonDark: horizon('horizonDark', HORIZON_DARK), wires: wires(), smoke: smoke(), chimney: chimney(), moon: moon(), star: star(), starDim: starDim() } as const satisfies Record<string, NewDecor>;

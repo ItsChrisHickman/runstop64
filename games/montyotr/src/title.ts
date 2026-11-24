@@ -98,6 +98,8 @@ export interface TitleScreen {
   readonly phase: number;
   /** The pixel rows the fine scroll moves: from `top`, `lines` of them. */
   readonly fine: { readonly top: number; readonly lines: number };
+  /** The background colour line by line, where it is not one colour (a raster split: the colour behind the picture's clear pixels, 320 x 200). Absent: the VIC's background colour all down. */
+  readonly backdrop?: Surface;
   /** The screen drawn, the music started. */
   start(): void;
   /** One frame; 'start' when fire starts a game. */

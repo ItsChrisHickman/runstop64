@@ -1,3 +1,4 @@
+import { SPLIT_FIRST, splitDeath, type SplitStage } from '../../shared/monty/deaths';
 import { cameoDue, inBox, walkOn } from './cameos';
 import type { Game } from './game';
 import type { PursuerSpec } from './montydata';
@@ -61,24 +62,25 @@ export function squashPursuer(g: Game) {
   }
 }
 
-/** The four-way split, Monty on the Run's own (scripts.ts `death4Split`) frame for frame: going back, on, up and down from where he was, three units a frame, each piece's four pictures in turn. True while a piece is still in sight. */
+/**
+ * The four-way split (shared/monty/deaths.ts `splitDeath`, Monty on the Run's own, the one owner of it) `p.t` frames in, on the pursuer's four sprites: played on a stage of its own from where he was and read
+ * back (its sprites 2, 3, 0 and 1 are the pieces going back, on, up and down; its pictures, from `SPLIT_FIRST`, index his sixteen). Replayed from the start each frame (fifty steps at most), so the state is
+ * plain numbers a copy of the game can take. True while a piece is still in sight.
+ */
 function splitFrame(g: Game, p: PursuerState, e: PursuerSpec): boolean {
   const s = e.split;
   if (!s) return false;
-  const n = p.t;
-  const [back, on, up, down] = s.sprites;
-  const x = (n & 7) >> 1;
-  const places: readonly (readonly [sprite: number, x2: number, y: number, first: number])[] = [
-    [back, p.gx - 8 - 3 * n, p.gy, 0], [on, p.gx + 8 + 3 * n, p.gy, 4], [up, p.gx, p.gy - 16 - 3 * n, 8], [down, p.gx, p.gy + 16 + 3 * n, 12],
-  ];
+  const stage: SplitStage = { sx: new Uint8Array(8), sy: new Uint8Array(8), sptr: new Uint8Array(8), scol: new Uint8Array(8), enable: 0, multicolour: 0, x2: p.gx, y: p.gy }; // (where he was, as the game gives Monty's)
+  const steps = splitDeath(stage);
+  for (let n = 0; n < p.t; n++) if (steps.next().done) { stage.enable = 0; break; }
   let shown = false;
-  for (const [sprite, x2, y, first] of places) {
-    const off = x2 < 0 || x2 >= 0xa0 || y < 0 || y > 0xff;
-    if (off) { g.enable &= ~(1 << sprite) & 0xff; continue; }
-    g.sx[sprite] = x2; g.sy[sprite] = y; g.sptr[sprite] = s.pictures[first + x] ?? 0; g.scol[sprite] = 1;
+  s.sprites.forEach((sprite, k) => {
+    const from = [2, 3, 0, 1][k] ?? 0;
+    if (!(stage.enable & (1 << from))) { g.enable &= ~(1 << sprite) & 0xff; return; }
+    g.sx[sprite] = stage.sx[from] ?? 0; g.sy[sprite] = stage.sy[from] ?? 0; g.sptr[sprite] = s.pictures[(stage.sptr[from] ?? SPLIT_FIRST) - SPLIT_FIRST] ?? 0; g.scol[sprite] = stage.scol[from] ?? 1;
     g.enable |= 1 << sprite;
     shown = true;
-  }
+  });
   return shown;
 }
 

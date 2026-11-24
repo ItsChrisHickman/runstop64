@@ -1,5 +1,9 @@
 # Do Svidaniya Monty: Siberia's room map
 
+> **Superseded (2026-11-23):** Siberia was rebuilt to the reset plan (docs/dosvidaniya-reset.md, "Siberia (the Trans-Siberian)"): six rooms, the train as
+> the puzzle. The forest, the dark shaft and the lake below are gone, and the cave, the mine and the border are not as described here. This file is the
+> history of the first build; games/montyworld/src/siberia.ts is the region as it is.
+
 Region 2 (docs/dosvidaniya-plan.md). Design first; "As built" at the end says where the build differs. Rows 0 (top) to 19, columns
 0-31, as in docs/dosvidaniya-moscow.md; Monty stands on a floor row F with his body on F-2 and F-1, and a way out at a side is open
 at the same rows as the way in of the next room.

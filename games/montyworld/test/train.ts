@@ -17,7 +17,7 @@ import { WHEEL_FRAMES } from '../src/art/siberia-decor';
 import { WORLD } from '../src/data';
 import { decorIndex } from '../src/layout';
 import { ROOM } from '../src/moscow';
-import { SIB } from '../src/siberia';
+import { SIB, SIBERIA_ROOMS } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { standY } from './route';
 
@@ -87,42 +87,54 @@ const decorRow = (g: Game, name: Parameters<typeof decorIndex>[0], w: number, ro
   const first = decorChars(g.data, g.roomId)[decorIndex(name)] ?? 0;
   return Array.from({ length: w }, (_, i) => chr(g, first + row * w + i)).join('|');
 };
-for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal], ['platform', ROOM.station]] as const) {
+for (const [name, room, pieces] of [
+  ['dining car', SIB.gravy, ['moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['smoke', 'moon']],
+  ['platform', ROOM.station, ['horizon', 'wires', 'moon', 'star']],
+] as const) {
   const first = decorChars(WORLD, room);
-  check(`${name}: the sky's pieces all fit in the room's characters (none dropped as the pool ran out)`, (['horizon', 'wires', 'moon', 'star'] as const).every((d) => (first[decorIndex(d)] ?? 0) > 0));
+  check(`${name}: the sky's pieces all fit in the room's characters (none dropped as the pool ran out)`, pieces.every((d) => (first[decorIndex(d)] ?? 0) > 0));
 }
+check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) and no poles or wires; Moscow\'s platform keeps its own', [SIB.gravy, SIB.sleeper, SIB.coal].every((room) => {
+  const first = decorChars(WORLD, room);
+  return !first[decorIndex('wires')] && !first[decorIndex('horizon')];
+}));
+check('the tender\'s coal stands on plain night: no horizon behind it, only the smoke and the moon above', !decorChars(WORLD, SIB.coal)[decorIndex('horizonDark')]);
+check('the dining car\'s roof lane, where the mountain is first dodged, has only the night behind it: no horizon, the moon and stars', !decorChars(WORLD, SIB.gravy)[decorIndex('horizonDark')]);
 {
-  const s = at(SIB.gravy, 8, 17);
+  const s = at(SIB.sleeper, 8, 17);
   const g = s.g;
-  const start = { mountains: [decorRow(g, 'horizon', 2, 0), decorRow(g, 'horizon', 2, 1)], pines: decorRow(g, 'horizon', 2, 2), poles: decorRow(g, 'wires', 4, 0), smoke: decorRow(g, 'smoke', 4, 0) };
-  const mountains = () => [decorRow(g, 'horizon', 2, 0), decorRow(g, 'horizon', 2, 1)];
+  const start = { mountains: [decorRow(g, 'horizonDark', 2, 0), decorRow(g, 'horizonDark', 2, 1)], pines: decorRow(g, 'horizonDark', 2, 2) };
+  const mountains = () => [decorRow(g, 'horizonDark', 2, 0), decorRow(g, 'horizonDark', 2, 1)];
   run(s, 2 * 8);
   check('after 8 steps the mountains have crept (a pixel every fourth step) and so have the pines in front of them (every second)',
-    mountains().join() !== start.mountains.join() && decorRow(g, 'horizon', 2, 2) !== start.pines);
+    mountains().join() !== start.mountains.join() && decorRow(g, 'horizonDark', 2, 2) !== start.pines);
   run(s, 2 * 24);
   check('after 32 steps the pines (16 pixels a round) are back and the mountains (8 of their 16) are not',
-    decorRow(g, 'horizon', 2, 2) === start.pines && mountains().join() !== start.mountains.join());
-  check('the poles and the smoke (32 pixels a round, a pixel every step: the pace of the windows\' scenery) are back too', decorRow(g, 'wires', 4, 0) === start.poles && decorRow(g, 'smoke', 4, 0) === start.smoke);
+    decorRow(g, 'horizonDark', 2, 2) === start.pines && mountains().join() !== start.mountains.join());
   run(s, 2 * 32);
   check('after 64 steps the mountains are back as well: the slowest of all', mountains().join() === start.mountains.join());
-  const mid = at(SIB.gravy, 8, 17);
-  run(mid, 2 * 16);
-  check('the poles are half a round on at 16 steps, the smoke too', decorRow(mid.g, 'wires', 4, 0) !== start.poles && decorRow(mid.g, 'smoke', 4, 0) !== start.smoke);
 }
 {
-  // nothing it draws is solid: the sky's cells are the decoration characters (from $9B), never a room tile (1-8), but where the room has tiles of its own: the sleeper's pine
-  // (columns 22-23) and the banks of its cutting, the tender's rope (column 24) and the mine's shelf over it
+  // the tender's smoke: 32 pixels a round, a pixel every step (the pace of the windows' scenery)
+  const s = at(SIB.coal, 3, 17);
+  const smoke0 = decorRow(s.g, 'smoke', 4, 0);
+  run(s, 2 * 16);
+  const half = decorRow(s.g, 'smoke', 4, 0);
+  run(s, 2 * 16);
+  check('the tender\'s smoke is half a round on at 16 steps and back at 32', half !== smoke0 && decorRow(s.g, 'smoke', 4, 0) === smoke0);
+}
+{
+  // nothing it draws is solid: the sky's cells (rows 2-8) are decoration characters or empty, and a room tile only where the room's own map has one (the sleeper's pine and
+  // bunker; the tender's bunker, tipple and the hill)
   const bad: string[] = [];
-  const own = (room: number, col: number, row: number): boolean => room === SIB.sleeper
-    ? col === 22 || col === 23 || ((col < 6 || col > 25) && row >= 3 + ((col < 6 ? col : 31 - col) >> 1))
-    : room === SIB.coal && (col === 24 || (col === 31 && row >= 3) || (row <= 1 && ((col >= 19 && col <= 22) || (col >= 26 && col <= 29))));
-  // (the tender's col 31 is the join's `shut` edge to the lake, until the lake moves east for the fourth car)
   for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal]] as const) {
     const s = at(room, 8, 17);
+    const map = SIBERIA_ROOMS.find((r) => r.id === room)?.map ?? [];
     for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
       const c = cellAt(s.g, col, row);
       const tile = c >= 1 && c <= 8;
-      if (tile !== own(room, col, row)) bad.push(`${name}: cell ${col},${row} is ${c}`);
+      const coin = SIBERIA_ROOMS.find((r) => r.id === room)?.coins?.some(([cc, cr]) => cc === col && cr === row) === true;
+      if (!coin && tile !== ((map[row]?.[col] ?? '.') !== '.')) bad.push(`${name}: cell ${col},${row} is ${c}`);
     }
   }
   check(`the sky's cells are never a room tile but where the room has tiles of its own (${bad.slice(0, 4).join('; ') || 'none wrong'})`, bad.length === 0);
@@ -133,8 +145,9 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
   run(s, 120);
   check('the platform\'s sky stands still with the train until he is aboard', decorRow(s.g, 'horizon', 2, 2) === ring);
   const aboard = at(ROOM.station, 24, 17);
+  const poles = decorRow(aboard.g, 'wires', 4, 0);
   run(aboard, 8);
-  check('and moves once he is', decorRow(aboard.g, 'horizon', 2, 2) !== ring);
+  check('and moves once he is (the horizon and its poles)', decorRow(aboard.g, 'horizon', 2, 2) !== ring && decorRow(aboard.g, 'wires', 4, 0) !== poles);
 }
 
 // ---- the scenery runs from the moment he is in the room -----------------------------------------------------
@@ -151,7 +164,7 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
 
 // ---- elsewhere nothing moves, and Monty on the Run has no animation -------------------------------------------
 {
-  const s = at(SIB.pines, 8, 17);
+  const s = at(SIB.yeti, 24, 17);
   run(s, 60);
   check('a room that is not the train\'s has no character animation but the game\'s own', s.g.charAnims.length === 0);
   // (other regions animate characters of their own now: Japan's trains, Rio's grill and dancers; only Monty on the Run must have none)
@@ -159,12 +172,13 @@ for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper],
 }
 // ---- the backdrop runs unbroken ----------------------------------------------------------------------------------
 {
-  // across each car's sky band (rows 4-8: the wires and the horizon; the smoke above is only where it drifts) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
-  // or a tile or rope of the room that stands in front of it). The exceptions: the sleeper's cutting rises to row 5 at its ends (pines above it) and plain sky 2 by 2 beside its pine and by the tender's join is too narrow for a pole's four wires; the tender's ticket has two columns of the horizon cleared behind it.
-  for (const [name, room, bare] of [['dining car', SIB.gravy, []], ['sleeper', SIB.sleeper, [[4, 4], [5, 4], [26, 4], [27, 4], [24, 4], [25, 4], [24, 5], [25, 5]]], ['tender', SIB.coal, [[29, 4], [30, 4], [29, 5], [30, 5], [20, 6], [21, 6], [20, 7], [21, 7], [20, 8], [21, 8]]]] as const) {
+  // across each car's horizon band (rows 6-8; Siberia's calm night has no poles or wires above it) and the visible width (columns -2 to 33) no cell is empty: something is drawn in it (the backdrop,
+  // or a tile or rope of the room that stands in front of it). (The tender and the dining car have no horizon: the coal and the first roof run stand on the plain night.)
+  for (const [name, room, from, to] of [['sleeper', SIB.sleeper, -2, 33]] as const) {
     const s = at(room, 8, 17);
     const empty: string[] = [];
-    for (let row = 4; row <= 8; row++) for (let col = -2; col <= 33; col++) {
+    const bare: readonly (readonly [number, number])[] = [];
+    for (let row = 6; row <= 8; row++) for (let col = from; col <= to; col++) {
       if (cellAt(s.g, col, row) === 0 && !bare.some(([c, r]) => c === col && r === row)) empty.push(`${col},${row}`);
     }
     check(`${name}: the sky band has no empty cell (${empty.join(' ') || 'none'})`, empty.length === 0);

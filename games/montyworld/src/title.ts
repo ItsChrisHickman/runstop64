@@ -1,13 +1,16 @@
+import { Surface } from 'c64kit';
 import type { TitleGame, TitleInput, TitleScreen, TitleSound } from '../../montyotr/src/title';
 import { SCREEN } from '../../shared/monty/screen';
 import type { Worn } from './art/costume';
 import { HAT_COLOUR } from './art/hat';
-import { buildTitleArt, CYAN, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SKY, WHITE, YELLOW, type TitleArt } from './title-art';
+import { buildTitleArt, CYAN, MC1, MC2, RED, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, WHITE, YELLOW, type TitleArt } from './title-art';
 import { StripScroller, type Passage } from './title-scroll';
+import { VIKTOR_HEIGHT, VIKTOR_LAYERS, VIKTOR_POSES, viktorBlock } from './title-viktor';
 
 /**
- * Do Svidaniya Monty's title screen (the picture is title-art.ts): the logo over the world map from Montos to Rio, Monty in his
- * ushanka walking the dotted route on a loop (two sprites, his picture and his hat, turned to face east), the story scroller
+ * Do Svidaniya Monty's title screen (the picture is title-art.ts): the logo over the world map from Montos to Rio on a black screen (the
+ * sea's strip blue: the background colour changed down its lines), Monty in his ushanka walking the dotted route on a loop (two sprites,
+ * his picture and his hat, turned to face east) and Viktor Vole of the KGB (title-viktor.ts) a few steps behind him, the story scroller
  * under the map, ENTER CONTINUE's line (`STRIP_Y`) under that and the credits at the foot, Hubbard's tune playing. It takes
  * the game's characters, screen and sprites, and gives them back (`leave`).
  */
@@ -16,7 +19,13 @@ import { StripScroller, type Passage } from './title-scroll';
 export const STRIP_Y = ROWS.strip * 8;
 
 /** The sprite blocks the title's Monty and hat use: blocks the bank leaves empty ($30-$37: where a room's enemies go, none yet). */
-export const SPRITE_BLOCKS = { monty: 0x30, hat: 0x34 } as const;
+export const SPRITE_BLOCKS = { monty: 0x30, hat: 0x34, viktor: 0x38 } as const;
+/** How far behind Monty Viktor walks along the route, in pixels, and the sprites (2 to 5) he is drawn with. */
+export const VIKTOR_GAP = 28;
+/** Sprite-enable bits: Monty's two sprites, Viktor's four. */
+/** Rows from the top of Monty's sprite block to the soles of his feet (his pictures leave the rest of the block empty). */
+export const MONTY_HEIGHT = 15;
+export const MONTY_BITS = 0x03, VIKTOR_BITS = 0x3c;
 /** Monty's walking pictures (the right-facing half of his set: pointers $54-$57). */
 const WALK = [0x54, 0x55, 0x56, 0x57] as const;
 /** Frames: a step every six, a pixel and a bit a frame; he stands at Rio `STAND` frames and is back at Montos after `GAP` more. */
@@ -40,14 +49,11 @@ function mirrored(block: Uint8Array): Uint8Array {
 
 /** The title's story: what the scroller says (colours 0-7; no apostrophe: the scroller's letters have none). */
 export const STORY: readonly Passage[] = [
-  { colour: YELLOW, text: 'DO SVIDANIYA MONTY.  ' },
-  { colour: WHITE, text: 'INTERMOLE HAS FOUND MONTY ON HIS ISLAND OF MONTOS.  ' },
-  { colour: CYAN, text: 'EUROPE IS NO LONGER SAFE.  ' },
-  { colour: WHITE, text: 'SO MONTY HEADS EAST, OUT OF THE REACH OF INTERMOLE, THE LONG WAY ROUND:  ' },
-  { colour: YELLOW, text: 'MOSCOW, THE TRANS SIBERIAN, THE GREAT WALL, A JUNK TO JAPAN, A CARGO SHIP TO HAWAII, A PARACHUTE INTO THE ANDES, A RIVERBOAT DOWN THE AMAZON, AND RIO.  ' },
-  { colour: WHITE, text: 'FIND THE KEYS, WATCH THE TIMING, LISTEN FOR THE MUSIC.  ' },
-  { colour: CYAN, text: 'WITH THANKS TO PETER HARRAP, ROB HUBBARD AND EVERYONE AT GREMLIN.  ' },
-  { colour: YELLOW, text: 'GOOD LUCK!' },
+  { colour: WHITE, text: 'INTERMOLE HAS FOUND MONTY ON MONTOS...  ' },
+  { colour: CYAN, text: 'EUROPE IS NO LONGER SAFE...  ' },
+  { colour: RED, text: 'AND THE KGB HAVE SENT VIKTOR VOLE...  ' },
+  { colour: YELLOW, text: 'THE LONG WAY ROUND: MOSCOW TO RIO...  ' },
+  { colour: WHITE, text: 'GOOD LUCK!' },
 ];
 
 export class MapTitle implements TitleScreen {
@@ -58,11 +64,14 @@ export class MapTitle implements TitleScreen {
   private saved: { mc1: number; mc2: number } | null = null;
   private readonly art: TitleArt;
   private frames = 0;
+  /** The background's lines: black, and the sea's blue behind the map's strip. */
+  readonly backdrop = new Surface(320, 200, SKY);
 
   /** `bank` is the game's bank image (its lettering, and what `leave` puts back), `worn` Monty in his ushanka. */
   constructor(private readonly g: TitleGame, private readonly sound: TitleSound, private readonly bank: Uint8Array, private readonly worn: Worn) {
     this.scroller = new StripScroller(bank, STORY);
     this.art = buildTitleArt(bank);
+    this.backdrop.fillRect(0, this.art.sea.top, 320, this.art.sea.height, SEA);
   }
 
   start() {
@@ -97,6 +106,10 @@ export class MapTitle implements TitleScreen {
     v.multicolour = 0; v.priority = 0; v.expandX = 0; v.expandY = 0;
     v.sprites[0].colour = 1;
     v.sprites[1].colour = HAT_COLOUR;
+    VIKTOR_LAYERS.forEach((layer) => {
+      for (let pose = 0; pose < VIKTOR_POSES; pose++) this.g.mem.set(viktorBlock(layer, pose), (SPRITE_BLOCKS.viktor + (layer.sprite - 2) * VIKTOR_POSES + pose) * 64);
+      v.sprites[layer.sprite].colour = layer.colour;
+    });
   }
 
   /** Where Monty is this frame: his feet on the route, a pace along it, then standing at Rio, then gone for a moment. */
@@ -104,16 +117,33 @@ export class MapTitle implements TitleScreen {
     const cycle = WALK_FRAMES + STAND + GAP, f = this.frames % cycle;
     const v = this.g.vic;
     if (f >= WALK_FRAMES + STAND) { v.enable = 0; return; }
+    this.followMonty(f);
     const at = routeAt(Math.min(f, WALK_FRAMES) / WALK_FRAMES);
     const walking = f < WALK_FRAMES;
     const pose = walking ? Math.floor(f / STEP) % WALK.length : 0;
     const bob = walking && pose % 2 === 1 ? 1 : 0;
-    const x = Math.round(at.x) - 12, y = Math.round(at.y) - 21 - bob;
+    const x = Math.round(at.x) - 8, y = Math.round(at.y) - MONTY_HEIGHT - bob;
     const hat = this.worn.hat.find((h) => h.ptr === WALK[pose]);
     const dx = hat ? -hat.dx : 0, dy = hat ? hat.dy : 0;
-    v.enable = 3;
+    v.enable |= MONTY_BITS;
     v.sprites[0].ptr = SPRITE_BLOCKS.monty + pose; v.sprites[0].x = x + 24; v.sprites[0].y = y + 50;
     v.sprites[1].ptr = SPRITE_BLOCKS.hat + pose; v.sprites[1].x = x + dx + 24; v.sprites[1].y = y + dy + 50;
+  }
+
+  /** Viktor, a few steps behind Monty on the same route (not yet on it while Monty is less than `VIKTOR_GAP` along; he stops behind him at Rio). */
+  private followMonty(f: number) {
+    const v = this.g.vic;
+    const gone = Math.min(f, WALK_FRAMES) / WALK_FRAMES * ROUTE_LENGTH;
+    if (gone < VIKTOR_GAP) { v.enable = 0; return; }
+    const at = routeAt((gone - VIKTOR_GAP) / ROUTE_LENGTH);
+    const walking = f < WALK_FRAMES, pose = walking ? Math.floor(f / (STEP + 2)) % VIKTOR_POSES : 0;
+    const bob = walking && pose === 1 ? 1 : 0;
+    const x = Math.round(at.x) - 12 + 24, y = Math.round(at.y) - VIKTOR_HEIGHT - bob + 50;
+    v.enable = VIKTOR_BITS;
+    for (const layer of VIKTOR_LAYERS) {
+      const s = v.sprites[layer.sprite];
+      s.ptr = SPRITE_BLOCKS.viktor + (layer.sprite - 2) * VIKTOR_POSES + pose; s.x = x; s.y = y;
+    }
   }
 
   frame(input: TitleInput): 'start' | null {

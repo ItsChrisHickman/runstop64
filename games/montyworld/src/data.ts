@@ -26,7 +26,7 @@ import { ARRIVALS, CLOUD_ANIMS, CRUST_CRACKS, CURRENTS, LAVA, LOOSE_CRATE, MORAY
 import { BALL_STREAM, DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, GANGWAYS, MINE_CART, SIBERIA_ICICLES, SIBERIA_PULSES, YETI, YETI_POINTERS, TRAIN_ANIMS, SHAFT_CODE, SHAFT_LEDGES, SHAFT_STONE, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
@@ -34,8 +34,9 @@ import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
 import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
-import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
-import { shipPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
+import { CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
+import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 
@@ -97,6 +98,9 @@ const DRAGON_BLOCKS = [
   { ptr: DRAGON_POINTERS.tailRight, block: DRAGON_PICTURES.tailRight },
 ] as const;
 
+/** The finale's pictures, put in with the beach (finale.ts). */
+const FINALE_NAMES = ['chair', 'bowlFull', 'bowlEmpty', 'berries3', 'berries2', 'berries1', 'sitDip', 'sitUp', 'sitMouth', 'sitChew', 'danceLeft', 'danceRight', 'spoonDip', 'spoonUp', 'spoonMouth'] as const satisfies readonly FinalePicture[];
+const FINALE_BLOCKS = FINALE_NAMES.map((name) => ({ ptr: FINALE_POINTERS[name], block: FINALE_PICTURES[name] }));
 /** The hold's loose crate rolling, in the blocks the Andes' boulders use in the Andes (put in while the hold is loaded). */
 const CRATE_BLOCKS = CRATE_ROLL.map((block, i) => ({ ptr: BOULDER_POINTERS[i] ?? 0, block }));
 
@@ -110,7 +114,6 @@ const bank = extendBank(bankImage, [
   { ptr: SPRITE.iceHalf, block: ICICLE_HALF },
   { ptr: SPRITE.iceSmall, block: ICICLE_SMALL },
   { ptr: SPRITE.iceShards, block: ICICLE_SHARDS },
-  { ptr: SIB_SPRITE.lamp, block: SIBERIA_ITEMS.lamp.block },
   { ptr: SIB_SPRITE.ticket, block: SIBERIA_ITEMS.ticket.block },
   { ptr: SIB_SPRITE.pelmeni, block: SIBERIA_ITEMS.pelmeni.block },
   { ptr: CHINA_SPRITE.key, block: CHINA_ITEMS.towerKey.block },
@@ -152,7 +155,7 @@ const bank = extendBank(bankImage, [
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
   [SPRITE.token, MOSCOW_ITEMS.metroToken.colour], [SPRITE.ushanka, MOSCOW_ITEMS.ushanka.colour], [SPRITE.pirozhok, MOSCOW_ITEMS.pirozhok.colour],
-  [SIB_SPRITE.lamp, SIBERIA_ITEMS.lamp.colour], [SIB_SPRITE.ticket, SIBERIA_ITEMS.ticket.colour], [SIB_SPRITE.pelmeni, SIBERIA_ITEMS.pelmeni.colour],
+  [SIB_SPRITE.ticket, SIBERIA_ITEMS.ticket.colour], [SIB_SPRITE.pelmeni, SIBERIA_ITEMS.pelmeni.colour],
   [CHINA_SPRITE.key, CHINA_ITEMS.towerKey.colour], [CHINA_SPRITE.riceHat, CHINA_ITEMS.riceHat.colour], [CHINA_SPRITE.bamboo, CHINA_ITEMS.bamboo.colour],
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
   [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
@@ -184,7 +187,6 @@ const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_
 const TOKEN = specialIndex(ROOMS, 'token');
 const USHANKA_ITEM = specialIndex(ROOMS, 'ushanka');
 const PIROZHKI = listSpecials(ROOMS).filter((e) => e.item === null).map((e) => e.index);
-const LAMP = specialIndex(ROOMS, 'lamp');
 const TICKET = specialIndex(ROOMS, 'ticket');
 const KEY = specialIndex(ROOMS, 'key');
 const RICE_HAT = specialIndex(ROOMS, 'rice hat');
@@ -204,13 +206,13 @@ const BOWL = specialIndex(ROOMS, 'bowl');
 
 /**
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
- * effects read them), Viktor knocked off the cargo ship (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
+ * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
-const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3;
+const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'pelmeni2'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
   ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
@@ -226,9 +228,12 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): (readonly 
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
-  { room: SIB.shaft, when: [{ taken: LAMP }], place: { code: SHAFT_CODE, cells: onScreen([...SHAFT_LEDGES, ...SHAFT_STONE]) } }, // the lamp shows the ledges
-  { room: SIB.border, when: [{ taken: TICKET }], clear: screenCells(28, 13, 29, 16) }, // the ticket lifts the barrier
-  ...[...new Set(GANGWAYS.map((g) => g.room))].map((room): RoomEffect => ({ room, when: [{ taken: TICKET }], clear: GANGWAYS.filter((g) => g.room === room).flatMap(({ cols }) => screenCells(cols[0], 15, cols[1], 16)) })), // and the inspectors let him through the gangways (one effect a room)
+  // the inspector sees the ticket and steps out of the sleeper's far gangway: the way under the roof is open into the tender (one effect a room)
+  ...[...new Set(GANGWAYS.map((g) => g.room))].map((room): RoomEffect => ({
+    room, when: [{ taken: TICKET }], clear: GANGWAYS.filter((g) => g.room === room).flatMap(({ cols }) => screenCells(cols[0], 15, cols[1], 16)), ...(room === SIB.sleeper ? { removeEnemy: INSPECTOR_SLOT } : {}),
+  })),
+  // and the provodnitsa unbolts the luggage closet's floor: the closet's ladder runs on down into the corridor, the way in from the roof
+  { room: SIB.sleeper, when: [{ taken: TICKET }], clear: onScreen(TRAPDOOR.clear), place: { code: TRAPDOOR.code, cells: onScreen(TRAPDOOR.ladder) } },
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
   { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
@@ -264,11 +269,12 @@ export const WORLD: MontyData = {
   // he starts on the platform at the left, facing right, on the floor (row 17)
   start: { mapRow: 1, exitCol: 0, x2: 0x28, y: 0xc2, facing: 0x01 },
   untravellable: [],
+  ropeHoldRooms: [SIB.yeti], // (jumping up the pine into the cave, he holds it there)
 
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -279,13 +285,13 @@ export const WORLD: MontyData = {
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...CLOUD_ANIMS],
-  pulses: [...PULSES, ...SIBERIA_PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES)],
+  pulses: [...PULSES, ...DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES)],
   swimRooms: SWIM_ROOMS,
   swimGate: SNORKEL,
   currents: CURRENTS,
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, ...VIKTOR_BLOCKS],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.plane], blocks: CRATE_BLOCKS }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS],
   risingLava: [LAVA],
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
@@ -295,7 +301,7 @@ export const WORLD: MontyData = {
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],
   skewers: SKEWERS,
-  pursuers: [shipPursuer(OVERBOARD), pursuerOf(SQUASHED)],
+  pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
   cameos: viktorCameos(MOON_SEEN, HOOD_ITEM),
   iceSprites: { full: SPRITE.iceFull, half: SPRITE.iceHalf, small: SPRITE.iceSmall, shards: SPRITE.iceShards },
@@ -321,7 +327,6 @@ export const WORLD: MontyData = {
     take: [
       { item: TOKEN, text: 'A TOKEN: FARE FOR THE METRO' },
       { item: USHANKA_ITEM, text: 'FUR HAT: LOOK LIKE A LOCAL' },
-      { item: LAMP, text: 'LAMP LIGHT SHOWS THE LEDGES' },
       { item: TICKET, text: 'A TICKET: THE INSPECTOR ASKS' },
       { item: KEY, text: 'A KEY: SOMETHING IS LOCKED UP' },
       { item: RICE_HAT, text: 'A RICE HAT: LOOK LIKE A LOCAL' },
@@ -340,10 +345,7 @@ export const WORLD: MontyData = {
     wanted: [
       { room: ROOM.hall, item: TOKEN, text: 'THE TURNSTILE TAKES A TOKEN' },
       { room: ROOM.kremlin, item: USHANKA_ITEM, text: 'THE GUARD LETS ONLY LOCALS BY' },
-      { room: SIB.shaft, item: LAMP, text: 'TOO DARK TO SEE THE LEDGES' },
-      { room: SIB.gravy, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: SIB.sleeper, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
-      { room: SIB.border, item: TICKET, text: 'THE INSPECTOR CHECKS TICKETS' },
       { room: CHI.tower, item: KEY, text: 'THE TRAPDOOR IS LOCKED UP' },
       { room: CHI.gate, item: RICE_HAT, text: 'THE CITY TURNS FOREIGNERS AWAY' },
       { room: CHI.junk, item: BAMBOO, text: 'THE RIVER IS TOO WIDE TO WADE' },
@@ -359,7 +361,7 @@ export const WORLD: MontyData = {
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ from, to, rows, except }) => ({ from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, LAMP, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

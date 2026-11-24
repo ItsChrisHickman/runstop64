@@ -23,14 +23,23 @@ const REST = ACTIONS[4] ?? ['.', NONE];
 /** What happened in a few frames of play. */
 export type Held = { dead: true } | { dead: false; room: number | null };
 
+/** The treasure's event (6), pending or dispatched (6 - 1 | 0x80): the end of the game, the one event that is not a death. */
+const TREASURE = [6, 5 | 0x80] as const;
+/**
+ * Whether a frame set a death going: the action counter went from nothing to an event other than the treasure's. The game dispatches an event at the end of the
+ * frame that set it (1-7 becomes 0x80-0x86 in the same frame), so a pending event is never seen between frames: the change from 0 is what tells.
+ */
+export const diedIn = (before: number, after: number): boolean => before === 0 && after !== 0 && !TREASURE.some((t) => t === after);
+
 /** Hold a stick for some frames. `room`: the room he has come into (settled there), if he has; dead: a death was set going. */
 export function hold(s: State, stick: Stick, frames: number): Held {
   const prng = s.g.prng;
   Math.random = () => (((prng[0] ?? 0) * 7 + (prng[1] ?? 0) * 13 + (prng[2] ?? 0) * 31 + (prng[3] ?? 0) * 57 + 11) & 255) / 256;
   const room = s.g.roomId;
   for (let f = 0; f < frames; f++) {
+    const before = s.g.actionCounter;
     frame(s, stick);
-    if (s.g.actionCounter && !(s.g.actionCounter & 0x80)) return { dead: true };
+    if (diedIn(before, s.g.actionCounter) || (s.g.actionCounter && !(s.g.actionCounter & 0x80))) return { dead: true };
     if (s.g.roomId !== room) {
       for (let n = 0; n < 200 && !settled(s.g); n++) frame(s, NONE);
       return { dead: false, room: s.g.roomId };

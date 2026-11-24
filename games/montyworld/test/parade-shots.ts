@@ -1,6 +1,6 @@
 /**
  * Pictures of Do Svidaniya Monty's parade (the procession after the last credit line), to look at: the show run from its first frame, a frame
- * saved every `every` frames of the procession (default 40) and a strip of them at 1x.
+ * saved every `every` frames of the procession (default 40) and a strip of them at 1x, and the gag's end every fourth frame (gag.png).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/parade-shots.ts <out-dir> [every]
  */
@@ -29,12 +29,14 @@ renderer.frame = { x: 32, y: 36 };
 const spec = montyEnding(WORLD, renderer, ENHANCED);
 const show = new RewardShow({ host: { renderer, input, canvas: nowhere }, spec, font: montyFont, music: { start() {}, end() {} }, done() {} });
 show.start(endingStats(new Game(WORLD), { rooms: {} }));
-const strip: Uint8Array[] = [];
+const strip: Uint8Array[] = [], gag: Uint8Array[] = [];
 let n = 0;
 for (let f = 0; show.active && f < 20000; f++) {
   input.poll(); show.tick(); show.render(0);
   const p = show.progress;
   if (p.phase !== 'parade' || p.frames === 0) continue;
+  // (the gag's end, closer: every fourth frame from the moment he stops)
+  if (p.gag && p.gag.phase !== 'march' && p.frames % 4 === 0) gag.push(renderer.picture());
   if (p.frames % every === 0) {
     const pic = renderer.picture();
     rgbPng(path.join(out, `parade-${String(n++).padStart(3, '0')}.png`), indicesToRgb(pic), 320, 200, 1);
@@ -49,4 +51,9 @@ strip.forEach((pic, i) => {
   for (let y = 0; y < 200; y++) big.set(pic.subarray(y * 320, y * 320 + 320), (oy + y) * 320 * cols + ox);
 });
 if (strip.length) rgbPng(path.join(out, 'strip.png'), indicesToRgb(big), 320 * cols, 200 * rows, 1);
+{
+  const gagRows = Math.ceil(gag.length / cols), sheet = new Uint8Array(320 * cols * 200 * gagRows);
+  gag.forEach((pic, i) => { const ox = (i % cols) * 320, oy = Math.floor(i / cols) * 200; for (let y = 0; y < 200; y++) sheet.set(pic.subarray(y * 320, y * 320 + 320), (oy + y) * 320 * cols + ox); });
+  if (gag.length) rgbPng(path.join(out, 'gag.png'), indicesToRgb(sheet), 320 * cols, 200 * gagRows, 1);
+}
 console.log(`${strip.length} frames of the parade in ${out}`);

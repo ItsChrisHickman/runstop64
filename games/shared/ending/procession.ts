@@ -110,3 +110,93 @@ export function processionOf(troupes: readonly TroupeShape[]): { turns: { from: 
 export function nameSpot(n: number, rows: readonly [number, number]): { x: number; row: number } {
   return { x: n % 2 === 0 ? 8 : 168, row: n < 2 ? rows[0] : rows[1] };
 }
+
+// ---- the carnival parade ----------------------------------------------------------------------------------------
+
+/**
+ * The parade style (Do Svidaniya Monty's, after Rio's carnival): the whole cast in one long procession moving left to right across the
+ * picture without a break: leaders at its head (the finale's samba troupe), then each group in the journey's order behind a banner with
+ * its name, the marchers in single file with a bounce in their step on the samba beat, each named as its middle passes the reviewing
+ * point (the names of the group passing stay up, two to a row, as the troupes' do), and the gag at the tail: he walks on alone until
+ * `crushAt`, stops, and a Mole Crusher slams down on him (`drop`), he goes as the engine's death under a crusher goes (`crush`: its own
+ * frames, one a frame), the crusher goes back up (`rise`) and the watchers at the side cheer (`cheer`). Then THE END.
+ */
+export const PARADE = {
+  /** Pixels a frame the column moves: a samba walk. */
+  speed: 1.5,
+  /** From one marcher's left edge to the next's. */
+  gap: 30,
+  /** Between a banner and its group's first marcher behind it. */
+  bannerGap: 12,
+  /** Between a group's last marcher and the next banner behind it (or the gag). */
+  groupGap: 28,
+  /** A marcher's name comes up as its middle passes this column. */
+  review: 160,
+  /** Frames of a samba beat, and the bounce on it (pixels up). */
+  beat: 24,
+  bounce: 3,
+  /** Where the gag stops (his left edge), the frames he stands, the crusher's drop, the frames of his death if the game does not say (its own: the four-way split's), the rise and the cheer. */
+  crushAt: 186,
+  stop: 40,
+  drop: 10,
+  crush: 50,
+  rise: 30,
+  cheer: 70,
+} as const;
+
+/** What marches: a leader (no name), a group's banner, a group's marcher, or the gag at the tail. */
+export type UnitKind = 'leader' | 'banner' | 'member' | 'gag';
+/** A unit of the column: what it is, its width, and the group it belongs to (a banner's and its marchers'; -1 for the leaders and the gag). */
+export interface ParadeUnit { kind: UnitKind; width: number; group: number }
+/** The column's units, and how many frames the gag's death takes (default `PARADE.crush`). */
+export interface ParadeShape { units: readonly ParadeUnit[]; crush?: number }
+
+/** The gag's part: marching with the column, standing, the crusher coming down, the crusher death, the crusher going up, the watchers cheering. */
+export type GagPhase = 'march' | 'stop' | 'drop' | 'crush' | 'rise' | 'cheer';
+export const GAG_PHASES = ['stop', 'drop', 'crush', 'rise', 'cheer'] as const;
+
+/** How far behind the head each unit marches (pixels), from the gaps between kinds. */
+function offsetsOf(units: readonly ParadeUnit[]): number[] {
+  const out: number[] = [];
+  units.forEach((u, k) => {
+    const prev = units[k - 1];
+    if (!prev) { out.push(0); return; }
+    // (the column moves right: a unit's left edge is its own width and a gap behind the left edge of the one in front)
+    const space = u.kind === 'banner' || u.kind === 'gag' ? u.width + PARADE.groupGap : prev.kind === 'banner' ? u.width + PARADE.bannerGap : Math.max(PARADE.gap, u.width + 6);
+    out.push((out[k - 1] ?? 0) + space);
+  });
+  return out;
+}
+
+/** The parade's clock: each unit's place behind the head, the frame the gag reaches `crushAt` (with no gag, the frame the last unit is off the right), when each of his phases begins, and the whole length. */
+export function paradeOf(shape: ParadeShape) {
+  const { units } = shape;
+  const offsets = offsetsOf(units);
+  const start = -(units[0]?.width ?? 0);
+  const last = units.length - 1;
+  const gag = units[last]?.kind === 'gag' ? last : -1;
+  const reach = Math.ceil(((gag >= 0 ? PARADE.crushAt : 320) + (offsets[last] ?? 0) - start) / PARADE.speed);
+  const phases: Record<GagPhase, number> = { march: 0, stop: reach, drop: reach, crush: reach, rise: reach, cheer: reach };
+  let at = reach;
+  for (const q of GAG_PHASES) { phases[q] = at; at += gag >= 0 ? (q === 'crush' ? shape.crush ?? PARADE.crush : PARADE[q]) : 0; }
+  return { offsets, start, gag, phases, length: at };
+}
+
+/** The parade at frame `t`: each unit's left edge and lift, the group passing (the last whose banner's middle has passed the reviewing point) and its marchers named so far (each as its middle passes), and the gag's phase and how far into it. */
+export function paradeAt(shape: ParadeShape, t: number) {
+  const p = paradeOf(shape), { units } = shape;
+  const head = p.start + t * PARADE.speed;
+  const lefts = units.map((_, k) => {
+    const left = Math.round(head - (p.offsets[k] ?? 0));
+    return k === p.gag ? Math.min(left, PARADE.crushAt) : left;
+  });
+  // (a samba bounce: every marcher on the beat, each a half beat after the one in front)
+  const lifts = units.map((u, k) => (u.kind === 'member' || u.kind === 'leader' ? Math.round(Math.abs(Math.sin(((t + k * (PARADE.beat / 2)) * Math.PI) / PARADE.beat)) * PARADE.bounce) : 0));
+  const past = (k: number) => (lefts[k] ?? 0) + (units[k]?.width ?? 0) / 2 >= PARADE.review;
+  let group = -1;
+  units.forEach((u, k) => { if (u.kind === 'banner' && past(k)) group = u.group; });
+  const named = units.flatMap((u, k) => (u.kind === 'member' && u.group === group && past(k) ? [k] : []));
+  let phase: GagPhase = 'march';
+  for (const q of GAG_PHASES) if (p.gag >= 0 && t >= p.phases[q]) phase = q;
+  return { lefts, lifts, group, named, gag: { phase, at: t - p.phases[phase] } };
+}

@@ -17,7 +17,7 @@ import { SIBERIA_ROOMS } from '../src/siberia';
 import { WORLD } from '../src/data';
 import { inRoom } from './climb-kit';
 
-const STANDS = new Set(['lampStreet', 'lampDouble', 'metroSign', 'bench', 'firTree', 'lampPost', 'palm', 'parasol', 'deckchair', 'restTable', 'saladBar', 'rotisserie', 'roundTree', 'lionStatue', 'intihuatana', 'pacTikiTorch', 'pacTotem', 'pacHibiscus', 'pacRoastPig', 'torch', 'jpToro', 'jpBonsai', 'jpPine', 'jpPineBig', 'jpVending', 'jpAndon', 'noodleStall', 'stall', 'marketStall', 'samovar']);
+const STANDS = new Set(['lampStreet', 'lampDouble', 'metroSign', 'bench', 'firTree', 'lampPost', 'palm', 'parasol', 'rioPole', 'restTable', 'saladBar', 'rotisserie', 'roundTree', 'lionStatue', 'intihuatana', 'pacTikiTorch', 'pacTotem', 'pacHibiscus', 'pacRoastPig', 'torch', 'jpToro', 'jpBonsai', 'jpPine', 'jpPineBig', 'jpVending', 'jpAndon', 'noodleStall', 'stall', 'marketStall', 'samovar']);
 const ROOMS: readonly RoomSpec[] = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ALL_ROOMS, ...RIO_ROOMS];
 const entries = Object.entries(WORLD_DECOR);
 

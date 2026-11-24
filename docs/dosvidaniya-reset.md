@@ -240,7 +240,18 @@ row 2      .                      .                         .                   
 
 ### The puzzle
 
-**The way under the sleeper starts in the dining car.** Four facts lock together:
+**Changed after the second playtest (2026-11-23): the closet's floor.** The open gangway gave the answer away: going down A's hatch for the
+pelmeni, a player walked east into B's corridor and met the inspector before the problem was set. Now:
+- A's east gangway is bolted (both sides of the join). A's inside is a dead end: the pelmeni behind the conductor, the coin on the hatch.
+- B's corridor is shut at both ends. From the roof you see it cut away, the inspector in the far gangway, right under the closet's floor,
+  which is bolted. Sheltering from the mountain on the way to the pine, you stand on that floor.
+- The ticket opens it (the provodnitsa unbolts it, the same room effect as the inspector's: `TRAPDOOR` in siberia.ts): coming back
+  down the pine with the ticket you see the closet's ladder run on through its floor. Back down the pine, west along the roof under the mountain to the closet, down through its floor, past the inspector into C.
+So the roof under the mountain is crossed twice for a reason, the lock (the closet's floor, the inspector) is in sight before the key,
+and nothing on the way to the key shows the way in. The plan below is otherwise as built; read "A to B: the inside gangway" and play
+order steps 3, 6 and 7 as replaced by this.
+
+**The way under the sleeper starts in the dining car** (the first build, replaced above). Four facts lock together:
 - The roof ends at the tender's coal.
 - The corridor is shut by the inspector.
 - B's roof and corridor are sealed from each other, and the two lanes meet only through A's hatches.
@@ -378,6 +389,25 @@ There is no fourth car: [1,7] is the mine's.
 - **Coin (1):** on the island, the only place you can stop. It is at a hazard's edge.
 - **Background:** black night and a few stars. The far bank's low hills are dark, and the ice is pale. Keep ROAD TO CHINA only where it
   is not behind play.
+
+### After the first playtest (round 1)
+
+What changed from the room notes above, and why:
+- **Y:** the yeti's bridge lane now runs the whole bridge to its east end. Its floor lane still stops at column 16, so you arrive at the
+  pine safely. The way to the ticket crosses its lane twice: the bridge's east end where the stair comes up, and the stash's ledge over
+  it. You read it from the stair's top. Before, the key path never met the yeti.
+- **The pine's join:** a jump up the trunk through the top edge ends as he comes into the cave (`ropeHoldRooms`), so he holds the trunk.
+  Before, the jump's fall dropped him back into B, where the mountain's cycle started again.
+- **B:** the mountain is faster here (a cell every 6 frames, `rest` 28), so the shelter in the closet is about 8 seconds, not 13. A run
+  straight to the pine is still caught a couple of cells short, and one shelter gives about 40 frames to spare. The cutting's banks are
+  gone, so the dark horizon runs on. The bunker's coal is black lumps with lit rims. The pine has bark, not rungs. The provodnitsa paces
+  8 cells of the corridor, so the way under the roof is a crossing. The roof's coin moves from the bunker (out of reach once the
+  mountain outruns him) to over the roof between the closet and the pine: a jump on the run back west from the pine.
+- **C:** the stoker goes up and down in the trough (you jump it from the crest while he is down), and a bat flits along the cab's roof
+  to the ladder's foot. The boards and the horizon behind the coal are gone, so the coal stands on black.
+- **M:** the hill's rock fills the middle. The gantry and the gallery are two tight tunnels, joined by two air shafts with a bat in each.
+  Monty Mole's bucket is on the east dock.
+- **G:** the ROAD TO CHINA board is gone, and the watchtower is drawn dark blue, so the guard and the reindeer read on it.
 
 ### Totals
 

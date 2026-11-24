@@ -112,6 +112,15 @@ most care; the reward show and the title show them off.
   black ground of their own with a line under their feet, never over a busy picture; names are plain descriptive words
   (MATRYOSHKA DOLL, KOI) in coloured text on the black, no box. Shared: `procession` in `games/shared/ending/show.ts`
   (`procession.ts` is its clock).
+  Then (Chris, 2026-11-23) the parade became the place's own event: Rio's carnival across the beach, everyone together in one
+  long column without a break, region after region behind a banner with its name, bouncing on the samba beat, the finale's
+  troupe leading, each named as it passes; Monty and the troupe dance at the side watching; the agent sneaks after him at the
+  tail and a Mole Crusher gets him with Monty on the Run's own death (the four-way split, frame for frame). The sand under them
+  is one flat colour: no texture or dither behind a marcher (`parade` in `ProcessionSpec`, `PARADE` in `procession.ts`).
+- **A finale's beats read at 1x** (Chris on the beach, 2026-11-23: "it just moved the two objects to the left and then played
+  music"). Each beat gets its own pictures, not a sprite slid about: he sits (seated pictures, his body in a deckchair drawn as a
+  deckchair), he eats (the bowl in his hands, the spoon going to his mouth, a happy face), he dances (dance pictures). When the
+  actors are small, cut to a close-up with expanded sprites, and keep the ground behind them plain.
 
 ## The villain and the last puzzle (Chris, 2026-11-23)
 
@@ -135,9 +144,10 @@ most care; the reward show and the title show them off.
   charset's '(' glyph); `montyworld/test/text.ts` draws every name, hint, sign and credit through it. A hint fits the name
   row (32 characters).
 - **A new game is presented as the next adventure and a tribute, subtly** (Chris, 2026-11-22): its own title screen in the
-  house style (never a copy of the original's), a line like A MONTY MOLE ADVENTURE, and the tribute done quietly by the credits
-  (the new makers first, "after Peter Harrap's Monty on the Run", the music's author, a thank-you line), never by writing
-  "tribute" or "fan game", and never implying the originals made it.
+  house style (never a copy of the original's), and the tribute named in the credits
+  (Chris, 2026-11-23, for Do Svidaniya Monty: A NEW GAME BY CHRISTOPHER HICKMAN / A TRIBUTE TO PETER HARRAP / MUSIC BY ROB HUBBARD;
+  no A MONTY MOLE ADVENTURE line, no "with Claude" in this game's title, credits or info card), never "fan game", and never
+  implying the originals made it. The title is black all over, the sea's strip alone blue (a raster split: the title's `backdrop`).
 - **No filler statistics** on titles, posters or credits. Credits are sourced, never invented; a new game says it is a new
   game, after the original it is built on.
 - **References only to games Chris played and loves** (Willow Pattern, The Last Ninja, Jeff Minter's llamas); nothing he doesn't

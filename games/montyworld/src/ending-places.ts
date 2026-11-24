@@ -55,7 +55,7 @@ export interface Place { room: number; prepare: Scene['prepare']; take: Scene['t
 
 export const PLACES: readonly Place[] = [
   // Moscow: Red Square, St Basil's domes behind
-  { room: ROOM.square, prepare: arrivedIn(FIRST.moscow, 0), take: { coins: 1 }, credits: ['A NEW GAME BY CHRISTOPHER HICKMAN', 'WITH CLAUDE, AFTER MONTY ON THE RUN', 'BY PETER HARRAP, GREMLIN GRAPHICS'] },
+  { room: ROOM.square, prepare: arrivedIn(FIRST.moscow, 0), take: { coins: 1 }, credits: ['A NEW GAME BY CHRISTOPHER HICKMAN', 'AFTER MONTY ON THE RUN', 'BY PETER HARRAP, GREMLIN GRAPHICS'] },
   // Siberia: the Trans-Siberian's roof, a tunnel mouth coming
   { room: SIB.gravy, prepare: arrivedIn(FIRST.siberia, 1), take: { coins: 1 }, credits: ['THE TRANS-SIBERIAN RUNS 9289 KM', 'FROM MOSCOW TO VLADIVOSTOK'] },
   // China: the Great Wall and its watchtower
@@ -77,4 +77,4 @@ export const PLACES: readonly Place[] = [
 ];
 
 /** The lines under the last place's: this game's own, in the plan's words (a new game, after Peter Harrap's; no port line: it is not a port). */
-export const CLOSING: readonly string[] = ['A NEW GAME BY CHRISTOPHER HICKMAN', 'WITH CLAUDE, AFTER PETER HARRAPS', 'MONTY ON THE RUN, GREMLIN GRAPHICS', 'RUNSTOP64'];
+export const CLOSING: readonly string[] = ['A NEW GAME BY CHRISTOPHER HICKMAN', 'AFTER MONTY ON THE RUN BY PETER HARRAP', 'GREMLIN GRAPHICS', 'RUNSTOP64'];

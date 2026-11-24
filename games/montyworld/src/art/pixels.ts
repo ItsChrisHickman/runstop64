@@ -97,6 +97,24 @@ export function itemBlock(name: string, rows: readonly string[]): Uint8Array {
   return out;
 }
 
+/**
+ * A multicolour sprite block: 12 x 21 double-wide pixels, '.' clear, 'a' the first shared colour (01), 'b' the sprite's own colour (10),
+ * 'c' the second shared colour (11), as the VIC reads a multicolour sprite.
+ */
+export function mcBlock(name: string, rows: readonly string[]): Uint8Array {
+  if (rows.length !== 21) throw new Error(`${name}: ${rows.length} rows, not 21`);
+  const out = new Uint8Array(63);
+  rows.forEach((row, r) => {
+    if (row.length !== 12) throw new Error(`${name}: row ${r} is ${row.length} wide, not 12`);
+    for (let c = 0; c < 12; c++) {
+      const v = '.abc'.indexOf(row[c] ?? '');
+      if (v < 0) throw new Error(`${name}: row ${r} has '${row[c]}'`);
+      out[r * 3 + (c >> 2)] = (out[r * 3 + (c >> 2)] ?? 0) | (v << (6 - (c & 3) * 2));
+    }
+  });
+  return out;
+}
+
 /** A full sprite block: a 24 x 21 picture (3 bytes a row, 21 rows), for a thing wider than 16 pixels (a mine cart). */
 export function spriteBlock(name: string, rows: readonly string[]): Uint8Array {
   const rs = picture(name, rows, 24, 21);

@@ -12,8 +12,8 @@ import { SIB } from './siberia';
 
 /**
  * Viktor Vole round the world (docs/dosvidaniya-reset.md, "Viktor Vole"): every border Monty crosses he arrives at a moment too late, walks on at the edge Monty came by, looks after him and withdraws (a
- * cameo, one line each); in Japan's THE LAST MOLE, once Monty has the hood, his shadow crosses the moon, stops and turns to look, and moves on (the hood has fooled him); on the cargo ship he follows Monty
- * aboard and on his trail (a pursuer, escaped by leading him under the crane's swinging crate); and in the Sambadrome, SPY VERSUS MOLE, the showdown (rio.ts `pursuerOf`). His pictures are art/viktor.ts.
+ * cameo, one line each); in Japan's THE LAST MOLE, once Monty has the hood, his shadow crosses the moon, stops and turns to look, and moves on (the hood has fooled him); on the train's roof and the cargo ship he
+ * follows Monty on his trail (a pursuer: swept off the roof by the mountain as Monty shelters, led under the crane's swinging crate); and in the Sambadrome, SPY VERSUS MOLE, the showdown (rio.ts `pursuerOf`). His pictures are art/viktor.ts.
  */
 
 /** A cameo's eight pictures go in a creature slot the room has free (its blocks: $30 + 8 a slot), on that slot's sprite, or in blocks of `first` on `sprite`. */
@@ -61,6 +61,16 @@ export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
   { rooms: [PLACES.moon.room], blocks: creatureBlocks(VIKTOR_SHADOW).map((block, i) => ({ ptr: PLACES.moon.first + i, block })) },
   { rooms: [RIO_ROOM.drum], blocks: VIKTOR_SPLIT.map((block, i) => ({ ptr: SPLIT_POINTERS[i] ?? 0, block })) },
 ];
+
+/**
+ * The train (Siberia's sleeper, early on): Viktor drops onto the carriage roof behind Monty from the dining car's (the room's third creature, slot 2: sprite 6) and walks his path `TRAIN_CHASE.delay`
+ * frames behind, a step behind, from when Monty leaves the roof's west end. The mountain comes from the east soon after Monty comes onto the roof; Monty shelters in the luggage closet under its hatch
+ * as it goes over, and Viktor, still on the roof behind him, is swept off it (`knockedBy.tunnels`). Escaped, he is gone from the train (`escaped`, kept in a save).
+ */
+export const TRAIN_CHASE = { delay: 90 } as const;
+export const trainPursuer = (escaped: number): PursuerSpec => ({
+  room: SIB.sleeper, slot: 2, delay: TRAIN_CHASE.delay, calm: { col0: 0, row0: 0, col1: 1, row1: 9 }, until: escaped, knockedBy: { tunnels: true },
+});
 
 /**
  * The cargo ship (the Pacific's first room, about halfway round): Viktor came aboard by the gangway behind him (the ship's third creature, slot 2: sprite 6) and walks his path `SHIP_CHASE.delay` frames behind

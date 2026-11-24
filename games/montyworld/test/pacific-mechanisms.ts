@@ -23,7 +23,7 @@ import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
 import { CRUST_CRACKS, CURRENTS, LAVA, LOOSE_CRATE, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PLANE_DOOR_CELLS, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 const DOWN = { ...NONE, down: true };
@@ -38,11 +38,9 @@ const SNORKEL = [PAC.waikiki, 0] as const, LEI = [PAC.waikiki, 1] as const, PARA
   const placed = [[2, 17, PAC.ship], [2, 18, PAC.waikiki], [3, 18, PAC.hana], [3, 19, PAC.hilo], [2, 19, PAC.plane]] as const;
   check('the Pacific is five rooms in a U at columns 17-19 (rows 2-3): Japan\'s port beside the ship, the plane beside the Andes\' first room (moved to [2,20]), nothing else in its columns',
     placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && grid(2, 20) === AND.jump && [0, 1, 4, 5, 6, 7].every((r) => [17, 18, 19].every((c) => grid(r, c) === 0xff)) && grid(3, 17) === 0xff);
-  const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
+  const before = entriesBefore(PAC.ship, PAC.plane);
   check('the regions before the Pacific keep their coins and finds in the same table places, and the Pacific has 9 coins (2, 2, 2, 2, 1) and 4 finds (the snorkel, the lei, the musubi, the parachute)',
-    coinsIn(0, 37) === 67 && itemsIn(0, 37) === 18 && coinsIn(38, 54) === 9 && itemsIn(38, 54) === 4 && (WORLD.coinTable[66 * 3] ?? 99) <= 37 && (WORLD.coinTable[67 * 3] ?? 0) >= 38
-    && PACIFIC_ROOMS.map((r) => r.coins?.length ?? 0).join() === '2,2,2,2,1');
+    before.ordered && coinsIn(PAC.ship, PAC.plane) === 9 && itemsIn(PAC.ship, PAC.plane) === 4 && PACIFIC_ROOMS.map((r) => r.coins?.length ?? 0).join() === '2,2,2,2,1');
   check('the room ids are the first build\'s (38, 41, 49, 52, 54); the sectors keep seventeen places, the five kept named plainly and the retired twelve empty',
     PACIFIC_ROOMS.map((r) => r.id).join() === '38,41,49,52,54' && PACIFIC_SECTORS.length === 17 && PACIFIC_SECTORS.filter((s) => s.text !== '').map((s) => s.text).join() === 'THE CARGO SHIP,WAIKIKI,HANA,HILO,THE CARGO PLANE');
   const rooms = creatureRooms(PACIFIC_ROOMS);

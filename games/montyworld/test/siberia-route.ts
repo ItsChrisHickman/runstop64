@@ -1,49 +1,38 @@
 /**
- * Siberia's route for the bot: the goals, in the order a player who takes everything plays them (from Moscow's carriage roof along the
- * train, down every hatch, the tender's ticket, back under the roof through the gangways, the forest and the yeti's hollow, the mine's lamp
- * and shelf, the dark shaft, the lake, to the village and the lifted barrier), as functions on the game. Shared by the bot test and the pictures.
+ * Siberia's route for the bot (docs/dosvidaniya-reset.md, "Siberia (the Trans-Siberian)"): the goals, in the order a player who takes everything plays them. Onto the dining
+ * car's roof from Moscow's carriage, down its first hatch (the coin) to the pelmeni in its dead end, back up; along the roof to the sleeper, into the closet while the mountain
+ * goes over, then up the pine before the next; the yeti's cave (the coin on the bridge, the ticket); back down the pine and west along the roof under the mountain to the
+ * closet, whose floor the ticket has opened, down into the corridor and east through the gangway (the inspector has seen the ticket) into the tender; the coal, the tipple,
+ * the mine's hairpin, the river's ice, China's road.
+ * As functions on the game; shared by the bot test and the pictures.
  */
-import { SIB } from '../src/siberia';
+import { CLOSET, SIB } from '../src/siberia';
 import { ROOM } from '../src/moscow';
-import { coin, into, item, leg, stands, type Leg } from './route';
+import { above, coin, into, item, leg, standY, stands, type Leg } from './route';
 
 export const SIBERIA_LEGS: readonly Leg[] = [
   leg('I to A: aboard, up the hatch ladder, along the roof into the dining car', into(SIB.gravy, 31, 7, ROOM.station)),
-  leg('A: down the first hatch to the pelmeni in the left pocket', item(SIB.gravy, 0, [3, 15])),
-  leg('A: along the car past the inspector to the coin in the right pocket', coin(SIB.gravy, 28, 15)),
-  leg('A: up the second rope to the roof', stands(SIB.gravy, 9, 27, 29)),
-  leg('A to B: along the roof', into(SIB.sleeper, 31, 7, SIB.gravy)),
-  leg('B: down the first hatch to the coin in the left pocket', coin(SIB.sleeper, 3, 15)),
-  leg('B: along the corridor to the right pocket\'s coin', coin(SIB.sleeper, 27, 15)),
-  leg('B: back up to the roof', stands(SIB.sleeper, 9, 17, 21)),
-  leg('B to C: east along the roof to the tender', into(SIB.coal, 31, 7, SIB.sleeper)),
-  leg('C: down the coal and up the steps to the coin above them', coin(SIB.coal, 17, 11)),
-  leg('C: up the heaps to the ticket on the cab', item(SIB.coal, 0, [20, 8])),
-  leg('C: back over the coal, down the rim\'s hatch into the pocket', stands(SIB.coal, 17, 0, 5)),
-  leg('C to B: out through the gangway, under the roof', into(SIB.sleeper, 0, 16, SIB.coal)),
-  leg('B to F: up the pine\'s rope', into(SIB.pines, 22, 1, SIB.sleeper)),
-  leg('F: the coin on the ground under the falling snow', coin(SIB.pines, 17, 15)),
-  leg('F to O: west past the wolf', into(SIB.yeti, 0, 14, SIB.pines)),
-  leg('O: the coin on the ice ledges up the frozen waterfall', coin(SIB.yeti, 6, 3)),
-  leg('O: the pelmeni behind the icicles at the foot of the frozen waterfall', item(SIB.yeti, 0, [3, 15])),
-  leg('O to F: back past the yeti', into(SIB.pines, 31, 15, SIB.yeti)),
-  leg('F: up the great pine to the boughs', stands(SIB.pines, 7, 4, 25)),
-  leg('F: the coin on the boughs', coin(SIB.pines, 14, 5)),
-  leg('F to M: out east, high', into(SIB.mine, 31, 5, SIB.pines)),
-  leg('M: down the rope to the gallery', stands(SIB.mine, 18, 17, 22)),
-  leg('M: the lamp in the pocket across the flooded working, by the cart', item(SIB.mine, 0, [3, 16])),
-  leg('M: and back by the cart to the rope\'s foot', stands(SIB.mine, 18, 17, 22)),
-  leg('M: the coin up the timber ledges to the shelf', coin(SIB.mine, 28, 10)),
-  leg('M: down again, on the gallery floor', stands(SIB.mine, 18, 19, 23)),
-  leg('M to S: east along the gallery', into(SIB.shaft, 31, 16, SIB.mine)),
-  leg('S: up the rock step to the first ledge the lamp shows', stands(SIB.shaft, 15, 6, 9)),
-  leg('S: up the second ledge', stands(SIB.shaft, 13, 10, 13)),
-  leg('S: onto the wall\'s top, the coin on it', coin(SIB.shaft, 15, 9)),
-  leg('S to L: down the rope through the floor into the lake', into(SIB.lake, 28, 12, SIB.shaft)),
-  leg('L: the coin on the shore', coin(SIB.lake, 25, 10)),
-  leg('L: over the first ice, up the ledges to the coin over the island', coin(SIB.lake, 14, 6)),
-  leg('L to G: over the second ice and down the rope', into(SIB.border, 5, 16, SIB.lake)),
-  leg('G: the coin on the first woodpile', coin(SIB.border, 12, 13)),
-  leg('G: the coin past the woodpile', coin(SIB.border, 24, 15)),
-  leg('G: through the barrier the ticket lifted, to the road to China', stands(SIB.border, 17, 28, 29)),
+  leg('A: down the first hatch, the coin two rungs down', coin(SIB.gravy, 13, 11)),
+  leg('A: down into the car, west past the conductor to the pelmeni', item(SIB.gravy, 0, [3, 15])),
+  leg('A: back up a hatch to the roof', stands(SIB.gravy, 9, 0, 31)),
+  leg('A to B: along the roof to the sleeper', into(SIB.sleeper, 31, 7, SIB.gravy, above(10))),
+  leg('B: down into the luggage closet', stands(SIB.sleeper, 13, 9, 11)),
+  leg('B: in the closet while the mountain goes over', { goal: (g) => g.roomId === SIB.sleeper && g.tunnels.some((t) => t.state === 'sweep' && t.left + t.spec.cols <= CLOSET.left) && g.y >= standY(CLOSET.floor) - 24, aim: [{ room: SIB.sleeper, col: 10, row: 11 }] }),
+  leg('B to Y: out at once and up the pine before the next', into(SIB.yeti, 20, 0, SIB.sleeper)),
+  leg('Y: up the ice stair to the bridge, the coin in the yeti\'s lane', coin(SIB.yeti, 13, 8)),
+  leg('Y: up the ledges to the ticket under the icicle', item(SIB.yeti, 0, [18, 3])),
+  leg('Y to B: back down the pine', into(SIB.sleeper, 20, 19, SIB.yeti)),
+  leg('B: the coin over the roof, a jump on the way west from the pine', coin(SIB.sleeper, 16, 5)),
+  leg('B: west along the roof to the closet and down through its open floor into the corridor', { ...stands(SIB.sleeper, 17, 2, 29), aim: [{ room: SIB.sleeper, col: CLOSET.hatch, row: 15 }] }),
+  leg('B: the coin in front of the inspector\'s gangway, past the provodnitsa', coin(SIB.sleeper, 27, 15)),
+  leg('B to C: through the gangway the inspector has left', into(SIB.coal, 31, 16, SIB.sleeper)),
+  leg('C: up the coal, the coin on the crest under the stoker', coin(SIB.coal, 11, 10)),
+  leg('C: on up to the cab\'s roof', stands(SIB.coal, 11, 18, 26)),
+  leg('C to M: up the ladder to the tipple and east along it', into(SIB.mine, 31, 3, SIB.coal)),
+  leg('M: east along the gantry and down the ladder to the dock', stands(SIB.mine, 18, 21, 28)),
+  leg('M: up the timber ledges, the coin at the top', coin(SIB.mine, 24, 12)),
+  leg('M: the cart west over the working, the coin on the west dock', coin(SIB.mine, 2, 16)),
+  leg('M to G: down the rope through the dock', into(SIB.border, 5, 19, SIB.mine)),
+  leg('G: over the first ice to the sandbar, its coin', coin(SIB.border, 16, 15)),
+  leg('G: over the second ice, past the reindeer and the guard, past the raised barrier', stands(SIB.border, 17, 29, 31)),
 ];

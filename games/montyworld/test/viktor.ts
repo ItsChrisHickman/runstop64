@@ -3,8 +3,8 @@
  * - SPY VERSUS MOLE (the Sambadrome): he walks on at the far side as Monty comes in, the room's name flashing, and off; then the puzzle. Walking under the float's head and pulling the lever, at any moment
  *   after, never squashes him (the head's warning is longer than a walker is under it); standing under the head first, so that he stands there too, and pulling as he does, squashes him (the four-way
  *   split, the bars lift) with Monty alive. An early pull misses and the head is ready again; standing under it as it falls kills Monty; kept moving, he never reaches Monty.
- * - The cargo ship: aboard behind him; Monty ducking under the crane's crate as it rises, Viktor walks into it coming down and is knocked overboard, from several arrival timings; escaped, he is gone from the
- *   ship for good (a save keeps it).
+ * - The train's roof and the cargo ship: behind him on his path; Monty sheltering in the closet as the mountain comes (Viktor, on the roof, is swept off), ducking under the crane's crate as it rises (Viktor
+ *   walks into it coming down and is knocked overboard), a way found from several arrival timings; escaped, he is gone from the room for good (a save keeps it).
  * - The cameos: each plays when Monty comes in from its border's room (and not after a death there), shows Viktor for a few seconds on a sprite that is no part of the collision check (Monty standing in it
  *   lives), and is gone; THE LAST MOLE's shadow only once the hood is taken, and only once.
  *
@@ -26,6 +26,7 @@ import { search } from './search';
 import { WORLD } from '../src/data';
 import { RIO_ROOM as R } from '../src/rio';
 import { PAC } from '../src/pacific';
+import { CLOSET, SIB } from '../src/siberia';
 import { colOf, dead, LEFT, RIGHT, rowText } from './mech-kit';
 import { itemIndex, standY } from './route';
 
@@ -153,37 +154,42 @@ for (const enhanced of [false, true]) {
   }
 }
 
-// ---- the cargo ship --------------------------------------------------------------------------------------
-{
-  const chase = must(WORLD.pursuers.find((p) => p.room === PAC.ship), 'Viktor on the cargo ship');
-  const overboard = (g: Game) => !!g.siCollected[chase.until];
+// ---- the two escapes on the way: the train's roof, the cargo ship ------------------------------------------
+/** An escape: the room, where Monty comes in, where the bot is aimed, what the proof says, and the strip's name. */
+const ESCAPES = [
+  { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, a step behind on the roof, is swept off it', strip: '4-train-escape' },
+  { room: PAC.ship, at: { col: 0, floor: 13 }, aim: { col: 27, row: 12 }, what: 'duck under the crane crate so that Viktor, following, is knocked overboard', strip: '5-ship-escape' },
+] as const;
+for (const esc of ESCAPES) {
+  const chase = must(WORLD.pursuers.find((p) => p.room === esc.room), `Viktor in room ${esc.room}`);
+  const gone = (g: Game) => !!g.siCollected[chase.until];
   for (const enhanced of [false, true]) {
     const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
     for (const delay of [0, 23, 51, 90]) {
       const s = newGame(WORLD, enhanced);
-      enterRoom(s.g, PAC.ship, 0x0c + (0 + 4) * 4, standY(13)); // (off Japan's gangway onto the landing)
+      enterRoom(s.g, esc.room, 0x0c + (esc.at.col + 4) * 4, standY(esc.at.floor)); // (in at the edge he comes by: the dining car's roof, Japan's gangway)
       for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
       for (let n = 0; n < delay; n++) frame(s, NONE);
-      // a way to lead him under the crate as it comes down: Monty ducks under it just after it has swung up (a search over the game's own frames: the proof there is one from this arrival)
-      const goal = (g: Game) => overboard(g) && g.roomId === PAC.ship && !g.falling && !g.montyAction;
-      const aim = [{ room: PAC.ship, col: 27, row: 12 }];
+      // a way to escape him from this arrival (a search over the game's own frames: the proof there is one)
+      const goal = (g: Game) => gone(g) && g.roomId === esc.room && !g.falling && !g.montyAction;
+      const aim = [{ room: esc.room, ...esc.aim }];
       const found = search(s, goal, aim, 200000, 1.5) ?? search(s, goal, aim, 600000, 3);
       const end = found ? play(s, found.route) : null;
       if (found && !enhanced && delay === 51 && out) {
-        // the strip: the route's last steps, Viktor under the crate as it comes down and knocked off
+        // the strip: the route's last steps, Viktor caught by the hazard and flung off
         const pics: Uint8Array[] = [];
         for (const back of [10, 6, 3, 1, 0]) { const r = play(s, found.route.slice(0, Math.max(0, found.route.length - back))); if (r) pics.push(shot(r.g)); }
         const r = play(s, found.route);
         for (let f = 0; r && f < 24; f++) { frame(r, NONE); if (f === 10 || f === 23) pics.push(shot(r.g)); }
-        strips.set('4-ship-escape', pics);
+        strips.set(esc.strip, pics);
       }
-      check(`${mode}, aboard ${delay} frames before he moves: there is a way to duck under the crane's crate so that Viktor, following, is knocked overboard (${found ? found.nodes : 'no way'})`, !!end && overboard(end.g) && !dead(end.g));
+      check(`${mode}, in ${delay} frames before he moves (room ${esc.room}): there is a way to ${esc.what} (${found ? found.nodes : 'no way'})`, !!end && gone(end.g) && !dead(end.g));
       if (end) {
-        // gone from the ship for good: a save and the room again
+        // gone from the room for good: a save and the room again
         const again = newGame(WORLD, enhanced);
         restore(again.g, snapshot(end.g));
-        enterRoom(again.g, PAC.ship, 0x0c + (0 + 4) * 4, standY(13));
-        check(`${mode}: escaped, he is not on the ship again (through a save)`, again.g.pursuers.length === 0 && encounterState(again.g).escaped[WORLD.pursuers.indexOf(chase)] === true);
+        enterRoom(again.g, esc.room, 0x0c + (esc.at.col + 4) * 4, standY(esc.at.floor));
+        check(`${mode}: escaped, he is not in room ${esc.room} again (through a save)`, again.g.pursuers.length === 0 && encounterState(again.g).escaped[WORLD.pursuers.indexOf(chase)] === true);
       }
     }
   }
@@ -210,7 +216,7 @@ for (const enhanced of [false, true]) {
       if (dead(s.g)) { alive = false; break; }
       const on = ((s.g.vic.enable >> c.sprite) & 1) === 1 && (s.g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (s.g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8;
       if (on) { shown++; lastOn = f; if (!((s.g.uncounted >> c.sprite) & 1)) masked = false; }
-      if (!enhanced && on && shown === m.hold / 2 + 20) snap('5-cameos', s.g);
+      if (!enhanced && on && shown === m.hold / 2 + 20) snap('6-cameos', s.g);
     }
     const over = s.g.roomId !== c.room || s.g.cameos.every((k) => k.done);
     check(`${mode}: cameo ${i + 1} (room ${c.room}, from ${from}) plays for ${shown} frames and is gone (last seen frame ${lastOn}), on a sprite no part of the collision check`, shown >= Math.min(m.hold, 40) && over && masked && alive);
