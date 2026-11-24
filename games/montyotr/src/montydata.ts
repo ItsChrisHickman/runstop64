@@ -514,7 +514,7 @@ export interface MontyData extends RoomTables, MontyLook {
   assists: readonly AssistId[];
   /** Our item hints (the assist `hints`); empty for a game with none. */
   hints: ItemHints;
-  /** The regions the map shows one at a time (a world too wide for the box); none: the whole grid. */
+  /** The regions of a world too wide for the map's box: the map scrolls from one to the next, showing the picked room's; none: the whole grid. */
   regions: readonly MapRegion[];
   /** The map: the special items that are the key ones, the cakes, and the colour of each sector. */
   progress: { keyItems: readonly number[]; cakes: readonly number[]; sectorColours: readonly number[]; /** What the cakes are called on the pause screen (Monty on the Run's cupcakes: CAKES; Do Svidaniya Monty's pirozhki and every region's food: SNACKS). */ foodName?: string };

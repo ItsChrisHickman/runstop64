@@ -278,7 +278,7 @@ SCOPE.section([], 'the pause screen\'s map', () => {
   const motrInfo = montyMap.info(motr.g, { rooms: {} });
   check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[2]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 1: [0x15, 0xb2, 1, 1], 7: [0x15, 0xb2, 2, 1] } });
-  check('the map shows the region he is in: its cells are large (16), the rooms he has been in are places to go', places.length === 3 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
+  check('the map shows the region he is in, the rooms he has been in are places to go', places.length === 3 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 });
 
 SCOPE.report();

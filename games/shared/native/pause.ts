@@ -66,8 +66,12 @@ export interface PauseMap<T, F> {
   legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>, page?: number) => { colour: number; text: string }[]);
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
   pages?(ram: T, found: F): { list: number[]; current: number };
-  /** Places on the shown page the player can go back to, where they're drawn in `box`; `here` is where the player is. */
-  places?(box: Box, ram: T, found: F, page?: number): MapPlace[];
+  /**
+   * Places on the shown page the player can go back to, where they're drawn in `box`; `here` is where the player is. `pick`:
+   * the place picked, for a map whose view follows it (a world wider than the box, scrolled to the picked place's part:
+   * Do Svidaniya Monty's countries); places it scrolls past may lie outside the box.
+   */
+  places?(box: Box, ram: T, found: F, page?: number, pick?: string | null): MapPlace[];
   /** Go to a place (called in the game's main loop, between its frames). Returns false if it can't from here. */
   go?(id: string, ram: T, found: F): boolean | void;
 }

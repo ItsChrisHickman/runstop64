@@ -197,7 +197,8 @@ export class FrontEnd<T, F> {
         this.pickId = null;
       }
     }
-    const places = map.places(MAP_BOX, state, this.found, this.page);
+    const before = this.pickId;
+    const places = map.places(MAP_BOX, state, this.found, this.page, before);
     let pick = places.find((p) => p.id === this.pickId) ?? places.find((p) => p.here) ?? places[0];
     if (!pick) return null;
     // a tap on the map picks the place nearest it; a tap on the picked place goes there
@@ -222,6 +223,9 @@ export class FrontEnd<T, F> {
       }
       if (best) pick = best;
     }
+    // a pick that moved: placed again, for a map whose view follows the pick (it scrolls to the new one's part of the world)
+    const id = pick.id;
+    if (id !== before) pick = map.places(MAP_BOX, state, this.found, this.page, id).find((p) => p.id === id) ?? pick;
     this.pickId = pick.id;
     if (this.pauseTicks > 1 && !pick.here && (tapGo || input.typed.includes('Enter') || input.typed.includes('NumpadEnter') || input.pressed.fire)) {
       this.going = pick.id;
