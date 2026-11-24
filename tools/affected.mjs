@@ -3,7 +3,7 @@
 // took hours). The normal pre-ship check for an agent's change:
 //
 //   node tools/affected.mjs [base]            print the plan (base: main; the diff is from where HEAD left base to the working tree, untracked files too)
-//   node tools/affected.mjs [base] --run      run it: typecheck, check:strict, then the plan's tests on tools/test-all.mjs (three at a time, niced)
+//   node tools/affected.mjs [base] --run      run it: typecheck, check:strict, then the plan's tests on tools/test-all.mjs (JOBS at a time, 2 by default, niced)
 //   --slow                                    with a full fallback, the slow set too (the region bots, the reward show)
 //   --list                                    only the changed files and what each maps to
 //
@@ -165,12 +165,14 @@ const step = (cmd, args, env = {}) => {
 };
 step('nice', ['-n', '15', 'npm', 'run', '--silent', 'typecheck']);
 step('nice', ['-n', '15', 'npm', 'run', '--silent', 'check:strict']);
-step('tools/wait-turn.sh', ['3']);
-if (everything) step('nice', ['-n', '15', process.execPath, 'tools/test-all.mjs', '--slow']);
+// (two tests at once by default, as a verify takes: JOBS=n to change it; the turn is waited for that many slots)
+const jobs = String(Math.max(1, Number(process.env.JOBS ?? 2) || 2));
+step('tools/wait-turn.sh', [jobs]);
+if (everything) step('nice', ['-n', '15', process.execPath, 'tools/test-all.mjs', '--slow'], { JOBS: jobs });
 else if (planned.length) {
   const planFile = path.join(os.tmpdir(), `runstop64-plan-${process.pid}.json`);
   fs.writeFileSync(planFile, JSON.stringify(planned));
-  step('nice', ['-n', '15', process.execPath, 'tools/test-all.mjs', `--plan=${planFile}`]);
+  step('nice', ['-n', '15', process.execPath, 'tools/test-all.mjs', `--plan=${planFile}`], { JOBS: jobs });
   fs.rmSync(planFile, { force: true });
 }
 console.log('\naffected: all passed');
