@@ -339,3 +339,10 @@ export function extendBank(base: Uint8Array, blocks: readonly { ptr: number; blo
   for (const { ptr, block } of blocks) out.set(block, ptr * 64);
   return out;
 }
+
+/** The bank with characters of its charset (at 0) set: a character's 8 bytes at `chr` (one the charset leaves blank, for a game's own HUD: Do Svidaniya Monty's tally). */
+export function extendChars(base: Uint8Array, chars: readonly { chr: number; bytes: Uint8Array }[]): Uint8Array {
+  const out = Uint8Array.from(base);
+  for (const { chr, bytes } of chars) out.set(bytes, chr * 8);
+  return out;
+}

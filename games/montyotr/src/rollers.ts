@@ -20,7 +20,7 @@ const pathOf = pathCache(({ path }: RollerSpec) => polyline(path));
 export function rollerAt(spec: RollerSpec, t: number): { x: number; y: number; along: number } | null {
   const p = pathOf(spec);
   const along = (((t - spec.start) % spec.every) + spec.every) % spec.every * spec.speed;
-  if (t < spec.start || along > p.length) return null;
+  if (t < spec.start || along > p.length || (spec.passes !== undefined && t - spec.start >= spec.passes * spec.every)) return null;
   const [x, y] = pointAt(p, along);
   return { x, y, along };
 }
@@ -39,14 +39,18 @@ export function rollerSprites(g: Game): number {
   return mask;
 }
 
-/** One frame (after Monty's move): each boulder a step on, placed, shown or hidden, a death if it has him. */
+/** One frame (after Monty's move): each boulder a step on, placed, shown or hidden, a death if it has him. Rollers may share a sprite at different times (a flight's birds): a sprite is hidden only when none of its rollers is on its path. */
 export function rollerUpdate(g: Game) {
+  let shown = 0, mine = 0;
   for (const r of g.rollers) {
     const e = g.data.rollers[r.index];
     if (!e) continue;
     r.t++;
     const n = e.sprite, at = rollerAt(e, r.t);
-    if (!at) { g.enable &= ~(1 << n) & 0xff; continue; }
+    mine |= 1 << n;
+    if (!at) continue;
+    if (at.along === 0 && e.sound !== undefined) g.sfx(e.sound);
+    shown |= 1 << n;
     g.sx[n] = Math.max(0, Math.min(255, Math.round(at.x / 2)));
     g.sy[n] = Math.max(0, Math.min(255, Math.round(at.y)));
     g.scol[n] = e.colour;
@@ -55,4 +59,13 @@ export function rollerUpdate(g: Game) {
     g.enable |= 1 << n;
     if (!g.actionCounter && meetsMonty(g, at.x, at.y, SIZE, SIZE, TRIM)) g.actionCounter = 1;
   }
+  g.enable &= ~(mine & ~shown) & 0xff;
+}
+
+/** Whether a roller of the room is on its path with its picture over a box of sprite pixels (a pursuer flying into a flock: pursuers.ts). */
+export function rollerMeets(g: Game, x: number, y: number, w: number, h: number): boolean {
+  return g.rollers.some((r) => {
+    const e = g.data.rollers[r.index], at = e ? rollerAt(e, r.t) : null;
+    return !!at && at.x + SIZE - TRIM > x && x + w > at.x + TRIM && at.y + SIZE - TRIM > y && y + h > at.y + TRIM;
+  });
 }

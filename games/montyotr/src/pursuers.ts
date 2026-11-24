@@ -2,6 +2,8 @@ import { SPLIT_FIRST, splitDeath, type SplitStage } from '../../shared/monty/dea
 import { cameoDue, inBox, walkOn } from './cameos';
 import type { Game } from './game';
 import type { PursuerSpec } from './montydata';
+import { pulseLiveOver } from './pulses';
+import { rollerMeets } from './rollers';
 
 /**
  * Pursuers (a game's `pursuers`: Do Svidaniya Monty's Viktor Vole on the cargo ship and in the Sambadrome): a creature of the room that walks Monty's own path a few seconds behind him, as Spy vs Spy's
@@ -23,7 +25,12 @@ const FLASH_FRAMES = 96, FLASH = 8;
 export interface PursuerState {
   index: number; ring: number[]; written: number; awake: boolean; x2: number; y: number; facing: number; walk: number; intro: number;
   gone: 'no' | 'knocked' | 'split'; t: number; gx: number; gy: number;
+  /** How many frames behind Monty he is now (the data's `delay`, less what he has closed: `close`), the lag a knock sends him back to (`setback`), and the frames until a knock can take him again. */
+  lag: number; back: number; shaken: number;
 }
+
+/** Frames a knocked-back pursuer cannot be knocked again (one flock is one knock), and how many frames of lag he loses a frame as he falls back along the trail. */
+const SHAKEN_FRAMES = 30, FALL_BACK = 3;
 
 /** A room is loaded (after its creatures are set up): its pursuer asleep, out of sight, the ring empty; gone for good once its `until` is taken. */
 export function pursuerInit(g: Game) {
@@ -32,7 +39,7 @@ export function pursuerInit(g: Game) {
     const man = g.enemies[e.slot];
     if (man) { man.driven = true; man.x = 0xff; }
     if (g.siCollected[e.until]) return [];
-    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0 }];
+    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0, lag: e.delay, back: e.delay, shaken: 0 }];
   });
 }
 
@@ -43,7 +50,7 @@ const slotOfSprite = (n: number) => (n >= 4 ? n - 4 : -1);
 
 /** Whether a pursuer is in sight and walking (where it is, for the lever's head). */
 export function pursuerAt(g: Game): { x2: number; y: number } | null {
-  const p = g.pursuers.find((s) => s.awake && s.gone === 'no' && s.written > (g.data.pursuers[s.index]?.delay ?? 0));
+  const p = g.pursuers.find((s) => s.awake && s.gone === 'no' && s.written > s.lag);
   return p ? { x2: p.x2, y: p.y } : null;
 }
 
@@ -122,23 +129,37 @@ export function pursuerUpdate(g: Game) {
         g.enable |= 1 << n;
       }
     }
+    if (p.awake) closeIn(p, e);
     const at = (p.written % e.delay) * 3;
-    if (p.written >= e.delay) {
-      // where Monty was `delay` frames ago: the oldest place in the ring, about to be written over
-      const x2 = p.ring[at] ?? 0, y = p.ring[at + 1] ?? 0, facing = p.ring[at + 2] ?? 1;
+    if (p.written >= p.lag) {
+      // where Monty was `lag` frames ago (`delay`, unless he closes in: the oldest place in the ring, about to be written over)
+      const from = ((p.written - p.lag) % e.delay) * 3;
+      const x2 = p.ring[from] ?? 0, y = p.ring[from + 1] ?? 0, facing = p.ring[from + 2] ?? 1;
       if (x2 !== p.x2 || y !== p.y) p.walk++;
       p.x2 = x2; p.y = y; p.facing = facing;
     }
     p.ring[at] = g.x2; p.ring[at + 1] = g.y; p.ring[at + 2] = g.facing;
     p.written++;
     if (!p.awake && (e.wake ? inBox(g, e.wake) : e.calm ? !inBox(g, e.calm) : true)) p.awake = true;
-    if (!p.awake || p.written <= e.delay || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; continue; }
+    if (!p.awake || p.written <= p.lag || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; continue; }
     man.x = p.x2; man.y = (p.y + 1) & 0xff;
     g.sx[n] = p.x2; g.sy[n] = man.y; g.scol[n] = man.colour;
     g.sptr[n] = 0x30 + e.slot * 8 + (p.facing & 0x80 ? 0 : 4) + ((p.walk >> 2) & 3);
     g.enable |= 1 << n;
-    if (knocked(g, e, p.x2, man.y)) escape(g, p, e, 'knocked');
+    if (p.shaken > 0) p.shaken--;
+    else if (knocked(g, e, p.x2, man.y)) {
+      const setback = e.knockedBy?.setback;
+      if (setback === undefined) escape(g, p, e, 'knocked');
+      else { p.back = Math.min(e.delay, p.lag + setback); p.shaken = SHAKEN_FRAMES; g.sfx(g.data.sfx.jump); }
+    }
   }
+}
+
+/** His lag a frame on: falling back along the trail after a knock (a few frames of lag a frame, so he is seen to drop back), else closing in a frame every `close.every` frames. */
+function closeIn(p: PursuerState, e: PursuerSpec) {
+  if (p.lag < p.back) { p.lag = Math.min(p.back, p.lag + FALL_BACK); return; }
+  if (e.close && p.written % e.close.every === 0 && p.lag > e.close.least) p.lag--;
+  p.back = p.lag;
 }
 
 /** Whether something of the room his `knockedBy` names meets him: a creature whose picture meets his (the sprites' boxes, 16 by 16), or a tunnel's mouth sweeping over the cells he is in (as it takes Monty off a roof). */
@@ -149,6 +170,8 @@ function knocked(g: Game, e: PursuerSpec, x2: number, y: number): boolean {
     const other = g.enemies[slot];
     if (other && other.x !== 0xff && Math.abs(other.x - x2) < 7 && Math.abs(other.y - y) < 14) return true;
   }
+  if (k.rollers && rollerMeets(g, x2 * 2 + 2, y + 2, 12, 12)) return true;
+  if (k.pulses && pulseLiveOver(g, x2 * 2 + 2, y + 2, 12, 12)) return true;
   if (!k.tunnels) return false;
   const col = (x2 - 0x0c) / 4 - 4, row = Math.floor((y - 1 - 0x32) / 8) - 3; // (his top left cell, as Monty's: two wide, two tall)
   return g.tunnels.some((t) => t.state === 'sweep' && !t.spec.harmless && col + 2 > t.left && col < t.left + t.spec.cols && row + 1 >= t.spec.top && row <= t.spec.bottom);

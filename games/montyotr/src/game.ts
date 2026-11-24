@@ -14,14 +14,16 @@ import { pulseInit, pulseUpdate, type PulseState } from './pulses';
 import { lavaInit, lavaUpdate, type LavaState } from './lava';
 import { currentsTick } from './swim';
 import { canopyFrame, flightOf } from './flight';
+import { planeInit, planeOf, planeShow, planeUpdate } from './planes';
+import { drawTally, rounds, tallyKey } from './tally';
 import { rollerInit, rollerSprites, rollerUpdate, type RollerState } from './rollers';
 import { vineInit, vineUpdate, type VineState } from './vines';
 import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from './cablecars';
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
-import { pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
+import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
 import { leverInit, leverUpdate } from './levers';
-import { cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
+import { cameoDue, cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
@@ -238,6 +240,11 @@ export class Game implements MontyBody, MontyWorld {
   cameos: CameoState[] = [];
   flightTick = 0;
   flightResting = false;
+  /** A plane's leg (planes.ts): the frames flown, the bail-out's frames (-1: none), the way he tilts it (-1 climbing, 1 diving), where the pursuer's surge began. */
+  planeTime = 0;
+  planeBail = -1;
+  planeTilt = 0;
+  planeFrom = 0;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
   /** The line in the name row, and for how long (our hints). */
@@ -328,6 +335,11 @@ export class Game implements MontyBody, MontyWorld {
    * runstop64's rooms are on the grid: with the assist on, and while Monty is in one of them
    * (switched to ORIGINAL there, their ways stay open until he's back in the original's rooms).
    */
+  /** A way out of this room's edge toward a cell that leads elsewhere (the data's `ways`; physics' exits read it). */
+  wayOut(row: number, col: number): readonly [number, number] | null {
+    return this.data.ways.find((w) => w.room === this.roomId && w.to[0] === row && w.to[1] === col)?.goes ?? null;
+  }
+
   get extensionOpen() {
     return this.assist.rooms || this.data.isExtensionRoom(this.roomId);
   }
@@ -386,6 +398,7 @@ export class Game implements MontyBody, MontyWorld {
     this.skewers = [];
     this.pursuers = [];
     this.cameos = [];
+    planeInit(this);
     this.leverLatch = false;
     this.worn = null;
     this.hint = noHint();
@@ -402,13 +415,27 @@ export class Game implements MontyBody, MontyWorld {
 
   drawHudFrame() {
     this.hudLives = this.livesShown;
-    drawHudFrame(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
+    const tally = this.data.tally;
+    drawHudFrame(this, this.score, this.hiScore, this.hudLives && !tally ? this.lives : null);
+    if (tally) this.drawTally();
   }
 
   drawHudData() {
     this.hudLives = this.livesShown;
-    drawHudData(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
+    const tally = this.data.tally;
+    drawHudData(this, this.score, this.hiScore, this.hudLives && !tally ? this.lives : null);
+    if (tally) this.drawTally();
   }
+
+  /** The Spy vs Spy tally where Monty on the Run has the lives (tally.ts): its stars as the finds have them, the lives under them in HARD. */
+  private drawTally() {
+    const tally = this.data.tally;
+    if (tally) drawTally(this, tally, rounds(this.data, this.siCollected), this.hudLives ? this.lives : null, this.villainDue);
+  }
+
+  /** Whether the tally's villain is due (lit), and who has won each round, as last drawn. */
+  private villainDue = false;
+  private tallyShown = -1;
 
   /** Whether the score row shows the lives: in HARD (EASY's unlimited lives have none to count: shared/lives.ts). */
   get livesShown() { return !this.assist.lives; }
@@ -423,11 +450,13 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown ? 0x04 : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
   canopyShown = false;
+  /** Whether a plane (or, bailing out of it, the canopy) is over Monty this frame (planes.ts), on sprite 2. */
+  planeShown = false;
 
   /** Whether a worn costume's overlay sprite (sprite 7) is on Monty this frame (it is no part of his collision box). */
   hatPlaced = false;
@@ -447,6 +476,12 @@ export class Game implements MontyBody, MontyWorld {
   /** One 50 Hz frame. `collisions` = sprite-sprite collision bits from the last drawn frame. */
   frame(collisions: number) {
     if (this.hudLives !== this.livesShown) this.drawHudData();
+    if (this.data.tally) {
+      // (the tally drawn again when a round is settled or the villain's face lights or goes dark)
+      const due = !this.freeze && (pursuerDue(this) || cameoDue(this)); // (encounterState's `due`, without its list)
+      const key = tallyKey(this.data.tally, this.siCollected, due);
+      if (key !== this.tallyShown) { this.villainDue = due; this.tallyShown = key; this.drawTally(); }
+    }
     this.frameToggle ^= 1;
     this.processSprites(collisions);
     if (!this.freeze) {
@@ -472,6 +507,7 @@ export class Game implements MontyBody, MontyWorld {
       pursuerUpdate(this);
       leverUpdate(this);
       cameoUpdate(this);
+      planeUpdate(this);
       Mech.piledriverUpdateRide(this);
       Items.updateRisingCloud(this);
       Items.secondItemUpdate(this);
@@ -593,7 +629,8 @@ export class Game implements MontyBody, MontyWorld {
   /** The place in this room to start again from: exactly where and how he came in, else (that way in is deadly) the nearest place he can stand. */
   private restartSpot(): Entry {
     const here = this.entry;
-    if (this.standsSafely(here.x2, here.y)) return { mapRow: this.mapRow, exitCol: this.exitCol, x2: here.x2, y: here.y, facing: here.facing };
+    // (in a flight or a plane he does not stand: the way he came in, in the air, is where he starts again)
+    if (flightOf(this) || planeOf(this) || this.standsSafely(here.x2, here.y)) return { mapRow: this.mapRow, exitCol: this.exitCol, x2: here.x2, y: here.y, facing: here.facing };
     let best: Entry | null = null;
     let bestD = Infinity;
     for (let y = 0x32 + 3 * 8; y <= 0xda; y += 8) {
@@ -649,6 +686,8 @@ export class Game implements MontyBody, MontyWorld {
       this.enable |= 0x04;
       this.canopyShown = true;
     }
+    this.planeShown = !this.completionActive && !(this.actionCounter & 0x80) && planeShow(this);
+    if (this.planeShown) this.enable |= 0x04;
     this.hatPlaced = this.placeOverlay();
     // Flush shadows to the VIC. X is stored halved; the low bit comes from the
     // step-gate parity (Monty, jetpack) or each enemy's own parity.
@@ -656,7 +695,7 @@ export class Game implements MontyBody, MontyWorld {
     for (let n = 0; n < 8; n++) {
       const r = v.sprites[n];
       let x = this.sx[n] * 2;
-      if (!this.completionActive && (n === 3 || (n === 2 && (this.c5.active || this.showJetpack || this.canopyShown)))) x |= this.stepGate;
+      if (!this.completionActive && (n === 3 || (n === 2 && (this.c5.active || this.showJetpack || this.canopyShown || this.planeShown)))) x |= this.stepGate;
       if (n === 7 && this.hatPlaced) x |= this.stepGate;
       else if (n >= 4) x |= this.enemyParity[n - 4];
       r.x = x;
@@ -722,6 +761,7 @@ export class Game implements MontyBody, MontyWorld {
     cableInit(this);
     skewerInit(this);
     leverInit(this);
+    planeInit(this);
     this.roomFlags = data.roomMeta[id] ?? 0;
     this.initDeathFlag();
     Mech.piledriverInitState(this);

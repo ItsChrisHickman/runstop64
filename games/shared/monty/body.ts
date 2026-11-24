@@ -58,6 +58,8 @@ export interface MontyWorld {
   flagAt(row: number, col: number): number;
   /** The room at a cell of the room grid ($FF: none, so the way is closed). */
   roomAt(row: number, col: number): number;
+  /** Where a way out of this room by an edge toward a cell of the grid leads, when it is not that cell (a door onto somewhere else); none, or null: the cell beside. */
+  wayOut?(row: number, col: number): readonly [row: number, col: number] | null;
 }
 
 /** The first screen pixel of the playfield: x2 and y of the cell (0, 0). */

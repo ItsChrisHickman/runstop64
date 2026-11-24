@@ -17,7 +17,7 @@ import type { TunnelSpec } from './montydata';
  * has drawn on (`over`). What was under them is kept by the game (`Game.tunnelUnder`), once, as it was before any mouth drew: two mouths
  * crossing each other put back the room, not each other's portal. Its `spec` (the data's) is kept with it, so a frame looks nothing up.
  */
-export interface TunnelState { spec: TunnelSpec; state: 'rest' | 'warn' | 'sweep'; t: number; left: number; over: Set<number> }
+export interface TunnelState { spec: TunnelSpec; state: 'rest' | 'warn' | 'sweep' | 'done'; t: number; left: number; over: Set<number> }
 
 /** The columns a mouth runs between (the room's width, or its `span`): the first, and one past the last. */
 const lanes = (e: TunnelSpec) => ({ lo: e.span?.from ?? 0, hi: (e.span?.to ?? PLAY_COLS - 1) + 1 });
@@ -79,6 +79,8 @@ export function tunnelUpdate(g: Game) {
     const wall = e.wall ?? 1;
     t.t++;
     switch (t.state) {
+      case 'done':
+        break;
       case 'rest':
         if (t.t >= e.rest) { t.state = 'warn'; t.t = 0; }
         break;
@@ -91,7 +93,7 @@ export function tunnelUpdate(g: Game) {
         if (t.t % e.step === 0) {
           t.left += dir;
           uncover(g, t);
-          if (t.left <= lo - margin - e.cols || t.left > hi + margin) { t.state = 'rest'; t.t = 0; t.left = start; break; }
+          if (t.left <= lo - margin - e.cols || t.left > hi + margin) { t.state = e.once ? 'done' : 'rest'; t.t = 0; t.left = start; break; }
           for (let r = e.top; r <= e.bottom; r++) for (let c = Math.max(t.left, lo - margin); c < Math.min(t.left + e.cols, hi + margin); c++) {
             if (e.picture) {
               const code = e.picture[r - e.top]?.[c - t.left] ?? 0;
