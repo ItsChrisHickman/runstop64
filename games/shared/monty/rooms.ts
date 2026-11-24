@@ -106,8 +106,8 @@ export interface RoomTables {
   specialItems: Uint8Array;
   /** 3 bytes a coin: room, playfield column, row. */
   coinTable: Uint8Array;
-  /** 4 numbers a decoration: room, column, row, type (an index into `decorTypes`, which may pass 255: a Uint16Array). */
-  decorRooms: Uint16Array;
+  /** 4 bytes a decoration: room, column, row, type (an index into `decorTypes`: at most `MAX_DECOR_KINDS` kinds, as the original's byte holds). */
+  decorRooms: Uint8Array;
   decorTypes: readonly DecorType[];
   /** 5 bytes a crusher: room, column, row, height, characters. */
   piledriverCfg: Uint8Array;
@@ -132,7 +132,7 @@ export interface BaseRooms {
   enemyRecords(id: number): Uint8Array;
   specialItems: Uint8Array;
   coinTable: Uint8Array;
-  decorRooms: Uint16Array;
+  decorRooms: Uint8Array;
   decorTypes: readonly DecorType[];
   piledriverCfg: Uint8Array;
   teleporterCfg: Uint8Array;
@@ -148,8 +148,16 @@ export const NO_ROOMS: BaseRooms = {
   count: 0,
   roomDef(id) { throw new Error(`no room $${id.toString(16)}`); },
   enemyRecords: () => Uint8Array.of(0xff),
-  specialItems: none, coinTable: none, decorRooms: new Uint16Array(0), decorTypes: [], piledriverCfg: none, teleporterCfg: none,
+  specialItems: none, coinTable: none, decorRooms: none, decorTypes: [], piledriverCfg: none, teleporterCfg: none,
   teleporterDests: none, roomMeta: none, sectorNames: [], sectorIdx: none,
+};
+
+/** How many decoration kinds a game may have: a room's decoration table holds the kind in a byte, as Monty on the Run's does (docs/dosvidaniya-c64.md, section 5). */
+export const MAX_DECOR_KINDS = 255;
+/** A decoration's kind as its table's byte holds it (a kind past the byte would be read as another kind: an error in the data). */
+const decorKind = (room: number, kind: number): number => {
+  if (!Number.isInteger(kind) || kind < 0 || kind >= MAX_DECOR_KINDS) throw new Error(`room $${room.toString(16)}: decoration kind ${kind}, past the ${MAX_DECOR_KINDS} kinds the table's byte holds`);
+  return kind;
 };
 
 /** The frame base of the cupcake in si_spawn_tbl (sprite pointer $91). */
@@ -244,7 +252,7 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     const at = signs.findIndex((t) => t.text === s.text && t.colour === s.colour);
     return base.decorTypes.length + (at >= 0 ? at : signs.push(s) - 1);
   };
-  const decorRooms = Uint16Array.from([...base.decorRooms, ...rooms.flatMap((r) => (r.decor ?? []).map((d) => [r.id, d.col, d.row, typeof d.type === 'number' ? d.type : signIndex(d.type)]).flat())]);
+  const decorRooms = merged(base.decorRooms, (r) => (r.decor ?? []).map((d) => [r.id, d.col, d.row, decorKind(r.id, typeof d.type === 'number' ? d.type : signIndex(d.type))]));
   const tele = rooms.flatMap((r) => (r.teleporter ? [{ id: r.id, t: r.teleporter }] : []));
 
   return {
