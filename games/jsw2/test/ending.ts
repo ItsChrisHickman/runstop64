@@ -207,13 +207,13 @@ function sleepwalk(s: PlaySession, limit = 4000) {
   const here = await PlaySession.launch(run, 'jsw2', savedIn(34, 160), keep);
   check('continued in the Masters Bedroom with 160: no ending again', untilOn(here, 400) < 0 && here.ram[0x13] === BEDROOM);
 
-  // ORIGINAL: the game as it was: its own end plays to room 136 and stays there, no reward (and none offered)
+  // HARD: the game's own end plays to room 136, then the reward as in EASY (it is in both modes)
   useMemoryStorage(new Map());
   const o = await PlaySession.launch(run, 'jsw2', savedIn(96, 160), keep, false);
   intoBedroom(o);
   o.tick(20);
   ontoBed(o);
   o.tick(w.arrived + END_HOLD + 200);
-  check('ORIGINAL: the game\'s own end reaches room 136 and no ending follows', o.ram[0x13] === END_ROOM && !o.p.ending?.active);
+  check('HARD: the game\'s own end reaches room 136 and the ending follows', !!o.p.ending?.active);
 }
 finish();

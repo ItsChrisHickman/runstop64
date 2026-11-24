@@ -92,7 +92,7 @@ export class Monty implements Stateful {
    * long is fatal), leaves the rows off the screen undrawn, and its owner says so.
    */
   outside = false;
-  /** ENHANCED: a landing is never fatal (a long drop is a way down); not part of the original, and never set by the lockstep */
+  /** A landing is never fatal (a long drop is a way down); not part of the original, and never set by the lockstep */
   safeFalls = false;
   /** how far he has fallen (`$8D58`) */
   fallen = 0;
@@ -322,7 +322,7 @@ export class Monty implements Stateful {
   }
 
   /**
-   * Whether he put at (x, y) in this room would stand there (ENHANCED's no death loops): no deadly cell and no floor-coloured cell in his box,
+   * Whether he put at (x, y) in this room would stand there (our no death loops): no deadly cell and no floor-coloured cell in his box,
    * and the room's picture under his feet. Nothing of him is changed.
    */
   stands(x: number, y: number): boolean {

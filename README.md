@@ -2,8 +2,8 @@
 
 **RUN/STOP on the C64 classics.** Ten Commodore 64 games and one ZX Spectrum game, rebuilt for the browser from their original data and code: the
 same rooms, graphics, physics and SID music, without the loading, the flicker or the 50 Hz judder. Then added to: a map of
-each game with travel to any place you have been, autosave, touch controls for phones, and an ENHANCED mode with
-quality-of-life changes for a modern playthrough.
+each game with travel to any place you have been, autosave, touch controls for phones, quality-of-life changes for a modern playthrough, and EASY or HARD
+lives.
 
 **Play: https://goshow.me/runstop64/**
 
@@ -35,10 +35,10 @@ There are two kinds of game here, and they are different things.
 
 ## In every game
 
-- **ORIGINAL / ENHANCED:** one switch (E on the pause screen). ORIGINAL is the game exactly as it was. ENHANCED, the default,
-  is quality-of-life for a modern playthrough, chosen for each game: better steering, a gentler fight, hints, and unlimited
-  lives and continues. Winning in ENHANCED earns a show after the game's own ending: a montage of the game's places with
-  credits over it, its creatures walking through, THE END.
+- **EASY / HARD:** one switch (E on the pause screen). EASY, the default, has unlimited lives and continues and no lives to
+  count; HARD has the original's lives, exactly as it had them. In both, quality-of-life for a modern playthrough, chosen for
+  each game: better steering, a gentler fight, hints, and the original's glitches put right. Winning earns a show after the
+  game's own ending: a montage of the game's places with credits over it, its creatures walking through, THE END.
 - **A pause screen with a map** of where you have been and what you have found, and travel back to any place you have been.
 - **Autosave** on entering each room, CONTINUE from the title, back to the start of a room, and a saved-games screen (F1 in the
   loader) that can bring back the save from before a new game.

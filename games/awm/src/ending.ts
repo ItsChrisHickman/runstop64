@@ -15,7 +15,7 @@ import { State } from './tiles';
 import { CAST, SCENES, type Goal, type Scene } from './ending-scenes';
 
 /**
- * The reward for beating Auf Wiedersehen Monty (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's): a
+ * The reward for beating Auf Wiedersehen Monty (shared/ending/show.ts is the show, this is what is Monty's): a
  * montage of places across Europe, each one the game's own engine (a `Program` of its own: the game, its picture, the flight
  * over the clouds) on a new game of ours with Monty driven by a route (shared/ending/pilot.ts: input like a player's)
  * doing something there, the credits typing on in the empty row under the room, and the game's creatures walking through

@@ -57,14 +57,13 @@ interface NativeGameOptions<F> {
   vitals?: VitalsSpec;
   /** For the "hints" assist: places on the screen (C64 pixels) where something can be done and hasn't been yet (`vic`: its registers, for where sprites are). */
   hints?(ram: Uint8Array, vic: Uint8Array): { x: number; y: number }[];
-  /** The hints are part of this assist of the game's own (e.g. 'enhanced'), not an option of their own. */
+  /** The hints are part of this assist of the game's own (e.g. 'guided'), not an option of their own. */
   hintsWith?: string;
   /**
-   * The game's own assists (off unless chosen): `apply` runs after each frame (before the next), with
+   * The game's own assists (on in both modes): `apply` runs after each frame (before the next), with
    * whether it's on (and play under way), and what the player has found (kept with the saves).
-   * `default`: on unless chosen off.
    */
-  assists?: { id: string; long: string; default?: boolean; apply?(ram: Uint8Array, on: boolean, found: F, m: C64Machine): void }[];
+  assists?: { id: string; long: string; apply?(ram: Uint8Array, on: boolean, found: F, m: C64Machine): void }[];
   /** The game's own moments (`hooks` in its translation's config: host.ts `onHook`), as its code reaches them. */
   onHook?(pc: number, ram: Uint8Array): void;
   /** After each frame, once the assists have had it (play under way or not). */
@@ -75,8 +74,8 @@ interface NativeGameOptions<F> {
    * No death loops, for games where a room can be come into in the air or onto something that kills
    * (and the game's own restart puts him back there): the autosave on coming into a room waits until
    * the player is `steady` there (on his feet), and is kept once he has lived a moment after it
-   * (`SAFE_PASSES`, `lives` no fewer), so continuing never starts where he dies at once. And in
-   * ENHANCED, a life lost before that starts him again from the last save kept (with the lives as
+   * (`SAFE_PASSES`, `lives` no fewer), so continuing never starts where he dies at once. And a
+   * life lost before that starts him again from the last save kept (with the lives as
    * they are now), not where the game would.
    */
   safe?: SafeSpec<F>;
@@ -95,16 +94,16 @@ interface NativeGameOptions<F> {
   /**
    * The picture laid out differently (c64kit's layout.ts: parts moved, labels added), in both modes;
    * the game's memory and logic are untouched. The first whose `when` holds (the picture is the one
-   * it's for: e.g. its raster split is there, from the frame as the VIC drew it) is shown. `enhanced`:
-   * whether ENHANCED is on and play under way (a layout for ENHANCED's help). `picture` can be read from
+   * it's for: e.g. its raster split is there, from the frame as the VIC drew it) is shown. `playing`:
+   * whether play is under way (a layout for our help in play); `assist`, the assists on (EASY's lives: what it leaves out). `picture` can be read from
    * the game's memory (a label with a number the game keeps: the game keeps one layout per value, not one a frame).
    */
-  layout?: { picture: PictureLayout | ((ram: Uint8Array) => PictureLayout); when(m: { ram: Uint8Array; capture: FrameCapture }, enhanced: boolean): boolean }[];
-  /** ENHANCED: a second jump in the air, once per airtime (features.ts `AirJump`; `airJump` in the assists). */
+  layout?: { picture: PictureLayout | ((ram: Uint8Array) => PictureLayout); when(m: { ram: Uint8Array; capture: FrameCapture }, playing: boolean, assist: Readonly<Record<string, boolean>>): boolean }[];
+  /** A second jump in the air, once per airtime (features.ts `AirJump`; `airJump` in the assists). */
   airJump?: AirJumpSpec;
-  /** ENHANCED: a moment's grace (frames) on coming into each room, as the resume's but shorter (grace.ts). */
+  /** A moment's grace (frames) on coming into each room, as the resume's but shorter (grace.ts). */
   entryGrace?: number;
-  /** ENHANCED: a move the game makes of its own ends with the stick still held (features.ts `Latch`). */
+  /** A move the game makes of its own ends with the stick still held (features.ts `Latch`). */
   latch?: LatchSpec;
   /**
    * Running: Shift held (or the touch RUN key on). Shift is then the front end's: it never reaches
@@ -139,12 +138,12 @@ interface NativeGameOptions<F> {
    * for a moment after a hit, knockback, hit-stop.
    */
   combat?: CombatSpec;
-  /** ENHANCED: Pendragon drawn as Dragonskulle draws him, in the frame's capture only (pendragon/figure.ts). */
+  /** Pendragon drawn as Dragonskulle draws him, in the frame's capture only (pendragon/figure.ts). */
   figure?: FigureSpec;
   /** The 8-way controls assist (controls.ts): the game's facing byte and its own steps into the picture. */
   controls?: ControlsSpec;
   /**
-   * The reward for winning (ending.ts), in ENHANCED: `won` says the game's winning moment is under way (it shows the
+   * The reward for winning (ending.ts), in both modes: `won` says the game's winning moment is under way (it shows the
    * ending once the game's own end is over and it is back at the title, and keeps that the game has been won), `stats`
    * the lines under THE END. Offered on the pause screen (W) once won, and at once with `?ending` on the page.
    * `after`: the game's own end is no way back to the title (Jet Set Willy II's plays out and stops on its last screen for good), so the ending
@@ -165,9 +164,11 @@ const OURS = ['KeyM'];
 function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
   const own = (id: NativeAssistId, long: string, role?: AssistSpec['role']): AssistSpec => ({ id, long, role });
   return [
-    ...(opts.vitals?.lives ? [own('lives', LIVES_ASSIST.long, opts.vitals.infinite ? undefined : 'never')] : []),
+    // EASY: unlimited lives where the game has lives (`vitals.lives` with `infinite`), or, where it has none, its end
+    // turned into a start of the room again (`vitals.lifeEnds`)
+    ...((opts.vitals?.lives && opts.vitals.infinite) || opts.vitals?.lifeEnds !== undefined ? [own('lives', LIVES_ASSIST.long, LIVES_ASSIST.role)] : []),
     ...(opts.hints && !opts.hintsWith ? [own('hints', 'HINTS (SPARKLES)')] : []),
-    ...(opts.assists ?? []).map((a) => ({ id: a.id, long: a.long, default: a.default })),
+    ...(opts.assists ?? []).map((a) => ({ id: a.id, long: a.long })),
     ...(opts.combat ? [
       own('effects', 'EFFECTS', 'always'),
       own('glow', 'WARNING GLOW', 'never'),
@@ -178,9 +179,8 @@ function nativeAssists<F>(opts: NativeGameOptions<F>): AssistSpec[] {
     ] : []),
     ...(opts.controls ? [own('eightWay', '8-WAY CONTROLS')] : []),
     ...(opts.safe ? [own('respawn', 'NO DEATH LOOPS')] : []),
-    // running, where it's part of ENHANCED
-    ...(opts.run?.enhanced ? [own('run', 'RUN (SHIFT)')] : []),
     ...(opts.airJump ? [own('airJump', 'JUMP AGAIN IN THE AIR')] : []),
+    ...(opts.entryGrace ? [own('entryGrace', 'GRACE ON COMING IN')] : []),
   ];
 }
 
@@ -204,14 +204,14 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   let entryRoom = -1, diedNow = false;
   /** A game began that the player did not ask for, over a save: the save carries on at the next frame (atMainWait). */
   let carryingOn = false;
-  /** The game has reached the moment its life ends (`vitals.lifeEnds`), in ENHANCED: he is put back at the room's autosave after this frame. */
+  /** The game has reached the moment its life ends (`vitals.lifeEnds`), in EASY: he is put back at the room's autosave after this frame. */
   let lifeEnded = false;
   /** A place picked on the map, to be carried out at the main loop's wait. */
   let going: string | null = null;
   /** The ending (ending.ts), once the session is up; and a win seen (its numbers kept) whose ending waits for the game's own end to be over. */
   let endingShow: Ending | null = null;
   let winSeen = false, beforeWin = false, endingWaits: string[] | null = null, endingIn = -1;
-  const endingOn = (): boolean => !!opts.ending && fe.enhanced;
+  const endingOn = (): boolean => !!opts.ending;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen, with this machine as its game ---
   const port = runPort<MachineState, F, Uint8Array>(host, {
@@ -245,7 +245,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   // ---- the features (features.ts), each with its own state --------------------------------------
   /** Running translated code between frames (registers kept). */
   const runner: Runner = { call(fn) { const regs = { ...cpu }; fn(); Object.assign(cpu, regs); } };
-  const env = new NativeEnv(runner, opts.joyPort, (): boolean => flow.state.playing, (): boolean => fe.enhanced, (id): boolean => assist[id] === true);
+  const env = new NativeEnv(runner, opts.joyPort, (): boolean => flow.state.playing, (id): boolean => assist[id] === true);
   const combat = opts.combat ? new Combat(opts.combat, () => ({
     effects: !!assist.effects, glow: !!assist.glow, invulnerable: !!assist.invulnerable, knockback: !!assist.knockback, hitStop: !!assist.hitStop, react: !!assist.react, grace: flow.grace.active && flow.state.playing,
   })) : null;
@@ -270,9 +270,10 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   const afters: FrameStage[] = stages<FrameStage>(
     combat ? { afterFrame: (g) => combatFrame(g, combat) } : null,
     // (after combat, which places its effects by the figure the game drew)
-    figure ? { afterFrame: (g) => { if (fe.enhanced && flow.state.playing) figure.apply(g.m.capture.sprites, g.m.ram); } } : null,
+    figure ? { afterFrame: (g) => { if (flow.state.playing) figure.apply(g.m.capture.sprites, g.m.ram); } } : null,
     screens,
     vitals?.lives ?? null,
+    vitals?.counter ?? null,
     { afterFrame: (g) => { for (const a of opts.assists ?? []) a.apply?.(g.m.ram, !!assist[a.id] && flow.state.playing, fe.found, g.m); } },
     { afterFrame: (g) => { if (flow.grace.active && flow.state.playing) opts.grace?.keep?.(g.m.ram); } },
     { afterFrame: (g) => opts.afterFrame?.(g.m.ram) },
@@ -310,7 +311,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     for (const s of afters) s.afterFrame(g);
     winning(g);
   }
-  /** The game won: kept (any mode), the numbers noted; once the game's own end is over and the title is up, the ending (ENHANCED). */
+  /** The game won: kept (any mode), the numbers noted; once the game's own end is over and the title is up, the ending. */
   function winning(g: NativeHost) {
     const e = opts.ending;
     if (!e) return;
@@ -392,7 +393,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
       const h = g.onHook;
       g.onHook = (pc) => {
         h?.(pc);
-        if (pc === lifeEnds && fe.enhanced && flow.state.playing) lifeEnded = true;
+        if (pc === lifeEnds && assist.lives === true && flow.state.playing) lifeEnded = true;
         onHook?.(pc, g.m.ram);
         if (graceHook && flow.grace.active && flow.state.playing) graceHook(pc, g.m.ram);
       };
@@ -420,8 +421,8 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     // the map notes what's been found (and puts the player where a place picked on it says)
     // before the autosave: the save on coming into a room has him where he is, and the map with it
     if (st.room !== null) map.observe(g.m.ram, fe.found, g.m.vic);
-    // ENHANCED: a short grace on coming into each room (a resume's own is longer: it starts at its own points)
-    if (opts.entryGrace && st.room !== null && fe.enhanced && flow.state.playing) {
+    // a short grace on coming into each room (a resume's own is longer: it starts at its own points)
+    if (opts.entryGrace && assist.entryGrace === true && st.room !== null && flow.state.playing) {
       const room = opts.room(g.m.ram);
       if (room !== entryRoom || diedNow) { entryRoom = room; flow.grace.start(opts.entryGrace); }
     }
@@ -442,7 +443,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
   }
 
   /**
-   * ENHANCED (`safe`): a life lost before he'd lived a moment in the room (he came in falling to his
+   * `safe`: a life lost before he'd lived a moment in the room (he came in falling to his
    * death, and the game started him again in the room the fall began in): back in the room he died in
    * instead, by the map's travel, at a place there he can stand, and a moment's grace. A life is lost
    * once, not every one, and never in the room before.
@@ -459,20 +460,20 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     const { g } = live();
     // (a game began that was not asked for: the save carries on, as CONTINUE? would)
     if (carryingOn) { carryingOn = false; port.carryOn('continue'); return 'ended'; }
-    // (a life lost before he'd lived a moment in the room, in ENHANCED: back in that room, at a place he can stand)
+    // (a life lost before he'd lived a moment in the room: back in that room, at a place he can stand)
     const died = safe?.takeRespawn();
     if (died !== null && died !== undefined) restartIn(died);
     actions?.beforeFrame(g, holding);
     // Hit-stop (an assist): the game waits a few frames when an enemy is destroyed (the effects go on).
     if (combat && combat.hitStop > 0 && flow.state.playing && !holding) { combat.hitStop--; flow.draw(); return 'ended'; }
-    // Running (Shift held, or the touch RUN key on, in play; in ENHANCED for some): the player's own
+    // Running (Shift held, or the touch RUN key on, in play): the player's own
     // handling once more a frame (see atWait).
     running?.beforeFrame(input, holding);
     feedInput(g, holding);
     let played = false;
     if (!holding) { g.tick(); played = flow.state.playing; }
     const ticked = !holding;
-    // (ENHANCED, a life ended: back to the room's start with full health, as CONTINUE? would; the rest of the game's end
+    // (EASY, a life ended: back to the room's start with full health, as CONTINUE? would; the rest of the game's end
     // this frame ran in a machine that is dropped, and its sound with it)
     if (lifeEnded) { lifeEnded = false; if (port.carryOn('continue')) return 'ended'; }
     sound.pushFrame(ticked ? titleSound(g) : []); // (a frame the game did not run has no writes: the last frame's are not sent again)
@@ -526,8 +527,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
 
   /** The machine's picture into the renderer: laid out as the game declares (`layout`) while it's the picture that's for. */
   function show(g: NativeHost, v: C64View) {
-    const enhanced = fe.enhanced && flow.state.playing;
-    const shown = opts.layout?.find((l) => l.when(g.m, enhanced))?.picture ?? null;
+    const shown = opts.layout?.find((l) => l.when(g.m, flow.state.playing, assist))?.picture ?? null;
     renderer.layout = typeof shown === 'function' ? shown(g.m.ram) : shown;
     v.update();
     names?.overlay(g, renderer.screen, flow.getFont());
@@ -537,7 +537,7 @@ export function runNative<F>(host: Host, opts: NativeGameOptions<F>) {
     touch: touchLayout(opts.touch, !!opts.run),
     get machine() { return game?.m; },
     /** For tests: where the game waits, and the front end's state. */
-    get state() { return { lastWait: game?.lastWait, paused: fe.paused, enhanced: fe.enhanced, found: fe.found, grace: flow.grace.left, ...flow.state }; },
+    get state() { return { lastWait: game?.lastWait, paused: fe.paused, easy: fe.easy, found: fe.found, grace: flow.grace.left, ...flow.state }; },
     /** For tests: the combat events of the last frame, the assists' counters, the options. */
     get combat() { return combat; },
     /** For tests: the game running (to take a save of). */

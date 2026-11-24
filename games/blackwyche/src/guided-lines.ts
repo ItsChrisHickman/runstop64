@@ -1,5 +1,5 @@
 /**
- * What Pendragon says on the status line in ENHANCED's GUIDED assist (src/guided.ts: which line when;
+ * What Pendragon says on the status line in our GUIDED assist (src/guided.ts: which line when;
  * games/shared/native/narrate.ts: how it is shown). Every word of it is here, keyed by what happened,
  * so the wording can change without touching the logic.
  *

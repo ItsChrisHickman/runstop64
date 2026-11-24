@@ -9,7 +9,7 @@
  *    wasted (the piece stays up); then walking into it takes it ($3221, $322F);
  *  - the port and the original agree on every one of those;
  *  - ENHANCED says so on the status line when the piece (or the spider) is in view and marks the spider with a sparkle;
- *    ORIGINAL shows neither (through the front end, as the browser runs it).
+ *    HARD shows the same (through the front end, as the browser runs it).
  *
  *   nice -n 15 node tools/test.mjs games/karnath/test/web.ts
  */
@@ -165,7 +165,7 @@ const anyOf = (s: Session, lines: string | readonly string[]) => partsOf2(lines)
   check(`ENHANCED: ...and marks the piece (${markers.length} sparkles, the hints' ${spots.length})`, markers.length === spots.length && spots.length >= 1);
   check(`the lines fit the status line (every part at most 28 letters) and the narrator's queue (at most four texts each)`, [SAY.web, SAY.carrying, SAY.spider].every((l) => partsOf2(l).every((p) => p.length <= 28) && (typeof l === 'string' || l.length <= 4)));
   const o = await walk(roomBefore, 'ArrowRight', 'piece', false);
-  check(`ORIGINAL: the same walk shows the game's lines only (${o.texts().join(' | ')}) and no sparkle (${o.renderer.sparkles.markers.length})`, !anyOf(o, SAY.web) && o.renderer.sparkles.markers.length === 0);
+  check(`HARD: the same walk says the same and marks the piece (${o.renderer.sparkles.markers.length} sparkles)`, said(o, SAY.web) && o.renderer.sparkles.markers.length >= 1);
   const c = await walk(saved((ram) => { ram[KEPT.carrying] = 1; }, roomBefore), 'ArrowRight', 'piece', true);
   check(`ENHANCED, a piece already carried: "${partsOf2(SAY.carrying).join(' | ')}" instead, not how to cast at the spider (${anyOf(c, SAY.web)})`, said(c, SAY.carrying) && !anyOf(c, SAY.web));
   // (continued with the piece in view: said as the game begins again, once)
@@ -181,7 +181,7 @@ const anyOf = (s: Session, lines: string | readonly string[]) => partsOf2(lines)
   const view = webView(s.ram, s.vic);
   check(`ENHANCED, the spider coming into view (${view}): the line (${partsOf2(SAY.spider).join(' | ')}) and a sparkle on the spider (${markers.length} sparkles, ${spot.length} spots)`, view === 'spider' && said(s, SAY.spider) && markers.length === 1 && spot.length === 1);
   const o = await walk(spiderBefore, 'ArrowLeft', 'spider', false);
-  check(`ORIGINAL: no line (${anyOf(o, SAY.spider)}) and no sparkle (${o.renderer.sparkles.markers.length}) at the spider`, !anyOf(o, SAY.spider) && o.renderer.sparkles.markers.length === 0);
+  check(`HARD: the same line and sparkle at the spider (${o.renderer.sparkles.markers.length})`, said(o, SAY.spider) && o.renderer.sparkles.markers.length === 1);
   // the spider hit: the piece lets go, and the spider's mark and line go
   const r = port(spiderBefore);
   run(r, LEFT, 180);

@@ -10,7 +10,7 @@ import { ROUTES, type SceneRoute, type SceneStart } from './ending-routes';
 import { ROOM_COUNT, type RemixFound } from './map';
 
 /**
- * The reward for beating Wanted: Monty Mole Remix (ENHANCED; shared/ending/show.ts is the show, this is what is the remix's), as the other Monty games have it:
+ * The reward for beating Wanted: Monty Mole Remix (shared/ending/show.ts is the show, this is what is the remix's), as the other Monty games have it:
  * a montage of the first eight rooms, each one the game's own engine on a game of its own, Monty driven by the route found for the room (test/ending-routes.ts:
  * the passability bot's way, a stick a frame: the coal of the room, and the way on), the credits typing on in the row under the playfield, which Wanted's rooms
  * leave empty, and the game's creatures (Monty on the Run's, as the remix draws them) walking through the rooms; then THE END with the numbers the pause screen keeps.
@@ -158,8 +158,8 @@ export function remixEnding(renderer: Renderer): RewardSpec {
   };
 }
 
-/** The lines under THE END: the score and what the pause screen keeps (lives, rooms, coal), the numbers in a column. */
+/** The lines under THE END: the score and what the pause screen keeps (lives in HARD, rooms, coal), the numbers in a column. */
 export function endingStats(g: RemixGame, found: RemixFound): string[] {
-  const rows: (readonly [string, string])[] = [['SCORE', String(g.score)], ['LIVES', String(g.lives)], ['ROOMS', `${found.reached.length}/${ROOM_COUNT}`], ['COAL', `${g.coal.taken}/${COAL_TOTAL}`]];
+  const rows: (readonly [string, string])[] = [['SCORE', String(g.score)], ...(g.livesShown ? [['LIVES', String(g.lives)] as const] : []), ['ROOMS', `${found.reached.length}/${ROOM_COUNT}`], ['COAL', `${g.coal.taken}/${COAL_TOTAL}`]];
   return rows.map(([label, value]) => `${label.padEnd(6)}${value.padStart(8)}`);
 }

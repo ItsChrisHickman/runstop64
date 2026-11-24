@@ -8,6 +8,7 @@
  * taken is the game's own (`RemixGame.coal`), so the count is true for every room.
  */
 import type { BitmapFont, Surface } from 'c64kit';
+import { livesShown } from '../../shared/lives';
 import { COAL_IN, COAL_TOTAL, piecesOfRoom } from '../../montymole/src/coal-rules';
 import { ROOMS } from '../../montymole/src/data/rooms-data';
 import { ROOM_COLS } from '../../montymole/src/room';
@@ -124,8 +125,9 @@ export const remixMap = {
     const line = standing(g, f, room);
     font.draw(s, line.text, box.x, y + 10, line.colour);
   },
-  info(g: RemixGame, f: RemixFound): string[] {
-    return [`LIVES ${g.lives}`, `ROOMS ${f.reached.length}/${ROOM_COUNT}`, `COAL ${g.coal.taken}/${COAL_TOTAL}`, `SCORE ${g.score}`];
+  info(g: RemixGame, f: RemixFound, assist?: Readonly<Record<string, boolean>>): string[] {
+    // (the lives in HARD only: EASY has none to count)
+    return [...(livesShown(assist) ? [`LIVES ${g.lives}`] : []), `ROOMS ${f.reached.length}/${ROOM_COUNT}`, `COAL ${g.coal.taken}/${COAL_TOTAL}`, `SCORE ${g.score}`];
   },
   legend: [{ colour: COL.dgrey, text: 'NOT SEEN' }, { colour: COL.lgreen, text: 'ALL COAL' }],
   places(box: Box, g: RemixGame, f: RemixFound): MapPlace[] {
@@ -147,7 +149,7 @@ export const remixMap = {
   },
 } satisfies PauseMap<RemixGame, RemixFound>;
 
-/** A save described for the save manager (ContinueFlow `describe`): where, then lives, rooms and the score. */
-export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: RemixFound): string[] {
-  return [`ROOM ${save.room + 1}`, `LIVES ${save.lives}`, `ROOMS ${f.reached.length}`, `SCORE ${save.score}`];
+/** A save described for the save manager (ContinueFlow `describe`): where, then lives (in HARD: `lives`), rooms and the score. */
+export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: RemixFound, lives = true): string[] {
+  return [`ROOM ${save.room + 1}`, ...(lives ? [`LIVES ${save.lives}`] : []), `ROOMS ${f.reached.length}`, `SCORE ${save.score}`];
 }

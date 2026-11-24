@@ -24,7 +24,7 @@ import stateUrl from '../assets/karnath-title.state?url';
 export { info } from './info';
 
 export function run(host: Host) {
-  // the hints (ENHANCED): the pieces and the way to the obelisk told on the status line and marked with sparkles (src/guide.ts, src/hints.ts)
+  // the hints (both modes): the pieces and the way to the obelisk told on the status line and marked with sparkles (src/guide.ts, src/hints.ts)
   const guide = new Guide();
   let assist: Readonly<Record<string, boolean>> = {};
   return runNative(host, {
@@ -40,10 +40,13 @@ export function run(host: Host) {
         ram[0x6ffe] = 100; ram[0x322e] = 0; // energy, and damage still to take
         ram.set([0x31, 0x3a, 0x3a], 0x07dc); // "100" on the status line
       },
+      // EASY: once his death (no energy left, $6FFD) has played out ($6D72, re/engine.json) he is back at the start of the room he died in at
+      // full health, as CONTINUE? would without the prompt (shared/native/play.ts `lifeEnds`); HARD: the game's end and CONTINUE?
+      lifeEnds: 0x6d72,
     },
     map: karnathMap,
     repair: repairStripX, // (saves made after a travel before it set his place along the strip)
-    // ENHANCED: the castle's clock stops at 11:59 PM, so midnight never loses the game (src/clock.ts)
+    // The castle's clock stops at 11:59 PM, so midnight never loses the game (src/clock.ts)
     assists: [{ id: 'hints', long: 'HINTS (STORY, SPARKLES)', apply: (ram, on, _found, m) => guide.frame(ram, m.vic, on) }, { id: 'clock', long: 'NO MIDNIGHT' }],
     onAssists: (a) => { assist = a; },
     onHook: (pc, ram) => { if (pc === MIDNIGHT_CHECK && assist.clock) holdBeforeMidnight(ram); },
@@ -52,7 +55,7 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: karnathCombat,
     controls: karnathControls,
-    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    // Pendragon as Dragonskulle draws him (src/figure.ts)
     figure: karnathFigure,
     // 1-9 and 0: straight to that spell (the original only cycles through its ten); Space casts
     actions: {
@@ -66,7 +69,7 @@ export function run(host: Host) {
     // Touch: the stick, CAST, SPELL (the next one, as Enter does), and RUN (added for `run`).
     touch: TOUCH,
     run: { player: engine.r_1956 }, // hold Shift to run: player control runs twice a frame
-    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
+    // the reward for winning (both modes): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: karnathEnding, won, stats: endingStats },
     reserved: [...JOYSTICK_KEYS, 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },

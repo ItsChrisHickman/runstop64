@@ -1,5 +1,5 @@
 /**
- * runstop64's rooms (ENHANCED: data/runstop64-rooms.ts), headless (c64kit stood in by
+ * runstop64's rooms (both modes: data/runstop64-rooms.ts), headless (c64kit stood in by
  * games/shared/test/kit.ts):
  *
  *  1. ENHANCED through the front end: a new game, hold right: Monty walks out of the start
@@ -16,9 +16,9 @@
  *     $25; Pie Are Square ($08, from $09), standing.
  *  4. The map: the rooms are on it in their own colour (RUNSTOP64 in the legend), not in the
  *     original's count; travel to one goes there.
- *  5. Saves: a save in the dev room continues there with ENHANCED, and with ORIGINAL (the rooms
+ *  5. Saves: a save in the dev room continues there, and under the original's rules (the rooms
  *     aren't there) from the start room, the rest of the save as it was.
- *  6. ORIGINAL: the start room's right is closed (as the original's: no room in that cell), and
+ *  6. the original's rules: the start room's right is closed (as the original's: no room in that cell), and
  *     every table the original's rooms read is the original's, byte for byte.
  *
  * With an output folder, pictures: every new room (Monty where the search came in), a contact
@@ -44,6 +44,7 @@ import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { MAP_BOX } from '../../shared/native/pause';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { originalRules } from '../../shared/test/original-rules';
 import { check, finish } from '../../shared/test/check';
 import { continueFromTitle } from '../../shared/test/continue-from-title';
 
@@ -145,12 +146,13 @@ const route = (p: string[]) => p.reduce<[string, number][]>((a, n) => {
 // ---- 1. ENHANCED, the front end: right from the start, into the dev room --------------------------
 
 const store = useMemoryStorage();
+/** A fresh front end, ours (`enhanced`) or the original's rules (the rooms not there: as only a test has them now, shared/test/original-rules.ts). */
 function boot(enhanced: boolean, keep = false) {
   if (!keep) store.clear();
-  store.set('montyotr.assist', JSON.stringify({ enhanced }));
   const input = new Input(nowhere);
   const renderer = new PixelRenderer();
   const p = run({ renderer, input, canvas: nowhere });
+  if (!enhanced) originalRules(p.frontEnd.assist);
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
   const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };

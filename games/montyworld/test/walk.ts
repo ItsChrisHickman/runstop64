@@ -88,7 +88,7 @@ tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
 const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers (${numbers.join(' | ')})`, numbers[0] === 'LIVES     5' && numbers[1] === `ROOMS  1/${WORLD.exitGrid.image.filter((c) => c !== 0xff).length}` && numbers[2] === `ITEMS  0/${WORLD.progress.keyItems.length}` && numbers[3] === `SNACKS 0/${WORLD.progress.cakes.length}`);
+check(`the pause screen's numbers, EASY's: no lives (${numbers.join(' | ')})`, !numbers.some((l) => l.startsWith('LIVES')) && numbers[0] === `ROOMS  1/${WORLD.exitGrid.image.filter((c) => c !== 0xff).length}` && numbers[1] === `ITEMS  0/${WORLD.progress.keyItems.length}` && numbers[2] === `SNACKS 0/${WORLD.progress.cakes.length}`);
 tap('KeyP');
 tick(4);
 

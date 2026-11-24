@@ -1,5 +1,5 @@
 /**
- * runstop64's rooms for Monty on the Run: new rooms (ENHANCED only), in the original's own
+ * runstop64's rooms for Monty on the Run: new rooms (both modes only), in the original's own
  * formats, from its own parts. They sit in cells of the exit grid the original leaves empty
  * (right of the start room, and below it), with room ids after the original's ($00-$33).
  * data.ts merges them into the game's tables (each keyed by room id, so nothing of the

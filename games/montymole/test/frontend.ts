@@ -2,7 +2,7 @@
  * Wanted: Monty Mole's front end, headless (c64kit stood in by games/shared/test/kit.ts; no original needed): the title and the options (our keys), a game started by the
  * jump key; the opening scene, the gift and the way out into room 0; walking; the pause screen with the map of the 21 rooms (Spectrum colours, our font), picked with the
  * arrows, and travel to a room he has come to; autosave on every room and a launch with a save (the title, ENTER CONTINUE, Enter goes back into play); game over, CONTINUE?
- * and the room again; back to room start; the ORIGINAL / ENHANCED switch (sprites on the renderer or not, unlimited lives, no deaths from falls); a moment's grace after a
+ * and the room again; back to room start; the EASY / HARD switch (unlimited lives or the game's; the enhancements in both); a moment's grace after a
  * resume; NEW GAME? over a save; ENTER CONTINUE where it sits; touch; the sound told what happens. With an out-dir: stills of the screens.
  *
  *   nice -n 15 node tools/test.mjs games/montymole/test/frontend.ts [out-dir]
@@ -78,7 +78,7 @@ check(`the jump key starts a game: the opening scene, three lives (${game().room
 check('the scene is no room: nothing saved', savedNow() === null);
 tick(20);
 shot('3-opening');
-check('ENHANCED by default: Monty is a sprite on the renderer', p.state.enhanced && visibleSprites() > 0);
+check('EASY by default: Monty is a sprite on the renderer', p.state.easy && visibleSprites() > 0);
 const x0 = game().monty.x;
 input.keyDown('ArrowLeft'); tick(8); input.keyUp('ArrowLeft');
 check(`the arrows walk him (${x0} to ${game().monty.x})`, game().monty.x < x0);
@@ -124,21 +124,21 @@ check(`Enter: travel to room 1, where he came into it (${game().room}, ${game().
 check('a moment of grace after the travel', p.state.grace > 0);
 check('the map is not changed by a travel', p.state.found.reached.join() === '0,1');
 
-// ---- ORIGINAL / ENHANCED ---------------------------------------------------------------------------------------------------
-check('ENHANCED by default: unlimited lives, no deaths from falls, no clash', p.state.enhanced && game().unlimitedLives && game().monty.safeFalls && p.frontEnd.assist.look === true);
+// ---- EASY / HARD -----------------------------------------------------------------------------------------------------------
+check('EASY by default: unlimited lives, no deaths from falls, no clash', p.state.easy && game().unlimitedLives && game().monty.safeFalls && p.frontEnd.assist.look === true);
 tap('KeyP');
 tap('KeyE');
 tick(2);
-check('E: ORIGINAL, the switch kept', !p.state.enhanced && store.get('montymole.assist') === '{"enhanced":false}');
+check('E: HARD, the switch kept', !p.state.easy && store.get('montymole.assist') === '{"easy":false}');
 tap('KeyP');
 tick(4);
-check('ORIGINAL: no sprites on the renderer (they are in the picture), the enhancements off', visibleSprites() === 0 && !game().unlimitedLives && !game().monty.safeFalls);
-shot('7-original');
+check('HARD: the enhancements still on (sprites on the renderer, no deaths from falls), the lives the game\'s own', visibleSprites() > 0 && !game().unlimitedLives && game().monty.safeFalls);
+shot('7-hard');
 tap('KeyP');
 tap('KeyE');
 tap('KeyP');
 tick(4);
-check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites() > 0 && game().unlimitedLives);
+check('E again: EASY', p.state.easy && visibleSprites() > 0 && game().unlimitedLives);
 
 // ---- back to room start ----------------------------------------------------------------------------------------------------
 {
@@ -150,7 +150,7 @@ check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites(
   check('and a moment of grace', p.state.grace > 0);
 }
 
-// ---- grace, and the death in ENHANCED and in ORIGINAL ---------------------------------------------------------------------
+// ---- grace, and the death in EASY and in HARD -----------------------------------------------------------------------------
 {
   const lives = game().lives;
   fallFar();
@@ -159,15 +159,17 @@ check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites(
   p.grace.clear();
   fallFar();
   tick(60);
-  check(`ENHANCED: a long fall is no death and no life is lost (${lives} to ${game().lives})`, game().lives === lives);
+  check(`EASY: a long fall is no death and no life is lost (${lives} to ${game().lives})`, game().lives === lives);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('ORIGINAL: no unlimited lives, falls kill', !p.state.enhanced && !game().unlimitedLives && !game().monty.safeFalls);
+  check('HARD: no unlimited lives', !p.state.easy && !game().unlimitedLives);
+  p.frontEnd.assist.falls = false; // (the original's falls, as only a test has them now: a fall that kills, for a death in HARD)
+  tick(1);
   p.grace.clear();
   fallFar();
   until(() => game().lives < lives, 400);
-  check(`and in ORIGINAL the fall is a death and takes a life (${lives} to ${game().lives})`, game().lives === lives - 1);
-  tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
-  check('and ENHANCED again', p.state.enhanced && game().unlimitedLives);
+  check(`and in HARD the death takes a life (${lives} to ${game().lives})`, game().lives === lives - 1);
+  tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to EASY, the default)
+  check('and EASY again', p.state.easy && game().unlimitedLives && game().monty.safeFalls);
 }
 
 // ---- autosave after a death: the lives lost stay lost ------------------------------------------------------------------------------------
@@ -180,7 +182,8 @@ check(`the sound: the audio unlocked by the first key, the tunes made (${ayLog.s
 check('and held while the pause screen is up', (() => { tap('KeyP'); const held = ayLog.held; tap('KeyP'); return held && !ayLog.held; })());
 
 // ---- game over -> CONTINUE? ---------------------------------------------------------------------------------------------------------------
-tap('KeyP'); tap('KeyE'); tap('KeyP'); // ORIGINAL: the lives are real
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // HARD: the lives are real
+p.frontEnd.assist.falls = false; // (and a fall kills, as above)
 const lastRoom = game().room;
 game().lives = 1;
 game().score.digits[0] = 5;
@@ -200,7 +203,7 @@ tick(4);
 check(`Enter: back in play in the last room (${game().room}), three lives again`, p.state.phase === 'play' && game().room === lastRoom && game().lives === START_LIVES);
 check('with what he had (the map)', p.state.found.reached.join() === '0,1');
 check('a moment of grace', p.state.grace > 0);
-tap('KeyP'); tap('KeyE'); tap('KeyP'); // (ENHANCED, the default)
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (EASY, the default)
 
 // ---- launching with a save ---------------------------------------------------------------------------------------------------------------------
 {

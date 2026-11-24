@@ -1,5 +1,5 @@
 /**
- * The reward for winning (ENHANCED: src/ending.ts on shared/ending/show.ts; the game's own ending is the closing screen), headless,
+ * The reward for winning (both modes: src/ending.ts on shared/ending/show.ts; the game's own ending is the closing screen), headless,
  * with the real game under it (needs none of the original's files):
  *
  *  1. every scene's route does what the scene says in the game as the montage runs it (a `Program` of its own, frame by frame,
@@ -13,9 +13,9 @@
  *     place (sprites included, the flight's sky too), every line types on there letter by letter in yellow, is held, and goes,
  *     and the port's lines are last;
  *  4. a key skips it, after two seconds and not before;
- *  5. in the session: winning in ENHANCED runs it from the ending (the title and CONTINUE? after it, the save kept) and keeps
- *     that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won (ENHANCED
- *     only) runs it and ends on the title; `?ending` on the page runs it at once.
+ *  5. in the session: winning (EASY or HARD) runs it from the ending (the title and CONTINUE? after it, the save kept) and keeps
+ *     that the game has been won; W on the pause screen once won (both modes)
+ *     runs it and ends on the title; `?ending` on the page runs it at once.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/reward.ts [out-dir]
  *
@@ -238,9 +238,9 @@ check('the port is credited last, as PORT_CREDITS has it', PORT_CREDITS.every((l
 
 // ---- 5. in the session ----------------------------------------------------------------------------------------------------
 
-function boot(enhanced: boolean) {
+function boot(easy: boolean) {
   store.clear();
-  store.set('awm.assist', JSON.stringify({ enhanced }));
+  store.set('awm.assist', JSON.stringify({ easy }));
   const inp = new Input(nowhere), rend = new PixelRenderer(), p = run({ renderer: rend, input: inp, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
   const press = (code: string) => { inp.keyDown(code); tick(2); inp.keyUp(code); tick(2); };
@@ -263,26 +263,26 @@ function win(s: ReturnType<typeof boot>) {
   const s = boot(true);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
-  check('ENHANCED: the game is won (the ending played out, GAME OVER, the title)', won);
-  check('ENHANCED: the win is kept, apart from the saves', readWon('awm') && store.has('awm.won') && !store.has('awm.save.v2.won'));
-  check('ENHANCED: the show begins from the ending, over the title', ending.active);
+  check('EASY: the game is won (the ending played out, GAME OVER, the title)', won);
+  check('EASY: the win is kept, apart from the saves', readWon('awm') && store.has('awm.won') && !store.has('awm.save.v2.won'));
+  check('EASY: the show begins from the ending, over the title', ending.active);
   s.tick(10);
-  check('ENHANCED: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading');
+  check('EASY: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading');
   s.tick(110);
   s.press('Space');
-  check('ENHANCED: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.kind === 'title');
-  check('ENHANCED: the show\'s sprites are put away', s.rend.sprites.every((h) => !h.visible || s.p.state.kind === 'title'));
-  check('ENHANCED: the save is kept', s.p.state.hasSave);
+  check('EASY: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.kind === 'title');
+  check('EASY: the show\'s sprites are put away', s.rend.sprites.every((h) => !h.visible || s.p.state.kind === 'title'));
+  check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
-  check('ENHANCED: CONTINUE? yes: back in play', s.until(() => s.p.state.kind === 'play', 300));
+  check('EASY: CONTINUE? yes: back in play', s.until(() => s.p.state.kind === 'play', 300));
   s.tick(10);
   s.press('KeyP');
-  check('ENHANCED, won: the pause screen is up', s.p.state.paused);
+  check('EASY, won: the pause screen is up', s.p.state.paused);
   s.press('KeyW');
-  check('ENHANCED: W starts it', ending.active);
+  check('EASY: W starts it', ending.active);
   s.tick(120);
   s.press('Space');
-  check('ENHANCED: after it, the title with the save kept', !ending.active && s.p.state.kind === 'title' && s.p.state.hasSave);
+  check('EASY: after it, the title with the save kept', !ending.active && s.p.state.kind === 'title' && s.p.state.hasSave);
 }
 
 {
@@ -290,13 +290,16 @@ function win(s: ReturnType<typeof boot>) {
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
   s.tick(30);
-  check('ORIGINAL: the game is won, and kept so, with no ending of ours (the title, then CONTINUE?)', won && readWon('awm') && !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
+  check('HARD: the game is won, kept so, and the show begins as in EASY (it is in both modes)', won && readWon('awm') && ending.active);
+  s.tick(120);
+  s.press('Space');
+  check('HARD: a key skips it: the title, then CONTINUE?', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
   s.press('Enter');
   s.until(() => s.p.state.kind === 'play', 300);
   s.tick(10);
   s.press('KeyP');
   s.press('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !ending.active && s.p.state.paused);
+  check('HARD: W on the pause screen starts it', ending.active);
 }
 
 {

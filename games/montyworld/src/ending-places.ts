@@ -10,7 +10,7 @@ import { RIO_FIRST, RIO_ROOM, RIO_ROOMS } from './rio';
 import { SIB } from './siberia';
 
 /**
- * The places of the reward show (ENHANCED), one or two from every region in the order of the journey, with what he has by then and what he does there: the part of a scene that is not its route (ending-routes.ts: found by
+ * The places of the reward show (both modes), one or two from every region in the order of the journey, with what he has by then and what he does there: the part of a scene that is not its route (ending-routes.ts: found by
  * `re/routes.ts`, a search over the game's own frames) or the place it starts him at. The credits' lines are Monty on the Run's makers' (games/montyotr/re/credits.md: each is sourced there), spread over the places, and then this
  * game's own (`CLOSING`).
  */

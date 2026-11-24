@@ -1,7 +1,7 @@
 import { HINTS } from './hints';
 
 /**
- * The hints (part of ENHANCED): sparkles on what moves the game on and hasn't been done yet, on
+ * The hints (part of ours): sparkles on what moves the game on and hasn't been done yet, on
  * the screen he's on (HINTS, src/hints.ts: each shows until its byte has its done value, and while
  * what it needs holds). Each is on a sprite the game draws: where the VIC-II has it, while it's
  * shown and on the screen.

@@ -14,9 +14,11 @@ open questions below; nothing big is under construction.
 - **Live** at https://goshow.me/runstop64/ (`npm run deploy`). Repo ItsChrisHickman/runstop64, cloned at
   /root/projects/runstop64. The games and how each was made are in `GAMES.md`; every change from the original is in the game's
   `QOL.md`.
-- **ENHANCED in every game** is quality-of-life for a modern playthrough, one switch (E on the pause screen), on by default.
-  It has unlimited lives and continues (except the three Pendragon games without lives: see below), and a reward show on
-  winning. No invincibility. The Pendragon games draw him as Dragonskulle does (`games/shared/pendragon/figure.ts`).
+- **EASY or HARD in every game** (2026-11-24, in place of ORIGINAL/ENHANCED): one switch (E on the pause screen), EASY by
+  default. EASY: unlimited lives and continues, no lives counter; HARD: the original's lives. The three Pendragon games with
+  energy and Thing on a Spring (oil) have no lives: in EASY a death that has played out starts the room again at full health
+  (`vitals.lifeEnds`), in HARD it ends the game. Every quality-of-life change and the reward show on winning are on in both. No
+  invincibility. The Pendragon games draw him as Dragonskulle does (`games/shared/pendragon/figure.ts`).
 - **Gone on purpose:** Auf Wiedersehen Monty's shield (the cracked copy's always-on "nothing hurts me" leaf, the commercial game's MONTY cheat; the leaf itself is back as a 75-point item; old
   saves load with the flag dropped), the Pendragon games' full health on entering a room, Bounder.
 - **Smoothing** is sideways only: a sprite glides between ticks horizontally and is drawn at the latest tick vertically, so a
@@ -44,7 +46,7 @@ open questions below; nothing big is under construction.
   `games/shared/test/load-save.ts` (`AGENTS.md`, Tools). He play-tests on his phone and PC and sends photos and saves; those
   find the real bugs.
 - **Dragonskulle's rules the game never explains** (the three bridges' wizards, the dragons, the cloak and its second coming, the
-  graves, the starfish) are read, proved on the translation and the original, and turned into ENHANCED hints:
+  graves, the starfish) are read, proved on the translation and the original, and turned into hints:
   `games/dragonskulle/re/README.md` section 9, `src/rules.ts`, `re/rules/` and `test/rules.ts`.
 - **Karnath's hints** are live: sparkles on the pieces and the way to the obelisk, Pendragon's lines on the status line, the
   pieces counted on the pause screen (`games/karnath/re/README.md`, "Hints"; `re/hints/check.ts`).
@@ -53,7 +55,7 @@ open questions below; nothing big is under construction.
 
 ## The reward show (one for every game)
 
-Every game ends ENHANCED with a reward after the game's own ending: a montage of the game's places with the hero running
+Every game ends with a reward after the game's own ending: a montage of the game's places with the hero running
 through and doing something that fits (the game's own engine, driven by input), Super Mario World-style credits over it (the
 makers, then sourced fun facts, then `PORT_CREDITS`: "rebuilt for the browser by CHRISTOPHER HICKMAN with Claude"), the game's
 creatures parading one at a time, THE END with stats, the game's music. Won is kept apart from the saves,
@@ -85,11 +87,6 @@ through the places, then the parade (Monty on the Run, 127 s with 24 creatures, 
 
 ## Open questions (found in the cleanup pass)
 
-- **Blackwyche, Karnath and Entombed have energy, not lives**, so ENHANCED's unlimited lives have nothing to refill there: dying
-  still ends in the game's end and CONTINUE? (both modes). Making it "back to the start of the room at full energy, no
-  prompt" is Thing on a Spring's `vitals.lifeEnds` (needs the hook address of each game's end, found in its translation). Chris
-  to say if he wants it.
-  Keep or drop is a product call.
 - **Thing on a Spring** oil out is a lost life back at the room's start with full oil (`vitals.lifeEnds`); the dragon flashes on
   each counted stone in Dragonskulle (`native/colour-cycle.ts`). Both are waiting on a playtest.
 
@@ -99,14 +96,14 @@ through the places, then the parade (Monty on the Run, 127 s with 24 creatures, 
   vertical position without smoothing on a phone.
 - **Blackwyche GUIDED:** his notes on the draft lines (he wanted the prose less clumsy; `games/blackwyche/src/guided-lines.ts`).
 - **Karnath hints:** his notes on the lines (`games/karnath/src/hint-lines.ts`).
-- **JSW2:** the ENHANCED "a lot easier" set (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
+- **JSW2:** the "a lot easier" set (now in both modes) (double jump, ropes that hold, unlimited lives, room-entry grace, gentle touch,
   item sparkles) and the pause map laid out by the exits are built, waiting on Chris to play them (`games/jsw2/QOL.md`); the
   reachability sweep is not.
 - **Antiriad:** a second quest; a one-page plan first.
 - **Saves design:** move the F1 saved-games screen to the overlay as a plain list. Propose first.
 - **Older:** Monty warp to the Ultimate Experience.
 - **Wanted: Monty Mole Remix** (`games/montymoleremix`, in the directory): done and bot-proved; Chris finds the game itself not one of his,
-  so it is left as is. Offered, not built: in ENHANCED the tool kept across rooms and deaths until used, and a picture of it by the lives
+  so it is left as is. Offered, not built: the tool kept across rooms and deaths until used, and a picture of it by the lives
   while held (the original loses it on leaving the room or dying, and shows nothing). His one-word answer was "Original" (read as: he
   had played in ORIGINAL); ask before building. The faithful Wanted bot's WIP is on branch `worktree-agent-a8fa738a703218e33`, unmerged.
 

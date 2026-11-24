@@ -8,7 +8,7 @@ import { COLOUR_OF } from './room';
 import { wantFor } from './wants';
 
 /**
- * The CARRYING page of the pause screen (a page beside the map, ENHANCED's carry anything: `Items.list`): everything Monty
+ * The CARRYING page of the pause screen (a page beside the map, our carry anything: `Items.list`): everything Monty
  * carries, the latest picked up first, each with its picture as the boxes draw it, and what it is for, read from the game's own
  * rules (the four deliveries, the rooms and creatures that ask for something: `wants.ts`, the plane tickets). Text in colours over the black screen.
  */

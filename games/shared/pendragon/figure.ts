@@ -4,7 +4,7 @@ import { DRAWN_FRAMES } from './figure-drawn';
 import { DRAGONSKULLE_FRAMES } from './figure-frames';
 
 /**
- * Pendragon as Dragonskulle draws him, in the games that draw him another way (Karnath, Entombed, Blackwyche): ENHANCED only, and
+ * Pendragon as Dragonskulle draws him, in the games that draw him another way (Karnath, Entombed, Blackwyche): ours only, and
  * presentation only. After each frame the game ran, the picture it showed for sprite 2 in the frame's capture (`m.capture.sprites`,
  * what the VIC drew) is looked up by its 63 bytes and the entry is given Dragonskulle's picture for the same pose, a little moved so
  * the feet stand where the game's own figure's feet stood, in colours by role. Nothing is written to the machine: its memory, its
@@ -149,7 +149,7 @@ export class FigureSwap {
     return this.keep.has(pictureHash(data));
   }
 
-  /** After a frame the game ran (and only in ENHANCED): the capture's figure as Dragonskulle's. `ram`: the game's, for the way he faces. */
+  /** After a frame the game ran (and only in both modes): the capture's figure as Dragonskulle's. `ram`: the game's, for the way he faces. */
   apply(sprites: readonly SpriteCapture[], ram: Uint8Array): void {
     const { spec } = this;
     for (const s of sprites) {

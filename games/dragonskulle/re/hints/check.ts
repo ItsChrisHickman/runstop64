@@ -56,7 +56,7 @@ const spriteAt = (vic: Uint8Array, n: number) => {
 const ACTIONS: Record<string, { action: number; fire: boolean }> = {
   'touch a starfish: the way into the caves opens': { action: 4, fire: false },
   'dig here with the shovel: the cloak': { action: 0, fire: true },
-  // (solved here the original's way, with a stone; ENHANCED's touching it: test/shovel-touch.ts)
+  // (solved here the original's way, with a stone; our touching it: test/shovel-touch.ts)
   'walk up to the shovel (or throw a stone at it)': { action: 3, fire: true },
 };
 

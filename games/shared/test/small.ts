@@ -1,12 +1,14 @@
 /**
  * The small shared rules, headless: the fire latch (a press a menu spent does not fire the game), the grace countdown,
- * ENHANCED's unlimited lives, and the room-save bookkeeping.
+ * EASY's unlimited lives and the EASY switch as kept (an old ENHANCED/ORIGINAL one read as EASY/HARD), and the room-save
+ * bookkeeping.
  *
  *   node tools/test.mjs games/shared/test/small.ts
  */
 import { FireLatch } from '../fire-latch';
 import { Grace, GRACE_FRAMES } from '../grace';
-import { afterLoss } from '../lives';
+import { afterLoss, LIVES_ASSIST, livesShown } from '../lives';
+import { readEasy } from '../frontend';
 import { RoomSaves } from '../room-saves';
 import { check, finish } from './check';
 
@@ -45,6 +47,14 @@ import { check, finish } from './check';
 
 const LOSSES: [number, boolean, number][] = [[3, false, 2], [1, false, 0], [3, true, 3], [0, true, 0]];
 for (const [lives, unlimited, want] of LOSSES) check(`afterLoss(${lives}, unlimited ${unlimited}) = ${want}`, afterLoss(lives, unlimited) === want);
+check('the lives assist goes with the EASY switch', LIVES_ASSIST.role === 'easy');
+check('livesShown: none in EASY (the lives assist on), the counter in HARD and where there is no record', !livesShown({ lives: true }) && livesShown({ lives: false }) && livesShown(undefined));
+const KEPT: [unknown, boolean, string][] = [
+  [{ easy: true }, true, 'EASY'], [{ easy: false }, false, 'HARD'],
+  [{ enhanced: true }, true, 'an old ENHANCED (unlimited lives): EASY'], [{ enhanced: false }, false, 'an old ORIGINAL (the original\'s lives): HARD'],
+  [{ easy: false, enhanced: true }, false, 'the new key first'], [{}, true, 'nothing kept: EASY'], [null, true, 'not a record: EASY'], [{ easy: 'no' }, true, 'not a boolean: EASY'],
+];
+for (const [kept, want, what] of KEPT) check(`readEasy(${JSON.stringify(kept)}): ${what}`, readEasy(kept) === want);
 
 {
   const rs = new RoomSaves<string>();

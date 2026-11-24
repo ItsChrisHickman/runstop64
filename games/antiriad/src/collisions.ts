@@ -199,7 +199,7 @@ function heroTouches(g: Game) {
   }
   if (a === RECHARGE_CELL) {
     if (!(ram[V.panelOn] & 0x80) || !reaching()) return;
-    if (!g.enhanced && ram[0xa7] & 0x80) { g.say(0x89); return; } // already carrying one (ENHANCED: every cell is his, cells.ts)
+    if (!g.enhanced && ram[0xa7] & 0x80) { g.say(0x89); return; } // already carrying one (every cell is his, cells.ts)
     if (ram[V.appearing + x] & 0x80) return;
     const room = ram[V.room];
     ram[0x0661 + (room >> 3)] |= ram[BIT + (room & 7)];

@@ -106,15 +106,13 @@ const atTitle = (s: Session) => [0x9931, 0x993b, 0x9940].includes(s.p.state.last
   w.tick(30);
   check('and a key takes it back to the title', !w.p.ending?.active && atTitle(w));
 
-  // ORIGINAL: the game as it was, no ending (and none offered)
+  // HARD: the ending follows the win as in EASY (it is in both modes)
   useMemoryStorage(new Map());
   const o = await Session.launch(saveAt({ room: 0x0c, flags: { 0x342b: 1 } }), false);
   must(o.ram, 'ram')[0x633b] = 1;
   let any = false;
   for (let f = 0; f < 2500; f++) { o.tick(); if (o.p.ending?.active) any = true; }
-  check('ORIGINAL: no ending after the win (the game goes to its title as it did)', !any && atTitle(o));
-  o.input.keyDown('KeyP'); o.tick(2); o.input.keyUp('KeyP');
-  check('(not in play at the title: no pause screen to offer it on)', !o.p.frontEnd.paused);
+  check('HARD: the ending follows the win too', any);
 }
 
 // ---- what a win is, and the flag

@@ -295,7 +295,7 @@ export class Game extends Core {
   }
 
   /**
-   * ENHANCED (added for runstop64; hero.ts, QOL.md): fire only attacks and a button of its own
+   * ours (added for runstop64; hero.ts, QOL.md): fire only attacks and a button of its own
    * jumps (off, the original's one button: standing it throws, walking it jumps); and an armour
    * out of energy sets down and lets Tal out (off, the original's: it bounces on the floor until
    * turned to face out, and in the first ten rooms never lets him out).
@@ -303,9 +303,9 @@ export class Game extends Core {
   enhanced = false;
   /** Whether a moment's grace is on (the front end's, main.ts; grace.ts): nothing hurts Tal or the armour, and the radiation and the armour's drain wait. */
   graceActive: () => boolean = () => false;
-  /** ENHANCED's unlimited lives and continues (shared/lives.ts): a fall out of life is no rejuvenation used, so the fifth never comes. */
+  /** EASY's unlimited lives and continues (shared/lives.ts): a fall out of life is no rejuvenation used, so the fifth never comes. */
   unlimitedLives: () => boolean = () => false;
-  /** ENHANCED: C was pressed (main.ts): fill the armour from a stored recharge cell (cells.ts). */
+  /** C was pressed (main.ts): fill the armour from a stored recharge cell (cells.ts). */
   cellAsked = false;
   /** What Tal and the creatures felt since the front end last collected it (feel.ts; presentation only). */
   feel: FeelEvent[] = [];

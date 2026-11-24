@@ -36,7 +36,7 @@ const INTRO_FRAMES = [
 export interface MontyHost {
   /** He went through an exit into `room`; the game loads it ($5581). */
   enterRoom(room: number): void;
-  /** ENHANCED: a room the exits treat as no room for now (the last room until the ending is due). */
+  /** A room the exits treat as no room for now (the last room until the ending is due). */
   closed(room: number): boolean;
   /** One step of state $10, $11 or $13, which move enemies, rooms and flags as well as him. */
   scripted(): void;
@@ -629,7 +629,7 @@ export class Monty implements MontyData {
 
   /**
    * Whether he put at (x, y) in this room would stand there: on a row, free, his body's cells empty, plain ground under both
-   * feet and no deadly tile at his corners (ENHANCED's safe respawn).
+   * feet and no deadly tile at his corners (our safe respawn).
    */
   standsSafely(x: number, y: number): boolean {
     if ((y & 7) !== 0 || y < 8 || y >= 0x78 || x < 8 || x >= 0xe4) return false;

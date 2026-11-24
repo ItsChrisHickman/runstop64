@@ -73,7 +73,7 @@ check(`the line fits the status line (every part at most 28 letters: ${partsOf2(
   check(`ENHANCED: said once, not again within 30 seconds (${n}, then ${s.texts().filter((t) => t === partsOf2(SAY)[0]).length})`, n === 1 && s.texts().filter((t) => t === partsOf2(SAY)[0]).length === 1);
   const o = await Session.launch(start, false);
   o.tick(900);
-  check(`ORIGINAL: none of it (${o.texts().join(' | ')})`, !anyOf(o));
+  check(`HARD: the same hints (${o.texts().join(' | ')})`, anyOf(o));
 }
 {
   // played with the keys: under the piece, up, key 0, Space at it; then into it

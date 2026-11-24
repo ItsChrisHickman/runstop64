@@ -8,6 +8,7 @@
  * puts him back where the room was entered. The coal taken is the game's own (`Game.coal`), so the count is true for every room.
  */
 import type { BitmapFont, Surface } from 'c64kit';
+import { livesShown } from '../../shared/lives';
 import { foundCodec, S, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { SPECTRUM, cellInk, cellPaper } from '../../shared/spectrum';
 import { ROOMS } from './data/rooms-data';
@@ -136,9 +137,10 @@ export const montyMap = {
       font.draw(s, line.text, box.x, y + 10, line.colour);
     } else font.draw(s, 'THE OPENING SCENE', box.x, y, SPECTRUM.white);
   },
-  info(flow: MontyFlow, f: MontyFound): string[] {
+  info(flow: MontyFlow, f: MontyFound, assist?: Readonly<Record<string, boolean>>): string[] {
     const game = flow.game;
-    return [`LIVES ${game.lives}`, `ROOMS ${f.reached.length}/${ROOM_COUNT}`, `COAL ${game.coal.taken}/${COAL_TOTAL}`, `SCORE ${game.score.value}`];
+    // (the lives in HARD only: EASY has none to count)
+    return [...(livesShown(assist) ? [`LIVES ${game.lives}`] : []), `ROOMS ${f.reached.length}/${ROOM_COUNT}`, `COAL ${game.coal.taken}/${COAL_TOTAL}`, `SCORE ${game.score.value}`];
   },
   legend: [{ colour: SPECTRUM.dim, text: 'NOT SEEN' }, { colour: SPECTRUM.good, text: 'ALL COAL' }],
   places(box: Box, flow: MontyFlow, f: MontyFound): MapPlace[] {
@@ -162,7 +164,7 @@ export const montyMap = {
   },
 } satisfies PauseMap<MontyFlow, MontyFound>;
 
-/** A save described for the save manager (ContinueFlow `describe`): where, then lives, coal and the score. */
-export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: MontyFound): string[] {
-  return [`ROOM ${save.room + 1}`, `LIVES ${save.lives}`, `ROOMS ${f.reached.length}`, `SCORE ${save.score}`];
+/** A save described for the save manager (ContinueFlow `describe`): where, then lives (in HARD: `lives`), coal and the score. */
+export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: MontyFound, lives = true): string[] {
+  return [`ROOM ${save.room + 1}`, ...(lives ? [`LIVES ${save.lives}`] : []), `ROOMS ${f.reached.length}`, `SCORE ${save.score}`];
 }

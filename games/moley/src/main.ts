@@ -22,9 +22,9 @@ import { TOUCH } from './touch';
 
 /**
  * Moley Christmas: the runstop64 front end for the rebuilt game. `MoleyFlow` is the whole game (the credits page, play, GAME OVER, the
- * Christmas card) as one object this file steps; `MoleyView` puts it on the renderer in the Spectrum's colours (ORIGINAL exact, ENHANCED
- * without colour clash and with smooth motion); the session (saves, continue, the pause screen with its map and travel, the ORIGINAL /
- * ENHANCED switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
+ * Christmas card) as one object this file steps; `MoleyView` puts it on the renderer in the Spectrum's colours (the original's exact, ours
+ * without colour clash and with smooth motion); the session (saves, continue, the pause screen with its map and travel, the
+ * EASY/HARD switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
  */
 export { info } from './info';
 
@@ -79,22 +79,19 @@ export function run(host: Host) {
   /** The ending's show (src/ending.ts, shared/ending/show.ts), once the session is up; and whether it is on from the Christmas card (over the credits page it leaves) or from W or `?ending` (which end on the credits page by going back to the title). */
   let reward: RewardShow | null = null;
   let afterCard = false;
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = (): boolean => false;
   let startFrames = 0;
 
   const port = runPort<MoleySave, MoleyFound, MoleyFlow>(host, {
-    id: 'moley', font: spectrumFont(), codec: CODEC, map: moleyMap, describe: describeSave, colours: PAUSE_COLOURS,
+    id: 'moley', font: spectrumFont(), codec: CODEC, map: moleyMap, describe: (save, found) => describeSave(save, found, !current.game.unlimitedLives), colours: PAUSE_COLOURS,
     // (ENTER CONTINUE goes on the credits page's empty rows; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
-    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
-    ending: (): boolean => enhanced() && readWon('moley'),
-    // ENHANCED is these four, together (the pause screen has the one switch): see QOL.md
+    // (W on the pause screen: the ending, once the game has been won)
+    ending: (): boolean => readWon('moley'),
+    // these are on in both modes, the unlimited lives in EASY (the pause screen has the one switch): see QOL.md
     assists: [LIVES_ASSIST, { id: 'steer', long: 'AIR STEERING' }, { id: 'count', long: 'ITEMS LEFT' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
-    enhanced = (): boolean => fe.enhanced;
-    // ---- the reward for winning (ENHANCED): the montage of the six screens, the creatures walking through it, THE END (src/ending.ts) ----
+    // ---- the reward for winning: the montage of the six screens, the creatures walking through it, THE END (src/ending.ts) ----
     const show = reward = new RewardShow({
       host,
       spec: moleyEnding(renderer, sound),
@@ -117,7 +114,7 @@ export function run(host: Host) {
       seenEntries = next.display.entries;
     }
 
-    /** What ENHANCED is, from the switch as it is now. */
+    /** Our changes, from the switch as it is now (all on, the unlimited lives with EASY). */
     function applyEnhancements(): void {
       const { enhanced } = current.game;
       enhanced.airSteering = fe.assist.steer === true;
@@ -158,7 +155,7 @@ export function run(host: Host) {
         if (to === 'ending') keepWon('moley');
         if (to === 'ending' && seenRoom >= 0 && noteDone(fe.found, seenRoom)) fe.keepFound();
         keepHigh();
-      } else if (from === 'ending' && to === 'credits' && fe.enhanced) {
+      } else if (from === 'ending' && to === 'credits') {
         // the card is over: the show, over the credits page it has gone back to (the game's own end is as it was)
         afterCard = true;
         show.start(endingStats(current, fe.found));
@@ -248,10 +245,10 @@ export function run(host: Host) {
         return current.phase === 'play' ? 'played' : 'idle';
       },
       updateView() {
-        view.look = fe.enhanced && fe.assist.look === true ? 'enhanced' : 'original';
+        view.look = fe.assist.look === true ? 'enhanced' : 'original';
         if (step !== null) view.present(step, into, true);
-        // sparkles on the puzzles and the ways out (hints.ts): ENHANCED, in play, not over a held picture (a death's) nor a screen of ours
-        const shown = fe.enhanced && fe.assist.hints === true && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
+        // sparkles on the puzzles and the ways out (hints.ts): in play, not over a held picture (a death's) nor a screen of ours
+        const shown = fe.assist.hints === true && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
         view.sparkle(shown ? hintsOf(current.game) : []);
       },
       renderView: (alpha) => view.render(alpha),
@@ -268,7 +265,7 @@ export function run(host: Host) {
     get grace() { return port.flow.grace; },
     get sound() { return sound; },
     get state() {
-      return { phase: current.phase, paused: port.fe.paused, enhanced: port.fe.enhanced, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state };
+      return { phase: current.phase, paused: port.fe.paused, easy: port.fe.easy, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state };
     },
     tick: port.tick,
     render: port.render,

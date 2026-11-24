@@ -1,16 +1,16 @@
 /**
- * The shovel by hand (ENHANCED, src/shovel.ts), through the front end as the browser runs it
+ * The shovel by hand (both modes, src/shovel.ts), through the front end as the browser runs it
  * (games/shared/native/play.ts, c64kit stood in by games/shared/test/kit.ts):
  *
  * - launched with a save just inside the shovel's room (walked there by a recorded route, the map
- *   noting the screens as play.ts does), ENHANCED: walking Pendragon up to the shovel with the arrow
+ *   noting the screens as play.ts does), EASY: walking Pendragon up to the shovel with the arrow
  *   keys takes it, by the game's own taking ($6269): the SHOVEL is his ($342F), the shovel gone from
  *   the room, the pause map's panel says so, and C (DIG) digs with it (it did nothing before);
  *   the same once the ants have closed in round it (no timer to beat);
  * - it stays his: travel away and back (the shovel not put back), and the autosave launched again
  *   (a new front end, as a reload does), then travel back into its room;
- * - ORIGINAL: walking up to it, touching it, does nothing (as in 1986); a stone thrown facing up from
- *   below and to its left takes it.
+ * - HARD: walking up to it takes it too (in 1986 touching it did nothing); and the original's way, a stone thrown facing up
+ *   from below and to its left, still takes it.
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/shovel-touch.ts [out-dir]
  */
@@ -76,19 +76,19 @@ const has = () => ram()[0x342f] === 1;
 const shown = () => !!(vic()[0x15] & 0x40) && vic()[13] !== 0;
 const panel = () => mapSummary(dragonskulleMap, ram(), S().p.state.found).join(' / ');
 
-/** Launch the game with a save (`save`: the store's as it is when null), ENHANCED or ORIGINAL; until play is under way. */
-async function launch(enhanced: boolean, save: string | null) {
+/** Launch the game with a save (`save`: the store's as it is when null), EASY or HARD; until play is under way. */
+async function launch(easy: boolean, save: string | null) {
   if (save !== null) {
     for (const k of [...store.keys()]) if (k.startsWith('dragonskulle.save')) store.delete(k);
     store.set('dragonskulle.save.v1', save);
     store.set('dragonskulle.found.v1', JSON.stringify(walkedFound));
   }
-  store.set('dragonskulle.assist', JSON.stringify({ enhanced }));
+  store.set('dragonskulle.assist', JSON.stringify({ easy }));
   const input = new Input(nowhere), renderer = new PixelRenderer();
   s = { p: run({ renderer, input, canvas: nowhere }), input, renderer };
   await new Promise((r) => setTimeout(r, 10));
   continueFromTitle(S().p, S().input, tick); // (the title, ENTER CONTINUE, Enter)
-  return S().p.state.playing && S().p.frontEnd.enhanced === enhanced;
+  return S().p.state.playing && S().p.frontEnd.easy === easy;
 }
 /** Travel by the map: P, then two taps on the place. */
 const goTo = (id: string) => {
@@ -146,8 +146,8 @@ function shot(name: string) {
   rgbPng(path.join(outDir, `${name}.png`), indicesToRgb(px), 320, 200, 2);
 }
 
-// ---- ENHANCED: walk up to it ----------------------------------------------------------------------------
-check('ENHANCED: launched with the save, in play', await launch(true, inRoom));
+// ---- EASY: walk up to it ------------------------------------------------------------------------------
+check('EASY: launched with the save, in play', await launch(true, inRoom));
 check(`in the shovel's room (${cell()}): the shovel there, not his (${panel()})`, cell() === CELL && shown() && !has());
 check('C (DIG) does nothing without it', !digs());
 shot('1-enhanced-before');
@@ -169,18 +169,18 @@ check(`after the launch, at ${cell()}: the SHOVEL his (${panel()})`, cell() === 
 }
 shot('3-relaunched-room');
 
-// ---- ENHANCED: once the ants have closed in, walking up to it still takes it ---------------------------------
-check('ENHANCED again from the save just inside the room', await launch(true, inRoom));
+// ---- EASY: once the ants have closed in, walking up to it still takes it -----------------------------------
+check('EASY again from the save just inside the room', await launch(true, inRoom));
 tick(600); // (every 16 frames each ant takes a step towards it, 36 steps: closed in by about 580 frames)
 const late = walkUp();
 check(`the ants closed in (x ${vic()[8].toString(16)}, ${vic()[10].toString(16)} round the shovel's ${vic()[12].toString(16)}): walking up to it still takes it (${late.frames} frames)`, late.taken && !shown());
 
-// ---- ORIGINAL: touching it does nothing; a stone takes it -------------------------------------------------
-check('ORIGINAL: launched with the save just inside the room', await launch(false, inRoom));
+// ---- HARD: touching it takes it too; and a stone, the original's way, still does ---------------------------------
+check('HARD: launched with the save just inside the room', await launch(false, inRoom));
 const touch = walkUp(500);
-shot('4-original-touching');
-check(`walking up to it, touching it (${touch.touched} frames): not taken, as in 1986 (${panel()})`, touch.touched > 20 && !touch.taken && shown());
-check('ORIGINAL again from the save just inside the room', await launch(false, inRoom));
+shot('4-hard-touching');
+check(`HARD: walking up to it (${touch.frames} frames) takes it as in EASY (${panel()})`, touch.taken && !shown());
+check('HARD again from the save just inside the room', await launch(false, inRoom));
 {
   // the hand on the stone (X), walked below and to the left of it, then a stone thrown facing up:
   // a tap up turns him to face up, X throws (re/README.md, "The shovel (for the player)")

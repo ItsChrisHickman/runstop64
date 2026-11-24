@@ -83,10 +83,10 @@ g.travelTo(0, 0x1c + (0x18 >> 1), 0xf9 - 0x27);
 tick(20);
 check('room 0 (the scene\'s way out): in play', p.state.mode === 'play' && g.roomId === 0 && !g.freeze);
 check('a save on coming into the first room', store.has('montymoleremix.save.v2'));
-check(`ENHANCED by default: five lives (${g.lives}), unlimited lives help on`, g.lives === START_LIVES && g.assist.lives === true);
+check(`EASY by default: five lives (${g.lives}), unlimited lives help on`, g.lives === START_LIVES && g.assist.lives === true);
 tick(30);
 shot('2-play');
-check('ENHANCED: the coal count in the row under the room (COAL TO GATE: 16)', rowText(23, 4, 32).startsWith('COAL TO GATE: 16'));
+check('EASY: the coal count in the row under the room (COAL TO GATE: 16)', rowText(23, 4, 32).startsWith('COAL TO GATE: 16'));
 // a second room: sent there, as a way out would (walking there is the bot's: test/passable.ts)
 g.travelTo(2, 0x44, 0x4c + 8 * 5);
 tick(10);
@@ -101,9 +101,9 @@ const x = g.x2;
 tick(20);
 check('the game waits while paused', g.x2 === x && p.state.paused);
 tap('KeyE');
-check('E: ORIGINAL, the unlimited lives help off (and kept)', g.assist.lives === false && parseOptions(store.get('montymoleremix.assist')).enhanced === false);
+check('E: HARD, the unlimited lives help off (and kept)', g.assist.lives === false && parseOptions(store.get('montymoleremix.assist')).easy === false);
 tap('KeyE');
-check('E again: ENHANCED', g.assist.lives === true);
+check('E again: EASY', g.assist.lives === true);
 // room 0 is above room 2 on the map
 tap('ArrowUp');
 tap('ArrowUp');
@@ -124,15 +124,15 @@ input.touch = false;
 tick(20);
 check('a moment\'s grace after the travel: a death is refused (lives kept, nothing dying)', (() => { const lives = g.lives; g.actionCounter = 2; tick(3); return g.lives === lives && g.actionCounter === 0; })());
 
-// ---- ENHANCED: unlimited lives and continues -------------------------------------------------------------------
+// ---- EASY: unlimited lives and continues -----------------------------------------------------------------------
 {
   p.grace.clear();
   g.lives = 1;
   g.actionCounter = 2; // (a creature: the death Monty on the Run plays for it)
   tick(400);
-  check(`ENHANCED: the last life lost takes nothing, no game over (lives ${g.lives}, ${p.state.mode})`, g.lives === 1 && p.state.mode === 'play');
+  check(`EASY: the last life lost takes nothing, no game over (lives ${g.lives}, ${p.state.mode})`, g.lives === 1 && p.state.mode === 'play');
   tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('ORIGINAL: no unlimited lives, no coal count', g.assist.lives === false && !p.state.paused && !rowText(23, 4, 32).includes('COAL'));
+  check('HARD: no unlimited lives, the coal count still there', g.assist.lives === false && !p.state.paused && rowText(23, 4, 32).includes('COAL'));
 }
 
 // ---- game over: CONTINUE? --------------------------------------------------------------------------------------

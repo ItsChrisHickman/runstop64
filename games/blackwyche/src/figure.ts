@@ -3,7 +3,7 @@ import { blackwycheControls } from './combat';
 import { BLACKWYCHE_FIGURE, BLACKWYCHE_OWN } from './figure-table';
 
 /**
- * ENHANCED: Pendragon drawn as in Dragonskulle (shared/pendragon/figure.ts). Blackwyche already draws his walk, stand and jump with
+ * Pendragon drawn as in Dragonskulle (shared/pendragon/figure.ts). Blackwyche already draws his walk, stand and jump with
  * Dragonskulle's pictures byte for byte; the game sets his colours 10 / 12 / 0 (light red, grey, black), where Dragonskulle's tunic is
  * green. Its sword pictures are the same body and line, so they stay (only the tunic changes colour). A picture neither has shows the stand of the way he faces.
  */

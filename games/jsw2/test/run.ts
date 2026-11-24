@@ -1,5 +1,5 @@
 /**
- * Jet Set Willy II's running (ENHANCED: Shift held, or the touch RUN key on, and Willy alone goes
+ * Jet Set Willy II's running (both modes: Shift held, or the touch RUN key on, and Willy alone goes
  * faster: his own steps come sooner, src/main.ts RUN, games/shared/native/play.ts `run: { player }`),
  * headless (play.ts as the browser runs it, c64kit stood in by games/shared/test/kit.ts):
  *
@@ -12,7 +12,7 @@
  *   in fewer frames; so is the fall down the toilet into the drain (landing in its channel, alive);
  * - not on a rope (his countdown left as it is);
  * - Shift is the front end's: it never reaches the C64's keyboard;
- * - ORIGINAL ignores it: the same game with and without Shift, byte for byte;
+ * - HARD has it too (the switch is the lives only);
  * - a walk through rooms (left from the bathroom into Macaroni Ted, as the route goes): the same
  *   rooms, no life lost, in fewer frames;
  * - at speed, the pause screen stops the game, an autosave is made on coming into a room, and
@@ -30,12 +30,13 @@ import { isRecord } from '../../shared/guards';
 import { MAP_BOX } from '../../shared/native/pause';
 import { readSaves } from '../../shared/saves';
 import { must } from '../../shared/test/must';
+import { hardStore } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
 
-/** A launch of the game with its own storage (`store`: seeded, e.g. ORIGINAL chosen) and a keyboard to press real keys on. */
+/** A launch of the game with its own storage (`store`: seeded, e.g. HARD chosen) and a keyboard to press real keys on. */
 async function launch(store = new Map<string, string>()) {
   useMemoryStorage(store);
   const listeners = new Map<string, ((e: KeyEventLike) => void)[]>();
@@ -94,7 +95,7 @@ type Session = Awaited<ReturnType<typeof launch>>;
 const PX = 24;
 const normal = await launch();
 normal.newGame();
-check(`a new game, in the bathroom (room ${normal.room()})`, normal.room() === 32 && normal.p.state.enhanced);
+check(`a new game, in the bathroom (room ${normal.room()})`, normal.room() === 32 && normal.p.state.easy);
 const atStart = normal.x();
 const tNormal = normal.walk(PX);
 const tNormal2 = normal.walk(PX);
@@ -181,20 +182,17 @@ check('the touch layout has RUN, on or off (Shift)', touch.p.touch.buttons.some(
   check('never past the step the game counts down to itself', r[0x8207] === 1);
 }
 
-// ---- ORIGINAL: Shift does nothing (the same game, byte for byte) ----
+// ---- HARD: Shift runs too ----
 const switched = await launch();
 switched.newGame();
 switched.tap('KeyP');
 switched.tap('KeyE');
-check(`E on the pause screen: ORIGINAL (remembered: ${switched.store.get('jsw2.assist')})`, !switched.p.state.enhanced && (switched.store.get('jsw2.assist') ?? '').includes('"enhanced":false'));
-const ORIGINAL = () => new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]);
-const plain = await launch(ORIGINAL()), held = await launch(ORIGINAL());
+check(`E on the pause screen: HARD (remembered: ${switched.store.get('jsw2.assist')})`, !switched.p.state.easy && (switched.store.get('jsw2.assist') ?? '').includes('"easy":false'));
+const plain = await launch(hardStore()), held = await launch(hardStore());
 plain.newGame(); held.newGame();
 held.shift(true);
 const tPlain = plain.walk(PX), tHeld = held.walk(PX);
-plain.tick(40); held.tick(40);
-const same = plain.ram().every((b, i) => b === held.ram()[i]);
-check(`ORIGINAL: Shift held changes nothing (${PX} px in ${tHeld} frames, without ${tPlain}; memory the same: ${same})`, !held.p.state.enhanced && tHeld === tPlain && tPlain === tNormal && same);
+check(`HARD: Shift held runs as in EASY (${PX} px in ${tHeld} frames, without ${tPlain})`, !held.p.state.easy && tHeld * 10 <= tPlain * 6 && tPlain === tNormal);
 
 // ---- a walk through rooms: left from the bathroom, through room 64 into Macaroni Ted (the route's way) ----
 /** Left held from the start (Shift too, `fast`) till he's in room 63: the rooms on the way, the frames, the lives on arriving. */

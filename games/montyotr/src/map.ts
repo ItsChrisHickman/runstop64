@@ -27,7 +27,7 @@ import type { MontySave } from './save';
  * The map reads everything of the game it shows from the Game's data (`g.data`: the exit grid, whatever its size, the
  * sectors and their colours, the kit, the key items, the cakes); a wide grid is drawn in smaller cells to fit the box.
  *
- * With ENHANCED, runstop64's rooms (data/runstop64-rooms.ts) are on the map too, in their own
+ * In both modes, runstop64's rooms (data/runstop64-rooms.ts) are on the map too, in their own
  * colour (RUNSTOP64 in the legend), and travel goes to them like any other; they aren't
  * counted in the original's rooms.
  */
@@ -207,7 +207,8 @@ export const montyMap = {
     const items = keyItems.filter((i) => g.siCollected[i]).length;
     const food = g.data.progress.foodName ?? 'CAKES';
     return [
-      statLine('LIVES', String(g.lives)), statLine('ROOMS', `${rooms.seen}/${rooms.all}`),
+      // (the lives in HARD only: EASY has none to count)
+      ...(g.livesShown ? [statLine('LIVES', String(g.lives))] : []), statLine('ROOMS', `${rooms.seen}/${rooms.all}`),
       statLine('ITEMS', `${items}/${keyItems.length}`), statLine(food, `${cakes}/${allCakes.length}`),
     ];
   },
@@ -305,11 +306,11 @@ function wrap(text: string, width: number) {
 
 /**
  * A save described for the save manager (ContinueFlow `describe`): the area Monty is in (the
- * map's names for them), then his lives, the key items and cupcakes found, the rooms seen, the score.
+ * map's names for them), then his lives (in HARD: `lives`), the key items and cupcakes found, the rooms seen, the score.
  */
-export function describeSave(data: MontyData, save: MontySave, found: MontyFound): string[] {
+export function describeSave(data: MontyData, save: MontySave, found: MontyFound, lives = true): string[] {
   const { keyItems, cakes: allCakes } = data.progress;
   const items = keyItems.filter((i) => save.items[i]).length, cakes = allCakes.filter((i) => save.items[i]).length;
   const rooms = Object.keys(found.rooms).filter((id) => !data.isExtensionRoom(Number(id))).length;
-  return [sectorName(data, save.roomId).text, `LIVES ${save.lives}`, `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
+  return [sectorName(data, save.roomId).text, ...(lives ? [`LIVES ${save.lives}`] : []), `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
 }

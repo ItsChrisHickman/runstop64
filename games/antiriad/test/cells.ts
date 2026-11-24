@@ -173,7 +173,7 @@ const pause = (g: Game) => antiriadMap.info(g, antiriadMap.found.empty());
   for (let n = 0; !p.game.playing && n < 300; n++) tick();
   tick(150);
   const { ram } = p.game;
-  check('the game is in play, ENHANCED', p.game.playing && p.state.enhanced);
+  check('the game is in play, EASY', p.game.playing && p.state.easy);
   // (put him in the armour, powered up, with a cell, for the key)
   ram[V.panelOn] = 0x80; ram[V.inSuit] = 0x80; ram[0x92] = 0x20; ram[V.suitEnergy] = 5; ram[CELLS] = 2;
   input.keyDown('KeyC'); tick(3); input.keyUp('KeyC'); tick(2);

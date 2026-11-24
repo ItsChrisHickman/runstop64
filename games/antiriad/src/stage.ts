@@ -9,7 +9,7 @@ import { Pilot, inArmour, ready, type Step } from './pilot';
  * and a frame of a game under a pilot.
  */
 
-/** A game of ours running on a machine of its own, as the montage has it: ENHANCED, and nothing in it can hurt Tal. */
+/** A game of ours running on a machine of its own, as the montage has it: ours, and nothing in it can hurt Tal. */
 function stageGame(m: C64Machine): Game {
   const g = new Game(m, true);
   g.enhanced = true;

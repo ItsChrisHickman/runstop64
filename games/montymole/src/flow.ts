@@ -18,7 +18,7 @@ import type { FieldCopy } from './field';
 
 export type Phase = 'title' | 'options' | 'play' | 'over' | 'ending';
 
-/** A picture held: the screen's bytes, the scenery without sprites (ENHANCED's look) and the sprites that are to be drawn over it (a held picture of ours has none). */
+/** A picture held: the screen's bytes, the scenery without sprites (our look) and the sprites that are to be drawn over it (a held picture of ours has none). */
 export interface Shot {
   readonly bits: Uint8Array;
   readonly attrs: Uint8Array;

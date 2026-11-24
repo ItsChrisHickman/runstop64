@@ -17,7 +17,7 @@ import { SPRITE_SIZE } from './scenery';
 import { MontyView, SPECTRUM_COLOURS } from './view';
 
 /**
- * The reward for beating Wanted: Monty Mole (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's): a montage of rooms of the mine and the castle, each one
+ * The reward for beating Wanted: Monty Mole (shared/ending/show.ts is the show, this is what is Monty's): a montage of rooms of the mine and the castle, each one
  * the game's own engine on a game of its own (`SteadyGame`, whose random numbers make a route found by a search the same game when it is played again) with Monty driven by
  * the route found for the room (re/ending/route.ts: the test suite's bot, as keys: the coal of the room, and the way on), the credits typing on in the top row where the score
  * is (the status rows put away: the score and the lives mean nothing in a show, so nothing is ever under a line), and the game's creatures walking through the rooms; then
@@ -128,7 +128,7 @@ class RoomReel implements Reel {
 
 // ---- the cast ---------------------------------------------------------------------------------------
 
-/** A creature's picture in the colour ENHANCED shows sprites in. */
+/** A creature's picture in the colour ours shows sprites in. */
 function surfaceOf(address: number, attr: number): Surface {
   const image = imageAt(address);
   const ink = cellInk(attr) === cellPaper(attr) ? SPECTRUM.white : cellInk(attr);

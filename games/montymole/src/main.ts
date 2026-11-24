@@ -20,8 +20,8 @@ import { MontyView } from './view';
 
 /**
  * Wanted: Monty Mole: the runstop64 front end for the rebuilt game. `MontyFlow` is the whole game (the title, the options, play, game over, the ending) as one object this
- * file steps; `MontyView` puts it on the renderer in the Spectrum's colours (ORIGINAL exact, ENHANCED without colour clash and with smooth motion); the session (saves,
- * continue, the pause screen with its map and travel, the ORIGINAL / ENHANCED switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
+ * file steps; `MontyView` puts it on the renderer in the Spectrum's colours (ORIGINAL exact, ours without colour clash and with smooth motion); the session (saves,
+ * continue, the pause screen with its map and travel, the ORIGINAL / EASY/HARD switch) is the shared one (games/shared/port.ts), and this file is what the game says to it.
  */
 export { info } from './info';
 
@@ -64,24 +64,21 @@ export function run(host: Host) {
   /** How the last game ended, and whether a press was down on the last frame (a start is a new press). */
   let lastEnd: 'over' | 'ending' | null = null;
   let pressed = false;
-  /** The reward show (ENHANCED), once the session is up; and whether it is the one that follows the game's own ending (it ends on the title) or the one asked for (W, ?ending: it ends going back to the title). */
+  /** The reward show (both modes), once the session is up; and whether it is the one that follows the game's own ending (it ends on the title) or the one asked for (W, ?ending: it ends going back to the title). */
   let reward: RewardShow | null = null;
   let afterEnding = false;
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = (): boolean => false;
 
   const port = runPort<MontySave, MontyFound, MontyFlow>(host, {
-    id: 'montymole', font: spectrumFont(), codec: CODEC, map: montyMap, describe: describeSave, colours: PAUSE_COLOURS,
+    id: 'montymole', font: spectrumFont(), codec: CODEC, map: montyMap, describe: (save, found) => describeSave(save, found, !current.game.unlimitedLives), colours: PAUSE_COLOURS,
     // (ENTER CONTINUE goes on the title's empty row; neither F1 nor R restarts anything here)
     restartKeys: [], strip: STRIP,
-    // (W on the pause screen: the reward, once the game has been won, in ENHANCED)
-    ending: (): boolean => enhanced() && readWon('montymole'),
-    // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
+    // (W on the pause screen: the reward, once the game has been won)
+    ending: (): boolean => readWon('montymole'),
+    // these are on in both modes, the unlimited lives in EASY (the pause screen has the one switch): see QOL.md
     assists: [LIVES_ASSIST, { id: 'falls', long: 'NO FALL DEATHS' }, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'look', long: 'NO CLASH, SMOOTH' }, { id: 'count', long: 'COAL TO GATE' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
-    enhanced = (): boolean => fe.enhanced;
-    // ---- the reward for winning (ENHANCED): the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning: the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     const show = reward = new RewardShow({
       host,
       spec: montyEnding(renderer),
@@ -105,7 +102,7 @@ export function run(host: Host) {
       seenEntries = next.game.entries;
     }
 
-    /** What ENHANCED is, from the switch as it is now. */
+    /** Our changes, from the switch as it is now (all on, the unlimited lives with EASY). */
     function applyEnhancements(): void {
       current.game.unlimitedLives = fe.assist.lives === true;
       current.game.monty.safeFalls = fe.assist.falls === true;
@@ -138,7 +135,7 @@ export function run(host: Host) {
         lastEnd = to;
         if (to === 'ending') keepWon('montymole');
         keepHigh();
-      } else if (from === 'ending' && to === 'title' && fe.enhanced) {
+      } else if (from === 'ending' && to === 'title') {
         // the game's own ending is over (the verse, as it was): the show, over the title it has gone back to
         afterEnding = true;
         show.start(endingStats(current, fe.found));
@@ -214,9 +211,9 @@ export function run(host: Host) {
         return current.phase === 'play' && !current.isDying ? 'played' : 'idle';
       },
       updateView() {
-        view.look = fe.enhanced && fe.assist.look === true ? 'enhanced' : 'original';
-        // the coal count and the sparkles (hints.ts): ENHANCED, in play, not over a held picture (a death's) nor a screen of ours
-        const shown = fe.enhanced && current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
+        view.look = fe.assist.look === true ? 'enhanced' : 'original';
+        // the coal count and the sparkles (hints.ts): in play, not over a held picture (a death's) nor a screen of ours
+        const shown = current.phase === 'play' && step?.shot === null && !fe.holding && !flow.holding;
         view.count = shown && fe.assist.count === true ? coalCount(current.game) : null;
         view.sparkle(shown && fe.assist.hints === true ? hintsOf(current.game) : []);
         if (step !== null) view.present(step, into, true);
@@ -236,7 +233,7 @@ export function run(host: Host) {
     /** For tests: the reward show (src/ending.ts). */
     get reward() { return reward; },
     get state() {
-      return { phase: current.phase, paused: port.fe.paused, enhanced: port.fe.enhanced, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state };
+      return { phase: current.phase, paused: port.fe.paused, easy: port.fe.easy, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state };
     },
     tick: port.tick,
     render: port.render,

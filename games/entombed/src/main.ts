@@ -37,6 +37,9 @@ export function run(host: Host) {
         ram[0x37f6] = 0; ram[0x37b3] = 0;
         ram.set([0x31, 0x3a, 0x3a], 0x077f);
       },
+      // EASY: once his death (the fifth ankh gone, $17DD) has played out ($C06F, re/engine.json) he is back at the start of the room he died in at
+      // full health, as CONTINUE? would without the prompt (shared/native/play.ts `lifeEnds`); HARD: the game's end and CONTINUE?
+      lifeEnds: 0xc06f,
     },
     map: entombedMap,
     // Z jump, X whip, C torch: straight to the action (the original only cycles through them)
@@ -50,12 +53,12 @@ export function run(host: Host) {
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: entombedCombat,
     controls: entombedControls,
-    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    // Pendragon as Dragonskulle draws him (src/figure.ts)
     figure: entombedFigure,
     // Touch: the stick, USE (the current action), straight to an action, and RUN (added for `run`).
     touch: TOUCH,
     run: { player: engine.r_1864 }, // hold Shift to run: player control runs twice a frame
-    // the reward for winning (ENHANCED): a montage of the tomb's chambers, the creatures walking through it, THE END (src/ending.ts)
+    // the reward for winning (both modes): a montage of the tomb's chambers, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: entombedEnding, won, stats: endingStats },
     reserved: [...JOYSTICK_KEYS, 'KeyC'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1' },

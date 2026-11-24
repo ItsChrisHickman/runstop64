@@ -5,7 +5,7 @@ import { CABINS, HALLS } from './ship';
 import { LINES, type Say } from './guided-lines';
 
 /**
- * GUIDED, an ENHANCED assist of Blackwyche: the puzzles told, not hidden. Pendragon says what he
+ * GUIDED, an assist of ours in Blackwyche: the puzzles told, not hidden. Pendragon says what he
  * makes of things in the first person on the game's status line (the line that says SEARCHING FOR
  * THE CAPTAINS SOUL, in the game's own lettering: games/shared/native/narrate.ts; the words are
  * in src/guided-lines.ts), and sparkles mark what he can take now, exactly where its sprite is

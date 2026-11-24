@@ -4,7 +4,7 @@ import { LINES, type Say } from './hint-lines';
 import { MODE, PIECES, KEPT, carrying, deposited, libraryGuarded, over, staffUp, webHeld, webView, type WebView } from './hints';
 
 /**
- * The hints' story (ENHANCED): Pendragon says on the status line what to do with what he has found, in the
+ * The hints' story (both modes): Pendragon says on the status line what to do with what he has found, in the
  * game's own lettering and place (games/shared/native/narrate.ts; the words are in src/hint-lines.ts), and
  * the sparkles (src/hints.ts) point. All from what the game keeps (src/hints.ts `KEPT`): a piece taken, a
  * piece laid, the sixteenth. Nothing here touches what the game does: it reads memory and writes the

@@ -2,12 +2,12 @@
  * Dragonskulle's help for the rules the game never explains (re/README.md, "Rules the game never explains"),
  * through the front end as the browser runs it, in both modes:
  *
- * - ENHANCED (the default): sparkles on the wizard of a river screen while its bridge is shut, none once it is
- *   open; on a dragon; ORIGINAL (E on the pause screen): none, over the same play;
+ * - sparkles on the wizard of a river screen while its bridge is shut, none once it is open; on a dragon; the same in
+ *   HARD (E on the pause screen), over the same play;
  * - the pause screen's side panel is given the assists, and says what is still to do at a bridge or a dragon
- *   (KILL n MORE, n HITS LEFT) and the seconds the cloak has left, in ENHANCED only;
- * - the CLOAK icon drains from the top as the cloak runs out (ENHANCED), read off the picture as shown against the
- *   picture as the game drew it: as many lines emptied as the counter says, the rest as drawn; ORIGINAL: as drawn.
+ *   (KILL n MORE, n HITS LEFT) and the seconds the cloak has left, in both modes; the lives in HARD only;
+ * - the CLOAK icon drains from the top as the cloak runs out (both modes), read off the picture as shown against the
+ *   picture as the game drew it: as many lines emptied as the counter says, the rest as drawn.
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/rules.ts
  */
@@ -69,18 +69,18 @@ function seenIn(g: Game, frames: number) {
 {
   const g = await launch(bridgeState);
   const seen = (frames: number) => seenIn(g, frames);
-  check(`ENHANCED: ${g.p.frontEnd.enhanced}`, g.p.frontEnd.enhanced);
+  check(`EASY: ${g.p.frontEnd.easy}`, g.p.frontEnd.easy);
   const on = seen(700);
   check(`the river screen, the bridge shut: a sparkle on the wizard while he is there (${on.shown} of ${on.withWizard} frames)`, on.withWizard > 100 && on.shown >= on.withWizard * 0.9);
   g.ram()[0x343a] = 0xff; g.tick(2);
   const done = seen(500);
   check(`with the count at $FF (the bridge open): none (${done.shown})`, done.shown === 0 && done.any === 0);
-  // (a fresh launch for ORIGINAL: the wizard of a finished bridge is gone for good)
+  // (a fresh launch for HARD: the wizard of a finished bridge is gone for good)
   const h = await launch(bridgeState);
   h.toggle();
-  check('E: ORIGINAL', !h.p.frontEnd.enhanced);
-  const orig = seenIn(h, 1500);
-  check(`ORIGINAL, the same screen and play: no sparkle at all (${orig.shown}; ${orig.any} markers now), though the wizard was there ${orig.withWizard} frames`, orig.shown === 0 && orig.any === 0 && orig.withWizard > 100);
+  check('E: HARD', !h.p.frontEnd.easy);
+  const hard = seenIn(h, 700);
+  check(`HARD, the same screen and play: the same sparkle (${hard.shown} of ${hard.withWizard} frames)`, hard.withWizard > 100 && hard.shown >= hard.withWizard * 0.9);
 }
 {
   const g = await launch(dragonState);
@@ -99,28 +99,30 @@ function seenIn(g: Game, frames: number) {
 
 // ---- the pause screen's side panel ------------------------------------------------------------------------------------
 {
-  const lines = (state: MachineState, set: (r: Uint8Array) => void, enhanced: boolean) => {
+  const lines = (state: MachineState, set: (r: Uint8Array) => void, easy: boolean) => {
     const found = dragonskulleMap.found.empty();
     const copy = new Uint8Array(state.ram);
     set(copy);
-    return realInfo(copy, found, { enhanced });
+    return realInfo(copy, found, { lives: easy });
   };
   const bridge = (r: Uint8Array) => { r[0x343a] = 3; };
   const dragon = (r: Uint8Array) => { r[0x676f] = 4; };
   const cloak = (r: Uint8Array) => { r[0x3417] = 1; r[0x124b] = 1; r[0x124a] = 0; r[0x3430] = 1; };
   const l1 = lines(bridgeState, bridge, true), l2 = lines(bridgeState, bridge, false), l3 = lines(dragonState, dragon, true);
-  check(`a river screen with 3 of 10 kills: ENHANCED adds "${l1.slice(-2).join('" "')}"; ORIGINAL the usual ${l2.length} lines`, l1.slice(-2).join('|') === 'BRIDGE|KILL 7 MORE' && l2.length === 5 && !l2.includes('BRIDGE'));
+  check(`a river screen with 3 of 10 kills: "${l1.slice(-2).join('" "')}" in EASY and in HARD ("${l2.slice(-2).join('" "')}")`, l1.slice(-2).join('|') === 'BRIDGE|KILL 7 MORE' && l2.slice(-2).join('|') === 'BRIDGE|KILL 7 MORE');
+  check(`the lives in HARD only (${l2[0]}; EASY first ${l1[0]})`, l2[0] === 'LIVES     5' && !l1.some((l) => l.startsWith('LIVES')));
   check(`a dragon with 4 hits: "${l3.slice(-2).join('" "')}"`, l3.slice(-2).join('|') === 'DRAGON|6 HITS LEFT');
+  const cloakLine = (l: string[]) => l.find((x) => x.startsWith('CLOAK')) ?? '';
   const l4 = lines(quietState, cloak, true), l5 = lines(quietState, cloak, false);
-  check(`the cloak 256 of 768 frames in: "${l4[3]}" in ENHANCED (${Math.ceil(512 / 50.125)} seconds left), "${l5[3]}" in ORIGINAL`, l4[3] === 'CLOAK 11 SEC' && l5[3] === 'CLOAK   YES');
-  // the front end gives the map the assists: ENHANCED on, then off
+  check(`the cloak 256 of 768 frames in: "${cloakLine(l4)}" in EASY (${Math.ceil(512 / 50.125)} seconds left), "${cloakLine(l5)}" in HARD`, cloakLine(l4) === 'CLOAK 11 SEC' && cloakLine(l5) === 'CLOAK 11 SEC');
+  // the front end gives the map the assists: EASY's lives on, then off
   const g = await launch(quietState);
   asked.length = 0;
   g.tap('KeyP'); g.tick(3);
-  const a1 = asked.at(-1)?.assist?.enhanced;
+  const a1 = asked.at(-1)?.assist?.lives;
   g.tap('KeyE'); g.tick(3);
-  const a2 = asked.at(-1)?.assist?.enhanced;
-  check(`the pause screen asks for its lines with the assists (ENHANCED on: ${a1}; after E: ${a2})`, a1 === true && a2 === false);
+  const a2 = asked.at(-1)?.assist?.lives;
+  check(`the pause screen asks for its lines with the assists (EASY's lives on: ${a1}; after E: ${a2})`, a1 === true && a2 === false);
 }
 
 // ---- the cloak's icon draining ----------------------------------------------------------------------------------------
@@ -149,9 +151,10 @@ function seenIn(g: Game, frames: number) {
     }
     return { wrong, changed, want, shownAt: cloakIcon.at(m.ram) !== null };
   };
-  for (const enhanced of [true, false]) {
-    if (!enhanced) g.toggle();
-    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: the switch`, g.p.frontEnd.enhanced === enhanced);
+  for (const easy of [true, false]) {
+    if (!easy) g.toggle();
+    const mode = easy ? 'EASY' : 'HARD';
+    check(`${mode}: the switch`, g.p.frontEnd.easy === easy);
     g.ram()[0x3430] = 1; g.tap('KeyV');
     const rows: string[] = [];
     let ok = true, drained = 0, frame = 4;
@@ -159,13 +162,13 @@ function seenIn(g: Game, frames: number) {
       while (frame < at && g.ram()[0x3417] !== 0) { g.tick(1); frame++; }
       const i = icon();
       rows.push(`${frame}:${i.want} lines, ${i.changed} pixels changed, ${i.wrong} wrong`);
-      if (i.wrong !== 0 || (!enhanced && (i.changed !== 0 || i.shownAt))) ok = false;
+      if (i.wrong !== 0) ok = false;
       if (i.changed > 0) drained++;
     }
     while (g.ram()[0x3417] !== 0) { g.tick(1); frame++; }
     g.tick(2);
     const after = icon();
-    check(`${enhanced ? 'ENHANCED: the CLOAK icon drains' : 'ORIGINAL: the icon stays as drawn'} as the cloak runs out (by frame: ${rows.join('; ')}), the cloak ending at frame ${frame}; then as drawn (${after.changed} pixels changed)`, ok && (enhanced ? drained >= 5 : drained === 0) && after.changed === 0 && frame >= 760 && frame <= 775);
+    check(`${mode}: the CLOAK icon drains as the cloak runs out (by frame: ${rows.join('; ')}), the cloak ending at frame ${frame}; then as drawn (${after.changed} pixels changed)`, ok && drained >= 5 && after.changed === 0 && frame >= 760 && frame <= 775);
   }
 }
 

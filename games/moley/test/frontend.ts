@@ -4,8 +4,8 @@
  * (screens come to, finished); the pause screen with the map (Spectrum colours, our font), picked with the arrows and with taps, and travel to
  * the start of a screen he has come to; items taken and screens finished in its side panel; autosave on every screen (a death too) and a launch
  * with a save (the credits page, ENTER CONTINUE, Enter goes back into play); GAME OVER -> CONTINUE? -> the last screen again (a new game's lives and score from nothing; after
- * the card, everything as saved); the Christmas card and any key; back to screen start; the save a faithful copy of the game; the ORIGINAL /
- * ENHANCED switch (sprites on the renderer or not, the enhancements on or off); a moment's grace after a resume; the high score kept; NEW GAME?
+ * the card, everything as saved); the Christmas card and any key; back to screen start; the save a faithful copy of the game; the EASY /
+ * HARD switch (the lives only: the enhancements on in both); a moment's grace after a resume; the high score kept; NEW GAME?
  * over a save; ENTER CONTINUE where it sits; touch; the sound told what happens. With an out-dir: stills of the screens.
  *
  *   nice -n 15 node tools/test.mjs games/moley/test/frontend.ts [out-dir]
@@ -83,7 +83,7 @@ check(`Enter starts a game: screen 1, five lives (${game().room}, ${game().lives
 tick(20);
 check('a save on coming into the first screen, and the map has it', savedNow()?.room === 0 && p.state.found.reached.join() === '0' && p.state.found.done.length === 0);
 shot('2-play');
-check('ENHANCED by default: the sprites are on the renderer', p.state.enhanced && visibleSprites() > 0);
+check('EASY by default: the sprites are on the renderer', p.state.easy && visibleSprites() > 0);
 
 // ---- walking, jumping --------------------------------------------------------------------------------------------
 const x0 = game().monty.x;
@@ -168,21 +168,22 @@ tick(10);
   check(`a save is small (${JSON.stringify(saved).length} characters)`, JSON.stringify(saved).length < 8000);
 }
 
-// ---- ORIGINAL / ENHANCED ------------------------------------------------------------------------------------------------------
-check('ENHANCED by default: the four enhancements are on', p.state.enhanced && game().enhanced.airSteering && game().enhanced.itemCount && p.frontEnd.assist.look === true && p.frontEnd.assist.hints === true);
+// ---- EASY / HARD ----------------------------------------------------------------------------------------------------------------
+check('EASY by default: the enhancements and the unlimited lives on', p.state.easy && game().enhanced.airSteering && game().enhanced.itemCount && game().unlimitedLives && p.frontEnd.assist.look === true && p.frontEnd.assist.hints === true);
+shot('5-easy');
 tap('KeyP');
 tap('KeyE');
 tick(2);
-check('E: ORIGINAL, the switch kept', !p.state.enhanced && store.get('moley.assist') === '{"enhanced":false}');
+check('E: HARD, the switch kept', !p.state.easy && store.get('moley.assist') === '{"easy":false}');
 tap('KeyP');
 tick(4);
-check('ORIGINAL: no sprites on the renderer (they are in the picture), the enhancements off', visibleSprites() === 0 && !game().enhanced.airSteering && !game().enhanced.itemCount);
-shot('5-original');
+check('HARD: the enhancements still on (sprites on the renderer), the lives the game\'s own', visibleSprites() > 0 && game().enhanced.airSteering && game().enhanced.itemCount && !game().unlimitedLives);
+shot('5-hard');
 tap('KeyP');
 tap('KeyE');
 tap('KeyP');
 tick(4);
-check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites() > 0 && game().enhanced.airSteering);
+check('E again: EASY', p.state.easy && visibleSprites() > 0 && game().unlimitedLives);
 
 // ---- back to screen start -------------------------------------------------------------------------------------------------------
 {
@@ -205,14 +206,14 @@ check('E again: ENHANCED, the sprites back', p.state.enhanced && visibleSprites(
   p.grace.clear();
   g.gauge.value = 0x80;
   tick(120);
-  check(`ENHANCED (unlimited lives): with the grace gone the death takes no life (${lives} to ${game().lives})`, game().unlimitedLives && game().lives === lives);
-  // ORIGINAL: the game's own lives
+  check(`EASY (unlimited lives): with the grace gone the death takes no life (${lives} to ${game().lives})`, game().unlimitedLives && game().lives === lives);
+  // HARD: the game's own lives
   tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('ORIGINAL: no unlimited lives', !p.state.enhanced && !game().enhanced.unlimitedLives);
+  check('HARD: no unlimited lives', !p.state.easy && !game().enhanced.unlimitedLives);
   p.grace.clear();
   g.gauge.value = 0x80;
   tick(120);
-  check(`and in ORIGINAL it does (${lives} to ${game().lives})`, game().lives === lives - 1);
+  check(`and in HARD it does (${lives} to ${game().lives})`, game().lives === lives - 1);
 }
 
 // ---- autosave after a death: the lives lost stay lost ---------------------------------------------------------------------------------------
@@ -244,8 +245,8 @@ check(`Enter: back in play in the last screen (${game().room}), five lives again
 check('with what he had (the map)', p.state.found.reached.join() === '0,1' && p.state.found.done.join() === '0');
 check('a moment of grace, and the high score is the best', p.state.grace > 0 && game().highScore === 135);
 check('the picture is up at once (the sprites on the renderer)', visibleSprites() > 0 || p.state.phase === 'play');
-tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
-check('and ENHANCED again', p.state.enhanced && game().enhanced.unlimitedLives);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to EASY, the default)
+check('and EASY again', p.state.easy && game().enhanced.unlimitedLives);
 
 // ---- the Christmas card, and everything kept after it -------------------------------------------------------------------------------------------
 {
@@ -267,8 +268,8 @@ check('and ENHANCED again', p.state.enhanced && game().enhanced.unlimitedLives);
   input.keyDown('KeyQ'); tick(2); input.keyUp('KeyQ');
   until(() => p.state.phase === 'credits', 100);
   check('a key leaves the card for the credits page', p.state.phase === 'credits');
-  // (ENHANCED: the ending's show follows the card, over the credits page: test/reward.ts; a key after two seconds skips it)
-  check('the ending\'s show follows the card in ENHANCED', p.ending?.active === true);
+  // (the ending's show follows the card, over the credits page: test/reward.ts; a key after two seconds skips it)
+  check('the ending\'s show follows the card', p.ending?.active === true);
   tick(110);
   tap('Space');
   check('a key skips it', p.ending?.active !== true);
@@ -329,13 +330,13 @@ check(`Space again: a new game (${p.state.phase}), the old save kept as the prev
 check('and a new map: only screen 1 come to', p.state.found.reached.join() === '0' && p.state.found.done.length === 0);
 check('the press that began it is not a jump while it is still held', !jumped);
 check(`the keys are as ours: left, right, up, down, jump`, Key.left === 2 && Key.right === 1 && Key.up === 8 && Key.down === 4 && Key.jump === 16);
-// ---- sparkles (hints.ts): ENHANCED, in play, not over our screens ---------------------------------------------------------------------------------------
+// ---- sparkles (hints.ts): both modes, in play, not over our screens ---------------------------------------------------------------------------------------
 {
   game().items.left = 0; // (the exit cassette is the way out now)
   tick(4);
   const want = hintsOf(game());
   const marks = () => renderer.sparkles.markers;
-  check(`ENHANCED: a sparkle on the exit cassette once no item is left (${marks().map((m) => `${m.x},${m.y}`).join(' ')})`, want.length === 1 && marks().length === 1 && marks()[0].x === PICTURE_LEFT + want[0].x && marks()[0].y === PICTURE_TOP + want[0].y);
+  check(`EASY: a sparkle on the exit cassette once no item is left (${marks().map((m) => `${m.x},${m.y}`).join(' ')})`, want.length === 1 && marks().length === 1 && marks()[0].x === PICTURE_LEFT + want[0].x && marks()[0].y === PICTURE_TOP + want[0].y);
   tap('KeyP');
   tick(2);
   check('none on the pause screen', marks().length === 0);
@@ -346,12 +347,12 @@ check(`the keys are as ours: left, right, up, down, jump`, Key.left === 2 && Key
   tap('KeyE');
   tap('KeyP');
   tick(4);
-  check('ORIGINAL: none, with the game the same', !p.state.enhanced && marks().length === 0 && hintsOf(game()).length === 1);
+  check('HARD: the same sparkle', !p.state.easy && marks().length === 1 && hintsOf(game()).length === 1);
   tap('KeyP');
   tap('KeyE');
   tap('KeyP');
   tick(4);
-  check('ENHANCED again: back', p.state.enhanced && marks().length === 1);
+  check('EASY again: the same', p.state.easy && marks().length === 1);
   tap('KeyP');
   tap('KeyT');
   tick(30);

@@ -16,7 +16,7 @@ export const info = {
         tune when Monty loses a life of <a href="https://en.wikipedia.org/wiki/Abide_with_Me">Abide with Me</a> to William Henry Monk's tune Eventide, both on the Spectrum's beeper</li>
     </ul>
     <p>This is a custom edition of a ZX Spectrum-only game. The 48K game is rebuilt from the original program and checked against it pass for pass, in the Spectrum's own colours, with its
-    own beeper sound. ENHANCED removes the colour clash: Monty and the other sprites keep their own colours.</p>
+    own beeper sound. Our version removes the colour clash: Monty and the other sprites keep their own colours.</p>
     <p>Controls: arrows or WASD move (up and down climb the ropes) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the title and the options (Enter or a tap too) &middot;
     Enter continues a saved game from the title &middot; P or Esc pauses: the map of the 21 rooms with the coal taken; pick a room you've come to and press Enter to go to it &middot;
     M mutes &middot; V authentic pixel steps &middot; gamepad Start pauses.</p>
@@ -24,7 +24,7 @@ export const info = {
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/montymole/QOL.md">full log</a>):
     the key text on the options screen is ours &middot; pause screen with a map of the 21 rooms, the coal taken and travel &middot; autosave on every room and
     Continue after the last life &middot; the high score kept in your browser &middot; a death in the opening scene plays the same rising picture as everywhere (the original freezes there
-    for the whole death tune) &middot; ENHANCED (switch to ORIGINAL on the pause screen): unlimited lives, no deaths from falls, no colour clash and smooth movement at any refresh rate.</p>
+    for the whole death tune) &middot; EASY (on unless you switch to HARD with E on the pause screen): unlimited lives and continues, and no lives to count; HARD: the original's lives. In both: no deaths from falls, no colour clash and smooth movement at any refresh rate.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,
 };

@@ -59,7 +59,7 @@ Every game (and the loader) has touch controls, from one shared layer:
 | The Staff of Karnath | 8-way | CAST, SPELL (next spell), RUN |
 | Blackwyche | 8-way | USE (current action), JUMP, SWORD, RUN |
 | Dragonskulle | 8-way | USE (the icon the hand points at), JUMP, STONE, DIG, CLOAK, RUN |
-| The Sacred Armour of Antiriad | 8-way (up jumps, down crouches to pick up; in the armour, flies) | FIRE (throw, fire the Pulsar Beam), JUMP (jump; in the armour, lift); in ORIGINAL both are the original's one button |
+| The Sacred Armour of Antiriad | 8-way (up jumps, down crouches to pick up; in the armour, flies) | FIRE (throw, fire the Pulsar Beam), JUMP (jump; in the armour, lift) |
 
 RUN is a toggle (lit green while on); it's Shift held down.
 
@@ -102,8 +102,8 @@ Android with rotation locked to portrait, then an iPhone.
 2. In the loader tap a game once to pick it and again to load it. Touching the stick or LOAD alone must not pick a game.
 3. In a game: move in every direction the stick offers, hold a button while walking, slide a thumb between buttons, toggle
    RUN. Nothing covers the picture; the page never scrolls, zooms or selects text; a long press brings up no menu.
-4. PAUSE shows the map: tap a place (it is boxed), tap it again (you go there); tap the option line to switch ORIGINAL and
-   ENHANCED; tap the bottom line to go back.
+4. PAUSE shows the map: tap a place (it is boxed), tap it again (you go there); tap the option line to switch EASY and
+   HARD; tap the bottom line to go back.
 5. Lose the last life: in CONTINUE? tap YES. On a title with a save, tap CONTINUE.
 6. Leave full screen (swipe back): TURN YOUR PHONE returns and the game waits; a tap carries on where you were.
 7. TURN: upright (picture on top, controls below) and back. On an iPhone, after the first tap the game is drawn sideways in

@@ -162,7 +162,7 @@ export function clearBox(screen: Screen, box: number): void {
 }
 
 /**
- * Where ENHANCED's line on the panel goes: the count of plane tickets, the UP: FLY TO prompt and the item hints share the bottom
+ * Where our line on the panel goes: the count of plane tickets, the UP: FLY TO prompt and the item hints share the bottom
  * row, right of the money (the one row of the panel that is empty; the rows above it, over the picture, are drawn in extended
  * colour mode, where the game's letters do not come out). A hint with a picture of a thing takes the empty cells of the row above too.
  */
@@ -180,7 +180,7 @@ export interface SlotLine {
 }
 
 /**
- * ENHANCED: what up does at a plane with a ticket (it boards; the same word for the keys, a pad and the touch stick), with where the
+ * What up does at a plane with a ticket (it boards; the same word for the keys, a pad and the touch stick), with where the
  * flight goes, so a flight is never a guess (UP: FLY TO PARIS; UP: TO <place> where the longer line would not fit the slot).
  */
 export function flyPrompt(to: number): string {
@@ -209,7 +209,7 @@ export function drawSlot(screen: Screen, line: SlotLine | null): void {
   if (item !== undefined) putItem(screen, pictureCol(text), row - 1, HINT_CHARS, item, coloursOfType(item));
 }
 
-/** ENHANCED: the plane tickets he holds, as a count in the game's own lettering on the panel; while up would board a plane, `prompt` takes the slot instead, and a `hint` over both. */
+/** The plane tickets he holds, as a count in the game's own lettering on the panel; while up would board a plane, `prompt` takes the slot instead, and a `hint` over both. */
 export function drawTickets(screen: Screen, tickets: number, prompt: string | null = null, hint: SlotLine | null = null): void {
   drawSlot(screen, hint ?? { text: prompt ?? (tickets > 0 ? `AIR TICKETS X${tickets}` : ''), ink: Colour.Cyan });
 }

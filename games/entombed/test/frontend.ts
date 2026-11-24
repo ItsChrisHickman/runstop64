@@ -1,12 +1,12 @@
 /**
  * Entombed's front end with the combat effects and assists, headless (games/shared/native/play.ts
  * as the browser runs it, c64kit stood in by games/shared/test/kit.ts): from a save in the
- * corridors, the ORIGINAL/ENHANCED switch on the pause screen (key and tap), then fights:
+ * corridors, the EASY/HARD switch on the pause screen (key and tap: the death's rule only), then fights:
  *
  * - effects (on by default): a destroyed monster bursts (the effects' model has its particles)
  *   and its sound plays; a hurt flashes and sounds (in both modes: presentation);
  * - hit-stop: the game waits 4 frames on a kill (its memory doesn't change), then goes on;
- * - invulnerability: no hurt starts within 75 frames of the last (off: they come 17 apart);
+ * - invulnerability: no hurt starts within 75 frames of the last (off, as only a test has it now: they come 17 apart);
  * - knockback: after a hurt he's pushed away from what hit him, by his own walk;
  * - R restarts: the game so far becomes the previous save (shared/saves.ts), even with a new game
  *   started the moment the title is back.
@@ -27,6 +27,7 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { must } from '../../shared/test/must';
 import { readSaves } from '../../shared/saves';
 import { parseOptions } from '../../shared/test/data';
+import { checkLifeEnds } from '../../shared/test/life-ends';
 import { check, finish } from '../../shared/test/check';
 
 const store = useMemoryStorage();
@@ -74,21 +75,21 @@ check('launched with a save: the title with ENTER CONTINUE, not play', !p.state.
 press('Enter');
 check('continued into the corridors', p.state.playing && (m().ram[0x6001] | (m().ram[0x6002] << 8)) === 0x60f8);
 const combatOn = () => !!p.options.invulnerable && !!p.options.knockback && !!p.options.hitStop && !!p.options.eightWay && !!p.options.hints;
-const combatOff = () => !p.options.invulnerable && !p.options.knockback && !p.options.hitStop && !p.options.eightWay && !p.options.hints;
-check('ENHANCED by default: its play changes on, effects on, no glow, no infinite lives', p.frontEnd.enhanced && combatOn() && !!p.options.effects && !p.options.glow && !p.options.lives);
+check('EASY by default: the play changes on, effects on, no glow; a death a start of the room (`lives`)', p.frontEnd.easy && combatOn() && !!p.options.effects && !p.options.glow && !!p.options.lives);
 
 // ---- the switch ----
 press('KeyP');
 check('P: the pause screen', p.frontEnd.paused);
 shot('pause');
 press('KeyE');
-check('E: ORIGINAL (the play changes off, effects still on)', !p.frontEnd.enhanced && combatOff() && !!p.options.effects);
+check('E: HARD (the death the game\'s end; the play changes and the effects still on)', !p.frontEnd.easy && !p.options.lives && combatOn() && !!p.options.effects);
 tapAt(260, 133); // (the switch's line on the right: the first of four, bottom up from y=166)
-check('a tap on its line: ENHANCED again, and kept', p.frontEnd.enhanced && combatOn() && parseOptions(store.get('entombed.assist')).enhanced === true);
+check('a tap on its line: EASY again, and kept', p.frontEnd.easy && combatOn() && parseOptions(store.get('entombed.assist')).easy === true);
 press('KeyE');
-check('E: ORIGINAL, kept', !p.frontEnd.enhanced && parseOptions(store.get('entombed.assist')).enhanced === false);
+check('E: HARD, kept', !p.frontEnd.easy && parseOptions(store.get('entombed.assist')).easy === false);
 press('KeyP');
 check('P: back to the game', !p.frontEnd.paused);
+
 
 // ---- fights: random play with the whip ----
 let seed = 7;
@@ -105,7 +106,7 @@ const fightFrame = () => {
   const r = m().ram; r[0x37f6] = 0; r[0x323d] = 0; // (air and ankhs kept up)
 };
 
-// hit-stop and the effects of a kill (ENHANCED)
+// hit-stop and the effects of a kill (both modes; back to EASY)
 press('KeyP'); press('KeyE'); press('KeyP');
 let stopped = -1, sawKill = false, sawHurt = false, sfxKill = false;
 for (let f = 0; f < 6000 && !(sawKill && sawHurt); f++) {
@@ -132,22 +133,23 @@ for (let f = 0; f < 6000 && !(sawKill && sawHurt); f++) {
 check('a monster destroyed in the fight, with its sound', sawKill && sfxKill);
 check(`hit-stop: the game waited ${stopped} frames on the kill (4)`, stopped === 4);
 
-// invulnerability: hurt gaps, ORIGINAL then ENHANCED
+// invulnerability: hurt gaps, off (the original's: as only a test has it now, both modes have it on) then on
 const gaps = (frames: number) => {
   const at: number[] = [];
   for (let f = 0; f < frames; f++) { fightFrame(); if (must(p.combat, 'the combat runtime').events.some((e) => e.kind === 'hurt')) at.push(f); }
   return at.slice(1).map((v, i) => v - at[i]);
 };
-press('KeyP'); press('KeyE'); press('KeyP');
-check('ORIGINAL: no invulnerability', !p.options.invulnerable);
+p.options.invulnerable = false;
 const off = gaps(4000);
+p.options.invulnerable = true;
 press('KeyP'); press('KeyE'); press('KeyP');
-check('ENHANCED: invulnerability on', !!p.options.invulnerable);
+check('HARD: invulnerability on', !p.frontEnd.easy && !!p.options.invulnerable);
 const on = gaps(4000);
+press('KeyP'); press('KeyE'); press('KeyP');
 check(`off: hurts as the game makes them (${off.length + 1}, the closest ${Math.min(...off)} frames apart)`, off.length > 3 && Math.min(...off) < 40);
 check(`on: none within 75 frames of the last (${on.length + 1}, the closest ${Math.min(...on)} apart)`, on.length > 1 && Math.min(...on) >= 75);
 
-// knockback (ENHANCED, with invulnerability): after a hurt, pushed away from what hit him
+// knockback (both modes, with invulnerability): after a hurt, pushed away from what hit him
 let pushes = 0, away = 0, toward = 0, whipping = false;
 for (let f = 0; f < 6000 && pushes < 6; f++) {
   fightFrame();
@@ -169,13 +171,13 @@ for (let f = 0; f < 6000 && pushes < 6; f++) {
 }
 check(`knockback: ${away} of ${pushes} pushes moved him away from what hit him, none towards it (the rest: his own walk couldn't move him then)`, pushes >= 3 && away >= pushes / 2 && toward === 0);
 
-// ORIGINAL: effects still on (presentation), the play as the original's
+// HARD: effects on, and the play changes
 press('KeyP'); press('KeyE'); press('KeyP');
 renderer.effects.model.clear();
 const before = sidLog.sfx.length;
 let sawEffects = false;
 for (let f = 0; f < 3000 && !sawEffects; f++) { fightFrame(); if (renderer.effects.model.busy(performance.now()) || sidLog.sfx.length > before) sawEffects = true; }
-check('ORIGINAL: the effects and sounds still play (presentation, both modes)', sawEffects && !p.options.knockback);
+check('HARD: the effects and sounds play (presentation, both modes), knockback on', sawEffects && !!p.options.knockback && !p.frontEnd.easy);
 
 // ---- R restarts: the game so far is kept as the previous save, as a new game from the title keeps it ----
 // (once after the title has been up a while, once with a new game started straight away)
@@ -198,5 +200,10 @@ for (const wait of [120, 3]) {
   for (let f = 0; f < 600 && must(readSaves('entombed').current, 'the save').rooms < 2; f++) { input.keyDown('ArrowRight'); tick(1); }
   input.keyUp('ArrowRight'); tick(2);
 }
+
+
+// ---- EASY: the last ankh gone is a start of the room again; HARD: the game's end (last: it ends on CONTINUE?) ----
+if (!p.frontEnd.easy) p.frontEnd.toggleEasy();
+checkLifeEnds('entombed', { p, tick }, (r) => { r[0x17dd] = 1; }, (r) => (r[0x37f7] << 8) | r[0x321c], (r) => r[0x323d] === 0);
 
 finish();

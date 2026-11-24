@@ -17,6 +17,7 @@ import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { GRACE_FRAMES } from '../../shared/grace';
 import { must } from '../../shared/test/must';
+import { hardStore, originalRules } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
@@ -30,7 +31,7 @@ async function launch(store = new Map<string, string>()) {
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 50));
-  p.options.lives = false; // (ENHANCED's unlimited lives off, so the lives show what the grace saves him from)
+  p.options.lives = false; // (EASY's unlimited lives off, so the lives show what the grace saves him from)
   const ram = () => must(p.machine, 'the machine').ram;
   const s = {
     p, input, ram,
@@ -86,7 +87,8 @@ h.tick(300);
 check(`after it the skull kills (${hLives} -> ${h.lives()})`, h.lives() < hLives);
 
 // ---- CONTINUE? after the last life: the grace starts ----
-const c = await launch(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]));
+const c = await launch(hardStore());
+originalRules(c.p.options); // (the original's rule: every life lost holding left, to CONTINUE?)
 c.tick(200);
 c.input.keyDown('ArrowLeft');
 const over = c.until(() => !c.p.state.playing && c.p.state.prompt === 'continue', 6000);

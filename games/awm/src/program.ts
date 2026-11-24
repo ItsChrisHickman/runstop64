@@ -74,24 +74,24 @@ export class Program {
   /** The front end's rules for the games to come (game.ts `graceActive`, `safeRespawn`, `unlimitedLives`): the original's are off. */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
-  /** A death has put him back (ENHANCED): the front end starts a moment's grace. */
+  /** A death has put him back (both modes): the front end starts a moment's grace. */
   onRestart: () => void = () => {};
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
   unlimitedCarry: () => boolean = () => false;
-  /** ENHANCED's up boards a plane (game.ts `upBoards`). */
+  /** our up boards a plane (game.ts `upBoards`). */
   upBoards: () => boolean = () => false;
-  /** ENHANCED: a flight to a room he has stood in needs no ticket (game.ts `flightFree`). */
+  /** A flight to a room he has stood in needs no ticket (game.ts `flightFree`). */
   flightFree: (to: number) => boolean = () => false;
-  /** ENHANCED's quick hop (game.ts `quickHop`). */
+  /** our quick hop (game.ts `quickHop`). */
   quickHop: () => boolean = () => false;
-  /** ENHANCED's creatures move slower (game.ts `enemyHold`). */
+  /** our creatures move slower (game.ts `enemyHold`). */
   slowCreatures: () => boolean = () => false;
-  /** ENHANCED's Good Life waits for the end (game.ts `goodLifeWaits`). */
+  /** our Good Life waits for the end (game.ts `goodLifeWaits`). */
   goodLifeWaits: () => boolean = () => false;
-  /** ENHANCED's hoppers rest at the top (game.ts `hopsRest`). */
+  /** our hoppers rest at the top (game.ts `hopsRest`). */
   hopsRest: () => boolean = () => false;
-  /** ENHANCED's item hints (game.ts `hints`). */
+  /** our item hints (game.ts `hints`). */
   hints: () => boolean = () => false;
 
   constructor() {
@@ -111,7 +111,7 @@ export class Program {
     return this.part.kind === 'play' && this.part.flight !== null;
   }
 
-  /** He is on ENHANCED's quick hop (a cutscene: the controls are ignored, so the front end holds any press until it is let go). */
+  /** He is on our quick hop (a cutscene: the controls are ignored, so the front end holds any press until it is let go). */
   get hopping(): boolean {
     return this.part.kind === 'play' && this.part.flight !== null && this.part.flight.hop;
   }

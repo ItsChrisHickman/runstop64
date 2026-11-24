@@ -12,8 +12,8 @@
  * - travel to every room offered: he's in that room, where he was on the walk there (a spot he
  *   walked through: where he came in, or landed), and alive 200 frames later, standing still.
  *
- * Played in ORIGINAL: the route was found under the game's own rules (a long fall kills, and he
- * starts the room again where he came in), and ENHANCED's safe landings would take it elsewhere.
+ * Played under the original's rules (as only a test has them now: original-rules.ts): the route was found under them (a
+ * long fall kills, and he starts the room again where he came in), and our safe landings would take it elsewhere.
  * The map, travel and autosave are the same in both modes.
  *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/route.ts
@@ -28,9 +28,10 @@ import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser'
 import { isNumbers, isRecord, readJson } from '../../shared/guards';
 import { MAP_BOX } from '../../shared/native/pause';
 import { must } from '../../shared/test/must';
+import { hardStore, originalRules } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
-useMemoryStorage(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]])); // (the switch as the page remembers it)
+useMemoryStorage(hardStore()); // (the switch as the page remembers it)
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
 
@@ -42,6 +43,7 @@ const input = new Input(nowhere);
 const launch = async () => {
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 50));
+  originalRules(p.options);
   return p;
 };
 let p = await launch();

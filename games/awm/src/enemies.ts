@@ -10,7 +10,7 @@
  *   speed, +10 a counter, +11 a control byte (bits 6-7: how the frame is animated; the low bits: a reload
  *   or the number of a frame sequence), +12 the base frame the animation adds to.
  *
- * (+3 to +6 are never used by the game; ENHANCED keeps a hop's rest in +3: `restAtTop`.) Types 1-9 are what the room tables hold; 10-17 are the states some of them
+ * (+3 to +6 are never used by the game; ours keeps a hop's rest in +3: `restAtTop`.) Types 1-9 are what the room tables hold; 10-17 are the states some of them
  * go through (a type 7 "shooter" becomes 14, then runs a frame sequence; the record after it is its
  * projectile). A shooter or the record a projectile is made in is always the *next* record, so a
  * shooter in the last slot would write into the code that follows the table: no room has one, and
@@ -59,7 +59,7 @@ const add = (a: number, b: number): number => (a + b) & 0xff;
 
 /** The step of the wobble where a hop is at its top: the first of the two still steps (WOBBLE's zeros). */
 const TOP = 7;
-/** ENHANCED: logic steps a hop rests at its top, on the two the game gives it (25 a second: half a second). */
+/** Logic steps a hop rests at its top, on the two the game gives it (25 a second: half a second). */
 export const REST_STEPS = 12;
 const neg = (a: number): number => (-a) & 0xff;
 
@@ -81,7 +81,7 @@ export class Enemies {
   readonly clock: AnimClock = { phase: 0, frame: 0, flip: 0, toggle: 0xff };
 
   /**
-   * ENHANCED's "hoppers rest at the top": a type 3 enemy that travels sideways as it bobs (five in the game, Breakfast's in Denmark
+   * our "hoppers rest at the top": a type 3 enemy that travels sideways as it bobs (five in the game, Breakfast's in Denmark
    * among them) stays at the top of each hop for `REST_STEPS` more, so the moment to go under it can be seen and timed.
    */
   restAtTop: () => boolean = () => false;
@@ -249,7 +249,7 @@ export class Enemies {
 
   // ---- pieces the handlers share ----------------------------------------------------------------
 
-  /** ENHANCED: a hop resting at its top counts a step of its rest; true while it rests. */
+  /** A hop resting at its top counts a step of its rest; true while it rests. */
   private resting(e: number): boolean {
     const left = this.get(e, REST);
     if (left === 0) return false;

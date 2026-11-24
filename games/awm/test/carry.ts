@@ -322,7 +322,7 @@ tick(120);
 tap('Space');
 tick(60);
 {
-  check('ENHANCED (the default): CARRY ANYTHING is on', p.frontEnd.enhanced && p.frontEnd.assist.carry === true);
+  check('EASY (the default): CARRY ANYTHING is on', p.frontEnd.easy && p.frontEnd.assist.carry === true);
   const g = game();
   const rowCodes = (r: number, c: number, n: number) => Array.from({ length: n }, (_, i) => picture().screen.ram[0x400 + r * 40 + c + i] ?? 0);
   const blank = rowCodes(24, 12, 16);
@@ -379,11 +379,11 @@ tick(60);
   shot('carrying-touch');
   tap('KeyP');
   tick(4);
-  // ORIGINAL: no page, no count; four hands
+  // HARD: the same (carry anything and up boards are in both modes; the original's four hands are the engine's, above)
   tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
-  check('E: ORIGINAL, no carrying anything, the jump only jumps', !p.frontEnd.enhanced && p.frontEnd.assist.carry === false && p.frontEnd.assist.board === false);
+  check('E: HARD, carrying anything and up boarding still on', !p.frontEnd.easy && p.frontEnd.assist.carry === true && p.frontEnd.assist.board === true);
   tap('KeyP'); tick(3);
-  check(`ORIGINAL: the pause screen has only the world (${awmMap.pages(program).list})`, awmMap.pages(program).list.join() === '0' && awmMap.title(program, 1) === 'THE WORLD');
+  check(`HARD: the pause screen still has the CARRYING page (${awmMap.pages(program).list})`, awmMap.pages(program).list.join() === '0,1');
   tap('KeyP'); tick(3);
   const h = game();
   h.items.carried.fill(0xff);
@@ -392,7 +392,8 @@ tick(60);
   h.items.tickets = 0;
   for (const i of [3, 4, 5, 6]) touch(h, must(TICKETS[i], 'a ticket'));
   touch(h, must(TICKETS[7], 'a ticket'));
-  check(`ORIGINAL in the front end's game: a fifth is refused (${h.items.carried}, ${h.items.tickets} counted)`, h.items.carried.every((t) => t === TICKET) && h.items.tickets === 0 && h.items.pack.length === 0);
+  check(`HARD in the front end's game: the tickets are counted, no hand taken (${h.items.carried}, ${h.items.tickets} counted)`, h.items.carried.every((t) => t === 0xff) && h.items.tickets === 5);
+  tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
 }
 {
   // the panel's count is drawn and cleared on its own (no stray cells)

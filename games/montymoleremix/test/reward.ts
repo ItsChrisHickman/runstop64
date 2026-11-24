@@ -1,5 +1,5 @@
 /**
- * The reward for winning Wanted: Monty Mole Remix (ENHANCED: src/ending.ts on shared/ending/show.ts; the game's own ending, the verse, is test/ending.ts),
+ * The reward for winning Wanted: Monty Mole Remix (both modes: src/ending.ts on shared/ending/show.ts; the game's own ending, the verse, is test/ending.ts),
  * headless, with the real game under it:
  *
  *  1. every place's route (test/ending-routes.ts: the passability bot's way, a stick a frame) played again on the game it was found on does what the place
@@ -207,9 +207,9 @@ check('the port is credited last, as PORT_CREDITS has it, to Christopher Hickman
 }
 
 // ---- 5. in the session ----------------------------------------------------------------------------------------------------------
-function boot(enhanced: boolean) {
+function boot(easy: boolean) {
   store.clear();
-  store.set('montymoleremix.assist', JSON.stringify({ enhanced }));
+  store.set('montymoleremix.assist', JSON.stringify({ easy }));
   const inp = new Input(nowhere), rend = new PixelRenderer(), p = run({ renderer: rend, input: inp, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
   const press = (code: string) => { inp.keyDown(code); tick(1); inp.keyUp(code); tick(1); };
@@ -240,39 +240,41 @@ function win(s: ReturnType<typeof boot>): boolean {
   const s = boot(true);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
-  check('ENHANCED: the game is won (the verse typed through, a key at its end)', won);
-  check('ENHANCED: the win is kept, apart from the saves', readWon('montymoleremix') && store.has('montymoleremix.won'));
-  check('ENHANCED: the show begins after the verse, over the title', ending.active);
+  check('EASY: the game is won (the verse typed through, a key at its end)', won);
+  check('EASY: the win is kept, apart from the saves', readWon('montymoleremix') && store.has('montymoleremix.won'));
+  check('EASY: the show begins after the verse, over the title', ending.active);
   s.tick(10);
-  check('ENHANCED: it is running (the montage, the game of its own)', ending.progress.phase !== 'loading');
+  check('EASY: it is running (the montage, the game of its own)', ending.progress.phase !== 'loading');
   s.tick(110);
   s.press('Space');
-  check('ENHANCED: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
-  check('ENHANCED: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
-  check('ENHANCED: the save is kept', s.p.state.hasSave);
+  check('EASY: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
+  check('EASY: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
+  check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
-  check('ENHANCED: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
+  check('EASY: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
   // W on the pause screen, once won
   s.press('KeyP');
-  check('ENHANCED, won: the pause screen is up', s.p.state.paused);
+  check('EASY, won: the pause screen is up', s.p.state.paused);
   s.press('KeyW');
-  check('ENHANCED: W starts the show', ending.active);
+  check('EASY: W starts the show', ending.active);
   s.tick(120);
   s.press('Space');
-  check('ENHANCED: after it, the title with the save kept', !ending.active && s.p.state.mode === 'title' && s.p.state.hasSave && s.p.state.prompt === null);
+  check('EASY: after it, the title with the save kept', !ending.active && s.p.state.mode === 'title' && s.p.state.hasSave && s.p.state.prompt === null);
 }
 
 {
   const s = boot(false);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
-  s.tick(30);
-  check('ORIGINAL: the game is won, and kept so, with no show of ours (the title, then CONTINUE?)', won && readWon('montymoleremix') && !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
+  check('HARD: the game is won, kept so, and the show begins as in EASY (it is in both modes)', won && readWon('montymoleremix') && ending.active);
+  s.tick(120);
+  s.press('Space');
+  check('HARD: a key skips it: the title, then CONTINUE?', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
   s.press('Enter');
   s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300);
   s.press('KeyP');
   s.press('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !ending.active && s.p.state.paused);
+  check('HARD: W on the pause screen starts it', ending.active);
 }
 
 {

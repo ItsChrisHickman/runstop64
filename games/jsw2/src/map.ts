@@ -1,4 +1,5 @@
 import type { Surface } from 'c64kit';
+import { livesShown } from '../../shared/lives';
 import { COL, foundCodec, MAP_BOX, S, type Box, type PauseMap } from '../../shared/native/pause';
 import { BEDROOM, itemsFound, itemsLeft, NEED, TOTAL } from './items';
 import { cellOf, ENDS, MAP_SIZE, PAIR_COLOURS, STEP } from './cells';
@@ -185,9 +186,10 @@ export const jsw2Map: PauseMap<Uint8Array, Jsw2Found> = {
     found.to = { room, at };
   },
   legend: [{ colour: COL.yellow, text: 'TRAVEL' }, { colour: COL.brown, text: 'NO TRAVEL' }, { colour: COL.cyan, text: 'ITEMS' }],
-  info(ram, found) {
+  info(ram, found, assist) {
     const n = itemsFound(ram);
-    return [`ROOMS   ${String(found.rooms.length).padStart(3)}`, `ITEMS   ${String(n).padStart(3)}`, `   OF ${TOTAL}`, n >= NEED ? 'GO TO BED' : `NEED    ${NEED}`, `LIVES     ${livesOf(ram)}`];
+    // (the lives in HARD only: EASY has none to count)
+    return [`ROOMS   ${String(found.rooms.length).padStart(3)}`, `ITEMS   ${String(n).padStart(3)}`, `   OF ${TOTAL}`, n >= NEED ? 'GO TO BED' : `NEED    ${NEED}`, ...(livesShown(assist) ? [`LIVES     ${livesOf(ram)}`] : [])];
   },
 };
 

@@ -34,7 +34,7 @@ const FINAL_ROOM = 0x4d;
 /** Progress at which the last delivery is made ($C3). */
 const FINAL_PROGRESS = 0xc3;
 
-/** ENHANCED's creatures move slower: held still one logic step in this many (three quarters of their speed). */
+/** our creatures move slower: held still one logic step in this many (three quarters of their speed). */
 export const ENEMY_HOLD = 4;
 
 /** The progress values at which the picture of the way out grows a part ($41, $82, $C3). */
@@ -138,50 +138,50 @@ export class Game implements MontyHost {
   onRoom: (() => void) | null = null;
   /**
    * The front end's, not the original's (both off for the original's rules, as the lockstep has them):
-   * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is ENHANCED's
-   * "no death loops", `unlimitedLives` ENHANCED's (shared/lives.ts: a death takes no life).
+   * `graceActive` says a moment's grace is on (nothing hurts him: games/shared/grace.ts), `safeRespawn` is ours's
+   * "no death loops", `unlimitedLives` EASY's (shared/lives.ts: a death takes no life).
    */
   graceActive: () => boolean = () => false;
   safeRespawn: () => boolean = () => false;
-  /** ENHANCED's "a lift waits until you are out from under it when you arrive" (lifts.ts). */
+  /** our "a lift waits until you are out from under it when you arrive" (lifts.ts). */
   liftWaits: () => boolean = () => false;
   unlimitedLives: () => boolean = () => false;
-  /** ENHANCED's "carry anything": no limit on what he carries, the tickets counted (items.ts). */
+  /** our "carry anything": no limit on what he carries, the tickets counted (items.ts). */
   unlimitedCarry: () => boolean = () => false;
   /**
-   * ENHANCED's "up boards a plane": standing at a plane with a ticket in a room with a flight, pressing up boards it (up climbs
+   * our "up boards a plane": standing at a plane with a ticket in a room with a flight, pressing up boards it (up climbs
    * nothing at any plane), and a ticket is never taken in a room with no flight (the C key and FLY work as ever). The jump stays a jump.
    */
   upBoards: () => boolean = () => false;
   /**
-   * ENHANCED: a flight is free (no ticket) once he has stood in the room it lands in, as every plane he has flown (Chris, 2026-11-15:
+   * A flight is free (no ticket) once he has stood in the room it lands in, as every plane he has flown (Chris, 2026-11-15:
    * a plane flown once should be his to use; travel already goes to any room he has stood in for nothing). The front end knows the
    * rooms (the map's `found`).
    */
   flightFree: (to: number) => boolean = () => false;
-  /** ENHANCED's quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
+  /** our quick hop: boarding is a short cutscene across the sky, not the flight (flight.ts `HOP_FRAMES`). */
   quickHop: () => boolean = () => false;
   /**
-   * ENHANCED's "the Good Life waits for the end": until everything is delivered (the ending's progress), the last room is no room to
+   * our "the Good Life waits for the end": until everything is delivered (the ending's progress), the last room is no room to
    * the exits, so walking in from the Harbour or dropping in does not leave him stuck in its walls; with everything delivered it opens
    * and the ending plays as ever (Chris, 2026-11-15).
    */
   goodLifeWaits: () => boolean = () => false;
   /**
-   * ENHANCED's "creatures move slower": 0, or n to hold the enemies still one logic step in n (they move (n-1)/n as fast; their
+   * our "creatures move slower": 0, or n to hold the enemies still one logic step in n (they move (n-1)/n as fast; their
    * touch is checked every step as ever). Chris, 2026-11-15: East Germany's pillars, Monaco and Breakfast were not passable by a person.
    */
   enemyHold: () => number = () => 0;
   /** Logic steps counted for `enemyHold`. */
   private paceCount = 0;
-  /** ENHANCED's "hoppers rest at the top" (enemies.ts `restAtTop`). */
+  /** our "hoppers rest at the top" (enemies.ts `restAtTop`). */
   hopsRest: () => boolean = () => false;
-  /** ENHANCED's item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
+  /** our item hints (hints.ts): `onHint` is told what a room or creature that wants a thing does, for the panel; presentation only, nothing in the rules changes. */
   hints: () => boolean = () => false;
   onHint: ((hint: Hint) => void) | null = null;
   /** Up was held at the last logic step: boarding takes a fresh press, so up held through a landing does not fly on at once. */
   upHeld = false;
-  /** ENHANCED: a death has put him back (the front end starts a moment's grace). */
+  /** A death has put him back (the front end starts a moment's grace). */
   onRestart: () => void = () => {};
 
   /**
@@ -238,7 +238,7 @@ export class Game implements MontyHost {
   }
 
   /** Monty has gone through an exit: what $5581 does before it loads the room, then the room. */
-  /** MontyHost: the last room is shut until the ending is due, with ENHANCED's `goodLifeWaits`. */
+  /** MontyHost: the last room is shut until the ending is due, in both modes's `goodLifeWaits`. */
   closed(room: number): boolean {
     return this.goodLifeWaits() && room === FINAL_ROOM && this.progress !== FINAL_PROGRESS;
   }
@@ -360,7 +360,7 @@ export class Game implements MontyHost {
     const up = (controls & Dir.Up) !== 0, pressed = up && !this.upHeld;
     this.upHeld = up;
     if (pressed && this.canBoardUp()) {
-      // (ENHANCED: this press boards)
+      // (this press boards)
       controls &= ~Dir.Up;
       boardKey = true;
     }
@@ -381,7 +381,7 @@ export class Game implements MontyHost {
    */
   private boarding(key: boolean): number | null {
     if (!this.atPlane() || !key) return null;
-    // (ENHANCED: a room with no flight takes no ticket)
+    // (a room with no flight takes no ticket)
     const to = destination(this.world.room);
     if (this.upBoards() && to === null) return null;
     if (this.upBoards() && to !== null && this.flightFree(to)) return to;
@@ -396,7 +396,7 @@ export class Game implements MontyHost {
     return [0, 1, 2, 3].some((slot) => Math.abs(m.x - e.x(slot)) < 12 && Math.abs(m.y - e.y(slot)) < 12 && isPlane(e.frame(slot)));
   }
 
-  /** ENHANCED: up would board a plane now (at one, in a room with a flight, with a ticket or the flight free): the panel says UP: FLY TO and where. */
+  /** Up would board a plane now (at one, in a room with a flight, with a ticket or the flight free): the panel says UP: FLY TO and where. */
   canBoardUp(): boolean {
     const to = destination(this.world.room);
     return this.upBoards() && this.boarded === null && this.atPlane() && to !== null && (this.items.has(TICKET) || this.flightFree(to));
@@ -467,7 +467,7 @@ export class Game implements MontyHost {
       m.state = state;
       m.step = step;
     }
-    // $5510: a finished death takes a life and puts him back where he came into the room ($5538). ENHANCED (safe respawn): in the
+    // $5510: a finished death takes a life and puts him back where he came into the room ($5538). ours (safe respawn): in the
     // room he died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
     // moment's grace: never in another room.
     if (m.dead !== 0) {
@@ -505,7 +505,7 @@ export class Game implements MontyHost {
   }
 
   /**
-   * Put him at a place he came into a room (the map's travel, ENHANCED's safe respawn): as if he had come through the exit
+   * Put him at a place he came into a room (the map's travel, our safe respawn): as if he had come through the exit
    * there, the game's own way (the room loaded, its tune, a delivery made), and a death starts him there again.
    */
   placeAt(at: Entry): void {
@@ -585,7 +585,7 @@ export class Game implements MontyHost {
     }
   }
 
-  /** ENHANCED's hints: something happened that the panel says. */
+  /** our hints: something happened that the panel says. */
   private tell(hint: Hint): void {
     if (this.hints()) this.onHint?.(hint);
   }

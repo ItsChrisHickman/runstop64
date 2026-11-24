@@ -4,8 +4,8 @@
  * (rooms seen, where Monty is, the shimmer of a room with everything taken, the picked room's name and what's left);
  * travel back by the map (keys, and taps); autosave and a launch with a save (the title, ENTER CONTINUE, Enter goes back into play); GAME OVER ->
  * CONTINUE? -> back in the last room (a new game's lives, the score from nothing; after the ending, everything as saved);
- * back to room start; the save a faithful copy of the game (what the room start was); the ORIGINAL/ENHANCED switch and
- * ENHANCED's safe respawn (in the room he died in); a moment's grace after a resume; the high score kept; the sound requests reaching the .sid.
+ * back to room start; the save a faithful copy of the game (what the room start was); the EASY/HARD switch (the lives, and their faces on the panel) and
+ * the safe respawn in both modes (in the room he died in); a moment's grace after a resume; the high score kept; the sound requests reaching the .sid.
  * With an out-dir: stills of the title, the front end's screens, play and the pause map.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/frontend.ts [out-dir]
@@ -154,13 +154,14 @@ check('a save read back through the checks', parseSave(readJson(JSON.stringify(s
 check('the save is described for the save manager', (slot?.summary.length ?? 0) >= 3);
 check('the save keeps the map\'s rooms', Object.keys(p.state.found.rooms ?? {}).length === 2);
 
-// ---- ORIGINAL / ENHANCED ---------------------------------------------------------------------------------------
-check('ENHANCED by default: the safe respawn is on', p.state.enhanced === true && p.frontEnd.assist.safe === true && p.frontEnd.assist.lift === true);
+// ---- EASY / HARD ------------------------------------------------------------------------------------------------
+check('EASY by default: unlimited lives, and the safe respawn on', p.state.easy === true && p.frontEnd.assist.lives === true && p.frontEnd.assist.safe === true && p.frontEnd.assist.lift === true);
+check('EASY: no faces for the lives on the panel', [0, 1, 2, 3, 4, 5, 34, 35, 36, 37, 38, 39].every((c) => must(program.picture, 'no picture').screen.code(c, 21) === 0));
 tap('KeyP');
 tap('KeyE');
-check('E: ORIGINAL (the switch kept)', p.state.enhanced === false && p.frontEnd.assist.safe === false && p.frontEnd.assist.lift === false && store.get('awm.assist') === '{"enhanced":false}');
+check("E: HARD (the switch kept): the lives are the game's, every other change still on", p.state.easy === false && p.frontEnd.assist.lives === false && p.frontEnd.assist.safe === true && p.frontEnd.assist.lift === true && store.get('awm.assist') === '{"easy":false}');
 tap('KeyE');
-check('E again: ENHANCED', p.state.enhanced === true);
+check('E again: EASY', p.state.easy === true);
 tap('KeyP');
 
 // ---- back to room start ----------------------------------------------------------------------------------------
@@ -179,9 +180,10 @@ tap('KeyP');
 tick(200);
 const lastRoom = game().world.room;
 game().score.add(0x64);
-// (ORIGINAL: ENHANCED's unlimited lives never reach GAME OVER, test/kills.ts)
+// (HARD: EASY's unlimited lives never reach GAME OVER, test/kills.ts)
 tap('KeyP'); tap('KeyE'); tap('KeyP');
-check('ORIGINAL: no unlimited lives', !p.state.enhanced && p.frontEnd.assist.lives === false);
+tick(4);
+check('HARD: no unlimited lives, and the faces on the panel', !p.state.easy && p.frontEnd.assist.lives === false && !([0, 1, 2, 3, 4, 5, 34, 35, 36, 37, 38, 39].every((c) => must(program.picture, 'no picture').screen.code(c, 21) === 0)));
 game().lives = 0x80; // (the last life)
 game().monty.state = State.Dying;
 game().monty.step = 0;
@@ -201,8 +203,9 @@ check(`Enter: back in play in the last room entered ($${game().world.room.toStri
   p.state.kind === 'play' && game().world.room === lastRoom && game().lives === NEW_GAME_LIVES && game().score.value === 0);
 check('with what Monty had (the rooms on the map)', Object.keys(p.state.found.rooms ?? {}).length === 2);
 check('and a moment of grace', p.state.grace > 0);
-tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
-check('and ENHANCED again', p.state.enhanced && p.frontEnd.assist.lives === true);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to EASY, the default)
+tick(4);
+check('and EASY again, the faces gone', p.state.easy && p.frontEnd.assist.lives === true && [0, 1, 2, 3, 4, 5, 34, 35, 36, 37, 38, 39].every((c) => must(program.picture, 'no picture').screen.code(c, 21) === 0));
 check('the high score kept', store.get('awm.high.v1') !== undefined);
 
 // ---- a moment's grace: nothing hurts him; once it is over, an enemy does -----------------------------------------------
@@ -234,7 +237,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   until(() => program.kind === 'closing', 400);
   check('the ending flag: the closing screen', program.kind === 'closing' && program.lastEnd === 'ending');
   until(() => program.kind === 'title', 1500);
-  // (ENHANCED shows its reward after the ending: test/reward.ts; a key skips it, after two seconds)
+  // (the reward shows after the ending: test/reward.ts; a key skips it, after two seconds)
   tick(110);
   tap('Space');
   tick(60);
@@ -259,11 +262,11 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   check('  and the grace begins on that continue', q.grace.active);
 }
 
-// ---- ENHANCED's safe respawn -------------------------------------------------------------------------------------------
+// ---- the safe respawn (both modes) -------------------------------------------------------------------------------------
 {
   const g = game();
   tap('KeyP');
-  if (!p.state.enhanced) tap('KeyE');
+  if (!p.state.easy) tap('KeyE');
   tap('KeyP');
   p.grace.clear();
   g.lives = 0x8c;
@@ -277,7 +280,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   g.monty.step = 0;
   until(() => g.monty.state !== State.Dying && g.monty.dead === 0, 200);
   tick(2);
-  check(`ENHANCED: a death at once in the next room starts him in that room (${g.world.room.toString(16)}), not the one before (${room.toString(16)}), takes no life (unlimited), with the grace`,
+  check(`EASY: a death at once in the next room starts him in that room (${g.world.room.toString(16)}), not the one before (${room.toString(16)}), takes no life (unlimited), with the grace`,
     g.world.room === other && g.lives === lives && p.grace.active);
   // after standing and walking in this room, a death starts him where he came in, not where he stood
   const came = must(entryOf(p.state.found, room), 'no entry');
@@ -288,8 +291,8 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   g.monty.step = 0;
   until(() => g.monty.state !== State.Dying && g.monty.dead === 0, 200);
   tick(2);
-  check(`ENHANCED: a death later in the room starts him there, exactly where he came in (x ${g.monty.x}, came in at ${came.x})`, g.world.room === room && g.monty.x === came.x && g.monty.y === came.y);
-  // ORIGINAL: where he came in
+  check(`EASY: a death later in the room starts him there, exactly where he came in (x ${g.monty.x}, came in at ${came.x})`, g.world.room === room && g.monty.x === came.x && g.monty.y === came.y);
+  // HARD: the same restart, and a life taken
   tap('KeyP'); tap('KeyE'); tap('KeyP');
   p.grace.clear();
   g.placeAt(must(entryOf(p.state.found, other), 'no entry'));
@@ -298,15 +301,15 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   g.monty.step = 0;
   const lives2 = g.lives;
   until(() => g.lives !== lives2, 200);
-  check(`ORIGINAL: the death starts him again in the room he came into ($${g.world.room.toString(16)})`, g.world.room === other && g.lives === lives2 - 1);
+  check(`HARD: the death starts him again in the room he died in ($${g.world.room.toString(16)}), a life gone`, g.world.room === other && g.lives === lives2 - 1);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
 }
 
-// ---- a flight: the key (or a tap on FLY), a ticket, a plane (ORIGINAL's: ENHANCED's is a quick hop, test/hop.ts) ----------------
+// ---- a flight: the key (or a tap on FLY), a ticket, a plane: the original's whole flight (in play every flight is the quick
+// hop, test/hop.ts: the program's own switch for it is turned off here, as only a test does) ----------------
 {
-  const wasEnhanced = p.frontEnd.enhanced;
-  if (wasEnhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
-  check('the flight is flown in ORIGINAL', !p.frontEnd.enhanced);
+  const hop = program.quickHop;
+  program.quickHop = () => false;
   const g = game();
   p.grace.clear();
   g.lives = 0x8c;
@@ -343,7 +346,7 @@ check('the high score kept', store.get('awm.high.v1') !== undefined);
   else check('he comes down in room 1, at its plane', g.world.room === 1 && game().monty.x === planeAt(1)?.x && game().monty.y === planeAt(1)?.y);
   const saved2 = must(unpackSlot(CODEC, must(readSaves('awm').current, 'no save')), 'no save');
   check('the autosave keeps what the flight left in the machine (the clouds, the planes)', JSON.stringify(saved2.flight) === JSON.stringify(g.sky) || crashed);
-  if (wasEnhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
+  program.quickHop = hop;
 }
 
 // ---- an item taken at his way in: drawn first, then taken, so its colour stays; the way out grows with the progress -------------------

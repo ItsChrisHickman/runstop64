@@ -1,7 +1,7 @@
 import { cellSpots, spriteShows, spriteSpot, type Spot } from '../../shared/native/spots';
 
 /**
- * The Staff of Karnath's hints (ENHANCED: re/README.md, "Hints"): where the pentacle's pieces are, where a
+ * The Staff of Karnath's hints (re/README.md, "Hints"): where the pentacle's pieces are, where a
  * piece carried goes, and what ends the game, read from what the game keeps. The words are in
  * src/hint-lines.ts and the status line's in src/guide.ts; this is the state and the sparkles' places.
  * Nothing here writes to the game.

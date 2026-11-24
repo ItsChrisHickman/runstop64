@@ -35,8 +35,13 @@ export interface Rows {
 
 // ---- HUD (original HUD.Init / HUD.Update) --------------------------------------
 
-/** The score row's frame: SCORE, the lives' icon and HI-SCORE, then the data. */
-export function drawHudFrame(s: Rows, score: number, hiScore: number, lives: number) {
+/** Monty's head and the lives' number in the score row (screen offsets): what EASY leaves out, as it has no lives. */
+const LIVES_CELLS = [0x10, 0x11, ROW + 0x10, ROW + 0x11, 0x13, 0x14];
+/** Monty's head beside the lives: its four characters and where they go. */
+const LIVES_ICON: readonly (readonly [number, number])[] = [[0x10, 0x3d], [0x11, 0x3e], [ROW + 0x10, 0x3f], [ROW + 0x11, 0x40]];
+
+/** The score row's frame: SCORE, the lives' icon and HI-SCORE, then the data. `lives` null: no lives (EASY), no icon or number. */
+export function drawHudFrame(s: Rows, score: number, hiScore: number, lives: number | null) {
   const text = 'SCORE:           00 HI-SCORE:      ';
   for (let i = 0; i < 36; i++) {
     s.mem[SCREEN + 2 + i] = text.charCodeAt(i) === 32 ? 0x60 : (text.charCodeAt(i) & 0x3f) | 0x40;
@@ -47,24 +52,23 @@ export function drawHudFrame(s: Rows, score: number, hiScore: number, lives: num
     if (x < 13) s.mem[SCREEN + ROW + 2 + x] = 0x64;
     s.mem[SCREEN + ROW + 0x16 + x] = 0x64;
   }
-  const icon = [0x3d, 0x3e, 0x3f, 0x40];
-  [0, 1, ROW, ROW + 1].forEach((o, i) => {
-    s.mem[SCREEN + 0x10 + o] = icon[i] ?? 0;
-    s.col[0x10 + o] = 8;
-  });
+  [0, 1, ROW, ROW + 1].forEach((o) => { s.col[0x10 + o] = 8; });
   s.col[0x13] = 8;
   s.col[0x14] = 8;
   drawHudData(s, score, hiScore, lives);
 }
 
-/** The score, the high score and the lives in the score row. */
-export function drawHudData(s: Rows, score: number, hiScore: number, lives: number) {
+/** The score, the high score and the lives in the score row (`lives` null: none shown, the icon's cells blank). */
+export function drawHudData(s: Rows, score: number, hiScore: number, lives: number | null) {
   const sc = String(score % 100000).padStart(5, '0');
   const h = String(hiScore % 100000).padStart(5, '0');
   for (let i = 0; i < 5; i++) {
     s.mem[SCREEN + 0x0a + i] = (sc.charCodeAt(i) & 0x3f) | 0x40;
     s.mem[SCREEN + 0x21 + i] = (h.charCodeAt(i) & 0x3f) | 0x40;
   }
+  if (lives === null) { for (const at of LIVES_CELLS) s.mem[SCREEN + at] = 0x60; return; }
+  LIVES_ICON.forEach(([at, chr]) => { s.mem[SCREEN + at] = chr; });
+  s.mem[SCREEN + 0x13] = 0x70; // (the frame's '0' before the lives' number, as HUD.Init leaves it)
   s.mem[SCREEN + 0x14] = ((Math.min(9, Math.max(0, lives)) + 0x30) & 0x3f) | 0x70;
 }
 

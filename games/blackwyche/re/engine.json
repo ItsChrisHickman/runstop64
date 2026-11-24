@@ -49,6 +49,7 @@
     "6b2c": "hurt: the decks' hurt flag ($6C4E)",
     "6b71": "strike: the sword on sprite 4 ($6C5E)",
     "6bb3": "strike: the sword on sprite 5 ($6C64)",
-    "6bf5": "strike: the sword on sprite 6 ($6C6B)"
+    "6bf5": "strike: the sword on sprite 6 ($6C6B)",
+    "970c": "the death (no energy left, $1519) has played out: on to the game's end ($933A)"
   }
 }

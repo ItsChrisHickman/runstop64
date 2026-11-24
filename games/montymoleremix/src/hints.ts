@@ -1,5 +1,5 @@
 /**
- * ENHANCED's help: the coal count and the sparkles, read from the game's own state (`RemixGame`), never written to it (the count is put in
+ * our help: the coal count and the sparkles, read from the game's own state (`RemixGame`), never written to it (the count is put in
  * the row under the room, which is empty, by `RemixGame.note`).
  *
  * - **Coal to the next gate** (`coalCount`): the gates open when 16, 32, 48 and 64 pieces are taken (here wherever he is: the original's trap is

@@ -121,7 +121,7 @@ function infoOf(ram: Uint8Array) {
   const parts = [0, 1, 2, 3].filter((i) => ram[0x067e + i] & 0x80).length;
   return [...(isPlus(ram) ? ['NEW GAME+'] : []), `PARTS     ${parts}`, `LIFE    ${String(Math.round((ram[V.life] * 100) / 31)).padStart(3)}`, `ARMOUR  ${String(Math.round((Math.min(ram[V.suitEnergy], 31) * 100) / 31)).padStart(3)}`];
 }
-/** ENHANCED: the recharge cells Tal carries, once he has one (cells.ts); ORIGINAL carries one, unshown as ever. */
+/** The recharge cells Tal carries, once he has one (cells.ts; the original's rules, `g.enhanced` off, carry one, unshown as ever). */
 const cellsLine = (g: Game) => (g.enhanced && cellCount(g.ram) ? [`CELLS     ${cellCount(g.ram)}`] : []);
 
 /**
@@ -132,10 +132,10 @@ const cellsLine = (g: Game) => (g.enhanced && cellCount(g.ram) ? [`CELLS     ${c
 function emptyHint(g: Game) {
   const { ram } = g;
   if (!inSuit(g) || ram[V.suitEnergy]) return [];
-  // (ENHANCED, with a cell: the better way out of it; one line, so the side panel's legend keeps clear of the options)
+  // (with a cell: the better way out of it; one line, so the side panel's legend keeps clear of the options)
   if (g.enhanced && cellCount(ram)) return ['C: REFUEL'];
-  // (ORIGINAL: the interlock holds him in the first ten rooms; elsewhere it lands only facing out)
-  if (!emptyLetsOut(g) && ram[V.room] < 0x0a) return ['NO WAY OUT', 'IN ORIGINAL'];
+  // (the original's rules: the interlock holds him in the first ten rooms; elsewhere it lands only facing out)
+  if (!emptyLetsOut(g) && ram[V.room] < 0x0a) return ['NO WAY OUT'];
   if (emptyLetsOut(g) || ram[V.anim] === 0xb2) return ['STEP OUT:', 'LEFT/RIGHT'];
   // (held backwards it slows, turns to face out, lands, and he steps out)
   return ['STEP OUT:', 'BACKWARDS'];

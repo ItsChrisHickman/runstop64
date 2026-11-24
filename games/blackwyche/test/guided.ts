@@ -1,5 +1,5 @@
 /**
- * Blackwyche's GUIDED assist (ENHANCED): Pendragon's narration on the status line and the sparkles
+ * Blackwyche's GUIDED assist (both modes): Pendragon's narration on the status line and the sparkles
  * (src/guided.ts, src/guided-lines.ts; games/shared/native/narrate.ts), headless, through the front
  * end as the browser runs it (run(host): the keyboard, the frame loop, the render).
  *
@@ -13,7 +13,7 @@
  *     not before what the game asks for first is in hand, nor once it is taken;
  *  5. the next thing to get (NEXT:) after 20 seconds with nothing to do, and a walk through the whole
  *     chain of things with each next one something the game gives;
- *  6. ORIGINAL shows none of it, and the switch puts the game's own line back.
+ *  6. HARD shows the same: GUIDED is in both modes, and the switch leaves it be.
  *
  *   nice -n 15 node tools/test.mjs games/blackwyche/test/guided.ts [out-dir]
  *
@@ -436,32 +436,17 @@ const OWN: Record<string, number> = {
   check('every NEXT line fits (a deck 1-5 and a name)', THINGS.every((t) => partsOf(`${LINES.next.prefix} ${LINES.next.things[t.id] ?? ''} ${LINES.next.deck} ${deckOf(t.room)}`, STATUS).every((p) => p.length <= 32)) && THINGS.every((t) => LINES.next.things[t.id] !== undefined));
 }
 
-// ---------------------------------------------------------------- 6. ORIGINAL
+// ---------------------------------------------------------------- 6. HARD: GUIDED is in both modes
 {
   const s = await Session.launch(saveAt({ room: 2 }), false);
-  s.tick(1300);
-  const quiet = s.trace.every((t) => t.text === SEARCHING) && s.sparkles.length === 0;
-  s.goTo(165, 168);
-  const sword = s.ram[FLAG.sword] === 1;
-  s.tick(500);
-  const found = s.trace.some((t) => t.text === 'YOU HAVE FOUND A MAGIC SWORD');
-  const only = s.trace.every((t) => t.text === SEARCHING || t.text === 'YOU HAVE FOUND A MAGIC SWORD');
-  check('ORIGINAL: the game\'s own line all the way (1,800 frames, the sword taken, its own message), no sparkles', quiet && sword && found && only && s.line() === SEARCHING && s.sparkles.length === 0);
-  const t = await Session.launch(saveAt({ deck: 1 }), false);
-  t.tick(1200);
-  const e = await Session.launch(saveAt({ room: 4, flags: { [FLAG.sword]: 1 } }), false);
-  e.tick(600);
-  check('ORIGINAL: no start story on deck 1, no shelf hint, no sparkle on the piece', t.trace.every((x) => x.text === SEARCHING) && e.trace.every((x) => x.text === SEARCHING) && e.sparkles.length === 0);
-  // switched while a line is showing: the game's own line comes back at once, the sparkles go
-  const sw = await Session.launch(saveAt({ room: 2 }), true);
-  const showing = sw.until('A BLADE GLEAMS IN THE DARK', 900) && sw.sparkles.length > 0;
-  sw.p.frontEnd.toggleEnhanced();
-  sw.tick(4);
-  const back = sw.line() === SEARCHING && sw.sparkles.length === 0;
-  sw.p.frontEnd.toggleEnhanced();
-  sw.tick(2);
-  const again = sw.sparkles.length > 0;
-  check('switching to ORIGINAL puts the game\'s own line back and takes the sparkles away; ENHANCED again brings the sparkles', showing && back && again);
+  const told = s.until('A BLADE GLEAMS IN THE DARK', 900) && s.sparkles.length > 0;
+  check('HARD: the same narration and sparkles as EASY (GUIDED is on in both modes)', told && !s.p.frontEnd.easy);
+  // switched while a line is showing: nothing of GUIDED changes, only the lives' rule
+  s.p.frontEnd.toggleEasy();
+  s.tick(4);
+  const kept = s.sparkles.length > 0 && s.p.frontEnd.easy;
+  s.p.frontEnd.toggleEasy();
+  check('switching to EASY and back keeps the line and the sparkles', kept && s.sparkles.length > 0);
   if (outDir) { const r = await Session.launch(saveAt({ room: 2 })); r.until('A BLADE GLEAMS IN THE DARK', 900); r.shot(still('status-line')); }
 }
 

@@ -12,7 +12,7 @@
  *  5. the abode from the state by the obelisk: the obelisk, the sixteenth, the staff, MENHIR, any other spell;
  *  6. through the front end as the browser runs it (run(host), the keyboard): the status line (the game's own message
  *     first, never covered, then the story, then the game's line back), the sparkles the renderer has, ORIGINAL showing
- *     none, midnight (lost in ORIGINAL, held at 11:59 in ENHANCED), the pause screen's count, the far door and the abode's line.
+ *     the same in HARD, midnight (held at 11:59 in both modes), the pause screen's count, the far door and the abode's line.
  *
  *   nice -n 15 node tools/test.mjs games/karnath/re/hints/check.ts [full]
  */
@@ -369,9 +369,9 @@ stubFetch(title);
       check(`the story's lines are all in the game's lettering, none longer than the line (${partsOf2(LINES.first).join(' | ')})`, partsOf2(LINES.first).every((t) => t.length <= 28));
       const markers = s.renderer.sparkles.markers;
       const spots = hintSpots(s.ram, s.vic);
-      check(`ENHANCED: the sparkles the renderer has are the hints' (${markers.length}: ${JSON.stringify(spots)})`, markers.length === spots.length && markers.every((m, i) => m.x === spots[i].x && m.y === spots[i].y));
+      check(`EASY: the sparkles the renderer has are the hints' (${markers.length}: ${JSON.stringify(spots)})`, markers.length === spots.length && markers.every((m, i) => m.x === spots[i].x && m.y === spots[i].y));
     } else {
-      check(`ORIGINAL: the same walk shows the game's lines only (${trace.join(' | ')}), and no sparkles (${s.renderer.sparkles.markers.length})`, took && trace.every((t) => t === 'PIECE OF PENTACLE FOUND' || t === 'CARRYING PIECE OF PENTACLE' || t === 'SEARCHING' || t === '') && s.renderer.sparkles.markers.length === 0);
+      check(`HARD: the same walk tells the same story (${trace.join(' | ')}), with the sparkles (${s.renderer.sparkles.markers.length})`, took && first >= 0 && saysInOrder(trace, LINES.first, first + 1) && s.renderer.sparkles.markers.length === hintSpots(s.ram, s.vic).length);
     }
   }
 }
@@ -408,8 +408,8 @@ stubFetch(title);
 }
 
 {
-  // midnight (src/clock.ts): a save at 11:59 PM with its minute all but counted. ORIGINAL: at 12 he is lost, as the game has it.
-  // ENHANCED: the clock stops at 11:59 and play goes on; a save already at 12:00 plays on too, the clock back at 11:59.
+  // midnight (src/clock.ts): a save at 11:59 PM with its minute all but counted (the original: at 12 he is lost; ours, both modes: not).
+  // The clock stops at 11:59 and play goes on; a save already at 12:00 plays on too, the clock back at 11:59.
   const start = routeWalker({ port, title, routes: ROUTES, route: 0, cheat: alive }).at(3000);
   const clock = (r: Uint8Array) => [...r.subarray(0x07c5, 0x07ca)].map((c) => (c === 0x3a ? '0' : c === 0x3b ? ':' : String.fromCharCode(c))).join('');
   const atClock = (digits: number[]) => saved((r) => { r.set(digits, 0x07c5); r[0x3236] = r[0x3239] - 2; r[0x3237] = r[0x323a] - 1; }, start);
@@ -418,8 +418,7 @@ stubFetch(title);
       const s = await Session.launch(atClock([...digits]), enhanced);
       let lost = false;
       for (let f = 0; f < 600 && !lost; f++) { s.tick(); lost = s.ram[0x6ffd] !== 0 || !s.p.state.playing; }
-      if (enhanced) check(`ENHANCED, continued at ${name}: not lost at midnight, the clock at ${clock(s.ram)}`, !lost && clock(s.ram) === '11:59');
-      else check(`ORIGINAL, continued at ${name}: lost at midnight, as the game has it`, lost);
+      check(`${enhanced ? 'EASY' : 'HARD'}, continued at ${name}: not lost at midnight (both modes), the clock at ${clock(s.ram)}`, !lost && clock(s.ram) === '11:59');
     }
   }
   // the pause screen's count

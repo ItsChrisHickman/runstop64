@@ -2,7 +2,7 @@ import { cpu } from '../../shared/native/cpu';
 import * as engine from './gen/engine';
 
 /**
- * Thing on a Spring, ENHANCED: the original's play made kinder, so the factory can be played
+ * Thing on a Spring, ours: the original's play made kinder, so the factory can be played
  * through without wrestling Thing (the original is one switch away: ORIGINAL). One set, chosen
  * as a whole; each part is checked against the original by playing (test/assists.ts):
  *
@@ -57,7 +57,7 @@ function bounce(ram: Uint8Array, right: boolean) {
 export const ANIMATED_DRAWN = 0x5151;
 
 /**
- * ENHANCED: the poles (characters 0-2, which carry Thing up: $51DC) stand still until switch 3 ($0373)
+ * The poles (characters 0-2, which carry Thing up: $51DC) stand still until switch 3 ($0373)
  * powers them. The game animates them whether they work or not, and a dead one only stops his bounce,
  * so a moving pole that won't lift him looks like a glitch. Called at `ANIMATED_DRAWN`: the poles' three
  * characters go back to the first of the eight frames ($5183, a pointer per frame), the other seven
@@ -85,7 +85,7 @@ const open = (c: number) => c === 0x20 || c < 3 || (c >= 0x0a && c < 0x12) || c 
 /** A character that stops him sideways: a ledge to land on (not a doorway $32/$33, nor live wires). */
 const ledge = (c: number) => !open(c) && c !== 0x32 && c !== 0x33 && c !== 0x2e && c !== 0x31 && c !== 0x6a && c !== 0x6b;
 
-// ---- ENHANCED ----------------------------------------------------------------------------
+// ---- ours ----------------------------------------------------------------------------
 
 /** The fall, a step a frame ($486A, from the fall's start): the original's (up to 8), and a gentler one (up to 4). */
 export const FALL = [1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8];
@@ -118,7 +118,7 @@ function ontoLedge(ram: Uint8Array, right: boolean) {
   return true;
 }
 
-/** ENHANCED, with what it keeps between frames. */
+/** ours, with what it keeps between frames. */
 export function makeEnhanced() {
   let last = { air: false, standing: false };
   let sinceEdge = 99, asked = 99, askedRight = false;

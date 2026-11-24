@@ -269,11 +269,14 @@ SCOPE.section([ROOM.platform, ROOM.gum, ROOM.hall, ROOM.start], 'the costume, th
 SCOPE.section([], 'the pause screen\'s map', () => {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks (${info.join(' | ')})`, info[3] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[2] === panelLine('ITEMS', WORLD.progress.keyItems.length));
-  check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 4 && info.every((l) => l.length === 11));
+  check(`the pause screen counts the snacks (EASY: no lives; ${info.join(' | ')})`, info[2] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[1] === panelLine('ITEMS', WORLD.progress.keyItems.length));
+  check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 3 && info.every((l) => l.length === 11));
+  s.g.assist = { ...s.g.assist, lives: false };
+  const hard = montyMap.info(s.g, { rooms: {} });
+  check(`HARD: the lives first (${hard.join(' | ')})`, hard[0] === 'LIVES     5' && hard.length === 4 && hard.every((l) => l.length === 11));
   const motr = newGame(MOTR, true);
   const motrInfo = montyMap.info(motr.g, { rooms: {} });
-  check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[3]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));
+  check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[2]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));
   const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { 1: [0x15, 0xb2, 1, 1], 7: [0x15, 0xb2, 2, 1] } });
   check('the map shows the region he is in: its cells are large (16), the rooms he has been in are places to go', places.length === 3 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
 });

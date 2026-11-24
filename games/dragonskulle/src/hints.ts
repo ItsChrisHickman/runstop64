@@ -22,7 +22,7 @@ export const HINTS: Hint[] = [
   // turns up the cloak ($342E, then $63A2 gives the CLOAK icon, $3430)
   { room: 1, sprite: 7, until: [0x342e, 1], when: [[0x342f, 1]], what: 'dig here with the shovel: the cloak' },
   // the shovel's room (block $EF20): a stone on the shovel (sprite 6, $6235) takes it ($342F); in
-  // ENHANCED (where the hints show) so does touching it (src/shovel.ts)
+  // ours (where the hints show) so does touching it (src/shovel.ts)
   { room: 18, sprite: 6, until: [0x342f, 1], what: 'walk up to the shovel (or throw a stone at it)' },
   // the river screens (rooms 3, 4, 5: blocks $6000 and $CD50): a stone on the wizard walking along the far
   // bank (sprite 5) counts one towards the bridge ($343A, $343B, $343C), and the bridge is shut until the

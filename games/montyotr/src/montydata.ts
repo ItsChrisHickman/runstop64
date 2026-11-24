@@ -17,7 +17,7 @@ import type { TitleGame, TitleScreen, TitleSound } from './title';
  * (`c5`, `jetpackRooms`, `risingCloud`, `completion`): null or empty where a game has none.
  */
 
-/** The ENHANCED assists the engine knows (each game's `assists` says which it has). */
+/** The assists the engine knows (each game's `assists` says which it has). */
 export type AssistId = 'lives' | 'cloud' | 'jetpack' | 'c5' | 'rooms' | 'respawn' | 'hints';
 
 /** Original SFX numbers (Music.PlaySFX). */
@@ -374,7 +374,7 @@ export interface Costume {
 }
 
 /**
- * What ENHANCED's item hints say (shared/monty/hints.ts): a line in the place's name row, in the game's lettering. `take`: when
+ * What our item hints say (shared/monty/hints.ts): a line in the place's name row, in the game's lettering. `take`: when
  * special item `item` is picked up, what it is for. `wanted`: coming into `room` without the special item, what is wanted there.
  */
 export interface ItemHints {
@@ -503,16 +503,16 @@ export interface MontyData extends RoomTables, MontyLook {
   flashingBases: { room: number; row: number; cols: readonly number[] } | null;
   /** The rising bollard on a Mole Crusher's shaft: its room, screen row and column. */
   bollard: { room: number; row: number; col: number } | null;
-  /** The rising cloud (ENHANCED can ride it): its room, its sprite's x, its first screen column (three wide). */
+  /** The rising cloud (both modes can ride it): its room, its sprite's x, its first screen column (three wide). */
   risingCloud: { room: number; x: number; col: number } | null;
   c5: C5Street | null;
   /** Completion.Begin: what the treasure plays (the dock, the boat): a sequence for the engine to run; null: nothing. */
   completion: ((g: Game) => Seq) | null;
 
   // ---- the front end -----------------------------------------------------------------------------
-  /** The assists the game has (ENHANCED's switch and the pause screen list them, in this order after UNLIMITED LIVES). */
+  /** The assists the game has (our switch and the pause screen list them, in this order after UNLIMITED LIVES). */
   assists: readonly AssistId[];
-  /** ENHANCED's item hints (the assist `hints`); empty for a game with none. */
+  /** our item hints (the assist `hints`); empty for a game with none. */
   hints: ItemHints;
   /** The regions the map shows one at a time (a world too wide for the box); none: the whole grid. */
   regions: readonly MapRegion[];

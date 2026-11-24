@@ -1,7 +1,7 @@
 /**
  * The two looks of the picture. ORIGINAL is the Spectrum's screen exactly as the original makes it (display.ts): a sprite is
  * drawn into the bitmap, goes behind the scenery's ink, and shows in the ink of the cell it is over (the colour clash).
- * ENHANCED has no clash: the scenery is drawn without the sprites and each sprite is drawn over it, whole, in its colour
+ * ours has no clash: the scenery is drawn without the sprites and each sprite is drawn over it, whole, in its colour
  * (`SPRITE_INK`), like a C64 sprite. Both use the Spectrum's colours.
  */
 import { Display, pixelsOf, type SpritePlace } from './display';
@@ -11,7 +11,7 @@ import { spriteRows } from './sprite';
 export type Look = 'original' | 'enhanced';
 
 /**
- * The colour of every sprite in ENHANCED (0-15: `bright * 8 + colour`): bright white. The rule is "the colour the original usually shows
+ * The colour of every sprite in both modes (0-15: `bright * 8 + colour`): bright white. The rule is "the colour the original usually shows
  * it in", and it was measured: over 32,000 passes of the original (random players in every room, the bot through the whole game)
  * the ink under the pixels a sprite adds to the screen is bright white for 94 % of them, and the dominant colour of every one of the
  * 81 pictures seen in play (the others are the colour clash: the ink of a coloured cell it crosses). `re/colours.ts` measures it
@@ -35,7 +35,7 @@ export function spritePixel(image: Uint8Array, c: number, r: number): boolean {
   return (image[r * 2 + (c >> 3)] & (0x80 >> (c & 7))) !== 0;
 }
 
-/** The picture of a screen state as colour indexes, in a look. `plain` and `sprites` are only used by ENHANCED. */
+/** The picture of a screen state as colour indexes, in a look. `plain` and `sprites` are only used by ours. */
 export function paintPixels(look: Look, bits: Uint8Array, plain: Uint8Array, attrs: Uint8Array, sprites: readonly SpritePlace[], out: Uint8Array, flash = false): Uint8Array {
   if (look === 'original') return pixelsOf(bits, attrs, out, flash);
   pixelsOf(plain, attrs, out, flash);

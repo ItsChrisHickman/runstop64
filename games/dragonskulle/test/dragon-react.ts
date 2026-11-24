@@ -1,8 +1,8 @@
 /**
- * A dragon that is hit shows it (ENHANCED's ENEMIES SHOW HITS, games/shared/native/colour-cycle.ts, the `react` hook at $6561 of
- * the dragons' block): on a dragon's screen stones are thrown until one is counted ($676F up one). In ENHANCED the dragon's
+ * A dragon that is hit shows it (ENEMIES SHOW HITS, both modes, games/shared/native/colour-cycle.ts, the `react` hook at $6561 of
+ * the dragons' block): on a dragon's screen stones are thrown until one is counted ($676F up one). In both modes the dragon's
  * sprites (1, 4, 5, 6, 7) are drawn in other colours for some frames (the frame's capture; the tenth for longer, as it dies) and
- * then as the game set them, while the game's own colour registers are never touched; in ORIGINAL nothing is ever recoloured.
+ * then as the game set them, while the game's own colour registers are never touched.
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/dragon-react.ts /tmp/dragon-react
  */
@@ -26,7 +26,7 @@ if (outDir) fs.mkdirSync(outDir, { recursive: true });
 const DRAGON = [1, 4, 5, 6, 7];
 const dragonState = enter(9, 10);
 
-async function launch(state: MachineState, enhanced: boolean) {
+async function launch(state: MachineState, easy: boolean) {
   useMemoryStorage(new Map([['dragonskulle.save.v1', Buffer.from(packState(state)).toString('base64')]]));
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
@@ -35,7 +35,7 @@ async function launch(state: MachineState, enhanced: boolean) {
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
   continueFromTitle(p, input, tick); // (the title, ENTER CONTINUE, Enter)
   tick(160); // (the grace)
-  if (p.frontEnd.enhanced !== enhanced) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
+  if (p.frontEnd.easy !== easy) { tap('KeyP'); tap('KeyE'); tap('KeyP'); }
   const m = () => must(p.machine, 'a game');
   const alive = () => { const r = m().ram; r[0x1248] = 0; r[0x123e] = 0x14; r[0x3432] = 0; };
   /** One frame of throwing a stone from beneath the dragon, facing up. */
@@ -94,25 +94,22 @@ function after(g: Game, frames: number, flashedPng?: string, only: readonly numb
   return { flashed, regsMoved, bad, colours: colours.size };
 }
 
-for (const enhanced of [true, false]) {
-  const name = enhanced ? 'ENHANCED' : 'ORIGINAL';
-  const g = await launch(dragonState, enhanced);
-  check(`${name}: the switch`, g.p.frontEnd.enhanced === enhanced);
-  const hit = untilHit(g, outDir && enhanced ? `${outDir}/dragon-normal.png` : undefined);
+for (const easy of [true, false]) {
+  const name = easy ? 'EASY' : 'HARD';
+  const g = await launch(dragonState, easy);
+  check(`${name}: the switch`, g.p.frontEnd.easy === easy);
+  const hit = untilHit(g, outDir && easy ? `${outDir}/dragon-normal.png` : undefined);
   check(`${name}: a stone is counted on the dragon (${hit ? `after ${hit.frame} frames` : 'never'}, sprites: ${hit?.before.map((s) => `${s.n}:${s.shown}`).join(' ')})`, hit !== null && hit.before.length >= 4);
   if (!hit) continue;
   check(`${name}: before it, the dragon is drawn in the colours the game set`, hit.before.every((s) => s.shown === s.reg));
   const events = g.p.combat?.events ?? [];
-  check(`${name}: the combat events of the frame: ${events.map((e) => e.kind).join(', ') || 'none'}${enhanced ? ' (a react)' : ''}`, events.some((e) => e.kind === 'react') === true);
-  const r = after(g, HIT_CYCLE.colours.length + 12, outDir && enhanced ? `${outDir}/dragon-flashed.png` : undefined);
-  if (enhanced) {
-    check(`ENHANCED: the dragon is drawn in other colours for ${r.flashed} frames (${HIT_CYCLE.colours.length} in the cycle), through ${r.colours} colours, every part of it`, r.flashed >= HIT_CYCLE.colours.length - 2 && r.flashed <= HIT_CYCLE.colours.length + 1 && r.colours >= 3 && r.bad === 0);
-    check('ENHANCED: its colour registers were never touched', r.regsMoved === 0);
-    const end = g.drawn();
-    check('ENHANCED: afterwards it is drawn as the game set it', end.length > 0 && end.every((s) => s.shown === s.reg && s.mc[0] !== 0xff));
-  } else {
-    check(`ORIGINAL: never recoloured (${r.flashed} frames) and no colour register touched`, r.flashed === 0 && r.regsMoved === 0);
-  }
+  check(`${name}: the combat events of the frame: ${events.map((e) => e.kind).join(', ') || 'none'} (a react)`, events.some((e) => e.kind === 'react') === true);
+  const r = after(g, HIT_CYCLE.colours.length + 12, outDir && easy ? `${outDir}/dragon-flashed.png` : undefined);
+  // (both modes: the dragon showing its hits is ours, on in both)
+  check(`${name}: the dragon is drawn in other colours for ${r.flashed} frames (${HIT_CYCLE.colours.length} in the cycle), through ${r.colours} colours, every part of it`, r.flashed >= HIT_CYCLE.colours.length - 2 && r.flashed <= HIT_CYCLE.colours.length + 1 && r.colours >= 3 && r.bad === 0);
+  check(`${name}: its colour registers were never touched`, r.regsMoved === 0);
+  const end = g.drawn();
+  check(`${name}: afterwards it is drawn as the game set it`, end.length > 0 && end.every((s) => s.shown === s.reg && s.mc[0] !== 0xff));
 
   // the tenth: the head flashes as any hit's (the game's own death then cycles the body's colours, as it always did)
   g.m().ram[HITS] = 9;
@@ -120,8 +117,8 @@ for (const enhanced of [true, false]) {
   check(`${name}: the tenth stone is counted`, tenth !== null);
   if (tenth) {
     const d = after(g, HIT_CYCLE.colours.length + 60, undefined, [1]);
-    check(enhanced ? `ENHANCED: the tenth shows on the head for ${d.flashed} frames, then the game's own death goes on` : `ORIGINAL: the tenth recolours not the head (${d.flashed})`,
-      enhanced ? d.flashed >= HIT_CYCLE.colours.length - 2 && d.flashed <= HIT_CYCLE.colours.length + 1 && d.regsMoved === 0 : d.flashed === 0);
+    check(`${name}: the tenth shows on the head for ${d.flashed} frames, then the game's own death goes on`,
+      d.flashed >= HIT_CYCLE.colours.length - 2 && d.flashed <= HIT_CYCLE.colours.length + 1 && d.regsMoved === 0);
   }
 }
 

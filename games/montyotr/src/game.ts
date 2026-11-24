@@ -47,7 +47,7 @@ export type { MontyInput as Input } from '../../shared/monty/body';
 
 export type { Sound };
 
-/** ENHANCED's changes to how the game plays (QOL.md). */
+/** our changes to how the game plays (QOL.md). */
 export interface Assists {
   /** Unlimited lives and continues (shared/lives.ts): a death takes no life. */
   lives: boolean;
@@ -91,7 +91,7 @@ export class Game implements MontyBody, MontyWorld {
   readonly mem = this.vic.bank;
   readonly col = this.vic.colour;
   sound: Sound = { sfx() {}, song() {}, stop() {} };
-  /** ENHANCED's assists (off by default so the original stays the original). */
+  /** our assists (off by default so the original stays the original). */
   assist: Assists = { lives: false, cloud: false, jetpack: false, c5: false, rooms: false, respawn: false };
   /** Optional hook for QOL features (map, warp) to learn where rooms are entered. */
   onRoomLoaded: (g: Game) => void = () => {};
@@ -108,7 +108,7 @@ export class Game implements MontyBody, MontyWorld {
   cheatMode = 0;
   /** Whether a moment's grace is on (the front end's, main.ts): he can't be killed. */
   graceActive: () => boolean = () => false;
-  /** A death has put him back (ENHANCED): the front end starts a moment's grace. */
+  /** A death has put him back (both modes): the front end starts a moment's grace. */
   onRestart: () => void = () => {};
   /** A running scripted sequence (death, completion, game over): advanced once per frame. */
   script: Generator<void, void, void> | null = null;
@@ -240,7 +240,7 @@ export class Game implements MontyBody, MontyWorld {
   flightResting = false;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
-  /** The line in the name row, and for how long (ENHANCED's hints). */
+  /** The line in the name row, and for how long (our hints). */
   hint: HintState = noHint();
   c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
   /** The C5 as it came into this room (with savedX, savedY: where a death in the room starts again). */
@@ -401,12 +401,19 @@ export class Game implements MontyBody, MontyWorld {
   // ---- HUD (original HUD.Init / HUD.Update) --------------------------------------
 
   drawHudFrame() {
-    drawHudFrame(this, this.score, this.hiScore, this.lives);
+    this.hudLives = this.livesShown;
+    drawHudFrame(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
   }
 
   drawHudData() {
-    drawHudData(this, this.score, this.hiScore, this.lives);
+    this.hudLives = this.livesShown;
+    drawHudData(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
   }
+
+  /** Whether the score row shows the lives: in HARD (EASY's unlimited lives have none to count: shared/lives.ts). */
+  get livesShown() { return !this.assist.lives; }
+  /** Whether the score row was last drawn with the lives (the switch can change on the pause screen: drawn again then). */
+  private hudLives = true;
 
   // ---- the frame: original GameFrameUpdate ----------------------------------------
 
@@ -439,6 +446,7 @@ export class Game implements MontyBody, MontyWorld {
 
   /** One 50 Hz frame. `collisions` = sprite-sprite collision bits from the last drawn frame. */
   frame(collisions: number) {
+    if (this.hudLives !== this.livesShown) this.drawHudData();
     this.frameToggle ^= 1;
     this.processSprites(collisions);
     if (!this.freeze) {
@@ -769,14 +777,14 @@ export class Game implements MontyBody, MontyWorld {
     else this.displayLine(0, line);
   }
 
-  /** ENHANCED's hint on coming into a room that wants a thing he does not have (once the name has had its moment). */
+  /** our hint on coming into a room that wants a thing he does not have (once the name has had its moment). */
   private hintWanted() {
     if (!this.assist.hints) return;
     const want = this.data.hints.wanted.find((w) => w.room === this.roomId && !this.siCollected[w.item]);
     if (want) say(this.hint, want.text, NAME_FRAMES);
   }
 
-  /** ENHANCED's hint on taking a special item: what it is for. */
+  /** our hint on taking a special item: what it is for. */
   noteTaken(item: number) {
     if (!this.assist.hints) return;
     const hint = this.data.hints.take.find((h) => h.item === item);
@@ -997,7 +1005,7 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /**
-   * Back to where Monty came into the room (as the original). ENHANCED (assist respawn): in the room he died in, exactly where
+   * Back to where Monty came into the room (as the original). ours (assist respawn): in the room he died in, exactly where
    * and how he came in; if that way in is deadly (it drops into danger) the nearest place in the room he can stand; and a
    * moment's grace (`onRestart`). Never in another room.
    */
@@ -1023,7 +1031,7 @@ export class Game implements MontyBody, MontyWorld {
   get endingLeavable() { return !!this.completionActive && !!this.ending && !this.ending.aboard && !!this.script; }
 
   /**
-   * Away from the ending before he's aboard (travel; ENHANCED or not, as travel is): what
+   * Away from the ending before he's aboard (travel; ours or not, as travel is): what
    * Completion.Begin set undone, as it stood in play before (and as RoomLoop's transition and
    * LoadRoom set it again for the room he's taken to): the sequence stopped, no event pending, the
    * boat's and the flag's sprites off, not expanded, in front of the characters, hi-res, the

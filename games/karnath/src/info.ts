@@ -22,7 +22,7 @@ export const info = {
     <p>Added for runstop64: progress is saved each time you enter a room (coming back carries on where you were; T on the pause screen goes to the title), and
     after losing you can continue from the last screen you came onto, with full health. P (or the gear) shows a map of where you've
     been. Fights get effects over the picture and sounds of their own (enemies destroyed burst into pixels, a hurt flashes
-    red), and there are optional assists (O on the pause screen): 8-way controls, safe for a moment after a hit,
+    red). EASY (on unless you switch to HARD with E on the pause screen): when your energy runs out you are back at the start of the room with full health; HARD: that ends the game, as in the original. In both: 8-way controls, safe for a moment after a hit,
     knockback, hit-stop, Pendragon drawn as he is in Dragonskulle, and hints: sparkles on the pieces of the pentacle and on the way a piece carried goes (down to the dungeons, through their far door, to the obelisk at the far left of Karn's abode), Pendragon saying where on the status line (and the staff to destroy at the end), a count of the pieces laid on the pause screen. Beating the game earns an ending after the game's own (a montage of the castle's rooms with Pendragon casting and running through them, its creatures walking through them, THE END; W on the pause screen shows it again once you've won). The full list is in
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/karnath/QOL.md">QOL.md</a>.</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">github.com/ItsChrisHickman/runstop64</a></p>

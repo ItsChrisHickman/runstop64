@@ -22,6 +22,6 @@ check(`the description is two or three short sentences (${sentences.length})`, s
 check('it says: ZX Spectrum only, rebuilt from the original program, beeper sound, no clash',
   description !== null && ['ZX Spectrum', 'rebuilt from the original program', 'beeper', 'own colours', 'colour clash'].every((s) => description[0].includes(s)));
 check('it is in the registry, as the directory lists it', GAMES.some((g) => g.id === 'montymole' && g.name === 'WANTED MONTY MOLE'));
-check('it gives the controls (arrows, WASD, Space, Z, X, gamepad, pause, mute) and the changes, with the log', ['arrows or WASD', 'Space jumps', 'Z, X', 'gamepad', 'P or Esc pauses', 'M mutes', 'Changes from the original', 'QOL.md', 'ENHANCED'].every((s) => info.html.includes(s)));
+check('it gives the controls (arrows, WASD, Space, Z, X, gamepad, pause, mute) and the changes, with the log', ['arrows or WASD', 'Space jumps', 'Z, X', 'gamepad', 'P or Esc pauses', 'M mutes', 'Changes from the original', 'QOL.md', 'EASY'].every((s) => info.html.includes(s)));
 check('it names no original key', !/Kempston|Q up|A down|O left|P right/.test(text));
 finish();

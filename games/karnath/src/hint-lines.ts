@@ -1,5 +1,5 @@
 /**
- * What Pendragon says on the status line in ENHANCED's hints (src/guide.ts says which when;
+ * What Pendragon says on the status line in our hints (src/guide.ts says which when;
  * games/shared/native/narrate.ts shows it). Every word is here, so the wording can change without touching
  * the logic.
  *

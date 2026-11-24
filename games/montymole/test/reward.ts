@@ -1,5 +1,5 @@
 /**
- * The reward for winning Wanted: Monty Mole (ENHANCED: src/ending.ts on shared/ending/show.ts), headless, no original needed:
+ * The reward for winning Wanted: Monty Mole (both modes: src/ending.ts on shared/ending/show.ts), headless, no original needed:
  *
  *  1. every room's route (re/ending/route.ts: the test suite's bot's keys, found on a `SteadyGame`) played again does what the room asks, alive: every piece of the room's coal
  *     is taken, a gate's room opens its gate, and the way on is taken; played twice it is the same game;
@@ -9,8 +9,8 @@
  *  3. the credits: the status rows (the score, the lives) are put away, black in every frame of every room before the text goes over them, every line types on in the top row
  *     letter by letter in bright yellow, is held and goes, the port's lines last;
  *  4. a key skips it, after two seconds and not before;
- *  5. in the session: the game's own ending in ENHANCED is followed by the show (and the win kept), over the title it goes back to; ORIGINAL has none (the win is kept all the
- *     same); W on the pause screen once won (ENHANCED only); `?ending` runs it at once.
+ *  5. in the session: the game's own ending is followed by the show (and the win kept), over the title it goes back to, in EASY and in HARD;
+ *     W on the pause screen once won; `?ending` runs it at once.
  *
  *   nice -n 15 node tools/test.mjs games/montymole/test/reward.ts [out-dir]
  *
@@ -221,7 +221,7 @@ function win(s: Awaited<ReturnType<typeof session>>) {
 }
 {
   const s = await session(new Map());
-  check('ENHANCED by default, not won yet', s.p.state.enhanced && !readWon('montymole'));
+  check('EASY by default, not won yet', s.p.state.easy && !readWon('montymole'));
   const onVerse = win(s);
   check('the ending is the game\'s own verse, as it was, and the win is kept', onVerse && readWon('montymole'));
   check('then the show, over the title the verse goes back to', !!s.p.reward?.active && s.p.state.phase === 'title');
@@ -248,12 +248,14 @@ function win(s: Awaited<ReturnType<typeof session>>) {
   check('and back at the title', !s.p.reward?.active && s.p.state.phase === 'title');
 }
 {
-  // ORIGINAL: the game as it was: the verse, no show, the win kept; W not offered
-  const s = await session(new Map([['montymole.assist', JSON.stringify({ enhanced: false })]]));
-  check('ORIGINAL chosen', !s.p.state.enhanced);
+  // HARD: the same show (it is in both modes)
+  const s = await session(new Map([['montymole.assist', JSON.stringify({ easy: false })]]));
+  check('HARD chosen', !s.p.state.easy);
   const onVerse = win(s);
-  s.tick(60);
-  check('ORIGINAL: the verse, no show after it, the win kept all the same', onVerse && !s.p.reward?.active && s.p.state.phase === 'title' && readWon('montymole'));
+  check('HARD: the verse, then the show, the win kept', onVerse && !!s.p.reward?.active && readWon('montymole'));
+  let n = 0;
+  while (s.p.reward?.active && n++ < 9000) s.tick();
+  s.tick(30);
   s.tap('Space');
   await new Promise((r) => setTimeout(r, 0));
   s.tick(10);
@@ -263,7 +265,7 @@ function win(s: Awaited<ReturnType<typeof session>>) {
   s.tick(6);
   s.tap('KeyP');
   s.tap('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !s.p.reward?.active);
+  check('HARD: W on the pause screen watches it', !!s.p.reward?.active);
 }
 void store;
 finish();

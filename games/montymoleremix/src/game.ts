@@ -107,7 +107,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   assist: Assists = { lives: false, loops: false };
   /** Whether a moment's grace is on (the front end's): he can't be killed. */
   graceActive: () => boolean = () => false;
-  /** A death has put him back (ENHANCED): the front end starts a moment's grace. */
+  /** A death has put him back (both modes): the front end starts a moment's grace. */
   onRestart: () => void = () => {};
   onRoomLoaded: (g: RemixGame) => void = () => {};
 
@@ -256,7 +256,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.dirLeft = o.dirLeft; this.dirRight = o.dirRight; this.dirUp = o.dirUp; this.dirDown = o.dirDown;
     this.upSteps = o.upSteps; this.downSteps = o.downSteps; this.animTimer = o.animTimer; this.ticker = o.ticker;
     this.stateCur = o.stateCur; this.statePrev = o.statePrev;
-    this.score = o.score; this.lives = o.lives; this.hiScore = o.hiScore;
+    this.score = o.score; this.lives = o.lives; this.hiScore = o.hiScore; this.hudLives = o.hudLives;
     this.sptr.set(o.sptr); this.enable = o.enable; this.collisionStore = o.collisionStore; this.passes = o.passes; this.shown = o.shown; this.carrierBits = o.carrierBits;
     o.coal.flags.forEach((f, i) => { this.coal.flags[i] = f; });
     this.entities.length = o.entities.length;
@@ -363,22 +363,34 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
     this.roomId = scene ? OPENING_ROOM : 0;
     this.x2 = scene ? (SCENE_START_X + VIC_LEFT) >> 1 : ROOM0_START_X2;
     this.y = scene ? VIC_TOP + SCENE_PATH_ROW * 8 : ROOM0_START_Y;
-    drawHudFrame(this, this.score, this.hiScore, this.lives);
+    this.hudLives = this.livesShown;
+    drawHudFrame(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
     this.roomExit = 1; // the main thread loads the first room
     this.freeze = 1;
   }
+
+  /** The score row's numbers (the lives in HARD only: EASY has none to count, shared/lives.ts). */
+  drawHudData(): void {
+    this.hudLives = this.livesShown;
+    drawHudData(this, this.score, this.hiScore, this.hudLives ? this.lives : null);
+  }
+
+  /** Whether the score row shows the lives: in HARD (EASY's unlimited lives have none to count). */
+  get livesShown(): boolean { return !this.assist.lives; }
+  /** Whether the score row was last drawn with the lives (the switch can change on the pause screen: drawn again then). */
+  private hudLives = true;
 
   /** `score` (Wanted's coal worth) and the high score. */
   addScore(points: number): void {
     this.score += points;
     if (this.score > this.hiScore) this.hiScore = this.score;
-    drawHudData(this, this.score, this.hiScore, this.lives);
+    this.drawHudData();
   }
 
   sfx(id: number, onlyWithoutMusic = false): void { this.sound.sfx(id, onlyWithoutMusic); }
 
   /**
-   * A line of text under the room, in the score row's letters (the rows under the room are empty: Wanted's rooms have no names). ENHANCED's
+   * A line of text under the room, in the score row's letters (the rows under the room are empty: Wanted's rooms have no names). ours's
    * coal count. A room's loading clears it, so the front end puts it back every frame; null: none.
    */
   note(text: string | null): void {
@@ -394,6 +406,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
 
   /** One 50 Hz frame. `collisions` = sprite-sprite collision bits from the last drawn frame. */
   frame(collisions: number): void {
+    if (this.hudLives !== this.livesShown) this.drawHudData();
     this.frameToggle ^= 1;
     this.processSprites(collisions);
     if (!this.freeze) {
@@ -1136,7 +1149,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   private *death(kind: DeathKind): Seq {
     yield* dissolveDeath(this, kind);
     this.lives = afterLoss(this.lives, this.assist.lives);
-    drawHudData(this, this.score, this.hiScore, this.lives);
+    this.drawHudData();
     if (this.lives > 0) {
       this.respawn();
       return;
@@ -1146,7 +1159,7 @@ export class RemixGame implements MontyBody, MontyWorld, DissolveStage {
   }
 
   /**
-   * Back to where Monty came into the room, the creatures and the coal as the room had them. ENHANCED (no death loops): in the room he
+   * Back to where Monty came into the room, the creatures and the coal as the room had them. ours (no death loops): in the room he
    * died in, exactly where and how he came in (if that way in is deadly, the nearest place he can stand), and a
    * moment's grace: never in another room.
    */

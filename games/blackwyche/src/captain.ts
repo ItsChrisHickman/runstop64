@@ -1,5 +1,5 @@
 /**
- * THE CAPTAIN'S BLOW COUNTS ONCE (an ENHANCED assist). The captain's soul (room $0C, block $FB20,
+ * THE CAPTAIN'S BLOW COUNTS ONCE (an assist of ours). The captain's soul (room $0C, block $FB20,
  * sprite 4 in the skull's eye) is freed by one blow of the sword: $622B stores 1 in $633B (the
  * end's state: 1 the soul flashes and a note rises, 2 it floats up, 3 it is gone, then $342C = 2).
  * But the block checks the sword's contact every frame ($620C) and stores that 1 again whatever
@@ -10,8 +10,8 @@
  * next swing putting it back again. Keep swinging, as anyone does at something that doesn't fall,
  * and it never ends.
  *
- * In ENHANCED the store is made a no-op once the end has begun (at the hook, as the other
- * ENHANCED rules of the game's code are made: games/dragonskulle/src/shovel.ts): the first blow
+ * In both modes the store is made a no-op once the end has begun (at the hook, as the other
+ * ours rules of the game's code are made: games/dragonskulle/src/shovel.ts): the first blow
  * counts, the end runs its course (the note rises $07 to $20 and stops), and the rest is as it was.
  */
 import { cpu } from '../../shared/native/cpu';

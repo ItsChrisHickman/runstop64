@@ -1,5 +1,5 @@
 /**
- * TRAPDOORS STAY OPEN (an ENHANCED assist): a trapdoor that has given way under Pendragon shows
+ * TRAPDOORS STAY OPEN (an assist of ours): a trapdoor that has given way under Pendragon shows
  * as the hole it became each time he comes back to that cabin, so he can see it and go round
  * (or jump over) it. The hole is still a hole: the cabin's block drops him through it as before.
  *

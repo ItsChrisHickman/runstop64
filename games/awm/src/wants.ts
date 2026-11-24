@@ -4,7 +4,7 @@ import type { Game } from './game';
 
 /**
  * What the game asks for, in one place: the rooms and creatures that take a thing from him. The CARRYING page says what each
- * thing is for from this, and ENHANCED's item hints (hints.ts) say where a thing goes, what a room wants and what a handover paid.
+ * thing is for from this, and our item hints (hints.ts) say where a thing goes, what a room wants and what a handover paid.
  */
 
 /** A delivery: the room that wants an item, what it pays and how it counts. */

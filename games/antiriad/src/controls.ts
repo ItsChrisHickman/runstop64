@@ -8,10 +8,10 @@ export interface Pad {
   up: boolean; down: boolean; left: boolean; right: boolean;
   /** FIRE: a stone, or the Pulsar Beam in the armour (the original's one button in ORIGINAL). */
   fire: boolean;
-  /** ENHANCED's JUMP button, held, and a press of it since the last frame (the game reads the stick only every 7th frame, so a tap is kept until it does). */
+  /** our JUMP button, held, and a press of it since the last frame (the game reads the stick only every 7th frame, so a tap is kept until it does). */
   jump: boolean;
   jumpTap: boolean;
-  /** ENHANCED's C: fill the armour from a stored recharge cell. */
+  /** our C: fill the armour from a stored recharge cell. */
   cell: boolean;
 }
 
@@ -29,7 +29,7 @@ function joystickByte(p: Pad): number {
 }
 
 /**
- * Give the game a frame's input (ENHANCED: fire and jump apart, and C for a stored cell; ORIGINAL: the one button, which
+ * Give the game a frame's input (fire and jump apart, and C for a stored cell; ORIGINAL: the one button, which
  * the caller passes as `fire`). The keyboard stays as it is: the caller sets what it wants (R's restart).
  */
 export function giveControls(g: Game, pad: Pad, enhanced: boolean) {

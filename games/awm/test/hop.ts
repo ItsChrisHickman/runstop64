@@ -1,8 +1,8 @@
 /**
- * Auf Wiedersehen Monty's ENHANCED quick plane hop, headless (c64kit stood in by games/shared/test/kit.ts). ENHANCED: boarding a
+ * Auf Wiedersehen Monty's quick plane hop (both modes), headless (c64kit stood in by games/shared/test/kit.ts). Boarding a
  * plane is a cutscene of about 200 frames in the flight's own sky: his biplane crosses it from the left edge to the right edge, no
  * other plane is shown, the controls are ignored (a press does not leak into the landing), and he lands where a completed
- * flight lands him, a ticket spent, lives and score as they were. ORIGINAL: the full flight (about 2000 frames, the other plane
+ * flight lands him, a ticket spent, lives and score as they were. The original's full flight, kept in the program (about 2000 frames, the other plane
  * shown), landing in the same place. With an out-dir: the cutscene's first, middle and last frames.
  *
  *   nice -n 15 node tools/test.mjs games/awm/test/hop.ts [out-dir]
@@ -41,7 +41,7 @@ function shot(name: string) {
   indicesPng(path.join(outDir, `${name}.png`), px, 320, 200);
 }
 
-/** Tickets he holds (a count in ENHANCED, hands in ORIGINAL). */
+/** Tickets he holds (a count with carry anything, in both modes; hands by the original's rules). */
 const tickets = (g: Game): number => g.items.tickets + g.items.carried.filter((t) => t === TICKET).length;
 /** The sprites the current frame shows, by number. */
 const sprites = () => program.capture.sprites;
@@ -75,9 +75,9 @@ function board() {
   return before;
 }
 
-// ---- ENHANCED (the default) ---------------------------------------------------------------------------------------
+// ---- EASY (the default) -------------------------------------------------------------------------------------------
 {
-  check('ENHANCED (the default): QUICK PLANE HOP is on', p.frontEnd.enhanced && p.frontEnd.assist.hop === true);
+  check('EASY (the default): QUICK PLANE HOP is on', p.frontEnd.easy && p.frontEnd.assist.hop === true);
   const before = board();
   check('boarding: in the air, a ticket spent', program.flying && tickets(game()) === before.tickets - 1);
   const xs: number[] = [];
@@ -112,10 +112,18 @@ function board() {
   check('and the room is saved to carry on from', p.state.roomCount >= 1);
 }
 
-// ---- ORIGINAL: the full flight ------------------------------------------------------------------------------------
+// ---- HARD: the quick hop too (it is in both modes) -----------------------------------------------------------------
 {
   tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
-  check('E: ORIGINAL, the hop is off', !p.frontEnd.enhanced && p.frontEnd.assist.hop === false);
+  check('E: HARD, the hop is still on', !p.frontEnd.easy && p.frontEnd.assist.hop === true);
+  tap('KeyP'); tick(3); tap('KeyE'); tap('KeyP'); tick(3);
+}
+
+// ---- the original's full flight (kept in the program; in play every flight is the hop: turned off here, as only a test does) ----
+{
+  const hop = program.quickHop, free = program.flightFree;
+  program.quickHop = () => false;
+  program.flightFree = () => false; // (he has stood where it lands: that flight would be free)
   const g = game();
   g.placeAt({ room: FROM, x: 0xb8, y: 0x68, state: State.Free, step: 0 });
   g.items.give(TICKET);
@@ -131,15 +139,17 @@ function board() {
     frames++;
   }
   tick(4);
-  check(`ORIGINAL: the full flight (${frames} frames), the other plane shown`, frames > 1900 && enemy);
-  check(`ORIGINAL: one ticket spent (${tickets(g)})`, tickets(g) === n0 - 1);
+  check(`the original's flight: the full flight (${frames} frames), the other plane shown`, frames > 1900 && enemy);
+  check(`the original's flight: one ticket spent (${tickets(g)})`, tickets(g) === n0 - 1);
   const crashed = g.world.room !== TO;
   if (!crashed) {
     const where = firstPlane(TO);
-    check('ORIGINAL: landed in the same place as the hop', g.monty.x === where.x && g.monty.y === where.y);
+    check("the original's flight: landed in the same place as the hop", g.monty.x === where.x && g.monty.y === where.y);
   } else {
-    check('ORIGINAL: shot down, back where he boarded (the flight, as it was)', g.world.room === FROM);
+    check("the original's flight: shot down, back where he boarded (the flight, as it was)", g.world.room === FROM);
   }
+  program.quickHop = hop;
+  program.flightFree = free;
 }
 
 finish();

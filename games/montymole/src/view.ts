@@ -4,7 +4,7 @@
  *
  * ORIGINAL puts the game's screen on the surface once a pass (25 a second in the rooms, 50 in the opening), nothing else: the sprites are in it, over the scenery, in
  * the colour of the cells they are over (the colour clash).
- * ENHANCED puts the scenery (the screen without the sprites: scenery.ts) on the surface and the sprites on the renderer, each whole in one colour, and moves them
+ * ours puts the scenery (the screen without the sprites: scenery.ts) on the surface and the sprites on the renderer, each whole in one colour, and moves them
  * smoothly between the passes the way Moley Christmas's view does (c64kit's `Smoothed`): the logic steps once in two frames, so the view is told the step (`ViewStep`:
  * `fresh` in the frame the step happened, `frames` how long it lasts) and glides across all of it, at whatever rate `render(alpha)` is called. The logic is not touched.
  */
@@ -43,7 +43,7 @@ interface Slot {
 const SLOTS = 7;
 
 /**
- * Where ENHANCED's count of the coal to the next gate goes: the top row, to the right of the score (the game prints SCORE: and five digits in columns 0 to 11, and leaves
+ * Where our count of the coal to the next gate goes: the top row, to the right of the score (the game prints SCORE: and five digits in columns 0 to 11, and leaves
  * the rest of the two rows empty), in the game's own letters, bright yellow on black like its other lines (colours in the cells: no box), set on the picture the way the
  * game sets its score line (`drawLine`).
  */
@@ -51,7 +51,7 @@ export const COUNT_LINE = { column: 14, pixelRow: 188, colour: 0x46, attrRow: 0 
 
 export class MontyView {
   look: Look;
-  /** ENHANCED's line of text in the status rows (hints.ts `coalCount`), or null for none. It is on the surface only: the game's own screen is not touched. */
+  /** our line of text in the status rows (hints.ts `coalCount`), or null for none. It is on the surface only: the game's own screen is not touched. */
   count: string | null = null;
   private readonly countAttrs = new Uint8Array(768);
   private readonly countBits = new Uint8Array(6144);
@@ -108,7 +108,7 @@ export class MontyView {
 
   /**
    * What a step of the flow (flow.ts) shows, on the frame `into` of its `step.frames` (0 the first): a held picture is drawn on the first frame, the game as it is with its
-   * sprites gliding across a pass (ENHANCED) on each. `repaint`: a held picture is drawn on every frame (a front end that draws over the surface, as the pause screen does,
+   * sprites gliding across a pass (both modes) on each. `repaint`: a held picture is drawn on every frame (a front end that draws over the surface, as the pause screen does,
    * needs the picture back).
    */
   present(step: FlowStep, into: number, repaint = false): void {

@@ -1,7 +1,8 @@
 /**
- * ENHANCED's tally (src/main.ts `PLAY_LAYOUTS`, src/rules.ts `tally`): on a river screen the wizards killed of those its
+ * The tally (both modes; src/main.ts `PLAY_LAYOUTS`, src/rules.ts `tally`): on a river screen the wizards killed of those its
  * bridge wants, on a dragon's the hits of ten, read off the picture as shown, in the status line where HIGH SCORE is; the
- * faces kept; gone once the bridge is open or the dragon dead; never in ORIGINAL. With an out-dir, pictures of it.
+ * faces kept (in EASY the faces to come left out, the tally the same); gone once the bridge is open or the dragon dead; never
+ * out of play. With an out-dir, pictures of it.
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/tally.ts [out-dir]
  */
@@ -19,9 +20,9 @@ const outDir = process.argv[2];
 if (outDir) fs.mkdirSync(outDir, { recursive: true });
 
 type Player = ReturnType<typeof native>;
-/** The layout the front end shows for this frame (the first whose `when` holds). */
-function shown(p: Player, enhanced: boolean): PictureLayout | null {
-  const l = PLAY_LAYOUTS.find((x) => x.when(p.host.m, enhanced));
+/** The layout the front end shows for this frame (the first whose `when` holds), in play or not, in HARD unless `easy`. */
+function shown(p: Player, playing: boolean, easy = false): PictureLayout | null {
+  const l = PLAY_LAYOUTS.find((x) => x.when(p.host.m, playing, { lives: easy }));
   if (!l) return null;
   return typeof l.picture === 'function' ? l.picture(p.ram) : l.picture;
 }
@@ -60,9 +61,10 @@ for (const river of RIVERS) {
   const px = picture(p, shown(p, true));
   shot(`river-${river.room}`, px);
   const text = rowText(p, px, 16), need = river.room === 3 ? 10 : river.room === 4 ? 15 : 20;
-  check(`room ${river.room}'s river, ENHANCED: "${text}" where HIGH SCORE was (want WIZARDS 3 OF ${need})`, text === `WIZARDS 3 OF ${need}`);
+  check(`room ${river.room}'s river, in play: "${text}" where HIGH SCORE was (want WIZARDS 3 OF ${need})`, text === `WIZARDS 3 OF ${need}`);
+  check(`room ${river.room}'s river, EASY: the same tally`, rowText(p, picture(p, shown(p, true, true)), 16) === text);
   check(`room ${river.room}: SCORE and the faces as they were`, rowText(p, px, 0) === rowText(p, plain, 0) && faces(px) === faces(plain) && rowText(p, plain, 0).startsWith('SCORE'));
-  check(`room ${river.room}, ORIGINAL: HIGH SCORE as the game has it ("${rowText(p, picture(p, shown(p, false)), 16)}")`, rowText(p, picture(p, shown(p, false)), 16).startsWith('HIGH SCORE'));
+  check(`room ${river.room}, out of play: HIGH SCORE as the game has it ("${rowText(p, picture(p, shown(p, false)), 16)}")`, rowText(p, picture(p, shown(p, false)), 16).startsWith('HIGH SCORE'));
   p.ram[river.counter] = BRIDGE_OPEN;
   check(`room ${river.room}, the bridge open: HIGH SCORE back`, rowText(p, picture(p, shown(p, true)), 16).startsWith('HIGH SCORE'));
 }
@@ -76,7 +78,7 @@ for (const river of RIVERS) {
   const px = picture(p, shown(p, true));
   shot(`dragon-${d.room}`, px);
   const text = rowText(p, px, 16);
-  check(`the dragon of room ${d.room}, ENHANCED: "${text}" (want DRAGON HITS 4 OF 10)`, text === 'DRAGON HITS 4 OF 10');
+  check(`the dragon of room ${d.room}, in play: "${text}" (want DRAGON HITS 4 OF 10)`, text === 'DRAGON HITS 4 OF 10');
   p.ram[d.flag] = 1;
   check(`the dragon dead: HIGH SCORE back`, rowText(p, picture(p, shown(p, true)), 16).startsWith('HIGH SCORE'));
 }

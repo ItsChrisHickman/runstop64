@@ -27,7 +27,7 @@ import { Abandon, Entity, ENTITY_COUNT, type Death, type Sprite, type Stage, typ
 export const START_LIVES = 5;
 
 /**
- * What ENHANCED changes in the logic and the picture (the front end sets it from its switch; ORIGINAL is all off, and then nothing here
+ * Our changes to the logic and the picture (the front end has them all on; off, the original's rules, as the lockstep has them, and then nothing here
  * is looked at, which test/lockstep.ts proves). `airSteering`: left and right keep working in a jump and in a fall (the original fixes
  * the direction at take-off). `itemCount`: the number of items left shows in the HUD's pocket box (display.ts).
  */
@@ -134,7 +134,7 @@ export class Game implements Stage, Outside {
   first = false;
   /** who hears of the picture's moments (the display), if anyone */
   observer: Observer | null = null;
-  /** ENHANCED's changes, all off */
+  /** our changes, all off */
   readonly enhanced: Enhancements = { airSteering: false, itemCount: false, unlimitedLives: false };
   /**
    * A moment's grace (games/shared/grace.ts): a death while it holds is not suffered but turned into a fresh start of the room with the life

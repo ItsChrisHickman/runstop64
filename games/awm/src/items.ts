@@ -7,7 +7,7 @@
  * effects (a life, a random bonus, death), and the rest are carried: up to four at a time,
  * handed over later in the rooms that want them (`take`, from the room scripts and the enemies).
  *
- * ENHANCED's "carry anything" (`unlimited`): no limit on what he carries, so a pickup is never refused. A plane ticket takes no hand
+ * our "carry anything" (`unlimited`): no limit on what he carries, so a pickup is never refused. A plane ticket takes no hand
  * (it is a count, `tickets`); the four boxes show the four things picked up last that he still holds, and the rest wait in the
  * `pack` to come back into a box as one is handed over. `take` looks everywhere, the boxes first. The original's four hands are
  * `carried` and are all the original ever has; with the pack and the tickets empty, nothing here differs from it.
@@ -82,11 +82,11 @@ export class Items {
   readonly slotEntry: number[] = [-1, -1, -1, -1];
   /** $694E: the slot just touched. */
   touched = 0;
-  /** ENHANCED's carry anything is on (the front end's assist, via the game). */
+  /** our carry anything is on (the front end's assist, via the game). */
   unlimited: () => boolean = () => false;
-  /** ENHANCED: plane tickets, which take no hand. */
+  /** Plane tickets, which take no hand. */
   tickets = 0;
-  /** ENHANCED: what he carries beyond the four boxes, oldest first. */
+  /** What he carries beyond the four boxes, oldest first. */
   readonly pack: Held[] = [];
   /** When the thing in each box was picked up (0: before anything was kept: a save from before, a scene's). */
   readonly stamps: number[] = [0, 0, 0, 0];
@@ -137,7 +137,7 @@ export class Items {
     return true;
   }
 
-  /** Is `type` in his hands (or, in ENHANCED, counted or in the pack)? Nothing is taken. */
+  /** Is `type` in his hands (or, in both modes, counted or in the pack)? Nothing is taken. */
   has(type: number): boolean {
     return (type === TICKET && this.tickets > 0) || this.carried.includes(type) || this.pack.some((h) => h.type === type);
   }
@@ -156,7 +156,7 @@ export class Items {
     return true;
   }
 
-  /** $6BBC: put a type into the first empty hand, if there is one (ENHANCED: always). */
+  /** $6BBC: put a type into the first empty hand, if there is one (always). */
   give(type: number): void {
     const at = this.carried.indexOf(0xff);
     if (at < 0 && !this.unlimited()) return;
@@ -164,7 +164,7 @@ export class Items {
   }
 
   /**
-   * ENHANCED's pick-up, and `give`'s: a ticket is counted, anything else goes into the first empty box; with none, the box of
+   * our pick-up, and `give`'s: a ticket is counted, anything else goes into the first empty box; with none, the box of
    * the thing picked up longest ago goes to the pack and the new thing takes its place.
    */
   private add(type: number, colourSlot: number): void {
@@ -279,7 +279,7 @@ export class Items {
     }
   }
 
-  /** $6BAA: a carried item goes into the first empty hand; with none free it stays where it is (ENHANCED: it is always taken). */
+  /** $6BAA: a carried item goes into the first empty hand; with none free it stays where it is (it is always taken). */
   private carry(g: Game, slot: number, cell: number, type: number): void {
     const free = this.carried.indexOf(0xff);
     if (free < 0 && !this.unlimited()) return;

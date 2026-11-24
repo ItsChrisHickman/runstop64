@@ -16,9 +16,9 @@
  *   same snapshot): every stairs cell and the free gates lead to the next floor, with no 6502
  *   fallbacks; the three guarded gates lead nowhere until their puzzle is done, and to the next
  *   floor after it;
- * - through the front end as the browser runs it (play.ts), by keyboard, ORIGINAL and ENHANCED:
+ * - through the front end as the browser runs it (play.ts), by keyboard, HARD and EASY:
  *   he gets through every one (a walk does), and the guarded gates stay shut until the puzzle;
-  * - ENHANCED's 8-way controls: from just before the stairs, up+left and up+right go through too.
+  * - the 8-way controls (both modes): from just before the stairs, up+left and up+right go through too.
  *
  *   nice -n 15 node tools/test.mjs games/entombed/test/stairs.ts
  */
@@ -187,12 +187,12 @@ for (const n of GUARDED) {
   check(`  and keeps the guarded gates shut (${closed} of ${GUARDED.length}): it is the original's`, closed === GUARDED.length);
 }
 
-/** The front end, continued from a state, ORIGINAL or ENHANCED. */
+/** The front end, continued from a state, HARD or EASY (`enhanced`: EASY). */
 async function session(state: MachineState, enhanced: boolean) {
   store.clear();
   state.ram[0x322e] = 1; // (the whip)
   store.set('entombed.save.v1', Buffer.from(packState(state)).toString('base64'));
-  store.set('entombed.assist', JSON.stringify({ enhanced }));
+  store.set('entombed.assist', JSON.stringify({ easy: enhanced }));
   const input = new Input(nowhere);
   const renderer = new PixelRenderer();
   const p = run({ renderer, input, canvas: nowhere });
@@ -228,15 +228,15 @@ async function anyWalk(way: Way, enhanced: boolean) {
 }
 for (const way of [...downs, ...gates]) {
   const orig = await anyWalk(way, false), enh = await anyWalk(way, true);
-  check(`${way.name}: by keyboard, ORIGINAL goes to floor ${way.to} (${orig}), ENHANCED too (${enh})`, orig === way.to && enh === way.to);
+  check(`${way.name}: by keyboard, HARD goes to floor ${way.to} (${orig}), EASY too (${enh})`, orig === way.to && enh === way.to);
 }
 for (const n of GUARDED) {
   let got = 0;
   for (const enhanced of [false, true]) for (const walk of twoWalks) if (await keyboard(chamberState(n, {}, start), walk, enhanced) !== null) got++;
-  check(`chamber ${n}: by keyboard the gate stays shut until its puzzle is done, in ORIGINAL and ENHANCED (${got} walks through)`, got === 0);
+  check(`chamber ${n}: by keyboard the gate stays shut until its puzzle is done, in HARD and EASY (${got} walks through)`, got === 0);
 }
 
-// ENHANCED's 8-way: from just before the stairs, up with left or right held goes through
+// the 8-way controls: from just before the stairs, up with left or right held goes through
 {
   const harness = (state: MachineState, bits: number, frames: number) => {
     const g = NativeHost.resume(port, state);
@@ -273,7 +273,7 @@ for (const n of GUARDED) {
       else console.log(`   ${way.name}: up+${side === 4 ? 'left' : 'right'} from just before the stairs: ${to}`);
     }
   }
-  check(`ENHANCED: up+left and up+right held just before the stairs go through (${ok} of ${tried}; the other ${edge}, beside what the puzzle moved, meet it)`, tried > 0 && ok + edge === tried && edge <= 3);
+  check(`the 8-way controls: up+left and up+right held just before the stairs go through (${ok} of ${tried}; the other ${edge}, beside what the puzzle moved, meet it)`, tried > 0 && ok + edge === tried && edge <= 3);
 }
 
 finish();

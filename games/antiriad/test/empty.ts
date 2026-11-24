@@ -64,7 +64,7 @@ function pauseShot(g: Game, name: string) {
   if (!outDir) return;
   fs.mkdirSync(outDir, { recursive: true });
   const s = new Surface(320, 200, 0);
-  const options = [{ text: 'E ENHANCED', check: g.enhanced }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }]; // (as FrontEnd's)
+  const options = [{ text: 'E EASY', check: true }, { text: 'B BACK TO' }, { text: ' ROOM START' }, { text: 'T TITLE' }]; // (as FrontEnd's)
   drawPause(s, new BitmapFont().addDrawn(KIT_GLYPHS), antiriadMap, g, { ...antiriadMap.found.empty(), rooms: [g.ram[V.room]] }, 0, options);
   rgbPng(path.join(outDir, `${name}.png`), indicesToRgb(s.pixels), 320, 200);
 }
@@ -142,7 +142,7 @@ function interlocked(enhanced: boolean) {
   const { g, p } = interlocked(false);
   hold(p, '', 300);
   pauseShot(g, 'original-empty-room9');
-  check(`ORIGINAL: in room 9 drained, the hint ("${hint(g)}")`, hint(g) === 'NO WAY OUT IN ORIGINAL');
+  check(`ORIGINAL: in room 9 drained, the hint ("${hint(g)}")`, hint(g) === 'NO WAY OUT');
   const turned = hold(p, 'R', 300, () => !inArmour(p));
   hold(p, 'L', 100, () => !inArmour(p));
   check(`ORIGINAL: ... and he never gets out, as in the original (${about(p)}; ${turned > 300 ? 'never' : 'out'})`, inArmour(p) && p.ram[V.room] === 0x09);

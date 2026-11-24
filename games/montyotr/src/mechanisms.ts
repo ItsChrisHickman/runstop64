@@ -416,7 +416,7 @@ export const c5State = (g: Game): C5State => ({ fallStage: g.c5.fallStage, speed
 
 /**
  * The C5 as it comes into the next room (set before the room loads). Driving does this
- * itself; travel, saves and the retry after a crash (ENHANCED) bring it in as it once came.
+ * itself; travel, saves and the retry after a crash (both modes) bring it in as it once came.
  */
 export function c5Arrive(g: Game, s: C5State) {
   Object.assign(g.c5, s);
@@ -427,7 +427,7 @@ export function c5Arrive(g: Game, s: C5State) {
 export const c5Road = (fallStage: number) => [0x7a, 0xa2, 0xca][Math.min(2, fallStage)];
 
 /**
- * ENHANCED's restart after a crash: the C5 as it came into the room (its pass, the way it was
+ * our restart after a crash: the C5 as it came into the room (its pass, the way it was
  * going) but stopped, on the road (no hop under way). Standing still is safe on every pass (no
  * hole under the room's way in, and the street's enemies pass over a C5 standing there), and
  * from a standstill every room can be driven through (test/c5respawn.ts).
@@ -571,7 +571,7 @@ export function c5DriveMovement(g: Game) {
 }
 
 /**
- * ENHANCED (assist c5): fire held on past the top of a hop holds it there, for up to this many
+ * ours (assist c5): fire held on past the top of a hop holds it there, for up to this many
  * of its steps (it moves on odd frames only: two frames each, so 14 frames), and it comes down
  * when fire is let go; a tap is the original's hop, frame for frame. How high it goes, the road,
  * the holes, the enemies and the speeds stay the original's.

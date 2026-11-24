@@ -229,7 +229,7 @@ function boxOf(d: Display): number[] {
   check('it says our keys: arrows, WASD, Space, Z, X, a gamepad, touch, JUMP', ['ARROWS', 'WASD', 'SPACE', 'Z', 'X', 'gamepad', 'touch', 'JUMP'].every((w) => CREDITS_TEXT_OURS.includes(w)));
   const screens = [
     'THE SIX SCREENS', 'LIVES 5', 'SCREENS 1/6', 'ITEMS 7/14', 'SCORE 1234', '1 7/7', '4 -', 'SCREEN 2', 'NOT REACHED YET', 'FINISHED, ALL ITEMS TAKEN', '0 OF 3 ITEMS TAKEN', 'NO ITEMS HERE',
-    'NOT SEEN', 'FINISHED', 'PAUSED', 'E ENHANCED', 'E ORIGINAL', 'B BACK TO', ' ROOM START', 'T TITLE', 'ARROWS PICK  ENTER GO  P BACK', 'P OR ESC  BACK TO THE GAME',
+    'NOT SEEN', 'FINISHED', 'PAUSED', 'E EASY', 'B BACK TO', ' ROOM START', 'T TITLE', 'ARROWS PICK  ENTER GO  P BACK', 'P OR ESC  BACK TO THE GAME',
     'TAP A PLACE, TAP AGAIN TO GO THERE', 'TAP HERE TO GO BACK TO THE GAME', 'TAB  NEXT PAGE    P  BACK',
     'NEW GAME?', 'FIRE YES        TAP NO', 'SPACE YES     ESC NO', 'ENTER CONTINUE', 'CONTINUE?', 'YES              NO', 'ENTER YES     ESC NO',
     'TAP: CONTINUE    FIRE: NEW GAME', 'ENTER  CONTINUE    SPACE  NEW GAME', 'TAP  CONTINUE', 'ENTER YES     ESC NO',

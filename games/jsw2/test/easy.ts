@@ -1,5 +1,5 @@
 /**
- * Jet Set Willy II's ENHANCED, made a lot easier (src/easy.ts, QOL.md), headless through the front end as the
+ * Jet Set Willy II made a lot easier (both modes) (src/easy.ts, QOL.md), headless through the front end as the
  * browser runs it:
  *
  * - a second jump in the air: Space again while he is up goes higher (the game's own jump begun again at
@@ -22,18 +22,23 @@ import { OVERLAP, itemSpots } from '../src/easy';
 import { ITEM_CELLS } from '../src/itemcounts';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { hardStore, originalRules } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
 
 const livesOf = (b: number) => { let n = 0; for (; b; b >>= 1) n += b & 1; return n; };
 
-/** A game as the browser runs it (`original`: ORIGINAL chosen), a new game begun, the bathroom's first moments passed. */
-async function launch(original = false) {
-  useMemoryStorage(new Map(original ? [['jsw2.assist', JSON.stringify({ enhanced: false })]] : []));
+/**
+ * A game as the browser runs it (EASY, or HARD with `hard`; `original`: the original's rules, as only a test has them now:
+ * original-rules.ts), a new game begun, the bathroom's first moments passed.
+ */
+async function launch(original = false, hard = false) {
+  useMemoryStorage(original || hard ? hardStore() : new Map());
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 20));
+  if (original) originalRules(p.options);
   const ram = () => must(p.machine, 'the machine').ram;
   const held = new Set<string>();
   const s = {
@@ -51,13 +56,16 @@ async function launch(original = false) {
 }
 type Session = Awaited<ReturnType<typeof launch>>;
 
-// ---- the options: what ENHANCED turns on ----
+// ---- the options: what is on in each mode ----
 {
   const e = await launch();
   const on = (id: string) => e.p.options[id] === true;
-  check('ENHANCED: a second jump, ropes, a gentle touch, unlimited lives, sparkles, safe landings are on', ['airJump', 'ropes', 'gentle', 'lives', 'hints', 'falls'].every(on));
-  const o = await launch(true);
-  check('ORIGINAL: all of them off', ['airJump', 'ropes', 'gentle', 'lives', 'hints', 'falls'].every((id) => o.p.options[id] === false));
+  check('EASY: a second jump, ropes, a gentle touch, unlimited lives, sparkles, safe landings are on', ['airJump', 'ropes', 'gentle', 'lives', 'hints', 'falls'].every(on));
+  const h = await launch(false, true);
+  check('HARD: the same, but the lives the game\'s own', ['airJump', 'ropes', 'gentle', 'hints', 'falls'].every((id) => h.p.options[id] === true) && h.p.options.lives === false && !h.p.state.easy);
+  // the HUD's dancing Willies are the lives: EASY leaves them out of the picture, HARD shows the eight
+  const willies = (x: Session) => { const m = must(x.p.machine, 'the machine'); return m.capture.sprites.filter((sp) => sp.y === m.ram[0x8085]).length; };
+  check(`EASY: no lives under the room (${willies(e)} Willies); HARD: the eight (${willies(h)})`, willies(e) === 0 && willies(h) === 8);
 }
 
 // ---- a second jump in the air ----
@@ -80,9 +88,9 @@ async function jumps(original: boolean, again: number | null, presses = 1, dir =
   const twice = await jumps(false, 20);
   const third = await jumps(false, 20, 2);
   const original = await jumps(true, 20);
-  check(`ENHANCED: Space again in the air goes higher (top ${single.top} -> ${twice.top}, smaller is higher)`, twice.top <= single.top - 12);
-  check(`ENHANCED: one second jump per airtime (a third press: top ${third.top}, as with two: ${twice.top})`, third.top === twice.top);
-  check(`ORIGINAL: Space again in the air does nothing (top ${original.top}, as the single jump's ${single.top})`, original.top === single.top);
+  check(`ours: Space again in the air goes higher (top ${single.top} -> ${twice.top}, smaller is higher)`, twice.top <= single.top - 12);
+  check(`ours: one second jump per airtime (a third press: top ${third.top}, as with two: ${twice.top})`, third.top === twice.top);
+  check(`the original's rules: Space again in the air does nothing (top ${original.top}, as the single jump's ${single.top})`, original.top === single.top);
   const right = await jumps(false, 20, 1, 'ArrowRight');
   const left = await jumps(false, 20, 1, 'ArrowLeft');
   check(`the second jump goes the way held (way ${right.way} right = 255, ${left.way} left = 1)`, right.way === 255 && left.way === 1);
@@ -118,9 +126,9 @@ async function beach(original: boolean) {
 }
 {
   const e = await beach(false);
-  check(`ENHANCED: the beach crossed (the rope taken: ${e.grabbed}), in the Tool Shed (room ${e.room})`, e.grabbed && e.room === 48);
+  check(`ours: the beach crossed (the rope taken: ${e.grabbed}), in the Tool Shed (room ${e.room})`, e.grabbed && e.room === 48);
   const o = await beach(true);
-  check(`ORIGINAL: the same bot does not cross (room ${o.room}, rope taken: ${o.grabbed})`, o.room === 28);
+  check(`the original's rules: the same bot does not cross (room ${o.room}, rope taken: ${o.grabbed})`, o.room === 28);
 }
 
 // ---- unlimited lives ----
@@ -147,8 +155,8 @@ function dies(s: Session, times: number) {
   const e = await launch();
   const o = await launch(true);
   const ed = dies(e, 6), od = dies(o, 6);
-  check(`ENHANCED: six deaths (${ed.lost} lost a life) and still ${ed.after} lives`, ed.lost === 6 && ed.before === 8 && ed.after === 8);
-  check(`ORIGINAL: they do cost (${od.lost} lost a life: lives ${od.before} -> ${od.after})`, od.after === od.before - 6);
+  check(`ours: six deaths (${ed.lost} lost a life) and still ${ed.after} lives`, ed.lost === 6 && ed.before === 8 && ed.after === 8);
+  check(`the original's rules: they do cost (${od.lost} lost a life: lives ${od.before} -> ${od.after})`, od.after === od.before - 6);
 }
 
 // ---- a short grace on coming into a room ----
@@ -177,7 +185,7 @@ function dies(s: Session, times: number) {
 {
   const e = await launch();
   const o = await launch(true);
-  check(`the model asks for ${OVERLAP} shared pixels in ENHANCED play, one in ORIGINAL (${must(e.p.machine, 'm').spriteOverlap}, ${must(o.p.machine, 'm').spriteOverlap})`, must(e.p.machine, 'm').spriteOverlap === OVERLAP && must(o.p.machine, 'm').spriteOverlap === 1);
+  check(`the model asks for ${OVERLAP} shared pixels in play, one under the original's rules (${must(e.p.machine, 'm').spriteOverlap}, ${must(o.p.machine, 'm').spriteOverlap})`, must(e.p.machine, 'm').spriteOverlap === OVERLAP && must(o.p.machine, 'm').spriteOverlap === 1);
   /**
    * The guardian walking along the bathroom's upper floor (sprite 3), Willy held beside it, `dx` pixels
    * to its right (his sprite's x from its): whether a collision was reported for him in a few frames.
@@ -196,7 +204,7 @@ function dies(s: Session, times: number) {
   /** The widest gap at which the guardian still touches him (smaller: it has to overlap him more). */
   const reach = (s: Session) => { for (let dx = 24; dx >= -24; dx--) if (touches(s, dx)) return dx; return -99; };
   const original = reach(o), enhanced = reach(e);
-  check(`a guardian must overlap him more in ENHANCED (touches at a gap of ${original} in ORIGINAL, ${enhanced} in ENHANCED)`, original - enhanced >= 3);
+  check(`a guardian must overlap him more in ours (touches at a gap of ${original} under the original's rules, ${enhanced} in ours)`, original - enhanced >= 3);
 }
 
 // ---- sparkles on the items left ----

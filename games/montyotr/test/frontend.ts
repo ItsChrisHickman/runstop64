@@ -127,11 +127,13 @@ shot('3-pause');
 const x = g.x2;
 tick(20);
 check('the game waits while paused', g.x2 === x && p.state.paused);
-check('ENHANCED by default: the cloud help on', g.assist.cloud === true);
+check('EASY by default: unlimited lives, the cloud help on', g.assist.lives === true && g.assist.cloud === true);
+const headCells = [0x10, 0x11, 40 + 0x10, 40 + 0x11, 0x13, 0x14].map((o) => g.mem[0x0800 + o]);
+check(`EASY: no lives in the score row (${headCells.map((c) => c.toString(16)).join(' ')})`, headCells.every((c) => c === 0x60));
 tap('KeyE');
-check('E: ORIGINAL, the cloud help off (and kept)', g.assist.cloud === false && parseOptions(store.get('montyotr.assist')).enhanced === false);
+check('E: HARD, the cloud help still on, the lives the game\'s (and kept)', g.assist.cloud === true && g.assist.lives === false && parseOptions(store.get('montyotr.assist')).easy === false);
 tap('KeyE');
-check('E again: ENHANCED', g.assist.cloud === true);
+check('E again: EASY', g.assist.lives === true);
 // the first room is to the right on the map
 tap('ArrowRight');
 tap('Enter');
@@ -151,15 +153,17 @@ input.touch = false;
 tick(20);
 let lastRoom = g.roomId;
 
-// ---- ENHANCED: unlimited lives and continues (shared/lives.ts): a death takes no life, there is no game over ----------------------------
+// ---- EASY: unlimited lives and continues (shared/lives.ts): a death takes no life, there is no game over ----------------------------
 {
   p.grace.clear(); // (the travel above gave a moment's grace)
   g.lives = 1;
   g.actionCounter = 2; // (an enemy: the death the original plays for it)
   tick(400);
-  check(`ENHANCED: the last life lost takes nothing, no game over (lives ${g.lives}, ${p.state.mode})`, g.lives === 1 && p.state.mode === 'play' && g.assist.lives === true);
+  check(`EASY: the last life lost takes nothing, no game over (lives ${g.lives}, ${p.state.mode})`, g.lives === 1 && p.state.mode === 'play' && g.assist.lives === true);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('ORIGINAL: no unlimited lives', g.assist.lives === false && !p.state.paused);
+  tick(2);
+  check('HARD: no unlimited lives', g.assist.lives === false && !p.state.paused);
+  check(`HARD: Monty's head and the lives in the score row (${g.mem[0x0810].toString(16)}, ${g.mem[0x0814].toString(16)})`, g.mem[0x0810] === 0x3d && g.mem[0x0814] === ((0x30 + Math.min(9, g.lives)) & 0x3f | 0x70));
   lastRoom = g.roomId; // (the death put him back where he came into the room)
 }
 
@@ -181,7 +185,7 @@ tap('Enter');
 tick(20);
 check(`Enter: back in play in the last room entered (${g.roomId.toString(16)}), five lives, the score from nothing`, p.state.mode === 'play' && g.roomId === lastRoom && g.lives === 5 && g.score === 0);
 check(`the HUD hi-score is the best this visit (${g.hiScore})`, g.hiScore === 777);
-// (ORIGINAL stays on while the checks below lose the last life)
+// (HARD stays on while the checks below lose the last life)
 
 // ---- ENTER CONTINUE on the title ------------------------------------------------------------------
 g.lives = 2;
@@ -201,8 +205,8 @@ kitChecks('with ENTER CONTINUE', g);
 tap('Enter');
 tick(20);
 check(`Enter: back in play in the last room (${g.roomId.toString(16)}), lives as saved`, p.state.mode === 'play' && g.roomId === lastRoom && g.lives === 5);
-tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to ENHANCED, the default)
-check('and ENHANCED again', g.assist.lives === true && !p.state.paused);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); // (back to EASY, the default)
+check('and EASY again', g.assist.lives === true && !p.state.paused);
 
 // ---- a page load with the save: the title, ENTER CONTINUE, Enter back into play; T on the pause screen: the title, the save kept ----
 {
@@ -228,7 +232,7 @@ check('and ENHANCED again', g.assist.lives === true && !p.state.paused);
 g.finished = 'won';
 tick(2);
 check('the game properly ended: the title, the save kept', p.state.mode === 'title' && p.state.hasSave && store.has('montyotr.save.v2'));
-// (ENHANCED's reward for winning is on, test/reward.ts: a key skips it after two seconds)
+// (the reward for winning is on, test/reward.ts: a key skips it after two seconds)
 tick(110);
 tap('Space');
 until(() => p.state.prompt === 'continue', 600);

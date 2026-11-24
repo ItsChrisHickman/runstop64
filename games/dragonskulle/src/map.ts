@@ -108,19 +108,18 @@ export const dragonskulleMap: PauseMap<Uint8Array, DragonskulleFound> = {
     const lives = 5 - Math.floor(ram[0x1248] / 3), energy = Math.round((ram[0x123e] * 100) / 20);
     const left = cloakLeft(ram);
     const lines = [
-      `LIVES     ${lives}`,
+      // (the lives in HARD only: EASY has none to count)
+      ...(assist?.lives === true ? [] : [`LIVES     ${lives}`]),
       `ENERGY ${String(energy).padStart(3)}%`,
       `SHOVEL  ${ram[0x342f] ? 'YES' : ' NO'}`,
-      // (ENHANCED: how long the cloak has to run, to the second)
-      assist?.enhanced && left !== null ? `CLOAK ${String(Math.ceil((left * CLOAK_FRAMES) / FRAMES_A_SECOND)).padStart(2)} SEC` : `CLOAK   ${ram[0x3430] ? 'YES' : ' NO'}`,
+      // (how long the cloak has to run, to the second)
+      left !== null ? `CLOAK ${String(Math.ceil((left * CLOAK_FRAMES) / FRAMES_A_SECOND)).padStart(2)} SEC` : `CLOAK   ${ram[0x3430] ? 'YES' : ' NO'}`,
       `SCREENS ${String(s.cells.length).padStart(3)}`,
     ];
-    // ENHANCED: what is still to do here at a bridge or a dragon (src/rules.ts)
-    if (assist?.enhanced) {
-      const wizards = wizardsLeft(ram), hits = hitsLeft(ram);
-      if (wizards !== null) lines.push('BRIDGE', `KILL ${wizards} MORE`);
-      else if (hits !== null) lines.push('DRAGON', `${hits} HITS LEFT`);
-    }
+    // what is still to do here at a bridge or a dragon (src/rules.ts)
+    const wizards = wizardsLeft(ram), hits = hitsLeft(ram);
+    if (wizards !== null) lines.push('BRIDGE', `KILL ${wizards} MORE`);
+    else if (hits !== null) lines.push('DRAGON', `${hits} HITS LEFT`);
     return lines;
   },
   legend: [{ colour: COL.lblue, text: 'ROOM' }, { colour: COL.grey, text: 'PASSAGE' }],

@@ -36,7 +36,7 @@ export class Lift {
   constructor(private readonly sites: readonly LiftSite[] = LIFT_SITES) {}
 
   /**
-   * The front end's, not the original's (off for the original's rules, as the lockstep has them): ENHANCED's "a lift waits until
+   * The front end's, not the original's (off for the original's rules, as the lockstep has them): our "a lift waits until
    * you are out from under it when you arrive". `waits` says it is on; `under` is whom it waits for (Monty).
    */
   waits: () => boolean = () => false;
@@ -95,7 +95,7 @@ export class Lift {
     const site = this.site;
     if (!site || this.pointer === 0) return false;
     if (this.held) {
-      // (ENHANCED: it rests, drawn retracted, and draws no random number, while he stands in its column from the moment he came in)
+      // (it rests, drawn retracted, and draws no random number, while he stands in its column from the moment he came in)
       if (this.waits() && this.under !== null && this.inColumn(this.under)) {
         const first = !this.drawnHeld;
         this.drawnHeld = true;
@@ -126,7 +126,7 @@ export class Lift {
   }
 
   /**
-   * ENHANCED: he is put back where he came into the room after a death ($5538), and that is usually under the lift again: it
+   * He is put back where he came into the room after a death ($5538), and that is usually under the lift again: it
    * rests at its foot as it did when he arrived, until he is out from under it.
    */
   rearm(): void {

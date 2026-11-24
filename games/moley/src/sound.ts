@@ -1,7 +1,7 @@
 /**
  * Moley Christmas's sound, one object for the front end to drive: the five beeper effects of the 48K game (made from the speaker's
  * flips at start-up, at the browser's sample rate) and the 128K game's AY music (a recording of the original's player, played by a
- * synthesiser on the audio thread). Both are the original's, in both modes (ORIGINAL and ENHANCED); the music plays on the 48K
+ * synthesiser on the audio thread). Both are the original's, in both modes (EASY and HARD); the music plays on the 48K
  * version of the game too, which had none, and loops for ever as the original does.
  *
  * The API:

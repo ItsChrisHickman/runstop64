@@ -7,13 +7,13 @@
  * - continuing a save deep in the caves (made by walking a recorded route, the map noting the
  *   screens as play.ts does): with all five lives;
  * - the pause screen with the island map: the screens been on; travel back by the map (keys, and
- *   taps), arriving where walking in put him; ENHANCED (on unless chosen off; E changes it);
+ *   taps), arriving where walking in put him; EASY (on unless switched to HARD with E: the lives only);
  * - fights in the caves: a hurt flashes the picture's edges and pulses the faces, with its sound
- *   (both modes); with ENHANCED no hurt starts within 75 frames of the last (ORIGINAL: closer);
+ *   (both modes); in both modes no hurt starts within 75 frames of the last;
  * - the energy on the face of the life under way, read off the picture as shown: full is the face as
  *   drawn; over random fights and a life's last points (both modes) its lines empty from the top as
  *   the energy says, the rest of the status line as drawn; the skull and a full next face when a
- *   life goes; full again on travelling (ENHANCED);
+ *   life goes (HARD); EASY: only the face of the life under way, the faces to come left out; energy kept on travelling;
  * - losing every life: CONTINUE? (Enter), back on the last screen with all five lives;
  * - the bar, read off the picture as it's shown (tools/probe's renderPixels with the front end's
  *   layout): the status line at the top, the play area and its sprites under it, 4 lines up
@@ -22,7 +22,7 @@
  *   in the game's letters; each key puts the game's hand in its slot and does its action, as soon
  *   as Space does with the hand already there (standing and walking); Enter (or
  *   any other key) one along the bar a press; a key in a hit-stop still picks its action; the
- *   faces' pulse goes with them; the same in ORIGINAL.
+ *   faces' pulse goes with them; the same in EASY but for the faces to come.
  *
  *   nice -n 15 node tools/test.mjs games/dragonskulle/test/frontend.ts [out-dir]
  */
@@ -122,9 +122,9 @@ tick(5);
 shot('0-launched');
 const deep = cell();
 check(`Enter: back in play in the caves at ${deep}, with all five lives (${lives()})`, p.state.playing && deep === '5,4' && lives() === 5);
-check('ENHANCED is on unless chosen off: its play changes on, the effects on', p.frontEnd.enhanced && !!p.options.eightWay && !!p.options.invulnerable && !!p.options.effects);
+check('EASY is on unless chosen off: the play changes on, the effects on', p.frontEnd.easy && !!p.options.eightWay && !!p.options.invulnerable && !!p.options.effects);
 
-// ---- the pause screen: the map; ENHANCED --------------------------------------------------------------
+// ---- the pause screen: the map; EASY / HARD --------------------------------------------------------------
 tap('KeyP');
 check('P: the pause screen', p.state.paused);
 const places = dragonskulleMap.places?.(MAP_BOX, ram(), p.state.found) ?? [];
@@ -132,9 +132,9 @@ check(`the map offers the screens come onto: ${places.map((q) => q.id).join(' ')
 tick(2);
 shot('3-pause-map');
 tap('KeyE');
-check('E: ORIGINAL (the play changes off; the effects still on), and kept', !p.frontEnd.enhanced && !p.options.eightWay && !!p.options.effects && options().enhanced === false);
+check('E: HARD (no unlimited lives; the play changes and the effects still on), and kept', !p.frontEnd.easy && !p.options.lives && !!p.options.eightWay && !!p.options.effects && options().easy === false);
 tap('KeyE');
-check('E again: ENHANCED', p.frontEnd.enhanced && !!p.options.eightWay && options().enhanced === true);
+check('E again: EASY', p.frontEnd.easy && !!p.options.lives && !!p.options.eightWay && options().easy === true);
 
 // ---- travel back by the map ---------------------------------------------------------------------------
 // (taps on the place: the first picks it, the second goes)
@@ -203,8 +203,8 @@ tap('KeyP'); tap('KeyE'); tap('KeyP');
 const off = gaps(4000);
 tap('KeyP'); tap('KeyE'); tap('KeyP');
 const on = gaps(4000);
-check(`ORIGINAL: hurts as the game makes them (${off.length + 1}, the closest ${Math.min(...off)} frames apart)`, !p.frontEnd.enhanced || (off.length > 3 && Math.min(...off) < 75));
-check(`ENHANCED: none within 75 frames of the last (${on.length + 1}, the closest ${Math.min(...on)} apart)`, p.frontEnd.enhanced && on.length > 1 && Math.min(...on) >= 75);
+check(`HARD: none within 75 frames of the last either (${off.length + 1}, the closest ${Math.min(...off)} frames apart)`, off.length > 1 && Math.min(...off) >= 75);
+check(`EASY: none within 75 frames of the last (${on.length + 1}, the closest ${Math.min(...on)} apart)`, p.frontEnd.easy && on.length > 1 && Math.min(...on) >= 75);
 for (const k of held) input.keyUp(k);
 tick(5);
 
@@ -295,37 +295,38 @@ const energyRun = (frames: number, shots: boolean) => {
   const full = energyShown();
   check(`full energy: the face of the life under way (face ${full.face + 1}) as the game draws it`, full.emptied === 0 && full.tidy && full.others === 0);
   shot('8-energy-full');
-  const runs = [p.frontEnd.enhanced, !p.frontEnd.enhanced].map((enhanced, i) => {
-    if (i) { settled(); tap('KeyP'); tap('KeyE'); tap('KeyP'); }
-    return { enhanced, ...energyRun(6000, enhanced) };
+  const runs = [p.frontEnd.easy, !p.frontEnd.easy].map((easy, i) => {
+    // (HARD's run on a screen come onto afresh: the first run may have left no creature there to fight)
+    if (i) { settled(); tap('KeyP'); tap('KeyE'); tap('KeyP'); goTo(fightAt === '1,1' ? '2,1' : '1,1'); }
+    return { easy, ...energyRun(6000, easy) };
   });
   settled();
   tap('KeyP'); tap('KeyE'); tap('KeyP');
   for (const x of runs) {
-    const mode = x.enhanced ? 'ENHANCED' : 'ORIGINAL';
+    const mode = x.easy ? 'EASY' : 'HARD';
     check(`${mode}: the face drained as the energy fell, over ${x.hurts} hurts and a life's end: ${x.checked} frames looked at, ${x.levels.size} levels (${[...x.levels].sort((a, b) => a - b).join(' ')}), ${x.wrong.length} wrong${x.wrong.length ? `: ${x.wrong.slice(0, 3).join('; ')}` : ''}`,
       x.hurts > 2 && x.levels.size === ENERGY.max && x.wrong.length === 0);
-    // (ENHANCED's unlimited lives bring a face back at once, so no skull stays: ORIGINAL only)
-    if (!x.enhanced) check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
+    // (EASY's unlimited lives bring a face back at once, so no skull stays: HARD only)
+    if (!x.easy) check(`${mode}: a life lost, the game's skull there and the next face full (${x.skulls} of ${x.lost})`, x.lost >= 1 && x.skulls === x.lost);
     else check(`${mode}: no face stays lost (${lives()} lives now)`, lives() === 5);
   }
-  // energy carries over onto a new screen, ENHANCED too (only continuing fills it): part of a face stays part of one
+  // energy carries over onto a new screen, in both modes (only continuing fills it): part of a face stays part of one
   settled();
   ram()[0x123e] = 7;
   const went = goTo(fightAt === '1,1' ? '2,1' : '1,1');
   tick(2);
   const back = energyShown();
-  check(`ENHANCED: travelled (to ${cell()}), energy kept (${ENERGY.get(ram())}), the face as low (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.enhanced && ENERGY.get(ram()) === 7 && back.emptied > 0);
+  check(`EASY: travelled (to ${cell()}), energy kept (${ENERGY.get(ram())}), the face as low (face ${back.face + 1}: ${back.emptied} lines emptied)`, went && p.frontEnd.easy && ENERGY.get(ram()) === 7 && back.emptied > 0);
 }
 
-// ---- ENHANCED: unlimited lives and continues: lives lost come back, never CONTINUE? --------------------------------
+// ---- EASY: unlimited lives and continues: lives lost come back, never CONTINUE? --------------------------------
 {
   settled();
   let lost = 0;
   for (let n = 0; n < 3000; n++) { ram()[0x123e] = 1; ram()[0x3432] = 2; tick(); if (ram()[0x1249] !== 0) lost++; }
-  check(`ENHANCED: life after life taken for 3000 frames (the life-lost sound ran ${lost} frames): still five lives (${lives()}), never CONTINUE? (${p.state.prompt})`, lost > 0 && lives() === 5 && p.state.prompt !== 'continue' && p.state.playing && p.frontEnd.enhanced);
+  check(`EASY: life after life taken for 3000 frames (the life-lost sound ran ${lost} frames): still five lives (${lives()}), never CONTINUE? (${p.state.prompt})`, lost > 0 && lives() === 5 && p.state.prompt !== 'continue' && p.state.playing && p.frontEnd.easy);
   tap('KeyP'); tap('KeyE'); tap('KeyP');
-  check('ORIGINAL: no unlimited lives', !p.frontEnd.enhanced && p.frontEnd.assist.lives === false);
+  check('HARD: no unlimited lives', !p.frontEnd.easy && p.frontEnd.assist.lives === false);
 }
 
 // ---- every life lost: CONTINUE?-----------------------------------------------------------------------
@@ -349,8 +350,9 @@ check(`Space: a new game, on the beach (${cell()})`, until(() => p.state.playing
 tick(20);
 check('a save on coming onto the beach', store.has('dragonskulle.save.v2'));
 shot('7-beach');
-tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2); // (back to ENHANCED, the default)
-check('and ENHANCED again', p.frontEnd.enhanced && p.frontEnd.assist.lives === true);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2); // (back to EASY, the default)
+check('and EASY again', p.frontEnd.easy && p.frontEnd.assist.lives === true);
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2); // (the bar below is read in HARD, the picture as the game draws it all; EASY's difference at its end)
 // ---- the bar: the status line at the top, the actions at the bottom, in the keys' order -------------------
 // (read off the picture as shown: renderPixels with the front end's layout; `ref`: as the machine drew it)
 {
@@ -471,9 +473,15 @@ check('and ENHANCED again', p.frontEnd.enhanced && p.frontEnd.assist.lives === t
   const top = [26, 20, 2].map((y) => placeBox(dragonskulleLayout, { x: ICON_AT(ACTION.jump).x, y: y - 10, w: 24, h: 21 }).y - (y - 10));
   check(`a sprite at the top of the play area (its middle at y 26, 20, 2) goes up with it: moved ${top.join(' ')}`, top.every((d) => d === -4));
   idle();
+  // EASY: the same bar; the status line the same but for the faces of the lives to come, left out (EASY has no lives to count)
   tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(2);
-  check('ORIGINAL: the same bar (it is presentation: both modes)', !p.frontEnd.enhanced && renderer.layout === dragonskulleLayout);
-  tap('KeyP'); tap('KeyE'); tap('KeyP');
+  const easyShown = renderPixels(m, renderer.layout), hardShown = renderPixels(m, dragonskulleLayout);
+  const facesX = 23 * 8 + 7;
+  const litIn = (px: Uint8Array, x0: number, w: number) => { let n = 0; for (let y = 0; y < 24; y++) for (let x = x0; x < x0 + w; x++) if (px[y * W + x] !== 0) n++; return n; };
+  check(`EASY: the face of the life under way as in HARD (${litIn(easyShown, facesX, 24)} lit), the four to come left out (${litIn(easyShown, facesX + 24, 96)} lit, ${litIn(hardShown, facesX + 24, 96)} in HARD)`,
+    p.frontEnd.easy && renderer.layout !== dragonskulleLayout && same(easyShown, 0, 0, hardShown, 0, 0, facesX + 24, 24) && litIn(easyShown, facesX + 24, 96) === 0 && litIn(hardShown, facesX + 24, 96) > 0);
+  check('EASY: the rest of the picture as in HARD (the play area and the bar)', same(easyShown, 0, 24, hardShown, 0, 24, W, 176));
+  shot('9-easy-status');
 }
 
 finish();

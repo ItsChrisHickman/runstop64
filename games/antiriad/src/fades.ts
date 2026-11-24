@@ -84,7 +84,7 @@ export function intoArmour(g: Game) {
   ram[V.inSuit] = 0xb2;
   ram[V.anim] = 0xb2; ram[V.anim + 1] = 0xb3;
   ram[0x93] = 0x64;
-  if (ram[0x88] & 0x80) { if (g.enhanced) refuel(g); return; } // (ENHANCED: a stored cell fills it, as the original's one does)
+  if (ram[0x88] & 0x80) { if (g.enhanced) refuel(g); return; } // (a stored cell fills it, as the original's one does)
   // the first time: the armour powers up (its tune, the panel lights)
   ram[V.request] = 0x8c; ram[V.request + 1] = 0x8d; ram[V.request + 2] = 0x8e;
   ram[0x88] = ram[0x89] = ram[0xa0] = 0xc2;

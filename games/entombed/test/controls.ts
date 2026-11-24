@@ -56,16 +56,17 @@ function corridor(floor: number, i: number): MachineState {
   return must(g.save(), 'a save');
 }
 
-/** The front end, continued from a state, with the 8-way assist on or off. */
+/** The front end, continued from a state, with the 8-way assist on or off (off: the original's controls, as only a test has them now). */
 async function session(state: MachineState, eightWay: boolean) {
   store.clear();
   state.ram[0x322e] = 1; // (the whip)
   store.set('entombed.save.v1', Buffer.from(packState(state)).toString('base64'));
-  store.set('entombed.assist', JSON.stringify({ enhanced: eightWay })); // (8-way comes with ENHANCED)
+
   const input = new Input(nowhere);
   const p = run({ renderer: new PixelRenderer(), input, canvas: nowhere });
   await new Promise((r) => setTimeout(r, 0));
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); const r = must(p.machine, 'the machine').ram; r[0x37f6] = 0; r[0x323d] = 0; } };
+  p.options.eightWay = eightWay;
   continueFromTitle(p, input, tick); // (launched with a save: the title, then Enter)
   const hold = (keys: string[], n: number, each?: () => void) => { for (const k of keys) input.keyDown(k); for (let i = 0; i < n; i++) { tick(1); each?.(); } for (const k of keys) input.keyUp(k); tick(2); };
   return { p, tick, hold, ram: () => must(p.machine, 'the machine').ram, input };

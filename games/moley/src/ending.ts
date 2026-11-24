@@ -15,7 +15,7 @@ import { SteadyGame } from './steady';
 import { MoleyView, PICTURE_TOP, SPECTRUM_COLOURS, SURFACE_HEIGHT, SURFACE_WIDTH } from './view';
 
 /**
- * The reward for beating Moley Christmas (ENHANCED; shared/ending/show.ts is the show, this is what is Moley's): a montage of the six
+ * The reward for beating Moley Christmas (shared/ending/show.ts is the show, this is what is Moley's): a montage of the six
  * screens, each the game's own engine on a game of its own (`SteadyGame`, whose random numbers make a route found by a search the
  * same game when it is played again) with Monty driven by the route found for the screen (re/ending/route.ts: the test suite's player
  * doing the screen's puzzle, as keys), the credits typing on in the rows where the panel was, and the creatures walking through the screens;
@@ -137,7 +137,7 @@ function recordFigure(name: string, room: number, entity: number, from = 0, to =
   return poses.length > 0 ? { name, poses, width: 16, height: 16, foot: footOf(poses) } : null;
 }
 
-/** A sprite's picture facing right, in the colour ENHANCED shows sprites in. */
+/** A sprite's picture facing right, in the colour ours shows sprites in. */
 function surfaceOf(frame: number): Surface {
   const image = spriteImage(frame, false);
   const s = new Surface(16, 16, TRANSPARENT);
@@ -180,8 +180,8 @@ export function moleyEnding(renderer: Renderer, sound: MoleySound | null): Rewar
   };
 }
 
-/** The lines under THE END: the score, the items and the lives (the numbers the pause screen keeps). */
+/** The lines under THE END: the score, the items and the lives in HARD (the numbers the pause screen keeps). */
 export function endingStats(flow: MoleyFlow, found: MoleyFound): string[] {
   const g = flow.game;
-  return [`SCORE ${g.score}`, `HIGH SCORE ${Math.max(g.highScore, g.score)}`, `ITEMS ${itemsTaken(flow, found)} OF ${ITEMS_TOTAL}`, `LIVES ${Math.max(0, g.lives)}`];
+  return [`SCORE ${g.score}`, `HIGH SCORE ${Math.max(g.highScore, g.score)}`, `ITEMS ${itemsTaken(flow, found)} OF ${ITEMS_TOTAL}`, ...(g.unlimitedLives ? [] : [`LIVES ${Math.max(0, g.lives)}`])];
 }

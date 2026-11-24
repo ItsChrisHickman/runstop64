@@ -189,6 +189,13 @@ most care; the reward show and the title show them off.
   tracking (`montyotr/src/game.ts` `respawn`; the same in the remix, Monty Mole, Auf Wiedersehen Monty and, by the map's
   travel, Jet Set Willy II).
 
+- **EASY or HARD, and nothing else** (Chris, 2026-11-24, in place of ORIGINAL/ENHANCED): the one switch is about the lives. EASY
+  (the default): no lives, no lives counter (the score row's head and number are blank: `drawHudData` with `lives` null in
+  `shared/monty/screen.ts`, `Game.livesShown`; the pause panel, THE END and the saves' summaries leave LIVES out) and a death
+  restarts the room as he came into it; HARD: Monty on the Run's five lives. Every fix and help (the restart in the same room,
+  the hints, the reward show) is on in both: a new Monty game's `assists` are all on, `lives` alone follows the switch. The
+  bots' `newGame(data, enhanced)` keeps the original's rules for the tests that compare with it; in play nothing turns them off.
+
 - **A lone Mole Crusher must be drawn in the first glyph bank ($10).** The engine animates the first crusher of a room on $10 and a second, only in a room of two, on $22; a lone one at $22 stood still (Moscow, Andes, Pacific, Japan). `crusherChars` in `games/shared/monty/rooms.ts` now picks the bank from the crusher's place in its room, and `montyworld/test/crushers.ts` checks that every crusher moves.
 
 

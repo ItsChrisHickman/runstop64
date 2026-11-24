@@ -1,6 +1,6 @@
 /**
  * Blackwyche: climbing a ladder, as the browser runs it (keyboard through play.ts and the front
- * end): standing at the foot of a ladder, holding Up (in ORIGINAL and ENHANCED, with and without
+ * end): standing at the foot of a ladder, holding Up (in EASY and HARD, with and without
  * Shift, which runs) takes him up into the cabin above, where he stays.
  *
  * The start is a save made on a recorded route (re/routes.json) the moment he has come down that
@@ -64,10 +64,10 @@ function atLadderFoot() {
 }
 const foot = atLadderFoot();
 
-async function launch(enhanced: boolean) {
+async function launch(easy: boolean) {
   const store = new Map<string, string>();
   useMemoryStorage(store);
-  store.set('blackwyche.assist', JSON.stringify({ enhanced }));
+  store.set('blackwyche.assist', JSON.stringify({ easy }));
   writeCurrent('blackwyche', packSlot(MACHINE_CODEC, foot.state, { at: 1, summary: ['LADDER'], rooms: 1 }));
   keepFound('blackwyche', foot.found);
   const listeners = new Map<string, ((e: KeyEventLike) => void)[]>();
@@ -89,9 +89,9 @@ async function launch(enhanced: boolean) {
   return s;
 }
 
-for (const enhanced of [false, true]) for (const shift of [false, true]) {
-  const label = `${enhanced ? 'ENHANCED' : 'ORIGINAL'}${shift ? ' + Shift' : ''}`;
-  const s = await launch(enhanced);
+for (const easy of [false, true]) for (const shift of [false, true]) {
+  const label = `${easy ? 'EASY' : 'HARD'}${shift ? ' + Shift' : ''}`;
+  const s = await launch(easy);
   const deck0 = s.deck();
   if (shift) s.down('ShiftLeft');
   s.down('ArrowUp');
@@ -100,12 +100,9 @@ for (const enhanced of [false, true]) for (const shift of [false, true]) {
   for (let f = 0; f < 600; f++) { s.tick(); if (f % 20 === 0) trace.push(`${f}:${s.where()} c${s.ram()[0x1ec7]} y${s.ram()[0x3420]}`); if (up < 0 && s.deck() === deck0 - 1 && s.ram()[0x1ec7] === 0) up = f; else if (up >= 0 && back < 0 && s.deck() === deck0) back = f; }
   const end = s.deck();
   check(`${label}: holding Up at the foot of the ladder, he gets up to the deck above (frame ${up})`, up >= 0);
-  if (enhanced) {
-    check(`${label}: and stays there, the stick still up (deck ${deck0} -> ${end})`, end === deck0 - 1);
-  }
-  // (the original: the stick still up walks him into the hole behind him, back down the ladder)
-  else console.log(`note ${label}: ${back >= 0 ? `back down the ladder at frame ${back}, as the original` : 'stays up'}`);
-  if (up < 0 || (enhanced && end !== deck0 - 1)) console.log(trace.join(' '));
+  // (both modes: the original's stick still up walked him into the hole behind him, back down the ladder)
+  check(`${label}: and stays there, the stick still up (deck ${deck0} -> ${end}${back >= 0 ? `, back down at frame ${back}` : ''})`, end === deck0 - 1);
+  if (up < 0 || end !== deck0 - 1) console.log(trace.join(' '));
 }
 
 finish();

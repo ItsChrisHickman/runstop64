@@ -47,7 +47,7 @@ const fields = {
   soundFlag: S.number,
   tune: S.number,
 };
-/** What ENHANCED's carry anything adds (format 4): the tickets counted, what he carries beyond the boxes, and when each thing in a box was picked up. */
+/** What our carry anything adds (format 4): the tickets counted, what he carries beyond the boxes, and when each thing in a box was picked up. */
 const carrying = {
   tickets: S.number,
   pack: S.array(S.object({ type: S.number, stamp: S.number })),

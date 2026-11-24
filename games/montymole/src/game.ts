@@ -129,11 +129,11 @@ export class Game implements Stateful {
   death: { readonly field: FieldCopy; readonly x: number; readonly y: number } | null = null;
   /** a moment's grace after the front end puts him back into play (shared/grace.ts): a death in it costs nothing and puts him back where he came into the room */
   graceActive: () => boolean = () => false;
-  /** a death has put him back (ENHANCED): the front end starts a moment's grace */
+  /** a death has put him back (both modes): the front end starts a moment's grace */
   onRestart: () => void = () => {};
-  /** ENHANCED: a death starts him in the room he died in, exactly where he came into it (if that way in is deadly, the nearest place he can stand), then a moment's grace */
+  /** A death starts him in the room he died in, exactly where he came into it (if that way in is deadly, the nearest place he can stand), then a moment's grace */
   noDeathLoops = false;
-  /** ENHANCED: a death costs no life (shared/lives.ts) */
+  /** A death costs no life (shared/lives.ts) */
   unlimitedLives = false;
   /** rooms entered so far (not saved: the front end counts them to save at each room's start) */
   entries = 0;
@@ -200,7 +200,7 @@ export class Game implements Stateful {
       this.object.draw(this.field); // $952F
       this.coal.draw(this.field, room); // $95B3
       this.field.printScore(this.score.digits); // $91E8
-      this.field.printLives(this.lives); // $949E
+      this.field.printLives(this.lives, !this.unlimitedLives); // $949E
       this.field.keep(); // $D254
       this.entries++;
       if (this.room !== PIT_ROOM || this.monty.y >= PIT_Y) return;
@@ -253,7 +253,7 @@ export class Game implements Stateful {
     this.monty.y = OPENING_START.y;
     this.field.drawOpening();
     this.field.printScore(this.score.digits);
-    this.field.printLives(this.lives);
+    this.field.printLives(this.lives, !this.unlimitedLives);
     this.field.keep();
     this.world.makeWatery();
   }

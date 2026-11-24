@@ -1,5 +1,5 @@
 /**
- * Measures the colour the original shows its sprites in, which decides the colour of every sprite in ENHANCED (`SPRITE_INK`, src/look.ts).
+ * Measures the colour the original shows its sprites in, which decides the colour of every sprite in both modes (`SPRITE_INK`, src/look.ts).
  *
  * In the original a sprite has no colour of its own: where it shows it is the ink of the cell it is over. So the original is played
  * (random players in every room, the bot in rooms 2 and 5 and through the whole game: test/players.ts) and at the end of each

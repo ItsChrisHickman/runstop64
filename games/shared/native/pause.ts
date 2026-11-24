@@ -60,7 +60,7 @@ export interface PauseMap<T, F> {
   title(ram: T, page?: number, pick?: string | null): string;
   /** Draw the map into the box (`blink` alternates twice a second, for "you are here"; `pick`: the place picked, for maps that say more about it; `assist`: each assist on or off (by id), for marks that are help). */
   draw(s: Surface, box: Box, ram: T, found: F, blink: boolean, page?: number, font?: BitmapFont, pick?: string | null, assist?: Readonly<Record<string, boolean>>): void;
-  /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (ENHANCED's). */
+  /** Lines for the side panel (how the player is doing). `assist`: each assist on or off (by id), for lines that are help (both modes's). */
   info(ram: T, found: F, assist?: Readonly<Record<string, boolean>>): string[];
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now (`page`: the page shown, for maps with pages that are not maps). */
   legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>, page?: number) => { colour: number; text: string }[]);

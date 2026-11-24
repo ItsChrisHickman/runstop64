@@ -48,7 +48,7 @@ export function joystick(g: Game) {
 const readStick = (g: Game) => (g.ram[V.joystick] = ~g.r(0xdc00) & 0x1f);
 
 /**
- * ENHANCED's jump button (or up), read with the joystick: a press since the last read counts
+ * our jump button (or up), read with the joystick: a press since the last read counts
  * even if it's let go again before it (the joystick is read only every 7th frame).
  */
 function jumpAsked(g: Game, j: number) {
@@ -70,7 +70,7 @@ function walkControl(g: Game) {
   const { ram } = g;
   const j = readStick(g);
   setDir(g, j & 0x0c);
-  if (jumpAsked(g, j) && jumpThatWay(g, j)) { /* ENHANCED: jumped */ }
+  if (jumpAsked(g, j) && jumpThatWay(g, j)) { /* jumped */ }
   else if (!j) swap(g, [[0x80, 0x84], [0x82, 0x86], [0x9e, 0x8e], [0xa0, 0x90]]);
   else if (j & 1) {
     if (ram[V.anim] === 0x84) { heroAnim(g, 0x92); ram[V.dir] = 1; jump(g); }
@@ -87,7 +87,7 @@ function walkControl(g: Game) {
 }
 
 /**
- * ENHANCED: the jump button (or up) jumps from walking or standing, the way the stick is
+ * The jump button (or up) jumps from walking or standing, the way the stick is
  * pushed (or straight up), with the game's own jumps: the walking jump's ($92C9) and the
  * standing one's ($9155), which differ only in the way they go.
  */
@@ -112,7 +112,7 @@ function jump(g: Game) {
 }
 
 /**
- * $92C9: fire out of the armour: jump (walking), throw (standing). ENHANCED: fire only
+ * $92C9: fire out of the armour: jump (walking), throw (standing). ours: fire only
  * throws; walking, he stops to throw (the standing throw, as from the stance he'd stop in),
  * unless his stone is still out: then, as standing, there's no throw, and he walks on.
  */
@@ -148,7 +148,7 @@ const coast = (g: Game) => { if (g.ram[V.playing] !== 0x8b) g.ram[V.request] = 0
 function suitControl(g: Game) {
   const { ram } = g;
   let j = readStick(g);
-  // ENHANCED: the jump button lifts the armour, as up does (takes off, climbs)
+  // The jump button lifts the armour, as up does (takes off, climbs)
   if (jumpAsked(g, j)) j = ram[V.joystick] = j | 1;
   if (!(j & 0x0f)) idleSuit(g);
   else {
@@ -261,11 +261,11 @@ function suitDrift(g: Game) {
   if (ram[V.suitEnergy] && ram[V.suitEnergy] < 8) g.say(0x8a);
 }
 
-/** ENHANCED: an armour out of energy always lets Tal out (sets down, the interlock doesn't hold). */
+/** An armour out of energy always lets Tal out (sets down, the interlock doesn't hold). */
 export const emptyLetsOut = (g: Game) => g.enhanced && !g.ram[V.suitEnergy];
 
 /**
- * ENHANCED: an armour out of energy that comes down on a floor sets down there, standing ($B2)
+ * An armour out of energy that comes down on a floor sets down there, standing ($B2)
  * whichever way it faces, and stops ($80, $81), so left or right lets Tal out. The original
  * ($97AA) drops it and it bounces on the floor for good, steering dead, unless it's turned to
  * face out first ($B0, the one frame it lands in): which takes pushing the other way from the
@@ -280,7 +280,7 @@ function settleEmpty(g: Game) {
 /**
  * $961D: leave the armour where it stands (not in the first ten rooms: too much radiation, "HIGH
  * RADIATION SAFETY INTERLOCK OPERATIVE"). There, out of energy, the original keeps him in for
- * good: the armour can't fly, nothing in it can hurt him, so the game never ends. ENHANCED: an
+ * good: the armour can't fly, nothing in it can hurt him, so the game never ends. ours: an
  * empty armour's interlock doesn't hold him (out there the radiation is his to face). In New Game+
  * there's no radiation, and no interlock (plus.ts).
  */
@@ -428,7 +428,7 @@ function suitCeiling(g: Game) {
 }
 
 /**
- * $9C5D: the armour reaches a floor: lands (taking off) or bounces. ENHANCED: out of energy it
+ * $9C5D: the armour reaches a floor: lands (taking off) or bounces. ours: out of energy it
  * lands whichever way it faces (`settleEmpty`).
  */
 function suitFloor(g: Game) {

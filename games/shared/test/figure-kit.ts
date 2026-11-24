@@ -12,8 +12,8 @@ import { PlaySession, type NativeRun } from './play-session';
 /**
  * The checks of a game's Pendragon figure swap (shared/pendragon/figure.ts), the same for each game that has one: every picture of
  * him the game draws, over a scripted run of every pose it has, is Dragonskulle's in the capture once the swap has run, and the
- * game's state is the same whether the swap runs or not; through the front end, ENHANCED shows his figure and ORIGINAL shows the
- * game's own.
+ * game's state is the same whether the swap runs or not; through the front end, both modes show his figure (the swap is ours,
+ * on in both).
  */
 export interface FigureGame {
   id: string;
@@ -110,13 +110,13 @@ export function checkFigure(g: FigureGame) {
   return seen;
 }
 
-/** A save of the game as it will launch from (the first state), run through the front end in ENHANCED and in ORIGINAL. */
+/** A save of the game as it will launch from (the first state), run through the front end in EASY and in HARD (the figure in both). */
 export async function checkFigureGate(g: FigureGame) {
   const save = must(g.states()[0], 'a state');
   for (const enhanced of [true, false]) {
     const s = await PlaySession.launch(g.run, g.id, save, g.keep, enhanced);
     const swap = new FigureSwap(g.spec);
-    let shown = 0, own = 0, frames = 0;
+    let shown = 0, frames = 0;
     s.input.keyDown('ArrowRight');
     for (let i = 0; i < 90; i++) {
       s.tick();
@@ -125,13 +125,9 @@ export async function checkFigureGate(g: FigureGame) {
       if (!sp) continue;
       frames++;
       if (swap.shows(sp.data)) shown++;
-      // the game's own shared colours (its own colour flashes when he is hurt; Dragonskulle's are 5 and 0)
-      const n = g.spec.colours.normal;
-      if (sp.mc1 === n.mc1 && sp.mc2 === n.mc2) own++;
     }
     s.input.keyUp('ArrowRight');
-    if (enhanced) check(`${g.id}: ENHANCED through the front end shows Dragonskulle's figure (${shown} of ${frames} frames)`, frames > 30 && shown === frames);
-    else check(`${g.id}: ORIGINAL through the front end leaves the game's own figure (${own} of ${frames} frames in the game's colours; ${shown} in Dragonskulle's pictures)`, frames > 30 && own === frames && (shown === 0 || g.id === 'blackwyche'));
+    check(`${g.id}: ${enhanced ? 'EASY' : 'HARD'} through the front end shows Dragonskulle's figure (${shown} of ${frames} frames)`, frames > 30 && shown === frames);
   }
 }
 

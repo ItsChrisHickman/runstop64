@@ -267,9 +267,9 @@ check('the game\'s own credit is last (a new game, not a port: the port\'s "rebu
 
 // ---- 5. in the session ----------------------------------------------------------------------------------------------------------
 
-function boot(enhanced: boolean) {
+function boot(easy: boolean) {
   store.clear();
-  store.set('montyworld.assist', JSON.stringify({ enhanced }));
+  store.set('montyworld.assist', JSON.stringify({ easy }));
   const inp = new Input(nowhere), rend = new PixelRenderer(), p = run({ renderer: rend, input: inp, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
   const press = (code: string) => { inp.keyDown(code); tick(1); inp.keyUp(code); tick(1); };
@@ -299,40 +299,42 @@ function win(s: ReturnType<typeof boot>) {
   const s = boot(true);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
-  check('ENHANCED: the game is won (the finale played out)', won);
-  check('ENHANCED: the win is kept, apart from the saves', readWon('montyworld') && store.has('montyworld.won') && !store.has('montyworld.save.v2.won'));
-  check('ENHANCED: the show begins from the finale, over the title', ending.active);
+  check('EASY: the game is won (the finale played out)', won);
+  check('EASY: the win is kept, apart from the saves', readWon('montyworld') && store.has('montyworld.won') && !store.has('montyworld.save.v2.won'));
+  check('EASY: the show begins from the finale, over the title', ending.active);
   s.tick(10);
-  check('ENHANCED: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading' && s.g.won);
+  check('EASY: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading' && s.g.won);
   s.tick(110);
   s.press('Space');
-  check('ENHANCED: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
-  check('ENHANCED: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
-  check('ENHANCED: the save is kept', s.p.state.hasSave);
+  check('EASY: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
+  check('EASY: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
+  check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
-  check('ENHANCED: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
+  check('EASY: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
   // W on the pause screen, once won
   s.press('KeyP');
-  check('ENHANCED, won: the pause screen offers W ENDING', s.p.state.paused);
+  check('EASY, won: the pause screen offers W ENDING', s.p.state.paused);
   s.press('KeyW');
-  check('ENHANCED: W starts it', ending.active);
+  check('EASY: W starts it', ending.active);
   s.tick(120);
   s.press('Space');
-  check('ENHANCED: after it, the title with the save kept', !ending.active && s.p.state.mode === 'title' && s.p.state.hasSave && s.p.state.prompt === null);
-  check('ENHANCED: ENTER CONTINUE is back (the strip)', s.p.state.hasSave);
+  check('EASY: after it, the title with the save kept', !ending.active && s.p.state.mode === 'title' && s.p.state.hasSave && s.p.state.prompt === null);
+  check('EASY: ENTER CONTINUE is back (the strip)', s.p.state.hasSave);
 }
 
 {
   const s = boot(false);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
-  s.tick(30);
-  check('ORIGINAL: the game is won, and kept so, with no ending of ours (the title, then CONTINUE?)', won && readWon('montyworld') && !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
+  check('HARD: the game is won, kept so, and the show begins as in EASY (it is in both modes)', won && readWon('montyworld') && ending.active);
+  s.tick(120);
+  s.press('Space');
+  check('HARD: a key skips it: the title, then CONTINUE?', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
   s.press('Enter');
   s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300);
   s.press('KeyP');
   s.press('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !ending.active && s.p.state.paused);
+  check('HARD: W on the pause screen starts it', ending.active);
 }
 
 {

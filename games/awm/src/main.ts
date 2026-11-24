@@ -19,7 +19,7 @@ import { FLY_KEY, TOUCH } from './touch';
 /**
  * Auf Wiedersehen Monty: the runstop64 front end for the rebuilt game (Program is the game as the original runs it, title,
  * play, GAME OVER; the picture is drawn by c64kit's C64View from what it makes): the music and effects by the original's
- * own drivers, and the shared pause screen with the map and travel, ENHANCED, autosave and continue (games/shared).
+ * own drivers, and the shared pause screen with the map and travel, ours, autosave and continue (games/shared).
  */
 export { info } from './info';
 
@@ -73,8 +73,6 @@ export function run(host: Host) {
   let lastKind = program.kind;
   /** The ending's show, once the session is up (made in the session's build). */
   let rewardShow: RewardShow | null = null;
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = () => false;
   /** The game last in play (its numbers are THE END's, when it has ended: the program has none on the title). */
   let lastGame: Game | null = null;
   /** A tap on the title's menu line, held as the key it stands for for a few frames (the title looks at its keys in one of its two phases). */
@@ -84,16 +82,15 @@ export function run(host: Host) {
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<AwmSave, AwmFound, Program>(host, {
-    id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: describeSave,
+    id: 'awm', font: awmFont(), codec: CODEC, map: awmMap, describe: (save, found) => describeSave(save, found, !program.unlimitedLives()),
     // (ENTER CONTINUE goes in the title's black lower part; F1 on the title is the music, not a restart: no restart keys)
     restartKeys: [], strip: { y: STRIP_Y },
     assists: [LIVES_ASSIST, { id: 'safe', long: 'SAFE RESPAWN' }, { id: 'lift', long: 'LIFT WAITS' }, { id: 'carry', long: 'CARRY ANYTHING' }, { id: 'board', long: 'UP BOARDS A PLANE' }, { id: 'hop', long: 'QUICK PLANE HOP' }, { id: 'hints', long: 'ITEM HINTS' }, { id: 'rest', long: 'HOPPERS REST AT TOP' }, { id: 'final', long: 'GOOD LIFE WAITS FOR END' }, { id: 'slow', long: 'CREATURES MOVE SLOWER' }],
-    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
-    ending: () => enhanced() && readWon('awm'),
+    // (W on the pause screen: the ending, once the game has been won)
+    ending: () => readWon('awm'),
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
-    enhanced = () => fe.enhanced;
-    // the game reads ENHANCED's assist as the switch has it now, and the front end's grace
+    // the game reads the assists as the switch has them now (all on in both modes, the lives with EASY), and the front end's grace
     program.safeRespawn = () => fe.assist.safe === true;
     program.liftWaits = () => fe.assist.lift === true;
     program.unlimitedLives = () => fe.assist.lives === true;
@@ -140,7 +137,7 @@ export function run(host: Host) {
       return { stick, f1: input.down.has('F1') || held === 'F1', f7: input.down.has('F7') || held === 'F7', fly };
     }
 
-    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning (both modes): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the ending (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     const reward = rewardShow = new RewardShow({
@@ -195,10 +192,10 @@ export function run(host: Host) {
           inGame = false;
           if (program.kind === 'title' && lastKind === 'closing') keepHigh();
         }
-        // the ending played out (GAME OVER, the title): the win is kept, and ENHANCED shows the reward
+        // the ending played out (GAME OVER, the title): the win is kept, and the reward shown
         if (program.kind === 'title' && lastKind === 'closing' && program.lastEnd === 'ending') {
           keepWon('awm');
-          if (fe.enhanced) { afterWin = true; reward.start(endingStats(lastGame, fe.found)); }
+          afterWin = true; reward.start(endingStats(lastGame, fe.found));
         }
         if (program.game) lastGame = program.game;
         lastKind = program.kind;
@@ -222,7 +219,7 @@ export function run(host: Host) {
     get frontEnd() { return port.fe; },
     /** For tests: the moment's grace. */
     get grace() { return port.flow.grace; },
-    get state() { return { kind: program.kind, paused: port.fe.paused, enhanced: port.fe.enhanced, going: port.fe.going, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state }; },
+    get state() { return { kind: program.kind, paused: port.fe.paused, easy: port.fe.easy, going: port.fe.going, found: port.fe.found, grace: port.flow.grace.left, roomCount: port.rooms.count, ...port.flow.state }; },
     tick: port.tick,
     render: port.render,
     menu: port.menu,

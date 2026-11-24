@@ -87,9 +87,9 @@ export class Picture {
   private shownScore = ZERO;
   private shownMoney = ZERO;
   private shownLives = -1;
-  /** ENHANCED's count of plane tickets as drawn (the original has none, and draws nothing). */
+  /** our count of plane tickets as drawn (the original has none, and draws nothing). */
   private shownTickets = '';
-  /** ENHANCED's item hints: what is on the panel's slot now (hints.ts). */
+  /** our item hints: what is on the panel's slot now (hints.ts). */
   private readonly hint = new HintClock();
   /** $6D6B: the colours of the room's four item slots (and of the boxes), kept from room to room. */
   private readonly slotColours = hexBytes(SLOT_COLOURS_HEX);
@@ -185,7 +185,7 @@ export class Picture {
     if (money !== this.shownMoney) { printMoney(screen, game.money.digits); this.shownMoney = money; }
   }
 
-  /** ENHANCED: the tickets he holds, beside the boxes. */
+  /** The tickets he holds, beside the boxes. */
   private tickets(): void {
     const n = this.game.items.tickets;
     const to = this.game.canBoardUp() ? destination(this.game.world.room) : null;
@@ -198,9 +198,11 @@ export class Picture {
   }
 
   private lives(): void {
-    if (this.game.lives === this.shownLives) return;
-    drawLives(this.screen, this.game.lives);
-    this.shownLives = this.game.lives;
+    // (EASY's unlimited lives have none to count: no faces, their places cleared)
+    const lives = this.game.unlimitedLives() ? 0 : this.game.lives;
+    if (lives === this.shownLives) return;
+    drawLives(this.screen, lives);
+    this.shownLives = lives;
   }
 
   /** For a check that sets the lives behind the game's back (as it does the original's): the faces stay as they are. */

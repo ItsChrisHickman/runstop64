@@ -433,7 +433,7 @@ SCOPE.section([], 'hints, the map, saves', () => {
 
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
-  check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[3] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[2] === `ITEMS  0/${WORLD.progress.keyItems.length}`); // (the totals are world.ts's)
+  check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[2] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[1] === `ITEMS  0/${WORLD.progress.keyItems.length}`); // (the totals are world.ts's)
   SCOPE.section([AND.picchu, AND.terraces], 'the map in the Andes', () => {
     enterRoom(s.g, AND.picchu, 0x40, standY(8));
     const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: [0x40, 0xb2, 4, 21], [AND.terraces]: [0x40, 0xb2, 4, 20] } });

@@ -6,8 +6,8 @@
  *  - ENHANCED: the first blow starts the end ($633B 1), the rest of the swings don't restart it: it
  *    runs on to 2 and 3, the captain is freed ($342C 2) within 30 swings (about 10 seconds), and the note ($D40F, the
  *    counter $633E) rises no higher than $20;
- *  - ORIGINAL (as the game was): every swing in contact puts the end back to 1, the counter runs on
- *    past $20 up to $FF (the note a piercing 3.8 kHz) and the captain is not freed in 100 swings.
+ *  - HARD the same (the fix is in both modes; before, the original: every swing in contact put the end back to 1, the counter ran on
+ *    past $20 up to $FF (the note a piercing 3.8 kHz) and the captain was not freed in 100 swings).
  *
  *   nice -n 15 node tools/test.mjs games/blackwyche/test/captain.ts
  */
@@ -40,11 +40,11 @@ async function fight(enhanced: boolean) {
 }
 
 const enhanced = await fight(true);
-check(`ENHANCED: the first swing starts the end (swing ${enhanced.firstBlow}), through 3 to the captain freed in ${enhanced.swings} swings (${enhanced.frames} frames)`, enhanced.firstBlow === 1 && enhanced.endState >= 3 && enhanced.freed && enhanced.swings <= 30);
-check(`ENHANCED: the note stops at the counter's $20 (highest ${enhanced.peak})`, enhanced.peak <= 0x20);
+check(`EASY: the first swing starts the end (swing ${enhanced.firstBlow}), through 3 to the captain freed in ${enhanced.swings} swings (${enhanced.frames} frames)`, enhanced.firstBlow === 1 && enhanced.endState >= 3 && enhanced.freed && enhanced.swings <= 30);
+check(`EASY: the note stops at the counter's $20 (highest ${enhanced.peak})`, enhanced.peak <= 0x20);
 
-const original = await fight(false);
-check(`ORIGINAL: swinging on keeps putting the end back: not freed in ${original.swings} swings`, original.firstBlow === 1 && !original.freed);
-check(`ORIGINAL: the counter runs past $20 (highest ${original.peak}): the note climbs`, original.peak > 0xf0);
+const hard = await fight(false);
+check(`HARD: the blow counts once too (both modes): freed in ${hard.swings} swings`, hard.firstBlow === 1 && hard.freed && hard.swings <= 30);
+check(`HARD: the note stops at $20 (highest ${hard.peak})`, hard.peak <= 0x20);
 
 finish();

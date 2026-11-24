@@ -12,7 +12,7 @@ import { V } from './vars';
 import { Bases, arrive, frameOf, fromState } from './stage';
 
 /**
- * The reward for beating The Sacred Armour of Antiriad (ENHANCED; shared/ending/show.ts is the show, this is what is Antiriad's):
+ * The reward for beating The Sacred Armour of Antiriad (shared/ending/show.ts is the show, this is what is Antiriad's):
  * a montage of places from the quest, each one the game's own engine on a new game of ours (its own C64, never the player's)
  * with Tal driven by a pilot (pilot.ts: input like a player's) doing something there, the credits typing on in the empty row
  * between the playfield and the panel, and the game's creatures walking through the places, named in turn in the same row; then THE

@@ -17,10 +17,10 @@ export const info = {
     TypeScript and checked against the original running on an emulated C64, cycle for cycle (the game times
     itself by counting, and draws its screen in raster interrupts).</p>
     <p>Controls: arrows (or WASD) move &middot; Space (or Z, X, pad A) jumps &middot; joysticks and gamepads work &middot;
-    P or Esc pauses (with a map) &middot; F3 music on or off &middot; M mutes &middot; in ENHANCED, press jump again in the air for a second jump, and hold Shift (on a phone: RUN) to run</p>
-    <p>ENHANCED (on unless you switch to ORIGINAL with E on the pause screen) makes the game a lot easier: jump again in the air
+    P or Esc pauses (with a map) &middot; F3 music on or off &middot; M mutes &middot; press jump again in the air for a second jump, and hold Shift (on a phone: RUN) to run</p>
+    <p>EASY (on unless you switch to HARD with E on the pause screen): your eight lives never run out, and none are shown; HARD: the original's lives. In both, the game is a lot easier: jump again in the air
     (once each time you leave the ground, in the direction you hold); ropes take hold of you at once, never drop you, and let you
-    jump off from anywhere; your eight lives never run out, and no life is lost for two seconds after coming into a room or losing one;
+    jump off from anywhere; no life is lost for two seconds after coming into a room or losing one;
     a guardian has to overlap you well to kill; sparkles show the items left in the room; a long fall ends in an ordinary landing
     and a death never starts Willy again into the same death; and bed after 160 items earns an ending (a montage of rooms with credits over
     it, the guardians walking through them, THE END; W on the pause screen shows it again once you've won). Hold Shift and Willy runs: his own steps come twice as often (his

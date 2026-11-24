@@ -2,12 +2,12 @@ import type { Game } from './game';
 import { V } from './vars';
 
 /**
- * ENHANCED: Tal carries the recharge cells he picks up and uses them at will (added for runstop64,
+ * Tal carries the recharge cells he picks up and uses them at will (added for runstop64,
  * Chris, 2026-10-15). The original carries one ($A7 bit 7; "ALREADY CARRYING RECHARGE CELL"), used
  * up the moment he is in the armour, so an armour out of energy strands him unless he happens to
  * hold one. Here every cell he crouches over is his (each once: the game marks the room's as taken
  * as ever), the count is kept, and C in the armour fills it from one; stepping into the armour
- * with a cell fills it too, as the original does. The original's $A7 is never set in ENHANCED, so
+ * with a cell fills it too, as the original does. The original's $A7 is never set in both modes, so
  * its own use of it never fires.
  *
  * The count is kept in memory the original's code used ($81C0: the port doesn't need it, as the
@@ -36,7 +36,7 @@ export function writeCells(ram: Uint8Array) {
 /** Where the cell message's words are, if `n` is it. */
 export const cellMessageAt = (n: number) => ((n & 0x7f) === CELL_MESSAGE ? TEXT : -1);
 
-/** ENHANCED: a cell picked up (collisions.ts, in place of the original's one). */
+/** A cell picked up (collisions.ts, in place of the original's one). */
 export function storeCell(g: Game) {
   const { ram } = g;
   if (ram[CELLS] < MOST) ram[CELLS]++;

@@ -13,7 +13,7 @@ import { TOP_ROW, type Scene } from './ending-scenes';
 import { cellOf, type MontyData, type MontyEnding, type MontyParade } from './montydata';
 
 /**
- * The reward for beating Monty on the Run (ENHANCED; shared/ending/show.ts is the show, this is what is Monty's):
+ * The reward for beating Monty on the Run (shared/ending/show.ts is the show, this is what is Monty's):
  * a montage of rooms from the journey, each one the game's own engine on a new game of ours with Monty driven by a route
  * (pilot.ts: input like a player's) doing something there, the credits typing on in the empty row under the playfield;
  * and the game's creatures walking through the places; then THE END with the numbers the pause screen keeps.

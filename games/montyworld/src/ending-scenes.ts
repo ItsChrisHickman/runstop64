@@ -10,7 +10,7 @@ import { FIRST_CREATURE } from './layout';
 import { RIO_ROOM } from './rio';
 
 /**
- * Do Svidaniya Monty's reward show (ENHANCED): the places (ending-places.ts) with where each starts him and the route that does what it says there (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
+ * Do Svidaniya Monty's reward show (both modes): the places (ending-places.ts) with where each starts him and the route that does what it says there (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
  * whole world marching by after the last credit in a procession, a troupe from each region, Monty last.
  */
 

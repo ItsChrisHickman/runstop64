@@ -150,11 +150,12 @@ export function progressLines(game: Game, found: AwmFound): string[] {
   const seen = roomsSeen(found);
   const taken = game.items.collected.filter((c, i) => c && PRIZES.get(TABLES.items[i]?.room ?? NO_ROOM)?.includes(i)).length;
   const goal = Math.min(100, Math.floor((game.progress * 100) / 0xc3));
-  return [`LIVES ${String(game.lives & 0x7f).padStart(5)}`, `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
+  // (the lives in HARD only: EASY has none to count)
+  return [...(game.unlimitedLives() ? [] : [`LIVES ${String(game.lives & 0x7f).padStart(5)}`]), `ROOMS ${String(seen).padStart(2)}/${rooms.length}`, `ITEMS ${String(taken).padStart(5)}`, `GOAL ${String(goal).padStart(4)}%`];
 }
 
 /**
- * The pause screen's pages: the world, and with ENHANCED's carry anything the CARRYING pages after it (1, 2...: a page for each
+ * The pause screen's pages: the world, and with our carry anything the CARRYING pages after it (1, 2...: a page for each
  * eight things). The page being shown, as the map has it: 0 for the world, also when the pages are not there (ORIGINAL).
  */
 function shownPage(program: Program, page: number): number {
@@ -238,10 +239,10 @@ export const awmMap = {
   },
 } satisfies PauseMap<Program, AwmFound>;
 
-/** A save described for the save manager (ContinueFlow `describe`): the place, then lives, how far he has got and the score. */
-export function describeSave(save: AwmSave, found: AwmFound): string[] {
+/** A save described for the save manager (ContinueFlow `describe`): the place, then lives (in HARD: `lives`), how far he has got and the score. */
+export function describeSave(save: AwmSave, found: AwmFound, lives = true): string[] {
   const seen = roomsSeen(found);
   const goal = Math.min(100, Math.floor((save.progress * 100) / 0xc3));
   const score = save.score.reduceRight((n, d) => n * 10 + d, 0);
-  return [roomName(save.room) || country(save.room), `LIVES ${save.lives & 0x7f}`, `GOAL ${goal}%`, `ROOMS ${seen}`, `SCORE ${score}`];
+  return [roomName(save.room) || country(save.room), ...(lives ? [`LIVES ${save.lives & 0x7f}`] : []), `GOAL ${goal}%`, `ROOMS ${seen}`, `SCORE ${score}`];
 }

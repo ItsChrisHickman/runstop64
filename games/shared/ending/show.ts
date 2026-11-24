@@ -6,7 +6,7 @@ import { WHOLE, cutTo, type Stage } from './stage';
 import { bandAt, nameLeft, sharesOf, timelineOf, visitorLeft, walkOf, type Timeline, type Walk } from './timeline';
 
 /**
- * The reward for beating a game (ENHANCED's addition: the game's own winning moment stays as it was, and what follows it is
+ * The reward for beating a game (our addition: the game's own winning moment stays as it was, and what follows it is
  * ours), written once for every game. A game declares what is its own, as places running on its own engine (a `Reel`):
  *
  *  1. A montage of places: each one the game's own engine running (a new game of ours, never the player's), its creatures

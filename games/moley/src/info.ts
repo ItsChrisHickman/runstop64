@@ -18,7 +18,7 @@ export const info = {
         <a href="https://en.wikipedia.org/wiki/Your_Sinclair">Your Sinclair</a> cover game, 1987</li>
     </ul>
     <p>This is a custom edition of a ZX Spectrum-only game. The 48K game is rebuilt from the original program and checked
-    against it frame for frame, in the Spectrum's own colours, with the 128K version's music added. ENHANCED removes the
+    against it frame for frame, in the Spectrum's own colours, with the 128K version's music added. Our version removes the
     colour clash: Monty and the other sprites keep their own colours.</p>
     <p>Controls: arrows or WASD move (up and down climb the ropes, and fly in the last screen) &middot; Space jumps (also Z, X, gamepad A) and starts a game from the
     credits page (Enter or a tap too) &middot; any key leaves the Christmas card &middot;
@@ -28,7 +28,7 @@ export const info = {
     <a href="https://github.com/ItsChrisHickman/runstop64/blob/main/games/moley/QOL.md">full log</a>):
     the credits page's key text is ours &middot; pause screen with a map of the six screens, items taken and travel &middot; autosave on every screen and
     Continue after the last life (coming back carries on where you were; T on the pause screen goes to the credits page) &middot; the high score kept in your
-    browser &middot; ENHANCED (switch to ORIGINAL on the pause screen): unlimited lives and continues, no colour clash, smooth movement at any refresh rate, the items left in the pocket
+    browser &middot; EASY (on unless you switch to HARD with E on the pause screen): unlimited lives and continues, and no lives to count; HARD: the original's lives. In both: no colour clash, smooth movement at any refresh rate, the items left in the pocket
     box, steering in the air, sparkles on the puzzles and the ways out, and an ending after the card (a montage of the six screens with credits over it, the creatures walking through them, THE END; W on the pause screen shows it again once you've won). Both modes keep the Spectrum's own colours and fix the one place the original jumps to the wrong code (screen 3).</p>
     <p>Source: <a href="https://github.com/ItsChrisHickman/runstop64">this remake</a></p>
   `,

@@ -24,7 +24,7 @@ import stateUrl from '../assets/blackwyche-title.state?url';
 export { info } from './info';
 
 export function run(host: Host) {
-  // GUIDED (ENHANCED): the puzzles told on the status line and marked with sparkles (src/guided.ts)
+  // GUIDED (both modes): the puzzles told on the status line and marked with sparkles (src/guided.ts)
   const guide = new Guide();
   const trapdoors = new TrapDoors();
   let options: Readonly<Record<string, boolean>> = {};
@@ -41,12 +41,15 @@ export function run(host: Host) {
         ram[0x9d77] = 100; ram[0x3417] = 0; // energy, and damage still to take
         ram.set([0x31, 0x3a, 0x3a], 0x07a2); // "100" on the status line
       },
+      // EASY: once his death (no energy left, $1519) has played out ($970C, re/engine.json) he is back at the start of the room he died in at
+      // full health, as CONTINUE? would without the prompt (shared/native/play.ts `lifeEnds`); HARD: the game's end and CONTINUE?
+      lifeEnds: 0x970c,
     },
     map: blackwycheMap,
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: blackwycheCombat,
     controls: blackwycheControls,
-    // ENHANCED: Pendragon as Dragonskulle draws him (src/figure.ts)
+    // Pendragon as Dragonskulle draws him (src/figure.ts)
     figure: blackwycheFigure,
     // Z jump, X sword: straight to the action (the original only cycles through them)
     actions: {
@@ -69,7 +72,7 @@ export function run(host: Host) {
     onHook: (pc, ram) => { if (options.captain) captainsBlow(pc, ram); },
     hints: guidedSpots,
     hintsWith: 'guided',
-    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
+    // the reward for winning (both modes): a montage, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: blackwycheEnding, won, stats: endingStats },
     // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
     titleTune: true,

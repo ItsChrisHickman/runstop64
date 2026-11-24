@@ -1,8 +1,8 @@
 /**
  * The front end, headless (c64kit stood in by test/kit.ts): the title, a new game, walking
  * into the next room (autosave), the pause screen and its map (rooms Tal can't travel to as he
- * is now drawn dark, and not offered), travel back by the map, ENHANCED (on unless chosen off;
- * E changes it) and its two buttons (keys and touch), the game over and CONTINUE?, and R (a
+ * is now drawn dark, and not offered), travel back by the map, EASY (on unless switched to HARD
+ * with E: the unlimited lives only), the two buttons (keys and touch) in both modes, the game over and CONTINUE? in HARD, and R (a
  * restart): the game so far kept as the previous save, even with a new game started at once.
  *
  *   nice -n 15 node tools/test.mjs games/antiriad/test/frontend.ts
@@ -67,17 +67,17 @@ g().ram[V.inSuit] = 0x80;
 const inArmour = antiriadMap.places?.(MAP_BOX, g(), found).map((pl) => Number(pl.id)) ?? [];
 g().ram[V.inSuit] = suitWas;
 check(`in the armour, the map offers only rooms the armour has been in (${inArmour.map(roomName).join(' ')})`, inArmour.includes(flown) && !inArmour.includes(first));
-// ENHANCED: on unless chosen off; E changes it (and it's remembered)
-check('ENHANCED is on to begin with', p.state.enhanced);
+// EASY: on unless chosen off; E changes it to HARD (and it's remembered)
+check('EASY is on to begin with', p.state.easy);
 tap('KeyE');
-check('E on the pause screen: ORIGINAL', !p.state.enhanced && (store.get('antiriad.assist') ?? '').includes('"enhanced":false'));
+check('E on the pause screen: HARD', !p.state.easy && (store.get('antiriad.assist') ?? '').includes('"easy":false'));
 tap('KeyE');
-check('E again: ENHANCED', p.state.enhanced);
+check('E again: EASY', p.state.easy);
 tap('ArrowRight');
 tap('Enter');
 tick(40);
 check(`picking the first room on the map and Enter: back in play, in ${roomName(first)}`, !p.state.paused && g().ram[V.room] === first);
-// the buttons: touch has FIRE and JUMP (and CELL, ENHANCED's stored recharge cells); with ENHANCED, Z (the touch JUMP) jumps and doesn't fire
+// the buttons: touch has FIRE and JUMP (and CELL, the stored recharge cells); in both modes Z (the touch JUMP) jumps and doesn't fire
 const labels = p.touch.buttons.map((b) => `${b.label}=${b.key}`).join(' ');
 check(`touch: FIRE, JUMP and CELL buttons (${labels})`, labels === 'FIRE=Space JUMP=KeyZ CELL=KeyC');
 tick(60);
@@ -94,21 +94,21 @@ const jumps = (code: string) => {
   return { air, fired, before };
 };
 const z = jumps('KeyZ');
-check(`ENHANCED: Z jumps, and isn't fire (${JSON.stringify(z)})`, z.air && !z.fired);
+check(`EASY: Z jumps, and isn't fire (${JSON.stringify(z)})`, z.air && !z.fired);
 const space = jumps('Space');
-check(`ENHANCED: Space fires, and doesn't jump (${JSON.stringify(space)})`, !space.air && space.fired);
+check(`EASY: Space fires, and doesn't jump (${JSON.stringify(space)})`, !space.air && space.fired);
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
-const zO = jumps('KeyZ');
-check(`ORIGINAL: Z is the original's one button (fire: ${JSON.stringify(zO)})`, zO.fired);
+const zH = jumps('KeyZ');
+check(`HARD: Z still jumps, and isn't fire: our buttons are in both modes (${JSON.stringify(zH)})`, !p.state.easy && zH.air && !zH.fired);
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
-// ENHANCED: unlimited lives and continues: out of life he is rejuvenated, with none used, never game over
+// EASY: unlimited lives and continues: out of life he is rejuvenated, with none used, never game over
 g().ram[V.deaths] = 4;
 g().ram[V.life] = 0;
 n = 0;
 while (g().ram[V.life] < 0x1f && n++ < 1500) tick();
-check(`ENHANCED: out of life with the last rejuvenation used: he is rejuvenated, none used up, no game over (deaths ${g().ram[V.deaths]}, life ${g().ram[V.life]})`, g().ram[V.deaths] === 4 && !(g().ram[V.gameOver] & 0x80) && g().ram[V.life] >= 0x1f);
+check(`EASY: out of life with the last rejuvenation used: he is rejuvenated, none used up, no game over (deaths ${g().ram[V.deaths]}, life ${g().ram[V.life]})`, g().ram[V.deaths] === 4 && !(g().ram[V.gameOver] & 0x80) && g().ram[V.life] >= 0x1f);
 tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10);
-check('ORIGINAL: no unlimited lives', !p.state.enhanced && !g().unlimitedLives());
+check('HARD: no unlimited lives', !p.state.easy && !g().unlimitedLives());
 // the game over: the last rejuvenation used, then no life left
 g().ram[V.deaths] = 4;
 g().ram[V.life] = 0;
@@ -123,8 +123,8 @@ check('fire: back to the title, which asks CONTINUE?', g().onTitle && p.state.pr
 tap('Enter');
 tick(5);
 check(`Enter: back in play in the last room entered (${roomName(g().ram[V.room])}), full life, all rejuvenations`, g().playing && g().ram[V.room] === first && g().ram[V.life] === 0x1f && g().ram[V.deaths] === 0);
-tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10); // (back to ENHANCED, the default)
-check('and ENHANCED again', p.state.enhanced && g().unlimitedLives());
+tap('KeyP'); tap('KeyE'); tap('KeyP'); tick(10); // (back to EASY, the default)
+check('and EASY again', p.state.easy && g().unlimitedLives());
 // R restarts (the original's Q): the game so far is kept as the previous save, as a new game from
 // the title keeps it; once after the title has been up a while, once with a new game straight away
 for (const wait of [300, 2]) {

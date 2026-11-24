@@ -1,13 +1,14 @@
 /**
  * Jet Set Willy II: falls. The original kills on landing after a fall of 40 pixels or more (the
- * fall counter $82D7, two a step, against `cmp #$28` at $5465). ENHANCED: no fall kills
+ * fall counter $82D7, two a step, against `cmp #$28` at $5465). Ours, in both modes: no fall kills
  * (main.ts FALL_LIMIT: the operand the translation reads from $5466), and what he lands on is still
  * the game's own business. Through the front end as the browser runs it, from room 60's floor
  * (the way travel puts him there), dropping Willy from the air above it:
  *
- * - ORIGINAL: a short drop is survived, a long fall (counter past 40) costs a life on landing;
- * - ENHANCED: both are survived, he lands on the floor on his feet and walks on;
- * - ENHANCED: a collision that kills (not a fall) still takes a life.
+ * - the original's rules (as only a test has them now: original-rules.ts): a short drop is survived, a long fall (counter
+ *   past 40) costs a life on landing;
+ * - HARD and EASY: both are survived, he lands on the floor on his feet and walks on; a collision that kills (not a fall)
+ *   still takes a life.
  *
  *   nice -n 15 node tools/test.mjs games/jsw2/test/falls.ts
  */
@@ -16,6 +17,7 @@ import { Input, PixelRenderer } from 'c64kit';
 import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { must } from '../../shared/test/must';
+import { hardStore, originalRules } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
 stubFetch(fs.readFileSync('games/jsw2/assets/jsw2-title.state'));
@@ -70,12 +72,11 @@ async function launch(store = new Map<string, string>()) {
   return s;
 }
 
-const ORIGINAL = () => new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]);
-
-for (const mode of ['ORIGINAL', 'ENHANCED'] as const) {
-  const enhanced = mode === 'ENHANCED';
-  const s = await launch(enhanced ? new Map() : ORIGINAL());
-  check(`${mode}: on room 60's floor (${s.room()}), the switch right`, s.room() === BINS && s.p.state.enhanced === enhanced);
+for (const mode of ["the original's rules", 'HARD', 'EASY'] as const) {
+  const enhanced = mode !== "the original's rules";
+  const s = await launch(mode === 'EASY' ? new Map() : hardStore());
+  if (!enhanced) { originalRules(s.p.options); s.tick(2); }
+  check(`${mode}: on room 60's floor (${s.room()}), the switch right`, s.room() === BINS && s.p.state.easy === (mode === 'EASY'));
   check(`${mode}: the fall limit is ${enhanced ? '$FF' : '40'} ($${s.ram()[0x5466].toString(16)})`, s.ram()[0x5466] === (enhanced ? 0xff : 0x28));
 
   const lives0 = s.lives();

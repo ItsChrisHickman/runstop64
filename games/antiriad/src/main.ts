@@ -26,11 +26,11 @@ import { TOUCH } from './touch';
  */
 /**
  * Touch: Tal walks, jumps (up) and crouches (down); FIRE throws (the Pulsar Beam in the armour),
- * JUMP jumps (lifts the armour), CELL fills the armour from a stored recharge cell (ENHANCED; cells.ts).
+ * JUMP jumps (lifts the armour), CELL fills the armour from a stored recharge cell (cells.ts).
  * In ORIGINAL FIRE and JUMP are the original's one button, and CELL does nothing.
  */
 
-/** ENHANCED's buttons (main.ts controls()): Z jumps; Space, X, Ctrl and the pad's buttons fire. */
+/** our buttons (main.ts controls()): Z jumps; Space, X, Ctrl and the pad's buttons fire. */
 const JUMP_KEY = 'KeyZ';
 const FIRE_KEYS = ['Space', 'KeyX', 'ControlLeft', 'ControlRight'];
 
@@ -118,8 +118,6 @@ export function run(host: Host) {
   let won = false;
   /** The numbers under THE END, taken the moment the mine goes off (a new game after it wipes them). */
   let stats: string[] = [];
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = () => false;
   /** The ending's show (made in the session's build), and the start of it from the game's own ending. */
   let rewardShow: RewardShow | null = null;
   let startReward = () => {};
@@ -128,12 +126,12 @@ export function run(host: Host) {
   const port = runPort<MachineState, AntiriadFound, Game>(host, {
     id: 'antiriad', font: 'kit', codec: MACHINE_CODEC, map: antiriadMap, describe: (s) => describeSave(s.ram),
     strip: { y: 183 }, // (on the black under the title's floor)
-    // ENHANCED (on unless chosen off: ORIGINAL): fire and jump on buttons of their own (hero.ts)
-    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }, LIVES_ASSIST],
-    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
-    ending: () => enhanced() && readWon('antiriad'),
+    // EASY: unlimited lives (shared/lives.ts); our changes (fire and jump on buttons of their own, hero.ts; QOL.md) are on in both modes
+    assists: [LIVES_ASSIST],
+    // (W on the pause screen: the ending, once the game has been won)
+    ending: () => readWon('antiriad'),
   }, (self) => {
-    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning: the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the ending's fire (the title is up under it, ENTER CONTINUE comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     /** The tune: the title sequence's own, on a C64 of its own, its writes going into the sound as the game's would. */
@@ -196,7 +194,6 @@ export function run(host: Host) {
     };
   });
   const { flow, fe, rooms } = port;
-  enhanced = () => !!fe.assist.enhanced;
 
   const hook = (game: Game) => {
     game.onRoom = () => rooms.enter();
@@ -230,14 +227,13 @@ export function run(host: Host) {
   /** The joystick (port 2) and keyboard, for this frame. */
   function controls() {
     const m = g.m;
-    // ENHANCED: fire and jump apart (Z is the jump; the other fire keys and the pad fire)
-    const two = fe.assist.enhanced;
-    const fire = two ? FIRE_KEYS.some((k) => input.down.has(k)) || (input.held.fire && !input.down.has(JUMP_KEY)) : input.held.fire;
+    // fire and jump apart (Z is the jump; the other fire keys and the pad fire)
+    const fire = FIRE_KEYS.some((k) => input.down.has(k)) || (input.held.fire && !input.down.has(JUMP_KEY));
     giveControls(g, {
       up: input.held.up, down: input.held.down, left: input.held.left, right: input.held.right,
       fire: port.latch.filter(fire),
-      jump: input.down.has(JUMP_KEY), jumpTap: input.typed.includes(JUMP_KEY), cell: input.typed.includes('KeyC'), // (ENHANCED: C fills the armour from a stored cell)
-    }, two);
+      jump: input.down.has(JUMP_KEY), jumpTap: input.typed.includes(JUMP_KEY), cell: input.typed.includes('KeyC'), // (C fills the armour from a stored cell)
+    }, true);
     // R (or F1) restarts: the original's Q
     m.keys = input.down.has('KeyR') || input.down.has('F1') ? [C64_KEYS.KeyQ] : [];
   }
@@ -264,8 +260,8 @@ export function run(host: Host) {
     if (!won && g.ram[MINE_SET_OFF] & 0x80) { won = true; keepWon('antiriad'); stats = endingStats(g, fe.found); rooms.enter(); }
     if (won && g.onTitle) {
       port.backToTitle();
-      // (ENHANCED: the reward over the title, after the game's own ending)
-      if (enhanced()) startReward();
+      // (the reward over the title, after the game's own ending)
+      startReward();
       return result;
     }
     if (g.playing && !(g.ram[V.roomChange] & 0x80)) antiriadMap.observe(g, fe.found, new Uint8Array(0));
@@ -281,7 +277,7 @@ export function run(host: Host) {
     get grace() { return flow.grace; },
     /** For tests: the ending's show (src/ending.ts). */
     get ending() { return rewardShow; },
-    get state() { return { paused: fe.paused, going: fe.going, found: fe.found, enhanced: !!fe.assist.enhanced, grace: flow.grace.left, ...flow.state }; },
+    get state() { return { paused: fe.paused, going: fe.going, found: fe.found, easy: fe.easy, grace: flow.grace.left, ...flow.state }; },
     tick: port.tick,
     render: port.render,
     menu: port.menu,

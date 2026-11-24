@@ -27,7 +27,6 @@ const OIL = 0x8f, FULL_OIL = 0xff, DEATH_PLAYED_OUT = 0x669f;
 
 export function run(host: Host) {
   const enhanced = makeEnhanced();
-  let options: Readonly<Record<string, boolean>> = {};
   const all = () => true, none = () => false;
   /** The high score's name is being typed (hooks at $7AAE, its loop, and $7B04, RETURN taken: re/engine.json). */
   let naming = false;
@@ -43,21 +42,20 @@ export function run(host: Host) {
     titleWaits: (ram) => (ram[0xfffe] | (ram[0xffff] << 8)) === 0x7254 && !naming,
     // The pause screen's map of the factory, with travel back to screens been in (map.ts, travel.ts).
     map: makeMap(),
-    onAssists: (a) => { options = a; },
-    // ENHANCED (assists.ts): kinder movement and hints (sparkles); the oil running out is a life lost (`vitals` below).
+    // Our changes, in both modes (assists.ts): kinder movement, in play; and hints (sparkles). EASY: the oil running out is a
+    // life lost (`vitals` below).
     assists: [{
-      id: 'enhanced', long: 'ENHANCED', default: true,
+      id: 'kinder', long: 'KINDER MOVES',
       apply: (ram, on) => enhanced.afterFrame(ram, on ? all : none),
     }],
     hints: hintSpots,
-    hintsWith: 'enhanced',
-    // the reward for winning (ENHANCED): a montage of the factory's rooms, the creatures walking through it, THE END (src/ending.ts)
+    // the reward for winning: a montage of the factory's rooms, the creatures walking through it, THE END (src/ending.ts)
     ending: { spec: thingEnding, won, stats: endingStats },
     onHook: (pc, ram) => {
       if (pc === NAME_LOOP) naming = true;
       else if (pc === NAME_DONE) naming = false;
-      else if (pc === ANIMATED_DRAWN) { if (options.enhanced) stillPoles(ram); }
-      enhanced.hook(pc, ram, options.enhanced ? all : none);
+      else if (pc === ANIMATED_DRAWN) stillPoles(ram);
+      enhanced.hook(pc, ram, all);
     },
     // A high score's name ($7A21: ten letters, RETURN puts it in, DEL rubs out) on a touch screen:
     // picked with the stick, JUMP, RET (games/shared/letters.ts); the line naming them goes under the table.
@@ -71,7 +69,7 @@ export function run(host: Host) {
     // carry set), so a creature, a live wire or a ceiling costs nothing for its 3 seconds.
     grace: { hook: (pc, ram) => { if (pc === 0x56e0) { cpu.a = ram[OIL]; cpu.c = 1; } } },
     // Continuing (CONTINUE? and the rest) starts with the oil full, as the Pendragon games' continue gives full health. In
-    // ENHANCED the oil running out is a life lost, not the end: once the death has played out ($669F, re/engine.json) he is
+    // EASY the oil running out is a life lost, not the end: once the death has played out ($669F, re/engine.json) he is
     // put back at the start of the room he died in, at full oil (shared/native/play.ts `lifeEnds`), unlimited.
     vitals: { fullHealth: (ram) => { ram[OIL] = FULL_OIL; }, lifeEnds: DEATH_PLAYED_OUT },
     // (R would open the original's key-redefining screen, which lists C64 keys: not on this keyboard.)

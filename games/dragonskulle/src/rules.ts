@@ -50,7 +50,7 @@ export function hitsLeft(ram: Uint8Array): number | null {
   return Math.max(0, DRAGON_HITS - ram[HITS]);
 }
 
-/** What this screen asks to be done so many times, and how far along it is (ENHANCED's tally in the status line), or null. */
+/** What this screen asks to be done so many times, and how far along it is (our tally in the status line), or null. */
 export interface Tally { readonly what: 'WIZARDS' | 'DRAGON HITS'; readonly done: number; readonly need: number }
 export function tally(ram: Uint8Array): Tally | null {
   const b = bridgeShut(ram);

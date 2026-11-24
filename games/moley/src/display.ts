@@ -308,7 +308,7 @@ export class Display implements Observer {
   }
 
   /**
-   * ENHANCED: the number of items left in the room, as one large digit in the pocket box (the box is empty then: the items are only in
+   * The number of items left in the room, as one large digit in the pocket box (the box is empty then: the items are only in
    * rooms 0, 1 and 4, which carry nothing). The game's own numeral, each pixel doubled, in the middle of the box's 16 x 16.
    */
   private itemCount(count: number): void {
@@ -342,7 +342,9 @@ export class Display implements Observer {
   hud(): void {
     const game = this.game;
     if (game.lives >= 0) {
-      for (let slot = 0; slot < FACE_SLOTS; slot++) this.blit(SPRITE_FRAMES, (slot < game.lives ? FIRST_FACE_FRAME : BLANK_FRAME) * 32, HUD_ROW, FACE_COLUMN + slot * FACE_STRIDE);
+      // (EASY's unlimited lives have none to count: the faces' places left blank)
+      const faces = game.unlimitedLives ? 0 : game.lives;
+      for (let slot = 0; slot < FACE_SLOTS; slot++) this.blit(SPRITE_FRAMES, (slot < faces ? FIRST_FACE_FRAME : BLANK_FRAME) * 32, HUD_ROW, FACE_COLUMN + slot * FACE_STRIDE);
     }
     const value = game.gauge.value;
     if ((value & 0x80) === 0) this.gaugeLevel = value >> 4;

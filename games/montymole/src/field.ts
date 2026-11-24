@@ -103,7 +103,9 @@ export class Field {
   }
 
   /** `LIVES: ` and the number left, on the screen (`$949E`). */
-  printLives(lives: number): void {
-    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, LIVES_LINE.text + digitChar(lives));
+  printLives(lives: number, shown = true): void {
+    // (EASY's unlimited lives have none to count: the line's place left blank)
+    const text = LIVES_LINE.text + digitChar(lives);
+    drawLine({ bitmap: this.screen, attrs: this.attrs }, LIVES_LINE, shown ? text : ' '.repeat(text.length));
   }
 }

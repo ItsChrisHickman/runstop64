@@ -28,9 +28,9 @@ export class Session {
   /** Frames the game's own message (the one of the moment: $3232) was up and the line was not its own. */
   covered = 0;
   private constructor() { /* use launch() */ }
-  static async launch(save: MachineState, enhanced = true) {
+  static async launch(save: MachineState, enhanced = true) { // (`enhanced`: EASY, else HARD)
     const kept = new Map([['karnath.save.v1', Buffer.from(packState(save)).toString('base64')]]);
-    if (!enhanced) kept.set('karnath.assist', JSON.stringify({ enhanced: false }));
+    if (!enhanced) kept.set('karnath.assist', JSON.stringify({ easy: false }));
     useMemoryStorage(kept);
     const s = new Session();
     await new Promise((r) => setTimeout(r, 0));

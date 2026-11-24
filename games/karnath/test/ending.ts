@@ -22,6 +22,7 @@ import { BitmapFont, Input, KIT_GLYPHS, PixelRenderer, unpackState } from 'c64ki
 import { keepWon, readWon } from '../../shared/ending/credits';
 import { Ending } from '../../shared/ending/machine-reel';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
+import { checkLifeEnds } from '../../shared/test/life-ends';
 import { check, finish } from '../../shared/test/check';
 import { checkShow, playShow } from '../../shared/test/ending-kit';
 import { must } from '../../shared/test/must';
@@ -150,13 +151,13 @@ function destroyTheStaff(s: PlaySession) {
   w.tick(30);
   check('and back at the title', !w.p.ending?.active && atTitle(w));
 
-  // ORIGINAL: the game as it was, no ending (and none offered)
+  // HARD: the ending follows the win as in EASY (it is in both modes)
   useMemoryStorage(new Map());
   const o = await PlaySession.launch(run, 'karnath', abode, keep, false);
   destroyTheStaff(o);
   let any = false;
   for (let f = 0; f < 2500; f++) { o.tick(); if (o.p.ending?.active) any = true; }
-  check('ORIGINAL: no ending after the win (the game goes to its title as it did)', !any && atTitle(o));
+  check('HARD: the ending follows the win too', any);
 }
 
 // ---- what a win is, and the flag
@@ -173,4 +174,11 @@ function destroyTheStaff(s: PlaySession) {
   keepWon('karnath');
   check('the won flag is kept', readWon('karnath'));
 }
+// ---- EASY: no energy left is a start of the room again; HARD: the game's end ----
+{
+  useMemoryStorage(new Map());
+  const s = await PlaySession.launch(run, 'karnath', abode, () => {});
+  checkLifeEnds('karnath', s, (r) => { r[0x6ffd] = 1; }, (r) => r[0x3235], (r) => r[0x6ffe] === 100);
+}
+
 finish();

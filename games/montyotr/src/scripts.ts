@@ -63,7 +63,7 @@ function* deathByLift(g: Game): Seq {
 
 /**
  * A crash (or an enemy) in the C5: the original sends Monty back to the start of the
- * section, by the tree in room $24. ENHANCED (assist c5): back into the room he crashed
+ * section, by the tree in room $24. ours (assist c5): back into the room he crashed
  * in, where he came into it (the room's entry, savedX, on the road), the C5 stopped there
  * facing the way it was going (mechanisms.ts c5Restart): coming back at the speed it came in
  * at, the first holes of some rooms came a frame or two after the edge (the return's second

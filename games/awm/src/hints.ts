@@ -2,7 +2,7 @@ import { Colour, type SlotLine } from './panel';
 import { placeName } from './wants';
 
 /**
- * ENHANCED's item hints, on the panel's bottom row right of the money: a room or creature that wants a thing used to take it
+ * our item hints, on the panel's bottom row right of the money: a room or creature that wants a thing used to take it
  * without a word, so when something worked it felt like luck. Now a thing picked up that something wants says where it goes
  * (FOR MONACO), a room that wants a thing he is not carrying says so with the thing's picture (WANTED HERE:), and a handover
  * says what it paid (DELIVERED: +1000). `Game` says what happened (`onHint`); the picture shows it for a few seconds

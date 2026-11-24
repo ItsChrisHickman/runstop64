@@ -1,5 +1,5 @@
 /**
- * ENHANCED's help: the coal count and the sparkles, read from the game's own state (`Game`), never written to it.
+ * our help: the coal count and the sparkles, read from the game's own state (`Game`), never written to it.
  *
  * - **Coal to the next gate** (`coalCount`): the gates open when exactly 16, 32, 48 and 64 pieces are taken (gates.ts), so the text says how many are left to the next
  *   one, in the game's own letters; once all four have counted there is nothing to say and nothing is shown.

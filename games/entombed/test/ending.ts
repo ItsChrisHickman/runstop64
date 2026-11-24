@@ -152,13 +152,13 @@ function walkOut(s: PlaySession) {
   w.tick(30);
   check('and back at the title', !w.p.ending?.active && atTitle(w));
 
-  // ORIGINAL: the game as it was, no ending (and none offered)
+  // HARD: the ending follows the win as in EASY (it is in both modes)
   useMemoryStorage(new Map());
   const o = await PlaySession.launch(run, 'entombed', save, keep, false);
   walkOut(o);
   let any = false;
   for (let f = 0; f < 2500; f++) { o.tick(); if (o.p.ending?.active) any = true; }
-  check('ORIGINAL: no ending after the win (the game goes to its title as it did)', !any && atTitle(o));
+  check('HARD: the ending follows the win too', any);
 }
 
 // ---- what a win is, and the flag

@@ -22,7 +22,7 @@ const outDir = process.argv[2];
 
 function session(enhanced: boolean, fresh: boolean) {
   if (fresh) store.clear();
-  store.set('montymoleremix.assist', JSON.stringify({ enhanced }));
+  store.set('montymoleremix.assist', JSON.stringify({ easy: enhanced }));
   const input = new Input(nowhere), renderer = new PixelRenderer(), p = run({ renderer, input, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { input.poll(); p.tick(); p.render(0); } };
   const tap = (code: string) => { input.keyDown(code); tick(2); input.keyUp(code); tick(2); };
@@ -48,7 +48,7 @@ function walkOut(s: Session): number {
 }
 
 for (const enhanced of [true, false]) {
-  const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
+  const mode = enhanced ? 'EASY' : 'HARD';
   const s = session(enhanced, true);
   const { p, g } = s;
   s.tick(400);

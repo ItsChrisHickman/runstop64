@@ -1,5 +1,5 @@
 /**
- * ENHANCED's coal count and sparkles (src/hints.ts), on the rebuilt game alone (no original needed):
+ * The coal count and sparkles (both modes; src/hints.ts), on the rebuilt game alone (no original needed):
  *
  * - the count says how many pieces are left to the next gate (16, 32, 48, 64 taken), nothing once all four have counted, nothing in the opening scene, and it is written in
  *   the game's own letters;
@@ -8,7 +8,7 @@
  * - the opener is marked only in the gate's room, only when one piece is left to the count, and taking a marked piece there opens the gate (`Gates`), while a piece taken
  *   in another room at that count (which is not marked) shuts it for good; the tool is marked while it lies there and he carries none, and standing on the mark takes it;
  * - hints read the game and change nothing: two games fed the same keys, one asked for its hints every pass, are the same game;
- * - the front end shows both in ENHANCED only (the renderer's sparkles, the count in the picture).
+ * - the front end shows both in EASY and in HARD (the renderer's sparkles, the count in the picture).
  *
  *   nice -n 15 node tools/test.mjs games/montymole/test/hints.ts
  */
@@ -193,7 +193,7 @@ const firstTaken = (n: number, keep: readonly number[]): number[] => Array.from(
   tick(6);
   const sparkling = (): number => renderer.sparkles.markers.length;
   const screenText = (): Uint8Array => renderer.screen.pixels.slice();
-  check(`ENHANCED: sparkles on the tool and the count in the picture (${sparkling()})`, p.state.enhanced && p.frontEnd.assist.hints === true && p.frontEnd.assist.count === true && sparkling() === 1);
+  check(`EASY: sparkles on the tool and the count in the picture (${sparkling()})`, p.state.easy && p.frontEnd.assist.hints === true && p.frontEnd.assist.count === true && sparkling() === 1);
   const markers = renderer.sparkles.markers;
   check(`a sparkle is the size and gain the Spectrum's colours need (${markers.map((m) => `${m.size}/${m.gain}`).join(' ')})`, markers.every((m) => m.size === SPARKLE_SIZE && m.gain === SPARKLE_GAIN));
   const enhanced = screenText();
@@ -201,11 +201,11 @@ const firstTaken = (n: number, keep: readonly number[]): number[] => Array.from(
   tap('KeyE');
   tap('KeyP');
   tick(6);
-  check('ORIGINAL: no sparkles', !p.state.enhanced && sparkling() === 0);
-  const original = screenText();
+  check('HARD: the same sparkles', !p.state.easy && sparkling() === 1);
+  const hard = screenText();
   let differing = 0;
-  for (let i = 0; i < original.length; i++) if (original[i] !== enhanced[i]) differing++;
-  check(`ORIGINAL: the count is not in the picture (the status rows are the game's: ${differing} pixels differ from ENHANCED's, the sprites' colours and the count)`, differing > 0);
+  for (let i = 0; i < hard.length; i++) if (hard[i] !== enhanced[i]) differing++;
+  check(`HARD: the count in the picture too (the picture as EASY's but for the lives' line: ${differing} pixels differ)`, differing < 600);
 }
 
 function room6(): number { return FIRST.room; }

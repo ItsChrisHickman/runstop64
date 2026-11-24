@@ -7,8 +7,8 @@ import { readJson } from './guards';
 /**
  * The parts of a game's front end that don't depend on how the game runs (a
  * translated port on a C64 model, or a native rewrite): the pause screen with
- * its map and travel, the ORIGINAL/ENHANCED switch (one per game, ENHANCED unless
- * switched off, remembered: AGENTS.md).
+ * its map and travel, the EASY/HARD switch (one per game, EASY unless switched
+ * to HARD, remembered: AGENTS.md).
  *
  * `T` is what the game's PauseMap reads: a C64's RAM for translated ports, the
  * game's own state for native ones; `F` is what the map keeps of the player's progress (its
@@ -18,20 +18,18 @@ import { readJson } from './guards';
  * point of its own; "back to room start" and "back to the title" are requests it carries out.
  */
 /**
- * One of the curated features of ENHANCED (or one on in both modes): no key or line of its own (one
- * switch, AGENTS.md: the pause screen's keys are the switches', B and T alone).
+ * One of a port's curated features: no key or line of its own (one switch, AGENTS.md: the pause screen's keys are the
+ * switch's, B and T alone). Every quality-of-life change is on in both modes; only the lives go with EASY/HARD.
  */
 export interface AssistSpec {
   id: string;
   /** What it is (up to 16 letters). */
   long: string;
   /**
-   * What decides it: 'enhanced' (the default) goes with the game's ENHANCED switch; 'always'
-   * is on in both modes (presentation, e.g. effects); 'never' is offered nowhere (kept off).
+   * What decides it: 'always' (the default) is on in both modes (every quality-of-life change); 'easy' goes with the
+   * game's EASY switch (the lives: shared/lives.ts); 'never' is offered nowhere (kept off).
    */
-  role?: 'enhanced' | 'always' | 'never';
-  /** (Kept for games' own declarations; the switch decides now.) */
-  default?: boolean;
+  role?: 'always' | 'easy' | 'never';
 }
 
 interface FrontEndOptions<T, F> {
@@ -53,16 +51,28 @@ interface FrontEndOptions<T, F> {
   ending?(): boolean;
 }
 
+/**
+ * The EASY switch as kept (`<id>.assist`): `{ easy }`; before EASY/HARD it was `{ enhanced }`, whose ours had the
+ * unlimited lives that are EASY's and whose ORIGINAL the original's lives that are HARD's, so it reads as that. Anything
+ * else is EASY, the default.
+ */
+export function readEasy(kept: unknown): boolean {
+  if (typeof kept !== 'object' || kept === null) return true;
+  if ('easy' in kept && typeof kept.easy === 'boolean') return kept.easy;
+  if ('enhanced' in kept && typeof kept.enhanced === 'boolean') return kept.enhanced;
+  return true;
+}
+
 export const PAUSE_KEYS = ['KeyP', 'Escape', 'PadStart'];
 
 /** What the player asked for on the pause screen, for the game to carry out. */
 export type PauseRequest = 'roomStart' | 'title' | 'ending' | null;
 
 export class FrontEnd<T, F> {
-  /** Each assist on or off (by id), as the ENHANCED switch and its role decide. */
+  /** Each assist on or off (by id), as the EASY switch and its role decide. */
   readonly assist: Record<string, boolean> = { health: false, lives: false, hints: false };
-  /** The ENHANCED switch (on unless switched to ORIGINAL), remembered. */
-  enhanced = true;
+  /** The EASY switch (on unless switched to HARD), remembered. */
+  easy = true;
   /** What the player has found (for the map), kept with the saves. */
   found: F;
   /** The pause screen is up (the game waits). */
@@ -79,37 +89,36 @@ export class FrontEnd<T, F> {
   constructor(private readonly o: FrontEndOptions<T, F>) {
     this.assistKey = `${o.id}.assist`;
     try {
-      const kept: unknown = readJson(localStorage.getItem(this.assistKey) ?? '{}');
-      if (typeof kept === 'object' && kept !== null && 'enhanced' in kept && typeof kept.enhanced === 'boolean') this.enhanced = kept.enhanced;
-    } catch { /* ENHANCED */ }
+      this.easy = readEasy(readJson(localStorage.getItem(this.assistKey) ?? '{}'));
+    } catch { /* EASY */ }
     this.apply();
     this.found = o.map.found.parse(readFound(o.id));
     o.saves.watchFound(() => this.found);
   }
 
   get assists() { return this.o.assists; }
-  /** Whether the game has anything for the switch to turn on (else there's no switch). */
-  get hasSwitch() { return this.o.assists.some((a) => (a.role ?? 'enhanced') === 'enhanced'); }
+  /** Whether the game has anything for the switch to change (else there's no switch). */
+  get hasSwitch() { return this.o.assists.some((a) => a.role === 'easy'); }
 
   /** Each assist from the switch and its role. */
   private apply() {
     for (const a of this.o.assists) {
-      const role = a.role ?? 'enhanced';
-      this.assist[a.id] = role === 'always' ? true : role === 'never' ? false : this.enhanced;
+      const role = a.role ?? 'always';
+      this.assist[a.id] = role === 'always' ? true : role === 'never' ? false : this.easy;
     }
   }
   /** The game waits (the pause screen is up). */
   get holding() { return this.paused; }
 
-  /** ORIGINAL <-> ENHANCED. */
-  toggleEnhanced() {
-    this.enhanced = !this.enhanced;
+  /** EASY <-> HARD. */
+  toggleEasy() {
+    this.easy = !this.easy;
     this.apply();
     this.keepSwitches();
   }
 
   private keepSwitches() {
-    try { localStorage.setItem(this.assistKey, JSON.stringify({ enhanced: this.enhanced })); } catch { /* not kept */ }
+    try { localStorage.setItem(this.assistKey, JSON.stringify({ easy: this.easy })); } catch { /* not kept */ }
   }
 
   keepFound() { keepFound(this.o.id, this.found); }
@@ -148,16 +157,16 @@ export class FrontEnd<T, F> {
   pausedTick(state: T, update: () => void): PauseRequest {
     const { input } = this.o;
     this.pauseTicks++;
-    // the lines on the right (each one a tap target): the switch (E ENHANCED and a box, ticked when on: the line names the
-    // thing and the box says whether it is on, so it never reads as "press E for ORIGINAL"), back to room start, the title
+    // the lines on the right (each one a tap target): the switch (E EASY and a box, ticked when on: the line names the
+    // thing and the box says whether it is on, so it never reads as "press E for HARD"), back to room start, the title
     const lines: (PauseOption & { id: string })[] = [
-      ...(this.hasSwitch ? [{ text: 'E ENHANCED', check: this.enhanced, id: 'E' }] : []),
+      ...(this.hasSwitch ? [{ text: 'E EASY', check: this.easy, id: 'E' }] : []),
       { text: 'B BACK TO', id: 'B' }, { text: ' ROOM START', id: 'B' },
       { text: 'T TITLE', id: 'T' },
       ...(this.o.ending?.() ? [{ text: 'W ENDING', id: 'W' }] : []),
     ];
     const tapped = input.points.map((t) => PAUSE_TAP.option(t.x, t.y, lines.length)).filter((i) => i >= 0).map((i) => lines[i].id);
-    if (this.hasSwitch && (input.typed.includes('KeyE') || tapped.includes('E'))) this.toggleEnhanced();
+    if (this.hasSwitch && (input.typed.includes('KeyE') || tapped.includes('E'))) this.toggleEasy();
     if (input.typed.includes('KeyB') || tapped.includes('B')) return 'roomStart';
     if (input.typed.includes('KeyT') || tapped.includes('T')) return 'title';
     if (this.o.ending?.() && (input.typed.includes('KeyW') || tapped.includes('W'))) return 'ending';

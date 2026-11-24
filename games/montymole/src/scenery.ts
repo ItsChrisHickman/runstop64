@@ -1,11 +1,11 @@
 /**
- * What ENHANCED's look needs of the game: the scenery (the screen without the sprites on it) and where the sprites are, each as a picture and a colour.
+ * What our look needs of the game: the scenery (the screen without the sprites on it) and where the sprites are, each as a picture and a colour.
  *
  * The original draws every sprite into the screen over a copy of the room that has none (the picture buffer, `$D260`), so the scenery is that copy, with what the original
  * changes on the screen alone put back: the score and lives (rows 0, 1, 22 and 23), the conveyors' and the water's turning (`conveyors.ts`), and in the opening scene
  * everything it draws on the screen (the pot, the wife, the bird, the acorn and the corner picture are not in the buffer) but for Monty.
  *
- * Each sprite is one colour in ENHANCED, the ink of the cell under its middle (the colour the original shows most of it in), or bright white where that is also the cell's
+ * Each sprite is one colour in both modes, the ink of the cell under its middle (the colour the original shows most of it in), or bright white where that is also the cell's
  * paper; a thing of the room has its own colour byte (`Enemy.colour`: what it paints its cells with). The picture a thing shows is the frame of its set that the counter
  * says (`$8827`).
  */
@@ -18,7 +18,7 @@ import { firstColumn } from './sprite';
 import { cellInk, cellPaper } from '../../shared/spectrum';
 
 export const SPRITE_SIZE = 16;
-/** Bright white, ENHANCED's colour for a sprite whose own would not show. */
+/** Bright white, our colour for a sprite whose own would not show. */
 const WHITE = 15;
 
 /** A sprite to draw: which entity (0 Monty, 1 to 6 the room's things), where its top left is in the picture's pixels, the picture (its address in the original and its 32 bytes) and its colour. */

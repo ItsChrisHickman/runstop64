@@ -9,6 +9,7 @@
  * back when a screen is entered again, so the count is the current screen's taken plus every item of the finished ones.
  */
 import type { BitmapFont, Surface } from 'c64kit';
+import { livesShown } from '../../shared/lives';
 import { foundCodec, S, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { ENDING_ROOM, mapMemory, ROOM_SIZE } from './data';
 import type { MoleyFlow } from './flow';
@@ -142,9 +143,10 @@ export const moleyMap = {
     const line = standing(flow, f, room);
     font.draw(s, line.text, box.x, y + 10, line.colour);
   },
-  info(flow: MoleyFlow, f: MoleyFound): string[] {
+  info(flow: MoleyFlow, f: MoleyFound, assist?: Readonly<Record<string, boolean>>): string[] {
     const game = flow.game;
-    return [`LIVES ${game.lives}`, `SCREENS ${f.done.length}/${SCREENS}`, `ITEMS ${itemsTaken(flow, f)}/${ITEMS_TOTAL}`, `SCORE ${game.score}`];
+    // (the lives in HARD only: EASY has none to count)
+    return [...(livesShown(assist) ? [`LIVES ${game.lives}`] : []), `SCREENS ${f.done.length}/${SCREENS}`, `ITEMS ${itemsTaken(flow, f)}/${ITEMS_TOTAL}`, `SCORE ${game.score}`];
   },
   legend: [{ colour: SPECTRUM.dim, text: 'NOT SEEN' }, { colour: SPECTRUM.good, text: 'FINISHED' }],
   places(box: Box, flow: MoleyFlow, f: MoleyFound): MapPlace[] {
@@ -167,7 +169,7 @@ export const moleyMap = {
   },
 } satisfies PauseMap<MoleyFlow, MoleyFound>;
 
-/** A save described for the save manager (ContinueFlow `describe`): where, then lives, how far he has got and the score. */
-export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: MoleyFound): string[] {
-  return [`SCREEN ${save.room + 1}`, `LIVES ${save.lives}`, `FINISHED ${f.done.length}`, `SCORE ${save.score}`];
+/** A save described for the save manager (ContinueFlow `describe`): where, then lives (in HARD: `lives`), how far he has got and the score. */
+export function describeSave(save: { readonly room: number; readonly lives: number; readonly score: number }, f: MoleyFound, lives = true): string[] {
+  return [`SCREEN ${save.room + 1}`, ...(lives ? [`LIVES ${save.lives}`] : []), `FINISHED ${f.done.length}`, `SCORE ${save.score}`];
 }

@@ -10,9 +10,9 @@
  *  3. the credits: the row between the playfield and the panel is empty in the game's own picture in every frame of every place
  *     (sprites included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before;
- *  5. in the session: winning in ENHANCED runs it from the ending's fire (the title and ENTER CONTINUE after it, the save kept) and
- *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
- *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
+ *  5. in the session: winning (EASY or HARD) runs it from the ending's fire (the title and ENTER CONTINUE after it, the save kept)
+ *     and keeps that the game has been won; W on the pause screen once won runs it and ends on the title; `?ending` on the page
+ *     runs it at once.
  *
  *   nice -n 15 node tools/test.mjs games/antiriad/test/reward.ts [out-dir]
  *
@@ -267,10 +267,10 @@ check('the makers come first (the title and Palace Software on the first place)'
 
 // ---- 5. in the session ----------------------------------------------------------------------------------------------------------
 
-/** The game launched into play in the armour (the snapshot of the original), ENHANCED or not, with a store of its own. */
-function boot(enhanced: boolean) {
+/** The game launched into play in the armour (the snapshot of the original), EASY or HARD, with a store of its own. */
+function boot(easy: boolean) {
   store.clear();
-  store.set('antiriad.assist', JSON.stringify({ enhanced }));
+  store.set('antiriad.assist', JSON.stringify({ easy }));
   writeCurrent('antiriad', { format: MACHINE_CODEC.format, data: toBase64(new Uint8Array(fs.readFileSync('games/antiriad/test/armour.state'))), at: 0, summary: [], rooms: 5 });
   const inp = new Input(nowhere), rend = new PixelRenderer(), p = run({ renderer: rend, input: inp, canvas: nowhere });
   const tick = (n = 1) => { for (let i = 0; i < n; i++) { inp.poll(); p.tick(); p.render(0); } };
@@ -313,43 +313,46 @@ function win(s: Session) {
   const { p, g, tick, press, hold } = s;
   const set = win(s);
   const ending = must(p.ending, 'the ending');
-  check('ENHANCED: the mine is set off and the game\'s own ending plays (the game\'s, not ours: no show yet)', set && !ending.active);
-  check('ENHANCED: the win is kept, apart from the saves', readWon('antiriad') && store.has('antiriad.won') && !store.has('antiriad.save.v2.won'));
+  check('EASY: the mine is set off and the game\'s own ending plays (the game\'s, not ours: no show yet)', set && !ending.active);
+  check('EASY: the win is kept, apart from the saves', readWon('antiriad') && store.has('antiriad.won') && !store.has('antiriad.save.v2.won'));
   hold(['Space'], 600, () => ending.active);
-  check('ENHANCED: fire at the ending: the show begins, over the title', ending.active);
+  check('EASY: fire at the ending: the show begins, over the title', ending.active);
   tick(10);
-  check('ENHANCED: it is running (the montage on games of its own, the player\'s game untouched on the title)', ending.progress.phase !== 'loading' && !g().playing);
+  check('EASY: it is running (the montage on games of its own, the player\'s game untouched on the title)', ending.progress.phase !== 'loading' && !g().playing);
   tick(110);
   press('Space');
   tick(40);
-  check('ENHANCED: a key skips it: the title, ENTER CONTINUE as after any ending', !ending.active && p.state.prompt === 'title' && g().onTitle);
+  check('EASY: a key skips it: the title, ENTER CONTINUE as after any ending', !ending.active && p.state.prompt === 'title' && g().onTitle);
   press('Enter');
   tick(5);
-  check('ENHANCED: ENTER CONTINUE: back in play (New Game+)', g().playing && g().plus);
+  check('EASY: ENTER CONTINUE: back in play (New Game+)', g().playing && g().plus);
   // W on the pause screen, once won
   press('KeyP');
-  check('ENHANCED, won: the pause screen is up', p.state.paused);
+  check('EASY, won: the pause screen is up', p.state.paused);
   press('KeyW');
-  check('ENHANCED: W starts it', ending.active);
+  check('EASY: W starts it', ending.active);
   tick(120);
   press('Space');
   tick(40);
-  check('ENHANCED: after it, the title with ENTER CONTINUE', !ending.active && g().onTitle && p.state.prompt === 'title');
+  check('EASY: after it, the title with ENTER CONTINUE', !ending.active && g().onTitle && p.state.prompt === 'title');
 }
 
 {
   const s = boot(false);
-  const { p, g, press, hold, tick } = s;
+  const { p, press, hold, tick } = s;
   const set = win(s);
   const ending = must(p.ending, 'the ending');
-  hold(['Space'], 600, () => g().onTitle);
+  hold(['Space'], 600, () => ending.active);
+  check('HARD: the game is won, kept so, and fire at the ending begins the show as in EASY (it is in both modes)', set && readWon('antiriad') && ending.active);
+  tick(120);
+  press('Space');
   tick(150);
-  check('ORIGINAL: the game is won, and kept so, with no ending of ours (the title, ENTER CONTINUE)', set && readWon('antiriad') && !ending.active && p.state.prompt === 'title');
+  check('HARD: a key skips it: the title, ENTER CONTINUE', !ending.active && p.state.prompt === 'title');
   press('Enter');
   tick(5);
   press('KeyP');
   press('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !ending.active && p.state.paused);
+  check('HARD: W on the pause screen starts it', ending.active);
 }
 
 {

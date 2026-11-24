@@ -9,7 +9,7 @@
  * kept; yes takes him back into the dock room as he came in, lives and score as saved, and the
  * treasure there plays the ending again.
  *
- * (In ENHANCED the reward for winning, test/reward.ts, runs after the finale: skipped here by a key.)
+ * (The reward for winning, test/reward.ts, runs after the finale: skipped here by a key.)
  *
  *   nice -n 15 node tools/test.mjs games/montyotr/test/ending.ts
  */
@@ -105,9 +105,9 @@ const saved = must(readSaves('montyotr').current, 'the save on coming into the d
 const finished = until(() => p.state.mode === 'title', 4000);
 check(`the finale to the end: France (${g.won ? 'won' : 'not won'}), the title`, finished && g.won);
 
-// after the finale: ENHANCED's reward comes first (test/reward.ts); a key, once it has run two seconds, skips it
+// after the finale: the reward comes first (test/reward.ts); a key, once it has run two seconds, skips it
 const reward = must(p.ending, 'the ending\'s show');
-check(`the reward (ENHANCED) begins from the finale, with the hi-score tune (song ${lastSong()})`, reward.active && lastSong() === 2);
+check(`the reward begins from the finale, with the hi-score tune (song ${lastSong()})`, reward.active && lastSong() === 2);
 tick(110);
 press('Space');
 check(`a key skips it, back to the title, with the title's tune (song ${lastSong()})`, !reward.active && p.state.mode === 'title' && lastSong() === 0);

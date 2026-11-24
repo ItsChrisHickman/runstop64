@@ -76,9 +76,9 @@ const ENEMY_PICTURE = 0x66;
 const EXPLOSION_PICTURE = 0x6e;
 const PLAYER_PICTURE = 0x60;
 
-// ---- the quick hop (ENHANCED) ---------------------------------------------------------------------------------------------
+// ---- the quick hop (both modes) ---------------------------------------------------------------------------------------------
 
-/** ENHANCED's quick hop: his plane crosses the sky from the left edge to the right edge in this many frames (four seconds). */
+/** our quick hop: his plane crosses the sky from the left edge to the right edge in this many frames (four seconds). */
 export const HOP_FRAMES = 200;
 /** The sprite x (the VIC's, 0-503) his plane starts at (its right half shows at the screen's left edge) and ends at (clear of the right edge: 24 + 320). */
 const HOP_FROM = 0;
@@ -262,7 +262,7 @@ export class Flight {
   private rows = new Uint8Array(COLS * SKY_ROWS);
 
   /**
-   * `play` is the 16K of the play screen's bank (the panel's characters stay as they are). `hop` makes it ENHANCED's quick hop: the
+   * `play` is the 16K of the play screen's bank (the panel's characters stay as they are). `hop` makes it our quick hop: the
    * same sky and his plane, crossing it by itself in `HOP_FRAMES`; no other plane, no shooting, no way down but the landing.
    */
   constructor(private readonly memory: SkyState, private readonly host: FlightHost, play: Uint8Array, readonly hop = false) {

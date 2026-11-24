@@ -26,7 +26,7 @@ export { info } from './info';
 /** ENTER CONTINUE's top line on the title: Monty on the Run's place for it, 12 pixels under the high scores' box, 12 over the table. */
 export const STRIP_Y = 148;
 
-/** ENHANCED's sparkles: as Moley Christmas's and Wanted's. */
+/** our sparkles: as Moley Christmas's and Wanted's. */
 const SPARKLE_SIZE = 2, SPARKLE_GAIN = 2;
 
 export function run(host: Host) {
@@ -52,29 +52,26 @@ export function run(host: Host) {
   let collisions = 0;
   /** The game's own ending (the verse), while it is on: the game stands still under it. */
   let epilogue: EndingScreen | null = null;
-  /** The reward show (ENHANCED), once the session is up. */
+  /** The reward show, once the session is up. */
   let rewardShow: RewardShow | null = null;
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = () => false;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<RemixSave, RemixFound, RemixGame>(host, {
-    id: 'montymoleremix', font: montyLettering(bankImage), codec: CODEC, map: remixMap, describe: describeSave,
+    id: 'montymoleremix', font: montyLettering(bankImage), codec: CODEC, map: remixMap, describe: (save, found) => describeSave(save, found, g.livesShown),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the table, as in Monty on the Run's title. No restart keys: Monty has none)
-    // (W on the pause screen: the ending's show, once the game has been won, in ENHANCED)
-    ending: () => enhanced() && readWon('montymoleremix'),
+    // (W on the pause screen: the ending's show, once the game has been won)
+    ending: () => readWon('montymoleremix'),
     restartKeys: [], strip: { y: STRIP_Y },
-    // ENHANCED is these, together (the pause screen has the one switch): see QOL.md
+    // these are on in both modes, the unlimited lives in EASY (the pause screen has the one switch): see QOL.md
     assists: [LIVES_ASSIST, { id: 'loops', long: 'NO DEATH LOOPS' }, { id: 'count', long: 'COAL TO GATE' }, { id: 'hints', long: 'SPARKLES' }],
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
-    enhanced = () => fe.enhanced;
-    // the game reads ENHANCED's assists as the switch has them now
+    // the game reads the assists as the switch has them now
     g.assist = { get lives() { return fe.assist.lives === true; }, get loops() { return fe.assist.loops === true; } };
     g.graceActive = () => flow.grace.active;
     g.onRestart = () => flow.grace.start();
 
-    // ---- the reward for winning (ENHANCED): the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning: the montage of rooms, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the verse's end (the title is up under it, CONTINUE? after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     const reward = rewardShow = new RewardShow({
@@ -159,11 +156,11 @@ export function run(host: Host) {
         if (holding) return 'idle';
         const pad = stick();
         if (epilogue !== null) {
-          // the game's own ending, the verse; then, in ENHANCED, the show over the title it goes back to
+          // the game's own ending, the verse; then the show over the title it goes back to
           if (epilogue.frame(pad.fire) === 'done') {
             const stats = endingStats(g, fe.found);
             toTitle();
-            if (fe.enhanced) { afterWin = true; reward.start(stats); }
+            afterWin = true; reward.start(stats);
           }
           return 'played';
         }
@@ -181,9 +178,9 @@ export function run(host: Host) {
         return 'played';
       },
       updateView() {
-        // ENHANCED's help (hints.ts): in play, not on a screen of ours
+        // our help (hints.ts): in play, not on a screen of ours
         // (not under the verse: the count's row is the verse's bottom row, and the note would wipe each letter as it is typed)
-        const shown = fe.enhanced && mode === 'play' && !g.freeze && !fe.holding && epilogue === null;
+        const shown = mode === 'play' && !g.freeze && !fe.holding && epilogue === null;
         if (mode === 'play' && epilogue === null) g.note(shown && fe.assist.count === true ? coalCount(g) : null);
         renderer.sparkles.set((shown && fe.assist.hints === true ? hintsOf(g) : []).map((h) => ({ x: h.x, y: h.y, size: SPARKLE_SIZE, gain: SPARKLE_GAIN })));
         view.update();

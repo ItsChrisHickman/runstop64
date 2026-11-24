@@ -40,7 +40,7 @@ function allLives(ram: Uint8Array, colour: Uint8Array) {
   drawFaces(ram, colour);
 }
 /**
- * ENHANCED's unlimited lives (shared/lives.ts, `vitals.lives`): a face gone is back at once, the lives as the game starts with
+ * EASY's unlimited lives (shared/lives.ts, `vitals.lives`): a face gone is back at once, the lives as the game starts with
  * them. (The energy of the life under way is the game's: the next face comes full as it does when one goes.)
  */
 function livesBack(ram: Uint8Array, colour: Uint8Array) {
@@ -63,15 +63,15 @@ export const energyFace: Gauge = {
   empty: 11,
 };
 
-/** The front end's assists (the record it keeps up to date): what is help rather than presentation shows only with ENHANCED on. */
+/** The front end's assists (the record it keeps up to date): the lives (EASY's unlimited ones) for THE END's lines. */
 let assists: Readonly<Record<string, boolean>> = {};
 /**
- * ENHANCED: the CLOAK icon drains from the top, to dark grey, as the cloak runs out (its frames counted in
+ * The CLOAK icon drains from the top, to dark grey, as the cloak runs out (its frames counted in
  * $124B:$124A up to 3 x 256, src/rules.ts), a line at a time, as the face drains with the energy. Full is the
  * icon as the game draws it, and so it is when no cloak is on.
  */
 export const cloakIcon: Gauge = {
-  at: (ram) => (assists.enhanced === true && cloakLeft(ram) !== null ? { ...ICON_AT(ACTION.cloak), w: 24 } : null),
+  at: (ram) => (cloakLeft(ram) !== null ? { ...ICON_AT(ACTION.cloak), w: 24 } : null),
   level: (ram) => cloakLeft(ram) ?? 1,
   empty: 11,
 };
@@ -142,7 +142,7 @@ export const dragonskulleLayout: PictureLayout = {
   gauges: [energyFace, cloakIcon],
 };
 /**
- * ENHANCED: on a screen that wants a thing done so many times (a river's wizards for its bridge, a dragon's hits:
+ * On a screen that wants a thing done so many times (a river's wizards for its bridge, a dragon's hits:
  * src/rules.ts `tally`), how far along it is, in the status line where HIGH SCORE is: WIZARDS 3 OF 10. One layout a
  * count, made once.
  */
@@ -166,17 +166,42 @@ function tallyLayout(t: Tally): PictureLayout {
   tallies.set(text, made);
   return made;
 }
-/** The play screen's layout: with the tally while there is one (ENHANCED). */
+/** The play screen's layout: with the tally while there is one. */
 const withTally = (ram: Uint8Array) => { const t = tally(ram); return t ? tallyLayout(t) : dragonskulleLayout; };
+/**
+ * EASY: the faces of the lives to come cleared, as EASY has no lives to count (`livesBack` keeps all five, so the life under way is
+ * always the first face, its energy draining on it: `energyFace`); in HARD the five, as the game draws them. One layout each, made once.
+ */
+const FACES_TO_COME = { x: FACES_X + 24, y: 0, w: 4 * 24, h: 24, colour: 0 };
+type Move = PictureLayout['moves'][number];
+/** A move of the status line (from rows 22-24 to the top) with the faces to come left out of it: the parts either side. */
+function movedAround(m: Move): Move[] {
+  if (m.from.y < STATUS.from.y || m.to.y >= FACES_TO_COME.h) return [m];
+  const x0 = FACES_TO_COME.x, x1 = FACES_TO_COME.x + FACES_TO_COME.w, end = m.from.x + m.from.w;
+  if (end <= x0 || m.from.x >= x1) return [m];
+  const left: Move[] = m.from.x < x0 ? [{ from: { ...m.from, w: x0 - m.from.x }, to: m.to }] : [];
+  const right: Move[] = end > x1 ? [{ from: { ...m.from, x: x1, w: end - x1 }, to: { x: m.to.x + (x1 - m.from.x), y: m.to.y } }] : [];
+  return [...left, ...right];
+}
+const withoutLives = new Map<PictureLayout, PictureLayout>();
+function livesLeftOut(l: PictureLayout): PictureLayout {
+  const known = withoutLives.get(l);
+  if (known) return known;
+  // (the moves land after the clears: the faces to come are not moved up, and where they would land is cleared)
+  const made: PictureLayout = { ...l, moves: l.moves.flatMap(movedAround), clear: [...(l.clear ?? []), FACES_TO_COME] };
+  withoutLives.set(l, made);
+  return made;
+}
 
 /** The ending's show as it is drawn: the montage in the layout above, the status panel's room for the caption and the credits at the top (src/ending.ts). */
 export const dragonskulleShow: EndingSpec = { ...dragonskulleEnding, layout: dragonskulleLayout };
 /** The play screen: the panels' charset ($3000) on rows 0-2 and 22-24, the playfield's ($3800) between (the raster split). */
 const playScreen = ({ capture: cap }: { capture: FrameCapture }) => cap.rows[0]?.d018 === 0x1c && cap.rows[3]?.d018 === 0x1e && cap.rows[22]?.d018 === 0x1c;
 
-/** The play screen's layouts (`layout` in runNative): in ENHANCED with the tally, else as it is. */
+/** The play screen's layouts (`layout` in runNative): in play with the tally (in EASY without the lives to come), else as it is. */
 export const PLAY_LAYOUTS = [
-  { picture: withTally, when: (m: { capture: FrameCapture }, enhanced: boolean) => enhanced && playScreen(m) },
+  { picture: (ram: Uint8Array) => livesLeftOut(withTally(ram)), when: (m: { capture: FrameCapture }, playing: boolean, assist: Readonly<Record<string, boolean>>) => playing && assist.lives === true && playScreen(m) },
+  { picture: withTally, when: (m: { capture: FrameCapture }, playing: boolean) => playing && playScreen(m) },
   { picture: dragonskulleLayout, when: playScreen },
 ];
 
@@ -195,7 +220,6 @@ const TITLE_TEXT: Record<number, string> = {
 const TITLE_FREE_ROW = 19;
 
 export function run(host: Host) {
-  let options: Readonly<Record<string, boolean>> = {};
   return runNative(host, {
     id: 'dragonskulle',
     strip: { y: TITLE_FREE_ROW * 8 },
@@ -207,21 +231,20 @@ export function run(host: Host) {
     vitals: {
       // continuing: all five lives back, as the game starts with
       fullHealth: (ram, colour) => allLives(ram, colour),
-      // ENHANCED: unlimited lives and continues (shared/lives.ts): a lost life comes back
+      // EASY: unlimited lives and continues (shared/lives.ts): a lost life comes back
       lives: livesBack,
       infinite: true,
     },
     map: dragonskulleMap,
-    // sparkles on what moves the game on (ENHANCED): re/hints
+    // sparkles on what moves the game on: re/hints
     hints: hintSpots,
-    // ENHANCED's own play changes: the shovel taken by walking up to it (src/shovel.ts), at the room's check of the collisions
-    onAssists: (a) => { options = a; assists = a; },
-    assists: [{ id: 'enhanced', long: 'ENHANCED', default: true }],
-    onHook: (pc, ram) => { if (options.enhanced) shovelByHand(pc, ram); },
+    // our own play changes: the shovel taken by walking up to it (src/shovel.ts), at the room's check of the collisions
+    onAssists: (a) => { assists = a; },
+    onHook: (pc, ram) => { shovelByHand(pc, ram); },
     // the fights (src/combat.ts): effects and sounds, the combat assists; and the 8-way controls
     combat: dragonskulleCombat,
     controls: dragonskulleControls,
-    // the status line at the top, the bar (in the keys' order, labelled) at the bottom: both modes; in ENHANCED, the tally (WIZARDS 3 OF 10) in it
+    // the status line at the top, the bar (in the keys' order, labelled) at the bottom: both modes, with the tally (WIZARDS 3 OF 10) in it
     layout: PLAY_LAYOUTS,
     // straight to an action (the original only moves the hand on with "any other key", one icon each 5 frames held);
     // Enter (or any other key) moves it to the next one along the bar, one a press
@@ -238,8 +261,8 @@ export function run(host: Host) {
     reserved: [...JOYSTICK_KEYS, 'KeyC', 'KeyV'],
     remap: { KeyP: 'F7', Escape: 'F7', KeyR: 'F1', F1: 'F1' },
     text: TITLE_TEXT,
-    // the reward for winning (ENHANCED): a montage, the creatures walking through it, THE END (src/ending.ts)
-    ending: { spec: dragonskulleShow, won, stats: endingStats },
+    // the reward for winning (both modes): a montage, the creatures walking through it, THE END (src/ending.ts)
+    ending: { spec: dragonskulleShow, won, stats: (ram, found) => endingStats(ram, found, assists.lives !== true) },
     // its title tune times itself by counting cycles: the original's own code plays it (shared/native/title-tune.ts)
     titleTune: true,
   });

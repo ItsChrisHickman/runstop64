@@ -100,15 +100,15 @@ export const dragonskulleEnding: EndingSpec = {
   keepAlive: (ram) => { ram[0x1248] = 0; ram[0x123e] = 0x14; ram[0x3432] = 0; },
 };
 
-/** The lines under THE END: the score as the panel shows it, the lives left, the dragons and bridges, the screens seen. */
-export function endingStats(ram: Uint8Array, found: DragonskulleFound): string[] {
+/** The lines under THE END: the score as the panel shows it, the lives left (in HARD: `lives`), the dragons and bridges, the screens seen. */
+export function endingStats(ram: Uint8Array, found: DragonskulleFound, lives = true): string[] {
   // (the panel's digits: $31-$39, and $3A for 0)
   const score = Array.from({ length: 6 }, (_, i) => { const c = ram[0x400 + 22 * 40 + 13 + i]; return c >= 0x31 && c <= 0x39 ? String.fromCharCode(c) : '0'; }).join('');
   let screens = 0;
   for (let i = 0; i < COLUMNS * ROWS; i++) if (ram[TABLE + i]) screens++;
   return [
     `SCORE ${score}`,
-    `LIVES LEFT ${5 - Math.floor(ram[0x1248] / 3)} OF 5`,
+    ...(lives ? [`LIVES LEFT ${5 - Math.floor(ram[0x1248] / 3)} OF 5`] : []),
     `DRAGONS SLAIN ${DRAGONS.filter((d) => ram[d.flag] === 1).length} OF ${DRAGONS.length}`,
     `BRIDGES OPENED ${BRIDGES.filter((b) => ram[b.counter] === BRIDGE_OPEN).length} OF ${BRIDGES.length}`,
     `SCREENS SEEN ${found.cells.length} OF ${screens}`,

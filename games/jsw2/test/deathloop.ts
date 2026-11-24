@@ -7,9 +7,9 @@
  * end (games/shared/native/play.ts `safe`, c64kit stood in by games/shared/test/kit.ts):
  *
  * - the autosave is never in mid-air or where he dies: none in Hades while he falls, the last one stays room 60's;
- * - ENHANCED: the fall into Hades costs one life, and he starts again in Hades, the room he died in (never room 60, the room before), by its way out,
+ * - ours (both modes): the fall into Hades costs one life, and he starts again in Hades, the room he died in (never room 60, the room before), by its way out,
  *   alive; the room's save is kept once he has lived a second on his feet there;
- * - ORIGINAL: the original's own rule (two lives, back at the hole's edge), the save still room 60's;
+ * - the original's own rule (as only a test has it now: original-rules.ts; two lives, back at the hole's edge), the save still room 60's;
  * - B on the pause screen in Hades: back to room 60's save, alive;
  * - travel from Hades, in the fall, to the drain (Now You're In It): no life lost;
  * - CONTINUE? after the last life lost there: back in room 60, alive.
@@ -23,6 +23,7 @@ import { run } from '../src/main';
 import { nowhere, stubFetch, useMemoryStorage } from '../../shared/test/browser';
 import { readSaves } from '../../shared/saves';
 import { must } from '../../shared/test/must';
+import { hardStore, originalRules } from './original-rules';
 import { check, finish } from '../../shared/test/check';
 
 const titleBytes = fs.readFileSync('games/jsw2/assets/jsw2-title.state');
@@ -35,8 +36,8 @@ const FLOOR: [number, number, number] = [150, 0, 158];
 const livesOf = (b: number) => { let n = 0; for (; b; b >>= 1) n += b & 1; return n; };
 
 /**
- * A launch with its own storage (`store`: seeded, e.g. ORIGINAL chosen), a new game, then on room 60's floor (travel's way in).
- * ENHANCED's unlimited lives are off (`unlimited`: on), so the lives show what a fall costs.
+ * A launch with its own storage (`store`: seeded, e.g. HARD chosen), a new game, then on room 60's floor (travel's way in).
+ * EASY's unlimited lives are off (`unlimited`: on), so the lives show what a fall costs.
  */
 async function launch(store = new Map<string, string>(), unlimited = false) {
   useMemoryStorage(store);
@@ -103,8 +104,9 @@ u.tick(400);
 check(`unlimited lives: started again in Hades (${u.room()}), alive 400 frames on, lives ${u.lives()}`, u.room() === HADES && u.p.state.playing && u.lives() === 8);
 
 // ---- ORIGINAL: the original's own rule ----
-const o = await launch(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]));
-check('ORIGINAL: left into the hole: Hades', !o.p.state.enhanced && intoHades(o));
+const o = await launch(hardStore());
+originalRules(o.p.options);
+check('ORIGINAL: left into the hole: Hades', !o.p.state.easy && intoHades(o));
 const oBefore = o.lives();
 o.tick(400);
 check(`ORIGINAL: two lives (${oBefore} -> ${o.lives()}), back at the hole's edge in room 60 (${o.room()}, x ${o.ram()[0x8062]})`, o.lives() === oBefore - 2 && o.room() === BINS && o.ram()[0x8062] < 60);
@@ -161,7 +163,8 @@ t.tick(300);
 check(`travel from Hades in the fall to the drain (${t.room()}): no life lost (${tLives} -> ${t.lives()})`, t.room() === DRAIN && t.lives() === tLives);
 
 // ---- CONTINUE? after the last life lost in Hades (ORIGINAL: the original's rule, every life) ----
-const c = await launch(new Map([['jsw2.assist', JSON.stringify({ enhanced: false })]]));
+const c = await launch(hardStore());
+originalRules(c.p.options);
 c.input.keyDown('ArrowLeft');
 const over = c.until(() => !c.p.state.playing && c.p.state.prompt === 'continue', 6000);
 c.input.keyUp('ArrowLeft');

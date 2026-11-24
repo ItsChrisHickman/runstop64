@@ -89,9 +89,9 @@ export class Session {
 
   private constructor() { /* use launch() */ }
 
-  static async launch(save: MachineState, enhanced = true) {
+  static async launch(save: MachineState, easy = true) {
     const kept = new Map([['blackwyche.save.v1', Buffer.from(packState(save)).toString('base64')]]);
-    if (!enhanced) kept.set('blackwyche.assist', JSON.stringify({ enhanced: false })); // (the switch as the page remembers it)
+    if (!easy) kept.set('blackwyche.assist', JSON.stringify({ easy: false })); // (the switch as the page remembers it)
     useMemoryStorage(kept);
     const s = new Session();
     await new Promise((r) => setTimeout(r, 0));

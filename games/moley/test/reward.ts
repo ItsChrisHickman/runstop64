@@ -1,5 +1,5 @@
 /**
- * The reward for winning Moley Christmas (ENHANCED: src/ending.ts on shared/ending/show.ts), headless, no original needed:
+ * The reward for winning Moley Christmas (both modes: src/ending.ts on shared/ending/show.ts), headless, no original needed:
  *
  *  1. every screen's route (re/ending/route.ts: the test suite's player's keys, found on a `SteadyGame`) played again does what the screen
  *     asks, alive: each leaves by its way out and the last delivers the papers and ends the game; played twice it is the same game;
@@ -9,8 +9,8 @@
  *  3. the credits: the rows they stand in (where the panel was, put away) are black in every frame of every screen, before the text goes
  *     over them, every line types on there letter by letter in bright yellow, is held and goes, the port's lines last;
  *  4. a key skips it, after two seconds and not before;
- *  5. in the session: the card in ENHANCED is followed by the show (and the win kept), on the credits page it leaves; ORIGINAL has none (the
- *     win is kept all the same); W on the pause screen once won (ENHANCED only); `?ending` runs it at once.
+ *  5. in the session: the card is followed by the show (and the win kept), on the credits page it leaves, in EASY and in HARD; W on
+ *     the pause screen once won; `?ending` runs it at once.
  *
  *   nice -n 15 node tools/test.mjs games/moley/test/reward.ts [out-dir]
  *
@@ -193,7 +193,7 @@ function win(s: Awaited<ReturnType<typeof session>>) {
 }
 {
   const s = await session(new Map());
-  check('ENHANCED by default, not won yet', s.p.state.enhanced && !readWon('moley'));
+  check('EASY by default, not won yet', s.p.state.easy && !readWon('moley'));
   const onCard = win(s);
   check('the last delivery shows the Christmas card as it was, and the win is kept', onCard && readWon('moley'));
   check('then the show, over the credits page the card goes back to', !!s.p.ending?.active);
@@ -215,18 +215,20 @@ function win(s: Awaited<ReturnType<typeof session>>) {
   check('and back at the credits page', !s.p.ending?.active && s.p.state.phase === 'credits');
 }
 {
-  // ORIGINAL: the game as it was: the card, no show, the win kept; W not offered
+  // HARD: the same show (it is in both modes)
   useMemoryStorage(new Map());
-  const s = await session(new Map([['moley.assist', JSON.stringify({ enhanced: false })]]));
-  check('ORIGINAL chosen', !s.p.state.enhanced);
+  const s = await session(new Map([['moley.assist', JSON.stringify({ easy: false })]]));
+  check('HARD chosen', !s.p.state.easy);
   const onCard = win(s);
-  s.tick(60);
-  check('ORIGINAL: the card, no show after it, the win kept all the same', onCard && !s.p.ending?.active && s.p.state.phase === 'credits' && readWon('moley'));
+  check('HARD: the card, then the show, the win kept', onCard && !!s.p.ending?.active && readWon('moley'));
+  let n = 0;
+  while (s.p.ending?.active && n++ < 9000) s.tick();
+  s.tick(30);
   s.tap('Enter');
   for (let i = 0; i < 200 && s.p.state.phase !== 'play'; i++) s.tick();
   s.tap('KeyP');
   s.tap('KeyW');
-  check('ORIGINAL: W on the pause screen does nothing', !s.p.ending?.active);
+  check('HARD: W on the pause screen watches it', !!s.p.ending?.active);
 }
 void store;
 finish();

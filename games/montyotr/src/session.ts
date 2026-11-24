@@ -29,7 +29,7 @@ const ASSIST_SPECS: Record<AssistId, AssistSpec> = {
   cloud: { id: 'cloud', long: 'RIDE THE RISING CLOUD' },
   jetpack: { id: 'jetpack', long: 'JETPACK NOT HIT' },
   c5: { id: 'c5', long: 'C5 HOP AND RETRY' },
-  rooms: { id: 'rooms', long: 'RUNSTOP64 ROOMS', role: 'enhanced' },
+  rooms: { id: 'rooms', long: 'RUNSTOP64 ROOMS' },
   respawn: { id: 'respawn', long: 'SAFE RESPAWN' },
   hints: { id: 'hints', long: 'ITEM HINTS' },
 };
@@ -78,27 +78,24 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
   let won = false;
   /** The ending's show, once the session is up (made in the session's build; a game with no ending has none). */
   let rewardShow: RewardShow | null = null;
-  /** Whether ENHANCED is on (the front end's switch, once the session is up). */
-  let enhanced = () => false;
 
   // ---- the session (games/shared/port.ts): saves, continue, the pause screen ---------------------
   const port = runPort<MontySave, MontyFound, Game>(host, {
-    id: data.id, font: montyFont(data), codec: options.codec ?? CODEC, map: montyMap, describe: (save, found) => describeSave(data, save, found),
-    // (W on the pause screen: the ending, once the game has been won, in ENHANCED)
-    ending: () => !!data.ending && enhanced() && readWon(data.id),
+    id: data.id, font: montyFont(data), codec: options.codec ?? CODEC, map: montyMap, describe: (save, found) => describeSave(data, save, found, g.livesShown),
+    // (W on the pause screen: the ending, once the game has been won)
+    ending: () => !!data.ending && readWon(data.id),
     // (ENTER CONTINUE goes in the middle of rows 17-20, between the high scores and the freedom kit's table, which the
     // title leaves empty since the kit stands under the table; on every page of the title. No restart keys: Monty has none)
     restartKeys: [], strip: { y: 'screen' in data.title ? data.title.stripY : STRIP_Y },
     assists: data.assists.map((id) => ASSIST_SPECS[id]),
   }, (self) => {
     const { flow, fe, latch, rooms } = self;
-    enhanced = () => fe.enhanced;
-    // the game reads ENHANCED's assists as the switch has them now
+    // the game reads the assists as the switch has them now (all on in both modes, the lives with EASY)
     g.assist = { get lives() { return fe.assist.lives === true; }, get cloud() { return fe.assist.cloud === true; }, get jetpack() { return fe.assist.jetpack === true; }, get c5() { return fe.assist.c5 === true; }, get rooms() { return fe.assist.rooms === true; }, get respawn() { return fe.assist.respawn === true; }, get hints() { return fe.assist.hints === true; } };
     g.graceActive = () => flow.grace.active;
     g.onRestart = () => flow.grace.start();
 
-    // ---- the reward for winning (ENHANCED): the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
+    // ---- the reward for winning: the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
     /** The show is on from the finale (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
     let afterWin = false;
     const reward = data.ending
@@ -219,7 +216,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
           if (won) keepWon(data.id);
           const stats = endingStats(g, fe.found);
           toTitle();
-          if (won && fe.enhanced && reward) { afterWin = true; reward.start(stats); }
+          if (won && reward) { afterWin = true; reward.start(stats); }
         }
         return 'played';
       },

@@ -1,4 +1,4 @@
-import { C64_KEYS, type BitmapFont, type Input, type MachineState, type Surface } from 'c64kit';
+import { C64_KEYS, type BitmapFont, type FrameCapture, type Input, type MachineState, type Surface } from 'c64kit';
 import { COMBAT_TIMING, type Combat } from './combat';
 import { EightWay, type Runner } from './controls';
 import type { NativeHost } from './host';
@@ -18,7 +18,7 @@ import { drawPending, KeyPacer, NamePicker, DEL, RETURN, type NameKey, type Name
  */
 
 /** The assists `runNative` itself offers, by id (a game's own `assists` add theirs). */
-export type NativeAssistId = 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'react' | 'eightWay' | 'respawn' | 'run' | 'airJump';
+export type NativeAssistId = 'lives' | 'hints' | 'effects' | 'glow' | 'invulnerable' | 'knockback' | 'hitStop' | 'react' | 'eightWay' | 'respawn' | 'airJump' | 'entryGrace';
 
 /** What the features share of the session. */
 export class NativeEnv {
@@ -32,8 +32,6 @@ export class NativeEnv {
     private readonly joyPort: 1 | 2 | undefined,
     /** Play is under way (a game, not the title or a name asked for). */
     readonly playing: () => boolean,
-    /** The ENHANCED switch. */
-    readonly enhanced: () => boolean,
     /** Whether one of `runNative`'s assists is on. */
     readonly on: (id: NativeAssistId) => boolean,
   ) {}
@@ -74,10 +72,9 @@ export const RUN_KEYS = ['ShiftLeft', 'ShiftRight'];
 /**
  * How a game runs (the `run` option): `player`, the player's own movement once more a frame (his
  * player-control routine run a second time, or his next step brought on: JSW2), in the main loop's
- * pass as the game's own; the player alone goes faster, everything else at the game's pace. In both
- * modes, or (`enhanced`) only in ENHANCED.
+ * pass as the game's own; the player alone goes faster, everything else at the game's pace, in both modes.
  */
-export interface RunSpec { player(): void; enhanced?: boolean }
+export interface RunSpec { player(): void }
 
 /** Running: Shift held (or the touch RUN key on) in play, the player's routine once more a frame. */
 export class Running implements WaitStage {
@@ -87,7 +84,7 @@ export class Running implements WaitStage {
 
   /** Before a frame: whether he runs this one. */
   beforeFrame(input: Input, holding: boolean) {
-    this.on = !holding && this.env.playing() && RUN_KEYS.some((k) => input.down.has(k)) && (!this.spec.enhanced || this.env.on('run'));
+    this.on = !holding && this.env.playing() && RUN_KEYS.some((k) => input.down.has(k));
   }
 
   // (at the frame's start, its scroll register writes would land on the header's split: so in the main loop's pass, as the game's own)
@@ -97,7 +94,7 @@ export class Running implements WaitStage {
 // ---- a jump in mid-air ----------------------------------------------------------------------------------
 
 /**
- * A second jump in the air (ENHANCED, once per airtime), the game's own way: `restart` puts its jump
+ * A second jump in the air (once per airtime, both modes), the game's own way: `restart` puts its jump
  * variables back to a jump just begun, at the height he is, so its collisions, rooms and falls work as
  * ever. `airborne`: he is in the air and the game is not holding him (a rope, a ladder).
  */
@@ -183,7 +180,7 @@ export class EightWayStage implements StickStage, WaitStage {
 // ---- the latch ----------------------------------------------------------------------------------------
 
 /**
- * ENHANCED: a climb (or any move the game makes of its own, `busy`) that ends with the stick still
+ * A climb (or any move the game makes of its own, `busy`) that ends with the stick still
  * held leaves him where holding it again does the opposite at once (up a ladder into a cabin whose
  * hole is behind him: the stick still up walks him back into it and down). Those of `bits` held
  * as it ends are ignored until the stick lets go of them. (Stick bits: 1 up, 2 down, 4 left, 8 right.)
@@ -203,7 +200,7 @@ export class Latch implements StickStage, WaitStage {
 
   shape(bits: number, active: boolean, ram: Uint8Array) {
     this.wanted = bits;
-    if (!(this.env.enhanced() && active)) return bits;
+    if (!active) return bits;
     const busy = this.spec.busy(ram);
     if (this.busy && !busy) this.latched = bits & this.spec.bits;
     this.busy = busy;
@@ -221,7 +218,7 @@ export class Latch implements StickStage, WaitStage {
    * handling) must not read the stick as held either, or they walk him back where he came from.
    */
   atWait(g: NativeHost) {
-    if (!this.env.enhanced() || !this.env.playing() || !this.busy || this.spec.busy(g.m.ram)) return;
+    if (!this.env.playing() || !this.busy || this.spec.busy(g.m.ram)) return;
     this.busy = false;
     this.latched = this.wanted & this.spec.bits;
     this.env.put(g.m, this.free(this.wanted));
@@ -382,7 +379,7 @@ export const SAFE_PASSES = 50;
  * (and the game's own restart puts him back there, in another room): the autosave on coming into a room
  * waits until the player is `steady` there (on his feet), and is kept once he has lived a moment after
  * it (`SAFE_PASSES`, `lives` no fewer), so continuing never starts where he dies at once. And in
- * ENHANCED, a life lost before that starts him again in the room he died in (`restart`: the game's own
+ * a life lost before that starts him again in the room he died in (`restart`: the game's own
  * travel, to a place there he can stand), never in the room before.
  */
 export interface SafeSpec<F> {
@@ -395,7 +392,7 @@ export interface SafeSpec<F> {
 export class SafeArrival<F> {
   /** The room (and screen) he's in: its save, taken when he was first steady there; passes lived since; the lives then. */
   private arrived: { room: number; save: MachineState | null; n: number; lives: number } | null = null;
-  /** A life lost before the room's save was kept (ENHANCED): the room he died in, to be started again in after this frame. */
+  /** A life lost before the room's save was kept: the room he died in, to be started again in after this frame. */
   private respawn: number | null = null;
 
   constructor(private readonly env: NativeEnv, readonly spec: SafeSpec<F>) {}
@@ -416,7 +413,7 @@ export class SafeArrival<F> {
     const lives = spec.lives.get(ram), was = this.arrived;
     // a life lost (the game may have started him again in another room: where a fall began)
     if (was && lives < was.lives) {
-      // in ENHANCED, before he'd lived a moment where he was, or when the game has started him again in another room (where a
+      // before he'd lived a moment where he was, or when the game has started him again in another room (where a
       // fall began): not there, but in the room he died in, where he came into it
       if ((was.n < SAFE_PASSES || room !== was.room) && this.env.on('respawn') && this.env.playing() && !travel) this.respawn = was.room;
       was.save = null; was.n = 0;
@@ -439,13 +436,18 @@ export interface VitalsSpec {
   /** For the unlimited lives assist (shared/lives.ts): put the lives back to full (each frame of play). */
   lives?(ram: Uint8Array, colour: Uint8Array): void;
   /**
-   * ENHANCED: unlimited lives for a game that has none (its health running out is the game's end). `lifeEnds`: the address of
+   * EASY: the lives counter left out of the frame's picture, as EASY has no lives to count (each frame of play, presentation only:
+   * the machine is untouched). Where the game draws its lives in the playfield's own characters, a `layout` does it instead.
+   */
+  counter?(capture: FrameCapture, ram: Uint8Array): void;
+  /**
+   * EASY's unlimited lives for a game that has none (its health running out is the game's end). `lifeEnds`: the address of
    * the game's moment where that end begins once its death has played out (listed under "hooks" in its translation's config);
-   * in ENHANCED he is put back at the start of the room he died in (the latest autosave) at full health, as CONTINUE? would
+   * in EASY he is put back at the start of the room he died in (the latest autosave) at full health, as CONTINUE? would
    * without the prompt or the title, in place of the game's end. Without a save, the game's end goes on.
    */
   lifeEnds?: number;
-  /** The unlimited lives are part of ENHANCED (every game: AGENTS.md), not an option off unless chosen. */
+  /** The game's lives can be unlimited (EASY, every game with lives: AGENTS.md); without it the lives are always the game's own. */
   infinite?: boolean;
 }
 
@@ -457,6 +459,13 @@ export class Vitals {
   readonly lives: FrameStage = {
     afterFrame: (g) => {
       if (this.env.on('lives') && this.spec.lives && this.atMainWait(g) && this.env.playing()) this.spec.lives(g.m.ram, g.m.colour);
+    },
+  };
+
+  /** No lives counter in the picture (EASY). */
+  readonly counter: FrameStage = {
+    afterFrame: (g) => {
+      if (this.env.on('lives') && this.spec.counter && this.env.playing()) this.spec.counter(g.m.capture, g.m.ram);
     },
   };
 }

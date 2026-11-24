@@ -10,6 +10,7 @@ import { must } from '../../shared/test/must';
 import { CABINS } from '../src/ship';
 import { TRAPS } from '../src/trapdoors';
 import { saveAt, Session } from './guided-kit';
+import { checkLifeEnds } from '../../shared/test/life-ends';
 import { check, finish } from '../../shared/test/check';
 
 
@@ -76,7 +77,7 @@ for (const room of rooms) for (let t = 0; t < must(TRAPS[room], 'traps').length;
   check(`${what}: the hole still drops him`, fallThrough(s, trap.sprite));
 }
 
-// ORIGINAL: the boards come back
+// HARD: the boards stay open too (both modes)
 {
   const s = await Session.launch(saveAt({ room: 0x08 }), false);
   const trap = traps(s.ram)[0], id = cabinId(s.ram);
@@ -85,7 +86,13 @@ for (const room of rooms) for (let t = 0; t < must(TRAPS[room], 'traps').length;
   s.tick(40);
   const back = travelTo(s, id);
   s.tick(20);
-  check('ORIGINAL: the boards are back', fell && back && !trap.isOpen(s.ram));
+  check('HARD: the boards stay open as in EASY', fell && back && trap.isOpen(s.ram));
+}
+
+// EASY: no energy left is a start of the room again; HARD: the game's end
+{
+  const s = await Session.launch(saveAt({ room: 0x04 }));
+  checkLifeEnds('blackwyche', { p: s.p, tick: (n) => s.tick(n) }, (r) => { r[0x1519] = 1; }, (r) => r[0x341c], (r) => r[0x9d77] === 100);
 }
 
 finish();
