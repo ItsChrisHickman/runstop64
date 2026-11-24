@@ -14,16 +14,18 @@ THE LAST MOLE, escapes on the train and the cargo ship, the SPY VERSUS MOLE puzz
 crusher death); the close-up beach finale and the carnival parade ending in a crusher on Viktor; the new title; region tunes
 Hubbard-first, crossing in step at phrase ends with a volume dip; EASY/HARD everywhere; restart the room as he came in.
 
-Open (2026-11-24, end of the long session): shipped today also the cover art on the info card, the Monty kit README
-(`games/shared/monty/README.md`) and the C64 budget (decoration kinds in one byte, with a budget test). Not finished:
-- **The pause map** (whole world, scrolling between countries, travel anywhere visited, items over two rows): built on branch
-  `backlog/pause-map` (`.claude/worktrees/backlog-pause-map`, commit 095a262), not reviewed or shipped. Review, run its tests
-  (its own `pause-map.ts`), ship.
-- **The top-centre HUD** (Monty's face, three Spy vs Spy stars, Viktor's silhouette that lights when he's due via
-  `encounterState(g)` in games/montyotr/src/pursuers.ts and `VIKTOR_FACE` in games/montyworld/src/art/viktor.ts; lives only in
-  HARD): not started. If Chris OKs the flight, the tally becomes Monty 2 v Viktor 1 before the finale.
-- **Unshipped playtest-round fixes** on `reset/andes` (3 commits) and `reset/pacific` (5 commits) from the reset workflow's later
-  rounds: look at them (`git log main..reset/andes`), merge what's good.
+Shipped 2026-11-24 (second session): the pause map (one country per view, the heading names the country in view: MOSCOW ...
+THE SKY; Monty on the Run's says THE MAP); the title chase varied each loop; the region crossing at the phrase end, no dip; THE FLIGHT,
+Hilo to the Andes (`src/sky.ts`, its own region THE SKY, three legs, Viktor's grey biplane, the Spy vs Spy tally 2-1), playing Auf
+Wiedersehen Monty's main theme with the kit's effects over it; the cargo plane's hold cut (Hilo's apron has the biplane, the parachute
+is on the shelf under the crater rim, saves in the hold carry on to the apron). Open:
+- **Test speed** (Chris: sessions far too slow): the region mechanism tests take 6-17 minutes each and `viktor.ts` 13-16, so a batch
+  verify takes 35 minutes and timed out four tests on this 4-core box shared with CaptureM360. Causes: every "no way without the key"
+  proof is a full search on every run (only found ways are recorded), China and Japan have no recorded routes at all, and three tests
+  at once on 4 shared cores. See "Testing is a budget" in AGENTS.md.
+- `games/montyworld/test/scope.ts` still files the sky's rooms under the Andes for the planner; `src/info.ts`'s room-list prose is stale.
+- **Unshipped playtest-round fixes** on `reset/andes` and `reset/pacific`: they conflict with main (the bot's death check was fixed
+  differently on main; the Andes and the Pacific have moved on). Look at what is still worth having, port it by hand, re-record once.
 Waiting on Chris: see "Questions for Chris" below. Not doing: Siberia's fourth
 car (would shift China). The title/continue
 prompt names the game's own touch button (JUMP) since 2026-11-24.
