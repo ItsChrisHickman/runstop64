@@ -186,7 +186,7 @@ const KAPOK_TRUNK = [14, 1, 16, 15] as const;
 const PAINT = {
   jump(g: Grid) {
     g.box(0, 0, 0, 19, 'R').box(0, 16, 3, 19, 'R'); // the mountainside closing the west, and its foot (over the gorge's west cliff below); he drops in from the top: the mail plane's bail-out, sky.ts
-    g.box(17, 14, 22, 19, 'R').box(18, 13, 21, 13, 'S').box(19, 12, 20, 12, 'S'); // the spire, its snowy tip (floor 12)
+    g.box(17, 14, 22, 19, 'R').box(18, 13, 22, 13, 'S').box(19, 12, 22, 12, 'S'); // the spire, its snowy tip (floor 12) run on to the shoulder (no pocket between them to be stuck in: he walks off the tip westward and the canopy takes him)
     g.box(23, 12, 31, 19, 'R').box(23, 11, 31, 11, 'S'); // the mountain's shoulder: the gorge below is open only west of the spire
   },
   gorge(g: Grid) {

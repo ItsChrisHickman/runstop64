@@ -28,7 +28,7 @@
     "D to E: past the nene, up the belly ladder into the hold": "<:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 J:4 .:4",
     "E: up the cargo net, the coin in it": ".:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
     "E: west along the rack past the rooster, the parachute": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 ^:4 <:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4",
-    "E to the Andes: down, across the floor behind the loose crate, out of the rear door": ">:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4"
+    "E to the flight: down, across the floor behind the loose crate, out of the rear door onto the biplane": ">:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4"
   },
   "rooms": {
     "A: up the crate step onto the deck": "38",
@@ -57,6 +57,6 @@
     "D to E: past the nene, up the belly ladder into the hold": "52 54",
     "E: up the cargo net, the coin in it": "54",
     "E: west along the rack past the rooster, the parachute": "54",
-    "E to the Andes: down, across the floor behind the loose crate, out of the rear door": "54 55"
+    "E to the flight: down, across the floor behind the loose crate, out of the rear door onto the biplane": "54 79"
   }
 }
