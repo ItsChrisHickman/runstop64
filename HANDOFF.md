@@ -16,9 +16,18 @@ Hubbard-first, crossing in step at phrase ends with a volume dip; EASY/HARD ever
 
 Open (2026-11-24): a backlog workflow was shipping, in two lanes: the cover art on the info card, the pause map (whole world,
 travel anywhere visited), the top-centre HUD (Monty, three escape stars, Viktor's silhouette that lights when he's due; lives
-only in HARD), a Monty kit README, the C64 budget (decoration kinds back within 255). Check `git log` for which landed. The
-title/continue prompt's "FIRE" now names the game's button (JUMP) on branch fix/fire-label (`.claude/worktrees/fire-label`),
-tests were running. Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
+only in HARD), a Monty kit README, the C64 budget (decoration kinds back within 255). Check `git log` for which landed. The title/continue
+prompt names the game's own touch button (JUMP) since 2026-11-24.
+
+Proposed to Chris, awaiting his OK (2026-11-24): THE FLIGHT, Hilo to the Andes (~75 s), redeeming AWM's flight (games/awm/src/flight.ts:
+40 s, one plane on a loop): Monty flies a yellow mail biplane (MOTR jetpack feel, no gun) over AWM-style parallax cloud bands;
+leg 1 seabirds (gull Vs, a diving frigatebird with a screech tell, a slow albatross) and Kilauea's ash plume; leg 2 weather (storm
+clouds that flicker before lightning, gusts shown by streaks, a waterspout), coins on safe lines and in risky gaps; leg 3 Viktor in
+a black plane tails him copying his path, shaken off into flocks/clouds, and as the Andes appear clips Monty's tail: Monty bails
+out and parachutes into the Andes (replacing the walk-into-the-plane cut). The HUD tally becomes Spy vs Spy: Monty 2 (train, ship)
+v Viktor 1 (the plane), settled in SPY VERSUS MOLE. C64: parallax bands like AWM's, ~8 sprites. Also queued: the title's chase
+loop is repetitive: vary each loop (Viktor trips on a name, Monty ducks behind a label so Viktor overshoots, Viktor overtakes then
+backs off). Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
 (`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
 car (would shift China).
 
