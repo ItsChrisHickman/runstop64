@@ -32,7 +32,7 @@ const lever = (g: Game) => {
 const willStand = (g: Game, frames: number): boolean => {
   const p = g.pursuers.find((q) => q.gone === 'no'), e = p ? g.data.pursuers[p.index] : undefined;
   if (!p || !e || p.written <= e.delay) return false;
-  for (let k = 0; k < Math.min(frames, e.delay); k++) if (!underHead(g, p.ring[((p.written + k) % e.delay) * 3] ?? 0)) return false;
+  for (let k = 0; k < Math.min(frames, e.delay); k++) { const at = ((p.written + k) % e.delay) * 3; if (!underHead(g, p.ring[at] ?? 0, (p.ring[at + 1] ?? 0) + 1)) return false; }
   return true;
 };
 /** The headdress's place in the item table. */
@@ -66,7 +66,7 @@ export const RIO_LEGS: readonly Leg[] = [
   leg('D: down the rope onto the float, its coin, and off its east end to the lever (it only rattles)', inDrum((g) => g.leverLatch && g.coinCollected[coinIndex(g, R.drum, 18, 8)] !== 0, 22, 15)),
   leg('D: up the ladder to the booth, the crank fitted', inDrum((g) => !!g.siCollected[lever(g).armed], 28, 2)),
   leg('D: west along the gantry past the dancer and down the rope to the avenue', stands(R.drum, 18, 9, 14)),
-  leg('D: under the float\'s head and on to the lever, so that Viktor will stand under it as long as its warning', inDrum((g) => g.montyCol - 4 === 21 && willStand(g, HELD_WARN + 16), 21, 15)),
+  leg('D: under the float\'s head and on to the lever, so that Viktor will stand under it as long as its warning', inDrum((g) => g.montyCol - 4 === 21 && !g.leverLatch && !g.hold.pull && !g.pd.state && willStand(g, HELD_WARN + 16), 21, 15)),
   leg('D: the lever as Viktor stands under the head', inDrum((g) => !!g.siCollected[lever(g).done], 21, 15)),
   leg('D to B: the bars lifted, out east to the beach', into(R.bust, 31, 17, R.drum)),
   leg('B: onto the promenade', stands(R.bust, 18, 2, 6)),

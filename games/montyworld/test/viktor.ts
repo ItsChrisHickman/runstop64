@@ -115,7 +115,7 @@ for (const enhanced of [false, true]) {
       const was = p ? p.x2 : -1;
       ok = wait(s, 1);
       const now = viktor(s.g);
-      if (now && now.x2 === was && underHead(s.g, now.x2) && now.written > agent.delay) { ok = ok && pull(s); pulledAt = f; }
+      if (now && now.x2 === was && underHead(s.g, now.x2, now.y + 1) && now.written > agent.delay) { ok = ok && pull(s); pulledAt = f; }
     }
     const show = !enhanced && stand === 80;
     for (let f = 0; ok && f < 120 && !squashed(s.g); f++) { ok = wait(s, 1); if (show && [2, 26].includes(f)) snap('3-showdown-solved', s.g); }
