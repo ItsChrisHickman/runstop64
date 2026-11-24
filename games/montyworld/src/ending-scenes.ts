@@ -2,6 +2,7 @@ import { CREDIT } from '../../shared/ending/credits';
 import type { Scene } from '../../montyotr/src/ending-scenes';
 import type { MontyEnding } from '../../montyotr/src/montydata';
 import { WORLD_CREATURES, type WorldCreature } from './art/world';
+import { VIKTOR_NAME } from './art/viktor';
 import { STOPS } from './title-art';
 import { CLOSING, PLACES } from './ending-places';
 import { ROUTES } from './ending-routes';
@@ -36,7 +37,7 @@ const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
   [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
   [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
-  [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER'], ['agent', 'CUSTOMS OFFICER']],
+  [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER'], ['agent', VIKTOR_NAME]],
 ];
 /** The regions' names, Montos (where he sets out from) left off. */
 const REGIONS = STOPS.slice(1).map((s) => s.name);

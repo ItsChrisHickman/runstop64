@@ -1,0 +1,73 @@
+import type { CameoSpec, PursuerSpec, RoomBlocks } from '../../montyotr/src/montydata';
+import { creatureBlocks } from '../../montyotr/src/cameos';
+import { AND } from './andes';
+import { VIKTOR_CAMEO, VIKTOR_INK, VIKTOR_SHADOW, VIKTOR_SPLIT } from './art/viktor';
+import { CHI } from './china';
+import { JP } from './japan';
+import { ROOM } from './moscow';
+import { PAC } from './pacific';
+import { RIO_ROOM } from './rio';
+import { SPLIT_POINTERS } from './rio-pointers';
+import { SIB } from './siberia';
+
+/**
+ * Viktor Vole round the world (docs/dosvidaniya-reset.md, "Viktor Vole"): every border Monty crosses he arrives at a moment too late, walks on at the edge Monty came by, looks after him and withdraws (a
+ * cameo, one line each); in Japan's THE LAST MOLE, once Monty has the hood, his shadow crosses the moon, stops and turns to look, and moves on (the hood has fooled him); on the cargo ship he follows Monty
+ * aboard and on his trail (a pursuer, escaped by leading him under the crane's swinging crate); and in the Sambadrome, SPY VERSUS MOLE, the showdown (rio.ts `pursuerOf`). His pictures are art/viktor.ts.
+ */
+
+/** A cameo's eight pictures go in a creature slot the room has free (its blocks: $30 + 8 a slot), on that slot's sprite, or in blocks of `first` on `sprite`. */
+interface Place { room: number; sprite: number; first: number }
+const slot = (room: number, n: number): Place => ({ room, sprite: 4 + n, first: 0x30 + n * 8 });
+
+/** The rooms each cameo plays in, with its sprite and pictures' blocks. */
+const PLACES = {
+  station: slot(ROOM.station, 2), // Moscow's platform (two creatures)
+  wall: slot(CHI.wall, 2), // China's first room (two)
+  harbour: slot(JP.harbour, 2), // Japan's first (two)
+  moon: slot(JP.mole, 2), // THE LAST MOLE (two)
+  drop: slot(AND.jump, 1), // the parachute drop, JUMP FOR JOY (one creature)
+  arms: { room: RIO_ROOM.arms, sprite: 1, first: 0xa7 }, // OPEN ARMS has three creatures and Monty's hat on sprite 7: sprite 1 (no second find there) and the left skewer's and right skewer's blocks
+} as const satisfies Record<string, Place>;
+
+/** A cameo at a border: he steps in from off the edge Monty came in by (`side`), stands on `row` at the edge's column, looks after Monty (or down after him) and goes back the way he came. */
+const border = (p: Place, from: number, side: 'left' | 'right', row: number, pose: 'look' | 'lookDown', when: CameoSpec['when'], wait = 30): CameoSpec => ({
+  room: p.room, from: [from], when, wait, sprite: p.sprite, first: p.first, colour: VIKTOR_INK,
+  move: { from: side === 'left' ? -3 : 33, at: { col: side === 'left' ? 0 : 30, row }, to: side === 'left' ? -3 : 33, pose, hold: 90 },
+});
+
+/** The cameos, given the find that keeps the moon's shadow to once and the hood's find. */
+export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec[] => [
+  // Moscow to Siberia: he drops in through the Kremlin's gorge onto the platform; Viktor is on the Kremlin's tower top above, too late, looking down after him
+  border(PLACES.station, ROOM.kremlin, 'left', 2, 'lookDown', { col0: 0, row0: 0, col1: 31, row1: 10 }, 20),
+  // Siberia to China, low along the border village's road: Viktor at the edge looking after him
+  border(PLACES.wall, SIB.border, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
+  // China to Japan, off the junk onto the fish market's quay
+  border(PLACES.harbour, CHI.junk, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
+  // the Pacific to the Andes: out of the plane's rear door; Viktor in the doorway, looking down after the falling Monty
+  border(PLACES.drop, PAC.plane, 'left', 16, 'lookDown', { col0: 0, row0: 0, col1: 1, row1: 19 }, 4),
+  // the Andes to Rio, off the kapok's crown branch onto the canopy
+  border(PLACES.arms, AND.kapok, 'left', 8, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
+  // Japan, THE LAST MOLE: the hood taken, his shadow (black: seen only against the moon) walks on from the east, stops on the moon and turns to Monty for a long beat, and moves on west
+  {
+    room: PLACES.moon.room, when: { col0: 0, row0: 0, col1: 31, row1: 19 }, after: hood, once: moonSeen, wait: 40, sprite: PLACES.moon.sprite, first: PLACES.moon.first, colour: 0,
+    move: { from: 26.5, at: { col: 20.5, row: 4.5 }, to: 14.5, pose: 'look', hold: 150 }, // (the moon is cols 20-22, rows 2-4: he is in the middle of it)
+  },
+];
+
+/** The pictures the cameos and the showdown's split want in their rooms while those are loaded. */
+export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
+  ...[PLACES.station, PLACES.wall, PLACES.harbour, PLACES.drop, PLACES.arms].map((p): RoomBlocks => ({ rooms: [p.room], blocks: creatureBlocks(VIKTOR_CAMEO).map((block, i) => ({ ptr: p.first + i, block })) })),
+  { rooms: [PLACES.moon.room], blocks: creatureBlocks(VIKTOR_SHADOW).map((block, i) => ({ ptr: PLACES.moon.first + i, block })) },
+  { rooms: [RIO_ROOM.drum], blocks: VIKTOR_SPLIT.map((block, i) => ({ ptr: SPLIT_POINTERS[i] ?? 0, block })) },
+];
+
+/**
+ * The cargo ship (the Pacific's first room, about halfway round): Viktor came aboard by the gangway behind him (the ship's third creature, slot 2: sprite 6) and walks his path `SHIP_CHASE.delay` frames behind
+ * from when Monty leaves the landing. The crane's crate (slot 1) swings down to the deck and up again, 128 frames there and back; he is that far and a half behind, so when Monty ducks under the crate as it
+ * rises, it is coming down as Viktor ducks under after him, and it knocks him overboard. Escaped, he is gone from the ship (`escaped`, kept in a save).
+ */
+export const SHIP_CHASE = { delay: 192 } as const;
+export const shipPursuer = (escaped: number): PursuerSpec => ({
+  room: PAC.ship, slot: 2, delay: SHIP_CHASE.delay, calm: { col0: 0, row0: 9, col1: 3, row1: 13 }, until: escaped, knockedBy: { creatures: [1] },
+});

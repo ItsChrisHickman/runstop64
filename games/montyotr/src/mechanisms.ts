@@ -59,6 +59,9 @@ export function piledriverRoomInit(g: Game) {
   g.hold.held = g.data.levers.some((l) => l.room === g.roomId) ? 1 : 0;
   g.hold.both = 0;
   g.hold.pull = 0;
+  g.hold.warn = 0;
+  g.hold.watch = 0;
+  g.hold.inks = [];
 }
 
 function moveUp(g: Game, index: number) {
@@ -77,6 +80,20 @@ const shafts = (g: Game, index: number): readonly number[] => (g.hold.both && g.
  * crusher's stamp (`HELD_STEP` pixels a frame), and it rises again and waits. Monty on the Run has none: its crushers start on their random clock.
  */
 const HELD_STEP = 4;
+/** Frames the held head shudders between the lever's pull and its drop (the warning: long enough that a walker under it is out before it falls; `levers.ts` squashes only what stays). */
+export const HELD_WARN = 60;
+
+/** The held head's warning: its cells (both shafts', from the data's crusher table) drawn white, or back in their own colours (kept in `hold.inks` the first time). */
+function flickerHead(g: Game, lit: boolean) {
+  const cfg = g.data.piledriverCfg, cells: number[] = [];
+  for (let i = 0; i + 4 < cfg.length; i += 5) {
+    if (cfg[i] !== g.roomId) continue;
+    const col = cfg[i + 1] ?? 0, row = cfg[i + 2] ?? 0, height = cfg[i + 3] ?? 0;
+    for (let r = row; r < row + height; r++) for (let c = col; c < col + 3; c++) cells.push(r * ROW + c); // (the table's cells are the screen's)
+  }
+  if (g.hold.inks.length !== cells.length) g.hold.inks = cells.map((at) => g.col[at] ?? 0);
+  cells.forEach((at, k) => { g.col[at] = lit ? 1 : g.hold.inks[k] ?? 0; });
+}
 
 export function piledriverAnimate(g: Game) {
   const pd = g.pd;
@@ -86,7 +103,16 @@ export function piledriverAnimate(g: Game) {
     g.hold.both = 0;
     if (g.hold.held) {
       if (!g.hold.pull) return;
+      // the warning: the head shudders on its chains for HELD_WARN frames, a rattle every eight, then drops
+      if (g.hold.warn < HELD_WARN) {
+        g.hold.warn++;
+        if ((g.hold.warn & 7) === 1) g.sfx(g.data.sfx.jump);
+        flickerHead(g, (g.hold.warn & 4) !== 0);
+        return;
+      }
+      flickerHead(g, false);
       g.hold.pull = 0;
+      g.hold.warn = 0;
       pd.index = 0;
       g.hold.both = 1;
       pd.state = 1;

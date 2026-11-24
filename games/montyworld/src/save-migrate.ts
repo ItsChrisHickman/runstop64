@@ -35,7 +35,7 @@ export const RETIRED: Readonly<Record<number, number>> = {
   67: 71, // QUAY TO THE CITY: Rio starts at Corcovado (OPEN ARMS)
   72: 71, // MONKEY BUSINESS: merged into OPEN ARMS (Tijuca at its foot)
   70: 69, // SUGARLOAF SUMMIT: SUGAR RUSH, the cable car
-  76: 75, // FLOAT YOUR BOAT: merged into THE SAMBADROME
+  76: 75, // FLOAT YOUR BOAT: merged into the Sambadrome (SPY VERSUS MOLE)
 };
 
 /** Where a kept room that takes the saves of cut rooms is come into, when that is not its west end, low (Rio's OPEN ARMS: high on the canopy, entered from the Amazon; its forest floor is the marmoset's). */

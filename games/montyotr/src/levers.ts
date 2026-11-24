@@ -5,8 +5,10 @@ import { pursuerAt, squashPursuer } from './pursuers';
 
 /**
  * Levers (a game's `levers`: Do Svidaniya Monty's Sambadrome): the room's Mole Crushers are held up (mechanisms.ts `hold.held`) until the lever drops them, both shafts as one head. Touching the booth while carrying the
- * lever's key fits it (the `armed` item is taken, so it stays fitted through a death and a save); unarmed, stepping into the lever only rattles it. Armed, stepping into it (again only after stepping out) drops the head;
- * if it comes down on the room's pursuer, he is squashed and the `done` item is taken, which the room's effects read (the bars lift). Monty under it is killed by the crusher's own test.
+ * lever's key fits it (the `armed` item is taken, so it stays fitted through a death and a save); unarmed, stepping into the lever only rattles it. Armed, stepping into it (again only after stepping out) starts the
+ * head's warning (it shudders, `HELD_WARN` frames) and then drops it. It squashes the room's pursuer only if he was under it when the lever was pulled and is still under it as it lands (`hold.watch`): a walker
+ * crossing under is out before it falls, so he must be standing there, and he stands only where Monty stood. Then the `done` item is taken, which the room's effects read (the bars lift). Monty under it is killed
+ * by the crusher's own test.
  */
 
 /** Whether Monty, standing or not, overlaps a box of playfield cells (his two columns and two rows, a third column when he is between cells). */
@@ -16,6 +18,18 @@ function touches(g: Game, b: CellBox): boolean {
 }
 
 const leverOf = (g: Game): LeverSpec | undefined => g.data.levers.find((l) => l.room === g.roomId);
+
+/** Whether the pursuer is under the room's head (his picture over either shaft, by the crusher table's columns: screen columns). */
+export function underHead(g: Game, x2: number): boolean {
+  const col = (x2 - 0x0c) / 4;
+  const cfg = g.data.piledriverCfg;
+  for (let i = 0; i + 4 < cfg.length; i += 5) {
+    if (cfg[i] !== g.roomId) continue;
+    const c0 = cfg[i + 1] ?? 0;
+    if (col + 2 > c0 + 0.5 && col < c0 + 2.5) return true;
+  }
+  return false;
+}
 
 /** A room is loaded: he is not touching the lever (the latch is off). */
 export function leverInit(g: Game) { g.leverLatch = false; }
@@ -30,28 +44,21 @@ export function leverUpdate(g: Game) {
     Items.applyRoomEffects(g);
     g.sfx(g.data.sfx.item);
   }
+  const man = pursuerAt(g);
   const at = touches(g, { col0: l.lever.col, row0: l.lever.row, col1: l.lever.col, row1: l.lever.row + 1 });
   if (at && !g.leverLatch && !taken(l.done)) {
     if (!taken(l.armed)) g.sfx(g.data.sfx.jump); // (dead: it only rattles)
-    else if (!g.pd.state) g.hold.pull = 1;
+    else if (!g.pd.state && !g.hold.pull) { g.hold.pull = 1; g.hold.watch = man && underHead(g, man.x2) ? 1 : 0; }
   }
   g.leverLatch = at;
-  // the head coming down on the pursuer
-  const pd = g.pd, man = pursuerAt(g);
-  if (!man || !g.hold.both || pd.state !== 1) return;
+  // the head on its way down: he must stay under it from the pull to the landing
+  const pd = g.pd;
+  if (!g.hold.pull && pd.state !== 1) { g.hold.watch = 0; return; }
+  if (!man || !underHead(g, man.x2)) { g.hold.watch = 0; return; }
+  if (!g.hold.watch || !g.hold.both || pd.state !== 1) return;
   const headY = (pd.spriteY[0] + pd.position) & 0xff;
   if (headY < man.y + 4) return;
-  const col = (man.x2 - 0x0c) / 4;
-  const cfg = g.data.piledriverCfg;
-  for (let i = 0; i + 4 < cfg.length; i += 5) {
-    if (cfg[i] !== g.roomId) continue;
-    const c0 = cfg[i + 1] ?? 0;
-    if (col + 2 > c0 + 0.5 && col < c0 + 2.5) {
-      squashPursuer(g);
-      g.siCollected[l.done] = 0x81;
-      Items.applyRoomEffects(g);
-      g.sfx(g.data.sfx.item);
-      return;
-    }
-  }
+  squashPursuer(g);
+  g.hold.watch = 0;
+  Items.applyRoomEffects(g);
 }

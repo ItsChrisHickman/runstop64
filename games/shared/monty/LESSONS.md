@@ -113,6 +113,19 @@ most care; the reward show and the title show them off.
   (MATRYOSHKA DOLL, KOI) in coloured text on the black, no box. Shared: `procession` in `games/shared/ending/show.ts`
   (`procession.ts` is its clock).
 
+## The villain and the last puzzle (Chris, 2026-11-23)
+
+- **A final boss is set up, then met three times, each harder** (the rule of three): seen arriving too late at every border (a cameo
+  of a few seconds, harmless, one line of data each), escaped twice on the way (each teaching a piece of the last puzzle: he copies
+  your path; the world's hazards can take him), and beaten at the end by a real puzzle. The room's name says the moment (SPY VERSUS
+  MOLE: he has caught up).
+- **The obvious move must fail, visibly, and the fix must follow from the rule you have learned** ("walk under the float and pull
+  the lever" was too easy: the head now warns for longer than a walker is under it, so you have to make him stand there, and he
+  stands only where you stood). Aim for two to four attempts; prove the naive way fails and the intended one works with the bot.
+- **The villain is one recognisable character, his pictures in one file** (Viktor Vole: `montyworld/src/art/viktor.ts`), so a redraw
+  is an art swap; squashed, he goes exactly as Monty goes under a Mole Crusher (the original's four-way split), not an animation
+  of our own.
+
 ## Words and sound
 
 - **Names are plain and evocative first, a pun only when it lands** (Monty on the Run: THE HOUSE, SEWERAGE WORKS). A name that

@@ -984,6 +984,55 @@ stay.
 - Draw every room black first, and check Monty, the agent, the vulture and the marmoset with `creature-contrast.ts` before adding any
   backdrop.
 
+### Viktor Vole and SPY VERSUS MOLE (as built, 2026-11-23)
+
+Chris: the final boss must make sense and be a real puzzle, "Spy vs Spy within the carnival ... where you actually have to get the
+other spy to go into the smasher". The agent is **VIKTOR VOLE** of the KGB, Monty's mirror: a vole Monty's size but sleeker, a black
+greatcoat (drawn as its edges, collar, belt and buttons: the coat is the black between), a tall fur hat with a star, a little
+moustache. One ink, white, so he reads on Rio's black. Every picture of him is in `games/montyworld/src/art/viktor.ts` (the walk,
+the cameos' steps, look and look down, his shadow, the HUD's faces, the four-way split): redrawing him is a swap there. The star is
+cut into the hat; a red one would need a sprite of its own over him (one ink a sprite).
+
+**The rule of three.** He is set up all the way round and met three times, each harder:
+1. **Every border**, he arrives a moment too late: Monty crosses, Viktor walks on at the edge Monty came by, looks after him (or
+   down after him) and withdraws. One line of data each (`viktorCameos` in `viktor.ts`, engine `cameos.ts`): Moscow's platform
+   (on the Kremlin tower's top as Monty drops in from the gorge, looking down), China's first room, Japan's fish market, the
+   parachute drop (in the plane's doorway, looking down after him) and Rio's OPEN ARMS. They touch nothing (their sprite is out of
+   the collision check) and play only on arriving from the border's room, not after a death. In Japan's THE LAST MOLE, once Monty
+   has the hood, his shadow (black, so seen only against the moon) walks on, stops on the moon, turns to look at Monty for a long
+   beat and moves on: the hood has fooled him. Once only (a hidden find keeps it). The room has no paper screen, so the moon is the
+   screen; nothing else in the room changed.
+2. **The cargo ship** (the Pacific's first room, about halfway): the Japan to Pacific crossing is no cameo but Viktor coming
+   aboard behind him on the same follow-your-path pursuer as the finale (192 frames behind). The crane's crate swings down to the
+   deck and up, 128 frames there and back; he is a swing and a half behind, so when Monty ducks under the crate as it rises,
+   it is coming down as Viktor ducks under after him, and it knocks him overboard. This teaches the finale's idea gently: he
+   copies you, and you can lead him into the world's hazards. Escaped, he is gone from the ship (a hidden find).
+3. **The train** (Siberia, early): waits for reset/siberia on main (Viktor dropping onto the carriage roofs behind Monty and
+   swept off by a tunnel as Monty shelters in a hatch).
+
+**SPY VERSUS MOLE** (the Sambadrome, room 75, renamed from THE SAMBADROME: the room's name says Monty has been caught up with).
+As Monty comes in on the stand's ledge, Viktor walks on at the avenue's far end beyond the bars, looks across at him and walks
+off while the room's name flashes; the chase starts as Monty leaves the ledge. He follows Monty's exact path 125 frames behind
+(standing still longer than that is the only way he reaches Monty). The crank still has to be fetched and fitted in the booth
+(its window lights: armed).
+
+The puzzle: pulling the lever starts the float's head **shuddering** (60 frames: it flickers white and rattles) before it drops
+(12 frames). It squashes Viktor only if he was under it at the pull and is still under it as it lands. Walking, anyone is under the
+head for about 56 frames (seven cells at a walk), so **walking under it and pulling the lever never works**, whenever you pull: he walks out from under
+it during the warning. He stands only where Monty stood. So the player has to work it out: **stand under the head yourself** (it is
+held up: safe) for a second or two, go to the lever, and pull as Viktor arrives and stops where you stood. Early pulls miss, the
+head rises and is ready again (about two seconds); Monty under it when it falls dies; ENHANCED restarts the room as he came in. A typical
+player: the obvious walk under and pull (a miss, he walks out as it shudders), a timed second try (a miss again), then the penny drops:
+he copies everything, so make him wait there. Squashed, Viktor goes exactly as Monty goes under a Mole Crusher in Monty on the Run:
+the four-way split (`death4Split`'s paths, pace, its four pictures a piece in turn and its sound), with his own head in the four
+pieces (sprites 6, 1, 2 and the dancer's 5: the dancer is out of sight while the pieces fly). The bars lift; the beach.
+
+Proved headless in `games/montyworld/test/viktor.ts`: the naive walk and pull after every wait from 0 to 120 frames never squashes
+him; standing under the head 60, 80 or 100 frames and pulling as he stops there does, with Monty alive, in both modes; the early
+pull re-arms; standing still under the falling head kills; he reaches Monty only after standing still longer than his delay; the
+ship's escape from several arrival timings; every cameo plays, touches nothing and goes. The HUD (another agent) reads
+`encounterState(g)` in `pursuers.ts` (each pursuer escaped or not, and whether Viktor is due in this room) and `VIKTOR_FACE`.
+
 ### Open calls for Chris
 
 1. **Who the agent is.** The story says Intermole works only in Europe. The pick is the customs officer, from the man with no

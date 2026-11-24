@@ -2,11 +2,12 @@
  * Rio's creatures for Monty Mole: World Tour (region 7), in Monty on the Run's formats and the earlier regions' manner: bold cartoon
  * figures that fill their 16 x 16, a solid body in one ink with the detail cut into it as black lines and gaps, a big face with an
  * expression, no dither. A samba dancer, a drummer, a gaucho waiter (his skewer is a sprite of its own: rio-items.ts), a marmoset, a
- * macaw, a vulture, a capoeirista, a football with a face, the customs officer who follows Monty (the agent), a kite and a bat.
+ * macaw, a vulture, a capoeirista, a football with a face, Viktor Vole who follows Monty (the agent: his pictures are viktor.ts), a kite and a bat.
  */
 import { lay, pair, sym } from './creature-kit';
 import { limb, Raster } from './raster';
 import type { NewCreature } from './types';
+import { VIKTOR_WALK } from './viktor';
 
 // ---- the samba dancer: a fan of plumes, a big smile, arms up, a flaring feathered skirt, hips swaying
 
@@ -155,29 +156,6 @@ function capoeirista(): NewCreature {
   return pair('capoeirista', [frame(0), frame(1), frame(2), frame(3)], 1, true);
 }
 
-// ---- the agent: the customs officer on Monty's trail, a wide hat, dark glasses, a long coat flapping
-
-/** The customs officer who follows Monty through the Sambadrome, walking to the left: a wide-brimmed hat pulled low, dark glasses, a long coat to his shins, its tail flapping as he strides. White, so he reads on Rio's night. */
-function agent(): NewCreature {
-  const frame = (step: number) => {
-    const r = new Raster(16, 16);
-    r.rect(5, 0, 10, 1); r.rect(2, 2, 13, 2); // the hat's crown and its wide brim
-    r.rect(5, 3, 10, 6); // the face
-    r.cut(['###.##'], 5, 4); // the dark glasses
-    r.cut(['##'], 7, 6); // a thin mouth
-    r.rect(3, 7, 12, 13); // the long coat
-    r.cut(['#', '#', '#', '#', '#'], 8, 8); // its front
-    r.cut(['#'], 6, 9); r.cut(['#'], 6, 11); // the buttons
-    const flap = step & 1;
-    r.rect(12, 10 + flap, 13 + flap, 13); // the coat's tail flapping behind him
-    limb(r, 4, 8, 1.5, 11 - flap, 2); // the arm swinging
-    const a = step === 1 ? 1 : step === 3 ? -1 : 0;
-    r.rect(5 + a, 14, 6 + a, 15); r.rect(9 - a, 14, 10 - a, 15); // the legs
-    r.set(4 + a, 15); r.set(8 - a, 15); // the shoes, pointing the way he goes
-    return r.rows();
-  };
-  return pair('agent', [frame(0), frame(1), frame(2), frame(3)], 1);
-}
 
 // ---- the kite (pipa): a diamond on its line, its tail of bows swaying
 
@@ -241,7 +219,7 @@ export const RIO_CREATURES = {
   vulture: vulture(),
   capoeirista: capoeirista(),
   football: football(),
-  agent: agent(),
+  agent: VIKTOR_WALK,
   rioKite: rioKite(),
   rioBat: rioBat(),
 } as const satisfies Record<string, NewCreature>;
