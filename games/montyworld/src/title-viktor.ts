@@ -2,7 +2,7 @@
  * Viktor Vole of the KGB on the title's map: Monty's mirror (a vole Monty's size, sleeker, in a black greatcoat and a fur hat with a red star, a
  * little moustache), tiny, walking east a few steps behind Monty along the dotted route. He is four hires sprites one over the other, a colour
  * each (the C64's sprites have one colour apiece in hires; the multicolour ones share the screen's two), drawn here as pictures of letters:
- * k black (coat, boots, eye, moustache, nose), r the red star, h the grey fur hat, f his own orange fur.
+ * k black (coat, boots, eye, moustache, nose), r the red star, h the grey fur hat, f his own orange fur. He also lies flat (tripped).
  */
 
 /** One layer of the figure: the letter it is drawn with, its sprite colour (the C64's palette) and its sprite's number on the title (in front of the next). */
@@ -41,16 +41,26 @@ const LEGS: readonly (readonly string[])[] = [
 export const VIKTOR_HEIGHT = BODY.length + 2;
 export const VIKTOR_POSES = LEGS.length;
 
-/** The sprite block (24 x 21 pixels, 3 bytes a row) of one layer in one pose. */
-export function viktorBlock(layer: ViktorLayer, pose: number): Uint8Array {
-  const rows = [...BODY, ...(LEGS[pose % LEGS.length] ?? [])];
+/** A sprite block (24 x 21 pixels, 3 bytes a row) with the pixels `lit` gives for the layer's letter. */
+function block(layer: ViktorLayer, rows: readonly string[], lit: (x: number, y: number) => readonly [number, number]): Uint8Array {
   const out = new Uint8Array(64);
   rows.forEach((row, y) => {
     [...row].forEach((c, x) => {
       if (c !== layer.key) return;
-      const px = x + 6;
-      out[y * 3 + (px >> 3)] = (out[y * 3 + (px >> 3)] ?? 0) | (0x80 >> (px & 7));
+      const [px, py] = lit(x, y);
+      out[py * 3 + (px >> 3)] = (out[py * 3 + (px >> 3)] ?? 0) | (0x80 >> (px & 7));
     });
   });
   return out;
+}
+
+/** The sprite block of one layer in one pose, standing. */
+export function viktorBlock(layer: ViktorLayer, pose: number): Uint8Array {
+  return block(layer, [...BODY, ...(LEGS[pose % LEGS.length] ?? [])], (x, y) => [x + 6, y]);
+}
+
+/** One layer of him lying flat on his face, head to the east (fallen forward), his soles' row the standing figure's. */
+export function viktorFallenBlock(layer: ViktorLayer): Uint8Array {
+  const rows = [...BODY, ...(LEGS[1] ?? [])];
+  return block(layer, rows, (x, y) => [3 + (rows.length - 1 - y), VIKTOR_HEIGHT - 11 + x]);
 }
