@@ -16,7 +16,7 @@ import crypto from 'node:crypto';
 import { Game } from '../../../montyotr/src/game';
 import { copyGame } from '../../../montyotr/src/game-copy';
 import type { State } from '../../../montyotr/test/play';
-import { getProp, isArrayOf, isNumber, isNumbers, isRecord, isRecordOf, isString } from '../../guards';
+import { getProp, isArray, isArrayOf, isNumber, isNumbers, isRecord, isRecordOf, isString } from '../../guards';
 
 /** What belongs to the game's data and the VIC (the bank and colour RAM go with the VIC), and what is runner-owned: not written. */
 const NOT_STATE = new Set(['data', 'vic', 'mem', 'col']);
@@ -50,12 +50,39 @@ export function thaw(data: Game['data'], bytes: Uint8Array): State {
   return { g: copyGame(src), col: v.col };
 }
 
+/**
+ * A state's fingerprint: the same fields `freeze` writes, hashed in a canonical form (typed arrays as their bytes, lists item by item, objects by sorted
+ * key). Not `digest(freeze(s))`: the structured clone's bytes for one value differ with how V8 happens to hold it (an empty list written dense or sparse
+ * after the engine has run a while), so the same state could hash two ways.
+ */
+export function statePrint(s: State): string {
+  const h = crypto.createHash('sha1');
+  const seen = new Map<object, number>();
+  const walk = (v: unknown): void => {
+    if (v === null || v === undefined || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint') { h.update(`${typeof v}:${String(v)};`); return; }
+    if (typeof v === 'string') { h.update(`s${v.length}:`); h.update(v); return; }
+    if (typeof v !== 'object') return; // (a function: not state, as `freeze` leaves it)
+    const at = seen.get(v);
+    if (at !== undefined) { h.update(`@${at};`); return; }
+    seen.set(v, seen.size);
+    if (ArrayBuffer.isView(v)) { h.update(`b${v.constructor.name}${v.byteLength}:`); h.update(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)); return; }
+    if (isArray(v)) { h.update(`[${v.length}:`); for (const x of v) walk(x); h.update(']'); return; }
+    if (v instanceof Map) { h.update(`M${v.size}:`); for (const [k, x] of v) { walk(k); walk(x); } return; }
+    if (v instanceof Set) { h.update(`S${v.size}:`); for (const x of v) walk(x); return; }
+    h.update('{');
+    for (const k of Object.keys(v).sort()) { h.update(`${k}=`); walk(getProp(v, k)); }
+    h.update('}');
+  };
+  walk({ game: fieldsOf(s.g, NOT_STATE), vic: fieldsOf(s.g.vic, new Set()), col: s.col });
+  return h.digest('hex').slice(0, 16);
+}
+
 /** A short hash of bytes or text. */
 export function digest(data: Uint8Array | string): string {
   return crypto.createHash('sha1').update(data).digest('hex').slice(0, 16);
 }
 
-/** The state at a leg's start, kept: the leg, the state's hash and bytes, and what the leg then did (the rooms its route went through, the route's hash). */
+/** The state at a leg's start, kept: the leg, the state's hash (`statePrint`) and bytes, and what the leg then did (the rooms its route went through, the route's hash). */
 export interface KeptState { leg: string; hash: string; rooms: number[]; route: string; bytes: Uint8Array }
 /** A region's kept states in a mode: the fingerprints they were made with, one a leg (and one after the last). */
 export interface KeptStates { rest: string; rooms: Readonly<Record<string, string>>; states: readonly KeptState[] }

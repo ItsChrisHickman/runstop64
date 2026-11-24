@@ -27,7 +27,7 @@ import * as S from '../../../../packages/c64kit/src/schema';
 import { ACTIONS, hold, keyOf, livesOn, playThrough, search, STEP, type Aim, type Goal, type Route } from './bot';
 import type { Prints } from './attribute';
 import type { RoomScope } from './scope';
-import { digest, freeze, readKept, thaw, writeKept, type KeptState } from './states';
+import { digest, freeze, readKept, statePrint, thaw, writeKept, type KeptState } from './states';
 /** A leg of a region's route: a goal for the bot to reach, and where to head (the aim only guides the search). */
 /** One goal of a route (`pickup`: a coin or an item taken, which a player must be able to do without the bot's exact timing). */
 export interface Leg { name: string; goal: Goal; aim: readonly Aim[]; pickup?: true }
@@ -148,7 +148,7 @@ export function runLegs(run: LegsRun): LegsResult {
   const sameRoom = (r: number) => kept !== null && prints !== undefined && kept.rooms[String(r)] === prints.room(r);
   const sameRoute = (n: number) => { const r = recorded.get(nameAt(n)); return r !== undefined && keptStates?.[n]?.route === digest(showRoute(r)); };
   /** Leg starts where the chain is known to be the kept one now: the region's start (if it is the kept one) and where a run of chosen legs joined it again. */
-  const anchors: number[] = keptStates && keptStates[0]?.hash === digest(freeze(run.start)) ? [0] : [];
+  const anchors: number[] = keptStates && keptStates[0]?.hash === statePrint(run.start) ? [0] : [];
   /** Whether the kept state at leg n's start is the state the chain has now: from an anchor, every leg between played its recorded route through rooms that did not change. */
   const holds = (n: number): boolean => anchors.some((a) => {
     if (a > n || !keptStates) return false;
@@ -165,7 +165,7 @@ export function runLegs(run: LegsRun): LegsResult {
   const now: (KeptState | undefined)[] = Array.from({ length: legs.length + 1 }, () => undefined);
   let frames = 0, nodes = 0, replayed = 0, searched = 0;
   const stale: string[] = [];
-  const keepAt = (n: number, s: State) => { if (prints) { const bytes = freeze(s); now[n] = { leg: nameAt(n), hash: digest(bytes), rooms: [], route: '', bytes }; } };
+  const keepAt = (n: number, s: State) => { if (prints) { const bytes = freeze(s); now[n] = { leg: nameAt(n), hash: statePrint(s), rooms: [], route: '', bytes }; } };
 
   const runLeg = (n: number, s: State): State | null => {
     const leg = legs[n];
@@ -237,7 +237,7 @@ export function runLegs(run: LegsRun): LegsResult {
     live = next; at = n + 1;
     if (scope && n + 1 < legs.length && !chosen(n + 1)) {
       // the chosen legs are done: the chain must be the recorded one again for the legs after to be what a full run plays
-      if (keptStates?.[n + 1]?.hash === digest(freeze(next))) {
+      if (keptStates?.[n + 1]?.hash === statePrint(next)) {
         anchors.push(n + 1);
         if (going) console.log(`   the chain is the recorded one again at "${nameAt(n + 1)}"`);
         going = false;
