@@ -419,214 +419,251 @@ There is no fourth car: [1,7] is the mine's.
 
 ## the Pacific (cargo ship, Hawaii, cargo plane)
 
-The previous 17 rooms (20 on the v2 branch `worktree-agent-a4e02a7d7dc2e04df`) go down to 5. Moscow, China and Japan do not change. The
-first room keeps cell [2,17] and STERN WARNING's west edge exactly, so Japan's port is untouched: the landing is at floor 13 on columns
-0-3, the hull is below it and the sky is open above it.
+This replaces the earlier Pacific plan (a7faaad) after a second round of proposals. The 17 rooms on main (20 on the v2 branch
+`worktree-agent-a4e02a7d7dc2e04df`) go down to 5. Moscow, China and Japan do not change. The first room keeps cell [2,17] and STERN
+WARNING's west edge exactly, so Japan's port is untouched: the landing is at floor 13 on columns 0-3.
 
 ### Which proposal, and why
 
-Two proposals were judged. **The base is proposal A, "the sea is the wall".** It keeps Chris's islands in his order (Oahu, Maui, the Big
-Island), the luau on Oahu with the lei round the neck, and the cargo plane from Hilo. It builds the region as a U (east along the top, down
-into the sea, east along the bottom, up into the sky), and it starts with a three-pass hairpin through the ship, which is MOTR's
-$0C/$0D/$0E. Proposal B, "the Big Island by night", has the stronger single idea, a set piece previewed from a sealed overlook. But it
-cuts Oahu and the luau that Chris asked for. Its puzzle is "a lamp shows the ledges", and that is the shape the Siberia plan has just cut
-(SHAFT OF DARKNESS). It also relies on the player reading black as dark rather than empty, which B itself flags as a risk.
+**The base is proposal B, "set-piece first".** Its puzzle is the MOTR shape: the breakers on Waikiki's beach are the gate. You see
+the gate and the snorkel (its key) together, and you work out the way round by the ship. It keeps THE ROAD TO HANA, which Chris
+named, and rebuilds it with a forced stop. It ends on the region's hardest room, a run from rising lava to the plane, which drops
+straight into the parachute sequence Chris liked best. It builds on the reset/pacific branch, so most of the mechanisms it needs exist.
 
-From B this plan takes six things:
-- **The preview of the set piece.** Hilo's lava is seen first from safety, before the climb (below). B's overlook becomes the top of the
-  Hana room's headland, looking across at the glow.
-- **Cracking crust** on the first stepping ledges over the lava (the `cracks` mechanism), as the set-up trap.
-- **Faster lava for the late game:** a row every 40 frames, held 150, drained a row every 12. The fairness check tunes it.
-- **A yellow or white magma blob**, because today's orange one vanishes on orange lava.
-- **The nēnē** on Hilo's apron, guarding the last step, so the set piece has a second creature.
-- **No surface line in the swim room.** Its only opening above is the dive gap, so it has nothing to bounce on (Chris's sea-cave bounce),
-  and the v2 no-bounce test covers that gap.
+Proposal A is sound but weaker:
+- It gates the way with bolt cutters and a chain, and the Hilo guard with the lei. That is "costume plus guard" again, which Moscow,
+  China and Japan already use.
+- Its main new engine piece (a drifting current band) does what reset's `currents` surge already does.
+- Its last room is a walk to a door, so the region does not ramp up.
 
-Scores (A first, then B): MOTR-style route and puzzle 4 / 4. Chris's notes 5 / 3. Calm art 4 / 5. Coins 4 / 4. Ramp 4 / 4. Budget 5 / 5.
-Buildable 4 / 4. A's one engine addition (swim currents) is data, like the flight's updrafts, and MOTR's value is empty.
+From A this plan takes three things:
+- **The swim is a U, not a choice of lanes.** You cross C twice at two heights: west in the top lane against the surge, then east in
+  the deep lane past the morays. B's "choose a lane" let a player skip half the room.
+- **The pull-in before each bridge** on the road, where the wait happens, with the coin in it.
+- **Lahaina at the road's foot and Hana at its head**, so Maui reads west to east as Chris knows it.
+
+Kept from the first Pacific plan: no surface line in the swim room (the dive gap is its only opening above, so nothing bounces), the
+cracking crust, a yellow or white magma blob (orange vanishes on lava) and the late-game lava speed.
+
+Scores, A first, then B:
+
+| | A | B |
+|---|---|---|
+| MOTR-style route and puzzle | 3 | 5 |
+| Chris's notes | 4 | 5 |
+| Calm art | 4 | 4 |
+| Coins with reasons | 4 | 5 |
+| Ramp | 3 | 5 |
+| Budget | 5 | 5 |
+| Buildable | 4 | 4 |
 
 ### The route
 
 ```
-            col 17                     col 18                       col 19
-row 2   Japan's port ==> A THE CARGO SHIP ==> B WAIKIKI                E THE CARGO PLANE ==> Andes
-        (unchanged)       deck, hold, bilge    beach, lawn, stand        roller floor, net, rear door
-                                                || dive, cols 26-30       ^ belly ladder
-                                                vv (snorkel)              |
-row 3                                         C HANA ====== low east ==> D HILO
-                                                (swim)                    (lava climb)
+            col 17                    col 18                      col 19
+row 2   Japan ==> A THE CARGO SHIP ==deck/hold==> B WAIKIKI        E HILO ==rows 14-15==> Andes [2,20]
+                   landing, hatch, hold,          lanai (high),      lava basin, climb, rim,
+                   engine room, deck              beach (low)        apron, plane's hold
+                                                  | breakers,        ^ cargo net, cols 24-27
+                                                  | cols 25-29       |
+row 3                                           C THE CHANNEL ==rows 13-17==> D THE ROAD TO HANA
+                                                  (the one swim)             (three levels)
 ```
 
 **The joins:**
-- Japan to A: the landing at floor 13, as now. Nothing changes on Japan's side.
-- A to B: the bilge lane's bow cargo door, low, onto Waikiki's pier.
-- B to C: the sea gap at Waikiki's bottom right, columns 26-30. It is deadly surf until he has the snorkel; then he dives through C's
-  ceiling gap at the same columns. That is C's only opening above.
-- C to D: swim out at C's east edge, low, onto Hilo's lava-rock shore. The shore's columns are outside the lava's span.
-- D to E: the belly-door ladder from the apron at the top of D into the hold, through an opening 3 or more wide with the ladder centred.
-- E to the Andes: the rear door at rows 14-15, the contract the Andes' jump room already has. The Andes' first room moves to [2,20].
-- B's east side and E's west side are walls. B and E are side by side but not joined.
+- **Japan to A:** the landing at floor 13, as now.
+- **A to B, twice:** the hold (floor 18) onto Waikiki's beach, and the deck (floor 9) onto the lanai.
+- **B to C:** the breakers at columns 25-29, deadly until the snorkel, then a dive through C's only ceiling gap at the same columns.
+- **C up to B's pocket:** the pier piles at columns 8-9 climb out of the sea into a dead end under the pier.
+- **C to D:** a swim doorway at C's east edge, rows 13-17, onto D's shallows at floor 18 (Lahaina's slipway).
+- **D to E:** the cargo net at Hana's jetty, columns 24-27, up through D's ceiling. The opening is at least 3 wide with the net centred.
+- **E to the Andes:** the plane's rear door at rows 14-15, the contract the Andes' jump room already has. The Andes' first room moves
+  to [2,20].
+- **B's east wall and E's west wall are solid.** They are side by side but not joined.
 
 **Play order:**
-1. A: east along the deck under the crane, down the hatch, west along the hold between the two pistons, down the ladder, east along the
-   bilge over one gap of water, out of the bow door. That is one room crossed three times at three heights.
-2. B: east along the beach to the sea. A MOLE CANNOT SWIM THAT FAR. On the beach stand's roof is the snorkel, too high to reach from the
-   sand.
-3. Up the palm at the sea's edge to the hotel's luau lawn. West along the lawn, timing the torches, taking the lei on the stage. Off the
-   lawn's west end, drop onto the stand's roof for the snorkel. Down to the beach, east to the sea again, and dive.
-4. C: in at the top right. West along the top lane under the headland. Down the west drop-off (the sea cave and the musubi are off it).
-   East along the bottom lane against the surge, from coral head to coral head. Out at the bottom right.
-5. D: out of the sea onto the shore, where the lava starts rising. Climb the zig-zag to the apron and up the belly ladder.
-6. E: the rear door is shut (THE DROP IS FAR TOO HIGH). Up the cargo net to the high shelf and west to the parachute. Back down, across
-   the roller floor between the crate's rolls, and out of the rear door.
+1. **A:** off the landing. The landing is a well deck walled east by the bridge's base, too far below the main deck to jump. Drop
+   through the hatch (columns 6-8) into the hold and walk east.
+2. **B, low:** along the beach to the breakers (A MOLE CANNOT SWIM THAT FAR). The snorkel is on the surf shack's roof shelf, out of
+   reach from the sand.
+3. **A again:** back west along the hold to the engine room, through the grating between the two Mole Crushers. Up the ladder at
+   column 2 to the deck, then east under the crane's swinging crate.
+4. **B, high:** along the lanai past the three torches, taking the lei at the luau stage. At the east rail, a rope goes down onto the
+   shack roof for the snorkel. Drop to the sand (back on a beach you know) and dive through the breakers.
+5. **C:** in at the top right. West along the top lane against the surge, from coral lee to coral lee. Down the west drop-off, then
+   east along the deep lane past the morays and the sunken crate (the musubi). Out at the slipway.
+6. **D:** east on the bottom level, west on the middle, east on the top to Hana's black sand. Up the net.
+7. **E:** you come up under the plane and can see it, but you can't reach it. West into the basin; the lava starts behind you. Climb
+   the winding route up the left, run east along the rim, and take the rope down to the apron. In the plane, climb the net to the high
+   rack for the parachute. It opens the rear door, and you jump into the Andes.
 
 **Rule 2 of the reset, checked:**
-- Rooms crossed twice at two heights: A (three times), B (beach, lawn, beach again) and C (top lane, then bottom lane).
-- Dead ends holding items: the stand's roof (snorkel), the sea cave (musubi) and the high pallet (parachute).
-- Gates seen before their keys: the sea in B and the rear door in E.
-- Seen now, reached later: the snorkel on the roof, seen from the beach and reached from the lawn above. Also Hilo's glow, seen from C's
-  top lane before the climb.
-- A loop back into a known room: the drop off the lawn's end lands him back on the beach he has already walked.
-- Tight before open: the ship (35-45% solid, three lanes) comes before Waikiki's open sky, and Waikiki before the open water.
+- Rooms crossed twice at two heights: A (hold, then deck), B (beach, then lanai) and C (top lane, then deep lane).
+- Dead ends holding items: the shack roof (snorkel), the sunken crate (musubi) and the high rack (parachute).
+- A gate seen before its key: the breakers and the snorkel, seen together from the sand.
+- Seen now, reached later: the snorkel on the roof, and the pier pocket's coin, seen behind the piles from the beach and reached from
+  the sea. In E, the plane itself.
+- A loop back into a room you know: beach, hold, deck, lanai, roof, then back onto the beach.
+- Tight before open: the ship (the most enclosed room) comes before Waikiki, and Waikiki before the open water.
 
-### The puzzle
+### The puzzle: the sea is the gate
 
-**The sea is the wall.** From the start, water kills him: the bilge in A, then Waikiki's surf. The snorkel turns the water into the way
-on. It is in plain sight on the stand's roof and out of reach. The only way up is the palm at the edge of the sea that just stopped him,
-and from there the lawn leads back west, over the beach, to a drop onto the roof. He meets the lock first and finds the key by working
-out the way round. That is the shape of MOTR's cake and wall.
+From the start, water kills Monty: the bilge in A, then Waikiki's surf. The snorkel turns the sea into the way on. You see it first,
+out of reach, beside the gate it opens. The way to it is back through the ship you just crossed, at the other height. That is the
+shape of MOTR's cake and wall.
 
-**Deep water needs the snorkel** (Chris's bug). Without it the surf at the gap is deadly, as v2's swimGate drowning already does. C is
-reached only through that gap, so there is no way to swim without it.
+Deep water needs the snorkel (Chris's bug). C is reached only through the breakers, which drown him without it (v2's swimGate), so
+there is no way to swim without the snorkel.
 
-**The lei gates nothing.** Moscow, China and Japan already use "costume plus guard", and LESSONS says to vary the puzzle's shape. The lei
-is taken at the luau and worn round the neck, as Chris asked. The lei guard and the bolt cutters with their chain are cut.
+The lei gates nothing. You take it at the luau and wear it round the neck, as Chris asked. The guard and the bolt cutters are cut.
 
-**The engine pieces exist:** a `clear` on the gap's surf when the snorkel is taken, the swimGate, the pulses (torches), the Mole Crushers
-(the pistons) and the roller (the crate in E).
+### The set piece: HILO, the run for the plane (room E)
 
-### The set piece: Hilo, the lava chasing him to the plane
+You arrive right under the goal, and the only way to it is away from it, under pressure, and back over the top. It is the hardest
+room in the region, and it hands straight over to the parachute drop.
 
-- **The preview.** From C's top lane, under the headland, the east end of the room shows Hilo's red glow through a gap in the rock: the
-  set piece seen before it is played, as MOTR shows the low lane from the high corridor.
-- **The room is built round it.** The plane's white belly runs across the top of the screen from the first frame: the goal is in sight.
-- **The lava** (`risingLava`, existing) is in the basin at columns 6-24, from row 19 up to row 10. It rises a row every 40 frames, holds
-  150 and drains a row every 12. It starts when he enters, and the entry shore is outside its columns.
-- **The climb zig-zags:** west, then east, then west, so the lava gains on him at every turn. The first stepping ledges are cracking
-  crust that breaks under a standing foot (about 20 frames): keep moving.
-- **The last ledge** has one steam vent (a pulse) just above the lava's top row, so the timing comes when the pressure is highest.
-- **Restart** is in the room: the lava resets when he restarts at his last safe spot.
+### Rooms
 
-**The new way to move: swimming with a surge** (C). One small engine addition, as data: `currents` in a swim room, boxes with a direction
-and an on/off period, pushing him a pixel a frame while he is in one, like the flight's updrafts. `swim.ts` reads it. Monty on the Run's
-value is empty, so it plays identically.
+**A THE CARGO SHIP** [2,17]. Arrival banner "HAWAII: OAHU", as it is now. The tightest room of the region.
+- **Layout:**
+  - The ship is drawn in section.
+  - The landing is at floor 13. The hatch at columns 6-8 drops into the hold, which runs at floor 18 to the east edge.
+  - The engine room is at the hold's west end: a grating between two Mole Crushers, with the bilge gap under it.
+  - The ladder at column 2 climbs to the deck (floor 9), which runs east under the crane's jib to the edge.
+- **What you do:** The first pass, east, is easy. The second, back west, asks for the crusher timing, then the ladder, then jumping
+  the crate on the deck.
+- **Creatures:**
+  - the crane's crate, sweeping the deck;
+  - the parrot over the hatch (vertical), so the drop needs timing.
 
-### Rooms: kept, merged, cut
+  The crushers are the room's machine.
+- **Coin (1):** on the grating step between the crushers (at a hazard's edge).
+- **Background:** black. The hull and decks are navy and grey. Aloha Tower is one dark-grey silhouette, upper left, with nothing
+  behind the lanes.
 
-| room now | id | becomes |
-|---|---|---|
-| STERN WARNING, BOX CLEVER | 38, 39 | **A THE CARGO SHIP** (id 38, [2,17]). The cutters, chain, shark and musubi go |
-| PIER PRESSURE | 40 | cut. Aloha Tower goes small into A's backdrop |
-| SURF AND TURF, LEI OF THE LAND, THE FEAST (v2) | 41, 42 | **B WAIKIKI** (id 41, [2,18]): the beach, the luau lawn, the stand |
-| DIAMOND HEAD, THE LOOKOUT (v2) | | cut. Diamond Head stays as Waikiki's one far landmark |
-| CLAM DOWN, KELP WANTED, THE SEA CAVE, FISH OUT OF WATER, HANA BANANA | 43, 45, 48, 50, 49 | **C HANA** (id 49, [3,18]), the one swim room. It keeps the moray in its hole (v2 pulse), the sea-cave pocket and the black sand. The serpent and the wreck go |
-| MOLE-OKAI, WHALE OF A TIME, COFFEE BREAK, THE ROAD TO HANA | 44, 46, 51, 47 | cut |
-| MAUNA KEA-OS, HILO GOODBYE | 52, 53 | **D HILO** (id 52, [3,19]). The snow shelf and the gatehouse guard go |
-| HOLD YOUR HORSES | 54 | **E THE CARGO PLANE** (id 54, [2,19]), rebuilt |
+**B WAIKIKI** [2,18]. The open room after the hold, and the puzzle room.
+- **Layout:**
+  - **Low lane, the beach (floor 18):** east from the hold past the surf shack (the snorkel is on its roof shelf) to the breakers at
+    columns 25-29. At the left, a pocket under the pier sits behind the piles, reached only from the sea.
+  - **High lane, the lanai and the luau stage (floor 8):** east from A's deck past the three torches, on their current timing. The lei
+    is on its stand on the stage. At the east rail, a rope goes down onto the shack roof.
+  - The lanes meet only by that rope and the drop off the roof.
+- **Creatures:**
+  - a tern diving straight down over the beach and climbing back (vertical);
+  - the hula dancer on the lanai, beyond the lei's stand (horizontal).
+- **Coins (2):**
+  - In the 3-cell gap between the second and third torch (at a hazard's edge). You take it while waiting out the flame.
+  - In the pier pocket (seen now, reached later, and a pocket off the route).
+- **Background:** black. The sand is yellow, the lanai pale grey, the torches as they are. Diamond Head is a low, dark single-colour
+  silhouette at the far right only, with no walkable-looking top edge. It is kept away from Monty's lanes, so he never stands against
+  green.
 
-`swimRooms` becomes [HANA] only. Retired ids get stubs or the table is built by id, as the coordinator's whole-reset id plan decides.
-Rooms and coins change, so the save format bumps, and a save inside a cut room migrates to the nearest kept room. Arrival banners (existing
-text): HAWAII: OAHU on the ship, MAUI at Hana, THE BIG ISLAND at Hilo. MOLOKAI goes.
+**C THE CHANNEL** [3,18]. Arrival banner "HAWAII: MAUI". The one swim room, made worth it.
+- **Layout:**
+  - Rows 0-7 are black sky, with Molokai's sea cliffs dim grey on the horizon. They are never behind a swim lane.
+  - The sea is below row 8 (reset's raster split, so coins and items show). There is no surface line. The dive gap at columns 25-29 is
+    the only opening above.
+  - **Top lane (rows 9-12):** the surge comes in sets running east, against you (reset's `currents`, about 90 frames on and 120 off).
+    Kelp leaning and a stream of bubbles show a set at once. Three coral heads give lees; you go from lee to lee between sets. A reef
+    wall at the right seals the top lane from the exit, so you have to go west.
+  - **The west drop-off** leads down to the deep lane. The pier piles at columns 8-9 climb from the top lane into B's pocket.
+  - **Deep lane (rows 14-18):** calm, past two moray holes and the sunken crate, east to the slipway doorway at rows 13-17.
+- **Creatures:**
+  - the turtle, rising and sinking between the heads (vertical, across the top lane);
+  - one moray, using v2's pulse: its eyes blink before it lunges (the second hole is empty and is the lee);
+  - the reef shark, on a slow pass in the deep lane.
+- **Coins (2):**
+  - In the hollow behind the middle coral head (tests the new move): you steer into the lee between sets.
+  - At the moray's hole mouth (guarded).
 
-**Hints:**
-- Keep: WITH A SNORKEL HE CAN SWIM; A MOLE CANNOT SWIM THAT FAR (Waikiki only); A LEI: TRAVELLERS WEAR ONE; PARACHUTE: FOR A LONG DROP;
-  THE DROP IS FAR TOO HIGH.
-- Delete: CUTTERS BITE THROUGH CHAINS, THE RAMP IS CHAINED SHUT, DEPARTING TRAVELLERS WEAR A LEI.
-- Add none.
+  The Spam musubi is in the sunken crate: the reason to dive.
+- **Background:** black air over one flat dark-blue sea. The coral is in solid colours, with no kelp forest and few bubbles.
+- **Swimming:** v2's happy crawl: a horizontal body, a clear stroke, mask and snorkel, bubbles.
 
-### Room by room
+**D THE ROAD TO HANA** [3,19]. The timing room, with a forced stop.
+- **Layout:**
+  - The cliff road runs on three levels joined by bamboo at the bends: bottom east (floor 18), middle west (floor 12), top east
+    (floor 6).
+  - Lahaina's slipway and banyan are at the foot, left. Hana's black sand and jetty are at the top right, where the cargo net climbs
+    through the ceiling (columns 24-27).
+  - Each bridge has a pull-in before it, with a yield sign.
+- **The bridges:**
+  - **Bridge 1** (bottom, 10 cells): a car comes from behind, eastbound. You clear it at a run or wait in the pull-in.
+  - **Bridge 2** (middle, 18 cells): cars come both ways, alternating, and the bridge is too long to cross in one gap. Halfway there is
+    a raised refuge, 3 cells wide and 2 high above the lane. You must hop onto it and let the car pass under. This is the forced stop.
+  - **Bridge 3** (top): an oncoming car plus the waterfall's spray across the deck (a `pulses` strike). You wait in the pull-in for both
+    to clear.
 
-**A THE CARGO SHIP** (the ship in section, moored at Honolulu; the tightest room of the region)
-- **Layout:** in at the left on the landing (floor 13, as now), a jump up to the deck (floor 11). The deck runs east past the funnel and
-  the bridge to the bow rail. A hatch ladder near the bow goes down to the hold lane (floor 15), which runs west under the deck. At the
-  hold's west end a ladder goes down to the bilge lane (floor 19), which runs east over one 3-cell gap of bilge water (deadly) and out of
-  the bow's low cargo door. You see the bow door from the deck and cannot get down to it.
-- **Creatures:** the captain's parrot (vertical, between the funnel and the bridge); a crate on the crane's hoist (vertical, just before
-  the hatch). The two pistons in the hold are Mole Crushers, the room's mechanism (banks $10 and $22 with two in one room; check against the
-  crusher-leftover fix on main).
-- **Coins (2):** on the funnel's catwalk, up a short rung ladder off the deck (tops a climb); in the hold lane between the two pistons
-  (guarded).
-- **Background:** black. One dark-blue band of harbour water behind the waterline. Aloha Tower small and dark far behind the bow. The hull
-  red and the decks bright, because they are what he stands on.
+  Running fast no longer works.
+- **Creatures:**
+  - a coconut falling from a palm at the right bend onto the bamboo (vertical);
+  - a nēnē on the top level's verge.
+- **Coins (2):**
+  - On the refuge, the reward for stopping (at a hazard's edge).
+  - At the head of the right bend's bamboo, under the coconut (tops a climb, guarded).
+- **Background:** black. The cliff rock is dark brown, as walls only. There is one pale-blue waterfall at each bend, and the spray is
+  the hazard. No jungle fill behind the lanes.
 
-**B WAIKIKI** (Oahu: the beach, and the luau on the hotel's lawn)
-- **Layout:** in at the left on the pier, then sand (floor 18) east to the sea gap at columns 26-30. The beach boys' stand is at about
-  columns 9-13, with its roof at about floor 12, too high to jump to from the sand; the snorkel sits on it. A palm (a rope) at about
-  column 24 by the sea's edge climbs to the lawn (floor 7). The lawn is the terrace of the pink hotel, which stands on arches he walks
-  under on the beach, so nothing floats. The lawn runs west from about column 27 to column 14 and ends over the stand's roof. On the lawn:
-  two tiki torches (the existing pulses: low, warning, tall) and a small stage step with the lei.
-- **Creatures:** a coconut dropping from a second palm's crown onto the sand and bouncing back (vertical, away from the climbing palm, so
-  nothing hugs a rope's foot); a tern diving at the sea's edge (vertical); a hula dancer on a short patrol on the lawn's west half,
-  guarding the drop.
-- **Coins (2):** on the lawn between the two torches (at a hazard's edge); at the palm's crown where the rope meets the lawn (tops a
-  climb).
-- **Background:** black sky. Diamond Head as one muted dark silhouette far right, with no walkable-looking top edge. The hotel's facade
-  dark under the bright lawn. The sea one dark-blue band, with light-blue surf only at the gap, which is the hazard. Sand bright yellow.
+**E HILO** [2,19]. Arrival banner "HAWAII: THE BIG ISLAND". Kilauea's flow under the airport, and the set piece.
+- **Layout:**
+  - You come up the net into a dock under the apron (floor 19, columns 22-28).
+  - A low passage runs west into the basin (columns 0-15). Stepping past its lip starts the lava. It rises a row every 40 frames up to
+    row 6, holds 150 frames, then drains a row every 12. It never kills on entry. The fairness check tunes it.
+  - The climb winds left, right, left. The first stepping ledges are cracking crust (`cracks`), then a ledge with a timed steam vent,
+    then a chimney with the magma blob.
+  - The rim (floor 4) runs east under the plume. A rope at column 17 goes down onto the apron (floor 16, columns 16-31). The rock wall at
+    columns 15-16 seals the apron from the lava.
+  - The plane is in section: a side door, a cargo net up to the high rack with the parachute, and the hoisted crate sweeping the roller
+    floor. The rear door is in the east wall at rows 14-15, with the red jump lamp, shut until you have the parachute.
+- **Creatures:**
+  - the magma blob, yellow or white, bobbing in the chimney (vertical);
+  - the hoisted crate in the hold.
 
-**C HANA** (Maui: Hana's coast in section; the one swim room, all water)
-- **Layout:** across the top, the headland and the black-sand beach as solid rock, with no surface line in the room. In at the top right
-  through the ceiling gap from Waikiki's dive (its only opening above). At the top lane's east end, a gap in the rock shows Hilo's glow.
-  A long shelf of rock and coral at about row 10, from column 6 to the east wall, splits the room into a top lane and a bottom lane, which
-  meet only at the west drop-off. The sea cave is a pocket off the drop-off, with the musubi inside. Out at the bottom right (east edge,
-  low). In the bottom lane: three coral heads, and a surge that pushes west in sets (about 90 frames on, 120 off), shown at once by kelp
-  leaning and a stream of bubbles. He shelters in a head's lee while a set runs and darts between sets.
-- **Creatures:** a turtle rising to breathe and sinking back (vertical, mid column); a reef shark on a long slow patrol along the bottom
-  lane; the moray in its hole by the cave mouth (v2's pulse: the eyes blink before it lunges).
-- **Coins (2):** in a hollow in the middle coral head, swum into between sets (tests the new move); on the ledge inside the sea cave by the
-  musubi (a pocket off the route).
-- **Background:** water as one flat dark blue with no pattern. Coral bright pink and purple, rock brown, the black sand dark grey. Bubbles
-  sparse. Check the turtle (light green), the shark (white or light grey) and Monty with `creature-contrast.ts`.
-- **Swimming:** v2's happy frames (horizontal crawl, mask and snorkel, a clear stroke, bubbles).
-
-**D HILO** (the Big Island: Kilauea's flow below the airport; the set piece)
-- **Layout:** in at the left, low, out of the sea onto a lava-rock shore outside the lava's columns. The basin is at about columns 6-24.
-  The climb: a rope up at the left to a ledge (floor 14); three stepping ledges east over the basin, the first two cracking crust; a rope up
-  the east wall to a long ledge (floor 9) running back west, with the steam vent halfway; a rope up to the apron (floor 5) under the
-  plane's belly; the belly-door ladder up through the ceiling. The lava's top row stays below floor 9's feet.
-- **Creatures:** a magma blob, yellow or white, bobbing up out of the lava between the stepping ledges (vertical); the nēnē on a short
-  patrol on the apron, guarding the ladder. The lava, the crust and the vent are the mechanism.
-- **Coins (2):** on the middle stepping ledge over the rising lava (at a hazard's edge); at the top of the east-wall rope (tops a climb).
-- **Background:** black sky. Kilauea's crater as a low dark red-brown silhouette with a muted plume, far left. The plane's belly light grey
-  or white across the top right. Lava bright orange and yellow. Ledges brighter than anything behind them.
-
-**E THE CARGO PLANE** (the hold, in flight)
-- **Layout:** in at the front left, up the belly ladder onto the roller floor (floor 16). The rear door in the right wall at rows 14-15,
-  with the red jump lamp, shut until he has the parachute. A cargo net (a rope lattice) climbs the fuselage side mid-room to a high shelf
-  (about floor 6), which leads west to the high pallet at the front: the parachute. A loose crate chocked at the front rocks on a clock,
-  then rolls the length of the floor to the door (`RollerSpec`, existing); its first roll is delayed, so arriving is safe. Caught on the
-  floor, he hops onto a pallet.
-- **Creatures:** a crate on the overhead hoist (vertical, between the net and the door; its second room after A's crane); a loose rooster
-  on the pallets, a short patrol (Hawaii's feral chickens). The rolling crate is a trap, not a creature.
-- **Coin (1):** hanging in the cargo net, taken only by climbing round it (inside the structure).
-- **Background:** black. Sparse dark-blue fuselage ribs. One row of small portholes with clouds scrolling past (`charAnims`).
+  The lava, the crust and the vent are the machine.
+- **Coin (1):** on the highest crust ledge the lava reaches, just under the rim (at a hazard's edge). You can take it only while you
+  are ahead of the flow.
+- **Background:** black. Kilauea's plume is dark grey, high on the left. The lava is red under a yellow crest, the plane white and the
+  apron grey. Ledges are brighter than anything behind them.
 
 ### Totals
 
-- **Coins:** 9 in 5 rooms (2, 2, 2, 2, 1), each with a named pattern from (b).
-- **Items:** snorkel (B), lei (B, costume, no gate), musubi (C), parachute (E).
-- **Creature kinds:** parrot, crate, coconut, tern, hula, turtle, shark, moray, magma, nēnē, rooster. 11, down from v2's 16; only the crate
-  is in two rooms. The decoration kinds fall with the cut rooms, which leaves headroom in the one-byte table.
-- **Mechanisms:** crushers (A), torches (B), surge (C), lava, crust and vent (D), roller (E).
+- **Coins:** 8 in 5 rooms (1, 2, 2, 2, 1), each with a named pattern from (b). There are no lines of coins and none in open air.
+- **Items:**
+  - the snorkel (the gate);
+  - the lei (a costume, gates nothing);
+  - the Spam musubi;
+  - the parachute (the rear door).
+- **Creature kinds:** crate, parrot, tern, hula, turtle, moray, shark, coconut, nēnē and magma, 10 in all. That is down from v2's 16,
+  and the crate is the only kind used in two rooms. The decoration kinds fall with the cut rooms.
+- **Mechanisms:**
+  - crushers (A);
+  - torches (B);
+  - surge (C);
+  - cars both ways and spray (D);
+  - lava, crust and vent (E).
+- **Hint text:** none added. The existing snorkel and parachute hints stay as they are.
+
+### What happens to the old rooms
+
+- **A THE CARGO SHIP:** STERN WARNING and BOX CLEVER are merged. The engine room and hold come from STERN, the crane crate from BOX.
+- **B WAIKIKI:** SURF AND TURF and LEI OF THE LAND are merged, with v2's THE FEAST, DIAMOND HEAD and THE LOOKOUT. PIER PRESSURE is cut.
+  Aloha Tower stays as A's silhouette.
+- **C THE CHANNEL:** replaces CLAM DOWN, MOLE-OKAI, KELP WANTED, THE SEA CAVE and FISH OUT OF WATER. Molokai is the cliffs on the
+  horizon. The sea-cave bounce goes with its room.
+- **D THE ROAD TO HANA:** kept and rebuilt. HANA BANANA folds into its top right, which removes the stuck right side. WHALE OF A TIME is
+  cut: its brig becomes Lahaina's slipway, and the floating palm goes.
+- **E HILO:** MAUNA KEA-OS, HILO GOODBYE and HOLD YOUR HORSES are merged. COFFEE BREAK is cut.
+- **Cut with v2:** the serpent, the gatehouse guard, the bolt cutters and the chain.
 
 ### Notes for the builder
 
-- Merge v2 first and keep: swimPictures (the crawl with mask and snorkel), swimGate drowning and its test, the float-ceiling no-bounce fix
-  and `test/no-bounce.ts`, arrivals, `roomBlocks` and the moray pulse.
-- Drop from v2: the serpent, the waterfalls, Diamond Head and the Lookout as rooms, the feast as a room, the gatehouse guard and the cutters.
-- A's west edge must match Japan's port exactly. Nothing changes in `japan.ts`, its art, joins, music or tests.
-- The Andes' jump room moves to [2,20] and keeps its rows 14-15 tail-door contract.
-- `currents` is the only new engine data. MOTR's fast tests and trace must stay green.
-- **If a 6th room is allowed** (55 in all): THE ROAD TO HANA goes back in on Maui, before HANA, west to east as Chris knows it; the
-  joins of C, D, E and the Andes are redrawn one column east then. It is rebuilt to Chris's notes: cars both ways, one-lane bridges with a forced stop at a yield, a car he must wait out, not outrun.
-- **If the Pacific must drop to 4:** cut A. It has no item and no gate. Japan's port then opens onto Waikiki's pier, built at floor 13 to
-  match. The cost is the tight-before-open beat.
+- **Merge v2 first** (`worktree-agent-a4e02a7d7dc2e04df`), then reset/pacific. Keep the swim frames, swimGate drowning and its test,
+  the float-ceiling fix and `test/no-bounce.ts`, the arrival banners, `roomBlocks`, the moray pulse, the surge, the raster-split sea,
+  crust, vents, the hoisted crate and save migration for the cut rooms.
+- **Japan:** A's west edge must match Japan's port exactly. Nothing changes in `japan.ts`, its art, joins, music or tests.
+- **Engine additions** (data only, empty for Monty on the Run, whose fast tests and trace must stay green):
+  - a direction per tunnel mouth, so cars come both ways (today a car always goes the way Monty goes);
+  - a column range for `risingLava`, if it fills the whole width today.
+- **Contrast:** check Monty, the turtle, the shark and the magma blob against their backdrops with `creature-contrast.ts`.
+- **If the Pacific must drop to 4:** fold C into D. The breakers drop into a short reef swim along D's bottom level, with the surge and
+  one moray, onto Lahaina's slipway. This keeps the snorkel gate, the road and the run for the plane, and gives up the two-height swim.
