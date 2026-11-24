@@ -1,5 +1,5 @@
 import { PLAY_COL, PLAY_ROW, ROW } from '../../shared/monty/screen';
-import { montyOver } from './cells';
+import { montyOver, pixelX, pixelY } from './cells';
 import type { Game } from './game';
 import type { PulseSpec } from './montydata';
 
@@ -53,4 +53,14 @@ export function pulseUpdate(g: Game) {
     }
     if (!calm && !g.actionCounter && !g.roomExit && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
   }
+}
+
+/** Whether a live group of the room has a cell over a box of sprite pixels (a pursuer flying into a lightning bolt: pursuers.ts). */
+export function pulseLiveOver(g: Game, x: number, y: number, w: number, h: number): boolean {
+  return g.pulses.some((p) => {
+    const e = g.data.pulses[p.index];
+    if (!e || pulsePhase(e, p.t) !== 'live' || (e.calmedBy !== undefined && g.siCollected[e.calmedBy] !== 0)) return false;
+    const cx = pixelX(e.col), cy = pixelY(e.row);
+    return cx + e.cols * 8 > x && x + w > cx && cy + e.rows * 8 > y && y + h > cy;
+  });
 }

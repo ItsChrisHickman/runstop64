@@ -8,7 +8,7 @@
 import { lavaTop } from '../../montyotr/src/lava';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
-import { AND } from '../src/andes';
+import { FLY } from '../src/sky';
 import { LAVA, PAC } from '../src/pacific';
 import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
 
@@ -65,5 +65,5 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('D to E: past the nene, up the belly ladder into the hold', into(PAC.plane, 8, 0, PAC.hilo, above(17))),
   leg('E: up the cargo net, the coin in it', livesFor(coin(PAC.plane, 15, 10), 40)),
   leg('E: west along the rack past the rooster, the parachute', livesFor(item(PAC.plane, 0, PARACHUTE_AT), 40)),
-  leg('E to the Andes: down, across the floor behind the loose crate, out of the rear door', into(AND.jump, 31, 14, PAC.plane)),
+  leg('E to the flight: down, across the floor behind the loose crate, out of the rear door onto the biplane', into(FLY.mail, 31, 14, PAC.plane)),
 ];

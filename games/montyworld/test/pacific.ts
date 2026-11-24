@@ -11,7 +11,7 @@ import { wear } from '../../montyotr/src/items';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
-import { AND } from '../src/andes';
+import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
@@ -47,8 +47,8 @@ for (const mode of ['original', 'enhanced'] as const) {
     const coinsLeft = mineCoins.filter((i) => !g.coinCollected[i]).length;
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => pacific(g.data.specialItems[i * 4] ?? 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
-    check(`${mode}: at the end all ${mineCoins.length} coins, the lei, the snorkel, the musubi and the parachute of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), he is out of the plane's door in the Andes' sky (room ${g.roomId}), in the lei`,
-      mineCoins.length === 9 && coinsLeft === 0 && itemsLeft === 0 && found.length === 4 && g.roomId === AND.jump && g.worn === itemIndex(g, PAC.waikiki, 1));
+    check(`${mode}: at the end all ${mineCoins.length} coins, the lei, the snorkel, the musubi and the parachute of the Pacific are taken (${coinsLeft} coins, ${itemsLeft} items left), he is out of the plane's door in the flight's first leg (room ${g.roomId}), in the lei`,
+      mineCoins.length === 9 && coinsLeft === 0 && itemsLeft === 0 && found.length === 4 && g.roomId === FLY.mail && g.worn === itemIndex(g, PAC.waikiki, 1));
   }
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }

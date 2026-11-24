@@ -3,6 +3,7 @@ import { animateMonty } from '../../shared/monty/anim';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
 import { flightMove, flightOf } from './flight';
+import { planeMove, planeOf, planePose } from './planes';
 import { swimMove, swimPose } from './swim';
 import { vineCarry } from './vines';
 
@@ -16,6 +17,7 @@ export function montyDraw(g: Game) {
   updateMovement(g);
   animateMonty(g);
   swimPose(g);
+  planePose(g);
   g.enable |= 0x08;
 }
 
@@ -27,6 +29,8 @@ function updateMovement(g: Game) {
   if (g.data.swimRooms.includes(g.roomId)) return swimMove(g);
   const flight = flightOf(g);
   if (flight) return flightMove(g, flight);
+  const leg = planeOf(g);
+  if (leg) return planeMove(g, leg);
   // (fire starts a jump, not with the jetpack on) Hanging on a swinging vine with no direction held, he jumps the way it is swinging.
   const carry = g.inputFire && !g.input.left && !g.input.right ? vineCarry(g) : 0;
   const stick = g.input;

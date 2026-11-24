@@ -147,6 +147,8 @@ export interface TunnelSpec {
   coversClimbs?: boolean;
   /** It is drawn out to the screen's very edges, over the playfield's margin columns too (the room's timing and its danger stay the playfield's): a band that spans the whole picture. */
   bleed?: boolean;
+  /** It comes once, and not again while he is in the room (a flight's leg: Kilauea's plume going by, the Andes rising). */
+  once?: boolean;
 }
 
 /**
@@ -217,7 +219,11 @@ export interface DragonMoods {
  * loading, as a pulse's does), Monty inside the box (`cols` wide from playfield column `col`, rows `top` to `bottom`) is carried the way `dx` says at his swimming pace whatever he does
  * sideways, as the flight's updrafts lift him; the room's rock stops him as it does on foot, so the lee of a rock is shelter. Outside its time the water is still.
  */
-export interface CurrentSpec { room: number; col: number; cols: number; top: number; bottom: number; dx: 1 | -1; period: number; start: number; length: number }
+export interface CurrentSpec {
+  room: number; col: number; cols: number; top: number; bottom: number; dx: 1 | 0 | -1; period: number; start: number; length: number;
+  /** A gust up (-1) or down (1) as well, in a plane's leg (planes.ts: a downdraft pushing him at the sea); a swimmer is carried only sideways. */
+  dy?: 1 | -1;
+}
 
 /** A banner shown on arriving: see `arrivals`. */
 export interface Arrival { rooms: readonly number[]; from?: readonly number[]; text: string }
@@ -258,6 +264,33 @@ export interface FlightSpec {
 export interface CanopyLook { left: number; level: number; right: number; colour: number }
 
 /**
+ * A leg of a flight in a plane (planes.ts; Do Svidaniya Monty's mail biplane, Hilo to the Andes): in room `room` Monty sits in the plane and flies it as Monty on the Run's jetpack flies, up held to climb, down to dive, let go
+ * and it sinks, sideways at his walking pace, inside `box` (the cells his top left may be in: he never leaves the leg by an edge). The leg lasts `frames`; then (`then`) he flies on into the room east of it, where he
+ * is on the screen, or he bails out: the room's pursuer (`viktor`, a creature slot) surges at his tail for `surge` frames and clips it (special item `lost` is taken: the villain wins the round), the plane
+ * tumbles away and he drops under the canopy (`MontyData.canopy`) for `drop` frames, into the grid's cell `to`, at the top of it.
+ */
+export interface PlaneLeg {
+  room: number; frames: number; box: CellBox;
+  then: { readonly kind: 'east' } | { readonly kind: 'bail'; readonly to: { readonly mapRow: number; readonly exitCol: number }; readonly viktor: number; readonly surge: number; readonly drop: number; readonly lost: number };
+}
+
+/** The plane's pictures (pointers in the bank, on sprite 2 over Monty, `dx` x2 and `dy` pixels from his sprite) and colour, and his own picture sitting in it (`seat`, his sprite's pointer). */
+export interface PlaneLook { level: number; climb: number; dive: number; wreck: number; colour: number; seat: number; dx: number; dy: number }
+
+/** A way out of a room's edge that leads to another cell than the one beside it (`ways`): from room `room`, the way to the grid's cell `to` goes to `goes` (the hold's rear door, onto the apron's biplane). */
+export interface WaySpec { room: number; to: readonly [row: number, col: number]; goes: readonly [row: number, col: number] }
+
+/**
+ * The Spy vs Spy tally in the score row's centre (tally.ts; Do Svidaniya Monty's): Monty's face, a star for each round, the villain's face (lit while he is due). A round is settled when its special item
+ * `find` is taken, won by `winner`. The villain's face is four characters from `face` (top left, top right, bottom left, bottom right), the star the character `star`: characters the charset has free.
+ */
+export interface TallySpec {
+  rounds: readonly { readonly find: number; readonly winner: 'hero' | 'villain' }[];
+  face: number; star: number;
+  colours: { hero: number; villain: number; open: number; away: number };
+}
+
+/**
  * A rolling boulder (rollers.ts; Machu Picchu's terraces): a sprite on the VIC sprite `sprite` (one the room does not use) that rolls along `path` (playfield cells: the top left of its 16 by 16 picture, fractions
  * allowed; straight lines between the points, a fall is a vertical line) at `speed` pixels a frame, every `every` frames, the first `start` frames into the room's time. It is gone when it reaches the path's end
  * until it comes round again. It shows `frames` (four pictures, one a turn of 8 pixels) in `colour`, and kills what of Monty it touches.
@@ -266,6 +299,10 @@ export interface RollerSpec {
   room: number; sprite: number; path: readonly (readonly [col: number, row: number])[]; speed: number; every: number; start: number; frames: readonly number[]; colour: number;
   /** The pictures follow the progress along the path instead of turning a step in 8 pixels (a fish leaping from the river: nose up, level, nose down): the first at the start, the last at the end. */
   spread?: boolean;
+  /** It comes this many times and no more (a bird on a flight's leg: once); none, for ever. */
+  passes?: number;
+  /** The sound (an effect's number) as each pass begins: the frigatebird's screech, the tell that it is coming. */
+  sound?: number;
 }
 
 /**
@@ -343,7 +380,13 @@ export interface CameoSpec { room: number; from?: readonly number[]; when: CellB
  */
 export interface PursuerSpec {
   room: number; slot: number; delay: number; calm?: CellBox; wake?: CellBox; until: number;
-  knockedBy?: { creatures?: readonly number[]; tunnels?: boolean };
+  /**
+   * `rollers`, `pulses`: the room's rollers' pictures (a flock) or its live pulses' cells (a lightning bolt) knock him too. `setback`: a knock costs him that many frames of his lag instead of
+   * ending the chase (the flight's Viktor, who is never escaped: he falls back along the trail and comes on again).
+   */
+  knockedBy?: { creatures?: readonly number[]; tunnels?: boolean; rollers?: boolean; pulses?: boolean; setback?: number };
+  /** He closes in: his lag behind Monty shrinks a frame every `every` frames, down to `least` (the flight's Viktor gaining on him). */
+  close?: { every: number; least: number };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
   intro?: CameoMove;
 }
@@ -487,6 +530,13 @@ export interface MontyData extends RoomTables, MontyLook {
   /** Rooms where Monty flies under a canopy (flight.ts), with the canopy's look; none in Monty on the Run (its jetpack rooms are `jetpackRooms`). */
   flights: readonly FlightSpec[];
   canopy: CanopyLook | null;
+  /** The legs of a flight in a plane (planes.ts) and the plane's look; none in Monty on the Run. */
+  planes: readonly PlaneLeg[];
+  planeLook: PlaneLook | null;
+  /** Ways out of an edge that lead elsewhere than the cell beside (physics' exits read them); none in Monty on the Run. */
+  ways: readonly WaySpec[];
+  /** The Spy vs Spy tally in the score row (tally.ts); null: the score row as Monty on the Run has it. */
+  tally: TallySpec | null;
   rollers: readonly RollerSpec[];
   vines: readonly VineSpec[];
   cableCars: readonly CableCarSpec[];

@@ -15,7 +15,9 @@ export function collisions(g: Game) {
     const r = v.sprites[n];
     return { x: (r.x >= 504 ? r.x - 504 : r.x) - 24, y: r.y - 50, w: v.expandX & (1 << n) ? 48 : 24, h: v.expandY & (1 << n) ? 42 : 21 };
   };
-  const on = [0, 1, 2, 3, 4, 5, 6, 7].filter((n) => v.enable & (1 << n)).map(box);
+  // (sprites the check leaves out cannot make a collision: Monty's hat, the canopy or the plane over him always meet his box, and a picture drawn for nothing is slow)
+  const ignore = g.uncounted;
+  const on = [0, 1, 2, 3, 4, 5, 6, 7].filter((n) => v.enable & (1 << n) && !(ignore & (1 << n))).map(box);
   const meet = on.some((a, i) => on.slice(i + 1).some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h));
   if (!meet) return 0;
   const view = new VicView(new PixelRenderer(), v);

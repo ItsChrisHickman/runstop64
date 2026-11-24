@@ -28,7 +28,7 @@ Waiting on Chris: see "Questions for Chris" below. Not doing: Siberia's fourth
 car (would shift China). The title/continue
 prompt names the game's own touch button (JUMP) since 2026-11-24.
 
-Proposed to Chris, awaiting his OK (2026-11-24): THE FLIGHT, Hilo to the Andes (~75 s), redeeming AWM's flight (games/awm/src/flight.ts:
+**Built 2026-11-24 on a worktree branch, not merged:** THE FLIGHT and the top-centre tally (docs/dosvidaniya-flight.md; `games/montyworld/src/sky.ts`, engine `planes.ts`, `tally.ts`; test `games/montyworld/test/flight.ts`, pictures `flight-shots.ts`). Chris approved the proposal below. Was proposed (2026-11-24): THE FLIGHT, Hilo to the Andes (~75 s), redeeming AWM's flight (games/awm/src/flight.ts:
 40 s, one plane on a loop): Monty flies a yellow mail biplane (MOTR jetpack feel, no gun) over AWM-style parallax cloud bands;
 leg 1 seabirds (gull Vs, a diving frigatebird with a screech tell, a slow albatross) and Kilauea's ash plume; leg 2 weather (storm
 clouds that flicker before lightning, gusts shown by streaks, a waterspout), coins on safe lines and in risky gaps; leg 3 Viktor in

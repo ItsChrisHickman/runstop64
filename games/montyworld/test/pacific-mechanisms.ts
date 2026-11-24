@@ -16,6 +16,7 @@ import { surgeRuns } from '../../montyotr/src/swim';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
+import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
@@ -46,8 +47,8 @@ SCOPE.section([], 'the data', () => {
     PACIFIC_ROOMS.map((r) => r.id).join() === '38,41,49,52,54' && PACIFIC_SECTORS.length === 17 && PACIFIC_SECTORS.filter((s) => s.text !== '').map((s) => s.text).join() === 'THE CARGO SHIP,WAIKIKI,HANA,HILO,THE CARGO PLANE');
   const rooms = creatureRooms(PACIFIC_ROOMS);
   check(`ten kinds of creature and Viktor Vole aboard the ship, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, rooms.size === 11 && [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
-  check('Hana is the one swim room and the only room with a surge; Hilo has the lava; Monty on the Run has none of them',
-    WORLD.swimRooms.join() === String(PAC.hana) && WORLD.currents.every((c) => c.room === PAC.hana) && WORLD.risingLava.some((l) => l.room === PAC.hilo) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
+  check('Hana is the one swim room and the only room of the Pacific with a surge (the flight\'s gusts are currents too); Hilo has the lava; Monty on the Run has none of them',
+    WORLD.swimRooms.join() === String(PAC.hana) && WORLD.currents.every((c) => c.room === PAC.hana || (Object.values<number>(FLY)).includes(c.room)) && WORLD.risingLava.some((l) => l.room === PAC.hilo) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
   check('the lei opens nothing: no room effect waits for it, and it is worn', WORLD.roomEffects.every((e) => (e.when ?? []).every((w) => !('taken' in w) || w.taken !== itemIndex(newGame(WORLD, false).g, ...LEI))) && WORLD.costumes.some((c) => c.item === itemIndex(newGame(WORLD, false).g, ...LEI)));
 });
 
@@ -203,7 +204,7 @@ SCOPE.section([PAC.plane, AND.jump], 'the cargo plane: the crate, the door', () 
     check('without the parachute the rear door is shut (he stops in the hold)', shut.g.roomId === PAC.plane && PLANE_DOOR_CELLS.length === 8);
     const open = at(PAC.plane, 27, 16, [SNORKEL, PARACHUTE]);
     run(open, RIGHT, 80);
-    check('with it the door is open onto the Andes\' sky', open.g.roomId === AND.jump);
+    check('with it the door is open onto the apron\'s mail biplane: the flight\'s first leg (sky.ts)', open.g.roomId === FLY.mail);
   });
 });
 
@@ -211,7 +212,7 @@ SCOPE.section([PAC.plane, AND.jump], 'the cargo plane: the crate, the door', () 
 SCOPE.section([], 'the hints and the banners', () => {
   SCOPE.section([], 'the hints', () => {
     const want = WORLD.hints.wanted.filter((h) => h.room >= PAC.ship && h.room <= PAC.plane).map((h) => `${h.room}:${h.text}`);
-    check(`the gates' hints are the two kept (${want.join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR|${PAC.plane}:THE DROP IS FAR TOO HIGH`);
+    check(`the gates' hints are the two kept (${want.join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR|${PAC.plane}:NO FLYING WITHOUT A PARACHUTE`);
     const take = new Set(WORLD.hints.take.map((h) => h.text));
     check('the take hints are the snorkel\'s, the lei\'s and the parachute\'s; the cutters\' and the chain\'s are gone', take.has('WITH A SNORKEL HE CAN SWIM') && take.has('A LEI: TRAVELLERS WEAR ONE') && take.has('PARACHUTE: FOR A LONG DROP') && ![...take].some((t) => t.includes('CUTTERS') || t.includes('CHAIN')));
   });
