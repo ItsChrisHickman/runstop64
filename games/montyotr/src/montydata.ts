@@ -1,3 +1,4 @@
+import type { CrossingPlan } from 'c64kit';
 import type { Seq } from '../../shared/monty/deaths';
 import type { RoomTables } from '../../shared/monty/rooms';
 import type { ProcessionSpec } from '../../shared/ending/show';
@@ -53,9 +54,10 @@ export interface MontyLook {
   /**
    * Entry points inside the music driver (present in the HVSC .sid), and the .sid's address. `tuneFor`: the version of the tune a
    * room plays (a region's own: Do Svidaniya Monty's, `montyworld/src/music`), null for the .sid as it is; none for a game that has
-   * one tune (Monty on the Run).
+   * one tune (Monty on the Run). `crossing`: the plan for going from one version to another with the song carrying on (where it
+   * changes, the dip: packages/c64kit/src/sid/crossing.ts), made from the .sid's bytes; none: the tune starts again.
    */
-  music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null };
+  music: { init: number; stop: number; playSfx: number; sidUrl: string; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
 /** A version of the game's tune: made from the .sid's bytes by changing the data the music driver plays (never the driver). */

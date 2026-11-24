@@ -1,6 +1,7 @@
 import workletUrl from './sid-worklet.ts?worker&url';
 import { isFromWorklet, type ToWorklet } from './messages';
 import type { SfxName } from './sfx';
+import type { CrossingPlan } from './crossing';
 
 /**
  * Main-thread handle for SID playback. Browsers only allow audio after a user
@@ -72,12 +73,14 @@ export class SidPlayer {
 
   /**
    * Play another version of the loaded tune (made from its bytes by `make`, or the file as it is with null), from the start of
-   * the song it was playing. Remembered if the audio is not up yet. A version is the tune's data changed, the player the same.
+   * the song it was playing, or, given a `crossing` (the plan, made from the original's bytes), carrying on from where the song is and changing at the plan's next boundary
+   * (crossing.ts). Remembered if the audio is not up yet. A version is the tune's data changed, the player the same.
    */
-  useTune(make: ((original: Uint8Array) => Uint8Array) | null) {
+  useTune(make: ((original: Uint8Array) => Uint8Array) | null, crossing?: (original: Uint8Array) => CrossingPlan) {
     this.version = make;
     if (!this.node || !this.tune || !this.loadedSong) return;
-    this.send({ type: 'load', data: this.tuneData(this.tune), song: this.loadedSong });
+    if (crossing) this.send({ type: 'cross', data: this.tuneData(this.tune), plan: crossing(new Uint8Array(this.tune)) });
+    else this.send({ type: 'load', data: this.tuneData(this.tune), song: this.loadedSong });
     this.applyVolume();
   }
 

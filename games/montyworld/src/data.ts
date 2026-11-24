@@ -27,6 +27,7 @@ import { BALL_STREAM, DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, J
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { crossingPlan } from './music/crossing';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
@@ -256,7 +257,7 @@ export const WORLD: MontyData = {
   ...enemies,
   bankImage: bank,
   // (Hubbard's tune, a version of it for each region: music/regions.ts)
-  music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId) },
+  music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId), crossing: (original) => crossingPlan(original) },
   id: 'montyworld',
 
   exitGrid: { image: roomCells(WORLD_COLS * WORLD_ROWS, WORLD_COLS, ROOMS), cols: WORLD_COLS, rows: WORLD_ROWS },
