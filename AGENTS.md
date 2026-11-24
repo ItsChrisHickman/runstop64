@@ -110,6 +110,7 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 
 Read `games/shared/monty/LESSONS.md` first: what Chris taught us making Do Svidaniya Monty (the route, how places must read,
 no dungeons, no grey, names, costumes, music, and how we build and review a region). Add to it whenever he teaches something new.
+How to build one with the kit (rooms, mechanisms as data, the tests and room scoping, shots, music, the ending): `games/shared/monty/README.md`.
 
 ## Shared modules
 

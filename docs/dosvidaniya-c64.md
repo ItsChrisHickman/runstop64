@@ -255,8 +255,8 @@ past what a C64 holds. Current worst values are measured.
 
 | Budget | Limit | Why | Today (worst) |
 |---|---|---|---|
-| Decoration kinds in one region | **255** (the type is a byte in a region's list) | MOTR's list is 4-byte records with a one-byte type | 51 (Japan); **the world has 280 in all: fine, the limit is per region**; the web's `decorRooms` is 16-bit and must stay a per-region index for the C64 |
-| Decoration characters in one room | **100** (`$9B-$FE`), counting each type once | MOTR copies a type's bitmap into the next free characters; past `$FE` it draws garbage | 101, China room `$19` (**one over: fix now**); 97 Japan `$1C`, 96 Pacific `$35`, 95 Rio `$46` |
+| Decoration kinds in one region | **255** (the type is a byte in a region's list) | MOTR's list is 4-byte records with a one-byte type | 69 (Japan); the world has 201 in all, so the web's `decorRooms` is one byte a kind again, as MOTR's (`MAX_DECOR_KINDS` in `rooms.ts`; the pieces no room places are left out of the table, `WORLD_DECOR`); checked by `games/montyworld/test/budget.ts` |
+| Decoration characters in one room | **100** (`$9B-$FE`), counting each type once | MOTR copies a type's bitmap into the next free characters; past `$FE` it draws garbage | 98, China `$19`; 97 Japan `$1E`, 94 Moscow `$02`, 90 Rio `$4D` (`budget.ts` fails past 100) |
 | Decoration types in one room | 16 | the per-room decor setup list | 16 (Siberia) |
 | Tiles in a region | 48 (each 8 B) | 4 pointers wide in the region header | 44 (Japan) |
 | Distinct tiles in a room | 8 | MOTR's room has codes 1-8 | 8 |

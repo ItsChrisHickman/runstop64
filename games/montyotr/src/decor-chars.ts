@@ -2,6 +2,8 @@ import type { MontyData } from './montydata';
 
 /** The first character of the decoration pool (`$9B`): the characters from here up are decorations', not tiles', coins' or items'. */
 export const FIRST_DECOR_CHR = 0x9b;
+/** The end of the decoration pool: a type is drawn only if its characters end at or before $FF ($9B-$FE: 100 characters a room). */
+export const DECOR_POOL_END = 0xff;
 
 /** A cell a thing drawn over the room (a vine, the lava) may cover: empty, or a decoration's character. */
 export const coverable = (chr: number): boolean => chr === 0 || chr >= FIRST_DECOR_CHR;
@@ -22,7 +24,7 @@ export function decorPool(data: MontyData, roomId: number): { first: Int16Array;
     if (decorRooms[i] !== roomId) continue;
     const type = decorRooms[i + 3], t = decorTypes[type];
     if (!t || first[type]) continue;
-    if (alloc + t.w * t.h > 0xff) continue; // pool exhausted: the original skips it too
+    if (alloc + t.w * t.h > DECOR_POOL_END) continue; // pool exhausted: the original skips it too
     first[type] = alloc;
     alloc += t.w * t.h;
   }

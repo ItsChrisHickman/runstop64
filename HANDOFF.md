@@ -1,10 +1,67 @@
 # Handoff: start here
 
 For a session picking up runstop64. Read `AGENTS.md` first (the rules, the shared modules, the lessons); this file is only the
-state of things and what is waiting on Chris. Last updated 2026-11-08.
+state of things and what is waiting on Chris. Last updated 2026-11-24.
 
-**Paused, 2026-11-08.** Chris is taking a break ("diminishing returns"; the point was reliving his childhood games). Nothing is
-under construction. Don't start new work unprompted; when he comes back, start from "Waiting on Chris" below.
+**Active, 2026-11-24: Do Svidaniya Monty** (`games/montyworld`, `#montyworld`), Chris's original Monty game on Monty on the
+Run's engine. Read `games/shared/monty/LESSONS.md` (his rules), `docs/dosvidaniya-reset.md` (the reset plan and what was built)
+and `AGENTS.md`'s testing rules (`tools/affected.mjs --run`: test only what a change touches; Chris is very sensitive to slow,
+broad test runs and to many agents at once: at most four, one running region bots).
+
+Live: Moscow, China, Japan (Chris says leave them be; only his own notes touch them); Siberia, the Pacific, the Andes/Amazon and
+Rio rebuilt smaller (54 rooms); Viktor Vole, KGB, Monty's mirror (title intro, a too-late cameo at each border, his shadow in
+THE LAST MOLE, escapes on the train and the cargo ship, the SPY VERSUS MOLE puzzle in Rio, squashed with Monty on the Run's
+crusher death); the close-up beach finale and the carnival parade ending in a crusher on Viktor; the new title; region tunes
+Hubbard-first, crossing in step at phrase ends with a volume dip; EASY/HARD everywhere; restart the room as he came in.
+
+Open (2026-11-24, end of the long session): shipped today also the cover art on the info card, the Monty kit README
+(`games/shared/monty/README.md`) and the C64 budget (decoration kinds in one byte, with a budget test). Not finished:
+- **The pause map** (whole world, scrolling between countries, travel anywhere visited, items over two rows): built on branch
+  `backlog/pause-map` (`.claude/worktrees/backlog-pause-map`, commit 095a262), not reviewed or shipped. Review, run its tests
+  (`tools/affected.mjs --run`), ship.
+- **The top-centre HUD** (Monty's face, three Spy vs Spy stars, Viktor's silhouette that lights when he's due via
+  `encounterState(g)` in games/montyotr/src/pursuers.ts and `VIKTOR_FACE` in games/montyworld/src/art/viktor.ts; lives only in
+  HARD): not started. If Chris OKs the flight, the tally becomes Monty 2 v Viktor 1 before the finale.
+- **Unshipped playtest-round fixes** on `reset/andes` (3 commits) and `reset/pacific` (5 commits) from the reset workflow's later
+  rounds: look at them (`git log main..reset/andes`), merge what's good.
+Waiting on Chris: see "Questions for Chris" below. Not doing: Siberia's fourth
+car (would shift China). The title/continue
+prompt names the game's own touch button (JUMP) since 2026-11-24.
+
+Proposed to Chris, awaiting his OK (2026-11-24): THE FLIGHT, Hilo to the Andes (~75 s), redeeming AWM's flight (games/awm/src/flight.ts:
+40 s, one plane on a loop): Monty flies a yellow mail biplane (MOTR jetpack feel, no gun) over AWM-style parallax cloud bands;
+leg 1 seabirds (gull Vs, a diving frigatebird with a screech tell, a slow albatross) and Kilauea's ash plume; leg 2 weather (storm
+clouds that flicker before lightning, gusts shown by streaks, a waterspout), coins on safe lines and in risky gaps; leg 3 Viktor in
+a black plane tails him copying his path, shaken off into flocks/clouds, and as the Andes appear clips Monty's tail: Monty bails
+out and parachutes into the Andes (replacing the walk-into-the-plane cut). The HUD tally becomes Spy vs Spy: Monty 2 (train, ship)
+v Viktor 1 (the plane), settled in SPY VERSUS MOLE. C64: parallax bands like AWM's, ~8 sprites. Also queued: the title's chase
+loop is repetitive: vary each loop (Viktor trips on a name, Monty ducks behind a label so Viktor overshoots, Viktor overtakes then
+backs off). Waiting on Chris: the tipsy moment's source (AWM quirks); which crossing he prefers
+(`/root/projects/runstop64-shots/tunes/crossing-*.mp3`); a playthrough of the rebuilt back half. Not doing: Siberia's fourth
+car (would shift China).
+
+## Questions for Chris (ask these first; each has a recommendation)
+
+1. **The flight** (Hilo to the Andes, ~75 s, in place of walking into the plane and appearing on the mountain; full proposal in
+   the paragraph "Proposed to Chris" above). Build it as proposed? Recommended: yes, with Viktor winning the plane round so the
+   tally reads Monty 2 v Viktor 1 before SPY VERSUS MOLE. Open points inside it: a yellow mail biplane he takes at Hilo (rather
+   than stowing away)? No gun, survive and steer only? Seabirds and weather as the hazards (no enemy planes, no extra spies)?
+2. **The title chase variety:** vary each loop (Viktor trips on a place name; Monty ducks behind a label and Viktor overshoots;
+   Viktor gets ahead, then backs off). Go ahead with those, or does he want the chase to play once and then show something else?
+3. **The music crossing** between regions: which of `/root/projects/runstop64-shots/tunes/crossing-dip.mp3` (live now: switch at
+   the phrase end with a volume dip), `crossing-phrase.mp3` (phrase end, no dip) or `crossing-cut.mp3` (hard cut on a bar)? Or
+   restart the tune after all?
+4. **The parade ground** is dark grey, not sand, because sand colours hide six creatures. Keep grey, or recolour those creatures
+   so the beach can be sand?
+5. **Viktor's red star:** he's one white sprite (the coat drawn in black outline, the star cut into his hat). Add a second
+   sprite over him for a red star, or keep him one sprite (C64 sprite budget)?
+6. **The top bar** (Monty, three Spy vs Spy stars, Viktor's silhouette that lights when he's due; lives only in HARD): approved;
+   if the flight goes in, OK that one star becomes Viktor's?
+7. **AWM's tipsy moment** (reversed controls for a few seconds): which item or place causes it in this game? (No answer yet.)
+8. **China's coin chamber** in ALL WALL AND NO PLAY now opens on the first pass, so its "seen but not reachable yet" moment is
+   gone. Bring back a one-way way in (reachable only when the route brings him back from the right)?
+9. **A playthrough** of the rebuilt back half (Siberia from the train, the Pacific, the Andes and Amazon, Rio with Viktor and the
+   new ending): his notes drive the next work.
 
 ## State
 

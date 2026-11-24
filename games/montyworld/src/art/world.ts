@@ -1,6 +1,6 @@
 /**
- * The art of every region together, in the order the regions were made (Moscow's first: a piece's index, its tile number, creature
- * type and decoration type, never changes once a region has shipped, so rooms and saves stay as they are). A region's art is in
+ * The art of every region together, in the order the regions were made (Moscow's first: a piece's index, its tile number and creature
+ * type, never changes once a region has shipped, so rooms and saves stay as they are; a decoration's kind is in no save: see WORLD_DECOR). A region's art is in
  * its own files (Moscow's: tiles.ts, creatures.ts, decorations.ts; Siberia's: siberia-*.ts; China's: china-*.ts; Japan's: japan-*.ts; the Pacific's: pacific-*.ts; the Andes': andes-*.ts; Rio's: rio-*.ts); this is where they are one set.
  */
 import { ANDES_CREATURES } from './andes-creatures';
@@ -31,7 +31,24 @@ export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES, ...CHINA_TILES, 
 export type WorldTile = keyof typeof WORLD_TILES;
 export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES, ...CHINA_CREATURES, ...JAPAN_CREATURES, ...PACIFIC_CREATURES, ...PACIFIC_MORE_CREATURES, ...PACIFIC_RESET_CREATURES, ...ANDES_CREATURES, ...RIO_CREATURES } as const;
 export type WorldCreature = keyof typeof WORLD_CREATURES;
-export const WORLD_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR } as const;
+/** Every region's decorations, with the pieces no room places (they stay in their region's art, for its sheets and mock rooms). */
+const ALL_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR } as const;
+/**
+ * The game's decoration kinds: every region's, less the pieces no room places (left out so the kinds stay well within the room table's one byte, as on a C64:
+ * test/budget.ts holds the kinds to it and reports any no room places). A decoration's kind is not saved (a room is drawn from the tables as it loads), so
+ * leaving one out moves the later kinds' numbers and changes no room and no save.
+ */
+const {
+  domeLarge, lampDouble, spasskaya, samovar, // Moscow's
+  pineSmall, diningSamovar, pole, stalactites, // Siberia's
+  hutongDoor, stall, arrowSlit, rockery, roofEnd, // China's (its slateCell stays: china.ts's back walls may name it)
+  jpNeonTall, jpWave, jpShipMast, jpBell, jpSignalLamp, jpBarrels, jpShachi,
+  jpNeonRed, jpNeonGreen, // Japan's
+  pacDiamondHead, pacSeaWave, pacLawn, // the Pacific's
+  fern, giantTree, hangingVines, bromeliad, signBoard, launch, // the Andes'
+  ...placed
+} = ALL_DECOR;
+export const WORLD_DECOR = placed;
 export type WorldDecor = keyof typeof WORLD_DECOR;
 
 // (a name in two regions would silently replace the first's piece)

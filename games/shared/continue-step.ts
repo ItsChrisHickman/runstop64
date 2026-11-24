@@ -47,10 +47,10 @@ export function panelTop(count: number): number {
   return Math.floor((FLOW_LAYOUT.screen.h - count * FLOW_LAYOUT.lineStep) / 2);
 }
 
-/** The title's line, for a keyboard or a touch screen. */
-export function stripText(strip: TitleStrip, touch: boolean): string {
+/** The title's line, for a keyboard or a touch screen (`fire`: the game's own name for its main button, e.g. JUMP). */
+export function stripText(strip: TitleStrip, touch: boolean, fire = 'FIRE'): string {
   if (strip.short) return touch ? 'TAP  CONTINUE' : 'ENTER  CONTINUE';
-  return touch ? 'TAP: CONTINUE    FIRE: NEW GAME' : 'ENTER  CONTINUE    SPACE  NEW GAME';
+  return touch ? `TAP: CONTINUE    ${fire}: NEW GAME` : 'ENTER  CONTINUE    SPACE  NEW GAME';
 }
 
 /**

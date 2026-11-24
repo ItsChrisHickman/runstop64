@@ -72,6 +72,8 @@ interface ContinueOptions<S, F> {
   id: string;
   renderer: Renderer;
   input: Input;
+  /** The game's own name for its main button on a touch screen (its touch layout's label: JUMP for the Monty games); FIRE by default. */
+  fire?: string;
   /** Panels in the game's own title-screen font (from its charset), the kit's, or one the game gives. */
   font?: 'game' | 'kit' | BitmapFont;
   /** How saves become bytes (MACHINE_CODEC for c64kit's machine states). */
@@ -226,7 +228,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     if (!this.font) return;
     const touch = this.opts.input.touch;
     if (kind === 'title') this.strip(touch);
-    else if (kind === 'newGame') this.panel(touch ? ['NEW GAME?', '', 'FIRE YES        TAP NO'] : ['NEW GAME?', '', 'SPACE YES     ESC NO', '', 'ENTER CONTINUE']);
+    else if (kind === 'newGame') this.panel(touch ? ['NEW GAME?', '', `${this.opts.fire ?? 'FIRE'} YES        TAP NO`] : ['NEW GAME?', '', 'SPACE YES     ESC NO', '', 'ENTER CONTINUE']);
     else if (kind === 'continue') this.panel(['CONTINUE?', '', touch ? 'YES              NO' : 'ENTER YES     ESC NO']);
   }
 
@@ -272,7 +274,7 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   private strip(touch: boolean) {
     const strip = this.stripAt;
     if (strip.when && !strip.when()) return;
-    const text = stripText(strip, touch);
+    const text = stripText(strip, touch, this.opts.fire);
     this.getFont().draw(this.opts.renderer.screen, text, Math.floor((strip.x ?? FLOW_LAYOUT.strip.mid) - (text.length * FLOW_LAYOUT.glyph) / 2), strip.y, strip.colour ?? this.colours.white);
   }
 
