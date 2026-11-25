@@ -21,7 +21,7 @@ import { vineInit, vineUpdate, type VineState } from './vines';
 import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from './cablecars';
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
-import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
+import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, settlePendingFinds, type PursuerState } from './pursuers';
 import { leverInit, leverUpdate } from './levers';
 import { cameoDue, cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
@@ -235,6 +235,8 @@ export class Game implements MontyBody, MontyWorld {
   skewers: SkewerState[] = [];
   /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
   pursuers: PursuerState[] = [];
+  /** Escapes made in this room that count only once he leaves it alive (pursuers.ts `settlePendingFinds`). */
+  pendingFinds: number[] = [];
   leverLatch = false;
   /** This room's cameos (cameos.ts). */
   cameos: CameoState[] = [];
@@ -362,6 +364,7 @@ export class Game implements MontyBody, MontyWorld {
     this.score = 0;
     this.coinCollected.fill(0);
     this.siCollected.fill(0);
+    this.pendingFinds = [];
     this.exitGrid.set(this.data.exitGrid.image);
     this.x2 = start.x2;
     this.y = start.y;
@@ -569,7 +572,9 @@ export class Game implements MontyBody, MontyWorld {
     this.savedX = this.x2;
     this.savedY = this.y;
     this.c5Arrival = Mech.c5State(this);
-    this.roomId = this.roomAt(this.mapRow, this.exitCol);
+    const next = this.roomAt(this.mapRow, this.exitCol);
+    settlePendingFinds(this, next);
+    this.roomId = next;
     this.loadRoom();
     if (this.dissolvePending) {
       this.enable |= 0x08;
