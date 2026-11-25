@@ -157,18 +157,22 @@ make any sense." The route, in order:
    BANANA's place). Its cove is where he goes back into the sea.
 5. **The swim to the Big Island** (the second crossing: FISH OUT OF WATER, the surge, the moray, the shark; today's HANA swim
    room renamed), out on to **Kona**: a rocky black sand beach (lava rock, tide pools).
-6. **The island splits: two ways to Hilo**, both real, both playable, the map showing the fork:
-   - **Mauna Kea**, through the middle: up and up to the summit (the tallest point in the US): above the clouds, the
-     observatory domes, the night sky with stars and the moon. Cold, thin air, the climb is the challenge.
-   - **Mauna Loa**, the southern way: the lava (MAUNA KEA-OS's rising lava and cracking crust belong here, and only here).
-   Each way has coins of its own (a reason to come back for the other); neither is a dead end; the parachute is at the end
-   (Hilo), so either way finishes the region.
-7. **Hilo is the coffee farm** (COFFEE BREAK's coffee moves here: the plantation's rows on the slope down to Hilo town and the
-   airfield), where the yellow mail biplane waits: NO FLYING WITHOUT A PARACHUTE, the parachute found on the farm.
+6. **The island splits at Kona: two ways to Hilo** (Chris, 2026-11-25: "Kona Beach (black) leads to two different routes, Mauna
+   Kea and Mauna Loa; the top route can go to Akaka Falls (waterfall!) and the bottom route can go to Hilo Coffee Farm; then
+   both connect in Hilo, then go to the plane sequence"). Both real, both playable, the map showing the fork as two rows:
+   - **The top way: Mauna Kea, then Akaka Falls.** Up through the middle of the island to the summit (the tallest point in the
+     US): above the clouds, the observatory domes, the night sky with stars and the moon; then down the wet side to **Akaka
+     Falls**, the tall waterfall in the rainforest gorge, into Hilo.
+   - **The bottom way: Mauna Loa, then the Hilo Coffee Farm.** Along the south over Mauna Loa's lava (MAUNA KEA-OS's rising lava
+     and cracking crust belong here, and only here), then the **coffee farm** (COFFEE BREAK's coffee moves here: the rows of
+     coffee on the slope) into Hilo.
+   Each way has coins of its own (a reason to come back for the other); neither is a dead end.
+7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits: NO FLYING
+   WITHOUT A PARACHUTE. The parachute is in Hilo (where both ways arrive), so either way finishes the region.
 8. **The plane sequence** (the flight, then the three-room parachute drop).
 
 Names follow places: a swim is named as a crossing, never after a town. Only the two ship rooms stay merged into THE CARGO SHIP,
-and the cargo plane's hold stays cut (Chris asked). Kona keeps the beach; its coffee is Hilo's. Room count follows the story
+and the cargo plane's hold stays cut (Chris asked). Kona keeps the beach; the coffee is the farm's, on the bottom way. Room count follows the story
 (about 15 to 17), not a target.
 
 | # | Room (id, cell) | Restores | What it asks (one thing) | Coins (reason) | Items | Creatures |
