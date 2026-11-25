@@ -23,7 +23,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
@@ -269,13 +269,30 @@ SCOPE.section([JP.hall, JP.hideout, JP.garden, JP.port, JP.mole], 'the hall\'s g
   s.g.pulses = [];
   const coin = coinIndex(s.g, JP.hall, 8, 6);
   const found = search(s, (g) => g.coinCollected[coin] !== 0 && g.roomId === JP.hall, [{ room: JP.hall, col: 8, row: 6 }], 150000, 1.5);
-  check('the gallery: up the rope past the third door and back west along the eaves through the partitions to the coin (a floor of its own, row 8, with a hole through each partition)', found !== null
+  check('the gallery: up the rope past the third door and back west along the eaves through the partitions to the coin (a floor of its own, row 8, with a doorway through each partition)', found !== null
     && DOORS.cols.every((c) => [5, 6, 7].every((row) => at(JP.hall, 3, 14).g.flagAt(row + 3, c + 4) === 0) && at(JP.hall, 3, 14).g.flagAt(8 + 3, c + 4) === 2));
   for (const enhanced of [false, true]) {
     const t = at(JP.hall, 20, 14, [], enhanced);
     t.g.pulses = [];
     check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: from the floor past the third door the bot climbs to the gallery and walks it west to the rope at the left, up to the hideout`,
       search(t, (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.hall, col: 4, row: 0 }], 150000, 1.5) !== null);
+  }
+});
+
+// ---- the gallery's doors: the same paper doors over the floor's, met walking west ----------
+SCOPE.section([JP.hall, JP.hideout], "the gallery's doors", () => {
+  check(`three more doors on the gallery (rows ${GALLERY_ROW}-${GALLERY_ROW + DOORS.rows - 1}) at cols ${DOORS.cols.join(', ')}, shutting from the east ${DOORS.apart} frames apart`,
+    GALLERY_DOOR_PULSES.length === 3 && GALLERY_DOOR_PULSES.every((p, k) => p.col === DOORS.cols[k] && p.row === GALLERY_ROW && p.offset === (DOORS.period - (2 - k) * DOORS.apart) % DOORS.period));
+  const mid = must(GALLERY_DOOR_PULSES[1], 'a gallery door');
+  const shutAt = (((DOORS.open + DOORS.warn - (mid.offset ?? 0)) % DOORS.period) + DOORS.period) % DOORS.period;
+  const in2 = at(JP.hall, 11, 8);
+  in2.g.enemies = [];
+  const when = diesAt(in2, NONE, DOORS.period);
+  check(`standing in the gallery's second doorway (cols 12-13) he dies as it shuts (frame ${when}; its shutting is at ${shutAt})`, when >= 0 && Math.abs(when - shutAt) <= 14);
+  for (const enhanced of [false, true]) {
+    const t = at(JP.hall, 20, 14, [], enhanced);
+    check(`${enhanced ? 'ENHANCED' : 'ORIGINAL'}: with every door and the lantern ghost running, the bot gets from past the floor's third door up and west along the gallery through its three doors to the hideout`,
+      search(t, (g) => g.roomId === JP.hideout && !g.freeze && !g.script, [{ room: JP.hall, col: 4, row: 0 }], 200000, 1.5) !== null);
   }
 });
 

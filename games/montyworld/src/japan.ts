@@ -195,10 +195,19 @@ export const HIDEOUT_CRACKS: readonly CrackSpec[] = Array.from({ length: 5 }, (_
   room: JP.hideout, col: 12 + k, cols: 1, row: 9, codes: [codeOf(HIDEOUT_PALETTE, 'P'), codeOf(HIDEOUT_PALETTE, 'K'), codeOf(HIDEOUT_PALETTE, 'L')], crack: 16, wide: 34, gone: 46, away: 600,
 }));
 export const DOORS = { cols: [6, 12, 18] as const, row: 11, rows: 3, period: 160, open: 80, warn: 24, live: 8, apart: 40 } as const;
-export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k): PulseSpec => ({
-  room: JP.hall, col, row: DOORS.row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: (DOORS.period - k * DOORS.apart) % DOORS.period,
+/** A paper door at `col` on the doorway from `row`, the `k`th the walker meets (so it shuts `k` times `apart` frames after the first). */
+const paperDoor = (col: number, row: number, k: number): PulseSpec => ({
+  room: JP.hall, col, row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: (DOORS.period - k * DOORS.apart) % DOORS.period,
   idle: codeOf(HALL_PALETTE, 'O'), warnCode: codeOf(HALL_PALETTE, 'N'), liveCode: codeOf(HALL_PALETTE, 'S'), spent: codeOf(HALL_PALETTE, 'S'),
-}));
+});
+/** The floor's doors, met walking east. */
+export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k) => paperDoor(col, DOORS.row, k));
+/**
+ * The gallery's doors (rows 5-7, the holes through the partitions): the same paper doors, the room's second test (Chris, 2026-11-25: the upper
+ * doorways should be hazards too, the lantern ghost bobbing over the first bay to cross as well). Met walking west, so they shut from the east.
+ */
+export const GALLERY_ROW = 5;
+export const GALLERY_DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k) => paperDoor(col, GALLERY_ROW, DOORS.cols.length - 1 - k));
 
 /** The pond's other two planks (cols 19-20 on row 13, cols 22-23 on row 14): not there until the fish food, which brings them up as the koi come to feed. Without them the far bank is seven cells off. */
 export const PLANK_CELLS: readonly (readonly [row: number, col: number])[] = [[13, 19], [13, 20], [14, 22], [14, 23]];
@@ -469,7 +478,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // I THE SHOGUN'S HALL: inside the castle, the gate hall. In from the garden's gate (mid); the floor runs east through three pairs of paper doors that open and shut in turn, the only way on. Past the third a rope
-  // (col 21) climbs to the gallery, which runs back west along the eaves through a hole in each partition (a coin on it, the lantern ghost bobbing over its first bay) to the rope at the left (col 4) up to the ninja hideout:
+  // (col 21) climbs to the gallery, which runs back west along the eaves through a paper door in each partition, timed like the floor's but shutting from the east (a coin on it, the lantern ghost bobbing over its first bay) to the rope at the left (col 4) up to the ninja hideout:
   // that rope's foot hangs at the gallery, out of reach of the floor below it. The hall's far end is walled: the way on to the port is down the hideout's shaft, which lands in the shut-off space at the right (cols 24-26) with the rope down to the port.
   room({
     id: JP.hall, cell: [1, 16], sector: 36, palette: HALL_PALETTE,
@@ -478,7 +487,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 2, 1, 11, 'S');
       g.box(0, 14, 22, 14, 'A').box(0, 15, 31, 19, 'T').clear(24, 14, 26, 19).box(27, 2, 31, 14, 'T');
       for (const c of DOORS.cols) g.box(c, 2, c + 1, 10, 'S').box(c, DOORS.row, c + 1, DOORS.row + DOORS.rows - 1, 'O'); // the partitions and the doorways
-      for (const c of DOORS.cols) g.clear(c, 5, c + 1, 7).box(c, 8, c + 1, 8, 'E'); // each has a hole through it for the gallery
+      for (const c of DOORS.cols) g.box(c, GALLERY_ROW, c + 1, GALLERY_ROW + DOORS.rows - 1, 'O').box(c, 8, c + 1, 8, 'E'); // and a doorway through it for the gallery
       g.box(5, 8, 19, 8, 'E'); // the gallery's eaves, from the rope up to the hideout (col 4) to the rope up from the floor past the third door (col 21, in a gap of three)
       g.box(23, 2, 23, 14, 'T'); // the wall that shuts the hall's far end: the way on is through the hideout, down the shaft at its right (cols 24-26)
       g.box(4, 0, 4, 8, 'R').box(21, 7, 21, 13, 'R').box(25, 0, 25, 19, 'R'); // the hideout's rope (its foot at the gallery), the rope up to the gallery, the shaft's rope
