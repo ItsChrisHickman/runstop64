@@ -251,12 +251,12 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[26, 15], [8, 13]],
     item: { name: 'token', col: 12, row: 7, sprite: SPRITE.token },
-    decor: [['gumArch', 14, 13], ['gumArch', 22, 13], ['chandelier', 8, 3]],
+    decor: [['gumArch', 14, 13], ['gumArch', 22, 13], ['chandelier', 8, 3], ['chain', 10, 10], ['chain', 12, 10]], // (the crusher hangs on two chains from the gallery)
     creatures: [
       { who: 'matryoshka', col: 23, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'samovar', col: 5, row: 7, way: 'right', speed: 1, range: 36 },
     ],
-    crushers: [{ col: 10, row: 11, height: 6 }], // (hung under the gallery over it, one cell down: a shaft is six cells at most, as Monty on the Run's hang from their ceilings)
+    crushers: [{ col: 10, row: 11, height: 6 }], // (hung under the gallery on two chains, one cell down: a shaft is six cells at most, and the gallery is seven above the floor)
   }),
 
   // G ESCALATING TENSIONS: the concourse, high at the left (in by the manhole, a rope up to the street), ending at the down

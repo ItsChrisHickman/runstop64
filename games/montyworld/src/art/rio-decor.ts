@@ -59,11 +59,11 @@ function cableHigh(): NewDecor {
   return decor('rioCableHigh', 1, 1, r, 1);
 }
 
-/** A chain the Sambadrome's float hangs by from the lighting gantry: links one under another. 1 x 1 character, repeated down. */
+/** A hanging chain: links one under another, 1 x 1 character, repeated down (the Sambadrome's float hangs by it from the lighting gantry, STUCK LIKE GUM's crusher from the gallery). */
 function chain(): NewDecor {
   const r = new Raster(8, 8);
   r.rect(3, 0, 4, 1); r.rect(2, 2, 5, 5); r.rect(3, 3, 4, 4, false); r.rect(3, 6, 4, 7);
-  return decor('rioChain', 1, 1, r, 12);
+  return decor('chain', 1, 1, r, 12);
 }
 
 // ---- Lapa's aqueduct: two storeys of arches, the street under them
@@ -225,7 +225,7 @@ export const RIO_DECOR = {
   rioLever: lever(),
   rioBooth: booth(),
   rioArch: apoteose(),
-  rioChain: chain(),
+  chain: chain(),
   rioFirework: firework(),
   rioShade: shade(),
 } as const satisfies Record<string, NewDecor>;
