@@ -120,7 +120,7 @@ export const GOLDEN: Readonly<Record<string, string>> = {
   '59:0': '599f4ea0',
   '59:1': '7f4c9e8b',
   '60:0': 'dfc01640',
-  '60:1': 'd325436c',
-  '61:0': 'a6d8036b',
-  '61:1': 'e8f1f9bd',
+  '60:1': '7d3e2ac9',
+  '61:0': '467d89c0',
+  '61:1': 'fadd036e',
 };

@@ -46,6 +46,25 @@ for (const room of rooms) {
   check(`room ${room}: ${crushers.length} crusher${crushers.length > 1 ? 's' : ''} (characters ${chars}) come down and go up (down ${down}, up ${up}, banks moved ${[...banks].join(',')}, ${pictures.size} different pictures)`,
     down && up && banks.size === crushers.length && pictures.size > 8);
 }
+// A stamp kills Monty standing under any of a shaft's three columns (STUCK LIKE GUM, 2026-11-24: under the right column of a tall shaft the
+// head passed through him, its foot's characters $20 and $21 read as the second crusher's). The room's creatures are taken out so only the
+// crusher can kill; a head held by a lever (the Sambadrome's) is left to its own test (levers.ts).
+for (const room of rooms) {
+  if (WORLD.levers.some((l) => l.room === room)) continue;
+  for (const c of records.filter((r) => r.room === room)) {
+    const shaft = { col: c.col - 4, foot: (cfg[records.indexOf(c) * 5 + 2] ?? 0) - 3 + (cfg[records.indexOf(c) * 5 + 3] ?? 0) };
+    const missed: number[] = [];
+    for (let k = 0; k < 3; k++) {
+      const s = at(room, shaft.col + k, shaft.foot);
+      s.g.enemies = [];
+      let killed = false;
+      for (let f = 0; f < 1500 && !killed; f++) { frame(s, NONE); if (s.g.actionCounter) killed = true; }
+      if (!killed) missed.push(k);
+    }
+    check(`room ${room}: the crusher at column ${shaft.col} kills Monty standing under each of its three columns${missed.length ? ` (not under column ${missed.map((k) => shaft.col + k).join(', ')})` : ''}`, missed.length === 0);
+  }
+}
+
 check(`${rooms.length} rooms with crushers were found (Moscow's, Japan's and the Pacific's; the Andes' rebuild took out the Inca tunnel's)`, !SCOPE.all || rooms.length >= 4); // (the world's count: under --room, only the named rooms' crushers are run)
 
 // Nothing is left behind: a shaft's cells are only its own characters (a column's cell i is the base + 6 * column + i, so a shaft no taller than the six

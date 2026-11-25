@@ -11,6 +11,8 @@ import type { C5Street, MontyData } from './montydata';
 // ---- Piledriver (Mole Crusher) ------------------------------------------------------------
 
 const PD_COLS = [[0x80, 0xb0, 0xe0], [0x110, 0x140, 0x170]];
+/** The second crusher's first character ($22: its glyph bank at $110). */
+const SECOND_CRUSHER_CHR = 0x110 / 8;
 
 function clearGlyphs(g: Game) {
   g.mem.fill(0, 0x80, 0x80 + 0x90);
@@ -192,7 +194,9 @@ export function piledriverCheckTiles(g: Game) {
   for (const o of [0, 1, ROW, ROW + 1]) {
     const c = g.chr(base + o);
     if (c < 0x10 || c >= 0x34) continue;
-    const which = c < 0x20 ? 0 : 1;
+    // (the first crusher's characters are $10-$21: three columns of six; the original split at $20, so the foot of a tall shaft's
+    // right column, $20 and $21, read as the second crusher's and a stamp passed through Monty there: STUCK LIKE GUM, 2026-11-24)
+    const which = c < SECOND_CRUSHER_CHR ? 0 : 1;
     if (which !== pd.index && !g.hold.both) return;
     if (((pd.spriteY[pd.index] + pd.position) & 0xff) >= g.y) g.actionCounter = 1;
     return;
