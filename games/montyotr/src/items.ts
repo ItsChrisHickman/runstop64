@@ -9,8 +9,11 @@ export function collectCoin(g: Game) {
   const taken = takeCoin(g.mem, g.montyChr, g.entities);
   if (!taken) return;
   g.clearCell(taken.at - SCREEN); // (the backdrop shows where it was)
-  if (!taken.item) return;
-  g.coinCollected[taken.item.index] = 0xff;
+  // (and stops shimmering there: the colour cycle went on over the backdrop's cell, a flashing patch of sky where the coin had been, SAYONARA SAILOR; an empty cell, Monty on the Run's, shows no colour, so it keeps its entity as the original does)
+  const item = taken.item;
+  if (!item) return;
+  if (g.hasBackdrop(taken.at - SCREEN)) g.entities = g.entities.filter((e) => e !== item);
+  g.coinCollected[item.index] = 0xff;
   g.addScore(50);
   g.sfx(g.data.sfx.coin);
 }

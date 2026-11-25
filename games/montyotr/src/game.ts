@@ -308,6 +308,8 @@ export class Game implements MontyBody, MontyWorld {
     this.mem[SCREEN + at] = back;
     if (back) this.col[at] = this.backCol[at] ?? 0;
   }
+  /** Whether the room has a backdrop behind cell `at` (its index in the screen). */
+  hasBackdrop(at: number): boolean { return !!this.backChr[at]; }
   /** A character a thing drawn over the room (a vine, the lava) may cover: empty or a decoration's, not a coin's picture. */
   mayCover(chr: number): boolean { return coverable(chr) && !this.coinGlyphs.has(chr); }
 
