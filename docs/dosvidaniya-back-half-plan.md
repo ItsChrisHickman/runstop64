@@ -130,6 +130,13 @@ opening has nothing behind it. Restored rooms bring their art back from `44ea872
 
 Play order. The set pieces: the luau's hula show, the Road to Hana's bridges, the run up Kilauea ahead of the lava.
 
+**Chris, 2026-11-25:** "I really loved the three tiers with the cars driving through. It told a story. Hawaii was honestly very
+well intended. Originally, it was an execution problem. The redone Hawaii did not feel very well thought through." So the
+Hawaii rooms come back **as they were designed** (`804a838^`, the seventeen rooms of `8df967a` and after): the same layouts,
+the same story, the same set pieces. The work is execution (art that reads, fair jumps, coins with reasons, exits that lead
+somewhere), never a redesign. Above all THE ROAD TO HANA keeps its three tiers with the cars driving through them; it may stay
+easy (a run-through is fine there: it is the story), and nothing below may turn it into a different puzzle.
+
 | # | Room (id, cell) | Restores | What it asks (one thing) | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
 | 1 | THE CARGO SHIP (38, [2,17]) | kept as built | Three heights of the ship, with Viktor on your path; lead him under the crane's crate. | 2, as now | | parrot, crate, Viktor |
@@ -139,7 +146,7 @@ Play order. The set pieces: the luau's hula show, the Road to Hana's bridges, th
 | 5 | MOLE-OKAI (44, [3,19]) | Molokai, as it was | The quiet room: hop the old fishponds' curved walls over the deadly water, the world's tallest sea cliffs behind. Banner HAWAII: MOLOKAI. | 2: on the highest wall (tops a climb); between two walls by the crab (guarded) | | crab, tern |
 | 6 | KELP WANTED (45, [3,20]) | the second reef | Through the kelp past the manta; the mooring rope goes up through the ceiling to Lahaina; the sea cave lies east. | 1: deep in the kelp (inside the structure) | | manta, turtle |
 | 7 | WHALE OF A TIME (46, [2,20]) | Lahaina | Climb the old brig's crates and mast to the spar (a dead end), then east along the quay past the outrigger. A humpback breaches in the harbour now and then: Hawaii's one big creature, harmless scenery. Banner HAWAII: MAUI. | 1: on the spar (pocket off the route) | musubi on the brig's deck | tiki on the brig, gull |
-| 8 | THE ROAD TO HANA (47, [2,21]) | the old road, rebuilt as the reset planned it | The one-lane bridges: a pull-in and a yield sign before each; bridge 2 is too long for one gap, so you hop onto its raised refuge and let the car pass under (the forced stop); bridge 3 adds the waterfall's spray. Cars come both ways. A pool in the lowest level drops into the sea cave. | 2: on the refuge (the reward for stopping); at the head of the bend's bamboo under the coconut (tops a climb, guarded) | | coconut, nene; the cars are the mechanism |
+| 8 | THE ROAD TO HANA (47, [2,21]) | the old road as it was (`804a838^`): three tiers up the cliff, the cars driving through them | Keep the old room's layout and its cars on all three tiers (Chris loved it, easy as it was); only make it read and play cleanly: the one-lane bridges drawn so you see them, the cars' timing fair. Optional, only if the room stays itself: a pull-in before a bridge. A pool in the lowest level drops into the sea cave. | 2: on the refuge (the reward for stopping); at the head of the bend's bamboo under the coconut (tops a climb, guarded) | | coconut, nene; the cars are the mechanism |
 | 9 | THE SEA CAVE (48, [3,21]) | the old cave | A dead end of open water, entered from Kelp Wanted or dropped into from the road's pool: the loop reef, Lahaina, road, cave. | 1: on the ledge under the stalactites (seen now, reached later: seen through the road's pool) | musubi (the reason to dive) | eel, manta |
 | 10 | HANA (new 82, [2,22]) | HANA BANANA | Down the bamboo rope from the headland to Waianapanapa's black sand and its sea arch; the cove is the dive into the third crossing. | 1: on the ledge in the lava cave (pocket off the route) | | crab |
 | 11 | FISH OUT OF WATER (49, [3,22]) | today's HANA swim room, moved to be the third crossing, with FISH OUT OF WATER's name | The hardest swim, last: the surge, lee to lee of the coral heads; the moray; the shark. Out low east onto the Big Island. | 2, as now | musubi in the sea cave pocket, as now | turtle, shark; moray (a timed strike) |
