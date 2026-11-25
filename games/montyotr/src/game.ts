@@ -302,11 +302,12 @@ export class Game implements MontyBody, MontyWorld {
     this.mem[SCREEN + at] = code;
     this.col[at] = this.roomColours[code - 1] ?? 1;
   }
-  /** A cell that something took or cleared (a coin, a gate, cracked ice) shows what the room has behind it: its backdrop, or nothing where it has none. `at` is the cell's index in the screen. */
-  clearCell(at: number) {
+  /** A cell that something took or cleared (a coin, a gate, cracked ice) shows what the room has behind it: its backdrop or tile, or nothing where it has none (false). `at` is the cell's index in the screen. */
+  clearCell(at: number): boolean {
     const back = this.backChr[at] ?? 0;
     this.mem[SCREEN + at] = back;
     if (back) this.col[at] = this.backCol[at] ?? 0;
+    return back !== 0;
   }
   /** A character a thing drawn over the room (a vine, the lava) may cover: empty or a decoration's, not a coin's picture. */
   mayCover(chr: number): boolean { return coverable(chr) && !this.coinGlyphs.has(chr); }
@@ -860,6 +861,11 @@ export class Game implements MontyBody, MontyWorld {
     for (let i = 0; i * 3 < coinTable.length; i++) {
       if (coinTable[i * 3] !== this.roomId || this.coinCollected[i]) continue;
       const at = this.rowAddr(coinTable[i * 3 + 2] + 3) + coinTable[i * 3 + 1] + 4;
+      const under = this.mem[at] ?? 0;
+      if (under >= 1 && under <= 8) { // a coin over one of the room's tiles (a back wall painted as a tile): the tile is what is behind it, as a backdrop's character is
+        this.backChr[at - SCREEN] = under;
+        this.backCol[at - SCREEN] = (this.roomColours[under - 1] ?? 0) & 15;
+      }
       this.mem[at] = 0x34;
       this.entities.push({ at, phase: 0, index: i });
     }
@@ -962,7 +968,7 @@ export class Game implements MontyBody, MontyWorld {
     }
   }
 
-  /** A coin on a backdrop is drawn as the coin's picture over the backdrop's (a character of its own, from the free ones above the decorations'), not on a black cell. */
+  /** A coin on a backdrop (or a room tile) is drawn as the coin's picture over the backdrop's (a character of its own, from the free ones above the decorations'), not on a black cell. */
   private drawCoinsOverBackdrop() {
     let next = decorPool(this.data, this.roomId).end;
     const made = new Map<number, number>();

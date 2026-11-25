@@ -8,7 +8,8 @@ import { shimmer, takeCoin } from '../../shared/monty/screen';
 export function collectCoin(g: Game) {
   const taken = takeCoin(g.mem, g.montyChr, g.entities);
   if (!taken) return;
-  g.clearCell(taken.at - SCREEN); // (the backdrop shows where it was)
+  // The backdrop shows where it was, in its own colour: the coin stops shimmering there. (Over an empty cell the shimmer goes on colouring nothing, as Monty on the Run's does: its trace.)
+  if (g.clearCell(taken.at - SCREEN)) g.entities = g.entities.filter((e) => e.at !== taken.at);
   if (!taken.item) return;
   g.coinCollected[taken.item.index] = 0xff;
   g.addScore(50);
