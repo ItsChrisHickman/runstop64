@@ -5,11 +5,11 @@ import { codeOf, fillCells, Grid, room, type Palette } from './layout';
 import type { Placed } from './train';
 
 /**
- * China, the third region of Do Svidaniya Monty (docs/dosvidaniya-china.md): nine rooms in a block four wide and three high at columns 8-11 of
+ * China, the third region of Do Svidaniya Monty (docs/dosvidaniya-china.md): ten rooms in a block four wide and three high at columns 8-11 of
  * the exit grid, entered from Siberia's border village (room G, column 7) and left east, low, from the junk's deck into Japan (japan.ts).
  *
  *            col 8                col 9               col 10                col 11
- *   row 0   C  MIND THE BATTLEMENTS     .                   G  THE EMPEROR(S ROOFTOPS     H  WILLOW PATTERN
+ *   row 0   C  MIND THE BATTLEMENTS     K  HEAVEN CAN WAIT     G  THE EMPEROR(S ROOFTOPS     H  WILLOW PATTERN
  *   row 1   T  THE WATCHTOWER    E  NOODLE MARKET    F  THE FORBIDDEN CITY  J  DOWN THE RIVER
  *   row 2   A  ALL WALL AND NO PLAY  D  BACK ALLEY BEIJING        .                     .
  *
@@ -23,13 +23,20 @@ import type { Placed } from './train';
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /** Room ids go on from Siberia's (9-17): they never change once the region has shipped. */
-export const CHI = { wall: 18, alley: 19, tower: 20, top: 21, market: 22, gate: 23, roofs: 24, willow: 25, junk: 26 } as const;
+export const CHI = { wall: 18, alley: 19, tower: 20, top: 21, market: 22, gate: 23, roofs: 24, willow: 25, junk: 26, heaven: 82 } as const;
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 18 on. */
 const NAMES = [
   'ALL WALL AND NO PLAY', 'BACK ALLEY BEIJING', 'THE WATCHTOWER', 'MIND THE BATTLEMENTS', 'NOODLE MARKET', 'THE FORBIDDEN CITY', "THE EMPEROR'S ROOFTOPS", 'WILLOW PATTERN', 'DOWN THE RIVER',
 ] as const;
-export const CHINA_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
+const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
+export const CHINA_SECTORS: readonly Sector[] = NAMES.map(centred);
+/**
+ * Rooms added to China after it shipped (2026-11-24): HEAVEN CAN WAIT. Its id, sector and table places come after every region's (data.ts puts it last), so no room's coin or find moves
+ * and every save keeps its places; its sector is the one after the flight's (82).
+ */
+export const CHINA_ADDED_SECTORS: readonly Sector[] = [centred('HEAVEN CAN WAIT')];
+export const CHINA_ADDED_COLOURS: readonly number[] = [7];
 /** The map's colour of each (the wall grey, the hutong dark grey, the tower grey, the top light grey, the market red, the gate red, the roofs yellow, the garden light blue, the quay brown). */
 export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9];
 
@@ -60,6 +67,10 @@ const GATE_PALETTE = {
 
 const ROOFS_PALETTE = {
   Y: ['roofRidge', 7], B: ['roofBody', 8], E: ['roofTile', 7], R: ['rope', 13],
+} as const satisfies Palette;
+
+const HEAVEN_PALETTE = {
+  Y: ['roofRidge', 7], B: ['roofBody', 8], E: ['roofTile', 7],
 } as const satisfies Palette;
 
 /** The garden is the plate's: its lattice border, the hatched banks, the river's waves, white stones, the giants' arms and hands, a rope. */
@@ -183,6 +194,13 @@ const paintRoofs = (g: Grid): void => {
     g.box(24, 9, 31, 9, 'E'); // the ridge, starting past the top eave so he never stands under it
 };
 
+/** The paint of HEAVEN CAN WAIT: the last hall's ridge running on from the rooftops to its gable, and three glazed eaves stepping up to the coin. */
+const paintHeaven = (g: Grid): void => {
+    g.box(0, 0, 1, 16, 'B'); // the end hall's gable, up off the screen
+    g.box(0, 17, 31, 17, 'Y').box(0, 18, 31, 19, 'B'); // the ridge and the hall's roof under it
+    g.box(24, 15, 26, 15, 'E').box(19, 13, 21, 13, 'E').box(14, 11, 16, 11, 'E'); // the eaves
+};
+
 /** The paint of gate's room: its tiles. */
 const paintGate = (g: Grid): void => {
     g.box(0, 3, 1, 13, 'W').box(0, 2, 2, 2, 'E').box(29, 7, 31, 16, 'W').box(29, 6, 31, 6, 'E'); g.box(14, 0, 22, 0, 'E').box(26, 0, 31, 0, 'E').box(16, 1, 21, 1, 'E'); // the roofs' eaves over the rope's way up // the palace's walls with their eaves, the court open to the sky
@@ -270,13 +288,13 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // C MIND THE BATTLEMENTS: the wall's top by night, a dead end. In by the floor gap from the tower; a winding climb: right up two steps from the floor to a long walkway back
+  // C MIND THE BATTLEMENTS: the wall's top by night between two towers, a dead end. In by the floor gap from the tower; a winding climb: right up two steps from the floor to a long walkway back
   // west, up the left to the beacon's platform and east along it to the rice hat.
   room({
     id: CHI.top, cell: [0, 8], sector: 21, palette: TOP_PALETTE,
     paint(g) {
-      g.box(0, 2, 1, 16, 'G'); // the tower closing the wall at the left, the night sky open above and the wall running on past the right edge
-      g.box(0, 5, 1, 5, 'S').box(0, 9, 1, 9, 'S').box(0, 13, 1, 13, 'S'); // its slits
+      g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 16, 'G'); // a tower closing the wall at each end, the night sky open above (the right one shuts the join to HEAVEN CAN WAIT: a way there would go round the city gate)
+      g.box(0, 5, 1, 5, 'S').box(0, 9, 1, 9, 'S').box(0, 13, 1, 13, 'S').box(30, 5, 31, 5, 'S').box(30, 9, 31, 9, 'S').box(30, 13, 31, 13, 'S'); // their slits
       g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'G').clear(15, 17, 17, 19).box(16, 16, 16, 19, 'R');
       g.box(22, 15, 24, 15, 'L').box(25, 13, 27, 13, 'L'); // the steps up from the floor
       g.box(6, 11, 24, 11, 'L'); // the long walkway, ending short of the steps' top so he never stands under it
@@ -397,6 +415,22 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36, colour: 8 },
       { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },
       { who: 'carp', col: 7, row: 18, way: 'right', speed: 1, range: 88 },
+    ],
+  }),
+
+  // HEAVEN CAN WAIT: a nook at the west end of the palace roofs, a dead end (added 2026-11-24, Chris: the rooftops' open left side). In along the hall's ridge from the
+  // rooftops; the Temple of Heaven far off over the city at dusk; three glazed eaves step up to a coin at the top (it tops the climb). The gable at the left closes it: the
+  // battlements beyond are reached only by the trapdoor, and a way through here would go round the city gate.
+  room({
+    id: CHI.heaven, cell: [0, 9], sector: 82, palette: HEAVEN_PALETTE,
+    paint: paintHeaven,
+    coins: [[15, 9]],
+    decor: [
+      ...fillCells(paintHeaven, [], [0, 0, 31, 4], 'duskBand'), ...fillCells(paintHeaven, [], [0, 5, 31, 12], 'duskGlow'), // the rooftops' sky going on
+      ...[[6, 1], [12, 3], [19, 1], [23, 4], [29, 2], [4, 5]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
+      ['templeHeaven', 3, 8], // the Hall of Prayer for Good Harvests over the city, its terraces on the ridge's line
+      ['ridgeBeasts', 19, 16], // the beasts marching along the ridge
+      ['eaveTip', 24, 14], ['eaveTip', 26, 14], ['eaveTip', 19, 12], ['eaveTip', 21, 12], ['eaveTip', 14, 10], ['eaveTip', 16, 10],
     ],
   }),
 ];

@@ -248,5 +248,9 @@ you can name it:
 - **inside the structure**: in the sewer's pipe lattice, taken only by climbing round it ($15);
 - **tests the new move**: in a jetpack room's hollow that must be flown into ($1E, $1F).
 
+A coin may hang on a back wall drawn as a decoration or as a non-solid tile: taken, its cell shows exactly what the room has there, in the room's colour (the engine
+remembers what is under a coin; `backdrop-holes.ts` takes every coin of the world and compares the cell with the room drawn without it). A room added to a region
+after it shipped goes last in the tables (`ADDED` in montyworld's data.ts): its coin takes a new place at the end, so no save's coins move (HEAVEN CAN WAIT, 2026-11-24).
+
 No lines of coins, no floors strewn with them, no coin floating out of reach, and no coin in a room with nothing to say. A region of 6
 rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a room, 215 in 40 rooms, and they read as random.)
