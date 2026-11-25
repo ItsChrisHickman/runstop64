@@ -169,6 +169,12 @@ make any sense." The route, in order:
    Each way has coins of its own; neither is a dead end.
    **Both ways are needed** (Chris: "we could find some way to make an item from each route necessary ... THAT would make the
    Big Island part of Hawaii very interesting"): the biplane in Hilo takes off only with an item from each way. Recommended:
+   - **Mauna Kea is two rooms, the summit one screen** (Chris liked the dome, the telescope and the summit together): first
+     the climb, cinder slopes and switchbacks rising out of the cloud layer; then, on the grid row above it, **the summit**:
+     the cloud tops at the bottom, the bare red cinder ridge to the summit marker, two or three observatory domes, the big
+     one's slit open with its telescope pointing out at the night sky (stars and the moon over the black upper rows, the only
+     night in the game). The way up the big dome (its catwalk and ladder) is the room's climb; the parachute is snagged on its
+     top. The decor and lettering budgets decide how many domes fit.
    - **The top way gives the parachute**: snagged on an observatory dome at Mauna Kea's summit (a paraglider's, left behind),
      taken at the top of the climb.
    - **The bottom way gives the coffee**: a sack of beans at the far end of the farm. Monty is flying the Pacific alone through
