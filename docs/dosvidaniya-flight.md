@@ -37,7 +37,7 @@ row 3   (Hilo at [3,19]: its apron's biplane takes off into L1)
 |---|---|---|
 | L1 THE MAIL RUN | 1250 (25 s) | Out over Hilo's coast and the sea. Gull Vs (straight passes at set heights), Kilauea's ash plume (a column that sweeps past, with clear air above it), a frigatebird (a screech as it comes in high, then a dive across), a slow albatross. One coin. |
 | L2 STORMY WEATHER | 1250 (25 s) | Under a storm front. Its clouds flicker (the warning) before lightning strikes down a column. Downdraft gusts are shown by streaks and push him toward the sea. A waterspout sweeps past with a gap above it. Three coins: one on the safe line, two in the gaps between bolts. |
-| L3 ON HIS TAIL | 1250 + the clip (about 27 s) | Viktor's black plane follows his exact path, starting 3 s behind and closing to under a second. Touching him is a death. Gulls and lightning that Monty just slips past catch Viktor when he copies the line, and each one knocks him back. The Andes' peaks rise along the bottom. At the end Viktor surges and clips his tail. Monty bails out: the plane tumbles away, the canopy opens, and he drops into F1 from the top. |
+| L3 ON HIS TAIL | 1250 + the clip (about 27 s) | Viktor's red plane follows his exact path, starting 3 s behind and closing to under a second. Touching him is a death. Gulls and lightning that Monty just slips past catch Viktor when he copies the line, and each one knocks him back. The Andes' peaks rise along the bottom. At the end Viktor surges and clips his tail. Monty bails out: the plane tumbles away, the canopy opens, and he drops into F1 from the top. |
 
 Total: about 77 seconds.
 
@@ -56,7 +56,7 @@ He flies with Monty on the Run's jetpack feel and has no gun:
 | 3 | Monty, sitting in the cockpit (his own picture) |
 | 2 | the biplane over his legs, three pictures (level, climbing, diving); a tumbling wreck and the canopy at the bail-out |
 | 7 | his lei (the costume's overlay, as everywhere) |
-| 4 | Viktor's black plane (L3; the creature in slot 0) |
+| 4 | Viktor's red plane (L3; the creature in slot 0), the star on his hat in it; 6 his white head under it |
 | 0, 1, 5, 6 | birds (rollers), a pass each on the leg's clock |
 
 The plume, the waterspout, the storm, the bolts, the streaks and the peaks are characters, not sprites. The parallax bands are AWM's
