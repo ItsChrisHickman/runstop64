@@ -103,7 +103,8 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
   7. **Runner and planner files** (`tools/test-all.mjs`, `tests.mjs`, `affected.mjs`, `timings.mjs`, `wait-turn.sh`) run no
      tests; the translator, `tools/test.mjs`, `gen.mjs`, the configs and `package.json` are what need the full gate. **Docs**
      run nothing.
-  8. **Coordinating session:** at most four agents at once, at most one of them running region bots; each agent's brief
+  8. **Coordinating session:** at most two agents at once (2026-11-24: four agents and their tests froze the box twice; Claude Code runs in
+     `claude.slice`, capped at 4 GB with 1 GB of swap, and every test at a 2 GB heap: `tools/test.mjs`), at most one of them running region bots; each agent's brief
      repeats rules 1, 2 and 6. A red test that fails the same way on main is reported, not chased in an unrelated change.
      A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.
   9. **Waiting:** let a background command notify you when it ends. Never a `pgrep -f <pattern>` wait loop: it matches its
