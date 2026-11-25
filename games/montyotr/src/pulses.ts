@@ -14,7 +14,7 @@ import type { PulseSpec } from './montydata';
 export type PulsePhase = 'idle' | 'warn' | 'live' | 'spent';
 
 /** A group of the room: its place in the data's list (a copy of the game copies numbers, not the data), the frames into its period, and the character it has drawn (-1: none yet). */
-export interface PulseState { index: number; t: number; drawn: number }
+export interface PulseState { index: number; t: number; drawn: number; /** the `flash` cells' own colours, kept the first time they flash */ inks?: number[] }
 
 /** A room is loaded: every group at the start of its period (or its `offset` into it). */
 export function pulseInit(g: Game) {
@@ -51,8 +51,17 @@ export function pulseUpdate(g: Game) {
       p.drawn = code;
       for (let r = e.row; r < e.row + e.rows; r++) for (let c = e.col; c < e.col + e.cols; c++) g.setRoomChar((r + PLAY_ROW) * ROW + c + PLAY_COL, code);
     }
+    if (e.flash) flash(g, p, e.flash, !calm && pulsePhase(e, p.t) === 'warn' && (p.t & 4) !== 0, e);
     if (!calm && !g.actionCounter && !g.roomExit && pulsePhase(e, p.t) === 'live' && montyOver(g, e.col, e.cols, e.row, e.row + e.rows - 1)) g.actionCounter = 1;
   }
+}
+
+/** A group's `flash` cells in the warning's colour (`on`) or their own. */
+function flash(g: Game, p: PulseState, f: NonNullable<PulseSpec['flash']>, on: boolean, e: PulseSpec) {
+  const cells = f.rows.flatMap((r) => Array.from({ length: e.cols }, (_, k) => (r + PLAY_ROW) * ROW + e.col + k + PLAY_COL));
+  const inks = p.inks ?? cells.map((at) => g.col[at] ?? 0);
+  p.inks = inks;
+  cells.forEach((at, i) => { g.col[at] = on ? f.colour : inks[i] ?? 0; });
 }
 
 /** Whether a live group of the room has a cell over a box of sprite pixels (a pursuer flying into a lightning bolt: pursuers.ts). */
