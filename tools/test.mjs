@@ -9,9 +9,18 @@
 // `--room <id|name>[,...]` (or `--room=...`) is taken off the arguments and handed to the test as MONTY_ROOMS: a Monty game's
 // room-level tests then check only those rooms (games/shared/monty/test/scope.ts), its region bots only the legs through them.
 
+import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// A heap ceiling for every test (2026-11-24: the box froze twice when tests, agents and the sites outgrew its 7.6 GB and it thrashed swap):
+// a test that needs more fails with an out-of-memory error instead of starving the server. Re-runs itself with the flag if started without it.
+const HEAP_MB = 2048;
+if (!process.execArgv.some((a) => a.startsWith('--max-old-space-size'))) {
+  const r = spawnSync(process.execPath, [`--max-old-space-size=${HEAP_MB}`, ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
+  process.exit(r.status ?? 1);
+}
 import { build } from 'esbuild';
 import { ensureGen } from './gen.mjs';
 

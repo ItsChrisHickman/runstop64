@@ -38,7 +38,7 @@
     "I: through the first door, into the space between it and the second": ".:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
     "I: through the second door into the space before the third": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
     "I: through the third door to the foot of the rope past it": ">:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
-    "I: up the rope to the gallery and back west along it to the coin": "^:4 J<:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 <:4 <:4 <:4 <:4 ^:4 ^:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4",
+    "I: up the rope to the gallery and back west along it to the coin": "^:4 J<:4 .:4 .:4 .:4 .:4 .:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 <:4 >:4 >:4 >:4 >:4 <:4 ^:4 J:4 .:4 .:4 .:4 .:4 .:4 <:4 J:4 .:4 .:4 .:4 .:4 .:4 <:4 <:4 <:4 <:4 <:4 <:4 >:4 >:4 <:4 J:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 ^:4 <:4 <:4 <:4 <:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4",
     "I to H: on west along the gallery to the rope at the left and up it to the woods outside (the hall's far end is walled)": "<:4 <:4 ^:4 J>:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4",
     "H: the coin on the first walkway": ".:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
     "H: the coin on the hideout's ridge (and back west, clear of the samurai)": "J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",

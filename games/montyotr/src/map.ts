@@ -238,6 +238,20 @@ let shimmer = 0;
 /** One line of the pause screen's panel (11 characters): the name, and its number right-aligned so the numbers make one column. */
 export const statLine = (name: string, value: string) => name.padEnd(6) + value.padStart(5);
 
+/** The progress the pause panel and THE END both show, as label and value (one owner: THE END once re-read the panel's text, and "SNACKS13/13", no space at 10 or more, came out garbled). */
+export function progressRows(g: Game, found: MontyFound): (readonly [label: string, value: string])[] {
+  const rooms = count(g, found);
+  const { keyItems, cakes: allCakes } = g.data.progress;
+  const cakes = allCakes.filter((i) => g.siCollected[i]).length;
+  const items = keyItems.filter((i) => g.siCollected[i]).length;
+  const food = g.data.progress.foodName ?? 'CAKES';
+  return [
+    // (the lives in HARD only: EASY has none to count)
+    ...(g.livesShown ? [['LIVES', String(g.lives)] as const] : []), ['ROOMS', `${rooms.seen}/${rooms.all}`],
+    ['ITEMS', `${items}/${keyItems.length}`], [food, `${cakes}/${allCakes.length}`],
+  ];
+}
+
 export const montyMap = {
   found: FOUND,
   // (rooms are noted as Monty comes into them: noteRoom)
@@ -296,18 +310,7 @@ export const montyMap = {
       progress.keyItems.forEach((item, i) => { const at = iconAt(box, progress.keyItems.length, i); icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + at.x, y + 10 + at.y, g.siCollected[item] ? COL.white : COL.dgrey); });
     }
   },
-  info(g, found) {
-    const rooms = count(g, found);
-    const { keyItems, cakes: allCakes } = g.data.progress;
-    const cakes = allCakes.filter((i) => g.siCollected[i]).length;
-    const items = keyItems.filter((i) => g.siCollected[i]).length;
-    const food = g.data.progress.foodName ?? 'CAKES';
-    return [
-      // (the lives in HARD only: EASY has none to count)
-      ...(g.livesShown ? [statLine('LIVES', String(g.lives))] : []), statLine('ROOMS', `${rooms.seen}/${rooms.all}`),
-      statLine('ITEMS', `${items}/${keyItems.length}`), statLine(food, `${cakes}/${allCakes.length}`),
-    ];
-  },
+  info: (g, found) => progressRows(g, found).map(([label, value]) => statLine(label, value)),
   legend: (g) => [
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),

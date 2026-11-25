@@ -10,7 +10,7 @@
  *     on the picture;
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
  *     included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
- *  4. a key skips it, after two seconds and not before, and in the procession;
+ *  4. a key skips it, after two seconds and not before, and in the procession, to the title as it is (no CONTINUE? until a key);
  *  5. in the session: winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
  *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
  *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
@@ -41,6 +41,7 @@ import { SCENES, WORLD_ENDING } from '../src/ending-scenes';
 import { montyFont, run } from '../src/main';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { standY } from './route';
+import { montyMap } from '../../montyotr/src/map';
 
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
@@ -296,6 +297,12 @@ function win(s: ReturnType<typeof boot>) {
 }
 
 {
+  // the title's own sprites (its chase), from a fresh boot: what may be up over the title after the show
+  const titleSprites = new Set<string>();
+  {
+    const t = boot(true);
+    for (let f = 0; f < 900; f++) { t.tick(); for (const h of t.rend.sprites) if (h.visible && h.surface) titleSprites.add(h.surface.pixels.join()); }
+  }
   const s = boot(true);
   const won = win(s);
   const ending = must(s.p.ending, 'the ending');
@@ -306,8 +313,10 @@ function win(s: ReturnType<typeof boot>) {
   check('EASY: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading' && s.g.won);
   s.tick(110);
   s.press('Space');
-  check('EASY: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
-  check('EASY: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
+  // (the show ends on the title as it is, waiting for a key: no CONTINUE? until one, Chris 2026-11-24)
+  check('EASY: a key skips it: the title, waiting, with no CONTINUE? until a key', !ending.active && s.p.state.mode === 'title' && !s.until(() => s.p.state.prompt === 'continue', 300));
+  const left = s.rend.sprites.filter((h) => h.visible && h.surface && !titleSprites.has(h.surface.pixels.join())).length;
+  check(`EASY: the show's sprites are put away (what is up over the title is the title's own chase: ${left} others)`, left === 0);
   check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
   check('EASY: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
@@ -329,7 +338,7 @@ function win(s: ReturnType<typeof boot>) {
   check('HARD: the game is won, kept so, and the show begins as in EASY (it is in both modes)', won && readWon('montyworld') && ending.active);
   s.tick(120);
   s.press('Space');
-  check('HARD: a key skips it: the title, then CONTINUE?', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
+  check('HARD: a key skips it: the title, waiting, with no CONTINUE? until a key', !ending.active && s.p.state.mode === 'title' && !s.until(() => s.p.state.prompt === 'continue', 300));
   s.press('Enter');
   s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300);
   s.press('KeyP');
@@ -349,6 +358,20 @@ function win(s: ReturnType<typeof boot>) {
   inp.keyDown('Space'); tick(1); inp.keyUp('Space'); tick(2);
   check('?ending: a key ends it on the title', !ending.active && p.state.mode === 'title');
   Reflect.deleteProperty(globalThis, 'location');
+}
+
+// THE END's numbers with everything collected: each line keeps its label and its whole value, in one column (Chris, 2026-11-24: "SNACKS13/13",
+// the pause panel's line with no space at 10 or more, came out garbled when THE END re-read it)
+{
+  const g = new Game(WORLD);
+  g.start();
+  for (const i of [...WORLD.progress.cakes, ...WORLD.progress.keyItems]) g.siCollected[i] = 0x81;
+  g.score = 1234567;
+  const lines = endingStats(g, montyMap.found.empty());
+  const food = WORLD.progress.foodName ?? 'CAKES';
+  const want = [['SCORE', '1234567'], [food, `${WORLD.progress.cakes.length}/${WORLD.progress.cakes.length}`], ['ITEMS', `${WORLD.progress.keyItems.length}/${WORLD.progress.keyItems.length}`]] as const;
+  check(`THE END with everything collected: ${lines.map((l) => `"${l}"`).join(', ')}: one width, every label and value whole`,
+    new Set(lines.map((l) => l.length)).size === 1 && want.every(([label, value]) => lines.some((l) => l.startsWith(label) && l.endsWith(value) && l.slice(label.length, l.length - value.length).trim() === '')));
 }
 
 finish();

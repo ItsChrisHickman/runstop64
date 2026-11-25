@@ -25,6 +25,7 @@ import { keyOf, livesOn, play, search as bfs, useRandomOf, type Aim, type Goal, 
 import { parseRoute, showRoute } from './legs';
 import type { Prints } from './attribute';
 import { digest, statePrint } from './states';
+import { ROOMS_ENV } from './scope';
 
 /**
  * What a game's recorded searches need besides its routes folder: its fingerprints (read once, when a search first asks), a test's source file by its
@@ -87,11 +88,19 @@ export function proofsIn(dir: string, sources: ProofSources): typeof bfs {
   const keptNone = new Map<string, None>();
   /** How many times each no-way key has been asked this run (one asked twice is never taken as recorded, nor written). */
   const asked = new Map<string, number>();
-  if (!record && !full && fs.existsSync(file)) {
+  /** A scoped run's (`--room`, `MONTY_ROOMS`) `--record` keeps what the file holds for the searches it never asked: they are other rooms' (a scoped re-record once dropped Siberia's no-way proofs). */
+  const carried = new Map<string, string>(), carriedNone = new Map<string, None>();
+  const scoped = (process.env[ROOMS_ENV] ?? '').trim() !== '';
+  if (fs.existsSync(file) && (!record && !full || scoped)) {
     const v = readJsonFile(file);
     if (!fileShape(v)) throw new Error(`${file}: not a recorded route file`);
-    for (const [k, steps] of Object.entries(v.routes)) recorded.set(k, parseRoute(steps));
-    for (const [k, none] of Object.entries(v.none ?? {})) recordedNone.set(k, none);
+    if (!record && !full) {
+      for (const [k, steps] of Object.entries(v.routes)) recorded.set(k, parseRoute(steps));
+      for (const [k, none] of Object.entries(v.none ?? {})) recordedNone.set(k, none);
+    } else {
+      for (const [k, steps] of Object.entries(v.routes)) carried.set(k, steps);
+      for (const [k, none] of Object.entries(v.none ?? {})) carriedNone.set(k, none);
+    }
   }
 
   /** FNV-1a of a string, in hex. */
@@ -119,8 +128,10 @@ export function proofsIn(dir: string, sources: ProofSources): typeof bfs {
   }
 
   function save(): void {
-    const lines = [...kept].map(([k, r]) => `    ${JSON.stringify(k)}: ${JSON.stringify(showRoute(r))}`);
-    const noLines = [...keptNone].filter(([k]) => (asked.get(k) ?? 0) === 1).map(([k, n]) => `    ${JSON.stringify(k)}: ${JSON.stringify(n)}`);
+    const lines = [...kept].map(([k, r]) => `    ${JSON.stringify(k)}: ${JSON.stringify(showRoute(r))}`)
+      .concat([...carried].filter(([k]) => !kept.has(k)).map(([k, steps]) => `    ${JSON.stringify(k)}: ${JSON.stringify(steps)}`));
+    const noLines = [...keptNone].filter(([k]) => (asked.get(k) ?? 0) === 1).map(([k, n]) => `    ${JSON.stringify(k)}: ${JSON.stringify(n)}`)
+      .concat([...carriedNone].filter(([k]) => !asked.has(k)).map(([k, n]) => `    ${JSON.stringify(k)}: ${JSON.stringify(n)}`));
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(file, `{\n  "test": ${JSON.stringify(name)},\n  "routes": {\n${lines.join(',\n')}\n  },\n  "none": {\n${noLines.join(',\n')}\n  }\n}\n`);
   }

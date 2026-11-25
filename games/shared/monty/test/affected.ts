@@ -86,8 +86,11 @@ export function changedRooms(tests: MontyTests, changes: readonly Change[]): { c
       const all = tests.names.regions.get(region.name) ?? [];
       if (c.whole) { add(region.name, all); notes.push(`${c.file}: added or removed: every room of ${region.name}`); continue; }
       const read = attribute(texts[i] ?? '', tables);
-      const wide = c.lines.filter((l) => read.roomOf(l) === null);
-      const rooms = c.lines.flatMap((l) => { const r = read.roomOf(l); return r === null ? [] : [r]; });
+      // a line that is only a comment (or blank) is prose: nothing a test reads (a constant's doc comment changed beside it no longer runs the whole region)
+      const source = (texts[i] ?? '').split('\n');
+      const code = c.lines.filter((l) => !/^\s*(\/\/|\/\*|\*|$)/.test(source[l - 1] ?? ''));
+      const wide = code.filter((l) => read.roomOf(l) === null);
+      const rooms = code.flatMap((l) => { const r = read.roomOf(l); return r === null ? [] : [r]; });
       add(region.name, rooms);
       if (wide.length) { add(region.name, all); notes.push(`${c.file}: line${wide.length > 1 ? 's' : ''} ${wide.slice(0, 8).join(', ')}${wide.length > 8 ? '...' : ''} outside any room: every room of ${region.name}`); }
       else notes.push(`${c.file}: rooms ${[...new Set(rooms)].join(', ')}`);
