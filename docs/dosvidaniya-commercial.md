@@ -87,12 +87,21 @@ plays the same everywhere. The features go where they fit:
 2. Write the behaviour description from today's engine and bots: the clean-room line.
 3. Prototype one region in 6502: built for a real C64 and VICE, translated and run in the web shell, its memory and CPU
    measured. Go or no-go on the approach.
-4. Replace what is Monty on the Run's: a new hero, the coin, the score bar and lettering, the crushers and the death, an original
+4. Replace what is Monty on the Run's: the hero (Viktor Vole redrawn), Freddie Ferret in Viktor's place, the coin, the score bar and lettering, the crushers and the death, an original
    soundtrack for the SID.
 5. The other regions; then the Steam wrapper.
 
+## The cast (Chris, 2026-11-24)
+
+- **The hero: Viktor Vole**, today's antagonist, redrawn to be a bit more Monty-like (a small, round, plucky burrower): Monty's
+  role and feel, in a character of our own. The likeness line: his proportions and charm may echo Monty's, his drawn frames may not
+  copy them (draw him fresh, never over Monty's frames as the costumes are drawn today).
+- **The antagonist: Freddie Ferret** (perhaps), in Viktor's place: the spy who shadows him, the train and ship escapes, the plane,
+  the Spy vs Spy tally and the showdown.
+
 ## Open questions for Chris
 
-- The hero who replaces Monty, and the game's commercial name.
+- The game's commercial name.
+- Freddie Ferret confirmed as the antagonist.
 - Who composes the soundtrack (it plays on the SID on every platform).
 - Who owns the commercial game (the company that publishes on Steam).
