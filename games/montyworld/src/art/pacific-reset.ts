@@ -32,16 +32,19 @@ export const PACIFIC_RESET_TILES = {
     '########',
     '########',
   ]),
-  /** The surge going by: the flat sea cut by black streaks running west. Nothing (a pulse draws it while a set runs). */
+  /**
+   * The surge going by: the flat sea cut by black flow lines running west, each with its head at the west end (the way the water goes), staggered so a row of them reads as one stream. Nothing (a pulse
+   * draws it while a set runs, and it slides west as the water does: `SURGE_ANIM`).
+   */
   pacSurge: tile('pacSurge', 0, 6, [
     '########',
-    '...#####',
-    '####....',
+    '##.#####',
+    '#......#',
+    '##.#####',
     '########',
-    '########',
-    '#....###',
-    '######..',
-    '########',
+    '####.###',
+    '###.....',
+    '####.###',
   ]),
   /** The crust about to go: split by black cracks. Solid. */
   pacCrustSplit: tile('pacCrustSplit', 1, 9, [

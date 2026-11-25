@@ -1,4 +1,4 @@
-import type { Arrival, BoardingSpec, CrackSpec, CurrentSpec, LavaSpec, PulseSpec } from '../../montyotr/src/montydata';
+import type { Arrival, BoardingSpec, CharAnim, CrackSpec, CurrentSpec, LavaSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { codeOf, fillCells, type Grid, room, type Palette } from './layout';
 
@@ -52,7 +52,7 @@ export const WAIKIKI_PALETTE = {
 
 /** Hana (the sea is a backdrop, one flat blue: `HANA_SEA`): the black rock and sand, the reef's brown rock, coral, the moray's hole, eyes and body, and the surge's streaks. */
 export const HANA_PALETTE = {
-  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 14],
+  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 6],
 } as const satisfies Palette;
 
 /** Hilo: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the rope, the steam vent's column. */
@@ -88,11 +88,16 @@ export const CURRENTS: readonly CurrentSpec[] = [
   { col: 10, cols: 21, top: 12, bottom: 15 }, // over the heads
   { col: 29, cols: 2, top: 16, bottom: 18 }, // past the third
 ].map((box): CurrentSpec => ({ room: PAC.hana, ...box, dx: -1, period: SURGE.period, start: SURGE.start, length: SURGE.length }));
-/** The surge seen: streaks flicker in the lane over the heads from 30 frames before a set until it is spent (harmless `pulses`: a warning and nothing live). */
-export const SURGE_PULSES: readonly PulseSpec[] = [11, 16, 21, 26].flatMap((col) => [13].map((row): PulseSpec => ({
-  room: PAC.hana, col, row, cols: 2, rows: 1, period: SURGE.period, start: SURGE.start - SURGE.warn, warn: SURGE.warn + SURGE.length, live: 0,
-  idle: 0, warnCode: codeOf(HANA_PALETTE, 'U'), liveCode: codeOf(HANA_PALETTE, 'U'), spent: 0,
+/**
+ * The surge seen: flow lines in the lane over the heads (two rows of them, staggered), steady (not a flicker: Chris, 2026-11-25, "I don't know what the flashing blue things are") from 30 frames before a set until it is spent
+ * (harmless `pulses`: shown from `start` as their spent look, nothing live), sliding west as the water runs (`SURGE_ANIM`), so the coming set is seen as the water starting to run.
+ */
+export const SURGE_PULSES: readonly PulseSpec[] = ([[13, [11, 16, 21, 26]], [15, [13, 18, 23, 28]]] as const).flatMap(([row, cols]) => cols.map((col): PulseSpec => ({
+  room: PAC.hana, col, row, cols: 2, rows: 1, period: SURGE.period, start: SURGE.start - SURGE.warn, warn: 0, live: 0,
+  idle: 0, warnCode: codeOf(HANA_PALETTE, 'U'), liveCode: codeOf(HANA_PALETTE, 'U'), spent: codeOf(HANA_PALETTE, 'U'),
 })));
+/** The flow lines slide west a pixel a step (half a pixel a frame), the water's way. */
+export const SURGE_ANIM: CharAnim = { kind: 'scroll', room: PAC.hana, rings: [[codeOf(HANA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 };
 
 /**
  * The moray (`pulses`): in its hole in the pillar's west face by the sea cave's mouth (col 8, row 14) its eyes appear and blink for 45 frames (the warning), then it lunges west across the drop-off, a body
