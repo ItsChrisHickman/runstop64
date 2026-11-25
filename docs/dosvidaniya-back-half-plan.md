@@ -137,6 +137,21 @@ the same story, the same set pieces. The work is execution (art that reads, fair
 somewhere), never a redesign. Above all THE ROAD TO HANA keeps its three tiers with the cars driving through them; it may stay
 easy (a run-through is fine there: it is the story), and nothing below may turn it into a different puzzle.
 
+**Chris's story is the route (2026-11-25; it overrides the table below wherever they differ):** "We had a full story before
+that geographically went from Oahu -> Maui (Molokai in background before reaching) -> Road to Hana -> Big Island ->
+Mauna Kea/other volcano -> Hilo -> plane sequence." And: "Calling a random underwater level that should be a connector between
+islands 'Hana' doesn't even make any sense." So:
+
+- **Restore the old Pacific rooms in their old order and geography** (`804a838^`): Oahu (PIER PRESSURE, SURF AND TURF, LEI OF
+  THE LAND), the reefs as connectors, MOLE-OKAI (Molokai: kept, it is on the way to Maui with its sea cliffs), Maui (WHALE OF A
+  TIME, THE ROAD TO HANA, THE SEA CAVE, HANA BANANA), the swim to the Big Island, COFFEE BREAK (Kona), MAUNA KEA-OS (the
+  volcano and its lava), HILO GOODBYE (Hilo and the airfield), then the plane sequence (the biplane and the flight). The
+  "not proposed back" list below no longer applies: PIER PRESSURE and COFFEE BREAK come back. Only the two ship rooms stay
+  merged into THE CARGO SHIP, and the cargo plane's hold stays cut (Chris asked for that).
+- **Names follow places.** A swim between islands is named as a crossing (the old reef names: CLAM DOWN, KELP WANTED, FISH OUT
+  OF WATER), never after a place on land. HANA (BANANA) is the town on Maui at the end of the road, a land room.
+- The order of the volcano and Hilo is Chris's: the volcano first, then Hilo and the airfield, then the plane.
+
 | # | Room (id, cell) | Restores | What it asks (one thing) | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
 | 1 | THE CARGO SHIP (38, [2,17]) | kept as built | Three heights of the ship, with Viktor on your path; lead him under the crane's crate. | 2, as now | | parrot, crate, Viktor |
