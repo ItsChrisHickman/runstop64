@@ -34,7 +34,10 @@ export function swimMove(g: Game) {
   g.dirUp = (input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0) && g.y > FLOAT_CEILING;
   g.dirDown = input.down && !input.up && stroke;
   g.upSteps = g.downSteps = 1;
+  const facing = g.facing;
   applyMonty(g, g);
+  // he faces the way his own stick takes him; a surge carrying him (or a stick held both ways, or none) keeps his facing (the move sets it from the way he is carried)
+  g.facing = input.left && !input.right ? 0x81 : input.right && !input.left ? 0x01 : facing;
 }
 
 /** Whether a surge runs at `t` frames into the room's time. */
