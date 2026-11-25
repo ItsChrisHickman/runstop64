@@ -174,6 +174,11 @@ make any sense." The route, in order:
    doubling back away from its gate, the rooms form a loop, and one room is crossed twice at two heights.
    - **The loop:** Kona, the top way (Mauna Kea's climb, the summit, down beside Akaka Falls) to Hilo, and the bottom way
      (Mauna Loa, the coffee farm) back from Hilo to Kona. Every join both ways, so either way can be taken first.
+   - **Mauna Kea is two rooms, the summit one screen** (Chris liked the dome, the telescope and the summit together): first
+     the climb, cinder slopes and switchbacks rising out of the cloud layer; then, on the grid row above it, **the summit**:
+     the cloud tops at the bottom, the bare red cinder ridge to the summit marker, two or three observatory domes, the big
+     one's slit open with its telescope pointing out at the night sky (stars and the moon over the black upper rows, the only
+     night in the game). The decor and lettering budgets decide how many domes fit.
    - **The moon rock (bottom way, a dead end):** from Mauna Kea's summit a shooting star is seen falling south (the story told
      in the picture). It lies in **Mauna Loa's crater**, down a pit off the bottom way past the lava; taking it wakes the lava,
      which rises behind him on the climb out (the run ahead of the lava).
