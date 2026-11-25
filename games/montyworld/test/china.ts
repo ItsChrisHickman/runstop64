@@ -25,7 +25,7 @@ const args = readArgs();
 const only = args.only;
 
 /** The rooms and finds of China in the tables: the rooms from the wall's foot on. */
-const chinese = (room: number) => room >= CHI.wall && room <= CHI.junk;
+const chinese = (room: number) => (room >= CHI.wall && room <= CHI.junk) || room === CHI.heaven; // (HEAVEN CAN WAIT was added after the flight: its id is 82)
 
 /** What the kept leg states are checked against (read once). */
 const PRINTS = prints();
