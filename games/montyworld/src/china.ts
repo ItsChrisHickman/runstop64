@@ -169,12 +169,13 @@ export const JUNK_CRACKS: readonly CrackSpec[] = Array.from({ length: 13 }, (_, 
 
 /** The paint of alley's room: its tiles. */
 const paintAlley = (g: Grid): void => {
-    g.box(0, 0, 1, 0, 'E').box(7, 0, 14, 0, 'E').box(7, 1, 13, 1, 'E').box(0, 1, 1, 1, 'E').box(0, 2, 1, 13, 'B'); // the house's eave over the rope's way up (five cells wide round it); the corner of a hutong house at the left, the lane open to the sky and running off to the right
+    g.box(0, 0, 1, 0, 'E').box(7, 0, 14, 0, 'E').box(7, 1, 13, 1, 'E').box(0, 1, 1, 1, 'E').box(0, 2, 1, 13, 'B'); // the house's eave over the rope's way up (five cells wide round it); the corner of a hutong house at the left, the lane open to the sky up to the house at its east end
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B');
     g.box(4, 0, 4, 16, 'R');
     g.box(8, 15, 10, 15, 'S').box(11, 13, 13, 13, 'S').box(14, 11, 16, 11, 'S'); // the shelves
     g.box(17, 9, 29, 9, 'P'); // the roof ledge
-    g.box(16, 1, 30, 1, 'E').box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, its eave, the beam
+    g.box(16, 1, 31, 1, 'E').box(17, 2, 29, 5, 'B').box(19, 6, 27, 6, 'E'); // the house over it, its eave, the beam
+    g.box(30, 2, 31, 16, 'B'); // the house's end wall closing the lane: a dead end (no room east of the hutong; the lane ran off the edge onto nothing)
     for (let c = CRACKERS.first; c < CRACKERS.first + CRACKERS.count; c++) g.box(c, 7, c, 8, 'K'); // the crackers
 };
 
@@ -247,7 +248,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // D BACK ALLEY BEIJING: the hutong. In from the wall's tunnel, low; a rope at column 4 up to the market. The ground runs east to a dead end past a bicycle and a monk on a pogo stick; shelves
+  // D BACK ALLEY BEIJING: the hutong. In from the wall's tunnel, low; a rope at column 4 up to the market. The ground runs east to a dead end (the house's end wall) past a bicycle and a monk on a pogo stick; shelves
   // up the middle to a roof ledge under a beam and a string of firecrackers that go off in turn; the key at its end.
   room({
     id: CHI.alley, cell: [2, 9], sector: 19, palette: ALLEY_PALETTE,
