@@ -30,7 +30,7 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('C: on up to the cab\'s roof', stands(SIB.coal, 11, 18, 26)),
   leg('C to M: up the ladder to the tipple and east along it', into(SIB.mine, 31, 3, SIB.coal)),
   leg('M: east along the gantry and down the ladder to the dock', stands(SIB.mine, 18, 21, 28)),
-  leg('M: up the timber ledges, the coin at the top', coin(SIB.mine, 24, 12)),
+  leg('M: up the timber ledges, the coin at the top', coin(SIB.mine, 23, 12)),
   leg('M: the cart west over the working, the coin on the west dock', coin(SIB.mine, 2, 16)),
   leg('M to G: down the rope through the dock', into(SIB.border, 5, 19, SIB.mine)),
   leg('G: over the first ice to the sandbar, its coin', coin(SIB.border, 16, 15)),

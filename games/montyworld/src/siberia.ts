@@ -228,8 +228,15 @@ export const YETI: DragonSpec = {
 export const MINE_ROPE = { col: 5, gap: [4, 6] } as const;
 /** The left columns of the mine's two air shafts (three wide), each with a bat going up and down it from the gantry's lane to the cart's. */
 export const MINE_SHAFTS = [10, 17] as const;
-/** The mine's ladder from the gantry's end (its gap, columns 26-28) down to the east dock. */
-export const MINE_LADDER = { col: 27, gap: [26, 28] } as const;
+/** The mine's ladder from the gantry's end (its gap, columns 25-27) down to the east dock, in a shaft of its own: the rock beside it comes down to row 15 at column 24 (`lip`), so the only way off it is at its foot. */
+export const MINE_LADDER = { room: SIB.mine, col: 26, gap: [25, 27], lip: 24 } as const;
+/**
+ * The miner on the east dock, Monty on the Run's walker with a window (Chris, 2026-11-24: "that guard really deserves some timing"). He works a seam cut into the east wall
+ * (columns 29-30, rows 16-17: Monty Mole's coal bucket stands in it) and walks from it west under the ladder to the ledges' foot and back: x 128 to 144 (`MINER.from`, `.to`, in the enemies' x), a lap of about
+ * 140 frames. The ledges' foot (columns 21-23) and the cart's dock are never on his beat; the ladder's foot is. From the ladder (safe above his head) Monty watches him walk
+ * under it into the seam; come down while he is past the ladder (a window of about a second) and walk west, and he follows at half Monty's pace and turns back short of the ledges.
+ */
+export const MINER = { room: SIB.mine, col: 25, range: 34, seam: [29, 30], from: 128, to: 144 } as const;
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -339,32 +346,35 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
   }),
 
   // M MINE ALL MINE: the hairpin, the region's most enclosed room: two tight tunnels, one over the other, with the hill's rock between them. In along the tipple's gantry under
-  // the rock; the ladder down from its end to the east dock (a miner pacing its foot), timber ledges up to a coin (Monty Mole's coal bucket on the low one); the cart west along the low gallery
-  // over the flooded working to the west dock, its coin seen from the gantry on the way in; and the rope down through the dock's gap to the river. Two air shafts through the rock
-  // join the tunnels, a bat going up and down each, across the gantry and down over the cart.
+  // the rock; the ladder down its shaft from the gantry's end to the east dock, where a miner walks from his seam in the east wall under the ladder and back (wait on the ladder
+  // while he goes into the seam, then down and west: MINER); timber ledges up from the dock to a coin, off his beat (Monty Mole's coal bucket in the seam); the cart west along
+  // the low gallery over the flooded working to the west dock, its coin seen from the gantry on the way in; and the rope down through the dock's gap to the river. Two air shafts
+  // through the rock join the tunnels, a bat going up and down each, across the gantry and down over the cart.
   room({
     id: SIB.mine, cell: [1, 7], sector: 14, palette: MINE_PALETTE,
     paint(g) {
       g.box(0, 0, 31, 0, 'K').box(29, 0, 31, 19, 'K'); // the rock over the gantry; the east wall (China's tower is beyond)
+      g.clear(MINER.seam[0], 16, MINER.seam[1], 17); // the miner's seam, cut into the east wall at the dock
       g.box(0, 5, 0, 17, 'K').box(1, 5, 7, 7, 'K'); // the west wall under the gantry, and the rock it is cut through
-      g.box(0, 4, 25, 4, 'B'); // the gantry
+      g.box(0, 4, MINE_LADDER.gap[0] - 1, 4, 'B'); // the gantry
       g.box(MINE_LADDER.col, 4, MINE_LADDER.col, 17, 'R'); // the ladder from its end
       g.box(0, 18, 28, 19, 'K'); // the gallery's floor
       g.clear(MINE_ROPE.gap[0], 18, MINE_ROPE.gap[1], 19).box(MINE_ROPE.col, 18, MINE_ROPE.col, 19, 'P'); // the west dock's gap and the rope
       g.clear(CART.span.from, 18, CART.span.to, 19).box(CART.span.from, 19, CART.span.to, 19, 'W'); // the flooded working
-      g.box(21, 16, 23, 16, 'B').box(23, 14, 25, 14, 'B'); // timber ledges up from the east dock
-      g.box(1, 5, 25, 11, 'K').box(8, 12, 22, 12, 'K'); // the rock between the gantry and the gallery: the gallery's low ceiling
+      g.box(21, 16, 23, 16, 'B').box(22, 14, 23, 14, 'B'); // timber ledges up from the east dock
+      g.box(1, 5, MINE_LADDER.lip, 11, 'K').box(8, 12, MINE_SHAFTS[1] + 2, 12, 'K'); // the rock between the gantry and the gallery: the gallery's low ceiling, up to the east shaft (open over the ledges)
+      g.box(MINE_LADDER.lip, 12, MINE_LADDER.lip, 15, 'K').box(MINE_LADDER.gap[1] + 1, 4, MINE_LADDER.gap[1] + 1, 15, 'K'); // the ladder's shaft, three wide down to the dock's headroom (no way off the ladder but at its foot)
       g.clear(MINE_SHAFTS[0], 5, MINE_SHAFTS[0] + 2, 12).clear(MINE_SHAFTS[1], 5, MINE_SHAFTS[1] + 2, 12); // the air shafts, three wide
     },
-    coins: [[2, 16], [24, 12]],
+    coins: [[2, 16], [23, 12]],
     decor: [
-      ['coalBucket', 21, 14], // (on the low timber ledge, off the miner's beat)
+      ['coalBucket', MINER.seam[0], 16], // (in the miner's seam: he walks in front of it to fill it)
       ...Array.from({ length: CART.span.to - CART.span.from + 1 }, (_, i): Placed => ['rail', CART.span.from + i, CART.row]), ['mineCart', CART.span.from, CART.row - 1],
     ],
     creatures: [
       { who: 'bat', col: MINE_SHAFTS[0], row: 1, way: 'down', speed: 1, range: 104 },
       { who: 'bat', col: MINE_SHAFTS[1], row: 14, way: 'up', speed: 1, range: 104 },
-      { who: 'miner', col: 24, row: 16, way: 'right', speed: 1, range: 24 },
+      { who: 'miner', col: MINER.col, row: 16, way: 'right', speed: 1, range: MINER.range }, // from the ledges' foot under the ladder into his seam and back
     ],
   }),
 

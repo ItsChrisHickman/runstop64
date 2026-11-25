@@ -4,8 +4,8 @@
  * he's visited, the ending undone (Game.leaveEnding): he arrives exactly as travel there from play
  * has him arrive (the game's memory, colours, sprites and registers, the music), plays on, and coming
  * back to the treasure the ending plays again, through to the finale. Once he's aboard, the pause
- * screen doesn't open; nor in another sequence (a death). After the finale (France): the title and
- * CONTINUE?, the save as it was (the dock room's, with everything collected) and the map's progress
+ * screen doesn't open; nor in another sequence (a death). After the finale (France) and the reward: the title,
+ * waiting for a key (no CONTINUE? until then), the save as it was (the dock room's, with everything collected) and the map's progress
  * kept; yes takes him back into the dock room as he came in, lives and score as saved, and the
  * treasure there plays the ending again.
  *
@@ -117,8 +117,11 @@ const s = unpackSlot(CODEC, saved), found = Object.keys(readFound('montyotr').ro
 check(`the save after finishing is the dock room's, everything collected in it (${saved.summary.join(' / ')})`,
   s.roomId === DOCK && s.items[8] === 0x81 && s.score === 1230 && s.lives === 3 && s.coins[0] === 1 && store.has('montyotr.save.v2') && readSaves('montyotr').current?.data === saved.data && p.state.hasSave);
 check(`the map's progress kept (${found.length} rooms seen, the first and the dock among them)`, found.includes(String(first)) && found.includes(String(DOCK)));
-check('CONTINUE? offered', until(() => p.state.prompt === 'continue', 600));
+// the show ends on the title as it is: nothing is asked until a key (Chris, 2026-11-24: it cut straight to CONTINUE?)
+tick(300);
+check(`after the show the title waits: no CONTINUE? until a key (prompt ${p.state.prompt ?? 'none'}, ${p.state.mode})`, p.state.mode === 'title' && p.state.prompt !== 'continue');
 press('Enter');
+if (p.state.prompt === 'continue') press('Enter');
 const back = until(() => p.state.mode === 'play' && g.roomId === DOCK && !g.freeze, 200);
 check(`yes: back in the dock room ($${g.roomId.toString(16)}), the jerry can still had, lives ${g.lives} and score ${g.score} as saved (${s.lives}, ${s.score}), coins as saved, the game's tune`,
   back && g.siCollected[8] === 0x81 && g.lives === s.lives && g.score === s.score && s.coins.every((c, i) => g.coinCollected[i] === c) && !g.won && lastSong() === 0);

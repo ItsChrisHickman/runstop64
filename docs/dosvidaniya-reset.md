@@ -356,22 +356,22 @@ There is no fourth car: [1,7] is the mine's.
   white-cyan, so they read as solid. One or two stalactites.
 
 **M MINE ALL MINE** (the hairpin; the region's most enclosed room, just before its most open)
-- **The way in:** the tipple's gantry, timber at row 4, columns 0-25. The left edge is open at rows 1-3 and shut below. The whole
+- **The way in:** the tipple's gantry, timber at row 4, columns 0-24 (and rock at 28). The left edge is open at rows 1-3 and shut below. The whole
   east edge is solid.
 - **Layout:**
-  - a 3-wide gap at columns 26-28, with a ladder at column 27 down to the gallery (row 18);
-  - the east dock at columns 21-31, with two timber ledges at rows 16 and 14 stepping up from it;
+  - a 3-wide gap at columns 25-27, with a ladder at column 26 down a shaft of its own (rock at column 24, rows 12-15, and column 28) to the dock (row 18): the only way off it is at its foot;
+  - the east dock at columns 21-30, the miner's seam cut into the east wall at columns 29-30, two timber ledges (row 16 at 21-23, row 14 at 22-23) stepping up from it;
   - the flooded working at columns 8-20, with the cart (the existing bouncing float, its span set to 8-20);
   - the west dock at columns 0-7, with the floor gap at 4-6 and the rope at column 5 down to G.
   - A fall into the water restarts on a dock, never in a trap.
 - **Creatures:**
-  - a miner walking the east dock at the ladder's foot, so the climb down is timed;
+  - a miner walking from his seam west under the ladder to the ledges' foot and back (`MINER`, Chris 2026-11-24: "that guard really deserves some timing"): wait on the ladder over him, come down while he is in the seam (about a second), and walk west; he turns back short of the ledges' foot, where the cart is waited for. The first build had him pace the ladder's foot itself, so it was never clear and the only way past was a jump off the ladder onto the ledges;
   - a bat going up and down over the working, which you ride under;
   - a bat going up and down through the gantry's lane at about column 14.
 - **Coins (2):**
   - on the west dock, about (2,16): seen now from the gantry, reached later by the cart;
-  - on the top timber ledge: it tops a climb.
-- **Background:** black. Rock only at the edges, in dark brown. The water is dark blue. Monty Mole's coal bucket stands on the east dock.
+  - on the top timber ledge (23,12): it tops a climb from the ledges' foot, off the miner's beat.
+- **Background:** black. Rock only at the edges, in dark brown. The water is dark blue. Monty Mole's coal bucket stands in the miner's seam.
   No scattered seams or props in the play area.
 
 **G BORDER LINE CASE** (the release: the frozen Amur, which really is the border)

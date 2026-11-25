@@ -195,9 +195,11 @@ export const HIDEOUT_CRACKS: readonly CrackSpec[] = Array.from({ length: 5 }, (_
   room: JP.hideout, col: 12 + k, cols: 1, row: 9, codes: [codeOf(HIDEOUT_PALETTE, 'P'), codeOf(HIDEOUT_PALETTE, 'K'), codeOf(HIDEOUT_PALETTE, 'L')], crack: 16, wide: 34, gone: 46, away: 600,
 }));
 export const DOORS = { cols: [6, 12, 18] as const, row: 11, rows: 3, period: 160, open: 80, warn: 24, live: 8, apart: 40 } as const;
+/** The warning also flashes the paper panel over each doorway and the threshold under it (Chris, 2026-11-24: standing in the doorway, Monty hid it), in red. */
+const DOOR_FLASH = { rows: [9, 10, 14], colour: 2 } as const;
 export const DOOR_PULSES: readonly PulseSpec[] = DOORS.cols.map((col, k): PulseSpec => ({
   room: JP.hall, col, row: DOORS.row, cols: 2, rows: DOORS.rows, period: DOORS.period, start: DOORS.open, warn: DOORS.warn, live: DOORS.live, offset: (DOORS.period - k * DOORS.apart) % DOORS.period,
-  idle: codeOf(HALL_PALETTE, 'O'), warnCode: codeOf(HALL_PALETTE, 'N'), liveCode: codeOf(HALL_PALETTE, 'S'), spent: codeOf(HALL_PALETTE, 'S'),
+  idle: codeOf(HALL_PALETTE, 'O'), warnCode: codeOf(HALL_PALETTE, 'N'), liveCode: codeOf(HALL_PALETTE, 'S'), spent: codeOf(HALL_PALETTE, 'S'), flash: DOOR_FLASH,
 }));
 
 /** The pond's other two planks (cols 19-20 on row 13, cols 22-23 on row 14): not there until the fish food, which brings them up as the koi come to feed. Without them the far bank is seven cells off. */

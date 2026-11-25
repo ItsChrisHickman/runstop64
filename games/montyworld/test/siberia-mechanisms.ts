@@ -18,7 +18,7 @@ import { must } from '../../shared/test/must';
 import { WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
-import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TUNNELS, YETI } from '../src/siberia';
+import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
@@ -366,6 +366,62 @@ SCOPE.section([SIB.mine, SIB.coal, SIB.border], 'the mine cart', () => {
   const mine = roomOf(SIB.mine);
   check('the mine\'s ladder and rope go through gaps three wide, the ladder and the rope in their middles', MINE_LADDER.gap[1] - MINE_LADDER.gap[0] === 2 && MINE_LADDER.col === MINE_LADDER.gap[0] + 1 && MINE_ROPE.gap[1] - MINE_ROPE.gap[0] === 2 && MINE_ROPE.col === MINE_ROPE.gap[0] + 1
     && [MINE_LADDER.gap[0], MINE_LADDER.gap[1]].every((c) => classAt(SIB.mine, c, 4) === 0) && mine.map.length === 20);
+});
+
+// ---- the miner at the ladder's foot: passed by waiting for his window, never by a jump off the ladder ----------------------------------------
+SCOPE.section([SIB.mine], 'the miner\'s window', () => {
+  const FOOT = standY(18), WAIT = standY(16);
+  /** The miner (the one creature on the dock's floor). */
+  const miner = (g: Game) => must(g.enemies.find((e) => e.y === FOOT), 'the miner');
+  /** Monty on the ladder two rows over the dock, the room's creatures as they start (the miner leaving the ledges' foot for his seam). */
+  const onLadder = (y = WAIT) => {
+    const s = at(SIB.mine, MINE_LADDER.col - 1, 18, [], false, true);
+    s.g.y = y;
+    frame(s, UP);
+    return s;
+  };
+  {
+    const s = onLadder();
+    let lo = 255, hi = 0, hurt = false;
+    for (let f = 0; f < 400; f++) { frame(s, NONE); const x = miner(s.g).x; lo = Math.min(lo, x); hi = Math.max(hi, x); hurt ||= dead(s.g); }
+    check(`the miner walks from the ledges' foot under the ladder into his seam and back (x ${lo} to ${hi}, as MINER says), and Monty waiting on the ladder over him is never touched`,
+      lo === MINER.from && hi === MINER.to && !hurt && s.g.onRope !== 0 && MINER.seam.every((c) => classAt(SIB.mine, c, 16) === 0 && classAt(SIB.mine, c, 17) === 0));
+  }
+  {
+    const s = at(SIB.mine, 23, 18, [], false, true);
+    check('the ledges\' foot (column 23 and west, where he waits for the cart) is never on the miner\'s beat', diesAt(s, NONE, 400) === -1);
+  }
+  // A player who watches: waits on the ladder until the miner has gone under it into his seam, then climbs down and walks west. From every moment he might arrive on the ladder.
+  const phases = Array.from({ length: 20 }, (_, i) => i * 7);
+  const passes = (s: State, watch: boolean) => {
+    for (let f = 0; f < 300 && watch && !(miner(s.g).x >= 135 && !(miner(s.g).flags & 0x80)); f++) { frame(s, NONE); if (dead(s.g)) return false; }
+    for (let f = 0; f < 40 && s.g.y < FOOT; f++) { frame(s, DOWN); if (dead(s.g)) return false; }
+    for (let f = 0; f < 60 && colOf(s.g) > 22; f++) { frame(s, LEFT); if (dead(s.g)) return false; }
+    return colOf(s.g) <= 22 && diesAt(s, NONE, 200) === -1;
+  };
+  const watched = phases.filter((p) => { const s = onLadder(); run(s, NONE, p); return passes(s, true); }).length;
+  const rushed = phases.filter((p) => { const s = onLadder(); run(s, NONE, p); return passes(s, false); }).length;
+  check(`waiting on the ladder for the miner to go into his seam, then down and west, gets past him from every moment he can arrive (${watched} of ${phases.length}); going straight down at a bad moment is caught (${phases.length - rushed} of ${phases.length})`,
+    watched === phases.length && rushed < phases.length - phases.length / 4);
+  // No way round him: off the ladder at any height, walking or jumping west, he never comes down on the timber ledges (the trick Chris found: a jump off the ladder over the miner).
+  const tricks: string[] = [];
+  for (let y = standY(4) + 2; y <= FOOT; y += 2) {
+    for (const [name, stick, frames] of [['walk', LEFT, 12], ['jump', { ...LEFT, fire: true }, 2]] as const) {
+      const s = onLadder(y);
+      s.g.enemies = [];
+      s.g.enable &= 0x0f;
+      s.g.vic.enable &= 0x0f;
+      run(s, stick, frames);
+      run(s, NONE, 120);
+      const col = colOf(s.g);
+      if ((s.g.y === standY(14) && col >= 21 && col <= 24) || (s.g.y === standY(16) && col >= 20 && col <= 23) || (name === 'jump' && s.g.y === FOOT && col <= 22)) tricks.push(`${name} at y ${y} (column ${col}, y ${s.g.y})`);
+    }
+  }
+  check(`off the ladder at any height, walking or jumping west, he never lands on the timber ledges, and a jump from its foot never carries him over the miner's beat: the shaft's side (column ${MINE_LADDER.lip}, rows 12-15) leaves only the walk from its foot${tricks.length ? ` (${tricks.join(', ')})` : ''}`,
+    tricks.length === 0 && [12, 13, 14, 15].every((r) => classAt(SIB.mine, MINE_LADDER.lip, r) === 1));
+  const climb = search(at(SIB.mine, 21, 18), (g) => g.roomId === SIB.mine && g.y === standY(14) && colOf(g) >= 21 && colOf(g) <= 23, [{ room: SIB.mine, col: 22, row: 12 }], 200000, 1.5);
+  const down = search(at(SIB.mine, 22, 14), (g) => g.roomId === SIB.mine && g.y === FOOT && colOf(g) >= 21 && colOf(g) <= 23, [{ room: SIB.mine, col: 21, row: 16 }], 200000, 1.5);
+  check(`the ledges climb from the dock to the top one (${climb ? climb.nodes : 'no way'}) and back down (${down ? down.nodes : 'no way'}): the coin tops a climb from the ledges' foot, off the miner's beat, and the top one is no trap`, climb !== null && down !== null);
 });
 
 // ---- the river's cracking ice ----------------------------------------------------------------------------
