@@ -137,20 +137,39 @@ the same story, the same set pieces. The work is execution (art that reads, fair
 somewhere), never a redesign. Above all THE ROAD TO HANA keeps its three tiers with the cars driving through them; it may stay
 easy (a run-through is fine there: it is the story), and nothing below may turn it into a different puzzle.
 
-**Chris's story is the route (2026-11-25; it overrides the table below wherever they differ):** "We had a full story before
-that geographically went from Oahu -> Maui (Molokai in background before reaching) -> Road to Hana -> Big Island ->
-Mauna Kea/other volcano -> Hilo -> plane sequence." And: "Calling a random underwater level that should be a connector between
-islands 'Hana' doesn't even make any sense." So:
+**Chris's story is the route (2026-11-25; it overrides the table below wherever they differ).** In his words: "landing in
+Honolulu, then climbing Diamond Head to get the snorkel that a tourist left behind, then snorkeling past Molokai to Lahaina,
+Road to Hana, then more snorkeling from that beach (Kaihalulu Beach in Hana has red sand!) to the Big Island (Kona), which
+would be a rocky beach with black sand", then "the map splits: Mauna Kea is on a path through the middle of the island, Mauna
+Loa is a path on the southern part and has the lava; both paths in real life lead to Hilo", and "maybe Hilo should be the
+coffee plantation". Also: "Calling a random underwater level that should be a connector between islands 'Hana' doesn't even
+make any sense." The route, in order:
 
-- **Restore the old Pacific rooms in their old order and geography** (`804a838^`): Oahu (PIER PRESSURE, SURF AND TURF, LEI OF
-  THE LAND), the reefs as connectors, MOLE-OKAI (Molokai: kept, it is on the way to Maui with its sea cliffs), Maui (WHALE OF A
-  TIME, THE ROAD TO HANA, THE SEA CAVE, HANA BANANA), the swim to the Big Island, COFFEE BREAK (Kona), MAUNA KEA-OS (the
-  volcano and its lava), HILO GOODBYE (Hilo and the airfield), then the plane sequence (the biplane and the flight). The
-  "not proposed back" list below no longer applies: PIER PRESSURE and COFFEE BREAK come back. Only the two ship rooms stay
-  merged into THE CARGO SHIP, and the cargo plane's hold stays cut (Chris asked for that).
-- **Names follow places.** A swim between islands is named as a crossing (the old reef names: CLAM DOWN, KELP WANTED, FISH OUT
-  OF WATER), never after a place on land. HANA (BANANA) is the town on Maui at the end of the road, a land room.
-- The order of the volcano and Hilo is Chris's: the volcano first, then Hilo and the airfield, then the plane.
+1. **THE CARGO SHIP** docks at **Honolulu**: the harbour (PIER PRESSURE's Aloha Tower quay; the cargo port, not Pearl Harbor,
+   which is a navy base and a memorial).
+2. **Oahu:** Waikiki's beach and the luau (SURF AND TURF, LEI OF THE LAND, more hula), and the climb up **DIAMOND HEAD**
+   (restore the second pass's DIAMOND HEAD and THE LOOKOUT from git) to the crater rim, where the **snorkel** a tourist left
+   behind lies at the lookout. The surf kills until he has it.
+3. **The swim past Molokai** (the first crossing): open water with Molokai's sea cliffs behind (the old reef room; MOLE-OKAI's
+   fishponds may be its shallows). Molokai is scenery here, not a land room.
+4. **Maui:** come up at **Lahaina** (WHALE OF A TIME), **THE ROAD TO HANA** (its three tiers with the cars driving through, as it
+   was), THE SEA CAVE under it, and **Hana** at the road's end: **Kaihalulu**, the red sand beach in its red cinder cove (HANA
+   BANANA's place). Its cove is where he goes back into the sea.
+5. **The swim to the Big Island** (the second crossing: FISH OUT OF WATER, the surge, the moray, the shark; today's HANA swim
+   room renamed), out on to **Kona**: a rocky black sand beach (lava rock, tide pools).
+6. **The island splits: two ways to Hilo**, both real, both playable, the map showing the fork:
+   - **Mauna Kea**, through the middle: up and up to the summit (the tallest point in the US): above the clouds, the
+     observatory domes, the night sky with stars and the moon. Cold, thin air, the climb is the challenge.
+   - **Mauna Loa**, the southern way: the lava (MAUNA KEA-OS's rising lava and cracking crust belong here, and only here).
+   Each way has coins of its own (a reason to come back for the other); neither is a dead end; the parachute is at the end
+   (Hilo), so either way finishes the region.
+7. **Hilo is the coffee farm** (COFFEE BREAK's coffee moves here: the plantation's rows on the slope down to Hilo town and the
+   airfield), where the yellow mail biplane waits: NO FLYING WITHOUT A PARACHUTE, the parachute found on the farm.
+8. **The plane sequence** (the flight, then the three-room parachute drop).
+
+Names follow places: a swim is named as a crossing, never after a town. Only the two ship rooms stay merged into THE CARGO SHIP,
+and the cargo plane's hold stays cut (Chris asked). Kona keeps the beach; its coffee is Hilo's. Room count follows the story
+(about 15 to 17), not a target.
 
 | # | Room (id, cell) | Restores | What it asks (one thing) | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
