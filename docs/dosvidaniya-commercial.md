@@ -87,8 +87,8 @@ plays the same everywhere. The features go where they fit:
 2. Write the behaviour description from today's engine and bots: the clean-room line.
 3. Prototype one region in 6502: built for a real C64 and VICE, translated and run in the web shell, its memory and CPU
    measured. Go or no-go on the approach.
-4. Replace what is Monty on the Run's: the hero (Viktor Vole redrawn), Freddie Ferret in Viktor's place, the coin, the score bar and lettering, the crushers and the death, an original
-   soundtrack for the SID.
+4. Replace what is Monty on the Run's: the hero (Viktor Vole redrawn), Freddie Ferret in Viktor's place, the coin, the score bar and lettering, the crushers and the death, our soundtrack of
+   public-domain pieces and our own SID player.
 5. The other regions; then the Steam wrapper.
 
 ## The cast (Chris, 2026-11-24)
@@ -99,9 +99,33 @@ plays the same everywhere. The features go where they fit:
 - **The antagonist: Freddie Ferret** (perhaps), in Viktor's place: the spy who shadows him, the train and ship escapes, the plane,
   the Spy vs Spy tally and the showdown.
 
+## The soundtrack (Chris, 2026-11-24: we make it ourselves)
+
+Done the way Monty on the Run did it: Hubbard's in-game tune is an arrangement of an existing piece (Charles Williams' "Devil's
+Galop", 1944: Williams died 1978, so it is still in copyright and must not be used). Ours arranges public-domain pieces, one per
+region, tempo raised to one shared tempo, with shared patterns, so the regions still cross at the phrase as today.
+
+- **Arrange from the original score** (IMSLP), never from a modern arrangement or recording (those have copyrights of their own).
+- **Our own SID music player**: Hubbard's driver is his code, inside the .sid files the tribute plays. The C64 build needs one
+  anyway.
+- Public-domain status below is from the composers' dates; the lawyer confirms it for the countries sold in.
+
+| Region | Piece | Composer (died) |
+|---|---|---|
+| Main theme, title | "Infernal Galop" (the can-can), or the William Tell finale | Offenbach (1880), Rossini (1868) |
+| Moscow | "Night on Bald Mountain", or Tchaikovsky | Mussorgsky (1881), Tchaikovsky (1893) |
+| Siberia | "Dance of the Sugar Plum Fairy" | Tchaikovsky (1893) |
+| China | "Mo Li Hua" (Jasmine Flower) | folk |
+| Japan | "Sakura Sakura" | folk |
+| Hawaii | "Aloha ʻOe" (1878) | Liliʻuokalani (1917) |
+| The sky (the flight) | "Ride of the Valkyries" | Wagner (1883) |
+| Andes | "El Cóndor Pasa" (the 1913 original, not Simon and Garfunkel's) | Alomía Robles (1942) |
+| Rio | "Tico-Tico no Fubá" (1917) | Zequinha de Abreu (1935) |
+
+Not these: "Aquarela do Brasil" (Ary Barroso, died 1964), anything known from one modern recording.
+
 ## Open questions for Chris
 
 - The game's commercial name.
 - Freddie Ferret confirmed as the antagonist.
-- Who composes the soundtrack (it plays on the SID on every platform).
 - Who owns the commercial game (the company that publishes on Steam).
