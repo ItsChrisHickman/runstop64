@@ -137,6 +137,8 @@ for (const [file] of changes) {
   }
   const by = importers(file);
   if (by.length === 0 && !NEEDS_ALL.test(file) && bundledBy(file).length) { notes.push(`${file}: reached only through a hub (${[...HUBS].filter((h) => bundledBy(file).length && entries.some((e) => imports.get(e)?.has(h))).join(', ')}), no test of its own: the end-of-batch verify covers it`); continue; }
+  // a script in a test folder that no test imports and that is not a test itself makes pictures or probes (coin-hole-shots.ts, china-shots.ts): it checks nothing, so it runs nothing
+  if (by.length === 0 && /^games\/[^/]+\/test\/[^/]+\.ts$/.test(file) && !entries.includes(file)) { notes.push(`${file}: a picture or probe script no test imports, no test (the typecheck only)`); continue; }
   if (NEEDS_ALL.test(file) || (by.length === 0 && /\.(m?[jt]s|json)$/.test(file))) { everything ??= `${file} is not imported by a test (a tool, a config): every test`; continue; }
   if (by.length === 0) { notes.push(`${file}: no test reads it`); continue; }
   // a test that changed is run itself; any other file runs the tests importing it
