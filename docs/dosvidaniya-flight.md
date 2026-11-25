@@ -46,7 +46,7 @@ Total: about 77 seconds.
 He flies with Monty on the Run's jetpack feel and has no gun:
 - Hold up to climb a pixel a frame; let go and the plane sinks a pixel every other frame; hold down to dive a pixel a frame.
 - He steers sideways at his walking pace.
-- He stays in the leg's box (rows 1-16), so he never leaves the leg by an edge.
+- He stays in the leg's box, so he never leaves the leg by an edge: down to just above the sea (his top on row 14, the wheels a cell above its crest) in every leg, and in L3, once the Andes rise along the bottom (frame 820), row 12 (the wheels a cell above the valleys; the peaks are scenery he flies in front of): a plane lower down is lifted a pixel a frame; up to row 1 (L1) or under the storm (L2 row 3, L3 row 2).
 - When the leg's clock runs out, he flies on into the next leg where he is, at the same place on the screen. The joins are seamless.
 
 ## Sprites (the C64 budget: 8)

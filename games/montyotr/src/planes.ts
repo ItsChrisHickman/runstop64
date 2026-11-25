@@ -8,7 +8,7 @@ import { drawChase } from './pursuers';
 /**
  * A flight in a plane (a game's `planes`: Do Svidaniya Monty's yellow mail biplane, Hilo to the Andes; docs/dosvidaniya-flight.md). Each leg is a room: in it Monty sits in the plane (sprite 2 over him, no
  * part of the collision check, as the parachute's canopy is) and flies it with Monty on the Run's jetpack feel: up held, he climbs a pixel a frame; down held, he dives a pixel a frame; let go, the plane sinks a
- * pixel every other frame; sideways at his walking pace. He stays in the leg's box (he never leaves it by an edge). A gust (`currents` with a `dy`) carries him as a surge carries a swimmer. The scenery goes
+ * pixel every other frame; sideways at his walking pace. He stays in the leg's box (he never leaves it by an edge; its bottom may rise during the leg, `rise`, and lifts him over it). A gust (`currents` with a `dy`) carries him as a surge carries a swimmer. The scenery goes
  * by (the room's `charAnims`), the birds come on the leg's clock (`rollers`), and so does what is drawn in characters (`tunnels`, `pulses`): the leg is the same each time he flies it, and a death starts it
  * again as he came in.
  *
@@ -64,7 +64,8 @@ export function boardUpdate(g: Game) {
 
 /** One frame of his flying (in place of walking: monty.ts): the stick, a gust, the box. */
 export function planeMove(g: Game, leg: PlaneLeg) {
-  const input = g.input, gust = surgeOn(g), box = limits(leg.box);
+  const input = g.input, gust = surgeOn(g), box = limits(leg.rise && g.planeTime >= leg.rise.at ? { ...leg.box, row1: leg.rise.row1 } : leg.box);
+  const lifted = g.y > box.bottom; // (the land has risen under him: up a pixel a frame until he is over it)
   g.montyAction = 0;
   g.falling = 0;
   g.onRope = 0;
@@ -73,8 +74,8 @@ export function planeMove(g: Game, leg: PlaneLeg) {
   const up = gust?.dy === -1 || (input.up && gust?.dy !== 1), down = gust?.dy === 1 || (input.down && !input.up && gust?.dy !== -1);
   const sideways = gust && gust.dx !== 0 ? gust.dx : input.left && !input.right ? -1 : input.right && !input.left ? 1 : 0;
   g.planeTilt = up ? -1 : down ? 1 : 0;
-  g.dirUp = up && g.y > box.top;
-  g.dirDown = (down || (!up && g.planeTime % PLANE.sink === 0)) && g.y < box.bottom;
+  g.dirUp = (up && g.y > box.top) || lifted;
+  g.dirDown = !lifted && (down || (!up && g.planeTime % PLANE.sink === 0)) && g.y < box.bottom;
   g.dirLeft = sideways < 0 && g.x2 > box.left;
   g.dirRight = sideways > 0 && g.x2 < box.right;
   g.upSteps = g.downSteps = 1;

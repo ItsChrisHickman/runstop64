@@ -71,11 +71,20 @@ export const TAIL_PALETTE = {
 export const LEG_FRAMES = 1250;
 export const BAIL = { surge: 60, drop: 110 } as const;
 
-/** The legs, given the find Viktor's win takes (data.ts: hidden). */
+/**
+ * The lowest row his top left may be in: down to just above the sea (Chris, 2026-11-24: "On his tail has a vertical limit that's very very high. Why can't I travel to the bottom?": L3 stopped him at
+ * row 10, half the sky up, the whole leg). The plane's wheels are 16 pixels under his top, so on row 14 they are a cell above the sea's crest (row 17), in front of the low cloud. In L3 the Andes rise
+ * along the bottom near the leg's end (`ANDES_RISE`, from the right): from then the bottom is row 12, the wheels a cell above the valleys' snow (row 15), and a plane lower down is lifted over them; the
+ * peaks above that are scenery he flies in front of (harmless, as the sea is).
+ */
+const LOWEST = { sea: 14, andes: 12 } as const;
+/** The frame of L3 the Andes come in at the right (SKY_TUNNELS' peaks). */
+const ANDES_RISE = 820;
+/** The legs, given the find Viktor's win takes (data.ts: hidden). Their tops are under each leg's cloud: L2's storm front (rows 0-2), L3's storm's tail. */
 export const planeLegs = (lost: number): readonly PlaneLeg[] => [
-  { room: FLY.mail, frames: LEG_FRAMES, box: { col0: 1, row0: 1, col1: 28, row1: 14 }, then: { kind: 'east' } },
-  { room: FLY.storm, frames: LEG_FRAMES, box: { col0: 1, row0: 3, col1: 28, row1: 13 }, then: { kind: 'east' } },
-  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: 10 }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 20 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
+  { room: FLY.mail, frames: LEG_FRAMES, box: { col0: 1, row0: 1, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
+  { room: FLY.storm, frames: LEG_FRAMES, box: { col0: 1, row0: 3, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
+  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: LOWEST.sea }, rise: { at: ANDES_RISE, row1: LOWEST.andes }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 20 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
 ];
 
 /** The band placements: a 12-wide strip three times across the picture's 36 columns (from the left margin, -2). */
@@ -92,7 +101,7 @@ export const SKY_ROOMS: readonly RoomSpec[] = [
     coins: [[24, 2]],
     decor: [...across('skyWisps', 0), ...across('skyLowCloud', 15)],
   }),
-  // L2 STORMY WEATHER: under the storm front (rows 0-1); the bolts strike down to row 12, so the low line (rows 13-14) is safe until a gust lifts him off it. The coins: one on the low line, two between bolts.
+  // L2 STORMY WEATHER: under the storm front (rows 0-1); the bolts strike down to row 12, so the low line (rows 13-15) is safe until a gust lifts him off it. The coins: one on the low line, two between bolts.
   room({
     id: FLY.storm, cell: [0, 21], sector: 80, palette: STORM_PALETTE,
     paint(g) { g.box(0, 0, 31, 1, 'C'); for (const c of [0, 8, 15, 22, 29]) g.box(c, 2, c + 2, 2, 'C'); sea(g); }, // (its lumpy underside between the bolts' columns)
@@ -188,7 +197,7 @@ const PEAKS = (() => {
 export const SKY_TUNNELS: readonly TunnelSpec[] = [
   { room: FLY.mail, from: 'right', code: codeOf(MAIL_PALETTE, 'A'), cols: 8, top: 6, bottom: 19, step: 6, rest: 200, warn: 0, picture: PLUME, once: true, bleed: true },
   { room: FLY.storm, from: 'right', code: codeOf(STORM_PALETTE, 'U'), cols: 3, top: 5, bottom: 19, step: 6, rest: 640, warn: 0, picture: SPOUT, once: true, bleed: true },
-  { room: FLY.tail, from: 'right', code: codeOf(TAIL_PALETTE, 'R'), cols: 100, top: 11, bottom: 19, step: 6, rest: 820, warn: 0, picture: PEAKS, once: true, bleed: true, harmless: true },
+  { room: FLY.tail, from: 'right', code: codeOf(TAIL_PALETTE, 'R'), cols: 100, top: 11, bottom: 19, step: 6, rest: ANDES_RISE, warn: 0, picture: PEAKS, once: true, bleed: true, harmless: true },
 ];
 
 /** A strike: the storm's cells over the column flicker lit (the warning) and stay lit while the bolt is down the column (two cells wide, from row 2, under the cloud's base, to `bottom`), deadly. */
