@@ -7,7 +7,7 @@ import { PARADE } from '../../shared/ending/procession';
 import { FRAME } from '../../shared/monty/frames';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
-import { montyMap, type MontyFound } from './map';
+import { progressRows, type MontyFound } from './map';
 import { Pilot } from './pilot';
 import { TOP_ROW, type Scene } from './ending-scenes';
 import { cellOf, type MontyData, type MontyEnding, type MontyParade } from './montydata';
@@ -296,9 +296,6 @@ export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists
 
 /** The lines under THE END: the score and what the pause screen keeps (lives, rooms, items, cakes), the numbers in a column. */
 export function endingStats(g: Game, found: MontyFound): string[] {
-  const rows = [['SCORE', String(g.score)], ...montyMap.info(g, found).map((line) => {
-    const at = line.indexOf(' ');
-    return [line.slice(0, at), line.slice(at + 1).trim()];
-  })];
-  return rows.map(([label, value]) => `${label.padEnd(6)}${value.padStart(8)}`);
+  const rows: (readonly [string, string])[] = [['SCORE', String(g.score)], ...progressRows(g, found)];
+  return rows.map(([label, value]) => `${label.padEnd(7)}${value.padStart(7)}`);
 }

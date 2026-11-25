@@ -228,15 +228,16 @@ check('and EASY again', g.assist.lives === true && !p.state.paused);
   check(`the save described for the save manager ("${saved?.summary.join(' / ')}")`, saved?.summary[0] === 'THE HOUSE' && saved.summary.includes('LIVES 5'));
 }
 
-// ---- the ending: the save stays, CONTINUE? (test/ending.ts plays it through) ---------------------------
+// ---- the ending: the save stays, the title waits for a key (test/ending.ts plays it through) ---------------------------
 g.finished = 'won';
 tick(2);
 check('the game properly ended: the title, the save kept', p.state.mode === 'title' && p.state.hasSave && store.has('montyotr.save.v2'));
 // (the reward for winning is on, test/reward.ts: a key skips it after two seconds)
 tick(110);
 tap('Space');
-until(() => p.state.prompt === 'continue', 600);
-check('CONTINUE? offered', p.state.prompt === 'continue');
+// (the show ends on the title as it is, waiting for a key: no CONTINUE? until one, Chris 2026-11-24)
+const asked = until(() => p.state.prompt === 'continue', 300);
+check('after the show: the title waits, no CONTINUE? until a key', !asked && p.state.mode === 'title');
 tap('Escape');
 tick(30);
 tap('Space');

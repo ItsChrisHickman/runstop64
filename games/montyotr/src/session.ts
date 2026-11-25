@@ -116,8 +116,8 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     g.onRestart = () => flow.grace.start();
 
     // ---- the reward for winning: the montage, the creatures walking through it, THE END (src/ending.ts, shared/ending/show.ts) ----
-    /** The show is on from the finale (the title is up under it, CONTINUE? comes after), not from W or ?ending (which end on the title). */
-    let afterWin = false;
+    // (the show ends on the title as it is, waiting for a key, whether it came from the finale, W or ?ending: CONTINUE? only when a key is
+    // pressed there; Chris, 2026-11-24: after the credits the title cut straight to the CONTINUE? screen)
     const reward = data.ending
       ? rewardShow = new RewardShow({
         host,
@@ -129,9 +129,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
           start() { music.hold(false); if (musicOn) g.sound.song(data.ending?.song ?? 0); },
           end() { if (musicOn) g.sound.song(0); },
         },
-        done() {
-          if (afterWin) { afterWin = false; latch.hold(); } else self.backToTitle();
-        },
+        done() { self.backToTitle(); },
       })
       : null;
 
@@ -186,7 +184,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     if (reward && wantsEnding()) reward.start(endingStats(g, fe.found));
     return {
       ...(reward ? { takeover: reward } : {}),
-      watchEnding() { afterWin = false; reward?.start(endingStats(g, fe.found)); },
+      watchEnding() { reward?.start(endingStats(g, fe.found)); },
       state: () => g,
       phase: () => mode,
       /** In a sequence (a death, a teleport, the C5's) no; but in the ending, until Monty walks aboard (travel can take him back to any room visited). */
@@ -236,7 +234,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
           if (won) keepWon(data.id);
           const stats = endingStats(g, fe.found);
           toTitle();
-          if (won && reward) { afterWin = true; reward.start(stats); }
+          if (won && reward) reward.start(stats);
         }
         return 'played';
       },

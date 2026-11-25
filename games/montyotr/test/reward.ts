@@ -255,7 +255,8 @@ function win(s: ReturnType<typeof boot>) {
   check('EASY: it is running (the montage, the game of its own, the player\'s game untouched)', ending.progress.phase !== 'loading' && s.g.won);
   s.tick(110);
   s.press('Space');
-  check('EASY: a key skips it: the title, and CONTINUE? as after any ending', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600) && s.p.state.mode === 'title');
+  // (the show ends on the title as it is, waiting for a key: no CONTINUE? until one, Chris 2026-11-24)
+  check('EASY: a key skips it: the title, waiting, with no CONTINUE? until a key', !ending.active && s.p.state.mode === 'title' && !s.until(() => s.p.state.prompt === 'continue', 300));
   check('EASY: the show\'s sprites are put away (none left over the title)', s.rend.sprites.every((h) => !h.visible));
   check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
@@ -278,7 +279,7 @@ function win(s: ReturnType<typeof boot>) {
   check('HARD: the game is won, kept so, and the show begins as in EASY (it is in both modes)', won && readWon('montyotr') && ending.active);
   s.tick(120);
   s.press('Space');
-  check('HARD: a key skips it: the title, then CONTINUE?', !ending.active && s.until(() => s.p.state.prompt === 'continue', 600));
+  check('HARD: a key skips it: the title, waiting, with no CONTINUE? until a key', !ending.active && s.p.state.mode === 'title' && !s.until(() => s.p.state.prompt === 'continue', 300));
   s.press('Enter');
   s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300);
   s.press('KeyP');
