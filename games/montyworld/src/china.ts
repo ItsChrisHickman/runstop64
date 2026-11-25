@@ -284,7 +284,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'warrior', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
       { who: 'lantern', col: 22, row: 2, way: 'down', speed: 1, range: 16 },
-      { who: 'cricket', col: 18, row: 7, way: 'right', speed: 1, range: 32 },
+      { who: 'cricket', col: 19, row: 2, way: 'down', speed: 1, range: 24, colour: 13 }, // hopping by the walkway east of the rope, light green over the banner: he walks under it when it is up, either way. (It paced the walkway, the only way to the top right door: passing it took a jump under the rope that cleared it about 1 try in 12 going east, 1 in 35 going west: the door seemed shut, Chris 2026-11-24)
     ],
   }),
 
