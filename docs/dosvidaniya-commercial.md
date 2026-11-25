@@ -15,7 +15,7 @@ This is an engineering inventory, not legal advice. A games/IP lawyer makes the 
 | **AWM's theme** | the flight (the sky region) | Auf Wiedersehen Monty's main theme (Hubbard and Daglish), from AWM's .sid. |
 | **Monty himself** | his frames in the sprite bank; the regions' hats and costumes are drawn over them | The character, his name and his likeness. |
 | **The coin** | character `$34` (`COIN_CHAR`), in 52 of 57 rooms | Measured 2026-11-24: byte-identical to Monty on the Run's. |
-| **The score bar and the lettering** | rows 0-1 (SCORE, HI-SCORE, the lives) and row 24 (the room names) | Measured: 46 of the 51 characters drawn outside the playfield are byte-identical to Monty on the Run's. |
+| **The score bar and the lettering** | rows 0-1 (SCORE, HI-SCORE, the lives) and row 24 (the room names) | Measured: 46 of the 51 characters drawn outside the playfield are byte-identical to Monty on the Run's. Replace with lettering of our own in the same style (bold, square, two-pixel strokes, seven rows tall: the feel is the style, not the pixels). For comparison, Auf Wiedersehen Monty drew its own: none of its 36 letters and digits match Monty on the Run's. |
 | **The crushers and Monty's death** | the Mole Crusher heads (Rio's float head uses the same mechanic) and the four-way split death | Chris, 2026-11-24: both are Monty on the Run's. |
 
 ## What is ours
