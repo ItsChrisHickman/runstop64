@@ -166,9 +166,20 @@ make any sense." The route, in order:
    - **The bottom way: Mauna Loa, then the Hilo Coffee Farm.** Along the south over Mauna Loa's lava (MAUNA KEA-OS's rising lava
      and cracking crust belong here, and only here), then the **coffee farm** (COFFEE BREAK's coffee moves here: the rows of
      coffee on the slope) into Hilo.
-   Each way has coins of its own (a reason to come back for the other); neither is a dead end.
-7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits: NO FLYING
-   WITHOUT A PARACHUTE. The parachute is in Hilo (where both ways arrive), so either way finishes the region.
+   Each way has coins of its own; neither is a dead end.
+   **Both ways are needed** (Chris: "we could find some way to make an item from each route necessary ... THAT would make the
+   Big Island part of Hawaii very interesting"): the biplane in Hilo takes off only with an item from each way. Recommended:
+   - **The top way gives the parachute**: snagged on an observatory dome at Mauna Kea's summit (a paraglider's, left behind),
+     taken at the top of the climb.
+   - **The bottom way gives the coffee**: a sack of beans at the far end of the farm. Monty is flying the Pacific alone through
+     the night: TOO SLEEPY TO FLY without it.
+   - Each item is earned by playing its way's mountain, not fetched from Hilo next door: the falls and the farm are entered
+     from Hilo only to a point (the way on, up toward the mountain, is a deliberate drop or one-way ledge from the mountain's
+     side, named in the one-way test's allowlist), so whichever way Monty takes first, he arrives in Hilo with one item, finds
+     the plane's second lock, and goes back out to Kona and over the other mountain: MOTR's double-back.
+   - The plane's two locks in the room name line, MOTR style: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY.
+7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits. Hilo connects
+   back to Kona's side (the way out to the other mountain).
 8. **The plane sequence** (the flight, then the three-room parachute drop).
 
 Names follow places: a swim is named as a crossing, never after a town. Only the two ship rooms stay merged into THE CARGO SHIP,
