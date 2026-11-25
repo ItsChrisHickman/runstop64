@@ -2,7 +2,8 @@
  * Japan's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, japan.ts, plays them all together): the bullet trains sweeping the
  * platform (a picture drawn in the room's characters, a warning, deadly on the lane, safe below, a fair timing), the paper doors (open, shaking, shut over him, a wall),
  * the three gates (the shutter and the daruma, the koi and the fish food, the guard and the ninja hood), the hood as a costume in the rice hat's place, the joins (the
- * loop, the ways back, no trap), the layout's sanity (nothing drawn in a tile), the hints, the map, and a save from before Japan carrying on.
+ * loop, the ways back, no trap), the layout's sanity (nothing drawn in a tile), the hints, the map, a save from before Japan carrying on, and MOUNT FUJI's SNOW SLIDES (the huts safe,
+ * the open climb deadly as a snowball comes, the climb crossed up and down by waiting in a hut for one to pass).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts [--room <rooms>]
  */
@@ -14,6 +15,8 @@ import { wear } from '../../montyotr/src/items';
 import { montyMap } from '../../montyotr/src/map';
 import { MOTR } from '../../montyotr/src/motr';
 import { pulseCode, pulsePhase } from '../../montyotr/src/pulses';
+import { pixelX, pixelY } from '../../montyotr/src/cells';
+import { rollerAt } from '../../montyotr/src/rollers';
 import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
@@ -23,7 +26,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
@@ -647,6 +650,52 @@ SCOPE.section([], 'the joins are strict: open edges match', () => {
     }
   }
   check(`every edge cell of Japan's rooms that is open (not solid) on one side of a join is open on the other, at every row (${bad.length ? bad.join('; ') : 'none differ'})`, bad.length === 0);
+});
+
+// ---- MOUNT FUJI: SNOW SLIDES ----------------------------------------------------------------------------
+SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
+  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s snowball');
+  const [foot, top] = FUJI_HUTS;
+  const fuji = must(JAPAN_ROOMS.find((r) => r.id === JP.fuji), 'the mountain');
+  check(`one snowball on the mountain, every ${FUJI_SNOW.every} frames, the first ${FUJI_SNOW.start} in; two huts; no creature to crowd its timing`, WORLD.rollers.filter((r) => r.room === JP.fuji).length === 1 && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  /** Where the snowball is (its top left, in cells) in a game in the mountain, or null while it is not rolling. */
+  const where = (g: Game) => {
+    const t = g.rollers.find((r) => WORLD.rollers[r.index] === ball)?.t ?? 0, p = rollerAt(ball, t);
+    return p ? { col: (p.x - pixelX(0)) / 8, row: (p.y - pixelY(0)) / 8 } : null;
+  };
+  const inHut = (h: { col0: number; floor: number }) => at(JP.fuji, h.col0 + 1, h.floor);
+  // the huts are safe: two snowballs pass, he stands in each untouched
+  const footSafe = diesAt(inHut(foot), NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0, topSafe = diesAt(inHut(top), NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0;
+  check(`standing in the foot hut and in the top hut, two snowballs pass over him and neither touches him (foot ${footSafe}, top ${topSafe})`, footSafe && topSafe);
+  // standing in the open on the climb when one comes kills him: on the first ledge, the two steps, the top of the climb
+  const open = ([[15, 14], [21, 14], [24, 12], [27, 10], [26, 8]] as const).map(([col, floor]) => ({ col, floor, at: diesAt(at(JP.fuji, col, floor), NONE, FUJI_SNOW.every + FUJI_SNOW.start) }));
+  check(`standing in the open on the climb, the first snowball kills him (${open.map((o) => `${o.col},${o.floor}: frame ${o.at}`).join('; ')})`, open.every((o) => o.at >= 0));
+  // and walking straight on from the way in, it meets him on the first ledge
+  const rush = at(JP.fuji, 0, 14);
+  const rushed = diesAt(rush, RIGHT, 300);
+  check(`walking on from the way in without waiting, the first snowball meets him on the first ledge (frame ${rushed}, at column ${colOf(rush.g)})`, rushed >= 0 && rush.g.roomId === JP.fuji);
+  // each part of the climb is crossed by waiting in a hut for a snowball to pass: up from the foot hut to the top hut, down from the top hut to the foot hut
+  const passed = (s: State, gone: (p: { col: number; row: number }) => boolean) => {
+    let seen = false;
+    for (let f = 0; f < 2 * FUJI_SNOW.every && !dead(s.g); f++) {
+      frame(s, NONE);
+      const p = where(s.g);
+      if (p && !gone(p)) seen = true;
+      if (seen && (!p || gone(p))) return true;
+    }
+    return false;
+  };
+  const up = inHut(foot);
+  const upWaited = passed(up, (p) => p.col < foot.col0 - 2);
+  const upWay = upWaited && search(up, (g) => g.roomId === JP.fuji && colOf(g) >= top.col0 && colOf(g) <= top.wall1 - 1 && g.montyRow - PLAY_ROW === top.floor - 2, [{ room: JP.fuji, col: top.col0, row: top.floor - 2 }], 100000, 1.5);
+  check(`up: waiting in the foot hut until a snowball has passed over it, he climbs to the top hut before the next (${upWay ? `${upWay.route.reduce((n, [, f]) => n + f, 0)} frames` : 'no way'})`, upWaited && upWay !== null && upWay !== false);
+  const down = inHut(top);
+  const downWaited = passed(down, (p) => p.row >= 12 || p.col < top.col0 - 2);
+  const downWay = downWaited && search(down, (g) => g.roomId === JP.fuji && colOf(g) >= foot.col0 && colOf(g) <= foot.wall1 - 1 && g.montyRow - PLAY_ROW === foot.floor - 2, [{ room: JP.fuji, col: foot.col0 + 1, row: foot.floor - 2 }], 100000, 1.5);
+  check(`down: waiting in the top hut until a snowball has gone down the climb, he goes down to the foot hut behind it (${downWay ? `${downWay.route.reduce((n, [, f]) => n + f, 0)} frames` : 'no way'})`, downWaited && downWay !== null && downWay !== false);
+  // the rest of the room is clear: the second ledge west of the top hut, the last step and the chain
+  const ledge = at(JP.fuji, 14, 8);
+  check('the second ledge west of the top hut is clear of the snowballs (two pass, he stands there)', diesAt(ledge, NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0);
 });
 
 SCOPE.report();

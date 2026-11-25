@@ -1,7 +1,8 @@
 import { SCREEN_MARGIN } from '../../shared/monty/screen';
-import type { CharAnim, CrackSpec, PulseSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, CrackSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { JAPAN_SPRITE } from './japan-pointers';
+import { JAPAN_SPRITE, SNOWBALL_POINTERS } from './japan-pointers';
+import { SNOWBALL_FRAMES } from './art/japan-fuji';
 import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
 import { GLASS_CELLS, pachinkoFrames } from './art/japan-pachinko';
 import type { WorldDecor } from './art/world';
@@ -59,7 +60,7 @@ export const PLATFORM_PALETTE = {
 
 /** The mountain's five: the scree (frame and foot), the trail's ledges, the chain, and the mountain's own body (snow above, slope below) as scenery behind the trail. */
 export const FUJI_PALETTE = {
-  S: ['jpScree', 9], T: ['jpTrail', 7], R: ['jpChain', 12], N: ['jpSnow', 1], M: ['jpSlope', 6],
+  S: ['jpScree', 9], T: ['jpTrail', 7], R: ['jpChain', 12], N: ['jpSnow', 1], M: ['jpSlope', 6], H: ['jpRoofBody', 2], W: ['jpKeepWall', 9],
 } as const satisfies Palette;
 
 export const GARDEN_PALETTE = {
@@ -232,13 +233,37 @@ function paintFuji(g: Grid) {
   g.box(10, 8, 26, 8, 'T'); // the second ledge
   g.box(7, 6, 9, 6, 'T'); // the last step
   g.box(5, 0, 5, 5, 'R'); // the chain
+  for (const h of FUJI_HUTS) g.box(h.col0, h.floor - 4, h.col1, h.floor - 4, 'H').box(h.col0, h.floor - 3, h.wall1, h.floor - 1, 'W'); // the pilgrims' huts: a tiled roof over a plank back wall (he walks in front of it)
 }
+/**
+ * The pilgrims' huts (SNOW SLIDES): a roof (solid: he cannot jump up onto it from inside) four rows over a ledge, from `col0` to `col1`, a plank back wall under it to `wall1`. The snowballs pass over the roof;
+ * in under it he is out of their way. One at the foot of the climb by the way in, on the first ledge (west of the second ledge, so the snowball's hop over its roof clears that ledge); one at the top, at the
+ * second ledge's east end, under the summit's east flank (the snowball rolls off the summit onto its roof and drops off its east end down the steps). Its roof runs a cell past its wall: the eaves, with the coin under them.
+ */
+export const FUJI_HUTS = [
+  { col0: 3, col1: 7, wall1: 7, floor: 14 },
+  { col0: 22, col1: 25, wall1: 24, floor: 8 },
+] as const;
 /**
  * What finishes the cone, stamped where the painted room has the slope (or empty cells beside it): the snow's jagged edge on the first row of slope, streaks of snow running down the slope
  * from it (over the slope, never over the trail), the blue flanks' diagonal edges.
  */
-/** The mountain's coins: on the first ledge, on the steps and on the second ledge (a backdrop leaves their cells alone). */
-const FUJI_COINS: readonly (readonly [number, number])[] = [[17, 12], [24, 10], [12, 7]];
+/** The mountain's coins: on the first ledge in the snowballs' lane, on the steps they drop down, and under the eaves of the top hut, a step from where they drop (a backdrop leaves their cells alone). */
+const FUJI_COINS: readonly (readonly [number, number])[] = [[17, 12], [24, 10], [25, 6]];
+/**
+ * SNOW SLIDES: a snowball (a roller, as the Andes' boulders: a sprite on a path, deadly to touch) every `FUJI_SNOW.every` frames, the first `start` frames after he comes in: seen at the summit (over the snow
+ * cap, against the sky), it rolls east off it and down the flank onto the top hut's roof, along it and off its east end down onto the upper step, back west off it onto the lower step, off that onto the
+ * first ledge, west along it, hops over the foot hut's roof and flies off the room's west edge high over the way in. So the climb (the first ledge east, the steps, up onto the second ledge) is crossed between
+ * two snowballs, from hut to hut: wait in the foot hut for one to pass over, then climb to the top hut before the next. The second ledge west of the top hut, the last step and the chain are clear.
+ * (A point is the snowball's top left cell: its floor's row less two.)
+ */
+export const FUJI_SNOW = { every: 460, start: 30, speed: 2 } as const;
+export const FUJI_SNOW_PATH: readonly (readonly [col: number, row: number])[] = [
+  [16, 0], [21, 0], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
+];
+/** The snowball (white: it stands off the blue slope and the black sky; it never crosses the snow cap), on sprite 1 as the Andes' boulders, its pictures put in while the mountain is loaded. */
+export const FUJI_SNOWBALLS: readonly RollerSpec[] = [{ room: JP.fuji, sprite: 1, path: FUJI_SNOW_PATH, ...FUJI_SNOW, frames: SNOWBALL_POINTERS, colour: 1 }];
+export const FUJI_BLOCKS: RoomBlocks = { rooms: [JP.fuji], blocks: SNOWBALL_POINTERS.map((ptr, i) => ({ ptr, block: SNOWBALL_FRAMES[i] ?? new Uint8Array(64) })) };
 function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
   const g = new Grid();
   paintFuji(g);
@@ -253,8 +278,8 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
       if (g.at(right + 1, row) === '.') out.push(['jpFlankR', right + 1, row]);
     }
   });
-  // streaks down the slope: from under the jagged edge, over the first row of slope above the second ledge and the long slope under it, where the slope is bare
-  for (const [c, r0, r1] of [[12, 7, 7], [14, 7, 7], [17, 7, 7], [19, 7, 7], [21, 7, 7], [9, 9, 12], [11, 9, 10], [15, 9, 11], [18, 9, 10], [20, 9, 12], [24, 9, 10]] as const) {
+  // streaks down the slope: from under the jagged edge, over the first row of slope above the second ledge and the long slope under it, where the slope is bare (none in the snowballs' way: white on white, a snowball would vanish against one)
+  for (const [c, r0, r1] of [[12, 7, 7], [14, 7, 7], [17, 7, 7], [19, 7, 7], [21, 7, 7], [13, 9, 10], [15, 9, 11], [18, 9, 10], [20, 9, 11]] as const) {
     for (let r = r0; r <= r1; r++) if (g.at(c, r) === 'M') out.push([streak[(c + r) % 2] ?? 'jpSnowStreakA', c, r]);
   }
   return out.filter(([, c, r]) => !FUJI_COINS.some(([cc, cr]) => cc === c && cr === r));
@@ -284,7 +309,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     paint(g) {
       g.box(30, 7, 31, 7, 'K').box(30, 8, 31, 14, 'F'); // (open sea to the left and open sky: the junk sails in; the market's warehouse closes the right between its two lanes)
       g.box(0, 17, 9, 19, 'H').box(10, 17, 12, 19, 'W').box(13, 17, 31, 17, 'Q').box(13, 18, 31, 19, 'P');
-      g.box(8, 7, 29, 7, 'K').box(26, 8, 29, 9, 'B'); // the market's roof
+      g.box(8, 7, 29, 7, 'K').clear(23, 7, 25, 7).box(26, 8, 29, 9, 'B'); // the market's roof, with a hatch over the stair's top crate (it climbs through: from the top crate a jump up either side, as from crate to crate; without it he stood with his head in the roof against the roof's end)
       g.box(14, 15, 16, 15, 'T').box(17, 13, 19, 13, 'T').box(20, 11, 22, 11, 'T').box(23, 9, 25, 9, 'T'); // the stair of crates
     },
     coins: [[15, 13], [28, 5]],
@@ -386,16 +411,13 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // F MOUNT FUJI: Mount Fuji's foot and slope. In from the platform past the shutter (mid); the mountain stands over the trail, a solid white cap with a jagged lower edge and streaks of snow running down its blue slopes
-  // (scenery he climbs in front of), and the pilgrim's trail winds up its face in switchbacks: east along the first ledge, up two steps on the flank, back west along the second ledge, up a step to the chain at the left that climbs through the ceiling to the garden.
+  // (scenery he climbs in front of), and the pilgrim's trail winds up its face in switchbacks: east along the first ledge, up two steps on the flank, back west along the second ledge, up a step to the chain at the left that climbs through the ceiling to the garden. SNOW SLIDES: snowballs roll from the summit down the climb (FUJI_SNOW), and a pilgrims' hut at its foot and its top (FUJI_HUTS) is where he waits for one to pass.
   room({
     id: JP.fuji, cell: [2, 15], sector: 32, palette: FUJI_PALETTE,
     paint: paintFuji,
     coins: FUJI_COINS,
-    decor: [['jpSun', 24, 2], ['jpCloud', 7, 3], ['jpCloud', 25, 6], ...fujiSnow()],
-    creatures: [
-      { who: 'jpTanuki', col: 6, row: 12, way: 'right', speed: 1, range: 40 },
-      { who: 'jpCrane', col: 12, row: 4, way: 'right', speed: 1, range: 80 },
-    ],
+    decor: [['jpSun', 26, 0], ['jpCloud', 7, 3], ...fujiSnow()], // (the sun high in the corner, clear of the top hut's roof)
+    creatures: [], // (SNOW SLIDES is the room: no creature crowds the snowballs' timing)
   }),
 
   // G KOI POLLOI: the temple garden on the mountain's shoulder. In by the chain through the floor at the left; the bank runs right past the temple and the cherry tree to the koi pond: a zig-zag of planks over the

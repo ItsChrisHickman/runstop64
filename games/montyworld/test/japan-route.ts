@@ -48,7 +48,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('E to F: along the platform past the trains, through the shutter the daruma rolled up', into(JP.fuji, 31, 13, JP.platform)),
   leg('F: the coin on the first ledge', coin(JP.fuji, 17, 12)),
   leg('F: the coin on the steps', coin(JP.fuji, 24, 10)),
-  leg('F: the coin on the second ledge', coin(JP.fuji, 12, 7)),
+  leg('F: the coin under the top hut\'s eaves', coin(JP.fuji, 25, 6)),
   leg('F to G: up the chain', into(JP.garden, 5, 0, JP.fuji)),
   leg('G: the coin before the temple', coin(JP.garden, 16, 12)),
   leg('G: over the pond\'s planks (the koi gone), the coin over them', coin(JP.garden, 19, 11)),
