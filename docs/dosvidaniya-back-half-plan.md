@@ -167,23 +167,28 @@ make any sense." The route, in order:
      and cracking crust belong here, and only here), then the **coffee farm** (COFFEE BREAK's coffee moves here: the rows of
      coffee on the slope) into Hilo.
    Each way has coins of its own; neither is a dead end.
-   **Both ways are needed** (Chris: "we could find some way to make an item from each route necessary ... THAT would make the
-   Big Island part of Hawaii very interesting"): the biplane in Hilo takes off only with an item from each way. Recommended:
-   - **Mauna Kea is two rooms, the summit one screen** (Chris liked the dome, the telescope and the summit together): first
-     the climb, cinder slopes and switchbacks rising out of the cloud layer; then, on the grid row above it, **the summit**:
-     the cloud tops at the bottom, the bare red cinder ridge to the summit marker, two or three observatory domes, the big
-     one's slit open with its telescope pointing out at the night sky (stars and the moon over the black upper rows, the only
-     night in the game). The way up the big dome (its catwalk and ladder) is the room's climb; the parachute is snagged on its
-     top. The decor and lettering budgets decide how many domes fit.
-   - **The top way gives the parachute**: snagged on an observatory dome at Mauna Kea's summit (a paraglider's, left behind),
-     taken at the top of the climb.
-   - **The bottom way gives the coffee**: a sack of beans at the far end of the farm. Monty is flying the Pacific alone through
-     the night: TOO SLEEPY TO FLY without it.
-   - Each item is earned by playing its way's mountain, not fetched from Hilo next door: the falls and the farm are entered
-     from Hilo only to a point (the way on, up toward the mountain, is a deliberate drop or one-way ledge from the mountain's
-     side, named in the one-way test's allowlist), so whichever way Monty takes first, he arrives in Hilo with one item, finds
-     the plane's second lock, and goes back out to Kona and over the other mountain: MOTR's double-back.
-   - The plane's two locks in the room name line, MOTR style: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY.
+   **Both ways are needed, and they lock into each other** (Chris: "make an item from each route necessary"; "a moon rock that has
+   fallen into the crater of Mauna Loa to give to someone blocking the path in Mauna Kea"; "a puzzle wherein we combine multiple
+   paths creatively like Russia", whose opening "had ALL of the same hallmarks of the opening rooms in Monty on the Run"). Built
+   on Moscow's rules (docs/dosvidaniya-moscow.md part 1): the gate is seen before its key, each key lies in a dead end or a
+   doubling back away from its gate, the rooms form a loop, and one room is crossed twice at two heights.
+   - **The loop:** Kona, the top way (Mauna Kea's climb, the summit, down beside Akaka Falls) to Hilo, and the bottom way
+     (Mauna Loa, the coffee farm) back from Hilo to Kona. Every join both ways, so either way can be taken first.
+   - **The moon rock (bottom way, a dead end):** from Mauna Kea's summit a shooting star is seen falling south (the story told
+     in the picture). It lies in **Mauna Loa's crater**, down a pit off the bottom way past the lava; taking it wakes the lava,
+     which rises behind him on the climb out (the run ahead of the lava).
+   - **The astronomer (top way, the gate):** at the summit he stands on the big dome's catwalk, blocking its ladder, until
+     Monty brings the moon rock; then he goes in to look at it (MOTR's guard sent off by an item, like the hideout's ninja).
+     Up the dome: the telescope, and **the parachute** snagged on top. Seen first by a player who takes the top way first;
+     he comes back for it.
+   - **The coffee (bottom way):** the sack of beans on the farm's drying deck, up off the farm's lane (a climb, off the
+     route): Monty flies the Pacific alone through the night, TOO SLEEPY TO FLY without it.
+   - **The plane (Hilo):** two locks in the room name line, NO FLYING WITHOUT A PARACHUTE and TOO SLEEPY TO FLY.
+   - **Crossed twice at two heights:** Akaka Falls: the high trail from the summit along the top of the gorge and the low lane
+     by the plunge pool from Hilo, sealed from each other by the falls; a player crosses it once each way.
+   So the shortest play: Kona, Mauna Loa (the rock, out ahead of the lava), the farm (the coffee), Hilo (the plane still
+   locked), up past Akaka Falls to the summit (the rock to the astronomer, the parachute), back down the falls' other height
+   to Hilo and away. Taken the other way round, the astronomer is the gate seen first, the whole loop the doubling back.
 7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits. Hilo connects
    back to Kona's side (the way out to the other mountain).
 8. **The plane sequence** (the flight, then the three-room parachute drop).
