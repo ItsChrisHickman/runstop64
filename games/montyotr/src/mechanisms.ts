@@ -62,7 +62,6 @@ export function piledriverRoomInit(g: Game) {
   g.hold.both = 0;
   g.hold.pull = 0;
   g.hold.warn = 0;
-  g.hold.watch = 0;
   g.hold.inks = [];
 }
 

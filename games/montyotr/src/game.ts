@@ -199,7 +199,7 @@ export class Game implements MontyBody, MontyWorld {
   // ---- mechanisms ---------------------------------------------------------------
   pd = { roomFlag: 0, state: 0, delay: 1, index: 0xff, position: 0, travel: [0, 0], spriteY: [0, 0], ride: 0 };
   /** A room whose crushers wait for its lever (levers.ts): held, the two shafts dropping as one head, the lever just pulled (mechanisms.ts). Apart from `pd`, which is Monty on the Run's own. */
-  hold: { held: number; both: number; pull: number; warn: number; watch: number; inks: number[] } = { held: 0, both: 0, pull: 0, warn: 0, watch: 0, inks: [] };
+  hold: { held: number; both: number; pull: number; warn: number; inks: number[] } = { held: 0, both: 0, pull: 0, warn: 0, inks: [] };
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
   /** The picture the room's lift has of its own (a mine cart), kept at the room's loading so a frame looks nothing up (mechanisms.ts). */
   liftLook: LiftSpec['look'] = undefined;
