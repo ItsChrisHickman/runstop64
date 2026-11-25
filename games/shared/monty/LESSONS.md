@@ -175,6 +175,11 @@ most care; the reward show and the title show them off.
 - **Each region:** design, build with a bot that plays it through in both modes taking everything, then two adversarial reviews
   (design and play; engine and correctness), fixes, the full suite, ship. Monty on the Run must play exactly as before (its
   trace and title tests).
+- **Never cut what he didn't ask to cut** (Chris, 2026-11-24, after the reset): a redesign adds and improves; removing or shrinking
+  a room, a set piece or a route needs his OK first, named one by one. The 2026-11-23 reset ("fewer, stronger rooms") cut the
+  Pacific from 17 rooms to 4 and the Andes and the Amazon from 12 to 8, and with them rooms he liked: the vine room, the three-room
+  parachute drop, Hawaii's island hopping (the beach, the hula, the swimming). And a path drawn as a way out must lead somewhere: an
+  opening at a room's edge with nothing behind it reads as a missing room.
 - **Chris plays it and his notes come fast:** keep a pass running for his notes alongside the build; write every lesson back
   into this file.
 - **Test the rooms a change is about, not the world** (Chris, 2026-11-23: "we really need these tests to be able to analyze
