@@ -85,9 +85,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
     [SIB.taiga]: 'a snow-dotted texture tiled across the hillside behind the pines',
   },
   china: {},
-  japan: {
-    [JP.port]: 'sky stripes running down behind the play, a brick texture up its left side, the sea pattern joined to them',
-  },
+  japan: {},
   pacific: {
     [PAC.waikiki]: 'a dark-blue skyline and sea texture filling the right half below the band',
     [PAC.luau]: 'sunset stripes running down behind the play',
