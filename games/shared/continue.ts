@@ -188,6 +188,14 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
   }
 
   /**
+   * A new game that begins from a save of the game's own making (NEW GAME+ waiting at its start, after a win): after `beginNewGame`, `s` is kept as the
+   * current save, the new game's first, so the title's ENTER CONTINUE begins it (and a new game over it does not push the save before it out: saves.ts).
+   */
+  beginWith(s: S) {
+    if (this.write(s)) this.st = { ...this.st, hasSave: true };
+  }
+
+  /**
    * Back to the title on the player's say-so (T on the pause screen): the save stays, the title
    * offers ENTER CONTINUE, and only a new game started there begins a new history entry.
    */
@@ -242,15 +250,17 @@ export class ContinueFlow<S, F> implements SaveHistory<F> {
     } catch { return null; }
   }
 
-  private write(s: S) {
+  /** Whether it was kept. */
+  private write(s: S): boolean {
     try {
       this.st = { ...this.st, rooms: this.st.rooms + 1 };
       const found = this.foundNow();
-      writeCurrent(this.opts.id, packSlot(this.codec, s, { at: Date.now(), summary: this.summary(s, found), rooms: this.st.rooms }));
+      const kept = writeCurrent(this.opts.id, packSlot(this.codec, s, { at: Date.now(), summary: this.summary(s, found), rooms: this.st.rooms }));
       // what's been found goes with it (the map's progress: rooms, places to travel to), so the
       // game continued later has the map as it was, not as it was when the pause screen last closed
       keepFound(this.opts.id, found);
-    } catch { /* a save that won't pack: no autosave */ }
+      return kept;
+    } catch { return false; /* a save that won't pack: no autosave */ }
   }
 
   /** What the game says about a save (nothing if it says nothing, or can't). */

@@ -10,6 +10,7 @@ import { endingStats, montyEnding } from './ending';
 import { Game } from './game';
 import { describeSave, montyMap, noTravel, noteRoom, type MontyFound } from './map';
 import type { AssistId, MontyData, TuneVersion } from './montydata';
+import { keepPlusBegun, openMap, plusStart, plusWear, readPlusBegun } from './plus';
 import { CODEC, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore, type TitleScreen } from './title';
 import { TOUCH } from './touch';
@@ -94,7 +95,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
   type Mode = 'title' | 'play';
   let mode: Mode = 'title';
   let collisions = 0;
-  /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too). */
+  /** The last game ended in France: CONTINUE? carries on with everything as saved (the lives and score too; a game with NEW GAME+ has it waiting instead). */
   let won = false;
   /** The ending's show, once the session is up (made in the session's build; a game with no ending has none). */
   let rewardShow: RewardShow | null = null;
@@ -135,6 +136,8 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
 
     g.onRoomLoaded = (game) => {
       playVersion(data.music.tuneFor?.(game.roomId) ?? null);
+      // (NEW GAME+: the region's hat on, as no hat is ever picked up in it)
+      if (game.plus) plusWear(game);
       if (noteRoom(game, fe.found)) fe.keepFound();
       // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
       if (!noTravel(data, game.roomId) && !game.completionActive) {
@@ -150,18 +153,42 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       view.resetSmoothing();
     }
 
-    /** A new game keeps the map: the game's map is the reward (`MontyEnding.replayKeepsMap`), and it has been won here. */
-    const keepsMap = () => !!data.ending?.replayKeepsMap && readWon(data.id);
+    // ---- NEW GAME+ (plus.ts): once the game has been won here, a game that has it begins every new game so (Chris, 2026-11-26: "a new game plus
+    // that lets you start at the beginning with the entire map open. And all the items still collected") ----
+    const plus = data.ending?.newGamePlus;
+    const plusDue = () => !!plus && readWon(data.id);
+    /** The map NEW GAME+ begins with: the one so far, every other room opened. */
+    const openAll = (found: MontyFound) => openMap(data, found);
+    /**
+     * A won game's save becomes NEW GAME+ waiting at its start (the won game's kept as the previous save, the save manager can swap it back), so the
+     * title's ENTER CONTINUE begins NEW GAME+, now and after a reload, in place of carrying on in the won game's last room.
+     */
+    function plusAfterWin() {
+      if (!plus) return;
+      fe.newGame(openAll);
+      flow.beginWith(plusStart(data, plus.worn));
+      keepPlusBegun(data.id);
+    }
+    // (once only: a game won here before NEW GAME+ was, its save the won game's, has it waiting at launch; once begun, the saves are the player's, and a
+    // won game's the save manager brings back stays as it is: turned again, it would push the NEW GAME+ game, kept as the previous save, out)
+    if (plusDue() && !readPlusBegun(data.id)) {
+      const kept = flow.saved();
+      if (kept && kept.plus !== true) plusAfterWin();
+      else keepPlusBegun(data.id);
+    }
 
     function startGame() {
       title.leave();
-      g.start();
+      if (plus && plusDue()) {
+        fe.newGame(openAll);
+        restore(g, plusStart(data, plus.worn));
+      } else {
+        g.start();
+        fe.newGame();
+      }
       won = false;
       g.vic.border = g.vic.background = 0;
       g.hiScore = Math.max(g.hiScore, topScore(title.table)); // (the best score this visit, or the table's top)
-      // (once the game has been won here, a game whose map is the reward keeps it: every room visited stays a place to travel to, the game
-      // and its villain fresh; Chris, 2026-11-24: "that's kind of like the unlocker, that's the nice reward")
-      fe.newGame(keepsMap());
       rooms.clear();
       mode = 'play';
       latch.hold();
@@ -238,6 +265,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
           won = g.finished === 'won';
           if (won) keepWon(data.id);
           const stats = endingStats(g, fe.found);
+          if (won) plusAfterWin();
           toTitle();
           if (won && reward) reward.start(stats);
         }

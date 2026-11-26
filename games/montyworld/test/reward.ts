@@ -12,7 +12,7 @@
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
  *     included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before, and in the procession, to the title as it is (no CONTINUE? until a key);
- *  5. in the session (and after a win, a new game keeps the map's rooms for travel, the game fresh; before one, it does not): winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
+ *  5. in the session (and after a win, CONTINUE and NEW GAME begin NEW GAME+: the beginning, the whole map open, the key items his; before one, a plain game): winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
  *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
  *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
  *
@@ -358,7 +358,7 @@ function win(s: ReturnType<typeof boot>) {
   check(`EASY: the show's sprites are put away (what is up over the title is the title's own chase: ${left} others)`, left === 0);
   check('EASY: the save is kept', s.p.state.hasSave);
   s.press('Enter');
-  check('EASY: CONTINUE? yes: back in play', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300));
+  check('EASY: ENTER CONTINUE: back in play, in NEW GAME+', s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300) && s.g.plus);
   // W on the pause screen, once won
   s.press('KeyP');
   check('EASY, won: the pause screen offers W ENDING', s.p.state.paused);
@@ -385,41 +385,44 @@ function win(s: ReturnType<typeof boot>) {
   check('HARD: W on the pause screen starts it', ending.active);
 }
 
-// after a win a new game keeps the map: every room visited stays a place to travel to, the game itself fresh (Chris, 2026-11-24: "that's kind of
-// like the unlocker, that's the nice reward. Let the player play again, encounter Viktor again but be able to jump around"); not before a win
+// after a win, NEW GAME+ (montyotr's src/plus.ts; Chris, 2026-11-26: "a new game plus that lets you start at the beginning with the entire map open. And all the items
+// still collected"): CONTINUE and NEW GAME both begin it, not before a win (test/plus.ts has the whole map and every room's way in)
 {
   const visit = (s: ReturnType<typeof boot>, id: number) => {
     const cell = must(cellOf(WORLD, id), `room ${id} on the grid`);
     s.p.state.found.rooms[id] = [0x40, standY(18), cell.row, cell.col];
   };
-  const fresh = (g: Game) => g.score === 0 && g.siCollected.every((v) => v === 0) && g.coinCollected.every((v) => v === 0) && g.roomId === 0;
+  const { keyItems } = WORLD.progress;
+  /** NEW GAME+ as it begins: Moscow's first room, every key item and nothing else, no coin, the score nothing. */
+  const plusStart = (g: Game) => g.plus && g.score === 0 && g.siCollected.every((v, i) => (keyItems.includes(i) ? v !== 0 : v === 0)) && g.coinCollected.every((v) => v === 0) && g.roomId === 0;
   {
     const s = boot(true);
     s.tick(300);
     visit(s, RIO_ROOM.arms);
     s.press('Space');
     s.tick(40);
-    check('not won yet: a new game starts with nothing on the map but where he is', s.p.state.mode === 'play' && !readWon('montyworld') && !(RIO_ROOM.arms in s.p.state.found.rooms));
+    check('not won yet: a new game is a plain one, nothing on the map but where he is', s.p.state.mode === 'play' && !readWon('montyworld') && !s.g.plus && !(RIO_ROOM.arms in s.p.state.found.rooms));
   }
   const s = boot(true);
   const won = win(s);
-  // (a room visited in the won game: the map since the game began)
-  visit(s, RIO_ROOM.arms);
-  const before = Object.keys(s.p.state.found.rooms).sort().join();
   s.tick(110);
   s.press('Space');
-  s.press('Escape');
   s.tick(30);
+  // CONTINUE after the win: NEW GAME+ at the beginning, not back into Rio's beach
+  s.press('Enter');
+  check('won, then ENTER CONTINUE: NEW GAME+ in Moscow\'s first room, every key item his, nothing else, the score nothing', won && s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300) && plusStart(s.g));
+  check('the whole map open: a room of Rio\'s, never visited in this game, is a place to travel to', String(RIO_ROOM.arms) in s.p.state.found.rooms);
+  check('and kept with the saves (a new page load reads it)', readFoundRooms().includes(String(RIO_ROOM.arms)));
+  check('travel goes from the first room to Rio', montyMap.go(String(RIO_ROOM.arms), s.g, s.p.state.found) && s.until(() => s.g.roomId === RIO_ROOM.arms && !s.g.freeze, 300));
+  check('the game there is NEW GAME+: nothing but the key items taken on the way', s.g.siCollected.every((v, i) => (keyItems.includes(i) ? v !== 0 : v === 0)));
+  // NEW GAME after a win: NEW GAME+ too
+  s.press('KeyP'); s.press('KeyT');
+  s.tick(300);
   s.press('Space');
   const asked = s.p.state.prompt === 'newGame';
   s.press('Space');
   s.tick(10);
-  const after = Object.keys(s.p.state.found.rooms).sort().join();
-  check(`won, then NEW GAME (asked: ${asked}): a fresh game in Moscow's first room, nothing taken, the score nothing`, won && asked && s.p.state.mode === 'play' && fresh(s.g));
-  check(`the map is kept: every room visited before is still on it (${after})`, after === before && RIO_ROOM.arms in s.p.state.found.rooms);
-  check('and kept with the saves (a new page load reads it)', readFoundRooms().includes(String(RIO_ROOM.arms)));
-  check('travel goes from the new game\'s first room to a room visited in the won game', montyMap.go(String(RIO_ROOM.arms), s.g, s.p.state.found) && s.until(() => s.g.roomId === RIO_ROOM.arms && !s.g.freeze, 300));
-  check('the game there is the new one: nothing taken on the way', s.g.siCollected.every((v) => v === 0));
+  check(`and NEW GAME (asked: ${asked}): NEW GAME+ again`, asked && s.p.state.mode === 'play' && plusStart(s.g));
 }
 /** The rooms the stored map's progress has (what a new page load reads). */
 function readFoundRooms(): string[] {

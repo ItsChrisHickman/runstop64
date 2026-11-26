@@ -43,6 +43,9 @@ const found = S.object({ rooms: S.record(entry) });
 export type MontyFound = S.Infer<typeof found>;
 const FOUND = foundCodec(found, () => ({ rooms: {} }));
 
+/** What NEW GAME+ is called on the pause screen and in the saves' summaries. */
+export const PLUS_NAME = 'NEW GAME+';
+
 /** runstop64's rooms, seen (the dev room's lettering). */
 const RUNSTOP64_COLOUR = COL.blue;
 /** No travel to or save in the ending's room (Monty on the Run's $30: the completion's, not on the grid). */
@@ -332,6 +335,8 @@ export const montyMap = {
     }
   },
   info: (g, found) => progressRows(g, found).map(([label, value]) => statLine(label, value)),
+  /** NEW GAME+ (plus.ts), in yellow, the heading's colour. */
+  badge: (g) => (g.plus ? { text: PLUS_NAME, colour: COL.yellow } : null),
   legend: (g) => [
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
@@ -440,5 +445,6 @@ export function describeSave(data: MontyData, save: MontySave, found: MontyFound
   const { keyItems, cakes: allCakes } = data.progress;
   const items = keyItems.filter((i) => save.items[i]).length, cakes = allCakes.filter((i) => save.items[i]).length;
   const rooms = Object.keys(found.rooms).filter((id) => !data.isExtensionRoom(Number(id))).length;
-  return [sectorName(data, save.roomId).text, ...(lives ? [`LIVES ${save.lives}`] : []), `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
+  // (NEW GAME+ in place of the items: every key item is his in it)
+  return [sectorName(data, save.roomId).text, ...(lives ? [`LIVES ${save.lives}`] : []), save.plus ? PLUS_NAME : `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
 }

@@ -124,13 +124,12 @@ export class FrontEnd<T, F> {
   keepFound() { keepFound(this.o.id, this.found); }
 
   /**
-   * A new game: the save so far is kept as the previous one (with what had been found), and nothing is found yet; or, with `keepMap` (a game
-   * won here before: the map is the reward, Chris 2026-11-24), the map's progress carries on into the new game, so every place found stays a
-   * place to travel to, and the game itself starts fresh.
+   * A new game: the save so far is kept as the previous one (with what had been found), and nothing is found yet; or, with `open` (NEW GAME+, a game won
+   * here: Do Svidaniya Monty's plus.ts), the map the new game begins with, made from the one so far (the whole map open), the game itself fresh.
    */
-  newGame(keepMap = false) {
+  newGame(open?: (found: F) => F) {
     this.o.saves.beginNewGame(this.found);
-    this.found = keepMap ? structuredClone(this.found) : this.o.map.found.empty();
+    this.found = open ? open(this.found) : this.o.map.found.empty();
     this.keepFound();
   }
 

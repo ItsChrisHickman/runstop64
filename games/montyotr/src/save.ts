@@ -20,6 +20,8 @@ export const MontySave = S.object({
   c5: S.optional(S.object({ fallStage: S.number, speed: S.number, dir: S.number, bounce: S.number })),
   /** The special item whose costume he wears (a game with costumes: Do Svidaniya Monty's). */
   worn: S.optional(S.number),
+  /** A game of NEW GAME+ (plus.ts; saves from before it have none: a plain game). */
+  plus: S.optional(S.literal(true)),
 });
 export type MontySave = S.Infer<typeof MontySave>;
 
@@ -31,6 +33,7 @@ export function snapshot(g: Game): MontySave {
     lives: g.lives, score: g.score,
     coins: [...g.coinCollected], items: [...g.siCollected], exitGrid: [...g.exitGrid], c5FallStage: g.c5Arrival.fallStage, c5: { ...g.c5Arrival },
     ...(g.worn === null ? {} : { worn: g.worn }),
+    ...(g.plus ? { plus: true } : {}),
   };
 }
 
@@ -48,6 +51,7 @@ export function restore(g: Game, data: MontySave) {
   if (street && driven !== undefined) g.exitGrid[lastCellIndex(g.data, street)] = driven;
   c5Arrive(g, data.c5 ?? { ...C5_START, fallStage: data.c5FallStage });
   wear(g, data.worn ?? null);
+  g.plus = data.plus === true;
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't
   // there, so Monty carries on from the start room, where a new game starts him (g.start's
   // place), with everything else the save has.

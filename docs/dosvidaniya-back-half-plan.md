@@ -614,6 +614,12 @@ need to."
 - Test: a won progress plus NEW GAME has every visited room on the map and travellable, no item or coin taken, Viktor
   due on the train; an un-won progress plus NEW GAME clears the map as now.
 
+**Superseded (Chris, 2026-11-26): NEW GAME+.** "I really want a new game plus that lets you start at the beginning with the entire map open. And all
+the items still collected." After a win, CONTINUE and NEW GAME both begin NEW GAME+ (`games/montyotr/src/plus.ts`, `MontyEnding.newGamePlus`): Moscow's
+start, every key item taken (costume: the ushanka), every room of the grid on the map (`way-in.ts` gives a room not visited its way in), Viktor, the
+creatures, coins, snacks, lives and score fresh. CONTINUE no longer goes back into Rio: the won game's save becomes NEW GAME+ waiting at its start (the won
+one kept as the previous save). The save carries `plus`; an older won save (won here, its save not NEW GAME+) is turned into it at launch, once (`readPlusBegun`).
+
 The other options, kept as notes:
 - **(a) A mop-up after the win:** CONTINUE opens the map with every room open and what is left to find marked, to play
   on to 100%. Small (a session): mostly the map's markings. Partly covered by the decision, since travel is open in a new

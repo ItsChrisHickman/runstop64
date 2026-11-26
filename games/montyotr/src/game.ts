@@ -256,6 +256,8 @@ export class Game implements MontyBody, MontyWorld {
   planeTouch = 0;
   /** The special item whose costume Monty wears (the data's `costumes`), or null: kept in the save. */
   worn: number | null = null;
+  /** This game is NEW GAME+ (plus.ts: begun after a win, the whole map open, every key item his): the pause screen says so; kept in the save. */
+  plus = false;
   /** The line in the name row, and for how long (our hints). */
   hint: HintState = noHint();
   c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -407,6 +409,7 @@ export class Game implements MontyBody, MontyWorld {
     planeInit(this);
     this.leverLatch = false;
     this.worn = null;
+    this.plus = false;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
