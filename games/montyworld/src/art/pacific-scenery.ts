@@ -198,12 +198,14 @@ function tunnelLamp(): NewDecor {
 /** An ironwood (casuarina) on Ka'uiki Head's cinder: a tall, thin trunk and drooping tiers of wispy needles, the tree that sheds its needles on the trail down to Kaihalulu. 2 x 3 characters. */
 function ironwood(): NewDecor {
   const r = new Raster(16, 24);
-  for (const [y, w] of [[0, 2], [2, 5], [4, 8], [7, 6], [9, 11], [12, 9], [14, 14]] as const) {
-    const x0 = 8 - Math.ceil(w / 2);
-    r.rect(x0, y, x0 + w - 1, y + 1);
-    for (let x = x0 + 1; x < x0 + w; x += 3) r.set(x, y + 2); // the needles hanging
+  // the leaning trunk and its bare limbs, then wispy drooping clumps of needles hung off them, uneven, the sky through them
+  for (let y = 9; y < 24; y++) r.rect(7 + (y < 16 ? 1 : 0), y, 8 + (y < 16 ? 1 : 0), y);
+  r.line(8, 12, 3, 6); r.line(9, 10, 13, 4); r.line(8, 9, 7, 1);
+  for (const [cx, cy, w] of [[3, 4, 5], [13, 2, 5], [7, 0, 4], [11, 8, 4], [2, 10, 4]] as const) {
+    r.rect(cx - (w >> 1), cy, cx + (w >> 1), cy + 1);
+    for (let x = cx - (w >> 1); x <= cx + (w >> 1); x += 2) r.rect(x, cy + 2, x, cy + 3 + ((x + cy) % 3)); // the needles hanging in strands
   }
-  r.rect(7, 17, 8, 23); r.rect(5, 23, 10, 23); // the trunk, its foot
+  r.rect(5, 23, 10, 23); // its foot
   return decor('pacIronwood', 2, 3, r, ['55', '55', '99']);
 }
 
@@ -219,16 +221,16 @@ function banyan(): NewDecor {
 }
 
 export const PACIFIC_SCENERY_TILES = {
-  /** Diamond Head's tuff: beds of cemented ash, its layers dipping down the slope, cracked. Solid. */
+  /** Diamond Head's tuff in the sun: the cone's own fluting (its gullies worn down the rock, as the slope's backdrop has them), brighter than the slope behind, cracked. Solid. */
   pacTuff: tile('pacTuff', 1, 8, [
-    '##.#####',
+    '#.###.##',
+    '#.###.##',
+    '##.##.##',
+    '##.###.#',
     '#..###.#',
-    '####..##',
-    '.######.',
-    '###.##..',
-    '#.######',
-    '####..##',
-    '##.####.',
+    '#.####.#',
+    '#.##.###',
+    '##.#.###',
   ]),
   /** The crater trail's path: its paved edge and the stones under it. A floor. */
   pacTrail: tile('pacTrail', 2, 15, [

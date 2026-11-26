@@ -493,16 +493,16 @@ function astronomer(): NewCreature {
 }
 
 export const PACIFIC_ISLANDS_TILES = {
-  /** Sand to fill under the crest. Solid. */
+  /** Fine sand heaped deep (Kaihalulu's red cinder sand): dense, a few dark grains and a ripple. Solid. */
   pacSandFill: tile('pacSandFill', 1, 7, [
+    '########',
+    '#.######',
     '#####.##',
-    '........',
-    '.##.####',
-    '........',
-    '####.###',
-    '........',
-    '##.#####',
-    '........',
+    '##....##',
+    '########',
+    '###.####',
+    '######.#',
+    '#..#####',
   ]),
   /** A dry-stacked fishpond wall: rounded lava stones, the courses offset, black gaps between them. Solid. */
   pacWallStone: tile('pacWallStone', 1, 12, [
