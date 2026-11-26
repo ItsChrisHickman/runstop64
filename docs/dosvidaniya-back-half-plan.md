@@ -251,6 +251,15 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
 - The swims are generic: give each crossing its own idea. The swim to the Big Island has sea turtles that surface and dive, and
   Monty rides their backs across the surge (Chris: "should have turtles in it; that represents the Big Island waters"); the
   Molokai channel keeps Molokai's cliffs behind it (a breaching humpback, scenery).
+- **The swims tell the journey from island to island** (Chris: "Molokai doesn't look like Molokai in the background. You're still
+  not really getting the idea that Monty should be swimming from one island, past that island, and arriving in Maui"). The
+  crossing from Oahu to Maui is a sequence the backdrop narrates, room by room, the horizon behind the water changing as he
+  swims east: first Oahu falling away behind (Diamond Head's silhouette at the west edge, small); then **Molokai alongside**,
+  drawn as Molokai: a long island filling the horizon, its north shore's sheer sea cliffs (the tallest in the world) with thin
+  waterfalls down them, the flat Kalaupapa peninsula at their foot; then **Maui ahead**: the West Maui mountains rising, Lanai
+  low on the horizon, and Lahaina's shore where he comes up. The same for the swim from Hana to the Big Island: Maui's Haleakala
+  behind, the open channel, then the Big Island's huge gentle volcano shapes (Mauna Kea, often snow-capped, and Mauna Loa) rising
+  ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
 - Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
   coffee farm's rows; Akaka Falls' gorge).
 - Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its banner and its landmark.
