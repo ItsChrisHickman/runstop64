@@ -138,12 +138,11 @@ function holds(g: Game, c: Condition): boolean {
  */
 export function applyRoomEffects(g: Game, pass: 'all' | 'before' | 'after' = 'all') {
   const id = g.roomId;
-  g.data.roomEffects.forEach((e, i) => {
-    if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) return;
-    if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) return;
-    if (e.at && !g.usedHere.has(i)) return; // (an item used on the spot waits for him there: useOnTheSpot)
+  for (const e of g.data.roomEffects) {
+    if (e.room !== id || e.at || !(e.when ?? []).every((c) => holds(g, c))) continue; // (an item used on the spot waits for him there, once a visit: useOnTheSpot)
+    if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) continue;
     applyEffect(g, e);
-  });
+  }
 }
 
 /** One room effect's changes, now. */
@@ -166,7 +165,8 @@ function applyEffect(g: Game, e: RoomEffect) {
 
 /**
  * An item used on the spot (`RoomEffect.at`): each frame, an effect of this room whose conditions hold and that has not happened this visit happens when any cell of Monty's body is in its box, with the
- * item's sound and its line on the name row: the gate is seen to give way to what he brought, never silently absent.
+ * item's sound: the gate is seen to give way to what he brought, never silently absent. A guard the effect sends off (`removeEnemy`) with `leaves` set turns and walks off the way it says, harmless, out of
+ * the room (`leaveTick`); without it, it is gone at once.
  */
 export function useOnTheSpot(g: Game) {
   const id = g.roomId;
@@ -176,11 +176,50 @@ export function useOnTheSpot(g: Game) {
     const inBox = g.montyCol + 1 >= at.col && g.montyCol < at.col + at.cols && g.montyRow + 2 >= at.row && g.montyRow < at.row + at.rows;
     if (!inBox) return;
     g.usedHere.add(i);
-    applyEffect(g, e);
-    if (e.removeEnemy !== undefined) g.enable &= ~(1 << (4 + e.removeEnemy)); // (sent off in the room, not as it loads: its sprite goes too, or it stays drawn, and deadly, where it stood)
+    const guard = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];
+    if (e.removeEnemy !== undefined && at.leaves !== undefined && guard && guard.x !== 0xff) {
+      applyEffect(g, { ...e, removeEnemy: undefined });
+      guard.driven = true;
+      g.leaving.push({ slot: e.removeEnemy, dx: at.leaves });
+    } else {
+      applyEffect(g, e);
+      if (e.removeEnemy !== undefined) g.enable &= ~(1 << (4 + e.removeEnemy)); // (sent off in the room, not as it loads: its sprite goes too, or it stays drawn, and deadly, where it stood)
+    }
     g.sfx(g.data.sfx.item);
-    g.noteUsed(at.text);
   });
+}
+
+/** A guard's sprite x (halved pixels) at the playfield's left edge and where its picture's right edge meets the playfield's right edge: past either it has left the room. */
+const LEFT_EDGE = 0x0c, RIGHT_EDGE = 0x0c + 30 * 4;
+
+/**
+ * The guards walking off (`useOnTheSpot`, `leaves`), each enemy tick: two half pixels a tick (a trot, twice its patrol's walk) the way it goes, in its walking pictures facing that way; off the playfield's
+ * edge it is gone. It touches nothing on the way (`leavingSprites`).
+ */
+export function leaveTick(g: Game) {
+  g.leaving = g.leaving.filter(({ slot, dx }) => {
+    const e = g.enemies[slot];
+    const n = 4 + slot;
+    if (!e) return false;
+    e.x = (e.x + dx * 2) & 0xff;
+    if (dx < 0 ? e.x <= LEFT_EDGE : e.x >= RIGHT_EDGE) {
+      e.x = 0xff;
+      g.enable &= ~(1 << n) & 0xff;
+      return false;
+    }
+    g.enemyAnim[slot] = (g.enemyAnim[slot] + 1) & 0xff;
+    g.sx[n] = e.x;
+    g.sy[n] = e.y;
+    g.scol[n] = e.colour;
+    g.sptr[n] = 0x30 + slot * 8 + (dx < 0 ? 0 : 4) + ((g.enemyAnim[slot] & 6) >> 1);
+    g.enable |= 1 << n;
+    return true;
+  });
+}
+
+/** The sprites of the guards walking off: harmless (left out of the collision check). */
+export function leavingSprites(g: Game): number {
+  return g.leaving.reduce((bits, { slot }) => bits | (1 << (4 + slot)), 0);
 }
 
 /** UpdateRisingCloud: room $01's cloud rises and carries Monty up. */

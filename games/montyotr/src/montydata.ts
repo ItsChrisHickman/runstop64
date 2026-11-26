@@ -102,10 +102,10 @@ export interface RoomEffect {
   wake?: { item: number; slot: number; x: number };
   /**
    * An item used on the spot, seen happening (Do Svidaniya Monty's gates: the panpipes played to the llama, the machete cutting the tangle): the effect does not wait in the room when he comes in with the
-   * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound and `text` on the name row (the hints' line), once a visit. None in Monty on
-   * the Run's.
+   * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound, once a visit. With `leaves` (-1 west, 1 east), the guard it sends off
+   * (`removeEnemy`) turns and walks off out of the room that way, harmless, rather than going at once (items.ts `leaveTick`). None in Monty on the Run's.
    */
-  at?: { col: number; row: number; cols: number; rows: number; text: string };
+  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1 };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */

@@ -452,7 +452,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | Items.leavingSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -724,9 +724,12 @@ export class Game implements MontyBody, MontyWorld {
 
   /** The room effects used on the spot this visit (`RoomEffect.at`, items.ts `useOnTheSpot`): empty on every load, so a gate given way stays open until he leaves or the room starts again. */
   usedHere = new Set<number>();
+  /** The guards walking off this visit (items.ts `leaveTick`): an enemy slot and the way it goes. */
+  leaving: { slot: number; dx: -1 | 1 }[] = [];
 
   loadRoom() {
     this.usedHere = new Set<number>();
+    this.leaving = [];
     const id = this.roomId;
     const data = this.data;
     const def = data.roomDef(id);
@@ -837,12 +840,6 @@ export class Game implements MontyBody, MontyWorld {
   /** Our hint on touching a thing that wants what he does not have (a plane without the parachute: planes.ts). */
   noteWanted(text: string) {
     if (!this.assist.hints) return;
-    say(this.hint, text);
-    this.drawNameRow();
-  }
-
-  /** An item used on the spot (items.ts `useOnTheSpot`): what happened, on the name row, in both modes (it is the story, not a hint). */
-  noteUsed(text: string) {
     say(this.hint, text);
     this.drawNameRow();
   }
@@ -1044,6 +1041,7 @@ export class Game implements MontyBody, MontyWorld {
       this.sptr[n] = 0x30 + slot * 8 + frame;
       this.enable |= 1 << n;
     }
+    Items.leaveTick(this);
   }
 
   // ---- theme char animation (water and lava) ----------------------------------------
