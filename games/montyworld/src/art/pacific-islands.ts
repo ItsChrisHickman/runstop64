@@ -636,16 +636,16 @@ export const PACIFIC_ISLANDS_TILES = {
     '........',
     '........',
   ]),
-  /** The bunker's concrete: poured walls with their form-board lines. Solid. */
+  /** The bunker's concrete: poured walls with their form-board lines (the boards' seams, staggered: never squares in squares, which read as dither). Solid. */
   pacConcrete: tile('pacConcrete', 1, 12, [
     '########',
-    '#......#',
-    '#.####.#',
-    '#.#..#.#',
-    '#.#..#.#',
-    '#.####.#',
-    '#......#',
     '########',
+    '########',
+    '.......#',
+    '########',
+    '########',
+    '########',
+    '###.....',
   ]),
   /** A hotel's facade: floors of windows between white bands. Solid. */
   pacHotelWall: tile('pacHotelWall', 1, 1, [

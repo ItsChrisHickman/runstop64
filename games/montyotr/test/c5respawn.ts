@@ -49,7 +49,7 @@ const settle = (g: Game) => { for (let n = 0; n < 400 && (g.script || g.freeze);
 function copy(src: Game): Game {
   const g = new Game(MOTR);
   for (const k of Object.keys(src)) {
-    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'onRestart' || k === 'script') continue;
+    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'onRestart' || k === 'script' || k === 'entropy') continue;
     Reflect.set(g, k, structuredClone(getProp(src, k)));
   }
   g.assist = { ...src.assist };

@@ -7,8 +7,16 @@ import type { Game, Input as Stick } from '../../montyotr/src/game';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
+import { cellOf } from '../../montyotr/src/montydata';
+import { must } from '../../shared/test/must';
 import { newGame } from '../../shared/monty/test/bot';
 import { itemIndex, standY } from './route';
+
+/** What the map keeps of a room he has been to, at its cell of today's exit grid: [x2, y, map row, exit column]. */
+export function kept(room: number): [number, number, number, number] {
+  const c = must(cellOf(WORLD, room), `room ${room} on the exit grid`);
+  return [0x40, 0xb2, c.row, c.col];
+}
 
 export const LEFT: Stick = { ...NONE, left: true };
 export const RIGHT: Stick = { ...NONE, right: true };

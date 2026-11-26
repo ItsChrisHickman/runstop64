@@ -61,7 +61,7 @@ const settled = (g: Game) => !g.freeze && !g.script;
 function copy(src: Play): Play {
   const g = new Game(MOTR);
   for (const k of Object.keys(src.g)) {
-    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'onRestart' || k === 'script') continue;
+    if (k === 'data' || k === 'vic' || k === 'mem' || k === 'col' || k === 'sound' || k === 'onRoomLoaded' || k === 'graceActive' || k === 'onRestart' || k === 'script' || k === 'entropy') continue;
     Reflect.set(g, k, structuredClone(getProp(src.g, k)));
   }
   g.assist = { ...src.g.assist };

@@ -37,7 +37,7 @@ import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { newGame } from '../../shared/monty/test/bot';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { search } from './search';
-import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, at, rowText, run } from './mech-kit';
+import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, at, rowText, run, kept } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 import { CHULLO, LEDGE_EMPANADA } from './andes-route';
@@ -97,8 +97,8 @@ SCOPE.section([], 'the data', () => {
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in the region (and the piranha, a thing on a path), none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), every kind of the region's art in a room`,
     rooms.size === Object.keys(ANDES_CREATURES).length && rooms.size === 9 && most <= 2);
-  const used = [...HAT_BLOCKS, ...Object.values(SPRITE), ...Object.values(SIB_SPRITE), ...Object.values(CHINA_SPRITE), ...Object.values(DRAGON_POINTERS), ...Object.values(JAPAN_SPRITE), ...Object.values(PAC_SPRITE), ...Object.values(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS];
-  check(`every block of the bank the Andes use is its own (${used.length} pointers with every earlier region's and the hats', none twice, none Monty's) and each has a picture there`,
+  const used = [...HAT_BLOCKS, ...Object.values(SPRITE), ...Object.values(SIB_SPRITE), ...Object.values(CHINA_SPRITE), ...Object.values(DRAGON_POINTERS), ...Object.values(JAPAN_SPRITE), ...Object.values(PAC_SPRITE).filter((p) => p !== PAC_SPRITE.moonRock), ...Object.values(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS];
+  check(`every block of the bank the Andes use is its own (${used.length} pointers with every earlier region's and the hats', none twice, none Monty's; the moon rock borrows a boulder's block in Mauna Loa alone: roomBlocks) and each has a picture there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && [...Object.values<number>(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS].every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
   const crowded = overCrowded(ANDES_ROOMS);
   check(`no room has a fourth creature (sprite 7 is the worn chullo's; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
@@ -427,7 +427,7 @@ SCOPE.section([], 'hints, the map, saves', () => {
   check(`the pause screen counts the snacks and the items (${info.join(' | ')})`, info[2] === `SNACKS 0/${WORLD.progress.cakes.length}` && info[1] === `ITEMS  0/${WORLD.progress.keyItems.length}`); // (the totals are world.ts's)
   SCOPE.section([AND.picchu, AND.terraces], 'the map in the Andes', () => {
     enterRoom(s.g, AND.picchu, 0x40, standY(8));
-    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: [0x40, 0xb2, 4, 21], [AND.terraces]: [0x40, 0xb2, 4, 20] } });
+    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [AND.picchu]: kept(AND.picchu), [AND.terraces]: kept(AND.terraces) } });
     check('in the Andes the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
   });
 

@@ -298,7 +298,7 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
 // ---- the hidden garden's stones ------------------------------------------------------------------------------
 /**
  * THE LAST MOLE's six stepping stones (two cells each, their floor row), east to west from the rope: the first jumps are wider (three cells, two rows up then two rows down to the stone beside the
- * bamboo rope, a koi leaping across each), then two rows up again past the bamboo rope and the pond's west half as it always was (the stone under the bonsai shelf's end, the stone by the shrine, the bank).
+ * bamboo rope, a koi leaping across the first), then two rows up again past the bamboo rope and the pond's west half as it always was (the stone under the bonsai shelf's end, the stone by the shrine, the bank).
  */
 export const MOLE_STONES: readonly (readonly [col: number, floor: number, cols: number])[] = [[25, 14, 2], [20, 12, 2], [15, 14, 2], [11, 12, 2], [8, 13, 2], [4, 14, 2]];
 /**
@@ -477,7 +477,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
 
   // L THE LAST MOLE: hidden, off the garden's pergola. In by the rope through the floor; a moonlit pond crossed on six stepping stones, a bonsai garden on a shelf and a stone dragon behind it, the shrine
   // on its plinth with the ninja hood. More skill from stone to stone (Chris, 2026-11-25: "a little bit more skill to jump from platform to platform"): the first jumps are wider and two rows up or down,
-  // judged from a stone's edge (no steering in the air), a koi leaping across each of the first two, and the second and third stones sink under him (MOLE_SINKING: keep moving). The high ledge either
+  // judged from a stone's edge (no steering in the air), a koi leaping across the first (one koi: the room's third sprite is Viktor's shadow on the moon), and the second and third stones sink under him (MOLE_SINKING: keep moving). The high ledge either
   // side of the bamboo rope and the bonsai shelf (reached down from the west ledge) are as they were.
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
@@ -493,9 +493,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     coins: [[17, 4]],
     item: { name: 'hood', col: 1, row: 12, sprite: JAPAN_SPRITE.hood },
     decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
+    // (two creatures: the third sprite is Viktor's shadow on the moon once the hood is taken, viktor.ts PLACES.moon: a second koi across the jump down took it from him)
     creatures: [
       { who: 'jpKoi', col: 22, row: 17, way: 'up', speed: 2, range: 20 }, // (leaps out of the water across the first stones' jump)
-      { who: 'jpKoi', col: 17, row: 10, way: 'down', speed: 2, range: 20 }, // (across the jump down from the high stone to the stone by the bamboo rope: out of step with the first, it leaps as that one dives)
       { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
     ],
   }),

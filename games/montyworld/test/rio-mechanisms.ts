@@ -25,7 +25,7 @@ import { SAND_COLOUR } from '../src/finale';
 import { FRAME } from '../../shared/monty/frames';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run } from './mech-kit';
+import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, run, kept } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 
@@ -298,7 +298,7 @@ SCOPE.section([], 'the pause screen, the saves', () => {
   SCOPE.section([R.sugar, R.lap], 'the map in Rio', () => {
     const s = newGame(WORLD, true);
     enterRoom(s.g, R.sugar, 0x40, standY(18));
-    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 5, 26], [R.lap]: [0x40, 0xb2, 5, 25] } });
+    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: kept(R.sugar), [R.lap]: kept(R.lap) } });
     check('in Rio the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
   });
   const spots = [[R.arms, 1, 8], [R.colour, 2, 8], [R.lap, 4, 18], [R.steak, 2, 18], [R.sugar, 2, 18], [R.drum, 1, 8], [R.bust, 2, 18]] as const;

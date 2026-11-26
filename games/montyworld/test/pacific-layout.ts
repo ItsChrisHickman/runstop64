@@ -60,7 +60,7 @@ for (const r of scopedRooms(ROOMS)) {
 
 const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
-check(`seventeen kinds of creature (the astronomer the last) and Viktor Vole aboard the ship, the moray a mechanism (${rooms.size})`, rooms.size === 18);
+check(`sixteen kinds of creature (the astronomer the last; the shark fin went with FISH OUT OF WATER, the turtles are SHELL GAME's tiles) and Viktor Vole aboard the ship, the moray a mechanism (${rooms.size})`, rooms.size === 17);
 check(`nineteen rooms: four islands and three swims (${PACIFIC_ROOMS.length})`, PACIFIC_ROOMS.length === 19);
 const coins = ROOMS.map((r) => r.coins?.length ?? 0);
 check(`one to two coins a room, each with its reason (${coins.join(', ')}: ${coins.reduce((a, b) => a + b, 0)})`, coins.every((n) => n >= 1 && n <= 2));

@@ -145,13 +145,20 @@ function worldOf(data: MontyData) {
   };
 }
 
+/** Whether a column of the exit grid has no room in any row. */
+function emptyColumn(data: MontyData, col: number): boolean {
+  const { image, cols, rows } = data.exitGrid;
+  return Array.from({ length: rows }, (_, row) => image[row * cols + col]).every((id) => id === undefined || id === 0xff);
+}
+
 /**
  * Where a column of a world in regions starts, in cells from the world's first: its place, and a cell more for each flight before it (a region reached by
- * plane, `MapRegion.flown`: the map leaves a cell of space before its first column, as the journey there is a flight, not one room over).
+ * plane, `MapRegion.flown`: the map leaves a cell of space before its first column, as the journey there is a flight, not one room over; where the grid
+ * already leaves the column before it empty, that is the space).
  */
 export function columnAt(data: MontyData, col: number): number {
   const world = worldOf(data);
-  const flights = new Set(data.regions.filter((r) => r.flown && r.from > world.from).map((r) => r.from));
+  const flights = new Set(data.regions.filter((r) => r.flown && r.from > world.from && !emptyColumn(data, r.from - 1)).map((r) => r.from));
   let at = col;
   for (const c of flights) if (c <= col) at++;
   return at;

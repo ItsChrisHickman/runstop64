@@ -85,7 +85,13 @@ check(`Moscow's view: Monty's room picked, Moscow's rooms in the box and the nex
   const xs = new Map<number, number>();
   for (const q of places) { const at = onGrid.get(Number(q.id)); if (at) xs.set(at[1], q.x); }
   const flown = new Set(WORLD_REGIONS.filter((r) => r.flown).map((r) => r.from));
-  const steps = [...xs.keys()].filter((c) => xs.has(c - 1)).map((c) => ({ c, d: (xs.get(c) ?? 0) - (xs.get(c - 1) ?? 0) }));
+  // (each column against the nearest one west of it that has a room, a cell a column apart: an empty column of the grid is space too, and the one before a flight is its space)
+  const steps = [...xs.keys()].flatMap((c) => {
+    const before = Math.max(-1, ...[...xs.keys()].filter((k) => k < c));
+    if (before < 0) return [];
+    const apart = flown.has(c) ? 1 : c - before;
+    return [{ c, d: ((xs.get(c) ?? 0) - (xs.get(before) ?? 0)) / apart }];
+  });
   const cell = Math.min(...steps.map((q) => q.d));
   check(`the map leaves a cell of space before a region reached by plane (columns ${[...flown].join(', ')}: ${steps.filter((q) => flown.has(q.c)).map((q) => `${q.d} pixels`).join(', ')} where a cell is ${cell}), and none between the other columns`,
     flown.size > 0 && [...flown].every((c) => steps.find((q) => q.c === c)?.d === 2 * cell) && steps.every((q) => flown.has(q.c) || q.d === cell));
@@ -164,7 +170,7 @@ const n = WORLD.progress.keyItems.length;
 const icons = Array.from({ length: n }, (_, i) => iconAt(MAP_BOX, n, i));
 const rows = [...new Set(icons.map((a) => a.y))];
 const first = icons.filter((a) => a.y === rows[0]).map((a) => a.x);
-check(`the ${n} key items take two rows (${icons.filter((a) => a.y === rows[0]).length} and ${icons.filter((a) => a.y === rows[1]).length}), 20 apart, at least 20 apart along a row (${(first[1] ?? 0) - (first[0] ?? 0)}), inside the box`,
-  rows.length === 2 && (rows[1] ?? 0) - (rows[0] ?? 0) === 20 && (first[1] ?? 0) - (first[0] ?? 0) >= 20 && icons.every((a) => a.x + 16 <= MAP_BOX.w));
+check(`the ${n} key items take two rows (${icons.filter((a) => a.y === rows[0]).length} and ${icons.filter((a) => a.y === rows[1]).length}), 20 apart, at least 18 apart along a row (16-wide icons with a gap between: ${(first[1] ?? 0) - (first[0] ?? 0)}), inside the box`,
+  rows.length === 2 && (rows[1] ?? 0) - (rows[0] ?? 0) === 20 && (first[1] ?? 0) - (first[0] ?? 0) >= 18 && icons.every((a) => a.x + 16 <= MAP_BOX.w));
 
 finish();
