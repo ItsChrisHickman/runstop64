@@ -59,10 +59,20 @@ const frames = (route: Route) => route.reduce((a, [, f]) => a + f, 0);
 
 interface Found { room: number; spot: { x2: number; y: number; facing: number }; route: string }
 
+/**
+ * Places whose route is set by hand: OPEN ARMS (71), where the search's run to the hand's coin passes the vulture at a phase the show (a fresh game, seeded) does not share, so it died there in reward.ts:
+ * the forest floor's coin at the Redeemer's foot instead, walked to west from under his pedestal (safe under every timing).
+ */
+const HAND: Readonly<Record<number, Found>> = {
+  71: { room: 71, spot: { x2: 0x5c, y: 0xaa, facing: 0x81 }, route: '<104 .40' },
+};
+
 function find(index: number): Found | null {
   const place = PLACES[index];
   if (!place) return null;
   const room = place.room;
+  const hand = HAND[room];
+  if (hand) return hand;
   if ('treasure' in place.take) {
     // the beach: in from the west on the promenade, east to the bowl on its table
     return { room, spot: { x2: X2(2), y: standY(18), facing: 0x01 }, route: '>200' };

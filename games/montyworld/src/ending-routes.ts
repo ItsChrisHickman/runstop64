@@ -11,7 +11,7 @@ export const ROUTES: readonly { room: number; spot: { x2: number; y: number; fac
   { room: 55, spot: { x2: 0x84, y: 0x92, facing: 0x81 }, route: '<52' },
   { room: 59, spot: { x2: 0x5c, y: 0x7a, facing: 0x1 }, route: 'J>4 .32' },
   { room: 65, spot: { x2: 0x24, y: 0xb2, facing: 0x1 }, route: '>20 J>4 .36 <4 .4' },
-  { room: 71, spot: { x2: 0x6c, y: 0x82, facing: 0x1 }, route: '^4 J>4 .20 J>4 .32 >8 <4' },
+  { room: 71, spot: { x2: 0x5c, y: 0xaa, facing: 0x81 }, route: '<104 .40' },
   { room: 76, spot: { x2: 0x7c, y: 0xca, facing: 0x81 }, route: '>4 ^4 >12 ^12 J<4 .20 >8 ^4 >4 <4 ^40 J4 .36 v48 <4 J<4 .48 J<4 .36 <4 .4 <12' },
   { room: 75, spot: { x2: 0x7c, y: 0xaa, facing: 0x81 }, route: '^4 J4 .20 J<4 .32 <12' },
   { room: 77, spot: { x2: 0x24, y: 0xca, facing: 0x1 }, route: '>200' },
