@@ -247,6 +247,9 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **A rope slung across a room needs a glyph that lies along the row:** the hanging rope's glyph repeated sideways reads as a fence of spikes (the canopy's first lattice), a hazard, not a thing to climb.
 - **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
 
+- **A gate gives way where he uses the item, seen** (Chris, 2026-11-25: "if you have the item, the obstacle doesn't exist ... If you knew you knew, otherwise, huh?"): a room effect with `at` (a box of cells) waits until he comes up to the gate carrying the item, then happens there with the item's sound and a line on the name row saying what he did (the engine's `useOnTheSpot`); never a guard silently gone on coming in.
+- **The world's decoration kinds are a byte (255 with the text signs):** count them (`budget.ts`) before restoring old rooms with their pieces; a region over it needs the per-load kind byte first.
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and

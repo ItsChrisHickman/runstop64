@@ -393,6 +393,34 @@ Amazon that would lead nowhere gets a bonus room, never a wall.
 the river lane opens the way on the canopy, or the reverse (e.g. the machete cut on the canopy drops a liana to a river
 pocket; something from the boat is what the canopy's gate wants), each key in a dead end or a doubling back, the gate seen first.
 
+### The drop, the Andes and the Amazon as built (lane-andes, 2026-11-26)
+
+Built with the plan's recommended answers: the three-room drop (OUT OF THIN AIR back as its own 56, JUMP FOR JOY with no
+creatures, its condor in the canyon), the canopy's floor closed, the Amazon's own names (THE CANOPY, CLOUD NINE, VINE AND
+DANDY, UP THE CREEK, THE ROOTS, BRANCHING OUT), THE INCA BRIDGE (83) with one empanada and a vizcacha, two coins in VINE AND
+DANDY. The grid: the Andes at columns 25-28, rows 2-7; Rio one row lower (rows 5-6), BRANCHING OUT [6,27] into OPEN ARMS [6,28].
+
+- **The drop as a course:** JUMP FOR JOY teaches the updraft (the spire's coin); OUT OF THIN AIR's coin is over the ridge's crest,
+  a line chosen from the top, past a condor crossing high and one diving in the right canyon; a line that drifts right lands on
+  the right canyon's floor and its updraft lifts him back over the ridge; out down the left canyon into CONDOR COUNTRY (as before).
+- **Machu Picchu:** the top opens east onto the Inca trail; the boulders fall in from above at the top's lip and roll only down
+  the climb (never across the top, never off a side he has no reason to visit); the panpipes at the top by the Intihuatana. The
+  terraces' top terrace ends at the mountainside drawn at its west end.
+- **The Amazon's U, and the cross-lane puzzle:** the canopy west along its lattice into CLOUD NINE (down its liana, past the
+  spectacled bear, over the stream's stones under the cock-of-the-rock's dives, down the west liana), VINE AND DANDY as it was
+  (its three vines, two logs and the leaping piranhas where its piranhas were), UP THE CREEK (entered from the west through the
+  fig's niche), THE ROOTS (its west bank eight cells: the wait, the take and the landing in the room), up to BRANCHING OUT. The
+  machete is no longer on the kapok's walkway (a coin is there now): it is aboard **THE RIVER QUEEN** (64), back from git as a
+  dead end moored east of the roots at [7,28], whose captain lets only a local aboard. So the chullo from the terraces (until
+  now a costume that opened nothing) is the key on the river lane, the machete from the river opens the tangle on the canopy
+  lane, and the tangle is seen before the machete is found (a doubling back down the liana and east along the bank).
+- **Cause and effect:** the Andes' three gates are items used on the spot (`RoomEffect.at`, the engine's `useOnTheSpot`): with
+  the item, the gate stands until he comes up to it, then it gives way with the item's sound and a line on the name row (THE
+  PANPIPES CALM THE LLAMA, THE CAPTAIN WAVES A LOCAL ON, THE MACHETE HACKS IT AWAY). The gate's own animation (the llama lying
+  down, the captain stepping off) is still to draw: the creature leaves at once.
+- **Not yet back:** MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL and THE RIVER ENDS as bonus rooms (the world's decoration
+  kinds are at 255 of 255: the restored rooms' pieces need the per-load kind byte first, an engine change to agree).
+
 ### Rio: down into the city, through the carnival, then the showdown
 
 As Chris asked: after Sugarloaf, down into the city and through the carnival, and only then SPY VERSUS MOLE.
