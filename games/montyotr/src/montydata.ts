@@ -470,6 +470,11 @@ export interface MontyEnding {
    * them so, and each place goes as it was found (Do Svidaniya Monty's). Without it the places take Math.random (Monty on the Run's, found under a seeded Math.random).
    */
   seeded?: true;
+  /**
+   * After a win, the map is the reward (Do Svidaniya Monty's; Chris, 2026-11-24: "that's kind of like the unlocker, that's the nice reward"): a new game, from
+   * then on, keeps every room visited a place to travel to, the game and its villain fresh. Without it a new game clears the map, won or not (Monty on the Run's).
+   */
+  replayKeepsMap?: true;
   /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
   closing?: readonly string[];
   /**

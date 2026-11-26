@@ -104,4 +104,5 @@ export const WORLD_ENDING: MontyEnding = {
   closing: CLOSING,
   procession: PROCESSION,
   seeded: true,
+  replayKeepsMap: true,
 };
