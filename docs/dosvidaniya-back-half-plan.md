@@ -262,7 +262,12 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
   ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
 - Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
   coffee farm's rows; Akaka Falls' gorge).
-- Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its banner and its landmark.
+- Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its landmark.
+- **No "HAWAII: <island>" banners as room names** (Chris: "I don't want Hawaii: island name all over the place. I think that's
+  confusing enough. It should naturally flow with the names"). Every room has its own name, in the game's style (plain, a pun
+  where it lands), and the names themselves carry the journey (e.g. WELCOME TO HONOLULU, DIAMOND HEAD, THE LOOKOUT, a pun for the
+  Molokai channel, WHALE OF A TIME at Lahaina, THE ROAD TO HANA, KAIHALULU, KONA, MAUNA KEA, THE SUMMIT, AKAKA FALLS, MAUNA LOA,
+  the coffee farm, HILO). No two rooms share a name, anywhere in the game.
 
 ### The flight's landing: the full three-room drop
 
