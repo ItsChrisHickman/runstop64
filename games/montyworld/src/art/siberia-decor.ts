@@ -278,6 +278,54 @@ function mineCart(): NewDecor {
   return decor('mineCart', 4, 1, r, 8);
 }
 
+// ---- OFF THE BEATEN PATH (the taiga off the trail, added 2026-11-25): the northern lights, the pines' crowns and trunks, the eagle owl's nest ----------------------
+
+/**
+ * The northern lights, a curtain stamped a cell at a time along a wave over the taiga: its upper fringe (thin rays fading out upward), its body (rays from top to
+ * bottom with breaks) and its hem (the rays ending in a bright folded edge). Rays only, never a level edge (nothing in the sky may look like a ledge). Each 1 x 1 character, one ink: the fringe violet, the body green, the hem light green.
+ */
+function auroraTop(): NewDecor {
+  const r = new Raster(8, 8);
+  for (const [x, y] of [[0, 5], [3, 3], [5, 6], [7, 4]] as const) r.rect(x, y, x, 7);
+  return decor('auroraTop', 1, 1, r, 4);
+}
+function auroraBody(): NewDecor {
+  const r = new Raster(8, 8);
+  for (const x of [0, 3, 5, 7]) r.rect(x, 0, x, 7);
+  r.set(3, 4, false); r.set(7, 2, false);
+  return decor('auroraBody', 1, 1, r, 5);
+}
+function auroraHem(): NewDecor {
+  const r = new Raster(8, 8);
+  for (const [x, y] of [[0, 3], [3, 6], [5, 2], [7, 4]] as const) r.rect(x, 0, x, y);
+  return decor('auroraHem', 1, 1, r, 13);
+}
+
+/** A pine's needles round its trunk: stacked chevrons of drooping boughs, sparse enough to stay behind the snowy boughs he stands on. Green, a backdrop stamped tier by tier (fillCells). 1 x 1 character. */
+function taigaNeedles(): NewDecor {
+  const r = new Raster(8, 8);
+  r.stamp(['...##...', '..#..#..', '.#....#.', '#......#', '...##...', '..#..#..', '.#....#.', '#......#'], 0, 0); // stacked boughs drooping either way, a chevron a tier
+  return decor('taigaNeedles', 1, 1, r, 5);
+}
+
+/** A pine's trunk behind the boughs: bark in long ridges, darker than anything he stands on. A backdrop stamped down the trunk's cells (fillCells). 1 x 1 character. */
+function taigaTrunk(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(2, 0, 5, 7); r.rect(3, 1, 3, 3, false); r.rect(4, 4, 4, 6, false);
+  return decor('taigaTrunk', 1, 1, r, 9);
+}
+
+/** The eagle owl in her nest at the top of the tallest pine: her round head, the ear tufts and two big eyes looking out over the sticks. 2 x 2 characters, orange, her eyes ringed in black. */
+function eagleOwl(): NewDecor {
+  const r = new Raster(16, 16);
+  r.ellipse(7.5, 4.5, 4.5, 4); r.triangle(3, 0, 3, 3, 5, 2); r.triangle(12, 0, 12, 3, 10, 2); // her head and its ear tufts
+  r.ellipse(7.5, 11.5, 5.5, 4.5); // her body
+  r.ring(5.5, 4.5, 1.6, 1); r.ring(9.5, 4.5, 1.6, 1); r.set(7, 6, false); r.set(8, 6, false); // the big eyes, the beak
+  for (const [x, y] of [[5, 10], [9, 11], [6, 13], [10, 13]] as const) r.set(x, y, false); // the speckled breast
+  r.line(2, 10, 4, 15, false); r.line(13, 10, 11, 15, false); // the folded wings
+  return decor('eagleOwl', 2, 2, r, 8);
+}
+
 export const SIBERIA_DECOR = {
   pineSmall: pine(2, 3, 2, 'pineSmall'),
   diningTable: diningTable(),
@@ -302,6 +350,12 @@ export const SIBERIA_DECOR = {
   drivingWheel: drivingWheel(),
   cabWindow: cabWindow(),
   mineCart: mineCart(),
+  auroraTop: auroraTop(),
+  auroraBody: auroraBody(),
+  auroraHem: auroraHem(),
+  taigaNeedles: taigaNeedles(),
+  taigaTrunk: taigaTrunk(),
+  eagleOwl: eagleOwl(),
   ...SIBERIA_SKY,
 } as const satisfies Record<string, NewDecor>;
 

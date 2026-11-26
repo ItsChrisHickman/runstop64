@@ -6,7 +6,7 @@
  */
 import { decor } from './decorations';
 import { Raster } from './raster';
-import { PLATE_DECOR } from './china-plate';
+import { PLATE_DECOR, willowTree } from './china-plate';
 import { CITY_DECOR } from './china-city';
 import { WALL_DECOR } from './china-wall';
 import { ROOF_DECOR } from './china-roofs';
@@ -240,6 +240,15 @@ function cloudFrieze(): NewDecor {
   return decor('cloudFrieze', 4, 1, r, 7);
 }
 
+/** A Houhai pleasure boat's canopy over its gunwale (the deck is a tile: floats.ts carries him on it): the curved red roof with its fringe, a lantern under it, the two posts. 4 x 3 characters. */
+function boatCanopy(): NewDecor {
+  const r = new Raster(32, 24);
+  r.rect(2, 1, 29, 4); r.rect(0, 0, 3, 1); r.rect(28, 0, 31, 1); for (let x = 3; x < 29; x += 3) r.set(x, 5); // the roof, its tips turned up, the fringe
+  r.rect(2, 6, 3, 23); r.rect(28, 6, 29, 23); // the posts
+  r.rect(15, 6, 16, 7); r.ellipse(15.5, 10, 2.5, 2.5); // a lantern hanging
+  return decor('boatCanopy', 4, 3, r, ['2222', '2222', '9999']);
+}
+
 export const CHINA_DECOR = {
   bambooClump: bambooClump(),
   wallFlag: wallFlag(),
@@ -257,6 +266,8 @@ export const CHINA_DECOR = {
   lionStatue: lionStatue(),
   roofDragon: roofDragon(),
   willowTree: PLATE_DECOR.willowTree,
+  houhaiWillow: willowTree('houhaiWillow', 5),
+  boatCanopy: boatCanopy(),
   pagoda: PLATE_DECOR.pagoda,
   archBridge: PLATE_DECOR.archBridge,
   crouchFigure: PLATE_DECOR.crouchFigure,

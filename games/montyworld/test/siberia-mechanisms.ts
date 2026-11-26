@@ -18,7 +18,7 @@ import { must } from '../../shared/test/must';
 import { DECOR_LIBRARY, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
-import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TUNNELS, YETI } from '../src/siberia';
+import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TAIGA, TAIGA_BOUGHS, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
@@ -48,23 +48,27 @@ SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image;
   const grid = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   const block = [grid(0, 4), grid(0, 5), grid(0, 6), grid(0, 7), grid(1, 4), grid(1, 5), grid(1, 6), grid(1, 7), grid(2, 4), grid(2, 5), grid(2, 6), grid(2, 7)];
-  check('Siberia is six rooms at columns 4-7 beside Moscow\'s: the cave over the sleeper, the train and the mine in row 1, the river under the mine; ids 9, 10, 11, 13, 14 and 17 (12, 15 and 16 retired: nothing has them), Moscow\'s 0-8 and China\'s 18 on where they were',
-    block.join() === [0xff, SIB.yeti, 0xff, 0xff, SIB.gravy, SIB.sleeper, SIB.coal, SIB.mine, 0xff, 0xff, 0xff, SIB.border].join() && grid(1, 3) === ROOM.station && grid(2, 8) === CHI.wall
-    && ![12, 15, 16].some((id) => cells.includes(id)) && SIBERIA_ROOMS.length === 6);
+  check('Siberia is seven rooms at columns 4-7 beside Moscow\'s: the cave over the sleeper, the train and the mine in row 1, the river under the mine and the taiga (OFF THE BEATEN PATH, added after the flight: id 94) west of it; ids 9, 10, 11, 13, 14, 17 and 94 (12, 15 and 16 retired: nothing has them), Moscow\'s 0-8 and China\'s 18 on where they were',
+    block.join() === [0xff, SIB.yeti, 0xff, 0xff, SIB.gravy, SIB.sleeper, SIB.coal, SIB.mine, 0xff, 0xff, SIB.taiga, SIB.border].join() && grid(1, 3) === ROOM.station && grid(2, 8) === CHI.wall
+    && ![12, 15, 16].some((id) => cells.includes(id)) && SIBERIA_ROOMS.length === 7);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
   const itemsIn = (lo: number, hi: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => WORLD.specialItems[i * 4] ?? 0).filter((r) => r >= lo && r <= hi).length;
-  check('Moscow still has its 14 coins and 4 finds, first in the tables; Siberia adds 8 coins and 2 finds (the pelmeni and the ticket)',
-    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 8 && itemsIn(9, 17) === 2 && (WORLD.coinTable[13 * 3] ?? 99) <= 8 && (WORLD.coinTable[14 * 3] ?? 0) >= 9);
+  const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
+  const firstTaiga = coinRooms.indexOf(SIB.taiga);
+  check('Moscow still has its 14 coins and 4 finds, first in the tables; Siberia adds 8 coins and 2 finds (the pelmeni and the ticket), and the taiga 2 coins and no find at the tables\' end (added after the flight: no other coin\'s place moves, so every save keeps its coins)',
+    coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 8 && itemsIn(9, 17) === 2 && (WORLD.coinTable[13 * 3] ?? 99) <= 8 && (WORLD.coinTable[14 * 3] ?? 0) >= 9
+    && coinsIn(SIB.taiga, SIB.taiga) === 2 && itemsIn(SIB.taiga, SIB.taiga) === 0 && firstTaiga > coinRooms.indexOf(CHI.heaven) && coinRooms.slice(firstTaiga).every((r) => r >= CHI.heaven));
   const perRoom = SIBERIA_ROOMS.map((r) => (r.coins ?? []).length);
-  check(`no room has more than three coins, about one a room as Monty on the Run's (${perRoom.join(' ')})`, perRoom.every((n) => n <= 3) && perRoom.reduce((a, b) => a + b, 0) === 8);
+  check(`no room has more than three coins, about one a room as Monty on the Run's (${perRoom.join(' ')})`, perRoom.every((n) => n <= 3) && perRoom.reduce((a, b) => a + b, 0) === 10);
   check('the ticket is a key item and the pelmeni a snack on the pause screen; the lamp is gone', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, SIB.yeti, 0)) && WORLD.progress.cakes.includes(itemIndex(newGame(WORLD, false).g, SIB.gravy, 0)));
   check('a mountain in each of the dining car and the sleeper, from the front of the train (the right), never from behind; the ice is only on the river', TUNNELS.length === 2 && TUNNELS.every((t) => (t.room === SIB.gravy || t.room === SIB.sleeper) && t.from === 'right') && CRACKS.every((c) => c.room === SIB.border && c.row === 17));
+  check('the taiga\'s boughs shed their snow cell by cell, each a floor of its bough\'s row, and only there', TAIGA_BOUGHS.length === TAIGA.boughs.reduce((n, [, , w]) => n + w, 0) && TAIGA_BOUGHS.every((c) => c.room === SIB.taiga && c.cols === 1 && TAIGA.boughs.some(([col, row, w]) => c.row === row && c.col >= col && c.col < col + w)));
   const rooms = creatureRooms(SIBERIA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in Siberia's rooms (and the yeti), none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 5 && most <= 2);
   check('no room has more than three creatures (the ushanka is worn through Siberia: a fourth would be a phantom)', SIBERIA_ROOMS.every((r) => (r.enemies ?? []).length <= 3));
   const vertical = SIBERIA_ROOMS.map((r) => (r.enemies ?? []).filter((e) => e.dir === 3 || e.dir === 4).length);
-  check(`creatures vary: up-and-down patrols in ${vertical.filter((n) => n > 0).length} of the six rooms (${vertical.join(' ')}), and one room with a big creature and no other`, vertical.filter((n) => n > 0).length >= 4 && SIBERIA_ROOMS.filter((r) => (r.enemies ?? []).length === 0).length === 1);
+  check(`creatures vary: up-and-down patrols in ${vertical.filter((n) => n > 0).length} of the seven rooms (${vertical.join(' ')}), and one room with a big creature and no other`, vertical.filter((n) => n > 0).length >= 4 && SIBERIA_ROOMS.filter((r) => (r.enemies ?? []).length === 0).length === 1);
 });
 
 // ---- the layout: no decoration over a solid, floor or rope cell, no coin or find in one or under a decoration -------------------------------------------------------------

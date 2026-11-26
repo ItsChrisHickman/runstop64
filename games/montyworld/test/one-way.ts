@@ -53,7 +53,6 @@ export const NOWHERE: Readonly<Record<string, string>> = {
 
 /** Edges and crossings found faulty that are not this test's to mend: another region's work, or Chris's call. Reported each run; one that no longer shows says so. */
 export const PENDING: Readonly<Record<string, string>> = {
-  '17 left': 'BORDER LINE CASE: the village bank runs off the left edge through the cabin (Chris to decide: closing it needs the cabin moved, since a wall at the edge would stand under it and the rope from the mine is in the way of moving it east)',
   '58 left': 'the Andes (another job): the terraces\' left edge',
   '59 right': 'the Andes (another job): Machu Picchu\'s right edge',
   '62 left': 'the Andes (another job): the canopy\'s left edge',

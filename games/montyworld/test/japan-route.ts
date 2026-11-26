@@ -5,7 +5,7 @@
  * the hall (the paper doors, the rope past them up to the gallery and back west along it to the rope up) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
  */
-import { JP } from '../src/japan';
+import { GROVE, JP } from '../src/japan';
 import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg ended hanging on the second stairs' rope below the deck (cols 19-21), where a train sweeping the lane cannot reach him: a leg that ended on the deck itself could end with a train a step behind him. */
@@ -60,6 +60,11 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('G to L: up the pergola and the bamboo rope', into(JP.mole, 28, 0, JP.garden)),
   leg('L: out over the stepping stones (the koi\'s leaps, the two middle stones sinking), up the bamboo rope to the high ledge and its coin', coin(JP.mole, 17, 4)),
   leg('L: down the bamboo rope, across the widest water on the swinging rope to the shrine and the hood', item(JP.mole, 0, [1, 12])),
+  leg('L to S: west off the shrine\'s plinth into the bamboo grove (SHOOT FOR THE MOON, a bonus room)', into(JP.grove, 0, 12, JP.mole)),
+  ...GROVE.stalks.map(([col], i) => leg(`S: a jump to bamboo stalk ${i + 1}, gripped on the way down`, { goal: (g) => g.roomId === JP.grove && g.onRope !== 0 && g.montyCol - 4 >= col - 1 && g.montyCol - 4 <= col && !g.freeze && !g.script, aim: [{ room: JP.grove, col, row: 8 }] })),
+  leg('S: on to the stone on the cedar, its coin', coin(JP.grove, 3, 5)),
+  leg('S: back to the tallest stalk, the coin at its head', coin(JP.grove, 16, 1)),
+  leg('S to L: back over the stream stalk by stalk and east to the shrine', into(JP.mole, 31, 12, JP.grove)),
   leg('L to G: back on the swinging rope, over the sinking stones and the koi, and down the rope', into(JP.garden, 28, 19, JP.mole)),
   leg('G to I: out through the castle gate', into(JP.hall, 31, 13, JP.garden)),
   leg('I: through the first door, into the space between it and the second', stands(JP.hall, 14, 8, 11)),

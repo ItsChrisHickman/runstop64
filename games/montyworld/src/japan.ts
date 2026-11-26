@@ -13,7 +13,7 @@ import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layou
  * 12-16 of the exit grid, entered from China's junk (column 11) and left east, over the cargo ship's gangway, into the Pacific (not yet built).
  *
  *             col 12                col 13              col 14                 col 15               col 16
- *   row 0       .                     .                   .                 L  THE LAST MOLE     H  NINJA HIDEOUT
+ *   row 0       .                     .               S  SHOOT FOR THE MOON  L  THE LAST MOLE     H  NINJA HIDEOUT      (S: a bonus room, added 2026-11-25)
  *   row 1   A  THE FISH MARKET   B  NEON STREET      D  THE CROSSING    G  KOI POLLOI        I  THE SHOGUN'S HALL
  *   row 2       .                 C  PACHINKO PARLOUR   E  BULLET POINT       F  MOUNT FUJI         J  SAYONARA SAILOR
  *
@@ -24,7 +24,7 @@ import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layou
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /** Room ids go on from China's (18-26): they never change once the region has shipped. */
-export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform: 31, fuji: 32, garden: 33, mole: 34, hideout: 35, hall: 36, port: 37 } as const;
+export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform: 31, fuji: 32, garden: 33, mole: 34, hideout: 35, hall: 36, port: 37, grove: 97 } as const;
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 27 on. */
 const NAMES = [
@@ -33,6 +33,9 @@ const NAMES = [
 export const JAPAN_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the harbour light blue, the street and parlour reds, the crossing grey, the platform blue, the mountain white, the garden green, the hidden room purple, the roofs yellow, the hall orange, the port brown). */
 export const JAPAN_COLOURS: readonly number[] = [14, 2, 10, 12, 6, 1, 5, 4, 7, 8, 9];
+/** Rooms added to Japan after it shipped (later-sectors.ts): SHOOT FOR THE MOON (2026-11-25), the bonus bamboo grove west of THE LAST MOLE; the map's colour of each. */
+export const JAPAN_LATER_NAMES: Readonly<Record<number, string>> = { [JP.grove]: 'SHOOT FOR THE MOON' };
+export const JAPAN_LATER_COLOURS: Readonly<Record<number, number>> = { [JP.grove]: 13 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 export const HARBOUR_PALETTE = {
@@ -329,6 +332,30 @@ function paintPort(g: Grid) {
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
+/**
+ * SHOOT FOR THE MOON (added 2026-11-25): a bamboo grove west of THE LAST MOLE's shrine, the way across it a stream in a gully. Four tall stalks stand out of the water (`GROVE.stalks`:
+ * column, top row; each down to just over the water): he jumps from the bank to the first, and from stalk to stalk, taking hold as he comes down (a jump grips a rope only on its way
+ * down), to the mossy stone on the cedar at the far side (a coin: it ends the crossing). A jump from low on a stalk falls short, so he climbs before each one. The second coin is at the
+ * head of the tallest stalk. A crane crosses the grove's middle height. Back the same way.
+ */
+const GROVE_STALKS: readonly (readonly [col: number, top: number])[] = [[21, 5], [16, 3], [11, 5], [6, 4]];
+export const GROVE = { stalks: GROVE_STALKS, water: 16, stone: { col: 2, floor: 7, cols: 3 } } as const;
+const GROVE_PALETTE = { M: ['jpMoss', 5], W: ['jpWater', 14], R: ['jpBamboo', 13], S: ['jpStone', 12], T: ['jpTimber', 9] } as const satisfies Palette;
+const paintGrove = (g: Grid): void => {
+  g.box(25, 14, 31, 19, 'M'); // the bank by the shrine
+  g.box(2, GROVE.water, 24, 19, 'W'); // the stream in its gully
+  g.box(0, 0, 1, 19, 'T'); // a great cedar closes the grove at the west
+  for (const [col, top] of GROVE.stalks) g.box(col, top, col, GROVE.water - 1, 'R');
+  g.box(GROVE.stone.col, GROVE.stone.floor, GROVE.stone.col + GROVE.stone.cols - 1, GROVE.stone.floor, 'S'); // a mossy stone set in the cedar's roots
+};
+const GROVE_COINS: readonly (readonly [col: number, row: number])[] = [[3, 5], [16, 1]];
+/** The far bamboo: culms at these columns from the leaves to the water (never a wall of it: black night between), their leaves in sprays at the top, wider at every other one. */
+const GROVE_CULMS = [3, 8, 13, 18, 23, 26, 29] as const;
+const GROVE_BACK = GROVE_CULMS.flatMap((c, i) => [
+  ...fillCells(paintGrove, GROVE_COINS, [c, 2, c, GROVE.water - 1], 'jpBambooBack'),
+  ...fillCells(paintGrove, GROVE_COINS, [c - 1 - (i % 2), 0, c + 1, 1], 'jpBambooLeaves'),
+]).concat(GROVE.stalks.flatMap(([c, top]) => fillCells(paintGrove, GROVE_COINS, [c - 1, top - 1, c + 1, top], 'jpBambooLeaves'))); // and a spray at each stalk's head
+
 export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // A THE FISH MARKET: the fishing harbour at dawn. In from China's junk (low, its deck at the left); the quay runs east, with the market on it, past an inlet and a crate stack to the way out (low) to the street.
   // A stair of crates climbs through the market's roof (the way out high, to the rooftops); the roof's west end is a dead end with a sushi.
@@ -483,7 +510,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
     shut: [['right', 3, 8, 'L']], // the tiers' wall at the right
     paint(g) {
-      g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'S').box(0, 1, 0, 13, 'L').box(0, 0, 0, 0, 'S'); // (the night sky open above; a garden wall at each side, its stone coping: the shrine's plinth ends at the left one, no room west of the garden)
+      g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'S'); // (the night sky open above; a garden wall at the right, its stone coping)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
       for (const [c, r, w] of MOLE_STONES) g.box(c, r, c + w - 1, r, 'S'); // the stones
@@ -562,6 +589,21 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'jpKappa', col: 16, row: 9, way: 'down', speed: 1, range: 56 }, // a kappa hopping up out of the sea behind the quay and down again across the lane
+    ],
+  }),
+  // SHOOT FOR THE MOON: a bamboo grove west of THE LAST MOLE, a bonus room (Chris, 2026-11-25: "a room to the left of that... some sort of cool background design"). In along the moss
+  // from the shrine's plinth; the bamboo stands thick and moonlit behind four tall stalks that rise out of a stream in a gully. Across it from stalk to stalk, gripping each on the way
+  // down from the jump, to the stone on the cedar (a coin); a second coin tops the tallest stalk. A crane crosses the grove. Never needed: back the way he came.
+  room({
+    id: JP.grove, cell: [0, 14], sector: JP.grove, palette: GROVE_PALETTE,
+    paint: paintGrove,
+    coins: GROVE_COINS,
+    decor: [
+      ...GROVE_BACK,
+      ['jpToro', 27, 11],
+    ],
+    creatures: [
+      { who: 'jpCrane', col: 4, row: 8, way: 'right', speed: 1, range: 72 },
     ],
   }),
 ];

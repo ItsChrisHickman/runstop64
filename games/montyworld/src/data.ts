@@ -10,8 +10,8 @@ import {
   HAT_COLOUR, RICE_HAT_COLOUR, riceHatWorn, ushankaWorn,
 } from './art';
 import { MapTitle, STRIP_Y } from './title';
-import { LATER_COLOURS, LATER_SECTORS } from './later-sectors';
-import { AWNING_CRACKS, CHINA_ROOMS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, } from './china';
+import { LATER_COLOURS, LATER_FROM, LATER_SECTORS } from './later-sectors';
+import { AWNING_CRACKS, CHINA_ROOMS, HOUHAI_BOATS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, } from './china';
 import { YETI_PICTURES } from './art/siberia-yeti';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
@@ -27,7 +27,7 @@ import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAV
 import { BALL_STREAM, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
+import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
 import { tuneForRoom } from './music/regions';
 import { WORLD_REGIONS } from './regions';
@@ -54,10 +54,21 @@ import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOC
 /** The exit grid: 50 columns for the world west to east (seven regions of about seven rooms), 8 rows for the ways up and down (the Andes' parachute drop falls through four of them). */
 export const WORLD_COLS = 50, WORLD_ROWS = 8;
 
-/** Rooms added to a region after it shipped: they go last in the tables (their coins and finds take new places at the ends), so no save's places move. */
-const ADDED: readonly number[] = [CHI.heaven];
-/** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...[...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS].filter((r) => !ADDED.includes(r.id)), ...ADDED.flatMap((id) => CHINA_ROOMS.filter((r) => r.id === id))];
+/**
+ * Rooms added to a region after it shipped (save format 3, live since 2026-11-25), in the order they were added: they go last in the tables (their coins and finds take new places at the ends),
+ * so the places of every room a format 3 save knows stay as they were. HEAVEN CAN WAIT (format 3's last); the Andes' rebuild's (OUT OF THIN AIR, THE RIVER QUEEN, THE INCA BRIDGE, CLOUD NINE,
+ * VINE AND DANDY, THE RIVER ENDS); the bonus rooms off the path (OFF THE BEATEN PATH, DON'T ROCK THE BOAT, SHOOT FOR THE MOON).
+ */
+const ADDED: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove];
+const REGION_ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
+/** Every region's rooms in the order they were made, then `ADDED`'s: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
+const ROOMS = [...REGION_ROOMS.filter((r) => !ADDED.includes(r.id)), ...ADDED.map((id) => {
+  const r = REGION_ROOMS.find((x) => x.id === id);
+  if (!r) throw new Error(`room ${id} is listed as added later but no region has it`);
+  return r;
+})];
+const FIRST_SECTORS = [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS];
+if (FIRST_SECTORS.length !== LATER_FROM) throw new Error(`the regions have ${FIRST_SECTORS.length} sectors: the later rooms' (later-sectors.ts) start at ${LATER_FROM}`);
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -197,7 +208,7 @@ function decorRegion(r: RoomSpec): number {
   if (!region) throw new Error(`room ${r.id} at [${r.row},${r.col}]: in no region`);
   return WORLD_REGIONS.indexOf(region);
 }
-const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...LATER_SECTORS], bankImage, SPRITE.pirozhok, decorRegion);
+const built = buildRooms(BASE, ROOMS, [...FIRST_SECTORS, ...LATER_SECTORS], bankImage, SPRITE.pirozhok, decorRegion);
 
 /** A library piece an animation or a float names, as its room's region numbers it (a piece the region's rooms place none of is a mistake in the data). */
 function regionKind(room: number, libraryKind: number): number {
@@ -319,9 +330,9 @@ export const WORLD: MontyData = {
   jetpackRooms: [],
   lifts: [],
   escalators: ESCALATORS,
-  icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES],
+  icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES, ...TAIGA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
-  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS],
+  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS, ...TAIGA_BOUGHS],
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS].map(regionAnim),
   pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
@@ -347,7 +358,7 @@ export const WORLD: MontyData = {
   rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...FUJI_SNOWBALLS, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
-  floats: [TRAM, MINE_CART].map(regionFloat),
+  floats: [TRAM, MINE_CART, ...HOUHAI_BOATS].map(regionFloat),
   skewers: SKEWERS,
   pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
