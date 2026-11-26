@@ -370,7 +370,7 @@ const paintLuau = (g: Grid): void => {
   g.box(28, 13, 29, 14, 'C'); // the drummers' platform
 };
 const LUAU_COINS = [[8, 17], [28, 11]] as const;
-/** Diamond Head on the horizon to the east, the next room's mountain (its high rim at the left, as Waikiki sees it), and an outrigger on the evening sea below the lawn. */
+/** Diamond Head on the horizon to the east, the next room's mountain (its high rim at the left, as Waikiki sees it), and an outrigger on the evening sea, which runs in to the lawn's dark edge (where the torches stand: their flames come and go there). */
 const LUAU_HEAD_RIDGE = ridge([[10, 11], [12, 9], [13, 8], [14, 8], [15, 9], [19, 9], [21, 10], [23, 11]]);
 const inLuauHead = (c: number, r: number): boolean => c >= 11 && c <= 22 && r <= 10 && r >= LUAU_HEAD_RIDGE(c);
 const LUAU_CANOE: readonly Cell[] = cellsOf(9, 14, 4, 2);
@@ -589,7 +589,7 @@ const paintLoa = (g: Grid): void => {
   g.box(27, 15, 27, 18, 'K').box(31, 5, 31, 18, 'K').clear(30, 15, 30, 18); // the crater's pit under the rope (cols 28-30), walled off from the basin: the moon rock at its foot
   g.box(15, 9, 26, 9, 'L').box(20, 9, 21, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
   g.box(19, 0, 19, 4, 'K').box(20, 5, 31, 5, 'L'); // the rim's spur and the high shelf east of it, out east to the farm
-  g.clear(28, 5, 29, 5).box(28, 4, 28, 18, 'R'); // the rope up the east wall, from the pit's foot past the long ledge through its opening in the shelf (two cells: Monty's width; under the solid shelf the climb stopped) to the rim
+  g.clear(27, 5, 29, 5).box(28, 4, 28, 18, 'R'); // the rope up the east wall, from the pit's foot past the long ledge through its opening in the shelf (three cells round it, as every rope's opening; under the solid shelf the climb stopped) to the rim
 };
 const LOA_COINS = [[26, 12], [22, 3]] as const;
 /** The moon rock at the foot of the crater's pit (its top left): the shooting star the summit saw fall. */
@@ -785,7 +785,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     decor: [
       ...sunset(paintLuau, LUAU_KEEP, { purple: 1, red: 4, orange: 7, gold: 10, sea: 12 }, (c, r) => !inLuauHead(c, r)), ['pacSun', 7, 9],
       ...fillWhere(paintLuau, LUAU_KEEP, inLuauHead, 'pacTuffFill'),
-      ...fillWhere(paintLuau, LUAU_KEEP, (c, r) => r >= 13 && r <= 15 && c < 25 && !LUAU_CANOE.some(([hc, hr]) => hc === c && hr === r), 'pacSeaFlat'), ['pacOutrigger', 9, 14],
+      ...fillWhere(paintLuau, LUAU_KEEP, (c, r) => r >= 13 && r <= 16 && c < (r <= 15 ? 25 : 23) && !LUAU_CANOE.some(([hc, hr]) => hc === c && hr === r), 'pacSeaFlat'), ['pacOutrigger', 9, 14],
       ['pacArchTop', 0, 12], ['pacArchLeg', 0, 14], ['pacArchLeg', 3, 14],
       ['pacHulaDancer', 22, 12], ['pacHulaDancer', 25, 12], ['pacHulaDancer', 30, 12], ['pacDrummer', 30, 11], ['pacDrums', 30, 13],
       ['pacFronds', 18, 12],
