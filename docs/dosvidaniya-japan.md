@@ -88,6 +88,16 @@ on the open mountainside with the drop below (a fall to the room's bottom is the
 floor drawn for no reason), and the room gains height and air. The snow slides' puzzle and the way on stay; proved with the
 bots.
 
+**And a bonus room off MOUNT FUJI, with a fair teleport (Chris, 2026-11-26):** "Could add a bonus room there too. Any Japanese
+yeti equivalent? Could be a neat place to have a cave that takes Monty to the top like the MOTR teleports... We didn't want
+teleports in this game as they were generally punishments for bad timing that were unclear... But if it made sense, having a
+few teleports if fun would be cool." Proposed: **an ice cave at Fuji's foot** (the real Narusawa Ice Cave and Fugaku Wind Cave
+are lava tubes there), icicles and frozen falls, a yuki-onna (the snow woman, Japan's snowy-mountain spirit) drifting through
+it as the hazard, and at its end a **tengu** (the long-nosed mountain goblin of Japanese legend, said to whisk people away) who
+carries Monty up to the summit in a gust of wind: a teleport that is a reward, seen and understood (the tengu, the gust, Monty
+landing at the top), never a punishment for bad timing. The rule for any teleport in the game: visible, explained by the
+place, optional or helpful, never a trap.
+
 **F MOUNT FUJI** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
 (floor 8), one step (6) and the chain (col 5) up through the ceiling to G. The mountain itself is the room: a snow-capped cone on a slope of rock (blue-grey scenery, jpSnow and jpSlope) that the trail winds up in front of, scree for the foot and the frame. A tanuki on the first ledge, a crane flying over the snow. 3 coins.
 
