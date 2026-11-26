@@ -1,5 +1,5 @@
 import { SCREEN_MARGIN } from '../../shared/monty/screen';
-import type { CharAnim, CrackSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec, VineSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, CrackSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE, SNOWBALL_POINTERS } from './japan-pointers';
 import { SNOWBALL_FRAMES } from './art/japan-fuji';
@@ -68,7 +68,7 @@ export const GARDEN_PALETTE = {
 } as const satisfies Palette;
 
 export const MOLE_PALETTE = {
-  M: ['jpMoss', 5], W: ['jpWater', 14], S: ['jpStone', 12], T: ['jpTimber', 9], R: ['jpBamboo', 5], L: ['jpPlaster', 1], V: ['rope', 7], C: ['jpStoneSink', 12],
+  M: ['jpMoss', 5], W: ['jpWater', 14], S: ['jpStone', 12], T: ['jpTimber', 9], R: ['jpBamboo', 5], L: ['jpPlaster', 1], C: ['jpStoneSink', 12],
 } as const satisfies Palette;
 
 /** The hideout's eight: the timber (the trunks and the roof's wall), the grass, the walkways' planks, the eave's ridge and lip (yellow tiles), the roof's body (red tiles), the rope, and the two states of a plank giving way (only drawn by the lookout's rotten boards). */
@@ -295,15 +295,15 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
   return out.filter(([, c, r]) => !FUJI_COINS.some(([cc, cr]) => cc === c && cr === r));
 }
 
-// ---- the hidden garden's stones and its swinging rope ------------------------------------------------------
+// ---- the hidden garden's stones ------------------------------------------------------------------------------
 /**
- * THE LAST MOLE's stepping stones (two cells each, their floor row), east to west from the rope: two rows up, then down to the stone under the bamboo rope (a jump that the rope catches), then, past
- * seven cells of water no jump carries over (the swinging rope's), the stone by the shrine (on row 14, under its plinth and the bonsai shelf) and the bank.
+ * THE LAST MOLE's six stepping stones (two cells each, their floor row), east to west from the rope: the first jumps are wider (three cells, two rows up then two rows down to the stone beside the
+ * bamboo rope, a koi leaping across each), then two rows up again past the bamboo rope and the pond's west half as it always was (the stone under the bonsai shelf's end, the stone by the shrine, the bank).
  */
-export const MOLE_STONES: readonly (readonly [col: number, floor: number, cols: number])[] = [[25, 14, 2], [19, 12, 2], [13, 14, 2], [4, 14, 2]];
+export const MOLE_STONES: readonly (readonly [col: number, floor: number, cols: number])[] = [[25, 14, 2], [20, 12, 2], [15, 14, 2], [11, 12, 2], [8, 13, 2], [4, 14, 2]];
 /**
- * The two middle stones sink (`cracks`, the Last Ninja's stepping stones): stood on, a stone cracks and tips after 30 frames and goes under after 80, back up 120 frames later. Crossing is safe, waiting is not:
- * the koi's leap is watched from the first stone (solid), and the swinging rope waited for on the bamboo rope over the second, not on the stone under it.
+ * The second and third stones sink (`cracks`, as the hideout's rotten boards; the Last Ninja's stepping stones): stood on, a stone cracks and tips after 30 frames and goes under after 80, back up 120 frames
+ * later. Crossing is safe, waiting is not: the koi's leap is watched from the first stone (solid) and the bamboo rope (beside the third), not from a sinking stone.
  */
 export const MOLE_SINKING: readonly CrackSpec[] = [1, 2].flatMap((k): CrackSpec[] => {
   const stone = MOLE_STONES[k];
@@ -312,13 +312,6 @@ export const MOLE_SINKING: readonly CrackSpec[] = [1, 2].flatMap((k): CrackSpec[
   const sink = codeOf(MOLE_PALETTE, 'C');
   return [{ room: JP.mole, col, cols, row, codes: [codeOf(MOLE_PALETTE, 'S'), sink, sink], crack: 30, wide: 55, gone: 80, away: 120 }];
 });
-/**
- * The rope that swings over the widest water, between the stone under the bamboo rope and the shrine's (`vines`, the Amazon's): it hangs from the tip of a pine's bough (col 9, from row 3; the bough on row 2
- * runs in from the left edge, four rows over anything he stands on, so out of every jump's reach) to his middle standing on a stone (row 13) and swings its tip four cells either way every 96 frames, over
- * the edge of the stone under the bamboo rope (col 13) and over the shrine's stone (col 5). He walks into it as it reaches the stone he stands on and steps off at the far end. Nothing else crosses that
- * water: the high ledge is east of the bamboo rope only (a ledge west of it was a leap from its end on to the bonsai shelf, round the swing), and the bonsai shelf ends short of the swing.
- */
-export const MOLE_ROPE: VineSpec = { room: JP.mole, col: 9, top: 3, length: 11, period: 96, amplitude: 4, phase: 0, code: codeOf(MOLE_PALETTE, 'V') }; // (a straw rope: the bamboo's thick joints read as steps when it leans)
 
 // ---- the port ----------------------------------------------------------------------------------------------
 /** The port's tiles: the container stack at the left, the quay, the rope down from the hall and a short crane arm over its top, the container stair, the gangway's plank, the ship's hull and deck. */
@@ -482,10 +475,10 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // L THE LAST MOLE: hidden, off the garden's pergola. In by the rope through the floor; a moonlit pond crossed on stepping stones and a swinging rope, a bonsai garden on a shelf and a stone dragon behind it,
-  // the shrine on its plinth with the ninja hood. A bonus room off the way, so it tries things the way does not (Chris, 2026-11-25: "a little bit more skill to jump from platform to platform"; "a bonus
-  // room that is off the path is an opportunity to try some new things and add some fun challenges"): the jumps are judged from a stone's edge (no steering in the air) with a koi leaping across each of the
-  // first two, the two middle stones sink under him (MOLE_SINKING: keep moving), and the widest water is crossed on a rope swinging from the high ledge (MOLE_ROPE).
+  // L THE LAST MOLE: hidden, off the garden's pergola. In by the rope through the floor; a moonlit pond crossed on six stepping stones, a bonsai garden on a shelf and a stone dragon behind it, the shrine
+  // on its plinth with the ninja hood. More skill from stone to stone (Chris, 2026-11-25: "a little bit more skill to jump from platform to platform"): the first jumps are wider and two rows up or down,
+  // judged from a stone's edge (no steering in the air), a koi leaping across each of the first two, and the second and third stones sink under him (MOLE_SINKING: keep moving). The high ledge either
+  // side of the bamboo rope and the bonsai shelf (reached down from the west ledge) are as they were.
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
     shut: [['right', 3, 8, 'L']], // the tiers' wall at the right
@@ -494,16 +487,15 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
       for (const [c, r, w] of MOLE_STONES) g.box(c, r, c + w - 1, r, 'S'); // the stones
-      g.box(0, 10, 5, 10, 'T'); // the bonsai shelf (short of the swinging rope)
-      g.box(0, 2, 10, 2, 'T'); // the pine's bough the swinging rope hangs from, in from the left edge
-      g.box(16, 6, 18, 6, 'S').box(14, 6, 14, 13, 'R'); // a high ledge east of the bamboo rope that climbs to it from the stones
+      g.box(1, 10, 8, 10, 'T'); // the bonsai shelf
+      g.box(10, 6, 12, 6, 'S').box(16, 6, 18, 6, 'S').box(14, 6, 14, 13, 'R'); // a high ledge, split at the middle for the bamboo rope that climbs to it from the stones
     },
     coins: [[17, 4]],
     item: { name: 'hood', col: 1, row: 12, sprite: JAPAN_SPRITE.hood },
-    decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 0, 8], ['jpBonsai', 2, 8], ['jpBonsai', 4, 8]],
+    decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
     creatures: [
       { who: 'jpKoi', col: 22, row: 17, way: 'up', speed: 2, range: 20 }, // (leaps out of the water across the first stones' jump)
-      { who: 'jpKoi', col: 17, row: 10, way: 'down', speed: 2, range: 20 }, // (across the jump from the high stone to the bamboo rope: out of step with the first, it leaps as that one dives)
+      { who: 'jpKoi', col: 17, row: 10, way: 'down', speed: 2, range: 20 }, // (across the jump down from the high stone to the stone by the bamboo rope: out of step with the first, it leaps as that one dives)
       { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
     ],
   }),

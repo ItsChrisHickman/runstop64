@@ -26,7 +26,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_ROPE, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
@@ -570,54 +570,35 @@ SCOPE.section([JP.parlour], 'the parlour\'s middle floor and its coin', () => {
   check(`off the rope at any moment of the stream's ${BALL_STREAM.period} frames he stands clear of it at the middle floor's east end for a whole period, and the bot takes the coin from there (${results.length ? results.join('; ') : `${BALL_STREAM.period / 10} moments, all fine`})`, results.length === 0);
 });
 
-// ---- THE LAST MOLE: the sinking stones and the swinging rope (Chris, 2026-11-25: the bonus room tries things the way does not) -----------
-SCOPE.section([JP.mole, JP.garden], 'THE LAST MOLE: the sinking stones and the swinging rope', () => {
+// ---- THE LAST MOLE: wider jumps, the koi across them, two sinking stones (Chris, 2026-11-25: more skill from platform to platform) -------
+SCOPE.section([JP.mole, JP.garden], 'THE LAST MOLE: the stones', () => {
   const stick = (name: string) => must(ACTIONS.find(([n]) => n === name), name)[1];
   const stone = (k: number) => must(MOLE_STONES[k], `stone ${k}`);
-  const [hi, mid, last] = [stone(1), stone(2), stone(3)];
+  check(`six stepping stones as before (${MOLE_STONES.map(([c, r]) => `${c},${r}`).join(' ')}), the first jumps three cells wide`, MOLE_STONES.length === 6
+    && stone(0)[0] - (stone(1)[0] + stone(1)[2]) === 3 && stone(1)[0] - (stone(2)[0] + stone(2)[2]) === 3);
   // a sinking stone: whole, then tipped (the warning) from 30 frames stood on, gone under him at 80, back 120 frames after
+  const hi = stone(1);
   const sink = must(MOLE_SINKING[0], 'the first sinking stone');
   const on = at(JP.mole, hi[0], hi[1]);
   run(on, NONE, sink.crack + 2);
   const tipped = cell(on.g, hi[0], hi[1]) === sink.codes[1] && !dead(on.g);
   const sank = diesAt(on, NONE, sink.gone) >= 0;
-  check(`the two middle stones sink (${MOLE_SINKING.map((c) => `${c.col},${c.row}`).join(' and ')}): stood on, one tips at ${sink.crack} frames (he is alive) and takes him under by ${sink.gone + 2}`, MOLE_SINKING.length === 2 && tipped && sank);
+  check(`the second and third stones sink (${MOLE_SINKING.map((c) => `${c.col},${c.row}`).join(' and ')}): stood on, one tips at ${sink.crack} frames (he is alive) and takes him under by ${sink.gone + 2}`, MOLE_SINKING.length === 2 && tipped && sank);
   const cross = at(JP.mole, hi[0], hi[1]);
   run(cross, NONE, sink.crack - 5);
   hold(cross, stick('J>'), 2);
   const away = hold(cross, NONE, 60);
   check('crossing is safe: a stone stood on for less than its warning and left (jumping back to the first) does not sink him', !away.dead && cross.g.y === standY(stone(0)[1]));
-  // the widest water: no jump crosses it, from the stones or from the bamboo rope (the swinging rope taken out of the room)
-  const x2of = (col: number) => 0x0c + (col + 4) * 4;
-  /** From a start (standing on a stone, or on the bamboo rope), a jump `key`: null if he is not standing or hanging there, else whether he ends alive where `ok` says. */
-  const lands = (from: readonly [col: number, floor: number, cols?: number], key: string, x2: number, row: number, ok: (g: Game) => boolean): boolean | null => {
-    const s = at(JP.mole, from[0], from[1]);
-    enterRoom(s.g, JP.mole, x2, row);
-    s.g.enemies = []; s.g.vines = [];
-    hold(s, NONE, 4);
-    if (dead(s.g) || s.g.x2 !== x2 || s.g.y !== row) return null;
-    if (hold(s, stick(key), 2).dead) return false;
-    return !hold(s, NONE, 120).dead && ok(s.g);
-  };
-  const westOf = (g: Game) => colOf(g) <= last[0] + last[2];
-  const eastOf = (g: Game) => colOf(g) >= mid[0] - 1;
-  const sweep = (tries: readonly (boolean | null)[]) => ({ starts: tries.filter((t) => t !== null).length, across: tries.filter((t) => t === true).length });
-  const fromStones = sweep([
-    ...Array.from({ length: 16 }, (_, i) => lands(mid, 'J<', x2of(mid[0] - 2) + i, standY(mid[1]), westOf)),
-    ...Array.from({ length: 16 }, (_, i) => lands(last, 'J>', x2of(last[0]) + i, standY(last[1]), eastOf)),
-  ]);
-  const ropeX2 = x2of(mid[0] + 1) - 2;
-  const fromRope = sweep(Array.from({ length: 8 }, (_, i) => lands(mid, 'J<', ropeX2, standY(mid[1]) - 8 * (i + 1), westOf)));
-  check(`without the swinging rope no jump crosses the seven cells of water to the shrine's stone or back (${fromStones.across} of ${fromStones.starts} from the stones' edges, ${fromRope.across} of ${fromRope.starts} heights off the bamboo rope)`,
-    fromStones.starts >= 8 && fromRope.starts >= 4 && fromStones.across + fromRope.across === 0);
-  // with it the bot crosses both ways (the rope hangs from the pine's bough, out of every jump's reach)
-  check('the swinging rope hangs over that water (its tip swings over both stones\' edges)', MOLE_ROPE.room === JP.mole && MOLE_ROPE.col - MOLE_ROPE.amplitude <= last[0] + last[2] && MOLE_ROPE.col + MOLE_ROPE.amplitude >= mid[0]);
-  check('with it the bot rides it west from the stone under the bamboo rope to the shrine\'s stone, and back east',
-    search(at(JP.mole, mid[0], mid[1]), (g) => g.roomId === JP.mole && g.y === standY(last[1]) && westOf(g) && !dead(g), [{ room: JP.mole, col: last[0], row: last[1] - 2 }], 60000, 1.5) !== null
-    && search(at(JP.mole, last[0], last[1]), (g) => g.roomId === JP.mole && g.y === standY(mid[1]) && colOf(g) >= mid[0] - 1 && colOf(g) <= mid[0] + 1 && !dead(g), [{ room: JP.mole, col: mid[0], row: mid[1] - 2 }], 60000, 1.5) !== null);
+  // the whole crossing with the koi leaping, both ways, and the bonsai shelf still reached (down from the high ledge west of the bamboo rope)
+  const hood = (g: Game) => g.siCollected[itemIndex(g, JP.mole, 0)] !== 0;
+  check('with the koi leaping, the bot crosses from the rope up from the garden to the shrine and takes the hood',
+    search(at(JP.mole, 30, 14, [], false, true), (g) => g.roomId === JP.mole && hood(g) && !dead(g), [{ room: JP.mole, col: 1, row: 12 }], 200000, 1.5) !== null);
+  check('and crosses back from the shrine to the first stone',
+    search(at(JP.mole, 1, 14, [HOOD], false, true), (g) => g.roomId === JP.mole && g.y === standY(stone(0)[1]) && colOf(g) >= stone(0)[0] - 1 && !dead(g), [{ room: JP.mole, col: stone(0)[0], row: 12 }], 200000, 1.5) !== null);
+  check('the bonsai shelf is still a place to stand: the bot gets on to it from the stones',
+    search(at(JP.mole, stone(2)[0], stone(2)[1]), (g) => g.roomId === JP.mole && g.y === standY(10) && colOf(g) <= 8 && !dead(g), [{ room: JP.mole, col: 4, row: 8 }], 200000, 1.5) !== null);
 });
 
-void LEFT;
 // ---- the parlour's Mole Crusher moves (the engine animates a lone shaft only with the first shaft's characters) ----------------------
 SCOPE.section([JP.parlour], 'the parlour\'s Mole Crusher', () => {
   const roomSpec = must(JAPAN_ROOMS.find((r) => r.id === JP.parlour), 'the parlour');
