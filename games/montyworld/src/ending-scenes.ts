@@ -103,4 +103,5 @@ export const WORLD_ENDING: MontyEnding = {
   castRooms: Array.from({ length: RIO_ROOM.bust + 1 }, (_, i) => i),
   closing: CLOSING,
   procession: PROCESSION,
+  seeded: true,
 };

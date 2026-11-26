@@ -76,9 +76,10 @@ class Stage {
   constructor(data: MontyData, readonly renderer: Renderer, assist: Assists) {
     this.game = new Game(data);
     this.game.assist = assist;
-    // (the random numbers a function of the game's own state, as the route finder's are: a place plays exactly as its route was found, the crushers' timing too)
+    // (a game whose places were found with the game's own random numbers (`MontyEnding.seeded`): the same here, so a place plays exactly as it was
+    // found, the crushers' timing too; Monty on the Run's were found under other timings, and its places keep Math.random, as before)
     const g = this.game;
-    g.entropy = () => prngEntropy(g.prng);
+    if (data.ending?.seeded) g.entropy = () => prngEntropy(g.prng);
     // (and nothing in the montage can end him all the same: a route found under other timings, Monty on the Run's, goes through)
     this.game.graceActive = () => true;
     this.view = new VicView(renderer, this.game.vic);
