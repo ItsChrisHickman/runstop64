@@ -483,10 +483,12 @@ export interface MontyEnding {
    */
   seeded?: true;
   /**
-   * After a win, the map is the reward (Do Svidaniya Monty's; Chris, 2026-11-24: "that's kind of like the unlocker, that's the nice reward"): a new game, from
-   * then on, keeps every room visited a place to travel to, the game and its villain fresh. Without it a new game clears the map, won or not (Monty on the Run's).
+   * After a win, NEW GAME+ (Do Svidaniya Monty's; Chris, 2026-11-24: the map "is the reward", 2026-11-26: "a new game plus that lets you start at the beginning
+   * with the entire map open. And all the items still collected"): the title's CONTINUE and NEW GAME both start him at the beginning, every room of the map a
+   * place to travel to, every key item his, in `worn`'s costume (plus.ts). Without it a new game clears the map, won or not, and CONTINUE after a win carries on
+   * from the save as it was (Monty on the Run's).
    */
-  replayKeepsMap?: true;
+  newGamePlus?: { readonly worn: number | null };
   /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
   closing?: readonly string[];
   /**
@@ -519,6 +521,11 @@ export interface MontyData extends RoomTables, MontyLook {
   start: { mapRow: number; exitCol: number; x2: number; y: number; facing: number };
   /** Rooms the pause screen's travel never goes to and no save is made in (the ending's). */
   untravellable: readonly number[];
+  /**
+   * Where a room is come into, by its id, where that is not a walk in across a join nor its west end, low (way-in.ts `wayIn`): the nearest place he can stand to
+   * this cell is where a save carried on in it puts him and where NEW GAME+'s map travels to before he has been in it. None in Monty on the Run.
+   */
+  waysIn?: Readonly<Record<number, { col: number; floor: number }>>;
   /**
    * Rooms entered up a rope from the room below where a jump that carried him through the edge ends as he comes in, so he holds the rope (Do Svidaniya Monty's pine into the
    * yeti's cave). Without it the jump's fall goes on and drops him back out of the bottom edge into the room he came from, and he bounces between the two. None in Monty on the Run.

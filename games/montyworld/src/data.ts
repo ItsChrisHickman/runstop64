@@ -50,6 +50,15 @@ import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOC
  * (docs/dosvidaniya-plan.md).
  */
 
+/**
+ * Where a room is come into where that is not a walk in across a join nor its west end, low (`MontyData.waysIn`): where a save carried on in it puts him (save-migrate.ts)
+ * and where NEW GAME+'s map travels to before he has been in it (way-in.ts).
+ */
+const WAYS_IN: Readonly<Record<number, { col: number; floor: number }>> = {
+  71: { col: 1, floor: 8 }, // Rio's OPEN ARMS: high on the canopy, entered from the Amazon (its forest floor is the marmoset's)
+  53: { col: 22, floor: 19 }, // Hilo: the street east of the biplane
+};
+
 /** The exit grid: 50 columns for the world west to east (seven regions of about seven rooms), 8 rows for the ways up and down (the Andes' parachute drop falls through four of them). */
 export const WORLD_COLS = 50, WORLD_ROWS = 8;
 
@@ -280,6 +289,7 @@ export const WORLD: MontyData = {
   // he starts on the platform at the left, facing right, on the floor (row 17)
   start: { mapRow: 1, exitCol: 0, x2: 0x28, y: 0xc2, facing: 0x01 },
   untravellable: [],
+  waysIn: WAYS_IN,
   ropeHoldRooms: [SIB.yeti], // (jumping up the pine into the cave, he holds it there)
 
   kit: [],
@@ -386,5 +396,6 @@ export const WORLD: MontyData = {
   regions: WORLD_REGIONS.map(({ label, from, to, rows, except, flown }) => ({ name: label, from, to, rows, ...(except ? { except } : {}), ...(flown ? { flown } : {}) })),
   progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, MOON_ROCK, COFFEE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS, ...LATER_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
-  ending: WORLD_ENDING,
+  // (NEW GAME+ after a win: at Moscow's start in the ushanka, Moscow's own hat, as the title shows him)
+  ending: { ...WORLD_ENDING, newGamePlus: { worn: USHANKA_ITEM } },
 };

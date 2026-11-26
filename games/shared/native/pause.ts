@@ -66,6 +66,11 @@ export interface PauseMap<T, F> {
   info(ram: T, found: F, assist?: Readonly<Record<string, boolean>>): string[];
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now (`page`: the page shown, for maps with pages that are not maps). */
   legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>, page?: number) => { colour: number; text: string }[]);
+  /**
+   * A word about the game being played, in a colour of its own (Do Svidaniya Monty's NEW GAME+), or null: in the side panel's empty spot between the legend
+   * and the options, the letters alone.
+   */
+  badge?(ram: T): { text: string; colour: number } | null;
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
   pages?(ram: T, found: F): { list: number[]; current: number };
   /**
@@ -192,6 +197,12 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(PANEL.x, y + 1, 6, 6, l.colour);
     font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
+  // (the badge: in the middle of the room the legend leaves above the options)
+  const badge = ui.list ? null : map.badge?.(ram) ?? null;
+  if (badge) {
+    const from = 26 + (info.length + legend.length) * 12, to = 166 - (options.length - 1) * 12;
+    font.draw(s, badge.text.slice(0, PANEL.chars), PANEL.x, Math.floor((from + to - 8) / 2), badge.colour);
+  }
   options.forEach((line, i) => {
     const y = 166 - (options.length - 1 - i) * 12;
     font.draw(s, line.text.slice(0, line.check === undefined ? 11 : 10), PANEL.x, y, colours.cyan);
