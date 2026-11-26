@@ -47,7 +47,7 @@ const snorkel = itemIndex(g, PAC.lookout, 0), lei = itemIndex(g, PAC.luau, 0);
 check(`Moscow's coins and finds keep their places (coins ${s.coins.slice(0, 2).join()}, finds ${s.items.slice(0, 2).join()})`, s.coins[0] === 0xff && s.coins[1] === 0xff && s.items[0] === 0x81 && s.items[1] === 0x81);
 check('the key items taken are taken where they are now: the snorkel (Diamond Head\'s lookout now) and the lei (the luau), and the lei is still worn', s.items[snorkel] === 0x81 && s.items[lei] === 0x81 && s.worn === lei);
 check(`the arrays are today's lengths (${s.coins.length} coins, ${s.items.length} finds)`, s.coins.length === WORLD.coinTable.length / 3 && s.items.length === WORLD.specialItems.length / 4);
-check(`a save in MOLE-OKAI (not back) carries on in CLAM DOWN, at its cell [3,18] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[44] && s.roomId === PAC.clam && s.mapRow === 3 && s.exitCol === 18);
+check(`a save in MOLE-OKAI (not back) carries on in CHANNEL SURFING, at its cell [3,18] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[44] && s.roomId === PAC.clam && s.mapRow === 3 && s.exitCol === 18);
 const b = newGame(WORLD, true);
 restore(b.g, s);
 for (let f = 0; f < 120; f++) frame(b, NONE);

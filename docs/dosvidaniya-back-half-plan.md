@@ -326,6 +326,16 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
   Molokai channel, WHALE OF A TIME at Lahaina, THE ROAD TO HANA, KAIHALULU, KONA, MAUNA KEA, THE SUMMIT, AKAKA FALLS, MAUNA LOA,
   the coffee farm, HILO). No two rooms share a name, anywhere in the game.
 
+**Done (hawaii2, 2026-11-26):** backdrops calmed at the source (the jungle, scrub, fluted cliff, lava, cinder and cloud backdrops are
+sparse dark bands now, the road's cliff brown); one swim, CHANNEL SURFING and LAND AHOY, open sea to both edges under the sunset, the
+horizon narrating the journey (Diamond Head small behind; Molokai's fluted sea cliffs with waterfalls and the low Kalaupapa peninsula; Molokai's
+east cape behind, Lanai low, West Maui ahead, a humpback's flukes); Maui's lava shore at LAND AHOY's east edge stays (the sea cave's mouth is under
+it: the join needs the rock); FISH OUT OF WATER replaced by SHELL GAME (three green turtles at the surface that come up, go under and dive in turn,
+the swell between them deadly; Haleakala behind, Kohala, Mauna Kea's snow and Mauna Loa's dome ahead); because the crossing must start west of the
+Big Island, Kaihalulu's cliff rope now goes on down to the channel (the lagoon is a dead end with a coin at the wave's source); no banners (names:
+WELCOME TO HONOLULU, CHANNEL SURFING, LAND AHOY, KAIHALULU, SHELL GAME); Kona open to the sea with Mauna Kea's snow along its skyline; Akaka Falls'
+gorge; the coffee farm's rows; Diamond Head's switchbacks zig-zagging up the crater wall; THE LOOKOUT looking down on Waikiki from the rim.
+
 ### The flight's landing: the full three-room drop
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |

@@ -1,7 +1,7 @@
 /**
  * Hawaii's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, pacific.ts, plays them all together; docs/dosvidaniya-back-half-plan.md, "Hawaii"): the region's data
  * (nineteen rooms on the grid, the ids, the coins and finds), the ship's pistons and bilge, Waikiki's surf shut until the snorkel (no way into the sea without it), the luau's torches, the lookout's rocks,
- * the swims (the snorkel, no way out upward but up a rope through the surface: Lahaina's mooring rope, the road's pool, Hana's cove; the surge and its lee, the moray), the road's cars, Hana's wave,
+ * the swims (the snorkel, no way out upward but up a rope through the surface: Lahaina's mooring rope, the road's pool), SHELL GAME's turtles, the road's cars, Kaihalulu's wave,
  * Mauna Loa's lava, cracking crust and vent, the Big Island's locks (the astronomer wants the moon rock; the rock wakes the pit's lava), the biplane's two locks, the lei as a costume that gates
  * nothing, the hints, the banners, the swimmer's pictures, and a save in each room.
  *
@@ -13,15 +13,14 @@ import { lavaTop } from '../../montyotr/src/lava';
 import { MOTR } from '../../montyotr/src/motr';
 import { pulsePhase } from '../../montyotr/src/pulses';
 import { restore, snapshot } from '../../montyotr/src/save';
-import { surgeRuns } from '../../montyotr/src/swim';
-import { frame, NONE } from '../../montyotr/test/play';
+import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
@@ -47,8 +46,8 @@ SCOPE.section([], 'the data', () => {
     [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => r.id >= 87 && r.id <= 93) && PACIFIC_SECTORS.length === 17);
   const rooms = creatureRooms(PACIFIC_ROOMS);
   check(`no creature in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
-  check('the four swim rooms are the crossings and the sea cave; only the last crossing and the sea cave\'s tube have a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
-    WORLD.swimRooms.join() === [PAC.clam, PAC.kelp, PAC.cave, PAC.fish].join() && WORLD.currents.every((c) => c.room === PAC.fish || c.room === PAC.cave || (Object.values<number>(FLY)).includes(c.room))
+  check('the three swim rooms are the swim past Molokai (two rooms) and the sea cave (SHELL GAME is on the surface, no swim); only the sea cave\'s tube has a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
+    WORLD.swimRooms.join() === [PAC.clam, PAC.kelp, PAC.cave].join() && WORLD.currents.every((c) => c.room === PAC.cave || (Object.values<number>(FLY)).includes(c.room))
     && WORLD.risingLava.every((l) => l.room === PAC.loa || !(Object.values<number>(PAC)).includes(l.room)) && WORLD.risingLava.some((l) => l.room === PAC.loa) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
   const g = newGame(WORLD, false).g;
   check('the lei opens nothing: no room effect waits for it, and it is worn', WORLD.roomEffects.every((e) => (e.when ?? []).every((w) => !('taken' in w) || w.taken !== itemIndex(g, ...LEI))) && WORLD.costumes.some((c) => c.item === itemIndex(g, ...LEI)));
@@ -71,7 +70,7 @@ SCOPE.section([PAC.waikiki, PAC.clam, PAC.ship, PAC.luau], 'Waikiki: the surf sh
   check(`no way into the sea without the snorkel, jumps and all (${stats.exhausted ? 'every state looked at' : 'the state limit'})`, swim === null);
   const dive = at(PAC.waikiki, 23, 19, [SNORKEL]);
   for (let f = 0; f < 200 && dive.g.roomId !== PAC.clam; f++) frame(dive, RIGHT);
-  check('with the snorkel the surf is gone and he dives through into CLAM DOWN, alive', dive.g.roomId === PAC.clam && !dead(dive.g) && SURF_CELLS.every(([row, col]) => cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) === 0 || cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) > 8));
+  check('with the snorkel the surf is gone and he dives through into CHANNEL SURFING, alive', dive.g.roomId === PAC.clam && !dead(dive.g) && SURF_CELLS.every(([row, col]) => cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) === 0 || cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) > 8));
 });
 
 // ---- the luau's torches --------------------------------------------------------------------------------
@@ -86,14 +85,14 @@ SCOPE.section([PAC.luau], 'the luau: the torches', () => {
 });
 
 // ---- the swims: the surface, the ropes out ---------------------------------------------------------------
-SCOPE.section([PAC.clam, PAC.kelp, PAC.lahaina, PAC.cave, PAC.road, PAC.fish, PAC.hana, PAC.waikiki], 'the swims: the snorkel, the surface and the ropes up through it', () => {
+SCOPE.section([PAC.clam, PAC.kelp, PAC.lahaina, PAC.cave, PAC.road, PAC.waikiki], 'the swims: the snorkel, the surface and the ropes up through it', () => {
   const without = at(PAC.clam, 16, 8);
   run(without, NONE, 8);
   check('the sea drowns him at once without the snorkel', dead(without.g));
   const surf = at(PAC.clam, 27, 4, [SNORKEL]);
   run(surf, UP, 300);
   check('swimming up under the surf\'s gap he stays in the sea (no rope there: the surface holds him, no bounce)', surf.g.roomId === PAC.clam && !dead(surf.g));
-  const ropes: readonly (readonly [from: number, col: number, to: number])[] = [[PAC.kelp, 15, PAC.lahaina], [PAC.cave, 23, PAC.road], [PAC.fish, 26, PAC.hana]];
+  const ropes: readonly (readonly [from: number, col: number, to: number])[] = [[PAC.kelp, 15, PAC.lahaina], [PAC.cave, 23, PAC.road]];
   for (const [from, col, to] of ropes) {
     const s = at(from, col, 5, [SNORKEL]);
     for (let f = 0; f < 300 && s.g.roomId === from; f++) frame(s, UP);
@@ -102,33 +101,43 @@ SCOPE.section([PAC.clam, PAC.kelp, PAC.lahaina, PAC.cave, PAC.road, PAC.fish, PA
   }
 });
 
-// ---- FISH OUT OF WATER: the surge, the moray --------------------------------------------------------------
-SCOPE.section([PAC.fish, PAC.kona], 'FISH OUT OF WATER: the surge, the moray', () => {
-  const over = at(PAC.fish, 20, 14, [SNORKEL]);
-  run(over, NONE, SURGE.start - 2);
-  const x0 = over.g.x2;
-  run(over, NONE, 60);
-  check(`while a set runs he is carried west over the heads (${x0 - over.g.x2} half-pixels in 60 frames)`, over.g.x2 < x0 - 10 && CURRENTS[0] !== undefined && surgeRuns(CURRENTS[0], SURGE.start + 10));
-  const lee = at(PAC.fish, 10, 19, [SNORKEL]);
-  run(lee, DOWN, 20);
-  const lx = lee.g.x2;
-  run(lee, NONE, SURGE.start + 40);
-  check('in the first head\'s lee the water is still through a set', lee.g.x2 === lx && !dead(lee.g));
-  const mouth = at(PAC.fish, 5, 15, [SNORKEL]);
-  const hold = mouth.g.y;
-  let died = -1;
-  for (let f = 0; f < MORAY.period + 20 && died < 0; f++) { frame(mouth, mouth.g.y < hold ? DOWN : NONE); if (dead(mouth.g)) died = f; }
-  check(`at the sea cave's mouth the moray's lunge kills (dead at frame ${died}, the lunge from ${MORAY.start + MORAY.warn + 15})`, died >= MORAY.start + MORAY.warn);
-  const swimmer = at(PAC.fish, 16, 6, [SNORKEL, LEI]);
+// ---- the swimmer's pictures ----------------------------------------------------------------------------------
+SCOPE.section([PAC.clam], 'the swimmer\'s pictures', () => {
+  const swimmer = at(PAC.clam, 16, 12, [SNORKEL, LEI]);
   wear(swimmer.g, itemIndex(swimmer.g, ...LEI));
   run(swimmer, RIGHT, 24);
   const facingRight = SWIM_CYCLE.right.some((p) => p === swimmer.g.sptr[3]) && swimmer.g.sptr[7] === SWIM_POINTERS.crownRight;
   run(swimmer, LEFT, 24);
   const facingLeft = SWIM_CYCLE.left.some((p) => p === swimmer.g.sptr[3]) && swimmer.g.sptr[7] === SWIM_POINTERS.crownLeft;
   check('in the sea he swims in his own pictures with the lei\'s crown on them', facingRight && facingLeft);
-  const out = at(PAC.fish, 29, 18, [SNORKEL]);
+});
+
+// ---- SHELL GAME: the turtles ------------------------------------------------------------------------------
+SCOPE.section([PAC.fish, PAC.kona, PAC.hana], 'SHELL GAME: the turtles surface and dive', () => {
+  const first = TURTLE_PULSES[0];
+  const phases = first ? [0, 100, 150, 200].map((t) => pulsePhase(first, t)) : [];
+  check(`a turtle is up, goes under (the warning), is down, and kills nothing (${phases.join(' ')})`, phases.join() === 'idle,idle,warn,spent' && TURTLE_PULSES.every((p) => p.live === 0 && p.room === PAC.fish));
+  check('the swell between the turtles kills', diesAt(at(PAC.fish, 17, 19, [SNORKEL]), NONE, 40) >= 0);
+  const east = TURTLES.shells[1];
+  if (!east) throw new Error('no second turtle');
+  // onto the second turtle from the rope's rock (by the bot's search), then stand still: he rides it while it is up and going under, and drops into the swell once it is down
+  const shell = WORLD.pulses.findIndex((p) => p === TURTLE_PULSES[3]); // (the second turtle's west half)
+  const phaseOf = (g: State['g']): string => { const p = g.pulses.find((q) => q.index === shell); const e = WORLD.pulses[shell]; return p && e ? pulsePhase(e, p.t) : 'none'; };
+  const onIt = search(at(PAC.fish, 13, 16, [SNORKEL]), (g) => g.roomId === PAC.fish && g.y === standY(TURTLES.row) && !g.falling && colOf(g) >= east.col && colOf(g) <= east.col + 1 && phaseOf(g) === 'idle', [{ room: PAC.fish, col: east.col, row: TURTLES.row - 2 }], 100000, 1.5);
+  const rider = onIt?.end;
+  let diedIn = 'none';
+  for (let f = 0; rider && f < TURTLES.period && diedIn === 'none'; f++) { frame(rider, NONE); if (dead(rider.g)) diedIn = phaseOf(rider.g); }
+  check(`standing on a turtle he rides it while it is up and going under, and goes into the swell when it dives (${rider ? `he died while it was ${diedIn}` : 'no way onto it'})`, diedIn === 'spent');
+  const stats = { exhausted: false };
+  const crossing = search(at(PAC.fish, 13, 16, [SNORKEL]), (g) => g.roomId === PAC.kona, [{ room: PAC.fish, col: 30, row: 17 }], 200000, 1.5, stats);
+  check('from the rope\'s rock the crossing over the turtles to Kona can be made', crossing !== null);
+  const out = at(PAC.fish, 29, 19, [SNORKEL]);
   run(out, RIGHT, 80);
-  check('out at the bottom right he comes onto Kona\'s black sand and stands there', out.g.roomId === PAC.kona && !dead(out.g));
+  check('out at the east edge he comes onto Kona\'s black sand and stands there', out.g.roomId === PAC.kona && !dead(out.g));
+  const back = at(PAC.fish, 13, 16, [SNORKEL]);
+  for (let f = 0; f < 400 && back.g.roomId === PAC.fish; f++) frame(back, UP);
+  run(back, UP, 30);
+  check(`up the rope from the rock he climbs into Kaihalulu (room ${back.g.roomId}), alive`, back.g.roomId === PAC.hana && !dead(back.g));
 });
 
 // ---- THE SEA CAVE: the bonus off the route, the lava tube's tide and its loose stalactites ------------------------------------
@@ -229,15 +238,17 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
     run(s, NONE, 3);
     return rowText(s.g);
   };
-  check('Oahu welcomes him aboard at Honolulu, Molokai on the swim past it, Maui at Lahaina, the Big Island at Kona',
-    arrive(JP.port, PAC.ship, 1, 13) === 'WELCOME TO HAWAII: OAHU' && arrive(PAC.waikiki, PAC.clam, 27, 5) === 'HAWAII: PAST MOLOKAI' && arrive(PAC.kelp, PAC.lahaina, 15, 18) === 'HAWAII: MAUI' && arrive(PAC.fish, PAC.kona, 1, 19) === 'HAWAII: THE BIG ISLAND');
+  // No "HAWAII: <island>" banners (Chris, 2026-11-25): coming into each room the name row shows the room's own name, which carries the journey.
+  const seen = [arrive(JP.port, PAC.ship, 1, 13), arrive(PAC.ship, PAC.waikiki, 1, 19), arrive(PAC.waikiki, PAC.clam, 27, 9), arrive(PAC.kelp, PAC.lahaina, 15, 18), arrive(PAC.fish, PAC.kona, 1, 19)];
+  check(`no banners: each room shows its own name on arriving (${seen.join(' / ')})`,
+    seen.join('|') === 'THE CARGO SHIP|WELCOME TO HONOLULU|CHANNEL SURFING|WHALE OF A TIME|KONA' && WORLD.arrivals.every((a) => !a.rooms.some((r) => (Object.values<number>(PAC)).includes(r))));
 });
 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
     [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 18, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 27, 18], [PAC.road, 3, 18],
-    [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 27, 5], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
+    [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 13, 16], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
   ] as const;
   const failed: number[] = [];
   for (const [room, col, floor] of spots.filter(([id]) => SCOPE.has(id))) {

@@ -20,7 +20,7 @@ drawRegionMap(out, {
   joins: [
     [-1, PAC.ship, 'W', true, 0], [PAC.ship, PAC.waikiki, 'W', true, 0], [PAC.waikiki, PAC.luau, 'R', true, 0], [PAC.luau, PAC.diamond, 'W', true, 0], [PAC.diamond, PAC.lookout, 'R', true, 0],
     [PAC.waikiki, PAC.clam, 'SWIM SNORKEL', true, 0], [PAC.clam, PAC.kelp, 'SWIM', true, 0], [PAC.kelp, PAC.lahaina, 'R', true, 0], [PAC.kelp, PAC.cave, 'SWIM', false, 0], [PAC.lahaina, PAC.road, 'W', true, 0],
-    [PAC.road, PAC.cave, 'R', false, 0], [PAC.road, PAC.hana, 'W', true, 0], [PAC.hana, PAC.fish, 'R', true, 0], [PAC.fish, PAC.kona, 'SWIM', true, 0], [PAC.kona, PAC.hilo, 'W', true, 0],
+    [PAC.road, PAC.cave, 'R', false, 0], [PAC.road, PAC.hana, 'W', true, 0], [PAC.hana, PAC.fish, 'R', true, 0], [PAC.fish, PAC.kona, 'W TURTLES', true, 0], [PAC.kona, PAC.hilo, 'W', true, 0],
     [PAC.kona, PAC.kea, 'R', true, 0], [PAC.kea, PAC.summit, 'R', true, 0], [PAC.kea, PAC.falls, 'W', true, 0], [PAC.falls, PAC.hilo, 'DROP', true, 0],
     [PAC.kona, PAC.loa, 'R', true, 0], [PAC.loa, PAC.coffee, 'W', true, 0], [PAC.coffee, PAC.hilo, 'R', true, 0],
   ],

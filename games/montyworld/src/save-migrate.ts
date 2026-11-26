@@ -23,8 +23,8 @@ export const RETIRED: Readonly<Record<number, number>> = {
   // the Pacific: the rooms Hawaii's island hopping did not bring back (2026-11-25; the rest are rooms again) carry on in the room of their island or crossing
   39: 38, // BOX CLEVER: the cargo ship
   40: 41, // PIER PRESSURE: Waikiki
-  44: 43, // MOLE-OKAI: the swim past Molokai (CLAM DOWN)
-  50: 49, // FISH OUT OF WATER (format 1's): today's FISH OUT OF WATER, the swim to the Big Island
+  44: 43, // MOLE-OKAI: the swim past Molokai (CHANNEL SURFING)
+  50: 49, // FISH OUT OF WATER (format 1's): today's SHELL GAME, the crossing to the Big Island
   54: 53, // THE CARGO PLANE (HOLD YOUR HORSES in format 1): Hilo, by the biplane
   // the Andes and the Amazon
   56: 57, // OUT OF THIN AIR: the gorge (CONDOR COUNTRY)

@@ -8,31 +8,33 @@ import { HULA_FRAMES } from './art/pacific-islands';
 import { codeOf, decorIndex, fillCells, fillWhere, type Grid, room, type Palette } from './layout';
 
 /**
- * The Pacific, the fifth region of Do Svidaniya Monty: Hawaii's island hopping (docs/dosvidaniya-back-half-plan.md, "Hawaii"; Chris, 2026-11-25: "landing in Honolulu, then climbing Diamond Head to get
- * the snorkel that a tourist left behind, then snorkeling past Molokai to Lahaina, Road to Hana, then more snorkeling from that beach ... to the Big Island (Kona)", where the island splits over Mauna Kea and
- * Mauna Loa into Hilo and the plane). Nineteen rooms on four islands and three swims, the rooms the 2026-11-23 reset cut brought back as they were designed (`804a838^`) and the Big Island's fork new.
+ * The Pacific, the fifth region of Do Svidaniya Monty: Hawaii's island hopping (docs/dosvidaniya-back-half-plan.md, "Hawaii" and "Hawaii polish pass"; Chris, 2026-11-25: "landing in Honolulu, then climbing
+ * Diamond Head to get the snorkel that a tourist left behind, then snorkeling past Molokai to Lahaina, Road to Hana", then to the Big Island (Kona), where the island splits over Mauna Kea and Mauna Loa into
+ * Hilo and the plane). Nineteen rooms on four islands: one swim (Oahu to Maui past Molokai, two rooms of open sea) and the turtle crossing to the Big Island on the surface. No banners: each room's own name
+ * carries the journey.
  *
- *            col 17          18              19              20              21              22              23
- *   row 0                                    THE LOOKOUT
- *   row 1                    LEI OF THE LAND DIAMOND HEAD                                    THE SUMMIT
- *   row 2    THE CARGO SHIP  WAIKIKI         WHALE OF A TIME THE ROAD TO HANA HANA           MAUNA KEA   <->  AKAKA FALLS
- *   row 3                    CLAM DOWN       KELP WANTED     THE SEA CAVE    FISH OUT OF     KONA        <->  HILO GOODBYE  -> the biplane: THE FLIGHT
- *                                                                            WATER
- *   row 4                                                                                    MAUNA LOA   <->  COFFEE BREAK
+ *            col 17          18                  19              20               21              22              23
+ *   row 0                                        THE LOOKOUT
+ *   row 1                    LEI OF THE LAND     DIAMOND HEAD                                     THE SUMMIT
+ *   row 2    THE CARGO SHIP  WELCOME TO HONOLULU WHALE OF A TIME THE ROAD TO HANA KAIHALULU       MAUNA KEA   <->  AKAKA FALLS
+ *   row 3                    CHANNEL SURFING     LAND AHOY       THE SEA CAVE     SHELL GAME      KONA        <->  HILO GOODBYE  -> the biplane: THE FLIGHT
+ *   row 4                                                                                         MAUNA LOA   <->  COFFEE BREAK
  *
- * Oahu: off the ship onto Waikiki's beach, where the surf stops him (deadly until the snorkel); up the palm to the luau (the torches, the hula show, the lei), east along its lawn to the foot of Diamond Head,
- * up the cone by its trail (the walkway, the lighted tunnel, the switchback and stairs, the rockfall) and its Fire Control Station's spiral stair to THE LOOKOUT on the summit, where a tourist left the snorkel; back down and into the surf. The first swim (CLAM DOWN, Molokai's sea cliffs behind; KELP WANTED) comes up Lahaina's
- * mooring rope on Maui (or on east through the sea cave and up the road's pool); THE ROAD TO HANA's three tiers with the cars over the one-lane bridges; Hana's red sand cove drops into the last swim (FISH
- * OUT OF WATER: the surge, the moray, the shark), out onto Kona's black sand on the Big Island. There the way splits into a loop, Moscow's way (docs/dosvidaniya-moscow.md part 1): the top way up
- * through the cloud to Mauna Kea's summit, where the astronomer keeps the ladder to the parachute drawn up until Monty brings him the moon rock, then along Akaka Falls' high trail and down into Hilo; the
- * bottom way down the lava tube to Mauna Loa (the run ahead of the lava; the moon rock down the crater's pit, which wakes the pit's own lava) and along the coffee farm (the coffee) up into Hilo. Every join
- * goes both ways, and Akaka Falls is crossed twice at two heights (the high trail, and the low lane from Hilo's roofs to Mauna Kea's foot). The biplane takes off only with both (NO FLYING WITHOUT A
- * PARACHUTE, TOO SLEEPY TO FLY), and the summit's gate wants the bottom way's rock: whichever way he takes first, the loop sends him round for the other. Playfield cells as in moscow.ts.
+ * Oahu: off the ship onto Waikiki's beach under Aloha Tower, where the surf stops him (deadly until the snorkel); up the palm to the luau (the torches, the hula show, the lei), east along its lawn to the foot
+ * of Diamond Head, up the cone by its trail (the walkway, the lighted tunnel, the switchback and stairs, the rockfall, its switchbacks seen zig-zagging up the crater wall beyond) and the Fire Control
+ * Station's spiral stair to THE LOOKOUT on the rim, looking down on Waikiki, where a tourist left the snorkel; back down and into the surf. The swim (CHANNEL SURFING: Oahu falling behind, Molokai's sea
+ * cliffs alongside; LAND AHOY: Lanai low, West Maui ahead) comes up Lahaina's mooring rope on Maui (or on east into the sea cave, the bonus, and up the road's pool); THE ROAD TO HANA's three tiers with the
+ * cars over the one-lane bridges; Kaihalulu's red sand cove, down its cliff to the channel, where the turtles carry him (SHELL GAME: hop shell to shell as they surface and dive) onto Kona's black sand on the
+ * Big Island. There the way splits into a loop, Moscow's way (docs/dosvidaniya-moscow.md part 1): the top way up through the cloud to Mauna Kea's summit, where the astronomer keeps the ladder to the parachute
+ * drawn up until Monty brings him the moon rock, then along Akaka Falls' high trail and down into Hilo; the bottom way down the lava tube to Mauna Loa (the run ahead of the lava; the moon rock down the crater's
+ * pit, which wakes the pit's own lava) and along the coffee farm (the coffee) up into Hilo. Every join goes both ways, and Akaka Falls is crossed twice at two heights (the high trail, and the low lane from
+ * Hilo's roofs to Mauna Kea's foot). The biplane takes off only with both (NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY), and the summit's gate wants the bottom way's rock: whichever way he takes first,
+ * the loop sends him round for the other. Playfield cells as in moscow.ts.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /**
- * Room ids never change once a region has shipped: the first build's (38-54) that came back keep theirs (HANA BANANA's 49 had become the swim room, now FISH OUT OF WATER; MAUNA KEA-OS's 52 the lava, now on
+ * Room ids never change once a region has shipped: the first build's (38-54) that came back keep theirs (HANA BANANA's 49 had become the swim room, then FISH OUT OF WATER, now SHELL GAME; MAUNA KEA-OS's 52 the lava, now on
  * Mauna Loa; COFFEE BREAK's 51 and HILO GOODBYE's 53 back to their own), and the new ones go on after the sky's (79-81) and those other regions keep for their returns (82-86): 87 on. 39, 40, 44, 50 and 54
  * stay retired (save-migrate.ts carries a save in one on in a kept room).
  */
@@ -41,17 +43,13 @@ export const PAC = {
   hana: 87, diamond: 88, lookout: 89, kona: 90, kea: 91, summit: 92, falls: 93,
 } as const;
 
-/** The rooms of open water (swim.ts): Monty swims in them, and only with the snorkel. */
-export const SWIM_ROOMS: readonly number[] = [PAC.clam, PAC.kelp, PAC.cave, PAC.fish];
-/**
- * The swim past Molokai is open sea under the sky (Chris, 2026-11-25: "In the original pass there was a good swimming scene with Molokai in the background"): its two rooms' sea has a surface (`SURFACE`,
- * the row of the waves), Molokai's sea cliffs and Maui's mountains over it. He floats up with his head at the waterline (swim.ts, `swimSurfaces`), and coming in from Waikiki's surf above he drops in.
- */
-const SURFACE = 6;
-/** CLAM DOWN's sea lies lower, so Molokai's cliffs stand tall over it. */
-const CLAM_SURFACE = 8;
+/** The rooms of open water (swim.ts): Monty swims in them, and only with the snorkel: the swim past Molokai and the sea cave. */
+export const SWIM_ROOMS: readonly number[] = [PAC.clam, PAC.kelp, PAC.cave];
+/** The sea's surface in both swim rooms (the row of the waves): one level, so the two join on the water. */
+const SURFACE = 8;
 const surfaceY = (row: number): number => 0x32 + (row + PLAY_ROW) * 8 - 4;
-export const SWIM_SURFACES: readonly SwimSurface[] = [{ room: PAC.clam, y: surfaceY(CLAM_SURFACE) }, { room: PAC.kelp, y: surfaceY(SURFACE) }];
+/** The swim's two rooms are open sea with a surface (swim.ts, `swimSurfaces`): he floats up with his head at the waterline; coming in from Waikiki's surf above he drops in. */
+export const SWIM_SURFACES: readonly SwimSurface[] = [PAC.clam, PAC.kelp].map((room) => ({ room, y: surfaceY(SURFACE) }));
 
 /**
  * The sprite pointers (in the bank) of the Pacific's items: the original's item blocks the world never uses ($8F-$91, $93, $94). The bank is full, so the moon rock borrows the first boulder block while
@@ -62,13 +60,13 @@ export const PAC_SPRITE = { coffee: 0x8f, snorkel: 0x90, lei: 0x91, musubi: 0x93
 const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
 /** The sectors' names by their place from 38 (the Andes' follow at 55, so the list keeps seventeen places: the retired rooms' are empty). Plain names, a pun where it lands. */
 const NAMES = [
-  'THE CARGO SHIP', '', '', 'WAIKIKI', 'LEI OF THE LAND', 'CLAM DOWN', '', 'KELP WANTED', 'WHALE OF A TIME', 'THE ROAD TO HANA', 'THE SEA CAVE', 'FISH OUT OF WATER', '', 'COFFEE BREAK', 'MAUNA LOA', 'HILO GOODBYE', '',
+  'THE CARGO SHIP', '', '', 'WELCOME TO HONOLULU', 'LEI OF THE LAND', 'CHANNEL SURFING', '', 'LAND AHOY', 'WHALE OF A TIME', 'THE ROAD TO HANA', 'THE SEA CAVE', 'SHELL GAME', '', 'COFFEE BREAK', 'MAUNA LOA', 'HILO GOODBYE', '',
 ] as const;
 export const PACIFIC_SECTORS: readonly Sector[] = NAMES.map(centred);
-/** The map's colour of each (the ship red, the beach yellow, the luau pink, the swims blue, Lahaina brown, the road green, Molokai's... the farm brown, the lava orange, Hilo grey; the retired none). */
+/** The map's colour of each (the ship red, the beach yellow, the luau pink, the swims blue, Lahaina brown, the road green, the turtles' channel light blue, the farm brown, the lava orange, Hilo grey; the retired none). */
 export const PACIFIC_COLOURS: readonly number[] = [2, 0, 0, 7, 10, 6, 0, 14, 9, 5, 6, 14, 0, 9, 8, 12, 0];
 /** The sectors from 82 on (the rooms that came back after the sky's, 87-93; 82-86 are other regions' returns, empty here), and their map colours. */
-const LATER_NAMES: Readonly<Record<number, string>> = { 87: 'HANA', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS' };
+const LATER_NAMES: Readonly<Record<number, string>> = { 87: 'KAIHALULU', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS' };
 const LATER_COLOURS: Readonly<Record<number, number>> = { 87: 10, 88: 9, 89: 1, 90: 11, 91: 2, 92: 1, 93: 5 };
 const LATER = Array.from({ length: PAC.falls - 82 + 1 }, (_, i) => 82 + i);
 export const PACIFIC_LATER_SECTORS: readonly Sector[] = LATER.map((id) => centred(LATER_NAMES[id] ?? ''));
@@ -95,9 +93,14 @@ export const DIAMOND_PALETTE = {
   T: ['pacTrail', 15], C: ['pacConcrete', 12], K: ['pacTuff', 8], S: ['pacStairs', 15], W: ['pacSlitWall', 12],
 } as const satisfies Palette;
 
-/** A swim room's (the sea is a backdrop, one flat blue: `SEA`): the cliffs over the water, the reef's rock, coral, the mooring and cove ropes, the moray's hole, eyes and body, and the surge's streaks. */
+/** A swim room's (the sea is a backdrop, one flat blue): the sandy bottom and Maui's lava shore, the reef's rock, coral, the mooring and the pool's ropes, and the sea cave's flow lines. */
 export const SEA_PALETTE = {
-  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], L: ['pacBamboo', 13], H: ['pacMorayHole', 4], E: ['pacMorayEyes', 10], M: ['pacMorayBody', 13], U: ['pacSurge', 6],
+  K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], L: ['pacBamboo', 13], U: ['pacSurge', 6],
+} as const satisfies Palette;
+
+/** SHELL GAME: Maui's black lava shore and the rocks at the waterline, the rope down from Kaihalulu, the channel's breaking swell, the turtles' shells (up and going under) and heads, Kona's black sand. */
+export const SHELL_PALETTE = {
+  L: ['pacBasalt', 11], R: ['pacBamboo', 13], W: ['pacWaves', 14], S: ['pacShell', 13], T: ['pacShellEast', 13], D: ['pacShellDive', 5], H: ['pacTurtleHead', 13], K: ['pacBlackSand', 12],
 } as const satisfies Palette;
 
 /** Lahaina: the fort's coral-block wall and the quay, the harbour water, the brig's hull and deck, the ropes, the crates. */
@@ -107,7 +110,7 @@ export const WHALE_PALETTE = {
 
 /** The road's eight: the road, the bridge's deck, the cliff, the bamboo to climb, and the red car's cabin and body. */
 export const ROAD_PALETTE = {
-  R: ['pacRoad', 15], B: ['pacBridgeDeck', 8], S: ['pacBasalt', 13], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
+  R: ['pacRoad', 15], B: ['pacBridgeDeck', 8], S: ['pacBasalt', 9], V: ['pacBamboo', 13], Y: ['pacCarCab', 2], Z: ['pacCarBody', 2],
 } as const satisfies Palette;
 
 /** Hana: the headland's rock and turf, Kaihalulu's red cinder sand, the bamboo rope, the swash of the surf up the beach, the black lava-rock wall across the cove's mouth. */
@@ -117,7 +120,7 @@ export const HANA_PALETTE = {
 
 /** Kona: the black sand and the lava rock, the tide pool, the ropes up to Mauna Kea and down the lava tube to Mauna Loa. */
 export const KONA_PALETTE = {
-  K: ['pacBlackSand', 12], B: ['pacBasalt', 9], W: ['pacWaves', 14], R: ['pacBamboo', 13],
+  K: ['pacBlackSand', 12], B: ['pacBasalt', 12], W: ['pacWaves', 14], R: ['pacBamboo', 13],
 } as const satisfies Palette;
 
 /** Mauna Kea and its summit: the red cinder, the rope, the observatory's catwalk and ladders. */
@@ -175,7 +178,7 @@ function ridge(points: readonly Cell[]): (col: number) => number {
 }
 // ---- the mechanisms' data ------------------------------------------------------------------------------
 
-/** Waikiki's surf (cols 26-30, rows 18-19): deadly waves until the snorkel; then gone, a dive into CLAM DOWN's sea through its ceiling. */
+/** Waikiki's surf (cols 26-30, rows 18-19): deadly waves until the snorkel; then gone, a dive into CHANNEL SURFING's sea from the sky over it. */
 export const SURF_CELLS: readonly (readonly [row: number, col: number])[] = [18, 19].flatMap((row) => [26, 27, 28, 29, 30].map((col) => [row, col] as const));
 
 /**
@@ -247,29 +250,23 @@ export const WAVE_PULSES: readonly PulseSpec[] = WAVE.groups.map((g, k): PulseSp
 }));
 
 /**
- * FISH OUT OF WATER's surge (`currents`): in sets, the sea runs west along the bottom lane, 90 frames on and 120 off. Over the coral heads (rows 12-15) and in the open water past the last it carries him west
- * at his own pace; low in the lee of each head (its west side) the water is still. He shelters low in a lee while a set runs and swims on between sets.
+ * SHELL GAME's turtles (Chris, 2026-11-25: "if getting between island two and three involves riding on turtles' backs instead? Maybe that's good"): green sea turtles at the surface of the channel between
+ * Maui and the Big Island, each a shell two cells long (its two halves) and its head (`pulses` of floor tiles, harmless: nothing of them kills). Each is up for `up` frames, shows going under for `warn` (the shell sinks to its
+ * crown, flickering), and is down for the rest of its period, the swell's cells showing where it was; then it surfaces again. The swell between them (the room's waves) is deadly, as Waikiki's surf is. They
+ * keep their own time (`offset`), so he hops from shell to shell as each comes up and waits on one that will stay up while the next one surfaces.
  */
-export const SURGE = { period: 210, start: 120, length: 90, warn: 30 } as const;
-export const CURRENTS: readonly CurrentSpec[] = [
-  { col: 10, cols: 21, top: 12, bottom: 15 }, // over the heads
-  { col: 29, cols: 2, top: 16, bottom: 18 }, // past the third
-].map((box): CurrentSpec => ({ room: PAC.fish, ...box, dx: -1, period: SURGE.period, start: SURGE.start, length: SURGE.length }));
-/**
- * The surge seen: flow lines in the lane over the heads (two rows of them, staggered), steady (not a flicker: Chris, 2026-11-25, "I don't know what the flashing blue things are") from 30 frames before a set until it is spent
- * (harmless `pulses`: shown from `start` as their spent look, nothing live), sliding west as the water runs (`SURGE_ANIM`), so the coming set is seen as the water starting to run.
- */
-export const SURGE_PULSES: readonly PulseSpec[] = ([[13, [11, 16, 21, 26]], [15, [13, 18, 23, 28]]] as const).flatMap(([row, cols]) => cols.map((col): PulseSpec => ({
-  room: PAC.fish, col, row, cols: 2, rows: 1, period: SURGE.period, start: SURGE.start - SURGE.warn, warn: 0, live: 0,
-  idle: 0, warnCode: codeOf(SEA_PALETTE, 'U'), liveCode: codeOf(SEA_PALETTE, 'U'), spent: codeOf(SEA_PALETTE, 'U'),
-})));
-/** The flow lines slide west a pixel a step (half a pixel a frame), the water's way: FISH OUT OF WATER's over the heads and the sea cave's in its lava tube. */
-export const SURGE_ANIMS: readonly CharAnim[] = [PAC.fish, PAC.cave].map((room): CharAnim => ({ kind: 'scroll', room, rings: [[codeOf(SEA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 }));
+export const TURTLES = { row: 17, period: 240, up: 130, warn: 40, shells: [{ col: 7, offset: 60 }, { col: 19, offset: 0 }, { col: 24, offset: 150 }] } as const;
+export const TURTLE_PULSES: readonly PulseSpec[] = TURTLES.shells.flatMap(({ col, offset }): PulseSpec[] => {
+  const timing = { room: PAC.fish, row: TURTLES.row, rows: 1, period: TURTLES.period, start: TURTLES.up, warn: TURTLES.warn, live: 0, offset, warnCode: codeOf(SHELL_PALETTE, 'D'), liveCode: 0, spent: 0 };
+  return [{ ...timing, col, cols: 1, idle: codeOf(SHELL_PALETTE, 'S') }, { ...timing, col: col + 1, cols: 1, idle: codeOf(SHELL_PALETTE, 'T') }, { ...timing, col: col + 2, cols: 1, idle: codeOf(SHELL_PALETTE, 'H') }];
+});
+/** The sea cave's flow lines slide west a pixel a step (half a pixel a frame), the water's way out of the lava tube. */
+export const SURGE_ANIMS: readonly CharAnim[] = [{ kind: 'scroll', room: PAC.cave, rings: [[codeOf(SEA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 }];
 
 /**
  * THE SEA CAVE, the bonus off the route (Chris, 2026-11-25: "Having a bonus room that is off the path is an opportunity to try some new things and add some fun challenges"): an old lava tube runs east under
  * the cavern's floor from its mouth by the reef's doorway (cols 2-5) to a pocket of still water at its end (cols 24-29), where the Spam musubi is. The swell drains out of the tube in sets (`currents`, west,
- * as FISH OUT OF WATER's surge, flow lines seen 30 frames before), and two loose stalactites hang in cracks in its roof (`icicles`, drawn in the rock's grey): passing under one at his pace is safe, but a set
+ * the flow lines seen 30 frames before), and two loose stalactites hang in cracks in its roof (`icicles`, drawn in the rock's grey): passing under one at his pace is safe, but a set
  * that catches him past one carries him back under it as it falls. So: wait at the mouth for a set to drain, swim in, up into the alcove halfway (a coin) before the next, out of it as that one is spent
  * and on into the pocket; then ride a set out. The new things: the sea drags him back into a trap he has sprung, and he reads two clocks at once.
  */
@@ -277,24 +274,14 @@ export const CAVE_TUBE = { col: 6, cols: 18, top: 15, bottom: 18, alcove: 13, en
 export const CAVE_TIDE = { period: 220, start: 140, length: 80, warn: 30 } as const;
 export const CAVE_STALACTITES: readonly IcicleSpec[] = [10, 19].map((col): IcicleSpec => ({ room: PAC.cave, col, row: 13, floor: 19, colour: 15 }));
 const CAVE_CURRENT: CurrentSpec = { room: PAC.cave, col: CAVE_TUBE.col, cols: CAVE_TUBE.cols, top: CAVE_TUBE.top, bottom: CAVE_TUBE.bottom, dx: -1, period: CAVE_TIDE.period, start: CAVE_TIDE.start, length: CAVE_TIDE.length };
-/** The tube's flow lines (harmless `pulses`, as the surge's over the heads): two staggered rows, seen from 30 frames before a set until it is spent. */
+/** The tube's flow lines (harmless `pulses`): two staggered rows, steady (not a flicker), seen from 30 frames before a set until it is spent. */
 const CAVE_FLOW_PULSES: readonly PulseSpec[] = ([[15, [7, 12, 17, 22]], [17, [9, 14, 20]]] as const).flatMap(([row, cols]) => cols.map((col): PulseSpec => ({
   room: PAC.cave, col, row, cols: 2, rows: 1, period: CAVE_TIDE.period, start: CAVE_TIDE.start - CAVE_TIDE.warn, warn: 0, live: 0,
   idle: 0, warnCode: codeOf(SEA_PALETTE, 'U'), liveCode: codeOf(SEA_PALETTE, 'U'), spent: codeOf(SEA_PALETTE, 'U'),
 })));
-/** The surges of the Pacific (FISH OUT OF WATER's, the sea cave's tube) and their flow lines. */
-export const PACIFIC_CURRENTS: readonly CurrentSpec[] = [...CURRENTS, CAVE_CURRENT];
-export const PACIFIC_FLOW_PULSES: readonly PulseSpec[] = [...SURGE_PULSES, ...CAVE_FLOW_PULSES];
-
-/**
- * The moray (`pulses`): in its hole in the pillar's west face by the sea cave's mouth (col 8, row 14) its eyes appear and blink for 45 frames (the warning), then it lunges west across the drop-off, a body
- * three cells long and two rows tall (cols 5-7, rows 13-14), deadly for 30 frames, and draws back. A 150-frame period, 60 of them at rest: seen before it springs, beaten by timing.
- */
-export const MORAY = { hole: [8, 14], body: { col: 5, row: 13, cols: 3, rows: 2 }, period: 150, start: 60, warn: 45, live: 30 } as const;
-export const MORAY_PULSES: readonly PulseSpec[] = [
-  { room: PAC.fish, col: MORAY.hole[0], row: MORAY.hole[1], cols: 1, rows: 1, period: MORAY.period, start: MORAY.start, warn: MORAY.warn, live: MORAY.live, idle: codeOf(SEA_PALETTE, 'H'), warnCode: codeOf(SEA_PALETTE, 'E'), liveCode: codeOf(SEA_PALETTE, 'H'), spent: codeOf(SEA_PALETTE, 'H') },
-  { room: PAC.fish, ...MORAY.body, period: MORAY.period, start: MORAY.start + MORAY.warn, warn: 15, live: MORAY.live, idle: 0, warnCode: codeOf(SEA_PALETTE, 'M'), liveCode: codeOf(SEA_PALETTE, 'M'), spent: 0 },
-];
+/** The Pacific's surge (the sea cave's tube) and its flow lines. */
+export const PACIFIC_CURRENTS: readonly CurrentSpec[] = [CAVE_CURRENT];
+export const PACIFIC_FLOW_PULSES: readonly PulseSpec[] = CAVE_FLOW_PULSES;
 
 /**
  * Mauna Loa's lava (`risingLava`; the lava belongs on the volcano: Chris, 2026-11-25): in the basin (cols 11-27, east of the shore the lava tube drops him on, west of the pit's wall) it starts at the floor
@@ -319,13 +306,11 @@ export const VENT_PULSES: readonly PulseSpec[] = [
   { room: PAC.loa, col: VENT.col, row: VENT.row, cols: 2, rows: 1, period: VENT.period, start: VENT.start, warn: VENT.warn, live: VENT.live, idle: 0, warnCode: 0, liveCode: codeOf(LOA_PALETTE, 'V'), spent: 0 },
 ];
 
-/** The arrival banners: Oahu on coming aboard at Honolulu from Japan, Molokai on the swim past it, Maui at Lahaina (or up the road from the sea cave), the Big Island at Kona. One name row: 32 letters. */
-export const ARRIVALS: readonly Arrival[] = [
-  { rooms: [PAC.ship, PAC.waikiki], text: 'WELCOME TO HAWAII: OAHU' },
-  { rooms: [PAC.clam], text: 'HAWAII: PAST MOLOKAI' },
-  { rooms: [PAC.lahaina, PAC.road, PAC.cave, PAC.hana], text: 'HAWAII: MAUI' },
-  { rooms: [PAC.kona, PAC.kea, PAC.summit, PAC.falls, PAC.loa, PAC.coffee, PAC.hilo], text: 'HAWAII: THE BIG ISLAND' },
-];
+/**
+ * No arrival banners in Hawaii (Chris, 2026-11-25: "I don't want Hawaii: island name all over the place... It should naturally flow with the names"): every room's own name carries the journey, from
+ * WELCOME TO HONOLULU past Molokai (CHANNEL SURFING) to Maui (LAND AHOY) and over the turtles (SHELL GAME) to KONA.
+ */
+export const ARRIVALS: readonly Arrival[] = [];
 
 /** Where the yellow mail biplane stands at Hilo's airfield (its top left, playfield cells: a 3 x 3 decoration, its wheels on the apron, floor 19, its nose to the east). */
 export const BIPLANE_AT = { col: 22, row: 16 } as const;
@@ -405,7 +390,15 @@ const DIAMOND_PIECES = [
   ['pacCaveTuff', 11, 16], ['pacLookout', 15, 10], ['pacCaveTuff', 17, 3], ['pacKiawe', 5, 17], ['pacKiawe', 17, 17], ['pacKiawe', 1, 17],
   ['pacTunnelLamp', 30, 9], ['pacTunnelLamp', 25, 16], ['pacTunnelLamp', 30, 16], ['pacTunnelLamp', 25, 9],
 ] as const;
-const DIAMOND_KEEP: readonly Cell[] = [...DIAMOND_COINS, ...DIAMOND_PIECES.flatMap(under)];
+/**
+ * The summit trail's switchbacks seen up the crater's inner wall beyond the near slope (the real trail zig-zags up it, built for mules: DLNR), where the climb goes on: runs rising east and west in turn,
+ * each a row of cells on a diagonal. Drawn over the far wall's backdrop, under its rim.
+ */
+const ZIGZAG: readonly (readonly [col: number, row: number, up: boolean])[] = [
+  [0, 9, true], [1, 8, true], [2, 7, true], [3, 6, true], [3, 5, false], [2, 4, false], [1, 3, false], [1, 2, true], [2, 1, true],
+];
+const diamondZig: Placed[] = ZIGZAG.map(([c, r, up]) => [up ? 'pacTrailUp' : 'pacTrailDown', c, r] as const);
+const DIAMOND_KEEP: readonly Cell[] = [...DIAMOND_COINS, ...DIAMOND_PIECES.flatMap(under), ...ZIGZAG.map(([c, r]) => [c, r] as const)];
 /** The tunnel inside the shoulder: dark, lit by its lamps (no backdrop). */
 const inTunnel = (c: number, r: number): boolean => c >= 22 && r >= 8;
 const diamondScenery: Placed[] = [
@@ -432,60 +425,92 @@ const paintLookout = (g: Grid): void => {
 /** On the station's landing half way up its stair (inside the structure), and on the rim walk under the tern's dive (timed). */
 const LOOKOUT_COINS = [[24, 13], [16, 7]] as const;
 const SNORKEL_AT = { col: 9, row: 7 } as const;
-/** The view: the Ko'olau mountains' green ridge behind the city, the shore (row 6) and the sea, the cone's outer flank down from the crest to the coast. */
-const LOOKOUT_SHORE = 6;
-const KOOLAU = ridge([[0, 2], [3, 1], [7, 3], [10, 2], [14, 3], [18, 4]]);
-const LOOKOUT_FLANK = ridge([[0, 18], [4, 16], [8, 12], [11, 11], [22, 11]]);
-const LOOKOUT_PIECES = [['pacSkyline', 0, 4], ['pacSkyline', 6, 4], ['pacLighthouse', 1, 14], ['pacLookout', 25, 1], ['pacKiawe', 11, 16]] as const;
+/**
+ * The view down from the rim (Chris: The Lookout should read as looking down): the horizon high (row 1), the Ko'olau mountains a dark band along it, the sea spread out below it, and far down at the foot of
+ * the view Waikiki's shore and hotels, small, Diamond Head Lighthouse on the coast; the cone's outer flank falling away from under the walk.
+ */
+const LOOKOUT_HORIZON = 1;
+const LOOKOUT_SHORE = 14;
+const KOOLAU = ridge([[0, 1], [4, 0], [9, 1], [14, 1], [18, 2]]);
+const LOOKOUT_FLANK = ridge([[0, 19], [6, 17], [10, 14], [13, 12], [16, 11], [22, 11]]);
+const LOOKOUT_PIECES = [['pacLighthouse', 0, 10], ['pacSkyline', 2, 12], ['pacSkyline', 8, 12], ['pacLookout', 25, 1]] as const;
 const LOOKOUT_KEEP: readonly Cell[] = [...LOOKOUT_COINS, ...cellsOf(SNORKEL_AT.col, SNORKEL_AT.row, 2, 2), ...LOOKOUT_PIECES.flatMap(under)];
 const inStation = (c: number, r: number): boolean => c >= 24 && r >= 5;
 const lookoutScenery: Placed[] = [
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r < LOOKOUT_SHORE && (c > 18 || r < KOOLAU(c)), 'pacSkyDay'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => c <= 18 && r >= KOOLAU(c) && r < LOOKOUT_SHORE, 'pacCliffFill'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r === LOOKOUT_SHORE, 'pacSeaWave'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r > LOOKOUT_SHORE && r < LOOKOUT_FLANK(c), 'pacSeaFlat'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_FLANK(c) && r < LOOKOUT_FLANK(c) + 3, 'pacTuffFill'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_FLANK(c) + 3, 'pacScrubFill'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r <= LOOKOUT_HORIZON && (c > 18 || r < KOOLAU(c)), 'pacSkyDay'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => c <= 18 && r >= KOOLAU(c) && r <= LOOKOUT_HORIZON + 1, 'pacCliffFill'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r > LOOKOUT_HORIZON + (c <= 18 ? 1 : 0) && r < LOOKOUT_SHORE && r < LOOKOUT_FLANK(c), 'pacSeaFlat'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_SHORE && r < LOOKOUT_FLANK(c), 'pacScrubFill'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_FLANK(c), 'pacTuffFill'),
 ];
+
+/**
+ * The swim, Oahu to Maui past Molokai (Chris, 2026-11-25: "Monty should be swimming from one island, past that island, and arriving in Maui"; "They should not be underwater caves. We're swimming in the
+ * open ocean"): two rooms of open sea under the evening sky, the sea open to both edges, the reef and the sandy bottom low. The horizon over the water tells the journey as he swims east: Oahu falling away
+ * behind (Diamond Head's small dark cone at the west edge), then Molokai alongside: a long island, its north shore the world's tallest sea cliffs (sheer and fluted, cut by the deep valleys of Pelekunu and
+ * Wailau, thin waterfalls down them) with the flat Kalaupapa peninsula low at their foot; then, in the second room, Molokai tapering away behind to its east cape, Lanai low and far on the horizon, and the West
+ * Maui mountains rising ahead over Lahaina, where he comes up. Silhouettes, calmly drawn (LESSONS): black or a dark band against the sunset.
+ */
+/** The horizon over a swim room's water: its layers front to back (where `top(col)` is at or above a cell, that cell is the layer's: its backdrop, or black for a far island's silhouette), the sunset over the rest. */
+interface Layer { top: (col: number) => number; piece: WorldDecor | null; /** only this many rows deep (a snow cap) */ rows?: number }
+type Bands = { purple: number; red: number; orange: number; gold: number };
+function horizon(paint: (g: Grid) => void, keep: readonly Cell[], surface: number, layers: readonly Layer[], bands?: Bands): Placed[] {
+  const layerAt = (c: number, r: number): Layer | undefined => (r < surface ? layers.find((l) => r >= l.top(c) && (l.rows === undefined || r < l.top(c) + l.rows)) : undefined);
+  const pieces = [...new Set(layers.flatMap((l) => (l.piece === null ? [] : [l.piece])))];
+  return [
+    ...sunset(paint, keep, bands ?? { purple: 1, red: Math.max(2, surface - 5), orange: surface - 3, gold: surface - 1 }, (c, r) => r < surface && layerAt(c, r) === undefined),
+    ...pieces.flatMap((piece) => fillWhere(paint, keep, (c, r) => layerAt(c, r)?.piece === piece, piece)),
+    ...fillWhere(paint, keep, (_c, r) => r === surface, 'pacSeaWave'),
+    ...fillWhere(paint, keep, (_c, r) => r > surface, 'pacSeaFlat'),
+  ];
+}
+/** Only over columns `c0` to `c1`: a layer's top elsewhere is below the water (nothing of it). */
+const span = (c0: number, c1: number, top: (col: number) => number) => (col: number): number => (col >= c0 && col <= c1 ? top(col) : 99);
 
 const paintClam = (g: Grid): void => {
-  g.box(0, CLAM_SURFACE + 1, 1, 19, 'K').box(31, 0, 31, 14, 'K').box(0, 19, 31, 19, 'K'); // Molokai's shore wall under the water, the sea stack at the east edge, the seabed; out east, low
-  g.box(7, 12, 13, 14, 'R').box(7, 15, 7, 16, 'R').box(13, 15, 13, 16, 'R'); // the rock arch, the way under it along the seabed (rows 17-18)
+  g.box(0, 19, 31, 19, 'K'); // the sandy bottom, open sea to both edges
+  g.box(7, 12, 13, 14, 'R').box(7, 15, 7, 16, 'R').box(13, 15, 13, 16, 'R'); // the reef's arch, the way under it along the bottom (rows 17-18)
   g.box(2, 17, 4, 18, 'C'); // coral
-  g.box(19, 13, 23, 18, 'R').box(20, 11, 22, 12, 'R'); // the tall rock (its head two rows under the surface, a lane over it)
+  g.box(19, 13, 23, 18, 'R').box(20, 11, 22, 12, 'R'); // the tall coral head (its top three rows under the surface, a lane over it)
 };
 const CLAM_COINS = [[10, 17]] as const;
-/** Molokai's north shore over the water: the tallest sea cliffs in the world, green and fluted, falling sheer to the sea, waterfalls down them; lower to the east, where the swim goes on to Maui. */
-/** Molokai's north shore: the world's tallest sea cliffs, sheer green walls cut by deep hanging valleys (Wailau, Pelekunu), then the low, flat Kalaupapa peninsula out to the east under them. */
-const MOLOKAI = ridge([[0, 2], [2, 1], [5, 6], [8, 2], [11, 1], [14, 2], [17, 6], [20, 2], [22, 1], [24, 4], [26, 7], [31, 7]]);
-const CLAM_PIECES = [['pacCliffFall', 10, 3], ['pacCliffFall', 13, 4], ['pacCliffFall', 21, 2], ['pacKelp', 16, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 25, 9], ['pacSeaFan', 5, 16]] as const;
+/** Oahu behind: Diamond Head's small cone at the west edge, dark (its steep face to the sea at the east). */
+const OAHU_BEHIND = span(0, 4, ridge([[0, 6], [1, 5], [2, 5], [3, 6], [4, 7]]));
+/** Molokai's low west end, rising to the north shore's cliffs behind Kalaupapa, then the cliffs' high wall east, its valleys cut deep (Pelekunu, Wailau). */
+const MOLOKAI = span(7, 31, ridge([[7, 7], [9, 6], [10, 5], [11, 3], [13, 2], [19, 2], [20, 4], [21, 5], [22, 3], [25, 2], [26, 4], [27, 5], [28, 3], [31, 2]]));
+/** Kalaupapa: the flat peninsula at the cliffs' foot, low on the water. */
+const KALAUPAPA = span(11, 17, () => 6);
+const CLAM_PIECES = [['pacCliffFall', 14, 3], ['pacCliffFall', 23, 3], ['pacCliffFall', 29, 3], ['pacKelp', 16, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 25, 10], ['pacSeaFan', 5, 16]] as const;
 const CLAM_KEEP: readonly Cell[] = [...CLAM_COINS, ...CLAM_PIECES.flatMap(under)];
+const clamScenery: Placed[] = horizon(paintClam, CLAM_KEEP, SURFACE, [
+  { top: KALAUPAPA, piece: 'pacScrubFill' }, { top: MOLOKAI, piece: 'pacCliffFill' }, { top: OAHU_BEHIND, piece: null },
+]);
 
 const paintKelp = (g: Grid): void => {
-  g.box(0, 0, 1, 14, 'K').box(0, 19, 31, 19, 'K').box(31, 0, 31, 13, 'K'); // the sea stack (in from the west, low), the seabed; Maui's headland rising out of the sea at the east, the sea cave under it (out east, rows 14-18)
-  g.box(30, 0, 30, 4, 'K'); // the headland's shoulder over the water
+  g.box(0, 19, 31, 19, 'K'); // the sandy bottom (in from the west, open sea)
+  g.box(31, 3, 31, 13, 'K'); // Maui's lava shore at the east edge, rising out of the sea, the sea cave's mouth under it (out east, rows 14-18)
   g.box(15, 0, 15, SURFACE + 2, 'L'); // the mooring rope down from Lahaina's quay through the surface
   g.box(8, 16, 10, 18, 'C').box(19, 14, 21, 18, 'C'); // coral
-  g.box(24, 11, 28, 18, 'R').box(25, 9, 27, 10, 'R').clear(25, 15, 27, 18); // a rock with a hollow under it
+  g.box(24, 13, 28, 18, 'R').box(25, 11, 27, 12, 'R').clear(25, 15, 27, 18); // a coral head with a hollow under it
 };
 const KELP_COINS = [[13, 17]] as const;
-/** Over the water ahead: Lanai low and far off at the west, West Maui's green mountains rising behind Lahaina at the east. */
-const WEST_MAUI = ridge([[0, 4], [3, 4], [6, 5], [9, 5], [12, 3], [16, 2], [19, 0], [22, 1], [25, 0], [29, 1]]);
-const KELP_PIECES = [['pacCliffFall', 21, 2], ['pacKelp', 12, 16], ['pacKelp', 17, 15], ['pacKelp', 22, 16], ['pacSeaFan', 29, 16], ['pacBubbles', 4, 12], ['pacBubbles', 29, 8]] as const;
+/** Molokai behind, tapering east from the last room's cliffs to its cape. */
+const MOLOKAI_TAIL = span(0, 6, ridge([[0, 2], [2, 3], [4, 5], [6, 7]]));
+/** Lanai, low and far off on the horizon: a long gentle hump. */
+const LANAI = span(8, 15, ridge([[8, 7], [9, 6], [11, 5], [14, 5], [15, 7]]));
+/** The West Maui mountains rising ahead over Lahaina: steep, deep-valleyed peaks (Pu'u Kukui the highest). */
+const WEST_MAUI = span(17, 31, ridge([[17, 7], [19, 6], [21, 4], [23, 2], [24, 3], [25, 1], [27, 2], [28, 4], [30, 3], [31, 3]]));
+const KELP_PIECES = [['pacCliffFall', 26, 3], ['pacWhaleTail', 2, 6], ['pacKelp', 12, 16], ['pacKelp', 17, 15], ['pacKelp', 22, 16], ['pacSeaFan', 29, 16], ['pacBubbles', 4, 12], ['pacBubbles', 29, 9]] as const;
 const KELP_KEEP: readonly Cell[] = [...KELP_COINS, ...KELP_PIECES.flatMap(under)];
-/** A swim room's sky, island and sea: the sunset's bands over the island's ridge, the island's cliffs under it down to the waves, the sea below. */
-const openSea = (paint: (g: Grid) => void, keep: readonly Cell[], island: (col: number) => number, surface: number): Placed[] => [
-  ...sunset(paint, keep, { purple: 1, red: Math.max(2, surface - 5), orange: surface - 2, gold: surface - 1 }, (c, r) => r < island(c) && r < surface),
-  ...fillWhere(paint, keep, (c, r) => r >= island(c) && r < surface, 'pacCliffFill'),
-  ...fillWhere(paint, keep, (_c, r) => r === surface, 'pacSeaWave'),
-  ...fillWhere(paint, keep, (_c, r) => r > surface, 'pacSeaFlat'),
-];
+const kelpScenery: Placed[] = horizon(paintKelp, KELP_KEEP, SURFACE, [
+  { top: MOLOKAI_TAIL, piece: 'pacCliffFill' }, { top: WEST_MAUI, piece: 'pacCliffFill' }, { top: LANAI, piece: null },
+]);
 
 const paintWhale = (g: Grid): void => {
   g.box(0, 18, 9, 19, 'W').box(3, 15, 9, 17, 'H').box(4, 14, 9, 14, 'D'); // the old brig in the harbour water, its deck
   g.box(10, 16, 11, 17, 'C').box(10, 18, 13, 19, 'Q').box(17, 18, 31, 19, 'Q'); // the crates, the landing and the quay, the slipway's gap (cols 14-16)
   g.box(5, 6, 5, 13, 'R').box(6, 7, 12, 7, 'D'); // the mast's rope and the spar
-  g.box(15, 12, 15, 19, 'R'); // the mooring rope, down into KELP WANTED
+  g.box(15, 12, 15, 19, 'R'); // the mooring rope, down into LAND AHOY
   g.box(30, 2, 31, 15, 'Q'); // the fort's wall at the quay's end (the road goes on under it)
   g.box(0, 2, 0, 17, 'Q'); // the harbour's sea wall on the west (Waikiki's cliff the other side)
 };
@@ -499,7 +524,7 @@ const paintRoad = (g: Grid): void => {
 };
 
 const paintCave = (g: Grid): void => {
-  g.box(0, 0, 31, 3, 'K').clear(23, 0, 25, 3).box(0, 4, 1, 13, 'K').box(30, 4, 31, 19, 'K'); // the road's rock over the cavern, the pool's way up (cols 23-25), the doorway to KELP WANTED (rows 14-18)
+  g.box(0, 0, 31, 3, 'K').clear(23, 0, 25, 3).box(0, 4, 1, 13, 'K').box(30, 4, 31, 19, 'K'); // the road's rock over the cavern, the pool's way up (cols 23-25), the doorway to LAND AHOY (rows 14-18)
   g.box(24, 0, 24, 3, 'L'); // the pool's rope, hanging down into the water
   g.box(0, 19, 31, 19, 'K');
   g.box(4, 4, 6, 5, 'K').box(10, 4, 12, 5, 'K').box(16, 4, 17, 4, 'K'); // stalactites over the cavern
@@ -515,27 +540,43 @@ export const CAVE_MUSUBI_AT = { col: 26, row: 13 } as const;
 
 const paintHana = (g: Grid): void => {
   g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T'); // the headland at the road's end, its turf
-  g.box(14, 18, 25, 19, 'K').box(31, 0, 31, 10, 'B'); // Kaihalulu's red sand, the cove (cols 26-28), Ka'uiki Head's cinder cliff closing it
-  g.box(29, 18, 31, 19, 'L').box(30, 13, 31, 17, 'L').box(31, 11, 31, 12, 'L'); // the natural wall of black lava rock across the cove's mouth, the lagoon inside it (cols 26-29)
-  g.box(14, 7, 14, 17, 'R'); // the bamboo rope down the cliff
-  g.box(27, 14, 27, 19, 'R'); // the cove's rope, down into the swim to the Big Island
-  g.box(18, 16, 19, 17, 'B').box(21, 14, 22, 15, 'B').box(24, 12, 26, 12, 'B'); // the steps up the cove's side to the ledge in the cinder cave
+  g.clear(13, 18, 13, 19); // the cliff's foot open round the rope, which goes on down to the sea (cols 13-15)
+  g.box(16, 18, 25, 19, 'K').box(31, 0, 31, 10, 'B'); // Kaihalulu's red sand, Ka'uiki Head's cinder cliff closing the cove
+  g.box(26, 19, 28, 19, 'L').box(29, 18, 31, 19, 'L').box(30, 13, 31, 17, 'L').box(31, 11, 31, 12, 'L'); // the natural wall of black lava rock across the cove's mouth, the lagoon inside it (cols 26-29) on its rock
+  g.box(14, 7, 14, 19, 'R'); // the bamboo rope down the cliff, past the sand and on down to the channel (SHELL GAME)
+  g.box(18, 16, 19, 17, 'B').box(22, 14, 23, 15, 'B').box(24, 12, 26, 12, 'B'); // the steps up the cove's side to the ledge in the cinder cave (the second clear of the first's east side: from the sand under it a jump onto the first, the way back west from the lagoon)
 };
-const HANA_COINS = [[25, 10]] as const;
+/** In the cinder cave (up the steps), and in the lagoon where the wave comes from (at a hazard's edge: in and out between waves). */
+const HANA_COINS = [[25, 10], [27, 17]] as const;
 
+/**
+ * SHELL GAME, the turtle crossing to the Big Island (Chris, 2026-11-25: FISH OUT OF WATER "is terrible", redone from scratch): no swim, the surface of the open channel. Down the rope from Kaihalulu's cliff
+ * onto the lava rock at the waterline; west, the shore's last rock under Maui's cliff (the Spam musubi left on it) over one turtle; east, two turtles across the swell to Kona's black sand. Behind, Maui:
+ * Haleakala's long, gentle shield falling to the sea over the cliff; ahead, the Big Island rising over the horizon, Kohala low, Mauna Kea's bumpy crown with its snow and Mauna Loa's smooth broad dome.
+ */
 const paintFish = (g: Grid): void => {
-  g.box(0, 0, 25, 2, 'K').box(29, 0, 31, 2, 'K').box(31, 0, 31, 14, 'K').box(0, 0, 1, 19, 'K').box(0, 19, 31, 19, 'K'); // Hana's cove over the water (the gap, cols 26-28), the walls, the seabed
-  g.box(27, 0, 27, 3, 'L'); // the cove's rope
-  g.box(29, 4, 30, 8, 'K').clear(29, 5, 30, 7); // the rock at the top lane's east end, the gap the Big Island's glow shows through
-  g.box(8, 10, 30, 10, 'C').box(8, 11, 30, 11, 'R'); // the shelf of coral on rock between the lanes
-  g.box(0, 12, 4, 13, 'K').box(0, 17, 4, 18, 'K'); // the sea cave's roof and its ledge (the cave cols 2-4, rows 14-16)
-  g.box(8, 12, 9, 15, 'R').box(8, 14, 8, 14, 'H'); // the pillar under the shelf and the moray's hole
-  g.box(13, 16, 15, 18, 'C').box(19, 16, 22, 18, 'C').clear(19, 17, 20, 18).box(26, 16, 28, 18, 'C'); // the coral heads, low enough that the shark passes over him (a hollow in the middle one)
+  g.box(0, 0, 1, 19, 'L').box(0, 16, 4, 19, 'L'); // Maui's lava sea cliff at the west edge and the last rock at its foot (the sea cave's rock the other side)
+  g.box(14, 0, 14, 15, 'R'); // the rope down Kaihalulu's cliff, on down to the water
+  g.box(12, 16, 16, 19, 'L'); // the lava rock at the waterline under it
+  g.box(5, 18, 11, 19, 'W').box(17, 18, 28, 19, 'W'); // the channel's swell, breaking (deadly: the turtles' shells over it at row 17)
+  g.box(29, 19, 31, 19, 'K'); // Kona's black sand, out east
 };
-const FISH_COINS = [[20, 18], [4, 16]] as const;
+/** Over the west turtle (taken from its back), and over the second east one's (the crossing's own move). */
+const FISH_COINS = [[8, 15], [25, 15]] as const;
+const FISH_MUSUBI_AT = { col: 2, row: 14 } as const;
+const HALEAKALA = span(0, 14, ridge([[2, 7], [6, 9], [10, 12], [13, 15], [14, 16]]));
+const KOHALA = span(17, 19, ridge([[17, 16], [18, 15], [19, 15]]));
+const MAUNA_KEA = span(20, 26, ridge([[20, 14], [21, 13], [22, 12], [24, 12], [25, 13], [26, 14]]));
+const KEA_SNOW = span(22, 24, () => 12);
+const MAUNA_LOA = span(27, 31, ridge([[27, 14], [29, 13], [31, 13]]));
+const FISH_PIECES = [['pacLavaRocks', 29, 18]] as const;
+const FISH_KEEP: readonly Cell[] = [...FISH_COINS, ...cellsOf(FISH_MUSUBI_AT.col, FISH_MUSUBI_AT.row, 2, 2), ...FISH_PIECES.flatMap(under), ...cellsOf(29, 17, 3, 2)]; // (over Kona's sand: no sea)
+const fishScenery: Placed[] = horizon(paintFish, FISH_KEEP, TURTLES.row, [
+  { top: KEA_SNOW, piece: 'pacSnowCap', rows: 1 },
+  { top: KOHALA, piece: null }, { top: MAUNA_KEA, piece: null }, { top: MAUNA_LOA, piece: null }, { top: HALEAKALA, piece: null },
+], { purple: 5, red: 9, orange: 13, gold: 16 });
 
 const paintKona = (g: Grid): void => {
-  g.box(0, 0, 1, 14, 'B'); // the lava cliff where the sea comes in (in from the swim, low)
   g.box(0, 19, 5, 19, 'K').box(9, 19, 14, 19, 'K').box(18, 19, 31, 19, 'K'); // the black sand, the lava tube's mouth (cols 6-8), the tide pool's (cols 15-17)
   g.box(15, 19, 17, 19, 'W'); // the tide pool
   g.box(7, 14, 7, 19, 'R'); // the rope down the lava tube to Mauna Loa (hanging from the tube's lip into the hole: it went on up into the sky, and up it led to Mauna Kea's foot with no rope there)
@@ -662,16 +703,17 @@ const hanaScenery: Placed[] = [
 ];
 
 /**
- * Kona at sunset: the sea on the west horizon, the old lava fields rising inland under the shield of the mountains. No signs (Chris: "the room names alone suffice"): the fork reads from the land, an
- * observatory's white dome far up on the skyline over the rope that climbs (the top way), the rope down into the lava tube's hole (the bottom way).
+ * Kona at sunset: the sea on the west horizon (the channel he crossed), the black lava fields rising inland under the shield of the mountains, Mauna Kea's snow along the skyline where the rope climbs. No signs
+ * (Chris: "the room names alone suffice"): the fork reads from the land, the rope up the slope toward the snow (the top way), the rope down into the lava tube's hole (the bottom way).
  */
-const KONA_PIECES = [['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], ['pacLavaRocks', 29, 18], ['pacDomeSmall', 23, 1]] as const;
+const KONA_PIECES = [['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], ['pacLavaRocks', 29, 18], ['pacLavaRocks', 2, 18]] as const;
 const KONA_KEEP = keepOf(KONA_COINS, KONA_PIECES);
-const KONA_SLOPE = ridge([[2, 12], [9, 11], [14, 9], [20, 6], [26, 4], [31, 4]]);
+const KONA_SLOPE = ridge([[2, 12], [9, 11], [14, 9], [20, 6], [24, 4], [27, 3], [31, 3]]);
 const konaScenery: Placed[] = [
   ...sunset(paintKona, KONA_KEEP, { purple: 1, red: 3, orange: 5, gold: 6, sea: 7 }, (c, r) => r < KONA_SLOPE(c)),
   ...fillWhere(paintKona, KONA_KEEP, (c, r) => r > 7 && r < KONA_SLOPE(c), 'pacSeaFlat'),
-  ...fillWhere(paintKona, KONA_KEEP, (c, r) => r >= KONA_SLOPE(c) && r < 19, 'pacLavaFill'),
+  ...fillWhere(paintKona, KONA_KEEP, (c, r) => c >= 23 && r === KONA_SLOPE(c), 'pacSnowCap'),
+  ...fillWhere(paintKona, KONA_KEEP, (c, r) => r >= KONA_SLOPE(c) + (c >= 23 ? 1 : 0) && r < 19, 'pacLavaFill'),
 ];
 
 /**
@@ -691,9 +733,19 @@ const keaScenery: Placed[] = [
 const SUMMIT_PIECES = [['pacDomeBig', 17, 6], ['pacDomeSmall', 9, 13], ['pacDomeSmall', 28, 13], ['pacCairn', 1, 12]] as const;
 const summitScenery: Placed[] = fillWhere(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_PIECES), (_c, r) => r >= 14, 'pacCloudFill');
 
-/** Akaka Falls' gorge: the falls plunging into it through rainforest, bamboo groves on the trails. */
+/**
+ * Akaka Falls' gorge (a 442-foot plunge into a deep, green gorge): the sky over the rainforest's dark canopy above the high trail, the stream going over the lip under it, and under the trail the gorge: its
+ * walls of wet, mossy rock fluted by the spray, opening out downward round the plunge pool, the falls a white column in its dark middle. Calm: dark bands, the detail in the falls.
+ */
 const FALLS_PIECES = [['pacWaterfall', 19, 9], ['pacWaterfall', 19, 14], ['pacBambooClump', 2, 4], ['pacBambooClump', 4, 15], ['pacBambooClump', 12, 4], ['pacBambooClump', 24, 15]] as const;
-const fallsScenery: Placed[] = fillWhere(paintFalls, keepOf(FALLS_COINS, FALLS_PIECES), () => true, 'pacJungleFill');
+const FALLS_KEEP = keepOf(FALLS_COINS, FALLS_PIECES);
+/** The gorge's dark middle round the falls: wider the deeper it goes. */
+const inGorge = (c: number, r: number): boolean => r > 8 && Math.abs(c - 19.5) <= 2 + (r - 9) * 0.6;
+const fallsScenery: Placed[] = [
+  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r <= 2, 'pacSkyDay'),
+  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r > 2 && r <= 8, 'pacJungleFill'),
+  ...fillWhere(paintFalls, FALLS_KEEP, (c, r) => r > 8 && !inGorge(c, r), 'pacCliffFill'),
+];
 
 /**
  * Mauna Loa's summit caldera, Moku'aweoweo, at night: the glow over the rim, the caldera's far wall of stacked flows lit red from below, and its floor of grey pahoehoe round the basin (dark until the lava
@@ -709,14 +761,14 @@ const loaScenery: Placed[] = [
   ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= LOA_WALL(c) && !loaBasin(c, r), 'pacLavaFill'),
 ];
 
-/** The coffee farm on Mauna Loa's green flank: the sky, the mountain's dark shoulder far behind, the hillside of scrub under the terraces. */
+/** The coffee farm on Mauna Loa's flank: the sky, the mountain's dark shoulder far behind, the hillside below planted in rows of coffee along the contour. */
 const COFFEE_PIECES = [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacCoffeeTree', 19, 10], ['pacSacks', 7, 3], ['pacSacks', 25, 17]] as const;
 const COFFEE_KEEP = keepOf([...COFFEE_COINS, ...cellsOf(COFFEE_AT.col, COFFEE_AT.row, 2, 2)], COFFEE_PIECES);
 const COFFEE_FAR = ridge([[0, 3], [8, 2], [16, 3], [24, 5], [31, 7]]);
 const coffeeScenery: Placed[] = [
   ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r < COFFEE_FAR(c), 'pacSkyDay'),
   ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) && r < COFFEE_FAR(c) + 4, 'pacLavaFill'),
-  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) + 4 && r < 19, 'pacScrubFill'),
+  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) + 4 && r < 19, 'pacCoffeeRows'),
 ];
 
 /** Hilo in the evening: the bay behind the bayfront's old storefronts, a banyan by the airfield, Mauna Kea's broad shoulder rising behind the town, bare at the top, the wet windward forest below. */
@@ -804,7 +856,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.diamond, cell: [1, 19], sector: 88, palette: DIAMOND_PALETTE,
     paint: paintDiamond,
     coins: DIAMOND_COINS,
-    decor: [...diamondScenery, ...DIAMOND_PIECES],
+    decor: [...diamondScenery, ...diamondZig, ...DIAMOND_PIECES],
   }),
 
   // THE LOOKOUT: the summit (see paintLookout). Up the spiral stair from the climb into the Fire Control Station (a coin on its landing half way), out through its slit onto the rim and west along the walk
@@ -818,26 +870,27 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacTern', col: 15, row: 1, way: 'down', speed: 1, range: 40 }],
   }),
 
-  // CLAM DOWN: the swim past Molokai (the first crossing), learning to swim, in the open sea under the evening sky with Molokai's sea cliffs over the water, waterfalls down them. In from Waikiki's surf
-  // above (cols 26-30): he drops into the sea; down under the rock arch along the seabed (a coin inside it), past the tall rock, out low east past the sea stack. No current; a turtle rising to breathe and an eel.
+  // CHANNEL SURFING: the swim past Molokai (see `horizon`), learning to swim, in the open sea under the evening sky: Diamond Head small behind, Molokai's sea cliffs alongside, waterfalls down them, Kalaupapa
+  // low at their foot. In from Waikiki's surf above (cols 26-30): he drops into the sea; down under the reef's arch along the bottom (a coin inside it), past the tall coral head, on east. A turtle rising to
+  // breathe and an eel.
   room({
     id: PAC.clam, cell: [3, 18], sector: 43, palette: SEA_PALETTE,
     paint: paintClam,
     coins: CLAM_COINS,
-    decor: [...openSea(paintClam, CLAM_KEEP, MOLOKAI, CLAM_SURFACE), ...CLAM_PIECES],
+    decor: [...clamScenery, ...CLAM_PIECES],
     creatures: [
       { who: 'pacTurtle', col: 3, row: 10, way: 'down', speed: 1, range: 32 },
       { who: 'pacEel', col: 26, row: 9, way: 'left', speed: 1, range: 12 },
     ],
   }),
 
-  // KELP WANTED: the second reef, off Maui, the open sea with Lanai low on the horizon and West Maui's mountains ahead. In from the west, low; through the kelp past the manta (a coin deep in it); the mooring
-  // rope comes down from Lahaina's quay through the surface (col 15), the way up; east, low, under Maui's headland, the sea cave under the road.
+  // LAND AHOY: on past Molokai's east cape, Lanai low on the horizon, the West Maui mountains ahead, a humpback's flukes in the channel. In from the west, along the surface or low; through the kelp past the manta
+  // (a coin deep in it); the mooring rope comes down from Lahaina's quay through the surface (col 15), the way up; east, low, under Maui's lava shore, the sea cave.
   room({
     id: PAC.kelp, cell: [3, 19], sector: 45, palette: SEA_PALETTE,
     paint: paintKelp,
     coins: KELP_COINS,
-    decor: [...openSea(paintKelp, KELP_KEEP, WEST_MAUI, SURFACE), ...KELP_PIECES],
+    decor: [...kelpScenery, ...KELP_PIECES],
     creatures: [
       { who: 'pacManta', col: 8, row: 9, way: 'right', speed: 1, range: 100 },
       { who: 'pacTurtle', col: 22, row: 8, way: 'down', speed: 1, range: 40 },
@@ -885,27 +938,25 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // HANA: the road's end on Maui, Kaihalulu's red sand in its cinder cove (HANA BANANA's place). In at the left on the headland (floor 8), the banana-bread stand by the road; the bamboo rope (col 14) down the
-  // cliff to the red sand (floor 18), the surf sweeping up it from the cove on a timing (spray, then the wave, then it draws back); steps up the cove's side to the ledge in the cinder cave (a coin). The cove
-  // (cols 26-28) is the way on, down its rope into the last swim; the crab scuttles the sand.
+  // KAIHALULU: the road's end on Maui, Kaihalulu's red sand in its cinder cove (HANA BANANA's place). In at the left on the headland (floor 8), the banana-bread stand by the road; the bamboo rope (col 14) down
+  // the cliff past the red sand (floor 18) and on down to the channel, the way on (SHELL GAME: the turtles start west of the Big Island, so the way down is at the cove's west end). Off it onto the sand, the surf
+  // sweeping up it from the lagoon on a timing (spray, then the wave, then it draws back): in between waves to the lagoon's coin; steps up the cove's side to the ledge in the cinder cave (a coin). The crab.
   room({
     id: PAC.hana, cell: [2, 21], sector: 87, palette: HANA_PALETTE,
     paint: paintHana,
     coins: HANA_COINS,
     decor: [...hanaScenery, ...HANA_PIECES],
-    creatures: [{ who: 'pacCrab', col: 15, row: 16, way: 'right', speed: 1, range: 20, colour: 7 }],
+    creatures: [{ who: 'pacCrab', col: 17, row: 16, way: 'right', speed: 1, range: 20, colour: 7 }], // (clear of the rope's foot: the rope goes on down past the sand)
   }),
 
-  // FISH OUT OF WATER: the swim to the Big Island (the last crossing; the reset's swim room, which had Hana's name), all water. In down the cove's rope (cols 26-28, its only way up). West along the top lane
-  // under the cove's rock, the Big Island's red glow seen through a gap at its east end; down the drop-off at the west, past the moray by the sea cave's mouth (the cave a pocket with the musubi and a coin);
-  // east along the bottom lane against the surge, from lee to lee of the coral heads (a coin in the middle head's hollow), under the reef shark's patrol, and out at the bottom right onto Kona's black sand.
+  // SHELL GAME: the turtle crossing to the Big Island, on the surface (see paintFish). Down the rope from Kaihalulu onto the lava rock at the waterline; west over one turtle to the shore's last rock under
+  // Maui's cliff (the Spam musubi, a coin over the turtle's back); east over two turtles, each up, going under (the warning) and down in turn, to Kona's black sand. Back up the rope.
   room({
-    id: PAC.fish, cell: [3, 21], sector: 49, palette: SEA_PALETTE,
+    id: PAC.fish, cell: [3, 21], sector: 49, palette: SHELL_PALETTE,
     paint: paintFish,
     coins: FISH_COINS,
-    item: { name: 'musubi1', col: 2, row: 15, sprite: PAC_SPRITE.musubi },
-    decor: [...seaOf(paintFish), ['pacGlow', 29, 5], ['pacBubbles', 16, 5], ['pacBubbles', 24, 13]],
-    creatures: [{ who: 'pacSharkFin', col: 10, row: 12, way: 'right', speed: 1, range: 144 }],
+    item: { name: 'musubi1', col: FISH_MUSUBI_AT.col, row: FISH_MUSUBI_AT.row, sprite: PAC_SPRITE.musubi },
+    decor: [...fishScenery, ...FISH_PIECES], // (no creature: the turtles are the room's living thing, its timing to learn; the tern is Oahu's)
   }),
 
   // KONA: the Big Island's black sand, rocky with lava (Chris, 2026-11-25: "a rocky beach with black sand"), where the way splits. Out of the sea at the left (floor 19); over the lava tube's mouth (the rope

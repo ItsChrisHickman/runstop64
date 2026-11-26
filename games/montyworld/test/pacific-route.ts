@@ -2,7 +2,7 @@
  * Hawaii's route for the bot (docs/dosvidaniya-back-half-plan.md, "Hawaii"): the goals, in the order a player who takes everything plays them. Onto the cargo ship from Japan's gangway, through it and out of the
  * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the drummers' platform), east along its lawn and up
  * Diamond Head (the tunnel, the stairs, the rockfall) to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
- * cave (the ledge's coin; through the lava tube between the swell's sets, the alcove's coin, the musubi in the pocket, out on a set) and back up, up the road's three tiers to Hana; down the cove into the last swim (the moray, the surge) onto Kona; down the lava tube and over Mauna Loa ahead of the lava, down its pit for the
+ * cave (the ledge's coin; through the lava tube between the swell's sets, the alcove's coin, the musubi in the pocket, out on a set) and back up, up the road's three tiers to Kaihalulu (the cinder cave's coin, the lagoon's); down its cliff to the channel and over the turtles (SHELL GAME: the musubi on the shore's rock) onto Kona; down the lava tube and over Mauna Loa ahead of the lava, down its pit for the
  * moon rock and out ahead of the pit's lava, along the coffee farm (the coffee) and up into Hilo (the plane still wants the parachute); up from the roofs along Akaka Falls' low lane to Mauna Kea and its
  * summit (the rock to the astronomer, his ladder, the parachute); back down and along the falls' high trail, down the rope to Hilo; and away in the biplane.
  * Functions on the game, shared by the bot test and the pictures.
@@ -69,12 +69,12 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Lookout to Diamond Head: back to the station and down its stair', into(PAC.diamond, 29, 19, PAC.lookout)),
   leg('Diamond Head to the luau: back over the gully, down the stairs, through the tunnel and along the walkway', into(PAC.luau, 0, 17, PAC.diamond)),
   leg('Luau to Waikiki: down the palm', into(PAC.waikiki, 20, 19, PAC.luau)),
-  leg('Waikiki to CLAM DOWN: down to the sand and into the surf', into(PAC.clam, 28, 19, PAC.waikiki)),
+  leg('Waikiki to CHANNEL SURFING: down to the sand and into the surf', into(PAC.clam, 28, 19, PAC.waikiki)),
   // the swim past Molokai
-  leg('CLAM DOWN: under the rock arch, its coin', livesFor(coin(PAC.clam, 10, 17), 40)),
-  leg('CLAM DOWN to KELP WANTED: out east, low', into(PAC.kelp, 31, 16, PAC.clam)),
-  leg('KELP WANTED: the coin in the kelp', livesFor(coin(PAC.kelp, 13, 17), 40)),
-  leg('KELP WANTED to Lahaina: up the mooring rope', into(PAC.lahaina, 15, 1, PAC.kelp)),
+  leg('CHANNEL SURFING: under the reef\'s arch, its coin', livesFor(coin(PAC.clam, 10, 17), 40)),
+  leg('CHANNEL SURFING to LAND AHOY: on east, low', into(PAC.kelp, 31, 16, PAC.clam)),
+  leg('LAND AHOY: the coin in the kelp', livesFor(coin(PAC.kelp, 13, 17), 40)),
+  leg('LAND AHOY to Lahaina: up the mooring rope', into(PAC.lahaina, 15, 1, PAC.kelp)),
   // Maui
   leg('Lahaina: the musubi on the brig\'s deck', livesFor(item(PAC.lahaina, 0, [6, 12]), 40)),
   leg('Lahaina: up the mast\'s rope to the spar, its coin', coin(PAC.lahaina, 9, 5)),
@@ -89,18 +89,17 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Sea cave: out of the tube on a set, to its mouth', livesFor(within(PAC.cave, 2, 5, 9, 17), 40)),
   leg('Sea cave to the road: up through the cavern and the pool\'s rope', into(PAC.road, 24, 0, PAC.cave)),
   leg('Road: up the tiers over the bridges, the coin on the top bridge', livesFor(coin(PAC.road, 16, 5), 40)),
-  leg('Road to Hana: out at the top', into(PAC.hana, 31, 6, PAC.road)),
-  leg('Hana: down the bamboo, over the wave, up the steps to the coin in the cinder cave', livesFor(coin(PAC.hana, 25, 10), 40)),
-  leg('Hana to FISH OUT OF WATER: down the cove\'s rope', into(PAC.fish, 27, 19, PAC.hana)),
-  // the swim to the Big Island
-  leg('FISH: west along the top lane to the drop-off', within(PAC.fish, 2, 6, 9, 12)),
-  leg('FISH: down past the moray into the sea cave, the coin on its ledge', livesFor(coin(PAC.fish, 4, 16), 40)),
-  leg('FISH: the Spam musubi in the cave', livesFor(item(PAC.fish, 0, [2, 15]), 40)),
-  leg('FISH: out past the moray, east into the first head\'s lee', livesFor(within(PAC.fish, 10, 11, 15, 17), 40)),
-  leg('FISH: over the first head against the surge, the coin in the middle head\'s hollow', livesFor(coin(PAC.fish, 20, 18), 40)),
-  leg('FISH: out of the hollow and up over the middle head between sets', within(PAC.fish, 21, 22, 13, 14)),
-  leg('FISH: down past the middle head, timing the shark, into the third head\'s lee', livesFor(within(PAC.fish, 23, 24, 16, 17), 40)),
-  leg('FISH to Kona: over the third head between sets, out onto the black sand', into(PAC.kona, 31, 16, PAC.fish)),
+  leg('Road to Kaihalulu: out at the top', into(PAC.hana, 31, 6, PAC.road)),
+  leg('Kaihalulu: down the bamboo onto the sand, over the wave, up the steps to the coin in the cinder cave', livesFor(coin(PAC.hana, 25, 10), 40)),
+  leg('Kaihalulu: down into the lagoon between waves, its coin', livesFor(coin(PAC.hana, 27, 17), 40)),
+  leg('Kaihalulu to SHELL GAME: back over the sand to the bamboo, on down it to the channel', into(PAC.fish, 14, 19, PAC.hana)),
+  // the turtles to the Big Island
+  leg('SHELL GAME: down the rope onto the rock at the waterline', stands(PAC.fish, 16, 12, 15)),
+  leg('SHELL GAME: west over the turtle (its coin) to the musubi on the shore\'s last rock', livesFor(item(PAC.fish, 0, [2, 14]), 40)),
+  leg('SHELL GAME: the coin over the west turtle', livesFor(coin(PAC.fish, 8, 15), 40)),
+  leg('SHELL GAME: back over the turtle to the rope\'s rock', livesFor(stands(PAC.fish, 16, 12, 15), 40)),
+  leg('SHELL GAME: east over the turtles as they surface, the coin over the second', livesFor(coin(PAC.fish, 25, 15), 40)),
+  leg('SHELL GAME to Kona: on over the last turtle onto the black sand', into(PAC.kona, 31, 17, PAC.fish)),
   // the Big Island: the bottom way first (the moon rock, the coffee), then the top way (the rock to the astronomer, the parachute), round the loop
   leg('Kona: over the lava tube, the coin over the tide pool', coin(PAC.kona, 16, 16)),
   leg('Kona: up the lava rock, its coin', coin(PAC.kona, 24, 13)),

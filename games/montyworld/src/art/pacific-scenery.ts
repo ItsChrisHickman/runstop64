@@ -17,76 +17,76 @@ function fill(name: string, rows: readonly string[], colour: number): NewDecor {
   return decor(name, 1, 1, r, colour);
 }
 
-/** The fluting of an old volcanic cone or a sea cliff: steep gullies worn down the slope, ridges between them (it tiles down and across). */
+/** The fluting of an old volcanic cone or a sea cliff, calmly (LESSONS: a backdrop is a dark band, never a screen of texture): thin gullies worn down the slope, black between them (it tiles down and across). */
 const FLUTES = [
-  '#.###.##',
-  '#.###.##',
-  '##.##.##',
-  '##.###.#',
-  '##.###.#',
-  '#.####.#',
-  '#.###.##',
-  '#.###.##',
-] as const;
-
-/** Kiawe scrub and dry grass on a slope: tufts, the gaps between bushes. */
-const SCRUB = [
-  '..#.....',
-  '.###..#.',
-  '#####.##',
-  '.#.#####',
-  '....#.#.',
   '#.......',
-  '##..#.##',
-  '###.####',
+  '#.......',
+  '.#......',
+  '.#...#..',
+  '#....#..',
+  '#.......',
+  '.#......',
+  '.#......',
 ] as const;
 
-/** Rainforest: leaves over leaves, the black between the fronds. */
+/** Kiawe scrub and dry grass on a slope, sparse: a tuft here and there on the dark hillside. */
+const SCRUB = [
+  '........',
+  '..#.....',
+  '.###....',
+  '........',
+  '.....#..',
+  '....###.',
+  '........',
+  '#.......',
+] as const;
+
+/** Rainforest seen as a dark mass: a few fronds catching the light, the black of the forest between them (Chris: no screen of bright green). */
 const JUNGLE = [
-  '.###.##.',
-  '#####..#',
-  '##.#####',
-  '#...###.',
-  '.#####.#',
-  '###..###',
-  '##.####.',
-  '#.##.#..',
+  '........',
+  '..#.....',
+  '.##.#...',
+  '...##...',
+  '........',
+  '.....#..',
+  '#..###..',
+  '........',
 ] as const;
 
-/** Pahoehoe: the old lava's ropy folds and their cracks. */
+/** Pahoehoe: the old lava's ropy folds and their cracks, dark. */
 const LAVA = [
-  '##...###',
-  '#.###.##',
-  '.#####..',
-  '#######.',
-  '###..###',
-  '##.##.##',
-  '.######.',
-  '########',
+  '........',
+  '.##.....',
+  '...#....',
+  '........',
+  '.....##.',
+  '........',
+  '#.......',
+  '....#...',
 ] as const;
 
-/** Cinder: a cone's loose red scoria, stones and the gaps between. */
+/** Cinder: a cone's loose red scoria, a scatter of stones on the dark slope. */
 const CINDER = [
-  '###.####',
-  '##..##.#',
-  '########',
-  '#.####..',
-  '########',
-  '###.##.#',
-  '.#..####',
-  '########',
+  '#.....#.',
+  '........',
+  '...##...',
+  '........',
+  '.#....#.',
+  '........',
+  '....#...',
+  '##......',
 ] as const;
 
-/** The sea of cloud under a summit: soft billows, a line along each. */
+/** The sea of cloud under a summit, calmly: the curl of a billow here and there on the dark, no hard top edge (it must never read as a floor). */
 const CLOUD = [
-  '..####..',
-  '.######.',
-  '########',
-  '###..###',
-  '########',
-  '##....##',
-  '########',
-  '########',
+  '........',
+  '..###...',
+  '.#...#..',
+  '........',
+  '.....##.',
+  '#..##..#',
+  '........',
+  '........',
 ] as const;
 
 /** A clear day's sky: fine light lines with the gaps of a high haze between them. */
@@ -99,6 +99,30 @@ const DAY = [
   '........',
   '........',
   '........',
+] as const;
+
+/** A coffee farm's hillside planted in rows: round shrubs side by side along the contour, the dark of the path between one row and the next (it tiles into the rows). */
+const COFFEE_ROWS = [
+  '........',
+  '..##..#.',
+  '.####.##',
+  '.####.##',
+  '..##...#',
+  '........',
+  '........',
+  '........',
+] as const;
+
+/** A snowcap on a far summit (Mauna Kea's, seen across the channel): the white along the crest, thinning down the slope. */
+const SNOWCAP = [
+  '########',
+  '########',
+  '###.####',
+  '#.###.##',
+  '..#...#.',
+  '.#......',
+  '........',
+  '...#....',
 ] as const;
 
 /** Kaihalulu's lagoon: the turquoise water inside the lava wall, light rippling on it. */
@@ -238,6 +262,13 @@ function sail(): NewDecor {
   return decor('pacSail', 6, 4, r, 1);
 }
 
+/** A stretch of the summit trail seen far off on the crater's inner wall, climbing one way or the other (`up`: rising to the east), a pale dashed line: laid cell by cell they draw its switchbacks. */
+function trailRun(name: string, up: boolean): NewDecor {
+  const r = new Raster(8, 8);
+  for (let x = 0; x < 8; x++) { const y = up ? 7 - x : x; if (x % 3 !== 2) r.rect(x, Math.max(0, y - 1), x, y); }
+  return decor(name, 1, 1, r, 12);
+}
+
 export const PACIFIC_SCENERY_TILES = {
   /** Diamond Head's tuff in the sun: the cone's own fluting (its gullies worn down the rock, as the slope's backdrop has them), brighter than the slope behind, cracked. Solid. */
   pacTuff: tile('pacTuff', 1, 8, [
@@ -283,6 +314,50 @@ export const PACIFIC_SCENERY_TILES = {
     '########',
     '#.######',
   ]),
+  /** A green sea turtle's (honu's) shell at the surface, its west half: the dome rising from the rim, its scutes cut in black, the swell lapping under it. A floor: he stands on it (SHELL GAME). */
+  pacShell: tile('pacShell', 2, 13, [
+    '....####',
+    '..###.##',
+    '.####.##',
+    '##..#.##',
+    '########',
+    '#.#.#.#.',
+    '........',
+    '.#....#.',
+  ]),
+  /** ... and its east half. */
+  pacShellEast: tile('pacShellEast', 2, 13, [
+    '####....',
+    '##.###..',
+    '##.####.',
+    '##.#..##',
+    '########',
+    '.#.#.#.#',
+    '........',
+    '.#....#.',
+  ]),
+  /** The shell going under: only its crown above the water, the swell washing over its rim (the warning). Still a floor. */
+  pacShellDive: tile('pacShellDive', 2, 13, [
+    '........',
+    '........',
+    '..####..',
+    '.######.',
+    '#.#..#.#',
+    '.#.##.#.',
+    '........',
+    '.#....#.',
+  ]),
+  /** The turtle's head held up out of the water to breathe, its front flipper paddling under it. A floor, with the shell. */
+  pacTurtleHead: tile('pacTurtleHead', 2, 13, [
+    '....##..',
+    '...####.',
+    '...#.###',
+    '#..#####',
+    '####.##.',
+    '.###....',
+    '..#.....',
+    '.#......',
+  ]),
 } as const;
 
 export const PACIFIC_SCENERY_DECOR = {
@@ -302,6 +377,10 @@ export const PACIFIC_SCENERY_DECOR = {
   pacIronwood: ironwood(),
   pacBanyan: banyan(),
   pacLagoonFill: fill('pacLagoonFill', LAGOON, 3),
+  pacSnowCap: fill('pacSnowCap', SNOWCAP, 1),
+  pacCoffeeRows: fill('pacCoffeeRows', COFFEE_ROWS, 5),
+  pacTrailUp: trailRun('pacTrailUp', true),
+  pacTrailDown: trailRun('pacTrailDown', false),
   pacStorefront: storefront(),
   pacSail: sail(),
   pacKiawe: kiawe(),
