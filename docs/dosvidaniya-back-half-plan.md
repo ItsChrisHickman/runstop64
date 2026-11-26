@@ -493,9 +493,9 @@ A % complete (rooms, coins, snacks and items, the bonus rooms' challenges, Vikto
 Viktor is never "caught": he is smashed, in SPY VERSUS MOLE's crushers. The best ending nods to the tradition (Metroid's suit-off
 reward, Auf Wiedersehen Monty's beach girl) as Chris picked: **Monty's reveal and the beach together**. Staged as a reveal so
 it reads as the nod: on Copacabana, every regional costume he wore flies off him at once (the chullo, the lei, the ninja hood,
-the hats...), he stands there as bare as he always is (he is a mole), then snaps on tiny swim trunks and sunglasses, the first clothes of his own he has worn all game, and strikes a pose, then strolls up the beach past the crowd
+the hats...), he stands there as bare as he always is (he is a mole), then snaps on a speedo and sunglasses, the first clothes of his own he has worn all game, strikes a pose, turns and walks away from the camera (the speedo seen from behind, the cheeky shot) up the beach past the crowd
 (sunbathers in bikinis and trunks, umbrellas, volleyball) and settles on a towel beside a sunbather in a bikini. Fade out.
-Cartoon, in the game's style, nothing more.
+Cartoon, in the game's style, nothing more. The room's name, the 100% one: **THE FULL MONTY** (Chris: everything, and the bare joke).
 
 ## 6. Questions for Chris
 
