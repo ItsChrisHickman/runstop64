@@ -55,6 +55,10 @@ most care; the reward show and the title show them off.
   the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
   play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
   rooftops, not under a picture of them).
+- **No words on the scenery** (Chris, 2026-11-25: "words on the screen feels like such an AI thing. This is what the thing is.
+  Feels forced"). No banners, signs or labels that name what a picture shows (SAMBA, CARNAVAL, MAUNA KEA, HILO): the drawing says
+  it, the room's name on the name line says the rest. Lettering only where the place really has it and it reads as part of the
+  picture, never as a caption, and when in doubt, none.
 - **A real place, calmly drawn** (Chris, 2026-11-25, on Hawaii's redraw: "neat, but a lot of the scenes look extremely busy in
   the background with all of the green"). Researched landmarks and nature, yes (Diamond Head's caves, Molokai's cliffs), but a
   backdrop is a silhouette or a band of one or two dark colours, the detail kept to the horizon and the edges; never a full
