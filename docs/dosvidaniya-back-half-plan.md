@@ -244,6 +244,51 @@ set (`SURGE_PULSES`). Nothing says "water moving west". Instead:
 - A rush of bubbles from the east edge as a set starts, and a short whoosh (a kit effect).
 Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the current itself does not change).
 
+### Hawaii polish pass (Chris's notes on the renders, 2026-11-25; after this batch merges)
+
+- Calm the backdrops: "a lot of the scenes look extremely busy in the background with all of the green". Foliage and hills as
+  dark silhouettes or bands (LESSONS: a real place, calmly drawn), the playfield clear.
+- The swims are generic: give each crossing its own idea. The swim to the Big Island has sea turtles that surface and dive, and
+  Monty rides their backs across the surge (Chris: "should have turtles in it; that represents the Big Island waters"); the
+  Molokai channel keeps Molokai's cliffs behind it (a breaching humpback, scenery).
+- **The swims are the open ocean, not underwater caves** (Chris: "They should not be underwater caves. We're swimming in the open
+  ocean"). No rock walls and ceilings boxing the water in: the surface with the sky and the islands above it across the top of
+  the room, the sea open to both edges, the reef and the sandy bottom low, coral heads and the swell as the obstacles, turtles,
+  fish and the odd shark. (THE SEA CAVE is the one cave: it is a cave by name, off the route.)
+- **The swims tell the journey from island to island** (Chris: "Molokai doesn't look like Molokai in the background. You're still
+  not really getting the idea that Monty should be swimming from one island, past that island, and arriving in Maui"). The
+  crossing from Oahu to Maui is a sequence the backdrop narrates, room by room, the horizon behind the water changing as he
+  swims east: first Oahu falling away behind (Diamond Head's silhouette at the west edge, small); then **Molokai alongside**,
+  drawn as Molokai: a long island filling the horizon, its north shore's sheer sea cliffs (the tallest in the world) with thin
+  waterfalls down them, the flat Kalaupapa peninsula at their foot; then **Maui ahead**: the West Maui mountains rising, Lanai
+  low on the horizon, and Lahaina's shore where he comes up. The same for the swim from Hana to the Big Island: Maui's Haleakala
+  behind, the open channel, then the Big Island's huge gentle volcano shapes (Mauna Kea, often snow-capped, and Mauna Loa) rising
+  ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
+- **Swimming only between the first two islands** (Chris: "we don't need to go overboard with the swimming levels. They're not
+  super fun, but they're interesting to throw in there. And if getting between island two and three involves riding on
+  turtles' backs instead? Maybe that's good, and the swimming should just be between island one and two"). So: **the swim** is
+  Oahu to Maui past Molokai only (as few rooms as tell that journey, one or two). **Maui to the Big Island is the turtle
+  crossing, on the surface, not a swim**: Monty hops from turtle shell to turtle shell across the open channel as they surface
+  and dive (the timing is the challenge; in the water between them is the sea's danger as the surf is today), Haleakala behind,
+  the Big Island's volcanoes ahead. The swim rooms beyond those that tell the Oahu-Maui crossing (CLAM DOWN, KELP WANTED and the
+  rest) are merged or dropped to fit; THE SEA CAVE stays as the bonus.
+- **FISH OUT OF WATER is redone from scratch** (Chris: "I think the fish out of water room is terrible"). Nothing of today's room
+  (the boxed-in rock, the surge lanes, the moray holes) is kept: it becomes the turtle crossing to the Big Island (on the
+  surface: hop turtle to turtle as they surface and dive), Haleakala behind and the Big Island's volcanoes
+  rising ahead; a new name that fits the swim (FISH OUT OF WATER is a land joke).
+- **No signs in the backdrops** (Chris: "We don't need the words for the volcanoes on the background like signs telling us to go
+  down or up. The room names alone suffice... Don't need to have labels, that's just busy"). Kona's MAUNA KEA / MAUNA LOA signs
+  go. The fork reads from the land itself: the slope up toward the observatory (the top way), down toward the lava (the bottom
+  way), one mountain as it really is. LESSONS already says it: signs name a place, they never stand in for drawing it.
+- Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
+  coffee farm's rows; Akaka Falls' gorge).
+- Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its landmark.
+- **No "HAWAII: <island>" banners as room names** (Chris: "I don't want Hawaii: island name all over the place. I think that's
+  confusing enough. It should naturally flow with the names"). Every room has its own name, in the game's style (plain, a pun
+  where it lands), and the names themselves carry the journey (e.g. WELCOME TO HONOLULU, DIAMOND HEAD, THE LOOKOUT, a pun for the
+  Molokai channel, WHALE OF A TIME at Lahaina, THE ROAD TO HANA, KAIHALULU, KONA, MAUNA KEA, THE SUMMIT, AKAKA FALLS, MAUNA LOA,
+  the coffee farm, HILO). No two rooms share a name, anywhere in the game.
+
 ### The flight's landing: the full three-room drop
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
