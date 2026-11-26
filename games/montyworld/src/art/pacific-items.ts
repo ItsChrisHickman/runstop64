@@ -1,7 +1,7 @@
 /**
  * The Pacific's items for Monty Mole: World Tour (region 5): the bolt cutters (the engine room's, for the chain on the dock ramp), the
  * snorkel and mask (which open Hawaii's water), the lei (the region's key item and its costume: pacific-lei.ts has how he wears it),
- * the parachute pack (on Hilo's high shelf: no flying without it) and the Spam musubi (the food in place of the cupcake). Hires sprite blocks as
+ * the parachute pack (snagged on Mauna Kea's big dome: no flying without it), the sack of coffee (Hilo's farm: too sleepy to fly without it) and the Spam musubi (the food in place of the cupcake). Hires sprite blocks as
  * Moscow's and Siberia's items are, a solid shape with the detail cut into it.
  */
 import { itemBlock } from './pixels';
@@ -58,11 +58,23 @@ function musubi(): NewItem {
   return { block: itemBlock('pacMusubi', r.rows()), colour: 10 };
 }
 
+/** A sack of Hilo's coffee: a fat burlap sack tied at the neck, its weave in lines, beans spilling at its foot. */
+function coffee(): NewItem {
+  const r = new Raster(16, 16);
+  r.ellipse(7.5, 10, 6.5, 5.5); r.rect(5, 2, 10, 6); r.rect(4, 1, 11, 2); // the sack, its neck and the top
+  r.rect(4, 4, 11, 4, false); // the tie
+  r.rect(3, 8, 12, 8, false); r.rect(2, 11, 13, 11, false); // the weave
+  r.rect(7, 6, 8, 15, false); // the seam
+  r.set(0, 15); r.set(2, 15); r.set(14, 15); r.set(15, 14); // beans
+  return { block: itemBlock('pacCoffee', r.rows()), colour: 9 };
+}
+
 export const PACIFIC_ITEMS = {
   pacSnorkel: snorkel(),
   pacLei: lei(),
   pacParachute: parachute(),
   pacMusubi: musubi(),
+  pacCoffee: coffee(),
 } as const satisfies Record<string, NewItem>;
 
 export type PacificItem = keyof typeof PACIFIC_ITEMS;

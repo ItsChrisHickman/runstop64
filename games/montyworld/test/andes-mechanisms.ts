@@ -78,9 +78,9 @@ SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[2, 20, AND.jump], [3, 20, AND.gorge], [4, 20, AND.terraces], [4, 21, AND.picchu], [5, 21, AND.canopy], [5, 22, AND.kapok], [6, 21, AND.sandbar], [6, 22, AND.roots]] as const;
-  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 20, Machu Picchu beside its foot, the Amazon an open block of two by two under it, east of Hilo (row 3, column 19; the cut hold\'s cell west of the drop empty)',
-    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(3, 19) === PAC.hilo && grid(2, 19) === 0xff && WORLD.exitGrid.rows === 8);
+  const placed = [[2, 25, AND.jump], [3, 25, AND.gorge], [4, 25, AND.terraces], [4, 26, AND.picchu], [5, 26, AND.canopy], [5, 27, AND.kapok], [6, 26, AND.sandbar], [6, 27, AND.roots]] as const;
+  check('the Andes and the Amazon are eight rooms: the drop (F1, F2) down column 25, Machu Picchu beside its foot, the Amazon an open block of two by two under it, east of Hawaii past the flight\'s gap (column 24 empty)',
+    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 8 && grid(3, 23) === PAC.hilo && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && WORLD.exitGrid.rows === 8);
   check('the ids of the rooms kept are as they were (55, 57, 58, 59; 62, 63, 65, 66), and the retired 56, 60, 61, 64 and 78 are no room\'s', [...cells].every((c) => ![56, 60, 61, 64, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 57, 58, 59, 62, 63, 65, 66].includes(r.id)));
   const coins = ANDES_ROOMS.map((r) => r.coins?.length ?? 0);
   check(`9 coins in 8 rooms, never more than 3 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 9 && coins.every((n) => n <= 3));

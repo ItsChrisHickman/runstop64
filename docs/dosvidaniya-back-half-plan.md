@@ -214,6 +214,16 @@ vent leave the airfield: they exist only in Kilauea. The rooster moves from the 
 **Not proposed back** (Chris to name any he wants): BOX CLEVER and STERN WARNING (they live on, merged, in the cargo
 ship), PIER PRESSURE (Honolulu harbour), COFFEE BREAK (Kona), HOLD YOUR HORSES (the flight replaced it).
 
+**Built (2026-11-25, lane-pacific).** Chris's story route, nineteen rooms (`games/montyworld/src/pacific.ts` has the grid): THE CARGO SHIP, WAIKIKI, LEI OF THE
+LAND, DIAMOND HEAD (88), THE LOOKOUT (89: the snorkel), CLAM DOWN, KELP WANTED, WHALE OF A TIME, THE ROAD TO HANA (as it was), THE SEA CAVE, HANA (87: Kaihalulu's red
+sand), FISH OUT OF WATER (49, the reset's swim room), KONA (90), MAUNA KEA (91), THE SUMMIT (92: the parachute), AKAKA FALLS (93), MAUNA LOA (52: the lava), COFFEE
+BREAK (51: the coffee), HILO GOODBYE (53: the biplane, two locks). New ids start at 87 (China's return took 82; 83-86 stay the plan's). Decisions taken from this plan's
+recommendations: the story's route over the table (Molokai is the first swim's backdrop and banner, not a land room; PIER PRESSURE, MOLE-OKAI, BOX CLEVER, STERN WARNING
+and the cargo hold stay out); the escape counts on leaving the room alive (knocks only: SPY VERSUS MOLE's squash still counts at once, its bars read it). Not yet: the
+humpback (the harbour has no whale now; a big creature needs its art) and the luau's line of dancers swaying on the beat (they stand). A swim room is left upward only up
+a rope through its surface (swim.ts), so Lahaina's mooring rope, the road's pool and Hana's cove work both ways. Saves are format 3 (`save-format2.ts`, `fromFormat`).
+The sky, the Andes and Rio moved five columns east (column 24 is the flight's gap).
+
 **Fix: the cargo ship's pursuer (a death never counts as an escape).** Why the third time differed: the escape is
 recorded the moment the crate knocks Viktor (`escape()` in `games/montyotr/src/pursuers.ts` sets the `until` find, here
 `OVERBOARD`, at once). He is 192 frames behind, so the knock happens as Monty ducks under the crate and heads down the

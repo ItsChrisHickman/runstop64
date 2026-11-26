@@ -286,10 +286,11 @@ export interface PlaneLeg {
 export interface PlaneLook { level: number; climb: number; dive: number; wreck: number; colour: number; seat: number; dx: number; dy: number }
 
 /**
- * A plane waiting in a room (`boardings`, planes.ts: Do Svidaniya Monty's mail biplane on Hilo's apron): touched (Monty's top left in `box`, playfield cells) with the special item `needs` taken, it takes
- * off with him: he goes to the cell `goes` (the flight's first leg), where he is on the screen. Touched without it, `hint` shows in the name row (the hints assist) and nothing happens.
+ * A plane waiting in a room (`boardings`, planes.ts: Do Svidaniya Monty's mail biplane at Hilo): touched (Monty's top left in `box`, playfield cells) with every special item `needs` lists taken, it takes
+ * off with him: he goes to the cell `goes` (the flight's first leg), where he is on the screen. Touched without one, the first missing one's `hint` shows in the name row (the hints assist) and nothing happens
+ * (Monty on the Run's locks: each says what it wants).
  */
-export interface BoardingSpec { room: number; box: CellBox; needs: number; goes: { readonly mapRow: number; readonly exitCol: number }; hint: string }
+export interface BoardingSpec { room: number; box: CellBox; needs: readonly { readonly item: number; readonly hint: string }[]; goes: { readonly mapRow: number; readonly exitCol: number } }
 
 /**
  * The Spy vs Spy tally in the score row's centre (tally.ts; Do Svidaniya Monty's): Monty's face, a star for each round, the villain's face (lit while he is due). A round is settled when its special item

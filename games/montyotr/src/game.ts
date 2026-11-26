@@ -594,7 +594,7 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /** Whether a rope is in any of the cells his body overlaps (as the move's own rope check looks). */
-  private onRopeHere(): boolean {
+  onRopeHere(): boolean {
     for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) if (this.flagAt(this.montyRow + r, this.montyCol + c) === 3) return true;
     return false;
   }

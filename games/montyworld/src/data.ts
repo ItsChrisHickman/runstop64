@@ -21,7 +21,7 @@ import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { ARRIVALS, biplaneBoarding, CRUST_CRACKS, CURRENTS, LAVA, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SURF_CELLS, SURGE_ANIM, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES } from './pacific';
+import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CURRENTS, FALLS_ANIMS, LAVA, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_LATER_COLOURS, PACIFIC_LATER_SECTORS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, SURGE_ANIM, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -132,6 +132,7 @@ const bank = extendChars(extendBank(bankImage, [
   { ptr: PAC_SPRITE.lei, block: PACIFIC_ITEMS.pacLei.block },
   { ptr: PAC_SPRITE.musubi, block: PACIFIC_ITEMS.pacMusubi.block },
   { ptr: PAC_SPRITE.parachute, block: PACIFIC_ITEMS.pacParachute.block },
+  { ptr: PAC_SPRITE.coffee, block: PACIFIC_ITEMS.pacCoffee.block },
   { ptr: JAPAN_SPRITE.fishFood, block: JAPAN_ITEMS.jpFishFood.block },
   { ptr: JAPAN_SPRITE.daruma, block: JAPAN_ITEMS.jpDaruma.block },
   { ptr: JAPAN_SPRITE.sushi, block: JAPAN_ITEMS.jpSushi.block },
@@ -162,7 +163,7 @@ const ITEM_COLOURS = new Map<number, number>([
   [CHINA_SPRITE.key, CHINA_ITEMS.towerKey.colour], [CHINA_SPRITE.riceHat, CHINA_ITEMS.riceHat.colour], [CHINA_SPRITE.bamboo, CHINA_ITEMS.bamboo.colour],
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
   [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
-  [PAC_SPRITE.snorkel, PACIFIC_ITEMS.pacSnorkel.colour], [PAC_SPRITE.lei, PACIFIC_ITEMS.pacLei.colour], [PAC_SPRITE.musubi, PACIFIC_ITEMS.pacMusubi.colour], [PAC_SPRITE.parachute, PACIFIC_ITEMS.pacParachute.colour],
+  [PAC_SPRITE.snorkel, PACIFIC_ITEMS.pacSnorkel.colour], [PAC_SPRITE.lei, PACIFIC_ITEMS.pacLei.colour], [PAC_SPRITE.musubi, PACIFIC_ITEMS.pacMusubi.colour], [PAC_SPRITE.parachute, PACIFIC_ITEMS.pacParachute.colour], [PAC_SPRITE.coffee, PACIFIC_ITEMS.pacCoffee.colour],
   [RIO_SPRITE.crank, RIO_ITEMS.crank.colour], [RIO_SPRITE.headdress, RIO_ITEMS.headdress.colour], [RIO_SPRITE.skewer, RIO_ITEMS.skewer.colour], [RIO_SPRITE.bowl, RIO_ITEMS.acaiBowl.colour],
   [ANDES_SPRITE.chullo, ANDES_ITEMS.chullo.colour], [ANDES_SPRITE.panpipes, ANDES_ITEMS.panpipes.colour], [ANDES_SPRITE.machete, ANDES_ITEMS.machete.colour], [ANDES_SPRITE.empanada, ANDES_ITEMS.empanada.colour],
 ]);
@@ -184,7 +185,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
 }
 
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
-const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS], bankImage, SPRITE.pirozhok);
+const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...PACIFIC_LATER_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -200,6 +201,7 @@ const HOOD_ITEM = specialIndex(ROOMS, 'hood');
 const SNORKEL = specialIndex(ROOMS, 'snorkel');
 const LEI_ITEM = specialIndex(ROOMS, 'lei');
 const PARACHUTE = specialIndex(ROOMS, 'parachute');
+const COFFEE = specialIndex(ROOMS, 'coffee');
 const CHULLO_ITEM = specialIndex(ROOMS, 'chullo');
 const PANPIPES = specialIndex(ROOMS, 'panpipes');
 const MACHETE = specialIndex(ROOMS, 'machete');
@@ -217,7 +219,7 @@ const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD =
 /** The hidden finds the tests read (the tally's rounds). */
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
-const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
+const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `musubi${n}`)),
   ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
@@ -286,10 +288,10 @@ export const WORLD: MontyData = {
   lifts: [],
   escalators: ESCALATORS,
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
-  tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...SKY_TUNNELS],
+  tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, SURGE_ANIM, ...RIO_ANIMS, ...SKY_ANIMS],
-  pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, SURGE_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS],
+  pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimGate: SNORKEL,
   currents: [...CURRENTS, ...SKY_CURRENTS],
@@ -302,14 +304,14 @@ export const WORLD: MontyData = {
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
   planes: planeLegs(PLANE_LOST),
   planeLook: PLANE_LOOK,
-  // the yellow mail biplane on Hilo's apron: with the parachute, it takes him off into the flight's first leg
-  boardings: [biplaneBoarding(PARACHUTE, TAKE_OFF)],
+  // the yellow mail biplane at Hilo: with the parachute and the coffee, it takes him off into the flight's first leg
+  boardings: [biplaneBoarding(PARACHUTE, COFFEE, TAKE_OFF)],
   // the Spy vs Spy tally: Monty wins the train and the ship, Viktor the plane (Monty 2 v Viktor 1 into SPY VERSUS MOLE)
   tally: {
     rounds: [{ find: SWEPT, winner: 'hero' }, { find: OVERBOARD, winner: 'hero' }, { find: PLANE_LOST, winner: 'villain' }],
     face: TALLY_CHARS.face, star: TALLY_CHARS.star, colours: { hero: 8, villain: 1, open: 11, away: 11 },
   },
-  rollers: [...ROLLERS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
+  rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],
@@ -350,6 +352,7 @@ export const WORLD: MontyData = {
       { item: SNORKEL, text: 'WITH A SNORKEL HE CAN SWIM' },
       { item: LEI_ITEM, text: 'A LEI: TRAVELLERS WEAR ONE' },
       { item: PARACHUTE, text: 'PARACHUTE: FOR A LONG DROP' },
+      { item: COFFEE, text: 'COFFEE KEEPS A PILOT AWAKE' },
       { item: CHULLO_ITEM, text: 'A CHULLO: LOOK LIKE A LOCAL' },
       { item: PANPIPES, text: 'PANPIPES: MUSIC CALMS BEASTS' },
       { item: MACHETE, text: 'MACHETE: HACKS THROUGH VINES' },
@@ -373,7 +376,7 @@ export const WORLD: MontyData = {
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ label, from, to, rows, except }) => ({ name: label, from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, COFFEE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS, ...PACIFIC_LATER_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

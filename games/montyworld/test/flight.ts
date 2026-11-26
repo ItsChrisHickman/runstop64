@@ -115,21 +115,21 @@ for (const mode of oneLeg ? [] : ['easy', 'hard'] as const) {
   if (only !== undefined && only !== mode) continue;
   const s0 = game(mode);
   const g0 = s0.g;
-  // the Pacific done (every find before the Andes'), the lei on, the train and the ship won, the parachute taken: on Hilo's apron, east of the biplane
+  // the Pacific done (every find before the Andes'), the lei on, the train and the ship won, the parachute and the coffee taken: on Hilo's airfield, east of the biplane
   const andes = new Set<number>([...Object.values(AND), ...Object.values(FLY)]);
   for (let i = 0; i < g0.siCollected.length; i++) if (!andes.has(g0.data.specialItems[i * 4] ?? 0)) g0.siCollected[i] = 0x81;
   g0.siCollected[ROUNDS.plane] = 0;
-  wear(g0, itemIndex(g0, PAC.waikiki, 1));
-  enterRoom(g0, PAC.hilo, 0x0c + (9 + 4) * 4, standY(5));
-  g0.enemies = []; g0.enable &= 0x0f; g0.vic.enable &= 0x0f; // (the nene out of the way: the boarding is what is checked here)
+  wear(g0, itemIndex(g0, PAC.luau, 0));
+  enterRoom(g0, PAC.hilo, 0x0c + (27 + 4) * 4, standY(19));
+  g0.enemies = []; g0.enable &= 0x0f; g0.vic.enable &= 0x0f; // (the rooster out of the way: the boarding is what is checked here)
   for (let n = 0; n < 200 && !settled(g0); n++) frame(s0, NONE);
 
   // into the biplane: the first leg
   for (let n = 0; n < 200 && g0.roomId === PAC.hilo; n++) frame(s0, { ...NONE, left: true });
   for (let n = 0; n < 200 && !settled(g0); n++) frame(s0, NONE);
   for (let n = 0; n < 2; n++) frame(s0, NONE);
-  check(`${mode}: into the biplane on Hilo's apron he is in the first leg (room ${g0.roomId}), its map cell [${g0.mapRow},${g0.exitCol}] the leg's own [0,20]`,
-    g0.roomId === FLY.mail && g0.mapRow === 0 && g0.exitCol === 20);
+  check(`${mode}: into the biplane at Hilo he is in the first leg (room ${g0.roomId}), its map cell [${g0.mapRow},${g0.exitCol}] the leg's own [0,25]`,
+    g0.roomId === FLY.mail && g0.mapRow === 0 && g0.exitCol === 25);
   check(`${mode}: in the plane, the plane is drawn over him (sprite 2, out of the collision check) and he sits in it`, g0.planeShown && (g0.uncounted & 0x04) !== 0 && g0.frameIndex === 0x54);
 
   // a death in the second leg starts the second leg again, as he came in (and in HARD costs a life)
@@ -161,7 +161,7 @@ for (const mode of oneLeg ? [] : ['easy', 'hard'] as const) {
   if (flown) {
     const g = s.g;
     frame(s, NONE);
-    check(`${mode}: he comes into JUMP FOR JOY at its top under the canopy (y ${g.y}, the map's cell [${g.mapRow},${g.exitCol}]), alive`, g.roomId === AND.jump && g.y <= 0x50 && g.mapRow === 2 && g.exitCol === 20 && g.canopyShown);
+    check(`${mode}: he comes into JUMP FOR JOY at its top under the canopy (y ${g.y}, the map's cell [${g.mapRow},${g.exitCol}]), alive`, g.roomId === AND.jump && g.y <= 0x50 && g.mapRow === 2 && g.exitCol === 25 && g.canopyShown);
     const tally = score(g.data, g.siCollected);
     const stars = [17, 18, 19].map((c) => (g.col[c] ?? 0) & 15);
     check(`${mode}: Viktor won the plane (the find taken), so the tally reads Monty ${tally.hero} v Viktor ${tally.villain} into Rio, its stars Monty's, Monty's and Viktor's (colours ${stars.join(', ')})`,

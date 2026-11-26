@@ -1,8 +1,8 @@
 /**
  * Saves of format 1 (the game as shipped before the reset) read into today's tables (save-migrate.ts): every coin and find of a room the reset kept as it was is still taken, every key item taken is still
  * taken wherever its room went (the chullo moved rooms), the costume worn is still worn, a save in a room that was cut carries on in the room the plan names, and a save in a room whose cells changed puts
- * him somewhere he can stand, in the exit grid's cell that room has now. Today's saves (format 2) read as they are, but one made in a room cut since (the cargo plane's hold) carries on in the room
- * that took its place (Hilo's apron).
+ * him somewhere he can stand, in the exit grid's cell that room has now. Saves of format 2 (the reset's, before Hawaii's island hopping came back) are read the same way (the snorkel, the lei and the
+ * parachute moved rooms; Viktor's escapes are matched by their order), one on the old Hilo's apron carries on by the biplane, one made in the cut cargo plane's hold at Hilo. Today's (format 3) read as they are.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/save-migrate.ts
  */
@@ -12,12 +12,13 @@ import { check, finish } from '../../shared/test/check';
 import { newGame } from '../../shared/monty/test/bot';
 import { AND } from '../src/andes';
 import { PAC } from '../src/pacific';
-import { WORLD } from '../src/data';
+import { ROUNDS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
+import { FORMAT2_COINS, FORMAT2_ITEMS } from '../src/save-format2';
 import { RETIRED } from '../src/save-migrate';
 import { dead } from './mech-kit';
-import { coinIndex, itemIndex } from './route';
+import { coinIndex, itemIndex, standY } from './route';
 import { CHULLO } from './andes-route';
 
 /** The place of a format 1 find in its table: the n-th of a room's. */
@@ -37,20 +38,28 @@ function format1(room: number, x2: number, y: number, mapRow: number, exitCol: n
   };
 }
 
-check('today\'s saves are format 2, and format 1 is read too', CODEC.format === 2);
-// format 1's Pacific: the snorkel was in SURF AND TURF (41), the lei in LEI OF THE LAND (42), the parachute in HOLD YOUR HORSES (54); a save in KELP WANTED (45, cut) carries on in Hana's sea
-const old = format1(45, 0x0c + (10 + 4) * 4, 0x32 + 10 * 8, 2, 23, [0, 1], [0, 1, oldItem(41), oldItem(42)], oldItem(42));
+check('today\'s saves are format 3, and formats 1 and 2 are read too', CODEC.format === 3);
+// format 1's Pacific: the snorkel was in SURF AND TURF (41), the lei in LEI OF THE LAND (42); a save in MOLE-OKAI (44, not back) carries on in the swim past Molokai (CLAM DOWN, 43)
+const old = format1(44, 0x0c + (10 + 4) * 4, 0x32 + 10 * 8, 2, 22, [0, 1], [0, 1, oldItem(41), oldItem(42)], oldItem(42));
 const s = CODEC.unpack(CODEC.pack(old), 1);
 const g = newGame(WORLD, true).g;
-const snorkel = itemIndex(g, PAC.waikiki, 0), lei = itemIndex(g, PAC.waikiki, 1);
+const snorkel = itemIndex(g, PAC.lookout, 0), lei = itemIndex(g, PAC.luau, 0);
 check(`Moscow's coins and finds keep their places (coins ${s.coins.slice(0, 2).join()}, finds ${s.items.slice(0, 2).join()})`, s.coins[0] === 0xff && s.coins[1] === 0xff && s.items[0] === 0x81 && s.items[1] === 0x81);
-check('the key items taken are taken where they are now: the snorkel and the lei (both at Waikiki now), and the lei is still worn', s.items[snorkel] === 0x81 && s.items[lei] === 0x81 && s.worn === lei);
+check('the key items taken are taken where they are now: the snorkel (Diamond Head\'s lookout now) and the lei (the luau), and the lei is still worn', s.items[snorkel] === 0x81 && s.items[lei] === 0x81 && s.worn === lei);
 check(`the arrays are today's lengths (${s.coins.length} coins, ${s.items.length} finds)`, s.coins.length === WORLD.coinTable.length / 3 && s.items.length === WORLD.specialItems.length / 4);
-check(`a save in KELP WANTED (cut) carries on in Hana, at its cell [3,18] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[45] && s.roomId === PAC.hana && s.mapRow === 3 && s.exitCol === 18);
+check(`a save in MOLE-OKAI (not back) carries on in CLAM DOWN, at its cell [3,18] (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[44] && s.roomId === PAC.clam && s.mapRow === 3 && s.exitCol === 18);
 const b = newGame(WORLD, true);
 restore(b.g, s);
 for (let f = 0; f < 120; f++) frame(b, NONE);
-check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.roomId === PAC.hana && !dead(b.g));
+check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.roomId === PAC.clam && !dead(b.g));
+// format 1's HANA BANANA (49) is HANA (87) now, not the swim room that has its id
+{
+  const t = CODEC.unpack(CODEC.pack(format1(49, 0x0c + (4 + 4) * 4, standY(8), 1, 25, [], [oldItem(41)])), 1);
+  const p = newGame(WORLD, true);
+  restore(p.g, t);
+  for (let f = 0; f < 120; f++) frame(p, NONE);
+  check(`a format 1 save in HANA BANANA carries on in HANA (room ${p.g.roomId}), standing, alive`, p.g.roomId === PAC.hana && !dead(p.g) && !p.g.falling);
+}
 // format 1's Andes: the chullo was in MARKET FORCES (60), the panpipes in MIST OPPORTUNITY (61), the machete in THE INCA TUNNEL (63); a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu
 {
   const old = format1(61, 0x0c + (20 + 4) * 4, 0x32 + 15 * 8, 5, 33, [0, 1], [0, 1, oldItem(60), oldItem(61), oldItem(63)], oldItem(60));
@@ -78,21 +87,58 @@ for (const [from, to] of Object.entries(RETIRED)) {
 const moscow = format1(0, 0x50, 0xc2, 1, 0, [], []);
 const m = CODEC.unpack(CODEC.pack(moscow), 1);
 check('a save in a room the reset did not change keeps its place exactly (Moscow\'s first room)', m.roomId === 0 && m.x2 === 0x50 && m.y === 0xc2 && m.mapRow === 1 && m.exitCol === 0);
-// format 2 reads as it is
+// format 3 reads as it is
 const now = snapshot(b.g);
-const again = CODEC.unpack(CODEC.pack(now), 2);
-check('a format 2 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
-// a format 2 save made in the cargo plane's hold (cut 2026-11-24: room 54 at [2,19]), its coin and the parachute taken: on Hilo's apron by the biplane, both still taken (they kept their table places in Hilo)
+const again = CODEC.unpack(CODEC.pack(now), 3);
+check('a format 3 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
+// format 2 (the reset's Hawaii: the snorkel and the lei at Waikiki (41), the musubi in the swim room (49), the parachute and three coins in Hilo (52), Viktor overboard a find no room shows)
+/** The place of a format 2 find in its table: the n-th of a room's. */
+const oldItem2 = (room: number, nth = 0) => {
+  let n = 0;
+  for (let i = 0; i * 4 < FORMAT2_ITEMS.length; i++) if (FORMAT2_ITEMS[i * 4] === room && n++ === nth) return i;
+  throw new Error(`no format 2 find ${nth} in room ${room}`);
+};
+const oldCoin2 = (room: number, col: number, row: number) => {
+  for (let i = 0; i * 3 < FORMAT2_COINS.length; i++) if (FORMAT2_COINS[i * 3] === room && FORMAT2_COINS[i * 3 + 1] === col && FORMAT2_COINS[i * 3 + 2] === row) return i;
+  throw new Error(`no format 2 coin at ${col},${row} of room ${room}`);
+};
+/** A format 2 save: flags at format 2's places, in a room. */
+function format2(room: number, col: number, floor: number, mapRow: number, exitCol: number, coins: readonly number[], items: readonly number[], worn?: number) {
+  const s0 = snapshot(newGame(WORLD, true).g);
+  return {
+    ...s0, roomId: room, x2: 0x0c + (col + 4) * 4, y: standY(floor), mapRow, exitCol,
+    coins: Array.from({ length: FORMAT2_COINS.length / 3 }, (_, i) => (coins.includes(i) ? 0xff : 0)),
+    items: Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => (items.includes(i) ? 0x81 : 0)),
+    ...(worn === undefined ? {} : { worn }),
+  };
+}
+const overboard2 = Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => i).filter((i) => FORMAT2_ITEMS[i * 4] === 0xff)[2] ?? -1; // (the third of the finds no room shows: crank fitted, agent squashed, viktor overboard)
 {
+  const finds = [oldItem2(41, 0), oldItem2(41, 1), oldItem2(49, 0), oldItem2(52, 0), overboard2];
+  const coins = [oldCoin2(38, 9, 3), oldCoin2(52, 25, 4)];
+  const t = CODEC.unpack(CODEC.pack(format2(52, 16, 5, 3, 19, coins, finds, oldItem2(41, 1))), 2);
   const p = newGame(WORLD, true);
-  const parachute = itemIndex(p.g, PAC.hilo, 0), coin = coinIndex(p.g, PAC.hilo, 25, 4);
-  const held = { ...snapshot(p.g), roomId: 54, x2: 0x0c + (20 + 4) * 4, y: 0x32 + 17 * 8, mapRow: 2, exitCol: 19 };
-  held.coins = held.coins.map((v, i) => (i === coin ? 0xff : v));
-  held.items = held.items.map((v, i) => (i === parachute ? 0x81 : v));
-  const t = CODEC.unpack(CODEC.pack(held), 2);
+  const parachute = itemIndex(p.g, PAC.summit, 0), musubi = itemIndex(p.g, PAC.fish, 0);
+  check('a format 2 save\'s Hawaii carries over: the snorkel, the lei (worn), the parachute where they are now, the swim room\'s musubi, the ship\'s coin, Viktor overboard (a find no room shows, by its order)',
+    t.items[snorkel] === 0x81 && t.items[lei] === 0x81 && t.worn === lei && t.items[parachute] === 0x81 && t.items[musubi] === 0x81 && t.coins[coinIndex(p.g, PAC.ship, 9, 3)] === 0xff && t.items[ROUNDS.ship] === 0x81);
   restore(p.g, t);
   for (let f = 0; f < 120; f++) frame(p, NONE);
-  check(`a format 2 save in the cut hold carries on on Hilo's apron (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}], floor ${p.g.montyRow - 3 + 2}, column ${p.g.montyCol - 4}), alive, the hold's coin and the parachute still taken`,
-    RETIRED[54] === PAC.hilo && p.g.roomId === PAC.hilo && p.g.mapRow === 3 && p.g.exitCol === 19 && p.g.montyRow - 3 + 2 === 5 && p.g.montyCol - 4 >= 15 && p.g.montyCol - 4 <= 17 && !dead(p.g) && t.coins[coin] === 0xff && t.items[parachute] === 0x81);
+  check(`a format 2 save on Hilo's apron (52, floor 5) carries on at Hilo by the biplane (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}]), alive`, p.g.roomId === PAC.hilo && p.g.mapRow === 3 && p.g.exitCol === 23 && !dead(p.g));
+}
+{
+  const t = CODEC.unpack(CODEC.pack(format2(52, 2, 19, 3, 19, [], [oldItem2(41, 0)])), 2);
+  const p = newGame(WORLD, true);
+  restore(p.g, t);
+  for (let f = 0; f < 60; f++) frame(p, NONE);
+  check(`a format 2 save on Hilo's lava shore (52, floor 19) carries on in Mauna Loa, the lava's room now (room ${p.g.roomId}), alive`, p.g.roomId === PAC.loa && !dead(p.g));
+}
+// a format 2 save made in the cargo plane's hold (cut 2026-11-24: room 54 at [2,19]): at Hilo by the biplane
+{
+  const t = CODEC.unpack(CODEC.pack(format2(54, 20, 18, 2, 19, [], [oldItem2(52, 0)])), 2);
+  const p = newGame(WORLD, true);
+  restore(p.g, t);
+  for (let f = 0; f < 120; f++) frame(p, NONE);
+  check(`a format 2 save in the cut hold carries on at Hilo (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}]), alive, the parachute still taken`,
+    RETIRED[54] === PAC.hilo && p.g.roomId === PAC.hilo && !dead(p.g) && t.items[itemIndex(p.g, PAC.summit, 0)] === 0x81);
 }
 finish();
