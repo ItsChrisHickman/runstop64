@@ -686,11 +686,14 @@ const lahainaScenery: Placed[] = [
   ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c < 17 && r > LAHAINA_SEA && r < 18, 'pacSeaFlat'),
 ];
 
-/** The Road to Hana cut into the jungle cliff: rainforest over every empty cell (the waterfalls and bamboo in it). */
+/** The Road to Hana cut into the jungle cliff: the rainforest's canopy over the top of the cliff (the waterfalls and bamboo in it), the cliff's wet, fluted face behind the tiers, dark (calm: Chris, no screen of green). */
 const ROAD_COINS = [[27, 15], [16, 5]] as const;
 const ROAD_PIECES = [['pacWaterfall', 6, 2], ['pacWaterfall', 20, 2], ['pacBambooClump', 25, 4], ['pacBambooClump', 7, 4],
   ['pacLaneSign', 6, 16], ['pacLaneSign', 20, 16], ['pacLaneSign', 10, 11], ['pacLaneSign', 24, 11], ['pacLaneSign', 9, 6], ['pacLaneSign', 23, 6]] as const;
-const roadScenery: Placed[] = fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), () => true, 'pacJungleFill');
+const roadScenery: Placed[] = [
+  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r < 7, 'pacJungleFill'),
+  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r >= 7, 'pacCliffFill'),
+];
 
 /** Kaihalulu: Ka'uiki Head's crumbling red cinder cliffs round the cove, a cave in them, ironwoods on the headland and the cliff top, the turquoise lagoon inside its natural wall of black lava rock. */
 const HANA_PIECES = [['pacBreadStand', 2, 5], ['pacIronwood', 9, 5], ['pacIronwood', 11, 5], ['pacLavaRocks', 16, 17], ['pacCaveCinder', 17, 9]] as const;
