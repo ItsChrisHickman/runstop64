@@ -110,6 +110,8 @@ export class Game implements MontyBody, MontyWorld {
   cheatMode = 0;
   /** Whether a moment's grace is on (the front end's, main.ts): he can't be killed. */
   graceActive: () => boolean = () => false;
+  /** What stirs the random numbers (`nextRandom`): Math.random in play; the reward show's places make it a function of the game's own state, so a place plays as its route was found. */
+  entropy: () => number = () => Math.random();
   /** A death has put him back (both modes): the front end starts a moment's grace. */
   onRestart: () => void = () => {};
   /** A running scripted sequence (death, completion, game over): advanced once per frame. */
@@ -280,7 +282,7 @@ export class Game implements MontyBody, MontyWorld {
 
   /** Original GenerateRandomNumber: four-byte state; returns one byte. */
   random() {
-    return nextRandom(this.prng);
+    return nextRandom(this.prng, this.entropy);
   }
 
   pulseGreyscale() {

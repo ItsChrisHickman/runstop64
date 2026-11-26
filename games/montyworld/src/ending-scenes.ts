@@ -1,16 +1,15 @@
-import { CREDIT } from '../../shared/ending/credits';
 import type { Scene } from '../../montyotr/src/ending-scenes';
 import type { MontyEnding } from '../../montyotr/src/montydata';
 import { WORLD_CREATURES, type WorldCreature } from './art/world';
 import { VIKTOR_NAME, VIKTOR_SPLIT } from './art/viktor';
 import { STOPS } from './title-art';
-import { CLOSING, PLACES } from './ending-places';
+import { CLOSING, PLACES, placeFrames } from './ending-places';
 import { ROUTES } from './ending-routes';
 import { FIRST_CREATURE } from './layout';
 import { RIO_ROOM } from './rio';
 
 /**
- * Do Svidaniya Monty's reward show (both modes): the places (ending-places.ts) with where each starts him and the route that does what it says there (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
+ * Do Svidaniya Monty's reward show (both modes): the places (ending-places.ts) with where each starts him, the route that does what it says there and the encore that keeps him going till the place ends (ending-routes.ts, found by `re/routes.ts`), and the creatures of the
  * whole world marching by after the last credit in a procession, a troupe from each region, Monty last.
  */
 
@@ -18,9 +17,10 @@ export const SCENES: readonly Scene[] = PLACES.map((p, i): Scene => {
   const found = ROUTES[i];
   if (!found || found.room !== p.room) throw new Error(`ending-routes.ts is not the places': run re/routes.ts (place ${i})`);
   return {
-    room: p.room, spot: found.spot, prepare: p.prepare, take: p.take, route: found.route, credits: p.credits,
-    // (a place is shown long enough for its credits to be typed on, held and gone, and for its route)
-    frames: Math.max(p.frames ?? 0, 400, p.credits.length * (CREDIT.slot + CREDIT.gap) + 60),
+    room: p.room, spot: found.spot, prepare: p.prepare, take: p.take, credits: p.credits,
+    // (what he does there, then his encore: on the go till the place ends, so no creature of the room walks through him standing still)
+    route: found.encore ? `${found.route} ${found.encore}` : found.route,
+    frames: placeFrames(p),
     ...(p.creditRow !== undefined ? { creditRow: p.creditRow } : {}),
   };
 });

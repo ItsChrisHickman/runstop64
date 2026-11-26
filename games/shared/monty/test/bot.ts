@@ -8,6 +8,7 @@
  */
 import { Game, type Input as Stick } from '../../../montyotr/src/game';
 import { copy, frame, NONE, settled, type State } from '../../../montyotr/test/play';
+import { prngEntropy } from '../screen';
 
 /** Frames the stick is held for at a time. */
 export const STEP = 4;
@@ -38,7 +39,7 @@ export const diedIn = (before: number, after: number): boolean => before === 0 &
  */
 export function useRandomOf(g: Game): void {
   const prng = g.prng;
-  Math.random = () => (((prng[0] ?? 0) * 7 + (prng[1] ?? 0) * 13 + (prng[2] ?? 0) * 31 + (prng[3] ?? 0) * 57 + 11) & 255) / 256;
+  Math.random = () => prngEntropy(prng);
 }
 
 /** Hold a stick for some frames. `room`: the room he has come into (settled there), if he has; dead: a death was set going. */
@@ -168,6 +169,48 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
   if (stats) stats.exhausted = heap.size === 0 && nodes < limit;
   tell(nodes);
   return null;
+}
+
+/**
+ * An encore: a run that keeps him on the go for `frames` in the room he is in, without a death (so nothing walks through him: a creature's
+ * touch is a death here), never standing still for more than `still` frames together, going where he has not been yet in the room. For the
+ * reward show's places, where after what he does there he would stand and let the creatures pass through him. A beam search (each depth the
+ * `beam` runs that have seen most of the room); null if every run dies or stalls.
+ */
+export function encore(start: State, frames: number, beam = 80, still = 16): Route | null {
+  const room = start.g.roomId;
+  const cell = (g: Game) => ((g.x2 >> 3) << 8) | (g.y >> 4);
+  interface Run { s: State; route: [string, number][]; seen: ReadonlySet<number>; idle: number }
+  let level: Run[] = [{ s: start, route: [], seen: new Set([cell(start.g)]), idle: 0 }];
+  for (let depth = 0; depth * STEP < frames; depth++) {
+    const next: Run[] = [];
+    const keys = new Set<string>();
+    for (const run of level) {
+      const acts = run.s.g.montyAction || run.s.g.falling || run.s.g.gameMode ? [REST] : ACTIONS;
+      for (const [name, stick] of acts) {
+        const t: State = { g: copy(run.s.g), col: run.s.col };
+        const { x2, y } = t.g;
+        const r = hold(t, stick, STEP);
+        if (r.dead || r.room !== null || t.g.roomId !== room || !settled(t.g)) continue;
+        const idle = t.g.x2 !== x2 || t.g.y !== y ? 0 : run.idle + STEP;
+        if (idle > still) continue;
+        const k = keyOf(t.g);
+        if (keys.has(k)) continue;
+        keys.add(k);
+        const c = cell(t.g);
+        const seen = run.seen.has(c) ? run.seen : new Set([...run.seen, c]);
+        const route: [string, number][] = [...run.route];
+        const last = route[route.length - 1];
+        if (last && last[0] === name) route[route.length - 1] = [name, last[1] + STEP]; else route.push([name, STEP]);
+        next.push({ s: t, route, seen, idle });
+      }
+    }
+    if (!next.length) return null;
+    // (most of the room seen first; among those, the fewest changes of the stick: a run, not a jitter)
+    next.sort((a, b) => b.seen.size - a.seen.size || a.route.length - b.route.length);
+    level = next.slice(0, beam);
+  }
+  return level[0]?.route ?? null;
 }
 
 /** Play a route on a game (copied: the game is not touched): the state it ends in, or null if he died on the way. */

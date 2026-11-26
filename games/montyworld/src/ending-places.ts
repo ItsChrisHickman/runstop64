@@ -1,3 +1,4 @@
+import { CREDIT } from '../../shared/ending/credits';
 import { wear } from '../../montyotr/src/items';
 import type { Game } from '../../montyotr/src/game';
 import { TOP_ROW, type Scene } from '../../montyotr/src/ending-scenes';
@@ -75,6 +76,9 @@ export const PLACES: readonly Place[] = [
   { room: RIO_ROOM.drum, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
   { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: ['THANK YOU FOR PLAYING'] },
 ];
+
+/** How long a place is shown: long enough for its credits to be typed on, held and gone (and at least its own `frames`); what he does there and his encore after it fill it (ending-routes.ts). */
+export const placeFrames = (p: Place): number => Math.max(p.frames ?? 0, 400, p.credits.length * (CREDIT.slot + CREDIT.gap) + 60);
 
 /** The lines under the last place's: this game's own, in the plan's words (a new game, after Peter Harrap's; no port line: it is not a port). */
 export const CLOSING: readonly string[] = ['A NEW GAME BY CHRISTOPHER HICKMAN', 'AFTER MONTY ON THE RUN BY PETER HARRAP', 'GREMLIN GRAPHICS', 'RUNSTOP64'];

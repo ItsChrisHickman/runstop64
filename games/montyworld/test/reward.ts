@@ -1,8 +1,9 @@
 /**
  * The reward for winning Do Svidaniya Monty (ENHANCED: montyotr's src/ending.ts on shared/ending/show.ts, with the places of src/ending-places.ts and their routes), headless, with the real game under it:
  *
- *  1. every scene's route does what the scene says in the game as the game plays it (no grace, the crushers' timing
- *     seeded), the same room and the same place each time, and nothing kills him;
+ *  1. every scene's route does what the scene says in the game as the show plays it (no grace, the random numbers the game's own), the same room and the
+ *     same place each time, and nothing kills him; and then he keeps going till the place ends: never standing still for long, and no creature walks
+ *     through him (in a game with no grace its touch would be a death; Chris, 2026-11-25: he "ends up standing still and getting hit by an enemy and nothing happens");
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way
  *     out, every creature of the cast recorded with its frames, marching by after the credits in Rio's carnival parade across the beach (a group from each region behind its banner, a plain sand under
  *     them, each named under its region as it passes), Monty and the samba troupe dancing at the side, Viktor at the tail and the Mole Crusher's end for him;
@@ -28,6 +29,8 @@ import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { BandWatch, CastWatch, ParadeWatch, SHOW_FRAMES, drawVisitors, groundShare, touching } from '../../shared/test/ending-kit';
 import { MARCH, NAME_LETTERS, PARADE } from '../../shared/ending/procession';
+import { timelineOf } from '../../shared/ending/timeline';
+import { prngEntropy } from '../../shared/monty/screen';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
 import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../../montyotr/src/ending';
@@ -48,9 +51,8 @@ const CAST = WORLD_ENDING.cast;
 const PROC = must(WORLD_ENDING.procession, 'the procession');
 const STYLE = must(PROC.parade, 'the parade');
 
-// the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
+// the same run each time (the show's places take their random numbers from the game's own state; whatever else takes Math.random, seeded)
 let seed = 12345;
-const reseed = (s: number) => { seed = s; };
 Math.random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };
 
 const out = process.argv[2];
@@ -63,11 +65,11 @@ const ENHANCED: Assists = { lives: false, cloud: true, jetpack: true, c5: true, 
 
 // ---- 1. the routes, played as the game plays ----------------------------------------------------------------------
 
-/** A scene's route played in a game of the game's own (no grace), and what came of it. */
-function playRoute(scene: (typeof SCENES)[number], s: number) {
-  reseed(s);
+/** A scene's route played in a game of the game's own as the show plays it (no grace; the random numbers from its own state), and what came of it; with `through`, on till the place ends: whether he was touched (a death here) or stood still too long. */
+function playRoute(scene: (typeof SCENES)[number], through = 0) {
   const g = new Game(WORLD);
   g.start();
+  g.entropy = () => prngEntropy(g.prng);
   g.assist = ENHANCED;
   scene.prepare(g);
   const arrived = enterRoom(g, scene.room, scene.spot.x2, scene.spot.y, scene.spot.facing);
@@ -76,23 +78,36 @@ function playRoute(scene: (typeof SCENES)[number], s: number) {
   const lives = g.lives;
   let died = false, there = true;
   const done = () => isDone(scene, g);
-  for (let f = 0; f < pilot.length + 60 && !done(); f++) {
+  let hit = -1, still = 0, longest = 0, stillAt = 0;
+  for (let f = 0; f < (through || pilot.length + 60) && (through || !done()); f++) {
+    const { x2, y } = g;
     frame(st, pilot.next());
     // (the treasure's touch is event 6, then the sequence for it, 5, under way: the ending, not a death)
-    if ((g.actionCounter && g.actionCounter !== 6 && g.actionCounter !== 0x85) || g.lives !== lives) died = true;
+    if ((g.actionCounter && g.actionCounter !== 6 && g.actionCounter !== 0x85) || g.lives !== lives) { died = true; if (hit < 0) hit = f; }
     if (g.roomId !== scene.room && !('treasure' in scene.take)) there = false;
+    still = g.x2 === x2 && g.y === y ? still + 1 : 0;
+    if (still > longest) { longest = still; stillAt = f; }
   }
-  return { arrived, died, there, done: done(), room: g.roomId, frames: pilot.length };
+  return { arrived, died, there, done: done(), room: g.roomId, frames: pilot.length, hit, longest, stillAt };
 }
 
 for (const scene of SCENES) {
-  const r = playRoute(scene, 12345);
+  const r = playRoute(scene);
   check(`room ${hex(scene.room)}: the route does it (${JSON.stringify(scene.take)}) in ${r.frames} frames, in the room, alive (arrived ${r.arrived}, done ${r.done}, died ${r.died}, there ${r.there}, room ${hex(r.room)})`, r.arrived && r.done && !r.died && r.there);
 }
-// (the crushers' timing is random in the browser: how many other timings the routes get through, for the record)
-let survived = 0, tried = 0;
-for (const scene of SCENES) for (const s of [1, 2, 3]) { tried++; const r = playRoute(scene, s); if (r.done && !r.died) survived++; }
-console.log(`  routes under other crusher timings: ${survived}/${tried} (the show has a moment's grace for the rest)`);
+
+/** The most frames he may stand still together in a place (a moment's pause between moves). */
+const STILL = 20;
+const montage = montyEnding(WORLD, new PixelRenderer(), ENHANCED);
+SCENES.forEach((scene, i) => {
+  // (the finale's ending plays on by itself: he sits and eats)
+  if ('treasure' in scene.take) return;
+  const place = must(montage.places[i], `place ${i}`);
+  const length = timelineOf(place, 0).length;
+  const r = playRoute(scene, length);
+  check(`room ${hex(scene.room)}: through the whole place (${length} frames) he keeps going: in the room, no creature through him (${r.hit < 0 ? 'none' : `touched at frame ${r.hit}`}), never still more than ${STILL} frames (${r.longest}, to frame ${r.stillAt})`,
+    r.there && r.hit < 0 && r.longest <= STILL && r.frames >= length);
+});
 
 check('the places are in rooms that are on the exit grid, each once', SCENES.every((s) => exitGridImage.includes(s.room)) && new Set(SCENES.map((s) => s.room)).size === SCENES.length);
 
