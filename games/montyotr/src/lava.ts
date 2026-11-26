@@ -30,7 +30,7 @@ export function lavaTop(e: LavaSpec, t: number): number {
 export function lavaUpdate(g: Game) {
   for (const l of g.lavas) {
     const e = g.data.risingLava[l.index];
-    if (!e) continue;
+    if (!e || (e.wakenBy !== undefined && !g.siCollected[e.wakenBy])) continue;
     l.t++;
     const top = lavaTop(e, l.t);
     if (top !== l.top) {

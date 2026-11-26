@@ -32,7 +32,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 
 const probe = newPlay().g;
 const chullo = itemIndex(probe, AND.terraces, CHULLO);
-const lei = itemIndex(probe, PAC.waikiki, 1);
+const lei = itemIndex(probe, PAC.luau, 0);
 // what Monty wears: the Pacific's lei until the terraces' guardhouse, the chullo from Machu Picchu on
 const hat = (room: number) => (room === AND.jump || room === AND.gorge || room === AND.terraces ? lei : chullo);
 

@@ -381,7 +381,7 @@ const arches = (): Placed[] => [
 export const RIO_ROOMS: readonly RoomSpec[] = [
   // L THE LAPA ARCHES: crossed twice, the street first (the track seen, out of reach), then the track on the tram
   room({
-    id: RIO_ROOM.lap, cell: [5, 25], sector: 68, palette: LAPA_PALETTE, paint: LAPA,
+    id: RIO_ROOM.lap, cell: [5, 30], sector: 68, palette: LAPA_PALETTE, paint: LAPA,
     coins: LAPA_COINS,
     decor: [...arches(), ['rioTram', TRAM_HOME[0], TRAM_HOME[1]]],
     creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'left', speed: 1, range: 150 }, { who: 'rioBat', col: 20, row: 9, way: 'down', speed: 1, range: 56 }],
@@ -389,7 +389,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // S SUGAR RUSH: visited twice, the sand and the climbers' rope, then the car
   room({
-    id: RIO_ROOM.sugar, cell: [5, 26], sector: 69, palette: SUGAR_PALETTE, paint: SUGAR,
+    id: RIO_ROOM.sugar, cell: [5, 31], sector: 69, palette: SUGAR_PALETTE, paint: SUGAR,
     coins: SUGAR_COINS,
     decor: [['cableStation', 15, 11], ['cableStation', 26, 5], ...cableLine(), [{ text: CLOSED_SIGN.text, colour: 2 }, CLOSED_SIGN.col, CLOSED_SIGN.row]],
     creatures: [
@@ -400,7 +400,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // C OPEN ARMS: the climb over the landmark, the highest place in the game
   room({
-    id: RIO_ROOM.arms, cell: [5, 23], sector: 71, palette: ARMS_PALETTE, paint: ARMS,
+    id: RIO_ROOM.arms, cell: [5, 28], sector: 71, palette: ARMS_PALETTE, paint: ARMS,
     coins: ARMS_COINS,
     item: { name: 'skewer1', col: ARMS_SNACK[0], row: ARMS_SNACK[1], sprite: RIO_SPRITE.skewer },
     creatures: [
@@ -411,7 +411,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // F HOUSE OF COLOUR: the switchbacks down through the favela
   room({
-    id: RIO_ROOM.colour, cell: [5, 24], sector: 73, palette: HILL_PALETTE, paint: HILL,
+    id: RIO_ROOM.colour, cell: [5, 29], sector: 73, palette: HILL_PALETTE, paint: HILL,
     coins: HILL_COINS,
     item: { name: 'skewer2', col: HILL_SNACK[0], row: HILL_SNACK[1], sprite: RIO_SPRITE.skewer },
     decor: fillCells(HILL, HILL_COINS, [3, 12, 29, 13], 'rioShade'), // (the houses' dark ground floor over the alley, from the ladder's hole east; the snack's pocket past it is open)
@@ -423,7 +423,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // W STEAK YOUR CLAIM: the gauchos' skewers, read there and back
   room({
-    id: RIO_ROOM.steak, cell: [4, 25], sector: 74, palette: STEAK_PALETTE, paint: STEAK,
+    id: RIO_ROOM.steak, cell: [4, 30], sector: 74, palette: STEAK_PALETTE, paint: STEAK,
     coins: STEAK_COINS,
     item: { name: 'crank', col: STEAK_CRANK[0], row: STEAK_CRANK[1], sprite: RIO_SPRITE.crank },
     decor: [
@@ -434,7 +434,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // D SPY VERSUS MOLE, the Sambadrome: the showdown (the agent, the float's head, the lever, the booth)
   room({
-    id: RIO_ROOM.drum, cell: [5, 27], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
+    id: RIO_ROOM.drum, cell: [5, 32], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
     coins: DRUM_COINS,
     item: { name: 'headdress', col: DRUM_HEADDRESS[0], row: DRUM_HEADDRESS[1], sprite: RIO_SPRITE.headdress },
     decor: [['rioArch', 1, 5], ['rioFloat', 15, 10], ...[5, 6, 7, 8].flatMap((row): Placed[] => [['chain', 15, row], ['chain', 20, row]]), ['rioLever', 23, 16], ['rioBooth', 27, 2]],
@@ -444,7 +444,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
 
   // B RIO OR BUST: the beach, the finale's stage (the troupe is the room's creatures, off the beach until the finale walks them on)
   room({
-    id: RIO_ROOM.bust, cell: [5, 28], sector: 77, palette: BEACH_PALETTE, paint: BEACH,
+    id: RIO_ROOM.bust, cell: [5, 33], sector: 77, palette: BEACH_PALETTE, paint: BEACH,
     item: { name: 'bowl', col: BEACH_BOWL[0], row: BEACH_BOWL[1], sprite: RIO_SPRITE.bowl },
     decor: [
       ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['rioUmbrella', BEACH_VIEW.umbrella.col, BEACH_VIEW.umbrella.row], ['rioPole', BEACH_VIEW.pole.col, BEACH_VIEW.pole.row],

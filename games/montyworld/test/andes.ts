@@ -33,7 +33,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   const live0 = newGame(WORLD, mode === 'enhanced');
   // Moscow, Siberia, China, Japan and the Pacific done: every find of theirs is his, the lei worn
   for (let i = 0; i < live0.g.siCollected.length; i++) if (!andes(live0.g.data.specialItems[i * 4] ?? 0)) live0.g.siCollected[i] = 0x81;
-  wear(live0.g, itemIndex(live0.g, PAC.waikiki, 1));
+  wear(live0.g, itemIndex(live0.g, PAC.luau, 0));
   live0.g.siCollected[ROUNDS.plane] = 0x81; // (the flight flown: flight.ts; he comes in at the drop's top under the canopy, as the bail-out leaves him)
   enterRoom(live0.g, AND.jump, 0x0c + (6 + 4) * 4, 0x4c);
   for (let n = 0; n < 200 && (live0.g.freeze || live0.g.script); n++) frame(live0, NONE);

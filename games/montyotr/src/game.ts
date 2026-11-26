@@ -21,7 +21,7 @@ import { vineInit, vineUpdate, type VineState } from './vines';
 import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from './cablecars';
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
-import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, type PursuerState } from './pursuers';
+import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, settlePendingFinds, type PursuerState } from './pursuers';
 import { leverInit, leverUpdate } from './levers';
 import { cameoDue, cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
@@ -235,6 +235,8 @@ export class Game implements MontyBody, MontyWorld {
   skewers: SkewerState[] = [];
   /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
   pursuers: PursuerState[] = [];
+  /** Escapes made in this room that count only once he leaves it alive (pursuers.ts `settlePendingFinds`). */
+  pendingFinds: number[] = [];
   leverLatch = false;
   /** This room's cameos (cameos.ts). */
   cameos: CameoState[] = [];
@@ -308,6 +310,8 @@ export class Game implements MontyBody, MontyWorld {
     this.mem[SCREEN + at] = back;
     if (back) this.col[at] = this.backCol[at] ?? 0;
   }
+  /** Whether the room has a backdrop behind cell `at` (its index in the screen). */
+  hasBackdrop(at: number): boolean { return !!this.backChr[at]; }
   /** A character a thing drawn over the room (a vine, the lava) may cover: empty or a decoration's, not a coin's picture. */
   mayCover(chr: number): boolean { return coverable(chr) && !this.coinGlyphs.has(chr); }
 
@@ -360,6 +364,7 @@ export class Game implements MontyBody, MontyWorld {
     this.score = 0;
     this.coinCollected.fill(0);
     this.siCollected.fill(0);
+    this.pendingFinds = [];
     this.exitGrid.set(this.data.exitGrid.image);
     this.x2 = start.x2;
     this.y = start.y;
@@ -567,7 +572,9 @@ export class Game implements MontyBody, MontyWorld {
     this.savedX = this.x2;
     this.savedY = this.y;
     this.c5Arrival = Mech.c5State(this);
-    this.roomId = this.roomAt(this.mapRow, this.exitCol);
+    const next = this.roomAt(this.mapRow, this.exitCol);
+    settlePendingFinds(this, next);
+    this.roomId = next;
     this.loadRoom();
     if (this.dissolvePending) {
       this.enable |= 0x08;
@@ -587,7 +594,7 @@ export class Game implements MontyBody, MontyWorld {
   }
 
   /** Whether a rope is in any of the cells his body overlaps (as the move's own rope check looks). */
-  private onRopeHere(): boolean {
+  onRopeHere(): boolean {
     for (let r = 0; r < 3; r++) for (let c = 0; c < 2; c++) if (this.flagAt(this.montyRow + r, this.montyCol + c) === 3) return true;
     return false;
   }

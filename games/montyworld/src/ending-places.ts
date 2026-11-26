@@ -34,11 +34,14 @@ export function itemOfRoom(g: Game, room: number, nth = 0): number {
   throw new Error(`no item ${nth} in room ${room}`);
 }
 
+/** A room's place in the journey for what he has by then: its id, but Hawaii's rooms that came back after the sky's ids (87 on) count as the Pacific's (38); a find no room shows ($FF) comes last. */
+const journeyOrder = (room: number): number => (Object.values<number>(PAC).includes(room) ? PAC.ship : room);
+
 /** What he has on arriving in a region: every find of the regions before it, and the hat of the last of them (`hat` the number of hats found, 0 none). */
 export function arrivedIn(first: number, hats: number) {
   return (g: Game) => {
     const t = g.data.specialItems;
-    for (let i = 0; i * 4 < t.length; i++) if ((t[i * 4] ?? 0) < first) g.siCollected[i] = 0x81;
+    for (let i = 0; i * 4 < t.length; i++) if (journeyOrder(t[i * 4] ?? 0xff) < journeyOrder(first)) g.siCollected[i] = 0x81;
     const hat = HATS[hats - 1];
     if (hat !== undefined) wear(g, itemOfRoom(g, hat.room, hat.nth));
   };
@@ -62,9 +65,9 @@ export const PLACES: readonly Place[] = [
   { room: CHI.wall, prepare: arrivedIn(FIRST.china, 1), take: { coins: 1 }, credits: ['THE GREAT WALL RUNS 21196 KM', 'IN ALL, BRANCHES AND SPURS TOO'] },
   // Japan: the temple garden
   { room: JP.garden, prepare: arrivedIn(FIRST.japan, 2), take: { coins: 1 }, credits: ['THE SHINKANSEN RUNS UP TO', '320 KM AN HOUR'] },
-  // the Pacific: the luau's torches on the hotel's lawn, and the lava climb at Hilo
-  { room: PAC.waikiki, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
-  { room: PAC.hilo, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
+  // the Pacific: the luau's torches and its hula show, and Mauna Kea's summit under the stars
+  { room: PAC.luau, prepare: arrivedIn(FIRST.pacific, 3), take: { coins: 1 }, credits: ['HAWAII HAS EIGHT MAIN ISLANDS'] },
+  { room: PAC.summit, prepare: arrivedIn(FIRST.pacific, 4), take: { coins: 1 }, credits: ['MAUNA KEA STANDS 4207 M HIGH'] },
   // the Andes: the parachute drop, Machu Picchu's boulders, the rainforest's vines
   { room: AND.jump, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
   { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },

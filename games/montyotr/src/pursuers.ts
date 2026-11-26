@@ -54,11 +54,22 @@ export function pursuerAt(g: Game): { x2: number; y: number } | null {
   return p ? { x2: p.x2, y: p.y } : null;
 }
 
-/** He is escaped: the find taken (the room's effects read it), and how he goes. */
+/**
+ * He is escaped, and how he goes. Squashed, the find is taken at once (the room's effects read it: the Sambadrome's bars lift). Knocked off, he goes at once but the find waits for Monty to leave
+ * the room alive (`pendingFinds`, taken or dropped by `settlePendingFinds` as the next room loads): a death in the room before that restarts it with him chasing again, so a death never counts as an
+ * escape (Chris, 2026-11-25: chased on the ship after two deaths, not after the third, which had come after an unseen knock).
+ */
 function escape(g: Game, p: PursuerState, e: PursuerSpec, how: 'knocked' | 'split') {
   p.gone = how; p.t = 0; p.gx = p.x2; p.gy = p.y;
-  g.siCollected[e.until] = 0x81;
+  if (how === 'split') g.siCollected[e.until] = 0x81;
+  else if (!g.pendingFinds.includes(e.until)) g.pendingFinds.push(e.until);
   g.sfx(how === 'split' ? g.data.eventSfx[0] ?? g.data.sfx.item : g.data.sfx.jump);
+}
+
+/** A room is being left for room `next`: the escapes waiting on it are taken if he leaves for another room (alive), dropped if the same room loads again (a death's restart). */
+export function settlePendingFinds(g: Game, next: number) {
+  if (next !== g.roomId) for (const find of g.pendingFinds) g.siCollected[find] = 0x81;
+  g.pendingFinds = [];
 }
 
 /** The head came down on him: the four-way split. */

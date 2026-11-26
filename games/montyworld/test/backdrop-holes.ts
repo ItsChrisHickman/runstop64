@@ -1,14 +1,14 @@
 /**
  * No hole in a backdrop: in every room of every region, a coin taken, a cell an item's effect clears (a gate, a barrier, a sign) and cracked ice that has gone leave the cell
  * showing what the room's backdrop has there (a sky, a sea: the decorations of a backdrop type, derived here from the room's own list), never black unless the backdrop is
- * black there. A coin on a backdrop is drawn over it (its picture in the cell with the backdrop's, not a black box).
+ * black there, and in the backdrop's colour after a turn of the coins' colour cycle (it does not flash). A coin on a backdrop is drawn over it (its picture in the cell with the backdrop's, not a black box).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-holes.ts [--room <rooms>]
  */
 import { decorPool } from '../../montyotr/src/decor-chars';
 import { ROW, SCREEN } from '../../montyotr/src/game';
 import { crackUpdate } from '../../montyotr/src/cracks';
-import { applyRoomEffects, collectCoin } from '../../montyotr/src/items';
+import { animateCharacters, applyRoomEffects, collectCoin } from '../../montyotr/src/items';
 import type { Game } from '../../montyotr/src/game';
 import { COIN_CHAR, PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
@@ -70,6 +70,7 @@ for (const room of SCOPE.keep(roomsOf(WORLD))) {
       collectCoin(g);
       if (g.coinCollected[e.index] === before) { wrong.push(`coin ${where(room, at)} cannot be taken from where it is`); continue; }
       coins++;
+      for (let n = 0; n < 11; n++) animateCharacters(g); // (a whole turn of the coins' colour cycle: the taken coin's cell keeps the backdrop's colour, no flashing patch where it was: SAYONARA SAILOR)
       if (showsBackdrop(g, room, at, back, 'a taken coin at')) coinsOnBackdrop++;
     }
   }

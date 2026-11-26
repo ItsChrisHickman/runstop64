@@ -14,7 +14,7 @@ import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
 import { shaftOver, underHead } from '../../montyotr/src/levers';
 import { encounterState } from '../../montyotr/src/pursuers';
-import { frame, NONE, type State } from '../../montyotr/test/play';
+import { copy, frame, NONE, type State } from '../../montyotr/test/play';
 import type { Input as Stick } from '../../montyotr/src/game';
 import { check, finish } from '../../shared/test/check';
 import fs from 'node:fs';
@@ -25,6 +25,7 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { search } from './search';
 import { WORLD } from '../src/data';
 import { RIO_ROOM as R } from '../src/rio';
+import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
 import { CLOSET, SIB } from '../src/siberia';
 import { colOf, dead, LEFT, RIGHT, rowText } from './mech-kit';
@@ -177,7 +178,10 @@ const ESCAPES = [
 ] as const;
 for (const esc of ESCAPES) {
   const chase = must(WORLD.pursuers.find((p) => p.room === esc.room), `Viktor in room ${esc.room}`);
-  const gone = (g: Game) => !!g.siCollected[chase.until];
+  /** Escaped in this room: knocked off, the find waiting for him to leave the room alive (`pendingFinds`), or taken. */
+  const gone = (g: Game) => !!g.siCollected[chase.until] || g.pendingFinds.includes(chase.until);
+  /** Another room to leave for (the one before it: the dining car, Japan's port). */
+  const away = esc.room === PAC.ship ? JP.port : SIB.gravy;
   for (const enhanced of [false, true]) {
     const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
     for (const delay of [0, 23, 51, 90]) {
@@ -200,7 +204,14 @@ for (const esc of ESCAPES) {
       }
       check(`${mode}, in ${delay} frames before he moves (room ${esc.room}): there is a way to ${esc.what} (${found ? found.nodes : 'no way'})`, !!end && gone(end.g) && !dead(end.g));
       if (end) {
-        // gone from the room for good: a save and the room again
+        // knocked off, then a death in the room (the room again from itself): the escape is not taken, and he chases again
+        const died = copy(end.g);
+        died.respawn(true);
+        for (let n = 0; n < 20 && (n === 0 || died.freeze || died.script); n++) died.frame(0);
+        check(`${mode}: knocked off, then a death in room ${esc.room} before leaving it: he is back after the restart, the escape not counted`, died.roomId === esc.room && died.pursuers.length === 1 && !died.siCollected[chase.until] && encounterState(died).escaped[WORLD.pursuers.indexOf(chase)] === false);
+        // knocked off, then out of the room alive: gone from it for good (a save and the room again)
+        enterRoom(end.g, away, 0x0c + (28 + 4) * 4, standY(esc.at.floor));
+        check(`${mode}: knocked off, then out of room ${esc.room} alive: the escape is taken`, !!end.g.siCollected[chase.until] && end.g.pendingFinds.length === 0);
         const again = newGame(WORLD, enhanced);
         restore(again.g, snapshot(end.g));
         enterRoom(again.g, esc.room, 0x0c + (esc.at.col + 4) * 4, standY(esc.at.floor));
