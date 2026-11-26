@@ -523,7 +523,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS, ...crowdCells(BEAT_CROWD.cols, BEAT_CROWD.rows)], [8, 2, 31, 8], 'rioTiers'),
       ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS], [12, 9, 31, 17], 'rioTiers'),
       ...crowdRows(BEAT_CROWD.cols, BEAT_CROWD.rows),
-      ...[0, 4, 8, 12, 16, 20, 24, 28].map((col): Placed => ['bunting', col, 0]), ['rioBalloons', 5, 3], ['rioBalloons', 1, 1],
+      ...[-4, 0, 4, 8, 12, 16, 20, 24, 28, 32].map((col): Placed => ['bunting', col, 0]) /* (out past the playfield to the screen's edges, in step) */, ['rioBalloons', 5, 3], ['rioBalloons', 1, 1],
     ],
     creatures: [
       { who: 'drummer', col: 20, row: 6, way: 'down', speed: 1, range: 32 },

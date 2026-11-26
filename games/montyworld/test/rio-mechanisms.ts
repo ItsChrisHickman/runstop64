@@ -31,7 +31,7 @@ import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, r
 import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 
-const CRANK = [R.float, 0] as const, HEADDRESS = [R.drum, 0] as const;
+const CRANK = [R.float, 0] as const, HEADDRESS = [R.drum, 0] as const, MACHETE = [AND.boat, 0] as const; // (the machete is on THE RIVER QUEEN's top deck)
 const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WORLD.pursuers.find((p) => p.room === R.drum), 'the agent');
 
 // ---- the data -------------------------------------------------------------------------------------
@@ -249,13 +249,13 @@ SCOPE.section([R.drum, R.float, R.steak], 'the costume, the hints', () => {
 SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the joins, the one-way drop, the gates', () => {
   const reach = (from: State, aims: readonly { room: number; col: number; row: number }[], goal: (g: Game) => boolean, limit = 150000) => search(from, (g) => goal(g) && !g.freeze && !g.script, aims, limit, 1.5) !== null;
   SCOPE.section([AND.kapok, R.arms, AND.canopy, AND.roots, R.colour], 'the kapok and Corcovado join both ways', () => {
-    check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [[AND.kapok, 0]]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [[AND.kapok, 0]]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
+    check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [MACHETE]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [MACHETE]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
   });
   SCOPE.section([R.arms, R.colour, AND.kapok], 'Corcovado east into the favela', () => {
     check('Corcovado\'s east hand steps down onto the forest\'s slope and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
   });
   SCOPE.section([R.arms, AND.kapok, R.colour], 'Corcovado forest floor back to the canopy', () => {
-    check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [[AND.kapok, 0]]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
+    check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [MACHETE]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
   });
   SCOPE.section([R.colour, R.arms, R.lap], 'the favela light well', () => {
     check('the favela\'s light well is crossed by a jump from roof to roof, and a fall into it is climbed out of (no trap)', reach(at(R.colour, 8, 8), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16)

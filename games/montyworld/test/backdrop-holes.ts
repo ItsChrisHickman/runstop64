@@ -10,7 +10,7 @@ import { decorPool } from '../../montyotr/src/decor-chars';
 import { roomDecorTypes } from '../../shared/monty/rooms';
 import { ROW, SCREEN } from '../../montyotr/src/game';
 import { crackUpdate } from '../../montyotr/src/cracks';
-import { animateCharacters, applyRoomEffects, collectCoin } from '../../montyotr/src/items';
+import { animateCharacters, applyRoomEffects, collectCoin, useOnTheSpot } from '../../montyotr/src/items';
 import type { Game } from '../../montyotr/src/game';
 import { COIN_CHAR, PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
 import { check, finish } from '../../shared/test/check';
@@ -104,6 +104,8 @@ for (const room of SCOPE.keep(roomsOf(WORLD))) {
       else if ('noKit' in c) g.roomItemActive[c.noKit] = 0;
     }
     applyRoomEffects(g);
+    // (an item used on the spot gives way only with him in its box: stood there, as he brings it: the kapok's tangle)
+    if (e.at) { g.x2 = 0x0c + e.at.col * 4; g.y = 0x32 + e.at.row * 8; useOnTheSpot(g); }
     // (a cell another effect of the room fills again, a rope through a gate, is not cleared)
     const placed = new Set(WORLD.roomEffects.filter((o) => o.room === room).flatMap((o) => (o.place?.cells ?? []).map(([row, col]) => row * ROW + col)));
     for (const [row, col] of e.clear) {
