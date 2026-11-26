@@ -297,7 +297,7 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
 
 // ---- the hidden garden's stones ------------------------------------------------------------------------------
 /** THE LAST MOLE's stepping stones (two cells each, their floor row), east to west from the rope: two rows up, down, up, then down over three cells of water, the last stone by the shrine (on row 14, under its plinth and the bonsai shelf) and the bank. */
-export const MOLE_STONES: readonly (readonly [col: number, floor: number])[] = [[24, 14], [20, 12], [16, 14], [12, 12], [7, 14], [4, 14]];
+export const MOLE_STONES: readonly (readonly [col: number, floor: number, cols: number])[] = [[25, 14, 2], [19, 12, 2], [13, 14, 2], [7, 14, 2], [4, 14, 2]];
 
 // ---- the port ----------------------------------------------------------------------------------------------
 /** The port's tiles: the container stack at the left, the quay, the rope down from the hall and a short crane arm over its top, the container stair, the gangway's plank, the ship's hull and deck. */
@@ -471,7 +471,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K'); // (the night sky open above; a garden wall at the right)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
-      for (const [c, r] of MOLE_STONES) g.box(c, r, c + 1, r, 'S'); // the stones
+      for (const [c, r, w] of MOLE_STONES) g.box(c, r, c + w - 1, r, 'S'); // the stones
       g.box(1, 10, 8, 10, 'T'); // the bonsai shelf
       g.box(10, 6, 12, 6, 'S').box(16, 6, 18, 6, 'S').box(14, 6, 14, 13, 'R'); // a high ledge, split at the middle for the bamboo rope that climbs to it from the stones
     },
@@ -479,8 +479,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     item: { name: 'hood', col: 1, row: 12, sprite: JAPAN_SPRITE.hood },
     decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
     creatures: [
-      { who: 'jpKoi', col: 18, row: 17, way: 'up', speed: 2, range: 20 },
-      { who: 'jpKoi', col: 9, row: 15, way: 'down', speed: 2, range: 20 }, // (out of step with the first: one leaps as the other dives)
+      { who: 'jpKoi', col: 22, row: 17, way: 'up', speed: 2, range: 20 }, // (leaps out of the water across the first stones' jump)
+      { who: 'jpKoi', col: 10, row: 12, way: 'down', speed: 2, range: 20 }, // (across the third: out of step with the first, it leaps as that one dives)
       { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
     ],
   }),
