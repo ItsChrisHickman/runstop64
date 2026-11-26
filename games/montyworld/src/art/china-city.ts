@@ -91,7 +91,7 @@ function slateCell(): NewDecor {
   return decor('slateCell', 1, 1, r, 15);
 }
 
-/** The city beyond the market, far off in a blue haze: tiled roofs of three heights, a pagoda between them, solid with the tiles' lines cut in. 8 x 3 characters. */
+/** The city beyond the market, far off: grey tiled roofs of three heights on red walls, a pagoda between them, solid with the tiles' lines cut in (in their own colours: a dark-blue haze muted them). 8 x 3 characters. */
 function cityRoofs(): NewDecor {
   const r = new Raster(64, 24);
   swept(r, 0, 23, 10, 17, 3); r.rect(3, 18, 20, 23); // a low roof on its wall
@@ -99,7 +99,7 @@ function cityRoofs(): NewDecor {
   swept(r, 25, 34, 5, 9, 2); r.rect(27, 10, 32, 15); swept(r, 23, 36, 14, 18, 2); r.rect(25, 19, 34, 23); // its two tiers
   swept(r, 39, 63, 12, 19, 3); r.rect(42, 20, 60, 23); // a broad roof
   for (const x of [6, 12, 18, 44, 51, 57]) r.rect(x, 20, x, 23, false); // the walls' doorways
-  return decor('cityRoofs', 8, 3, r, 6);
+  return decor('cityRoofs', 8, 3, r, ['CCCCCCCC', 'CCCCCCCC', '22222222']);
 }
 
 export const CITY_DECOR = { backCell: backCell(), slateCell: slateCell(),  hutongGate: hutongGate(), noodleStall: noodleStall(), gateRoof: gateRoof(), palaceHall: palaceHall(), roofEnd: roofEnd(), cityRoofs: cityRoofs() } as const satisfies Record<string, NewDecor>;

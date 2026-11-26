@@ -84,15 +84,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
   siberia: {
     [SIB.taiga]: 'a snow-dotted texture tiled across the hillside behind the pines',
   },
-  china: {
-    [CHI.alley]: 'a brick texture filling the room behind the stalls and signs',
-    [CHI.tower]: 'a blue brick wall tiled behind the play (an interior: wallpaper)',
-    [CHI.market]: 'a brick wall texture behind the stalls',
-    [CHI.roofs]: 'brick and stripe walls tiled below the band; its dark-blue horizon mutes it',
-    [CHI.willow]: 'the blue lattice along the top: a ceiling outdoors',
-    [CHI.heaven]: 'a red brick wall tiled behind the pagoda, stripes running down behind it',
-    [CHI.houhai]: 'red stripes tiled behind the pavilion and the willow',
-  },
+  china: {},
   japan: {
     [JP.port]: 'sky stripes running down behind the play, a brick texture up its left side, the sea pattern joined to them',
   },
