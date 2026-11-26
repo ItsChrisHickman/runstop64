@@ -55,6 +55,12 @@ most care; the reward show and the title show them off.
   the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
   play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
   rooftops, not under a picture of them).
+- **Backgrounds live on the horizon only** (Chris, 2026-11-26: "Monty on the Run really did not have any backgrounds... The
+  backgrounds only live on the horizon. It keeps the playing field clean and makes us focus on design of levels"). Black is the
+  default behind the play. A room gets a backdrop only where it tells the place, and then only as a horizon band along the top
+  (a skyline, a mountain or island silhouette, a sunset) in one or two dark colours; nothing behind the floors, ropes, ladders
+  and creatures where Monty moves. Many rooms stay plain black. The set pieces keep theirs (the train's passing scenery, the
+  summit's night sky, the beach finale). A test measures it (backdrop cells in the play area, backdrop colours per room).
 - **No words on the scenery** (Chris, 2026-11-25: "words on the screen feels like such an AI thing. This is what the thing is.
   Feels forced"). No banners, signs or labels that name what a picture shows (SAMBA, CARNAVAL, MAUNA KEA, HILO): the drawing says
   it, the room's name on the name line says the rest. Lettering only where the place really has it and it reads as part of the
