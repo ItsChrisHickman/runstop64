@@ -280,7 +280,17 @@ The canopy runs west along the top, the river east along the bottom: Monty on th
 Every Amazon room has its own name now (the sewer-style shared name goes). The piranha fix is proved by the bot starting
 at the roots' west edge, not by a run-up from the river.
 
-**Not proposed back:** MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN, THE RIVER ENDS.
+**Bonus rooms, and the old rooms back as them** (Chris, 2026-11-25: "I believe that there's an opportunity in the Amazon too";
+bonus rooms off the path are "an opportunity to try some new things and add some fun challenges"). The "not proposed back" list
+is withdrawn: the old Amazon rooms MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN and THE RIVER ENDS come
+back from git (`44ea872`), on the U where they fit the route, or as **bonus rooms off it** (not needed to finish, a striking
+backdrop of the place like HEAVEN CAN WAIT, a challenge that tries something new with the existing mechanics, a coin or two
+where the challenge ends). Natural ones: the river boat (THE RIVER QUEEN) moored off the river lane, the waterfall in the mist
+(MIST OPPORTUNITY) off the cloud forest, the Inca tunnel as a hidden way between the Andes and the canopy. Any opening in the
+Amazon that would lead nowhere gets a bonus room, never a wall.
+**The Amazon's puzzle crosses its two lanes** (the bar is Moscow's opening and the Big Island's loop above): an item found on
+the river lane opens the way on the canopy, or the reverse (e.g. the machete cut on the canopy drops a liana to a river
+pocket; something from the boat is what the canopy's gate wants), each key in a dead end or a doubling back, the gate seen first.
 
 ### Rio: down into the city, through the carnival, then the showdown
 
