@@ -3,6 +3,7 @@ import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import type { WorldDecor } from './art/world';
 import { BOULDER_POINTERS } from './andes-pointers';
 import { BUBBLE_FRAMES, SPLASH_FRAMES, STREAK_FRAMES } from './art/pacific-falls';
+import { HULA_FRAMES } from './art/pacific-islands';
 import { codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
 
 /**
@@ -205,6 +206,8 @@ export const FALLS_ANIMS: readonly CharAnim[] = [PAC.road, PAC.cave, PAC.falls].
     { kind: 'cycle', room, chars: cells(8, 9), frames: SPLASH_FRAMES, every: 2 },
   ];
 });
+/** The line of hula dancers behind the luau's stage dances (the plan: "swaying on the beat"; Chris, 2026-11-25: "not enough hula"): the decoration's six characters take the hula's four pictures, a beat each (12 steps, 24 frames). */
+export const HULA_ANIM: CharAnim = { kind: 'cycle', room: PAC.luau, chars: [0, 1, 2, 3, 4, 5].map((cell) => ({ decor: decorIndex('pacHulaDancer'), cell })), frames: HULA_FRAMES, every: 12 };
 /** The bubbles rise in every swim room (a `charAnims` cycle over the decoration's two characters: the rings climb 2 pixels a step and come round again at the foot). */
 export const BUBBLE_ANIMS: readonly CharAnim[] = SWIM_ROOMS.map((room): CharAnim => ({
   kind: 'cycle', room, chars: [0, 1].map((cell) => ({ decor: decorIndex('pacBubbles'), cell })), frames: BUBBLE_FRAMES, every: 1,
@@ -439,9 +442,9 @@ const paintKona = (g: Grid): void => {
   g.box(0, 0, 1, 14, 'B'); // the lava cliff where the sea comes in (in from the swim, low)
   g.box(0, 19, 5, 19, 'K').box(9, 19, 14, 19, 'K').box(18, 19, 31, 19, 'K'); // the black sand, the lava tube's mouth (cols 6-8), the tide pool's (cols 15-17)
   g.box(15, 19, 17, 19, 'W'); // the tide pool
-  g.box(7, 0, 7, 18, 'R'); // the rope down the lava tube to Mauna Loa
+  g.box(7, 14, 7, 19, 'R'); // the rope down the lava tube to Mauna Loa (hanging from the tube's lip into the hole: it went on up into the sky, and up it led to Mauna Kea's foot with no rope there)
   g.box(20, 17, 22, 18, 'B').box(23, 15, 25, 18, 'B'); // the lava rock stepping up from the beach
-  g.box(28, 1, 28, 17, 'R'); // the rope up the mountain's flank to Mauna Kea
+  g.box(28, 0, 28, 17, 'R'); // the rope up the mountain's flank to Mauna Kea (on up into the room above, where it goes on)
 };
 const KONA_COINS = [[24, 13], [16, 16]] as const;
 
@@ -702,7 +705,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.kona, cell: [3, 22], sector: 90, palette: KONA_PALETTE,
     paint: paintKona,
     coins: KONA_COINS,
-    decor: [['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], [{ text: 'MAUNA LOA', colour: 8 }, 3, 15], [{ text: 'MAUNA KEA', colour: 2 }, 19, 3], ['pacLavaRocks', 29, 18]],
+    decor: [...sunset(paintKona, KONA_COINS, { purple: 1, red: 3, orange: 5, gold: 6, sea: 8 }), ['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], [{ text: 'MAUNA LOA', colour: 8 }, 3, 12], [{ text: 'MAUNA KEA', colour: 2 }, 18, 10], ['pacLavaRocks', 29, 18]],
     creatures: [{ who: 'pacCrab', col: 19, row: 17, way: 'right', speed: 1, range: 40 }],
   }),
 
@@ -754,7 +757,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: LOA_COINS,
     item: { name: 'moon rock', col: MOON_ROCK_AT.col, row: MOON_ROCK_AT.row, sprite: PAC_SPRITE.moonRock },
     decor: [['pacLavaRocks', 3, 18]],
-    creatures: [{ who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 1 }],
+    creatures: [{ who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 8 }], // (orange, molten: white read as a ghost; it differs from the lava's red and crest's yellow and the steam's white)
   }),
 
   // COFFEE BREAK: Hilo's coffee farm on the slope below the town (COFFEE BREAK's coffee). In from Mauna Loa's rim onto the top terrace (floor 5), down the terraces between the coffee rows, the sack of beans
@@ -778,7 +781,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.hilo, cell: [3, 23], sector: 53, palette: HILO_PALETTE,
     paint: paintHilo,
     coins: HILO_COINS,
-    decor: [...storefronts, [{ text: 'HILO', colour: 7 }, 6, 14], ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]],
+    decor: [...sunset(paintHilo, HILO_COINS, { purple: 1, red: 3, orange: 5, gold: 6, sea: 8 }), ...storefronts, [{ text: 'HILO', colour: 7 }, 6, 14], ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
     creatures: [{ who: 'pacRooster', col: 15, row: 17, way: 'right', speed: 1, range: 24 }],
   }),
 ];

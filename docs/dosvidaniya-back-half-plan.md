@@ -234,8 +234,10 @@ every join goes both ways (stone steps up the coffee terraces, ropes from Hilo's
 Akaka Falls is crossed twice at two heights, the high trail from Mauna Kea's third switchback and the low lane from Hilo's roofs to Mauna Kea's foot, sealed by the gorge. The moon rock borrows a
 boulder's sprite block in Mauna Loa only (the bank is full), so it is not one of the map's key items. The coffee farm's magma blob became a nene (no lava off the volcano). New ids start at 87 (China's return took 82; 83-86 stay the plan's). Decisions taken from this plan's
 recommendations: the story's route over the table (Molokai is the first swim's backdrop and banner, not a land room; PIER PRESSURE, MOLE-OKAI, BOX CLEVER, STERN WARNING
-and the cargo hold stay out); the escape counts on leaving the room alive (knocks only: SPY VERSUS MOLE's squash still counts at once, its bars read it). Not yet: the
-humpback (the harbour has no whale now; a big creature needs its art) and the luau's line of dancers swaying on the beat (they stand). A swim room is left upward only up
+and the cargo hold stay out); the escape counts on leaving the room alive (knocks only: SPY VERSUS MOLE's squash still counts at once, its bars read it). THE SEA CAVE is the region's bonus room off the route (Chris on bonus rooms: "an opportunity to try some new things and add some fun challenges"): under its cavern an old lava tube
+drains out in sets past two loose stalactites (icicles in the rock's grey), so a set that catches him past one carries him back under it as it falls; the alcove halfway (a coin) and the still pocket at
+the end (the musubi) are the shelters. The luau's line of hula dancers sways on the beat (a character cycle). Kona's rope down the lava tube no longer runs up into the sky (it led to Mauna Kea's foot with
+no rope there); Kona has the west coast's sunset over the sea. Not yet: the humpback (the harbour has no whale now; a big creature needs sprite blocks, and the bank is full: Chris's call). A swim room is left upward only up
 a rope through its surface (swim.ts), so Lahaina's mooring rope, the road's pool and Hana's cove work both ways. Saves are format 3 (`save-format2.ts`, `fromFormat`).
 The sky, the Andes and Rio moved five columns east (column 24 is the flight's gap).
 

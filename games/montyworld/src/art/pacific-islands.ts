@@ -6,7 +6,7 @@
  * the eel, the manta, the tiki and the surfer. They come after every region's art (world.ts), so no piece of the shipped regions moves. Names start `pac`, as the rest of the Pacific's.
  */
 import { decor } from './decorations';
-import { creatureBank, mirrored, shifted } from './pixels';
+import { characters, creatureBank, mirrored, shifted } from './pixels';
 import { splashRows, streakRows } from './pacific-falls';
 import { limb, over, Raster } from './raster';
 import { tile } from './tiles';
@@ -349,17 +349,27 @@ function umbrella(): NewDecor {
   return decor('pacUmbrella', 3, 2, r, ['222', '999']);
 }
 
-/** A hula dancer, seen from the side: a flower in the hair, a lei, one arm up and one out, a grass skirt of fringes. 2 x 3 characters. */
-function hulaDancer(): NewDecor {
+/**
+ * A hula dancer, seen from the side: a flower in the hair, a lei, one arm up and one out, a grass skirt of fringes. 2 x 3 characters. `sway` (-1, 0, 1) is her hips and skirt swung back, upright or
+ * forward, the arms flowing the other way: the line behind the luau's stage dances the hula on the beat (`HULA_FRAMES`, a `charAnims` cycle in pacific.ts).
+ */
+export function hulaRows(sway: -1 | 0 | 1): string[] {
   const r = new Raster(16, 24);
   r.disc(8, 4, 2.6); r.rect(5, 1, 6, 2); r.rect(6, 0, 7, 0); // head and the flower
   r.rect(6, 7, 9, 12); r.rect(5, 8, 10, 8, false); // body, the lei
-  r.line(6, 8, 2, 3); r.line(5, 8, 1, 3); r.line(9, 9, 14, 11); r.line(9, 10, 14, 12); // the arms
-  r.rect(4, 12, 11, 13); // the waistband
-  for (let x = 4; x <= 11; x += 2) { r.rect(x, 14, x, 22); r.rect(x + 1, 14, x + 1, 20); }
-  r.rect(7, 14, 7, 22, false);
+  r.line(6, 8, 2, 3 - sway); r.line(5, 8, 1, 3 - sway); r.line(9, 9, 14, 11 + sway); r.line(9, 10, 14, 12 + sway); // the arms, flowing against the hips
+  r.rect(4 + sway, 12, 11 + sway, 13); // the waistband, swung with the hips
+  for (let x = 4; x <= 11; x += 2) { const s = x + sway * 2; r.rect(s, 14, s, 22); r.rect(s + 1, 14, s + 1, 20); } // the skirt's fringes, swinging further than the hips
+  r.rect(7 + sway * 2, 14, 7 + sway * 2, 22, false);
+  return r.rows();
+}
+function hulaDancer(): NewDecor {
+  const r = new Raster(16, 24);
+  hulaRows(0).forEach((row, y) => [...row].forEach((c, x) => { if (c !== '.' && c !== ' ') r.set(x, y); }));
   return decor('pacHulaDancer', 2, 3, r, ['dd', 'dd', '55']);
 }
+/** The hula's four pictures, a beat each: swung back, upright, forward, upright (the dancer's six characters each). */
+export const HULA_FRAMES: readonly Uint8Array[] = ([-1, 0, 1, 0] as const).map((sway, i) => characters(`hula ${i}`, hulaRows(sway), 2, 3));
 
 /** A drummer sitting behind his drum: head, shoulders and a drum between his knees, a hand raised. 2 x 2 characters. */
 function drummer(): NewDecor {
