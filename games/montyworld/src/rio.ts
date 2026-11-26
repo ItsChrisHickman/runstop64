@@ -1,46 +1,50 @@
-import type { CableCarSpec, CharAnim, FloatSpec, LeverSpec, PursuerSpec, RollerSpec, SkewerSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, FloatSpec, LeverSpec, PursuerSpec, RollerSpec, SkewerSpec } from '../../montyotr/src/montydata';
 import { BOULDER_POINTERS } from './andes-pointers';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { GRILL_ANIM, RIO_DECOR } from './art/rio-decor';
-import { FLOAT_DANCERS } from './art/rio-streets';
+import { CROWD_DANCE, FLOAT_DANCERS } from './art/rio-streets';
 import { SKEWER_POSES } from './art/rio-items';
 import type { WorldDecor } from './art/world';
 import { asBackdrop, codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
-import { CAR_POINTERS, RIO_SPRITE, SKEWER_POINTERS, SPLIT_POINTERS } from './rio-pointers';
+import { RIO_SPRITE, SKEWER_POINTERS, SPLIT_POINTERS } from './rio-pointers';
 
 /**
- * Rio, the seventh and last region of Do Svidaniya Monty (docs/dosvidaniya-reset.md, "Rio (the last level)"): six rooms and the beach, at night on black, in a block at columns 23-28 of the exit grid (rows 4-5), entered from the
- * Amazon's kapok (the Andes' [5,22]: off the crown's branch, floor 8) and ending on the beach, where the game ends.
+ * Rio, the seventh and last region of Do Svidaniya Monty (docs/dosvidaniya-back-half-plan.md, "Rio: down into the city, through the carnival, then the showdown"): the final rush downhill, at night on black, in a
+ * block at columns 23-29 of the exit grid (rows 4-5), entered from the Amazon's kapok (the Andes' [5,22]: off the crown's branch, floor 8) and ending on the beach, where the game ends.
  *
- *            col 23             24                  25                   26              27                 28
+ *            col 23             24                  25                   26               27                 28                 29
  *   row 4                                         W STEAK YOUR CLAIM
- *   row 5   C OPEN ARMS        F HOUSE OF COLOUR   L THE LAPA ARCHES    S SUGAR RUSH    D SPY VERSUS MOLE  B RIO OR BUST
+ *   row 5   C OPEN ARMS        F HOUSE OF COLOUR   L THE LAPA ARCHES    P BEAT THE DRUM   Q FLOAT YOUR BOAT  D SPY VERSUS MOLE  B RIO OR BUST
  *
- * The route: up the Redeemer and off his east hand (C); down through the favela, the region's tightest room (F); along Lapa's street under the arches, the tram's track high above and out of reach (L); the cable car's winch
- * dead behind its bars at Sugarloaf's foot (S); up the climbers' rope and west onto the track, across its gap on the tram, up the ladder into the churrascaria at the top of the arches, past the gauchos' skewers to the
- * spit's crank and back past them (W); down through the gap to the street (one way) and back to Sugarloaf, where the crank works the winch: the car up to the top station (S); the showdown in the Sambadrome, the agent on
- * his trail (D); and the beach (B). The crank is used twice: the winch, then the Sambadrome's control booth, which makes the float's lever live.
+ * The route: up the Redeemer and off his east hand (C); down through the favela (F); along Lapa's street under the arches, the tram's track high above (L); on into the carnival's street, where the Selaron steps
+ * climb from the street to the aqueduct's end (P); up them and west onto Lapa's track, across its gap on the tram, up the ladder into the churrascaria at the top of the arches, past the gauchos' skewers to the
+ * spit's crank and back past them (W); down through the gap to the street (one way) and east again into the carnival: over the bateria's risers past the dancers (P), across the canal on the parade's floats (Q),
+ * the showdown in the Sambadrome, the agent on his trail (D), where the crank fits the control booth and makes the float's lever live; and the beach (B). SUGAR RUSH (69) and its cable car were cut (Chris,
+ * 2026-11-25: "the Sugar thing... that's a wasted effort"); its coin is Lapa's third, at the same place in the tables.
  *
- * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). Each room is painted from its rows of palette letters ('.' empty). The tram (floats.ts, over the track's gap), the
- * cable car (cablecars.ts), the gauchos' skewers (skewers.ts), the stones falling from Lapa's broken span (rollers.ts), the agent (pursuers.ts) and the float's lever and its held head (levers.ts, mechanisms.ts) are data of the engine.
+ * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). Each room is painted from its rows of palette letters ('.' empty). The tram and the carnival's floats
+ * (floats.ts), the gauchos' skewers (skewers.ts), the stones falling from Lapa's broken span (rollers.ts), the agent (pursuers.ts) and the float's lever and its held head (levers.ts, mechanisms.ts) are data of the engine.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /**
- * Room ids never change once a region has shipped (the tables are built by id). The rebuild keeps 68, 69, 71, 73, 74, 75 and 77; 67 (QUAY TO THE CITY), 70 (SUGARLOAF SUMMIT), 72 (MONKEY BUSINESS) and 76 (FLOAT YOUR BOAT)
- * are retired (save-migrate.ts carries a save in one on in a kept room).
+ * Room ids never change once a region has shipped (the tables are built by id). The rebuild keeps 68, 71, 73, 74, 75 and 77; the carnival's two rooms came back as 70 (BEAT THE DRUM, in the place of
+ * SUGARLOAF SUMMIT's retired id: no other region's later ids move) and 76 (FLOAT YOUR BOAT, its own id), last in the tables (data.ts `ADDED`); 67 (QUAY TO THE CITY), 69 (SUGAR RUSH, cut 2026-11-25) and 72
+ * (MONKEY BUSINESS) are retired (save-migrate.ts carries a save in one on in a kept room).
  */
-export const RIO_ROOM = { lap: 68, sugar: 69, beat: 70, arms: 71, colour: 73, steak: 74, drum: 75, float: 76, bust: 77 } as const;
+export const RIO_ROOM = { lap: 68, beat: 70, arms: 71, colour: 73, steak: 74, drum: 75, float: 76, bust: 77 } as const;
+/** SUGAR RUSH's id (69), cut: no room has it now; save-migrate.ts carries a save made there on in Lapa. */
+export const SUGAR_RUSH_CUT = 69;
 /** The first room of the region (the way in from the Amazon). */
 export const RIO_FIRST = RIO_ROOM.arms;
 /** Whether a room is one of Rio's (its ids run 67-77, the retired ones among them). */
 export const isRio = (room: number): boolean => room >= 67 && room <= 77;
 
 /** The sectors' names by their place from 67 (as the ids: the retired rooms' places are empty, so no later sector moves). */
-const NAMES = ['', 'THE LAPA ARCHES', 'SUGAR RUSH', 'BEAT THE DRUM', 'OPEN ARMS', '', 'HOUSE OF COLOUR', 'STEAK YOUR CLAIM', 'SPY VERSUS MOLE', 'FLOAT YOUR BOAT', 'RIO OR BUST'] as const;
+const NAMES = ['', 'THE LAPA ARCHES', '', 'BEAT THE DRUM', 'OPEN ARMS', '', 'HOUSE OF COLOUR', 'STEAK YOUR CLAIM', 'SPY VERSUS MOLE', 'FLOAT YOUR BOAT', 'RIO OR BUST'] as const;
 export const RIO_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
-/** The map's colour of each (Lapa's white, Sugarloaf's blue, the Redeemer's white, the favela's pink, the restaurant's red, the carnival's yellow, the beach's sand; the retired rooms' unused). */
-export const RIO_COLOURS: readonly number[] = [0, 1, 14, 10, 1, 0, 10, 2, 7, 13, 8];
+/** The map's colour of each (Lapa's white, the drum's pink, the Redeemer's white, the favela's pink, the restaurant's red, the carnival's yellow and green, the beach's sand; the retired rooms' unused). */
+export const RIO_COLOURS: readonly number[] = [0, 1, 0, 10, 1, 0, 10, 2, 7, 13, 8];
 
 // ---- painting ------------------------------------------------------------------------------------------
 
@@ -59,7 +63,7 @@ const ARCH_UPPER = asBackdrop('lapaUpper'), ARCH_BASE = asBackdrop('lapaBase'), 
 // ---- the palettes --------------------------------------------------------------------------------------
 
 export const ARMS_PALETTE = {
-  J: ['jungleLeaf', 5], G: ['mossGround', 5], W: ['soapstone', 1], P: ['pedestal', 12], L: ['woodLadder', 8], R: ['granite', 11], K: ['graniteBack', 11], V: ['vine', 13],
+  J: ['jungleLeaf', 5], G: ['mossGround', 5], W: ['soapstone', 1], P: ['pedestal', 12], L: ['woodLadder', 8], K: ['graniteBack', 11], V: ['vine', 13],
 } as const satisfies Palette;
 
 export const HILL_PALETTE = {
@@ -74,16 +78,12 @@ export const STEAK_PALETTE = {
   B: ['restBrick', 2], F: ['restTile', 2], S: ['barrel', 9], L: ['woodLadder', 8],
 } as const satisfies Palette;
 
-export const SUGAR_PALETTE = {
-  N: ['sand', 7], G: ['granite', 12], H: ['stationFloor', 1], T: ['stationGate', 2], V: ['vine', 8], L: ['woodLadder', 8], K: ['graniteBack', 11],
-} as const satisfies Palette;
-
 export const DRUM_PALETTE = {
   S: ['riser', 4], A: ['paradeStreet', 8], E: ['stationFloor', 1], F: ['floatDeck', 7], B: ['stationGate', 2], V: ['vine', 8], L: ['woodLadder', 8], Y: ['graniteBack', 7],
 } as const satisfies Palette;
 
 export const BEAT_PALETTE = {
-  S: ['riser', 2], H: ['facade', 10], R: ['riser', 14], A: ['paradeStreet', 8],
+  T: ['aqueductTop', 1], Y: ['favelaTile', 7], G: ['favelaTile', 5], B: ['favelaTile', 14], R: ['favelaTile', 2], S: ['riser', 4], A: ['paradeStreet', 8],
 } as const satisfies Palette;
 
 export const FLOAT_PALETTE = {
@@ -91,36 +91,36 @@ export const FLOAT_PALETTE = {
 } as const satisfies Palette;
 
 export const BEACH_PALETTE = {
-  W: ['wavePavement', 1], S: ['sand', 7], E: ['seaSwell', 6], T: ['tableTop', 1], U: ['palmTrunk', 9], L: ['palmLeft', 5], R: ['palmRight', 5], K: ['graniteBack', 6],
+  W: ['wavePavement', 1], G: ['granite', 14], E: ['seaSwell', 6], T: ['tableTop', 1], U: ['palmTrunk', 9], L: ['palmLeft', 5], R: ['palmRight', 5], K: ['graniteBack', 6],
 } as const satisfies Palette;
 
 // ---- C OPEN ARMS ----------------------------------------------------------------------------------------
 /**
  * Corcovado, Tijuca's forest at its foot: in high on the canopy at the west (floor 8), down to the forest floor (14) beside the liana that climbs back up to the canopy (the way back to the Amazon); east through the chapel
- * under the pedestal, up the maintenance ladder on the Redeemer's east side (col 20) to his east arm (floor 4), along it under the vulture's dive and the bat flitting at the hand, and off the hand onto the ledge (8),
- * out east. A second ladder (col 11) climbs to the west arm, where a marmoset scampers to and fro by the snack on its hand (jump him or time him).
+ * under the pedestal, up the maintenance ladder on the Redeemer's east side (col 20) to his east arm (floor 4), along it under the vulture's dive (the one timing), and off the hand down onto the forest's slope (8),
+ * out east: a step off, no jump (Chris: "Open arms was frustrating and amounted to nothing but a really irritating jump": the bat that flitted at the hand is gone, and each arm runs to its ladder's head). A second ladder (col 11) climbs to the west arm, where a marmoset scampers to and fro by the snack on its hand (jump him or time him).
  */
 const ARMS = rows([
     'JJ..............................', // 0
     'JJ.............WW...............', // 1
     'JJ.............WW...............', // 2
     'JJ.............WW...............', // 3
-    'JJ..WWWWWWWL.WWWWWW.LWWWWWWWWW..', // 4 (each arm runs to its ladder's head: he steps off the ladder onto it, no jump)
+    'JJ..WWWWWW.L.WWWWWW.L.WWWWWWWW..', // 4 (each arm stops a cell short of its ladder: he steps off the ladder's head across onto it, no jump, and the ladder goes down from anywhere over its head)
     'JJ.....WWW.L..WWWW..L.WWW.......', // 5
     '...........L..WWWW..L...........', // 6
     '...........L..WWWW..L...........', // 7
-    'JJJJJJJJV..L..WWWW..L.......RRRR', // 8 (the canopy runs to the liana: down it from the canopy's end, up it and off onto the canopy)
-    'JJ......V..L.PPPPPP.L.......RRRR', // 9
-    'JJ......V..L.PPPPPP.L.......RRRR', // 10
-    'JJ......V..L.PPPPPP.L.......RRRR', // 11
-    'JJ......V..L.KKKKKK.L.......RRRR', // 12
-    'JJ......V..L.KKKKKK.L.......RRRR', // 13
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 14
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 15
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 16
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 17
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 18
-    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRR', // 19
+    'JJJJJJJJV..L..WWWW..L.......GGGG', // 8 (the canopy runs to the liana: down it from the canopy's end, up it and off onto the canopy)
+    'JJ......V..L.PPPPPP.L.......GGGG', // 9
+    'JJ......V..L.PPPPPP.L.......GGGG', // 10
+    'JJ......V..L.PPPPPP.L.......GGGG', // 11
+    'JJ......V..L.KKKKKK.L.......GGGG', // 12
+    'JJ......V..L.KKKKKK.L.......GGGG', // 13
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 14
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 15
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 16
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 17
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 18
+    'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 19
 ]);
 const ARMS_SNACK: Cell = [4, 2];
 const ARMS_COINS: readonly Cell[] = [[3, 13], [28, 3]];
@@ -179,10 +179,10 @@ const hillSky = (): Placed[] => [
  * rolling west along it. The churrascaria's red brick building stands at the west edge, its ladder (col 5) up from the track's west part into its floor.
  */
 const LAPA = rows([
-    'BBBB.L..........................', // 0
-    'BBBB.L..........................', // 1
-    'BBBB.L..........................', // 2
-    'BBBB.L..........................', // 3
+    '.BBB.L..........................', // 0 (the townhouse's parapet stands back from the picture's edge: open at the top, as the favela's sky beyond it is)
+    '.BBB.L..........................', // 1
+    '.BBB.L..........................', // 2
+    '.BBB.L..........................', // 3
     'BBBB.L..........................', // 4
     'BBBB.L..........................', // 5
     'BBBB.L..........................', // 6
@@ -200,7 +200,8 @@ const LAPA = rows([
     'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW', // 18
     'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW', // 19
 ]);
-const LAPA_COINS: readonly Cell[] = [[8, 7], [21, 17]];
+/** The track's west end (seen from the street, reached on the tram), the street under the arches, and the track's east end where the steps come up from the carnival's street (SUGAR RUSH's coin, cut with it: last, so it keeps its place in the tables). */
+const LAPA_COINS: readonly Cell[] = [[8, 7], [21, 17], [27, 7]];
 
 // ---- W STEAK YOUR CLAIM ---------------------------------------------------------------------------------
 /**
@@ -232,43 +233,15 @@ const STEAK = rows([
 const STEAK_CRANK: Cell = [28, 6];
 const STEAK_COINS: readonly Cell[] = [[14, 17]];
 
-// ---- S SUGAR RUSH ---------------------------------------------------------------------------------------
-/**
- * Praia Vermelha at Sugarloaf's foot: in low on the sand (18) under the climbers' rock, the ladder (col 10) to the lower station's shelf (14) behind its bars (the winch, dead without its crank), the climbers' rope (col 4)
- * up its cleft between two granite pillars to the ledge (8) and out west onto Lapa's track (the ledge's west end overhangs its pillar by a cell, open under it as Lapa's arches are at the join); the car to the top station (8), where a marmoset leaps down off the rock, and out east.
- */
-const SUGAR = rows([
-    '....................KK..........', // 0
-    '..................KKKKKK........', // 1
-    '..................KKKKKK........', // 2
-    '.................KKKKKKKK.......', // 3
-    '............TT...KKKKKKKK.......', // 4
-    '............TT...KKKKKKKK.......', // 5
-    '............TT..KKKKKKKKKK......', // 6
-    '............TT..KKKKKKKKKK......', // 7
-    'GGG.V.GG....TT..KKKKKKKKGGGGGGGG', // 8
-    '.GG.V.GG....TT..KKKKKKKKKKKGGGGG', // 9
-    '.GG.V.GG....TT..KKKKKKKKKKKGGGGG', // 10
-    '.GG.V.GG....TT..KKKKKKKKKKKGGGGG', // 11
-    '.GG.V.GG....TT..KKKKKKKKKKKGGGGG', // 12
-    '.GG.V.GG....TT..KKKKKKKKKKKGGGGG', // 13
-    '.GG.V.GG..L.HHHHHHHKKKKKKKKGGGGG', // 14
-    '.GG.V.GG..L.HHHHHHHKKKKKKKKGGGGG', // 15
-    '....V.....L.....KKKKKKKKKKKGGGGG', // 16
-    '....V.....L.....KKKKKKKKKKKGGGGG', // 17
-    'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN', // 18
-    'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN', // 19
-]);
-const SUGAR_COINS: readonly Cell[] = [[7, 7]];
-
 // ---- P BEAT THE DRUM -----------------------------------------------------------------------------------
 /**
- * Down into the city, where the samba school warms up (the carnival's first room, back from before the reset with more dancers): in high at the west off the cable car's top station (floor 8), down the steps of
- * tiles over the houses (floors 10, 12, 14, 16: two rows each, so they climb back) to the street (18), where two samba dancers dance to and fro; over the bateria's stepped risers (floors 16, 14, 16) with the drummer
- * bouncing on the top one (time the beat: he stands on it at the bottom of each bounce) and out low east to the avenue. The grandstands' crowds behind, bunting, balloons, a firework, the SAMBA sign. The snack on the
- * steps, a coin on the top riser (tops a climb) and one in the dancers' street (guarded).
+ * The carnival's street, where the samba school warms up (back from before the reset, with more dancers): in low at the west from Lapa's street, under the aqueduct's last arches; the Selaron steps (their tiles
+ * yellow, green, blue and red, as Lapa's steps are) climb from the street to the aqueduct's end (floor 8), out west onto Lapa's track: the way to the tram and the churrascaria. East over the bateria's stepped
+ * risers (floors 16, 14, 12) with the drummer bouncing on the top one (time the beat: he stands on it at the bottom of each bounce), a samba dancer in the street before them and a passista after, and out low east
+ * to the canal. Behind, the grandstand's dark tiers with the crowd dancing along them in every colour, bunting and balloons. The snack on the risers' first step, a coin at the steps' head (tops a climb) and one
+ * on the top riser under the drummer (tops a climb, guarded).
  */
-const .EAT = rows([
+const BEAT = rows([
     '................................', // 0
     '................................', // 1
     '................................', // 2
@@ -277,29 +250,37 @@ const .EAT = rows([
     '................................', // 5
     '................................', // 6
     '................................', // 7
-    'SSSS............................', // 8
-    'HHHH............................', // 9
-    'HHHHSS..........................', // 10
-    'HHHHHH..........................', // 11
-    'HHHHHHSS........................', // 12
-    'HHHHHHHH........................', // 13
-    'HHHHHHHHSS.............RRR......', // 14
-    'HHHHHHHHHH.............RRR......', // 15
-    'HHHHHHHHHHSS.........RRRRRRRRR..', // 16
-    'HHHHHHHHHHHH.........RRRRRRRRR..', // 17
+    'TTTT............................', // 8 (the aqueduct's end: Lapa's track runs on to here, where the steps come up)
+    '................................', // 9
+    '....GG..........................', // 10 (the Selaron steps: treads he jumps up through and lands on, two rows a step, in their tiles' colours)
+    '................................', // 11
+    '......BB............SSS.........', // 12 (the bateria's top riser: the drummer bounces on it)
+    '....................SSS.........', // 13
+    '........RR.........SSSSS........', // 14
+    '...................SSSSS........', // 15
+    '..........YY.....SSSSSSSSS......', // 16 (the risers' foot; the lowest tread over the street, which runs under the steps)
+    '.................SSSSSSSSS......', // 17
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', // 18
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', // 19
 ]);
-const BEAT_SNACK: Cell = [8, 12];
-const BEAT_COINS: readonly Cell[] = [[25, 13], [16, 17]];
-const BEAT_SNACK_CELLS: readonly Cell[] = [[8, 12], [9, 12], [8, 13], [9, 13]];
+const BEAT_SNACK: Cell = [17, 14];
+const BEAT_COINS: readonly Cell[] = [[1, 7], [21, 11]];
+const BEAT_SNACK_CELLS: readonly Cell[] = [[17, 14], [18, 14], [17, 15], [18, 15]];
+/** The steps' risers under their treads (a band of the tiles' mosaic, one row each), down to the street. */
+const BEAT_RISERS: readonly Cell[] = [[4, 11], [6, 13], [8, 15], [10, 17]];
+/** The crowd on the grandstand: two tiers of it dancing above the street (rows 3-4 and 6-7). */
+const crowdRows = (cols: readonly number[], rowsAt: readonly number[]): Placed[] => rowsAt.flatMap((row) => cols.map((col): Placed => ['rioCrowd', col, row]));
+/** The cells a run of crowds covers (8 x 2 each), kept out of the tiers' fill under them. */
+const crowdCells = (cols: readonly number[], rowsAt: readonly number[]): Cell[] => rowsAt.flatMap((row) => cols.flatMap((col) => Array.from({ length: 16 }, (_, k): Cell => [col + (k % 8), row + Math.floor(k / 8)])));
+const BEAT_CROWD = { cols: [8, 16, 24], rows: [3, 6] } as const;
+const FLOAT_CROWD = { cols: [0, 8, 16], rows: [5, 8] } as const;
 
 // ---- Q FLOAT YOUR BOAT ----------------------------------------------------------------------------------
 /**
  * The parade's floats on the Canal do Mangue, beside the Sambadrome (back from before the reset): in low at the west on the street (floor 18); the canal (deadly water, cols 6-24) is crossed on the floats that come
  * along it with a samba dancer dancing on each, lane A (the street's height) three of them west to east, lane B (floor 14) two the other way. On the east, the stage (18) where a baiana spins, and the grandstand's
  * ladder (col 28) up to the stand's ledge (8) and out high into the Sambadrome. A balcony of the stand (floor 14, flush with the ladder) is where lane B is boarded: it carries him west over the canal's middle (a
- * coin taken on the ride) to the CARNAVAL stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstands' crowds behind, bunting, balloons, plumes.
+ * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour, bunting, balloons, plumes.
  */
 const FLOAT = rows([
     '................................', // 0
@@ -316,8 +297,8 @@ const FLOAT = rows([
     '............................L.TT', // 11
     '............................L.TT', // 12
     '............................L.TT', // 13
-    '..TTTT...................TTTL.TT', // 14
-    '..TTTT...................TTTL.TT', // 15
+    '..TTTT...................TT.L.TT', // 14 (lane B's balcony, two wide: the ladder's foot stays clear)
+    '..TTTT...................TT.L.TT', // 15
     '............................L.TT', // 16
     '............................L.TT', // 17
     'AAAAAAWWWWWWWWWWWWWWWWWWWAAAAAAA', // 18
@@ -350,6 +331,8 @@ const DRUM = rows([
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', // 19
 ]);
 const DRUM_HEADDRESS: Cell = [16, 2];
+/** The grandstand under the stand's ledge: its dark tiers (rows 9-15, clear of the avenue he and the agent run along) and two rows of the crowd dancing on them. */
+const DRUM_CROWD = { cols: [3], rows: [10, 13] } as const;
 const DRUM_COINS: readonly Cell[] = [[18, 8]];
 
 // ---- B RIO OR BUST --------------------------------------------------------------------------------------
@@ -365,16 +348,16 @@ const BEACH = rows([
     '................................', // 7
     '................................', // 8
     '...............KK...............', // 9
-    '..............KKKK.LUR..........', // 10
-    '.............KKKKKK.U...........', // 11
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 12
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 13
-    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEEE', // 14
-    '....................U...........', // 15
-    '....................U...........', // 16
-    '..........TTT.......U...........', // 17
+    '..............KKKK.LUR........KK', // 10
+    '.............KKKKKK.U........KKK', // 11
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEEGG', // 12
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEGGG', // 13 (Pedra do Leme, the granite at Copacabana's east end, rises sheer from the sand: the beach's end, no way on)
+    'EEEEEEEEEEEEEEEEEEEEUEEEEEEEEGGG', // 14
+    '....................U........GGG', // 15
+    '....................U........GGG', // 16
+    '..........TTT.......U........GGG', // 17
     'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW', // 18
-    'SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', // 19
+    'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW', // 19 (the promenade's mosaic to the picture's foot: the room's eight tiles are the wave, the granite, the sea, the table, the palm's three and the hill)
 ]);
 const BEACH_BOWL: Cell = [10, 15];
 /** Where the finale's parts are on the beach (playfield cells): the Redeemer and Sugarloaf across the bay (it floodlights them), the umbrella (its canopy and its pole) the deckchair stands under, and the fireworks over the bay. */
@@ -385,35 +368,6 @@ export const BEACH_VIEW = {
 } as const;
 
 // ---- the mechanisms' data ------------------------------------------------------------------------------
-
-/**
- * Sugarloaf's cable car: one car on the cable from the lower station's foot (cols 15-16, floor 14) to the top station's (cols 25-26, floor 8), 160 frames across. Its roof (the grip, the hanger, the roof and the glass's
- * mullions) on sprite 1 and its floor and rail on sprite 2, both in front of him: he is seen inside the car, through its frame. Not sprite 6: the room's third creature (the macaw) is on it, and the two took it in
- * turn, so the roof flashed like a ghost and the macaw touched nothing while it was the roof (Chris: "the top of the elevator thing is flashing like a ghost"). The room has no find to show on sprite 1.
- */
-export const CABLE_CAR: CableCarSpec = {
-  room: RIO_ROOM.sugar, low: { col: 15, row: 14 }, high: { col: 25, row: 8 }, frames: 160,
-  roof: { ptr: CAR_POINTERS.roof, sprite: 1 }, floor: { ptr: CAR_POINTERS.floor, sprite: 2 }, colour: 1,
-  dx: -4, roofDy: -17, floorDy: 4,
-};
-/** The bars of the winch house on the shelf (cols 12-13, rows 4-13): the crank takes them away. */
-export const GATE_CELLS: readonly (readonly [row: number, col: number])[] = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13].flatMap((row) => [12, 13].map((col) => [row, col] as const));
-/** The sign CLOSED over the bars (a board of the word between a space each side: cols 10-17, row 3, on the bars' tops): it comes down with them. */
-export const CLOSED_SIGN = { text: 'CLOSED', col: 10, row: 3 } as const;
-export const CLOSED_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: CLOSED_SIGN.text.length + 2 }, (_, k) => [CLOSED_SIGN.row, CLOSED_SIGN.col + k] as const);
-
-/**
- * The cable's line, where the car's grip runs on it (made from CABLE_CAR, so the two cannot part): the grip's wheel is 11.5 pixels into the roof's picture and 2.5 down, the roof `roofDy` over the car's top and `dx`
- * to the side of the place he stands at; from the lower station to the top one, a cell at a time, each cell's half (the glyph pair's lower or upper) where the line crosses it.
- */
-const cableLine = (): Placed[] => {
-  const wheel = (s: { col: number; row: number }) => ({ x: s.col * 8 + CABLE_CAR.dx + 11.5, y: (s.row - 2) * 8 + CABLE_CAR.roofDy + 2.5 });
-  const a = wheel(CABLE_CAR.low), b = wheel(CABLE_CAR.high);
-  return Array.from({ length: CABLE_CAR.high.col - CABLE_CAR.low.col + 1 }, (_, k): Placed => {
-    const col = CABLE_CAR.low.col + 1 + k, x = col * 8 + 4, y = a.y + ((x - a.x) * (b.y - a.y)) / (b.x - a.x);
-    return [y % 8 >= 4 ? 'rioCableLow' : 'rioCableHigh', col, Math.floor(y / 8)];
-  });
-};
 
 /**
  * Santa Teresa's tram on the track (L): a float (floats.ts) that goes there and back over the track's gap, its deck at the track's height (row 8), from the east part (its right end on cols 18-21) to the west part (its
@@ -445,8 +399,9 @@ export const CARNIVAL_FLOATS: readonly FloatSpec[] = [
   carnivalFloat('floatBird', 14, -1, 0), carnivalFloat('floatGalleon', 14, -1, 15),
 ];
 
-/** What moves by changing pictures: the floats' dancers (arms up, arms out, every five frames) and the churrascaria's grill (the meat turns, the flames flicker). */
+/** What moves by changing pictures: the floats' dancers (arms up, arms out, every five frames), the grandstands' crowds (out of step, every seven) and the churrascaria's grill (the meat turns, the flames flicker). */
 export const RIO_ANIMS: readonly CharAnim[] = [
+  ...[RIO_ROOM.beat, RIO_ROOM.float, RIO_ROOM.drum].map((room): CharAnim => ({ kind: 'cycle', room, chars: CROWD_DANCE.cells.map((cell) => ({ decor: decorIndex(CROWD_DANCE.decor), cell })), frames: CROWD_DANCE.frames, every: 7 })),
   ...FLOAT_DANCERS.map((d): CharAnim => ({ kind: 'cycle', room: RIO_ROOM.float, chars: d.cells.map((cell) => ({ decor: decorIndex(d.decor), cell })), frames: d.frames, every: 5 })),
   { kind: 'cycle', room: RIO_ROOM.steak, chars: GRILL_ANIM.cells.map((cell) => ({ decor: decorIndex('rioGrill'), cell })), frames: GRILL_ANIM.frames, every: 12 },
 ];
@@ -510,25 +465,13 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'capoeirista', col: 24, row: 16, way: 'left', speed: 1, range: 150 }, { who: 'rioBat', col: 20, row: 9, way: 'down', speed: 1, range: 56 }],
   }),
 
-  // S SUGAR RUSH: visited twice, the sand and the climbers' rope, then the car
-  room({
-    id: RIO_ROOM.sugar, cell: [5, 26], sector: 69, palette: SUGAR_PALETTE, paint: SUGAR,
-    coins: SUGAR_COINS,
-    decor: [['cableStation', 15, 11], ['cableStation', 26, 5], ...cableLine(), [{ text: CLOSED_SIGN.text, colour: 2 }, CLOSED_SIGN.col, CLOSED_SIGN.row]],
-    creatures: [
-      { who: 'vulture', col: 20, row: 1, way: 'down', speed: 1, range: 88 }, { who: 'marmoset', col: 29, row: 1, way: 'down', speed: 1, range: 40 },
-      { who: 'macaw', col: 7, row: 1, way: 'down', speed: 1, range: 40 },
-    ],
-  }),
-
   // C OPEN ARMS: the climb over the landmark, the highest place in the game
   room({
     id: RIO_ROOM.arms, cell: [5, 23], sector: 71, palette: ARMS_PALETTE, paint: ARMS,
     coins: ARMS_COINS,
     item: { name: 'skewer1', col: ARMS_SNACK[0], row: ARMS_SNACK[1], sprite: RIO_SPRITE.skewer },
     creatures: [
-      { who: 'vulture', col: 23, row: 0, way: 'down', speed: 1, range: 96 }, { who: 'rioBat', col: 28, row: 0, way: 'down', speed: 1, range: 16 },
-      { who: 'marmoset', col: 5, row: 2, way: 'right', speed: 1, range: 24 },
+      { who: 'vulture', col: 23, row: 0, way: 'down', speed: 1, range: 96 }, { who: 'marmoset', col: 5, row: 2, way: 'right', speed: 1, range: 24 },
     ],
   }),
 
@@ -559,49 +502,52 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   }),
 
 
-  // P BEAT THE DRUM: down the steps into the city, past the samba dancers, over the bateria's risers
+  // P BEAT THE DRUM: the carnival's street, the Selaron steps up to Lapa's track, the dancers and the bateria's risers
   room({
-    id: RIO_ROOM.beat, cell: [5, 27], sector: 70, palette: BEAT_PALETTE, paint: BEAT,
+    id: RIO_ROOM.beat, cell: [5, 26], sector: 70, palette: BEAT_PALETTE, paint: BEAT,
     coins: BEAT_COINS,
     item: { name: 'skewer3', col: BEAT_SNACK[0], row: BEAT_SNACK[1], sprite: RIO_SPRITE.skewer },
     decor: [
-      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS], [12, 12, 31, 17], 'rioTiers'),
-      ...[4, 8, 12, 16, 20, 24, 28].map((col): Placed => ['bunting', col, 1]), [{ text: 'SAMBA', colour: 7 }, 16, 3], ['rioBalloons', 10, 3], ['rioBalloons', 29, 3], ['rioFirework', 4, 2],
-      ...[12, 16, 20, 24, 28].flatMap((col, i): Placed[] => [[i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 6], [i % 2 === 0 ? 'rioStandsGold' : 'stands', col, 8], [i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 10]]),
+      [ARCH_UPPER, 0, 9], [ARCH_BASE, 0, 13], ...BEAT_RISERS.map(([col, row]): Placed => ['rioSelaron', col, row]),
+      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS, ...crowdCells(BEAT_CROWD.cols, BEAT_CROWD.rows)], [8, 2, 31, 8], 'rioTiers'),
+      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS], [12, 9, 31, 17], 'rioTiers'),
+      ...crowdRows(BEAT_CROWD.cols, BEAT_CROWD.rows),
+      ...[0, 4, 8, 12, 16, 20, 24, 28].map((col): Placed => ['bunting', col, 0]), ['rioBalloons', 5, 3], ['rioBalloons', 1, 1],
     ],
     creatures: [
-      { who: 'drummer', col: 23, row: 8, way: 'down', speed: 1, range: 32 },
-      { who: 'dancer', col: 12, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'dancer', col: 18, row: 16, way: 'left', speed: 1, range: 40, colour: 10 },
+      { who: 'drummer', col: 20, row: 6, way: 'down', speed: 1, range: 32 },
+      { who: 'dancer', col: 12, row: 16, way: 'right', speed: 1, range: 32, colour: 7 }, { who: 'passista', col: 26, row: 16, way: 'right', speed: 1, range: 8, colour: 13 },
     ],
   }),
 
   // Q FLOAT YOUR BOAT: the floats over the canal, the baiana's stage, the grandstand's ladder up to the stand
   room({
-    id: RIO_ROOM.float, cell: [5, 28], sector: 76, palette: FLOAT_PALETTE, paint: FLOAT,
+    id: RIO_ROOM.float, cell: [5, 27], sector: 76, palette: FLOAT_PALETTE, paint: FLOAT,
     coins: FLOAT_COINS,
     decor: [
-      ...fillCells(FLOAT, FLOAT_COINS, [0, 10, 24, 17], 'rioTiers'),
+      ...fillCells(FLOAT, [...FLOAT_COINS, ...crowdCells(FLOAT_CROWD.cols, FLOAT_CROWD.rows)], [0, 5, 24, 17], 'rioTiers'),
       ['floatGalleon', FLOAT_HOME.floatGalleon[0], FLOAT_HOME.floatGalleon[1]], ['floatSun', FLOAT_HOME.floatSun[0], FLOAT_HOME.floatSun[1]], ['floatBird', FLOAT_HOME.floatBird[0], FLOAT_HOME.floatBird[1]],
-      ...[4, 8, 12, 16, 20].flatMap((col, i): Placed[] => [[i % 2 === 0 ? 'stands' : 'rioStandsGold', col, 6], [i % 2 === 0 ? 'rioStandsGold' : 'stands', col, 8]]),
-      ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1], [{ text: 'CARNAVAL', colour: 7 }, 9, 10],
-      ['rioPlumes', 25, 10], ['rioPost', 2, 16], ['rioPost', 5, 16], ['rioPost', 25, 16], ['rioPost', 27, 16],
+      ...crowdRows(FLOAT_CROWD.cols, FLOAT_CROWD.rows),
+      ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1],       ['rioPlumes', 25, 10], ['rioPost', 2, 16], ['rioPost', 5, 16], ['rioPost', 25, 16], ['rioPost', 27, 16],
     ],
     creatures: [{ who: 'baiana', col: 25, row: 16, way: 'right', speed: 1, range: 16 }],
   }),
 
   // D SPY VERSUS MOLE, the Sambadrome: the showdown (the agent, the float's head, the lever, the booth)
   room({
-    id: RIO_ROOM.drum, cell: [5, 29], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
+    id: RIO_ROOM.drum, cell: [5, 28], sector: 75, palette: DRUM_PALETTE, paint: DRUM,
     coins: DRUM_COINS,
     item: { name: 'headdress', col: DRUM_HEADDRESS[0], row: DRUM_HEADDRESS[1], sprite: RIO_SPRITE.headdress },
-    decor: [['rioArch', 1, 5], ['rioFloat', 15, 10], ...[5, 6, 7, 8].flatMap((row): Placed[] => [['chain', 15, row], ['chain', 20, row]]), ['rioLever', 23, 16], ['rioBooth', 27, 2]],
+    decor: [
+      ...fillCells(DRUM, crowdCells(DRUM_CROWD.cols, DRUM_CROWD.rows), [2, 9, 12, 15], 'rioTiers'), ...crowdRows(DRUM_CROWD.cols, DRUM_CROWD.rows),
+      ['rioArch', 1, 5], ['rioFloat', 15, 10], ...[5, 6, 7, 8].flatMap((row): Placed[] => [['chain', 15, row], ['chain', 20, row]]), ['rioLever', 23, 16], ['rioBooth', 27, 2]],
     creatures: [{ who: 'drummer', col: 7, row: 1, way: 'down', speed: 1, range: 24 }, { who: 'dancer', col: 22, row: 2, way: 'left', speed: 2, range: 26 }, { who: 'agent', col: 0, row: 6, way: 'right', speed: 1, range: 1 }],
     crushers: FLOAT_HEAD.cols.map((col) => ({ col, row: FLOAT_HEAD.row, height: FLOAT_HEAD.height })),
   }),
 
   // B RIO OR BUST: the beach, the finale's stage (the troupe is the room's creatures, off the beach until the finale walks them on)
   room({
-    id: RIO_ROOM.bust, cell: [5, 30], sector: 77, palette: BEACH_PALETTE, paint: BEACH,
+    id: RIO_ROOM.bust, cell: [5, 29], sector: 77, palette: BEACH_PALETTE, paint: BEACH,
     item: { name: 'bowl', col: BEACH_BOWL[0], row: BEACH_BOWL[1], sprite: RIO_SPRITE.bowl },
     decor: [
       ['sugarloaf', BEACH_VIEW.sugarloaf.col, BEACH_VIEW.sugarloaf.row], ['christFar', BEACH_VIEW.redeemer.col, BEACH_VIEW.redeemer.row], ['rioUmbrella', BEACH_VIEW.umbrella.col, BEACH_VIEW.umbrella.row], ['rioPole', BEACH_VIEW.pole.col, BEACH_VIEW.pole.row],

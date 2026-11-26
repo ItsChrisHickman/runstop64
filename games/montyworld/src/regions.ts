@@ -13,5 +13,5 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly label
   { name: 'pacific', label: 'HAWAII', from: 17, to: 19, rows: { from: 2, to: 3 } }, // the Pacific's U of four rooms, three columns and two rows
   { name: 'sky', label: 'THE SKY', from: 20, to: 22, rows: { from: 0, to: 0 } }, // the flight from Hilo, three legs on the top row over the Andes' columns (sky.ts)
   { name: 'andes', label: 'ANDES', from: 20, to: 22, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of Hilo
-  { name: 'rio', label: 'RIO', from: 23, to: 30, rows: { from: 4, to: 5 } }, // Rio's eight columns of two rows (the carnival's two rooms between Sugarloaf and the Sambadrome), entered from the kapok's crown (the Amazon's [5,22]) into OPEN ARMS at [5,23]
+  { name: 'rio', label: 'RIO', from: 23, to: 29, rows: { from: 4, to: 5 } }, // Rio's seven columns of two rows (the carnival's two rooms between Lapa and the Sambadrome; SUGAR RUSH cut), entered from the kapok's crown (the Amazon's [5,22]) into OPEN ARMS at [5,23]
 ];

@@ -44,12 +44,6 @@ export function arrivedIn(first: number, hats: number) {
   };
 }
 
-/** What he has by Rio's cable car: the earlier regions' finds, the chullo and the crank (the show's cable car scene is a ride: the winch works). */
-function withCrank(g: Game) {
-  arrivedIn(FIRST.rio, 5)(g);
-  g.siCollected[itemOfRoom(g, RIO_ROOM.steak, 0)] = 0x81;
-}
-
 /** A place of the show without its route and its start: the room, what he has, what he does there (coins: the first of the room's that he can take), and the credits over it. */
 export interface Place { room: number; prepare: Scene['prepare']; take: Scene['take']; frames?: number; creditRow?: number; credits: readonly string[] }
 
@@ -69,9 +63,9 @@ export const PLACES: readonly Place[] = [
   { room: AND.jump, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MUSIC BY ROB HUBBARD,', 'AFTER HIS MONTY ON THE RUN TUNE', 'C64 VERSION BY MICRO PROJECTS'] },
   { room: AND.picchu, prepare: arrivedIn(FIRST.andes, 4), take: { coins: 1 }, credits: ['MACHU PICCHU WAS BUILT IN THE', '15TH CENTURY, 2430 M UP'] },
   { room: AND.roots, prepare: arrivedIn(FIRST.andes, 5), take: { coins: 1 }, credits: ['THE AMAZON IS OVER 6000 KM LONG'] },
-  // Rio: the Redeemer climbed, the cable car, the Sambadrome, the beach
+  // Rio: the Redeemer climbed, the carnival's floats (in SUGAR RUSH's place, cut 2026-11-25), the Sambadrome, the beach
   { room: RIO_ROOM.arms, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['CHRIST THE REDEEMER IS 30 M TALL', 'ON A 8 M PEDESTAL, OPENED 1931'] },
-  { room: RIO_ROOM.sugar, prepare: withCrank, take: { coins: 1 }, credits: ['SUGARLOAF CABLE CAR OPENED IN 1912,', 'THE FIRST IN BRAZIL'] },
+  { room: RIO_ROOM.float, prepare: arrivedIn(FIRST.rio, 5), take: { coins: 1 }, credits: ['THE SAMBADROME, BY OSCAR NIEMEYER,', 'OPENED FOR THE 1984 CARNIVAL'] },
   { room: RIO_ROOM.drum, prepare: arrivedIn(FIRST.rio, 6), take: { coins: 1 }, credits: ['RIO CARNIVAL FILLS THE STREETS', 'WITH ABOUT TWO MILLION A DAY'] },
   { room: RIO_ROOM.bust, prepare: arrivedIn(FIRST.rio, 6), take: { treasure: true }, frames: 1000, creditRow: TOP_ROW, credits: ['THANK YOU FOR PLAYING'] },
 ];

@@ -167,6 +167,38 @@ function tiers(): NewDecor {
   return decor('rioTiers', 1, 1, r, 6);
 }
 
+/**
+ * A row of the grandstand's crowd dancing (the carnival's spectacle, Chris 2026-11-25: "dancers everywhere"): eight little samba dancers side by side, 8 x 16 pixels each, a plume on the head, arms up or
+ * out, the hips and legs stepping, each in a colour of its own (`CROWD_COLOURS`, one column each). `phase` 0 has the even dancers' arms up and the odd ones' out, 1 the other way round: the engine's `charAnims`
+ * swaps the two (`CROWD_DANCE`), so the whole stand dances out of step. 8 x 2 characters, repeated along the tiers.
+ */
+const CROWD_COLOURS = '27ad385e';
+function crowdRaster(phase: 0 | 1): Raster {
+  const r = new Raster(64, 16);
+  for (let k = 0; k < 8; k++) {
+    const x = k * 8, up = (k + phase) % 2 === 0;
+    r.rect(x + 3, 0, x + 4, 2); r.set(x + 2, 1); r.set(x + 5, 1); // the plume
+    r.disc(x + 3.5, 4.5, 1.8); // the head
+    r.rect(x + 3, 7, x + 4, 10); // the body
+    if (up) { r.line(x + 2, 7, x + 0, 3); r.line(x + 5, 7, x + 7, 3); } else { r.line(x + 2, 7, x + 0, 9); r.line(x + 5, 7, x + 7, 9); } // the arms
+    r.triangle(x + 3.5, 9, x + 1, 13, x + 6, 13); // the skirt
+    if (up) { r.rect(x + 2, 14, x + 2, 15); r.rect(x + 5, 13, x + 6, 13); } else { r.rect(x + 5, 14, x + 5, 15); r.rect(x + 1, 13, x + 2, 13); } // a leg down, a leg kicking
+  }
+  return r;
+}
+function crowd(): NewDecor {
+  return decor('rioCrowd', 8, 2, crowdRaster(0), [CROWD_COLOURS, CROWD_COLOURS]);
+}
+/** The crowd's two pictures for the engine's `charAnims`: all sixteen characters of the piece, out of step and back. */
+export const CROWD_DANCE = { decor: 'rioCrowd', cells: Array.from({ length: 16 }, (_, i) => i), frames: [characters('rioCrowd', crowdRaster(0).rows(), 8, 2), characters('rioCrowd', crowdRaster(1).rows(), 8, 2)] } as const;
+
+/** A riser of the Selaron steps under its tread: a band of little square tiles, the mosaic Jorge Selaron laid on Lapa's steps. 2 x 1 characters. */
+function selaron(): NewDecor {
+  const r = new Raster(16, 8);
+  for (let y = 1; y < 8; y += 3) for (let x = (y % 2) * 2; x < 16; x += 4) r.rect(x, y, x + 1, y + 1);
+  return decor('rioSelaron', 2, 1, r, ['a7']);
+}
+
 /** Bunting strung across: a rope hung with little flags in turn. 4 x 1 characters. */
 function bunting(): NewDecor {
   const r = new Raster(32, 8);
@@ -208,7 +240,7 @@ export const RIO_STREETS = {
   rioHouseBlue: house('rioHouseBlue', 14, 'shop'),
   rioHouseGreen: house('rioHouseGreen', 13, 'tank'),
   rioWashA: wash('rioWashA', 'shirts', '27'),
-  rioWashB: wash('rioWashB', 'dress', '3a'),
+  rioWashB: wash('rioWashB', 'dress', 'ea'), // (light blue and pink: not the football's cyan it bounces past)
   rioWashC: wash('rioWashC', 'towels', '84'),
   rioWashD: wash('rioWashD', 'trousers', '1e'),
   rioWashPole: washPole(),
@@ -221,6 +253,8 @@ export const RIO_STREETS = {
   stands: stands('stands', '4444', 'aaaa'),
   rioStandsGold: stands('rioStandsGold', '7777', '8888'),
   rioTiers: tiers(),
+  rioCrowd: crowd(),
+  rioSelaron: selaron(),
   bunting: bunting(),
   rioBalloons: balloons(),
   surdo: surdo(),

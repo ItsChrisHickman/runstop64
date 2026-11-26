@@ -32,13 +32,13 @@ import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
-import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CARNIVAL_FLOATS, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { BARS_CELLS, BOOTH_LIGHT, CARNIVAL_FLOATS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
 import { inTableOrder } from './later';
-import { CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
+import { FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
 import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
-import { CABLE_CAR, RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
+import { RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 import { TALLY_FACE, TALLY_STAR } from './art/sky';
 import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOCKS, SKY_COLOURS, SKY_CURRENTS, SKY_PULSES, SKY_ROOMS, SKY_SECTORS, SKY_TUNNELS, skyRollers, tailPursuer } from './sky';
 
@@ -151,8 +151,6 @@ const bank = extendChars(extendBank(bankImage, [
   { ptr: RIO_SPRITE.headdress, block: RIO_ITEMS.headdress.block },
   { ptr: RIO_SPRITE.skewer, block: RIO_ITEMS.skewer.block },
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
-  { ptr: CAR_POINTERS.roof, block: CABLE_CAR.top },
-  { ptr: CAR_POINTERS.floor, block: CABLE_CAR.bottom },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
   ...SKEWER_POSES.right.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.right, i), block: pose.block })),
 ]), [{ chr: TALLY_CHARS.face, bytes: TALLY_FACE }, { chr: TALLY_CHARS.star, bytes: TALLY_STAR }]);
@@ -252,8 +250,6 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: PAC.waikiki, when: [{ taken: SNORKEL }], clear: onScreen(SURF_CELLS) }, // with the snorkel the surf is the way down into Hana's sea
   { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0 }, // a tune settles the spitting llama at the tunnel's mouth (and its spit, a pulse: calmedBy), and the tunnel and its well are open
   { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS) }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
-  { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], clear: onScreen(GATE_CELLS) }, // the crank works the cable car's winch: its bars go,
-  { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
   { room: RIO_ROOM.drum, when: [{ taken: FITTED }], late: true, place: { code: LIT_CODE, cells: onScreen(BOOTH_LIGHT) } }, // the crank fitted, the booth's window lights up
   { room: RIO_ROOM.drum, when: [{ taken: SQUASHED }], clear: onScreen(BARS_CELLS) }, // the agent squashed, the bars at the avenue's end lift
   { room: RIO_ROOM.bust, removeEnemy: 0 }, { room: RIO_ROOM.bust, removeEnemy: 1 }, // (the finale's troupe waits off the beach)
@@ -313,7 +309,7 @@ export const WORLD: MontyData = {
   },
   rollers: [...ROLLERS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
-  cableCars: [CABLE_CAR_SPEC],
+  cableCars: [], // (Sugarloaf's, cut with SUGAR RUSH, 2026-11-25)
   floats: [TRAM, MINE_CART, ...CARNIVAL_FLOATS],
   skewers: SKEWERS,
   pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
@@ -370,7 +366,7 @@ export const WORLD: MontyData = {
       { room: PAC.waikiki, item: SNORKEL, text: 'A MOLE CANNOT SWIM THAT FAR' },
       { room: AND.picchu, item: PANPIPES, text: 'THE LLAMA IS CROSS: CALM IT' },
       { room: AND.kapok, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
-      { room: RIO_ROOM.sugar, item: CRANK, text: 'THE CABLE CAR STATION IS LOCKED' },
+      { room: RIO_ROOM.drum, item: CRANK, text: 'THE FLOAT\'S WINCH HAS NO HANDLE' },
     ],
   },
   // the map shows a region's columns and rows while he is in them

@@ -8,8 +8,7 @@ import type { FinalePicture } from './art/rio-finale';
 /** The crank, the headdress, the churrasco skewer (the food) and the acai bowl (the treasure's pointer). */
 export const RIO_SPRITE = { crank: 0xa0, headdress: 0xa1, skewer: 0xa2, bowl: 0xaf } as const;
 
-/** The cable car's roof and floor. */
-export const CAR_POINTERS = { roof: 0xa5, floor: 0xa6 } as const;
+/* ($A5 and $A6 held the cable car's roof and floor: free since SUGAR RUSH was cut, 2026-11-25.) */
 
 /**
  * Viktor's four-way split in the Sambadrome (viktor.ts `VIKTOR_SPLIT`, sixteen pictures): put in while the room is loaded (`roomBlocks`), in blocks it never shows: the fourth creature slot's ($48-$4F: the

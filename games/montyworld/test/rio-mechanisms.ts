@@ -1,5 +1,5 @@
 /**
- * Rio's mechanisms, headless, each on its own (the bot, rio.ts, plays them all together): the cable car (the winch's bars and the crank, the ride up and down in 160 frames), the tram over the track's gap, the gauchos' skewers,
+ * Rio's mechanisms, headless, each on its own (the bot, rio.ts, plays them all together): the carnival (the floats over the canal both ways, the dancing crowds, no words on the scenery), the tram over the track's gap, the gauchos' skewers,
  * the Sambadrome (the lever dead until the crank is fitted in the booth, the held head stamping once as one, the agent on Monty's path 150 frames behind, squashed under the head, the bars lifting, a death keeping the crank
  * fitted), the headdress as a costume, the hints, the joins both ways and the one-way drop, the gates proved by search, the map, a save in each room, and the finale on the beach.
  *
@@ -14,13 +14,15 @@ import { skewerPose } from '../../montyotr/src/skewers';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { RIO_CREATURES } from '../src/art/rio-creatures';
+import { RIO_CARNIVAL_CREATURES, RIO_CREATURES } from '../src/art/rio-creatures';
 import { RIO_ITEMS } from '../src/art/rio-items';
 import { WORLD } from '../src/data';
 import { AND } from '../src/andes';
 import { CODEC } from '../src/main';
-import { BARS_CELLS, CABLE_CAR, CLOSED_CELLS, GATE_CELLS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from '../src/rio';
-import { CAR_POINTERS, FINALE_POINTERS as FP, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
+import { BARS_CELLS, CARNIVAL_FLOATS, RIO_ANIMS, RIO_COLOURS, RIO_ROOM as R, RIO_ROOMS, RIO_SECTORS, SKEWERS, SUGAR_RUSH_CUT, TRAM } from '../src/rio';
+import { RETIRED } from '../src/save-migrate';
+import { decorIndex } from '../src/layout';
+import { FINALE_POINTERS as FP, RIO_SPRITE, SKEWER_POINTERS } from '../src/rio-pointers';
 import { SAND_COLOUR } from '../src/finale';
 import { FRAME } from '../../shared/monty/frames';
 import { newGame } from '../../shared/monty/test/bot';
@@ -36,59 +38,45 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
 SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[5, 23, R.arms], [5, 24, R.colour], [5, 25, R.lap], [4, 25, R.steak], [5, 26, R.sugar], [5, 27, R.drum], [5, 28, R.bust]] as const;
-  check('Rio is seven rooms in six columns (23-28) beside the Amazon\'s kapok (row 5, column 22): Corcovado, the favela, Lapa with the churrascaria over it, Sugarloaf, the Sambadrome, the beach; cells [4,23], [4,24], [4,26], [4,27], [5,29] free',
-    placed.every(([r, c, id]) => grid(r, c) === id) && grid(5, 22) === AND.kapok && [[4, 23], [4, 24], [4, 26], [4, 27], [5, 29]].every(([r, c]) => grid(r ?? 0, c ?? 0) === 0xff) && RIO_ROOMS.length === 7);
+  const placed = [[5, 23, R.arms], [5, 24, R.colour], [5, 25, R.lap], [4, 25, R.steak], [5, 26, R.beat], [5, 27, R.float], [5, 28, R.drum], [5, 29, R.bust]] as const;
+  check('Rio is eight rooms in seven columns (23-29) beside the Amazon\'s kapok (row 5, column 22): Corcovado, the favela, Lapa with the churrascaria over it, the carnival\'s street and canal, the Sambadrome, the beach; cells [4,23], [4,24], [4,26]-[4,29], [5,30] free',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(5, 22) === AND.kapok && [[4, 23], [4, 24], [4, 26], [4, 27], [4, 28], [4, 29], [5, 30]].every(([r, c]) => grid(r ?? 0, c ?? 0) === 0xff) && RIO_ROOMS.length === 8);
+  check('SUGAR RUSH is cut: no room has its id, a save made there carries on in Lapa', !RIO_ROOMS.some((r) => r.id === SUGAR_RUSH_CUT) && RETIRED[SUGAR_RUSH_CUT] === R.lap && !(R.beat in RETIRED) && !(R.float in RETIRED));
   const coins = RIO_ROOMS.map((r) => r.coins?.length ?? 0);
-  check(`8 coins in the six play rooms, at most two a room, none on the beach (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 8 && Math.max(...coins) <= 2 && (RIO_ROOMS.find((r) => r.id === R.bust)?.coins?.length ?? 0) === 0);
+  check(`12 coins in the seven play rooms, at most three a room, none on the beach (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 12 && Math.max(...coins) <= 3 && (RIO_ROOMS.find((r) => r.id === R.bust)?.coins?.length ?? 0) === 0);
   const finds = RIO_ROOMS.flatMap((r) => (r.item ? [r.item.name] : []));
-  check(`Rio's finds: the crank, the headdress, two skewers and the bowl (${finds.join(', ')})`, finds.sort().join() === 'bowl,crank,headdress,skewer1,skewer2');
+  check(`Rio's finds: the crank, the headdress, three skewers and the bowl (${finds.join(', ')})`, finds.sort().join() === 'bowl,crank,headdress,skewer1,skewer2,skewer3');
   check('the crank and the headdress are key items, the skewers snacks, the bowl and the Sambadrome\'s two hidden finds count for nothing', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, ...CRANK))
     && WORLD.uncountedItems.includes(lever.armed) && WORLD.uncountedItems.includes(lever.done) && WORLD.specialItems[lever.armed * 4] === 0xff && WORLD.specialItems[lever.done * 4] === 0xff);
   check('Rio\'s sectors keep their places (the retired rooms\' empty), in letters the font has', RIO_SECTORS.length === 11 && RIO_COLOURS.length === 11 && RIO_SECTORS.every((s) => s.text.length <= 32 && /^[A-Z0-9 .:,!?-]*$/.test(s.text) && !/Z/.test(s.text)));
-  const rooms = creatureRooms(RIO_ROOMS);
+  const rooms = creatureRooms(RIO_ROOMS.filter((r) => r.id !== R.bust)); // (the beach's are the finale's troupe, not met in play)
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in Rio, none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}); every kind of Rio's is in a room`, rooms.size === Object.keys(RIO_CREATURES).length && most <= 2);
+  check(`${rooms.size} kinds of creature in Rio, none in more than two play rooms (${[...rooms.values()].map((v) => v.size).join(' ')}); every kind of Rio's is in a room`, rooms.size === Object.keys(RIO_CREATURES).length + Object.keys(RIO_CARNIVAL_CREATURES).length && most <= 2);
   check(`no room has a fourth creature (sprite 7 is the costume's; ${overCrowded(RIO_ROOMS).join() || 'none do'})`, overCrowded(RIO_ROOMS).length === 0);
-  const pointers = [...Object.values(RIO_SPRITE), CAR_POINTERS.roof, CAR_POINTERS.floor, ...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right];
+  const pointers = [...Object.values(RIO_SPRITE), ...SKEWER_POINTERS.left, ...SKEWER_POINTERS.right];
   check('every block of the bank Rio uses is its own ($A0-$AF), none twice, each with a picture', new Set(pointers).size === pointers.length && pointers.every((p) => p >= 0xa0 && p <= 0xaf && WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0))
     && WORLD.itemSprites.treasure === RIO_SPRITE.bowl && RIO_ITEMS.acaiBowl.block.length >= 63);
-  check('one cable car (Sugar Rush\'s), one tram (Lapa\'s float), two skewers (the churrascaria\'s), one lever and one pursuer (the Sambadrome\'s)', WORLD.cableCars.length === 1 && WORLD.cableCars[0]?.room === R.sugar
-    && WORLD.floats.filter((f) => f.room === R.lap).length === 1 && WORLD.skewers.every((k) => k.room === R.steak) && WORLD.levers.length === 1 && lever.room === R.drum && WORLD.pursuers.filter((p) => p.room === R.drum).length === 1);
+  check('no cable car (Sugarloaf\'s went with SUGAR RUSH), one tram (Lapa\'s float), five parade floats on the canal, two skewers (the churrascaria\'s), one lever and one pursuer (the Sambadrome\'s)', WORLD.cableCars.length === 0
+    && WORLD.floats.filter((f) => f.room === R.lap).length === 1 && WORLD.floats.filter((f) => f.room === R.float).length === 5 && WORLD.skewers.every((k) => k.room === R.steak) && WORLD.levers.length === 1 && lever.room === R.drum && WORLD.pursuers.filter((p) => p.room === R.drum).length === 1);
 });
 
-// ---- the cable car and the winch ---------------------------------------------------------------------------
-SCOPE.section([R.sugar, R.drum], 'the cable car and the winch', () => {
-  SCOPE.section([R.sugar], 'the winch bars, the CLOSED sign and the ride', () => {
-    const solid = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 1);
-    const clear = (s: State) => GATE_CELLS.every(([row, col]) => s.g.flagAt(row + 3, col + 4) === 0);
-    check('the winch house\'s bars (cols 12-13, rows 4-13) stand until the crank is his, and are gone once it is', solid(at(R.sugar, 8, 18, [])) && clear(at(R.sugar, 8, 18, [CRANK])));
-    const shut = at(R.sugar, 8, 18, []), open = at(R.sugar, 8, 18, [CRANK]);
-    check('the CLOSED sign is up until the crank is his, and down once it is', CLOSED_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0) && CLOSED_CELLS.every(([row, col]) => cell(open.g, col, row) === 0));
-    const up = at(R.sugar, 12, 14, [CRANK]);
-    let rode = 0, begun = -1;
-    const ys: number[] = [];
-    for (let f = 0; f < 400; f++) {
-      frame(up, RIGHT);
-      if (up.g.gameMode && begun < 0) begun = f;
-      if (up.g.gameMode) { rode++; ys.push(up.g.y); }
-      if (begun >= 0 && !up.g.gameMode) break;
-    }
-    check(`stepping onto the lower foot starts the ride: ${rode} frames (160 and one), then he is set down at the top station's foot (column ${colOf(up.g)}, floor 8), alive`, rode >= 159 && rode <= 162 && colOf(up.g) === CABLE_CAR.high.col && up.g.y === standY(8) && !dead(up.g));
-    check('the ride climbs steadily, 48 pixels in all', ys.every((y, i) => i === 0 || y <= (ys[i - 1] ?? 0)) && (ys[0] ?? 0) - (ys[ys.length - 1] ?? 0) >= 44);
-  });
-  SCOPE.section([R.sugar, R.drum], 'the top station east into the Sambadrome', () => {
-    const east = at(R.sugar, 27, 8, [CRANK]);
-    run(east, RIGHT, 80);
-    check('the top station\'s way out east leads into the Sambadrome, high', east.g.roomId === R.drum && east.g.y < standY(10));
-  });
-  SCOPE.section([R.sugar], 'the vulture on the ride', () => {
-    // a creature touching him on the ride kills, as on the escalators
-    const ride = at(R.sugar, 12, 14, [CRANK], false, true);
-    let died = false;
-    for (let f = 0; f < 600 && !died; f++) { frame(ride, f < 60 ? RIGHT : NONE); if (dead(ride.g) && ride.g.roomId === R.sugar) died = true; if (!ride.g.gameMode && f > 300) break; }
-    check('the vulture crossing the cable can catch him on the ride (the ride is not a shelter)', died || ride.g.roomId === R.sugar);
-  });
+// ---- the carnival ---------------------------------------------------------------------------------------------
+SCOPE.section([R.beat, R.float, R.drum], 'the carnival', () => {
+  check('no words on the scenery in any of Rio\'s rooms: no banner, sign or label (Chris, 2026-11-25: "words on the screen feels like such an AI thing")', RIO_ROOMS.every((r) => !(r.decor ?? []).some((d) => typeof d.type !== 'number')));
+  const crowd = decorIndex('rioCrowd');
+  const dancing = (room: number) => RIO_ANIMS.some((a) => a.kind === 'cycle' && a.room === room && a.chars.length === 16 && a.chars.every((c) => typeof c !== 'number' && c.decor === crowd)) && (RIO_ROOMS.find((r) => r.id === room)?.decor ?? []).filter((d) => d.type === crowd).length >= 2;
+  check('the grandstands are alive: the crowd dances along the tiers (two rows of it or more, animated) in the carnival\'s street, at the canal and in the Sambadrome', [R.beat, R.float, R.drum].every(dancing));
+  check('every parade float carries a dancer dancing on it', RIO_ANIMS.filter((a) => a.room === R.float && a.kind === 'cycle' && a.chars.length === 4).length === 3);
+  check('the floats run both ways along the canal: three west to east at the street\'s height, two east to west at the balconies\'', CARNIVAL_FLOATS.filter((f) => f.row === 18 && f.dir === 1).length === 3 && CARNIVAL_FLOATS.filter((f) => f.row === 14 && f.dir === -1).length === 2);
+  // across the canal on lane A: from the west bank he is carried east and steps off onto the stage
+  const bank = at(R.float, 3, 18, [], false, false);
+  let across = false;
+  for (let f = 0; f < 900 && !across && !dead(bank.g); f++) { frame(bank, f % 40 < 4 ? RIGHT : NONE); if (colOf(bank.g) >= 25 && bank.g.y === standY(18)) across = true; }
+  check('on the parade\'s floats he crosses the canal from the west bank to the stage, alive', across && !dead(bank.g));
+  const swim = at(R.float, 5, 18, [], false, false);
+  swim.g.floats = [];
+  run(swim, RIGHT, 40);
+  check('without the floats, stepping into the canal is death', dead(swim.g));
 });
 
 // ---- the tram ---------------------------------------------------------------------------------------------
@@ -223,19 +211,19 @@ SCOPE.section([R.drum, R.bust], 'the Sambadrome', () => {
 });
 
 // ---- the costume, the hints ---------------------------------------------------------------------------------
-SCOPE.section([R.drum, R.sugar, R.steak], 'the costume, the hints', () => {
+SCOPE.section([R.drum, R.float, R.steak], 'the costume, the hints', () => {
   const s = at(R.drum, 14, 4, [CRANK], true);
   for (let f = 0; f < 120 && !s.g.siCollected[itemIndex(s.g, ...HEADDRESS)]; f++) frame(s, RIGHT);
   run(s, NONE, 3);
   check(`taking the headdress puts it on him in gold, and the hint says what it is for ("${rowText(s.g)}")`, s.g.worn === itemIndex(s.g, ...HEADDRESS) && s.g.hatPlaced && s.g.vic.sprites[7]?.colour === 7 && rowText(s.g) === 'A HEADDRESS: JOIN THE PARADE');
-  const w = at(R.sugar, 4, 18, [], true);
+  const w = at(R.drum, 2, 8, [], true);
   run(w, NONE, 120);
-  check(`ENHANCED: coming into Sugar Rush without the crank says so ("${rowText(w.g)}")`, rowText(w.g) === 'THE CABLE CAR STATION IS LOCKED');
-  const plain = at(R.sugar, 4, 18, [], false);
+  check(`ENHANCED: coming into the Sambadrome without the crank says why the float will not drop ("${rowText(w.g)}")`, rowText(w.g) === 'THE FLOAT(S WINCH HAS NO HANDLE');
+  const plain = at(R.drum, 2, 8, [], false);
   run(plain, NONE, 120);
-  check('ORIGINAL says nothing', rowText(plain.g) === 'SUGAR RUSH');
+  check('ORIGINAL says nothing', rowText(plain.g) === 'SPY VERSUS MOLE');
   check('the crank has no hint of its own, and no hint names the steward or the key to the city', !WORLD.hints.take.some((h) => h.item === itemIndex(s.g, ...CRANK)) && ![...WORLD.hints.take, ...WORLD.hints.wanted].some((h) => /STEWARD|KEY TO THE CITY/.test(h.text)));
-  for (const n of [1, 2]) check(`the skewer${n} is a snack (a named item with the skewer's sprite)`, RIO_ROOMS.some((r) => r.item?.name === `skewer${n}` && r.item.sprite === RIO_SPRITE.skewer));
+  for (const n of [1, 2, 3]) check(`the skewer${n} is a snack (a named item with the skewer's sprite)`, RIO_ROOMS.some((r) => r.item?.name === `skewer${n}` && r.item.sprite === RIO_SPRITE.skewer));
 });
 
 // ---- the joins, the one-way drop, the gates ------------------------------------------------------------------
@@ -245,7 +233,7 @@ SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandba
     check('the Amazon\'s kapok and Corcovado join both ways (east off the crown\'s branch onto the canopy, west off it), the tangle cut', reach(at(AND.kapok, 26, 8, [[AND.kapok, 0]]), [{ room: AND.kapok, col: 31, row: 7 }], (g) => g.roomId === R.arms) && reach(at(R.arms, 3, 8, [[AND.kapok, 0]]), [{ room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
   });
   SCOPE.section([R.arms, R.colour, AND.kapok], 'Corcovado east into the favela', () => {
-    check('Corcovado\'s east hand drops onto the ledge and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
+    check('Corcovado\'s east hand steps down onto the forest\'s slope and out east into the favela\'s roofs', reach(at(R.arms, 24, 4), [{ room: R.arms, col: 31, row: 7 }], (g) => g.roomId === R.colour));
   });
   SCOPE.section([R.arms, AND.kapok, R.colour], 'Corcovado forest floor back to the canopy', () => {
     check('from Corcovado\'s forest floor the liana climbs back to the canopy, and west into the Amazon (the drop from the canopy is not one way)', reach(at(R.arms, 12, 14, [[AND.kapok, 0]]), [{ room: R.arms, col: 8, row: 8 }, { room: R.arms, col: 0, row: 7 }], (g) => g.roomId === AND.kapok));
@@ -254,30 +242,25 @@ SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandba
     check('the favela\'s light well is crossed by a jump from roof to roof, and a fall into it is climbed out of (no trap)', reach(at(R.colour, 8, 8), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16)
       && reach(at(R.colour, 13, 10), [{ room: R.colour, col: 18, row: 7 }], (g) => g.roomId === R.colour && g.y === standY(8) && colOf(g) >= 16));
   });
-  SCOPE.section([R.colour, R.lap, R.arms, R.steak, R.sugar], 'the favela lane onto the Lapa street', () => {
+  SCOPE.section([R.colour, R.lap, R.arms, R.steak, R.beat], 'the favela lane onto the Lapa street', () => {
     check('the favela\'s lane runs out east onto Lapa\'s street', reach(at(R.colour, 12, 18), [{ room: R.colour, col: 31, row: 17 }], (g) => g.roomId === R.lap && g.y >= standY(17)));
   });
-  SCOPE.section([R.lap, R.sugar, R.colour, R.steak, R.drum], 'Lapa and Sugarloaf on the street', () => {
-    check('Lapa and Sugarloaf join on the street both ways', reach(at(R.lap, 25, 18), [{ room: R.lap, col: 31, row: 17 }], (g) => g.roomId === R.sugar) && reach(at(R.sugar, 2, 18), [{ room: R.sugar, col: 0, row: 17 }], (g) => g.roomId === R.lap));
+  SCOPE.section([R.lap, R.beat, R.colour, R.steak, R.float], 'Lapa and the carnival on the street', () => {
+    check('Lapa and the carnival\'s street join on the street both ways', reach(at(R.lap, 25, 18), [{ room: R.lap, col: 31, row: 17 }], (g) => g.roomId === R.beat) && reach(at(R.beat, 2, 18), [{ room: R.beat, col: 0, row: 17 }], (g) => g.roomId === R.lap));
   });
-  SCOPE.section([R.sugar, R.lap, R.colour, R.steak, R.drum], 'the climbers rope and ledge', () => {
-    check('the climbers\' rope and ledge join Sugarloaf to Lapa\'s track, west, and the track back east to the ledge', reach(at(R.sugar, 6, 18), [{ room: R.sugar, col: 4, row: 8 }, { room: R.sugar, col: 0, row: 7 }], (g) => g.roomId === R.lap && g.y <= standY(8))
-      && reach(at(R.lap, 25, 8), [{ room: R.lap, col: 31, row: 7 }], (g) => g.roomId === R.sugar && g.y <= standY(8)));
+  SCOPE.section([R.beat, R.lap, R.colour, R.steak, R.float], 'the Selaron steps', () => {
+    check('the Selaron steps climb from the carnival\'s street to the aqueduct\'s end and west onto Lapa\'s track, and the track runs back east onto their head', reach(at(R.beat, 12, 18), [{ room: R.beat, col: 10, row: 16 }, { room: R.beat, col: 2, row: 8 }, { room: R.beat, col: 0, row: 7 }], (g) => g.roomId === R.lap && g.y <= standY(8))
+      && reach(at(R.lap, 25, 8), [{ room: R.lap, col: 31, row: 7 }], (g) => g.roomId === R.beat && g.y <= standY(8)));
   });
-  SCOPE.section([R.lap, R.steak, R.colour, R.sugar], 'the ladder to the churrascaria', () => {
+  SCOPE.section([R.beat, R.float, R.lap, R.drum], 'over the risers to the canal', () => {
+    check('over the bateria\'s risers the street runs on east to the canal, and back west', reach(at(R.beat, 12, 18), [{ room: R.beat, col: 21, row: 12 }, { room: R.beat, col: 31, row: 17 }], (g) => g.roomId === R.float) && reach(at(R.float, 2, 18), [{ room: R.float, col: 0, row: 17 }], (g) => g.roomId === R.beat));
+  });
+  SCOPE.section([R.float, R.drum, R.beat], 'the grandstand up into the Sambadrome', () => {
+    check('the grandstand\'s ladder leads out high east into the Sambadrome\'s stand, and the stand back west onto it', reach(at(R.float, 27, 18), [{ room: R.float, col: 28, row: 8 }, { room: R.float, col: 31, row: 7 }], (g) => g.roomId === R.drum && g.y <= standY(8))
+      && reach(at(R.drum, 3, 8), [{ room: R.drum, col: 0, row: 7 }], (g) => g.roomId === R.float && g.y <= standY(8)));
+  });
+  SCOPE.section([R.lap, R.steak, R.colour, R.beat], 'the ladder to the churrascaria', () => {
     check('the ladder joins Lapa\'s track and the churrascaria both ways', reach(at(R.lap, 3, 8), [{ room: R.lap, col: 5, row: 0 }], (g) => g.roomId === R.steak) && reach(at(R.steak, 8, 18), [{ room: R.steak, col: 5, row: 19 }], (g) => g.roomId === R.lap && g.y <= standY(8)));
-  });
-  SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the one-way drop in Lapa', () => {
-    // one way: from Lapa's street there is no way up to the track
-    const street = at(R.lap, 14, 18, [], false, false);
-    const up = search(street, (g) => g.roomId === R.lap && g.y <= standY(8), [{ room: R.lap, col: 14, row: 8 }], 120000, 0);
-    check('the bot finds no way from Lapa\'s street up onto the track (the drop through the gap is one way)', up === null);
-  });
-  SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the winch gate', () => {
-    // the winch's gate
-    const sand = at(R.sugar, 8, 18, [], false, false);
-    const car = search(sand, (g) => g.cable.from >= 0 || g.roomId === R.drum, undefined, 150000, 0);
-    check('the bot finds no way onto the cable car or past it without the crank', car === null);
   });
   SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandbar], 'the Sambadrome bars', () => {
     // the bars
@@ -285,23 +268,23 @@ SCOPE.section([...Object.values(R), AND.kapok, AND.canopy, AND.roots, AND.sandba
     const pass = search(lane, (g) => g.roomId === R.bust, undefined, 150000, 0);
     check('the bot finds no way past the Sambadrome\'s bars to the beach without the squash', pass === null);
   });
-  SCOPE.section([R.bust, R.lap, R.sugar], 'a side with no room beyond stops him', () => {
-    // a side with no room beyond it stops him
-    const stops = ([[R.bust, 28, 18, RIGHT], [R.lap, 29, 18, RIGHT]] as const).map(([room, col, floor, key]) => { const s = at(room, col, floor, [CRANK]); run(s, key, 60); return s.g.roomId === room || s.g.roomId === R.sugar; });
-    check('the beach\'s east side stops him', stops[0] === true);
+  SCOPE.section([R.bust], 'the beach ends at the rock', () => {
+    const s = at(R.bust, 24, 18, [CRANK]);
+    run(s, RIGHT, 80);
+    check('Copacabana ends at Pedra do Leme: walking east along the promenade he stops at the rock, short of the edge', s.g.roomId === R.bust && colOf(s.g) <= 27);
   });
   void UP; void LEFT;
 });
 
 // ---- the pause screen, the saves ----------------------------------------------------------------------------
 SCOPE.section([], 'the pause screen, the saves', () => {
-  SCOPE.section([R.sugar, R.lap], 'the map in Rio', () => {
+  SCOPE.section([R.beat, R.lap], 'the map in Rio', () => {
     const s = newGame(WORLD, true);
-    enterRoom(s.g, R.sugar, 0x40, standY(18));
-    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.sugar]: [0x40, 0xb2, 5, 26], [R.lap]: [0x40, 0xb2, 5, 25] } });
+    enterRoom(s.g, R.beat, 0x40, standY(18));
+    const places = montyMap.places({ x: 0, y: 0, w: 200, h: 150 }, s.g, { rooms: { [R.beat]: [0x40, 0xb2, 5, 26], [R.lap]: [0x40, 0xb2, 5, 25] } });
     check('in Rio the map shows its region, the rooms he has been to are places to go', places.length === 2 && places.every((p) => p.x >= 0 && p.x < 200 && p.y >= 0 && p.y < 150));
   });
-  const spots = [[R.arms, 1, 8], [R.colour, 2, 8], [R.lap, 4, 18], [R.steak, 2, 18], [R.sugar, 2, 18], [R.drum, 1, 8], [R.bust, 2, 18]] as const;
+  const spots = [[R.arms, 1, 8], [R.colour, 2, 8], [R.lap, 4, 18], [R.steak, 2, 18], [R.beat, 2, 18], [R.float, 1, 18], [R.drum, 1, 8], [R.bust, 2, 18]] as const;
   const failed: number[] = [];
   // (the rooms the filter lets through: all of them without --room, so the count is the whole region's then)
   const scoped = spots.filter(([id]) => SCOPE.has(id));
