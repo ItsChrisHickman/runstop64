@@ -57,6 +57,8 @@ export const JAPAN_TILES = {
   jpGravel: tile('jpGravel', 1, 15, ['########', '........', '.######.', '........', '########', '........', '.######.', '........']),
   /** A stepping stone: a round flat stone with its dark underside. A floor. */
   jpStone: tile('jpStone', 2, 12, ['########', '########', '###.####', '########', '########', '.######.', '........', '........']),
+  /** A stepping stone sinking: cracked through, tipped and a pixel lower, the dark of the water showing in its joints. A floor, for a moment more (THE LAST MOLE's sinking stones: japan.ts). */
+  jpStoneSink: tile('jpStoneSink', 2, 12, ['........', '##.#####', '###.#.##', '#.##.###', '####.##.', '.#.###..', '........', '........']),
   /** A lacquered plank of the zig-zag bridge: bold, with its pegs. A floor. */
   jpPlank: tile('jpPlank', 2, 2, ['########', '#.#..#.#', '########', '........', '........', '........', '........', '........']),
   /** A bamboo pole to climb: a stalk with its nodes. A rope. */
