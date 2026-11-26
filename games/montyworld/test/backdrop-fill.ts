@@ -96,19 +96,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
   japan: {
     [JP.port]: 'sky stripes running down behind the play, a brick texture up its left side, the sea pattern joined to them',
   },
-  pacific: {
-    [PAC.waikiki]: 'a dark-blue skyline and sea texture filling the right half below the band',
-    [PAC.luau]: 'sunset stripes running down behind the play',
-    [PAC.lahaina]: 'rock texture and stripes tiled behind the whaling town',
-    [PAC.road]: 'a dark rock texture filling the room behind the ledges',
-    [PAC.loa]: 'a rock texture filling the room behind the ledges',
-    [PAC.hana]: 'a red cliff texture tiled across the room',
-    [PAC.diamond]: 'a dark crater-rock texture filling the room',
-    [PAC.lookout]: 'a dark texture filling the lower left (the city below the band)',
-    [PAC.kona]: 'sea and sunset stripes running down behind the play, dark lava texture',
-    [PAC.kea]: 'a red lava-rock texture filling the room',
-    [PAC.falls]: 'a dark rock texture filling the room behind the falls',
-  },
+  pacific: {},
   andes: {
     [AND.jump]: 'blue mountain zigzags running down behind the play',
     [AND.thin]: 'blue mountain zigzags running down behind the play',
