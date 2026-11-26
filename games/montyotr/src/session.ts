@@ -156,7 +156,9 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       won = false;
       g.vic.border = g.vic.background = 0;
       g.hiScore = Math.max(g.hiScore, topScore(title.table)); // (the best score this visit, or the table's top)
-      fe.newGame();
+      // (once the game has been won here, a new game keeps the map: every room visited stays a place to travel to, the game and its
+      // villain fresh; Chris, 2026-11-24: "that's kind of like the unlocker, that's the nice reward")
+      fe.newGame(!!data.ending && readWon(data.id));
       rooms.clear();
       mode = 'play';
       latch.hold();

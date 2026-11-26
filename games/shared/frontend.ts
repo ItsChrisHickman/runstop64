@@ -123,8 +123,16 @@ export class FrontEnd<T, F> {
 
   keepFound() { keepFound(this.o.id, this.found); }
 
-  /** A new game: the save so far is kept as the previous one (with what had been found), and nothing is found yet. */
-  newGame() { this.o.saves.beginNewGame(this.found); this.found = this.o.map.found.empty(); this.keepFound(); }
+  /**
+   * A new game: the save so far is kept as the previous one (with what had been found), and nothing is found yet; or, with `keepMap` (a game
+   * won here before: the map is the reward, Chris 2026-11-24), the map's progress carries on into the new game, so every place found stays a
+   * place to travel to, and the game itself starts fresh.
+   */
+  newGame(keepMap = false) {
+    this.o.saves.beginNewGame(this.found);
+    this.found = keepMap ? structuredClone(this.found) : this.o.map.found.empty();
+    this.keepFound();
+  }
 
   /** Whether a pause key was pressed now (in play): if so the pause screen opens. */
   pauseKey(state: T, canPause: boolean) {

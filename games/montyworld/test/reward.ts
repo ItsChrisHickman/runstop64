@@ -12,7 +12,7 @@
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
  *     included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before, and in the procession, to the title as it is (no CONTINUE? until a key);
- *  5. in the session: winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
+ *  5. in the session (and after a win, a new game keeps the map's rooms for travel, the game fresh; before one, it does not): winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
  *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
  *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
  *
@@ -45,6 +45,8 @@ import { montyFont, run } from '../src/main';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { standY } from './route';
 import { montyMap } from '../../montyotr/src/map';
+import { cellOf } from '../../montyotr/src/montydata';
+import { isRecord, readJson } from '../../shared/guards';
 
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
@@ -360,6 +362,50 @@ function win(s: ReturnType<typeof boot>) {
   s.press('KeyP');
   s.press('KeyW');
   check('HARD: W on the pause screen starts it', ending.active);
+}
+
+// after a win a new game keeps the map: every room visited stays a place to travel to, the game itself fresh (Chris, 2026-11-24: "that's kind of
+// like the unlocker, that's the nice reward. Let the player play again, encounter Viktor again but be able to jump around"); not before a win
+{
+  const visit = (s: ReturnType<typeof boot>, id: number) => {
+    const cell = must(cellOf(WORLD, id), `room ${id} on the grid`);
+    s.p.state.found.rooms[id] = [0x40, standY(18), cell.row, cell.col];
+  };
+  const fresh = (g: Game) => g.score === 0 && g.siCollected.every((v) => v === 0) && g.coinCollected.every((v) => v === 0) && g.roomId === 0;
+  {
+    const s = boot(true);
+    s.tick(300);
+    visit(s, RIO_ROOM.arms);
+    s.press('Space');
+    s.tick(40);
+    check('not won yet: a new game starts with nothing on the map but where he is', s.p.state.mode === 'play' && !readWon('montyworld') && !(RIO_ROOM.arms in s.p.state.found.rooms));
+  }
+  const s = boot(true);
+  const won = win(s);
+  // (a room visited in the won game: the map since the game began)
+  visit(s, RIO_ROOM.arms);
+  const before = Object.keys(s.p.state.found.rooms).sort().join();
+  s.tick(110);
+  s.press('Space');
+  s.press('Escape');
+  s.tick(30);
+  s.press('Space');
+  const asked = s.p.state.prompt === 'newGame';
+  s.press('Space');
+  s.tick(10);
+  const after = Object.keys(s.p.state.found.rooms).sort().join();
+  check(`won, then NEW GAME (asked: ${asked}): a fresh game in Moscow's first room, nothing taken, the score nothing`, won && asked && s.p.state.mode === 'play' && fresh(s.g));
+  check(`the map is kept: every room visited before is still on it (${after})`, after === before && RIO_ROOM.arms in s.p.state.found.rooms);
+  check('and kept with the saves (a new page load reads it)', readFoundRooms().includes(String(RIO_ROOM.arms)));
+  check('travel goes from the new game\'s first room to a room visited in the won game', montyMap.go(String(RIO_ROOM.arms), s.g, s.p.state.found) && s.until(() => s.g.roomId === RIO_ROOM.arms && !s.g.freeze, 300));
+  check('the game there is the new one: nothing taken on the way', s.g.siCollected.every((v) => v === 0));
+}
+/** The rooms the stored map's progress has (what a new page load reads). */
+function readFoundRooms(): string[] {
+  const raw = store.get('montyworld.found.v1');
+  const v = raw === undefined ? null : readJson(raw);
+  const rooms = isRecord(v) ? v.rooms : null;
+  return isRecord(rooms) ? Object.keys(rooms) : [];
 }
 
 {
