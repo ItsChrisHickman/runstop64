@@ -2,7 +2,7 @@
  * The ice cave at Mount Fuji's foot (GONE WITH THE WIND, japan.ts; the real Narusawa Ice Cave and Fugaku Wind Cave are lava tubes there), in Japan's creatures' manner (japan-creatures.ts): bold
  * 16 x 16 figures in one bright ink, the detail cut in as black lines. The yuki-onna, the snow woman of Japan's snowy mountains, is the cave's danger: a pale woman in a white kimono with long hair,
  * no feet, drifting. The tengu, the long-nosed mountain goblin with a crow's wings and a feather fan, who in the legends whisks people away, is no danger: he flies in to the gust at the cave's end
- * and beckons with his fan (a cameo: cameos.ts, his frames as a creature's eight), and the gust carries Monty up to the summit. Every name starts `jp`.
+ * and beckons with his fan (a cameo: cameos.ts, his frames as a creature's eight), and the gust carries Monty up and back onto the mountain. Every name starts `jp`.
  */
 import { pair } from './creature-kit';
 import { decor } from './decorations';
@@ -97,6 +97,19 @@ const gustPiece = (): NewDecor => {
   r.stamp(gustRows(0), 0, 0);
   return decor('jpGust', 1, 1, r, 1);
 };
+
+/**
+ * The beam's top (Monty on the Run's teleporter cap, its characters $35-$37: the game's only teleporter is the gust, so its glyphs are the gust's): a mouth of wind under the tube's roof, the
+ * streaks curling out of it either side and down into the beam.
+ */
+const CAP_ROWS = [
+  ['..######', '.#......', '#..#####', '#.#.....', '#.#..###', '.#..#...', '...#..#.', '..#..#..'],
+  ['########', '........', '########', '........', '.######.', '........', '..####..', '........'],
+  ['######..', '......#.', '#####..#', '.....#.#', '###..#.#', '...#..#.', '.#..#...', '..#..#..'],
+] as const;
+export const GUST_CAP: readonly { chr: number; bytes: Uint8Array }[] = CAP_ROWS.map((rows, i) => ({ chr: 0x35 + i, bytes: characters(`gust cap ${i}`, rows, 1, 1) }));
+/** The colours the beam and its top flicker through (Monty on the Run's are green and purple): the wind's, white and icy blues. */
+export const GUST_COLOURS = Uint8Array.of(1, 3, 14, 3);
 
 export const JAPAN_CAVE_DECOR = {
   jpGust: gustPiece(),

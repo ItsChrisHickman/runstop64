@@ -45,7 +45,7 @@ export const ONE_WAY: Readonly<Record<string, string>> = {
   '55>56': 'the parachute drop, JUMP FOR JOY into OUT OF THIN AIR: under the canopy he cannot go up (flight.ts)',
   '56>57': 'the parachute drop, OUT OF THIN AIR into CONDOR COUNTRY: under the canopy he cannot go up (flight.ts)',
   '57>58': 'the parachute drop lands on the terraces: under the canopy he cannot go up (flight.ts)',
-  '32>98': 'MOUNT FUJI\'s open mountainside drops into the ice cave at its foot (GONE WITH THE WIND); the way back up is the tengu\'s gust, a teleport to the top of the climb (japan.ts CAVE)',
+  '32>98': 'MOUNT FUJI\'s open mountainside drops into the ice cave at its foot (GONE WITH THE WIND); the way back up is the tengu\'s gust, a teleport back to the foot hut on the way in (japan.ts CAVE)',
 };
 
 /** Edges he gets to with no room beyond, `room side`, each with its reason. */
@@ -223,7 +223,7 @@ function attempt(p: Place, stick: Try) {
     const wasRow = g.montyRow - 3, wasCol = g.montyCol - 4, wasScripted = Boolean(g.script || g.freeze || g.gameMode);
     frame(s, held);
     const warp = g.roomId !== room && g.dissolvePending !== 0; // (a teleporter: its dissolve holds the game as a death's start does, but it is a way)
-    if (dead(g) && !warp) return;
+    if (dead(g) && !warp && !g.tele.lift) return; // (and the lift up its beam before it: MontyData.teleportLift)
     if (warp) warps.set(`${room}>${g.roomId}`, (warps.get(`${room}>${g.roomId}`) ?? 0) + 1);
     if (g.script || g.freeze || g.gameMode) { still = 0; if (!warp) continue; } // (a scripted move: the plane, the ship; he goes where it takes him)
     if (g.roomId !== room) {

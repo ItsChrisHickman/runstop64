@@ -27,7 +27,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CAVE, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CAVE, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
@@ -791,16 +791,22 @@ SCOPE.section([JP.fuji, JP.cave], 'MOUNT FUJI\'s open mountainside and the ice c
   const tengu = WORLD.cameos.find((c) => c.room === JP.cave);
   const shown = tengu !== undefined && (tube.g.enable & (1 << tengu.sprite)) !== 0 && tube.g.sx[tengu.sprite] === 0x0c + (CAVE.tengu.col + 4) * 4;
   check(`down in the tube, the tengu has flown in and stands by the gust (sprite ${tengu?.sprite}, x2 ${tengu ? tube.g.sx[tengu.sprite] : '-'}), a cameo touching nothing`, shown && !dead(tube.g));
-  // the gust: whenever he walks into it (whatever its flicker shows), the wind sets him down at the top of the mountain's climb, standing, alive, the warp's sound
+  // the gust: whenever he walks into it (whatever its flicker shows), the wind carries him up its beam in the cave (seen: his picture rising, still in the cave), then sets him down in MOUNT FUJI's
+  // foot hut, where he materialises (his picture there through the dissolve), standing, alive: the climb and its snow slides still ahead
   const lifts = [0, 37, 91, 160].map((wait) => {
     const s = at(JP.cave, CAVE.mound.col0, CAVE.mound.floor);
     for (let f = 0; f < wait; f++) frame(s, NONE);
     let f = 0;
-    for (; f < 120 && s.g.roomId === JP.cave; f++) frame(s, RIGHT);
+    for (; f < 120 && !s.g.tele.lift && s.g.roomId === JP.cave; f++) frame(s, RIGHT);
+    const y0 = s.g.sy[3] ?? 0;
+    let top = y0, lifted = 0;
+    for (; f < 240 && s.g.roomId === JP.cave; f++) { frame(s, NONE); top = Math.min(top, s.g.sy[3] ?? top); lifted++; }
+    const there = { x: s.g.sx[3], y: s.g.sy[3] };
     for (let n = 0; n < 60; n++) frame(s, NONE);
-    return { wait, ok: s.g.roomId === JP.fuji && s.g.montyCol - PLAY_COL === FUJI.top.col && s.g.y === standY(FUJI.top.floor) && !dead(s.g), at: `${s.g.roomId} ${s.g.montyCol - PLAY_COL},${s.g.y}`, frames: f };
+    const rose = y0 - top, landed = there.x === s.g.x2 && there.y === ((s.g.y + 1) & 0xff);
+    return { wait, ok: rose >= GUST_LIFT - 2 && landed && s.g.roomId === JP.fuji && s.g.montyCol - PLAY_COL === GUST_LANDING.col && s.g.y === standY(GUST_LANDING.floor) && !dead(s.g), at: `rose ${rose} px in ${lifted} frames, ${s.g.roomId} ${s.g.montyCol - PLAY_COL},${s.g.y}, materialised there ${landed}`, frames: f };
   });
-  check(`into the tengu's gust from the ice mound after any wait, he is set down at the top of MOUNT FUJI's climb, the last step under the chain (${lifts.map((l) => `wait ${l.wait}: ${l.at} after ${l.frames}`).join('; ')})`, lifts.every((l) => l.ok));
+  check(`into the tengu's gust from the ice mound after any wait, it carries him up its beam and sets him down in MOUNT FUJI's foot hut, materialising there (${lifts.map((l) => `wait ${l.wait}: ${l.at}`).join('; ')})`, lifts.every((l) => l.ok));
   check('the gust is the cave\'s one teleporter and MOUNT FUJI has none (the only teleport in the game, a reward)', WORLD.teleporterCfg.length === 5 && WORLD.teleporterCfg[0] === JP.cave && cave.teleporter !== undefined && fuji.teleporter === undefined);
   // the dangers: the yuki-onna's drift reaches the tube's floor, the icicles fall on him
   const yuki = at(JP.cave, CAVE.yuki.col, CAVE.floor, [], false, true);

@@ -1,6 +1,6 @@
 /**
  * MOUNT FUJI and the ice cave at its foot (GONE WITH THE WIND), as the real engine draws them: the mountainside a few moments apart (the snow slides), the drop off it into the
- * cave, the cave as the tengu flies in, and Monty walking into the tengu's gust and set down at the top of the climb. Pictures only: nothing is checked.
+ * cave, the cave as the tengu flies in, and Monty walking into the tengu's gust, carried up it and set down in the foot hut. Pictures only: nothing is checked.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/fuji-shots.ts <out-dir>
  */
@@ -30,12 +30,13 @@ for (let f = 0; f < 260; f++) {
 drop.forEach((px, i) => savePng(out, `drop-${i}.png`, px));
 contactSheet(out, 'drop-sheet.png', drop);
 
-// the gust: from the mound by the tengu, a step east into it, and where it sets him down
+// the gust: from the mound by the tengu, a step east into it, carried up its beam, and set down in the foot hut, materialising there
 const gust = placed({ room: JP.cave, col: CAVE.mound.col0, floor: CAVE.mound.floor, frames: 60 });
 const lift: Uint8Array[] = [shot(gust.s.g)];
+for (let f = 0; f < 120 && !gust.s.g.tele.lift; f++) frame(gust.s, RIGHT);
 for (let f = 0; f < 120; f++) {
-  frame(gust.s, f < 30 ? RIGHT : NONE);
-  if ([8, 14, 20, 40, 119].includes(f)) lift.push(shot(gust.s.g));
+  frame(gust.s, NONE);
+  if ([2, 10, 18, 26, 30, 34, 60].includes(f)) lift.push(shot(gust.s.g));
 }
 console.log(`after the gust: room ${gust.s.g.roomId}, column ${gust.s.g.montyCol - 4}, y ${gust.s.g.y}`);
 lift.forEach((px, i) => savePng(out, `gust-${i}.png`, px));

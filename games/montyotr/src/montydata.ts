@@ -561,6 +561,12 @@ export interface MontyData extends RoomTables, MontyLook {
   /** The rooms where Monty has the jetpack (the jet pack item, kit 0, carried). */
   jetpackRooms: readonly number[];
   lifts: readonly LiftSpec[];
+  /**
+   * A teleporter's beam carries Monty up it before he goes (Do Svidaniya Monty's tengu's gust, a teleport that is a reward seen and understood): he rises this many pixels up the
+   * beam, the game held but the beam and the creatures going on, gone into the beam's top, and he materialises where it sets him down. None in Monty on the Run (gone at a touch,
+   * and his picture materialises where it was on the screen).
+   */
+  teleportLift?: number;
   escalators: readonly EscalatorSpec[];
   icicles: readonly IcicleSpec[];
   tunnels: readonly TunnelSpec[];

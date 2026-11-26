@@ -24,8 +24,9 @@ import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-it
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, CAPTAIN_SLOT, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
 import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, TURTLE_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
-import { BALL_STREAM, CAVE_ICICLES, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS, GUST_ANIM, TENGU, TENGU_BLOCKS } from './japan';
+import { BALL_STREAM, CAVE_ICICLES, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS, GUST_ANIM, GUST_LIFT, TENGU, TENGU_BLOCKS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
+import { GUST_CAP, GUST_COLOURS } from './art/japan-cave';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
@@ -178,7 +179,7 @@ const bank = extendChars(extendBank(bankImage, [
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
   ...SKEWER_POSES.right.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.right, i), block: pose.block })),
-]), [{ chr: TALLY_CHARS.face, bytes: TALLY_FACE }, { chr: TALLY_CHARS.star, bytes: TALLY_STAR }]);
+]), [{ chr: TALLY_CHARS.face, bytes: TALLY_FACE }, { chr: TALLY_CHARS.star, bytes: TALLY_STAR }, ...GUST_CAP]);
 
 /** The key items' and the pirozhki's pointers, with the colour each is drawn in (the pirozhki as the cupcake is: white). */
 const ITEM_COLOURS = new Map<number, number>([
@@ -313,6 +314,7 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
 export const WORLD: MontyData = {
   ...tables,
   ...MOTR_LOOK,
+  teleporterColours: GUST_COLOURS, // (the game's one teleporter is the tengu's gust: japan-cave.ts)
   ...tiles,
   ...enemies,
   bankImage: bank,
@@ -338,6 +340,7 @@ export const WORLD: MontyData = {
 
   jetpackRooms: [],
   lifts: [],
+  teleportLift: GUST_LIFT, // (the tengu's gust carries him up its beam: a teleport seen)
   escalators: ESCALATORS,
   icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES, ...TAIGA_ICICLES, ...CAVE_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],

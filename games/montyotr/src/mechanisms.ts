@@ -324,6 +324,7 @@ export function teleporterDisplay(g: Game) {
   const t = g.tele;
   t.active = 0;
   t.repeat = 0;
+  t.lift = 0;
   const { teleporterCfg } = g.data;
   for (let i = 0; teleporterCfg[i] !== undefined && teleporterCfg[i] !== 0xff; i += 5, t.repeat++) {
     if (teleporterCfg[i] !== g.roomId) continue;
@@ -378,7 +379,37 @@ export function teleporterCheckContact(g: Game) {
     const c = g.chr(base + o);
     return c >= 0x38 && c < 0x3c;
   });
-  if (!hit || t.cur === t.base) return;
+  if (!hit || t.cur === t.base || t.lift) return;
+  const lift = g.data.teleportLift;
+  if (lift !== undefined) {
+    if (g.script || g.freeze) return; // (not while a sequence plays: a death)
+    // carried up the beam first (teleporterLift), the game held as a sequence holds it
+    t.lift = lift;
+    g.freeze = 1;
+    g.gameMode = 1;
+    g.actionCounter = 0x80;
+    g.sfx(g.data.sfx.warp);
+    return;
+  }
+  teleporterGo(g);
+  g.sfx(g.data.sfx.warp);
+}
+
+/** He rises 2 pixels a frame up the beam (his jetpack with him), and at its top he is gone and the teleporter sends him on. */
+export function teleporterLift(g: Game) {
+  const t = g.tele;
+  if (!t.lift) return;
+  t.lift = Math.max(0, t.lift - 2);
+  g.sy[3] = (g.sy[3] - 2) & 0xff;
+  if (g.showJetpack) g.sy[2] = (g.sy[2] - 2) & 0xff;
+  if (t.lift) return;
+  g.enable &= ~0x0c;
+  teleporterGo(g);
+}
+
+/** Where the room's teleporter sends him: his place, the room's exit grid cell, and the dissolve he materialises with. */
+function teleporterGo(g: Game) {
+  const t = g.tele;
   const d = g.data.teleporterDests.subarray(t.repeat * 4, t.repeat * 4 + 4);
   g.x2 = d[0];
   g.y = d[1];
@@ -394,7 +425,6 @@ export function teleporterCheckContact(g: Game) {
     c5Arrive(g, C5_START);
     if (isC5Room(g.data, g.roomAt(g.mapRow, g.exitCol))) g.dissolvePending = 0;
   }
-  g.sfx(g.data.sfx.warp);
 }
 
 // ---- Sinclair C5 ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@
  * the hall (the paper doors, the rope past them up to the gallery and back west along it to the rope up) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
  */
-import { CAVE, FUJI, GROVE, JP } from '../src/japan';
+import { CAVE, GROVE, GUST_LANDING, JP } from '../src/japan';
 import { above, coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg ended hanging on the second stairs' rope below the deck (cols 19-21), where a train sweeping the lane cannot reach him: a leg that ended on the deck itself could end with a train a step behind him. */
@@ -56,8 +56,8 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('W: across the snow heap and down its hole into the lava tube', stands(JP.cave, CAVE.floor, CAVE.hole.col0, CAVE.hole.col1)),
   leg('W: east under the first icicle, over the hump, past the yuki-onna, the coin under the second icicle', coin(JP.cave, 20, 16)),
   leg('W: the coin on the ice mound', coin(JP.cave, 22, 14)),
-  leg('W to F: into the tengu\'s gust, set down at the top of the mountain\'s climb', { ...stands(JP.fuji, FUJI.top.floor, FUJI.top.col - 1, FUJI.top.col + 1), aim: [{ room: JP.cave, col: CAVE.gust.col, row: CAVE.floor - 2 }] }),
-  leg('F: down onto the second ledge, the coin under the top hut\'s eaves', coin(JP.fuji, 25, 6)),
+  leg('W to F: into the tengu\'s gust, carried up it and set down in the foot hut on the way in', { ...stands(JP.fuji, GUST_LANDING.floor, GUST_LANDING.col - 1, GUST_LANDING.col + 1), aim: [{ room: JP.cave, col: CAVE.gust.col, row: CAVE.floor - 2 }] }),
+  leg('F: from the foot hut over the gap and up the climb between two snowballs, the coin under the top hut\'s eaves', coin(JP.fuji, 25, 6)),
   leg('F: the coin on the steps (between two snowballs) and back to the top hut', coin(JP.fuji, 24, 10)),
   leg('F to G: up the chain', into(JP.garden, 5, 0, JP.fuji)),
   leg('G: the coin before the temple', coin(JP.garden, 16, 12)),

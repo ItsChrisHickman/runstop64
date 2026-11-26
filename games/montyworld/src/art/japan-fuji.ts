@@ -1,6 +1,6 @@
 /**
  * Mount Fuji's snow for Monty Mole: World Tour (region 4): the cap is a solid white (the tile `jpSnow`), and these one-character decorations finish it: the jagged lower edge
- * of the snow, the streaks running down the slopes from it, and the blue flanks' 45 degree edges. One character each, so a room can stamp as many as it likes. Every name starts `jp`.
+ * of the snow, the streaks running down the slopes from it, and the flanks' 45 degree edges. One character each, so a room can stamp as many as it likes. Every name starts `jp`.
  */
 import { decor } from './decorations';
 import { itemBlock } from './pixels';
@@ -14,6 +14,10 @@ function one(name: string, rows: readonly string[], colour: number): NewDecor {
   return decor(name, 1, 1, r, colour);
 }
 
+/** A 45 degree flank: lit below the diagonal, rising to the right (the left flank) and to the left (the right flank). */
+const FLANK_L = ['.......#', '......##', '.....###', '....####', '...#####', '..######', '.#######', '########'] as const;
+const FLANK_R = ['#.......', '##......', '###.....', '####....', '#####...', '######..', '#######.', '########'] as const;
+
 export const JAPAN_FUJI = {
   /** The snow's lower edge, three ways: white above, teeth pointing down over the slope. */
   jpSnowEdgeA: one('jpSnowEdgeA', ['########', '########', '########', '.#######', '.#.#####', '....##.#', '....#...', '........'], 1),
@@ -22,9 +26,11 @@ export const JAPAN_FUJI = {
   /** A streak of snow running down the slope, two ways. */
   jpSnowStreakA: one('jpSnowStreakA', ['..#..#..', '..#..#..', '..#..#..', '.##..#..', '.#...#..', '.#...#..', '.#...##.', '.#....#.'], 1),
   jpSnowStreakB: one('jpSnowStreakB', ['#...#...', '#...#...', '##..#...', '.#..##..', '.#...#..', '.#...#..', '.....#..', '.....#..'], 1),
-  /** The mountain's flanks: rock below a diagonal, on the left and on the right. */
-  jpFlankL: one('jpFlankL', ['.......#', '......##', '.....###', '....####', '...#####', '..######', '.#######', '########'], 6),
-  jpFlankR: one('jpFlankR', ['#.......', '##......', '###.....', '####....', '#####...', '######..', '#######.', '########'], 6),
+  /** The mountain's flanks: light blue rock below a diagonal, on the left and on the right; and the same beside the snow cap, white. */
+  jpFlankL: one('jpFlankL', FLANK_L, 14),
+  jpFlankR: one('jpFlankR', FLANK_R, 14),
+  jpSnowFlankL: one('jpSnowFlankL', FLANK_L, 1),
+  jpSnowFlankR: one('jpSnowFlankR', FLANK_R, 1),
 } as const satisfies Record<string, NewDecor>;
 
 /**
