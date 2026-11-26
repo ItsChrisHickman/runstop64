@@ -453,6 +453,35 @@ function cairn(): NewDecor {
   return decor('pacCairn', 1, 2, r, ['1', 'a']);
 }
 
+/** A shooting star falling south over the summit (the moon rock that lands in Mauna Loa's crater): a bright head low at the right, its trail fading up to the left. 4 x 2 characters. */
+function shootingStar(): NewDecor {
+  const r = new Raster(32, 16);
+  r.disc(27, 12, 2.4); r.rect(27, 8, 27, 15); r.rect(23, 12, 31, 12); // the head and its sparkle
+  r.line(4, 1, 24, 11); r.line(5, 1, 25, 10); // the trail
+  for (const x of [0, 2, 8, 12]) r.set(x, Math.round(x / 2), false); // (broken into dashes at its far end)
+  r.line(0, 0, 1, 0); r.set(6, 2, false); r.set(10, 4, false);
+  return decor('pacShootingStar', 4, 2, r, 1);
+}
+
+// ---- the astronomer at Mauna Kea's summit (2026-11-25: he blocks the big dome's ladder until Monty brings him the moon rock)
+
+/** The astronomer, wrapped up against the summit's cold: a bobble hat, a fat parka, a star chart held up in front of him, shuffling his feet as he reads it by the stars. */
+function astronomer(): NewCreature {
+  const frame = (step: number) => {
+    const r = new Raster(16, 16);
+    r.disc(7, 4, 2.6); r.rect(4, 1, 10, 2); r.disc(7, 0, 1.2); // the head, the hat and its bobble
+    r.set(5, 4, false); // the eye (looking left at the chart)
+    r.rect(4, 7, 11, 12); r.rect(3, 8, 12, 11); // the parka
+    r.rect(4, 9, 11, 9, false); // its quilting
+    r.rect(0, 5, 2, 10); r.rect(1, 6, 1, 9, false); r.set(1, 7); // the star chart in his hands, a star on it
+    r.rect(3, 8, 3, 8); // the hand
+    const a = [0, 1, 0, -1][step] ?? 0;
+    r.rect(5 + a, 13, 6 + a, 15); r.rect(9 - a, 13, 10 - a, 15); // the boots
+    return r.rows();
+  };
+  return pair('pacAstronomer', [0, 1, 2, 3].map(frame), 14);
+}
+
 export const PACIFIC_ISLANDS_TILES = {
   /** Sand to fill under the crest. Solid. */
   pacSandFill: tile('pacSandFill', 1, 7, [
@@ -639,6 +668,7 @@ export const PACIFIC_ISLANDS_CREATURES = {
   pacTiki: tiki(),
   pacSurfer: surfer(),
   pacFireKnife: fireKnife(),
+  pacAstronomer: astronomer(),
 } as const satisfies Record<string, NewCreature>;
 
 export const PACIFIC_ISLANDS_DECOR = {
@@ -679,4 +709,5 @@ export const PACIFIC_ISLANDS_DECOR = {
   pacDomeSmall: domeSmall(),
   pacDomeBig: domeBig(),
   pacCairn: cairn(),
+  pacShootingStar: shootingStar(),
 } as const satisfies Record<string, NewDecor>;

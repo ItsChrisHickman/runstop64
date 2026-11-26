@@ -13,17 +13,19 @@ import { codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './
  *            col 17          18              19              20              21              22              23
  *   row 0                    DIAMOND HEAD    THE LOOKOUT
  *   row 1                    LEI OF THE LAND                                                 THE SUMMIT
- *   row 2    THE CARGO SHIP  WAIKIKI         WHALE OF A TIME THE ROAD TO HANA HANA           MAUNA KEA    ->  AKAKA FALLS
+ *   row 2    THE CARGO SHIP  WAIKIKI         WHALE OF A TIME THE ROAD TO HANA HANA           MAUNA KEA   <->  AKAKA FALLS
  *   row 3                    CLAM DOWN       KELP WANTED     THE SEA CAVE    FISH OUT OF     KONA        <->  HILO GOODBYE  -> the biplane: THE FLIGHT
  *                                                                            WATER
- *   row 4                                                                                    MAUNA LOA    ->  COFFEE BREAK
+ *   row 4                                                                                    MAUNA LOA   <->  COFFEE BREAK
  *
  * Oahu: off the ship onto Waikiki's beach, where the surf stops him (deadly until the snorkel); up the palm to the luau (the torches, the hula show, the lei), up the hillside rope to Diamond Head's crater
  * trail and through the old bunker to THE LOOKOUT, where a tourist left the snorkel; back down and into the surf. The first swim (CLAM DOWN, Molokai's sea cliffs behind; KELP WANTED) comes up Lahaina's
  * mooring rope on Maui (or on east through the sea cave and up the road's pool); THE ROAD TO HANA's three tiers with the cars over the one-lane bridges; Hana's red sand cove drops into the last swim (FISH
- * OUT OF WATER: the surge, the moray, the shark), out onto Kona's black sand on the Big Island. There the way splits: up through the cloud to Mauna Kea's summit (the parachute, snagged on the big dome) and
- * down Akaka Falls into Hilo; or down the lava tube to Mauna Loa (the run ahead of the lava) and along the coffee farm (the coffee) up into Hilo. The biplane takes off only with both (NO FLYING WITHOUT A
- * PARACHUTE, TOO SLEEPY TO FLY), so whichever way he takes first, Hilo sends him back out to Kona for the other: Monty on the Run's double-back. Playfield cells as in moscow.ts.
+ * OUT OF WATER: the surge, the moray, the shark), out onto Kona's black sand on the Big Island. There the way splits into a loop, Moscow's way (docs/dosvidaniya-moscow.md part 1): the top way up
+ * through the cloud to Mauna Kea's summit, where the astronomer keeps the ladder to the parachute drawn up until Monty brings him the moon rock, then along Akaka Falls' high trail and down into Hilo; the
+ * bottom way down the lava tube to Mauna Loa (the run ahead of the lava; the moon rock down the crater's pit, which wakes the pit's own lava) and along the coffee farm (the coffee) up into Hilo. Every join
+ * goes both ways, and Akaka Falls is crossed twice at two heights (the high trail, and the low lane from Hilo's roofs to Mauna Kea's foot). The biplane takes off only with both (NO FLYING WITHOUT A
+ * PARACHUTE, TOO SLEEPY TO FLY), and the summit's gate wants the bottom way's rock: whichever way he takes first, the loop sends him round for the other. Playfield cells as in moscow.ts.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
@@ -40,8 +42,11 @@ export const PAC = {
 /** The rooms of open water (swim.ts): Monty swims in them, and only with the snorkel. */
 export const SWIM_ROOMS: readonly number[] = [PAC.clam, PAC.kelp, PAC.cave, PAC.fish];
 
-/** The sprite pointers (in the bank) of the Pacific's items: the original's item blocks the world never uses ($8F-$91, $93, $94). */
-export const PAC_SPRITE = { coffee: 0x8f, snorkel: 0x90, lei: 0x91, musubi: 0x93, parachute: 0x94 } as const;
+/**
+ * The sprite pointers (in the bank) of the Pacific's items: the original's item blocks the world never uses ($8F-$91, $93, $94). The bank is full, so the moon rock borrows the first boulder block while
+ * Mauna Loa is loaded (`roomBlocks`, data.ts; no boulder rolls there), the only room that shows it (it is not one of the map's key items: they need a block of their own).
+ */
+export const PAC_SPRITE = { coffee: 0x8f, snorkel: 0x90, lei: 0x91, musubi: 0x93, parachute: 0x94, moonRock: BOULDER_POINTERS[0] } as const;
 
 const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
 /** The sectors' names by their place from 38 (the Andes' follow at 55, so the list keeps seventeen places: the retired rooms' are empty). Plain names, a pun where it lands. */
@@ -109,9 +114,9 @@ export const KEA_PALETTE = {
   C: ['pacBasalt', 2], R: ['pacBamboo', 13], G: ['pacGrating', 15], L: ['pacSteelLadder', 15],
 } as const satisfies Palette;
 
-/** Akaka Falls: the gorge's rock and its mossy ledges, the plunge pool. */
+/** Akaka Falls: the gorge's rock and its mossy trail, the plunge pool, the ropes down to Hilo. */
 export const FALLS_PALETTE = {
-  B: ['pacBasalt', 9], T: ['pacTurf', 5], W: ['pacWaves', 14],
+  B: ['pacBasalt', 9], T: ['pacTurf', 5], W: ['pacWaves', 14], R: ['pacBamboo', 13],
 } as const satisfies Palette;
 
 /** Mauna Loa: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the ropes, the steam vent's column. */
@@ -246,12 +251,17 @@ export const MORAY_PULSES: readonly PulseSpec[] = [
 ];
 
 /**
- * Mauna Loa's lava (`risingLava`; the lava belongs on the volcano: Chris, 2026-11-25): in the basin (cols 11-29, east of the shore the lava tube drops him on) it starts at the floor when he comes in and rises
- * a row every 40 frames to row 10, the row under the long ledge's feet, holds 150 and drains a row every 12. The ledges at floor 9 and above are always clear.
+ * Mauna Loa's lava (`risingLava`; the lava belongs on the volcano: Chris, 2026-11-25): in the basin (cols 11-27, east of the shore the lava tube drops him on, west of the pit's wall) it starts at the floor
+ * when he comes in and rises a row every 40 frames to row 10, the row under the long ledge's feet, holds 150 and drains a row every 12. The ledges at floor 9 and above are always clear.
  */
 export const LAVA: LavaSpec = {
-  room: PAC.loa, col: 11, cols: 19, baseRow: 19, topRow: 10, stepFrames: 40, holdFrames: 150, drainFrames: 12, code: codeOf(LOA_PALETTE, 'M'), crest: codeOf(LOA_PALETTE, 'C'),
+  room: PAC.loa, col: 11, cols: 17, baseRow: 19, topRow: 10, stepFrames: 40, holdFrames: 150, drainFrames: 12, code: codeOf(LOA_PALETTE, 'M'), crest: codeOf(LOA_PALETTE, 'C'),
 };
+/**
+ * The pit's lava (the plan: "taking it wakes the lava, which rises behind him on the climb out"): asleep until the moon rock is taken (data.ts gives `wakenBy`), then it wells up the pit (cols 28-30) a row every
+ * 20 frames to the stepping ledges' level (row 14) under him as he climbs the rope out, holds and drains like the basin's. Once the rock is gone it does so whenever he comes in.
+ */
+export const PIT_LAVA: LavaSpec = { ...LAVA, col: 28, cols: 3, topRow: 14, stepFrames: 20 };
 /** The first two stepping ledges over the lava are thin crust (`cracks`): standing on one, it splits after 10 frames and is gone after 26; back 200 frames later. Keep moving. */
 export const CRUST_CRACKS: readonly CrackSpec[] = [14, 19].map((col): CrackSpec => ({
   room: PAC.loa, col, cols: 3, row: 14, codes: [codeOf(LOA_PALETTE, 'L'), codeOf(LOA_PALETTE, 'Y'), codeOf(LOA_PALETTE, 'Y')], crack: 10, wide: 18, gone: 26, away: 200,
@@ -274,9 +284,17 @@ export const ARRIVALS: readonly Arrival[] = [
 /** Where the yellow mail biplane stands at Hilo's airfield (its top left, playfield cells: a 3 x 3 decoration, its wheels on the apron, floor 19, its nose to the east). */
 export const BIPLANE_AT = { col: 22, row: 16 } as const;
 /** The parachute, snagged on the big dome's top at Mauna Kea's summit (its top left). */
-export const PARACHUTE_AT = { col: 21, row: 3 } as const;
+export const PARACHUTE_AT = { col: 21, row: 2 } as const;
+/** The astronomer on the big dome's catwalk, his feet on it (floor 11), where the ladder up to the telescope's platform comes down (col 25): he shuffles a cell, never off it. */
+export const ASTRONOMER_AT = { col: 24, row: 9 } as const;
+/**
+ * The ladder from the catwalk up to the telescope's platform (col 25, rows 4-10), which the astronomer keeps drawn up while he stands guard (a ladder there could be caught from a jump over his head): given the
+ * moon rock he lets it down and goes in to look at the rock (data.ts: a gate that places these cells and sends him off).
+ */
+export const DOME_LADDER: readonly (readonly [row: number, col: number])[] = [4, 5, 6, 7, 8, 9, 10].map((row) => [row, 25] as const);
+export const DOME_LADDER_CODE = codeOf(KEA_PALETTE, 'L');
 /** The sack of coffee at the far end of the farm's lowest terrace (its top left). */
-export const COFFEE_AT = { col: 21, row: 11 } as const;
+export const COFFEE_AT = { col: 22, row: 11 } as const;
 
 /**
  * The biplane waiting at Hilo (`boardings`): touched (his top left over its cells, standing on the apron or jumping) with the parachute and the coffee, it takes off with him into THE FLIGHT's first leg (sky.ts),
@@ -413,7 +431,8 @@ const paintKea = (g: Grid): void => {
   g.box(8, 6, 9, 6, 'C'); // a step
   g.box(2, 4, 4, 4, 'C').box(8, 4, 10, 4, 'C'); // the top, open round the rope up to the summit
   g.box(6, 0, 6, 3, 'R'); // the rope up to the summit
-  g.box(30, 9, 31, 19, 'C').box(30, 0, 31, 5, 'C'); // the shoulder of the mountain closing the climb, the way east (rows 6-7)
+  g.box(30, 9, 31, 16, 'C').box(30, 0, 31, 5, 'C'); // the shoulder of the mountain closing the climb, the ways east (rows 6-7 the high trail, rows 17-18 the low lane)
+  g.box(26, 19, 27, 19, 'C').box(29, 19, 31, 19, 'C'); // the mountain's foot, the low lane's end, round the rope down to Kona
 };
 const KEA_COINS = [[3, 2], [22, 6]] as const;
 
@@ -422,35 +441,41 @@ const paintSummit = (g: Grid): void => {
   g.box(6, 16, 6, 19, 'R'); // the rope
   g.box(1, 14, 3, 15, 'C'); // the summit's knoll, the marker on it
   g.box(16, 11, 26, 11, 'G').box(15, 11, 15, 15, 'L'); // the big dome's catwalk and its ladder
-  g.box(20, 6, 24, 6, 'G').box(25, 6, 25, 10, 'L'); // the dome's top platform and its ladder
+  g.box(20, 4, 24, 4, 'G'); // the telescope's platform over the dome (too high to jump to from the catwalk: its ladder is `DOME_LADDER`)
 };
-const SUMMIT_COINS = [[3, 12], [23, 9]] as const;
+const SUMMIT_COINS = [[3, 12], [18, 9]] as const;
 
 const paintFalls = (g: Grid): void => {
-  g.box(0, 8, 7, 8, 'T').box(0, 9, 3, 19, 'B').box(0, 0, 1, 5, 'B'); // the gorge's lip, in from Mauna Kea's wet side (rows 6-7), the cliff over it
-  g.box(9, 11, 14, 11, 'T'); // the ledges down the gorge
-  g.box(4, 14, 9, 14, 'T');
-  g.box(12, 17, 19, 17, 'T');
-  g.box(4, 19, 19, 19, 'B').box(23, 19, 31, 19, 'B'); // the gorge's floor, the stream's way down to Hilo (cols 20-22)
-  g.box(24, 18, 29, 18, 'W'); // the plunge pool
-  g.box(28, 0, 31, 4, 'B').box(30, 5, 31, 17, 'B'); // the falls' cliff
+  g.box(0, 0, 1, 5, 'B').box(0, 8, 27, 8, 'T').box(0, 9, 1, 16, 'B'); // the cliff over the high trail's way in from Mauna Kea (rows 6-7); the high trail along the gorge's top (floor 8); the gorge's west wall
+  g.box(2, 9, 4, 9, 'B').box(16, 9, 18, 9, 'B'); // the rock under the trail's edge (the falls pour out under it at cols 19-20)
+  g.box(28, 0, 31, 4, 'B').box(31, 5, 31, 19, 'B'); // the cliff east, over the way down
+  g.box(27, 9, 27, 18, 'B'); // the falls' cliff: the way down (cols 28-30) sealed from the low lane
+  g.box(29, 7, 29, 19, 'R'); // the rope down from the trail's end to Hilo
+  g.box(0, 19, 7, 19, 'B').box(11, 19, 19, 19, 'B').box(23, 19, 27, 19, 'B'); // the low lane by the plunge pool (floor 19), in from Mauna Kea's foot (rows 17-18); the rope's opening down to Hilo's roofs (cols 8-10)
+  g.box(20, 19, 22, 19, 'W'); // the plunge pool
+  g.box(9, 15, 9, 19, 'R'); // the rope down to Hilo's roofs
+  g.box(13, 16, 15, 16, 'T'); // a mossy boulder by the lane
 };
-const FALLS_COINS = [[10, 9]] as const;
+const FALLS_COINS = [[21, 16], [24, 6]] as const;
 
 const paintLoa = (g: Grid): void => {
   g.box(0, 0, 1, 19, 'K').box(30, 0, 31, 2, 'K').box(30, 5, 31, 19, 'K').box(0, 19, 31, 19, 'K'); // the crater's walls and floor (the shore at the left, cols 2-10, outside the lava; out east at the top, rows 3-4)
   g.box(7, 0, 7, 18, 'R'); // the rope down the lava tube from Kona
-  g.box(9, 14, 11, 14, 'L').box(14, 14, 16, 14, 'L').box(19, 14, 21, 14, 'L').box(24, 14, 29, 14, 'L'); // the first ledge and the stepping ledges (floor 14)
+  g.box(9, 14, 11, 14, 'L').box(14, 14, 16, 14, 'L').box(19, 14, 21, 14, 'L').box(24, 14, 27, 14, 'L'); // the first ledge and the stepping ledges (floor 14)
+  g.box(27, 15, 27, 18, 'K').box(31, 5, 31, 18, 'K').clear(30, 15, 30, 18); // the crater's pit under the rope (cols 28-30), walled off from the basin: the moon rock at its foot
   g.box(15, 9, 26, 9, 'L').box(20, 9, 21, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
-  g.box(28, 4, 28, 13, 'R'); // the rope up the east wall, past the long ledge to the rim
+  g.box(28, 4, 28, 18, 'R'); // the rope up the east wall, from the pit's foot past the long ledge to the rim
   g.box(19, 0, 19, 4, 'K').box(20, 5, 31, 5, 'L'); // the rim's spur and the high shelf east of it, out east to the farm
 };
 const LOA_COINS = [[26, 12], [22, 3]] as const;
+/** The moon rock at the foot of the crater's pit (its top left): the shooting star the summit saw fall. */
+export const MOON_ROCK_AT = { col: 29, row: 17 } as const;
 
 const paintCoffee = (g: Grid): void => {
   g.box(0, 5, 9, 5, 'T').box(0, 6, 9, 19, 'S'); // the top terrace, in from Mauna Loa's rim
   g.box(10, 9, 16, 9, 'T').box(10, 10, 16, 19, 'S'); // the second
   g.box(17, 13, 23, 13, 'T').box(17, 14, 23, 19, 'S'); // the third, the sack at its far end
+  g.box(11, 7, 12, 7, 'T').box(17, 11, 18, 11, 'T').box(27, 17, 28, 17, 'T').box(24, 15, 25, 15, 'T'); // the stone steps up each terrace's bank (the way back up from Hilo)
   g.box(24, 19, 31, 19, 'P'); // the farm's lane at the foot of the terraces
   g.box(29, 0, 29, 18, 'R'); // the rope up to Hilo
   g.box(0, 0, 0, 2, 'B'); // (the crater's rim at the west edge, over the way in)
@@ -459,8 +484,9 @@ const COFFEE_COINS = [[5, 3], [13, 7]] as const;
 
 const paintHilo = (g: Grid): void => {
   g.box(0, 19, 27, 19, 'P').box(31, 19, 31, 19, 'P'); // the street along the bayfront to the airfield, the rope's opening (cols 28-30)
-  g.box(29, 15, 29, 19, 'R'); // the rope down to the coffee farm
+  g.box(29, 0, 29, 19, 'R'); // the rope from Akaka Falls' high trail, past the street, down to the coffee farm
   g.box(2, 12, 14, 12, 'J'); // the old wooden storefronts' roofs
+  g.box(9, 0, 9, 11, 'R').box(16, 11, 16, 18, 'R'); // the rope up from the roofs to the falls' low lane, and the rope up to the roofs from the street
 };
 const HILO_COINS = [[8, 10], [17, 17]] as const;
 /** The storefronts under their roofs (one character each over the empty cells: a backdrop he walks past). */
@@ -665,7 +691,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
   }),
 
   // THE SUMMIT: Mauna Kea's top, above the clouds at night (the only night in the game): the red cinder ridge, the summit's cairn on its knoll (a coin), the small observatories, the big dome with its slit open and
-  // the telescope pointing out at the stars and the moon. Up the dome's ladder to the catwalk (a coin) and up the second ladder to its top, where a paraglider's parachute is snagged. A dead end: back down.
+  // the telescope pointing out at the stars and the moon, a shooting star falling south (to Mauna Loa's crater: the moon rock). Up the dome's ladder to the catwalk (a coin), where the astronomer reading his star
+  // chart stands guard, the ladder up to the telescope's platform drawn up, until Monty brings the moon rock (data.ts: then he lets it down and goes in to look at it). Up it to the platform, where a paraglider's
+  // parachute is snagged. A dead end: back down.
   room({
     id: PAC.summit, cell: [1, 22], sector: 92, palette: KEA_PALETTE,
     paint: paintSummit,
@@ -673,50 +701,52 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     item: { name: 'parachute', col: PARACHUTE_AT.col, row: PARACHUTE_AT.row, sprite: PAC_SPRITE.parachute },
     decor: [
       ['jpStars', 1, 1], ['jpStars', 9, 3], ['jpStars', 12, 0], ['jpStars', 26, 5], ['jpMoon', 27, 1],
-      ['pacDomeBig', 17, 6], ['pacDomeSmall', 9, 13], ['pacDomeSmall', 28, 13], ['pacCairn', 1, 12],
+      ['pacDomeBig', 17, 6], ['pacDomeSmall', 9, 13], ['pacDomeSmall', 28, 13], ['pacCairn', 1, 12], ['pacShootingStar', 4, 4],
     ],
+    creatures: [{ who: 'pacAstronomer', col: ASTRONOMER_AT.col, row: ASTRONOMER_AT.row, way: 'right', speed: 1, range: 8 }], // (the first: data.ts sends him in)
   }),
 
-  // AKAKA FALLS: the wet side of the island, down from Mauna Kea through the rainforest gorge beside the tall waterfall, dropping in two falls to its plunge pool. In at the gorge's lip (floor 8); down the mossy
-  // ledges (a coin on the first, seen from the lip) to the gorge's floor; the stream's way out at the bottom (cols 20-22) is a drop into Hilo, no way back up. A parrot in the trees.
+  // AKAKA FALLS: the wet side of the island, the rainforest gorge where the falls pour out under the high trail into the plunge pool. Crossed twice at two heights (the plan: Moscow's rule), sealed from each
+  // other by the gorge: the high trail from Mauna Kea's third switchback along the gorge's top (floor 8) to the rope at its end (a coin at its head) down the way the stream goes, to Hilo's street; and the low
+  // lane by the plunge pool (floor 19; a coin over the pool), from Hilo's roofs up the rope at the left, west to Mauna Kea's foot. A parrot in the trees.
   room({
     id: PAC.falls, cell: [2, 23], sector: 93, palette: FALLS_PALETTE,
     paint: paintFalls,
     coins: FALLS_COINS,
-    decor: [['pacWaterfall', 26, 4], ['pacWaterfall', 26, 13], ['pacPalmSmall', 3, 4], ['pacPalm', 15, 11], ['pacBambooClump', 12, 7]],
+    decor: [['pacWaterfall', 19, 9], ['pacWaterfall', 19, 14], ['pacPalmSmall', 3, 4], ['pacPalm', 3, 13], ['pacBambooClump', 12, 4], ['pacBambooClump', 24, 15]],
     creatures: [{ who: 'pacParrot', col: 12, row: 3, way: 'right', speed: 1, range: 60 }],
   }),
 
   // MAUNA LOA: the bottom way, along the south over the volcano's lava (MAUNA KEA-OS's rising lava, where it belongs). Down the lava tube's rope from Kona onto the shore (cols 2-10, outside the lava), and the
   // lava starts to rise. Onto the first ledge (floor 14), east over the stepping ledges (the first two cooled crust that cracks under a standing foot; a magma blob bobs up between them) to the last (a coin at
-  // its end), up the rope on the east wall past the long ledge to the rim's high shelf (floor 5: a coin at the rope's head), past the nene and out east to the coffee farm.
+  // its end), up the rope on the east wall past the long ledge to the rim's high shelf (floor 5: a coin at the rope's head) and out east to the coffee farm. The rope hangs on down a pit walled off from the
+  // basin to the moon rock at its foot (a dead end off the route): taken, it wakes the pit's own lava, which wells up behind him as he climbs out.
   room({
     id: PAC.loa, cell: [4, 22], sector: 52, palette: LOA_PALETTE,
     paint: paintLoa,
     coins: LOA_COINS,
+    item: { name: 'moon rock', col: MOON_ROCK_AT.col, row: MOON_ROCK_AT.row, sprite: PAC_SPRITE.moonRock },
     decor: [['pacLavaRocks', 3, 18]],
-    creatures: [
-      { who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 1 },
-      { who: 'pacNene', col: 22, row: 3, way: 'right', speed: 1, range: 24 },
-    ],
+    creatures: [{ who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 1 }],
   }),
 
-  // COFFEE BREAK: Hilo's coffee farm on the slope below the town (COFFEE BREAK's coffee). In from Mauna Loa's rim onto the top terrace (floor 5), down the terraces between the coffee rows (each a drop: no way
-  // back up from the next), the sack of beans at the far end of the lowest, down to the farm's lane and up the rope to Hilo. From Hilo the rope leads only to the lane: the coffee is earned over Mauna Loa.
+  // COFFEE BREAK: Hilo's coffee farm on the slope below the town (COFFEE BREAK's coffee). In from Mauna Loa's rim onto the top terrace (floor 5), down the terraces between the coffee rows, the sack of beans
+  // at the far end of the lowest (up off the farm's lane), down to the lane and up the rope to Hilo. Stone steps up each terrace's bank make it a way both ways: from Hilo up the terraces to Mauna Loa.
   room({
     id: PAC.coffee, cell: [4, 23], sector: 51, palette: COFFEE_PALETTE,
     paint: paintCoffee,
     coins: COFFEE_COINS,
     item: { name: 'coffee', col: COFFEE_AT.col, row: COFFEE_AT.row, sprite: PAC_SPRITE.coffee },
-    decor: [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacCoffeeTree', 18, 10], ['pacSacks', 7, 3], ['pacSacks', 25, 17]],
+    decor: [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacCoffeeTree', 19, 10], ['pacSacks', 7, 3], ['pacSacks', 25, 17]],
     creatures: [
       { who: 'pacRooster', col: 26, row: 17, way: 'right', speed: 1, range: 8 },
-      { who: 'pacMagma', col: 14, row: 3, way: 'right', speed: 1, range: 20 },
+      { who: 'pacNene', col: 13, row: 7, way: 'right', speed: 1, range: 8 }, // (a nene grazing the second terrace: no lava off the volcano)
     ],
   }),
 
-  // HILO GOODBYE: Hilo's bayfront and the airfield, where the two ways meet. In along the street from Kona; the old wooden storefronts (their roofs a coin, reached only by the drop from Akaka Falls), east to
-  // the airfield where the yellow mail biplane waits: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY. The rope at the street's end goes down to the coffee farm's lane. A rooster struts the street.
+  // HILO GOODBYE: Hilo's bayfront and the airfield, where the two ways meet. In along the street from Kona; up the rope onto the old wooden storefronts' roofs (a coin) and up the rope from them into Akaka
+  // Falls' low lane (the top way, up to Mauna Kea); east to the airfield where the yellow mail biplane waits: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY. The long rope at the street's end comes down
+  // from Akaka Falls' high trail and goes on down to the coffee farm's lane (the bottom way). A rooster struts the street.
   room({
     id: PAC.hilo, cell: [3, 23], sector: 53, palette: HILO_PALETTE,
     paint: paintHilo,

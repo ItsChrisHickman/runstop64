@@ -254,6 +254,8 @@ export interface DragonPiece { sprite: number; frames: readonly number[]; colour
  */
 export interface LavaSpec {
   room: number; col: number; cols: number; baseRow: number; topRow: number; stepFrames: number; holdFrames: number; drainFrames: number; code: number; crest: number;
+  /** Asleep until Monty has taken special item `wakenBy` (Mauna Loa's moon rock wakes its crater's lava): it rises from that frame on, and from his coming into the room once it is taken. */
+  wakenBy?: number;
 }
 
 /**

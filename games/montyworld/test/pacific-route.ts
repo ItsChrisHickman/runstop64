@@ -2,15 +2,16 @@
  * Hawaii's route for the bot (docs/dosvidaniya-back-half-plan.md, "Hawaii"): the goals, in the order a player who takes everything plays them. Onto the cargo ship from Japan's gangway, through it and out of the
  * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the drummers' platform), up the hillside rope over
  * Diamond Head's trail to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
- * cave and back up, up the road's three tiers to Hana; down the cove into the last swim (the moray, the surge) onto Kona; on to Hilo, where the plane wants both; back to Kona, up over Mauna Kea to its summit
- * (the parachute), down Akaka Falls into Hilo; back to Kona, down the lava tube and over Mauna Loa ahead of the lava, along the coffee farm (the coffee) and up into Hilo; and away in the biplane.
+ * cave and back up, up the road's three tiers to Hana; down the cove into the last swim (the moray, the surge) onto Kona; down the lava tube and over Mauna Loa ahead of the lava, down its pit for the
+ * moon rock and out ahead of the pit's lava, along the coffee farm (the coffee) and up into Hilo (the plane still wants the parachute); up from the roofs along Akaka Falls' low lane to Mauna Kea and its
+ * summit (the rock to the astronomer, his ladder, the parachute); back down and along the falls' high trail, down the rope to Hilo; and away in the biplane.
  * Functions on the game, shared by the bot test and the pictures.
  */
 import { lavaTop } from '../../montyotr/src/lava';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
 import { FLY } from '../src/sky';
-import { BIPLANE_AT, COFFEE_AT, LAVA, PAC, PARACHUTE_AT } from '../src/pacific';
+import { BIPLANE_AT, COFFEE_AT, LAVA, MOON_ROCK_AT, PAC, PARACHUTE_AT } from '../src/pacific';
 import { coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg's goal reached with the lava still a good way off (100 frames): a leg that ended on a ledge the lava reaches in a few frames would hand the next one a death. */
@@ -90,32 +91,32 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('FISH: out of the hollow and up over the middle head between sets', within(PAC.fish, 21, 22, 13, 14)),
   leg('FISH: down past the middle head, timing the shark, into the third head\'s lee', livesFor(within(PAC.fish, 23, 24, 16, 17), 40)),
   leg('FISH to Kona: over the third head between sets, out onto the black sand', into(PAC.kona, 31, 16, PAC.fish)),
-  // the Big Island
+  // the Big Island: the bottom way first (the moon rock, the coffee), then the top way (the rock to the astronomer, the parachute), round the loop
   leg('Kona: over the lava tube, the coin over the tide pool', coin(PAC.kona, 16, 16)),
   leg('Kona: up the lava rock, its coin', coin(PAC.kona, 24, 13)),
-  leg('Kona to Hilo: along the sand to the plane', into(PAC.hilo, 31, 17, PAC.kona)),
-  leg('Hilo: east past the rooster, the coin on the street', livesFor(coin(PAC.hilo, 17, 17), 40)),
-  leg('Hilo to Kona: back west for the mountains', into(PAC.kona, 0, 17, PAC.hilo)),
-  leg('Kona to Mauna Kea: up the rope on the mountain\'s flank', into(PAC.kea, 28, 0, PAC.kona)),
-  leg('Mauna Kea: up the switchbacks, the coin on the third', coin(PAC.kea, 22, 6)),
-  leg('Mauna Kea: up to the top, its coin', coin(PAC.kea, 3, 2)),
-  leg('Mauna Kea to the summit: up the rope', into(PAC.summit, 6, 0, PAC.kea)),
-  leg('Summit: the coin by the cairn', coin(PAC.summit, 3, 12)),
-  leg('Summit: up the dome\'s ladder to the catwalk, its coin', coin(PAC.summit, 23, 9)),
-  leg('Summit: up to the dome\'s top, the parachute', livesFor(item(PAC.summit, 0, [PARACHUTE_AT.col, PARACHUTE_AT.row]), 40)),
-  leg('Summit to Mauna Kea: back down the rope', into(PAC.kea, 6, 19, PAC.summit)),
-  leg('Mauna Kea to Akaka Falls: the third switchback east down the wet side', into(PAC.falls, 31, 6, PAC.kea)),
-  leg('Akaka Falls: down the gorge, the coin on the first ledge', coin(PAC.falls, 10, 9)),
-  leg('Akaka Falls to Hilo: down the stream onto the storefronts\' roofs', into(PAC.hilo, 21, 19, PAC.falls)),
-  leg('Hilo: the coin on the roofs', coin(PAC.hilo, 8, 10)),
-  leg('Hilo to Kona: back west again', into(PAC.kona, 0, 17, PAC.hilo)),
-  leg('Kona to Mauna Loa: down the lava tube\'s rope', into(PAC.loa, 7, 19, PAC.kona)),
+  leg('Kona to Mauna Loa: back west, down the lava tube\'s rope', into(PAC.loa, 7, 19, PAC.kona)),
   leg('Mauna Loa: over the cracking crust ahead of the lava, the coin at the last ledge\'s end', outOfLava(coin(PAC.loa, 26, 12))),
-  leg('Mauna Loa: up the east wall\'s rope to the rim, the coin past the nene', livesFor(coin(PAC.loa, 22, 3), 40)),
+  leg('Mauna Loa: down the rope into the crater\'s pit, the moon rock', livesFor(item(PAC.loa, 0, [MOON_ROCK_AT.col, MOON_ROCK_AT.row]), 40)),
+  leg('Mauna Loa: up the rope ahead of the pit\'s lava to the rim, the coin at its head', livesFor(coin(PAC.loa, 22, 3), 40)),
   leg('Mauna Loa to the farm: out east along the rim', into(PAC.coffee, 31, 3, PAC.loa)),
   leg('Coffee farm: the coin on the top terrace', coin(PAC.coffee, 5, 3)),
   leg('Coffee farm: down a terrace, its coin', coin(PAC.coffee, 13, 7)),
   leg('Coffee farm: down to the sack of coffee', livesFor(item(PAC.coffee, 0, [COFFEE_AT.col, COFFEE_AT.row]), 40)),
   leg('Coffee farm to Hilo: down to the lane and up the rope', into(PAC.hilo, 29, 0, PAC.coffee)),
+  leg('Hilo: west past the rooster, the coin on the street', livesFor(coin(PAC.hilo, 17, 17), 40)),
+  leg('Hilo: up the rope onto the storefronts\' roofs, their coin', coin(PAC.hilo, 8, 10)),
+  leg('Hilo to Akaka Falls: up the rope from the roofs into the low lane', into(PAC.falls, 9, 19, PAC.hilo)),
+  leg('Akaka Falls: west along the low lane, the coin over the plunge pool', livesFor(coin(PAC.falls, 21, 16), 40)),
+  leg('Akaka Falls to Mauna Kea: west to the mountain\'s foot', into(PAC.kea, 0, 17, PAC.falls)),
+  leg('Mauna Kea: up the rope and the switchbacks, the coin on the third', coin(PAC.kea, 22, 6)),
+  leg('Mauna Kea: up to the top, its coin', coin(PAC.kea, 3, 2)),
+  leg('Mauna Kea to the summit: up the rope', into(PAC.summit, 6, 0, PAC.kea)),
+  leg('Summit: the coin by the cairn', coin(PAC.summit, 3, 12)),
+  leg('Summit: up the dome\'s ladder to the catwalk, its coin', coin(PAC.summit, 18, 9)),
+  leg('Summit: up the astronomer\'s ladder (the moon rock given) to the parachute', livesFor(item(PAC.summit, 0, [PARACHUTE_AT.col, PARACHUTE_AT.row]), 40)),
+  leg('Summit to Mauna Kea: back down the rope', into(PAC.kea, 6, 19, PAC.summit)),
+  leg('Mauna Kea to Akaka Falls: the third switchback east onto the high trail', into(PAC.falls, 31, 6, PAC.kea)),
+  leg('Akaka Falls: along the high trail over the falls, the coin at the rope\'s head', coin(PAC.falls, 24, 6)),
+  leg('Akaka Falls to Hilo: down the rope to the street', into(PAC.hilo, 29, 19, PAC.falls)),
   leg('Hilo to the flight: to the biplane, and away', into(FLY.mail, BIPLANE_AT.col, 17, PAC.hilo)),
 ];

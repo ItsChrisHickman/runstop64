@@ -2,7 +2,7 @@
  * Hawaii's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, pacific.ts, plays them all together; docs/dosvidaniya-back-half-plan.md, "Hawaii"): the region's data
  * (nineteen rooms on the grid, the ids, the coins and finds), the ship's pistons and bilge, Waikiki's surf shut until the snorkel (no way into the sea without it), the luau's torches, the lookout's rocks,
  * the swims (the snorkel, no way out upward but up a rope through the surface: Lahaina's mooring rope, the road's pool, Hana's cove; the surge and its lee, the moray), the road's cars, Hana's wave,
- * Mauna Loa's lava, cracking crust and vent, the Big Island's one-way pieces (Akaka Falls drops into Hilo, the coffee is not reached from Hilo), the biplane's two locks, the lei as a costume that gates
+ * Mauna Loa's lava, cracking crust and vent, the Big Island's locks (the astronomer wants the moon rock; the rock wakes the pit's lava), the biplane's two locks, the lei as a costume that gates
  * nothing, the hints, the banners, the swimmer's pictures, and a save in each room.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pacific-mechanisms.ts [--room <rooms>] [--record]
@@ -21,7 +21,7 @@ import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { BIPLANE_AT, COFFEE_AT, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
@@ -30,7 +30,7 @@ import { SCOPE } from './scope';
 
 const DOWN = { ...NONE, down: true };
 /** The items by room and place in it. */
-const SNORKEL = [PAC.lookout, 0] as const, LEI = [PAC.luau, 0] as const, PARACHUTE = [PAC.summit, 0] as const, COFFEE = [PAC.coffee, 0] as const;
+const SNORKEL = [PAC.lookout, 0] as const, LEI = [PAC.luau, 0] as const, PARACHUTE = [PAC.summit, 0] as const, COFFEE = [PAC.coffee, 0] as const, MOON_ROCK = [PAC.loa, 0] as const;
 
 // ---- the data -------------------------------------------------------------------------------------
 SCOPE.section([], 'the data', () => {
@@ -150,14 +150,20 @@ SCOPE.section([PAC.loa], 'Mauna Loa: the lava, the crust, the vent', () => {
   check(`standing over the vent he dies when it blows (frame ${ventDied}, live from ${VENT.start + VENT.warn})`, VENT_PULSES[0] !== undefined && ventDied >= VENT.start + VENT.warn - 1);
 });
 
-// ---- the Big Island's one-way pieces: each item earned over its own mountain -------------------------------
-SCOPE.section([PAC.hilo, PAC.coffee, PAC.falls, PAC.kona], 'the Big Island: the coffee is not reached from Hilo, and Akaka Falls is a drop', () => {
-  const stats = { exhausted: false };
-  const coffee = search(at(PAC.hilo, 26, 19, [SNORKEL]), (g) => !!g.siCollected[itemIndex(g, ...COFFEE)], [{ room: PAC.coffee, col: COFFEE_AT.col, row: COFFEE_AT.row }], 60000, 1.5, stats);
-  check(`from Hilo, down the rope to the farm's lane, there is no way up the terraces to the coffee (${stats.exhausted ? 'every state looked at' : 'the state limit'})`, coffee === null);
-  const up = { exhausted: false };
-  const back = search(at(PAC.hilo, 8, 12, [SNORKEL]), (g) => g.roomId === PAC.falls, [{ room: PAC.hilo, col: 21, row: 0 }], 30000, 1.5, up);
-  check(`from Hilo's roofs there is no way back up into Akaka Falls (${up.exhausted ? 'every state looked at' : 'the state limit'})`, back === null);
+// ---- the Big Island's locks: the moon rock for the astronomer, the rock waking the pit's lava ------------------
+SCOPE.section([PAC.summit, PAC.loa], 'the Big Island: the astronomer wants the moon rock, and the rock wakes the pit\'s lava', () => {
+  const parachute = (holds: readonly (readonly [number, number])[], stats: { exhausted: boolean }) =>
+    search(at(PAC.summit, 17, 11, [SNORKEL, ...holds], false, true), (g) => !!g.siCollected[itemIndex(g, ...PARACHUTE)], [{ room: PAC.summit, col: PARACHUTE_AT.col, row: PARACHUTE_AT.row }], 30000, 1.5, stats);
+  const without = { exhausted: false }, withRock = { exhausted: false };
+  check(`without the moon rock the astronomer keeps him off the dome's ladder: no way to the parachute (${without.exhausted ? 'every state looked at' : 'the state limit'})`, parachute([], without) === null);
+  check('with the moon rock the astronomer has gone in, and the ladder takes him to the parachute', parachute([MOON_ROCK], withRock) !== null);
+  const asleep = at(PAC.loa, 3, 19, [SNORKEL]);
+  run(asleep, NONE, 120);
+  check('before the rock is taken the pit\'s lava sleeps (the basin\'s rises as ever)', asleep.g.lavas.find((l) => l.index === 1)?.t === 0 && (asleep.g.lavas.find((l) => l.index === 0)?.t ?? 0) > 0);
+  check('with the rock taken, the pit\'s lava wells up: waiting at its foot he dies', diesAt(at(PAC.loa, 28, 19, [SNORKEL, MOON_ROCK]), NONE, 300) >= 0);
+  const climbs = at(PAC.loa, 28, 19, [SNORKEL, MOON_ROCK]);
+  run(climbs, UP, 150);
+  check(`climbing the rope at once he is out ahead of it (row ${climbs.g.montyRow - 3})`, !dead(climbs.g));
 });
 
 // ---- the biplane's two locks ---------------------------------------------------------------------------
@@ -181,9 +187,9 @@ SCOPE.section([PAC.hilo, FLY.mail], 'Hilo: the biplane wants the parachute and t
 // ---- the hints and the banners ------------------------------------------------------------------------
 SCOPE.section([], 'the hints and the banners', () => {
   const want = WORLD.hints.wanted.filter((h) => (Object.values<number>(PAC)).includes(h.room)).map((h) => `${h.room}:${h.text}`);
-  check(`the surf's hint on coming into Waikiki (${want.join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR`);
+  check(`the surf's hint on coming into Waikiki, the astronomer's at the summit (${want.join(' / ')})`, want.join('|') === `${PAC.waikiki}:A MOLE CANNOT SWIM THAT FAR|${PAC.summit}:THE ASTRONOMER WANTS A MOON ROCK`);
   const take = new Set(WORLD.hints.take.map((h) => h.text));
-  check('the take hints: the snorkel\'s, the lei\'s, the parachute\'s and the coffee\'s', take.has('WITH A SNORKEL HE CAN SWIM') && take.has('A LEI: TRAVELLERS WEAR ONE') && take.has('PARACHUTE: FOR A LONG DROP') && take.has('COFFEE KEEPS A PILOT AWAKE'));
+  check('the take hints: the snorkel\'s, the lei\'s, the parachute\'s, the coffee\'s and the moon rock\'s', take.has('WITH A SNORKEL HE CAN SWIM') && take.has('A LEI: TRAVELLERS WEAR ONE') && take.has('PARACHUTE: FOR A LONG DROP') && take.has('COFFEE KEEPS A PILOT AWAKE') && take.has('A MOON ROCK: FOR AN ASTRONOMER'));
 });
 SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, PAC.fish, PAC.kona], 'the banners', () => {
   const arrive = (from: number, to: number, col: number, floor: number) => {
@@ -199,7 +205,7 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
-    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 16, 18], [PAC.lookout, 1, 10], [PAC.clam, 27, 5], [PAC.kelp, 2, 18], [PAC.lahaina, 18, 18], [PAC.road, 3, 18],
+    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 16, 18], [PAC.lookout, 1, 10], [PAC.clam, 27, 5], [PAC.kelp, 2, 18], [PAC.lahaina, 27, 18], [PAC.road, 3, 18],
     [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 27, 5], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
   ] as const;
   const failed: number[] = [];

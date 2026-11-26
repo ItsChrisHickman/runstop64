@@ -69,12 +69,23 @@ function coffee(): NewItem {
   return { block: itemBlock('pacCoffee', r.rows()), colour: 9 };
 }
 
+/** The moon rock: the shooting star that fell into Mauna Loa's crater, a lump of grey rock pitted with craters, still glinting. */
+function moonRock(): NewItem {
+  const r = new Raster(16, 16);
+  r.ellipse(7.5, 10, 7, 5.5); r.ellipse(6, 6.5, 4.5, 3.5); // the lump
+  r.ellipse(4, 10, 1.6, 1.6, false); r.ellipse(10, 8, 1.4, 1.4, false); r.ellipse(9, 13, 1.2, 1.2, false); r.set(6, 6, false); // its craters
+  r.set(4, 10); r.set(10, 8); // (their floors catch the light)
+  r.rect(13, 0, 13, 4); r.rect(11, 2, 15, 2); // the glint
+  return { block: itemBlock('pacMoonRock', r.rows()), colour: 15 };
+}
+
 export const PACIFIC_ITEMS = {
   pacSnorkel: snorkel(),
   pacLei: lei(),
   pacParachute: parachute(),
   pacMusubi: musubi(),
   pacCoffee: coffee(),
+  pacMoonRock: moonRock(),
 } as const satisfies Record<string, NewItem>;
 
 export type PacificItem = keyof typeof PACIFIC_ITEMS;
