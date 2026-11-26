@@ -372,7 +372,8 @@ thing, that's a rather weird thing to have; that's a wasted effort." So:
   painted houses, Lapa's white arches), into the carnival spectacular (BEAT THE DRUM, FLOAT YOUR BOAT: the Sambadrome, floats,
   dancers everywhere, the grandstands), SPY VERSUS MOLE (as built: Chris liked it), then the beach (RIO OR BUST, Copacabana's
   wave pavement). **SUGAR RUSH and its cable car are cut** (Chris asked), and with them the crank and the winch if nothing else
-  uses them; the way down from the Redeemer to the streets is walked.
+  uses them; the way down from the Redeemer to the streets is walked. The reward show had a SUGAR RUSH place (Chris: "remember that the ending had
+  Sugar Rush in it before"): replace it with another Rio place (the carnival, the Redeemer or HOUSE OF COLOUR), never a gap.
 - **Monty on the run, for real:** at the Redeemer Viktor arrives (the cause, seen) and the chase starts; Monty drinks a
   **guarana** (Brazil's own soda, the item, taken there; recommended) and RUNS: a faster walk for the rest of Rio, seen and
   heard (a quicker step, the tune's tempo up). Approved by Chris ("the perfect way to end the game ... we're not going to be
