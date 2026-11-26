@@ -13,14 +13,14 @@ import { copy, frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { CHI } from '../src/china';
-import { JP } from '../src/japan';
+import { isJapanese, JP } from '../src/japan';
 import { ACTIONS, hold, newGame, play, search } from '../../shared/monty/test/bot';
 import { JAPAN_LEGS } from './japan-route';
 import { itemIndex, settledOn, standY } from './route';
 
 const mode = process.argv[2] === 'enhanced' ? 'enhanced' : 'original';
 const first = Number(process.argv[3] ?? 0), last = Number(process.argv[4] ?? JAPAN_LEGS.length - 1);
-const japanese = (room: number) => (room >= JP.harbour && room <= JP.port) || room === JP.grove; // (SHOOT FOR THE MOON was added after the flight: id 96)
+const japanese = isJapanese; // (the rooms made with Japan and those added after it shipped: SHOOT FOR THE MOON, GONE WITH THE WIND)
 
 const stick = (name: string) => ACTIONS.find(([n]) => n === name)?.[1] ?? NONE;
 

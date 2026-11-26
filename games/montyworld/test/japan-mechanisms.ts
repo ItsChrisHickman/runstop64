@@ -22,11 +22,12 @@ import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { hoodWorn, WORLD_CREATURES, WORLD_DECOR } from '../src/art';
+import { JAPAN_CAVE_CREATURES } from '../src/art/japan-cave';
 import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CAVE, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
@@ -40,27 +41,29 @@ import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
 const DARUMA = [JP.platform, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
-const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
+const CREATURE_NAMES = [...Object.keys(JAPAN_CREATURES), ...Object.keys(JAPAN_CAVE_CREATURES)];
 
 // ---- the data -------------------------------------------------------------------------------------
 SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite blocks', () => {
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  check('Japan is twelve rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 and SHOOT FOR THE MOON\'s 97 (added after the flight; the three regions before it unchanged)',
-    cells.filter((c) => (c >= JP.harbour && c <= JP.port) || c === JP.grove).length === 12 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16), grid(0, 14)].join()
-      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port, JP.grove].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff);
+  check('Japan is thirteen rooms, a block of five columns (12-16) by three rows beside China\'s and the ice cave under MOUNT FUJI, room ids 27 to 37, SHOOT FOR THE MOON\'s 97 and GONE WITH THE WIND\'s 98 (added after the flight; the three regions before it unchanged)',
+    cells.filter((c) => (c >= JP.harbour && c <= JP.port) || c === JP.grove || c === JP.cave).length === 13 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16), grid(0, 14), grid(3, 15)].join()
+      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port, JP.grove, JP.cave].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff);
   const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
   const firstAdded = coinRooms.indexOf(CHI.heaven);
   check('SHOOT FOR THE MOON\'s two coins are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins) and it has no find',
     coinsIn(JP.grove, JP.grove) === 2 && firstAdded >= 0 && coinRooms.indexOf(JP.grove) > firstAdded && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && itemsIn(JP.grove, JP.grove) === 0);
+  check('GONE WITH THE WIND\'s two coins are the coin table\'s last (the room added last: a format 4 save\'s coins keep their places) and it has no find',
+    coinsIn(JP.cave, JP.cave) === 2 && coinRooms.slice(-2).every((r) => r === JP.cave) && itemsIn(JP.cave, JP.cave) === 0);
   const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
   check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in Japan's twelve rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
+  check(`${rooms.size} kinds of creature in Japan's thirteen rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 13 && most <= 2);
   const used = [...HAT_BLOCKS, ...Object.values(JAPAN_SPRITE)];
   check(`every block of the bank Japan uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73) and its four items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values(JAPAN_SPRITE).every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
@@ -737,9 +740,13 @@ SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
   // standing in the open on the climb when one comes kills him: on the first ledge, the two steps, the top of the climb
   const open = ([[15, 14], [21, 14], [24, 12], [27, 10], [26, 8]] as const).map(([col, floor]) => ({ col, floor, at: diesAt(at(JP.fuji, col, floor), NONE, FUJI_SNOW.every + FUJI_SNOW.start) }));
   check(`standing in the open on the climb, the first snowball kills him (${open.map((o) => `${o.col},${o.floor}: frame ${o.at}`).join('; ')})`, open.every((o) => o.at >= 0));
-  // and walking straight on from the way in, it meets him on the first ledge
+  // and walking straight on from the way in (a jump over the gap to the first ledge), it meets him on the first ledge
   const rush = at(JP.fuji, 0, 14);
-  const rushed = diesAt(rush, RIGHT, 300);
+  let rushed = -1;
+  for (let f = 0; f < 300 && rushed < 0; f++) {
+    frame(rush, colOf(rush.g) === FUJI.gap.col0 - 2 && !rush.g.montyAction && !rush.g.falling ? { ...RIGHT, fire: true } : RIGHT);
+    if (dead(rush.g)) rushed = f;
+  }
   check(`walking on from the way in without waiting, the first snowball meets him on the first ledge (frame ${rushed}, at column ${colOf(rush.g)})`, rushed >= 0 && rush.g.roomId === JP.fuji);
   // each part of the climb is crossed by waiting in a hut for a snowball to pass: up from the foot hut to the top hut, down from the top hut to the foot hut
   const passed = (s: State, gone: (p: { col: number; row: number }) => boolean) => {
@@ -763,6 +770,43 @@ SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
   // the rest of the room is clear: the second ledge west of the top hut, the last step and the chain
   const ledge = at(JP.fuji, 14, 8);
   check('the second ledge west of the top hut is clear of the snowballs (two pass, he stands there)', diesAt(ledge, NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0);
+});
+
+// ---- MOUNT FUJI's open mountainside and GONE WITH THE WIND --------------------------------------------------------
+SCOPE.section([JP.fuji, JP.cave], 'MOUNT FUJI\'s open mountainside and the ice cave at its foot', () => {
+  const fuji = must(JAPAN_ROOMS.find((r) => r.id === JP.fuji), 'the mountain'), cave = must(JAPAN_ROOMS.find((r) => r.id === JP.cave), 'the cave');
+  const open = (map: readonly string[], row: number) => Array.from({ length: 32 }, (_, c) => map[row]?.[c] === '.');
+  const foot = open(fuji.map, 19), mouth = open(cave.map, 0);
+  check('no floor across MOUNT FUJI: under its ledges the drop runs through the room\'s foot (columns ' + `${FUJI.open.col0}-${FUJI.open.col1}), open where the cave\'s sinkhole is open and shut where it is shut`,
+    [17, 18, 19].every((row) => Array.from({ length: FUJI.open.col1 - FUJI.open.col0 }, (_, i) => FUJI.open.col0 + 1 + i).every((c) => fuji.map[row]?.[c] === '.'))
+      && foot.every((o, c) => o === mouth[c]) && foot.every((o, c) => o === (c >= FUJI.open.col0 && c <= FUJI.open.col1)));
+  // a step off the ledge he came in on, into the gap: he falls through the mountain's foot into the cave, onto the snow under the sinkhole, alive
+  const step = at(JP.fuji, FUJI.entry.col1 - 1, FUJI.floor);
+  let fell = false;
+  for (let f = 0; f < 200 && !dead(step.g); f++) { frame(step, step.g.roomId === JP.fuji && !step.g.falling ? RIGHT : NONE); if (step.g.roomId === JP.cave && !step.g.falling && !step.g.montyAction) { fell = true; break; } }
+  check(`off the entry ledge into the gap, he drops into GONE WITH THE WIND and lands on the snow heap (room ${step.g.roomId}, row ${step.g.montyRow - PLAY_ROW}, alive ${!dead(step.g)})`, fell && !dead(step.g) && step.g.montyRow - PLAY_ROW + 2 <= CAVE.heap.floor);
+  // the tengu: harmless (a cameo), he flies in from the tube's east end once Monty is down in the tube, and stays by the gust beckoning
+  const tube = at(JP.cave, CAVE.hole.col0, CAVE.floor);
+  for (let f = 0; f < 200; f++) frame(tube, NONE);
+  const tengu = WORLD.cameos.find((c) => c.room === JP.cave);
+  const shown = tengu !== undefined && (tube.g.enable & (1 << tengu.sprite)) !== 0 && tube.g.sx[tengu.sprite] === 0x0c + (CAVE.tengu.col + 4) * 4;
+  check(`down in the tube, the tengu has flown in and stands by the gust (sprite ${tengu?.sprite}, x2 ${tengu ? tube.g.sx[tengu.sprite] : '-'}), a cameo touching nothing`, shown && !dead(tube.g));
+  // the gust: whenever he walks into it (whatever its flicker shows), the wind sets him down at the top of the mountain's climb, standing, alive, the warp's sound
+  const lifts = [0, 37, 91, 160].map((wait) => {
+    const s = at(JP.cave, CAVE.mound.col0, CAVE.mound.floor);
+    for (let f = 0; f < wait; f++) frame(s, NONE);
+    let f = 0;
+    for (; f < 120 && s.g.roomId === JP.cave; f++) frame(s, RIGHT);
+    for (let n = 0; n < 60; n++) frame(s, NONE);
+    return { wait, ok: s.g.roomId === JP.fuji && s.g.montyCol - PLAY_COL === FUJI.top.col && s.g.y === standY(FUJI.top.floor) && !dead(s.g), at: `${s.g.roomId} ${s.g.montyCol - PLAY_COL},${s.g.y}`, frames: f };
+  });
+  check(`into the tengu's gust from the ice mound after any wait, he is set down at the top of MOUNT FUJI's climb, the last step under the chain (${lifts.map((l) => `wait ${l.wait}: ${l.at} after ${l.frames}`).join('; ')})`, lifts.every((l) => l.ok));
+  check('the gust is the cave\'s one teleporter and MOUNT FUJI has none (the only teleport in the game, a reward)', WORLD.teleporterCfg.length === 5 && WORLD.teleporterCfg[0] === JP.cave && cave.teleporter !== undefined && fuji.teleporter === undefined);
+  // the dangers: the yuki-onna's drift reaches the tube's floor, the icicles fall on him
+  const yuki = at(JP.cave, CAVE.yuki.col, CAVE.floor, [], false, true);
+  check(`standing in the yuki-onna's lane, she drifts down onto him (frame ${diesAt(yuki, NONE, 400)})`, dead(yuki.g));
+  const ice = CAVE.icicles.map((col) => diesAt(at(JP.cave, col, CAVE.floor), NONE, 200));
+  check(`standing under each icicle, it falls on him (${ice.join(', ')})`, ice.every((f) => f >= 0));
 });
 
 SCOPE.report();

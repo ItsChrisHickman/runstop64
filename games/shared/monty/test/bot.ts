@@ -49,7 +49,8 @@ export function hold(s: State, stick: Stick, frames: number): Held {
   for (let f = 0; f < frames; f++) {
     const before = s.g.actionCounter;
     frame(s, stick);
-    if (diedIn(before, s.g.actionCounter) || (s.g.actionCounter && !(s.g.actionCounter & 0x80))) return { dead: true };
+    const warped = s.g.roomId !== room && s.g.dissolvePending !== 0; // (a teleporter: the dissolve into the next room holds the game as a death's start does, but it is a way, not a death)
+    if (!warped && (diedIn(before, s.g.actionCounter) || (s.g.actionCounter && !(s.g.actionCounter & 0x80)))) return { dead: true };
     if (s.g.roomId !== room) {
       for (let n = 0; n < 200 && !settled(s.g); n++) frame(s, NONE);
       return { dead: false, room: s.g.roomId };

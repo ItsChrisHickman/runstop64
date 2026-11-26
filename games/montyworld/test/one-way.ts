@@ -45,6 +45,7 @@ export const ONE_WAY: Readonly<Record<string, string>> = {
   '55>56': 'the parachute drop, JUMP FOR JOY into OUT OF THIN AIR: under the canopy he cannot go up (flight.ts)',
   '56>57': 'the parachute drop, OUT OF THIN AIR into CONDOR COUNTRY: under the canopy he cannot go up (flight.ts)',
   '57>58': 'the parachute drop lands on the terraces: under the canopy he cannot go up (flight.ts)',
+  '32>98': 'MOUNT FUJI\'s open mountainside drops into the ice cave at its foot (GONE WITH THE WIND); the way back up is the tengu\'s gust, a teleport to the top of the climb (japan.ts CAVE)',
 };
 
 /** Edges he gets to with no room beyond, `room side`, each with its reason. */
@@ -174,6 +175,8 @@ const crossings = new Map<string, number>();
  * (`first-last` rows or columns) his body was in on that side as he went.
  */
 const doors = new Map<string, { there: number; back: number; at: string }>();
+/** Crossings made only by a teleporter (`from>to`): a way back that is no door, so a drop named in `ONE_WAY` whose way back is a teleport is still one way through its door. */
+const warps = new Map<string, number>();
 /** Openings used either way: `room side run`. */
 const used = new Set<string>();
 /** A crossing through a door: false when it is through deadly cells (water, lava) at the floor of the room above, a death the grace refused, not a way. */
@@ -219,11 +222,13 @@ function attempt(p: Place, stick: Try) {
     const held = stick(n, g);
     const wasRow = g.montyRow - 3, wasCol = g.montyCol - 4, wasScripted = Boolean(g.script || g.freeze || g.gameMode);
     frame(s, held);
-    if (dead(g)) return;
-    if (g.script || g.freeze || g.gameMode) { still = 0; continue; } // (a scripted move: the plane, the ship; he goes where it takes him)
+    const warp = g.roomId !== room && g.dissolvePending !== 0; // (a teleporter: its dissolve holds the game as a death's start does, but it is a way)
+    if (dead(g) && !warp) return;
+    if (warp) warps.set(`${room}>${g.roomId}`, (warps.get(`${room}>${g.roomId}`) ?? 0) + 1);
+    if (g.script || g.freeze || g.gameMode) { still = 0; if (!warp) continue; } // (a scripted move: the plane, the ship; he goes where it takes him)
     if (g.roomId !== room) {
       if (!cellOf(g.roomId)) return;
-      if (!wasScripted && !crossed(room, g.roomId, wasRow, wasCol)) return;
+      if (!wasScripted && !warp && !crossed(room, g.roomId, wasRow, wasCol)) return;
       crossings.set(`${room}>${g.roomId}`, (crossings.get(`${room}>${g.roomId}`) ?? 0) + 1);
       room = g.roomId; still = 0;
       continue;
@@ -267,19 +272,21 @@ for (const k of crossings.keys()) {
   if (!back && !ONE_WAY[k] && judged(k)) oneWay.push(`${k} (${crossings.get(k)} tries go there, none back)`);
 }
 const roomOf = (opening: string) => Number(opening.split(' ')[0]);
+/** A crossing back by some way other than a teleporter (a door, a ride). */
+const doorBack = (k: string) => (crossings.get(k) ?? 0) > (warps.get(k) ?? 0);
 for (const [k, d] of doors) {
   const [lo, hi] = k.split(' | ');
   if (lo === undefined || hi === undefined || !SCOPE.any([roomOf(lo), roomOf(hi)]) || (d.there && d.back)) continue;
   const [from, to] = d.there ? [lo, hi] : [hi, lo];
   const pair = `${roomOf(from)}>${roomOf(to)}`;
-  if (ONE_WAY[pair] && !crossings.has(`${roomOf(to)}>${roomOf(from)}`)) continue; // (a drop or a ride: the rooms have no way back at all, as ONE_WAY says)
+  if (ONE_WAY[pair] && !doorBack(`${roomOf(to)}>${roomOf(from)}`)) continue; // (a drop or a ride: the rooms have no way back at all, or only by a teleport, as ONE_WAY says)
   const key = `${pair} ${from.split(' ').slice(1).join(' ')}`;
   if (judged(key, `${d.there + d.back} tries, ${d.at}`)) oneWay.push(`door ${from} into ${to} (${d.there + d.back} tries, ${d.at}), none back through it`);
 }
 for (const k of Object.keys(ONE_WAY)) {
   const [a, b] = k.split('>').map(Number);
   if (a === undefined || b === undefined || !SCOPE.any([a, b])) continue;
-  if (!crossings.has(k) || crossings.has(`${b}>${a}`)) stale.push(`ONE_WAY ${k}: ${crossings.has(k) ? 'goes back now' : 'not crossed'}`);
+  if (!crossings.has(k) || doorBack(`${b}>${a}`)) stale.push(`ONE_WAY ${k}: ${crossings.has(k) ? 'goes back now' : 'not crossed'}`);
 }
 // the openings drawn as ways out: an open run at a side edge, tall enough for him, with a floor under it at the edge
 for (const room of rooms) {
