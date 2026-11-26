@@ -11,8 +11,14 @@ import type { CurrentSpec } from './montydata';
  */
 export const SWIM = { stroke: 2, float: 6 } as const;
 
-/** The sea's surface (the sprite's y): neither the lift nor a stroke takes him above it, so a swim room is never left upward (he came in by a dive, and arriving from above never bounces him straight back). */
+/**
+ * The sea's surface (the sprite's y): neither the lift nor a stroke takes him above it, so a swim room is never left upward by swimming (he came in by a dive, and arriving from above never bounces him
+ * straight back). Only up a rope that hangs through the surface from the room above (Lahaina's mooring rope, the road's pool, Hana's cove: Hawaii's island hopping) does a stroke up carry him on out, onto
+ * the rope there, as a climb.
+ */
 const FLOAT_CEILING = 0x54;
+/** Where he floats up to in this room: its sea's surface (`swimSurfaces`), or the default ceiling of a room that is water to the top. */
+const surfaceOf = (g: Game): number => g.data.swimSurfaces.find((s) => s.room === g.roomId)?.y ?? FLOAT_CEILING;
 
 export function swimMove(g: Game) {
   const gate = g.data.swimGate;
@@ -31,9 +37,12 @@ export function swimMove(g: Game) {
   g.dirLeft = surge ? surge.dx < 0 : input.left;
   g.dirRight = surge ? surge.dx > 0 : input.right;
   const stroke = g.swimTick % SWIM.stroke === 0;
-  g.dirUp = (input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0) && g.y > FLOAT_CEILING;
-  g.dirDown = input.down && !input.up && stroke;
-  g.upSteps = g.downSteps = 1;
+  const surface = surfaceOf(g);
+  const over = g.y < surface && !g.onRopeHere(); // in the air over the sea (he came in from above): he drops into it
+  g.dirUp = !over && (input.up ? stroke : !input.down && g.swimTick % SWIM.float === 0) && (g.y > surface || (input.up && g.onRopeHere()));
+  g.dirDown = over || (input.down && !input.up && stroke);
+  g.upSteps = 1;
+  g.downSteps = over ? 2 : 1;
   const facing = g.facing;
   applyMonty(g, g);
   // he faces the way his own stick takes him; a surge carrying him (or a stick held both ways, or none) keeps his facing (the move sets it from the way he is carried)

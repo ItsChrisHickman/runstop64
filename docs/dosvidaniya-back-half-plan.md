@@ -224,6 +224,23 @@ vent leave the airfield: they exist only in Kilauea. The rooster moves from the 
 **Not proposed back** (Chris to name any he wants): BOX CLEVER and STERN WARNING (they live on, merged, in the cargo
 ship), PIER PRESSURE (Honolulu harbour), COFFEE BREAK (Kona), HOLD YOUR HORSES (the flight replaced it).
 
+**Built (2026-11-25, lane-pacific).** Chris's story route, nineteen rooms (`games/montyworld/src/pacific.ts` has the grid): THE CARGO SHIP, WAIKIKI, LEI OF THE
+LAND, DIAMOND HEAD (88), THE LOOKOUT (89: the snorkel), CLAM DOWN, KELP WANTED, WHALE OF A TIME, THE ROAD TO HANA (as it was), THE SEA CAVE, HANA (87: Kaihalulu's red
+sand), FISH OUT OF WATER (49, the reset's swim room), KONA (90), MAUNA KEA (91), THE SUMMIT (92: the parachute), AKAKA FALLS (93), MAUNA LOA (52: the lava), COFFEE
+BREAK (51: the coffee), HILO GOODBYE (53: the biplane, two locks). The Big Island is the loop of "Chris's story is the route": the moon rock lies at the foot of a pit off Mauna
+Loa's route (taking it wakes the pit's own lava, `LavaSpec.wakenBy`, which wells up behind him on the rope out); the astronomer stands guard on the summit dome's catwalk with the ladder to the telescope's
+platform drawn up (the parachute is up there) until Monty brings the rock (a gate sends him in and lets the ladder down: drawn up, because a ladder at his back could be caught from a jump over his head);
+every join goes both ways (stone steps up the coffee terraces, ropes from Hilo's street to its roofs and on up into Akaka Falls, the long rope from the falls' high trail through Hilo to the farm's lane);
+Akaka Falls is crossed twice at two heights, the high trail from Mauna Kea's third switchback and the low lane from Hilo's roofs to Mauna Kea's foot, sealed by the gorge. The moon rock borrows a
+boulder's sprite block in Mauna Loa only (the bank is full), so it is not one of the map's key items. The coffee farm's magma blob became a nene (no lava off the volcano). New ids start at 87 (China's return took 82; 83-86 stay the plan's). Decisions taken from this plan's
+recommendations: the story's route over the table (Molokai is the first swim's backdrop and banner, not a land room; PIER PRESSURE, MOLE-OKAI, BOX CLEVER, STERN WARNING
+and the cargo hold stay out); the escape counts on leaving the room alive (knocks only: SPY VERSUS MOLE's squash still counts at once, its bars read it). THE SEA CAVE is the region's bonus room off the route (Chris on bonus rooms: "an opportunity to try some new things and add some fun challenges"): under its cavern an old lava tube
+drains out in sets past two loose stalactites (icicles in the rock's grey), so a set that catches him past one carries him back under it as it falls; the alcove halfway (a coin) and the still pocket at
+the end (the musubi) are the shelters. The luau's line of hula dancers sways on the beat (a character cycle). Kona's rope down the lava tube no longer runs up into the sky (it led to Mauna Kea's foot with
+no rope there); Kona has the west coast's sunset over the sea. Not yet: the humpback (the harbour has no whale now; a big creature needs sprite blocks, and the bank is full: Chris's call). A swim room is left upward only up
+a rope through its surface (swim.ts), so Lahaina's mooring rope, the road's pool and Hana's cove work both ways. Saves are format 3 (`save-format2.ts`, `fromFormat`).
+The sky, the Andes and Rio moved five columns east (column 24 is the flight's gap).
+
 **Fix: the cargo ship's pursuer (a death never counts as an escape).** Why the third time differed: the escape is
 recorded the moment the crate knocks Viktor (`escape()` in `games/montyotr/src/pursuers.ts` sets the `until` find, here
 `OVERBOARD`, at once). He is 192 frames behind, so the knock happens as Monty ducks under the crate and heads down the
@@ -234,6 +251,26 @@ the death counted. The fix, in the shared engine (so the train gets it too): the
 splash), but the find is taken only when Monty leaves the room alive. A death in the room before that restarts the chase.
 The tally's star lights on leaving. Proved by `viktor.ts --room` on the ship and the sleeper: knocked, then killed by a
 piston, and Viktor is back after the restart; knocked, then out of the bow door, and he is gone for good.
+
+**Chris's review of the renders (2026-11-25): "Diamond Head does not look at all like climbing the top of an inactive volcano. It's nature. It has ledges, it has caves... I really
+want you to think about representing these islands properly. In the original pass there was a good swimming scene with Molokai in the background."** Done (lane-pacific): every Hawaiian room has a
+backdrop of its own place, one character each laid over its empty cells in shapes (`fillWhere`, layout.ts; the pieces in `art/pacific-scenery.ts`), darker than anything solid:
+- **Then (Chris, 2026-11-25): "Diamond Head deserves to be at least iconic: 2 rooms, climb up, top room is the lookout."** Redone as two rooms stacked on the grid (DIAMOND HEAD moved to [1,19], east of
+  the luau, THE LOOKOUT above it at [0,19]; the luau's hillside rope gave way to its lawn running east under the stage to the cone's foot). DIAMOND HEAD is the cone's flank in profile under a clear sky:
+  the eroded, fluted tuff slope with kiawe scrub and kiawe trees at its foot, WWII bunker and cave mouths in it, and the summit trail as the real one goes: the paved walkway, the lighted tunnel bored
+  up through the shoulder (in at its foot, up its concrete stairs past its lamps, a coin in its niche, out of its upper mouth higher up), the switchback west to the steep stairs, the old bunker's ledge
+  (a coin), then east over a gully where the rockfall rolls down the trail (the Andes' boulders; the old LOOKOUT's tumbling rocks moved here) and up onto the shoulder to the Fire Control Station's
+  spiral stair. THE LOOKOUT is the summit: the Fire Control Station in section (its spiral stair, its observation slits, a coin on its landing, the summit bunker on its roof), out of its slit onto the
+  walk along the rim to the railing where the tourist's snorkel lies, a tern diving over it, and the view: Honolulu and Waikiki's hotels along the shore under the Ko'olau mountains, the sea, and the
+  cone's outer flank down to Diamond Head Lighthouse on the coast.
+- The swim past Molokai (CLAM DOWN, KELP WANTED) is open sea under the evening sky: the sea has a surface (the waves' row) with Molokai's green fluted sea cliffs and their waterfalls over it in the first
+  (its sea two rows lower, so the cliffs stand eight rows tall, cut by the deep hanging valleys, the low Kalaupapa peninsula out to the east),
+  Lanai low on the horizon and West Maui's mountains ahead in the second. The engine's `swimSurfaces` (swim.ts): he floats up to the waterline, never above, and coming in from Waikiki's surf he drops in.
+- Waikiki: the day sky, Diamond Head's cone standing on the sea at the bay's end, the sea behind the beach. Lahaina: the sunset over the channel, the whale's tail breaching, West Maui's mountains over
+  Front Street's storefronts. The Road to Hana and Akaka Falls: rainforest behind the road and the gorge. Hana: Kaihalulu's crumbling red cinder cliffs round the cove (Ka'uiki Head), a cave in them, ironwoods on the headland, the turquoise lagoon inside its natural wall of black lava rock. Lahaina: the
+  courthouse's great banyan on the quay. Hilo: the bay behind the bayfront, a banyan by the airfield, Mauna Kea bare at the top over the windward forest. Akaka Falls: bamboo groves on its trails.
+  Kona: the lava fields rising inland under the sunset. Mauna Kea: the red cinder slope at dusk over the sea of cloud; the summit over the cloud tops. Mauna Loa: old lava round the basin, the night red over
+  the rim. The coffee farm: the mountain's shoulder and the green hillside. Hilo: Mauna Kea's broad shoulder behind the town over the bay.
 
 **Fix: the surge reads as a current.** Today four short streaks flicker in light blue at row 13 for 30 frames before a
 set (`SURGE_PULSES`). Nothing says "water moving west". Instead:

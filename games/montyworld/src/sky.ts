@@ -33,7 +33,7 @@ export const SKY_COLOURS: readonly number[] = [0, 14, 14, 14];
 export const SKY_ARRIVALS: readonly Arrival[] = [{ rooms: [FLY.mail, FLY.storm, FLY.tail], text: 'BY AIR MAIL TO THE ANDES' }];
 
 /** The first leg's cell, where the biplane on Hilo's apron takes him (pacific.ts `biplaneBoarding`). */
-export const TAKE_OFF = { mapRow: 0, exitCol: 20 } as const;
+export const TAKE_OFF = { mapRow: 0, exitCol: 25 } as const;
 
 // ---- the pictures (in the creature slots' blocks while a leg is loaded: the legs have no creatures but Viktor, in slot 0) ----------------------
 
@@ -84,7 +84,7 @@ const ANDES_RISE = 820;
 export const planeLegs = (lost: number): readonly PlaneLeg[] => [
   { room: FLY.mail, frames: LEG_FRAMES, box: { col0: 1, row0: 1, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
   { room: FLY.storm, frames: LEG_FRAMES, box: { col0: 1, row0: 3, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
-  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: LOWEST.sea }, rise: { at: ANDES_RISE, row1: LOWEST.andes }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 20 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
+  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: LOWEST.sea }, rise: { at: ANDES_RISE, row1: LOWEST.andes }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 25 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
 ];
 
 /** The band placements: a 12-wide strip three times across the picture's 36 columns (from the left margin, -2). */
@@ -96,21 +96,21 @@ const sea = (g: { box: (c0: number, r0: number, c1: number, r1: number, l: strin
 export const SKY_ROOMS: readonly RoomSpec[] = [
   // L1 THE MAIL RUN: off Hilo's apron and out over the sea; the volcano goes by below. The coin high on the right, for the climb over the plume.
   room({
-    id: FLY.mail, cell: [0, 20], sector: 79, palette: MAIL_PALETTE,
+    id: FLY.mail, cell: [0, 25], sector: 79, palette: MAIL_PALETTE,
     paint(g) { sea(g); },
     coins: [[24, 2]],
     decor: [...across('skyWisps', 0), ...across('skyLowCloud', 15)],
   }),
   // L2 STORMY WEATHER: under the storm front (rows 0-1); the bolts strike down to row 12, so the low line (rows 13-15) is safe until a gust lifts him off it. The coins: one on the low line, two between bolts.
   room({
-    id: FLY.storm, cell: [0, 21], sector: 80, palette: STORM_PALETTE,
+    id: FLY.storm, cell: [0, 26], sector: 80, palette: STORM_PALETTE,
     paint(g) { g.box(0, 0, 31, 1, 'C'); for (const c of [0, 8, 15, 22, 29]) g.box(c, 2, c + 2, 2, 'C'); sea(g); }, // (its lumpy underside between the bolts' columns)
     coins: [[16, 14], [9, 7], [23, 5]],
     decor: [...across('skyLowCloud', 15)],
   }),
   // L3 ON HIS TAIL: the storm's trailing edge behind him at the top left, its last two bolts; Viktor on his trail; the Andes rising along the bottom.
   room({
-    id: FLY.tail, cell: [0, 22], sector: 81, palette: TAIL_PALETTE,
+    id: FLY.tail, cell: [0, 27], sector: 81, palette: TAIL_PALETTE,
     paint(g) { g.box(0, 0, 13, 1, 'C'); for (const c of [0, 6, 11]) g.box(c, 2, c + 1, 2, 'C'); sea(g); },
     decor: [...across('skyWisps', 0), ...across('skyLowCloud', 15)],
     creatures: [{ who: 'viktorPlane', col: 0, row: 6, way: 'right', speed: 1, range: 1 }],

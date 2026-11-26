@@ -38,14 +38,15 @@ export function planeInit(g: Game) {
 }
 
 /**
- * The plane waiting in the room (`boardings`): touched with the item it needs, it takes off with him into the flight's first leg, where he is on the screen; touched without it, its hint (once a touch,
- * not every frame he stays against it) and nothing more.
+ * The plane waiting in the room (`boardings`): touched with every item it needs, it takes off with him into the flight's first leg, where he is on the screen; touched without one, the first missing one's
+ * hint (once a touch, not every frame he stays against it) and nothing more.
  */
 export function boardUpdate(g: Game) {
   const board = g.data.boardings.find((b) => b.room === g.roomId);
   if (!board || g.actionCounter || g.roomExit) return;
   if (!inBox(g, board.box)) { g.planeTouch = 0; return; }
-  if (g.siCollected[board.needs]) {
+  const missing = board.needs.find((n) => !g.siCollected[n.item]);
+  if (!missing) {
     g.mapRow = board.goes.mapRow;
     g.exitCol = board.goes.exitCol;
     // (inside the leg's box: boarded in a jump he may be above it)
@@ -58,7 +59,7 @@ export function boardUpdate(g: Game) {
     g.roomExit = 1;
     return;
   }
-  if (!g.planeTouch) g.noteWanted(board.hint);
+  if (!g.planeTouch) g.noteWanted(missing.hint);
   g.planeTouch = 1;
 }
 

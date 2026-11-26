@@ -10,8 +10,8 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly label
   { name: 'siberia', label: 'SIBERIA', from: 4, to: 7, rows: { from: 0, to: 2 } }, // the next four
   { name: 'china', label: 'CHINA', from: 8, to: 11, rows: { from: 0, to: 2 } }, // and the next
   { name: 'japan', label: 'JAPAN', from: 12, to: 16, rows: { from: 0, to: 2 } }, // Japan's block is five wide
-  { name: 'pacific', label: 'HAWAII', from: 17, to: 19, rows: { from: 2, to: 3 } }, // the Pacific's U of four rooms, three columns and two rows
-  { name: 'sky', label: 'THE SKY', from: 20, to: 22, rows: { from: 0, to: 0 } }, // the flight from Hilo, three legs on the top row over the Andes' columns (sky.ts)
-  { name: 'andes', label: 'ANDES', from: 20, to: 22, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of Hilo
-  { name: 'rio', label: 'RIO', from: 23, to: 28, rows: { from: 4, to: 5 } }, // Rio's six columns of two rows, entered from the kapok's crown (the Amazon's [5,22]) into OPEN ARMS at [5,23]
+  { name: 'pacific', label: 'HAWAII', from: 17, to: 23, rows: { from: 0, to: 4 } }, // Hawaii's island hopping: Oahu, the swims, Maui and the Big Island's fork (pacific.ts)
+  { name: 'sky', label: 'THE SKY', from: 25, to: 27, rows: { from: 0, to: 0 } }, // the flight from Hilo, three legs on the top row over the Andes' columns (sky.ts), column 24 left empty: a flight, not one room over (Chris)
+  { name: 'andes', label: 'ANDES', from: 25, to: 27, rows: { from: 2, to: 6 } }, // the Andes and the Amazon: the drop, Machu Picchu and the Amazon's block of four, east of Hilo past the gap
+  { name: 'rio', label: 'RIO', from: 28, to: 33, rows: { from: 4, to: 5 } }, // Rio's six columns of two rows, entered from the kapok's crown (the Amazon's [5,27]) into OPEN ARMS at [5,28]
 ];
