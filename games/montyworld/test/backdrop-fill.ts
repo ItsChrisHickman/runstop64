@@ -116,10 +116,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
     [AND.terraces]: 'blue mountain zigzags running down behind the terraces',
     [AND.bridge]: 'a grey rain-streak texture filling the right side, blue zigzags in the gorge',
   },
-  rio: {
-    [RIO_ROOM.beat]: 'a blue stand texture tiled below the crowds (the crowds stay)',
-    [RIO_ROOM.float]: 'a blue stand texture tiled below the crowds (the crowds stay)',
-  },
+  rio: {},
 };
 
 interface Verdict { fill: number; pieces: number; cells: ReadonlySet<number>; earth: number; roofed: number; rows: number; cols: number; total: number }

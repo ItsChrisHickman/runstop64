@@ -241,7 +241,7 @@ const STEAK_COINS: readonly Cell[] = [[14, 17]];
  * The carnival's street, where the samba school warms up (back from before the reset, with more dancers): in low at the west from Lapa's street, under the aqueduct's last arches; the Selaron steps (their tiles
  * yellow, green, blue and red, as Lapa's steps are) climb from the street to the aqueduct's end (floor 8), out west onto Lapa's track: the way to the tram and the churrascaria. East over the bateria's stepped
  * risers (floors 16, 14, 12) with the drummer bouncing on the top one (time the beat: he stands on it at the bottom of each bounce), a passista dancing in the street before them and a baiana spinning after, and out low east
- * to the canal. Behind, the grandstand's dark tiers with the crowd dancing along them in every colour, bunting and balloons. The snack on the risers' first step, a coin at the steps' head (tops a climb) and one
+ * to the canal. Behind, the grandstand's dark tiers with the crowd dancing along them in every colour (the tiers only behind the crowd, the street below black), bunting and balloons. The snack on the risers' first step, a coin at the steps' head (tops a climb) and one
  * on the top riser under the drummer (tops a climb, guarded).
  */
 const BEAT = rows([
@@ -283,7 +283,7 @@ const FLOAT_CROWD = { cols: [0, 8, 16], rows: [5, 8] } as const;
  * The parade's floats on the Canal do Mangue, beside the Sambadrome (back from before the reset): in low at the west on the street (floor 18); the canal (deadly water, cols 6-24) is crossed on the floats that come
  * along it with a samba dancer dancing on each, lane A (the street's height) three of them west to east, lane B (floor 14) two the other way. On the east, the stage (18), and the grandstand's
  * ladder (col 28) up to the stand's ledge (8) and out high into the Sambadrome. A balcony of the stand (floor 14, flush with the ladder) is where lane B is boarded: it carries him west over the canal's middle (a
- * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour, bunting, balloons.
+ * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour (the tiers only behind the crowd, down to row 10; the canal's air below black), bunting, balloons.
  */
 const FLOAT = rows([
     '................................', // 0
@@ -520,8 +520,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     item: { name: 'skewer3', col: BEAT_SNACK[0], row: BEAT_SNACK[1], sprite: RIO_SPRITE.skewer },
     decor: [
       [ARCH_UPPER, 0, 9], [ARCH_BASE, 0, 13], ...BEAT_RISERS.map(([col, row]): Placed => ['rioSelaron', col, row]),
-      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS, ...crowdCells(BEAT_CROWD.cols, BEAT_CROWD.rows)], [8, 2, 31, 8], 'rioTiers'),
-      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS], [12, 9, 31, 17], 'rioTiers'),
+      ...fillCells(BEAT, [...BEAT_COINS, ...BEAT_SNACK_CELLS, ...BEAT_RISERS, ...crowdCells(BEAT_CROWD.cols, BEAT_CROWD.rows)], [8, 2, 31, 8], 'rioTiers'), // (the tiers only behind the crowd, the street below them black: no stand texture tiled down behind the risers)
       ...crowdRows(BEAT_CROWD.cols, BEAT_CROWD.rows),
       ...[-4, 0, 4, 8, 12, 16, 20, 24, 28, 32].map((col): Placed => ['bunting', col, 0]) /* (out past the playfield to the screen's edges, in step) */, ['rioBalloons', 5, 3], ['rioBalloons', 1, 1],
     ],
@@ -537,7 +536,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: FLOAT_COINS,
     item: { name: 'crank', col: FLOAT_CRANK[0], row: FLOAT_CRANK[1], sprite: RIO_SPRITE.crank },
     decor: [
-      ...fillCells(FLOAT, [...FLOAT_COINS, ...crowdCells(FLOAT_CROWD.cols, FLOAT_CROWD.rows)], [0, 5, 24, 17], 'rioTiers'),
+      ...fillCells(FLOAT, [...FLOAT_COINS, ...crowdCells(FLOAT_CROWD.cols, FLOAT_CROWD.rows)], [0, 5, 23, 10], 'rioTiers'), // (the tiers only behind the crowd, the canal's air below them black: no stand texture tiled down to the water)
       ['floatGalleon', FLOAT_HOME.floatGalleon[0], FLOAT_HOME.floatGalleon[1]], ['floatSun', FLOAT_HOME.floatSun[0], FLOAT_HOME.floatSun[1]], ['floatBird', FLOAT_HOME.floatBird[0], FLOAT_HOME.floatBird[1]],
       ...crowdRows(FLOAT_CROWD.cols, FLOAT_CROWD.rows),
       ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1],
