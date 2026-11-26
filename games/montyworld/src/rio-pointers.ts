@@ -18,7 +18,7 @@ export const SPLIT_POINTERS: readonly number[] = [0x48, 0x49, 0x4a, 0x4b, 0x4c, 
 export const SKEWER_POINTERS = { left: [0xa7, 0xa8, 0xa9, 0xaa], right: [0xab, 0xac, 0xad, 0xae] } as const;
 
 /**
- * The finale's pictures (art/rio-finale.ts), in the blocks the gaucho's skewer, the agent's squash and the cable car take elsewhere in Rio, and the spoon's in three more of the C5's that nothing uses
+ * The finale's pictures (art/rio-finale.ts), in the blocks the gaucho's skewer, the agent's squash and the cable car (cut with SUGAR RUSH) took elsewhere in Rio, and the spoon's in three more of the C5's that nothing uses
  * ($B0-$B2; loaded with the beach, `roomBlocks`; the crank, headdress, skewer and bowl keep theirs: the pause screen shows what he carries).
  */
 export const FINALE_POINTERS = {

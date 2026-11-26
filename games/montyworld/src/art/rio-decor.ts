@@ -1,6 +1,6 @@
 /**
  * Rio's decorations for Do Svidaniya Monty (region 7, played at night on black, as Monty on the Run's rooms are), in Monty on the Run's decoration format: solid ink with the detail cut into it as black lines. Few, and
- * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, the cable car's stations and cable, Lapa's arches (dark grey, behind him), the
+ * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, Lapa's arches (dark grey, behind him), the
  * churrascaria's tables, lamps and grill, Santa Teresa's tram, the Sambadrome's float with its stamping head, its lever and control booth, the Apoteose arch, and the finale's fireworks.
  */
 import { FINALE_DECOR } from './rio-finale';
@@ -32,32 +32,6 @@ function sugarloaf(): NewDecor {
   r.line(10, 28, 8, 35, false); r.line(18, 30, 19, 36, false);
   r.rect(0, 30, 63, 30, false); r.set(40, 30, true);
   return decor('sugarloaf', 8, 5, r, ['ffffffff', 'ffffffff', 'ffffffff', 'dddddddd', '55555555']);
-}
-
-// ---- the cable car's stations and the quay
-
-/** The cable car's station: a boxy building under a sloping red roof, windows in a row, the cable arriving at its roof. 4 x 3 characters. */
-function cableStation(): NewDecor {
-  const r = new Raster(32, 24);
-  r.triangle(0, 8, 31, 0, 31, 8); r.rect(0, 8, 31, 8);
-  r.rect(2, 9, 29, 23);
-  for (const x of [5, 12, 19]) r.rect(x, 12, x + 4, 17, false);
-  r.rect(23, 14, 27, 23, false); r.rect(25, 14, 25, 23);
-  return decor('cableStation', 4, 3, r, ['2222', '7777', '7777']);
-}
-
-/** The cable's line, its lower half of a pair: climbs a row over two cells (a decoration, so it is drawn wherever it is wanted over the picture). 1 x 1 character. */
-function cableLow(): NewDecor {
-  const r = new Raster(8, 8);
-  r.stamp(['........', '........', '........', '........', '......##', '....####', '..####..', '####....'], 0, 0);
-  return decor('rioCableLow', 1, 1, r, 1);
-}
-
-/** The cable's line, its upper half of a pair. 1 x 1 character. */
-function cableHigh(): NewDecor {
-  const r = new Raster(8, 8);
-  r.stamp(['......##', '....####', '..####..', '####....', '........', '........', '........', '........'], 0, 0);
-  return decor('rioCableHigh', 1, 1, r, 1);
 }
 
 /** A hanging chain: links one under another, 1 x 1 character, repeated down (the Sambadrome's float hangs by it from the lighting gantry, STUCK LIKE GUM's crusher from the gallery). */
@@ -229,9 +203,6 @@ export const FIREWORK_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((k) => {
 export const RIO_DECOR = {
   christFar: christFar(),
   sugarloaf: sugarloaf(),
-  cableStation: cableStation(),
-  rioCableLow: cableLow(),
-  rioCableHigh: cableHigh(),
   ...FINALE_DECOR,
   ...RIO_STREETS,
   lapaUpper: lapaUpper(),
