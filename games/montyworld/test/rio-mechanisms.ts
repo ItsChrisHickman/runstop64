@@ -36,9 +36,9 @@ const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WOR
 SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image, cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  const placed = [[5, 28, R.arms], [5, 29, R.colour], [5, 30, R.lap], [4, 30, R.steak], [5, 31, R.sugar], [5, 32, R.drum], [5, 33, R.bust]] as const;
-  check('Rio is seven rooms in six columns (28-33) beside the Amazon\'s kapok (row 5, column 27): Corcovado, the favela, Lapa with the churrascaria over it, Sugarloaf, the Sambadrome, the beach; cells [4,28], [4,29], [4,31], [4,32], [5,34] free',
-    placed.every(([r, c, id]) => grid(r, c) === id) && grid(5, 27) === AND.kapok && [[4, 28], [4, 29], [4, 31], [4, 32], [5, 34]].every(([r, c]) => grid(r ?? 0, c ?? 0) === 0xff) && RIO_ROOMS.length === 7);
+  const placed = [[6, 28, R.arms], [6, 29, R.colour], [6, 30, R.lap], [5, 30, R.steak], [6, 31, R.sugar], [6, 32, R.drum], [6, 33, R.bust]] as const;
+  check('Rio is seven rooms in six columns (28-33) beside the Amazon\'s kapok (row 6, column 27): Corcovado, the favela, Lapa with the churrascaria over it, Sugarloaf, the Sambadrome, the beach; cells [5,28], [5,29], [5,31], [5,32], [6,34] free',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(6, 27) === AND.kapok && [[5, 28], [5, 29], [5, 31], [5, 32], [6, 34]].every(([r, c]) => grid(r ?? 0, c ?? 0) === 0xff) && RIO_ROOMS.length === 7);
   const coins = RIO_ROOMS.map((r) => r.coins?.length ?? 0);
   check(`8 coins in the six play rooms, at most two a room, none on the beach (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 8 && Math.max(...coins) <= 2 && (RIO_ROOMS.find((r) => r.id === R.bust)?.coins?.length ?? 0) === 0);
   const finds = RIO_ROOMS.flatMap((r) => (r.item ? [r.item.name] : []));

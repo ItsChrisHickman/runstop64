@@ -19,9 +19,10 @@ import { swimBlock, swimCrown, swimPictures } from './art/pacific-swim';
 import { SWIM_CYCLE, SWIM_POINTERS } from './pacific-pointers';
 import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
-import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
+import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, CAPTAIN_SLOT, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, MORAY_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_LATER_COLOURS, PACIFIC_LATER_SECTORS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
+import { LATER_COLOURS, LATER_SECTORS } from './later-sectors';
+import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, MORAY_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -185,7 +186,7 @@ function pointerOf(pointers: readonly number[], i: number): number {
 }
 
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
-const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...PACIFIC_LATER_SECTORS], bankImage, SPRITE.pirozhok);
+const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...LATER_SECTORS], bankImage, SPRITE.pirozhok);
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -221,10 +222,13 @@ const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD =
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `musubi${n}`)),
-  ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
+  ...[1, 2, 3, 4].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
+
+/** A playfield rectangle (corners inclusive) as a box of screen cells (a room effect's `at`). */
+const screenBox = (c0: number, r0: number, c1: number, r1: number) => ({ col: c0 + 4, row: r0 + 3, cols: c1 - c0 + 1, rows: r1 - r0 + 1 });
 
 /** The cells of a playfield rectangle (corners inclusive), as the screen's cells. */
 function screenCells(c0: number, r0: number, c1: number, r1: number): (readonly [row: number, col: number])[] {
@@ -252,8 +256,11 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // the hideout's door guard, a ninja himself, lets him by (the way on to the port runs through that door)
   { room: PAC.summit, when: [{ taken: MOON_ROCK }], removeEnemy: 0, place: { code: DOME_LADDER_CODE, cells: onScreen(DOME_LADDER) } }, // the astronomer lets his ladder down and takes the moon rock in to look at it
   { room: PAC.waikiki, when: [{ taken: SNORKEL }], clear: onScreen(SURF_CELLS) }, // with the snorkel the surf is the way down into Hana's sea
-  { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0 }, // a tune settles the spitting llama at the tunnel's mouth (and its spit, a pulse: calmedBy), and the tunnel and its well are open
-  { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS) }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
+  // the gates of the Andes are items used on the spot, seen happening (`at`: when he comes up to the gate with the item, not silently on coming in): a tune settles the spitting llama at the tunnel's
+  // mouth (its spit, a pulse, is calmed by the panpipes carried: calmedBy), and the tunnel and its well are open
+  { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0, at: { ...screenBox(3, 16, 7, 17), text: 'THE PANPIPES CALM THE LLAMA' } },
+  { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: CAPTAIN_SLOT, at: { ...screenBox(2, 13, 6, 14), text: 'THE CAPTAIN WAVES A LOCAL ON' } }, // in the chullo, a local, the riverboat's captain lets him aboard
+  { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS), at: { ...screenBox(20, 5, 24, 7), text: 'THE MACHETE HACKS IT AWAY' } }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
   { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], clear: onScreen(GATE_CELLS) }, // the crank works the cable car's winch: its bars go,
   { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
   { room: RIO_ROOM.drum, when: [{ taken: FITTED }], late: true, place: { code: LIT_CODE, cells: onScreen(BOOTH_LIGHT) } }, // the crank fitted, the booth's window lights up
@@ -376,12 +383,13 @@ export const WORLD: MontyData = {
       { room: PAC.summit, item: MOON_ROCK, text: 'THE ASTRONOMER WANTS A MOON ROCK' },
       { room: AND.picchu, item: PANPIPES, text: 'THE LLAMA IS CROSS: CALM IT' },
       { room: AND.kapok, item: MACHETE, text: 'THE UNDERGROWTH IS TOO THICK' },
+      { room: AND.boat, item: CHULLO_ITEM, text: 'THE CAPTAIN CARRIES LOCALS ONLY' },
       { room: RIO_ROOM.sugar, item: CRANK, text: 'THE CABLE CAR STATION IS LOCKED' },
     ],
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ label, from, to, rows, except }) => ({ name: label, from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, COFFEE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS, ...PACIFIC_LATER_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, COFFEE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS, ...LATER_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

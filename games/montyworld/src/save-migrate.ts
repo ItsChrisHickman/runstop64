@@ -27,10 +27,8 @@ export const RETIRED: Readonly<Record<number, number>> = {
   50: 49, // FISH OUT OF WATER (format 1's): today's FISH OUT OF WATER, the swim to the Big Island
   54: 53, // THE CARGO PLANE (HOLD YOUR HORSES in format 1): Hilo, by the biplane
   // the Andes and the Amazon
-  56: 57, // OUT OF THIN AIR: the gorge (CONDOR COUNTRY)
   60: 59, // MARKET FORCES: Machu Picchu
   61: 59, // MIST OPPORTUNITY: Machu Picchu
-  64: 66, // THE RIVER QUEEN: the rainforest's river
   78: 58, // LLAMA DRAMA (never shipped, but a test build had it): the terraces
   // Rio
   67: 71, // QUAY TO THE CITY: Rio starts at Corcovado (OPEN ARMS)
@@ -46,11 +44,13 @@ const WAY_IN: Readonly<Record<number, { col: number; floor: number }>> = {
 };
 
 /**
- * A room whose id took a different place in a format: where a save made in it then carries on (before `RETIRED`). Format 1's HANA BANANA (49) is HANA now (87: 49 is the swim to the Big Island); format 2's
+ * A room whose id took a different place in a format: where a save made in it then carries on (before `RETIRED`). Format 1's HANA BANANA (49) is HANA now (87: 49 is the swim to the Big Island), its CLOUD NINE and VINE AND DANDY 84 and 85; format 2's
  * HILO (52) was the lava and the airport in one: a save on its apron (floor 5 and above) carries on in Hilo by the biplane (53), one in the crater on Mauna Loa (52, the lava's room now).
  */
+/** Format 1's rooms whose ids other rooms took: HANA BANANA (49) is HANA (87); CLOUD NINE (62) and VINE AND DANDY (65) came back as 84 and 85 (62 is the canopy's now, 65 the roots'). */
+const FORMAT1_MOVED: Readonly<Record<number, number>> = { 49: 87, 62: 84, 65: 85 };
 const MOVED: Readonly<Record<1 | 2, (s: MontySave) => number>> = {
-  1: (s) => (s.roomId === 49 ? 87 : s.roomId),
+  1: (s) => FORMAT1_MOVED[s.roomId] ?? s.roomId,
   2: (s) => (s.roomId === 52 && floorAt(s.y) <= 5 ? 53 : s.roomId),
 };
 

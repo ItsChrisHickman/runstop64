@@ -65,7 +65,7 @@ check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.room
   const old = format1(61, 0x0c + (20 + 4) * 4, 0x32 + 15 * 8, 5, 33, [0, 1], [0, 1, oldItem(60), oldItem(61), oldItem(63)], oldItem(60));
   const s = CODEC.unpack(CODEC.pack(old), 1);
   const g = newGame(WORLD, true).g;
-  const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.kapok, 0);
+  const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.boat, 0);
   check('the Andes\' key items taken are taken where they are now: the chullo (moved to the terraces), the panpipes, the machete; and the chullo is still worn', s.items[chullo] === 0x81 && s.items[panpipes] === 0x81 && s.items[machete] === 0x81 && s.worn === chullo);
   const cell = [...WORLD.exitGrid.image].indexOf(AND.picchu);
   check(`a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu, at its cell (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[61] && s.roomId === AND.picchu && s.mapRow * WORLD.exitGrid.cols + s.exitCol === cell);
