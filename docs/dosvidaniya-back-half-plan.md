@@ -487,6 +487,16 @@ The other options, kept as notes:
   gates and hints reversed, a new ending. That is as big as building the back half again, several times this plan.
   Not recommended.
 
+### The best ending (Chris, 2026-11-25; for the release plan, not this batch)
+
+A % complete (rooms, coins, snacks and items, the bonus rooms' challenges, Viktor's chases escaped) and a best ending at 100%.
+Viktor is never "caught": he is smashed, in SPY VERSUS MOLE's crushers. The best ending nods to the tradition (Metroid's suit-off
+reward, Auf Wiedersehen Monty's beach girl) as Chris picked: **Monty's reveal and the beach together**. Staged as a reveal so
+it reads as the nod: on Copacabana, every regional costume he wore flies off him at once (the chullo, the lei, the ninja hood,
+the hats...), he stands in tiny swim trunks and sunglasses and strikes a pose, then strolls up the beach past the crowd
+(sunbathers in bikinis and trunks, umbrellas, volleyball) and settles on a towel beside a sunbather in a bikini. Fade out.
+Cartoon, in the game's style, nothing more.
+
 ## 6. Questions for Chris
 
 Each has a recommendation; a yes to all lets the build start with Hawaii.
