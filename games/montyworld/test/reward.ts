@@ -255,6 +255,7 @@ bandWatch.check(lines.length, gameFrames, gameBand, [...badPlaces.values()], fal
 const font = montyFont();
 const bad = lines.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the game's own lettering${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
+check('who made it opens the credits, and only there: A NEW GAME BY CHRISTOPHER HICKMAN is the first line (Chris, 2026-11-25: at the end it did not fit)', lines[0] === 'A NEW GAME BY CHRISTOPHER HICKMAN' && lines.filter((l) => l.includes('NEW GAME BY')).length === 1);
 check('the game\'s own credit is last (a new game, not a port: the port\'s "rebuilt for the browser" line is not said), as CLOSING has it', CLOSING.every((l, i) => lines[lines.length - CLOSING.length + i] === l) && !lines.some((l) => PORT_CREDITS.slice(0, 2).includes(l)) && bandWatch.typed.has(`${spec.places.length - 1}.${(spec.places[spec.places.length - 1].credits?.length ?? 0) - 1}`));
 
 // ---- 4. skipping ---------------------------------------------------------------------------------------------------------------

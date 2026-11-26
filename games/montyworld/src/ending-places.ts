@@ -80,5 +80,8 @@ export const PLACES: readonly Place[] = [
 /** How long a place is shown: long enough for its credits to be typed on, held and gone (and at least its own `frames`); what he does there and his encore after it fill it (ending-routes.ts). */
 export const placeFrames = (p: Place): number => Math.max(p.frames ?? 0, 400, p.credits.length * (CREDIT.slot + CREDIT.gap) + 60);
 
-/** The lines under the last place's: this game's own, in the plan's words (a new game, after Peter Harrap's; no port line: it is not a port). */
-export const CLOSING: readonly string[] = ['A NEW GAME BY CHRISTOPHER HICKMAN', 'AFTER MONTY ON THE RUN BY PETER HARRAP', 'GREMLIN GRAPHICS', 'RUNSTOP64'];
+/**
+ * The lines under the last place's, after THANK YOU FOR PLAYING: where it was made (no port line: it is not a port). Who made it opens the credits, over Red Square, as
+ * the makers open Super Mario World's; at the end, after the thanks, it did not fit (Chris, 2026-11-25).
+ */
+export const CLOSING: readonly string[] = ['RUNSTOP64'];
