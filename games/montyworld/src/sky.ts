@@ -1,6 +1,6 @@
 import type { Arrival, CharAnim, CurrentSpec, PlaneLeg, PlaneLook, PulseSpec, PursuerSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { BIRD_COLOURS, BIRD_PICTURES, PLANE_COLOUR, PLANE_PICTURES, VIKTOR_PLANE_PICTURES, VIKTOR_STAR, VIKTOR_STAR_INK } from './art/sky';
+import { BIRD_COLOURS, BIRD_PICTURES, PLANE_COLOUR, PLANE_PICTURES, VIKTOR_HEAD_INK, VIKTOR_HEAD_PICTURE, VIKTOR_PLANE_PICTURES } from './art/sky';
 import { codeOf, decorIndex, room, type Palette } from './layout';
 
 /**
@@ -13,9 +13,9 @@ import { codeOf, decorIndex, room, type Palette } from './layout';
  *
  * L1 is birds and Kilauea: Vs of gulls, a frigatebird that screeches as it comes in high and dives, a slow albatross, and the volcano going by below with its plume (clear air above it). L2 is weather: under a
  * storm front whose clouds flicker before the lightning strikes down a column, gusts (seen by their streaks) that lift him off the safe low line into the bolts' height, a waterspout to go over, and three
- * coins: one on the low line, two in the gaps between bolts. L3 is Viktor: his black plane flies Monty's own path, three seconds behind and closing to one (he copies you: touching him is death); a flock or a
+ * coins: one on the low line, two in the gaps between bolts. L3 is Viktor: his red plane flies Monty's own path, three seconds behind and closing to one (he copies you: touching him is death); a flock or a
  * bolt Monty slips past catches him a moment later and knocks him back. The Andes rise along the bottom, and at the end he surges and clips Monty's tail: Viktor wins the round.
- * Sprites: Monty (3) in the plane (2), his lei (7), Viktor's biplane (4) with his hat's red star (6, L3), the birds on 0, 1, 5 (and 6 in L1), each pass on the leg's clock. The bands slide by as Auf Wiedersehen Monty's do: the far wisps half a pixel a
+ * Sprites: Monty (3) in the plane (2), his lei (7), Viktor's red biplane (4, the star on his hat in it) with his white head under it (6, L3), the birds on 0, 1, 5 (and 6 in L1), each pass on the leg's clock. The bands slide by as Auf Wiedersehen Monty's do: the far wisps half a pixel a
  * frame, the low cloud a pixel, the sea two. Playfield cells as in moscow.ts.
  */
 
@@ -40,13 +40,13 @@ export const TAKE_OFF = { mapRow: 0, exitCol: 20 } as const;
 /** The plane's pictures and the birds', in slots 1-3's blocks ($38-$4F). */
 export const SKY_POINTERS = {
   level: 0x38, climb: 0x39, dive: 0x3a, wreck: 0x3b, gull: [0x3c, 0x3d, 0x3e, 0x3f], frigate: [0x40, 0x41, 0x42, 0x43], albatross: [0x44, 0x45, 0x46, 0x47],
-  viktor: [0x48, 0x49, 0x4a, 0x4b], star: 0x4c,
+  viktor: [0x48, 0x49, 0x4a, 0x4b], head: 0x4c,
 } as const;
 export const SKY_BLOCKS: readonly { ptr: number; block: Uint8Array }[] = [
   { ptr: SKY_POINTERS.level, block: PLANE_PICTURES.level }, { ptr: SKY_POINTERS.climb, block: PLANE_PICTURES.climb },
   { ptr: SKY_POINTERS.dive, block: PLANE_PICTURES.dive }, { ptr: SKY_POINTERS.wreck, block: PLANE_PICTURES.wreck },
   ...(['gull', 'frigate', 'albatross'] as const).flatMap((kind) => SKY_POINTERS[kind].map((ptr, i) => ({ ptr, block: BIRD_PICTURES[kind][i] ?? new Uint8Array(64) }))),
-  ...SKY_POINTERS.viktor.map((ptr, i) => ({ ptr, block: VIKTOR_PLANE_PICTURES[i] ?? new Uint8Array(64) })), { ptr: SKY_POINTERS.star, block: VIKTOR_STAR },
+  ...SKY_POINTERS.viktor.map((ptr, i) => ({ ptr, block: VIKTOR_PLANE_PICTURES[i] ?? new Uint8Array(64) })), { ptr: SKY_POINTERS.head, block: VIKTOR_HEAD_PICTURE },
 ];
 
 /** The plane over Monty (he sits in it in his walking picture facing east, `seat`): two pixels a step left of him (x2 units) and four pixels up, so his head is under its top wing. */
@@ -71,11 +71,20 @@ export const TAIL_PALETTE = {
 export const LEG_FRAMES = 1250;
 export const BAIL = { surge: 60, drop: 110 } as const;
 
-/** The legs, given the find Viktor's win takes (data.ts: hidden). */
+/**
+ * The lowest row his top left may be in: down to just above the sea (Chris, 2026-11-24: "On his tail has a vertical limit that's very very high. Why can't I travel to the bottom?": L3 stopped him at
+ * row 10, half the sky up, the whole leg). The plane's wheels are 16 pixels under his top, so on row 14 they are a cell above the sea's crest (row 17), in front of the low cloud. In L3 the Andes rise
+ * along the bottom near the leg's end (`ANDES_RISE`, from the right): from then the bottom is row 12, the wheels a cell above the valleys' snow (row 15), and a plane lower down is lifted over them; the
+ * peaks above that are scenery he flies in front of (harmless, as the sea is).
+ */
+const LOWEST = { sea: 14, andes: 12 } as const;
+/** The frame of L3 the Andes come in at the right (SKY_TUNNELS' peaks). */
+const ANDES_RISE = 820;
+/** The legs, given the find Viktor's win takes (data.ts: hidden). Their tops are under each leg's cloud: L2's storm front (rows 0-2), L3's storm's tail. */
 export const planeLegs = (lost: number): readonly PlaneLeg[] => [
-  { room: FLY.mail, frames: LEG_FRAMES, box: { col0: 1, row0: 1, col1: 28, row1: 14 }, then: { kind: 'east' } },
-  { room: FLY.storm, frames: LEG_FRAMES, box: { col0: 1, row0: 3, col1: 28, row1: 13 }, then: { kind: 'east' } },
-  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: 10 }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 20 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
+  { room: FLY.mail, frames: LEG_FRAMES, box: { col0: 1, row0: 1, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
+  { room: FLY.storm, frames: LEG_FRAMES, box: { col0: 1, row0: 3, col1: 28, row1: LOWEST.sea }, then: { kind: 'east' } },
+  { room: FLY.tail, frames: LEG_FRAMES, box: { col0: 2, row0: 2, col1: 28, row1: LOWEST.sea }, rise: { at: ANDES_RISE, row1: LOWEST.andes }, then: { kind: 'bail', to: { mapRow: 2, exitCol: 20 }, viktor: 0, surge: BAIL.surge, drop: BAIL.drop, lost } },
 ];
 
 /** The band placements: a 12-wide strip three times across the picture's 36 columns (from the left margin, -2). */
@@ -92,7 +101,7 @@ export const SKY_ROOMS: readonly RoomSpec[] = [
     coins: [[24, 2]],
     decor: [...across('skyWisps', 0), ...across('skyLowCloud', 15)],
   }),
-  // L2 STORMY WEATHER: under the storm front (rows 0-1); the bolts strike down to row 12, so the low line (rows 13-14) is safe until a gust lifts him off it. The coins: one on the low line, two between bolts.
+  // L2 STORMY WEATHER: under the storm front (rows 0-1); the bolts strike down to row 12, so the low line (rows 13-15) is safe until a gust lifts him off it. The coins: one on the low line, two between bolts.
   room({
     id: FLY.storm, cell: [0, 21], sector: 80, palette: STORM_PALETTE,
     paint(g) { g.box(0, 0, 31, 1, 'C'); for (const c of [0, 8, 15, 22, 29]) g.box(c, 2, c + 2, 2, 'C'); sea(g); }, // (its lumpy underside between the bolts' columns)
@@ -188,7 +197,7 @@ const PEAKS = (() => {
 export const SKY_TUNNELS: readonly TunnelSpec[] = [
   { room: FLY.mail, from: 'right', code: codeOf(MAIL_PALETTE, 'A'), cols: 8, top: 6, bottom: 19, step: 6, rest: 200, warn: 0, picture: PLUME, once: true, bleed: true },
   { room: FLY.storm, from: 'right', code: codeOf(STORM_PALETTE, 'U'), cols: 3, top: 5, bottom: 19, step: 6, rest: 640, warn: 0, picture: SPOUT, once: true, bleed: true },
-  { room: FLY.tail, from: 'right', code: codeOf(TAIL_PALETTE, 'R'), cols: 100, top: 11, bottom: 19, step: 6, rest: 820, warn: 0, picture: PEAKS, once: true, bleed: true, harmless: true },
+  { room: FLY.tail, from: 'right', code: codeOf(TAIL_PALETTE, 'R'), cols: 100, top: 11, bottom: 19, step: 6, rest: ANDES_RISE, warn: 0, picture: PEAKS, once: true, bleed: true, harmless: true },
 ];
 
 /** A strike: the storm's cells over the column flicker lit (the warning) and stay lit while the bolt is down the column (two cells wide, from row 2, under the cloud's base, to `bottom`), deadly. */
@@ -217,12 +226,12 @@ export const SKY_CURRENTS: readonly CurrentSpec[] = GUST_COLS.map(([c0, c1]): Cu
 
 // ---- Viktor on his tail ------------------------------------------------------------------------------------
 /**
- * L3's pursuer: the creature in slot 0 (his black plane) flies Monty's path 150 frames behind, from the moment the leg begins, and closes in a frame every 6 frames to 50 (a second: let the plane rest against the
+ * L3's pursuer: the creature in slot 0 (his red plane) flies Monty's path 150 frames behind, from the moment the leg begins, and closes in a frame every 6 frames to 50 (a second: let the plane rest against the
  * box's edge that long and he is on him). A flock or a bolt that meets his plane knocks him back 60 frames along the trail. He is not escaped: the leg's end is his (planes.ts, the bail-out takes `lost`).
  */
 export const TAIL_CHASE = { delay: 150, close: { every: 6, least: 50 }, setback: 60 } as const;
 export const tailPursuer = (lost: number): PursuerSpec => ({
   room: FLY.tail, slot: 0, delay: TAIL_CHASE.delay, until: lost, close: TAIL_CHASE.close, knockedBy: { rollers: true, pulses: true, setback: TAIL_CHASE.setback },
-  // his biplane, placed as Monty's is over Monty, and the red star on his hat on sprite 6
-  look: { frames: SKY_POINTERS.viktor, dx: PLANE_LOOK.dx, dy: PLANE_LOOK.dy, over: { sprite: 6, ptr: SKY_POINTERS.star, colour: VIKTOR_STAR_INK } },
+  // his red biplane (the star on his hat in it), placed as Monty's is over Monty, and his head in white under it on sprite 6
+  look: { frames: SKY_POINTERS.viktor, dx: PLANE_LOOK.dx, dy: PLANE_LOOK.dy, over: { sprite: 6, ptr: SKY_POINTERS.head, colour: VIKTOR_HEAD_INK } },
 });

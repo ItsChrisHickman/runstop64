@@ -277,6 +277,8 @@ export interface CanopyLook { left: number; level: number; right: number; colour
  */
 export interface PlaneLeg {
   room: number; frames: number; box: CellBox;
+  /** From `at` frames into the leg the box's bottom rises to row `row1` (land rising along the bottom of the picture): below it, he is lifted a pixel a frame until he is over it. */
+  rise?: { readonly at: number; readonly row1: number };
   then: { readonly kind: 'east' } | { readonly kind: 'bail'; readonly to: { readonly mapRow: number; readonly exitCol: number }; readonly viktor: number; readonly surge: number; readonly drop: number; readonly lost: number };
 }
 

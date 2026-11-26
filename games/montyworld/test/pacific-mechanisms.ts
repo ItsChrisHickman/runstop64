@@ -110,6 +110,15 @@ SCOPE.section([PAC.hana, PAC.waikiki, PAC.hilo, PAC.ship], 'Hana: the snorkel, t
     const x0 = over.g.x2;
     run(over, NONE, 60);
     check(`while a set runs he is carried west over the heads (${x0 - over.g.x2} half-pixels in 60 frames)`, over.g.x2 < x0 - 10 && CURRENTS[0] !== undefined && surgeRuns(CURRENTS[0], SURGE.start + 10));
+    // his facing: the way his own stick takes him, kept while the surge carries him west
+    const east = at(PAC.hana, 20, 14, [SNORKEL]);
+    run(east, RIGHT, 8);
+    run(east, NONE, SURGE.start - 2 - 8);
+    run(east, NONE, 40);
+    const carriedEast = !(east.g.facing & 0x80) && SWIM_CYCLE.right.some((p) => p === east.g.sptr[3]);
+    run(east, RIGHT, 20);
+    const againstEast = !(east.g.facing & 0x80) && SWIM_CYCLE.right.some((p) => p === east.g.sptr[3]);
+    check(`carried west by the surge he keeps facing east as he last swam (${carriedEast}), and swimming east against it he faces east (${againstEast})`, carriedEast && againstEast);
     const lee = at(PAC.hana, 10, 19, [SNORKEL]);
     run(lee, DOWN, 20);
     const lx = lee.g.x2;

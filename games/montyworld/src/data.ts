@@ -15,13 +15,13 @@ import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
 import { LEI_COLOUR, leiWorn } from './art/pacific-lei';
 import { PACIFIC_ITEMS } from './art/pacific-items';
-import { SWIM_CROWN, SWIM_LEFT, SWIM_RIGHT, swimBlock } from './art/pacific-swim';
+import { swimBlock, swimCrown, swimPictures } from './art/pacific-swim';
 import { SWIM_CYCLE, SWIM_POINTERS } from './pacific-pointers';
 import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { ARRIVALS, biplaneBoarding, CRUST_CRACKS, CURRENTS, LAVA, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SURF_CELLS, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES } from './pacific';
+import { ARRIVALS, biplaneBoarding, CRUST_CRACKS, CURRENTS, LAVA, MORAY_PULSES, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SURF_CELLS, SURGE_ANIM, SURGE_PULSES, SWIM_ROOMS, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES } from './pacific';
 import { BALL_STREAM, DOOR_PULSES, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
@@ -70,16 +70,17 @@ const HOOD_WORN = hoodWorn(bankImage);
 const HOOD = placeHat(HOOD_WORN);
 const LEI_WORN = leiWorn(bankImage);
 const LEI = placeHat(LEI_WORN);
-/** The lei's crown on each of the swimming pictures (a picture of its own over the head, the same offset as his sprite). */
+/** The lei's crown on each of the swimming pictures (a picture of its own set on his hair, as the lei sits on his walking ones), and the swimming pictures, made from his own (pacific-swim.ts). */
+const SWIM = swimPictures(bankImage), SWIM_CROWN = swimCrown(bankImage);
 const LEI_SWIM_FRAMES = new Map([
   ...LEI.frames,
-  ...SWIM_CYCLE.left.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownLeft, dx: 0, dy: 0 }] as const),
-  ...SWIM_CYCLE.right.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownRight, dx: 0, dy: 0 }] as const),
+  ...SWIM_CYCLE.left.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownLeft, dx: 0, dy: SWIM_CROWN.dy }] as const),
+  ...SWIM_CYCLE.right.map((ptr) => [ptr, { ptr: SWIM_POINTERS.crownRight, dx: 0, dy: SWIM_CROWN.dy }] as const),
 ]);
 /** The swimming pictures in the blocks Rio's skewers use in Rio (the swim rooms borrow them while they are loaded). */
 const SWIM_BLOCKS = [
-  ...SWIM_LEFT.map((rows, i) => ({ ptr: SWIM_POINTERS.left[i] ?? 0, block: swimBlock(`swim left ${i}`, rows) })),
-  ...SWIM_RIGHT.map((rows, i) => ({ ptr: SWIM_POINTERS.right[i] ?? 0, block: swimBlock(`swim right ${i}`, rows) })),
+  ...SWIM.left.map((rows, i) => ({ ptr: SWIM_POINTERS.left[i] ?? 0, block: swimBlock(`swim left ${i}`, rows) })),
+  ...SWIM.right.map((rows, i) => ({ ptr: SWIM_POINTERS.right[i] ?? 0, block: swimBlock(`swim right ${i}`, rows) })),
   { ptr: SWIM_POINTERS.crownLeft, block: swimBlock('crown left', SWIM_CROWN.left) },
   { ptr: SWIM_POINTERS.crownRight, block: swimBlock('crown right', SWIM_CROWN.right) },
 ];
@@ -287,7 +288,7 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, SURGE_ANIM, ...RIO_ANIMS, ...SKY_ANIMS],
   pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...MORAY_PULSES, ...SURGE_PULSES, ...VENT_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimGate: SNORKEL,

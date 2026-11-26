@@ -6,7 +6,8 @@
  * - Viktor wins the round (the find), and the tally reads Monty 2 v Viktor 1 with the train and the ship won, its stars in the winners' colours;
  * - a death in a leg starts that leg again as he came in (never the leg before), its clock from nought; in HARD it costs a life;
  * - a save made in the second leg carries on in the second leg;
- * - Viktor touches him if he keeps still against the box's edge (death), and a flock that meets Viktor's plane knocks him back along the trail.
+ * - Viktor touches him if he keeps still against the box's edge (death), and a flock that meets Viktor's plane knocks him back along the trail;
+ * - held down, he flies down to the bottom of each leg's box, just above the sea (Chris, 2026-11-24: ON HIS TAIL stopped him half the sky up), and in ON HIS TAIL the rising Andes lift him over their valleys.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/flight.ts [easy|hard]
  */
@@ -23,7 +24,7 @@ import { ROW, SCREEN } from '../../shared/monty/screen';
 import { AND } from '../src/andes';
 import { ROUNDS, WORLD } from '../src/data';
 import { PAC } from '../src/pacific';
-import { FLY } from '../src/sky';
+import { FLY, planeLegs } from '../src/sky';
 import { itemIndex, standY } from './route';
 
 const only = process.argv[2];
@@ -184,6 +185,20 @@ for (const mode of oneLeg ? [] : ['easy', 'hard'] as const) {
     for (let n = 0; n < 200 && !settled(r.g); n++) frame(r, NONE);
     frame(r, NONE);
     check(`${mode}: a save made in the second leg carries on in the second leg (room ${r.g.roomId}, x2 ${r.g.x2}, y ${r.g.y}), in the plane, its clock from nought`, r.g.roomId === FLY.storm && r.g.x2 === save.x2 && Math.abs(r.g.y - save.y) <= 2 && r.g.planeShown && r.g.planeTime < 5);
+  }
+
+  // down to the bottom: held down from the top of the sky (in the storm, between its bolts' columns), he reaches each leg's lowest row (alive: a death ends the dive where he was)
+  for (const leg of planeLegs(0)) {
+    const t: State = { g: copy(g0), col: s0.col };
+    enterRoom(t.g, leg.room, 0x0c + ((leg.room === FLY.storm ? 11 : 20) + 4) * 4, 0x32 + (leg.box.row0 + 1 + 3) * 8);
+    for (let n = 0; n < 200 && !settled(t.g); n++) frame(t, NONE);
+    let lowest = -1;
+    for (let n = 0; n < 200 && !dying(t.g) && lowest < leg.box.row1; n++) { frame(t, { ...NONE, down: true }); if (!dying(t.g)) lowest = Math.max(lowest, t.g.montyRow - 3); } // (until he is there: Viktor closes on a Monty kept still)
+    check(`${mode}: held down in room ${leg.room} he flies down to the box's bottom, row ${leg.box.row1} (reached row ${lowest})`, lowest === leg.box.row1);
+    if (!leg.rise) continue;
+    t.g.planeTime = leg.rise.at; // (on to the Andes rising)
+    for (let n = 0; n < 40 && !dying(t.g); n++) frame(t, { ...NONE, down: true });
+    check(`${mode}: when the Andes rise in room ${leg.room} the bottom rises to row ${leg.rise.row1} and lifts him over them (row ${t.g.montyRow - 3}, alive: ${!dying(t.g)})`, !dying(t.g) && t.g.montyRow - 3 === leg.rise.row1);
   }
 
   // Viktor: he catches a Monty who keeps still (the box's bottom edge), and a flock that meets him knocks him back
