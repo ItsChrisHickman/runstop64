@@ -255,14 +255,20 @@ piston, and Viktor is back after the restart; knocked, then out of the bow door,
 **Chris's review of the renders (2026-11-25): "Diamond Head does not look at all like climbing the top of an inactive volcano. It's nature. It has ledges, it has caves... I really
 want you to think about representing these islands properly. In the original pass there was a good swimming scene with Molokai in the background."** Done (lane-pacific): every Hawaiian room has a
 backdrop of its own place, one character each laid over its empty cells in shapes (`fillWhere`, layout.ts; the pieces in `art/pacific-scenery.ts`), darker than anything solid:
-- DIAMOND HEAD: the climb inside the tuff cone: the crater's eroded, fluted brown slopes under its rim against the sunset, the kiawe scrub on the crater floor, the trail's pale paved ledges cut into the
-  wall, ledges of orange tuff at its turns, the turn's cave under an overhang, WWII tunnel and bunker mouths in the wall, a pillbox on the rim, and the old tunnel's concrete portal into the rim (the way on).
-- THE LOOKOUT: the tunnel bored through the rim's tuff, the stairs on the rim's rock to the fire-control station, the view over the sea to Waikiki's hotels on the far shore, and the outer flank under it with
-  its gun ports, scrub and the shore.
-- The swim past Molokai (CLAM DOWN, KELP WANTED) is open sea under the evening sky: the sea has a surface (the waves' row) with Molokai's green fluted sea cliffs and their waterfalls over it in the first,
+- **Then (Chris, 2026-11-25): "Diamond Head deserves to be at least iconic: 2 rooms, climb up, top room is the lookout."** Redone as two rooms stacked on the grid (DIAMOND HEAD moved to [1,19], east of
+  the luau, THE LOOKOUT above it at [0,19]; the luau's hillside rope gave way to its lawn running east under the stage to the cone's foot). DIAMOND HEAD is the cone's flank in profile under a clear sky:
+  the eroded, fluted tuff slope with kiawe scrub and kiawe trees at its foot, WWII bunker and cave mouths in it, and the summit trail as the real one goes: the paved walkway, the lighted tunnel bored
+  up through the shoulder (in at its foot, up its concrete stairs past its lamps, a coin in its niche, out of its upper mouth higher up), the switchback west to the steep stairs, the old bunker's ledge
+  (a coin), then east over a gully where the rockfall rolls down the trail (the Andes' boulders; the old LOOKOUT's tumbling rocks moved here) and up onto the shoulder to the Fire Control Station's
+  spiral stair. THE LOOKOUT is the summit: the Fire Control Station in section (its spiral stair, its observation slits, a coin on its landing, the summit bunker on its roof), out of its slit onto the
+  walk along the rim to the railing where the tourist's snorkel lies, a tern diving over it, and the view: Honolulu and Waikiki's hotels along the shore under the Ko'olau mountains, the sea, and the
+  cone's outer flank down to Diamond Head Lighthouse on the coast.
+- The swim past Molokai (CLAM DOWN, KELP WANTED) is open sea under the evening sky: the sea has a surface (the waves' row) with Molokai's green fluted sea cliffs and their waterfalls over it in the first
+  (its sea two rows lower, so the cliffs stand eight rows tall, cut by the deep hanging valleys, the low Kalaupapa peninsula out to the east),
   Lanai low on the horizon and West Maui's mountains ahead in the second. The engine's `swimSurfaces` (swim.ts): he floats up to the waterline, never above, and coming in from Waikiki's surf he drops in.
 - Waikiki: the day sky, Diamond Head's cone standing on the sea at the bay's end, the sea behind the beach. Lahaina: the sunset over the channel, the whale's tail breaching, West Maui's mountains over
-  Front Street's storefronts. The Road to Hana and Akaka Falls: rainforest behind the road and the gorge. Hana: Kaihalulu's red cinder cliffs round the cove, a cave in them, the sea inside the cove.
+  Front Street's storefronts. The Road to Hana and Akaka Falls: rainforest behind the road and the gorge. Hana: Kaihalulu's crumbling red cinder cliffs round the cove (Ka'uiki Head), a cave in them, ironwoods on the headland, the turquoise lagoon inside its natural wall of black lava rock. Lahaina: the
+  courthouse's great banyan on the quay. Hilo: the bay behind the bayfront, a banyan by the airfield, Mauna Kea bare at the top over the windward forest. Akaka Falls: bamboo groves on its trails.
   Kona: the lava fields rising inland under the sunset. Mauna Kea: the red cinder slope at dusk over the sea of cloud; the summit over the cloud tops. Mauna Loa: old lava round the basin, the night red over
   the rim. The coffee farm: the mountain's shoulder and the green hillside. Hilo: Mauna Kea's broad shoulder behind the town over the bay.
 
