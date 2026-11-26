@@ -11,7 +11,8 @@ import { lavaTop } from '../../montyotr/src/lava';
 import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
 import { FLY } from '../src/sky';
-import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_TUBE, COFFEE_AT, LAVA, MOON_ROCK_AT, PAC, PARACHUTE_AT } from '../src/pacific';
+import type { Game } from '../../montyotr/src/game';
+import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_TIDE, CAVE_TUBE, COFFEE_AT, LAVA, MOON_ROCK_AT, PAC, PARACHUTE_AT } from '../src/pacific';
 import { coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg's goal reached with the lava still a good way off (100 frames): a leg that ended on a ledge the lava reaches in a few frames would hand the next one a death. */
@@ -35,6 +36,11 @@ const within = (room: number, c0: number, c1: number, r0: number, r1: number): P
   goal: (g) => g.roomId === room && !g.freeze && !g.script && g.montyCol - 4 >= c0 && g.montyCol - 4 <= c1 && g.montyRow - 3 >= r0 && g.montyRow - 3 <= r1,
   aim: [{ room, col: Math.round((c0 + c1) / 2), row: Math.round((r0 + r1) / 2) }],
 });
+
+/** The sea cave's tide clock (its flow lines' period, which the tube's current shares): frames into its 220, the set running from CAVE_TIDE.start to the period's end. */
+const tide = (g: Game): number => g.pulses.find((p) => g.data.pulses[p.index]?.room === PAC.cave)?.t ?? -1;
+/** A part reached with the tide clock in a window (`from` to `to`): where a player waits on the sea before he goes (a weighted search heads for the goal and will not wait of itself). */
+const onTide = (part: Part, from: number, to: number): Part => ({ ...part, goal: (g) => part.goal(g) && tide(g) >= from && tide(g) <= to });
 
 /** Every leg has a name of its own (the bot's kept routes are by name). */
 export const PACIFIC_LEGS: readonly Leg[] = [
@@ -77,6 +83,7 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Road to the sea cave: down the pool\'s rope', into(PAC.cave, 24, 19, PAC.road)),
   leg('Sea cave: the coin on the ledge over the tube\'s end', livesFor(coin(PAC.cave, 27, 8), 40)),
   leg('Sea cave: west through the cavern past the eel and the manta, down to the tube\'s mouth', livesFor(within(PAC.cave, 2, 4, 15, 17), 40)),
+  leg('Sea cave: low at the tube\'s mouth while a set drains, until it is nearly spent', onTide(within(PAC.cave, 2, 4, 16, 17), CAVE_TIDE.start + 55, CAVE_TIDE.start + 75)),
   leg('Sea cave: into the tube between sets, past the first stalactite, up into the alcove, its coin', livesFor(coin(PAC.cave, CAVE_TUBE.alcove + 1, 13), 40)),
   leg('Sea cave: out of the alcove as a set is spent, past the second stalactite to the Spam musubi in the pocket', livesFor(item(PAC.cave, 0, [CAVE_MUSUBI_AT.col, CAVE_MUSUBI_AT.row]), 40)),
   leg('Sea cave: out of the tube on a set, to its mouth', livesFor(within(PAC.cave, 2, 5, 9, 17), 40)),
