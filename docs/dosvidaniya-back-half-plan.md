@@ -254,6 +254,25 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
 
 Three rooms of falling, as before. Condors are in two rooms (the drop's second and third), the creature rule's limit.
 
+**Chris, 2026-11-25:** "the parachute game (I wanted that longer; it's a neat mechanic but the actual implementation was lacking
+on last night's playthrough; it was poorly used)." So the drop is a set piece that uses its mechanic, not three rooms of
+sinking: each room asks something new of the steering (thread a gap between cliffs; ride an updraft to a ledge you could not
+otherwise reach; dodge a diving condor's line; a coin that needs a line chosen from the top of the room), building room to room
+like a short course, and the landing is a target worth hitting. Look at the old drop in git first (what worked) and play the
+current one with the bot to see what is dull.
+
+**Machu Picchu's boulders** (Chris: "the llama wants an item at the top of the screen and the boulders are running off the right
+side even though I don't need to go there; it was kinda weird"): the boulders must roll down the way Monty has to climb to the
+panpipes, the hazard of that climb, never off to a side he has no reason to visit.
+
+**Cause and effect for every gate** (Chris: "the puzzles wherein I need an item to proceed aren't really cause/effect driven:
+if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"). Every gate in these regions (the
+spitting llama and the panpipes, the machete and the tangle, the astronomer and the moon rock, the biplane's two locks) works as
+a visible event: the gate shows what it wants before Monty has it (the llama spits at him and the room line says why; a
+picture of the wanted thing over the guard), and when Monty brings the item he USES it there and we see it happen (he plays the
+panpipes, the llama sways and lies down; he cuts the tangle; he hands over the rock and the astronomer carries it in), never an
+obstacle that is silently absent once the item is carried.
+
 ### The Andes: the scenic dead end off Machu Picchu
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
