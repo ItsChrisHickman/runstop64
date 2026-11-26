@@ -75,15 +75,14 @@ const KEPT: Readonly<Record<number, string>> = {
   [JP.fuji]: 'the mountain itself, its snowcap and slopes',
   [RIO_ROOM.colour]: 'the houses and the green hillside between them',
   [RIO_ROOM.bust]: 'the bay under Sugarloaf and the Redeemer',
+  [SIB.taiga]: 'the three pines the boughs grow from (needles round their trunks): the trees the climb is built on, no texture behind them',
 };
 
 /** The rooms that fail today, by region, and what the fill is (the work list). */
 const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = {
   moscow: {},
   sky: {},
-  siberia: {
-    [SIB.taiga]: 'a snow-dotted texture tiled across the hillside behind the pines',
-  },
+  siberia: {},
   china: {
     [CHI.alley]: 'a brick texture filling the room behind the stalls and signs',
     [CHI.tower]: 'a blue brick wall tiled behind the play (an interior: wallpaper)',
