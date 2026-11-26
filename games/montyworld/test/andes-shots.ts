@@ -33,6 +33,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: AND.sandbar, name: '66-up-the-creek', col: 2, floor: 15, frames: 40, compare: 0x16 },
   { room: AND.roots, name: '65-the-roots', col: 3, floor: 15, frames: 40, compare: 0x17 },
   { room: AND.boat, name: '64-the-river-queen', col: 1, floor: 15, frames: 40, compare: 0x17 },
+  { room: AND.ends, name: '94-the-river-ends', col: 1, floor: 15, frames: 40, compare: 0x17 },
 ];
 
 const probe = newPlay().g;
@@ -53,6 +54,8 @@ contactSheet(out, 'vines.png', [5, 25, 45, 65, 85, 105].map((frames) => placed({
 const panpipes = itemIndex(probe, AND.picchu, 0), machete = itemIndex(probe, AND.boat, 0);
 savePng(out, 'llama-before.png', placed({ room: AND.picchu, col: 4, floor: 18, frames: 40, worn: chullo }).px);
 savePng(out, 'llama-after.png', placed({ room: AND.picchu, col: 4, floor: 18, frames: 40, worn: chullo, items: [panpipes] }).px);
+contactSheet(out, 'llama-leaves.png', [3, 20, 40, 60].map((frames) => placed({ room: AND.picchu, col: 4, floor: 18, frames, worn: chullo, items: [panpipes] }).px));
+contactSheet(out, 'captain-leaves.png', [3, 40, 80, 120].map((frames) => placed({ room: AND.boat, col: 2, floor: 15, frames, worn: chullo, items: [chullo] }).px));
 savePng(out, 'tangle-before.png', placed({ room: AND.kapok, col: 20, floor: 8, frames: 40, worn: chullo }).px);
 savePng(out, 'tangle-after.png', placed({ room: AND.kapok, col: 20, floor: 8, frames: 40, worn: chullo, items: [machete] }).px);
 

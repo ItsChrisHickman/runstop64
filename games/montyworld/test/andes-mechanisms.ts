@@ -80,22 +80,22 @@ SCOPE.section([], 'the data', () => {
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [[2, 25, AND.jump], [3, 25, AND.thin], [4, 25, AND.gorge], [5, 25, AND.terraces], [5, 26, AND.picchu], [5, 27, AND.bridge], [6, 25, AND.cloud], [6, 26, AND.canopy], [6, 27, AND.kapok],
-    [7, 25, AND.vine], [7, 26, AND.sandbar], [7, 27, AND.roots], [7, 28, AND.boat]] as const;
-  check('the Andes and the Amazon are thirteen rooms: the drop (three) down column 25, Machu Picchu and the Inca bridge beside its foot, the Amazon a U under them, the riverboat east of the roots, east of Hawaii past the flight\'s gap (column 24 empty)',
-    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 13 && grid(3, 23) === PAC.hilo && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && WORLD.exitGrid.rows === 8);
-  check('the ids of the rooms kept are as they were (55-59; 62, 63, 65, 66), OUT OF THIN AIR and THE RIVER QUEEN back as their own 56 and 64, the new rooms 83-85; 60, 61 and 78 are no room\'s',
-    [...cells].every((c) => ![60, 61, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 83, 84, 85].includes(r.id)));
+    [7, 25, AND.vine], [7, 26, AND.sandbar], [7, 27, AND.roots], [7, 28, AND.boat], [7, 29, AND.ends]] as const;
+  check('the Andes and the Amazon are fourteen rooms: the drop (three) down column 25, Machu Picchu and the Inca bridge beside its foot, the Amazon a U under them, the riverboat east of the roots and the last bank east of her, east of Hawaii past the flight\'s gap (column 24 empty)',
+    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 14 && grid(3, 23) === PAC.hilo && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && WORLD.exitGrid.rows === 8);
+  check('the ids of the rooms kept are as they were (55-59; 62, 63, 65, 66), OUT OF THIN AIR and THE RIVER QUEEN back as their own 56 and 64, the new rooms 83-85 and THE RIVER ENDS 94; 60, 61 and 78 are no room\'s',
+    [...cells].every((c) => ![60, 61, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 83, 84, 85, 94].includes(r.id)));
   const coins = ANDES_ROOMS.map((r) => r.coins?.length ?? 0);
-  check(`15 coins in 13 rooms, never more than 2 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 15 && coins.every((n) => n <= 2));
-  const finds = ANDES_ROOMS.flatMap((r) => [...(r.cake ? ['cake'] : []), ...(r.item ? [r.item.name] : [])]);
-  check(`eight finds: the chullo, the panpipes, the machete and five empanadas (${finds.join(', ')})`, finds.length === 8 && ['chullo', 'panpipes', 'machete', 'empanada1', 'empanada2', 'empanada3', 'empanada4', 'cake'].every((n) => finds.includes(n)));
+  check(`18 coins in 14 rooms, never more than 2 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 18 && coins.every((n) => n <= 2));
+  const finds = ANDES_ROOMS.flatMap((r) => [...(r.cake ? ['cake'] : []), ...(r.item ? [r.item.name] : []), ...(r.item2 ? [r.item2.name] : [])]);
+  check(`ten finds: the chullo, the panpipes, the machete and seven empanadas (${finds.join(', ')})`, finds.length === 10 && ['chullo', 'panpipes', 'machete', 'empanada1', 'empanada2', 'empanada3', 'empanada4', 'empanada5', 'empanada6', 'cake'].every((n) => finds.includes(n)));
   const index = (room: number, nth: number) => itemIndex(newGame(WORLD, false).g, room, nth);
-  check('the chullo, the panpipes and the machete count among the pause screen\'s items, the five empanadas among its snacks',
-    [CHULLO_AT, PANPIPES, MACHETE].every(([r, n]) => WORLD.progress.keyItems.includes(index(r, n))) && [[AND.terraces, LEDGE_EMPANADA], [AND.gorge, 0], [AND.sandbar, 0], [AND.bridge, 0], [AND.vine, 0]].every(([r, n]) => WORLD.progress.cakes.includes(index(r ?? 0, n ?? 0))));
+  check('the chullo, the panpipes and the machete count among the pause screen\'s items, the seven empanadas among its snacks',
+    [CHULLO_AT, PANPIPES, MACHETE].every(([r, n]) => WORLD.progress.keyItems.includes(index(r, n))) && [[AND.terraces, LEDGE_EMPANADA], [AND.gorge, 0], [AND.sandbar, 0], [AND.bridge, 0], [AND.vine, 0], [AND.boat, 1], [AND.ends, 0]].every(([r, n]) => WORLD.progress.cakes.includes(index(r ?? 0, n ?? 0))));
   const NAMED = [[AND.jump, 'JUMP FOR JOY'], [AND.thin, 'OUT OF THIN AIR'], [AND.gorge, 'CONDOR COUNTRY'], [AND.terraces, 'NO PROBLLAMA'], [AND.picchu, 'MACHU PICCHU'], [AND.bridge, 'THE INCA BRIDGE'],
-    [AND.canopy, 'THE CANOPY'], [AND.cloud, 'CLOUD NINE'], [AND.vine, 'VINE AND DANDY'], [AND.sandbar, 'UP THE CREEK'], [AND.roots, 'THE ROOTS'], [AND.kapok, 'BRANCHING OUT'], [AND.boat, 'THE RIVER QUEEN']] as const;
+    [AND.canopy, 'THE CANOPY'], [AND.cloud, 'CLOUD NINE'], [AND.vine, 'VINE AND DANDY'], [AND.sandbar, 'UP THE CREEK'], [AND.roots, 'THE ROOTS'], [AND.kapok, 'BRANCHING OUT'], [AND.boat, 'THE RIVER QUEEN'], [AND.ends, 'THE RIVER ENDS']] as const;
   const shown = (id: number) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text;
-  check(`every room shows a name of its own (${NAMED.filter(([id, t]) => shown(id) !== t).map(([id]) => `${id}: ${shown(id)}`).join(', ') || 'all thirteen'})`, NAMED.every(([id, t]) => shown(id) === t) && ANDES_SECTORS.length === 12);
+  check(`every room shows a name of its own (${NAMED.filter(([id, t]) => shown(id) !== t).map(([id]) => `${id}: ${shown(id)}`).join(', ') || 'all fourteen'})`, NAMED.every(([id, t]) => shown(id) === t) && ANDES_SECTORS.length === 12);
   const rooms = creatureRooms(ANDES_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in the region (and the piranha, a thing on a path), none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), every kind of the region's art in a room`,
@@ -273,13 +273,24 @@ SCOPE.section([AND.roots, AND.sandbar], 'the vines and the rotten logs', () => {
 });
 
 // ---- the gates ---------------------------------------------------------------------------------------------
-SCOPE.section([AND.picchu, AND.terraces, AND.canopy, AND.kapok, AND.roots, AND.boat, RIO_FIRST], 'the gates', () => {
+SCOPE.section([AND.picchu, AND.terraces, AND.canopy, AND.kapok, AND.roots, AND.boat, AND.ends, RIO_FIRST], 'the gates', () => {
   SCOPE.section([AND.picchu, AND.terraces, AND.canopy], 'the llama, the spit and the tunnel', () => {
     const llamaType = must(at(AND.picchu, 4, 18, [], false, true).g.enemies[0], 'the llama').type;
-    const llama = (holds: readonly (readonly [number, number])[], col: number) => { const s = at(AND.picchu, col, 18, holds, false, true); run(s, NONE, 3); return { n: s.g.enemies.filter((e) => e.x !== 0xff && e.type === llamaType).length, line: rowText(s.g) }; };
-    const far = llama([PANPIPES], 0), near = llama([PANPIPES], 4);
-    check(`the spitting llama paces the tunnel's mouth; with the panpipes it stays until he comes up to it (at the lane's west end ${far.n}), and there he plays them and it goes, the name row saying so ("${near.line}")`,
-      llama([], 4).n === 1 && far.n === 1 && near.n === 0 && near.line === 'THE PANPIPES CALM THE LLAMA');
+    const llama = (holds: readonly (readonly [number, number])[], col: number, frames = 3) => {
+      const s = at(AND.picchu, col, 18, holds, false, true);
+      s.g.rollers = [];
+      run(s, NONE, frames);
+      return { n: s.g.enemies.filter((e) => e.x !== 0xff && e.type === llamaType).length, leaving: s.g.leaving.length, alive: !dead(s.g), line: rowText(s.g) };
+    };
+    const up = at(AND.picchu, 2, 8, [PANPIPES], false, true);
+    run(up, NONE, 3);
+    const near = llama([PANPIPES], 4), gone = llama([PANPIPES], 4, 240);
+    const well = at(AND.picchu, 20, 18, [PANPIPES], false, true);
+    well.g.rollers = [];
+    run(well, NONE, 240);
+    check(`the spitting llama paces the tunnel's mouth; with the panpipes it stays while he is off the lane (on the plateau: ${up.g.leaving.length} leaving), and once he comes down onto the lane he plays them and it trots off west up the lane, harmless, out of the room (after 240 frames: ${gone.n} left, he alive: ${gone.alive}), no words on the name row ("${gone.line}"); coming back up the well, east of it, the same`,
+      llama([], 4).n === 1 && up.g.leaving.length === 0 && up.g.enemies.some((e) => e.x !== 0xff && e.type === llamaType) && near.n === 1 && near.leaving === 1 && gone.n === 0 && gone.leaving === 0 && gone.alive && !/LLAMA|PANPIPES/.test(gone.line)
+      && !well.g.enemies.some((e) => e.x !== 0xff && e.type === llamaType) && !dead(well.g));
     check('the spit gobs in front of the tunnel on a timing (it kills in the three cells before the mouth) and the panpipes calm it', diesAt(at(AND.picchu, 9, 18), NONE, 480) >= 0 && diesAt(at(AND.picchu, 9, 18, [PANPIPES]), NONE, 480) < 0);
     const walkIn = (holds: readonly (readonly [number, number])[]) => {
       const s = at(AND.picchu, 2, 18, holds, false, true);
@@ -297,18 +308,26 @@ SCOPE.section([AND.picchu, AND.terraces, AND.canopy, AND.kapok, AND.roots, AND.b
     const cut = tangle([MACHETE]);
     const before = TANGLE_CELLS.every(([row, col]) => cell(cut.g, col, row) !== 0);
     run(cut, RIGHT, 40);
-    check(`the tangle chokes the kapok's branch (six cells); with the machete it stands until he comes up to it, and there he cuts it away, the name row saying so ("${rowText(cut.g)}")`,
-      TANGLE_CELLS.length === 6 && TANGLE_CELLS.every(([row, col]) => cell(tangle([]).g, col, row) !== 0) && before && TANGLE_CELLS.every(([row, col]) => cell(cut.g, col, row) === 0) && rowText(cut.g) === 'THE MACHETE HACKS IT AWAY');
+    check(`the tangle chokes the kapok's branch (six cells); with the machete it stands until he comes up to it, and there he cuts it away, seen (no words on the name row: "${rowText(cut.g)}")`,
+      TANGLE_CELLS.length === 6 && TANGLE_CELLS.every(([row, col]) => cell(tangle([]).g, col, row) !== 0) && before && TANGLE_CELLS.every(([row, col]) => cell(cut.g, col, row) === 0) && !/MACHETE|HACK/.test(rowText(cut.g)));
     const past = (g: Game) => (g.roomId === AND.kapok && colOf(g) >= 27 && g.y === standY(8)) || g.roomId === RIO_FIRST;
     check('without the machete the bot finds no way along the branch past the tangle or out to Rio, from the branch or the low boughs (100000 states each)',
       search(tangle([]), past, undefined, 100000, 0) === null && search(at(AND.kapok, 20, 16), past, undefined, 100000, 0) === null);
     check('with it he walks along the branch out of the kapok into Rio\'s first room', reach(tangle([MACHETE]), { room: AND.kapok, col: 31, row: 7 }, (g) => g.roomId === RIO_FIRST));
   });
-  SCOPE.section([AND.boat, AND.roots], 'the captain and the chullo', () => {
+  SCOPE.section([AND.boat, AND.roots, AND.ends], 'the captain and the chullo', () => {
     const captainType = must(at(AND.boat, 1, 15, [], false, true).g.enemies[0], 'the captain').type;
-    const captains = (holds: readonly (readonly [number, number])[]) => { const s = at(AND.boat, 1, 15, holds, false, true); run(s, NONE, 3); return { n: s.g.enemies.filter((e) => e.x !== 0xff && e.type === captainType).length, line: rowText(s.g) }; };
-    const aboard = captains([CHULLO_AT]);
-    check(`the riverboat's captain paces the cargo deck; in the chullo (a local's hat), as he comes to the gangway, the captain waves him on and goes ("${aboard.line}")`, captains([]).n === 1 && aboard.n === 0 && aboard.line === 'THE CAPTAIN WAVES A LOCAL ON');
+    const captains = (holds: readonly (readonly [number, number])[], frames = 3) => {
+      const s = at(AND.boat, 1, 15, holds, false, true);
+      run(s, NONE, frames);
+      return { n: s.g.enemies.filter((e) => e.x !== 0xff && e.type === captainType).length, leaving: s.g.leaving.length, line: rowText(s.g) };
+    };
+    const aboard = captains([CHULLO_AT]), off = captains([CHULLO_AT], 300);
+    const stern = at(AND.boat, 30, 15, [CHULLO_AT], false, true);
+    run(stern, NONE, 300);
+    check(`the riverboat's captain paces the cargo deck; in the chullo (a local's hat), as he comes to the gangway, the captain walks off aft, out of the room (after 300 frames: ${off.n} left), no words on the name row ("${off.line}")`,
+      captains([]).n === 1 && aboard.n === 1 && aboard.leaving === 1 && off.n === 0 && off.leaving === 0 && !/CAPTAIN|LOCAL/.test(off.line));
+    check('coming back aboard at the stern from the last bank, in the chullo, the captain walks off past him the same (harmless)', !stern.g.enemies.some((e) => e.x !== 0xff && e.type === captainType) && !dead(stern.g));
     const machete = (g: Game) => g.siCollected[itemIndex(g, ...MACHETE)] !== 0;
     check('without the chullo the captain is a wall: from the bank the bot finds no way to the ladder, the top deck or the machete (150000 states, the creatures in)',
       search(at(AND.boat, 1, 15, [], false, true), (g) => g.roomId === AND.boat && (machete(g) || g.y <= standY(8) || colOf(g) >= 26), undefined, 150000, 0) === null);
@@ -317,7 +336,7 @@ SCOPE.section([AND.picchu, AND.terraces, AND.canopy, AND.kapok, AND.roots, AND.b
 });
 
 // ---- the Amazon's route and the loops (proofs by search) ------------------------------------------------------
-SCOPE.section([AND.canopy, AND.cloud, AND.picchu, AND.terraces, AND.gorge, AND.bridge, AND.vine, AND.sandbar, AND.kapok, AND.roots, AND.boat, RIO_FIRST], 'the Amazon route and the loops', () => {
+SCOPE.section([AND.canopy, AND.cloud, AND.picchu, AND.terraces, AND.gorge, AND.bridge, AND.vine, AND.sandbar, AND.kapok, AND.roots, AND.boat, AND.ends, RIO_FIRST], 'the Amazon route and the loops', () => {
   SCOPE.section([AND.canopy, AND.cloud, AND.picchu, AND.terraces, AND.vine, AND.kapok], 'the canopy left only west along its lattice', () => {
     // the canopy: the well's liana ends on the bough, and the only way on is west along the lattice into the cloud forest
     const elsewhere = (g: Game) => g.roomId !== AND.canopy && g.roomId !== AND.picchu;
@@ -391,13 +410,22 @@ SCOPE.section([AND.canopy, AND.cloud, AND.picchu, AND.terraces, AND.gorge, AND.b
       && reach(at(AND.sandbar, 22, 15), { room: AND.sandbar, col: 0, row: 13 }, (g) => g.roomId === AND.vine, 400000)
       && reach(at(AND.vine, 29, 15), { room: AND.vine, col: 2, row: 0 }, (g) => g.roomId === AND.cloud, 400000));
   });
+  SCOPE.section([AND.boat, AND.ends, AND.roots], 'the riverboat\'s stern leads on to THE RIVER ENDS', () => {
+    check('the boat\'s east edge is open from the cargo deck up (rows 1-14, the stern), and THE RIVER ENDS\' west edge the same: the bank goes on, no way drawn that leads nowhere',
+      [...Array(14).keys()].map((r) => r + 1).every((r) => !solid(AND.boat, 31, r) && !solid(AND.ends, 0, r)) && solid(AND.boat, 31, 15) && solid(AND.ends, 0, 15));
+    check('THE RIVER ENDS is shut to the east (the forest comes down to the high bank: nothing east of it)', [...Array(20).keys()].every((r) => solid(AND.ends, 31, r)));
+    check('in the chullo he walks off the stern onto the last bank; up the muddy stair past the anaconda to the empanada under the palm; and back along the bank onto the boat',
+      reach(at(AND.boat, 1, 15, [CHULLO_AT], false, true), { room: AND.boat, col: 31, row: 13 }, (g) => g.roomId === AND.ends, 400000)
+      && reach(at(AND.ends, 1, 15, [], false, true), { room: AND.ends, col: 28, row: 6 }, (g) => g.siCollected[itemIndex(g, AND.ends, 0)] !== 0, 400000)
+      && reach(at(AND.ends, 27, 8, [], false, true), { room: AND.ends, col: 0, row: 13 }, (g) => g.roomId === AND.boat, 400000));
+  });
   SCOPE.section([AND.canopy, AND.picchu], 'the well liana both ways', () => {
     check('the well\'s liana goes both ways: up from the canopy\'s bough into the tunnel', reach(at(AND.canopy, 20, 7, [PANPIPES]), { room: AND.canopy, col: 20, row: 0 }, (g) => g.roomId === AND.picchu));
   });
 });
 
 // ---- fairness: from several starts (the room's timings run a while before he comes in), the crossing is there -------------------------
-SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu, AND.bridge, AND.canopy, AND.cloud, AND.kapok, AND.vine, AND.sandbar, AND.roots, AND.boat, RIO_FIRST], 'fairness from several starts', () => {
+SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu, AND.bridge, AND.canopy, AND.cloud, AND.kapok, AND.vine, AND.sandbar, AND.roots, AND.boat, AND.ends, RIO_FIRST], 'fairness from several starts', () => {
   const fair = (label: string, make: () => State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean) => {
     const ok = [0, 37, 74, 111, 148].filter((wait) => { const s = make(); run(s, NONE, wait); return reach(s, aim, goal, 400000); }).length;
     check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
@@ -425,6 +453,9 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu, AND.brid
   });
   SCOPE.section([AND.boat, AND.roots], 'fair: the boat', () => {
     fair('aboard in the chullo, up to the top deck and past the macaw to the machete', () => at(AND.boat, 1, 15, [CHULLO_AT], false, true), { room: AND.boat, col: 12, row: 6 }, (g) => g.siCollected[itemIndex(g, ...MACHETE)] !== 0);
+  });
+  SCOPE.section([AND.ends, AND.boat], 'fair: the last bank', () => {
+    fair('THE RIVER ENDS\' muddy stair past the dolphin and the anaconda to the empanada', () => at(AND.ends, 1, 15, [], false, true), { room: AND.ends, col: 28, row: 6 }, (g) => g.siCollected[itemIndex(g, AND.ends, 0)] !== 0);
   });
   SCOPE.section([AND.bridge, AND.picchu], 'fair: the Inca trail', () => {
     fair('the trail past the vizcacha to its end', () => at(AND.bridge, 2, 4, [], false, true), { room: AND.bridge, col: 27, row: 3 }, (g) => g.roomId === AND.bridge && colOf(g) >= 25 && g.y === standY(4));

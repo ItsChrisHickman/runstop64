@@ -222,7 +222,7 @@ const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD =
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `musubi${n}`)),
-  ...[1, 2, 3, 4].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
+  ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
@@ -256,11 +256,13 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // the hideout's door guard, a ninja himself, lets him by (the way on to the port runs through that door)
   { room: PAC.summit, when: [{ taken: MOON_ROCK }], removeEnemy: 0, place: { code: DOME_LADDER_CODE, cells: onScreen(DOME_LADDER) } }, // the astronomer lets his ladder down and takes the moon rock in to look at it
   { room: PAC.waikiki, when: [{ taken: SNORKEL }], clear: onScreen(SURF_CELLS) }, // with the snorkel the surf is the way down into Hana's sea
-  // the gates of the Andes are items used on the spot, seen happening (`at`: when he comes up to the gate with the item, not silently on coming in): a tune settles the spitting llama at the tunnel's
-  // mouth (its spit, a pulse, is calmed by the panpipes carried: calmedBy), and the tunnel and its well are open
-  { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0, at: { ...screenBox(3, 16, 7, 17), text: 'THE PANPIPES CALM THE LLAMA' } },
-  { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: CAPTAIN_SLOT, at: { ...screenBox(2, 13, 6, 14), text: 'THE CAPTAIN WAVES A LOCAL ON' } }, // in the chullo, a local, the riverboat's captain lets him aboard
-  { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS), at: { ...screenBox(20, 5, 24, 7), text: 'THE MACHETE HACKS IT AWAY' } }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
+  // the gates of the Andes are items used on the spot, seen happening (`at`: when he comes up to the gate with the item, not silently on coming in; no words: the item's sound and what is seen): a tune
+  // settles the spitting llama at the tunnel's mouth (its spit, a pulse, is calmed by the panpipes carried: calmedBy) and it trots off west up the lane, the tunnel and its well open; the box is the
+  // whole lane, so coming back up the well (east of the llama) it goes as well
+  { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0, at: { ...screenBox(0, 16, 24, 17), leaves: -1 } },
+  // in the chullo, a local: the riverboat's captain walks off aft and lets him aboard (the box is the whole cargo deck and the bank, so coming back from the last bank he lets him by too)
+  { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: CAPTAIN_SLOT, at: { ...screenBox(0, 13, 31, 14), leaves: 1 } },
+  { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS), at: screenBox(20, 5, 24, 7) }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
   { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], clear: onScreen(GATE_CELLS) }, // the crank works the cable car's winch: its bars go,
   { room: RIO_ROOM.sugar, when: [{ taken: CRANK }], late: true, clear: onScreen(CLOSED_CELLS) }, // and the CLOSED sign (a decoration) comes down
   { room: RIO_ROOM.drum, when: [{ taken: FITTED }], late: true, place: { code: LIT_CODE, cells: onScreen(BOOTH_LIGHT) } }, // the crank fitted, the booth's window lights up

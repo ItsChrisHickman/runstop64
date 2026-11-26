@@ -410,16 +410,24 @@ DANDY. The grid: the Andes at columns 25-28, rows 2-7; Rio one row lower (rows 5
   spectacled bear, over the stream's stones under the cock-of-the-rock's dives, down the west liana), VINE AND DANDY as it was
   (its three vines, two logs and the leaping piranhas where its piranhas were), UP THE CREEK (entered from the west through the
   fig's niche), THE ROOTS (its west bank eight cells: the wait, the take and the landing in the room), up to BRANCHING OUT. The
-  machete is no longer on the kapok's walkway (a coin is there now): it is aboard **THE RIVER QUEEN** (64), back from git as a
-  dead end moored east of the roots at [7,28], whose captain lets only a local aboard. So the chullo from the terraces (until
+  machete is no longer on the kapok's walkway (a coin is there now): it is aboard **THE RIVER QUEEN** (64), back from git,
+  moored east of the roots at [7,28] (her lifebuoy and the palm on the bank back as the Pacific's lifebuoy and small palm, an
+  empanada and a coin on her top deck, a coin on the cargo deck), whose captain lets only a local aboard. Off her stern the bank
+  goes on east into **THE RIVER ENDS** (94, [7,29]), back from git as it was: the pool with the dolphin, the muddy stair past the
+  anaconda, the high bank with an empanada under a palm, the forest closing the east (a bonus room off the route: the boat's open
+  stern no longer leads nowhere). So the chullo from the terraces (until
   now a costume that opened nothing) is the key on the river lane, the machete from the river opens the tangle on the canopy
   lane, and the tangle is seen before the machete is found (a doubling back down the liana and east along the bank).
 - **Cause and effect:** the Andes' three gates are items used on the spot (`RoomEffect.at`, the engine's `useOnTheSpot`): with
-  the item, the gate stands until he comes up to it, then it gives way with the item's sound and a line on the name row (THE
-  PANPIPES CALM THE LLAMA, THE CAPTAIN WAVES A LOCAL ON, THE MACHETE HACKS IT AWAY). The gate's own animation (the llama lying
-  down, the captain stepping off) is still to draw: the creature leaves at once.
-- **Not yet back:** MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL and THE RIVER ENDS as bonus rooms (the world's decoration
-  kinds are at 255 of 255: the restored rooms' pieces need the per-load kind byte first, an engine change to agree).
+  the item, the gate stands until he comes up to it, then it gives way with the item's sound, seen, no words: the tangle's cells
+  go; the llama trots off west up the lane and the captain walks off aft, harmless, out of the room (`leaves`, `leaveTick`).
+  Not drawn yet: the llama swaying and lying down (new pictures), and a picture of the wanted thing over the guard.
+- **As it was:** VINE AND DANDY's giant tree is back (one column east, CLOUD NINE's liana comes down where it stood; the kind
+  freed from China's unused slate cell), OUT OF THIN AIR's high condor crosses the whole room again (at row 4, cols 4-26, from the east end; at speed 1, not its old 2: at 2 a fall in from the top met it blind from 3 of 5 starts) under
+  its three clouds (the region's mist cloud: the old cloud kinds are gone).
+- **Not yet back:** MARKET FORCES, MIST OPPORTUNITY and THE INCA TUNNEL as bonus rooms, the riverboat's hammock and THE RIVER
+  ENDS' fern (the world's decoration kinds are at 255 of 255: their pieces need the per-load kind byte first, an engine change to
+  agree with Chris).
 
 ### Rio: down into the city, through the carnival, then the showdown
 

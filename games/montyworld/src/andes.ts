@@ -14,7 +14,8 @@ import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './l
  *   row 4   CONDOR COUNTRY
  *   row 5   NO PROBLLAMA             MACHU PICCHU             THE INCA BRIDGE                                  (the bridge: the scenic dead end off Machu Picchu's top)
  *   row 6   CLOUD NINE               THE CANOPY               BRANCHING OUT            (Rio: OPEN ARMS)        (the Amazon: a U, the canopy west along the top,
- *   row 7   VINE AND DANDY           UP THE CREEK             THE ROOTS                THE RIVER QUEEN          the river east along the bottom, the boat a dead end off it)
+ *   row 7   VINE AND DANDY           UP THE CREEK             THE ROOTS                THE RIVER QUEEN          the river east along the bottom, the boat off it,
+ *                                                                                               and at [7,29] THE RIVER ENDS: the last bank, east of her stern)
  *
  * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). The route: the drop (an updraft to the spire's coin; the canyon threaded past two condors, the coin
  * over its ridge; the gorge's shelf and its two throats) onto the guardhouse's roof or the terraces (the chullo in the guardhouse); down the terraces past the llamas and the cuy, east along the lane under
@@ -22,7 +23,8 @@ import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './l
  * its top; east along the top onto the Inca trail, over the logs across the gap to its end (an empanada) and back; west from the plateau onto the terraces' high ledge (a loop); past the calmed llama down the
  * well into the canopy. The Amazon goes round as a U: west along the canopy's lattice into the cloud forest, down its liana, over the stream's stones and down the west liana to the river; east over the
  * vines of VINE AND DANDY, the rotten logs of the creek and the roots' vines to the east bank under the kapok; up the liana to the kapok's crown, where the tangle chokes the branch to Rio. The machete is on
- * the river: aboard THE RIVER QUEEN, moored east of the roots, whose captain lets only a local aboard (the chullo); back up the liana, the tangle cut, east into Rio.
+ * the river: aboard THE RIVER QUEEN, moored east of the roots, whose captain lets only a local aboard (the chullo) and walks off aft. Past her stern the bank goes on east to THE RIVER ENDS (off the route:
+ * the muddy stair up past the anaconda to the high bank, where the forest closes in). Back up the liana, the tangle cut, east into Rio.
  *
  * The flight rooms are `flights` (flight.ts), the boulders and the leaping piranhas `rollers`, the vines `vines`, the spit at the tunnel's mouth a pulse calmed by the panpipes, the rotten logs `cracks`.
  */
@@ -31,10 +33,11 @@ import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './l
 /**
  * Room ids never change once a region has shipped (the tables are built by id: buildRooms). The drop, Machu Picchu and the Amazon's first four keep 55-59 and 62, 63, 65, 66; OUT OF THIN AIR and THE RIVER
  * QUEEN come back as their own 56 and 64; the rooms new since the reset take the ids kept for the back half's returns after the sky's (83 THE INCA BRIDGE, 84 CLOUD NINE, 85 VINE AND DANDY: their format 1
- * ids 62 and 65 are the canopy's and the roots' now). 60, 61 and 78 (MARKET FORCES, MIST OPPORTUNITY, LLAMA DRAMA) are no room's.
+ * ids 62 and 65 are the canopy's and the roots' now), and THE RIVER ENDS the first after Hawaii's (94: its format 1 id 66 is the creek's). 60, 61 and 78 (MARKET FORCES, MIST OPPORTUNITY, LLAMA DRAMA) are
+ * no room's.
  */
 export const AND = {
-  jump: 55, thin: 56, gorge: 57, terraces: 58, picchu: 59, canopy: 62, kapok: 63, boat: 64, roots: 65, sandbar: 66, bridge: 83, cloud: 84, vine: 85,
+  jump: 55, thin: 56, gorge: 57, terraces: 58, picchu: 59, canopy: 62, kapok: 63, boat: 64, roots: 65, sandbar: 66, bridge: 83, cloud: 84, vine: 85, ends: 94,
 } as const;
 
 /** The sectors' names by their place from 55 (Rio's sectors follow at 67, so the list keeps twelve places: the retired rooms' are empty). Every room has a name of its own. */
@@ -44,8 +47,8 @@ export const ANDES_SECTORS: readonly Sector[] = NAMES.map(centredSector);
 /** The map's colour of each (the sky's light blue, the terraces' green, Machu Picchu's orange, the forest's greens, the boat's white, the river's blues). */
 export const ANDES_COLOURS: readonly number[] = [14, 14, 14, 13, 8, 0, 0, 5, 13, 1, 3, 6];
 /** The names and map colours of the rooms whose sectors are after the sky's (later-sectors.ts lays them out with the other regions'). */
-export const ANDES_LATER_NAMES: Readonly<Record<number, string>> = { [AND.bridge]: 'THE INCA BRIDGE', [AND.cloud]: 'CLOUD NINE', [AND.vine]: 'VINE AND DANDY' };
-export const ANDES_LATER_COLOURS: Readonly<Record<number, number>> = { [AND.bridge]: 12, [AND.cloud]: 5, [AND.vine]: 7 };
+export const ANDES_LATER_NAMES: Readonly<Record<number, string>> = { [AND.bridge]: 'THE INCA BRIDGE', [AND.cloud]: 'CLOUD NINE', [AND.vine]: 'VINE AND DANDY', [AND.ends]: 'THE RIVER ENDS' };
+export const ANDES_LATER_COLOURS: Readonly<Record<number, number>> = { [AND.bridge]: 12, [AND.cloud]: 5, [AND.vine]: 7, [AND.ends]: 10 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The drop: rock, snow, and the far ranges behind (A: a nothing-class backdrop, dark blue, so it never reads as rock he could land on). */
@@ -91,14 +94,19 @@ export const VINE_PALETTE = {
   J: ['jungleLeaf', 5], M: ['mud', 9], W: ['riverWater', 6], L: ['deckBoards', 9], V: ['vine', 8], D: ['andLeaves', 11],
 } as const satisfies Palette;
 
-/** The creek (A3): leaves, the sandbar's and the pocket's sand, the water, the logs whole, cracked and split, a vine, the fig's trunk. */
+/** The creek (A3): leaves (the fig over the niche is leaves, as VINE AND DANDY's trees at the join are), the sandbar's and the pocket's sand, the water, the logs whole, cracked and split, a vine, the forest behind. */
 export const SANDBAR_PALETTE = {
-  J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], P: ['deckBoards', 9], Q: ['plankCracked', 9], S: ['plankSplit', 9], V: ['vine', 8], K: ['mud', 9],
+  J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], P: ['deckBoards', 9], Q: ['plankCracked', 9], S: ['plankSplit', 9], V: ['vine', 8], D: ['andLeaves', 11],
 } as const satisfies Palette;
 
 /** The roots: leaves, sand, water, the log, the vines and the liana up the kapok, the forest behind (the kapok's trunk is a backdrop: `kapokBark`). */
 export const ROOTS_PALETTE = {
   J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], L: ['deckBoards', 9], V: ['vine', 8], D: ['andLeaves', 11],
+} as const satisfies Palette;
+
+/** THE RIVER ENDS (as it was): the leaves, the bank's and the stair's mud, the pool, the forest behind. */
+export const ENDS_PALETTE = {
+  J: ['jungleLeaf', 5], M: ['mud', 9], W: ['riverWater', 6], D: ['andLeaves', 11],
 } as const satisfies Palette;
 
 /** THE RIVER QUEEN: the white hull and cabin, the deck's boards, the ladder, the bank's mud, the leaves, the river, the far bank's forest behind. */
@@ -330,15 +338,16 @@ const PAINT = {
     g.box(0, 0, 31, 1, 'J').box(7, 2, 9, 2, 'J').box(15, 2, 17, 2, 'J').box(23, 2, 25, 2, 'J').box(0, 2, 0, 2, 'J').box(28, 2, 31, 2, 'J'); // the canopy the vines hang from, ragged
     g.clear(1, 0, 3, 11).box(2, 0, 2, 14, 'V'); // the liana down from the cloud forest to the west bank
     g.box(0, 15, 4, 19, 'M').box(28, 15, 31, 19, 'M').box(5, 16, 27, 19, 'W').box(13, 16, 15, 16, 'L').box(20, 16, 22, 16, 'L'); // the banks, the river, the logs
-    g.box(0, 3, 0, 12, 'J').box(30, 0, 31, 12, 'J'); // the trees at each side (the east bank opens into the creek, rows 13-14)
+    g.box(0, 3, 0, 14, 'J').box(30, 0, 31, 12, 'J'); // the trees at each side (the west closed down to the bank: no room is west of it; the east bank opens into the creek, rows 13-14)
   },
   sandbar(g: Grid) {
-    g.box(0, 0, 14, 1, 'J'); // the canopy over the river
-    g.box(0, 2, 1, 10, 'K').box(0, 11, 1, 12, 'K'); // the fig's trunk, and the root that roofs the niche under it (rows 13-14: the way in from VINE AND DANDY)
+    g.box(0, 0, 31, 0, 'J').box(0, 1, 14, 1, 'J').box(19, 1, 23, 1, 'J').box(28, 1, 31, 1, 'J'); // the canopy over the river and the sandbar, ragged
+    g.box(0, 2, 1, 12, 'J'); // the fig's leaves down to the niche under them (rows 13-14: the way in from VINE AND DANDY)
     g.box(0, 15, 4, 19, 'M'); // the west bank (floor 15)
     g.box(5, 16, 17, 19, 'W'); // the river
     for (const [a, b] of LOGS) g.box(a, 16, b, 16, 'P'); // the rotten logs (floor 16)
     g.box(18, 15, 31, 19, 'M'); // the sandbar (floor 15), east into the roots' room
+    trees(g, 'D', [[21, 5, 3], [28, 6, 2]], 14); // the forest behind the sandbar, misty (clear of the vine's swing)
   },
   roots(g: Grid) {
     g.box(0, 0, 22, 0, 'J').box(26, 0, 31, 0, 'J').box(0, 1, 7, 1, 'J').box(12, 1, 15, 1, 'J').box(19, 1, 21, 1, 'J'); // the leaves the vines hang from (the liana goes up at cols 23-25)
@@ -355,7 +364,16 @@ const PAINT = {
     g.box(6, 8, 28, 8, 'D').box(6, 9, 25, 12, 'H'); // the top deck (floor 8) over the cabin: the cargo deck under it is a lane two rows high
     for (const c of [9, 14, 19]) g.clear(c, 10, c + 1, 10); // the cabin's windows
     g.box(27, 8, 27, 14, 'L'); // the ladder from the cargo deck's stern end up to the top deck
-    trees(g, 'E', [[2, 5, 3], [29, 4, 3], [21, 3, 2]], 14); // the far bank's trees behind the boat
+    trees(g, 'E', [[2, 5, 3], [29, 4, 3], [21, 3, 2]], 14); // the far bank's trees behind the boat (the bank goes on east past her stern: THE RIVER ENDS)
+  },
+  ends(g: Grid) {
+    // THE RIVER ENDS, as it was: in from the riverboat's stern onto the last bank (floor 15); over a pool the muddy stair climbs (floors 13, 11, 9) to the high bank (floor 8) under the boughs, where the
+    // forest closes in: the river ends here (no way east: the trees come down to the bank)
+    g.box(0, 0, 31, 0, 'J').box(8, 1, 14, 1, 'J').box(19, 1, 26, 1, 'J'); // the leaves (open at the west under them, as the boat's stern is)
+    g.box(30, 0, 31, 7, 'J'); // the forest closing the east
+    g.box(0, 15, 5, 19, 'M').box(6, 16, 9, 19, 'W'); // the bank and the pool
+    g.box(10, 13, 13, 19, 'M').box(14, 11, 17, 19, 'M').box(18, 9, 21, 19, 'M').box(22, 8, 31, 19, 'M'); // the muddy stair, up to the high bank
+    trees(g, 'D', [[4, 6, 3], [15, 5, 2], [25, 3, 2]], 14); // the forest behind
   },
 } as const;
 
@@ -372,12 +390,12 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // OUT OF THIN AIR: the canyon, as it was. In from above; the cliffs close in at each side and a ridge rises mid-room, its snowy crest (floor 9) with the coin over it: a line chosen from the top. A condor
-  // wheels across the left canyon, the way down, and one dives in the right canyon. Out at the foot of the left canyon (cols 5-10); the right canyon has a floor, and its updraft lifts him back over the ridge.
+  // crosses the whole room high (as before the reset, from the east end, at a glide: at its old speed a fall in from the top met it blind), and one dives in the right canyon. Out at the foot of the left canyon (cols 5-10); the right canyon has a floor, and its updraft lifts him back over the ridge.
   room({
     id: AND.thin, cell: [3, 25], sector: 56, palette: SKY_PALETTE, paint: PAINT.thin,
     coins: [[15, 7]],
-    decor: [['mistCloud', 22, 2], ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 5, 4], ['updraft', 22, 12], ['updraft', 22, 8]],
-    creatures: [{ who: 'condor', col: 5, row: 12, way: 'right', speed: 1, range: 32 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 36 }],
+    decor: [['mistCloud', 3, 3], ['mistCloud', 22, 2], ['mistCloud', 13, 3], ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 5, 4], ['updraft', 22, 12], ['updraft', 22, 8]],
+    creatures: [{ who: 'condor', col: 26, row: 4, way: 'left', speed: 1, range: 176 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 36 }],
   }),
 
   // CONDOR COUNTRY: the gorge, its cliffs closing in. An updraft (cols 13-15) lifts him to the overhang, where he steers onto the shelf (floor 8) for the empanada; two condors dive, one in the updraft's
@@ -452,11 +470,12 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // VINE AND DANDY: the old vine room, as it was. Down CLOUD NINE's liana onto the west bank; three vines hang from the canopy and swing over the wide brown river, two logs float between, piranhas leap,
-  // a sloth hangs in the canopy. Vine to log to vine to log to vine to the east bank, a coin on each log, the empanada on the bank; east into the creek.
+  // a sloth hangs in the canopy, the giant tree stands on the west bank. Vine to log to vine to log to vine to the east bank, a coin on each log, the empanada on the bank; east into the creek.
   room({
     id: AND.vine, cell: [7, 25], sector: AND.vine, palette: VINE_PALETTE, paint: PAINT.vine,
     coins: [[14, 14], [21, 14]],
     item: { name: 'empanada4', col: 29, row: 13, sprite: ANDES_SPRITE.empanada },
+    decor: [['giantTree', 3, 9]], // the giant tree on the west bank, as it was (a column east of where it stood: CLOUD NINE's liana comes down at column 2)
     creatures: [{ who: 'sloth', col: 12, row: 3, way: 'right', speed: 1, range: 30 }],
   }),
 
@@ -477,15 +496,26 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     decor: fillWhere(PAINT.roots, [], KAPOK_FOOT, 'kapokBark'),
   }),
 
-  // THE RIVER QUEEN: the riverboat moored east of the roots, as she was (side view: the cargo deck, the cabin, the top deck, the pilot house, the funnel, the paddle wheel). The captain paces the cargo deck
-  // under the cabin (a lane two rows high: no way past him) and lets only a local aboard (THE CAPTAIN CARRIES LOCALS ONLY): in the chullo he steps off. Past him to the stern (a coin), up the ladder to the top
-  // deck and west past the macaw to the machete by the pilot house. A dead end: back the way he came.
+  // THE RIVER QUEEN: the riverboat moored east of the roots, as she was (side view: the cargo deck, the cabin, the top deck, the pilot house, the funnel, the lifebuoy, the paddle wheel, a palm on the bank).
+  // The captain paces the cargo deck under the cabin (a lane two rows high: no way past him) and lets only a local aboard (THE CAPTAIN CARRIES LOCALS ONLY): in the chullo he walks off aft. Past him along
+  // the cargo deck (a coin), up the ladder to the top deck and west past the macaw (a coin, an empanada) to the machete by the pilot house. Off her stern the bank goes on east: THE RIVER ENDS.
   room({
     id: AND.boat, cell: [7, 28], sector: AND.boat, palette: BOAT_PALETTE, paint: PAINT.boat,
-    coins: [[30, 14]],
+    coins: [[23, 13], [19, 6]],
     item: { name: 'machete', col: 12, row: 6, sprite: ANDES_SPRITE.machete },
-    decor: [['andPilotHouse', 7, 5], ['andFunnel', 15, 5], ['andPaddleWheel', 28, 10]],
+    item2: { name: 'empanada5', col: 22, row: 6, sprite: ANDES_SPRITE.empanada },
+    decor: [['andPilotHouse', 7, 5], ['andFunnel', 15, 5], ['pacLifeRing', 24, 6], ['andPaddleWheel', 28, 10], ['pacPalmSmall', 0, 11]],
     creatures: [{ who: 'andCaptain', col: 7, row: 13, way: 'right', speed: 1, range: 128 }, { who: 'toucan', col: 17, row: 6, way: 'right', speed: 1, range: 64, colour: 2 }],
+  }),
+
+  // THE RIVER ENDS: the last bank, as it was (off the route: what the bank past the riverboat's stern leads to). In from the stern onto the bank; a dolphin rises in the pool; the muddy stair climbs from it
+  // past the anaconda coiled on the middle step to the high bank under the boughs, where the forest closes in: a coin on the stair's first step over the pool, one on its top, an empanada under the palm.
+  room({
+    id: AND.ends, cell: [7, 29], sector: AND.ends, palette: ENDS_PALETTE, paint: PAINT.ends,
+    coins: [[13, 11], [19, 7]],
+    item: { name: 'empanada6', col: 28, row: 6, sprite: ANDES_SPRITE.empanada },
+    decor: [['pacPalmSmall', 23, 4]],
+    creatures: [{ who: 'anaconda', col: 15, row: 9, way: 'right', speed: 1, range: 8, colour: 13 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
   }),
 ];
 

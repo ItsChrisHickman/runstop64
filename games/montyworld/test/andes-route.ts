@@ -5,8 +5,8 @@
  * along the top onto the Inca trail, over the logs to the empanada at its end and back, west off the plateau onto the terraces' high ledge, down the terraces again and back into the lane, past the calmed
  * llama down the well into the canopy; the canopy's coin, west along the lattice into the cloud forest (the coin at its liana's head, the coin over the stream's stones), down the west liana to VINE AND
  * DANDY (a coin on each log, the empanada on the east bank), the creek (the empanada in the fig's niche, the coin on the second log, over the piranha's channel), the roots (the coin on the log), up the
- * liana into the kapok, up its boughs to the branch (the tangle across it) and the walkway's coin past the jaguar; down again and east to the riverboat, past the captain in the chullo to the stern's coin
- * and up to the top deck for the machete; back to the kapok and through the cut tangle to the way out. Shared by the bot test and the pictures.
+ * liana into the kapok, up its boughs to the branch (the tangle across it) and the walkway's coin past the jaguar; down again and east to the riverboat, past the captain in the chullo to the cargo deck's
+ * coin, off the stern to the last bank (THE RIVER ENDS: its two coins up the muddy stair and the empanada) and back aboard, up to the top deck for its coin, the empanada and the machete; back to the kapok and through the cut tangle to the way out. Shared by the bot test and the pictures.
  */
 import { AND } from '../src/andes';
 import { into, item, leg, stands, type Leg } from './route';
@@ -74,8 +74,15 @@ export const ANDES_LEGS: readonly Leg[] = [
   leg('the kapok: up onto the walkway and west past the jaguar, the coin at its end', livesFor(coin(AND.kapok, 3, 4), 60)),
   leg('the kapok to the roots: back down to the low boughs and the liana', into(AND.roots, 24, 19, AND.kapok)),
   leg('the roots to the boat: east along the bank', into(AND.boat, 31, 13, AND.roots)),
-  leg('the boat: past the captain (in the chullo he steps off) to the stern, the coin', livesFor(coin(AND.boat, 30, 14), 60)),
-  leg('the boat: up the ladder and west past the macaw, the machete', livesFor(item(AND.boat, 0, [12, 6]), 60)),
+  leg('the boat: past the captain (in the chullo he walks off aft) along the cargo deck, its coin', livesFor(coin(AND.boat, 23, 13), 60)),
+  leg('the boat to the last bank: off the stern', into(AND.ends, 31, 13, AND.boat)),
+  leg('the last bank: over the pool past the dolphin, the coin on the stair\'s first step', livesFor(coin(AND.ends, 13, 11), 60)),
+  leg('the last bank: up the stair past the anaconda, the coin at its top', livesFor(coin(AND.ends, 19, 7), 60)),
+  leg('the last bank: the empanada under the palm', livesFor(item(AND.ends, 0, [28, 6]), 60)),
+  leg('the last bank to the boat: back down the stair and west onto the stern', into(AND.boat, 0, 13, AND.ends)),
+  leg('the boat: up the ladder, the coin on the top deck past the macaw', livesFor(coin(AND.boat, 19, 6), 60)),
+  leg('the boat: the empanada on the top deck', livesFor(item(AND.boat, 1, [22, 6]), 60)),
+  leg('the boat: west past the macaw, the machete', livesFor(item(AND.boat, 0, [12, 6]), 60)),
   leg('the boat to the roots: back west along the bank', into(AND.roots, 0, 13, AND.boat)),
   leg('the roots to the kapok: up the liana again', into(AND.kapok, 24, 0, AND.roots)),
   leg('the kapok: up the boughs onto the branch again', livesFor(stands(AND.kapok, 8, 15, 22), 60)),

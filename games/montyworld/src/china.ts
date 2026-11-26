@@ -79,8 +79,8 @@ function faceCells(c0: number, r0: number, c1: number, r1: number): Placed[] {
 }
 
 /** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), (a coin hangs on it: the engine draws the coin over the backdrop). */
-function backWall(paint: (g: Grid) => void, c0: number, r0: number, c1: number, r1: number, cell: 'backCell' | 'slateCell' = 'backCell'): Placed[] {
-  return fillCells(paint, [], [c0, r0, c1, r1], cell);
+function backWall(paint: (g: Grid) => void, c0: number, r0: number, c1: number, r1: number): Placed[] {
+  return fillCells(paint, [], [c0, r0, c1, r1], 'backCell');
 }
 
 // ---- the timed strikes ----------------------------------------------------------------------------------
