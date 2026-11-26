@@ -131,15 +131,21 @@ export function asBackdrop<T extends WorldDecor>(piece: T): T {
  * item, a pulse's cells): a backdrop (a sky's bands, a sea, a wall seen behind) at the cost of one character however many are placed.
  */
 export function fillCells(paint: (g: Grid) => void, keep: readonly (readonly [col: number, row: number])[], [c0, r0, c1, r1]: readonly [number, number, number, number], piece: WorldDecor): (readonly [WorldDecor, col: number, row: number])[] {
+  return fillWhere(paint, keep, (col, row) => col >= c0 && col <= c1 && row >= r0 && row <= r1, piece);
+}
+
+/**
+ * `fillCells` over a shape rather than a rectangle: the one-character backdrop on every empty cell where `inside(col, row)` holds (a slope under its ridge line, a cliff's silhouette over the sea). The
+ * screen's margin columns either side take the edge cell's answer.
+ */
+export function fillWhere(paint: (g: Grid) => void, keep: readonly (readonly [col: number, row: number])[], inside: (col: number, row: number) => boolean, piece: WorldDecor): (readonly [WorldDecor, col: number, row: number])[] {
   backdrops.add(piece);
   const g = new Grid();
   paint(g);
   const cells: (readonly [WorldDecor, col: number, row: number])[] = [];
-  // a backdrop that reaches the playfield's edge goes on to the screen's: the margin columns the picture shows either side (SCREEN_MARGIN of them) are as empty as the edge cell beside them
-  const from = c0 <= 0 ? -SCREEN_MARGIN : c0, to = c1 >= PLAY_COLS - 1 ? PLAY_COLS - 1 + SCREEN_MARGIN : c1;
-  for (let r = r0; r <= r1; r++) for (let c = from; c <= to; c++) {
+  for (let r = 0; r < PLAY_ROWS; r++) for (let c = -SCREEN_MARGIN; c < PLAY_COLS + SCREEN_MARGIN; c++) {
     const at = Math.max(0, Math.min(PLAY_COLS - 1, c));
-    if (g.at(at, r) === '.' && !keep.some(([kc, kr]) => kc === at && kr === r)) cells.push([piece, c, r]);
+    if (inside(at, r) && g.at(at, r) === '.' && !keep.some(([kc, kr]) => kc === at && kr === r)) cells.push([piece, c, r]);
   }
   return cells;
 }

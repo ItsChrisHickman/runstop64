@@ -252,6 +252,20 @@ splash), but the find is taken only when Monty leaves the room alive. A death in
 The tally's star lights on leaving. Proved by `viktor.ts --room` on the ship and the sleeper: knocked, then killed by a
 piston, and Viktor is back after the restart; knocked, then out of the bow door, and he is gone for good.
 
+**Chris's review of the renders (2026-11-25): "Diamond Head does not look at all like climbing the top of an inactive volcano. It's nature. It has ledges, it has caves... I really
+want you to think about representing these islands properly. In the original pass there was a good swimming scene with Molokai in the background."** Done (lane-pacific): every Hawaiian room has a
+backdrop of its own place, one character each laid over its empty cells in shapes (`fillWhere`, layout.ts; the pieces in `art/pacific-scenery.ts`), darker than anything solid:
+- DIAMOND HEAD: the climb inside the tuff cone: the crater's eroded, fluted brown slopes under its rim against the sunset, the kiawe scrub on the crater floor, the trail's pale paved ledges cut into the
+  wall, ledges of orange tuff at its turns, the turn's cave under an overhang, WWII tunnel and bunker mouths in the wall, a pillbox on the rim, and the old tunnel's concrete portal into the rim (the way on).
+- THE LOOKOUT: the tunnel bored through the rim's tuff, the stairs on the rim's rock to the fire-control station, the view over the sea to Waikiki's hotels on the far shore, and the outer flank under it with
+  its gun ports, scrub and the shore.
+- The swim past Molokai (CLAM DOWN, KELP WANTED) is open sea under the evening sky: the sea has a surface (the waves' row) with Molokai's green fluted sea cliffs and their waterfalls over it in the first,
+  Lanai low on the horizon and West Maui's mountains ahead in the second. The engine's `swimSurfaces` (swim.ts): he floats up to the waterline, never above, and coming in from Waikiki's surf he drops in.
+- Waikiki: the day sky, Diamond Head's cone standing on the sea at the bay's end, the sea behind the beach. Lahaina: the sunset over the channel, the whale's tail breaching, West Maui's mountains over
+  Front Street's storefronts. The Road to Hana and Akaka Falls: rainforest behind the road and the gorge. Hana: Kaihalulu's red cinder cliffs round the cove, a cave in them, the sea inside the cove.
+  Kona: the lava fields rising inland under the sunset. Mauna Kea: the red cinder slope at dusk over the sea of cloud; the summit over the cloud tops. Mauna Loa: old lava round the basin, the night red over
+  the rim. The coffee farm: the mountain's shoulder and the green hillside. Hilo: Mauna Kea's broad shoulder behind the town over the bay.
+
 **Fix: the surge reads as a current.** Today four short streaks flicker in light blue at row 13 for 30 frames before a
 set (`SURGE_PULSES`). Nothing says "water moving west". Instead:
 - The streaks run: white foam dashes along the whole lane over the heads, drawn as a character animation whose pixels
