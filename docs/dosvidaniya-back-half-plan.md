@@ -330,7 +330,9 @@ thing, that's a rather weird thing to have; that's a wasted effort." So:
   uses them; the way down from the Redeemer to the streets is walked.
 - **Monty on the run, for real:** at the Redeemer Viktor arrives (the cause, seen) and the chase starts; Monty drinks a
   **guarana** (Brazil's own soda, the item, taken there; recommended) and RUNS: a faster walk for the rest of Rio, seen and
-  heard (a quicker step, the tune's tempo up). Viktor pursues him room to room down the hill, coming through each door a few
+  heard (a quicker step, the tune's tempo up). Approved by Chris ("the perfect way to end the game ... we're not going to be
+  recreating Sonic the Hedgehog speed-wise, but we're going to truly be making 'Monty on the Run'"): a modest boost (about one and a
+  half times his walk), his jump arc unchanged, so it still plays like Monty. Viktor pursues him room to room down the hill, coming through each door a few
   seconds behind him (visible, heard, near misses, never a cheap catch), until SPY VERSUS MOLE ends it. Every room from the
   Redeemer to the showdown is designed for the running Monty: wide, bright, flowing, readable at speed, one idea each, no
   fiddly item gates (the pace is the point), coins on the racing line or a quick hop off it.
