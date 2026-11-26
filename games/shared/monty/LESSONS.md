@@ -55,12 +55,16 @@ most care; the reward show and the title show them off.
   the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
   play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
   rooftops, not under a picture of them).
-- **Backgrounds live on the horizon only** (Chris, 2026-11-26: "Monty on the Run really did not have any backgrounds... The
-  backgrounds only live on the horizon. It keeps the playing field clean and makes us focus on design of levels"). Black is the
-  default behind the play. A room gets a backdrop only where it tells the place, and then only as a horizon band along the top
-  (a skyline, a mountain or island silhouette, a sunset) in one or two dark colours; nothing behind the floors, ropes, ladders
-  and creatures where Monty moves. Many rooms stay plain black. The set pieces keep theirs (the train's passing scenery, the
-  summit's night sky, the beach finale). A test measures it (backdrop cells in the play area, backdrop colours per room).
+- **No full-screen fill behind the play; sky and distance live on the horizon** (Chris, 2026-11-26: "Monty on the Run really
+  did not have any backgrounds... The backgrounds only live on the horizon. It keeps the playing field clean and makes us focus on
+  design of levels"; then, when a pass stripped too much: "Neon Street looked way better before. Those were not backgrounds, I
+  was talking about full screen fill backgrounds, not small things in the background that make the room more interesting").
+  What goes: a texture or pattern tiled across the play area as wallpaper (a wall of foliage, a rock or brick texture filling the
+  screen, sky stripes running down behind the floors). What stays: props, signs that are part of the place (Neon Street's neon),
+  landmarks, structure, small details that make a room interesting, the water Monty swims in, crowds that are a set piece. Sky
+  and distant scenery (skylines, mountains, islands) sit in a band along the top, in colours that read as what they are (never a
+  muted dark-blue shape; if it would not read, leave the sky black), and an outdoor room never has earth or rock along its top
+  (that reads as a ceiling). A pass that "calms" a room removes fill, never character.
 - **No words on the scenery** (Chris, 2026-11-25: "words on the screen feels like such an AI thing. This is what the thing is.
   Feels forced"). No banners, signs or labels that name what a picture shows (SAMBA, CARNAVAL, MAUNA KEA, HILO): the drawing says
   it, the room's name on the name line says the rest. Lettering only where the place really has it and it reads as part of the
