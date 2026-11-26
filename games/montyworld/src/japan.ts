@@ -18,7 +18,7 @@ import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layou
  *   row 2       .                 C  PACHINKO PARLOUR   E  BULLET POINT       F  MOUNT FUJI         J  SAYONARA SAILOR
  *
  * Playfield cells as in moscow.ts. Floors: the harbour, streets, parlour, crossing and port are on row 17 ("low"), the rooftops and the overpass on row 7 ("high"), the platform,
- * the mountain, the garden and the hall on row 14 ("mid"). The bullet trains (E) are `tunnels` with a picture, the paper doors (I) `pulses` whose spent look is a wall; the daruma (C)
+ * the mountain, the garden and the hall on row 14 ("mid"). The bullet trains (E) are `tunnels` with a picture, the paper doors (I) `pulses` whose spent look is a wall; the daruma (E's west end)
  * rolls the platform's shutter up (E), the fish food (D) sends the koi off (G), the ninja hood (L, THE LAST MOLE) lets him by the castle's guard (I).
  */
 
@@ -178,11 +178,12 @@ export const JAPAN_TUNNELS: readonly TunnelSpec[] = [...TRAINS, STREET_TRAIN, ..
 export const JAPAN_ANIMS: readonly CharAnim[] = [...PARLOUR_ANIMS, SIGNAL_ANIM];
 
 /**
- * The parlour's ball stream (`pulses`): steel balls pour down the chute from the ceiling on to the middle floor between the machines and the rope, two cells wide and two tall where he walks (rows 9-10, columns 18-19):
+ * The parlour's ball stream (`pulses`): steel balls pour down the chute from the ceiling on to the middle floor between the machines and the rope, two cells wide and two tall where he walks (rows 9-10, columns 17-18:
+ * the chute's foot and the cell west of it, where the balls bounce, so the floor's east end, col 19, is clear of it to step off the rope on and watch from):
  * nothing for 60 frames, a trickle for 30 (the warning), a stream for 40 (deadly: the balls bounce across the floor), 10 frames of nothing, a 140 frame period. A set-up trap: the coin beyond it waits for the lull.
  */
 export const BALL_STREAM: PulseSpec = {
-  room: JP.parlour, col: 18, row: 9, cols: 2, rows: 2, period: 140, start: 60, warn: 30, live: 40, idle: 0, warnCode: codeOf(PARLOUR_PALETTE, 'F'), liveCode: codeOf(PARLOUR_PALETTE, 'B'), spent: 0,
+  room: JP.parlour, col: 17, row: 9, cols: 2, rows: 2, period: 140, start: 60, warn: 30, live: 40, idle: 0, warnCode: codeOf(PARLOUR_PALETTE, 'F'), liveCode: codeOf(PARLOUR_PALETTE, 'B'), spent: 0,
 };
 
 // ---- the paper doors ----------------------------------------------------------------------------------------
@@ -222,7 +223,7 @@ export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [
 const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 0 && c !== 23 && c !== 29);
 const EDGE_COLS = [1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16, 17, 18, 22, 24, 25, 28, 30, 31];
 const PLATFORM_DECOR = [
-  ['jpTowerGreen', 1, 3], ['jpTowerYellow', 26, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 3, 11],
+  ['jpTowerGreen', 1, 3], ['jpTowerYellow', 26, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 5, 11],
   ...WIRE_COLS.map((col) => ['jpWire', col, 7] as const), ['jpMast', 13, 8], ['jpMast', 26, 8],
   ...EDGE_COLS.map((col) => ['jpEdge', col, 13] as const),
 ] as const;
@@ -294,6 +295,10 @@ function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
   return out.filter(([, c, r]) => !FUJI_COINS.some(([cc, cr]) => cc === c && cr === r));
 }
 
+// ---- the hidden garden's stones ------------------------------------------------------------------------------
+/** THE LAST MOLE's stepping stones (two cells each, their floor row), east to west from the rope: two rows up, down, up, then down over three cells of water, the last stone by the shrine (on row 14, under its plinth and the bonsai shelf) and the bank. */
+export const MOLE_STONES: readonly (readonly [col: number, floor: number])[] = [[24, 14], [20, 12], [16, 14], [12, 12], [7, 14], [4, 14]];
+
 // ---- the port ----------------------------------------------------------------------------------------------
 /** The port's tiles: the container stack at the left, the quay, the rope down from the hall and a short crane arm over its top, the container stair, the gangway's plank, the ship's hull and deck. */
 function paintPort(g: Grid) {
@@ -356,7 +361,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // C PACHINKO PARLOUR: a pachinko hall. In by the rope from the street's stairs; out east, low, to the underpass. A row of machines with a player hunched over each (the steel balls falling through the pins); at the west the prize counter: a stair
-  // of steps up to the shelf with a claw machine and the daruma, behind the Mole Crusher (a press that comes down from the ceiling's column across the lane, crossed on the way in and on the way out).
+  // of steps up to the shelf with a claw machine and its prize (a coin at the top of the climb), behind the Mole Crusher (a press that comes down from the ceiling's column across the lane, crossed there and back).
+  // The middle floor's coin is past the ball stream: off the rope he stands clear of it at the floor's east end, watches the trickle, and crosses in the lull (Chris, 2026-11-25: stepping off the rope landed
+  // in the stream, so the coin could only be taken in one go from the rope).
   room({
     id: JP.parlour, cell: [2, 13], sector: 29, palette: PARLOUR_PALETTE,
     paint(g) {
@@ -369,8 +376,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(15, 5, 17, 5, 'L').box(23, 5, 29, 5, 'L'); // the top floor, the middle machines' tops (the gap for the rope and the ball chute)
       g.box(8, 15, 10, 15, 'L').box(5, 13, 7, 13, 'L').box(2, 11, 4, 11, 'L').box(2, 9, 8, 9, 'L'); // the counter's stair and the prize shelf
     },
-    coins: [[16, 9], [25, 3]],
-    item: { name: 'daruma', col: 3, row: 7, sprite: JAPAN_SPRITE.daruma },
+    coins: [[16, 9], [25, 3], [3, 7]],
     decor: [
       ['jpClawMachine', 6, 4], ...Array.from({ length: 7 }, (_, k) => ['jpChute', 18, 2 + k] as const),
       ['jpPachinkoGreen', 23, 6], ['jpPachinkoOrange', 26, 6],
@@ -404,7 +410,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // E BULLET POINT: the bullet-train platform. Two lanes: the underpass (low; in from the parlour) and the platform over it, joined by two stairs (ropes through the deck). The rope from the crossing lands on the
-  // platform. The platform's east end is shut by a roller shutter until the daruma; two trains sweep the platform lane in turn.
+  // platform. The platform's east end is shut by a roller shutter until the daruma, which stands at the platform's west end (Chris, 2026-11-25: something from the left of the middle opens the door on the
+  // right): up the first stairs between two trains, along to it and back below the deck before the next. Two trains sweep the platform lane in turn.
   room({
     id: JP.platform, cell: [2, 14], sector: 31, palette: PLATFORM_PALETTE,
     shut: [['left', 3, 7, 'W']], // the parlour beside it is a wall there
@@ -416,6 +423,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(29, 10, 29, 13, 'H');
     },
     coins: [[27, 15], [16, 12]],
+    item: { name: 'daruma', col: 3, row: 12, sprite: JAPAN_SPRITE.daruma },
     decor: [...PLATFORM_DECOR],
   }),
 
@@ -454,7 +462,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // L THE LAST MOLE: hidden, off the garden's pergola. In by the rope through the floor; a moonlit pond crossed on six stepping stones, a bonsai garden on a shelf and a stone dragon behind it, the shrine
-  // on its plinth with the ninja hood. A koi leaps out of the water between two stones.
+  // on its plinth with the ninja hood. The stones are a run of jumps to judge (Chris, 2026-11-25: "a little bit more skill to jump from platform to platform"): each a jump of two rows up or down, judged
+  // from the stone's edge (no steering in the air), and the widest gap (three cells, down to the stone before the shrine's) with a koi leaping out of the water in it, another between two stones on the way.
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
     shut: [['right', 3, 8, 'K']], // the tiers' wall at the right
@@ -462,7 +471,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K'); // (the night sky open above; a garden wall at the right)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
-      for (const [c, r] of [[24, 14], [20, 13], [16, 14], [12, 12], [8, 13], [4, 14]] as const) g.box(c, r, c + 1, r, 'S'); // the stones
+      for (const [c, r] of MOLE_STONES) g.box(c, r, c + 1, r, 'S'); // the stones
       g.box(1, 10, 8, 10, 'T'); // the bonsai shelf
       g.box(10, 6, 12, 6, 'S').box(16, 6, 18, 6, 'S').box(14, 6, 14, 13, 'R'); // a high ledge, split at the middle for the bamboo rope that climbs to it from the stones
     },
@@ -471,6 +480,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
     creatures: [
       { who: 'jpKoi', col: 18, row: 17, way: 'up', speed: 2, range: 20 },
+      { who: 'jpKoi', col: 9, row: 15, way: 'down', speed: 2, range: 20 }, // (out of step with the first: one leaps as the other dives)
       { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
     ],
   }),

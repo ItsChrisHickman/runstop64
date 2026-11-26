@@ -39,7 +39,7 @@ import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItem
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
-const DARUMA = [JP.parlour, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
+const DARUMA = [JP.platform, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
 const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- the data -------------------------------------------------------------------------------------
@@ -51,8 +51,8 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
     cells.filter((c) => c >= JP.harbour && c <= JP.port).length === 11 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
   const before = entriesBefore(JP.harbour, JP.port);
-  check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
-    before.ordered && coinsIn(JP.harbour, JP.port) === 23 && itemsIn(JP.harbour, JP.port) === 5);
+  check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
+    before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
   check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
@@ -329,7 +329,7 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     check(`and the bot finds no way through it (80000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}); a jump (${rise}) is lower than the wall over it`, noWay);
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
-    check('with it (taken in the parlour) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
+    check('with it (taken at the platform\'s west end) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
   });
   // the koi and the fish food
   SCOPE.section([JP.garden, JP.crossing, JP.fuji, JP.mole, JP.hall], 'the gates: the koi and the fish food', () => {

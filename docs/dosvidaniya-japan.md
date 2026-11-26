@@ -14,10 +14,10 @@ Read in docs/dosvidaniya-moscow.md and docs/dosvidaniya-siberia.md. The points J
   warehouse roof (A), the street and the rooftops (B), the crossing and its overpass (D), the platform and the underpass under it (E).
 - **A four-room loop** (the loop `$01 $09 $08 $07 $06 $04` leaves its hub by a rope and comes back three rooms along): B, C, E, D:
   down B's stairs to the parlour, along the underpass to the platform, up D's subway rope to the crossing, back west along the street.
-- **A dead end that holds an item behind a doubling back** (`$13`, `$1B`): the parlour's prize shelf (the daruma), the crossing's
+- **A dead end that holds an item behind a doubling back** (`$13`, `$1B`): the platform's west end (the daruma; 2026-11-25), the crossing's
   overpass (the fish food), THE LAST MOLE (the hood, the only way in is the rope in the garden's pergola), the castle roofs (sushi).
 - **A way that only opens once an item is found elsewhere** (cake 0 opens `$0C`'s wall, item 3 sees off `$19`'s wasp): the
-  platform's shutter wants the daruma (found in C, the room the player reaches only after seeing the shutter), the pond's koi want the
+  platform's shutter wants the daruma (at the platform's west end, between the trains: Chris, 2026-11-25, "collect something from the left side of the middle area to open up the door on the right side"; it was the parlour's, found before the shutter was seen), the pond's koi want the
   fish food (found in D's overpass, five rooms back), the castle's guard wants the hood (the only item a long way off the path).
 - **A rope that leaves a room on the other side from where it came in** (`$05`, `$0A`): the mountain rope comes up through the garden
   floor at the left, the way on is the castle gate at the right, and the hood's rope goes up from the far bank.
@@ -71,14 +71,14 @@ rope down (the stairs) to C. Tall neon boards stand on the roofs. A sushi roll t
 
 **C PACHINKO PARLOUR** (a pachinko parlour; a dead end but for the way out east). In: by the stairs' rope through the ceiling (col 21); out: right, low, to E's underpass. A hall of machines (cols 15-28: lit
 backs over the machines), a loud carpet, a lantern ghost floating along the ceiling, a robot and a lucky cat on the carpet. West a prize counter: a stair of steps (floors 15, 13, 11) up to the **prize shelf** (floor 9,
-cols 2-6) with the **daruma**, behind the **claw machine's housing** (cols 11-14) whose Mole Crusher drops across the lane (col 12, crossed on the way in and again on the way out). 2 coins.
+cols 2-6) with a coin at the top of the climb (it held the daruma until 2026-11-25), behind the **claw machine's housing** (cols 11-14) whose Mole Crusher drops across the lane (col 12, crossed on the way in and again on the way out). The middle floor's coin (col 16) is past the **ball stream** (cols 17-18; it was 18-19, where stepping off the rope landed in it: Chris, 2026-11-25, the coin could only be had in one go from the rope): off the rope he stands clear of it at the floor's east end, watches the trickle and crosses in the lull. 3 coins.
 
 **D THE CROSSING** (the crossing). In: left low (the street) and left high (the overpass) from B. Out: the subway's rope (down to E) and back. The street (zebra stripes, traffic lights, a sumo wrestler pacing it, a
 vending machine) has a subway gap (cols 22-24, rope col 23) and a pocket east of it; the **overpass** (rows 7-8, with a giant video screen and a neon board over it) runs along to the **fish food** and ends
 by a rope (col 29) that comes down to the street east of the gap. A toy robot walks the overpass, a spinning umbrella bobs over the gap. 3 coins.
 
 **E BULLET POINT** (the bullet-train platform). Two lanes: the **underpass** (low, two rows high; in from C at the left, a coin pocket at its east end) and the **platform** over it (floor 14), joined by two stairs
-(ropes through the deck, cols 8-10 and 19-21). The crossing's rope (col 23) lands on the platform. The platform's east end is shut by a **roller shutter** (cols 28-29) until the daruma; open, it walks on east to F.
+(ropes through the deck, cols 8-10 and 19-21). The crossing's rope (col 23) lands on the platform. The platform's east end is shut by a **roller shutter** (cols 28-29) until the **daruma**, which stands at the platform's west end (by a vending machine): up the first stairs once a train has gone, along to it and back down below the deck before the next; open, it walks on east to F.
 Two **bullet trains** sweep the platform lane in turn (below). A departure board, signal lamps, a vending machine. 2 coins (one in the underpass, one on the platform). No creatures: the trains are its danger.
 
 **F MOUNT FUJI** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
@@ -89,7 +89,7 @@ Two **bullet trains** sweep the platform lane in turn (below). A departure board
 (mid) and a **pergola** (a step and a ledge) up to a bamboo rope (col 28) through the ceiling to L. A tanuki on the temple steps, a spinning umbrella. With the fish food the koi are gone and the planks are there; without it the far bank is seven cells off. 2 coins.
 
 **L THE LAST MOLE** (hidden: a dead end off G's pergola; a homage to The Last Ninja with nothing copied). In: the rope up through the floor (gap cols 27-29). A moonlit pond (deadly) crossed on **six stepping stones**
-(2 cells each, two cells of water between, at floors 14, 13, 14, 12, 13, 14 so each is a jump up or down), a **bonsai garden** on a shelf, a **stone dragon** coiled behind and a **shrine** on its plinth (floor 14, far left) with
+(2 cells each, at floors 14, 12, 14, 12, 14, 14 from the rope: each a jump of two rows up or down over two cells of water, then down over three to the stone before the shrine, a koi leaping in that gap and another two stones before: Chris, 2026-11-25, "a little bit more skill to jump from platform to platform"; they were 14, 13, 14, 12, 13, 14), a **bonsai garden** on a shelf, a **stone dragon** coiled behind and a **shrine** on its plinth (floor 14, far left) with
 the **ninja hood**. A crane in the moonlight; a koi leaps out of the water between two stones. 1 coin over a gap.
 
 **H THE CASTLE** (the castle's roofs, a dead end). In: the rope from I's ceiling (col 4). The keep behind; six eaves climb in a zig-zag (floors 15, 13, 11, 9, 7, 5, each overlapping the one before, so he jumps up through it),
@@ -104,12 +104,12 @@ and a crab on it, and at the east the **cargo ship** moored at the quay's end (t
 
 ### Items, gates, doubling back
 
-- **Fish food** (D's overpass: a paper sack of pellets with a fish on it): the koi in G leave the pond and the pond's other two planks float up (`removeEnemy` twice and a `place`). **Daruma** (C's prize shelf: the round red wishing doll, one eye painted): the platform's shutter in E rolls up (a `clear`).
+- **Fish food** (D's overpass: a paper sack of pellets with a fish on it): the koi in G leave the pond and the pond's other two planks float up (`removeEnemy` twice and a `place`). **Daruma** (E's platform, its west end: the round red wishing doll, one eye painted): the platform's shutter in E rolls up (a `clear`).
   **Ninja hood** (L, on the shrine): the guard in I steps aside, and Monty wears the hood from then on (the costume). **Sushi** (A's roof stub, H's top tier): the bonus food, 200 points.
-- **The critical path** (the shortest way out): A (the stair of crates, the roof), B (the roof, the drainpipe down), the street's stairs into C (the claw's lane twice, the daruma), the underpass to E, up a stairs, up the rope to D (the street,
+- **The critical path** (the shortest way out): A (the stair of crates, the roof), B (the roof, the drainpipe down), the street's stairs into C, the underpass to E, up the first stairs between two trains to the daruma and back, up a stairs, up the rope to D (the street,
   the rope to the overpass, the fish food, back down), down the subway rope to E, east along the platform past the trains (the shutter rolled up) to F (the switchbacks, the chain), G (the pond, the pergola and rope up), L (the stones, the
-  hood, back the same way), G (the castle gate), I (the doors; the guard steps aside), J (the gangway). A first-time player meets the guard before the hood (the hood is behind the pond, which comes after the daruma and the food), but on the way the daruma (C) comes before the shutter it opens (E) and the fish food (D) before the koi (G): those two items are found on the way, then used at the gate they were found for. Only the hood's gate (I) is seen before its item.
-- **Loops and dead ends:** one four-room loop (B, C, E, D), the lanes of A, B, D and E crossed twice, the garden's two ropes (the chain in, the pergola's rope up) and the castle's (up to H, down to J). Dead ends with items: C's prize shelf, D's overpass, A's roof stub, H's roofs, L.
+  hood, back the same way), G (the castle gate), I (the doors; the guard steps aside), J (the gangway). A first-time player meets the guard before the hood (the hood is behind the pond, which comes after the daruma and the food), and the shutter (E) is in sight before its daruma, at the far end of the same platform; the fish food (D) comes before the koi (G).
+- **Loops and dead ends:** one four-room loop (B, C, E, D), the lanes of A, B, D and E crossed twice, the garden's two ropes (the chain in, the pergola's rope up) and the castle's (up to H, down to J). Dead ends with items: E's platform end, D's overpass, A's roof stub, H's roofs, L.
   The start (A) and the way out (J) are the fixed points. Nothing needed from China or the earlier regions' items (the rice hat comes off when the hood goes on).
 
 ### The two mechanisms

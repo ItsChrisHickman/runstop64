@@ -31,7 +31,7 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
 
 const probe = newPlay().g;
 const riceHat = itemIndex(probe, CHI.top, 0);
-const daruma = itemIndex(probe, JP.parlour, 0), fish = itemIndex(probe, JP.crossing, 0), hood = itemIndex(probe, JP.mole, 0);
+const daruma = itemIndex(probe, JP.platform, 0), fish = itemIndex(probe, JP.crossing, 0), hood = itemIndex(probe, JP.mole, 0);
 
 const pics = SPOTS.map((s) => {
   const { px } = placed({ room: s.room, col: s.col, floor: s.floor, frames: s.frames, worn: s.room === JP.port ? hood : riceHat, items: s.room === JP.port ? [hood] : [] });

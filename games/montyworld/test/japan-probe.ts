@@ -18,7 +18,7 @@ for (let i = 0; i < s.g.siCollected.length; i++) {
 }
 const names = ['daruma', 'fishFood', 'hood'] as const;
 for (const name of held) {
-  const idx = { daruma: 29, fishFood: 30, hood: 34 }[name];
+  const idx = { daruma: 31, fishFood: 30, hood: 34 }[name];
   if (idx === undefined) throw new Error(`unknown item ${name}`);
   for (let i = 0; i < s.g.siCollected.length; i++) if (s.g.data.specialItems[i * 4] === idx) s.g.siCollected[i] = 0x81;
 }

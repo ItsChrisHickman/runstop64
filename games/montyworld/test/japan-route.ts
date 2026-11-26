@@ -1,6 +1,6 @@
 /**
  * Japan's route for the bot: the goals, in the order a player who takes everything plays them (from China's junk onto the harbour's quay, the crates and the market's
- * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour for the daruma, the underpass to the platform, up the rope to the crossing for the fish
+ * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour (the prize shelf's coin), the underpass to the platform and up its first stairs for the daruma at its west end, up the rope to the crossing for the fish
  * food, back down and east past the shutter and the trains, Fuji's switchbacks, the garden's pond and pergola to THE LAST MOLE for the hood, back to the gate and through
  * the hall (the paper doors, the rope past them up to the gallery and back west along it to the rope up) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
@@ -11,6 +11,11 @@ import { above, coin, into, item, leg, stands, type Leg, type Part } from './rou
 /** A leg ended hanging on the second stairs' rope below the deck (cols 19-21), where a train sweeping the lane cannot reach him: a leg that ended on the deck itself could end with a train a step behind him. */
 function underTheDeck(part: Part): Part {
   return { ...part, goal: (g) => part.goal(g) && g.roomId === JP.platform && g.onRope !== 0 && g.montyCol - 4 >= 19 && g.montyCol - 4 <= 21 && g.y >= 50 + 17 * 8 };
+}
+
+/** A leg ended hanging on the first stairs' rope below the deck (cols 8-10), as `underTheDeck`. */
+function underTheFirstDeck(part: Part): Part {
+  return { ...part, goal: (g) => part.goal(g) && g.roomId === JP.platform && g.onRope !== 0 && g.montyCol - 4 >= 8 && g.montyCol - 4 <= 10 && g.y >= 50 + 17 * 8 };
 }
 
 /** A leg that ends west of a column: the third tier's coin is on the east ninja's lane, and a leg that ended with him cornered east of it would hand the next one no way out (the search then finds none). */
@@ -35,9 +40,10 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('C: up the rope to the middle floor, along it past the ball stream (in its lull) to the coin', coin(JP.parlour, 16, 9)),
   leg('C: up the rope to the top floor, the coin past the ghost on the rope', coin(JP.parlour, 25, 3)),
   leg('C: down the rope to the lane', stands(JP.parlour, 17, 18, 23)),
-  leg('C: down and across the lane under the crusher, up the stair past the claw machine to the prize shelf and the daruma', item(JP.parlour, 0, [3, 7])),
+  leg('C: down and across the lane under the crusher, up the stair past the claw machine to the prize shelf and its coin', coin(JP.parlour, 3, 7)),
   leg('C to E: out east, low, to the underpass', into(JP.platform, 31, 15, JP.parlour)),
   leg('E: the coin in the underpass\'s pocket', coin(JP.platform, 27, 15)),
+  leg('E: up the first stairs onto the platform between two trains, west to the daruma, and back down the stairs\' rope below the deck', underTheFirstDeck(item(JP.platform, 0, [3, 12]))),
   leg('E: up the second stairs onto the platform, the coin out in the middle of the lane between the two stairs, and back down the stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 16, 12))),
   leg('E to D: up the crossing\'s rope', into(JP.crossing, 23, 0, JP.platform)),
   leg('D: the coin in the street past the crossing (on the green man)', coin(JP.crossing, 19, 14)),
