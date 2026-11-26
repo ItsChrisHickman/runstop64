@@ -1,11 +1,12 @@
 /**
  * Hawaii's scenery (Chris, 2026-11-25: "Diamond Head does not look at all like climbing the top of an inactive volcano. It's nature. It has ledges, it has caves"; "I really want you to think about
  * representing these islands properly"): the backdrops that make each room read as its real place at a glance, and the landmarks in them. The backdrops are one character each, laid over a room's empty
- * cells in shapes (`fillWhere`, layout.ts: a coin is drawn over them, a cleared cell goes back to them): Diamond Head's eroded tuff and its kiawe scrub, the green fluted sea cliffs of Molokai and Maui's
- * jungle, the lava fields of the Big Island, Mauna Kea's red cinder and the cloud sea under its summit. Backdrops are darker than anything solid and have no hard top edge, so none reads as a floor
+ * cells in shapes (`fillWhere`, layout.ts: a coin is drawn over them, a cleared cell goes back to them): Diamond Head's eroded tuff and its kiawe scrub, the dark fluted sea cliffs of Molokai and Maui's
+ * wet rock, a tree line of rainforest, the lava fields of the Big Island, Mauna Kea's red cinder and the cloud sea under its summit. Backdrops are darker than anything solid and have no hard top edge, so none reads as a floor
  * (LESSONS.md, "How it looks"). Names start `pac`, as the rest of the Pacific's; they come after every other piece (world.ts), so nothing shipped moves.
  */
 import { decor } from './decorations';
+import { PLUNGE_COLS, plungeSplashRows, streakRows } from './pacific-falls';
 import { Raster } from './raster';
 import { tile } from './tiles';
 import type { NewDecor } from './types';
@@ -41,15 +42,18 @@ const SCRUB = [
   '#.......',
 ] as const;
 
-/** Rainforest seen as a dark mass: a few fronds catching the light, the black of the forest between them (Chris: no screen of bright green). */
+/**
+ * Rainforest as a tree line (Chris: no screen of bright green; LESSONS: detail kept to the horizon and the edges): the canopy's crowns, one row of them along the top of a forest, the
+ * dark of the forest under them. Laid in a single row (a band), never a field.
+ */
 const JUNGLE = [
-  '........',
-  '..#.....',
-  '.##.#...',
   '...##...',
+  '..####.#',
+  '.##.####',
+  '####.###',
+  '#.##.#.#',
+  '.#...#..',
   '........',
-  '.....#..',
-  '#..###..',
   '........',
 ] as const;
 
@@ -189,7 +193,7 @@ function lighthouse(): NewDecor {
   return decor('pacLighthouse', 2, 4, r, ['22', '11', '11', '11']);
 }
 
-/** A kiawe tree standing in the scrub (laid over the scrub's backdrop, its texture round it): a flat, spreading crown of feathery leaves, the crooked trunk dark against the bush. 3 x 2 characters, in the scrub's green. */
+/** A kiawe tree standing in the scrub (laid over the scrub's backdrop, its texture round it): a flat, spreading crown of feathery leaves, the crooked trunk dark against the bush. 3 x 2 characters. */
 function kiawe(): NewDecor {
   const r = tiled(24, 16, SCRUB);
   r.rect(0, 0, 23, 7, false); // the sky between the crown's leaves
@@ -197,7 +201,7 @@ function kiawe(): NewDecor {
   for (const x of [2, 7, 12, 17, 21]) r.set(x, 4, false);
   r.rect(10, 7, 13, 15, false); r.rect(7, 7, 9, 9, false); r.rect(14, 7, 16, 9, false); // the trunk and its forks, dark
   r.rect(11, 8, 12, 15); r.rect(8, 7, 8, 8); r.rect(15, 7, 15, 8); // ... with their bark
-  return decor('pacKiawe', 3, 2, r, 5);
+  return decor('pacKiawe', 3, 2, r, ['555', '999']); // the crown green over the sky, the trunk in the scrub's brown
 }
 
 /** One of the tunnel's lamps on the rock: a caged bulb on its bracket, its glow round it. */
@@ -267,6 +271,18 @@ function trailRun(name: string, up: boolean): NewDecor {
   const r = new Raster(8, 8);
   for (let x = 0; x < 8; x++) { const y = up ? 7 - x : x; if (x % 3 !== 2) r.rect(x, Math.max(0, y - 1), x, y); }
   return decor(name, 1, 1, r, 12);
+}
+
+/**
+ * Akaka Falls' plunge (a single 442-foot drop into its gorge: the falls are the picture, so they are tall): the stream pours out under the trail's lip and falls the gorge's height in one white column to
+ * the splash at its foot. Three characters wide and ten tall: three blocks of streaks (they repeat every three rows, so each block takes the same falling pictures, FALLS_ANIMS) and the splash.
+ */
+export const PLUNGE = { streakBlocks: 3, rows: 10 } as const;
+function plunge(): NewDecor {
+  const r = new Raster(PLUNGE_COLS * 8, PLUNGE.rows * 8);
+  for (let b = 0; b < PLUNGE.streakBlocks; b++) r.stamp(streakRows(0, PLUNGE_COLS * 8), 0, b * 24);
+  r.stamp(plungeSplashRows(0), 0, (PLUNGE.rows - 1) * 8);
+  return decor('pacPlunge', PLUNGE_COLS, PLUNGE.rows, r, [...Array.from({ length: PLUNGE.rows - 1 }, () => '333'), '111']);
 }
 
 export const PACIFIC_SCENERY_TILES = {
@@ -362,8 +378,8 @@ export const PACIFIC_SCENERY_TILES = {
 
 export const PACIFIC_SCENERY_DECOR = {
   pacTuffFill: fill('pacTuffFill', FLUTES, 9),
-  pacScrubFill: fill('pacScrubFill', SCRUB, 5),
-  pacCliffFill: fill('pacCliffFill', FLUTES, 5),
+  pacScrubFill: fill('pacScrubFill', SCRUB, 9),
+  pacCliffFill: fill('pacCliffFill', FLUTES, 11),
   pacJungleFill: fill('pacJungleFill', JUNGLE, 5),
   pacLavaFill: fill('pacLavaFill', LAVA, 11),
   pacCinderFill: fill('pacCinderFill', CINDER, 2),
@@ -385,4 +401,5 @@ export const PACIFIC_SCENERY_DECOR = {
   pacSail: sail(),
   pacKiawe: kiawe(),
   pacTunnelLamp: tunnelLamp(),
+  pacPlunge: plunge(),
 } as const satisfies Record<string, NewDecor>;

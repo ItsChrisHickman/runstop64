@@ -3,8 +3,9 @@ import { PLAY_ROW } from '../../shared/monty/screen';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { WORLD_DECOR, type WorldDecor } from './art/world';
 import { BOULDER_POINTERS } from './andes-pointers';
-import { BUBBLE_FRAMES, SPLASH_FRAMES, STREAK_FRAMES } from './art/pacific-falls';
+import { BUBBLE_FRAMES, PLUNGE_COLS, PLUNGE_SPLASH_FRAMES, PLUNGE_STREAK_FRAMES, SPLASH_FRAMES, STREAK_FRAMES } from './art/pacific-falls';
 import { HULA_FRAMES } from './art/pacific-islands';
+import { PLUNGE } from './art/pacific-scenery';
 import { codeOf, decorIndex, fillCells, fillWhere, type Grid, room, type Palette } from './layout';
 
 /**
@@ -161,6 +162,8 @@ function sunset(paint: (g: Grid) => void, keep: readonly Cell[], rows: { purple:
   ];
 }
 type Cell = readonly [col: number, row: number];
+/** The far islands' silhouette: one solid dark grey (Oahu behind, Lanai, the Big Island across the channel, Mauna Kea from Mauna Loa, the Ko'olau from the rim, Mauna Kea behind Hilo and Mauna Loa behind the coffee farm): far off, flat, no detail. */
+const FAR: WorldDecor = 'rioShade';
 type Placed = readonly [WorldDecor, number, number];
 /** The cells a decoration of `w` x `h` characters covers from its top left: kept clear of a backdrop laid round it. */
 /** The cells under a decoration placed at its top left, for keeping a backdrop out from under it. */
@@ -223,15 +226,20 @@ export const BRIDGE_CARS: readonly TunnelSpec[] = BRIDGES.map((b): TunnelSpec =>
 
 /**
  * The waterfalls move (charAnims cycles, charanim.ts): the streaks of the cascade's three middle rows (cells 2-7) fall, a roll of 3 pixels a frame, and the splash at its foot (cells 8-9) throws up spray and
- * mist: the Road to Hana's two cascades down the cliff, the road's pool falling into the sea cave, and Akaka Falls' two drops.
+ * mist: the Road to Hana's two cascades down the cliff, the road's pool falling into the sea cave, and Akaka Falls' plunge.
  */
-export const FALLS_ANIMS: readonly CharAnim[] = [PAC.road, PAC.cave, PAC.falls].flatMap((room): CharAnim[] => {
-  const cells = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => ({ decor: decorIndex('pacWaterfall'), cell: from + i }));
-  return [
-    { kind: 'cycle', room, chars: cells(2, 7), frames: STREAK_FRAMES, every: 1 },
-    { kind: 'cycle', room, chars: cells(8, 9), frames: SPLASH_FRAMES, every: 2 },
-  ];
-});
+const fallCells = (piece: WorldDecor, from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => ({ decor: decorIndex(piece), cell: from + i }));
+export const FALLS_ANIMS: readonly CharAnim[] = [
+  ...[PAC.road, PAC.cave].flatMap((room): CharAnim[] => [
+    { kind: 'cycle', room, chars: fallCells('pacWaterfall', 2, 7), frames: STREAK_FRAMES, every: 1 },
+    { kind: 'cycle', room, chars: fallCells('pacWaterfall', 8, 9), frames: SPLASH_FRAMES, every: 2 },
+  ]),
+  // Akaka Falls' plunge: each block of three rows of streaks takes the cascade's pictures, its splash at the foot
+  ...Array.from({ length: PLUNGE.streakBlocks }, (_, b): CharAnim => ({
+    kind: 'cycle', room: PAC.falls, chars: fallCells('pacPlunge', b * 3 * PLUNGE_COLS, (b + 1) * 3 * PLUNGE_COLS - 1), frames: PLUNGE_STREAK_FRAMES, every: 1,
+  })),
+  { kind: 'cycle', room: PAC.falls, chars: fallCells('pacPlunge', (PLUNGE.rows - 1) * PLUNGE_COLS, PLUNGE.rows * PLUNGE_COLS - 1), frames: PLUNGE_SPLASH_FRAMES, every: 2 },
+];
 /** The line of hula dancers behind the luau's stage dances (the plan: "swaying on the beat"; Chris, 2026-11-25: "not enough hula"): the decoration's six characters take the hula's four pictures, a beat each (12 steps, 24 frames). */
 export const HULA_ANIM: CharAnim = { kind: 'cycle', room: PAC.luau, chars: [0, 1, 2, 3, 4, 5].map((cell) => ({ decor: decorIndex('pacHulaDancer'), cell })), frames: HULA_FRAMES, every: 12 };
 /** The bubbles rise in every swim room (a `charAnims` cycle over the decoration's two characters: the rings climb 2 pixels a step and come round again at the foot). */
@@ -438,7 +446,7 @@ const LOOKOUT_KEEP: readonly Cell[] = [...LOOKOUT_COINS, ...cellsOf(SNORKEL_AT.c
 const inStation = (c: number, r: number): boolean => c >= 24 && r >= 5;
 const lookoutScenery: Placed[] = [
   ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r <= LOOKOUT_HORIZON && (c > 18 || r < KOOLAU(c)), 'pacSkyDay'),
-  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => c <= 18 && r >= KOOLAU(c) && r <= LOOKOUT_HORIZON + 1, 'pacCliffFill'),
+  ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => c <= 18 && r >= KOOLAU(c) && r <= LOOKOUT_HORIZON + 1, FAR),
   ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r > LOOKOUT_HORIZON + (c <= 18 ? 1 : 0) && r < LOOKOUT_SHORE && r < LOOKOUT_FLANK(c), 'pacSeaFlat'),
   ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_SHORE && r < LOOKOUT_FLANK(c), 'pacScrubFill'),
   ...fillWhere(paintLookout, LOOKOUT_KEEP, (c, r) => !inStation(c, r) && r >= LOOKOUT_FLANK(c), 'pacTuffFill'),
@@ -474,37 +482,40 @@ const paintClam = (g: Grid): void => {
   g.box(19, 13, 23, 18, 'R').box(20, 11, 22, 12, 'R'); // the tall coral head (its top three rows under the surface, a lane over it)
 };
 const CLAM_COINS = [[10, 17]] as const;
-/** Oahu behind: Diamond Head's small cone at the west edge, dark (its steep face to the sea at the east). */
-const OAHU_BEHIND = span(0, 4, ridge([[0, 6], [1, 5], [2, 5], [3, 6], [4, 7]]));
-/** Molokai's low west end, rising to the north shore's cliffs behind Kalaupapa, then the cliffs' high wall east, its valleys cut deep (Pelekunu, Wailau). */
-const MOLOKAI = span(7, 31, ridge([[7, 7], [9, 6], [10, 5], [11, 3], [13, 2], [19, 2], [20, 4], [21, 5], [22, 3], [25, 2], [26, 4], [27, 5], [28, 3], [31, 2]]));
-/** Kalaupapa: the flat peninsula at the cliffs' foot, low on the water. */
-const KALAUPAPA = span(11, 17, () => 6);
-const CLAM_PIECES = [['pacCliffFall', 14, 3], ['pacCliffFall', 23, 3], ['pacCliffFall', 29, 3], ['pacKelp', 16, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 25, 10], ['pacSeaFan', 5, 16]] as const;
+/** Oahu falling behind: its east end (Koko Head's crater and Makapu'u under the Ko'olau's last ridge) far off at the west edge, sinking toward the water. */
+const OAHU_BEHIND = span(0, 6, ridge([[0, 3], [1, 3], [2, 4], [3, 4], [4, 5], [5, 6], [6, 7]]));
+/**
+ * Molokai alongside, the near island, long across the horizon: its low west end, then the north shore's sea cliffs (the world's tallest) rising sheer out of the sea to the long flat top of the island,
+ * notched by the deep valleys of Pelekunu and Wailau; its face fluted, the waterfalls threads down it.
+ */
+const MOLOKAI = span(7, 31, ridge([[7, 7], [9, 6], [10, 6], [11, 3], [20, 3], [21, 5], [22, 5], [23, 3], [26, 3], [27, 5], [28, 5], [29, 3], [31, 3]]));
+/** Kalaupapa: the flat peninsula low on the water at the cliffs' foot, the little cone of Kauhako crater on it. */
+const KALAUPAPA = span(11, 19, ridge([[11, 6], [13, 6], [14, 5], [15, 5], [16, 6], [19, 6]]));
+const CLAM_PIECES = [['pacCliffFall', 12, 3], ['pacCliffFall', 18, 3], ['pacCliffFall', 25, 4], ['pacCliffFall', 30, 3], ['pacKelp', 16, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 25, 10], ['pacSeaFan', 5, 16]] as const;
 const CLAM_KEEP: readonly Cell[] = [...CLAM_COINS, ...CLAM_PIECES.flatMap(under)];
 const clamScenery: Placed[] = horizon(paintClam, CLAM_KEEP, SURFACE, [
-  { top: KALAUPAPA, piece: 'pacScrubFill' }, { top: MOLOKAI, piece: 'pacCliffFill' }, { top: OAHU_BEHIND, piece: null },
-]);
+  { top: KALAUPAPA, piece: 'pacScrubFill' }, { top: MOLOKAI, piece: 'pacCliffFill' }, { top: OAHU_BEHIND, piece: FAR },
+], { purple: 0, red: 3, orange: 5, gold: SURFACE - 1 });
 
 const paintKelp = (g: Grid): void => {
   g.box(0, 19, 31, 19, 'K'); // the sandy bottom (in from the west, open sea)
-  g.box(31, 3, 31, 13, 'K'); // Maui's lava shore at the east edge, rising out of the sea, the sea cave's mouth under it (out east, rows 14-18)
+  g.box(31, SURFACE, 31, 13, 'K').box(30, 11, 30, 13, 'K'); // Maui's lava rock breaking the surface at the east edge, the sea cave's mouth under its ledge (out east, rows 14-18); the sky runs on over it
   g.box(15, 0, 15, SURFACE + 2, 'L'); // the mooring rope down from Lahaina's quay through the surface
   g.box(8, 16, 10, 18, 'C').box(19, 14, 21, 18, 'C'); // coral
   g.box(24, 13, 28, 18, 'R').box(25, 11, 27, 12, 'R').clear(25, 15, 27, 18); // a coral head with a hollow under it
 };
 const KELP_COINS = [[13, 17]] as const;
-/** Molokai behind, tapering east from the last room's cliffs to its cape. */
-const MOLOKAI_TAIL = span(0, 6, ridge([[0, 2], [2, 3], [4, 5], [6, 7]]));
-/** Lanai, low and far off on the horizon: a long gentle hump. */
-const LANAI = span(8, 15, ridge([[8, 7], [9, 6], [11, 5], [14, 5], [15, 7]]));
-/** The West Maui mountains rising ahead over Lahaina: steep, deep-valleyed peaks (Pu'u Kukui the highest). */
-const WEST_MAUI = span(17, 31, ridge([[17, 7], [19, 6], [21, 4], [23, 2], [24, 3], [25, 1], [27, 2], [28, 4], [30, 3], [31, 3]]));
-const KELP_PIECES = [['pacCliffFall', 26, 3], ['pacWhaleTail', 2, 6], ['pacKelp', 12, 16], ['pacKelp', 17, 15], ['pacKelp', 22, 16], ['pacSeaFan', 29, 16], ['pacBubbles', 4, 12], ['pacBubbles', 29, 9]] as const;
+/** Molokai behind, its sea cliffs ending at the east cape (Halawa), the flat top dropping sheer to the sea. */
+const MOLOKAI_TAIL = span(0, 5, ridge([[0, 2], [2, 2], [3, 4], [4, 6], [5, 7]]));
+/** Lanai, low and far off on the horizon: a long gentle whale's back. */
+const LANAI = span(7, 14, ridge([[7, 7], [8, 6], [10, 5], [12, 5], [13, 6], [14, 7]]));
+/** The West Maui mountains rising ahead over Lahaina, near and black against the sunset: steep, knife-edged ridges between deep valleys (Pu'u Kukui the highest). */
+const WEST_MAUI = span(16, 31, ridge([[16, 7], [17, 6], [19, 5], [20, 3], [21, 4], [22, 2], [23, 3], [24, 1], [25, 2], [26, 1], [27, 3], [28, 2], [29, 4], [30, 5], [31, 5]]));
+const KELP_PIECES = [['pacWhaleTail', 2, 6], ['pacKelp', 12, 16], ['pacKelp', 17, 15], ['pacKelp', 22, 16], ['pacSeaFan', 29, 16], ['pacBubbles', 4, 12], ['pacBubbles', 29, 9]] as const;
 const KELP_KEEP: readonly Cell[] = [...KELP_COINS, ...KELP_PIECES.flatMap(under)];
 const kelpScenery: Placed[] = horizon(paintKelp, KELP_KEEP, SURFACE, [
-  { top: MOLOKAI_TAIL, piece: 'pacCliffFill' }, { top: WEST_MAUI, piece: 'pacCliffFill' }, { top: LANAI, piece: null },
-]);
+  { top: MOLOKAI_TAIL, piece: 'pacCliffFill' }, { top: LANAI, piece: FAR }, { top: WEST_MAUI, piece: null },
+], { purple: 0, red: 3, orange: 5, gold: SURFACE - 1 });
 
 const paintWhale = (g: Grid): void => {
   g.box(0, 18, 9, 19, 'W').box(3, 15, 9, 17, 'H').box(4, 14, 9, 14, 'D'); // the old brig in the harbour water, its deck
@@ -564,17 +575,21 @@ const paintFish = (g: Grid): void => {
 /** Over the west turtle (taken from its back), and over the second east one's (the crossing's own move). */
 const FISH_COINS = [[8, 15], [25, 15]] as const;
 const FISH_MUSUBI_AT = { col: 2, row: 14 } as const;
-const HALEAKALA = span(0, 14, ridge([[2, 7], [6, 9], [10, 12], [13, 15], [14, 16]]));
-const KOHALA = span(17, 19, ridge([[17, 16], [18, 15], [19, 15]]));
-const MAUNA_KEA = span(20, 26, ridge([[20, 14], [21, 13], [22, 12], [24, 12], [25, 13], [26, 14]]));
-const KEA_SNOW = span(22, 24, () => 12);
-const MAUNA_LOA = span(27, 31, ridge([[27, 14], [29, 13], [31, 13]]));
+/** The channel's horizon, high in the room: the open sea from it down to the swell, the islands standing on it. */
+const SHELL_HORIZON = 13;
+/** Behind, Maui: Haleakala's long, gentle shield over the cliff, near and black against the sunset, falling to the sea toward the channel. */
+const HALEAKALA = span(2, 15, ridge([[2, 3], [5, 3], [8, 5], [11, 8], [14, 11], [15, 12]]));
+/** Ahead, the Big Island rising far off over the channel: Kohala low at its north end, Mauna Kea's bumpy crown of cinder cones under its snow, Mauna Loa's smooth broad dome. */
+const KOHALA = span(16, 19, ridge([[16, 11], [17, 10], [19, 9]]));
+const MAUNA_KEA = span(19, 26, ridge([[19, 10], [20, 7], [21, 5], [22, 4], [23, 5], [24, 4], [25, 6], [26, 9]]));
+const KEA_SNOW = span(21, 24, MAUNA_KEA);
+const MAUNA_LOA = span(27, 31, ridge([[26, 9], [27, 7], [29, 6], [31, 6]]));
 const FISH_PIECES = [['pacLavaRocks', 29, 18]] as const;
-const FISH_KEEP: readonly Cell[] = [...FISH_COINS, ...cellsOf(FISH_MUSUBI_AT.col, FISH_MUSUBI_AT.row, 2, 2), ...FISH_PIECES.flatMap(under), ...cellsOf(29, 17, 3, 2)]; // (over Kona's sand: no sea)
-const fishScenery: Placed[] = horizon(paintFish, FISH_KEEP, TURTLES.row, [
+const FISH_KEEP: readonly Cell[] = [...FISH_COINS, ...cellsOf(FISH_MUSUBI_AT.col, FISH_MUSUBI_AT.row, 2, 2), ...FISH_PIECES.flatMap(under)];
+const fishScenery: Placed[] = horizon(paintFish, FISH_KEEP, SHELL_HORIZON, [
   { top: KEA_SNOW, piece: 'pacSnowCap', rows: 1 },
-  { top: KOHALA, piece: null }, { top: MAUNA_KEA, piece: null }, { top: MAUNA_LOA, piece: null }, { top: HALEAKALA, piece: null },
-], { purple: 5, red: 9, orange: 13, gold: 16 });
+  { top: KOHALA, piece: FAR }, { top: MAUNA_KEA, piece: FAR }, { top: MAUNA_LOA, piece: FAR }, { top: HALEAKALA, piece: null },
+], { purple: 1, red: 5, orange: 9, gold: SHELL_HORIZON - 1 });
 
 const paintKona = (g: Grid): void => {
   g.box(0, 19, 5, 19, 'K').box(9, 19, 14, 19, 'K').box(18, 19, 31, 19, 'K'); // the black sand, the lava tube's mouth (cols 6-8), the tide pool's (cols 15-17)
@@ -612,7 +627,7 @@ const SUMMIT_COINS = [[3, 12], [16, 9]] as const;
 
 const paintFalls = (g: Grid): void => {
   g.box(0, 0, 1, 5, 'B').box(0, 8, 27, 8, 'T').box(0, 9, 1, 16, 'B'); // the cliff over the high trail's way in from Mauna Kea (rows 6-7); the high trail along the gorge's top (floor 8); the gorge's west wall
-  g.box(2, 9, 4, 9, 'B').box(16, 9, 18, 9, 'B'); // the rock under the trail's edge (the falls pour out under it at cols 19-20)
+  g.box(2, 9, 4, 9, 'B').box(16, 9, 17, 9, 'B'); // the rock under the trail's edge (the falls pour out under it at cols 18-20)
   g.box(28, 0, 31, 4, 'B').box(31, 5, 31, 19, 'B'); // the cliff east, over the way down
   g.box(27, 9, 27, 18, 'B'); // the falls' cliff: the way down (cols 28-30) sealed from the low lane
   g.box(29, 7, 29, 19, 'R'); // the rope down from the trail's end to Hilo
@@ -686,13 +701,15 @@ const lahainaScenery: Placed[] = [
   ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c < 17 && r > LAHAINA_SEA && r < 18, 'pacSeaFlat'),
 ];
 
-/** The Road to Hana cut into the jungle cliff: the rainforest's canopy over the top of the cliff (the waterfalls and bamboo in it), the cliff's wet, fluted face behind the tiers, dark (calm: Chris, no screen of green). */
+/** The Road to Hana cut into the jungle cliff: the sky, the rainforest's tree line along the cliff top (the waterfalls leaving it), the cliff's wet, fluted face behind the tiers, dark (calm: Chris, no screen of green). */
 const ROAD_COINS = [[27, 15], [16, 5]] as const;
 const ROAD_PIECES = [['pacWaterfall', 6, 2], ['pacWaterfall', 20, 2], ['pacBambooClump', 25, 4], ['pacBambooClump', 7, 4],
   ['pacLaneSign', 6, 16], ['pacLaneSign', 20, 16], ['pacLaneSign', 10, 11], ['pacLaneSign', 24, 11], ['pacLaneSign', 9, 6], ['pacLaneSign', 23, 6]] as const;
+const ROAD_TREES = 2;
 const roadScenery: Placed[] = [
-  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r < 7, 'pacJungleFill'),
-  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r >= 7, 'pacCliffFill'),
+  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r < ROAD_TREES, 'pacSkyDay'),
+  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r === ROAD_TREES, 'pacJungleFill'),
+  ...fillWhere(paintRoad, keepOf(ROAD_COINS, ROAD_PIECES), (_c, r) => r > ROAD_TREES, 'pacCliffFill'),
 ];
 
 /** Kaihalulu: Ka'uiki Head's crumbling red cinder cliffs round the cove, a cave in them, ironwoods on the headland and the cliff top, the turquoise lagoon inside its natural wall of black lava rock. */
@@ -737,52 +754,64 @@ const SUMMIT_PIECES = [['pacDomeBig', 17, 6], ['pacDomeSmall', 9, 13], ['pacDome
 const summitScenery: Placed[] = fillWhere(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_PIECES), (_c, r) => r >= 14, 'pacCloudFill');
 
 /**
- * Akaka Falls' gorge (a 442-foot plunge into a deep, green gorge): the sky over the rainforest's dark canopy above the high trail, the stream going over the lip under it, and under the trail the gorge: its
- * walls of wet, mossy rock fluted by the spray, opening out downward round the plunge pool, the falls a white column in its dark middle. Calm: dark bands, the detail in the falls.
+ * Akaka Falls' gorge (a single 442-foot plunge into a deep gorge): the sky over the rainforest's tree line, the forest dark under it along the high trail, and under the trail the gorge: its walls of wet
+ * rock fluted by the spray, opening out downward round the plunge pool, and the falls one tall white column from under the trail's lip to the splash on the pool, the whole height of the gorge. Calm: dark
+ * bands, the detail in the falls.
  */
-const FALLS_PIECES = [['pacWaterfall', 19, 9], ['pacWaterfall', 19, 14], ['pacBambooClump', 2, 4], ['pacBambooClump', 4, 15], ['pacBambooClump', 12, 4], ['pacBambooClump', 24, 15]] as const;
+const FALLS_PIECES = [['pacPlunge', 18, 9], ['pacBambooClump', 2, 4], ['pacBambooClump', 4, 15], ['pacBambooClump', 12, 4], ['pacBambooClump', 24, 15]] as const;
 const FALLS_KEEP = keepOf(FALLS_COINS, FALLS_PIECES);
 /** The gorge's dark middle round the falls: wider the deeper it goes. */
-const inGorge = (c: number, r: number): boolean => r > 8 && Math.abs(c - 19.5) <= 2 + (r - 9) * 0.6;
+const inGorge = (c: number, r: number): boolean => r > 8 && Math.abs(c - 19) <= 2.5 + (r - 9) * 0.6;
 const fallsScenery: Placed[] = [
-  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r <= 2, 'pacSkyDay'),
-  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r > 2 && r <= 8, 'pacJungleFill'),
+  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r <= 3, 'pacSkyDay'),
+  ...fillWhere(paintFalls, FALLS_KEEP, (_c, r) => r === 4, 'pacJungleFill'),
   ...fillWhere(paintFalls, FALLS_KEEP, (c, r) => r > 8 && !inGorge(c, r), 'pacCliffFill'),
 ];
 
 /**
- * Mauna Loa's summit caldera, Moku'aweoweo, at night: the glow over the rim, the caldera's far wall of stacked flows lit red from below, and its floor of grey pahoehoe round the basin (dark until the lava
- * rises in it).
+ * Mauna Loa's summit caldera, Moku'aweoweo, at dusk: Mauna Kea far off across the saddle on the sky over the rim (its snow on top; where the summit way goes), the caldera's sheer far wall of stacked lava
+ * flows (a sheer, fluted cliff of dark brown rock, the lava lake's red glow along its foot), and its floor of dark ropy pahoehoe round the basin (dark until the lava rises in it).
  */
-const LOA_WALL = ridge([[2, 6], [5, 5], [9, 6], [12, 5], [16, 7], [19, 6], [23, 6], [27, 5], [30, 6]]);
+const LOA_WALL = ridge([[2, 5], [6, 5], [9, 6], [13, 5], [17, 6], [21, 5], [25, 6], [29, 5]]);
+/** Mauna Kea, far off to the north over the rim: a long, gentle far silhouette, its summit's snow. */
+const LOA_KEA = ridge([[3, 5], [5, 4], [7, 3], [9, 2], [11, 2], [13, 3], [15, 4], [16, 5]]);
+const inLoaKea = (c: number, r: number): boolean => c >= 3 && c <= 16 && r >= LOA_KEA(c) && r < LOA_WALL(c);
+const loaSnow = (c: number, r: number): boolean => r === LOA_KEA(c) && c >= 8 && c <= 12;
+/** The far wall: its rows under the rim, the glow along the last. */
+const LOA_LAYERS = 4;
 const LOA_PIECES = [['pacLavaRocks', 3, 18]] as const;
 const LOA_KEEP = keepOf([...LOA_COINS, ...cellsOf(MOON_ROCK_AT.col, MOON_ROCK_AT.row, 2, 2), ...cellsOf(VENT.col, VENT.row, 2, 2)], LOA_PIECES);
 const loaBasin = (c: number, r: number) => (c >= LAVA.col && c < LAVA.col + LAVA.cols && r > LAVA.topRow) || (c >= PIT_LAVA.col && c < PIT_LAVA.col + PIT_LAVA.cols && r > PIT_LAVA.topRow);
 const loaScenery: Placed[] = [
-  ...sunset(paintLoa, LOA_KEEP, { purple: 0, red: 1, orange: 2, gold: 2 }, (_c, r) => r < 3),
-  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= 3 && r < LOA_WALL(c) && !loaBasin(c, r), 'pacCinderFill'),
-  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= LOA_WALL(c) && !loaBasin(c, r), 'pacLavaFill'),
+  ...sunset(paintLoa, LOA_KEEP, { purple: 0, red: 1, orange: 3, gold: 4 }, (c, r) => r < LOA_WALL(c) && !inLoaKea(c, r)),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => inLoaKea(c, r) && loaSnow(c, r), 'pacSnowCap'),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => inLoaKea(c, r) && !loaSnow(c, r), FAR),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= LOA_WALL(c) && r < LOA_WALL(c) + LOA_LAYERS - 1 && !loaBasin(c, r), 'pacTuffFill'),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r === LOA_WALL(c) + LOA_LAYERS - 1 && !loaBasin(c, r), 'duskGlow'),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= LOA_WALL(c) + LOA_LAYERS && !loaBasin(c, r), 'pacLavaFill'),
 ];
 
-/** The coffee farm on Mauna Loa's flank: the sky, the mountain's dark shoulder far behind, the hillside below planted in rows of coffee along the contour. */
+/** The coffee farm on Mauna Loa's flank: the sky, the mountain's shoulder far behind (a far silhouette), the hillside below planted in rows of coffee along the contour, the dark path between each row and the next. */
 const COFFEE_PIECES = [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacCoffeeTree', 19, 10], ['pacSacks', 7, 3], ['pacSacks', 25, 17]] as const;
 const COFFEE_KEEP = keepOf([...COFFEE_COINS, ...cellsOf(COFFEE_AT.col, COFFEE_AT.row, 2, 2)], COFFEE_PIECES);
 const COFFEE_FAR = ridge([[0, 3], [8, 2], [16, 3], [24, 5], [31, 7]]);
 const coffeeScenery: Placed[] = [
   ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r < COFFEE_FAR(c), 'pacSkyDay'),
-  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) && r < COFFEE_FAR(c) + 4, 'pacLavaFill'),
-  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) + 4 && r < 19, 'pacCoffeeRows'),
+  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) && r < COFFEE_FAR(c) + 3, FAR),
+  ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r >= COFFEE_FAR(c) + 3 && r < 19 && (r - COFFEE_FAR(c)) % 2 === 1, 'pacCoffeeRows'),
 ];
 
-/** Hilo in the evening: the bay behind the bayfront's old storefronts, a banyan by the airfield, Mauna Kea's broad shoulder rising behind the town, bare at the top, the wet windward forest below. */
+/** Hilo in the evening: the bay behind the bayfront's old storefronts, a banyan by the airfield, Mauna Kea's broad shoulder rising far behind the town (a far silhouette, its snow along the top), the wet windward forest's tree line at its foot. */
 const HILO_PIECES = [['pacBanyan', 25, 15]] as const;
 const HILO_KEEP = keepOf(HILO_COINS, [['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row], ...HILO_PIECES, ...storefronts]);
 const HILO_KEA = ridge([[14, 9], [18, 6], [23, 4], [28, 3], [31, 4]]);
+const HILO_TREES = 13;
 const hiloScenery: Placed[] = [
   ...sunset(paintHilo, HILO_KEEP, { purple: 1, red: 3, orange: 5, gold: 6, sea: 8 }, (c, r) => c < 14 || r < HILO_KEA(c)),
   ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c < 14 && r > 8 && r < 12, 'pacSeaFlat'),
-  ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c >= 14 && r >= HILO_KEA(c) && r < HILO_KEA(c) + 2, 'pacLavaFill'),
-  ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c >= 15 && r >= HILO_KEA(c) + 2 && r < 19, 'pacJungleFill'),
+  ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c >= 24 && r === HILO_KEA(c), 'pacSnowCap'),
+  ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c >= 14 && r >= HILO_KEA(c) + (c >= 24 ? 1 : 0) && r < HILO_TREES, FAR),
+  ...fillWhere(paintHilo, HILO_KEEP, (c, r) => c >= 14 && r === HILO_TREES, 'pacJungleFill'),
 ];
 
 // ---- the rooms ----------------------------------------------------------------------------------------------

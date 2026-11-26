@@ -336,6 +336,17 @@ Big Island, Kaihalulu's cliff rope now goes on down to the channel (the lagoon i
 WELCOME TO HONOLULU, CHANNEL SURFING, LAND AHOY, KAIHALULU, SHELL GAME); Kona open to the sea with Mauna Kea's snow along its skyline; Akaka Falls'
 gorge; the coffee farm's rows; Diamond Head's switchbacks zig-zagging up the crater wall; THE LOOKOUT looking down on Waikiki from the rim.
 
+**Fix pass (hawaii2, 2026-11-26):** the green taken out, not just thinned: the fluted cliff is dark grey (the road's cliff face, Akaka's gorge, Molokai,
+Lahaina's mountains), the scrub brown (Diamond Head's kiawe green only in its crowns), the rainforest a single tree line of crowns along a cliff top or a
+forest's edge (the road, Akaka, Hilo), never a field; the coffee rows on every other row. Far islands are one solid dark grey silhouette (`FAR`: Oahu
+behind, Lanai, the Big Island, the Ko'olau from the rim, Mauna Kea behind Hilo and over Mauna Loa's rim, Mauna Loa behind the farm); near ones black
+(West Maui, Haleakala) or the fluted cliff (Molokai: long and flat-topped, sheer to the sea, its valleys notched, four waterfalls, Kalaupapa and its
+crater low at the foot). SHELL GAME's horizon is high (row 13: the open sea down to the swell), Haleakala big and black behind, the Big Island far and
+grey ahead with Mauna Kea's snow. LAND AHOY's sky runs off the east edge; only a lava rock breaking the surface over the sea cave's mouth stays (joins.ts:
+the sky over a swim room's surface is out of his reach). Mauna Loa: Mauna Kea far over the rim at dusk, the caldera's dark fluted wall with the lava
+lake's glow along its foot, the ropy floor. Akaka's falls one tall column three characters wide (`pacPlunge`, the freed `pacGlow`'s slot) from under
+the trail to the pool.
+
 ### The flight's landing: the full three-room drop
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |

@@ -6,10 +6,11 @@
 import { characters } from './pixels';
 import { Raster } from './raster';
 
-/** The three rows of streaks as pixels (16 wide, 24 tall) rolled down `k` pixels: three streaks, each a bar of five lit pixels in eight, staggered. */
-export function streakRows(k: number): string[] {
-  const r = new Raster(16, 24);
-  for (const [x, phase] of [[3, 0], [7, 3], [11, 6]] as const) {
+/** The three rows of streaks as pixels (`w` wide, 24 tall) rolled down `k` pixels: a streak every four pixels across, each a bar of five lit pixels in eight, staggered. */
+export function streakRows(k: number, w = 16): string[] {
+  const r = new Raster(w, 24);
+  for (let i = 0; 3 + i * 4 < w - 2; i++) {
+    const x = 3 + i * 4, phase = (i * 3) & 7;
     for (let y = 0; y < 24; y++) if (((y + k + phase) & 7) < 5) { r.set(x, y); r.set(x + 1, y); }
   }
   return r.rows();
@@ -32,6 +33,16 @@ export function splashRows(frame: number): string[] {
   return r.rows();
 }
 export const SPLASH_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((i) => characters(`falls splash ${i}`, splashRows(i), 2, 1));
+
+/** Akaka Falls' plunge is three characters wide (pacific-scenery.ts `pacPlunge`): its streaks, a block of three rows at a time, and its splash, two splashes side by side across its foot. */
+export const PLUNGE_COLS = 3;
+export function plungeSplashRows(frame: number): string[] {
+  const r = new Raster(PLUNGE_COLS * 8, 8);
+  r.stamp(splashRows(frame), 0, 0); r.stamp(splashRows((frame + 2) & 3), 8, 0);
+  return r.rows();
+}
+export const PLUNGE_STREAK_FRAMES: readonly Uint8Array[] = Array.from({ length: 8 }, (_, i) => characters(`plunge streaks ${i}`, streakRows((i * 3) & 7, PLUNGE_COLS * 8), PLUNGE_COLS, 3));
+export const PLUNGE_SPLASH_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((i) => characters(`plunge splash ${i}`, plungeSplashRows(i), PLUNGE_COLS, 1));
 
 /** A rise of bubbles (the reefs' decoration `pacBubbles`, one character wide and two tall: three rings, small to large), each ring `k` pixels higher and coming round at the foot again: eight pictures, a roll of 2 pixels each. */
 export function bubbleRows(k: number): string[] {
