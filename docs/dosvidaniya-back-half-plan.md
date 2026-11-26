@@ -244,6 +244,17 @@ set (`SURGE_PULSES`). Nothing says "water moving west". Instead:
 - A rush of bubbles from the east edge as a set starts, and a short whoosh (a kit effect).
 Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the current itself does not change).
 
+### Hawaii polish pass (Chris's notes on the renders, 2026-11-25; after this batch merges)
+
+- Calm the backdrops: "a lot of the scenes look extremely busy in the background with all of the green". Foliage and hills as
+  dark silhouettes or bands (LESSONS: a real place, calmly drawn), the playfield clear.
+- The swims are generic: give each crossing its own idea. The swim to the Big Island has sea turtles that surface and dive, and
+  Monty rides their backs across the surge (Chris: "should have turtles in it; that represents the Big Island waters"); the
+  Molokai channel keeps Molokai's cliffs behind it (a breaching humpback, scenery).
+- Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
+  coffee farm's rows; Akaka Falls' gorge).
+- Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its banner and its landmark.
+
 ### The flight's landing: the full three-room drop
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
