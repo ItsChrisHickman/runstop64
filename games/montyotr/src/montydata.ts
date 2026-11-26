@@ -100,6 +100,12 @@ export interface RoomEffect {
   place?: { code: number; cells: readonly (readonly [row: number, col: number])[] };
   /** A trap: taking item `item` the first time wakes the creature in `slot` (back on the screen at x), once. */
   wake?: { item: number; slot: number; x: number };
+  /**
+   * An item used on the spot, seen happening (Do Svidaniya Monty's gates: the panpipes played to the llama, the machete cutting the tangle): the effect does not wait in the room when he comes in with the
+   * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound and `text` on the name row (the hints' line), once a visit. None in Monty on
+   * the Run's.
+   */
+  at?: { col: number; row: number; cols: number; rows: number; text: string };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */

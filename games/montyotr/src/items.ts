@@ -1,4 +1,4 @@
-import type { Condition } from './montydata';
+import type { Condition, RoomEffect } from './montydata';
 import { ROW, SCREEN, type Game } from './game';
 import { shimmer, takeCoin } from '../../shared/monty/screen';
 
@@ -138,24 +138,49 @@ function holds(g: Game, c: Condition): boolean {
  */
 export function applyRoomEffects(g: Game, pass: 'all' | 'before' | 'after' = 'all') {
   const id = g.roomId;
-  for (const e of g.data.roomEffects) {
-    if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) continue;
-    if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) continue;
-    for (const [row, col] of e.clear ?? []) g.clearCell(row * ROW + col);
-    for (const t of e.openTiles ?? []) g.tileProps[t] = 0;
-    if (e.place) for (const [row, col] of e.place.cells) g.setRoomChar(row * ROW + col, e.place.code);
-    const slot = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];
-    if (slot) slot.x = 0xff; // (fly spray sees off the wasp; key + rum: the queen steps aside)
-    const wake = e.wake && g.enemies[e.wake.slot];
-    if (e.wake && wake) {
-      // The teddy bear is a poison pill: taking it wakes the bubble, once.
-      const taken = g.siCollected[e.wake.item];
-      if (taken && taken < 0x82) {
-        g.siCollected[e.wake.item]++;
-        wake.x = e.wake.x;
-      }
+  g.data.roomEffects.forEach((e, i) => {
+    if (e.room !== id || !(e.when ?? []).every((c) => holds(g, c))) return;
+    if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) return;
+    if (e.at && !g.usedHere.has(i)) return; // (an item used on the spot waits for him there: useOnTheSpot)
+    applyEffect(g, e);
+  });
+}
+
+/** One room effect's changes, now. */
+function applyEffect(g: Game, e: RoomEffect) {
+  for (const [row, col] of e.clear ?? []) g.clearCell(row * ROW + col);
+  for (const t of e.openTiles ?? []) g.tileProps[t] = 0;
+  if (e.place) for (const [row, col] of e.place.cells) g.setRoomChar(row * ROW + col, e.place.code);
+  const slot = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];
+  if (slot) slot.x = 0xff; // (fly spray sees off the wasp; key + rum: the queen steps aside)
+  const wake = e.wake && g.enemies[e.wake.slot];
+  if (e.wake && wake) {
+    // The teddy bear is a poison pill: taking it wakes the bubble, once.
+    const taken = g.siCollected[e.wake.item];
+    if (taken && taken < 0x82) {
+      g.siCollected[e.wake.item]++;
+      wake.x = e.wake.x;
     }
   }
+}
+
+/**
+ * An item used on the spot (`RoomEffect.at`): each frame, an effect of this room whose conditions hold and that has not happened this visit happens when any cell of Monty's body is in its box, with the
+ * item's sound and its line on the name row: the gate is seen to give way to what he brought, never silently absent.
+ */
+export function useOnTheSpot(g: Game) {
+  const id = g.roomId;
+  g.data.roomEffects.forEach((e, i) => {
+    const at = e.at;
+    if (!at || e.room !== id || g.usedHere.has(i) || !(e.when ?? []).every((c) => holds(g, c))) return;
+    const inBox = g.montyCol + 1 >= at.col && g.montyCol < at.col + at.cols && g.montyRow + 2 >= at.row && g.montyRow < at.row + at.rows;
+    if (!inBox) return;
+    g.usedHere.add(i);
+    applyEffect(g, e);
+    if (e.removeEnemy !== undefined) g.enable &= ~(1 << (4 + e.removeEnemy)); // (sent off in the room, not as it loads: its sprite goes too, or it stays drawn, and deadly, where it stood)
+    g.sfx(g.data.sfx.item);
+    g.noteUsed(at.text);
+  });
 }
 
 /** UpdateRisingCloud: room $01's cloud rises and carries Monty up. */

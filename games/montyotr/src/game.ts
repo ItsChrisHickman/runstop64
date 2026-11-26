@@ -554,6 +554,7 @@ export class Game implements MontyBody, MontyWorld {
     }
     this.dispatch();
     if (this.script) return;
+    Items.useOnTheSpot(this);
     if (this.roomExit) {
       // The original's RoomLoop reacts to room_exit straight away (it freezes
       // the game before the next frame), so start the transition now. Leaving
@@ -721,7 +722,11 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- room loading: original LoadRoom ---------------------------------------------
 
+  /** The room effects used on the spot this visit (`RoomEffect.at`, items.ts `useOnTheSpot`): empty on every load, so a gate given way stays open until he leaves or the room starts again. */
+  usedHere = new Set<number>();
+
   loadRoom() {
+    this.usedHere = new Set<number>();
     const id = this.roomId;
     const data = this.data;
     const def = data.roomDef(id);
@@ -832,6 +837,12 @@ export class Game implements MontyBody, MontyWorld {
   /** Our hint on touching a thing that wants what he does not have (a plane without the parachute: planes.ts). */
   noteWanted(text: string) {
     if (!this.assist.hints) return;
+    say(this.hint, text);
+    this.drawNameRow();
+  }
+
+  /** An item used on the spot (items.ts `useOnTheSpot`): what happened, on the name row, in both modes (it is the story, not a hint). */
+  noteUsed(text: string) {
     say(this.hint, text);
     this.drawNameRow();
   }
