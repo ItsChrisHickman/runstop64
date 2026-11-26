@@ -36,16 +36,25 @@ const border = (p: Place, from: number, side: 'left' | 'right', row: number, pos
   move: { from: side === 'left' ? -3 : 33, at: { col: side === 'left' ? 0 : 30, row }, to: side === 'left' ? -3 : 33, pose, hold: 90 },
 });
 
+/**
+ * How far (in cells, the larger of across and down) Viktor stays from Monty all through a border cameo. The test of a cameo (Chris on OPEN ARMS, 2026-11-24: "I was practically touching him. Then he ran
+ * away... he could have just got me"): if he is ever near enough that he could have caught Monty, it is wrong. He is clearly too late or clearly out of reach, and his going reads as giving up the chase.
+ */
+export const BORDER_CLEAR = 10;
+
 /** The cameos, given the find that keeps the moon's shadow to once and the hood's find. */
 export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec[] => [
   // Moscow to Siberia: he drops in through the Kremlin's gorge onto the platform; Viktor is on the Kremlin's tower top above, too late, looking down after him
   border(PLACES.station, ROOM.kremlin, 'left', 2, 'lookDown', { col0: 0, row0: 0, col1: 31, row1: 10 }, 20),
-  // Siberia to China, low along the border village's road: Viktor at the edge looking after him
-  border(PLACES.wall, SIB.border, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
-  // China to Japan, off the junk onto the fish market's quay
-  border(PLACES.harbour, CHI.junk, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
-  // the Andes to Rio, off the kapok's crown branch onto the canopy
-  border(PLACES.arms, AND.kapok, 'left', 8, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
+  // The other three: he arrives at the edge Monty came in by only once Monty is well away from it (the box is the near side of the room: the cameo starts as Monty leaves it), clearly too late: never near
+  // enough that he could have caught him. He comes, looks after him and goes back the way he came, giving up the chase, never running from Monty (viktor.ts's test holds every border cameo at least
+  // BORDER_CLEAR cells from Monty all through, from where Monty is when it starts).
+  // Siberia to China: Monty is into the tunnel under the Great Wall (column 16 on) as Viktor comes to the border post on the road behind him, looks east down the tunnel after him, and turns back
+  border(PLACES.wall, SIB.border, 'left', 17, 'look', { col0: 0, row0: 0, col1: 15, row1: 19 }, 10),
+  // China to Japan: Monty is across the inlet and up the market's stair of crates (column 17 on) as Viktor steps off the junk onto its deck, looks across the water after him, and goes back aboard
+  border(PLACES.harbour, CHI.junk, 'left', 17, 'look', { col0: 0, row0: 0, col1: 16, row1: 19 }, 10),
+  // the Andes to Rio: Monty is past the Redeemer, at the east ladder or under the east arm (column 21 on), as Viktor comes out along the kapok's branch at the canopy's edge, looks across the statue after him, and goes back along it
+  border(PLACES.arms, AND.kapok, 'left', 8, 'look', { col0: 0, row0: 0, col1: 20, row1: 19 }, 10),
   // Japan, THE LAST MOLE: the hood taken, his shadow (black: seen only against the moon) walks on from the east, stops on the moon and turns to Monty for a long beat, and moves on west
   {
     room: PLACES.moon.room, when: { col0: 0, row0: 0, col1: 31, row1: 19 }, after: hood, once: moonSeen, wait: 40, sprite: PLACES.moon.sprite, first: PLACES.moon.first, colour: 0,

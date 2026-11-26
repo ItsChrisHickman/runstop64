@@ -137,6 +137,10 @@ most care; the reward show and the title show them off.
   of a few seconds, harmless, one line of data each), escaped twice on the way (each teaching a piece of the last puzzle: he copies
   your path; the world's hazards can take him), and beaten at the end by a real puzzle. The room's name says the moment (SPY VERSUS
   MOLE: he has caught up).
+- **A cameo is never near enough to have caught him** (Chris on OPEN ARMS, 2026-11-24: "I was practically touching him. Then he ran
+  away... he could have just got me"). He arrives where Monty came in only once Monty is well away (the cameo's box is the near side of
+  the room), or out of reach (above, across a drop); he looks after him and goes back the way he came, giving up the chase, never running
+  from Monty. `montyworld/test/viktor.ts` holds every border cameo `BORDER_CLEAR` cells from Monty from the moment it starts.
 - **The obvious move must fail, visibly, and the fix must follow from the rule you have learned** ("walk under the float and pull
   the lever" was too easy: the head now warns for longer than a walker is under it, so you have to make him stand there, and he
   stands only where you stood). Aim for two to four attempts; prove the naive way fails and the intended one works with the bot.
@@ -245,6 +249,10 @@ Things the engine does that a room's picture will not show you; each has a test 
 - **Prove every one-way piece with the bot's search, not by eye** (`andes-mechanisms.ts`: the bough only down the hollow, the high ledge only from the plateau): the search found both ways round a first layout that looked closed.
 - **An open block's route is made by its ways out, not by its art** (the Amazon's first build let the well's liana step onto a walkway east, and the whole river was optional): give each room of the block only the exits the route wants (the canopy's floor open round one liana, the kapok entered only up the liana from the river, the east side of the canopy shut), then prove it by search with each crossing taken away (the vines taken down, a room's way shut).
 - **A rope slung across a room needs a glyph that lies along the row:** the hanging rope's glyph repeated sideways reads as a fence of spikes (the canopy's first lattice), a hazard, not a thing to climb.
+- **A step under a pass-through floor needs a hole in it** (Chris on THE FISH MARKET, 2026-11-24: "I cannot walk to the right at the
+  top"): the stair of crates topped out a row under the market's roof (a floor he jumps up through) beside the roof's solid end, so he
+  stood with his head in the roof against a wall, and nothing showed the way was straight up. A stair that climbs through a floor gets
+  a hatch over its top step, and every step is a jump of two rows, as the steps below it.
 - **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
 
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)

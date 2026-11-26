@@ -4,7 +4,7 @@ import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS, FORMAT2_ROOMS } from './save-format2';
 
 /**
- * Reading a save of an earlier format into today's tables: format 1 (the game as shipped before the reset) and format 2 (after the reset, before Hawaii's island hopping came back, 2026-11-25). A save's coins
+ * Reading a save of an earlier format into today's tables: format 1 (the game as shipped before the reset) and format 2 (after the reset, before Hawaii's island hopping came back, the parlour's prize shelf took a coin and the daruma moved to BULLET POINT's platform, 2026-11-25). A save's coins
  * and finds are flags by their place in the tables, and the reset and Hawaii's return cut, moved and added rooms, so each flag is matched to what it was (save-format1.ts, save-format2.ts) and set where that
  * is now: a coin by its room and cell, a find by its room and picture, a key item by its picture alone (the chullo moved rooms, the snorkel, the lei and the parachute too), a find no room shows by its order
  * among them (Viktor's escapes). Coins and snacks of rooms that were cut are gone with them; every key item taken stays taken, so no gate closes again.

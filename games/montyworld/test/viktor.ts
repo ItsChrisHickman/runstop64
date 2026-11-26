@@ -5,10 +5,11 @@
  *   split, the bars lift) with Monty alive. An early pull misses and the head is ready again; standing under it as it falls kills Monty; kept moving, he never reaches Monty.
  * - The train's roof and the cargo ship: behind him on his path; Monty sheltering in the closet as the mountain comes (Viktor, on the roof, is swept off), ducking under the crane's crate as it rises (Viktor
  *   walks into it coming down and is knocked overboard), a way found from several arrival timings; escaped, he is gone from the room for good (a save keeps it).
- * - The cameos: each plays when Monty comes in from its border's room (and not after a death there), shows Viktor for a few seconds on a sprite that is no part of the collision check (Monty standing in it
- *   lives), and is gone; THE LAST MOLE's shadow only once the hood is taken, and only once.
+ * - The cameos: each plays when Monty comes in from its border's room (and not after a death there), shows Viktor for a few seconds on a sprite that is no part of the collision check (he
+ *   never dies of it), and is gone; THE LAST MOLE's shadow only once the hood is taken, and only once. A border cameo waits while Monty is by the edge he came in by and starts once he is well away, and Viktor
+ *   stays at least BORDER_CLEAR cells from him all through it: never near enough that he could have caught Monty (Chris on OPEN ARMS: "he could have just got me"), so his going reads as giving up.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/viktor.ts [out-dir]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/viktor.ts [out-dir] [--room <rooms>]   (--room: only the parts in those rooms: the Sambadrome, the train, the ship, a cameo's room or the room before it)
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
@@ -30,6 +31,11 @@ import { PAC } from '../src/pacific';
 import { CLOSET, SIB } from '../src/siberia';
 import { colOf, dead, LEFT, RIGHT, rowText } from './mech-kit';
 import { itemIndex, standY } from './route';
+import type { CameoSpec } from '../../montyotr/src/montydata';
+import { CHI } from '../src/china';
+import { ROOM } from '../src/moscow';
+import { BORDER_CLEAR } from '../src/viktor';
+import { SCOPE } from './scope';
 
 /** Pictures of the moments, as strips (`[out-dir]`): name, then the frames. */
 const out = process.argv.slice(2).find((a) => !a.startsWith('--'));
@@ -68,7 +74,7 @@ function pull(s: State): boolean {
   return was;
 }
 
-for (const enhanced of [false, true]) {
+SCOPE.section([R.drum], 'SPY VERSUS MOLE', () => { for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
 
   // ---- the moment: the name, and Viktor at the far side
@@ -168,7 +174,7 @@ for (const enhanced of [false, true]) {
     const long = walkTo(b, 26) && wait(b, agent.delay + 40);
     check(`${mode}: on the move, or standing still for less than his ${agent.delay} frames behind, Viktor never reaches Monty; standing longer, he does`, short && !long);
   }
-}
+}});
 
 // ---- the two escapes on the way: the train's roof, the cargo ship ------------------------------------------
 /** An escape: the room, where Monty comes in, where the bot is aimed, what the proof says, and the strip's name. */
@@ -176,7 +182,7 @@ const ESCAPES = [
   { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, behind him on the roof, is swept off it', strip: '4-train-escape' },
   { room: PAC.ship, at: { col: 0, floor: 13 }, aim: { col: 27, row: 12 }, what: 'duck under the crane crate so that Viktor, following, is knocked overboard', strip: '5-ship-escape' },
 ] as const;
-for (const esc of ESCAPES) {
+for (const esc of ESCAPES) SCOPE.section([esc.room], `the escape in room ${esc.room}`, () => {
   const chase = must(WORLD.pursuers.find((p) => p.room === esc.room), `Viktor in room ${esc.room}`);
   /** Escaped in this room: knocked off, the find waiting for him to leave the room alive (`pendingFinds`), or taken. */
   const gone = (g: Game) => !!g.siCollected[chase.until] || g.pendingFinds.includes(chase.until);
@@ -219,39 +225,68 @@ for (const esc of ESCAPES) {
       }
     }
   }
-}
+});
 
 // ---- the cameos -------------------------------------------------------------------------------------
+/**
+ * Where Monty is when each walk-on border cameo starts: the column just past its box (the box is the near side of the room, and the cameo starts as he leaves it), on the floor he stands on there. He
+ * stands there all through: the nearest he is to Viktor unless he turns back on purpose. (Moscow's: he comes in high over the platform and the drop takes him out of the box.)
+ */
+const PAST_FLOOR: ReadonlyMap<number, number> = new Map([
+  [CHI.wall, 17], // in the tunnel under the Great Wall
+  [JP.harbour, 13], // on the market's second crate, across the inlet
+  [R.arms, 14], // on the forest floor past the Redeemer's pedestal, at the east ladder
+]);
+const pastOf = (c: CameoSpec, i: number) => c.after !== undefined ? { col: 1, floor: 14 } // (the moon's room: by the shrine where the hood is)
+  : c.room === ROOM.station ? { col: 16, floor: 3 } : { col: c.when.col1 + 1, floor: must(PAST_FLOOR.get(c.room), `the floor Monty is on when cameo ${i + 1} starts (PAST_FLOOR)`) };
+const viktorOn = (g: Game, c: CameoSpec) => ((g.vic.enable >> c.sprite) & 1) === 1 && (g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8;
+/** Cells between Viktor's sprite and Monty, the larger of across and down (both by their top left cell, as the engine counts Monty's). */
+const apart = (g: Game, c: CameoSpec) => {
+  const vc = ((((g.sx[c.sprite] ?? 0) - 0x0c) & 0xff) >> 2) - 4, vr = ((((g.sy[c.sprite] ?? 0) - 0x32) & 0xff) >> 3) - 3;
+  return Math.max(Math.abs(vc - (g.montyCol - 4)), Math.abs(vr - (g.montyRow - 3)));
+};
+/** Put Monty at a place in the room he is in, as if he had walked there (the room not loaded again, so its cameos keep their state). */
+const placeAt = (g: Game, p: { col: number; floor: number }) => { g.x2 = 0x0c + (p.col + 4) * 4; g.y = standY(p.floor); };
 for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
   WORLD.cameos.forEach((c, i) => {
     const from = c.from?.[0] ?? c.room;
-    const s = newGame(WORLD, enhanced);
-    const m = c.move;
-    // in from the border's room: walking in at the edge he came by (or dropping in, for Moscow's gorge), then on into the room
-    enterRoom(s.g, from, 0x0c + (4 + 4) * 4, standY(18));
-    // (where Monty comes in: Moscow's gorge high over the platform, the moon's room by the shrine where the hood is, else at the edge he came by)
-    const entry = c.room === WORLD.cameos[0]?.room ? { col: 16, floor: 3 } : c.after !== undefined ? { col: 1, floor: 14 } : { col: Math.max(0, m.at.col + 1), floor: m.at.row };
-    enterRoom(s.g, c.room, 0x0c + (entry.col + 4) * 4, standY(entry.floor));
-    for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
-    s.g.graceActive = () => true; // (the room's creatures are not what is looked at: whether the cameo plays, and is out of the collision check)
-    let shown = 0, masked = true, alive = true, lastOn = -1;
-    for (let f = 0; f < 600 && s.g.roomId === c.room; f++) {
-      if (c.after !== undefined && f === 30) s.g.siCollected[c.after] = 0x81;
-      frame(s, f < 24 && c.after === undefined ? RIGHT : NONE);
-      if (dead(s.g)) { alive = false; break; }
-      const on = ((s.g.vic.enable >> c.sprite) & 1) === 1 && (s.g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (s.g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8;
-      if (on) { shown++; lastOn = f; if (!((s.g.uncounted >> c.sprite) & 1)) masked = false; }
-      if (!enhanced && on && shown === m.hold / 2 + 20) snap('6-cameos', s.g);
-    }
-    const over = s.g.roomId !== c.room || s.g.cameos.every((k) => k.done);
-    check(`${mode}: cameo ${i + 1} (room ${c.room}, from ${from}) plays for ${shown} frames and is gone (last seen frame ${lastOn}), on a sprite no part of the collision check`, shown >= Math.min(m.hold, 40) && over && masked && alive);
-    // a death there (the room again from itself) does not play it again; a once-only one never again
-    const again = { g: s.g, col: s.col };
-    enterRoom(again.g, c.room, 0x0c + (entry.col + 4) * 4, standY(entry.floor));
-    let twice = 0;
-    for (let f = 0; f < 400 && again.g.roomId === c.room; f++) { if (c.after !== undefined && f === 30) again.g.siCollected[c.after] = 0x81; frame(again, f < 24 && c.after === undefined ? RIGHT : NONE); if (((again.g.vic.enable >> c.sprite) & 1) === 1 && (again.g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (again.g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8) twice++; }
-    check(`${mode}: cameo ${i + 1} does not play again on coming into the room from itself (a death)`, twice === 0);
+    const after = c.after;
+    SCOPE.section([c.room, from], `cameo ${i + 1} (room ${c.room})`, () => {
+      const s = newGame(WORLD, enhanced);
+      const m = c.move;
+      // in from the border's room, at the edge he came by (or dropping in, for Moscow's gorge; by the shrine where the hood is, for the moon)
+      enterRoom(s.g, from, 0x0c + (4 + 4) * 4, standY(18));
+      const past = pastOf(c, i);
+      const walksOn = after === undefined && c.room !== ROOM.station;
+      const entry = walksOn ? { col: Math.max(0, m.at.col + 1), floor: m.at.row } : past;
+      enterRoom(s.g, c.room, 0x0c + (entry.col + 4) * 4, standY(entry.floor));
+      for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
+      // at the edge he came in by, it waits
+      for (let f = 0; f < 40 && walksOn; f++) frame(s, NONE);
+      const waited = !walksOn || (s.g.cameos.length > 0 && s.g.cameos.every((k) => !k.begun));
+      if (walksOn) placeAt(s.g, past);
+      s.g.graceActive = () => true; // (the room's creatures are not what is looked at: whether the cameo plays, and is out of the collision check)
+      let shown = 0, masked = true, alive = true, lastOn = -1, nearest = 99;
+      for (let f = 0; f < 600 && s.g.roomId === c.room; f++) {
+        if (after !== undefined && f === 30) s.g.siCollected[after] = 0x81;
+        frame(s, NONE);
+        if (dead(s.g)) { alive = false; break; }
+        const on = viktorOn(s.g, c);
+        if (on) { shown++; lastOn = f; nearest = Math.min(nearest, apart(s.g, c)); if (!((s.g.uncounted >> c.sprite) & 1)) masked = false; }
+        if (!enhanced && on && shown === m.hold / 2 + 20) snap('6-cameos', s.g);
+      }
+      const over = s.g.roomId !== c.room || s.g.cameos.every((k) => k.done);
+      check(`${mode}: cameo ${i + 1} (room ${c.room}, from ${from}) waits while Monty is by the edge he came in by, then plays for ${shown} frames and is gone (last seen frame ${lastOn}), on a sprite no part of the collision check`, waited && shown >= Math.min(m.hold, 40) && over && masked && alive);
+      if (after === undefined) check(`${mode}: cameo ${i + 1}: Viktor is clearly too late, never near enough to have caught Monty: never within ${BORDER_CLEAR} cells of him (nearest ${nearest})`, nearest >= BORDER_CLEAR);
+      // a death there (the room again from itself) does not play it again; a once-only one never again
+      const again = { g: s.g, col: s.col };
+      enterRoom(again.g, c.room, 0x0c + (entry.col + 4) * 4, standY(entry.floor));
+      if (walksOn) placeAt(again.g, past);
+      let twice = 0;
+      for (let f = 0; f < 400 && again.g.roomId === c.room; f++) { if (after !== undefined && f === 30) again.g.siCollected[after] = 0x81; frame(again, NONE); if (viktorOn(again.g, c)) twice++; }
+      check(`${mode}: cameo ${i + 1} does not play again on coming into the room from itself (a death)`, twice === 0);
+    });
   });
 }
 
@@ -259,4 +294,5 @@ if (out) {
   fs.mkdirSync(out, { recursive: true });
   for (const [name, pics] of strips) contactSheet(out, `${name}.png`, pics);
 }
+SCOPE.report();
 finish();

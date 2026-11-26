@@ -2,7 +2,8 @@
  * Japan's mechanisms, headless, each on its own with the room's creatures out of the way (the bot, japan.ts, plays them all together): the bullet trains sweeping the
  * platform (a picture drawn in the room's characters, a warning, deadly on the lane, safe below, a fair timing), the paper doors (open, shaking, shut over him, a wall),
  * the three gates (the shutter and the daruma, the koi and the fish food, the guard and the ninja hood), the hood as a costume in the rice hat's place, the joins (the
- * loop, the ways back, no trap), the layout's sanity (nothing drawn in a tile), the hints, the map, and a save from before Japan carrying on.
+ * loop, the ways back, no trap), the layout's sanity (nothing drawn in a tile), the hints, the map, a save from before Japan carrying on, and MOUNT FUJI's SNOW SLIDES (the huts safe,
+ * the open climb deadly as a snowball comes, the climb crossed up and down by waiting in a hut for one to pass).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/japan-mechanisms.ts [--room <rooms>]
  */
@@ -14,6 +15,8 @@ import { wear } from '../../montyotr/src/items';
 import { montyMap } from '../../montyotr/src/map';
 import { MOTR } from '../../montyotr/src/motr';
 import { pulseCode, pulsePhase } from '../../montyotr/src/pulses';
+import { pixelX, pixelY } from '../../montyotr/src/cells';
+import { rollerAt } from '../../montyotr/src/rollers';
 import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
@@ -23,20 +26,20 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
 import { CODEC } from '../src/main';
 import { PAC } from '../src/pacific';
-import { newGame } from '../../shared/monty/test/bot';
+import { ACTIONS, hold, newGame } from '../../shared/monty/test/bot';
 import { SCOPE, scopedRooms } from './scope';
 import { search } from './search';
 import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
-const DARUMA = [JP.parlour, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
+const DARUMA = [JP.platform, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
 const CREATURE_NAMES = Object.keys(JAPAN_CREATURES);
 
 // ---- the data -------------------------------------------------------------------------------------
@@ -48,8 +51,8 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
     cells.filter((c) => c >= JP.harbour && c <= JP.port).length === 11 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
   const before = entriesBefore(JP.harbour, JP.port);
-  check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 23 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
-    before.ordered && coinsIn(JP.harbour, JP.port) === 23 && itemsIn(JP.harbour, JP.port) === 5);
+  check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
+    before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
   check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
@@ -326,7 +329,7 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     check(`and the bot finds no way through it (80000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}); a jump (${rise}) is lower than the wall over it`, noWay);
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
-    check('with it (taken in the parlour) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
+    check('with it (taken at the platform\'s west end) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
   });
   // the koi and the fish food
   SCOPE.section([JP.garden, JP.crossing, JP.fuji, JP.mole, JP.hall], 'the gates: the koi and the fish food', () => {
@@ -549,7 +552,53 @@ SCOPE.section([], 'hints, the map, saves', () => {
     g2.siCollected[0] === 0x81 && g2.siCollected[last.item] === 0x81 && g2.coinCollected[0] === 0xff && g2.coinCollected[last.coin] === 0xff && g2.worn === oldSave.worn && g2.exitGrid[1 * WORLD.exitGrid.cols + 12] === JP.harbour && g2.siCollected.length === WORLD.specialItems.length / 4 && g2.coinCollected.length === WORLD.coinTable.length / 3 && g2.coinCollected.slice(before.coins).every((c) => c === 0));
 });
 
-void LEFT;
+// ---- the parlour's middle floor: off the rope clear of the ball stream, the coin taken in its lull, at any moment (Chris, 2026-11-25: the coin could only be had approaching in one go from the rope) ----
+SCOPE.section([JP.parlour], 'the parlour\'s middle floor and its coin', () => {
+  const coin = coinIndex(newGame(WORLD, false).g, JP.parlour, 16, 9);
+  const ropeX2 = 0x0c + (21 + 4) * 4;
+  const results = Array.from({ length: BALL_STREAM.period / 10 }, (_, k) => {
+    const s = at(JP.parlour, 21, 17);
+    enterRoom(s.g, JP.parlour, ropeX2, standY(11));
+    s.g.enemies = []; // (the creatures as at(): the ghost by the rope is its own timing)
+    run(s, NONE, 4 + k * 10);
+    if (s.g.onRope === 0) return 'not on the rope';
+    run(s, LEFT, 12); // (a step off, held a fifth of a second: he stops between the rope and the stream, on any of 16 frames' walk)
+    const died = diesAt(s, NONE, BALL_STREAM.period + 10);
+    if (died >= 0 || s.g.y !== standY(11) || colOf(s.g) < BALL_STREAM.col + BALL_STREAM.cols) return `stepping off ${k * 10} frames in: not standing clear at the floor's east end (${died >= 0 ? `dies ${died} frames on` : `at ${colOf(s.g)}, y ${s.g.y}`})`;
+    return search(s, (g) => g.coinCollected[coin] !== 0 && !dead(g), [{ room: JP.parlour, col: 16, row: 9 }], 30000, 1.5) !== null ? '' : `stepping off ${k * 10} frames in: no way to the coin`;
+  }).filter((r) => r !== '');
+  check(`off the rope at any moment of the stream's ${BALL_STREAM.period} frames he stands clear of it at the middle floor's east end for a whole period, and the bot takes the coin from there (${results.length ? results.join('; ') : `${BALL_STREAM.period / 10} moments, all fine`})`, results.length === 0);
+});
+
+// ---- THE LAST MOLE: wider jumps, the koi across them, two sinking stones (Chris, 2026-11-25: more skill from platform to platform) -------
+SCOPE.section([JP.mole, JP.garden], 'THE LAST MOLE: the stones', () => {
+  const stick = (name: string) => must(ACTIONS.find(([n]) => n === name), name)[1];
+  const stone = (k: number) => must(MOLE_STONES[k], `stone ${k}`);
+  check(`six stepping stones as before (${MOLE_STONES.map(([c, r]) => `${c},${r}`).join(' ')}), the first jumps three cells wide`, MOLE_STONES.length === 6
+    && stone(0)[0] - (stone(1)[0] + stone(1)[2]) === 3 && stone(1)[0] - (stone(2)[0] + stone(2)[2]) === 3);
+  // a sinking stone: whole, then tipped (the warning) from 30 frames stood on, gone under him at 80, back 120 frames after
+  const hi = stone(1);
+  const sink = must(MOLE_SINKING[0], 'the first sinking stone');
+  const on = at(JP.mole, hi[0], hi[1]);
+  run(on, NONE, sink.crack + 2);
+  const tipped = cell(on.g, hi[0], hi[1]) === sink.codes[1] && !dead(on.g);
+  const sank = diesAt(on, NONE, sink.gone) >= 0;
+  check(`the second and third stones sink (${MOLE_SINKING.map((c) => `${c.col},${c.row}`).join(' and ')}): stood on, one tips at ${sink.crack} frames (he is alive) and takes him under by ${sink.gone + 2}`, MOLE_SINKING.length === 2 && tipped && sank);
+  const cross = at(JP.mole, hi[0], hi[1]);
+  run(cross, NONE, sink.crack - 5);
+  hold(cross, stick('J>'), 2);
+  const away = hold(cross, NONE, 60);
+  check('crossing is safe: a stone stood on for less than its warning and left (jumping back to the first) does not sink him', !away.dead && cross.g.y === standY(stone(0)[1]));
+  // the whole crossing with the koi leaping, both ways, and the bonsai shelf still reached (down from the high ledge west of the bamboo rope)
+  const hood = (g: Game) => g.siCollected[itemIndex(g, JP.mole, 0)] !== 0;
+  check('with the koi leaping, the bot crosses from the rope up from the garden to the shrine and takes the hood',
+    search(at(JP.mole, 30, 14, [], false, true), (g) => g.roomId === JP.mole && hood(g) && !dead(g), [{ room: JP.mole, col: 1, row: 12 }], 200000, 1.5) !== null);
+  check('and crosses back from the shrine to the first stone',
+    search(at(JP.mole, 1, 14, [HOOD], false, true), (g) => g.roomId === JP.mole && g.y === standY(stone(0)[1]) && colOf(g) >= stone(0)[0] - 1 && !dead(g), [{ room: JP.mole, col: stone(0)[0], row: 12 }], 200000, 1.5) !== null);
+  check('the bonsai shelf is still a place to stand: the bot gets on to it from the stones',
+    search(at(JP.mole, stone(2)[0], stone(2)[1]), (g) => g.roomId === JP.mole && g.y === standY(10) && colOf(g) <= 8 && !dead(g), [{ room: JP.mole, col: 4, row: 8 }], 200000, 1.5) !== null);
+});
+
 // ---- the parlour's Mole Crusher moves (the engine animates a lone shaft only with the first shaft's characters) ----------------------
 SCOPE.section([JP.parlour], 'the parlour\'s Mole Crusher', () => {
   const roomSpec = must(JAPAN_ROOMS.find((r) => r.id === JP.parlour), 'the parlour');
@@ -664,6 +713,52 @@ SCOPE.section([], 'the joins are strict: open edges match', () => {
     }
   }
   check(`every edge cell of Japan's rooms that is open (not solid) on one side of a join is open on the other, at every row (${bad.length ? bad.join('; ') : 'none differ'})`, bad.length === 0);
+});
+
+// ---- MOUNT FUJI: SNOW SLIDES ----------------------------------------------------------------------------
+SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
+  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s snowball');
+  const [foot, top] = FUJI_HUTS;
+  const fuji = must(JAPAN_ROOMS.find((r) => r.id === JP.fuji), 'the mountain');
+  check(`one snowball on the mountain, every ${FUJI_SNOW.every} frames, the first ${FUJI_SNOW.start} in; two huts; no creature to crowd its timing`, WORLD.rollers.filter((r) => r.room === JP.fuji).length === 1 && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  /** Where the snowball is (its top left, in cells) in a game in the mountain, or null while it is not rolling. */
+  const where = (g: Game) => {
+    const t = g.rollers.find((r) => WORLD.rollers[r.index] === ball)?.t ?? 0, p = rollerAt(ball, t);
+    return p ? { col: (p.x - pixelX(0)) / 8, row: (p.y - pixelY(0)) / 8 } : null;
+  };
+  const inHut = (h: { col0: number; floor: number }) => at(JP.fuji, h.col0 + 1, h.floor);
+  // the huts are safe: two snowballs pass, he stands in each untouched
+  const footSafe = diesAt(inHut(foot), NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0, topSafe = diesAt(inHut(top), NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0;
+  check(`standing in the foot hut and in the top hut, two snowballs pass over him and neither touches him (foot ${footSafe}, top ${topSafe})`, footSafe && topSafe);
+  // standing in the open on the climb when one comes kills him: on the first ledge, the two steps, the top of the climb
+  const open = ([[15, 14], [21, 14], [24, 12], [27, 10], [26, 8]] as const).map(([col, floor]) => ({ col, floor, at: diesAt(at(JP.fuji, col, floor), NONE, FUJI_SNOW.every + FUJI_SNOW.start) }));
+  check(`standing in the open on the climb, the first snowball kills him (${open.map((o) => `${o.col},${o.floor}: frame ${o.at}`).join('; ')})`, open.every((o) => o.at >= 0));
+  // and walking straight on from the way in, it meets him on the first ledge
+  const rush = at(JP.fuji, 0, 14);
+  const rushed = diesAt(rush, RIGHT, 300);
+  check(`walking on from the way in without waiting, the first snowball meets him on the first ledge (frame ${rushed}, at column ${colOf(rush.g)})`, rushed >= 0 && rush.g.roomId === JP.fuji);
+  // each part of the climb is crossed by waiting in a hut for a snowball to pass: up from the foot hut to the top hut, down from the top hut to the foot hut
+  const passed = (s: State, gone: (p: { col: number; row: number }) => boolean) => {
+    let seen = false;
+    for (let f = 0; f < 2 * FUJI_SNOW.every && !dead(s.g); f++) {
+      frame(s, NONE);
+      const p = where(s.g);
+      if (p && !gone(p)) seen = true;
+      if (seen && (!p || gone(p))) return true;
+    }
+    return false;
+  };
+  const up = inHut(foot);
+  const upWaited = passed(up, (p) => p.col < foot.col0 - 2);
+  const upWay = upWaited && search(up, (g) => g.roomId === JP.fuji && colOf(g) >= top.col0 && colOf(g) <= top.wall1 - 1 && g.montyRow - PLAY_ROW === top.floor - 2, [{ room: JP.fuji, col: top.col0, row: top.floor - 2 }], 100000, 1.5);
+  check(`up: waiting in the foot hut until a snowball has passed over it, he climbs to the top hut before the next (${upWay ? `${upWay.route.reduce((n, [, f]) => n + f, 0)} frames` : 'no way'})`, upWaited && upWay !== null && upWay !== false);
+  const down = inHut(top);
+  const downWaited = passed(down, (p) => p.row >= 12 || p.col < top.col0 - 2);
+  const downWay = downWaited && search(down, (g) => g.roomId === JP.fuji && colOf(g) >= foot.col0 && colOf(g) <= foot.wall1 - 1 && g.montyRow - PLAY_ROW === foot.floor - 2, [{ room: JP.fuji, col: foot.col0 + 1, row: foot.floor - 2 }], 100000, 1.5);
+  check(`down: waiting in the top hut until a snowball has gone down the climb, he goes down to the foot hut behind it (${downWay ? `${downWay.route.reduce((n, [, f]) => n + f, 0)} frames` : 'no way'})`, downWaited && downWay !== null && downWay !== false);
+  // the rest of the room is clear: the second ledge west of the top hut, the last step and the chain
+  const ledge = at(JP.fuji, 14, 8);
+  check('the second ledge west of the top hut is clear of the snowballs (two pass, he stands there)', diesAt(ledge, NONE, 2 * FUJI_SNOW.every + FUJI_SNOW.start) < 0);
 });
 
 SCOPE.report();

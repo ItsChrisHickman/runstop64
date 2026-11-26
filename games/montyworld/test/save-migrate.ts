@@ -3,6 +3,7 @@
  * taken wherever its room went (the chullo moved rooms), the costume worn is still worn, a save in a room that was cut carries on in the room the plan names, and a save in a room whose cells changed puts
  * him somewhere he can stand, in the exit grid's cell that room has now. Saves of format 2 (the reset's, before Hawaii's island hopping came back) are read the same way (the snorkel, the lei and the
  * parachute moved rooms; Viktor's escapes are matched by their order), one on the old Hilo's apron carries on by the biplane, one made in the cut cargo plane's hold at Hilo. Today's (format 3) read as they are.
+ * (Format 3 also moved the daruma to BULLET POINT's platform and gave the parlour's prize shelf a coin: a format 2 save's Japan is matched the same way.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/save-migrate.ts
  */
@@ -16,6 +17,7 @@ import { ROUNDS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS } from '../src/save-format2';
+import { JP } from '../src/japan';
 import { RETIRED } from '../src/save-migrate';
 import { dead } from './mech-kit';
 import { coinIndex, itemIndex, standY } from './route';
@@ -113,6 +115,25 @@ function format2(room: number, col: number, floor: number, mapRow: number, exitC
   };
 }
 const overboard2 = Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => i).filter((i) => FORMAT2_ITEMS[i * 4] === 0xff)[2] ?? -1; // (the third of the finds no room shows: crank fitted, agent squashed, viktor overboard)
+// format 2 (until 2026-11-25: the daruma was the parlour's, before the fish food in the finds; the parlour had two coins): a save with the daruma and the parlour's and the crossing's coins taken
+{
+  const p = newGame(WORLD, true);
+  const at2 = (room: number, col: number, row: number) => {
+    for (let i = 0; i * 3 < FORMAT2_COINS.length; i++) if (FORMAT2_COINS[i * 3] === room && FORMAT2_COINS[i * 3 + 1] === col && FORMAT2_COINS[i * 3 + 2] === row) return i;
+    throw new Error(`no format 2 coin at ${room} ${col},${row}`);
+  };
+  const daruma2 = FORMAT2_ITEMS.findIndex((v, k) => k % 4 === 0 && v === JP.parlour) / 4, fish2 = FORMAT2_ITEMS.findIndex((v, k) => k % 4 === 0 && v === JP.crossing) / 4;
+  const taken2 = [at2(JP.parlour, 25, 3), at2(JP.crossing, 16, 5)];
+  const old2 = { ...snapshot(p.g), roomId: JP.platform, x2: 0x0c + (14 + 4) * 4, y: 0x32 + 17 * 8, mapRow: 2, exitCol: 14,
+    coins: Array.from({ length: FORMAT2_COINS.length / 3 }, (_, i) => (taken2.includes(i) ? 0xff : 0)), items: Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => (i === daruma2 ? 0x81 : 0)) };
+  const t = CODEC.unpack(CODEC.pack(old2), 2);
+  const daruma = itemIndex(p.g, JP.platform, 0), fish = itemIndex(p.g, JP.crossing, 0);
+  const takenNow = [coinIndex(p.g, JP.parlour, 25, 3), coinIndex(p.g, JP.crossing, 16, 5)];
+  check(`a format 2 save reads into today's tables: the daruma (format 2's find ${daruma2}, today's ${daruma}) still taken, the fish food (${fish2}, today's ${fish}) not; its coins taken where they are now and no other (the prize shelf's new one not)`,
+    daruma2 >= 0 && fish2 === daruma2 + 1 && t.items[daruma] === 0x81 && t.items[fish] === 0 && t.items.filter((v) => v !== 0).length === 1 && takenNow.every((i) => t.coins[i] === 0xff) && t.coins.filter((v) => v !== 0).length === 2
+      && t.coins.length === WORLD.coinTable.length / 3 && t.items.length === WORLD.specialItems.length / 4);
+}
+// a save made in the cargo plane's hold (cut 2026-11-24: room 54 at [2,19]), its coin and the parachute taken: on Hilo's apron by the biplane, both still taken (they kept their table places in Hilo)
 {
   const finds = [oldItem2(41, 0), oldItem2(41, 1), oldItem2(49, 0), oldItem2(52, 0), overboard2];
   const coins = [oldCoin2(38, 9, 3), oldCoin2(52, 25, 4)];

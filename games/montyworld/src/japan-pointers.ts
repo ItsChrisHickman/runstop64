@@ -5,3 +5,9 @@
 
 /** The items: the fish food, the daruma, the sushi and the ninja hood on its shrine. */
 export const JAPAN_SPRITE = { fishFood: 0xcd, daruma: 0xce, sushi: 0xcf, hood: 0xfe } as const;
+
+/**
+ * Mount Fuji's snowball, four rolling pictures (japan.ts `FUJI_SNOWBALLS`): put in while the mountain is loaded (`roomBlocks`), in the fourth creature slot's blocks ($48-$4B), which no room's creatures
+ * show (the mountain has none; a worn hat is drawn from blocks of its own).
+ */
+export const SNOWBALL_POINTERS = [0x48, 0x49, 0x4a, 0x4b] as const;

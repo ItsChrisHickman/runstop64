@@ -23,7 +23,7 @@ import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-it
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
 import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, TURTLE_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
-import { BALL_STREAM, DOOR_PULSES, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
+import { BALL_STREAM, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TUNNELS } from './siberia';
@@ -294,7 +294,7 @@ export const WORLD: MontyData = {
   escalators: ESCALATORS,
   icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
-  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...CRUST_CRACKS, ...LOG_CRACKS],
+  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS],
   charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS],
   pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
@@ -303,7 +303,7 @@ export const WORLD: MontyData = {
   currents: [...PACIFIC_CURRENTS, ...SKY_CURRENTS],
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS, ...SKY_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
-  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.loa], blocks: [{ ptr: PAC_SPRITE.moonRock, block: PACIFIC_ITEMS.pacMoonRock.block }] }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }],
+  roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, { rooms: [PAC.loa], blocks: [{ ptr: PAC_SPRITE.moonRock, block: PACIFIC_ITEMS.pacMoonRock.block }] }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }, FUJI_BLOCKS],
   risingLava: [LAVA, { ...PIT_LAVA, wakenBy: MOON_ROCK }], // (the pit's sleeps until the moon rock is taken)
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
@@ -317,7 +317,7 @@ export const WORLD: MontyData = {
     rounds: [{ find: SWEPT, winner: 'hero' }, { find: OVERBOARD, winner: 'hero' }, { find: PLANE_LOST, winner: 'villain' }],
     face: TALLY_CHARS.face, star: TALLY_CHARS.star, colours: { hero: 8, villain: 1, open: 11, away: 11 },
   },
-  rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
+  rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...FUJI_SNOWBALLS, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
   floats: [TRAM, MINE_CART],

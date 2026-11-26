@@ -13,9 +13,9 @@ import { carryOn, fromFormat1, fromFormat2 } from './save-migrate';
 export { info } from './info';
 
 /**
- * Its own save codec (the save envelope's `game` is its id, `format` this): the shape is Monty's, with what he wears. Format 3 is the tables with Hawaii's island hopping back (2026-11-25), format 2 the
- * reset's, format 1 the first build's (rooms cut, moved and added each time: the coins' and finds' places changed); a save of either is read into today's, and a save of any made in a room cut since carries
- * on in the room that took its place (save-migrate.ts).
+ * Its own save codec (the save envelope's `game` is its id, `format` this): the shape is Monty's, with what he wears. Format 3 is today's tables (2026-11-25: Hawaii's island hopping back, the parlour's
+ * prize shelf took a coin, the daruma moved to BULLET POINT's platform), format 2 the reset's, format 1 the first build's (rooms cut, moved and added each time: the coins' and finds' places changed); a
+ * save of either is read into today's, and a save of any made in a room cut since carries on in the room that took its place (save-migrate.ts).
  */
 const TABLES = montyCodec('Do Svidaniya Monty', 3, { 1: (s) => fromFormat1(WORLD, s), 2: (s) => fromFormat2(WORLD, s) });
 export const CODEC: SaveCodec<MontySave> = { ...TABLES, unpack: (bytes, format) => carryOn(WORLD, TABLES.unpack(bytes, format)) };
