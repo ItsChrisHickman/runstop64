@@ -1,7 +1,8 @@
-import type { CrackSpec, DragonSpec, PulseSpec } from '../../montyotr/src/montydata';
+import type { CrackSpec, DragonSpec, FloatSpec, PulseSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
-import { codeOf, fillCells, Grid, room, type Palette } from './layout';
+import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
+import type { LaterRooms } from './later';
 import type { Placed } from './train';
 
 /**
@@ -11,7 +12,7 @@ import type { Placed } from './train';
  *            col 8                col 9               col 10                col 11
  *   row 0   C  MIND THE BATTLEMENTS     K  HEAVEN CAN WAIT     G  THE EMPEROR(S ROOFTOPS     H  WILLOW PATTERN
  *   row 1   T  THE WATCHTOWER    E  NOODLE MARKET    F  THE FORBIDDEN CITY  J  DOWN THE RIVER
- *   row 2   A  ALL WALL AND NO PLAY  D  BACK ALLEY BEIJING        .                     .
+ *   row 2   A  ALL WALL AND NO PLAY  D  BACK ALLEY BEIJING   L  DON(T ROCK THE BOAT   .        (L: a bonus room, added 2026-11-25)
  *
  * Playfield cells as in moscow.ts. The firecracker string (D) and the three figures' arms (H) are `pulses`; the dragon (E) is a `dragon`; the tower's
  * trapdoor (T) is opened by the key (D), the city gate (F) by the rice hat (C), the junk's raft (J) by the bamboo (H).
@@ -23,7 +24,7 @@ import type { Placed } from './train';
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /** Room ids go on from Siberia's (9-17): they never change once the region has shipped. */
-export const CHI = { wall: 18, alley: 19, tower: 20, top: 21, market: 22, gate: 23, roofs: 24, willow: 25, junk: 26, heaven: 82 } as const;
+export const CHI = { wall: 18, alley: 19, tower: 20, top: 21, market: 22, gate: 23, roofs: 24, willow: 25, junk: 26, heaven: 82, houhai: 95 } as const;
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 18 on. */
 const NAMES = [
@@ -32,11 +33,10 @@ const NAMES = [
 const centred = (text: string): Sector => ({ col: Math.floor((32 - text.length) / 2), text });
 export const CHINA_SECTORS: readonly Sector[] = NAMES.map(centred);
 /**
- * Rooms added to China after it shipped (2026-11-24): HEAVEN CAN WAIT. Its id, sector and table places come after every region's (data.ts puts it last), so no room's coin or find moves
- * and every save keeps its places; its sector is the one after the flight's (82).
+ * Rooms added to China after it shipped (later.ts: their ids and sectors after every region's, their table places last, so every save keeps its places): HEAVEN CAN WAIT (2026-11-24) and
+ * DON'T ROCK THE BOAT (2026-11-25), the bonus room east of the hutong; the map's colour of each.
  */
-export const CHINA_ADDED_SECTORS: readonly Sector[] = [centred('HEAVEN CAN WAIT')];
-export const CHINA_ADDED_COLOURS: readonly number[] = [7];
+export const CHINA_LATER: LaterRooms = { [CHI.heaven]: { name: 'HEAVEN CAN WAIT', colour: 7 }, [CHI.houhai]: { name: "DON'T ROCK THE BOAT", colour: 6 } };
 /** The map's colour of each (the wall grey, the hutong dark grey, the tower grey, the top light grey, the market red, the gate red, the roofs yellow, the garden light blue, the quay brown). */
 export const CHINA_COLOURS: readonly number[] = [12, 11, 12, 15, 2, 2, 7, 14, 9];
 
@@ -215,6 +215,33 @@ const ALLEY_COINS = [[12, 11], [27, 15]] as const;
 const MARKET_COINS = [[6, 7], [21, 15]] as const;
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
+
+/**
+ * DON'T ROCK THE BOAT (added 2026-11-25): Houhai, the lake the hutong opens onto, under the Drum Tower at dusk. Two pleasure boats ply it, each over its half (`HOUHAI_BOATS`, floats
+ * that go there and back, as the mine cart does): the west one from the hutong's quay to the middle, the east one from the middle to the far bank. They set off together, meet in the
+ * middle and wait there side by side (`BOATS.hold` cells' time), then go back to their banks and wait again. So the crossing is a change of boats while they wait together: ride the
+ * west one out, step across, ride on; the lake (the room's water) is deadly. A coin hangs over the meeting place (a hop while both wait) and one is on the far bank. Back the same way.
+ */
+const BOATS = { row: 17, west: { from: 8, to: 16 }, east: { from: 17, to: 25 }, w: 4, step: 8, hold: 12 } as const;
+const HOUHAI_PALETTE = {
+  P: ['wallPave', 8], B: ['hutongBrick', 10], W: ['lakeWater', 6], H: ['boatHull', 2], D: ['redWall', 2],
+} as const satisfies Palette;
+const boat = (span: { readonly from: number; readonly to: number }, offset: number): FloatSpec => ({
+  room: CHI.houhai, row: BOATS.row, span, dir: 1, step: BOATS.step, every: 0, w: BOATS.w, offset, deck: codeOf(HOUHAI_PALETTE, 'H'), decor: decorIndex('boatCanopy'), h: 3,
+  home: [span.from, BOATS.row - 3], bounce: { hold: BOATS.hold },
+});
+/** The west boat sets off from the quay as the east one sets off back from the far bank (a leg's time on in its cycle), so they reach the middle together. */
+export const HOUHAI_BOATS: readonly FloatSpec[] = [boat(BOATS.west, 0), boat(BOATS.east, BOATS.east.to - BOATS.east.from + 1 - BOATS.w + BOATS.hold)];
+const paintHouhai = (g: Grid): void => {
+  g.box(0, 17, 7, 17, 'P').box(0, 18, 7, 19, 'B'); // the hutong's lane, ending at its quay
+  g.box(BOATS.west.from, 17, BOATS.east.to, 19, 'W'); // the lake
+  g.box(26, 17, 31, 17, 'P').box(26, 18, 31, 19, 'B'); // the far bank
+  g.box(30, 0, 31, 16, 'D'); // a temple's red wall closing the far bank, up off the screen (no walkway drawn to the edge)
+};
+/** Where the Drum Tower stands in the picture (its 7 x 6 characters' top left), over the far shore's line at row 11. */
+const TOWER = { col: 12, row: 5 } as const;
+const inTower = (c: number, r: number) => c >= TOWER.col && c < TOWER.col + 7 && r >= TOWER.row && r < TOWER.row + 6;
+const HOUHAI_COINS: readonly (readonly [col: number, row: number])[] = [[16, 13], [28, 15]];
 
 export const CHINA_ROOMS: readonly RoomSpec[] = [
   // A ALL WALL AND NO PLAY: the Great Wall's foot. In from Siberia, low. The wall is a block across the right of the room with a tunnel through its foot (the way east, low,
@@ -432,5 +459,21 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['ridgeBeasts', 19, 16], // the beasts marching along the ridge
       ['eaveTip', 24, 14], ['eaveTip', 26, 14], ['eaveTip', 19, 12], ['eaveTip', 21, 12], ['eaveTip', 14, 10], ['eaveTip', 16, 10],
     ],
+  }),
+  // DON'T ROCK THE BOAT: Houhai, the lake at the end of the hutong, a bonus room (Chris, 2026-11-25: "BACK ALLEY BEIJING... can have the same thing"; "an opportunity to try some new
+  // things"). In along the lane from the hutong to its quay; the Drum Tower over the lake at dusk, willows on the banks. Two boats ply the lake's halves and wait together in the middle
+  // (HOUHAI_BOATS): out on the west one, across to the east one while they wait, on to the far bank (a coin) under a temple's wall; a coin over the meeting place. Never needed: back the same way.
+  room({
+    id: CHI.houhai, cell: [2, 10], sector: CHI.houhai, palette: HOUHAI_PALETTE,
+    paint: paintHouhai,
+    coins: HOUHAI_COINS,
+    decor: [
+      ...fillCells(paintHouhai, HOUHAI_COINS, [0, 0, 31, 3], 'duskBand'), ...fillCells(paintHouhai, HOUHAI_COINS, [0, 4, 31, 10], 'duskGlow').filter(([, c, r]) => !inTower(c, r)),
+      ...fillCells(paintHouhai, HOUHAI_COINS, [0, 11, 29, 11], 'farShore'),
+      ['drumTower', TOWER.col, TOWER.row], ['houhaiWillow', 1, 11], // (the tower on the lake's far shore, the line of roofs and trees there under it)
+      ['star', 5, 1], ['star', 22, 2], ['star', 14, 0],
+      ['boatCanopy', BOATS.west.from, BOATS.row - 3], ['boatCanopy', BOATS.east.from, BOATS.row - 3],
+    ],
+    creatures: [], // (the boats are the room: China's creatures are each in two rooms already)
   }),
 ];

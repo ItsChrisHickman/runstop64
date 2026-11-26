@@ -246,6 +246,22 @@ function board(): NewDecor {
   return decor('jpBoard', 4, 1, r, 7);
 }
 
+/**
+ * SHOOT FOR THE MOON's grove (added 2026-11-25): the bamboo standing thick behind the stalks he climbs, two far culms a character with their nodes, and their leaves in sprays
+ * high up. Moonlit blue, darker than the green stalks he holds: backdrops stamped over the empty cells (fillCells). 1 x 1 character each.
+ */
+function bambooBack(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(1, 0, 2, 7); r.rect(5, 0, 6, 7); r.rect(0, 2, 3, 2, false); r.rect(1, 2, 2, 2); r.rect(4, 6, 7, 6, false); r.rect(5, 6, 6, 6); // two culms, each a node with its ring
+  r.set(1, 1, false); r.set(5, 5, false);
+  return decor('jpBambooBack', 1, 1, r, 6);
+}
+function bambooLeaves(): NewDecor {
+  const r = new Raster(8, 8);
+  for (const [x, y] of [[0, 1], [4, 0], [2, 4], [6, 3], [0, 6], [5, 7]] as const) { r.rect(x, y, x + 2, y); r.set(x + 1, y + 1); }
+  return decor('jpBambooLeaves', 1, 1, r, 6);
+}
+
 export const JAPAN_DECOR = {
   jpJunkSail: junkSail(),
   jpStall: stall(),
@@ -254,6 +270,8 @@ export const JAPAN_DECOR = {
   jpVending: vending(),
   jpClawMachine: clawMachine(),
   jpToro: toro(),
+  jpBambooBack: bambooBack(),
+  jpBambooLeaves: bambooLeaves(),
   jpSakura: sakura(),
   jpBonsai: bonsai(),
   jpDragon: dragon(),
