@@ -251,6 +251,10 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
 - The swims are generic: give each crossing its own idea. The swim to the Big Island has sea turtles that surface and dive, and
   Monty rides their backs across the surge (Chris: "should have turtles in it; that represents the Big Island waters"); the
   Molokai channel keeps Molokai's cliffs behind it (a breaching humpback, scenery).
+- **The swims are the open ocean, not underwater caves** (Chris: "They should not be underwater caves. We're swimming in the open
+  ocean"). No rock walls and ceilings boxing the water in: the surface with the sky and the islands above it across the top of
+  the room, the sea open to both edges, the reef and the sandy bottom low, coral heads and the swell as the obstacles, turtles,
+  fish and the odd shark. (THE SEA CAVE is the one cave: it is a cave by name, off the route.)
 - **The swims tell the journey from island to island** (Chris: "Molokai doesn't look like Molokai in the background. You're still
   not really getting the idea that Monty should be swimming from one island, past that island, and arriving in Maui"). The
   crossing from Oahu to Maui is a sequence the backdrop narrates, room by room, the horizon behind the water changing as he
