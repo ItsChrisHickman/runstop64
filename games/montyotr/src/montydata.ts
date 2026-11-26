@@ -452,7 +452,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[] }
+export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[]; /** Reached by a flight, not by walking one room over (Do Svidaniya Monty's sky, from Hilo): the map leaves a gap before its first column. */ flown?: boolean }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {
@@ -477,6 +477,16 @@ export interface MontyEnding {
    * original's hi-score and ending tune (the dock's, and the name entry's, which the port has not got).
    */
   song?: number;
+  /**
+   * The places' routes (and the encores after them) were found with the game's random numbers a function of its own state (the bot's, `prngEntropy`): the show plays
+   * them so, and each place goes as it was found (Do Svidaniya Monty's). Without it the places take Math.random (Monty on the Run's, found under a seeded Math.random).
+   */
+  seeded?: true;
+  /**
+   * After a win, the map is the reward (Do Svidaniya Monty's; Chris, 2026-11-24: "that's kind of like the unlocker, that's the nice reward"): a new game, from
+   * then on, keeps every room visited a place to travel to, the game and its villain fresh. Without it a new game clears the map, won or not (Monty on the Run's).
+   */
+  replayKeepsMap?: true;
   /** The lines under the last place's credits (the port's, `PORT_CREDITS`, unless the game gives its own: a new game is not a port). */
   closing?: readonly string[];
   /**

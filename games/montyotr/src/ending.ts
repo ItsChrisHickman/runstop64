@@ -3,6 +3,7 @@ import { PORT_CREDITS } from '../../shared/ending/credits';
 import { recordFigure, shotFeet, vicShot, type Figure, type Part, type SpriteShot } from '../../shared/ending/figures';
 import type { Lead, ParadeGag, Place, ProcessionSpec, Reel, RewardSpec } from '../../shared/ending/show';
 import { SPLIT_FIRST, splitDeath, type SplitStage } from '../../shared/monty/deaths';
+import { prngEntropy } from '../../shared/monty/screen';
 import { PARADE } from '../../shared/ending/procession';
 import { FRAME } from '../../shared/monty/frames';
 import { Game, type Assists } from './game';
@@ -75,17 +76,24 @@ class Stage {
   constructor(data: MontyData, readonly renderer: Renderer, assist: Assists) {
     this.game = new Game(data);
     this.game.assist = assist;
-    // (nothing in the montage can end him: the routes are found without a death, and the crushers' timing is random)
+    // (a game whose places were found with the game's own random numbers (`MontyEnding.seeded`): the same here, so a place plays exactly as it was
+    // found, the crushers' timing too; Monty on the Run's were found under other timings, and its places keep Math.random, as before)
+    const g = this.game;
+    if (data.ending?.seeded) g.entropy = () => prngEntropy(g.prng);
+    // (and nothing in the montage can end him all the same: a route found under other timings, Monty on the Run's, goes through)
     this.game.graceActive = () => true;
     this.view = new VicView(renderer, this.game.vic);
   }
 }
 
 /** A place running: the game's frames with Monty's stick from his route. */
-class MontyReel implements Reel {
+export class MontyReel implements Reel {
   private readonly pilot: Pilot;
   private collisions = 0;
   constructor(private readonly stage: Stage, private readonly scene: Scene) { this.pilot = new Pilot(scene.route); }
+
+  /** For tests: the place's game (the show's own, as it plays). */
+  get game(): Game { return this.stage.game; }
 
   tick() {
     const g = this.stage.game;
@@ -120,8 +128,14 @@ class MontyReel implements Reel {
   dispose() { this.stage.score = this.stage.game.score; }
 }
 
-/** How long a scene runs: its route, and a moment. */
-const routeFrames = (scene: Scene) => Math.max(scene.frames ?? 0, new Pilot(scene.route).length + TAIL);
+/**
+ * How long a scene runs: its route, and a moment; or, a route that fills the scene's time (what he does, then an encore that keeps him on the go
+ * till the place ends: Do Svidaniya Monty's), its route and no moment standing after it.
+ */
+const routeFrames = (scene: Scene) => {
+  const route = new Pilot(scene.route).length;
+  return Math.max(scene.frames ?? 0, scene.frames !== undefined && route >= scene.frames ? route : route + TAIL);
+};
 
 // ---- the cast ----------------------------------------------------------------------------------------
 

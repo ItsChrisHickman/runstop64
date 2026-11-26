@@ -148,9 +148,17 @@ export function animateTheme(mem: Uint8Array, flags: number) {
 /** The generator's state at the start (four bytes). */
 export const PRNG_START = [0x5a, 0xa5, 0x3c, 0xc3] as const;
 
-/** GenerateRandomNumber: four-byte state, returns one byte. */
-export function nextRandom(prng: Uint8Array): number {
-  const r = (Math.random() * 256) | 0;
+/**
+ * GenerateRandomNumber: four-byte state, returns one byte. The original stirs in the raster position; here `entropy` (a number in [0, 1)) stands in for it:
+ * Math.random in play, or `prngEntropy` of the game's own state where a run must go the same way every time (the reward show's places, the bots).
+ */
+export function nextRandom(prng: Uint8Array, entropy: () => number = Math.random): number {
+  const r = (entropy() * 256) | 0;
   for (let i = 0; i < 4; i++) prng[i] = ((prng[i] ?? 0) + 0x29 + (r >> i)) & 0xff;
   return prng[r & 3] ?? 0;
+}
+
+/** An entropy for `nextRandom` that is a function of the generator's own state: a game and its copy go on the same way. */
+export function prngEntropy(prng: Uint8Array): number {
+  return (((prng[0] ?? 0) * 7 + (prng[1] ?? 0) * 13 + (prng[2] ?? 0) * 31 + (prng[3] ?? 0) * 57 + 11) & 255) / 256;
 }

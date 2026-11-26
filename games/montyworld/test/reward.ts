@@ -1,8 +1,9 @@
 /**
  * The reward for winning Do Svidaniya Monty (ENHANCED: montyotr's src/ending.ts on shared/ending/show.ts, with the places of src/ending-places.ts and their routes), headless, with the real game under it:
  *
- *  1. every scene's route does what the scene says in the game as the game plays it (no grace, the crushers' timing
- *     seeded), the same room and the same place each time, and nothing kills him;
+ *  1. every scene's route does what the scene says in the game as the show plays it (no grace, the random numbers the game's own), the same room and the
+ *     same place each time, and nothing kills him; and then he keeps going till the place ends: never standing still for long, and no creature walks
+ *     through him (in a game with no grace its touch would be a death; Chris, 2026-11-25: he "ends up standing still and getting hit by an enemy and nothing happens");
  *  2. the whole show runs from the first frame to THE END and calls `done`: the tune from its start and again on the way
  *     out, every creature of the cast recorded with its frames, marching by after the credits in Rio's carnival parade across the beach (a group from each region behind its banner, a plain sand under
  *     them, each named under its region as it passes), Monty and the samba troupe dancing at the side, Viktor at the tail and the Mole Crusher's end for him;
@@ -11,7 +12,7 @@
  *  3. the credits: the row under the playfield is empty in the game's own picture in every frame of every place (sprites
  *     included), every line types on there letter by letter in yellow, is held, and goes, and the port's lines are last;
  *  4. a key skips it, after two seconds and not before, and in the procession, to the title as it is (no CONTINUE? until a key);
- *  5. in the session: winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
+ *  5. in the session (and after a win, a new game keeps the map's rooms for travel, the game fresh; before one, it does not): winning in ENHANCED runs it from the finale (the title and CONTINUE? after it, the save kept) and
  *     keeps that the game has been won; ORIGINAL has none (the win is kept all the same); W on the pause screen once won
  *     (ENHANCED only) runs it and ends on the title; `?ending` on the page runs it at once.
  *
@@ -28,9 +29,11 @@ import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { BandWatch, CastWatch, ParadeWatch, SHOW_FRAMES, drawVisitors, groundShare, touching } from '../../shared/test/ending-kit';
 import { MARCH, NAME_LETTERS, PARADE } from '../../shared/ending/procession';
+import { timelineOf } from '../../shared/ending/timeline';
+import { prngEntropy } from '../../shared/monty/screen';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
-import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../../montyotr/src/ending';
+import { CREDIT_ROW, endingStats, enterRoom, montyEnding, MontyReel } from '../../montyotr/src/ending';
 import { isDone } from '../../montyotr/src/ending-scenes';
 import { Game, type Assists } from '../../montyotr/src/game';
 import { Pilot } from '../../montyotr/src/pilot';
@@ -42,15 +45,16 @@ import { montyFont, run } from '../src/main';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { standY } from './route';
 import { montyMap } from '../../montyotr/src/map';
+import { cellOf } from '../../montyotr/src/montydata';
+import { isRecord, readJson } from '../../shared/guards';
 
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
 const PROC = must(WORLD_ENDING.procession, 'the procession');
 const STYLE = must(PROC.parade, 'the parade');
 
-// the same run each time (the crushers and teleporters take g.random(), which takes Math.random)
+// the same run each time (the show's places take their random numbers from the game's own state; whatever else takes Math.random, seeded)
 let seed = 12345;
-const reseed = (s: number) => { seed = s; };
 Math.random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; };
 
 const out = process.argv[2];
@@ -63,11 +67,11 @@ const ENHANCED: Assists = { lives: false, cloud: true, jetpack: true, c5: true, 
 
 // ---- 1. the routes, played as the game plays ----------------------------------------------------------------------
 
-/** A scene's route played in a game of the game's own (no grace), and what came of it. */
-function playRoute(scene: (typeof SCENES)[number], s: number) {
-  reseed(s);
+/** A scene's route played in a game of the game's own as the show plays it (no grace; the random numbers from its own state), and what came of it; with `through`, on till the place ends: whether he was touched (a death here) or stood still too long. */
+function playRoute(scene: (typeof SCENES)[number], through = 0) {
   const g = new Game(WORLD);
   g.start();
+  g.entropy = () => prngEntropy(g.prng);
   g.assist = ENHANCED;
   scene.prepare(g);
   const arrived = enterRoom(g, scene.room, scene.spot.x2, scene.spot.y, scene.spot.facing);
@@ -76,23 +80,36 @@ function playRoute(scene: (typeof SCENES)[number], s: number) {
   const lives = g.lives;
   let died = false, there = true;
   const done = () => isDone(scene, g);
-  for (let f = 0; f < pilot.length + 60 && !done(); f++) {
+  let hit = -1, still = 0, longest = 0, stillAt = 0;
+  for (let f = 0; f < (through || pilot.length + 60) && (through || !done()); f++) {
+    const { x2, y } = g;
     frame(st, pilot.next());
     // (the treasure's touch is event 6, then the sequence for it, 5, under way: the ending, not a death)
-    if ((g.actionCounter && g.actionCounter !== 6 && g.actionCounter !== 0x85) || g.lives !== lives) died = true;
+    if ((g.actionCounter && g.actionCounter !== 6 && g.actionCounter !== 0x85) || g.lives !== lives) { died = true; if (hit < 0) hit = f; }
     if (g.roomId !== scene.room && !('treasure' in scene.take)) there = false;
+    still = g.x2 === x2 && g.y === y ? still + 1 : 0;
+    if (still > longest) { longest = still; stillAt = f; }
   }
-  return { arrived, died, there, done: done(), room: g.roomId, frames: pilot.length };
+  return { arrived, died, there, done: done(), room: g.roomId, frames: pilot.length, hit, longest, stillAt };
 }
 
 for (const scene of SCENES) {
-  const r = playRoute(scene, 12345);
+  const r = playRoute(scene);
   check(`room ${hex(scene.room)}: the route does it (${JSON.stringify(scene.take)}) in ${r.frames} frames, in the room, alive (arrived ${r.arrived}, done ${r.done}, died ${r.died}, there ${r.there}, room ${hex(r.room)})`, r.arrived && r.done && !r.died && r.there);
 }
-// (the crushers' timing is random in the browser: how many other timings the routes get through, for the record)
-let survived = 0, tried = 0;
-for (const scene of SCENES) for (const s of [1, 2, 3]) { tried++; const r = playRoute(scene, s); if (r.done && !r.died) survived++; }
-console.log(`  routes under other crusher timings: ${survived}/${tried} (the show has a moment's grace for the rest)`);
+
+/** The most frames he may stand still together in a place (a moment's pause between moves). */
+const STILL = 20;
+const montage = montyEnding(WORLD, new PixelRenderer(), ENHANCED);
+SCENES.forEach((scene, i) => {
+  // (the finale's ending plays on by itself: he sits and eats)
+  if ('treasure' in scene.take) return;
+  const place = must(montage.places[i], `place ${i}`);
+  const length = timelineOf(place, 0).length;
+  const r = playRoute(scene, length);
+  check(`room ${hex(scene.room)}: through the whole place (${length} frames) he keeps going: in the room, no creature through him (${r.hit < 0 ? 'none' : `touched at frame ${r.hit}`}), never still more than ${STILL} frames (${r.longest}, to frame ${r.stillAt})`,
+    r.there && r.hit < 0 && r.longest <= STILL && r.frames >= length);
+});
 
 check('the places are in rooms that are on the exit grid, each once', SCENES.every((s) => exitGridImage.includes(s.room)) && new Set(SCENES.map((s) => s.room)).size === SCENES.length);
 
@@ -116,14 +133,29 @@ function band(ink: number = CREDIT.colour) {
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
 let gameBand = 0, gameFrames = 0, gameBandEmpty = true, gameTouch = 0;
 const badPlaces = new Map<number, string>();
-const watched: Place[] = spec.places.map((place) => ({
+/** In the show as it plays (its own game, grace on): each place's touches the grace swallowed (a creature through him), and the longest he stood still. */
+const inShow: { touches: number; still: number; longest: number }[] = spec.places.map(() => ({ touches: 0, still: 0, longest: 0 }));
+const watched: Place[] = spec.places.map((place, i) => ({
   ...place,
   open() {
     const reel = place.open();
     if (!reel) return null;
     BAND = bandOf(place);
+    const seen = must(inShow[i], `place ${i}`);
+    const game = reel instanceof MontyReel ? reel.game : null;
+    let ticking = false;
+    if (game) game.graceActive = () => { if (ticking) seen.touches++; return true; };
     const watch: Reel = {
-      tick: () => reel.tick(),
+      tick() {
+        const before = game ? { x2: game.x2, y: game.y } : null;
+        ticking = true;
+        reel.tick();
+        ticking = false;
+        if (game && before) {
+          seen.still = game.x2 === before.x2 && game.y === before.y ? seen.still + 1 : 0;
+          seen.longest = Math.max(seen.longest, seen.still);
+        }
+      },
       draw() {
         reel.draw();
         const b = band();
@@ -208,6 +240,12 @@ check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credit
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 check('the places are thirteen rooms, one or two from every region', SCENES.length === 13);
+// (the real show's places, not a copy: what the grace swallowed there is a creature walking through him; the finale's ending plays on by itself, he sits and eats)
+SCENES.forEach((scene, i) => {
+  if ('treasure' in scene.take) return;
+  const r = must(inShow[i], `place ${i}`);
+  check(`in the show itself, place ${i} (room ${hex(scene.room)}): no creature walks through him (${r.touches} touches the grace took), never still more than ${STILL} frames (${r.longest})`, r.touches === 0 && r.longest <= STILL);
+});
 
 const figures = progress.figures;
 const unrecorded = CAST.filter((c) => !figures.some((f) => f.name === c.name)).map((c) => c.name);
@@ -240,6 +278,7 @@ bandWatch.check(lines.length, gameFrames, gameBand, [...badPlaces.values()], fal
 const font = montyFont();
 const bad = lines.filter((l) => l.length > CREDIT.letters || [...l].some((c) => c !== ' ' && !font.glyph(c)));
 check(`lines are at most ${CREDIT.letters} letters, in the game's own lettering${bad.length ? ` (not: ${bad.join(' / ')})` : ''}`, bad.length === 0);
+check('who made it opens the credits, and only there: A NEW GAME BY CHRISTOPHER HICKMAN is the first line (Chris, 2026-11-25: at the end it did not fit)', lines[0] === 'A NEW GAME BY CHRISTOPHER HICKMAN' && lines.filter((l) => l.includes('NEW GAME BY')).length === 1);
 check('the game\'s own credit is last (a new game, not a port: the port\'s "rebuilt for the browser" line is not said), as CLOSING has it', CLOSING.every((l, i) => lines[lines.length - CLOSING.length + i] === l) && !lines.some((l) => PORT_CREDITS.slice(0, 2).includes(l)) && bandWatch.typed.has(`${spec.places.length - 1}.${(spec.places[spec.places.length - 1].credits?.length ?? 0) - 1}`));
 
 // ---- 4. skipping ---------------------------------------------------------------------------------------------------------------
@@ -344,6 +383,50 @@ function win(s: ReturnType<typeof boot>) {
   s.press('KeyP');
   s.press('KeyW');
   check('HARD: W on the pause screen starts it', ending.active);
+}
+
+// after a win a new game keeps the map: every room visited stays a place to travel to, the game itself fresh (Chris, 2026-11-24: "that's kind of
+// like the unlocker, that's the nice reward. Let the player play again, encounter Viktor again but be able to jump around"); not before a win
+{
+  const visit = (s: ReturnType<typeof boot>, id: number) => {
+    const cell = must(cellOf(WORLD, id), `room ${id} on the grid`);
+    s.p.state.found.rooms[id] = [0x40, standY(18), cell.row, cell.col];
+  };
+  const fresh = (g: Game) => g.score === 0 && g.siCollected.every((v) => v === 0) && g.coinCollected.every((v) => v === 0) && g.roomId === 0;
+  {
+    const s = boot(true);
+    s.tick(300);
+    visit(s, RIO_ROOM.arms);
+    s.press('Space');
+    s.tick(40);
+    check('not won yet: a new game starts with nothing on the map but where he is', s.p.state.mode === 'play' && !readWon('montyworld') && !(RIO_ROOM.arms in s.p.state.found.rooms));
+  }
+  const s = boot(true);
+  const won = win(s);
+  // (a room visited in the won game: the map since the game began)
+  visit(s, RIO_ROOM.arms);
+  const before = Object.keys(s.p.state.found.rooms).sort().join();
+  s.tick(110);
+  s.press('Space');
+  s.press('Escape');
+  s.tick(30);
+  s.press('Space');
+  const asked = s.p.state.prompt === 'newGame';
+  s.press('Space');
+  s.tick(10);
+  const after = Object.keys(s.p.state.found.rooms).sort().join();
+  check(`won, then NEW GAME (asked: ${asked}): a fresh game in Moscow's first room, nothing taken, the score nothing`, won && asked && s.p.state.mode === 'play' && fresh(s.g));
+  check(`the map is kept: every room visited before is still on it (${after})`, after === before && RIO_ROOM.arms in s.p.state.found.rooms);
+  check('and kept with the saves (a new page load reads it)', readFoundRooms().includes(String(RIO_ROOM.arms)));
+  check('travel goes from the new game\'s first room to a room visited in the won game', montyMap.go(String(RIO_ROOM.arms), s.g, s.p.state.found) && s.until(() => s.g.roomId === RIO_ROOM.arms && !s.g.freeze, 300));
+  check('the game there is the new one: nothing taken on the way', s.g.siCollected.every((v) => v === 0));
+}
+/** The rooms the stored map's progress has (what a new page load reads). */
+function readFoundRooms(): string[] {
+  const raw = store.get('montyworld.found.v1');
+  const v = raw === undefined ? null : readJson(raw);
+  const rooms = isRecord(v) ? v.rooms : null;
+  return isRecord(rooms) ? Object.keys(rooms) : [];
 }
 
 {

@@ -4,7 +4,7 @@ Every line of `src/ending-places.ts` is this game's own or a fact about the jour
 
 | Place | Line | Source |
 |---|---|---|
-| Red Square | A NEW GAME BY CHRISTOPHER HICKMAN WITH CLAUDE, AFTER MONTY ON THE RUN BY PETER HARRAP, GREMLIN GRAPHICS | this game; Monty on the Run (Gremlin Graphics, 1985, Peter Harrap): https://en.wikipedia.org/wiki/Monty_on_the_Run |
+| Red Square | A NEW GAME BY CHRISTOPHER HICKMAN, AFTER MONTY ON THE RUN BY PETER HARRAP, GREMLIN GRAPHICS | this game; Monty on the Run (Gremlin Graphics, 1985, Peter Harrap): https://en.wikipedia.org/wiki/Monty_on_the_Run |
 | Trans-Siberian roof | The Trans-Siberian runs 9289 km, Moscow to Vladivostok | https://en.wikipedia.org/wiki/Trans-Siberian_Railway (9,289 km) |
 | Great Wall | 21196 km in all, branches and spurs too | https://en.wikipedia.org/wiki/Great_Wall_of_China (the 2012 survey, 21,196.18 km with branches) |
 | Temple garden | The Shinkansen runs up to 320 km an hour | https://en.wikipedia.org/wiki/Shinkansen (320 km/h on the Tohoku line) |
@@ -18,4 +18,4 @@ Every line of `src/ending-places.ts` is this game's own or a fact about the jour
 | The floats | Rio Carnival fills the streets with about two million a day | https://en.wikipedia.org/wiki/Rio_Carnival |
 | The beach | Thank you for playing | this game |
 
-The closing lines (`CLOSING`) are unchanged: A NEW GAME BY CHRISTOPHER HICKMAN / WITH CLAUDE, AFTER PETER HARRAPS / MONTY ON THE RUN, GREMLIN GRAPHICS / RUNSTOP64.
+The closing line (`CLOSING`), after THANK YOU FOR PLAYING, is RUNSTOP64. Who made the game opens the credits (Red Square) and is on the title; it is not said again at the end (Chris, 2026-11-25: there it "does really not fit").

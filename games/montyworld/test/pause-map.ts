@@ -4,7 +4,7 @@
  * (Monty's at first: Moscow's view, Rio past its right edge); the arrows go on from one country into the next and the view
  * follows, the pick always in the box; Enter goes to a room in another country; paused there, the view is that country's.
  * The heading names the country in view (MOSCOW at first, then each country the arrows or taps scroll to; THE SKY over the flight).
- * Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, pick-<n>-<country>.png as the pick enters each country, rio.png, sky.png).
+ * A cell of space before a region reached by plane (the sky and the Andes after Hilo). Under the map the key items are spread over two rows. With an out-dir, the screens are drawn (moscow.png, pick-<n>-<country>.png as the pick enters each country, rio.png, sky.png).
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/pause-map.ts [out-dir]
  */
@@ -80,6 +80,16 @@ check(`paused: the whole world's rooms are places to go (${places.length} of ${o
 const inView = places.filter(inBox).map((q) => onGrid.get(Number(q.id))).flatMap((c) => (c ? [regionOf(c[0], c[1])] : []));
 check(`Moscow's view: Monty's room picked, Moscow's rooms in the box and the next countries' after them; Rio past its right edge (${[...new Set(inView)].join(', ')})`,
   fe.picked === String(g.roomId) && inView.includes('moscow') && inView.includes('siberia') && !inView.includes('rio'));
+{
+  // the flight from Hilo is a jump on the map, not one room over (Chris, 2026-11-25): a cell of space before every region reached by plane, from the regions' data
+  const xs = new Map<number, number>();
+  for (const q of places) { const at = onGrid.get(Number(q.id)); if (at) xs.set(at[1], q.x); }
+  const flown = new Set(WORLD_REGIONS.filter((r) => r.flown).map((r) => r.from));
+  const steps = [...xs.keys()].filter((c) => xs.has(c - 1)).map((c) => ({ c, d: (xs.get(c) ?? 0) - (xs.get(c - 1) ?? 0) }));
+  const cell = Math.min(...steps.map((q) => q.d));
+  check(`the map leaves a cell of space before a region reached by plane (columns ${[...flown].join(', ')}: ${steps.filter((q) => flown.has(q.c)).map((q) => `${q.d} pixels`).join(', ')} where a cell is ${cell}), and none between the other columns`,
+    flown.size > 0 && [...flown].every((c) => steps.find((q) => q.c === c)?.d === 2 * cell) && steps.every((q) => flown.has(q.c) || q.d === cell));
+}
 check(`Moscow's view is headed MOSCOW (${heading()}), and every heading fits the panel's 214 pixels centred`, heading() === 'MOSCOW' && WORLD_REGIONS.every((r) => r.label.length * 8 <= 214));
 
 // on east by the arrows: country after country, the pick always in the box (the view scrolls with it)
