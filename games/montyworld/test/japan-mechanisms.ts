@@ -590,7 +590,7 @@ SCOPE.section([JP.mole, JP.garden], 'THE LAST MOLE: the sinking stones and the s
   // the widest water: no jump crosses it, from the stones or from the bamboo rope (the swinging rope taken out of the room)
   const x2of = (col: number) => 0x0c + (col + 4) * 4;
   /** From a start (standing on a stone, or on the bamboo rope), a jump `key`: null if he is not standing or hanging there, else whether he ends alive where `ok` says. */
-  const lands = (from: readonly [number, number], key: string, x2: number, row: number, ok: (g: Game) => boolean): boolean | null => {
+  const lands = (from: readonly [col: number, floor: number, cols?: number], key: string, x2: number, row: number, ok: (g: Game) => boolean): boolean | null => {
     const s = at(JP.mole, from[0], from[1]);
     enterRoom(s.g, JP.mole, x2, row);
     s.g.enemies = []; s.g.vines = [];
