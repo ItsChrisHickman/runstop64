@@ -171,17 +171,39 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
   return null;
 }
 
+/** The way a stick sends him: across (-1 left, 1 right, 0 neither) and up or down (-1 up, 1 down, 0 neither). */
+const headingOf = (name: string): { across: number; upDown: number } => ({
+  across: name.endsWith('<') ? -1 : name.endsWith('>') ? 1 : 0,
+  upDown: name === '^' ? -1 : name === 'v' ? 1 : 0,
+});
+
+/** The fewest frames he goes one way before he turns back (unless something stops him): a leg of a walk, as Monty goes in Monty on the Run, not a jitter on the spot. */
+export const ENCORE_LEG = 48;
+
 /**
  * An encore: a run that keeps him on the go for `frames` in the room he is in, without a death (so nothing walks through him: a creature's
  * touch is a death here), never standing still for more than `still` frames together, going where he has not been yet in the room. For the
- * reward show's places, where after what he does there he would stand and let the creatures pass through him. A beam search (each depth the
- * `beam` runs that have seen most of the room); null if every run dies or stalls.
+ * reward show's places, where after what he does there he would stand and let the creatures pass through him. He goes in legs, as Monty does:
+ * once headed one way (across, or up or down a ladder) he keeps on that way at least `ENCORE_LEG` frames before he turns back, unless a wall or
+ * the ladder's end stops him; so no hop back and forth, no wiggle on a ladder. A beam search (each depth the `beam` runs that have seen most of
+ * the room, the fewest turns among them); null if every run dies or stalls.
  */
 export function encore(start: State, frames: number, beam = 80, still = 16): Route | null {
   const room = start.g.roomId;
   const cell = (g: Game) => ((g.x2 >> 3) << 8) | (g.y >> 4);
-  interface Run { s: State; route: [string, number][]; seen: ReadonlySet<number>; idle: number }
-  let level: Run[] = [{ s: start, route: [], seen: new Set([cell(start.g)]), idle: 0 }];
+  /** A way he is headed (across or up and down): which way, how long he has gone it, and whether it stopped him last step. */
+  interface Leg { dir: number; frames: number; stopped: boolean }
+  interface Run { s: State; route: [string, number][]; seen: ReadonlySet<number>; idle: number; across: Leg; upDown: Leg; turns: number }
+  const fresh: Leg = { dir: 0, frames: ENCORE_LEG, stopped: false };
+  /** The leg after a step headed `dir` that moved him `moved` (0 if not); null if it turns back too soon. */
+  const legOn = (leg: Leg, dir: number, moved: number): { leg: Leg; turned: boolean } | null => {
+    if (!dir) return { leg, turned: false };
+    const turned = leg.dir !== 0 && dir !== leg.dir;
+    if (turned && leg.frames < ENCORE_LEG && !leg.stopped) return null;
+    // (a step that only turned him round on the spot is not a wall: it does not let him turn straight back)
+    return { leg: { dir, frames: (turned ? 0 : leg.frames) + STEP, stopped: moved === 0 && !turned }, turned };
+  };
+  let level: Run[] = [{ s: start, route: [], seen: new Set([cell(start.g)]), idle: 0, across: fresh, upDown: fresh, turns: 0 }];
   for (let depth = 0; depth * STEP < frames; depth++) {
     const next: Run[] = [];
     const keys = new Set<string>();
@@ -194,6 +216,12 @@ export function encore(start: State, frames: number, beam = 80, still = 16): Rou
         if (r.dead || r.room !== null || t.g.roomId !== room || !settled(t.g)) continue;
         const idle = t.g.x2 !== x2 || t.g.y !== y ? 0 : run.idle + STEP;
         if (idle > still) continue;
+        const heading = headingOf(name);
+        const across = legOn(run.across, heading.across, t.g.x2 - x2);
+        const upDown = legOn(run.upDown, heading.upDown, t.g.y - y);
+        if (!across || !upDown) continue;
+        // (the ways not held go on counting: a leg across is not cut short by a step up a ladder)
+        const aged = (leg: Leg, held: number): Leg => (held ? leg : { ...leg, frames: leg.frames + STEP });
         const k = keyOf(t.g);
         if (keys.has(k)) continue;
         keys.add(k);
@@ -202,12 +230,13 @@ export function encore(start: State, frames: number, beam = 80, still = 16): Rou
         const route: [string, number][] = [...run.route];
         const last = route[route.length - 1];
         if (last && last[0] === name) route[route.length - 1] = [name, last[1] + STEP]; else route.push([name, STEP]);
-        next.push({ s: t, route, seen, idle });
+        const turns = run.turns + (across.turned ? 1 : 0) + (upDown.turned ? 1 : 0);
+        next.push({ s: t, route, seen, idle, across: aged(across.leg, heading.across), upDown: aged(upDown.leg, heading.upDown), turns });
       }
     }
     if (!next.length) return null;
-    // (most of the room seen first; among those, the fewest changes of the stick: a run, not a jitter)
-    next.sort((a, b) => b.seen.size - a.seen.size || a.route.length - b.route.length);
+    // (most of the room seen first; among those, the fewest turns back, then the fewest changes of the stick: a walk, not a jitter)
+    next.sort((a, b) => b.seen.size - a.seen.size || a.turns - b.turns || a.route.length - b.route.length);
     level = next.slice(0, beam);
   }
   return level[0]?.route ?? null;

@@ -86,10 +86,13 @@ class Stage {
 }
 
 /** A place running: the game's frames with Monty's stick from his route. */
-class MontyReel implements Reel {
+export class MontyReel implements Reel {
   private readonly pilot: Pilot;
   private collisions = 0;
   constructor(private readonly stage: Stage, private readonly scene: Scene) { this.pilot = new Pilot(scene.route); }
+
+  /** For tests: the place's game (the show's own, as it plays). */
+  get game(): Game { return this.stage.game; }
 
   tick() {
     const g = this.stage.game;

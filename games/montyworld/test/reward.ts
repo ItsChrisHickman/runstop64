@@ -33,7 +33,7 @@ import { timelineOf } from '../../shared/ending/timeline';
 import { prngEntropy } from '../../shared/monty/screen';
 import { must } from '../../shared/test/must';
 import { indicesToRgb, rgbPng } from '../../../tools/probe/render';
-import { CREDIT_ROW, endingStats, enterRoom, montyEnding } from '../../montyotr/src/ending';
+import { CREDIT_ROW, endingStats, enterRoom, montyEnding, MontyReel } from '../../montyotr/src/ending';
 import { isDone } from '../../montyotr/src/ending-scenes';
 import { Game, type Assists } from '../../montyotr/src/game';
 import { Pilot } from '../../montyotr/src/pilot';
@@ -133,14 +133,29 @@ function band(ink: number = CREDIT.colour) {
 // each place's reel watched: what the game's own picture has in the band before any credit goes over it
 let gameBand = 0, gameFrames = 0, gameBandEmpty = true, gameTouch = 0;
 const badPlaces = new Map<number, string>();
-const watched: Place[] = spec.places.map((place) => ({
+/** In the show as it plays (its own game, grace on): each place's touches the grace swallowed (a creature through him), and the longest he stood still. */
+const inShow: { touches: number; still: number; longest: number }[] = spec.places.map(() => ({ touches: 0, still: 0, longest: 0 }));
+const watched: Place[] = spec.places.map((place, i) => ({
   ...place,
   open() {
     const reel = place.open();
     if (!reel) return null;
     BAND = bandOf(place);
+    const seen = must(inShow[i], `place ${i}`);
+    const game = reel instanceof MontyReel ? reel.game : null;
+    let ticking = false;
+    if (game) game.graceActive = () => { if (ticking) seen.touches++; return true; };
     const watch: Reel = {
-      tick: () => reel.tick(),
+      tick() {
+        const before = game ? { x2: game.x2, y: game.y } : null;
+        ticking = true;
+        reel.tick();
+        ticking = false;
+        if (game && before) {
+          seen.still = game.x2 === before.x2 && game.y === before.y ? seen.still + 1 : 0;
+          seen.longest = Math.max(seen.longest, seen.still);
+        }
+      },
       draw() {
         reel.draw();
         const b = band();
@@ -225,6 +240,12 @@ check(`it is a watchable length (${(frames / 50).toFixed(0)} seconds: the credit
 check(`the tune began with it and was put back as it left (${tuneStarts} start, ${tuneEnds} end)`, tuneStarts === 1 && tuneEnds === 1);
 check(`every place of the montage was shown (${placesSeen} of ${spec.places.length})`, placesSeen === spec.places.length);
 check('the places are thirteen rooms, one or two from every region', SCENES.length === 13);
+// (the real show's places, not a copy: what the grace swallowed there is a creature walking through him; the finale's ending plays on by itself, he sits and eats)
+SCENES.forEach((scene, i) => {
+  if ('treasure' in scene.take) return;
+  const r = must(inShow[i], `place ${i}`);
+  check(`in the show itself, place ${i} (room ${hex(scene.room)}): no creature walks through him (${r.touches} touches the grace took), never still more than ${STILL} frames (${r.longest})`, r.touches === 0 && r.longest <= STILL);
+});
 
 const figures = progress.figures;
 const unrecorded = CAST.filter((c) => !figures.some((f) => f.name === c.name)).map((c) => c.name);
