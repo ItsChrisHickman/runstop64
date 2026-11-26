@@ -1,10 +1,12 @@
 import type { MontyData } from '../../montyotr/src/montydata';
 import type { MontySave } from '../../montyotr/src/save';
 import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
+import { FORMAT2_COINS, FORMAT2_ITEMS, FORMAT2_ROOMS } from './save-format2';
 
 /**
- * Reading a format 1 save (the game as shipped before the reset) into today's tables. A save's coins and finds are flags by their place in the tables, and the reset cut, moved and added rooms, so each
- * flag is matched to what it was (save-format1.ts) and set where that is now: a coin by its room and cell, a find by its room and picture, a key item by its picture alone (the chullo moved rooms). Coins and
+ * Reading a save of an older format into today's tables: format 1 (the game as shipped before the reset) and format 2 (the reset's tables, until the parlour's prize shelf took a coin and the daruma moved
+ * to BULLET POINT's platform, 2026-11-25). A save's coins and finds are flags by their place in the tables, and the reset cut, moved and added rooms, so each
+ * flag is matched to what it was (save-format1.ts, save-format2.ts) and set where that is now: a coin by its room and cell, a find by its room and picture, a key item by its picture alone (the chullo moved rooms). Coins and
  * snacks of rooms that were cut are gone with them; every key item taken stays taken, so no gate closes again.
  * Where he was: a room that was cut sends him to the kept room the region's plan names (`RETIRED`), at the nearest place he can stand to its west end, low; a room whose cells changed puts him on the nearest place in it he can stand, so a saved place never leaves
  * him inside a wall; and the cell of the exit grid he is in is today's cell for that room.
@@ -97,26 +99,36 @@ export function carryOn(data: MontyData, s: MontySave): MontySave {
   return { ...s, roomId: kept, mapRow: Math.floor(cell / data.exitGrid.cols), exitCol: cell % data.exitGrid.cols, ...(spot ? { x2: x2At(spot.col), y: yAt(spot.floor) } : {}) };
 }
 
+/** An older format's tables, as data (save-format1.ts, save-format2.ts): what its saves' coin and find flags index, and each room's cells then (by hash). */
+export interface SaveTables { readonly coins: readonly number[]; readonly items: readonly number[]; readonly rooms: readonly number[] }
+export const FORMAT1: SaveTables = { coins: FORMAT1_COINS, items: FORMAT1_ITEMS, rooms: FORMAT1_ROOMS };
+export const FORMAT2: SaveTables = { coins: FORMAT2_COINS, items: FORMAT2_ITEMS, rooms: FORMAT2_ROOMS };
+
 /** A format 1 save as one of today's. */
-export function fromFormat1(data: MontyData, s: MontySave): MontySave {
+export const fromFormat1 = (data: MontyData, s: MontySave): MontySave => fromTables(data, s, FORMAT1);
+/** A format 2 save as one of today's (the parlour's prize shelf took a coin, the daruma moved to BULLET POINT's platform: places in both tables moved). */
+export const fromFormat2 = (data: MontyData, s: MontySave): MontySave => fromTables(data, s, FORMAT2);
+
+/** A save of an older format, written against the tables `t`, as one of today's. */
+export function fromTables(data: MontyData, s: MontySave, t: SaveTables): MontySave {
   const coins = Array.from({ length: data.coinTable.length / 3 }, () => 0);
-  for (let i = 0; i * 3 < FORMAT1_COINS.length; i++) {
+  for (let i = 0; i * 3 < t.coins.length; i++) {
     if (!s.coins[i]) continue;
-    const [room, col, row] = [FORMAT1_COINS[i * 3], FORMAT1_COINS[i * 3 + 1], FORMAT1_COINS[i * 3 + 2]];
+    const [room, col, row] = [t.coins[i * 3], t.coins[i * 3 + 1], t.coins[i * 3 + 2]];
     for (let j = 0; j < coins.length; j++) if (data.coinTable[j * 3] === room && data.coinTable[j * 3 + 1] === col && data.coinTable[j * 3 + 2] === row) coins[j] = s.coins[i] ?? 0;
   }
   const items = Array.from({ length: data.specialItems.length / 4 }, () => 0);
   const keyFrames = new Set(data.progress.keyItems.map((k) => data.specialItems[k * 4 + 3]));
-  /** Today's place of a format 1 find, or -1 (a snack of a room that was cut). */
+  /** Today's place of an older format's find, or -1 (a snack of a room that was cut). */
   const itemNow = (i: number): number => {
-    const room = FORMAT1_ITEMS[i * 4], frame = FORMAT1_ITEMS[i * 4 + 3];
+    const room = t.items[i * 4], frame = t.items[i * 4 + 3];
     for (let j = 0; j < items.length; j++) {
       if (data.specialItems[j * 4 + 3] !== frame) continue;
       if (keyFrames.has(frame) || data.specialItems[j * 4] === room) return j;
     }
     return -1;
   };
-  for (let i = 0; i * 4 < FORMAT1_ITEMS.length; i++) {
+  for (let i = 0; i * 4 < t.items.length; i++) {
     const j = itemNow(i);
     if (s.items[i] && j >= 0) items[j] = s.items[i] ?? 0;
   }
@@ -129,8 +141,8 @@ export function fromFormat1(data: MontyData, s: MontySave): MontySave {
   if (cell >= 0) {
     place.mapRow = Math.floor(cell / data.exitGrid.cols);
     place.exitCol = cell % data.exitGrid.cols;
-    const was = FORMAT1_ROOMS.findIndex((v, k) => k % 2 === 0 && v === s.roomId);
-    const changed = roomId !== s.roomId || was < 0 || FORMAT1_ROOMS[was + 1] !== cellsHash(data.roomDef(roomId).cells);
+    const was = t.rooms.findIndex((v, k) => k % 2 === 0 && v === s.roomId);
+    const changed = roomId !== s.roomId || was < 0 || t.rooms[was + 1] !== cellsHash(data.roomDef(roomId).cells);
     // (a cut room's place means nothing in the kept one: he carries on where the kept room is come into (`WAY_IN`), else at its west end, low, where a way in usually is; a changed room's, as near his place as he can stand)
     const cut = roomId !== s.roomId;
     const way = WAY_IN[roomId] ?? { col: 0, floor: ROWS - 1 };

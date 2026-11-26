@@ -194,12 +194,6 @@ export interface PulseSpec {
   idle: number; warnCode: number; liveCode: number; spent: number;
   /** A special item that calms it (a tune settles the spitting llama): once Monty has taken item `calmedBy` the group stays at its idle look and kills nothing. */
   calmedBy?: number;
-  /**
-   * Rows of the group's columns, outside it, that flash `colour` with its warning (the colour only: a floor stays a floor), so the warning shows where
-   * Monty standing in the group would hide it (the Shogun's Hall's doors: the paper panel over the doorway and the threshold under it). Back to their
-   * own colours when the warning ends.
-   */
-  flash?: { readonly rows: readonly number[]; readonly colour: number };
 }
 
 /**

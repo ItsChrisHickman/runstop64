@@ -130,6 +130,78 @@ opening has nothing behind it. Restored rooms bring their art back from `44ea872
 
 Play order. The set pieces: the luau's hula show, the Road to Hana's bridges, the run up Kilauea ahead of the lava.
 
+**Chris, 2026-11-25:** "I really loved the three tiers with the cars driving through. It told a story. Hawaii was honestly very
+well intended. Originally, it was an execution problem. The redone Hawaii did not feel very well thought through." So the
+Hawaii rooms come back **as they were designed** (`804a838^`, the seventeen rooms of `8df967a` and after): the same layouts,
+the same story, the same set pieces. The work is execution (art that reads, fair jumps, coins with reasons, exits that lead
+somewhere), never a redesign. Above all THE ROAD TO HANA keeps its three tiers with the cars driving through them; it may stay
+easy (a run-through is fine there: it is the story), and nothing below may turn it into a different puzzle.
+
+**Chris's story is the route (2026-11-25; it overrides the table below wherever they differ).** In his words: "landing in
+Honolulu, then climbing Diamond Head to get the snorkel that a tourist left behind, then snorkeling past Molokai to Lahaina,
+Road to Hana, then more snorkeling from that beach (Kaihalulu Beach in Hana has red sand!) to the Big Island (Kona), which
+would be a rocky beach with black sand", then "the map splits: Mauna Kea is on a path through the middle of the island, Mauna
+Loa is a path on the southern part and has the lava; both paths in real life lead to Hilo", and "maybe Hilo should be the
+coffee plantation". Also: "Calling a random underwater level that should be a connector between islands 'Hana' doesn't even
+make any sense." The route, in order:
+
+1. **THE CARGO SHIP** docks at **Honolulu**: the harbour (PIER PRESSURE's Aloha Tower quay; the cargo port, not Pearl Harbor,
+   which is a navy base and a memorial).
+2. **Oahu:** Waikiki's beach and the luau (SURF AND TURF, LEI OF THE LAND, more hula), and the climb up **DIAMOND HEAD**
+   (restore the second pass's DIAMOND HEAD and THE LOOKOUT from git) to the crater rim, where the **snorkel** a tourist left
+   behind lies at the lookout. The surf kills until he has it.
+3. **The swim past Molokai** (the first crossing): open water with Molokai's sea cliffs behind (the old reef room; MOLE-OKAI's
+   fishponds may be its shallows). Molokai is scenery here, not a land room.
+4. **Maui:** come up at **Lahaina** (WHALE OF A TIME), **THE ROAD TO HANA** (its three tiers with the cars driving through, as it
+   was), THE SEA CAVE under it, and **Hana** at the road's end: **Kaihalulu**, the red sand beach in its red cinder cove (HANA
+   BANANA's place). Its cove is where he goes back into the sea.
+5. **The swim to the Big Island** (the second crossing: FISH OUT OF WATER, the surge, the moray, the shark; today's HANA swim
+   room renamed), out on to **Kona**: a rocky black sand beach (lava rock, tide pools).
+6. **The island splits at Kona: two ways to Hilo** (Chris, 2026-11-25: "Kona Beach (black) leads to two different routes, Mauna
+   Kea and Mauna Loa; the top route can go to Akaka Falls (waterfall!) and the bottom route can go to Hilo Coffee Farm; then
+   both connect in Hilo, then go to the plane sequence"). Both real, both playable, the map showing the fork as two rows:
+   - **The top way: Mauna Kea, then Akaka Falls.** Up through the middle of the island to the summit (the tallest point in the
+     US): above the clouds, the observatory domes, the night sky with stars and the moon; then down the wet side to **Akaka
+     Falls**, the tall waterfall in the rainforest gorge, into Hilo.
+   - **The bottom way: Mauna Loa, then the Hilo Coffee Farm.** Along the south over Mauna Loa's lava (MAUNA KEA-OS's rising lava
+     and cracking crust belong here, and only here), then the **coffee farm** (COFFEE BREAK's coffee moves here: the rows of
+     coffee on the slope) into Hilo.
+   Each way has coins of its own; neither is a dead end.
+   **Both ways are needed, and they lock into each other** (Chris: "make an item from each route necessary"; "a moon rock that has
+   fallen into the crater of Mauna Loa to give to someone blocking the path in Mauna Kea"; "a puzzle wherein we combine multiple
+   paths creatively like Russia", whose opening "had ALL of the same hallmarks of the opening rooms in Monty on the Run"). Built
+   on Moscow's rules (docs/dosvidaniya-moscow.md part 1): the gate is seen before its key, each key lies in a dead end or a
+   doubling back away from its gate, the rooms form a loop, and one room is crossed twice at two heights.
+   - **The loop:** Kona, the top way (Mauna Kea's climb, the summit, down beside Akaka Falls) to Hilo, and the bottom way
+     (Mauna Loa, the coffee farm) back from Hilo to Kona. Every join both ways, so either way can be taken first.
+   - **Mauna Kea is two rooms, the summit one screen** (Chris liked the dome, the telescope and the summit together): first
+     the climb, cinder slopes and switchbacks rising out of the cloud layer; then, on the grid row above it, **the summit**:
+     the cloud tops at the bottom, the bare red cinder ridge to the summit marker, two or three observatory domes, the big
+     one's slit open with its telescope pointing out at the night sky (stars and the moon over the black upper rows, the only
+     night in the game). The decor and lettering budgets decide how many domes fit.
+   - **The moon rock (bottom way, a dead end):** from Mauna Kea's summit a shooting star is seen falling south (the story told
+     in the picture). It lies in **Mauna Loa's crater**, down a pit off the bottom way past the lava; taking it wakes the lava,
+     which rises behind him on the climb out (the run ahead of the lava).
+   - **The astronomer (top way, the gate):** at the summit he stands on the big dome's catwalk, blocking its ladder, until
+     Monty brings the moon rock; then he goes in to look at it (MOTR's guard sent off by an item, like the hideout's ninja).
+     Up the dome: the telescope, and **the parachute** snagged on top. Seen first by a player who takes the top way first;
+     he comes back for it.
+   - **The coffee (bottom way):** the sack of beans on the farm's drying deck, up off the farm's lane (a climb, off the
+     route): Monty flies the Pacific alone through the night, TOO SLEEPY TO FLY without it.
+   - **The plane (Hilo):** two locks in the room name line, NO FLYING WITHOUT A PARACHUTE and TOO SLEEPY TO FLY.
+   - **Crossed twice at two heights:** Akaka Falls: the high trail from the summit along the top of the gorge and the low lane
+     by the plunge pool from Hilo, sealed from each other by the falls; a player crosses it once each way.
+   So the shortest play: Kona, Mauna Loa (the rock, out ahead of the lava), the farm (the coffee), Hilo (the plane still
+   locked), up past Akaka Falls to the summit (the rock to the astronomer, the parachute), back down the falls' other height
+   to Hilo and away. Taken the other way round, the astronomer is the gate seen first, the whole loop the doubling back.
+7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits. Hilo connects
+   back to Kona's side (the way out to the other mountain).
+8. **The plane sequence** (the flight, then the three-room parachute drop).
+
+Names follow places: a swim is named as a crossing, never after a town. Only the two ship rooms stay merged into THE CARGO SHIP,
+and the cargo plane's hold stays cut (Chris asked). Kona keeps the beach; the coffee is the farm's, on the bottom way. Room count follows the story
+(about 15 to 17), not a target.
+
 | # | Room (id, cell) | Restores | What it asks (one thing) | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
 | 1 | THE CARGO SHIP (38, [2,17]) | kept as built | Three heights of the ship, with Viktor on your path; lead him under the crane's crate. | 2, as now | | parrot, crate, Viktor |
@@ -139,7 +211,7 @@ Play order. The set pieces: the luau's hula show, the Road to Hana's bridges, th
 | 5 | MOLE-OKAI (44, [3,19]) | Molokai, as it was | The quiet room: hop the old fishponds' curved walls over the deadly water, the world's tallest sea cliffs behind. Banner HAWAII: MOLOKAI. | 2: on the highest wall (tops a climb); between two walls by the crab (guarded) | | crab, tern |
 | 6 | KELP WANTED (45, [3,20]) | the second reef | Through the kelp past the manta; the mooring rope goes up through the ceiling to Lahaina; the sea cave lies east. | 1: deep in the kelp (inside the structure) | | manta, turtle |
 | 7 | WHALE OF A TIME (46, [2,20]) | Lahaina | Climb the old brig's crates and mast to the spar (a dead end), then east along the quay past the outrigger. A humpback breaches in the harbour now and then: Hawaii's one big creature, harmless scenery. Banner HAWAII: MAUI. | 1: on the spar (pocket off the route) | musubi on the brig's deck | tiki on the brig, gull |
-| 8 | THE ROAD TO HANA (47, [2,21]) | the old road, rebuilt as the reset planned it | The one-lane bridges: a pull-in and a yield sign before each; bridge 2 is too long for one gap, so you hop onto its raised refuge and let the car pass under (the forced stop); bridge 3 adds the waterfall's spray. Cars come both ways. A pool in the lowest level drops into the sea cave. | 2: on the refuge (the reward for stopping); at the head of the bend's bamboo under the coconut (tops a climb, guarded) | | coconut, nene; the cars are the mechanism |
+| 8 | THE ROAD TO HANA (47, [2,21]) | the old road as it was (`804a838^`): three tiers up the cliff, the cars driving through them | Keep the old room's layout and its cars on all three tiers (Chris loved it, easy as it was); only make it read and play cleanly: the one-lane bridges drawn so you see them, the cars' timing fair. Optional, only if the room stays itself: a pull-in before a bridge. A pool in the lowest level drops into the sea cave. | 2: on the refuge (the reward for stopping); at the head of the bend's bamboo under the coconut (tops a climb, guarded) | | coconut, nene; the cars are the mechanism |
 | 9 | THE SEA CAVE (48, [3,21]) | the old cave | A dead end of open water, entered from Kelp Wanted or dropped into from the road's pool: the loop reef, Lahaina, road, cave. | 1: on the ledge under the stalactites (seen now, reached later: seen through the road's pool) | musubi (the reason to dive) | eel, manta |
 | 10 | HANA (new 82, [2,22]) | HANA BANANA | Down the bamboo rope from the headland to Waianapanapa's black sand and its sea arch; the cove is the dive into the third crossing. | 1: on the ledge in the lava cave (pocket off the route) | | crab |
 | 11 | FISH OUT OF WATER (49, [3,22]) | today's HANA swim room, moved to be the third crossing, with FISH OUT OF WATER's name | The hardest swim, last: the surge, lee to lee of the coral heads; the moray; the shark. Out low east onto the Big Island. | 2, as now | musubi in the sea cave pocket, as now | turtle, shark; moray (a timed strike) |
@@ -208,7 +280,17 @@ The canopy runs west along the top, the river east along the bottom: Monty on th
 Every Amazon room has its own name now (the sewer-style shared name goes). The piranha fix is proved by the bot starting
 at the roots' west edge, not by a run-up from the river.
 
-**Not proposed back:** MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN, THE RIVER ENDS.
+**Bonus rooms, and the old rooms back as them** (Chris, 2026-11-25: "I believe that there's an opportunity in the Amazon too";
+bonus rooms off the path are "an opportunity to try some new things and add some fun challenges"). The "not proposed back" list
+is withdrawn: the old Amazon rooms MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN and THE RIVER ENDS come
+back from git (`44ea872`), on the U where they fit the route, or as **bonus rooms off it** (not needed to finish, a striking
+backdrop of the place like HEAVEN CAN WAIT, a challenge that tries something new with the existing mechanics, a coin or two
+where the challenge ends). Natural ones: the river boat (THE RIVER QUEEN) moored off the river lane, the waterfall in the mist
+(MIST OPPORTUNITY) off the cloud forest, the Inca tunnel as a hidden way between the Andes and the canopy. Any opening in the
+Amazon that would lead nowhere gets a bonus room, never a wall.
+**The Amazon's puzzle crosses its two lanes** (the bar is Moscow's opening and the Big Island's loop above): an item found on
+the river lane opens the way on the canopy, or the reverse (e.g. the machete cut on the canopy drops a liana to a river
+pocket; something from the boat is what the canopy's gate wants), each key in a dead end or a doubling back, the gate seen first.
 
 ### Rio: down into the city, through the carnival, then the showdown
 
