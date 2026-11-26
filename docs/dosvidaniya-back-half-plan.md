@@ -264,6 +264,10 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
   low on the horizon, and Lahaina's shore where he comes up. The same for the swim from Hana to the Big Island: Maui's Haleakala
   behind, the open channel, then the Big Island's huge gentle volcano shapes (Mauna Kea, often snow-capped, and Mauna Loa) rising
   ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
+- **No signs in the backdrops** (Chris: "We don't need the words for the volcanoes on the background like signs telling us to go
+  down or up. The room names alone suffice... Don't need to have labels, that's just busy"). Kona's MAUNA KEA / MAUNA LOA signs
+  go. The fork reads from the land itself: the slope up toward the observatory (the top way), down toward the lava (the bottom
+  way), one mountain as it really is. LESSONS already says it: signs name a place, they never stand in for drawing it.
 - Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
   coffee farm's rows; Akaka Falls' gorge).
 - Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its landmark.
