@@ -24,7 +24,7 @@ const args = readArgs();
 const only = args.only;
 
 /** The rooms and finds of Siberia in the tables: the rooms from the dining car to the village. */
-const siberian = (room: number) => room >= SIB.gravy && room <= SIB.border;
+const siberian = (room: number) => (room >= SIB.gravy && room <= SIB.border) || room === SIB.taiga; // (OFF THE BEATEN PATH was added after the flight: its id is 94)
 
 /** What the kept leg states are checked against (read once). */
 const PRINTS = prints();
@@ -47,7 +47,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
   const sibCoins = Array.from({ length: coins }, (_, i) => i).filter(mine).length;
   if (complete) check(`${mode}: at the end all ${sibCoins} coins, the pelmeni and the ticket of Siberia are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${sibCoins} x 50 + ${found.length} x 200), he is on the river's far bank (room ${g.roomId})`,
-    coinsLeft === 0 && itemsLeft === 0 && sibCoins === 8 && found.length === 2 && g.score === sibCoins * 50 + found.length * 200 && g.roomId === SIB.border);
+    coinsLeft === 0 && itemsLeft === 0 && sibCoins === 10 && found.length === 2 && g.score === sibCoins * 50 + found.length * 200 && g.roomId === SIB.border);
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }
 finish();

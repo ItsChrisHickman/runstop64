@@ -24,8 +24,17 @@
     "M: up the timber ledges, the coin at the top": "<:4 <:4 <:4 <:4 <:4 <:4 <:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4",
     "M: the cart west over the working, the coin on the west dock": "<:4 <:4 <:4 <:4 .:4 .:4 .:4 .:4 <:4 >:4 >:4 >:4 <:4 J:4 .:4 .:4 .:4 .:4 .:4 <:4 <:4 .:4 .:4 .:4 .:4 J:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 .:4 .:4 .:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
     "M to G: down the rope through the dock": "<:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 v:4 v:4 v:4 v:4 v:4",
-    "G: over the first ice to the sandbar, its coin": ">:4 >:4 >:4 <:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
-    "G: over the second ice, past the reindeer and the guard, past the raised barrier": "<:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 <:4 <:4 <:4 <:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 <:4 <:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4"
+    "G to T: west along the village bank into the taiga (OFF THE BEATEN PATH, a bonus room)": "<:4 <:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 v:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4 <:4",
+    "T: up the pines, bough 1 (its snow slides off if he stops)": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "T: up the pines, bough 2 (its snow slides off if he stops)": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "T: up the pines, bough 3 (its snow slides off if he stops)": "J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4",
+    "T: up the pines, bough 4 (its snow slides off if he stops)": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "T: up the pines, bough 5 (its snow slides off if he stops)": "J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "T: up to the eagle owl's nest, its coin": ">:4 >:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4",
+    "T: back down to the third bough, the coin under the icicle": "J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 <:4 <:4 >:4 ^:4 ^:4 >:4 >:4 <:4 ^:4 <:4 >:4 <:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4",
+    "T to G: back east along the trail to the village": ">:4 >:4 <:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 <:4 .:4 .:4 .:4 .:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4 >:4",
+    "G: over the first ice to the sandbar, its coin": "J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 >:4 >:4",
+    "G: over the second ice, past the reindeer and the guard, past the raised barrier": ">:4 >:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 <:4 <:4 >:4 >:4 >:4 >:4 <:4 <:4 >:4 J:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4 <:4 >:4 >:4 >:4 >:4 <:4 <:4 J>:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 <:4 .:4 >:4 >:4"
   },
   "rooms": {
     "I to A: aboard, up the hatch ladder, along the roof into the dining car": "5 9",
@@ -50,6 +59,15 @@
     "M: up the timber ledges, the coin at the top": "14",
     "M: the cart west over the working, the coin on the west dock": "14",
     "M to G: down the rope through the dock": "14 17",
+    "G to T: west along the village bank into the taiga (OFF THE BEATEN PATH, a bonus room)": "17 94",
+    "T: up the pines, bough 1 (its snow slides off if he stops)": "94",
+    "T: up the pines, bough 2 (its snow slides off if he stops)": "94",
+    "T: up the pines, bough 3 (its snow slides off if he stops)": "94",
+    "T: up the pines, bough 4 (its snow slides off if he stops)": "94",
+    "T: up the pines, bough 5 (its snow slides off if he stops)": "94",
+    "T: up to the eagle owl's nest, its coin": "94",
+    "T: back down to the third bough, the coin under the icicle": "94",
+    "T to G: back east along the trail to the village": "94 17",
     "G: over the first ice to the sandbar, its coin": "17",
     "G: over the second ice, past the reindeer and the guard, past the raised barrier": "17"
   }
