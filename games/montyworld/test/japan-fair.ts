@@ -20,7 +20,7 @@ import { itemIndex, settledOn, standY } from './route';
 
 const mode = process.argv[2] === 'enhanced' ? 'enhanced' : 'original';
 const first = Number(process.argv[3] ?? 0), last = Number(process.argv[4] ?? JAPAN_LEGS.length - 1);
-const japanese = (room: number) => room >= JP.harbour && room <= JP.port;
+const japanese = (room: number) => (room >= JP.harbour && room <= JP.port) || room === JP.grove; // (SHOOT FOR THE MOON was added after the flight: id 96)
 
 const stick = (name: string) => ACTIONS.find(([n]) => n === name)?.[1] ?? NONE;
 

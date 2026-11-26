@@ -1,4 +1,5 @@
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
+import { roomDecorTypes } from '../../shared/monty/rooms';
 import { decorChars } from './decor-chars';
 import { standingCell } from './escalators';
 import type { Game } from './game';
@@ -46,7 +47,7 @@ function draw(g: Game, f: FloatState, e: FloatSpec, c: number) {
   uncover(g, f);
   f.at = c;
   const left = floatLeft(e, c), first = decorChars(g.data, g.roomId)[e.decor] ?? 0;
-  const type = g.data.decorTypes[e.decor];
+  const type = roomDecorTypes(g.data, g.roomId)[e.decor];
   if (!type || !first) return;
   const put = (col: number, row: number, chr: number, colour: number, deck: boolean) => {
     if (col < e.span.from || col > e.span.to || col < 0 || col >= PLAY_COLS) return;

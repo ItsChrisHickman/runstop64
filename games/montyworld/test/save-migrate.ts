@@ -2,7 +2,9 @@
  * Saves of format 1 (the game as shipped before the reset) read into today's tables (save-migrate.ts): every coin and find of a room the reset kept as it was is still taken, every key item taken is still
  * taken wherever its room went (the chullo moved rooms), the costume worn is still worn, a save in a room that was cut carries on in the room the plan names, and a save in a room whose cells changed puts
  * him somewhere he can stand, in the exit grid's cell that room has now. Saves of format 2 (the reset's, before Hawaii's island hopping came back) are read the same way (the snorkel, the lei and the
- * parachute moved rooms; Viktor's escapes are matched by their order), one on the old Hilo's apron carries on by the biplane, one made in the cut cargo plane's hold at Hilo. Today's (format 3) read as they are.
+ * parachute moved rooms; Viktor's escapes are matched by their order), one on the old Hilo's apron carries on by the biplane, one made in the cut cargo plane's hold at Hilo. Saves of format 3 (live 2026-11-25/26,
+ * before the Andes' rebuild, the bonus rooms off the path and Rio's carnival) too: one made in Sugarloaf's cut room carries on in Lapa with its coin as Lapa's third, the crank (moved to the floats' stage) still
+ * taken. Today's (format 4) read as they are.
  * (Format 3 also moved the daruma to BULLET POINT's platform and gave the parlour's prize shelf a coin: a format 2 save's Japan is matched the same way.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/save-migrate.ts
@@ -17,6 +19,11 @@ import { ROUNDS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS } from '../src/save-format2';
+import { FORMAT3_COINS, FORMAT3_ITEMS } from '../src/save-format3';
+import { CHI } from '../src/china';
+import { RIO_ROOM } from '../src/rio';
+import { RIO_SPRITE } from '../src/rio-pointers';
+import { ANDES_SPRITE } from '../src/andes-pointers';
 import { JP } from '../src/japan';
 import { RETIRED } from '../src/save-migrate';
 import { dead } from './mech-kit';
@@ -40,7 +47,7 @@ function format1(room: number, x2: number, y: number, mapRow: number, exitCol: n
   };
 }
 
-check('today\'s saves are format 3, and formats 1 and 2 are read too', CODEC.format === 3);
+check('today\'s saves are format 4, and formats 1, 2 and 3 are read too', CODEC.format === 4);
 // format 1's Pacific: the snorkel was in SURF AND TURF (41), the lei in LEI OF THE LAND (42); a save in MOLE-OKAI (44, not back) carries on in the swim past Molokai (CLAM DOWN, 43)
 const old = format1(44, 0x0c + (10 + 4) * 4, 0x32 + 10 * 8, 2, 22, [0, 1], [0, 1, oldItem(41), oldItem(42)], oldItem(42));
 const s = CODEC.unpack(CODEC.pack(old), 1);
@@ -67,7 +74,7 @@ check(`and loads there, alive (room ${b.g.roomId}, dead ${dead(b.g)})`, b.g.room
   const old = format1(61, 0x0c + (20 + 4) * 4, 0x32 + 15 * 8, 5, 33, [0, 1], [0, 1, oldItem(60), oldItem(61), oldItem(63)], oldItem(60));
   const s = CODEC.unpack(CODEC.pack(old), 1);
   const g = newGame(WORLD, true).g;
-  const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.kapok, 0);
+  const chullo = itemIndex(g, AND.terraces, CHULLO), panpipes = itemIndex(g, AND.picchu, 0), machete = itemIndex(g, AND.boat, 0);
   check('the Andes\' key items taken are taken where they are now: the chullo (moved to the terraces), the panpipes, the machete; and the chullo is still worn', s.items[chullo] === 0x81 && s.items[panpipes] === 0x81 && s.items[machete] === 0x81 && s.worn === chullo);
   const cell = [...WORLD.exitGrid.image].indexOf(AND.picchu);
   check(`a save in MIST OPPORTUNITY (cut) carries on in Machu Picchu, at its cell (room ${s.roomId} at [${s.mapRow},${s.exitCol}])`, s.roomId === RETIRED[61] && s.roomId === AND.picchu && s.mapRow * WORLD.exitGrid.cols + s.exitCol === cell);
@@ -89,10 +96,10 @@ for (const [from, to] of Object.entries(RETIRED)) {
 const moscow = format1(0, 0x50, 0xc2, 1, 0, [], []);
 const m = CODEC.unpack(CODEC.pack(moscow), 1);
 check('a save in a room the reset did not change keeps its place exactly (Moscow\'s first room)', m.roomId === 0 && m.x2 === 0x50 && m.y === 0xc2 && m.mapRow === 1 && m.exitCol === 0);
-// format 3 reads as it is
+// format 4 reads as it is
 const now = snapshot(b.g);
-const again = CODEC.unpack(CODEC.pack(now), 3);
-check('a format 3 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
+const again = CODEC.unpack(CODEC.pack(now), 4);
+check('a format 4 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
 // format 2 (the reset's Hawaii: the snorkel and the lei at Waikiki (41), the musubi in the swim room (49), the parachute and three coins in Hilo (52), Viktor overboard a find no room shows)
 /** The place of a format 2 find in its table: the n-th of a room's. */
 const oldItem2 = (room: number, nth = 0) => {
@@ -161,5 +168,37 @@ const overboard2 = Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => i)
   for (let f = 0; f < 120; f++) frame(p, NONE);
   check(`a format 2 save in the cut hold carries on at Hilo (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}]), alive, the parachute still taken`,
     RETIRED[54] === PAC.hilo && p.g.roomId === PAC.hilo && !dead(p.g) && t.items[itemIndex(p.g, PAC.summit, 0)] === 0x81);
+}
+// format 3 (the live game until the Andes' rebuild, the bonus rooms and Rio's carnival): a save made in Sugarloaf's room (69, cut: [5,31] then) with its coin, Lapa's two, HEAVEN CAN WAIT's and the
+// churrascaria's taken, the crank (then in the churrascaria, now on the floats' stage) and the chullo (a key item: by its picture alone) taken
+{
+  const find3 = (frame: number) => Array.from({ length: FORMAT3_ITEMS.length / 4 }, (_, i) => i).find((i) => FORMAT3_ITEMS[i * 4 + 3] === frame) ?? -1;
+  const coins3 = (room: number) => Array.from({ length: FORMAT3_COINS.length / 3 }, (_, i) => i).filter((i) => FORMAT3_COINS[i * 3] === room);
+  const crankFrame = RIO_SPRITE.crank - 0x8e, chulloFrame = ANDES_SPRITE.chullo - 0x8e;
+  const taken3 = [...coins3(69), ...coins3(RIO_ROOM.lap), ...coins3(CHI.heaven), ...coins3(RIO_ROOM.steak)];
+  const s0 = snapshot(newGame(WORLD, true).g);
+  const old3 = { ...s0, roomId: 69, x2: 0x0c + (12 + 4) * 4, y: standY(8), mapRow: 5, exitCol: 31,
+    coins: Array.from({ length: FORMAT3_COINS.length / 3 }, (_, i) => (taken3.includes(i) ? 0xff : 0)),
+    items: Array.from({ length: FORMAT3_ITEMS.length / 4 }, (_, i) => (i === find3(crankFrame) || i === find3(chulloFrame) ? 0x81 : 0)) };
+  const t = CODEC.unpack(CODEC.pack(old3), 3);
+  const p = newGame(WORLD, true);
+  const nowOf = (room: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => WORLD.coinTable[i * 3] === room);
+  const nowFind = (frame: number) => Array.from({ length: WORLD.specialItems.length / 4 }, (_, i) => i).find((i) => WORLD.specialItems[i * 4 + 3] === frame) ?? -1;
+  const lapa = nowOf(RIO_ROOM.lap), heaven = nowOf(CHI.heaven), steak = nowOf(RIO_ROOM.steak);
+  const wanted = [...lapa, ...heaven, ...steak];
+  check(`a format 3 save reads into today's tables: Lapa's ${lapa.length} coins taken (its two and Sugarloaf's, now Lapa's third), HEAVEN CAN WAIT's ${heaven.length} and the churrascaria's ${steak.length}, no other; the crank and the chullo still taken`,
+    taken3.length === 1 + 2 + heaven.length + steak.length && lapa.length === 3 && wanted.every((i) => t.coins[i] === 0xff) && t.coins.filter((v) => v !== 0).length === wanted.length
+      && t.items[nowFind(crankFrame)] === 0x81 && t.items[nowFind(chulloFrame)] === 0x81 && t.items.filter((v) => v !== 0).length === 2
+      && t.coins.length === WORLD.coinTable.length / 3 && t.items.length === WORLD.specialItems.length / 4);
+  restore(p.g, t);
+  for (let f = 0; f < 120; f++) frame(p, NONE);
+  check(`a format 3 save in Sugarloaf's cut room carries on in Lapa (room ${p.g.roomId} at [${p.g.mapRow},${p.g.exitCol}]), alive`, RETIRED[69] === RIO_ROOM.lap && p.g.roomId === RIO_ROOM.lap && p.g.mapRow === 6 && p.g.exitCol === 30 && !dead(p.g));
+  // every coin of format 3's rooms that are still rooms: carried to today's table where the room kept its count
+  const all3 = { ...old3, roomId: 0, x2: 0x50, y: 0xc2, mapRow: 1, exitCol: 0, coins: Array.from({ length: FORMAT3_COINS.length / 3 }, () => 0xff), items: Array.from({ length: FORMAT3_ITEMS.length / 4 }, () => 0) };
+  const a = CODEC.unpack(CODEC.pack(all3), 3);
+  const rooms3 = [...new Set(Array.from({ length: FORMAT3_COINS.length / 3 }, (_, i) => FORMAT3_COINS[i * 3] ?? 0xff))].map((r) => (r === 69 ? RIO_ROOM.lap : r));
+  const kept = [...new Set(rooms3)].filter((r) => coins3(r).length + (r === RIO_ROOM.lap ? 1 : 0) === nowOf(r).length);
+  const lost = [...new Set(rooms3)].filter((r) => !kept.includes(r));
+  check(`a format 3 save with every coin taken has every coin taken today in each room that kept its count (${kept.length} rooms; changed: ${lost.join(' ') || 'none'})`, kept.every((r) => nowOf(r).every((i) => a.coins[i] === 0xff)));
 }
 finish();

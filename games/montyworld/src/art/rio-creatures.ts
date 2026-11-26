@@ -225,3 +225,49 @@ export const RIO_CREATURES = {
 } as const satisfies Record<string, NewCreature>;
 
 export type RioCreature = keyof typeof RIO_CREATURES;
+
+// ---- the baiana: the turbaned matron of every samba school, her great hooped white skirt turning as she spins
+
+/** A baiana spinning: a white turban, a big smile, beads at the neck, arms out, the wide hooped skirt filling the bottom with its bands turning round (four frames of the spin). */
+function baiana(): NewCreature {
+  const frame = (turn: number) => {
+    const r = new Raster(16, 16);
+    r.ellipse(7.5, 1.6, 3.6, 1.8); r.rect(5, 0, 10, 2); // the turban
+    r.disc(7.5, 4.6, 2.6); // the face
+    r.cut(['#..#'], 6, 4); r.cut(['##'], 7, 6); // the eyes and the smile
+    r.rect(6, 7, 9, 8); r.rect(6, 8, 9, 8, false); r.set(7, 8); // the beads at the neck
+    limb(r, 5, 8, 1, 7 + (turn % 2), 2); limb(r, 10, 8, 14, 7 + ((turn + 1) % 2), 2); // the arms out, waving
+    r.triangle(7.5, 8, -1, 15.5, 16, 15.5); r.rect(1, 13, 14, 15); // the hooped skirt
+    for (let k = 0; k < 3; k++) { const x = 1 + ((turn * 2 + k * 5) % 14); r.rect(x, 11, x, 15, false); } // its bands, turning
+    r.rect(0, 12, 15, 12, false); // the hoop
+    return r.rows();
+  };
+  return pair('baiana', [frame(0), frame(1), frame(2), frame(3)], 1, true);
+}
+
+// ---- the passista: a samba school's star dancer, the great fan of feathers on her back, high stepping
+
+/** A passista dancing: the wide fan of plumes behind her (the costeiro), a smile, arms waving high, a sequinned two-piece, one knee up and then the other. */
+function passista(): NewCreature {
+  const frame = (step: 0 | 1 | 2 | 3) => {
+    const r = new Raster(16, 16);
+    for (let k = -4; k <= 4; k++) { const a = (k * 20 * Math.PI) / 180; r.line(7.5, 7, 7.5 + Math.sin(a) * 8, 7 - Math.cos(a) * 7); } // the fan of plumes
+    r.ellipse(7.5, 3, 7.5, 3.4); r.ellipse(7.5, 4, 4, 2, false); // (its feathered rim, cut inside)
+    r.disc(7.5, 5, 2.4); r.cut(['#..#'], 6, 4); r.cut(['##'], 7, 6); // the face, the eyes, the smile
+    r.rect(6, 8, 9, 9); r.rect(6, 10, 9, 10, false); r.rect(6, 11, 9, 11); // the top and the belt
+    const arms: readonly (readonly [number, number, number, number])[] = [[1, 3, 14, 6], [2, 7, 13, 2], [1, 6, 14, 3], [3, 2, 12, 7]];
+    const [lx, ly, rx, ry] = arms[step] ?? [1, 3, 14, 6];
+    limb(r, 5, 9, lx, ly, 2); limb(r, 10, 9, rx, ry, 2);
+    const leftUp = step % 2 === 0;
+    if (leftUp) { r.rect(5, 12, 6, 13); r.rect(5, 13, 7, 13); r.rect(9, 12, 10, 15); } else { r.rect(9, 12, 10, 13); r.rect(8, 13, 10, 13); r.rect(5, 12, 6, 15); } // a knee up, the other leg down
+    return r.rows();
+  };
+  return pair('passista', [frame(0), frame(1), frame(2), frame(3)], 7, true);
+}
+
+/** Rio's creatures added after the region shipped (the carnival's rooms brought back, 2026-11-25): after every region's in the world's list, so no earlier creature's type moves. */
+export const RIO_CARNIVAL_CREATURES = {
+  baiana: baiana(),
+  passista: passista(),
+} as const satisfies Record<string, NewCreature>;
+

@@ -234,6 +234,10 @@ and bitmaps compress well), so all seven regions are about 43 KB on disk plus th
   rewritten, the tune patched, the hat/costume blocks put in place, the sector names loaded, the target room built by
   the ordinary `LoadRoom`. Going back across the border loads the first region again. Travel from the map to another region
   does the same.
+- **Decorations.** The region file carries its own decoration list (the kinds its rooms place, up to 255, each a w x h bitmap and
+  its colours) and its rooms' placements, whose type byte indexes that list, exactly the web build's tables (`decorSets[n]` and
+  the placements of the rooms with `decorSetIdx` n: the build tool writes them as they are). `LoadRegion` loads the list over the
+  last region's; MOTR's `Decor.CalculateRoom` is unchanged, as it only ever sees the one list in RAM.
 - **Disk.** KERNAL `LOAD` is about 0.3-0.4 KB a second on a 1541: 13 KB would be half a minute. A **fast loader** with crunching
   (Krill's Loader, Spindle or Sparkle; check each licence; assembled on Chris's Mac, we only link it) makes it **1-3 seconds**
   from a crunched 6-8 KB, a pause with the screen blank, as in any multiload game.
@@ -255,7 +259,7 @@ past what a C64 holds. Current worst values are measured.
 
 | Budget | Limit | Why | Today (worst) |
 |---|---|---|---|
-| Decoration kinds in one region | **255** (the type is a byte in a region's list) | MOTR's list is 4-byte records with a one-byte type | 69 (Japan); the world has 201 in all, so the web's `decorRooms` is one byte a kind again, as MOTR's (`MAX_DECOR_KINDS` in `rooms.ts`; the pieces no room places are left out of the table, `WORLD_DECOR`); checked by `games/montyworld/test/budget.ts` |
+| Decoration kinds in one region | **255** (the type is a byte in a region's list) | MOTR's list is 4-byte records with a one-byte type | 71 (Japan), 70 (Hawaii), 44 (Rio); the world's lists hold 314 kinds in all, past one byte, so since 2026-11-26 the web build does as the C64 port will: each region has a list of its own (`decorSets`, `decorSetIdx` by room in `rooms.ts`, made by `buildRooms`' `decorRegion` from the pieces the region's rooms place, in the library's order, then its signs), a room's byte in `decorRooms` indexes its region's list (`MAX_DECOR_KINDS` a list), and the engine reads a room's kinds through `roomDecorTypes`, so the list in force changes only as a region is entered. The pieces are named by their place in the one library (`WORLD_DECOR`, `decorIndex`); data.ts turns the animations' and floats' references into their region's numbers (`decorKindIn`). Checked by `games/montyworld/test/budget.ts`, a region at a time |
 | Decoration characters in one room | **100** (`$9B-$FE`), counting each type once | MOTR copies a type's bitmap into the next free characters; past `$FE` it draws garbage | 98, China `$19`; 97 Japan `$1E`, 94 Moscow `$02`, 90 Rio `$4D` (`budget.ts` fails past 100) |
 | Decoration types in one room | 16 | the per-room decor setup list | 16 (Siberia) |
 | Tiles in a region | 48 (each 8 B) | 4 pointers wide in the region header | 44 (Japan) |

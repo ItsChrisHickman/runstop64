@@ -197,6 +197,19 @@ export function applyMonty(b: MontyBody, w: MontyWorld) {
   }
 }
 
+/**
+ * A step more the way he is walking, as `applyMonty` takes one but without the step gate (a game's run: montyotr's `runs`): blocked as a step is, out of the room by an edge as a step is. Not the original's.
+ */
+export function extraStep(b: MontyBody, w: MontyWorld) {
+  if (b.dirLeft && !blockedLeft(b, w)) {
+    if (b.x2 < 0x14) { if (exitTo(b, w, b.mapRow, b.exitCol - 1)) b.x2 = 0x9b; return; }
+    b.x2--;
+  } else if (b.dirRight && !blockedRight(b, w)) {
+    if (b.x2 >= 0x9c) { if (exitTo(b, w, b.mapRow, b.exitCol + 1)) b.x2 = 0x15; return; }
+    b.x2++;
+  }
+}
+
 /** UpdateMovement: decide, then apply (a game that changes the decision in between calls the two itself). */
 export function moveMonty(b: MontyBody, w: MontyWorld, rules: MontyRules) {
   decideMonty(b, w, rules);

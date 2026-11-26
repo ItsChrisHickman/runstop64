@@ -24,12 +24,12 @@ import { must } from '../../shared/test/must';
 import { hoodWorn, WORLD_CREATURES, WORLD_DECOR } from '../src/art';
 import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
-import { WORLD } from '../src/data';
+import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
-import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
+import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
 import { CODEC } from '../src/main';
 import { PAC } from '../src/pacific';
 import { ACTIONS, hold, newGame } from '../../shared/monty/test/bot';
@@ -47,16 +47,20 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  check('Japan is eleven rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 (the three regions before it unchanged)',
-    cells.filter((c) => c >= JP.harbour && c <= JP.port).length === 11 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16)].join()
-      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff && grid(0, 14) === 0xff);
+  check('Japan is twelve rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 and SHOOT FOR THE MOON\'s 97 (added after the flight; the three regions before it unchanged)',
+    cells.filter((c) => (c >= JP.harbour && c <= JP.port) || c === JP.grove).length === 12 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16), grid(0, 14)].join()
+      === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port, JP.grove].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff);
+  const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
+  const firstAdded = coinRooms.indexOf(CHI.heaven);
+  check('SHOOT FOR THE MOON\'s two coins are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins) and it has no find',
+    coinsIn(JP.grove, JP.grove) === 2 && firstAdded >= 0 && coinRooms.indexOf(JP.grove) > firstAdded && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && itemsIn(JP.grove, JP.grove) === 0);
   const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
   check('Japan\'s 3 key items and 2 snacks count on the pause screen', keyItemsIn(JP.harbour, JP.port) === 3 && snacksIn(JP.harbour, JP.port) === 2);
   const rooms = creatureRooms(JAPAN_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in Japan's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
+  check(`${rooms.size} kinds of creature in Japan's twelve rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size === CREATURE_NAMES.length && rooms.size >= 8 && rooms.size <= 12 && most <= 2);
   const used = [...HAT_BLOCKS, ...Object.values(JAPAN_SPRITE)];
   check(`every block of the bank Japan uses is its own (${used.length} pointers, none twice, none Monty's: $50-$73) and its four items have pictures there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && Object.values(JAPAN_SPRITE).every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
@@ -115,7 +119,7 @@ SCOPE.section([], 'the layout\'s sanity: nothing drawn in a tile', () => {
     for (const e of r.enemies ?? []) { const { col, row } = inRoom(e.col, e.row); for (const [x, y] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) if (wall(col + x, row + y)) problems.push(`room ${r.id}: a creature starts in a tile at ${col},${row}`); }
     const first = decorChars(WORLD, r.id);
     const placed = new Set((r.decor ?? []).flatMap((d) => (typeof d.type === 'number' ? [d.type] : [])));
-    for (const t of placed) if (!first[t]) problems.push(`room ${r.id}: decoration ${t} did not fit in the character pool`);
+    for (const t of placed) if (!first[WORLD.decorKindIn(r.id, t) ?? -1]) problems.push(`room ${r.id}: decoration ${t} did not fit in the character pool`);
     pools += [...placed].reduce((n, t) => n + (decorTypes[t]?.w ?? 0) * (decorTypes[t]?.h ?? 0), 0);
     if (r.tiles.length > 8) problems.push(`room ${r.id}: more than eight tiles`);
   }
@@ -675,7 +679,7 @@ SCOPE.section([JP.crossing], 'THE CROSSING: taxis and the crowd', () => {
   for (let f = 0; f < 200 && !dead(c.g); f++) { frame(c, RIGHT); if (Array.from({ length: 32 }, (_, k) => k).some((k) => crowdCodes.has(cell(c.g, k, 15)))) crowdSeen = true; }
   check('in the crowd\'s wave he walks through its pictured figures unhurt', crowdSeen && !dead(c.g));
   // the signals: the red man while the taxis have the road, the green man after
-  const ref = decorChars(WORLD, JP.crossing)[decorIndex('jpWalkSignal')] ?? 0;
+  const ref = pieceChar(WORLD, JP.crossing, 'jpWalkSignal');
   const sig = at(JP.crossing, 3, 17);
   const lit = (g: Game) => [0, 1].map((k) => Array.from(g.mem.subarray((ref + k) * 8, (ref + k) * 8 + 8)).join());
   const red = lit(sig.g);

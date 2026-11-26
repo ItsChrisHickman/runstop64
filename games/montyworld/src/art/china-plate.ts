@@ -8,8 +8,11 @@ import { decor } from './decorations';
 import { Raster } from './raster';
 import type { NewDecor } from './types';
 
-/** The great weeping willow: a trunk leaning up and right from the bank, a few boughs arching over from its crown, long thin strands falling from them to the ground, a leaf notched on each now and then. 5 x 6 characters. */
-function willowTree(): NewDecor {
+/**
+ * The great weeping willow: a trunk leaning up and right from the bank, a few boughs arching over from its crown, long thin strands falling from them to the ground, a leaf notched on each now and then. 5 x 6 characters.
+ * The plate's in its blue; Houhai's (DON'T ROCK THE BOAT) the same tree in green.
+ */
+export function willowTree(name = 'willowTree', colour = 14): NewDecor {
   const r = new Raster(40, 48);
   for (let k = 0; k < 4; k++) r.line(9 + k, 47, 11 + k, 34); // the trunk
   for (let k = 0; k < 3; k++) r.line(11 + k, 34, 15 + k, 15);
@@ -30,7 +33,7 @@ function willowTree(): NewDecor {
     }
   };
   bough(0, 22, 9, 5, 3); bough(10, 8, 6, 7, 4); bough(34, 20, 10, 5, 3); bough(39, 36, 7, 8, 8);
-  return decor('willowTree', 5, 6, r, 14);
+  return decor(name, 5, 6, r, colour);
 }
 
 /** An orchard tree of the plate: a crown of round tufts, each a ring round a dot, on a short trunk. 2 x 2 characters. */

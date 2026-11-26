@@ -28,7 +28,7 @@ const ROOMS = [
   { room: RIO_ROOM.steak, name: 'churrascaria', col: 30, floor: 18 },
   { room: RIO_ROOM.drum, name: 'carnival-drum', col: 1, floor: 18 },
   { room: RIO_ROOM.bust, name: 'carnival-bust', col: 2, floor: 18 },
-  { room: RIO_ROOM.sugar, name: 'sugar-sea', col: 2, floor: 18 },
+  { room: RIO_ROOM.beat, name: 'carnival-street', col: 2, floor: 18 },
   { room: RIO_ROOM.lap, name: 'lapa-sky', col: 4, floor: 18 },
 ];
 /** Frames shot after the coins are taken: past a whole shimmer cycle (11 steps). */

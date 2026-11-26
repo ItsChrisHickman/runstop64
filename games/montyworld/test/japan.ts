@@ -24,7 +24,7 @@ const args = readArgs();
 const only = args.only;
 
 /** The rooms and finds of Japan in the tables: the rooms from the harbour on. */
-const japanese = (room: number) => room >= JP.harbour && room <= JP.port;
+const japanese = (room: number) => (room >= JP.harbour && room <= JP.port) || room === JP.grove; // (SHOOT FOR THE MOON was added after the flight: its id is 96)
 
 /** What the kept leg states are checked against (read once). */
 const PRINTS = prints();

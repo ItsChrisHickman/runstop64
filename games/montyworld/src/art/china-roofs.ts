@@ -68,4 +68,27 @@ function templeHeaven(): NewDecor {
   return decor('templeHeaven', 9, 9, r, ['777777777', 'EEEEEEEEE', '222222222', 'EEEEEEEEE', '222222222', 'EEEEEEEEE', '222222222', '222222222', '111111111']);
 }
 
-export const ROOF_DECOR = { duskBand: duskBand(), duskGlow: duskGlow(), eaveTip: eaveTip(), ridgeBeasts: ridgeBeasts(), templeHeaven: templeHeaven() } as const satisfies Record<string, NewDecor>;
+/**
+ * Beijing's Drum Tower over Houhai at dusk (DON'T ROCK THE BOAT): the great hall on its high brick terrace, seen across the lake. Two tiers of grey tiled roof with their eaves turned
+ * up, the red hall of columns and its balcony under them, and the grey brick terrace with its three arched gateways. Each row of characters one part, so a row is one ink. 7 x 6 characters.
+ */
+function drumTower(): NewDecor {
+  const r = new Raster(56, 48);
+  r.rect(26, 0, 29, 1); // the ridge's finial
+  r.triangle(8, 9, 47, 9, 27.5, 1); r.rect(10, 6, 45, 9); r.set(7, 7); r.set(48, 7); r.rect(9, 8, 46, 8, false); // the upper roof, its eaves lifting at the corners
+  r.rect(14, 10, 41, 15); for (let x = 16; x < 41; x += 4) r.rect(x, 11, x + 1, 15, false); // the upper hall's columns
+  r.rect(3, 16, 52, 19); r.set(1, 16); r.set(54, 16); r.rect(4, 18, 51, 18, false); // the lower roof
+  r.rect(6, 20, 49, 29); for (let x = 8; x < 49; x += 4) r.rect(x, 21, x + 1, 27, false); r.rect(5, 28, 50, 29); for (let x = 6; x < 50; x += 3) r.set(x, 28, false); // the hall and its balcony rail
+  r.rect(0, 30, 55, 47); for (let y = 33; y < 47; y += 3) r.rect(0, y, 55, y, false); // the brick terrace in courses
+  for (const cx of [14, 27.5, 41]) { r.ellipse(cx, 38, 4.5, 4.5, false); r.rect(cx - 4.5, 38, cx + 4.5, 47, false); } // its three gateways
+  return decor('drumTower', 7, 6, r, ['BBBBBBB', '2222222', 'BBBBBBB', '2222222', 'CCCCCCC', 'CCCCCCC']);
+}
+
+/** The far shore of Houhai under the Drum Tower: low hutong roofs and the tops of trees in a dark line along the water's far side. A backdrop stamped a cell at a time. 1 x 1 character. */
+function farShore(): NewDecor {
+  const r = new Raster(8, 8);
+  r.triangle(0, 5, 5, 5, 2.5, 2); r.rect(0, 5, 7, 7); r.disc(6, 3.5, 1.8); // a roof's gable, a tree's crown, the shore under them
+  return decor('farShore', 1, 1, r, 11);
+}
+
+export const ROOF_DECOR = { duskBand: duskBand(), duskGlow: duskGlow(), eaveTip: eaveTip(), ridgeBeasts: ridgeBeasts(), templeHeaven: templeHeaven(), drumTower: drumTower(), farShore: farShore() } as const satisfies Record<string, NewDecor>;

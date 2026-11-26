@@ -6,7 +6,7 @@
  * the mine's hairpin, the river's ice, China's road.
  * As functions on the game; shared by the bot test and the pictures.
  */
-import { CLOSET, SIB } from '../src/siberia';
+import { CLOSET, SIB, TAIGA } from '../src/siberia';
 import { ROOM } from '../src/moscow';
 import { above, coin, into, item, leg, standY, stands, type Leg } from './route';
 
@@ -33,6 +33,11 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('M: up the timber ledges, the coin at the top', coin(SIB.mine, 23, 12)),
   leg('M: the cart west over the working, the coin on the west dock', coin(SIB.mine, 2, 16)),
   leg('M to G: down the rope through the dock', into(SIB.border, 5, 19, SIB.mine)),
+  leg('G to T: west along the village bank into the taiga (OFF THE BEATEN PATH, a bonus room)', into(SIB.taiga, 0, 15, SIB.border)),
+  ...TAIGA.boughs.map(([col, floor, cols], i) => leg(`T: up the pines, bough ${i + 1} (its snow slides off if he stops)`, stands(SIB.taiga, floor, col, col + cols - 2))),
+  leg('T: up to the eagle owl\'s nest, its coin', coin(SIB.taiga, 23, 3)),
+  leg('T: back down to the third bough, the coin under the icicle', coin(SIB.taiga, 18, 9)),
+  leg('T to G: back east along the trail to the village', into(SIB.border, 31, 15, SIB.taiga)),
   leg('G: over the first ice to the sandbar, its coin', coin(SIB.border, 16, 15)),
   leg('G: over the second ice, past the reindeer and the guard, past the raised barrier', stands(SIB.border, 17, 29, 31)),
 ];

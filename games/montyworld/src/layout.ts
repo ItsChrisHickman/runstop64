@@ -1,4 +1,6 @@
 import { enemyColours } from '../../montyotr/src/data';
+import { decorChars } from '../../montyotr/src/decor-chars';
+import type { MontyData } from '../../montyotr/src/montydata';
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { WORLD_CREATURES, WORLD_DECOR, worldTileIndex, type WorldCreature, type WorldDecor, type WorldTile } from './art/world';
@@ -71,9 +73,18 @@ export const FIRST_CREATURE = 35;
 const creatureNames = Object.keys(WORLD_CREATURES);
 const decorNames = Object.keys(WORLD_DECOR);
 
-/** A decoration's type number (its place in the game's decoration list: what a `charAnims` entry names it by). */
+/**
+ * A piece's number in the decoration library (what a room's `decor` and a `charAnims` or `floats` entry name it by: data.ts turns the latter into the room's region's
+ * numbers, `decorKindIn`, as `buildRooms` turns the rooms').
+ */
 export function decorIndex(name: WorldDecor): number {
   return decorNames.indexOf(name);
+}
+
+/** The first character a room draws a piece in (0 where its room has none of it), whatever its region numbers the piece. */
+export function pieceChar(data: MontyData, room: number, name: WorldDecor): number {
+  const kind = data.decorKindIn(room, decorIndex(name));
+  return kind === undefined ? 0 : decorChars(data, room)[kind] ?? 0;
 }
 
 /** A palette letter's code (1-8). */

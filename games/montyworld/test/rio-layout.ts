@@ -9,7 +9,7 @@ import { scopedRooms } from './scope';
 import { WORLD_DECOR } from '../src/art/world';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
-import { WORLD } from '../src/data';
+import { DECOR_LIBRARY, WORLD } from '../src/data';
 import { creatureRooms } from './route';
 
 const NAME = new Map<number, string>(Object.entries(RIO_ROOM).map(([k, v]) => [v, k]));
@@ -35,7 +35,7 @@ for (const r of scopedRooms(RIO_ROOMS)) {
     const type = names[d.type];
     if (!type) continue;
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }
-    const backdrop = WORLD.decorTypes[d.type]?.backdrop === true; // (a backdrop keeps a coin in it: the engine draws the coin over it)
+    const backdrop = DECOR_LIBRARY[d.type]?.backdrop === true; // (a backdrop keeps a coin in it: the engine draws the coin over it)
     for (let y = 0; y < type.h; y++) for (let x = 0; x < type.w; x++) {
       const c = d.col - PLAY_COL + x, row = d.row - PLAY_ROW + y;
       if (!backdrop) decor.add(`${c},${row}`);
@@ -58,8 +58,9 @@ for (const r of scopedRooms(RIO_ROOMS)) {
   }
 }
 
-const rooms = creatureRooms(RIO_ROOMS);
-for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of Rio (${[...where].join(', ')})`, where.size <= 2);
+// (the beach's creatures are the finale's troupe, off the picture until it walks them on: not creatures met in play)
+const rooms = creatureRooms(RIO_ROOMS.filter((r) => r.id !== RIO_ROOM.bust));
+for (const [type, where] of rooms) check(`creature ${type} is in at most two of Rio's play rooms (${[...where].join(', ')})`, where.size <= 2);
 check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('six play rooms and the beach', RIO_ROOMS.length === 7);
+check('seven play rooms and the beach', RIO_ROOMS.length === 8);
 finish();

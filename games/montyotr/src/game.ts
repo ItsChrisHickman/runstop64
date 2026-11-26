@@ -28,6 +28,7 @@ import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
 import { coverable, decorChars, decorPool } from './decor-chars';
+import { roomDecorTypes } from '../../shared/monty/rooms';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
@@ -100,6 +101,8 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- frame / flow -------------------------------------------------------------
   frameToggle = 0;
+  /** On the run (monty.ts `runs`): which of his steps gets a step more (every other one). */
+  runGate = 0;
   freeze = 1;
   gameMode = 0;
   actionCounter = 0;
@@ -453,7 +456,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | Items.leavingSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -555,6 +558,7 @@ export class Game implements MontyBody, MontyWorld {
     }
     this.dispatch();
     if (this.script) return;
+    Items.useOnTheSpot(this);
     if (this.roomExit) {
       // The original's RoomLoop reacts to room_exit straight away (it freezes
       // the game before the next frame), so start the transition now. Leaving
@@ -722,7 +726,14 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- room loading: original LoadRoom ---------------------------------------------
 
+  /** The room effects used on the spot this visit (`RoomEffect.at`, items.ts `useOnTheSpot`): empty on every load, so a gate given way stays open until he leaves or the room starts again. */
+  usedHere = new Set<number>();
+  /** The guards walking off this visit (items.ts `leaveTick`): an enemy slot and the way it goes. */
+  leaving: { slot: number; dx: -1 | 1 }[] = [];
+
   loadRoom() {
+    this.usedHere = new Set<number>();
+    this.leaving = [];
     const id = this.roomId;
     const data = this.data;
     const def = data.roomDef(id);
@@ -945,9 +956,9 @@ export class Game implements MontyBody, MontyWorld {
     });
   }
 
-  /** Decor.CalculateRoom: decorations allocate chars from $9B up and draw w×h blocks. */
+  /** Decor.CalculateRoom: decorations allocate chars from $9B up and draw w×h blocks (the kinds of the room's region's list: a C64 build has it loaded from disk as the region is entered). */
   private decorate() {
-    const { decorRooms, decorTypes } = this.data;
+    const { decorRooms } = this.data, decorTypes = roomDecorTypes(this.data, this.roomId);
     const first = decorChars(this.data, this.roomId);
     for (let i = 0; i + 3 < decorRooms.length; i += 4) {
       if (decorRooms[i] !== this.roomId) continue;
@@ -1039,6 +1050,7 @@ export class Game implements MontyBody, MontyWorld {
       this.sptr[n] = 0x30 + slot * 8 + frame;
       this.enable |= 1 << n;
     }
+    Items.leaveTick(this);
   }
 
   // ---- theme char animation (water and lava) ----------------------------------------

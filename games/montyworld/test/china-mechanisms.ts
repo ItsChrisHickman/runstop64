@@ -21,7 +21,7 @@ import { must } from '../../shared/test/must';
 import { riceHatWorn } from '../src/art';
 import { ARM_PULSES, AWNING_CRACKS, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from '../src/china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
-import { WORLD } from '../src/data';
+import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
@@ -40,19 +40,21 @@ SCOPE.section([], 'the data: China on the grid, its entries, creatures, sprite b
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  check('China is ten rooms, a block of four columns (8-11) by three rows beside Siberia\'s, room ids 18 to 26 and HEAVEN CAN WAIT\'s 82 (added after the flight\'s; Moscow\'s and Siberia\'s unchanged)',
-    cells.filter((c) => (c >= CHI.wall && c <= CHI.junk) || c === CHI.heaven).length === 10 && [grid(0, 8), grid(0, 9), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9)].join()
-      === [CHI.top, CHI.heaven, CHI.roofs, CHI.willow, CHI.tower, CHI.market, CHI.gate, CHI.junk, CHI.wall, CHI.alley].join() && grid(2, 7) === SIB.border && grid(1, 3) === ROOM.station && grid(2, 10) === 0xff);
+  check('China is eleven rooms, a block of four columns (8-11) by three rows beside Siberia\'s, room ids 18 to 26, HEAVEN CAN WAIT\'s 82 and DON\'T ROCK THE BOAT\'s 95 (added after the flight\'s; Moscow\'s and Siberia\'s unchanged)',
+    cells.filter((c) => (c >= CHI.wall && c <= CHI.junk) || c === CHI.heaven || c === CHI.houhai).length === 11 && [grid(0, 8), grid(0, 9), grid(0, 10), grid(0, 11), grid(1, 8), grid(1, 9), grid(1, 10), grid(1, 11), grid(2, 8), grid(2, 9), grid(2, 10)].join()
+      === [CHI.top, CHI.heaven, CHI.roofs, CHI.willow, CHI.tower, CHI.market, CHI.gate, CHI.junk, CHI.wall, CHI.alley, CHI.houhai].join() && grid(2, 7) === SIB.border && grid(1, 3) === ROOM.station && grid(2, 11) === 0xff);
   const before = entriesBefore(CHI.wall, CHI.junk);
   check('Moscow keeps its coins and finds, in the same table places (first), the regions before China come before its own entries, and China adds 17 coins and 5 finds (two dumplings, the key, the rice hat, the bamboo)',
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && before.ordered && coinsIn(CHI.wall, CHI.junk) === 17 && itemsIn(CHI.wall, CHI.junk) === 5);
-  const last = WORLD.coinTable.length / 3 - 1;
-  check('HEAVEN CAN WAIT\'s one coin is the coin table\'s last entry (added after every region: no other coin\'s place moves, so every save keeps its coins) and it has no find',
-    coinsIn(CHI.heaven, CHI.heaven) === 1 && WORLD.coinTable[last * 3] === CHI.heaven && itemsIn(CHI.heaven, CHI.heaven) === 0);
+  const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
+  const firstAdded = coinRooms.indexOf(CHI.heaven);
+  check('HEAVEN CAN WAIT\'s one coin and DON\'T ROCK THE BOAT\'s two are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins), HEAVEN CAN WAIT\'s first; neither has a find',
+    coinsIn(CHI.heaven, CHI.heaven) === 1 && coinsIn(CHI.houhai, CHI.houhai) === 2 && firstAdded >= 0 && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && coinRooms.lastIndexOf(CHI.houhai) > firstAdded
+      && itemsIn(CHI.heaven, CHI.heaven) === 0 && itemsIn(CHI.houhai, CHI.houhai) === 0);
   check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\'', keyItemsIn(CHI.wall, CHI.junk) === 3 && snacksIn(CHI.wall, CHI.junk) === 2);
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in China's ten rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
+  check(`${rooms.size} kinds of creature in China's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
   SCOPE.section([CHI.market], 'the data: the dragon\'s room is clear', () => {
     const market = must(CHINA_ROOMS.find((r) => r.id === CHI.market), 'the market');
     check('the dragon\'s room has no creature, item, lift or icicle (its sprites are the ones they would use)', !market.enemies?.length && !market.item && !market.cake && WORLD.lifts.every((l) => l.room !== CHI.market) && WORLD.icicles.every((i) => i.room !== CHI.market));

@@ -1,7 +1,7 @@
 /**
  * Rio's tiles for Monty Mole: World Tour (region 7): 8 x 8 hires characters for a room's codes 1-8, in Monty on the Run's style as the
  * earlier regions' are: one bright ink on black in solid shapes cut with black lines, never a checker or a dither. Copacabana's wave
- * pavement and sand, the sea, Sugarloaf's granite and its cable, the favela's plaster and tiles, Lapa's limestone arches, the quay and
+ * pavement and sand, the sea, Sugarloaf's granite, the favela's plaster and tiles, Lapa's limestone arches, the quay and
  * pier, the churrascaria's floor, bricks and cloth, and the carnival's street, floats and risers. (A ladder, a rope and the jungle's
  * foliage are the earlier regions': woodLadder, vine and jungleLeaf in andes-tiles.ts.)
  */
@@ -41,7 +41,7 @@ export const RIO_TILES = {
     '..##..##',
     '........',
   ]),
-  /** The bay's water under the cable car: swell with its foam, deadly. Deadly. */
+  /** The water (the Canal do Mangue under the parade's floats): swell with its foam. Deadly. */
   bayWater: tile('bayWater', 4, 6, [
     '........',
     '.##..##.',
@@ -74,29 +74,7 @@ export const RIO_TILES = {
     '........',
     '........',
   ]),
-  /** The cable, its lower half of a pair: a steel line climbing one pixel for every two across, from the cell's bottom left to a little over half way up (the pair climbs one row across two cells; `cableHigh` carries on). Nothing. */
-  cableLow: tile('cableLow', 0, 15, [
-    '........',
-    '........',
-    '........',
-    '........',
-    '......##',
-    '....####',
-    '..####..',
-    '####....',
-  ]),
-  /** The cable, its upper half: carries on from `cableLow`'s end to the cell's top right, where the next pair's low half (a row up) takes it. Nothing. */
-  cableHigh: tile('cableHigh', 0, 15, [
-    '......##',
-    '....####',
-    '..####..',
-    '####....',
-    '........',
-    '........',
-    '........',
-    '........',
-  ]),
-  /** A station's floor: steel grating with its slots. A floor. */
+  /** Steel grating with its slots (the Sambadrome's stand and lighting gantry). A floor. */
   stationFloor: tile('stationFloor', 2, 15, [
     '########',
     '#.#.#.#.',
@@ -371,7 +349,7 @@ export const RIO_TILES = {
     '########',
     '######.#',
   ]),
-  /** The cable car station's gate: red steel bars he cannot pass until the key. Solid. */
+  /** Red steel bars (the Sambadrome's, under the control booth: they lift once Viktor is squashed). Solid. */
   stationGate: tile('stationGate', 1, 2, [
     '##.##.##',
     '##.##.##',

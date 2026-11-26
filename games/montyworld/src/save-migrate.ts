@@ -2,9 +2,13 @@ import type { MontyData } from '../../montyotr/src/montydata';
 import type { MontySave } from '../../montyotr/src/save';
 import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS, FORMAT2_ROOMS } from './save-format2';
+import { FORMAT3_COINS, FORMAT3_ITEMS, FORMAT3_ROOMS } from './save-format3';
+
+/** The formats before today's that a save may be in. */
+type Older = 1 | 2 | 3;
 
 /**
- * Reading a save of an earlier format into today's tables: format 1 (the game as shipped before the reset) and format 2 (after the reset, before Hawaii's island hopping came back, the parlour's prize shelf took a coin and the daruma moved to BULLET POINT's platform, 2026-11-25). A save's coins
+ * Reading a save of an earlier format into today's tables: format 1 (the game as shipped before the reset), format 3 (2026-11-25/26, before the Andes' rebuild, the bonus rooms off the path and Rio's carnival: save-format3.ts) and format 2 (after the reset, before Hawaii's island hopping came back, the parlour's prize shelf took a coin and the daruma moved to BULLET POINT's platform, 2026-11-25). A save's coins
  * and finds are flags by their place in the tables, and the reset and Hawaii's return cut, moved and added rooms, so each flag is matched to what it was (save-format1.ts, save-format2.ts) and set where that
  * is now: a coin by its room and cell, a find by its room and picture, a key item by its picture alone (the chullo moved rooms, the snorkel, the lei and the parachute too), a find no room shows by its order
  * among them (Viktor's escapes). Coins and snacks of rooms that were cut are gone with them; every key item taken stays taken, so no gate closes again.
@@ -27,16 +31,14 @@ export const RETIRED: Readonly<Record<number, number>> = {
   50: 49, // FISH OUT OF WATER (format 1's): today's SHELL GAME, the crossing to the Big Island
   54: 53, // THE CARGO PLANE (HOLD YOUR HORSES in format 1): Hilo, by the biplane
   // the Andes and the Amazon
-  56: 57, // OUT OF THIN AIR: the gorge (CONDOR COUNTRY)
   60: 59, // MARKET FORCES: Machu Picchu
   61: 59, // MIST OPPORTUNITY: Machu Picchu
-  64: 66, // THE RIVER QUEEN: the rainforest's river
   78: 58, // LLAMA DRAMA (never shipped, but a test build had it): the terraces
   // Rio
   67: 71, // QUAY TO THE CITY: Rio starts at Corcovado (OPEN ARMS)
   72: 71, // MONKEY BUSINESS: merged into OPEN ARMS (Tijuca at its foot)
-  70: 69, // SUGARLOAF SUMMIT: SUGAR RUSH, the cable car
-  76: 75, // FLOAT YOUR BOAT: merged into the Sambadrome (SPY VERSUS MOLE)
+  69: 68, // Sugarloaf and its cable car (cut 2026-11-25): Lapa, the room before it on the street
+  // (70 and 76 are rooms again: BEAT THE DRUM and FLOAT YOUR BOAT, the carnival, 2026-11-25; a format 1 save in SUGARLOAF SUMMIT's 70 carries on in BEAT THE DRUM)
 };
 
 /** Where a kept room that takes the saves of cut rooms is come into, when that is not its west end, low (Rio's OPEN ARMS: high on the canopy, entered from the Amazon; its forest floor is the marmoset's). */
@@ -46,12 +48,22 @@ const WAY_IN: Readonly<Record<number, { col: number; floor: number }>> = {
 };
 
 /**
- * A room whose id took a different place in a format: where a save made in it then carries on (before `RETIRED`). Format 1's HANA BANANA (49) is HANA now (87: 49 is the swim to the Big Island); format 2's
+ * A room whose id took a different place in a format: where a save made in it then carries on (before `RETIRED`). Format 1's HANA BANANA (49) is HANA now (87: 49 is the swim to the Big Island), its CLOUD NINE and VINE AND DANDY 84 and 85; format 2's
  * HILO (52) was the lava and the airport in one: a save on its apron (floor 5 and above) carries on in Hilo by the biplane (53), one in the crater on Mauna Loa (52, the lava's room now).
  */
-const MOVED: Readonly<Record<1 | 2, (s: MontySave) => number>> = {
-  1: (s) => (s.roomId === 49 ? 87 : s.roomId),
+/**
+ * Format 1's rooms whose ids other rooms took: HANA BANANA (49) is HANA (87); CLOUD NINE (62), VINE AND DANDY (65) and THE RIVER ENDS (66) came back as 84, 85 and 94 (62 is the canopy's now, 65 the
+ * roots', 66 the creek's). Their coins and snacks are matched in the room they are in now, and so is where he was.
+ */
+const FORMAT1_MOVED: Readonly<Record<number, number>> = { 49: 87, 62: 84, 65: 85, 66: 94 };
+/** A room of a format's tables as today's id: the room that came back under a new id (coins and finds; where he was is `MOVED`). */
+/** Formats 2's and 3's Sugarloaf room (69, cut with its cable car 2026-11-25): its coin is Lapa's third now (the steps up from the carnival's street), so its coins are Lapa's. */
+const SUGARLOAF_MOVED: Readonly<Record<number, number>> = { 69: 68 };
+const ROOM_NOW: Readonly<Record<Older, (id: number) => number>> = { 1: (id) => FORMAT1_MOVED[id] ?? id, 2: (id) => SUGARLOAF_MOVED[id] ?? id, 3: (id) => SUGARLOAF_MOVED[id] ?? id };
+const MOVED: Readonly<Record<Older, (s: MontySave) => number>> = {
+  1: (s) => FORMAT1_MOVED[s.roomId] ?? s.roomId,
   2: (s) => (s.roomId === 52 && floorAt(s.y) <= 5 ? 53 : s.roomId),
+  3: (s) => s.roomId,
 };
 
 const PLAY_COL = 4, COLS = 32, ROWS = 20;
@@ -100,20 +112,45 @@ export function carryOn(data: MontyData, s: MontySave): MontySave {
 
 /** The tables a format's saves were written against: its coins (room, column, row), finds (room, x, y, picture) and rooms (id, hash of the cells). */
 interface Tables { readonly coins: readonly number[]; readonly items: readonly number[]; readonly rooms: readonly number[] }
-const FORMATS: Readonly<Record<1 | 2, Tables>> = {
+const FORMATS: Readonly<Record<Older, Tables>> = {
   1: { coins: FORMAT1_COINS, items: FORMAT1_ITEMS, rooms: FORMAT1_ROOMS },
   2: { coins: FORMAT2_COINS, items: FORMAT2_ITEMS, rooms: FORMAT2_ROOMS },
+  3: { coins: FORMAT3_COINS, items: FORMAT3_ITEMS, rooms: FORMAT3_ROOMS },
 };
 
+/**
+ * Each coin of a format's table and today's place of it: the coin at the same cell of the room it is in now; and where a room's coins moved (Rio's and the Andes' rebuilds), the ones left unmatched in
+ * their order, when as many are left then as now (the room kept its count, so a room whose coins were all taken still has them all taken). A coin with neither is gone with its room or its cell.
+ */
+function coinsNow(data: MontyData, then: readonly number[], roomNow: (id: number) => number): [then: number, now: number][] {
+  const byRoom = (table: ArrayLike<number>, room: (id: number) => number) => {
+    const out = new Map<number, number[]>();
+    for (let i = 0; i * 3 < table.length; i++) {
+      const r = room(table[i * 3] ?? 0xff), list = out.get(r) ?? [];
+      list.push(i);
+      out.set(r, list);
+    }
+    return out;
+  };
+  const nowByRoom = byRoom(data.coinTable, (id) => id), pairs: [number, number][] = [];
+  for (const [room, olds] of byRoom(then, roomNow)) {
+    const news = nowByRoom.get(room) ?? [], used = new Set<number>(), left: number[] = [];
+    for (const i of olds) {
+      const j = news.find((k) => !used.has(k) && data.coinTable[k * 3 + 1] === then[i * 3 + 1] && data.coinTable[k * 3 + 2] === then[i * 3 + 2]);
+      if (j === undefined) left.push(i);
+      else { used.add(j); pairs.push([i, j]); }
+    }
+    const free = news.filter((k) => !used.has(k));
+    if (left.length === free.length) left.forEach((i, n) => pairs.push([i, free[n] ?? -1]));
+  }
+  return pairs.filter(([, j]) => j >= 0);
+}
+
 /** A save of format `format` as one of today's. */
-export function fromFormat(data: MontyData, s: MontySave, format: 1 | 2): MontySave {
+export function fromFormat(data: MontyData, s: MontySave, format: Older): MontySave {
   const then = FORMATS[format];
   const coins = Array.from({ length: data.coinTable.length / 3 }, () => 0);
-  for (let i = 0; i * 3 < then.coins.length; i++) {
-    if (!s.coins[i]) continue;
-    const [room, col, row] = [then.coins[i * 3], then.coins[i * 3 + 1], then.coins[i * 3 + 2]];
-    for (let j = 0; j < coins.length; j++) if (data.coinTable[j * 3] === room && data.coinTable[j * 3 + 1] === col && data.coinTable[j * 3 + 2] === row) coins[j] = s.coins[i] ?? 0;
-  }
+  for (const [i, j] of coinsNow(data, then.coins, ROOM_NOW[format])) coins[j] = s.coins[i] ?? 0;
   const items = Array.from({ length: data.specialItems.length / 4 }, () => 0);
   const keyFrames = new Set(data.progress.keyItems.map((k) => data.specialItems[k * 4 + 3]));
   /** The finds no room shows (room $FF), in their order, then and now. */
@@ -121,11 +158,12 @@ export function fromFormat(data: MontyData, s: MontySave, format: 1 | 2): MontyS
   const hiddenThen = hidden(then.items), hiddenNow = hidden(data.specialItems);
   /** Today's place of a find of that format, or -1 (a snack of a room that was cut). */
   const itemNow = (i: number): number => {
-    const room = then.items[i * 4], frame = then.items[i * 4 + 3];
+    const room = then.items[i * 4] ?? 0xff, frame = then.items[i * 4 + 3];
     if (room === 0xff) return hiddenNow[hiddenThen.indexOf(i)] ?? -1;
+    const roomNow = ROOM_NOW[format](room);
     for (let j = 0; j < items.length; j++) {
       if (data.specialItems[j * 4 + 3] !== frame) continue;
-      if (keyFrames.has(frame) || data.specialItems[j * 4] === room) return j;
+      if (keyFrames.has(frame) || data.specialItems[j * 4] === roomNow) return j;
     }
     return -1;
   };
@@ -160,3 +198,5 @@ export function fromFormat(data: MontyData, s: MontySave, format: 1 | 2): MontyS
 export const fromFormat1 = (data: MontyData, s: MontySave): MontySave => fromFormat(data, s, 1);
 /** A format 2 save as one of today's. */
 export const fromFormat2 = (data: MontyData, s: MontySave): MontySave => fromFormat(data, s, 2);
+/** A format 3 save (the Andes before their rebuild, no bonus rooms, Rio with Sugarloaf) as one of today's. */
+export const fromFormat3 = (data: MontyData, s: MontySave): MontySave => fromFormat(data, s, 3);

@@ -1,7 +1,7 @@
 import type { CharAnim, CrackSpec, DragonSpec, FloatSpec, IcicleSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { YETI_COLOUR } from './art/siberia-yeti';
-import { codeOf, decorIndex, Grid, room, type Palette } from './layout';
+import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
 import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, TRAIN_PALETTE, trainAnims, underCar, windowAt } from './train';
 
 /**
@@ -11,7 +11,7 @@ import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type S
  *            col 4              col 5               col 6               col 7
  *   row 0      .              Y  YETI OR NOT          .                   .
  *   row 1   A  GRAVY TRAIN    B  SLEEPER HIT      C  COAL COMFORT     M  MINE ALL MINE
- *   row 2      .                 .                    .               G  BORDER LINE CASE
+ *   row 2      .                 .                 T  OFF THE BEATEN PATH  G  BORDER LINE CASE      (T: a bonus room, added 2026-11-25)
  *
  * Playfield cells as in moscow.ts. The puzzle is the train. Its two lanes, the roof and the cars' insides, meet in the dining car (its hatches) but that car's inside is a
  * dead end: its east gangway is bolted. The roof ends at the tender's coal (B's east end), and the way on is the sleeper's corridor under it, seen from the roof
@@ -26,7 +26,7 @@ import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type S
  * Room ids go on from Moscow's (0-8); China's start at 18 and never move. The reset cut three of Siberia's nine rooms (12, 15 and 16: the forest, the dark
  * shaft and the lake); their ids are retired, not reused (the tables are by id: buildRooms leaves the gaps), so nothing after them moves.
  */
-export const SIB = { gravy: 9, sleeper: 10, coal: 11, yeti: 13, mine: 14, border: 17 } as const;
+export const SIB = { gravy: 9, sleeper: 10, coal: 11, yeti: 13, mine: 14, border: 17, taiga: 95 } as const;
 
 /** The sprite pointers (in the bank) of Siberia's items. */
 export const SIB_SPRITE = { ticket: 0xc2, pelmeni: 0xc3 } as const;
@@ -42,6 +42,9 @@ const NAMES = [
 export const SIBERIA_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the train green, the cave light blue, the mine grey, the river white; the retired ones' as they were). */
 export const SIBERIA_COLOURS: readonly number[] = [5, 5, 12, 13, 15, 12, 11, 14, 1];
+/** Rooms added to Siberia after it shipped (later-sectors.ts): OFF THE BEATEN PATH (2026-11-25), the bonus room west of the border village; the map's colour of each. */
+export const SIBERIA_LATER_NAMES: Readonly<Record<number, string>> = { [SIB.taiga]: 'OFF THE BEATEN PATH' };
+export const SIBERIA_LATER_COLOURS: Readonly<Record<number, number>> = { [SIB.taiga]: 5 };
 /** Where Siberia's sectors begin in the world's list. */
 export const FIRST_SECTOR = 9;
 
@@ -179,6 +182,46 @@ const MINE_PALETTE = {
 const RIVER_PALETTE = {
   S: ['snowGround', 1], F: ['hillEarth', 9], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6], R: ['rope', 13], E: ['carWall', 6],
 } as const satisfies Palette;
+
+/**
+ * OFF THE BEATEN PATH (added 2026-11-25): the taiga west of the border village, off the trail. Its pines' snow-laden boughs zig-zag up from the trail to the eagle owl's nest, each
+ * bough on the trunk across from the last, two rows up: `TAIGA.boughs` (column, floor row, width), the nest last. Each cell of a bough carries its own load of snow, which slides off
+ * if he stands on it (`TAIGA_BOUGHS`: it breaks up after 20 frames, falls after 40 and is gone after 56, back 240 frames later), so the climb is a run of hops that never stops: land,
+ * turn, jump. A fall is to the snow of the trail, nothing worse, and the boughs grow their snow back. One icicle hangs from the top bough over the east end of the bough below,
+ * where the second coin is: a dash out and back while it shivers.
+ */
+const TAIGA_BOUGH_LIST: readonly (readonly [col: number, floor: number, cols: number])[] = [[14, 15, 7], [7, 13, 5], [14, 11, 5], [7, 9, 5], [14, 7, 5]];
+export const TAIGA = {
+  boughs: TAIGA_BOUGH_LIST,
+  nest: { col: 21, floor: 5, cols: 5 },
+  trunks: [17, 9, 23] as const,
+  icicle: { col: 17, row: 8, floor: 11 },
+} as const;
+const TAIGA_PALETTE = {
+  S: ['snowGround', 1], F: ['hillEarth', 9], B: ['boughSnow', 1], C: ['boughSlide', 1], D: ['boughBare', 1], T: ['timber', 9],
+} as const satisfies Palette;
+export const TAIGA_BOUGHS: readonly CrackSpec[] = TAIGA.boughs.flatMap(([col, row, cols]) => Array.from({ length: cols }, (_, k): CrackSpec => ({
+  room: SIB.taiga, col: col + k, cols: 1, row, codes: [codeOf(TAIGA_PALETTE, 'B'), codeOf(TAIGA_PALETTE, 'C'), codeOf(TAIGA_PALETTE, 'D')], crack: 20, wide: 40, gone: 56, away: 240,
+})));
+export const TAIGA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.taiga, ...TAIGA.icicle }];
+/** OFF THE BEATEN PATH's tiles: the trail and the crag that ends it, the boughs, the nest's sticks. */
+const paintTaiga = (g: Grid): void => {
+  g.box(0, 17, 31, 17, 'S').box(0, 18, 31, 19, 'F'); // the trail, beaten down in the snow
+  g.box(0, 1, 2, 16, 'F'); // the crag the trail ends at, a cliff up to the sky's top (no walkway drawn to the edge; the coal car's floor above is open there)
+  for (const [col, row, cols] of TAIGA.boughs) g.box(col, row, col + cols - 1, row, 'B');
+  g.box(TAIGA.nest.col, TAIGA.nest.floor, TAIGA.nest.col + TAIGA.nest.cols - 1, TAIGA.nest.floor, 'T'); // the nest
+};
+/** The northern lights' curtain: a wave across the sky, its fringe, body and hem a row apart, kept off the coin's cell. */
+const auroraCurtain = (keep: readonly (readonly [number, number])[]): Placed[] => Array.from({ length: 30 }, (_, i) => i + 3).flatMap((c) => {
+  const y = Math.round(1.6 + 1.6 * Math.sin(c / 3.6) + 0.5 * Math.sin(c / 1.5));
+  return ([[y, 'auroraTop'], [y + 1, 'auroraBody'], [y + 2, 'auroraHem']] as const).flatMap(([row, piece]) => (row >= 0 ? fillCells(paintTaiga, keep, [c, row, c, row], piece) : []));
+});
+const TAIGA_COINS: readonly (readonly [col: number, row: number])[] = [[23, 3], [18, 9]];
+/** The pines' needles round their trunks, in tiers widening downward to the trail, on the cells the boughs leave empty: [trunk, top row, widest]. */
+const TAIGA_PINES: readonly Placed[] = ([[17, 4, 4], [9, 6, 3], [23, 6, 2]] as const).flatMap(([t, top, widest]) => Array.from({ length: 16 - top + 1 }, (_, i) => top + i).flatMap((row) => {
+  const w = Math.min(widest, Math.floor((row - top) / 3) + ((row - top) % 3));
+  return fillCells(paintTaiga, TAIGA_COINS, [t - w, row, t + w, row], 'taigaNeedles').filter(([, c]) => c !== t);
+}));
 
 /** The icicle over the ticket in the yeti's cave. */
 export const SIBERIA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.yeti, col: 18, row: 2, floor: 5 }];
@@ -398,6 +441,24 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'reindeer', col: 24, row: 15, way: 'right', speed: 1, range: 24 },
       { who: 'guard', col: 25, row: 9, way: 'down', speed: 1, range: 48 },
+    ],
+  }),
+  // OFF THE BEATEN PATH: the taiga off the trail west of the border village, a bonus room (Chris, 2026-11-25: a room with "some sort of cool background design" where the bank ran off
+  // into nothing; "an opportunity to try some new things"). In along the trail from the village; the northern lights over the pines. The snow-laden boughs zig-zag up the pines to the
+  // eagle owl's nest (a coin: it tops the climb), and every bough sheds its snow under him if he stops (TAIGA_BOUGHS): a climb of hops that never stops. A second coin waits at the east
+  // end of the third bough under the icicle. A crag ends the trail at the west. Never needed: back the way he came.
+  room({
+    id: SIB.taiga, cell: [2, 6], sector: SIB.taiga, palette: TAIGA_PALETTE,
+    paint: paintTaiga,
+    coins: TAIGA_COINS,
+    decor: [
+      ...auroraCurtain(TAIGA_COINS),
+      ...TAIGA.trunks.flatMap((c) => fillCells(paintTaiga, TAIGA_COINS, [c, c === 23 ? 6 : 5, c, 16], 'taigaTrunk')),
+      ...TAIGA_PINES, ['eagleOwl', 24, 3],
+      ['star', 6, 1], ['starDim', 12, 0], ['star', 28, 6], ['starDim', 19, 5], ['starDim', 30, 1],
+    ],
+    creatures: [
+      { who: 'reindeer', col: 3, row: 15, way: 'right', speed: 1, range: 32 }, // (between the crag and the second pine's trunk: never in front of a trunk's brown)
     ],
   }),
 ];

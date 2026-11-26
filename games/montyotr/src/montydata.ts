@@ -100,6 +100,12 @@ export interface RoomEffect {
   place?: { code: number; cells: readonly (readonly [row: number, col: number])[] };
   /** A trap: taking item `item` the first time wakes the creature in `slot` (back on the screen at x), once. */
   wake?: { item: number; slot: number; x: number };
+  /**
+   * An item used on the spot, seen happening (Do Svidaniya Monty's gates: the panpipes played to the llama, the machete cutting the tangle): the effect does not wait in the room when he comes in with the
+   * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound, once a visit. With `leaves` (-1 west, 1 east), the guard it sends off
+   * (`removeEnemy`) turns and walks off out of the room that way, harmless, rather than going at once (items.ts `leaveTick`). None in Monty on the Run's.
+   */
+  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1 };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */
@@ -171,6 +177,12 @@ export interface CrackSpec { room: number; col: number; cols: number; row: numbe
  * A character an animation moves: a room's own (its code 1-8), or one of a decoration's (the cell `cell` of its type `decor`, counted
  * row by row, the decoration being in the room: its characters are the room's own for as long as it is there).
  */
+/**
+ * A find that makes Monty run (Do Svidaniya Monty's guarana, Rio's rush downhill): once `item` is his, in `rooms` he takes a step more for every two of his own while he walks on the ground (half as fast again);
+ * his jump's arc, his falls and his climbs are as they always were, so it still plays as Monty.
+ */
+export interface RunSpec { readonly item: number; readonly rooms: readonly number[] }
+
 export type CharRef = number | { readonly decor: number; readonly cell: number };
 
 /**
@@ -580,6 +592,8 @@ export interface MontyData extends RoomTables, MontyLook {
   cableCars: readonly CableCarSpec[];
   floats: readonly FloatSpec[];
   skewers: readonly SkewerSpec[];
+  /** Monty truly on the run (monty.ts `runs`): once its find is his, in its rooms he walks half as fast again; null in Monty on the Run. */
+  run: RunSpec | null;
   /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
   pursuers: readonly PursuerSpec[];
   levers: readonly LeverSpec[];

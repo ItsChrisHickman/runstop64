@@ -42,7 +42,8 @@ export const ONE_WAY: Readonly<Record<string, string>> = {
   '79>80': 'the flight\'s first leg; the clock moves him on east (planes.ts)',
   '80>81': 'the flight\'s second leg; the clock moves him on east (planes.ts)',
   '81>55': 'the bail-out from ON HIS TAIL into JUMP FOR JOY (planes.ts)',
-  '55>57': 'the parachute drop: under the canopy he cannot go up (flight.ts)',
+  '55>56': 'the parachute drop, JUMP FOR JOY into OUT OF THIN AIR: under the canopy he cannot go up (flight.ts)',
+  '56>57': 'the parachute drop, OUT OF THIN AIR into CONDOR COUNTRY: under the canopy he cannot go up (flight.ts)',
   '57>58': 'the parachute drop lands on the terraces: under the canopy he cannot go up (flight.ts)',
 };
 
@@ -53,12 +54,12 @@ export const NOWHERE: Readonly<Record<string, string>> = {
 
 /** Edges and crossings found faulty that are not this test's to mend: another region's work, or Chris's call. Reported each run; one that no longer shows says so. */
 export const PENDING: Readonly<Record<string, string>> = {
-  '17 left': 'BORDER LINE CASE: the village bank runs off the left edge through the cabin (Chris to decide: closing it needs the cabin moved, since a wall at the edge would stand under it and the rope from the mine is in the way of moving it east)',
   '58 left': 'the Andes (another job): the terraces\' left edge',
   '59 right': 'the Andes (another job): Machu Picchu\'s right edge',
   '62 left': 'the Andes (another job): the canopy\'s left edge',
   '66 left': 'the Amazon (another job): the sandbar\'s left edge',
   '77 right': 'Rio (another job): the carnival bust\'s right edge',
+  '73 right 0-3': 'Rio (another job): HOUSE OF COLOUR\'s rooftop walkway (the floor at row 4) runs to the right edge over THE LAPA ARCHES and is never crossed (found merging Rio into the Andes\' grid, 2026-11-26)',
   '55 right': 'the Andes (another job): JUMP FOR JOY\'s ledge at row 11 runs to the right edge, nothing beyond (he does not get there under the canopy)',
   '74>68 down ?': 'Rio (another job): from STEAK YOUR CLAIM\'s floor west of the rope (cols 1-2) he sinks through the floor\'s platform tiles into LAPA, whose ceiling is solid there; no way back up through it',
 };
@@ -125,10 +126,10 @@ const bodyOn = (side: Side, row: number, col: number): readonly number[] => (sid
 /** A place he rests at; in a room with something that carries him, the game as it was then (where the cart or the car is matters to what comes next). */
 interface Place { room: number; x2: number; y: number; rope: boolean; snap?: Game }
 /**
- * Rooms where the way depends on the moment: something carries him (a lift, a float, a cable car) or a way opens and shuts (the timed strikes: the hall's paper doors).
+ * Rooms where the way depends on the moment: something carries him (a lift, a float, a cable car, a swinging vine) or a way opens and shuts (the timed strikes: the hall's paper doors).
  * Tries there start from the game as it was when he came to rest and also wait before each step or jump.
  */
-const CARRY = new Set([...WORLD.lifts, ...WORLD.floats, ...WORLD.cableCars, ...WORLD.pulses, ...WORLD.currents].map((m) => m.room));
+const CARRY = new Set([...WORLD.lifts, ...WORLD.floats, ...WORLD.cableCars, ...WORLD.pulses, ...WORLD.currents, ...WORLD.vines].map((m) => m.room));
 const keyOf = (p: Place) => AFLOAT.has(p.room) ? `${p.room}:${p.x2 >> 3}:${p.y >> 4}` : `${p.room}:${p.x2 >> 2}:${p.y}:${p.rope ? 1 : 0}`;
 const dead = (g: Game) => (g.actionCounter & 0x80) !== 0;
 /** What is held at frame n of a try (the game as it is then): NONE once the try is over. */

@@ -20,44 +20,35 @@ import { PACIFIC_TILES } from './pacific-tiles';
 import { PACIFIC_RESET_CREATURES, PACIFIC_RESET_DECOR, PACIFIC_RESET_TILES } from './pacific-reset';
 import { PACIFIC_ISLANDS_CREATURES, PACIFIC_ISLANDS_DECOR, PACIFIC_ISLANDS_TILES } from './pacific-islands';
 import { PACIFIC_SCENERY_DECOR, PACIFIC_SCENERY_TILES } from './pacific-scenery';
+import { ANDES_SCENERY_CREATURES, ANDES_SCENERY_DECOR, ANDES_SCENERY_TILES } from './andes-scenery';
 import { MOSCOW_CREATURES } from './creatures';
-import { RIO_CREATURES } from './rio-creatures';
+import { RIO_CARNIVAL_CREATURES, RIO_CREATURES } from './rio-creatures';
 import { RIO_DECOR } from './rio-decor';
 import { RIO_TILES } from './rio-tiles';
 import { SKY_CREATURES, SKY_DECOR, SKY_TILES } from './sky';
+import { LATER_TILES } from './later-tiles';
 import { MOSCOW_DECOR } from './decorations';
 import { SIBERIA_CREATURES } from './siberia-creatures';
 import { SIBERIA_DECOR } from './siberia-decor';
 import { SIBERIA_TILES } from './siberia-tiles';
 import { MOSCOW_TILES, MOTR_TILE_COUNT } from './tiles';
 
-export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES, ...CHINA_TILES, ...JAPAN_TILES, ...PACIFIC_TILES, ...PACIFIC_MORE_TILES, ...PACIFIC_RESET_TILES, ...ANDES_TILES, ...RIO_TILES, ...SKY_TILES, ...PACIFIC_ISLANDS_TILES, ...PACIFIC_SCENERY_TILES } as const;
+export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES, ...CHINA_TILES, ...JAPAN_TILES, ...PACIFIC_TILES, ...PACIFIC_MORE_TILES, ...PACIFIC_RESET_TILES, ...ANDES_TILES, ...RIO_TILES, ...SKY_TILES, ...PACIFIC_ISLANDS_TILES, ...PACIFIC_SCENERY_TILES, ...ANDES_SCENERY_TILES, ...LATER_TILES } as const;
 export type WorldTile = keyof typeof WORLD_TILES;
-export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES, ...CHINA_CREATURES, ...JAPAN_CREATURES, ...PACIFIC_CREATURES, ...PACIFIC_MORE_CREATURES, ...PACIFIC_RESET_CREATURES, ...ANDES_CREATURES, ...RIO_CREATURES, ...SKY_CREATURES, ...PACIFIC_ISLANDS_CREATURES } as const;
+export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES, ...CHINA_CREATURES, ...JAPAN_CREATURES, ...PACIFIC_CREATURES, ...PACIFIC_MORE_CREATURES, ...PACIFIC_RESET_CREATURES, ...ANDES_CREATURES, ...RIO_CREATURES, ...SKY_CREATURES, ...PACIFIC_ISLANDS_CREATURES, ...ANDES_SCENERY_CREATURES, ...RIO_CARNIVAL_CREATURES } as const;
 export type WorldCreature = keyof typeof WORLD_CREATURES;
-/** Every region's decorations, with the pieces no room places (they stay in their region's art, for its sheets and mock rooms). */
-const ALL_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR, ...SKY_DECOR, ...PACIFIC_ISLANDS_DECOR, ...PACIFIC_SCENERY_DECOR } as const;
 /**
- * The game's decoration kinds: every region's, less the pieces no room places (left out so the kinds stay well within the room table's one byte, as on a C64:
- * test/budget.ts holds the kinds to it and reports any no room places). A decoration's kind is not saved (a room is drawn from the tables as it loads), so
- * leaving one out moves the later kinds' numbers and changes no room and no save.
+ * The decoration library: every region's pieces, those no room places too (they stay in their region's art, for its sheets and mock rooms). A room names a piece by
+ * its place here (`decorIndex`); the game's tables give each region a list of its own of the pieces its rooms place (shared/monty/rooms.ts `buildRooms`' `decorRegion`,
+ * the room table's byte indexing its region's list, up to 255 kinds a region: test/budget.ts), as a C64 build loads a region's pictures from disk. A decoration's kind
+ * is in no save (a room is drawn from the tables as it loads), so a piece added or left unplaced changes no save.
  */
-const {
-  domeLarge, lampDouble, spasskaya, samovar, // Moscow's
-  pineSmall, diningSamovar, pole, stalactites, // Siberia's
-  hutongDoor, stall, arrowSlit, rockery, roofEnd, slateCell, // China's (no back wall is slate)
-  jpNeonTall, jpWave, jpShipMast, jpBell, jpSignalLamp, jpBarrels, jpShachi,
-  jpNeonRed, jpNeonGreen, // Japan's
-  pacDiamondHead, pacLawn, pacTikiTorch, pacTotem, pacRoastPig, pacStageBoard, pacFeast, pacUmbrella, pacEarthOven, pacSeaCliff, pacSeaCliffB, pacGlow, // the Pacific's
-  fern, giantTree, hangingVines, bromeliad, signBoard, launch, // the Andes'
-  ...placed
-} = ALL_DECOR;
-export const WORLD_DECOR = placed;
+export const WORLD_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR, ...SKY_DECOR, ...PACIFIC_ISLANDS_DECOR, ...PACIFIC_SCENERY_DECOR, ...ANDES_SCENERY_DECOR } as const;
 export type WorldDecor = keyof typeof WORLD_DECOR;
 
 // (a name in two regions would silently replace the first's piece)
 for (const [name, regions] of [
-  ['tile', [MOSCOW_TILES, SIBERIA_TILES, CHINA_TILES, JAPAN_TILES, PACIFIC_TILES, PACIFIC_MORE_TILES, PACIFIC_RESET_TILES, ANDES_TILES, RIO_TILES, SKY_TILES, PACIFIC_ISLANDS_TILES, PACIFIC_SCENERY_TILES]], ['creature', [MOSCOW_CREATURES, SIBERIA_CREATURES, CHINA_CREATURES, JAPAN_CREATURES, PACIFIC_CREATURES, PACIFIC_MORE_CREATURES, PACIFIC_RESET_CREATURES, ANDES_CREATURES, RIO_CREATURES, SKY_CREATURES, PACIFIC_ISLANDS_CREATURES]], ['decoration', [MOSCOW_DECOR, SIBERIA_DECOR, CHINA_DECOR, JAPAN_DECOR, PACIFIC_DECOR, PACIFIC_MORE_DECOR, PACIFIC_RESET_DECOR, ANDES_DECOR, RIO_DECOR, SKY_DECOR, PACIFIC_ISLANDS_DECOR, PACIFIC_SCENERY_DECOR]],
+  ['tile', [MOSCOW_TILES, SIBERIA_TILES, CHINA_TILES, JAPAN_TILES, PACIFIC_TILES, PACIFIC_MORE_TILES, PACIFIC_RESET_TILES, ANDES_TILES, RIO_TILES, SKY_TILES, PACIFIC_ISLANDS_TILES, PACIFIC_SCENERY_TILES, ANDES_SCENERY_TILES, LATER_TILES]], ['creature', [MOSCOW_CREATURES, SIBERIA_CREATURES, CHINA_CREATURES, JAPAN_CREATURES, PACIFIC_CREATURES, PACIFIC_MORE_CREATURES, PACIFIC_RESET_CREATURES, ANDES_CREATURES, RIO_CREATURES, SKY_CREATURES, PACIFIC_ISLANDS_CREATURES, ANDES_SCENERY_CREATURES, RIO_CARNIVAL_CREATURES]], ['decoration', [MOSCOW_DECOR, SIBERIA_DECOR, CHINA_DECOR, JAPAN_DECOR, PACIFIC_DECOR, PACIFIC_MORE_DECOR, PACIFIC_RESET_DECOR, ANDES_DECOR, RIO_DECOR, SKY_DECOR, PACIFIC_ISLANDS_DECOR, PACIFIC_SCENERY_DECOR, ANDES_SCENERY_DECOR]],
 ] as const) {
   const names = regions.flatMap((r) => Object.keys(r));
   const clash = names.filter((k, i) => names.indexOf(k) !== i);

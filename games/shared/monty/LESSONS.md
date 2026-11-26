@@ -261,6 +261,9 @@ Things the engine does that a room's picture will not show you; each has a test 
   a hatch over its top step, and every step is a jump of two rows, as the steps below it.
 - **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
 
+- **A gate gives way where he uses the item, seen** (Chris, 2026-11-25: "if you have the item, the obstacle doesn't exist ... If you knew you knew, otherwise, huh?"): a room effect with `at` (a box of cells) waits until he comes up to the gate carrying the item, then happens there with the item's sound (the engine's `useOnTheSpot`), and what happens is drawn, not narrated: the tangle's cells go, a guard with `leaves` turns and walks off out of the room, harmless (`leaveTick`). Never a guard silently gone on coming in, and no line on the name row saying what the picture shows (no words on the screen).
+- **A region's decoration kinds are a byte (255 with its text signs):** since 2026-11-26 (Chris: do it now, for the C64 port) each region has its own list, loaded as the region is entered (`decorSets` in `rooms.ts`; the room table's byte indexes its region's list), so the world may hold any number. `budget.ts` holds each region to the byte; reuse a piece another region has where it reads as the thing (the Pacific's lifebuoy and small palm on the riverboat): it is in both regions' lists, which costs only the region's file.
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and
@@ -278,7 +281,8 @@ you can name it:
 
 A coin may hang on a back wall drawn as a decoration or as a non-solid tile: taken, its cell shows exactly what the room has there, in the room's colour (the engine
 remembers what is under a coin; `backdrop-holes.ts` takes every coin of the world and compares the cell with the room drawn without it). A room added to a region
-after it shipped goes last in the tables (`ADDED` in montyworld's data.ts): its coin takes a new place at the end, so no save's coins move (HEAVEN CAN WAIT, 2026-11-24).
+after it shipped goes last in the tables (`ADDED_ROOMS` in montyworld's data.ts): its coin takes a new place at the end, so no save's coins move (HEAVEN CAN WAIT, 2026-11-24). One owner lays out their sectors (`later-sectors.ts`): such a room's id is after every region's and its sector is its id (blank names fill the ids other work keeps), its tiles come last in the library (`art/later-tiles.ts`), and a region lists its own names and map colours by id (`<REGION>_LATER_NAMES`, `_COLOURS`).
+- **An edge that runs off into nothing gets a bonus room, not a wall** (Chris, 2026-11-25: "why not just have a room to the left of that?"; "an opportunity to try some new things and add some fun challenges"): off the path, never needed, a striking backdrop of the place (HEAVEN CAN WAIT is the model), a challenge of its own made of the mechanisms we have used a new way (boughs that shed their snow under him, two boats that meet and wait, bamboo stalks gripped on the way down from a jump), one to three coins where the challenge ends. Give the bot a leg per step of such a climb: one search from the door to the top can run out where each step is found at once.
 
 No lines of coins, no floors strewn with them, no coin floating out of reach, and no coin in a room with nothing to say. A region of 6
 rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a room, 215 in 40 rooms, and they read as random.)

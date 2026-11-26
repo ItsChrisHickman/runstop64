@@ -1,6 +1,6 @@
 /**
- * Preview sheets of Rio's art (pre-production): tiles, decorations, creatures (4x, and the first four large at 8x), items, the sun, the
- * cable car and the skewer's poses. Not a check.
+ * Preview sheets of Rio's art (pre-production): tiles, decorations, creatures (4x, and the first four large at 8x), items, the sun
+ * and the skewer's poses. Not a check.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/rio-sheets.ts <out-dir>
  */
