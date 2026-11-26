@@ -10,7 +10,7 @@ import { endingStats, montyEnding } from './ending';
 import { Game } from './game';
 import { describeSave, montyMap, noTravel, noteRoom, type MontyFound } from './map';
 import type { AssistId, MontyData, TuneVersion } from './montydata';
-import { openMap, plusStart } from './plus';
+import { keepPlusBegun, openMap, plusStart, plusWear, readPlusBegun } from './plus';
 import { CODEC, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore, type TitleScreen } from './title';
 import { TOUCH } from './touch';
@@ -136,6 +136,8 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
 
     g.onRoomLoaded = (game) => {
       playVersion(data.music.tuneFor?.(game.roomId) ?? null);
+      // (NEW GAME+: the region's hat on, as no hat is ever picked up in it)
+      if (game.plus) plusWear(game);
       if (noteRoom(game, fe.found)) fe.keepFound();
       // a save on coming into a room (the C5 street too, with the C5 as it came in; not the ending)
       if (!noTravel(data, game.roomId) && !game.completionActive) {
@@ -165,10 +167,15 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       if (!plus) return;
       fe.newGame(openAll);
       flow.beginWith(plusStart(data, plus.worn));
+      keepPlusBegun(data.id);
     }
-    // (a save of a game won before NEW GAME+ was here, or whose NEW GAME+ was never kept: a game won here whose save is not NEW GAME+ is the won game's)
-    const kept = flow.saved();
-    if (plusDue() && kept && kept.plus !== true) plusAfterWin();
+    // (once only: a game won here before NEW GAME+ was, its save the won game's, has it waiting at launch; once begun, the saves are the player's, and a
+    // won game's the save manager brings back stays as it is: turned again, it would push the NEW GAME+ game, kept as the previous save, out)
+    if (plusDue() && !readPlusBegun(data.id)) {
+      const kept = flow.saved();
+      if (kept && kept.plus !== true) plusAfterWin();
+      else keepPlusBegun(data.id);
+    }
 
     function startGame() {
       title.leave();

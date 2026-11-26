@@ -1,7 +1,10 @@
+import type { Game } from './game';
+import { wear } from './items';
 import { C5_START } from './mechanisms';
 import type { MontyFound } from './map';
 import { noTravel } from './map';
-import type { MontyData } from './montydata';
+import { cellOf, type MontyData } from './montydata';
+import { regionAt } from './regions';
 import type { MontySave } from './save';
 import { wayIn } from './way-in';
 
@@ -44,4 +47,38 @@ export function openMap(data: MontyData, found: MontyFound): MontyFound {
     if (way) rooms[id] = [way.x2, way.y, Math.floor(cell / cols), cell % cols];
   });
   return { ...found, rooms };
+}
+
+/**
+ * The costume NEW GAME+ has him in, room by room: every hat is his from the start, so none is ever picked up to put on; instead, in a region whose hat it is
+ * (the hat's room is in it), he wears that region's hat, as a game played through has him in it there; a region with no hat of its own (Siberia, the sky)
+ * leaves on what he wears. Called as each room is come into (session.ts), before the room's save, so the save keeps it.
+ */
+export function plusWear(g: Game) {
+  const here = cellOf(g.data, g.roomId);
+  if (!here) return;
+  const region = regionAt(g.data.regions, here.row, here.col);
+  if (!region) return;
+  const hat = g.data.costumes.find(({ item }) => {
+    const at = cellOf(g.data, g.data.specialItems[item * 4] ?? -1);
+    return at !== null && regionAt(g.data.regions, at.row, at.col) === region;
+  });
+  if (hat && hat.item !== g.worn) wear(g, hat.item);
+}
+
+// ---- turned into NEW GAME+ once: kept apart from the saves, like the won flag (shared/ending/credits.ts) ----------------------------------
+
+const begunKey = (id: string) => `${id}.plus`;
+
+/**
+ * Whether NEW GAME+ has been begun here (at a win, or a won game's older save turned into it at launch): from then on the saves are the player's, so a won
+ * game's save the save manager brings back is carried on as it is, never turned into NEW GAME+ again over the NEW GAME+ game kept as the previous save.
+ */
+export function readPlusBegun(id: string): boolean {
+  try { return localStorage.getItem(begunKey(id)) === '1'; } catch { return false; }
+}
+
+/** NEW GAME+ has been begun: kept. */
+export function keepPlusBegun(id: string) {
+  try { localStorage.setItem(begunKey(id), '1'); } catch { /* not kept: a launch may turn a won save into NEW GAME+ again */ }
 }
