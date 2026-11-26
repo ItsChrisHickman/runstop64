@@ -8,6 +8,7 @@
     "2b71cb8d": "^:4 ^:4 ^:4 J<:4 .:4 .:4 .:4 .:4 .:4 <:4 >:4 J<:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4 .:4"
   },
   "none": {
+    "11e9050c": {"print":"5033740cf4b0be59","rooms":[41,42],"exhausted":false,"nodes":120007},
     "8d65d215": {"print":"3307ffcae74bbf58","rooms":[41],"exhausted":false,"nodes":120000},
     "a7368885": {"print":"30f6007c0c8b6291","rooms":[52],"exhausted":false,"nodes":30000},
     "6aeddc64": {"print":"30f6007c0c8b6291","rooms":[52],"exhausted":false,"nodes":30004}

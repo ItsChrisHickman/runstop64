@@ -101,6 +101,30 @@ const DAY = [
   '........',
 ] as const;
 
+/** Kaihalulu's lagoon: the turquoise water inside the lava wall, light rippling on it. */
+const LAGOON = [
+  '########',
+  '###..###',
+  '########',
+  '########',
+  '#..#####',
+  '########',
+  '#####..#',
+  '########',
+] as const;
+
+/** The natural wall of black lava rock across Kaihalulu's mouth: jagged tops, the surf breaking white on them (drawn in the rock's ink: the spray is the gaps). */
+const LAVA_WALL = [
+  '.#...#..',
+  '###.###.',
+  '########',
+  '#.######',
+  '########',
+  '###.####',
+  '########',
+  '########',
+] as const;
+
 // ---- the landmarks
 
 /** `pattern` tiled over a whole raster: a backdrop's own character, for a piece laid over that backdrop in its colour (one ink a character, so a piece over a backdrop carries it behind itself). */
@@ -118,15 +142,6 @@ function caveMouth(name: string, colour: number, rock: readonly string[]): NewDe
   for (const [x, y] of [[6, 12], [25, 11], [9, 7], [22, 7], [16, 5]] as const) r.rect(x, y, x + 1, y + 1); // its ragged lip
   r.rect(2, 22, 6, 23); r.rect(26, 21, 30, 23); // rocks fallen at its foot
   return decor(name, 4, 3, r, colour);
-}
-
-/** A WWII pillbox on the crater rim: a low hump of concrete with its dark firing slit. 3 x 2 characters. */
-function pillbox(): NewDecor {
-  const r = new Raster(24, 16);
-  r.ellipse(12, 15, 11.5, 11); r.rect(0, 15, 23, 15); // the hump
-  r.rect(5, 8, 18, 10, false); // the slit
-  r.rect(3, 13, 20, 13, false); // the seam of its footing
-  return decor('pacPillbox', 3, 2, r, 12);
 }
 
 /** Waikiki's hotels far off along the shore, seen from the summit: towers of window lines over the beach. 6 x 2 characters. */
@@ -147,6 +162,60 @@ function cliffFall(): NewDecor {
   for (const y of [5, 12, 19]) r.rect(3, y, 5, y, false);
   r.rect(1, 22, 6, 23);
   return decor('pacCliffFall', 1, 3, r, 1);
+}
+
+
+/** Diamond Head Lighthouse at the foot of the cone on the coast: the white tower, its red lantern room and the keeper's house beside it. 2 x 4 characters. */
+function lighthouse(): NewDecor {
+  const r = new Raster(16, 32);
+  r.rect(5, 0, 10, 1); r.rect(4, 2, 11, 7); r.rect(5, 4, 10, 5, false); // the lantern's cap, the lantern room and its glass
+  r.rect(3, 8, 12, 8); // the gallery
+  for (let y = 9; y < 30; y++) { const s = Math.floor((y - 9) / 7); r.rect(5 - s, y, 10 + s, y); } // the tower, wider down
+  r.rect(7, 13, 8, 15, false); r.rect(7, 21, 8, 23, false); // its windows
+  r.rect(0, 30, 15, 31); // the rock it stands on
+  return decor('pacLighthouse', 2, 4, r, ['22', '11', '11', '11']);
+}
+
+/** A kiawe tree standing in the scrub (laid over the scrub's backdrop, its texture round it): a flat, spreading crown of feathery leaves, the crooked trunk dark against the bush. 3 x 2 characters, in the scrub's green. */
+function kiawe(): NewDecor {
+  const r = tiled(24, 16, SCRUB);
+  r.rect(0, 0, 23, 7, false); // the sky between the crown's leaves
+  for (const [x, y, w] of [[3, 1, 6], [9, 0, 8], [16, 2, 6], [1, 3, 22], [4, 5, 16]] as const) r.rect(x, y, x + w - 1, y + 1);
+  for (const x of [2, 7, 12, 17, 21]) r.set(x, 4, false);
+  r.rect(10, 7, 13, 15, false); r.rect(7, 7, 9, 9, false); r.rect(14, 7, 16, 9, false); // the trunk and its forks, dark
+  r.rect(11, 8, 12, 15); r.rect(8, 7, 8, 8); r.rect(15, 7, 15, 8); // ... with their bark
+  return decor('pacKiawe', 3, 2, r, 5);
+}
+
+/** One of the tunnel's lamps on the rock: a caged bulb on its bracket, its glow round it. */
+function tunnelLamp(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(3, 0, 4, 1); r.rect(2, 2, 5, 5); r.rect(3, 3, 4, 4, false); r.rect(3, 6, 4, 6);
+  r.set(0, 3); r.set(7, 3); r.set(1, 6); r.set(6, 6); r.set(1, 0); r.set(6, 0);
+  return decor('pacTunnelLamp', 1, 1, r, 7);
+}
+
+/** An ironwood (casuarina) on Ka'uiki Head's cinder: a tall, thin trunk and drooping tiers of wispy needles, the tree that sheds its needles on the trail down to Kaihalulu. 2 x 3 characters. */
+function ironwood(): NewDecor {
+  const r = new Raster(16, 24);
+  for (const [y, w] of [[0, 2], [2, 5], [4, 8], [7, 6], [9, 11], [12, 9], [14, 14]] as const) {
+    const x0 = 8 - Math.ceil(w / 2);
+    r.rect(x0, y, x0 + w - 1, y + 1);
+    for (let x = x0 + 1; x < x0 + w; x += 3) r.set(x, y + 2); // the needles hanging
+  }
+  r.rect(7, 17, 8, 23); r.rect(5, 23, 10, 23); // the trunk, its foot
+  return decor('pacIronwood', 2, 3, r, ['55', '55', '99']);
+}
+
+/** A banyan on Hilo's bayfront (Banyan Drive's): a broad, low crown and the curtain of aerial roots dropping from its boughs into trunks of their own. 4 x 4 characters. */
+function banyan(): NewDecor {
+  const r = new Raster(32, 32);
+  r.ellipse(16, 8, 15.5, 8); r.rect(0, 8, 31, 12);
+  for (const [x, y] of [[5, 3], [12, 2], [20, 4], [26, 6], [9, 9], [17, 8], [24, 10]] as const) r.rect(x, y, x + 1, y, false); // light through the leaves
+  r.rect(13, 13, 18, 31); r.rect(11, 29, 20, 31); // the trunk
+  for (const x of [3, 6, 9, 22, 25, 28]) r.rect(x, 13, x, 31); // the aerial roots
+  r.rect(2, 30, 29, 31);
+  return decor('pacBanyan', 4, 4, r, ['5555', '5555', '9999', '9999']);
 }
 
 export const PACIFIC_SCENERY_TILES = {
@@ -172,6 +241,28 @@ export const PACIFIC_SCENERY_TILES = {
     '........',
     '........',
   ]),
+  /** The trail's steep concrete stairs (the tunnel's flight, the switchback's, the Fire Control Station's spiral): treads one over another and the handrail beside them. A rope: he climbs it. */
+  pacStairs: tile('pacStairs', 3, 15, [
+    '#......#',
+    '#####..#',
+    '#.......',
+    '#..#####',
+    '#......#',
+    '#####..#',
+    '#.......',
+    '#..#####',
+  ]),
+  /** The Fire Control Station's concrete with one of its observation slits, dark across it. Solid. */
+  pacSlitWall: tile('pacSlitWall', 1, 12, [
+    '##.#####',
+    '########',
+    '#......#',
+    '#......#',
+    '########',
+    '###.####',
+    '########',
+    '#.######',
+  ]),
 } as const;
 
 export const PACIFIC_SCENERY_DECOR = {
@@ -181,11 +272,17 @@ export const PACIFIC_SCENERY_DECOR = {
   pacJungleFill: fill('pacJungleFill', JUNGLE, 5),
   pacLavaFill: fill('pacLavaFill', LAVA, 11),
   pacCinderFill: fill('pacCinderFill', CINDER, 2),
-  pacCloudFill: fill('pacCloudFill', CLOUD, 15),
+  pacCloudFill: fill('pacCloudFill', CLOUD, 1),
   pacSkyDay: fill('pacSkyDay', DAY, 14),
   pacCaveTuff: caveMouth('pacCaveTuff', 9, FLUTES),
   pacCaveCinder: caveMouth('pacCaveCinder', 2, CINDER),
-  pacPillbox: pillbox(),
   pacSkyline: skyline(),
   pacCliffFall: cliffFall(),
+  pacLighthouse: lighthouse(),
+  pacIronwood: ironwood(),
+  pacBanyan: banyan(),
+  pacLagoonFill: fill('pacLagoonFill', LAGOON, 3),
+  pacLavaWallFill: fill('pacLavaWallFill', LAVA_WALL, 11),
+  pacKiawe: kiawe(),
+  pacTunnelLamp: tunnelLamp(),
 } as const satisfies Record<string, NewDecor>;

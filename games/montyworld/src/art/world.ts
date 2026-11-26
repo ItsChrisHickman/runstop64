@@ -48,7 +48,7 @@ const {
   hutongDoor, stall, arrowSlit, rockery, roofEnd, // China's (its slateCell stays: china.ts's back walls may name it)
   jpNeonTall, jpWave, jpShipMast, jpBell, jpSignalLamp, jpBarrels, jpShachi,
   jpNeonRed, jpNeonGreen, // Japan's
-  pacDiamondHead, pacLawn, pacTikiTorch, pacTotem, pacRoastPig, pacStageBoard, pacFeast, pacUmbrella, pacEarthOven, // the Pacific's
+  pacDiamondHead, pacLawn, pacTikiTorch, pacTotem, pacRoastPig, pacStageBoard, pacFeast, pacUmbrella, pacEarthOven, pacSeaCliff, pacSeaCliffB, // the Pacific's
   fern, giantTree, hangingVines, bromeliad, signBoard, launch, // the Andes'
   ...placed
 } = ALL_DECOR;

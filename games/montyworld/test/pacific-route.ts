@@ -1,7 +1,7 @@
 /**
  * Hawaii's route for the bot (docs/dosvidaniya-back-half-plan.md, "Hawaii"): the goals, in the order a player who takes everything plays them. Onto the cargo ship from Japan's gangway, through it and out of the
- * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the drummers' platform), up the hillside rope over
- * Diamond Head's trail to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
+ * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the drummers' platform), east along its lawn and up
+ * Diamond Head (the tunnel, the stairs, the rockfall) to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
  * cave (the ledge's coin; through the lava tube between the swell's sets, the alcove's coin, the musubi in the pocket, out on a set) and back up, up the road's three tiers to Hana; down the cove into the last swim (the moray, the surge) onto Kona; down the lava tube and over Mauna Loa ahead of the lava, down its pit for the
  * moon rock and out ahead of the pit's lava, along the coffee farm (the coffee) and up into Hilo (the plane still wants the parachute); up from the roofs along Akaka Falls' low lane to Mauna Kea and its
  * summit (the rock to the astronomer, his ladder, the parachute); back down and along the falls' high trail, down the rope to Hilo; and away in the biplane.
@@ -53,15 +53,14 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Luau: the coin between the torches', livesFor(coin(PAC.luau, 8, 17), 40)),
   leg('Luau: past the last torch to the lei on its arch', livesFor(item(PAC.luau, 0, [1, 16]), 40)),
   leg('Luau: back past the torches, up the stage to the drummers\' coin', livesFor(coin(PAC.luau, 28, 11), 40)),
-  leg('Luau to Diamond Head: up the hillside rope from between the torches', into(PAC.diamond, 13, 0, PAC.luau)),
-  leg('Diamond Head: the first ledge east to the step, its coin', coin(PAC.diamond, 28, 14)),
-  leg('Diamond Head: the second ledge west to the step, the coin at the top of the climb', coin(PAC.diamond, 2, 10)),
-  leg('Diamond Head to the Lookout: the third ledge east to the bunker', into(PAC.lookout, 31, 8, PAC.diamond)),
-  leg('Lookout: into the tunnel, its coin', livesFor(coin(PAC.lookout, 6, 8), 40)),
-  leg('Lookout: up the stairs between the rocks, the coin on the summit', livesFor(coin(PAC.lookout, 27, 2), 40)),
-  leg('Lookout: the snorkel a tourist left', livesFor(item(PAC.lookout, 0, [24, 2]), 40)),
-  leg('Lookout to Diamond Head: back down the stairs and through the tunnel', into(PAC.diamond, 0, 8, PAC.lookout)),
-  leg('Diamond Head to the luau: down the trail and the rope', into(PAC.luau, 14, 19, PAC.diamond)),
+  leg('Luau to Diamond Head: east along the lawn under the stage', into(PAC.diamond, 31, 17, PAC.luau)),
+  leg('Diamond Head: along the walkway, into the tunnel and up its stairs, the coin in the niche', coin(PAC.diamond, 29, 11)),
+  leg('Diamond Head: out of the upper mouth, west along the switchback, up the steep stairs, the coin on the bunker\'s ledge', coin(PAC.diamond, 1, 5)),
+  leg('Diamond Head to the Lookout: east over the gully between the rocks, up onto the shoulder and the spiral stair', livesFor(into(PAC.lookout, 29, 0, PAC.diamond), 40)),
+  leg('Lookout: up the station\'s stair, the coin on its landing', coin(PAC.lookout, 24, 13)),
+  leg('Lookout: out through the slit and along the rim, the snorkel a tourist left', livesFor(item(PAC.lookout, 0, [9, 7]), 40)),
+  leg('Lookout to Diamond Head: back to the station and down its stair', into(PAC.diamond, 29, 19, PAC.lookout)),
+  leg('Diamond Head to the luau: back over the gully, down the stairs, through the tunnel and along the walkway', into(PAC.luau, 0, 17, PAC.diamond)),
   leg('Luau to Waikiki: down the palm', into(PAC.waikiki, 20, 19, PAC.luau)),
   leg('Waikiki to CLAM DOWN: down to the sand and into the surf', into(PAC.clam, 28, 19, PAC.waikiki)),
   // the swim past Molokai

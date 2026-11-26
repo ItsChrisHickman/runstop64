@@ -38,7 +38,7 @@ SCOPE.section([], 'the data', () => {
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [
-    [2, 17, PAC.ship], [2, 18, PAC.waikiki], [1, 18, PAC.luau], [0, 18, PAC.diamond], [0, 19, PAC.lookout], [3, 18, PAC.clam], [3, 19, PAC.kelp], [2, 19, PAC.lahaina], [2, 20, PAC.road], [3, 20, PAC.cave],
+    [2, 17, PAC.ship], [2, 18, PAC.waikiki], [1, 18, PAC.luau], [1, 19, PAC.diamond], [0, 19, PAC.lookout], [3, 18, PAC.clam], [3, 19, PAC.kelp], [2, 19, PAC.lahaina], [2, 20, PAC.road], [3, 20, PAC.cave],
     [2, 21, PAC.hana], [3, 21, PAC.fish], [3, 22, PAC.kona], [2, 22, PAC.kea], [1, 22, PAC.summit], [2, 23, PAC.falls], [3, 23, PAC.hilo], [4, 22, PAC.loa], [4, 23, PAC.coffee],
   ] as const;
   check('Hawaii is nineteen rooms at columns 17-23 (rows 0-4): Japan\'s port beside the ship, column 24 empty (the flight is a flight, not a room over), the sky from 25',
@@ -236,7 +236,7 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
-    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 16, 18], [PAC.lookout, 1, 10], [PAC.clam, 27, 5], [PAC.kelp, 2, 18], [PAC.lahaina, 27, 18], [PAC.road, 3, 18],
+    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 18, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 27, 18], [PAC.road, 3, 18],
     [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 27, 5], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
   ] as const;
   const failed: number[] = [];
