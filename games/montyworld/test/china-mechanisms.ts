@@ -21,7 +21,7 @@ import { must } from '../../shared/test/must';
 import { riceHatWorn } from '../src/art';
 import { ARM_PULSES, AWNING_CRACKS, CHI, CHINA_ROOMS, CRACKER_PULSES, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE } from '../src/china';
 import { CHINA_SPRITE, DRAGON_POINTERS } from '../src/china-pointers';
-import { WORLD } from '../src/data';
+import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
@@ -48,8 +48,8 @@ SCOPE.section([], 'the data: China on the grid, its entries, creatures, sprite b
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && before.ordered && coinsIn(CHI.wall, CHI.junk) === 17 && itemsIn(CHI.wall, CHI.junk) === 5);
   const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
   const firstAdded = coinRooms.indexOf(CHI.heaven);
-  check('HEAVEN CAN WAIT\'s one coin and DON\'T ROCK THE BOAT\'s two are at the coin table\'s end with the other rooms added after every region (no other coin\'s place moves, so every save keeps its coins), HEAVEN CAN WAIT\'s first; neither has a find',
-    coinsIn(CHI.heaven, CHI.heaven) === 1 && coinsIn(CHI.houhai, CHI.houhai) === 2 && firstAdded >= 0 && coinRooms.slice(firstAdded).every((r) => r >= CHI.heaven) && coinRooms.lastIndexOf(CHI.houhai) > firstAdded
+  check('HEAVEN CAN WAIT\'s one coin and DON\'T ROCK THE BOAT\'s two are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins), HEAVEN CAN WAIT\'s first; neither has a find',
+    coinsIn(CHI.heaven, CHI.heaven) === 1 && coinsIn(CHI.houhai, CHI.houhai) === 2 && firstAdded >= 0 && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && coinRooms.lastIndexOf(CHI.houhai) > firstAdded
       && itemsIn(CHI.heaven, CHI.heaven) === 0 && itemsIn(CHI.houhai, CHI.houhai) === 0);
   check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\'', keyItemsIn(CHI.wall, CHI.junk) === 3 && snacksIn(CHI.wall, CHI.junk) === 2);
   const rooms = creatureRooms(CHINA_ROOMS);

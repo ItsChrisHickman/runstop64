@@ -30,7 +30,7 @@ import { RIO_SPRITE, SKEWER_POINTERS, SPLIT_POINTERS } from './rio-pointers';
 // ---- the ids -----------------------------------------------------------------------------------------
 /**
  * Room ids never change once a region has shipped (the tables are built by id). The rebuild keeps 68, 71, 73, 74, 75 and 77; the carnival's two rooms came back as 70 (BEAT THE DRUM, in the place of
- * SUGARLOAF SUMMIT's retired id: no other region's later ids move) and 76 (FLOAT YOUR BOAT, its own id), last in the tables (data.ts `ADDED`); 67 (QUAY TO THE CITY), 69 (Sugarloaf's, cut 2026-11-25) and 72
+ * SUGARLOAF SUMMIT's retired id: no other region's later ids move) and 76 (FLOAT YOUR BOAT, its own id), last in the tables (data.ts `ADDED_ROOMS`); 67 (QUAY TO THE CITY), 69 (Sugarloaf's, cut 2026-11-25) and 72
  * (MONKEY BUSINESS) are retired (save-migrate.ts carries a save in one on in a kept room).
  */
 export const RIO_ROOM = { lap: 68, beat: 70, arms: 71, colour: 73, steak: 74, drum: 75, float: 76, bust: 77 } as const;

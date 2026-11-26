@@ -15,7 +15,7 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { DECOR_LIBRARY, WORLD } from '../src/data';
+import { ADDED_ROOMS, DECOR_LIBRARY, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TAIGA, TAIGA_BOUGHS, TUNNELS, YETI } from '../src/siberia';
@@ -48,7 +48,7 @@ SCOPE.section([], 'the data', () => {
   const cells = WORLD.exitGrid.image;
   const grid = (row: number, col: number) => cells[row * WORLD.exitGrid.cols + col];
   const block = [grid(0, 4), grid(0, 5), grid(0, 6), grid(0, 7), grid(1, 4), grid(1, 5), grid(1, 6), grid(1, 7), grid(2, 4), grid(2, 5), grid(2, 6), grid(2, 7)];
-  check('Siberia is seven rooms at columns 4-7 beside Moscow\'s: the cave over the sleeper, the train and the mine in row 1, the river under the mine and the taiga (OFF THE BEATEN PATH, added after the flight: id 94) west of it; ids 9, 10, 11, 13, 14, 17 and 94 (12, 15 and 16 retired: nothing has them), Moscow\'s 0-8 and China\'s 18 on where they were',
+  check('Siberia is seven rooms at columns 4-7 beside Moscow\'s: the cave over the sleeper, the train and the mine in row 1, the river under the mine and the taiga (OFF THE BEATEN PATH, added after the flight: id 95) west of it; ids 9, 10, 11, 13, 14, 17 and 94 (12, 15 and 16 retired: nothing has them), Moscow\'s 0-8 and China\'s 18 on where they were',
     block.join() === [0xff, SIB.yeti, 0xff, 0xff, SIB.gravy, SIB.sleeper, SIB.coal, SIB.mine, 0xff, 0xff, SIB.taiga, SIB.border].join() && grid(1, 3) === ROOM.station && grid(2, 8) === CHI.wall
     && ![12, 15, 16].some((id) => cells.includes(id)) && SIBERIA_ROOMS.length === 7);
   const coinsIn = (lo: number, hi: number) => Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0).filter((r) => r >= lo && r <= hi).length;
@@ -57,7 +57,7 @@ SCOPE.section([], 'the data', () => {
   const firstTaiga = coinRooms.indexOf(SIB.taiga);
   check('Moscow still has its 14 coins and 4 finds, first in the tables; Siberia adds 8 coins and 2 finds (the pelmeni and the ticket), and the taiga 2 coins and no find at the tables\' end (added after the flight: no other coin\'s place moves, so every save keeps its coins)',
     coinsIn(0, 8) === 14 && itemsIn(0, 8) === 4 && coinsIn(9, 17) === 8 && itemsIn(9, 17) === 2 && (WORLD.coinTable[13 * 3] ?? 99) <= 8 && (WORLD.coinTable[14 * 3] ?? 0) >= 9
-    && coinsIn(SIB.taiga, SIB.taiga) === 2 && itemsIn(SIB.taiga, SIB.taiga) === 0 && firstTaiga > coinRooms.indexOf(CHI.heaven) && coinRooms.slice(firstTaiga).every((r) => r >= CHI.heaven));
+    && coinsIn(SIB.taiga, SIB.taiga) === 2 && itemsIn(SIB.taiga, SIB.taiga) === 0 && firstTaiga > coinRooms.indexOf(CHI.heaven) && coinRooms.slice(firstTaiga).every((r) => ADDED_ROOMS.includes(r)));
   const perRoom = SIBERIA_ROOMS.map((r) => (r.coins ?? []).length);
   check(`no room has more than three coins, about one a room as Monty on the Run's (${perRoom.join(' ')})`, perRoom.every((n) => n <= 3) && perRoom.reduce((a, b) => a + b, 0) === 10);
   check('the ticket is a key item and the pelmeni a snack on the pause screen; the lamp is gone', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, SIB.yeti, 0)) && WORLD.progress.cakes.includes(itemIndex(newGame(WORLD, false).g, SIB.gravy, 0)));

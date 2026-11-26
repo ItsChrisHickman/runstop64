@@ -24,7 +24,7 @@ import { must } from '../../shared/test/must';
 import { hoodWorn, WORLD_CREATURES, WORLD_DECOR } from '../src/art';
 import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
-import { WORLD } from '../src/data';
+import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
 import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
@@ -47,12 +47,13 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
   const cells = WORLD.exitGrid.image;
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
-  check('Japan is twelve rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 and SHOOT FOR THE MOON\'s 96 (added after the flight; the three regions before it unchanged)',
+  check('Japan is twelve rooms, a block of five columns (12-16) by three rows beside China\'s, room ids 27 to 37 and SHOOT FOR THE MOON\'s 97 (added after the flight; the three regions before it unchanged)',
     cells.filter((c) => (c >= JP.harbour && c <= JP.port) || c === JP.grove).length === 12 && [grid(1, 12), grid(1, 13), grid(2, 13), grid(1, 14), grid(2, 14), grid(2, 15), grid(1, 15), grid(0, 15), grid(0, 16), grid(1, 16), grid(2, 16), grid(0, 14)].join()
       === [JP.harbour, JP.street, JP.parlour, JP.crossing, JP.platform, JP.fuji, JP.garden, JP.mole, JP.hideout, JP.hall, JP.port, JP.grove].join() && grid(1, 11) === CHI.junk && grid(0, 12) === 0xff && grid(2, 12) === 0xff && grid(0, 13) === 0xff);
   const coinRooms = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => WORLD.coinTable[i * 3] ?? 0);
-  check('SHOOT FOR THE MOON\'s two coins are the coin table\'s last (added after every region: no other coin\'s place moves, so every save keeps its coins) and it has no find',
-    coinsIn(JP.grove, JP.grove) === 2 && coinRooms.slice(-2).every((r) => r === JP.grove) && itemsIn(JP.grove, JP.grove) === 0);
+  const firstAdded = coinRooms.indexOf(CHI.heaven);
+  check('SHOOT FOR THE MOON\'s two coins are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins) and it has no find',
+    coinsIn(JP.grove, JP.grove) === 2 && firstAdded >= 0 && coinRooms.indexOf(JP.grove) > firstAdded && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && itemsIn(JP.grove, JP.grove) === 0);
   const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);

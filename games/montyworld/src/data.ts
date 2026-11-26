@@ -59,10 +59,10 @@ export const WORLD_COLS = 50, WORLD_ROWS = 8;
  * so the places of every room a format 3 save knows stay as they were. HEAVEN CAN WAIT (format 3's last); the Andes' rebuild's (OUT OF THIN AIR, THE RIVER QUEEN, THE INCA BRIDGE, CLOUD NINE,
  * VINE AND DANDY, THE RIVER ENDS); the bonus rooms off the path (OFF THE BEATEN PATH, DON'T ROCK THE BOAT, SHOOT FOR THE MOON); Rio's carnival streets (BEAT THE DRUM, FLOAT YOUR BOAT).
  */
-const ADDED: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float];
+export const ADDED_ROOMS: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float];
 const REGION_ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
-/** Every region's rooms in the order they were made, then `ADDED`'s: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...REGION_ROOMS.filter((r) => !ADDED.includes(r.id)), ...ADDED.map((id) => {
+/** Every region's rooms in the order they were made, then `ADDED_ROOMS`': a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
+const ROOMS = [...REGION_ROOMS.filter((r) => !ADDED_ROOMS.includes(r.id)), ...ADDED_ROOMS.map((id) => {
   const r = REGION_ROOMS.find((x) => x.id === id);
   if (!r) throw new Error(`room ${id} is listed as added later but no region has it`);
   return r;
