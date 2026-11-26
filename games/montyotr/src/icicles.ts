@@ -67,7 +67,7 @@ export function icicleUpdate(g: Game) {
     const shake = ic.state === 'shiver' ? (ic.t & 2 ? 1 : -1) : 0;
     g.sx[n] = (pixelX(e.col) >> 1) + shake;
     g.sy[n] = ic.y;
-    g.scol[n] = ic.state === 'shiver' && ic.t & 4 ? 1 : 3;
+    g.scol[n] = ic.state === 'shiver' && ic.t & 4 ? 1 : e.colour ?? 3;
     switch (ic.state) {
       case 'shatter': g.sptr[n] = iceSprites.shards; break;
       case 'grow': g.sptr[n] = ic.t < (GROW - SHATTER) / 2 ? iceSprites.small : iceSprites.half; break;

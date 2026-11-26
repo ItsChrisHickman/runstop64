@@ -1,4 +1,4 @@
-import type { Arrival, BoardingSpec, CharAnim, CrackSpec, CurrentSpec, LavaSpec, PulseSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { Arrival, BoardingSpec, CharAnim, CrackSpec, CurrentSpec, IcicleSpec, LavaSpec, PulseSpec, RollerSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import type { WorldDecor } from './art/world';
 import { BOULDER_POINTERS } from './andes-pointers';
@@ -237,8 +237,28 @@ export const SURGE_PULSES: readonly PulseSpec[] = ([[13, [11, 16, 21, 26]], [15,
   room: PAC.fish, col, row, cols: 2, rows: 1, period: SURGE.period, start: SURGE.start - SURGE.warn, warn: 0, live: 0,
   idle: 0, warnCode: codeOf(SEA_PALETTE, 'U'), liveCode: codeOf(SEA_PALETTE, 'U'), spent: codeOf(SEA_PALETTE, 'U'),
 })));
-/** The flow lines slide west a pixel a step (half a pixel a frame), the water's way. */
-export const SURGE_ANIM: CharAnim = { kind: 'scroll', room: PAC.fish, rings: [[codeOf(SEA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 };
+/** The flow lines slide west a pixel a step (half a pixel a frame), the water's way: FISH OUT OF WATER's over the heads and the sea cave's in its lava tube. */
+export const SURGE_ANIMS: readonly CharAnim[] = [PAC.fish, PAC.cave].map((room): CharAnim => ({ kind: 'scroll', room, rings: [[codeOf(SEA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 }));
+
+/**
+ * THE SEA CAVE, the bonus off the route (Chris, 2026-11-25: "Having a bonus room that is off the path is an opportunity to try some new things and add some fun challenges"): an old lava tube runs east under
+ * the cavern's floor from its mouth by the reef's doorway (cols 2-5) to a pocket of still water at its end (cols 24-29), where the Spam musubi is. The swell drains out of the tube in sets (`currents`, west,
+ * as FISH OUT OF WATER's surge, flow lines seen 30 frames before), and two loose stalactites hang in cracks in its roof (`icicles`, drawn in the rock's grey): passing under one at his pace is safe, but a set
+ * that catches him past one carries him back under it as it falls. So: wait at the mouth for a set to drain, swim in, up into the alcove halfway (a coin) before the next, out of it as that one is spent
+ * and on into the pocket; then ride a set out. The new things: the sea drags him back into a trap he has sprung, and he reads two clocks at once.
+ */
+export const CAVE_TUBE = { col: 6, cols: 18, top: 15, bottom: 18, alcove: 13, end: 24 } as const;
+export const CAVE_TIDE = { period: 220, start: 140, length: 80, warn: 30 } as const;
+export const CAVE_STALACTITES: readonly IcicleSpec[] = [10, 19].map((col): IcicleSpec => ({ room: PAC.cave, col, row: 13, floor: 19, colour: 15 }));
+const CAVE_CURRENT: CurrentSpec = { room: PAC.cave, col: CAVE_TUBE.col, cols: CAVE_TUBE.cols, top: CAVE_TUBE.top, bottom: CAVE_TUBE.bottom, dx: -1, period: CAVE_TIDE.period, start: CAVE_TIDE.start, length: CAVE_TIDE.length };
+/** The tube's flow lines (harmless `pulses`, as the surge's over the heads): two staggered rows, seen from 30 frames before a set until it is spent. */
+const CAVE_FLOW_PULSES: readonly PulseSpec[] = ([[15, [7, 12, 17, 22]], [17, [9, 14, 20]]] as const).flatMap(([row, cols]) => cols.map((col): PulseSpec => ({
+  room: PAC.cave, col, row, cols: 2, rows: 1, period: CAVE_TIDE.period, start: CAVE_TIDE.start - CAVE_TIDE.warn, warn: 0, live: 0,
+  idle: 0, warnCode: codeOf(SEA_PALETTE, 'U'), liveCode: codeOf(SEA_PALETTE, 'U'), spent: codeOf(SEA_PALETTE, 'U'),
+})));
+/** The surges of the Pacific (FISH OUT OF WATER's, the sea cave's tube) and their flow lines. */
+export const PACIFIC_CURRENTS: readonly CurrentSpec[] = [...CURRENTS, CAVE_CURRENT];
+export const PACIFIC_FLOW_PULSES: readonly PulseSpec[] = [...SURGE_PULSES, ...CAVE_FLOW_PULSES];
 
 /**
  * The moray (`pulses`): in its hole in the pillar's west face by the sea cave's mouth (col 8, row 14) its eyes appear and blink for 45 frames (the warning), then it lunges west across the drop-off, a body
@@ -384,11 +404,16 @@ const paintCave = (g: Grid): void => {
   g.box(0, 0, 31, 3, 'K').clear(23, 0, 25, 3).box(0, 4, 1, 13, 'K').box(30, 4, 31, 19, 'K'); // the road's rock over the cavern, the pool's way up (cols 23-25), the doorway to KELP WANTED (rows 14-18)
   g.box(24, 0, 24, 3, 'L'); // the pool's rope, hanging down into the water
   g.box(0, 19, 31, 19, 'K');
-  g.box(4, 4, 6, 6, 'K').box(10, 4, 12, 5, 'K').box(16, 4, 18, 5, 'K'); // stalactites
-  g.box(8, 17, 10, 18, 'R').box(14, 17, 16, 18, 'R').box(20, 17, 23, 18, 'C');
-  g.box(26, 9, 29, 9, 'R'); // the ledge under the stalactites at the back
+  g.box(4, 4, 6, 5, 'K').box(10, 4, 12, 5, 'K').box(16, 4, 17, 4, 'K'); // stalactites over the cavern
+  g.box(6, 12, 29, 14, 'R'); // the old lava tube's roof: the cavern above, the tube under it (rows 15-18), its mouth at the west (cols 2-5) where the cavern comes down to the doorway
+  g.clear(CAVE_TUBE.alcove, 13, CAVE_TUBE.alcove + 2, 14); // the alcove in the tube's roof, halfway: out of the draining water
+  for (const s of CAVE_STALACTITES) g.clear(s.col, 13, s.col, 14); // the cracks the tube's two loose stalactites hang in
+  g.clear(CAVE_TUBE.end, 12, 29, 14); // the pocket at the tube's end, still water
+  g.box(24, 9, 29, 11, 'R'); // the rock over the pocket, its top the ledge under the stalactites at the back
 };
-const CAVE_COINS = [[27, 8]] as const;
+const CAVE_COINS = [[27, 8], [CAVE_TUBE.alcove + 1, 13]] as const;
+/** The Spam musubi, in the still pocket at the tube's end. */
+export const CAVE_MUSUBI_AT = { col: 26, row: 13 } as const;
 
 const paintHana = (g: Grid): void => {
   g.box(0, 8, 13, 19, 'B').box(0, 0, 1, 5, 'B').box(0, 8, 13, 8, 'T'); // the headland at the road's end, its turf
@@ -443,7 +468,7 @@ const paintSummit = (g: Grid): void => {
   g.box(16, 11, 26, 11, 'G').box(15, 11, 15, 15, 'L'); // the big dome's catwalk and its ladder
   g.box(20, 4, 24, 4, 'G'); // the telescope's platform over the dome (too high to jump to from the catwalk: its ladder is `DOME_LADDER`)
 };
-const SUMMIT_COINS = [[3, 12], [18, 9]] as const;
+const SUMMIT_COINS = [[3, 12], [16, 9]] as const;
 
 const paintFalls = (g: Grid): void => {
   g.box(0, 0, 1, 5, 'B').box(0, 8, 27, 8, 'T').box(0, 9, 1, 16, 'B'); // the cliff over the high trail's way in from Mauna Kea (rows 6-7); the high trail along the gorge's top (floor 8); the gorge's west wall
@@ -631,17 +656,19 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [{ who: 'pacCoconut', col: 23, row: 6, way: 'right', speed: 1, range: 16 }],
   }),
 
-  // THE SEA CAVE: under the road, open water. In from the reef at the left (rows 14-18), or down the rope through the road's pool (cols 23-25), the way up again. The ledge under the stalactites at the back
-  // holds a coin, seen through the pool from the road above; a Spam musubi on the seabed past the humps. An eel and a manta.
+  // THE SEA CAVE: under the road, open water, the bonus off the route (`CAVE_TUBE`). In from the reef at the left (rows 14-18), or down the rope through the road's pool (cols 23-25), the way up again. The
+  // cavern above, an eel and a manta in it; the ledge under the stalactites at the back holds a coin, seen through the pool from the road above. Under the cavern the old lava tube, the swell draining out of it
+  // in sets past its two loose stalactites: the alcove halfway (a coin), the Spam musubi in the still pocket at its end.
   room({
     id: PAC.cave, cell: [3, 20], sector: 48, palette: SEA_PALETTE,
     paint: paintCave,
     coins: CAVE_COINS,
-    item: { name: 'musubi3', col: 17, row: 15, sprite: PAC_SPRITE.musubi },
-    decor: [...seaOf(paintCave, [...CAVE_COINS, [17, 15], [18, 15], [17, 16], [18, 16]]), ['pacWaterfall', 21, 4], ['pacKelp', 12, 16], ['pacSeaFan', 27, 16], ['pacBubbles', 5, 11]],
+    item: { name: 'musubi3', col: CAVE_MUSUBI_AT.col, row: CAVE_MUSUBI_AT.row, sprite: PAC_SPRITE.musubi },
+    decor: [...seaOf(paintCave, [...CAVE_COINS, [CAVE_MUSUBI_AT.col, CAVE_MUSUBI_AT.row], [CAVE_MUSUBI_AT.col + 1, CAVE_MUSUBI_AT.row], [CAVE_MUSUBI_AT.col, CAVE_MUSUBI_AT.row + 1], [CAVE_MUSUBI_AT.col + 1, CAVE_MUSUBI_AT.row + 1]]),
+      ['pacWaterfall', 21, 4], ['pacKelp', 3, 16], ['pacSeaFan', 28, 16], ['pacBubbles', 4, 11]],
     creatures: [
-      { who: 'pacEel', col: 6, row: 10, way: 'right', speed: 1, range: 80 },
-      { who: 'pacManta', col: 12, row: 12, way: 'right', speed: 1, range: 60 },
+      { who: 'pacEel', col: 6, row: 9, way: 'right', speed: 1, range: 120 },
+      { who: 'pacManta', col: 14, row: 6, way: 'right', speed: 1, range: 60 },
     ],
   }),
 

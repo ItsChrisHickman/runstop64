@@ -21,7 +21,7 @@ import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { BIPLANE_AT, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, CURRENTS, LAVA, MORAY, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, SURGE, TORCHES, TORCH_PULSES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
@@ -47,8 +47,8 @@ SCOPE.section([], 'the data', () => {
     [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => r.id >= 87 && r.id <= 93) && PACIFIC_SECTORS.length === 17);
   const rooms = creatureRooms(PACIFIC_ROOMS);
   check(`no creature in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
-  check('the four swim rooms are the crossings and the sea cave; only the last crossing has a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
-    WORLD.swimRooms.join() === [PAC.clam, PAC.kelp, PAC.cave, PAC.fish].join() && WORLD.currents.every((c) => c.room === PAC.fish || (Object.values<number>(FLY)).includes(c.room))
+  check('the four swim rooms are the crossings and the sea cave; only the last crossing and the sea cave\'s tube have a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
+    WORLD.swimRooms.join() === [PAC.clam, PAC.kelp, PAC.cave, PAC.fish].join() && WORLD.currents.every((c) => c.room === PAC.fish || c.room === PAC.cave || (Object.values<number>(FLY)).includes(c.room))
     && WORLD.risingLava.every((l) => l.room === PAC.loa || !(Object.values<number>(PAC)).includes(l.room)) && WORLD.risingLava.some((l) => l.room === PAC.loa) && MOTR.currents.length === 0 && MOTR.swimRooms.length === 0);
   const g = newGame(WORLD, false).g;
   check('the lei opens nothing: no room effect waits for it, and it is worn', WORLD.roomEffects.every((e) => (e.when ?? []).every((w) => !('taken' in w) || w.taken !== itemIndex(g, ...LEI))) && WORLD.costumes.some((c) => c.item === itemIndex(g, ...LEI)));
@@ -129,6 +129,37 @@ SCOPE.section([PAC.fish, PAC.kona], 'FISH OUT OF WATER: the surge, the moray', (
   const out = at(PAC.fish, 29, 18, [SNORKEL]);
   run(out, RIGHT, 80);
   check('out at the bottom right he comes onto Kona\'s black sand and stands there', out.g.roomId === PAC.kona && !dead(out.g));
+});
+
+// ---- THE SEA CAVE: the bonus off the route, the lava tube's tide and its loose stalactites ------------------------------------
+SCOPE.section([PAC.cave, PAC.kelp, PAC.road], 'THE SEA CAVE: the tube\'s tide, the stalactites, the alcove and the pocket', () => {
+  check('two loose stalactites hang in the tube\'s roof, in the rock\'s grey (not an icicle\'s cyan), and fall to the tube\'s floor',
+    CAVE_STALACTITES.length === 2 && WORLD.icicles.filter((e) => e.room === PAC.cave).every((e) => e.colour === 15 && e.floor === 19 && e.col > CAVE_TUBE.col && e.col < CAVE_TUBE.end));
+  const tube = at(PAC.cave, 21, 19, [SNORKEL]);
+  run(tube, DOWN, CAVE_TIDE.start - 2);
+  const x0 = tube.g.x2;
+  run(tube, DOWN, 40);
+  check(`while a set drains the tube he is carried west along its floor (${x0 - tube.g.x2} double pixels in 40 frames)`, tube.g.x2 < x0 - 10);
+  const alcove = at(PAC.cave, CAVE_TUBE.alcove, 15, [SNORKEL]);
+  const ax = alcove.g.x2;
+  run(alcove, NONE, CAVE_TIDE.start + CAVE_TIDE.length + 10);
+  check('in the alcove halfway the water is still through a set', alcove.g.x2 === ax && !dead(alcove.g));
+  const pocket = at(PAC.cave, CAVE_MUSUBI_AT.col, 19, [SNORKEL]);
+  const px = pocket.g.x2;
+  run(pocket, NONE, CAVE_TIDE.start + CAVE_TIDE.length + 10);
+  check('in the pocket at the tube\'s end the water is still through a set', pocket.g.x2 === px && !dead(pocket.g));
+  const fates = Array.from({ length: CAVE_TIDE.period / 5 }, (_, k) => {
+    const s = at(PAC.cave, 3, 19, [SNORKEL]);
+    run(s, NONE, 5 * k);
+    for (let f = 0; f < 160; f++) { frame(s, RIGHT); if (dead(s.g)) return 'killed'; }
+    return 'alive';
+  });
+  const killed = fates.filter((f) => f === 'killed').length;
+  check(`swimming straight in from the mouth, a set that catches him past a stalactite carries him back under it as it falls: some starts die, some live (${killed} of ${fates.length} starts killed)`,
+    killed > 0 && killed < fates.length);
+  const still = at(PAC.cave, 3, 19, [SNORKEL]);
+  run(still, NONE, CAVE_TIDE.start + 300);
+  check('the tube\'s mouth is out of the draining water: he waits there through a set', !dead(still.g) && colOf(still.g) <= 4);
 });
 
 // ---- Mauna Loa: the lava, the crust, the vent ------------------------------------------------------------

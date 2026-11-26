@@ -129,7 +129,11 @@ export interface EscalatorSpec {
  * Monty's width is over its column, shivers for `warn` frames, falls 4 pixels a frame to the floor (playfield row `floor`),
  * breaks, and grows back; it kills like a crusher's head. A room has at most two (the sprites 1 and 2).
  */
-export interface IcicleSpec { room: number; col: number; row: number; floor: number }
+export interface IcicleSpec {
+  room: number; col: number; row: number; floor: number;
+  /** Its colour (default 3, an icicle's cyan; the sea cave's loose stalactites are the rock's grey). It flashes white as it shivers whatever its colour. */
+  colour?: number;
+}
 
 /**
  * A tunnel mouth (tunnels.ts): a portal of the room's tile `code` (1-8, a passable one), `cols` wide, from playfield row `top` to
