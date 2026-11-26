@@ -1,5 +1,5 @@
 /**
- * The Emperor's rooftops' scenery: a dusk sky in bands (blue overhead, a red glow toward the halls), the tips of an eave's tiles and a row of the beasts that march along a
+ * The Emperor's rooftops' scenery: a dusk glow in red bands along the top, the tips of an eave's tiles and a row of the beasts that march along a
  * golden ridge. The platforms Monty runs on are tiles (china-tiles.ts: roofRidge, roofBody, roofTile); these are what stands on and behind them. Solid ink with the detail
  * cut into it as black lines, never a dither.
  */
@@ -7,14 +7,7 @@ import { decor } from './decorations';
 import { Raster } from './raster';
 import type { NewDecor } from './types';
 
-/** A band of the dusk sky: two thin lines across the character, stamped cell by cell over the sky. Blue overhead. 1 x 1 characters. */
-function duskBand(): NewDecor {
-  const r = new Raster(8, 8);
-  r.rect(0, 1, 7, 1); r.rect(0, 5, 7, 5);
-  return decor('duskBand', 1, 1, r, 6);
-}
-
-/** The same lower in the sky, where the sun has gone: red. 1 x 1 characters. */
+/** A band of the dusk sky where the sun has gone: thin red lines across the character, stamped cell by cell along the top of a room. 1 x 1 characters. */
 function duskGlow(): NewDecor {
   const r = new Raster(8, 8);
   r.rect(0, 2, 7, 3); r.rect(0, 6, 7, 6);
@@ -91,4 +84,4 @@ function farShore(): NewDecor {
   return decor('farShore', 1, 1, r, 11);
 }
 
-export const ROOF_DECOR = { duskBand: duskBand(), duskGlow: duskGlow(), eaveTip: eaveTip(), ridgeBeasts: ridgeBeasts(), templeHeaven: templeHeaven(), drumTower: drumTower(), farShore: farShore() } as const satisfies Record<string, NewDecor>;
+export const ROOF_DECOR = { duskGlow: duskGlow(), eaveTip: eaveTip(), ridgeBeasts: ridgeBeasts(), templeHeaven: templeHeaven(), drumTower: drumTower(), farShore: farShore() } as const satisfies Record<string, NewDecor>;

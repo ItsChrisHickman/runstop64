@@ -50,7 +50,7 @@ const ALLEY_PALETTE = {
 } as const satisfies Palette;
 
 const TOWER_PALETTE = {
-  G: ['greatBrick', 12], P: ['wallPave', 8], S: ['stoneStep', 3], T: ['trapdoor', 9], R: ['rope', 13], N: ['backBrick', 6], L: ['brickSlit', 12],
+  G: ['greatBrick', 12], P: ['wallPave', 8], S: ['stoneStep', 3], T: ['trapdoor', 9], R: ['rope', 13], L: ['brickSlit', 12],
 } as const satisfies Palette;
 
 const TOP_PALETTE = {
@@ -87,11 +87,6 @@ function faceCells(c0: number, r0: number, c1: number, r1: number): Placed[] {
   const cells: Placed[] = [];
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) cells.push(['wallCell', c, r]);
   return cells;
-}
-
-/** A back wall behind him: the character `backCell` on every cell the room's paint leaves empty in the rectangle (columns c0-c1, rows r0-r1), (a coin hangs on it: the engine draws the coin over the backdrop). */
-function backWall(paint: (g: Grid) => void, c0: number, r0: number, c1: number, r1: number): Placed[] {
-  return fillCells(paint, [], [c0, r0, c1, r1], 'backCell');
 }
 
 // ---- the timed strikes ----------------------------------------------------------------------------------
@@ -210,7 +205,13 @@ const paintGate = (g: Grid): void => {
     g.box(3, 9, 10, 9, 'Y').box(12, 9, 12, 16, 'R'); // the gallery over the outer court, and the rope up to it
 };
 
-/** Where the coins hang in the hutong and the market (the back walls leave them clear). */
+/**
+ * The dusk along the top of the palace's roofs, HEAVEN CAN WAIT and Houhai: a red glow in the band (the sky below it black: no full-screen fill, LESSONS.md), the golden halls,
+ * the Temple of Heaven and the Drum Tower standing against it and the black in their own colours.
+ */
+const DUSK_ROWS = 3;
+
+/** Where the coins hang in the hutong and the market. */
 const ALLEY_COINS = [[12, 11], [27, 15]] as const;
 const MARKET_COINS = [[6, 7], [21, 15]] as const;
 
@@ -240,7 +241,6 @@ const paintHouhai = (g: Grid): void => {
 };
 /** Where the Drum Tower stands in the picture (its 7 x 6 characters' top left), over the far shore's line at row 11. */
 const TOWER = { col: 12, row: 5 } as const;
-const inTower = (c: number, r: number) => c >= TOWER.col && c < TOWER.col + 7 && r >= TOWER.row && r < TOWER.row + 6;
 const HOUHAI_COINS: readonly (readonly [col: number, row: number])[] = [[16, 13], [28, 15]];
 
 export const CHINA_ROOMS: readonly RoomSpec[] = [
@@ -282,9 +282,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: ALLEY_COINS,
     item: { name: 'key', col: 28, row: 7, sprite: CHINA_SPRITE.key },
     decor: [
-      ...backWall(paintAlley, 2, 10, 31, 16), ...backWall(paintAlley, 2, 7, 16, 9), // the lane's wall behind him, running up under the washing
-      ...[2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((c) => ['cord', c, 4] as const), ['laundry', 5, 5], ['laundryB', 9, 5], ['laundryC', 13, 5], // the clothesline from house to house, behind the rope, hung with washing of every colour
-      ['hutongGate', 20, 13], ['boxes', 15, 15], ['latticeWindow', 20, 3], ['latticeWindow', 25, 3], ['hangingLantern', 12, 2], ['hangingLantern', 14, 2],
+      // the clothesline from house to house under the eaves, behind the rope, hung with washing: along the top (the lane behind him black: LESSONS.md, no full-screen fill)
+      ...[2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((c) => ['cord', c, 2] as const), ['laundry', 6, 3], ['laundryB', 11, 3],
+      ['hutongGate', 20, 13], ['boxes', 15, 15],
     ],
     creatures: [
       { who: 'bicycle', col: 6, row: 15, way: 'right', speed: 2, range: 28 },
@@ -297,7 +297,6 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.tower, cell: [1, 8], sector: 20, palette: TOWER_PALETTE,
     paint(g) {
-      g.box(2, 2, 29, 16, 'N'); // the hall's inner wall
       g.box(0, 0, 31, 1, 'G').box(15, 0, 17, 1, 'T');
       g.box(0, 2, 1, 16, 'G').box(30, 2, 31, 5, 'G').box(30, 9, 31, 13, 'G');
       g.box(0, 4, 1, 4, 'L').box(0, 10, 1, 10, 'L').box(30, 3, 31, 3, 'L').box(30, 11, 31, 11, 'L'); // slits in the outer walls
@@ -307,6 +306,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       g.box(16, 2, 16, 8, 'R'); // the rope under the trapdoor
     },
     coins: [[7, 11], [24, 7]],
+    // the hall dark behind him (no brick wallpaper: LESSONS.md), its windows, banner and arms on it
     decor: [['wallWindow', 5, 3], ['wallWindow', 23, 3], ['banner', 19, 3], ['rack', 13, 15], ['gong', 18, 14], ['drum', 28, 15], ['hangingLantern', 12, 2], ['hangingLantern', 27, 2]],
     creatures: [
       { who: 'warrior', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
@@ -352,8 +352,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     paint: paintMarket,
     coins: MARKET_COINS,
     decor: [
-      ['cityRoofs', 7, 6], ['cityRoofs', 15, 6], ['cityRoofs', 22, 6], // the city's roofs far off in the haze, the dragon over them
-      ...backWall(paintMarket, 2, 10, 29, 16), // the shop fronts behind the stalls
+      ['cityRoofs', 7, 6], ['cityRoofs', 15, 6], ['cityRoofs', 22, 6], // the city's grey roofs and red walls far off over the awnings, the dragon over them (the street behind the stalls black: LESSONS.md)
       ['lanternString', 2, 2], ['lanternString', 7, 2], ['lanternString', 12, 2], ['latticeWindow', 8, 11], ['latticeWindow', 17, 11], ['latticeWindow', 26, 11],
       ['noodleStall', 7, 14], ['noodleStall', 13, 14], ['noodleStall', 22, 14], ['drum', 28, 15], ['banner', 3, 11], ['pottedPlant', 10, 15],
     ],
@@ -375,14 +374,14 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   }),
 
   // G THE EMPEROR(S ROOFTOPS: the palace roofs at dusk. In by the rope from the gate up through a hatch in a hall's ridge; west along the ridge a dead end with dumplings and a coin; east a stair of glazed eaves up to the high ridge, along it east.
-  // Halls recede in tiers behind under a sky going from blue to red, lanterns hang under the eaves.
+  // Halls recede in tiers behind, golden roofs on red walls under the last red of the dusk, lanterns hang under the eaves.
   room({
     id: CHI.roofs, cell: [0, 10], sector: 24, palette: ROOFS_PALETTE,
     paint: paintRoofs,
     coins: [[12, 15], [26, 7]],
     item: { name: 'dumplings2', col: 4, row: 15, sprite: CHINA_SPRITE.dumplings },
     decor: [
-      ...fillCells(paintRoofs, [], [0, 0, 31, 4], 'duskBand'), ...fillCells(paintRoofs, [], [0, 5, 31, 12], 'duskGlow'), // the sky, blue overhead and red toward the halls
+      ...fillCells(paintRoofs, [], [0, 0, 31, DUSK_ROWS - 1], 'duskGlow'), // the last red of the dusk along the top, the night under it
       ['moon', 26, 2], ...[[3, 1], [9, 2], [14, 1], [20, 3], [5, 4]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
       ['gateRoof', 2, 2], ['palaceHall', 12, 5], ['palaceHall', 0, 8], // the halls receding in tiers
       ['roofDragon', 24, 7], ['roofDragon', 20, 15], ['ridgeBeasts', 8, 16], ['lanternPost', 15, 14], // a dragon on each ridge's end, the beasts marching along the ridge
@@ -400,8 +399,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.willow, cell: [0, 11], sector: 25, palette: WILLOW_PALETTE,
     paint(g) {
-      g.box(0, 0, 31, 1, 'B');
-      g.box(0, 2, 1, 5, 'B').box(31, 2, 31, 14, 'B');
+      g.box(0, 0, 1, 5, 'B').box(31, 0, 31, 14, 'B'); // the plate's border up each side (none across the top: the garden is open to the sky)
       g.box(0, 9, 1, 19, 'K').box(3, 8, 3, 19, 'R'); // the entry bank, the well and its rope
       g.box(5, 11, 6, 19, 'K').box(7, 13, 8, 19, 'K').box(9, 15, 11, 19, 'K'); // the steps and the shore
       g.box(12, 16, 26, 19, 'W').box(12, 19, 26, 19, 'B'); // the river, the plate's border under it
@@ -453,7 +451,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     paint: paintHeaven,
     coins: [[15, 9]],
     decor: [
-      ...fillCells(paintHeaven, [], [0, 0, 31, 4], 'duskBand'), ...fillCells(paintHeaven, [], [0, 5, 31, 12], 'duskGlow'), // the rooftops' sky going on
+      ...fillCells(paintHeaven, [], [0, 0, 31, DUSK_ROWS - 1], 'duskGlow'), // the rooftops' dusk going on along the top
       ...[[6, 1], [12, 3], [19, 1], [23, 4], [29, 2], [4, 5]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
       ['templeHeaven', 3, 8], // the Hall of Prayer for Good Harvests over the city, its terraces on the ridge's line
       ['ridgeBeasts', 19, 16], // the beasts marching along the ridge
@@ -468,7 +466,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     paint: paintHouhai,
     coins: HOUHAI_COINS,
     decor: [
-      ...fillCells(paintHouhai, HOUHAI_COINS, [0, 0, 31, 3], 'duskBand'), ...fillCells(paintHouhai, HOUHAI_COINS, [0, 4, 31, 10], 'duskGlow').filter(([, c, r]) => !inTower(c, r)),
+      ...fillCells(paintHouhai, HOUHAI_COINS, [0, 0, 31, DUSK_ROWS - 1], 'duskGlow'), // the dusk along the top
       ...fillCells(paintHouhai, HOUHAI_COINS, [0, 11, 29, 11], 'farShore'),
       ['drumTower', TOWER.col, TOWER.row], ['houhaiWillow', 1, 11], // (the tower on the lake's far shore, the line of roofs and trees there under it)
       ['star', 5, 1], ['star', 22, 2], ['star', 14, 0],
