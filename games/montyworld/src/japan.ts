@@ -573,7 +573,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // J SAYONARA SAILOR: the port at sunset, the way out. In by the rope from the hall; a quay with paper lanterns and flags (a sumo dockworker and a kappa on it), a stack of containers with a coin at the west end and Mount Fuji small over the sea behind, the sun going down;
+  // J SAYONARA SAILOR: the port at sunset, the way out. In by the rope from the hall; a quay with paper lanterns and flags (a sumo dockworker and a kappa on it), a stack of containers with a coin at the west end and, along the top, Mount Fuji small over the sea and the sun going down in the sunset's bands;
   // at the east the cargo ship moored at the quay's end: its hull with its portholes standing in the water, its deckhouse and funnel, and the gangway down, a plank to step on and the deck over it, which walks on east into the Pacific.
   room({
     id: JP.port, cell: [2, 16], sector: 37, palette: PORT_PALETTE,
@@ -581,9 +581,10 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     paint: paintPort,
     coins: [[4, 9], [23, 15]],
     decor: [
-      ...fillCells(paintPort, [], [0, 2, 27, 3], 'jpSkyA'), ...fillCells(paintPort, [], [0, 4, 27, 5], 'jpSkyB'), ...fillCells(paintPort, [], [0, 6, 27, 8], 'jpSkyC'), ...fillCells(paintPort, [], [0, 9, 27, 11], 'jpSkyD'),
-      ...fillCells(paintPort, [], [0, 12, 27, 16], 'jpSeaLines'),
-      ['jpFujiFar', 13, 10], ['jpSunHalf', 21, 10], ['jpGulls', 11, 4], ['jpGulls', 20, 6],
+      // the sunset on the horizon only (LESSONS.md: no full-screen fill): four warm bands along the top, Fuji and the setting sun on them, a strip of sea under; the quay black
+      ...fillCells(paintPort, [], [0, 2, 27, 2], 'jpSkyA'), ...fillCells(paintPort, [], [0, 3, 27, 3], 'jpSkyB'), ...fillCells(paintPort, [], [0, 4, 27, 4], 'jpSkyC'), ...fillCells(paintPort, [], [0, 5, 27, 5], 'jpSkyD'),
+      ...fillCells(paintPort, [], [3, 6, 24, 7], 'jpSeaLines'),
+      ['jpFujiFar', 13, 4], ['jpSunHalf', 20, 4], ['jpGulls', 7, 3], ['jpGulls', 17, 2],
       ['jpLanternPost', 12, 13], ['jpFlagHinomaru', 15, 14], ['jpLanternPost', 20, 13], ['jpShipBridge', 28, 6], ['jpGangwayRail', 26, 12],
     ],
     creatures: [

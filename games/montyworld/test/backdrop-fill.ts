@@ -93,9 +93,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
     [CHI.heaven]: 'a red brick wall tiled behind the pagoda, stripes running down behind it',
     [CHI.houhai]: 'red stripes tiled behind the pavilion and the willow',
   },
-  japan: {
-    [JP.port]: 'sky stripes running down behind the play, a brick texture up its left side, the sea pattern joined to them',
-  },
+  japan: {},
   pacific: {
     [PAC.waikiki]: 'a dark-blue skyline and sea texture filling the right half below the band',
     [PAC.luau]: 'sunset stripes running down behind the play',
