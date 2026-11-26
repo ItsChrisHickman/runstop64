@@ -113,17 +113,6 @@ const LAGOON = [
   '########',
 ] as const;
 
-/** The natural wall of black lava rock across Kaihalulu's mouth: jagged tops, the surf breaking white on them (drawn in the rock's ink: the spray is the gaps). */
-const LAVA_WALL = [
-  '.#...#..',
-  '###.###.',
-  '########',
-  '#.######',
-  '########',
-  '###.####',
-  '########',
-  '########',
-] as const;
 
 // ---- the landmarks
 
@@ -220,6 +209,35 @@ function banyan(): NewDecor {
   return decor('pacBanyan', 4, 4, r, ['5555', '5555', '9999', '9999']);
 }
 
+/**
+ * An old wooden storefront of a plantation-era main street (Hilo's bayfront on Kamehameha Avenue, Lahaina's Front Street): the false front with its sign board, the upper storey's clapboard and two tall
+ * sash windows, the covered sidewalk's tin roof on its posts, the shop window and the door under it. Laid side by side they make the street. 3 x 6 characters: the front painted green, the wood brown.
+ */
+function storefront(): NewDecor {
+  const r = new Raster(24, 48);
+  r.rect(0, 0, 23, 1); r.rect(1, 2, 22, 7); r.rect(3, 3, 20, 6, false); r.rect(5, 4, 18, 5); // the false front's cornice, its sign board (lettered by a line)
+  for (let y = 9; y < 22; y += 3) r.rect(1, y, 22, y); // the clapboard
+  r.rect(0, 8, 0, 23); r.rect(23, 8, 23, 23);
+  for (const x of [4, 14]) { r.rect(x, 10, x + 5, 21, false); r.rect(x, 10, x + 5, 10); r.rect(x, 15, x + 5, 15); r.rect(x, 21, x + 5, 21); r.rect(x, 10, x, 21); r.rect(x + 5, 10, x + 5, 21); } // the sash windows
+  r.rect(0, 24, 23, 26); for (let x = 1; x < 23; x += 3) r.set(x, 25, false); // the sidewalk's tin roof, its ribs
+  r.rect(0, 27, 1, 47); r.rect(22, 27, 23, 47); // its posts
+  r.rect(3, 30, 12, 41); r.rect(4, 31, 11, 40, false); r.rect(7, 31, 8, 40); // the shop window and its mullion
+  r.rect(15, 30, 20, 47); r.rect(16, 31, 19, 47, false); r.rect(17, 38, 17, 39); // the door, its knob
+  r.rect(3, 43, 12, 47); // the stallriser under the window
+  return decor('pacStorefront', 3, 6, r, ['ddd', 'ddd', 'ddd', '999', '999', '999']);
+}
+
+/** The old brig's square sail set under its yard in Lahaina's harbour: the canvas bellied by the trade wind, its seams and reef points, the clews sheeted down to the deck. 6 x 4 characters. */
+function sail(): NewDecor {
+  const r = new Raster(48, 32);
+  for (let y = 0; y < 28; y++) { const b = Math.round(3 * Math.sin((y / 27) * Math.PI)); r.rect(3 - b, y, 44 + b, y); } // the canvas, bellied
+  for (let x = 10; x < 44; x += 8) r.rect(x, 1, x, 26, false); // the seams
+  for (let x = 4; x < 44; x += 4) { r.set(x, 6, false); r.set(x, 12, false); } // two rows of reef points
+  for (let x = 0; x < 48; x++) { const lift = Math.round(3 * Math.sin((x / 47) * Math.PI)); r.rect(x, 27 - lift, x, 27, false); } // the foot, curved up
+  r.line(3, 26, 0, 31); r.line(44, 26, 47, 31); // the sheets down to the rail
+  return decor('pacSail', 6, 4, r, 1);
+}
+
 export const PACIFIC_SCENERY_TILES = {
   /** Diamond Head's tuff in the sun: the cone's own fluting (its gullies worn down the rock, as the slope's backdrop has them), brighter than the slope behind, cracked. Solid. */
   pacTuff: tile('pacTuff', 1, 8, [
@@ -284,7 +302,8 @@ export const PACIFIC_SCENERY_DECOR = {
   pacIronwood: ironwood(),
   pacBanyan: banyan(),
   pacLagoonFill: fill('pacLagoonFill', LAGOON, 3),
-  pacLavaWallFill: fill('pacLavaWallFill', LAVA_WALL, 11),
+  pacStorefront: storefront(),
+  pacSail: sail(),
   pacKiawe: kiawe(),
   pacTunnelLamp: tunnelLamp(),
 } as const satisfies Record<string, NewDecor>;

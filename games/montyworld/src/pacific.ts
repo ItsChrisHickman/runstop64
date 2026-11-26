@@ -370,6 +370,10 @@ const paintLuau = (g: Grid): void => {
   g.box(28, 13, 29, 14, 'C'); // the drummers' platform
 };
 const LUAU_COINS = [[8, 17], [28, 11]] as const;
+/** Diamond Head on the horizon to the east, the next room's mountain (its high rim at the left, as Waikiki sees it), and an outrigger on the evening sea below the lawn. */
+const LUAU_HEAD_RIDGE = ridge([[10, 11], [12, 9], [13, 8], [14, 8], [15, 9], [19, 9], [21, 10], [23, 11]]);
+const inLuauHead = (c: number, r: number): boolean => c >= 11 && c <= 22 && r <= 10 && r >= LUAU_HEAD_RIDGE(c);
+const LUAU_CANOE: readonly Cell[] = cellsOf(9, 14, 4, 2);
 const LUAU_KEEP: readonly (readonly [col: number, row: number])[] = [...LUAU_COINS, ...TORCHES.cols.flatMap((col) => [[col, 17], [col + 1, 17], [col, 18], [col + 1, 18]] as const), [1, 16], [2, 16], [1, 17], [2, 17]];
 
 /**
@@ -609,8 +613,8 @@ const paintHilo = (g: Grid): void => {
   g.box(9, 0, 9, 11, 'R').box(16, 11, 16, 18, 'R'); // the rope up from the roofs to the falls' low lane, and the rope up to the roofs from the street
 };
 const HILO_COINS = [[8, 10], [17, 17]] as const;
-/** The storefronts under their roofs (one character each over the empty cells: a backdrop he walks past). */
-const storefronts = fillCells(paintHilo, [], [2, 13, 14, 18], 'pacHotelFront');
+/** Kamehameha Avenue's old wooden storefronts under their roofs, side by side along the bayfront (a backdrop he walks past). */
+const storefronts: Placed[] = [2, 5, 8, 11].map((col) => ['pacStorefront', col, 13] as const);
 
 // ---- the islands' scenery (Chris, 2026-11-25: "I really want you to think about representing these islands properly"): each room's backdrop, laid round its pieces ----
 const text = (col: number, row: number, words: string): Cell[] => cellsOf(col, row, words.length, 1);
@@ -631,16 +635,15 @@ const waikikiScenery: Placed[] = [
 
 /** Lahaina in the evening: the sunset over the channel, the whale's tail breaching off the harbour; West Maui's green mountains behind Front Street's old storefronts and the courthouse's great banyan on the quay. */
 const LAHAINA_COINS = [[9, 5]] as const;
-const LAHAINA_PIECES = [['pacOutrigger', 19, 16], ['pacBanyan', 24, 14], ['pacWhaleTail', 1, 12]] as const;
+const LAHAINA_PIECES = [['pacStorefront', 17, 12], ['pacStorefront', 20, 12], ['pacBanyan', 24, 14], ['pacWhaleTail', 1, 12], ['pacSail', 7, 8]] as const;
 const LAHAINA_KEEP = keepOf([...LAHAINA_COINS, ...cellsOf(6, 12, 2, 2)], LAHAINA_PIECES);
 const LAHAINA_MOUNTAINS = ridge([[14, 10], [16, 7], [19, 4], [22, 3], [24, 5], [26, 2], [29, 3]]);
 const LAHAINA_SEA = 11;
 const lahainaScenery: Placed[] = [
   ...sunset(paintWhale, LAHAINA_KEEP, { purple: 2, red: 5, orange: LAHAINA_SEA - 1, gold: LAHAINA_SEA - 1 }, (c, r) => r < LAHAINA_SEA && (c < 14 || r < LAHAINA_MOUNTAINS(c))),
-  ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c >= 14 && r >= LAHAINA_MOUNTAINS(c) && r <= LAHAINA_SEA, 'pacCliffFill'),
+  ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c >= 14 && r >= LAHAINA_MOUNTAINS(c) && (r <= LAHAINA_SEA || (c >= 17 && r <= 13)), 'pacCliffFill'),
   ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c < 14 && r === LAHAINA_SEA, 'pacSeaWave'),
   ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c < 17 && r > LAHAINA_SEA && r < 18, 'pacSeaFlat'),
-  ...fillWhere(paintWhale, LAHAINA_KEEP, (c, r) => c >= 17 && r > LAHAINA_SEA && r < 18, 'pacHotelFront'),
 ];
 
 /** The Road to Hana cut into the jungle cliff: rainforest over every empty cell (the waterfalls and bamboo in it). */
@@ -669,13 +672,16 @@ const konaScenery: Placed[] = [
   ...fillWhere(paintKona, KONA_KEEP, (c, r) => r >= KONA_SLOPE(c) && r < 19, 'pacLavaFill'),
 ];
 
-/** Mauna Kea's climb out of the clouds: the dusk over its red cinder slope and the cinder cones on it, the sea of cloud under the switchbacks. */
-/** The skyline of the mountain's upper slopes: the cinder cones on its flank, black against the dusk. */
-const KEA_SLOPE = ridge([[2, 8], [5, 5], [8, 7], [12, 3], [16, 6], [20, 2], [24, 5], [29, 3]]);
+/**
+ * Mauna Kea's climb out of the clouds (above the tree line the summit road is cut through black lava, the red cinder cones rising round it): the dusk over the cones, each a separate red hump, the mountain's black lava flank below them, and the sea of cloud under the first switchback.
+ */
+const KEA_CONES = ridge([[2, 8], [3, 6], [5, 4], [7, 5], [9, 8], [11, 6], [13, 3], [15, 2], [17, 3], [19, 6], [21, 7], [23, 5], [25, 4], [27, 6], [29, 8]]);
+const KEA_FLANK = 9;
 const KEA_CLOUDS = 17;
 const keaScenery: Placed[] = [
-  ...sunset(paintKea, KEA_COINS, { purple: 1, red: 3, orange: 5, gold: 7 }, (c, r) => r < KEA_SLOPE(c)),
-  ...fillWhere(paintKea, KEA_COINS, (c, r) => r >= KEA_SLOPE(c) && r < KEA_CLOUDS, 'pacCinderFill'),
+  ...sunset(paintKea, KEA_COINS, { purple: 1, red: 3, orange: 5, gold: 7 }, (c, r) => r < KEA_CONES(c) && r < KEA_FLANK),
+  ...fillWhere(paintKea, KEA_COINS, (c, r) => r >= KEA_CONES(c) && r < KEA_FLANK, 'pacCinderFill'),
+  ...fillWhere(paintKea, KEA_COINS, (_c, r) => r >= KEA_FLANK && r < KEA_CLOUDS, 'pacLavaFill'),
   ...fillWhere(paintKea, KEA_COINS, (_c, r) => r >= KEA_CLOUDS, 'pacCloudFill'),
 ];
 
@@ -687,13 +693,18 @@ const summitScenery: Placed[] = fillWhere(paintSummit, keepOf(SUMMIT_COINS, SUMM
 const FALLS_PIECES = [['pacWaterfall', 19, 9], ['pacWaterfall', 19, 14], ['pacBambooClump', 2, 4], ['pacBambooClump', 4, 15], ['pacBambooClump', 12, 4], ['pacBambooClump', 24, 15]] as const;
 const fallsScenery: Placed[] = fillWhere(paintFalls, keepOf(FALLS_COINS, FALLS_PIECES), () => true, 'pacJungleFill');
 
-/** Mauna Loa's crater: old lava on its walls and floor round the basin (dark until the lava rises in it), the night glowing red over the rim. */
+/**
+ * Mauna Loa's summit caldera, Moku'aweoweo, at night: the glow over the rim, the caldera's far wall of stacked flows lit red from below, and its floor of grey pahoehoe round the basin (dark until the lava
+ * rises in it).
+ */
+const LOA_WALL = ridge([[2, 6], [5, 5], [9, 6], [12, 5], [16, 7], [19, 6], [23, 6], [27, 5], [30, 6]]);
 const LOA_PIECES = [['pacLavaRocks', 3, 18]] as const;
 const LOA_KEEP = keepOf([...LOA_COINS, ...cellsOf(MOON_ROCK_AT.col, MOON_ROCK_AT.row, 2, 2), ...cellsOf(VENT.col, VENT.row, 2, 2)], LOA_PIECES);
 const loaBasin = (c: number, r: number) => (c >= LAVA.col && c < LAVA.col + LAVA.cols && r > LAVA.topRow) || (c >= PIT_LAVA.col && c < PIT_LAVA.col + PIT_LAVA.cols && r > PIT_LAVA.topRow);
 const loaScenery: Placed[] = [
   ...sunset(paintLoa, LOA_KEEP, { purple: 0, red: 1, orange: 2, gold: 2 }, (_c, r) => r < 3),
-  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= 3 && !loaBasin(c, r), 'pacLavaFill'),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= 3 && r < LOA_WALL(c) && !loaBasin(c, r), 'pacCinderFill'),
+  ...fillWhere(paintLoa, LOA_KEEP, (c, r) => r >= LOA_WALL(c) && !loaBasin(c, r), 'pacLavaFill'),
 ];
 
 /** The coffee farm on Mauna Loa's green flank: the sky, the mountain's dark shoulder far behind, the hillside of scrub under the terraces. */
@@ -708,7 +719,7 @@ const coffeeScenery: Placed[] = [
 
 /** Hilo in the evening: the bay behind the bayfront's old storefronts, a banyan by the airfield, Mauna Kea's broad shoulder rising behind the town, bare at the top, the wet windward forest below. */
 const HILO_PIECES = [['pacBanyan', 25, 15]] as const;
-const HILO_KEEP = keepOf([...HILO_COINS, ...text(6, 14, 'HILO')], [['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row], ...HILO_PIECES]);
+const HILO_KEEP = keepOf(HILO_COINS, [['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row], ...HILO_PIECES, ...storefronts]);
 const HILO_KEA = ridge([[14, 9], [18, 6], [23, 4], [28, 3], [31, 4]]);
 const hiloScenery: Placed[] = [
   ...sunset(paintHilo, HILO_KEEP, { purple: 1, red: 3, orange: 5, gold: 6, sea: 8 }, (c, r) => c < 14 || r < HILO_KEA(c)),
@@ -770,7 +781,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: LUAU_COINS,
     item: { name: 'lei', col: 1, row: 16, sprite: PAC_SPRITE.lei },
     decor: [
-      ...sunset(paintLuau, LUAU_KEEP, { purple: 1, red: 4, orange: 7, gold: 10, sea: 12 }), ['pacSun', 7, 9],
+      ...sunset(paintLuau, LUAU_KEEP, { purple: 1, red: 4, orange: 7, gold: 10, sea: 12 }, (c, r) => !inLuauHead(c, r)), ['pacSun', 7, 9],
+      ...fillWhere(paintLuau, LUAU_KEEP, inLuauHead, 'pacTuffFill'),
+      ...fillWhere(paintLuau, LUAU_KEEP, (c, r) => r >= 13 && r <= 15 && c < 25 && !LUAU_CANOE.some(([hc, hr]) => hc === c && hr === r), 'pacSeaFlat'), ['pacOutrigger', 9, 14],
       ['pacArchTop', 0, 12], ['pacArchLeg', 0, 14], ['pacArchLeg', 3, 14],
       ['pacHulaDancer', 22, 12], ['pacHulaDancer', 25, 12], ['pacHulaDancer', 30, 12], ['pacDrummer', 30, 11], ['pacDrums', 30, 13],
       ['pacFronds', 18, 12],
@@ -976,7 +989,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.hilo, cell: [3, 23], sector: 53, palette: HILO_PALETTE,
     paint: paintHilo,
     coins: HILO_COINS,
-    decor: [...hiloScenery, ...storefronts, ...HILO_PIECES, [{ text: 'HILO', colour: 7 }, 6, 14], ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
+    decor: [...hiloScenery, ...storefronts, ...HILO_PIECES, [{ text: 'HILO', colour: 7 }, 5, 13], ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
     creatures: [{ who: 'pacRooster', col: 15, row: 17, way: 'right', speed: 1, range: 24 }],
   }),
 ];
