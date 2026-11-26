@@ -145,6 +145,18 @@ function worldOf(data: MontyData) {
   };
 }
 
+/**
+ * Where a column of a world in regions starts, in cells from the world's first: its place, and a cell more for each flight before it (a region reached by
+ * plane, `MapRegion.flown`: the map leaves a cell of space before its first column, as the journey there is a flight, not one room over).
+ */
+export function columnAt(data: MontyData, col: number): number {
+  const world = worldOf(data);
+  const flights = new Set(data.regions.filter((r) => r.flown && r.from > world.from).map((r) => r.from));
+  let at = col;
+  for (const c of flights) if (c <= col) at++;
+  return at;
+}
+
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
@@ -190,28 +202,30 @@ function layout(box: Box, g: Game, focus: readonly [row: number, col: number], d
     const ox = box.x + Math.floor((box.w - cols * cell) / 2);
     return { cell, view: { x: ox, y: top, w: cols * cell, h: rows * cell }, at: (row: number, col: number) => ({ x: ox + col * cell, y: top + row * cell }) };
   }
-  const world = worldOf(data), cols = world.to - world.from + 1, rows = world.rowTo - world.rowFrom + 1;
-  const cell = Math.min(REGION_CELL, ...data.regions.map((r) => Math.floor(box.w / (r.to - r.from + 1))),
+  const world = worldOf(data), rows = world.rowTo - world.rowFrom + 1;
+  // (columns as the map lays them out: a flight's gap counts as a column of nothing)
+  const x = (col: number) => columnAt(data, col), cols = x(world.to) - x(world.from) + 1;
+  const cell = Math.min(REGION_CELL, ...data.regions.map((r) => Math.floor(box.w / (x(r.to) - x(r.from) + 1))),
     ...data.regions.map((r) => Math.floor(spare / (r.rows ? r.rows.to - r.rows.from + 1 : rows))));
   const w = Math.min(box.w, cols * cell), h = Math.min(rows, Math.floor(spare / cell)) * cell;
-  const lo = { x: world.from * cell, y: world.rowFrom * cell }, hi = { x: (world.to + 1) * cell - w, y: (world.rowTo + 1) * cell - h };
+  const lo = { x: x(world.from) * cell, y: world.rowFrom * cell }, hi = { x: (x(world.to) + 1) * cell - w, y: (world.rowTo + 1) * cell - h };
   let cam = cameras.get(g);
   if (!cam || cam.fresh) {
     // opened: the focus's region centred (sideways to the pixel, the edges' cells cut; up and down in whole rows)
     const region = regionAt(data.regions, focus[0], focus[1]);
     const span = { from: region?.from ?? world.from, to: region?.to ?? world.to, rowFrom: region?.rows?.from ?? world.rowFrom, rowTo: region?.rows?.to ?? world.rowTo };
-    const x = clamp(Math.round((span.from + span.to + 1) * cell / 2 - w / 2), lo.x, hi.x);
-    const y = clamp(Math.round(((span.rowFrom + span.rowTo + 1) / 2 - h / cell / 2)) * cell, lo.y, hi.y);
-    cam = { to: { x, y }, shown: { x, y }, fresh: false };
+    const cx = clamp(Math.round((x(span.from) + x(span.to) + 1) * cell / 2 - w / 2), lo.x, hi.x);
+    const cy = clamp(Math.round(((span.rowFrom + span.rowTo + 1) / 2 - h / cell / 2)) * cell, lo.y, hi.y);
+    cam = { to: { x: cx, y: cy }, shown: { x: cx, y: cy }, fresh: false };
     cameras.set(g, cam);
   }
   // following the focus: just far enough to keep it MARGIN cells inside (up and down in whole rows)
-  cam.to.x = follow(cam.to.x, focus[1] * cell, (focus[1] + 1) * cell, MARGIN * cell, w, lo.x, hi.x);
+  cam.to.x = follow(cam.to.x, x(focus[1]) * cell, (x(focus[1]) + 1) * cell, MARGIN * cell, w, lo.x, hi.x);
   cam.to.y = follow(cam.to.y, focus[0] * cell, (focus[0] + 1) * cell, MARGIN_ROWS * cell, h, lo.y, hi.y);
   if (draw) for (const k of ['x', 'y'] as const) cam.shown[k] += clamp(cam.to[k] - cam.shown[k], -SLIDE, SLIDE);
   const { x: ox, y: oy } = draw ? cam.shown : cam.to;
   const vx = box.x + Math.floor((box.w - w) / 2);
-  return { cell, view: { x: vx, y: top, w, h }, at: (row: number, col: number) => ({ x: vx + col * cell - ox, y: top + row * cell - oy }) };
+  return { cell, view: { x: vx, y: top, w, h }, at: (row: number, col: number) => ({ x: vx + x(col) * cell - ox, y: top + row * cell - oy }) };
 }
 
 /** The cell the map is scrolled to: the picked room's (where he came into it), else Monty's. */

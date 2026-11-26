@@ -440,7 +440,7 @@ export interface ItemHints {
 }
 
 /** The stretch of the exit grid the pause screen's map shows while Monty is in it (a region): columns `from` to `to`, and the rows `rows` (all of them if it has none: a region of a few rows on a tall grid names its own). */
-export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[] }
+export interface MapRegion { /** Its name on the map's heading (Do Svidaniya Monty's countries); none: THE MAP. */ name?: string; from: number; to: number; rows?: { from: number; to: number }; /** Cells of its rectangle that another region owns (row, column). */ except?: readonly { row: number; col: number }[]; /** Reached by a flight, not by walking one room over (Do Svidaniya Monty's sky, from Hilo): the map leaves a gap before its first column. */ flown?: boolean }
 
 /** The C5 street of Monty on the Run: its rooms, the first and the last of them, and the exit grid cell of the last. */
 export interface C5Street {
