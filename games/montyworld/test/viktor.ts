@@ -1,7 +1,7 @@
 /**
  * Viktor Vole round the world (docs/dosvidaniya-reset.md, "Viktor Vole"), headless, in ORIGINAL and ENHANCED:
  * - SPY VERSUS MOLE (the Sambadrome): he walks on at the far side as Monty comes in, the room's name flashing, and off; then the puzzle. Walking under the float's head and pulling the lever, at any moment
- *   after, never squashes him (the head's warning is longer than a walker is under it); standing under the head first, so that he stands there too, and pulling as he does, squashes him (the four-way
+ *   after, squashes him whenever the head reaches him under it (never through him); standing under the head first, so that he stands there too, and pulling as he does, squashes him (the four-way
  *   split, the bars lift) with Monty alive. An early pull misses and the head is ready again; standing under it as it falls kills Monty; kept moving, he never reaches Monty.
  * - The train's roof and the cargo ship: behind him on his path; Monty sheltering in the closet as the mountain comes (Viktor, on the roof, is swept off), ducking under the crane's crate as it rises (Viktor
  *   walks into it coming down and is knocked overboard), a way found from several arrival timings; escaped, he is gone from the room for good (a save keeps it).
@@ -12,7 +12,7 @@
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
-import { underHead } from '../../montyotr/src/levers';
+import { shaftOver, underHead } from '../../montyotr/src/levers';
 import { encounterState } from '../../montyotr/src/pursuers';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import type { Input as Stick } from '../../montyotr/src/game';
@@ -89,21 +89,34 @@ for (const enhanced of [false, true]) {
       rowText(s.g) === 'SPY VERSUS MOLE' && seenFar && gone && inks.size >= 2 && !dead(s.g));
   }
 
-  // ---- the naive way: walk under the head to the lever, and pull, at any moment after: he is never squashed
+  // ---- the head never passes through him: walk under it to the lever and pull at any moment after; whenever the falling head reaches him under it, he is
+  // squashed (Chris, 2026-11-24: it passed through him when he had walked in after the pull, about half of all pulls)
   {
-    const hits: number[] = [];
-    let tried = 0;
-    for (let w = 0; w <= 120; w += 6) {
+    const through: number[] = [];
+    let tried = 0, reached = 0;
+    const shafts = new Set<number>(); // the shafts he was squashed under (Chris: "only the second crusher actually affects him")
+    for (let w = 0; w <= 160; w += 4) {
       const s = avenue(13, enhanced);
       if (!walkTo(s, 21)) continue;
       if (!wait(s, w)) continue;
       tried++;
-      const show = !enhanced && w === 66;
+      const show = !enhanced && w === 64;
       pull(s);
-      for (let f = 0; f < 90 && !squashed(s.g); f++) { frame(s, NONE); if (show && [10, 40, 62, 70].includes(f)) snap('2-showdown-naive-miss', s.g); }
-      if (squashed(s.g)) hits.push(w);
+      let landedOn = false, shaft = -1;
+      for (let f = 0; f < 160 && !squashed(s.g); f++) {
+        const before = viktor(s.g);
+        shaft = before ? shaftOver(s.g, before.x2, before.y + 1) : -1;
+        frame(s, NONE);
+        if (show && [10, 40, 62, 70].includes(f)) snap('2-showdown-timed-pull', s.g);
+        const v = viktor(s.g), pd = s.g.pd;
+        if (v && pd.state === 1 && underHead(s.g, v.x2, v.y + 1) && ((pd.spriteY[0] + pd.position) & 0xff) >= v.y + 4) landedOn = true;
+      }
+      if (squashed(s.g) && shaft >= 0) shafts.add(shaft);
+      if (landedOn) reached++;
+      if (landedOn && !squashed(s.g)) through.push(w);
     }
-    check(`${mode}: walking under the float's head to the lever and pulling it, after any wait from 0 to 120 frames (${tried} tried), never squashes Viktor${hits.length ? ` (squashed after waits of ${hits.join(', ')})` : ''}`, hits.length === 0 && tried >= 15);
+    check(`${mode}: pulled at ${tried} moments after walking to the lever, the head reached Viktor under it ${reached} times and squashed him every time${through.length ? ` (passed through him after waits of ${through.join(', ')})` : ''}, under both shafts (${[...shafts].sort().join(', ')})`,
+      through.length === 0 && reached >= 3 && tried >= 15 && shafts.has(0) && shafts.has(1));
   }
 
   // ---- the puzzle solved: stand under the head, so that he will; go to the lever; pull as he stops under it
@@ -144,11 +157,13 @@ for (const enhanced of [false, true]) {
     check(`${mode}: pulling the lever and standing under the head, Monty is crushed`, died);
   }
 
-  // ---- fair: he is always `delay` frames behind on Monty's path, so only standing still that long lets him catch up
+  // ---- fair: he is always `delay` frames behind on Monty's path, so only standing still that long lets him catch up (the lever unfitted: the walk east steps into it,
+  // and a fitted one would drop the head on him as he follows)
   {
-    const a = avenue(13, enhanced);
+    const unfitted = (s: State) => { s.g.siCollected[lever.armed] = 0; return s; };
+    const a = unfitted(avenue(13, enhanced));
     const short = walkTo(a, 26) && wait(a, agent.delay - 20);
-    const b = avenue(13, enhanced);
+    const b = unfitted(avenue(13, enhanced));
     const long = walkTo(b, 26) && wait(b, agent.delay + 40);
     check(`${mode}: on the move, or standing still for less than his ${agent.delay} frames behind, Viktor never reaches Monty; standing longer, he does`, short && !long);
   }

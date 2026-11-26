@@ -236,7 +236,7 @@ const SUGAR = rows([
 const SUGAR_COINS: readonly Cell[] = [[7, 7]];
 
 // ---- D SPY VERSUS MOLE (the Sambadrome) --------------------------------------------------------------------
-/** The showdown: in high on the stand's ledge (8) from the cable car's top station, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): a walker is out from under the head before it lands, so Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
+/** The showdown: in high on the stand's ledge (8) from the cable car's top station, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): the head squashes Viktor whenever it comes down on him; a walker is under it only a moment, so the sure way is that Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
 const DRUM = rows([
     '................................', // 0
     '...........................SSSS.', // 1
@@ -362,7 +362,7 @@ export const leverOf = (crank: number, fitted: number, squashed: number): LeverS
 /**
  * Viktor Vole (the room's third creature, slot 2: sprite 6) on Monty's path 125 frames (two and a half seconds) behind, from when he leaves the stand's ledge and the riser (cols 0-11, rows 0-8). As Monty comes in
  * he walks on at the avenue's far end beyond the bars (col 30, floor 18), looks across at him while the room's name flashes, and walks off; the chase starts as Monty leaves the ledge. He is escaped only by the
- * float's head, and only standing under it (levers.ts: a walker under it is out before it lands): he goes in Monty's four-way split, on sprites 6, 1 and 2 and the dancer's 5 (back, on, up, down).
+ * float's head coming down on him (levers.ts: the sure way is standing under it so that he stands there too; a pull timed to a walker's arrival also lands on him): he goes in Monty's four-way split, on sprites 6, 1 and 2 and the dancer's 5 (back, on, up, down).
  */
 export const SHOWDOWN = { delay: 125, intro: { from: 33, at: { col: 30, row: 18 }, to: 33, pose: 'look', hold: 60 } } as const;
 export const pursuerOf = (squashed: number): PursuerSpec => ({

@@ -1052,18 +1052,20 @@ off while the room's name flashes; the chase starts as Monty leaves the ledge. H
 (its window lights: armed).
 
 The puzzle: pulling the lever starts the float's head **shuddering** (60 frames: it flickers white and rattles) before it drops
-(12 frames). It squashes Viktor only if he was under it at the pull and is still under it as it lands. Walking, anyone is under the
-head for about 56 frames (seven cells at a walk), so **walking under it and pulling the lever never works**, whenever you pull: he walks out from under
-it during the warning. He stands only where Monty stood. So the player has to work it out: **stand under the head yourself** (it is
+(12 frames). It squashes Viktor whenever it comes down on him, either shaft, as it would Monty (Chris, 2026-11-24: it had passed
+through him when he walked in after the pull, and "only the second crusher" seemed to work; the old rule wanted him under it from the
+pull to the landing). Walking, he is under the head only a moment, so a pull timed to his arrival works now and then (walking to the lever
+and pulling after a wait of 0 to 200 frames squashes him at about one wait in five: 45 of 201, both shafts); a careless one
+misses. He stands only where Monty stood. So the player has to work it out: **stand under the head yourself** (it is
 held up: safe) for a second or two, go to the lever, and pull as Viktor arrives and stops where you stood. Early pulls miss, the
 head rises and is ready again (about two seconds); Monty under it when it falls dies; ENHANCED restarts the room as he came in. A typical
-player: the obvious walk under and pull (a miss, he walks out as it shudders), a timed second try (a miss again), then the penny drops:
+player: the obvious walk under and pull (usually a miss, he walks out as it shudders; about one try in five it lands on him), a timed second try (it may land), then the penny drops:
 he copies everything, so make him wait there. Squashed, Viktor goes exactly as Monty goes under a Mole Crusher in Monty on the Run:
 the four-way split (`death4Split`'s paths, pace, its four pictures a piece in turn and its sound), with his own head in the four
 pieces (sprites 6, 1, 2 and the dancer's 5: the dancer is out of sight while the pieces fly). The bars lift; the beach.
 
-Proved headless in `games/montyworld/test/viktor.ts`: the naive walk and pull after every wait from 0 to 120 frames never squashes
-him; standing under the head 60, 80 or 100 frames and pulling as he stops there does, with Monty alive, in both modes; the early
+Proved headless in `games/montyworld/test/viktor.ts`: walking to the lever and pulling after every wait from 0 to 160 frames, the head
+squashes him every time it reaches him (never through him), under both shafts; standing under the head 60, 80 or 100 frames and pulling as he stops there does, with Monty alive, in both modes; the early
 pull re-arms; standing still under the falling head kills; he reaches Monty only after standing still longer than his delay; the
 train's and the ship's escapes from several arrival timings; every cameo plays, touches nothing and goes. The HUD (another agent) reads
 `encounterState(g)` in `pursuers.ts` (each pursuer escaped or not, and whether Viktor is due in this room) and `VIKTOR_FACE`.
