@@ -255,6 +255,9 @@ Things the engine does that a room's picture will not show you; each has a test 
   a hatch over its top step, and every step is a jump of two rows, as the steps below it.
 - **Places on the exit grid are agreed between regions:** a region's way out is the next region's way in, at the same cell and rows (the Andes' kapok at [5,22], rows 6-7 on floor 8, into Rio's OPEN ARMS at [5,23]); `joins.ts` checks it only once both are merged.
 
+- **A gate gives way where he uses the item, seen** (Chris, 2026-11-25: "if you have the item, the obstacle doesn't exist ... If you knew you knew, otherwise, huh?"): a room effect with `at` (a box of cells) waits until he comes up to the gate carrying the item, then happens there with the item's sound (the engine's `useOnTheSpot`), and what happens is drawn, not narrated: the tangle's cells go, a guard with `leaves` turns and walks off out of the room, harmless (`leaveTick`). Never a guard silently gone on coming in, and no line on the name row saying what the picture shows (no words on the screen).
+- **The world's decoration kinds are a byte (255 with the text signs):** count them (`budget.ts`) before restoring old rooms with their pieces; reuse a kind another region already has where it reads as the thing (the Pacific's lifebuoy and small palm on the riverboat), free a kind no room places; past that, a region needs the per-load kind byte first (an engine change to agree with Chris).
+
 ## Coins, the Monty on the Run way (studied 2026-11-22, docs/dosvidaniya-reset.md)
 
 Monty on the Run has 64 coins in 52 rooms: 0 in 14 rooms, 1 in 18, 2 in 14, 3 in 6, never more. Every coin has a reason, and

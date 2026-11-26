@@ -454,7 +454,7 @@ export class Game implements MontyBody, MontyWorld {
    * jetpack and Monty always overlap, so the hardware's bits can't tell it from Monty's own touch.
    */
   get uncounted() {
-    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
+    return (this.assist.jetpack && this.showJetpack && !this.c5.active ? 0x04 : 0) | (this.hatPlaced ? 0x80 : 0) | dragonSprites(this) | rollerSprites(this) | cableSprites(this) | skewerSprites(this) | pursuerSprites(this) | cameoSprites(this) | Items.leavingSprites(this) | (this.canopyShown || this.planeShown ? 0x04 : 0) | (this.planeBail >= 0 ? 0xff : 0);
   }
 
   /** Whether the parachute's canopy is over Monty this frame (flight.ts), on sprite 2. */
@@ -556,6 +556,7 @@ export class Game implements MontyBody, MontyWorld {
     }
     this.dispatch();
     if (this.script) return;
+    Items.useOnTheSpot(this);
     if (this.roomExit) {
       // The original's RoomLoop reacts to room_exit straight away (it freezes
       // the game before the next frame), so start the transition now. Leaving
@@ -723,7 +724,14 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- room loading: original LoadRoom ---------------------------------------------
 
+  /** The room effects used on the spot this visit (`RoomEffect.at`, items.ts `useOnTheSpot`): empty on every load, so a gate given way stays open until he leaves or the room starts again. */
+  usedHere = new Set<number>();
+  /** The guards walking off this visit (items.ts `leaveTick`): an enemy slot and the way it goes. */
+  leaving: { slot: number; dx: -1 | 1 }[] = [];
+
   loadRoom() {
+    this.usedHere = new Set<number>();
+    this.leaving = [];
     const id = this.roomId;
     const data = this.data;
     const def = data.roomDef(id);
@@ -1040,6 +1048,7 @@ export class Game implements MontyBody, MontyWorld {
       this.sptr[n] = 0x30 + slot * 8 + frame;
       this.enable |= 1 << n;
     }
+    Items.leaveTick(this);
   }
 
   // ---- theme char animation (water and lava) ----------------------------------------
