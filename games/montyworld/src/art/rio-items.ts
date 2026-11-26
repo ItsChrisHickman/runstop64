@@ -11,7 +11,7 @@ import type { NewItem } from './types';
 
 const pad16 = (rows: readonly string[]): readonly string[] => [...rows, ...Array.from({ length: 16 - rows.length }, () => '.'.repeat(16))];
 
-/** The crank: the churrascaria spit's handle, an iron arm bent twice with a wooden grip at one end and the square socket that fits a winch at the other. */
+/** The crank: the carnival float crew's winch handle (left on the floats' stage), an iron arm bent twice with a wooden grip at one end and the square socket that fits a winch at the other. */
 function crank(): NewItem {
   const r = new Raster(16, 16);
   r.rect(1, 1, 5, 5); r.rect(2, 2, 4, 4, false); // the socket

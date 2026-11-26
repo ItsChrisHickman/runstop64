@@ -31,7 +31,7 @@ import { cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, UP, at, rowText, r
 import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 
-const CRANK = [R.steak, 0] as const, HEADDRESS = [R.drum, 0] as const;
+const CRANK = [R.float, 0] as const, HEADDRESS = [R.drum, 0] as const;
 const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever'), agent = must(WORLD.pursuers.find((p) => p.room === R.drum), 'the agent');
 
 // ---- the data -------------------------------------------------------------------------------------
@@ -64,9 +64,10 @@ SCOPE.section([], 'the data', () => {
 // ---- the carnival ---------------------------------------------------------------------------------------------
 SCOPE.section([R.beat, R.float, R.drum], 'the carnival', () => {
   check('no words on the scenery in any of Rio\'s rooms: no banner, sign or label (Chris, 2026-11-25: "words on the screen feels like such an AI thing")', RIO_ROOMS.every((r) => !(r.decor ?? []).some((d) => typeof d.type !== 'number')));
-  const crowd = decorIndex('rioCrowd');
-  const dancing = (room: number) => RIO_ANIMS.some((a) => a.kind === 'cycle' && a.room === room && a.chars.length === 16 && a.chars.every((c) => typeof c !== 'number' && c.decor === crowd)) && (RIO_ROOMS.find((r) => r.id === room)?.decor ?? []).filter((d) => d.type === crowd).length >= 2;
-  check('the grandstands are alive: the crowd dances along the tiers (two rows of it or more, animated) in the carnival\'s street, at the canal and in the Sambadrome', [R.beat, R.float, R.drum].every(dancing));
+  const crowds = [decorIndex('rioCrowd'), decorIndex('rioCrowdB')];
+  const dancing = (room: number) => crowds.every((crowd) => RIO_ANIMS.some((a) => a.kind === 'cycle' && a.room === room && a.chars.length === 16 && a.frames.length >= 4 && a.chars.every((c) => typeof c !== 'number' && c.decor === crowd)))
+    && (RIO_ROOMS.find((r) => r.id === room)?.decor ?? []).filter((d) => typeof d.type === 'number' && crowds.includes(d.type)).length >= 2;
+  check('the grandstands are alive: the crowd dances along the tiers (two rows of it or more, in two colour orders, four poses in a wave) in the carnival\'s street, at the canal and in the Sambadrome', [R.beat, R.float, R.drum].every(dancing));
   check('every parade float carries a dancer dancing on it', RIO_ANIMS.filter((a) => a.room === R.float && a.kind === 'cycle' && a.chars.length === 4).length === 3);
   check('the floats run both ways along the canal: three west to east at the street\'s height, two east to west at the balconies\'', CARNIVAL_FLOATS.filter((f) => f.row === 18 && f.dir === 1).length === 3 && CARNIVAL_FLOATS.filter((f) => f.row === 14 && f.dir === -1).length === 2);
   // across the canal on lane A: from the west bank he is carried east and steps off onto the stage

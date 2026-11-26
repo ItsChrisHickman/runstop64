@@ -37,7 +37,7 @@ const snap = (name: string, g: Game) => { if (out) strips.set(name, [...(strips.
 
 const lever = must(WORLD.levers[0], 'the Sambadrome\'s lever');
 const agent = must(WORLD.pursuers.find((p) => p.room === R.drum), 'Viktor in the Sambadrome');
-const CRANK = [R.steak, 0] as const;
+const CRANK = [R.float, 0] as const;
 
 /** A new game in the Sambadrome on the avenue at a column, the crank fitted, the creatures in; came in from Sugar Rush. */
 function avenue(col: number, enhanced: boolean): State {

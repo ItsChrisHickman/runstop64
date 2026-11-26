@@ -20,7 +20,7 @@ if (!out) throw new Error('usage: finale-shots.ts <out-dir> [every]');
 const every = Number(process.argv[3] ?? 30);
 fs.mkdirSync(out, { recursive: true });
 
-const s = at(R.bust, 3, 18, [[R.steak, 0], [R.drum, 0]], false, true);
+const s = at(R.bust, 3, 18, [[R.float, 0], [R.drum, 0]], false, true);
 wear(s.g, itemIndex(s.g, R.drum, 0));
 const pics: Uint8Array[] = [];
 pics.push(shot(s.g));

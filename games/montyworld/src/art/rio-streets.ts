@@ -168,29 +168,38 @@ function tiers(): NewDecor {
 }
 
 /**
- * A row of the grandstand's crowd dancing (the carnival's spectacle, Chris 2026-11-25: "dancers everywhere"): eight little samba dancers side by side, 8 x 16 pixels each, a plume on the head, arms up or
- * out, the hips and legs stepping, each in a colour of its own (`CROWD_COLOURS`, one column each). `phase` 0 has the even dancers' arms up and the odd ones' out, 1 the other way round: the engine's `charAnims`
- * swaps the two (`CROWD_DANCE`), so the whole stand dances out of step. 8 x 2 characters, repeated along the tiers.
+ * A row of the grandstand's crowd dancing (the carnival's spectacle, Chris 2026-11-25: "dancers everywhere"): eight little samba dancers side by side, 8 x 16 pixels each, a plume on the head, each in a colour
+ * of its own (one column each). Four poses, big enough to read at screen size: arms flung up in a V, both out and bobbing down, one hand high and the hips swung the other way, arms low and the kick on the other
+ * leg; dancer k is in pose (k + frame) mod 4, so a wave runs along the stand rather than the whole stand in step. The engine's `charAnims` steps the four (`CROWD_DANCE`). Two colour orders (`rioCrowd`, `rioCrowdB`),
+ * one a tier, so neighbouring tiers never match. 8 x 2 characters, repeated along the tiers.
  */
-const CROWD_COLOURS = '27ad385e';
-function crowdRaster(phase: 0 | 1): Raster {
+const CROWD_COLOURS = { rioCrowd: '27ad385e', rioCrowdB: 'e583da72' } as const;
+type CrowdName = keyof typeof CROWD_COLOURS;
+const CROWD_FRAMES = 4;
+function crowdRaster(frame: number): Raster {
   const r = new Raster(64, 16);
   for (let k = 0; k < 8; k++) {
-    const x = k * 8, up = (k + phase) % 2 === 0;
-    r.rect(x + 3, 0, x + 4, 2); r.set(x + 2, 1); r.set(x + 5, 1); // the plume
-    r.disc(x + 3.5, 4.5, 1.8); // the head
-    r.rect(x + 3, 7, x + 4, 10); // the body
-    if (up) { r.line(x + 2, 7, x + 0, 3); r.line(x + 5, 7, x + 7, 3); } else { r.line(x + 2, 7, x + 0, 9); r.line(x + 5, 7, x + 7, 9); } // the arms
-    r.triangle(x + 3.5, 9, x + 1, 13, x + 6, 13); // the skirt
-    if (up) { r.rect(x + 2, 14, x + 2, 15); r.rect(x + 5, 13, x + 6, 13); } else { r.rect(x + 5, 14, x + 5, 15); r.rect(x + 1, 13, x + 2, 13); } // a leg down, a leg kicking
+    const pose = (k + frame) % CROWD_FRAMES;
+    const sway = pose === 2 ? 1 : pose === 3 ? -1 : 0, bob = pose === 1 ? 1 : 0;
+    const x = k * 8 + sway, y = bob;
+    r.rect(x + 3, y, x + 4, y + 2); r.set(x + 2, y + 1); r.set(x + 5, y + 1); // the plume
+    r.disc(x + 3.5, y + 4.5, 1.8); // the head
+    r.rect(x + 3, y + 7, x + 4, y + 10); // the body
+    if (pose === 0) { r.line(x + 2, y + 7, x, y); r.line(x + 5, y + 7, x + 7, y); } // a V, flung up
+    else if (pose === 1) { r.line(x + 2, y + 7, x, y + 7); r.line(x + 5, y + 7, x + 7, y + 7); } // out level
+    else if (pose === 2) { r.line(x + 5, y + 7, x + 7, y + 1); r.line(x + 2, y + 7, x + 1, y + 9); } // one hand high, the other on the hip
+    else { r.line(x + 2, y + 7, x, y + 10); r.line(x + 5, y + 7, x + 7, y + 10); } // low
+    r.triangle(x + 3.5, y + 9, x + 1 - sway, Math.min(13, y + 13), x + 6 - sway, Math.min(13, y + 13)); // the skirt, flaring the other way to the sway
+    if (pose % 2 === 0) { r.rect(x + 2, 14, x + 2, 15); r.rect(x + 5, 12, x + 7, 12); } else { r.rect(x + 5, 14, x + 5, 15); r.rect(x, 12, x + 2, 12); } // a leg down, a leg kicking high
   }
   return r;
 }
-function crowd(): NewDecor {
-  return decor('rioCrowd', 8, 2, crowdRaster(0), [CROWD_COLOURS, CROWD_COLOURS]);
-}
-/** The crowd's two pictures for the engine's `charAnims`: all sixteen characters of the piece, out of step and back. */
-export const CROWD_DANCE = { decor: 'rioCrowd', cells: Array.from({ length: 16 }, (_, i) => i), frames: [characters('rioCrowd', crowdRaster(0).rows(), 8, 2), characters('rioCrowd', crowdRaster(1).rows(), 8, 2)] } as const;
+const crowdOf = (name: CrowdName): NewDecor => decor(name, 8, 2, crowdRaster(0), [CROWD_COLOURS[name], CROWD_COLOURS[name]]);
+/** The crowds' pictures for the engine's `charAnims`: all sixteen characters of each piece, the four poses in turn. */
+export const CROWD_DANCES = (['rioCrowd', 'rioCrowdB'] as const).map((decorName) => ({
+  decor: decorName, cells: Array.from({ length: 16 }, (_, i) => i),
+  frames: Array.from({ length: CROWD_FRAMES }, (_, f) => characters(decorName, crowdRaster(f).rows(), 8, 2)),
+}));
 
 /** A riser of the Selaron steps under its tread: a band of little square tiles, the mosaic Jorge Selaron laid on Lapa's steps. 2 x 1 characters. */
 function selaron(): NewDecor {
@@ -253,7 +262,8 @@ export const RIO_STREETS = {
   stands: stands('stands', '4444', 'aaaa'),
   rioStandsGold: stands('rioStandsGold', '7777', '8888'),
   rioTiers: tiers(),
-  rioCrowd: crowd(),
+  rioCrowd: crowdOf('rioCrowd'),
+  rioCrowdB: crowdOf('rioCrowdB'),
   rioSelaron: selaron(),
   bunting: bunting(),
   rioBalloons: balloons(),

@@ -2,7 +2,7 @@ import type { CharAnim, FloatSpec, LeverSpec, PursuerSpec, RollerSpec, SkewerSpe
 import { BOULDER_POINTERS } from './andes-pointers';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { GRILL_ANIM, RIO_DECOR } from './art/rio-decor';
-import { CROWD_DANCE, FLOAT_DANCERS } from './art/rio-streets';
+import { CROWD_DANCES, FLOAT_DANCERS } from './art/rio-streets';
 import { SKEWER_POSES } from './art/rio-items';
 import type { WorldDecor } from './art/world';
 import { asBackdrop, codeOf, decorIndex, fillCells, type Grid, room, type Palette } from './layout';
@@ -16,10 +16,11 @@ import { RIO_SPRITE, SKEWER_POINTERS, SPLIT_POINTERS } from './rio-pointers';
  *   row 4                                         W STEAK YOUR CLAIM
  *   row 5   C OPEN ARMS        F HOUSE OF COLOUR   L THE LAPA ARCHES    P BEAT THE DRUM   Q FLOAT YOUR BOAT  D SPY VERSUS MOLE  B RIO OR BUST
  *
- * The route: up the Redeemer and off his east hand (C); down through the favela (F); along Lapa's street under the arches, the tram's track high above (L); on into the carnival's street, where the Selaron steps
- * climb from the street to the aqueduct's end (P); up them and west onto Lapa's track, across its gap on the tram, up the ladder into the churrascaria at the top of the arches, past the gauchos' skewers to the
- * spit's crank and back past them (W); down through the gap to the street (one way) and east again into the carnival: over the bateria's risers past the dancers (P), across the canal on the parade's floats (Q),
- * the showdown in the Sambadrome, the agent on his trail (D), where the crank fits the control booth and makes the float's lever live; and the beach (B). SUGAR RUSH (69) and its cable car were cut (Chris,
+ * The route, downhill all the way (the plan's "Rio is the final rush": no errand back up the hill): up the Redeemer and off his east hand (C); down through the favela (F); along Lapa's street under the arches, the
+ * tram's track high above (L); on into the carnival's street (P): over the bateria's risers past the dancers, across the canal on the parade's floats to the stage, where the float crew's winch handle (the crank)
+ * lies on the way to the grandstand's ladder (Q); the showdown in the Sambadrome, the agent on his trail (D), where the crank fits the control booth and makes the float's lever live; and the beach (B). A detour
+ * for the coins, never needed: the Selaron steps climb from the carnival's street to the aqueduct's end (P), west onto Lapa's track, across its gap on the tram and up the ladder into the churrascaria at the top
+ * of the arches, past the gauchos' skewers (W), and back down through the gap to the street (one way). SUGAR RUSH (69) and its cable car were cut (Chris,
  * 2026-11-25: "the Sugar thing... that's a wasted effort"); its coin is Lapa's third, at the same place in the tables.
  *
  * Playfield cells as in moscow.ts; a floor "F" is the row he stands on (his body is on rows F-2 and F-1). Each room is painted from its rows of palette letters ('.' empty). The tram and the carnival's floats
@@ -207,8 +208,9 @@ const LAPA_COINS: readonly Cell[] = [[8, 7], [21, 17], [27, 7]];
 
 // ---- W STEAK YOUR CLAIM ---------------------------------------------------------------------------------
 /**
- * The churrascaria at the top of the arches, a dead end: in up the ladder through the floor (col 5) onto the dining floor (18), the first gaucho's lane between the tables, the step (16), the ladder (col 18) up beside the
- * grill's platform (8) where the second gaucho's skewer swings over the ladder's head, the spit's crank at its end.
+ * The churrascaria at the top of the arches, a dead end off the route (its coins' detour): in up the ladder through the floor (col 5) onto the dining floor (18), the first gaucho's lane between the tables, the step (16),
+ * the ladder (col 18) up beside the grill's platform (8) where the second gaucho's skewer swings over the ladder's head. (The crank was the spit's, at the platform's end, until the route went downhill all the way: it is
+ * the floats' stage's now, FLOAT_CRANK.)
  */
 const STEAK = rows([
     'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB', // 0
@@ -232,7 +234,6 @@ const STEAK = rows([
     'BBBB.L.FFFFFFFFFFFFFFFFFFFFFFFFF', // 18 (west of the ladder's hole the floor is the wall's brick: Lapa's townhouse is solid under it, so the tiles' floor, which he can sink through, would put him inside it)
     'BBBB.L.FFFFFFFFFFFFFFFFFFFFFFFFF', // 19
 ]);
-const STEAK_CRANK: Cell = [28, 6];
 const STEAK_COINS: readonly Cell[] = [[14, 17]];
 
 // ---- P BEAT THE DRUM -----------------------------------------------------------------------------------
@@ -270,8 +271,8 @@ const BEAT_COINS: readonly Cell[] = [[1, 7], [21, 11]];
 const BEAT_SNACK_CELLS: readonly Cell[] = [[17, 14], [18, 14], [17, 15], [18, 15]];
 /** The steps' risers under their treads (a band of the tiles' mosaic, one row each), down to the street. */
 const BEAT_RISERS: readonly Cell[] = [[4, 11], [6, 13], [8, 15], [10, 17]];
-/** The crowd on the grandstand: two tiers of it dancing above the street (rows 3-4 and 6-7). */
-const crowdRows = (cols: readonly number[], rowsAt: readonly number[]): Placed[] => rowsAt.flatMap((row) => cols.map((col): Placed => ['rioCrowd', col, row]));
+/** The crowd on the grandstand: tiers of it dancing, the two colour orders a tier in turn (so neighbouring tiers never match). */
+const crowdRows = (cols: readonly number[], rowsAt: readonly number[]): Placed[] => rowsAt.flatMap((row, i) => cols.map((col): Placed => [i % 2 ? 'rioCrowdB' : 'rioCrowd', col, row]));
 /** The cells a run of crowds covers (8 x 2 each), kept out of the tiers' fill under them. */
 const crowdCells = (cols: readonly number[], rowsAt: readonly number[]): Cell[] => rowsAt.flatMap((row) => cols.flatMap((col) => Array.from({ length: 16 }, (_, k): Cell => [col + (k % 8), row + Math.floor(k / 8)])));
 const BEAT_CROWD = { cols: [8, 16, 24], rows: [3, 6] } as const;
@@ -282,7 +283,7 @@ const FLOAT_CROWD = { cols: [0, 8, 16], rows: [5, 8] } as const;
  * The parade's floats on the Canal do Mangue, beside the Sambadrome (back from before the reset): in low at the west on the street (floor 18); the canal (deadly water, cols 6-24) is crossed on the floats that come
  * along it with a samba dancer dancing on each, lane A (the street's height) three of them west to east, lane B (floor 14) two the other way. On the east, the stage (18), and the grandstand's
  * ladder (col 28) up to the stand's ledge (8) and out high into the Sambadrome. A balcony of the stand (floor 14, flush with the ladder) is where lane B is boarded: it carries him west over the canal's middle (a
- * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour, bunting, balloons, plumes.
+ * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour, bunting, balloons.
  */
 const FLOAT = rows([
     '................................', // 0
@@ -307,6 +308,8 @@ const FLOAT = rows([
     'AAAAAAWWWWWWWWWWWWWWWWWWWAAAAAAA', // 19
 ]);
 const FLOAT_COINS: readonly Cell[] = [[14, 12], [3, 13]];
+/** The float crew's winch handle, on the stage between where lane A sets him down and the grandstand's ladder: picked up on the way (the Sambadrome's booth wants it). */
+const FLOAT_CRANK: Cell = [26, 16];
 
 // ---- D SPY VERSUS MOLE (the Sambadrome) --------------------------------------------------------------------
 /** The showdown: in high on the stand's ledge (8) from FLOAT YOUR BOAT's grandstand, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): a walker is out from under the head before it lands, so Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
@@ -407,16 +410,16 @@ export const CARNIVAL_FLOATS: readonly FloatSpec[] = [
   carnivalFloat('floatBird', 14, -1, 0), carnivalFloat('floatGalleon', 14, -1, 15),
 ];
 
-/** What moves by changing pictures: the floats' dancers (arms up, arms out, every five frames), the grandstands' crowds (out of step, every seven) and the churrascaria's grill (the meat turns, the flames flicker). */
+/** What moves by changing pictures: the floats' dancers (arms up, arms out, every five frames), the grandstands' crowds (four poses in a wave along the stand, every six) and the churrascaria's grill (the meat turns, the flames flicker). */
 export const RIO_ANIMS: readonly CharAnim[] = [
-  ...[RIO_ROOM.beat, RIO_ROOM.float, RIO_ROOM.drum].map((room): CharAnim => ({ kind: 'cycle', room, chars: CROWD_DANCE.cells.map((cell) => ({ decor: decorIndex(CROWD_DANCE.decor), cell })), frames: CROWD_DANCE.frames, every: 7 })),
+  ...[RIO_ROOM.beat, RIO_ROOM.float, RIO_ROOM.drum].flatMap((room) => CROWD_DANCES.map((c): CharAnim => ({ kind: 'cycle', room, chars: c.cells.map((cell) => ({ decor: decorIndex(c.decor), cell })), frames: c.frames, every: 6 }))),
   ...FLOAT_DANCERS.map((d): CharAnim => ({ kind: 'cycle', room: RIO_ROOM.float, chars: d.cells.map((cell) => ({ decor: decorIndex(d.decor), cell })), frames: d.frames, every: 5 })),
   { kind: 'cycle', room: RIO_ROOM.steak, chars: GRILL_ANIM.cells.map((cell) => ({ decor: decorIndex('rioGrill'), cell })), frames: GRILL_ANIM.frames, every: 12 },
 ];
 
 /**
  * The gauchos' skewers (W): a skewer swings every 80 frames through four poses a 20 frames each (a step quicker than any timing before Rio) (down, forward and low, straight out, up): the middle two deadly. The grill's gaucho (slot 0) and the dining floor's (slot 1) are
- * half a cycle apart, each on a sprite of his own (2 and 1: the crank takes 0).
+ * half a cycle apart, each on a sprite of his own (2 and 1).
  */
 const poses = SKEWER_POSES.left.map((left, i) => {
   const right = SKEWER_POSES.right[i], leftPtr = SKEWER_POINTERS.left[i], rightPtr = SKEWER_POINTERS.right[i];
@@ -503,7 +506,6 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   room({
     id: RIO_ROOM.steak, cell: [4, 25], sector: 74, palette: STEAK_PALETTE, paint: STEAK,
     coins: STEAK_COINS,
-    item: { name: 'crank', col: STEAK_CRANK[0], row: STEAK_CRANK[1], sprite: RIO_SPRITE.crank },
     decor: [
       ['lampRed', 8, 2], ['lampRed', 14, 2], ['restTable', 7, 16], ['restTable', 11, 16], ['rioGrill', 21, 4],
     ],
@@ -533,11 +535,13 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
   room({
     id: RIO_ROOM.float, cell: [5, 27], sector: 76, palette: FLOAT_PALETTE, paint: FLOAT,
     coins: FLOAT_COINS,
+    item: { name: 'crank', col: FLOAT_CRANK[0], row: FLOAT_CRANK[1], sprite: RIO_SPRITE.crank },
     decor: [
       ...fillCells(FLOAT, [...FLOAT_COINS, ...crowdCells(FLOAT_CROWD.cols, FLOAT_CROWD.rows)], [0, 5, 24, 17], 'rioTiers'),
       ['floatGalleon', FLOAT_HOME.floatGalleon[0], FLOAT_HOME.floatGalleon[1]], ['floatSun', FLOAT_HOME.floatSun[0], FLOAT_HOME.floatSun[1]], ['floatBird', FLOAT_HOME.floatBird[0], FLOAT_HOME.floatBird[1]],
       ...crowdRows(FLOAT_CROWD.cols, FLOAT_CROWD.rows),
-      ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1],       ['rioPlumes', 25, 10], ['rioPost', 2, 16], ['rioPost', 5, 16], ['rioPost', 25, 16], ['rioPost', 27, 16],
+      ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1],
+      ['rioPost', 2, 16], ['rioPost', 5, 16], ['rioPost', 25, 16], // (the plumes' standard made way for the second colour order of the crowd, inside the room's 100 decoration characters; the crank lies on the stage where the east balcony's second post was)
     ],
     creatures: [], // (the floats' dancers and the crowds dance here; a creature on the stage stood where lane A sets him down: the baiana spins in the carnival's street)
   }),

@@ -1,8 +1,8 @@
 /**
  * Rio's route for the bot: the goals, in the order a player who takes everything plays them (docs/dosvidaniya-back-half-plan.md, "Rio": up the Redeemer and off his east hand, down through the favela, along Lapa's
- * street under the track into the carnival's street; up the Selaron steps and west onto the track, over its gap on the tram, up the ladder into the churrascaria for the crank and back past the gauchos; down through
- * the gap and east again into the carnival: over the bateria's risers, across the canal on the floats both ways, up the grandstand into the Sambadrome's showdown; the beach), as functions on the game. Shared by the
- * bot test and the pictures.
+ * street under the track into the carnival's street; the coins' detour up the Selaron steps and west onto the track, over its gap on the tram, up the ladder into the churrascaria past the gauchos and back; down through
+ * the gap and east again into the carnival: over the bateria's risers, across the canal on the floats both ways (the crank on the stage), up the grandstand into the Sambadrome's showdown; the beach), as functions on
+ * the game. Shared by the bot test and the pictures.
  */
 import type { Game } from '../../montyotr/src/game';
 import { RIO_ROOM as R } from '../src/rio';
@@ -59,14 +59,14 @@ export const RIO_LEGS: readonly Leg[] = [
   leg('L: on the tram over the gap, the coin on the track\'s west part', coin(R.lap, 8, 7)),
   leg('L to W: up the ladder into the churrascaria', into(R.steak, 5, 0, R.lap)),
   leg('W: past the first gaucho, the coin by the step', livesFor(coin(R.steak, 14, 17), 40)),
-  leg('W: up the ladder past the second gaucho\'s skewer, the crank', livesFor(item(R.steak, 0, [28, 6]), 40)),
-  leg('W to L: back past both gauchos and down the ladder', into(R.lap, 5, 19, R.steak)),
+  leg('W to L: back past the gaucho and down the ladder', into(R.lap, 5, 19, R.steak)),
   leg('L: through the gap to the street', livesFor(stands(R.lap, 18, 10, 20), 40)),
   leg('L to P: along the street into the carnival again', into(R.beat, 31, 17, R.lap)),
   leg('P: past the passista, the snack on the risers\' first step', livesFor(item(R.beat, 0, [17, 14]), 40)),
   leg('P: over the top riser under the drummer, its coin', livesFor(coin(R.beat, 21, 11), 40)),
   leg('P to Q: down past the baiana and out east to the canal', into(R.float, 31, 17, R.beat)),
-  leg('Q: across the canal on lane A, onto the stage, part way up the grandstand\'s ladder and off west onto the balcony',
+  leg('Q: across the canal on lane A onto the stage: the crank', livesFor(item(R.float, 0, [26, 16]), 40)),
+  leg('Q: part way up the grandstand\'s ladder and off west onto the balcony',
     { goal: stands(R.float, 14, 25, 26).goal, aim: [{ room: R.float, col: 22, row: 16 }, { room: R.float, col: 28, row: 16 }, { room: R.float, col: 28, row: 12 }, { room: R.float, col: 25, row: 12 }] }),
   leg('Q: west on lane B over the canal, its coin', livesFor(coin(R.float, 14, 12), 40)),
   leg('Q: on to the west balcony, its coin', livesFor(coin(R.float, 3, 13), 40)),
