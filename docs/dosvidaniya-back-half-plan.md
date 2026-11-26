@@ -291,6 +291,25 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
 
 Three rooms of falling, as before. Condors are in two rooms (the drop's second and third), the creature rule's limit.
 
+**Chris, 2026-11-25:** "the parachute game (I wanted that longer; it's a neat mechanic but the actual implementation was lacking
+on last night's playthrough; it was poorly used)." So the drop is a set piece that uses its mechanic, not three rooms of
+sinking: each room asks something new of the steering (thread a gap between cliffs; ride an updraft to a ledge you could not
+otherwise reach; dodge a diving condor's line; a coin that needs a line chosen from the top of the room), building room to room
+like a short course, and the landing is a target worth hitting. Look at the old drop in git first (what worked) and play the
+current one with the bot to see what is dull.
+
+**Machu Picchu's boulders** (Chris: "the llama wants an item at the top of the screen and the boulders are running off the right
+side even though I don't need to go there; it was kinda weird"): the boulders must roll down the way Monty has to climb to the
+panpipes, the hazard of that climb, never off to a side he has no reason to visit.
+
+**Cause and effect for every gate** (Chris: "the puzzles wherein I need an item to proceed aren't really cause/effect driven:
+if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"). Every gate in these regions (the
+spitting llama and the panpipes, the machete and the tangle, the astronomer and the moon rock, the biplane's two locks) works as
+a visible event: the gate shows what it wants before Monty has it (the llama spits at him and the room line says why; a
+picture of the wanted thing over the guard), and when Monty brings the item he USES it there and we see it happen (he plays the
+panpipes, the llama sways and lies down; he cuts the tangle; he hands over the rock and the astronomer carries it in), never an
+obstacle that is silently absent once the item is carried.
+
 ### The Andes: the scenic dead end off Machu Picchu
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
@@ -332,6 +351,27 @@ pocket; something from the boat is what the canopy's gate wants), each key in a 
 ### Rio: down into the city, through the carnival, then the showdown
 
 As Chris asked: after Sugarloaf, down into the city and through the carnival, and only then SPY VERSUS MOLE.
+
+**Chris, 2026-11-25: Rio is the final rush (this overrides the table below where they differ).** "It still didn't feel like a
+final level. Final level should feel like a rush to the beach: bright colors, we exit the jungle to the Redeemer, down through
+the colorful streets and houses, a carnival spectacular to the Spy vs Mole battle and then the beach. We kinda have it, but I
+think that pacing is the problem... maybe we literally need to up the pace and have Monty literally on the run? Maybe there's
+a mechanic wherein he gets an item and he truly is moving faster and maybe being pursued through all of this?" And: "The Sugar
+thing, that's a rather weird thing to have; that's a wasted effort." So:
+
+- **The route, downhill all the way:** out of the jungle to the Redeemer (OPEN ARMS, at the top), down through the colourful
+  streets and houses (HOUSE OF COLOUR, THE LAPA ARCHES, STEAK YOUR CLAIM: the Selaron steps' tiles, Santa Teresa's tram and
+  painted houses, Lapa's white arches), into the carnival spectacular (BEAT THE DRUM, FLOAT YOUR BOAT: the Sambadrome, floats,
+  dancers everywhere, the grandstands), SPY VERSUS MOLE (as built: Chris liked it), then the beach (RIO OR BUST, Copacabana's
+  wave pavement). **SUGAR RUSH and its cable car are cut** (Chris asked), and with them the crank and the winch if nothing else
+  uses them; the way down from the Redeemer to the streets is walked.
+- **Monty on the run, for real:** at the Redeemer Viktor arrives (the cause, seen) and the chase starts; Monty drinks a
+  **guarana** (Brazil's own soda, the item, taken there; recommended) and RUNS: a faster walk for the rest of Rio, seen and
+  heard (a quicker step, the tune's tempo up). Viktor pursues him room to room down the hill, coming through each door a few
+  seconds behind him (visible, heard, near misses, never a cheap catch), until SPY VERSUS MOLE ends it. Every room from the
+  Redeemer to the showdown is designed for the running Monty: wide, bright, flowing, readable at speed, one idea each, no
+  fiddly item gates (the pace is the point), coins on the racing line or a quick hop off it.
+- Bright colours throughout: no grey (HOUSE OF COLOUR's grey middle goes), the carnival the most colourful screens in the game.
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
