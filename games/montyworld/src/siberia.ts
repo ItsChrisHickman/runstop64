@@ -190,8 +190,9 @@ const RIVER_PALETTE = {
  * turn, jump. A fall is to the snow of the trail, nothing worse, and the boughs grow their snow back. One icicle hangs from the top bough over the east end of the bough below,
  * where the second coin is: a dash out and back while it shivers.
  */
+const TAIGA_BOUGH_LIST: readonly (readonly [col: number, floor: number, cols: number])[] = [[14, 15, 7], [7, 13, 5], [14, 11, 5], [7, 9, 5], [14, 7, 5]];
 export const TAIGA = {
-  boughs: [[14, 15, 7], [7, 13, 5], [14, 11, 5], [7, 9, 5], [14, 7, 5]] as readonly (readonly [col: number, floor: number, cols: number])[],
+  boughs: TAIGA_BOUGH_LIST,
   nest: { col: 21, floor: 5, cols: 5 },
   trunks: [17, 9, 23] as const,
   icicle: { col: 17, row: 8, floor: 11 },

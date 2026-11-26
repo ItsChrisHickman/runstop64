@@ -338,7 +338,8 @@ function paintPort(g: Grid) {
  * down), to the mossy stone on the cedar at the far side (a coin: it ends the crossing). A jump from low on a stalk falls short, so he climbs before each one. The second coin is at the
  * head of the tallest stalk. A crane crosses the grove's middle height. Back the same way.
  */
-export const GROVE = { stalks: [[21, 5], [16, 3], [11, 5], [6, 4]] as readonly (readonly [col: number, top: number])[], water: 16, stone: { col: 2, floor: 7, cols: 3 } } as const;
+const GROVE_STALKS: readonly (readonly [col: number, top: number])[] = [[21, 5], [16, 3], [11, 5], [6, 4]];
+export const GROVE = { stalks: GROVE_STALKS, water: 16, stone: { col: 2, floor: 7, cols: 3 } } as const;
 const GROVE_PALETTE = { M: ['jpMoss', 5], W: ['jpWater', 14], R: ['jpBamboo', 13], S: ['jpStone', 12], T: ['jpTimber', 9] } as const satisfies Palette;
 const paintGrove = (g: Grid): void => {
   g.box(25, 14, 31, 19, 'M'); // the bank by the shrine
