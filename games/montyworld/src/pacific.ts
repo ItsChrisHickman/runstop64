@@ -547,14 +547,14 @@ const KONA_COINS = [[24, 13], [16, 16]] as const;
 const paintKea = (g: Grid): void => {
   g.box(0, 0, 1, 19, 'C'); // the cinder cliff (Hana's cliff the other side)
   g.box(28, 15, 28, 19, 'R'); // the rope up from Kona
+  // each step stands clear of the switchback above it (under one, Monty's head met it and the climb stopped there)
   g.box(14, 16, 26, 16, 'C'); // the first switchback, open round the rope
-  g.box(10, 14, 11, 14, 'C'); // a step
-  g.box(3, 12, 18, 12, 'C'); // the second
-  g.box(21, 10, 22, 10, 'C'); // a step
-  g.box(12, 8, 31, 8, 'C'); // the third, out east to the wet side and Akaka Falls
-  g.box(8, 6, 9, 6, 'C'); // a step
+  g.box(11, 14, 12, 14, 'C'); // a step, off the first switchback's west end
+  g.box(3, 12, 9, 12, 'C'); // the second, west of the step
+  g.box(2, 10, 3, 10, 'C'); // a step at the second's west end
+  g.box(6, 8, 31, 8, 'C'); // the third, east of that step, out east to the wet side and Akaka Falls
   g.box(2, 4, 4, 4, 'C').box(8, 4, 10, 4, 'C'); // the top, open round the rope up to the summit
-  g.box(6, 0, 6, 3, 'R'); // the rope up to the summit
+  g.box(6, 0, 6, 7, 'R'); // the rope up to the summit, down to the third switchback (up it onto the top: no step under the top has room over it)
   g.box(30, 9, 31, 16, 'C').box(30, 0, 31, 5, 'C'); // the shoulder of the mountain closing the climb, the ways east (rows 6-7 the high trail, rows 17-18 the low lane)
   g.box(26, 19, 27, 19, 'C').box(29, 19, 31, 19, 'C'); // the mountain's foot, the low lane's end, round the rope down to Kona
 };
@@ -588,8 +588,8 @@ const paintLoa = (g: Grid): void => {
   g.box(9, 14, 11, 14, 'L').box(14, 14, 16, 14, 'L').box(19, 14, 21, 14, 'L').box(24, 14, 27, 14, 'L'); // the first ledge and the stepping ledges (floor 14)
   g.box(27, 15, 27, 18, 'K').box(31, 5, 31, 18, 'K').clear(30, 15, 30, 18); // the crater's pit under the rope (cols 28-30), walled off from the basin: the moon rock at its foot
   g.box(15, 9, 26, 9, 'L').box(20, 9, 21, 9, 'Y'); // the long ledge (floor 9), the vent's crack in it
-  g.box(28, 4, 28, 18, 'R'); // the rope up the east wall, from the pit's foot past the long ledge to the rim
   g.box(19, 0, 19, 4, 'K').box(20, 5, 31, 5, 'L'); // the rim's spur and the high shelf east of it, out east to the farm
+  g.clear(28, 5, 29, 5).box(28, 4, 28, 18, 'R'); // the rope up the east wall, from the pit's foot past the long ledge through its opening in the shelf (two cells: Monty's width; under the solid shelf the climb stopped) to the rim
 };
 const LOA_COINS = [[26, 12], [22, 3]] as const;
 /** The moon rock at the foot of the crater's pit (its top left): the shooting star the summit saw fall. */
@@ -617,7 +617,6 @@ const HILO_COINS = [[8, 10], [17, 17]] as const;
 const storefronts: Placed[] = [2, 5, 8, 11].map((col) => ['pacStorefront', col, 13] as const);
 
 // ---- the islands' scenery (Chris, 2026-11-25: "I really want you to think about representing these islands properly"): each room's backdrop, laid round its pieces ----
-const text = (col: number, row: number, words: string): Cell[] => cellsOf(col, row, words.length, 1);
 const keepOf = (cells: readonly Cell[], pieces: readonly (readonly [WorldDecor, number, number])[]): Cell[] => [...cells, ...pieces.flatMap(under)];
 
 /** Waikiki on a clear day: the sky, Diamond Head's brown tuff cone standing on the sea at the bay's end (its steep face to the sea, the long slope back), the sea behind the beach. */
@@ -662,9 +661,12 @@ const hanaScenery: Placed[] = [
   ...fillWhere(paintHana, hanaKeep, (c, r) => c >= 26 && r >= 14, 'pacLagoonFill'),
 ];
 
-/** Kona at sunset: the sea on the west horizon, the old lava fields rising inland under the shield of the mountains. */
-const KONA_PIECES = [['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], ['pacLavaRocks', 29, 18]] as const;
-const KONA_KEEP = keepOf([...KONA_COINS, ...text(3, 12, 'MAUNA LOA'), ...text(18, 10, 'MAUNA KEA')], KONA_PIECES);
+/**
+ * Kona at sunset: the sea on the west horizon, the old lava fields rising inland under the shield of the mountains. No signs (Chris: "the room names alone suffice"): the fork reads from the land, an
+ * observatory's white dome far up on the skyline over the rope that climbs (the top way), the rope down into the lava tube's hole (the bottom way).
+ */
+const KONA_PIECES = [['pacLavaRocks', 11, 18], ['pacPalmSmall', 12, 15], ['pacLavaRocks', 29, 18], ['pacDomeSmall', 23, 1]] as const;
+const KONA_KEEP = keepOf(KONA_COINS, KONA_PIECES);
 const KONA_SLOPE = ridge([[2, 12], [9, 11], [14, 9], [20, 6], [26, 4], [31, 4]]);
 const konaScenery: Placed[] = [
   ...sunset(paintKona, KONA_KEEP, { purple: 1, red: 3, orange: 5, gold: 6, sea: 7 }, (c, r) => r < KONA_SLOPE(c)),
@@ -913,19 +915,19 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.kona, cell: [3, 22], sector: 90, palette: KONA_PALETTE,
     paint: paintKona,
     coins: KONA_COINS,
-    decor: [...konaScenery, ...KONA_PIECES, [{ text: 'MAUNA LOA', colour: 8 }, 3, 12], [{ text: 'MAUNA KEA', colour: 2 }, 18, 10]],
+    decor: [...konaScenery, ...KONA_PIECES],
     creatures: [{ who: 'pacCrab', col: 19, row: 17, way: 'right', speed: 1, range: 40 }],
   }),
 
   // MAUNA KEA: the top way, the climb up through the cloud (Chris, 2026-11-25: Mauna Kea "is on a path through the middle of the island"). Up the rope from Kona onto the cinder switchbacks: the first (floor 16)
-  // west, a step, the second (floor 12) west to a step, the third (floor 8) east, which runs on out of the room down the wet side to Akaka Falls; on up a step to the top (floor 4) and the rope up to the summit.
-  // A nene on the second switchback; the clouds below.
+  // west, a step, the second (floor 12) west to a step, the third (floor 8) east, which runs on out of the room down the wet side to Akaka Falls; up the rope from it to the top (floor 4) and on up to the summit.
+  // A nene on the first switchback; the clouds below.
   room({
     id: PAC.kea, cell: [2, 22], sector: 91, palette: KEA_PALETTE,
     paint: paintKea,
     coins: KEA_COINS,
     decor: keaScenery,
-    creatures: [{ who: 'pacNene', col: 6, row: 10, way: 'right', speed: 1, range: 40 }],
+    creatures: [{ who: 'pacNene', col: 15, row: 14, way: 'right', speed: 1, range: 28 }],
   }),
 
   // THE SUMMIT: Mauna Kea's top, above the clouds at night (the only night in the game): the red cinder ridge, the summit's cairn on its knoll (a coin), the small observatories, the big dome with its slit open and
@@ -978,7 +980,6 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     decor: [...coffeeScenery, ...COFFEE_PIECES],
     creatures: [
       { who: 'pacRooster', col: 26, row: 17, way: 'right', speed: 1, range: 8 },
-      { who: 'pacNene', col: 13, row: 7, way: 'right', speed: 1, range: 8 }, // (a nene grazing the second terrace: no lava off the volcano)
     ],
   }),
 
@@ -989,7 +990,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     id: PAC.hilo, cell: [3, 23], sector: 53, palette: HILO_PALETTE,
     paint: paintHilo,
     coins: HILO_COINS,
-    decor: [...hiloScenery, ...storefronts, ...HILO_PIECES, [{ text: 'HILO', colour: 7 }, 5, 13], ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
+    decor: [...hiloScenery, ...storefronts, ...HILO_PIECES, ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
     creatures: [{ who: 'pacRooster', col: 15, row: 17, way: 'right', speed: 1, range: 24 }],
   }),
 ];
