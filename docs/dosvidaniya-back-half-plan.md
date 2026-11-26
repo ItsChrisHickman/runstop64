@@ -167,23 +167,33 @@ make any sense." The route, in order:
      and cracking crust belong here, and only here), then the **coffee farm** (COFFEE BREAK's coffee moves here: the rows of
      coffee on the slope) into Hilo.
    Each way has coins of its own; neither is a dead end.
-   **Both ways are needed** (Chris: "we could find some way to make an item from each route necessary ... THAT would make the
-   Big Island part of Hawaii very interesting"): the biplane in Hilo takes off only with an item from each way. Recommended:
+   **Both ways are needed, and they lock into each other** (Chris: "make an item from each route necessary"; "a moon rock that has
+   fallen into the crater of Mauna Loa to give to someone blocking the path in Mauna Kea"; "a puzzle wherein we combine multiple
+   paths creatively like Russia", whose opening "had ALL of the same hallmarks of the opening rooms in Monty on the Run"). Built
+   on Moscow's rules (docs/dosvidaniya-moscow.md part 1): the gate is seen before its key, each key lies in a dead end or a
+   doubling back away from its gate, the rooms form a loop, and one room is crossed twice at two heights.
+   - **The loop:** Kona, the top way (Mauna Kea's climb, the summit, down beside Akaka Falls) to Hilo, and the bottom way
+     (Mauna Loa, the coffee farm) back from Hilo to Kona. Every join both ways, so either way can be taken first.
    - **Mauna Kea is two rooms, the summit one screen** (Chris liked the dome, the telescope and the summit together): first
      the climb, cinder slopes and switchbacks rising out of the cloud layer; then, on the grid row above it, **the summit**:
      the cloud tops at the bottom, the bare red cinder ridge to the summit marker, two or three observatory domes, the big
      one's slit open with its telescope pointing out at the night sky (stars and the moon over the black upper rows, the only
-     night in the game). The way up the big dome (its catwalk and ladder) is the room's climb; the parachute is snagged on its
-     top. The decor and lettering budgets decide how many domes fit.
-   - **The top way gives the parachute**: snagged on an observatory dome at Mauna Kea's summit (a paraglider's, left behind),
-     taken at the top of the climb.
-   - **The bottom way gives the coffee**: a sack of beans at the far end of the farm. Monty is flying the Pacific alone through
-     the night: TOO SLEEPY TO FLY without it.
-   - Each item is earned by playing its way's mountain, not fetched from Hilo next door: the falls and the farm are entered
-     from Hilo only to a point (the way on, up toward the mountain, is a deliberate drop or one-way ledge from the mountain's
-     side, named in the one-way test's allowlist), so whichever way Monty takes first, he arrives in Hilo with one item, finds
-     the plane's second lock, and goes back out to Kona and over the other mountain: MOTR's double-back.
-   - The plane's two locks in the room name line, MOTR style: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY.
+     night in the game). The decor and lettering budgets decide how many domes fit.
+   - **The moon rock (bottom way, a dead end):** from Mauna Kea's summit a shooting star is seen falling south (the story told
+     in the picture). It lies in **Mauna Loa's crater**, down a pit off the bottom way past the lava; taking it wakes the lava,
+     which rises behind him on the climb out (the run ahead of the lava).
+   - **The astronomer (top way, the gate):** at the summit he stands on the big dome's catwalk, blocking its ladder, until
+     Monty brings the moon rock; then he goes in to look at it (MOTR's guard sent off by an item, like the hideout's ninja).
+     Up the dome: the telescope, and **the parachute** snagged on top. Seen first by a player who takes the top way first;
+     he comes back for it.
+   - **The coffee (bottom way):** the sack of beans on the farm's drying deck, up off the farm's lane (a climb, off the
+     route): Monty flies the Pacific alone through the night, TOO SLEEPY TO FLY without it.
+   - **The plane (Hilo):** two locks in the room name line, NO FLYING WITHOUT A PARACHUTE and TOO SLEEPY TO FLY.
+   - **Crossed twice at two heights:** Akaka Falls: the high trail from the summit along the top of the gorge and the low lane
+     by the plunge pool from Hilo, sealed from each other by the falls; a player crosses it once each way.
+   So the shortest play: Kona, Mauna Loa (the rock, out ahead of the lava), the farm (the coffee), Hilo (the plane still
+   locked), up past Akaka Falls to the summit (the rock to the astronomer, the parachute), back down the falls' other height
+   to Hilo and away. Taken the other way round, the astronomer is the gate seen first, the whole loop the doubling back.
 7. **Hilo**, where the two ways meet: the town's bayfront and the airfield, where the yellow mail biplane waits. Hilo connects
    back to Kona's side (the way out to the other mountain).
 8. **The plane sequence** (the flight, then the three-room parachute drop).
@@ -234,6 +244,51 @@ set (`SURGE_PULSES`). Nothing says "water moving west". Instead:
 - A rush of bubbles from the east edge as a set starts, and a short whoosh (a kit effect).
 Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the current itself does not change).
 
+### Hawaii polish pass (Chris's notes on the renders, 2026-11-25; after this batch merges)
+
+- Calm the backdrops: "a lot of the scenes look extremely busy in the background with all of the green". Foliage and hills as
+  dark silhouettes or bands (LESSONS: a real place, calmly drawn), the playfield clear.
+- The swims are generic: give each crossing its own idea. The swim to the Big Island has sea turtles that surface and dive, and
+  Monty rides their backs across the surge (Chris: "should have turtles in it; that represents the Big Island waters"); the
+  Molokai channel keeps Molokai's cliffs behind it (a breaching humpback, scenery).
+- **The swims are the open ocean, not underwater caves** (Chris: "They should not be underwater caves. We're swimming in the open
+  ocean"). No rock walls and ceilings boxing the water in: the surface with the sky and the islands above it across the top of
+  the room, the sea open to both edges, the reef and the sandy bottom low, coral heads and the swell as the obstacles, turtles,
+  fish and the odd shark. (THE SEA CAVE is the one cave: it is a cave by name, off the route.)
+- **The swims tell the journey from island to island** (Chris: "Molokai doesn't look like Molokai in the background. You're still
+  not really getting the idea that Monty should be swimming from one island, past that island, and arriving in Maui"). The
+  crossing from Oahu to Maui is a sequence the backdrop narrates, room by room, the horizon behind the water changing as he
+  swims east: first Oahu falling away behind (Diamond Head's silhouette at the west edge, small); then **Molokai alongside**,
+  drawn as Molokai: a long island filling the horizon, its north shore's sheer sea cliffs (the tallest in the world) with thin
+  waterfalls down them, the flat Kalaupapa peninsula at their foot; then **Maui ahead**: the West Maui mountains rising, Lanai
+  low on the horizon, and Lahaina's shore where he comes up. The same for the swim from Hana to the Big Island: Maui's Haleakala
+  behind, the open channel, then the Big Island's huge gentle volcano shapes (Mauna Kea, often snow-capped, and Mauna Loa) rising
+  ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
+- **Swimming only between the first two islands** (Chris: "we don't need to go overboard with the swimming levels. They're not
+  super fun, but they're interesting to throw in there. And if getting between island two and three involves riding on
+  turtles' backs instead? Maybe that's good, and the swimming should just be between island one and two"). So: **the swim** is
+  Oahu to Maui past Molokai only (as few rooms as tell that journey, one or two). **Maui to the Big Island is the turtle
+  crossing, on the surface, not a swim**: Monty hops from turtle shell to turtle shell across the open channel as they surface
+  and dive (the timing is the challenge; in the water between them is the sea's danger as the surf is today), Haleakala behind,
+  the Big Island's volcanoes ahead. The swim rooms beyond those that tell the Oahu-Maui crossing (CLAM DOWN, KELP WANTED and the
+  rest) are merged or dropped to fit; THE SEA CAVE stays as the bonus.
+- **FISH OUT OF WATER is redone from scratch** (Chris: "I think the fish out of water room is terrible"). Nothing of today's room
+  (the boxed-in rock, the surge lanes, the moray holes) is kept: it becomes the turtle crossing to the Big Island (on the
+  surface: hop turtle to turtle as they surface and dive), Haleakala behind and the Big Island's volcanoes
+  rising ahead; a new name that fits the swim (FISH OUT OF WATER is a land joke).
+- **No signs in the backdrops** (Chris: "We don't need the words for the volcanoes on the background like signs telling us to go
+  down or up. The room names alone suffice... Don't need to have labels, that's just busy"). Kona's MAUNA KEA / MAUNA LOA signs
+  go. The fork reads from the land itself: the slope up toward the observatory (the top way), down toward the lava (the bottom
+  way), one mountain as it really is. LESSONS already says it: signs name a place, they never stand in for drawing it.
+- Kona and the thin Big Island rooms still to be drawn as their places (black lava rock and sand; Mauna Loa's lava fields; the
+  coffee farm's rows; Akaka Falls' gorge).
+- Hawaii should feel like a fun island-hopping adventure (Chris): each island arrives with its landmark.
+- **No "HAWAII: <island>" banners as room names** (Chris: "I don't want Hawaii: island name all over the place. I think that's
+  confusing enough. It should naturally flow with the names"). Every room has its own name, in the game's style (plain, a pun
+  where it lands), and the names themselves carry the journey (e.g. WELCOME TO HONOLULU, DIAMOND HEAD, THE LOOKOUT, a pun for the
+  Molokai channel, WHALE OF A TIME at Lahaina, THE ROAD TO HANA, KAIHALULU, KONA, MAUNA KEA, THE SUMMIT, AKAKA FALLS, MAUNA LOA,
+  the coffee farm, HILO). No two rooms share a name, anywhere in the game.
+
 ### The flight's landing: the full three-room drop
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
@@ -243,6 +298,25 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
 | 3 | CONDOR COUNTRY (57, [4,25]) | as now | The overhang and the shelf with the empanada; the two throats down onto the guardhouse roof or the terraces. | 1, as now | empanada, as now | two condors, as now |
 
 Three rooms of falling, as before. Condors are in two rooms (the drop's second and third), the creature rule's limit.
+
+**Chris, 2026-11-25:** "the parachute game (I wanted that longer; it's a neat mechanic but the actual implementation was lacking
+on last night's playthrough; it was poorly used)." So the drop is a set piece that uses its mechanic, not three rooms of
+sinking: each room asks something new of the steering (thread a gap between cliffs; ride an updraft to a ledge you could not
+otherwise reach; dodge a diving condor's line; a coin that needs a line chosen from the top of the room), building room to room
+like a short course, and the landing is a target worth hitting. Look at the old drop in git first (what worked) and play the
+current one with the bot to see what is dull.
+
+**Machu Picchu's boulders** (Chris: "the llama wants an item at the top of the screen and the boulders are running off the right
+side even though I don't need to go there; it was kinda weird"): the boulders must roll down the way Monty has to climb to the
+panpipes, the hazard of that climb, never off to a side he has no reason to visit.
+
+**Cause and effect for every gate** (Chris: "the puzzles wherein I need an item to proceed aren't really cause/effect driven:
+if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"). Every gate in these regions (the
+spitting llama and the panpipes, the machete and the tangle, the astronomer and the moon rock, the biplane's two locks) works as
+a visible event: the gate shows what it wants before Monty has it (the llama spits at him and the room line says why; a
+picture of the wanted thing over the guard), and when Monty brings the item he USES it there and we see it happen (he plays the
+panpipes, the llama sways and lies down; he cuts the tangle; he hands over the rock and the astronomer carries it in), never an
+obstacle that is silently absent once the item is carried.
 
 ### The Andes: the scenic dead end off Machu Picchu
 
@@ -270,11 +344,45 @@ The canopy runs west along the top, the river east along the bottom: Monty on th
 Every Amazon room has its own name now (the sewer-style shared name goes). The piranha fix is proved by the bot starting
 at the roots' west edge, not by a run-up from the river.
 
-**Not proposed back:** MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN, THE RIVER ENDS.
+**Bonus rooms, and the old rooms back as them** (Chris, 2026-11-25: "I believe that there's an opportunity in the Amazon too";
+bonus rooms off the path are "an opportunity to try some new things and add some fun challenges"). The "not proposed back" list
+is withdrawn: the old Amazon rooms MARKET FORCES, MIST OPPORTUNITY, THE INCA TUNNEL, THE RIVER QUEEN and THE RIVER ENDS come
+back from git (`44ea872`), on the U where they fit the route, or as **bonus rooms off it** (not needed to finish, a striking
+backdrop of the place like HEAVEN CAN WAIT, a challenge that tries something new with the existing mechanics, a coin or two
+where the challenge ends). Natural ones: the river boat (THE RIVER QUEEN) moored off the river lane, the waterfall in the mist
+(MIST OPPORTUNITY) off the cloud forest, the Inca tunnel as a hidden way between the Andes and the canopy. Any opening in the
+Amazon that would lead nowhere gets a bonus room, never a wall.
+**The Amazon's puzzle crosses its two lanes** (the bar is Moscow's opening and the Big Island's loop above): an item found on
+the river lane opens the way on the canopy, or the reverse (e.g. the machete cut on the canopy drops a liana to a river
+pocket; something from the boat is what the canopy's gate wants), each key in a dead end or a doubling back, the gate seen first.
 
 ### Rio: down into the city, through the carnival, then the showdown
 
 As Chris asked: after Sugarloaf, down into the city and through the carnival, and only then SPY VERSUS MOLE.
+
+**Chris, 2026-11-25: Rio is the final rush (this overrides the table below where they differ).** "It still didn't feel like a
+final level. Final level should feel like a rush to the beach: bright colors, we exit the jungle to the Redeemer, down through
+the colorful streets and houses, a carnival spectacular to the Spy vs Mole battle and then the beach. We kinda have it, but I
+think that pacing is the problem... maybe we literally need to up the pace and have Monty literally on the run? Maybe there's
+a mechanic wherein he gets an item and he truly is moving faster and maybe being pursued through all of this?" And: "The Sugar
+thing, that's a rather weird thing to have; that's a wasted effort." So:
+
+- **The route, downhill all the way:** out of the jungle to the Redeemer (OPEN ARMS, at the top), down through the colourful
+  streets and houses (HOUSE OF COLOUR, THE LAPA ARCHES, STEAK YOUR CLAIM: the Selaron steps' tiles, Santa Teresa's tram and
+  painted houses, Lapa's white arches), into the carnival spectacular (BEAT THE DRUM, FLOAT YOUR BOAT: the Sambadrome, floats,
+  dancers everywhere, the grandstands), SPY VERSUS MOLE (as built: Chris liked it), then the beach (RIO OR BUST, Copacabana's
+  wave pavement). **SUGAR RUSH and its cable car are cut** (Chris asked), and with them the crank and the winch if nothing else
+  uses them; the way down from the Redeemer to the streets is walked. The reward show had a SUGAR RUSH place (Chris: "remember that the ending had
+  Sugar Rush in it before"): replace it with another Rio place (the carnival, the Redeemer or HOUSE OF COLOUR), never a gap.
+- **Monty on the run, for real:** at the Redeemer Viktor arrives (the cause, seen) and the chase starts; Monty drinks a
+  **guarana** (Brazil's own soda, the item, taken there; recommended) and RUNS: a faster walk for the rest of Rio, seen and
+  heard (a quicker step, the tune's tempo up). Approved by Chris ("the perfect way to end the game ... we're not going to be
+  recreating Sonic the Hedgehog speed-wise, but we're going to truly be making 'Monty on the Run'"): a modest boost (about one and a
+  half times his walk), his jump arc unchanged, so it still plays like Monty. Viktor pursues him room to room down the hill, coming through each door a few
+  seconds behind him (visible, heard, near misses, never a cheap catch), until SPY VERSUS MOLE ends it. Every room from the
+  Redeemer to the showdown is designed for the running Monty: wide, bright, flowing, readable at speed, one idea each, no
+  fiddly item gates (the pace is the point), coins on the racing line or a quick hop off it.
+- Bright colours throughout: no grey (HOUSE OF COLOUR's grey middle goes), the carnival the most colourful screens in the game.
 
 | # | Room (id, cell) | Restores | What it asks | Coins (reason) | Items | Creatures |
 |---|---|---|---|---|---|---|
@@ -424,6 +532,16 @@ The other options, kept as notes:
   back up or a replacement. Plus Viktor as a playable figure (his full set of pictures), Freddie as a new pursuer, the
   gates and hints reversed, a new ending. That is as big as building the back half again, several times this plan.
   Not recommended.
+
+### The best ending (Chris, 2026-11-25; for the release plan, not this batch)
+
+A % complete (rooms, coins, snacks and items, the bonus rooms' challenges, Viktor's chases escaped) and a best ending at 100%.
+Viktor is never "caught": he is smashed, in SPY VERSUS MOLE's crushers. The best ending nods to the tradition (Metroid's suit-off
+reward, Auf Wiedersehen Monty's beach girl) as Chris picked: **Monty's reveal and the beach together**. Staged as a reveal so
+it reads as the nod: on Copacabana, every regional costume he wore flies off him at once (the chullo, the lei, the ninja hood,
+the hats...), he stands there as bare as he always is (he is a mole), then snaps on a speedo and sunglasses, the first clothes of his own he has worn all game, strikes a pose, turns and walks away from the camera (the speedo seen from behind, the cheeky shot) up the beach past the crowd
+(sunbathers in bikinis and trunks, umbrellas, volleyball) and settles on a towel beside a sunbather in a bikini. Fade out.
+Cartoon, in the game's style, nothing more. The room's name, the 100% one: **THE FULL MONTY** (Chris: everything, and the bare joke).
 
 ## 6. Questions for Chris
 
