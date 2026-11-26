@@ -123,6 +123,8 @@ const ARMS = rows([
     'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', // 19
 ]);
 const ARMS_SNACK: Cell = [4, 2];
+/** The guarana, on the east arm by its ladder's head, where Viktor is seen arriving behind him (the chase's cause): drunk, he runs the rest of the way down the hill (`RUN_ROOMS`). */
+const ARMS_GUARANA: Cell = [25, 2];
 const ARMS_COINS: readonly Cell[] = [[3, 13], [28, 3]];
 
 // ---- F HOUSE OF COLOUR ----------------------------------------------------------------------------------
@@ -367,6 +369,12 @@ export const BEACH_VIEW = {
   fireworks: FIREWORKS,
 } as const;
 
+/**
+ * Monty on the run (Chris, 2026-11-25: "we're not going to be recreating Sonic the Hedgehog speed-wise, but we're going to truly be making 'Monty on the Run'"): with the Redeemer's guarana drunk he walks half as fast
+ * again (the data's `run`, monty.ts) down through the favela, Lapa and the churrascaria and the carnival's two rooms, his jump as it always was. The Sambadrome's showdown is a puzzle, not a race: there he walks.
+ */
+export const RUN_ROOMS: readonly number[] = [RIO_ROOM.colour, RIO_ROOM.lap, RIO_ROOM.steak, RIO_ROOM.beat, RIO_ROOM.float];
+
 // ---- the mechanisms' data ------------------------------------------------------------------------------
 
 /**
@@ -470,6 +478,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     id: RIO_ROOM.arms, cell: [5, 23], sector: 71, palette: ARMS_PALETTE, paint: ARMS,
     coins: ARMS_COINS,
     item: { name: 'skewer1', col: ARMS_SNACK[0], row: ARMS_SNACK[1], sprite: RIO_SPRITE.skewer },
+    item2: { name: 'guarana', col: ARMS_GUARANA[0], row: ARMS_GUARANA[1], sprite: RIO_SPRITE.guarana },
     creatures: [
       { who: 'vulture', col: 23, row: 0, way: 'down', speed: 1, range: 96 }, { who: 'marmoset', col: 5, row: 2, way: 'right', speed: 1, range: 24 },
     ],

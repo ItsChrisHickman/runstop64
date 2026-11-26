@@ -1,6 +1,6 @@
 /**
- * Rio, played by a bot from the Amazon's last bank to the beach (docs/dosvidaniya-reset.md, "Rio (the last level)"): the bot (bot.ts) searches the game's own frames for a way to each goal in rio-route.ts (every coin, the two
- * skewers, the crank and the headdress; the tram, the gauchos' skewers, the cable car, the agent and the float's head all in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED.
+ * Rio, played by a bot from the Amazon's last bank to the beach (docs/dosvidaniya-back-half-plan.md, "Rio"): the bot (bot.ts) searches the game's own frames for a way to each goal in rio-route.ts (every coin, the three
+ * skewers, the guarana, the crank and the headdress; the tram, the gauchos' skewers, the carnival's floats, the agent and the float's head all in the way; on the run from the guarana on), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED.
  * It starts on Corcovado's canopy (enterRoom) with the earlier regions' finds and the Andes' chullo on, as a player arrives from the Amazon: the join with the Andes' last bank is proved in rio-mechanisms.ts, both ways.
  * (The gates' proofs, the loops and the no-trap checks are in rio-mechanisms.ts.)
  *
@@ -44,8 +44,8 @@ for (const mode of ['original', 'enhanced'] as const) {
     const coinsLeft = mineCoins.filter((i) => !g.coinCollected[i]).length;
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => isRio(g.data.specialItems[i * 4] ?? 0) && i !== itemIndex(g, RIO_ROOM.bust, 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;
-    check(`${mode}: at the end all ${mineCoins.length} coins, the crank, the headdress and the two skewers of Rio are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${mineCoins.length} x 50 + ${found.length} x 200), he is on the beach (room ${g.roomId}), in the headdress`,
-      coinsLeft === 0 && itemsLeft === 0 && mineCoins.length === 8 && found.length === 4 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === RIO_ROOM.bust && g.worn === itemIndex(g, RIO_ROOM.drum, 0));
+    check(`${mode}: at the end all ${mineCoins.length} coins, the crank, the guarana, the headdress and the three skewers of Rio are taken (${coinsLeft} coins, ${itemsLeft} items left), ${g.score} points (${mineCoins.length} x 50 + ${found.length} x 200), he is on the beach (room ${g.roomId}), in the headdress`,
+      coinsLeft === 0 && itemsLeft === 0 && mineCoins.length === 12 && found.length === 6 && g.score === mineCoins.length * 50 + found.length * 200 && g.roomId === RIO_ROOM.bust && g.worn === itemIndex(g, RIO_ROOM.drum, 0));
   }
   console.log(`${mode}: ${frames} frames played, ${nodes} states searched`);
 }

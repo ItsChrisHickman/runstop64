@@ -32,7 +32,7 @@ import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
-import { BARS_CELLS, BOOTH_LIGHT, CARNIVAL_FLOATS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { BARS_CELLS, BOOTH_LIGHT, CARNIVAL_FLOATS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, RUN_ROOMS, SKEWERS, TRAM } from './rio';
 import { inTableOrder } from './later';
 import { FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
@@ -150,6 +150,7 @@ const bank = extendChars(extendBank(bankImage, [
   { ptr: RIO_SPRITE.crank, block: RIO_ITEMS.crank.block },
   { ptr: RIO_SPRITE.headdress, block: RIO_ITEMS.headdress.block },
   { ptr: RIO_SPRITE.skewer, block: RIO_ITEMS.skewer.block },
+  { ptr: RIO_SPRITE.guarana, block: RIO_ITEMS.guarana.block },
   { ptr: RIO_SPRITE.bowl, block: RIO_ITEMS.acaiBowl.block },
   ...SKEWER_POSES.left.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.left, i), block: pose.block })),
   ...SKEWER_POSES.right.map((pose, i) => ({ ptr: pointerOf(SKEWER_POINTERS.right, i), block: pose.block })),
@@ -163,7 +164,7 @@ const ITEM_COLOURS = new Map<number, number>([
   [CHINA_SPRITE.dumplings, CHINA_ITEMS.dumplings.colour],
   [JAPAN_SPRITE.fishFood, JAPAN_ITEMS.jpFishFood.colour], [JAPAN_SPRITE.daruma, JAPAN_ITEMS.jpDaruma.colour], [JAPAN_SPRITE.sushi, JAPAN_ITEMS.jpSushi.colour], [JAPAN_SPRITE.hood, JAPAN_ITEMS.jpHood.colour],
   [PAC_SPRITE.snorkel, PACIFIC_ITEMS.pacSnorkel.colour], [PAC_SPRITE.lei, PACIFIC_ITEMS.pacLei.colour], [PAC_SPRITE.musubi, PACIFIC_ITEMS.pacMusubi.colour], [PAC_SPRITE.parachute, PACIFIC_ITEMS.pacParachute.colour],
-  [RIO_SPRITE.crank, RIO_ITEMS.crank.colour], [RIO_SPRITE.headdress, RIO_ITEMS.headdress.colour], [RIO_SPRITE.skewer, RIO_ITEMS.skewer.colour], [RIO_SPRITE.bowl, RIO_ITEMS.acaiBowl.colour],
+  [RIO_SPRITE.crank, RIO_ITEMS.crank.colour], [RIO_SPRITE.headdress, RIO_ITEMS.headdress.colour], [RIO_SPRITE.skewer, RIO_ITEMS.skewer.colour], [RIO_SPRITE.guarana, RIO_ITEMS.guarana.colour], [RIO_SPRITE.bowl, RIO_ITEMS.acaiBowl.colour],
   [ANDES_SPRITE.chullo, ANDES_ITEMS.chullo.colour], [ANDES_SPRITE.panpipes, ANDES_ITEMS.panpipes.colour], [ANDES_SPRITE.machete, ANDES_ITEMS.machete.colour], [ANDES_SPRITE.empanada, ANDES_ITEMS.empanada.colour],
 ]);
 const itemSprites: MontyData['itemSprites'] = {
@@ -204,6 +205,7 @@ const CHULLO_ITEM = specialIndex(ROOMS, 'chullo');
 const PANPIPES = specialIndex(ROOMS, 'panpipes');
 const MACHETE = specialIndex(ROOMS, 'machete');
 const CRANK = specialIndex(ROOMS, 'crank');
+const GUARANA = specialIndex(ROOMS, 'guarana');
 const HEADDRESS_ITEM = specialIndex(ROOMS, 'headdress');
 const BOWL = specialIndex(ROOMS, 'bowl');
 
@@ -312,6 +314,7 @@ export const WORLD: MontyData = {
   cableCars: [], // (Sugarloaf's, cut with SUGAR RUSH, 2026-11-25)
   floats: [TRAM, MINE_CART, ...CARNIVAL_FLOATS],
   skewers: SKEWERS,
+  run: { item: GUARANA, rooms: RUN_ROOMS },
   pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
   cameos: viktorCameos(MOON_SEEN, HOOD_ITEM),
@@ -351,6 +354,7 @@ export const WORLD: MontyData = {
       { item: CHULLO_ITEM, text: 'A CHULLO: LOOK LIKE A LOCAL' },
       { item: PANPIPES, text: 'PANPIPES: MUSIC CALMS BEASTS' },
       { item: MACHETE, text: 'MACHETE: HACKS THROUGH VINES' },
+      { item: GUARANA, text: 'GUARANA: MONTY IS ON THE RUN' },
       { item: HEADDRESS_ITEM, text: 'A HEADDRESS: JOIN THE PARADE' },
     ],
     wanted: [
@@ -371,7 +375,7 @@ export const WORLD: MontyData = {
   },
   // the map shows a region's columns and rows while he is in them
   regions: WORLD_REGIONS.map(({ label, from, to, rows, except }) => ({ name: label, from, to, rows, ...(except ? { except } : {}) })),
-  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS], foodName: 'SNACKS' },
+  progress: { keyItems: [TOKEN, USHANKA_ITEM, TICKET, KEY, RICE_HAT, BAMBOO, DARUMA, FISH_FOOD, HOOD_ITEM, SNORKEL, LEI_ITEM, PARACHUTE, CHULLO_ITEM, PANPIPES, MACHETE, GUARANA, CRANK, HEADDRESS_ITEM], cakes: FOOD, sectorColours: [...SECTOR_COLOURS, ...SIBERIA_COLOURS, ...CHINA_COLOURS, ...JAPAN_COLOURS, ...PACIFIC_COLOURS, ...ANDES_COLOURS, ...RIO_COLOURS, ...SKY_COLOURS], foodName: 'SNACKS' },
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   ending: WORLD_ENDING,
 };

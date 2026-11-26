@@ -45,7 +45,8 @@ SCOPE.section([], 'the data', () => {
   const coins = RIO_ROOMS.map((r) => r.coins?.length ?? 0);
   check(`12 coins in the seven play rooms, at most three a room, none on the beach (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 12 && Math.max(...coins) <= 3 && (RIO_ROOMS.find((r) => r.id === R.bust)?.coins?.length ?? 0) === 0);
   const finds = RIO_ROOMS.flatMap((r) => (r.item ? [r.item.name] : []));
-  check(`Rio's finds: the crank, the headdress, three skewers and the bowl (${finds.join(', ')})`, finds.sort().join() === 'bowl,crank,headdress,skewer1,skewer2,skewer3');
+  const seconds = RIO_ROOMS.flatMap((r) => (r.item2 ? [r.item2.name] : []));
+  check(`Rio's finds: the crank, the guarana, the headdress, three skewers and the bowl (${[...finds, ...seconds].join(', ')})`, [...finds, ...seconds].sort().join() === 'bowl,crank,guarana,headdress,skewer1,skewer2,skewer3');
   check('the crank and the headdress are key items, the skewers snacks, the bowl and the Sambadrome\'s two hidden finds count for nothing', WORLD.progress.keyItems.includes(itemIndex(newGame(WORLD, false).g, ...CRANK))
     && WORLD.uncountedItems.includes(lever.armed) && WORLD.uncountedItems.includes(lever.done) && WORLD.specialItems[lever.armed * 4] === 0xff && WORLD.specialItems[lever.done * 4] === 0xff);
   check('Rio\'s sectors keep their places (the retired rooms\' empty), in letters the font has', RIO_SECTORS.length === 11 && RIO_COLOURS.length === 11 && RIO_SECTORS.every((s) => s.text.length <= 32 && /^[A-Z0-9 .:,!?-]*$/.test(s.text) && !/Z/.test(s.text)));
@@ -77,6 +78,23 @@ SCOPE.section([R.beat, R.float, R.drum], 'the carnival', () => {
   swim.g.floats = [];
   run(swim, RIGHT, 40);
   check('without the floats, stepping into the canal is death', dead(swim.g));
+});
+
+// ---- the guarana: Monty on the run ----------------------------------------------------------------------------
+SCOPE.section([R.arms, R.colour, R.drum], 'the guarana run', () => {
+  const GUARANA = [R.arms, 1] as const;
+  const spec = must(WORLD.run, 'the run');
+  check('the guarana is the Redeemer\'s second find, a key item, and it makes him run down the hill (the favela, Lapa, the churrascaria, the carnival), not in the Sambadrome\'s showdown', spec.item === itemIndex(newGame(WORLD, false).g, ...GUARANA)
+    && WORLD.progress.keyItems.includes(spec.item) && [R.colour, R.lap, R.steak, R.beat, R.float].every((r) => spec.rooms.includes(r)) && !spec.rooms.includes(R.drum) && !spec.rooms.includes(R.arms));
+  /** How far (in x2 units) he walks east along the favela's lane in 120 frames, or jumps east from a standstill, with or without the guarana. */
+  const walked = (room: number, holds: readonly (readonly [number, number])[], floor: number) => { const s = at(room, 6, floor, holds); run(s, NONE, 4); const x = s.g.x2; for (let f = 0; f < 120; f++) frame(s, RIGHT); return s.g.x2 - x; };
+  const jumped = (holds: readonly (readonly [number, number])[]) => { const s = at(R.colour, 6, 18, holds); run(s, NONE, 4); const x = s.g.x2; for (let f = 0; f < 60; f++) frame(s, f === 0 ? { ...RIGHT, fire: true } : f < 40 ? RIGHT : NONE); return s.g.x2 - x; };
+  const slow = walked(R.colour, [], 18), fast = walked(R.colour, [GUARANA], 18);
+  check(`with the guarana he walks half as fast again along the favela's lane (${slow} units in 120 frames, ${fast} with it)`, slow > 0 && Math.abs(fast / slow - 1.5) < 0.1);
+  const hop = jumped([]), runHop = jumped([GUARANA]);
+  check(`his jump carries him as far as ever (${hop} units, ${runHop} on the run): the arc is Monty on the Run's`, hop > 0 && Math.abs(runHop - hop) <= 4);
+  const drum = walked(R.drum, [GUARANA], 18), drumSlow = walked(R.drum, [], 18);
+  check(`in the Sambadrome he walks (${drum} units with it, ${drumSlow} without)`, drum === drumSlow);
 });
 
 // ---- the tram ---------------------------------------------------------------------------------------------

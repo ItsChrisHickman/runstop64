@@ -1,4 +1,4 @@
-import { applyMonty, decideMonty } from '../../shared/monty/physics';
+import { applyMonty, decideMonty, extraStep } from '../../shared/monty/physics';
 import { animateMonty } from '../../shared/monty/anim';
 import type { Game } from './game';
 import { c5DriveMovement } from './mechanisms';
@@ -58,7 +58,16 @@ function updateMovement(g: Game) {
     }
   }
 
+  const x2 = g.x2;
   applyMonty(g, g);
+  // on the run (the data's `run`): every other step he takes on the ground, a step more
+  if (Math.abs(g.x2 - x2) === 1 && runs(g) && (g.runGate ^= 1) === 0) extraStep(g, g);
+}
+
+/** Whether Monty is on the run here: the run's find is his, this is one of its rooms, and he is walking on the ground (not jumping, falling, on a rope or flying). */
+function runs(g: Game): boolean {
+  const run = g.data.run;
+  return !!run && !!g.siCollected[run.item] && run.rooms.includes(g.roomId) && !g.montyAction && !g.falling && !g.onRope && !g.showJetpack;
 }
 
 /** Jetpack.AnimateFlame: random noise through the flame masks, odd frames. */

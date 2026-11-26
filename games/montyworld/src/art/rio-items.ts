@@ -1,7 +1,7 @@
 /**
  * Rio's items and moving parts for Monty Mole: World Tour (region 7): the crank, the headdress and the straw hat (the
  * costume's picture as an item), the churrasco skewer (the food in place of the cupcake), the acai bowl (the treasure of the finale), the
- * agent squashed flat and his hat, the cable car's two sprites, and the gaucho's swinging skewer in its four poses each way. Hires sprite
+ * agent squashed flat and his hat, the can of guarana (the run: Rio's rush downhill), and the gaucho's swinging skewer in its four poses each way. Hires sprite
  * blocks as the earlier regions' items are: a solid shape with the detail cut into it.
  */
 import { itemBlock, mirrored, spriteBlock } from './pixels';
@@ -53,8 +53,20 @@ function acaiBowl(): NewItem {
   return { block: itemBlock('acaiBowl', r.rows()), colour: 4 };
 }
 
+/** A can of guarana, Brazil's own soda (the berry of the Amazon's guarana vine on its green can): the rim and ring-pull, the label's band, the berry's eye on it. Drunk at the Redeemer, it puts Monty truly on the run. */
+function guarana(): NewItem {
+  const r = new Raster(16, 16);
+  r.rect(4, 1, 11, 15); r.rect(5, 0, 10, 0); r.rect(5, 16, 10, 16); // the can, its rounded rims
+  r.rect(4, 2, 11, 2, false); r.rect(7, 0, 8, 0, false); // the rim's groove, the ring-pull's gap
+  r.rect(4, 5, 11, 5, false); r.rect(4, 12, 11, 12, false); // the label's band
+  r.disc(7.5, 8.5, 2.6); r.rect(6, 7, 9, 10, false); r.rect(7, 8, 8, 9); // the berry, split open: its dark seed's eye
+  r.rect(13, 3, 13, 4); r.rect(14, 6, 14, 7); // a fizz of bubbles
+  return { block: itemBlock('guarana', r.rows()), colour: 5 };
+}
+
 export const RIO_ITEMS = {
   crank: crank(),
+  guarana: guarana(),
   headdress: headdressItem(),
   strawHat: strawItem(),
   skewer: skewer(),
@@ -62,32 +74,6 @@ export const RIO_ITEMS = {
 } as const satisfies Record<string, NewItem>;
 
 export type RioItem = keyof typeof RIO_ITEMS;
-
-// ---- the cable car
-
-/** The car's upper sprite, over Monty's head: the grip's wheel on the cable, the hanger, and the roof's rounded edge. */
-function carTop(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.disc(11.5, 2.5, 2.8); r.rect(11, 2, 12, 3, false); // the wheel on the cable
-  r.rect(10, 5, 13, 9); r.rect(11, 6, 12, 8, false); // the hanger
-  r.rect(0, 11, 23, 14); r.rect(0, 11, 0, 11, false); r.rect(23, 11, 23, 11, false); // the roof
-  r.rect(2, 13, 21, 13, false);
-  r.rect(0, 15, 1, 20); r.rect(11, 15, 12, 20); r.rect(22, 15, 23, 20); // the glass's mullions
-  return spriteBlock('car top', r.rows());
-}
-
-/** The car's lower sprite, in front of Monty's feet: the mullions, a rail at chest height and the floor's plate with its skirt. */
-function carBottom(): Uint8Array {
-  const r = new Raster(24, 21);
-  r.rect(0, 0, 1, 11); r.rect(11, 0, 12, 11); r.rect(22, 0, 23, 11); // the mullions
-  r.rect(0, 3, 23, 4); // the rail
-  r.rect(0, 12, 23, 16); r.rect(0, 12, 1, 12, false); r.rect(22, 12, 23, 12, false);
-  r.rect(2, 14, 21, 14, false); // the plate's groove
-  r.rect(3, 17, 20, 19); r.rect(5, 18, 18, 18, false); // the skirt
-  return spriteBlock('car bottom', r.rows());
-}
-
-export const CABLE_CAR = { top: carTop(), bottom: carBottom(), colour: 1 } as const;
 
 // ---- the gaucho's swinging skewer
 
@@ -144,8 +130,6 @@ export const SKEWER_COLOUR = 8;
 /** Every sprite of the region as a list for the preview sheets. */
 export const RIO_SPRITES: Readonly<Record<string, NewItem>> = {
   ...RIO_ITEMS,
-  carTop: { block: CABLE_CAR.top, colour: CABLE_CAR.colour },
-  carBottom: { block: CABLE_CAR.bottom, colour: CABLE_CAR.colour },
   skewerDown: { block: SKEWER_POSES.left[0]?.block ?? new Uint8Array(63), colour: SKEWER_COLOUR },
   skewerLow: { block: SKEWER_POSES.left[1]?.block ?? new Uint8Array(63), colour: SKEWER_COLOUR },
   skewerFwd: { block: SKEWER_POSES.left[2]?.block ?? new Uint8Array(63), colour: SKEWER_COLOUR },

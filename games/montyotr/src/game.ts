@@ -100,6 +100,8 @@ export class Game implements MontyBody, MontyWorld {
 
   // ---- frame / flow -------------------------------------------------------------
   frameToggle = 0;
+  /** On the run (monty.ts `runs`): which of his steps gets a step more (every other one). */
+  runGate = 0;
   freeze = 1;
   gameMode = 0;
   actionCounter = 0;

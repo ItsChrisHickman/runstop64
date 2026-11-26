@@ -45,7 +45,8 @@ const inDrum = (goal: (g: Game) => boolean, col: number, row: number): Part => (
 export const RIO_LEGS: readonly Leg[] = [
   leg('C: off the canopy to the forest floor, the coin in the pocket under the canopy', livesFor(coin(R.arms, 3, 13), 40)),
   leg('C: up the west ladder to the west arm, past the marmoset, the snack on its hand', livesFor(item(R.arms, 0, [4, 2]), 40)),
-  leg('C: down, east under the pedestal, up the east ladder and along the east arm past the vulture, the coin on the hand', livesFor(coin(R.arms, 28, 3), 40)),
+  leg('C: down, east under the pedestal, up the east ladder and past the vulture: the guarana', livesFor(item(R.arms, 1, [25, 2]), 40)),
+  leg('C: along the east arm, on the run, the coin on the hand', livesFor(coin(R.arms, 28, 3), 40)),
   leg('C to F: off the hand onto the slope, out east', into(R.colour, 31, 7, R.arms)),
   leg('F: over the football\'s well onto the yellow roof, down past the kite, west along the alley: the coin under the macaw', livesFor(coin(R.colour, 20, 13), 40)),
   leg('F: on west over the ladder\'s hole, the snack in the pocket', livesFor(item(R.colour, 0, [1, 12]), 40)),
