@@ -55,6 +55,11 @@ most care; the reward show and the title show them off.
   the train sequence... we should look for more opportunities to have interesting backgrounds"): layered scenery behind the
   play area (sky, receding roofs, hills, horizon), moving where the place moves; the set piece is where Monty stands (on the
   rooftops, not under a picture of them).
+- **A real place, calmly drawn** (Chris, 2026-11-25, on Hawaii's redraw: "neat, but a lot of the scenes look extremely busy in
+  the background with all of the green"). Researched landmarks and nature, yes (Diamond Head's caves, Molokai's cliffs), but a
+  backdrop is a silhouette or a band of one or two dark colours, the detail kept to the horizon and the edges; never a full
+  screen of bright textured foliage behind the play. Jungle and forest rooms especially: dark green, sparse leaves, the
+  playfield clear.
 - **Clear before busy** (Chris, 2026-11-22: Monty on the Run didn't overcomplicate; many C64 games that went for detail ended
   up clashing, "weird and busy"). Exciting comes from the set pieces and the play, not from filling every cell. Backgrounds
   stay calm (darker, fewer colours, little detail right behind where Monty plays) so floors, creatures, items and hazards
