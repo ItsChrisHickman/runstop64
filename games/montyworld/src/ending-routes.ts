@@ -13,7 +13,7 @@ export const ROUTES: readonly { room: number; spot: { x2: number; y: number; fac
   { room: 59, spot: { x2: 0x5c, y: 0x7a, facing: 0x1 }, route: 'J>4 .32', encore: '>16 J<4 .36 <4 .20 <20 J<4 .36 <4 .4 <8 J<4 .36 <4 .4 >12 v40 <4 ^28 J<4 .32 <16 J>4 .20' },
   { room: 65, spot: { x2: 0x24, y: 0xb2, facing: 0x1 }, route: '>20 J>4 .36 <4 .4', encore: '.8 >20 ^44 v48 ^4 .12 J>4 .36 ^44 >4 v4 .4 <8 J<4 .36 <12 J<4 .36' },
   { room: 71, spot: { x2: 0x1c, y: 0x7a, facing: 0x1 }, route: '>56 v24 <8 .24 <20', encore: '>12 J>4 .36 >12 ^36 <12 .4 <4 J<4 .20 <64 >28 J4 .28' },
-  { room: 69, spot: { x2: 0x1c, y: 0x7a, facing: 0x1 }, route: '>52', encore: 'J>4 .36 <4 .52 <8 v8 >28 J>4 .36 J>4 .36 <4 .36 <8 J<4 .36 <4 .4 <24 J>4 .4' },
+  { room: 76, spot: { x2: 0x7c, y: 0xca, facing: 0x81 }, route: '>4 ^4 >12 ^12 J<4 .20 >8 ^4 >4 <4 ^40 J4 .36 v48 <4 J<4 .48 J<4 .36 <4 .4 <12' },
   { room: 75, spot: { x2: 0x7c, y: 0xaa, facing: 0x81 }, route: '^4 J4 .20 J<4 .32 <12', encore: '>12 J<4 .36 <4 .4 <16 ^20 J>4 .20 >20 ^4 J<4 .36 <8 J4 .40 <12 .32 J<4 .32 <8' },
   { room: 77, spot: { x2: 0x24, y: 0xca, facing: 0x1 }, route: '>200' },
 ];

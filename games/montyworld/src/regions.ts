@@ -14,5 +14,5 @@ export const WORLD_REGIONS: readonly { readonly name: RegionName; readonly label
   { name: 'pacific', label: 'HAWAII', from: 17, to: 23, rows: { from: 0, to: 4 } }, // Hawaii's island hopping: Oahu, the swims, Maui and the Big Island's fork (pacific.ts)
   { name: 'sky', label: 'THE SKY', from: 25, to: 27, rows: { from: 0, to: 0 }, flown: true }, // the flight from Hilo, three legs on the top row over the Andes' columns (sky.ts), column 24 left empty: a flight, not one room over (Chris)
   { name: 'andes', label: 'ANDES', from: 25, to: 29, rows: { from: 2, to: 7 } }, // the Andes and the Amazon: the three-room drop, Machu Picchu and the Inca bridge, the Amazon's U, the riverboat moored off it at [7,28] and the last bank past her stern at [7,29], under Rio, east of Hilo past the gap
-  { name: 'rio', label: 'RIO', from: 28, to: 33, rows: { from: 5, to: 6 } }, // Rio's six columns of two rows, entered from BRANCHING OUT's crown (the Amazon's [6,27]) into OPEN ARMS at [6,28]
+  { name: 'rio', label: 'RIO', from: 28, to: 34, rows: { from: 5, to: 6 } }, // Rio's seven columns of two rows (the carnival's two rooms between Lapa and the Sambadrome; Sugarloaf's room cut), entered from BRANCHING OUT's crown (the Amazon's [6,27]) into OPEN ARMS at [6,28]
 ];

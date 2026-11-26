@@ -1,9 +1,10 @@
 /**
  * Rio's decorations for Do Svidaniya Monty (region 7, played at night on black, as Monty on the Run's rooms are), in Monty on the Run's decoration format: solid ink with the detail cut into it as black lines. Few, and
- * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, the cable car's stations and cable, Lapa's arches (dark grey, behind him), the
+ * each tells the place: the Redeemer and Sugarloaf small across the bay from the beach, Lapa's arches (dark grey, behind him), the
  * churrascaria's tables, lamps and grill, Santa Teresa's tram, the Sambadrome's float with its stamping head, its lever and control booth, the Apoteose arch, and the finale's fireworks.
  */
 import { FINALE_DECOR } from './rio-finale';
+import { RIO_STREETS } from './rio-streets';
 import { decor } from './decorations';
 import { characters } from './pixels';
 import { Raster } from './raster';
@@ -33,32 +34,6 @@ function sugarloaf(): NewDecor {
   return decor('sugarloaf', 8, 5, r, ['ffffffff', 'ffffffff', 'ffffffff', 'dddddddd', '55555555']);
 }
 
-// ---- the cable car's stations and the quay
-
-/** The cable car's station: a boxy building under a sloping red roof, windows in a row, the cable arriving at its roof. 4 x 3 characters. */
-function cableStation(): NewDecor {
-  const r = new Raster(32, 24);
-  r.triangle(0, 8, 31, 0, 31, 8); r.rect(0, 8, 31, 8);
-  r.rect(2, 9, 29, 23);
-  for (const x of [5, 12, 19]) r.rect(x, 12, x + 4, 17, false);
-  r.rect(23, 14, 27, 23, false); r.rect(25, 14, 25, 23);
-  return decor('cableStation', 4, 3, r, ['2222', '7777', '7777']);
-}
-
-/** The cable's line, its lower half of a pair: climbs a row over two cells (a decoration, so it is drawn wherever it is wanted over the picture). 1 x 1 character. */
-function cableLow(): NewDecor {
-  const r = new Raster(8, 8);
-  r.stamp(['........', '........', '........', '........', '......##', '....####', '..####..', '####....'], 0, 0);
-  return decor('rioCableLow', 1, 1, r, 1);
-}
-
-/** The cable's line, its upper half of a pair. 1 x 1 character. */
-function cableHigh(): NewDecor {
-  const r = new Raster(8, 8);
-  r.stamp(['......##', '....####', '..####..', '####....', '........', '........', '........', '........'], 0, 0);
-  return decor('rioCableHigh', 1, 1, r, 1);
-}
-
 /** A hanging chain: links one under another, 1 x 1 character, repeated down (the Sambadrome's float hangs by it from the lighting gantry, STUCK LIKE GUM's crusher from the gallery). */
 function chain(): NewDecor {
   const r = new Raster(8, 8);
@@ -69,21 +44,38 @@ function chain(): NewDecor {
 // ---- Lapa's aqueduct: two storeys of arches, the street under them
 
 /** The upper storey of the aqueduct (the Arcos da Lapa): a cornice over two arches with their piers, white stone. 4 x 4 characters. */
-function lapaUpper(): NewDecor {
-  const r = new Raster(32, 32);
+function lapaUpperRaster(w: number): Raster {
+  const r = new Raster(w, 32);
   r.rect(0, 0, 31, 31);
   for (const x0 of [3, 19]) { r.rect(x0, 12, x0 + 9, 31, false); r.ellipse(x0 + 4.5, 12, 5, 6, false); }
   r.rect(0, 4, 31, 4, false);
-  return decor('lapaUpper', 4, 4, r, 11);
+  return r;
+}
+function lapaUpper(): NewDecor {
+  return decor('lapaUpper', 4, 4, lapaUpperRaster(32), 11);
 }
 
 /** The lower storey: one great arch to the street between two piers, the springers of the arch cut in. 4 x 5 characters (it stands on the street). */
-function lapaBase(): NewDecor {
-  const r = new Raster(32, 40);
+function lapaBaseRaster(w: number): Raster {
+  const r = new Raster(w, 40);
   r.rect(0, 0, 31, 39);
   r.rect(4, 14, 27, 39, false); r.ellipse(15.5, 14, 12, 12, false);
   r.rect(0, 0, 31, 0, false); r.rect(0, 1, 31, 1);
-  return decor('lapaBase', 4, 5, r, 11);
+  return r;
+}
+function lapaBase(): NewDecor {
+  return decor('lapaBase', 4, 5, lapaBaseRaster(32), 11);
+}
+
+/**
+ * The aqueduct's last two columns in the picture: the left halves of the two storeys (a pier and half an arch), for the arches at the playfield's right edge, which run on into the margin the picture shows (two
+ * columns, SCREEN_MARGIN) and no further: a whole piece there stood half in the border, over no street (Chris: "a gap in the floor at the bottom right of the Lapa Arches"). 2 x 4 and 2 x 5 characters.
+ */
+function lapaUpperEnd(): NewDecor {
+  return decor('lapaUpperEnd', 2, 4, lapaUpperRaster(16), 11);
+}
+function lapaBaseEnd(): NewDecor {
+  return decor('lapaBaseEnd', 2, 5, lapaBaseRaster(16), 11);
 }
 
 /** A churrascaria table: a white cloth to the floor's edge, plates and a red coaster, a bottle. 3 x 2 characters. */
@@ -211,12 +203,12 @@ export const FIREWORK_FRAMES: readonly Uint8Array[] = [0, 1, 2, 3].map((k) => {
 export const RIO_DECOR = {
   christFar: christFar(),
   sugarloaf: sugarloaf(),
-  cableStation: cableStation(),
-  rioCableLow: cableLow(),
-  rioCableHigh: cableHigh(),
   ...FINALE_DECOR,
+  ...RIO_STREETS,
   lapaUpper: lapaUpper(),
   lapaBase: lapaBase(),
+  lapaUpperEnd: lapaUpperEnd(),
+  lapaBaseEnd: lapaBaseEnd(),
   restTable: restTable(),
   rioGrill: grill(),
   lampRed: lampRed(),

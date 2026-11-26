@@ -177,6 +177,12 @@ export interface CrackSpec { room: number; col: number; cols: number; row: numbe
  * A character an animation moves: a room's own (its code 1-8), or one of a decoration's (the cell `cell` of its type `decor`, counted
  * row by row, the decoration being in the room: its characters are the room's own for as long as it is there).
  */
+/**
+ * A find that makes Monty run (Do Svidaniya Monty's guarana, Rio's rush downhill): once `item` is his, in `rooms` he takes a step more for every two of his own while he walks on the ground (half as fast again);
+ * his jump's arc, his falls and his climbs are as they always were, so it still plays as Monty.
+ */
+export interface RunSpec { readonly item: number; readonly rooms: readonly number[] }
+
 export type CharRef = number | { readonly decor: number; readonly cell: number };
 
 /**
@@ -586,6 +592,8 @@ export interface MontyData extends RoomTables, MontyLook {
   cableCars: readonly CableCarSpec[];
   floats: readonly FloatSpec[];
   skewers: readonly SkewerSpec[];
+  /** Monty truly on the run (monty.ts `runs`): once its find is his, in its rooms he walks half as fast again; null in Monty on the Run. */
+  run: RunSpec | null;
   /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
   pursuers: readonly PursuerSpec[];
   levers: readonly LeverSpec[];

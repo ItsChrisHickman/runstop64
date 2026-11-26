@@ -33,8 +33,8 @@ export const RETIRED: Readonly<Record<number, number>> = {
   // Rio
   67: 71, // QUAY TO THE CITY: Rio starts at Corcovado (OPEN ARMS)
   72: 71, // MONKEY BUSINESS: merged into OPEN ARMS (Tijuca at its foot)
-  70: 69, // SUGARLOAF SUMMIT: SUGAR RUSH, the cable car
-  76: 75, // FLOAT YOUR BOAT: merged into the Sambadrome (SPY VERSUS MOLE)
+  69: 68, // Sugarloaf and its cable car (cut 2026-11-25): Lapa, the room before it on the street
+  // (70 and 76 are rooms again: BEAT THE DRUM and FLOAT YOUR BOAT, the carnival, 2026-11-25; a format 1 save in SUGARLOAF SUMMIT's 70 carries on in BEAT THE DRUM)
 };
 
 /** Where a kept room that takes the saves of cut rooms is come into, when that is not its west end, low (Rio's OPEN ARMS: high on the canopy, entered from the Amazon; its forest floor is the marmoset's). */

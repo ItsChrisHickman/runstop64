@@ -58,8 +58,9 @@ for (const r of scopedRooms(RIO_ROOMS)) {
   }
 }
 
-const rooms = creatureRooms(RIO_ROOMS);
-for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of Rio (${[...where].join(', ')})`, where.size <= 2);
+// (the beach's creatures are the finale's troupe, off the picture until it walks them on: not creatures met in play)
+const rooms = creatureRooms(RIO_ROOMS.filter((r) => r.id !== RIO_ROOM.bust));
+for (const [type, where] of rooms) check(`creature ${type} is in at most two of Rio's play rooms (${[...where].join(', ')})`, where.size <= 2);
 check(`about 8 to 14 kinds of creature (${rooms.size})`, rooms.size >= 8 && rooms.size <= 14);
-check('six play rooms and the beach', RIO_ROOMS.length === 7);
+check('seven play rooms and the beach', RIO_ROOMS.length === 8);
 finish();
