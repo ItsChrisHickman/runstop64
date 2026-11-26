@@ -6,7 +6,6 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/train.ts
  */
-import { decorChars } from '../../montyotr/src/decor-chars';
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
 import { MOTR } from '../../montyotr/src/motr';
@@ -15,7 +14,8 @@ import { check, finish } from '../../shared/test/check';
 import { WINDOW_SCENERY } from '../src/art/siberia-decor';
 import { WHEEL_FRAMES } from '../src/art/siberia-decor';
 import { WORLD } from '../src/data';
-import { decorIndex } from '../src/layout';
+import { pieceChar } from '../src/layout';
+import type { WorldDecor } from '../src/art/world';
 import { ROOM } from '../src/moscow';
 import { SIB, SIBERIA_ROOMS } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
@@ -35,7 +35,7 @@ const run = (s: State, frames: number) => { for (let i = 0; i < frames; i++) fra
 const chr = (g: Game, n: number) => Array.from(g.mem.subarray(n * 8, n * 8 + 8)).join(',');
 /** The characters of a ring of the window's scenery, in the room. */
 const windowRing = (g: Game, ring: number) => {
-  const first = decorChars(g.data, g.roomId)[decorIndex('trainWindow')] ?? 0;
+  const first = pieceChar(g.data, g.roomId, 'trainWindow');
   return (WINDOW_SCENERY[ring] ?? []).map((cell) => first + cell);
 };
 const ringText = (g: Game, ring: number) => windowRing(g, ring).map((n) => chr(g, n)).join('|');
@@ -83,23 +83,21 @@ for (const [name, room, windows] of [['dining car', SIB.gravy, true], ['sleeper'
 
 // ---- the sky above the train (art/siberia-sky.ts) ---------------------------------------------------------------
 /** A decoration's characters in a room as text, one per cell of its row `row` (w characters a row). */
-const decorRow = (g: Game, name: Parameters<typeof decorIndex>[0], w: number, row: number) => {
-  const first = decorChars(g.data, g.roomId)[decorIndex(name)] ?? 0;
+const decorRow = (g: Game, name: WorldDecor, w: number, row: number) => {
+  const first = pieceChar(g.data, g.roomId, name);
   return Array.from({ length: w }, (_, i) => chr(g, first + row * w + i)).join('|');
 };
 for (const [name, room, pieces] of [
   ['dining car', SIB.gravy, ['moon', 'star']], ['sleeper', SIB.sleeper, ['horizonDark', 'moon', 'star']], ['tender', SIB.coal, ['smoke', 'moon']],
   ['platform', ROOM.station, ['horizon', 'wires', 'moon', 'star']],
 ] as const) {
-  const first = decorChars(WORLD, room);
-  check(`${name}: the sky's pieces all fit in the room's characters (none dropped as the pool ran out)`, pieces.every((d) => (first[decorIndex(d)] ?? 0) > 0));
+  check(`${name}: the sky's pieces all fit in the room's characters (none dropped as the pool ran out)`, pieces.every((d) => pieceChar(WORLD, room, d) > 0));
 }
 check('Siberia\'s cars have the calm night: the dark horizon (no white peaks) and no poles or wires; Moscow\'s platform keeps its own', [SIB.gravy, SIB.sleeper, SIB.coal].every((room) => {
-  const first = decorChars(WORLD, room);
-  return !first[decorIndex('wires')] && !first[decorIndex('horizon')];
+  return !pieceChar(WORLD, room, 'wires') && !pieceChar(WORLD, room, 'horizon');
 }));
-check('the tender\'s coal stands on plain night: no horizon behind it, only the smoke and the moon above', !decorChars(WORLD, SIB.coal)[decorIndex('horizonDark')]);
-check('the dining car\'s roof lane, where the mountain is first dodged, has only the night behind it: no horizon, the moon and stars', !decorChars(WORLD, SIB.gravy)[decorIndex('horizonDark')]);
+check('the tender\'s coal stands on plain night: no horizon behind it, only the smoke and the moon above', !pieceChar(WORLD, SIB.coal, 'horizonDark'));
+check('the dining car\'s roof lane, where the mountain is first dodged, has only the night behind it: no horizon, the moon and stars', !pieceChar(WORLD, SIB.gravy, 'horizonDark'));
 {
   const s = at(SIB.sleeper, 8, 17);
   const g = s.g;

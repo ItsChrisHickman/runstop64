@@ -7,6 +7,7 @@
  *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-holes.ts [--room <rooms>]
  */
 import { decorPool } from '../../montyotr/src/decor-chars';
+import { roomDecorTypes } from '../../shared/monty/rooms';
 import { ROW, SCREEN } from '../../montyotr/src/game';
 import { crackUpdate } from '../../montyotr/src/cracks';
 import { animateCharacters, applyRoomEffects, collectCoin } from '../../montyotr/src/items';
@@ -19,7 +20,7 @@ import { SCOPE } from './scope';
 
 /** What the room's backdrop has at each screen cell: the last decoration of a backdrop type that covers it, its character and colour (derived from the data, as the engine does not). */
 function backdropOf(room: number): Map<number, readonly [chr: number, colour: number]> {
-  const { decorRooms, decorTypes } = WORLD;
+  const { decorRooms } = WORLD, decorTypes = roomDecorTypes(WORLD, room);
   const first = decorPool(WORLD, room).first;
   const cells = new Map<number, readonly [number, number]>();
   for (let i = 0; i + 3 < decorRooms.length; i += 4) {

@@ -35,24 +35,13 @@ export const WORLD_TILES = { ...MOSCOW_TILES, ...SIBERIA_TILES, ...CHINA_TILES, 
 export type WorldTile = keyof typeof WORLD_TILES;
 export const WORLD_CREATURES = { ...MOSCOW_CREATURES, ...SIBERIA_CREATURES, ...CHINA_CREATURES, ...JAPAN_CREATURES, ...PACIFIC_CREATURES, ...PACIFIC_MORE_CREATURES, ...PACIFIC_RESET_CREATURES, ...ANDES_CREATURES, ...RIO_CREATURES, ...SKY_CREATURES, ...PACIFIC_ISLANDS_CREATURES } as const;
 export type WorldCreature = keyof typeof WORLD_CREATURES;
-/** Every region's decorations, with the pieces no room places (they stay in their region's art, for its sheets and mock rooms). */
-const ALL_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR, ...SKY_DECOR, ...PACIFIC_ISLANDS_DECOR, ...PACIFIC_SCENERY_DECOR } as const;
 /**
- * The game's decoration kinds: every region's, less the pieces no room places (left out so the kinds stay well within the room table's one byte, as on a C64:
- * test/budget.ts holds the kinds to it and reports any no room places). A decoration's kind is not saved (a room is drawn from the tables as it loads), so
- * leaving one out moves the later kinds' numbers and changes no room and no save.
+ * The decoration library: every region's pieces, those no room places too (they stay in their region's art, for its sheets and mock rooms). A room names a piece by
+ * its place here (`decorIndex`); the game's tables give each region a list of its own of the pieces its rooms place (shared/monty/rooms.ts `buildRooms`' `decorRegion`,
+ * the room table's byte indexing its region's list, up to 255 kinds a region: test/budget.ts), as a C64 build loads a region's pictures from disk. A decoration's kind
+ * is in no save (a room is drawn from the tables as it loads), so a piece added or left unplaced changes no save.
  */
-const {
-  domeLarge, lampDouble, spasskaya, samovar, // Moscow's
-  pineSmall, diningSamovar, pole, stalactites, // Siberia's
-  hutongDoor, stall, arrowSlit, rockery, roofEnd, slateCell, // China's (no back wall is slate)
-  jpNeonTall, jpWave, jpShipMast, jpBell, jpSignalLamp, jpBarrels, jpShachi,
-  jpNeonRed, jpNeonGreen, // Japan's
-  pacDiamondHead, pacLawn, pacTikiTorch, pacTotem, pacRoastPig, pacStageBoard, pacFeast, pacUmbrella, pacEarthOven, pacSeaCliff, pacSeaCliffB, pacGlow, // the Pacific's
-  fern, giantTree, hangingVines, bromeliad, signBoard, launch, // the Andes'
-  ...placed
-} = ALL_DECOR;
-export const WORLD_DECOR = placed;
+export const WORLD_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_DECOR, ...PACIFIC_DECOR, ...PACIFIC_MORE_DECOR, ...PACIFIC_RESET_DECOR, ...ANDES_DECOR, ...RIO_DECOR, ...SKY_DECOR, ...PACIFIC_ISLANDS_DECOR, ...PACIFIC_SCENERY_DECOR } as const;
 export type WorldDecor = keyof typeof WORLD_DECOR;
 
 // (a name in two regions would silently replace the first's piece)

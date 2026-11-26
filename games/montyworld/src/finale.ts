@@ -1,12 +1,12 @@
 import { FRAME } from '../../shared/monty/frames';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, ROW, SCREEN } from '../../shared/monty/screen';
 import { wait, type Seq } from '../../shared/monty/deaths';
-import { decorChars, FIRST_DECOR_CHR } from '../../montyotr/src/decor-chars';
+import { FIRST_DECOR_CHR } from '../../montyotr/src/decor-chars';
 import type { Game } from '../../montyotr/src/game';
 import { gameOver } from '../../montyotr/src/scripts';
 import { BOWL_ON_LAP, FINALE_COLOURS, FINALE_HEADS, FINALE_MC } from './art/rio-finale';
 import { FIREWORK_FRAMES } from './art/rio-decor';
-import { codeOf, decorIndex } from './layout';
+import { codeOf, pieceChar } from './layout';
 import { BEACH_PALETTE, BEACH_VIEW } from './rio';
 import { FINALE_POINTERS as P } from './rio-pointers';
 
@@ -57,7 +57,7 @@ function tint(g: Game, c: { col: number; row: number; w: number; h: number }, co
  * and showing the same frame of the burst as soon as its own turn reaches it, in a colour of its own).
  */
 function fireworks(g: Game, t: number) {
-  const first = decorChars(g.data, g.roomId)[decorIndex('rioFirework')] ?? 0;
+  const first = pieceChar(g.data, g.roomId, 'rioFirework');
   if (!first) return;
   const turn = Math.floor(t / 40), k = Math.min(3, Math.floor((t % 40) / 10));
   const picture = FIREWORK_FRAMES[k];

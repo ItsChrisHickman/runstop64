@@ -29,7 +29,7 @@ import { HAT_BLOCKS } from '../src/hats';
 import { BALL_STREAM, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
-import { decorIndex, FIRST_CREATURE, isBackdrop } from '../src/layout';
+import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
 import { CODEC } from '../src/main';
 import { PAC } from '../src/pacific';
 import { ACTIONS, hold, newGame } from '../../shared/monty/test/bot';
@@ -115,7 +115,7 @@ SCOPE.section([], 'the layout\'s sanity: nothing drawn in a tile', () => {
     for (const e of r.enemies ?? []) { const { col, row } = inRoom(e.col, e.row); for (const [x, y] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) if (wall(col + x, row + y)) problems.push(`room ${r.id}: a creature starts in a tile at ${col},${row}`); }
     const first = decorChars(WORLD, r.id);
     const placed = new Set((r.decor ?? []).flatMap((d) => (typeof d.type === 'number' ? [d.type] : [])));
-    for (const t of placed) if (!first[t]) problems.push(`room ${r.id}: decoration ${t} did not fit in the character pool`);
+    for (const t of placed) if (!first[WORLD.decorKindIn(r.id, t) ?? -1]) problems.push(`room ${r.id}: decoration ${t} did not fit in the character pool`);
     pools += [...placed].reduce((n, t) => n + (decorTypes[t]?.w ?? 0) * (decorTypes[t]?.h ?? 0), 0);
     if (r.tiles.length > 8) problems.push(`room ${r.id}: more than eight tiles`);
   }
@@ -675,7 +675,7 @@ SCOPE.section([JP.crossing], 'THE CROSSING: taxis and the crowd', () => {
   for (let f = 0; f < 200 && !dead(c.g); f++) { frame(c, RIGHT); if (Array.from({ length: 32 }, (_, k) => k).some((k) => crowdCodes.has(cell(c.g, k, 15)))) crowdSeen = true; }
   check('in the crowd\'s wave he walks through its pictured figures unhurt', crowdSeen && !dead(c.g));
   // the signals: the red man while the taxis have the road, the green man after
-  const ref = decorChars(WORLD, JP.crossing)[decorIndex('jpWalkSignal')] ?? 0;
+  const ref = pieceChar(WORLD, JP.crossing, 'jpWalkSignal');
   const sig = at(JP.crossing, 3, 17);
   const lit = (g: Game) => [0, 1].map((k) => Array.from(g.mem.subarray((ref + k) * 8, (ref + k) * 8 + 8)).join());
   const red = lit(sig.g);

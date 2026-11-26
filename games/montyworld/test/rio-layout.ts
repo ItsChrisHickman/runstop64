@@ -9,7 +9,7 @@ import { scopedRooms } from './scope';
 import { WORLD_DECOR } from '../src/art/world';
 import { RIO_ROOM, RIO_ROOMS } from '../src/rio';
 import { PLAY_COL, PLAY_ROW } from '../../shared/monty/screen';
-import { WORLD } from '../src/data';
+import { DECOR_LIBRARY, WORLD } from '../src/data';
 import { creatureRooms } from './route';
 
 const NAME = new Map<number, string>(Object.entries(RIO_ROOM).map(([k, v]) => [v, k]));
@@ -35,7 +35,7 @@ for (const r of scopedRooms(RIO_ROOMS)) {
     const type = names[d.type];
     if (!type) continue;
     if (!seen.has(d.type)) { seen.add(d.type); chars += type.w * type.h; }
-    const backdrop = WORLD.decorTypes[d.type]?.backdrop === true; // (a backdrop keeps a coin in it: the engine draws the coin over it)
+    const backdrop = DECOR_LIBRARY[d.type]?.backdrop === true; // (a backdrop keeps a coin in it: the engine draws the coin over it)
     for (let y = 0; y < type.h; y++) for (let x = 0; x < type.w; x++) {
       const c = d.col - PLAY_COL + x, row = d.row - PLAY_ROW + y;
       if (!backdrop) decor.add(`${c},${row}`);

@@ -28,6 +28,7 @@ import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
 import { animateChars, charAnimInit, type LiveAnim } from './charanim';
 import { coverable, decorChars, decorPool } from './decor-chars';
+import { roomDecorTypes } from '../../shared/monty/rooms';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
@@ -945,9 +946,9 @@ export class Game implements MontyBody, MontyWorld {
     });
   }
 
-  /** Decor.CalculateRoom: decorations allocate chars from $9B up and draw w×h blocks. */
+  /** Decor.CalculateRoom: decorations allocate chars from $9B up and draw w×h blocks (the kinds of the room's region's list: a C64 build has it loaded from disk as the region is entered). */
   private decorate() {
-    const { decorRooms, decorTypes } = this.data;
+    const { decorRooms } = this.data, decorTypes = roomDecorTypes(this.data, this.roomId);
     const first = decorChars(this.data, this.roomId);
     for (let i = 0; i + 3 < decorRooms.length; i += 4) {
       if (decorRooms[i] !== this.roomId) continue;

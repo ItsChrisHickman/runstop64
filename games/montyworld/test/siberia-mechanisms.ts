@@ -15,7 +15,7 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { WORLD } from '../src/data';
+import { DECOR_LIBRARY, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TUNNELS, YETI } from '../src/siberia';
@@ -73,7 +73,7 @@ SCOPE.section([], 'the layout (the rooms in the filter)', () => {
   for (const r of scopedRooms(SIBERIA_ROOMS)) {
     const covered = new Set<string>();
     for (const d of r.decor ?? []) {
-      const t = typeof d.type === 'number' ? WORLD.decorTypes[d.type] : undefined;
+      const t = typeof d.type === 'number' ? DECOR_LIBRARY[d.type] : undefined;
       if (!t) continue;
       for (let rr = 0; rr < t.h; rr++) for (let cc = 0; cc < t.w; cc++) {
         const col = d.col - 4 + cc, row = d.row - 3 + rr;

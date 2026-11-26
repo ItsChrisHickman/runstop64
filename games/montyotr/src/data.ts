@@ -1,7 +1,7 @@
 import raw from './data/motr.json';
 import { hexBytes, type SfxName } from 'c64kit';
 import { PLAY_COLS, PLAY_ROWS } from '../../shared/monty/screen';
-import { buildRooms, checkFree, roomCells, type BaseRooms, type DecorType, type RoomDef } from '../../shared/monty/rooms';
+import { buildRooms, checkFree, roomCells, roomDecorTypes, type BaseRooms, type DecorType, type RoomDef } from '../../shared/monty/rooms';
 import { ROOMS as EXT_ROOMS, SECTORS as EXT_SECTORS } from './data/runstop64-rooms';
 import type { MontyData, MontyLook, Sfx } from './montydata';
 
@@ -144,7 +144,9 @@ export const extensionGrid = roomCells(exitGridImage.length, EXIT_COLS, EXT_ROOM
 /** The tables of the original's rooms and runstop64's after them (`RoomTables`). */
 export const MOTR_ROOMS = buildRooms(ORIGINAL, EXT_ROOMS, EXT_SECTORS, bankImage);
 
-export const { roomDef, enemyRecords, coinTable, decorRooms, decorTypes, piledriverCfg, teleporterCfg, teleporterDests, warpFound, roomMeta, sectorNames, sectorIdx } = MOTR_ROOMS;
+export const { roomDef, enemyRecords, coinTable, decorRooms, piledriverCfg, teleporterCfg, teleporterDests, warpFound, roomMeta, sectorNames, sectorIdx } = MOTR_ROOMS;
+/** The decoration kinds (Monty on the Run's one list: the original's, then runstop64's signs). */
+export const decorTypes = roomDecorTypes(MOTR_ROOMS, 0);
 /** si_spawn_tbl: the original's 20 items, then a piece of cake in each of runstop64's rooms that has one. */
 export const specialItems = MOTR_ROOMS.specialItems;
 

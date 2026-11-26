@@ -106,9 +106,17 @@ export interface RoomTables {
   specialItems: Uint8Array;
   /** 3 bytes a coin: room, playfield column, row. */
   coinTable: Uint8Array;
-  /** 4 bytes a decoration: room, column, row, type (an index into `decorTypes`: at most `MAX_DECOR_KINDS` kinds, as the original's byte holds). */
+  /** 4 bytes a decoration: room, column, row, kind (an index into its room's region's list, `decorSets[decorSetIdx[room]]`: at most `MAX_DECOR_KINDS` kinds a region, as the original's byte holds). */
   decorRooms: Uint8Array;
-  decorTypes: readonly DecorType[];
+  /**
+   * The decoration kinds of each region (Monty on the Run's: one list, its own): the kinds a region's rooms place, then its signs. A room's byte indexes its region's list, which is loaded as the
+   * region is entered, as a C64 build loads a region's character set and pictures from disk (docs/dosvidaniya-c64.md, section 5). `roomDecorTypes` reads a room's.
+   */
+  decorSets: readonly (readonly DecorType[])[];
+  /** By room id: the region whose decoration list the room's kinds index (an index into `decorSets`). */
+  decorSetIdx: Uint8Array;
+  /** A kind of the decoration library (`BaseRooms.decorTypes`: what a `RoomSpec`'s `type` names) as room `room`'s region numbers it (a charAnim's or a float's `decor`); undefined where the region's rooms place none. */
+  decorKindIn(room: number, libraryKind: number): number | undefined;
   /** 5 bytes a crusher: room, column, row, height, characters. */
   piledriverCfg: Uint8Array;
   /** 5 bytes a teleporter: room, column, row, height, colour. */
@@ -133,6 +141,7 @@ export interface BaseRooms {
   specialItems: Uint8Array;
   coinTable: Uint8Array;
   decorRooms: Uint8Array;
+  /** The decoration library: the kinds the base's own rooms' bytes index, and the pieces our rooms' `type` numbers name (with `decorRegion`, each region's list is the ones its rooms place). */
   decorTypes: readonly DecorType[];
   piledriverCfg: Uint8Array;
   teleporterCfg: Uint8Array;
@@ -152,11 +161,16 @@ export const NO_ROOMS: BaseRooms = {
   teleporterDests: none, roomMeta: none, sectorNames: [], sectorIdx: none,
 };
 
-/** How many decoration kinds a game may have: a room's decoration table holds the kind in a byte, as Monty on the Run's does (docs/dosvidaniya-c64.md, section 5). */
+/** How many decoration kinds a region may have: a room's decoration table holds the kind in a byte, as Monty on the Run's does (docs/dosvidaniya-c64.md, section 5). */
 export const MAX_DECOR_KINDS = 255;
+
+/** The decoration kinds a room's bytes index: its region's list. */
+export function roomDecorTypes(tables: Pick<RoomTables, 'decorSets' | 'decorSetIdx'>, room: number): readonly DecorType[] {
+  return tables.decorSets[tables.decorSetIdx[room] ?? 0] ?? [];
+}
 /** A decoration's kind as its table's byte holds it (a kind past the byte would be read as another kind: an error in the data). */
 const decorKind = (room: number, kind: number): number => {
-  if (!Number.isInteger(kind) || kind < 0 || kind >= MAX_DECOR_KINDS) throw new Error(`room $${room.toString(16)}: decoration kind ${kind}, past the ${MAX_DECOR_KINDS} kinds the table's byte holds`);
+  if (!Number.isInteger(kind) || kind < 0 || kind >= MAX_DECOR_KINDS) throw new Error(`room $${room.toString(16)}: decoration kind ${kind}, past the ${MAX_DECOR_KINDS} kinds a region's list holds (the table's byte)`);
   return kind;
 };
 
@@ -235,8 +249,11 @@ function signType(sign: Sign, bank: Uint8Array): DecorType {
  * The tables with `rooms` added after the base's own entries, in the original's formats (the base's rooms read exactly what they
  * did). `sectors` are added after the base's sector names (a room's `sector` indexes them); `bank` is the VIC bank the signs'
  * letters are cut from; `cakeSprite` is the sprite pointer a room's `cake` is drawn with (the cupcake's by default: a game with a food of its own gives its own).
+ * `decorRegion`: the region a room's decorations are loaded with (0 up). Without it there is one list, the base's library with the signs after it (Monty on the
+ * Run's numbers as they are). With it (a game with no rooms of the base's), each region's list is the library's kinds its rooms place, in the library's order, then
+ * its signs, and a room's bytes are its region's numbers: a region holds up to `MAX_DECOR_KINDS` kinds however many the world has.
  */
-export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors: readonly Sector[], bank: Uint8Array, cakeSprite = CUPCAKE_FRAME + 0x8e): RoomTables {
+export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors: readonly Sector[], bank: Uint8Array, cakeSprite = CUPCAKE_FRAME + 0x8e, decorRegion?: (r: RoomSpec) => number): RoomTables {
   const byId = new Map(rooms.map((r) => [r.id, r]));
   const merged = (original: Uint8Array, entries: (r: RoomSpec) => number[][]) => Uint8Array.from([...original, ...rooms.flatMap((r) => entries(r).flat())]);
   /** A table indexed by room id, our rooms' entries put in at their ids (past the base's rooms: bytes no room read). */
@@ -247,12 +264,8 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     return out;
   };
 
-  const signs: Sign[] = [];
-  const signIndex = (s: Sign) => {
-    const at = signs.findIndex((t) => t.text === s.text && t.colour === s.colour);
-    return base.decorTypes.length + (at >= 0 ? at : signs.push(s) - 1);
-  };
-  const decorRooms = merged(base.decorRooms, (r) => (r.decor ?? []).map((d) => [r.id, d.col, d.row, decorKind(r.id, typeof d.type === 'number' ? d.type : signIndex(d.type))]));
+  const decor = decorLists(base, rooms, bank, decorRegion);
+  const decorRooms = merged(base.decorRooms, (r) => (r.decor ?? []).map((d) => [r.id, d.col, d.row, decorKind(r.id, decor.kindOf(r, d.type))]));
   const tele = rooms.flatMap((r) => (r.teleporter ? [{ id: r.id, t: r.teleporter }] : []));
 
   return {
@@ -272,7 +285,9 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     ]),
     coinTable: merged(base.coinTable, (r) => (r.coins ?? []).map(([c, row]) => [r.id, c, row])),
     decorRooms,
-    decorTypes: [...base.decorTypes, ...signs.map((s) => signType(s, bank))],
+    decorSets: decor.sets,
+    decorSetIdx: byRoom(new Uint8Array(base.count), decor.regionOf),
+    decorKindIn: decor.kindIn,
     piledriverCfg: merged(base.piledriverCfg, (r) => (r.crushers ?? []).map((p, i) => [r.id, p.col, p.row, crusherHeight(r.id, p.height), crusherChars(i)])),
     teleporterCfg: Uint8Array.from([...base.teleporterCfg, ...tele.flatMap(({ id, t }) => [id, t.col, t.row, t.height, t.colour])]),
     teleporterDests: Uint8Array.from([...base.teleporterDests, ...tele.flatMap(({ t }) => [t.to.x2, t.to.y, t.to.exitCol, t.to.mapRow])]),
@@ -280,6 +295,58 @@ export function buildRooms(base: BaseRooms, rooms: readonly RoomSpec[], sectors:
     roomMeta: byRoom(base.roomMeta, (r) => r.theme ?? 0),
     sectorNames: [...base.sectorNames, ...sectors],
     sectorIdx: byRoom(base.sectorIdx, (r) => base.sectorNames.length + r.sector),
+  };
+}
+
+/** Each region's decoration list (`buildRooms`' `decorRegion`), a room's region, and a placement's number in its region's list. */
+function decorLists(base: BaseRooms, rooms: readonly RoomSpec[], bank: Uint8Array, decorRegion?: (r: RoomSpec) => number) {
+  if (decorRegion && base.count > 0) throw new Error("decoration lists by region are for a game with no rooms of the base's (their bytes index its one list)");
+  const regionOf = (r: RoomSpec): number => {
+    const g = decorRegion ? decorRegion(r) : 0;
+    if (!Number.isInteger(g) || g < 0 || g > 0xff) throw new Error(`room $${hex(r.id)}: decoration region ${g}`);
+    return g;
+  };
+  const library = (r: RoomSpec, k: number): DecorType => {
+    const t = base.decorTypes[k];
+    if (!t) throw new Error(`room $${hex(r.id)}: decoration ${k}, not one of the library's ${base.decorTypes.length}`);
+    return t;
+  };
+  const count = Math.max(0, ...rooms.map(regionOf)) + 1;
+  /** Per region: the library's kinds in its list (all of them, in order, without `decorRegion`), and its signs after them. */
+  const kinds: number[][] = Array.from({ length: count }, () => (decorRegion ? [] : base.decorTypes.map((_, k) => k)));
+  const signs: Sign[][] = Array.from({ length: count }, () => []);
+  const at = <T>(lists: T[][], g: number): T[] => {
+    const list = lists[g];
+    if (!list) throw new Error(`no decoration region ${g}`);
+    return list;
+  };
+  if (decorRegion) {
+    for (const r of rooms) for (const d of r.decor ?? []) {
+      const own = at(kinds, regionOf(r));
+      if (typeof d.type === 'number' && library(r, d.type) && !own.includes(d.type)) own.push(d.type);
+    }
+    for (const own of kinds) own.sort((a, b) => a - b);
+  }
+  const kindOf = (r: RoomSpec, type: number | Sign): number => {
+    const g = regionOf(r), own = at(kinds, g);
+    if (typeof type === 'number') {
+      library(r, type);
+      return own.indexOf(type);
+    }
+    const list = at(signs, g);
+    const found = list.findIndex((t) => t.text === type.text && t.colour === type.colour);
+    return own.length + (found >= 0 ? found : list.push(type) - 1);
+  };
+  for (const r of rooms) for (const d of r.decor ?? []) kindOf(r, d.type); // (every region's signs listed, in the rooms' order)
+  const regionById = new Map(rooms.map((r) => [r.id, regionOf(r)]));
+  return {
+    kindOf,
+    regionOf,
+    sets: kinds.map((own, g) => [...own.map((k) => base.decorTypes[k]).filter((t): t is DecorType => t !== undefined), ...at(signs, g).map((s) => signType(s, bank))]),
+    kindIn(room: number, libraryKind: number): number | undefined {
+      const found = at(kinds, regionById.get(room) ?? 0).indexOf(libraryKind);
+      return found < 0 ? undefined : found;
+    },
   };
 }
 

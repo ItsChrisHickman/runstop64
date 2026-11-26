@@ -1,8 +1,9 @@
 import sidUrl from '../../montyotr/assets/monty_on_the_run.sid?url';
 import { bankImage, ITEM_SPRITES, MOTR_LOOK } from '../../montyotr/src/data';
-import type { MontyData, RoomEffect } from '../../montyotr/src/montydata';
+import type { CharAnim, CharRef, FloatSpec, MontyData, RoomEffect } from '../../montyotr/src/montydata';
+import { regionAt } from '../../montyotr/src/regions';
 import {
-  buildRooms, extendBank, extendChars, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms,
+  buildRooms, extendBank, extendChars, extendEnemies, extendTiles, listSpecials, NO_ROOMS, roomCells, specialIndex, type BaseRooms, type RoomSpec,
 } from '../../shared/monty/rooms';
 import {
   CHINA_ITEMS, DRAGON_PICTURES, HOOD_COLOUR, hoodWorn, ICICLE_FULL, ICICLE_HALF, ICICLE_SHARDS, ICICLE_SMALL, JAPAN_ITEMS, MOSCOW_ITEMS, SIBERIA_ITEMS, WORLD_CREATURES, WORLD_DECOR, WORLD_TILE_LIST,
@@ -179,7 +180,6 @@ const itemSprites: MontyData['itemSprites'] = {
 
 // ---- the rooms' tables ------------------------------------------------------------------------------------------
 
-/** Moscow's decorations are the first decoration types. */
 /** The sprite pointer of a pose (a pose without one is a mistake in the data). */
 function pointerOf(pointers: readonly number[], i: number): number {
   const ptr = pointers[i];
@@ -187,8 +187,27 @@ function pointerOf(pointers: readonly number[], i: number): number {
   return ptr;
 }
 
+/** The decoration library (art/world.ts): what the rooms' pieces are numbered by; each region's list is made of the ones its rooms place. */
 const BASE: BaseRooms = { ...NO_ROOMS, decorTypes: Object.entries(WORLD_DECOR).map(([name, type]) => (isBackdrop(name) ? { ...type, backdrop: true } : type)) };
-const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...LATER_SECTORS], bankImage, SPRITE.pirozhok);
+/** The library's kinds as the engine draws them (a backdrop marked), by a room's `RoomSpec` number (`decorIndex`). */
+export const DECOR_LIBRARY = BASE.decorTypes;
+/** The region a room's decorations are loaded with: the region of the map (regions.ts) its cell is in. */
+function decorRegion(r: RoomSpec): number {
+  const region = regionAt(WORLD_REGIONS, r.row, r.col);
+  if (!region) throw new Error(`room ${r.id} at [${r.row},${r.col}]: in no region`);
+  return WORLD_REGIONS.indexOf(region);
+}
+const built = buildRooms(BASE, ROOMS, [...SECTORS, ...SIBERIA_SECTORS, ...CHINA_SECTORS, ...JAPAN_SECTORS, ...PACIFIC_SECTORS, ...ANDES_SECTORS, ...RIO_SECTORS, ...SKY_SECTORS, ...LATER_SECTORS], bankImage, SPRITE.pirozhok, decorRegion);
+
+/** A library piece an animation or a float names, as its room's region numbers it (a piece the region's rooms place none of is a mistake in the data). */
+function regionKind(room: number, libraryKind: number): number {
+  const kind = built.decorKindIn(room, libraryKind);
+  if (kind === undefined) throw new Error(`room ${room}: a mechanism of decoration ${Object.keys(WORLD_DECOR)[libraryKind] ?? libraryKind}, which its region's rooms do not place`);
+  return kind;
+}
+const regionRef = (room: number) => (ref: CharRef): CharRef => (typeof ref === 'number' ? ref : { decor: regionKind(room, ref.decor), cell: ref.cell });
+const regionAnim = (a: CharAnim): CharAnim => (a.kind === 'scroll' ? { ...a, rings: a.rings.map((ring) => ring.map(regionRef(a.room))) } : { ...a, chars: a.chars.map(regionRef(a.room)) });
+const regionFloat = (f: FloatSpec): FloatSpec => ({ ...f, decor: regionKind(f.room, f.decor) });
 
 /** The special items by name (si_spawn_tbl's indexes), and the pirozhki (its cakes). */
 const TOKEN = specialIndex(ROOMS, 'token');
@@ -295,7 +314,7 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS],
-  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS],
+  charAnims: [...TRAIN_ANIMS, ...STATION_ANIMS, ...JAPAN_ANIMS, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS].map(regionAnim),
   pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES],
   swimRooms: SWIM_ROOMS,
   swimSurfaces: SWIM_SURFACES,
@@ -320,7 +339,7 @@ export const WORLD: MontyData = {
   rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...FUJI_SNOWBALLS, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
-  floats: [TRAM, MINE_CART],
+  floats: [TRAM, MINE_CART].map(regionFloat),
   skewers: SKEWERS,
   pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
