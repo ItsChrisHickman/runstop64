@@ -1,5 +1,14 @@
 # Do Svidaniya Monty: Rio's room map, and the ending
 
+> **The final rush (2026-11-25, Chris's notes and docs/dosvidaniya-back-half-plan.md, "Rio").** Eight rooms at columns 23-29: C OPEN ARMS, F HOUSE OF COLOUR, L THE LAPA ARCHES (W STEAK YOUR CLAIM
+> above), P BEAT THE DRUM (70, back: the carnival's street, the Selaron steps up to Lapa's track, the bateria's risers, a dancer and a passista), Q FLOAT YOUR BOAT (76, back: the parade's floats over the
+> canal, three east at the street's height, two west at the balconies'), D SPY VERSUS MOLE and B RIO OR BUST. **SUGAR RUSH is cut** (Chris: "the Sugar thing... that's a wasted effort"), with its cable car,
+> winch, bars and CLOSED sign; its coin is Lapa's third (same place in the tables), a save there carries on in Lapa, the reward show's place is the floats. The crank still fits the Sambadrome's booth.
+> The route: Lapa's street into the carnival, up the Selaron steps and west onto the track, the tram, the churrascaria's crank, down through the gap, east again over the risers, across on the floats, up the
+> grandstand into the showdown. **The guarana** on the Redeemer's east arm puts him on the run (half as fast again on the ground, his jump unchanged) down to the Sambadrome, where he walks again.
+> **No words on the scenery** (SAMBA, CARNAVAL, CLOSED gone); the grandstands' crowd dances in eight colours along dark tiers in the street, at the canal and under the Sambadrome's stand. Copacabana ends
+> at Pedra do Leme. Not done: Viktor pursuing him room to room down the hill, and the tempo up (Chris has the Rio music to pick): see the plan.
+>
 > **Rebuilt 2026-11-23 (the reset).** Rio is now six rooms and the beach, at night on black, to the plan in docs/dosvidaniya-reset.md ("Rio (the last level)"): C OPEN ARMS (the Redeemer
 > climbed), F HOUSE OF COLOUR (the favela, the tightest room), L THE LAPA ARCHES (crossed twice; the tram over the track's gap), W STEAK YOUR CLAIM (the gauchos' skewers, the crank), S SUGAR RUSH
 > (the climbers' rope, the winch dead until the crank, the cable car), D THE SAMBADROME (the showdown: the agent on Monty's path, the float's held head, the crank fitted in the booth arms the lever)

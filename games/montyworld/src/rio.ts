@@ -239,7 +239,7 @@ const STEAK_COINS: readonly Cell[] = [[14, 17]];
 /**
  * The carnival's street, where the samba school warms up (back from before the reset, with more dancers): in low at the west from Lapa's street, under the aqueduct's last arches; the Selaron steps (their tiles
  * yellow, green, blue and red, as Lapa's steps are) climb from the street to the aqueduct's end (floor 8), out west onto Lapa's track: the way to the tram and the churrascaria. East over the bateria's stepped
- * risers (floors 16, 14, 12) with the drummer bouncing on the top one (time the beat: he stands on it at the bottom of each bounce), a samba dancer in the street before them and a passista after, and out low east
+ * risers (floors 16, 14, 12) with the drummer bouncing on the top one (time the beat: he stands on it at the bottom of each bounce), a passista dancing in the street before them and a baiana spinning after, and out low east
  * to the canal. Behind, the grandstand's dark tiers with the crowd dancing along them in every colour, bunting and balloons. The snack on the risers' first step, a coin at the steps' head (tops a climb) and one
  * on the top riser under the drummer (tops a climb, guarded).
  */
@@ -280,7 +280,7 @@ const FLOAT_CROWD = { cols: [0, 8, 16], rows: [5, 8] } as const;
 // ---- Q FLOAT YOUR BOAT ----------------------------------------------------------------------------------
 /**
  * The parade's floats on the Canal do Mangue, beside the Sambadrome (back from before the reset): in low at the west on the street (floor 18); the canal (deadly water, cols 6-24) is crossed on the floats that come
- * along it with a samba dancer dancing on each, lane A (the street's height) three of them west to east, lane B (floor 14) two the other way. On the east, the stage (18) where a baiana spins, and the grandstand's
+ * along it with a samba dancer dancing on each, lane A (the street's height) three of them west to east, lane B (floor 14) two the other way. On the east, the stage (18), and the grandstand's
  * ladder (col 28) up to the stand's ledge (8) and out high into the Sambadrome. A balcony of the stand (floor 14, flush with the ladder) is where lane B is boarded: it carries him west over the canal's middle (a
  * coin taken on the ride) to the west stand's balcony (floor 14) and its coin; down to the street and back east on lane A. The grandstand's crowd dancing along its tiers in every colour, bunting, balloons, plumes.
  */
@@ -525,11 +525,11 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'drummer', col: 20, row: 6, way: 'down', speed: 1, range: 32 },
-      { who: 'dancer', col: 12, row: 16, way: 'right', speed: 1, range: 32, colour: 7 }, { who: 'passista', col: 26, row: 16, way: 'right', speed: 1, range: 8, colour: 13 },
+      { who: 'passista', col: 12, row: 16, way: 'right', speed: 1, range: 32, colour: 7 }, { who: 'baiana', col: 26, row: 16, way: 'right', speed: 1, range: 8 },
     ],
   }),
 
-  // Q FLOAT YOUR BOAT: the floats over the canal, the baiana's stage, the grandstand's ladder up to the stand
+  // Q FLOAT YOUR BOAT: the floats over the canal, the stage, the grandstand's ladder up to the stand
   room({
     id: RIO_ROOM.float, cell: [5, 27], sector: 76, palette: FLOAT_PALETTE, paint: FLOAT,
     coins: FLOAT_COINS,
@@ -539,7 +539,7 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...crowdRows(FLOAT_CROWD.cols, FLOAT_CROWD.rows),
       ...[4, 8, 12, 16, 20, 24].map((col): Placed => ['bunting', col, 4]), ['rioBalloons', 19, 0], ['rioBalloons', 24, 1],       ['rioPlumes', 25, 10], ['rioPost', 2, 16], ['rioPost', 5, 16], ['rioPost', 25, 16], ['rioPost', 27, 16],
     ],
-    creatures: [{ who: 'baiana', col: 25, row: 16, way: 'right', speed: 1, range: 16 }],
+    creatures: [], // (the floats' dancers and the crowds dance here; a creature on the stage stood where lane A sets him down: the baiana spins in the carnival's street)
   }),
 
   // D SPY VERSUS MOLE, the Sambadrome: the showdown (the agent, the float's head, the lever, the booth)
