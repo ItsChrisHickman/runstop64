@@ -44,8 +44,9 @@ export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec
   border(PLACES.wall, SIB.border, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
   // China to Japan, off the junk onto the fish market's quay
   border(PLACES.harbour, CHI.junk, 'left', 17, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
-  // the Andes to Rio, off the kapok's crown branch onto the canopy
-  border(PLACES.arms, AND.kapok, 'left', 8, 'look', { col0: 0, row0: 0, col1: 3, row1: 19 }),
+  // the Andes to Rio, off the kapok's crown branch onto the canopy: only once Monty is down the liana and away east along the forest floor (out of the canopy and the liana's columns, 0-13), so he steps out
+  // onto the canopy far behind him, looking down after him: he never appears beside Monty (Chris: "Viktor appeared right when I walked in... he could have just got me")
+  border(PLACES.arms, AND.kapok, 'left', 8, 'lookDown', { col0: 0, row0: 0, col1: 13, row1: 19 }),
   // Japan, THE LAST MOLE: the hood taken, his shadow (black: seen only against the moon) walks on from the east, stops on the moon and turns to Monty for a long beat, and moves on west
   {
     room: PLACES.moon.room, when: { col0: 0, row0: 0, col1: 31, row1: 19 }, after: hood, once: moonSeen, wait: 40, sprite: PLACES.moon.sprite, first: PLACES.moon.first, colour: 0,

@@ -225,3 +225,28 @@ export const RIO_CREATURES = {
 } as const satisfies Record<string, NewCreature>;
 
 export type RioCreature = keyof typeof RIO_CREATURES;
+
+// ---- the baiana: the turbaned matron of every samba school, her great hooped white skirt turning as she spins
+
+/** A baiana spinning: a white turban, a big smile, beads at the neck, arms out, the wide hooped skirt filling the bottom with its bands turning round (four frames of the spin). */
+function baiana(): NewCreature {
+  const frame = (turn: number) => {
+    const r = new Raster(16, 16);
+    r.ellipse(7.5, 1.6, 3.6, 1.8); r.rect(5, 0, 10, 2); // the turban
+    r.disc(7.5, 4.6, 2.6); // the face
+    r.cut(['#..#'], 6, 4); r.cut(['##'], 7, 6); // the eyes and the smile
+    r.rect(6, 7, 9, 8); r.rect(6, 8, 9, 8, false); r.set(7, 8); // the beads at the neck
+    limb(r, 5, 8, 1, 7 + (turn % 2), 2); limb(r, 10, 8, 14, 7 + ((turn + 1) % 2), 2); // the arms out, waving
+    r.triangle(7.5, 8, -1, 15.5, 16, 15.5); r.rect(1, 13, 14, 15); // the hooped skirt
+    for (let k = 0; k < 3; k++) { const x = 1 + ((turn * 2 + k * 5) % 14); r.rect(x, 11, x, 15, false); } // its bands, turning
+    r.rect(0, 12, 15, 12, false); // the hoop
+    return r.rows();
+  };
+  return pair('baiana', [frame(0), frame(1), frame(2), frame(3)], 1, true);
+}
+
+/** Rio's creatures added after the region shipped (the carnival's rooms brought back, 2026-11-25): after every region's in the world's list, so no earlier creature's type moves. */
+export const RIO_CARNIVAL_CREATURES = {
+  baiana: baiana(),
+} as const satisfies Record<string, NewCreature>;
+

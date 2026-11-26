@@ -1,5 +1,5 @@
 /**
- * Rio's seven rooms as the real engine draws them (the game's own frame, Monty in it under the Andes' chullo until the headdress, the creatures, the tram, the cable car and the skewers where they are a moment in), one picture
+ * Rio's nine rooms as the real engine draws them (the game's own frame, Monty in it under the Andes' chullo until the headdress, the creatures, the tram, the cable car and the skewers where they are a moment in), one picture
  * each and a contact sheet; the tram through its run; the cable car's ride; the winch's bars before and after the crank; the Sambadrome's booth lit; and each room beside one of Monty on the Run's (compare-*.png). Pictures
  * only: nothing is checked.
  *
@@ -23,7 +23,9 @@ const SPOTS: readonly { room: number; name: string; col: number; floor: number; 
   { room: RIO_ROOM.lap, name: '68-the-lapa-arches', col: 2, floor: 18, frames: 40, compare: 0x13 },
   { room: RIO_ROOM.steak, name: '74-steak-your-claim', col: 2, floor: 18, frames: 30, compare: 0x0f },
   { room: RIO_ROOM.sugar, name: '69-sugar-rush', col: 2, floor: 18, frames: 40, compare: 0x04 },
-  { room: RIO_ROOM.drum, name: '75-the-sambadrome', col: 1, floor: 8, frames: 40, compare: 0x1d },
+  { room: RIO_ROOM.beat, name: '70-beat-the-drum', col: 1, floor: 8, frames: 40, compare: 0x1d },
+  { room: RIO_ROOM.float, name: '76-float-your-boat', col: 1, floor: 18, frames: 90, compare: 0x1d },
+  { room: RIO_ROOM.drum, name: '75-spy-versus-mole', col: 1, floor: 8, frames: 40, compare: 0x1d },
   { room: RIO_ROOM.bust, name: '77-rio-or-bust', col: 2, floor: 18, frames: 40, compare: 0x1f },
 ];
 

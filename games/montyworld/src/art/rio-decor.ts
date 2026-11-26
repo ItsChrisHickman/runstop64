@@ -4,6 +4,7 @@
  * churrascaria's tables, lamps and grill, Santa Teresa's tram, the Sambadrome's float with its stamping head, its lever and control booth, the Apoteose arch, and the finale's fireworks.
  */
 import { FINALE_DECOR } from './rio-finale';
+import { RIO_STREETS } from './rio-streets';
 import { decor } from './decorations';
 import { characters } from './pixels';
 import { Raster } from './raster';
@@ -69,21 +70,38 @@ function chain(): NewDecor {
 // ---- Lapa's aqueduct: two storeys of arches, the street under them
 
 /** The upper storey of the aqueduct (the Arcos da Lapa): a cornice over two arches with their piers, white stone. 4 x 4 characters. */
-function lapaUpper(): NewDecor {
-  const r = new Raster(32, 32);
+function lapaUpperRaster(w: number): Raster {
+  const r = new Raster(w, 32);
   r.rect(0, 0, 31, 31);
   for (const x0 of [3, 19]) { r.rect(x0, 12, x0 + 9, 31, false); r.ellipse(x0 + 4.5, 12, 5, 6, false); }
   r.rect(0, 4, 31, 4, false);
-  return decor('lapaUpper', 4, 4, r, 11);
+  return r;
+}
+function lapaUpper(): NewDecor {
+  return decor('lapaUpper', 4, 4, lapaUpperRaster(32), 11);
 }
 
 /** The lower storey: one great arch to the street between two piers, the springers of the arch cut in. 4 x 5 characters (it stands on the street). */
-function lapaBase(): NewDecor {
-  const r = new Raster(32, 40);
+function lapaBaseRaster(w: number): Raster {
+  const r = new Raster(w, 40);
   r.rect(0, 0, 31, 39);
   r.rect(4, 14, 27, 39, false); r.ellipse(15.5, 14, 12, 12, false);
   r.rect(0, 0, 31, 0, false); r.rect(0, 1, 31, 1);
-  return decor('lapaBase', 4, 5, r, 11);
+  return r;
+}
+function lapaBase(): NewDecor {
+  return decor('lapaBase', 4, 5, lapaBaseRaster(32), 11);
+}
+
+/**
+ * The aqueduct's last two columns in the picture: the left halves of the two storeys (a pier and half an arch), for the arches at the playfield's right edge, which run on into the margin the picture shows (two
+ * columns, SCREEN_MARGIN) and no further: a whole piece there stood half in the border, over no street (Chris: "a gap in the floor at the bottom right of the Lapa Arches"). 2 x 4 and 2 x 5 characters.
+ */
+function lapaUpperEnd(): NewDecor {
+  return decor('lapaUpperEnd', 2, 4, lapaUpperRaster(16), 11);
+}
+function lapaBaseEnd(): NewDecor {
+  return decor('lapaBaseEnd', 2, 5, lapaBaseRaster(16), 11);
 }
 
 /** A churrascaria table: a white cloth to the floor's edge, plates and a red coaster, a bottle. 3 x 2 characters. */
@@ -215,8 +233,11 @@ export const RIO_DECOR = {
   rioCableLow: cableLow(),
   rioCableHigh: cableHigh(),
   ...FINALE_DECOR,
+  ...RIO_STREETS,
   lapaUpper: lapaUpper(),
   lapaBase: lapaBase(),
+  lapaUpperEnd: lapaUpperEnd(),
+  lapaBaseEnd: lapaBaseEnd(),
   restTable: restTable(),
   rioGrill: grill(),
   lampRed: lampRed(),

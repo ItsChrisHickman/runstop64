@@ -32,7 +32,8 @@ import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
 import { isBackdrop } from './layout';
-import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { BARS_CELLS, BOOTH_LIGHT, CABLE_CAR as CABLE_CAR_SPEC, CARNIVAL_FLOATS, CLOSED_CELLS, GATE_CELLS, LAPA_STONE, leverOf, LIT_CODE, pursuerOf, RIO_ANIMS, RIO_COLOURS, RIO_ROOM, RIO_ROOMS, RIO_SECTORS, SKEWERS, TRAM } from './rio';
+import { inTableOrder } from './later';
 import { CAR_POINTERS, FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
 import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
@@ -53,7 +54,9 @@ import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOC
 export const WORLD_COLS = 50, WORLD_ROWS = 8;
 
 /** Every region's rooms in the order they were made: a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
-const ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
+/** Rooms added to a region after it shipped (later.ts), in the order they were added: they go last in the tables (their coins and finds take new places at the ends), so no save's places move. */
+const ADDED: readonly number[] = [RIO_ROOM.beat, RIO_ROOM.float];
+const ROOMS = inTableOrder([...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS], ADDED);
 
 // ---- the graphics: Monty on the Run's, with ours after them -----------------------------------------------------
 
@@ -217,7 +220,7 @@ const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD =
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), specialIndex(ROOMS, 'musubi1'),
-  ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2].map((n) => specialIndex(ROOMS, `skewer${n}`))];
+  ...[1, 2].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `skewer${n}`))];
 
 /** Playfield cells (row, column) as the screen's cells a room effect names (the playfield starts at column 4, row 3). */
 const onScreen = (cells: readonly (readonly [row: number, col: number])[]) => cells.map(([row, col]) => [row + 3, col + 4] as const);
@@ -311,7 +314,7 @@ export const WORLD: MontyData = {
   rollers: [...ROLLERS, LAPA_STONE, ...skyRollers(MOTR_LOOK.sfx.warp)],
   vines: VINES,
   cableCars: [CABLE_CAR_SPEC],
-  floats: [TRAM, MINE_CART],
+  floats: [TRAM, MINE_CART, ...CARNIVAL_FLOATS],
   skewers: SKEWERS,
   pursuers: [trainPursuer(SWEPT), shipPursuer(OVERBOARD), pursuerOf(SQUASHED), tailPursuer(PLANE_LOST)],
   levers: [leverOf(CRANK, FITTED, SQUASHED)],
