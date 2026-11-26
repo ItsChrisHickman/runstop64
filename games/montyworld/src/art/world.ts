@@ -45,7 +45,7 @@ const ALL_DECOR = { ...MOSCOW_DECOR, ...SIBERIA_DECOR, ...CHINA_DECOR, ...JAPAN_
 const {
   domeLarge, lampDouble, spasskaya, samovar, // Moscow's
   pineSmall, diningSamovar, pole, stalactites, // Siberia's
-  hutongDoor, stall, arrowSlit, rockery, roofEnd, // China's (its slateCell stays: china.ts's back walls may name it)
+  hutongDoor, stall, arrowSlit, rockery, roofEnd, slateCell, // China's (no back wall is slate)
   jpNeonTall, jpWave, jpShipMast, jpBell, jpSignalLamp, jpBarrels, jpShachi,
   jpNeonRed, jpNeonGreen, // Japan's
   pacDiamondHead, pacLawn, pacTikiTorch, pacTotem, pacRoastPig, pacStageBoard, pacFeast, pacUmbrella, pacEarthOven, pacSeaCliff, pacSeaCliffB, pacGlow, // the Pacific's

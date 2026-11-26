@@ -1,5 +1,6 @@
 /**
- * No hole in a backdrop: in every room of every region, a coin taken, a cell an item's effect clears (a gate, a barrier, a sign) and cracked ice that has gone leave the cell
+ * No hole in a backdrop: in every room of every region, every coin taken leaves its cell exactly as the room draws it without that coin (character and colour, and no
+ * shimmer after), whatever is behind it (nothing, a backdrop decoration, a room tile); and a cell an item's effect clears (a gate, a barrier, a sign) and cracked ice that has gone leave the cell
  * showing what the room's backdrop has there (a sky, a sea: the decorations of a backdrop type, derived here from the room's own list), never black unless the backdrop is
  * black there, and in the backdrop's colour after a turn of the coins' colour cycle (it does not flash). A coin on a backdrop is drawn over it (its picture in the cell with the backdrop's, not a black box).
  *
@@ -39,6 +40,8 @@ function backdropOf(room: number): Map<number, readonly [chr: number, colour: nu
 const cellOf = (g: Game, at: number) => g.mem[SCREEN + at] ?? 0;
 const where = (room: number, at: number) => `room $${room.toString(16)} cell (${(at % ROW) - PLAY_COL}, ${Math.floor(at / ROW) - PLAY_ROW})`;
 
+/** Shimmer steps watched after a coin is taken (the cycle is 11). */
+const SHIMMER_STEPS = 12;
 const wrong: string[] = [];
 let coins = 0, coinsOnBackdrop = 0, cleared = 0, clearedOnBackdrop = 0, cracked = 0;
 /** The cell now shows `at`'s backdrop (or nothing where it has none). */
@@ -53,25 +56,38 @@ function showsBackdrop(g: Game, room: number, at: number, back: ReadonlyMap<numb
 for (const room of SCOPE.keep(roomsOf(WORLD))) {
   const back = backdropOf(room);
 
-  // every coin: drawn over the backdrop (its pixels all there), and taken, it leaves the backdrop
+  // every coin: drawn over what is behind it (its pixels all there), and taken, its cell is then exactly what the room shows there drawn without that coin (the character and
+  // its colour, a few shimmer steps on: a taken coin's cell must not go on sparkling), whatever was behind it: nothing, a backdrop's sky or wall, or a room tile.
   {
-    const s = inRoom(WORLD, room);
-    if (!s) continue;
+    const s = inRoom(WORLD, room), ref = inRoom(WORLD, room);
+    if (!s || !ref) continue;
     const g = s.g;
     const coin = g.mem.slice(COIN_CHAR * 8, COIN_CHAR * 8 + 8);
     for (const e of [...g.entities]) {
       if (e.index < 0) continue;
       const at = e.at - SCREEN;
+      // the room drawn without this coin (as a player who took it sees it on coming back)
+      ref.g.coinCollected[e.index] = 0xff;
+      ref.g.loadRoom();
+      for (let n = 0; n < SHIMMER_STEPS; n++) animateCharacters(ref.g);
+      const want = [ref.g.mem[e.at] ?? 0, ref.g.col[at] ?? 0] as const;
+      ref.g.coinCollected[e.index] = 0;
       const glyph = g.mem.slice((g.mem[e.at] ?? 0) * 8, (g.mem[e.at] ?? 0) * 8 + 8);
-      if (back.has(at) && g.mem[e.at] === COIN_CHAR) wrong.push(`coin ${where(room, at)} has no character to be drawn over its backdrop in`);
-      if (back.has(at) && coin.some((row, y) => ((glyph[y] ?? 0) & row) !== row)) wrong.push(`coin ${where(room, at)} is not drawn whole over its backdrop`);
+      if (want[0] !== 0 && g.mem[e.at] === COIN_CHAR) wrong.push(`coin ${where(room, at)} has no character to be drawn over what is behind it in`);
+      if (coin.some((row, y) => ((glyph[y] ?? 0) & row) !== row)) wrong.push(`coin ${where(room, at)} is not drawn whole`);
       g.x2 = 0x0c + (at % ROW) * 4; g.y = 0x32 + Math.floor(at / ROW) * 8;
       const before = g.coinCollected[e.index];
       collectCoin(g);
       if (g.coinCollected[e.index] === before) { wrong.push(`coin ${where(room, at)} cannot be taken from where it is`); continue; }
       coins++;
-      for (let n = 0; n < 11; n++) animateCharacters(g); // (a whole turn of the coins' colour cycle: the taken coin's cell keeps the backdrop's colour, no flashing patch where it was: SAYONARA SAILOR)
-      if (showsBackdrop(g, room, at, back, 'a taken coin at')) coinsOnBackdrop++;
+      if (want[0] !== 0) coinsOnBackdrop++;
+      const seen: string[] = [];
+      for (let n = 0; n < SHIMMER_STEPS; n++) {
+        animateCharacters(g);
+        const chr = g.mem[e.at] ?? 0, colour = g.col[at] ?? 0;
+        if (chr !== want[0] || (want[0] !== 0 && colour !== want[1])) seen.push(`${chr.toString(16)}/${colour}`);
+      }
+      if (seen.length) wrong.push(`a taken coin at ${where(room, at)} shows ${[...new Set(seen)].join(' ')}, the room without it ${want[0].toString(16)}/${want[1]}`);
     }
   }
 
@@ -119,5 +135,5 @@ for (const room of SCOPE.keep(roomsOf(WORLD))) {
   }
 }
 
-check(`${coins} coins taken (${coinsOnBackdrop} on a backdrop), ${cleared} cleared cells (${clearedOnBackdrop} on a backdrop), ${cracked} cells of gone ice: each leaves the backdrop's cell (${wrong.length} wrong${wrong.length ? `: ${wrong.slice(0, 6).join('; ')}` : ''})`, wrong.length === 0 && (!SCOPE.all || (coins > 0 && coinsOnBackdrop > 0))); // (the counts' floor is the whole world's: a room may have no coin on a backdrop)
+check(`${coins} coins taken (${coinsOnBackdrop} over something drawn), ${cleared} cleared cells (${clearedOnBackdrop} on a backdrop), ${cracked} cells of gone ice: each leaves the backdrop's cell (${wrong.length} wrong${wrong.length ? `: ${wrong.slice(0, 30).join('; ')}` : ''})`, wrong.length === 0 && (!SCOPE.all || (coins > 0 && coinsOnBackdrop > 0))); // (the counts' floor is the whole world's: a room may have no coin on a backdrop)
 finish();

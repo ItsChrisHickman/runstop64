@@ -6,12 +6,19 @@
  * In a swim room with a surface (swim.ts: no stroke takes him above it) the sky over the sea at an edge is out of his reach unless a rope climbs there, so it may run on into the next room's rock
  * (LAND AHOY's sky over the sea cave's wall).
  *
+ * And every east-west edge he can stand at is walked, both ways (Chris on THE WATCHTOWER, 2026-11-24: a way out that seemed one-way): wherever a floor runs to a room's edge with
+ * room for him over it and the room across has a floor at the same row with room over it, he is put on it two cells from the edge and walks across; he must come into the
+ * room across, and walk back. The cells can agree and the walk still fail (a floor's class, a gutter, the engine's edge), so the walk is the check, in the engine, without creatures.
+ *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/joins.ts [--room <rooms>]   (--room: only the joins of those rooms, with the neighbour across each)
  */
 import { check, finish } from '../../shared/test/check';
 import type { RoomSpec } from '../../shared/monty/rooms';
 import { PLAY_ROW } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
+import { frame } from '../../montyotr/test/play';
+import { inRoom } from './climb-kit';
+import { standY } from './route';
 import { ALL_ROOMS as ROOMS, SCOPE } from './scope';
 
 const solid = (r: RoomSpec, col: number, row: number): boolean => {
@@ -52,6 +59,36 @@ for (const a of ROOMS) {
     if (cols.length && !OPENED.includes(`${a.id}/${below.id}`)) bad.push(`${a.id}/${below.id} (north-south) cols ${cols.join(',')}`);
   }
 }
-for (const b of bad) console.log(b);
+
+// ---- walked: every edge he can stand at, both ways ----
+const flagOf = (r: RoomSpec, col: number, row: number): number => { const ch = r.map[row]?.[col] ?? '.'; return ch === '.' ? 0 : WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0); };
+/** He can stand on `floor` at columns c and c + 1: both hold him (a wall or a ledge), the two rows over them are air or a rope. */
+const standsAt = (r: RoomSpec, c: number, floor: number) => [c, c + 1].every((cc) => [1, 2].includes(flagOf(r, cc, floor)) && [floor - 1, floor - 2].every((row) => [0, 3].includes(flagOf(r, cc, row))));
+const RIGHT = { left: false, right: true, up: false, down: false, fire: false }, LEFT = { left: true, right: false, up: false, down: false, fire: false };
+/** Put on `floor` at `col` of `from` and walk `way` for long enough to cross three cells: whether he came into `to`. */
+function walks(from: RoomSpec, to: RoomSpec, col: number, floor: number, way: typeof RIGHT): boolean {
+  const s = inRoom(WORLD, from.id);
+  if (!s) return false;
+  s.g.x2 = 0x0c + (col + 4) * 4; s.g.y = standY(floor); s.g.falling = 0; s.g.montyAction = 0; s.g.onRope = 0;
+  for (let n = 0; n < 60 && s.g.roomId === from.id; n++) frame(s, way);
+  return s.g.roomId === to.id;
+}
+/** What the room across has at its edge column over a floor row: its cells from two rows over the floor to the floor, by class ('.' air, 'R' rope, '#' wall, '=' ledge, '!' deadly). */
+const edgeOf = (r: RoomSpec, col: number, floor: number) => `${r.id} col ${col} rows ${floor - 3}-${floor}: ${[floor - 3, floor - 2, floor - 1, floor].map((row) => '.#=R!'[flagOf(r, col, row)] ?? '?').join('')}`;
+let walked = 0;
+const oneWay: string[] = [];
+for (const a of ROOMS) {
+  const east = at(a.col + 1, a.row);
+  if (!east || !SCOPE.any([a.id, east.id])) continue;
+  if (WORLD.swimRooms.includes(a.id) || WORLD.swimRooms.includes(east.id)) continue; // (he swims there: a walk is not how he crosses)
+  for (let floor = 2; floor < 20; floor++) {
+    const fromWest = standsAt(a, 30, floor), fromEast = standsAt(east, 0, floor);
+    if (fromWest) { walked++; if (!walks(a, east, 29, floor, RIGHT)) oneWay.push(`${a.id}|${east.id}: walking east on ${a.id}'s floor ${floor} (${edgeOf(east, 0, floor)}) does not come into ${east.id}`); }
+    if (fromEast) { walked++; if (!walks(east, a, 1, floor, LEFT)) oneWay.push(`${a.id}|${east.id}: walking west on ${east.id}'s floor ${floor} (${edgeOf(a, 31, floor)}) does not come into ${a.id}`); }
+  }
+}
+
+for (const b of [...bad, ...oneWay]) console.log(b);
+check(`every edge he can stand at on both sides is walked across both ways (${walked} edges, ${oneWay.length} one-way)`, oneWay.length === 0 && (walked > 0 || !SCOPE.all));
 check(`no join ${SCOPE.all ? 'of any region' : `of rooms ${[...SCOPE.rooms].join(', ')}`} (${joins} joins) has an open edge cell meeting a wall (${bad.length} offenders)`, bad.length === 0);
 finish();

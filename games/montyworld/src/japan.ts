@@ -437,7 +437,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
     shut: [['right', 3, 8, 'K']], // the tiers' wall at the right
     paint(g) {
-      g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K'); // (the night sky open above; a garden wall at the right)
+      g.box(30, 1, 31, 13, 'L').box(30, 0, 31, 0, 'K').box(0, 1, 0, 13, 'L').box(0, 0, 0, 0, 'K'); // (the night sky open above; a garden wall at each side: the shrine's plinth ends at the left one, no room west of the garden)
       g.box(0, 14, 2, 19, 'M').box(3, 15, 26, 19, 'W').box(30, 14, 31, 19, 'M').clear(27, 14, 29, 19);
       g.box(28, 13, 28, 19, 'R');
       for (const [c, r] of [[24, 14], [20, 13], [16, 14], [12, 12], [8, 13], [4, 14]] as const) g.box(c, r, c + 1, r, 'S'); // the stones

@@ -66,12 +66,9 @@ const NAMES = [
 export const PACIFIC_SECTORS: readonly Sector[] = NAMES.map(centred);
 /** The map's colour of each (the ship red, the beach yellow, the luau pink, the swims blue, Lahaina brown, the road green, the turtles' channel light blue, the farm brown, the lava orange, Hilo grey; the retired none). */
 export const PACIFIC_COLOURS: readonly number[] = [2, 0, 0, 7, 10, 6, 0, 14, 9, 5, 6, 14, 0, 9, 8, 12, 0];
-/** The sectors from 82 on (the rooms that came back after the sky's, 87-93; 82-86 are other regions' returns, empty here), and their map colours. */
-const LATER_NAMES: Readonly<Record<number, string>> = { 87: 'KAIHALULU', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS' };
-const LATER_COLOURS: Readonly<Record<number, number>> = { 87: 10, 88: 9, 89: 1, 90: 11, 91: 2, 92: 1, 93: 5 };
-const LATER = Array.from({ length: PAC.falls - 82 + 1 }, (_, i) => 82 + i);
-export const PACIFIC_LATER_SECTORS: readonly Sector[] = LATER.map((id) => centred(LATER_NAMES[id] ?? ''));
-export const PACIFIC_LATER_COLOURS: readonly number[] = LATER.map((id) => LATER_COLOURS[id] ?? 0);
+/** The names and map colours of the Pacific's rooms whose sectors are after the sky's (87-93; later-sectors.ts lays them out with the other regions' later rooms, 82-86). */
+export const PACIFIC_LATER_NAMES: Readonly<Record<number, string>> = { 87: 'KAIHALULU', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS' };
+export const PACIFIC_LATER_COLOURS: Readonly<Record<number, number>> = { 87: 10, 88: 9, 89: 1, 90: 11, 91: 2, 92: 1, 93: 5 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The ship: the hull's red plates, the deck's bright plate, the hold's grating, the ladders, a crate step, the bow's containers, the bilge water. */
