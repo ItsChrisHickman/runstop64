@@ -264,6 +264,10 @@ Pictures by `pacific-shots.ts` through a set; the mechanism test unchanged (the 
   low on the horizon, and Lahaina's shore where he comes up. The same for the swim from Hana to the Big Island: Maui's Haleakala
   behind, the open channel, then the Big Island's huge gentle volcano shapes (Mauna Kea, often snow-capped, and Mauna Loa) rising
   ahead to Kona. Research each silhouette (WebSearch) before drawing; keep them calm (one or two dark colours, LESSONS).
+- **FISH OUT OF WATER is redone from scratch** (Chris: "I think the fish out of water room is terrible"). Nothing of today's room
+  (the boxed-in rock, the surge lanes, the moray holes) is kept: it becomes the open-ocean crossing to the Big Island, the
+  turtles' room (ride their backs as they surface and dive across the swell), Haleakala behind and the Big Island's volcanoes
+  rising ahead; a new name that fits the swim (FISH OUT OF WATER is a land joke).
 - **No signs in the backdrops** (Chris: "We don't need the words for the volcanoes on the background like signs telling us to go
   down or up. The room names alone suffice... Don't need to have labels, that's just busy"). Kona's MAUNA KEA / MAUNA LOA signs
   go. The fork reads from the land itself: the slope up toward the observatory (the top way), down toward the lava (the bottom
