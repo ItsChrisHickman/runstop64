@@ -1,8 +1,8 @@
 /**
  * The Andes' and the Amazon's scenery and the creatures of the rooms the back half brought back (docs/dosvidaniya-back-half-plan.md): what makes each room read as its real place at a glance, calmly
- * drawn (games/shared/monty/LESSONS.md, "How it looks"). The backdrops are tiles of the nothing class (he walks through them), each one pattern a room colours in its own palette: the far ranges
- * behind the parachute drop, the granite face the Inca bridge's trail is cut into, the cloud forest's dark trees and the kapok's crown. Darker than anything solid and with no hard top edge, so none
- * reads as a floor. The landmarks: Machu Picchu seen small and far below from the Inca bridge, and the riverboat's pilot house, funnel and paddle wheel (as THE RIVER QUEEN had them before
+ * drawn (games/shared/monty/LESSONS.md, "How it looks"). The backdrops are tiles of the nothing class (he walks through them), each one pattern a room colours in its own palette: the cloud forest's
+ * dark trees and the kapok's crown (the far ranges and the granite face are no room's now). Darker than anything solid and with no hard top edge, so none
+ * reads as a floor. The landmarks: the Andes' snowy peaks on the horizon, Machu Picchu seen small and far below from the Inca bridge, and the riverboat's pilot house, funnel and paddle wheel (as THE RIVER QUEEN had them before
  * the reset). The creatures: a vizcacha on the Inca trail, a cock-of-the-rock and a spectacled bear in the cloud forest, and the riverboat's captain (his picture as it was). Names start `and`, as
  * the region's new pieces; they come after every other region's (world.ts), so nothing shipped moves.
  */
@@ -15,7 +15,7 @@ import type { NewCreature, NewDecor } from './types';
 // ---- the backdrops (nothing-class tiles: a room's palette gives each its colour)
 
 export const ANDES_SCENERY_TILES = {
-  /** A far range of the Andes: the ridges of a mountainside seen from miles off, a few long diagonal folds, more dark than line. Scenery. Nothing. */
+  /** A far range of the Andes: the ridges of a mountainside seen from miles off, a few long diagonal folds, more dark than line. Scenery. Nothing. No room's since 2026-11-26 (it ran down behind the play as a fill: the ranges are `andPeaks` on the horizon); kept so no later tile moves. */
   andRange: tile('andRange', 0, 6, [
     '#.......',
     '.#......',
@@ -26,7 +26,7 @@ export const ANDES_SCENERY_TILES = {
     '.#......',
     '#.#.....',
   ]),
-  /** A granite cliff face: long vertical joints, nothing across (so no line of it reads as a ledge). Scenery. Nothing. */
+  /** A granite cliff face: long vertical joints, nothing across (so no line of it reads as a ledge). Scenery. Nothing. No room's since 2026-11-26 (THE INCA BRIDGE's face read as rain streaks filling the room); kept so no later tile moves. */
   andFace: tile('andFace', 0, 11, [
     '..#....#',
     '..#....#',
@@ -67,6 +67,21 @@ function citadelFar(): NewDecor {
   return decor('andCitadelFar', 6, 4, r, ['555555', '555555', '5CCC55', '555555']);
 }
 
+/**
+ * The far ranges of the Andes on the horizon: four peaks of different heights side by side, the tallest snow down its shoulders, the others snow on their tips, grey rock under the snow, each with its
+ * shadow side cut by a ridge line. Drawn in the colours they are (white snow, grey rock), along the top band only (games/shared/monty/LESSONS.md: sky and distance live on the horizon, never a muted
+ * dark-blue shape). 12 x 3 characters.
+ */
+function peaks(): NewDecor {
+  const r = new Raster(96, 24);
+  r.triangle(13, 4, 0, 23, 31, 23); // a peak at the west
+  r.triangle(41, 0, 19, 23, 63, 23); // the tallest
+  r.triangle(65, 9, 49, 23, 81, 23); // a lesser one in front of the next
+  r.triangle(84, 3, 67, 23, 95, 23); // and one at the east
+  for (const [x0, y0, x1, y1] of [[14, 6, 22, 22], [42, 2, 52, 22], [66, 11, 72, 22], [85, 5, 94, 22]] as const) r.line(x0, y0, x1, y1, false); // the shadow side's ridge
+  return decor('andPeaks', 12, 3, r, ['111111111111', 'CCCC11CCCCCC', 'CCCCCCCCCCCC']);
+}
+
 /** The riverboat's funnel: a tall red stack with a black band and a puff of smoke. 2 x 3 characters (THE RIVER QUEEN's, as it was). */
 function funnel(): NewDecor {
   const r = new Raster(16, 24);
@@ -100,6 +115,7 @@ function paddleWheel(): NewDecor {
 
 export const ANDES_SCENERY_DECOR = {
   andCitadelFar: citadelFar(),
+  andPeaks: peaks(),
   andFunnel: funnel(),
   andPilotHouse: pilotHouse(),
   andPaddleWheel: paddleWheel(),

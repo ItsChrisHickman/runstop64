@@ -109,13 +109,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
     [PAC.kea]: 'a red lava-rock texture filling the room',
     [PAC.falls]: 'a dark rock texture filling the room behind the falls',
   },
-  andes: {
-    [AND.jump]: 'blue mountain zigzags running down behind the play',
-    [AND.thin]: 'blue mountain zigzags running down behind the play',
-    [AND.gorge]: 'blue mountain zigzags running down behind the play; earth along its top: a ceiling outdoors',
-    [AND.terraces]: 'blue mountain zigzags running down behind the terraces',
-    [AND.bridge]: 'a grey rain-streak texture filling the right side, blue zigzags in the gorge',
-  },
+  andes: {},
   rio: {
     [RIO_ROOM.beat]: 'a blue stand texture tiled below the crowds (the crowds stay)',
     [RIO_ROOM.float]: 'a blue stand texture tiled below the crowds (the crowds stay)',
