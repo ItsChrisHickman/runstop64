@@ -81,6 +81,13 @@ by a rope (col 29) that comes down to the street east of the gap. A toy robot wa
 (ropes through the deck, cols 8-10 and 19-21). The crossing's rope (col 23) lands on the platform. The platform's east end is shut by a **roller shutter** (cols 28-29) until the **daruma**, which stands at the platform's west end (by a vending machine): up the first stairs once a train has gone, along to it and back down below the deck before the next; open, it walks on east to F.
 Two **bullet trains** sweep the platform lane in turn (below). A departure board, signal lamps, a vending machine. 2 coins (one in the underpass, one on the platform). No creatures: the trains are its danger.
 
+**Next change (Chris, 2026-11-26):** "There's a floor to that room. Might be better if Monty enters on a ledge and we have no
+arbitrary floor. The floor level in that room is already higher than most and as a result causes a mountain to be
+claustrophobic." So MOUNT FUJI loses its full-width floor: Monty comes in on a ledge, the switchbacks and the snow slides hang
+on the open mountainside with the drop below (a fall to the room's bottom is the slide's danger or leads somewhere, never a
+floor drawn for no reason), and the room gains height and air. The snow slides' puzzle and the way on stay; proved with the
+bots.
+
 **F MOUNT FUJI** (Mount Fuji's foot and slope). In: left, mid, from the platform past the shutter. The pilgrim's trail in switchbacks: the first ledge east (floor 14), two steps up (12, 10), the second ledge back west
 (floor 8), one step (6) and the chain (col 5) up through the ceiling to G. The mountain itself is the room: a snow-capped cone on a slope of rock (blue-grey scenery, jpSnow and jpSlope) that the trail winds up in front of, scree for the foot and the frame. A tanuki on the first ledge, a crane flying over the snow. 3 coins.
 
