@@ -31,6 +31,7 @@ import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS,
 import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
 import { tuneForRoom } from './music/regions';
+import { PASSPORT_STAMPS } from './art/passport';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
 import { WORLD_ENDING } from './ending-scenes';
@@ -441,4 +442,6 @@ export const WORLD: MontyData = {
   title: { screen: (g, sound) => new MapTitle(g, sound, WORLD.bankImage, USHANKA_WORN), stripY: STRIP_Y },
   // (NEW GAME+ after a win: at Moscow's start in the ushanka, Moscow's own hat, as the title shows him)
   ending: { ...WORLD_ENDING, newGamePlus: { worn: USHANKA_ITEM } },
+  // the % complete (montyotr's percent.ts; Chris, 2026-11-25: "a best ending for 100% complete"): the bonus rooms off the path, each one's challenge done once its coins are his
+  complete: { bonus: [SIB.taiga, CHI.houhai, JP.grove, JP.cave, PAC.cave], stamps: PASSPORT_STAMPS },
 };

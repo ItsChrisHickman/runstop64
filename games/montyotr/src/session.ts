@@ -237,7 +237,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       resume(s, from) {
         const ending = !!g.completionActive;
         title.leave();
-        restore(g, s);
+        restore(g, s, Object.keys(fe.found.rooms).map(Number));
         if (ending) playOn();
         if (from === 'continue' && !won) { g.lives = 5; g.score = 0; }
         won = false;

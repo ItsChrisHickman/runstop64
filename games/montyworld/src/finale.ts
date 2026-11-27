@@ -4,6 +4,9 @@ import { wait, type Seq } from '../../shared/monty/deaths';
 import { FIRST_DECOR_CHR } from '../../montyotr/src/decor-chars';
 import type { Game } from '../../montyotr/src/game';
 import { gameOver } from '../../montyotr/src/scripts';
+import { progressOf } from '../../montyotr/src/map';
+import { fullyComplete } from '../../montyotr/src/percent';
+import { fullMonty } from './full-monty';
 import { BOWL_ON_LAP, FINALE_COLOURS, FINALE_HEADS, FINALE_MC } from './art/rio-finale';
 import { FIREWORK_FRAMES } from './art/rio-decor';
 import { codeOf, pieceChar } from './layout';
@@ -18,7 +21,8 @@ import { FINALE_POINTERS as P } from './rio-pointers';
  * 2. he EATS: the bowl on his lap (purple acai, banana slices, berries), the spoon from the bowl up to his mouth three times, a berry gone with each, his eyes shut happy as he chews;
  * 3. he sets the empty bowl down under the chair; the samba troupe (two drummers, two dancers) walks on from the west and lines up dancing; fireworks burst over Sugarloaf and the Redeemer, both floodlit; Monty
  *    gets up and DANCES at the head of the line (his dancing pictures and his arms up, a hop on the beat);
- * 4. GAME OVER, as the game has it.
+ * 4. at 100% complete (montyotr's percent.ts), THE FULL MONTY (full-monty.ts), the best ending;
+ * 5. GAME OVER, as the game has it.
  *
  * Sprites: the spoon (0, in front of everything; the headdress's crest once he has eaten), the berries (1, in the bowl's gaps; then a troupe member), the bowl (2), Monty (3), the crest while he eats (4, behind
  * him: its plumes over his head; then a troupe member), the troupe (1, 4, 5, 6), the chair (7, behind him).
@@ -236,6 +240,8 @@ export function* completion(g: Game): Seq {
     }
   }
   for (let n = 0; n < 60; n++) yield* scene();
+  // 100% complete: THE FULL MONTY after it (full-monty.ts), the best ending
+  if (fullyComplete(g.data, progressOf(g))) yield* fullMonty(g, { feet, standSx: target, sxOf, sand: SAND_COLOUR });
   yield* wait(0x20);
   g.won = true;
   yield* gameOver(g);

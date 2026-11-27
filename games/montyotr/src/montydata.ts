@@ -519,6 +519,16 @@ export interface MontyParade extends Omit<ParadeStyle, 'gag'> {
   gag?: { name: string; types: readonly number[]; split: readonly Uint8Array[] };
 }
 
+/**
+ * A game's % complete and its passport (percent.ts, the pause screen's PASSPORT page): the bonus rooms (each one's challenge is done once every coin of the room is
+ * his: they are where it ends), and the stamp each region earns at 100% (by the region's name on the map: a 16 x 16 picture as an icon's 32 bytes, the four
+ * characters top left, top right, bottom left, bottom right, and the ink it is stamped in).
+ */
+export interface CompleteSpec {
+  bonus: readonly number[];
+  stamps: readonly { region: string; picture: Uint8Array; ink: number }[];
+}
+
 export interface MontyData extends RoomTables, MontyLook {
   /** The game's id: its saves, and what the ending credits are kept under. */
   id: string;
@@ -643,6 +653,8 @@ export interface MontyData extends RoomTables, MontyLook {
     | { screen: (g: TitleGame, sound: TitleSound) => TitleScreen; stripY: number };
   /** The reward for winning; null: the game has none yet. */
   ending: MontyEnding | null;
+  /** The % complete (percent.ts) and the passport's stamps; none in Monty on the Run. */
+  complete?: CompleteSpec;
 }
 
 /** A sector of a room: the index into the sector names, and the name. */

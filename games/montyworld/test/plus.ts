@@ -115,9 +115,9 @@ const current = () => { const slot = readSaves('montyworld').current; return slo
   check('the pause screen is up', s.p.state.paused);
   s.tick(30);
   const px = s.rend.screen.pixels;
-  // (NEW GAME+ in yellow in the side panel, between the legend and the options: letters there and nothing else, no box)
+  // (NEW GAME+ in yellow in the side panel, between the legend and the options, under the % complete's light green: letters there and nothing else, no box)
   let yellow = 0, other = 0;
-  for (let y = 95; y < 118; y++) for (let x = 222; x < 318; x++) { const v = px[y * 320 + x]; if (v === 7) yellow++; else if (v !== 0 && v !== 0xff) other++; }
+  for (let y = 88; y < 114; y++) for (let x = 222; x < 318; x++) { const v = px[y * 320 + x]; if (v === 7) yellow++; else if (v !== 0 && v !== 0xff && v !== 13) other++; }
   check(`the pause screen says NEW GAME+ in yellow in the panel's empty spot (${yellow} yellow pixels, ${other} others there)`, yellow > 40 && other === 0);
   if (out) indicesPng(path.join(out, 'pause.png'), px.map((v) => (v === 0xff ? s.rend.background : v)), 320, 200);
   s.press('KeyP');

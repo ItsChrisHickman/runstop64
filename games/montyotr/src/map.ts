@@ -1,4 +1,3 @@
-import type { Surface } from 'c64kit';
 import { COL, foundCodec, S, shimmerColour, type Box, type MapPlace, type PauseMap } from '../../shared/native/pause';
 import { cellOf, sectorIndex, sectorName, type MontyData } from './montydata';
 import type { Game } from './game';
@@ -6,6 +5,8 @@ import { roomProgress } from './items';
 import { regionAt } from './regions';
 import { c5Arrive, c5LastCell, c5Street } from './mechanisms';
 import type { MontySave } from './save';
+import { drawPassport, icon, PASSPORT_TITLE } from './passport';
+import { isFull, percentOf, tallyOf, type Progress } from './percent';
 
 /**
  * Monty's map for the shared pause screen (games/shared/frontend.ts): the whole
@@ -42,6 +43,9 @@ type Entry = S.Infer<typeof entry>;
 const found = S.object({ rooms: S.record(entry) });
 export type MontyFound = S.Infer<typeof found>;
 const FOUND = foundCodec(found, () => ({ rooms: {} }));
+
+/** The % complete's label on the pause screen's panel (its number in the stats' column: the panel is 12 letters wide). */
+export const DONE_LABEL = 'DONE';
 
 /** What NEW GAME+ is called on the pause screen and in the saves' summaries. */
 export const PLUS_NAME = 'NEW GAME+';
@@ -276,20 +280,29 @@ export function progressRows(g: Game, found: MontyFound): (readonly [label: stri
   ];
 }
 
+/** A game's progress as percent.ts counts it. */
+export const progressOf = (g: Game): Progress => ({ visited: g.visited, coins: g.coinCollected, items: g.siCollected });
+
+/** The pause screen's pages: the map, and the passport (PASSPORT_PAGE) for a game with a % complete. */
+const MAP_PAGE = 0, PASSPORT_PAGE = 1;
+
 export const montyMap = {
   found: FOUND,
+  pages: (g: Game) => ({ list: g.data.complete ? [MAP_PAGE, PASSPORT_PAGE] : [MAP_PAGE], current: MAP_PAGE }),
   // (rooms are noted as Monty comes into them: noteRoom)
   observe() {},
   opened: freshCamera,
   /** The heading: the name of the region in view (the picked room's, else Monty's: the view follows the pick); a map with no regions (Monty on the Run's) is THE MAP. */
-  title(g, _page, pick) {
+  title(g, page, pick) {
     const { data } = g;
+    if (page === PASSPORT_PAGE) return PASSPORT_TITLE;
     const id = pick !== null && pick !== undefined ? Number(pick) : g.roomId;
     const cell = cellOf(data, id) ?? { row: g.mapRow, col: g.exitCol };
     return regionAt(data.regions, cell.row, cell.col)?.name ?? 'THE MAP';
   },
-  draw(s, box, g, found, blink, _page, font, pick) {
+  draw(s, box, g, found, blink, page, font, pick) {
     const data = g.data;
+    if (page === PASSPORT_PAGE) { drawPassport(s, box, g, font, shimmer++); return; }
     const { progress } = data;
     const { at, cell, view } = layout(box, g, focusOf(g, found, pick), true);
     const tick = shimmer++;
@@ -335,8 +348,17 @@ export const montyMap = {
     }
   },
   info: (g, found) => progressRows(g, found).map(([label, value]) => statLine(label, value)),
-  /** NEW GAME+ (plus.ts), in yellow, the heading's colour. */
-  badge: (g) => (g.plus ? { text: PLUS_NAME, colour: COL.yellow } : null),
+  /**
+   * In the panel's empty spot: the % complete (percent.ts), its number in the stats' column, in light green, shimmering in the coins' colours at 100%; and NEW
+   * GAME+ (plus.ts), in yellow, the heading's colour.
+   */
+  badges(g) {
+    const t = tallyOf(g.data, progressOf(g));
+    return [
+      ...(t ? [{ text: statLine(DONE_LABEL, `${percentOf(t.total)}%`), colour: isFull(t.total) ? shimmerColour(shimmer, 0) ?? COL.yellow : COL.lgreen }] : []),
+      ...(g.plus ? [{ text: PLUS_NAME, colour: COL.yellow }] : []),
+    ];
+  },
   legend: (g) => [
     { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
@@ -345,7 +367,8 @@ export const montyMap = {
    * Every room visited, the whole world over, where the view scrolled to `pick` has it (those of countries out of the view
    * too: an arrow goes on to the next country's, and the view follows; a tap at the box's edge picks one just past it).
    */
-  places(box: Box, g: Game, found: MontyFound, _page?: number, pick?: string | null): MapPlace[] {
+  places(box: Box, g: Game, found: MontyFound, page?: number, pick?: string | null): MapPlace[] {
+    if (page === PASSPORT_PAGE) return [];
     const { at, cell } = layout(box, g, focusOf(g, found, pick));
     const mid = Math.floor(cell / 2) - 1; // (3 in a cell of 8: the dot's place in it)
     const list = Object.entries(found.rooms)
@@ -383,11 +406,6 @@ export const montyMap = {
     return true;
   },
 } satisfies PauseMap<Game, MontyFound>;
-
-/** A 16×16 icon from 32 bytes (top-left, top-right, bottom-left, bottom-right characters). */
-function icon(s: Surface, bytes: ArrayLike<number>, x: number, y: number, colour: number) {
-  for (let q = 0; q < 4; q++) s.drawChar(Array.from({ length: 8 }, (_, i) => bytes[q * 8 + i]), x + (q & 1) * 8, y + (q >> 1) * 8, colour);
-}
 
 /** How many icons fit along the box (they are 16 wide, side by side at the closest). */
 const iconsPerRow = (box: Box): number => Math.floor(box.w / ICON);
