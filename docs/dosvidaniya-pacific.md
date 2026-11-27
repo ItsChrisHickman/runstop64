@@ -270,3 +270,8 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
 - **SHELL GAME:** "needs to be harder. Pretty cool idea." Keep the turtles; shorter time up, the dives staggered tighter so
   he must move turtle to turtle on the beat, a creature over the crossing (a frigatebird's swoop or a shark fin between
   turtles), the musubi at the hard end.
+- **KONA** (the black sand beach): "has a crab that is behind blocks and it's the only enemy, so this room is super easy and
+  the one enemy is positioned in a harmless way. And why would I drown in that little bit of water if I can go down and
+  swim?" The crab walks the beach Monty crosses (not behind the rocks), with two more creatures crossing the climb to the
+  fork; the shallow water never drowns a snorkeller (same rule as KAIHALULU: deadly water reads as something deadly, else
+  he wades or swims).
