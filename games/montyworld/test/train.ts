@@ -44,7 +44,7 @@ const cellAt = (g: Game, col: number, row: number) => g.mem[0x800 + (row + 3) * 
 
 // ---- the dining car, the sleeper, the tender -------------------------------------------------------------
 for (const [name, room, windows] of [['dining car', SIB.gravy, true], ['sleeper', SIB.sleeper, true], ['tender', SIB.coal, false]] as const) {
-  const s = at(room, 8, 17);
+  const s = at(room, room === SIB.coal ? 2 : 8, 17);
   const rail = cellAt(s.g, room === SIB.coal ? 10 : 20, 19), wheel = cellAt(s.g, 4, 18);
   const rail0 = chr(s.g, rail), wheel0 = chr(s.g, wheel), ring0 = windows ? [ringText(s.g, 0), ringText(s.g, 1)] : [];
   const seen = { rail: new Set<string>([rail0]), wheel: new Set<string>([wheel0]), ring: new Set<string>(windows ? [ring0.join('/')] : []) };
@@ -123,16 +123,17 @@ check('the dining car\'s roof lane, where the mountain is first dodged, has only
 }
 {
   // nothing it draws is solid: the sky's cells (rows 2-8) are decoration characters or empty, and a room tile only where the room's own map has one (the sleeper's pine and
-  // bunker; the tender's bunker, tipple and the hill)
+  // bunker; the tender's bunker, tipple and the hill) or where the room's steam blows (its pulses draw the column in the room's own character: nothing he stands on)
   const bad: string[] = [];
   for (const [name, room] of [['dining car', SIB.gravy], ['sleeper', SIB.sleeper], ['tender', SIB.coal]] as const) {
-    const s = at(room, 8, 17);
+    const s = at(room, room === SIB.coal ? 2 : 8, 17);
     const map = SIBERIA_ROOMS.find((r) => r.id === room)?.map ?? [];
+    const blown = (col: number, row: number) => WORLD.pulses.some((p) => p.room === room && col >= p.col && col < p.col + p.cols && row >= p.row && row < p.row + p.rows);
     for (let row = 2; row <= 8; row++) for (let col = 0; col < 32; col++) {
       const c = cellAt(s.g, col, row);
       const tile = c >= 1 && c <= 8;
       const coin = SIBERIA_ROOMS.find((r) => r.id === room)?.coins?.some(([cc, cr]) => cc === col && cr === row) === true;
-      if (!coin && tile !== ((map[row]?.[col] ?? '.') !== '.')) bad.push(`${name}: cell ${col},${row} is ${c}`);
+      if (!coin && !blown(col, row) && tile !== ((map[row]?.[col] ?? '.') !== '.')) bad.push(`${name}: cell ${col},${row} is ${c}`);
     }
   }
   check(`the sky's cells are never a room tile but where the room has tiles of its own (${bad.slice(0, 4).join('; ') || 'none wrong'})`, bad.length === 0);

@@ -22,7 +22,7 @@ import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from '
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
 import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, settlePendingFinds, type PursuerState } from './pursuers';
-import { leverInit, leverUpdate } from './levers';
+import { leverInit, leverUpdate, switchUpdate } from './levers';
 import { cameoDue, cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
@@ -239,7 +239,7 @@ export class Game implements MontyBody, MontyWorld {
   cable: CableRide = { ...NO_CABLE };
   floats: FloatState[] = [];
   skewers: SkewerState[] = [];
-  /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
+  /** This room's pursuer (pursuers.ts) and whether he is touching its lever or a switch (levers.ts). */
   pursuers: PursuerState[] = [];
   /** Escapes made in this room that count only once he leaves it alive (pursuers.ts `settlePendingFinds`). */
   pendingFinds: number[] = [];
@@ -523,6 +523,7 @@ export class Game implements MontyBody, MontyWorld {
       skewerUpdate(this);
       pursuerUpdate(this);
       leverUpdate(this);
+      switchUpdate(this);
       cameoUpdate(this);
       planeUpdate(this);
       boardUpdate(this);

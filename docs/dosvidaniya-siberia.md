@@ -250,3 +250,32 @@ to do a full pass. Russia was perfect." Every region after Moscow (Siberia, Chin
 Andes and the Amazon, Rio, the bonus rooms) gets the pass, built to LESSONS.md "Challenge as Monty on the Run builds it" and
 "Rooms glimpsed first and reached later", Moscow as the benchmark (measure its rooms with room-stats.ts: they are the bar),
 every note above and in the region plans (docs/dosvidaniya-china.md, -japan.md, -pacific.md) included. Moscow untouched.
+
+## The train as a path puzzle (2026-11-26)
+
+Chris: the train had "really no puzzle to the train involving the paths"; the boiler room "was confusing and weird", the train "a big idea that wasn't memorable to play". Moscow (paths that combine)
+is the model. The train's two lanes, the roof and the inside, now each hold half of the way off it, and the locomotive's steam is the hinge (`STEAM`, `CAB`, `VESTIBULE` in siberia.ts):
+
+- **One pipe, two ends, one wheel.** In the gap between the tender and the cab a steam pipe blows out of its top (up from the cab's roof, across the roof's lane, higher than a jump) or
+  out of its bottom (up from the footplate, across the inside's lane into the cab), never both, never neither. It starts out of the top. The wheel is in a niche over the end of the
+  tender's corridor (a corridor tender, as the non-stop expresses had): a jump turns it (`switches`, levers.ts `switchUpdate`, on the hidden find `steam low`); walking under it does not.
+- **The roof runs on.** The sleeper's roof no longer ends at a coal bunker: it goes east onto the tender's coal, the coal solid down to the corridor's roof. From there the steam blocks the
+  cab and the wheel is seen below, out of reach (the lock before the key).
+- **The inside reaches the wheel** (the ticket opens the closet's floor and the inspector's gangway, as before): along the corridor, the cab open while the steam is up top (the stoker at
+  the firebox, the coin by the gauge), and the wheel. Turned, the steam blows out of the bottom across the inside's own way on: the obvious move fails, seen, and the top is quiet.
+- **So the way on is round by the roof:** back west under the sleeper, up the closet, east along the roof under the mountain, sheltering in the new **vestibule** at the sleeper's east end
+  (a second ladder well like the closet, its floor never opened: from the closet a run straight to the tender is caught, so the vestibule is the stop on the way), over the coal, across
+  the quiet top onto the cab's roof (a bat drops over it and rises again: under it while it is up), down onto the boiler and up the tipple's ladder into the mine. The roof is crossed under the mountain three times now.
+- **Never a trap:** the wheel is reached only from the inside's west side, which goes back west whichever way the steam blows; the roof's east side is reached only while the top is quiet,
+  and nothing there turns it back.
+- **The cab** is a cutaway box again: the roof on its back and front posts (its west end on the tender's front plate), the gauge on the front post over the firebox at its foot, the stoker; nothing in it hangs in the air. The sleeper's mountain rests a little longer
+  (`SLEEPER_MOUTH`: 44, its offset 8, so the first sweep comes when it did): the closet to the pine still has to go at once (about 60 frames to spare), the closet to the vestibule about 40.
+- **Gone, for Chris to confirm:** the first build's chute with the stoker riding it (now he walks the cab), the tipple's legs standing on the coal (one leg behind the boiler now), and the
+  third driving wheel. The dining car's RESTAURANT lettering is gone (no words on the scenery). The sleeper's third window moved (two side by side) to make room for the vestibule.
+- **Saves:** the find is new and last among the hidden ones (and uncounted), so an older save reads it unset (the steam up top, as the game starts); the room ids, ways in and the coin
+  tables are as they were (the tender keeps its one coin).
+
+Checks: `siberia-mechanisms.ts` ("the sleeper's roof run": the closet to the vestibule to the tender, and straight through caught; "the train's two lanes": the roof onto the coal, the
+coal sealed from the corridors without the ticket; "the locomotive's steam": the ends, the wheel by a jump and not by walking, death in either, no way past the top, the roof never reaches
+the wheel, the turned wheel shuts the cab, the roof then reaches the mine, never a trap; the joins), the bot's legs through the train (`siberia-route.ts`), `train.ts`. Pictures:
+`siberia-shots.ts` (`steam-1..6.png`, `strip-steam.png`).

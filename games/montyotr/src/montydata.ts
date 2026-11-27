@@ -210,6 +210,8 @@ export interface PulseSpec {
   idle: number; warnCode: number; liveCode: number; spent: number;
   /** A special item that calms it (a tune settles the spitting llama): once Monty has taken item `calmedBy` the group stays at its idle look and kills nothing. */
   calmedBy?: number;
+  /** The other way round: it stays at its idle look and kills nothing until special item `calmedUntil` is taken (and again once it is untaken: a switch's find, levers.ts). */
+  calmedUntil?: number;
 }
 
 /**
@@ -438,6 +440,12 @@ export interface PursuerSpec {
  */
 export interface LeverSpec { room: number; lever: { col: number; row: number }; booth: CellBox; key: number; armed: number; done: number }
 
+/**
+ * A switch (levers.ts; Siberia's steam valve): stepping into its box flips special item `find` (taken, untaken, taken...: a find no room shows, so a save keeps which way it is set), again only after stepping
+ * out; what it does is read from the find (a pulse's `calmedBy` and `calmedUntil`: the locomotive's steam blows from one outlet or the other). A room may have several boxes on one find (two handles of one valve).
+ */
+export interface SwitchSpec { room: number; box: CellBox; find: number }
+
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
 
@@ -622,6 +630,8 @@ export interface MontyData extends RoomTables, MontyLook {
   /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
   pursuers: readonly PursuerSpec[];
   levers: readonly LeverSpec[];
+  /** Switches that flip a find each time he steps into them (levers.ts); none in Monty on the Run. */
+  switches: readonly SwitchSpec[];
   /** Walk-ons that touch nothing (cameos.ts); none in Monty on the Run. */
   cameos: readonly CameoSpec[];
   iceSprites: IcicleSprites;
