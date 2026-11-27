@@ -17,6 +17,9 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 | The map on NEW GAME+ "is skipping rooms"; the rooms' colour cycling "doesn't actually mean anything. Different colors representing each unique region would make more sense" (2026-11-27) | open |
 | "Andes seems to be Andes + Amazon... really two areas" (2026-11-27): split into two regions (map colour, music, sector names)? | his call |
 | 100% of the items: THE FULL MONTY (the bonus ending) is in the release merged on main, not deployed yet (2026-11-27). | ships with the release |
+| The title screen's world map: "Hawaii is labelled nowhere near Hawaii (near New York if anything). Rio is also in the wrong spot - should be bottom right... there's a gap on the left and things aren't in the right order at all." A full pass on the title map (2026-11-27). | open |
+| The pause panel shows ROOMS, ITEMS and SNACKS but no COINS (2026-11-27); the panel's lines are 11 characters (`statLine`), so 141/141 needs a layout. | open |
+| Creature colours "the same 3 colours and a few cyan" (2026-11-27). Measured: MOTR is more concentrated overall (top three 63% vs our 44%) but has 3.2 creatures a room, so 48 of 51 rooms mix colours; ours 1.9 a room, 45 of 71. The fix is the challenge pass's third creature, in a colour of its own in that room; also check whether one creature always gets one colour everywhere. | open |
 | Rooms that look walkable left or right but are not: decide where the room would be (`docs/dosvidaniya-edges.md`). | open |
 | Black boxes where pickups were (backgrounds not refilled: layout.ts `fillWhere` keep lists). | open |
 | Water that drowns a snorkeller outside swim rooms. | open |
