@@ -139,6 +139,17 @@ export interface IcicleSpec {
   room: number; col: number; row: number; floor: number;
   /** Its colour (default 3, an icicle's cyan; the sea cave's loose stalactites are the rock's grey). It flashes white as it shivers whatever its colour. */
   colour?: number;
+  /**
+   * It arms this many cells ahead of Monty in the way he faces, not only once he is under it (Chris: icicles "are never hard unless you stop and wait for them"): walking on at his pace takes him under it as
+   * it falls, so the shake is the warning to stop short, let it fall and go by while it grows back.
+   */
+  lead?: number;
+  /**
+   * It drips on its own clock instead (a crusher's way): it shivers every `period` frames, the first `phase` frames after the room loads, falls, breaks and grows back, whoever is near. A row of them
+   * staggered over the way makes a run under them a choice of moment. Long enough for the whole fall and regrowth (icicles.ts `cycleFrames`).
+   */
+  period?: number;
+  phase?: number;
 }
 
 /**
@@ -396,7 +407,14 @@ export interface CellBox { col0: number; row0: number; col1: number; row1: numbe
  * A walk-on (cameos.ts, and a pursuer's `intro`): a figure steps in from column `from` (it may be off the picture: -3, 33) to `at` (its floor row: he stands on it), holds `pose` facing Monty for `hold`
  * frames, and walks on to column `to` (back where it came from, or on past) and is gone, two pixels a frame (`CAMEO_PACE`).
  */
-export interface CameoMove { from: number; at: { col: number; row: number }; to: number; pose: 'look' | 'lookDown'; hold: number }
+export interface CameoWalk { from: number; at: { col: number; row: number }; to: number; pose: 'look'; hold: number }
+/**
+ * A chase stopped short (cameos.ts: Viktor at a border, Chris 2026-11-26: "he is trying to chase Monty and can't reach him yet... not that he is running away from him"): he runs on from column `from`
+ * toward Monty at twice Monty's pace (`CAMEO_RUN`) and is stopped at `at`, the brink of what he cannot cross (a drop, the water), shakes his fist after Monty for `hold` frames, then stands looking after
+ * him until Monty has left the room. Never back the way he came.
+ */
+export interface CameoStop { from: number; at: { col: number; row: number }; pose: 'fist'; hold: number }
+export type CameoMove = CameoWalk | CameoStop;
 
 /**
  * A cameo (cameos.ts; Do Svidaniya Monty's Viktor Vole at every border he arrives at too late): harmless, no part of what kills Monty, a figure on VIC sprite `sprite` with eight pictures from pointer
@@ -428,7 +446,7 @@ export interface PursuerSpec {
    */
   look?: { frames: readonly number[]; dx: number; dy: number; over?: { sprite: number; ptr: number; colour: number } };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
-  intro?: CameoMove;
+  intro?: CameoWalk;
   /** His coming into sight (the name flashing red, the warp's sting) and his knock off (the name flashing green, the item's jingle) are announced (pursuers.ts): Do Svidaniya Monty's train roof, cargo ship and flight. */
   announce?: true;
 }

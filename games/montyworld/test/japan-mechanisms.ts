@@ -27,7 +27,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { ADDED_ROOMS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CAVE, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CAVE, CAVE_ICICLE_TIMING, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
@@ -36,7 +36,7 @@ import { PAC } from '../src/pacific';
 import { ACTIONS, hold, newGame } from '../../shared/monty/test/bot';
 import { SCOPE, scopedRooms } from './scope';
 import { search } from './search';
-import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, icicleMet, shakes, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -724,10 +724,15 @@ SCOPE.section([], 'the joins are strict: open edges match', () => {
 
 // ---- MOUNT FUJI: SNOW SLIDES ----------------------------------------------------------------------------
 SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
-  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s snowball');
+  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s first snowball');
   const [foot, top] = FUJI_HUTS;
   const fuji = must(JAPAN_ROOMS.find((r) => r.id === JP.fuji), 'the mountain');
-  check(`one snowball on the mountain, every ${FUJI_SNOW.every} frames, the first ${FUJI_SNOW.start} in; two huts; no creature to crowd its timing`, WORLD.rollers.filter((r) => r.room === JP.fuji).length === 1 && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  const balls = WORLD.rollers.filter((r) => r.room === JP.fuji);
+  check(`three snowballs on the mountain at once (Chris: "needs more snowballs at a time"), one every ${FUJI_SNOW.apart} frames, the first ${FUJI_SNOW.start} in, each on a sprite of its own; two huts; no creature to crowd their timing`,
+    balls.length === 3 && new Set(balls.map((b) => b.sprite)).size === 3 && balls.every((b, i) => b.start === FUJI_SNOW.start + i * FUJI_SNOW.apart) && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  // several on screen together: over a period, the most rolling at one moment
+  const most = Math.max(...Array.from({ length: FUJI_SNOW.every }, (_, t) => balls.filter((b) => rollerAt(b, t + FUJI_SNOW.every) !== null).length));
+  check(`two snowballs on the climb at once at times (most at one moment: ${most})`, most >= 2);
   /** Where the snowball is (its top left, in cells) in a game in the mountain, or null while it is not rolling. */
   const where = (g: Game) => {
     const t = g.rollers.find((r) => WORLD.rollers[r.index] === ball)?.t ?? 0, p = rollerAt(ball, t);
@@ -813,6 +818,14 @@ SCOPE.section([JP.fuji, JP.cave], 'MOUNT FUJI\'s open mountainside and the ice c
   check(`standing in the yuki-onna's lane, she drifts down onto him (frame ${diesAt(yuki, NONE, 400)})`, dead(yuki.g));
   const ice = CAVE.icicles.map((col) => diesAt(at(JP.cave, col, CAVE.floor), NONE, 200));
   check(`standing under each icicle, it falls on him (${ice.join(', ')})`, ice.every((f) => f >= 0));
+  // the first shakes as he comes toward it from the hole (lead): walking straight on dies, stopping as it shakes and going on as it grows back lives
+  const [byHole, overCoin] = WORLD.icicles.filter((e) => e.room === JP.cave);
+  const met = byHole ? icicleMet(JP.cave, byHole, CAVE.hole.col0, CAVE.floor, CAVE.hump.col1 - byHole.col + 1) : { straight: -1, waited: false };
+  check(`walking on east from under the hole, the first icicle shakes ${CAVE_ICICLE_TIMING.lead} cells ahead and falls on him (frame ${met.straight}); stopping as it shakes and going on as it grows back (over the rock hump), he gets by (${met.waited})`, met.straight >= 0 && met.waited);
+  // the second drips on its own clock, wherever he is: far from it at the hole, it shakes at its phase and again a period later
+  const drips = overCoin ? shakes(at(JP.cave, CAVE.hole.col0, CAVE.floor), 1, CAVE_ICICLE_TIMING.phase + CAVE_ICICLE_TIMING.period + 2) : [];
+  check(`the icicle over the coin drips on its own clock with him far away: it shakes at frames ${drips.join(', ')} (every ${CAVE_ICICLE_TIMING.period}, the first at ${CAVE_ICICLE_TIMING.phase}), never waiting for him`,
+    drips.length === 2 && (drips[1] ?? 0) - (drips[0] ?? 0) === CAVE_ICICLE_TIMING.period && Math.abs((drips[0] ?? 0) - CAVE_ICICLE_TIMING.phase) <= 1);
 });
 
 SCOPE.report();

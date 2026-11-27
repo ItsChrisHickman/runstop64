@@ -4,7 +4,7 @@
  * rows of buttons in his ink: the coat itself is the black between), boots. One ink, white, so he reads on Rio's black and apart from Monty's light grey. In Monty on the Run's formats: creature frames of
  * 16 x 16 facing left (mirrored for right), and 24 x 21 sprite blocks for the squash (Monty on the Run's four-way split). The star is cut into the hat (one ink: a red star would need a sprite of its own over him).
  *
- * Users: the agent creature (rio-creatures.ts `agent`: the pursuer's walk), the cameos' frames (`VIKTOR_CAMEO`: two steps, a look after Monty, a look down), the squash (`VIKTOR_SPLIT`), the procession's and the
+ * Users: the agent creature (rio-creatures.ts `agent`: the pursuer's walk), the cameos' frames (`VIKTOR_CAMEO`: two steps, a look after Monty, a fist shaken after him), the squash (`VIKTOR_SPLIT`), the procession's and the
  * credits' name (`VIKTOR_NAME`).
  */
 import { creatureBank, mirrored, spriteBlock } from './pixels';
@@ -64,14 +64,15 @@ const WALK = [
 
 /** Looking after Monty, a hand shading his eyes. */
 const LOOK = figure(HEAD, BOOTS.stand, ARM_UP, false);
-/** Looking down over an edge: the hat and head bent forward and down a row, the snout pointing down at the drop. */
-const LOOK_DOWN = figure(['................', ...HEAD.slice(0, 7), '##..########....', '...#####.##.....'].slice(0, 10), BOOTS.stand, ARM_FORWARD, false);
+/** Shaking his fist after Monty (the chase stopped short: cameos.ts `CameoStop`): the arm raised past his snout, the fist over the hat's brim; in turn with the look, the hand at the brim. */
+const ARM_FIST = [[2, 10], [2, 9], [1, 6], [1, 5], [1, 4], [1, 3], [0, 2], [1, 2], [0, 1], [1, 1], [0, 0], [1, 0]] as const;
+const FIST = figure(HEAD, BOOTS.stride, ARM_FIST, false);
 
 /** The pursuer's walk (the agent creature): four frames each way. */
 export const VIKTOR_WALK: NewCreature = { frames: creatureBank('viktor', WALK, WALK.map(mirrored)), copy: false, colour: VIKTOR_INK };
 
-/** The cameos' frames, a creature bank of eight (cameos.ts `CAMEO_FRAME`): going left two steps, the look, the look down; then the same going right. */
-const CAMEO_LEFT = [WALK[1] ?? LOOK, WALK[3] ?? LOOK, LOOK, LOOK_DOWN];
+/** The cameos' frames, a creature bank of eight (cameos.ts `walkOn`): going left two steps, the look, the fist; then the same going right. */
+const CAMEO_LEFT = [WALK[1] ?? LOOK, WALK[3] ?? LOOK, LOOK, FIST];
 export const VIKTOR_CAMEO: Uint8Array = creatureBank('viktor cameo', CAMEO_LEFT, CAMEO_LEFT.map(mirrored));
 
 /** A picture's shape filled: every row lit from its first lit pixel to its last (a shadow, a silhouette). */
@@ -126,5 +127,5 @@ function splitPictures(): Uint8Array[] {
 }
 export const VIKTOR_SPLIT: readonly Uint8Array[] = splitPictures();
 
-/** The frames as text (for a sheet or a test): the walk, the look, the look down. */
-export const VIKTOR_ROWS = { walk: WALK, look: LOOK, lookDown: LOOK_DOWN } as const;
+/** The frames as text (for a sheet or a test): the walk, the look, the fist. */
+export const VIKTOR_ROWS = { walk: WALK, look: LOOK, fist: FIST } as const;

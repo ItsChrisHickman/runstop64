@@ -2,6 +2,7 @@ import type { Arrival, CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } 
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { ANDES_SPRITE, BOULDER_POINTERS, LEAP_POINTERS } from './andes-pointers';
 import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './layout';
+import { rollerTrain } from '../../montyotr/src/rollers';
 
 /**
  * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-back-half-plan.md: the back half rebuilt longer, the rooms the 2026-11-23 reset cut brought back): thirteen rooms at
@@ -135,9 +136,10 @@ const BOULDER_COLOUR = 12;
  * the Inca bridge. A pixel a frame, `every` 360 frames, three a third of that apart: one every 120 frames rolls down at him as he climbs. (A point is a boulder's top left cell: its floor's row less two.)
  */
 export const BOULDER_PATH: readonly (readonly [col: number, row: number])[] = [[24.2, -2], [24.2, 2], [23.2, 4], [20.4, 4], [19.2, 6], [16.2, 6], [14.6, 8]];
-export const BOULDERS_OF_PICCHU: readonly RollerSpec[] = [0, 120, 240].map((start, i): RollerSpec => ({
-  room: AND.picchu, sprite: [1, 2, 6][i] ?? 1, path: BOULDER_PATH, speed: 1, every: 360, start, frames: BOULDER_POINTERS, colour: BOULDER_COLOUR,
-}));
+export const BOULDERS_OF_PICCHU: readonly RollerSpec[] = rollerTrain(
+  { room: AND.picchu, path: BOULDER_PATH, speed: 1, every: 360, frames: BOULDER_POINTERS, colour: BOULDER_COLOUR },
+  [{ sprite: 1, start: 0 }, { sprite: 2, start: 120 }, { sprite: 6, start: 240 }],
+);
 
 /**
  * A piranha's leap: from under the water at `col` (row 17) up in an arc to its apex (row `apex`) and down into the water again three cells on, nose up, level and nose down as the three pictures follow it along (`spread`), `every` frames, the first `start` in.

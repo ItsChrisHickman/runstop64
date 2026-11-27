@@ -24,7 +24,7 @@ import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { RETIRED } from '../src/save-migrate';
-import { at, cell, colOf, dead, diesAt, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
+import { at, cell, colOf, dead, diesAt, icicleMet, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
 import { piecePlace, placeAt, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
@@ -430,6 +430,10 @@ SCOPE.section([SIB.yeti, SIB.sleeper, SIB.gravy, SIB.coal], 'the yeti and the ic
   const used = YETI.pieces.map((p) => p.sprite);
   check(`it takes sprites ${used.join(', ')}: none that the ticket (0), the icicle (1), Monty (3) or his hat (7) need`, used.every((n) => ![0, 1, 3, 7].includes(n)));
   check('the cave has one icicle (sprite 1), over the ticket', SIBERIA_ICICLES.length === 1 && SIBERIA_ICICLES[0]?.room === SIB.yeti && Math.abs((SIBERIA_ICICLES[0]?.col ?? 0) - ((yeti.item?.col ?? 0) - 4)) <= 1);
+  // it shakes as he comes along the high ledge toward the ticket (lead): walking straight on from the ledge's east end dies, stopping as it shakes and going on as it grows back lives
+  const ticketIce = must(SIBERIA_ICICLES[0], 'the icicle over the ticket');
+  const met = icicleMet(SIB.yeti, ticketIce, 21, 5, 1);
+  check(`walking west along the ledge to the ticket, the icicle shakes ${ticketIce.lead ?? 0} cells ahead and falls on him (frame ${met.straight}); stopping as it shakes and going on as it grows back, he gets by (${met.waited})`, met.straight >= 0 && met.waited);
   check('and back down from the ticket: over the bridge, down the stair, into the gap and down the pine into the sleeper (a dead end, never a trap)',
     search(at(SIB.yeti, 18, 5, [TICKET]), (g) => g.roomId === SIB.sleeper && !g.freeze && !g.script, [{ room: SIB.yeti, col: 20, row: 19 }], 400000, 1.5) !== null);
   check('the bot finds the way from the pine\'s top over the stair and the bridge to the ticket', search(at(SIB.yeti, 23, 17), (g) => g.roomId === SIB.yeti && g.siCollected[itemIndex(g, SIB.yeti, 0)] !== 0, [{ room: SIB.yeti, col: 18, row: 3 }], 400000, 1.5) !== null);

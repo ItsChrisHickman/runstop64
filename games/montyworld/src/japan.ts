@@ -1,5 +1,6 @@
 import { SCREEN_MARGIN } from '../../shared/monty/screen';
 import { creatureBlocks } from '../../montyotr/src/cameos';
+import { rollerTrain } from '../../montyotr/src/rollers';
 import type { CameoSpec, CharAnim, CrackSpec, IcicleSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE, SNOWBALL_POINTERS } from './japan-pointers';
@@ -283,18 +284,25 @@ export const GUST_LANDING = { col: FUJI_HUTS[0].col0 + 1, floor: FUJI_HUTS[0].fl
 /** The mountain's coins: on the first ledge in the snowballs' lane, on the steps they drop down, and under the eaves of the top hut, a step from where they drop (a backdrop leaves their cells alone). */
 const FUJI_COINS: readonly (readonly [number, number])[] = [[17, 12], [24, 10], [25, 6]];
 /**
- * SNOW SLIDES: a snowball (a roller, as the Andes' boulders: a sprite on a path, deadly to touch) every `FUJI_SNOW.every` frames, the first `start` frames after he comes in: seen at the summit (on the cone's
+ * SNOW SLIDES: snowballs (rollers, as the Andes' boulders: sprites on a path, deadly to touch), one every `FUJI_SNOW.apart` frames, the first `start` frames after he comes in: seen at the summit (on the cone's
  * crater top, against the sky), it rolls east off it and down the cone's flank onto the top hut's roof (the same distance as before the cone was redrawn, so the timing is unchanged), along it and off its east end down onto the upper step, back west off it onto the lower step, off that onto the
  * first ledge, west along it, hops over the foot hut's roof and flies off the room's west edge high over the way in. So the climb (the first ledge east, the steps, up onto the second ledge) is crossed between
  * two snowballs, from hut to hut: wait in the foot hut for one to pass over, then climb to the top hut before the next. The second ledge west of the top hut, the last step and the chain are clear.
  * (A point is the snowball's top left cell: its floor's row less two.)
  */
-export const FUJI_SNOW = { every: 460, start: 30, speed: 2 } as const;
+export const FUJI_SNOW = { every: 460, start: 30, speed: 2, apart: 153 } as const;
 export const FUJI_SNOW_PATH: readonly (readonly [col: number, row: number])[] = [
   [15.6, 0], [18, 0], [20, 2], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
 ];
-/** The snowball (white: it stands off the black sky; it rolls down the cone's edge against the sky, never across its face), on sprite 1 as the Andes' boulders, its pictures put in while the mountain is loaded. */
-export const FUJI_SNOWBALLS: readonly RollerSpec[] = [{ room: JP.fuji, sprite: 1, path: FUJI_SNOW_PATH, ...FUJI_SNOW, frames: SNOWBALL_POINTERS, colour: 1 }];
+/**
+ * The snowballs (white: they stand off the black sky; they roll down the cone's edge against the sky, never across its face), three on the path at once (Chris: "love the Donkey Kong feel... needs more
+ * snowballs at a time"), a third of `every` apart (`FUJI_SNOW.apart`), on sprites 1, 2 and 4 (the mountain has no creatures), their pictures put in while the mountain is loaded. One is always on the
+ * climb or about to be: the wait in a hut is for the gap behind one, and the next is already rolling off the summit.
+ */
+export const FUJI_SNOWBALLS: readonly RollerSpec[] = rollerTrain(
+  { room: JP.fuji, path: FUJI_SNOW_PATH, every: FUJI_SNOW.every, speed: FUJI_SNOW.speed, frames: SNOWBALL_POINTERS, colour: 1 },
+  [1, 2, 4].map((sprite, i) => ({ sprite, start: FUJI_SNOW.start + i * FUJI_SNOW.apart })),
+);
 export const FUJI_BLOCKS: RoomBlocks = { rooms: [JP.fuji], blocks: SNOWBALL_POINTERS.map((ptr, i) => ({ ptr, block: SNOWBALL_FRAMES[i] ?? new Uint8Array(64) })) };
 /** What finishes the cone, stamped where the painted room has the slope (or empty cells beside it): the snow's jagged edge on the first row of slope, the flanks' diagonal edges (white beside the snow, light blue below). */
 function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
@@ -401,8 +409,15 @@ const paintCave = (g: Grid): void => {
   g.box(CAVE.mound.col0, CAVE.mound.floor, CAVE.mound.col1, CAVE.floor - 1, 'I'); // a mound of ice built up from the floor where the roof drips, as the falls are
 };
 const CAVE_COINS: readonly (readonly [col: number, row: number])[] = [[20, 16], [22, 14]];
-/** The tube's two icicles: over the way in from the hole, and over the first coin. */
-export const CAVE_ICICLES: readonly IcicleSpec[] = CAVE.icicles.map((col) => ({ room: JP.cave, col, row: CAVE.ceiling + 1, floor: CAVE.floor }));
+/**
+ * The tube's two icicles: over the way in from the hole, shaking as he comes toward it (`lead`: walking straight on from the hole meets its fall, so he waits for it), and over the first coin, dripping on
+ * its own clock (`period`: the coin is taken between two falls, whoever is near).
+ */
+export const CAVE_ICICLE_TIMING = { lead: 3, period: 150, phase: 60 } as const;
+export const CAVE_ICICLES: readonly IcicleSpec[] = [
+  { room: JP.cave, col: CAVE.icicles[0], row: CAVE.ceiling + 1, floor: CAVE.floor, lead: CAVE_ICICLE_TIMING.lead },
+  { room: JP.cave, col: CAVE.icicles[1], row: CAVE.ceiling + 1, floor: CAVE.floor, period: CAVE_ICICLE_TIMING.period, phase: CAVE_ICICLE_TIMING.phase },
+];
 /** The tengu (a cameo: harmless, his own sprite) on the room's third creature slot, sprite 6, his pictures in its blocks. */
 const TENGU_SLOT = { sprite: 6, first: 0x30 + 2 * 8 } as const;
 /**

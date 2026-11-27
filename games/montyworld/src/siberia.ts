@@ -197,14 +197,14 @@ const RIVER_PALETTE = {
  * bough on the trunk across from the last, two rows up: `TAIGA.boughs` (column, floor row, width), the nest last. Each cell of a bough carries its own load of snow, which slides off
  * if he stands on it (`TAIGA_BOUGHS`: it breaks up after 20 frames, falls after 40 and is gone after 56, back 240 frames later), so the climb is a run of hops that never stops: land,
  * turn, jump. A fall is to the snow of the trail, nothing worse, and the boughs grow their snow back. One icicle hangs from the top bough over the east end of the bough below,
- * where the second coin is: a dash out and back while it shivers.
+ * where the second coin is, dripping on its own clock (`period`): the dash out to it and back is timed to the drip.
  */
 const TAIGA_BOUGH_LIST: readonly (readonly [col: number, floor: number, cols: number])[] = [[14, 15, 7], [7, 13, 5], [14, 11, 5], [7, 9, 5], [14, 7, 5]];
 export const TAIGA = {
   boughs: TAIGA_BOUGH_LIST,
   nest: { col: 21, floor: 5, cols: 5 },
   trunks: [17, 9, 23] as const,
-  icicle: { col: 17, row: 8, floor: 11 },
+  icicle: { col: 17, row: 8, floor: 11, period: 120, phase: 50 }, // (it drips on its own clock: the dash along the cracking bough to the coin under it is timed to the drip, never a wait on the bough)
 } as const;
 const TAIGA_PALETTE = {
   S: ['snowGround', 1], F: ['hillEarth', 9], B: ['boughSnow', 1], C: ['boughSlide', 1], D: ['boughBare', 1], T: ['timber', 9],
@@ -232,8 +232,8 @@ const TAIGA_PINES: readonly Placed[] = ([[17, 4, 4], [9, 6, 3], [23, 6, 2]] as c
   return fillCells(paintTaiga, TAIGA_COINS, [t - w, row, t + w, row], 'taigaNeedles').filter(([, c]) => c !== t);
 }));
 
-/** The icicle over the ticket in the yeti's cave. */
-export const SIBERIA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.yeti, col: 18, row: 2, floor: 5 }];
+/** The icicle over the ticket in the yeti's cave: it shakes as he comes toward it (`lead`), so walking straight on meets its fall; he stops, lets it fall, and goes by while it grows back. */
+export const SIBERIA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.yeti, col: 18, row: 2, floor: 5, lead: 2 }];
 
 /**
  * The frozen Amur's two stretches of ice: six cells each on the river's row 17, either side of the sandbar. His two-cell body is over a stretch for about 56 frames when he walks

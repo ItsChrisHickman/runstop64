@@ -7,7 +7,7 @@ import type { Game, Input as Stick } from '../../montyotr/src/game';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { ROW, SCREEN } from '../../shared/monty/screen';
 import { WORLD } from '../src/data';
-import { cellOf } from '../../montyotr/src/montydata';
+import { cellOf, type IcicleSpec } from '../../montyotr/src/montydata';
 import { must } from '../../shared/test/must';
 import { newGame } from '../../shared/monty/test/bot';
 import { itemIndex, standY } from './route';
@@ -88,4 +88,34 @@ export function entriesBefore(lo: number, hi: number): { coins: number; items: n
     coins: nCoins, items: nItems,
     ordered: coins.slice(0, nCoins).every((r) => r < lo) && items.slice(0, nItems).every((r) => r < lo) && own(coins, nCoins, coinsIn(lo, hi)) && own(items, nItems, itemsIn(lo, hi)),
   };
+}
+
+/**
+ * An icicle met on the way (icicles.ts, Chris: they "are never hard unless you stop and wait for them"), walking from `fromCol` on `floor` toward its column and on `past` cells beyond: `straight`, the frame
+ * walking straight on dies (-1: he got by); `waited`, whether stopping where it begins to shake (or, a `period` one, where he stands until it has fallen), letting it fall, then walking on as it grows back
+ * gets him by alive (jumping where a step stops him). A fair icicle puzzle has both: straight on dies, the wait lives.
+ */
+export function icicleMet(room: number, e: IcicleSpec, fromCol: number, floor: number, past = 2): { straight: number; waited: boolean } {
+  const toward = fromCol < e.col ? RIGHT : LEFT;
+  const by = (g: Game) => (fromCol < e.col ? colOf(g) >= e.col + past : colOf(g) <= e.col - past - 1);
+  const index = WORLD.icicles.filter((i) => i.room === room).indexOf(e);
+  const walk = (s: State, limit: number): boolean => { // (on toward it, jumping where a step stops him)
+    for (let f = 0, x = -1; f < limit && !by(s.g); f++) { const stuck = s.g.x2 === x && !s.g.montyAction && !s.g.falling; x = s.g.x2; frame(s, stuck ? { ...toward, fire: true } : toward); if (dead(s.g)) return false; }
+    return by(s.g);
+  };
+  const s = at(room, fromCol, floor);
+  let straight = -1;
+  for (let f = 0; f < 240 && !by(s.g) && straight < 0; f++) { frame(s, toward); if (dead(s.g)) straight = f; }
+  const w = at(room, fromCol, floor);
+  const state = () => w.g.ice[index]?.state;
+  if (e.period === undefined) for (let f = 0; f < 240 && state() === 'hang' && !dead(w.g); f++) frame(w, toward);
+  for (let f = 0; f < 600 && state() !== 'grow' && !dead(w.g); f++) frame(w, NONE);
+  return { straight, waited: !dead(w.g) && state() === 'grow' && walk(w, 240) };
+}
+
+/** The frames (from 1) in which the room's `index`th icicle begins to shake over `frames` frames with Monty held as `s` has him (a `period` one drips whoever is near). */
+export function shakes(s: State, index: number, frames: number, stick: Stick = NONE): number[] {
+  const out: number[] = [];
+  for (let f = 1; f <= frames; f++) { const was = s.g.ice[index]?.state; frame(s, stick); if (was === 'hang' && s.g.ice[index]?.state === 'shiver') out.push(f); }
+  return out;
 }
