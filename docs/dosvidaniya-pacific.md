@@ -282,3 +282,7 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   ridge of telescopes, a dome whose slit opens and shuts; west: the cinder cones and Lake Waiau, the snow), each with its
   own challenge and coins (LESSONS: "An edge that runs off into nothing gets a bonus room").
 - **MAUNA KEA:** one creature, no challenge (the full pass).
+- **AKAKA FALLS:** "literally has nothing going on, with an enemy that no one would jump into." And on Hawaii as a whole:
+  "Hawaii level design is pretty cool. Enemy placement is terrible." Keep Hawaii's layouts; the pass re-places its creatures
+  (on the way, crossing the levels he climbs, mixed speeds, three to a room) and adds the falls' own hazard (the falls'
+  spray and the slippery rocks at the two crossings, a creature diving through the falls).
