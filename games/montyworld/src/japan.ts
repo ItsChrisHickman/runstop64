@@ -1,7 +1,9 @@
 import { SCREEN_MARGIN } from '../../shared/monty/screen';
-import type { CharAnim, CrackSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
+import { creatureBlocks } from '../../montyotr/src/cameos';
+import type { CameoSpec, CharAnim, CrackSpec, IcicleSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { JAPAN_SPRITE, SNOWBALL_POINTERS } from './japan-pointers';
+import { GUST_FRAMES, TENGU_CAMEO, TENGU_INK } from './art/japan-cave';
 import { SNOWBALL_FRAMES } from './art/japan-fuji';
 import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
 import { GLASS_CELLS, pachinkoFrames } from './art/japan-pachinko';
@@ -24,7 +26,9 @@ import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layou
 
 // ---- the ids -----------------------------------------------------------------------------------------
 /** Room ids go on from China's (18-26): they never change once the region has shipped. */
-export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform: 31, fuji: 32, garden: 33, mole: 34, hideout: 35, hall: 36, port: 37, grove: 97 } as const;
+export const JP = { harbour: 27, street: 28, parlour: 29, crossing: 30, platform: 31, fuji: 32, garden: 33, mole: 34, hideout: 35, hall: 36, port: 37, grove: 97, cave: 98 } as const;
+/** Whether a room is one of Japan's (the eleven made with it, and the rooms added after it shipped). */
+export const isJapanese = (room: number): boolean => Object.values(JP).some((id) => id === room);
 
 /** The names (a pun on the place, Monty on the Run's manner, no Z), the sectors from 27 on. */
 const NAMES = [
@@ -33,9 +37,12 @@ const NAMES = [
 export const JAPAN_SECTORS: readonly Sector[] = NAMES.map((text) => ({ col: Math.floor((32 - text.length) / 2), text }));
 /** The map's colour of each (the harbour light blue, the street and parlour reds, the crossing grey, the platform blue, the mountain white, the garden green, the hidden room purple, the roofs yellow, the hall orange, the port brown). */
 export const JAPAN_COLOURS: readonly number[] = [14, 2, 10, 12, 6, 1, 5, 4, 7, 8, 9];
-/** Rooms added to Japan after it shipped (later-sectors.ts): SHOOT FOR THE MOON (2026-11-25), the bonus bamboo grove west of THE LAST MOLE; the map's colour of each. */
-export const JAPAN_LATER_NAMES: Readonly<Record<number, string>> = { [JP.grove]: 'SHOOT FOR THE MOON' };
-export const JAPAN_LATER_COLOURS: Readonly<Record<number, number>> = { [JP.grove]: 13 };
+/**
+ * Rooms added to Japan after it shipped (later-sectors.ts): SHOOT FOR THE MOON (2026-11-25), the bonus bamboo grove west of THE LAST MOLE; GONE WITH THE WIND (2026-11-26), the bonus ice cave
+ * at Mount Fuji's foot, where the tengu's gust carries him back up the mountain. The map's colour of each.
+ */
+export const JAPAN_LATER_NAMES: Readonly<Record<number, string>> = { [JP.grove]: 'SHOOT FOR THE MOON', [JP.cave]: 'GONE WITH THE WIND' };
+export const JAPAN_LATER_COLOURS: Readonly<Record<number, number>> = { [JP.grove]: 13, [JP.cave]: 3 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 export const HARBOUR_PALETTE = {
@@ -61,7 +68,7 @@ export const PLATFORM_PALETTE = {
   W: ['jpTiled', 14], H: ['jpShutter', 12], R: ['jpBamboo', 5], B: ['jpTrainBody', 1], N: ['jpTrainWin', 1], S: ['jpTrainBand', 6], L: ['jpTrainWheel', 12], E: ['jpTrainHalf', 1],
 } as const satisfies Palette;
 
-/** The mountain's five: the scree (frame and foot), the trail's ledges, the chain, and the mountain's own body (snow above, slope below) as scenery behind the trail. */
+/** The mountain's seven: the scree (the spur, the crags, the rock under the first ledge), the trail's ledges, the chain, the cone behind the climb (snow above, light blue slope below), the huts' roofs and walls. */
 export const FUJI_PALETTE = {
   S: ['jpScree', 9], T: ['jpTrail', 7], R: ['jpChain', 12], N: ['jpSnow', 1], M: ['jpSlope', 6], H: ['jpRoofBody', 2], W: ['jpKeepWall', 9],
 } as const satisfies Palette;
@@ -232,17 +239,31 @@ const PLATFORM_DECOR = [
 ] as const;
 
 // ---- Mount Fuji ------------------------------------------------------------------------------------------
-/** The cone's half width in cells from row 2 down: a flat crater top, steep, then flaring at its foot (the classic curve). Its centre is between columns 16 and 17. */
-const FUJI_HALF = [4, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const;
+/**
+ * The mountain behind the climb (no fill behind the play: LESSONS.md): Fuji's own cone in the top band, snow over light blue, its flanks at 45 degrees (a diagonal character beyond each row's end),
+ * its narrow crater top under the snowballs' start, its foot resting on the second ledge between the last step and the top hut: the trail's upper ledges run along its foot. The cone's half width in
+ * cells from row 2 down; its centre is between columns 15 and 16.
+ */
+const FUJI_HALF = [1, 2, 3, 4, 5, 6] as const;
+const FUJI_MID = 16;
 /** The snow: solid white down to this row, its jagged edge on the row under it. */
-const SNOW_ROWS = 5;
-/** Fuji's tiles: the cone, the trail's ledges and steps, the rock of the frame, the chain. */
+const SNOW_ROWS = 3;
+/**
+ * The open mountainside (Chris, 2026-11-26: "Might be better if Monty enters on a ledge and we have no arbitrary floor"): he comes in from the platform on a ledge (`entry`) that juts from a spur of
+ * rock, and the switchbacks hang over the drop: a gap (`gap`, three cells: a jump) between the entry ledge and the first ledge (`ledge`), whose rock tapers under it, the steps up on the flank to the
+ * second ledge. Below them nothing but the drop, which falls through the room's foot (columns `open`) into the ice cave at Fuji's foot (GONE WITH THE WIND).
+ */
+export const FUJI = { entry: { col0: 0, col1: 8 }, gap: { col0: 9, col1: 11 }, ledge: { col0: 12, col1: 22 }, floor: 14, open: { col0: 2, col1: 28 } } as const;
+/** Fuji's tiles: the cone behind the climb, the spur and the crags, the trail's ledges and steps, the rock over the chain's top, the chain. */
 function paintFuji(g: Grid) {
-  FUJI_HALF.forEach((hw, k) => g.box(17 - hw, k + 2, 16 + hw, k + 2, k + 2 <= SNOW_ROWS ? 'N' : 'M')); // the cone: snow above, blue slope below
-  g.box(0, 0, 3, 1, 'S').box(7, 0, 12, 1, 'S'); // (the rock the chain hangs from)
-  g.box(30, 0, 31, 13, 'S').box(29, 8, 29, 13, 'S'); // (open sky; the rock of the mountain's flank closes the right, the line of the platform open at the left)
-  g.box(0, 14, 22, 14, 'T').box(23, 14, 31, 14, 'S').box(0, 15, 31, 19, 'S');
-  g.box(23, 12, 25, 12, 'T').box(26, 10, 28, 10, 'T'); // the steps
+  FUJI_HALF.forEach((hw, k) => g.box(FUJI_MID - hw, k + 2, FUJI_MID - 1 + hw, k + 2, k + 2 <= SNOW_ROWS ? 'N' : 'M')); // the cone: snow above, light blue slope below
+  g.box(1, 0, 3, 0, 'S').box(7, 0, 9, 0, 'S'); // (a rock overhang either side of the chain's top: no jumping off it out of the room)
+  g.box(30, 0, 31, 19, 'S').box(29, 8, 29, 19, 'S'); // (open sky; the rock of the mountain's flank closes the right, the line of the platform open at the left)
+  g.box(FUJI.entry.col0, FUJI.floor, FUJI.entry.col1, FUJI.floor, 'T'); // the ledge he comes in on
+  g.box(0, 15, 6, 15, 'S').box(0, 16, 4, 16, 'S').box(0, 17, 2, 17, 'S').box(0, 18, 1, 19, 'S'); // the spur it juts from, down the platform's side to the room's foot
+  g.box(FUJI.ledge.col0, FUJI.floor, FUJI.ledge.col1, FUJI.floor, 'T').box(13, 15, 21, 15, 'S').box(15, 16, 19, 16, 'S'); // the first ledge over the drop, its rock tapering under it
+  g.box(23, 12, 25, 12, 'T').box(26, 10, 28, 10, 'T'); // the steps: the upper one off the flank's rock, the lower one off a crag under it
+  g.box(26, 12, 28, 12, 'S').box(27, 13, 28, 13, 'S').box(28, 14, 28, 14, 'S'); // (the crag: a row under the upper step, so no one stands in it, tapering into the flank)
   g.box(10, 8, 26, 8, 'T'); // the second ledge
   g.box(7, 6, 9, 6, 'T'); // the last step
   g.box(5, 0, 5, 5, 'R'); // the chain
@@ -257,44 +278,37 @@ export const FUJI_HUTS = [
   { col0: 3, col1: 7, wall1: 7, floor: 14 },
   { col0: 22, col1: 25, wall1: 24, floor: 8 },
 ] as const;
-/**
- * What finishes the cone, stamped where the painted room has the slope (or empty cells beside it): the snow's jagged edge on the first row of slope, streaks of snow running down the slope
- * from it (over the slope, never over the trail), the blue flanks' diagonal edges.
- */
+/** Where the tengu's gust sets him down (GONE WITH THE WIND): in the foot hut on the ledge he came in on, out of the snowballs' way, so the climb and its snow slides are still ahead of him. */
+export const GUST_LANDING = { col: FUJI_HUTS[0].col0 + 1, floor: FUJI_HUTS[0].floor } as const;
 /** The mountain's coins: on the first ledge in the snowballs' lane, on the steps they drop down, and under the eaves of the top hut, a step from where they drop (a backdrop leaves their cells alone). */
 const FUJI_COINS: readonly (readonly [number, number])[] = [[17, 12], [24, 10], [25, 6]];
 /**
- * SNOW SLIDES: a snowball (a roller, as the Andes' boulders: a sprite on a path, deadly to touch) every `FUJI_SNOW.every` frames, the first `start` frames after he comes in: seen at the summit (over the snow
- * cap, against the sky), it rolls east off it and down the flank onto the top hut's roof, along it and off its east end down onto the upper step, back west off it onto the lower step, off that onto the
+ * SNOW SLIDES: a snowball (a roller, as the Andes' boulders: a sprite on a path, deadly to touch) every `FUJI_SNOW.every` frames, the first `start` frames after he comes in: seen at the summit (on the cone's
+ * crater top, against the sky), it rolls east off it and down the cone's flank onto the top hut's roof (the same distance as before the cone was redrawn, so the timing is unchanged), along it and off its east end down onto the upper step, back west off it onto the lower step, off that onto the
  * first ledge, west along it, hops over the foot hut's roof and flies off the room's west edge high over the way in. So the climb (the first ledge east, the steps, up onto the second ledge) is crossed between
  * two snowballs, from hut to hut: wait in the foot hut for one to pass over, then climb to the top hut before the next. The second ledge west of the top hut, the last step and the chain are clear.
  * (A point is the snowball's top left cell: its floor's row less two.)
  */
 export const FUJI_SNOW = { every: 460, start: 30, speed: 2 } as const;
 export const FUJI_SNOW_PATH: readonly (readonly [col: number, row: number])[] = [
-  [16, 0], [21, 0], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
+  [15.6, 0], [16, 0], [18, 2], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
 ];
-/** The snowball (white: it stands off the blue slope and the black sky; it never crosses the snow cap), on sprite 1 as the Andes' boulders, its pictures put in while the mountain is loaded. */
+/** The snowball (white: it stands off the black sky; it rolls down the cone's edge against the sky, never across its face), on sprite 1 as the Andes' boulders, its pictures put in while the mountain is loaded. */
 export const FUJI_SNOWBALLS: readonly RollerSpec[] = [{ room: JP.fuji, sprite: 1, path: FUJI_SNOW_PATH, ...FUJI_SNOW, frames: SNOWBALL_POINTERS, colour: 1 }];
 export const FUJI_BLOCKS: RoomBlocks = { rooms: [JP.fuji], blocks: SNOWBALL_POINTERS.map((ptr, i) => ({ ptr, block: SNOWBALL_FRAMES[i] ?? new Uint8Array(64) })) };
+/** What finishes the cone, stamped where the painted room has the slope (or empty cells beside it): the snow's jagged edge on the first row of slope, the flanks' diagonal edges (white beside the snow, light blue below). */
 function fujiSnow(): (readonly [WorldDecor, col: number, row: number])[] {
   const g = new Grid();
   paintFuji(g);
   const out: (readonly [WorldDecor, col: number, row: number])[] = [];
   const edge = ['jpSnowEdgeA', 'jpSnowEdgeB', 'jpSnowEdgeC'] as const;
-  const streak = ['jpSnowStreakA', 'jpSnowStreakB'] as const;
   FUJI_HALF.forEach((hw, k) => {
-    const row = k + 2, left = 17 - hw, right = 16 + hw;
+    const row = k + 2, left = FUJI_MID - hw, right = FUJI_MID - 1 + hw;
     if (row === SNOW_ROWS + 1) for (let c = left; c <= right; c++) out.push([edge[(c * 7 + 1) % 3] ?? 'jpSnowEdgeA', c, row]);
-    if (row > SNOW_ROWS + 1) {
-      if (g.at(left - 1, row) === '.') out.push(['jpFlankL', left - 1, row]);
-      if (g.at(right + 1, row) === '.') out.push(['jpFlankR', right + 1, row]);
-    }
+    const snow = row <= SNOW_ROWS;
+    if (g.at(left - 1, row) === '.') out.push([snow ? 'jpSnowFlankL' : 'jpFlankL', left - 1, row]);
+    if (g.at(right + 1, row) === '.') out.push([snow ? 'jpSnowFlankR' : 'jpFlankR', right + 1, row]);
   });
-  // streaks down the slope: from under the jagged edge, over the first row of slope above the second ledge and the long slope under it, where the slope is bare (none in the snowballs' way: white on white, a snowball would vanish against one)
-  for (const [c, r0, r1] of [[12, 7, 7], [14, 7, 7], [17, 7, 7], [19, 7, 7], [21, 7, 7], [13, 9, 10], [15, 9, 11], [18, 9, 10], [20, 9, 11]] as const) {
-    for (let r = r0; r <= r1; r++) if (g.at(c, r) === 'M') out.push([streak[(c + r) % 2] ?? 'jpSnowStreakA', c, r]);
-  }
   return out.filter(([, c, r]) => !FUJI_COINS.some(([cc, cr]) => cc === c && cr === r));
 }
 
@@ -355,6 +369,56 @@ const GROVE_BACK = GROVE_CULMS.flatMap((c, i) => [
   ...fillCells(paintGrove, GROVE_COINS, [c, 2, c, GROVE.water - 1], 'jpBambooBack'),
   ...fillCells(paintGrove, GROVE_COINS, [c - 1 - (i % 2), 0, c + 1, 1], 'jpBambooLeaves'),
 ]).concat(GROVE.stalks.flatMap(([c, top]) => fillCells(paintGrove, GROVE_COINS, [c - 1, top - 1, c + 1, top], 'jpBambooLeaves'))); // and a spray at each stalk's head
+
+// ---- GONE WITH THE WIND: the ice cave at Fuji's foot ----------------------------------------------------------
+/**
+ * The ice cave under MOUNT FUJI (Chris, 2026-11-26: "a cave that takes Monty to the top like the MOTR teleports... if it made sense, having a few teleports if fun would be cool"; the real Narusawa Ice Cave
+ * and Fugaku Wind Cave are lava tubes at Fuji's foot). A bonus room, off the way on: he drops into it off the open mountainside (the gap by the way in, or off the steps), lands on the snow heaped
+ * under the sinkhole (`heap`), drops through its hole at the west (`hole`) into the lava tube and goes east under its ceiling: an icicle (`icicles`), a rock hump, the yuki-onna drifting up and down
+ * across the tube, a frozen fall hanging from the ceiling, a second icicle over the first coin, a mound of ice with the second; and at the end the tengu, who flies in as Monty comes down into the tube
+ * and beckons by the gust (`gust`, Monty on the Run's teleporter beam, always open): into it, and the wind carries him up the beam (MontyData.teleportLift: `GUST_LIFT`) and out, and sets him down in the foot hut on MOUNT FUJI's
+ * way in (`GUST_LANDING`), where he materialises: the climb and its snow slides still ahead of him, the cave a detour with its coins, never a way round them.
+ * A teleport as a reward, seen and understood (the tengu, the gust carrying him up, Monty set down safe), never a punishment; the only way out, and always there.
+ */
+export const CAVE = {
+  heap: { floor: 8, mound: [[11, 19, 7], [13, 17, 6]] }, hole: { col0: 3, col1: 5 }, ceiling: 9, floor: 18,
+  hump: { col0: 9, col1: 11, floor: 16 }, fall: { col0: 17, col1: 18, row0: 10, row1: 13 }, mound: { col0: 22, col1: 23, floor: 16 },
+  yuki: { col: 14, row: 10, range: 48 }, icicles: [7, 20], gust: { col: 25, row: 9, height: 7 }, tengu: { col: 27 },
+} as const;
+/** How far the gust carries him up its beam before it sets him down at the top (MontyData.teleportLift): from standing on the tube's floor until his head is in the beam's top. */
+export const GUST_LIFT = (CAVE.floor - 3 - CAVE.gust.row) * 8;
+const CAVE_PALETTE = { K: ['jpScree', 9], S: ['snowGround', 1], F: ['snowFill', 1], I: ['iceFall', 3] } as const satisfies Palette;
+const paintCave = (g: Grid): void => {
+  g.box(0, 0, 1, 19, 'K').box(29, 0, 31, 19, 'K'); // the lava tube's walls (the sinkhole open above to the mountainside: MOUNT FUJI's foot)
+  g.box(2, CAVE.heap.floor, 28, CAVE.heap.floor, 'S'); // the snow fallen in through the sinkhole, heaped under it
+  for (const [c0, c1, row] of CAVE.heap.mound) g.box(c0, row + 1, c1, CAVE.heap.floor, 'F').box(c0, row, c1, row, 'S');
+  g.box(2, CAVE.ceiling, 28, CAVE.ceiling, 'K'); // the tube's roof under it
+  g.clear(CAVE.hole.col0, CAVE.heap.floor, CAVE.hole.col1, CAVE.ceiling); // the hole down into the tube
+  g.box(2, CAVE.floor, 28, 19, 'K'); // the tube's floor
+  g.box(2, CAVE.ceiling + 1, 2, CAVE.floor - 1, 'I'); // a frozen fall down the west wall
+  g.box(CAVE.hump.col0, CAVE.hump.floor, CAVE.hump.col1, CAVE.floor - 1, 'K'); // a hump of lava rock
+  g.box(CAVE.fall.col0, CAVE.fall.row0, CAVE.fall.col1, CAVE.fall.row1, 'I'); // a frozen fall hanging from the roof (he walks under it)
+  g.box(CAVE.mound.col0, CAVE.mound.floor, CAVE.mound.col1, CAVE.floor - 1, 'I'); // a mound of ice built up from the floor where the roof drips, as the falls are
+};
+const CAVE_COINS: readonly (readonly [col: number, row: number])[] = [[20, 16], [22, 14]];
+/** The tube's two icicles: over the way in from the hole, and over the first coin. */
+export const CAVE_ICICLES: readonly IcicleSpec[] = CAVE.icicles.map((col) => ({ room: JP.cave, col, row: CAVE.ceiling + 1, floor: CAVE.floor }));
+/** The tengu (a cameo: harmless, his own sprite) on the room's third creature slot, sprite 6, his pictures in its blocks. */
+const TENGU_SLOT = { sprite: 6, first: 0x30 + 2 * 8 } as const;
+/**
+ * The tengu: as Monty drops from the sinkhole into the tube (out of the box over the tube's roof), he flies in from the dark of the tube's east end, lands by the gust and stays there, beckoning with
+ * his fan towards Monty (the cameo's look), every time Monty comes in.
+ */
+export const TENGU: CameoSpec = {
+  room: JP.cave, when: { col0: 0, row0: 0, col1: 31, row1: CAVE.ceiling }, wait: 10, sprite: TENGU_SLOT.sprite, first: TENGU_SLOT.first, colour: TENGU_INK,
+  move: { from: 33, at: { col: CAVE.tengu.col, row: CAVE.floor }, to: 33, pose: 'look', hold: 0xffffff },
+};
+/** The wind rising either side of the gust's beam, the whole height of the tube: one character, turned a step every few frames. */
+const GUST_DECOR = [CAVE.gust.col - 1, CAVE.gust.col + 1].flatMap((col) => Array.from({ length: CAVE.gust.height + 1 }, (_, i) => ['jpGust', col, CAVE.gust.row + 1 + i] as const));
+/** The heap's sides under the sinkhole: a snow slope beside each step of it (so it reads as a drift, not a wall of blocks). */
+const HEAP_DECOR = CAVE.heap.mound.flatMap(([c0, c1, row]) => [['jpSnowFlankL', c0 - 1, row], ['jpSnowFlankR', c1 + 1, row]] as const);
+export const GUST_ANIM: CharAnim = { kind: 'cycle', room: JP.cave, chars: [{ decor: decorIndex('jpGust'), cell: 0 }], frames: GUST_FRAMES, every: 3 };
+export const TENGU_BLOCKS: RoomBlocks = { rooms: [JP.cave], blocks: creatureBlocks(TENGU_CAMEO).map((block, i) => ({ ptr: TENGU_SLOT.first + i, block })) };
 
 export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // A THE FISH MARKET: the fishing harbour at dawn. In from China's junk (low, its deck at the left); the quay runs east, with the market on it, past an inlet and a crate stack to the way out (low) to the street.
@@ -468,13 +532,15 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [...PLATFORM_DECOR],
   }),
 
-  // F MOUNT FUJI: Mount Fuji's foot and slope. In from the platform past the shutter (mid); the mountain stands over the trail, a solid white cap with a jagged lower edge and streaks of snow running down its blue slopes
-  // (scenery he climbs in front of), and the pilgrim's trail winds up its face in switchbacks: east along the first ledge, up two steps on the flank, back west along the second ledge, up a step to the chain at the left that climbs through the ceiling to the garden. SNOW SLIDES: snowballs roll from the summit down the climb (FUJI_SNOW), and a pilgrims' hut at its foot and its top (FUJI_HUTS) is where he waits for one to pass.
+  // F MOUNT FUJI: Mount Fuji's open mountainside (FUJI). In from the platform past the shutter onto a ledge jutting from a spur (mid); Fuji's cone behind the climb, the pilgrim's trail hanging over the drop along its foot
+  // in switchbacks: a jump over the gap to the first ledge, east along it, up two steps on the flank, back west along the second ledge, up a step to the chain at the left that climbs to the garden. A fall
+  // off the mountainside drops into the ice cave at its foot (GONE WITH THE WIND), whose tengu's gust carries him back up to the foot hut. SNOW SLIDES: snowballs roll from the summit down the climb
+  // (FUJI_SNOW), and a pilgrims' hut at its foot and its top (FUJI_HUTS) is where he waits for one to pass.
   room({
     id: JP.fuji, cell: [2, 15], sector: 32, palette: FUJI_PALETTE,
     paint: paintFuji,
     coins: FUJI_COINS,
-    decor: [['jpSun', 26, 0], ['jpCloud', 7, 3], ...fujiSnow()], // (the sun high in the corner, clear of the top hut's roof)
+    decor: [['jpSun', 26, 0], ['jpCloud', 0, 3], ...fujiSnow()], // (the sun high in the corner, clear of the top hut's roof; a cloud on the horizon west of the chain, clear of the summit's flank)
     creatures: [], // (SNOW SLIDES is the room: no creature crowds the snowballs' timing)
   }),
 
@@ -606,5 +672,16 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'jpCrane', col: 4, row: 8, way: 'right', speed: 1, range: 72 },
     ],
+  }),
+  // GONE WITH THE WIND: the ice cave at Fuji's foot, a bonus room (CAVE): in by a drop off the open mountainside, out by the tengu's gust, up and back to the foot hut on the way in.
+  room({
+    id: JP.cave, cell: [3, 15], sector: JP.cave, palette: CAVE_PALETTE,
+    paint: paintCave,
+    coins: CAVE_COINS,
+    decor: [...GUST_DECOR, ...HEAP_DECOR],
+    creatures: [
+      { who: 'jpYukiOnna', col: CAVE.yuki.col, row: CAVE.yuki.row, way: 'down', speed: 1, range: CAVE.yuki.range }, // the snow woman, drifting down across the tube and up again
+    ],
+    teleporter: { ...CAVE.gust, to: { cell: [2, 15], ...GUST_LANDING } },
   }),
 ];

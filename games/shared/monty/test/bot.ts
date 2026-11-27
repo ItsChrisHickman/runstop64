@@ -49,7 +49,8 @@ export function hold(s: State, stick: Stick, frames: number): Held {
   for (let f = 0; f < frames; f++) {
     const before = s.g.actionCounter;
     frame(s, stick);
-    if (diedIn(before, s.g.actionCounter) || (s.g.actionCounter && !(s.g.actionCounter & 0x80))) return { dead: true };
+    const warped = s.g.tele.lift !== 0 || (s.g.roomId !== room && s.g.dissolvePending !== 0); // (a teleporter: the lift up its beam and the dissolve into the next room hold the game as a death's start does, but it is a way, not a death)
+    if (!warped && (diedIn(before, s.g.actionCounter) || (s.g.actionCounter && !(s.g.actionCounter & 0x80)))) return { dead: true };
     if (s.g.roomId !== room) {
       for (let n = 0; n < 200 && !settled(s.g); n++) frame(s, NONE);
       return { dead: false, room: s.g.roomId };
@@ -66,7 +67,7 @@ const flying = (g: Game): boolean => g.data.flights.some((f) => f.room === g.roo
 
 /** Where he is and how, and roughly where the room's creatures, icicles and crushers are, for the search. */
 export const keyOf = (g: Game): string => [
-  g.roomId, g.x2 >> swimBits(g), g.y >> (swimBits(g) >> 1), g.onRope, g.montyAction, g.arcIdx, g.falling, g.facing >> 7, g.gameMode, g.esc.index, g.esc.t >> 3,
+  g.roomId, g.x2 >> swimBits(g), g.y >> (swimBits(g) >> 1), g.onRope, g.montyAction, g.arcIdx, g.falling, g.facing >> 7, g.gameMode, g.tele.lift, g.esc.index, g.esc.t >> 3,
   ...g.enemies.map((e) => (flying(g) ? `${e.x >> 2}/${e.y >> 3}/${e.flags >> 7}` : `${e.x >> 4}/${e.y >> 4}/${e.flags >> 7}`)), g.pd.state, g.pd.index, g.pd.position >> 3, g.swimTick % 6, ...g.lavas.map((l) => l.t >> 3),
   ...g.ice.map((i) => `${i.state}${i.t >> 4}`), ...g.tunnels.filter((t) => !t.spec.harmless).map((t) => `${t.state}${t.left}${t.t >> 3}`), ...g.cracks.map((c) => `${c.stage}${c.t >> 3}`), ...g.pulses.filter((p, i, all) => all.findIndex((q) => q.t === p.t) === i).map((p) => `p${p.t >> 3}`), ...g.dragons.map((d) => `d${d.t >> 3}/${d.pos >> 3}/${d.dir}${d.mode}${d.left >> 3}${d.charging > 0 ? 'c' : ''}`), ...g.floats.flatMap((f) => { const e = g.data.floats[f.index]; return e?.bounce ? [`f${(f.t % (2 * (e.span.to - e.span.from + 1 - e.w + e.bounce.hold) * e.step)) >> 3}`] : []; }), g.flightTick % 2, g.flightResting, ...g.rollers.map((r) => `r${(r.t % (g.data.rollers[r.index]?.every ?? 360)) >> 3}`), ...g.vines.slice(0, 1).map((v) => `v${(v.t % 96) >> 3}`), g.lift.y, ...g.pursuers.map((p) => `a${p.awake ? 1 : 0}${p.gone}${p.x2 >> 1},${p.y >> 2}`), g.hold.pull, g.hold.warn >> 2, g.leverLatch ? 1 : 0, g.siCollected.join(''), g.pendingFinds.join(','), g.coinCollected.join(''),
 ].join(',');

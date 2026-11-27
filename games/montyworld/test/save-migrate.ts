@@ -4,7 +4,7 @@
  * him somewhere he can stand, in the exit grid's cell that room has now. Saves of format 2 (the reset's, before Hawaii's island hopping came back) are read the same way (the snorkel, the lei and the
  * parachute moved rooms; Viktor's escapes are matched by their order), one on the old Hilo's apron carries on by the biplane, one made in the cut cargo plane's hold at Hilo. Saves of format 3 (live 2026-11-25/26,
  * before the Andes' rebuild, the bonus rooms off the path and Rio's carnival) too: one made in Sugarloaf's cut room carries on in Lapa with its coin as Lapa's third, the crank (moved to the floats' stage) still
- * taken. Today's (format 4) read as they are.
+ * taken. Today's (format 4) read as they are, those written before GONE WITH THE WIND (the ice cave under MOUNT FUJI, added last: its two coins at the table's end) too, the cave's coins not yet taken.
  * (Format 3 also moved the daruma to BULLET POINT's platform and gave the parlour's prize shelf a coin: a format 2 save's Japan is matched the same way.)
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/save-migrate.ts
@@ -24,7 +24,8 @@ import { CHI } from '../src/china';
 import { RIO_ROOM } from '../src/rio';
 import { RIO_SPRITE } from '../src/rio-pointers';
 import { ANDES_SPRITE } from '../src/andes-pointers';
-import { JP } from '../src/japan';
+import { FUJI, JP } from '../src/japan';
+import { enterRoom } from '../../montyotr/src/ending';
 import { RETIRED } from '../src/save-migrate';
 import { dead } from './mech-kit';
 import { coinIndex, itemIndex, standY } from './route';
@@ -100,6 +101,22 @@ check('a save in a room the reset did not change keeps its place exactly (Moscow
 const now = snapshot(b.g);
 const again = CODEC.unpack(CODEC.pack(now), 4);
 check('a format 4 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
+// a format 4 save from before the ice cave (2026-11-26): two coins short (the cave's, last in the table), made on MOUNT FUJI's entry ledge (the mountain lost its floor, not the ledge he comes in on):
+// every coin it had is still taken, the cave's are not, and he carries on standing on the ledge
+{
+  const s4 = newGame(WORLD, false);
+  enterRoom(s4.g, JP.fuji, 0x0c + (FUJI.entry.col0 + 1 + 4) * 4, standY(FUJI.floor));
+  for (let f = 0; f < 60; f++) frame(s4, NONE);
+  const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => WORLD.coinTable[i * 3] === JP.cave);
+  const before = { ...snapshot(s4.g), coins: Array.from({ length: WORLD.coinTable.length / 3 - cave.length }, () => 0xff) };
+  const read = CODEC.unpack(CODEC.pack(before), 4);
+  const p4 = newGame(WORLD, false);
+  restore(p4.g, read);
+  for (let f = 0; f < 120; f++) frame(p4, NONE);
+  const had = p4.g.coinCollected.slice(0, before.coins.length).every((v) => v === 0xff), caveOpen = cave.every((i) => p4.g.coinCollected[i] === 0);
+  check(`a format 4 save from before the ice cave keeps every coin it had (${had}), the cave's ${cave.length} not yet taken (${caveOpen}), and carries on on MOUNT FUJI's entry ledge (room ${p4.g.roomId}, y ${p4.g.y}), alive`,
+    cave.length === 2 && cave.every((i) => i >= before.coins.length) && had && caveOpen && p4.g.roomId === JP.fuji && p4.g.y === standY(FUJI.floor) && !dead(p4.g));
+}
 // format 2 (the reset's Hawaii: the snorkel and the lei at Waikiki (41), the musubi in the swim room (49), the parachute and three coins in Hilo (52), Viktor overboard a find no room shows)
 /** The place of a format 2 find in its table: the n-th of a room's. */
 const oldItem2 = (room: number, nth = 0) => {

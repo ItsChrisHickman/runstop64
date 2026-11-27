@@ -2,6 +2,7 @@ import { enemyColours } from '../../montyotr/src/data';
 import { decorChars } from '../../montyotr/src/decor-chars';
 import type { MontyData } from '../../montyotr/src/montydata';
 import type { RoomSpec } from '../../shared/monty/rooms';
+import { standX2, standY } from '../../montyotr/src/way-in';
 import { PLAY_COL, PLAY_COLS, PLAY_ROW, PLAY_ROWS, SCREEN_MARGIN } from '../../shared/monty/screen';
 import { WORLD_CREATURES, WORLD_DECOR, worldTileIndex, type WorldCreature, type WorldDecor, type WorldTile } from './art/world';
 
@@ -66,7 +67,15 @@ export interface MoscowRoom {
   creatures?: readonly Creature[];
   /** Mole Crushers: the shaft's top cell, its height, its characters. */
   crushers?: readonly { col: number; row: number; height: number; }[];
+  /**
+   * A teleport, only where it is a reward seen and understood (LESSONS.md: never a punishment for bad timing): Monty on the Run's beam (its cap's three cells at `col` - 1 to `col` + 1 on row `row`,
+   * the beam under it from row `row` + 1, `height` + 1 cells), always open (no colour of its flicker shuts it), and where it sets him down: standing at `col`, `floor` of the room at exit grid cell `to`.
+   */
+  teleporter?: { col: number; row: number; height: number; to: { cell: readonly [row: number, col: number]; col: number; floor: number } };
 }
+
+/** The colour that would shut a teleporter while its flicker shows it (Monty on the Run's are shut one moment in four): one the flicker never takes, so ours are always open. */
+const ALWAYS_OPEN = 0xff;
 
 /** The first creature type of Moscow's in the enemy bank (Monty on the Run's are 8-34). */
 export const FIRST_CREATURE = 35;
@@ -125,6 +134,12 @@ export function room(r: MoscowRoom): RoomSpec {
       })),
     } : {}),
     ...(r.crushers ? { crushers: r.crushers.map((c) => ({ ...c, col: c.col + PLAY_COL, row: c.row + PLAY_ROW })) } : {}),
+    ...(r.teleporter ? {
+      teleporter: {
+        col: r.teleporter.col - 1 + PLAY_COL, row: r.teleporter.row + PLAY_ROW, height: r.teleporter.height, colour: ALWAYS_OPEN,
+        to: { x2: standX2(r.teleporter.to.col), y: standY(r.teleporter.to.floor), mapRow: r.teleporter.to.cell[0], exitCol: r.teleporter.to.cell[1] },
+      },
+    } : {}),
   };
 }
 

@@ -12,7 +12,7 @@ import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { CHI } from '../src/china';
-import { JP } from '../src/japan';
+import { isJapanese, JP } from '../src/japan';
 import { newGame } from '../../shared/monty/test/bot';
 import { readArgs, runLegs } from '../../shared/monty/test/legs';
 import { prints, SCOPE } from './scope';
@@ -24,7 +24,7 @@ const args = readArgs();
 const only = args.only;
 
 /** The rooms and finds of Japan in the tables: the rooms from the harbour on. */
-const japanese = (room: number) => (room >= JP.harbour && room <= JP.port) || room === JP.grove; // (SHOOT FOR THE MOON was added after the flight: its id is 96)
+const japanese = isJapanese; // (the rooms made with Japan and those added after it shipped: SHOOT FOR THE MOON, GONE WITH THE WIND)
 
 /** What the kept leg states are checked against (read once). */
 const PRINTS = prints();

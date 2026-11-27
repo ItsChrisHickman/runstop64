@@ -208,7 +208,8 @@ export class Game implements MontyBody, MontyWorld {
   lift = { type: 0, x: 0, y: 0, speedDir: 0, riding: 0, speed: 0 };
   /** The picture the room's lift has of its own (a mine cart), kept at the room's loading so a frame looks nothing up (mechanisms.ts). */
   liftLook: LiftSpec['look'] = undefined;
-  tele = { active: 0, repeat: 0, scr: 0, colH: 0, base: 0, cur: 0, anim: 0, events: 0 };
+  /** The teleporter (mechanisms.ts); `lift`: the pixels he has still to rise up its beam (MontyData.teleportLift), 0 when he is not being carried. */
+  tele = { active: 0, repeat: 0, scr: 0, colH: 0, base: 0, cur: 0, anim: 0, events: 0, lift: 0 };
   /** The escalator ride under way (escalators.ts). */
   esc: EscalatorRide = { ...NO_RIDE };
   /** The treads' turning (escalators.ts): the steps taken so far. */
@@ -473,7 +474,7 @@ export class Game implements MontyBody, MontyWorld {
   /** The worn costume's overlay sprite, placed over Monty's picture (sprite 7), or taken off: false when there is none to show. */
   private placeOverlay(): boolean {
     const over = this.data.costumes.find((c) => c.item === this.worn)?.over;
-    const at = over && !this.completionActive && !this.c5.active && !(this.actionCounter & 0x80) && this.enable & 0x08 ? over.frames.get(this.frameIndex) : undefined;
+    const at = over && !this.completionActive && !this.c5.active && (!(this.actionCounter & 0x80) || this.tele.lift) && this.enable & 0x08 ? over.frames.get(this.frameIndex) : undefined;
     if (!over || !at) return false;
     this.sx[7] = (this.sx[3] + at.dx / 2) & 0xff;
     this.sy[7] = (this.sy[3] + at.dy) & 0xff;
@@ -529,6 +530,7 @@ export class Game implements MontyBody, MontyWorld {
       if (stepHint(this.hint)) this.drawNameRow();
     }
     if ((this.actionCounter & 0x80) || !this.freeze) {
+      Mech.teleporterLift(this);
       if (this.frameToggle) {
         if (!this.gameOverActive) {
           Mech.teleporterAnimate(this);
@@ -585,6 +587,7 @@ export class Game implements MontyBody, MontyWorld {
     this.roomId = next;
     this.loadRoom();
     if (this.dissolvePending) {
+      if (this.data.teleportLift !== undefined) { this.sx[3] = this.x2; this.sy[3] = (this.y + 1) & 0xff; } // (he materialises where he is set down)
       this.enable |= 0x08;
       yield* playDissolve(this);
     }
