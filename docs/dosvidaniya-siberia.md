@@ -219,3 +219,8 @@ ice and NOODLE MARKET's floor faster).
   them to hit you." An icicle that drops when he is under it misses anyone moving. Make them a timing to read: they shake
   and fall as he approaches (triggered a few cells ahead, so walking on runs into it), or drip and re-form on a cycle over
   the way, several in a row so a run under them is a choice of moment. Fair: the shake is the warning.
+- **The reference room** (Chris, playing Monty on the Run's THE HOUSE with the rising pillars: "In MOTR, rooms like this are
+  challenging with both jumps and enemies."): a deadly floor between safe ground, pillars rising and falling out of it that
+  he jumps along on their timing, creatures drifting across the air above the jumps, small high ledges to the way on. The
+  challenge is the combination: a jump that is hard because of what is under it AND what is crossing it. The pass builds
+  rooms this way: each room's jumps and creatures overlap, never a creature in one place and the jumps in another.
