@@ -93,6 +93,15 @@ export function tallyOf(data: MontyData, p: Progress): { total: Tally; regions: 
   return { total: { got: totalGot, all: totalAll }, regions: parts.regions.map((name, i) => ({ name, got: got[i] ?? 0, all: all[i] ?? 0 })) };
 }
 
+/**
+ * The rooms part of a game's tally (the pause panel's and THE END's ROOMS, so they count the rooms the % counts: the flight rooms left out, the game's own
+ * rooms visited, NEW GAME+'s from nothing); null for a game with no % (its ROOMS are the map's).
+ */
+export function roomsTally(data: MontyData, p: Pick<Progress, 'visited'>): Tally | null {
+  const parts = partsOf(data);
+  return parts ? { got: parts.rooms.filter((r) => !!p.visited[r.id]).length, all: parts.rooms.length } : null;
+}
+
 /** A tally as a whole %: rounded down, so 100 only when every part is done. */
 export const percentOf = (t: Tally): number => (t.all ? Math.floor((t.got * 100) / t.all) : 0);
 

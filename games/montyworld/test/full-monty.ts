@@ -8,7 +8,8 @@
  *  3. the finale: at 100% THE FULL MONTY plays after the dance (the name row says so, the picture fades out, then GAME OVER), every frame before it the finale as
  *     it was; at 99% (one coin left) the finale alone, as it was; THE END's lines have the % and the time;
  *  4. the pause screen: the % in light green in the panel's empty spot, no box; Tab turns to the PASSPORT page (a stamp in its ink for a region at 100%, the rest
- *     dark), and back to the map.
+ *     dark), and back to the map; THE END's ROOMS count the rooms the % counts;
+ *  5. the sky's parts can be had again: flown once with a coin of a leg missed, the biplane at Hilo takes him up again and the coin is there to take.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/full-monty.ts [out-dir]
  *
@@ -16,7 +17,7 @@
  */
 import fs from 'node:fs';
 import { Input, PixelRenderer } from 'c64kit';
-import { endingStats } from '../../montyotr/src/ending';
+import { endingStats, enterRoom } from '../../montyotr/src/ending';
 import { wear } from '../../montyotr/src/items';
 import { progressOf } from '../../montyotr/src/map';
 import { cellOf } from '../../montyotr/src/montydata';
@@ -24,18 +25,21 @@ import { flightRooms, fullyComplete, hasPercent, isFull, percentOf, percentText,
 import { plusStart } from '../../montyotr/src/plus';
 import { regionAt } from '../../montyotr/src/regions';
 import { parseSave, restore, snapshot } from '../../montyotr/src/save';
-import { frame, NONE } from '../../montyotr/test/play';
+import { frame, NONE, settled } from '../../montyotr/test/play';
 import { MOTR } from '../../montyotr/src/motr';
 import { nowhere, useMemoryStorage } from '../../shared/test/browser';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
 import { readJson } from '../../shared/guards';
-import { WORLD } from '../src/data';
+import { newGame } from '../../shared/monty/test/bot';
+import { ROUNDS, WORLD } from '../src/data';
+import { PAC } from '../src/pacific';
+import { FLY } from '../src/sky';
 import { run } from '../src/main';
 import { FULL_MONTY_NAME } from '../src/full-monty';
 import { RIO_ROOM as R } from '../src/rio';
 import { at, RIGHT, rowText } from './mech-kit';
-import { itemIndex } from './route';
+import { itemIndex, standY } from './route';
 import { contactSheet, savePng, shot } from './shots-kit';
 
 const out = process.argv[2];
@@ -147,6 +151,9 @@ function finale(as: Progress, keep: (f: number) => boolean) {
   const same = best.hashes.slice(0, before).every((h, i) => h === short.hashes[i]);
   check(`every frame of the finale before it (${before}) as the finale alone has it: the close-up, the bowl and the dance untouched`, same);
   const lines = endingStats(best.g, { rooms: {} });
+  const counted = grid.filter((id) => !flights.includes(id)).length;
+  const roomsLine = lines.find((l) => l.startsWith('ROOMS')) ?? '';
+  check(`THE END's ROOMS count the rooms the % counts, the flight rooms left out (${roomsLine.replace(/ +/g, ' ')}, beside COMPLETE 100%)`, new RegExp(`^ROOMS +${counted}/${counted}$`).test(roomsLine));
   check(`THE END's lines have the % and the finish time (${lines.slice(-2).join(' / ')})`, lines.some((l) => /^COMPLETE +100%$/.test(l)) && lines.some((l) => /^TIME +\d+:\d\d$/.test(l)));
   if (out) {
     best.pics.forEach((px, i) => savePng(out, `fm-${String(i).padStart(2, '0')}.png`, px));
@@ -185,6 +192,29 @@ function finale(as: Progress, keep: (f: number) => boolean) {
   if (out) savePng(out, 'passport.png', pass);
   press('Tab'); tick(10);
   check('Tab again: back to the map', p.state.paused && px().some((v, i) => i % 320 < 206 && v === 11));
+}
+
+// ---- 5. the sky's parts can be had again ------------------------------------------------------------------------------------------
+// (the flight rooms' coins and find count, but he passes them on the plane's clock and the parachute's: one missed must not make 100% out of reach)
+{
+  const s = newGame(WORLD, true), g = s.g;
+  // the game up to the Andes done, the flight flown once (Viktor clipped the tail: the round), but a coin of the second leg missed
+  const later = new Set<number>([...flights, ...data.exitGrid.image.filter((id) => regionOf(id) === 'ANDES' || regionOf(id) === 'RIO')]);
+  for (let i = 0; i < g.siCollected.length; i++) if (!later.has(data.specialItems[i * 4] ?? 0)) g.siCollected[i] = 0x81;
+  g.siCollected[ROUNDS.plane] = 0x81;
+  const missed = must(Array.from({ length: COINS }, (_, i) => i).find((i) => roomOfCoin(i) === FLY.storm), 'a coin of the second leg');
+  for (let i = 0; i < COINS; i++) if (flights.includes(roomOfCoin(i)) && i !== missed) g.coinCollected[i] = 0xff;
+  wear(g, itemIndex(g, PAC.luau, 0));
+  // back at Hilo (travel takes him to any room he has been in), into the biplane again
+  enterRoom(g, PAC.hilo, 0x0c + (27 + 4) * 4, standY(19));
+  g.enemies = []; g.enable &= 0x0f; g.vic.enable &= 0x0f; // (the rooster out of the way: the boarding is what is checked)
+  for (let n = 0; n < 200 && !settled(g); n++) frame(s, NONE);
+  for (let n = 0; n < 200 && g.roomId === PAC.hilo; n++) frame(s, { ...NONE, left: true });
+  for (let n = 0; n < 200 && !settled(g); n++) frame(s, NONE);
+  check(`flown once, the biplane at Hilo takes him up again: the first leg (room ${g.roomId})`, g.roomId === FLY.mail);
+  enterRoom(g, FLY.storm, 0x0c + (5 + 4) * 4, 0x32 + (8 + 3) * 8);
+  for (let n = 0; n < 200 && !settled(g); n++) frame(s, NONE);
+  check(`and the coin he missed in the second leg is there to take (coin ${missed})`, !g.coinCollected[missed] && g.entities.some((e) => e.index === missed));
 }
 
 finish();

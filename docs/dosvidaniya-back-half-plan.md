@@ -651,8 +651,9 @@ save (`visited`, `time`; an older save takes the map's rooms visited); NEW GAME+
 the panel's empty spot, shimmering at 100%) and on THE END (COMPLETE and TIME). The passport is the pause screen's second page (Tab, or a tap on the heading:
 `passport.ts`), a stamp for each region (THE SKY too: its coins and the tail chase), inked at the region's 100%. THE FULL MONTY (`montyworld/src/full-monty.ts`)
 plays after the finale's dance at 100%, the finale before it untouched: a cut, Monty facing us in all six costumes stacked; they fly off; bare; the speedo, the
-glasses, a pose with a glint; he turns; a cut up the beach (volleyball, a sunbather under an umbrella, the bikini on her towel), he walks away up the beach,
-smaller as he goes, lies back on the towel beside her; fade out; GAME OVER. Tests: `montyworld/test/full-monty.ts`.
+glasses, a pose with a glint; he turns; a cut up the beach (near the camera a sunbather in trunks under his umbrella and a volleyball game, far up by the shore
+the bikini on her towel, every one at his size), he walks away from the camera up the beach between them and past them, lies back on the towel beside her;
+fade out, everything together; GAME OVER. The pause panel's and THE END's ROOMS count the rooms the % counts (percent.ts `roomsTally`). Tests: `montyworld/test/full-monty.ts`.
 
 ## 6. Questions for Chris
 

@@ -6,7 +6,7 @@ import { regionAt } from './regions';
 import { c5Arrive, c5LastCell, c5Street } from './mechanisms';
 import type { MontySave } from './save';
 import { drawPassport, icon, PASSPORT_TITLE } from './passport';
-import { isFull, percentOf, tallyOf, type Progress } from './percent';
+import { isFull, percentOf, roomsTally, tallyOf, visitedFlags, type Progress } from './percent';
 
 /**
  * Monty's map for the shared pause screen (games/shared/frontend.ts): the whole
@@ -268,7 +268,8 @@ export const statLine = (name: string, value: string) => name.padEnd(6) + value.
 
 /** The progress the pause panel and THE END both show, as label and value (one owner: THE END once re-read the panel's text, and "SNACKS13/13", no space at 10 or more, came out garbled). */
 export function progressRows(g: Game, found: MontyFound): (readonly [label: string, value: string])[] {
-  const rooms = count(g, found);
+  // (a game with a % counts its rooms as the % does: percent.ts; else the map's)
+  const own = roomsTally(g.data, g), rooms = own ? { seen: own.got, all: own.all } : count(g, found);
   const { keyItems, cakes: allCakes } = g.data.progress;
   const cakes = allCakes.filter((i) => g.siCollected[i]).length;
   const items = keyItems.filter((i) => g.siCollected[i]).length;
@@ -359,8 +360,9 @@ export const montyMap = {
       ...(g.plus ? [{ text: PLUS_NAME, colour: COL.yellow }] : []),
     ];
   },
+  // (NEW GAME+'s map is opened whole, plus.ts `openMap`: no room on it is unseen, and the panel's line goes to the % and NEW GAME+)
   legend: (g) => [
-    { colour: COL.dgrey, text: 'NOT SEEN' }, { colour: 7, text: 'ALL FOUND' },
+    ...(g.plus ? [] : [{ colour: COL.dgrey, text: 'NOT SEEN' }]), { colour: 7, text: 'ALL FOUND' },
     ...(g.extensionOpen ? [{ colour: RUNSTOP64_COLOUR, text: 'RUNSTOP64' }] : []),
   ],
   /**
@@ -462,7 +464,9 @@ function wrap(text: string, width: number) {
 export function describeSave(data: MontyData, save: MontySave, found: MontyFound, lives = true): string[] {
   const { keyItems, cakes: allCakes } = data.progress;
   const items = keyItems.filter((i) => save.items[i]).length, cakes = allCakes.filter((i) => save.items[i]).length;
-  const rooms = Object.keys(found.rooms).filter((id) => !data.isExtensionRoom(Number(id))).length;
+  // (a game with a % counts its rooms as the % does, from the save's own rooms visited; an older save, and a game with no %, the map's)
+  const own = save.visited ? roomsTally(data, { visited: visitedFlags(save.visited) }) : null;
+  const rooms = own ? own.got : Object.keys(found.rooms).filter((id) => !data.isExtensionRoom(Number(id))).length;
   // (NEW GAME+ in place of the items: every key item is his in it)
   return [sectorName(data, save.roomId).text, ...(lives ? [`LIVES ${save.lives}`] : []), save.plus ? PLUS_NAME : `ITEMS ${items}/${keyItems.length}`, `${data.progress.foodName ?? 'CAKES'} ${cakes}/${allCakes.length}`, `ROOMS ${rooms}`, `SCORE ${save.score}`];
 }

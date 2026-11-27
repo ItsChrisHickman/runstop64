@@ -110,44 +110,48 @@ const BIKINI = [
   'bbbbbbbbbbbb',
   '.bbbbbbbbbb.',
 ];
-/** A sunbather in trunks under a beach umbrella (the canopy the sprite's own colour in stripes of the second shared colour, its pole the second). */
+/**
+ * A sunbather in trunks lying on his towel under a beach umbrella (the canopy the sprite's own colour in broad stripes of the second shared colour, its pole the
+ * second, his towel the sprite's own colour): his head at the left with his hair, his arm behind it, the trunks, his knees up.
+ */
 const UMBRELLA = [
-  '....bcbc....',
-  '..bcbcbcbc..',
-  '.bcbcbcbcbc.',
-  'bcbcbcbcbcbc',
+  '....bccb....',
+  '..bbbccbbb..',
+  '.bbcbccbcbb.',
+  'bbcbbccbbcbb',
+  'bcbbbccbbbcb',
+  'b.b..c...b.b',
   '.....c......',
   '.....c......',
   '.....c......',
-  '.....c......',
-  '.....c......',
-  '.....c......',
-  '.....c......',
-  '.....c......',
-  '.aa..c......',
-  'aaaa.c......',
-  'aaaa.caaaaa.',
-  '.aaaacccaaaa',
-  '..aaacccaaaa',
-  '.....c......',
+  '.....c...a..',
+  '.cc..c..a.a.',
+  'caa..c.a...a',
+  'aaaaaaaccaa.',
+  '.aaaaaacc...',
+  'bbbbbbbbbbbb',
+  '.bbbbbbbbbb.',
 ];
 const TOWEL = ['bbbbbbbbbbbb', '.bbbbbbbbbb.'];
-/** Two players either side of the net (the net the sprite's own colour on its two posts), one with his arms up to the ball, the other ready. */
+/**
+ * Two players either side of the net (the net the sprite's own colour, side on: its tape on its post), seen side on: the left one up on his toes with his hands
+ * up to the ball, the right one crouched ready with his arms out; skin the first shared colour, hair and trunks the second.
+ */
 const VOLLEY = [
-  'a..........a',
-  'a.aa....aa.a',
-  '.aaaa..aaaa.',
-  '.aaaa..aaaa.',
-  '..aa.bb.aa..',
-  '.aaaabbaaaa.',
-  'a.aa.bb.aa.a',
-  '..aa.bb.aa..',
-  '..cc.bb.cc..',
-  '..cc.bb.cc..',
-  '..a..bb..a..',
-  '.a.a.bb.a.a.',
-  '.a.a.bb.a.a.',
-  'a..a.bb.a..a',
+  '...a........',
+  '...a........',
+  '..a..bb.....',
+  '.cc...b.....',
+  '.aa...b..cc.',
+  '.aaa..b..aa.',
+  '.aa...baaaa.',
+  '.aa...b..aaa',
+  '.cc...b..aa.',
+  '.cc...b..cc.',
+  '.a.a..b..cc.',
+  '.a.a..b.a..a',
+  '.a..a.b.a..a',
+  '.a..a.ba...a',
 ];
 const BALL = ['.##.', '####', '####', '.##.'];
 /** A glint off the glasses as he poses (white). */
@@ -179,4 +183,4 @@ export type FullMontyPicture = keyof typeof FULL_MONTY_PICTURES;
 export const POSE_SHADES_DX = 4;
 /** The crowd's colours: the shared ones (skin, and the bikini's, trunks' and hair's) and each sprite's own (its towel, the net). */
 export const CROWD_MC = { skin: 10, cloth: 7 } as const;
-export const CROWD_COLOURS = { bikiniTowel: 3, umbrella: 2, montyTowel: 1, net: 1, ball: 1, speedo: 2, shades: 0, glint: 1 } as const;
+export const CROWD_COLOURS = { bikiniTowel: 3, umbrella: 14, montyTowel: 1, net: 1, ball: 1, speedo: 2, shades: 0, glint: 1 } as const;
