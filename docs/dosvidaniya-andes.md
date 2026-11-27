@@ -251,3 +251,10 @@ Chris loved the parachute drop, the llamas and VINE AND DANDY, and found the res
   steer through, condors and updrafts crossing on timings, a narrow chimney, a choice of two lines down with a coin on the
   harder one, landmarks of the descent (the glacier, the cloud layer, the first terraces) so each room is a place, and a
   landing that is a moment.
+- **THE INCA BRIDGE:** "another one of those examples of an enemy that walks left and right in a really close pattern and is
+  annoying to jump over. Yes it's challenging but underwhelming; it's not so much a puzzle as it is just annoying." A short,
+  tight walker on a narrow path is friction, not a puzzle. The rule (add to LESSONS with the pass): a creature's pattern
+  gives the player something to read and a moment to choose (a long patrol with a gap to slip through, a vertical one to
+  pass under, two crossing whose gap opens and shuts), never a short shuttle that just has to be hopped. Here: the cliff
+  trail's hazard from the place (the plank gap of the real bridge, rockfall, a condor's swoop) with the walker's patrol
+  long enough to time.
