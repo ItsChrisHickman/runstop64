@@ -292,3 +292,12 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
 - **SHOOT FOR THE MOON** (bonus room): "There is no challenge." A bonus room is where new challenges are tried (LESSONS:
   "An edge that runs off into nothing gets a bonus room"): give it one, built from the room's own idea, with its coins at
   the hard end.
+- **THE NINJA HIDEOUT:** "no challenge. Should have much more interesting enemy patterns." And on the whole game: "most
+  enemies just move left and right or up and down... Is MOTR really that simple?" Monty on the Run's creatures are that
+  simple (up-and-down and left-right patrols, a few fliers); its challenge comes from long patrols at varied speeds placed
+  across the only way on, three to a room, in combination. We keep that as the base and add pattern where a room's idea
+  calls for it, with what the engine already has: path movers (paths.ts: closed splines and polylines, as the dragon and
+  the boulders), leaping arcs (the piranhas), drops (icicles), timed strikes. For the hideout: ninjas that drop from the
+  rafters on a line and climb back, one that leaps between beams in an arc, a shuriken thrown along a path across the way,
+  all readable and fair. Other rooms where a pattern fits get one in the challenge pass (WILLOW PATTERN's leaping koi, the
+  crane's swoop at THE LAST MOLE). The C64 limit stands: sprites per room as budget.ts allows.
