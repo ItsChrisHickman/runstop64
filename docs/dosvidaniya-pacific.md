@@ -261,3 +261,9 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
 - **THE ROAD TO HANA:** "great, but the cars need to be moving constantly and they might need to be two at a time.
   Otherwise it's just too easy." Keep the three tiers; the cars never stop (constant traffic on every tier), two on a tier at
   once where the sprites allow, at differing speeds per tier, so crossing between tiers is a timing between cars.
+- **KAIHALULU:** "needs work too. I'm not really sure what the right side of the screen with the hole means, and I don't
+  know if the blue is supposed to be water that kills me. Why does it kill me if I have a snorkel? This is a confusing
+  scene." Water Monty can swim in (he has the snorkel) never kills him; a deadly thing in the water reads as what it is (a
+  rip of white breakers on the rocks, a jellyfish, coral spikes), never plain blue. The right side's hole must say what it
+  is (the lagoon's mouth to the open channel, the way on to SHELL GAME) or go. The red sand cove read at once: the cinder
+  cone's red cliffs round a small bay, the rocks across its mouth.
