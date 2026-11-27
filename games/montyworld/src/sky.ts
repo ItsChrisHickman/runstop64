@@ -228,10 +228,11 @@ export const SKY_CURRENTS: readonly CurrentSpec[] = GUST_COLS.map(([c0, c1]): Cu
 /**
  * L3's pursuer: the creature in slot 0 (his red plane) flies Monty's path 150 frames behind, from the moment the leg begins, and closes in a frame every 6 frames to 50 (a second: let the plane rest against the
  * box's edge that long and he is on him). A flock or a bolt that meets his plane knocks him back 60 frames along the trail. He is not escaped: the leg's end is his (planes.ts, the bail-out takes `lost`).
+ * His coming into sight is announced as on the train's roof and the ship (`announce`); the flight keeps Auf Wiedersehen Monty's theme (no chase tune over another .sid).
  */
 export const TAIL_CHASE = { delay: 150, close: { every: 6, least: 50 }, setback: 60 } as const;
 export const tailPursuer = (lost: number): PursuerSpec => ({
-  room: FLY.tail, slot: 0, delay: TAIL_CHASE.delay, until: lost, close: TAIL_CHASE.close, knockedBy: { rollers: true, pulses: true, setback: TAIL_CHASE.setback },
+  room: FLY.tail, slot: 0, delay: TAIL_CHASE.delay, until: lost, close: TAIL_CHASE.close, knockedBy: { rollers: true, pulses: true, setback: TAIL_CHASE.setback }, announce: true, // (his plane coming into sight behind Monty's: the name flashing red, the sting over the theme)
   // his red biplane (the star on his hat in it), placed as Monty's is over Monty, and his head in white under it on sprite 6
   look: { frames: SKY_POINTERS.viktor, dx: PLANE_LOOK.dx, dy: PLANE_LOOK.dy, over: { sprite: 6, ptr: SKY_POINTERS.head, colour: VIKTOR_HEAD_INK } },
 });

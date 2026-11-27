@@ -8,7 +8,8 @@ import { PARADE } from '../../shared/ending/procession';
 import { FRAME } from '../../shared/monty/frames';
 import { Game, type Assists } from './game';
 import { copyInto } from './game-copy';
-import { progressRows, type MontyFound } from './map';
+import { progressOf, progressRows, type MontyFound } from './map';
+import { percentText, timeText } from './percent';
 import { Pilot } from './pilot';
 import { TOP_ROW, type Scene } from './ending-scenes';
 import { cellOf, type MontyData, type MontyEnding, type MontyParade } from './montydata';
@@ -308,8 +309,16 @@ export function montyEnding(data: MontyData, renderer: Renderer, assist: Assists
   };
 }
 
-/** The lines under THE END: the score and what the pause screen keeps (lives, rooms, items, cakes), the numbers in a column. */
+/**
+ * The lines under THE END: the score and what the pause screen keeps (lives, rooms, items, cakes), the numbers in a column; and, in a game with a % complete
+ * (percent.ts), the % and the finish time (the frames played up to the finale, kept in the save: for speedrunners).
+ */
 export function endingStats(g: Game, found: MontyFound): string[] {
-  const rows: (readonly [string, string])[] = [['SCORE', String(g.score)], ...progressRows(g, found)];
-  return rows.map(([label, value]) => `${label.padEnd(7)}${value.padStart(7)}`);
+  const percent = percentText(g.data, progressOf(g));
+  const rows: (readonly [string, string])[] = [
+    ['SCORE', String(g.score)], ...progressRows(g, found),
+    ...(percent === null ? [] : [['COMPLETE', percent] as const, ['TIME', timeText(g.playFrames)] as const]),
+  ];
+  const width = Math.max(7, ...rows.map(([label]) => label.length + 1));
+  return rows.map(([label, value]) => `${label.padEnd(width)}${value.padStart(7)}`);
 }
