@@ -51,14 +51,14 @@ export const ANDES_LATER_NAMES: Readonly<Record<number, string>> = { [AND.bridge
 export const ANDES_LATER_COLOURS: Readonly<Record<number, number>> = { [AND.bridge]: 12, [AND.cloud]: 5, [AND.vine]: 7, [AND.ends]: 10 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
-/** The drop: rock, snow, and the far ranges behind (A: a nothing-class backdrop, dark blue, so it never reads as rock he could land on). */
+/** The drop: rock and snow (the far ranges are a decoration on the horizon, `andPeaks`). */
 export const SKY_PALETTE = {
-  R: ['mountainRock', 9], S: ['snowCap', 1], A: ['andRange', 6],
+  R: ['mountainRock', 9], S: ['snowCap', 1],
 } as const satisfies Palette;
 
-/** The terraces (MP1): green grass lips on ochre Inca dry-stone walls, the guardhouse's thatch, the brown rock of the cliff and the high ledge, the far range behind. */
+/** The terraces (MP1): green grass lips on ochre Inca dry-stone walls, the guardhouse's thatch, the brown rock of the cliff and the high ledge (the far range: `andPeaks` on the horizon). */
 export const TERRACE_PALETTE = {
-  G: ['terraceGrass', 5], W: ['incaWall', 8], T: ['thatch', 7], K: ['mountainRock', 9], P: ['stallPost', 9], A: ['andRange', 6],
+  G: ['terraceGrass', 5], W: ['incaWall', 8], T: ['thatch', 7], K: ['mountainRock', 9], P: ['stallPost', 9],
 } as const satisfies Palette;
 
 /**
@@ -69,9 +69,9 @@ export const PICCHU_PALETTE = {
   G: ['terraceGrass', 5], W: ['incaWall', 8], L: ['woodLadder', 7], V: ['vine', 8], T: ['tunnelStone', 9], K: ['mountainRock', 9], S: ['spitGob', 5], Q: ['hpRock', 6],
 } as const satisfies Palette;
 
-/** THE INCA BRIDGE: the rock the trail is cut in, its tread, the logs over the gap, the granite face behind, the far ranges and the forest of the valley far below (the last three backdrops). */
+/** THE INCA BRIDGE: the rock the trail is cut in, its tread, the logs over the gap, the forest of the valley far below (a backdrop; the far ranges: `andPeaks` on the horizon, the night over the trail). */
 export const BRIDGE_PALETTE = {
-  K: ['mountainRock', 9], L: ['rockLedge', 12], B: ['plankBridge', 8], F: ['andFace', 11], A: ['andRange', 6], D: ['andLeaves', 5],
+  K: ['mountainRock', 9], L: ['rockLedge', 12], B: ['plankBridge', 8], D: ['andLeaves', 5],
 } as const satisfies Palette;
 
 /** The canopy (A1): the leaf fringe and the low leaves, the lianas hanging and slung across (orange: a colour of their own, nothing else in the Amazon is drawn in it), the bough, a trunk's bark, the crowns behind. */
@@ -212,17 +212,6 @@ function huaynaPicchu(g: Grid, col: number, top: number, bottom: number, half: n
 }
 
 /**
- * A far range of peaks in a backdrop letter, painted first so everything solid overwrites it: each peak's (col, top row), its flanks falling a row every `slope` cells, down to row `bottom`, only into
- * empty cells. Its jagged top is the only edge it has: nothing in it reads as a ledge.
- */
-function range(g: Grid, letter: string, peaks: readonly (readonly [col: number, top: number])[], bottom: number, slope = 1.4): void {
-  for (let c = 0; c < 32; c++) {
-    const top = Math.min(...peaks.map(([pc, pt]) => pt + Math.floor(Math.abs(c - pc) / slope)));
-    for (let r = Math.max(0, top); r <= bottom; r++) if (g.at(c, r) === '.') g.box(c, r, c, r, letter);
-  }
-}
-
-/**
  * Trees seen behind in a backdrop letter, painted first so everything solid overwrites them: each a round crown (col, row, radius in cells, drawn a little wider than tall) on a trunk down to row
  * `foot`, only into empty cells. Separate shapes with black between, never a band across the room.
  */
@@ -248,28 +237,24 @@ const KAPOK_FOOT = (col: number, row: number): boolean => row <= 14 && col >= 27
 
 const PAINT = {
   jump(g: Grid) {
-    range(g, 'A', [[5, 9], [13, 12], [27, 6]], 19);
     g.box(0, 0, 0, 19, 'R').box(0, 16, 3, 19, 'R'); // the mountainside closing the west, and its foot (over the canyon's west cliff below); he drops in from the top: the mail plane's bail-out, sky.ts
     g.box(17, 14, 22, 19, 'R').box(18, 13, 22, 13, 'S').box(19, 12, 22, 12, 'S'); // the spire, its snowy tip (floor 12) run on to the shoulder (no pocket between them to be stuck in: he walks off the tip westward and the canopy takes him)
     g.box(23, 12, 31, 19, 'R').box(23, 11, 31, 11, 'S'); // the mountain's shoulder: the canyon below is open only west of the spire
   },
   thin(g: Grid) {
     // the canyon, as it was before the reset: the cliffs step in at each side, a ridge rises mid-room with a snowy crest (floor 9), the right canyon has a floor (row 18), the left one is the way down
-    range(g, 'A', [[8, 3], [20, 1]], 19, 1.2);
     g.box(0, 0, 2, 19, 'R').box(3, 8, 3, 19, 'R').box(4, 13, 4, 19, 'R').box(29, 0, 31, 19, 'R').box(28, 7, 28, 19, 'R').box(27, 12, 27, 19, 'R');
     g.box(11, 14, 20, 19, 'R').box(21, 18, 26, 19, 'R').box(12, 12, 19, 13, 'R').box(14, 10, 17, 11, 'R').box(14, 10, 17, 10, 'S').box(15, 9, 16, 9, 'S');
   },
   gorge(g: Grid) {
     // the gorge: cliffs close in from 24 cells at the top (cols 4-27) to 15 at the foot (cols 3-17), split there by a pinnacle into two throats, the narrow west one over the guardhouse's roof
-    range(g, 'A', [[12, 5]], 19, 1.2);
     g.box(0, 0, 3, 13, 'R').box(0, 14, 2, 19, 'R');
-    g.box(28, 0, 31, 19, 'R').box(21, 0, 27, 3, 'R'); // the east cliff and the overhang
+    g.box(28, 0, 31, 19, 'R').box(21, 2, 27, 2, 'S').box(21, 3, 27, 3, 'R'); // the east cliff and the overhang jutting from it, snow on its top, the far range over it (no rock along the top: no ceiling)
     g.box(22, 8, 27, 8, 'S').box(22, 9, 31, 12, 'R').box(20, 13, 31, 19, 'R').box(20, 12, 21, 12, 'S'); // the shelf under the overhang, the cliff below it
     g.box(8, 15, 10, 19, 'R').box(8, 14, 10, 14, 'S'); // the pinnacle
     g.box(15, 16, 19, 19, 'R').box(15, 15, 19, 15, 'S'); // a spur: the east throat is cols 11-14, over the broad terrace's west end
   },
   terraces(g: Grid) {
-    range(g, 'A', [[16, 2], [27, 0]], 13, 1.6);
     g.box(0, 0, 1, 7, 'K'); // the mountainside the top terrace ends at (the gorge's west cliff come down): the terrace leads nowhere west, and looks it
     g.box(0, 8, 8, 8, 'G').box(0, 9, 8, 19, 'W'); // the top terrace (floor 8)
     g.box(1, 5, 7, 5, 'T').box(1, 6, 1, 7, 'W').box(7, 6, 7, 7, 'P'); // the guardhouse: its thatched roof (floor 5) on its back wall and a post, open to the east
@@ -278,7 +263,6 @@ const PAINT = {
     g.box(18, 14, 21, 14, 'G').box(18, 15, 21, 19, 'W'); // the last step (floor 14), then a drop to the low path
     g.box(22, 18, 31, 18, 'G').box(22, 19, 31, 19, 'W'); // the low path (floor 18), east under the cliff to Machu Picchu's lane
     g.box(22, 8, 31, 9, 'K').box(28, 10, 31, 14, 'K'); // the high ledge (floor 8) on Machu Picchu's cliff
-    g.clear(22, 10, 27, 17).clear(18, 10, 21, 13); // (the range stays behind the peaks: under the high ledge and over the steps, black)
   },
   picchu(g: Grid) {
     huaynaPicchu(g, 17, 0, 7, 9);
@@ -291,10 +275,8 @@ const PAINT = {
     g.box(0, 18, 31, 18, 'G').box(0, 19, 31, 19, 'W').clear(19, 18, 21, 19).box(20, 18, 20, 19, 'V'); // the lane (floor 18) and the well, its liana down into the canopy
   },
   bridge(g: Grid) {
-    // the valley far below behind him, to the west: the far ranges, the forest of the valley floor; the granite face the trail is cut into fills the east and runs down out of the room
-    range(g, 'A', [[3, 8], [10, 9], [15, 11]], 15, 1.2);
+    // the valley far below behind him, to the west: the citadel on its saddle, the forest of the valley floor; the far ranges on the horizon, the night over the trail and the drop under it
     g.box(2, 18, 15, 19, 'D');
-    for (let c = 2; c < 32; c++) g.box(c, 0, c, c >= 19 ? 19 : c >= 10 ? 10 : 8, 'F'); // the face the trail is cut in, its foot falling away west into the valley
     g.clear(16, 7, 18, 19); // the cleft under the logs, black all the way down
     g.box(0, 4, 1, 19, 'K'); // the spur of Machu Picchu's mountain the trail leaves from (its east side is solid from the top's floor down)
     g.box(0, 4, 9, 4, 'L').box(2, 5, 9, 6, 'K'); // the trail along the top's floor (floor 4), the rock it is cut in under its tread
@@ -386,7 +368,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.jump, cell: [2, 25], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,
     coins: [[19, 10]],
-    decor: [['mistCloud', 4, 4], ['mistCloud', 24, 6], ['updraft', 9, 12], ['updraft', 9, 8]],
+    decor: [['andPeaks', 11, 3], ['mistCloud', 4, 4], ['mistCloud', 24, 6], ['updraft', 9, 12], ['updraft', 9, 8]],
   }),
 
   // OUT OF THIN AIR: the canyon, as it was. In from above; the cliffs close in at each side and a ridge rises mid-room, its snowy crest (floor 9) with the coin over it: a line chosen from the top. A condor
@@ -394,7 +376,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.thin, cell: [3, 25], sector: 56, palette: SKY_PALETTE, paint: PAINT.thin,
     coins: [[15, 7]],
-    decor: [['mistCloud', 3, 3], ['mistCloud', 22, 2], ['mistCloud', 13, 3], ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 5, 4], ['updraft', 22, 12], ['updraft', 22, 8]],
+    decor: [['andPeaks', 15, 3], ['mistCloud', 3, 3], ['mistCloud', 20, 0], ['mistCloud', 10, 1], ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 5, 4], ['updraft', 22, 12], ['updraft', 22, 8]],
     creatures: [{ who: 'condor', col: 26, row: 4, way: 'left', speed: 1, range: 176 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 36 }],
   }),
 
@@ -404,7 +386,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.gorge, cell: [4, 25], sector: 57, palette: SKY_PALETTE, paint: PAINT.gorge,
     coins: [[16, 9]],
     item: { name: 'empanada1', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['mistCloud', 6, 2], ['updraft', 13, 10], ['updraft', 13, 6]],
+    decor: [['andPeaks', 9, 3], ['mistCloud', 5, 1], ['updraft', 13, 10], ['updraft', 13, 6]],
     creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 1, range: 96 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48 }],
   }),
 
@@ -415,6 +397,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.terraces, cell: [5, 25], sector: 58, palette: TERRACE_PALETTE, paint: PAINT.terraces,
     coins: [[4, 3]],
+    decor: [['andPeaks', 17, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
     creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 15, row: 10, way: 'right', speed: 1, range: 8 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 1, range: 40 }],
@@ -438,7 +421,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.bridge, cell: [5, 27], sector: AND.bridge, palette: BRIDGE_PALETTE, paint: PAINT.bridge,
     item: { name: 'empanada3', col: 27, row: 2, sprite: ANDES_SPRITE.empanada },
-    decor: [['andCitadelFar', 5, 13]],
+    decor: [['andPeaks', 3, 1], ['andCitadelFar', 5, 13]],
     creatures: [{ who: 'andVizcacha', col: 20, row: 4, way: 'right', speed: 1, range: 16 }],
   }),
 
