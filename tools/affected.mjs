@@ -197,14 +197,30 @@ if (everything) {
 }
 
 if (flags.has('--gate') && !everything) {
-  // (every test whose whole bundle reads a changed code file, or whose recorded routes changed, or that changed itself; run whole, fast set, --slow for the slow too)
-  const code = [...changes.keys()].filter((f) => !f.endsWith('.md'));
+  // Every test whose whole bundle reads a changed code file (imports followed through the hubs), run whole; except the files a game's
+  // planner claims room by room (a region file: every test of the game bundles it through data.ts), which keep the planner's
+  // room-scoped runs (and its whole runs, and every whole run it asks for when the change is about several regions).
+  const scopedFiles = new Set(plans.filter((p) => !p.full).flatMap((p) => p.claimed));
+  const code = [...changes.keys()].filter((f) => !f.endsWith('.md') && !scopedFiles.has(f) && !RUNNER.test(f));
   const hit = new Set(entries.filter((e) => code.some((f) => bundled.get(e)?.has(f) || f === e)));
-  for (const t of whole.keys()) hit.add(t);
+  // a test the planner does not name, pulled in only because it imports a claimed region file: room-scoped too when it scopes itself
+  // (uses SCOPE: games/shared/monty/test/scope.ts), rather than whole (2026-11-27: a one-room change ran viktor.ts whole, 11 minutes)
+  const rooms = [...new Set(plans.filter((p) => !p.full).flatMap((p) => p.rooms))];
+  const scopes = (f) => { try { return /\bSCOPE\b/.test(fs.readFileSync(path.join(root, f), 'utf8')); } catch { return false; } };
+  const extra = [];
+  for (const [t, why] of whole) {
+    if (/ and .*'s planner does not name it$/.test(why) && rooms.length && scopes(t) && !hit.has(t)) {
+      for (const e of entriesOf(t)) if (e.set === 'fast' || flags.has('--slow')) extra.push({ ...e, args: [...(e.args ?? []), `--room=${rooms.join(',')}`], name: `${[t, ...(e.args ?? [])].join(' ')} --room=${rooms.join(',')} (imports a region file; scopes itself)` });
+      continue;
+    }
+    hit.add(t);
+  }
+  const scoped = [...planned.filter((t) => (t.args ?? []).some((a) => a.startsWith('--room')) && !hit.has(t.file)), ...extra];
   planned.length = 0;
   for (const t of TESTS) if (t.file && hit.has(t.file) && (t.set === 'fast' || flags.has('--slow'))) planned.push({ ...t, name: t.name ?? [t.file, ...(t.args ?? [])].join(' ') });
+  planned.push(...scoped);
   const left = TESTS.filter((t) => t.set === 'fast' && !(t.file && hit.has(t.file))).length;
-  notes.push(`gate: ${planned.length} test run(s) whose bundle reads a changed file; ${left} fast run(s) that read none of them left out`);
+  notes.push(`gate: ${planned.length - scoped.length} whole run(s) whose bundle reads a changed file, ${scoped.length} room-scoped run(s) for ${[...scopedFiles].join(', ') || 'no region file'}; ${left} fast run(s) that read none of them left out`);
 }
 console.log(`changes since ${base} (${since.slice(0, 8)}): ${changes.size} file(s)`);
 for (const p of plans) if (p.rooms.length) console.log(`  ${p.game}: rooms ${p.rooms.join(', ')} (${p.regions.join(', ')})${p.full ? `; FULL: ${p.full}` : ''}`);

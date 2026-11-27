@@ -15,13 +15,15 @@ npm run gate          # typecheck, check:strict, then every test whose bundle re
 ```
 
 `npm run gate` (`tools/affected.mjs origin/main --gate --run`) leaves out tests that cannot be affected (the ZX Spectrum's, the other
-games'). It falls back to every test only for a file every test runs through (`tools/test.mjs`, the translator, configs,
-dependencies); `npm run verify` is that full run.
+games'), runs a region file's change room-scoped (`--room`, the planner's rooms; a test that scopes itself too), and skips any test
+that passed before on the same code and inputs (`tools/test-cache.mjs`). It falls back to every test only for a file every test runs
+through (`tools/test.mjs`, the translator, configs, dependencies); `npm run verify` is that full run.
 
 Run it in the background and watch it, never only wait for the "finished" notice: a Monitor that reports `✖` lines, a log unchanged
 for 15 minutes, and `claude.slice` throttling (`/sys/fs/cgroup/claude.slice/memory.events`, `high`). Each test runs in its own
-systemd scope with a memory cap (`tools/test.mjs`, 1400 MB; `memoryMB` in `tools/tests.mjs` for the heavy few) and the runner admits
-tests by memory (`TEST_BUDGET_MB`, 2900); its summary prints the heaviest peaks and whether the slice throttled.
+systemd scope with a memory cap (`tools/test.mjs`, 1400 MB; `memoryMB` in `tools/tests.mjs` for the heavy few), and every test and
+typecheck in the slice, agents' included, queues on one budget (`tools/mem-budget.mjs`, 2600 MB); the summary prints the heaviest
+peaks and whether the slice throttled.
 
 A failure: rerun only that test (`nice -n 15 node tools/test.mjs <file>`). A test that fails the same way on origin/main is
 reported, not chased (`packages/c64kit/test/effects.test.ts` "coin lasts 1 frames" is a known one).

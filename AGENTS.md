@@ -108,8 +108,13 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
   8. **Coordinating session:** at most two agents at once (2026-11-24: four agents and their tests froze the box twice; Claude Code runs in
      `claude.slice`, capped at 4 GB with 1 GB of swap and throttled to a standstill at its 3.5 GB MemoryHigh, which locked the box up twice on
      2026-11-27), at most one of them running region bots. Every test runs in a systemd scope of its own with a hard memory cap (`tools/test.mjs`:
-     1400 MB, `memoryMB` in `tools/tests.mjs` for the few that need more), so a runaway test is killed alone; the runner starts tests while their caps
-     fit `TEST_BUDGET_MB` (2900) and reports the heaviest peaks and any throttling. Reading big files inside the slice (transcripts, archives)
+     1400 MB, `memoryMB` in `tools/tests.mjs` for the few that need more), so a runaway test is killed alone. **One memory budget for every run in the slice,
+     whoever starts it** (`tools/mem-budget.mjs`, 2600 MB): each test and the typecheck and strict check (`tools/mem-run.mjs`) reserve their
+     cap there and queue for room, so an agent's tests and the session's gate cannot add up past the slice (2026-11-27 they did, and the
+     kernel killed Claude Code); tests carry a high OOM score, so a full slice loses a test, never the session. The runner reports peaks
+     and any throttling. Under the runner a test that passed on the same code and inputs (its bundle, arguments, and every file it read)
+     is not run again (`tools/test-cache.mjs`; `TEST_FRESH=1` runs it). Never copy changed runner files into a worktree to try them:
+     the planner then sees the runner changed and runs everything (2026-11-27). Reading big files inside the slice (transcripts, archives)
      fills its page cache toward the same limit: stream them and drop their cache after (`posix_fadvise` DONTNEED); each agent's brief
      repeats rules 1, 2 and 6. A red test that fails the same way on main is reported, not chased in an unrelated change.
      A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.

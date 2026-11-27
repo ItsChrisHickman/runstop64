@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, suite, test } from 'node:test';
 import { TESTS } from './tests.mjs';
+import { BUDGET_MB as SHARED_MB } from './mem-budget.mjs';
 import { keyOf, recordPeaks, recordTimings } from './timings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -85,7 +86,8 @@ function run(cmd, limit, env) {
  * default, TEST_MEMORY_MB) while it runs, the kernel kills it past that, and tests start only while the caps held add up to `TEST_BUDGET_MB`.
  */
 const DEFAULT_MB = Math.max(256, Number(process.env.TEST_MEMORY_MB ?? 1400) || 1400);
-const BUDGET_MB = Math.max(DEFAULT_MB, Number(process.env.TEST_BUDGET_MB ?? 2900) || 2900);
+// (the runner's share is the one budget every run shares: tools/mem-budget.mjs; tools/test.mjs reserves there too, so agents' tests count)
+const BUDGET_MB = Math.max(DEFAULT_MB, Number(process.env.TEST_BUDGET_MB ?? SHARED_MB) || SHARED_MB);
 let held = 0;
 const waiting = [];
 async function hold(mb) {
@@ -100,6 +102,7 @@ function sliceHigh() {
 }
 const highAtStart = sliceHigh();
 const peaks = [];
+let cached = 0;
 
 /** How many tests run at once (two by default: 4 cores shared with the sites and CaptureM360; three at once measured 1.7x slower each). */
 const JOBS = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
@@ -118,7 +121,8 @@ for (const t of chosen) {
     const mb = t.memoryMB ?? DEFAULT_MB;
     const release = await hold(mb);
     const started = performance.now();
-    const { code, timedOut, output } = await run(cmd, limit, { TEST_MEMORY_MB: String(mb) }).finally(release);
+    const { code, timedOut, output } = await run(cmd, limit, { TEST_MEMORY_MB: String(mb), TEST_CACHE: '1' }).finally(release);
+    if (output.includes('[test.mjs] cached pass')) cached++;
     const seconds = (performance.now() - started) / 1000;
     const peak = Number(/\[test\.mjs\] peak (\d+) MB/.exec(output)?.[1] ?? NaN);
     if (Number.isFinite(peak)) peaks.push({ key: keyOf(t), mb: peak });
@@ -133,6 +137,7 @@ for (const t of chosen) {
 after(() => {
   recordTimings(timings);
   recordPeaks(peaks);
+  if (cached) console.log(`# ${cached} test(s) not run again: passed before on the same code and inputs (tools/test-cache.mjs; TEST_FRESH=1 runs them)`);
   const high = sliceHigh();
   if (high !== null && highAtStart !== null && high > highAtStart) console.log(`# claude.slice was throttled at its MemoryHigh ${high - highAtStart} times during this run: something outgrew its cap's arithmetic (TEST_BUDGET_MB)`);
   const big = [...peaks].sort((a, b) => b.mb - a.mb).slice(0, 5).map((x) => `${x.key.split(' ')[0].split('/').pop()} ${x.mb} MB`).join('; ');

@@ -10,6 +10,7 @@
 // room-level tests then check only those rooms (games/shared/monty/test/scope.ts), its region bots only the legs through them.
 
 import { spawnSync } from 'node:child_process';
+import { reserve } from './mem-budget.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -24,8 +25,12 @@ export const MEMORY_MB = Math.max(256, Number(process.env.TEST_MEMORY_MB ?? 1400
 const HEAP_MB = Math.max(192, Math.round(MEMORY_MB * 0.8));
 if (!process.execArgv.some((a) => a.startsWith('--max-old-space-size'))) {
   const node = [process.execPath, `--max-old-space-size=${HEAP_MB}`, ...process.execArgv, ...process.argv.slice(1)];
+  // (if the slice is ever at its cap, the kernel kills this, never Claude Code: 2026-11-27 it killed the session; a scope takes no OOMScoreAdjust, so /proc)
+  const KILL_FIRST = ['sh', '-c', 'echo 900 > /proc/self/oom_score_adj; exec "$@"', 'sh'];
   const scoped = process.platform === 'linux' && process.getuid?.() === 0 && spawnSync('systemd-run', ['--version'], { stdio: 'ignore' }).status === 0;
-  const cmd = scoped ? ['systemd-run', '--scope', '--quiet', '--collect', '--slice=claude.slice', '-p', `MemoryMax=${MEMORY_MB}M`, '-p', 'MemorySwapMax=0', ...node] : node;
+  const cmd = scoped ? ['systemd-run', '--scope', '--quiet', '--collect', '--slice=claude.slice', '-p', `MemoryMax=${MEMORY_MB}M`, '-p', 'MemorySwapMax=0', ...KILL_FIRST, ...node] : node;
+  // one budget for every test and typecheck in the slice, whichever session or agent started it (tools/mem-budget.mjs)
+  reserve(MEMORY_MB, `test ${process.argv[2] ?? ''}`);
   const [bin = process.execPath, ...rest] = cmd;
   const r = spawnSync(bin, rest, { stdio: 'inherit' });
   if (r.signal === 'SIGKILL') console.error(`[test.mjs] killed: over its memory cap of ${MEMORY_MB} MB (TEST_MEMORY_MB; tools/tests.mjs memoryMB) or stopped by the runner`);
@@ -34,7 +39,9 @@ if (!process.execArgv.some((a) => a.startsWith('--max-old-space-size'))) {
 // (the peak, for the runner to keep with the test's time: tools/timings.mjs)
 process.on('exit', () => { process.stderr.write(`\n[test.mjs] peak ${Math.round(process.resourceUsage().maxRSS / 1024)} MB\n`); });
 import { build } from 'esbuild';
+import fs from 'node:fs';
 import { ensureGen } from './gen.mjs';
+import { cachedPass, recordReads, runKey } from './test-cache.mjs';
 
 const [, , entry, ...given] = process.argv;
 const args = [];
@@ -62,5 +69,17 @@ await build({
     },
   }],
 });
+// Under the runner, a test that passed before on the same code and inputs is not run again (tools/test-cache.mjs)
+if (process.env.TEST_CACHE === '1') {
+  const key = runKey(out, args);
+  const at = cachedPass(key);
+  if (at) {
+    console.log(`[test.mjs] cached pass: the same code and inputs passed at ${at} (TEST_FRESH=1 runs it again)`);
+    fs.rmSync(out, { force: true });
+    process.exit(0);
+  }
+  const keep = recordReads(key, [out, path.join(os.tmpdir(), 'runstop64-')]);
+  process.on('exit', (code) => { if (code === 0) keep(); });
+}
 process.argv = [process.argv[0], out, ...args];
 await import(pathToFileURL(out).href);
