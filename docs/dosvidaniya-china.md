@@ -218,3 +218,7 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   timing or a choice, with its reward at the end.
 - **BORDER LINE CASE:** "good ideas but both water bridges should break faster as this would pose a challenge. Right now
   they don't." Both breaking bridges give way faster, so crossing them is a run, fair but tight.
+- **ALL WALL AND NO PLAY:** "The Viktor cameo makes no sense. He appears right by Monty and runs away." A border cameo must
+  read as Viktor arriving too late on Monty's trail: he comes in by the edge Monty came in by, well behind him, looks for
+  him and goes, never popping up beside him. Check every border cameo for the same fault. (Also part of the challenge pass:
+  the room itself wants a challenge.)
