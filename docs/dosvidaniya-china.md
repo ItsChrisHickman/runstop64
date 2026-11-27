@@ -222,3 +222,7 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   read as Viktor arriving too late on Monty's trail: he comes in by the edge Monty came in by, well behind him, looks for
   him and goes, never popping up beside him. Check every border cameo for the same fault. (Also part of the challenge pass:
   the room itself wants a challenge.)
+- **NOODLE MARKET:** "The falling floor is neat but there is no challenge. It won't fall if you just run and if it does...
+  So what? You just fall to a safe spot. It doesn't really make sense." The falling floor must matter: it gives way fast
+  enough that a plain run is not enough (a jump or a timing over it), and falling costs something (a fall into a hazard, or
+  back down to the start of the climb), with a reason in the place for both (an old stall roof over the boiling vats).
