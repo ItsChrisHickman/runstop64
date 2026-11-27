@@ -22,6 +22,16 @@ export function animateCharacters(g: Game) {
 }
 
 /** SpawnSIForRoom: put this room's special item (if any, and not yet taken) on sprite 0. */
+/**
+ * The priority bit for an item's sprite at (`x2`, `y`): behind the room's pixels as Monty on the Run has it, but in front where a backdrop is behind its picture (a sky, a sea: the backdrop's pixels
+ * would cover it, or the find was kept off the backdrop and left a black box: Chris's "black holes in the blue").
+ */
+function itemPriority(g: Game, n: number, x2: number, y: number): number {
+  const c0 = Math.floor((x2 * 2 - 24) / 8), c1 = Math.floor((x2 * 2 - 24 + 15) / 8), r0 = Math.floor((y - 50) / 8), r1 = Math.floor((y - 50 + 15) / 8);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (r >= 0 && c >= 0 && c < ROW && g.backdropAt(r * ROW + c)) return 0;
+  return 1 << n;
+}
+
 export function spawnForRoom(g: Game) {
   g.siActiveIdx = -1;
   g.siSecondIdx = -1;
@@ -36,7 +46,7 @@ export function spawnForRoom(g: Game) {
     g.sptr[0] = (specialItems[i * 4 + 3] + 0x8e) & 0xff;
     g.scol[0] = g.data.itemSprites.colour(g.sptr[0]);
     g.enable |= 0x01;
-    g.priority |= 0x01;
+    g.priority |= itemPriority(g, 0, g.sx[0] ?? 0, g.sy[0] ?? 0);
     g.siActiveIdx = i;
     return;
   }
@@ -60,7 +70,7 @@ function spawnTwo(g: Game): boolean {
     g.sy[n] = specialItems[i * 4 + 2];
     g.sptr[n] = (specialItems[i * 4 + 3] + 0x8e) & 0xff;
     g.scol[n] = g.data.itemSprites.colour(g.sptr[n]);
-    g.priority |= 1 << n;
+    g.priority |= itemPriority(g, n, g.sx[n] ?? 0, g.sy[n] ?? 0);
   };
   g.siActiveIdx = left[0] ?? -1;
   g.siSecondIdx = left[1] ?? -1;

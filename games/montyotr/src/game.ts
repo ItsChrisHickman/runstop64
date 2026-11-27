@@ -316,6 +316,8 @@ export class Game implements MontyBody, MontyWorld {
     this.mem[SCREEN + at] = code;
     this.col[at] = this.roomColours[code - 1] ?? 1;
   }
+  /** Whether the room has a backdrop (or a tile kept behind a coin) at a screen cell: `at` is the cell's index in the screen. */
+  backdropAt(at: number): boolean { return (this.backChr[at] ?? 0) !== 0; }
   /** A cell that something took or cleared (a coin, a gate, cracked ice) shows what the room has behind it: its backdrop or tile, or nothing where it has none (false). `at` is the cell's index in the screen. */
   clearCell(at: number): boolean {
     const back = this.backChr[at] ?? 0;
