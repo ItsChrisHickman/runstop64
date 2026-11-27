@@ -241,3 +241,12 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   the horizon (Molokai faint far off), drawn so a player knows the place at a glance. The black holes in the blue are a bug
   (cells left black inside a filled backdrop: backdrop-holes.ts must catch it). The bird's patrol crosses the walk along
   the rim, or it goes; the room gets a challenge of its own on the way to the railing and the snorkel.
+- **CHANNEL SURFING:** "I guess he's supposed to be in a dolphin, which is cool, but it really took me a moment to figure
+  out the dolphin. It also looks like I'm supposed to swim to the left and I can't." The dolphin must read at once
+  (a clear dolphin shape with Monty riding it, a moment of him climbing on as he dives in, or the room line's hint). The
+  sea runs open to the west edge (Oahu falling behind) but the way is east: show it (Molokai ahead, the current's arrows in
+  the swell, nothing to the west but where he came from), or close the west so it doesn't invite a swim it refuses.
+- **WHALE OF A TIME:** "weird, because there's nothing really going on there. It doesn't really look like it has anything to
+  do with the whale." Lahaina's harbour with the humpback as its set piece: the whale breaching across the harbour (the
+  polish job's humpback), its tail and spout part of the play (a spout that lifts him, the tail's splash a hazard on a
+  timing), and a challenge round the harbour's boats and the banyan.
