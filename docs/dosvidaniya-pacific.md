@@ -250,3 +250,11 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   do with the whale." Lahaina's harbour with the humpback as its set piece: the whale breaching across the harbour (the
   polish job's humpback), its tail and spout part of the play (a spout that lifts him, the tail's splash a hazard on a
   timing), and a challenge round the harbour's boats and the banyan.
+- **THE SEA CAVE:** "an interesting idea and I do like the flow, but the flow should be white arrows, not black. I don't
+  like the big black boxes in the room where I guess they were supposed to be items; after getting them their backgrounds
+  are black instead of blue. Needs a little more challenge; maybe the icicles fall more quickly, or just fall on their own,
+  like the crushers that move on their own." The current's arrows in white; a taken pickup (and the cell an item stood in
+  before it is taken) shows the water's blue, never a black box: a bug in how a pickup's cell is cleared over a filled
+  backdrop (check every water room and every coloured backdrop for the same fault, and add it to backdrop-holes.ts). The
+  cave's stalactites drop on their own cycle like crushers (fall, re-form, fall), several staggered over the current's way,
+  with a shake before each.
