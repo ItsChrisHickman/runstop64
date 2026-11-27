@@ -258,3 +258,6 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   backdrop (check every water room and every coloured backdrop for the same fault, and add it to backdrop-holes.ts). The
   cave's stalactites drop on their own cycle like crushers (fall, re-form, fall), several staggered over the current's way,
   with a shake before each.
+- **THE ROAD TO HANA:** "great, but the cars need to be moving constantly and they might need to be two at a time.
+  Otherwise it's just too easy." Keep the three tiers; the cars never stop (constant traffic on every tier), two on a tier at
+  once where the sprites allow, at differing speeds per tier, so crossing between tiers is a timing between cars.
