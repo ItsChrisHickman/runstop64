@@ -273,3 +273,7 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
   its timing (read from the warning), not wait somewhere it never reaches. Fair: the warning and a safe spot to read it from.
   (Part of the challenge pass; Japan's other rooms measured against Monty on the Run too: docs/dosvidaniya-siberia.md,
   "Why Monty on the Run is hard".)
+- **MOUNT FUJI:** "I love the Donkey Kong feel, but it needs more snowballs at a time to be challenging." Today one
+  snowball every 460 frames (FUJI_SNOW). Several on the slope at once, spaced so the climb is a run between them (the
+  barrels of Donkey Kong): a shorter period and more than one roller on the path (each a sprite: find the free ones, the
+  room has no creatures), still with the huts as the safe spots to read the timing from.
