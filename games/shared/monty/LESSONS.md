@@ -309,3 +309,7 @@ rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a r
   green, then pink): five or six colours a room that read against black, not one region colour throughout. A room's edge
   is often structure with character (a house's wall with its windows and a street sign, a pillar, a tower), not a plain
   wall or nothing. Each room is a small puzzle of its own: how do I get up there, from which side.
+- **A pattern to read, not a shuttle to hop** (Chris on THE INCA BRIDGE, 2026-11-26: "an enemy that walks left and right in
+  a really close pattern... not so much a puzzle as it is just annoying"): a creature gives the player something to read
+  and a moment to choose (a long patrol with a gap to slip through, a vertical one to pass under, two crossing whose gap
+  opens and shuts). A short tight shuttle on a narrow path is friction, not challenge.
