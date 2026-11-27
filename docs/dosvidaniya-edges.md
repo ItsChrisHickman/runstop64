@@ -2,7 +2,7 @@
 
 The audit for the challenge pass (Chris, 2026-11-26; his notes are in docs/dosvidaniya-siberia.md, -china.md, -japan.md,
 -pacific.md, -andes.md and -flight.md). It looks, it does not change anything. Measured on main at 48948626 by a one-off script
-(`games/montyworld/test/pass-audit.ts`, not committed) that:
+(`games/montyworld/test/pass-audit.ts`, committed with the re-check; `--room` narrows it) that:
 
 - renders every room and checks its four edges against the exit grid and the room across each one,
 - replays every region bot's recorded routes (ENHANCED) from their kept leg states, to find the way through each room (none died
@@ -10,7 +10,31 @@ The audit for the challenge pass (Chris, 2026-11-26; his notes are in docs/dosvi
 - measures each creature's sweep over 900 frames,
 - counts the colours of every room's picture with the sprites out, next to Monty on the Run's rooms measured the same way.
 
-Siberia is being redesigned in lane-gates, so its rows are **provisional**.
+**Re-checked 2026-11-27 after the release merged into this branch** (main at ff8a7353: Siberia's train as a path puzzle and the
+locomotive's steam valve, Viktor's chases announced, the % complete and THE FULL MONTY). The only rooms whose layout or creatures
+changed are Siberia's; every other region file is as audited, so their rows stand. Siberia and SIBERIA YOU LATER were measured again
+(`nice -n 15 node tools/test.mjs games/montyworld/test/pass-audit.ts <out> --room moscow.station,siberia`: the script now takes
+`--room` and then replays only those regions' routes). Siberia's rows are **no longer provisional**. The engine files behind the
+shared faults (icicles.ts, rollers.ts, swim.ts, cameos.ts, layout.ts) are unchanged, so section 4 stands. What changed:
+
+- **Edges:** none. COAL COMFORT's new vestibule and the cab roof leave its sides as they were: east joins MINE ALL MINE at row 3 both
+  ways (the cab roof's beam), west joins SLEEPER HIT at rows 8 and 16 both ways; the tender's sky has no rope up. The train cars'
+  bottom rows are still the track bed (left as they are).
+- **Creatures:** SLEEPER HIT's guard now covers 24% of the way (was 13%). COAL COMFORT: the stoker paces 3 cells clear of the cab's
+  doorway and the cab-roof bat is now a 5-cell vertical patrol (it was a walker that closed the roof); both short and at one speed
+  each, the bat barely on the way (4%, n1). BORDER LINE CASE's walker covers 32% (the route changed). The steam valve's blast is a new
+  hazard in COAL COMFORT (a pulse, not a creature: challenge.ts counts it).
+- **Colours:** COAL COMFORT now leads with red, dark grey and green (it shared 2 of 4 with SLEEPER HIT, now 1 of 3); the train cars
+  are otherwise the same brown, red and yellow.
+- **New engine pieces a region job can reuse** (skill monty-mechanism): `switches` (levers.ts `switchUpdate`: a box that flips a
+  hidden find, saved) and a pulse's `calmedUntil`; a pursuer's `announce` (the name flashes red as he steps in, green as he is
+  escaped). And main now has `test/challenge.ts`, the challenge floor (two hazards a room unless `CALM`, the failing rooms listed in
+  `PENDING`), and `test/recipe.ts`, the one owner of a room's creature records. challenge.ts notes Moscow's walkers patrol only 2 or
+  3 cells and Chris called it perfect: so the patrol lengths below are not a fault on their own; placement on the way, density and
+  mixed speeds are.
+
+Re-check renders: `/tmp/claude-0/renders/pass/audit/recheck/` (all-siberia.png; the creature-path sheet of the train rooms
+`train-sheet.png/sheet.png`); the Siberia rooms in `rooms/` and `all-siberia.png` are refreshed.
 
 Contact sheet of the open edges: `/tmp/claude-0/renders/pass/audit/sheet.png` (yellow bar: no room that side; red: a join
 that reads wrong). Every room: `/tmp/claude-0/renders/pass/audit/rooms/<id>.png`, `all-<region>.png`.
@@ -47,15 +71,15 @@ Pictures were looked at for edges the cells do not show (sky or sea drawn to the
 |---|---|---|
 | $0 MOSCOW MOLE [1,0] | W | The start room's open street, deliberate: Monty on the Run's start is open and players simply cannot go back (edges.ts). |
 | $2d LAND AHOY / $30 THE SEA CAVE | E / W, row 7 | Sky over the sea's surface meets the cave's rock. It is out of a swimmer's reach (swim.ts surface), and joins.ts exempts it. Reads closed. |
-| $5 SIBERIA YOU LATER, $9 THE GRAVY TRAIN, $a SLEEPER HIT (provisional) | S | The track bed under the rails: open cells in the bottom row that he cannot get down to. |
+| $5 SIBERIA YOU LATER, $9 THE GRAVY TRAIN, $a SLEEPER HIT | S | The track bed under the rails: open cells in the bottom row that he cannot get down to. |
 | $4f, $50, $51 (the flight) | W, E, S | A flight: the plane comes in and leaves by the edges. |
-| Every China and Japan room except NINJA HIDEOUT; every Siberia room (provisional); the other Andes and Rio rooms | all | No open side without a room, and no join open on one side and shut on the other. |
+| Every China and Japan room except NINJA HIDEOUT; every Siberia room (re-checked after the release); the other Andes and Rio rooms | all | No open side without a room, and no join open on one side and shut on the other. |
 
 ### Proposed new rooms (ids after the highest used, $62; cells checked free on the exit grid)
 
 | id | cell | region | place | kind | joins to check when built |
 |---|---|---|---|---|---|
-| Siberia | - | - | none needed (provisional: lane-gates is redesigning it) | - | - |
+| Siberia | - | - | none needed (re-checked after the train and the steam valve) | - | - |
 | China | - | - | none needed | - | - |
 | Japan | - | - | none (NINJA HIDEOUT's east is closed) | - | - |
 | $63 | [1,17] | Hawaii | Waikiki's beach, west of the luau | bonus challenge, maybe the snorkel (Chris to decide) | bottom solid over THE CARGO SHIP's sky; east meets the luau at row 18 |
@@ -94,11 +118,11 @@ roof's never.)
 | region | room | name | creatures: kind, patrol cells @ px/frame, % of the way its sweep covers, nearest px on the route | against the recipe |
 |---|---|---|---|---|
 | siberia | $9 | THE GRAVY TRAIN | walk 12@2 23% n0; up-down 4@1 22% n0 | 2 moving, no long vertical |
-| siberia | $a | SLEEPER HIT | walk 8@2 13% n0; up-down 0@0 3% n64; driven 2@1 3% n0 | 2 moving, no long vertical, 1 short (≤3 cells) |
-| siberia | $b | COAL COMFORT | up-down 3@1 9% n0; walk 4@2 25% n0 | 2 moving, no long vertical, 1 short (≤3 cells) |
+| siberia | $a | SLEEPER HIT | walk 8@2 24% n0; up-down 0@0 3% n64; driven 2@1 2% n0 | 2 moving, no long vertical, 1 short (≤3 cells) |
+| siberia | $b | COAL COMFORT | walk 3@2 15% n0; up-down 5@1 4% n1 (+ the steam valve's blast) | 2 moving, no long vertical, 1 short (≤3 cells) |
 | siberia | $d | YETI OR NOT | none | 0 moving, no long vertical |
 | siberia | $e | MINE ALL MINE | up-down 13@1 8% n0; up-down 13@1 13% n0; walk 4@2 5% n0 | meets the recipe |
-| siberia | $11 | BORDER LINE CASE | walk 3@2 18% n0; up-down 6@1 8% n0 | 2 moving, 1 short (≤3 cells) |
+| siberia | $11 | BORDER LINE CASE | walk 3@2 32% n0; up-down 6@1 15% n0 | 2 moving, 1 short (≤3 cells) |
 | siberia | $5f | OFF THE BEATEN PATH | walk 4@2 0% n8 | 1 moving, no long vertical, 1 off the way, one speed |
 | china | $12 | ALL WALL AND NO PLAY | walk 2@2 8% n0; up-down 2@1 0% n5 | 2 moving, no long vertical, 2 short (≤3 cells), 1 off the way |
 | china | $13 | BACK ALLEY BEIJING | walk 7@2 16% n0; up-down 2@1 11% n0 | 2 moving, no long vertical, 1 short (≤3 cells) |
@@ -181,7 +205,7 @@ BOAT, BULLET POINT, MOUNT FUJI, SHELL GAME, DIAMOND HEAD, THE LOOKOUT).
 4. **WILLOW PATTERN** (China): three walkers, two off the way, one speed (the koi should leap: Chris).
 5. **COFFEE BREAK** (Hawaii): one 1-cell creature, off the way.
 6. **SPY VERSUS MOLE** (Rio): two creatures, one a 3-cell shuttle, on 2-4% of the way.
-7. **OFF THE BEATEN PATH** (Siberia, provisional): one 4-cell walker, off the way (n8).
+7. **OFF THE BEATEN PATH** (Siberia): one 4-cell walker, off the way (n8).
 8. **MIND THE BATTLEMENTS** (China): an 8-cell walker off the way (n24), vertical creatures of 2 and 3 cells.
 9. **THE LAST MOLE** (Japan): the 10-cell crane flies off the way (n12, as Chris said); one 5-cell koi.
 10. **THE ROAD TO HANA, MAUNA KEA, THE SUMMIT, AKAKA FALLS, MAUNA LOA** (Hawaii): one creature each, 1 to 7 cells.
@@ -231,8 +255,8 @@ and the flight (3). What Chris sees is the **change from room to room**, and **w
 | $7 | ESCALATING TENSIONS | 8 | white lblue cyan | 72 | $8 3/3, $1 1/3 |
 | $8 | UNDERGROUND MOVEMENT | 9 | white lblue cyan | 70 | $7 3/3, $2 1/3 |
 | $9 | THE GRAVY TRAIN | 6 | brown yellow red grey | 72 | $5 3/4, $a 4/4 |
-| $a | SLEEPER HIT | 10 | red brown blue grey yellow | 63 | $9 4/5, $b 2/5, $d 1/5 |
-| $b | COAL COMFORT | 8 | dgrey red brown green | 68 | $a 2/4, $e 1/4, $5f 2/4 |
+| $a | SLEEPER HIT | 9 | red brown blue yellow grey | 65 | $9 4/5, $b 1/5, $d 1/5 |
+| $b | COAL COMFORT | 9 | red dgrey green | 70 | $a 1/3, $e 0/3, $5f 1/3 |
 | $d | YETI OR NOT | 5 | blue white lgrey | 74 | $a 1/3 |
 | $e | MINE ALL MINE | 6 | brown | 65 | $b 1/1, $14 0/1, $11 1/1 |
 | $11 | BORDER LINE CASE | 6 | brown blue white lblue | 82 | $5f 2/4, $12 1/4, $e 1/4 |
@@ -310,10 +334,10 @@ and the flight (3). What Chris sees is the **change from room to room**, and **w
 
 | fault | where in the code | where it shows | the one fix |
 |---|---|---|---|
-| **Icicles only hit a player who stops** | `games/montyotr/src/icicles.ts`: arms when his box is over its column, shivers `WARN` = 24 frames, then falls. The file says so: "running straight under one is safe". | Moscow: SNOW PLACE LIKE HOME (2), ONION DOME SWEET DOME (2), KREMLIN GREMLINS (1). Siberia: YETI OR NOT (1), OFF THE BEATEN PATH (1), both provisional. Hawaii: THE SEA CAVE's stalactites (2). Japan: GONE WITH THE WIND (2). | Two data options on `IcicleSpec`, chosen per icicle. `lead`: arm a few cells ahead in the way he is going, so walking on runs into the fall and the shake is the warning. `period` with a phase: drip, fall and re-form on its own clock with no trigger, staggered over the way, so a run under a row of them is a choice of moment (Chris's "fall on their own, like the crushers"). |
+| **Icicles only hit a player who stops** | `games/montyotr/src/icicles.ts`: arms when his box is over its column, shivers `WARN` = 24 frames, then falls. The file says so: "running straight under one is safe". | Moscow: SNOW PLACE LIKE HOME (2), ONION DOME SWEET DOME (2), KREMLIN GREMLINS (1). Siberia: YETI OR NOT (1), OFF THE BEATEN PATH (1). Hawaii: THE SEA CAVE's stalactites (2). Japan: GONE WITH THE WIND (2). | Two data options on `IcicleSpec`, chosen per icicle. `lead`: arm a few cells ahead in the way he is going, so walking on runs into the fall and the shake is the warning. `period` with a phase: drip, fall and re-form on its own clock with no trigger, staggered over the way, so a run under a row of them is a choice of moment (Chris's "fall on their own, like the crushers"). |
 | **A taken pickup leaves a black box over a coloured backdrop** | The region layouts keep the item's 2 x 2 cells (and every coin's cell) out of the backdrop fill: `fillWhere`'s `keep` in `games/montyworld/src/layout.ts`, used through `horizon`, `seaOf` and `keepOf`. `Game.clearCell` then restores the backdrop behind a taken thing, and there is none, so the cell is black before and after. The engine already draws a coin over a backdrop (`drawCoinsOverBackdrop`), so the coin keeps are not needed. An item is a sprite with `priority` set (behind the background's pixels), which is probably why its cells were carved out. | Items: THE LOOKOUT (the snorkel: Chris's "black holes in the blue"), THE SEA CAVE (musubi), SHELL GAME (musubi), WHALE OF A TIME (Lahaina's find), MAUNA LOA (the moon rock and the vent), COFFEE BREAK (the coffee). Coins: every room built with a keep list (about 50 uses in pacific.ts, 2 each in andes.ts, art/japan-scenery.ts and art/siberia-sky.ts). backdrop-holes.ts passes because it compares with the room as drawn, which is already black there. | Stop keeping coin and item cells out of the fill (keep only real pieces). Draw a room's item sprite in front where its cells are backdrop (clear its priority bit there). Extend backdrop-holes.ts: no black cell under an item or coin inside a filled backdrop. |
 | **Water a snorkeller can swim in still kills** | Swimming exists only in whole `swimRooms` (CHANNEL SURFING, LAND AHOY, THE SEA CAVE: `games/montyotr/src/swim.ts`). Every other water is a deadly tile (class 4), or a deadly pulse, whatever he carries. | After the snorkel (THE LOOKOUT): KAIHALULU (the surf's pulses up the sand, the cove's pool), KONA (3 cells of shallows), WHALE OF A TIME (20 cells, Lahaina's harbour), AKAKA FALLS (3, the plunge pool), SHELL GAME (38, the channel: deadly by design, so it must read as something deadly), WELCOME TO HONOLULU (10) on the way back. He still carries the snorkel in the Andes: THE RIVER QUEEN (56), UP THE CREEK (47), THE ROOTS (49), VINE AND DANDY (86), CLOUD NINE (16), THE RIVER ENDS (16); and Rio's FLOAT YOUR BOAT canal (38). | One rule in the engine: a water class (tile codes the data names as water) that is deadly without the swim gate and swum (or waded, if shallow) with it, in any room: swimMove inside a body of water, not only in whole swim rooms. A deadly thing in water is drawn as what it is (breakers, a jellyfish, coral, piranhas) on a tile of its own. **Chris's call**: whether the Amazon's rivers stay deadly (the piranhas as the reason) or become swims. |
-| **Viktor's border cameos pop up beside Monty and run away** | `games/montyotr/src/cameos.ts` `walkOn` (the move is in from an edge, hold a pose, back out the same way), and the border cameos in `games/montyworld/src/viktor.ts` (`border(...)`: "goes back the way he came"). BORDER_CLEAR keeps him 10 cells off, but turning back still reads as running from Monty. | SIBERIA YOU LATER (on the Kremlin's tower top, then off), ALL WALL AND NO PLAY (Chris's note), THE FISH MARKET (Chris's note), OPEN ARMS. The same picture problem: GONE WITH THE WIND's tengu, which uses the cameo machinery and reads as Viktor (Chris). And the flight's ON HIS TAIL, where the plane appears on top of Monty: a pursuer, not a cameo. The train's and the cargo ship's chases are being reworked on lane-release (unmerged, 5 commits ahead of main), and that work leaves the border cameos as they are. | A cameo move that is a thwarted chase: he runs on from behind, toward Monty, and is stopped short at a barrier the cameo names (a gap, a door that shuts, a ledge, a crowd). He shakes his fist (a pose) and stays there, or fades, until Monty has gone; never a walk back the way he came. One change to `CameoMove` (a `stop` column and a `fist` pose, no `to`), then the four border specs. |
+| **Viktor's border cameos pop up beside Monty and run away** | `games/montyotr/src/cameos.ts` `walkOn` (the move is in from an edge, hold a pose, back out the same way), and the border cameos in `games/montyworld/src/viktor.ts` (`border(...)`: "goes back the way he came"). BORDER_CLEAR keeps him 10 cells off, but turning back still reads as running from Monty. | SIBERIA YOU LATER (on the Kremlin's tower top, then off), ALL WALL AND NO PLAY (Chris's note), THE FISH MARKET (Chris's note), OPEN ARMS. The same picture problem: GONE WITH THE WIND's tengu, which uses the cameo machinery and reads as Viktor (Chris). And the flight's ON HIS TAIL, where the plane appears on top of Monty: a pursuer, not a cameo. The train's and the cargo ship's chases were reworked on lane-release (merged 2026-11-27: he steps in at Monty's door, announced, and is knocked off), and ON HIS TAIL's plane is now announced as it comes into sight; the border cameos are as they were. | A cameo move that is a thwarted chase: he runs on from behind, toward Monty, and is stopped short at a barrier the cameo names (a gap, a door that shuts, a ledge, a crowd). He shakes his fist (a pose) and stays there, or fades, until Monty has gone; never a walk back the way he came. One change to `CameoMove` (a `stop` column and a `fist` pose, no `to`), then the four border specs. |
 | **One roller per path where several are wanted** | `games/montyotr/src/rollers.ts`: a `RollerSpec` is one boulder on one sprite, coming round every `every` frames. Several on a path mean several specs, each with its own sprite, as MACHU PICCHU's three boulders a third of a period apart. Tunnel cars are the same: one car per `TunnelSpec`. | MOUNT FUJI (one snowball every 460 frames: Chris wants several, the Donkey Kong barrels), DIAMOND HEAD (one rock, every 420; Chris wants it dropped anyway), THE LAPA ARCHES (one stone). Tunnels: THE ROAD TO HANA's cars (one a tier, resting between runs; Chris wants constant traffic, two on a tier). | `count` and `apart` (frames) on `RollerSpec`, and on `TunnelSpec` for a lane's cars. The engine places the extra copies on the room's free sprites; budget.ts checks that the sprites are there (MOUNT FUJI has no creatures, so it has four). |
 
 ## Decisions for the pass (2026-11-27, Chris asleep; his to overturn)
