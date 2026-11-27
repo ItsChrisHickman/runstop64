@@ -12,7 +12,7 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 |---|---|
 | "Basically everything in Siberia and China is super easy without any challenge"; after Russia: one creature a room, short patrols, nothing crossing the way. "Russia was perfect." Full pass: enemies as puzzles (skill `monty-room`, the recipe). | open |
 | "Most enemies just move left and right or up and down... is MOTR really that simple?" Mix speeds and patterns. | open |
-| Icicles "are never hard unless you stop and wait for them": fall on their own cycle (icicles.ts). | open |
+| Icicles "are never hard unless you stop and wait for them": fall on their own cycle (icicles.ts). | done (63cd3f6d): two options per icicle, `lead` (shakes ahead of him, walking on meets the fall) and `period` (drips on its own clock); YETI OR NOT and the ice cave lead, the ice cave's second, OFF THE BEATEN PATH and THE SEA CAVE drip. Moscow's left as they are (Moscow untouched) |
 | On a death after taking an item: "getting an item and dying shouldn't count... when returning to the location wherein one entered the room, it should rewind the state of their items/coins" (2026-11-27). Fits EASY's restart "as he came into it"; both modes? Saves keep the entry state. | his call (recommended: yes, both modes) |
 | The map on NEW GAME+ "is skipping rooms"; the rooms' colour cycling "doesn't actually mean anything. Different colors representing each unique region would make more sense" (2026-11-27) | open |
 | "Andes seems to be Andes + Amazon... really two areas" (2026-11-27): split into two regions (map colour, music, sector names)? | his call |
@@ -22,10 +22,10 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 | Creature colours "the same 3 colours and a few cyan" (2026-11-27). Measured: MOTR is more concentrated overall (top three 63% vs our 44%) but has 3.2 creatures a room, so 48 of 51 rooms mix colours; ours 1.9 a room, 45 of 71. The fix is the challenge pass's third creature, in a colour of its own in that room; also check whether one creature always gets one colour everywhere. | open |
 | The story's gap: "Intermole and Russia don't really collaborate" (2026-11-27). Nothing says why the KGB want him. Proposed scroller: INTERMOLE HAS FOUND MONTY ON MONTOS... EUROPE IS NO LONGER SAFE... HE SLIPS INTO RUSSIA WITH NO PASSPORT... THE KGB THINK HE IS A SPY... AND SEND VIKTOR VOLE... MOSCOW TO RIO... (Viktor past the USSR: one agent's obsession). | his call |
 | Rooms that look walkable left or right but are not: decide where the room would be (`docs/dosvidaniya-edges.md`). | open |
-| Black boxes where pickups were (backgrounds not refilled: layout.ts `fillWhere` keep lists). | open |
-| Water that drowns a snorkeller outside swim rooms. | open |
+| Black boxes where pickups were (backgrounds not refilled: layout.ts `fillWhere` keep lists). | done (be379195): the room builder fills the 25 holes under coins and finds in backdrops, a find over a backdrop is drawn in front; backdrop-holes.ts checks it |
+| Water that drowns a snorkeller outside swim rooms. | his call (recommended: swimming in any body of water with the snorkel, an engine piece of its own; measured: every such water reaches the room's foot, so none is shallow enough to wade: 12 rooms, $26 $2e $31 $40 $41 $42 $4c $54 $55 $5a $5d $5e; then SHELL GAME's channel and the Amazon's rivers drawn as what kills, if they stay deadly) |
 | Viktor's look (2026-11-27): "looks good on the home screen, but in the game he's solid white and looks nothing like he does on the title screen". The title layers several one-colour sprites (coat, face...); a cameo has one sprite slot, so he is a white silhouette. Fix: a multicolour in-game sprite in his title colours, the dark coat outlined so it reads on dark rooms. | open |
-| Viktor cameos: "appears right by Monty and runs away"; at the fish market "runs into Monty then runs away... he is trying to chase Monty and can't reach him yet". In GONE WITH THE WIND "is that him?! It's confusing". On ON HIS TAIL he "appears out of nowhere and you can die just by being in the wrong spot". | open |
+| Viktor cameos: "appears right by Monty and runs away"; at the fish market "runs into Monty then runs away... he is trying to chase Monty and can't reach him yet". In GONE WITH THE WIND "is that him?! It's confusing". On ON HIS TAIL he "appears out of nowhere and you can die just by being in the wrong spot". | border cameos done (63cd3f6d): he runs on after Monty, is stopped at a brink (the tower top, the border post, the inlet, the branch tip), shakes his fist and stays; GONE WITH THE WIND's tengu and ON HIS TAIL open |
 
 ## Siberia
 
@@ -44,7 +44,7 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| All wall and no play | "the Viktor cameo makes no sense" | open |
+| All wall and no play | "the Viktor cameo makes no sense" | done (63cd3f6d): he runs out on the border post's top after Monty and is stopped by its drop, shaking his fist |
 | Noodle market | the falling floor "won't fall if you just run and if it does... So what? You just fall to a safe spot" | open |
 | The Forbidden City | "very easy. Nothing to it" | open |
 | Heaven can wait | "no enemies, easy layout" | open |
@@ -56,7 +56,7 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| Mt Fuji | "love the Donkey Kong feel... needs more snowballs at a time" | open |
+| Mt Fuji | "love the Donkey Kong feel... needs more snowballs at a time" | done (63cd3f6d): three snowballs on the path, 153 frames apart, two on the climb at once |
 | Gone with the wind | "too easy"; Viktor there is confusing | open |
 | The last mole | "the flying enemy isn't positioned in a place that he poses a threat" | open |
 | Shoot for the moon | "no challenge" | open |
