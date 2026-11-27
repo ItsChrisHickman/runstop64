@@ -411,9 +411,10 @@ export interface CameoWalk { from: number; at: { col: number; row: number }; to:
 /**
  * A chase stopped short (cameos.ts: Viktor at a border, Chris 2026-11-26: "he is trying to chase Monty and can't reach him yet... not that he is running away from him"): he runs on from column `from`
  * toward Monty at twice Monty's pace (`CAMEO_RUN`) and is stopped at `at`, the brink of what he cannot cross (a drop, the water), shakes his fist after Monty for `hold` frames, then stands looking after
- * him until Monty has left the room. Never back the way he came.
+ * him until Monty has left the room. Never back the way he came, and never beside Monty: should Monty come back within `clear` cells of him (the larger of across and down), he is gone, there and then
+ * (a brink Monty can reach on foot, OPEN ARMS's canopy: a harmless Viktor stood beside him reads as one who could have caught him and did not).
  */
-export interface CameoStop { from: number; at: { col: number; row: number }; pose: 'fist'; hold: number }
+export interface CameoStop { from: number; at: { col: number; row: number }; pose: 'fist'; hold: number; clear: number }
 export type CameoMove = CameoWalk | CameoStop;
 
 /**

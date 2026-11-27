@@ -28,7 +28,7 @@ const PLACES = {
   wall: slot(CHI.wall, 2), // China's first room (two)
   harbour: slot(JP.harbour, 2), // Japan's first (two)
   moon: slot(JP.mole, 2), // THE LAST MOLE (two)
-  arms: { room: RIO_ROOM.arms, sprite: 1, first: 0xa7 }, // OPEN ARMS has three creatures and Monty's hat on sprite 7: sprite 1 (no second find there) and the left skewer's and right skewer's blocks
+  arms: slot(RIO_ROOM.arms, 2), // OPEN ARMS (two creatures: the vulture, the marmoset; sprite 1 is the guarana, its second find, which the cameo once drew over)
 } as const satisfies Record<string, Place>;
 
 /**
@@ -38,7 +38,7 @@ const PLACES = {
  */
 const border = (p: Place, from: number, side: 'left' | 'right', brink: { col: number; row: number }, when: CameoSpec['when'], wait = 30): CameoSpec => ({
   room: p.room, from: [from], when, wait, sprite: p.sprite, first: p.first, colour: VIKTOR_INK,
-  move: { from: side === 'left' ? -3 : 33, at: brink, pose: 'fist', hold: 90 },
+  move: { from: side === 'left' ? -3 : 33, at: brink, pose: 'fist', hold: 90, clear: BORDER_CLEAR },
 });
 
 /**

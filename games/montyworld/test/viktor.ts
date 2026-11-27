@@ -33,7 +33,7 @@ import { CLOSET, SIB } from '../src/siberia';
 import { colOf, dead, LEFT, RIGHT, rowText } from './mech-kit';
 import { itemIndex, standY } from './route';
 import type { CameoSpec } from '../../montyotr/src/montydata';
-import { colX2 } from '../../montyotr/src/cameos';
+import { cellsApart, colX2 } from '../../montyotr/src/cameos';
 import { CHI } from '../src/china';
 import { ROOM } from '../src/moscow';
 import { BORDER_CLEAR } from '../src/viktor';
@@ -313,11 +313,8 @@ const floorsOf = (c: CameoSpec, i: number) => must(FLOORS.get(c.room), `the floo
 const pastOf = (c: CameoSpec, i: number) => c.after !== undefined ? { col: 1, floor: 14 } // (the moon's room: by the shrine where the hood is)
   : c.room === ROOM.station ? { col: 16, floor: 3 } : { col: c.when.col1 + 1, floor: floorsOf(c, i).past };
 const viktorOn = (g: Game, c: CameoSpec) => ((g.vic.enable >> c.sprite) & 1) === 1 && (g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8;
-/** Cells between Viktor's sprite and Monty, the larger of across and down (both by their top left cell, as the engine counts Monty's). */
-const apart = (g: Game, c: CameoSpec) => {
-  const vc = ((((g.sx[c.sprite] ?? 0) - 0x0c) & 0xff) >> 2) - 4, vr = ((((g.sy[c.sprite] ?? 0) - 0x32) & 0xff) >> 3) - 3;
-  return Math.max(Math.abs(vc - (g.montyCol - 4)), Math.abs(vr - (g.montyRow - 3)));
-};
+/** Cells between Viktor's sprite and Monty, the larger of across and down (cameos.ts's own measure). */
+const apart = (g: Game, c: CameoSpec) => cellsApart(g, g.sx[c.sprite] ?? 0, g.sy[c.sprite] ?? 0);
 for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
   WORLD.cameos.filter((c) => c !== TENGU).forEach((c, i) => { // (Viktor's: the tengu is japan-mechanisms')
@@ -358,6 +355,15 @@ for (const enhanced of [false, true]) {
         const atBrink = viktorOn(s.g, c) && (s.g.sx[c.sprite] ?? 0) === colX2(m.at.col);
         check(`${mode}: cameo ${i + 1} (room ${c.room}, from ${from}) waits while Monty is by the edge he came in by, then Viktor runs on after him (${backward} frames of going back), is stopped at the brink (column ${m.at.col}) and stays there, shown ${shown} frames, on a sprite no part of the collision check`,
           waited && backward === 0 && atBrink && lastOn === 599 && masked && alive);
+        // Monty goes back to him (OPEN ARMS's coin under the canopy, its west arm's snack, the liana back up): Viktor is gone before Monty is ever within BORDER_CLEAR of him, never stood beside him
+        let near = 99, goneAt = -1;
+        const steps = 40;
+        for (let f = 0; f <= steps && s.g.roomId === c.room; f++) {
+          placeAt(s.g, { col: Math.round(past.col + (m.at.col - past.col) * f / steps), floor: Math.round(past.floor + (m.at.row - past.floor) * f / steps) });
+          frame(s, NONE); frame(s, NONE); // (a frame for the placing to take, then the one measured)
+          if (viktorOn(s.g, c)) near = Math.min(near, apart(s.g, c)); else if (goneAt < 0) goneAt = f;
+        }
+        check(`${mode}: cameo ${i + 1}: Monty coming back to the brink, Viktor is gone (step ${goneAt} of ${steps}) before Monty is within ${BORDER_CLEAR} cells of him (nearest while shown ${near})`, goneAt >= 0 && near >= BORDER_CLEAR);
       } else {
         const over = s.g.roomId !== c.room || s.g.cameos.every((k) => k.done);
         check(`${mode}: cameo ${i + 1} (room ${c.room}, from ${from}) waits while Monty is by the edge he came in by, then plays for ${shown} frames and is gone (last seen frame ${lastOn}), on a sprite no part of the collision check`, waited && shown >= Math.min(m.hold, 40) && over && masked && alive);

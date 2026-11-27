@@ -3,7 +3,7 @@ import type { CameoMove, CameoSpec, CellBox } from './montydata';
 
 /**
  * Cameos (a game's `cameos`: Do Svidaniya Monty's Viktor Vole arriving too late at each border, and his shadow against the moon in Japan): a figure that walks on, holds a pose facing Monty and walks
- * off, or (a chase stopped short) runs on after Monty, is stopped at a brink and shakes his fist and stays, on a sprite of its own, touching nothing (its sprite is no part of the collision check: `cameoSprites`). It plays when Monty comes into its room from one of the rooms it names (so a death, which
+ * off, or (a chase stopped short) runs on after Monty, is stopped at a brink and shakes his fist and stays (gone, should Monty come back within its `clear` of him), on a sprite of its own, touching nothing (its sprite is no part of the collision check: `cameoSprites`). It plays when Monty comes into its room from one of the rooms it names (so a death, which
  * starts the room again, does not play it again), once he has left the box he came in by or, with `after`, once a find is taken; with `once` it plays only once in the game. The walk-on itself
  * (`walkOn`) is the pursuer's intro too (pursuers.ts).
  */
@@ -58,6 +58,10 @@ export function walkOn(m: CameoMove, t: number, montyX2: number): { x2: number; 
   return null;
 }
 
+/** Cells between a cameo's figure at (`x2`, `y`) and Monty, the larger of across and down, both by their top left cell as the engine counts Monty's. */
+export const cellsApart = (g: Game, x2: number, y: number): number =>
+  Math.max(Math.abs((((x2 - 0x0c) & 0xff) >> 2) - 4 - (g.montyCol - 4)), Math.abs((((y - 0x32) & 0xff) >> 3) - 3 - (g.montyRow - 3)));
+
 /** A cameo of the room: its place in the data's list, whether it has begun (it counts its wait from then) and the frames since, and whether it is done. */
 export interface CameoState { index: number; begun: boolean; t: number; done: boolean }
 
@@ -85,7 +89,8 @@ export function cameoUpdate(g: Game) {
     }
     c.t++;
     const at = c.t > e.wait ? walkOn(e.move, c.t - e.wait, g.x2) : null;
-    if (c.t > e.wait && !at) { c.done = true; g.enable &= ~(1 << e.sprite) & 0xff; continue; }
+    const tooNear = at !== null && e.move.pose === 'fist' && cellsApart(g, at.x2, at.y) < e.move.clear; // (a stopped chase Monty comes back to: he is gone)
+    if ((c.t > e.wait && !at) || tooNear) { c.done = true; g.enable &= ~(1 << e.sprite) & 0xff; continue; }
     if (!at) continue;
     g.sx[e.sprite] = at.x2; g.sy[e.sprite] = at.y; g.sptr[e.sprite] = e.first + at.picture; g.scol[e.sprite] = e.colour;
     g.enable |= 1 << e.sprite;

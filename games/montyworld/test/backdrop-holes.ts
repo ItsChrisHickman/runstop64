@@ -3,7 +3,7 @@
  * shimmer after), whatever is behind it (nothing, a backdrop decoration, a room tile); and a cell an item's effect clears (a gate, a barrier, a sign) and cracked ice that has gone leave the cell
  * showing what the room's backdrop has there (a sky, a sea: the decorations of a backdrop type, derived here from the room's own list), never black unless the backdrop is
  * black there, and in the backdrop's colour after a turn of the coins' colour cycle (it does not flash). A coin on a backdrop is drawn over it (its picture in the cell with the backdrop's, not a black box);
- * no coin or find sits in a black hole in a backdrop (a cell off it whose neighbours, two or more, have the same backdrop), and a find over a backdrop is drawn in front of it.
+ * no coin or find sits in a black hole in a backdrop (a cell off it whose neighbours, two or more, have the same backdrop), and a find over a backdrop is drawn in front of it, in a colour that stands apart in brightness from the backdrop's there.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/backdrop-holes.ts [--room <rooms>]
  */
@@ -38,6 +38,10 @@ function backdropOf(room: number): Map<number, readonly [chr: number, colour: nu
   }
   return cells;
 }
+
+/** The C64's colours' brightness (Pepto's luminance levels, 0 black to 32 white), and how far apart a find and the backdrop behind it must be: light blue on blue (15 and 8) is not. */
+const LUMA = [0, 32, 10, 20, 12, 16, 8, 24, 12, 8, 16, 10, 15, 24, 15, 20] as const;
+const FIND_LUMA_APART = 8;
 
 const cellOf = (g: Game, at: number) => g.mem[SCREEN + at] ?? 0;
 const where = (room: number, at: number) => `room $${room.toString(16)} cell (${(at % ROW) - PLAY_COL}, ${Math.floor(at / ROW) - PLAY_ROW})`;
@@ -108,6 +112,10 @@ for (const room of SCOPE.keep(roomsOf(WORLD))) {
         finds.push(...mine);
         const n = g.siSecondIdx === i ? 1 : g.siActiveIdx === i ? 0 : -1;
         if (n >= 0 && mine.some((at) => back.has(at)) && (g.priority >> n) & 1) wrong.push(`the find on sprite ${n} in room $${room.toString(16)} is behind its backdrop (its priority bit set)`);
+        // and it can be seen there: its colour stands apart in brightness from the backdrop's behind it (THE LOOKOUT's light blue snorkel was lost on the blue sky)
+        const ink = n >= 0 ? (g.scol[n] ?? 0) & 15 : -1;
+        const faint = mine.filter((at) => { const b = back.get(at); return b !== undefined && Math.abs((LUMA[b[1]] ?? 0) - (LUMA[ink] ?? 0)) < FIND_LUMA_APART; }).length;
+        if (n >= 0 && faint > 0) wrong.push(`the find on sprite ${n} in room $${room.toString(16)} (colour ${ink}) is too near its backdrop's brightness on ${faint} of its cells`);
       }
       for (const at of finds) {
         if (back.has(at)) continue;
