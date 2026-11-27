@@ -207,3 +207,14 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
 - **The Forbidden City**: unchanged but for its right edge (shut under the palace wall, so a jump east never lands in the quay's cliff). The audit's lantern-on-a-rope for it was tried and left out: the bot found no way to the inner court past it.
 - **Joins**: `games/montyworld/test/joins.ts` holds every east-west and north-south join of every region to "no open edge cell meets a wall"; offenders found and mended (a `shut` of a room's
   edge, `layout.ts`): Siberia (2), China (the wall, the gate), Japan (5), the Andes (1); the intended ones (the box's chain, the surf's waves, the hold's door, the road's pool, the tower's trapdoor) are listed in the test.
+
+## Chris's playtest notes (2026-11-26): challenge where it is missing
+
+- **THE WATCHTOWER:** "The watchtower top row enemies pose no threat and serve no purpose." Give the top row's creatures a
+  path that crosses Monty's way (a timing to read), or replace them with one that does; no creature that is only decoration.
+- **DON'T ROCK THE BOAT:** "pretty but has no challenge." Keep the look; add the challenge the name promises (the boat rocks:
+  its deck tilts or bobs on a timing, a creature on the water, a jump between boats).
+- **OFF THE BEATEN PATH:** "cool ideas but no challenge." Keep the ideas (the pines, the boughs); make the climb ask for
+  timing or a choice, with its reward at the end.
+- **BORDER LINE CASE:** "good ideas but both water bridges should break faster as this would pose a challenge. Right now
+  they don't." Both breaking bridges give way faster, so crossing them is a run, fair but tight.
