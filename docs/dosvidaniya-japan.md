@@ -265,3 +265,11 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
 - **The rest is as the hideout pass left it**: the hideout's door guard (the hood) is the hood's one gate, its corridor gap and the shaft down the walled east of the hall to the port, the red tiled roof, the rotten lookout boards. The Pacific's join is untouched.
 - **The way back** from the hideout: down its left rope onto the gallery, east to the rope past the third door, down it and west through the doors to the garden (or drop off the gallery's west end to the floor).
 - The route's legs: the three doors, the rope past the third, the gallery west to its coin, on west and up to the hideout, then the hideout's legs as before.
+
+## Chris's playtest notes (2026-11-26)
+
+- **BULLET POINT:** "also needs to be harder. The train is too easy to not encounter." The bullet train must be the room's
+  test: Monty's way on runs along the platform's edge or the track where the train sweeps, so he has to cross its lane on
+  its timing (read from the warning), not wait somewhere it never reaches. Fair: the warning and a safe spot to read it from.
+  (Part of the challenge pass; Japan's other rooms measured against Monty on the Run too: docs/dosvidaniya-siberia.md,
+  "Why Monty on the Run is hard".)
