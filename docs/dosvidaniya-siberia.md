@@ -224,3 +224,12 @@ ice and NOODLE MARKET's floor faster).
   he jumps along on their timing, creatures drifting across the air above the jumps, small high ledges to the way on. The
   challenge is the combination: a jump that is hard because of what is under it AND what is crossing it. The pass builds
   rooms this way: each room's jumps and creatures overlap, never a creature in one place and the jumps in another.
+- **A second reference room** (Monty on the Run's THE HOUSE with the ghost, the fridge and the plant; Chris: "interesting
+  because you have that fast enemy at the bottom left and you have to worry about two enemies that cross with different
+  patterns. When you come back up through the room you have to be patient and wait for the enemy to go to the right of you
+  and time a pretty good jump, and then you have to jump over a pot that requires exact jumping. There are several
+  interesting things that happen in this room that can cause a player to mess up and patience is definitely needed."):
+  what makes it work: one fast creature among slower ones (speed varies within a room); two creatures crossing on
+  different patterns so their timings combine; the room is crossed BOTH ways and is hard both ways (coming back you wait
+  for the creature to pass, then a long jump); an exact jump over a small obstacle (a pot) right after the timed one; several
+  separate chances to slip in one room. Patience is the skill asked: a safe spot to wait in, then a committed move.
