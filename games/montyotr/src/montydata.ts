@@ -59,7 +59,7 @@ export interface MontyLook {
    * the kit's effect (`SidPlayer.sfx`) each of the game's own (by number) plays as while a room's tune is another .sid, whose
    * memory has none of the game's routines; one it lacks is silent there.
    */
-  music: { init: number; stop: number; playSfx: number; sidUrl: string; overOther: Readonly<Partial<Record<number, SfxName>>>; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
+  music: { init: number; stop: number; playSfx: number; sidUrl: string; overOther: Readonly<Partial<Record<number, SfxName>>>; tuneFor?: (roomId: number) => TuneVersion | null; /** The version played while a pursuer is after Monty in sight (pursuers.ts `pursuerChasing`), in a room whose own is a version of the song. */ chase?: TuneVersion; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
 /**
@@ -427,6 +427,8 @@ export interface PursuerSpec {
   look?: { frames: readonly number[]; dx: number; dy: number; over?: { sprite: number; ptr: number; colour: number } };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
   intro?: CameoMove;
+  /** His coming into sight, and his knock, are announced (pursuers.ts): the room's name flashes and a sting plays (Do Svidaniya Monty's train roof and cargo ship). */
+  announce?: true;
 }
 
 /**

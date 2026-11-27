@@ -14,7 +14,8 @@ import { CAR } from './train';
 /**
  * Viktor Vole round the world (docs/dosvidaniya-reset.md, "Viktor Vole"): every border Monty crosses he arrives at a moment too late, walks on at the edge Monty came by, looks after him and withdraws (a
  * cameo, one line each); in Japan's THE LAST MOLE, once Monty has the hood, his shadow crosses the moon, stops and turns to look, and moves on (the hood has fooled him); on the train's roof and the cargo ship he
- * follows Monty on his trail (a pursuer: swept off the roof by the mountain as Monty shelters, led under the crane's swinging crate); and in the Sambadrome, SPY VERSUS MOLE, the showdown (rio.ts `pursuerOf`). His pictures are art/viktor.ts.
+ * follows Monty on his trail (a pursuer: swept off the roof by the mountain as Monty shelters, led under the crane's swinging crate; his stepping in where Monty came in and his knock both flash the
+ * room's name with a sting, and the tune turns to Monty on the Run's own while he is in sight: `announce`, `music.chase`); and in the Sambadrome, SPY VERSUS MOLE, the showdown (rio.ts `pursuerOf`). His pictures are art/viktor.ts.
  */
 
 /** A cameo's eight pictures go in a creature slot the room has free (its blocks: $30 + 8 a slot), on that slot's sprite, or in blocks of `first` on `sprite`. */
@@ -76,7 +77,7 @@ export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
  */
 export const TRAIN_CHASE = { delay: 150 } as const;
 export const trainPursuer = (escaped: number): PursuerSpec => ({
-  room: SIB.sleeper, slot: 2, delay: TRAIN_CHASE.delay, wake: { col0: 2, row0: 0, col1: 31, row1: CAR.roof - 1 }, until: escaped, knockedBy: { tunnels: true },
+  room: SIB.sleeper, slot: 2, delay: TRAIN_CHASE.delay, wake: { col0: 2, row0: 0, col1: 31, row1: CAR.roof - 1 }, until: escaped, knockedBy: { tunnels: true }, announce: true,
 });
 
 /**
@@ -86,5 +87,5 @@ export const trainPursuer = (escaped: number): PursuerSpec => ({
  */
 export const SHIP_CHASE = { delay: 192 } as const;
 export const shipPursuer = (escaped: number): PursuerSpec => ({
-  room: PAC.ship, slot: 2, delay: SHIP_CHASE.delay, calm: { col0: 0, row0: 9, col1: 3, row1: 13 }, until: escaped, knockedBy: { creatures: [1] },
+  room: PAC.ship, slot: 2, delay: SHIP_CHASE.delay, calm: { col0: 0, row0: 9, col1: 3, row1: 13 }, until: escaped, knockedBy: { creatures: [1] }, announce: true,
 });

@@ -25,6 +25,12 @@ const TUNES: Readonly<Record<Exclude<RegionName, 'sky'>, RegionTune>> = { moscow
 /** Auf Wiedersehen Monty's theme, as the sky plays it. */
 export const AWM_THEME: TuneVersion = { id: 'awm-theme', file: { url: AWM_SID_URL, song: SOUND.themeSong } };
 
+/**
+ * The chase (Chris, 2026-11-27, on Viktor's chases: "I didn't fully feel the sense that he was pursuing me"): while Viktor is after Monty in sight (the train's roof, the cargo ship, SPY VERSUS MOLE), the
+ * region's version gives way to Hubbard's tune as he wrote it, Monty on the Run's own, crossing in step at the next phrase as between regions (the song never restarts), and back once he is escaped.
+ */
+export const CHASE_TUNE: TuneVersion = { id: 'on-the-run', make: (original) => original.slice() };
+
 /** A tune as the engine takes it (`MontyData.music.tuneFor`): the version's id, and how to make its .sid from the original's. */
 function version(tune: RegionTune): TuneVersion {
   return { id: tune.id, make: (original) => retune(original, tune) };

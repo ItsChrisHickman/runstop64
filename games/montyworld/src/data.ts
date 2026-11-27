@@ -30,7 +30,7 @@ import { GUST_CAP, GUST_COLOURS } from './art/japan-cave';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
 import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
-import { tuneForRoom } from './music/regions';
+import { CHASE_TUNE, tuneForRoom } from './music/regions';
 import { PASSPORT_STAMPS } from './art/passport';
 import { WORLD_REGIONS } from './regions';
 import { completion } from './finale';
@@ -320,7 +320,7 @@ export const WORLD: MontyData = {
   ...enemies,
   bankImage: bank,
   // (Hubbard's tune, a version of it for each region: music/regions.ts)
-  music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId), crossing: (original) => crossingPlan(original) },
+  music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId), chase: CHASE_TUNE, crossing: (original) => crossingPlan(original) },
   id: 'montyworld',
 
   exitGrid: { image: roomCells(WORLD_COLS * WORLD_ROWS, WORLD_COLS, ROOMS), cols: WORLD_COLS, rows: WORLD_ROWS },
