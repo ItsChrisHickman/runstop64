@@ -46,7 +46,9 @@ function hashState(g: Game, h: Hash, full: boolean): void {
   Object.values(g.c5).forEach((n) => h.add(n));
   for (const v of Object.values(g.pd)) { if (typeof v === 'number') h.add(v); else v.forEach((n) => h.add(n)); }
   Object.values(g.lift).forEach((n) => h.add(n));
-  Object.values(g.tele).forEach((n) => h.add(n));
+  const { lift, ...tele } = g.tele; // (`lift`, Do Svidaniya's gust, hashed only when set: Monty on the Run never sets it, so its pinned digests stand)
+  Object.values(tele).forEach((n) => h.add(n));
+  if (lift) h.add(lift);
   for (const r of g.vic.sprites) { h.add(r.x); h.add(r.y); h.add(r.ptr); h.add(r.colour); }
   h.add(g.vic.enable); h.add(g.vic.mc1); h.add(g.vic.mc2);
   h.bytes(g.prng);

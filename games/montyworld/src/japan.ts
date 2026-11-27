@@ -291,7 +291,7 @@ const FUJI_COINS: readonly (readonly [number, number])[] = [[17, 12], [24, 10], 
  */
 export const FUJI_SNOW = { every: 460, start: 30, speed: 2 } as const;
 export const FUJI_SNOW_PATH: readonly (readonly [col: number, row: number])[] = [
-  [15.6, 0], [16, 0], [18, 2], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
+  [15.6, 0], [18, 0], [20, 2], [22, 2], [24, 2], [26.2, 3.5], [27, 8], [25, 8], [24, 10], [23, 10], [21.5, 12], [10, 12], [9, 9], [8, 8], [2, 8], [-3, 9.5],
 ];
 /** The snowball (white: it stands off the black sky; it rolls down the cone's edge against the sky, never across its face), on sprite 1 as the Andes' boulders, its pictures put in while the mountain is loaded. */
 export const FUJI_SNOWBALLS: readonly RollerSpec[] = [{ room: JP.fuji, sprite: 1, path: FUJI_SNOW_PATH, ...FUJI_SNOW, frames: SNOWBALL_POINTERS, colour: 1 }];
