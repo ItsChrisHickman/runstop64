@@ -215,3 +215,7 @@ MARKET and DON'T ROCK THE BOAT have no creatures at all. A creature that moves t
 pass's yardstick per room: about three creatures, at least one a long vertical patrol across the levels he climbs through,
 patrols crossing the way on (not beside it), more levels, mechanisms that cost something when missed (BORDER LINE CASE's
 ice and NOODLE MARKET's floor faster).
+- **Icicles, everywhere** (YETI OR NOT, OFF THE BEATEN PATH, GONE WITH THE WIND): "never hard unless you stop and wait for
+  them to hit you." An icicle that drops when he is under it misses anyone moving. Make them a timing to read: they shake
+  and fall as he approaches (triggered a few cells ahead, so walking on runs into it), or drip and re-form on a cycle over
+  the way, several in a row so a run under them is a choice of moment. Fair: the shake is the warning.
