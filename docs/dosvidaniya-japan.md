@@ -289,3 +289,6 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
 - **THE LAST MOLE:** "The flying enemy isn't positioned in a place that he poses a threat." The crane's flight must cross
   Monty's way over the stepping stones (low enough to clip a jump between stones, on a timing he reads), alongside the two
   koi (the release polish job adds the second).
+- **SHOOT FOR THE MOON** (bonus room): "There is no challenge." A bonus room is where new challenges are tried (LESSONS:
+  "An edge that runs off into nothing gets a bonus room"): give it one, built from the room's own idea, with its coins at
+  the hard end.
