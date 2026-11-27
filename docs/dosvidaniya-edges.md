@@ -341,9 +341,9 @@ and the flight (3). What Chris sees is the **change from room to room**, and **w
 | **One roller per path where several are wanted** | `games/montyotr/src/rollers.ts`: a `RollerSpec` is one boulder on one sprite, coming round every `every` frames. Several on a path mean several specs, each with its own sprite, as MACHU PICCHU's three boulders a third of a period apart. Tunnel cars are the same: one car per `TunnelSpec`. | MOUNT FUJI (one snowball every 460 frames: Chris wants several, the Donkey Kong barrels), DIAMOND HEAD (one rock, every 420; Chris wants it dropped anyway), THE LAPA ARCHES (one stone). Tunnels: THE ROAD TO HANA's cars (one a tier, resting between runs; Chris wants constant traffic, two on a tier). | `count` and `apart` (frames) on `RollerSpec`, and on `TunnelSpec` for a lane's cars. The engine places the extra copies on the room's free sprites; budget.ts checks that the sprites are there (MOUNT FUJI has no creatures, so it has four). |
 
 Where they stand (the mechanics job, branch pass-mechanics): icicles, `lead` and `period` on `IcicleSpec` (63cd3f6d); the black boxes, `underFinds` in
-layout.ts' `room()` and a find over a backdrop drawn in front (be379195); the border cameos, `CameoStop` (63cd3f6d); several rollers, `rollerTrain` (MOUNT FUJI's
+layout.ts' `room()` and a find over a backdrop drawn in front (be379195), in a colour that stands apart from it (the snorkel yellow, 6b32eed5); the border cameos, `CameoStop` (63cd3f6d), gone if Monty comes back within its `clear` (6b32eed5); several rollers, `rollerTrain` (MOUNT FUJI's
 three snowballs, Machu Picchu's boulders; tunnels' `count` not done: THE ROAD TO HANA is the Hawaii job's). The water is open: every water a snorkeller meets
-outside the swim rooms reaches the room's foot, so wading shallow water does not cover it; swimming in a body of water is an engine piece of its own (Chris's call).
+outside the swim rooms reaches the room's foot, so wading shallow water does not cover it; swimming in a body of water is an engine piece of its own, and the set pieces that need deadly water (the vine crossing, the canal's floats, overboard) need it drawn as what kills: each room's pick with its region job.
 
 ## Decisions for the pass (2026-11-27, Chris asleep; his to overturn)
 
