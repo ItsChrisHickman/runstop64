@@ -195,3 +195,7 @@ as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as 
 - **SLEEPER HIT and THE GRAVY TRAIN:** "both well drawn but the enemies pose little challenge." Keep the drawing; give the
   creatures paths that cross the roof run and the corridor on a timing Monty must read (and that the mountain's tunnels
   combine with), so each car asks something of him.
+- **SIBERIA YOU LATER** (Moscow's platform, moscow.ts): "the enemies are pretty poorly done. The first you can fall on it
+  you are unlucky. The enemy on the roof poses no threat." The first creature must not be where Monty lands as he drops in
+  (a death by luck): it starts clear of the landing and is a timing he can see before he moves. The roof's creature must
+  cross the roof run so it asks something of him.
