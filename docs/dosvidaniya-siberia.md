@@ -189,3 +189,9 @@ as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as 
 - **BORDER LINE CASE**: no right wall; the barrier closes the way.
 - **Creatures** vary: a ladder guard in the sleeper, a stoker in the tender, a wolf, falling snow (timed strikes) and a diving owl in the forest, the yeti alone in its cave, bats over the working and
   across the rope, a bat sweeping the shaft's pit, an owl over the lake's island, a wolf on the woodpile's top.
+
+## Chris's playtest note (2026-11-26)
+
+- **SLEEPER HIT and THE GRAVY TRAIN:** "both well drawn but the enemies pose little challenge." Keep the drawing; give the
+  creatures paths that cross the roof run and the corridor on a timing Monty must read (and that the mountain's tunnels
+  combine with), so each car asks something of him.
