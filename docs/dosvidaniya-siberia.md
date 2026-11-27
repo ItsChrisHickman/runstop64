@@ -241,3 +241,12 @@ ice and NOODLE MARKET's floor faster).
   made in one room (going up through its middle) sets up an easier way in the next. Doubling back is a feature when it
   opens a better line. The pass plans each region's rooms as linked clusters with their alternative lines drawn out, and
   checks with one-way.ts and the bots that each line goes through.
+
+## The full challenge pass (Chris, 2026-11-26, at Mauna Kea)
+
+"Once again there's one enemy so there's no challenge. This is the problem throughout the game. You're just repeating an
+enemy going left and right, a few blocks, and the levels are sparse and don't have challenges. I think that you just need
+to do a full pass. Russia was perfect." Every region after Moscow (Siberia, China, Japan, Hawaii, the flight's landing, the
+Andes and the Amazon, Rio, the bonus rooms) gets the pass, built to LESSONS.md "Challenge as Monty on the Run builds it" and
+"Rooms glimpsed first and reached later", Moscow as the benchmark (measure its rooms with room-stats.ts: they are the bar),
+every note above and in the region plans (docs/dosvidaniya-china.md, -japan.md, -pacific.md) included. Moscow untouched.
