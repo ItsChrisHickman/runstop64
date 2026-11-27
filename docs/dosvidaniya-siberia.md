@@ -233,3 +233,11 @@ ice and NOODLE MARKET's floor faster).
   different patterns so their timings combine; the room is crossed BOTH ways and is hard both ways (coming back you wait
   for the creature to pass, then a long jump); an exact jump over a small obstacle (a pot) right after the timed one; several
   separate chances to slip in one room. Patience is the skill asked: a safe spot to wait in, then a committed move.
+- **Multiple paths through neighbouring rooms** (Chris: "One of the things Monty on the Run often does is provide multiple
+  paths. In the room I just showed you, you have to double back, but then you need to go up through the middle section to
+  get the easier path in the next room and avoid a pot. Things like that make the game much more interesting. There are
+  three paths from these two rooms."): rooms are designed in pairs or clusters, not one at a time: two or three ways
+  through the pair, each with a different cost (a harder jump, a longer way round, a creature to time), where the choice
+  made in one room (going up through its middle) sets up an easier way in the next. Doubling back is a feature when it
+  opens a better line. The pass plans each region's rooms as linked clusters with their alternative lines drawn out, and
+  checks with one-way.ts and the bots that each line goes through.
