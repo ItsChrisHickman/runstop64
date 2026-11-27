@@ -232,3 +232,5 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   jumps (the Temple of Heaven's terraces and its round hall).
 - **THE EMPEROR'S ROOFTOPS:** "a vertical enemy that you can't hit unless you try." Its creatures must sit on Monty's way
   across the roofs (a vertical one where he has to pass under or jump past it on a timing), not off to the side.
+- **WILLOW PATTERN:** "the koi should jump." Its koi leap out of the water in an arc across Monty's way over the bridge (as
+  the Amazon's leaping piranhas do: the existing path/roller mechanism), on a timing he reads from the bank.
