@@ -275,3 +275,10 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   swim?" The crab walks the beach Monty crosses (not behind the rocks), with two more creatures crossing the climb to the
   fork; the shallow water never drowns a snorkeller (same rule as KAIHALULU: deadly water reads as something deadly, else
   he wades or swims).
+- **THE SUMMIT** (Mauna Kea): "beautifully done but there's really nothing in here. There aren't any enemies, and it looks
+  like I should be able to walk left and right but there's nothing there either. According to the map, you could stick a
+  room on either side that would have something interesting." Keep the drawing; creatures and a challenge on the way to
+  the dome and the astronomer; the open edges lead somewhere: a bonus room each side where the grid has space (east: the
+  ridge of telescopes, a dome whose slit opens and shuts; west: the cinder cones and Lake Waiau, the snow), each with its
+  own challenge and coins (LESSONS: "An edge that runs off into nothing gets a bonus room").
+- **MAUNA KEA:** one creature, no challenge (the full pass).
