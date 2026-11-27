@@ -204,3 +204,14 @@ as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as 
   each room asks something (a creature on a path that crosses the way on a readable timing, a mechanism to time, a jump
   that needs judging), fair (never a death by luck, a safe spot to read the timing from), Monty on the Run's difficulty
   as the yardstick. Keep each room's drawing and ideas; no cuts.
+
+### Why Monty on the Run is hard and these rooms are not (room-stats.ts, 2026-11-26)
+
+Monty on the Run's creatures cover the room: a vertical patrol is a median 8 cells long (up to 19), so it sweeps the levels
+Monty climbs through, and three creatures share a room built as a climb (8 ledges on 6 levels). Siberia's and China's
+creatures barely move: vertical patrols of 0 to 4 cells (THE WATCHTOWER 2 and 3, THE EMPEROR'S ROOFTOPS 4, SLEEPER HIT 0),
+walkers of 1 to 4 cells, mostly on the floor row; rooms of 2 to 5 ledges on 2 to 4 levels; HEAVEN CAN WAIT, NOODLE
+MARKET and DON'T ROCK THE BOAT have no creatures at all. A creature that moves two cells is a post to walk round. The
+pass's yardstick per room: about three creatures, at least one a long vertical patrol across the levels he climbs through,
+patrols crossing the way on (not beside it), more levels, mechanisms that cost something when missed (BORDER LINE CASE's
+ice and NOODLE MARKET's floor faster).
