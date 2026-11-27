@@ -301,3 +301,8 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
   rafters on a line and climb back, one that leaps between beams in an arc, a shuriken thrown along a path across the way,
   all readable and fair. Other rooms where a pattern fits get one in the challenge pass (WILLOW PATTERN's leaping koi, the
   crane's swoop at THE LAST MOLE). The C64 limit stands: sprites per room as budget.ts allows.
+- **SHOGUN'S HALL and SAYONARA SAILOR are good** (Chris: "both actually pretty good. Sayonara Sailor has two enemies that
+  you have to time your jump between. Although it'd be nice if there was a third enemy too. That's the thing with Monty on
+  the Run, there's usually more than one puzzle per room involving enemies and jumps."): keep both as models; SAYONARA
+  SAILOR gets a third creature making a second puzzle elsewhere in the room (not crowding the first jump). The rule for
+  every room: more than one puzzle of creatures and jumps.
