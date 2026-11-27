@@ -235,3 +235,9 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   real trail: the dark tunnel through the rim, the steep stairs, the WWII bunkers and fire-control station, the birds over
   the crater (frigatebirds swooping across the switchbacks on paths), mongooses darting along the trail at speed; creatures
   crossing the switchbacks with mixed speeds, more than one puzzle (LESSONS: "Challenge as Monty on the Run builds it").
+- **THE LOOKOUT:** "needs some work. And what exactly am I looking out at? And again, we have a bird flying up and down that
+  isn't doing anything, and for some reason the blue background has black holes in it." The view must read: Waikiki's
+  curve of beach and hotels and the city under the Ko'olau mountains from the rim, the lighthouse below, the ocean out to
+  the horizon (Molokai faint far off), drawn so a player knows the place at a glance. The black holes in the blue are a bug
+  (cells left black inside a filled backdrop: backdrop-holes.ts must catch it). The bird's patrol crosses the walk along
+  the rim, or it goes; the room gets a challenge of its own on the way to the railing and the snorkel.
