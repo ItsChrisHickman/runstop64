@@ -292,3 +292,7 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   flow on the right doesn't really seem to have any purpose. Why would I go down there?" One lava, the rising one, as the
   room's idea; the right-hand flow goes, or becomes the reason to go down (the moon rock or a coin at its foot, reached on
   the lava's timing). Nothing in a room without a reason to go to it.
+- **COFFEE BREAK, redesigned** (Chris: "needs to be redesigned. It just doesn't really make sense. It looks like I should be
+  able to walk to the room to the right, but there's no way that could work based upon the map."): a new layout that reads
+  as a coffee farm on the slope down to Hilo, its edges matching the map (closed where no room is, or the open edge given
+  a room), the way on obvious.
