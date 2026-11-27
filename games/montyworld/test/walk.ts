@@ -10,6 +10,7 @@ import { Input, PixelRenderer, sidLog } from 'c64kit';
 import { sectorName } from '../../montyotr/src/montydata';
 import { Game } from '../../montyotr/src/game';
 import { montyMap } from '../../montyotr/src/map';
+import { roomsTally } from '../../montyotr/src/percent';
 import { MOTR } from '../../montyotr/src/motr';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { extendEnemies, extendTiles } from '../../shared/monty/rooms';
@@ -87,8 +88,8 @@ check(`the autosave is in the envelope of its own: { game: "montyworld", format:
 tap('KeyP');
 tick(4);
 check('the pause screen opens with the wide map', p.state.paused);
-const numbers = montyMap.info(p.game, p.state.found);
-check(`the pause screen's numbers, EASY's: no lives (${numbers.join(' | ')})`, !numbers.some((l) => l.startsWith('LIVES')) && numbers[0] === `ROOMS  1/${WORLD.exitGrid.image.filter((c) => c !== 0xff).length}` && numbers[1] === `ITEMS  0/${WORLD.progress.keyItems.length}` && numbers[2] === `SNACKS 0/${WORLD.progress.cakes.length}`);
+const numbers = montyMap.info(p.game, p.state.found); // (ROOMS counts as the % complete does: percent.ts owns it)
+check(`the pause screen's numbers, EASY's: no lives (${numbers.join(' | ')})`, !numbers.some((l) => l.startsWith('LIVES')) && numbers[0] === `ROOMS  1/${roomsTally(WORLD, p.game)?.all ?? '-'}` && numbers[1] === `ITEMS  0/${WORLD.progress.keyItems.length}` && numbers[2] === `SNACKS 0/${WORLD.progress.cakes.length}`);
 tap('KeyP');
 tick(4);
 

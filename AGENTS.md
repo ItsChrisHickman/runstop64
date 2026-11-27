@@ -95,8 +95,10 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
   4. **Region bots and recorded routes** (`<region>.ts original|enhanced`, `--record`) only when that region's route or gates
      changed, scoped to the legs through the changed rooms, once per change. Never for art, text, music, the title, the
      ending, the HUD or another region; never "to be safe".
-  5. **The full gate once per batch, by the coordinating session, before a deploy**: `npm run verify` (`JOBS=2`), plus the
-     slow bots only for the regions whose routes changed in the batch. Never per agent, never per round, never after each
+  5. **The gate once per batch, by the coordinating session, before a deploy**: `npm run gate` (every test whose bundle reads a
+     file changed since origin/main, imports followed through the hubs; the ZX Spectrum's and the other games' tests drop out of a
+     Monty batch), plus the slow bots only for the regions whose routes changed in the batch. `npm run verify` (all fast tests)
+     only when the gate says so itself: a change to `tools/test.mjs`, the translator, a config or a dependency. Skill: `runstop64-ship`. Never per agent, never per round, never after each
      merge. A merge with no code conflicts is not re-tested; one with conflicts runs rule 2's tests for the conflicted files.
   6. **Never re-run a passing test on unchanged code**, never the same suite in two worktrees, and never a test to confirm
      what an agent's report already shows (its numbers are enough; read its renders).
@@ -104,18 +106,26 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
      tests; the translator, `tools/test.mjs`, `gen.mjs`, the configs and `package.json` are what need the full gate. **Docs**
      run nothing.
   8. **Coordinating session:** at most two agents at once (2026-11-24: four agents and their tests froze the box twice; Claude Code runs in
-     `claude.slice`, capped at 4 GB with 1 GB of swap, and every test at a 2 GB heap: `tools/test.mjs`), at most one of them running region bots; each agent's brief
+     `claude.slice`, capped at 4 GB with 1 GB of swap and throttled to a standstill at its 3.5 GB MemoryHigh, which locked the box up twice on
+     2026-11-27), at most one of them running region bots. Every test runs in a systemd scope of its own with a hard memory cap (`tools/test.mjs`:
+     1400 MB, `memoryMB` in `tools/tests.mjs` for the few that need more), so a runaway test is killed alone; the runner starts tests while their caps
+     fit `TEST_BUDGET_MB` (2900) and reports the heaviest peaks and any throttling. Reading big files inside the slice (transcripts, archives)
+     fills its page cache toward the same limit: stream them and drop their cache after (`posix_fadvise` DONTNEED); each agent's brief
      repeats rules 1, 2 and 6. A red test that fails the same way on main is reported, not chased in an unrelated change.
      A test that needs a ROM or file the worktree lacks (e.g. moley's 48K ROM) is skipped there and run in the main checkout.
-  9. **Waiting:** let a background command notify you when it ends. Never a `pgrep -f <pattern>` wait loop: it matches its
+  9. **Waiting:** let a background command notify you when it ends, and watch that it still moves (a Monitor on its log's age and
+     on `✖` lines): a gate stalled from 03:37 to 10:11 on 2026-11-27 while the session waited for its notice. Never a `pgrep -f <pattern>` wait loop: it matches its
      own command line and never exits (16 of them were left running for days, 2026-11-24). Wait on a PID or not at all.
   There is no CI (Actions minutes are scarce), so rule 2's tests plus the end-of-batch gate are the check.
 - Chris's repo: commit and push straight to `main`, no PRs or branches. Other sessions share the clone: `git fetch` and list
   `origin/main..HEAD` and `HEAD..origin/main` before every push. Agents working in worktrees commit there; the coordinating
   session merges, pushes and deploys (`npm run deploy`).
 - Commit messages end with the Co-Authored-By and Claude-Session trailers the session gives.
-- Never commit secrets, traced (`TRACE=1`) translations or scratch output (keep scratch in `/tmp`). `.claude/` is ignored.
+- Never commit secrets, traced (`TRACE=1`) translations or scratch output (keep scratch in `/tmp`). `.claude/` is ignored except `.claude/skills/`.
 - Keep reports short and plain.
+- **Skills** (`.claude/skills/`, committed): `monty-room` for any Do Svidaniya room (layout, creatures, the challenge recipe,
+  `games/montyworld/test/rooms-sheet.ts` to see every creature's path), `runstop64-ship` for the gate, push, deploy and agent briefs.
+  Load the skill instead of re-reading the engine. Chris's playtest notes, room by room, are `docs/dosvidaniya-feedback.md`.
 
 ## Making a new Monty game
 

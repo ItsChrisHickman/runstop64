@@ -26,6 +26,7 @@
     "pretest": "node tools/gen.mjs",
     "test": "node tools/test-all.mjs",
     "verify": "npm run typecheck && npm run check:strict && npm test",
+    "gate": "node tools/affected.mjs origin/main --gate --run",
     "test:input": "node tools/test.mjs packages/c64kit/test/input.test.ts"
   },
   "devDependencies": {

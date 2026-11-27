@@ -6,6 +6,10 @@
 //   node tools/affected.mjs [base] --run      run it: typecheck, check:strict, then the plan's tests on tools/test-all.mjs (JOBS at a time, 2 by default, niced)
 //   --slow                                    with a full fallback, the slow set too (the region bots, the reward show)
 //   --list                                    only the changed files and what each maps to
+//   --gate                                    the end-of-batch gate (`npm run gate`, base origin/main: what is not pushed yet): every test, whole, whose bundle
+//                                             reads a changed file, imports followed through the hubs too; no budget. A file every test depends on
+//                                             (NEEDS_ALL: the translator, tools/test.mjs, configs) still means all of them. 2026-11-27: the release's gate ran all
+//                                             211 fast tests, the ZX Spectrum's and Auf Wiedersehen Monty's among them, for a change to the two Monty games.
 //
 // How a change maps to tests:
 // - A Monty game's region file (games/montyworld/src/siberia.ts...): its changed lines are mapped to rooms (games/shared/monty/test/attribute.ts) and
@@ -117,6 +121,14 @@ fs.rmSync(tmp, { force: true });
 // what changes how every test is built or what it runs on: all of them. The runner and the planner (test-all, tests, affected, timings,
 // wait-turn) change no test's outcome, so they run none (a broken runner shows on its next use).
 const NEEDS_ALL = /^(tools\/(test|gen)\.mjs|tools\/re\/|package(-lock)?\.json|tsconfig(\.test)?\.json|types\/)/;
+/** Whether package.json differs from `rev`'s only in its "scripts". */
+function scriptsOnly(rev) {
+  try {
+    const was = JSON.parse(git('show', `${rev}:package.json`)), now = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    delete was.scripts; delete now.scripts;
+    return JSON.stringify(was) === JSON.stringify(now);
+  } catch { return false; }
+}
 const RUNNER = /^tools\/(test-all|tests|affected|timings)\.mjs$|^tools\/wait-turn\.sh$/;
 const runs = []; // { file, args, why }
 const whole = new Map(); // test file -> why (run whole, fast and slow)
@@ -128,6 +140,8 @@ for (const [file] of changes) {
   const p = claimedBy.get(file);
   if (p) continue;
   if (file.endsWith('.md')) { notes.push(`${file}: prose, nothing to test`); continue; }
+  // package.json with only its scripts changed (a new npm run line): no test's outcome; its dependencies or anything else: every test
+  if (file === 'package.json' && scriptsOnly(since)) { notes.push('package.json: only its scripts changed, no test'); continue; }
   if (RUNNER.test(file)) { notes.push(`${file}: the test runner or planner, no test (the typecheck only)`); continue; }
   // a recorded route file is read by its test at run time, not imported: routes/<region>-<mode>.json is the region's bot, routes/<test>.json a mechanisms test's
   const route = /^(games\/[^/]+\/test)\/routes\/(.+?)(-original|-enhanced)?\.json$/.exec(file);
@@ -139,6 +153,8 @@ for (const [file] of changes) {
   if (by.length === 0 && !NEEDS_ALL.test(file) && bundledBy(file).length) { notes.push(`${file}: reached only through a hub (${[...HUBS].filter((h) => bundledBy(file).length && entries.some((e) => imports.get(e)?.has(h))).join(', ')}), no test of its own: the end-of-batch verify covers it`); continue; }
   // a script in a test folder that no test imports and that is not a test itself makes pictures or probes (coin-hole-shots.ts, china-shots.ts): it checks nothing, so it runs nothing
   if (by.length === 0 && /^games\/[^/]+\/test\/[^/]+\.ts$/.test(file) && !entries.includes(file)) { notes.push(`${file}: a picture or probe script no test imports, no test (the typecheck only)`); continue; }
+  // a script no test imports (a re/ study, a tool of its own): it changes no test's outcome, the typecheck covers it (2026-11-27: re/pacing.ts sent the release's gate to every test)
+  if (by.length === 0 && !NEEDS_ALL.test(file) && /\.m?[jt]s$/.test(file) && !bundledBy(file).length) { notes.push(`${file}: a script no test imports, no test (the typecheck only)`); continue; }
   if (NEEDS_ALL.test(file) || (by.length === 0 && /\.(m?[jt]s|json)$/.test(file))) { everything ??= `${file} is not imported by a test (a tool, a config): every test`; continue; }
   if (by.length === 0) { notes.push(`${file}: no test reads it`); continue; }
   // a test that changed is run itself; any other file runs the tests importing it
@@ -180,6 +196,16 @@ if (everything) {
   }
 }
 
+if (flags.has('--gate') && !everything) {
+  // (every test whose whole bundle reads a changed code file, or whose recorded routes changed, or that changed itself; run whole, fast set, --slow for the slow too)
+  const code = [...changes.keys()].filter((f) => !f.endsWith('.md'));
+  const hit = new Set(entries.filter((e) => code.some((f) => bundled.get(e)?.has(f) || f === e)));
+  for (const t of whole.keys()) hit.add(t);
+  planned.length = 0;
+  for (const t of TESTS) if (t.file && hit.has(t.file) && (t.set === 'fast' || flags.has('--slow'))) planned.push({ ...t, name: t.name ?? [t.file, ...(t.args ?? [])].join(' ') });
+  const left = TESTS.filter((t) => t.set === 'fast' && !(t.file && hit.has(t.file))).length;
+  notes.push(`gate: ${planned.length} test run(s) whose bundle reads a changed file; ${left} fast run(s) that read none of them left out`);
+}
 console.log(`changes since ${base} (${since.slice(0, 8)}): ${changes.size} file(s)`);
 for (const p of plans) if (p.rooms.length) console.log(`  ${p.game}: rooms ${p.rooms.join(', ')} (${p.regions.join(', ')})${p.full ? `; FULL: ${p.full}` : ''}`);
 for (const n of notes) console.log(`  ${n}`);
@@ -190,7 +216,7 @@ for (const t of planned) { const s = secondsOf(timings, t); console.log(`  node 
 const jobsN = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
 const estimateMin = everything ? Infinity : planned.reduce((n, t) => n + secondsOf(timings, t), 0) / jobsN / 60;
 console.log(everything ? '\nestimate: the full suites (well over the budget)' : `\nestimate: ~${estimateMin.toFixed(1)} min of tests at ${jobsN} at a time, plus the typecheck (budget ${BUDGET_MIN} min)`);
-if (flags.has('--run') && estimateMin > BUDGET_MIN && !flags.has('--over-budget')) {
+if (flags.has('--run') && estimateMin > BUDGET_MIN && !flags.has('--over-budget') && !flags.has('--gate')) {
   console.log(`affected: over the ${BUDGET_MIN}-minute budget, not run. Run the one or two tests that exercise the change by hand (node tools/test.mjs <file> [--room ...]),\n` +
     'or narrow the change; --over-budget only when a full run is really due (shared engine/kit code, or once before a deploy).');
   process.exit(2);

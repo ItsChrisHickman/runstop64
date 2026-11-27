@@ -14,13 +14,25 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-// A heap ceiling for every test (2026-11-24: the box froze twice when tests, agents and the sites outgrew its 7.6 GB and it thrashed swap):
-// a test that needs more fails with an out-of-memory error instead of starving the server. Re-runs itself with the flag if started without it.
-const HEAP_MB = 2048;
+// Memory (2026-11-24: the box froze twice when tests, agents and the sites outgrew its 7.6 GB and it thrashed swap; 2026-11-27 it locked up
+// twice more, the slice that holds Claude Code and its tests throttled at its MemoryHigh, every process in it stopped at 0% CPU): every test
+// runs in a systemd scope of its own inside claude.slice with a hard cap and no swap (`TEST_MEMORY_MB`, 1400 by default; tools/tests.mjs gives
+// the few that need more a `memoryMB`), so a test that outgrows it is killed at once, alone, instead of stalling the slice. The heap ceiling
+// sits under the cap: typed arrays (a game's VIC bank) live outside the heap and count toward the cap only. Two tests at the default cap
+// and Claude Code (about 0.5 GB) stay under the slice's 3.5 GB MemoryHigh. Without systemd-run (another machine) the heap ceiling alone.
+export const MEMORY_MB = Math.max(256, Number(process.env.TEST_MEMORY_MB ?? 1400) || 1400);
+const HEAP_MB = Math.max(192, Math.round(MEMORY_MB * 0.8));
 if (!process.execArgv.some((a) => a.startsWith('--max-old-space-size'))) {
-  const r = spawnSync(process.execPath, [`--max-old-space-size=${HEAP_MB}`, ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
+  const node = [process.execPath, `--max-old-space-size=${HEAP_MB}`, ...process.execArgv, ...process.argv.slice(1)];
+  const scoped = process.platform === 'linux' && process.getuid?.() === 0 && spawnSync('systemd-run', ['--version'], { stdio: 'ignore' }).status === 0;
+  const cmd = scoped ? ['systemd-run', '--scope', '--quiet', '--collect', '--slice=claude.slice', '-p', `MemoryMax=${MEMORY_MB}M`, '-p', 'MemorySwapMax=0', ...node] : node;
+  const [bin = process.execPath, ...rest] = cmd;
+  const r = spawnSync(bin, rest, { stdio: 'inherit' });
+  if (r.signal === 'SIGKILL') console.error(`[test.mjs] killed: over its memory cap of ${MEMORY_MB} MB (TEST_MEMORY_MB; tools/tests.mjs memoryMB) or stopped by the runner`);
   process.exit(r.status ?? 1);
 }
+// (the peak, for the runner to keep with the test's time: tools/timings.mjs)
+process.on('exit', () => { process.stderr.write(`\n[test.mjs] peak ${Math.round(process.resourceUsage().maxRSS / 1024)} MB\n`); });
 import { build } from 'esbuild';
 import { ensureGen } from './gen.mjs';
 
