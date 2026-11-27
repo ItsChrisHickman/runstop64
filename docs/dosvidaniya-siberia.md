@@ -199,3 +199,8 @@ as one (`games/montyworld/src/train.ts`; the plan's lesson: a place is shown as 
   you are unlucky. The enemy on the roof poses no threat." The first creature must not be where Monty lands as he drops in
   (a death by luck): it starts clear of the landing and is a timing he can see before he moves. The roof's creature must
   cross the roof run so it asks something of him.
+- **MINE ALL MINE:** "also no challenge." And overall: "Basically everything in Siberia and China is super easy without
+  any challenge." So the follow-up is a challenge pass over every room of Siberia and China (not only the ones named):
+  each room asks something (a creature on a path that crosses the way on a readable timing, a mechanism to time, a jump
+  that needs judging), fair (never a death by luck, a safe spot to read the timing from), Monty on the Run's difficulty
+  as the yardstick. Keep each room's drawing and ideas; no cuts.
