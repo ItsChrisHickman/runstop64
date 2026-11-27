@@ -229,3 +229,9 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   the way he climbs (long, crossing his levels), and a third creature. Today the snorkel is at THE LOOKOUT on Diamond
   Head's rim (Chris's own story: "climbing Diamond Head to get the snorkel that a tourist left behind"); open question to
   Chris whether it moves to the new west room or the west room is a bonus room of its own.
+- **DIAMOND HEAD:** "I love the level design but there's no challenge at all. And it's kind of the same idea as Mount Fuji
+  with the rolling thing. But that's not executed well and it's too repetitive anyway." Keep the layout (the switchbacks
+  up the crater wall); drop the rolling hazard (Fuji owns the Donkey Kong idea); give it a challenge of its own from the
+  real trail: the dark tunnel through the rim, the steep stairs, the WWII bunkers and fire-control station, the birds over
+  the crater (frigatebirds swooping across the switchbacks on paths), mongooses darting along the trail at speed; creatures
+  crossing the switchbacks with mixed speeds, more than one puzzle (LESSONS: "Challenge as Monty on the Run builds it").
