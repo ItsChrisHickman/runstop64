@@ -300,3 +300,12 @@ rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a r
   them, each with its own cost, where a choice in one room (up through its middle, doubling back) sets up an easier line in
   the next. Never a pretty room with nothing to do, a creature off the way, a two-cell patrol, a mechanism whose miss costs
   nothing, or a hazard that only hits him if he stops.
+- **Rooms glimpsed first and reached later; colour that changes room to room** (Chris, 2026-11-26, on Monty on the Run's
+  HOUSE with the MPL ST. wall and THE HALL OF JOW-AN: "rooms like this that you get a peek at and then come back to later";
+  "many more colours used, and the border on the left just looks really interesting"; "the variety of different colours
+  between each room"; "Monty on the Run definitely makes each room more of a puzzle"): a route shows a room (or a part of
+  one: a ledge, a coin, a lift) that cannot be reached yet and comes back to it later from another side, so the player
+  carries a question. Each room has its own palette, different from its neighbours' (brick red and yellow, then white and
+  green, then pink): five or six colours a room that read against black, not one region colour throughout. A room's edge
+  is often structure with character (a house's wall with its windows and a street sign, a pillar, a tower), not a plain
+  wall or nothing. Each room is a small puzzle of its own: how do I get up there, from which side.
