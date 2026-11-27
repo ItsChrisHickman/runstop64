@@ -221,3 +221,11 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   tell me there's water down there." The floor walker's patrol runs most of the floor, faster; the vertical flier's patrol
   crosses the way he climbs (long, across the levels); the drop at the bottom right shows the water below (the sea's surface
   and a glint at the bottom of the shaft, or the harbour visible past the edge) so he knows where it leads.
+- **LEI OF THE LAND** (the luau): "there should be a room to the left, because otherwise it just doesn't really make sense
+  to go that way. I know the snorkel I think was over here before, but I feel like the snorkel should be in a room on the
+  left. The little traps that go up and down are interesting, but the enemy that floats up and down is almost completely
+  impossible to hit and there should be another enemy. The enemy on the right side that goes up and down is also
+  impossible to hit." A room west of the luau (the way west leads somewhere); both vertical creatures' patrols moved onto
+  the way he climbs (long, crossing his levels), and a third creature. Today the snorkel is at THE LOOKOUT on Diamond
+  Head's rim (Chris's own story: "climbing Diamond Head to get the snorkel that a tourist left behind"); open question to
+  Chris whether it moves to the new west room or the west room is a bonus room of its own.
