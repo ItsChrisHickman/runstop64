@@ -226,3 +226,5 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   So what? You just fall to a safe spot. It doesn't really make sense." The falling floor must matter: it gives way fast
   enough that a plain run is not enough (a jump or a timing over it), and falling costs something (a fall into a hazard, or
   back down to the start of the climb), with a reason in the place for both (an old stall roof over the boiling vats).
+- **THE FORBIDDEN CITY:** "also very easy. Nothing to it." Part of the challenge pass: give it the hardest test in China's
+  palace rooms (guards on crossing paths, a timing through the gates), fair and readable.
