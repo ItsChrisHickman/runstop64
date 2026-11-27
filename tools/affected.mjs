@@ -206,7 +206,7 @@ if (flags.has('--gate') && !everything) {
   // a test the planner does not name, pulled in only because it imports a claimed region file: room-scoped too when it scopes itself
   // (uses SCOPE: games/shared/monty/test/scope.ts), rather than whole (2026-11-27: a one-room change ran viktor.ts whole, 11 minutes)
   const rooms = [...new Set(plans.filter((p) => !p.full).flatMap((p) => p.rooms))];
-  const scopes = (f) => { try { return /\bSCOPE\b/.test(fs.readFileSync(path.join(root, f), 'utf8')); } catch { return false; } };
+  const scopes = (f) => { try { return /\b(SCOPE|scopedRooms)\b/.test(fs.readFileSync(path.join(root, f), 'utf8')); } catch { return false; } };
   const extra = [];
   for (const [t, why] of whole) {
     if (/ and .*'s planner does not name it$/.test(why) && rooms.length && scopes(t) && !hit.has(t)) {

@@ -57,6 +57,8 @@ Water only kills outside whole swim rooms: never show water a snorkeller would e
 ```sh
 # the rooms as drawn, every creature's path traced over 8 s (white), its start (yellow), and speed / range / patrol per creature
 nice -n 15 node tools/test.mjs games/montyworld/test/rooms-sheet.ts /tmp/claude-0/renders/<job> --room <ids or region.key>
+# the challenge floor (at least two hazards a room, as Monty on the Run's): take a fixed room off PENDING in challenge.ts
+nice -n 15 node tools/test.mjs games/montyworld/test/challenge.ts --room <id>
 # the recipe numbers against Monty on the Run's
 nice -n 15 node tools/test.mjs games/montyworld/test/room-stats.ts
 # the one test for the room (its region's mechanisms, scoped)

@@ -42,6 +42,7 @@ import { build } from 'esbuild';
 import fs from 'node:fs';
 import { ensureGen } from './gen.mjs';
 import { cachedPass, recordReads, runKey } from './test-cache.mjs';
+import { writeCodeDigests } from './code-digests.mjs';
 
 const [, , entry, ...given] = process.argv;
 const args = [];
@@ -81,5 +82,7 @@ if (process.env.TEST_CACHE === '1') {
   const keep = recordReads(key, [out, path.join(os.tmpdir(), 'runstop64-')]);
   process.on('exit', (code) => { if (code === 0) keep(); });
 }
+// (the code-only hashes the Monty tests' fingerprints use: tools/code-digests.mjs)
+process.env.RUNSTOP64_CODE_DIGESTS = writeCodeDigests(root);
 process.argv = [process.argv[0], out, ...args];
 await import(pathToFileURL(out).href);
