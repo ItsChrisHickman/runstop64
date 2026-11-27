@@ -277,3 +277,9 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
   snowball every 460 frames (FUJI_SNOW). Several on the slope at once, spaced so the climb is a run between them (the
   barrels of Donkey Kong): a shorter period and more than one roller on the path (each a sprite: find the free ones, the
   room has no creatures), still with the huts as the safe spots to read the timing from.
+- **GONE WITH THE WIND's tengu:** "Why is Viktor in GONE WITH THE WIND; is that him?! It's confusing and makes no sense."
+  The tengu (a one-colour dark red figure with a long snout, flying in and standing as Viktor's cameos do) reads as
+  Viktor. Make it unmistakably a tengu: a multicolour sprite with the red face and long nose, white hair, wings spread
+  (a crow tengu's), the feather fan, a small black cap; it hovers in the gust flapping and fanning the wind (it is the
+  wind's maker), never runs in along the floor as Viktor does. If it still could be read as Viktor, drop the figure and
+  let the gust and its swirls carry the idea.
