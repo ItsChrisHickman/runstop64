@@ -290,3 +290,13 @@ after it shipped goes last in the tables (`ADDED_ROOMS` in montyworld's data.ts)
 
 No lines of coins, no floors strewn with them, no coin floating out of reach, and no coin in a room with nothing to say. A region of 6
 rooms holds about 7 to 10. (Do Svidaniya's Pacific, Andes and Rio had 3 to 7 a room, 215 in 40 rooms, and they read as random.)
+- **Challenge as Monty on the Run builds it** (Chris, 2026-11-26, playing its HOUSE rooms: "rooms like this are challenging
+  with both jumps and enemies"; "there are three paths from these two rooms"): every room asks something, measured against
+  its recipe (docs/dosvidaniya-room-audit.md: about three creatures, long vertical patrols across the levels he climbs, 8
+  ledges on 6 levels). The jumps and the creatures overlap: a jump is hard for what is under it and what crosses it. Speeds
+  mix within a room (one fast creature among slower ones); two creatures cross on different patterns so their timings
+  combine; a room walked back through is hard both ways; an exact jump follows the timed one; there is a safe spot to wait
+  in, then a committed move (patience is the skill). Rooms are designed as linked clusters with two or three lines through
+  them, each with its own cost, where a choice in one room (up through its middle, doubling back) sets up an easier line in
+  the next. Never a pretty room with nothing to do, a creature off the way, a two-cell patrol, a mechanism whose miss costs
+  nothing, or a hazard that only hits him if he stops.
