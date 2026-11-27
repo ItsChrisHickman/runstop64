@@ -286,3 +286,6 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
 - **GONE WITH THE WIND:** "also too easy." The cave's challenge must be real: the yuki-onna's drift crossing the tube where
   he has to pass, the icicles timed over the way, more ice to judge (a slippery run, a jump over a chasm in the tube), its
   coins at the hard end; still a fair bonus room.
+- **THE LAST MOLE:** "The flying enemy isn't positioned in a place that he poses a threat." The crane's flight must cross
+  Monty's way over the stepping stones (low enough to clip a jump between stones, on a timing he reads), alongside the two
+  koi (the release polish job adds the second).
