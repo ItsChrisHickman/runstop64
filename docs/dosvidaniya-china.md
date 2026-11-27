@@ -234,3 +234,5 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   across the roofs (a vertical one where he has to pass under or jump past it on a timing), not off to the side.
 - **WILLOW PATTERN:** "the koi should jump." Its koi leap out of the water in an arc across Monty's way over the bridge (as
   the Amazon's leaping piranhas do: the existing path/roller mechanism), on a timing he reads from the bank.
+- **DOWN THE RIVER:** "ridiculously easy." Part of the pass: the river must be the hazard it looks (the current, logs or
+  junks on it, creatures over the water), crossed on timings.
