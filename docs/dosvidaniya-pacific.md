@@ -267,3 +267,6 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   rip of white breakers on the rocks, a jellyfish, coral spikes), never plain blue. The right side's hole must say what it
   is (the lagoon's mouth to the open channel, the way on to SHELL GAME) or go. The red sand cove read at once: the cinder
   cone's red cliffs round a small bay, the rocks across its mouth.
+- **SHELL GAME:** "needs to be harder. Pretty cool idea." Keep the turtles; shorter time up, the dives staggered tighter so
+  he must move turtle to turtle on the beat, a creature over the crossing (a frigatebird's swoop or a shark fin between
+  turtles), the musubi at the hard end.
