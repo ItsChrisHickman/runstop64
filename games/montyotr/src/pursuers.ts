@@ -1,7 +1,7 @@
 import { SPLIT_FIRST, splitDeath, type SplitStage } from '../../shared/monty/deaths';
 import { cameoDue, inBox, walkOn } from './cameos';
 import type { Game } from './game';
-import type { PursuerSpec } from './montydata';
+import type { PursuerSpec, TuneVersion } from './montydata';
 import { pulseLiveOver } from './pulses';
 import { rollerMeets } from './rollers';
 
@@ -16,23 +16,26 @@ import { rollerMeets } from './rollers';
  * (scripts.ts `death4Split`: the same paths, pace, pictures in turn and sound), on four sprites of the room (one of another creature's is borrowed: that creature waits, out of sight, till the pieces are
  * gone). An `intro` walks him on at the far side as Monty comes in, the room's name flashing, and off again before the chase.
  *
- * The chase is felt (Chris, 2026-11-27: "I didn't fully feel the sense that he was pursuing me"): an `announce`d pursuer's coming into sight is a seen cause, the room's name flashing and a sting as he
- * steps in where Monty came in (the trail's start: the door Monty came by, a moment behind him), and again as he is knocked off (the escape's moment); and while he is in sight (`pursuerChasing`) a game
- * with a chase tune plays it (session.ts, `music.chase`), its room's own again once he is gone. All of it again after every death in the room, as the room starts again.
+ * The chase is felt (Chris, 2026-11-27: "I didn't fully feel the sense that he was pursuing me"): an `announce`d pursuer's coming into sight is a seen cause, the room's name flashing red (a short flash,
+ * `ARRIVAL_FLASH`) and the sting (the game's warp) as he steps in where Monty came in (the trail's start: the door Monty came by, a moment behind him); his knock is the escape's own moment, the name
+ * flashing green the whole `FLASH_FRAMES` (on after he is out of the picture: `gone` 'out') and the find's jingle (the item's) over his tumble; and while he is in sight (`pursuerChasing`) a game with a
+ * chase tune plays it (session.ts, `music.chase`), its room's own again once he is gone. All of it again after every death in the room, as the room starts again.
  */
 
 /** Frames the room's name flashes for in an intro, and how long each flash is. */
 const FLASH_FRAMES = 96, FLASH = 8;
+/** Frames an announced arrival flashes the name for (the last of `FLASH_FRAMES`, from a coloured flash: over before a knock's; a knock's from the first coloured one, `FLASH`), and the inks: the arrival's red, the escape's green (white between, the name's own). */
+const ARRIVAL_FLASH = 56, ARRIVAL_INK = 2, ESCAPE_INK = 5;
 
 /** A pursuer of the room: its place in the data's list, the ring of Monty's places (x2, y, facing: three numbers each) and how many were written, whether it has woken, where it is drawn, the steps of its walk, its
  * intro's frames (-1: none or over), and how it went (`gone`: knocked off, split) with the frames since and where it was then. */
 export interface PursuerState {
   index: number; ring: number[]; written: number; awake: boolean; x2: number; y: number; facing: number; walk: number; intro: number;
-  gone: 'no' | 'knocked' | 'split'; t: number; gx: number; gy: number;
+  gone: 'no' | 'knocked' | 'split' | 'out'; t: number; gx: number; gy: number;
   /** How many frames behind Monty he is now (the data's `delay`, less what he has closed: `close`), the lag a knock sends him back to (`setback`), and the frames until a knock can take him again. */
   lag: number; back: number; shaken: number;
-  /** Frames since an announced moment began (his coming into sight, his knock: the name flashing), -1: none; and whether he has come into sight in this go at the room. */
-  cue: number; seen: boolean;
+  /** Where an announced moment's flash of the name is (counting to `FLASH_FRAMES`; -1: none) and its ink (his coming into sight, his knock); and whether he has come into sight in this go at the room. */
+  cue: number; cueInk: number; seen: boolean;
 }
 
 /** Frames a knocked-back pursuer cannot be knocked again (one flock is one knock), and how many frames of lag he loses a frame as he falls back along the trail. */
@@ -45,7 +48,7 @@ export function pursuerInit(g: Game) {
     const man = g.enemies[e.slot];
     if (man) { man.driven = true; man.x = 0xff; }
     if (g.siCollected[e.until]) return [];
-    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0, lag: e.delay, back: e.delay, shaken: 0, cue: -1, seen: false }];
+    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0, lag: e.delay, back: e.delay, shaken: 0, cue: -1, cueInk: ARRIVAL_INK, seen: false }];
   });
 }
 
@@ -67,10 +70,10 @@ export function pursuerAt(g: Game): { x2: number; y: number } | null {
  */
 function escape(g: Game, p: PursuerState, e: PursuerSpec, how: 'knocked' | 'split') {
   p.gone = how; p.t = 0; p.gx = p.x2; p.gy = p.y;
-  if (e.announce) p.cue = 0;
+  if (e.announce) { p.cue = FLASH; p.cueInk = ESCAPE_INK; }
   if (how === 'split') g.siCollected[e.until] = 0x81;
   else if (!g.pendingFinds.includes(e.until)) g.pendingFinds.push(e.until);
-  g.sfx(how === 'split' ? g.data.eventSfx[0] ?? g.data.sfx.item : g.data.sfx.jump);
+  g.sfx(how === 'split' ? g.data.eventSfx[0] ?? g.data.sfx.item : e.announce ? g.data.sfx.item : g.data.sfx.jump);
 }
 
 /** A room is being left for room `next`: the escapes waiting on it are taken if he leaves for another room (alive), dropped if the same room loads again (a death's restart). */
@@ -115,7 +118,8 @@ export function pursuerUpdate(g: Game) {
     const e = g.data.pursuers[p.index];
     if (!e) continue;
     const n = spriteOf(e), man = g.enemies[e.slot];
-    if (p.cue >= 0 && !g.actionCounter && !g.freeze) { flashName(g, p.cue); p.cue = p.cue < FLASH_FRAMES ? p.cue + 1 : -1; }
+    if (p.cue >= 0 && !g.actionCounter && !g.freeze) { flashName(g, p.cue, p.cueInk); p.cue = p.cue < FLASH_FRAMES ? p.cue + 1 : -1; }
+    if (p.gone === 'out') { if (p.cue < 0) drop(g, p); continue; }
     if (p.gone !== 'no') {
       if (g.actionCounter || g.freeze) continue;
       p.t++;
@@ -129,7 +133,7 @@ export function pursuerUpdate(g: Game) {
         const y = p.gy - 3 * p.t + Math.floor((p.t * p.t) / 16), x = p.gx + (p.facing & 0x80 ? 3 : -3) * p.t;
         g.sx[n] = Math.min(0xff, Math.max(0, x)); g.sy[n] = Math.min(0xff, Math.max(0, y)); g.sptr[n] = 0x30 + e.slot * 8 + (p.facing & 0x80 ? 0 : 4) + ((p.t >> 2) & 3);
         if (man) g.scol[n] = man.colour;
-        if (y >= 0xf8 || x <= 0 || x >= 0xb0) { g.enable &= ~(1 << n) & 0xff; drop(g, p); }
+        if (y >= 0xf8 || x <= 0 || x >= 0xb0) { g.enable &= ~(1 << n) & 0xff; if (p.cue >= 0) p.gone = 'out'; else drop(g, p); } // (out of the picture: the escape's flash plays on)
         else g.enable |= 1 << n;
       }
       continue;
@@ -161,7 +165,7 @@ export function pursuerUpdate(g: Game) {
     p.written++;
     if (!p.awake && (e.wake ? inBox(g, e.wake) : e.calm ? !inBox(g, e.calm) : true)) p.awake = true;
     if (!p.awake || p.written <= p.lag || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; if (e.look?.over) g.enable &= ~(1 << e.look.over.sprite) & 0xff; continue; }
-    if (e.announce && !p.seen) { p.seen = true; p.cue = 0; g.sfx(g.data.sfx.warp); } // (he steps in: the room's name flashes, the sting)
+    if (e.announce && !p.seen) { p.seen = true; p.cue = FLASH_FRAMES - ARRIVAL_FLASH; p.cueInk = ARRIVAL_INK; g.sfx(g.data.sfx.warp); } // (he steps in: the room's name flashes, the sting)
     man.x = p.x2; man.y = (p.y + 1) & 0xff;
     g.scol[n] = man.colour;
     drawChase(g, e, p.x2, man.y, p.facing, p.walk);
@@ -176,7 +180,7 @@ export function pursuerUpdate(g: Game) {
 
 /** He is gone from the room: out of its list, the name's flash (if one is going) ended in its own colour. */
 function drop(g: Game, p: PursuerState) {
-  if (p.cue >= 0) flashName(g, FLASH_FRAMES);
+  if (p.cue >= 0) flashName(g, FLASH_FRAMES, p.cueInk);
   g.pursuers = g.pursuers.filter((q) => q !== p);
 }
 
@@ -214,15 +218,21 @@ function knocked(g: Game, e: PursuerSpec, x2: number, y: number): boolean {
   return g.tunnels.some((t) => t.state === 'sweep' && !t.spec.harmless && col + 2 > t.left && col < t.left + t.spec.cols && row + 1 >= t.spec.top && row <= t.spec.bottom);
 }
 
-/** The room's name row flashing (its colour between white and red) for the first frames of an intro. */
-function flashName(g: Game, t: number) {
+/** The room's name row flashing (its colour between white and `flash`: an intro's and an arrival's red, an escape's green) for the first frames of an intro, or an announced moment's. */
+function flashName(g: Game, t: number, flash = ARRIVAL_INK) {
   if (t > FLASH_FRAMES) return;
-  const ink = t === FLASH_FRAMES || ((t / FLASH) | 0) % 2 === 0 ? 1 : 2;
+  const ink = t === FLASH_FRAMES || ((t / FLASH) | 0) % 2 === 0 ? 1 : flash;
   for (let c = 4; c < 36; c++) g.col[24 * 40 + c] = ink;
 }
 
 /** Whether a pursuer is after Monty in sight: what a chase tune plays for (session.ts). */
 export const pursuerChasing = (g: Game): boolean => pursuerAt(g) !== null;
+
+/** The version the music wants this frame (session.ts): the room's own, or the game's chase (`music.chase`) while a pursuer is after Monty in sight in a room whose own is a version of the song; `cut`: cut in from the song's start (the chase's). */
+export function tuneWanted(g: Game, roomTune: TuneVersion | null): { tune: TuneVersion | null; cut: boolean } {
+  const chase = g.data.music.chase;
+  return chase && roomTune && 'make' in roomTune && pursuerChasing(g) ? { tune: chase, cut: true } : { tune: roomTune, cut: false };
+}
 
 /** Whether a pursuer of the room is still to be escaped. */
 export const pursuerDue = (g: Game): boolean => g.pursuers.some((p) => p.gone === 'no');

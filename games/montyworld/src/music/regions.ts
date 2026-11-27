@@ -27,7 +27,8 @@ export const AWM_THEME: TuneVersion = { id: 'awm-theme', file: { url: AWM_SID_UR
 
 /**
  * The chase (Chris, 2026-11-27, on Viktor's chases: "I didn't fully feel the sense that he was pursuing me"): while Viktor is after Monty in sight (the train's roof, the cargo ship, SPY VERSUS MOLE), the
- * region's version gives way to Hubbard's tune as he wrote it, Monty on the Run's own, crossing in step at the next phrase as between regions (the song never restarts), and back once he is escaped.
+ * region's version gives way to Hubbard's tune as he wrote it, Monty on the Run's own, cut in from its start the moment he steps in (the chase's one restart of the song: on the train's roof he is in sight
+ * for two seconds, less than a wait for the next phrase), and crossing back in step at the next phrase, as between regions, once he is escaped (session.ts).
  */
 export const CHASE_TUNE: TuneVersion = { id: 'on-the-run', make: (original) => original.slice() };
 
