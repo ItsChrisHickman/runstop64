@@ -147,11 +147,14 @@ function holds(g: Game, c: Condition): boolean {
 export function applyRoomEffects(g: Game, pass: 'all' | 'before' | 'after' = 'all') {
   const id = g.roomId;
   for (const e of g.data.roomEffects) {
-    if (e.room !== id || e.at || !(e.when ?? []).every((c) => holds(g, c))) continue; // (an item used on the spot waits for him there, once a visit: useOnTheSpot)
+    if (e.room !== id || (e.at && !kept(g, e.at)) || !(e.when ?? []).every((c) => holds(g, c))) continue; // (an item used on the spot waits for him there, once a visit, unless it is kept done: useOnTheSpot)
     if ((pass === 'before' && e.late) || (pass === 'after' && !e.late)) continue;
     applyEffect(g, e);
   }
 }
+
+/** Whether an item used on the spot has happened for good (its `keep` find set): then it is applied as the room loads. */
+const kept = (g: Game, at: NonNullable<RoomEffect['at']>) => at.keep !== undefined && !!g.siCollected[at.keep];
 
 /** One room effect's changes, now. */
 function applyEffect(g: Game, e: RoomEffect) {
@@ -180,10 +183,11 @@ export function useOnTheSpot(g: Game) {
   const id = g.roomId;
   g.data.roomEffects.forEach((e, i) => {
     const at = e.at;
-    if (!at || e.room !== id || g.usedHere.has(i) || !(e.when ?? []).every((c) => holds(g, c))) return;
+    if (!at || e.room !== id || g.usedHere.has(i) || kept(g, at) || !(e.when ?? []).every((c) => holds(g, c))) return;
     const inBox = g.montyCol + 1 >= at.col && g.montyCol < at.col + at.cols && g.montyRow + 2 >= at.row && g.montyRow < at.row + at.rows;
     if (!inBox) return;
     g.usedHere.add(i);
+    if (at.keep !== undefined) g.siCollected[at.keep] = 0x81; // (done for good: from now on the room loads with it applied)
     const guard = e.removeEnemy === undefined ? undefined : g.enemies[e.removeEnemy];
     if (e.removeEnemy !== undefined && at.leaves !== undefined && guard && guard.x !== 0xff) {
       applyEffect(g, { ...e, removeEnemy: undefined });

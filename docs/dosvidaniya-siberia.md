@@ -279,3 +279,45 @@ Checks: `siberia-mechanisms.ts` ("the sleeper's roof run": the closet to the ves
 coal sealed from the corridors without the ticket; "the locomotive's steam": the ends, the wheel by a jump and not by walking, death in either, no way past the top, the roof never reaches
 the wheel, the turned wheel shuts the cab, the roof then reaches the mine, never a trap; the joins), the bot's legs through the train (`siberia-route.ts`), `train.ts`. Pictures:
 `siberia-shots.ts` (`steam-1..6.png`, `strip-steam.png`).
+
+## Challenge pass (2026-11-27)
+
+Chris's rows (docs/dosvidaniya-feedback.md): the train cars "well drawn but the enemies pose little challenge", SIBERIA YOU LATER's creatures "poorly done",
+MINE ALL MINE "no challenge", BORDER LINE CASE "both water bridges should break faster", OFF THE BEATEN PATH "cool ideas but no challenge". The drawings, the
+layouts and the train's path puzzle (the steam valve) stay; what changes is the creatures, their speeds and the ice. Each room, the puzzle and its lines:
+
+- **SIBERIA YOU LATER** (Moscow's platform; only its creatures change). He drops in from the gorge at columns 15-18. The balalaika (quick, 2 px a step)
+  runs along the platform from the clock's end toward him and turns two cells short of the landing, so the drop is never onto it and its pattern is seen at
+  once; the coin under the clock is behind it (follow it west, take the coin, jump it as it comes back). The samovar walks the car's roof over the hatch's
+  ladder (slow, 8 cells): he waits on the ladder below the roof while it goes over, and goes out east as it heads west.
+- **THE GRAVY TRAIN.** The roof lane: a pigeon (quick) drops out of the sky onto the roof between the two hatches and rises again, and the mountain comes from
+  the front. The run from the first hatch to the second is timed to the pigeon, and the mountain's sweep says which hatch he must be in. The inside (the dead
+  end with the pelmeni): the conductor's long slow walk under the first hatch (down its ladder behind him), the samovar quick on the counter by the second.
+- **SLEEPER HIT.** The roof is the set piece as the release built it (the mountain, the closet and the vestibule, Viktor behind him): nothing added there,
+  its timings are already tight (about 40 frames to spare). The corridor, crossed both ways in the valve's route (east to the wheel, back west to the closet):
+  the provodnitsa now walks the whole corridor briskly from the closet's foot to the coin. He waits on the closet's ladder, follows her, and jumps her where
+  she turns; coming back the same from the gangway. The ticket's two gates are used where they are, seen (below).
+- **COAL COMFORT.** The roof lane: over the coal and the quiet top of the pipe, a pigeon dives out of the smoke onto the cab's roof and up again (6 rows,
+  quick): under it while it is up, then down onto the boiler. The inside: the stoker quick at the firebox, the coin over him; the valve as the release made it.
+- **YETI OR NOT.** Unchanged: the yeti's loop and the icicle (which now leads) are the room's puzzle, and its four sprites, the icicle's, the ticket's, Monty
+  and his hat fill the eight.
+- **MINE ALL MINE.** The two shafts' bats now fly at different speeds (the west one twice as fast), so the gaps under the two shafts drift against each other:
+  on the gantry he reads them from its ends, and the cart, which shuttles on its own clock, is boarded on a gap that holds for both shafts on the way west.
+  The miner's window at the ladder's foot as it was.
+- **BORDER LINE CASE.** The ice breaks after 40 frames (was 120): a walk straight across goes through two thirds of the way over, so every stretch is crossed
+  with a jump. The sandbar is the one place to stop; from it he reads the far bank, where the reindeer now runs quick along the landing and the guard comes
+  slowly down the watchtower's ladder to the bank: go as the reindeer heads east with the guard up, jump the ice, and jump the reindeer where it turns.
+- **OFF THE BEATEN PATH.** A bat flies up and down the gap the boughs zig-zag across, so each hop from one pine to the other is timed to it, on snow that will
+  not wait (a bough sheds after 56 frames). A white reindeer walks the trail where he comes in and where a slip off the lowest boughs lands him, so a slip
+  costs something. The dripping icicle over the second coin as it was.
+
+Lines through the region's clusters: the train keeps its two lanes (the roof and the inside, each holding half the answer); the mine its two tunnels (the
+gantry east, the cart west). No new lines or rooms were added (the edges audit needs none for Siberia).
+
+**The ticket, used where it is wanted** (cause and effect): the luggage closet's floor opens under him as he climbs down onto it carrying the ticket (the
+item's sound, the floor's sides gone and the ladder run on down), and the inspector in the far gangway turns and walks off west down the corridor (harmless as he
+goes) as Monty comes up to him. Both happen once and stay done (the engine's `at.keep`, a hidden find each), and each box takes in the gate's far side too, so a save from before
+the keeps, coming at a gate from beyond it, opens it there: never a trap. The tender's side of the gangway opens with the ticket as before.
+
+**The coupling puzzle** (the release reviewer's idea: the valve extended across the dining car, the sleeper and the tender): not built. The valve has not yet
+been played by Chris; recommended: let him play the release's train first, then decide (his call).

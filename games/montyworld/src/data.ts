@@ -28,7 +28,7 @@ import { BALL_STREAM, CAVE_ICICLES, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GA
 import { JAPAN_SPRITE } from './japan-pointers';
 import { GUST_CAP, GUST_COLOURS } from './art/japan-cave';
 import { ESCALATORS, ICICLES, MOSCOW_ROOMS, STATION_ANIMS, ROOM, SECTOR_COLOURS, SECTORS, SPRITE } from './moscow';
-import { CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, STEAM_ANIM, steamPulses, steamSwitches, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
+import { CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, SIBERIA_ICICLES, STEAM_ANIM, steamPulses, steamSwitches, YETI, YETI_POINTERS, TRAIN_ANIMS, TRAPDOOR, SIB, SIB_SPRITE, SIBERIA_COLOURS, SIBERIA_ROOMS, SIBERIA_SECTORS, TAIGA_BOUGHS, TAIGA_ICICLES, TUNNELS } from './siberia';
 import { crossingPlan } from './music/crossing';
 import { CHASE_TUNE, tuneForRoom } from './music/regions';
 import { PASSPORT_STAMPS } from './art/passport';
@@ -258,16 +258,19 @@ const BOWL = specialIndex(ROOMS, 'bowl');
 /**
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
  * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only), and which way the locomotive's
- * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts). They come after every room's finds, so no room's
- * find moves; they count for nothing on the pause screen.
+ * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts), and the gates that, once
+ * given way where he used the item, stay open (a room effect's `at.keep`: the closet's floor unbolted and the inspector gone, 2026-11-27; a save from before reads them unset and the gate gives way again
+ * where he comes up to it, from either side). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'closet unbolted', 'inspector gone'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
-const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5, STEAM_LOW = FITTED + 6;
+const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5, STEAM_LOW = FITTED + 6, UNBOLTED = FITTED + 7, INSPECTED = FITTED + 8;
 /** The hidden finds the tests read (the tally's rounds). */
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The find the locomotive's steam valve flips (untaken: the steam blows out of the pipe's top, over the roof's lane; taken: out of its bottom, over the inside's). */
 export const STEAM_VALVE = STEAM_LOW;
+/** The finds that keep the sleeper's two ticket gates open once they have given way (the closet's floor, the inspector's gangway). */
+export const TICKET_KEEPS = { closet: UNBOLTED, inspector: INSPECTED } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `musubi${n}`)),
   ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `skewer${n}`))];
@@ -288,12 +291,13 @@ function screenCells(c0: number, r0: number, c1: number, r1: number): (readonly 
 const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: ROOM.hall, when: [{ taken: TOKEN }], clear: screenCells(28, 13, 29, 16) }, // the token opens the turnstile
   { room: ROOM.kremlin, when: [{ taken: USHANKA_ITEM }], removeEnemy: 0 }, // in the fur hat, the guard steps aside
-  // the inspector sees the ticket and steps out of the sleeper's far gangway: the way under the roof is open into the tender (one effect a room)
-  ...[...new Set(GANGWAYS.map((g) => g.room))].map((room): RoomEffect => ({
-    room, when: [{ taken: TICKET }], clear: GANGWAYS.filter((g) => g.room === room).flatMap(({ cols }) => screenCells(cols[0], 15, cols[1], 16)), ...(room === SIB.sleeper ? { removeEnemy: INSPECTOR_SLOT } : {}),
-  })),
-  // and the provodnitsa unbolts the luggage closet's floor: the closet's ladder runs on down into the corridor, the way in from the roof
-  { room: SIB.sleeper, when: [{ taken: TICKET }], clear: onScreen(TRAPDOOR.clear), place: { code: TRAPDOOR.code, cells: onScreen(TRAPDOOR.ladder) } },
+  // the ticket, used where the gates are (cause and effect, seen): standing on the luggage closet's bolted floor with it, the floor opens and the closet's ladder runs on down into the
+  // corridor; walking up to the inspector in his gangway with it, he has seen it: he turns and walks off west along the corridor, the way the train's passengers are (harmless as he goes). Each happens once and stays done (`keep`), and each box takes in the gate's far
+  // side too (the corridor under the closet, the gangway's mouth), so a save from before the keeps, coming at a gate from beyond it, opens it there
+  { room: SIB.sleeper, when: [{ taken: TICKET }], clear: onScreen(TRAPDOOR.clear), place: { code: TRAPDOOR.code, cells: onScreen(TRAPDOOR.ladder) }, at: { ...screenBox(CLOSET.left + 1, CLOSET.floor - 2, CLOSET.right - 1, 16), keep: UNBOLTED } },
+  ...GANGWAYS.map((w): RoomEffect => (w.room === SIB.sleeper
+    ? { room: w.room, when: [{ taken: TICKET }], clear: screenCells(w.cols[0], 15, w.cols[1], 16), removeEnemy: INSPECTOR_SLOT, at: { ...screenBox(25, 15, 31, 16), leaves: -1, keep: INSPECTED } }
+    : { room: w.room, when: [{ taken: TICKET }], clear: screenCells(w.cols[0], 15, w.cols[1], 16) })), // (the tender's side of the gangway: open with the ticket, only reached through the sleeper's)
   // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
   { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
   { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
@@ -339,7 +343,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, UNBOLTED, INSPECTED],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 

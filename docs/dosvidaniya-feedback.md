@@ -33,11 +33,11 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 |---|---|---|
 | The watchtower | "top row enemies pose no threat and serve no purpose" | open |
 | Don't rock the boat | "pretty but has no challenge" | open |
-| Off the beaten path | "cool ideas but no challenge" | open |
-| Border line case | "both water bridges should break faster" | open |
-| Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | open |
-| Siberia you later | "the enemies are pretty poorly done. The first you can fall on it you are unlucky. The enemy on the roof poses no threat" | open |
-| Mine all mine | "no challenge" | open |
+| Off the beaten path | "cool ideas but no challenge" | in pass |
+| Border line case | "both water bridges should break faster" | in pass |
+| Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | in pass |
+| Siberia you later | "the enemies are pretty poorly done. The first you can fall on it you are unlucky. The enemy on the roof poses no threat" | in pass |
+| Mine all mine | "no challenge" | in pass |
 | Bullet point | "needs to be harder. The train is too easy to not encounter" | open |
 
 ## China

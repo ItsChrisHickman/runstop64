@@ -237,9 +237,10 @@ export const SIBERIA_ICICLES: readonly IcicleSpec[] = [{ room: SIB.yeti, col: 18
 
 /**
  * The frozen Amur's two stretches of ice: six cells each on the river's row 17, either side of the sandbar. His two-cell body is over a stretch for about 56 frames when he walks
- * across without stopping, so crossing at his walk is safe by a hair and waiting is not: he stops only on the sandbar.
+ * across without stopping; it breaks after 40 (Chris, 2026-11-26: "both water bridges should break faster"), so a walk straight across goes through two thirds of the way over and a
+ * jump is part of every crossing (a jump stands on nothing: it counts no frames). He stops only on the sandbar.
  */
-const ICE = { row: 17, codes: [codeOf(RIVER_PALETTE, 'I'), codeOf(RIVER_PALETTE, 'J'), codeOf(RIVER_PALETTE, 'H')], crack: 56, wide: 88, gone: 120, away: 240 } as const;
+const ICE = { row: 17, codes: [codeOf(RIVER_PALETTE, 'I'), codeOf(RIVER_PALETTE, 'J'), codeOf(RIVER_PALETTE, 'H')], crack: 16, wide: 28, gone: 40, away: 240 } as const;
 export const RIVER = { ice: [[9, 14], [18, 23]], bar: [15, 17] } as const;
 export const CRACKS: readonly CrackSpec[] = RIVER.ice.map(([from, to]) => ({ room: SIB.border, col: from, cols: to - from + 1, ...ICE }));
 
@@ -346,8 +347,9 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ['roofVent', 5, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
     ],
     creatures: [
-      { who: 'inspector', col: 5, row: 15, way: 'right', speed: 1, range: 96, colour: 10 },
-      { who: 'samovar', col: 27, row: 11, way: 'down', speed: 1, range: 32, colour: 15 },
+      { who: 'inspector', col: 5, row: 15, way: 'right', speed: 1, range: 96, colour: 10 }, // the conductor's long slow walk under the first hatch: down its ladder behind him, never onto him
+      { who: 'samovar', col: 27, row: 11, way: 'down', speed: 2, range: 16, colour: 15 }, // hopping on the counter by the second hatch's foot, quick
+      { who: 'pigeon', col: 16, row: 0, way: 'down', speed: 2, range: 28 }, // a pigeon riding the train, dropping onto the roof between the hatches and up again: the run between them is timed to it, and the mountain chooses the hatch
     ],
   }),
 
@@ -376,7 +378,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ['roofVent', 6, 8], ['roofVent', 15, 8], ...CAR_FITTINGS,
     ],
     creatures: [
-      { who: 'inspector', col: 16, row: 15, way: 'right', speed: 1, range: 64, colour: 10 },
+      { who: 'inspector', col: 13, row: 15, way: 'right', speed: 2, range: 44, colour: 10 }, // the provodnitsa, brisk, the whole corridor from the closet's foot to the coin: he follows her and jumps her where she turns, both ways
       { who: 'inspector', col: 30, row: 15, way: 'down', speed: 0, range: 8, colour: 1 },
       { who: 'agent', col: 0, row: 7, way: 'right', speed: 1, range: 1 }, // Viktor Vole, onto the roof behind him (viktor.ts `trainPursuer`: he walks Monty's path, not a patrol)
     ],
@@ -409,8 +411,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ...underCar(0, CAB.boiler - 1, TENDER_BOGIES), ['drivingWheel', 25, 17], ['drivingWheel', 28, 17],
     ],
     creatures: [
-      { who: 'miner', col: 18, row: 15, way: 'right', speed: 1, range: 24, colour: 7 }, // the stoker, to and from the firebox, clear of the cab's low doorway: over him to the coin and back
-      { who: 'bat', col: 19, row: 2, way: 'down', speed: 1, range: 40 }, // a bat dropping over the cab's roof and up again: under it while it is up (a bat along the roof would close it, nowhere to pass)
+      { who: 'miner', col: 18, row: 15, way: 'right', speed: 2, range: 12, colour: 7 }, // the stoker, quick to and from the firebox, clear of the cab's low doorway: over him to the coin and back
+      { who: 'pigeon', col: 19, row: 1, way: 'down', speed: 2, range: 24 }, // a pigeon diving out of the smoke onto the cab's roof and up again: under it while it is up (one along the roof would close it, nowhere to pass)
     ],
   }),
 
@@ -461,8 +463,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ...Array.from({ length: CART.span.to - CART.span.from + 1 }, (_, i): Placed => ['rail', CART.span.from + i, CART.row]), ['mineCart', CART.span.from, CART.row - 1],
     ],
     creatures: [
-      { who: 'bat', col: MINE_SHAFTS[0], row: 1, way: 'down', speed: 1, range: 104 },
-      { who: 'bat', col: MINE_SHAFTS[1], row: 14, way: 'up', speed: 1, range: 104 },
+      { who: 'bat', col: MINE_SHAFTS[0], row: 1, way: 'down', speed: 2, range: 52 }, // the west shaft's bat, quick: across the gantry and down over the cart twice for the east one's once
+      { who: 'bat', col: MINE_SHAFTS[1], row: 14, way: 'up', speed: 1, range: 104 }, // so the gaps under the two shafts drift against each other: read them from the gantry's ends, and board the cart on one
       { who: 'miner', col: MINER.col, row: 16, way: 'right', speed: 1, range: MINER.range }, // from the ledges' foot under the ladder into his seam and back
     ],
   }),
@@ -485,8 +487,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     coins: [[16, 15]],
     decor: [['cabin', 0, 13], ['boomUp', 29, 10], ['star', 9, 2], ['starDim', 20, 1], ['star', 30, 0]],
     creatures: [
-      { who: 'reindeer', col: 24, row: 15, way: 'right', speed: 1, range: 24 },
-      { who: 'guard', col: 25, row: 9, way: 'down', speed: 1, range: 48 },
+      { who: 'reindeer', col: 24, row: 15, way: 'right', speed: 2, range: 20 }, // quick along the far bank where the ice lands him: go from the sandbar as it heads east, and jump it where it turns
+      { who: 'guard', col: 25, row: 8, way: 'down', speed: 1, range: 56 }, // slow down the watchtower's ladder to the bank and up: the landing wants him up as well
     ],
   }),
   // OFF THE BEATEN PATH: the taiga off the trail west of the border village, a bonus room (Chris, 2026-11-25: a room with "some sort of cool background design" where the bank ran off
@@ -504,7 +506,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ['star', 6, 1], ['starDim', 12, 0], ['star', 28, 6], ['starDim', 19, 5], ['starDim', 30, 1],
     ],
     creatures: [
-      { who: 'reindeer', col: 3, row: 15, way: 'right', speed: 1, range: 32 }, // (between the crag and the second pine's trunk: never in front of a trunk's brown)
+      { who: 'reindeer', col: 21, row: 15, way: 'right', speed: 1, range: 56, colour: 1 }, // a white reindeer along the trail where he comes in and where a slip off the lowest boughs lands him (white: it crosses the trunk's brown)
+      { who: 'bat', col: 12, row: 3, way: 'down', speed: 2, range: 32 }, // a bat up and down the gap the boughs zig-zag across: each hop from one pine to the other is timed to it, on snow that will not wait
     ],
   }),
 ];

@@ -231,8 +231,8 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
       ...skyDecor(STATION_SKY), ['carDoor', 20, CAR.gangwayTop], windowAt(22), ['carLamp', 27, 11], ['roofVent', 21, 8], ['roofVent', 24, 8], ...underCar(20, 31, STATION_BOGIES), ...buffersAt(20, 31),
     ],
     creatures: [
-      { who: 'balalaika', col: 13, row: 15, way: 'right', speed: 1, range: 24 },
-      { who: 'samovar', col: 21, row: 7, way: 'right', speed: 1, range: 24 },
+      { who: 'balalaika', col: 5, row: 15, way: 'right', speed: 2, range: 24 }, // quick along the platform toward where he drops in, turning short of it (Chris: "the first you can fall on it you are unlucky"): the coin under the clock is behind it
+      { who: 'samovar', col: 21, row: 7, way: 'right', speed: 1, range: 64 }, // along the car's roof and over the hatch: wait on the ladder while it goes by, out as it heads west (Chris: "the enemy on the roof poses no threat")
     ],
   }),
 
