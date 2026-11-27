@@ -2,8 +2,8 @@
  * Siberia's mechanisms and its puzzle, headless, each on its own with the room's creatures out of the way unless a check says otherwise (the bot, siberia.ts, plays them all
  * together): the data (six rooms, retired ids, coins with reasons), the mountains (seen, warned of, deadly on the roof and up the pine, never under the roof), the sleeper's roof
  * run (a run straight to the pine is caught, one shelter in the closet and it is made), the puzzle (the train's two lanes: the dining car's inside a dead end, its gangway
- * bolted; the roof ends at the bunker; the sleeper's corridor shut until the ticket, which opens the closet's floor and sends the inspector off), the yeti's loop (never where
- * he comes in), the mine cart, the river's cracking ice, the joins both ways (no trap), the hints, the map and the saves.
+ * bolted; the roof runs on onto the tender's coal, the coal's top sealed from the corridor under it; the sleeper's corridor shut until the ticket, which opens the closet's floor and sends
+ * the inspector off), the locomotive's steam valve (one pipe, two ends, one wheel on the inside: the roof's way opened from the inside, the obvious move failing, never a trap), the yeti's loop (never where he comes in), the mine cart, the river's cracking ice, the joins both ways (no trap), the hints, the map and the saves.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/siberia-mechanisms.ts [--room <rooms>]
  */
@@ -15,10 +15,10 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { ADDED_ROOMS, DECOR_LIBRARY, WORLD } from '../src/data';
+import { ADDED_ROOMS, DECOR_LIBRARY, STEAM_VALVE, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
-import { CART, CLOSET, CRACKS, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, TAIGA, TAIGA_BOUGHS, TUNNELS, YETI } from '../src/siberia';
+import { CAB, CART, CLOSET, CRACKS, VESTIBULE, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, STEAM, TAIGA, TAIGA_BOUGHS, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
@@ -194,31 +194,62 @@ SCOPE.section([SIB.sleeper, SIB.gravy, SIB.coal, SIB.yeti], 'the sleeper\'s roof
       inside && s.g.roomId === SIB.yeti && !dead(s.g) && spare >= 20 && spare <= 140);
   }
   {
+    // east to the tender: from the closet, out as the tail goes by, along to the vestibule and down it before the next mountain; out again as its tail goes by, and on onto the tender's coal
+    const s = at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor);
+    const t = must(s.g.tunnels[0], 'the mountain');
+    let f = 0;
+    for (; f < 1400 && !(t.state === 'sweep' && t.left + mouth.cols <= CLOSET.left); f++) frame(s, NONE);
+    for (; f < 1600 && s.g.y > standY(9) && !dead(s.g); f++) frame(s, UP);
+    for (; f < 2000 && colOf(s.g) < VESTIBULE.hatch - 1 && !dead(s.g); f++) frame(s, RIGHT);
+    const hatchAt = f;
+    for (; f < 2200 && s.g.y < standY(VESTIBULE.floor) && !dead(s.g); f++) frame(s, DOWN);
+    const sheltered = !dead(s.g) && s.g.y === standY(VESTIBULE.floor);
+    for (; f < 2600 && !dead(s.g) && !(t.state === 'sweep' && t.left <= VESTIBULE.right); f++) frame(s, NONE);
+    const atHatch = f - hatchAt; // (the frames from his reaching the hatch to the next mountain's reaching the vestibule)
+    for (; f < 3000 && !dead(s.g) && !(t.state === 'sweep' && t.left + mouth.cols <= VESTIBULE.left); f++) frame(s, NONE);
+    for (; f < 3200 && s.g.y > standY(9) && !dead(s.g); f++) frame(s, UP);
+    for (; f < 3600 && s.g.roomId === SIB.sleeper && !dead(s.g); f++) frame(s, RIGHT);
+    check(`east along the roof to the tender: from the closet as the tail goes by, at the vestibule's hatch with ${atHatch} frames before the next mountain is at it, down it while it goes over, and on onto the tender's coal (room ${s.g.roomId})`,
+      sheltered && atHatch >= 24 && atHatch <= 160 && s.g.roomId === SIB.coal && !dead(s.g));
+    const direct = at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor);
+    const u = must(direct.g.tunnels[0], 'the mountain');
+    let g = 0;
+    for (; g < 1400 && !(u.state === 'sweep' && u.left + mouth.cols <= CLOSET.left); g++) frame(direct, NONE);
+    for (; g < 1600 && direct.g.y > standY(9) && !dead(direct.g); g++) frame(direct, UP);
+    for (; g < 2400 && direct.g.roomId === SIB.sleeper && !dead(direct.g); g++) frame(direct, RIGHT);
+    check(`but a run from the closet straight through to the tender is caught (at column ${colOf(direct.g)}): the vestibule is the shelter on the way`, dead(direct.g) && direct.g.roomId === SIB.sleeper);
+  }
+  {
     const s = at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor);
     run(s, NONE, 2 * 800);
-    check('in the closet nothing reaches him through two whole cycles', !dead(s.g));
+    const v = at(SIB.sleeper, VESTIBULE.hatch - 1, VESTIBULE.floor);
+    run(v, NONE, 2 * 800);
+    check('in the closet and in the vestibule nothing reaches him through two whole cycles', !dead(s.g) && !dead(v.g));
   }
 });
 
 // ---- the puzzle: the train's two lanes ---------------------------------------------------------------
 SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.yeti, ROOM.station], 'the train\'s two lanes', () => {
-  // the roof ends at the tender's coal: walking east along the sleeper's roof he stops at the bunker, and nothing of the tender is his that way
+  // the roof runs on east onto the tender's coal (its lane of its own there: the coal is solid down to the tender's corridor)
   const s = at(SIB.sleeper, 22, 9);
   run(s, RIGHT, 120);
-  check(`the sleeper's roof ends at the tender's coal bunker: walking east he stops at column ${colOf(s.g)}`, s.g.roomId === SIB.sleeper && colOf(s.g) <= 28);
+  check(`the sleeper's roof runs on east onto the tender's coal (room ${s.g.roomId}, on the coal's top: ${s.g.y === standY(CAR_ROOF)})`, s.g.roomId === SIB.coal && s.g.y === standY(CAR_ROOF));
   // the roof and the corridor are sealed from each other in the sleeper until the ticket: the only climb under its roof is the closet's ladder (walled, floored solid); from
   // the corridor's floor (17) to the roof's walkway (9) is far more than a jump
   const sleeper = roomOf(SIB.sleeper);
   const ropes: string[] = [];
   for (let row = 10; row <= 16; row++) for (let col = 0; col < 32; col++) if (classAt(SIB.sleeper, col, row) === 3) ropes.push(`${col},${row}`);
-  const walled = [CLOSET.left, CLOSET.right].every((c) => [9, 10, 11, 12, 13].every((row) => classAt(SIB.sleeper, c, row) === 1))
-    && Array.from({ length: CLOSET.right - CLOSET.left + 1 }, (_, i) => CLOSET.left + i).every((c) => classAt(SIB.sleeper, c, CLOSET.floor) === 1);
-  check(`in the sleeper the roof and the corridor do not meet without the ticket: the only climb below the roof is the closet's ladder, over its bolted floor (${ropes.join(' ')}), and a jump rises ${RISE} pixels of the ${(17 - 9) * 8} between them`,
-    ropes.every((p) => { const [c = -1, r = -1] = p.split(',').map(Number); return c === CLOSET.hatch && r < CLOSET.floor; }) && walled && RISE < (17 - 9) * 8 - 21 && sleeper.map.length === 20);
+  const wells = [CLOSET, VESTIBULE] as const;
+  const walled = wells.every((w) => [w.left, w.right].every((c) => [9, 10, 11, 12, 13].every((row) => classAt(SIB.sleeper, c, row) === 1))
+    && Array.from({ length: w.right - w.left + 1 }, (_, i) => w.left + i).every((c) => classAt(SIB.sleeper, c, w.floor) === 1));
+  check(`in the sleeper the roof and the corridor do not meet without the ticket: the only climbs below the roof are the closet's ladder and the vestibule's, over their floors (${ropes.join(' ')}), and a jump rises ${RISE} pixels of the ${(17 - 9) * 8} between them`,
+    ropes.every((p) => { const [c = -1, r = -1] = p.split(',').map(Number); return wells.some((w) => c === w.hatch && r < w.floor); }) && walled && RISE < (17 - 9) * 8 - 21 && sleeper.map.length === 20);
   {
     // a pointer, not the proof: without the ticket the bot finds no way from the closet, the pine's foot or the dining car's inside down into the sleeper's corridor
-    const sealed = (room: number, col: number, floor: number) => search(at(room, col, floor), (g) => g.roomId === SIB.sleeper && g.y === standY(17), undefined, 150000, 0) === null;
-    check('without the ticket the bot finds no way from the closet, the pine\'s foot or the dining car\'s inside into the sleeper\'s corridor', sealed(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor) && sealed(SIB.sleeper, PINE.cols[0] - 1, CAR_ROOF) && sealed(SIB.gravy, 26, 17));
+    const below = (g: Game) => (g.roomId === SIB.sleeper || g.roomId === SIB.coal) && g.y === standY(17);
+    const sealed = (room: number, col: number, floor: number) => search(at(room, col, floor), below, undefined, 150000, 0) === null;
+    check('without the ticket the bot finds no way from the closet, the vestibule, the pine\'s foot, the tender\'s coal or the dining car\'s inside into the sleeper\'s corridor or the tender\'s',
+      sealed(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor) && sealed(SIB.sleeper, VESTIBULE.hatch - 1, VESTIBULE.floor) && sealed(SIB.sleeper, PINE.cols[0] - 1, CAR_ROOF) && sealed(SIB.coal, 2, CAR_ROOF) && sealed(SIB.gravy, 26, 17));
   }
   // the dining car's gangway is bolted, both ways, with the ticket or without it: its inside is a dead end (the pelmeni's pocket), and its hatches join it to its roof
   {
@@ -251,7 +282,7 @@ SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.yeti, ROOM.station], 'the t
   for (const w of GANGWAYS) {
     const side = w.cols[0] <= 1 ? 0 : 31;
     const out = (st: State) => { run(st, side === 0 ? LEFT : RIGHT, 160); return st.g.roomId !== w.room; };
-    check(`room ${w.room}: the gangway at its ${side === 0 ? 'west' : 'east'} end is shut without the ticket and open with it`, !out(at(w.room, side === 0 ? 4 : 27, 17)) && out(at(w.room, side === 0 ? 4 : 27, 17, [TICKET])));
+    check(`room ${w.room}: the gangway at its ${side === 0 ? 'west' : 'east'} end is shut without the ticket and open with it`, !out(at(w.room, side === 0 ? 2 : 27, 17)) && out(at(w.room, side === 0 ? 2 : 27, 17, [TICKET])));
   }
   {
     const s = at(SIB.sleeper, 24, 17, [], false, true);
@@ -260,6 +291,86 @@ SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.yeti, ROOM.station], 'the t
     check(`the inspector stands in his gangway: walking into it he stops at column ${colOf(s.g)} and lives (he only bars the way)`, !dead(s.g) && s.g.roomId === SIB.sleeper && colOf(s.g) >= 27);
     const t = at(SIB.sleeper, 24, 17, [TICKET], false, true);
     check('with the ticket he has stepped out of the gangway', must(t.g.enemies[INSPECTOR_SLOT], 'the inspector').x === 0xff);
+  }
+});
+
+// ---- the locomotive's steam valve ---------------------------------------------------------------------------
+SCOPE.section([SIB.coal, SIB.sleeper, SIB.mine, SIB.gravy], 'the locomotive\'s steam', () => {
+  type Outlet = { readonly col: number; readonly row: number; readonly cols: number; readonly rows: number };
+  const cellsOf = (o: Outlet) => Array.from({ length: o.rows * o.cols }, (_, i) => [o.col + (i % o.cols), o.row + Math.floor(i / o.cols)] as const);
+  const blows = (g: Game, o: Outlet) => cellsOf(o).every(([c, r]) => cell(g, c, r) !== 0);
+  const still = (g: Game, o: Outlet) => cellsOf(o).every(([c, r]) => cell(g, c, r) === 0);
+  const turned = (g: Game) => g.siCollected[STEAM_VALVE] !== 0;
+  const top = (g: Game) => blows(g, STEAM.high) && still(g, STEAM.low) && !turned(g);
+  const bottom = (g: Game) => blows(g, STEAM.low) && still(g, STEAM.high) && turned(g);
+  const JUMP = { ...NONE, fire: true };
+  {
+    const s = at(SIB.coal, 2, CAR_ROOF);
+    run(s, NONE, 4);
+    check('as the game starts the steam blows out of the pipe\'s top, across the roof\'s lane at the cab, and the bottom is quiet', top(s.g));
+  }
+  {
+    // walking the corridor under the niche turns nothing; a jump in the niche turns the wheel (both ends change in the frame); landing turns nothing more; another jump turns it back
+    const s = at(SIB.coal, 3, 17, [TICKET]);
+    for (let f = 0; f < 200 && colOf(s.g) < STEAM.box.col0; f++) frame(s, RIGHT);
+    run(s, NONE, 4);
+    const walked = top(s.g);
+    frame(s, JUMP);
+    let f = 0;
+    for (; f < 40 && !turned(s.g); f++) frame(s, NONE);
+    run(s, NONE, 60);
+    const sent = bottom(s.g);
+    frame(s, JUMP);
+    run(s, NONE, 60);
+    check(`walking along the corridor under the wheel's niche leaves the steam as it is (${walked}); a jump there turns the wheel (${f} frames in): out of the bottom, the top quiet, and it stays so when he lands (${sent}); another jump turns it back`,
+      walked && sent && top(s.g));
+  }
+  {
+    const s = at(SIB.coal, 9, CAR_ROOF);
+    const topDies = diesAt(s, RIGHT, 60);
+    const t = at(SIB.coal, 8, 17, [TICKET]);
+    t.g.siCollected[STEAM_VALVE] = 0x81;
+    const bottomDies = diesAt(t, RIGHT, 60);
+    check(`the steam kills where it blows: walking along the coal's top into it out of the top (frame ${topDies}), along the corridor into it out of the bottom (frame ${bottomDies})`, topDies >= 0 && bottomDies >= 0);
+  }
+  {
+    // the two lanes each hold half the answer: the roof sees the wheel but cannot reach it; the inside reaches it, but turning it shuts the inside's own way on
+    const inMine = (g: Game) => g.roomId === SIB.mine;
+    const inCab = (g: Game) => g.roomId === SIB.coal && g.y === standY(17) && colOf(g) >= CAB.cabFrom;
+    const exit = [{ room: SIB.coal, col: 31, row: 3 }];
+    check('with the steam out of the top the bot finds no way from the tender\'s coal past it to the mine',
+      search(at(SIB.coal, 2, CAR_ROOF), inMine, exit, 150000, 1.5) === null);
+    check('and no way from the roof to the wheel: from the tender\'s coal and the sleeper\'s roof (without the ticket) the bot never turns it',
+      search(at(SIB.coal, 2, CAR_ROOF), turned, [{ room: SIB.coal, col: STEAM.box.col0, row: STEAM.box.row0 }], 150000, 1.5) === null);
+    const turnedAt = (col: number, floor: number) => { const s = at(SIB.coal, col, floor, [TICKET]); s.g.siCollected[STEAM_VALVE] = 0x81; return s; };
+    // (the wheel taken away, so the search cannot simply turn it back)
+    const noTurns = (col: number, floor: number) => {
+      const s = newGame({ ...WORLD, switches: [] }, false);
+      s.g.siCollected[itemIndex(s.g, TICKET[0], TICKET[1])] = 0x81;
+      s.g.siCollected[STEAM_VALVE] = 0x81;
+      enterRoom(s.g, SIB.coal, 0x0c + (col + 4) * 4, standY(floor));
+      s.g.enemies = [];
+      s.g.enable &= 0x0f;
+      s.g.vic.enable &= 0x0f;
+      return s;
+    };
+    check('the obvious move fails: the wheel turned, the bot finds no way on from the corridor\'s end into the cab (the steam is across it now)',
+      search(noTurns(STEAM.box.col0 - 1, 17), inCab, [{ room: SIB.coal, col: 20, row: 15 }], 150000, 1.5) === null);
+    check('the fix follows: the wheel turned, from the tender\'s coal the bot crosses the quiet top onto the cab\'s roof, down to the boiler, up the tipple and into the mine',
+      search(turnedAt(2, CAR_ROOF), inMine, exit, 300000, 1.5) !== null);
+  }
+  {
+    // never a trap: the wheel's side of the inside goes back west whichever way the steam blows; the cab, entered while the bottom is quiet, too; the roof's east side, reached only
+    // while the top is quiet, goes back west over it
+    const reach = (from: State, goal: (g: Game) => boolean, aim: { room: number; col: number; row: number }) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], 300000, 1.5) !== null;
+    const set = (s: State, low: boolean) => { if (low) s.g.siCollected[STEAM_VALVE] = 0x81; return s; };
+    const west = { room: SIB.coal, col: 0, row: 15 };
+    check('never a trap: from the corridor\'s end with the steam either way, and from the cab, the bot gets back west through the gangway into the sleeper',
+      reach(set(at(SIB.coal, STEAM.box.col0, 17, [TICKET]), false), (g) => g.roomId === SIB.sleeper, west)
+      && reach(set(at(SIB.coal, STEAM.box.col0, 17, [TICKET]), true), (g) => g.roomId === SIB.sleeper, west)
+      && reach(at(SIB.coal, 19, 17, [TICKET]), (g) => g.roomId === SIB.sleeper, west));
+    check('and from the boiler\'s top, the top quiet, back over the cab\'s roof and the coal onto the sleeper\'s roof',
+      reach(set(at(SIB.coal, 26, CAB.boilerTop, [TICKET]), true), (g) => g.roomId === SIB.sleeper, { room: SIB.coal, col: 0, row: 7 }));
   }
 });
 
@@ -496,12 +607,16 @@ SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.yeti, SIB.mine, SIB.border,
   check('under the roof with the ticket: along the sleeper\'s corridor into the tender\'s pocket',
     reach(at(SIB.sleeper, 12, 17, [TICKET]), { room: SIB.sleeper, col: 31, row: 16 }, (g) => g.roomId === SIB.coal && g.y === standY(17)) !== null);
   check('and back west the same way (the tender to the sleeper\'s corridor, up the closet to the roof, west along it to the dining car)',
-    reach(at(SIB.coal, 3, 17, [TICKET]), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null
+    reach(at(SIB.coal, 2, 17, [TICKET]), { room: SIB.coal, col: 0, row: 16 }, (g) => g.roomId === SIB.sleeper) !== null
     && reach(at(SIB.sleeper, 12, 17, [TICKET]), { room: SIB.sleeper, col: 0, row: 7 }, (g) => g.roomId === SIB.gravy, 600000) !== null);
-  check('the tender\'s coal climbs to the cab\'s roof, its ladder to the tipple, and the tipple goes east into the mine\'s gantry',
-    reach(at(SIB.coal, 3, 17), { room: SIB.coal, col: 31, row: 3 }, (g) => g.roomId === SIB.mine && g.y === standY(4), 600000) !== null);
-  check('and the gantry goes back west onto the tipple and down its ladder to the cab\'s roof',
-    reach(at(SIB.mine, 3, 4), { room: SIB.coal, col: 24, row: 9 }, (g) => g.roomId === SIB.coal && g.y === standY(11), 400000) !== null);
+  {
+    const turned = (s: State) => { s.g.siCollected[STEAM_VALVE] = 0x81; return s; };
+    // (from the coal, where the sleeper's roof comes onto it: "the train's two lanes" walks that join; a search through the mountain's phases from the sleeper's roof never ends)
+    check('from the tender\'s coal, the valve turned, across the cab\'s roof, up the tipple\'s ladder and east along the deck into the mine\'s gantry',
+      reach(turned(at(SIB.coal, 2, CAR_ROOF)), { room: SIB.coal, col: 31, row: 3 }, (g) => g.roomId === SIB.mine && g.y === standY(4), 200000) !== null);
+    check('and the gantry goes back west onto the tipple and down its ladder to the boiler\'s top',
+      reach(turned(at(SIB.mine, 3, 4)), { room: SIB.coal, col: CAB.tippleLadder, row: 9 }, (g) => g.roomId === SIB.coal && g.y === standY(CAB.boilerTop), 400000) !== null);
+  }
   check('the sleeper\'s pine climbs into the yeti\'s cave and the cave\'s gap lets him down it again (both ends on the trunk)',
     reach(at(SIB.sleeper, 22, 9), { room: SIB.sleeper, col: 20, row: 0 }, lands(SIB.yeti, [17]), 200000) !== null && reach(at(SIB.yeti, 23, 17), { room: SIB.yeti, col: 20, row: 19 }, lands(SIB.sleeper, [9]), 200000) !== null);
   {
@@ -562,7 +677,7 @@ SCOPE.section([], 'hints, the map, the save', () => {
 
   // a save made on coming into each of Siberia's rooms (the ticket taken, so the gangways are opened on loading) carries on
   {
-    const spots = [[SIB.gravy, 2, 9], [SIB.sleeper, 2, 9], [SIB.coal, 3, 17], [SIB.yeti, 23, 17], [SIB.mine, 2, 4], [SIB.border, 3, 17]] as const;
+    const spots = [[SIB.gravy, 2, 9], [SIB.sleeper, 2, 9], [SIB.coal, 2, 17], [SIB.yeti, 23, 17], [SIB.mine, 2, 4], [SIB.border, 3, 17]] as const;
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
       a.g.siCollected[itemIndex(a.g, SIB.yeti, 0)] = 0x81;

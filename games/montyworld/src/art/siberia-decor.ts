@@ -246,6 +246,15 @@ export const WHEEL_FRAMES: readonly Uint8Array[] = [
   characters('wheel turned', ['..####..', '.##..##.', '#.#..#.#', '#..##..#', '#..##..#', '#.#..#.#', '.##..##.', '..####..'], 1, 1),
 ];
 
+/**
+ * The locomotive's steam blowing (the Pacific's vent's column, `pacSteam`, in the locomotive's room), its pictures in turn so it billows: the vent's own, then the puffs risen a half
+ * step. A character, as bytes.
+ */
+export const STEAM_FRAMES: readonly Uint8Array[] = [
+  characters('steam', ['.##..##.', '########', '.######.', '..####..', '.######.', '########', '.##..##.', '..####..'], 1, 1),
+  characters('steam risen', ['.######.', '..####..', '.######.', '########', '.##..##.', '..####..', '.##..##.', '########'], 1, 1),
+];
+
 /** A locomotive's big driving wheel: the tyre, six spokes and the hub with a crank pin. 3 x 3 characters. */
 function drivingWheel(): NewDecor {
   const r = new Raster(24, 24);
@@ -267,6 +276,40 @@ function cabWindow(): NewDecor {
   r.line(4, 9, 8, 4); r.line(6, 9, 10, 4);
   r.rect(7, 2, 8, 11);
   return decor('cabWindow', 2, 2, r, 7);
+}
+
+/**
+ * The locomotive's steam valve: a red hand wheel (its rim, four spokes and the hub) on the stem of its pipe. One valve, two handles: the one on the tender's coal and the one on the
+ * cab's backhead are the same picture (switches, `STEAM` in siberia.ts). 2 x 2 characters.
+ */
+function valveWheel(): NewDecor {
+  const r = new Raster(16, 16);
+  r.ring(7.5, 6.5, 6.5, 2);
+  r.line(7.5, 1, 7.5, 12); r.line(2, 6.5, 13, 6.5); // the spokes
+  r.disc(7.5, 6.5, 2.2);
+  r.rect(6, 13, 9, 15); r.rect(3, 15, 12, 15); // the stem and its flange
+  return decor('valveWheel', 2, 2, r, 2);
+}
+
+/**
+ * The locomotive's steam pipe in the gap between the tender and the cab, under the cab's roof: one pipe with a nozzle at each end, the top one up through the roof and the bottom one down to
+ * the footplate, and the valve's rod from the tender's front plate. The steam blows out of one end or the other (`STEAM` in siberia.ts). 3 x 2 characters.
+ */
+function steamPipe(): NewDecor {
+  const r = new Raster(24, 16);
+  r.rect(10, 0, 13, 15); // the pipe
+  r.rect(8, 0, 15, 1); r.rect(8, 14, 15, 15); // its two nozzles' flanges
+  r.rect(0, 7, 9, 8); // the valve's rod, from the front plate
+  r.rect(7, 5, 9, 10); // the valve's body on the pipe
+  r.rect(11, 3, 12, 12, false); // the pipe's shine
+  return decor('steamPipe', 3, 2, r, 7);
+}
+
+/** A leg of the coal tipple over the line: a timber post with a brace, a backdrop (it stands behind the train). 1 x 1 character, stamped down the post's cells. */
+function tippleLeg(): NewDecor {
+  const r = new Raster(8, 8);
+  r.rect(2, 0, 5, 7); r.rect(3, 2, 4, 2, false); r.rect(3, 6, 4, 6, false);
+  return decor('tippleLeg', 1, 1, r, 9);
 }
 
 /** A mine cart's wall over its bed: the rim of the box with a heap of coal in it and a lamp hook. 4 x 1 characters. */
@@ -350,6 +393,9 @@ export const SIBERIA_DECOR = {
   drivingWheel: drivingWheel(),
   cabWindow: cabWindow(),
   mineCart: mineCart(),
+  valveWheel: valveWheel(),
+  steamPipe: steamPipe(),
+  tippleLeg: tippleLeg(),
   auroraTop: auroraTop(),
   auroraBody: auroraBody(),
   auroraHem: auroraHem(),

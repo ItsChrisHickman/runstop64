@@ -10,6 +10,7 @@ import { enterRoom } from '../../montyotr/src/ending';
 import { frame, NONE } from '../../montyotr/test/play';
 import { ROOM } from '../src/moscow';
 import { SIB } from '../src/siberia';
+import { STEAM_VALVE } from '../src/data';
 import { compare, contactSheet, motrRoom, newPlay, placed, savePng, settle, shot, standing } from './shots-kit';
 import { itemIndex } from './route';
 
@@ -40,9 +41,26 @@ contactSheet(out, 'sheet.png', pics);
 // the sleeper's corridor with the inspector in his gangway, and with the ticket (he has gone)
 savePng(out, 'sleeper-corridor.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 30, worn }).px);
 savePng(out, 'sleeper-ticket.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 30, worn, items: [itemIndex(newPlay().g, SIB.yeti)] }).px);
+// the train's path puzzle, its moments in order: on the tender's coal from the sleeper's roof, the steam out of the pipe's top across the way and the wheel seen below; in the tender's
+// corridor with the ticket, the bottom quiet, the cab open; the wheel turned (in its niche), the steam out of the bottom across the way into the cab, the top quiet; on the sleeper's
+// roof by the vestibule on the way back east; across the quiet top onto the cab's roof; on the boiler's top under the tipple's ladder.
+{
+  const ticket = itemIndex(newPlay().g, SIB.yeti);
+  const turned = [ticket, STEAM_VALVE];
+  const moments = [
+    placed({ room: SIB.coal, col: 3, floor: 9, frames: 30, worn }).px,
+    placed({ room: SIB.coal, col: 6, floor: 17, frames: 30, worn, items: [ticket] }).px,
+    placed({ room: SIB.coal, col: 10, floor: 17, frames: 30, worn, items: turned }).px,
+    placed({ room: SIB.sleeper, col: 24, floor: 9, frames: 4, worn, items: turned }).px,
+    placed({ room: SIB.coal, col: 14, floor: 9, frames: 4, worn, items: turned }).px,
+    placed({ room: SIB.coal, col: 27, floor: 11, frames: 30, worn, items: turned }).px,
+  ];
+  moments.forEach((px, i) => savePng(out, `steam-${i + 1}.png`, px));
+  contactSheet(out, 'strip-steam.png', moments);
+}
 // the tunnel mouths under way
 savePng(out, 'tunnel-gravy.png', placed({ room: SIB.gravy, col: 8, floor: 17, frames: 40 + 130 + 48 + 170, worn }).px);
-savePng(out, 'tunnel-sleeper.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 24 + 28 + 48 + 90, worn }).px);
+savePng(out, 'tunnel-sleeper.png', placed({ room: SIB.sleeper, col: 4, floor: 17, frames: 8 + 44 + 48 + 90, worn }).px);
 // the ice in its stages (he stands on it)
 for (const frames of [30, 70, 100]) {
   const s = newPlay();
