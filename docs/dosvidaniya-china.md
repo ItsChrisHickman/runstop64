@@ -236,3 +236,9 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   the Amazon's leaping piranhas do: the existing path/roller mechanism), on a timing he reads from the bank.
 - **DOWN THE RIVER:** "ridiculously easy." Part of the pass: the river must be the hazard it looks (the current, logs or
   junks on it, creatures over the water), crossed on timings.
+- **Every Viktor cameo** (Chris on THE FISH MARKET's, 2026-11-26: "He runs into Monty then runs away... That's not him
+  pursuing me... It's silly. He is trying to chase Monty and can't reach him yet... That's the idea. Not that he is
+  running away from him."): a cameo is Viktor chasing and not yet able to reach him: he comes on behind Monty, running
+  towards him, and is stopped short (a gap he can't cross, a door that shuts, a ledge he can't climb, a crowd) and shakes
+  his fist; he never turns and runs away from Monty, never appears beside him. Applies to every border cameo (Moscow,
+  China's wall, THE FISH MARKET, the Redeemer and the rest).
