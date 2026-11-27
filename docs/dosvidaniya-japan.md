@@ -283,3 +283,6 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
   (a crow tengu's), the feather fan, a small black cap; it hovers in the gust flapping and fanning the wind (it is the
   wind's maker), never runs in along the floor as Viktor does. If it still could be read as Viktor, drop the figure and
   let the gust and its swirls carry the idea.
+- **GONE WITH THE WIND:** "also too easy." The cave's challenge must be real: the yuki-onna's drift crossing the tube where
+  he has to pass, the icicles timed over the way, more ice to judge (a slippery run, a jump over a chasm in the tube), its
+  coins at the hard end; still a fair bonus room.
