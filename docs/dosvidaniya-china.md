@@ -228,3 +228,7 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   back down to the start of the climb), with a reason in the place for both (an old stall roof over the boiling vats).
 - **THE FORBIDDEN CITY:** "also very easy. Nothing to it." Part of the challenge pass: give it the hardest test in China's
   palace rooms (guards on crossing paths, a timing through the gates), fair and readable.
+- **HEAVEN CAN WAIT:** "no actual challenge. No enemies, easy layout." Give it creatures and a layout that asks for judged
+  jumps (the Temple of Heaven's terraces and its round hall).
+- **THE EMPEROR'S ROOFTOPS:** "a vertical enemy that you can't hit unless you try." Its creatures must sit on Monty's way
+  across the roofs (a vertical one where he has to pass under or jump past it on a timing), not off to the side.
