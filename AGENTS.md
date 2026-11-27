@@ -129,8 +129,10 @@ and `!`; JSON read back goes through `games/shared/guards.ts` (data files: `game
 - Never commit secrets, traced (`TRACE=1`) translations or scratch output (keep scratch in `/tmp`). `.claude/` is ignored except `.claude/skills/`.
 - Keep reports short and plain.
 - **Skills** (`.claude/skills/`, committed): `monty-room` for any Do Svidaniya room (layout, creatures, the challenge recipe,
-  `games/montyworld/test/rooms-sheet.ts` to see every creature's path), `runstop64-ship` for the gate, push, deploy and agent briefs.
-  Load the skill instead of re-reading the engine. Chris's playtest notes, room by room, are `docs/dosvidaniya-feedback.md`.
+  `games/montyworld/test/rooms-sheet.ts` to see every creature's path), `runstop64-ship` for the gate, push, deploy and agent briefs,
+  `new-monty-game` to start or build a new Monty game on the kit (`tools/new-game.mjs <id> "<Title>"` scaffolds one; the order of work
+  and Chris's rules), `monty-mechanism` to add or change a mechanism (a module in `games/montyotr/src` and a list in `MontyData`, its
+  test section and shots). Committed workflows (the challenge pass): `tools/workflows/`. Load the skill instead of re-reading the engine. Chris's playtest notes, room by room, are `docs/dosvidaniya-feedback.md`.
 
 ## Making a new Monty game
 
