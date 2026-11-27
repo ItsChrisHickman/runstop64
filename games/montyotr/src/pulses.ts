@@ -39,13 +39,16 @@ export function pulseCode(e: PulseSpec, t: number): number {
   }
 }
 
+/** Whether a group is calmed by what Monty has done (`calmedBy` taken, or `calmedUntil` not taken): at its idle look, killing nothing. */
+const calmed = (g: Game, e: PulseSpec) => (e.calmedBy !== undefined && g.siCollected[e.calmedBy] !== 0) || (e.calmedUntil !== undefined && g.siCollected[e.calmedUntil] === 0);
+
 /** One frame (after Monty's move): each group a step on, drawn when its character changes, a death if it is live over him. */
 export function pulseUpdate(g: Game) {
   for (const p of g.pulses) {
     const e = g.data.pulses[p.index];
     if (!e) continue;
     p.t = (p.t + 1) % e.period;
-    const calm = e.calmedBy !== undefined && g.siCollected[e.calmedBy] !== 0;
+    const calm = calmed(g, e);
     const code = calm ? e.idle : pulseCode(e, p.t);
     if (code !== p.drawn) {
       p.drawn = code;
@@ -59,7 +62,7 @@ export function pulseUpdate(g: Game) {
 export function pulseLiveOver(g: Game, x: number, y: number, w: number, h: number): boolean {
   return g.pulses.some((p) => {
     const e = g.data.pulses[p.index];
-    if (!e || pulsePhase(e, p.t) !== 'live' || (e.calmedBy !== undefined && g.siCollected[e.calmedBy] !== 0)) return false;
+    if (!e || pulsePhase(e, p.t) !== 'live' || calmed(g, e)) return false;
     const cx = pixelX(e.col), cy = pixelY(e.row);
     return cx + e.cols * 8 > x && x + w > cx && cy + e.rows * 8 > y && y + h > cy;
   });

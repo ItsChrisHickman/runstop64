@@ -2,13 +2,15 @@
  * Siberia's route for the bot (docs/dosvidaniya-reset.md, "Siberia (the Trans-Siberian)"): the goals, in the order a player who takes everything plays them. Onto the dining
  * car's roof from Moscow's carriage, down its first hatch (the coin) to the pelmeni in its dead end, back up; along the roof to the sleeper, into the closet while the mountain
  * goes over, then up the pine before the next; the yeti's cave (the coin on the bridge, the ticket); back down the pine and west along the roof under the mountain to the
- * closet, whose floor the ticket has opened, down into the corridor and east through the gangway (the inspector has seen the ticket) into the tender; the coal, the tipple,
- * the mine's hairpin, the river's ice, China's road.
+ * closet, whose floor the ticket has opened, down into the corridor and east through the gangway (the inspector has seen the ticket) into the tender; along its corridor into the cab
+ * (the coin), back to the steam valve's wheel (the steam leaves the roof's way and blows across the inside's), back west under the sleeper, up the closet, east along the roof under the
+ * mountain (the vestibule) onto the tender's coal, across the cab's roof and up the tipple; the mine's hairpin, the river's ice, China's road.
  * As functions on the game; shared by the bot test and the pictures.
  */
-import { CLOSET, SIB, TAIGA } from '../src/siberia';
+import { CAB, CLOSET, SIB, STEAM, TAIGA } from '../src/siberia';
+import { STEAM_VALVE } from '../src/data';
 import { ROOM } from '../src/moscow';
-import { above, coin, into, item, leg, standY, stands, type Leg } from './route';
+import { above, coin, into, item, leg, settledOn, standY, stands, type Leg } from './route';
 
 export const SIBERIA_LEGS: readonly Leg[] = [
   leg('I to A: aboard, up the hatch ladder, along the roof into the dining car', into(SIB.gravy, 31, 7, ROOM.station)),
@@ -26,9 +28,14 @@ export const SIBERIA_LEGS: readonly Leg[] = [
   leg('B: west along the roof to the closet and down through its open floor into the corridor', { ...stands(SIB.sleeper, 17, 2, 29), aim: [{ room: SIB.sleeper, col: CLOSET.hatch, row: 15 }] }),
   leg('B: the coin in front of the inspector\'s gangway, past the provodnitsa', coin(SIB.sleeper, 27, 15)),
   leg('B to C: through the gangway the inspector has left', into(SIB.coal, 31, 16, SIB.sleeper)),
-  leg('C: up the coal, the coin on the crest under the stoker', coin(SIB.coal, 11, 10)),
-  leg('C: on up to the cab\'s roof', stands(SIB.coal, 11, 18, 26)),
-  leg('C to M: up the ladder to the tipple and east along it', into(SIB.mine, 31, 3, SIB.coal)),
+  leg('C: along the tender\'s corridor under the coal', stands(SIB.coal, 17, 3, 8)),
+  leg('C: on across the footplate into the cab, past the stoker to the coin by the gauge', coin(SIB.coal, 20, 13)),
+  leg('C: back to the corridor\'s end, a jump turns the wheel in its niche: the steam out of the bottom, across the way into the cab; the top quiet', { goal: (g) => g.roomId === SIB.coal && g.siCollected[STEAM_VALVE] !== 0 && g.montyCol - 4 <= CAB.front && settledOn(g), aim: [{ room: SIB.coal, col: STEAM.box.col0, row: STEAM.box.row0 }] }),
+  leg('C to B: back west through the gangway into the sleeper\'s corridor', into(SIB.sleeper, 0, 16, SIB.coal)),
+  leg('B: west past the provodnitsa and up the closet\'s ladder to the roof', { ...stands(SIB.sleeper, 9, 0, 31), aim: [{ room: SIB.sleeper, col: CLOSET.hatch, row: 11 }] }),
+  leg('B to C: east along the roof under the mountain (the vestibule its shelter) onto the tender\'s coal', into(SIB.coal, 31, 7, SIB.sleeper, (g) => above(CAB.roof + 1)(g) && !g.actionCounter)),
+  leg('C: over the coal\'s crest and across the quiet top of the pipe onto the cab\'s roof', stands(SIB.coal, CAB.roof, CAB.cabFrom, CAB.boiler - 1)),
+  leg('C to M: under the bat while it is up, down onto the boiler, up the tipple\'s ladder and east along its deck', into(SIB.mine, 31, 3, SIB.coal)),
   leg('M: east along the gantry and down the ladder to the dock', stands(SIB.mine, 18, 21, 28)),
   leg('M: up the timber ledges, the coin at the top', coin(SIB.mine, 23, 12)),
   leg('M: the cart west over the working, the coin on the west dock', coin(SIB.mine, 2, 16)),

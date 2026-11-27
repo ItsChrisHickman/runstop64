@@ -11,6 +11,7 @@ import { Game } from './game';
 import { describeSave, montyMap, noTravel, noteRoom, type MontyFound } from './map';
 import type { AssistId, MontyData, TuneVersion } from './montydata';
 import { keepPlusBegun, openMap, plusStart, plusWear, readPlusBegun } from './plus';
+import { tuneWanted } from './pursuers';
 import { CODEC, restore, snapshot, type MontySave } from './save';
 import { fineScroll, Title, topScore, type TitleScreen } from './title';
 import { TOUCH } from './touch';
@@ -56,6 +57,11 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
    */
   let tune: TuneVersion | null = null;
   /**
+   * The room's own version (`music.tuneFor`); while a pursuer is after Monty in sight, in a room whose own is a version of the song, the chase's (`music.chase`) plays instead. It cuts in at once, the song
+   * from its start, as he steps in (his arrival is the cause: a phrase later he could be gone, the train's roof chase lasting two seconds), and crosses back in step at the next phrase once he is escaped.
+   */
+  let roomTune: TuneVersion | null = null;
+  /**
    * Another .sid is playing: the game's routines are not in it, so its song and stop are the player's, and its effects are the
    * kit's (`music.overOther`: on the overlay SID, mixed over the tune, which plays on untouched), so the flight sounds like the
    * rest of the game.
@@ -71,9 +77,9 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
     song(n) { if (!foreign()) music.call(data.music.init, n); },
     stop() { if (foreign()) music.stop(); else music.call(data.music.stop); },
   };
-  function playVersion(version: TuneVersion | null) {
+  function playVersion(version: TuneVersion | null, cut = false) {
     if (version?.id === tune?.id) return;
-    const before = tune, cross = before !== null && 'make' in before && !foreign();
+    const before = tune, cross = !cut && before !== null && 'make' in before && !foreign();
     tune = version;
     loadTune(cross);
   }
@@ -135,7 +141,8 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       : null;
 
     g.onRoomLoaded = (game) => {
-      playVersion(data.music.tuneFor?.(game.roomId) ?? null);
+      roomTune = data.music.tuneFor?.(game.roomId) ?? null;
+      playVersion(roomTune);
       // (NEW GAME+: the region's hat on, as no hat is ever picked up in it)
       if (game.plus) plusWear(game);
       if (noteRoom(game, fe.found)) fe.keepFound();
@@ -237,7 +244,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
       resume(s, from) {
         const ending = !!g.completionActive;
         title.leave();
-        restore(g, s);
+        restore(g, s, Object.keys(fe.found.rooms).map(Number));
         if (ending) playOn();
         if (from === 'continue' && !won) { g.lives = 5; g.score = 0; }
         won = false;
@@ -259,6 +266,7 @@ export function runMonty(host: Host, data: MontyData, options: SessionOptions = 
         g.input = stick();
         g.inputFire = g.input.fire;
         g.frame(collisions);
+        if (data.music.chase) { const want = tuneWanted(g, roomTune); playVersion(want.tune, want.cut); }
         if (g.finished) {
           // the last life lost, or the ending played out (France): the title, and CONTINUE? over it (no
           // high-score table or name entry: the original's, gone); the save is kept either way

@@ -59,7 +59,7 @@ export interface MontyLook {
    * the kit's effect (`SidPlayer.sfx`) each of the game's own (by number) plays as while a room's tune is another .sid, whose
    * memory has none of the game's routines; one it lacks is silent there.
    */
-  music: { init: number; stop: number; playSfx: number; sidUrl: string; overOther: Readonly<Partial<Record<number, SfxName>>>; tuneFor?: (roomId: number) => TuneVersion | null; crossing?: (original: Uint8Array) => CrossingPlan };
+  music: { init: number; stop: number; playSfx: number; sidUrl: string; overOther: Readonly<Partial<Record<number, SfxName>>>; tuneFor?: (roomId: number) => TuneVersion | null; /** The version played while a pursuer is after Monty in sight (pursuers.ts `pursuerChasing`), in a room whose own is a version of the song: cut in at once, crossed back from (session.ts). */ chase?: TuneVersion; crossing?: (original: Uint8Array) => CrossingPlan };
 }
 
 /**
@@ -210,6 +210,8 @@ export interface PulseSpec {
   idle: number; warnCode: number; liveCode: number; spent: number;
   /** A special item that calms it (a tune settles the spitting llama): once Monty has taken item `calmedBy` the group stays at its idle look and kills nothing. */
   calmedBy?: number;
+  /** The other way round: it stays at its idle look and kills nothing until special item `calmedUntil` is taken (and again once it is untaken: a switch's find, levers.ts). */
+  calmedUntil?: number;
 }
 
 /**
@@ -427,6 +429,8 @@ export interface PursuerSpec {
   look?: { frames: readonly number[]; dx: number; dy: number; over?: { sprite: number; ptr: number; colour: number } };
   split?: { sprites: readonly [number, number, number, number]; pictures: readonly number[] };
   intro?: CameoMove;
+  /** His coming into sight (the name flashing red, the warp's sting) and his knock off (the name flashing green, the item's jingle) are announced (pursuers.ts): Do Svidaniya Monty's train roof, cargo ship and flight. */
+  announce?: true;
 }
 
 /**
@@ -435,6 +439,12 @@ export interface PursuerSpec {
  * pursuer takes special item `done` (what the room's effects open), and the lever is still from then on. Unarmed, the lever only rattles.
  */
 export interface LeverSpec { room: number; lever: { col: number; row: number }; booth: CellBox; key: number; armed: number; done: number }
+
+/**
+ * A switch (levers.ts; Siberia's steam valve): stepping into its box flips special item `find` (taken, untaken, taken...: a find no room shows, so a save keeps which way it is set), again only after stepping
+ * out; what it does is read from the find (a pulse's `calmedBy` and `calmedUntil`: the locomotive's steam blows from one outlet or the other). A room may have several boxes on one find (two handles of one valve).
+ */
+export interface SwitchSpec { room: number; box: CellBox; find: number }
 
 /** The sprite pointers (in the game's bank) of an icicle hanging, half grown, just growing back, and breaking. */
 export interface IcicleSprites { full: number; half: number; small: number; shards: number }
@@ -517,6 +527,16 @@ export interface MontyEnding {
  */
 export interface MontyParade extends Omit<ParadeStyle, 'gag'> {
   gag?: { name: string; types: readonly number[]; split: readonly Uint8Array[] };
+}
+
+/**
+ * A game's % complete and its passport (percent.ts, the pause screen's PASSPORT page): the bonus rooms (each one's challenge is done once every coin of the room is
+ * his: they are where it ends), and the stamp each region earns at 100% (by the region's name on the map: a 16 x 16 picture as an icon's 32 bytes, the four
+ * characters top left, top right, bottom left, bottom right, and the ink it is stamped in).
+ */
+export interface CompleteSpec {
+  bonus: readonly number[];
+  stamps: readonly { region: string; picture: Uint8Array; ink: number }[];
 }
 
 export interface MontyData extends RoomTables, MontyLook {
@@ -610,6 +630,8 @@ export interface MontyData extends RoomTables, MontyLook {
   /** Creatures that follow Monty's path (pursuers.ts) and levers that hold a room's crushers (levers.ts); none in Monty on the Run. */
   pursuers: readonly PursuerSpec[];
   levers: readonly LeverSpec[];
+  /** Switches that flip a find each time he steps into them (levers.ts); none in Monty on the Run. */
+  switches: readonly SwitchSpec[];
   /** Walk-ons that touch nothing (cameos.ts); none in Monty on the Run. */
   cameos: readonly CameoSpec[];
   iceSprites: IcicleSprites;
@@ -643,6 +665,8 @@ export interface MontyData extends RoomTables, MontyLook {
     | { screen: (g: TitleGame, sound: TitleSound) => TitleScreen; stripY: number };
   /** The reward for winning; null: the game has none yet. */
   ending: MontyEnding | null;
+  /** The % complete (percent.ts) and the passport's stamps; none in Monty on the Run. */
+  complete?: CompleteSpec;
 }
 
 /** A sector of a room: the index into the sector names, and the name. */

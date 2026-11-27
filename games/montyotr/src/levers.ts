@@ -1,6 +1,6 @@
 import type { Game } from './game';
 import * as Items from './items';
-import type { CellBox, LeverSpec } from './montydata';
+import type { CellBox, LeverSpec, SwitchSpec } from './montydata';
 import { pursuerAt, squashPursuer } from './pursuers';
 
 /**
@@ -9,6 +9,7 @@ import { pursuerAt, squashPursuer } from './pursuers';
  * head's warning (it shudders, `HELD_WARN` frames) and then drops it. It squashes the room's pursuer whenever it reaches him under it, as it would Monty: the sure way is to
  * stand under it first, so that he stands there too (he stands only where Monty stood), and pull as he does; a pull timed to a walker's arrival works too. Then the `done` item is taken, which the room's effects read (the bars lift). Monty under it is killed
  * by the crusher's own test.
+ * Switches (a game's `switches`: Siberia's steam valve) are the same pull without a head: stepping into one flips a find (`switchUpdate`).
  */
 
 /** Whether Monty, standing or not, overlaps a box of playfield cells (his two columns and two rows, a third column when he is between cells). */
@@ -38,8 +39,24 @@ export function shaftOver(g: Game, x2: number, y: number): number {
   return -1;
 }
 
-/** A room is loaded: he is not touching the lever (the latch is off). */
+/** A room is loaded: he is not touching the lever or a switch (the latch is off). */
 export function leverInit(g: Game) { g.leverLatch = false; }
+
+/**
+ * One frame (after Monty's move): the room's switches (a game's `switches`, none in a room with a lever: the two share the latch). Stepping into a box flips its find, with the item's sound; it flips again only
+ * after he has stepped out of every box of the room.
+ */
+export function switchUpdate(g: Game) {
+  if (g.actionCounter || g.freeze || leverOf(g)) return;
+  const mine: readonly SwitchSpec[] = g.data.switches.filter((s) => s.room === g.roomId);
+  if (mine.length === 0) return;
+  const at = mine.find((s) => touches(g, s.box));
+  if (at && !g.leverLatch) {
+    g.siCollected[at.find] = g.siCollected[at.find] ? 0 : 0x81;
+    g.sfx(g.data.sfx.item);
+  }
+  g.leverLatch = at !== undefined;
+}
 
 /** One frame (after Monty's move): the booth, the lever, and the head on the pursuer. */
 export function leverUpdate(g: Game) {

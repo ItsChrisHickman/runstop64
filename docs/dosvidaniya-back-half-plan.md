@@ -643,6 +643,18 @@ the hats...), he stands there as bare as he always is (he is a mole), then snaps
 (sunbathers in bikinis and trunks, umbrellas, volleyball) and settles on a towel beside a sunbather in a bikini. Fade out.
 Cartoon, in the game's style, nothing more. The room's name, the 100% one: **THE FULL MONTY** (Chris: everything, and the bare joke).
 
+**As built (lane-release, 2026-11-26).** The % complete is `games/montyotr/src/percent.ts` (the one owner; the game declares `complete` in its data): every room
+of the grid but the flight rooms (the parachute's drop and the plane's legs), every coin, snack and key item, each bonus room's challenge (done once all its coins
+are taken: OFF THE BEATEN PATH, DON'T ROCK THE BOAT, SHOOT FOR THE MOON, GONE WITH THE WIND, THE SEA CAVE; HEAVEN CAN WAIT is a nook, not a challenge) and each of
+Viktor's four chases, one part each (268 in all), rounded down so 100 only when all are done. The rooms visited and the play time are the game's own, kept in the
+save (`visited`, `time`; an older save takes the map's rooms visited); NEW GAME+ counts its own from nothing. Shown on the pause screen (DONE nn% in light green in
+the panel's empty spot, shimmering at 100%) and on THE END (COMPLETE and TIME). The passport is the pause screen's second page (Tab, or a tap on the heading:
+`passport.ts`), a stamp for each region (THE SKY too: its coins and the tail chase), inked at the region's 100%. THE FULL MONTY (`montyworld/src/full-monty.ts`)
+plays after the finale's dance at 100%, the finale before it untouched: a cut, Monty facing us in all six costumes stacked; they fly off; bare; the speedo, the
+glasses, a pose with a glint; he turns; a cut up the beach (near the camera a sunbather in trunks under his umbrella and a volleyball game, far up by the shore
+the bikini on her towel, every one at his size), he walks away from the camera up the beach between them and past them, lies back on the towel beside her;
+fade out, everything together; GAME OVER. The pause panel's and THE END's ROOMS count the rooms the % counts (percent.ts `roomsTally`). Tests: `montyworld/test/full-monty.ts`.
+
 ## 6. Questions for Chris
 
 Each has a recommendation; a yes to all lets the build start with Hawaii.

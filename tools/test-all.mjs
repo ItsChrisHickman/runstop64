@@ -22,7 +22,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, suite, test } from 'node:test';
 import { TESTS } from './tests.mjs';
-import { keyOf, recordTimings } from './timings.mjs';
+import { BUDGET_MB as SHARED_MB } from './mem-budget.mjs';
+import { keyOf, recordPeaks, recordTimings } from './timings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -49,22 +50,59 @@ if (flags.has('--list')) {
   process.exit(0);
 }
 
+/** The process groups of the tests running now: killed when the runner stops, so no test outlives it (each is a group of its own, below). */
+const live = new Set();
+const killAll = () => { for (const pid of live) try { process.kill(-pid, 'SIGKILL'); } catch { /* gone */ } };
+process.on('exit', killAll);
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => { killAll(); process.exit(130); });
+
 /** Runs a command to its end (killed if it takes longer than `limit` ms) and gives its exit code and output. */
-function run(cmd, limit) {
+function run(cmd, limit, env) {
   return new Promise((resolve) => {
     // `nice -n 15`: on the live server nothing here may compete with the sites.
-    const child = spawn('nice', ['-n', '15', ...cmd], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    // (a process group of its own, killed whole: a test is nice > tools/test.mjs > the test in its scope, and killing only the first left the
+    // test running past its limit, holding its memory: 2026-11-27, siberia-mechanisms.ts ran on to 829 s after its 600 s limit)
+    const child = spawn('nice', ['-n', '15', ...cmd], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ...env }, detached: true });
+    live.add(child.pid);
     const chunks = [];
     child.stdout.on('data', (c) => chunks.push(c));
     child.stderr.on('data', (c) => chunks.push(c));
     let timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, limit);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
+    }, limit);
     child.on('close', (code) => {
+      live.delete(child.pid);
       clearTimeout(timer);
       resolve({ code: timedOut ? null : code, timedOut, output: Buffer.concat(chunks).toString('utf8') });
     });
   });
 }
+
+/**
+ * Memory, not a count, decides what runs together (2026-11-27: two tests at a 2 GB heap each, and Claude Code, were more than claude.slice's
+ * 3.5 GB MemoryHigh, and the slice throttled to a standstill twice). Each test holds its cap (`memoryMB` in tests.mjs, else tools/test.mjs's
+ * default, TEST_MEMORY_MB) while it runs, the kernel kills it past that, and tests start only while the caps held add up to `TEST_BUDGET_MB`.
+ */
+const DEFAULT_MB = Math.max(256, Number(process.env.TEST_MEMORY_MB ?? 1400) || 1400);
+// (the runner's share is the one budget every run shares: tools/mem-budget.mjs; tools/test.mjs reserves there too, so agents' tests count)
+const BUDGET_MB = Math.max(DEFAULT_MB, Number(process.env.TEST_BUDGET_MB ?? SHARED_MB) || SHARED_MB);
+let held = 0;
+const waiting = [];
+async function hold(mb) {
+  const want = Math.min(mb, BUDGET_MB);
+  while (held + want > BUDGET_MB) await new Promise((r) => waiting.push(r));
+  held += want;
+  return () => { held -= want; waiting.splice(0).forEach((r) => r()); };
+}
+/** How often claude.slice has been throttled at its MemoryHigh (cgroup v2 memory.events `high`), or null off this box. */
+function sliceHigh() {
+  try { return Number(/^high (\d+)/m.exec(fs.readFileSync('/sys/fs/cgroup/claude.slice/memory.events', 'utf8'))?.[1]); } catch { return null; }
+}
+const highAtStart = sliceHigh();
+const peaks = [];
+let cached = 0;
 
 /** How many tests run at once (two by default: 4 cores shared with the sites and CaptureM360; three at once measured 1.7x slower each). */
 const JOBS = Math.max(1, Number(process.env.JOBS ?? 2) || 2);
@@ -80,9 +118,14 @@ for (const t of chosen) {
   test(name, t.todo ? { todo: t.todo } : {}, async () => {
     const cmd = t.cmd ?? [process.execPath, 'tools/test.mjs', t.file, ...(t.args ?? [])];
     const limit = t.limitSeconds ? t.limitSeconds * 1000 : (t.set === 'fast' ? 300_000 : 580_000);
+    const mb = t.memoryMB ?? DEFAULT_MB;
+    const release = await hold(mb);
     const started = performance.now();
-    const { code, timedOut, output } = await run(cmd, limit);
+    const { code, timedOut, output } = await run(cmd, limit, { TEST_MEMORY_MB: String(mb), TEST_CACHE: '1' }).finally(release);
+    if (output.includes('[test.mjs] cached pass')) cached++;
     const seconds = (performance.now() - started) / 1000;
+    const peak = Number(/\[test\.mjs\] peak (\d+) MB/.exec(output)?.[1] ?? NaN);
+    if (Number.isFinite(peak)) peaks.push({ key: keyOf(t), mb: peak });
     timings.push({ set: t.set, name: nameOf(t), key: keyOf(t), seconds, ok: code === 0 && !timedOut });
     if (verbose || code !== 0) process.stdout.write(output.split('\n').map((l) => `    | ${l}`).join('\n') + '\n');
     if (timedOut) throw new Error(`took more than ${limit / 1000}s and was stopped`);
@@ -93,6 +136,12 @@ for (const t of chosen) {
 
 after(() => {
   recordTimings(timings);
+  recordPeaks(peaks);
+  if (cached) console.log(`# ${cached} test(s) not run again: passed before on the same code and inputs (tools/test-cache.mjs; TEST_FRESH=1 runs them)`);
+  const high = sliceHigh();
+  if (high !== null && highAtStart !== null && high > highAtStart) console.log(`# claude.slice was throttled at its MemoryHigh ${high - highAtStart} times during this run: something outgrew its cap's arithmetic (TEST_BUDGET_MB)`);
+  const big = [...peaks].sort((a, b) => b.mb - a.mb).slice(0, 5).map((x) => `${x.key.split(' ')[0].split('/').pop()} ${x.mb} MB`).join('; ');
+  if (big) console.log(`# heaviest: ${big}`);
   for (const set of [...new Set(timings.map((x) => x.set))]) {
     const mine = timings.filter((x) => x.set === set);
     if (!mine.length) continue;

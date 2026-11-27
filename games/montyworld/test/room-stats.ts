@@ -10,6 +10,7 @@ import { ROOM_COUNT } from '../../montyotr/src/data';
 import type { MontyData } from '../../montyotr/src/montydata';
 import { regionAt } from '../../montyotr/src/regions';
 import { PLAY_COLS, PLAY_ROWS } from '../../shared/monty/screen';
+import { mechanismsOf, table } from './recipe';
 import { WORLD } from '../src/data';
 import { WORLD_REGIONS } from '../src/regions';
 
@@ -126,28 +127,6 @@ function findCreatures(data: MontyData, id: number, cls: Uint8Array): Creature[]
   return out;
 }
 
-/** The mechanisms the data names in a room, by kind. */
-function mechanismsOf(data: MontyData, id: number): string[] {
-  const named: readonly (readonly [string, readonly { room: number }[]])[] = [
-    ['lift', data.lifts], ['escalator', data.escalators], ['icicle', data.icicles], ['tunnel', data.tunnels], ['cracking ice', data.cracks],
-    ['timed strike', data.pulses], ['dragon', data.dragons], ['rising lava', data.risingLava], ['flight', data.flights], ['boulder', data.rollers],
-    ['vine', data.vines], ['cable car', data.cableCars], ['float', data.floats], ['skewer', data.skewers],
-  ];
-  const out = named.flatMap(([name, specs]) => specs.filter((s) => s.room === id).map(() => name));
-  if (data.swimRooms.includes(id)) out.push('swim');
-  if (data.risingCloud?.room === id) out.push('cloud');
-  if (data.jetpackRooms.includes(id)) out.push('jetpack');
-  if (data.c5?.rooms.includes(id)) out.push('c5 street');
-  if (data.flashingBases?.room === id) out.push('flashing bases');
-  if (data.bollard?.room === id) out.push('bollard');
-  return out;
-}
-
-function table(bytes: Uint8Array, stride: number, room: number): number {
-  let n = 0;
-  for (let i = 0; i + stride <= bytes.length; i += stride) if (bytes[i] === room) n++;
-  return n;
-}
 
 function measure(data: MontyData, id: number): Stats {
   const cls = classes(data, id);

@@ -9,6 +9,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { readJsonFile } from '../../test/data';
+import * as S from '../../../../packages/c64kit/src/schema';
 import { digest } from './states';
 
 /** The room ids a region file's tables give, by `TABLE.key` (from every region file: a file may name another's rooms). */
@@ -120,6 +122,24 @@ export function attribute(text: string, tables: ReadonlyMap<string, number>): At
   };
 }
 
+/** tools/code-digests.mjs's record: each source's raw hash and the hash of its code alone (comments, types and whitespace left out). */
+const CODE_DIGESTS = S.record(S.object({ raw: S.string, code: S.string }));
+let codeDigests: S.Infer<typeof CODE_DIGESTS> | null = null;
+
+/**
+ * What a source file counts as in a fingerprint: its code alone (tools/code-digests.mjs, written by tools/test.mjs before the test runs),
+ * so a change to a comment leaves kept states and proofs standing; its whole text where there is no code hash for exactly this text.
+ */
+export function codeOf(file: string, text: string): string {
+  if (codeDigests === null) {
+    const where = process.env.RUNSTOP64_CODE_DIGESTS;
+    const read = where && fs.existsSync(where) ? readJsonFile(where) : null;
+    codeDigests = CODE_DIGESTS(read) ? read : {};
+  }
+  const known = codeDigests[file];
+  return known && known.raw === digest(text) ? `code:${known.code}` : text;
+}
+
 /** What a game's states depend on, as fingerprints: each room's own text, and the rest (the engine, the game's other sources, its tables' layout). */
 export interface Prints {
   /** Everything that is not one room's: a change here changes every state. */
@@ -153,7 +173,7 @@ export function fingerprints(src: PrintSources): Prints {
   const read = regionTexts.map((t) => attribute(t, tables));
   const shown = src.presentation ?? [];
   const presentational = (f: string) => shown.some((p) => (p.endsWith('.ts') ? f === p : f.startsWith(p.endsWith('/') ? p : `${p}/`)));
-  const engine = sourceFiles(src.engine).filter((f) => !src.regions.includes(f) && !presentational(f)).map((f) => `${f}\n${fs.readFileSync(f, 'utf8')}`);
+  const engine = sourceFiles(src.engine).filter((f) => !src.regions.includes(f) && !presentational(f)).map((f) => `${f}\n${codeOf(f, fs.readFileSync(f, 'utf8'))}`);
   const rest = digest([...engine, ...read.map((a) => a.rest), src.also].join('\n\u0000'));
   const rooms = new Map<number, string>();
   return {

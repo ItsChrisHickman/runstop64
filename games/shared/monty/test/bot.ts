@@ -7,6 +7,7 @@
  * state, so a game and its copy go on the same way and a route found on a copy is the route that plays.
  */
 import { Game, type Input as Stick } from '../../../montyotr/src/game';
+import { freezeGame, reusable, thawGame, type FrozenGame } from '../../../montyotr/src/game-copy';
 import { copy, frame, NONE, settled, type State } from '../../../montyotr/test/play';
 import { prngEntropy } from '../screen';
 
@@ -75,7 +76,8 @@ export const keyOf = (g: Game): string => [
 /** A route: what was held, in order. */
 export type Route = readonly (readonly [name: string, frames: number])[];
 
-interface Node { s: State; up: Node | null; step: readonly [string, number]; depth: number }
+/** A state the search will go on from: the game frozen (FrozenGame: its bank shared with its parent's), not kept live. */
+interface Node { f: FrozenGame; col: number; up: Node | null; step: readonly [string, number]; depth: number }
 
 /** Whether the game has reached what is wanted. */
 export type Goal = (g: Game) => boolean;
@@ -143,28 +145,34 @@ export function search(start: State, goal: Goal, aim?: readonly Aim[], limit = 4
   const tell = (nodes: number) => { if (stats) { stats.nodes = nodes; stats.rooms = [...rooms].sort((a, b) => a - b); } };
   const seen = new Set([keyOf(start.g)]);
   const heap = new Heap();
-  heap.push(0, { s: start, up: null, step: ['', 0], depth: 0 });
+  heap.push(0, { f: freezeGame(copy(start.g)), col: start.col, up: null, step: ['', 0], depth: 0 });
   let nodes = 0;
+  /** Games done with (dead, already seen, or frozen with their bank shared), thawed into again. */
+  const spare: Game[] = [];
   if (stats) stats.exhausted = false;
   for (let node = heap.pop(); node && nodes < limit; node = heap.pop()) {
-    const acts = node.s.g.montyAction || node.s.g.falling || node.s.g.gameMode ? [REST] : ACTIONS;
-    for (const [name, stick] of acts) {
-      const t: State = { g: copy(node.s.g), col: node.s.col };
+    const first = thawGame(node.f, spare.pop());
+    const acts = first.montyAction || first.falling || first.gameMode ? [REST] : ACTIONS;
+    for (const [i, [name, stick]] of acts.entries()) {
+      const t: State = { g: i === 0 ? first : thawGame(node.f, spare.pop()), col: node.col };
       const r = hold(t, stick, STEP);
       nodes++;
       rooms.add(t.g.roomId);
-      if (r.dead) continue;
-      const here: Node = { s: t, up: node, step: [name, STEP], depth: node.depth + 1 };
+      if (r.dead) { spare.push(t.g); continue; }
       if (goal(t.g) && livesOn(t)) {
-        const route: [string, number][] = [];
-        for (let n: Node | null = here; n && n.up; n = n.up) route.unshift([n.step[0], n.step[1]]);
+        const route: [string, number][] = [[name, STEP]];
+        for (let n: Node | null = node; n && n.up; n = n.up) route.unshift([n.step[0], n.step[1]]);
         tell(nodes);
         return { route, end: t, nodes };
       }
       const k = keyOf(t.g);
-      if (seen.has(k)) continue;
+      if (seen.has(k)) { spare.push(t.g); continue; }
       seen.add(k);
-      heap.push(here.depth + (aim ? weight * toAim(t.g, aim) : 0), here);
+      const f = aim ? weight * toAim(t.g, aim) : 0;
+      // (t is not played again: frozen, its fields are the node's)
+      const frozen = freezeGame(t.g, node.f);
+      heap.push(node.depth + 1 + f, { f: frozen, col: t.col, up: node, step: [name, STEP], depth: node.depth + 1 });
+      if (reusable(t.g, frozen)) spare.push(t.g);
     }
   }
   if (stats) stats.exhausted = heap.size === 0 && nodes < limit;

@@ -1,5 +1,6 @@
-import type { CharAnim, CrackSpec, DragonSpec, FloatSpec, IcicleSpec, TunnelSpec } from '../../montyotr/src/montydata';
+import type { CellBox, CharAnim, CrackSpec, DragonSpec, FloatSpec, IcicleSpec, PulseSpec, SwitchSpec, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
+import { STEAM_FRAMES } from './art/siberia-decor';
 import { YETI_COLOUR } from './art/siberia-yeti';
 import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
 import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type SkySpec, TRAIN_PALETTE, trainAnims, underCar, windowAt } from './train';
@@ -13,12 +14,13 @@ import { type Placed, buffersAt, CAR, farWall, hatch, skyAnims, skyDecor, type S
  *   row 1   A  GRAVY TRAIN    B  SLEEPER HIT      C  COAL COMFORT     M  MINE ALL MINE
  *   row 2      .                 .                 T  OFF THE BEATEN PATH  G  BORDER LINE CASE      (T: a bonus room, added 2026-11-25)
  *
- * Playfield cells as in moscow.ts. The puzzle is the train. Its two lanes, the roof and the cars' insides, meet in the dining car (its hatches) but that car's inside is a
- * dead end: its east gangway is bolted. The roof ends at the tender's coal (B's east end), and the way on is the sleeper's corridor under it, seen from the roof
- * (cut away) with the inspector in its far gangway, under the luggage closet's bolted floor. The closet is where he shelters from the mountain on the way
- * to the pine, standing on that floor. The ticket is off the train, up the pine, in the yeti's cave. With it the provodnitsa unbolts the closet's floor and the
- * inspector steps aside: back along the roof under the mountain to the closet, down through its floor into the corridor, past the inspector, up the tender's coal
- * to the tipple, through the mine's hairpin (the gantry east, the cart west) and across the frozen Amur to China.
+ * Playfield cells as in moscow.ts. The puzzle is the train, its two lanes, the roof and the cars' insides. They meet in the dining car (its hatches) but that car's inside is a
+ * dead end: its east gangway is bolted. The sleeper's roof runs on east onto the tender's coal, where the locomotive's steam (STEAM) blows out of its pipe's top across the way to the
+ * cab; the wheel that sends it out of the bottom instead is seen below, on the inside, out of reach. The inside is the sleeper's corridor under the roof (cut away), the inspector in its
+ * far gangway, under the luggage closet's bolted floor, where he shelters from the mountain on the way to the pine. The ticket is off the train, up the pine, in the yeti's cave. With it
+ * the provodnitsa unbolts the closet's floor and the inspector steps aside: down the closet, along the corridor into the tender's and to the wheel. Turned, the steam blows across the
+ * inside's own way into the cab; the top is quiet, so the way on is back under the sleeper, up the closet, east along the roof under the mountain (the vestibule its shelter), over the
+ * coal and the cab's roof and up the tipple. So each lane holds half the answer. Then the mine's hairpin (the gantry east, the cart west) and across the frozen Amur to China.
  */
 
 // ---- the ids -----------------------------------------------------------------------------------------
@@ -62,7 +64,7 @@ const TUNNEL_STONE = 12, PORTAL_STONE = 15;
 const GRAVY_PALETTE = { ...TRAIN_PALETTE, E: ['carWall', 9], X: ['tunnelFace', PORTAL_STONE], M: ['tunnelBrick', TUNNEL_STONE] } as const satisfies Palette;
 
 /**
- * The sleeper's palette: the passenger car's with the floor's code given to the tender's coal (its bunker ends the roof), the floor drawn in the car's maroon side,
+ * The sleeper's palette: the passenger car's with the floor's code given to the tender's coal (kept, so the codes after it never move), the floor drawn in the car's maroon side,
  * and the pine's trunk the eighth. The tunnel's granite and rock keep their codes (5 and 7: the mountain's picture is drawn in them).
  */
 const SLEEPER_PALETTE = {
@@ -70,11 +72,11 @@ const SLEEPER_PALETTE = {
 } as const satisfies Palette;
 
 /**
- * The tender and the locomotive: the coal (the bunker at the front, the heap in steps, the wagon's floor under it), the cab's roof, its back plate and the
- * wagon's end in green, the boiler, the tipple's legs (a dark picture behind), the tipple's timber deck, its ladder and the hill's rock.
+ * The tender and the locomotive: the coal (the bunker over the tender's back, the heap in steps, the tender's floor), the tender's end and the cab's footplate in its maroon, the cab's roof,
+ * the boiler, the tipple's timber deck, the ladders, the hill's rock and the steam (the Pacific's vent's column: drawn by the pulses, `STEAM`).
  */
 const TENDER_PALETTE = {
-  D: ['roofDeck', 14], K: ['coal', 11], T: ['trainSide', 2], B: ['boilerPlate', 5], E: ['carWall', 9], W: ['timber', 8], R: ['ironLadder', 7], M: ['mineRock', 9],
+  D: ['roofDeck', 14], K: ['coal', 11], T: ['trainSide', 2], B: ['boilerPlate', 5], W: ['timber', 8], R: ['ironLadder', 7], M: ['mineRock', 9], S: ['pacSteam', 1],
 } as const satisfies Palette;
 const TENDER_BOGIES = [4, 12] as const;
 
@@ -109,9 +111,16 @@ function inspectors(g: Grid, room: number) {
  * stands under the bolted floor: one he could take hold of but not climb is a broken ladder, not a lock; coming back down the pine with the ticket he sees it run through.)
  */
 export const CLOSET = { hatch: 10, floor: 13, left: 8, right: 12 } as const;
-function closet(g: Grid) {
-  g.clear(CLOSET.hatch - 1, CAR.roof, CLOSET.hatch + 1, CLOSET.floor - 1).box(CLOSET.hatch, CAR.roof, CLOSET.hatch, CLOSET.floor - 1, 'R'); // (the well open under the eaves)
-  g.box(CLOSET.left, CAR.roof, CLOSET.left, CLOSET.floor, 'T').box(CLOSET.right, CAR.roof, CLOSET.right, CLOSET.floor, 'T').box(CLOSET.left, CLOSET.floor, CLOSET.right, CLOSET.floor, 'T');
+/**
+ * The vestibule at the sleeper's east end: a second ladder well like the closet (columns 24-26, walled at 23 and 27, floored at row 13), but its floor is never opened. It is the
+ * shelter on the way east along the roof to the tender's coal (Chris, 2026-11-26: the train as a path puzzle): from the closet, out as the mountain's tail goes by, to the vestibule
+ * before the next, and out again after it to the tender. The corridor runs on under it to the inspector's gangway.
+ */
+export const VESTIBULE = { hatch: 25, floor: 13, left: 23, right: 27 } as const;
+/** A ladder well down from the roof's hatch to a floor of its own, walled both sides: its walls rise through the roof's walkway, so a jump off the ladder cannot carry him under the walkway. */
+function well(g: Grid, w: { readonly hatch: number; readonly floor: number; readonly left: number; readonly right: number }) {
+  g.clear(w.hatch - 1, CAR.roof, w.hatch + 1, w.floor - 1).box(w.hatch, CAR.roof, w.hatch, w.floor - 1, 'R'); // (the well open under the eaves)
+  g.box(w.left, CAR.roof, w.left, w.floor, 'T').box(w.right, CAR.roof, w.right, w.floor, 'T').box(w.left, w.floor, w.right, w.floor, 'T');
 }
 /** The closet's bolted floor (playfield row, column): the two cells the ticket clears, and the ladder it puts through the floor's middle down to the corridor's floor, in the sleeper's code for the ladder. */
 export const TRAPDOOR = {
@@ -151,7 +160,7 @@ const MOUTH = { code: PORTAL, cols: MASS, top: 2, bottom: 8, step: 10, warn: 48,
  * next comes so soon after that he must go at once (going as the tail passes the closet, he is up the pine about 40 frames before the next arch reaches it;
  * siberia-mechanisms.ts measures both). Coming down the pine (the cycle starts afresh) he has time to run west along the roof, taking the coin over it with a jump.
  */
-export const SLEEPER_MOUTH = { rest: 28, offset: 24, step: 6 } as const;
+export const SLEEPER_MOUTH = { rest: 44, offset: 8, step: 6 } as const;
 export const TUNNELS: readonly TunnelSpec[] = [
   { room: SIB.gravy, from: 'right', rest: 130, offset: 40, ...MOUTH },
   { room: SIB.sleeper, from: 'right', ...MOUTH, ...SLEEPER_MOUTH },
@@ -165,11 +174,11 @@ export const TRAIN_ANIMS: readonly CharAnim[] = [
 
 /**
  * The night above each train room (train.ts, art/siberia-sky.ts): the moon, a few stars and the dark horizon (blue mountains over dark pines, no poles); smoke only at the tender,
- * where the chimney is. The spans keep clear of the room's tiles: the sleeper's banks and pine, the tender's bunker and tipple.
+ * where the chimney is. The spans keep clear of the room's tiles: the sleeper's banks and pine, the tender's coal, the steam and the tipple.
  */
 const SKY_GRAVY: SkySpec = { dark: true, spans: [[-2, 33]], horizon: [], moon: [25, 0], stars: [['star', 6, 0], ['starDim', 13, 1], ['star', 19, 0], ['starDim', 30, 1]] }; // (no horizon: the roof lane, where the mountain is dodged, has only the night behind it)
-const SKY_SLEEPER: SkySpec = { dark: true, spans: [[-2, 19], [22, 29]], moon: [9, 0], stars: [['star', 15, 1], ['starDim', 26, 0]] };
-const SKY_TENDER: SkySpec = { dark: true, spans: [[4, 15]], horizon: [], smoke: [[4, 15]], moon: [8, 0], stars: [['starDim', 12, 1]] };
+const SKY_SLEEPER: SkySpec = { dark: true, spans: [[-2, 19], [22, 33]], moon: [9, 0], stars: [['star', 15, 1], ['starDim', 26, 0]] };
+const SKY_TENDER: SkySpec = { dark: true, spans: [[4, 12]], horizon: [], smoke: [[4, 12]], moon: [8, 0], stars: [['starDim', 12, 1]] };
 
 // ---- the cave, the mine and the river ----------------------------------------------------------------------
 
@@ -281,6 +290,44 @@ export const MINE_LADDER = { room: SIB.mine, col: 26, gap: [25, 27], lip: 24 } a
  */
 export const MINER = { room: SIB.mine, col: 25, range: 34, seam: [29, 30], from: 128, to: 144 } as const;
 
+// ---- the locomotive's steam ---------------------------------------------------------------------------------
+
+/**
+ * The train's path puzzle ends in the locomotive (Chris, 2026-11-26: "there's really no puzzle to the train involving the paths"; the boiler room "was confusing and weird"). Its one idea is the
+ * steam: one pipe up the gap between the tender and the cab, and a valve that sends the steam out of its top or its bottom, never both, never neither. Out of the top (`high`: the find untaken, as
+ * the game starts) it blows up from the cab's roof, across the roof's lane where the tender's coal meets the cab, higher than any jump; out of the bottom (`low`: taken) it blows up from the
+ * footplate across the inside lane, the way from the tender's corridor into the cab. The wheel (`wheel`, `box`) is in a niche over the corridor's end, on the inside: a jump turns it.
+ * So the two lanes each have half the answer. The roof reaches the tender's coal from the sleeper's roof, but the steam stops it at the cab, and the wheel is seen below, out of reach (the
+ * coal is solid down to the corridor). The inside reaches the wheel (with the ticket), but turning it puts the steam across the inside's own way on (the obvious move fails, seen). So: the
+ * wheel turned from inside, back through the sleeper, up the closet, east along the roof under the mountain, over the coal and across the quiet top of the pipe to the cab's roof, the boiler
+ * and the tipple. Never a trap: the wheel is reached only from the inside's west side, which is the way back west whichever way it is set; the roof's east side (the cab's roof, the boiler,
+ * the tipple and the mine) is reached only while the top is quiet, and nothing there turns it back.
+ */
+const STEAM_BOX: CellBox = { col0: 10, row0: 12, col1: 11, row1: 13 };
+export const STEAM = {
+  high: { col: 13, row: 2, cols: 3, rows: 7 },
+  low: { col: 13, row: 12, cols: 3, rows: 5 },
+  wheel: [10, 12],
+  box: STEAM_BOX,
+} as const;
+/**
+ * The tender and the cab: the coal's top (row 9, a crest at row 7) is the roof's lane from the sleeper's roof; under it the corridor (rows 15-16), roofed by the tender's plate (row 14) and
+ * ending at its front plate (column 12) with the niche over it; the gap (13-15) where the pipe blows; the cab's roof (row 9, over the gap too) and the cab under it (16-23) with the stoker at
+ * its firebox; the boiler from 24 (its top at row 11); the tipple's deck at row 4 with its ladder at 28 down to the boiler's top.
+ */
+export const CAB = { front: 12, gapFrom: 13, cabFrom: 16, roof: 9, boiler: 24, boilerTop: 11, deck: 4, tippleLadder: 28 } as const;
+const STEAM_CODE = codeOf(TENDER_PALETTE, 'S');
+/** A blowing outlet: always deadly while it blows (a period of 8 frames, all of it live: nothing to time, only the valve), at rest nothing at all. */
+const blowing = (at: { col: number; row: number; cols: number; rows: number }): PulseSpec => ({
+  room: SIB.coal, ...at, period: 8, start: 0, warn: 0, live: 8, idle: 0, warnCode: STEAM_CODE, liveCode: STEAM_CODE, spent: 0,
+});
+/** The two outlets, keyed by the find the valve flips (data.ts gives it: untaken, the steam blows out of the top over the roof; taken, out of the bottom over the footplate). */
+export const steamPulses = (low: number): readonly PulseSpec[] => [{ ...blowing(STEAM.high), calmedBy: low }, { ...blowing(STEAM.low), calmedUntil: low }];
+/** The valve's wheel, a switch on that find. */
+export const steamSwitches = (low: number): readonly SwitchSpec[] => [{ room: SIB.coal, box: STEAM.box, find: low }];
+/** The steam billows (its character's two pictures in turn). */
+export const STEAM_ANIM: CharAnim = { kind: 'cycle', room: SIB.coal, chars: [STEAM_CODE], frames: STEAM_FRAMES, every: 3 };
+
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
 export const SIBERIA_ROOMS: readonly RoomSpec[] = [
@@ -296,7 +343,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     item: { name: 'pelmeni1', col: 3, row: 15, sprite: SIB_SPRITE.pelmeni },
     decor: [
       ...skyDecor(SKY_GRAVY), windowAt(4), ['carLamp', 10, 11], ['carLamp', 22, 11], ['diningTable', 15, 15], ['diningTable', 27, 15],
-      [{ text: 'RESTAURANT', colour: 7 }, 13, 10], ['roofVent', 5, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
+      ['roofVent', 5, 8], ['stovepipe', 19, 6], ['roofVent', 28, 8], ...CAR_FITTINGS,
     ],
     creatures: [
       { who: 'inspector', col: 5, row: 15, way: 'right', speed: 1, range: 96, colour: 10 },
@@ -304,8 +351,8 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // B SLEEPER HIT: the sleeper: the set piece and the puzzle. The roof again, ending at the tender's coal bunker (the roof's way on is shut); one hatch, into the luggage closet
-  // (it shelters him from one sweep; he stands on its bolted floor); the pine by the line at 20-21, rising from behind the car up to the yeti's cave. Below, cut away, the
+  // B SLEEPER HIT: the sleeper: the set piece and the puzzle. The roof again, running on east onto the tender's coal; two hatches, into the luggage closet (it shelters him from one
+  // sweep; he stands on its bolted floor) and the vestibule at the east end (the shelter on the way to the tender); the pine by the line at 20-21, rising from behind the car up to the yeti's cave. Below, cut away, the
   // corridor, shut at both ends (the dining car's gangway bolted, the inspector in the east one: he wants a ticket), the closet's bolted floor over it, the provodnitsa pacing
   // from the berth to the coin. With the ticket the closet's floor opens: the roof is crossed twice under the mountain, east to the pine and back west to the closet. A coin in
   // each lane: over the roof between the closet and the pine (a jump, on the run back west from the pine), and in front of the inspector below.
@@ -313,19 +360,19 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     id: SIB.sleeper, cell: [1, 5], sector: 10, palette: SLEEPER_PALETTE,
     shut: [['left', 15, 16, 'T']], // the dining car's bolted gangway
     paint(g) {
-      g.box(0, CAR.roof, 29, CAR.roof, 'D');
+      g.box(0, CAR.roof, 31, CAR.roof, 'D'); // the roof's walkway, on east onto the tender's coal
       farWall(g, 2, 29);
       g.box(2, CAR.roof + 1, 29, CAR.roof + 1, 'T'); // the car's eaves under the walkway, solid: nothing on the roof (off the pine's foot, off the closet's ladder) slips under it into the car
       g.box(0, 10, 1, 14, 'T').box(30, 10, 31, 14, 'T');
       g.box(0, CAR.floor, 31, CAR.floor, 'T');
-      g.box(30, 3, 31, CAR.roof, 'K'); // the tender's coal bunker, standing over the end of the roof
       inspectors(g, SIB.sleeper);
-      closet(g);
+      well(g, CLOSET);
+      well(g, VESTIBULE);
       g.box(PINE.cols[0], 0, PINE.cols[1], CAR.roof - 1, 'P'); // the pine's trunk up through the sky to the cave
     },
     coins: [[16, 5], [27, 15]],
     decor: [
-      ...skyDecor(SKY_SLEEPER), windowAt(2), windowAt(14), windowAt(23), ['bunk', 16, 15],
+      ...skyDecor(SKY_SLEEPER), windowAt(2), windowAt(13), windowAt(18), ['bunk', 16, 15],
       ['roofVent', 6, 8], ['roofVent', 15, 8], ...CAR_FITTINGS,
     ],
     creatures: [
@@ -335,36 +382,35 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // C COAL COMFORT: the tender and the locomotive. In from the sleeper's corridor through the gangway to the pocket under the bunker; the coal heaped in steps to its crest (the
-  // coin on it), over the trough where the tipple's chute comes down from the deck's west end, the stoker riding up and down it (a jump from the crest while he is up), up again
-  // to the cab's roof (a bat flitting along it to the ladder's foot); the ladder from the cab's roof up through the tipple's deck, and east along the deck into the mine. The
-  // boiler, the chimney's smoke and the big driving wheels beyond; the night behind the coal is plain black.
+  // C COAL COMFORT: the tender and the locomotive, where the train's two lanes meet the steam (STEAM). The roof's lane comes in from the sleeper's roof over the tender's coal (its crest a
+  // jump) to the gap where the pipe blows out of its top, higher than a jump; beyond, the cab's roof, the boiler's top and the tipple's ladder. The inside's lane comes in through the
+  // gangway (the inspector's, the ticket) along the tender's corridor under the coal to the valve's wheel in its niche (a jump turns it) and on, while the steam is up top, across the
+  // footplate into the cab, the stoker at the firebox and a coin by the gauge. Turned, the steam blows out of the bottom across that way: the roof's way is the one that is open now.
+  // The boiler, its chimney and the big driving wheels beyond; the night behind is plain black but for the moon and the smoke trailing back.
   room({
     id: SIB.coal, cell: [1, 6], sector: 11, palette: TENDER_PALETTE,
     shut: [['right', 17, 19, 'M']], // (the mine's rock beside it, under the line)
     paint(g) {
-      g.box(0, 3, 1, 9, 'K').box(2, 5, 2, 9, 'K').box(3, 7, 3, 9, 'K'); // the bunker, coal heaped high at the tender's front (the sleeper's roof ends against it)
-      g.box(0, 10, 1, 14, 'T'); // the wagon's end, its gangway below
+      g.box(0, CAB.roof, CAB.front - 1, 13, 'K').box(4, 7, 7, 8, 'K'); // the coal, heaped to a crest, solid down to the corridor's roof
+      g.box(0, 10, 1, 14, 'T').box(2, 14, CAB.front - 1, 14, 'T').box(CAB.front, CAB.roof, CAB.front, 14, 'T'); // the tender's end over its gangway, the corridor's roof and the front plate
       inspectors(g, SIB.coal);
-      g.box(0, CAR.floor, 18, CAR.floor, 'K'); // the wagon's floor, coal (the locomotive has none: its wheels stand under it)
-      g.box(6, 15, 7, 16, 'K').box(8, 13, 9, 16, 'K').box(10, 11, 12, 16, 'K'); // the coal in steps to the crest
-      g.box(13, 15, 15, 16, 'K').box(16, 13, 17, 16, 'K'); // down into the trough and up again
-      g.box(18, 11, 26, 11, 'D').box(19, 12, 25, 16, 'T'); // the cab's roof and its back plate
-      g.box(26, 12, 31, 16, 'B'); // the boiler
-      g.clear(21, 13, 22, 14).clear(21, 15, 22, 16).clear(24, 13, 25, 14); // the holes the window, the firebox door and the gauge show in
-      g.box(30, 5, 31, 11, 'M'); // the hillside the mine is in, beyond the smokebox
-      g.box(16, 5, 16, 12, 'E').box(29, 5, 29, 11, 'E'); // the tipple's legs (behind the line), standing on the coal and on the boiler
-      g.box(13, 5, 14, 14, 'E'); // the chute from the deck's west end down into the trough (behind him: the stoker rides it)
-      g.box(13, 4, 31, 4, 'W').clear(23, 4, 25, 4).box(24, 4, 24, 10, 'R'); // the tipple's deck over the chute, its gap and ladder
+      g.clear(STEAM.box.col0, STEAM.box.row0, STEAM.box.col1, 14); // the niche over the corridor's end, where the wheel is
+      g.box(0, CAR.floor, CAB.boiler - 1, CAR.floor, 'T'); // the tender's floor and the cab's footplate
+      g.box(CAB.gapFrom, CAB.roof, CAB.boiler - 1, CAB.roof, 'D'); // the cab's roof, reaching back over the gap to the tender
+      g.box(CAB.cabFrom, CAB.roof + 1, CAB.cabFrom, 14, 'T').box(CAB.boiler - 1, CAB.roof + 1, CAB.boiler - 1, 14, 'T'); // the cab's back and front, carrying its roof, its doorway and the firebox under them
+      g.box(CAB.boiler, CAB.boilerTop, 31, 16, 'B'); // the boiler (its top a step down from the cab's roof)
+      g.box(31, 5, 31, CAB.boilerTop - 1, 'M'); // the hillside the mine is in, beyond the smokebox
+      g.box(CAB.boiler, CAB.deck, 31, CAB.deck, 'W').clear(CAB.tippleLadder - 1, CAB.deck, CAB.tippleLadder + 1, CAB.deck).box(CAB.tippleLadder, CAB.deck, CAB.tippleLadder, CAB.boilerTop - 1, 'R'); // the tipple's deck, its gap and ladder
     },
-    coins: [[11, 10]],
+    coins: [[20, 13]],
     decor: [
-      ...skyDecor(SKY_TENDER), ['chimney', 27, 10], ['cabWindow', 21, 13], ['cabFire', 21, 15], ['cabGauge', 24, 13],
-      ...underCar(0, 30, TENDER_BOGIES), ['drivingWheel', 19, 17], ['drivingWheel', 23, 17], ['drivingWheel', 27, 17],
+      ...skyDecor(SKY_TENDER), ['valveWheel', STEAM.wheel[0], STEAM.wheel[1]], ['steamPipe', CAB.gapFrom, 10], ['cabGauge', 21, 10], ['cabFire', 22, 15], ['chimney', 29, 9],
+      ...Array.from({ length: CAB.boilerTop - CAB.deck - 1 }, (_, i): Placed => ['tippleLeg', CAB.boiler, CAB.deck + 1 + i]), // the tipple's leg, down behind the boiler (its east end is on the hill)
+      ...underCar(0, CAB.boiler - 1, TENDER_BOGIES), ['drivingWheel', 25, 17], ['drivingWheel', 28, 17],
     ],
     creatures: [
-      { who: 'miner', col: 13, row: 9, way: 'down', speed: 1, range: 24, colour: 7 }, // the stoker, riding the chute up and down over the trough: jump it from the crest when he is up
-      { who: 'bat', col: 18, row: 9, way: 'right', speed: 1, range: 32 }, // a bat flitting along the cab's roof to the ladder's foot
+      { who: 'miner', col: 18, row: 15, way: 'right', speed: 1, range: 24, colour: 7 }, // the stoker, to and from the firebox, clear of the cab's low doorway: over him to the coin and back
+      { who: 'bat', col: 19, row: 2, way: 'down', speed: 1, range: 40 }, // a bat dropping over the cab's roof and up again: under it while it is up (a bat along the roof would close it, nowhere to pass)
     ],
   }),
 

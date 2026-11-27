@@ -31,6 +31,7 @@ export function plusStart(data: MontyData, worn: number | null): MontySave {
     coins: Array.from({ length: data.coinTable.length / 3 }, () => 0), items, exitGrid: [...exitGrid.image], c5FallStage: C5_START.fallStage, c5: { ...C5_START },
     ...(worn === null ? {} : { worn }),
     plus: true,
+    visited: [], time: 0, // (its own count of the new game: percent.ts)
   };
 }
 

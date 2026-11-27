@@ -22,7 +22,7 @@ import { cableInit, cableSprites, cableUpdate, NO_CABLE, type CableRide } from '
 import { floatInit, floatUpdate, type FloatState } from './floats';
 import { skewerInit, skewerSprites, skewerUpdate, type SkewerState } from './skewers';
 import { pursuerDue, pursuerInit, pursuerSprites, pursuerUpdate, settlePendingFinds, type PursuerState } from './pursuers';
-import { leverInit, leverUpdate } from './levers';
+import { leverInit, leverUpdate, switchUpdate } from './levers';
 import { cameoDue, cameoInit, cameoSprites, cameoUpdate, creatureBlocks, type CameoState } from './cameos';
 import { icicleInit, icicleUpdate, type IcicleState } from './icicles';
 import { tunnelInit, tunnelUpdate, type TunnelState } from './tunnels';
@@ -239,7 +239,7 @@ export class Game implements MontyBody, MontyWorld {
   cable: CableRide = { ...NO_CABLE };
   floats: FloatState[] = [];
   skewers: SkewerState[] = [];
-  /** This room's pursuer (pursuers.ts) and whether he is touching its lever (levers.ts). */
+  /** This room's pursuer (pursuers.ts) and whether he is touching its lever or a switch (levers.ts). */
   pursuers: PursuerState[] = [];
   /** Escapes made in this room that count only once he leaves it alive (pursuers.ts `settlePendingFinds`). */
   pendingFinds: number[] = [];
@@ -259,6 +259,10 @@ export class Game implements MontyBody, MontyWorld {
   worn: number | null = null;
   /** This game is NEW GAME+ (plus.ts: begun after a win, the whole map open, every key item his): the pause screen says so; kept in the save. */
   plus = false;
+  /** The rooms he has been in this game (flags by room id; percent.ts counts them): kept in the save. */
+  visited = new Uint8Array(256);
+  /** The frames played this game, up to the finale, rooms loading left out (percent.ts `timeText`: THE END's finish time): kept in the save. */
+  playFrames = 0;
   /** The line in the name row, and for how long (our hints). */
   hint: HintState = noHint();
   c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
@@ -411,6 +415,8 @@ export class Game implements MontyBody, MontyWorld {
     this.leverLatch = false;
     this.worn = null;
     this.plus = false;
+    this.visited.fill(0);
+    this.playFrames = 0;
     this.hint = noHint();
     this.c5 = { active: 0, speed: 0, dir: 1, anim: 0, bounce: 0, fall: 0, fallStage: 0, rate: 1 };
     this.c5Arrival = { ...Mech.C5_START };
@@ -493,6 +499,7 @@ export class Game implements MontyBody, MontyWorld {
       if (key !== this.tallyShown) { this.villainDue = due; this.tallyShown = key; this.drawTally(); }
     }
     this.frameToggle ^= 1;
+    if (!this.freeze && !this.completionActive && !this.gameOverActive) this.playFrames++; // (not while a room loads: a save carried on from writes the same time back)
     this.processSprites(collisions);
     if (!this.freeze) {
       montyDraw(this);
@@ -516,6 +523,7 @@ export class Game implements MontyBody, MontyWorld {
       skewerUpdate(this);
       pursuerUpdate(this);
       leverUpdate(this);
+      switchUpdate(this);
       cameoUpdate(this);
       planeUpdate(this);
       boardUpdate(this);
@@ -601,6 +609,7 @@ export class Game implements MontyBody, MontyWorld {
     if (this.montyAction && this.savedY === 0xda && this.data.ropeHoldRooms?.includes(this.roomId) && this.onRopeHere()) { this.montyAction = 0; this.arcIdx = 0; this.inputFire = false; }
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
+    this.visited[this.roomId] = 1;
     this.onRoomLoaded(this);
   }
 
@@ -868,6 +877,11 @@ export class Game implements MontyBody, MontyWorld {
   private displaySectorName() {
     const { col, text } = sectorName(this.data, this.roomId);
     this.displayLine(col, text);
+  }
+
+  /** A line of our own in the name row, in the middle, as a room's name is drawn (a finale's scene named: THE FULL MONTY). */
+  showName(text: string) {
+    this.displayLine(Math.max(0, Math.floor((32 - text.length) / 2)), text);
   }
 
   private displayLine(col: number, text: string) {

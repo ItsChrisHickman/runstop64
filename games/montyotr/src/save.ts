@@ -3,6 +3,7 @@ import { isArray, isNumber, isRecord, readJson, S } from '../../shared/guards';
 import type { Game } from './game';
 import { wear } from './items';
 import { C5_START, c5Arrive, lastCellIndex } from './mechanisms';
+import { visitedList } from './percent';
 
 /**
  * Monty's save: what's needed to carry on from the start of a room (taken as
@@ -22,6 +23,10 @@ export const MontySave = S.object({
   worn: S.optional(S.number),
   /** A game of NEW GAME+ (plus.ts; saves from before it have none: a plain game). */
   plus: S.optional(S.literal(true)),
+  /** The rooms he has been in this game, by id (percent.ts; saves from before it have none: the map's rooms visited stand in, `restore`'s `seen`). */
+  visited: S.optional(S.numbers),
+  /** The frames played this game (THE END's finish time; saves from before it have none: from nothing). */
+  time: S.optional(S.number),
 });
 export type MontySave = S.Infer<typeof MontySave>;
 
@@ -34,11 +39,15 @@ export function snapshot(g: Game): MontySave {
     coins: [...g.coinCollected], items: [...g.siCollected], exitGrid: [...g.exitGrid], c5FallStage: g.c5Arrival.fallStage, c5: { ...g.c5Arrival },
     ...(g.worn === null ? {} : { worn: g.worn }),
     ...(g.plus ? { plus: true } : {}),
+    visited: visitedList(g.visited), time: g.playFrames,
   };
 }
 
-/** Start a game from a save (instead of a plain g.start()). */
-export function restore(g: Game, data: MontySave) {
+/**
+ * Start a game from a save (instead of a plain g.start()). `seen`: the rooms visited, for a save from before it kept its own (the map's: what had been
+ * found when it was made, near enough; a NEW GAME+ save always has its own, as its map is opened whole).
+ */
+export function restore(g: Game, data: MontySave, seen: Iterable<number> = []) {
   g.start();
   g.lives = Math.max(1, data.lives);
   g.score = data.score;
@@ -52,6 +61,8 @@ export function restore(g: Game, data: MontySave) {
   c5Arrive(g, data.c5 ?? { ...C5_START, fallStage: data.c5FallStage });
   wear(g, data.worn ?? null);
   g.plus = data.plus === true;
+  for (const id of data.visited ?? (g.plus ? [] : seen)) if (id >= 0 && id < g.visited.length) g.visited[id] = 1;
+  g.playFrames = data.time ?? 0;
   // Saved in one of runstop64's rooms, carried on with them switched off (ORIGINAL): they aren't
   // there, so Monty carries on from the start room, where a new game starts him (g.start's
   // place), with everything else the save has.

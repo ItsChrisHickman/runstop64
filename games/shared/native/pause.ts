@@ -67,10 +67,10 @@ export interface PauseMap<T, F> {
   /** What the map's marks mean (a coloured square and a word each); or, for marks that come and go, what they mean now (`page`: the page shown, for maps with pages that are not maps). */
   legend?: { colour: number; text: string }[] | ((ram: T, assist?: Readonly<Record<string, boolean>>, page?: number) => { colour: number; text: string }[]);
   /**
-   * A word about the game being played, in a colour of its own (Do Svidaniya Monty's NEW GAME+), or null: in the side panel's empty spot between the legend
-   * and the options, the letters alone.
+   * Words about the game being played, each in a colour of its own (Do Svidaniya Monty's % complete and NEW GAME+): in the side panel's empty spot between the
+   * legend and the options, the letters alone, a line each, the lines together in the middle of the spot.
    */
-  badge?(ram: T): { text: string; colour: number } | null;
+  badges?(ram: T, found: F): readonly { text: string; colour: number }[];
   /** Maps in pages (e.g. floors): the pages there are to show, and the one the player is on. */
   pages?(ram: T, found: F): { list: number[]; current: number };
   /**
@@ -197,11 +197,13 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
     s.fillRect(PANEL.x, y + 1, 6, 6, l.colour);
     font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
-  // (the badge: in the middle of the room the legend leaves above the options)
-  const badge = ui.list ? null : map.badge?.(ram) ?? null;
-  if (badge) {
-    const from = 26 + (info.length + legend.length) * 12, to = 166 - (options.length - 1) * 12;
-    font.draw(s, badge.text.slice(0, PANEL.chars), PANEL.x, Math.floor((from + to - 8) / 2), badge.colour);
+  // (the badges: in the middle of the room the legend leaves above the options, 12 apart as the panel's lines are, closer where the room is short)
+  const badges = ui.list ? [] : map.badges?.(ram, found) ?? [];
+  if (badges.length) {
+    const from = 26 + (info.length + legend.length) * 12, to = 166 - (options.length - 1) * 12 - 4;
+    const step = badges.length > 1 ? Math.max(9, Math.min(12, Math.floor((to - from - 8) / (badges.length - 1)))) : 12;
+    const top = Math.max(from, Math.floor((from + to - (badges.length - 1) * step - 8) / 2));
+    badges.forEach((b, i) => font.draw(s, b.text.slice(0, PANEL.chars), PANEL.x, top + i * step, b.colour));
   }
   options.forEach((line, i) => {
     const y = 166 - (options.length - 1 - i) * 12;

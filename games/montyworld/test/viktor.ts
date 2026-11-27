@@ -14,14 +14,14 @@
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
 import { shaftOver, underHead } from '../../montyotr/src/levers';
-import { encounterState } from '../../montyotr/src/pursuers';
+import { encounterState, pursuerChasing, tuneWanted } from '../../montyotr/src/pursuers';
 import { copy, frame, NONE, type State } from '../../montyotr/test/play';
 import type { Input as Stick } from '../../montyotr/src/game';
 import { check, finish } from '../../shared/test/check';
 import fs from 'node:fs';
 import { contactSheet, shot } from './shots-kit';
 import { must } from '../../shared/test/must';
-import { newGame, play } from '../../shared/monty/test/bot';
+import { ACTIONS, hold, newGame, play } from '../../shared/monty/test/bot';
 import { restore, snapshot } from '../../montyotr/src/save';
 import { search } from './search';
 import { WORLD } from '../src/data';
@@ -179,8 +179,8 @@ SCOPE.section([R.drum], 'SPY VERSUS MOLE', () => { for (const enhanced of [false
 // ---- the two escapes on the way: the train's roof, the cargo ship ------------------------------------------
 /** An escape: the room, where Monty comes in, where the bot is aimed, what the proof says, and the strip's name. */
 const ESCAPES = [
-  { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, behind him on the roof, is swept off it', strip: '4-train-escape' },
-  { room: PAC.ship, at: { col: 0, floor: 13 }, aim: { col: 27, row: 12 }, what: 'duck under the crane crate so that Viktor, following, is knocked overboard', strip: '5-ship-escape' },
+  { room: SIB.sleeper, at: { col: 0, floor: 9 }, aim: { col: CLOSET.hatch, row: 11 }, what: 'shelter in the closet as the mountain comes so that Viktor, behind him on the roof, is swept off it', strip: '4-train-escape', chaseStrip: '4-train-chase' },
+  { room: PAC.ship, at: { col: 0, floor: 13 }, aim: { col: 27, row: 12 }, what: 'duck under the crane crate so that Viktor, following, is knocked overboard', strip: '5-ship-escape', chaseStrip: '5-ship-chase' },
 ] as const;
 for (const esc of ESCAPES) SCOPE.section([esc.room], `the escape in room ${esc.room}`, () => {
   const chase = must(WORLD.pursuers.find((p) => p.room === esc.room), `Viktor in room ${esc.room}`);
@@ -208,7 +208,27 @@ for (const esc of ESCAPES) SCOPE.section([esc.room], `the escape in room ${esc.r
         for (let f = 0; r && f < 24; f++) { frame(r, NONE); if (f === 10 || f === 23) pics.push(shot(r.g)); }
         strips.set(esc.strip, pics);
       }
-      check(`${mode}, in ${delay} frames before he moves (room ${esc.room}): there is a way to ${esc.what} (${found ? found.nodes : 'no way'})`, !!end && gone(end.g) && !dead(end.g));
+      check(`${mode}, in ${delay} frames before he moves (room ${esc.room}): there is a way to ${esc.what} (${found ? found.nodes : 'no way'}), and the chase's tune is over`, !!end && gone(end.g) && !dead(end.g) && !pursuerChasing(end.g));
+      if (found) {
+        // the chase as played on that way, a frame at a time: he steps in at the door Monty came by (the music cutting to the chase), follows, and is knocked off (the name flashing green, after he is out of the picture too)
+        const r: State = { g: copy(s.g), col: s.col };
+        const n = 4 + chase.slot, room = WORLD.music.tuneFor?.(esc.room) ?? null;
+        let first = -1, firstCol = -1, f = 0, cut = false, green = -1, knockedAt = -1;
+        const pics: Uint8Array[] = [];
+        const look = () => {
+          f++;
+          const on = ((r.g.vic.enable >> n) & 1) === 1;
+          if (on && first < 0) { first = f; firstCol = ((((r.g.sx[n] ?? 0) - 0x0c) & 0xff) >> 2) - 4; cut = tuneWanted(r.g, room).cut; }
+          if (knockedAt < 0 && gone(r.g)) knockedAt = f;
+          if (knockedAt >= 0 && (r.g.col[24 * 40 + 12] ?? 0) === 5) green = f;
+          if (!enhanced && delay === 51 && out && first >= 0 && [0, 20, 45, 70].includes(f - first)) pics.push(shot(r.g));
+        };
+        for (const [name, frames] of found.route) { const stick = ACTIONS.find(([a]) => a === name)?.[1] ?? NONE; for (let i = 0; i < frames; i++) { hold(r, stick, 1); look(); } }
+        for (let i = 0; i < 120; i++) { hold(r, NONE, 1); look(); }
+        if (pics.length) strips.set(esc.chaseStrip, pics);
+        check(`${mode}, ${delay} frames: on that way he steps in at the edge Monty came by (frame ${first}, col ${firstCol}) and the tune cuts to the chase (${cut}); knocked off at frame ${knockedAt}, the name flashes green till ${green}, and he is gone from the room's list`,
+          first >= 0 && firstCol <= esc.at.col + 2 && cut && green > knockedAt + 40 && r.g.pursuers.length === 0 && !tuneWanted(r.g, room).cut);
+      }
       if (end) {
         // knocked off, then a death in the room (the room again from itself): the escape is not taken, and he chases again
         const died = copy(end.g);
@@ -224,6 +244,55 @@ for (const esc of ESCAPES) SCOPE.section([esc.room], `the escape in room ${esc.r
         check(`${mode}: escaped, he is not in room ${esc.room} again (through a save)`, again.g.pursuers.length === 0 && encounterState(again.g).escaped[WORLD.pursuers.indexOf(chase)] === true);
       }
     }
+  }
+});
+
+// ---- the chases felt (Chris, 2026-11-27: "I didn't fully feel the sense that he was pursuing me") --------------------------------
+/**
+ * On the train's roof and the cargo ship his coming is a seen cause: he steps in at the edge Monty came in by, a moment behind him, as the room's name flashes and the sting plays, and the tune turns to the
+ * chase (`pursuerChasing`, which the session plays `music.chase` for); the same again after every death in the room (three in a row), never a silent skip. Monty is kept from dying of anything but the
+ * restarts here (the room's creatures and the mountain are the escapes' tests above, not this one): he waits where he is put, past the box that wakes Viktor, and is never caught.
+ */
+/** Put Monty at a place in the room he is in, as if he had walked there (the room not loaded again, so its cameos keep their state). */
+const placeAt = (g: Game, p: { col: number; floor: number }) => { g.x2 = 0x0c + (p.col + 4) * 4; g.y = standY(p.floor); };
+const ARRIVALS = [
+  { room: SIB.sleeper, at: { col: 0, floor: 9 }, wake: { col: 5, floor: 9 }, wait: { col: CLOSET.hatch, floor: CLOSET.floor }, strip: '7-train-arrival' }, // (up on the roof wakes him; he waits in the closet)
+  { room: PAC.ship, at: { col: 0, floor: 13 }, wake: { col: 14, floor: 9 }, wait: { col: 14, floor: 9 }, strip: '8-ship-arrival' }, // (off the landing wakes him; he waits on the deck)
+] as const;
+for (const arr of ARRIVALS) SCOPE.section([arr.room], `the chase's arrival in room ${arr.room}`, () => {
+  const chase = must(WORLD.pursuers.find((p) => p.room === arr.room), `Viktor in room ${arr.room}`);
+  const n = 4 + chase.slot;
+  for (const enhanced of [false, true]) {
+    const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
+    const s = newGame(WORLD, enhanced);
+    let stings = 0;
+    const sound = s.g.sound;
+    s.g.sound = { ...sound, sfx: (id, only) => { if (id === WORLD.sfx.warp) stings++; sound.sfx(id, only); } };
+    enterRoom(s.g, arr.room, 0x0c + (arr.at.col + 4) * 4, standY(arr.at.floor));
+    const goes: string[] = [];
+    let fair = true;
+    for (let go = 0; go < 4; go++) {
+      if (go > 0) { s.g.respawn(true); for (let f = 0; f < 200 && (f === 0 || s.g.freeze || s.g.script); f++) frame(s, NONE); } // (a death in the room: it starts again as he came in)
+      else for (let f = 0; f < 200 && (s.g.freeze || s.g.script); f++) frame(s, NONE);
+      const was = stings;
+      s.g.graceActive = () => true;
+      for (let f = 0; f < 8; f++) frame(s, NONE);
+      for (let f = 0; f < 4; f++) { placeAt(s.g, arr.wake); frame(s, NONE); }
+      let firstAt = -1, firstCol = -1, chasing = false;
+      const inks = new Set<number>();
+      for (let f = 0; f < chase.delay + 60 && s.g.roomId === arr.room; f++) {
+        placeAt(s.g, arr.wait);
+        frame(s, NONE);
+        const on = ((s.g.vic.enable >> n) & 1) === 1;
+        if (on && firstAt < 0) { firstAt = f; firstCol = ((((s.g.sx[n] ?? 0) - 0x0c) & 0xff) >> 2) - 4; }
+        if (firstAt >= 0) { inks.add(s.g.col[24 * 40 + 12] ?? 0); if (tuneWanted(s.g, WORLD.music.tuneFor?.(arr.room) ?? null).cut) chasing = true; }
+        if (!enhanced && go === 0 && firstAt >= 0 && [0, 12, 30].includes(f - firstAt)) snap(arr.strip, s.g);
+      }
+      const ok = firstAt >= 0 && firstCol <= arr.at.col + 2 && inks.has(2) && chasing && stings > was && !dead(s.g);
+      if (!ok) fair = false;
+      goes.push(`${go === 0 ? 'in' : `death ${go}`}: seen at frame ${firstAt}, col ${firstCol}, name inks ${[...inks].join('/')}, chase ${chasing}, sting ${stings > was}`);
+    }
+    check(`${mode}: in room ${arr.room} Viktor steps in at the edge Monty came by a moment behind him, the name flashing, the sting and the chase's tune, and again after each of three deaths (${goes.join('; ')})`, fair);
   }
 });
 
@@ -245,8 +314,6 @@ const apart = (g: Game, c: CameoSpec) => {
   const vc = ((((g.sx[c.sprite] ?? 0) - 0x0c) & 0xff) >> 2) - 4, vr = ((((g.sy[c.sprite] ?? 0) - 0x32) & 0xff) >> 3) - 3;
   return Math.max(Math.abs(vc - (g.montyCol - 4)), Math.abs(vr - (g.montyRow - 3)));
 };
-/** Put Monty at a place in the room he is in, as if he had walked there (the room not loaded again, so its cameos keep their state). */
-const placeAt = (g: Game, p: { col: number; floor: number }) => { g.x2 = 0x0c + (p.col + 4) * 4; g.y = standY(p.floor); };
 for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
   WORLD.cameos.filter((c) => c !== TENGU).forEach((c, i) => { // (Viktor's: the tengu is japan-mechanisms')

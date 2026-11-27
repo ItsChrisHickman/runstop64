@@ -23,7 +23,7 @@ import * as S from '../../../../packages/c64kit/src/schema';
 import type { State } from '../../../montyotr/test/play';
 import { keyOf, livesOn, play, search as bfs, useRandomOf, type Aim, type Goal, type Route, type SearchStats } from './bot';
 import { parseRoute, showRoute } from './legs';
-import type { Prints } from './attribute';
+import { codeOf, type Prints } from './attribute';
 import { digest, statePrint } from './states';
 import { ROOMS_ENV } from './scope';
 
@@ -115,7 +115,7 @@ export function proofsIn(dir: string, sources: ProofSources): typeof bfs {
   const commonPrint = () => {
     if (!common) {
       const prints = sources.prints();
-      const code = digest(testSources(sources.testFile(name)).map((f) => `${f}\n${fs.readFileSync(f, 'utf8')}`).join('\n\u0000'));
+      const code = digest(testSources(sources.testFile(name)).map((f) => `${f}\n${codeOf(f, fs.readFileSync(f, 'utf8'))}`).join('\n\u0000'));
       common = { prints, code };
     }
     return common;
