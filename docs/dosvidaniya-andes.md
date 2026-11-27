@@ -258,3 +258,6 @@ Chris loved the parachute drop, the llamas and VINE AND DANDY, and found the res
   pass under, two crossing whose gap opens and shuts), never a short shuttle that just has to be hopped. Here: the cliff
   trail's hazard from the place (the plank gap of the real bridge, rockfall, a condor's swoop) with the walker's patrol
   long enough to time.
+- **THE CANOPY:** "does not have enough enemies, and there's not a lot to do in the room even though it's designed
+  amazingly for there to be something interesting." Keep the layout; creatures through the canopy's levels (monkeys on the
+  branches, a snake down a liana, a harpy eagle's swoop across the gaps), the lianas' swings timed against them.
