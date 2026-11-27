@@ -286,3 +286,9 @@ Room ids stay; new rooms are appended after Rio's (78-80); coin and item counts 
   "Hawaii level design is pretty cool. Enemy placement is terrible." Keep Hawaii's layouts; the pass re-places its creatures
   (on the way, crossing the levels he climbs, mixed speeds, three to a room) and adds the falls' own hazard (the falls'
   spray and the slippery rocks at the two crossings, a creature diving through the falls).
+- **COFFEE BREAK:** "where on Earth is the challenge?" (the full pass: the coffee farm's terraces as a climb with creatures
+  crossing them, the pickers' sacks, a mechanism of the farm).
+- **MAUNA LOA:** "pretty good, but I don't know why there are two different lava flows. It seems really weird, and the lava
+  flow on the right doesn't really seem to have any purpose. Why would I go down there?" One lava, the rising one, as the
+  room's idea; the right-hand flow goes, or becomes the reason to go down (the moon rock or a coin at its foot, reached on
+  the lava's timing). Nothing in a room without a reason to go to it.
