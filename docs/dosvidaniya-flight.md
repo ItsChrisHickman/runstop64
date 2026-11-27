@@ -123,3 +123,11 @@ The sky is black, as every room in this game is. The bands are dim blue, so the 
 - Renders: each leg and the HUD (`flight-shots.ts`).
 - `music-sky.ts`: the theme into the sky from its start, on through a death, Hubbard's Andes version clean after it, from a save in the sky.
 - `pacific-mechanisms.ts` (Hilo): the parachute on the shelf past the rooster, the shelf only up the rope, the biplane with and without it.
+
+## Chris's playtest notes (2026-11-26)
+
+- **STORMY WEATHER:** "cool, but there's only one giant wave. There should be more waves that move faster. It needs to be a
+  harder level." Several waves, faster, staggered, so the flight between them is a timing.
+- **ON HIS TAIL:** "weird because Viktor appears out of nowhere, and you can die just by being in the wrong spot when he
+  appears." Viktor's plane comes in from behind, seen before it can hit (a warning: its engine's drone, its shadow, its
+  nose at the edge for a moment), never popping up on top of Monty; no death by luck on his arrival.
