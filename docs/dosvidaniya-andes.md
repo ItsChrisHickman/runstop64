@@ -242,3 +242,12 @@ Chris loved the parachute drop, the llamas and VINE AND DANDY, and found the res
 - **Signposts**: PERU: THE ANDES and a Peruvian flag at the landing; THE AMAZON: AMAZONAS on the riverboat's jetty.
 - **Engine, as data** (Monty on the Run's value leaves them empty and its trace and title tests pass): `PulseSpec.calmedBy` (a find calms a group), `RollerSpec.spread` (pictures by progress along the path), `MapRegion.except` (a cell another region owns: the hold in the Andes' columns). The bot's state key counts every roller's own period (the leaping fish and the rockfall have periods of their own).
 - **Tests**: `andes.ts` (the bot's legs, recorded routes), `andes-mechanisms.ts` (the new set pieces, the gates, the joins, and "fair from every start": the crossings of the river, the estuary, the geysers, the herd's lane and the gorge searched from five start times), `andes-layout.ts`, `sprites-front.ts`, `creature-contrast.ts` (boulders and fish too).
+
+## Chris's playtest notes (2026-11-26)
+
+- **The parachute drop:** "still extremely short and non-memorable. All the mechanics are great but the level design is
+  terrible." (Earlier: "I wanted that longer -- it's a neat mechanic but the actual implementation was lacking.") A longer
+  drop (more rooms down the mountain: five or six, where the grid allows) designed as a course: gaps between crags to
+  steer through, condors and updrafts crossing on timings, a narrow chimney, a choice of two lines down with a coin on the
+  harder one, landmarks of the descent (the glacier, the cloud layer, the first terraces) so each room is a place, and a
+  landing that is a moment.
