@@ -132,12 +132,12 @@ const ARMS_COINS: readonly Cell[] = [[3, 13], [28, 3]];
 /**
  * The favela on the hill, a switchback down (the way through Chris liked, the look of the room before the reset: 44ea872): in high on the red tiled roofs (floor 8) over a storey of colourful house fronts, east over the
  * light well (cols 11-15, a lower roof on posts at floor 10, the football bouncing up out of it: a jump) onto the next roofs, off their east end down the lane between the houses where the kite dips (to floor 14), back west
- * along the alley under the houses on their stilts (posts on black: the green hill that filled every gap behind made the room "VERY busy", Chris 2026-11-27; a glimpse of it is left past the tall house, beside the way out) past the macaw to the ladder's hole (col 4), down to the lane (18) and east past the houses of the lane, out low into Lapa.
- * The tall blue house at the east with the church on top closes the lane above the alley. Washing on lines between the roofs' poles; a satellite dish; the sky over all. The snack is in the pocket west of the ladder's
+ * along the alley under the houses on their stilts (posts on black: the green hill that filled every gap behind made the room "VERY busy", Chris 2026-11-27; the lane runs out east under the tall house on black too, open, so nothing reads as a hedge across the way out) past the macaw to the ladder's hole (col 4), down to the lane (18) and east past the houses of the lane, out low into Lapa.
+ * The tall blue house at the east with the church on top (up to the room's top, against Lapa's townhouse wall beyond) closes the roofs and the alley: the roofs read as ending at the church, the way on is down. Washing on lines between the roofs' poles; a satellite dish; the sky over all. The snack is in the pocket west of the ladder's
  * hole, the coin in the macaw's alley.
  */
 const HILL = rows([
-    '................................', // 0
+    '................................', // 0 (the church on the tall house reaches the room's top, cross and all, meeting Lapa's townhouse wall: the roofs end at it)
     '................................', // 1
     '................................', // 2
     '................................', // 3
@@ -153,8 +153,8 @@ const HILL = rows([
     'F............................FFF', // 13
     'SSS.L.SSSSSSSSSSSSSSSSSSSSSSSFFF', // 14
     'FF..L........................FFF', // 15
-    'FF..L........................KKK', // 16
-    'FF..L........................KKK', // 17
+    'FF..L...........................', // 16
+    'FF..L...........................', // 17
     'SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', // 18
     'SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS', // 19
 ]);
@@ -182,10 +182,10 @@ const hillSky = (): Placed[] => [
  * rolling west along it. The churrascaria's red brick building stands at the west edge, its ladder (col 5) up from the track's west part into its floor.
  */
 const LAPA = rows([
-    '.BBB.L..........................', // 0 (the townhouse's parapet stands back from the picture's edge: open at the top, as the favela's sky beyond it is)
-    '.BBB.L..........................', // 1
-    '.BBB.L..........................', // 2
-    '.BBB.L..........................', // 3
+    'BBBB.L..........................', // 0 (the townhouse's wall out to the picture's edge, meeting the favela's tall house: no slot between them)
+    'BBBB.L..........................', // 1
+    'BBBB.L..........................', // 2
+    'BBBB.L..........................', // 3
     'BBBB.L..........................', // 4
     'BBBB.L..........................', // 5
     'BBBB.L..........................', // 6
@@ -312,7 +312,7 @@ const FLOAT_COINS: readonly Cell[] = [[14, 12], [3, 13]];
 const FLOAT_CRANK: Cell = [26, 16];
 
 // ---- D SPY VERSUS MOLE (the Sambadrome) --------------------------------------------------------------------
-/** The showdown: in high on the stand's ledge (8) from FLOAT YOUR BOAT's grandstand, over the drum riser where the drummer beats (he stands on it at the bottom of each bounce); the rope (col 13) down to the avenue (18), under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): a walker is out from under the head before it lands, so Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
+/** The showdown: in high on the stand's ledge (8) from FLOAT YOUR BOAT's grandstand, over the bateria's empty drum riser (a hop); the rope (col 13) down to the avenue (18) where the drummer marches across its foot, under the float's held head (cols 15-20) to its lever (col 23), the ladder (col 25) up to the control booth (4, the crank's socket), west along the lighting gantry past the dancer to the headdress at its west end (taken with the agent already on his trail) and down the rope again; then the puzzle (levers.ts): a walker is out from under the head before it lands, so Monty stands under it himself, goes to the lever, and pulls as Viktor, walking his path, stops there too. The booth stands on its column (col 29) over the bars (cols 28-29); they lift and the avenue runs on east to the beach. The float hangs from the gantry by two chains. */
 const DRUM = rows([
     '................................', // 0
     '...........................SSSS.', // 1
@@ -474,8 +474,8 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     coins: LAPA_COINS,
     decor: [...arches(), ['rioTram', TRAM_HOME[0], TRAM_HOME[1]]],
     creatures: [
-      // the street: the capoeirista cartwheels its length quick (never at the way in from the favela), the bat drops across it under the arches on a slower beat, and the stone rolls along it on its own clock
-      { who: 'capoeirista', col: 26, row: 16, way: 'left', speed: 2, range: 80 }, { who: 'rioBat', col: 20, row: 9, way: 'down', speed: 1, range: 56 },
+      // the street: the capoeirista cartwheels its length fast (never at the way in from the favela), the bat drops across it under the arches on a slower beat, and the stone rolls along it on its own clock
+      { who: 'capoeirista', col: 26, row: 16, way: 'left', speed: 3, range: 53 }, { who: 'rioBat', col: 20, row: 9, way: 'down', speed: 1, range: 56 },
       // the track's east end, where the steps come up from the carnival: a vulture drops over the way to the tram's stop (wait for it to rise, then walk on to board)
       { who: 'vulture', col: 24, row: 1, way: 'down', speed: 1, range: 40, colour: 12 },
     ],
@@ -488,10 +488,11 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     item: { name: 'skewer1', col: ARMS_SNACK[0], row: ARMS_SNACK[1], sprite: RIO_SPRITE.skewer },
     item2: { name: 'guarana', col: ARMS_GUARANA[0], row: ARMS_GUARANA[1], sprite: RIO_SPRITE.guarana },
     creatures: [
-      // the vulture dives across the east arm by the guarana, quick; the marmoset scampers the forest floor from past the liana's foot under both ladders and back (follow him east and climb the Redeemer's
-      // ladder before he turns, or jump him on the open floor: the ladders are where to wait). The west arm is free: its snack is a climb, not a hop over a marmoset on a six-cell arm (Chris, 2026-11-27:
-      // "almost impossible to jump over the rat at the top left"). Two creatures: Viktor's cameo has the third slot (viktor.ts) and sprite 7 is the costume's.
-      { who: 'vulture', col: 23, row: 0, way: 'down', speed: 2, range: 48 }, { who: 'marmoset', col: 11, row: 12, way: 'right', speed: 2, range: 52, colour: 7 },
+      // the vulture dives across the east arm by the guarana and on down to the forest floor (slow and long); the marmoset darts the open floor east of the chapel, fast, from the Redeemer's ladder's foot
+      // to the slope's wall and back: wait in the chapel's mouth (he never comes into it: it is two rows high, too low to jump him in) for him to dart east, step out and climb before he is back, the
+      // vulture's dive crossing his floor on its own period. The west arm is free: its snack is a climb, not a hop over a marmoset on a six-cell arm (Chris, 2026-11-27: "almost impossible to jump over the
+      // rat at the top left"). Two creatures: Viktor's cameo has the third slot (viktor.ts) and sprite 7 is the costume's.
+      { who: 'vulture', col: 23, row: 0, way: 'down', speed: 1, range: 96 }, { who: 'marmoset', col: 20, row: 12, way: 'right', speed: 3, range: 16, colour: 7 },
     ],
   }),
 
@@ -505,10 +506,11 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...hillHouses(), ...hillPosts(), ...hillWashing(),
     ],
     creatures: [
-      // the football bounces up out of the light well across the jump over it, quick; the kite dips down the lane between the roofs to the alley (the drop, timed); the macaw drops quick across the alley over
-      // its coin (walk under as it rises). Three creatures (sprite 7 is the costume's); the lane under the alley is three rows high, too low to jump anything in it, so nothing walks there.
-      { who: 'football', col: 12, row: 4, way: 'down', speed: 2, range: 20 }, { who: 'rioKite', col: 27, row: 1, way: 'down', speed: 2, range: 40 },
-      { who: 'macaw', col: 19, row: 9, way: 'down', speed: 2, range: 16 },
+      // three speeds on three timings, one after the other down the switchback: the football bounces up out of the light well across the jump over it, fast; past the well the macaw dives slow and long from
+      // the sky onto the east roofs (run under while it is high: the jump's landing and the dive read together); the kite dips down the lane between the roofs to the alley (the drop, timed). Three creatures
+      // (sprite 7 is the costume's); the alley and the lane under it are too low for a creature to be passed fairly, so the coin in the alley is the drop's reward.
+      { who: 'football', col: 12, row: 4, way: 'down', speed: 3, range: 13 }, { who: 'macaw', col: 19, row: 0, way: 'down', speed: 1, range: 42 },
+      { who: 'rioKite', col: 27, row: 1, way: 'down', speed: 2, range: 40 },
     ],
   }),
 
@@ -535,10 +537,10 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
       ...[-4, 0, 4, 8, 12, 16, 20, 24, 28, 32].map((col): Placed => ['bunting', col, 0]) /* (out past the playfield to the screen's edges, in step) */, ['rioBalloons', 5, 3], ['rioBalloons', 1, 1],
     ],
     creatures: [
-      // the two dancers cross the street under the Selaron steps on two periods, the passista quick and the baiana slow and wide: wait on a tread above them for both to head west, then drop and make the
+      // the two dancers cross the street under the Selaron steps on two periods, the passista fast and the baiana slow and wide: wait on a tread above them for both to head west, then drop and make the
       // risers' foot; the drummer bounces on the top riser over its coin
       { who: 'drummer', col: 20, row: 6, way: 'down', speed: 1, range: 32 },
-      { who: 'passista', col: 6, row: 16, way: 'right', speed: 2, range: 36, colour: 3 }, { who: 'baiana', col: 4, row: 16, way: 'right', speed: 1, range: 80 },
+      { who: 'passista', col: 6, row: 16, way: 'right', speed: 3, range: 24, colour: 3 }, { who: 'baiana', col: 4, row: 16, way: 'right', speed: 1, range: 80 },
     ],
   }),
 
@@ -567,7 +569,9 @@ export const RIO_ROOMS: readonly RoomSpec[] = [
     decor: [
       ...fillCells(DRUM, crowdCells(DRUM_CROWD.cols, DRUM_CROWD.rows), [2, 9, 12, 15], 'rioTiers'), ...crowdRows(DRUM_CROWD.cols, DRUM_CROWD.rows),
       ['rioArch', 1, 5], ['rioFloat', 15, 10], ...[5, 6, 7, 8].flatMap((row): Placed[] => [['chain', 15, row], ['chain', 20, row]]), ['rioLever', 23, 16], ['rioBooth', 27, 2]],
-    creatures: [{ who: 'drummer', col: 7, row: 1, way: 'down', speed: 1, range: 24 }, { who: 'dancer', col: 22, row: 2, way: 'left', speed: 2, range: 26 }, { who: 'agent', col: 0, row: 6, way: 'right', speed: 1, range: 1 }],
+    // the bateria's drummer marches the avenue west of the float's head, across the rope's foot (both times he comes down it, the second with the agent on his trail): wait on the rope over him while he
+    // passes, drop as he marches west and run east (he turns short of the head, clear of the crush); the dancer sweeps the gantry to the headdress, quick. The agent is the third (slot 2).
+    creatures: [{ who: 'drummer', col: 2, row: 16, way: 'right', speed: 2, range: 40 }, { who: 'dancer', col: 22, row: 2, way: 'left', speed: 2, range: 26 }, { who: 'agent', col: 0, row: 6, way: 'right', speed: 1, range: 1 }],
     crushers: FLOAT_HEAD.cols.map((col) => ({ col, row: FLOAT_HEAD.row, height: FLOAT_HEAD.height })),
   }),
 

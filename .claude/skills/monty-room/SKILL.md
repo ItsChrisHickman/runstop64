@@ -38,8 +38,12 @@ A creature: `{ who, col, row, way, speed, range, colour? }`.
   takes a creature slot of its room (`viktor.ts` `PLACES`), so such a room keeps one free. Rollers and skewers name their sprite.
 - A walker in a passage under four rows high cannot be jumped (his jump climbs two rows over a body two rows tall): never put one
   there (Chris on a narrow arm: "almost impossible to jump over"). A ladder or a tread over its patrol is the place to wait.
+  Check the patrol's whole span (start + speed x range), not its start: OPEN ARMS's marmoset started on open floor and ran
+  through the two-row chapel. A low passage that ends where a patrol turns is the safe spot to wait in.
 
 Edges: an open edge cell that meets a wall in the room beside is a trap; close it with `shut` (`joins.ts` checks every join).
+Where a decoration fills the edge cell (it cannot sit on a wall) and nothing of him reaches it, name the cell, with the reason,
+in `joins.ts` `UNREACHED` (HOUSE OF COLOUR's tower top under the church).
 Water only kills outside whole swim rooms: never show water a snorkeller would expect to swim in and then drown him.
 
 ## The challenge recipe (Chris, playtesting the regions after Moscow: "Russia was perfect", the rest "ridiculously easy")
