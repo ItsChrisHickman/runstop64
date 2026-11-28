@@ -31,8 +31,8 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| The watchtower | "top row enemies pose no threat and serve no purpose" | in pass |
-| Don't rock the boat | "pretty but has no challenge" | in pass |
+| The watchtower | "top row enemies pose no threat and serve no purpose" | done (5566c625): the cricket hops onto the walkway east of the trapdoor's rope (wait on the rope, pass under while it is up), the lantern drops over the stair, the warrior marches the floor fast (a China room, filed here) |
+| Don't rock the boat | "pretty but has no challenge" | done (5566c625): two koi leap in the lake, one in each boat's half at periods unlike the boats': the ride is chosen from the quay and the change of boats timed (a China room) |
 | Off the beaten path | "cool ideas but no challenge" | open |
 | Border line case | "both water bridges should break faster" | open |
 | Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | open |
@@ -44,13 +44,13 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| All wall and no play | "the Viktor cameo makes no sense" | done (63cd3f6d): he runs out on the border post's top after Monty and is stopped by its drop, shaking his fist |
-| Noodle market | the falling floor "won't fall if you just run and if it does... So what? You just fall to a safe spot" | in pass |
-| The Forbidden City | "very easy. Nothing to it" | in pass |
-| Heaven can wait | "no enemies, easy layout" | in pass |
-| The emperor's rooftop | "a vertical enemy that you can't hit unless you try" | in pass |
-| Willow pattern | "koi should jump" | in pass |
-| Down the river | "ridiculously easy" | in pass |
+| All wall and no play | "the Viktor cameo makes no sense" | done (63cd3f6d): he runs out on the border post's top after Monty and is stopped by its drop, shaking his fist; the room's challenge (5566c625): the panda paces the whole foot of the wall fast, a pogo monk over the stair, a kite onto the wall's top |
+| Noodle market | the falling floor "won't fall if you just run and if it does... So what? You just fall to a safe spot" | done (5566c625): the rotten awning lies wholly over the street's hole as one patch that goes 14 frames after he steps on it (a walk across is about 32): jumped, the coin taken on the jump; a fall is down the hole into the hutong and the climb again |
+| The Forbidden City | "very easy. Nothing to it" | done (5566c625): a fast lion in the outer court; past the gate (its guard walks off as he comes up in the rice hat) a panda paces the inner court and a lantern drops beside the rope up to the roofs |
+| Heaven can wait | "no enemies, easy layout" | done (5566c625): the eaves three cells apart (judged jumps), a fast guard on the ridge, a kite over the middle eave, a cricket hopping by the coin |
+| The emperor's rooftop | "a vertical enemy that you can't hit unless you try" | done (5566c625): the lantern drops over the top eave (the hop to the ridge waits for it); a fast lion on the low ridge, a dove along the high ridge to the way east |
+| Willow pattern | "koi should jump" | done (5566c625): two koi leap in arcs over the first two gaps at periods of their own against the arms'; a dove down the bank's steps, one dropping over the island's landing |
+| Down the river | "ridiculously easy" | done (5566c625): a fast cricket on the rotten jetty (jumped on planks that will not wait), a gull diving over the jetty's end (wait on the crane's rope), a carp leaping over the raft |
 
 ## Japan
 
