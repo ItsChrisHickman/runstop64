@@ -86,6 +86,22 @@ export function creatureBank(name: string, left: readonly (readonly string[])[],
   return out;
 }
 
+/**
+ * The eight frames of a multicolour creature type (16 x 16 as the enemy bank keeps it, read by the VIC a pixel two wide): each frame 16 rows of 8 double-wide pixels, '.' clear, 'a' the first
+ * shared colour (01), 'b' the sprite's own colour (10), 'c' the second shared colour (11), as `mcBlock`; four facing left and four facing right (`mirrored` turns a row of them as it does a hires one).
+ */
+export function mcCreatureBank(name: string, left: readonly (readonly string[])[], right: readonly (readonly string[])[]): Uint8Array {
+  const bits = (rows: readonly string[], f: number) => rows.map((row, r) => {
+    if (row.length !== 8) throw new Error(`${name} frame ${f}: row ${r} is ${row.length} wide, not 8`);
+    return [...row].map((c) => {
+      const v = '.abc'.indexOf(c);
+      if (v < 0) throw new Error(`${name} frame ${f}: row ${r} has '${c}'`);
+      return (v & 2 ? '#' : '.') + (v & 1 ? '#' : '.');
+    }).join('');
+  });
+  return creatureBank(name, left.map((rows, f) => bits(rows, f)), right.map((rows, f) => bits(rows, f + 4)));
+}
+
 /** An item's sprite block: a 16 x 16 picture in the top left of the 24 x 21 block (the left two of three bytes a row). */
 export function itemBlock(name: string, rows: readonly string[]): Uint8Array {
   const rs = picture(name, rows, 16, 16);

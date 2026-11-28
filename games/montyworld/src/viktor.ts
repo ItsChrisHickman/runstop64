@@ -1,7 +1,7 @@
 import type { CameoSpec, PursuerSpec, RoomBlocks } from '../../montyotr/src/montydata';
 import { creatureBlocks } from '../../montyotr/src/cameos';
 import { AND } from './andes';
-import { VIKTOR_CAMEO, VIKTOR_INK, VIKTOR_SHADOW, VIKTOR_SPLIT } from './art/viktor';
+import { VIKTOR_CAMEO, VIKTOR_COAT, VIKTOR_SHADOW, VIKTOR_SPLIT } from './art/viktor';
 import { CHI } from './china';
 import { JP } from './japan';
 import { ROOM } from './moscow';
@@ -37,7 +37,7 @@ const PLACES = {
  * Monty has gone. Never beside Monty, never back the way he came.
  */
 const border = (p: Place, from: number, side: 'left' | 'right', brink: { col: number; row: number }, when: CameoSpec['when'], wait = 30): CameoSpec => ({
-  room: p.room, from: [from], when, wait, sprite: p.sprite, first: p.first, colour: VIKTOR_INK,
+  room: p.room, from: [from], when, wait, sprite: p.sprite, first: p.first, colour: VIKTOR_COAT,
   move: { from: side === 'left' ? -3 : 33, at: brink, pose: 'fist', hold: 90, clear: BORDER_CLEAR },
 });
 
@@ -69,7 +69,7 @@ export const viktorCameos = (moonSeen: number, hood: number): readonly CameoSpec
 
 /** The pictures the cameos and the showdown's split want in their rooms while those are loaded. */
 export const VIKTOR_BLOCKS: readonly RoomBlocks[] = [
-  ...[PLACES.station, PLACES.wall, PLACES.harbour, PLACES.arms].map((p): RoomBlocks => ({ rooms: [p.room], blocks: creatureBlocks(VIKTOR_CAMEO).map((block, i) => ({ ptr: p.first + i, block })) })),
+  ...[PLACES.station, PLACES.wall, PLACES.harbour, PLACES.arms].map((p): RoomBlocks => ({ rooms: [p.room], blocks: creatureBlocks(VIKTOR_CAMEO).map((block, i) => ({ ptr: p.first + i, block })), multicolour: true })),
   { rooms: [PLACES.moon.room], blocks: creatureBlocks(VIKTOR_SHADOW).map((block, i) => ({ ptr: PLACES.moon.first + i, block })) },
   { rooms: [RIO_ROOM.drum], blocks: VIKTOR_SPLIT.map((block, i) => ({ ptr: SPLIT_POINTERS[i] ?? 0, block })) },
 ];

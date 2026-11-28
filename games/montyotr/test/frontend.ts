@@ -12,6 +12,7 @@
  *
  *   nice -n 15 node tools/test.mjs games/montyotr/test/frontend.ts [out-dir]
  */
+import { noteEntry } from '../src/rewind';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
@@ -169,6 +170,7 @@ let lastRoom = g.roomId;
 
 // ---- game over with a high score: no name entry, CONTINUE? -----------------------------------------
 g.addScore(777 - g.score); // (00777 beats the table's top, 00500)
+noteEntry(g); // (as if scored in a room before: a death puts back what the room it happens in gave, rewind.ts)
 p.grace.clear(); // (the travel above gave a moment's grace: test/grace.ts)
 g.lives = 1;
 g.actionCounter = 2; // (an enemy: the death the original plays for it)

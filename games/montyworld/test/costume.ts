@@ -15,6 +15,9 @@ import { riceHatWorn, ushankaWorn } from '../src/art/hat';
 import { hoodWorn } from '../src/art/japan-hood';
 import { leiWorn } from '../src/art/pacific-lei';
 import { headdressWorn } from '../src/art/rio-hat';
+import { Game } from '../../montyotr/src/game';
+import { wear } from '../../montyotr/src/items';
+import { WORLD } from '../src/data';
 
 const before = bankImage.slice();
 const COSTUMES: readonly { name: string; worn: Worn }[] = [
@@ -67,4 +70,20 @@ for (const { name, worn } of COSTUMES) {
   check(`${name}: his picture is cleared only under the thing's own pixels, and his eyes stay`, clearedElsewhere === 0 && eyesLost === 0);
 }
 check('Monty on the Run\'s bank is not changed by any costume', bankImage.every((v, i) => v === before[i]));
+
+// (a costume comes off again: a death that gives the hat back takes it off, rewind.ts; and one hat over another leaves none of the first)
+const game = new Game(WORLD);
+game.start();
+const plain = game.mem.slice();
+const sameAsPlain = () => game.mem.every((v, i) => v === plain[i]);
+const [first, second] = WORLD.costumes;
+if (first && second) {
+  wear(game, first.item);
+  const on = !sameAsPlain();
+  wear(game, null);
+  check(`a costume worn changes his pictures (${on}) and taken off leaves them as the bank has them (${sameAsPlain()})`, on && sameAsPlain() && game.worn === null);
+  wear(game, first.item); wear(game, second.item);
+  const only = new Game(WORLD); only.start(); wear(only, second.item);
+  check('one costume put on over another: his pictures are the second\'s alone', game.mem.every((v, i) => v === only.mem[i]));
+} else check('Do Svidaniya Monty has costumes', false);
 finish();

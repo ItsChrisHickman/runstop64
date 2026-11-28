@@ -1,10 +1,10 @@
-import { distanceAtX, ROUTE_LENGTH } from './title-art';
+import { distanceAtX, ROUTE_LENGTH, stopNamed } from './title-art';
 
 /**
  * The chase on the title's map, as pure timing (title.ts draws it): Monty walks the route from Montos to Rio and Viktor Vole tails him
  * `VIKTOR_GAP` pixels behind, and each loop something different happens on the way, in turn:
  *  - `trip`: Viktor trips on SIBERIA's mark, falls flat and his hat flies off; he gets up, picks it up and runs to catch up.
- *  - `duck`: Monty steps down behind JAPAN and ANDES (his hat and eyes peep over the names); Viktor runs past, stops, looks back, walks
+ *  - `duck`: Monty steps down behind JAPAN and HAWAII (his hat and eyes peep over the names); Viktor runs past, stops, looks back, walks
  *    back the way he came; Monty climbs out behind him, and Viktor turns and follows.
  *  - `overtake`: Viktor hurries, gets ahead of Monty, stops; they stand, Viktor looks round at him, then backs off past him to his place behind.
  * Everything is distances along the route (`routeAt(d / ROUTE_LENGTH)`) and frames: straight lines between keys.
@@ -77,7 +77,7 @@ function rejoin(from: Key, speed: number, monty: number): Key {
 const END = ROUTE_LENGTH - VIKTOR_GAP;
 
 function trip(): Scene {
-  const s = distanceAtX(116), fall = (s + VIKTOR_GAP) / SPEED;
+  const s = distanceAtX(stopNamed('SIBERIA').x), fall = (s + VIKTOR_GAP) / SPEED;
   const up = fall + 44, walks = fall + 56, hatOn = fall + 76, lands = s + 14;
   return {
     name: 'trip',
@@ -91,8 +91,8 @@ function trip(): Scene {
   };
 }
 
-/** Where Monty hides: under JAPAN and ANDES (their names one over the other), `HIDE_DROP` below the route. */
-export const HIDE_X = 214, HIDE_DROP = 21;
+/** Where Monty hides: under JAPAN and HAWAII (their names one over the other), `HIDE_DROP` below the route. */
+export const HIDE_X = 168, HIDE_DROP = 21;
 
 function duck(): Scene {
   const h = distanceAtX(HIDE_X), at = h / SPEED;

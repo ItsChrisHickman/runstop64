@@ -264,7 +264,9 @@ function count(g: Game, found: MontyFound) {
 let shimmer = 0;
 
 /** One line of the pause screen's panel (11 characters): the name, and its number right-aligned so the numbers make one column. */
-export const statLine = (name: string, value: string) => name.padEnd(6) + value.padStart(5);
+export const statLine = (name: string, value: string) => name.padEnd(6) + value.padStart(STAT_WIDTH - 6);
+/** A pause panel line's characters. */
+const STAT_WIDTH = 11;
 
 /** The progress the pause panel and THE END both show, as label and value (one owner: THE END once re-read the panel's text, and "SNACKS13/13", no space at 10 or more, came out garbled). */
 export function progressRows(g: Game, found: MontyFound): (readonly [label: string, value: string])[] {
@@ -279,6 +281,26 @@ export function progressRows(g: Game, found: MontyFound): (readonly [label: stri
     ...(g.livesShown ? [['LIVES', String(g.lives)] as const] : []), ['ROOMS', `${rooms.seen}/${rooms.all}`],
     ['ITEMS', `${items}/${keyItems.length}`], [food, `${cakes}/${allCakes.length}`],
   ];
+}
+
+/**
+ * The coins taken, of all the game has: the pause panel's (THE END has no room for another line: its % counts them, percent.ts). Its full count (141/141) is
+ * wider than a panel line has room for after the name, so it takes two (`panelLines`).
+ */
+export function coinsRow(g: Game): readonly [label: string, value: string] {
+  let got = 0;
+  for (const c of g.coinCollected) if (c) got++;
+  return ['COINS', `${got}/${g.coinCollected.length}`];
+}
+
+/**
+ * A row of the pause panel as its lines: one (`statLine`) where the name and the widest its number gets (a count's total over itself: 141/141) fit the
+ * line, else the name on a line and the number under it in the numbers' column, always (so the panel does not jump when a count passes 9 or 99).
+ */
+export function panelLines(label: string, value: string): string[] {
+  const total = /^\d+\/(\d+)$/.exec(value)?.[1];
+  const widest = total === undefined ? value : `${total}/${total}`;
+  return statLine(label, widest).length <= STAT_WIDTH ? [statLine(label, value)] : [label, value.padStart(STAT_WIDTH)];
 }
 
 /** A game's progress as percent.ts counts it. */
@@ -348,7 +370,7 @@ export const montyMap = {
       progress.keyItems.forEach((item, i) => { const at = iconAt(box, progress.keyItems.length, i); icon(s, spriteIcon(g, (data.specialItems[item * 4 + 3] + 0x8e) & 0xff), box.x + at.x, y + 10 + at.y, g.siCollected[item] ? COL.white : COL.dgrey); });
     }
   },
-  info: (g, found) => progressRows(g, found).map(([label, value]) => statLine(label, value)),
+  info: (g, found) => [...progressRows(g, found), coinsRow(g)].flatMap(([label, value]) => panelLines(label, value)),
   /**
    * In the panel's empty spot: the % complete (percent.ts), its number in the stats' column, in light green, shimmering in the coins' colours at 100%; and NEW
    * GAME+ (plus.ts), in yellow, the heading's colour.

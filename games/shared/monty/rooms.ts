@@ -385,7 +385,7 @@ export function extendTiles(base: { tileLibrary: Uint8Array; tileProperty(tile: 
 }
 
 /** A creature of a game's own: 8 frames of 32 bytes, and whether frames 0-3 stand for 4-7. */
-export interface CreatureArt { readonly frames: Uint8Array; readonly copy: boolean }
+export interface CreatureArt { readonly frames: Uint8Array; readonly copy: boolean; /** Multicolour pictures (a pixel two wide: MontyData.enemyMulticolour). */ readonly multicolour?: boolean }
 
 /** The enemy bank with creatures of a game's own after the base's: types from `firstType` up (Monty on the Run's are 8-34, so 35). */
 export function extendEnemies(
@@ -397,6 +397,7 @@ export function extendEnemies(
   return {
     enemyBank: (type: number) => own(type)?.frames ?? base.enemyBank(type),
     enemyCopyFlag: (type: number) => { const c = own(type); return c ? (c.copy ? 1 : 0) : base.enemyCopyFlag(type); },
+    enemyMulticolour: (type: number) => own(type)?.multicolour === true,
   };
 }
 

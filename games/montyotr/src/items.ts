@@ -127,6 +127,9 @@ export function handleCollision(g: Game) {
  * loads it, so what was worn is put on again).
  */
 export function wear(g: Game, item: number | null) {
+  // (the one worn before comes off first: his own pictures back from the bank as the game loads it; a death that gives a hat back takes it off)
+  const before = g.data.costumes.find((c) => c.item === g.worn);
+  for (const { ptr } of before?.blocks ?? []) g.mem.set(g.data.bankImage.subarray(ptr * 64, ptr * 64 + 64), ptr * 64);
   g.worn = item;
   const costume = g.data.costumes.find((c) => c.item === item);
   for (const { ptr, block } of costume?.blocks ?? []) g.mem.set(block, ptr * 64);

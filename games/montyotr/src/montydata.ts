@@ -42,6 +42,13 @@ export interface MontyLook {
   /** 32 packed bytes per enemy frame, 8 frames per type (see Game.setupEnemies). */
   enemyBank(type: number): Uint8Array;
   enemyCopyFlag(type: number): number;
+  /** Whether a creature type's pictures are multicolour (drawn with `spriteMulticolours`); none of Monty on the Run's are. */
+  enemyMulticolour?(type: number): boolean;
+  /**
+   * The two colours every multicolour picture of the game's (`RoomBlocks.multicolour`, `enemyMulticolour`) shares with the sprite's own (the VIC's $D025, $D026), set while one is shown: Do Svidaniya
+   * Monty's Viktor Vole (his fur and hat; the coat is the sprite's own colour).
+   */
+  spriteMulticolours?: { readonly mc1: number; readonly mc2: number };
   piledriverGlyphs: Uint8Array;
   teleporterColours: Uint8Array;
   flameMasks: Uint8Array;
@@ -273,7 +280,11 @@ export interface Arrival { rooms: readonly number[]; from?: readonly number[]; t
 export interface SwimPictures { left: readonly number[]; right: readonly number[] }
 
 /** Sprite blocks a set of rooms has in their places while they are loaded: (pointer, picture) pairs. */
-export interface RoomBlocks { rooms: readonly number[]; blocks: readonly { ptr: number; block: Uint8Array }[] }
+export interface RoomBlocks {
+  rooms: readonly number[]; blocks: readonly { ptr: number; block: Uint8Array }[];
+  /** The pictures are multicolour sprites (a pixel two wide, in the sprite's own colour and the game's two `spriteMulticolours`): a sprite showing one is drawn so. */
+  multicolour?: boolean;
+}
 
 /**
  * A piece of a dragon (or of a creature of several sprites moving as one: the yeti): its VIC `sprite`, its `frames` and `colour`. `rigid`: it does not follow the one in front but stays at this offset

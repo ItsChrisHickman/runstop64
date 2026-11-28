@@ -39,6 +39,8 @@ export interface NewCreature {
   readonly frames: Uint8Array;
   readonly copy: boolean;
   readonly colour: Colour;
+  /** Its pictures are multicolour (pixels.ts `mcCreatureBank`: a pixel two wide in its colour and the game's two shared ones, data.ts `spriteMulticolours`). */
+  readonly multicolour?: boolean;
 }
 
 /** An item: one 63-byte sprite block (24 x 21, hires; the 16 x 16 picture in its top left) and its colour. */

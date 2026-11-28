@@ -173,4 +173,17 @@ const first = icons.filter((a) => a.y === rows[0]).map((a) => a.x);
 check(`the ${n} key items take two rows (${icons.filter((a) => a.y === rows[0]).length} and ${icons.filter((a) => a.y === rows[1]).length}), 20 apart, at least 18 apart along a row (16-wide icons with a gap between: ${(first[1] ?? 0) - (first[0] ?? 0)}), inside the box`,
   rows.length === 2 && (rows[1] ?? 0) - (rows[0] ?? 0) === 20 && (first[1] ?? 0) - (first[0] ?? 0) >= 18 && icons.every((a) => a.x + 16 <= MAP_BOX.w));
 
+// the panel's COINS: the name on a line and the count under it in the numbers' column, never wider than a line (11: statLine), the coins at none and all
+const coinsShown = () => { const info = montyMap.info(g, p.state.found); const at = info.indexOf('COINS'); return { info, at, value: info[at + 1] ?? '' }; };
+const all = g.coinCollected.length;
+const none = coinsShown();
+check(`the panel shows COINS (${none.at}), its count under it in the column ("${none.value}"), every line 11 at most`, none.at > 0 && none.value === `0/${all}`.padStart(11) && none.info.every((l) => l.length <= 11));
+g.coinCollected.fill(0xff);
+const full = coinsShown();
+check(`every coin taken: "${full.value.trim()}" in the column, lines 11 at most, as many lines as with none (${full.info.length})`, full.value === `${all}/${all}`.padStart(11) && full.info.every((l) => l.length <= 11) && full.info.length === none.info.length);
+tap('KeyP'); tick(2); shot('pause'); tap('KeyP');
+p.frontEnd.assist.lives = false;
+tap('KeyP'); tick(2); shot('pause-hard'); tap('KeyP');
+p.frontEnd.assist.lives = true;
+
 finish();

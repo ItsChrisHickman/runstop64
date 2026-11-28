@@ -1,18 +1,18 @@
 /**
  * VIKTOR VOLE, the Russian operative, Monty's mirror and the one agent on his trail round the world (docs/dosvidaniya-plan.md, "The pursuer"): every picture of him in one place, so redrawing him is an art swap here and
  * nowhere else. A vole Monty's size but sleeker: a tall fur hat with a star, a long snout with a little moustache under its tip, a black greatcoat to the knees (drawn as the coat's edges, collar, belt and two
- * rows of buttons in his ink: the coat itself is the black between), boots. One ink, white, so he reads on Rio's black and apart from Monty's light grey. In Monty on the Run's formats: creature frames of
+ * rows of buttons in his ink: the coat itself is the black between), boots. These hires pictures are in one ink, white (the squash, the HUD's face, the shadow's shape); in play he walks in colour, multicolour (`VIKTOR_WALK`, `VIKTOR_CAMEO`, below). In Monty on the Run's formats: creature frames of
  * 16 x 16 facing left (mirrored for right), and 24 x 21 sprite blocks for the squash (Monty on the Run's four-way split). The star is cut into the hat (one ink: a red star would need a sprite of its own over him).
  *
  * Users: the agent creature (rio-creatures.ts `agent`: the pursuer's walk), the cameos' frames (`VIKTOR_CAMEO`: two steps, a look after Monty, a fist shaken after him), the squash (`VIKTOR_SPLIT`), the procession's and the
  * credits' name (`VIKTOR_NAME`).
  */
-import { creatureBank, mirrored, spriteBlock } from './pixels';
+import { creatureBank, mcCreatureBank, mirrored, spriteBlock } from './pixels';
 import type { NewCreature } from './types';
 
 /** His name, as the procession and the credits give it. */
 export const VIKTOR_NAME = 'VIKTOR VOLE';
-/** His ink (white). */
+/** His ink (white): the hires pictures' (the squash's heads keep Monty's own colours). */
 export const VIKTOR_INK = 1;
 
 /** The hat and the head, facing left (rows 0-9): the fur hat with its star cut in, the eye, the long snout, the moustache under its tip. */
@@ -68,12 +68,74 @@ const LOOK = figure(HEAD, BOOTS.stand, ARM_UP, false);
 const ARM_FIST = [[2, 10], [2, 9], [1, 6], [1, 5], [1, 4], [1, 3], [0, 2], [1, 2], [0, 1], [1, 1], [0, 0], [1, 0]] as const;
 const FIST = figure(HEAD, BOOTS.stride, ARM_FIST, false);
 
-/** The pursuer's walk (the agent creature): four frames each way. */
-export const VIKTOR_WALK: NewCreature = { frames: creatureBank('viktor', WALK, WALK.map(mirrored)), copy: false, colour: VIKTOR_INK };
-
-/** The cameos' frames, a creature bank of eight (cameos.ts `walkOn`): going left two steps, the look, the fist; then the same going right. */
+/** The cameos' hires frames (going left two steps, the look, the fist): what his shadow is cut from. */
 const CAMEO_LEFT = [WALK[1] ?? LOOK, WALK[3] ?? LOOK, LOOK, FIST];
-export const VIKTOR_CAMEO: Uint8Array = creatureBank('viktor cameo', CAMEO_LEFT, CAMEO_LEFT.map(mirrored));
+
+/**
+ * In play he is drawn in colour, as the title draws him (title-viktor.ts: a grey fur hat, his orange fur, the dark greatcoat), in the C64's sprite multicolour: a pixel two wide, in three colours,
+ * the sprite's own and the two every multicolour sprite shares (Chris, 2026-11-27: in game he was "solid white and looks nothing like he does on the title screen"). The coat is the title's black made
+ * dark grey, so it reads on the rooms' black and still reads as a dark coat; the red star on the hat is cut in as one of the coat's pixels (a fourth colour would need a sprite
+ * of its own). 'a' his fur (the first shared colour), 'b' the coat (the sprite's own), 'c' the hat (the second). 16 pixels of 16 as the hires pictures, in the title's proportions: the hat rows
+ * 0-3, the face 4-7, the coat 8-14, the boots 15.
+ */
+export const VIKTOR_MC = { fur: 8, hat: 12 } as const;
+/** His coat (the sprite's own colour, the cameos' and the agent creature's). */
+export const VIKTOR_COAT = 11;
+/** The two shared colours for the engine (MontyData.spriteMulticolours: 'a' and 'c'). */
+export const VIKTOR_MULTICOLOURS = { mc1: VIKTOR_MC.fur, mc2: VIKTOR_MC.hat } as const;
+
+/** The hat and the head, facing left (rows 0-7, in the title's proportions: the hat four rows, the face four): the fur hat with the star cut in, its band; the brow, the eye, the long snout with the nose at its tip, the moustache under it. */
+const MC_HEAD = [
+  '.ccccc..', // 0 the hat's crown
+  '.ccbcc..', // 1 the star
+  '.ccccc..', // 2
+  '.cccccc.', // 3 the fur band
+  '..aaaa..', // 4 the brow
+  '.aabaa..', // 5 the eye
+  'baaaaa..', // 6 the snout, its nose at the tip
+  'b..aaa..', // 7 the moustache, the jaw
+] as const;
+/** The greatcoat (rows 8-14), plain as the title's: the collar at the neck, the coat to the knees. */
+const MC_COAT = [
+  '..bbbb..', // 8 the collar
+  '.bbbbbb.', // 9
+  '.bbbbbb.', // 10
+  '.bbbbbb.', // 11
+  '.bbbbbb.', // 12
+  '.bbbbbb.', // 13
+  '.bbbbbb.', // 14 the hem
+] as const;
+/** The boots (the coat's colour, as the title's legs are): together, apart, crossing. */
+const MC_BOOTS = { stand: '..b.bb..', stride: '.bb..b..', cross: '..bbb...' } as const;
+type McPixel = readonly [x: number, y: number, c: 'a' | 'b' | 'c'];
+/** The arm (a sleeve, his hand in his fur's colour): at his side, swung forward, raised to shade his eyes, and raised past the hat in a fist. */
+const MC_ARM = {
+  down: [[0, 9, 'b'], [0, 10, 'b'], [0, 11, 'b'], [0, 12, 'a']],
+  forward: [[0, 9, 'b'], [0, 10, 'b'], [0, 11, 'a']],
+  up: [[0, 9, 'b'], [0, 8, 'b'], [0, 4, 'a'], [1, 4, 'a']],
+  fist: [[0, 9, 'b'], [0, 8, 'b'], [0, 5, 'b'], [0, 4, 'b'], [0, 3, 'b'], [0, 2, 'b'], [0, 1, 'a'], [0, 0, 'a']],
+} as const satisfies Record<string, readonly McPixel[]>;
+/** A multicolour frame: the head, the coat, the boots, an arm, and the coat's tail flapping in a stride. */
+function mcFigure(boots: string, arm: readonly McPixel[], tail: boolean): string[] {
+  const rows = [...MC_HEAD, ...MC_COAT, boots].map((r) => [...r]);
+  for (const [x, y, c] of [...arm, ...(tail ? [[7, 13, 'b'], [7, 14, 'b']] as const : [])]) { const row = rows[y]; if (row) row[x] = c; }
+  return rows.map((r) => r.join(''));
+}
+const MC_WALK = [
+  mcFigure(MC_BOOTS.stand, MC_ARM.down, false),
+  mcFigure(MC_BOOTS.stride, MC_ARM.forward, true),
+  mcFigure(MC_BOOTS.stand, MC_ARM.down, false),
+  mcFigure(MC_BOOTS.cross, MC_ARM.forward, true),
+];
+const MC_LOOK = mcFigure(MC_BOOTS.stand, MC_ARM.up, false);
+const MC_FIST = mcFigure(MC_BOOTS.stride, MC_ARM.fist, false);
+
+/** The pursuer's walk (the agent creature): four frames each way, multicolour. */
+export const VIKTOR_WALK: NewCreature = { frames: mcCreatureBank('viktor', MC_WALK, MC_WALK.map(mirrored)), copy: false, colour: VIKTOR_COAT, multicolour: true };
+
+/** The cameos' frames, a creature bank of eight (cameos.ts `walkOn`): going left two steps, the look, the fist; then the same going right; multicolour, on a sprite in the coat's colour. */
+const MC_CAMEO_LEFT = [MC_WALK[1] ?? MC_LOOK, MC_WALK[3] ?? MC_LOOK, MC_LOOK, MC_FIST];
+export const VIKTOR_CAMEO: Uint8Array = mcCreatureBank('viktor cameo', MC_CAMEO_LEFT, MC_CAMEO_LEFT.map(mirrored));
 
 /** A picture's shape filled: every row lit from its first lit pixel to its last (a shadow, a silhouette). */
 const filled = (rows: readonly string[]): string[] => rows.map((r) => {
@@ -127,5 +189,5 @@ function splitPictures(): Uint8Array[] {
 }
 export const VIKTOR_SPLIT: readonly Uint8Array[] = splitPictures();
 
-/** The frames as text (for a sheet or a test): the walk, the look, the fist. */
-export const VIKTOR_ROWS = { walk: WALK, look: LOOK, fist: FIST } as const;
+/** The frames as text (for a sheet or a test): the walk, the look, the fist (hires: his shadow's and the HUD's shapes), and the multicolour ones he is drawn in. */
+export const VIKTOR_ROWS = { walk: WALK, look: LOOK, fist: FIST, mc: { walk: MC_WALK, look: MC_LOOK, fist: MC_FIST } } as const;

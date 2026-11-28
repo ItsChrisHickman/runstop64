@@ -32,6 +32,7 @@ import { roomDecorTypes } from '../../shared/monty/rooms';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
+import { noteEntry, rewindTaken, takenNow, type TakenAtEntry } from './rewind';
 import { nameCodes } from '../../shared/monty/lettering';
 
 /**
@@ -272,6 +273,8 @@ export class Game implements MontyBody, MontyWorld {
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry;
   feetFrames = 0;
+  /** What he had taken when he came into this room (rewind.ts): what a death in it puts back. */
+  takenAtEntry: TakenAtEntry;
 
   constructor(readonly data: MontyData) {
     const { start } = data;
@@ -284,6 +287,7 @@ export class Game implements MontyBody, MontyWorld {
     this.exitGrid = Uint8Array.from(data.exitGrid.image);
     this.coinCollected = new Uint8Array(data.coinTable.length / 3);
     this.siCollected = new Uint8Array(data.specialItems.length / 4);
+    this.takenAtEntry = takenNow(this);
     this.mem.set(data.bankImage);
     this.vic.screenOffset = SCREEN;
     this.vic.background = 0;
@@ -612,6 +616,7 @@ export class Game implements MontyBody, MontyWorld {
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
     this.visited[this.roomId] = 1;
+    noteEntry(this);
     this.onRoomLoaded(this);
   }
 
@@ -733,7 +738,7 @@ export class Game implements MontyBody, MontyWorld {
     v.enable = this.hatPlaced ? this.enable | 0x80 : this.enable;
     v.expandX = this.expandX;
     v.expandY = this.expandY;
-    v.multicolour = this.multicolour;
+    v.multicolour = this.multicolour | this.multicolourShown(v.enable);
     v.priority = this.priority;
     if (!this.completionActive) {
       if (!this.lift.type && !this.gameOverActive) this.multicolour &= 0xf0;
@@ -807,6 +812,7 @@ export class Game implements MontyBody, MontyWorld {
       this.vic.mc1 = 7;
     }
     this.setupEnemies();
+    this.noteMulticolourPictures();
     pursuerInit(this);
     cameoInit(this, this.lastRoom);
     Items.applyRoomEffects(this, 'before');
@@ -834,6 +840,25 @@ export class Game implements MontyBody, MontyWorld {
     if (!banner) return;
     say(this.hint, banner.text, 0);
     this.drawNameRow();
+  }
+
+  /** The sprite pointers of this room whose pictures are multicolour (its `roomBlocks` marked so, its creatures of a multicolour type): a sprite showing one is drawn multicolour (`multicolourShown`). */
+  private readonly mcPictures = new Uint8Array(256);
+  private noteMulticolourPictures() {
+    this.mcPictures.fill(0);
+    if (!this.data.spriteMulticolours) return;
+    for (const set of this.data.roomBlocks) if (set.multicolour && set.rooms.includes(this.roomId)) for (const { ptr } of set.blocks) this.mcPictures[ptr & 0xff] = 1;
+    this.enemies.forEach((e, slot) => { if (this.data.enemyMulticolour?.(e.type)) this.mcPictures.fill(1, 0x30 + slot * 8, 0x38 + slot * 8); });
+  }
+
+  /** The sprites shown this frame whose pictures are multicolour (bits by sprite), the game's two shared colours set for them. */
+  private multicolourShown(enable: number): number {
+    const mc = this.data.spriteMulticolours;
+    if (!mc) return 0;
+    let bits = 0;
+    for (let n = 0; n < 8; n++) if (enable & (1 << n) && this.mcPictures[this.sptr[n] ?? 0]) bits |= 1 << n;
+    if (bits) { this.vic.mc1 = mc.mc1; this.vic.mc2 = mc.mc2; }
+    return bits;
   }
 
   /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */
@@ -1087,6 +1112,8 @@ export class Game implements MontyBody, MontyWorld {
 
   /** Returns true if the game is over (no lives left). */
   lifeLost(atEntry = false): boolean {
+    // (ours, both modes: what he took in this room is put back, as the room starts again as he came into it; rewind.ts)
+    if (this.assist.respawn) rewindTaken(this);
     this.lives = afterLoss(this.lives, this.assist.lives);
     this.drawHudData();
     if (this.lives > 0) {
