@@ -1,5 +1,5 @@
 /**
- * VIKTOR VOLE of the KGB, Monty's mirror and the one agent on his trail round the world (docs/dosvidaniya-plan.md, "The pursuer"): every picture of him in one place, so redrawing him is an art swap here and
+ * VIKTOR VOLE, the Russian operative, Monty's mirror and the one agent on his trail round the world (docs/dosvidaniya-plan.md, "The pursuer"): every picture of him in one place, so redrawing him is an art swap here and
  * nowhere else. A vole Monty's size but sleeker: a tall fur hat with a star, a long snout with a little moustache under its tip, a black greatcoat to the knees (drawn as the coat's edges, collar, belt and two
  * rows of buttons in his ink: the coat itself is the black between), boots. One ink, white, so he reads on Rio's black and apart from Monty's light grey. In Monty on the Run's formats: creature frames of
  * 16 x 16 facing left (mirrored for right), and 24 x 21 sprite blocks for the squash (Monty on the Run's four-way split). The star is cut into the hat (one ink: a red star would need a sprite of its own over him).

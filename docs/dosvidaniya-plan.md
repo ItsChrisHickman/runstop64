@@ -22,7 +22,7 @@ registers (USPTO, UKIPO, EUIPO; games are class 9 and 41), by Chris or a lawyer.
 
 ## The pursuer (Chris, 2026-11-22)
 
-One agent follows Monty round the world (Intermole's man; a KGB operative in the Viktor Vole edition): one recognisable
+One agent follows Monty round the world (Viktor Vole, a Russian operative on his trail; Chris 2026-11-27: no KGB): one recognisable
 character at every region's checkpoint or gate, fooled each time by the local disguise (that is what the hats are for; it
 replaces the anonymous guards). At the carnival he corners Monty, and Monty gets him flattened by a Mole Crusher (dressed as
 a giant stamping float): a set piece the player triggers, cartoon squash, then the beach. Spy vs Spy style (Chris): the

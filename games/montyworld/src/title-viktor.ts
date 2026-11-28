@@ -1,5 +1,5 @@
 /**
- * Viktor Vole of the KGB on the title's map: Monty's mirror (a vole Monty's size, sleeker, in a black greatcoat and a fur hat with a red star, a
+ * Viktor Vole, the Russian operative, on the title's map: Monty's mirror (a vole Monty's size, sleeker, in a black greatcoat and a fur hat with a red star, a
  * little moustache), tiny, walking east a few steps behind Monty along the dotted route. He is four hires sprites one over the other, a colour
  * each (the C64's sprites have one colour apiece in hires; the multicolour ones share the screen's two), drawn here as pictures of letters:
  * k black (coat, boots, eye, moustache, nose), r the red star, h the grey fur hat, f his own orange fur. He also lies flat (tripped).

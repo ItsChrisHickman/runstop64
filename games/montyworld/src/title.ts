@@ -13,7 +13,7 @@ export { GONE, SCENES, STAND, VIKTOR_GAP, WALK_FRAMES } from './title-chase';
 /**
  * Do Svidaniya Monty's title screen (the picture is title-art.ts): the logo over the world map from Montos to Rio on a black screen (the
  * sea's strip blue: the background colour changed down its lines), Monty in his ushanka walking the dotted route on a loop (two sprites,
- * his picture and his hat, turned to face east) and Viktor Vole of the KGB (title-viktor.ts) a few steps behind him, something different
+ * his picture and his hat, turned to face east) and Viktor Vole, the Russian operative (title-viktor.ts) a few steps behind him, something different
  * happening on the way each loop (title-chase.ts: Viktor trips, Monty hides behind the names, Viktor overtakes him), the story scroller
  * under the map, ENTER CONTINUE's line (`STRIP_Y`) under that and the credits at the foot, Hubbard's tune playing. It takes
  * the game's characters, screen and sprites, and gives them back (`leave`).
@@ -56,8 +56,8 @@ function mirrored(block: Uint8Array): Uint8Array {
 /** The title's story: what the scroller says (colours 0-7; no apostrophe: the scroller's letters have none). */
 export const STORY: readonly Passage[] = [
   { colour: WHITE, text: 'INTERMOLE HAS FOUND MONTY ON MONTOS...  ' },
-  { colour: CYAN, text: 'EUROPE IS NO LONGER SAFE...  ' },
-  { colour: RED, text: 'AND THE KGB HAVE SENT VIKTOR VOLE...  ' },
+  { colour: CYAN, text: 'MONTY FLEES EAST...  ' },
+  { colour: RED, text: 'BUT RUSSIAN OPERATIVE VIKTOR VOLE IS HOT ON HIS TRAIL...  ' },
   { colour: YELLOW, text: 'THE LONG WAY ROUND: MOSCOW TO RIO...  ' },
   { colour: WHITE, text: 'GOOD LUCK!' },
 ];

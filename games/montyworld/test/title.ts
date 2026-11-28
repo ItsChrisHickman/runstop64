@@ -190,7 +190,7 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   const banned = ['MONTY ON THE RUN!', 'MICRO PROJECTS', 'JOINT PRODUCTION', 'SCUDMORE', 'SAM STOAT', 'HELL OF', 'FREEDOM KIT', 'HIGH SCORES', 'HI SCORES', 'WRITTEN BY', 'TONY AND JASON', 'RUNSTOP64', 'FAN GAME', 'REMAKE', 'SAFETY', 'CLAUDE', 'MONTY MOLE ADVENTURE'];
   const hits = banned.filter((b) => everything.includes(b));
   check(`the scroller and credits have none of Monty on the Run's title (${hits.join(', ') || 'none found'}): no Scudmore story, joint production, high scores, freedom kit, Claude`, hits.length === 0);
-  check('the story is Chris\'s: Intermole, Europe, Viktor Vole of the KGB, Moscow to Rio, good luck; and no thanks line', story.replace(/ +/g, ' ').trim() === 'INTERMOLE HAS FOUND MONTY ON MONTOS... EUROPE IS NO LONGER SAFE... AND THE KGB HAVE SENT VIKTOR VOLE... THE LONG WAY ROUND: MOSCOW TO RIO... GOOD LUCK!' && !story.includes('THANKS'));
+  check('the story is Chris\'s: Intermole finds him, he flees east, the Russian operative Viktor Vole on his trail (2026-11-27), Moscow to Rio, good luck; and no thanks line', story.replace(/ +/g, ' ').trim() === 'INTERMOLE HAS FOUND MONTY ON MONTOS... MONTY FLEES EAST... BUT RUSSIAN OPERATIVE VIKTOR VOLE IS HOT ON HIS TRAIL... THE LONG WAY ROUND: MOSCOW TO RIO... GOOD LUCK!' && !story.includes('THANKS'));
   // the picture too: no band of high scores, no kit (rows 6-7 and 21-24 of Monty on the Run's)
   const screenText = Array.from({ length: 25 }, (_, r) => rowText(r)).join(' ');
   check('the screen\'s lettering is only ours', !['HIGH SCORES', 'FREEDOM', 'MONTY ON THE RUN!'].some((b) => screenText.includes(b)));
