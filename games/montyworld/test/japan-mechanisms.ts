@@ -27,7 +27,7 @@ import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
 import { ADDED_ROOMS, JAPAN_KEEPS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CAVE, CAVE_ICICLE_TIMING, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CAVE, CAVE_ICICLE_TIMING, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS, WANTED, wantedCells } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
@@ -38,6 +38,10 @@ import { SCOPE, scopedRooms } from './scope';
 import { search } from './search';
 import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, icicleMet, shakes, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
+
+/** Whether a gate's picture of what it wants (japan.ts WANTED) is drawn in its cells, or cleared from them. */
+const wantedShown = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) !== 0);
+const wantedGone = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) === 0);
 
 /** The items by name (the room's nth). */
 const DARUMA = [JP.platform, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
@@ -342,6 +346,7 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     let f = 0;
     for (; f < 120 && !near.g.siCollected[JAPAN_KEEPS.shutter]; f++) frame(near, RIGHT);
     check(`with the daruma the shutter stands as he comes onto the platform (${stood}) and rolls up as he comes up to it (frame ${f}), kept up`, stood && f < 120 && SHUTTER_CELLS.every(([row, col]) => cell(near.g, col, row) === 0));
+    check('the gate shows what it wants: the daruma\'s picture beside the shutter\'s top, without it and with it until he uses it there; gone as the shutter rolls up', wantedShown(shut.g, WANTED.shutter) && wantedGone(near.g, WANTED.shutter));
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
     run(open, NONE, 2);
@@ -364,8 +369,14 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     const fed = at(JP.garden, 10, 14, [FISH], false, true);
     let f = 0;
     for (; f < 200 && !fed.g.siCollected[JAPAN_KEEPS.koi]; f++) frame(fed, RIGHT);
-    check(`with it the koi leap on away from the pond (${still}); at the pond's edge (frame ${f}) both are gone, the tanuki stays, and they stay gone`,
-      still && f < 200 && fed.g.enemies.filter((e) => e.type === KOI).every((e) => e.x === 0xff) && fed.g.enemies.filter((e) => e.type !== KOI).every((e) => e.x !== 0xff) && !!fed.g.siCollected[JAPAN_KEEPS.koi2]);
+    const left = fed.g.enemies.map((e) => e.x !== 0xff);
+    check(`with it the koi leap on away from the pond (${still}); at the pond's edge (frame ${f}) the quick koi (slot 1) swims off with the food, kept, while the slow one (slot 0) leaps on across the first plank's jump and the tanuki stays`,
+      still && f < 200 && left[0] === true && left[1] === false && left[2] === true && !!fed.g.siCollected[JAPAN_KEEPS.koi]);
+    check('the pond shows what it wants: the fish food\'s picture over the far planks until he feeds the koi, then gone', wantedShown(pond.g, WANTED.pond) && wantedShown(away.g, WANTED.pond) && wantedGone(fed.g, WANTED.pond));
+    const later = at(JP.garden, 8, 14, [FISH], false, true);
+    later.g.siCollected[JAPAN_KEEPS.koi] = 0x81;
+    enterRoom(later.g, JP.garden, 0x0c + (8 + 4) * 4, standY(14)); // (the room loaded again with the keep set)
+    check('coming back with the koi fed (kept): the planks are up, the picture gone, the slow koi still leaping', PLANK_CELLS.every(([row, col]) => cell(later.g, col, row) === PLANK_CODE) && wantedGone(later.g, WANTED.pond) && later.g.enemies[0]?.x !== 0xff && later.g.enemies[1]?.x === 0xff);
     // the pond: without the food only the first plank is there (the far bank is seven cells off), with it the other two float up
     const far = (g: Game) => g.roomId === JP.garden && colOf(g) >= 26 && g.y === standY(14);
     const bare = at(JP.garden, 14, 14);
@@ -374,6 +385,17 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     const clear = at(JP.garden, 14, 14, [FISH]);
     run(clear, NONE, 2);
     check('with it, at the pond\'s edge the planks float up and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
+    // and with the slow koi still leaping (the quick one gone with the food), the crossing is timed to it: the bot waits for it and crosses, both ways
+    const timed = at(JP.garden, 14, 14, [FISH], false, true);
+    const noTanuki = (t: State) => { t.g.enemies = t.g.enemies.slice(0, 2); t.g.enable &= ~0x40; t.g.vic.enable &= ~0x40; }; // (the bank's tanuki, slot 2, out of the way: the search is of the pond)
+    noTanuki(timed);
+    run(timed, NONE, 2);
+    const near = (g: Game) => g.roomId === JP.garden && colOf(g) <= 14 && g.y === standY(14);
+    const back = at(JP.garden, 27, 14, [FISH], false, true);
+    noTanuki(back);
+    run(back, NONE, 2);
+    check('with the slow koi leaping on, the bot crosses the planks to the far bank and back, timed to it', timed.g.enemies[0]?.x !== 0xff && timed.g.enemies[1]?.x === 0xff
+      && search(timed, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null && search(back, near, [{ room: JP.garden, col: 12, row: 12 }], 150000, 1.5) !== null);
   });
   // the hideout's door guard (a ninja at the low corridor under the roof) and the hood: the way on to the port runs through that door (the hall's far end is walled)
   SCOPE.section([JP.hideout, JP.hall, JP.port, JP.mole, JP.garden], 'the gates: the door guard and the hood', () => {
@@ -396,6 +418,7 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     let off = 0;
     for (; off < 300 && must(leaving.g.enemies[0], 'the guard').x !== 0xff; off++) frame(leaving, NONE);
     check(`in the hood, coming to the door (frame ${f}) the guard walks off west and out of the room (${off} frames), harmless as he goes (alive ${!dead(leaving.g)}), the roof samurai staying`, f < 120 && off < 300 && !dead(leaving.g) && must(leaving.g.enemies[2], 'the roof samurai').x !== 0xff);
+    check('the door shows what it wants: the hood\'s picture over it until he comes to it in the hood, then gone', wantedShown(guard.g, WANTED.door) && wantedGone(leaving.g, WANTED.door));
     const hood = at(JP.hideout, 17, 17, [HOOD], false, true);
     hood.g.enemies = hood.g.enemies.filter((_, i) => i !== 1); // (the dropping ninja out of the way: the search is of the door)
     hood.g.rollers = [];
@@ -563,7 +586,7 @@ SCOPE.section([], 'hints, the map, saves', () => {
       // what the keys did in the room is as it was (the kept effects are put again on loading the room)
       const KOI_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi'), GUARD_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
       const effects = room === JP.platform ? SHUTTER_CELLS.every(([row, col]) => cell(b.g, col, row) === 0)
-        : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies.filter((e) => e.type === KOI_TYPE).every((e) => e.x === 0xff)
+        : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies[0]?.type === KOI_TYPE && b.g.enemies[0].x !== 0xff && b.g.enemies[1]?.type === KOI_TYPE && b.g.enemies[1].x === 0xff // (the quick koi fed and gone, the slow one leaping on)
         : room === JP.hideout ? b.g.enemies[0]?.type === GUARD_TYPE && b.g.enemies[0].x === 0xff // (the door's guard; the ninja in the bamboo stays)
         : true;
       b.g.enemies = [];

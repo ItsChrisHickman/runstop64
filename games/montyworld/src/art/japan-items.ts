@@ -3,12 +3,13 @@
  * in place of the cupcake) and the ninja hood as it lies on its shrine. Hires sprite blocks as Moscow's and Siberia's items are: a solid
  * shape with the detail cut into it.
  */
-import { itemBlock } from './pixels';
+import { decor } from './decorations';
+import { characters, itemBlock } from './pixels';
 import { over, Raster } from './raster';
-import type { NewItem } from './types';
+import type { NewDecor, NewItem } from './types';
 
 /** A paper sack of fish food: a folded top tied with string, a fish printed on its front, pellets spilling at its foot. */
-function fishFood(): NewItem {
+function fishFoodPicture(): Raster {
   const r = new Raster(16, 16);
   r.rect(3, 4, 12, 14); // the sack
   r.rect(5, 1, 10, 3); r.rect(4, 2, 4, 3); r.rect(11, 2, 11, 3); // the folded top
@@ -16,11 +17,11 @@ function fishFood(): NewItem {
   r.ellipse(7.5, 9.5, 3.4, 2.4, false); r.triangle(10.5, 9.5, 13, 7, 13, 12, false); // the fish printed: cut out of the sack
   r.rect(5, 9, 5, 9); // its eye
   for (const x of [2, 5, 8, 11, 13]) r.rect(x, 15, x + 1, 15); // pellets
-  return { block: itemBlock('jpFishFood', r.rows()), colour: 13 };
+  return r;
 }
 
 /** A daruma: the round red wishing doll, a pale face with one eye painted in, brows and beard, a band across the belly. */
-function daruma(): NewItem {
+function darumaPicture(): Raster {
   const r = new Raster(16, 16);
   r.ellipse(7.5, 8, 7.2, 7.4); // the round body
   r.ellipse(7.5, 6, 5, 3.6, false); // the face's opening
@@ -29,7 +30,7 @@ function daruma(): NewItem {
   r.rect(3, 2, 6, 2, false); r.rect(9, 2, 12, 2, false); // the brows
   r.cut(['#.#.#.#'], 5, 7); r.cut(['.#####.'], 4, 9); // the beard's lines
   r.cut(['########'], 4, 11); r.rect(7, 11, 8, 11); // the band
-  return { block: itemBlock('jpDaruma', r.rows()), colour: 2 };
+  return r;
 }
 
 /** Sushi: two pieces of nigiri on a geta board, the fish draped over its rice, a band of nori round one. */
@@ -49,7 +50,7 @@ function sushi(): NewItem {
 }
 
 /** The ninja hood folded on its shrine's cushion: a cloth with the eye slit showing, a knot and two tails. */
-function hoodItem(): NewItem {
+function hoodPicture(): Raster {
   const r = new Raster(16, 16);
   r.rect(0, 13, 15, 15); r.rect(1, 14, 14, 14, false); // the cushion
   r.ellipse(7.5, 8, 6.2, 5.8); r.rect(1, 8, 14, 12); // the folded cloth
@@ -58,14 +59,43 @@ function hoodItem(): NewItem {
   const tails = new Raster(16, 16);
   tails.triangle(12, 3, 15, 5, 13, 7); tails.triangle(3, 3, 0, 5, 2, 7);
   over(r, tails);
-  return { block: itemBlock('jpHood', r.rows()), colour: 6 };
+  return r;
 }
 
+/** Each key item's picture and its ink: the item (a hires sprite) and the gate's picture of what it wants (characters) are drawn from the one picture. */
+const KEYS = {
+  fishFood: { picture: fishFoodPicture, ink: 13 },
+  daruma: { picture: darumaPicture, ink: 2 },
+  hood: { picture: hoodPicture, ink: 6 },
+} as const;
+const item = (name: string, key: keyof typeof KEYS): NewItem => ({ block: itemBlock(name, KEYS[key].picture().rows()), colour: KEYS[key].ink });
+
 export const JAPAN_ITEMS = {
-  jpFishFood: fishFood(),
-  jpDaruma: daruma(),
+  jpFishFood: item('jpFishFood', 'fishFood'),
+  jpDaruma: item('jpDaruma', 'daruma'),
   jpSushi: sushi(),
-  jpHood: hoodItem(),
+  jpHood: item('jpHood', 'hood'),
 } as const satisfies Record<string, NewItem>;
+
+/**
+ * The gates' pictures of what they want (LESSONS: a gate shows what it wants before he has it): the key item drawn in 2 x 2 characters over the gate, blinking (`WANTED_FRAMES`, a `charAnims` cycle),
+ * until he uses the item there and the room effect clears it (data.ts). The hood's in light blue: the item's dark blue is lost on the night sky.
+ */
+export const JAPAN_WANTED = {
+  jpWantDaruma: decor('jpWantDaruma', 2, 2, darumaPicture(), KEYS.daruma.ink),
+  jpWantFishFood: decor('jpWantFishFood', 2, 2, fishFoodPicture(), KEYS.fishFood.ink),
+  jpWantHood: decor('jpWantHood', 2, 2, hoodPicture(), 14),
+} as const satisfies Record<string, NewDecor>;
+
+/** A picture's blink, a frame a step: shown three steps, gone one (the characters emptied). */
+const blink = (name: string, r: Raster): readonly Uint8Array[] => {
+  const on = characters(name, r.rows(), 2, 2);
+  return [on, on, on, new Uint8Array(on.length)];
+};
+export const WANTED_FRAMES = {
+  jpWantDaruma: blink('want daruma', darumaPicture()),
+  jpWantFishFood: blink('want fish food', fishFoodPicture()),
+  jpWantHood: blink('want hood', hoodPicture()),
+} as const satisfies Record<keyof typeof JAPAN_WANTED, readonly Uint8Array[]>;
 
 export type JapanItem = keyof typeof JAPAN_ITEMS;

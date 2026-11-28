@@ -96,6 +96,12 @@ export function pieceChar(data: MontyData, room: number, name: WorldDecor): numb
   return kind === undefined ? 0 : decorChars(data, room)[kind] ?? 0;
 }
 
+/** The playfield cells (row, column) a piece placed at `col`, `row` covers: what a room effect clears to take the piece away (a gate's picture of the thing it wants, once he has used it there). */
+export function pieceCells(name: WorldDecor, col: number, row: number): (readonly [row: number, col: number])[] {
+  const { w, h } = WORLD_DECOR[name];
+  return Array.from({ length: w * h }, (_, k) => [row + Math.floor(k / w), col + (k % w)] as const);
+}
+
 /** A palette letter's code (1-8). */
 export function codeOf(palette: Palette, letter: string): number {
   return Object.keys(palette).indexOf(letter) + 1;

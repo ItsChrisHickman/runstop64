@@ -122,7 +122,7 @@ and a crab on it, and at the east the **cargo ship** moored at the quay's end (t
 
 ### Items, gates, doubling back
 
-- **Fish food** (D's overpass: a paper sack of pellets with a fish on it): the koi in G leave the pond and the pond's other two planks float up (`removeEnemy` twice and a `place`). **Daruma** (E's platform, its west end: the round red wishing doll, one eye painted): the platform's shutter in E rolls up (a `clear`).
+- **Fish food** (D's overpass: a paper sack of pellets with a fish on it): the quick koi in G swims off with it and the pond's other two planks float up (`removeEnemy` and a `place`); the slow koi stays, the crossing's timing. **Daruma** (E's platform, its west end: the round red wishing doll, one eye painted): the platform's shutter in E rolls up (a `clear`).
   **Ninja hood** (L, on the shrine): the guard in I steps aside, and Monty wears the hood from then on (the costume). **Sushi** (A's roof stub, H's top tier): the bonus food, 200 points.
 - **The critical path** (the shortest way out): A (the stair of crates, the roof), B (the roof, the drainpipe down), the street's stairs into C, the underpass to E, up the first stairs between two trains to the daruma and back, up a stairs, up the rope to D (the street,
   the rope to the overpass, the fish food, back down), down the subway rope to E, east along the platform past the trains (the shutter rolled up) to F (the switchbacks, the chain), G (the pond, the pergola and rope up), L (the stones, the
@@ -332,7 +332,9 @@ the creatures, their speeds and patterns, and one wall where a puzzle needs it. 
   moment's length; the flashing edge says which end the next train comes from, read from the stairs.
 - **MOUNT FUJI.** As the snowball pass left it (three on the climb).
 - **KOI POLLOI.** The tanuki walks the gravel quick (8 cells), the koi at two speeds. The fish food is used at the pond, seen: when he comes to the pond's
-  edge with it the koi go and the planks float up there (and stay so: a hidden find).
+  edge with it the quick koi swims off with it and the planks float up there (and stay so: a hidden find). The slow koi stays: it leaps across the first plank
+  and the jump off it, so the crossing is waited for from the bank and taken in one go, both ways (the review: both koi gone left the room one puzzle, the
+  tanuki's).
 - **THE LAST MOLE.** Two koi now, leaping across the first jump and the third (two speeds); the crane flies low and quick across the stones at the height of
   a jump between them, so each hop is timed to it as well as to the sinking stones. Viktor's moon shadow moves to sprite 1 (blocks $48-$4F), as the fish
   market's cameo does.
@@ -348,8 +350,12 @@ the creatures, their speeds and patterns, and one wall where a puzzle needs it. 
   and every jump between stalks is a moment chosen; the coins at the far end and at the tallest stalk's head.
 - **GONE WITH THE WIND.** The tengu is no longer a figure that flies in and stands as Viktor does: he is drawn in the room's own characters in his colours (red
   face and long nose, white hair, black cap, a crow's wings, the feather fan) hovering beside the gust's beam, flapping and fanning the wind into it. The tube is
-  harder: the yuki-onna drifts quicker across the way between the hump and the frozen fall, a second yuki-onna drifts on another period between the dripping
-  icicle and the ice mound, so the coins at the far end are taken between them.
+  harder: the yuki-onna drifts quicker across the way between the hump and the frozen fall, a second yuki-onna drifts slowly on another period between the
+  frozen fall and the dripping icicle (col 19, over the moved coin at col 21), so that coin is taken against two clocks, hers and the icicle's.
 
 Gates, cause and effect (docs/dosvidaniya-back-half-plan.md): the daruma rolls the shutter up when he comes up to it with it; the fish food at the pond's edge;
 the hood at the hideout's door. Each happens there with the item's sound, seen, and stays done (a hidden find each, after every room's finds: old saves load).
+Before that each gate shows what it wants: the item's own picture (the sprite's drawing, in 2 x 2 characters: art/japan-items.ts `JAPAN_WANTED`) blinks
+over the gate from the first visit (japan.ts `WANTED`: the daruma beside the shutter's top, the gantry post being over it, so the platform's east mast moved a
+column west; the fish food over the pond's far planks; the hood, in light blue, over the hideout's door under the first walkway), and the gate's room effect
+clears it as he uses the item there. The hint line says why as before.

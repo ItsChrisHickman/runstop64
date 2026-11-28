@@ -8,8 +8,9 @@ import { SNOWBALL_FRAMES } from './art/japan-fuji';
 import { SHURIKEN_FRAMES } from './art/japan-shuriken';
 import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
 import { GLASS_CELLS, pachinkoFrames } from './art/japan-pachinko';
+import { WANTED_FRAMES } from './art/japan-items';
 import type { WorldDecor } from './art/world';
-import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
+import { codeOf, decorIndex, fillCells, Grid, pieceCells, room, type Palette } from './layout';
 
 /**
  * Japan, the fourth region of Do Svidaniya Monty (docs/dosvidaniya-japan.md): eleven rooms (ten and the hidden one) in a block five wide and three high at columns
@@ -248,12 +249,30 @@ export const PLANK_CODE = codeOf(GARDEN_PALETTE, 'P');
 /** The shutter's cells (col 29, rows 10-13: one cell wide, so the train runs on past it as past a post) that the daruma rolls up. */
 export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [10, 11, 12, 13].map((row) => [row, 29] as const);
 
+/**
+ * Each gate's picture of what it wants (Chris: "if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"): the key item drawn blinking over the gate from the first visit
+ * (art/japan-items.ts JAPAN_WANTED), gone as he uses the item there (data.ts: the gate's room effect clears `WANTED_CELLS`). The daruma beside the shutter's top (the gantry post is over it), the fish food
+ * over the pond's far planks, the hood over the hideout's door, under the first walkway.
+ */
+export const WANTED = {
+  shutter: { room: JP.platform, piece: 'jpWantDaruma', col: 27, row: 8 },
+  pond: { room: JP.garden, piece: 'jpWantFishFood', col: 21, row: 9 },
+  door: { room: JP.hideout, piece: 'jpWantHood', col: 19, row: 12 },
+} as const;
+type Wanted = (typeof WANTED)[keyof typeof WANTED];
+const wantedDecor = (w: Wanted) => [w.piece, w.col, w.row] as const;
+/** The playfield cells a gate's picture covers (what its room effect clears). */
+export const wantedCells = (w: Wanted) => pieceCells(w.piece, w.col, w.row);
+export const WANTED_ANIMS: readonly CharAnim[] = Object.values(WANTED).map((w): CharAnim => ({
+  kind: 'cycle', room: w.room, chars: [0, 1, 2, 3].map((cell) => ({ decor: decorIndex(w.piece), cell })), frames: WANTED_FRAMES[w.piece], every: 10,
+}));
+
 /** The platform's scenery: the skyline beyond the station, a sign and a clock, the overhead wire across the whole room (but where a rope climbs through it) on its masts, the safety line along the deck's edge. */
 const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 0 && c !== 23 && c !== 29);
 const EDGE_COLS = [1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16, 17, 18, 22, 24, 25, 28, 30, 31];
 const PLATFORM_DECOR = [
   ['jpTowerGreen', 1, 3], ['jpTowerYellow', 26, 2], ['jpStars', 10, 1], ['jpStationSign', 6, 4], ['jpClock', 20, 4], ['jpBoard', 15, 3], ['jpVending', 5, 11],
-  ...WIRE_COLS.map((col) => ['jpWire', col, 7] as const), ['jpMast', 13, 8], ['jpMast', 26, 8],
+  ...WIRE_COLS.map((col) => ['jpWire', col, 7] as const), ['jpMast', 13, 8], ['jpMast', 25, 8],
   ...EDGE_COLS.map((col) => ['jpEdge', col, 13] as const),
 ] as const;
 
@@ -562,7 +581,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[27, 15], [16, 12]],
     item: { name: 'daruma', col: 3, row: 12, sprite: JAPAN_SPRITE.daruma },
-    decor: [...PLATFORM_DECOR],
+    decor: [...PLATFORM_DECOR, wantedDecor(WANTED.shutter)],
   }),
 
   // F MOUNT FUJI: Mount Fuji's open mountainside (FUJI). In from the platform past the shutter onto a ledge jutting from a spur (mid); Fuji's cone behind the climb, the pilgrim's trail hanging over the drop along its foot
@@ -578,7 +597,8 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
   }),
 
   // G KOI POLLOI: the temple garden on the mountain's shoulder. In by the chain through the floor at the left; the bank runs right past the temple and the cherry tree to the koi pond: a zig-zag of planks over the
-  // water with two koi leaping out of it (once they are fed they are gone and the planks float up). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
+  // water with two koi leaping out of it (fed, the quick one swims off with the food and the planks float up; the slow one still leaps across the first plank and the jump off it: the crossing waited
+  // for from the bank, both ways, the tanuki the bank's own puzzle). The fish food's picture blinks over the pond until then (WANTED). The far bank has the castle gate on the right and a pergola up to a bamboo rope through the ceiling to THE LAST MOLE.
   room({
     id: JP.garden, cell: [1, 15], sector: 33, palette: GARDEN_PALETTE,
     shut: [['left', 3, 8, 'K'], ['right', 3, 4, 'K']], // the crossing's wall at the left, the hall's at the right
@@ -593,10 +613,10 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(28, 0, 28, 9, 'R');
     },
     coins: [[16, 12], [19, 11]],
-    decor: [['jpPagoda', 12, 2], ['jpSakura', 6, 8], ['jpTorii', 11, 10], ['jpToro', 26, 11]],
+    decor: [['jpPagoda', 12, 2], ['jpSakura', 6, 8], ['jpTorii', 11, 10], ['jpToro', 26, 11], wantedDecor(WANTED.pond)],
     creatures: [
       { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 1, range: 56 },
-      { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 2, range: 28 }, // (the second at twice the first's pace: the gaps drift)
+      { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 2, range: 28 }, // (the second at twice the first's pace: the gaps drift; the fish food sends this one off)
       { who: 'jpTanuki', col: 7, row: 12, way: 'right', speed: 2, range: 24 }, // quick along the gravel to the pond's edge
     ],
   }),
@@ -645,7 +665,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     },
     coins: [[9, 13], [26, 9], [11, 5]],
     item: { name: 'sushi2', col: 28, row: 15, sprite: JAPAN_SPRITE.sushi },
-    decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 6, 3], ['jpBamboo3', 3, 9], ['jpBamboo3', 18, 3], ['jpPine', 13, 5], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5]],
+    decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 6, 3], ['jpBamboo3', 3, 9], ['jpBamboo3', 18, 3], ['jpPine', 13, 5], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5], wantedDecor(WANTED.door)],
     creatures: [
       { who: 'jpNinja', col: 21, row: 15, way: 'right', speed: 1, range: 24 }, // the door's guard (the hood: he walks off)
       { who: 'jpNinja', col: 18, row: 2, way: 'down', speed: 2, range: 28 }, // dropping out of the bamboo onto the third walkway and climbing back: under him while he is up
