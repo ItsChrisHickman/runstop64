@@ -1,13 +1,13 @@
 /**
  * The ice cave at Mount Fuji's foot (GONE WITH THE WIND, japan.ts; the real Narusawa Ice Cave and Fugaku Wind Cave are lava tubes there), in Japan's creatures' manner (japan-creatures.ts): bold
  * 16 x 16 figures in one bright ink, the detail cut in as black lines. The yuki-onna, the snow woman of Japan's snowy mountains, is the cave's danger: a pale woman in a white kimono with long hair,
- * no feet, drifting. The tengu, the long-nosed mountain goblin with a crow's wings and a feather fan, who in the legends whisks people away, is no danger: he flies in to the gust at the cave's end
- * and beckons with his fan (a cameo: cameos.ts, his frames as a creature's eight), and the gust carries Monty up and back onto the mountain. Every name starts `jp`.
+ * no feet, drifting. The tengu, the long-nosed mountain goblin with a crow's wings and a feather fan, who in the legends whisks people away, is no danger: he hovers by the gust at the cave's end
+ * fanning the wind into it (drawn in the room's characters, a colour each), and the gust carries Monty up and back onto the mountain. Every name starts `jp`.
  */
 import { pair } from './creature-kit';
 import { decor } from './decorations';
 import { four } from './japan-bold';
-import { characters, creatureBank, mirrored } from './pixels';
+import { characters } from './pixels';
 import { Raster } from './raster';
 import type { NewCreature, NewDecor } from './types';
 
@@ -45,44 +45,38 @@ export const JAPAN_CAVE_CREATURES = {
   jpYukiOnna: yukiOnna(),
 } as const satisfies Record<string, NewCreature>;
 
-// ---- the tengu: a red face with a very long nose and a fierce brow, a little black cap, a robe, a crow's wings at his back; standing, he holds out his feather fan
+// ---- the tengu: the long-nosed mountain goblin with a crow's wings and a feather fan, hovering beside the gust's beam and fanning the wind into it (Chris, 2026-11-26: the cameo that flew in and
+// stood read as Viktor). Drawn in the room's own characters, 3 x 3, a colour a character (as no sprite could be: one ink): his crow's wings dark grey either side, white hair under a little cap, the red
+// face with its very long nose pointing at the beam, a purple robe, the yellow feather fan. Two pictures, the wings up and the fan raised, the wings down and the fan swept: a cycle (japan.ts TENGU_ANIM).
 
-/** The tengu standing, facing left: cap, head, the long nose, the folded wing's tip behind him, the fan held out low in front, the robe and the geta. */
-const TENGU_STAND = [
-  '..........##....',
-  '........######..',
-  '.......#..#####.',
-  '.......#.######.',
-  '###########.###.',
-  '.##########.###.',
-  '........######.#',
-  '.........####.##',
-  '.......#########',
-  '.###..##########',
-  '#####.#.#######.',
-  '#####..#######..',
-  '.###...#######..',
-  '..#...########..',
-  '.....#########..',
-  '.....##.#..##...',
+/** A picture of 3 x 3 characters from its nine 8 x 8 cells (row by row). */
+const cells3 = (c: readonly (readonly string[])[]): string[] => [0, 1, 2].flatMap((cr) => Array.from({ length: 8 }, (_, y) => [0, 1, 2].map((cc) => c[cr * 3 + cc]?.[y] ?? '........').join('')));
+const HAIR = ['..####..', '.#....#.', '.#....#.', '########', '########', '#.####.#', '##.##.##', '########'];
+const NOSE = ['........', '........', '........', '..######', '########', '...#####', '........', '........'];
+const FACE = ['.######.', '########', '#..#####', '##.#####', '########', '########', '.######.', '..####..'];
+const ROBE = ['.######.', '########', '########', '#.######', '########', '.######.', '.##..##.', '.##..##.'];
+const EMPTY = Array.from({ length: 8 }, () => '........');
+/** Wings up, the fan raised; wings down, the fan swept down. */
+const TENGU_PICTURES = [
+  cells3([
+    ['#.......', '##......', '.##..#..', '.###.##.', '..######', '..######', '...#####', '....####'], HAIR, ['.......#', '......##', '..#..##.', '.##.###.', '######..', '######..', '#####...', '####....'],
+    NOSE, FACE, ['####....', '#####...', '######..', '######..', '#####...', '####....', '###.....', '##......'],
+    ['.####...', '######..', '######..', '######..', '.####...', '...#....', '...#....', '...#....'], ROBE, ['#.......', '##......', '.#......', ...EMPTY.slice(3)],
+  ]),
+  cells3([
+    [...EMPTY.slice(5), '....####', '..######', '.#######'], HAIR, [...EMPTY.slice(5), '####....', '######..', '#######.'],
+    NOSE, FACE, ['######..', '#######.', '########', '#######.', '######..', '#####.#.', '####..##', '###....#'],
+    ['...#....', '...#....', '.####...', '######..', '######..', '######..', '######..', '.####...'], ROBE, ['##..#...', '#....#..', '.#....#.', ...EMPTY.slice(3)],
+  ]),
 ] as const;
-/** Picture `pose` of the tengu facing left: 0 and 1 flying (the fan put away, the wings beating up and down), 2 standing with his fan held out (he beckons: the gust), 3 the same. */
-function tengu(pose: number): string[] {
-  const r = new Raster(16, 16);
-  r.stamp(TENGU_STAND, 0, 0);
-  if (pose < 2) {
-    r.rect(0, 9, 5, 13, false); // the fan put away
-    r.rect(13, 6, 15, 8, false);
-    if (pose === 0) r.triangle(11, 8, 15, 0, 15, 7); else r.triangle(11, 9, 15, 15, 15, 9); // the wing beating up, and down
-    r.line(11, 8, 11, 12, false); // its edge against the robe
-  }
-  return r.rows();
-}
-const TENGU_LEFT = [0, 1, 2, 3].map(tengu);
-/** The tengu's eight pictures (the cameo's: two flying, the beckon and again, going left; their mirrors going right), in a creature's bank layout. */
-export const TENGU_CAMEO: Uint8Array = creatureBank('tengu cameo', TENGU_LEFT, TENGU_LEFT.map(mirrored));
-/** His ink: red, the tengu's face. */
-export const TENGU_INK = 2;
+/** The tengu's colours, a character each: the wings dark grey, the hair white, the nose and face red, the fan yellow, the robe purple. */
+const TENGU_COLOURS = ['B1B', '22B', '74B'] as const;
+export const TENGU_FRAMES: readonly Uint8Array[] = TENGU_PICTURES.map((rows, k) => characters(`tengu ${k}`, rows, 3, 3));
+const tenguPiece = (): NewDecor => {
+  const r = new Raster(24, 24);
+  r.stamp(TENGU_PICTURES[0], 0, 0);
+  return decor('jpTengu', 3, 3, r, TENGU_COLOURS);
+};
 
 // ---- the gust: the wind rising round the tengu's beam (Monty on the Run's teleporter), streaks curling upwards, one character stamped down either side of it and turned by a cycle (japan.ts GUST_ANIM)
 
@@ -113,4 +107,5 @@ export const GUST_COLOURS = Uint8Array.of(1, 3, 14, 3);
 
 export const JAPAN_CAVE_DECOR = {
   jpGust: gustPiece(),
+  jpTengu: tenguPiece(),
 } as const satisfies Record<string, NewDecor>;

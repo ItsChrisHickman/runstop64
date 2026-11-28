@@ -15,16 +15,17 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE, type State } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { must } from '../../shared/test/must';
-import { ADDED_ROOMS, DECOR_LIBRARY, STEAM_VALVE, WORLD } from '../src/data';
+import { ADDED_ROOMS, DECOR_LIBRARY, STEAM_VALVE, TICKET_KEEPS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { ROOM } from '../src/moscow';
 import { CAB, CART, CLOSET, CRACKS, VESTIBULE, GANGWAYS, INSPECTOR_SLOT, MINE_CART, MINE_LADDER, MINE_ROPE, MINER, PINE, RIVER, SIB, SIBERIA_ICICLES, SIBERIA_ROOMS, STEAM, TAIGA, TAIGA_BOUGHS, TUNNELS, YETI } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
+import { isBackdropIndex } from '../src/layout';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { RETIRED } from '../src/save-migrate';
-import { at, cell, colOf, dead, diesAt, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
+import { at, cell, colOf, dead, diesAt, icicleMet, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
 import { piecePlace, placeAt, lapFrames } from '../../montyotr/src/dragons';
 import { CHI } from '../src/china';
 import { creatureRooms, itemIndex, standY } from './route';
@@ -83,7 +84,7 @@ SCOPE.section([], 'the layout (the rooms in the filter)', () => {
         const col = d.col - 4 + cc, row = d.row - 3 + rr;
         if (col < 0 || col > 31 || row < 0 || row > 19) continue;
         if (classAt(r.id, col, row) !== 0) bad.push(`${r.id}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
-        covered.add(col + ',' + row);
+        if (typeof d.type === 'number' && !isBackdropIndex(d.type)) covered.add(col + ',' + row); // (a backdrop keeps a coin and a find over it: layout.ts underFinds)
       }
     }
     for (const [col, row] of r.coins ?? []) if (classAt(r.id, col, row) !== 0 || covered.has(col + ',' + row)) bad.push(`${r.id}: coin ${col},${row} in a tile or under a decoration`);
@@ -289,8 +290,31 @@ SCOPE.section([SIB.gravy, SIB.sleeper, SIB.coal, SIB.yeti, ROOM.station], 'the t
     must(s.g.enemies[0], 'the provodnitsa').x = 0xff;
     run(s, RIGHT, 200);
     check(`the inspector stands in his gangway: walking into it he stops at column ${colOf(s.g)} and lives (he only bars the way)`, !dead(s.g) && s.g.roomId === SIB.sleeper && colOf(s.g) >= 27);
-    const t = at(SIB.sleeper, 24, 17, [TICKET], false, true);
-    check('with the ticket he has stepped out of the gangway', must(t.g.enemies[INSPECTOR_SLOT], 'the inspector').x === 0xff);
+    // with the ticket the gates give way where he uses it, seen, and stay done (`at` with `keep`)
+    const t = at(SIB.sleeper, 18, 17, [TICKET], false, true);
+    must(t.g.enemies[0], 'the provodnitsa').x = 0xff;
+    const waiting = must(t.g.enemies[INSPECTOR_SLOT], 'the inspector').x !== 0xff && classAt(SIB.sleeper, 30, 15) === 1 && cell(t.g, 30, 15) !== 0;
+    let f = 0;
+    for (; f < 200 && !t.g.siCollected[TICKET_KEEPS.inspector]; f++) frame(t, RIGHT);
+    const usedAt = colOf(t.g);
+    let gone = 0;
+    for (; gone < 200 && must(t.g.enemies[INSPECTOR_SLOT], 'the inspector').x !== 0xff; gone++) frame(t, NONE);
+    check(`with the ticket the inspector waits in his gangway until Monty comes up to him (column ${usedAt}), then turns and walks off west down the corridor (gone ${gone} frames later), the gangway open, alive`,
+      waiting && usedAt >= 23 && usedAt <= 27 && gone > 30 && gone < 200 && cell(t.g, 30, 15) === 0 && !dead(t.g));
+    enterRoom(t.g, SIB.sleeper, 0x0c + (4 + 4) * 4, standY(17));
+    check('and it stays done: coming into the sleeper again the gangway is open and the inspector is not there', cell(t.g, 30, 15) === 0 && must(t.g.enemies[INSPECTOR_SLOT], 'the inspector').x === 0xff);
+    const c = at(SIB.sleeper, CLOSET.hatch - 1, CLOSET.floor - 4, [TICKET]);
+    const bolted = cell(c.g, CLOSET.hatch - 1, CLOSET.floor) !== 0;
+    run(c, DOWN, 200);
+    const through = c.g.y === standY(17) && !!c.g.siCollected[TICKET_KEEPS.closet];
+    enterRoom(c.g, SIB.sleeper, 0x0c + (4 + 4) * 4, standY(17));
+    check(`the closet's floor is bolted until he climbs down onto it with the ticket (${bolted}), then opens under him and he goes on down into the corridor (${through}), and it stays open`,
+      bolted && through && cell(c.g, CLOSET.hatch - 1, CLOSET.floor) === 0);
+    // a save from before the keeps: the ticket held, the keeps unset, coming at the gangway from the tender's side, it opens there (never a trap)
+    const back = at(SIB.coal, 2, 17, [TICKET]);
+    for (let f = 0; f < 240 && !(back.g.roomId === SIB.sleeper && colOf(back.g) < 26) && !dead(back.g); f++) frame(back, LEFT);
+    check(`coming back west from the tender with the ticket but no keep (an older save), the gangway gives way as he enters and he walks on into the corridor (column ${colOf(back.g)})`,
+      back.g.roomId === SIB.sleeper && colOf(back.g) < 26 && !dead(back.g));
   }
 });
 
@@ -430,6 +454,10 @@ SCOPE.section([SIB.yeti, SIB.sleeper, SIB.gravy, SIB.coal], 'the yeti and the ic
   const used = YETI.pieces.map((p) => p.sprite);
   check(`it takes sprites ${used.join(', ')}: none that the ticket (0), the icicle (1), Monty (3) or his hat (7) need`, used.every((n) => ![0, 1, 3, 7].includes(n)));
   check('the cave has one icicle (sprite 1), over the ticket', SIBERIA_ICICLES.length === 1 && SIBERIA_ICICLES[0]?.room === SIB.yeti && Math.abs((SIBERIA_ICICLES[0]?.col ?? 0) - ((yeti.item?.col ?? 0) - 4)) <= 1);
+  // it shakes as he comes along the high ledge toward the ticket (lead): walking straight on from the ledge's east end dies, stopping as it shakes and going on as it grows back lives
+  const ticketIce = must(SIBERIA_ICICLES[0], 'the icicle over the ticket');
+  const met = icicleMet(SIB.yeti, ticketIce, 21, 5, 1);
+  check(`walking west along the ledge to the ticket, the icicle shakes ${ticketIce.lead ?? 0} cells ahead and falls on him (frame ${met.straight}); stopping as it shakes and going on as it grows back, he gets by (${met.waited})`, met.straight >= 0 && met.waited);
   check('and back down from the ticket: over the bridge, down the stair, into the gap and down the pine into the sleeper (a dead end, never a trap)',
     search(at(SIB.yeti, 18, 5, [TICKET]), (g) => g.roomId === SIB.sleeper && !g.freeze && !g.script, [{ room: SIB.yeti, col: 20, row: 19 }], 400000, 1.5) !== null);
   check('the bot finds the way from the pine\'s top over the stair and the bridge to the ticket', search(at(SIB.yeti, 23, 17), (g) => g.roomId === SIB.yeti && g.siCollected[itemIndex(g, SIB.yeti, 0)] !== 0, [{ room: SIB.yeti, col: 18, row: 3 }], 400000, 1.5) !== null);
@@ -559,19 +587,24 @@ SCOPE.section([SIB.border, SIB.mine, CHI.wall], 'the river\'s cracking ice', () 
     check('and he falls into the river and dies', fell);
   }
   {
+    // it breaks faster than he walks across it (Chris: "both water bridges should break faster"): a jump is part of the crossing
+    const walk = standOn(patch.col - 2);
+    let walked = -1;
+    for (let f = 0; f < 200 && walked < 0 && !dead(walk.g); f++) { frame(walk, RIGHT); if (colOf(walk.g) > patch.col + patch.cols) walked = f; }
+    check(`walking straight across the ${patch.cols} cells of ice it breaks under him (at column ${colOf(walk.g)}) before he is over`, walked < 0 && dead(walk.g));
     const s = standOn(patch.col - 2);
     let worst = 0, crossed = -1;
-    for (let f = 0; f < 200 && crossed < 0; f++) {
-      frame(s, RIGHT);
+    for (let f = 0; f < 200 && crossed < 0 && !dead(s.g); f++) {
+      frame(s, colOf(s.g) >= patch.col - 1 && f < 40 ? { ...RIGHT, fire: true } : RIGHT); // one jump from the bank's edge, then on at a walk
       worst = Math.max(worst, must(s.g.cracks[0], 'the stretch').stage);
       if (colOf(s.g) > patch.col + patch.cols) crossed = f;
     }
-    check(`walking across the ${patch.cols} cells of ice (${crossed} frames) is safe: it shows lines at most (stage ${worst}) and he lives, on the sandbar`, crossed >= 0 && worst <= 1 && !dead(s.g));
+    check(`a jump out onto it from the bank and on at a walk gets him over (${crossed} frames; the ice at stage ${worst}, not gone) to the sandbar`, crossed >= 0 && worst <= 2 && !dead(s.g));
     run(s, NONE, 400);
     check('on the sandbar he can stop as long as he likes', !dead(s.g) && colOf(s.g) >= RIVER.bar[0] - 1 && colOf(s.g) <= RIVER.bar[1]);
   }
   {
-    const s = standOn(patch.col + 2);
+    const s = standOn(patch.col); // (at its edge: off it again in a step)
     run(s, NONE, patch.crack + 5);
     check('after the crack frames the ice shows lines (not yet broken)', cell(s.g, patch.col, patch.row) === patch.codes[1]);
     run(s, LEFT, 40);

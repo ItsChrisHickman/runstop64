@@ -1,6 +1,6 @@
 /**
- * The Andes and the Amazon's fourteen rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
- * starting in a wall, the joins as the design says (andes-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than two rooms.
+ * The Andes and the Amazon's seventeen rooms as drawn, checked for what a picture can hide: no coin or find in a wall or under a decoration (the decoration's characters would replace the coin's), no decoration on a wall, no creature
+ * starting in a wall, the joins as the design says (andes-mechanisms.ts checks every opening against the next room's: no open row meets a wall), each room's decorations within the 101 characters a room has, and each creature in no more than eight rooms.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/andes-layout.ts [--room <rooms>]   (--room: the named rooms' own checks; the region's totals are always checked)
  */
@@ -54,7 +54,7 @@ for (const r of scopedRooms(ANDES_ALL_ROOMS)) {
 }
 
 const rooms = creatureRooms(ANDES_ALL_ROOMS);
-for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Andes (${[...where].join(', ')})`, where.size <= 2);
-check(`thirteen kinds of creature (${rooms.size}; the piranha is a thing on a path)`, rooms.size === 13);
-check('fourteen rooms', ANDES_ALL_ROOMS.length === 14);
+for (const [type, where] of rooms) check(`creature ${type} is in at most eight rooms of the Andes (${[...where].join(', ')}; the challenge pass: about three a room, a kind back in a colour or pattern of the room's)`, where.size <= 8);
+check(`at least thirteen kinds of creature (${rooms.size}; the piranha is a thing on a path)`, rooms.size >= 13);
+check('seventeen rooms', ANDES_ALL_ROOMS.length === 17);
 finish();

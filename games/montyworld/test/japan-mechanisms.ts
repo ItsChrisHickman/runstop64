@@ -25,9 +25,9 @@ import { hoodWorn, WORLD_CREATURES, WORLD_DECOR } from '../src/art';
 import { JAPAN_CAVE_CREATURES } from '../src/art/japan-cave';
 import { JAPAN_CREATURES } from '../src/art/japan-creatures';
 import { CHI } from '../src/china';
-import { ADDED_ROOMS, WORLD } from '../src/data';
+import { ADDED_ROOMS, JAPAN_KEEPS, WORLD } from '../src/data';
 import { HAT_BLOCKS } from '../src/hats';
-import { BALL_STREAM, CAVE, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS } from '../src/japan';
+import { BALL_STREAM, CAVE, CAVE_ICICLE_TIMING, CROSSING, CROSSING_MOUTHS, DOOR_PULSES, DOORS, FUJI, FUJI_HUTS, FUJI_SNOW, GALLERY_DOOR_PULSES, GUST_LANDING, GUST_LIFT, GALLERY_ROW, JAPAN_ROOMS, JP, MOLE_SINKING, MOLE_STONES, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, STREET_TRAIN, TRAIN, TRAIN_APART, TRAINS, WANTED, wantedCells } from '../src/japan';
 import { HOOD_COLOUR } from '../src/art/japan-hood';
 import { JAPAN_SPRITE } from '../src/japan-pointers';
 import { FIRST_CREATURE, isBackdrop, pieceChar } from '../src/layout';
@@ -36,8 +36,12 @@ import { PAC } from '../src/pacific';
 import { ACTIONS, hold, newGame } from '../../shared/monty/test/bot';
 import { SCOPE, scopedRooms } from './scope';
 import { search } from './search';
-import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, icicleMet, shakes, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn, UP } from './mech-kit';
 import { coinIndex, creatureRooms, itemIndex, standY } from './route';
+
+/** Whether a gate's picture of what it wants (japan.ts WANTED) is drawn in its cells, or cleared from them. */
+const wantedShown = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) !== 0);
+const wantedGone = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) === 0);
 
 /** The items by name (the room's nth). */
 const DARUMA = [JP.platform, 0] as const, FISH = [JP.crossing, 0] as const, HOOD = [JP.mole, 0] as const;
@@ -55,8 +59,10 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
   const firstAdded = coinRooms.indexOf(CHI.heaven);
   check('SHOOT FOR THE MOON\'s two coins are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins) and it has no find',
     coinsIn(JP.grove, JP.grove) === 2 && firstAdded >= 0 && coinRooms.indexOf(JP.grove) > firstAdded && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && itemsIn(JP.grove, JP.grove) === 0);
-  check('GONE WITH THE WIND\'s two coins are the coin table\'s last (the room added last: a format 4 save\'s coins keep their places) and it has no find',
-    coinsIn(JP.cave, JP.cave) === 2 && coinRooms.slice(-2).every((r) => r === JP.cave) && itemsIn(JP.cave, JP.cave) === 0);
+  const caveAt = coinRooms.indexOf(JP.cave), caveAdded = ADDED_ROOMS.indexOf(JP.cave);
+  check('GONE WITH THE WIND\'s two coins keep their coin table places (after every room before it; only rooms added after it in ADDED_ROOMS come later: a format 4 save\'s coins keep their places) and it has no find',
+    coinsIn(JP.cave, JP.cave) === 2 && caveAt >= 0 && caveAdded >= 0 && coinRooms[caveAt + 1] === JP.cave
+      && coinRooms.slice(caveAt + 2).every((r) => ADDED_ROOMS.indexOf(r) > caveAdded) && itemsIn(JP.cave, JP.cave) === 0);
   const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
@@ -334,9 +340,23 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     const stats = { exhausted: false };
     const noWay = search(shut, out, undefined, 80000, 0, stats) === null;
     check(`and the bot finds no way through it (80000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}); a jump (${rise}) is lower than the wall over it`, noWay);
+    // with it (taken at the platform's west end) the shutter stands until he comes up to it: then it rolls up there, seen, and stays up (a hidden find)
+    const near = at(JP.platform, 22, 14, [DARUMA]);
+    near.g.tunnels = [];
+    run(near, NONE, 2);
+    const stood = SHUTTER_CELLS.every(([row, col]) => cell(near.g, col, row) !== 0);
+    let f = 0;
+    for (; f < 120 && !near.g.siCollected[JAPAN_KEEPS.shutter]; f++) frame(near, RIGHT);
+    check(`with the daruma the shutter stands as he comes onto the platform (${stood}) and rolls up as he comes up to it (frame ${f}), kept up`, stood && f < 120 && SHUTTER_CELLS.every(([row, col]) => cell(near.g, col, row) === 0));
+    check('the gate shows what it wants: the daruma\'s picture beside the shutter\'s top, without it and with it until he uses it there; gone as the shutter rolls up', wantedShown(shut.g, WANTED.shutter) && wantedGone(near.g, WANTED.shutter));
     const open = at(JP.platform, 26, 14, [DARUMA]);
     open.g.tunnels = [];
-    check('with it (taken at the platform\'s west end) the shutter is gone and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
+    run(open, NONE, 2);
+    check('and the bot walks out east into the mountain\'s foot', SHUTTER_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, out, undefined, 100000, 1.5) !== null);
+    // a save from before the keep, coming back from the mountain with the daruma: the shutter rolls up there as he steps in (never a trap)
+    const back = at(JP.platform, 30, 14, [DARUMA]);
+    run(back, NONE, 2);
+    check('coming back in from the mountain with the daruma but no keep (an older save), the shutter rolls up as he steps in', SHUTTER_CELLS.every(([row, col]) => cell(back.g, col, row) === 0) && !!back.g.siCollected[JAPAN_KEEPS.shutter]);
   });
   // the koi and the fish food
   SCOPE.section([JP.garden, JP.crossing, JP.fuji, JP.mole, JP.hall], 'the gates: the koi and the fish food', () => {
@@ -344,15 +364,40 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     const pond = at(JP.garden, 8, 14, [], false, true);
     const koi = pond.g.enemies.filter((e) => e.type === KOI);
     check('without the fish food two koi leap in the pond (in its first two slots), on the screen', koi.length === 2 && pond.g.enemies[0]?.type === KOI && pond.g.enemies[1]?.type === KOI && koi.every((e) => e.x !== 0xff));
-    const fed = at(JP.garden, 8, 14, [FISH], false, true);
-    check('with it (taken at the overpass) both are gone, sent off the screen; the tanuki stays', fed.g.enemies.filter((e) => e.type === KOI).every((e) => e.x === 0xff) && fed.g.enemies.filter((e) => e.type !== KOI).every((e) => e.x !== 0xff));
+    // with it (taken at the overpass) the koi leap on until he comes to the pond's edge with it: there they dive away, seen, and stay gone (hidden finds)
+    const away = at(JP.garden, 8, 14, [FISH], false, true);
+    run(away, NONE, 2);
+    const still = away.g.enemies.filter((e) => e.type === KOI).every((e) => e.x !== 0xff);
+    const fed = at(JP.garden, 10, 14, [FISH], false, true);
+    let f = 0;
+    for (; f < 200 && !fed.g.siCollected[JAPAN_KEEPS.koi]; f++) frame(fed, RIGHT);
+    const left = fed.g.enemies.map((e) => e.x !== 0xff);
+    check(`with it the koi leap on away from the pond (${still}); at the pond's edge (frame ${f}) the quick koi (slot 1) swims off with the food, kept, while the slow one (slot 0) leaps on across the first plank's jump and the tanuki stays`,
+      still && f < 200 && left[0] === true && left[1] === false && left[2] === true && !!fed.g.siCollected[JAPAN_KEEPS.koi]);
+    check('the pond shows what it wants: the fish food\'s picture over the far planks until he feeds the koi, then gone', wantedShown(pond.g, WANTED.pond) && wantedShown(away.g, WANTED.pond) && wantedGone(fed.g, WANTED.pond));
+    const later = at(JP.garden, 8, 14, [FISH], false, true);
+    later.g.siCollected[JAPAN_KEEPS.koi] = 0x81;
+    enterRoom(later.g, JP.garden, 0x0c + (8 + 4) * 4, standY(14)); // (the room loaded again with the keep set)
+    check('coming back with the koi fed (kept): the planks are up, the picture gone, the slow koi still leaping', PLANK_CELLS.every(([row, col]) => cell(later.g, col, row) === PLANK_CODE) && wantedGone(later.g, WANTED.pond) && later.g.enemies[0]?.x !== 0xff && later.g.enemies[1]?.x === 0xff);
     // the pond: without the food only the first plank is there (the far bank is seven cells off), with it the other two float up
     const far = (g: Game) => g.roomId === JP.garden && colOf(g) >= 26 && g.y === standY(14);
     const bare = at(JP.garden, 14, 14);
     const jump = (() => { let n = 0; for (const [row, col] of PLANK_CELLS) n += cell(bare.g, col, row) === 0 ? 0 : 1; return n; })();
     check(`without the food the pond's other planks are not there (${PLANK_CELLS.length} cells empty): the far bank is out of a jump's reach (a jump spans about five cells), and the bot finds no way across in 150000 states`, jump === 0 && search(bare, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) === null);
     const clear = at(JP.garden, 14, 14, [FISH]);
-    check('with it (taken at the overpass) the planks are there (placed on loading the room) and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
+    run(clear, NONE, 2);
+    check('with it, at the pond\'s edge the planks float up and the bot crosses them to the far bank', PLANK_CELLS.every(([row, col]) => cell(clear.g, col, row) === PLANK_CODE) && search(clear, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null);
+    // and with the slow koi still leaping (the quick one gone with the food), the crossing is timed to it: the bot waits for it and crosses, both ways
+    const timed = at(JP.garden, 14, 14, [FISH], false, true);
+    const noTanuki = (t: State) => { t.g.enemies = t.g.enemies.slice(0, 2); t.g.enable &= ~0x40; t.g.vic.enable &= ~0x40; }; // (the bank's tanuki, slot 2, out of the way: the search is of the pond)
+    noTanuki(timed);
+    run(timed, NONE, 2);
+    const near = (g: Game) => g.roomId === JP.garden && colOf(g) <= 14 && g.y === standY(14);
+    const back = at(JP.garden, 27, 14, [FISH], false, true);
+    noTanuki(back);
+    run(back, NONE, 2);
+    check('with the slow koi leaping on, the bot crosses the planks to the far bank and back, timed to it', timed.g.enemies[0]?.x !== 0xff && timed.g.enemies[1]?.x === 0xff
+      && search(timed, far, [{ room: JP.garden, col: 28, row: 12 }], 150000, 1.5) !== null && search(back, near, [{ room: JP.garden, col: 12, row: 12 }], 150000, 1.5) !== null);
   });
   // the hideout's door guard (a ninja at the low corridor under the roof) and the hood: the way on to the port runs through that door (the hall's far end is walled)
   SCOPE.section([JP.hideout, JP.hall, JP.port, JP.mole, JP.garden], 'the gates: the door guard and the hood', () => {
@@ -360,18 +405,30 @@ SCOPE.section([JP.platform, JP.parlour, JP.fuji, JP.crossing, JP.garden, JP.mole
     const NINJA = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
     const sushi = (g: Game) => g.siCollected[itemIndex(g, JP.hideout, 0)] !== 0;
     const guard = at(JP.hideout, 17, 17, [], false, true);
-    check('without the hood a ninja guards the hideout\'s door (its first creature slot) and a samurai paces the roof', guard.g.enemies[0]?.type === NINJA && guard.g.enemies[0].x !== 0xff && guard.g.enemies[1]?.type === SAMURAI);
+    check('without the hood a ninja guards the hideout\'s door (its first creature slot), a second drops from the bamboo and a samurai paces the roof', guard.g.enemies[0]?.type === NINJA && guard.g.enemies[0].x !== 0xff && guard.g.enemies[1]?.type === NINJA && guard.g.enemies[2]?.type === SAMURAI);
     const stats = { exhausted: false };
     const port = (g: Game) => g.roomId === JP.port;
     const aim = [{ room: JP.hideout, col: 25, row: 19 }, { room: JP.hall, col: 25, row: 19 }] as const;
     guard.g.pulses = [];
     const noWay = search(guard, port, aim, 60000, 0, stats) === null && search(guard, sushi, [{ room: JP.hideout, col: 28, row: 15 }], 60000, 0) === null;
     check(`and the bot finds no way past him, neither to the sushi nor down the shaft to the port (60000 states looked at${stats.exhausted ? ', every one there is' : ', the search limit'}): the hall's far end is walled, so the hideout's door is the way on`, noWay);
+    // in the hood the guard takes him for a ninja where he comes to the door: he walks off west out of the room, harmless, seen, and stays gone (a hidden find)
+    const leaving = at(JP.hideout, 14, 17, [HOOD], false, true);
+    leaving.g.pulses = []; leaving.g.rollers = [];
+    let f = 0;
+    for (; f < 120 && !leaving.g.siCollected[JAPAN_KEEPS.guard]; f++) frame(leaving, RIGHT);
+    let off = 0;
+    for (; off < 300 && must(leaving.g.enemies[0], 'the guard').x !== 0xff; off++) frame(leaving, NONE);
+    check(`in the hood, coming to the door (frame ${f}) the guard walks off west and out of the room (${off} frames), harmless as he goes (alive ${!dead(leaving.g)}), the roof samurai staying`, f < 120 && off < 300 && !dead(leaving.g) && must(leaving.g.enemies[2], 'the roof samurai').x !== 0xff);
+    check('the door shows what it wants: the hood\'s picture over it until he comes to it in the hood, then gone', wantedShown(guard.g, WANTED.door) && wantedGone(leaving.g, WANTED.door));
     const hood = at(JP.hideout, 17, 17, [HOOD], false, true);
-    check('with the ninja hood the door guard is gone (sent off the screen) and the roof samurai stays', must(hood.g.enemies[0], 'the guard').x === 0xff && must(hood.g.enemies[1], 'the roof samurai').x !== 0xff);
+    hood.g.enemies = hood.g.enemies.filter((_, i) => i !== 1); // (the dropping ninja out of the way: the search is of the door)
+    hood.g.rollers = [];
     check('and the bot walks in and takes the sushi', search(hood, sushi, [{ room: JP.hideout, col: 28, row: 15 }], 150000, 1.5) !== null);
     hood.g.pulses = [];
-    check('and drops down the corridor\'s gap, down the hall\'s shaft and the rope, to the port', search(at(JP.hideout, 17, 17, [HOOD], false, true), port, aim, 150000, 1.5) !== null);
+    const down = at(JP.hideout, 21, 17, [HOOD]);
+    down.g.pulses = []; down.g.rollers = [];
+    check('and drops down the corridor\'s gap, down the hall\'s shaft and the rope, to the port', search(down, port, aim, 150000, 1.5) !== null);
   });
 });
 
@@ -516,22 +573,23 @@ SCOPE.section([], 'hints, the map, saves', () => {
 
   // a save made on coming into each of Japan's rooms (every key taken, the hood on) carries on in the same room, alive
   {
-    const spots = ([[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 22, 17], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.hideout, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const).filter(([room]) => SCOPE.has(room));
+    const spots = ([[JP.harbour, 3, 17], [JP.street, 2, 17], [JP.parlour, 25, 11], [JP.crossing, 3, 17], [JP.platform, 5, 17], [JP.fuji, 3, 14], [JP.garden, 2, 14], [JP.mole, 30, 14], [JP.hideout, 10, 17], [JP.hall, 3, 14], [JP.port, 22, 17]] as const).filter(([room]) => SCOPE.has(room));
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
       for (const [r, n] of [DARUMA, FISH, HOOD]) a.g.siCollected[itemIndex(a.g, r, n)] = 0x81;
+      for (const keep of Object.values(JAPAN_KEEPS)) a.g.siCollected[keep] = 0x81; // (each key used at its gate: kept done)
       wear(a.g, itemIndex(a.g, JP.mole, 0));
       enterRoom(a.g, room, 0x0c + (col + 4) * 4, standY(floor));
       for (let n = 0; n < 200 && (a.g.freeze || a.g.script); n++) frame(a, NONE);
       const b = newGame(WORLD, false);
       restore(b.g, CODEC.unpack(CODEC.pack(snapshot(a.g)), CODEC.format));
       run(b, NONE, 4);
-      // what the keys did in the room is as it was (the effects are put again on loading the room)
+      // what the keys did in the room is as it was (the kept effects are put again on loading the room)
       const KOI_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpKoi'), GUARD_TYPE = FIRST_CREATURE + Object.keys(WORLD_CREATURES).indexOf('jpNinja');
       const effects = room === JP.platform ? SHUTTER_CELLS.every(([row, col]) => cell(b.g, col, row) === 0)
-        : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies.filter((e) => e.type === KOI_TYPE).every((e) => e.x === 0xff)
-        : room === JP.hideout ? b.g.enemies.filter((e) => e.type === GUARD_TYPE).every((e) => e.x === 0xff)
+        : room === JP.garden ? PLANK_CELLS.every(([row, col]) => cell(b.g, col, row) === PLANK_CODE) && b.g.enemies[0]?.type === KOI_TYPE && b.g.enemies[0].x !== 0xff && b.g.enemies[1]?.type === KOI_TYPE && b.g.enemies[1].x === 0xff // (the quick koi fed and gone, the slow one leaping on)
+        : room === JP.hideout ? b.g.enemies[0]?.type === GUARD_TYPE && b.g.enemies[0].x === 0xff // (the door's guard; the ninja in the bamboo stays)
         : true;
       b.g.enemies = [];
       b.g.enable &= 0x0f;
@@ -724,10 +782,15 @@ SCOPE.section([], 'the joins are strict: open edges match', () => {
 
 // ---- MOUNT FUJI: SNOW SLIDES ----------------------------------------------------------------------------
 SCOPE.section([JP.fuji], 'MOUNT FUJI: SNOW SLIDES', () => {
-  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s snowball');
+  const ball = must(WORLD.rollers.find((r) => r.room === JP.fuji), 'the mountain\'s first snowball');
   const [foot, top] = FUJI_HUTS;
   const fuji = must(JAPAN_ROOMS.find((r) => r.id === JP.fuji), 'the mountain');
-  check(`one snowball on the mountain, every ${FUJI_SNOW.every} frames, the first ${FUJI_SNOW.start} in; two huts; no creature to crowd its timing`, WORLD.rollers.filter((r) => r.room === JP.fuji).length === 1 && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  const balls = WORLD.rollers.filter((r) => r.room === JP.fuji);
+  check(`three snowballs on the mountain at once (Chris: "needs more snowballs at a time"), one every ${FUJI_SNOW.apart} frames, the first ${FUJI_SNOW.start} in, each on a sprite of its own; two huts; no creature to crowd their timing`,
+    balls.length === 3 && new Set(balls.map((b) => b.sprite)).size === 3 && balls.every((b, i) => b.start === FUJI_SNOW.start + i * FUJI_SNOW.apart) && FUJI_HUTS.length === 2 && (fuji.enemies?.length ?? 0) === 0);
+  // several on screen together: over a period, the most rolling at one moment
+  const most = Math.max(...Array.from({ length: FUJI_SNOW.every }, (_, t) => balls.filter((b) => rollerAt(b, t + FUJI_SNOW.every) !== null).length));
+  check(`two snowballs on the climb at once at times (most at one moment: ${most})`, most >= 2);
   /** Where the snowball is (its top left, in cells) in a game in the mountain, or null while it is not rolling. */
   const where = (g: Game) => {
     const t = g.rollers.find((r) => WORLD.rollers[r.index] === ball)?.t ?? 0, p = rollerAt(ball, t);
@@ -785,12 +848,15 @@ SCOPE.section([JP.fuji, JP.cave], 'MOUNT FUJI\'s open mountainside and the ice c
   let fell = false;
   for (let f = 0; f < 200 && !dead(step.g); f++) { frame(step, step.g.roomId === JP.fuji && !step.g.falling ? RIGHT : NONE); if (step.g.roomId === JP.cave && !step.g.falling && !step.g.montyAction) { fell = true; break; } }
   check(`off the entry ledge into the gap, he drops into GONE WITH THE WIND and lands on the snow heap (room ${step.g.roomId}, row ${step.g.montyRow - PLAY_ROW}, alive ${!dead(step.g)})`, fell && !dead(step.g) && step.g.montyRow - PLAY_ROW + 2 <= CAVE.heap.floor);
-  // the tengu: harmless (a cameo), he flies in from the tube's east end once Monty is down in the tube, and stays by the gust beckoning
+  // the tengu: scenery in the room's own characters (no figure that flies in and stands as Viktor's cameos do), hovering by the gust, flapping: his picture there changes as the room runs
   const tube = at(JP.cave, CAVE.hole.col0, CAVE.floor);
-  for (let f = 0; f < 200; f++) frame(tube, NONE);
-  const tengu = WORLD.cameos.find((c) => c.room === JP.cave);
-  const shown = tengu !== undefined && (tube.g.enable & (1 << tengu.sprite)) !== 0 && tube.g.sx[tengu.sprite] === 0x0c + (CAVE.tengu.col + 4) * 4;
-  check(`down in the tube, the tengu has flown in and stands by the gust (sprite ${tengu?.sprite}, x2 ${tengu ? tube.g.sx[tengu.sprite] : '-'}), a cameo touching nothing`, shown && !dead(tube.g));
+  const pictures = new Set<string>();
+  for (let f = 0; f < 40; f++) {
+    frame(tube, NONE);
+    const chr = cell(tube.g, CAVE.tengu.col, CAVE.tengu.row);
+    pictures.add(Array.from(tube.g.mem.slice(chr * 8, chr * 8 + 8)).join());
+  }
+  check(`down in the tube, the tengu hovers by the gust flapping (${pictures.size} pictures in 40 frames), no cameo in the room`, pictures.size >= 2 && !WORLD.cameos.some((c) => c.room === JP.cave) && !dead(tube.g));
   // the gust: whenever he walks into it (whatever its flicker shows), the wind carries him up its beam in the cave (seen: his picture rising, still in the cave), then sets him down in MOUNT FUJI's
   // foot hut, where he materialises (his picture there through the dissolve), standing, alive: the climb and its snow slides still ahead
   const lifts = [0, 37, 91, 160].map((wait) => {
@@ -809,10 +875,18 @@ SCOPE.section([JP.fuji, JP.cave], 'MOUNT FUJI\'s open mountainside and the ice c
   check(`into the tengu's gust from the ice mound after any wait, it carries him up its beam and sets him down in MOUNT FUJI's foot hut, materialising there (${lifts.map((l) => `wait ${l.wait}: ${l.at}`).join('; ')})`, lifts.every((l) => l.ok));
   check('the gust is the cave\'s one teleporter and MOUNT FUJI has none (the only teleport in the game, a reward)', WORLD.teleporterCfg.length === 5 && WORLD.teleporterCfg[0] === JP.cave && cave.teleporter !== undefined && fuji.teleporter === undefined);
   // the dangers: the yuki-onna's drift reaches the tube's floor, the icicles fall on him
-  const yuki = at(JP.cave, CAVE.yuki.col, CAVE.floor, [], false, true);
-  check(`standing in the yuki-onna's lane, she drifts down onto him (frame ${diesAt(yuki, NONE, 400)})`, dead(yuki.g));
+  const yukis = CAVE.yuki.map((y) => diesAt(at(JP.cave, y.col, CAVE.floor, [], false, true), NONE, 400));
+  check(`standing in each yuki-onna's lane, she drifts down onto him (frames ${yukis.join(', ')})`, yukis.every((f) => f >= 0));
   const ice = CAVE.icicles.map((col) => diesAt(at(JP.cave, col, CAVE.floor), NONE, 200));
   check(`standing under each icicle, it falls on him (${ice.join(', ')})`, ice.every((f) => f >= 0));
+  // the first shakes as he comes toward it from the hole (lead): walking straight on dies, stopping as it shakes and going on as it grows back lives
+  const [byHole, overCoin] = WORLD.icicles.filter((e) => e.room === JP.cave);
+  const met = byHole ? icicleMet(JP.cave, byHole, CAVE.hole.col0, CAVE.floor, CAVE.hump.col1 - byHole.col + 1) : { straight: -1, waited: false };
+  check(`walking on east from under the hole, the first icicle shakes ${CAVE_ICICLE_TIMING.lead} cells ahead and falls on him (frame ${met.straight}); stopping as it shakes and going on as it grows back (over the rock hump), he gets by (${met.waited})`, met.straight >= 0 && met.waited);
+  // the second drips on its own clock, wherever he is: far from it at the hole, it shakes at its phase and again a period later
+  const drips = overCoin ? shakes(at(JP.cave, CAVE.hole.col0, CAVE.floor), 1, CAVE_ICICLE_TIMING.phase + CAVE_ICICLE_TIMING.period + 2) : [];
+  check(`the icicle over the coin drips on its own clock with him far away: it shakes at frames ${drips.join(', ')} (every ${CAVE_ICICLE_TIMING.period}, the first at ${CAVE_ICICLE_TIMING.phase}), never waiting for him`,
+    drips.length === 2 && (drips[1] ?? 0) - (drips[0] ?? 0) === CAVE_ICICLE_TIMING.period && Math.abs((drips[0] ?? 0) - CAVE_ICICLE_TIMING.phase) <= 1);
 });
 
 SCOPE.report();

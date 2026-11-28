@@ -11,3 +11,6 @@ export const JAPAN_SPRITE = { fishFood: 0xcd, daruma: 0xce, sushi: 0xcf, hood: 0
  * show (the mountain has none; a worn hat is drawn from blocks of its own).
  */
 export const SNOWBALL_POINTERS = [0x48, 0x49, 0x4a, 0x4b] as const;
+
+/** NINJA HIDEOUT's shuriken, four spinning pictures (japan.ts `HIDEOUT_SHURIKEN`): put in while the hideout is loaded, in the same unused fourth creature slot's blocks as the snowball's (another room). */
+export const SHURIKEN_POINTERS = [0x48, 0x49, 0x4a, 0x4b] as const;

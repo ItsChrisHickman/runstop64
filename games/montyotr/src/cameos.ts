@@ -3,7 +3,7 @@ import type { CameoMove, CameoSpec, CellBox } from './montydata';
 
 /**
  * Cameos (a game's `cameos`: Do Svidaniya Monty's Viktor Vole arriving too late at each border, and his shadow against the moon in Japan): a figure that walks on, holds a pose facing Monty and walks
- * off, on a sprite of its own, touching nothing (its sprite is no part of the collision check: `cameoSprites`). It plays when Monty comes into its room from one of the rooms it names (so a death, which
+ * off, or (a chase stopped short) runs on after Monty, is stopped at a brink and shakes his fist and stays (gone, should Monty come back within its `clear` of him), on a sprite of its own, touching nothing (its sprite is no part of the collision check: `cameoSprites`). It plays when Monty comes into its room from one of the rooms it names (so a death, which
  * starts the room again, does not play it again), once he has left the box he came in by or, with `after`, once a find is taken; with `once` it plays only once in the game. The walk-on itself
  * (`walkOn`) is the pursuer's intro too (pursuers.ts).
  */
@@ -36,17 +36,31 @@ export const inBox = (g: Game, b: CellBox): boolean => {
   return col >= b.col0 && col <= b.col1 && row >= b.row0 && row <= b.row1;
 };
 
-/** Where a walk-on is `t` frames in, and which of its eight pictures it shows (0-3 going left: two steps, the look, the look down; 4-7 the same going right); null once it has walked off. */
+/** The pace of a chase stopped short (`CameoStop`): twice Monty's, so he is plainly running after him. */
+export const CAMEO_RUN = 2;
+/** Frames a fist shake holds each of its two pictures (the hand at the brim, the fist above the hat). */
+const SHAKE = 6;
+
+/**
+ * Where a walk-on is `t` frames in, and which of its eight pictures it shows (0-3 going left: two steps, the look, the fist; 4-7 the same going right); null once it has walked off. A chase stopped short
+ * (no `to`) is never null: he runs in, shakes his fist, and stays at the brink looking after Monty.
+ */
 export function walkOn(m: CameoMove, t: number, montyX2: number): { x2: number; y: number; picture: number } | null {
-  const from = colX2(m.from), at = colX2(m.at.col), to = colX2(m.to), y = floorY(m.at.row);
-  const inFrames = Math.abs(at - from) / CAMEO_PACE, outFrames = Math.abs(to - at) / CAMEO_PACE;
-  const step = (t >> 3) & 1;
-  if (t < inFrames) return { x2: from + Math.sign(at - from) * t * CAMEO_PACE, y, picture: (at < from ? 0 : 4) + step };
-  if (t < inFrames + m.hold) return { x2: at, y, picture: (montyX2 < at ? 0 : 4) + (m.pose === 'look' ? 2 : 3) };
-  const u = t - inFrames - m.hold;
-  if (u < outFrames) return { x2: at + Math.sign(to - at) * u * CAMEO_PACE, y, picture: (to < at ? 0 : 4) + step };
+  const pace = m.pose === 'fist' ? CAMEO_RUN : CAMEO_PACE;
+  const from = colX2(m.from), at = colX2(m.at.col), y = floorY(m.at.row);
+  const inFrames = Math.abs(at - from) / pace;
+  const facing = (montyX2 < at ? 0 : 4);
+  if (t < inFrames) return { x2: from + Math.sign(at - from) * t * pace, y, picture: (at < from ? 0 : 4) + ((t >> (m.pose === 'fist' ? 2 : 3)) & 1) };
+  if (m.pose === 'fist') return { x2: at, y, picture: facing + (t < inFrames + m.hold && Math.floor((t - inFrames) / SHAKE) % 2 === 0 ? 3 : 2) };
+  if (t < inFrames + m.hold) return { x2: at, y, picture: facing + 2 };
+  const to = colX2(m.to), u = t - inFrames - m.hold;
+  if (u < Math.abs(to - at) / pace) return { x2: at + Math.sign(to - at) * u * pace, y, picture: (to < at ? 0 : 4) + ((t >> 3) & 1) };
   return null;
 }
+
+/** Cells between a cameo's figure at (`x2`, `y`) and Monty, the larger of across and down, both by their top left cell as the engine counts Monty's. */
+export const cellsApart = (g: Game, x2: number, y: number): number =>
+  Math.max(Math.abs((((x2 - 0x0c) & 0xff) >> 2) - 4 - (g.montyCol - 4)), Math.abs((((y - 0x32) & 0xff) >> 3) - 3 - (g.montyRow - 3)));
 
 /** A cameo of the room: its place in the data's list, whether it has begun (it counts its wait from then) and the frames since, and whether it is done. */
 export interface CameoState { index: number; begun: boolean; t: number; done: boolean }
@@ -75,7 +89,8 @@ export function cameoUpdate(g: Game) {
     }
     c.t++;
     const at = c.t > e.wait ? walkOn(e.move, c.t - e.wait, g.x2) : null;
-    if (c.t > e.wait && !at) { c.done = true; g.enable &= ~(1 << e.sprite) & 0xff; continue; }
+    const tooNear = at !== null && e.move.pose === 'fist' && cellsApart(g, at.x2, at.y) < e.move.clear; // (a stopped chase Monty comes back to: he is gone)
+    if ((c.t > e.wait && !at) || tooNear) { c.done = true; g.enable &= ~(1 << e.sprite) & 0xff; continue; }
     if (!at) continue;
     g.sx[e.sprite] = at.x2; g.sy[e.sprite] = at.y; g.sptr[e.sprite] = e.first + at.picture; g.scol[e.sprite] = e.colour;
     g.enable |= 1 << e.sprite;

@@ -11,7 +11,7 @@ import { wear } from '../../montyotr/src/items';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
 import { ROUNDS, WORLD } from '../src/data';
-import { AND } from '../src/andes';
+import { AND, SECOND_LINE } from '../src/andes';
 import { PAC } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { readArgs, runLegs } from '../../shared/monty/test/legs';
@@ -42,7 +42,7 @@ for (const mode of ['original', 'enhanced'] as const) {
   if (complete) {
     const g = live.g;
     const coins = g.data.coinTable.length / 3;
-    const mineCoins = Array.from({ length: coins }, (_, i) => i).filter((i) => andes(g.data.coinTable[i * 3] ?? 0));
+    const mineCoins = Array.from({ length: coins }, (_, i) => i).filter((i) => andes(g.data.coinTable[i * 3] ?? 0) && !SECOND_LINE.includes(g.data.coinTable[i * 3] ?? 0)); // (the drop's second line is the other way down: andes-mechanisms.ts proves it)
     const coinsLeft = mineCoins.filter((i) => !g.coinCollected[i]).length;
     const found = Array.from({ length: g.data.specialItems.length / 4 }, (_, i) => i).filter((i) => andes(g.data.specialItems[i * 4] ?? 0));
     const itemsLeft = found.filter((i) => !g.siCollected[i]).length;

@@ -5,8 +5,8 @@ import { pathCache, pointAt, polyline } from './paths';
 
 /**
  * Rolling boulders (a game's `rollers`: Do Svidaniya Monty's Machu Picchu): a boulder on a sprite of its own rolls down a path of the room (the terraces: along a step, a fall over its edge, along the next), a
- * pixel a frame or what the data says, comes to the end of it and is gone until its turn comes round again, `every` frames after it started. Each boulder of a room is the same path a third of a period apart, so a
- * terrace has one passing now and then. It is seen from the top of the path and all the way; it kills what of Monty it touches (event 1), the box test of the dragon and the icicles (the hardware's bits are left out:
+ * pixel a frame or what the data says, comes to the end of it and is gone until its turn comes round again, `every` frames after it started. Several on one path are one spec on several sprites, apart by the data's
+ * starts (`rollerTrain`), so a terrace has one passing now and then. It is seen from the top of the path and all the way; it kills what of Monty it touches (event 1), the box test of the dragon and the icicles (the hardware's bits are left out:
  * `rollerSprites`). The time counts from the room's loading, so a room is the same each time he comes in.
  */
 
@@ -23,6 +23,14 @@ export function rollerAt(spec: RollerSpec, t: number): { x: number; y: number; a
   if (t < spec.start || along > p.length || (spec.passes !== undefined && t - spec.start >= spec.passes * spec.every)) return null;
   const [x, y] = pointAt(p, along);
   return { x, y, along };
+}
+
+/**
+ * Several on one path at once (Machu Picchu's boulders; Mount Fuji's snowballs, Chris: "needs more snowballs at a time", the Donkey Kong barrels): the one roller on each sprite of `on` (the room's free
+ * ones: two things on paths never share a sprite in a room), each `start` its own frames into the room's time, so the gaps between them are the data's to set (even, or a pair close together then a wait).
+ */
+export function rollerTrain(spec: Omit<RollerSpec, 'sprite' | 'start'>, on: readonly { readonly sprite: number; readonly start: number }[]): RollerSpec[] {
+  return on.map(({ sprite, start }) => ({ ...spec, sprite, start }));
 }
 
 /** A boulder of the room: its place in the data's list (a copy of the game copies numbers, not the data) and the frames since the room's loading. */

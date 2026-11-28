@@ -276,13 +276,15 @@ export const SURGE_ANIMS: readonly CharAnim[] = [{ kind: 'scroll', room: PAC.cav
 /**
  * THE SEA CAVE, the bonus off the route (Chris, 2026-11-25: "Having a bonus room that is off the path is an opportunity to try some new things and add some fun challenges"): an old lava tube runs east under
  * the cavern's floor from its mouth by the reef's doorway (cols 2-5) to a pocket of still water at its end (cols 24-29), where the Spam musubi is. The swell drains out of the tube in sets (`currents`, west,
- * the flow lines seen 30 frames before), and two loose stalactites hang in cracks in its roof (`icicles`, drawn in the rock's grey): passing under one at his pace is safe, but a set
+ * the flow lines seen 30 frames before), and two loose stalactites hang in cracks in its roof (`icicles`, drawn in the rock's grey): they drip on their own clocks (`CAVE_DRIPS`), so a swim under one is timed, and a set
  * that catches him past one carries him back under it as it falls. So: wait at the mouth for a set to drain, swim in, up into the alcove halfway (a coin) before the next, out of it as that one is spent
  * and on into the pocket; then ride a set out. The new things: the sea drags him back into a trap he has sprung, and he reads two clocks at once.
  */
 export const CAVE_TUBE = { col: 6, cols: 18, top: 15, bottom: 18, alcove: 13, end: 24 } as const;
 export const CAVE_TIDE = { period: 220, start: 140, length: 80, warn: 30 } as const;
-export const CAVE_STALACTITES: readonly IcicleSpec[] = [10, 19].map((col): IcicleSpec => ({ room: PAC.cave, col, row: 13, floor: 19, colour: 15 }));
+/** The stalactites drip on their own clocks (`period`, Chris: "icicles on their own"), staggered, a period of their own against the tide's: the swim through the tube reads three clocks. */
+export const CAVE_DRIPS = { period: 170, phases: [40, 125] } as const;
+export const CAVE_STALACTITES: readonly IcicleSpec[] = [10, 19].map((col, i): IcicleSpec => ({ room: PAC.cave, col, row: 13, floor: 19, colour: 15, period: CAVE_DRIPS.period, phase: CAVE_DRIPS.phases[i] ?? 0 }));
 const CAVE_CURRENT: CurrentSpec = { room: PAC.cave, col: CAVE_TUBE.col, cols: CAVE_TUBE.cols, top: CAVE_TUBE.top, bottom: CAVE_TUBE.bottom, dx: -1, period: CAVE_TIDE.period, start: CAVE_TIDE.start, length: CAVE_TIDE.length };
 /** The tube's flow lines (harmless `pulses`): two staggered rows, steady (not a flicker), seen from 30 frames before a set until it is spent. */
 const CAVE_FLOW_PULSES: readonly PulseSpec[] = ([[15, [7, 12, 17, 22]], [17, [9, 14, 20]]] as const).flatMap(([row, cols]) => cols.map((col): PulseSpec => ({

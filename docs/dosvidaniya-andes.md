@@ -262,3 +262,52 @@ Chris loved the parachute drop, the llamas and VINE AND DANDY, and found the res
   amazingly for there to be something interesting." Keep the layout; creatures through the canopy's levels (monkeys on the
   branches, a snake down a liana, a harpy eagle's swoop across the gaps), the lianas' swings timed against them.
 - **CLOUD NINE:** "awesome! It just lacks one enemy." One more creature, crossing its way.
+
+## Challenge pass (2026-11-28)
+
+The brief: Chris's rows in docs/dosvidaniya-feedback.md ("past Russia the enemy design just doesn't show any thought"; the recipe in the
+`monty-room` skill). Each room's drawing kept; its creatures, hazards and timings are what changed. Written down first, then built; each
+room's puzzle and its line(s):
+
+- **JUMP FOR JOY** (teaches the drop): a condor rises and falls between the updraft and the spire (the glide to the spire's coin is timed
+  to it, slow), a quick one paces over the shoulder (the way east to the second line).
+- **OUT OF THIN AIR**: the high condor at twice the pace (same sweep), the diver in the right canyon, and a slow one rising and falling
+  in the left canyon, the way down: from the crest (the coin) wait for it to rise, then drop.
+- **CONDOR COUNTRY**: the two divers as they were (the shelf's way), and a fast one low across both throats: each landing (the guardhouse's
+  roof, the broad terrace) is a gap read from above.
+- **The second line** (docs/dosvidaniya-edges.md $67-$69, Chris's decision: two lines down, a coin on the harder one; ids 103-105,
+  last in `ADDED_ROOMS`): east along JUMP FOR JOY's shoulder past its condor into **COLD SHOULDER** (the ridge, the crevasses between two
+  crags: a quick condor across the glide to the crevasse, a slow one over the pocket's updraft, another over the second crag; the coin
+  on the crag's cap, up the updraft timed against the slow one), **CHIMNEY SWEEP** (two ways in from the crevasses meet in a chimney that
+  turns round a ledge and a crag: a condor in the west way, a slow one under the ledge's east end, a quick one across the
+  west half of the foot: out behind the quick one, or east past the slow one; the coin on the ledge under the east way) and **WING AND A
+  PRAYER** (out of the chimney's mouth over Machu Picchu: a slow condor the whole width, another up and down mid-sky, the coin up the
+  updraft under the overhang; the landing is the hill's top by the Intihuatana, under the boulders). Six flight rooms in all. The
+  first line keeps the terraces and the chullo; the second lands at the panpipes, and the plateau's run out onto the terraces' high
+  ledge takes him back to the chullo, so neither line strands him.
+- **NO PROBLLAMA**: the broad terrace's llama walks the terrace end to end, slow (40 steps of 1 px; the low path's llama is 28 of 2, so the two never fall into step): he times his drop from the step behind it, then jumps it as it turns back (the review found the earlier two-cell walk read as a llama standing still), the low path's quick across the
+  drop point; the cuy over the last step as before.
+- **MACHU PICCHU**: the boulders stay on the climb (they roll down the way to the panpipes, never off to a side); the cuy hops out of
+  the gap twice as quick (the gap's jump is read against it); Huayna Picchu light green (the dark blue did not read). Sprites: the three
+  boulders take the room's free ones, so no third creature.
+- **THE INCA BRIDGE**: no shuttle. The place's hazard: a rock breaks off the face and drops down the cleft past the logs every 150 frames
+  (seen from the screen's top), a condor glides the whole trail high (on the top's floor he ducks onto the lower trail as it passes),
+  and the vizcacha hops up and down at the step up to the trail's end (under it as it rises).
+- **THE CANOPY**: through its levels: a jaguar paces the bough under the well's liana (wait on the liana, drop as it heads east), the
+  toucan at twice the pace up and down across the lattice, the sloth slow on the middle liana (two periods across the lattice's crossing).
+- **CLOUD NINE** (one more): a toucan up and down across the canopy's liana on the way in; the bear walks the whole floor east of the
+  stream, quick, under the liana's foot (a wait on the liana); the cock-of-the-rock over the stones as it was.
+- **BRANCHING OUT**: the anaconda quick on the trunk across every bough's jump, the jaguar the walkway's whole length (the coin at its
+  end is taken as it turns), a toucan slow along the crown's branch across the way out (before and after the tangle).
+- **VINE AND DANDY**: the sloth drops onto the first log and the cock-of-the-rock onto the second, on two periods, against the vines'
+  swing and the piranhas: step off the vine as the log is clear.
+- **UP THE CREEK**: a cock-of-the-rock over the second log (the rotten logs are crossed without a pause, so the start is timed), a cuy
+  quick along the sandbar where the channel's jump lands; the dolphin as before.
+- **THE ROOTS** (none before): the anaconda coils down the liana up the kapok's flank (the climb waits for it), a cock-of-the-rock over
+  the log between the vines.
+- **THE RIVER QUEEN**: the captain (the gate) and the toucan as before; a macaw drops at the machete (the last step is timed).
+- **BANK HOLIDAY** (THE RIVER ENDS renamed: "a terrible room name"): the anaconda drops from the boughs onto the stair's top step (its coin
+  guarded), the dolphin leaps quick across the jump from the bank, a toucan sweeps the upper stair and the high bank.
+- **The gates, cause and effect** (back-half plan): each shows the item it wants before he has it (the panpipes in the tunnel's mouth
+  over the llama, the chullo at the cargo deck's foot, the machete over the tangle; art/wanted.ts, wanted.ts: one owner, Japan's moved
+  onto it), gives way where he uses it, seen, and stays done (hidden finds `llama calmed`, `captain gone`, `tangle cut`).

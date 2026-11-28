@@ -20,6 +20,7 @@ import { frame } from '../../montyotr/test/play';
 import { inRoom } from './climb-kit';
 import { standY } from './route';
 import { ALL_ROOMS as ROOMS, SCOPE } from './scope';
+import { RIO_ROOM } from '../src/rio';
 
 const solid = (r: RoomSpec, col: number, row: number): boolean => {
   const ch = r.map[row]?.[col] ?? '.';
@@ -34,7 +35,13 @@ const surfaceRow = (r: RoomSpec): number | undefined => {
   return s === undefined ? undefined : Math.round((s.y + 4 - 0x32) / 8) - PLAY_ROW;
 };
 /** A cell at a room's edge column he can never be in: over a swim room's surface, with no rope in that column up there (only a rope carries him above the surface). */
+/**
+ * Edge cells that are open on the page but that nothing of him reaches, each for a reason of the room's shape: HOUSE OF COLOUR's tower top under the church (row 3 over its roof at row 4), four rows
+ * over the favela's roofs (a jump rises two and a half), with no ladder up it and no room above, against Lapa's townhouse wall (closed to the edge so no slot shows beside the church).
+ */
+const UNREACHED: readonly (readonly [room: number, col: number, row: number])[] = [[RIO_ROOM.colour, 31, 3]];
 const outOfReach = (r: RoomSpec, col: number, row: number): boolean => {
+  if (UNREACHED.some(([room, c, rr]) => room === r.id && c === col && rr === row)) return true;
   const surface = surfaceRow(r);
   if (surface === undefined || row >= surface) return false;
   return Array.from({ length: surface }, (_, rr) => r.map[rr]?.[col] ?? '.').every((ch) => ch === '.' || WORLD.tileProperty(r.tiles[Number(ch) - 1] ?? 0) !== 3);

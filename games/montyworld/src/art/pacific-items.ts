@@ -8,7 +8,7 @@ import { itemBlock } from './pixels';
 import { over, Raster } from './raster';
 import type { NewItem } from './types';
 
-/** A diving mask with a snorkel: a round glass in a thick frame, a strap, a tube standing up at the side with its mouthpiece. */
+/** A diving mask with a snorkel: a round glass in a thick frame, a strap, a tube standing up at the side with its mouthpiece. Yellow, a snorkel's own colour, and plain against THE LOOKOUT's blue sky (it was light blue on blue). */
 function snorkel(): NewItem {
   const r = new Raster(16, 16);
   r.rect(1, 5, 11, 13); r.rect(3, 14, 9, 14); // the frame
@@ -17,7 +17,7 @@ function snorkel(): NewItem {
   r.rect(12, 8, 15, 9); // the strap's end
   r.rect(13, 0, 14, 7); r.rect(12, 0, 14, 0); r.rect(13, 1, 13, 5, false); // the tube
   r.rect(11, 6, 14, 6);
-  return { block: itemBlock('pacSnorkel', r.rows()), colour: 14 };
+  return { block: itemBlock('pacSnorkel', r.rows()), colour: 7 };
 }
 
 /** A lei: a ring of flowers, a bloom every few pixels, the ends tied with a bow at the bottom. */

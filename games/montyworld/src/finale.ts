@@ -74,8 +74,8 @@ function fireworks(g: Game, t: number) {
 const cellAt = (col: number, row: number) => (row + PLAY_ROW) * ROW + col + PLAY_COL;
 
 /**
- * The close-up: the palms, the table and the near sea taken away (the far sea's row, the umbrella and the landmarks stay), the sand two plain rows in one colour (the pavement's and the sand's characters made
- * solid), and the gutters beside the playfield mirrored again as the room's loading leaves them.
+ * The close-up: the palms, the table and the near sea taken away (the far sea's row, the umbrella and the landmarks stay), the sand plain in one colour from the sea's edge down (the pavement's and the sand's characters made
+ * solid: Chris, 2026-11-27, with black under the sea "he looks like he's floating in the air"), and the gutters beside the playfield mirrored again as the room's loading leaves them.
  */
 function closeUp(g: Game) {
   const code = (letter: keyof typeof BEACH_PALETTE) => codeOf(BEACH_PALETTE, letter);
@@ -84,7 +84,8 @@ function closeUp(g: Game) {
     const at = cellAt(col, row), chr = g.mem[SCREEN + at] ?? 0;
     if (chr >= FIRST_DECOR_CHR) continue; // (the umbrella and the landmarks)
     if (row < 12) { if (palm.has(chr)) g.mem[SCREEN + at] = 0; continue; }
-    g.mem[SCREEN + at] = row === 12 ? sea : 0;
+    if (row === 12) g.mem[SCREEN + at] = sea;
+    else { g.mem[SCREEN + at] = sand; g.col[at] = SAND_COLOUR; }
   }
   g.mem.fill(0xff, code('W') * 8, code('W') * 8 + 8);
   for (let row = 18; row < 20; row++) for (let col = 0; col < PLAY_COLS; col++) { g.mem[SCREEN + cellAt(col, row)] = sand; g.col[cellAt(col, row)] = SAND_COLOUR; }

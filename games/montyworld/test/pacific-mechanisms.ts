@@ -20,10 +20,10 @@ import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, CAVE_DRIPS, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
-import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, UP } from './mech-kit';
+import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, shakes, UP } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 import { SCOPE } from './scope';
 
@@ -144,7 +144,7 @@ SCOPE.section([PAC.fish, PAC.kona, PAC.hana], 'SHELL GAME: the turtles surface a
 SCOPE.section([PAC.cave, PAC.kelp, PAC.road], 'THE SEA CAVE: the tube\'s tide, the stalactites, the alcove and the pocket', () => {
   check('two loose stalactites hang in the tube\'s roof, in the rock\'s grey (not an icicle\'s cyan), and fall to the tube\'s floor',
     CAVE_STALACTITES.length === 2 && WORLD.icicles.filter((e) => e.room === PAC.cave).every((e) => e.colour === 15 && e.floor === 19 && e.col > CAVE_TUBE.col && e.col < CAVE_TUBE.end));
-  const tube = at(PAC.cave, 21, 19, [SNORKEL]);
+  const tube = at(PAC.cave, 16, 19, [SNORKEL]); // (between the stalactites, clear of both drips while the set runs)
   run(tube, DOWN, CAVE_TIDE.start - 2);
   const x0 = tube.g.x2;
   run(tube, DOWN, 40);
@@ -166,6 +166,10 @@ SCOPE.section([PAC.cave, PAC.kelp, PAC.road], 'THE SEA CAVE: the tube\'s tide, t
   const killed = fates.filter((f) => f === 'killed').length;
   check(`swimming straight in from the mouth, a set that catches him past a stalactite carries him back under it as it falls: some starts die, some live (${killed} of ${fates.length} starts killed)`,
     killed > 0 && killed < fates.length);
+  // the stalactites drip on their own clocks (Chris: "icicles on their own"), staggered: with him waiting at the mouth, each shakes at its phase and a period later
+  const drips = CAVE_DRIPS.phases.map((_, i) => shakes(at(PAC.cave, 3, 19, [SNORKEL]), i, Math.max(...CAVE_DRIPS.phases) + CAVE_DRIPS.period + 2));
+  check(`the stalactites drip on their own clocks with him at the mouth, staggered (${drips.map((d) => d.join('/')).join('; ')}: every ${CAVE_DRIPS.period}, from ${CAVE_DRIPS.phases.join(' and ')})`,
+    drips.every((d, i) => d.length === 2 && Math.abs((d[0] ?? 0) - (CAVE_DRIPS.phases[i] ?? 0)) <= 1 && (d[1] ?? 0) - (d[0] ?? 0) === CAVE_DRIPS.period));
   const still = at(PAC.cave, 3, 19, [SNORKEL]);
   run(still, NONE, CAVE_TIDE.start + 300);
   check('the tube\'s mouth is out of the draining water: he waits there through a set', !dead(still.g) && colOf(still.g) <= 4);

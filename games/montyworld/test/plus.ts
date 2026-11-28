@@ -16,7 +16,7 @@ import path from 'node:path';
 import { Input, PixelRenderer } from 'c64kit';
 import { indicesPng } from '../../../tools/probe/render';
 import { montyMap } from '../../montyotr/src/map';
-import { openMap, plusStart } from '../../montyotr/src/plus';
+import { openMap, plusItems, plusStart } from '../../montyotr/src/plus';
 import { restore } from '../../montyotr/src/save';
 import { frame, NONE, settled } from '../../montyotr/test/play';
 import { hold, newGame } from '../../shared/monty/test/bot';
@@ -33,7 +33,9 @@ import { unpackSlot } from '../../shared/continue';
 const out = process.argv[2];
 if (out) fs.mkdirSync(out, { recursive: true });
 const PLUS = must(WORLD.ending?.newGamePlus, 'NEW GAME+');
-const { keyItems } = WORLD.progress;
+/** The key items NEW GAME+ begins with: all but the guarana (its drink starts Rio's run: plus.ts `plusItems`). */
+const keyItems = plusItems(WORLD);
+const RUN_ITEM = must(WORLD.run, 'the run').item;
 /** Frames from coming into a room in which nothing may be about to kill him (half a second of PAL frames). */
 const SAFE_FRAMES = 25;
 
@@ -83,7 +85,7 @@ function boot() {
   const until = (cond: () => boolean, max: number) => { let n = 0; while (!cond() && n++ < max) tick(); return cond(); };
   return { p, g: p.game, tick, press, until, rend };
 }
-/** NEW GAME+ as it begins: Moscow's start, every key item and nothing else, the ushanka on, no coin, the score nothing, the whole map open. */
+/** NEW GAME+ as it begins: Moscow's start, every key item but the guarana and nothing else, the ushanka on, no coin, the score nothing, the whole map open. */
 function isPlusStart(s: ReturnType<typeof boot>): boolean {
   const g = s.g, start = WORLD.start;
   const items = g.siCollected.every((v, i) => (keyItems.includes(i) ? v !== 0 : v === 0));
@@ -110,6 +112,7 @@ const current = () => { const slot = readSaves('montyworld').current; return slo
   s.tick(300);
   s.press('Enter');
   check('ENTER CONTINUE begins NEW GAME+: Moscow\'s start, every key item, the ushanka, nothing else, the whole map open', s.until(() => s.p.state.mode === 'play' && settled(s.g), 300) && isPlusStart(s));
+  check('NEW GAME+ begins without the guarana (he runs down from Rio only once he drinks it)', s.g.siCollected[RUN_ITEM] === 0 && WORLD.progress.keyItems.includes(RUN_ITEM));
   s.tick(60);
   s.press('KeyP');
   check('the pause screen is up', s.p.state.paused);

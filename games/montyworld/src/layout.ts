@@ -96,6 +96,12 @@ export function pieceChar(data: MontyData, room: number, name: WorldDecor): numb
   return kind === undefined ? 0 : decorChars(data, room)[kind] ?? 0;
 }
 
+/** The playfield cells (row, column) a piece placed at `col`, `row` covers: what a room effect clears to take the piece away (a gate's picture of the thing it wants, once he has used it there). */
+export function pieceCells(name: WorldDecor, col: number, row: number): (readonly [row: number, col: number])[] {
+  const { w, h } = WORLD_DECOR[name];
+  return Array.from({ length: w * h }, (_, k) => [row + Math.floor(k / w), col + (k % w)] as const);
+}
+
 /** A palette letter's code (1-8). */
 export function codeOf(palette: Palette, letter: string): number {
   return Object.keys(palette).indexOf(letter) + 1;
@@ -121,7 +127,7 @@ export function room(r: MoscowRoom): RoomSpec {
     ...(r.item ? { item: { name: r.item.name, col: r.item.col + PLAY_COL, row: r.item.row + PLAY_ROW, sprite: r.item.sprite } } : {}),
     ...(r.item2 ? { item2: { name: r.item2.name, col: r.item2.col + PLAY_COL, row: r.item2.row + PLAY_ROW, sprite: r.item2.sprite } } : {}),
     ...(r.decor ? {
-      decor: r.decor.map(([d, col, row]) => ({
+      decor: [...r.decor, ...underFinds(r, g)].map(([d, col, row]) => ({
         col: col + PLAY_COL, row: row + PLAY_ROW,
         type: typeof d === 'string' ? decorNames.indexOf(d) : d,
       })),
@@ -143,9 +149,42 @@ export function room(r: MoscowRoom): RoomSpec {
   };
 }
 
+type Placement = readonly [WorldDecor | { text: string; colour: number }, col: number, row: number];
+
+/**
+ * The backdrop under the room's coins and finds (Chris: "the blue background has black holes"): a fill kept off a coin's or an item's cells (`fillCells`' keep lists, from before the engine drew a coin
+ * over a backdrop and an item in front of one) left those cells black, before and after it was taken. Each such cell, empty in the paint and under no decoration, takes the one-character backdrop that
+ * at least two of its four neighbours have (a pass at a time, so an item's 2 x 2 hole closes from its sides); a cell at a backdrop's edge (one neighbour) is left alone.
+ */
+function underFinds(r: MoscowRoom, g: Grid): Placement[] {
+  const holes: (readonly [number, number])[] = [...(r.coins ?? [])];
+  for (const it of [r.item, r.item2]) if (it) holes.push([it.col, it.row], [it.col + 1, it.row], [it.col, it.row + 1], [it.col + 1, it.row + 1]);
+  const covered = new Set<number>(), fill = new Map<number, WorldDecor>();
+  const key = (c: number, row: number) => row * 64 + c + SCREEN_MARGIN;
+  for (const [d, col, row] of r.decor ?? []) {
+    if (typeof d !== 'string') continue;
+    const { w, h } = WORLD_DECOR[d];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) covered.add(key(col + x, row + y));
+    if (w === 1 && h === 1 && backdrops.has(d)) fill.set(key(col, row), d);
+  }
+  const added: Placement[] = [];
+  for (let pass = 0; pass < 2; pass++) {
+    for (const [c, row] of holes) {
+      if (covered.has(key(c, row)) || g.at(c, row) !== '.') continue;
+      const near = [[c - 1, row], [c + 1, row], [c, row - 1], [c, row + 1]].flatMap(([nc = 0, nr = 0]) => { const d = fill.get(key(nc, nr)); return d ? [d] : []; });
+      const piece = near.find((d) => near.filter((e) => e === d).length >= 2);
+      if (!piece) continue;
+      covered.add(key(c, row)); fill.set(key(c, row), piece); added.push([piece, c, row]);
+    }
+  }
+  return added;
+}
+
 /** The decorations used as backdrops (`fillCells`): the engine keeps them under the room's coins and shows them where a cell is cleared. */
 const backdrops = new Set<WorldDecor>();
 export const isBackdrop = (name: string): boolean => [...backdrops].some((b) => b === name);
+/** The same by a piece's number in the library (what a built room's `decor` carries). */
+export const isBackdropIndex = (type: number): boolean => isBackdrop(decorNames[type] ?? '');
 /** A decoration of several cells drawn as a backdrop (Lapa's arches behind the street): kept under a coin in it, shown where a cell of it is cleared. Returns the piece. */
 export function asBackdrop<T extends WorldDecor>(piece: T): T {
   backdrops.add(piece);

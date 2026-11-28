@@ -8,15 +8,14 @@ import { PIRANHA_PICTURE } from './andes-creatures';
 import { itemBlock, spriteBlock } from './pixels';
 import { CHULLO_COLOUR, CHULLO_HAT } from './andes-hat';
 import { limb, over, Raster } from './raster';
-import type { NewItem } from './types';
+import type { NewDecor, NewItem } from './types';
+import { wantedBlink, wantedPicture } from './wanted';
 
 /** The chullo, the Andean knitted hat, as it is worn (andes-hat.ts): a peaked crown with a tassel, a patterned band and two long ear flaps. */
-function chullo(): NewItem {
-  return { block: itemBlock('chullo', [...CHULLO_HAT, '.'.repeat(16)]), colour: CHULLO_COLOUR };
-}
+const chulloPicture = (): readonly string[] => [...CHULLO_HAT, '.'.repeat(16)];
 
 /** The panpipes (zampona): reed tubes of growing length bound together, their mouths cut dark. */
-function panpipes(): NewItem {
+function panpipesPicture(): readonly string[] {
   const r = new Raster(16, 16);
   [14, 12, 10, 8, 6].forEach((h, i) => {
     r.rect(1 + i * 3, 15 - h, 2 + i * 3, 15);
@@ -27,11 +26,11 @@ function panpipes(): NewItem {
   r.rect(0, 9, 15, 9, false); r.rect(0, 10, 15, 10);
   r.rect(0, 12, 15, 12);
   r.rect(0, 11, 15, 11, false);
-  return { block: itemBlock('panpipes', r.rows()), colour: 7 };
+  return r.rows();
 }
 
 /** The machete: a long broad blade slanting up to the right, a guard across its root and a handle. */
-function machete(): NewItem {
+function machetePicture(): readonly string[] {
   const r = new Raster(16, 16);
   limb(r, 14, 1.5, 6.5, 9, 4); // the blade
   r.triangle(15.5, 0, 15.5, 4, 11.5, 0); // its point
@@ -39,7 +38,7 @@ function machete(): NewItem {
   const guard = new Raster(16, 16); limb(guard, 3.5, 8, 8.5, 13, 2); over(r, guard);
   const handle = new Raster(16, 16); limb(handle, 5.5, 11, 1.5, 15, 3); over(r, handle);
   r.cut(['#'], 3, 13); r.cut(['#'], 4, 12);
-  return { block: itemBlock('machete', r.rows()), colour: 12 };
+  return r.rows();
 }
 
 /** An empanada: a half-moon pastry, its edge crimped, two slits in the top. Golden. */
@@ -56,12 +55,35 @@ function empanada(): NewItem {
   return { block: itemBlock('empanada', r.rows()), colour: 7 };
 }
 
+/** Each key item's picture and its ink: the item (a hires sprite) and the gate's picture of what it wants (characters, art/wanted.ts) are drawn from the one picture. */
+const KEYS = {
+  chullo: { picture: chulloPicture, ink: CHULLO_COLOUR },
+  panpipes: { picture: panpipesPicture, ink: 7 },
+  machete: { picture: machetePicture, ink: 12 },
+} as const;
+const item = (key: keyof typeof KEYS): NewItem => ({ block: itemBlock(key, KEYS[key].picture()), colour: KEYS[key].ink });
+
 export const ANDES_ITEMS = {
-  chullo: chullo(),
-  panpipes: panpipes(),
-  machete: machete(),
+  chullo: item('chullo'),
+  panpipes: item('panpipes'),
+  machete: item('machete'),
   empanada: empanada(),
 } as const satisfies Record<string, NewItem>;
+
+/**
+ * The Andes' gates' pictures of what they want (LESSONS: a gate shows what it wants before he has it): the panpipes over the spitting llama at the tunnel's mouth, the chullo over the riverboat's captain,
+ * the machete over the tangle on the kapok's branch, each blinking until he uses the item there (data.ts clears it). The machete's in white: its grey is lost on the crown's leaves.
+ */
+export const ANDES_WANTED = {
+  andWantPanpipes: wantedPicture('andWantPanpipes', panpipesPicture(), KEYS.panpipes.ink),
+  andWantChullo: wantedPicture('andWantChullo', chulloPicture(), KEYS.chullo.ink),
+  andWantMachete: wantedPicture('andWantMachete', machetePicture(), 1),
+} as const satisfies Record<string, NewDecor>;
+export const ANDES_WANTED_FRAMES = {
+  andWantPanpipes: wantedBlink('want panpipes', panpipesPicture()),
+  andWantChullo: wantedBlink('want chullo', chulloPicture()),
+  andWantMachete: wantedBlink('want machete', machetePicture()),
+} as const satisfies Record<keyof typeof ANDES_WANTED, readonly Uint8Array[]>;
 
 export type AndesItem = keyof typeof ANDES_ITEMS;
 

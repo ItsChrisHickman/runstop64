@@ -24,9 +24,10 @@ import { ANDES_CREATURES } from '../src/art/andes-creatures';
 import { ANDES_SCENERY_CREATURES } from '../src/art/andes-scenery';
 import { ANDES_ITEMS, CANOPY } from '../src/art/andes-items';
 import { chulloWorn, CHULLO_COLOUR } from '../src/art/andes-hat';
-import { AND, ANDES_ROOMS, ANDES_SECTORS, BOULDER_PATH, BOULDERS_OF_PICCHU, LOG_CRACKS, LOGS, TANGLE_CELLS, VINES } from '../src/andes';
+import { AND, ANDES_ROOMS, ANDES_SECTORS, BOULDER_PATH, BOULDERS_OF_PICCHU, LOG_CRACKS, LOGS, SECOND_LINE, TANGLE_CELLS, VINES, WANTED } from '../src/andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from '../src/andes-pointers';
-import { WORLD } from '../src/data';
+import { ANDES_KEEPS, WORLD } from '../src/data';
+import { wantedCells } from '../src/wanted';
 import { HAT_BLOCKS } from '../src/hats';
 import { CODEC } from '../src/main';
 import { PAC, PAC_SPRITE } from '../src/pacific';
@@ -80,26 +81,27 @@ SCOPE.section([], 'the data', () => {
   const cols = WORLD.exitGrid.cols;
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [[2, 25, AND.jump], [3, 25, AND.thin], [4, 25, AND.gorge], [5, 25, AND.terraces], [5, 26, AND.picchu], [5, 27, AND.bridge], [6, 25, AND.cloud], [6, 26, AND.canopy], [6, 27, AND.kapok],
-    [7, 25, AND.vine], [7, 26, AND.sandbar], [7, 27, AND.roots], [7, 28, AND.boat], [7, 29, AND.ends]] as const;
-  check('the Andes and the Amazon are fourteen rooms: the drop (three) down column 25, Machu Picchu and the Inca bridge beside its foot, the Amazon a U under them, the riverboat east of the roots and the last bank east of her, east of Hawaii past the flight\'s gap (column 24 empty)',
-    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 14 && grid(3, 23) === PAC.hilo && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && WORLD.exitGrid.rows === 8);
-  check('the ids of the rooms kept are as they were (55-59; 62, 63, 65, 66), OUT OF THIN AIR and THE RIVER QUEEN back as their own 56 and 64, the new rooms 83-85 and THE RIVER ENDS 94; 60, 61 and 78 are no room\'s',
-    [...cells].every((c) => ![60, 61, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 83, 84, 85, 94].includes(r.id)));
+    [7, 25, AND.vine], [7, 26, AND.sandbar], [7, 27, AND.roots], [7, 28, AND.boat], [7, 29, AND.ends], [2, 26, AND.shoulder], [3, 26, AND.chimney], [4, 26, AND.prayer]] as const;
+  check('the Andes and the Amazon are seventeen rooms: the drop (three) down column 25 and its second line (three) down column 26 into Machu Picchu\'s sky, Machu Picchu and the Inca bridge beside its foot, the Amazon a U under them, the riverboat east of the roots and the last bank east of her, east of Hawaii past the flight\'s gap (column 24 empty)',
+    placed.every(([r, c, id]) => grid(r, c) === id) && ANDES_ROOMS.length === 17 && grid(3, 23) === PAC.hilo && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && WORLD.exitGrid.rows === 8);
+  check('the ids of the rooms kept are as they were (55-59; 62, 63, 65, 66), OUT OF THIN AIR and THE RIVER QUEEN back as their own 56 and 64, the new rooms 83-85, BANK HOLIDAY 94 and the second line 103-105; 60, 61 and 78 are no room\'s',
+    [...cells].every((c) => ![60, 61, 78].includes(c)) && ANDES_ROOMS.every((r) => [55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 83, 84, 85, 94, 103, 104, 105].includes(r.id)));
   const coins = ANDES_ROOMS.map((r) => r.coins?.length ?? 0);
-  check(`18 coins in 14 rooms, never more than 2 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 18 && coins.every((n) => n <= 2));
+  check(`21 coins in 17 rooms (18 on the route, one in each room of the drop\'s second line), never more than 2 a room, each with its reason (${coins.join(' ')})`, coins.reduce((a, b) => a + b, 0) === 21 && coins.every((n) => n <= 2));
   const finds = ANDES_ROOMS.flatMap((r) => [...(r.cake ? ['cake'] : []), ...(r.item ? [r.item.name] : []), ...(r.item2 ? [r.item2.name] : [])]);
   check(`ten finds: the chullo, the panpipes, the machete and seven empanadas (${finds.join(', ')})`, finds.length === 10 && ['chullo', 'panpipes', 'machete', 'empanada1', 'empanada2', 'empanada3', 'empanada4', 'empanada5', 'empanada6', 'cake'].every((n) => finds.includes(n)));
   const index = (room: number, nth: number) => itemIndex(newGame(WORLD, false).g, room, nth);
   check('the chullo, the panpipes and the machete count among the pause screen\'s items, the seven empanadas among its snacks',
     [CHULLO_AT, PANPIPES, MACHETE].every(([r, n]) => WORLD.progress.keyItems.includes(index(r, n))) && [[AND.terraces, LEDGE_EMPANADA], [AND.gorge, 0], [AND.sandbar, 0], [AND.bridge, 0], [AND.vine, 0], [AND.boat, 1], [AND.ends, 0]].every(([r, n]) => WORLD.progress.cakes.includes(index(r ?? 0, n ?? 0))));
   const NAMED = [[AND.jump, 'JUMP FOR JOY'], [AND.thin, 'OUT OF THIN AIR'], [AND.gorge, 'CONDOR COUNTRY'], [AND.terraces, 'NO PROBLLAMA'], [AND.picchu, 'MACHU PICCHU'], [AND.bridge, 'THE INCA BRIDGE'],
-    [AND.canopy, 'THE CANOPY'], [AND.cloud, 'CLOUD NINE'], [AND.vine, 'VINE AND DANDY'], [AND.sandbar, 'UP THE CREEK'], [AND.roots, 'THE ROOTS'], [AND.kapok, 'BRANCHING OUT'], [AND.boat, 'THE RIVER QUEEN'], [AND.ends, 'THE RIVER ENDS']] as const;
+    [AND.canopy, 'THE CANOPY'], [AND.cloud, 'CLOUD NINE'], [AND.vine, 'VINE AND DANDY'], [AND.sandbar, 'UP THE CREEK'], [AND.roots, 'THE ROOTS'], [AND.kapok, 'BRANCHING OUT'], [AND.boat, 'THE RIVER QUEEN'], [AND.ends, 'BANK HOLIDAY']] as const;
   const shown = (id: number) => WORLD.sectorNames[WORLD.sectorIdx[id] ?? 0]?.text;
   check(`every room shows a name of its own (${NAMED.filter(([id, t]) => shown(id) !== t).map(([id]) => `${id}: ${shown(id)}`).join(', ') || 'all fourteen'})`, NAMED.every(([id, t]) => shown(id) === t) && ANDES_SECTORS.length === 12);
   const rooms = creatureRooms(ANDES_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in the region (and the piranha, a thing on a path), none in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), every kind of the region's art in a room`,
-    rooms.size === Object.keys(ANDES_CREATURES).length + Object.keys(ANDES_SCENERY_CREATURES).length && rooms.size === 13 && most <= 2);
+  // (the challenge pass, 2026-11-28: about three creatures a room, so a kind comes back in several rooms, as Monty on the Run's do, each time in a colour or a pattern of that room's)
+  check(`${rooms.size} kinds of creature in the region (and the piranha, a thing on a path), none in more than eight rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), at least as many kinds as the region's art`,
+    rooms.size >= Object.keys(ANDES_CREATURES).length + Object.keys(ANDES_SCENERY_CREATURES).length && most <= 8);
   const used = [...HAT_BLOCKS, ...Object.values(SPRITE), ...Object.values(SIB_SPRITE), ...Object.values(CHINA_SPRITE), ...Object.values(DRAGON_POINTERS), ...Object.values(JAPAN_SPRITE), ...Object.values(PAC_SPRITE).filter((p) => p !== PAC_SPRITE.moonRock), ...Object.values(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS];
   check(`every block of the bank the Andes use is its own (${used.length} pointers with every earlier region's and the hats', none twice, none Monty's; the moon rock borrows a boulder's block in Mauna Loa alone: roomBlocks) and each has a picture there`,
     new Set(used).size === used.length && used.every((p) => p < 0x50 || p > 0x73) && [...Object.values<number>(ANDES_SPRITE), ...Object.values(CANOPY_POINTERS), ...BOULDER_POINTERS, ...LEAP_POINTERS].every((p) => WORLD.bankImage.subarray(p * 64, p * 64 + 63).some((b) => b !== 0)));
@@ -107,8 +109,8 @@ SCOPE.section([], 'the data', () => {
   check(`no room has a fourth creature (sprite 7 is the worn chullo's; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   check('Monty on the Run is as it was (no flight rooms, no boulders, no vines, no canopy)', MOTR.flights.length === 0 && MOTR.rollers.length === 0 && MOTR.vines.length === 0 && MOTR.canopy === null);
   const rollersIn = (room: number) => WORLD.rollers.filter((r) => r.room === room).length;
-  check('the flight rooms are the drop\'s three, the boulders Machu Picchu\'s three, the leaping piranhas two in VINE AND DANDY, one in the creek and two at the roots, the vines three, one and two, the rotten logs the creek\'s five cells',
-    WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.gorge].join() && rollersIn(AND.picchu) === 3 && rollersIn(AND.vine) === 2 && rollersIn(AND.sandbar) === 1 && rollersIn(AND.roots) === 2
+  check('the flight rooms are the drop\'s three and its second line\'s three, the boulders Machu Picchu\'s three, the bridge\'s rockfall one, the leaping piranhas two in VINE AND DANDY, one in the creek and two at the roots, the vines three, one and two, the rotten logs the creek\'s five cells',
+    WORLD.flights.map((f) => f.room).join() === [AND.jump, AND.thin, AND.gorge, ...SECOND_LINE].join() && rollersIn(AND.picchu) === 3 && rollersIn(AND.bridge) === 1 && rollersIn(AND.vine) === 2 && rollersIn(AND.sandbar) === 1 && rollersIn(AND.roots) === 2
     && WORLD.vines.filter((v) => v.room === AND.vine).length === 3 && WORLD.vines.filter((v) => v.room === AND.sandbar).length === 1 && WORLD.vines.filter((v) => v.room === AND.roots).length === 2 && WORLD.vines.length === 6
     && WORLD.cracks.filter((c) => c.room === AND.sandbar).length === 5 && LOG_CRACKS.length === 5);
   const crowdedRollers = ANDES_ROOMS.filter((r) => new Set(WORLD.rollers.filter((b) => b.room === r.id).map((b) => b.sprite)).size !== rollersIn(r.id) || WORLD.rollers.some((b) => b.room === r.id && b.sprite === 1 && (r.cake !== undefined)));
@@ -179,7 +181,17 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu], 'the pa
     check(`the canyon\'s diving condor kills him in the right canyon (in ${diesAt(at(AND.thin, 25, 12, [], false, true), NONE, 300)} frames)`, diesAt(at(AND.thin, 25, 12, [], false, true), NONE, 300) >= 0);
   });
   SCOPE.section([AND.jump], 'JUMP FOR JOY teaches the drop', () => {
-    check('JUMP FOR JOY has no creatures: the room that teaches the drop', (roomOf(AND.jump).enemies ?? []).length === 0);
+    check('JUMP FOR JOY teaches the drop with two condors: one rising and falling between the updraft and the spire, one over the shoulder (the way east to the second line)', (roomOf(AND.jump).enemies ?? []).length === 2);
+  });
+  SCOPE.section([AND.jump, ...SECOND_LINE, AND.picchu], 'the drop\'s second line', () => {
+    // east along JUMP FOR JOY's shoulder, then down COLD SHOULDER, CHIMNEY SWEEP and WING AND A PRAYER into Machu Picchu's sky: each step a search with the creatures in
+    const legs: readonly [from: State, aim: { room: number; col: number; row: number }, to: number][] = [
+      [at(AND.jump, 24, 11, [], false, true), { room: AND.jump, col: 31, row: 9 }, AND.shoulder], [at(AND.shoulder, 4, 11, [], false, true), { room: AND.shoulder, col: 17, row: 19 }, AND.chimney],
+      [at(AND.chimney, 16, 13, [], false, true), { room: AND.chimney, col: 20, row: 19 }, AND.prayer], [at(AND.prayer, 16, 2, [], false, true), { room: AND.prayer, col: 26, row: 19 }, AND.picchu],
+    ];
+    const found = legs.map(([from, aim, to]) => search(from, (g) => g.roomId === to && !dead(g), [aim], 300000, 1.5) !== null);
+    check(`the second line: east off the shoulder into COLD SHOULDER, down it into CHIMNEY SWEEP, down that into WING AND A PRAYER and down into Machu Picchu, past their condors (${found.join(' ')})`, found.every(Boolean));
+    check('every room of the second line is a flight room with a coin and at least two creatures', SECOND_LINE.every((id) => WORLD.flights.some((f) => f.room === id) && (roomOf(id).coins?.length ?? 0) === 1 && (roomOf(id).enemies ?? []).length >= 2));
   });
   SCOPE.section([AND.gorge, AND.terraces], 'the gorge foot: two throats, two landings', () => {
     // the gorge's foot is two throats either side of the pinnacle: the west one lands on the guardhouse's roof, the east one on the broad terrace, on his feet
@@ -274,6 +286,26 @@ SCOPE.section([AND.roots, AND.sandbar], 'the vines and the rotten logs', () => {
 
 // ---- the gates ---------------------------------------------------------------------------------------------
 SCOPE.section([AND.picchu, AND.terraces, AND.canopy, AND.kapok, AND.roots, AND.boat, AND.ends, RIO_FIRST], 'the gates', () => {
+  SCOPE.section([AND.picchu, AND.kapok, AND.boat], 'each gate shows what it wants, and is kept done', () => {
+    // (the picture of the item over the gate, wanted.ts, until he uses it there; the gate's hidden find keeps it done through a death and a save)
+    const shown = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) !== 0);
+    const gone = (g: Game, w: (typeof WANTED)[keyof typeof WANTED]) => wantedCells(w).every(([row, col]) => cell(g, col, row) === 0);
+    const llama = at(AND.picchu, 2, 18, [PANPIPES]);
+    const before = shown(llama.g, WANTED.llama) && shown(at(AND.picchu, 2, 18).g, WANTED.llama);
+    run(llama, RIGHT, 60);
+    const tangle = at(AND.kapok, 18, 8, [MACHETE]);
+    const tangleBefore = shown(tangle.g, WANTED.tangle);
+    run(tangle, RIGHT, 40);
+    const boat = at(AND.boat, 1, 15, [CHULLO_AT]);
+    const boatBefore = shown(boat.g, WANTED.captain);
+    run(boat, RIGHT, 20);
+    check(`the panpipes' picture blinks in the tunnel's mouth, the machete's over the tangle, the chullo's at the cargo deck's foot, with and without the item, until he uses it there (${before} ${tangleBefore} ${boatBefore}; gone after: ${gone(llama.g, WANTED.llama)} ${gone(tangle.g, WANTED.tangle)} ${gone(boat.g, WANTED.captain)})`,
+      before && tangleBefore && boatBefore && gone(llama.g, WANTED.llama) && gone(tangle.g, WANTED.tangle) && gone(boat.g, WANTED.captain));
+    const doneBefore = (room: number, col: number, floor: number, holds: readonly (readonly [number, number])[], keep: number) => { const s = at(room, col, floor, holds, false, true); s.g.siCollected[keep] = 0x81; enterRoom(s.g, room, s.g.x2, s.g.y); run(s, NONE, 3); return s; };
+    const k1 = doneBefore(AND.picchu, 2, 8, [PANPIPES], ANDES_KEEPS.llama), k2 = doneBefore(AND.kapok, 4, 6, [MACHETE], ANDES_KEEPS.tangle), k3 = doneBefore(AND.boat, 30, 15, [CHULLO_AT], ANDES_KEEPS.captain);
+    check('kept done (a save after he used them): the llama is gone, the tangle cut, the captain gone, and no picture, as he comes in anywhere',
+      gone(k1.g, WANTED.llama) && k1.g.enemies[0]?.x === 0xff && TANGLE_CELLS.every(([row, col]) => cell(k2.g, col, row) === 0) && gone(k2.g, WANTED.tangle) && gone(k3.g, WANTED.captain) && k3.g.enemies[0]?.x === 0xff);
+  });
   SCOPE.section([AND.picchu, AND.terraces, AND.canopy], 'the llama, the spit and the tunnel', () => {
     const llamaType = must(at(AND.picchu, 4, 18, [], false, true).g.enemies[0], 'the llama').type;
     const llama = (holds: readonly (readonly [number, number])[], col: number, frames = 3) => {
@@ -431,10 +463,10 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu, AND.brid
     check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
   };
   SCOPE.section([AND.canopy, AND.cloud, AND.picchu], 'fair: the canopy lattice to the cloud forest', () => {
-    fair('the canopy\'s lattice past the toucan and the sloth, the bough to CLOUD NINE', () => at(AND.canopy, 20, 7, [], false, true), { room: AND.canopy, col: 0, row: 8 }, (g) => g.roomId === AND.cloud);
+    fair('the canopy\'s lattice from the well\'s liana: past the jaguar on the bough, the toucan and the sloth, to CLOUD NINE', () => at(AND.canopy, 20, 5, [], false, true), { room: AND.canopy, col: 0, row: 8 }, (g) => g.roomId === AND.cloud);
   });
   SCOPE.section([AND.cloud, AND.vine], 'fair: the cloud forest floor', () => {
-    fair('CLOUD NINE\'s floor past the bear and over the stream under the cock-of-the-rock, down to the river', () => at(AND.cloud, 22, 18, [], false, true), { room: AND.cloud, col: 2, row: 19 }, (g) => g.roomId === AND.vine);
+    fair('CLOUD NINE\'s liana down to the floor past the bear and over the stream under the cock-of-the-rock, down to the river', () => at(AND.cloud, 20, 12, [], false, true), { room: AND.cloud, col: 2, row: 19 }, (g) => g.roomId === AND.vine);
   });
   SCOPE.section([AND.vine, AND.cloud, AND.sandbar], 'fair: VINE AND DANDY', () => {
     fair('VINE AND DANDY\'s three vines and two logs past the piranhas, the west bank to the east bank', () => at(AND.vine, 3, 15, [], false, true), { room: AND.vine, col: 29, row: 13 }, (g) => g.roomId === AND.vine && colOf(g) >= 27 && g.y === standY(15));

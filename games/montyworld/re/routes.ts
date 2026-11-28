@@ -64,12 +64,10 @@ const frames = (route: Route) => route.reduce((a, [, f]) => a + f, 0);
 interface Found { room: number; spot: { x2: number; y: number; facing: number }; route: string; encore?: string }
 
 /**
- * Places whose route is set by hand: OPEN ARMS (71), where the search's run to the hand's coin passes the vulture at a phase the show (a fresh game, seeded) does not share, so it died there in reward.ts:
- * the forest floor's coin at the Redeemer's foot instead, walked to west from under his pedestal (safe under every timing).
+ * Places whose route is set by hand: none now. OPEN ARMS (71) had one (the forest floor's coin walked to west from under the pedestal) while the vulture's dive at the hand's coin was at a phase the show did
+ * not share; since the challenge pass (2026-11-28) the marmoset walks that floor, so the search finds its route in the show's own game like every other place.
  */
-const HAND: Readonly<Record<number, Found>> = {
-  71: { room: 71, spot: { x2: 0x5c, y: 0xaa, facing: 0x81 }, route: '<104 .40' },
-};
+const HAND: Readonly<Record<number, Found>> = {};
 
 /** A new game begun as the show begins a place (the random numbers the game's own, as `hold` makes them too): what he has by then, in the room at the spot; null if the room will not take him there. */
 function showGame(index: number, x2: number, y: number, facing: number): State | null {
