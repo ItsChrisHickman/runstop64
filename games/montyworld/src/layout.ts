@@ -177,6 +177,8 @@ function underFinds(r: MoscowRoom, g: Grid): Placement[] {
 /** The decorations used as backdrops (`fillCells`): the engine keeps them under the room's coins and shows them where a cell is cleared. */
 const backdrops = new Set<WorldDecor>();
 export const isBackdrop = (name: string): boolean => [...backdrops].some((b) => b === name);
+/** The same by a piece's number in the library (what a built room's `decor` carries). */
+export const isBackdropIndex = (type: number): boolean => isBackdrop(decorNames[type] ?? '');
 /** A decoration of several cells drawn as a backdrop (Lapa's arches behind the street): kept under a coin in it, shown where a cell of it is cleared. Returns the piece. */
 export function asBackdrop<T extends WorldDecor>(piece: T): T {
   backdrops.add(piece);

@@ -233,6 +233,7 @@ export const MOSCOW_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'balalaika', col: 5, row: 15, way: 'right', speed: 2, range: 24, colour: 7 }, // quick along the platform toward where he drops in, turning short of it (Chris: "the first you can fall on it you are unlucky"): the coin under the clock is behind it (yellow: it crosses the bench's brown)
       { who: 'samovar', col: 21, row: 7, way: 'right', speed: 1, range: 64 }, // along the car's roof and over the hatch: wait on the ladder while it goes by, out as it heads west (Chris: "the enemy on the roof poses no threat")
+      { who: 'inspector', col: 22, row: 15, way: 'right', speed: 1, range: 40, colour: 10 }, // the guard of the last car, from the door to the hatch's ladder and back: in behind him, up the ladder before he turns, or jump him where he does
     ],
   }),
 

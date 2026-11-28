@@ -22,6 +22,7 @@ import { CAB, CART, CLOSET, CRACKS, VESTIBULE, GANGWAYS, INSPECTOR_SLOT, MINE_CA
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { SCOPE, scopedRooms } from './scope';
+import { isBackdropIndex } from '../src/layout';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { RETIRED } from '../src/save-migrate';
 import { at, cell, colOf, dead, diesAt, icicleMet, LEFT, panelLine, RIGHT, UP, rowText, run } from './mech-kit';
@@ -83,7 +84,7 @@ SCOPE.section([], 'the layout (the rooms in the filter)', () => {
         const col = d.col - 4 + cc, row = d.row - 3 + rr;
         if (col < 0 || col > 31 || row < 0 || row > 19) continue;
         if (classAt(r.id, col, row) !== 0) bad.push(`${r.id}: a decoration (type ${d.type}) over a tile at ${col},${row}`);
-        covered.add(col + ',' + row);
+        if (typeof d.type === 'number' && !isBackdropIndex(d.type)) covered.add(col + ',' + row); // (a backdrop keeps a coin and a find over it: layout.ts underFinds)
       }
     }
     for (const [col, row] of r.coins ?? []) if (classAt(r.id, col, row) !== 0 || covered.has(col + ',' + row)) bad.push(`${r.id}: coin ${col},${row} in a tile or under a decoration`);

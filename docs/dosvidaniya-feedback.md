@@ -39,8 +39,7 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 | Siberia you later | "the enemies are pretty poorly done. The first you can fall on it you are unlucky. The enemy on the roof poses no threat" | done (352f6f37, d271be10): the balalaika runs quick toward the landing and turns two cells short of it; the samovar walks the car's roof over the hatch (wait on the ladder, go as it heads west). Only the creatures changed |
 | Mine all mine | "no challenge" | done (352f6f37, d271be10): the two shafts' bats at different speeds, so the gaps on the gantry and over the cart drift and have to be read; the miner's window as it was |
 | Bullet point | "needs to be harder. The train is too easy to not encounter" | open |
-
-| The train's points/coupling puzzle (the release reviewer's idea: the steam valve extended across the dining car, the sleeper and the tender) | his call (recommended: play the release's steam valve first, then decide; not built) |
+| The train's points/coupling puzzle | (the release reviewer's idea: the steam valve extended across the dining car, the sleeper and the tender) | his call (recommended: play the release's steam valve first, then decide; not built) |
 
 ## China
 
