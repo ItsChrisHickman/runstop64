@@ -21,7 +21,7 @@ import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
 import { codeOf } from '../src/layout';
-import { BIPLANE_AT, CAVE_DRIPS, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, MOORING_COL, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CALM_CODE, SURF_CELLS, WAIKIKI_PALETTE, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
+import { BIPLANE_AT, DOME_LADDER, DOME_LADDER_CODE, CAVE_DRIPS, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, MOORING_COL, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CALM_CODE, SURF_CELLS, WAIKIKI_PALETTE, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, shakes, UP } from './mech-kit';
@@ -40,11 +40,12 @@ SCOPE.section([], 'the data', () => {
   const placed = [
     [2, 17, PAC.ship], [2, 18, PAC.waikiki], [1, 18, PAC.luau], [1, 19, PAC.diamond], [0, 19, PAC.lookout], [3, 18, PAC.clam], [3, 19, PAC.kelp], [2, 19, PAC.lahaina], [2, 20, PAC.road], [3, 20, PAC.cave],
     [2, 21, PAC.hana], [3, 21, PAC.fish], [3, 22, PAC.kona], [2, 22, PAC.kea], [1, 22, PAC.summit], [2, 23, PAC.falls], [3, 23, PAC.hilo], [4, 22, PAC.loa], [4, 23, PAC.coffee], [1, 17, PAC.beach],
+    [1, 21, PAC.waiau], [1, 23, PAC.ridge],
   ] as const;
-  check('Hawaii is twenty rooms at columns 17-23 (rows 0-4): Japan\'s port beside the ship, column 24 empty (the flight is a flight, not a room over), the sky from 25',
-    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && grid(0, 25) === FLY.mail && PACIFIC_ROOMS.length === 20);
-  check('the first build\'s ids that came back keep them, the new rooms are 87-93 (after the sky\'s and the other regions\' returns) and BOARD MEETING 99 (the bonus west of the luau); 39, 40, 44, 50 and 54 stay retired',
-    [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => (r.id >= 87 && r.id <= 93) || r.id === PAC.beach) && PACIFIC_SECTORS.length === 17);
+  check('Hawaii is twenty-two rooms at columns 17-23 (rows 0-4): Japan\'s port beside the ship, column 24 empty (the flight is a flight, not a room over), the sky from 25',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && grid(0, 25) === FLY.mail && PACIFIC_ROOMS.length === 22);
+  check('the first build\'s ids that came back keep them, the new rooms are 87-93 (after the sky\'s and the other regions\' returns), BOARD MEETING 99 (the bonus west of the luau) and the summit\'s bonus rooms 101 and 102; 39, 40, 44, 50 and 54 stay retired',
+    [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => (r.id >= 87 && r.id <= 93) || ([PAC.beach, PAC.waiau, PAC.ridge] as const).some((id) => id === r.id)) && PACIFIC_SECTORS.length === 17);
   const rooms = creatureRooms(PACIFIC_ROOMS);
   check(`no creature in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
   check('the three swim rooms are the swim past Molokai (two rooms) and the sea cave (SHELL GAME is on the surface, no swim); only the sea cave\'s tube has a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
@@ -134,7 +135,7 @@ SCOPE.section([PAC.fish, PAC.kona, PAC.hana], 'SHELL GAME: the turtles surface a
   const onIt = search(at(PAC.fish, 13, 16, [SNORKEL]), (g) => g.roomId === PAC.fish && g.y === standY(TURTLES.row) && !g.falling && colOf(g) >= east.col && colOf(g) <= east.col + 1 && phaseOf(g) === 'idle', [{ room: PAC.fish, col: east.col, row: TURTLES.row - 2 }], 100000, 1.5);
   const rider = onIt?.end;
   let diedIn = 'none';
-  for (let f = 0; rider && f < TURTLES.period && diedIn === 'none'; f++) { frame(rider, NONE); if (dead(rider.g)) diedIn = phaseOf(rider.g); }
+  for (let f = 0; rider && f < east.period && diedIn === 'none'; f++) { frame(rider, NONE); if (dead(rider.g)) diedIn = phaseOf(rider.g); }
   check(`standing on a turtle he rides it while it is up and going under, and goes into the swell when it dives (${rider ? `he died while it was ${diedIn}` : 'no way onto it'})`, diedIn === 'spent');
   const stats = { exhausted: false };
   const crossing = search(at(PAC.fish, 13, 16, [SNORKEL]), (g) => g.roomId === PAC.kona, [{ room: PAC.fish, col: 30, row: 17 }], 200000, 1.5, stats);
@@ -202,20 +203,28 @@ SCOPE.section([PAC.loa], 'Mauna Loa: the lava, the crust, the vent', () => {
   check(`standing over the vent he dies when it blows (frame ${ventDied}, live from ${VENT.start + VENT.warn})`, VENT_PULSES[0] !== undefined && ventDied >= VENT.start + VENT.warn - 1);
 });
 
-// ---- the Big Island's locks: the moon rock for the astronomer, the rock waking the pit's lava ------------------
-SCOPE.section([PAC.summit, PAC.loa], 'the Big Island: the astronomer wants the moon rock, and the rock wakes the pit\'s lava', () => {
+// ---- the Big Island's lock: the moon rock for the astronomer, given where he stands -----------------------------
+SCOPE.section([PAC.summit, PAC.loa], 'the Big Island: the astronomer wants the moon rock, given him where he stands', () => {
   const parachute = (holds: readonly (readonly [number, number])[], stats: { exhausted: boolean }) =>
-    search(at(PAC.summit, 17, 11, [SNORKEL, ...holds], false, true), (g) => !!g.siCollected[itemIndex(g, ...PARACHUTE)], [{ room: PAC.summit, col: PARACHUTE_AT.col, row: PARACHUTE_AT.row }], 30000, 1.5, stats);
+    search(at(PAC.summit, 16, 11, [SNORKEL, ...holds], false, true), (g) => !!g.siCollected[itemIndex(g, ...PARACHUTE)], [{ room: PAC.summit, col: PARACHUTE_AT.col, row: PARACHUTE_AT.row }], 30000, 1.5, stats); // (on the catwalk at the ladder's head, short of the astronomer's beat)
   const without = { exhausted: false }, withRock = { exhausted: false };
   check(`without the moon rock the astronomer keeps him off the dome's ladder: no way to the parachute (${without.exhausted ? 'every state looked at' : 'the state limit'})`, parachute([], without) === null);
   check('with the moon rock the astronomer has gone in, and the ladder takes him to the parachute', parachute([MOON_ROCK], withRock) !== null);
-  const asleep = at(PAC.loa, 3, 19, [SNORKEL]);
-  run(asleep, NONE, 120);
-  check('before the rock is taken the pit\'s lava sleeps (the basin\'s rises as ever)', asleep.g.lavas.find((l) => l.index === 1)?.t === 0 && (asleep.g.lavas.find((l) => l.index === 0)?.t ?? 0) > 0);
-  check('with the rock taken, the pit\'s lava wells up: waiting at its foot he dies', diesAt(at(PAC.loa, 28, 19, [SNORKEL, MOON_ROCK]), NONE, 300) >= 0);
-  const climbs = at(PAC.loa, 28, 19, [SNORKEL, MOON_ROCK]);
-  run(climbs, UP, 150);
-  check(`climbing the rope at once he is out ahead of it (row ${climbs.g.montyRow - 3})`, !dead(climbs.g));
+  // the gate used on the spot and kept (the back-half plan's "Cause and effect for every gate"): carrying the rock along the ridge west of the dome the astronomer still paces and the ladder is up;
+  // coming up to him he walks off and the ladder comes down, and it stays down
+  const ladderDown = (g: State['g']) => DOME_LADDER.every(([row, col]) => cell(g, col, row) === DOME_LADDER_CODE);
+  const away = at(PAC.summit, 2, 16, [SNORKEL, MOON_ROCK], false, true);
+  run(away, NONE, 2);
+  const near = at(PAC.summit, 16, 16, [SNORKEL, MOON_ROCK], false, true);
+  const upBefore = !ladderDown(near.g);
+  run(near, NONE, 2);
+  const keep = WORLD.roomEffects.find((e) => e.room === PAC.summit && e.at)?.at?.keep ?? -1;
+  check(`the rock carried along the ridge away from him: the ladder is up (${!ladderDown(away.g)}); come up to him by the dome and he walks off with it and lets it down (${upBefore && ladderDown(near.g)}), kept (${keep >= 0 && !!near.g.siCollected[keep]})`,
+    !ladderDown(away.g) && upBefore && ladderDown(near.g) && keep >= 0 && !!near.g.siCollected[keep]);
+  enterRoom(near.g, PAC.summit, 0x0c + (2 + 4) * 4, standY(16));
+  for (let n = 0; n < 200 && (near.g.freeze || near.g.script); n++) frame(near, NONE);
+  check('coming into the summit again, the ladder is down as the room loads', ladderDown(near.g));
+  check('Mauna Loa has one lava, the basin\'s: the moon rock wakes nothing', WORLD.risingLava.filter((l) => l.room === PAC.loa).length === 1 && WORLD.risingLava.every((l) => l.wakenBy === undefined));
 });
 
 // ---- the biplane's two locks ---------------------------------------------------------------------------
@@ -260,7 +269,8 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
     [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 15, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 17, 18], [PAC.beach, 12, 11], [PAC.road, 3, 18],
-    [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 13, 16], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
+    [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 13, 16], [PAC.kona, 2, 19], [PAC.kea, 4, 12], [PAC.summit, 1, 14], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 1, 5], [PAC.hilo, 26, 19],
+    [PAC.waiau, 29, 16], [PAC.ridge, 2, 16],
   ] as const;
   const failed: number[] = [];
   for (const [room, col, floor] of spots.filter(([id]) => SCOPE.has(id))) {

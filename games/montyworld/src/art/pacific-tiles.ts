@@ -225,6 +225,17 @@ export const PACIFIC_TILES = {
     '.######.',
     '########',
   ]),
+  /** A guide-star laser's beam going up into the night (Mauna Kea's telescopes): a bright core with a fainter edge each side. Nothing (a pulse makes it deadly while it shines). */
+  pacLaser: tile('pacLaser', 0, 7, [
+    '..#.#...',
+    '...##...',
+    '..#.#...',
+    '...##...',
+    '..#.#...',
+    '...##...',
+    '..#.#...',
+    '...##...',
+  ]),
 } as const;
 
 export type PacificTile = keyof typeof PACIFIC_TILES;

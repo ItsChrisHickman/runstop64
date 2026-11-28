@@ -13,12 +13,12 @@ import { codeOf, decorIndex, fillCells, fillWhere, type Grid, room, type Palette
 /**
  * The Pacific, the fifth region of Do Svidaniya Monty: Hawaii's island hopping (docs/dosvidaniya-back-half-plan.md, "Hawaii" and "Hawaii polish pass"; Chris, 2026-11-25: "landing in Honolulu, then climbing
  * Diamond Head to get the snorkel that a tourist left behind, then snorkeling past Molokai to Lahaina, Road to Hana", then to the Big Island (Kona), where the island splits over Mauna Kea and Mauna Loa into
- * Hilo and the plane). Twenty rooms on four islands (BOARD MEETING, the beach west of the luau, a bonus): one swim (Oahu to Maui past Molokai, two rooms of open sea) and the turtle crossing to the Big Island on the surface. No banners: each room's own name
+ * Hilo and the plane). Twenty-two rooms on four islands (BOARD MEETING, the beach west of the luau, and ON THIN ICE and SEEING STARS either side of the summit, bonuses): one swim (Oahu to Maui past Molokai, two rooms of open sea) and the turtle crossing to the Big Island on the surface. No banners: each room's own name
  * carries the journey.
  *
  *            col 17          18                  19              20               21              22              23
  *   row 0                                        THE LOOKOUT
- *   row 1    BOARD MEETING   LEI OF THE LAND     DIAMOND HEAD                                     THE SUMMIT
+ *   row 1    BOARD MEETING   LEI OF THE LAND     DIAMOND HEAD                    ON THIN ICE <-> THE SUMMIT <-> SEEING STARS
  *   row 2    THE CARGO SHIP  WELCOME TO HONOLULU WHALE OF A TIME THE ROAD TO HANA KAIHALULU       MAUNA KEA   <->  AKAKA FALLS
  *   row 3                    CHANNEL SURFING     LAND AHOY       THE SEA CAVE     SHELL GAME      KONA        <->  HILO GOODBYE  -> the biplane: THE FLIGHT
  *   row 4                                                                                         MAUNA LOA   <->  COFFEE BREAK
@@ -30,7 +30,7 @@ import { codeOf, decorIndex, fillCells, fillWhere, type Grid, room, type Palette
  * cars over the one-lane bridges; Kaihalulu's red sand cove, down its cliff to the channel, where the turtles carry him (SHELL GAME: hop shell to shell as they surface and dive) onto Kona's black sand on the
  * Big Island. There the way splits into a loop, Moscow's way (docs/dosvidaniya-moscow.md part 1): the top way up through the cloud to Mauna Kea's summit, where the astronomer keeps the ladder to the parachute
  * drawn up until Monty brings him the moon rock, then along Akaka Falls' high trail and down into Hilo; the bottom way down the lava tube to Mauna Loa (the run ahead of the lava; the moon rock down the crater's
- * pit, which wakes the pit's own lava) and along the coffee farm (the coffee) up into Hilo. Every join goes both ways, and Akaka Falls is crossed twice at two heights (the high trail, and the low lane from
+ * pit, past a magma blob bobbing beside the rope) and along the coffee farm (the coffee) up into Hilo. Every join goes both ways, and Akaka Falls is crossed twice at two heights (the high trail, and the low lane from
  * Hilo's roofs to Mauna Kea's foot). The biplane takes off only with both (NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY), and the summit's gate wants the bottom way's rock: whichever way he takes first,
  * the loop sends him round for the other. Playfield cells as in moscow.ts.
  */
@@ -43,7 +43,7 @@ import { codeOf, decorIndex, fillCells, fillWhere, type Grid, room, type Palette
  */
 export const PAC = {
   ship: 38, waikiki: 41, luau: 42, clam: 43, kelp: 45, lahaina: 46, road: 47, cave: 48, fish: 49, coffee: 51, loa: 52, hilo: 53,
-  hana: 87, diamond: 88, lookout: 89, kona: 90, kea: 91, summit: 92, falls: 93, beach: 99,
+  hana: 87, diamond: 88, lookout: 89, kona: 90, kea: 91, summit: 92, falls: 93, beach: 99, waiau: 101, ridge: 102,
 } as const;
 
 /** The rooms of open water (swim.ts): Monty swims in them, and only with the snorkel: the swim past Molokai and the sea cave. */
@@ -69,8 +69,10 @@ export const PACIFIC_SECTORS: readonly Sector[] = NAMES.map(centred);
 /** The map's colour of each (the ship red, the beach yellow, the luau pink, the swims blue, Lahaina brown, the road green, the turtles' channel light blue, the farm brown, the lava orange, Hilo grey; the retired none). */
 export const PACIFIC_COLOURS: readonly number[] = [2, 0, 0, 7, 10, 6, 0, 14, 9, 5, 6, 14, 0, 9, 8, 12, 0];
 /** The names and map colours of the Pacific's rooms whose sectors are after the sky's (87-93; later-sectors.ts lays them out with the other regions' later rooms, 82-86). */
-export const PACIFIC_LATER_NAMES: Readonly<Record<number, string>> = { 87: 'KAIHALULU', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS', 99: 'BOARD MEETING' };
-export const PACIFIC_LATER_COLOURS: Readonly<Record<number, number>> = { 87: 10, 88: 9, 89: 1, 90: 11, 91: 2, 92: 1, 93: 5, 99: 3 };
+export const PACIFIC_LATER_NAMES: Readonly<Record<number, string>> = {
+  87: 'KAIHALULU', 88: 'DIAMOND HEAD', 89: 'THE LOOKOUT', 90: 'KONA', 91: 'MAUNA KEA', 92: 'THE SUMMIT', 93: 'AKAKA FALLS', 99: 'BOARD MEETING', 101: 'ON THIN ICE', 102: 'SEEING STARS',
+};
+export const PACIFIC_LATER_COLOURS: Readonly<Record<number, number>> = { 87: 10, 88: 9, 89: 1, 90: 11, 91: 2, 92: 1, 93: 5, 99: 3, 101: 14, 102: 7 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The ship: the hull's red plates, the deck's bright plate, the hold's grating, the ladders, a crate step, the bow's containers, the bilge water. */
@@ -129,9 +131,9 @@ export const HANA_PALETTE = {
   B: ['pacBasalt', 9], T: ['pacTurf', 5], K: ['pacSandFill', 10], R: ['pacBamboo', 13], P: ['pacSwash', 1], L: ['pacBasalt', 11],
 } as const satisfies Palette;
 
-/** Kona: the black sand and the lava rock, the tide pool, the ropes up to Mauna Kea and down the lava tube to Mauna Loa. */
+/** Kona: the black sand and the lava rock (the tide pool's bed), the ropes up to Mauna Kea and down the lava tube to Mauna Loa. */
 export const KONA_PALETTE = {
-  K: ['pacBlackSand', 12], B: ['pacBasalt', 12], W: ['pacWaves', 14], R: ['pacBamboo', 13],
+  K: ['pacBlackSand', 12], B: ['pacBasalt', 12], R: ['pacBamboo', 13],
 } as const satisfies Palette;
 
 /** Mauna Kea and its summit: the red cinder, the rope, the observatory's catwalk and ladders. */
@@ -139,9 +141,18 @@ export const KEA_PALETTE = {
   C: ['pacBasalt', 10], R: ['pacBamboo', 13], G: ['pacGrating', 15], L: ['pacSteelLadder', 15],
 } as const satisfies Palette;
 
-/** Akaka Falls: the gorge's rock and its mossy trail, the plunge pool, the ropes down to Hilo. */
+/** ON THIN ICE: the red cinder and its snow, Lake Waiau's ice (whole, cracking, split) and the icy water under it. */
+export const WAIAU_PALETTE = {
+  C: ['pacBasalt', 10], N: ['snowGround', 1], I: ['iceSheet', 14], J: ['iceCrack', 14], H: ['iceWide', 14], W: ['lakeWater', 6],
+} as const satisfies Palette;
+/** SEEING STARS: the red cinder, the domes' catwalks, gantry and ladders, the guide-star laser (shining, and its faint flicker as it is switched on). */
+export const RIDGE_PALETTE = {
+  C: ['pacBasalt', 10], G: ['pacGrating', 15], L: ['pacSteelLadder', 15], Z: ['pacLaser', 7], Y: ['pacLaser', 11],
+} as const satisfies Palette;
+
+/** Akaka Falls: the gorge's rock and its mossy trail, the plunge pool, the ropes down to Hilo, the stream over the ford and its spate's white water. */
 export const FALLS_PALETTE = {
-  B: ['pacBasalt', 9], T: ['pacTurf', 13], W: ['pacWaves', 14], R: ['pacBamboo', 13],
+  B: ['pacBasalt', 9], T: ['pacTurf', 13], W: ['pacWaves', 14], R: ['pacBamboo', 13], S: ['pacSurge', 14], V: ['pacSurge', 1], F: ['pacSwash', 1],
 } as const satisfies Palette;
 
 /** Mauna Loa: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the ropes, the steam vent's column. */
@@ -149,9 +160,9 @@ export const LOA_PALETTE = {
   K: ['pacCrust', 9], L: ['pacCrust', 15], Y: ['pacCrustSplit', 15], M: ['pacMagma', 2], C: ['pacMagmaCrest', 7], R: ['pacBamboo', 13], V: ['pacSteam', 1],
 } as const satisfies Palette;
 
-/** The coffee farm: the terraces' turf over red soil, the rope up to Hilo, the low lane's road. */
+/** The coffee farm: the terraces' turf over red soil, the rope up to Hilo, the farm road, the lava-rock wall at its end, the drying deck's boards. */
 export const COFFEE_PALETTE = {
-  T: ['pacTurf', 13], S: ['pacBasalt', 9], R: ['pacBamboo', 13], P: ['pacRoad', 15], B: ['pacReefRock', 9],
+  T: ['pacTurf', 13], S: ['pacBasalt', 9], R: ['pacBamboo', 13], P: ['pacRoad', 15], B: ['pacReefRock', 9], D: ['pacBridgeDeck', 8],
 } as const satisfies Palette;
 
 /** Hilo: the street, the storefronts' roofs, the bayfront's sea wall, the rope down to the farm. */
@@ -279,13 +290,44 @@ export const WAVE_PULSES: readonly PulseSpec[] = WAVE.groups.map((g, k): PulseSp
  * SHELL GAME's turtles (Chris, 2026-11-25: "if getting between island two and three involves riding on turtles' backs instead? Maybe that's good"): green sea turtles at the surface of the channel between
  * Maui and the Big Island, each a shell two cells long (its two halves) and its head (`pulses` of floor tiles, harmless: nothing of them kills). Each is up for `up` frames, shows going under for `warn` (the shell sinks to its
  * crown, flickering), and is down for the rest of its period, the swell's cells showing where it was; then it surfaces again. The swell between them (the room's waves) is deadly, as Waikiki's surf is. They
- * keep their own time (`offset`), so he hops from shell to shell as each comes up and waits on one that will stay up while the next one surfaces.
+ * keep their own time (`offset`), so he hops from shell to shell as each comes up and waits on one that will stay up while the next one surfaces. Harder (Chris, 2026-11-26: "needs to be harder. Pretty cool
+ * idea"): each its own period and time up, so the pattern drifts and has to be read each time, never learnt once; and the dolphins leap in the gaps between them (the room's creatures).
  */
-export const TURTLES = { row: 17, period: 240, up: 130, warn: 40, shells: [{ col: 7, offset: 60 }, { col: 19, offset: 0 }, { col: 24, offset: 150 }] } as const;
-export const TURTLE_PULSES: readonly PulseSpec[] = TURTLES.shells.flatMap(({ col, offset }): PulseSpec[] => {
-  const timing = { room: PAC.fish, row: TURTLES.row, rows: 1, period: TURTLES.period, start: TURTLES.up, warn: TURTLES.warn, live: 0, offset, warnCode: codeOf(SHELL_PALETTE, 'D'), liveCode: 0, spent: 0 };
+export const TURTLES = {
+  row: 17, warn: 40,
+  shells: [{ col: 7, offset: 60, period: 240, up: 120 }, { col: 19, offset: 0, period: 200, up: 100 }, { col: 24, offset: 150, period: 280, up: 130 }],
+} as const;
+export const TURTLE_PULSES: readonly PulseSpec[] = TURTLES.shells.flatMap(({ col, offset, period, up }): PulseSpec[] => {
+  const timing = { room: PAC.fish, row: TURTLES.row, rows: 1, period, start: up, warn: TURTLES.warn, live: 0, offset, warnCode: codeOf(SHELL_PALETTE, 'D'), liveCode: 0, spent: 0 };
   return [{ ...timing, col, cols: 1, idle: codeOf(SHELL_PALETTE, 'S') }, { ...timing, col: col + 1, cols: 1, idle: codeOf(SHELL_PALETTE, 'T') }, { ...timing, col: col + 2, cols: 1, idle: codeOf(SHELL_PALETTE, 'H') }];
 });
+/**
+ * Akaka Falls' own hazard (Chris, 2026-11-26: "literally nothing going on"): the stream that becomes the falls crosses the high trail at a ford just above the lip (cols 18-20, from the forest at row 4 down
+ * to the trail): calm, its flow lines; every `period` frames it comes down in spate, the water churning white for `warn` (the warning, flickering), then a white rush over the ford for `live`, deadly (it
+ * would carry him over the falls). The trail's crossing is timed to it, both ways, with the parrot sweeping the trail.
+ */
+export const FORD = { col: 18, cols: 3, row: 4, rows: 4, period: 150, start: 60, warn: 30, live: 36 } as const;
+export const FORD_PULSES: readonly PulseSpec[] = [{
+  room: PAC.falls, col: FORD.col, row: FORD.row, cols: FORD.cols, rows: FORD.rows, period: FORD.period, start: FORD.start, warn: FORD.warn, live: FORD.live,
+  idle: codeOf(FALLS_PALETTE, 'S'), warnCode: codeOf(FALLS_PALETTE, 'V'), liveCode: codeOf(FALLS_PALETTE, 'F'), spent: codeOf(FALLS_PALETTE, 'S'), // (the warning's white lines are nothing to touch; the rush is)
+}];
+/**
+ * ON THIN ICE's frozen lake (`cracks`, a cell each, as the junk's deck): standing on a cell of it, it cracks after 20 frames, splits at 36 and is gone at 50, the icy water under it; back 240 frames later.
+ * Keep moving: the snowball rolling across the ice and the nene walking the shore both make him wait, and waiting on the ice is what breaks it.
+ */
+export const WAIAU_ICE = { col: 10, cols: 10, row: 17 } as const;
+export const WAIAU_CRACKS: readonly CrackSpec[] = Array.from({ length: WAIAU_ICE.cols }, (_, k): CrackSpec => ({
+  room: PAC.waiau, col: WAIAU_ICE.col + k, cols: 1, row: WAIAU_ICE.row, codes: [codeOf(WAIAU_PALETTE, 'I'), codeOf(WAIAU_PALETTE, 'J'), codeOf(WAIAU_PALETTE, 'H')], crack: 20, wide: 36, gone: 50, away: 240,
+}));
+/**
+ * SEEING STARS' guide-star laser (the edges plan: "Keck's guide-star laser as a timed beam across the way"): Subaru's small dome shines it straight up through the gantry between the twin domes (col 15),
+ * flickering faintly for `warn` frames as it is switched on, then a bright beam, deadly, for `live`; the crossing over the gantry (and under it, past the dome on the ridge) is timed to it.
+ */
+export const LASER = { col: 15, period: 160, start: 50, warn: 30, live: 50, gantry: 9, domeTop: 12 } as const;
+export const LASER_PULSES: readonly PulseSpec[] = ([[0, LASER.gantry - 1], [LASER.gantry + 1, LASER.domeTop]] as const).map(([row0, row1]): PulseSpec => ({
+  room: PAC.ridge, col: LASER.col, row: row0, cols: 1, rows: row1 - row0 + 1, period: LASER.period, start: LASER.start, warn: LASER.warn, live: LASER.live,
+  idle: 0, warnCode: codeOf(RIDGE_PALETTE, 'Y'), liveCode: codeOf(RIDGE_PALETTE, 'Z'), spent: 0,
+}));
 /** The sea cave's flow lines slide west a pixel a step (half a pixel a frame), the water's way out of the lava tube. */
 export const SURGE_ANIMS: readonly CharAnim[] = [{ kind: 'scroll', room: PAC.cave, rings: [[codeOf(SEA_PALETTE, 'U')]], dx: -1, px: 1, every: 1 }];
 
@@ -318,11 +360,8 @@ export const PACIFIC_FLOW_PULSES: readonly PulseSpec[] = CAVE_FLOW_PULSES;
 export const LAVA: LavaSpec = {
   room: PAC.loa, col: 11, cols: 17, baseRow: 19, topRow: 10, stepFrames: 40, holdFrames: 150, drainFrames: 12, code: codeOf(LOA_PALETTE, 'M'), crest: codeOf(LOA_PALETTE, 'C'),
 };
-/**
- * The pit's lava (the plan: "taking it wakes the lava, which rises behind him on the climb out"): asleep until the moon rock is taken (data.ts gives `wakenBy`), then it wells up the pit (cols 28-30) a row every
- * 20 frames to the stepping ledges' level (row 14) under him as he climbs the rope out, holds and drains like the basin's. Once the rock is gone it does so whenever he comes in.
- */
-export const PIT_LAVA: LavaSpec = { ...LAVA, col: 28, cols: 3, topRow: 14, stepFrames: 20 };
+/* (The pit's own lava, woken by the moon rock, is gone: Chris, 2026-11-26, two lava flows "seems really weird", the right one "doesn't have any purpose". One lava, the basin's, the clock across the
+ * ledges; the pit's dead end is a magma blob bobbing beside the rope instead.) */
 /** The first two stepping ledges over the lava are thin crust (`cracks`): standing on one, it splits after 10 frames and is gone after 26; back 200 frames later. Keep moving. */
 export const CRUST_CRACKS: readonly CrackSpec[] = [14, 19].map((col): CrackSpec => ({
   room: PAC.loa, col, cols: 3, row: 14, codes: [codeOf(LOA_PALETTE, 'L'), codeOf(LOA_PALETTE, 'Y'), codeOf(LOA_PALETTE, 'Y')], crack: 10, wide: 18, gone: 26, away: 200,
@@ -344,8 +383,16 @@ export const ARRIVALS: readonly Arrival[] = [];
 export const BIPLANE_AT = { col: 22, row: 16 } as const;
 /** The parachute, snagged on the big dome's top at Mauna Kea's summit (its top left). */
 export const PARACHUTE_AT = { col: 21, row: 2 } as const;
-/** The astronomer on the big dome's catwalk, his feet on it (floor 11), where the ladder up to the telescope's platform comes down (col 25): he shuffles a cell, never off it. */
-export const ASTRONOMER_AT = { col: 24, row: 9 } as const;
+/**
+ * The astronomer on the big dome's catwalk, his feet on it (floor 11): he paces it with his star chart from short of the ladder's head (col 15) to under the drawn-up ladder (col 25), so the catwalk's
+ * coin and the step off the ladder are timed to his turn.
+ */
+export const ASTRONOMER_AT = { col: 18, row: 9 } as const;
+/**
+ * Where the astronomer's gate gives way, seen (data.ts, a room effect with `at`): coming up the dome's ladder onto the catwalk (or along the ridge under it) with the moon rock, he takes it, turns and walks
+ * off east into the dome to look at it, and lets the ladder down; kept from then on (saved).
+ */
+export const DOME_GATE = { col0: 14, row0: 8, col1: 26, row1: 15 } as const;
 /**
  * The ladder from the catwalk up to the telescope's platform (col 25, rows 4-10), which the astronomer keeps drawn up while he stands guard (a ladder there could be caught from a jump over his head): given the
  * moon rock he lets it down and goes in to look at the rock (data.ts: a gate that places these cells and sends him off).
@@ -658,12 +705,14 @@ const fishScenery: Placed[] = horizon(paintFish, FISH_KEEP, SHELL_HORIZON, [
 
 const paintKona = (g: Grid): void => {
   g.box(0, 19, 5, 19, 'K').box(9, 19, 14, 19, 'K').box(18, 19, 31, 19, 'K'); // the black sand, the lava tube's mouth (cols 6-8), the tide pool's (cols 15-17)
-  g.box(15, 19, 17, 19, 'W'); // the tide pool
+  g.box(15, 19, 17, 19, 'B'); // the tide pool's rocky bed under a hand's depth of water (the water a backdrop: he wades it; Chris: "why would I drown in that little bit of water")
   g.box(7, 14, 7, 19, 'R'); // the rope down the lava tube to Mauna Loa (hanging from the tube's lip into the hole: it went on up into the sky, and up it led to Mauna Kea's foot with no rope there)
   g.box(20, 17, 22, 18, 'B').box(23, 15, 25, 18, 'B'); // the lava rock stepping up from the beach
   g.box(28, 0, 28, 17, 'R'); // the rope up the mountain's flank to Mauna Kea (on up into the room above, where it goes on)
 };
 const KONA_COINS = [[24, 13], [16, 16]] as const;
+/** The tide pool's water over its bed, a backdrop he wades through. */
+const KONA_POOL = { col0: 15, col1: 17, row: 18 } as const;
 
 const paintKea = (g: Grid): void => {
   g.box(0, 0, 1, 19, 'C'); // the cinder cliff (Hana's cliff the other side)
@@ -689,6 +738,35 @@ const paintSummit = (g: Grid): void => {
   g.box(20, 4, 24, 4, 'G'); // the telescope's platform over the dome (too high to jump to from the catwalk: its ladder is `DOME_LADDER`)
 };
 const SUMMIT_COINS = [[3, 12], [16, 9]] as const;
+
+/**
+ * ON THIN ICE (101, [1,21]), the bonus room west of the summit (Chris: the summit "looks like I should be able to walk left and right"; the edges plan's $65): Lake Waiau among the cinder cones under the
+ * summit's night, frozen over. In along the ridge from the summit (floor 16); the east cone's steps (a coin on its top), across the lake's ice (it cracks under a foot that waits, a coin over its middle)
+ * to the west cone's steps (a coin on its top), and back. The cone's flank closes the west (nothing beyond: the summit plateau falls away); the floor is solid over KAIHALULU's sky.
+ */
+const paintWaiau = (g: Grid): void => {
+  g.box(0, 0, 0, 19, 'C'); // the west cone's flank closing the plateau
+  g.box(1, 16, 9, 19, 'C').box(20, 16, 31, 19, 'C').box(1, 16, 9, 16, 'N').box(20, 16, 31, 16, 'N'); // the cinder ground either side of the lake, its snow
+  g.box(10, 18, 19, 18, 'W').box(10, 19, 19, 19, 'C'); // the icy water and the lake's bed
+  g.box(WAIAU_ICE.col, WAIAU_ICE.row, WAIAU_ICE.col + WAIAU_ICE.cols - 1, WAIAU_ICE.row, 'I'); // the ice (cracks.ts redraws it as it cracks)
+  g.box(2, 14, 8, 15, 'C').box(3, 12, 7, 13, 'C').box(4, 10, 6, 11, 'C').box(2, 14, 8, 14, 'N').box(4, 10, 6, 10, 'N'); // the west cone, a step every two rows, snow on its shoulder and top
+  g.box(21, 14, 27, 15, 'C').box(22, 12, 26, 13, 'C').box(23, 10, 25, 11, 'C').box(21, 14, 27, 14, 'N').box(23, 10, 25, 10, 'N'); // the east cone
+};
+/** On each cone's top (tops a climb), and over the middle of the ice (the crossing's own move). */
+const WAIAU_COINS = [[5, 8], [24, 8], [14, 14]] as const;
+
+/**
+ * SEEING STARS (102, [1,23]), the bonus room east of the summit (the edges plan's $66): the telescope ridge, Keck's twin domes on their catwalks and Subaru's small dome between them under the gantry. In
+ * along the ridge from the summit (floor 16); up either dome's ladder to its catwalk (a coin at each catwalk's far end), across the gantry between them through Subaru's guide-star laser, or along the ridge
+ * under it. The ridge ends at a cinder cliff (east is the flight's gap: nothing there); the floor is solid over AKAKA FALLS' sky.
+ */
+const paintRidge = (g: Grid): void => {
+  g.box(0, 16, 31, 19, 'C').box(30, 0, 31, 15, 'C'); // the ridge, and the cliff at its east end
+  g.box(2, 11, 10, 11, 'G').box(11, 11, 11, 15, 'L'); // Keck I's catwalk and its ladder
+  g.box(19, 11, 27, 11, 'G').box(18, 11, 18, 15, 'L'); // Keck II's catwalk and its ladder
+  g.box(13, LASER.gantry, 17, LASER.gantry, 'G'); // the gantry between them (the laser up through it at col 15)
+};
+const RIDGE_COINS = [[2, 9], [27, 9]] as const;
 
 const paintFalls = (g: Grid): void => {
   g.box(0, 0, 1, 5, 'B').box(0, 8, 27, 8, 'T').box(0, 9, 1, 16, 'B'); // the cliff over the high trail's way in from Mauna Kea (rows 6-7); the high trail along the gorge's top (floor 8); the gorge's west wall
@@ -716,16 +794,25 @@ const LOA_COINS = [[26, 12], [22, 3]] as const;
 /** The moon rock at the foot of the crater's pit (its top left): the shooting star the summit saw fall. */
 export const MOON_ROCK_AT = { col: 29, row: 17 } as const;
 
+/**
+ * COFFEE BREAK, redesigned (Chris, 2026-11-26: "needs to be redesigned. It just doesn't really make sense. It looks like I should be able to walk to the room to the right, but there's no way based on the map"):
+ * a Kona coffee farm on Mauna Loa's flank, its edges the map's. West, the way in from the crater's rim (rows 3-4) onto the top terrace; down the terraces between the coffee rows to the hoshidana, the
+ * farm's drying deck on its posts (the coffee drying on it: the sack), and down off it to the farm road under it, which runs east to the lava-rock wall at the farm's end (east is the flight's gap: nothing
+ * there, and the wall says so) and the rope up to Hilo by it. Stone steps up each bank make it a way both ways.
+ */
 const paintCoffee = (g: Grid): void => {
   g.box(0, 5, 9, 5, 'T').box(0, 6, 9, 19, 'S'); // the top terrace, in from Mauna Loa's rim
   g.box(10, 9, 16, 9, 'T').box(10, 10, 16, 19, 'S'); // the second
-  g.box(17, 13, 23, 13, 'T').box(17, 14, 23, 19, 'S'); // the third, the sack at its far end
-  g.box(11, 7, 12, 7, 'T').box(17, 11, 18, 11, 'T').box(27, 17, 28, 17, 'T').box(24, 15, 25, 15, 'T'); // the stone steps up each terrace's bank (the way back up from Hilo)
-  g.box(24, 19, 31, 19, 'P'); // the farm's lane at the foot of the terraces
+  g.box(17, 13, 24, 13, 'D'); // the hoshidana's deck on its posts (the farm road runs on under it)
+  g.box(11, 7, 12, 7, 'T').box(17, 11, 18, 11, 'T').box(27, 17, 28, 17, 'T').box(25, 15, 26, 15, 'T'); // the stone steps up each bank and up to the deck from the road (the way back up from Hilo)
+  g.box(17, 19, 30, 19, 'P'); // the farm road along the foot of the terraces, under the deck
+  g.box(31, 0, 31, 19, 'B'); // the farm's end: the lava-rock wall
   g.box(29, 0, 29, 18, 'R'); // the rope up to Hilo
   g.box(0, 0, 0, 2, 'B'); // (the crater's rim at the west edge, over the way in)
 };
 const COFFEE_COINS = [[5, 3], [13, 7]] as const;
+/** The deck's posts down to the road (a backdrop he walks between). */
+const COFFEE_POSTS = [18, 23].flatMap((col) => fillCells(paintCoffee, [], [col, 14, col, 18], 'pacPillar'));
 
 const paintHilo = (g: Grid): void => {
   g.box(0, 19, 27, 19, 'P').box(31, 19, 31, 19, 'P'); // the street along the bayfront to the airfield, the rope's opening (cols 28-30)
@@ -799,6 +886,7 @@ const KONA_SLOPE = ridge([[0, 6], [11, 6], [14, 5], [17, 4], [20, 3], [24, 2], [
 const konaScenery: Placed[] = [
   ...sunset(paintKona, KONA_KEEP, { purple: 0, red: 1, orange: 3, gold: HORIZON - 1, sea: HORIZON }, (c, r) => r < KONA_SLOPE(c)),
   ...fillWhere(paintKona, KONA_KEEP, (c, r) => c >= 23 && r === KONA_SLOPE(c), 'pacSnowCap'),
+  ...fillWhere(paintKona, KONA_KEEP, (c, r) => r === KONA_POOL.row && c >= KONA_POOL.col0 && c <= KONA_POOL.col1, 'pacSeaWave'),
 ];
 
 /**
@@ -815,6 +903,11 @@ const keaScenery: Placed[] = [
 /** The summit over the cloud tops: the sea of cloud on the horizon behind the ridge. */
 const SUMMIT_PIECES = [['pacDomeBig', 17, 6], ['pacDomeSmall', 9, 13], ['pacDomeSmall', 28, 13], ['pacCairn', 1, 12]] as const;
 const summitScenery: Placed[] = fillWhere(paintSummit, keepOf(SUMMIT_COINS, SUMMIT_PIECES), (_c, r) => r >= 14, 'pacCloudFill');
+/** The summit's night on either side: its stars, the sea of cloud on the horizon behind the cones and the domes. */
+const WAIAU_PIECES = [['jpStars', 3, 1], ['jpStars', 14, 3], ['jpStars', 24, 0], ['jpStars', 28, 4]] as const;
+const waiauScenery: Placed[] = fillWhere(paintWaiau, keepOf(WAIAU_COINS, WAIAU_PIECES), (_c, r) => r >= 14 && r <= 15, 'pacCloudFill');
+const RIDGE_PIECES = [['pacDomeBig', 3, 6], ['pacDomeBig', 20, 6], ['pacDomeSmall', 14, 13], ['jpStars', 9, 1], ['jpStars', 22, 0], ['jpStars', 26, 3]] as const;
+const ridgeScenery: Placed[] = fillWhere(paintRidge, keepOf([...RIDGE_COINS, ...cellsOf(LASER.col, 0, 1, LASER.domeTop + 1)], RIDGE_PIECES), (_c, r) => r >= 14 && r <= 15, 'pacCloudFill');
 
 /**
  * Akaka Falls' gorge (a single 442-foot plunge into a deep gorge): the sky over the rainforest's tree line along the top, the forest dark under it along the high trail, and under the trail the gorge, black,
@@ -846,8 +939,8 @@ const loaScenery: Placed[] = [
 ];
 
 /** The coffee farm on Mauna Loa's flank: the sky, the mountain's shoulder far behind (a far silhouette), the hillside below planted in rows of coffee along the contour, the dark path between each row and the next. */
-const COFFEE_PIECES = [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacCoffeeTree', 19, 10], ['pacSacks', 7, 3], ['pacSacks', 25, 17]] as const;
-const COFFEE_KEEP = keepOf([...COFFEE_COINS, ...cellsOf(COFFEE_AT.col, COFFEE_AT.row, 2, 2)], COFFEE_PIECES);
+const COFFEE_PIECES = [['pacCoffeeTree', 2, 2], ['pacCoffeeTree', 14, 6], ['pacSacks', 7, 3], ['pacSacks', 20, 17]] as const;
+const COFFEE_KEEP = keepOf([...COFFEE_COINS, ...cellsOf(COFFEE_AT.col, COFFEE_AT.row, 2, 2), ...cellsOf(18, 14, 1, 5), ...cellsOf(23, 14, 1, 5)], COFFEE_PIECES);
 const COFFEE_FAR = ridge([[0, 3], [8, 2], [16, 3], [24, 5], [31, 7]]);
 const coffeeScenery: Placed[] = [
   ...fillWhere(paintCoffee, COFFEE_KEEP, (c, r) => r < COFFEE_FAR(c), 'pacSkyDay'),
@@ -1063,35 +1156,50 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     paint: paintFish,
     coins: FISH_COINS,
     item: { name: 'musubi1', col: FISH_MUSUBI_AT.col, row: FISH_MUSUBI_AT.row, sprite: PAC_SPRITE.musubi },
-    decor: [...fishScenery, ...FISH_PIECES], // (no creature: the turtles are the room's living thing, its timing to learn; the tern is Oahu's)
+    decor: [...fishScenery, ...FISH_PIECES],
+    // spinner dolphins leaping out of the swell in the gaps between the shells (Chris: "needs to be harder"), each its own height and pace, so a hop waits for the turtle under it and the dolphin over it
+    creatures: [
+      { who: 'dolphin', col: 17, row: 11, way: 'down', speed: 1, range: 48, colour: 15 }, // the gap off the rope's rock onto the first shell east: slow, high
+      { who: 'dolphin', col: 22, row: 17, way: 'up', speed: 2, range: 28, colour: 12 }, // the gap between the two shells: fast
+      { who: 'dolphin', col: 27, row: 13, way: 'down', speed: 1, range: 32, colour: 15 }, // the last gap, onto Kona's sand
+    ],
   }),
 
   // KONA: the Big Island's black sand, rocky with lava (Chris, 2026-11-25: "a rocky beach with black sand"), where the way splits. Out of the sea at the left (floor 19); over the lava tube's mouth (the rope
   // down it to MAUNA LOA, the bottom way) and the tide pool (a coin over it); up the lava rock (a coin at its top) to the rope up the mountain's flank to MAUNA KEA (the top way); on east along the sand to
-  // Hilo, where the plane is. A crab on the sand.
+  // Hilo, where the plane is. A crab scuttling the sand from the palm to the lava rock (Chris: one "behind blocks... positioned in a harmless way"); a zebra dove gliding over the rock's top and the rope's
+  // foot, another dropping over the lava tube's mouth. The tide pool is a hand deep: he wades it.
   room({
     id: PAC.kona, cell: [3, 22], sector: 90, palette: KONA_PALETTE,
     paint: paintKona,
     coins: KONA_COINS,
     decor: [...konaScenery, ...KONA_PIECES],
-    creatures: [{ who: 'pacCrab', col: 19, row: 17, way: 'right', speed: 1, range: 40 }],
+    creatures: [
+      { who: 'pacCrab', col: 9, row: 17, way: 'right', speed: 2, range: 40 }, // the sand from the palm over the tide pool to the rock, fast: the walk east is timed to it, or it is jumped
+      { who: 'pigeon', col: 18, row: 12, way: 'right', speed: 1, range: 104, colour: 15 }, // a zebra dove over the rock's top to past the rope, slow: the hop up to the coin and the climb wait for it
+      { who: 'pigeon', col: 6, row: 10, way: 'down', speed: 2, range: 24, colour: 7 }, // another dropping over the lava tube's mouth, quick: the jump over the hole (and the climb down) waits for it
+    ],
   }),
 
   // MAUNA KEA: the top way, the climb up through the cloud (Chris, 2026-11-25: Mauna Kea "is on a path through the middle of the island"). Up the rope from Kona onto the cinder switchbacks: the first (floor 16)
   // west, a step, the second (floor 12) west to a step, the third (floor 8) east, which runs on out of the room down the wet side to Akaka Falls; up the rope from it to the top (floor 4) and on up to the summit.
-  // A nene on the first switchback; the clouds below.
+  // A nene walking the first switchback's length, another the third's, slow the other way; a hoary bat flitting up and down by the steps between the first and the second. The clouds below.
   room({
     id: PAC.kea, cell: [2, 22], sector: 91, palette: KEA_PALETTE,
     paint: paintKea,
     coins: KEA_COINS,
     decor: keaScenery,
-    creatures: [{ who: 'pacNene', col: 15, row: 14, way: 'right', speed: 1, range: 28 }],
+    creatures: [
+      { who: 'pacNene', col: 14, row: 14, way: 'right', speed: 2, range: 44 }, // the first switchback, met stepping off the rope: jumped, or waited out at the rope
+      { who: 'bat', col: 9, row: 9, way: 'down', speed: 2, range: 24, colour: 8 }, // up and down by the step off the first's west end, across the hops up to the second
+      { who: 'pacNene', col: 27, row: 6, way: 'left', speed: 1, range: 160 }, // the third, slow and long: the way up off the step and the run east to the falls read it
+    ],
   }),
 
   // THE SUMMIT: Mauna Kea's top, above the clouds at night (the only night in the game): the red cinder ridge, the summit's cairn on its knoll (a coin), the small observatories, the big dome with its slit open and
   // the telescope pointing out at the stars and the moon, a shooting star falling south (to Mauna Loa's crater: the moon rock). Up the dome's ladder to the catwalk (a coin), where the astronomer reading his star
-  // chart stands guard, the ladder up to the telescope's platform drawn up, until Monty brings the moon rock (data.ts: then he lets it down and goes in to look at it). Up it to the platform, where a paraglider's
-  // parachute is snagged. A dead end: back down.
+  // chart paces it, the ladder up to the telescope's platform drawn up, until Monty comes up to him with the moon rock (data.ts, seen there: he takes it, walks off into the dome and lets the ladder down,
+  // and it stays down). Up it to the platform, where a paraglider's parachute is snagged. Snowballs roll along the ridge, fast and slow; the ridge runs on west to Lake Waiau and east to the telescopes.
   room({
     id: PAC.summit, cell: [1, 22], sector: 92, palette: KEA_PALETTE,
     paint: paintSummit,
@@ -1101,55 +1209,74 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       ['jpStars', 1, 1], ['jpStars', 9, 3], ['jpStars', 12, 0], ['jpStars', 26, 5], ['jpMoon', 27, 1],
       ...summitScenery, ...SUMMIT_PIECES, ['pacShootingStar', 4, 4],
     ],
-    creatures: [{ who: 'pacAstronomer', col: ASTRONOMER_AT.col, row: ASTRONOMER_AT.row, way: 'right', speed: 1, range: 8 }], // (the first: data.ts sends him in)
+    creatures: [
+      { who: 'pacAstronomer', col: ASTRONOMER_AT.col, row: ASTRONOMER_AT.row, way: 'right', speed: 1, range: 56 }, // (the first: data.ts sends him in)
+      { who: 'snowball', col: 4, row: 14, way: 'right', speed: 3, range: 60, colour: 3 }, // the ridge, fast (kept off the edges he comes in by): from the rope to the ladder is a run between its passes
+      { who: 'snowball', col: 27, row: 14, way: 'left', speed: 1, range: 96, colour: 14 }, // the east half, slow: crossing the fast one on its own period, so the gap is read
+    ],
   }),
 
   // AKAKA FALLS: the wet side of the island, the rainforest gorge where the falls pour out under the high trail into the plunge pool. Crossed twice at two heights (the plan: Moscow's rule), sealed from each
   // other by the gorge: the high trail from Mauna Kea's third switchback along the gorge's top (floor 8) to the rope at its end (a coin at its head) down the way the stream goes, to Hilo's street; and the low
-  // lane by the plunge pool (floor 19; a coin over the pool), from Hilo's roofs up the rope at the left, west to Mauna Kea's foot. A parrot in the trees.
+  // lane by the plunge pool (floor 19; a coin over the pool), from Hilo's roofs up the rope at the left, west to Mauna Kea's foot. The stream crosses the high trail at the falls' lip and comes down in spate
+  // on its clock (`FORD`): the ford is crossed between rushes, with a parrot sweeping the trail fast; another drops by the falls over the low lane, slow.
   room({
     id: PAC.falls, cell: [2, 23], sector: 93, palette: FALLS_PALETTE,
     paint: paintFalls,
     coins: FALLS_COINS,
     decor: [...fallsScenery, ...FALLS_PIECES],
-    creatures: [{ who: 'pacParrot', col: 12, row: 3, way: 'right', speed: 1, range: 60 }],
+    creatures: [
+      { who: 'pacParrot', col: 4, row: 6, way: 'right', speed: 2, range: 88 }, // the high trail at his height, fast (kept off the edge he comes in by): met coming in from Mauna Kea, and at the ford
+      { who: 'pacParrot', col: 17, row: 11, way: 'down', speed: 1, range: 40, colour: 8 }, // dropping by the falls over the low lane, slow: the walk from the rope to the pool's coin passes under it
+    ],
   }),
 
   // MAUNA LOA: the bottom way, along the south over the volcano's lava (MAUNA KEA-OS's rising lava, where it belongs). Down the lava tube's rope from Kona onto the shore (cols 2-10, outside the lava), and the
   // lava starts to rise. Onto the first ledge (floor 14), east over the stepping ledges (the first two cooled crust that cracks under a standing foot; a magma blob bobs up between them) to the last (a coin at
   // its end), up the rope on the east wall past the long ledge to the rim's high shelf (floor 5: a coin at the rope's head) and out east to the coffee farm. The rope hangs on down a pit walled off from the
-  // basin to the moon rock at its foot (a dead end off the route): taken, it wakes the pit's own lava, which wells up behind him as he climbs out.
+  // basin to the moon rock at its foot (a dead end off the route), past a magma blob bobbing up and down beside the rope.
   room({
     id: PAC.loa, cell: [4, 22], sector: 52, palette: LOA_PALETTE,
     paint: paintLoa,
     coins: LOA_COINS,
     item: { name: 'moon rock', col: MOON_ROCK_AT.col, row: MOON_ROCK_AT.row, sprite: PAC_SPRITE.moonRock },
     decor: [...loaScenery, ...LOA_PIECES],
-    creatures: [{ who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 8 }], // (orange, molten: white read as a ghost; it differs from the lava's red and crest's yellow and the steam's white)
+    // (orange, molten: white read as a ghost; it differs from the lava's red and crest's yellow and the steam's white)
+    creatures: [
+      { who: 'pacMagma', col: 17, row: 16, way: 'up', speed: 1, range: 40, colour: 8 }, // bobbing up between the two crusts, as it was (Chris: "pretty good"): the run over them ahead of the lava times it
+      { who: 'pacMagma', col: 29, row: 9, way: 'down', speed: 1, range: 40, colour: 8 }, // in the pit beside the rope: the climb down to the moon rock and back up waits for it
+    ],
   }),
 
-  // COFFEE BREAK: Hilo's coffee farm on the slope below the town (COFFEE BREAK's coffee). In from Mauna Loa's rim onto the top terrace (floor 5), down the terraces between the coffee rows, the sack of beans
-  // at the far end of the lowest (up off the farm's lane), down to the lane and up the rope to Hilo. Stone steps up each terrace's bank make it a way both ways: from Hilo up the terraces to Mauna Loa.
+  // COFFEE BREAK (see paintCoffee): in from Mauna Loa's rim onto the top terrace (floor 5), down the terraces between the coffee rows to the drying deck (the sack of beans), down to the farm road under it,
+  // east to the rope up to Hilo by the farm's end wall. Stone steps up each bank make it a way both ways. A rooster struts each terrace, fast and slow; a farmhand cycles the road, under the deck.
   room({
     id: PAC.coffee, cell: [4, 23], sector: 51, palette: COFFEE_PALETTE,
     paint: paintCoffee,
     coins: COFFEE_COINS,
     item: { name: 'coffee', col: COFFEE_AT.col, row: COFFEE_AT.row, sprite: PAC_SPRITE.coffee },
-    decor: [...coffeeScenery, ...COFFEE_PIECES],
+    decor: [...coffeeScenery, ...COFFEE_POSTS, ...COFFEE_PIECES],
     creatures: [
-      { who: 'pacRooster', col: 26, row: 17, way: 'right', speed: 1, range: 8 },
+      { who: 'pacRooster', col: 4, row: 3, way: 'right', speed: 2, range: 20 }, // the top terrace, fast, kept off the way in at the edge: met coming in, jumped
+      { who: 'pacRooster', col: 10, row: 7, way: 'right', speed: 1, range: 48, colour: 7 }, // the second, slow: the step down onto it and the drop to the deck read it
+      { who: 'bicycle', col: 17, row: 17, way: 'right', speed: 2, range: 52, colour: 15 }, // a farmhand cycling the road from under the deck to the rope: the drop off the deck and the rope's foot are timed to him
     ],
   }),
 
   // HILO GOODBYE: Hilo's bayfront and the airfield, where the two ways meet. In along the street from Kona; up the rope onto the old wooden storefronts' roofs (a coin) and up the rope from them into Akaka
   // Falls' low lane (the top way, up to Mauna Kea); east to the airfield where the yellow mail biplane waits: NO FLYING WITHOUT A PARACHUTE, TOO SLEEPY TO FLY. The long rope at the street's end comes down
-  // from Akaka Falls' high trail and goes on down to the coffee farm's lane (the bottom way). A rooster struts the street.
+  // from Akaka Falls' high trail and goes on down to the coffee farm's road (the bottom way). A cyclist rides the bayfront the length of the street, fast; a rooster struts by the plane, slow; a mynah flits
+  // along the roofs.
   room({
     id: PAC.hilo, cell: [3, 23], sector: 53, palette: HILO_PALETTE,
     paint: paintHilo,
     coins: HILO_COINS,
     decor: [...hiloScenery, ...storefronts, ...HILO_PIECES, ['skyBiplane', BIPLANE_AT.col, BIPLANE_AT.row]], // (the evening over Hilo Bay: he takes off into the night)
-    creatures: [{ who: 'pacRooster', col: 15, row: 17, way: 'right', speed: 1, range: 24 }],
+    creatures: [
+      { who: 'bicycle', col: 3, row: 17, way: 'right', speed: 2, range: 72, colour: 14 }, // the street from the storefronts to the plane, fast (kept off the way in at the edge): jumped, or met from the roofs' rope
+      { who: 'pacRooster', col: 12, row: 17, way: 'right', speed: 1, range: 64 }, // under the roofs' rope to the plane, slow: the cyclist and he cross on different periods (east of the plane is clear: a save carried on there)
+      { who: 'dove', col: 2, row: 10, way: 'right', speed: 1, range: 96, colour: 9 }, // a mynah along the roofs: the roof's coin and the rope up from them wait for it
+    ],
   }),
 
   // BOARD MEETING: the bonus room west of the luau (see paintBeach). In along the sand from the luau's lawn; the beach boys carrying their boards each way at their own speeds; up the surfboard rack's shelves
@@ -1163,6 +1290,31 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
       { who: 'pacSurfer', col: 4, row: 17, way: 'right', speed: 1, range: 184 }, // a beach boy carrying his board the whole beach, slow
       { who: 'pacSurfer', col: 26, row: 17, way: 'left', speed: 2, range: 80, colour: 3 }, // another the other way, fast: the two cross on different periods, so the gap is read and waited for
       { who: 'football', col: 9, row: 5, way: 'down', speed: 1, range: 80, colour: 1 }, // a volleyball bouncing in the rack's gap: each hop from shelf to shelf waits for it
+    ],
+  }),
+
+  // ON THIN ICE: the bonus room west of the summit (see paintWaiau). A snowball rolling to and fro across the ice, fast; a nene on each cone's shoulder, quick and slow.
+  room({
+    id: PAC.waiau, cell: [1, 21], sector: 101, palette: WAIAU_PALETTE,
+    paint: paintWaiau,
+    coins: WAIAU_COINS,
+    decor: [...waiauScenery, ...WAIAU_PIECES],
+    creatures: [
+      { who: 'snowball', col: 9, row: 15, way: 'right', speed: 2, range: 40, colour: 3 }, // rolling across the ice from shore to shore, fast: the crossing starts as it turns, and waiting on the ice breaks it
+      { who: 'pacNene', col: 21, row: 12, way: 'right', speed: 2, range: 24 }, // the east cone's shoulder, quick: the climb to its top waits for it
+      { who: 'pacNene', col: 2, row: 12, way: 'right', speed: 1, range: 48 }, // the west cone's shoulder, slow: the same climb the other side, on another period
+    ],
+  }),
+
+  // SEEING STARS: the bonus room east of the summit (see paintRidge). An astronomer pacing Keck I's catwalk, another walking the ridge from dome to dome, quick; the laser through the gantry on its clock.
+  room({
+    id: PAC.ridge, cell: [1, 23], sector: 102, palette: RIDGE_PALETTE,
+    paint: paintRidge,
+    coins: RIDGE_COINS,
+    decor: [...ridgeScenery, ...RIDGE_PIECES],
+    creatures: [
+      { who: 'pacAstronomer', col: 3, row: 9, way: 'right', speed: 1, range: 48, colour: 14 }, // Keck I's catwalk: its coin is taken between his turns
+      { who: 'pacAstronomer', col: 4, row: 14, way: 'right', speed: 2, range: 96, colour: 10 }, // the ridge from Keck I's ladder to past Keck II's, quick (kept off the edge he comes in by): either ladder between his passes
     ],
   }),
 ];

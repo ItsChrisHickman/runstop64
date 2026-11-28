@@ -38,7 +38,7 @@ export const ONE_WAY: Readonly<Record<string, string>> = {
   '2>8': 'SEEING RED\'s drain drops into the platform\'s gallery; the way back is the up escalator to the hall (moscow.ts)',
   '4>5': 'KREMLIN GREMLINS\' gorge drops to the station; the way on is the train (moscow.ts)',
   '41>43': 'Waikiki\'s surf, calm with the snorkel, dives into CHANNEL SURFING; a swim room is never left upward but by a rope (swim.ts), the way on is Lahaina\'s mooring rope',
-  '52>79': 'Hilo\'s apron boards the mail biplane: THE FLIGHT (pacific.ts biplaneBoarding)',
+  '53>79': 'Hilo\'s apron boards the mail biplane: THE FLIGHT (pacific.ts biplaneBoarding)',
   '79>80': 'the flight\'s first leg; the clock moves him on east (planes.ts)',
   '80>81': 'the flight\'s second leg; the clock moves him on east (planes.ts)',
   '81>55': 'the bail-out from ON HIS TAIL into JUMP FOR JOY (planes.ts)',

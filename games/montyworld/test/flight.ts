@@ -7,6 +7,7 @@
  * - a death in a leg starts that leg again as he came in (never the leg before), its clock from nought; in HARD it costs a life;
  * - a save made in the second leg carries on in the second leg;
  * - Viktor touches him if he keeps still against the box's edge (death), and a flock that meets Viktor's plane knocks him back along the trail;
+ * - Viktor comes into sight off the picture's west edge and flies in to his trail, harmless till he is on it (never out of nowhere onto Monty);
  * - held down, he flies down to the bottom of each leg's box, just above the sea (Chris, 2026-11-24: ON HIS TAIL stopped him half the sky up), and in ON HIS TAIL the rising Andes lift him over their valleys.
  *
  *   nice -n 15 node tools/test.mjs games/montyworld/test/flight.ts [easy|hard]
@@ -24,7 +25,7 @@ import { ROW, SCREEN } from '../../shared/monty/screen';
 import { AND } from '../src/andes';
 import { ROUNDS, WORLD } from '../src/data';
 import { PAC } from '../src/pacific';
-import { FLY, planeLegs } from '../src/sky';
+import { FLY, planeLegs, TAIL_CHASE } from '../src/sky';
 import { itemIndex, standY } from './route';
 
 const only = process.argv[2];
@@ -213,7 +214,15 @@ for (const mode of oneLeg ? [] : ['easy', 'hard'] as const) {
     const k: State = { g: copy(g0), col: s0.col };
     enterRoom(k.g, FLY.tail, 0x0c + (12 + 4) * 4, 0x32 + (5 + 3) * 8);
     for (let n = 0; n < 200 && !settled(k.g); n++) frame(k, NONE);
-    for (let n = 0; n < 160; n++) frame(k, { ...NONE, right: true, up: n % 2 === 0 }); // (wake him: flying on east and level keeps Monty ahead of him, before the first flock)
+    // (wake him: flying on east and level keeps Monty ahead of him, before the first flock; then let him fly in from the west edge onto his trail, never knocked as he does, Monty weaving far ahead and dropping under the first flock)
+    let firstX = -1, flyingIn = false, harmless = true;
+    for (let n = 0; n < 160 + TAIL_CHASE.enter; n++) {
+      frame(k, n < 160 ? { ...NONE, right: true, up: n % 2 === 0 } : { ...NONE, left: ((n - 160) >> 3) % 2 === 0, right: ((n - 160) >> 3) % 2 === 1, down: true }); // (down under the first flock's height)
+      const q = k.g.pursuers[0];
+      if (q && q.seen && firstX < 0) { firstX = k.g.sx[4] ?? -1; flyingIn = q.entering >= 0; }
+      if (q && q.entering >= 0 && !(k.g.uncounted & 0x10)) harmless = false;
+    }
+    check(`${mode}: Viktor comes into sight in the picture's west border (sprite x ${firstX}), flying in to his trail, out of the collision check till he is on it`, firstX >= 0 && firstX < 0x0c && flyingIn && harmless);
     const p = k.g.pursuers[0], roller = k.g.rollers.find((r) => WORLD.rollers[r.index]?.start === 200), e = roller ? WORLD.rollers[roller.index] : undefined;
     let knocked = false;
     if (p && e && roller && !dying(k.g)) {

@@ -12,7 +12,7 @@ import { codeOf, decorIndex, room, type Palette } from './layout';
  *   row 2   F1 JUMP FOR JOY  <== the bail-out from L3 (into its top)
  *
  * L1 is birds and Kilauea: Vs of gulls, a frigatebird that screeches as it comes in high and dives, a slow albatross, and the volcano going by below with its plume (clear air above it). L2 is weather: under a
- * storm front whose clouds flicker before the lightning strikes down a column, gusts (seen by their streaks) that lift him off the safe low line into the bolts' height, a waterspout to go over, and three
+ * storm front whose clouds flicker before the lightning strikes down a column, gusts (seen by their streaks) that lift him off the safe low line into the bolts' height, waterspouts to go over, and three
  * coins: one on the low line, two in the gaps between bolts. L3 is Viktor: his red plane flies Monty's own path, three seconds behind and closing to one (he copies you: touching him is death); a flock or a
  * bolt Monty slips past catches him a moment later and knocks him back. The Andes rise along the bottom, and at the end he surges and clips Monty's tail: Viktor wins the round.
  * Sprites: Monty (3) in the plane (2), his lei (7), Viktor's red biplane (4, the star on his hat in it) with his white head under it (6, L3), the birds on 0, 1, 5 (and 6 in L1), each pass on the leg's clock. The bands slide by as Auf Wiedersehen Monty's do: the far wisps half a pixel a
@@ -177,7 +177,7 @@ const picture = (palette: Palette, rows: readonly string[]) => rows.map((row) =>
 const PLUME = picture(MAIL_PALETTE, [
   '.PPAAPP.', 'PAAAAAAP', '.PAAAAP.', '..AAAA..', '..AAA...', '...AAA..', '..AAAA..', '..AAA...', '...AA...', '...GG...', '..KGGK..', '.KKKKKK.', 'KKKKKKKK', 'KKKKKKKK',
 ]);
-/** The waterspout: a twisting funnel from the sea up to row 5, the spray at its foot; clear air above it (rows 3-4: he goes over it, under the storm). */
+/** A waterspout: a twisting funnel from the sea up to row 5, the spray at its foot; clear air above it (rows 3-4: he goes over it, under the storm). A shorter one is its rows from its `top` down. */
 const SPOUT = picture(STORM_PALETTE, [
   '.UU', 'UUU', '.UU', 'UU.', '.UU', 'UU.', '.UU', 'UU.', '.UU', 'UU.', 'UUU', 'UUU', 'UUU', 'UUU', 'UUU',
 ]);
@@ -194,9 +194,18 @@ const PEAKS = (() => {
   return picture(TAIL_PALETTE, rows);
 })();
 
+/**
+ * L2's waterspouts (Chris, 2026-11-26: "only one giant wave. There should be more waves that move faster"): five across the leg, faster than the one there was (a cell every 3 or 4 frames, it took 6), the tall
+ * ones up to row 5 (over them only by the bolts' height, under the storm), the short ones to row 9 (over them on the low cloud's side of the bolts); a pair close together at 700 and 770, so the climb over
+ * the first comes down between them. Each sweeps once, on the leg's clock.
+ */
+export const STORM_SPOUTS: readonly { rest: number; step: number; top: number }[] = [
+  { rest: 160, step: 4, top: 9 }, { rest: 380, step: 3, top: 5 }, { rest: 700, step: 4, top: 9 }, { rest: 770, step: 4, top: 5 }, { rest: 980, step: 3, top: 7 },
+];
+
 export const SKY_TUNNELS: readonly TunnelSpec[] = [
   { room: FLY.mail, from: 'right', code: codeOf(MAIL_PALETTE, 'A'), cols: 8, top: 6, bottom: 19, step: 6, rest: 200, warn: 0, picture: PLUME, once: true, bleed: true },
-  { room: FLY.storm, from: 'right', code: codeOf(STORM_PALETTE, 'U'), cols: 3, top: 5, bottom: 19, step: 6, rest: 640, warn: 0, picture: SPOUT, once: true, bleed: true },
+  ...STORM_SPOUTS.map(({ rest, step, top }): TunnelSpec => ({ room: FLY.storm, from: 'right', code: codeOf(STORM_PALETTE, 'U'), cols: 3, top, bottom: 19, step, rest, warn: 0, picture: SPOUT.slice(top - 5), once: true, bleed: true })),
   { room: FLY.tail, from: 'right', code: codeOf(TAIL_PALETTE, 'R'), cols: 100, top: 11, bottom: 19, step: 6, rest: ANDES_RISE, warn: 0, picture: PEAKS, once: true, bleed: true, harmless: true },
 ];
 
@@ -226,13 +235,13 @@ export const SKY_CURRENTS: readonly CurrentSpec[] = GUST_COLS.map(([c0, c1]): Cu
 
 // ---- Viktor on his tail ------------------------------------------------------------------------------------
 /**
- * L3's pursuer: the creature in slot 0 (his red plane) flies Monty's path 150 frames behind, from the moment the leg begins, and closes in a frame every 6 frames to 50 (a second: let the plane rest against the
+ * L3's pursuer: the creature in slot 0 (his red plane) comes in from off the picture's west edge over a second (`enter`: seen, harmless till he is on the trail), then flies Monty's path 150 frames behind, from the moment the leg begins, and closes in a frame every 6 frames to 50 (a second: let the plane rest against the
  * box's edge that long and he is on him). A flock or a bolt that meets his plane knocks him back 60 frames along the trail. He is not escaped: the leg's end is his (planes.ts, the bail-out takes `lost`).
  * His coming into sight is announced as on the train's roof and the ship (`announce`); the flight keeps Auf Wiedersehen Monty's theme (no chase tune over another .sid).
  */
-export const TAIL_CHASE = { delay: 150, close: { every: 6, least: 50 }, setback: 60 } as const;
+export const TAIL_CHASE = { delay: 150, close: { every: 6, least: 50 }, setback: 60, enter: 60 } as const;
 export const tailPursuer = (lost: number): PursuerSpec => ({
-  room: FLY.tail, slot: 0, delay: TAIL_CHASE.delay, until: lost, close: TAIL_CHASE.close, knockedBy: { rollers: true, pulses: true, setback: TAIL_CHASE.setback }, announce: true, // (his plane coming into sight behind Monty's: the name flashing red, the sting over the theme)
+  room: FLY.tail, slot: 0, delay: TAIL_CHASE.delay, until: lost, close: TAIL_CHASE.close, knockedBy: { rollers: true, pulses: true, setback: TAIL_CHASE.setback }, announce: true, enter: TAIL_CHASE.enter, // (his plane coming into sight behind Monty's: the name flashing red, the sting over the theme; flying in from off the west edge, harmless till he is on the trail: Chris, "appears out of nowhere")
   // his red biplane (the star on his hat in it), placed as Monty's is over Monty, and his head in white under it on sprite 6
   look: { frames: SKY_POINTERS.viktor, dx: PLANE_LOOK.dx, dy: PLANE_LOOK.dy, over: { sprite: 6, ptr: SKY_POINTERS.head, colour: VIKTOR_HEAD_INK } },
 });

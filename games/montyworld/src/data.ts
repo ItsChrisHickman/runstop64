@@ -23,7 +23,7 @@ import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
 import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, CAPTAIN_SLOT, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
-import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, TURTLE_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SPOUT_PULSES, SURF_CALM_CODE, SURF_CELLS, SURF_EDGE, WHALE_BREACH, WHALE_ROOM_BLOCKS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
+import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_GATE, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, FORD_PULSES, HULA_ANIM, LASER_PULSES, LAVA, TURTLE_PULSES, PAC, WAIAU_CRACKS, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, SPOUT_PULSES, SURF_CALM_CODE, SURF_CELLS, SURF_EDGE, WHALE_BREACH, WHALE_ROOM_BLOCKS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
 import { BALL_STREAM, CAVE_ICICLES, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS, GUST_ANIM, GUST_LIFT, TENGU, TENGU_BLOCKS } from './japan';
 import { JAPAN_SPRITE } from './japan-pointers';
 import { GUST_CAP, GUST_COLOURS } from './art/japan-cave';
@@ -59,7 +59,7 @@ import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOC
  */
 const WAYS_IN: Readonly<Record<number, { col: number; floor: number }>> = {
   71: { col: 1, floor: 8 }, // Rio's OPEN ARMS: high on the canopy, entered from the Amazon (its forest floor is the marmoset's)
-  53: { col: 22, floor: 19 }, // Hilo: the street east of the biplane
+  53: { col: 26, floor: 19 }, // Hilo: the street east of the biplane, by the banyan (clear of the street's cyclist and rooster)
 };
 
 /** The exit grid: 50 columns for the world west to east (seven regions of about seven rooms), 8 rows for the ways up and down (the Andes' parachute drop falls through four of them). */
@@ -69,9 +69,9 @@ export const WORLD_COLS = 50, WORLD_ROWS = 8;
  * Rooms added to a region after it shipped (save format 3, live since 2026-11-25), in the order they were added: they go last in the tables (their coins and finds take new places at the ends),
  * so the places of every room a format 3 save knows stay as they were. HEAVEN CAN WAIT (format 3's last); the Andes' rebuild's (OUT OF THIN AIR, THE RIVER QUEEN, THE INCA BRIDGE, CLOUD NINE,
  * VINE AND DANDY, THE RIVER ENDS); the bonus rooms off the path (OFF THE BEATEN PATH, DON'T ROCK THE BOAT, SHOOT FOR THE MOON); Rio's carnival streets (BEAT THE DRUM, FLOAT YOUR BOAT); the ice cave at
- * Mount Fuji's foot (GONE WITH THE WIND, 2026-11-26: its coins after every other room's, so a format 4 save reads as it is, the cave's coins not yet taken); Waikiki's beach west of the luau (BOARD MEETING, 2026-11-27, the same way).
+ * Mount Fuji's foot (GONE WITH THE WIND, 2026-11-26: its coins after every other room's, so a format 4 save reads as it is, the cave's coins not yet taken); Waikiki's beach west of the luau (BOARD MEETING, 2026-11-27, the same way); the summit's bonus rooms either side (ON THIN ICE, SEEING STARS, 2026-11-27).
  */
-export const ADDED_ROOMS: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float, JP.cave, PAC.beach];
+export const ADDED_ROOMS: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float, JP.cave, PAC.beach, PAC.waiau, PAC.ridge];
 const REGION_ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
 /** Every region's rooms in the order they were made, then `ADDED_ROOMS`': a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
 const ROOMS = [...REGION_ROOMS.filter((r) => !ADDED_ROOMS.includes(r.id)), ...ADDED_ROOMS.map((id) => {
@@ -262,10 +262,10 @@ const BOWL = specialIndex(ROOMS, 'bowl');
  * (`at.keep`: the trapdoor opened, the city gate opened, the raft laid; added 2026-11-27, last: a save from before reads them unset, so he carries the item up to the gate and it gives way again; one made past a gate, or by one who had been past it, has it kept as it is read, `at.beyond`, save-migrate.ts `gatesPassed`). They come after every room's finds, so no room's
  * find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'trapdoor open', 'city gate open', 'raft laid', 'surf calmed'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'trapdoor open', 'city gate open', 'raft laid', 'surf calmed', 'dome open'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
 const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5, STEAM_LOW = FITTED + 6;
-const TRAPDOOR_OPEN = FITTED + 7, CITY_GATE_OPEN = FITTED + 8, RAFT_LAID = FITTED + 9, SURF_CALMED = FITTED + 10;
+const TRAPDOOR_OPEN = FITTED + 7, CITY_GATE_OPEN = FITTED + 8, RAFT_LAID = FITTED + 9, SURF_CALMED = FITTED + 10, DOME_OPEN = FITTED + 11;
 /** The hidden finds the tests read (the tally's rounds). */
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The find the locomotive's steam valve flips (untaken: the steam blows out of the pipe's top, over the roof's lane; taken: out of its bottom, over the inside's). */
@@ -305,7 +305,8 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0, place: { code: PLANK_CODE, cells: onScreen(PLANK_CELLS) } }, // fed, the koi leave the pond (the first) and the pond's planks float up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
   { room: JP.hideout, when: [{ taken: HOOD_ITEM }], removeEnemy: 0 }, // the hideout's door guard, a ninja himself, lets him by (the way on to the port runs through that door)
-  { room: PAC.summit, when: [{ taken: MOON_ROCK }], removeEnemy: 0, place: { code: DOME_LADDER_CODE, cells: onScreen(DOME_LADDER) } }, // the astronomer lets his ladder down and takes the moon rock in to look at it
+  // coming up to the astronomer with the moon rock (the dome's ladder, the catwalk, the ridge under it), he takes it, walks off into the dome to look at it and lets his ladder down; kept from then on
+  { room: PAC.summit, when: [{ taken: MOON_ROCK }], removeEnemy: 0, place: { code: DOME_LADDER_CODE, cells: onScreen(DOME_LADDER) }, at: { ...screenBox(DOME_GATE.col0, DOME_GATE.row0, DOME_GATE.col1, DOME_GATE.row1), leaves: 1, keep: DOME_OPEN } },
   // with the snorkel, coming up to the surf, it goes calm (seen, with the snorkel's sound) and stays so: calm water he drops through into CHANNEL SURFING's sea
   { room: PAC.waikiki, when: [{ taken: SNORKEL }], place: { code: SURF_CALM_CODE, cells: onScreen(SURF_CELLS) }, at: { ...screenBox(SURF_EDGE.col0, SURF_EDGE.row0, SURF_EDGE.col1, SURF_EDGE.row1), keep: SURF_CALMED, beyond: [PAC.clam, PAC.kelp] } },
   // the gates of the Andes are items used on the spot, seen happening (`at`: when he comes up to the gate with the item, not silently on coming in; no words: the item's sound and what is seen): a tune
@@ -343,7 +344,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, TRAPDOOR_OPEN, CITY_GATE_OPEN, RAFT_LAID, SURF_CALMED],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, TRAPDOOR_OPEN, CITY_GATE_OPEN, RAFT_LAID, SURF_CALMED, DOME_OPEN],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -353,9 +354,9 @@ export const WORLD: MontyData = {
   escalators: ESCALATORS,
   icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES, ...TAIGA_ICICLES, ...CAVE_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
-  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS, ...TAIGA_BOUGHS],
+  cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...WAIAU_CRACKS, ...LOG_CRACKS, ...TAIGA_BOUGHS],
   charAnims: [...TRAIN_ANIMS, STEAM_ANIM, ...STATION_ANIMS, ...JAPAN_ANIMS, GUST_ANIM, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS].map(regionAnim),
-  pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...SPOUT_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES, ...steamPulses(STEAM_LOW)],
+  pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...SPOUT_PULSES, ...FORD_PULSES, ...LASER_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES, ...steamPulses(STEAM_LOW)],
   swimRooms: SWIM_ROOMS,
   swimSurfaces: SWIM_SURFACES,
   swimGate: SNORKEL,
@@ -363,7 +364,7 @@ export const WORLD: MontyData = {
   arrivals: [...ARRIVALS, ...ANDES_ARRIVALS, ...SKY_ARRIVALS],
   swimPictures: { left: SWIM_CYCLE.left, right: SWIM_CYCLE.right },
   roomBlocks: [{ rooms: SWIM_ROOMS, blocks: SWIM_BLOCKS }, WHALE_ROOM_BLOCKS, { rooms: [PAC.loa], blocks: [{ ptr: PAC_SPRITE.moonRock, block: PACIFIC_ITEMS.pacMoonRock.block }] }, { rooms: [RIO_ROOM.bust], blocks: FINALE_BLOCKS }, ...VIKTOR_BLOCKS, { rooms: Object.values(FLY), blocks: SKY_BLOCKS }, FUJI_BLOCKS, TENGU_BLOCKS],
-  risingLava: [LAVA, { ...PIT_LAVA, wakenBy: MOON_ROCK }], // (the pit's sleeps until the moon rock is taken)
+  risingLava: [LAVA], // (Mauna Loa's one lava: the pit's, woken by the moon rock, went with the challenge pass, 2026-11-27)
   dragons: [DRAGON, YETI],
   flights: FLIGHTS,
   canopy: { ...CANOPY_POINTERS, colour: CANOPY.colour },
@@ -452,5 +453,5 @@ export const WORLD: MontyData = {
   // (NEW GAME+ after a win: at Moscow's start in the ushanka, Moscow's own hat, as the title shows him)
   ending: { ...WORLD_ENDING, newGamePlus: { worn: USHANKA_ITEM } },
   // the % complete (montyotr's percent.ts; Chris, 2026-11-25: "a best ending for 100% complete"): the bonus rooms off the path, each one's challenge done once its coins are his
-  complete: { bonus: [SIB.taiga, CHI.houhai, JP.grove, JP.cave, PAC.cave, PAC.beach], stamps: PASSPORT_STAMPS },
+  complete: { bonus: [SIB.taiga, CHI.houhai, JP.grove, JP.cave, PAC.cave, PAC.beach, PAC.waiau, PAC.ridge], stamps: PASSPORT_STAMPS },
 };

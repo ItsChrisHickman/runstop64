@@ -455,6 +455,11 @@ export interface PursuerSpec {
   intro?: CameoWalk;
   /** His coming into sight (the name flashing red, the warp's sting) and his knock off (the name flashing green, the item's jingle) are announced (pursuers.ts): Do Svidaniya Monty's train roof, cargo ship and flight. */
   announce?: true;
+  /**
+   * He comes into sight off the picture's west edge and flies in to where the trail is over `enter` frames, harmless till he is on it (the flight's Viktor; Chris, 2026-11-26: he "appears out of nowhere
+   * and you can die just by being in the wrong spot"): seen before he can touch him, never a death by luck.
+   */
+  enter?: number;
 }
 
 /**

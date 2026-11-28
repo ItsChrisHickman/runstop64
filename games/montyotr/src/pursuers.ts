@@ -36,6 +36,8 @@ export interface PursuerState {
   lag: number; back: number; shaken: number;
   /** Where an announced moment's flash of the name is (counting to `FLASH_FRAMES`; -1: none) and its ink (his coming into sight, his knock); and whether he has come into sight in this go at the room. */
   cue: number; cueInk: number; seen: boolean;
+  /** Frames into his fly-in from off the picture's west edge (`enter`; -1: not begun or none, or over). */
+  entering: number;
 }
 
 /** Frames a knocked-back pursuer cannot be knocked again (one flock is one knock), and how many frames of lag he loses a frame as he falls back along the trail. */
@@ -48,7 +50,7 @@ export function pursuerInit(g: Game) {
     const man = g.enemies[e.slot];
     if (man) { man.driven = true; man.x = 0xff; }
     if (g.siCollected[e.until]) return [];
-    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0, lag: e.delay, back: e.delay, shaken: 0, cue: -1, cueInk: ARRIVAL_INK, seen: false }];
+    return [{ index, ring: Array.from({ length: e.delay * 3 }, () => 0), written: 0, awake: false, x2: 0, y: 0, facing: 1, walk: 0, intro: e.intro ? 0 : -1, gone: 'no', t: 0, gx: 0, gy: 0, lag: e.delay, back: e.delay, shaken: 0, cue: -1, cueInk: ARRIVAL_INK, seen: false, entering: -1 }];
   });
 }
 
@@ -165,10 +167,16 @@ export function pursuerUpdate(g: Game) {
     p.written++;
     if (!p.awake && (e.wake ? inBox(g, e.wake) : e.calm ? !inBox(g, e.calm) : true)) p.awake = true;
     if (!p.awake || p.written <= p.lag || !man) { if (p.intro < 0) g.enable &= ~(1 << n) & 0xff; if (e.look?.over) g.enable &= ~(1 << e.look.over.sprite) & 0xff; continue; }
-    if (e.announce && !p.seen) { p.seen = true; p.cue = FLASH_FRAMES - ARRIVAL_FLASH; p.cueInk = ARRIVAL_INK; g.sfx(g.data.sfx.warp); } // (he steps in: the room's name flashes, the sting)
-    man.x = p.x2; man.y = (p.y + 1) & 0xff;
+    if (!p.seen) {
+      p.seen = true;
+      if (e.enter) p.entering = 0;
+      if (e.announce) { p.cue = FLASH_FRAMES - ARRIVAL_FLASH; p.cueInk = ARRIVAL_INK; g.sfx(g.data.sfx.warp); } // (he steps in: the room's name flashes, the sting)
+    }
+    const x2 = enteringX(p, e);
+    man.x = x2; man.y = (p.y + 1) & 0xff;
     g.scol[n] = man.colour;
-    drawChase(g, e, p.x2, man.y, p.facing, p.walk);
+    drawChase(g, e, x2, man.y, p.facing, p.walk);
+    if (p.entering >= 0) { p.entering = p.entering + 1 < (e.enter ?? 0) ? p.entering + 1 : -1; continue; } // (flying in: harmless, never knocked)
     if (p.shaken > 0) p.shaken--;
     else if (knocked(g, e, p.x2, man.y)) {
       const setback = e.knockedBy?.setback;
@@ -176,6 +184,12 @@ export function pursuerUpdate(g: Game) {
       else { p.back = Math.min(e.delay, p.lag + setback); p.shaken = SHAKEN_FRAMES; g.sfx(g.data.sfx.jump); }
     }
   }
+}
+
+/** Where he is drawn across (x2): on the trail, or, flying in (`enter`), on his way from off the picture's west edge (in the border, his picture's offset kept on the screen's side of nought) to it, at an even pace. */
+function enteringX(p: PursuerState, e: PursuerSpec): number {
+  const frames = e.enter ?? 0, edge = Math.max(0, -(e.look?.dx ?? 0));
+  return p.entering >= 0 && frames > 0 ? Math.round(edge + ((p.x2 - edge) * (p.entering + 1)) / frames) : p.x2;
 }
 
 /** He is gone from the room: out of its list, the name's flash (if one is going) ended in its own colour. */
@@ -252,7 +266,7 @@ export function pursuerSprites(g: Game): number {
     const e = g.data.pursuers[p.index];
     if (!e) continue;
     if (p.gone === 'split') for (const s of e.split?.sprites ?? []) mask |= 1 << s;
-    if (p.gone === 'knocked' || p.intro >= 0) mask |= 1 << spriteOf(e);
+    if (p.gone === 'knocked' || p.intro >= 0 || p.entering >= 0) mask |= 1 << spriteOf(e); // (going, walking on, or flying in: harmless)
     if (e.look?.over) mask |= 1 << e.look.over.sprite;
   }
   return mask;
