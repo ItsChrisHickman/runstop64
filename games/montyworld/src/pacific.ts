@@ -108,9 +108,9 @@ export const SEA_PALETTE = {
   K: ['pacBlackSand', 11], R: ['pacReefRock', 9], C: ['pacCoral', 10], L: ['pacBamboo', 13], U: ['pacSurge', 1], B: ['pacBasalt', 11],
 } as const satisfies Palette;
 
-/** SHELL GAME: Maui's black lava shore and the rocks at the waterline, the rope down from Kaihalulu, the channel's breaking swell, the turtles' shells (up and going under) and heads, Kona's black sand. */
+/** SHELL GAME: Maui's black lava shore and the rocks at the waterline, the rope down from Kaihalulu, the channel's breaking swell (white: a breaker kills, as Kaihalulu's surf; plain blue would read as swimmable), the turtles' shells (up and going under) and heads, Kona's black sand. */
 export const SHELL_PALETTE = {
-  L: ['pacBasalt', 11], R: ['pacBamboo', 13], W: ['pacWaves', 14], S: ['pacShell', 13], T: ['pacShellEast', 13], D: ['pacShellDive', 5], H: ['pacTurtleHead', 13], K: ['pacBlackSand', 12],
+  L: ['pacBasalt', 11], R: ['pacBamboo', 13], W: ['pacWaves', 1], S: ['pacShell', 13], T: ['pacShellEast', 13], D: ['pacShellDive', 5], H: ['pacTurtleHead', 13], K: ['pacBlackSand', 12],
 } as const satisfies Palette;
 
 /** Lahaina: the fort's coral-block wall and the quay, the brig's hull and deck, the ropes, the crates, the whale's spout, the harbour's stony bed under its shallows (the water a backdrop: he wades it). */
@@ -150,9 +150,9 @@ export const RIDGE_PALETTE = {
   C: ['pacBasalt', 10], G: ['pacGrating', 15], L: ['pacSteelLadder', 15], Z: ['pacLaser', 7], Y: ['pacLaser', 11],
 } as const satisfies Palette;
 
-/** Akaka Falls: the gorge's rock and its mossy trail, the plunge pool, the ropes down to Hilo, the stream over the ford and its spate's white water. */
+/** Akaka Falls: the gorge's rock and its mossy trail, the plunge pool (churned white under the falls: it kills, as a breaker does; never calm water a snorkeller would swim), the ropes down to Hilo, the stream over the ford and its spate's white water. */
 export const FALLS_PALETTE = {
-  B: ['pacBasalt', 9], T: ['pacTurf', 13], W: ['pacWaves', 14], R: ['pacBamboo', 13], S: ['pacSurge', 14], V: ['pacSurge', 1], F: ['pacSwash', 1],
+  B: ['pacBasalt', 9], T: ['pacTurf', 13], W: ['pacWaves', 1], R: ['pacBamboo', 13], S: ['pacSurge', 14], V: ['pacSurge', 1], F: ['pacSwash', 1],
 } as const satisfies Palette;
 
 /** Mauna Loa: the crater's dark rock, the ledges' pale crust (whole and split), the lava and its crest, the ropes, the steam vent's column. */
@@ -165,9 +165,9 @@ export const COFFEE_PALETTE = {
   T: ['pacTurf', 13], S: ['pacBasalt', 9], R: ['pacBamboo', 13], P: ['pacRoad', 15], B: ['pacReefRock', 9], D: ['pacBridgeDeck', 8],
 } as const satisfies Palette;
 
-/** Hilo: the street, the storefronts' roofs, the bayfront's sea wall, the rope down to the farm. */
+/** Hilo: the street, the storefronts' roofs, the bayfront's sea wall, the airfield's hangar wall closing the east, the rope down to the farm. */
 export const HILO_PALETTE = {
-  P: ['pacRoad', 11], J: ['pacBridgeDeck', 8], H: ['pacHotelWall', 7], R: ['pacBamboo', 13], S: ['pacSeaWall', 14],
+  P: ['pacRoad', 11], J: ['pacBridgeDeck', 8], H: ['pacHotelWall', 12], R: ['pacBamboo', 13], S: ['pacSeaWall', 14],
 } as const satisfies Palette;
 
 // ---- the backdrops -------------------------------------------------------------------------------------
@@ -819,6 +819,7 @@ const paintHilo = (g: Grid): void => {
   g.box(29, 0, 29, 19, 'R'); // the rope from Akaka Falls' high trail, past the street, down to the coffee farm
   g.box(2, 12, 14, 12, 'J'); // the old wooden storefronts' roofs
   g.box(9, 0, 9, 11, 'R').box(16, 11, 16, 18, 'R'); // the rope up from the roofs to the falls' low lane, and the rope up to the roofs from the street
+  g.box(31, 0, 31, 18, 'H'); // the airfield's hangar wall at the east edge, over the street's end (east is the flight's gap: nothing there; a jump off the long rope's head or out of the falls' way down meets it)
 };
 const HILO_COINS = [[8, 10], [17, 17]] as const;
 /** Kamehameha Avenue's old wooden storefronts under their roofs, side by side along the bayfront (a backdrop he walks past). */
