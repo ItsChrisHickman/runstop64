@@ -671,6 +671,29 @@ export const PACIFIC_ISLANDS_TILES = {
   ]),
 } as const;
 
+/**
+ * DIAMOND HEAD's mongoose (Chris, 2026-11-28: they wore the tanuki's pictures), side on going left: a long low body, a small pointed head with a round ear and a lit eye, a long tail tapering out
+ * behind, held low; short legs in a scampering run, the back rising and falling with them.
+ */
+function mongoose(): NewCreature {
+  const frame = (t: number) => {
+    const r = new Raster(16, 16);
+    const a = [1, 0, -1, 0][t] ?? 0, arch = [0, 1, 0, 1][t] ?? 0;
+    r.ellipse(6.8, 11.6 - arch * 0.6, 4.2, 1.5 + arch * 0.3); // the long low body, the back rising as it bounds
+    r.ellipse(2.4, 11, 2, 1.4); r.triangle(0, 11.6, 1.4, 10, 1.4, 12.2); r.rect(3, 9, 3, 9); // the small head, its pointed snout, the round ear
+    r.set(2, 10, false); // the eye
+    limb(r, 10, 11, 12, 12, 2); limb(r, 12, 12, 14, 13, 1); r.set(15, a > 0 ? 12 : 13); // the long tail held low, thick at the root, tapering to its tip
+    limb(r, 4, 13, 4 - a, 15, 2); limb(r, 9, 13, 9 + a, 15, 2); // the short legs, scampering
+    return r.rows();
+  };
+  return pair('pacMongoose', [0, 1, 2, 3].map(frame), 8);
+}
+
+/** The creature drawn after the islands' (they come after every other region's art, world.ts, so no creature's type moves). */
+export const PACIFIC_LATE_CREATURES = {
+  pacMongoose: mongoose(),
+} as const satisfies Record<string, NewCreature>;
+
 export const PACIFIC_ISLANDS_CREATURES = {
   pacCrab: crab(),
   pacEel: eel(),
