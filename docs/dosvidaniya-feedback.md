@@ -31,8 +31,8 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| The watchtower | "top row enemies pose no threat and serve no purpose" | open |
-| Don't rock the boat | "pretty but has no challenge" | open |
+| The watchtower | "top row enemies pose no threat and serve no purpose" | in pass |
+| Don't rock the boat | "pretty but has no challenge" | in pass |
 | Off the beaten path | "cool ideas but no challenge" | open |
 | Border line case | "both water bridges should break faster" | open |
 | Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | open |
@@ -45,12 +45,12 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 | Room | Chris | Status |
 |---|---|---|
 | All wall and no play | "the Viktor cameo makes no sense" | done (63cd3f6d): he runs out on the border post's top after Monty and is stopped by its drop, shaking his fist |
-| Noodle market | the falling floor "won't fall if you just run and if it does... So what? You just fall to a safe spot" | open |
-| The Forbidden City | "very easy. Nothing to it" | open |
-| Heaven can wait | "no enemies, easy layout" | open |
-| The emperor's rooftop | "a vertical enemy that you can't hit unless you try" | open |
-| Willow pattern | "koi should jump" | open |
-| Down the river | "ridiculously easy" | open |
+| Noodle market | the falling floor "won't fall if you just run and if it does... So what? You just fall to a safe spot" | in pass |
+| The Forbidden City | "very easy. Nothing to it" | in pass |
+| Heaven can wait | "no enemies, easy layout" | in pass |
+| The emperor's rooftop | "a vertical enemy that you can't hit unless you try" | in pass |
+| Willow pattern | "koi should jump" | in pass |
+| Down the river | "ridiculously easy" | in pass |
 
 ## Japan
 

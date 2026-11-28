@@ -54,7 +54,7 @@ SCOPE.section([], 'the data: China on the grid, its entries, creatures, sprite b
   check('China\'s 3 key items and 2 snacks count on the pause screen with the other regions\'', keyItemsIn(CHI.wall, CHI.junk) === 3 && snacksIn(CHI.wall, CHI.junk) === 2);
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in China's eleven rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
+  check(`${rooms.size} kinds of creature in China's eleven rooms, none in more than three (${[...rooms.values()].map((v) => v.size).join(' ')}; three since the challenge pass gave its rooms three or four each)`, rooms.size >= 8 && rooms.size <= 12 && most <= 3);
   SCOPE.section([CHI.market], 'the data: the dragon\'s room is clear', () => {
     const market = must(CHINA_ROOMS.find((r) => r.id === CHI.market), 'the market');
     check('the dragon\'s room has no creature, item, lift or icicle (its sprites are the ones they would use)', !market.enemies?.length && !market.item && !market.cake && WORLD.lifts.every((l) => l.room !== CHI.market) && WORLD.icicles.every((i) => i.room !== CHI.market));
@@ -145,9 +145,10 @@ SCOPE.section([CHI.alley], 'the timed strikes: the hutong\'s firecrackers', () =
 // ---- the timed strikes: the willow garden's arms ------------------------------------------------------
 SCOPE.section([CHI.willow], 'the timed strikes: the willow garden\'s arms', () => {
   const arm = (k: number) => must(ARM_PULSES[k * 2], 'an arm'), hand = (k: number) => must(ARM_PULSES[k * 2 + 1], 'a hand');
-  // seen: each arm twitches, reaches (arm and hand cells), and is gone, a third of a period behind the last
+  // seen: each arm twitches, reaches (arm and hand cells), and is gone, a third of a period behind the last (the arms on their own: the koi's leaps out of the way, as the creatures are)
+  const alone = (s: State): State => { s.g.rollers = []; return s; };
   {
-    const s = at(CHI.willow, 10, 15);
+    const s = alone(at(CHI.willow, 10, 15));
     const live: number[] = [-1, -1, -1], gone: number[] = [-1, -1, -1], flicker: number[] = [-1, -1, -1], run = [0, 0, 0];
     for (let f = 1; f <= arm(0).period + 5; f++) {
       frame(s, NONE);
@@ -167,7 +168,7 @@ SCOPE.section([CHI.willow], 'the timed strikes: the willow garden\'s arms', () =
   for (let k = 0; k < 3; k++) {
     const a = arm(k);
     // held in the air in its column (as a jump over the gap would have him) the frames count until it has him
-    const s = at(CHI.willow, 10, 15);
+    const s = alone(at(CHI.willow, 10, 15));
     let when = -1;
     for (let f = 0; f < a.period && when < 0; f++) {
       s.g.x2 = 0x0c + (a.col + 4) * 4; s.g.y = standY(15) - 40; s.g.falling = 0;
@@ -177,12 +178,16 @@ SCOPE.section([CHI.willow], 'the timed strikes: the willow garden\'s arms', () =
     check(`the ${['first', 'second', 'third'][k]} arm kills what of him is under it: he dies ${when} frames in (it reaches at ${a.start + a.warn})`, when >= a.start + a.warn - 4 && when <= a.start + a.warn + 4);
   }
   {
-    const s = at(CHI.willow, 10, 15);
+    const s = alone(at(CHI.willow, 10, 15));
     run(s, NONE, 3 * arm(0).period);
     check('standing on the shore (cells 9-11) or on a stone away from the arms\' cells nothing happens in three periods', !dead(s.g));
-    const stone = at(CHI.willow, 16, 15);
+    const stone = alone(at(CHI.willow, 16, 15));
     run(stone, NONE, 3 * arm(0).period);
     check('and on the first stone (cells 15-18, the arms are over the gaps either side)', !dead(stone.g));
+    // the koi (Chris: "koi should jump"): leaping over the first two gaps, they leave him a place to wait on the shore and on the first stone, and they have him in the air over the gap
+    const shore = at(CHI.willow, 9, 15), first = at(CHI.willow, 16, 15);
+    run(shore, NONE, 460); run(first, NONE, 460);
+    check('with the koi leaping, standing back on the shore (cell 9) and on the first stone\'s middle (16) he waits safely through two of their periods', !dead(shore.g) && !dead(first.g));
   }
   {
     // the crossing: the bot gets across all three gaps to the island and back, the arms and all
@@ -267,13 +272,32 @@ SCOPE.section([CHI.market, CHI.gate], 'the dragon', () => {
 // ---- the gates ------------------------------------------------------------------------------------------
 SCOPE.section([CHI.tower, CHI.top, CHI.alley, CHI.market, CHI.wall, CHI.gate, CHI.roofs, CHI.junk, CHI.willow], 'the gates', () => {
   const reach = (from: State, aim: { room: number; col: number; row: number }, goal: (g: Game) => boolean, limit = 400000) => search(from, (g) => goal(g) && !g.freeze && !g.script, [aim], limit, 1.5);
+  /**
+   * A gate used on the spot and kept (data.ts: `at`, `keep`; the back-half plan's "Cause and effect for every gate"): carrying the item but away from the gate it is still shut; where he uses it, it gives
+   * way (the item used there, seen) and its keep find is taken; coming into the room again anywhere, it is open as the room loads.
+   */
+  const usedAndKept = (what: string, room: number, item: readonly [number, number], far: readonly [col: number, floor: number], near: readonly [col: number, floor: number], open: (g: Game) => boolean): void => {
+    const away = at(room, far[0], far[1], [item]);
+    run(away, NONE, 2);
+    const s = at(room, near[0], near[1], [item]);
+    const shutBefore = !open(s.g);
+    frame(s, NONE);
+    const keep = WORLD.roomEffects.find((e) => e.room === room && e.at)?.at?.keep ?? -1;
+    check(`${what}: carried but away from it (column ${far[0]}) it is shut; at it (column ${near[0]}) it gives way at once, and is kept (its find taken)`, !open(away.g) && shutBefore && open(s.g) && keep >= 0 && !!s.g.siCollected[keep]);
+    enterRoom(s.g, room, 0x0c + (far[0] + 4) * 4, standY(far[1]));
+    for (let n = 0; n < 200 && (s.g.freeze || s.g.script); n++) frame(s, NONE);
+    check(`${what}: coming into the room again (column ${far[0]}) it is open as the room loads`, open(s.g));
+  };
   // the trapdoor and the key
   SCOPE.section([CHI.tower, CHI.top, CHI.alley, CHI.market, CHI.wall], 'the gates: the trapdoor and the key', () => {
     const shut = at(CHI.tower, 16, 9);
     check('without the key the tower\'s ceiling is the trapdoor (its cells hold the plank tile, the rope under it stops at row 2)',
       TRAPDOOR_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0 && cell(shut.g, col, row) !== TOWER_ROPE_CODE) && cell(shut.g, 16, 2) === TOWER_ROPE_CODE);
+    const unplugged = (g: Game) => TRAPDOOR_CELLS.filter(([, col]) => col !== 16).every(([row, col]) => cell(g, col, row) === 0) && TRAPDOOR_ROPE.every(([row, col]) => cell(g, col, row) === TOWER_ROPE_CODE);
+    usedAndKept('the trapdoor and the key (the plug gone, the rope to the top)', CHI.tower, KEY, [6, 17], [16, 9], unplugged);
     const open = at(CHI.tower, 16, 9, [KEY]);
-    check('with it (taken before: a game carried on has it too) the plug is gone and the rope reaches the top', TRAPDOOR_CELLS.filter(([, col]) => col !== 16).every(([row, col]) => cell(open.g, col, row) === 0) && TRAPDOOR_ROPE.every(([row, col]) => cell(open.g, col, row) === TOWER_ROPE_CODE));
+    frame(open, NONE);
+    check('with it, by the rope, the plug is gone and the rope reaches the top', unplugged(open.g));
     const without = reach(shut, { room: CHI.tower, col: 16, row: 0 }, (g) => g.roomId === CHI.top, 150000);
     check('and the bot finds no way up through the trapdoor without the key (a pointer, not the proof: the plug is solid)', without === null);
     const with_ = reach(open, { room: CHI.tower, col: 16, row: 0 }, (g) => g.roomId === CHI.top, 200000);
@@ -289,16 +313,23 @@ SCOPE.section([CHI.tower, CHI.top, CHI.alley, CHI.market, CHI.wall, CHI.gate, CH
     const past = (g: Game) => g.roomId === CHI.gate && colOf(g) >= 18;
     check(`the doors (cols 14-17, rows 11-16, ${6 * 8} pixels) are higher than a jump (${rise}) under solid brick to the roof: shut`, rise < 6 * 8 && DOOR_CELLS.every(([row, col]) => cell(shut.g, col, row) !== 0) && cell(shut.g, 15, 5) !== 0);
     check('and the bot finds no way past them in 150000 states (a pointer)', search(shut, past, undefined, 150000, 0) === null);
+    const doorsGone = (g: Game) => DOOR_CELLS.every(([row, col]) => cell(g, col, row) === 0);
+    usedAndKept('the city gate and the rice hat (the doors gone)', CHI.gate, HAT, [3, 17], [10, 17], doorsGone);
     const open = at(CHI.gate, 10, 17, [HAT]);
-    check('with the rice hat taken the doors are gone (empty cells), and the bot gets through into the inner court', DOOR_CELLS.every(([row, col]) => cell(open.g, col, row) === 0) && search(open, past, undefined, 200000, 0) !== null);
+    frame(open, NONE);
+    check('with the rice hat taken, at the gate, the doors are gone (empty cells), and the bot gets through into the inner court', doorsGone(open.g) && search(open, past, undefined, 200000, 0) !== null);
   });
   // the raft and the bamboo
   SCOPE.section([CHI.junk, CHI.willow], 'the gates: the raft and the bamboo', () => {
     const bare = at(CHI.junk, 14, 17);
     const deck = (g: Game) => g.roomId === CHI.junk && colOf(g) >= 26 && g.y === standY(17);
     check('without the bamboo the river is seven cells of deadly water and the bot finds no way to the junk\'s deck in 150000 states', RAFT_CELLS.every(([row, col]) => cell(bare.g, col, row) !== JUNK_RAFT_CODE && cell(bare.g, col, row) !== 0) && search(bare, deck, undefined, 150000, 0) === null);
+    const laid = (g: Game) => RAFT_CELLS.every(([row, col]) => cell(g, col, row) === JUNK_RAFT_CODE);
+    usedAndKept('the raft and the bamboo (the raft laid)', CHI.junk, BAMBOO, [3, 17], [14, 17], laid);
     const raft = at(CHI.junk, 14, 17, [BAMBOO]);
-    check('with it (taken in the garden) the raft is there (placed on loading the room) and the bot walks over it to the junk\'s deck', RAFT_CELLS.every(([row, col]) => cell(raft.g, col, row) === JUNK_RAFT_CODE) && search(raft, deck, undefined, 400000, 1.5) !== null);
+    raft.g.rollers = []; // (the gate on its own: the carp's leap is the bot's, china.ts)
+    frame(raft, NONE);
+    check('with it (taken in the garden), at the jetty\'s end, the raft is laid and the bot walks over it to the junk\'s deck', laid(raft.g) && search(raft, deck, undefined, 400000, 1.5) !== null);
   });
 });
 
@@ -439,7 +470,7 @@ SCOPE.section([], 'hints, the map, saves', () => {
 
   // a save made on coming into each of China's rooms (every key taken, so the gates are open and the hat is on) carries on in the same room, alive
   {
-    const spots = ([[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 20, 17], [CHI.market, 8, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 28, 17]] as const).filter(([room]) => SCOPE.has(room));
+    const spots = ([[CHI.wall, 11, 17], [CHI.alley, 2, 17], [CHI.tower, 22, 17], [CHI.top, 12, 17], [CHI.market, 8, 17], [CHI.gate, 12, 17], [CHI.roofs, 22, 17], [CHI.willow, 1, 9], [CHI.junk, 28, 17]] as const).filter(([room]) => SCOPE.has(room));
     const failed: number[] = [];
     const carried = spots.filter(([room, col, floor]) => {
       const a = newGame(WORLD, false);
@@ -488,15 +519,21 @@ SCOPE.section([CHI.junk, CHI.market], 'the set-up traps: the jetty, the awning',
     check(`${what}: and he falls (the river, the street): he is no longer on it (row ${s.g.montyRow})`, dead(s.g) || s.g.montyRow + 2 > spec.row + 3);
     return s;
   };
-  check('the jetty is thirteen single cells on row 17, columns 6 to 18, each its own count; the awning four on row 9, columns 4 to 7', JUNK_CRACKS.length === 13 && JUNK_CRACKS.every((c, k) => c.room === CHI.junk && c.cols === 1 && c.row === 17 && c.col === 6 + k)
-    && AWNING_CRACKS.length === 4 && AWNING_CRACKS.every((c, k) => c.room === CHI.market && c.cols === 1 && c.row === 9 && c.col === 4 + k));
+  check('the jetty is thirteen single cells on row 17, columns 6 to 18, each its own count; the awning one patch of four on row 9, columns 3 to 6 (over the street\'s hole, columns 2 to 6)', JUNK_CRACKS.length === 13 && JUNK_CRACKS.every((c, k) => c.room === CHI.junk && c.cols === 1 && c.row === 17 && c.col === 6 + k)
+    && AWNING_CRACKS.length === 1 && AWNING_CRACKS.every((c) => c.room === CHI.market && c.cols === 4 && c.row === 9 && c.col === 3));
   const plank = must(JUNK_CRACKS[4], 'a plank');
   SCOPE.section([CHI.junk], 'the set-up traps: the jetty crumbles', () => {
     const dropped = crumbles('the jetty', plank, 17);
     check('on the jetty a fall is the river: he dies', dead(dropped.g));
   });
-  SCOPE.section([CHI.market], 'the set-up traps: the awning crumbles', () => {
-    crumbles('the awning', must(AWNING_CRACKS[1], 'an awning cell'), 9);
+  SCOPE.section([CHI.market, CHI.alley], 'the set-up traps: the awning crumbles', () => {
+    crumbles('the awning', must(AWNING_CRACKS[0], 'the awning'), 9);
+    // Chris, 2026-11-26: "it won't fall if you just run... you just fall to a safe spot": a walk over it drops him, and the fall is down the street's hole into the hutong (the climb again)
+    const s = at(CHI.market, 0, 9);
+    let f = 0;
+    for (; f < 300 && s.g.roomId === CHI.market && colOf(s.g) < 8; f++) frame(s, RIGHT);
+    run(s, NONE, 120);
+    check(`walking onto the awning from the west he falls through it (${f} frames) and down the street's hole into the hutong (room ${s.g.roomId})`, s.g.roomId === CHI.alley);
   });
   SCOPE.section([CHI.junk], 'the set-up traps: running the jetty', () => {
     // a steady run along the jetty, from the bank to its last plank: every plank holds under him (lines at most), and he lives

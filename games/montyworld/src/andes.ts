@@ -1,6 +1,7 @@
 import type { Arrival, CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { ANDES_SPRITE, BOULDER_POINTERS, LEAP_POINTERS } from './andes-pointers';
+import { ANDES_SPRITE, BOULDER_POINTERS } from './andes-pointers';
+import { leap } from './leaps';
 import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './layout';
 import { rollerTrain } from '../../montyotr/src/rollers';
 
@@ -141,18 +142,6 @@ export const BOULDERS_OF_PICCHU: readonly RollerSpec[] = rollerTrain(
   [{ sprite: 1, start: 0 }, { sprite: 2, start: 120 }, { sprite: 6, start: 240 }],
 );
 
-/**
- * A piranha's leap: from under the water at `col` (row 17) up in an arc to its apex (row `apex`) and down into the water again three cells on, nose up, level and nose down as the three pictures follow it along (`spread`), `every` frames, the first `start` in.
- * Deadly on touch, as the boulders are; it is only in the air for part of each period.
- */
-const LEAP_W = 3;
-function leap(room: number, sprite: number, col: number, apex: number, every: number, start: number): RollerSpec {
-  const path = Array.from({ length: 9 }, (_, i): readonly [number, number] => {
-    const t = i / 8;
-    return [col + (t - 0.5) * LEAP_W, 17.5 - 4 * (17.5 - apex) * t * (1 - t)];
-  });
-  return { room, sprite, path, speed: 2, every, start, frames: LEAP_POINTERS, colour: 2, spread: true };
-}
 /** VINE AND DANDY's two, where its piranhas were: under the first vine's swing and between the logs, at periods of their own (none a multiple of the other or of the vines' 96). */
 export const VINE_LEAPS: readonly RollerSpec[] = [leap(AND.vine, 1, 10.5, 11, 170, 20), leap(AND.vine, 2, 18.5, 11, 210, 100)];
 /** The creek's piranha: in the channel between the second log and the sandbar. */

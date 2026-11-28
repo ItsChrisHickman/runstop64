@@ -242,3 +242,36 @@ over Monty, and the rooms' fullness beside Monty on the Run's.
   towards him, and is stopped short (a gap he can't cross, a door that shuts, a ledge he can't climb, a crowd) and shakes
   his fist; he never turns and runs away from Monty, never appears beside him. Applies to every border cameo (Moscow,
   China's wall, THE FISH MARKET, the Redeemer and the rest).
+
+## Challenge pass (2026-11-27): the creatures as the puzzles
+
+Chris's rows (docs/dosvidaniya-feedback.md, China and the two China rooms filed under Siberia) and the recipe (skill `monty-room`). The drawings stay;
+the creatures, their timings and the gates change. China's three clusters and their lines:
+
+- **The wall, the hutong, the tower, the market** (A D T E, a loop): low through the wall's tunnel into the hutong and up its rope into the market's street;
+  or high up the wall's stair, along its top and up the rope into the tower, through the hall (floor or walkway) into the market (street or awnings).
+  The way back west is the same loop the other way round.
+- **The battlements** (C, a dead end up the trapdoor): one line, a winding climb, hard going up and coming down.
+- **The palace and the garden** (F G K H J, and the bonus L off the hutong): the gate's two courts, the roofs (west to HEAVEN CAN WAIT, east up the eaves),
+  the garden's stones, the quay's jetty and raft.
+
+Room by room (what the creatures and jumps ask):
+
+| Room | The puzzle |
+|---|---|
+| ALL WALL AND NO PLAY | The panda paces the whole foot of the wall, fast, through the tunnel's arches: jumped on the low line, or waited out at the stair's foot. A pogo monk bounces over the stair's middle step (the climb is timed to his hop), and a kite drops onto the wall's top between the battlements and the rope (passed under while it is up). Viktor's cameo moves to the fourth sprite. |
+| BACK ALLEY BEIJING | The baker's bicycle rides the whole lane fast (from clear of the rope's foot to the dead end): a jump timed to his turn. The pogo monk bounces over the top shelf, so the climb to the firecrackers' ledge waits for his hop, then the string's wait. |
+| THE WATCHTOWER | The top row's creatures now cross the way (Chris: "pose no threat"): the cricket hops on the walkway east of the trapdoor's rope (under him while he is up: the rope is the safe spot to wait on), the lantern drops over the stair's middle ledge. The warrior marches the hall's floor fast from the stair's foot to the rope's gap. |
+| MIND THE BATTLEMENTS | Two terracotta warriors: a fast one on the floor between the trapdoor's rope and the steps (met at once, coming up), a slow one along the whole long walkway (jumped, under the beacon's platform); a kite drops over the left steps up to the platform. |
+| NOODLE MARKET | The rotten yellow awning (Chris: "won't fall if you just run... you just fall to a safe spot") now lies wholly over the street's hole and gives way faster than a walk: it is jumped (the coin over it taken on the jump), and a fall goes down the hole into the hutong (the climb again: the hutong's rope, the street, the rope up to the awnings). The dragon as it was. |
+| THE FORBIDDEN CITY | The lion paces the outer court fast; inside, past the gate (its guard walks off into the palace as Monty comes up in the rice hat, seen), a panda paces the inner court and a lantern drops beside the rope up to the roofs: the climb waits for it. |
+| THE EMPEROR'S ROOFTOPS | The lantern (Chris: "a vertical enemy that you can't hit unless you try") drops over the top eave, so the climb from eave to ridge waits for it; the lion paces the low ridge fast, west to the dumplings and HEAVEN CAN WAIT; a dove flies the high ridge and the eaves' tops to the way east. |
+| HEAVEN CAN WAIT | (Chris: "no enemies, easy layout".) The eaves are three cells apart (judged jumps, not a stair); a guard paces the ridge under the temple, and a kite drops over the middle eave. |
+| WILLOW PATTERN | The koi leap (Chris: "koi should jump"): two of them out of the river in arcs over the first and middle gaps, at periods of their own against the arms' (read from the bank and the stones). A dove flies down the bank's steps, another guards the island. |
+| DOWN THE RIVER | (Chris: "ridiculously easy".) A cricket runs the rotten jetty fast (jumped on planks that will not wait), a gull dives over the jetty's far end (wait on the crane's rope, the one safe spot over the planks, then run), and a carp leaps over the raft. |
+| DON'T ROCK THE BOAT | (Chris: "pretty but has no challenge".) Two koi leap in the lake, one in each boat's half, at periods unlike the boats': riding a boat into a leap is the death, so the ride is chosen from the quay and the change of boats in the middle timed. |
+
+The gates give way where he uses the item, seen, and stay done (the back-half plan's "Cause and effect for every gate"): the trapdoor opens as he comes up to
+its rope with the key, the city gate's doors swing away and the guard walks off into the palace as he comes up in the rice hat, the raft is laid as he reaches
+the jetty's end with the bamboo. Each is kept as a hidden find (`at.keep`), so once used it is open whenever he comes back, through a death and a save
+(coming down from the battlements the trapdoor is open: no plug over the rope).

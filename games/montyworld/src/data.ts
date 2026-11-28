@@ -11,7 +11,7 @@ import {
 } from './art';
 import { MapTitle, STRIP_Y } from './title';
 import { LATER_COLOURS, LATER_FROM, LATER_SECTORS } from './later-sectors';
-import { AWNING_CRACKS, CHINA_ROOMS, HOUHAI_BOATS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, } from './china';
+import { AWNING_CRACKS, CHINA_LEAPS, CHINA_ROOMS, HOUHAI_BOATS, CHINA_COLOURS, CHINA_SECTORS, CHI, DOOR_CELLS, DRAGON, JUNK_CRACKS, JUNK_RAFT_CODE, PULSES, RAFT_CELLS, TOWER_ROPE_CODE, TRAPDOOR_CELLS, TRAPDOOR_ROPE, } from './china';
 import { YETI_PICTURES } from './art/siberia-yeti';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { placeHat } from './hats';
@@ -258,12 +258,14 @@ const BOWL = specialIndex(ROOMS, 'bowl');
 /**
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
  * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only), and which way the locomotive's
- * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts). They come after every room's finds, so no room's
+ * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts), and China's three gates once used on the spot
+ * (`at.keep`: the trapdoor opened, the city gate opened, the raft laid; added 2026-11-27, last: a save from before reads them unset, so he carries the item up to the gate and it gives way again). They come after every room's finds, so no room's
  * find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'trapdoor open', 'city gate open', 'raft laid'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
 const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5, STEAM_LOW = FITTED + 6;
+const TRAPDOOR_OPEN = FITTED + 7, CITY_GATE_OPEN = FITTED + 8, RAFT_LAID = FITTED + 9;
 /** The hidden finds the tests read (the tally's rounds). */
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The find the locomotive's steam valve flips (untaken: the steam blows out of the pipe's top, over the roof's lane; taken: out of its bottom, over the inside's). */
@@ -294,10 +296,11 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   })),
   // and the provodnitsa unbolts the luggage closet's floor: the closet's ladder runs on down into the corridor, the way in from the roof
   { room: SIB.sleeper, when: [{ taken: TICKET }], clear: onScreen(TRAPDOOR.clear), place: { code: TRAPDOOR.code, cells: onScreen(TRAPDOOR.ladder) } },
-  // the key takes the trapdoor from the tower's roof, and the rope's last two cells are there to climb
-  { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) } },
-  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1 }, // in the rice hat the city gate lets him by and the guard steps aside
-  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) } }, // the bamboo is a raft out to the junk
+  // China's gates, used on the spot and seen (`at`), then kept (`keep`: open whenever he comes back): the key unlocks the trapdoor as he comes up to its rope (on the walkway or the rope), and the rope's last two
+  // cells are there to climb; in the rice hat, coming up to the city gate, its doors swing away and the guard inside walks off east into the palace; reaching the jetty's last planks with the bamboo, the raft is laid out to the junk
+  { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) }, at: { ...screenBox(13, 2, 19, 8), keep: TRAPDOOR_OPEN } },
+  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1, at: { ...screenBox(8, 11, 13, 16), leaves: 1, keep: CITY_GATE_OPEN } },
+  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) }, at: { ...screenBox(14, 13, 18, 16), keep: RAFT_LAID } },
   { room: JP.platform, when: [{ taken: DARUMA }], clear: onScreen(SHUTTER_CELLS) }, // the daruma's wish rolls the platform's shutter up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0, place: { code: PLANK_CODE, cells: onScreen(PLANK_CELLS) } }, // fed, the koi leave the pond (the first) and the pond's planks float up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)
@@ -339,7 +342,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, TRAPDOOR_OPEN, CITY_GATE_OPEN, RAFT_LAID],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -372,7 +375,7 @@ export const WORLD: MontyData = {
     rounds: [{ find: SWEPT, winner: 'hero' }, { find: OVERBOARD, winner: 'hero' }, { find: PLANE_LOST, winner: 'villain' }],
     face: TALLY_CHARS.face, star: TALLY_CHARS.star, colours: { hero: 8, villain: 1, open: 11, away: 11 },
   },
-  rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...FUJI_SNOWBALLS, ...skyRollers(MOTR_LOOK.sfx.warp)],
+  rollers: [...ROLLERS, ...ROCKS, LAPA_STONE, ...FUJI_SNOWBALLS, ...skyRollers(MOTR_LOOK.sfx.warp), ...CHINA_LEAPS],
   vines: VINES,
   cableCars: [], // (Sugarloaf's cable car, cut with its room, 2026-11-25)
   floats: [TRAM, MINE_CART, ...HOUHAI_BOATS, ...CARNIVAL_FLOATS].map(regionFloat),
