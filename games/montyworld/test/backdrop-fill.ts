@@ -66,6 +66,8 @@ const UNDER_A_ROOF: ReadonlySet<number> = new Set<number>([
   ROOM.gum, ROOM.hall, ROOM.platform, SIB.yeti, SIB.mine, CHI.tower, JP.parlour, JP.hall, PAC.cave, RIO_ROOM.steak,
   // under the rainforest's canopy: its leaves along the top are the forest's roof
   AND.canopy, AND.kapok, AND.boat, AND.roots, AND.sandbar, AND.cloud, AND.vine, AND.ends,
+  // the drop's second line down through the mountain: the chimney's rock along the top is the mountain it cuts through, open where the ways down come in
+  AND.chimney, AND.prayer,
 ]);
 /** The flight from Hilo: the sky all round, its weather along the top. */
 const IN_THE_AIR: ReadonlySet<number> = new Set<number>(Object.values(FLY));

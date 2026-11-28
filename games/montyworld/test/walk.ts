@@ -35,10 +35,10 @@ check('the sectors are the rooms\' names, in Monty on the Run\'s manner', [0, 1,
   'MOSCOW MOLE|SNOW PLACE LIKE HOME|SEEING RED|ONION DOME SWEET DOME|KREMLIN GREMLINS|SIBERIA YOU LATER|STUCK LIKE GUM|ESCALATING TENSIONS|UNDERGROUND MOVEMENT');
 check(`Moscow, Siberia, China, Japan, the Pacific, the Andes and Rio: ${WORLD.coinTable.length / 3} coins, ${WORLD.progress.cakes.length} snacks (pirozhki, pelmeni, dumplings, sushi, musubi, empanadas, skewers) and ${WORLD.progress.keyItems.length} key items, every find one or the other but the bowl`, WORLD.progress.cakes.length + WORLD.progress.keyItems.length + WORLD.uncountedItems.length === WORLD.specialItems.length / 4);
 {
-  // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each)
+  // creatures are used rarely, as Monty on the Run's are (its 27 kinds average 5.5 rooms of its 52; Moscow's, in nine rooms, at most two each; SIBERIA YOU LATER's car guard, Siberia's inspector, made it twelve, 2026-11-28)
   const rooms = creatureRooms(MOSCOW_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
-  check(`${rooms.size} kinds of creature in Moscow's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 11 && most <= 2);
+  check(`${rooms.size} kinds of creature in Moscow's nine rooms, none in more than two (${[...rooms.values()].map((v) => v.size).join(' ')})`, rooms.size >= 8 && rooms.size <= 12 && most <= 2);
 }
 check('the carriage roof leads east into Siberia: the dining car is east of the station', cells[WORLD_COLS + 4] === 9);
 

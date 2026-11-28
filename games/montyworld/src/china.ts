@@ -439,7 +439,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     ],
     creatures: [
       { who: 'dove', col: 4, row: 8, way: 'right', speed: 2, range: 28 }, // down the bank's steps, fast
-      { who: 'dove', col: 27, row: 4, way: 'down', speed: 1, range: 48, colour: 7 }, // dropping over the island's landing, down to a jump's height (he stands under it; the jump onto the island waits for it) (the koi are CHINA_LEAPS)
+      { who: 'dove', col: 27, row: 4, way: 'down', speed: 1, range: 48, colour: 10 }, // dropping over the island's landing, down to a jump's height (he stands under it; the jump onto the island waits for it) (the koi are CHINA_LEAPS)
     ],
   }),
 

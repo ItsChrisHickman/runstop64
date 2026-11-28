@@ -285,7 +285,7 @@ room's puzzle and its line(s):
   updraft under the overhang; the landing is the hill's top by the Intihuatana, under the boulders). Six flight rooms in all. The
   first line keeps the terraces and the chullo; the second lands at the panpipes, and the plateau's run out onto the terraces' high
   ledge takes him back to the chullo, so neither line strands him.
-- **NO PROBLLAMA**: the broad terrace's llama walks the terrace end to end, slow (40 steps of 1 px; the low path's llama is 28 of 2, so the two never fall into step): he times his drop from the step behind it, then jumps it as it turns back (the review found the earlier two-cell walk read as a llama standing still), the low path's quick across the
+- **NO PROBLLAMA**: the broad terrace's llama walks its east half to the end, slow (24 steps of 1 px from col 14; the low path's llama is 28 of 2, so the two never fall into step; at the ship the end-to-end walk of 473d759f was cut back: it covered the west end, where the east throat lands him and the fairness starts stand, and killed him there): he times his drop from the step behind it, then jumps it as it turns back (the review found the earlier two-cell walk read as a llama standing still), the low path's quick across the
   drop point; the cuy over the last step as before.
 - **MACHU PICCHU**: the boulders stay on the climb (they roll down the way to the panpipes, never off to a side); the cuy hops out of
   the gap twice as quick (the gap's jump is read against it); Huayna Picchu light green (the dark blue did not read). Sprites: the three

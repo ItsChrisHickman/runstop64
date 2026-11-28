@@ -59,6 +59,7 @@ import { FLY, PLANE_LOOK, TAKE_OFF, planeLegs, SKY_ANIMS, SKY_ARRIVALS, SKY_BLOC
  */
 const WAYS_IN: Readonly<Record<number, { col: number; floor: number }>> = {
   71: { col: 1, floor: 8 }, // Rio's OPEN ARMS: high on the canopy, entered from the Amazon (its forest floor is the marmoset's)
+  35: { col: 13, floor: 17 }, // NINJA HIDEOUT: on the grass east of the first walkway (he comes up the rope's gap from the hall; the walkway west is where the ninja's leap lands)
   53: { col: 26, floor: 19 }, // Hilo: the street east of the biplane, by the banyan (clear of the street's cyclist and rooster)
 };
 

@@ -17,6 +17,7 @@ import { Input, PixelRenderer } from 'c64kit';
 import { indicesPng } from '../../../tools/probe/render';
 import { montyMap } from '../../montyotr/src/map';
 import { openMap, plusItems, plusStart } from '../../montyotr/src/plus';
+import { wayIn } from '../../montyotr/src/way-in';
 import { restore } from '../../montyotr/src/save';
 import { frame, NONE, settled } from '../../montyotr/test/play';
 import { hold, newGame } from '../../shared/monty/test/bot';
@@ -45,8 +46,10 @@ const SAFE_FRAMES = 25;
   const found = openMap(WORLD, montyMap.found.empty());
   // (but the flight's legs: he flies them, he stands nowhere in them, and the biplane at Hilo is the way into them)
   const flown = new Set(WORLD.planes.map((leg) => leg.room));
-  const missing = grid.filter((id) => !(String(id) in found.rooms) && !flown.has(id));
-  check(`every room of the grid but the flight's legs is on NEW GAME+'s map (${grid.length - missing.length - flown.size} of ${grid.length - flown.size}; none: ${missing.join(' ') || '-'})`, missing.length === 0 && [...flown].every((id) => !(String(id) in found.rooms)));
+  // (and a flight room he can stand nowhere in, glided through on the way down: WING AND A PRAYER, rock either side of the sky; openMap leaves such a room for him to find)
+  const glided = new Set(grid.filter((id) => WORLD.flights.some((f) => f.room === id) && wayIn(WORLD, id) === null));
+  const missing = grid.filter((id) => !(String(id) in found.rooms) && !flown.has(id) && !glided.has(id));
+  check(`every room of the grid but the flight's legs and the glides with nowhere to stand (${[...glided].join(' ') || '-'}) is on NEW GAME+'s map (${grid.length - missing.length - flown.size - glided.size} of ${grid.length - flown.size - glided.size}; none: ${missing.join(' ') || '-'})`, missing.length === 0 && [...flown].every((id) => !(String(id) in found.rooms)));
 
   const base = newGame(WORLD, true);
   restore(base.g, plusStart(WORLD, PLUS.worn));
