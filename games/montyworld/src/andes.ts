@@ -8,7 +8,7 @@ import { ANDES_WANTED_FRAMES } from './art/andes-items';
 import { wantedAnims, wantedCells, wantedDecor } from './wanted';
 
 /**
- * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-back-half-plan.md: the back half rebuilt longer, the rooms the 2026-11-23 reset cut brought back): thirteen rooms at
+ * The Andes and the Amazon, the sixth and seventh regions of Do Svidaniya Monty (two regions since 2026-11-27, regions.ts: the Andes rows 2-5, the Amazon rows 6-7; their rooms stay in this one file) (docs/dosvidaniya-back-half-plan.md: the back half rebuilt longer, the rooms the 2026-11-23 reset cut brought back): thirteen rooms at
  * columns 25-28 of the exit grid (rows 2-7), entered from the flight's bail-out (sky.ts: he parachutes into JUMP FOR JOY's top) and left east off BRANCHING OUT's crown into Rio's first room, OPEN ARMS
  * ([6,28], entered west at rows 6-7 on floor 8).
  *
@@ -44,7 +44,7 @@ export const AND = {
   jump: 55, thin: 56, gorge: 57, terraces: 58, picchu: 59, canopy: 62, kapok: 63, boat: 64, roots: 65, sandbar: 66, bridge: 83, cloud: 84, vine: 85, ends: 94,
   shoulder: 103, chimney: 104, prayer: 105,
 } as const;
-/** The drop's second line (2026-11-28, docs/dosvidaniya-edges.md: $67-$69): east off JUMP FOR JOY's shoulder, down three rooms of its own into MACHU PICCHU's sky, the harder line, a coin in each. */
+/** The drop's second line (2026-11-28, docs/dosvidaniya-edges.md: $67-$69): east off JUMP FOR JOY's shoulder, down three rooms of its own into MACHU PICCHU's sky, the harder line, a coin in each. Two galleries join the lines (Chris, 2026-11-28: "if you cannot reach both lines, no that's not okay"): CHIMNEY SWEEP's crag west into OUT OF THIN AIR's right canyon, CONDOR COUNTRY's shelf east into WING AND A PRAYER, so one run takes all six rooms (JUMP FOR JOY, COLD SHOULDER, CHIMNEY SWEEP, OUT OF THIN AIR, CONDOR COUNTRY, WING AND A PRAYER), every coin and the gorge's empanada. */
 export const SECOND_LINE: readonly number[] = [AND.shoulder, AND.chimney, AND.prayer];
 
 /** The sectors' names by their place from 55 (Rio's sectors follow at 67, so the list keeps twelve places: the retired rooms' are empty). Every room has a name of its own. */
@@ -267,6 +267,7 @@ const PAINT = {
     // the canyon, as it was before the reset: the cliffs step in at each side, a ridge rises mid-room with a snowy crest (floor 9), the right canyon has a floor (row 18), the left one is the way down
     g.box(0, 0, 2, 19, 'R').box(3, 8, 3, 19, 'R').box(4, 13, 4, 19, 'R').box(29, 0, 31, 19, 'R').box(28, 7, 28, 19, 'R').box(27, 12, 27, 19, 'R');
     g.box(11, 14, 20, 19, 'R').box(21, 18, 26, 19, 'R').box(12, 12, 19, 13, 'R').box(14, 10, 17, 11, 'R').box(14, 10, 17, 10, 'S').box(15, 9, 16, 9, 'S');
+    g.clear(27, 9, 31, 12).box(27, 13, 31, 13, 'S'); // the gallery in from CHIMNEY SWEEP (floor 13, rows 9-12): the second line's way across onto the first, over the right canyon's updraft
   },
   gorge(g: Grid) {
     // the gorge: cliffs close in from 24 cells at the top (cols 4-27) to 15 at the foot (cols 3-17), split there by a pinnacle into two throats, the narrow west one over the guardhouse's roof
@@ -275,6 +276,7 @@ const PAINT = {
     g.box(22, 8, 27, 8, 'S').box(22, 9, 31, 12, 'R').box(20, 13, 31, 19, 'R').box(20, 12, 21, 12, 'S'); // the shelf under the overhang, the cliff below it
     g.box(8, 15, 10, 19, 'R').box(8, 14, 10, 14, 'S'); // the pinnacle
     g.box(15, 16, 19, 19, 'R').box(15, 15, 19, 15, 'S'); // a spur: the east throat is cols 11-14, over the broad terrace's west end
+    g.clear(28, 5, 31, 7).box(28, 8, 31, 8, 'S'); // the shelf runs on east through the cliff (floor 8, rows 5-7) into WING AND A PRAYER: the first line's way across onto the second
   },
   shoulder(g: Grid) {
     // COLD SHOULDER: the snowy shoulder run on east from JUMP FOR JOY (floor 11) to its end over the crevasses; a pocket under its end, two crags, the glacier's east wall. The bottom is open between the crags
@@ -287,14 +289,16 @@ const PAINT = {
   chimney(g: Grid) {
     // CHIMNEY SWEEP: the two ways down from the crevasses (cols 15-19 and 24-26) meet in a chimney that turns twice, round a ledge out of the east wall and a crag out of the west
     g.box(0, 0, 14, 19, 'R'); // the mountain's mass
-    g.box(20, 0, 23, 7, 'R').box(27, 0, 31, 19, 'R'); // the rib between the two ways in (the second crag's root), the east wall
+    g.box(20, 0, 23, 6, 'R').box(27, 0, 31, 19, 'R'); // the rib between the two ways in (the second crag's root; its foot at row 6, so he walks west off the ledge under it), the east wall
     g.box(22, 10, 26, 11, 'R').box(22, 9, 26, 9, 'S'); // the ledge out of the east wall (floor 9), the coin on it
     g.box(15, 14, 17, 15, 'R').box(15, 13, 17, 13, 'S'); // the crag out of the west (floor 13): the chimney between it and the ledge four cells wide
+    g.clear(0, 9, 14, 12).box(0, 13, 14, 13, 'S'); // the gallery west off the crag through the mass (floor 13, rows 9-12) into OUT OF THIN AIR's right canyon: the way across onto the first line
   },
   prayer(g: Grid) {
     // WING AND A PRAYER: out of the chimney's mouth over Machu Picchu; the mountain's flanks fall away either side and the sky opens to the citadel below (the hill's top and the Intihuatana: the landing)
     g.box(0, 0, 14, 3, 'R').box(27, 0, 31, 3, 'R'); // the chimney's mouth
     g.box(0, 4, 3, 19, 'R').box(29, 4, 31, 19, 'R'); // the flanks
+    g.clear(0, 5, 3, 7).box(0, 8, 3, 8, 'S'); // the ledge in from CONDOR COUNTRY's shelf (floor 8, rows 5-7), under the overhang's lip
     g.box(4, 4, 9, 4, 'S'); // snow under the overhang's lip
   },
   terraces(g: Grid) {

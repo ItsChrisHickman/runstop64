@@ -1038,8 +1038,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: DIAMOND_COINS,
     decor: [...diamondScenery, ...diamondZig, ...DIAMOND_PIECES],
     creatures: [
-      { who: 'jpTanuki', col: 3, row: 17, way: 'right', speed: 3, range: 48, colour: 8 }, // a mongoose darting the whole walkway, fastest, up to the tunnel's mouth: met coming in, jumped
-      { who: 'jpTanuki', col: 7, row: 11, way: 'right', speed: 2, range: 48, colour: 10 }, // another along the switchback from the steep stairs' foot to short of the upper mouth (the place to wait)
+      { who: 'pacMongoose', col: 3, row: 17, way: 'right', speed: 3, range: 48, colour: 8 }, // a mongoose darting the whole walkway, fastest, up to the tunnel's mouth: met coming in, jumped
+      { who: 'pacMongoose', col: 7, row: 11, way: 'right', speed: 2, range: 48, colour: 10 }, // another along the switchback from the steep stairs' foot to short of the upper mouth (the place to wait)
       { who: 'condor', col: 14, row: 0, way: 'down', speed: 2, range: 20 }, // a frigatebird diving over the gully in the trail at the top: the jump across waits for it to climb
     ],
   }),

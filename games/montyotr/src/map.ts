@@ -343,7 +343,7 @@ export const montyMap = {
           : !seen ? COL.dgrey
           : roomProgress(g, id).complete ? shimmerColour(tick, r + c)
           : data.isExtensionRoom(id) ? RUNSTOP64_COLOUR
-          : progress.sectorColours[sectorIndex(data, id)] ?? COL.white;
+          : regionAt(data.regions, r, c)?.colour ?? progress.sectorColours[sectorIndex(data, id)] ?? COL.white;
         s.fillRect(x0, p.y, x1 - x0, cell - 1, colour);
       }
     }

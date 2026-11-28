@@ -199,7 +199,7 @@ function finale(as: Progress, keep: (f: number) => boolean) {
 {
   const s = newGame(WORLD, true), g = s.g;
   // the game up to the Andes done, the flight flown once (Viktor clipped the tail: the round), but a coin of the second leg missed
-  const later = new Set<number>([...flights, ...data.exitGrid.image.filter((id) => regionOf(id) === 'ANDES' || regionOf(id) === 'RIO')]);
+  const later = new Set<number>([...flights, ...data.exitGrid.image.filter((id) => regionOf(id) === 'ANDES' || regionOf(id) === 'AMAZON' || regionOf(id) === 'RIO')]);
   for (let i = 0; i < g.siCollected.length; i++) if (!later.has(data.specialItems[i * 4] ?? 0)) g.siCollected[i] = 0x81;
   g.siCollected[ROUNDS.plane] = 0x81;
   const missed = must(Array.from({ length: COINS }, (_, i) => i).find((i) => roomOfCoin(i) === FLY.storm), 'a coin of the second leg');

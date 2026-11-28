@@ -20,6 +20,7 @@ import { parsePsid, SidTune } from '../../../packages/c64kit/src/sid/psid';
 import { check, finish } from '../../shared/test/check';
 import { WORLD } from '../src/data';
 import { crossingPlan, type CrossingStyle } from '../src/music/crossing';
+import { AMAZON } from '../src/music/amazon';
 import { ANDES } from '../src/music/andes';
 import { CHINA } from '../src/music/china';
 import { JAPAN } from '../src/music/japan';
@@ -45,7 +46,7 @@ const equal = (a: readonly unknown[], b: readonly unknown[]) => a.length === b.l
   const order = JSON.stringify(was.voices(GAME_SONG));
   const lengths = (image: TuneImage) => was.voices(GAME_SONG).flat().map((p) => patternTicks(image.readPattern(p).events));
   const wanted = lengths(was);
-  const versions = [MOSCOW, SIBERIA, CHINA, JAPAN, PACIFIC, ANDES, RIO];
+  const versions = [MOSCOW, SIBERIA, CHINA, JAPAN, PACIFIC, ANDES, AMAZON, RIO];
   check(`all ${versions.length} regions' versions keep the song's order and every pattern's length: a position in one is the same in all`,
     versions.every((t) => { const image = new TuneImage(retune(original, t)); return JSON.stringify(image.voices(GAME_SONG)) === order && equal(lengths(image), wanted); }));
 }

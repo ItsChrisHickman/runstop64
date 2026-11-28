@@ -193,6 +193,20 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu], 'the pa
     check(`the second line: east off the shoulder into COLD SHOULDER, down it into CHIMNEY SWEEP, down that into WING AND A PRAYER and down into Machu Picchu, past their condors (${found.join(' ')})`, found.every(Boolean));
     check('every room of the second line is a flight room with a coin and at least two creatures', SECOND_LINE.every((id) => WORLD.flights.some((f) => f.room === id) && (roomOf(id).coins?.length ?? 0) === 1 && (roomOf(id).enemies ?? []).length >= 2));
   });
+  SCOPE.section([AND.chimney, AND.thin, AND.gorge, AND.prayer], 'both lines in one run', () => {
+    // (Chris, 2026-11-28: "if you cannot reach both lines, no that's not okay") two galleries join the lines: CHIMNEY SWEEP west off its crag into OUT OF THIN AIR's right canyon, CONDOR COUNTRY's shelf east into
+    // WING AND A PRAYER; so one run goes JUMP FOR JOY, COLD SHOULDER, CHIMNEY SWEEP, OUT OF THIN AIR, CONDOR COUNTRY, WING AND A PRAYER, every coin of the six and the gorge's empanada on the way
+    const legs: readonly [from: State, aim: { room: number; col: number; row: number }, to: number][] = [
+      [at(AND.chimney, 25, 9, [], false, true), { room: AND.chimney, col: 0, row: 11 }, AND.thin], [at(AND.thin, 30, 13, [], false, true), { room: AND.thin, col: 7, row: 19 }, AND.gorge],
+      [at(AND.gorge, 24, 8, [], false, true), { room: AND.gorge, col: 31, row: 6 }, AND.prayer],
+    ];
+    const found = legs.map(([from, aim, to]) => search(from, (g) => g.roomId === to && !dead(g), [aim], 300000, 1.5) !== null);
+    // (the ledge was a trap until the rib's foot went up a row: on it his head met the rib, so the coin's way had no way off)
+    check(`the lines cross: from CHIMNEY SWEEP's ledge (its coin) west under the rib, onto the crag and along the gallery into OUT OF THIN AIR, from its right canyon up the updraft over the ridge and down into CONDOR COUNTRY, from its shelf (the empanada) east into WING AND A PRAYER, past the condors (${found.join(' ')})`, found.every(Boolean));
+    const edge = (room: number, col: number) => [...Array(20).keys()].filter((r) => !solid(room, col, r)).join();
+    check(`the galleries meet edge to edge: CHIMNEY SWEEP's west edge and OUT OF THIN AIR's east open on rows 9-12 (${edge(AND.chimney, 0)} / ${edge(AND.thin, 31)}), CONDOR COUNTRY's east and WING AND A PRAYER's west on rows 5-7 (${edge(AND.gorge, 31)} / ${edge(AND.prayer, 0)})`,
+      edge(AND.chimney, 0) === '9,10,11,12' && edge(AND.thin, 31) === '9,10,11,12' && edge(AND.gorge, 31) === '5,6,7' && edge(AND.prayer, 0) === '5,6,7');
+  });
   SCOPE.section([AND.gorge, AND.terraces], 'the gorge foot: two throats, two landings', () => {
     // the gorge's foot is two throats either side of the pinnacle: the west one lands on the guardhouse's roof, the east one on the broad terrace, on his feet
     const land = (col: number) => { const s = at(AND.gorge, col, 17); for (let f = 0; f < 400 && s.g.roomId !== AND.terraces; f++) frame(s, DOWN); run(s, NONE, 150); return s; };
