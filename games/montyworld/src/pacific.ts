@@ -88,9 +88,9 @@ export const LUAU_PALETTE = {
   A: ['pacSand', 7], B: ['pacBoardwalk', 9], C: ['pacCrate', 9], P: ['pacPalmTrunk', 9], R: ['pacBamboo', 13], Y: ['pacEmber', 7], Z: ['pacFlameWarn', 7], F: ['pacFlame', 2],
 } as const satisfies Palette;
 
-/** BOARD MEETING, Waikiki's beach west of the luau: the sand, the surfboard rack's shelves (light: floors he jumps up through), the Royal Hawaiian's pink wall closing the west. */
+/** BOARD MEETING, Waikiki's beach west of the luau: the sand, the racks' shelves (light: floors he jumps up through), the Royal Hawaiian's pink wall closing the west, the beach boys' crate. */
 export const BEACH_BOYS_PALETTE = {
-  A: ['pacSand', 7], S: ['pacBoardwalk', 3], H: ['pacHotelWall', 10],
+  A: ['pacSand', 7], S: ['pacBoardwalk', 3], H: ['pacHotelWall', 10], C: ['pacCrate', 9],
 } as const satisfies Palette;
 
 /** Diamond Head's two rooms: the paved trail, the concrete (lintels, the Fire Control Station), the tuff, the stairs (the tunnel's, the switchback's, the spiral), the station's slits. */
@@ -393,17 +393,19 @@ const LUAU_KEEP: readonly Cell[] = [...LUAU_COINS, ...under(LUAU_SUN), ...under(
 /**
  * BOARD MEETING (Chris, 2026-11-26, LEI OF THE LAND: "there should be a room to the left, because otherwise it just doesn't really make sense to go that way"): the bonus room west of the luau, Waikiki's beach
  * at sunset under the Royal Hawaiian's pink wall, the beach boys' surfboard rack and the outrigger canoes on theirs. Two beach boys carry their boards along the sand at their own speeds, crossing the way in
- * and each other; the rack is the climb, three shelves in a zig-zag with a volleyball bouncing in the gap they share, and its coin on the top board; another on the canoe rack, one over the beach boys' crossing.
+ * and each other; the rack is the climb, from their crate by the wall up five shelves in a zig-zag with a volleyball bouncing in the gap they share, its coin on the top board; another on the canoe rack (a jump
+ * east off the second shelf), one over the beach boys' crossing.
  * In from the luau along the sand (east edge, floor 19); the way back is the same. Its foot is solid (THE CARGO SHIP below has open sky in its top row).
  */
 const paintBeach = (g: Grid): void => {
   g.box(0, 19, 31, 19, 'A'); // the sand, on east under the luau's lawn
   g.box(0, 3, 1, 18, 'H'); // the Royal Hawaiian's pink wall closing the beach at the west
-  g.box(5, 15, 8, 15, 'S').box(11, 11, 14, 11, 'S').box(5, 7, 8, 7, 'S'); // the surfboard rack's shelves, zig-zag up (the gap between them, cols 9-10, is the ball's)
-  g.box(20, 14, 25, 14, 'S'); // the canoe rack
+  g.box(2, 17, 3, 18, 'C'); // the beach boys' crate by the wall, the step up onto the rack
+  for (const [c, row] of [[5, 15], [11, 13], [5, 11], [11, 9], [5, 7]] as const) g.box(c, row, c + 3, row, 'S'); // the surfboard rack's shelves, zig-zag up (the gap between them, cols 9-10, is the ball's)
+  g.box(18, 13, 23, 13, 'S'); // the canoe rack, a jump east off the rack's second shelf
 };
-const BEACH_COINS = [[6, 5], [25, 12], [21, 16]] as const;
-const BEACH_PIECES = [['pacSurfboards', 5, 13], ['pacSurfboards', 12, 9], ['pacOutrigger', 21, 12], ['pacPalm', 27, 13], ['pacSnorkelShop', 14, 15]] as const;
+const BEACH_COINS = [[6, 5], [23, 11], [21, 16]] as const;
+const BEACH_PIECES = [['pacSurfboards', 5, 13], ['pacSurfboards', 11, 7], ['pacOutrigger', 19, 11], ['pacPalm', 27, 13], ['pacSnorkelShop', 13, 15]] as const;
 const BEACH_KEEP: readonly Cell[] = [...BEACH_COINS, ...BEACH_PIECES.flatMap(under)];
 
 /**
@@ -1016,8 +1018,8 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: ROAD_COINS,
     decor: [...roadScenery, ...ROAD_PIECES],
     creatures: [ // (and the cars, two to a bridge: BRIDGE_CARS)
-      { who: 'pacCoconut', col: 27, row: 10, way: 'down', speed: 2, range: 16 }, // a coconut dropping down the bend's gap over the bamboo up from the lowest tier: wait at its foot, follow it up as it rises
-      { who: 'pacCoconut', col: 3, row: 2, way: 'down', speed: 1, range: 56, colour: 9 }, // another, slower, over the bamboo up from the middle tier to the top
+      { who: 'pacCoconut', col: 26, row: 2, way: 'down', speed: 2, range: 16 }, // a coconut dropping out of the trees onto the top tier past its bridge, fast: the way out east waits for it
+      { who: 'pacCoconut', col: 7, row: 0, way: 'down', speed: 1, range: 48, colour: 9 }, // another, slower, onto the top tier west of its bridge: from the bamboo on east to the bridge, under it while it is up
     ],
   }),
 
@@ -1158,9 +1160,9 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     coins: BEACH_COINS,
     decor: [...sunset(paintBeach, BEACH_KEEP, { purple: 0, red: 1, orange: 3, gold: HORIZON - 1, sea: HORIZON }), ...BEACH_PIECES],
     creatures: [
-      { who: 'pacSurfer', col: 3, row: 17, way: 'right', speed: 1, range: 192 }, // a beach boy carrying his board the whole beach, slow
+      { who: 'pacSurfer', col: 4, row: 17, way: 'right', speed: 1, range: 184 }, // a beach boy carrying his board the whole beach, slow
       { who: 'pacSurfer', col: 26, row: 17, way: 'left', speed: 2, range: 80, colour: 3 }, // another the other way, fast: the two cross on different periods, so the gap is read and waited for
-      { who: 'football', col: 9, row: 6, way: 'down', speed: 1, range: 72, colour: 1 }, // a volleyball bouncing in the rack's gap: each hop from shelf to shelf waits for it
+      { who: 'football', col: 9, row: 5, way: 'down', speed: 1, range: 80, colour: 1 }, // a volleyball bouncing in the rack's gap: each hop from shelf to shelf waits for it
     ],
   }),
 ];

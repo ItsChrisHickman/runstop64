@@ -259,7 +259,7 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
-    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 15, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 17, 18], [PAC.beach, 3, 19], [PAC.road, 3, 18],
+    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 15, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 17, 18], [PAC.beach, 12, 11], [PAC.road, 3, 18],
     [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 13, 16], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
   ] as const;
   const failed: number[] = [];
