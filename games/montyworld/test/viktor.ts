@@ -27,7 +27,7 @@ import { restore, snapshot } from '../../montyotr/src/save';
 import { search } from './search';
 import { WORLD } from '../src/data';
 import { RIO_ROOM as R } from '../src/rio';
-import { JP, TENGU } from '../src/japan';
+import { JP } from '../src/japan';
 import { PAC } from '../src/pacific';
 import { CLOSET, SIB } from '../src/siberia';
 import { colOf, dead, LEFT, RIGHT, rowText } from './mech-kit';
@@ -317,7 +317,7 @@ const viktorOn = (g: Game, c: CameoSpec) => ((g.vic.enable >> c.sprite) & 1) ===
 const apart = (g: Game, c: CameoSpec) => cellsApart(g, g.sx[c.sprite] ?? 0, g.sy[c.sprite] ?? 0);
 for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
-  WORLD.cameos.filter((c) => c !== TENGU).forEach((c, i) => { // (Viktor's: the tengu is japan-mechanisms')
+  WORLD.cameos.forEach((c, i) => {
     const from = c.from?.[0] ?? c.room;
     const after = c.after;
     SCOPE.section([c.room, from], `cameo ${i + 1} (room ${c.room})`, () => {

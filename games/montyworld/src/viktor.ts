@@ -26,8 +26,8 @@ const slot = (room: number, n: number): Place => ({ room, sprite: 4 + n, first: 
 const PLACES = {
   station: slot(ROOM.station, 2), // Moscow's platform (two creatures)
   wall: slot(CHI.wall, 2), // China's first room (two)
-  harbour: slot(JP.harbour, 2), // Japan's first (two)
-  moon: slot(JP.mole, 2), // THE LAST MOLE (two)
+  harbour: { room: JP.harbour, sprite: 1, first: 0x48 }, // Japan's first (three creatures: sprite 1, which its one find leaves free, and the unused fourth slot's blocks)
+  moon: { room: JP.mole, sprite: 1, first: 0x48 }, // THE LAST MOLE (three creatures: the same)
   arms: slot(RIO_ROOM.arms, 2), // OPEN ARMS (two creatures: the vulture, the marmoset; sprite 1 is the guarana, its second find, which the cameo once drew over)
 } as const satisfies Record<string, Place>;
 

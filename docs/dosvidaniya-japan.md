@@ -306,3 +306,50 @@ Chris: "the three paper doors in Japan are a very cool thing. I don't want to lo
   the Run, there's usually more than one puzzle per room involving enemies and jumps."): keep both as models; SAYONARA
   SAILOR gets a third creature making a second puzzle elsewhere in the room (not crowding the first jump). The rule for
   every room: more than one puzzle of creatures and jumps.
+
+## Challenge pass (2026-11-27)
+
+Chris's rows (docs/dosvidaniya-feedback.md, Japan): BULLET POINT "the train is too easy to not encounter", GONE WITH THE WIND "too easy" and its
+tengu read as Viktor, THE LAST MOLE "the flying enemy isn't positioned in a place that he poses a threat", SHOOT FOR THE MOON "no challenge", THE NINJA
+HIDEOUT "no challenge... much more interesting enemy patterns", SAYONARA SAILOR "nice if there was a third enemy". SHOGUN'S HALL and SAYONARA SAILOR are the
+models (two creatures timed against a jump), NEON STREET and MOUNT FUJI (done before: three snowballs) stay. The drawings and layouts stay; what changes is
+the creatures, their speeds and patterns, and one wall where a puzzle needs it. Each room, the puzzle and its lines:
+
+- **THE FISH MARKET.** The way in is a jump over the inlet from the junk's deck: a kappa now leaps up out of the inlet and down again (quick), so the jump is
+  timed to it. On the quay a second kappa walks the whole quay under the crate stair (quick), jumped where it turns or followed; on the roof the sushi roll
+  walks slowly from the sushi's dead end past the hatch, so the climb out of the hatch is read from the top crate. Viktor's border cameo moves to sprite 1
+  (blocks $48-$4F, the unused fourth creature slot's) so the third creature has its slot.
+- **NEON STREET.** As it was (Chris: kept).
+- **PACHINKO PARLOUR.** The floor's two walkers were side by side in the middle (overlapping); the daruma now rolls from the Mole Crusher's lane to the
+  machines (the crusher and the daruma together: under the press as it rises and the daruma heads away; the floor under the counter's stair is the place to
+  wait: rolling into it, the bot's search found no fair way to the stair), the lucky cat runs the east floor quick from the rope's foot toward the way out.
+  The ghost by the rope and the ball stream as they were.
+- **THE CROSSING.** The overpass (the fish food at its end) is swept by the daruma quick from end to end, and a karakasa hops up and down across it at the
+  big screen on another period: the gap has to be read from the overpass's west end. The street's second karakasa hops over the pocket between the zebra and
+  the subway's gap, so the walk off the zebra to the rope is timed twice (the taxis, then it).
+- **BULLET POINT.** The underpass is walled under the deck's middle (columns 12-13), so the platform is the way: from the parlour up the west stairs, along the
+  platform between two trains to the east stairs (a refuge below the deck, the coin there), and along again to the shutter. Each run is about the quiet
+  moment's length; the flashing edge says which end the next train comes from, read from the stairs.
+- **MOUNT FUJI.** As the snowball pass left it (three on the climb).
+- **KOI POLLOI.** The tanuki walks the gravel quick (8 cells), the koi at two speeds. The fish food is used at the pond, seen: when he comes to the pond's
+  edge with it the koi go and the planks float up there (and stay so: a hidden find).
+- **THE LAST MOLE.** Two koi now, leaping across the first jump and the third (two speeds); the crane flies low and quick across the stones at the height of
+  a jump between them, so each hop is timed to it as well as to the sinking stones. Viktor's moon shadow moves to sprite 1 (blocks $48-$4F), as the fish
+  market's cameo does.
+- **NINJA HIDEOUT.** Patterns, all read from a safe spot: a shuriken is thrown along the ground from the cedar to the door (from the rope's foot below the
+  grass he watches it pass, then runs); a ninja leaps in an arc between the first and second walkways and back (step up as he lands on the far one); a
+  ninja drops from the pine's branches onto the third walkway and climbs back (pass under while he is up); the samurai sweeps the ridge quick. The door
+  guard gives way in the hood where Monty comes to him, seen: he walks off out of the room (a hidden find keeps it). The east edge over the pine is closed
+  (the trunk up to the top: the edges audit's one fault in Japan).
+- **THE SHOGUN'S HALL.** As it was (Chris's model).
+- **SAYONARA SAILOR.** The sumo and the kappa as they were (the model jump); a third creature, a tanuki, walks the quay at the rope's foot (quick), so coming
+  down the rope and going back up it is timed to it, apart from the first jump.
+- **SHOOT FOR THE MOON.** The stalks are the room: two cranes cross the stalks' heights on two periods (one quick and high, one slow and low), so every climb
+  and every jump between stalks is a moment chosen; the coins at the far end and at the tallest stalk's head.
+- **GONE WITH THE WIND.** The tengu is no longer a figure that flies in and stands as Viktor does: he is drawn in the room's own characters in his colours (red
+  face and long nose, white hair, black cap, a crow's wings, the feather fan) hovering beside the gust's beam, flapping and fanning the wind into it. The tube is
+  harder: the yuki-onna drifts quicker across the way between the hump and the frozen fall, a second yuki-onna drifts on another period between the dripping
+  icicle and the ice mound, so the coins at the far end are taken between them.
+
+Gates, cause and effect (docs/dosvidaniya-back-half-plan.md): the daruma rolls the shutter up when he comes up to it with it; the fish food at the pond's edge;
+the hood at the hideout's door. Each happens there with the item's sound, seen, and stays done (a hidden find each, after every room's finds: old saves load).

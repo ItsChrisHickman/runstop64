@@ -1,6 +1,6 @@
 /**
  * Japan's route for the bot: the goals, in the order a player who takes everything plays them (from China's junk onto the harbour's quay, the crates and the market's
- * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour (the prize shelf's coin), the underpass to the platform and up its first stairs for the daruma at its west end, up the rope to the crossing for the fish
+ * roof for the sushi, the rooftops, down the drainpipe, the stairs to the parlour (the prize shelf's coin), the underpass to the platform and up its first stairs for the daruma at its west end, along the platform between trains to the second stairs, up the rope to the crossing for the fish
  * food, back down and east past the shutter and the trains, Fuji's switchbacks, the garden's pond and pergola to THE LAST MOLE for the hood, back to the gate and through
  * the hall (the paper doors, the rope past them up to the gallery and back west along it to the rope up) and the hideout's door (the hood) and down its shaft to the port and the cargo ship's gangway), as functions on the game. Shared by the
  * bot test and the pictures.
@@ -39,11 +39,12 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('B to C: down the stairs\' rope into the parlour', into(JP.parlour, 21, 19, JP.street)),
   leg('C: up the rope to the middle floor, along it past the ball stream (in its lull) to the coin', coin(JP.parlour, 16, 9)),
   leg('C: up the rope to the top floor, the coin past the ghost on the rope', coin(JP.parlour, 25, 3)),
-  leg('C: down the rope to the lane (waiting on it for the lucky cat: its foot is in the cat\'s walk), across the lane under the crusher, up the stair past the claw machine to the prize shelf and its coin', coin(JP.parlour, 3, 7)),
+  leg('C: down the rope to the lane (waiting on it for the lucky cat: its foot is in the cat\'s walk), across the lane past the daruma and under the crusher, onto the counter\'s lowest step', stands(JP.parlour, 15, 8, 10)),
+  leg('C: up the stair past the claw machine to the prize shelf and its coin', coin(JP.parlour, 3, 7)),
   leg('C to E: out east, low, to the underpass', into(JP.platform, 31, 15, JP.parlour)),
-  leg('E: the coin in the underpass\'s pocket', coin(JP.platform, 27, 15)),
   leg('E: up the first stairs onto the platform between two trains, west to the daruma, and back down the stairs\' rope below the deck', underTheFirstDeck(item(JP.platform, 0, [3, 12]))),
-  leg('E: up the second stairs onto the platform, the coin out in the middle of the lane between the two stairs, and back down the stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 16, 12))),
+  leg('E: up again and east along the platform between two trains (the underpass is walled under its middle), the coin in the lane on the way, and down the second stairs\' rope below the deck before a train comes', underTheDeck(coin(JP.platform, 16, 12))),
+  leg('E: the coin in the underpass\'s east pocket, under the deck', coin(JP.platform, 27, 15)),
   leg('E to D: up the crossing\'s rope', into(JP.crossing, 23, 0, JP.platform)),
   leg('D: the coin in the street past the crossing (on the green man)', coin(JP.crossing, 19, 14)),
   leg('D: the coin in the street\'s east pocket', coin(JP.crossing, 25, 15)),
@@ -54,7 +55,7 @@ export const JAPAN_LEGS: readonly Leg[] = [
   leg('F: over the gap by the way in, the coin on the first ledge', coin(JP.fuji, 17, 12)),
   leg('F to W: back west off the first ledge into the gap and down the mountainside into the ice cave at its foot (GONE WITH THE WIND, a bonus room)', into(JP.cave, 10, 19, JP.fuji)),
   leg('W: across the snow heap and down its hole into the lava tube', stands(JP.cave, CAVE.floor, CAVE.hole.col0, CAVE.hole.col1)),
-  leg('W: east under the first icicle, over the hump, past the yuki-onna, the coin under the second icicle', coin(JP.cave, 20, 16)),
+  leg('W: east under the first icicle, over the hump, past the two snow women, the coin under the second icicle', coin(JP.cave, 21, 16)),
   leg('W: the coin on the ice mound', coin(JP.cave, 22, 14)),
   leg('W to F: into the tengu\'s gust, carried up it and set down in the foot hut on the way in', { ...stands(JP.fuji, GUST_LANDING.floor, GUST_LANDING.col - 1, GUST_LANDING.col + 1), aim: [{ room: JP.cave, col: CAVE.gust.col, row: CAVE.floor - 2 }] }),
   leg('F: from the foot hut over the gap and up the climb between two snowballs, the coin under the top hut\'s eaves', coin(JP.fuji, 25, 6)),

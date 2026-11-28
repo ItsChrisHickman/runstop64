@@ -1,11 +1,11 @@
 import { SCREEN_MARGIN } from '../../shared/monty/screen';
-import { creatureBlocks } from '../../montyotr/src/cameos';
 import { rollerTrain } from '../../montyotr/src/rollers';
-import type { CameoSpec, CharAnim, CrackSpec, IcicleSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
+import type { CharAnim, CrackSpec, IcicleSpec, PulseSpec, RollerSpec, RoomBlocks, TunnelSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
-import { JAPAN_SPRITE, SNOWBALL_POINTERS } from './japan-pointers';
-import { GUST_FRAMES, TENGU_CAMEO, TENGU_INK } from './art/japan-cave';
+import { JAPAN_SPRITE, SHURIKEN_POINTERS, SNOWBALL_POINTERS } from './japan-pointers';
+import { GUST_FRAMES, TENGU_FRAMES } from './art/japan-cave';
 import { SNOWBALL_FRAMES } from './art/japan-fuji';
+import { SHURIKEN_FRAMES } from './art/japan-shuriken';
 import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
 import { GLASS_CELLS, pachinkoFrames } from './art/japan-pachinko';
 import type { WorldDecor } from './art/world';
@@ -207,6 +207,24 @@ export const BALL_STREAM: PulseSpec = {
 export const HIDEOUT_CRACKS: readonly CrackSpec[] = Array.from({ length: 5 }, (_, k): CrackSpec => ({
   room: JP.hideout, col: 12 + k, cols: 1, row: 9, codes: [codeOf(HIDEOUT_PALETTE, 'P'), codeOf(HIDEOUT_PALETTE, 'K'), codeOf(HIDEOUT_PALETTE, 'L')], crack: 16, wide: 34, gone: 46, away: 600,
 }));
+/**
+ * The hideout's patterns (Chris, 2026-11-26: "no challenge. Should have much more interesting enemy patterns"; `rollers`, each on a sprite the room leaves free: the sushi is sprite 0, the creatures 4-6,
+ * the worn hood 7). A shuriken (sprite 1) is thrown from the cedar along the ground to the door, at his height, every `every` frames: from the rope's foot below the grass he watches it pass, then runs
+ * (or jumps it). A ninja (sprite 2, the door guard's own pictures in slot 0's blocks: $30-$37) leaps in an arc from the first walkway to the second and back, under the lookout's boards, and is gone
+ * a moment between leaps (a ninja): Monty steps up as he lands on the far one.
+ */
+export const HIDEOUT_SHURIKEN: RollerSpec = { room: JP.hideout, sprite: 1, path: [[2, 15], [20, 15]], speed: 3, every: 150, start: 120, frames: SHURIKEN_POINTERS, colour: 15 };
+/** The leap's arc: from the first walkway (floor 15) to the second (floor 13) and back, its top a row under the lookout's boards (a point is the picture's top left: its floor's row less two). */
+const LEAP_ENDS = { from: [7, 13], to: [13, 11], apex: 10.5 } as const;
+const leapArc = (a: readonly [number, number], b: readonly [number, number]): (readonly [number, number])[] => Array.from({ length: 9 }, (_, i) => {
+  const t = i / 8, lift = 2 * LEAP_ENDS.apex - (a[1] + b[1]) / 2; // (a curve whose middle is at the apex's row)
+  return [a[0] + (b[0] - a[0]) * t, (1 - t) * (1 - t) * a[1] + 2 * t * (1 - t) * lift + t * t * b[1]] as const;
+});
+export const HIDEOUT_LEAP: RollerSpec = {
+  room: JP.hideout, sprite: 2, path: [...leapArc(LEAP_ENDS.from, LEAP_ENDS.to), ...leapArc(LEAP_ENDS.to, LEAP_ENDS.from).slice(1)], speed: 1, every: 150, start: 10,
+  frames: [0x34, 0x35, 0x36, 0x37, 0x30, 0x31, 0x32, 0x33], colour: 10, spread: true, // (going east in his pictures going on, back west in those going back)
+};
+export const HIDEOUT_BLOCKS: RoomBlocks = { rooms: [JP.hideout], blocks: SHURIKEN_POINTERS.map((ptr, i) => ({ ptr, block: SHURIKEN_FRAMES[i] ?? new Uint8Array(64) })) };
 export const DOORS = { cols: [6, 12, 18] as const, row: 11, rows: 3, period: 160, open: 80, warn: 24, live: 8, apart: 40 } as const;
 /** A paper door at `col` on the doorway from `row`, the `k`th the walker meets (so it shuts `k` times `apart` frames after the first). */
 const paperDoor = (col: number, row: number, k: number): PulseSpec => ({
@@ -358,7 +376,7 @@ function paintPort(g: Grid) {
  * SHOOT FOR THE MOON (added 2026-11-25): a bamboo grove west of THE LAST MOLE's shrine, the way across it a stream in a gully. Four tall stalks stand out of the water (`GROVE.stalks`:
  * column, top row; each down to just over the water): he jumps from the bank to the first, and from stalk to stalk, taking hold as he comes down (a jump grips a rope only on its way
  * down), to the mossy stone on the cedar at the far side (a coin: it ends the crossing). A jump from low on a stalk falls short, so he climbs before each one. The second coin is at the
- * head of the tallest stalk. A crane crosses the grove's middle height. Back the same way.
+ * head of the tallest stalk. Two cranes cross the stalks' heights on two periods. Back the same way.
  */
 const GROVE_STALKS: readonly (readonly [col: number, top: number])[] = [[21, 5], [16, 3], [11, 5], [6, 4]];
 export const GROVE = { stalks: GROVE_STALKS, water: 16, stone: { col: 2, floor: 7, cols: 3 } } as const;
@@ -383,15 +401,15 @@ const GROVE_BACK = GROVE_CULMS.flatMap((c, i) => [
  * The ice cave under MOUNT FUJI (Chris, 2026-11-26: "a cave that takes Monty to the top like the MOTR teleports... if it made sense, having a few teleports if fun would be cool"; the real Narusawa Ice Cave
  * and Fugaku Wind Cave are lava tubes at Fuji's foot). A bonus room, off the way on: he drops into it off the open mountainside (the gap by the way in, or off the steps), lands on the snow heaped
  * under the sinkhole (`heap`), drops through its hole at the west (`hole`) into the lava tube and goes east under its ceiling: an icicle (`icicles`), a rock hump, the yuki-onna drifting up and down
- * across the tube, a frozen fall hanging from the ceiling, a second icicle over the first coin, a mound of ice with the second; and at the end the tengu, who flies in as Monty comes down into the tube
- * and beckons by the gust (`gust`, Monty on the Run's teleporter beam, always open): into it, and the wind carries him up the beam (MontyData.teleportLift: `GUST_LIFT`) and out, and sets him down in the foot hut on MOUNT FUJI's
+ * across the tube, a frozen fall hanging from the ceiling, a second snow woman between the fall and a second icicle over the first coin, a mound of ice with the second; and at the end the tengu, hovering beside the gust
+ * and fanning the wind into it (drawn in the room's characters: TENGU_ANIM) (`gust`, Monty on the Run's teleporter beam, always open): into it, and the wind carries him up the beam (MontyData.teleportLift: `GUST_LIFT`) and out, and sets him down in the foot hut on MOUNT FUJI's
  * way in (`GUST_LANDING`), where he materialises: the climb and its snow slides still ahead of him, the cave a detour with its coins, never a way round them.
- * A teleport as a reward, seen and understood (the tengu, the gust carrying him up, Monty set down safe), never a punishment; the only way out, and always there.
+ * A teleport as a reward, seen and understood (the gust carrying him up, Monty set down safe), never a punishment; the only way out, and always there.
  */
 export const CAVE = {
   heap: { floor: 8, mound: [[11, 19, 7], [13, 17, 6]] }, hole: { col0: 3, col1: 5 }, ceiling: 9, floor: 18,
   hump: { col0: 9, col1: 11, floor: 16 }, fall: { col0: 17, col1: 18, row0: 10, row1: 13 }, mound: { col0: 22, col1: 23, floor: 16 },
-  yuki: { col: 14, row: 10, range: 48 }, icicles: [7, 20], gust: { col: 25, row: 9, height: 7 }, tengu: { col: 27 },
+  yuki: [{ col: 13, row: 10, speed: 2, range: 24 }, { col: 19, row: 10, speed: 1, range: 48 }], icicles: [7, 21], gust: { col: 25, row: 9, height: 7 }, tengu: { col: 26, row: 10 },
 } as const;
 /** How far the gust carries him up its beam before it sets him down at the top (MontyData.teleportLift): from standing on the tube's floor until his head is in the beam's top. */
 export const GUST_LIFT = (CAVE.floor - 3 - CAVE.gust.row) * 8;
@@ -408,7 +426,7 @@ const paintCave = (g: Grid): void => {
   g.box(CAVE.fall.col0, CAVE.fall.row0, CAVE.fall.col1, CAVE.fall.row1, 'I'); // a frozen fall hanging from the roof (he walks under it)
   g.box(CAVE.mound.col0, CAVE.mound.floor, CAVE.mound.col1, CAVE.floor - 1, 'I'); // a mound of ice built up from the floor where the roof drips, as the falls are
 };
-const CAVE_COINS: readonly (readonly [col: number, row: number])[] = [[20, 16], [22, 14]];
+const CAVE_COINS: readonly (readonly [col: number, row: number])[] = [[21, 16], [22, 14]];
 /**
  * The tube's two icicles: over the way in from the hole, shaking as he comes toward it (`lead`: walking straight on from the hole meets its fall, so he waits for it), and over the first coin, dripping on
  * its own clock (`period`: the coin is taken between two falls, whoever is near).
@@ -418,22 +436,19 @@ export const CAVE_ICICLES: readonly IcicleSpec[] = [
   { room: JP.cave, col: CAVE.icicles[0], row: CAVE.ceiling + 1, floor: CAVE.floor, lead: CAVE_ICICLE_TIMING.lead },
   { room: JP.cave, col: CAVE.icicles[1], row: CAVE.ceiling + 1, floor: CAVE.floor, period: CAVE_ICICLE_TIMING.period, phase: CAVE_ICICLE_TIMING.phase },
 ];
-/** The tengu (a cameo: harmless, his own sprite) on the room's third creature slot, sprite 6, his pictures in its blocks. */
-const TENGU_SLOT = { sprite: 6, first: 0x30 + 2 * 8 } as const;
 /**
- * The tengu: as Monty drops from the sinkhole into the tube (out of the box over the tube's roof), he flies in from the dark of the tube's east end, lands by the gust and stays there, beckoning with
- * his fan towards Monty (the cameo's look), every time Monty comes in.
+ * The tengu (Chris, 2026-11-26: the cameo that flew in and stood by the gust read as Viktor): drawn in the room's characters in his own colours, hovering beside the gust's beam at its top (`CAVE.tengu`),
+ * flapping his crow's wings and fanning the wind into it: the wind's maker. Scenery: he touches nothing.
  */
-export const TENGU: CameoSpec = {
-  room: JP.cave, when: { col0: 0, row0: 0, col1: 31, row1: CAVE.ceiling }, wait: 10, sprite: TENGU_SLOT.sprite, first: TENGU_SLOT.first, colour: TENGU_INK,
-  move: { from: 33, at: { col: CAVE.tengu.col, row: CAVE.floor }, to: 33, pose: 'look', hold: 0xffffff },
+export const TENGU_ANIM: CharAnim = {
+  kind: 'cycle', room: JP.cave, chars: Array.from({ length: 9 }, (_, cell) => ({ decor: decorIndex('jpTengu'), cell })), frames: TENGU_FRAMES, every: 8,
 };
 /** The wind rising either side of the gust's beam, the whole height of the tube: one character, turned a step every few frames. */
-const GUST_DECOR = [CAVE.gust.col - 1, CAVE.gust.col + 1].flatMap((col) => Array.from({ length: CAVE.gust.height + 1 }, (_, i) => ['jpGust', col, CAVE.gust.row + 1 + i] as const));
+const GUST_DECOR = [CAVE.gust.col - 1, CAVE.gust.col + 1].flatMap((col) => Array.from({ length: CAVE.gust.height + 1 }, (_, i) => ['jpGust', col, CAVE.gust.row + 1 + i] as const))
+  .filter(([, col, row]) => !(col >= CAVE.tengu.col && row < CAVE.tengu.row + 3)); // (the tengu hovers over the beam's east side at its top)
 /** The heap's sides under the sinkhole: a snow slope beside each step of it (so it reads as a drift, not a wall of blocks). */
 const HEAP_DECOR = CAVE.heap.mound.flatMap(([c0, c1, row]) => [['jpSnowFlankL', c0 - 1, row], ['jpSnowFlankR', c1 + 1, row]] as const);
 export const GUST_ANIM: CharAnim = { kind: 'cycle', room: JP.cave, chars: [{ decor: decorIndex('jpGust'), cell: 0 }], frames: GUST_FRAMES, every: 3 };
-export const TENGU_BLOCKS: RoomBlocks = { rooms: [JP.cave], blocks: creatureBlocks(TENGU_CAMEO).map((block, i) => ({ ptr: TENGU_SLOT.first + i, block })) };
 
 export const JAPAN_ROOMS: readonly RoomSpec[] = [
   // A THE FISH MARKET: the fishing harbour at dawn. In from China's junk (low, its deck at the left); the quay runs east, with the market on it, past an inlet and a crate stack to the way out (low) to the street.
@@ -450,8 +465,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     item: { name: 'sushi1', col: 9, row: 5, sprite: JAPAN_SPRITE.sushi },
     decor: [['jpHorizon', 14, 2], ['jpGulls', 5, 3], ['jpGulls', 26, 5], ['jpJunkSail', 1, 9], ['jpAwningRed', 9, 8], ['jpAwningBlue', 13, 8], ['jpAwningYellow', 17, 8], ['jpAwningRed', 21, 8], ['jpStall', 17, 14], ['jpFishCrate', 26, 15], ['jpFishCrate', 29, 15]],
     creatures: [
-      { who: 'jpKappa', col: 21, row: 15, way: 'right', speed: 1, range: 20 },
-      { who: 'jpSushiRoll', col: 14, row: 5, way: 'right', speed: 1, range: 40 },
+      { who: 'jpKappa', col: 17, row: 15, way: 'right', speed: 2, range: 28 }, // walking the quay quick from the stair's foot past the stall: jumped where it turns, or followed (four cells clear of the street's edge)
+      { who: 'jpSushiRoll', col: 10, row: 5, way: 'right', speed: 1, range: 80 }, // slow along the roof from the sushi's dead end to the hatch's edge: read from the top crate
+      { who: 'jpKappa', col: 10, row: 11, way: 'down', speed: 2, range: 24 }, // leaping up out of the inlet and down again: the jump in from the junk's deck is timed to it
     ],
   }),
 
@@ -503,9 +519,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       ['jpPachinkoOrange', 15, 12], ['jpPachinkoGreen', 18, 12], ['jpPachinkoOrange', 22, 12], ['jpPachinkoGreen', 25, 12],
     ],
     creatures: [
-      { who: 'jpDaruma', col: 15, row: 15, way: 'right', speed: 1, range: 32 },
+      { who: 'jpDaruma', col: 13, row: 15, way: 'right', speed: 1, range: 32 }, // rolling from the Mole Crusher's lane to the machines: under the press as it rises and the daruma heads away (the floor west of the press, under the counter's stair, is the place to wait)
       { who: 'jpLanternGhost', col: 22, row: 6, way: 'down', speed: 1, range: 32 }, // the ghost bobs up and down beside the rope between the middle and the top floor and guards the way up to the coin
-      { who: 'jpLuckyCat', col: 24, row: 15, way: 'left', speed: 2, range: 14 },
+      { who: 'jpLuckyCat', col: 22, row: 15, way: 'right', speed: 2, range: 20 }, // quick along the east floor from the rope's foot toward the way out (clear of the edge he comes in by)
     ],
     crushers: [{ col: 12, row: 12, height: 5 }],
   }),
@@ -524,8 +540,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     item: { name: 'fishFood', col: 24, row: 5, sprite: JAPAN_SPRITE.fishFood },
     decor: [['jpTowerYellow', 2, 2], ['jpScreen', 9, 2], ['jpTowerCyan', 22, 1], ['jpNeonPink', 26, 2], ['jpStation', 23, 9], ['jpWalkSignal', 5, 12], ['jpWalkSignal', 18, 12], ['jpHachiko', 26, 14]],
     creatures: [
-      { who: 'jpDaruma', col: 4, row: 5, way: 'right', speed: 1, range: 64 },
-      { who: 'jpKarakasa', col: 21, row: 10, way: 'down', speed: 1, range: 16 },
+      { who: 'jpDaruma', col: 4, row: 5, way: 'right', speed: 2, range: 80 }, // quick along the whole overpass to the fish food and back: jumped where it turns, read from the overpass's west end
+      { who: 'jpKarakasa', col: 17, row: 0, way: 'down', speed: 1, range: 40 }, // hopping down onto the overpass by the big screen and up again, on a period of its own against the daruma's
+      { who: 'jpKarakasa', col: 20, row: 9, way: 'down', speed: 1, range: 48 }, // hopping down over the street's pocket between the zebra and the subway's gap: the walk off the zebra timed twice
     ],
   }),
 
@@ -539,6 +556,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(0, 0, 0, 13, 'W').box(14, 0, 31, 0, 'W').clear(22, 0, 24, 0).box(29, 1, 29, 9, 'W'); // (open sky: the line runs through the room's edges; a station pillar at the left, the train goes behind it; a canopy's edge over the rope's top and a gantry post over the gate, so that no one jumps off the rope's top over the gate or out of the room)
       g.box(0, 14, 31, 14, 'W').clear(8, 14, 10, 14).clear(19, 14, 21, 14);
       g.box(0, 17, 31, 19, 'W').box(30, 15, 31, 16, 'W');
+      g.box(12, 15, 13, 16, 'W'); // the underpass walled under the deck's middle: the platform is the way between the two stairs (Chris: "the train is too easy to not encounter")
       g.box(9, 13, 9, 16, 'R').box(20, 13, 20, 16, 'R').box(23, 0, 23, 13, 'R');
       g.box(29, 10, 29, 13, 'H');
     },
@@ -578,14 +596,14 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     decor: [['jpPagoda', 12, 2], ['jpSakura', 6, 8], ['jpTorii', 11, 10], ['jpToro', 26, 11]],
     creatures: [
       { who: 'jpKoi', col: 17, row: 17, way: 'up', speed: 1, range: 56 },
-      { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 1, range: 56 },
-      { who: 'jpTanuki', col: 9, row: 12, way: 'right', speed: 1, range: 24 },
+      { who: 'jpKoi', col: 20, row: 10, way: 'down', speed: 2, range: 28 }, // (the second at twice the first's pace: the gaps drift)
+      { who: 'jpTanuki', col: 7, row: 12, way: 'right', speed: 2, range: 24 }, // quick along the gravel to the pond's edge
     ],
   }),
 
   // L THE LAST MOLE: hidden, off the garden's pergola. In by the rope through the floor; a moonlit pond crossed on six stepping stones, a bonsai garden on a shelf and a stone dragon behind it, the shrine
   // on its plinth with the ninja hood. More skill from stone to stone (Chris, 2026-11-25: "a little bit more skill to jump from platform to platform"): the first jumps are wider and two rows up or down,
-  // judged from a stone's edge (no steering in the air), a koi leaping across the first (one koi: the room's third sprite is Viktor's shadow on the moon), and the second and third stones sink under him (MOLE_SINKING: keep moving). The high ledge either
+  // judged from a stone's edge (no steering in the air), a koi leaping across the first and a second across the jump to the fourth, the crane low across the stones, and the second and third stones sink under him (MOLE_SINKING: keep moving). The high ledge either
   // side of the bamboo rope and the bonsai shelf (reached down from the west ledge) are as they were.
   room({
     id: JP.mole, cell: [0, 15], sector: 34, palette: MOLE_PALETTE,
@@ -601,16 +619,18 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     coins: [[17, 4]],
     item: { name: 'hood', col: 1, row: 12, sprite: JAPAN_SPRITE.hood },
     decor: [['jpMoon', 20, 2], ['jpDragon', 3, 3], ['jpShrine', 1, 11], ['jpBonsai', 1, 8], ['jpBonsai', 3, 8], ['jpBonsai', 5, 8], ['jpBonsai', 7, 8]],
-    // (two creatures: the third sprite is Viktor's shadow on the moon once the hood is taken, viktor.ts PLACES.moon: a second koi across the jump down took it from him)
+    // (Viktor's shadow on the moon is on sprite 1 now, viktor.ts PLACES.moon, so the second koi has the third slot)
     creatures: [
       { who: 'jpKoi', col: 22, row: 17, way: 'up', speed: 2, range: 20 }, // (leaps out of the water across the first stones' jump)
-      { who: 'jpCrane', col: 22, row: 4, way: 'right', speed: 1, range: 80 },
+      { who: 'jpCrane', col: 4, row: 8, way: 'right', speed: 2, range: 80 }, // low and quick across the stones at a jump's height between them, and across the bamboo rope: each hop timed to it
+      { who: 'jpKoi', col: 13, row: 17, way: 'up', speed: 1, range: 48 }, // (leaps slowly out of the water across the jump from the third stone to the fourth)
     ],
   }),
 
   // H NINJA HIDEOUT: the woods outside the shogun's walls, on the way to the port. In by the rope from the hall's ceiling (it comes up through the grass at the left); wooden walkways zig-zag up through the pines and bamboo (floors 15, 13, 11), the third one the ridge of the hideout's
   // curved-eave roof, and doubling back left from it a lookout (floors 9 and 7). The hideout's door is a low corridor in the ground floor under the roof, where its guard (a ninja) paces so that no one can pass him (in the ninja hood he lets him by) to the sushi at its end.
-  // A samurai paces the ridge. Past the guard the corridor's floor has a gap (cols 24-26, a rope down it): the shaft down through the hall to the port's rope, the way on; the sushi lies beyond it at the corridor's end.
+  // Its patterns (HIDEOUT_SHURIKEN, HIDEOUT_LEAP): a shuriken thrown along the ground from the cedar to the door, a ninja leaping between the first two walkways, a second dropping from the bamboo onto the third,
+  // a samurai sweeping the ridge. In the hood the guard walks off where Monty comes to the door (data.ts: kept). Past the guard the corridor's floor has a gap (cols 24-26, a rope down it): the shaft down through the hall to the port's rope, the way on; the sushi lies beyond it at the corridor's end.
   // The lookout's boards (row 9, cols 12-16) are rotten (HIDEOUT_CRACKS): they give way under whoever stops on them, on the way to the coin.
   room({
     id: JP.hideout, cell: [0, 16], sector: 35, palette: HIDEOUT_PALETTE,
@@ -620,15 +640,16 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       g.box(7, 15, 11, 15, 'P').box(12, 13, 16, 13, 'P').box(17, 11, 21, 11, 'P'); // the walkways up
       g.box(22, 11, 29, 11, 'E').box(21, 12, 31, 13, 'B').box(19, 14, 31, 14, 'E'); // the hideout's curved eave roof: its ridge in yellow tiles, its red body (to the edge: nothing to walk into) and the upturned lip over the door
       g.box(21, 15, 31, 15, 'T').clear(21, 15, 29, 16).box(30, 15, 31, 16, 'T'); // the wall over the door and the doorway's low corridor
-      g.box(30, 5, 31, 11, 'T'); // (a pine's trunk closes the right over the roof)
+      g.box(30, 0, 31, 11, 'T'); // (a pine's trunk closes the right over the roof, up to the top: no open edge where no room is)
       g.box(12, 9, 16, 9, 'P').box(6, 7, 11, 7, 'P'); // the lookout
     },
     coins: [[9, 13], [26, 9], [11, 5]],
     item: { name: 'sushi2', col: 28, row: 15, sprite: JAPAN_SPRITE.sushi },
     decor: [['jpMoon', 24, 2], ['jpCloud', 3, 2], ['jpPineBig', 6, 3], ['jpBamboo3', 3, 9], ['jpBamboo3', 18, 3], ['jpPine', 13, 5], ['jpHedge', 13, 16], ['jpBanner', 17, 13], ['jpHedge', 22, 5]],
     creatures: [
-      { who: 'jpNinja', col: 21, row: 15, way: 'right', speed: 1, range: 24 },
-      { who: 'jpSamurai', col: 22, row: 9, way: 'right', speed: 1, range: 32 }, // a castle samurai on the ridge
+      { who: 'jpNinja', col: 21, row: 15, way: 'right', speed: 1, range: 24 }, // the door's guard (the hood: he walks off)
+      { who: 'jpNinja', col: 18, row: 2, way: 'down', speed: 2, range: 28 }, // dropping out of the bamboo onto the third walkway and climbing back: under him while he is up
+      { who: 'jpSamurai', col: 22, row: 9, way: 'right', speed: 2, range: 20 }, // a castle samurai sweeping the ridge quick, its coin in his beat
     ],
   }),
 
@@ -654,7 +675,7 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     ],
   }),
 
-  // J SAYONARA SAILOR: the port at sunset, the way out. In by the rope from the hall; a quay with paper lanterns and flags (a sumo dockworker and a kappa on it), a stack of containers with a coin at the west end and, along the top, Mount Fuji small over the sea and the sun going down in the sunset's bands;
+  // J SAYONARA SAILOR: the port at sunset, the way out. In by the rope from the hall; a quay with paper lanterns and flags (a sumo dockworker and a kappa on it, a tanuki at the rope's foot), a stack of containers with a coin at the west end and, along the top, Mount Fuji small over the sea and the sun going down in the sunset's bands;
   // at the east the cargo ship moored at the quay's end: its hull with its portholes standing in the water, its deckhouse and funnel, and the gangway down, a plank to step on and the deck over it, which walks on east into the Pacific.
   room({
     id: JP.port, cell: [2, 16], sector: 37, palette: PORT_PALETTE,
@@ -671,11 +692,12 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'jpSumo', col: 12, row: 15, way: 'right', speed: 1, range: 40 },
       { who: 'jpKappa', col: 16, row: 9, way: 'down', speed: 1, range: 56 }, // a kappa hopping up out of the sea behind the quay and down again across the lane
+      { who: 'jpTanuki', col: 18, row: 15, way: 'right', speed: 2, range: 24 }, // the second puzzle, apart from the first jump: quick along the quay to the rope's foot, the coin in its beat
     ],
   }),
   // SHOOT FOR THE MOON: a bamboo grove west of THE LAST MOLE, a bonus room (Chris, 2026-11-25: "a room to the left of that... some sort of cool background design"). In along the moss
   // from the shrine's plinth; the bamboo stands thick and moonlit behind four tall stalks that rise out of a stream in a gully. Across it from stalk to stalk, gripping each on the way
-  // down from the jump, to the stone on the cedar (a coin); a second coin tops the tallest stalk. A crane crosses the grove. Never needed: back the way he came.
+  // down from the jump, to the stone on the cedar (a coin); a second coin tops the tallest stalk. Two cranes cross the grove. Never needed: back the way he came.
   room({
     id: JP.grove, cell: [0, 14], sector: JP.grove, palette: GROVE_PALETTE,
     paint: paintGrove,
@@ -684,8 +706,10 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
       ...GROVE_BACK,
       ['jpToro', 27, 11],
     ],
+    // two cranes crossing the stalks' heights on two periods: quick and high (across the climbs to each stalk's head), slow and low (across the bank's edge and the jumps' landings)
     creatures: [
-      { who: 'jpCrane', col: 4, row: 8, way: 'right', speed: 1, range: 72 },
+      { who: 'jpCrane', col: 7, row: 6, way: 'right', speed: 2, range: 64 },
+      { who: 'jpCrane', col: 23, row: 11, way: 'left', speed: 1, range: 152 },
     ],
   }),
   // GONE WITH THE WIND: the ice cave at Fuji's foot, a bonus room (CAVE): in by a drop off the open mountainside, out by the tengu's gust, up and back to the foot hut on the way in.
@@ -693,10 +717,9 @@ export const JAPAN_ROOMS: readonly RoomSpec[] = [
     id: JP.cave, cell: [3, 15], sector: JP.cave, palette: CAVE_PALETTE,
     paint: paintCave,
     coins: CAVE_COINS,
-    decor: [...GUST_DECOR, ...HEAP_DECOR],
-    creatures: [
-      { who: 'jpYukiOnna', col: CAVE.yuki.col, row: CAVE.yuki.row, way: 'down', speed: 1, range: CAVE.yuki.range }, // the snow woman, drifting down across the tube and up again
-    ],
+    decor: [...GUST_DECOR, ...HEAP_DECOR, ['jpTengu', CAVE.tengu.col, CAVE.tengu.row]],
+    // two snow women drifting down across the tube and up again on two periods: quick between the hump and the frozen fall, slow between the fall and the dripping icicle over the first coin
+    creatures: CAVE.yuki.map((y) => ({ who: 'jpYukiOnna', col: y.col, row: y.row, way: 'down' as const, speed: y.speed, range: y.range })),
     teleporter: { ...CAVE.gust, to: { cell: [2, 15], ...GUST_LANDING } },
   }),
 ];
