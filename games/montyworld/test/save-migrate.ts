@@ -218,4 +218,24 @@ const overboard2 = Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => i)
   const lost = [...new Set(rooms3)].filter((r) => !kept.includes(r));
   check(`a format 3 save with every coin taken has every coin taken today in each room that kept its count (${kept.length} rooms; changed: ${lost.join(' ') || 'none'})`, kept.every((r) => nowOf(r).every((i) => a.coins[i] === 0xff)));
 }
+// China's gates kept (2026-11-27, `at.keep`): a save from before, made past a gate (or by one who had been past it) with the item, reads with the gate kept, so the trapdoor under MIND THE BATTLEMENTS
+// is not shut beneath him (a dead end: softlocked); one made before the gate with the item reads as it is (he brings the item and sees it give way)
+{
+  const g4 = newGame(WORLD, true).g;
+  const keepOf = (room: number) => WORLD.roomEffects.find((e) => e.room === room && e.at?.keep !== undefined)?.at?.keep ?? -1;
+  const trapdoor = keepOf(CHI.tower), cityGate = keepOf(CHI.gate), raft = keepOf(CHI.junk);
+  const key = itemIndex(g4, CHI.alley, 0), hat = itemIndex(g4, CHI.top, 0);
+  const s4 = snapshot(g4), before = Math.min(trapdoor, cityGate, raft); // (a save written before the keeps: its finds end before theirs)
+  const save4 = (roomId: number, taken: readonly number[], visited: readonly number[]) => CODEC.unpack(CODEC.pack({
+    ...s4, roomId, visited: [...visited], items: Array.from({ length: before }, (_, i) => (taken.includes(i) ? 0x81 : 0)),
+  }), 4);
+  const top = save4(CHI.top, [key], [CHI.wall, CHI.alley, CHI.tower, CHI.top]);
+  check(`a save from before the keeps made on MIND THE BATTLEMENTS with the key has the trapdoor kept (find ${trapdoor}: ${top.items[trapdoor] ?? 0}), no other gate`, before > 0 && !!top.items[trapdoor] && !top.items[cityGate] && !top.items[raft]);
+  const tower = save4(CHI.tower, [key], [CHI.wall, CHI.alley, CHI.tower]);
+  check('one made in THE WATCHTOWER with the key, never up the trapdoor, reads as it is (the trapdoor gives way where he uses the key)', !tower.items[trapdoor] && tower.items.length === before);
+  const willow = save4(CHI.willow, [key, hat], [CHI.tower, CHI.top, CHI.gate, CHI.roofs, CHI.willow]);
+  check('one made in WILLOW PATTERN in the rice hat has the trapdoor and the city gate kept (been past both), not the raft', !!willow.items[trapdoor] && !!willow.items[cityGate] && !willow.items[raft]);
+  const noKey = save4(CHI.top, [], [CHI.top]);
+  check('and without the item held, no gate is kept', !noKey.items[trapdoor]);
+}
 finish();

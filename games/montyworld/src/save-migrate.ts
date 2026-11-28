@@ -1,4 +1,4 @@
-import type { MontyData } from '../../montyotr/src/montydata';
+import type { Condition, MontyData } from '../../montyotr/src/montydata';
 import type { MontySave } from '../../montyotr/src/save';
 import { colAt, floorAt, standingPlace, standX2, standY } from '../../montyotr/src/way-in';
 import { FORMAT1_COINS, FORMAT1_ITEMS, FORMAT1_ROOMS } from './save-format1';
@@ -72,8 +72,27 @@ function cellsHash(cells: Uint8Array): number {
   return h;
 }
 
-/** A save of any format made in a room cut since: carried on in the kept room that takes its saves, where that room is come into (`MontyData.waysIn`, else its west end, low), at today's cell. Any other save as it is. */
-export function carryOn(data: MontyData, s: MontySave): MontySave {
+/**
+ * A gate used on the spot and kept (`RoomEffect.at.keep`) that a save made before the keeping (2026-11-27: China's trapdoor, city gate and raft opened as the room loaded) has passed: kept as it is read, so
+ * it never loads with the gate shut behind him (the trapdoor under MIND THE BATTLEMENTS, a dead end, its rope out of reach from above). Passed: the item held (the effect's `taken` conditions hold) and the
+ * save made in a room `beyond` it or having been in one. A save before the gate is as it is: he carries the item up to it and sees it give way.
+ */
+export function gatesPassed(data: MontyData, s: MontySave): MontySave {
+  const been = new Set([s.roomId, ...(s.visited ?? [])]);
+  const holds = (c: Condition) => ('taken' in c ? !!s.items[c.taken] : 'notTaken' in c ? !s.items[c.notTaken] : false);
+  const passed = data.roomEffects.flatMap((e) => {
+    const keep = e.at?.keep, beyond = e.at?.beyond ?? [];
+    return keep !== undefined && !s.items[keep] && (e.when ?? []).every(holds) && beyond.some((r) => been.has(r)) ? [keep] : [];
+  });
+  if (!passed.length) return s;
+  const items = Array.from({ length: Math.max(s.items.length, ...passed.map((k) => k + 1)) }, (_, i) => s.items[i] ?? 0);
+  for (const k of passed) items[k] = 0x81;
+  return { ...s, items };
+}
+
+/** A save of any format made in a room cut since: carried on in the kept room that takes its saves, where that room is come into (`MontyData.waysIn`, else its west end, low), at today's cell; and every gate it has passed kept (`gatesPassed`). Any other save as it is. */
+export function carryOn(data: MontyData, saved: MontySave): MontySave {
+  const s = gatesPassed(data, saved);
   const kept = RETIRED[s.roomId];
   const cell = kept === undefined ? -1 : [...data.exitGrid.image].indexOf(kept);
   if (kept === undefined || cell < 0) return s;

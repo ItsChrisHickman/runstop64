@@ -259,7 +259,7 @@ const BOWL = specialIndex(ROOMS, 'bowl');
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
  * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only), and which way the locomotive's
  * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts), and China's three gates once used on the spot
- * (`at.keep`: the trapdoor opened, the city gate opened, the raft laid; added 2026-11-27, last: a save from before reads them unset, so he carries the item up to the gate and it gives way again). They come after every room's finds, so no room's
+ * (`at.keep`: the trapdoor opened, the city gate opened, the raft laid; added 2026-11-27, last: a save from before reads them unset, so he carries the item up to the gate and it gives way again; one made past a gate, or by one who had been past it, has it kept as it is read, `at.beyond`, save-migrate.ts `gatesPassed`). They come after every room's finds, so no room's
  * find moves; they count for nothing on the pause screen.
  */
 const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'trapdoor open', 'city gate open', 'raft laid'] as const;
@@ -298,9 +298,9 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   { room: SIB.sleeper, when: [{ taken: TICKET }], clear: onScreen(TRAPDOOR.clear), place: { code: TRAPDOOR.code, cells: onScreen(TRAPDOOR.ladder) } },
   // China's gates, used on the spot and seen (`at`), then kept (`keep`: open whenever he comes back): the key unlocks the trapdoor as he comes up to its rope (on the walkway or the rope), and the rope's last two
   // cells are there to climb; in the rice hat, coming up to the city gate, its doors swing away and the guard inside walks off east into the palace; reaching the jetty's last planks with the bamboo, the raft is laid out to the junk
-  { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) }, at: { ...screenBox(13, 2, 19, 8), keep: TRAPDOOR_OPEN } },
-  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1, at: { ...screenBox(8, 11, 13, 16), leaves: 1, keep: CITY_GATE_OPEN } },
-  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) }, at: { ...screenBox(14, 13, 18, 16), keep: RAFT_LAID } },
+  { room: CHI.tower, when: [{ taken: KEY }], clear: onScreen(TRAPDOOR_CELLS), place: { code: TOWER_ROPE_CODE, cells: onScreen(TRAPDOOR_ROPE) }, at: { ...screenBox(13, 2, 19, 8), keep: TRAPDOOR_OPEN, beyond: [CHI.top] } },
+  { room: CHI.gate, when: [{ taken: RICE_HAT }], clear: onScreen(DOOR_CELLS), removeEnemy: 1, at: { ...screenBox(8, 11, 13, 16), leaves: 1, keep: CITY_GATE_OPEN, beyond: [CHI.roofs, CHI.heaven, CHI.willow, CHI.junk] } },
+  { room: CHI.junk, when: [{ taken: BAMBOO }], place: { code: JUNK_RAFT_CODE, cells: onScreen(RAFT_CELLS) }, at: { ...screenBox(14, 13, 18, 16), keep: RAFT_LAID, beyond: [JP.harbour] } },
   { room: JP.platform, when: [{ taken: DARUMA }], clear: onScreen(SHUTTER_CELLS) }, // the daruma's wish rolls the platform's shutter up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 0, place: { code: PLANK_CODE, cells: onScreen(PLANK_CELLS) } }, // fed, the koi leave the pond (the first) and the pond's planks float up
   { room: JP.garden, when: [{ taken: FISH_FOOD }], removeEnemy: 1 }, // (and the second)

@@ -104,9 +104,11 @@ export interface RoomEffect {
    * An item used on the spot, seen happening (Do Svidaniya Monty's gates: the panpipes played to the llama, the machete cutting the tangle): the effect does not wait in the room when he comes in with the
    * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound, once a visit. With `leaves` (-1 west, 1 east), the guard it sends off
    * (`removeEnemy`) turns and walks off out of the room that way, harmless, rather than going at once (items.ts `leaveTick`). With `keep` (a special item no room shows), the find is taken as it happens,
-   * so the gate stays done: from then on the effect is applied as the room loads, through a death and a save (a trapdoor he comes back down through is open). None in Monty on the Run's.
+   * so the gate stays done: from then on the effect is applied as the room loads, through a death and a save (a trapdoor he comes back down through is open). With `beyond` (the rooms reached only through
+   * the gate), a save made before the gate was kept, in one of them or having been in one, with the item, has it kept as it is read (a game's save migration: Do Svidaniya Monty's save-migrate.ts `gatesPassed`),
+   * so it never loads with the gate shut behind him. None in Monty on the Run's.
    */
-  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1; keep?: number };
+  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1; keep?: number; beyond?: readonly number[] };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */

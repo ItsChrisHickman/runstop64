@@ -288,8 +288,7 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'panda', col: 7, row: 15, way: 'right', speed: 2, range: 84 }, // the whole foot of the wall, fast, through the tunnel's arches: jumped, or waited out at the stair's foot
       { who: 'monk', col: 7, row: 5, way: 'down', speed: 1, range: 48 }, // bouncing over the stair's middle step: the climb waits for his hop
-      { who: 'kite', col: 21, row: 2, way: 'down', speed: 2, range: 20 }, // dropping onto the wall's top between the battlements and the rope: under it while it is up
-      // (Viktor's cameo is on the fourth creature sprite: viktor.ts)
+      // (two creatures, one on each line: Viktor's cameo is on the third creature sprite, viktor.ts; the fourth is the ushanka's, worn in from Siberia, whose sprite 7 a cameo or creature there would fight over)
     ],
   }),
 
@@ -391,8 +390,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'lion', col: 4, row: 15, way: 'right', speed: 2, range: 36 }, // the outer court, fast, up to the gate
       { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 }, // the gate's guard (data.ts: he walks off into the palace as Monty comes up in the rice hat)
-      { who: 'panda', col: 18, row: 15, way: 'right', speed: 1, range: 72 }, // the inner court, slow, its whole width
       { who: 'lantern', col: 25, row: 1, way: 'down', speed: 2, range: 44 }, // dropping beside the rope up to the roofs: the climb waits for it
+      // (three at most: he is past the gate only in the rice hat, drawn on sprite 7, the fourth creature's, which would be a phantom: mech-kit `overCrowded`)
     ],
   }),
 

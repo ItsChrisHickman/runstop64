@@ -29,7 +29,7 @@ import { SIB } from '../src/siberia';
 import { newGame } from '../../shared/monty/test/bot';
 import { SCOPE } from './scope';
 import { search } from './search';
-import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, panelLine, RIGHT, rowText, run, snacksIn } from './mech-kit';
+import { at, cell, coinsIn, colOf, dead, diesAt, entriesBefore, itemsIn, keyItemsIn, LEFT, overCrowded, panelLine, RIGHT, rowText, run, snacksIn } from './mech-kit';
 import { creatureRooms, itemIndex, standY } from './route';
 
 /** The items by name (the room's nth). */
@@ -55,6 +55,8 @@ SCOPE.section([], 'the data: China on the grid, its entries, creatures, sprite b
   const rooms = creatureRooms(CHINA_ROOMS);
   const most = Math.max(...[...rooms.values()].map((v) => v.size));
   check(`${rooms.size} kinds of creature in China's eleven rooms, none in more than three (${[...rooms.values()].map((v) => v.size).join(' ')}; three since the challenge pass gave its rooms three or four each)`, rooms.size >= 8 && rooms.size <= 12 && most <= 3);
+  const crowded = overCrowded(CHINA_ROOMS);
+  check(`no room has a fourth creature (sprite 7 is the worn ushanka's and rice hat's; ${crowded.length ? `rooms ${crowded.join()}` : 'none do'})`, crowded.length === 0);
   SCOPE.section([CHI.market], 'the data: the dragon\'s room is clear', () => {
     const market = must(CHINA_ROOMS.find((r) => r.id === CHI.market), 'the market');
     check('the dragon\'s room has no creature, item, lift or icicle (its sprites are the ones they would use)', !market.enemies?.length && !market.item && !market.cake && WORLD.lifts.every((l) => l.room !== CHI.market) && WORLD.icicles.every((i) => i.room !== CHI.market));

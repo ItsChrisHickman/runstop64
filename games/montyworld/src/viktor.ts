@@ -25,7 +25,7 @@ const slot = (room: number, n: number): Place => ({ room, sprite: 4 + n, first: 
 /** The rooms each cameo plays in, with its sprite and pictures' blocks. */
 const PLACES = {
   station: slot(ROOM.station, 2), // Moscow's platform (two creatures)
-  wall: slot(CHI.wall, 3), // China's first room (three: the panda, the monk, the kite)
+  wall: slot(CHI.wall, 2), // China's first room (two: the panda, the monk; slot 3's sprite 7 is the ushanka he wears in from Siberia)
   harbour: slot(JP.harbour, 2), // Japan's first (two)
   moon: slot(JP.mole, 2), // THE LAST MOLE (two)
   arms: slot(RIO_ROOM.arms, 2), // OPEN ARMS (two creatures: the vulture, the marmoset; sprite 1 is the guarana, its second find, which the cameo once drew over)
