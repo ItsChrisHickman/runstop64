@@ -33,12 +33,14 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 |---|---|---|
 | The watchtower | "top row enemies pose no threat and serve no purpose" | open |
 | Don't rock the boat | "pretty but has no challenge" | open |
-| Off the beaten path | "cool ideas but no challenge" | in pass |
-| Border line case | "both water bridges should break faster" | in pass |
-| Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | in pass |
-| Siberia you later | "the enemies are pretty poorly done. The first you can fall on it you are unlucky. The enemy on the roof poses no threat" | in pass |
-| Mine all mine | "no challenge" | in pass |
+| Off the beaten path | "cool ideas but no challenge" | done (352f6f37, d271be10): a bat up and down the gap the boughs zig-zag across (each hop timed to it, on snow that sheds), a white reindeer on the trail where he comes in and where a slip lands him |
+| Border line case | "both water bridges should break faster" | done (352f6f37, d271be10): the ice goes after 40 frames (was 120), so a walk across falls through and every crossing takes a jump; from the sandbar he reads the reindeer (quick, on the landing) and the guard (slow, down the watchtower ladder) |
+| Sleeper hit, the gravy train | "well drawn but the enemies pose little challenge" | done (352f6f37, d271be10): a pigeon drops onto the dining car's roof between the hatches (timed with the mountain); the provodnitsa walks the whole corridor quick, jumped where she turns, both ways; the ticket's gates give way where it is used, seen, and stay open. The sleeper's roof left as the release built it (its mountain timings are already tight). The coupling puzzle: his call (below) |
+| Siberia you later | "the enemies are pretty poorly done. The first you can fall on it you are unlucky. The enemy on the roof poses no threat" | done (352f6f37, d271be10): the balalaika runs quick toward the landing and turns two cells short of it; the samovar walks the car's roof over the hatch (wait on the ladder, go as it heads west). Only the creatures changed |
+| Mine all mine | "no challenge" | done (352f6f37, d271be10): the two shafts' bats at different speeds, so the gaps on the gantry and over the cart drift and have to be read; the miner's window as it was |
 | Bullet point | "needs to be harder. The train is too easy to not encounter" | open |
+
+| The train's points/coupling puzzle (the release reviewer's idea: the steam valve extended across the dining car, the sleeper and the tender) | his call (recommended: play the release's steam valve first, then decide; not built) |
 
 ## China
 
