@@ -25,7 +25,7 @@ export const multi = (colour: number) => colour | 8;
 // ---- where things are (character rows) ------------------------------------------------------------------------------------------
 /** The logo's two words (it starts at the top); the map; the scroller (two rows, its letters 16 pixels tall); ENTER CONTINUE's line; the credits. */
 export const ROWS = { small: 0, big: 3, map: 8, scroller: 15, strip: 18, credits: 20 } as const;
-export const MAP_ROWS = 6, SCROLLER_ROWS = 2;
+export const MAP_ROWS = 7, SCROLLER_ROWS = 2;
 const MAP_Y = ROWS.map * 8;
 /** The scroller's characters, reserved: two rows of forty. */
 export const SCROLLER_CHARS = SCROLLER_ROWS * 40;
@@ -113,25 +113,57 @@ const BIG_COLOURS = [YELLOW, YELLOW, RED, RED] as const;
 
 // ---- the map -------------------------------------------------------------------------------------------------------------------------
 /**
- * Map cells: 80 x 12 of 4 x 4 pixels, Europe to South America the way Monty goes, drawn so the stops are spread along it (the Pacific is short, Europe is
- * squeezed to give the Aegean room): the rows are about 7 degrees of latitude from 62 north. Land by runs [row, from, to]; hills marked after.
+ * Map cells: 80 x 14 of 4 x 4 pixels, the world east from the Aegean (20 E) round to Brazil's Atlantic coast (30 W) the way Monty goes, from the Arctic
+ * coast (72 N) down past Rio to the River Plate (43 S): the real places, so each stop's mark and name are where the place is (Chris, 2026-11-27: "Hawaii is labelled nowhere
+ * near Hawaii... Rio is also in the wrong spot - should be bottom right"). East to west is three pieces of one scale each (`colOf`): Europe and Asia to
+ * Japan's east coast, the Pacific narrower (nothing stops on it but Hawaii), the Americas; north to south one scale (`yOf`). Land by runs [row, west,
+ * east] in degrees east (0-360: the Americas past 180), turned into cells as the map is built; the mountains the same way.
  */
-const LAND: readonly (readonly [number, number, number])[] = [
-  [0, 0, 2], [0, 4, 9], [0, 10, 48], [0, 57, 72],
-  [1, 0, 3], [1, 4, 9], [1, 10, 47], [1, 56, 73],
-  [2, 1, 9], [2, 12, 13], [2, 16, 46], [2, 46, 47], [2, 56, 72],
-  [3, 0, 2], [3, 4, 5], [3, 7, 8], [3, 12, 17], [3, 18, 40], [3, 41, 42], [3, 45, 48], [3, 56, 70],
-  [4, 5, 5], [4, 20, 27], [4, 28, 31], [4, 32, 42], [4, 45, 46], [4, 58, 66],
-  [5, 0, 22], [5, 20, 26], [5, 28, 31], [5, 32, 42], [5, 57, 57], [5, 62, 68],
-  [6, 0, 23], [6, 23, 25], [6, 29, 30], [6, 35, 36], [6, 43, 44], [6, 56, 57], [6, 66, 69],
-  [7, 1, 25], [7, 36, 36], [7, 39, 42], [7, 66, 72],
-  [8, 14, 22], [8, 34, 37], [8, 39, 42], [8, 45, 50], [8, 63, 76],
-  [9, 15, 22], [9, 47, 51], [9, 62, 77],
-  [10, 15, 21], [10, 40, 50], [10, 62, 77],
-  [11, 16, 20], [11, 40, 50], [11, 64, 75],
+const LON_BREAKS: readonly (readonly [lon: number, col: number])[] = [[20, 0], [150, 40], [240, 50], [335, 80]];
+/** The top row's latitude, and degrees a pixel down (Moscow, 55.7 N, eight pixels down: the walkers clear of the logo; Rio, 22.9 S, its mark clear of the foot row, its name under it). */
+const NORTH = 72.3, DEG_PER_PIXEL = 2.12;
+/** The map column (of 80, fractional) of a longitude (degrees east, 0-360). */
+function colOf(lon: number): number {
+  for (let i = 1; i < LON_BREAKS.length; i++) {
+    const a = LON_BREAKS[i - 1], b = LON_BREAKS[i];
+    if (a === undefined || b === undefined) break;
+    if (lon <= b[0] || i === LON_BREAKS.length - 1) return a[1] + (lon - a[0]) * (b[1] - a[1]) / (b[0] - a[0]);
+  }
+  return 0;
+}
+/** The pixel row on the map (of 56) of a latitude (degrees north). */
+const yOf = (lat: number) => (NORTH - lat) / DEG_PER_PIXEL;
+/** A place's mark, in pixels from the map's top left. */
+const placeAt = (lon: number, lat: number) => ({ x: Math.round(colOf(lon) * 4), y: Math.round(yOf(lat)) });
+
+/** The land, a row of cells (8.3 degrees of latitude) at a time: [row, west, east], degrees east. */
+const LAND_DEG: readonly (readonly [number, number, number])[] = [
+  [0, 20, 180], [0, 192, 275], [0, 280, 300], [0, 305, 330], // the Arctic coast, Lapland to Chukotka; Alaska and Canada; Baffin Island; Greenland
+  [1, 20, 140], [1, 155, 163], [1, 198, 265], [1, 282, 302], // Russia to the Sea of Okhotsk; Kamchatka; Alaska and Canada to Hudson Bay; Labrador
+  [2, 20, 141], [2, 142, 144], [2, 236, 304], // Europe, the steppe, Mongolia, Manchuria; Sakhalin; British Columbia to Newfoundland
+  [3, 20, 28], [3, 41, 47], [3, 54, 135], [3, 140, 145], [3, 236, 298], // the Balkans; the Caucasus between the Black Sea and the Caspian; Central Asia, China; Hokkaido; the States
+  [4, 20, 23], [4, 26.5, 121], [4, 126, 129.5], [4, 130.5, 141], [4, 239, 284], // Greece, the Aegean, Turkey to China; Korea; Japan; California to the Carolinas
+  [5, 20, 34], [5, 35, 50], [5, 56, 120], [5, 245, 263], [5, 278, 280], // Egypt; Arabia; Iran, India, China; Mexico and Texas; Florida
+  [6, 20, 38], [6, 42, 58], [6, 72, 87], [6, 93, 108], [6, 120, 122], [6, 199, 205], [6, 255, 263], [6, 270, 273], [6, 275, 286], [6, 288, 292], // the Sahel; Yemen, Oman; India; Indochina; Luzon; Hawaii; Mexico, Yucatan, Cuba, Hispaniola
+  [7, 20, 51], [7, 74, 82], [7, 97, 109], [7, 120, 126], [7, 270, 298], // Africa to the Horn; South India, Ceylon; Indochina; the Philippines; Central America, Colombia, Venezuela
+  [8, 20, 45], [8, 95, 106], [8, 109, 125], [8, 127, 129], [8, 131, 138], [8, 280, 310], // Africa; Sumatra; Borneo, Sulawesi; Halmahera; New Guinea; Ecuador to the Amazon's mouth
+  [9, 20, 40], [9, 105, 125], [9, 132, 151], [9, 279, 325], // Africa; Java and the Sundas; New Guinea; Peru to Brazil's corner
+  [10, 20, 41], [10, 43, 50], [10, 122, 136], [10, 141, 146], [10, 284, 321], // Africa; Madagascar; northern Australia; Cape York; Peru, Bolivia, Brazil
+  [11, 20, 35], [11, 43, 48], [11, 113, 153], [11, 289.5, 319], // Africa; Madagascar; Australia; Chile to Rio's coast
+  [12, 20, 31], [12, 115, 153], [12, 288, 311], // South Africa; Australia, Perth to Sydney; Chile, Argentina, Uruguay
+  [13, 141, 150], [13, 172, 179], [13, 286, 303], // Victoria and Tasmania; New Zealand; Patagonia's north, Buenos Aires
 ];
-const HIGHLANDS: readonly (readonly [number, number, number])[] = [[2, 3, 5], [4, 33, 36], [2, 56, 58], [3, 56, 58], [8, 63, 65], [9, 62, 65], [10, 62, 65], [11, 64, 65]];
-const AEGEAN = { row: 3, col: 10 } as const;
+/** The mountains, the same way: the Urals, the Rockies, the Himalaya and Tibet, the Andes. */
+const HIGH_DEG: readonly (readonly [number, number, number])[] = [
+  [1, 57, 62], [2, 242, 252], [3, 245, 252], [4, 78, 100], [5, 80, 98], [8, 281, 284], [9, 281, 288], [10, 288, 293], [11, 291, 294], [12, 289, 293], [13, 288, 291],
+];
+/** Degree runs as cell runs: every cell a run reaches into. */
+const inCells = (runs: readonly (readonly [number, number, number])[]) => runs.map(([r, a, b]) => [r, Math.floor(colOf(a)), Math.min(79, Math.floor(colOf(b)))] as const);
+const LAND = inCells(LAND_DEG);
+const HIGHLANDS = inCells(HIGH_DEG);
+/** Montos, the small island in the Aegean (25 E, 37 N): a cell of land in the sea between Greece and Turkey. */
+const MONTOS_AT = placeAt(25, 37);
+const AEGEAN = { row: Math.floor(MONTOS_AT.y / 4), col: Math.floor(MONTOS_AT.x / 4) } as const;
 
 /** What a map cell is. */
 type Ground = 'sea' | 'land' | 'high';
@@ -142,23 +174,37 @@ function groundAt(row: number, col: number): Ground {
   return LAND.some(([r, a, b]) => r === row && col >= a && col <= b) ? 'land' : 'sea';
 }
 
-/** A place on the route: its name and where its mark is (pixels from the map's top left). Montos is the small island in the Aegean. */
-export interface Stop { readonly name: string; readonly x: number; readonly y: number }
+/**
+ * A place on the route: its name and where its mark is (pixels from the map's top left). Montos is the small island in the Aegean. `label`: where its name goes, given (its first cell's column and
+ * row on the map), where `placeLabels` would not find the place for it.
+ */
+export interface Stop { readonly name: string; readonly x: number; readonly y: number; readonly label?: { readonly col: number; readonly row: number } }
 
+/**
+ * The stops in the order Monty comes to them (the regions'), each where the place is: Siberia at Novosibirsk on the Trans-Siberian, China at Beijing, Japan at Tokyo, Hawaii at
+ * Oahu, the Andes at Cusco, the Amazon at Manaus.
+ */
 export const STOPS: readonly Stop[] = [
   { name: 'MONTOS', x: AEGEAN.col * 4 + 2, y: AEGEAN.row * 4 + 2 },
-  { name: 'MOSCOW', x: 76, y: 9 },
-  { name: 'SIBERIA', x: 116, y: 10 },
-  { name: 'CHINA', x: 152, y: 14 },
-  { name: 'JAPAN', x: 190, y: 15 },
-  { name: 'HAWAII', x: 228, y: 23 },
-  { name: 'ANDES', x: 270, y: 41 },
-  { name: 'RIO', x: 296, y: 45 },
+  { name: 'MOSCOW', ...placeAt(37.6, 55.7) },
+  { name: 'SIBERIA', ...placeAt(82.9, 55) },
+  { name: 'CHINA', ...placeAt(116.4, 39.9) },
+  { name: 'JAPAN', ...placeAt(139.7, 35.7) },
+  { name: 'HAWAII', ...placeAt(202.2, 21.3) },
+  // (the south-east corner: the route comes down past the three, and the walkers, 18 pixels tall, take every row above it; so the names go under it, in the order the places
+  // are, west to east: the Andes on the Pacific side of their mark, the Amazon and Rio in the foot row under theirs)
+  { name: 'ANDES', ...placeAt(288, -13.5), label: { col: 25, row: 5 } },
+  { name: 'AMAZON', ...placeAt(300, -3.1), label: { col: 29, row: 6 } },
+  { name: 'RIO', ...placeAt(316.8, -22.9), label: { col: 37, row: 6 } },
 ];
-/** Between the stops: the sea crossings bend. */
-const WAYPOINTS: readonly (readonly [number, number])[] = [
-  [42, 14], [76, 9], [116, 10], [152, 14], [190, 15], [210, 19], [228, 23], [250, 32], [270, 41], [296, 45],
-];
+/** A stop's mark, by name. */
+export function stopNamed(name: string): Stop {
+  const s = STOPS.find((x) => x.name === name);
+  if (!s) throw new Error(`no stop ${name} on the title's map`);
+  return s;
+}
+/** The route: through the stops in turn (it only ever goes east). */
+const WAYPOINTS: readonly (readonly [number, number])[] = STOPS.map((s) => [s.x, s.y] as const);
 
 /** A point of the route, `t` from 0 (Montos) to 1 (Rio), in screen pixels. */
 export function routeAt(t: number): { readonly x: number; readonly y: number } {
@@ -212,31 +258,46 @@ export interface Label { readonly name: string; readonly col: number; readonly r
 
 /**
  * Where each name goes: in a row above or below its mark (the nearest that is free), over its column, over as little land as there is, never over the route or another mark or name, with a space between names, and wholly on the map. Found
- * by looking at the picture the route and the marks make.
+ * by looking at the picture the route and the marks make. Clear of where the walkers pass (`walked`) where it can be; where it cannot (the south-east corner, where the route comes down past the
+ * Andes and the Amazon to Rio), over as little of it as there is: the walkers go behind a name (title.ts `behindNames`).
  */
-export function placeLabels(route: ReadonlySet<number>): readonly Label[] {
+export function placeLabels(route: ReadonlySet<number>, walked: ReadonlySet<number> = new Set()): readonly Label[] {
   const taken = new Set<number>(route);
   const labels: Label[] = [];
+  const keep = (name: string, col: number, row: number) => {
+    for (let i = -1; i <= name.length; i++) if (col + i >= 0 && col + i < 40) taken.add(row * 40 + col + i);
+    labels.push({ name, col, row });
+  };
+  // (the names given first, each checked: on the map, clear of the route, the marks and where the walkers pass)
   for (const s of STOPS) {
+    if (!s.label) continue;
+    const { col, row } = s.label;
+    const cells = Array.from({ length: s.name.length }, (_, i) => row * 40 + col + i);
+    if (row < 0 || row >= MAP_ROWS || col < 0 || col + s.name.length > 40 || cells.some((c) => taken.has(c) || walked.has(c))) throw new Error(`${s.name}'s name is not clear at column ${col}, row ${row}`);
+    keep(s.name, col, row);
+  }
+  for (const s of STOPS) {
+    if (s.label) continue;
     const m = markCell(s), len = s.name.length;
     let best: { col: number; row: number; score: number } | null = null;
     for (const [away, row] of [[0, m.row - 1], [0, m.row + 1], [1, m.row - 2], [1, m.row + 2], [2, m.row - 3], [2, m.row + 3], [3, m.row]] as const) {
       if (row < 0 || row >= MAP_ROWS) continue;
       for (let col = m.col - len - 3; col <= m.col + 4; col++) {
         if (col < 0 || col + len > 40) continue;
-        const cells = Array.from({ length: len + 2 }, (_, i) => row * 40 + col - 1 + i);
+        const cells = Array.from({ length: len + 2 }, (_, i) => col - 1 + i).filter((c) => c >= 0 && c < 40).map((c) => row * 40 + c);
         if (cells.some((c) => taken.has(c))) continue;
         let land = 0;
         for (let i = 0; i < len; i++) for (const [j, k] of [[0, 0], [0, 1], [1, 0], [1, 1]] as const) if (groundAt(row * 2 + j, (col + i) * 2 + k) !== 'sea') land++;
-        const score = land + Math.abs(col + (len - 1) / 2 - m.col) * 4 + away * 1000;
+        const behind = cells.filter((c) => walked.has(c)).length;
+        const score = land + Math.abs(col + (len - 1) / 2 - m.col) * 4 + away * 1000 + behind * 5000;
         if (best === null || score < best.score) best = { col, row, score };
       }
     }
     if (best === null) throw new Error(`no place on the map for ${s.name}`);
-    for (let i = -1; i <= len; i++) taken.add(best.row * 40 + best.col + i);
-    labels.push({ name: s.name, col: best.col, row: best.row });
+    keep(s.name, best.col, best.row);
   }
-  return labels;
+  // (in the stops' order)
+  return STOPS.flatMap((s) => labels.filter((l) => l.name === s.name));
 }
 
 // ---- text in the game's lettering ------------------------------------------------------------------------------------------------
@@ -294,7 +355,7 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
     const c = cy < ROWS.big ? SMALL_COLOURS[cy - ROWS.small] ?? YELLOW : BIG_COLOURS[cy - ROWS.big] ?? YELLOW;
     for (let cx = 0; cx < 40; cx++) put(cy, cx, set.code(p.cell(cx, cy)), multi(c));
   }
-  for (let r = 0; r < 12; r++) for (let c = 0; c < 80; c++) {
+  for (let r = 0; r < MAP_ROWS * 2; r++) for (let c = 0; c < 80; c++) {
     const g = groundAt(r, c);
     if (g === 'sea') continue;
     for (let j = 0; j < 4; j++) for (let i = 0; i < 2; i++) p.set(c * 2 + i, MAP_Y + r * 4 + j, g === 'high' && (i + j + r) % 2 === 0 ? 2 : 3);
@@ -309,14 +370,15 @@ export function buildTitleArt(bank: Uint8Array): TitleArt {
     const cell = p.cell(cx, ROWS.map + cy), was = land.cell(cx, ROWS.map + cy);
     if (cell.some((b, i) => b !== was[i])) route.add(cy * 40 + cx);
   }
-  // and the cells Monty and Viktor pass through (13 pixels wide, 18 tall, standing on the route): no name is where they walk
+  // and the cells Monty and Viktor pass through (13 pixels wide, 18 tall, standing on the route): no name is where they walk, where it can be helped
+  const walked = new Set<number>();
   for (let d = 0; d <= ROUTE_LENGTH; d++) {
     const at = routeAt(d / ROUTE_LENGTH), y = Math.round(at.y) - MAP_Y;
     for (let cy = Math.max(0, Math.floor((y - 18) / 8)); cy <= Math.min(MAP_ROWS - 1, Math.floor(y / 8)); cy++) {
-      for (let cx = Math.max(0, Math.floor((at.x - 8) / 8)); cx <= Math.min(39, Math.floor((at.x + 8) / 8)); cx++) route.add(cy * 40 + cx);
+      for (let cx = Math.max(0, Math.floor((at.x - 8) / 8)); cx <= Math.min(39, Math.floor((at.x + 8) / 8)); cx++) walked.add(cy * 40 + cx);
     }
   }
-  const labels = placeLabels(route);
+  const labels = placeLabels(route, walked);
   for (let cy = 0; cy < MAP_ROWS; cy++) for (let cx = 0; cx < 40; cx++) {
     if (p.used(cx, ROWS.map + cy)) put(ROWS.map + cy, cx, set.code(p.cell(cx, ROWS.map + cy)), multi(GREEN));
   }

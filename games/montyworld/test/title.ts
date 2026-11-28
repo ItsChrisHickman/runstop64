@@ -16,7 +16,7 @@ import { WORLD } from '../src/data';
 import { run } from '../src/main';
 import { MapTitle, MONTY_BITS, MONTY_HEIGHT, SCENES, SPRITE_BLOCKS, STAND, STORY, STRIP_Y, VIKTOR_BITS, VIKTOR_GAP, WALK_FRAMES } from '../src/title';
 import { chaseAt, HIDE_DROP, loopLength, type ChaseAt, type Scene } from '../src/title-chase';
-import { buildTitleArt, CREDIT_LINES, glyphOf, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, STOPS } from '../src/title-art';
+import { buildTitleArt, CREDIT_LINES, glyphOf, MAP_ROWS, MC1, MC2, ROUTE_LENGTH, routeAt, ROWS, SEA, SKY, STOPS } from '../src/title-art';
 import { VIKTOR_HEIGHT } from '../src/title-viktor';
 import { savePng } from './shots-kit';
 
@@ -45,17 +45,17 @@ const letters = new Map<string, string>();
 for (const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:!-'(") letters.set(glyphOf(WORLD.bankImage, ch).join(','), ch);
 const rowText = (r: number) => Array.from(g.mem.subarray(0x800 + r * 40, 0x800 + r * 40 + 40), (c) => letters.get(Array.from(g.mem.subarray(c * 8, c * 8 + 8)).join(',')) ?? ' ').join('').trim();
 check('no tagline over the logo: the logo starts at the top, row 0', Array.from(g.mem.subarray(0x800, 0x828)).some((c) => c !== 0) && !Array.from({ length: 25 }, (_, r) => rowText(r)).join(' ').includes('ADVENTURE'));
-check('the screen is black all over (border and background); the sea\'s strip alone is blue, behind the map\'s six rows, and nowhere else', g.vic.border === SKY && g.vic.background === SKY && SKY === 0 && [...Array(200).keys()].every((y) => [0, 160, 319].every((x) => title.backdrop?.pixels[y * 320 + x] === (y >= ROWS.map * 8 && y < (ROWS.map + 6) * 8 ? SEA : SKY))));
+check('the screen is black all over (border and background); the sea\'s strip alone is blue, behind the map\'s six rows, and nowhere else', g.vic.border === SKY && g.vic.background === SKY && SKY === 0 && [...Array(200).keys()].every((y) => [0, 160, 319].every((x) => title.backdrop?.pixels[y * 320 + x] === (y >= ROWS.map * 8 && y < (ROWS.map + MAP_ROWS) * 8 ? SEA : SKY))));
 check('the front end shows that backdrop under the title', renderer.backdrop !== null && renderer.backdrop === title.backdrop);
 const logoCells = (r0: number, r1: number) => { let n = 0; for (let r = r0; r < r1; r++) for (let c = 0; c < 40; c++) if (g.mem[0x800 + r * 40 + c] !== 0) n++; return n; };
-check(`the logo's seven rows and the map's six are drawn (${logoCells(0, 7)} and ${logoCells(ROWS.map, ROWS.map + 6)} cells)`, logoCells(0, 7) > 80 && logoCells(ROWS.map, ROWS.map + 6) > 60);
+check(`the logo's seven rows and the map's seven are drawn (${logoCells(0, 7)} and ${logoCells(ROWS.map, ROWS.map + MAP_ROWS)} cells)`, logoCells(0, 7) > 80 && logoCells(ROWS.map, ROWS.map + MAP_ROWS) > 60);
 check('in multicolour: the logo and map cells are 8-15, the text cells 0-7', g.vic.multicolourChars && g.col[0 * 40 + 5] >= 8 && g.col[ROWS.credits * 40 + 10] < 8);
 CREDIT_LINES.forEach((l, i) => check(`credit: ${l.text}`, rowText(ROWS.credits + i).replace(/[()]/g, '').trim() === l.text.replace(/[()]/g, '').trim()));
 check('the credits are the new game\'s, a tribute to Peter Harrap, the music (no Claude in them)', CREDIT_LINES.map((l) => l.text).join('|') === 'A NEW GAME BY CHRISTOPHER HICKMAN|A TRIBUTE TO PETER HARRAP|MUSIC BY ROB HUBBARD');
-check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join(' ') === 'MONTOS MOSCOW SIBERIA CHINA JAPAN HAWAII ANDES RIO');
+check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join(' ') === 'MONTOS MOSCOW SIBERIA CHINA JAPAN HAWAII ANDES AMAZON RIO');
 {
   // each stop's name is on the screen, beside its mark and not over the route
-  const mapText = Array.from({ length: 6 }, (_, r) => rowText(ROWS.map + r)).join(' ');
+  const mapText = Array.from({ length: MAP_ROWS }, (_, r) => rowText(ROWS.map + r)).join(' ');
   check('every stop is named on the map', STOPS.every((s) => mapText.includes(s.name)));
   for (const l of art.labels) {
     const s = must(STOPS.find((x) => x.name === l.name), 'its stop');
@@ -165,7 +165,7 @@ check('the stops, in order, from Montos to Rio', STOPS.map((s) => s.name).join('
   }
   hiddenFrames = cut.length; peeks = cut.filter((n) => n > 0 && n < whole / 2).length;
   check(`no sprite pixel is drawn over a place name in the three loops (${covered})`, covered === 0);
-  check(`behind JAPAN and ANDES only a little of Monty shows (his hat and eyes) (under half of him) in ${peeks} of the ${hiddenFrames} frames he is cut`, hiddenFrames > 100 && peeks > 100);
+  check(`behind JAPAN and HAWAII only a little of Monty shows (his hat and eyes) (under half of him) in ${peeks} of the ${hiddenFrames} frames he is cut`, hiddenFrames > 100 && peeks > 100);
 }
 
 // ---- the scroller and the strip --------------------------------------------------------------------------------------------

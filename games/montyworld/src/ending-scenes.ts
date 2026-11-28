@@ -27,7 +27,7 @@ export const SCENES: readonly Scene[] = PLACES.map((p, i): Scene => {
 /**
  * The procession after the last credit (shared/ending/procession.ts): a troupe from each region in the order of the journey, under the region's name as the title's map has it (title-art.ts `STOPS`), each creature by
  * the key of its art (the enemy type it has in the tables is its place in the art's list) and the name it goes by in the procession: what the art draws, in plain words (the art's own description). The world has
- * ninety creatures; each region sends the four it is known by. Then Monty, dancing.
+ * ninety creatures; each region sends the four it is known by (the Andes and the Amazon two each, the old Andes troupe split as the title's map names them). Then Monty, dancing.
  */
 const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['matryoshka', 'MATRYOSHKA DOLL'], ['guard', 'KREMLIN GUARD'], ['babushka', 'BABUSHKA'], ['cossack', 'COSSACK DANCER']],
@@ -35,7 +35,8 @@ const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['panda', 'PANDA'], ['warrior', 'TERRACOTTA WARRIOR'], ['lion', 'STONE LION'], ['kite', 'KITE']],
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
   [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
-  [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
+  [['llama', 'LLAMA'], ['condor', 'CONDOR']],
+  [['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
   [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER']],
 ];
 /** The regions' names, Montos (where he sets out from) left off. */

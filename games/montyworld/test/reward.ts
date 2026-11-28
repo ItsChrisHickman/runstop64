@@ -258,7 +258,7 @@ check(`no creature walks through a place of the montage: they march in the proce
 {
   const troupes = progress.troupes;
   const regions = PROC.troupes.map((t) => t.title);
-  check(`the groups: one per region in the journey's order (${troupes.map((t) => t.title).join(', ')})`, troupes.length === regions.length && regions.every((r, i) => troupes[i]?.title === r) && regions.join() === 'MOSCOW,SIBERIA,CHINA,JAPAN,HAWAII,ANDES,RIO');
+  check(`the groups: one per region in the journey's order (${troupes.map((t) => t.title).join(', ')})`, troupes.length === regions.length && regions.every((r, i) => troupes[i]?.title === r) && regions.join() === 'MOSCOW,SIBERIA,CHINA,JAPAN,HAWAII,ANDES,AMAZON,RIO');
   check('the groups march the cast in its order, four at most each', troupes.flatMap((t) => t.names).join() === CAST.map((c) => c.name).join() && troupes.every((t) => t.names.length >= 1 && t.names.length <= MARCH.most));
   check(`Viktor is the gag at the tail (${progress.gagName ?? 'none'})`, progress.gagName === STYLE.gag?.name);
   procWatch.check(troupes, PARADE.crushAt);
