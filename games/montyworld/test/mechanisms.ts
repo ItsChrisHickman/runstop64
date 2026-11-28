@@ -10,7 +10,7 @@
  */
 import { enterRoom } from '../../montyotr/src/ending';
 import type { Game } from '../../montyotr/src/game';
-import { montyMap } from '../../montyotr/src/map';
+import { montyMap, panelLines } from '../../montyotr/src/map';
 import { restore, snapshot } from '../../montyotr/src/save';
 import { frame, NONE } from '../../montyotr/test/play';
 import { check, finish } from '../../shared/test/check';
@@ -270,10 +270,12 @@ SCOPE.section([], 'the pause screen\'s map', () => {
   const s = newGame(WORLD, true);
   const info = montyMap.info(s.g, { rooms: {} });
   check(`the pause screen counts the snacks (EASY: no lives; ${info.join(' | ')})`, info[2] === panelLine('SNACKS', WORLD.progress.cakes.length) && info[1] === panelLine('ITEMS', WORLD.progress.keyItems.length));
-  check('the panel\'s lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column', info.length === 3 && info.every((l) => l.length === 11));
+  // (COINS takes two lines, its name then its count in the numbers' column: 152/152 does not fit beside the name: map.ts panelLines)
+  const oneWidth = (lines: readonly string[]) => lines.every((l) => l.length === 11 || l === 'COINS');
+  check(`the panel's lines are one width (the 11 characters it has: nothing cut off) and their numbers end in one column (${info.join(' | ')})`, info.length === 5 && oneWidth(info) && info[3] === 'COINS' && info[4] === panelLines('COINS', `0/${s.g.coinCollected.length}`)[1]);
   s.g.assist = { ...s.g.assist, lives: false };
   const hard = montyMap.info(s.g, { rooms: {} });
-  check(`HARD: the lives first (${hard.join(' | ')})`, hard[0] === 'LIVES     5' && hard.length === 4 && hard.every((l) => l.length === 11));
+  check(`HARD: the lives first (${hard.join(' | ')})`, hard[0] === 'LIVES     5' && hard.length === 6 && oneWidth(hard));
   const motr = newGame(MOTR, true);
   const motrInfo = montyMap.info(motr.g, { rooms: {} });
   check(`Monty on the Run's panel still counts CAKES (${motrInfo.join(' | ')}), in lines of 11 as well`, motrInfo[2]?.startsWith('CAKES') === true && motrInfo.every((l) => l.length === 11));

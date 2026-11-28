@@ -180,7 +180,14 @@ function finale(as: Progress, keep: (f: number) => boolean) {
   const px = (): Uint8Array => rend.screen.pixels.map((v) => (v === 0xff ? rend.background : v));
   const map = px();
   let green = 0, other = 0;
-  for (let y = 84; y < 128; y++) for (let x = 222; x < 318; x++) { const v = map[y * 320 + x] ?? 0; if (v === 13) green++; else if (v !== 0) other++; }
+  // (the DONE line's rows: wherever the panel's light green is; the panel's lines move as rows are added, COINS taking two)
+  const greenRows: number[] = [];
+  for (let y = 16; y < 180; y++) for (let x = 222; x < 318; x++) if (map[y * 320 + x] === 13) { greenRows.push(y); break; }
+  // (the first run of rows with green: the DONE line; the EASY mark lower down is light green too)
+  const top = greenRows[0] ?? 0;
+  let bottom = top;
+  while (greenRows.includes(bottom + 1)) bottom++;
+  for (let y = top; y <= bottom; y++) for (let x = 222; x < 318; x++) { const v = map[y * 320 + x] ?? 0; if (v === 13) green++; else if (v !== 0) other++; }
   check(`the pause screen: DONE ${percentOf(t.total)}% in light green in the panel's empty spot, nothing else there (${green} green pixels, ${other} others)`, green > 40 && other === 0);
   if (out) savePng(out, 'pause.png', map);
   press('Tab'); tick(10);

@@ -1070,7 +1070,7 @@ export const PACIFIC_ROOMS: readonly RoomSpec[] = [
     creatures: [
       { who: 'pacSharkFin', col: 4, row: 7, way: 'right', speed: 2, range: 100 }, // a shark cruising the surface the whole width, fast, under the drop in from Waikiki: the dive and the surface lane east are timed to it
       { who: 'pacTurtle', col: 24, row: 12, way: 'right', speed: 1, range: 48 }, // a turtle across the water east of the coral head, slow: the dive down to the low way east passes it
-      { who: 'pacEel', col: 20, row: 16, way: 'right', speed: 2, range: 40 }, // an eel sweeping the low way out east, fast (setting off from its west end: never at the edge as he swims back in from LAND AHOY): the low lane is a gap to read
+      { who: 'pacEel', col: 24, row: 16, way: 'right', speed: 2, range: 20 }, // an eel sweeping the low way out east, fast, from the coral head's east face to short of the edge (setting off from its west end: never at the edge as he swims back in from LAND AHOY): the low lane is a gap to read
     ],
   }),
 
