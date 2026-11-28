@@ -45,23 +45,21 @@ export const ONE_WAY: Readonly<Record<string, string>> = {
   '55>56': 'the parachute drop, JUMP FOR JOY into OUT OF THIN AIR: under the canopy he cannot go up (flight.ts)',
   '56>57': 'the parachute drop, OUT OF THIN AIR into CONDOR COUNTRY: under the canopy he cannot go up (flight.ts)',
   '57>58': 'the parachute drop lands on the terraces: under the canopy he cannot go up (flight.ts)',
+  '103>104': 'the drop\'s second line, COLD SHOULDER into CHIMNEY SWEEP: under the canopy he cannot go up (flight.ts)',
+  '104>105': 'the drop\'s second line, CHIMNEY SWEEP into WING AND A PRAYER: under the canopy he cannot go up (flight.ts)',
   '32>98': 'MOUNT FUJI\'s open mountainside drops into the ice cave at its foot (GONE WITH THE WIND); the way back up is the tengu\'s gust, a teleport back to the foot hut on the way in (japan.ts CAVE)',
 };
 
 /** Edges he gets to with no room beyond, `room side`, each with its reason. */
 export const NOWHERE: Readonly<Record<string, string>> = {
   '0 left': 'the game\'s start, open at its back as Monty on the Run\'s start is (Chris, 2026-11-22: no wall for no reason; edges.ts)',
+  '105 right': 'WING AND A PRAYER\'s bottom corner: a jump up off Machu Picchu\'s hilltop at its east end puts him into the room\'s corner under the east flank, at the margin below the room; he falls back onto the hill (Machu Picchu\'s top is open to the Inca bridge there, so it cannot be roofed)',
 };
 
 /** Edges and crossings found faulty that are not this test's to mend: another region's work, or Chris's call. Reported each run; one that no longer shows says so. */
 export const PENDING: Readonly<Record<string, string>> = {
-  '58 left': 'the Andes (another job): the terraces\' left edge',
-  '59 right': 'the Andes (another job): Machu Picchu\'s right edge',
-  '62 left': 'the Andes (another job): the canopy\'s left edge',
-  '66 left': 'the Amazon (another job): the sandbar\'s left edge',
   '77 right': 'Rio (another job): the carnival bust\'s right edge',
   '73 right 0-3': 'Rio (another job): HOUSE OF COLOUR\'s rooftop walkway (the floor at row 4) runs to the right edge over THE LAPA ARCHES and is never crossed (found merging Rio into the Andes\' grid, 2026-11-26)',
-  '55 right': 'the Andes (another job): JUMP FOR JOY\'s ledge at row 11 runs to the right edge, nothing beyond (he does not get there under the canopy)',
   '74>68 down ?': 'Rio (another job): from STEAK YOUR CLAIM\'s floor west of the rope (cols 1-2) he sinks through the floor\'s platform tiles into LAPA, whose ceiling is solid there; no way back up through it',
 };
 
