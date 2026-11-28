@@ -32,6 +32,7 @@ import { roomDecorTypes } from '../../shared/monty/rooms';
 import { lineOf, noHint, say, step as stepHint, type HintState } from '../../shared/monty/hints';
 import { NAME_FRAMES } from '../../shared/monty/hints';
 import { playDissolve } from '../../shared/monty/deaths';
+import { noteEntry, rewindTaken, takenNow, type TakenAtEntry } from './rewind';
 import { nameCodes } from '../../shared/monty/lettering';
 
 /**
@@ -272,6 +273,8 @@ export class Game implements MontyBody, MontyWorld {
   /** Where Monty came into this room, and how many frames he's been on his feet since (on a floor, a rope or the C5's road). */
   entry: Entry;
   feetFrames = 0;
+  /** What he had taken when he came into this room (rewind.ts): what a death in it puts back. */
+  takenAtEntry: TakenAtEntry;
 
   constructor(readonly data: MontyData) {
     const { start } = data;
@@ -284,6 +287,7 @@ export class Game implements MontyBody, MontyWorld {
     this.exitGrid = Uint8Array.from(data.exitGrid.image);
     this.coinCollected = new Uint8Array(data.coinTable.length / 3);
     this.siCollected = new Uint8Array(data.specialItems.length / 4);
+    this.takenAtEntry = takenNow(this);
     this.mem.set(data.bankImage);
     this.vic.screenOffset = SCREEN;
     this.vic.background = 0;
@@ -612,6 +616,7 @@ export class Game implements MontyBody, MontyWorld {
     this.entry = { mapRow: this.mapRow, exitCol: this.exitCol, x2: this.savedX, y: this.savedY, facing: this.facing };
     this.feetFrames = 0;
     this.visited[this.roomId] = 1;
+    noteEntry(this);
     this.onRoomLoaded(this);
   }
 
@@ -1087,6 +1092,8 @@ export class Game implements MontyBody, MontyWorld {
 
   /** Returns true if the game is over (no lives left). */
   lifeLost(atEntry = false): boolean {
+    // (ours, both modes: what he took in this room is put back, as the room starts again as he came into it; rewind.ts)
+    if (this.assist.respawn) rewindTaken(this);
     this.lives = afterLoss(this.lives, this.assist.lives);
     this.drawHudData();
     if (this.lives > 0) {

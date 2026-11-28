@@ -55,6 +55,32 @@ for (const ac of [1, 3, 4, 5, 7]) {
   check(`event ${ac} through the grace: no sequence started, no life lost (${before} -> ${g.lives})`, !scripted && g.lives === before);
 }
 
+// ---- a death puts back what he took in the room (rewind.ts), and the room's save is of that ----
+while (p.state.grace > 0) tick();
+const coinIdx = 0, itemIdx = 0;
+const had = { coin: g.coinCollected[coinIdx], item: g.siCollected[itemIdx], score: g.score };
+check(`the find and the coin not yet taken (${had.coin}, ${had.item})`, had.coin === 0 && had.item === 0);
+g.coinCollected[coinIdx] = 0xff; g.siCollected[itemIdx] = 0x81; g.addScore(250);
+const livesR = g.lives;
+g.actionCounter = 2;
+tick(200);
+check(`the death took a life (${livesR} -> ${g.lives})`, g.lives === livesR - 1);
+check(`what he took in the room is put back: the coin (${g.coinCollected[coinIdx]}), the find (${g.siCollected[itemIdx]}), the score (${had.score} -> ${g.score})`,
+  g.coinCollected[coinIdx] === 0 && g.siCollected[itemIdx] === 0 && g.score === had.score);
+tick(60);
+// (taken again after the restart, then back to room start: the save the death's restart took is without them)
+g.coinCollected[coinIdx] = 0xff; g.siCollected[itemIdx] = 0x81;
+tap('KeyP'); tap('KeyB');
+check(`the room's save after the death keeps neither (${g.coinCollected[coinIdx]}, ${g.siCollected[itemIdx]})`, g.coinCollected[coinIdx] === 0 && g.siCollected[itemIdx] === 0);
+// (taken in an earlier room, they stay through a death here)
+g.coinCollected[coinIdx] = 0xff; g.siCollected[itemIdx] = 0x81;
+g.takenAtEntry = { ...g.takenAtEntry, coins: g.coinCollected.slice(), items: g.siCollected.slice() };
+while (p.state.grace > 0) tick();
+g.actionCounter = 2;
+tick(200);
+check(`what he brought into the room stays through a death (${g.coinCollected[coinIdx]}, ${g.siCollected[itemIdx]})`, g.coinCollected[coinIdx] === 0xff && g.siCollected[itemIdx] === 0x81);
+tick(60);
+
 // ---- the treasure's event goes through ----
 tap('KeyP'); tap('KeyB');
 g.actionCounter = 6;
