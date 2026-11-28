@@ -60,8 +60,10 @@ for (const r of scopedRooms(ROOMS)) {
 
 const rooms = creatureRooms(ROOMS);
 for (const [type, where] of rooms) check(`creature ${type} is in at most two rooms of the Pacific (${[...where].join(', ')})`, where.size <= 2);
-check(`sixteen kinds of creature (the astronomer the last; the shark fin went with FISH OUT OF WATER, the turtles are SHELL GAME's tiles) and Viktor Vole aboard the ship, the moray a mechanism (${rooms.size})`, rooms.size === 17);
-check(`nineteen rooms: four islands and three swims (${PACIFIC_ROOMS.length})`, PACIFIC_ROOMS.length === 19);
+// (the challenge pass, 2026-11-27, gave every room its creatures: the islands' own, the shark back in the swim, and a few of other places' that are Hawaii's too: the frigatebird, the hoary bat, the mynah, the zebra dove, the mongoose, a whaling captain, a volleyball)
+check(`at least sixteen kinds of creature and Viktor Vole aboard the ship (${rooms.size})`, rooms.size >= 17);
+check(`twenty-two rooms: four islands, three swims, the bonus beach west of the luau and the summit's bonus rooms either side (${PACIFIC_ROOMS.length})`, PACIFIC_ROOMS.length === 22);
 const coins = ROOMS.map((r) => r.coins?.length ?? 0);
-check(`one to two coins a room, each with its reason (${coins.join(', ')}: ${coins.reduce((a, b) => a + b, 0)})`, coins.every((n) => n >= 1 && n <= 2));
+const THREE: readonly number[] = [PAC.beach, PAC.waiau]; // (the bonus rooms with a coin a cone or shelf and one over the crossing)
+check(`one to two coins a room (three in the bonus beach and on the ice), each with its reason (${coins.join(', ')}: ${coins.reduce((a, b) => a + b, 0)})`, ROOMS.every((r, i) => (coins[i] ?? 0) >= 1 && (coins[i] ?? 0) <= (THREE.includes(r.id) ? 3 : 2)));
 finish();

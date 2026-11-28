@@ -45,7 +45,7 @@ export const CHINA_LEGS: readonly Leg[] = [
   leg('F to G: up the rope past the guard', into(CHI.roofs, 24, 0, CHI.gate)),
   leg('G: west along the courtyard to the dumplings', item(CHI.roofs, 0, [4, 15])),
   leg('G to K: on west along the ridge into HEAVEN CAN WAIT', into(CHI.heaven, 0, 15, CHI.roofs)),
-  leg('K: up the eaves to the coin at the top', coin(CHI.heaven, 15, 9)),
+  leg('K: up the eaves to the coin at the top', coin(CHI.heaven, 14, 9)),
   leg('K to G: back east along the ridge', into(CHI.roofs, 31, 15, CHI.heaven)),
   leg('G: the coin on the courtyard', coin(CHI.roofs, 12, 15)),
   leg('G: up the eaves to the ridge, the coin on it', coin(CHI.roofs, 26, 7)),

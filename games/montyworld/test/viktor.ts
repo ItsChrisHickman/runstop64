@@ -315,6 +315,9 @@ const pastOf = (c: CameoSpec, i: number) => c.after !== undefined ? { col: 1, fl
 const viktorOn = (g: Game, c: CameoSpec) => ((g.vic.enable >> c.sprite) & 1) === 1 && (g.vic.sprites[c.sprite]?.ptr ?? 0) >= c.first && (g.vic.sprites[c.sprite]?.ptr ?? 0) < c.first + 8;
 /** Cells between Viktor's sprite and Monty, the larger of across and down (cameos.ts's own measure). */
 const apart = (g: Game, c: CameoSpec) => cellsApart(g, g.sx[c.sprite] ?? 0, g.sy[c.sprite] ?? 0);
+// the worn costume is drawn on sprite 7 (game.ts `placeOverlay`, every frame he wears one: the ushanka from Siberia to the rice hat, then the rest), so a cameo there would be written over by it
+const onHat = WORLD.cameos.filter((c) => c.sprite === 7).map((c) => c.room);
+check(`no cameo is on sprite 7, the worn costume's (${onHat.length ? `rooms ${onHat.join()}` : 'none is'})`, onHat.length === 0);
 for (const enhanced of [false, true]) {
   const mode = enhanced ? 'ENHANCED' : 'ORIGINAL';
   WORLD.cameos.forEach((c, i) => {

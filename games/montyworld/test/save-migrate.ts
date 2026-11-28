@@ -15,7 +15,7 @@ import { check, finish } from '../../shared/test/check';
 import { newGame } from '../../shared/monty/test/bot';
 import { AND } from '../src/andes';
 import { PAC } from '../src/pacific';
-import { ROUNDS, WORLD } from '../src/data';
+import { ADDED_ROOMS, ROUNDS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS } from '../src/save-format2';
@@ -107,15 +107,16 @@ check('a format 4 save reads as it was written', JSON.stringify(again) === JSON.
   const s4 = newGame(WORLD, false);
   enterRoom(s4.g, JP.fuji, 0x0c + (FUJI.entry.col0 + 1 + 4) * 4, standY(FUJI.floor));
   for (let f = 0; f < 60; f++) frame(s4, NONE);
-  const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => WORLD.coinTable[i * 3] === JP.cave);
-  const before = { ...snapshot(s4.g), coins: Array.from({ length: Math.min(...cave) }, () => 0xff) };
+  const since = ADDED_ROOMS.slice(ADDED_ROOMS.indexOf(JP.cave)); // (the cave and the rooms added after it, BOARD MEETING, ON THIN ICE, SEEING STARS: their coins are the table's last)
+  const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => since.includes(WORLD.coinTable[i * 3] ?? -1));
+  const before = { ...snapshot(s4.g), coins: Array.from({ length: WORLD.coinTable.length / 3 - cave.length }, () => 0xff) };
   const read = CODEC.unpack(CODEC.pack(before), 4);
   const p4 = newGame(WORLD, false);
   restore(p4.g, read);
   for (let f = 0; f < 120; f++) frame(p4, NONE);
   const had = p4.g.coinCollected.slice(0, before.coins.length).every((v) => v === 0xff), caveOpen = cave.every((i) => p4.g.coinCollected[i] === 0);
-  check(`a format 4 save from before the ice cave keeps every coin it had (${had}), the cave's ${cave.length} not yet taken (${caveOpen}), and carries on on MOUNT FUJI's entry ledge (room ${p4.g.roomId}, y ${p4.g.y}), alive`,
-    cave.length === 2 && cave.every((i) => i >= before.coins.length) && had && caveOpen && p4.g.roomId === JP.fuji && p4.g.y === standY(FUJI.floor) && !dead(p4.g));
+  check(`a format 4 save from before the ice cave keeps every coin it had (${had}), the cave's and the later rooms' ${cave.length} not yet taken (${caveOpen}), and carries on on MOUNT FUJI's entry ledge (room ${p4.g.roomId}, y ${p4.g.y}), alive`,
+    cave.length === 10 && cave.every((i) => i >= before.coins.length) && had && caveOpen && p4.g.roomId === JP.fuji && p4.g.y === standY(FUJI.floor) && !dead(p4.g));
 }
 // format 2 (the reset's Hawaii: the snorkel and the lei at Waikiki (41), the musubi in the swim room (49), the parachute and three coins in Hilo (52), Viktor overboard a find no room shows)
 /** The place of a format 2 find in its table: the n-th of a room's. */
@@ -217,5 +218,25 @@ const overboard2 = Array.from({ length: FORMAT2_ITEMS.length / 4 }, (_, i) => i)
   const kept = [...new Set(rooms3)].filter((r) => coins3(r).length + (r === RIO_ROOM.lap ? 1 : 0) === nowOf(r).length);
   const lost = [...new Set(rooms3)].filter((r) => !kept.includes(r));
   check(`a format 3 save with every coin taken has every coin taken today in each room that kept its count (${kept.length} rooms; changed: ${lost.join(' ') || 'none'})`, kept.every((r) => nowOf(r).every((i) => a.coins[i] === 0xff)));
+}
+// China's gates kept (2026-11-27, `at.keep`): a save from before, made past a gate (or by one who had been past it) with the item, reads with the gate kept, so the trapdoor under MIND THE BATTLEMENTS
+// is not shut beneath him (a dead end: softlocked); one made before the gate with the item reads as it is (he brings the item and sees it give way)
+{
+  const g4 = newGame(WORLD, true).g;
+  const keepOf = (room: number) => WORLD.roomEffects.find((e) => e.room === room && e.at?.keep !== undefined)?.at?.keep ?? -1;
+  const trapdoor = keepOf(CHI.tower), cityGate = keepOf(CHI.gate), raft = keepOf(CHI.junk);
+  const key = itemIndex(g4, CHI.alley, 0), hat = itemIndex(g4, CHI.top, 0);
+  const s4 = snapshot(g4), before = Math.min(trapdoor, cityGate, raft); // (a save written before the keeps: its finds end before theirs)
+  const save4 = (roomId: number, taken: readonly number[], visited: readonly number[]) => CODEC.unpack(CODEC.pack({
+    ...s4, roomId, visited: [...visited], items: Array.from({ length: before }, (_, i) => (taken.includes(i) ? 0x81 : 0)),
+  }), 4);
+  const top = save4(CHI.top, [key], [CHI.wall, CHI.alley, CHI.tower, CHI.top]);
+  check(`a save from before the keeps made on MIND THE BATTLEMENTS with the key has the trapdoor kept (find ${trapdoor}: ${top.items[trapdoor] ?? 0}), no other gate`, before > 0 && !!top.items[trapdoor] && !top.items[cityGate] && !top.items[raft]);
+  const tower = save4(CHI.tower, [key], [CHI.wall, CHI.alley, CHI.tower]);
+  check('one made in THE WATCHTOWER with the key, never up the trapdoor, reads as it is (the trapdoor gives way where he uses the key)', !tower.items[trapdoor] && tower.items.length === before);
+  const willow = save4(CHI.willow, [key, hat], [CHI.tower, CHI.top, CHI.gate, CHI.roofs, CHI.willow]);
+  check('one made in WILLOW PATTERN in the rice hat has the trapdoor and the city gate kept (been past both), not the raft', !!willow.items[trapdoor] && !!willow.items[cityGate] && !willow.items[raft]);
+  const noKey = save4(CHI.top, [], [CHI.top]);
+  check('and without the item held, no gate is kept', !noKey.items[trapdoor]);
 }
 finish();

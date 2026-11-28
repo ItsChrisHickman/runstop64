@@ -10,7 +10,7 @@ import { pathCache, pointAt, polyline } from './paths';
  * `rollerSprites`). The time counts from the room's loading, so a room is the same each time he comes in.
  */
 
-/** The picture is 16 by 16 (an item's size); it kills when the boxes meet, each trimmed a little (a boulder is round). */
+/** The picture is 16 by 16 (an item's size) unless the spec gives its `size`; it kills when the boxes meet, each trimmed a little (a boulder is round). */
 const SIZE = 16, TRIM = 3;
 
 /** The measured paths of the data's boulders, once. */
@@ -65,7 +65,7 @@ export function rollerUpdate(g: Game) {
     const step = e.spread ? Math.min(e.frames.length - 1, Math.floor((at.along / Math.max(1, pathOf(e).length)) * e.frames.length)) : Math.floor(at.along / 8) % e.frames.length;
     g.sptr[n] = e.frames[step] ?? 0;
     g.enable |= 1 << n;
-    if (!g.actionCounter && meetsMonty(g, at.x, at.y, SIZE, SIZE, TRIM)) g.actionCounter = 1;
+    if (!g.actionCounter && meetsMonty(g, at.x, at.y, e.size?.w ?? SIZE, e.size?.h ?? SIZE, TRIM)) g.actionCounter = 1;
   }
   g.enable &= ~(mine & ~shown) & 0xff;
 }
@@ -74,6 +74,6 @@ export function rollerUpdate(g: Game) {
 export function rollerMeets(g: Game, x: number, y: number, w: number, h: number): boolean {
   return g.rollers.some((r) => {
     const e = g.data.rollers[r.index], at = e ? rollerAt(e, r.t) : null;
-    return !!at && at.x + SIZE - TRIM > x && x + w > at.x + TRIM && at.y + SIZE - TRIM > y && y + h > at.y + TRIM;
+    return !!at && !!e && at.x + (e.size?.w ?? SIZE) - TRIM > x && x + w > at.x + TRIM && at.y + (e.size?.h ?? SIZE) - TRIM > y && y + h > at.y + TRIM;
   });
 }

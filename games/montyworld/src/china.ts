@@ -1,7 +1,8 @@
-import type { CrackSpec, DragonSpec, FloatSpec, PulseSpec } from '../../montyotr/src/montydata';
+import type { CrackSpec, DragonSpec, FloatSpec, PulseSpec, RollerSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { CHINA_SPRITE, DRAGON_POINTERS } from './china-pointers';
 import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
+import { leap } from './leaps';
 import type { Placed } from './train';
 
 /**
@@ -117,6 +118,19 @@ export const ARM_PULSES: readonly PulseSpec[] = ARMS.gaps.flatMap((col, k): Puls
 });
 export const PULSES: readonly PulseSpec[] = [...CRACKER_PULSES, ...ARM_PULSES];
 
+// ---- the leaping fish -----------------------------------------------------------------------------------
+/**
+ * The fish that leap from China's water (Chris, 2026-11-26: "koi should jump"), orange, on sprites 1 and 2 (no room of theirs uses them), at periods of their own: none a multiple of another's in its room,
+ * of the arms' 150 or of the boats'. WILLOW PATTERN's two koi over the first and middle gaps of the river, where the arms also reach (read from the bank and the stones); the quay's carp over the raft (waited
+ * for on its west end); Houhai's two koi, one in each boat's half (a ride into a leap is the death: the ride is chosen from the quay, the change of boats timed).
+ */
+const FISH = 8;
+export const CHINA_LEAPS: readonly RollerSpec[] = [
+  leap(CHI.willow, 1, 12, 10.5, 170, 20, FISH), leap(CHI.willow, 2, 20, 10.5, 230, 100, FISH),
+  leap(CHI.junk, 1, 21.5, 11, 190, 40, FISH),
+  leap(CHI.houhai, 1, 12.5, 12, 170, 30, FISH), leap(CHI.houhai, 2, 21.5, 12, 230, 110, FISH),
+];
+
 // ---- the dragon ------------------------------------------------------------------------------------------
 /**
  * The New Year dragon: a head, four body pieces and a tail on sprites 0, 1, 2, 4, 5 and 6, round a closed path that goes over the top of the market, comes down the
@@ -146,12 +160,15 @@ export const DOOR_CELLS: readonly (readonly [row: number, col: number])[] = Arra
 export const RAFT_CELLS: readonly (readonly [row: number, col: number])[] = Array.from({ length: 7 }, (_, i) => [17, 19 + i] as const);
 export const TOWER_ROPE_CODE = codeOf(TOWER_PALETTE, 'R');
 /**
- * The yellow awning over the street (row 9, columns 4-7), the rotten one of the market's awnings: each cell its own patch of crumbling cloth that frays after 14 frames under his feet, tears after 26 and is gone after
- * 34 (a walk over a cell is about 18), so he crosses it at his walk, picking up the coin on it as he goes, and a pause to look about drops him into the street. Whole again when he comes into the room.
+ * The yellow awning over the street (row 9, columns 3-6), the rotten one of the market's awnings, wholly over the street's hole down into the hutong: one patch of crumbling cloth that frays 5 frames after he
+ * steps on it, tears after 10 and is gone after 14, wherever on it he is (a walk across its four cells is about 32: Chris, 2026-11-26, "it won't fall if you just run... you just fall to a safe spot"), so a walk
+ * drops him through it and down the hole into the hutong (the climb again: the hutong's rope, the street, the rope up to the awnings). He jumps it, taking the coin over it on the jump (landing on its last cell
+ * and walking on is quick enough). Whole again when he comes into the room.
  */
-export const AWNING_CRACKS: readonly CrackSpec[] = Array.from({ length: 4 }, (_, k): CrackSpec => ({
-  room: CHI.market, col: 4 + k, cols: 1, row: 9, codes: [codeOf(MARKET_PALETTE, 'Y'), codeOf(MARKET_PALETTE, 'T'), codeOf(MARKET_PALETTE, 'U')], crack: 14, wide: 26, gone: 34, away: 300,
-}));
+export const AWNING = { col: 3, cols: 4 } as const;
+export const AWNING_CRACKS: readonly CrackSpec[] = [
+  { room: CHI.market, col: AWNING.col, cols: AWNING.cols, row: 9, codes: [codeOf(MARKET_PALETTE, 'Y'), codeOf(MARKET_PALETTE, 'T'), codeOf(MARKET_PALETTE, 'U')], crack: 5, wide: 10, gone: 14, away: 300 },
+];
 export const JUNK_RAFT_CODE = codeOf(JUNK_PALETTE, 'Q');
 /**
  * The jetty's planks (row 17, columns 6-18), each cell its own patch of crumbling floor (Siberia's cracking ice, per cell): it shows cracks after 16 frames under his feet, splits after 34 and is gone
@@ -177,7 +194,7 @@ const paintAlley = (g: Grid): void => {
 const paintMarket = (g: Grid): void => {
     g.box(0, 0, 1, 5, 'B').box(0, 9, 1, 13, 'B').box(30, 0, 31, 13, 'B'); // a house at each end running up off the screen, the street open to the sky between
     g.box(0, 17, 31, 17, 'P').box(0, 18, 31, 19, 'B').clear(2, 17, 6, 19).box(4, 16, 4, 19, 'R');
-    g.box(0, 9, 3, 9, 'A').box(4, 9, 7, 9, 'Y').box(8, 9, 10, 9, 'A'); // the awnings
+    g.box(0, 9, AWNING.col - 1, 9, 'A').box(AWNING.col, 9, AWNING.col + AWNING.cols - 1, 9, 'Y').box(AWNING.col + AWNING.cols, 9, 10, 9, 'A'); // the awnings, the rotten one over the street's hole
     g.box(12, 9, 12, 16, 'R'); // the rope down from them
 };
 
@@ -193,7 +210,7 @@ const paintRoofs = (g: Grid): void => {
 const paintHeaven = (g: Grid): void => {
     g.box(0, 0, 1, 16, 'B'); // the end hall's gable, up off the screen
     g.box(0, 17, 31, 17, 'Y').box(0, 18, 31, 19, 'B'); // the ridge and the hall's roof under it
-    g.box(24, 15, 26, 15, 'E').box(19, 13, 21, 13, 'E').box(14, 11, 16, 11, 'E'); // the eaves
+    g.box(25, 15, 27, 15, 'E').box(19, 13, 21, 13, 'E').box(13, 11, 15, 11, 'E'); // the eaves, three cells apart (Chris, 2026-11-26: "easy layout"): judged jumps
 };
 
 /** The paint of gate's room: its tiles. */
@@ -269,8 +286,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['wallFlag', 26, 6], ['bambooClump', 2, 13],
     ],
     creatures: [
-      { who: 'panda', col: 7, row: 15, way: 'right', speed: 1, range: 16 },
-      { who: 'kite', col: 19, row: 2, way: 'down', speed: 1, range: 20 },
+      { who: 'panda', col: 7, row: 15, way: 'right', speed: 2, range: 84 }, // the whole foot of the wall, fast, through the tunnel's arches: jumped, or waited out at the stair's foot
+      { who: 'monk', col: 7, row: 5, way: 'down', speed: 1, range: 48 }, // bouncing over the stair's middle step: the climb waits for his hop
+      // (two creatures, one on each line: Viktor's cameo is on the third creature sprite, viktor.ts; the fourth is the ushanka's, worn in from Siberia, whose sprite 7 a cameo or creature there would fight over)
     ],
   }),
 
@@ -287,8 +305,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['hutongGate', 20, 13], ['boxes', 15, 15],
     ],
     creatures: [
-      { who: 'bicycle', col: 6, row: 15, way: 'right', speed: 2, range: 28 },
-      { who: 'monk', col: 24, row: 13, way: 'down', speed: 1, range: 20 },
+      { who: 'bicycle', col: 7, row: 15, way: 'right', speed: 2, range: 84 }, // the whole lane, fast, from clear of the rope's foot to the dead end: a jump timed to his turn
+      { who: 'monk', col: 13, row: 4, way: 'down', speed: 1, range: 40 }, // bouncing over the top two shelves: the climb to the ledge waits for his hop, then the string's wait
     ],
   }),
 
@@ -309,9 +327,11 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     // the hall dark behind him (no brick wallpaper: LESSONS.md), its windows, banner and arms on it
     decor: [['wallWindow', 5, 3], ['wallWindow', 23, 3], ['banner', 19, 3], ['rack', 13, 15], ['gong', 18, 14], ['drum', 28, 15], ['hangingLantern', 12, 2], ['hangingLantern', 27, 2]],
     creatures: [
-      { who: 'warrior', col: 8, row: 15, way: 'right', speed: 1, range: 56 },
-      { who: 'lantern', col: 22, row: 2, way: 'down', speed: 1, range: 16 },
-      { who: 'cricket', col: 19, row: 2, way: 'down', speed: 1, range: 24, colour: 13 }, // hopping by the walkway east of the rope, light green over the banner: he walks under it when it is up, either way. (It paced the walkway, the only way to the top right door: passing it took a jump under the rope that cleared it about 1 try in 12 going east, 1 in 35 going west: the door seemed shut, Chris 2026-11-24)
+      { who: 'warrior', col: 6, row: 15, way: 'right', speed: 2, range: 64 }, // the hall's floor, fast, from the stair's foot to the rope's gap
+      { who: 'lantern', col: 7, row: 3, way: 'down', speed: 2, range: 28 }, // dropping over the stair's middle ledges: each hop up waits for it
+      // the cricket hops onto the walkway east of the rope (Chris, 2026-11-26: the top row's creatures "pose no threat"): he walks under it while it is up, waiting on the rope (it paced the walkway once, and
+      // passing it took a jump under the rope that cleared it about 1 try in 12: the door seemed shut, Chris 2026-11-24)
+      { who: 'cricket', col: 21, row: 2, way: 'down', speed: 1, range: 40, colour: 13 },
     ],
   }),
 
@@ -339,9 +359,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['brazier', 22, 3], ['rack', 14, 3], ['hangingLantern', 11, 2], ['hangingLantern', 19, 2],
     ],
     creatures: [
-      { who: 'warrior', col: 3, row: 15, way: 'right', speed: 1, range: 64 },
-      { who: 'kite', col: 14, row: 6, way: 'down', speed: 1, range: 24 },
-      { who: 'monk', col: 19, row: 13, way: 'down', speed: 1, range: 16 },
+      { who: 'warrior', col: 19, row: 15, way: 'right', speed: 2, range: 40 }, // the floor between the trapdoor's rope and the steps, fast: met as he comes up
+      { who: 'warrior', col: 7, row: 9, way: 'right', speed: 1, range: 112, colour: 7 }, // the long walkway, slow, all its length: jumped under the beacon's platform
+      { who: 'kite', col: 3, row: 0, way: 'down', speed: 1, range: 56 }, // dropping over the left steps up to the platform
     ],
   }),
 
@@ -368,8 +388,10 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[8, 15], [6, 7], [28, 15]],
     decor: [['lionStatue', 10, 15], ['lionStatue', 18, 15], ['gateRoof', 12, 2], ['hangingLantern', 5, 10], ['hangingLantern', 9, 10], ['hangingLantern', 19, 8], ['pottedPlant', 26, 15], ['cloudFrieze', 4, 2]],
     creatures: [
-      { who: 'lion', col: 4, row: 15, way: 'right', speed: 1, range: 40 },
-      { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 },
+      { who: 'lion', col: 4, row: 15, way: 'right', speed: 2, range: 36 }, // the outer court, fast, up to the gate
+      { who: 'imperialGuard', col: 19, row: 15, way: 'right', speed: 1, range: 32 }, // the gate's guard (data.ts: he walks off into the palace as Monty comes up in the rice hat)
+      { who: 'lantern', col: 25, row: 1, way: 'down', speed: 2, range: 44 }, // dropping beside the rope up to the roofs: the climb waits for it
+      // (three at most: he is past the gate only in the rice hat, drawn on sprite 7, the fourth creature's, which would be a phantom: mech-kit `overCrowded`)
     ],
   }),
 
@@ -389,8 +411,9 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['hangingLantern', 22, 12], ['hangingLantern', 25, 14],
     ],
     creatures: [
-      { who: 'lion', col: 7, row: 15, way: 'right', speed: 1, range: 56, colour: 1 },
-      { who: 'lantern', col: 16, row: 9, way: 'down', speed: 1, range: 32 },
+      { who: 'lion', col: 3, row: 15, way: 'right', speed: 2, range: 68, colour: 1 }, // the low ridge, fast, west to the dumplings and HEAVEN CAN WAIT
+      { who: 'lantern', col: 22, row: 2, way: 'down', speed: 1, range: 56 }, // dropping over the top eave (Chris: "a vertical enemy that you can't hit unless you try"): the hop up to the ridge waits for it
+      { who: 'dove', col: 18, row: 6, way: 'right', speed: 1, range: 88, colour: 3 }, // over the eaves' tops and along the high ridge to the way east
     ],
   }),
 
@@ -415,9 +438,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['willowTree', 4, 5], ['roundTree', 0, 7], ['pagoda', 27, 8], ['plateFence', 27, 14], ['plateFence', 29, 14],
     ],
     creatures: [
-      { who: 'dove', col: 10, row: 7, way: 'right', speed: 1, range: 48 },
-      { who: 'dove', col: 20, row: 9, way: 'right', speed: 1, range: 40 },
-      { who: 'carp', col: 12, row: 18, way: 'right', speed: 1, range: 56 },
+      { who: 'dove', col: 4, row: 8, way: 'right', speed: 2, range: 28 }, // down the bank's steps, fast
+      { who: 'dove', col: 27, row: 4, way: 'down', speed: 1, range: 48, colour: 7 }, // dropping over the island's landing, down to a jump's height (he stands under it; the jump onto the island waits for it) (the koi are CHINA_LEAPS)
     ],
   }),
 
@@ -437,9 +459,8 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
     coins: [[10, 9]],
     decor: [['lanternPost', 9, 14], ['boxes', 15, 15], ['junk', 26, 11], ['hangingLantern', 18, 2], ['hangingLantern', 24, 2], ['peakNight', 14, 12], ['peakNight', 20, 12], ['hillLow', 5, 14]],
     creatures: [
-      { who: 'cricket', col: 7, row: 15, way: 'right', speed: 1, range: 36, colour: 8 },
-      { who: 'dove', col: 22, row: 6, way: 'down', speed: 1, range: 64 },
-      { who: 'carp', col: 7, row: 18, way: 'right', speed: 1, range: 88 },
+      { who: 'cricket', col: 6, row: 15, way: 'right', speed: 2, range: 40, colour: 3 }, // running the jetty, fast: jumped on planks that will not wait
+      { who: 'dove', col: 16, row: 3, way: 'down', speed: 1, range: 88 }, // the gull diving over the jetty's far end: waited for on the crane's rope (the one safe spot over the planks), then the run (the carp is CHINA_LEAPS)
     ],
   }),
 
@@ -449,13 +470,18 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
   room({
     id: CHI.heaven, cell: [0, 9], sector: 82, palette: HEAVEN_PALETTE,
     paint: paintHeaven,
-    coins: [[15, 9]],
+    coins: [[14, 9]],
     decor: [
       ...fillCells(paintHeaven, [], [0, 0, 31, DUSK_ROWS - 1], 'duskGlow'), // the rooftops' dusk going on along the top
       ...[[6, 1], [12, 3], [19, 1], [23, 4], [29, 2], [4, 5]].map(([c, r]) => ['star', c ?? 0, r ?? 0] as const),
       ['templeHeaven', 3, 8], // the Hall of Prayer for Good Harvests over the city, its terraces on the ridge's line
       ['ridgeBeasts', 19, 16], // the beasts marching along the ridge
-      ['eaveTip', 24, 14], ['eaveTip', 26, 14], ['eaveTip', 19, 12], ['eaveTip', 21, 12], ['eaveTip', 14, 10], ['eaveTip', 16, 10],
+      ['eaveTip', 25, 14], ['eaveTip', 27, 14], ['eaveTip', 19, 12], ['eaveTip', 21, 12], ['eaveTip', 13, 10], ['eaveTip', 15, 10],
+    ],
+    creatures: [
+      { who: 'imperialGuard', col: 3, row: 15, way: 'right', speed: 2, range: 76, colour: 3 }, // the ridge under the temple, fast
+      { who: 'kite', col: 19, row: 3, way: 'down', speed: 1, range: 64 }, // dropping over the middle eave
+      { who: 'cricket', col: 13, row: 5, way: 'down', speed: 1, range: 32, colour: 13 }, // hopping on the top eave, by the coin
     ],
   }),
   // DON'T ROCK THE BOAT: Houhai, the lake at the end of the hutong, a bonus room (Chris, 2026-11-25: "BACK ALLEY BEIJING... can have the same thing"; "an opportunity to try some new
@@ -472,6 +498,6 @@ export const CHINA_ROOMS: readonly RoomSpec[] = [
       ['star', 5, 1], ['star', 22, 2], ['star', 14, 0],
       ['boatCanopy', BOATS.west.from, BOATS.row - 3], ['boatCanopy', BOATS.east.from, BOATS.row - 3],
     ],
-    creatures: [], // (the boats are the room: China's creatures are each in two rooms already)
+    creatures: [], // (the boats and the koi leaping in the lake are the room: CHINA_LEAPS)
   }),
 ];

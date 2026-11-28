@@ -36,7 +36,7 @@ row 3   (Hilo at [3,19]: its apron's biplane takes off into L1)
 | Leg | Frames | What is in it |
 |---|---|---|
 | L1 THE MAIL RUN | 1250 (25 s) | Out over Hilo's coast and the sea. Gull Vs (straight passes at set heights), Kilauea's ash plume (a column that sweeps past, with clear air above it), a frigatebird (a screech as it comes in high, then a dive across), a slow albatross. One coin. |
-| L2 STORMY WEATHER | 1250 (25 s) | Under a storm front. Its clouds flicker (the warning) before lightning strikes down a column. Downdraft gusts are shown by streaks and push him toward the sea. A waterspout sweeps past with a gap above it. Three coins: one on the safe line, two in the gaps between bolts. |
+| L2 STORMY WEATHER | 1250 (25 s) | Under a storm front. Its clouds flicker (the warning) before lightning strikes down a column. Downdraft gusts are shown by streaks and push him toward the sea. Five waterspouts sweep past (2026-11-27: Chris wanted more, faster), tall and short, a pair close together, each with a gap above it. Three coins: one on the safe line, two in the gaps between bolts. |
 | L3 ON HIS TAIL | 1250 + the clip (about 27 s) | Viktor's red plane follows his exact path, starting 3 s behind and closing to under a second. Touching him is a death. Gulls and lightning that Monty just slips past catch Viktor when he copies the line, and each one knocks him back. The Andes' peaks rise along the bottom. At the end Viktor surges and clips his tail. Monty bails out: the plane tumbles away, the canopy opens, and he drops into F1 from the top. |
 
 Total: about 77 seconds.
@@ -131,3 +131,5 @@ The sky is black, as every room in this game is. The bands are dim blue, so the 
 - **ON HIS TAIL:** "weird because Viktor appears out of nowhere, and you can die just by being in the wrong spot when he
   appears." Viktor's plane comes in from behind, seen before it can hit (a warning: its engine's drone, its shadow, its
   nose at the edge for a moment), never popping up on top of Monty; no death by luck on his arrival.
+- **Done (2026-11-27, docs/dosvidaniya-pacific.md "Challenge pass, part 2"):** STORMY WEATHER's five spouts, a cell every 3 or 4 frames (`STORM_SPOUTS`, sky.ts); ON HIS TAIL's Viktor flies in from
+  the west border over a second (the name flashing red and the sting as he shows), out of the collision check till he is on his trail (the pursuer's `enter`, pursuers.ts).

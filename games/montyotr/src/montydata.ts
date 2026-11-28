@@ -103,10 +103,12 @@ export interface RoomEffect {
   /**
    * An item used on the spot, seen happening (Do Svidaniya Monty's gates: the panpipes played to the llama, the machete cutting the tangle): the effect does not wait in the room when he comes in with the
    * item; it happens when he first stands in this box of screen cells (column, row, width, height) in it, with the item's sound, once a visit. With `leaves` (-1 west, 1 east), the guard it sends off
-   * (`removeEnemy`) turns and walks off out of the room that way, harmless, rather than going at once (items.ts `leaveTick`). With `keep` (a hidden find), it happens once only: the find is set as it
-   * happens, and from then on the effect is applied as the room loads, the gate staying open (saved with the finds), so coming back from the far side is never a trap. None in Monty on the Run's.
+   * (`removeEnemy`) turns and walks off out of the room that way, harmless, rather than going at once (items.ts `leaveTick`). With `keep` (a special item no room shows), the find is taken as it happens,
+   * so the gate stays done: from then on the effect is applied as the room loads, through a death and a save (a trapdoor he comes back down through is open). With `beyond` (the rooms reached only through
+   * the gate), a save made before the gate was kept, in one of them or having been in one, with the item, has it kept as it is read (a game's save migration: Do Svidaniya Monty's save-migrate.ts `gatesPassed`),
+   * so it never loads with the gate shut behind him. None in Monty on the Run's.
    */
-  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1; keep?: number };
+  at?: { col: number; row: number; cols: number; rows: number; leaves?: -1 | 1; keep?: number; beyond?: readonly number[] };
 }
 
 /** A lift in a room (original Lift): where it starts, its type (1 rises when ridden, 2 descends) and its speed/direction byte. */
@@ -350,6 +352,8 @@ export interface RollerSpec {
   passes?: number;
   /** The sound (an effect's number) as each pass begins: the frigatebird's screech, the tell that it is coming. */
   sound?: number;
+  /** The box of its picture in sprite pixels when it is bigger than an item's 16 x 16 (a whale breaching: a full block, 24 x 21): the box that kills. */
+  size?: { readonly w: number; readonly h: number };
 }
 
 /**
@@ -451,6 +455,11 @@ export interface PursuerSpec {
   intro?: CameoWalk;
   /** His coming into sight (the name flashing red, the warp's sting) and his knock off (the name flashing green, the item's jingle) are announced (pursuers.ts): Do Svidaniya Monty's train roof, cargo ship and flight. */
   announce?: true;
+  /**
+   * He comes into sight off the picture's west edge and flies in to where the trail is over `enter` frames, harmless till he is on it (the flight's Viktor; Chris, 2026-11-26: he "appears out of nowhere
+   * and you can die just by being in the wrong spot"): seen before he can touch him, never a death by luck.
+   */
+  enter?: number;
 }
 
 /**

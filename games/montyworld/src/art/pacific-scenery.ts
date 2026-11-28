@@ -130,6 +130,18 @@ const SNOWCAP = [
 ] as const;
 
 /** Kaihalulu's lagoon: the turquoise water inside the lava wall, light rippling on it. */
+/** Waikiki's sand seen far below from Diamond Head's rim: fine grains, a line of surf along its top. */
+const BEACH = [
+  '.#.#.#.#',
+  '########',
+  '##.#####',
+  '########',
+  '#####.##',
+  '########',
+  '.#######',
+  '########',
+] as const;
+
 const LAGOON = [
   '########',
   '###..###',
@@ -393,6 +405,7 @@ export const PACIFIC_SCENERY_DECOR = {
   pacIronwood: ironwood(),
   pacBanyan: banyan(),
   pacLagoonFill: fill('pacLagoonFill', LAGOON, 3),
+  pacBeachFill: fill('pacBeachFill', BEACH, 7),
   pacSnowCap: fill('pacSnowCap', SNOWCAP, 1),
   pacCoffeeRows: fill('pacCoffeeRows', COFFEE_ROWS, 5),
   pacTrailUp: trailRun('pacTrailUp', true),

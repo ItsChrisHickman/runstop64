@@ -1,10 +1,10 @@
 /**
  * Hawaii's route for the bot (docs/dosvidaniya-back-half-plan.md, "Hawaii"): the goals, in the order a player who takes everything plays them. Onto the cargo ship from Japan's gangway, through it and out of the
- * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the drummers' platform), east along its lawn and up
- * Diamond Head (the tunnel, the stairs, the rockfall) to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
+ * bow door; along Waikiki's beach to the surf that stops him, up the palm past the lawn (the stand's roof), up into the luau past the torches (the lei, the beach west of it, the drummers' platform), east along its lawn and up
+ * Diamond Head (the mongooses, the tunnel, the stairs, the frigatebird over the gully) to THE LOOKOUT (the snorkel); back down and into the surf; the swim past Molokai and up Lahaina's mooring rope (the spar, the brig's musubi); along the road, down its pool into the sea
  * cave (the ledge's coin; through the lava tube between the swell's sets, the alcove's coin, the musubi in the pocket, out on a set) and back up, up the road's three tiers to Kaihalulu (the cinder cave's coin, the lagoon's); down its cliff to the channel and over the turtles (SHELL GAME: the musubi on the shore's rock) onto Kona; down the lava tube and over Mauna Loa ahead of the lava, down its pit for the
  * moon rock and out ahead of the pit's lava, along the coffee farm (the coffee) and up into Hilo (the plane still wants the parachute); up from the roofs along Akaka Falls' low lane to Mauna Kea and its
- * summit (the rock to the astronomer, his ladder, the parachute); back down and along the falls' high trail, down the rope to Hilo; and away in the biplane.
+ * summit (the bonus rooms either side, the rock to the astronomer, his ladder, the parachute); back down and along the falls' high trail, down the rope to Hilo; and away in the biplane.
  * Functions on the game, shared by the bot test and the pictures.
  */
 import { lavaTop } from '../../montyotr/src/lava';
@@ -12,7 +12,7 @@ import { copy, frame } from '../../montyotr/test/play';
 import { ACTIONS } from '../../shared/monty/test/bot';
 import { FLY } from '../src/sky';
 import type { Game } from '../../montyotr/src/game';
-import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_TIDE, CAVE_TUBE, COFFEE_AT, LAVA, MOON_ROCK_AT, PAC, PARACHUTE_AT } from '../src/pacific';
+import { BIPLANE_AT, CAVE_MUSUBI_AT, CAVE_TIDE, CAVE_TUBE, COFFEE_AT, LAVA, MOON_ROCK_AT, MOORING_COL, PAC, PARACHUTE_AT } from '../src/pacific';
 import { coin, into, item, leg, stands, type Leg, type Part } from './route';
 
 /** A leg's goal reached with the lava still a good way off (100 frames): a leg that ended on a ledge the lava reaches in a few frames would hand the next one a death. */
@@ -58,11 +58,16 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Waikiki to the luau: back to the palm and up the hill', into(PAC.luau, 20, 0, PAC.waikiki)),
   leg('Luau: the coin between the torches', livesFor(coin(PAC.luau, 8, 17), 40)),
   leg('Luau: past the last torch to the lei on its arch', livesFor(item(PAC.luau, 0, [1, 16]), 40)),
+  leg('Luau to BOARD MEETING: on west along the sand', into(PAC.beach, 0, 17, PAC.luau)),
+  leg('BOARD MEETING: the coin where the beach boys cross', livesFor(coin(PAC.beach, 21, 16), 40)),
+  leg('BOARD MEETING: up the surfboard rack past the volleyball, the top board\'s coin', livesFor(coin(PAC.beach, 6, 5), 40)),
+  leg('BOARD MEETING: down to the second shelf, across to the canoe rack, its coin', livesFor(coin(PAC.beach, 23, 11), 40)),
+  leg('BOARD MEETING to the luau: back east along the sand', into(PAC.luau, 31, 17, PAC.beach)),
   leg('Luau: back past the torches, up the stage to the drummers\' coin', livesFor(coin(PAC.luau, 28, 11), 40)),
   leg('Luau to Diamond Head: east along the lawn under the stage', into(PAC.diamond, 31, 17, PAC.luau)),
   leg('Diamond Head: along the walkway, into the tunnel and up its stairs, the coin in the niche', coin(PAC.diamond, 29, 11)),
   leg('Diamond Head: out of the upper mouth, west along the switchback, up the steep stairs, the coin on the bunker\'s ledge', coin(PAC.diamond, 1, 5)),
-  leg('Diamond Head to the Lookout: east over the gully between the rocks, up onto the shoulder and the spiral stair', livesFor(into(PAC.lookout, 29, 0, PAC.diamond), 40)),
+  leg('Diamond Head to the Lookout: east over the gully under the frigatebird, up onto the shoulder and the spiral stair', livesFor(into(PAC.lookout, 29, 0, PAC.diamond), 40)),
   leg('Lookout: up the station\'s stair, the coin on its landing', coin(PAC.lookout, 24, 13)),
   leg('Lookout: out through the slit onto the rim, the coin under the tern\'s dive', livesFor(coin(PAC.lookout, 16, 7), 40)),
   leg('Lookout: on along the rim, the snorkel a tourist left', livesFor(item(PAC.lookout, 0, [9, 7]), 40)),
@@ -74,9 +79,9 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('CHANNEL SURFING: under the reef\'s arch, its coin', livesFor(coin(PAC.clam, 10, 17), 40)),
   leg('CHANNEL SURFING to LAND AHOY: on east, low', into(PAC.kelp, 31, 16, PAC.clam)),
   leg('LAND AHOY: the coin in the kelp', livesFor(coin(PAC.kelp, 13, 17), 40)),
-  leg('LAND AHOY to Lahaina: up the mooring rope', into(PAC.lahaina, 15, 1, PAC.kelp)),
+  leg('LAND AHOY to Lahaina: up the mooring rope', into(PAC.lahaina, MOORING_COL, 1, PAC.kelp)),
   // Maui
-  leg('Lahaina: the musubi on the brig\'s deck', livesFor(item(PAC.lahaina, 0, [6, 12]), 40)),
+  leg('Lahaina: west over the whale\'s gap, the musubi on the brig\'s deck', livesFor(item(PAC.lahaina, 0, [6, 12]), 40)),
   leg('Lahaina: up the mast\'s rope to the spar, its coin', coin(PAC.lahaina, 9, 5)),
   leg('Lahaina to the road: along the quay under the fort\'s wall', into(PAC.road, 31, 16, PAC.lahaina)),
   leg('Road: the coin by the bend\'s bamboo', livesFor(coin(PAC.road, 27, 15), 40)),
@@ -88,7 +93,10 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Sea cave: out of the alcove as a set is spent, past the second stalactite to the Spam musubi in the pocket', livesFor(item(PAC.cave, 0, [CAVE_MUSUBI_AT.col, CAVE_MUSUBI_AT.row]), 40)),
   leg('Sea cave: out of the tube on a set, to its mouth', livesFor(within(PAC.cave, 2, 5, 9, 17), 40)),
   leg('Sea cave to the road: up through the cavern and the pool\'s rope', into(PAC.road, 24, 0, PAC.cave)),
-  leg('Road: up the tiers over the bridges, the coin on the top bridge', livesFor(coin(PAC.road, 16, 5), 40)),
+  leg('Road: up the bend\'s bamboo past the coconut to the middle tier', livesFor(stands(PAC.road, 13, 24, 26), 40)),
+  leg('Road: west over the middle bridge behind its pair of cars', livesFor(stands(PAC.road, 13, 4, 10), 40)),
+  leg('Road: up the bamboo past the other coconut to the top tier', livesFor(stands(PAC.road, 8, 5, 9), 40)),
+  leg('Road: east onto the top bridge behind its cars, the coin over it', livesFor(coin(PAC.road, 16, 5), 40)),
   leg('Road to Kaihalulu: out at the top', into(PAC.hana, 31, 6, PAC.road)),
   leg('Kaihalulu: down the bamboo onto the sand, over the wave, up the steps to the coin in the cinder cave', livesFor(coin(PAC.hana, 25, 10), 40)),
   leg('Kaihalulu: down into the lagoon between waves, its coin', livesFor(coin(PAC.hana, 27, 17), 40)),
@@ -106,12 +114,12 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Kona to Mauna Loa: back west, down the lava tube\'s rope', into(PAC.loa, 7, 19, PAC.kona)),
   leg('Mauna Loa: over the cracking crust ahead of the lava, the coin at the last ledge\'s end', outOfLava(coin(PAC.loa, 26, 12))),
   leg('Mauna Loa: down the rope into the crater\'s pit, the moon rock', livesFor(item(PAC.loa, 0, [MOON_ROCK_AT.col, MOON_ROCK_AT.row]), 40)),
-  leg('Mauna Loa: up the rope ahead of the pit\'s lava to the rim, the coin at its head', livesFor(coin(PAC.loa, 22, 3), 40)),
+  leg('Mauna Loa: up the rope past the pit\'s magma to the rim, the coin at its head', livesFor(coin(PAC.loa, 22, 3), 40)),
   leg('Mauna Loa to the farm: out east along the rim', into(PAC.coffee, 31, 3, PAC.loa)),
   leg('Coffee farm: the coin on the top terrace', coin(PAC.coffee, 5, 3)),
   leg('Coffee farm: down a terrace, its coin', coin(PAC.coffee, 13, 7)),
-  leg('Coffee farm: down to the sack of coffee', livesFor(item(PAC.coffee, 0, [COFFEE_AT.col, COFFEE_AT.row]), 40)),
-  leg('Coffee farm to Hilo: down to the lane and up the rope', into(PAC.hilo, 29, 0, PAC.coffee)),
+  leg('Coffee farm: down onto the drying deck, the sack of coffee', livesFor(item(PAC.coffee, 0, [COFFEE_AT.col, COFFEE_AT.row]), 40)),
+  leg('Coffee farm to Hilo: down off the deck to the road past the cyclist, and up the rope', into(PAC.hilo, 29, 0, PAC.coffee)),
   leg('Hilo: west past the rooster, the coin on the street', livesFor(coin(PAC.hilo, 17, 17), 40)),
   leg('Hilo: up the rope onto the storefronts\' roofs, their coin', coin(PAC.hilo, 8, 10)),
   leg('Hilo to Akaka Falls: up the rope from the roofs into the low lane', into(PAC.falls, 9, 19, PAC.hilo)),
@@ -121,8 +129,17 @@ export const PACIFIC_LEGS: readonly Leg[] = [
   leg('Mauna Kea: up to the top, its coin', coin(PAC.kea, 3, 2)),
   leg('Mauna Kea to the summit: up the rope', into(PAC.summit, 6, 0, PAC.kea)),
   leg('Summit: the coin by the cairn', coin(PAC.summit, 3, 12)),
-  leg('Summit: up the dome\'s ladder to the catwalk, its coin', coin(PAC.summit, 16, 9)),
-  leg('Summit: up the astronomer\'s ladder (the moon rock given) to the parachute', livesFor(item(PAC.summit, 0, [PARACHUTE_AT.col, PARACHUTE_AT.row]), 40)),
+  leg('Summit to ON THIN ICE: west along the ridge', into(PAC.waiau, 0, 14, PAC.summit)),
+  leg('ON THIN ICE: up the east cone past its nene, the coin on top', livesFor(coin(PAC.waiau, 24, 8), 40)),
+  leg('ON THIN ICE: across the ice behind the snowball, its coin', livesFor(coin(PAC.waiau, 14, 14), 40)),
+  leg('ON THIN ICE: up the west cone past its nene, the coin on top', livesFor(coin(PAC.waiau, 5, 8), 40)),
+  leg('ON THIN ICE to the summit: back over the ice and east along the ridge', into(PAC.summit, 31, 14, PAC.waiau)),
+  leg('Summit: between the snowballs up the dome\'s ladder to the catwalk, its coin', coin(PAC.summit, 16, 9)),
+  leg('Summit: the moon rock given where the astronomer paces, up his ladder to the parachute', livesFor(item(PAC.summit, 0, [PARACHUTE_AT.col, PARACHUTE_AT.row]), 40)),
+  leg('Summit to SEEING STARS: down and east along the ridge', into(PAC.ridge, 31, 14, PAC.summit)),
+  leg('SEEING STARS: up Keck I\'s ladder, the coin at its catwalk\'s end', livesFor(coin(PAC.ridge, 2, 9), 40)),
+  leg('SEEING STARS: over the gantry through the laser\'s gaps to Keck II\'s catwalk, its coin', livesFor(coin(PAC.ridge, 27, 9), 40)),
+  leg('SEEING STARS to the summit: down and west along the ridge', into(PAC.summit, 0, 14, PAC.ridge)),
   leg('Summit to Mauna Kea: back down the rope', into(PAC.kea, 6, 19, PAC.summit)),
   leg('Mauna Kea to Akaka Falls: the third switchback east onto the high trail', into(PAC.falls, 31, 6, PAC.kea)),
   leg('Akaka Falls: along the high trail over the falls, the coin at the rope\'s head', coin(PAC.falls, 24, 6)),

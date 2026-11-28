@@ -1,6 +1,6 @@
 /**
  * Hawaii, played by a bot from Japan's cargo ship to Hilo's biplane (docs/dosvidaniya-back-half-plan.md, "Hawaii"): the bot (bot.ts) searches the game's own frames for a way to each goal in
- * pacific-route.ts (every coin, the lei, the snorkel, the three musubi, the moon rock, the parachute and the coffee; the pistons, the torches, the rocks, the surf, the cars, the wave, the turtles, the
+ * pacific-route.ts (every coin, the lei, the snorkel, the three musubi, the moon rock, the parachute and the coffee; the pistons, the torches, the surf, the cars, the wave, the turtles, the
  * lava, the cracking crust, the vent and every creature in the way), plays it, and the game must be where the goal says, alive, in ORIGINAL and in ENHANCED. It starts where a player does after Japan: on the cargo ship's landing with
  * Moscow's, Siberia's, China's and Japan's finds and the ninja hood on. (The gates' proofs and the mechanisms are in pacific-mechanisms.ts.)
  *

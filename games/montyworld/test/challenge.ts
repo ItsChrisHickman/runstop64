@@ -23,7 +23,7 @@ const CALM: Readonly<Record<number, string>> = {
 };
 
 /** Rooms under the floor today (2026-11-27), the challenge pass's work list: take one off when its fix lands. */
-const PENDING: ReadonlySet<number> = new Set([82, 96, 88, 89, 90, 91, 92, 93, 51, 53]);
+const PENDING: ReadonlySet<number> = new Set<number>([]);
 
 const nameOf = (id: number) => [...NAMES.names].find(([n, v]) => v === id && n.includes('.'))?.[0] ?? `room ${id}`;
 
