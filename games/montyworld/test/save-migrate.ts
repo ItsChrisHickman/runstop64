@@ -101,14 +101,14 @@ check('a save in a room the reset did not change keeps its place exactly (Moscow
 const now = snapshot(b.g);
 const again = CODEC.unpack(CODEC.pack(now), 4);
 check('a format 4 save reads as it was written', JSON.stringify(again) === JSON.stringify(now));
-// a format 4 save from before the ice cave (2026-11-26): two coins short (the cave's, last in the table), made on MOUNT FUJI's entry ledge (the mountain lost its floor, not the ledge he comes in on):
+// a format 4 save from before the ice cave (2026-11-26): short of the cave's two coins and every coin added after them (the Andes' second line's), made on MOUNT FUJI's entry ledge (the mountain lost its floor, not the ledge he comes in on):
 // every coin it had is still taken, the cave's are not, and he carries on standing on the ledge
 {
   const s4 = newGame(WORLD, false);
   enterRoom(s4.g, JP.fuji, 0x0c + (FUJI.entry.col0 + 1 + 4) * 4, standY(FUJI.floor));
   for (let f = 0; f < 60; f++) frame(s4, NONE);
   const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => WORLD.coinTable[i * 3] === JP.cave);
-  const before = { ...snapshot(s4.g), coins: Array.from({ length: WORLD.coinTable.length / 3 - cave.length }, () => 0xff) };
+  const before = { ...snapshot(s4.g), coins: Array.from({ length: Math.min(...cave) }, () => 0xff) };
   const read = CODEC.unpack(CODEC.pack(before), 4);
   const p4 = newGame(WORLD, false);
   restore(p4.g, read);

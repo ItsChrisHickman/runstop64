@@ -299,8 +299,8 @@ const PAINT = {
     // CHIMNEY SWEEP: the two ways down from the crevasses (cols 15-19 and 24-26) meet in a chimney that turns twice, round a ledge out of the east wall and a crag out of the west
     g.box(0, 0, 14, 19, 'R'); // the mountain's mass
     g.box(20, 0, 23, 7, 'R').box(27, 0, 31, 19, 'R'); // the rib between the two ways in (the second crag's root), the east wall
-    g.box(21, 10, 26, 11, 'R').box(21, 9, 26, 9, 'S'); // the ledge out of the east wall (floor 9): the coin at its tip
-    g.box(15, 14, 19, 15, 'R').box(15, 13, 19, 13, 'S'); // the crag out of the west (floor 13)
+    g.box(22, 10, 26, 11, 'R').box(22, 9, 26, 9, 'S'); // the ledge out of the east wall (floor 9), the coin on it
+    g.box(15, 14, 17, 15, 'R').box(15, 13, 17, 13, 'S'); // the crag out of the west (floor 13): the chimney between it and the ledge four cells wide
   },
   prayer(g: Grid) {
     // WING AND A PRAYER: out of the chimney's mouth over Machu Picchu; the mountain's flanks fall away either side and the sky opens to the citadel below (the hill's top and the Intihuatana: the landing)
@@ -442,7 +442,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[16, 9]],
     item: { name: 'empanada1', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
     decor: [['andPeaks', 9, 3], ['mistCloud', 5, 1], ['updraft', 13, 10], ['updraft', 13, 6]],
-    creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 2, range: 48 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48, colour: 10 }, { who: 'condor', col: 16, row: 11, way: 'left', speed: 3, range: 32, colour: 7 }],
+    creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 1, range: 96 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48, colour: 10 }, { who: 'condor', col: 16, row: 13, way: 'left', speed: 3, range: 32, colour: 7 }],
   }),
 
   // MP1 NO PROBLLAMA: Machu Picchu's terraces, dry-stone walls under their grass. The guardhouse on the top terrace (floor 8), its thatch roof clear, holds the chullo; the roof's coin is for the west landing.
@@ -455,7 +455,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     decor: [['andPeaks', 17, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
-    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 12, row: 10, way: 'right', speed: 1, range: 24 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 2, range: 28 }],
+    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 14, row: 10, way: 'right', speed: 1, range: 16 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 2, range: 28 }],
   }),
 
   // MP2 MACHU PICCHU: the plateau, Huayna Picchu behind. The lane (floor 18) runs east from the terraces under the plateau into the tunnel (cols 12-24, rows 15-17 under the lintel, its back wall in the dark
@@ -477,7 +477,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.bridge, cell: [5, 27], sector: AND.bridge, palette: BRIDGE_PALETTE, paint: PAINT.bridge,
     item: { name: 'empanada3', col: 27, row: 2, sprite: ANDES_SPRITE.empanada },
     decor: [['andPeaks', 3, 1], ['andCitadelFar', 5, 13]],
-    creatures: [{ who: 'condor', col: 2, row: 1, way: 'right', speed: 2, range: 96, colour: 7 }, { who: 'andVizcacha', col: 21, row: 4, way: 'up', speed: 2, range: 16 }],
+    creatures: [{ who: 'condor', col: 26, row: 1, way: 'left', speed: 2, range: 96, colour: 7 }, { who: 'andVizcacha', col: 21, row: 4, way: 'up', speed: 2, range: 16 }],
   }),
 
   // THE CANOPY: straight out of the tunnel's squeeze down the well's liana onto a bough. The only way on is the lattice: off the bough onto the liana slung across, west along it past the toucan and the sloth
@@ -558,22 +558,23 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // COLD SHOULDER: the second line down, the harder (Chris: "the parachute drop... still extremely short and non-memorable"; the drop as a course). Walked east off JUMP FOR JOY's shoulder past its condor
-  // onto the ridge; off its end the canopy takes him over the crevasses: a condor sweeping the glide high, a quick one rising and falling in the wide crevasse (the way on), a slow one over the second crag
-  // (the other way on). The coin on the crag's cap: sink into the pocket under the ridge's end and its updraft lifts him level with it, then a step across under the high condor.
+  // onto the ridge; off its end the canopy takes him over the crevasses: a quick condor sweeps across the glide from the ridge to the crevasse, a slow one rises and falls over the pocket's updraft
+  // (the coin's way: up it level with the crag's cap, timed against it), another over the second crag (the other way down).
   room({
     id: AND.shoulder, cell: [2, 26], sector: AND.shoulder, palette: SKY_PALETTE, paint: PAINT.shoulder,
     coins: [[13, 6]],
     decor: [['andPeaks', 15, 1], ['mistCloud', 19, 6], ['updraft', 8, 14], ['updraft', 8, 10], ['updraft', 8, 6]],
-    creatures: [{ who: 'condor', col: 2, row: 3, way: 'right', speed: 2, range: 80, colour: 10 }, { who: 'condor', col: 16, row: 10, way: 'down', speed: 3, range: 16 }, { who: 'condor', col: 24, row: 2, way: 'down', speed: 1, range: 56, colour: 14 }],
+    creatures: [{ who: 'condor', col: 9, row: 0, way: 'down', speed: 1, range: 64, colour: 10 }, { who: 'condor', col: 8, row: 5, way: 'right', speed: 3, range: 40 }, { who: 'condor', col: 24, row: 2, way: 'down', speed: 1, range: 56, colour: 14 }],
   }),
 
   // CHIMNEY SWEEP: the two crevasses come down into one chimney. The west way drops past a condor rising and falling in it onto the crag out of the west wall; the east way onto the ledge out of the east wall
-  // (the coin at its tip), then west off it. Under them the chimney turns: a condor beats up and down under the ledge, and a quick one sweeps across the foot, the way out: each turn is a wait on a ledge, then a committed drop.
+  // (the coin), then west off it. Under them the chimney turns: a condor beats up and down under the ledge's east end, and a quick one sweeps the west half of the foot: out west behind the quick
+  // one, or east past the slow one. Each turn is a wait on a ledge, then a committed drop.
   room({
     id: AND.chimney, cell: [3, 26], sector: AND.chimney, palette: SKY_PALETTE, paint: PAINT.chimney,
     coins: [[25, 7]],
     decor: [['mistCloud', 16, 9]],
-    creatures: [{ who: 'condor', col: 16, row: 1, way: 'down', speed: 2, range: 32, colour: 7 }, { who: 'condor', col: 22, row: 12, way: 'down', speed: 1, range: 32 }, { who: 'condor', col: 15, row: 16, way: 'right', speed: 3, range: 24, colour: 10 }],
+    creatures: [{ who: 'condor', col: 16, row: 1, way: 'down', speed: 2, range: 32, colour: 7 }, { who: 'condor', col: 23, row: 12, way: 'down', speed: 1, range: 32 }, { who: 'condor', col: 15, row: 16, way: 'right', speed: 3, range: 16, colour: 10 }],
   }),
 
   // WING AND A PRAYER: out of the chimney's mouth into the sky over Machu Picchu, its citadel below. A condor glides the whole width slowly under the mouth, another beats up and down mid-sky; the coin under

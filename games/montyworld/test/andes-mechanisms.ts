@@ -185,10 +185,11 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu], 'the pa
   });
   SCOPE.section([AND.jump, ...SECOND_LINE, AND.picchu], 'the drop\'s second line', () => {
     // east along JUMP FOR JOY's shoulder, then down COLD SHOULDER, CHIMNEY SWEEP and WING AND A PRAYER into Machu Picchu's sky: each step a search with the creatures in
-    const legs: readonly [from: State, to: number][] = [
-      [at(AND.jump, 24, 11, [], false, true), AND.shoulder], [at(AND.shoulder, 4, 11, [], false, true), AND.chimney], [at(AND.chimney, 17, 13, [], false, true), AND.prayer], [at(AND.prayer, 16, 2, [], false, true), AND.picchu],
+    const legs: readonly [from: State, aim: { room: number; col: number; row: number }, to: number][] = [
+      [at(AND.jump, 24, 11, [], false, true), { room: AND.jump, col: 31, row: 9 }, AND.shoulder], [at(AND.shoulder, 4, 11, [], false, true), { room: AND.shoulder, col: 17, row: 19 }, AND.chimney],
+      [at(AND.chimney, 16, 13, [], false, true), { room: AND.chimney, col: 20, row: 19 }, AND.prayer], [at(AND.prayer, 16, 2, [], false, true), { room: AND.prayer, col: 26, row: 19 }, AND.picchu],
     ];
-    const found = legs.map(([from, to]) => search(from, (g) => g.roomId === to && !dead(g), undefined, 150000, 0) !== null);
+    const found = legs.map(([from, aim, to]) => search(from, (g) => g.roomId === to && !dead(g), [aim], 300000, 1.5) !== null);
     check(`the second line: east off the shoulder into COLD SHOULDER, down it into CHIMNEY SWEEP, down that into WING AND A PRAYER and down into Machu Picchu, past their condors (${found.join(' ')})`, found.every(Boolean));
     check('every room of the second line is a flight room with a coin and at least two creatures', SECOND_LINE.every((id) => WORLD.flights.some((f) => f.room === id) && (roomOf(id).coins?.length ?? 0) === 1 && (roomOf(id).enemies ?? []).length >= 2));
   });
@@ -462,10 +463,10 @@ SCOPE.section([AND.jump, AND.thin, AND.gorge, AND.terraces, AND.picchu, AND.brid
     check(`fair from every start: ${label} (${ok} of 5 starts)`, ok === 5);
   };
   SCOPE.section([AND.canopy, AND.cloud, AND.picchu], 'fair: the canopy lattice to the cloud forest', () => {
-    fair('the canopy\'s lattice past the toucan and the sloth, the bough to CLOUD NINE', () => at(AND.canopy, 20, 7, [], false, true), { room: AND.canopy, col: 0, row: 8 }, (g) => g.roomId === AND.cloud);
+    fair('the canopy\'s lattice from the well\'s liana: past the jaguar on the bough, the toucan and the sloth, to CLOUD NINE', () => at(AND.canopy, 20, 5, [], false, true), { room: AND.canopy, col: 0, row: 8 }, (g) => g.roomId === AND.cloud);
   });
   SCOPE.section([AND.cloud, AND.vine], 'fair: the cloud forest floor', () => {
-    fair('CLOUD NINE\'s floor past the bear and over the stream under the cock-of-the-rock, down to the river', () => at(AND.cloud, 22, 18, [], false, true), { room: AND.cloud, col: 2, row: 19 }, (g) => g.roomId === AND.vine);
+    fair('CLOUD NINE\'s liana down to the floor past the bear and over the stream under the cock-of-the-rock, down to the river', () => at(AND.cloud, 20, 12, [], false, true), { room: AND.cloud, col: 2, row: 19 }, (g) => g.roomId === AND.vine);
   });
   SCOPE.section([AND.vine, AND.cloud, AND.sandbar], 'fair: VINE AND DANDY', () => {
     fair('VINE AND DANDY\'s three vines and two logs past the piranhas, the west bank to the east bank', () => at(AND.vine, 3, 15, [], false, true), { room: AND.vine, col: 29, row: 13 }, (g) => g.roomId === AND.vine && colOf(g) >= 27 && g.y === standY(15));

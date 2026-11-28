@@ -273,18 +273,19 @@ room's puzzle and its line(s):
   to it, slow), a quick one paces over the shoulder (the way east to the second line).
 - **OUT OF THIN AIR**: the high condor at twice the pace (same sweep), the diver in the right canyon, and a slow one rising and falling
   in the left canyon, the way down: from the crest (the coin) wait for it to rise, then drop.
-- **CONDOR COUNTRY**: the updraft's diver quick, the neck's slow, and a fast one low across both throats: each landing (the guardhouse's
+- **CONDOR COUNTRY**: the two divers as they were (the shelf's way), and a fast one low across both throats: each landing (the guardhouse's
   roof, the broad terrace) is a gap read from above.
 - **The second line** (docs/dosvidaniya-edges.md $67-$69, Chris's decision: two lines down, a coin on the harder one; ids 103-105,
   last in `ADDED_ROOMS`): east along JUMP FOR JOY's shoulder past its condor into **COLD SHOULDER** (the ridge, the crevasses between two
-  crags: a condor sweeping the glide high, a quick one in the wide crevasse, a slow one over the second crag; the coin on the crag's cap,
-  up the pocket's updraft), **CHIMNEY SWEEP** (two ways in from the crevasses meet in a chimney that turns round a ledge and a crag: a
-  condor in the west way, one under the ledge, a quick one across the foot; the coin on the ledge under the east way)
-  and **WING AND A PRAYER** (out of the chimney's mouth over Machu Picchu: a slow condor the whole width, another up and down mid-sky,
-  the coin up the updraft under the overhang; the landing is the hill's top by the Intihuatana, under the boulders). Six flight rooms
-  in all. The first line keeps the terraces and the chullo; the second lands at the panpipes, and the plateau's run out onto the
-  terraces' high ledge takes him back to the chullo, so neither line strands him.
-- **NO PROBLLAMA**: the broad terrace's llama walks three cells (it was one: jumped over as it turns), the low path's quick across the
+  crags: a quick condor across the glide to the crevasse, a slow one over the pocket's updraft, another over the second crag; the coin
+  on the crag's cap, up the updraft timed against the slow one), **CHIMNEY SWEEP** (two ways in from the crevasses meet in a chimney that
+  turns round a ledge and a crag: a condor in the west way, a slow one under the ledge's east end, a quick one across the
+  west half of the foot: out behind the quick one, or east past the slow one; the coin on the ledge under the east way) and **WING AND A
+  PRAYER** (out of the chimney's mouth over Machu Picchu: a slow condor the whole width, another up and down mid-sky, the coin up the
+  updraft under the overhang; the landing is the hill's top by the Intihuatana, under the boulders). Six flight rooms in all. The
+  first line keeps the terraces and the chullo; the second lands at the panpipes, and the plateau's run out onto the terraces' high
+  ledge takes him back to the chullo, so neither line strands him.
+- **NO PROBLLAMA**: the broad terrace's llama walks two cells (it was one: jumped over as it turns; clear of the east throat's landing), the low path's quick across the
   drop point; the cuy over the last step as before.
 - **MACHU PICCHU**: the boulders stay on the climb (they roll down the way to the panpipes, never off to a side); the cuy hops out of
   the gap twice as quick (the gap's jump is read against it); Huayna Picchu light green (the dark blue did not read). Sprites: the three
