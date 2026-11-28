@@ -8,7 +8,7 @@ import { SIBERIA_LATER_COLOURS, SIBERIA_LATER_NAMES } from './siberia';
 /**
  * The sectors from 82 on (`LATER_FROM`): the rooms brought back or added after the sky's sectors (79-81), every region's together in one table by id (82 China's HEAVEN CAN WAIT,
  * 83-85 and 94 the Andes' returns, 86 kept for Rio's, 87-93 Hawaii's, 95-97 the bonus rooms off the path: Siberia's OFF THE BEATEN PATH, China's DON'T ROCK THE BOAT, Japan's
- * SHOOT FOR THE MOON), 98 Japan's ice cave under MOUNT FUJI (GONE WITH THE WIND), so no region's list owns another's places. A room's sector is its id; an id no room has is an empty name. The one owner of the later rooms' sectors;
+ * SHOOT FOR THE MOON), 98 Japan's ice cave under MOUNT FUJI (GONE WITH THE WIND), 99 Hawaii's beach west of the luau (BOARD MEETING), so no region's list owns another's places. A room's sector is its id; an id no room has is an empty name. The one owner of the later rooms' sectors;
  * their table places are data.ts's `ADDED_ROOMS` (last, so no save's places move).
  */
 const NAMES: Readonly<Record<number, string>> = { ...CHINA_LATER_NAMES, ...ANDES_LATER_NAMES, ...PACIFIC_LATER_NAMES, ...SIBERIA_LATER_NAMES, ...JAPAN_LATER_NAMES };

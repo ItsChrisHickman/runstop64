@@ -4,9 +4,10 @@
  * to look at rooms (2026-11-27: thirty region- and feature-specific shot scripts had grown, one per pass). Monty stands where he is put
  * and is untouchable (the engine's grace hook), so nothing kills him and the picture is of the room. Pictures only: nothing is checked.
  *
- *   nice -n 15 node tools/test.mjs games/montyworld/test/rooms-sheet.ts <out-dir> --room 41,42,waikiki [--frames 400]
+ *   nice -n 15 node tools/test.mjs games/montyworld/test/rooms-sheet.ts <out-dir> --room 41,42,waikiki [--frames 400] [--at 90,120]
  *
- * Writes <out-dir>/room-<id>.png for each and <out-dir>/sheet.png (three across), and prints the creature lines.
+ * Writes <out-dir>/room-<id>.png for each and <out-dir>/sheet.png (three across), and prints the creature lines. `--at` also saves the room as it is at those frames
+ * (room-<id>-at<frame>.png, no trails): a mechanism seen mid-move (a whale breaching, a car on a bridge).
  */
 import fs from 'node:fs';
 import { enterRoom } from '../../montyotr/src/ending';
@@ -21,6 +22,8 @@ if (!out || !process.env.MONTY_ROOMS) {
 }
 const at = rest.indexOf('--frames');
 const FRAMES = at >= 0 ? Number(rest[at + 1]) || 400 : 400;
+const atArg = rest.indexOf('--at');
+const SNAPS = new Set(atArg >= 0 ? (rest[atArg + 1] ?? '').split(',').map(Number).filter((n) => n > 0 && n <= FRAMES) : []);
 fs.mkdirSync(out, { recursive: true });
 
 /** Where he is tried, in turn, until he settles in the room asked for (the floor, then the left and right edges, then high up). */
@@ -51,7 +54,10 @@ for (const spec of scopedRooms(ALL_ROOMS)) {
   if (!s) { console.log(`room ${spec.id}: no spot he stays in (tried ${SPOTS.length})`); continue; }
   const lines = s.g.enemies.map((e, i) => `  creature ${i}: type ${e.type}, speed ${e.speed} px a step, range ${e.range} steps, patrol ${e.speed * e.range} px${e.driven ? ' (driven by a mechanism)' : ''}`);
   const starts = sprites(s), trail: Point[] = [];
-  for (let f = 0; f < FRAMES && s.g.roomId === spec.id; f++) { frame(s, NONE); trail.push(...sprites(s)); }
+  for (let f = 0; f < FRAMES && s.g.roomId === spec.id; f++) {
+    frame(s, NONE); trail.push(...sprites(s));
+    if (SNAPS.has(f + 1)) savePng(out, `room-${spec.id}-at${f + 1}.png`, shot(s.g));
+  }
   const px = shot(s.g), ground = px.slice(); // (each dot's colour from the picture as drawn, not from the dots before it)
   const dot = (x: number, y: number, c: number) => {
     for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {

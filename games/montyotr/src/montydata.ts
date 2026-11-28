@@ -352,6 +352,8 @@ export interface RollerSpec {
   passes?: number;
   /** The sound (an effect's number) as each pass begins: the frigatebird's screech, the tell that it is coming. */
   sound?: number;
+  /** The box of its picture in sprite pixels when it is bigger than an item's 16 x 16 (a whale breaching: a full block, 24 x 21): the box that kills. */
+  size?: { readonly w: number; readonly h: number };
 }
 
 /**

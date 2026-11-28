@@ -20,7 +20,8 @@ import { FLY } from '../src/sky';
 import { JP } from '../src/japan';
 import { CODEC } from '../src/main';
 import { SWIM_CYCLE, SWIM_POINTERS } from '../src/pacific-pointers';
-import { BIPLANE_AT, CAVE_DRIPS, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CELLS, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
+import { codeOf } from '../src/layout';
+import { BIPLANE_AT, CAVE_DRIPS, CAVE_MUSUBI_AT, CAVE_STALACTITES, CAVE_TIDE, CAVE_TUBE, CRUST_CRACKS, LAVA, MOORING_COL, PAC, PACIFIC_ROOMS, PACIFIC_SECTORS, PARACHUTE_AT, SURF_CALM_CODE, SURF_CELLS, WAIKIKI_PALETTE, TORCHES, TORCH_PULSES, TURTLE_PULSES, TURTLES, VENT, VENT_PULSES } from '../src/pacific';
 import { newGame } from '../../shared/monty/test/bot';
 import { search } from './search';
 import { at, cell, colOf, dead, diesAt, LEFT, overCrowded, RIGHT, rowText, run, shakes, UP } from './mech-kit';
@@ -38,12 +39,12 @@ SCOPE.section([], 'the data', () => {
   const grid = (row: number, col: number) => cells[row * cols + col];
   const placed = [
     [2, 17, PAC.ship], [2, 18, PAC.waikiki], [1, 18, PAC.luau], [1, 19, PAC.diamond], [0, 19, PAC.lookout], [3, 18, PAC.clam], [3, 19, PAC.kelp], [2, 19, PAC.lahaina], [2, 20, PAC.road], [3, 20, PAC.cave],
-    [2, 21, PAC.hana], [3, 21, PAC.fish], [3, 22, PAC.kona], [2, 22, PAC.kea], [1, 22, PAC.summit], [2, 23, PAC.falls], [3, 23, PAC.hilo], [4, 22, PAC.loa], [4, 23, PAC.coffee],
+    [2, 21, PAC.hana], [3, 21, PAC.fish], [3, 22, PAC.kona], [2, 22, PAC.kea], [1, 22, PAC.summit], [2, 23, PAC.falls], [3, 23, PAC.hilo], [4, 22, PAC.loa], [4, 23, PAC.coffee], [1, 17, PAC.beach],
   ] as const;
-  check('Hawaii is nineteen rooms at columns 17-23 (rows 0-4): Japan\'s port beside the ship, column 24 empty (the flight is a flight, not a room over), the sky from 25',
-    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && grid(0, 25) === FLY.mail && PACIFIC_ROOMS.length === 19);
-  check('the first build\'s ids that came back keep them, the new rooms are 87-93 (after the sky\'s and the other regions\' returns); 39, 40, 44, 50 and 54 stay retired',
-    [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => r.id >= 87 && r.id <= 93) && PACIFIC_SECTORS.length === 17);
+  check('Hawaii is twenty rooms at columns 17-23 (rows 0-4): Japan\'s port beside the ship, column 24 empty (the flight is a flight, not a room over), the sky from 25',
+    placed.every(([r, c, id]) => grid(r, c) === id) && grid(2, 16) === JP.port && [0, 1, 2, 3, 4, 5, 6, 7].every((r) => grid(r, 24) === 0xff) && grid(0, 25) === FLY.mail && PACIFIC_ROOMS.length === 20);
+  check('the first build\'s ids that came back keep them, the new rooms are 87-93 (after the sky\'s and the other regions\' returns) and BOARD MEETING 99 (the bonus west of the luau); 39, 40, 44, 50 and 54 stay retired',
+    [...cells].every((c) => ![39, 40, 44, 50, 54].includes(c)) && PACIFIC_ROOMS.filter((r) => r.id >= 82).every((r) => (r.id >= 87 && r.id <= 93) || r.id === PAC.beach) && PACIFIC_SECTORS.length === 17);
   const rooms = creatureRooms(PACIFIC_ROOMS);
   check(`no creature in more than two rooms (${[...rooms.values()].map((v) => v.size).join(' ')}), no room with a fourth (sprite 7 is the worn lei's)`, [...rooms.values()].every((v) => v.size <= 2) && overCrowded(PACIFIC_ROOMS).length === 0);
   check('the three swim rooms are the swim past Molokai (two rooms) and the sea cave (SHELL GAME is on the surface, no swim); only the sea cave\'s tube has a surge (the flight\'s gusts are currents too); the lava is Mauna Loa\'s alone; Monty on the Run has none of them',
@@ -68,9 +69,16 @@ SCOPE.section([PAC.waikiki, PAC.clam, PAC.ship, PAC.luau], 'Waikiki: the surf sh
   const stats = { exhausted: false };
   const swim = search(at(PAC.waikiki, 23, 19), (g) => g.roomId === PAC.clam, [{ room: PAC.waikiki, col: 28, row: 17 }], 120000, 1.5, stats);
   check(`no way into the sea without the snorkel, jumps and all (${stats.exhausted ? 'every state looked at' : 'the state limit'})`, swim === null);
-  const dive = at(PAC.waikiki, 23, 19, [SNORKEL]);
-  for (let f = 0; f < 200 && dive.g.roomId !== PAC.clam; f++) frame(dive, RIGHT);
-  check('with the snorkel the surf is gone and he dives through into CHANNEL SURFING, alive', dive.g.roomId === PAC.clam && !dead(dive.g) && SURF_CELLS.every(([row, col]) => cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) === 0 || cell(at(PAC.waikiki, 2, 19, [SNORKEL]).g, col, row) > 8));
+  const surfIs = (s: State, code: number) => SURF_CELLS.every(([row, col]) => cell(s.g, col, row) === code);
+  const breakers = codeOf(WAIKIKI_PALETTE, 'W');
+  const far = at(PAC.waikiki, 2, 19, [SNORKEL]);
+  check('with the snorkel, away from it, the surf still breaks (it gives way where he uses the snorkel, seen)', surfIs(far, breakers));
+  const dive = at(PAC.waikiki, 18, 19, [SNORKEL]);
+  let calmed = false;
+  for (let f = 0; f < 300 && dive.g.roomId !== PAC.clam; f++) { frame(dive, RIGHT); if (dive.g.roomId === PAC.waikiki && surfIs(dive, SURF_CALM_CODE)) calmed = true; }
+  check('coming up to it with the snorkel the surf goes calm (calm water, drawn), and he drops through it into CHANNEL SURFING, alive', calmed && dive.g.roomId === PAC.clam && !dead(dive.g));
+  enterRoom(dive.g, PAC.waikiki, 0x0c + 6 * 4, standY(19));
+  check('and it stays calm: back in Waikiki it is calm as the room loads (kept)', surfIs(dive, SURF_CALM_CODE));
 });
 
 // ---- the luau's torches --------------------------------------------------------------------------------
@@ -92,7 +100,7 @@ SCOPE.section([PAC.clam, PAC.kelp, PAC.lahaina, PAC.cave, PAC.road, PAC.waikiki]
   const surf = at(PAC.clam, 27, 4, [SNORKEL]);
   run(surf, UP, 300);
   check('swimming up under the surf\'s gap he stays in the sea (no rope there: the surface holds him, no bounce)', surf.g.roomId === PAC.clam && !dead(surf.g));
-  const ropes: readonly (readonly [from: number, col: number, to: number])[] = [[PAC.kelp, 15, PAC.lahaina], [PAC.cave, 23, PAC.road]];
+  const ropes: readonly (readonly [from: number, col: number, to: number])[] = [[PAC.kelp, MOORING_COL, PAC.lahaina], [PAC.cave, 23, PAC.road]];
   for (const [from, col, to] of ropes) {
     const s = at(from, col, 5, [SNORKEL]);
     for (let f = 0; f < 300 && s.g.roomId === from; f++) frame(s, UP);
@@ -251,7 +259,7 @@ SCOPE.section([JP.port, PAC.ship, PAC.waikiki, PAC.clam, PAC.kelp, PAC.lahaina, 
 // ---- a save in each room ----------------------------------------------------------------------------
 SCOPE.section([], 'a save in each room', () => {
   const spots = [
-    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 18, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 27, 18], [PAC.road, 3, 18],
+    [PAC.ship, 1, 13], [PAC.waikiki, 1, 19], [PAC.luau, 23, 19], [PAC.diamond, 1, 19], [PAC.lookout, 15, 9], [PAC.clam, 10, 11], [PAC.kelp, 2, 18], [PAC.lahaina, 17, 18], [PAC.beach, 3, 19], [PAC.road, 3, 18],
     [PAC.cave, 3, 18], [PAC.hana, 3, 8], [PAC.fish, 13, 16], [PAC.kona, 2, 19], [PAC.kea, 20, 16], [PAC.summit, 10, 16], [PAC.falls, 2, 8], [PAC.loa, 3, 19], [PAC.coffee, 2, 5], [PAC.hilo, 2, 19],
   ] as const;
   const failed: number[] = [];

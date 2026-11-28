@@ -67,15 +67,15 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 
 | Room | Chris | Status |
 |---|---|---|
-| Welcome to Honolulu | the walker "should go much further left and right and be faster"; the flyer "doesn't really pose a threat"; the drop bottom right "doesn't tell me there's water down there" | open |
-| Lei of the land | "there should be a room to the left" (and the snorkel there?); the floater "almost completely impossible to hit", "there should be another enemy"; the right one "also impossible to hit" | open; snorkel stays at THE LOOKOUT (his call to overturn); bonus room $63 west |
-| Diamond Head | "love the design but there's no challenge at all"; the rolling thing is Mt Fuji's idea, "not executed well and too repetitive" | open |
-| The lookout | "needs some work. What exactly am I looking out at?"; a bird "isn't doing anything"; "the blue background has black holes" | open |
-| Channel surfing | the dolphin took a moment to read; "looks like I'm supposed to go to the left and I can't" | open; west closed by Koko Head (his call) |
-| Whale of a time | "nothing really going on... nothing to do with the whale" | open |
-| The sea cave | flow arrows "should be white, not black"; black boxes from pickups; needs challenge (icicles on their own) | open |
-| Road to Hana | "great, but the cars need to be moving constantly and might need to be two at a time" | open |
-| Kaihalulu | the right side's hole unclear; blue water kills with a snorkel: "a confusing scene" | open |
+| Welcome to Honolulu | the walker "should go much further left and right and be faster"; the flyer "doesn't really pose a threat"; the drop bottom right "doesn't tell me there's water down there" | in pass |
+| Lei of the land | "there should be a room to the left" (and the snorkel there?); the floater "almost completely impossible to hit", "there should be another enemy"; the right one "also impossible to hit" | in pass |
+| Diamond Head | "love the design but there's no challenge at all"; the rolling thing is Mt Fuji's idea, "not executed well and too repetitive" | in pass |
+| The lookout | "needs some work. What exactly am I looking out at?"; a bird "isn't doing anything"; "the blue background has black holes" | in pass |
+| Channel surfing | the dolphin took a moment to read; "looks like I'm supposed to go to the left and I can't" | in pass |
+| Whale of a time | "nothing really going on... nothing to do with the whale" | in pass |
+| The sea cave | flow arrows "should be white, not black"; black boxes from pickups; needs challenge (icicles on their own) | in pass |
+| Road to Hana | "great, but the cars need to be moving constantly and might need to be two at a time" | in pass |
+| Kaihalulu | the right side's hole unclear; blue water kills with a snorkel: "a confusing scene" | in pass |
 | Shell game | "needs to be harder. Pretty cool idea" | open |
 | Tona | one crab "behind blocks... positioned in a harmless way"; "why would I drown in that little bit of water" | open |
 | Mauna Kea / Monica | "one enemy so there's no challenge" | open |

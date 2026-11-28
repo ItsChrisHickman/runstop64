@@ -15,7 +15,7 @@ import { check, finish } from '../../shared/test/check';
 import { newGame } from '../../shared/monty/test/bot';
 import { AND } from '../src/andes';
 import { PAC } from '../src/pacific';
-import { ROUNDS, WORLD } from '../src/data';
+import { ADDED_ROOMS, ROUNDS, WORLD } from '../src/data';
 import { CODEC } from '../src/main';
 import { FORMAT1_COINS, FORMAT1_ITEMS } from '../src/save-format1';
 import { FORMAT2_COINS, FORMAT2_ITEMS } from '../src/save-format2';
@@ -107,15 +107,16 @@ check('a format 4 save reads as it was written', JSON.stringify(again) === JSON.
   const s4 = newGame(WORLD, false);
   enterRoom(s4.g, JP.fuji, 0x0c + (FUJI.entry.col0 + 1 + 4) * 4, standY(FUJI.floor));
   for (let f = 0; f < 60; f++) frame(s4, NONE);
-  const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => WORLD.coinTable[i * 3] === JP.cave);
+  const since = ADDED_ROOMS.slice(ADDED_ROOMS.indexOf(JP.cave)); // (the cave and the rooms added after it, BOARD MEETING: their coins are the table's last)
+  const cave = Array.from({ length: WORLD.coinTable.length / 3 }, (_, i) => i).filter((i) => since.includes(WORLD.coinTable[i * 3] ?? -1));
   const before = { ...snapshot(s4.g), coins: Array.from({ length: WORLD.coinTable.length / 3 - cave.length }, () => 0xff) };
   const read = CODEC.unpack(CODEC.pack(before), 4);
   const p4 = newGame(WORLD, false);
   restore(p4.g, read);
   for (let f = 0; f < 120; f++) frame(p4, NONE);
   const had = p4.g.coinCollected.slice(0, before.coins.length).every((v) => v === 0xff), caveOpen = cave.every((i) => p4.g.coinCollected[i] === 0);
-  check(`a format 4 save from before the ice cave keeps every coin it had (${had}), the cave's ${cave.length} not yet taken (${caveOpen}), and carries on on MOUNT FUJI's entry ledge (room ${p4.g.roomId}, y ${p4.g.y}), alive`,
-    cave.length === 2 && cave.every((i) => i >= before.coins.length) && had && caveOpen && p4.g.roomId === JP.fuji && p4.g.y === standY(FUJI.floor) && !dead(p4.g));
+  check(`a format 4 save from before the ice cave keeps every coin it had (${had}), the cave's and the later rooms' ${cave.length} not yet taken (${caveOpen}), and carries on on MOUNT FUJI's entry ledge (room ${p4.g.roomId}, y ${p4.g.y}), alive`,
+    cave.length === 5 && cave.every((i) => i >= before.coins.length) && had && caveOpen && p4.g.roomId === JP.fuji && p4.g.y === standY(FUJI.floor) && !dead(p4.g));
 }
 // format 2 (the reset's Hawaii: the snorkel and the lei at Waikiki (41), the musubi in the swim room (49), the parachute and three coins in Hilo (52), Viktor overboard a find no room shows)
 /** The place of a format 2 find in its table: the n-th of a room's. */

@@ -74,6 +74,17 @@ export const PACIFIC_TILES = {
     '########',
     '########',
   ]),
+  /** Calm water, the surf gone flat: a ripple along the top over the sea's blue. Not a floor and harmless: he drops through it into the sea (Waikiki's surf with the snorkel). */
+  pacSeaCalm: tile('pacSeaCalm', 0, 14, [
+    '........',
+    '.##...##',
+    '#..###..',
+    '........',
+    '..#...#.',
+    '........',
+    '#...#...',
+    '........',
+  ]),
   /** A wooden crate: its frame and a brace across. Solid. */
   pacCrate: tile('pacCrate', 1, 9, [
     '########',
