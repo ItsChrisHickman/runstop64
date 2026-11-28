@@ -10,7 +10,7 @@
 // room-level tests then check only those rooms (games/shared/monty/test/scope.ts), its region bots only the legs through them.
 
 import { spawnSync } from 'node:child_process';
-import { reserve } from './mem-budget.mjs';
+import { recordPeak, reserve, sizeFor } from './mem-budget.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -30,14 +30,22 @@ if (!process.execArgv.some((a) => a.startsWith('--max-old-space-size'))) {
   const scoped = process.platform === 'linux' && process.getuid?.() === 0 && spawnSync('systemd-run', ['--version'], { stdio: 'ignore' }).status === 0;
   const cmd = scoped ? ['systemd-run', '--scope', '--quiet', '--collect', '--slice=claude.slice', '-p', `MemoryMax=${MEMORY_MB}M`, '-p', 'MemorySwapMax=0', ...KILL_FIRST, ...node] : node;
   // one budget for every test and typecheck in the slice, whichever session or agent started it (tools/mem-budget.mjs)
-  reserve(MEMORY_MB, `test ${process.argv[2] ?? ''}`);
+  // (what it was last measured to need, the cap if never: mem-budget.mjs sizeFor; the key is tools/timings.mjs keyOf's: file and args)
+  reserve(sizeFor(process.argv.slice(2).join(' '), MEMORY_MB), `test ${process.argv[2] ?? ''}`);
   const [bin = process.execPath, ...rest] = cmd;
   const r = spawnSync(bin, rest, { stdio: 'inherit' });
   if (r.signal === 'SIGKILL') console.error(`[test.mjs] killed: over its memory cap of ${MEMORY_MB} MB (TEST_MEMORY_MB; tools/tests.mjs memoryMB) or stopped by the runner`);
   process.exit(r.status ?? 1);
 }
 // (the peak, for the runner to keep with the test's time: tools/timings.mjs)
-process.on('exit', () => { process.stderr.write(`\n[test.mjs] peak ${Math.round(process.resourceUsage().maxRSS / 1024)} MB\n`); });
+// (and kept for the next run's reservation, unless the test did not run: a cached pass measures only the bundling)
+const PEAK_KEY = process.argv.slice(2).join(' ');
+let ran = false;
+process.on('exit', () => {
+  const mb = Math.round(process.resourceUsage().maxRSS / 1024);
+  process.stderr.write(`\n[test.mjs] peak ${mb} MB\n`);
+  if (ran) recordPeak(PEAK_KEY, mb);
+});
 import { build } from 'esbuild';
 import fs from 'node:fs';
 import { ensureGen } from './gen.mjs';
@@ -85,4 +93,5 @@ if (process.env.TEST_CACHE === '1') {
 // (the code-only hashes the Monty tests' fingerprints use: tools/code-digests.mjs)
 process.env.RUNSTOP64_CODE_DIGESTS = writeCodeDigests(root);
 process.argv = [process.argv[0], out, ...args];
+ran = true;
 await import(pathToFileURL(out).href);

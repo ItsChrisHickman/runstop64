@@ -22,8 +22,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, suite, test } from 'node:test';
 import { TESTS } from './tests.mjs';
-import { BUDGET_MB as SHARED_MB } from './mem-budget.mjs';
-import { keyOf, recordPeaks, recordTimings } from './timings.mjs';
+import { BUDGET_MB as SHARED_MB, sizeFor } from './mem-budget.mjs';
+import { keyOf, recordTimings } from './timings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -119,13 +119,13 @@ for (const t of chosen) {
     const cmd = t.cmd ?? [process.execPath, 'tools/test.mjs', t.file, ...(t.args ?? [])];
     const limit = t.limitSeconds ? t.limitSeconds * 1000 : (t.set === 'fast' ? 300_000 : 580_000);
     const mb = t.memoryMB ?? DEFAULT_MB;
-    const release = await hold(mb);
+    const release = await hold(sizeFor(keyOf(t), mb)); // (what it last needed, as tools/test.mjs reserves: mem-budget.mjs)
     const started = performance.now();
     const { code, timedOut, output } = await run(cmd, limit, { TEST_MEMORY_MB: String(mb), TEST_CACHE: '1' }).finally(release);
     if (output.includes('[test.mjs] cached pass')) cached++;
     const seconds = (performance.now() - started) / 1000;
     const peak = Number(/\[test\.mjs\] peak (\d+) MB/.exec(output)?.[1] ?? NaN);
-    if (Number.isFinite(peak)) peaks.push({ key: keyOf(t), mb: peak });
+    if (Number.isFinite(peak) && !output.includes('[test.mjs] cached pass')) peaks.push({ key: keyOf(t), mb: peak }); // (test.mjs keeps it)
     timings.push({ set: t.set, name: nameOf(t), key: keyOf(t), seconds, ok: code === 0 && !timedOut });
     if (verbose || code !== 0) process.stdout.write(output.split('\n').map((l) => `    | ${l}`).join('\n') + '\n');
     if (timedOut) throw new Error(`took more than ${limit / 1000}s and was stopped`);
@@ -136,7 +136,6 @@ for (const t of chosen) {
 
 after(() => {
   recordTimings(timings);
-  recordPeaks(peaks);
   if (cached) console.log(`# ${cached} test(s) not run again: passed before on the same code and inputs (tools/test-cache.mjs; TEST_FRESH=1 runs them)`);
   const high = sliceHigh();
   if (high !== null && highAtStart !== null && high > highAtStart) console.log(`# claude.slice was throttled at its MemoryHigh ${high - highAtStart} times during this run: something outgrew its cap's arithmetic (TEST_BUDGET_MB)`);

@@ -22,7 +22,7 @@ through (`tools/test.mjs`, the translator, configs, dependencies); `npm run veri
 Run it in the background and watch it, never only wait for the "finished" notice: a Monitor that reports `✖` lines, a log unchanged
 for 15 minutes, and `claude.slice` throttling (`/sys/fs/cgroup/claude.slice/memory.events`, `high`). Each test runs in its own
 systemd scope with a memory cap (`tools/test.mjs`, 1400 MB; `memoryMB` in `tools/tests.mjs` for the heavy few), and every test and
-typecheck in the slice, agents' included, queues on one budget (`tools/mem-budget.mjs`, 2600 MB); the summary prints the heaviest
+typecheck in the slice, agents' included, queues on one budget (`tools/mem-budget.mjs`, 2600 MB; a test reserves its last measured peak plus a margin, not its cap, so light tests run side by side); the summary prints the heaviest
 peaks and whether the slice throttled.
 
 A failure: rerun only that test (`nice -n 15 node tools/test.mjs <file>`). A test that fails the same way on origin/main is

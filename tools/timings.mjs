@@ -37,9 +37,3 @@ export function readPeaks() {
     return v && typeof v === 'object' ? v : {};
   } catch { return {}; }
 }
-/** Keep the peaks of the runs that reported one. */
-export function recordPeaks(runs) {
-  const all = readPeaks();
-  for (const r of runs) all[r.key] = r.mb;
-  try { fs.writeFileSync(PEAKS, JSON.stringify(all, null, 1)); } catch { /* as recordTimings */ }
-}
