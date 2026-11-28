@@ -738,7 +738,7 @@ export class Game implements MontyBody, MontyWorld {
     v.enable = this.hatPlaced ? this.enable | 0x80 : this.enable;
     v.expandX = this.expandX;
     v.expandY = this.expandY;
-    v.multicolour = this.multicolour;
+    v.multicolour = this.multicolour | this.multicolourShown(v.enable);
     v.priority = this.priority;
     if (!this.completionActive) {
       if (!this.lift.type && !this.gameOverActive) this.multicolour &= 0xf0;
@@ -812,6 +812,7 @@ export class Game implements MontyBody, MontyWorld {
       this.vic.mc1 = 7;
     }
     this.setupEnemies();
+    this.noteMulticolourPictures();
     pursuerInit(this);
     cameoInit(this, this.lastRoom);
     Items.applyRoomEffects(this, 'before');
@@ -839,6 +840,25 @@ export class Game implements MontyBody, MontyWorld {
     if (!banner) return;
     say(this.hint, banner.text, 0);
     this.drawNameRow();
+  }
+
+  /** The sprite pointers of this room whose pictures are multicolour (its `roomBlocks` marked so, its creatures of a multicolour type): a sprite showing one is drawn multicolour (`multicolourShown`). */
+  private readonly mcPictures = new Uint8Array(256);
+  private noteMulticolourPictures() {
+    this.mcPictures.fill(0);
+    if (!this.data.spriteMulticolours) return;
+    for (const set of this.data.roomBlocks) if (set.multicolour && set.rooms.includes(this.roomId)) for (const { ptr } of set.blocks) this.mcPictures[ptr & 0xff] = 1;
+    this.enemies.forEach((e, slot) => { if (this.data.enemyMulticolour?.(e.type)) this.mcPictures.fill(1, 0x30 + slot * 8, 0x38 + slot * 8); });
+  }
+
+  /** The sprites shown this frame whose pictures are multicolour (bits by sprite), the game's two shared colours set for them. */
+  private multicolourShown(enable: number): number {
+    const mc = this.data.spriteMulticolours;
+    if (!mc) return 0;
+    let bits = 0;
+    for (let n = 0; n < 8; n++) if (enable & (1 << n) && this.mcPictures[this.sptr[n] ?? 0]) bits |= 1 << n;
+    if (bits) { this.vic.mc1 = mc.mc1; this.vic.mc2 = mc.mc2; }
+    return bits;
   }
 
   /** The sprite blocks the data's `roomBlocks` give this room (the others' put back as the bank has them). */

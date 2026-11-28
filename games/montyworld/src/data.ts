@@ -40,6 +40,7 @@ import { BARS_CELLS, BOOTH_LIGHT, CARNIVAL_FLOATS, LAPA_STONE, leverOf, LIT_CODE
 import { FINALE_POINTERS, RIO_SPRITE, SKEWER_POINTERS } from './rio-pointers';
 import { FINALE_PICTURES, type FinalePicture } from './art/rio-finale';
 import { shipPursuer, trainPursuer, VIKTOR_BLOCKS, viktorCameos } from './viktor';
+import { VIKTOR_MULTICOLOURS } from './art/viktor';
 import { headdressWorn, RIO_HAT_COLOUR } from './art/rio-hat';
 import { RIO_ITEMS, SKEWER_POSES } from './art/rio-items';
 import { TALLY_FACE, TALLY_STAR } from './art/sky';
@@ -343,6 +344,7 @@ export const WORLD: MontyData = {
   teleporterColours: GUST_COLOURS, // (the game's one teleporter is the tengu's gust: japan-cave.ts)
   ...tiles,
   ...enemies,
+  spriteMulticolours: VIKTOR_MULTICOLOURS,
   bankImage: bank,
   // (Hubbard's tune, a version of it for each region: music/regions.ts)
   music: { ...MOTR_LOOK.music, sidUrl, tuneFor: (roomId) => tuneForRoom(WORLD.exitGrid, roomId), chase: CHASE_TUNE, crossing: (original) => crossingPlan(original) },
