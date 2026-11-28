@@ -190,20 +190,23 @@ export function drawPause<T, F>(s: Surface, font: BitmapFont, map: PauseMap<T, F
   }
   font.draw(s, 'PAUSED', PANEL.x, 8, colours.white);
   const info = map.info(ram, found, ui.assist);
-  info.forEach((line, i) => font.draw(s, line.slice(0, PANEL.chars), PANEL.x, 26 + i * 12, colours.lgrey));
   const legend = typeof map.legend === 'function' ? map.legend(ram, ui.assist, ui.page) : map.legend ?? [];
+  const badges = ui.list ? [] : map.badges?.(ram, found) ?? [];
+  // (the panel's lines 12 apart, closer (11, 10 at the least) where they and the badges would run into the options: a long panel, Do Svidaniya Monty's in HARD)
+  const optionsTop = 166 - (options.length - 1) * 12, lines = info.length + legend.length + badges.length;
+  const step = lines > 1 ? Math.max(10, Math.min(12, Math.floor((optionsTop - 4 - 8 - 26) / (lines - 1)))) : 12;
+  info.forEach((line, i) => font.draw(s, line.slice(0, PANEL.chars), PANEL.x, 26 + i * step, colours.lgrey));
   legend.forEach((l, i) => {
-    const y = 26 + (info.length + i) * 12;
+    const y = 26 + (info.length + i) * step;
     s.fillRect(PANEL.x, y + 1, 6, 6, l.colour);
     font.draw(s, l.text.slice(0, 9), 232, y, colours.lgrey);
   });
   // (the badges: in the middle of the room the legend leaves above the options, 12 apart as the panel's lines are, closer where the room is short)
-  const badges = ui.list ? [] : map.badges?.(ram, found) ?? [];
   if (badges.length) {
-    const from = 26 + (info.length + legend.length) * 12, to = 166 - (options.length - 1) * 12 - 4;
-    const step = badges.length > 1 ? Math.max(9, Math.min(12, Math.floor((to - from - 8) / (badges.length - 1)))) : 12;
-    const top = Math.max(from, Math.floor((from + to - (badges.length - 1) * step - 8) / 2));
-    badges.forEach((b, i) => font.draw(s, b.text.slice(0, PANEL.chars), PANEL.x, top + i * step, b.colour));
+    const from = 26 + (info.length + legend.length) * step, to = optionsTop - 4;
+    const apart = badges.length > 1 ? Math.max(9, Math.min(12, Math.floor((to - from - 8) / (badges.length - 1)))) : 12;
+    const top = Math.max(from, Math.floor((from + to - (badges.length - 1) * apart - 8) / 2));
+    badges.forEach((b, i) => font.draw(s, b.text.slice(0, PANEL.chars), PANEL.x, top + i * apart, b.colour));
   }
   options.forEach((line, i) => {
     const y = 166 - (options.length - 1 - i) * 12;
