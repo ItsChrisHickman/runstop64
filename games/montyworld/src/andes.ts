@@ -446,7 +446,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   }),
 
   // MP1 NO PROBLLAMA: Machu Picchu's terraces, dry-stone walls under their grass. The guardhouse on the top terrace (floor 8), its thatch roof clear, holds the chullo; the roof's coin is for the west landing.
-  // The terraces step down east (floors 10, 12, 14): a llama grazes on the broad terrace (jumped), the cuy hops over the last step, and the second llama paces the low path (floor 18) where he drops onto it; east under
+  // The terraces step down east (floors 10, 12, 14): a llama walks the broad terrace end to end (timed, then jumped), the cuy hops over the last step, and the second llama paces the low path (floor 18) where he drops onto it; east under
   // the cliff into Machu Picchu's lane. The high ledge on the cliff (floor 8) holds an empanada in plain sight, out of reach from here: it is Machu Picchu's plateau that runs out onto it, and off its west
   // end the drop is onto the last step, so the terraces climb back to the top.
   room({
@@ -455,7 +455,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     decor: [['andPeaks', 17, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
-    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 14, row: 10, way: 'right', speed: 1, range: 16 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 2, range: 28 }],
+    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 11, row: 10, way: 'right', speed: 1, range: 40 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 2, range: 28 }],
   }),
 
   // MP2 MACHU PICCHU: the plateau, Huayna Picchu behind. The lane (floor 18) runs east from the terraces under the plateau into the tunnel (cols 12-24, rows 15-17 under the lintel, its back wall in the dark

@@ -59,8 +59,10 @@ SCOPE.section([], 'the data: Japan on the grid, its entries, creatures, sprite b
   const firstAdded = coinRooms.indexOf(CHI.heaven);
   check('SHOOT FOR THE MOON\'s two coins are at the coin table\'s end with the other rooms added after every region (data.ts ADDED_ROOMS: no other coin\'s place moves, so every save keeps its coins) and it has no find',
     coinsIn(JP.grove, JP.grove) === 2 && firstAdded >= 0 && coinRooms.indexOf(JP.grove) > firstAdded && coinRooms.slice(firstAdded).every((r) => ADDED_ROOMS.includes(r)) && itemsIn(JP.grove, JP.grove) === 0);
-  check('GONE WITH THE WIND\'s two coins are the coin table\'s last (the room added last: a format 4 save\'s coins keep their places) and it has no find',
-    coinsIn(JP.cave, JP.cave) === 2 && coinRooms.slice(-2).every((r) => r === JP.cave) && itemsIn(JP.cave, JP.cave) === 0);
+  const caveAt = coinRooms.indexOf(JP.cave), caveAdded = ADDED_ROOMS.indexOf(JP.cave);
+  check('GONE WITH THE WIND\'s two coins keep their coin table places (after every room before it; only rooms added after it in ADDED_ROOMS come later: a format 4 save\'s coins keep their places) and it has no find',
+    coinsIn(JP.cave, JP.cave) === 2 && caveAt >= 0 && caveAdded >= 0 && coinRooms[caveAt + 1] === JP.cave
+      && coinRooms.slice(caveAt + 2).every((r) => ADDED_ROOMS.indexOf(r) > caveAdded) && itemsIn(JP.cave, JP.cave) === 0);
   const before = entriesBefore(JP.harbour, JP.port);
   check('the regions before Japan keep their coins and finds, in the same table places (first), and Japan adds 24 coins and 5 finds (two sushi, the daruma, the fish food, the ninja hood)',
     before.ordered && coinsIn(JP.harbour, JP.port) === 24 && itemsIn(JP.harbour, JP.port) === 5);
