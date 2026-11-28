@@ -3,8 +3,8 @@
  * in place of the cupcake) and the ninja hood as it lies on its shrine. Hires sprite blocks as Moscow's and Siberia's items are: a solid
  * shape with the detail cut into it.
  */
-import { decor } from './decorations';
-import { characters, itemBlock } from './pixels';
+import { itemBlock } from './pixels';
+import { wantedBlink, wantedPicture } from './wanted';
 import { over, Raster } from './raster';
 import type { NewDecor, NewItem } from './types';
 
@@ -78,24 +78,19 @@ export const JAPAN_ITEMS = {
 } as const satisfies Record<string, NewItem>;
 
 /**
- * The gates' pictures of what they want (LESSONS: a gate shows what it wants before he has it): the key item drawn in 2 x 2 characters over the gate, blinking (`WANTED_FRAMES`, a `charAnims` cycle),
- * until he uses the item there and the room effect clears it (data.ts). The hood's in light blue: the item's dark blue is lost on the night sky.
+ * The gates' pictures of what they want (art/wanted.ts): the key item drawn in 2 x 2 characters over the gate, blinking (`WANTED_FRAMES`, a `charAnims` cycle), until he uses the item there and the
+ * room effect clears it (data.ts). The hood's in light blue: the item's dark blue is lost on the night sky.
  */
 export const JAPAN_WANTED = {
-  jpWantDaruma: decor('jpWantDaruma', 2, 2, darumaPicture(), KEYS.daruma.ink),
-  jpWantFishFood: decor('jpWantFishFood', 2, 2, fishFoodPicture(), KEYS.fishFood.ink),
-  jpWantHood: decor('jpWantHood', 2, 2, hoodPicture(), 14),
+  jpWantDaruma: wantedPicture('jpWantDaruma', darumaPicture().rows(), KEYS.daruma.ink),
+  jpWantFishFood: wantedPicture('jpWantFishFood', fishFoodPicture().rows(), KEYS.fishFood.ink),
+  jpWantHood: wantedPicture('jpWantHood', hoodPicture().rows(), 14),
 } as const satisfies Record<string, NewDecor>;
 
-/** A picture's blink, a frame a step: shown three steps, gone one (the characters emptied). */
-const blink = (name: string, r: Raster): readonly Uint8Array[] => {
-  const on = characters(name, r.rows(), 2, 2);
-  return [on, on, on, new Uint8Array(on.length)];
-};
 export const WANTED_FRAMES = {
-  jpWantDaruma: blink('want daruma', darumaPicture()),
-  jpWantFishFood: blink('want fish food', fishFoodPicture()),
-  jpWantHood: blink('want hood', hoodPicture()),
+  jpWantDaruma: wantedBlink('want daruma', darumaPicture().rows()),
+  jpWantFishFood: wantedBlink('want fish food', fishFoodPicture().rows()),
+  jpWantHood: wantedBlink('want hood', hoodPicture().rows()),
 } as const satisfies Record<keyof typeof JAPAN_WANTED, readonly Uint8Array[]>;
 
 export type JapanItem = keyof typeof JAPAN_ITEMS;

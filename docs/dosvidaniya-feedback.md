@@ -94,13 +94,13 @@ Statuses: **open**, **in pass** (a workflow is on it), **done** (commit), **his 
 |---|---|---|
 | Stormy weather | "only one giant wave. There should be more waves that move faster" | open |
 | On his tail | Viktor appears from nowhere and kills | open |
-| The parachute drop | "still extremely short and non-memorable. All the mechanics are great but the level design is terrible" | open; a second parachute line $67-$69 into MACHU PICCHU (his call) |
-| The Inca bridge | "an enemy that walks left and right in a really close pattern... not so much a puzzle as just annoying" | open |
-| The canopy | "not enough enemies... designed amazingly for there to be something interesting" | open |
-| Cloud nine | "Awesome!", lacks one enemy | open |
-| The river ends | "a terrible room name" (2026-11-27) | open |
+| The parachute drop | "still extremely short and non-memorable. All the mechanics are great but the level design is terrible" | in pass |
+| The Inca bridge | "an enemy that walks left and right in a really close pattern... not so much a puzzle as just annoying" | in pass |
+| The canopy | "not enough enemies... designed amazingly for there to be something interesting" | in pass |
+| Cloud nine | "Awesome!", lacks one enemy | in pass |
+| The river ends | "a terrible room name" (2026-11-27) | in pass |
 | Open arms | Viktor "ran out then ran away - silly"; "almost impossible to jump over the rat at the top left... I can get the item while dying at best" (2026-11-27) | open |
-| The river queen (returning) | "the Viktor cameo didn't make any sense at all" (2026-11-27) | open |
+| The river queen (returning) | "the Viktor cameo didn't make any sense at all" (2026-11-27) | in pass |
 
 ## Rio
 

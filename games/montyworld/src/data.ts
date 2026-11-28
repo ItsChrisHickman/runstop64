@@ -21,7 +21,7 @@ import { swimBlock, swimCrown, swimPictures } from './art/pacific-swim';
 import { SWIM_CYCLE, SWIM_POINTERS } from './pacific-pointers';
 import { CHULLO_COLOUR, chulloWorn } from './art/andes-hat';
 import { ANDES_ITEMS, BOULDER_FRAMES, CANOPY, LEAP_FRAMES } from './art/andes-items';
-import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, CAPTAIN_SLOT, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES } from './andes';
+import { ANDES_ARRIVALS, ANDES_COLOURS, ANDES_ROOMS, ANDES_SECTORS, AND, CAPTAIN_SLOT, FLIGHTS, LOG_CRACKS, ROLLERS, spitPulses, TANGLE_CELLS, VINES, WANTED as ANDES_WANTED, WANTED_ANIMS as ANDES_WANTED_ANIMS } from './andes';
 import { ANDES_SPRITE, BOULDER_POINTERS, CANOPY_POINTERS, LEAP_POINTERS } from './andes-pointers';
 import { ARRIVALS, biplaneBoarding, BRIDGE_CARS, BUBBLE_ANIMS, CRUST_CRACKS, CAVE_STALACTITES, DOME_LADDER, DOME_LADDER_CODE, FALLS_ANIMS, HULA_ANIM, LAVA, TURTLE_PULSES, PIT_LAVA, PAC, PAC_SPRITE, PACIFIC_COLOURS, PACIFIC_ROOMS, PACIFIC_SECTORS, ROCKS, SURF_CELLS, PACIFIC_CURRENTS, PACIFIC_FLOW_PULSES, SURGE_ANIMS, SWIM_ROOMS, SWIM_SURFACES, TORCH_HEAD_PULSES, TORCH_PULSES, VENT_PULSES, WAVE_PULSES } from './pacific';
 import { BALL_STREAM, CAVE_ICICLES, DOOR_PULSES, FUJI_BLOCKS, FUJI_SNOWBALLS, GALLERY_DOOR_PULSES, HIDEOUT_CRACKS, JAPAN_COLOURS, MOLE_SINKING, JAPAN_ROOMS, JAPAN_ANIMS, JAPAN_SECTORS, JP, PLANK_CELLS, PLANK_CODE, SHUTTER_CELLS, JAPAN_TUNNELS, GUST_ANIM, GUST_LIFT, HIDEOUT_BLOCKS, HIDEOUT_LEAP, HIDEOUT_SHURIKEN, TENGU_ANIM, WANTED, WANTED_ANIMS, wantedCells } from './japan';
@@ -69,9 +69,10 @@ export const WORLD_COLS = 50, WORLD_ROWS = 8;
  * Rooms added to a region after it shipped (save format 3, live since 2026-11-25), in the order they were added: they go last in the tables (their coins and finds take new places at the ends),
  * so the places of every room a format 3 save knows stay as they were. HEAVEN CAN WAIT (format 3's last); the Andes' rebuild's (OUT OF THIN AIR, THE RIVER QUEEN, THE INCA BRIDGE, CLOUD NINE,
  * VINE AND DANDY, THE RIVER ENDS); the bonus rooms off the path (OFF THE BEATEN PATH, DON'T ROCK THE BOAT, SHOOT FOR THE MOON); Rio's carnival streets (BEAT THE DRUM, FLOAT YOUR BOAT); the ice cave at
- * Mount Fuji's foot (GONE WITH THE WIND, 2026-11-26: its coins after every other room's, so a format 4 save reads as it is, the cave's coins not yet taken).
+ * Mount Fuji's foot (GONE WITH THE WIND, 2026-11-26: its coins after every other room's, so a format 4 save reads as it is, the cave's coins not yet taken); the Andes' drop's second line (COLD SHOULDER,
+ * CHIMNEY SWEEP, WING AND A PRAYER, 2026-11-28).
  */
-export const ADDED_ROOMS: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float, JP.cave];
+export const ADDED_ROOMS: readonly number[] = [CHI.heaven, AND.thin, AND.boat, AND.bridge, AND.cloud, AND.vine, AND.ends, SIB.taiga, CHI.houhai, JP.grove, RIO_ROOM.beat, RIO_ROOM.float, JP.cave, AND.shoulder, AND.chimney, AND.prayer];
 const REGION_ROOMS = [...MOSCOW_ROOMS, ...SIBERIA_ROOMS, ...CHINA_ROOMS, ...JAPAN_ROOMS, ...PACIFIC_ROOMS, ...ANDES_ROOMS, ...RIO_ROOMS, ...SKY_ROOMS];
 /** Every region's rooms in the order they were made, then `ADDED_ROOMS`': a room's place in the tables, and so its items' numbers, never change once a region has shipped. */
 const ROOMS = [...REGION_ROOMS.filter((r) => !ADDED_ROOMS.includes(r.id)), ...ADDED_ROOMS.map((id) => {
@@ -259,13 +260,13 @@ const BOWL = specialIndex(ROOMS, 'bowl');
  * Finds no room shows (their room is none: $FF), for what must be remembered through a death and a save: the crank fitted in the Sambadrome's booth and Viktor squashed there (levers.ts takes them; the room's
  * effects read them), Viktor knocked off the cargo ship and swept off the train's roof (pursuers.ts) and his shadow seen on THE LAST MOLE's moon (cameos.ts: once only), and which way the locomotive's
  * steam valve is set (levers.ts `switchUpdate` flips it; added 2026-11-26, last, so a save from before reads it unset: the steam out of the pipe's top, as the game starts), and the gates that, once
- * given way where he used the item, stay open (a room effect's `at.keep`: the closet's floor unbolted and the inspector gone, 2026-11-27; Japan's shutter up, its koi fed and the hideout's guard gone, the Japan challenge pass; a save from before reads them unset and the gate gives way again
+ * given way where he used the item, stay open (a room effect's `at.keep`: the closet's floor unbolted and the inspector gone, 2026-11-27; Japan's shutter up, its koi fed and the hideout's guard gone, the Japan challenge pass; the Andes' llama calmed, the captain gone aft and the tangle cut, the Andes challenge pass; a save from before reads them unset and the gate gives way again
  * where he comes up to it, from either side). They come after every room's finds, so no room's find moves; they count for nothing on the pause screen.
  */
-const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'closet unbolted', 'inspector gone', 'shutter up', 'koi fed', 'guard gone'] as const;
+const HIDDEN = ['crank fitted', 'agent squashed', 'viktor overboard', 'viktor on the moon', 'viktor off the train', 'viktor won the plane', 'steam low', 'closet unbolted', 'inspector gone', 'shutter up', 'koi fed', 'guard gone', 'llama calmed', 'captain gone', 'tangle cut'] as const;
 const tables = { ...built, specialItems: Uint8Array.from([...built.specialItems, ...HIDDEN.flatMap(() => [0xff, 0, 0, 0])]) };
 const FITTED = built.specialItems.length / 4, SQUASHED = FITTED + 1, OVERBOARD = FITTED + 2, MOON_SEEN = FITTED + 3, SWEPT = FITTED + 4, PLANE_LOST = FITTED + 5, STEAM_LOW = FITTED + 6, UNBOLTED = FITTED + 7, INSPECTED = FITTED + 8,
-  SHUTTER_UP = FITTED + 9, KOI_FED = FITTED + 10, GUARD_GONE = FITTED + 11;
+  SHUTTER_UP = FITTED + 9, KOI_FED = FITTED + 10, GUARD_GONE = FITTED + 11, LLAMA_CALMED = FITTED + 12, CAPTAIN_GONE = FITTED + 13, TANGLE_CUT = FITTED + 14;
 /** The hidden finds the tests read (the tally's rounds). */
 export const ROUNDS = { train: SWEPT, ship: OVERBOARD, plane: PLANE_LOST } as const;
 /** The find the locomotive's steam valve flips (untaken: the steam blows out of the pipe's top, over the roof's lane; taken: out of its bottom, over the inside's). */
@@ -274,6 +275,8 @@ export const STEAM_VALVE = STEAM_LOW;
 export const TICKET_KEEPS = { closet: UNBOLTED, inspector: INSPECTED } as const;
 /** The finds that keep Japan's three gates open once used where they are (the shutter, the pond, the hideout's door). */
 export const JAPAN_KEEPS = { shutter: SHUTTER_UP, koi: KOI_FED, guard: GUARD_GONE } as const;
+/** The finds that keep the Andes' three gates done once used where they are (the llama calmed, the captain gone aft, the tangle cut). */
+export const ANDES_KEEPS = { llama: LLAMA_CALMED, captain: CAPTAIN_GONE, tangle: TANGLE_CUT } as const;
 /** The food in every region (the pause screen's SNACKS): Moscow's pirozhki, Siberia's pelmeni, China's dumplings, Japan's sushi, the Pacific's Spam musubi, the Andes' empanadas. */
 const FOOD = [...PIROZHKI, specialIndex(ROOMS, 'pelmeni1'), specialIndex(ROOMS, 'dumplings1'), specialIndex(ROOMS, 'dumplings2'), specialIndex(ROOMS, 'sushi1'), specialIndex(ROOMS, 'sushi2'), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `musubi${n}`)),
   ...[1, 2, 3, 4, 5, 6].map((n) => specialIndex(ROOMS, `empanada${n}`)), ...[1, 2, 3].map((n) => specialIndex(ROOMS, `skewer${n}`))];
@@ -319,10 +322,11 @@ const ROOM_EFFECTS: readonly RoomEffect[] = [
   // the gates of the Andes are items used on the spot, seen happening (`at`: when he comes up to the gate with the item, not silently on coming in; no words: the item's sound and what is seen): a tune
   // settles the spitting llama at the tunnel's mouth (its spit, a pulse, is calmed by the panpipes carried: calmedBy) and it trots off west up the lane, the tunnel and its well open; the box is the
   // whole lane, so coming back up the well (east of the llama) it goes as well
-  { room: AND.picchu, when: [{ taken: PANPIPES }], removeEnemy: 0, at: { ...screenBox(0, 16, 24, 17), leaves: -1 } },
+  { room: AND.picchu, when: [{ taken: PANPIPES }], late: true, removeEnemy: 0, clear: onScreen(wantedCells(ANDES_WANTED.llama)), at: { ...screenBox(0, 16, 24, 17), leaves: -1, keep: LLAMA_CALMED } },
   // in the chullo, a local: the riverboat's captain walks off aft and lets him aboard (the box is the whole cargo deck and the bank, so coming back from the last bank he lets him by too)
-  { room: AND.boat, when: [{ taken: CHULLO_ITEM }], removeEnemy: CAPTAIN_SLOT, at: { ...screenBox(0, 13, 31, 14), leaves: 1 } },
-  { room: AND.kapok, when: [{ taken: MACHETE }], clear: onScreen(TANGLE_CELLS), at: screenBox(20, 5, 24, 7) }, // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio
+  { room: AND.boat, when: [{ taken: CHULLO_ITEM }], late: true, removeEnemy: CAPTAIN_SLOT, clear: onScreen(wantedCells(ANDES_WANTED.captain)), at: { ...screenBox(0, 13, 31, 14), leaves: 1, keep: CAPTAIN_GONE } },
+  // the machete cuts the tangle off the kapok's crown branch: the way out east to Rio (the box takes in the branch beyond it too, so a save from before the keep, east of it, cuts it there)
+  { room: AND.kapok, when: [{ taken: MACHETE }], late: true, clear: onScreen([...TANGLE_CELLS, ...wantedCells(ANDES_WANTED.tangle)]), at: { ...screenBox(20, 5, 31, 7), keep: TANGLE_CUT } },
   { room: RIO_ROOM.drum, when: [{ taken: FITTED }], late: true, place: { code: LIT_CODE, cells: onScreen(BOOTH_LIGHT) } }, // the crank fitted, the booth's window lights up
   { room: RIO_ROOM.drum, when: [{ taken: SQUASHED }], clear: onScreen(BARS_CELLS) }, // the agent squashed, the bars at the avenue's end lift
   { room: RIO_ROOM.bust, removeEnemy: 0 }, { room: RIO_ROOM.bust, removeEnemy: 1 }, // (the finale's troupe waits off the beach)
@@ -351,7 +355,7 @@ export const WORLD: MontyData = {
   kit: [],
   itemSprites,
   cheatItem: null,
-  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, UNBOLTED, INSPECTED, SHUTTER_UP, KOI_FED, GUARD_GONE],
+  uncountedItems: [BOWL, FITTED, SQUASHED, OVERBOARD, MOON_SEEN, SWEPT, PLANE_LOST, STEAM_LOW, UNBOLTED, INSPECTED, SHUTTER_UP, KOI_FED, GUARD_GONE, LLAMA_CALMED, CAPTAIN_GONE, TANGLE_CUT],
   treasure: null,
   roomEffects: ROOM_EFFECTS,
 
@@ -362,7 +366,7 @@ export const WORLD: MontyData = {
   icicles: [...ICICLES, ...SIBERIA_ICICLES, ...CAVE_STALACTITES, ...TAIGA_ICICLES, ...CAVE_ICICLES],
   tunnels: [...TUNNELS, ...JAPAN_TUNNELS, ...BRIDGE_CARS, ...SKY_TUNNELS],
   cracks: [...CRACKS, ...AWNING_CRACKS, ...JUNK_CRACKS, ...HIDEOUT_CRACKS, ...MOLE_SINKING, ...CRUST_CRACKS, ...LOG_CRACKS, ...TAIGA_BOUGHS],
-  charAnims: [...TRAIN_ANIMS, STEAM_ANIM, ...STATION_ANIMS, ...JAPAN_ANIMS, ...WANTED_ANIMS, GUST_ANIM, TENGU_ANIM, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS].map(regionAnim),
+  charAnims: [...TRAIN_ANIMS, STEAM_ANIM, ...STATION_ANIMS, ...JAPAN_ANIMS, ...WANTED_ANIMS, ...ANDES_WANTED_ANIMS, GUST_ANIM, TENGU_ANIM, ...SURGE_ANIMS, HULA_ANIM, ...FALLS_ANIMS, ...BUBBLE_ANIMS, ...RIO_ANIMS, ...SKY_ANIMS].map(regionAnim),
   pulses: [...PULSES, ...DOOR_PULSES, ...GALLERY_DOOR_PULSES, BALL_STREAM, ...TORCH_PULSES, ...TORCH_HEAD_PULSES, ...TURTLE_PULSES, ...PACIFIC_FLOW_PULSES, ...VENT_PULSES, ...WAVE_PULSES, ...spitPulses(PANPIPES), ...SKY_PULSES, ...steamPulses(STEAM_LOW)],
   swimRooms: SWIM_ROOMS,
   swimSurfaces: SWIM_SURFACES,

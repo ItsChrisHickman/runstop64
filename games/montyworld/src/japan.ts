@@ -10,7 +10,8 @@ import { SIGNAL_GREEN, SIGNAL_RED } from './art/japan-crossing';
 import { GLASS_CELLS, pachinkoFrames } from './art/japan-pachinko';
 import { WANTED_FRAMES } from './art/japan-items';
 import type { WorldDecor } from './art/world';
-import { codeOf, decorIndex, fillCells, Grid, pieceCells, room, type Palette } from './layout';
+import { wantedAnims, wantedCells, wantedDecor } from './wanted';
+import { codeOf, decorIndex, fillCells, Grid, room, type Palette } from './layout';
 
 /**
  * Japan, the fourth region of Do Svidaniya Monty (docs/dosvidaniya-japan.md): eleven rooms (ten and the hidden one) in a block five wide and three high at columns
@@ -251,7 +252,7 @@ export const SHUTTER_CELLS: readonly (readonly [row: number, col: number])[] = [
 
 /**
  * Each gate's picture of what it wants (Chris: "if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"): the key item drawn blinking over the gate from the first visit
- * (art/japan-items.ts JAPAN_WANTED), gone as he uses the item there (data.ts: the gate's room effect clears `WANTED_CELLS`). The daruma beside the shutter's top (the gantry post is over it), the fish food
+ * (art/japan-items.ts JAPAN_WANTED), gone as he uses the item there (data.ts: the gate's room effect clears its `wantedCells`; wanted.ts). The daruma beside the shutter's top (the gantry post is over it), the fish food
  * over the pond's far planks, the hood over the hideout's door, under the first walkway.
  */
 export const WANTED = {
@@ -259,13 +260,8 @@ export const WANTED = {
   pond: { room: JP.garden, piece: 'jpWantFishFood', col: 21, row: 9 },
   door: { room: JP.hideout, piece: 'jpWantHood', col: 19, row: 12 },
 } as const;
-type Wanted = (typeof WANTED)[keyof typeof WANTED];
-const wantedDecor = (w: Wanted) => [w.piece, w.col, w.row] as const;
-/** The playfield cells a gate's picture covers (what its room effect clears). */
-export const wantedCells = (w: Wanted) => pieceCells(w.piece, w.col, w.row);
-export const WANTED_ANIMS: readonly CharAnim[] = Object.values(WANTED).map((w): CharAnim => ({
-  kind: 'cycle', room: w.room, chars: [0, 1, 2, 3].map((cell) => ({ decor: decorIndex(w.piece), cell })), frames: WANTED_FRAMES[w.piece], every: 10,
-}));
+export { wantedCells };
+export const WANTED_ANIMS: readonly CharAnim[] = wantedAnims(Object.values(WANTED), WANTED_FRAMES);
 
 /** The platform's scenery: the skyline beyond the station, a sign and a clock, the overhead wire across the whole room (but where a rope climbs through it) on its masts, the safety line along the deck's edge. */
 const WIRE_COLS = Array.from({ length: 32 }, (_, c) => c).filter((c) => c !== 0 && c !== 23 && c !== 29);

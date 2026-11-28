@@ -1,8 +1,10 @@
-import type { Arrival, CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } from '../../montyotr/src/montydata';
+import type { Arrival, CharAnim, CrackSpec, FlightSpec, PulseSpec, RollerSpec, VineSpec } from '../../montyotr/src/montydata';
 import type { RoomSpec, Sector } from '../../shared/monty/rooms';
 import { ANDES_SPRITE, BOULDER_POINTERS, LEAP_POINTERS } from './andes-pointers';
 import { codeOf, fillCells, fillWhere, room, type Grid, type Palette } from './layout';
 import { rollerTrain } from '../../montyotr/src/rollers';
+import { ANDES_WANTED_FRAMES } from './art/andes-items';
+import { wantedAnims, wantedCells, wantedDecor } from './wanted';
 
 /**
  * The Andes and the Amazon, the sixth region of Do Svidaniya Monty (docs/dosvidaniya-back-half-plan.md: the back half rebuilt longer, the rooms the 2026-11-23 reset cut brought back): thirteen rooms at
@@ -39,7 +41,10 @@ import { rollerTrain } from '../../montyotr/src/rollers';
  */
 export const AND = {
   jump: 55, thin: 56, gorge: 57, terraces: 58, picchu: 59, canopy: 62, kapok: 63, boat: 64, roots: 65, sandbar: 66, bridge: 83, cloud: 84, vine: 85, ends: 94,
+  shoulder: 103, chimney: 104, prayer: 105,
 } as const;
+/** The drop's second line (2026-11-28, docs/dosvidaniya-edges.md: $67-$69): east off JUMP FOR JOY's shoulder, down three rooms of its own into MACHU PICCHU's sky, the harder line, a coin in each. */
+export const SECOND_LINE: readonly number[] = [AND.shoulder, AND.chimney, AND.prayer];
 
 /** The sectors' names by their place from 55 (Rio's sectors follow at 67, so the list keeps twelve places: the retired rooms' are empty). Every room has a name of its own. */
 const NAMES = ['JUMP FOR JOY', 'OUT OF THIN AIR', 'CONDOR COUNTRY', 'NO PROBLLAMA', 'MACHU PICCHU', '', '', 'THE CANOPY', 'BRANCHING OUT', 'THE RIVER QUEEN', 'THE ROOTS', 'UP THE CREEK'] as const;
@@ -48,8 +53,9 @@ export const ANDES_SECTORS: readonly Sector[] = NAMES.map(centredSector);
 /** The map's colour of each (the sky's light blue, the terraces' green, Machu Picchu's orange, the forest's greens, the boat's white, the river's blues). */
 export const ANDES_COLOURS: readonly number[] = [14, 14, 14, 13, 8, 0, 0, 5, 13, 1, 3, 6];
 /** The names and map colours of the rooms whose sectors are after the sky's (later-sectors.ts lays them out with the other regions'). */
-export const ANDES_LATER_NAMES: Readonly<Record<number, string>> = { [AND.bridge]: 'THE INCA BRIDGE', [AND.cloud]: 'CLOUD NINE', [AND.vine]: 'VINE AND DANDY', [AND.ends]: 'THE RIVER ENDS' };
-export const ANDES_LATER_COLOURS: Readonly<Record<number, number>> = { [AND.bridge]: 12, [AND.cloud]: 5, [AND.vine]: 7, [AND.ends]: 10 };
+export const ANDES_LATER_NAMES: Readonly<Record<number, string>> = { [AND.bridge]: 'THE INCA BRIDGE', [AND.cloud]: 'CLOUD NINE', [AND.vine]: 'VINE AND DANDY', [AND.ends]: 'BANK HOLIDAY',
+  [AND.shoulder]: 'COLD SHOULDER', [AND.chimney]: 'CHIMNEY SWEEP', [AND.prayer]: 'WING AND A PRAYER' };
+export const ANDES_LATER_COLOURS: Readonly<Record<number, number>> = { [AND.bridge]: 12, [AND.cloud]: 5, [AND.vine]: 7, [AND.ends]: 10, [AND.shoulder]: 14, [AND.chimney]: 14, [AND.prayer]: 14 };
 
 // ---- the palettes --------------------------------------------------------------------------------------
 /** The drop: rock and snow (the far ranges are a decoration on the horizon, `andPeaks`). */
@@ -64,10 +70,10 @@ export const TERRACE_PALETTE = {
 
 /**
  * Machu Picchu (MP2): the terraces' tiles, the ladder, the well's liana (the canopy's orange), the tunnel's dressed stone, the rock the tunnel ends in, the llama's spit, and Huayna Picchu, the one
- * backdrop: a single dark blue silhouette (scenery: he walks in front of it).
+ * backdrop: a single light green silhouette, the forested peak (scenery: he walks in front of it; the dark blue it was did not read, Chris).
  */
 export const PICCHU_PALETTE = {
-  G: ['terraceGrass', 5], W: ['incaWall', 8], L: ['woodLadder', 7], V: ['vine', 8], T: ['tunnelStone', 9], K: ['mountainRock', 9], S: ['spitGob', 5], Q: ['hpRock', 6],
+  G: ['terraceGrass', 5], W: ['incaWall', 8], L: ['woodLadder', 7], V: ['vine', 8], T: ['tunnelStone', 9], K: ['mountainRock', 9], S: ['spitGob', 5], Q: ['hpRock', 13],
 } as const satisfies Palette;
 
 /** THE INCA BRIDGE: the rock the trail is cut in, its tread, the logs over the gap, the forest of the valley far below (a backdrop; the far ranges: `andPeaks` on the horizon, the night over the trail). */
@@ -105,7 +111,7 @@ export const ROOTS_PALETTE = {
   J: ['jungleLeaf', 5], M: ['mud', 7], W: ['riverWater', 6], L: ['deckBoards', 9], V: ['vine', 8], D: ['andLeaves', 11],
 } as const satisfies Palette;
 
-/** THE RIVER ENDS (as it was): the leaves, the bank's and the stair's mud, the pool, the forest behind. */
+/** BANK HOLIDAY (was THE RIVER ENDS; Chris: "a terrible room name"): the leaves, the bank's and the stair's mud, the pool, the forest behind. */
 export const ENDS_PALETTE = {
   J: ['jungleLeaf', 5], M: ['mud', 9], W: ['riverWater', 6], D: ['andLeaves', 11],
 } as const satisfies Palette;
@@ -125,6 +131,10 @@ export const FLIGHTS: readonly FlightSpec[] = [
   { room: AND.jump, updrafts: [{ col: 9, cols: 3, top: 6 }] },
   { room: AND.thin, updrafts: [{ col: 5, cols: 3, top: 3 }, { col: 22, cols: 3, top: 6 }] },
   { room: AND.gorge, updrafts: [{ col: 13, cols: 3, top: 4 }] },
+  // the second line: COLD SHOULDER's pocket lifts him to the crag's coin; CHIMNEY SWEEP has none (a line steered, not lifted); WING AND A PRAYER's, under the chimney's mouth, to the coin there
+  { room: AND.shoulder, updrafts: [{ col: 8, cols: 3, top: 4 }] },
+  { room: AND.chimney, updrafts: [] },
+  { room: AND.prayer, updrafts: [{ col: 5, cols: 3, top: 6 }] },
 ];
 
 /** The boulders' colour: a grey rock, to stand off the green and ochre terraces and the blue Huayna Picchu behind them. */
@@ -160,8 +170,15 @@ export const SANDBAR_LEAPS: readonly RollerSpec[] = [leap(AND.sandbar, 1, 16.5, 
 /** The roots' two: under the first vine's swing, three cells clear of the west bank, and between the second vine and the east bank, at periods of their own. */
 export const ROOTS_LEAPS: readonly RollerSpec[] = [leap(AND.roots, 1, 9.5, 10.5, 190, 30), leap(AND.roots, 2, 18.5, 10.5, 230, 120)];
 
-/** Every roller of the region: the boulders and the leaping piranhas. */
-export const ROLLERS: readonly RollerSpec[] = [...BOULDERS_OF_PICCHU, ...VINE_LEAPS, ...SANDBAR_LEAPS, ...ROOTS_LEAPS];
+/**
+ * THE INCA BRIDGE's rockfall, the place's hazard (Chris: "not so much a puzzle as just annoying", the vizcacha's shuttle): a rock breaks off the face above and drops down the cleft past the logs, seen
+ * from the top of the screen before it reaches them, every 150 frames; on the logs as it falls, he is knocked into the gorge. Read from the step either side, then over the logs behind it. Sprite 1 (the
+ * room's one find is on 3, its creatures on 4 and 5).
+ */
+export const BRIDGE_ROCKS: readonly RollerSpec[] = [{ room: AND.bridge, sprite: 1, path: [[16.5, -3], [16.5, 20]], speed: 2, every: 150, start: 40, frames: BOULDER_POINTERS, colour: BOULDER_COLOUR }];
+
+/** Every roller of the region: the boulders, the bridge's rockfall and the leaping piranhas. */
+export const ROLLERS: readonly RollerSpec[] = [...BOULDERS_OF_PICCHU, ...BRIDGE_ROCKS, ...VINE_LEAPS, ...SANDBAR_LEAPS, ...ROOTS_LEAPS];
 
 /**
  * The vines. VINE AND DANDY's three, as they were: from the canopy at columns 8, 16 and 24, thirteen cells long (to the height of his middle on the banks), five cells either way at the tip every 96 frames,
@@ -199,6 +216,20 @@ export const LOG_CRACKS: readonly CrackSpec[] = LOGS.flatMap(([a, b]) => Array.f
 export const TANGLE_CELLS: readonly (readonly [row: number, col: number])[] = [5, 6, 7].flatMap((row) => [25, 26].map((col) => [row, col] as const));
 /** THE RIVER QUEEN's captain: the room's first creature, the one the chullo sends off (data.ts's room effect). */
 export const CAPTAIN_SLOT = 0;
+
+/**
+ * Each gate's picture of what it wants (wanted.ts; Chris: "if you have the item, the obstacle doesn't exist... If you knew you knew, otherwise, huh?"), blinking from the first visit, gone as he uses the
+ * item there (data.ts: the gate's room effect clears it, and a hidden find keeps the gate done): the panpipes in the tunnel's mouth over the spitting llama, the chullo at the foot of the riverboat's
+ * cargo deck where the captain turns him back, the machete over the tangle on the kapok's branch.
+ */
+export const WANTED = {
+  llama: { room: AND.picchu, piece: 'andWantPanpipes', col: 13, row: 15 },
+  captain: { room: AND.boat, piece: 'andWantChullo', col: 4, row: 13 },
+  tangle: { room: AND.kapok, piece: 'andWantMachete', col: 25, row: 3 },
+} as const;
+export const WANTED_ANIMS: readonly CharAnim[] = wantedAnims(Object.values(WANTED), ANDES_WANTED_FRAMES);
+/** The llama's picture's cells, kept clear of the tunnel's back wall (col, row). */
+const LLAMA_WANTED_CELLS = wantedCells(WANTED.llama).map(([r, c]) => [c, r] as const);
 
 // ---- the rooms ----------------------------------------------------------------------------------------------
 
@@ -255,6 +286,27 @@ const PAINT = {
     g.box(22, 8, 27, 8, 'S').box(22, 9, 31, 12, 'R').box(20, 13, 31, 19, 'R').box(20, 12, 21, 12, 'S'); // the shelf under the overhang, the cliff below it
     g.box(8, 15, 10, 19, 'R').box(8, 14, 10, 14, 'S'); // the pinnacle
     g.box(15, 16, 19, 19, 'R').box(15, 15, 19, 15, 'S'); // a spur: the east throat is cols 11-14, over the broad terrace's west end
+  },
+  shoulder(g: Grid) {
+    // COLD SHOULDER: the snowy shoulder run on east from JUMP FOR JOY (floor 11) to its end over the crevasses; a pocket under its end, two crags, the glacier's east wall. The bottom is open between the crags
+    g.box(0, 12, 7, 19, 'R').box(0, 11, 7, 11, 'S'); // the shoulder (floor 11)
+    g.box(8, 18, 11, 19, 'R'); // the pocket's floor (floor 18): its updraft lifts him out
+    g.box(12, 9, 14, 19, 'R').box(12, 8, 14, 8, 'S'); // the crag, its cap (floor 8): the coin
+    g.box(20, 13, 23, 19, 'R').box(20, 12, 23, 12, 'S'); // the second crag (floor 12)
+    g.box(27, 5, 31, 19, 'R').box(28, 0, 31, 4, 'R'); // the glacier's east wall
+  },
+  chimney(g: Grid) {
+    // CHIMNEY SWEEP: the two ways down from the crevasses (cols 15-19 and 24-26) meet in a chimney that turns twice, round a ledge out of the east wall and a crag out of the west
+    g.box(0, 0, 14, 19, 'R'); // the mountain's mass
+    g.box(20, 0, 23, 7, 'R').box(27, 0, 31, 19, 'R'); // the rib between the two ways in (the second crag's root), the east wall
+    g.box(21, 10, 26, 11, 'R').box(21, 9, 26, 9, 'S'); // the ledge out of the east wall (floor 9): the coin at its tip
+    g.box(15, 14, 19, 15, 'R').box(15, 13, 19, 13, 'S'); // the crag out of the west (floor 13)
+  },
+  prayer(g: Grid) {
+    // WING AND A PRAYER: out of the chimney's mouth over Machu Picchu; the mountain's flanks fall away either side and the sky opens to the citadel below (the hill's top and the Intihuatana: the landing)
+    g.box(0, 0, 14, 3, 'R').box(27, 0, 31, 3, 'R'); // the chimney's mouth
+    g.box(0, 4, 3, 19, 'R').box(29, 4, 31, 19, 'R'); // the flanks
+    g.box(4, 4, 9, 4, 'S'); // snow under the overhang's lip
   },
   terraces(g: Grid) {
     g.box(0, 0, 1, 7, 'K'); // the mountainside the top terrace ends at (the gorge's west cliff come down): the terrace leads nowhere west, and looks it
@@ -371,6 +423,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.jump, cell: [2, 25], sector: 55, palette: SKY_PALETTE, paint: PAINT.jump,
     coins: [[19, 10]],
     decor: [['andPeaks', 11, 3], ['mistCloud', 4, 4], ['mistCloud', 24, 6], ['updraft', 9, 12], ['updraft', 9, 8]],
+    creatures: [{ who: 'condor', col: 13, row: 4, way: 'down', speed: 1, range: 56, colour: 7 }, { who: 'condor', col: 22, row: 8, way: 'right', speed: 2, range: 28, colour: 14 }],
   }),
 
   // OUT OF THIN AIR: the canyon, as it was. In from above; the cliffs close in at each side and a ridge rises mid-room, its snowy crest (floor 9) with the coin over it: a line chosen from the top. A condor
@@ -379,7 +432,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.thin, cell: [3, 25], sector: 56, palette: SKY_PALETTE, paint: PAINT.thin,
     coins: [[15, 7]],
     decor: [['andPeaks', 15, 3], ['mistCloud', 3, 3], ['mistCloud', 20, 0], ['mistCloud', 10, 1], ['updraft', 5, 16], ['updraft', 5, 12], ['updraft', 5, 8], ['updraft', 5, 4], ['updraft', 22, 12], ['updraft', 22, 8]],
-    creatures: [{ who: 'condor', col: 26, row: 4, way: 'left', speed: 1, range: 176 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 36 }],
+    creatures: [{ who: 'condor', col: 26, row: 4, way: 'left', speed: 2, range: 88 }, { who: 'condor', col: 25, row: 8, way: 'down', speed: 2, range: 36, colour: 12 }, { who: 'condor', col: 7, row: 9, way: 'down', speed: 1, range: 56, colour: 10 }],
   }),
 
   // CONDOR COUNTRY: the gorge, its cliffs closing in. An updraft (cols 13-15) lifts him to the overhang, where he steers onto the shelf (floor 8) for the empanada; two condors dive, one in the updraft's
@@ -389,7 +442,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[16, 9]],
     item: { name: 'empanada1', col: 24, row: 6, sprite: ANDES_SPRITE.empanada },
     decor: [['andPeaks', 9, 3], ['mistCloud', 5, 1], ['updraft', 13, 10], ['updraft', 13, 6]],
-    creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 1, range: 96 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48 }],
+    creatures: [{ who: 'condor', col: 13, row: 3, way: 'down', speed: 2, range: 48 }, { who: 'condor', col: 20, row: 4, way: 'down', speed: 1, range: 48, colour: 10 }, { who: 'condor', col: 16, row: 11, way: 'left', speed: 3, range: 32, colour: 7 }],
   }),
 
   // MP1 NO PROBLLAMA: Machu Picchu's terraces, dry-stone walls under their grass. The guardhouse on the top terrace (floor 8), its thatch roof clear, holds the chullo; the roof's coin is for the west landing.
@@ -402,7 +455,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     decor: [['andPeaks', 17, 3]],
     cake: LEDGE_EMPANADA, cakeSprite: ANDES_SPRITE.empanada,
     item: { name: 'chullo', col: 3, row: 6, sprite: ANDES_SPRITE.chullo },
-    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 15, row: 10, way: 'right', speed: 1, range: 8 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 1, range: 40 }],
+    creatures: [{ who: 'cuy', col: 19, row: 7, way: 'down', speed: 1, range: 40 }, { who: 'llama', col: 12, row: 10, way: 'right', speed: 1, range: 24 }, { who: 'llama', col: 22, row: 16, way: 'right', speed: 2, range: 28 }],
   }),
 
   // MP2 MACHU PICCHU: the plateau, Huayna Picchu behind. The lane (floor 18) runs east from the terraces under the plateau into the tunnel (cols 12-24, rows 15-17 under the lintel, its back wall in the dark
@@ -413,8 +466,8 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.picchu, cell: [5, 26], sector: 59, palette: PICCHU_PALETTE, paint: PAINT.picchu,
     coins: [[30, 2], [21, 4]],
     item: { name: 'panpipes', col: 26, row: 2, sprite: ANDES_SPRITE.panpipes },
-    decor: [['intihuatana', 28, 2], ...TORCHES.map(([c, r]) => ['torch', c, r] as const), ...fillCells(PAINT.picchu, TORCHES.flatMap(([c, r]) => [[c, r], [c, r + 1]] as const), TUNNEL, 'tunnelBack')],
-    creatures: [{ who: 'spitter', col: 11, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'cuy', col: 13, row: 8, way: 'up', speed: 1, range: 40 }],
+    decor: [['intihuatana', 28, 2], ...TORCHES.map(([c, r]) => ['torch', c, r] as const), ...fillCells(PAINT.picchu, [...TORCHES.flatMap(([c, r]) => [[c, r], [c, r + 1]] as const), ...LLAMA_WANTED_CELLS], TUNNEL, 'tunnelBack'), wantedDecor(WANTED.llama)],
+    creatures: [{ who: 'spitter', col: 11, row: 16, way: 'right', speed: 1, range: 40 }, { who: 'cuy', col: 13, row: 8, way: 'up', speed: 2, range: 20 }],
   }),
 
   // THE INCA BRIDGE: the real dead-end trail cut into the cliff beside Machu Picchu (Chris: "a simple scenic room ... a single item ... double back"). Out of Machu Picchu's top along the narrow trail on the
@@ -424,7 +477,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.bridge, cell: [5, 27], sector: AND.bridge, palette: BRIDGE_PALETTE, paint: PAINT.bridge,
     item: { name: 'empanada3', col: 27, row: 2, sprite: ANDES_SPRITE.empanada },
     decor: [['andPeaks', 3, 1], ['andCitadelFar', 5, 13]],
-    creatures: [{ who: 'andVizcacha', col: 20, row: 4, way: 'right', speed: 1, range: 16 }],
+    creatures: [{ who: 'condor', col: 2, row: 1, way: 'right', speed: 2, range: 96, colour: 7 }, { who: 'andVizcacha', col: 21, row: 4, way: 'up', speed: 2, range: 16 }],
   }),
 
   // THE CANOPY: straight out of the tunnel's squeeze down the well's liana onto a bough. The only way on is the lattice: off the bough onto the liana slung across, west along it past the toucan and the sloth
@@ -432,7 +485,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.canopy, cell: [6, 26], sector: AND.canopy, palette: CANOPY_PALETTE, paint: PAINT.canopy,
     coins: [[13, 4]],
-    creatures: [{ who: 'sloth', col: 12, row: 5, way: 'down', speed: 1, range: 64, colour: 15 }, { who: 'toucan', col: 9, row: 3, way: 'down', speed: 1, range: 88 }],
+    creatures: [{ who: 'sloth', col: 12, row: 5, way: 'down', speed: 1, range: 64, colour: 15 }, { who: 'toucan', col: 9, row: 3, way: 'down', speed: 2, range: 44 }, { who: 'jaguar', col: 25, row: 5, way: 'left', speed: 2, range: 32 }],
   }),
 
   // CLOUD NINE: the cloud forest (the old room's way, west and down). In along the canopy's liana slung across (row 9) to the liana that hangs from the leaves to the floor: a climb up it to the coin at its head,
@@ -441,7 +494,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.cloud, cell: [6, 25], sector: AND.cloud, palette: CLOUD_PALETTE, paint: PAINT.cloud,
     coins: [[21, 3], [8, 14]],
-    creatures: [{ who: 'andSpectacledBear', col: 13, row: 16, way: 'right', speed: 1, range: 32 }, { who: 'andCockOfTheRock', col: 8, row: 8, way: 'down', speed: 1, range: 48 }],
+    creatures: [{ who: 'andSpectacledBear', col: 13, row: 16, way: 'right', speed: 2, range: 52 }, { who: 'andCockOfTheRock', col: 8, row: 8, way: 'down', speed: 1, range: 48 }, { who: 'toucan', col: 25, row: 2, way: 'down', speed: 2, range: 40, colour: 3 }],
   }),
 
   // BRANCHING OUT: the kapok. In from the roots up the liana on its flank onto the low boughs. The crown's branch, the way east into Rio, is choked by the tangle (THE UNDERGROWTH IS TOO THICK): the machete is
@@ -450,8 +503,8 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
   room({
     id: AND.kapok, cell: [6, 27], sector: AND.kapok, palette: KAPOK_PALETTE, paint: PAINT.kapok,
     coins: [[3, 4]],
-    decor: fillCells(PAINT.kapok, [], KAPOK_TRUNK, 'kapokBark'),
-    creatures: [{ who: 'anaconda', col: 14, row: 7, way: 'down', speed: 1, range: 56, colour: 13 }, { who: 'jaguar', col: 5, row: 4, way: 'right', speed: 1, range: 40 }],
+    decor: [...fillCells(PAINT.kapok, [], KAPOK_TRUNK, 'kapokBark'), wantedDecor(WANTED.tangle)],
+    creatures: [{ who: 'anaconda', col: 14, row: 7, way: 'down', speed: 2, range: 28, colour: 13 }, { who: 'jaguar', col: 2, row: 4, way: 'right', speed: 2, range: 40 }, { who: 'toucan', col: 17, row: 6, way: 'right', speed: 1, range: 80, colour: 3 }],
   }),
 
   // VINE AND DANDY: the old vine room, as it was. Down CLOUD NINE's liana onto the west bank; three vines hang from the canopy and swing over the wide brown river, two logs float between, piranhas leap,
@@ -461,7 +514,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[14, 14], [21, 14]],
     item: { name: 'empanada4', col: 29, row: 13, sprite: ANDES_SPRITE.empanada },
     decor: [['giantTree', 3, 9]], // the giant tree on the west bank, as it was (a column east of where it stood: CLOUD NINE's liana comes down at column 2)
-    creatures: [{ who: 'sloth', col: 12, row: 3, way: 'right', speed: 1, range: 30 }],
+    creatures: [{ who: 'sloth', col: 13, row: 3, way: 'down', speed: 2, range: 40 }, { who: 'andCockOfTheRock', col: 20, row: 4, way: 'down', speed: 1, range: 72 }],
   }),
 
   // UP THE CREEK: in from VINE AND DANDY through the niche under the fig (the empanada) onto the west bank (floor 15); east over the river: the vine, the two rotten logs that give way under a pause, the channel
@@ -470,7 +523,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.sandbar, cell: [7, 26], sector: AND.sandbar, palette: SANDBAR_PALETTE, paint: PAINT.sandbar,
     coins: [[14, 14]],
     item: { name: 'empanada2', col: 0, row: 13, sprite: ANDES_SPRITE.empanada },
-    creatures: [{ who: 'dolphin', col: 5, row: 17, way: 'up', speed: 1, range: 40 }],
+    creatures: [{ who: 'dolphin', col: 5, row: 17, way: 'up', speed: 1, range: 40 }, { who: 'andCockOfTheRock', col: 13, row: 3, way: 'down', speed: 1, range: 72, colour: 7 }, { who: 'cuy', col: 19, row: 13, way: 'right', speed: 2, range: 36 }],
   }),
 
   // THE ROOTS: two vines and a log over the river (cols 8-20), two piranhas leaping; the coin on the log between the vines. The west bank is eight cells wide, so the wait for the vine and the take are in the
@@ -479,6 +532,7 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     id: AND.roots, cell: [7, 27], sector: AND.roots, palette: ROOTS_PALETTE, paint: PAINT.roots,
     coins: [[13, 14]],
     decor: fillWhere(PAINT.roots, [], KAPOK_FOOT, 'kapokBark'),
+    creatures: [{ who: 'anaconda', col: 23, row: 6, way: 'down', speed: 1, range: 56, colour: 13 }, { who: 'andCockOfTheRock', col: 12, row: 4, way: 'down', speed: 2, range: 32, colour: 3 }],
   }),
 
   // THE RIVER QUEEN: the riverboat moored east of the roots, as she was (side view: the cargo deck, the cabin, the top deck, the pilot house, the funnel, the lifebuoy, the paddle wheel, a palm on the bank).
@@ -489,18 +543,46 @@ export const ANDES_ROOMS: readonly RoomSpec[] = [
     coins: [[23, 13], [19, 6]],
     item: { name: 'machete', col: 12, row: 6, sprite: ANDES_SPRITE.machete },
     item2: { name: 'empanada5', col: 22, row: 6, sprite: ANDES_SPRITE.empanada },
-    decor: [['andPilotHouse', 7, 5], ['andFunnel', 15, 5], ['pacLifeRing', 24, 6], ['andPaddleWheel', 28, 10], ['pacPalmSmall', 0, 11]],
-    creatures: [{ who: 'andCaptain', col: 7, row: 13, way: 'right', speed: 1, range: 128 }, { who: 'toucan', col: 17, row: 6, way: 'right', speed: 1, range: 64, colour: 2 }],
+    decor: [['andPilotHouse', 7, 5], ['andFunnel', 15, 5], ['pacLifeRing', 24, 6], ['andPaddleWheel', 28, 10], ['pacPalmSmall', 0, 11], wantedDecor(WANTED.captain)],
+    creatures: [{ who: 'andCaptain', col: 7, row: 13, way: 'right', speed: 1, range: 128 }, { who: 'toucan', col: 17, row: 6, way: 'right', speed: 1, range: 64, colour: 2 }, { who: 'macaw', col: 14, row: 1, way: 'down', speed: 2, range: 20, colour: 3 }],
   }),
 
-  // THE RIVER ENDS: the last bank, as it was (off the route: what the bank past the riverboat's stern leads to). In from the stern onto the bank; a dolphin rises in the pool; the muddy stair climbs from it
+  // BANK HOLIDAY (THE RIVER ENDS until 2026-11-28: "a terrible room name", Chris): the last bank, as it was (off the route: what the bank past the riverboat's stern leads to). In from the stern onto the bank; a dolphin rises in the pool; the muddy stair climbs from it
   // past the anaconda coiled on the middle step to the high bank under the boughs, where the forest closes in: a coin on the stair's first step over the pool, one on its top, an empanada under the palm.
   room({
     id: AND.ends, cell: [7, 29], sector: AND.ends, palette: ENDS_PALETTE, paint: PAINT.ends,
     coins: [[13, 11], [19, 7]],
     item: { name: 'empanada6', col: 28, row: 6, sprite: ANDES_SPRITE.empanada },
     decor: [['pacPalmSmall', 23, 4]],
-    creatures: [{ who: 'anaconda', col: 15, row: 9, way: 'right', speed: 1, range: 8, colour: 13 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 1, range: 24 }],
+    creatures: [{ who: 'anaconda', col: 18, row: 1, way: 'down', speed: 1, range: 48, colour: 13 }, { who: 'dolphin', col: 6, row: 17, way: 'up', speed: 2, range: 16 }, { who: 'toucan', col: 12, row: 5, way: 'right', speed: 2, range: 48, colour: 10 }],
+  }),
+
+  // COLD SHOULDER: the second line down, the harder (Chris: "the parachute drop... still extremely short and non-memorable"; the drop as a course). Walked east off JUMP FOR JOY's shoulder past its condor
+  // onto the ridge; off its end the canopy takes him over the crevasses: a condor sweeping the glide high, a quick one rising and falling in the wide crevasse (the way on), a slow one over the second crag
+  // (the other way on). The coin on the crag's cap: sink into the pocket under the ridge's end and its updraft lifts him level with it, then a step across under the high condor.
+  room({
+    id: AND.shoulder, cell: [2, 26], sector: AND.shoulder, palette: SKY_PALETTE, paint: PAINT.shoulder,
+    coins: [[13, 6]],
+    decor: [['andPeaks', 15, 1], ['mistCloud', 19, 6], ['updraft', 8, 14], ['updraft', 8, 10], ['updraft', 8, 6]],
+    creatures: [{ who: 'condor', col: 2, row: 3, way: 'right', speed: 2, range: 80, colour: 10 }, { who: 'condor', col: 16, row: 10, way: 'down', speed: 3, range: 16 }, { who: 'condor', col: 24, row: 2, way: 'down', speed: 1, range: 56, colour: 14 }],
+  }),
+
+  // CHIMNEY SWEEP: the two crevasses come down into one chimney. The west way drops past a condor rising and falling in it onto the crag out of the west wall; the east way onto the ledge out of the east wall
+  // (the coin at its tip), then west off it. Under them the chimney turns: a condor beats up and down under the ledge, and a quick one sweeps across the foot, the way out: each turn is a wait on a ledge, then a committed drop.
+  room({
+    id: AND.chimney, cell: [3, 26], sector: AND.chimney, palette: SKY_PALETTE, paint: PAINT.chimney,
+    coins: [[25, 7]],
+    decor: [['mistCloud', 16, 9]],
+    creatures: [{ who: 'condor', col: 16, row: 1, way: 'down', speed: 2, range: 32, colour: 7 }, { who: 'condor', col: 22, row: 12, way: 'down', speed: 1, range: 32 }, { who: 'condor', col: 15, row: 16, way: 'right', speed: 3, range: 24, colour: 10 }],
+  }),
+
+  // WING AND A PRAYER: out of the chimney's mouth into the sky over Machu Picchu, its citadel below. A condor glides the whole width slowly under the mouth, another beats up and down mid-sky; the coin under
+  // the overhang, up its updraft. The landing is the aim: the hill's top by the Intihuatana (east), under the boulders as they tumble off the mountain, or the plateau west of the gap.
+  room({
+    id: AND.prayer, cell: [4, 26], sector: AND.prayer, palette: SKY_PALETTE, paint: PAINT.prayer,
+    coins: [[6, 6]],
+    decor: [['andCitadelFar', 18, 13], ['mistCloud', 22, 5], ['updraft', 5, 14], ['updraft', 5, 10]],
+    creatures: [{ who: 'condor', col: 4, row: 8, way: 'right', speed: 1, range: 168, colour: 14 }, { who: 'condor', col: 12, row: 10, way: 'down', speed: 2, range: 28, colour: 7 }],
   }),
 ];
 
