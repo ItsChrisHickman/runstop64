@@ -1,5 +1,6 @@
 import type { TuneVersion } from '../../../montyotr/src/montydata';
 import { AWM_SID_URL, SOUND } from '../../../awm/src/sound';
+import { AMAZON } from './amazon';
 import { ANDES } from './andes';
 import { CHINA } from './china';
 import { JAPAN } from './japan';
@@ -20,7 +21,7 @@ import { retune, type RegionTune } from './region-tune';
  * Daglish), a nod to the third game, from that game's own .sid (the one asset both games share). It starts from its beginning on
  * taking off; the Andes after it go back to Hubbard's song, a clean change (games/shared/monty/LESSONS.md, music).
  */
-const TUNES: Readonly<Record<Exclude<RegionName, 'sky'>, RegionTune>> = { moscow: MOSCOW, siberia: SIBERIA, china: CHINA, japan: JAPAN, pacific: PACIFIC, andes: ANDES, rio: RIO };
+const TUNES: Readonly<Record<Exclude<RegionName, 'sky'>, RegionTune>> = { moscow: MOSCOW, siberia: SIBERIA, china: CHINA, japan: JAPAN, pacific: PACIFIC, andes: ANDES, amazon: AMAZON, rio: RIO };
 
 /** Auf Wiedersehen Monty's theme, as the sky plays it. */
 export const AWM_THEME: TuneVersion = { id: 'awm-theme', file: { url: AWM_SID_URL, song: SOUND.themeSong } };

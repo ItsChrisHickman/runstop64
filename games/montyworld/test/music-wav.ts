@@ -12,6 +12,7 @@ import { wavBytes } from '../../../tools/wav';
 import { pickBoundary } from '../../../packages/c64kit/src/sid/crossing';
 import { crossingPlan, type CrossingStyle } from '../src/music/crossing';
 import { GAME_SONG, retune, type RegionTune } from '../src/music/region-tune';
+import { AMAZON } from '../src/music/amazon';
 import { ANDES } from '../src/music/andes';
 import { CHINA } from '../src/music/china';
 import { JAPAN } from '../src/music/japan';
@@ -71,7 +72,7 @@ write('original', render(original, 45));
 const MAIN_FROM = 36;
 const proper = (file: Uint8Array) => render(file, MAIN_FROM + 45).subarray(MAIN_FROM * RATE);
 write('original-main', proper(original));
-for (const tune of [MOSCOW, SIBERIA, CHINA, JAPAN, PACIFIC, ANDES, RIO]) {
+for (const tune of [MOSCOW, SIBERIA, CHINA, JAPAN, PACIFIC, ANDES, AMAZON, RIO]) {
   const file = retune(original, tune);
   write(tune.id, render(file, 45));
   write(`${tune.id}-main`, proper(file));

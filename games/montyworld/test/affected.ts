@@ -31,7 +31,7 @@ export const MONTYWORLD_TESTS: MontyTests = {
   routes: ROUTES,
   roomTests: ['joins', 'climbs', 'stands', 'edges', 'creature-contrast', 'backdrop-holes', 'backdrop-edges', 'crushers', 'sprites-front', 'no-bounce'].map((n) => ({ file: `${T}/${n}.ts` })),
   everyRoomChange: ['world', 'text', 'save-migrate', 'walk', 'train'].map((n) => ({ file: `${T}/${n}.ts` })),
-  roomFree: ['title', 'costume', 'dither', 'music', 'music-siberia', 'music-china', 'music-japan', 'music-pacific', 'music-andes', 'music-rio'].map((n) => `${T}/${n}.ts`),
+  roomFree: ['title', 'costume', 'dither', 'music', 'music-siberia', 'music-china', 'music-japan', 'music-pacific', 'music-andes', 'music-amazon', 'music-rio'].map((n) => `${T}/${n}.ts`),
   slowWide: ['reward', 'japan-fair', 'rio-fair'].map((n) => `${T}/${n}.ts`),
 };
 

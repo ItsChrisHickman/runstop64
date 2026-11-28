@@ -89,6 +89,7 @@ const PENDING: Readonly<Record<RegionName, Readonly<Record<number, string>>>> = 
   japan: {},
   pacific: {},
   andes: {},
+  amazon: {},
   rio: {},
 };
 

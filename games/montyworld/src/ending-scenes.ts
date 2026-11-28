@@ -2,7 +2,7 @@ import type { Scene } from '../../montyotr/src/ending-scenes';
 import type { MontyEnding } from '../../montyotr/src/montydata';
 import { WORLD_CREATURES, type WorldCreature } from './art/world';
 import { VIKTOR_NAME, VIKTOR_SPLIT } from './art/viktor';
-import { STOPS } from './title-art';
+import { WORLD_REGIONS } from './regions';
 import { CLOSING, PLACES, placeFrames } from './ending-places';
 import { ROUTES } from './ending-routes';
 import { FIRST_CREATURE } from './layout';
@@ -25,7 +25,7 @@ export const SCENES: readonly Scene[] = PLACES.map((p, i): Scene => {
 });
 
 /**
- * The procession after the last credit (shared/ending/procession.ts): a troupe from each region in the order of the journey, under the region's name as the title's map has it (title-art.ts `STOPS`), each creature by
+ * The procession after the last credit (shared/ending/procession.ts): a troupe from each region in the order of the journey, under the region's name as the pause screen's map has it (regions.ts), each creature by
  * the key of its art (the enemy type it has in the tables is its place in the art's list) and the name it goes by in the procession: what the art draws, in plain words (the art's own description). The world has
  * ninety creatures; each region sends the four it is known by. Then Monty, dancing.
  */
@@ -35,11 +35,12 @@ const TROUPES: readonly (readonly (readonly [WorldCreature, string])[])[] = [
   [['panda', 'PANDA'], ['warrior', 'TERRACOTTA WARRIOR'], ['lion', 'STONE LION'], ['kite', 'KITE']],
   [['jpSumo', 'SUMO WRESTLER'], ['jpNinja', 'NINJA'], ['jpLuckyCat', 'LUCKY CAT'], ['jpKoi', 'KOI']],
   [['pacHula', 'HULA DANCER'], ['pacNene', 'NENE'], ['pacTurtle', 'GREEN TURTLE'], ['pacRooster', 'ROOSTER']],
-  [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN']],
+  [['llama', 'LLAMA'], ['condor', 'CONDOR'], ['andVizcacha', 'VISCACHA'], ['cuy', 'GUINEA PIG']],
+  [['jaguar', 'JAGUAR'], ['toucan', 'TOUCAN'], ['sloth', 'SLOTH'], ['anaconda', 'ANACONDA']],
   [['dancer', 'SAMBA DANCER'], ['gaucho', 'GAUCHO WAITER'], ['drummer', 'SAMBA DRUMMER']],
 ];
-/** The regions' names, Montos (where he sets out from) left off. */
-const REGIONS = STOPS.slice(1).map((s) => s.name);
+/** The regions' names as the pause screen's map heads them (regions.ts `label`), the sky left off (no troupe flies). */
+const REGIONS = WORLD_REGIONS.filter((r) => !r.flown).map((r) => r.label);
 if (REGIONS.length !== TROUPES.length) throw new Error(`a troupe for each region: ${REGIONS.length} regions, ${TROUPES.length} troupes`);
 const KEYS = Object.keys(WORLD_CREATURES);
 /** A creature's enemy type: its place in the art's list. */

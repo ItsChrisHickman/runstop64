@@ -1,9 +1,10 @@
 import type { CompleteSpec } from '../../../montyotr/src/montydata';
+import { regionColour } from '../regions';
 
 /**
  * The passport's stamps (the pause screen's PASSPORT page, montyotr's passport.ts): each region's, earned at 100% of it, a 16 x 16 picture of the place in one ink,
  * drawn as the game's art is (solid shapes, the details cut out in black): St Basil's onion dome, the Trans-Siberian's engine, a pagoda, Fuji under its snow,
- * a palm on its island, the biplane, a llama, the Redeemer on Corcovado.
+ * a palm on its island, the biplane, a llama, a toucan, the Redeemer on Corcovado.
  */
 
 /** A 16 x 16 picture ('#' lit) as an icon's 32 bytes: the characters top left, top right, bottom left, bottom right. */
@@ -153,6 +154,26 @@ const LLAMA = [
   '................',
 ];
 
+/** The Amazon's toucan, side on: the round head (the eye cut out), the great beak, the body down to its feet on a branch. */
+const TOUCAN = [
+  '................',
+  '..####..........',
+  '.######.........',
+  '##.#####........',
+  '##########......',
+  '#############...',
+  '#####.#########.',
+  '#####....######.',
+  '.####.......###.',
+  '.#####.......##.',
+  '..#####.........',
+  '..######........',
+  '...######.......',
+  '....#####.......',
+  '.....###........',
+  '..##########....',
+];
+
 const REDEEMER = [
   '.......##.......',
   '.......##.......',
@@ -172,14 +193,7 @@ const REDEEMER = [
   '.##############.',
 ];
 
-/** Each region's stamp (by its name on the map, regions.ts `label`) and its ink: Moscow red, Siberia's ice blue, China orange, Japan pink, Hawaii green, the sky cyan, the Andes purple, Rio yellow. */
-export const PASSPORT_STAMPS: CompleteSpec['stamps'] = [
-  { region: 'MOSCOW', picture: stampBytes('moscow', DOME), ink: 2 },
-  { region: 'SIBERIA', picture: stampBytes('siberia', ENGINE), ink: 14 },
-  { region: 'CHINA', picture: stampBytes('china', PAGODA), ink: 8 },
-  { region: 'JAPAN', picture: stampBytes('japan', FUJI), ink: 10 },
-  { region: 'HAWAII', picture: stampBytes('hawaii', PALM), ink: 13 },
-  { region: 'THE SKY', picture: stampBytes('sky', BIPLANE), ink: 3 },
-  { region: 'ANDES', picture: stampBytes('andes', LLAMA), ink: 4 },
-  { region: 'RIO', picture: stampBytes('rio', REDEEMER), ink: 7 },
-];
+/** Each region's stamp (by its name on the map, regions.ts `label`), inked in the region's colour on the map (regions.ts `colour`): Moscow red, Siberia's ice blue, China orange, Japan pink, Hawaii light green, the sky light grey, the Andes purple, the Amazon green, Rio cyan. */
+export const PASSPORT_STAMPS: CompleteSpec['stamps'] = ([
+  ['MOSCOW', DOME], ['SIBERIA', ENGINE], ['CHINA', PAGODA], ['JAPAN', FUJI], ['HAWAII', PALM], ['THE SKY', BIPLANE], ['ANDES', LLAMA], ['AMAZON', TOUCAN], ['RIO', REDEEMER],
+] as const).map(([region, rows]) => ({ region, picture: stampBytes(region.toLowerCase(), rows), ink: regionColour(region) }));
