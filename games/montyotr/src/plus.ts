@@ -11,18 +11,26 @@ import { wayIn } from './way-in';
 /**
  * NEW GAME+ (`MontyEnding.newGamePlus`: Do Svidaniya Monty's), the one owner: after a win, the title's CONTINUE and NEW GAME both begin a game at the very
  * beginning (the game's start) with the whole map open for travel, every room of the exit grid and not only those visited (`openMap`), and every key item
- * his, as taken (so every gate is open), in the game's NEW GAME+ costume (`plusStart`). The rest is fresh: Viktor and the creatures, the lever, the coins and
+ * his, as taken (so every gate is open; but the run's find, `plusItems`), in the game's NEW GAME+ costume (`plusStart`). The rest is fresh: Viktor and the creatures, the lever, the coins and
  * the snacks (they are the score), the lives and the score itself. The session (session.ts) begins it; the save keeps that it is one (`MontySave.plus`).
  */
 
 /** A special item taken, as the game marks it (items.ts). */
 const TAKEN = 0x81;
 
-/** The save NEW GAME+ begins from: the game's start, the key items taken, nothing else, the costume on (a save, so ENTER CONTINUE on the title begins it too). */
+/**
+ * The finds NEW GAME+ gives him at the start: every key item but the run's (`MontyData.run`, Do Svidaniya Monty's guarana). The run is a set piece, not a gate: drinking it on the
+ * Redeemer's arm is what starts the rush down the hill, so given at the start he ran in the favela with no drink taken (Chris, 2026-11-27: "I never grabbed that drink").
+ */
+export function plusItems(data: MontyData): readonly number[] {
+  return data.progress.keyItems.filter((i) => i !== data.run?.item);
+}
+
+/** The save NEW GAME+ begins from: the game's start, the key items taken (`plusItems`), nothing else, the costume on (a save, so ENTER CONTINUE on the title begins it too). */
 export function plusStart(data: MontyData, worn: number | null): MontySave {
-  const { start, exitGrid, progress } = data;
+  const { start, exitGrid } = data;
   const items = Array.from({ length: data.specialItems.length / 4 }, () => 0);
-  for (const i of progress.keyItems) items[i] = TAKEN;
+  for (const i of plusItems(data)) items[i] = TAKEN;
   return {
     v: 1,
     roomId: exitGrid.image[start.mapRow * exitGrid.cols + start.exitCol] ?? 0,

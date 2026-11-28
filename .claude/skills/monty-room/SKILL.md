@@ -33,6 +33,12 @@ A creature: `{ who, col, row, way, speed, range, colour? }`.
 - Monty on the Run mixes speeds 1 to 4 (24 of its 107 creatures at 3 or more); most of ours sit at 1-2. Its median room has
   3 creatures, vertical patrols about 8 cells, walkers about 10, 8 ledges over 6 levels (`room-stats.ts` measures both games).
 
+- Sprites: 0 and 1 are the room's finds, 4-7 the creatures (slot n is sprite 4+n), but **sprite 7 is the costume's** wherever
+  Monty wears a hat (every room after Moscow): three creatures at most (rio-mechanisms.ts fails a fourth). A Viktor border cameo
+  takes a creature slot of its room (`viktor.ts` `PLACES`), so such a room keeps one free. Rollers and skewers name their sprite.
+- A walker in a passage under four rows high cannot be jumped (his jump climbs two rows over a body two rows tall): never put one
+  there (Chris on a narrow arm: "almost impossible to jump over"). A ladder or a tread over its patrol is the place to wait.
+
 Edges: an open edge cell that meets a wall in the room beside is a trap; close it with `shut` (`joins.ts` checks every join).
 Water only kills outside whole swim rooms: never show water a snorkeller would expect to swim in and then drown him.
 

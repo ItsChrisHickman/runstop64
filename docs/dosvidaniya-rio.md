@@ -1,5 +1,25 @@
 # Do Svidaniya Monty: Rio's room map, and the ending
 
+## Challenge pass (2026-11-28)
+
+Chris after the long playtest: past Russia "the enemy design just doesn't show any thought". Rio keeps its rush down the hill (the guarana's run, the carnival, the floats, the showdown, the beach) and
+every room's drawing; the creatures become the puzzles, at the run's speed and readable at it. Limits that shaped it: three creatures a room at most in Rio (sprite 7 is the costume's), OPEN ARMS two
+(Viktor's border cameo takes the third slot), and no creature in a passage too low to jump it in. The puzzle each room asks, and the line through it:
+
+| Room | Creatures and hazards | The puzzle |
+|---|---|---|
+| C OPEN ARMS | vulture diving across the east arm (quick, 6 cells); marmoset over the forest floor, quick and 13 cells, under both ladders | Down the liana, then the marmoset: follow him east and climb the Redeemer's ladder before he turns, or wait on a ladder and jump him on the open floor. Up top, the arm's walk to the guarana and off the hand is timed to the vulture's dive. The west arm's snack is a free climb now (the marmoset that paced the six-cell arm was "almost impossible to jump") |
+| F HOUSE OF COLOUR | football out of the light well (quick); kite down the lane between the roofs (quick, 10 cells); macaw across the alley (quick) | The jump over the well timed to the bounce; the drop to the alley timed to the kite; the alley west under the macaw as it rises (its coin under it). The lane under the alley is three rows high: nothing walks there. The green hill behind every gap is gone (black behind the houses and the alley's posts, Chris: "VERY busy") |
+| L THE LAPA ARCHES | capoeirista along the street, quick and 20 cells (clear of the way in); bat dropping across the street under the arches (slow); the stone rolling west every 200 frames; a vulture over the track's east end | The street read once at speed: three timings on one line, two of them on their own clocks. On the coin detour, the walk from the steps' head to the tram's stop under the vulture |
+| W STEAK YOUR CLAIM | the grill's gaucho walks the platform to the ladder's head (7 cells); the floor's gaucho paces quicker; both skewers swing | The coin on the dining floor between the floor gaucho's turns and his skewer; the ladder's head under the grill gaucho's swing |
+| P BEAT THE DRUM | passista (quick, 9 cells) and baiana (slow, 10 cells) cross the street under the Selaron steps on two periods; the drummer on the top riser | Wait on a tread above the dancers for both to head west, drop and make the risers' foot; the drummer's beat for the coin on top. The carnival's dancers cross the way |
+| Q FLOAT YOUR BOAT | macaw diving over the canal's middle across both lanes (slow, 7 rows); kite across the grandstand's ladder and the east balcony (quick) | On a float, walk the deck back or on to meet the macaw's gap; at the stage, the climb up the ladder timed to the kite (lane B's boarding too). Was the one room with no creature (challenge.ts's PENDING) |
+| D SPY VERSUS MOLE | unchanged: the drummer, the gantry's dancer, Viktor and the float's head | The showdown as it was (Chris had no note) |
+| B RIO OR BUST | none: the finale | The close-up's beach is sand from the sea down (it was black under him: "he looks like he's floating in the air") |
+
+Gates: Rio has no item gate but the crank in the Sambadrome's booth, which already shows its socket lit and the head live once fitted (levers.ts). The guarana is the run's cause, not a gate: NEW GAME+ no longer
+gives it at the start (plus.ts `plusItems`), so he runs only once he has drunk it (Chris: "I never grabbed that drink"). A NEW GAME+ game begun before this keeps it taken.
+
 > **The final rush (2026-11-25, Chris's notes and docs/dosvidaniya-back-half-plan.md, "Rio").** Eight rooms at columns 23-29: C OPEN ARMS, F HOUSE OF COLOUR, L THE LAPA ARCHES (W STEAK YOUR CLAIM
 > above), P BEAT THE DRUM (70, back: the carnival's street, the Selaron steps up to Lapa's track, the bateria's risers, a dancer and a passista), Q FLOAT YOUR BOAT (76, back: the parade's floats over the
 > canal, three east at the street's height, two west at the balconies'), D SPY VERSUS MOLE and B RIO OR BUST. **SUGAR RUSH is cut** (Chris: "the Sugar thing... that's a wasted effort"), with its cable car,

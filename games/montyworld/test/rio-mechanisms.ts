@@ -359,11 +359,10 @@ SCOPE.section([R.bust], 'the finale', () => {
     if (shown(7) && v.sprites[7]?.ptr === FP.chair && (v.multicolour & 0x80) && (v.expandX & 0x80)) chairShown = true;
     if (troupeOn < 0 && [1, 4, 5, 6].every(shown) && [1, 4, 5, 6].every((n) => ((v.sprites[n]?.ptr ?? 0) & 0xf0) === 0x30)) troupeOn = beats.length;
     if (beat === 'sit' && !sand) {
-      // (the close-up: the sand two plain rows of one colour, nothing between the sea's row and the sand but the umbrella's pole)
+      // (the close-up: the sand plain in one colour from under the sea's row to the picture's foot, nothing on it but the umbrella's pole: no black under him, Chris 2026-11-27 "he looks like he's floating")
       const row = (r: number) => Array.from({ length: 32 }, (_, c) => (r + 3) * 40 + c + 4);
-      const plain = [18, 19].every((r) => row(r).every((i) => s.g.col[i] === SAND_COLOUR && s.g.mem[0x800 + i] === (s.g.mem[0x800 + (row(18)[0] ?? 0)] ?? -1)));
-      const clear = [13, 14, 15, 16, 17].every((r) => row(r).every((i) => { const c = s.g.mem[0x800 + i] ?? 0; return c === 0 || c >= 0x9b; }));
-      sand = plain && clear;
+      const sandChr = s.g.mem[0x800 + (row(18)[0] ?? 0)] ?? -1;
+      sand = [13, 14, 15, 16, 17, 18, 19].every((r) => row(r).every((i) => (s.g.mem[0x800 + i] ?? 0) >= 0x9b || (s.g.col[i] === SAND_COLOUR && s.g.mem[0x800 + i] === sandChr)));
     }
   }
   check(`the picture cuts to the close-up: the sand plain, the palms, the table and the near sea gone (${sand}); the deckchair a striped multicolour sprite, expanded (${chairShown})`, sand && chairShown);

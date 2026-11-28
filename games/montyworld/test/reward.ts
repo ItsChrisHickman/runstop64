@@ -47,6 +47,7 @@ import { standY } from './route';
 import { montyMap } from '../../montyotr/src/map';
 import { cellOf } from '../../montyotr/src/montydata';
 import { isRecord, readJson } from '../../shared/guards';
+import { plusItems } from '../../montyotr/src/plus';
 
 const exitGridImage = WORLD.exitGrid.image;
 const CAST = WORLD_ENDING.cast;
@@ -392,7 +393,8 @@ function win(s: ReturnType<typeof boot>) {
     const cell = must(cellOf(WORLD, id), `room ${id} on the grid`);
     s.p.state.found.rooms[id] = [0x40, standY(18), cell.row, cell.col];
   };
-  const { keyItems } = WORLD.progress;
+  /** NEW GAME+'s finds at the start: every key item but the guarana (plus.ts `plusItems`: its drink starts Rio's run). */
+  const keyItems = plusItems(WORLD);
   /** NEW GAME+ as it begins: Moscow's first room, every key item and nothing else, no coin, the score nothing. */
   const plusStart = (g: Game) => g.plus && g.score === 0 && g.siCollected.every((v, i) => (keyItems.includes(i) ? v !== 0 : v === 0)) && g.coinCollected.every((v) => v === 0) && g.roomId === 0;
   {
@@ -410,7 +412,7 @@ function win(s: ReturnType<typeof boot>) {
   s.tick(30);
   // CONTINUE after the win: NEW GAME+ at the beginning, not back into Rio's beach
   s.press('Enter');
-  check('won, then ENTER CONTINUE: NEW GAME+ in Moscow\'s first room, every key item his, nothing else, the score nothing', won && s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300) && plusStart(s.g));
+  check('won, then ENTER CONTINUE: NEW GAME+ in Moscow\'s first room, every key item his but the guarana, nothing else, the score nothing', won && s.until(() => s.p.state.mode === 'play' && !s.g.freeze, 300) && plusStart(s.g));
   check('the whole map open: a room of Rio\'s, never visited in this game, is a place to travel to', String(RIO_ROOM.arms) in s.p.state.found.rooms);
   check('and kept with the saves (a new page load reads it)', readFoundRooms().includes(String(RIO_ROOM.arms)));
   check('travel goes from the first room to Rio', montyMap.go(String(RIO_ROOM.arms), s.g, s.p.state.found) && s.until(() => s.g.roomId === RIO_ROOM.arms && !s.g.freeze, 300));
