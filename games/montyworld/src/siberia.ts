@@ -411,7 +411,7 @@ export const SIBERIA_ROOMS: readonly RoomSpec[] = [
       ...underCar(0, CAB.boiler - 1, TENDER_BOGIES), ['drivingWheel', 25, 17], ['drivingWheel', 28, 17],
     ],
     creatures: [
-      { who: 'miner', col: 18, row: 15, way: 'right', speed: 2, range: 12, colour: 7 }, // the stoker, quick to and from the firebox, clear of the cab's low doorway: over him to the coin and back
+      { who: 'miner', col: 18, row: 15, way: 'right', speed: 1, range: 24, colour: 7 }, // the stoker, to and from the firebox, clear of the cab's low doorway: over him to the coin and back (at twice the pace the cab's low roof leaves no jump back over him: a trap)
       { who: 'pigeon', col: 19, row: 1, way: 'down', speed: 2, range: 24 }, // a pigeon diving out of the smoke onto the cab's roof and up again: under it while it is up (one along the roof would close it, nowhere to pass)
     ],
   }),

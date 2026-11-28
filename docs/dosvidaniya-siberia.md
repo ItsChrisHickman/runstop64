@@ -298,7 +298,7 @@ layouts and the train's path puzzle (the steam valve) stay; what changes is the 
   the provodnitsa now walks the whole corridor briskly from the closet's foot to the coin. He waits on the closet's ladder, follows her, and jumps her where
   she turns; coming back the same from the gangway. The ticket's two gates are used where they are, seen (below).
 - **COAL COMFORT.** The roof lane: over the coal and the quiet top of the pipe, a pigeon dives out of the smoke onto the cab's roof and up again (6 rows,
-  quick): under it while it is up, then down onto the boiler. The inside: the stoker quick at the firebox, the coin over him; the valve as the release made it.
+  quick): under it while it is up, then down onto the boiler. The inside: the stoker at the firebox as he was (at twice the pace the cab's low roof left no jump back over him from the coin: a trap, so he stays slow), the coin over him; the valve as the release made it.
 - **YETI OR NOT.** Unchanged: the yeti's loop and the icicle (which now leads) are the room's puzzle, and its four sprites, the icicle's, the ticket's, Monty
   and his hat fill the eight.
 - **MINE ALL MINE.** The two shafts' bats now fly at different speeds (the west one twice as fast), so the gaps under the two shafts drift against each other:
